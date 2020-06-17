@@ -192,7 +192,7 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 
 			} else {
 
-				System.out.println("No action for tag " + element.tagName + ", ignoring");
+				logger.warn("No action for tag {}, ignoring", element.tagName);
 			}
 		}
 
@@ -289,13 +289,13 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 
 				} else {
 
-					System.out.println("Missing property name for nested createNode action in " + element.tagName);
+					logger.warn("Missing property name for nested createNode action in {}", element.tagName);
 				}
 			}
 
 		} else {
 
-			System.out.println("Invalid import specification for " + element.tagName + ", createNode action must be accompanied by type attribute.");
+			logger.warn("Invalid import specification for {}, createNode action must be accompanied by type attribute", element.tagName);
 		}
 	}
 

@@ -43,9 +43,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FlowTypeQuery extends FlowBaseNode implements DataSource, DeployableEntity {
 
+	private static final Logger logger                                  = LoggerFactory.getLogger(FlowTypeQuery.class);
 	public static final Property<DataSource> dataSource                 = new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<Iterable<FlowBaseNode>> dataTarget     = new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<String> dataType                       = new StringProperty("dataType");

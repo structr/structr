@@ -20,7 +20,6 @@ package org.structr.geo;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
 import java.io.File;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -57,7 +56,6 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.structr.common.error.FrameworkException;
 import org.structr.rest.common.HttpHelper;
-import org.structr.schema.action.ActionContext;
 
 public abstract class AbstractGeoserverFunction extends GeoFunction {
 
@@ -261,7 +259,7 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 
 					final String content = IOUtils.toString(is, "utf-8");
 
-					System.out.println(content);
+					logger.warn("Error fetching WFS data: {}", content);
 
 					throw new FrameworkException(GEOSERVER_ERROR_STATUS, content);
 				}
@@ -457,53 +455,4 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 
 		return defaultValue;
 	}
-
-	public static void main(final String[] args) {
-
-		try {
-			final AbstractGeoserverFunction func = new AbstractGeoserverFunction() {
-				@Override
-				public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
-					throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-				}
-
-				@Override
-				public String usage(boolean inJavaScriptContext) {
-					throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-				}
-
-				@Override
-				public String shortDescription() {
-					throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-				}
-
-				@Override
-				public String getSignature() {
-					throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-				}
-
-				@Override
-				public String getName() {
-					throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-				}
-			};
-
-			final GeometryFactory factory = new GeometryFactory();
-			final String baseUrl          = "http://geodata.rivm.nl/geoserver";
-			final String coverageId       = "dmg__licht_20150315_gm_hhnachtonbew";
-			final Geometry boundingBox    = factory.createLineString(new Coordinate[] { new Coordinate(240373.6329517475, 254330.02993994422), new Coordinate(435015.8480670558,451025.2900452074) }).getEnvelope();
-			final double min              = -10000.0;
-			final double max              = 0.23;
-
-			final List<Geometry> geometries = func.getFilteredCoverageGeometries(baseUrl, coverageId, boundingBox, min, max);
-
-			System.out.println(geometries.size() + " geometries");
-
-			func.showGeometries(1000, 1000, geometries.toArray(new Geometry[0]));
-
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-	}
-
 }

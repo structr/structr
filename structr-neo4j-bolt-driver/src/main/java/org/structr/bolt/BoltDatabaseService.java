@@ -844,6 +844,14 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		return errorMessage;
 	}
 
+	@Override
+	public Map<String, Map<String, Integer>> getCachesInfo() {
+		return Map.of(
+			"nodes", NodeWrapper.nodeCache.getCacheInfo(),
+			"relationships", RelationshipWrapper.relationshipCache.getCacheInfo()
+		);
+	}
+
 	// ----- private methods -----
 	private void createUUIDConstraint() {
 

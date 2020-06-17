@@ -74,11 +74,6 @@ public class GraphQLResource extends Resource {
 
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
-
-		System.out.println(propertySet);
-
-
 		throw new FrameworkException(500, "Not implemented");
 	}
-
 }

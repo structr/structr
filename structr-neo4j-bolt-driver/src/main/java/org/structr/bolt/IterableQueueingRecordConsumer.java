@@ -28,12 +28,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.StatementResultCursor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  */
 public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterator<Record>, AutoCloseable, Consumer<Record> {
 
+	private static final Logger logger        = LoggerFactory.getLogger(IterableQueueingRecordConsumer.class);
 	private final BlockingQueue<Record> queue = new LinkedBlockingQueue<>();
 	private final AtomicInteger elementCount  = new AtomicInteger(0);
 	private final AtomicInteger queueSize     = new AtomicInteger(0);
@@ -135,17 +138,14 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 
 			if (System.currentTimeMillis() > yieldStart + 180_000) {
 
-				System.out.println("#######################################################################################################");
-				System.out.println("IterableQueueingRecordConsumer waited for 2 minutes, aborting");
-				System.out.println("statement: " + query.getStatement(true));
-				System.out.println("throwable: " + throwable);
-				System.out.println("finished:  " + finished.get());
-				System.out.println("added:     " + added.get());
-				System.out.println("queue:     " + queue);
-
-				Thread.dumpStack();
-
-				System.out.println("#######################################################################################################");
+				logger.warn("#######################################################################################################");
+				logger.warn("IterableQueueingRecordConsumer waited for 2 minutes, aborting");
+				logger.warn("statement: {}", query.getStatement(true));
+				logger.warn("throwable: {}", throwable);
+				logger.warn("finished:  {}", finished.get());
+				logger.warn("added:     {}", added.get());
+				logger.warn("queue:     {}", queue);
+				logger.warn("#######################################################################################################");
 
 				break;
 			}

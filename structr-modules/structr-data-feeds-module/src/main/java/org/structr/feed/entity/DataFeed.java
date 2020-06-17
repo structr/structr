@@ -34,6 +34,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -152,6 +154,7 @@ public interface DataFeed extends NodeInterface {
 						StructrApp.getInstance(ctx).delete(item);
 
 					} catch (FrameworkException ex) {
+						final Logger logger = LoggerFactory.getLogger(DataFeed.class);
 						logger.error("Error while deleting old/surplus feed item " + item, ex);
 					}
 				}
@@ -248,6 +251,7 @@ public interface DataFeed extends NodeInterface {
 
 							newItems.add(item);
 
+							final Logger logger = LoggerFactory.getLogger(DataFeed.class);
 							logger.debug("Created new item: {} ({}) ", item.getProperty(FeedItem.name), item.getProperty(dateKey));
 						}
 					}
@@ -257,6 +261,7 @@ public interface DataFeed extends NodeInterface {
 				}
 
 			} catch (IllegalArgumentException | IOException | FeedException | FrameworkException ex) {
+				final Logger logger = LoggerFactory.getLogger(DataFeed.class);
 				logger.error("Error while updating feed", ex);
 			}
 		}

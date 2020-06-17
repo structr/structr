@@ -20,9 +20,10 @@ package org.structr.schema.compiler;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
-import static org.structr.core.GraphObject.logger;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.schema.SchemaService;
 
@@ -31,6 +32,7 @@ import org.structr.schema.SchemaService;
  */
 public class BlacklistSchemaNodeWhenMissingPackage implements MigrationHandler {
 
+	private static final Logger logger   = LoggerFactory.getLogger(BlacklistSchemaNodeWhenMissingPackage.class);
 	private static final Pattern PATTERN = Pattern.compile("package ([a-zA-Z0-9\\.]+) does not exist");
 
 	@Override

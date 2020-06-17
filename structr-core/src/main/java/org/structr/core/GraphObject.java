@@ -68,7 +68,6 @@ import org.structr.schema.action.ActionContext;
  */
 public interface GraphObject extends CodeSource {
 
-	static final Logger logger = LoggerFactory.getLogger(GraphObject.class);
 
 	static final String SYSTEM_CATEGORY     = "System";
 	static final String VISIBILITY_CATEGORY = "Visibility";
@@ -227,6 +226,8 @@ public interface GraphObject extends CodeSource {
 
 			} catch (UnknownClientException | UnknownDatabaseException e) {
 
+				final Logger logger = LoggerFactory.getLogger(GraphObject.class);
+
 				logger.warn("Unable to set properties of {} with UUID {}: {}", getType(), getUuid(), e.getMessage());
 				logger.warn("Properties: {}", container.getData());
 			}
@@ -283,6 +284,7 @@ public interface GraphObject extends CodeSource {
 
 				} catch (FrameworkException ex) {
 
+					final Logger logger = LoggerFactory.getLogger(GraphObject.class);
 					logger.warn("Unable to convert property {} of type {}: {}", key.dbName(), getClass().getSimpleName(), ex.getMessage());
 					logger.warn("Exception", ex);
 				}
@@ -306,6 +308,7 @@ public interface GraphObject extends CodeSource {
 
 		} catch (UnknownClientException | UnknownDatabaseException e) {
 
+			final Logger logger = LoggerFactory.getLogger(GraphObject.class);
 			logger.warn("Unable to index properties of {} with UUID {}: {}", getType(), getUuid(), e.getMessage());
 			logger.warn("Properties: {}", values);
 		}

@@ -97,7 +97,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 		}
 
 		if (newRel == null) {
-			System.out.println("##################### newRel was null, using generic relationship..");
+			logger.warn("newRel was null, using generic relationship for {}", relationship);
 			newRel = (T)StructrApp.getConfiguration().getFactoryDefinition().createGenericRelationship();
 		}
 

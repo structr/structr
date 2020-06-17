@@ -24,6 +24,8 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.common.PropertyView;
@@ -178,6 +180,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 		if (!valid) {
 
+			final Logger logger       = LoggerFactory.getLogger(AbstractFile.class);
 			final String originalPath = thisFile.getProperty(pathKey);
 			final String newName      = thisFile.getProperty(AbstractFile.name).concat("_").concat(FileHelper.getDateString());
 
@@ -270,6 +273,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 			} catch (IOException ioex) {
 
+				final Logger logger = LoggerFactory.getLogger(AbstractFile.class);
 				logger.error("Unable to create file {}: {}", file, ioex.getMessage());
 			}
 		}

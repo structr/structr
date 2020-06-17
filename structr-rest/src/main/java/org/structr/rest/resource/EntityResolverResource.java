@@ -99,7 +99,5 @@ public class EntityResolverResource extends WrappingResource {
 
 	@Override
 	public void configurePropertyView(Value<String> propertyView) {
-
-		System.out.println(propertyView.get(securityContext));
 	}
 }

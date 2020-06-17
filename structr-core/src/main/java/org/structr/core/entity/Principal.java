@@ -27,14 +27,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.Node;
-import org.structr.common.AccessControllable;
-import org.structr.common.EMailValidator;
-import org.structr.common.LowercaseTransformator;
-import org.structr.common.PropertyView;
+import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
@@ -70,7 +69,8 @@ public interface Principal extends NodeInterface, AccessControllable {
 			.setIndexed(true)
 			.setUnique(true)
 			.addValidator(EMailValidator.class.getName())
-			.addTransformer(LowercaseTransformator.class.getName());
+			.addTransformer(LowercaseTransformator.class.getName())
+			.addTransformer(TrimTransformator.class.getName());
 
 		principal.addPasswordProperty("password");
 
@@ -206,7 +206,9 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		} catch (FrameworkException fex) {
 
+			final Logger logger = LoggerFactory.getLogger(Principal.class);
 			logger.warn("Caught exception while fetching groups for user '{}' ({})", principal.getName(), principal.getUuid());
+
 			fex.printStackTrace();
 
 			return Collections.emptyList();
@@ -226,6 +228,8 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 					if (Settings.MaxSessionsPerUser.getValue() > 0 && ids.length >= Settings.MaxSessionsPerUser.getValue()) {
 
+						final Logger logger = LoggerFactory.getLogger(Principal.class);
+
 						final String errorMessage = "Not adding session id, limit " + Settings.MaxSessionsPerUser.getKey() + " exceeded.";
 						logger.warn(errorMessage);
 
@@ -243,7 +247,10 @@ public interface Principal extends NodeInterface, AccessControllable {
 			return true;
 
 		} catch (FrameworkException ex) {
+
+			final Logger logger = LoggerFactory.getLogger(Principal.class);
 			logger.error("Could not add sessionId " + sessionId + " to array of sessionIds", ex);
+			
 			return false;
 		}
 	}
@@ -265,6 +272,8 @@ public interface Principal extends NodeInterface, AccessControllable {
 			}
 
 		} catch (FrameworkException ex) {
+
+			final Logger logger = LoggerFactory.getLogger(Principal.class);
 			logger.error("Could not remove sessionId " + sessionId + " from array of sessionIds", ex);
 		}
 	}
@@ -344,7 +353,10 @@ public interface Principal extends NodeInterface, AccessControllable {
 			return new URI("otpauth", null, "totp", -1, path.toString(), query.toString(), null).toString();
 
 		} catch (URISyntaxException use) {
+
+			final Logger logger = LoggerFactory.getLogger(Principal.class);
 			logger.warn("two_factor_url(): URISyntaxException for {}?{}", path, query, use);
+
 			return "URISyntaxException for " + path + "?" + query;
 		}
 	}

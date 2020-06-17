@@ -2216,11 +2216,4 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			return o1.compareTo(o2);
 		}
 	}
-
-
-	public static void main(final String[] args) {
-
-		System.out.println(Float.valueOf("3.5-SNAPSHPOT"));
-		System.out.println(Float.valueOf("3.4.3"));
-	}
 }

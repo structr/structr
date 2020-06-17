@@ -114,12 +114,6 @@ public class MaintenanceParameterResource extends Resource {
 
 	@Override
 	public Resource tryCombineWith(final Resource next) throws FrameworkException {
-
-		if (next != null) {
-
-			System.out.println(next);
-		}
-
 		return null;
 	}
 

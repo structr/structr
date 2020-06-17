@@ -78,7 +78,11 @@ public class LoginResource extends FilterableResource {
 		final String twoFactorToken = (String) propertySet.get("twoFactorToken");
 		final String twoFactorCode  = (String) propertySet.get("twoFactorCode");
 
-		final String emailOrUsername = StringUtils.isNotEmpty(email) ? email : username;
+		String emailOrUsername = StringUtils.isNotEmpty(email) ? email : username;
+
+		if (StringUtils.contains(emailOrUsername, "@")) {
+			emailOrUsername = emailOrUsername.trim().toLowerCase();
+		}
 
 		Principal user = null;
 		RestMethodResult returnedMethodResult = null;

@@ -22,6 +22,7 @@ structr-ui/logDb.dat
 structr-ui/src/test/javascript/screenshots
 structr-ui/structr-ui*.pid
 structr-ui/*.key
+**/logs
 *.diff
 **nb-configuration.xml
 **nbproject
@@ -37,8 +38,3 @@ license.key
 # IntelliJ specific ignores
 .idea
 *.iml
-<<<<<<< HEAD
-/structr-ui/nbproject/
-/structr-neo4j-bolt-driver/nbproject/
-=======
->>>>>>> master

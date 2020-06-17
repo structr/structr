@@ -57,16 +57,16 @@ public class Auth0AuthClient extends StructrOAuthClient {
 		// initialize user from user response
 		if (userInfo != null) {
 
-			String name = (String)userInfo.get("nickname");
+			String name = (String) userInfo.get("nickname");
 
 			// fallback 1
 			if (StringUtils.isBlank(name)) {
-				name = (String)userInfo.get("name");
+				name = (String) userInfo.get("name");
 			}
 
 			// fallback 2
 			if (StringUtils.isBlank(name)) {
-				name = (String)userInfo.get("email");
+				name = (String) userInfo.get("email");
 			}
 
 			user.setProperty(Principal.name, name);

@@ -23,26 +23,24 @@ import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.Transformer;
 
-public class LowercaseTransformator implements Transformer<String> {
+public class TrimTransformator implements Transformer<String> {
+    @Override
+    public String getProperty(GraphObject entity, PropertyKey<String> key, String value) {
 
-	@Override
-	public String getProperty(final GraphObject entity, final PropertyKey<String> key, final String value) {
+        if (value != null) {
+            return value.trim();
+        }
 
-		if (value != null) {
-			return value.toLowerCase();
-		}
+        return null;
+    }
 
-		return null;
-	}
+    @Override
+    public String setProperty(GraphObject entity, PropertyKey<String> key, String value) throws FrameworkException {
 
-	@Override
-	public String setProperty(final GraphObject entity, final PropertyKey<String> key, final String value) throws FrameworkException {
+        if (value != null) {
+            return value.trim();
+        }
 
-		if (value != null) {
-
-			return value.toLowerCase();
-		}
-
-		return null;
-	}
+        return null;
+    }
 }

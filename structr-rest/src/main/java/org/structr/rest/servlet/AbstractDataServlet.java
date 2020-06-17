@@ -37,12 +37,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.io.QuietException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import static org.structr.core.GraphObject.logger;
 import org.structr.core.IJsonInput;
 import org.structr.core.Services;
 import org.structr.core.Value;
@@ -63,6 +64,8 @@ import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMTER_OUTPUT_D
  *
  */
 public abstract class AbstractDataServlet extends AbstractServletBase implements HttpServiceServlet {
+
+	private static final Logger logger = LoggerFactory.getLogger(AbstractDataServlet.class);
 
 	// final fields
 	protected final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
