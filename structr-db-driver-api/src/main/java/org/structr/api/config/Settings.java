@@ -207,9 +207,9 @@ public class Settings {
 	public static final Setting<Boolean> CmisEnabled             = new BooleanSetting(advancedGroup, "hidden",      "cmis.enabled",                  false);
 
 	// servlets
-	public static final StringMultiChoiceSetting Servlets     = new StringMultiChoiceSetting(servletsGroup, "General", "httpservice.servlets", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet LoginServlet LogoutServlet", Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet"), "Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
+	public static final StringMultiChoiceSetting Servlets     = new StringMultiChoiceSetting(servletsGroup, "General", "httpservice.servlets", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet LoginServlet LogoutServlet", Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet", "EventSourceServlet"), "Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
 
-	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "configservlet.enabled",             true, "Enables the config servlet (available under <code>http(s)://<your-server>/structr/config</code>)");
+	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "configservlet.enabled",             true, "Enables the config servlet (available under <code>http(s)://&lt;your-server&gt;/structr/config</code>)");
 
 	public static final Setting<String> RestServletPath       = new StringSetting(servletsGroup,            "JsonRestServlet", "jsonrestservlet.path",                         "/structr/rest/*", "URL pattern for REST server. Do not change unless you know what you are doing.");
 	public static final Setting<String> RestServletClass      = new StringSetting(servletsGroup,            "JsonRestServlet", "jsonrestservlet.class",                        "org.structr.rest.servlet.JsonRestServlet", "FQCN of servlet class to use in the REST server. Do not change unless you know what you are doing.");
@@ -331,6 +331,14 @@ public class Settings {
 	public static final Setting<Boolean> ProxyAllowAnonymous   = new BooleanSetting(servletsGroup, "ProxyServlet", "proxyservlet.allowanonymousproxys", false);
 	public static final Setting<Integer> ProxyMaxFileSize      = new IntegerSetting(servletsGroup, "ProxyServlet", "proxyservlet.maxfilesize",           1000);
 	public static final Setting<Integer> ProxyMaxRequestSize   = new IntegerSetting(servletsGroup, "ProxyServlet", "proxyservlet.maxrequestsize",        1200);
+
+	public static final Setting<String> EventSourceServletPath       = new StringSetting(servletsGroup,  "EventSourceServlet", "EventSourceservlet.path",                  "/structr/EventSource");
+	public static final Setting<String> EventSourceServletClass      = new StringSetting(servletsGroup,  "EventSourceServlet", "EventSourceservlet.class",                 "org.structr.web.servlet.EventSourceServlet");
+	public static final Setting<String> EventSourceAuthenticator     = new StringSetting(servletsGroup,  "EventSourceServlet", "EventSourceservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> EventSourceResourceProvider  = new StringSetting(servletsGroup,  "EventSourceServlet", "EventSourceservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
+	public static final Setting<String> EventSourceDefaultView       = new StringSetting(servletsGroup,  "EventSourceServlet", "EventSourceservlet.defaultview",           "public");
+	public static final Setting<Integer> EventSourceOutputDepth      = new IntegerSetting(servletsGroup, "EventSourceServlet", "EventSourceservlet.outputdepth",	   1);
+
 
 	// cron settings
 	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations");

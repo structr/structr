@@ -26,7 +26,6 @@ import java.util.Map.Entry;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -127,7 +126,7 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 
 						switch (result.getResponseCode()) {
 
-							case SC_OK:
+							case HttpServletResponse.SC_OK:
 
 								// redirect to requested target page or /
 								response.sendRedirect(coalesce(HtmlServlet.filterMaliciousRedirects(request.getParameter(HtmlServlet.TARGET_PAGE_KEY)), "/"));

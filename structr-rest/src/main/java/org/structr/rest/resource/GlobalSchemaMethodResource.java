@@ -103,8 +103,8 @@ public class GlobalSchemaMethodResource extends Resource {
 		return false;
 	}
 
-        @Override
-        public String getResourceSignature() {
-                return SchemaHelper.normalizeEntityName(getUriPart());
-        }
+	@Override
+	public String getResourceSignature() {
+		return SchemaHelper.normalizeEntityName(getUriPart());
+	}
 }
