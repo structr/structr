@@ -23,10 +23,14 @@ import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.GraphObject;
+import org.structr.core.function.RangeFunction;
 import org.structr.core.function.search.*;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 
-import java.util.HashSet;
+import java.util.*;
+
+import static java.util.Map.entry;
 
 public class PredicateBinding implements ProxyObject {
 
@@ -34,6 +38,19 @@ public class PredicateBinding implements ProxyObject {
 
 	private GraphObject entity                   = null;
 	private ActionContext actionContext          = null;
+
+	private static final Map<String, Function<Object, Object>> predicateBindings = Map.ofEntries(
+			entry("within_distance", new FindWithinDistanceFunction()),
+			entry("sort", new FindSortFunction()),
+			entry("page", new FindPageFunction()),
+			entry("not", new FindNotFunction()),
+			entry("empty", new FindEmptyFunction()),
+			entry("equals", new FindEqualsFunction()),
+			entry("or", new FindOrFunction()),
+			entry("and", new FindAndFunction()),
+			entry("contains", new FindContainsFunction()),
+			entry("range", new RangeFunction())
+	);
 
 	public PredicateBinding(final ActionContext actionContext, final GraphObject entity) {
 
@@ -44,25 +61,8 @@ public class PredicateBinding implements ProxyObject {
 	@Override
 	public Object getMember(String name) {
 
-		switch (name) {
-			case "within_distance":
-				return new FunctionWrapper(actionContext, entity, new FindWithinDistanceFunction());
-			case "sort":
-				return new FunctionWrapper(actionContext, entity, new FindSortFunction());
-			case "page":
-				return new FunctionWrapper(actionContext, entity, new FindPageFunction());
-			case "not":
-				return new FunctionWrapper(actionContext, entity, new FindNotFunction());
-			case "empty":
-				return new FunctionWrapper(actionContext, entity, new FindEmptyFunction());
-			case "equals":
-				return new FunctionWrapper(actionContext, entity, new FindEqualsFunction());
-			case "or":
-				return new FunctionWrapper(actionContext, entity, new FindOrFunction());
-			case "and":
-				return new FunctionWrapper(actionContext, entity, new FindAndFunction());
-			case "contains":
-				return new FunctionWrapper(actionContext, entity, new FindContainsFunction());
+		if (predicateBindings.containsKey(name)) {
+			return new FunctionWrapper(actionContext, entity, predicateBindings.get(name));
 		}
 
 		return null;
@@ -70,12 +70,14 @@ public class PredicateBinding implements ProxyObject {
 
 	@Override
 	public Object getMemberKeys() {
-		return new HashSet<>();
+
+		return predicateBindings.keySet();
 	}
 
 	@Override
 	public boolean hasMember(String key) {
-		return getMember(key) != null;
+
+		return predicateBindings.containsKey(key);
 	}
 
 	@Override
