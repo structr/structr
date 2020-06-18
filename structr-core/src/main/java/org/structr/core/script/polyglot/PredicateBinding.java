@@ -22,7 +22,9 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.service.LicenseManager;
 import org.structr.core.GraphObject;
+import org.structr.core.function.Functions;
 import org.structr.core.function.RangeFunction;
 import org.structr.core.function.search.*;
 import org.structr.schema.action.ActionContext;
@@ -39,17 +41,17 @@ public class PredicateBinding implements ProxyObject {
 	private GraphObject entity                   = null;
 	private ActionContext actionContext          = null;
 
-	private static final Map<String, Function<Object, Object>> predicateBindings = Map.ofEntries(
-			entry("within_distance", new FindWithinDistanceFunction()),
-			entry("sort", new FindSortFunction()),
-			entry("page", new FindPageFunction()),
-			entry("not", new FindNotFunction()),
-			entry("empty", new FindEmptyFunction()),
-			entry("equals", new FindEqualsFunction()),
-			entry("or", new FindOrFunction()),
-			entry("and", new FindAndFunction()),
-			entry("contains", new FindContainsFunction()),
-			entry("range", new RangeFunction())
+	private final Map<String, Function<Object, Object>> predicateBindings = Map.ofEntries(
+			entry("within_distance", Functions.getByClass(FindWithinDistanceFunction.class)),
+			entry("sort", Functions.getByClass(FindSortFunction.class)),
+			entry("page", Functions.getByClass(FindPageFunction.class)),
+			entry("not", Functions.getByClass(FindNotFunction.class)),
+			entry("empty", Functions.getByClass(FindEmptyFunction.class)),
+			entry("equals", Functions.getByClass(FindEqualsFunction.class)),
+			entry("or", Functions.getByClass(FindOrFunction.class)),
+			entry("and", Functions.getByClass(FindAndFunction.class)),
+			entry("contains", Functions.getByClass(FindContainsFunction.class)),
+			entry("range", Functions.getByClass(RangeFunction.class))
 	);
 
 	public PredicateBinding(final ActionContext actionContext, final GraphObject entity) {

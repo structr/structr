@@ -3857,33 +3857,33 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t2 = $.find('Task', 'name', 't2'); return $.find('Project', 'tasks', t2); }}", "testFindOldSyntax")).size());
 			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t3 = $.find('Task', 'name', 't3'); return $.find('Project', 'tasks', t3); }}", "testFindOldSyntax")).size());
 
-			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't2'))); return $.find('Project', 'tasks', t1_t2); }}", "testFindOldSyntax")).size());
-			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t3 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't3'))); return $.find('Project', 'tasks', t1_t3); }}", "testFindOldSyntax")).size());
-			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t2_t3 = $.find('Task', 'name', $.or($.equals('name', 't2'), $.equals('name', 't3'))); return $.find('Project', 'tasks', t2_t3); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'))); return $.find('Project', 'tasks', t1_t2); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', t1_t3); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', t2_t3); }}", "testFindOldSyntax")).size());
 
-			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't2'), $.equals('name', 't3'))); return $.find('Project', 'tasks', t1_t2_t3); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', t1_t2_t3); }}", "testFindOldSyntax")).size());
 			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', 'tasks', $.find('Task')); }}", "testFindOldSyntax")).size());
 
 
-			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', $.equals(t1)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', $.predicate.equals(t1)); }}", "testFindNewSyntax")).size());
 
-			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't2'))); return $.find('Project', 'tasks', $.equals(t1_t2)); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t3 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't3'))); return $.find('Project', 'tasks', $.equals(t1_t3)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'))); return $.find('Project', 'tasks', $.predicate.equals(t1_t2)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', $.predicate.equals(t1_t3)); }}", "testFindNewSyntax")).size());
 
-			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', $.contains(t1)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', $.predicate.contains(t1)); }}", "testFindNewSyntax")).size());
 
-			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 5, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't2'))); return $.find('Project', 'tasks', $.contains(t1_t2)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 5, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'))); return $.find('Project', 'tasks', $.predicate.contains(t1_t2)); }}", "testFindNewSyntax")).size());
 
-			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 3, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't2'), $.equals('name', 't3'))); return $.find('Project', 'tasks', $.contains(t1_t2_t3)); }}", "testFindOldSyntax")).size());
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 3, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't2'), $.predicate.equals('name', 't3'))); return $.find('Project', 'tasks', $.predicate.contains(t1_t2_t3)); }}", "testFindOldSyntax")).size());
 
 			// test with unconnected Task
-			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t5 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't5'))); return $.find('Project', 'tasks', $.equals(t1_t5)); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t5 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't5'))); return $.find('Project', 'tasks', $.contains(t1_t5)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t5 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't5'))); return $.find('Project', 'tasks', $.predicate.equals(t1_t5)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t5 = $.find('Task', 'name', $.predicate.or($.predicate.equals('name', 't1'), $.predicate.equals('name', 't5'))); return $.find('Project', 'tasks', $.predicate.contains(t1_t5)); }}", "testFindNewSyntax")).size());
 
 			// test unconnected Task
 			assertEquals("Normal find() should use OR to search for remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', t5); }}", "testFindOldSyntax")).size());
-			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', $.equals(t5)); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', $.contains(t5)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', $.predicate.equals(t5)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', $.predicate.contains(t5)); }}", "testFindNewSyntax")).size());
 
 
 			// SEMI-WORKING TESTS
@@ -3990,19 +3990,19 @@ public class ScriptingTest extends StructrTest {
 
 			Settings.CypherDebugLogging.setValue(true);
 
-			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', { 'name2': $.contains('s') }, $.sort('name', true)); }}", "testFindNewSyntax");
-			final List<NodeInterface> result2 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.sort('name', true)); }}", "testFindNewSyntax");
-			final List<NodeInterface> result3 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.sort('name')); }}", "testFindNewSyntax");
+			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', { 'name2': $.predicate.contains('s') }, $.predicate.sort('name', true)); }}", "testFindNewSyntax");
+			final List<NodeInterface> result2 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.sort('name', true)); }}", "testFindNewSyntax");
+			final List<NodeInterface> result3 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.sort('name')); }}", "testFindNewSyntax");
 
 			final String testFunction = "${{\n" +
 			"    let users = $.find('Project', {\n" +
 			"            $and: {\n" +
 			"                'name1': 'structr',\n" +
-			"                'age': $.range(30, 50)\n" +
+			"                'age': $.predicate.range(30, 50)\n" +
 			"            }\n" +
 			"        },\n" +
-			"        $.sort('name', true),\n" +
-			"        $.page(1, 10)\n" +
+			"        $.predicate.sort('name', true),\n" +
+			"        $.predicate.page(1, 10)\n" +
 			"    );\n" +
 			"    return users;\n" +
 			"}}";
@@ -4039,26 +4039,26 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Advanced find() does not filter correctly", result4.get(0).getUuid(), group3);
 			assertEquals("Advanced find() does not filter correctly", result4.get(1).getUuid(), group2);
 
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', { name: $.contains('2') }); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', { name: $.predicate.contains('2') }); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
 			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', { name: 'group1', name1: 'structr', name2: 'test' }); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.empty('name')); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.or($.empty('name'), $.equals('name', 'group2'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.contains('name2', 'e'), $.contains('name2', 'e'), $.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('age', $.range(0, 35)))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.equals('age', $.range(0, 35)), $.equals('name', 'group2')); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('age', $.range(0, 35)), $.equals('name', 'group2'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.contains('name2', 'e'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('name', 'group1'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('name', 'group1'), $.equals('name1', 'structr'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('name1', 'structr'), $.equals('name2', 'test'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('name1', 'structr'), $.equals('name2', 'structr'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.or($.equals('age', 22), $.equals('age', 44))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.and($.equals('name3', 'other'), $.or($.equals('age', 22), $.equals('age', 44)))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.empty('name')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.or($.predicate.empty('name'), $.predicate.equals('name', 'group2'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.contains('name2', 'e'), $.predicate.contains('name2', 'e'), $.predicate.contains('name2', 'e')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.and($.predicate.equals('age', $.predicate.range(0, 35)))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.equals('age', $.predicate.range(0, 35)), $.predicate.equals('name', 'group2')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.and($.predicate.equals('age', $.predicate.range(0, 35)), $.predicate.equals('name', 'group2'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.and($.predicate.contains('name2', 'e'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.and($.predicate.equals('name', 'group1'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.and($.predicate.equals('name', 'group1'), $.predicate.equals('name1', 'structr'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.and($.predicate.equals('name1', 'structr'), $.predicate.equals('name2', 'test'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 0, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.and($.predicate.equals('name1', 'structr'), $.predicate.equals('name2', 'structr'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.or($.predicate.equals('age', 22), $.predicate.equals('age', 44))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() returns wrong result", 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.and($.predicate.equals('name3', 'other'), $.predicate.or($.predicate.equals('age', 22), $.predicate.equals('age', 44)))); }}", "testFindNewSyntax")).size());
 
-			final List<NodeInterface> page1 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.sort('name'), $.page(1, 10)); }}", "testFindNewSyntax");
-			final List<NodeInterface> page2 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.sort('name'), $.page(1, 5)); }}", "testFindNewSyntax");
-			final List<NodeInterface> page3 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.sort('name'), $.page(3, 5)); }}", "testFindNewSyntax");
+			final List<NodeInterface> page1 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.predicate.sort('name'), $.predicate.page(1, 10)); }}", "testFindNewSyntax");
+			final List<NodeInterface> page2 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.predicate.sort('name'), $.predicate.page(1, 5)); }}", "testFindNewSyntax");
+			final List<NodeInterface> page3 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.predicate.sort('name'), $.predicate.page(3, 5)); }}", "testFindNewSyntax");
 
 			assertEquals("Advanced find() with sort() and page() returns wrong result", 10, page1.size());
 			assertEquals("Advanced find() with sort() and page() returns wrong result", "test000", page1.get(0).getName());
@@ -4339,8 +4339,8 @@ public class ScriptingTest extends StructrTest {
 
 			final Group group1   = app.nodeQuery(Group.class).andName("group1").getFirst();
 			final Group group2   = app.nodeQuery(Group.class).andName("group2").getFirst();
-			final String script1 = "${{ return $.find('Group', { $and: { name: 'group1', id: $.not($.equals('" + group1.getUuid() + "')) }}); }}";
-			final String script2 = "${{ return $.find('Group', { $and: { name: 'group1', id: $.not($.equals('" + group2.getUuid() + "')) }}); }}";
+			final String script1 = "${{ return $.find('Group', { $and: { name: 'group1', id: $.predicate.not($.predicate.equals('" + group1.getUuid() + "')) }}); }}";
+			final String script2 = "${{ return $.find('Group', { $and: { name: 'group1', id: $.predicate.not($.predicate.equals('" + group2.getUuid() + "')) }}); }}";
 
 			// test that not(equal()) works for the id property
 			final Object result1 = Scripting.evaluate(ctx, null, script1, "test1");

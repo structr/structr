@@ -103,6 +103,19 @@ public class Functions {
 		return functions.get(name);
 	}
 
+	public static Function<Object, Object> getByClass(final Class clazz) {
+
+		for (Map.Entry<String, Function<Object, Object>> entry : functions.entrySet()) {
+
+			if (entry.getValue().getClass().isAssignableFrom(clazz)) {
+
+				return entry.getValue();
+			}
+		}
+
+		return null;
+	}
+
 	public static Collection<Function<Object, Object>> getFunctions() {
 		return new LinkedList<>(functions.values());
 	}
