@@ -28,8 +28,8 @@ import org.structr.web.servlet.EventSourceServlet;
 
 public class SendEventFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_SEND_EVENT    = "Usage: ${send_event(eventType, message, recipients)}. Example: ${send_event(\"message\", \"Welcome!\", $.find('User', 'name', 'Bob'))}";
-	public static final String ERROR_MESSAGE_SEND_EVENT_JS = "Usage: ${{Structr.send_event(eventType, message, recipients)}}. Example: ${{Structr.send_event(\"message\", \"Welcome!\", $.find('User', 'name', 'Bob'))}}";
+	public static final String ERROR_MESSAGE_SEND_EVENT    = "Usage: ${send_event(eventType, message, recipient(s))}. Example: ${send_event(\"message\", \"Welcome!\", find('User', 'name', 'Bob'))}";
+	public static final String ERROR_MESSAGE_SEND_EVENT_JS = "Usage: ${{Structr.send_event(eventType, message, recipient(s))}}. Example: ${{Structr.send_event(\"message\", \"Welcome!\", $.find('User', 'name', 'Bob'))}}";
 
 	@Override
 	public boolean isHidden() {
@@ -43,7 +43,7 @@ public class SendEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getSignature() {
-		return "eventType, message, recipients";
+		return "eventType, message, recipient(s)";
 	}
 
 	@Override
