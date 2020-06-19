@@ -496,7 +496,7 @@ var _Code = {
 						children: [
 							{ id: 'custom',      text: 'Custom', children: true, icon: _Icons.folder_icon },
 							{ id: 'builtin',     text: 'Built-In', children: true, icon: _Icons.folder_icon },
-							{ id: 'workingsets', text: 'Groups', children: true, icon: _Icons.folder_star_icon }
+							{ id: 'workingsets', text: 'Working Sets', children: true, icon: _Icons.folder_star_icon }
 						],
 						icon: _Icons.structr_logo_small,
 						path: '/',
@@ -1327,8 +1327,8 @@ var _Code = {
 				}
 
 				Structr.appendInfoTextToElement({
-					element: $('#type-groups-heading'),
-					text: "Groups are identical to layouts. Removing an element from a group removes it from the layout",
+					element: $('#type-working-sets-heading'),
+					text: "Working Sets are identical to layouts. Removing an element from a group removes it from the layout",
 					css: { marginLeft: "5px" },
 					helpElementCss: { fontSize: "12px" }
 				});
@@ -1383,7 +1383,7 @@ var _Code = {
 						});
 					});
 
-					_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.add_folder_icon), 'new', 'Create new group', function() {
+					_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.add_folder_icon), 'new', 'Create new Working Set', function() {
 
 						_WorkingSets.createNewSetAndAddType(result.name, function() {
 							_TreeHelper.refreshNode('#code-tree', 'workingsets');
@@ -2929,7 +2929,7 @@ var _WorkingSets = {
 
 			Command.create({
 				type: 'ApplicationConfigurationDataNode',
-				name: setName || 'New Group',
+				name: setName || 'New Working Set',
 				content: JSON.stringify(config),
 				configType: 'layout'
 			}, callback);
