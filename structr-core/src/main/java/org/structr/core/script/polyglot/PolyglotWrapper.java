@@ -19,6 +19,7 @@
 package org.structr.core.script.polyglot;
 
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
@@ -161,7 +162,7 @@ public abstract class PolyglotWrapper {
 		return resultMap;
 	}
 
-	private static class FunctionWrapper implements Function {
+	private static class FunctionWrapper implements ProxyExecutable {
 		private Value func;
 
 		public FunctionWrapper(final Value func) {
@@ -173,8 +174,8 @@ public abstract class PolyglotWrapper {
 		}
 
 		@Override
-		public Object apply(Object o) {
-			return unwrap(func.execute(o));
+		public Object execute(Value... arguments) {
+			return func.execute(arguments);
 		}
 	}
 }

@@ -41,6 +41,7 @@ public class BatchFunction implements ProxyExecutable {
 
 	@Override
 	public Object execute(Value... arguments) {
+
 		boolean runInBackground = arguments != null && arguments.length >= 3 && arguments[2] != null && PolyglotWrapper.unwrap(arguments[2]) instanceof Boolean ? (Boolean) PolyglotWrapper.unwrap(arguments[2]) : false;
 
 		final Thread workerThread = new Thread(() -> {
