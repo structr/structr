@@ -244,7 +244,6 @@ var _UsersAndGroups = {
 		}
 	},
 	isGroupAlreadyShown: function(group, groupEl) {
-		console.log(group, groupEl)
 		if (groupEl.length === 0) {
 			return false;
 		}

@@ -75,7 +75,7 @@ public class SessionHelper {
 
 	}
 
-	public static HttpSession getSessionBySessionId (final String sessionId) throws FrameworkException {
+	public static HttpSession getSessionBySessionId(final String sessionId) throws FrameworkException {
 
 		try {
 

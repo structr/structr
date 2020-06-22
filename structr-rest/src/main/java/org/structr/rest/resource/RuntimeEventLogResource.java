@@ -58,7 +58,8 @@ public class RuntimeEventLogResource extends Resource {
 		return (UriPart._runtimeEventLog.name().equals(part));
 	}
 
-	@Override public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+	@Override
+	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
 		final Predicate<RuntimeEvent> predicate = getPredicate();
 		final List<GraphObject> resultList      = RuntimeEventLog.getEvents(predicate).stream().map(e -> e.toGraphObject()).collect(Collectors.toList());
