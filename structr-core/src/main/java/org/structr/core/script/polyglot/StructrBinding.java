@@ -28,6 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.function.BatchFunction;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -62,6 +63,8 @@ public class StructrBinding implements ProxyObject {
 				return wrap(actionContext,actionContext.getSecurityContext().getUser(false));
 			case "predicate":
 				return new PredicateBinding(actionContext, entity);
+			case "batch":
+				return new BatchFunction(actionContext);
 			default:
 				if (actionContext.getConstant(name) != null) {
 					return wrap(actionContext,actionContext.getConstant(name));
@@ -87,6 +90,7 @@ public class StructrBinding implements ProxyObject {
 		keys.add("this");
 		keys.add("me");
 		keys.add("predicate");
+		keys.add("batch");
 		return keys;
 	}
 

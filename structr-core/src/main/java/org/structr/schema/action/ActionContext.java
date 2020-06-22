@@ -29,6 +29,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.graalvm.polyglot.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -56,15 +57,16 @@ public class ActionContext {
 	private static final Logger logger = LoggerFactory.getLogger(ActionContext.class.getName());
 
 	// cache is not static => library cache is per request
-	private final Map<String, String> libraryCache = new HashMap<>();
-	protected SecurityContext securityContext      = null;
-	protected Predicate predicate                  = null;
-	protected ErrorBuffer errorBuffer              = new ErrorBuffer();
-	protected StringBuilder outputBuffer           = new StringBuilder();
-	protected Locale locale                        = Locale.getDefault();
-	private boolean javaScriptContext              = false;
-	private ContextStore temporaryContextStore     = new ContextStore();
-	private boolean disableVerboseExceptionLogging = false;
+	private final Map<String, Context> scriptingContexts = new HashMap<>();
+	private final Map<String, String> libraryCache       = new HashMap<>();
+	protected SecurityContext securityContext            = null;
+	protected Predicate predicate                        = null;
+	protected ErrorBuffer errorBuffer                    = new ErrorBuffer();
+	protected StringBuilder outputBuffer                 = new StringBuilder();
+	protected Locale locale                              = Locale.getDefault();
+	private boolean javaScriptContext                    = false;
+	private ContextStore temporaryContextStore           = new ContextStore();
+	private boolean disableVerboseExceptionLogging       = false;
 
 	public ActionContext(final SecurityContext securityContext) {
 		this(securityContext, null);
@@ -554,5 +556,15 @@ public class ActionContext {
 
 	public ContextStore getContextStore() {
 		return this.securityContext.getContextStore();
+	}
+
+	public Context getScriptingContext(final String language) {
+
+		return scriptingContexts.get(language);
+	}
+
+	public void putScriptingContext(final String language, final Context context) {
+
+		scriptingContexts.put(language, context);
 	}
 }

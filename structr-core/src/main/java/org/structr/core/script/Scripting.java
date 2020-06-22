@@ -37,6 +37,7 @@ import org.structr.core.property.DateProperty;
 import org.structr.core.script.polyglot.AccessProvider;
 import org.structr.core.script.polyglot.StructrBinding;
 import org.structr.core.script.polyglot.PolyglotWrapper;
+import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyParser;
 
@@ -224,21 +225,7 @@ public class Scripting {
 		final String entityName        = entity != null ? entity.getProperty(AbstractNode.name) : null;
 		final String entityDescription = entity != null ? ( StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + entity.getUuid() : "anonymous";
 
-		final Context context = Context.newBuilder("js")
-				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
-				.allowHostAccess(AccessProvider.getHostAccessConfig())
-				// TODO: Add config switch to toggle Host Class Lookup
-				//.allowHostClassLookup(s -> true)
-				// TODO: Add configurable chrome debug
-				.allowExperimentalOptions(true)
-				.option("js.experimental-foreign-object-prototype", "true")
-				.option("js.nashorn-compat", "true")
-				.build();
-
-		final StructrBinding structrBinding = new StructrBinding(actionContext, entity);
-
-		context.getBindings("js").putMember("Structr", structrBinding);
-		context.getBindings("js").putMember("$", structrBinding);
+		Context context = ContextFactory.getContext("js", actionContext, entity);
 
 		try {
 			Object result = PolyglotWrapper.unwrap(context.eval("js", embedInFunction(snippet.getSource())));
@@ -281,19 +268,9 @@ public class Scripting {
 
 		try {
 
-			final Context context = Context.newBuilder()
-					.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
-					.allowHostAccess(AccessProvider.getHostAccessConfig())
-					.build();
-
-			final StructrBinding structrBinding = new StructrBinding(actionContext, entity);
-
-			context.getBindings(engineName).putMember("Structr", structrBinding);
-			context.getBindings(engineName).putMember("$", structrBinding);
-
+			final Context context = ContextFactory.getContext(engineName, actionContext, entity);
 
 			final StringBuilder wrappedScript = new StringBuilder();
-
 
 			switch (engineName) {
 				case "R":
@@ -313,7 +290,6 @@ public class Scripting {
 
 					return PolyglotWrapper.unwrap(context.getBindings(engineName).getMember("main").execute());
 			}
-
 
 				Object result = PolyglotWrapper.unwrap(context.eval(engineName, wrappedScript.toString()));
 
