@@ -85,6 +85,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	protected final List<StructrMethodDefinition> methods         = new LinkedList<>();
 	protected final List<StructrGrantDefinition> grants           = new LinkedList<>();
 	protected final Set<URI> implementedInterfaces                = new TreeSet<>();
+	protected boolean visibleToAuthenticatedUsers                 = false;
+	protected boolean visibleToAnonymousUsers                     = false;
 	protected boolean isInterface                                 = false;
 	protected boolean isAbstract                                  = false;
 	protected boolean isBuiltinType                               = false;
@@ -192,6 +194,28 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	@Override
 	public JsonType setIsChangelogDisabled() {
 		this.changelogDisabled = true;
+		return this;
+	}
+
+	@Override
+	public boolean isVisibleForAnonymousUsers() {
+		return this.visibleToAnonymousUsers;
+	}
+
+	@Override
+	public JsonType setVisibleForAnonymousUsers() {
+		this.visibleToAnonymousUsers = true;
+		return this;
+	}
+
+	@Override
+	public boolean isVisibleForAuthenticatedUsers() {
+		return this.visibleToAuthenticatedUsers;
+	}
+
+	@Override
+	public JsonType setVisibleForAuthenticatedUsers() {
+		this.visibleToAuthenticatedUsers = true;
 		return this;
 	}
 
@@ -715,6 +739,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		serializedForm.put(JsonSchema.KEY_IS_ABSTRACT, isAbstract);
 		serializedForm.put(JsonSchema.KEY_IS_INTERFACE, isInterface);
 		serializedForm.put(JsonSchema.KEY_CHANGELOG_DISABLED, changelogDisabled);
+		serializedForm.put(JsonSchema.KEY_VISIBLE_TO_ANONYMOUS, visibleToAnonymousUsers);
+		serializedForm.put(JsonSchema.KEY_VISIBLE_TO_AUTHENTICATED, visibleToAuthenticatedUsers);
 
 		if (getClass().equals(StructrNodeTypeDefinition.class)) {
 			serializedForm.put(JsonSchema.KEY_IS_BUILTIN_TYPE, isBuiltinType);
@@ -792,6 +818,14 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		if (source.containsKey(JsonSchema.KEY_CHANGELOG_DISABLED)) {
 			this.changelogDisabled = (Boolean)source.get(JsonSchema.KEY_CHANGELOG_DISABLED);
+		}
+
+		if (source.containsKey(JsonSchema.KEY_VISIBLE_TO_ANONYMOUS)) {
+			this.visibleToAnonymousUsers = (Boolean)source.get(JsonSchema.KEY_VISIBLE_TO_ANONYMOUS);
+		}
+
+		if (source.containsKey(JsonSchema.KEY_VISIBLE_TO_AUTHENTICATED)) {
+			this.visibleToAuthenticatedUsers = (Boolean)source.get(JsonSchema.KEY_VISIBLE_TO_AUTHENTICATED);
 		}
 
 		if (source.containsKey(JsonSchema.KEY_EXTENDS)) {
@@ -927,12 +961,14 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
-		this.isInterface       = schemaNode.getProperty(SchemaNode.isInterface);
-		this.isAbstract        = schemaNode.getProperty(SchemaNode.isAbstract);
-		this.isBuiltinType     = schemaNode.getProperty(SchemaNode.isBuiltinType);
-		this.changelogDisabled = schemaNode.getProperty(SchemaNode.changelogDisabled);
-		this.category          = schemaNode.getProperty(SchemaNode.category);
-		this.schemaNode        = schemaNode;
+		this.isInterface                 = schemaNode.getProperty(SchemaNode.isInterface);
+		this.isAbstract                  = schemaNode.getProperty(SchemaNode.isAbstract);
+		this.isBuiltinType               = schemaNode.getProperty(SchemaNode.isBuiltinType);
+		this.changelogDisabled           = schemaNode.getProperty(SchemaNode.changelogDisabled);
+		this.visibleToAnonymousUsers     = schemaNode.getProperty(SchemaNode.defaultVisibleToPublic);
+		this.visibleToAuthenticatedUsers = schemaNode.getProperty(SchemaNode.defaultVisibleToAuth);
+		this.category                    = schemaNode.getProperty(SchemaNode.category);
+		this.schemaNode                  = schemaNode;
 
 		if (this.category == null && getClass().equals(StructrNodeTypeDefinition.class)) {
 
@@ -958,6 +994,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		createProperties.put(SchemaNode.category, category);
 		createProperties.put(SchemaNode.isBuiltinType, isBuiltinType || SchemaService.DynamicSchemaRootURI.equals(root.getId()));
 		createProperties.put(SchemaNode.changelogDisabled, changelogDisabled);
+		createProperties.put(SchemaNode.defaultVisibleToPublic, visibleToAnonymousUsers);
+		createProperties.put(SchemaNode.defaultVisibleToAuth, visibleToAuthenticatedUsers);
 
 		final T schemaNode = createSchemaNode(schemaNodes, app, createProperties);
 
@@ -1406,6 +1444,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		if (isChangelogDisabled != null && Boolean.TRUE.equals(isChangelogDisabled)) {
 
 			typeDefinition.setIsChangelogDisabled();
+		}
+
+		final Object isVisibleToAnonymous = source.get(JsonSchema.KEY_VISIBLE_TO_ANONYMOUS);
+		if (isVisibleToAnonymous != null && Boolean.TRUE.equals(isVisibleToAnonymous)) {
+
+			typeDefinition.setVisibleForAnonymousUsers();
+		}
+
+		final Object isVisibleToAuthenticated = source.get(JsonSchema.KEY_VISIBLE_TO_AUTHENTICATED);
+		if (isVisibleToAuthenticated != null && Boolean.TRUE.equals(isVisibleToAuthenticated)) {
+
+			typeDefinition.setVisibleForAuthenticatedUsers();
 		}
 
 		final Object categoryValue = source.get(JsonSchema.KEY_CATEGORY);

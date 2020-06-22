@@ -741,6 +741,97 @@ public class Deployment4Test extends DeploymentTestBase {
 
 	}
 
+	@Test
+	public void test50SchemaBasedVisibilityFlags() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			app.create(User.class,
+				new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
+				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// setup 1 - schema type
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			// add test type
+			schema.addType("Anonymous").setVisibleForAnonymousUsers();
+			schema.addType("Authenticated").setVisibleForAuthenticatedUsers();
+			schema.addType("Both").setVisibleForAuthenticatedUsers().setVisibleForAnonymousUsers();
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final Class anonClass = StructrApp.getConfiguration().getNodeEntityClass("Anonymous");
+		final Class authClass = StructrApp.getConfiguration().getNodeEntityClass("Authenticated");
+		final Class bothClass = StructrApp.getConfiguration().getNodeEntityClass("Both");
+
+		// setup 2 - schema grant
+		try (final Tx tx = app.tx()) {
+
+			app.create(anonClass, "anon1");
+			app.create(anonClass, "anon2");
+
+			app.create(authClass, "auth1");
+			app.create(authClass, "auth2");
+
+			app.create(bothClass, "both1");
+			app.create(bothClass, "both2");
+
+			app.create(User.class,
+				new NodeAttribute<>(AbstractNode.name, "user"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "password")
+			);
+
+			// allow REST access
+			grant("Anonymous",     UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET,  true); // reset all other grants
+			grant("Authenticated", UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET, false);
+			grant("Both",          UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET, false);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test before roundtrip
+		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Anonymous");
+		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(0)).when().get("/Authenticated");
+		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
+
+		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Anonymous");
+		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Authenticated");
+		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
+
+
+		// test
+		compare(calculateHash(), true);
+
+		// test after roundtrip
+		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Anonymous");
+		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(0)).when().get("/Authenticated");
+		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
+
+		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Anonymous");
+		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Authenticated");
+		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
+	}
+
 	// ----- private methods -----
 	private boolean isAllowedByGrant(final AccessControllable entity, final Permission permission, final Principal user) {
 
