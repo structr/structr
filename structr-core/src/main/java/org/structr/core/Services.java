@@ -50,8 +50,6 @@ import org.structr.api.service.RunnableService;
 import org.structr.api.service.Service;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.ServiceResult;
-import org.structr.api.service.StartServiceInMaintenanceModeAnnotation;
-import org.structr.api.service.StopServiceForMaintenanceModeAnnotation;
 import org.structr.api.service.StructrServices;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
@@ -65,6 +63,8 @@ import org.structr.core.graph.NodeService;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
 import org.structr.util.StructrLicenseManager;
+import org.structr.api.service.StartServiceInMaintenanceMode;
+import org.structr.api.service.StopServiceForMaintenanceMode;
 
 public class Services implements StructrServices {
 
@@ -472,7 +472,7 @@ public class Services implements StructrServices {
 
 		for (final Class serviceClass : reverseServiceClassNames) {
 
-			final StopServiceForMaintenanceModeAnnotation stopAnnotation = (StopServiceForMaintenanceModeAnnotation)serviceClass.getAnnotation(StopServiceForMaintenanceModeAnnotation.class);
+			final StopServiceForMaintenanceMode stopAnnotation = (StopServiceForMaintenanceMode)serviceClass.getAnnotation(StopServiceForMaintenanceMode.class);
 			if (stopAnnotation != null) {
 
 				shutdownServices(serviceClass);
@@ -481,10 +481,10 @@ public class Services implements StructrServices {
 
 		for (final Class serviceClass : configuredServiceClasses) {
 
-			final StopServiceForMaintenanceModeAnnotation stopAnnotation = (StopServiceForMaintenanceModeAnnotation)serviceClass.getAnnotation(StopServiceForMaintenanceModeAnnotation.class);
+			final StopServiceForMaintenanceMode stopAnnotation = (StopServiceForMaintenanceMode)serviceClass.getAnnotation(StopServiceForMaintenanceMode.class);
 			if (stopAnnotation != null) {
 
-				final StartServiceInMaintenanceModeAnnotation startAnnotation = (StartServiceInMaintenanceModeAnnotation)serviceClass.getAnnotation(StartServiceInMaintenanceModeAnnotation.class);
+				final StartServiceInMaintenanceMode startAnnotation = (StartServiceInMaintenanceMode)serviceClass.getAnnotation(StartServiceInMaintenanceMode.class);
 
 				if (maintenanceEnabled == false || startAnnotation != null) {
 
