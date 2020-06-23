@@ -39,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 public class Settings {
 
 	public static final String DEFAULT_DATABASE_DRIVER        = "org.structr.memory.MemoryDatabaseService";
+	public static final String MAINTENANCE_PREFIX             = "maintenance";
 
 	private static final Map<String, Setting> settings        = new LinkedHashMap<>();
 	private static final Map<String, SettingsGroup> groups    = new LinkedHashMap<>();
@@ -100,6 +101,14 @@ public class Settings {
 	public static final Setting<String> RestPath              = new StringSetting(serverGroup,  "hidden",     "application.rest.path",         "/structr/rest", "Defines the URL path of the Structr REST server. Should not be changed because it is hard-coded in many parts of the application.");
 	public static final Setting<String> BaseUrlOverride       = new StringSetting(serverGroup,  "Interfaces", "application.baseurl.override",  "", "Overrides the baseUrl that can be used to prefix links to local web resources. By default, the value is assembled from the protocol, hostname and port of the server instance Structr is running on");
 
+	public static final Setting<Integer> MaintenanceHttpPort          = new IntegerSetting(serverGroup, "Maintenance", MAINTENANCE_PREFIX + "." + HttpPort.getKey(),         8182, "HTTP port the Structr server will listen on in maintenance mode");
+	public static final Setting<Integer> MaintenanceHttpsPort         = new IntegerSetting(serverGroup, "Maintenance", MAINTENANCE_PREFIX + "." + HttpsPort.getKey(),        8183, "HTTPS port the Structr server will listen on (if SSL is enabled) in maintenance mode");
+	public static final Setting<Integer> MaintenanceSshPort           = new IntegerSetting(serverGroup, "Maintenance", MAINTENANCE_PREFIX + "." + SshPort.getKey(),          8122, "SSH port the Structr server will listen on (if SSHService is enabled) in maintenance mode");
+	public static final Setting<Integer> MaintenanceFtpPort           = new IntegerSetting(serverGroup, "Maintenance", MAINTENANCE_PREFIX + "." + FtpPort.getKey(),          8121, "FTP port the Structr server will listen on (if FtpService is enabled) in maintenance mode");
+	public static final Setting<String> MaintenanceResourcePath       = new StringSetting(serverGroup, "Maintenance", MAINTENANCE_PREFIX + ".resource.path",                 "", "The local folder for static resources served in maintenance mode. If no path is provided the a default maintenance page with customizable text is shown in maintenance mode.");
+	public static final Setting<String> MaintenanceMessage            = new StringSetting(serverGroup, "Maintenance", MAINTENANCE_PREFIX + ".message",                       "The server is undergoing maintenance. It will be available again shortly.", "Text for default maintenance page.");
+	public static final Setting<Boolean> MaintenanceModeEnabled       = new BooleanSetting(serverGroup, "hidden", MAINTENANCE_PREFIX + ".enabled",                           false, "Enables maintenance mode where all ports can be changed to prevent users from accessing the application during maintenance.");
+
 	// HTTP service settings
 	public static final Setting<String> ResourceHandlers         = new StringSetting(serverGroup,  "hidden",        "httpservice.resourcehandlers",         "StructrUiHandler", "This handler is needed to serve static files with the built-in Jetty container.");
 	public static final Setting<String> LifecycleListeners       = new StringSetting(serverGroup,  "hidden",        "httpservice.lifecycle.listeners",      "");
@@ -125,6 +134,7 @@ public class Settings {
 	public static final Setting<String> AccessControlAllowHeaders     = new StringSetting(serverGroup, "CORS Settings", "access.control.allow.headers",     "", "Sets the value of the <code>Access-Control-Allow-Headers</code> header.");
 	public static final Setting<String> AccessControlAllowCredentials = new StringSetting(serverGroup, "CORS Settings", "access.control.allow.credentials", "", "Sets the value of the <code>Access-Control-Allow-Credentials</code> header.");
 	public static final Setting<String> AccessControlExposeHeaders    = new StringSetting(serverGroup, "CORS Settings", "access.control.expose.headers",    "", "Sets the value of the <code>Access-Control-Expose-Headers</code> header.");
+
 
 	public static final Setting<String> UiHandlerContextPath        = new StringSetting(serverGroup,  "hidden", "structruihandler.contextpath",       "/structr", "Static resource handling configuration.");
 	public static final Setting<Boolean> UiHandlerDirectoriesListed = new BooleanSetting(serverGroup, "hidden", "structruihandler.directorieslisted", false);
@@ -668,7 +678,6 @@ public class Settings {
 		} catch (ConfigurationException ex) {
 			System.err.println("Unable to load configuration: " + ex.getMessage());
 		}
-
 	}
 
 	public static String trim(final String value) {
@@ -681,10 +690,14 @@ public class Settings {
 		}
 	}
 
+	public static <T>Setting<T> getSettingOrMaintenanceSetting(final Setting<T> setting) {
+
+		return MaintenanceModeEnabled.getValue() ? setting.getPrefixedSetting(Settings.MAINTENANCE_PREFIX) : setting;
+	}
+
 	public static String getBasePath() {
 
 		return checkPath(BasePath.getValue());
-
 	}
 
 	public static String getFullSettingPath(Setting<String> pathSetting) {
