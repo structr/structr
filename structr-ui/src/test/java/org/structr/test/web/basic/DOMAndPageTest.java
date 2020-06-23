@@ -1122,6 +1122,41 @@ public class DOMAndPageTest extends StructrUiTest {
 
 	}
 
+	@Test
+	public void testAccessFlagsForPages() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page pub  = Page.createSimplePage(securityContext, "pub");
+			final Page auth = Page.createSimplePage(securityContext, "auth");
+
+			setFlagsRecursively(pub,   true, false);
+			setFlagsRecursively(auth, false,  true);
+
+			app.create(User.class,
+				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "tester"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "test")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		// test anonymous user
+		RestAssured.given().expect().statusCode(200).when().get("/html/pub");
+		RestAssured.given().expect().statusCode(404).when().get("/html/auth");
+
+		// test authenticated user
+		RestAssured.given().header("X-User", "tester").header("X-Password", "test").expect().statusCode(404).when().get("/html/pub");
+		RestAssured.given().header("X-User", "tester").header("X-Password", "test").expect().statusCode(200).when().get("/html/auth");
+
+	}
+
 	// ----- private methods -----
 	private void check() {
 
@@ -1185,5 +1220,16 @@ public class DOMAndPageTest extends StructrUiTest {
 		parent.appendChild((DOMNode)child);
 
 		return child;
+	}
+
+	private void setFlagsRecursively(final DOMNode node, final boolean visibleToPublic, final boolean visibleToAuth) throws FrameworkException {
+
+		node.setProperty(StructrApp.key(DOMNode.class, "visibleToAuthenticatedUsers"), visibleToAuth);
+		node.setProperty(StructrApp.key(DOMNode.class, "visibleToPublicUsers"), visibleToPublic);
+
+		for (final DOMNode child : node.getChildren()) {
+
+			setFlagsRecursively(child, visibleToPublic, visibleToAuth);
+		}
 	}
 }

@@ -732,6 +732,7 @@ public class SchemaHelper {
 		SchemaHelper.formatValidators(sourceFile, schemaNode, validators, compoundIndexKeys, extendsAbstractNode, propertyValidators);
 		SchemaHelper.formatMethods(sourceFile, schemaNode, methods, implementedInterfaces);
 		SchemaHelper.formatSchemaGrants(sourceFile, schemaNode);
+		SchemaHelper.formatDefaultVisibilityFlags(sourceFile, schemaNode);
 
 		// insert source code from module
 		for (final StructrModule module : modules) {
@@ -1504,6 +1505,25 @@ public class SchemaHelper {
 				src.line(schemaNode, "return super.allowedBySchema(principal, permission);");
 				src.end();
 			}
+		}
+	}
+
+	private static void formatDefaultVisibilityFlags(final SourceFile src, final AbstractSchemaNode schemaNode) {
+
+		if (schemaNode.getProperty(SchemaNode.defaultVisibleToPublic)) {
+
+			src.line(schemaNode, "@Override");
+			src.begin(schemaNode, "public boolean isVisibleToPublicUsers() {");
+			src.line(schemaNode, "return true;");
+			src.end();
+		}
+
+		if (schemaNode.getProperty(SchemaNode.defaultVisibleToAuth)) {
+
+			src.line(schemaNode, "@Override");
+			src.begin(schemaNode, "public boolean isVisibleToAuthenticatedUsers() {");
+			src.line(schemaNode, "return true;");
+			src.end();
 		}
 	}
 
