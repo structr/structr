@@ -86,7 +86,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	protected final List<StructrGrantDefinition> grants           = new LinkedList<>();
 	protected final Set<URI> implementedInterfaces                = new TreeSet<>();
 	protected boolean visibleToAuthenticatedUsers                 = false;
-	protected boolean visibleToAnonymousUsers                     = false;
+	protected boolean visibleToPublicUsers                        = false;
 	protected boolean isInterface                                 = false;
 	protected boolean isAbstract                                  = false;
 	protected boolean isBuiltinType                               = false;
@@ -198,13 +198,13 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public boolean isVisibleForAnonymousUsers() {
-		return this.visibleToAnonymousUsers;
+	public boolean isVisibleForPublicUsers() {
+		return this.visibleToPublicUsers;
 	}
 
 	@Override
-	public JsonType setVisibleForAnonymousUsers() {
-		this.visibleToAnonymousUsers = true;
+	public JsonType setVisibleForPublicUsers() {
+		this.visibleToPublicUsers = true;
 		return this;
 	}
 
@@ -743,8 +743,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			serializedForm.put(JsonSchema.KEY_CHANGELOG_DISABLED, true);
 		}
 
-		if (visibleToAnonymousUsers) {
-			serializedForm.put(JsonSchema.KEY_VISIBLE_TO_ANONYMOUS, true);
+		if (visibleToPublicUsers) {
+			serializedForm.put(JsonSchema.KEY_VISIBLE_TO_PUBLIC, true);
 		}
 
 		if (visibleToAuthenticatedUsers) {
@@ -829,8 +829,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			this.changelogDisabled = (Boolean)source.get(JsonSchema.KEY_CHANGELOG_DISABLED);
 		}
 
-		if (source.containsKey(JsonSchema.KEY_VISIBLE_TO_ANONYMOUS)) {
-			this.visibleToAnonymousUsers = (Boolean)source.get(JsonSchema.KEY_VISIBLE_TO_ANONYMOUS);
+		if (source.containsKey(JsonSchema.KEY_VISIBLE_TO_PUBLIC)) {
+			this.visibleToPublicUsers = (Boolean)source.get(JsonSchema.KEY_VISIBLE_TO_PUBLIC);
 		}
 
 		if (source.containsKey(JsonSchema.KEY_VISIBLE_TO_AUTHENTICATED)) {
@@ -974,7 +974,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		this.isAbstract                  = schemaNode.getProperty(SchemaNode.isAbstract);
 		this.isBuiltinType               = schemaNode.getProperty(SchemaNode.isBuiltinType);
 		this.changelogDisabled           = schemaNode.getProperty(SchemaNode.changelogDisabled);
-		this.visibleToAnonymousUsers     = schemaNode.getProperty(SchemaNode.defaultVisibleToPublic);
+		this.visibleToPublicUsers     = schemaNode.getProperty(SchemaNode.defaultVisibleToPublic);
 		this.visibleToAuthenticatedUsers = schemaNode.getProperty(SchemaNode.defaultVisibleToAuth);
 		this.category                    = schemaNode.getProperty(SchemaNode.category);
 		this.schemaNode                  = schemaNode;
@@ -1003,7 +1003,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		createProperties.put(SchemaNode.category, category);
 		createProperties.put(SchemaNode.isBuiltinType, isBuiltinType || SchemaService.DynamicSchemaRootURI.equals(root.getId()));
 		createProperties.put(SchemaNode.changelogDisabled, changelogDisabled);
-		createProperties.put(SchemaNode.defaultVisibleToPublic, visibleToAnonymousUsers);
+		createProperties.put(SchemaNode.defaultVisibleToPublic, visibleToPublicUsers);
 		createProperties.put(SchemaNode.defaultVisibleToAuth, visibleToAuthenticatedUsers);
 
 		final T schemaNode = createSchemaNode(schemaNodes, app, createProperties);
@@ -1455,10 +1455,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			typeDefinition.setIsChangelogDisabled();
 		}
 
-		final Object isVisibleToAnonymous = source.get(JsonSchema.KEY_VISIBLE_TO_ANONYMOUS);
+		final Object isVisibleToAnonymous = source.get(JsonSchema.KEY_VISIBLE_TO_PUBLIC);
 		if (isVisibleToAnonymous != null && Boolean.TRUE.equals(isVisibleToAnonymous)) {
 
-			typeDefinition.setVisibleForAnonymousUsers();
+			typeDefinition.setVisibleForPublicUsers();
 		}
 
 		final Object isVisibleToAuthenticated = source.get(JsonSchema.KEY_VISIBLE_TO_AUTHENTICATED);

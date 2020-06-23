@@ -46,8 +46,8 @@ public interface JsonType extends Comparable<JsonType> {
 	boolean isChangelogDisabled();
 	JsonType setIsChangelogDisabled();
 
-	boolean isVisibleForAnonymousUsers();
-	JsonType setVisibleForAnonymousUsers();
+	boolean isVisibleForPublicUsers();
+	JsonType setVisibleForPublicUsers();
 
 	boolean isVisibleForAuthenticatedUsers();
 	JsonType setVisibleForAuthenticatedUsers();

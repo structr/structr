@@ -1411,19 +1411,19 @@ var _Code = {
 					});
 				}
 
-				// global visibility for anonymous users
+				// global visibility for public users
 				{
-					let anonymousCheckbox = $('#anonymous-checkbox');
+					let publicCheckbox = $('#public-checkbox');
 					Structr.appendInfoTextToElement({
-						element: anonymousCheckbox.closest('label'),
-						text: "Makes all nodes of this type visible to anonymous users if checked",
+						element: publicCheckbox.closest('label'),
+						text: "Makes all nodes of this type visible to public users if checked",
 						css: { marginLeft: "5px", marginRight: "20px" },
 						helpElementCss: { fontSize: "12px" }
 					});
-					anonymousCheckbox.prop('checked', result.defaultVisibleToPublic);
-					anonymousCheckbox.on('click', function() {
+					publicCheckbox.prop('checked', result.defaultVisibleToPublic);
+					publicCheckbox.on('click', function() {
 						_Code.showSchemaRecompileMessage();
-						Command.setProperties(result.id, { defaultVisibleToPublic: anonymousCheckbox.prop('checked') }, function() {
+						Command.setProperties(result.id, { defaultVisibleToPublic: publicCheckbox.prop('checked') }, function() {
 							_Code.hideSchemaRecompileMessage();
 							_Code.displaySchemaNodeContent(data);
 						});
