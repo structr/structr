@@ -1016,9 +1016,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		writeJsonToFile(target, sites);
 	}
 
-	private void exportPages(final Path target, final Path configTarget) throws FrameworkException {
+	private void exportPages(final Path targetFolder, final Path configTarget) throws FrameworkException {
 
-		logger.info("Exporting pages (unchanged pages will be skipped)");
+		logger.info("Exporting pages");
+
+		try {
+			deleteDirectoryContentsRecursively(targetFolder);
+		} catch (IOException ioe) {
+			logger.warn("Unable to clean up {}: {}", targetFolder, ioe.getMessage());
+		}
 
 		final Map<String, Object> pagesConfig = new TreeMap<>();
 		final App app                         = StructrApp.getInstance();
@@ -1034,29 +1040,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 						final Map<String, Object> properties = new TreeMap<>();
 						final String name                    = page.getName();
-						final Path pageFile                  = target.resolve(name + ".html");
-						boolean doExport                     = true;
-
-						if (Files.exists(pageFile)) {
-
-							try {
-
-								final String existingContent = new String(Files.readAllBytes(pageFile), "utf-8");
-								doExport = !existingContent.equals(content);
-
-							} catch (IOException ignore) {
-								logger.warn("", ignore);
-							}
-						}
+						final Path pageFile                  = targetFolder.resolve(name + ".html");
 
 						pagesConfig.put(name, properties);
 						exportConfiguration(page, properties);
 						exportOwnershipAndSecurity(page, properties);
 
-						if (doExport) {
-
-							writeStringToFile(pageFile, content);
-						}
+						writeStringToFile(pageFile, content);
 					}
 				}
 			}
@@ -1067,9 +1057,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		writeJsonToFile(configTarget, pagesConfig);
 	}
 
-	private void exportComponents(final Path target, final Path configTarget) throws FrameworkException {
+	private void exportComponents(final Path targetFolder, final Path configTarget) throws FrameworkException {
 
-		logger.info("Exporting components (unchanged components will be skipped)");
+		logger.info("Exporting components");
+
+		try {
+			deleteDirectoryContentsRecursively(targetFolder);
+		} catch (IOException ioe) {
+			logger.warn("Unable to clean up {}: {}", targetFolder, ioe.getMessage());
+		}
 
 		final Map<String, Object> configuration = new TreeMap<>();
 		final App app                           = StructrApp.getInstance();
@@ -1083,7 +1079,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					final boolean hasParent = node.getParent() != null;
 					final boolean inTrash   = node.inTrash();
-					boolean doExport        = true;
 
 					// skip nodes in trash and non-toplevel nodes
 					if (inTrash || hasParent) {
@@ -1091,42 +1086,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					}
 
 					final String content = node.getContent(RenderContext.EditMode.DEPLOYMENT);
-					if (content != null) {
 
-						// name with uuid or just uuid
-						String name = node.getProperty(AbstractNode.name);
-
-						if (name != null) {
-
-							name += "-" + node.getUuid();
-
-						} else {
-
-							name = node.getUuid();
-						}
-
-
-						final Map<String, Object> properties = new TreeMap<>();
-						final Path targetFile = target.resolve(name + ".html");
-
-						if (Files.exists(targetFile)) {
-
-							try {
-
-								final String existingContent = new String(Files.readAllBytes(targetFile), "utf-8");
-								doExport = !existingContent.equals(content);
-
-							} catch (IOException ignore) {}
-						}
-
-						configuration.put(name, properties);
-						exportConfiguration(node, properties);
-
-						if (doExport) {
-
-							writeStringToFile(targetFile, content);
-						}
-					}
+					exportContentElementSource(targetFolder, node, configuration, content);
 				}
 			}
 
@@ -1136,9 +1097,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		writeJsonToFile(configTarget, configuration);
 	}
 
-	private void exportTemplates(final Path target, final Path configTarget) throws FrameworkException {
+	private void exportTemplates(final Path targetFolder, final Path configTarget) throws FrameworkException {
 
-		logger.info("Exporting templates (unchanged templates will be skipped)");
+		logger.info("Exporting templates");
+
+		try {
+			deleteDirectoryContentsRecursively(targetFolder);
+		} catch (IOException ioe) {
+			logger.warn("Unable to clean up {}: {}", targetFolder, ioe.getMessage());
+		}
 
 		final Map<String, Object> configuration = new TreeMap<>();
 		final App app                           = StructrApp.getInstance();
@@ -1155,7 +1122,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					continue;
 				}
 
-				exportTemplateSource(target, template, configuration);
+				final String content = template.getProperty(StructrApp.key(Template.class, "content"));
+
+				exportContentElementSource(targetFolder, template, configuration, content);
 			}
 
 			tx.success();
@@ -1164,43 +1133,31 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		writeJsonToFile(configTarget, configuration);
 	}
 
-	private void exportTemplateSource(final Path target, final DOMNode template, final Map<String, Object> configuration) throws FrameworkException {
-
-		final String content                 = template.getProperty(StructrApp.key(Template.class, "content"));
-		final Map<String, Object> properties = new TreeMap<>();
-		boolean doExport                     = true;
+	/**
+	 * Consolidated export method for Content and Template
+	 */
+	private void exportContentElementSource(final Path targetFolder, final DOMNode node, final Map<String, Object> configuration, final String content) throws FrameworkException {
 
 		if (content != null) {
 
 			// name with uuid or just uuid
-			String name = template.getProperty(AbstractNode.name);
+			String name = node.getProperty(AbstractNode.name);
 			if (name != null) {
 
-				name += "-" + template.getUuid();
+				name += "-" + node.getUuid();
 
 			} else {
 
-				name = template.getUuid();
+				name = node.getUuid();
 			}
 
-			final Path targetFile = target.resolve(name + ".html");
-			if (Files.exists(targetFile)) {
-
-				try {
-
-					final String existingContent = new String(Files.readAllBytes(targetFile), "utf-8");
-					doExport = !existingContent.equals(content);
-
-				} catch (IOException ignore) {}
-			}
+			final Map<String, Object> properties = new TreeMap<>();
+			final Path targetFile = targetFolder.resolve(name + ".html");
 
 			configuration.put(name, properties);
-			exportConfiguration(template, properties);
+			exportConfiguration(node, properties);
 
-			if (doExport) {
-
-				writeStringToFile(targetFile, content);
-			}
+			writeStringToFile(targetFile, content);
 		}
 	}
 
