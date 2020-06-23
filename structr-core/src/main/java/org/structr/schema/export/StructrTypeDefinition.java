@@ -738,9 +738,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		serializedForm.put(JsonSchema.KEY_TYPE, "object");
 		serializedForm.put(JsonSchema.KEY_IS_ABSTRACT, isAbstract);
 		serializedForm.put(JsonSchema.KEY_IS_INTERFACE, isInterface);
-		serializedForm.put(JsonSchema.KEY_CHANGELOG_DISABLED, changelogDisabled);
-		serializedForm.put(JsonSchema.KEY_VISIBLE_TO_ANONYMOUS, visibleToAnonymousUsers);
-		serializedForm.put(JsonSchema.KEY_VISIBLE_TO_AUTHENTICATED, visibleToAuthenticatedUsers);
+
+		if (changelogDisabled) {
+			serializedForm.put(JsonSchema.KEY_CHANGELOG_DISABLED, true);
+		}
+
+		if (visibleToAnonymousUsers) {
+			serializedForm.put(JsonSchema.KEY_VISIBLE_TO_ANONYMOUS, true);
+		}
+
+		if (visibleToAuthenticatedUsers) {
+			serializedForm.put(JsonSchema.KEY_VISIBLE_TO_AUTHENTICATED, true);
+		}
 
 		if (getClass().equals(StructrNodeTypeDefinition.class)) {
 			serializedForm.put(JsonSchema.KEY_IS_BUILTIN_TYPE, isBuiltinType);
