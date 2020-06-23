@@ -28,6 +28,8 @@ import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.ServiceResult;
+import org.structr.api.service.StartServiceInMaintenanceModeAnnotation;
+import org.structr.api.service.StopServiceForMaintenanceModeAnnotation;
 import org.structr.api.service.StructrServices;
 import org.structr.schema.SchemaService;
 
@@ -36,6 +38,8 @@ import org.structr.schema.SchemaService;
  *
  */
 @ServiceDependency(SchemaService.class)
+@StopServiceForMaintenanceModeAnnotation
+@StartServiceInMaintenanceModeAnnotation
 public class FtpService implements RunnableService {
 
 	private static final Logger logger = LoggerFactory.getLogger(FtpService.class.getName());
@@ -90,7 +94,7 @@ public class FtpService implements RunnableService {
 	@Override
 	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		port = Settings.FtpPort.getValue();
+		port = Settings.getSettingOrMaintenanceSetting(Settings.FtpPort).getValue();
 
 		return new ServiceResult(true);
 	}

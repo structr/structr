@@ -50,6 +50,8 @@ import org.structr.api.service.RunnableService;
 import org.structr.api.service.Service;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.ServiceResult;
+import org.structr.api.service.StartServiceInMaintenanceModeAnnotation;
+import org.structr.api.service.StopServiceForMaintenanceModeAnnotation;
 import org.structr.api.service.StructrServices;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
@@ -411,7 +413,6 @@ public class Services implements StructrServices {
 		return "Services is not initialized yet.";
 	}
 
-
 	public boolean isOverridingSchemaTypesAllowed() {
 		return overridingSchemaTypesAllowed;
 	}
@@ -419,7 +420,6 @@ public class Services implements StructrServices {
 	public void setOverridingSchemaTypesAllowed(final boolean allow) {
 		overridingSchemaTypesAllowed = allow;
 	}
-
 
 	public void shutdown() {
 
@@ -460,6 +460,45 @@ public class Services implements StructrServices {
 			shutdownDone = true;
 		}
 
+	}
+
+	public void setMaintenanceMode(final Boolean maintenanceEnabled) {
+
+		logger.info("Setting maintenace mode = {}", maintenanceEnabled);
+
+		final List<Class> configuredServiceClasses = getCongfiguredServiceClasses();
+		final List<Class> reverseServiceClassNames = new LinkedList<>(configuredServiceClasses);
+		Collections.reverse(reverseServiceClassNames);
+
+		for (final Class serviceClass : reverseServiceClassNames) {
+
+			final StopServiceForMaintenanceModeAnnotation stopAnnotation = (StopServiceForMaintenanceModeAnnotation)serviceClass.getAnnotation(StopServiceForMaintenanceModeAnnotation.class);
+			if (stopAnnotation != null) {
+
+				shutdownServices(serviceClass);
+			}
+		}
+
+		for (final Class serviceClass : configuredServiceClasses) {
+
+			final StopServiceForMaintenanceModeAnnotation stopAnnotation = (StopServiceForMaintenanceModeAnnotation)serviceClass.getAnnotation(StopServiceForMaintenanceModeAnnotation.class);
+			if (stopAnnotation != null) {
+
+				final StartServiceInMaintenanceModeAnnotation startAnnotation = (StartServiceInMaintenanceModeAnnotation)serviceClass.getAnnotation(StartServiceInMaintenanceModeAnnotation.class);
+
+				if (maintenanceEnabled == false || startAnnotation != null) {
+
+					try {
+
+						final String activeServiceName = getNameOfActiveService(serviceClass);
+						startService(serviceClass, activeServiceName, false);
+
+					} catch (FrameworkException ex) {
+						logger.warn("Service {} failed to start: {}", serviceClass.getSimpleName(), ex.getMessage());
+					}
+				}
+			}
+		}
 	}
 
 	/**

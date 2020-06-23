@@ -1309,6 +1309,10 @@ var Structr = {
 			$('#header .structr-instance-name').text(envInfo.instanceName);
 			$('#header .structr-instance-stage').text(envInfo.instanceStage);
 
+			if (true == envInfo.maintenanceModeActive) {
+				$('#header .structr-instance-maintenance').text("MAINTENANCE");
+			}
+
 			let ui = envInfo.components['structr-ui'];
 			if (ui) {
 
@@ -1907,6 +1911,16 @@ var Structr = {
 					new MessageBuilder().title("Schema Analysis finished").uniqueClass('schema-analysis').success(text).appendsText().requiresConfirmation().show();
 
 				}
+				break;
+
+			case "MAINTENANCE":
+
+				let enabled = data.enabled ? 'enabeld' : 'disabled';
+
+				new MessageBuilder().title('Maintenance Mode ' + enabled).warning("Maintenance Mode has been " + enabled + ". Redirecting...").allowConfirmAll().show();
+				window.setTimeout(function() {
+					location.href = data.baseUrl + location.pathname + location.search;
+				}, 1500);
 				break;
 
 			case "WARNING":

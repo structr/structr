@@ -22,6 +22,10 @@ import ch.qos.logback.access.jetty.RequestLogImpl;
 import ch.qos.logback.access.servlet.TeeFilter;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
@@ -42,6 +46,8 @@ import org.apache.chemistry.opencmis.server.impl.browser.CmisBrowserBindingServl
 import org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.http.HttpMethod;
+import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -51,6 +57,7 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
@@ -77,6 +84,8 @@ import org.structr.api.service.LicenseManager;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.ServiceResult;
+import org.structr.api.service.StartServiceInMaintenanceModeAnnotation;
+import org.structr.api.service.StopServiceForMaintenanceModeAnnotation;
 import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
 import org.structr.rest.ResourceProvider;
@@ -89,6 +98,8 @@ import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
  *
  */
 @ServiceDependency(SchemaService.class)
+@StopServiceForMaintenanceModeAnnotation
+@StartServiceInMaintenanceModeAnnotation
 public class HttpService implements RunnableService {
 
 	private static final Logger logger = LoggerFactory.getLogger(HttpService.class.getName());
@@ -106,6 +117,7 @@ public class HttpService implements RunnableService {
 	private HttpConfiguration httpsConfig         = null;
 	private SslContextFactory sslContextFactory   = null;
 	private Server server                         = null;
+	private Server maintenanceServer              = null;
 	private int maxIdleTime                       = 30000;
 	private int requestHeaderSize                 = 8192;
 	private boolean httpsActive                   = false;
@@ -113,11 +125,15 @@ public class HttpService implements RunnableService {
 	@Override
 	public void startService() throws Exception {
 
-		logger.info("Starting {} (host={}:{}, maxIdleTime={}, requestHeaderSize={})", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.HttpPort.getValue(), maxIdleTime, requestHeaderSize);
+		logger.info("Starting {} (host={}:{}, maxIdleTime={}, requestHeaderSize={})", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue(), maxIdleTime, requestHeaderSize);
 		logger.info("Base path {}", Settings.getBasePath());
-		logger.info("{} started at http://{}:{}", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.HttpPort.getValue());
+		logger.info("{} started at http://{}:{}", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
 
 		server.start();
+
+		if (maintenanceServer != null) {
+			maintenanceServer.start();
+		}
 
 		try {
 
@@ -146,6 +162,16 @@ public class HttpService implements RunnableService {
 
 			} catch (Exception ex) {
 				logger.warn("Exception while stopping Jetty: {}", ex.getMessage());
+			}
+		}
+
+		if (maintenanceServer != null) {
+
+			try {
+				maintenanceServer.stop();
+
+			} catch (Exception ex) {
+				logger.warn("Exception while stopping temporary maintenance server: {}", ex.getMessage());
 			}
 		}
 	}
@@ -199,7 +225,10 @@ public class HttpService implements RunnableService {
 		final boolean logRequests           = Settings.RequestLogging.getValue();
 		final String logPrefix              = Settings.LogPrefix.getValue();
 		final String host                   = Settings.ApplicationHost.getValue();
-		final int httpsPort                 = Settings.HttpsPort.getValue();
+		final boolean mainteanceModeActive  = Settings.MaintenanceModeEnabled.getValue();
+		final int httpPort                  = Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue();
+		final int httpsPort                 = Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getValue();
+		boolean forceHttps                  = Settings.getSettingOrMaintenanceSetting(Settings.ForceHttps).getValue();
 		boolean enableRewriteFilter         = true;
 
 		// get current base path
@@ -216,7 +245,7 @@ public class HttpService implements RunnableService {
 			baseDir.mkdirs();
 		}
 
-		server = new Server(Settings.HttpPort.getValue());
+		server = new Server(httpPort);
 		final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
 		contexts.addHandler(new DefaultHandler());
@@ -425,18 +454,18 @@ public class HttpService implements RunnableService {
 		httpConfig.setOutputBufferSize(1024); // intentionally low buffer size to allow even small bits of content to be sent to the client in case of slow rendering
 		httpConfig.setRequestHeaderSize(requestHeaderSize);
 
-		if (StringUtils.isNotBlank(host) && Settings.HttpPort.getValue() > -1) {
+		if (StringUtils.isNotBlank(host) && httpPort > -1) {
 
 			final ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
 
 			httpConnector.setHost(host);
-			httpConnector.setPort(Settings.HttpPort.getValue());
+			httpConnector.setPort(httpPort);
 
 			connectors.add(httpConnector);
 
 		} else {
 
-			logger.warn("Unable to configure HTTP server port, please make sure that {} and {} are set correctly in structr.conf.", Settings.ApplicationHost.getKey(), Settings.HttpPort.getKey());
+			logger.warn("Unable to configure HTTP server port, please make sure that {} and {} are set correctly in structr.conf.", Settings.ApplicationHost.getKey(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getKey());
 		}
 
 		httpsActive = false;
@@ -477,7 +506,7 @@ public class HttpService implements RunnableService {
 					new SslConnectionFactory(sslContextFactory, "http/1.1"),
 					new HttpConnectionFactory(httpsConfig));
 
-				if (Settings.ForceHttps.getValue()) {
+				if (forceHttps) {
 					sessionCache.getSessionHandler().setSecureRequestOnly(true);
 				}
 
@@ -498,7 +527,7 @@ public class HttpService implements RunnableService {
 				httpsActive = false;
 
 				logger.warn("Unable to configure SSL, please make sure that {}, {} and {} are set correctly in structr.conf.", new Object[]{
-					Settings.HttpsPort.getKey(),
+					Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getKey(),
 					Settings.KeystorePath.getKey(),
 					Settings.KeystorePassword.getKey()
 				});
@@ -518,7 +547,137 @@ public class HttpService implements RunnableService {
 		server.setStopTimeout(1000);
 		server.setStopAtShutdown(true);
 
+		setupMaintenanceServer(mainteanceModeActive);
+
 		return new ServiceResult(true);
+	}
+
+	private void setupMaintenanceServer(final boolean mainteanceModeActive) {
+
+		if (mainteanceModeActive) {
+
+			final String keyStorePath           = Settings.KeystorePath.getValue();
+			final String keyStorePassword       = Settings.KeystorePassword.getValue();
+			final String contextPath            = System.getProperty("contextPath", "/");
+			final boolean enableHttps           = Settings.HttpsEnabled.getValue();
+			final String host                   = Settings.ApplicationHost.getValue();
+			final int httpPort                  = Settings.HttpPort.getValue();
+			final int httpsPort                 = Settings.HttpsPort.getValue();
+
+			maintenanceServer = new Server(Settings.HttpPort.getValue());
+
+			final String resourceBase = Settings.MaintenanceResourcePath.getValue();
+
+			boolean useDefaultHandler = true;
+
+			if (!StringUtils.isEmpty(resourceBase)) {
+
+				final Path maintenanceResourceBase = Paths.get(resourceBase);
+				if (Files.exists(maintenanceResourceBase) && Files.isDirectory(maintenanceResourceBase)) {
+					useDefaultHandler = false;
+				} else {
+					logger.warn("Falling back to default maintenance handler. Given path does not exist or is not a directory. {}: {}", Settings.MaintenanceResourcePath.getKey(), resourceBase);
+				}
+			}
+
+			if (useDefaultHandler) {
+
+				maintenanceServer.setHandler(new AbstractHandler() {
+					@Override
+					public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+
+						if (response.isCommitted() || baseRequest.isHandled())
+							return;
+
+						baseRequest.setHandled(true);
+
+						final String method = request.getMethod();
+
+						if (!HttpMethod.GET.is(method)) {
+							response.sendError(HttpServletResponse.SC_NOT_FOUND);
+							return;
+						}
+
+						response.setStatus(HttpServletResponse.SC_OK);
+						response.setContentType(MimeTypes.Type.TEXT_HTML_UTF_8.toString());
+
+						final StringBuilder maintenanceHTML = new StringBuilder();
+						maintenanceHTML.append("<!DOCTYPE html>\n");
+						maintenanceHTML.append("<html lang=\"en\">\n<head>\n");
+						maintenanceHTML.append("<title>Maintenance Mode Active</title>\n");
+						maintenanceHTML.append("<meta charset=\"utf-8\">\n");
+						maintenanceHTML.append("</head>\n<body>\n");
+						maintenanceHTML.append("<h2>Maintenance Mode Active</h2>\n");
+						maintenanceHTML.append("<p>");
+						maintenanceHTML.append(Settings.MaintenanceMessage.getValue());
+						maintenanceHTML.append("</p>\n");
+						maintenanceHTML.append("</body>\n</html>\n");
+
+						response.setContentLength(maintenanceHTML.length());
+
+						try (OutputStream out = response.getOutputStream()) {
+							out.write(maintenanceHTML.toString().getBytes());
+						}
+					}
+				});
+
+			} else {
+
+				final ResourceHandler resourceHandler = new RedirectingResourceHandler();
+				resourceHandler.setDirectoriesListed(false);
+
+				resourceHandler.setResourceBase(resourceBase);
+				resourceHandler.setCacheControl("max-age=0");
+
+				final ContextHandler staticResourceHandler = new ContextHandler();
+				staticResourceHandler.setContextPath(contextPath);
+				staticResourceHandler.setHandler(resourceHandler);
+
+				maintenanceServer.setHandler(staticResourceHandler);
+			}
+
+			final List<Connector> connectors = new LinkedList<>();
+
+			httpConfig = new HttpConfiguration();
+			httpConfig.setSecureScheme("https");
+			httpConfig.setSecurePort(httpsPort);
+
+			if (StringUtils.isNotBlank(host) && httpPort > -1) {
+
+				final ServerConnector httpConnector = new ServerConnector(maintenanceServer, new HttpConnectionFactory(httpConfig));
+
+				httpConnector.setHost(host);
+				httpConnector.setPort(httpPort);
+
+				connectors.add(httpConnector);
+			}
+
+			if (enableHttps) {
+
+				if (httpsPort > -1 && keyStorePath != null && !keyStorePath.isEmpty() && keyStorePassword != null) {
+
+					final ServerConnector httpsConnector = new ServerConnector(maintenanceServer,
+						new SslConnectionFactory(sslContextFactory, "http/1.1"),
+						new HttpConnectionFactory(httpsConfig));
+
+					httpsConnector.setPort(httpsPort);
+					httpsConnector.setIdleTimeout(500000);
+
+					httpsConnector.setHost(host);
+					httpsConnector.setPort(httpsPort);
+
+					connectors.add(httpsConnector);
+				}
+			}
+
+			if (!connectors.isEmpty()) {
+
+				maintenanceServer.setConnectors(connectors.toArray(new Connector[0]));
+			}
+
+			maintenanceServer.setStopTimeout(1000);
+			maintenanceServer.setStopAtShutdown(true);
+		}
 	}
 
 	public void reloadSSLCertificate() {

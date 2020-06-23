@@ -32,7 +32,7 @@ public class RewriteRule extends org.tuckey.web.filters.urlrewrite.extend.Rewrit
 
 	public void checkConfig(final HttpServletRequest request, final HttpServletResponse response) {
 
-		boolean forceHttps = Settings.ForceHttps.getValue();
+		boolean forceHttps = Settings.getSettingOrMaintenanceSetting(Settings.ForceHttps).getValue();
 
 		if (forceHttps) {
 			final Services services      = Services.getInstance();
