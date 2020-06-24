@@ -89,8 +89,7 @@ public abstract class ContextFactory {
 	private static Context buildGenericContext(final String language, final ActionContext actionContext, final GraphObject entity) {
 
 		final Context context = Context.newBuilder()
-				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
-				.allowHostAccess(AccessProvider.getHostAccessConfig())
+				.allowAllAccess(true)
 				.build();
 
 		return updateBindings(context, language, actionContext, entity);
@@ -100,7 +99,7 @@ public abstract class ContextFactory {
 		final StructrBinding structrBinding = new StructrBinding(actionContext, entity);
 
 		context.getBindings(language).putMember("Structr", structrBinding);
-		if (!language.equals("python")) {
+		if (!language.equals("python") && !language.equals("R")) {
 			context.getBindings(language).putMember("$", structrBinding);
 		}
 
