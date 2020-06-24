@@ -2031,6 +2031,16 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid get_or_create() result", newUuid2, Scripting.replaceVariables(ctx, null, "${{ Structr.getOrCreate('TestOne', { 'name': 'new-object-2', 'anInt': 13, 'aString': 'string' }) }}"));
 			assertEquals("Invalid get_or_create() result", newUuid2, Scripting.replaceVariables(ctx, null, "${{ Structr.getOrCreate('TestOne', { 'name': 'new-object-2', 'anInt': 13, 'aString': 'string' }) }}"));
 
+			// sleep
+			final long t0 = System.currentTimeMillis();
+			Scripting.replaceVariables(ctx, null, "${sleep(1000)}");
+			final long dt = System.currentTimeMillis() - t0;
+			assertTrue("Sleep() function did not wait for the specified amount of time: " + dt, dt >= 1000);
+
+			// random_uuid
+			final String randomUuid = Scripting.replaceVariables(ctx, null, "${random_uuid()}");
+			assertTrue("Invalid UUID returned by random_uuid(): " + randomUuid, randomUuid.matches("[a-fA-F0-9]{32}"));
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
