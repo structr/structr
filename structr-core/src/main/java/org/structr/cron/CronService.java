@@ -39,6 +39,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.Actions;
+import org.structr.api.service.StopServiceForMaintenanceMode;
 
 /**
  * A service that keeps track of registered tasks and runs
@@ -47,6 +48,7 @@ import org.structr.schema.action.Actions;
  *
  */
 @ServiceDependency(SchemaService.class)
+@StopServiceForMaintenanceMode
 public class CronService extends Thread implements RunnableService {
 
 	private static final Logger logger           = LoggerFactory.getLogger(CronService.class.getName());

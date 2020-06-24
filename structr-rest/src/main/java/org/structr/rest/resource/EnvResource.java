@@ -91,6 +91,8 @@ public class EnvResource extends Resource {
 		info.setProperty(new StringProperty("availableReleasesUrl"), Settings.ReleasesIndexUrl.getValue());
 		info.setProperty(new StringProperty("availableSnapshotsUrl"), Settings.SnapshotsIndexUrl.getValue());
 
+		info.setProperty(new StringProperty("maintenanceModeActive"), Settings.MaintenanceModeEnabled.getValue());
+
 		resultList.add(info);
 
 		return new PagingIterable(resultList);

@@ -56,10 +56,12 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
 import org.structr.web.entity.Folder;
+import org.structr.api.service.StopServiceForMaintenanceMode;
 
 /**
  */
 @ServiceDependency(SchemaService.class)
+@StopServiceForMaintenanceMode
 public class DirectoryWatchService extends Thread implements RunnableService {
 
 	private static final Logger logger                 = LoggerFactory.getLogger(DirectoryWatchService.class);

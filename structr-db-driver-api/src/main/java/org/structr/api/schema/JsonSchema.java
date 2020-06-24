@@ -65,7 +65,7 @@ public interface JsonSchema {
 	public static final String KEY_IS_INTERFACE             = "isInterface";
 	public static final String KEY_IS_BUILTIN_TYPE          = "isBuiltinType";
 	public static final String KEY_CHANGELOG_DISABLED       = "changelogDisabled";
-	public static final String KEY_VISIBLE_TO_ANONYMOUS     = "visibleToAnonymousUsers";
+	public static final String KEY_VISIBLE_TO_PUBLIC        = "visibleToPublicUsers";
 	public static final String KEY_VISIBLE_TO_AUTHENTICATED = "visibleToAuthenticatedUsers";
 	public static final String KEY_DEFINITIONS              = "definitions";
 	public static final String KEY_PROPERTIES               = "properties";

@@ -28,8 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.hamcrest.Matchers;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.AccessControllable;
@@ -69,8 +67,6 @@ import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
 
 public class Deployment4Test extends DeploymentTestBase {
-
-	private static final Logger logger = LoggerFactory.getLogger(Deployment4Test.class.getName());
 
 	@Test
 	public void test41CustomAttributes() {
@@ -765,9 +761,9 @@ public class Deployment4Test extends DeploymentTestBase {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
 			// add test type
-			schema.addType("Anonymous").setVisibleForAnonymousUsers();
+			schema.addType("Public").setVisibleForPublicUsers();
 			schema.addType("Authenticated").setVisibleForAuthenticatedUsers();
-			schema.addType("Both").setVisibleForAuthenticatedUsers().setVisibleForAnonymousUsers();
+			schema.addType("Both").setVisibleForAuthenticatedUsers().setVisibleForPublicUsers();
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -777,7 +773,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			fail("Unexpected exception.");
 		}
 
-		final Class anonClass = StructrApp.getConfiguration().getNodeEntityClass("Anonymous");
+		final Class anonClass = StructrApp.getConfiguration().getNodeEntityClass("Public");
 		final Class authClass = StructrApp.getConfiguration().getNodeEntityClass("Authenticated");
 		final Class bothClass = StructrApp.getConfiguration().getNodeEntityClass("Both");
 
@@ -799,7 +795,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			);
 
 			// allow REST access
-			grant("Anonymous",     UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET,  true); // reset all other grants
+			grant("Public",        UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET,  true); // reset all other grants
 			grant("Authenticated", UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET, false);
 			grant("Both",          UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET, false);
 
@@ -810,11 +806,11 @@ public class Deployment4Test extends DeploymentTestBase {
 		}
 
 		// test before roundtrip
-		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Anonymous");
+		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");
 		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(0)).when().get("/Authenticated");
 		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
 
-		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Anonymous");
+		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");
 		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Authenticated");
 		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
 
@@ -823,11 +819,11 @@ public class Deployment4Test extends DeploymentTestBase {
 		compare(calculateHash(), true);
 
 		// test after roundtrip
-		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Anonymous");
+		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");
 		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(0)).when().get("/Authenticated");
 		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
 
-		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Anonymous");
+		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");
 		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Authenticated");
 		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
 	}

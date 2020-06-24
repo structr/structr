@@ -67,12 +67,16 @@ import org.structr.core.graph.Tx;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.SchemaService;
+import org.structr.api.service.StartServiceInMaintenanceMode;
+import org.structr.api.service.StopServiceForMaintenanceMode;
 
 /**
  *
  *
  */
 @ServiceDependency(SchemaService.class)
+@StopServiceForMaintenanceMode
+@StartServiceInMaintenanceMode
 public class SSHService implements SingletonService, PasswordAuthenticator, PublickeyAuthenticator, FileSystemFactory, Factory<org.apache.sshd.server.Command>, SftpEventListener, CommandFactory {
 
 	private static final Logger logger = LoggerFactory.getLogger(SSHService.class.getName());
@@ -101,7 +105,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 		logger.info("Configuring SSH server..");
 
 		server.setKeyPairProvider(hostKeyProvider);
-		server.setPort(Settings.SshPort.getValue());
+		server.setPort(Settings.getSettingOrMaintenanceSetting(Settings.SshPort).getValue());
 		server.setPasswordAuthenticator(this);
 		server.setPublickeyAuthenticator(this);
 		server.setFileSystemFactory(this);

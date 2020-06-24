@@ -1618,9 +1618,9 @@ public class AccessControlTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
 			// add test type
-			schema.addType("Anonymous").setVisibleForAnonymousUsers();
+			schema.addType("Public").setVisibleForPublicUsers();
 			schema.addType("Authenticated").setVisibleForAuthenticatedUsers();
-			schema.addType("Both").setVisibleForAuthenticatedUsers().setVisibleForAnonymousUsers();
+			schema.addType("Both").setVisibleForAuthenticatedUsers().setVisibleForPublicUsers();
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -1630,7 +1630,7 @@ public class AccessControlTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final Class anonClass = StructrApp.getConfiguration().getNodeEntityClass("Anonymous");
+		final Class anonClass = StructrApp.getConfiguration().getNodeEntityClass("Public");
 		final Class authClass = StructrApp.getConfiguration().getNodeEntityClass("Authenticated");
 		final Class bothClass = StructrApp.getConfiguration().getNodeEntityClass("Both");
 		Principal user        = null;
