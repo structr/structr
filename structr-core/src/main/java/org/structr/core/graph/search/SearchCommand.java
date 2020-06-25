@@ -127,9 +127,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				rootGroup.add(new RelationshipVisibilitySearchAttribute());
 
-			} else {
+			//} else {
 
-				rootGroup.add(new PropertySearchAttribute(GraphObject.visibleToPublicUsers, true, Occurrence.REQUIRED, true));
+				//rootGroup.add(new PropertySearchAttribute(GraphObject.visibleToPublicUsers, true, Occurrence.REQUIRED, true));
 			}
 
 		} else {

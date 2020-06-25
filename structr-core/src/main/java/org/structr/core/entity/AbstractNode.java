@@ -1361,17 +1361,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public final boolean isVisibleToPublicUsers() {
-
+	public boolean isVisibleToPublicUsers() {
 		return getVisibleToPublicUsers();
-
 	}
 
 	@Override
-	public final boolean isVisibleToAuthenticatedUsers() {
-
+	public boolean isVisibleToAuthenticatedUsers() {
 		return getProperty(visibleToAuthenticatedUsers);
-
 	}
 
 	@Override

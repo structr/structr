@@ -54,10 +54,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.io.QuietException;
-import org.neo4j.driver.internal.util.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
@@ -1688,7 +1688,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	public static boolean isVisibleForSite(final HttpServletRequest request, final Page page) {
 
-		final List<Site> sites = Iterables.asList(page.getSites());
+		final List<Site> sites = Iterables.toList(page.getSites());
 		if (sites == null || sites.isEmpty()) {
 
 			return true;

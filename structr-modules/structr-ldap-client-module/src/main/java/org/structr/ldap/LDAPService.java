@@ -48,6 +48,7 @@ import org.structr.api.service.Command;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.ServiceResult;
 import org.structr.api.service.SingletonService;
+import org.structr.api.service.StopServiceForMaintenanceMode;
 import org.structr.api.service.StructrServices;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -61,6 +62,7 @@ import org.structr.schema.SchemaService;
  * superuser permissions.
  */
 @ServiceDependency(SchemaService.class)
+@StopServiceForMaintenanceMode
 public class LDAPService extends Thread implements SingletonService {
 
 	private static final Logger logger   = LoggerFactory.getLogger(LDAPService.class.getName());

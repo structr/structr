@@ -1392,21 +1392,62 @@ var _Code = {
 					});
 				});
 
-				let changelogCheckbox = $('#changelog-checkbox');
-				Structr.appendInfoTextToElement({
-					element: changelogCheckbox.closest('label'),
-					text: "Only takes effect if the changelog is active",
-					css: { marginLeft: "5px" },
-					helpElementCss: { fontSize: "12px" }
-				});
-				changelogCheckbox.prop('checked', result.changelogDisabled);
-				changelogCheckbox.on('click', function() {
-					_Code.showSchemaRecompileMessage();
-					Command.setProperties(result.id, { changelogDisabled: changelogCheckbox.prop('checked') }, function() {
-						_Code.hideSchemaRecompileMessage();
-						_Code.displaySchemaNodeContent(data);
+				// changelog
+				{
+					let changelogCheckbox = $('#changelog-checkbox');
+					Structr.appendInfoTextToElement({
+						element: changelogCheckbox.closest('label'),
+						text: "Only takes effect if the changelog is active",
+						css: { marginLeft: "5px", marginRight: "20px" },
+						helpElementCss: { fontSize: "12px" }
 					});
-				});
+					changelogCheckbox.prop('checked', result.changelogDisabled);
+					changelogCheckbox.on('click', function() {
+						_Code.showSchemaRecompileMessage();
+						Command.setProperties(result.id, { changelogDisabled: changelogCheckbox.prop('checked') }, function() {
+							_Code.hideSchemaRecompileMessage();
+							_Code.displaySchemaNodeContent(data);
+						});
+					});
+				}
+
+				// global visibility for public users
+				{
+					let publicCheckbox = $('#public-checkbox');
+					Structr.appendInfoTextToElement({
+						element: publicCheckbox.closest('label'),
+						text: "Makes all nodes of this type visible to public users if checked",
+						css: { marginLeft: "5px", marginRight: "20px" },
+						helpElementCss: { fontSize: "12px" }
+					});
+					publicCheckbox.prop('checked', result.defaultVisibleToPublic);
+					publicCheckbox.on('click', function() {
+						_Code.showSchemaRecompileMessage();
+						Command.setProperties(result.id, { defaultVisibleToPublic: publicCheckbox.prop('checked') }, function() {
+							_Code.hideSchemaRecompileMessage();
+							_Code.displaySchemaNodeContent(data);
+						});
+					});
+				}
+
+				// global visibility for authenticated users
+				{
+					let authenticatedCheckbox = $('#authenticated-checkbox');
+					Structr.appendInfoTextToElement({
+						element: authenticatedCheckbox.closest('label'),
+						text: "Makes all nodes of this type visible to authenticated users if checked",
+						css: { marginLeft: "5px", marginRight: "20px" },
+						helpElementCss: { fontSize: "12px" }
+					});
+					authenticatedCheckbox.prop('checked', result.defaultVisibleToAuth);
+					authenticatedCheckbox.on('click', function() {
+						_Code.showSchemaRecompileMessage();
+						Command.setProperties(result.id, { defaultVisibleToAuth: authenticatedCheckbox.prop('checked') }, function() {
+							_Code.hideSchemaRecompileMessage();
+							_Code.displaySchemaNodeContent(data);
+						});
+					});
+				}
 
 				let schemaGrantsTableConfig = {
 					class: 'schema-grants-table schema-props',

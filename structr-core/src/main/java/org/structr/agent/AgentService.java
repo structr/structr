@@ -35,6 +35,7 @@ import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.ServiceResult;
+import org.structr.api.service.StopServiceForMaintenanceMode;
 import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
 import org.structr.schema.ConfigurationProvider;
@@ -44,6 +45,7 @@ import org.structr.schema.SchemaService;
  * The agent service main class.
  */
 @ServiceDependency(SchemaService.class)
+@StopServiceForMaintenanceMode
 public class AgentService extends Thread implements RunnableService {
 
 	private static final Logger logger = LoggerFactory.getLogger(AgentService.class.getName());

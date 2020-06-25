@@ -39,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 public class Settings {
 
 	public static final String DEFAULT_DATABASE_DRIVER        = "org.structr.memory.MemoryDatabaseService";
+	public static final String MAINTENANCE_PREFIX             = "maintenance";
 
 	private static final Map<String, Setting> settings        = new LinkedHashMap<>();
 	private static final Map<String, SettingsGroup> groups    = new LinkedHashMap<>();
@@ -100,6 +101,14 @@ public class Settings {
 	public static final Setting<String> RestPath              = new StringSetting(serverGroup,  "hidden",     "application.rest.path",         "/structr/rest", "Defines the URL path of the Structr REST server. Should not be changed because it is hard-coded in many parts of the application.");
 	public static final Setting<String> BaseUrlOverride       = new StringSetting(serverGroup,  "Interfaces", "application.baseurl.override",  "", "Overrides the baseUrl that can be used to prefix links to local web resources. By default, the value is assembled from the protocol, hostname and port of the server instance Structr is running on");
 
+	public static final Setting<Integer> MaintenanceHttpPort          = new IntegerSetting(serverGroup, "Maintenance", MAINTENANCE_PREFIX + "." + HttpPort.getKey(),         8182, "HTTP port the Structr server will listen on in maintenance mode");
+	public static final Setting<Integer> MaintenanceHttpsPort         = new IntegerSetting(serverGroup, "Maintenance", MAINTENANCE_PREFIX + "." + HttpsPort.getKey(),        8183, "HTTPS port the Structr server will listen on (if SSL is enabled) in maintenance mode");
+	public static final Setting<Integer> MaintenanceSshPort           = new IntegerSetting(serverGroup, "Maintenance", MAINTENANCE_PREFIX + "." + SshPort.getKey(),          8122, "SSH port the Structr server will listen on (if SSHService is enabled) in maintenance mode");
+	public static final Setting<Integer> MaintenanceFtpPort           = new IntegerSetting(serverGroup, "Maintenance", MAINTENANCE_PREFIX + "." + FtpPort.getKey(),          8121, "FTP port the Structr server will listen on (if FtpService is enabled) in maintenance mode");
+	public static final Setting<String> MaintenanceResourcePath       = new StringSetting(serverGroup, "Maintenance", MAINTENANCE_PREFIX + ".resource.path",                 "", "The local folder for static resources served in maintenance mode. If no path is provided the a default maintenance page with customizable text is shown in maintenance mode.");
+	public static final Setting<String> MaintenanceMessage            = new StringSetting(serverGroup, "Maintenance", MAINTENANCE_PREFIX + ".message",                       "The server is undergoing maintenance. It will be available again shortly.", "Text for default maintenance page.");
+	public static final Setting<Boolean> MaintenanceModeEnabled       = new BooleanSetting(serverGroup, "hidden", MAINTENANCE_PREFIX + ".enabled",                           false, "Enables maintenance mode where all ports can be changed to prevent users from accessing the application during maintenance.");
+
 	// HTTP service settings
 	public static final Setting<String> ResourceHandlers         = new StringSetting(serverGroup,  "hidden",        "httpservice.resourcehandlers",         "StructrUiHandler", "This handler is needed to serve static files with the built-in Jetty container.");
 	public static final Setting<String> LifecycleListeners       = new StringSetting(serverGroup,  "hidden",        "httpservice.lifecycle.listeners",      "");
@@ -125,6 +134,7 @@ public class Settings {
 	public static final Setting<String> AccessControlAllowHeaders     = new StringSetting(serverGroup, "CORS Settings", "access.control.allow.headers",     "", "Sets the value of the <code>Access-Control-Allow-Headers</code> header.");
 	public static final Setting<String> AccessControlAllowCredentials = new StringSetting(serverGroup, "CORS Settings", "access.control.allow.credentials", "", "Sets the value of the <code>Access-Control-Allow-Credentials</code> header.");
 	public static final Setting<String> AccessControlExposeHeaders    = new StringSetting(serverGroup, "CORS Settings", "access.control.expose.headers",    "", "Sets the value of the <code>Access-Control-Expose-Headers</code> header.");
+
 
 	public static final Setting<String> UiHandlerContextPath        = new StringSetting(serverGroup,  "hidden", "structruihandler.contextpath",       "/structr", "Static resource handling configuration.");
 	public static final Setting<Boolean> UiHandlerDirectoriesListed = new BooleanSetting(serverGroup, "hidden", "structruihandler.directorieslisted", false);
@@ -207,7 +217,10 @@ public class Settings {
 	public static final Setting<Boolean> CmisEnabled             = new BooleanSetting(advancedGroup, "hidden",      "cmis.enabled",                  false);
 
 	// servlets
-	public static final StringMultiChoiceSetting Servlets     = new StringMultiChoiceSetting(servletsGroup, "General", "httpservice.servlets", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet LoginServlet LogoutServlet", Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet", "EventSourceServlet"), "Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
+	public static final StringMultiChoiceSetting Servlets     = new StringMultiChoiceSetting(servletsGroup, "General", "httpservice.servlets",
+		"JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet LoginServlet LogoutServlet HealthCheckServlet",
+		Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet", "EventSourceServlet", "HealthCheckServlet"),
+		"Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
 
 	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "configservlet.enabled",             true, "Enables the config servlet (available under <code>http(s)://&lt;your-server&gt;/structr/config</code>)");
 
@@ -332,13 +345,20 @@ public class Settings {
 	public static final Setting<Integer> ProxyMaxFileSize      = new IntegerSetting(servletsGroup, "ProxyServlet", "proxyservlet.maxfilesize",           1000);
 	public static final Setting<Integer> ProxyMaxRequestSize   = new IntegerSetting(servletsGroup, "ProxyServlet", "proxyservlet.maxrequestsize",        1200);
 
-	public static final Setting<String> EventSourceServletPath       = new StringSetting(servletsGroup,  "EventSourceServlet", "EventSourceservlet.path",                  "/structr/EventSource");
-	public static final Setting<String> EventSourceServletClass      = new StringSetting(servletsGroup,  "EventSourceServlet", "EventSourceservlet.class",                 "org.structr.web.servlet.EventSourceServlet");
-	public static final Setting<String> EventSourceAuthenticator     = new StringSetting(servletsGroup,  "EventSourceServlet", "EventSourceservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
-	public static final Setting<String> EventSourceResourceProvider  = new StringSetting(servletsGroup,  "EventSourceServlet", "EventSourceservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
-	public static final Setting<String> EventSourceDefaultView       = new StringSetting(servletsGroup,  "EventSourceServlet", "EventSourceservlet.defaultview",           "public");
-	public static final Setting<Integer> EventSourceOutputDepth      = new IntegerSetting(servletsGroup, "EventSourceServlet", "EventSourceservlet.outputdepth",	   1);
+	public static final Setting<String> EventSourceServletPath       = new StringSetting(servletsGroup,  "EventSourceServlet", "eventsourceservlet.path",                  "/structr/EventSource");
+	public static final Setting<String> EventSourceServletClass      = new StringSetting(servletsGroup,  "EventSourceServlet", "eventsourceservlet.class",                 "org.structr.web.servlet.EventSourceServlet");
+	public static final Setting<String> EventSourceAuthenticator     = new StringSetting(servletsGroup,  "EventSourceServlet", "eventsourceservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> EventSourceResourceProvider  = new StringSetting(servletsGroup,  "EventSourceServlet", "eventsourceservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
+	public static final Setting<String> EventSourceDefaultView       = new StringSetting(servletsGroup,  "EventSourceServlet", "eventsourceservlet.defaultview",           "public");
+	public static final Setting<Integer> EventSourceOutputDepth      = new IntegerSetting(servletsGroup, "EventSourceServlet", "eventsourceservlet.outputdepth",	   1);
 
+	public static final Setting<String> HealthCheckServletPath       = new StringSetting(servletsGroup,  "HealthCheckServlet", "healthcheckservlet.path",                  "/structr/health");
+	public static final Setting<String> HealthCheckServletClass      = new StringSetting(servletsGroup,  "HealthCheckServlet", "healthcheckservlet.class",                 "org.structr.rest.servlet.HealthCheckServlet");
+	public static final Setting<String> HealthCheckAuthenticator     = new StringSetting(servletsGroup,  "HealthCheckServlet", "healthcheckservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> HealthCheckResourceProvider  = new StringSetting(servletsGroup,  "HealthCheckServlet", "healthcheckservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
+	public static final Setting<String> HealthCheckDefaultView       = new StringSetting(servletsGroup,  "HealthCheckServlet", "healthcheckservlet.defaultview",           "public");
+	public static final Setting<Integer> HealthCheckOutputDepth      = new IntegerSetting(servletsGroup, "HealthCheckServlet", "healthcheckservlet.outputdepth",           1);
+	public static final Setting<String> HealthCheckWhitelist         = new StringSetting(servletsGroup,  "HealthCheckServlet", "healthcheckservlet.whitelist",              "127.0.0.1, localhost, ::1", "IP addresses in this list are allowed to access the health check endpoint at /structr/health.");
 
 	// cron settings
 	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations");
@@ -668,7 +688,6 @@ public class Settings {
 		} catch (ConfigurationException ex) {
 			System.err.println("Unable to load configuration: " + ex.getMessage());
 		}
-
 	}
 
 	public static String trim(final String value) {
@@ -681,10 +700,14 @@ public class Settings {
 		}
 	}
 
+	public static <T>Setting<T> getSettingOrMaintenanceSetting(final Setting<T> setting) {
+
+		return MaintenanceModeEnabled.getValue() ? setting.getPrefixedSetting(Settings.MAINTENANCE_PREFIX) : setting;
+	}
+
 	public static String getBasePath() {
 
 		return checkPath(BasePath.getValue());
-
 	}
 
 	public static String getFullSettingPath(Setting<String> pathSetting) {
