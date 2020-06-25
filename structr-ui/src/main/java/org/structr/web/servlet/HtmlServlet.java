@@ -347,6 +347,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 									rootElement = ((DOMNode) possibleRootNode);
 								}
 
+								if (rootElement == null) {
+
+									rootElement = findPartialByName(securityContext, PathHelper.getName(pagePart));
+								}
+
 								dataNode = findNodeByUuid(securityContext, PathHelper.getName(path));
 
 								if (dataNode == null) {
