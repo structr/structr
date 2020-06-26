@@ -145,6 +145,8 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 			try {
 
+				DeployCommand.checkOwnerAndSecurity((Map<String, Object>)data);
+
 				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), Template.class, (Map<String, Object>)data);
 
 			} catch (FrameworkException ex) {
