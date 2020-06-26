@@ -173,6 +173,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
+		final long t0                   = System.currentTimeMillis();
 		final Authenticator auth        = getConfig().getAuthenticator();
 		List<Page> pages                = null;
 		boolean requestUriContainsUuids = false;
@@ -499,7 +500,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						// async or not?
 						if (isAsync && !createsRawData) {
 
-							renderAsyncOutput(request, response, app, renderContext, rootElement);
+							renderAsyncOutput(request, response, app, renderContext, rootElement, t0);
 
 						} else {
 
@@ -516,6 +517,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 							} catch (IOException ioex) {
 								logger.warn("", ioex);
 							}
+
+							this.stats.recordStatsValue("html", System.currentTimeMillis() - t0);
 						}
 					}
 				}
@@ -839,11 +842,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 	}
 
-	protected void renderAsyncOutput(HttpServletRequest request, HttpServletResponse response, App app, RenderContext renderContext, DOMNode rootElement) throws IOException {
-		final AsyncContext async = request.startAsync();
+	protected void renderAsyncOutput(HttpServletRequest request, HttpServletResponse response, App app, RenderContext renderContext, DOMNode rootElement, final long requestStartTime) throws IOException {
+
+		final AsyncContext async      = request.startAsync();
 		final ServletOutputStream out = async.getResponse().getOutputStream();
-		final AtomicBoolean finished = new AtomicBoolean(false);
-		final DOMNode rootNode = rootElement;
+		final AtomicBoolean finished  = new AtomicBoolean(false);
+		final DOMNode rootNode        = rootElement;
 
 		threadPool.submit(new Runnable() {
 
@@ -872,6 +876,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						logger.warn("", ex);
 					}
 				}
+
+				// record async rendering time
+				HtmlServlet.super.stats.recordStatsValue("html", System.currentTimeMillis() - requestStartTime);
 			}
 
 		});
@@ -938,6 +945,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	}
 
 	protected void writeOutputSteam(HttpServletResponse response, StringRenderBuffer buffer) throws IOException {
+
 		response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
 		response.getOutputStream().flush();
 		response.getOutputStream().close();

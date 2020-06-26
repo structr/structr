@@ -16,20 +16,9 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.service;
+package org.structr.rest.common;
 
-import javax.servlet.Servlet;
-import org.structr.api.service.Feature;
-import org.structr.rest.common.StatsCallback;
+public interface StatsCallback {
 
-/**
- *
- *
- *
- */
-public interface HttpServiceServlet extends Servlet, Feature {
-
-	public StructrHttpServiceConfig getConfig();
-	public void registerStatsCallback(final StatsCallback stats);
-
+	void recordStatsValue(final String source, final long milliseconds);
 }
