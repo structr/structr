@@ -972,6 +972,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 	protected void doGetOrHead(final HttpServletRequest request, final HttpServletResponse response, final boolean returnContent) throws ServletException, IOException {
 
+		final long t0 = System.currentTimeMillis();
+
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
 		Resource resource               = null;
@@ -1074,5 +1076,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			}
 
 		}
+
+		this.stats.recordStatsValue("json", System.currentTimeMillis() - t0);
 	}
 }
