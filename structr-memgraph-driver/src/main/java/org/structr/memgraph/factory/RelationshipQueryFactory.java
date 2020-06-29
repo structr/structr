@@ -16,13 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.memgraph.factory;
 
-/**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
- */
-public enum DatabaseFeature {
+import org.structr.api.index.AbstractIndex;
+import org.structr.api.index.AbstractQueryFactory;
+import org.structr.api.search.QueryPredicate;
+import org.structr.memgraph.AdvancedCypherQuery;
 
-	QueryLanguage, LargeStringIndexing, SpatialQueries, AuthenticationRequired
+public class RelationshipQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
+
+	public RelationshipQueryFactory(final AbstractIndex index) {
+		super(index);
+	}
+
+	@Override
+	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
+		return true;
+	}
 }

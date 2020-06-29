@@ -16,13 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.memgraph;
+
+import java.util.Map;
 
 /**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
+ *
  */
-public enum DatabaseFeature {
+public class IterableQuery extends AbstractNativeQuery<Iterable<Map<String, Object>>> {
 
-	QueryLanguage, LargeStringIndexing, SpatialQueries, AuthenticationRequired
+	public IterableQuery(final String query) {
+		super(query);
+	}
+
+	@Override
+	Iterable<Map<String, Object>> execute(final SessionTransaction tx) {
+		return tx.run(query, parameters);
+	}
 }

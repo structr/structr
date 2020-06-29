@@ -43,6 +43,7 @@ import org.structr.api.service.DatabaseConnection;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Document;
 import org.structr.api.util.html.InputField;
+import org.structr.api.util.html.SelectField;
 import org.structr.api.util.html.Tag;
 import org.structr.api.util.html.attr.Href;
 import org.structr.api.util.html.attr.Rel;
@@ -308,6 +309,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 				final ManageDatabasesCommand cmd    = Services.getInstance().command(null, ManageDatabasesCommand.class);
 				final String name                   = request.getParameter("name");
+				final String driver                 = request.getParameter("driver");
 				final String url                    = request.getParameter("url");
 				final String username               = request.getParameter("username");
 				final String password               = request.getParameter("password");
@@ -315,6 +317,7 @@ public class ConfigServlet extends AbstractServletBase {
 				final DatabaseConnection connection = new DatabaseConnection();
 
 				connection.setName(name);
+				connection.setDriver(driver);
 				connection.setUrl(url);
 				connection.setUsername(username);
 				connection.setPassword(password);
@@ -354,11 +357,13 @@ public class ConfigServlet extends AbstractServletBase {
 						final String restAction          = parts[1];
 
 						// values for save action
+						final String driver              = request.getParameter("driver");
 						final String connectionUrl       = request.getParameter("url");
 						final String connectionUsername  = request.getParameter("username");
 						final String connectionPassword  = request.getParameter("password");
 
 						data.put(DatabaseConnection.KEY_NAME,     name);
+						data.put(DatabaseConnection.KEY_DRIVER,   driver);
 						data.put(DatabaseConnection.KEY_URL,      connectionUrl);
 						data.put(DatabaseConnection.KEY_USERNAME, connectionUsername);
 						data.put(DatabaseConnection.KEY_PASSWORD, connectionPassword);
@@ -816,6 +821,10 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag name = div.block("p");
 		name.block("label").text("Name");
 		name.add(new InputField(name, "text", "name-structr-new-connection", "", "Enter a connection name"));
+
+		final Tag driver = div.block("p");
+		driver.block("label").text("Driver");
+		driver.add(new SelectField(driver, "driver-structr-new-connection").addOption("Neo4j", "org.structr.bolt.BoltDatabaseService").addOption("Memgraph DB (experimental)", "org.structr.memgraph.MemgraphDatabaseService"));
 
 		final Tag url = div.block("p");
 		url.block("label").text("Connection URL");

@@ -16,13 +16,19 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.memgraph;
 
 /**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
+ *
  */
-public enum DatabaseFeature {
+public class BooleanQuery extends AbstractNativeQuery<Boolean> {
 
-	QueryLanguage, LargeStringIndexing, SpatialQueries, AuthenticationRequired
+	public BooleanQuery(final String query) {
+		super(query);
+	}
+
+	@Override
+	Boolean execute(final SessionTransaction tx) {
+		return tx.getBoolean(query, parameters);
+	}
 }

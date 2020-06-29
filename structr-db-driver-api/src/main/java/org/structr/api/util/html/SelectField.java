@@ -16,13 +16,36 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.api.util.html;
 
 /**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
  */
-public enum DatabaseFeature {
+public class SelectField extends Block {
 
-	QueryLanguage, LargeStringIndexing, SpatialQueries, AuthenticationRequired
+	private String value = null;
+
+	public SelectField(final Tag parent, final String id) {
+
+		this(parent, id, null);
+	}
+
+	public SelectField(final Tag parent, final String id, final String value) {
+
+		super(parent, "select");
+
+		this.value = value;
+
+		attr(new Attr("id", id));
+	}
+
+	public SelectField addOption(final String text, final String value) {
+
+		if (value != null && value.equals(this.value)) {
+			this.block("option").text(text).attr(new Attr("value", value), new Attr("selected", "selected"));
+		} else {
+			this.block("option").text(text).attr(new Attr("value", value));
+		}
+
+		return this;
+	}
 }

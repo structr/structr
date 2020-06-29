@@ -16,13 +16,53 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.memgraph;
+
+import org.structr.api.graph.Identity;
 
 /**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
  */
-public enum DatabaseFeature {
+class BoltIdentity implements Identity {
 
-	QueryLanguage, LargeStringIndexing, SpatialQueries, AuthenticationRequired
+	private long id = -1L;
+
+	public BoltIdentity(final long id) {
+		this.id = id;
+	}
+
+	public long getId() {
+		return id;
+	}
+
+	@Override
+	public String toString() {
+		return Long.toString(id);
+	}
+
+	@Override
+	public boolean equals(final Object other) {
+		return ((BoltIdentity)other).getId() == id;
+	}
+
+	@Override
+	public int hashCode() {
+		return Long.valueOf(id).hashCode();
+	}
+
+	// ----- interface Identity -----
+	@Override
+	public int compareTo(final Object o) {
+
+		final long otherId = ((BoltIdentity)o).getId();
+
+		if (id > otherId) {
+			return 1;
+		}
+
+		if (id < otherId) {
+			return -1;
+		}
+
+		return 0;
+	}
 }

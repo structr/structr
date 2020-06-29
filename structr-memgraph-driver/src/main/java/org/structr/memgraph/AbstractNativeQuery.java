@@ -16,13 +16,34 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.memgraph;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import org.structr.api.NativeQuery;
 
 /**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
  */
-public enum DatabaseFeature {
+public abstract class AbstractNativeQuery<T> implements NativeQuery<T> {
 
-	QueryLanguage, LargeStringIndexing, SpatialQueries, AuthenticationRequired
+	protected final Map<String, Object> parameters = new LinkedHashMap<>();
+	protected String query                         = null;
+
+	public AbstractNativeQuery(final String query) {
+		this.query = query;
+	}
+
+	abstract T execute(final SessionTransaction tx);
+
+	public String getQuery() {
+		return query;
+	}
+
+	@Override
+	public void configure(final Map<String, Object> config) {
+
+		if (config != null) {
+			parameters.putAll(config);
+		}
+	}
 }

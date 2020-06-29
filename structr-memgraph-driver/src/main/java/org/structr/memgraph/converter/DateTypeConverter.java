@@ -16,13 +16,36 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.memgraph.converter;
+
+import java.util.Date;
 
 /**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
+ *
  */
-public enum DatabaseFeature {
+public class DateTypeConverter extends LongTypeConverter {
 
-	QueryLanguage, LargeStringIndexing, SpatialQueries, AuthenticationRequired
+	@Override
+	public Object getReadValue(final Object value) {
+
+		if (value instanceof Date) {
+
+			final long time = ((Date)value).getTime();
+			return super.getReadValue(time);
+		}
+
+		return super.getReadValue(value);
+	}
+
+	@Override
+	public Object getWriteValue(final Object value) {
+
+		if (value instanceof Date) {
+
+			final long time = ((Date)value).getTime();
+			return super.getWriteValue(time);
+		}
+
+		return super.getWriteValue(value);
+	}
 }

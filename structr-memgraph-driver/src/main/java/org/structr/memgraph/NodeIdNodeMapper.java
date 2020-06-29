@@ -16,13 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.memgraph;
+
+import java.util.function.Function;
+import org.structr.api.graph.Node;
 
 /**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
+ *
  */
-public enum DatabaseFeature {
+class NodeIdNodeMapper implements Function<NodeId, Node> {
 
-	QueryLanguage, LargeStringIndexing, SpatialQueries, AuthenticationRequired
+	private MemgraphDatabaseService db = null;
+
+	public NodeIdNodeMapper(final MemgraphDatabaseService db) {
+		this.db            = db;
+	}
+
+	@Override
+	public Node apply(final NodeId t) {
+		return NodeWrapper.newInstance(db, t.getNode());
+	}
 }

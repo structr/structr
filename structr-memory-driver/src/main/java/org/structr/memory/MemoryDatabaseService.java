@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import org.structr.api.AbstractDatabaseService;
 import org.structr.api.DatabaseFeature;
 import static org.structr.api.DatabaseFeature.LargeStringIndexing;
@@ -52,7 +51,6 @@ import org.structr.memory.index.filter.TargetNodeFilter;
  */
 public class MemoryDatabaseService extends AbstractDatabaseService implements GraphProperties {
 
-	private static final Map<String, RelationshipType> relTypeCache     = new ConcurrentHashMap<>();
 	private static final ThreadLocal<MemoryTransaction> transactions    = new ThreadLocal<>();
 	private static final Map<String, Object> graphProperties            = new HashMap<>();
 	private final MemoryRelationshipRepository relationships            = new MemoryRelationshipRepository();
@@ -304,6 +302,9 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 				return false;
 
 			case SpatialQueries:
+				return false;
+
+			case AuthenticationRequired:
 				return false;
 		}
 
