@@ -27,10 +27,17 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.rest.common.StatsCallback;
 
 public abstract class AbstractServletBase extends HttpServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractServletBase.class.getName());
+
+	protected StatsCallback stats = null;
+
+	public void registerStatsCallback(final StatsCallback stats) {
+		this.stats = stats;
+	}
 
 	protected void setCustomResponseHeaders(final HttpServletResponse response) {
 

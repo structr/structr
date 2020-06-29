@@ -1476,7 +1476,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		config.put("grantees", grantees);
 	}
 
-	protected void checkOwnerAndSecurity(final Map<String, Object> entry) throws FrameworkException {
+	public static void checkOwnerAndSecurity(final Map<String, Object> entry) throws FrameworkException {
 
 		if (entry.containsKey("owner")) {
 

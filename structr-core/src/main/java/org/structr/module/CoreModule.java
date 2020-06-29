@@ -105,6 +105,7 @@ import org.structr.core.function.ParseNumberFunction;
 import org.structr.core.function.PrintFunction;
 import org.structr.core.function.QuotFunction;
 import org.structr.core.function.RandomFunction;
+import org.structr.core.function.RandomUUIDFunction;
 import org.structr.core.function.RemoteCypherFunction;
 import org.structr.core.function.ReplaceFunction;
 import org.structr.core.function.ResetCounterFunction;
@@ -115,6 +116,7 @@ import org.structr.core.function.SearchFunction;
 import org.structr.core.function.SetFunction;
 import org.structr.core.function.SetLocaleFunction;
 import org.structr.core.function.SizeFunction;
+import org.structr.core.function.SleepFunction;
 import org.structr.core.function.SortFunction;
 import org.structr.core.function.SplitFunction;
 import org.structr.core.function.SplitRegexFunction;
@@ -250,6 +252,8 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new EndsWithFunction());
 		Functions.put(licenseManager, new Base64EncodeFunction());
 		Functions.put(licenseManager, new Base64DecodeFunction());
+		Functions.put(licenseManager, new SleepFunction());
+		Functions.put(licenseManager, new RandomUUIDFunction());
 
 		Functions.put(licenseManager, new HasCacheValueFunction());
 		Functions.put(licenseManager, new GetCacheValueFunction());

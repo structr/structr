@@ -92,6 +92,8 @@ import org.structr.schema.SchemaService;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 import org.structr.api.service.StartServiceInMaintenanceMode;
 import org.structr.api.service.StopServiceForMaintenanceMode;
+import org.structr.rest.common.Stats;
+import org.structr.rest.common.StatsCallback;
 
 /**
  *
@@ -100,7 +102,7 @@ import org.structr.api.service.StopServiceForMaintenanceMode;
 @ServiceDependency(SchemaService.class)
 @StopServiceForMaintenanceMode
 @StartServiceInMaintenanceMode
-public class HttpService implements RunnableService {
+public class HttpService implements RunnableService, StatsCallback {
 
 	private static final Logger logger = LoggerFactory.getLogger(HttpService.class.getName());
 
@@ -111,6 +113,7 @@ public class HttpService implements RunnableService {
 		Started, Stopped
 	}
 
+	private Map<String, Stats> stats              = new LinkedHashMap<>();
 	private DefaultSessionCache sessionCache      = null;
 	private GzipHandler gzipHandler               = null;
 	private HttpConfiguration httpConfig          = null;
@@ -754,6 +757,25 @@ public class HttpService implements RunnableService {
 		return httpsActive;
 	}
 
+	public Map<String, Stats> getRequestStats() {
+		return stats;
+	}
+
+	// ----- interface StatsCallback -----
+	@Override
+	public void recordStatsValue(final String source, final long value) {
+
+		Stats data = stats.get(source);
+		if (data == null) {
+
+			data = new Stats();
+			stats.put(source, data);
+		}
+
+		data.value(value);
+	}
+
+
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
@@ -866,6 +888,9 @@ public class HttpService implements RunnableService {
 
 											servlets.put(servletPath + "/*", new ServletHolder(servlet));
 										}
+
+										// callback for statistics
+										httpServiceServlet.registerStatsCallback(this);
 									}
 								}
 

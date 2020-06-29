@@ -16,20 +16,43 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.service;
+package org.structr.rest.common;
 
-import javax.servlet.Servlet;
-import org.structr.api.service.Feature;
-import org.structr.rest.common.StatsCallback;
+public class Stats {
 
-/**
- *
- *
- *
- */
-public interface HttpServiceServlet extends Servlet, Feature {
+	private long count   = 0L;
+	private long sum     = 0L;
+	private long min     = Long.MAX_VALUE;
+	private long max     = Long.MIN_VALUE;
 
-	public StructrHttpServiceConfig getConfig();
-	public void registerStatsCallback(final StatsCallback stats);
+	public void value(final long value) {
 
+		sum += value;
+
+		if (value < min) {
+			min = value;
+		}
+
+		if (value > max) {
+			max = value;
+		}
+
+		count++;
+	}
+
+	public long getCount() {
+		return count;
+	}
+
+	public long getMinValue() {
+		return min;
+	}
+
+	public long getMaxValue() {
+		return max;
+	}
+
+	public long getAverageValue() {
+		return sum / count;
+	}
 }

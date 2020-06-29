@@ -163,6 +163,8 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 			try {
 
+				DeployCommand.checkOwnerAndSecurity((Map<String, Object>)data);
+
 				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), DOMNode.class, (Map<String, Object>)data);
 
 			} catch (FrameworkException ex) {
