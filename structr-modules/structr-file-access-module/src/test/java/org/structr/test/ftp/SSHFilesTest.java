@@ -32,6 +32,7 @@ import java.util.Vector;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
@@ -55,6 +56,8 @@ public class SSHFilesTest extends SSHTest {
 
 	@Test
 	public void test00RootDirectoriesAndAttributes() {
+
+		Settings.SSHPublicKeyOnly.setValue(false);
 
 		final ChannelSftp sftp = setupSftpClient("ftpuser1", "ftpuserpw1", true);
 
@@ -107,6 +110,8 @@ public class SSHFilesTest extends SSHTest {
 
 	@Test
 	public void test00StoreFile() {
+
+		Settings.SSHPublicKeyOnly.setValue(false);
 
 		ChannelSftp sftp          = setupSftpClient("ftpuser1", "ftpuserpw1", true);
 		final String testContent1 = "Test Content öäü";
@@ -212,6 +217,8 @@ public class SSHFilesTest extends SSHTest {
 	@Test
 	public void test02RenameFile() {
 
+		Settings.SSHPublicKeyOnly.setValue(false);
+
 		ChannelSftp sftp          = setupSftpClient("ftpuser1", "ftpuserpw1", true);
 		final String testContent1 = "Test Content öäü";
 		final String name1        = "file1.txt";
@@ -261,6 +268,8 @@ public class SSHFilesTest extends SSHTest {
 
 	@Test
 	public void test03MoveFile() {
+
+		Settings.SSHPublicKeyOnly.setValue(false);
 
 		ChannelSftp sftp          = setupSftpClient("ftpuser1", "ftpuserpw1", true);
 		final String testContent1 = "Test Content öäü";
@@ -317,6 +326,8 @@ public class SSHFilesTest extends SSHTest {
 
 	@Test
 	public void test04OverwriteFile() {
+
+		Settings.SSHPublicKeyOnly.setValue(false);
 
 		ChannelSftp sftp          = setupSftpClient("ftpuser1", "ftpuserpw1", true);
 		final String testContent1 = "Initial Content";
@@ -413,6 +424,8 @@ public class SSHFilesTest extends SSHTest {
 	@Test
 	public void test05DeleteFile() {
 
+		Settings.SSHPublicKeyOnly.setValue(false);
+
 		final ChannelSftp sftp   = setupSftpClient("ftpuser1", "ftpuserpw1", true);
 		final String testContent = "Test Content öäü";
 		final String name        = "file1.txt";
@@ -487,6 +500,8 @@ public class SSHFilesTest extends SSHTest {
 
 	@Test
 	public void test06DeleteDirectory() {
+
+		Settings.SSHPublicKeyOnly.setValue(false);
 
 		final ChannelSftp sftp   = setupSftpClient("ftpuser1", "ftpuserpw1", true);
 
