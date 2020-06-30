@@ -228,7 +228,7 @@ public class Scripting {
 		Context context = ContextFactory.getContext("js", actionContext, entity);
 
 		try {
-			Object result = PolyglotWrapper.unwrap(context.eval("js", embedInFunction(snippet.getSource())));
+			Object result = PolyglotWrapper.unwrap(actionContext, context.eval("js", embedInFunction(snippet.getSource())));
 
 			return result;
 		} catch (Exception ex) {
@@ -277,7 +277,6 @@ public class Scripting {
 					wrappedScript.append("main <- function() {");
 					wrappedScript.append(script);
 					wrappedScript.append("}\n");
-					wrappedScript.append("\n\nmain()");
 					break;
 				case "python":
 					// Prepend tabs
@@ -285,15 +284,12 @@ public class Scripting {
 					wrappedScript.append("def main():\n");
 					wrappedScript.append(tabPrependedScript);
 					wrappedScript.append("\n");
-
-					context.eval(engineName, wrappedScript.toString());
-
-					return PolyglotWrapper.unwrap(context.getBindings(engineName).getMember("main").execute());
+					break;
 			}
 
-				Object result = PolyglotWrapper.unwrap(context.eval(engineName, wrappedScript.toString()));
+			context.eval(engineName, wrappedScript.toString());
 
-				return result;
+			return PolyglotWrapper.unwrap(actionContext, context.getBindings(engineName).getMember("main").execute());
 		} catch (PolyglotException ex) {
 
 			throw new FrameworkException(422, ex.getMessage());

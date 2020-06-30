@@ -113,7 +113,7 @@ public class StructrBinding implements ProxyObject {
 		return arguments -> {
 
 			try {
-				Object[] args = Arrays.stream(arguments).map(PolyglotWrapper::unwrap).toArray();
+				Object[] args = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
 
 				if (args.length == 1) {
 

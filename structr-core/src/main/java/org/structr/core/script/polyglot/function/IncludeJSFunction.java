@@ -22,6 +22,7 @@ package org.structr.core.script.polyglot.function;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
+import org.structr.core.script.polyglot.FunctionWrapper;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 
@@ -37,7 +38,7 @@ public class IncludeJSFunction implements ProxyExecutable {
 
 	@Override
 	public Object execute(Value... arguments) {
-		Object[] args = Arrays.stream(arguments).map(PolyglotWrapper::unwrap).toArray();
+		Object[] args = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
 		String sourceFileName;
 
 		if (args.length > 0 && args[0] instanceof String) {

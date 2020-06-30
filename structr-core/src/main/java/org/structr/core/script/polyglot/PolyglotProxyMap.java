@@ -54,6 +54,6 @@ public class PolyglotProxyMap implements ProxyObject {
 
 	@Override
 	public void putMember(String key, Value value) {
-		map.put(key, PolyglotWrapper.unwrap(value));
+		map.put(key, PolyglotWrapper.unwrap(actionContext, value));
 	}
 }

@@ -62,7 +62,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 				Map<String, Object> params = null;
 				if (arguments.length >= 1) {
-					Object arg0 = PolyglotWrapper.unwrap(arguments[0]);
+					Object arg0 = PolyglotWrapper.unwrap(actionContext, arguments[0]);
 					if (arg0 instanceof Map) {
 						params = (Map<String, Object>) arg0;
 					}
@@ -108,7 +108,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 		try {
 
 			final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
-			Object unwrappedValue = PolyglotWrapper.unwrap(value);
+			Object unwrappedValue = PolyglotWrapper.unwrap(actionContext, value);
 			Object convertedValue = propKey.inputConverter(actionContext.getSecurityContext()).convert(unwrappedValue);
 			node.setProperty(propKey, convertedValue);
 		} catch (FrameworkException ex) {

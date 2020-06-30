@@ -46,7 +46,7 @@ public class FunctionWrapper implements ProxyExecutable {
 	@Override
 	public Object execute(Value... arguments) {
 		try {
-			Object[] args = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(arg)).toArray();
+			Object[] args = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
 
 			return PolyglotWrapper.wrap(actionContext, func.apply(actionContext, entity, args));
 		} catch (FrameworkException ex) {

@@ -42,7 +42,7 @@ public class BatchFunction implements ProxyExecutable {
 	@Override
 	public Object execute(Value... arguments) {
 
-		boolean runInBackground = arguments != null && arguments.length >= 3 && arguments[2] != null && PolyglotWrapper.unwrap(arguments[2]) instanceof Boolean ? (Boolean) PolyglotWrapper.unwrap(arguments[2]) : false;
+		boolean runInBackground = arguments != null && arguments.length >= 3 && arguments[2] != null && PolyglotWrapper.unwrap(actionContext, arguments[2]) instanceof Boolean ? (Boolean) PolyglotWrapper.unwrap(actionContext, arguments[2]) : false;
 
 		final Thread workerThread = new Thread(() -> {
 
@@ -59,7 +59,7 @@ public class BatchFunction implements ProxyExecutable {
 
 						try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-							result = PolyglotWrapper.unwrap(arguments[0].execute());
+							result = PolyglotWrapper.unwrap(actionContext, arguments[0].execute());
 							tx.success();
 						} catch (FrameworkException ex) {
 
@@ -78,7 +78,7 @@ public class BatchFunction implements ProxyExecutable {
 								// Execute error handler
 								try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-									result = PolyglotWrapper.unwrap(arguments[1].execute());
+									result = PolyglotWrapper.unwrap(actionContext, arguments[1].execute());
 									tx.success();
 								} catch (FrameworkException ex) {
 
