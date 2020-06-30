@@ -16,13 +16,27 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.memgraph.converter;
+
+import org.structr.api.search.TypeConverter;
 
 /**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
+ *
  */
-public enum DatabaseFeature {
+public class LongTypeConverter implements TypeConverter {
 
-	QueryLanguage, LargeStringIndexing, SpatialQueries, AuthenticationRequired
+	@Override
+	public Object getReadValue(final Object value) {
+		return value;
+	}
+
+	@Override
+	public Object getWriteValue(final Object value) {
+		return getReadValue(value);
+	}
+
+	@Override
+	public Object getInexactValue(final Object value) {
+		return getReadValue(value);
+	}
 }

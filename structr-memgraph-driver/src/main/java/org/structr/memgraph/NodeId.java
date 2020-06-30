@@ -16,13 +16,27 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.memgraph;
+
+import java.util.List;
+import org.neo4j.driver.v1.Record;
+import org.neo4j.driver.v1.types.Path;
 
 /**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
+ * A mapper that converts a stream of Records to a stream of Nodes,
+ * with the ability to pre-fetch additional data from the Record.
  */
-public enum DatabaseFeature {
+class NodeId {
 
-	QueryLanguage, LargeStringIndexing, SpatialQueries, AuthenticationRequired
+	private List<Path> paths = null;
+	private long nodeId      = -1L;
+
+	public NodeId(final Record record) {
+
+		this.nodeId = record.get(0).asLong();
+	}
+
+	public long getNode() {
+		return this.nodeId;
+	}
 }

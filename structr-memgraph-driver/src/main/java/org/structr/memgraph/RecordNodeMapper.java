@@ -16,13 +16,33 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.memgraph;
+
+import java.util.function.Function;
+import org.neo4j.driver.v1.Record;
+import org.neo4j.driver.v1.exceptions.value.Uncoercible;
+import org.neo4j.driver.v1.types.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
+ *
  */
-public enum DatabaseFeature {
+class RecordNodeMapper implements Function<Record, Node> {
 
-	QueryLanguage, LargeStringIndexing, SpatialQueries, AuthenticationRequired
+	private static final Logger logger = LoggerFactory.getLogger(RecordNodeMapper.class);
+
+	@Override
+	public Node apply(final Record t) {
+
+		try {
+			return t.get(0).asNode();
+
+		} catch (Uncoercible ex) {
+
+			logger.warn("Unable to map Neo4j Record {} to Structr Node: {}", t.asMap(), ex.getMessage());
+		}
+
+		return null;
+	}
 }

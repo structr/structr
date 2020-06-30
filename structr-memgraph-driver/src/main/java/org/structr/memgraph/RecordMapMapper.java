@@ -16,13 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.memgraph;
+
+import java.util.Map;
+import java.util.function.Function;
+import org.neo4j.driver.v1.Record;
 
 /**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
+ *
  */
-public enum DatabaseFeature {
+class RecordMapMapper implements Function<Record, Map<String, Object>> {
 
-	QueryLanguage, LargeStringIndexing, SpatialQueries, AuthenticationRequired
+	private MemgraphDatabaseService db = null;
+
+	public RecordMapMapper(final MemgraphDatabaseService db) {
+		this.db = db;
+	}
+
+	@Override
+	public Map<String, Object> apply(final Record t) {
+		return new MapResultWrapper(db, t.asMap());
+	}
 }

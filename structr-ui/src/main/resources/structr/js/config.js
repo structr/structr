@@ -374,19 +374,22 @@ function collectData(name) {
 		name = 'structr-new-connection';
 	}
 
-	let nameInput   = $('input#name-' + name);
-	let urlInput    = $('input#url-' + name);
-	let userInput   = $('input#username-' + name);
-	let pwdInput    = $('input#password-' + name);
-	let nowCheckbox = $('input#connect-checkbox');
+	let nameInput    = $('input#name-' + name);
+	let driverSelect = $('select#driver-' + name);
+	let urlInput     = $('input#url-' + name);
+	let userInput    = $('input#username-' + name);
+	let pwdInput     = $('input#password-' + name);
+	let nowCheckbox  = $('input#connect-checkbox');
 
 	nameInput.parent().removeClass();
+	driverSelect.parent().removeClass();
 	urlInput.parent().removeClass();
 	userInput.parent().removeClass();
 	pwdInput.parent().removeClass();
 
 	let data = {
 		name:     nameInput.val(),
+		driver:   driverSelect.val(),
 		url:      urlInput.val(),
 		username: userInput.val(),
 		password: pwdInput.val(),
@@ -448,6 +451,7 @@ function deleteConnection(name) {
 }
 
 function setNeo4jDefaults() {
+	$('#driver-structr-new-connection').val('org.structr.bolt.BoltDatabaseService');
 	$('#name-structr-new-connection').val('neo4j-localhost-7687');
 	$('#url-structr-new-connection').val('bolt://localhost:7687');
 	$('#username-structr-new-connection').val('neo4j');

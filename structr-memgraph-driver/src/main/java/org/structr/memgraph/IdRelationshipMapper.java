@@ -16,13 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.memgraph;
+
+import java.util.function.Function;
+import org.structr.api.graph.Relationship;
 
 /**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
+ *
  */
-public enum DatabaseFeature {
+class IdRelationshipMapper implements Function<Long, Relationship> {
 
-	QueryLanguage, LargeStringIndexing, SpatialQueries, AuthenticationRequired
+	private MemgraphDatabaseService db = null;
+
+	public IdRelationshipMapper(final MemgraphDatabaseService db) {
+		this.db = db;
+	}
+
+	@Override
+	public Relationship apply(final Long id) {
+		return RelationshipWrapper.newInstance(db, id);
+	}
 }

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt;
+package org.structr.memgraph;
 
 import java.io.File;
 import java.io.FileReader;
@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -77,9 +78,9 @@ import org.structr.api.util.NodeWithOwnerResult;
 /**
  *
  */
-public class BoltDatabaseService extends AbstractDatabaseService implements GraphProperties {
+public class MemgraphDatabaseService extends AbstractDatabaseService implements GraphProperties {
 
-	private static final Logger logger                                = LoggerFactory.getLogger(BoltDatabaseService.class.getName());
+	private static final Logger logger                                = LoggerFactory.getLogger(MemgraphDatabaseService.class.getName());
 	private static final ThreadLocal<SessionTransaction> sessions     = new ThreadLocal<>();
 	private final Set<String> supportedQueryLanguages                 = new LinkedHashSet<>();
 	private Properties globalGraphProperties                          = null;
@@ -218,10 +219,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			buf.append(label);
 		}
 
-		buf.append(" $properties) RETURN n");
-
-		// make properties available to Cypher statement
-		map.put("properties", properties);
+		buf.append(" ");
+		buf.append(createParameterMapStringFromMapAndInsertIntoQueryParameters("properties", properties, map));
+		buf.append(") RETURN n");
 
 		final NodeWrapper newNode = NodeWrapper.newInstance(this, getCurrentTransaction().getNode(buf.toString(), map));
 
@@ -246,7 +246,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		buf.append(") WHERE ID(u) = $userId");
-		buf.append(" CREATE (u)-[o:OWNS $ownsProperties]->(n");
+		buf.append(" CREATE (u)-[o:OWNS ");
+		buf.append(createParameterMapStringFromMapAndInsertIntoQueryParameters("ownsProperties", ownsProperties, parameters));
+		buf.append("]->(n");
 
 		if (tenantId != null) {
 
@@ -260,14 +262,15 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			buf.append(label);
 		}
 
-		buf.append(" $nodeProperties)<-[s:SECURITY $securityProperties]-(u)");
+		buf.append(" ");
+		buf.append(createParameterMapStringFromMapAndInsertIntoQueryParameters("nodeProperties", nodeProperties, parameters));
+		buf.append(")<-[s:SECURITY ");
+		buf.append(createParameterMapStringFromMapAndInsertIntoQueryParameters("securityProperties", securityProperties, parameters));
+		buf.append("]-(u)");
 		buf.append(" RETURN n, s, o");
 
 		// store properties in statement
 		parameters.put("userId",             unwrap(userId));
-		parameters.put("ownsProperties",     ownsProperties);
-		parameters.put("securityProperties", securityProperties);
-		parameters.put("nodeProperties",     nodeProperties);
 
 		try {
 
@@ -297,6 +300,28 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		return null;
+	}
+
+	public static String createParameterMapStringFromMapAndInsertIntoQueryParameters(final String variableName, final Map<String, Object> variableContent, final Map<String, Object> baseParamerters) {
+
+		final StringBuilder buf = new StringBuilder("{");
+
+		final ArrayList<String> tmpList = new ArrayList();
+
+		variableContent.forEach((key, value) -> {
+
+			final String paramName = variableName + "_" + key;
+
+			tmpList.add("`" + key + "`: $`" + paramName + "`");
+
+			baseParamerters.put(paramName, value);
+		});
+
+		buf.append(StringUtils.join(tmpList.toArray(), ", "));
+
+		buf.append("}");
+
+		return buf.toString();
 	}
 
 	@Override
@@ -429,13 +454,13 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 				try (final Transaction tx = beginTx(timeoutSeconds)) {
 
-					for (final Map<String, Object> row : execute("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state}")) {
+					for (final Map<String, Object> row : execute("SHOW INDEX INFO")) {
 
-						for (final Object value : row.values()) {
+						if ("label+property".equals(row.get("index type"))) {
 
-							final Map<String, String> valueMap = (Map<String, String>)value;
+							final String description = "INDEX ON :" + row.get("label") + "(`" + row.get("property") + "`)";
 
-							existingDbIndexes.put(valueMap.get("description"), valueMap.get("state"));
+							existingDbIndexes.put(description, "UNKNOWN");
 						}
 					}
 
@@ -460,15 +485,14 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 			for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
 
-				final String indexDescriptionForLookup = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
-				final String indexDescription          = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
-				final String currentState              = existingDbIndexes.get(indexDescriptionForLookup);
-				final boolean indexAlreadyOnline       = Boolean.TRUE.equals("ONLINE".equals(currentState));
-				final boolean configuredAsIndexed      = propertyIndexConfig.getValue();
+				final String indexDescription = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
+				final String state            = existingDbIndexes.get(indexDescription);
+				final boolean alreadySet      = "ONLINE".equals(state);
+				final boolean createIndex     = propertyIndexConfig.getValue();
 
-				if ("FAILED".equals(currentState)) {
+				if ("FAILED".equals(state)) {
 
-					logger.warn("Index is in FAILED state - dropping the index before handling it further. {}. If this error is recurring, please verify that the data in the concerned property is indexable by Neo4j", indexDescription);
+					logger.warn("Index is in FAILED state - dropping the index before handling it further. {}. If this error is recurring, please verify that the data in the concerned property is indexable by the database", indexDescription);
 
 					final AtomicBoolean retry = new AtomicBoolean(true);
 					final AtomicInteger retryCount = new AtomicInteger(0);
@@ -481,11 +505,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 							executor.submit(() -> {
 
-								try (final Transaction tx = beginTx(timeoutSeconds)) {
+								try (Session session = driver.session()) {
 
-									execute("DROP " + indexDescription);
-
-									tx.success();
+									session.run("DROP " + indexDescription);
 
 								} catch (RetryException rex) {
 
@@ -517,15 +539,15 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 						executor.submit(() -> {
 
-							try (final Transaction tx = beginTx(timeoutSeconds)) {
+							try (Session session = driver.session()) {
 
-								if (configuredAsIndexed) {
+								if (createIndex) {
 
-									if (!indexAlreadyOnline) {
+									if (!alreadySet) {
 
 										try {
 
-											execute("CREATE " + indexDescription);
+											session.run("CREATE " + indexDescription);
 											createdIndexes.incrementAndGet();
 
 										} catch (Throwable t) {
@@ -533,19 +555,17 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 										}
 									}
 
-								} else if (indexAlreadyOnline && !createOnly) {
+								} else if (alreadySet && !createOnly) {
 
 									try {
 
-										execute("DROP " + indexDescription);
+										session.run("DROP " + indexDescription);
 										droppedIndexes.incrementAndGet();
 
 									} catch (Throwable t) {
 										logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
 									}
 								}
-
-								tx.success();
 
 							} catch (RetryException rex) {
 
@@ -590,12 +610,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 				for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
 
-					final String indexDescriptionForLookup = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
-					final String indexDescription          = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
-					final boolean indexExists              = (existingDbIndexes.get(indexDescriptionForLookup) != null);
-					final boolean configuredAsIndexed      = propertyIndexConfig.getValue();
+					final String indexDescription = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
+					final boolean indexExists     = (existingDbIndexes.get(indexDescription) != null);
+					final boolean dropIndex       = propertyIndexConfig.getValue();
 
-					if (indexExists && configuredAsIndexed) {
+					if (indexExists && dropIndex) {
 
 						final AtomicBoolean retry = new AtomicBoolean(true);
 						final AtomicInteger retryCount = new AtomicInteger(0);
@@ -608,13 +627,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 								executor.submit(() -> {
 
-									try (final Transaction tx = beginTx(timeoutSeconds)) {
+									try (Session session = driver.session()) {
 
 										// drop index
-										execute("DROP " + indexDescription);
+										session.run("DROP " + indexDescription);
 										droppedIndexesOfRemovedTypes.incrementAndGet();
-
-										tx.success();
 
 									} catch (RetryException rex) {
 
@@ -832,7 +849,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 				return true;
 
 			case AuthenticationRequired:
-				return true;
+				return false;
 		}
 
 		return false;
@@ -846,7 +863,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public Map<String, Map<String, Integer>> getCachesInfo() {
 		return Map.of(
-			"nodes",         NodeWrapper.nodeCache.getCacheInfo(),
+			"nodes", NodeWrapper.nodeCache.getCacheInfo(),
 			"relationships", RelationshipWrapper.relationshipCache.getCacheInfo()
 		);
 	}

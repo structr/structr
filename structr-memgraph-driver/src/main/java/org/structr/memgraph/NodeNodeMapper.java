@@ -16,13 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.memgraph;
+
+import java.util.function.Function;
+import org.structr.api.graph.Node;
 
 /**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
+ *
  */
-public enum DatabaseFeature {
+class NodeNodeMapper implements Function<org.neo4j.driver.v1.types.Node, Node> {
 
-	QueryLanguage, LargeStringIndexing, SpatialQueries, AuthenticationRequired
+	private MemgraphDatabaseService db = null;
+
+	public NodeNodeMapper(final MemgraphDatabaseService db) {
+		this.db = db;
+	}
+
+	@Override
+	public Node apply(final org.neo4j.driver.v1.types.Node t) {
+		return NodeWrapper.newInstance(db, t);
+	}
 }

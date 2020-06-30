@@ -16,13 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.memgraph;
+
+import java.util.Map;
+import org.structr.api.index.DatabaseQuery;
+import org.structr.api.search.QueryContext;
 
 /**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
  */
-public enum DatabaseFeature {
+interface CypherQuery extends DatabaseQuery {
 
-	QueryLanguage, LargeStringIndexing, SpatialQueries, AuthenticationRequired
+	int pageSize();
+	void nextPage();
+
+	String getStatement(final boolean paged);
+	Map<String, Object> getParameters();
+
+	QueryContext getQueryContext();
 }

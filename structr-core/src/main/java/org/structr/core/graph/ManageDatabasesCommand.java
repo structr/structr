@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.DatabaseFeature;
+import org.structr.api.DatabaseService;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.service.DatabaseConnection;
@@ -42,10 +44,10 @@ import static org.structr.api.service.DatabaseConnection.KEY_URL;
 import static org.structr.api.service.DatabaseConnection.KEY_USERNAME;
 import static org.structr.api.service.DatabaseConnection.KEY_UUID_CACHE_SIZE;
 import org.structr.api.service.ServiceResult;
-import org.structr.bolt.BoltDatabaseService;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.error.UniqueToken;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -156,9 +158,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 		if (!connectionNames.contains(prefix)) {
 
-			//setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
-			Settings.DatabaseDriver.getPrefixedSetting(prefix).setValue(BoltDatabaseService.class.getName());
-
+			setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
 			setOrDefault(Settings.ConnectionName,        prefix, data, KEY_DISPLAYNAME);
 			setOrDefault(Settings.ConnectionUrl,         prefix, data, KEY_URL);
 			setOrDefault(Settings.ConnectionUser,        prefix, data, KEY_USERNAME);
@@ -206,9 +206,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 		if (connectionNames.contains(prefix)) {
 
-			//setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
-			Settings.DatabaseDriver.getPrefixedSetting(prefix).setValue(BoltDatabaseService.class.getName());
-
+			setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
 			setOrDefault(Settings.ConnectionUrl,         prefix, data, KEY_URL);
 			setOrDefault(Settings.ConnectionUser,        prefix, data, KEY_USERNAME);
 			setOrDefault(Settings.ConnectionPassword,    prefix, data, KEY_PASSWORD);
@@ -372,12 +370,27 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 				errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("url")));
 			}
 
-			if (StringUtils.isEmpty((String)data.get(KEY_USERNAME))) {
-				errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("username")));
-			}
+			try {
+				DatabaseService databaseService = (DatabaseService)Class.forName((String)data.get(KEY_DRIVER)).newInstance();
+				if (databaseService == null) {
 
-			if (StringUtils.isEmpty((String)data.get(KEY_PASSWORD))) {
-				errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("password")));
+					errorBuffer.add(new SemanticErrorToken("Driver", new GenericProperty("driver"), "driver_not_found"));
+
+				} else {
+
+					if (databaseService.supportsFeature(DatabaseFeature.AuthenticationRequired)) {
+						if (StringUtils.isEmpty((String)data.get(KEY_USERNAME))) {
+							errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("username")));
+						}
+
+						if (StringUtils.isEmpty((String)data.get(KEY_PASSWORD))) {
+							errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("password")));
+						}
+					}
+				}
+
+			} catch (ClassNotFoundException|InstantiationException|IllegalAccessException ex) {
+				errorBuffer.add(new SemanticErrorToken("Driver", new GenericProperty("driver"), "driver_error"));
 			}
 		}
 

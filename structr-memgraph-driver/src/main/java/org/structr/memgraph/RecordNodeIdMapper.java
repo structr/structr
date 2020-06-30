@@ -16,13 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.memgraph;
+
+import java.util.function.Function;
+import org.neo4j.driver.v1.Record;
 
 /**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
+ *
  */
-public enum DatabaseFeature {
+class RecordNodeIdMapper implements Function<Record, NodeId> {
 
-	QueryLanguage, LargeStringIndexing, SpatialQueries, AuthenticationRequired
+	@Override
+	public NodeId apply(final Record t) {
+		return new NodeId(t);
+	}
 }
