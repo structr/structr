@@ -400,7 +400,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	private PropertyMap convertRawPropertiesForFileOrFolder(final Map<String, Object> data) throws FrameworkException {
 
-		DeployCommand.checkOwnerAndSecurity(data);
+		DeployCommand.checkOwnerAndSecurity(data, false);
 
 		return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), StructrApp.getConfiguration().getNodeEntityClass((String)data.get("type")), data);
 
