@@ -1477,6 +1477,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	public static void checkOwnerAndSecurity(final Map<String, Object> entry) throws FrameworkException {
+		checkOwnerAndSecurity(entry, true);
+	}
+
+	public static void checkOwnerAndSecurity(final Map<String, Object> entry, final boolean removeNullOwner) throws FrameworkException {
 
 		if (entry.containsKey("owner")) {
 
@@ -1492,7 +1496,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					entry.remove("owner");
 				}
 
-			} else {
+			} else if (removeNullOwner) {
 				entry.remove("owner");
 			}
 		}
