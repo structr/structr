@@ -185,53 +185,66 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	@Override
 	public boolean authenticate(final String username, final String password, final ServerSession session) {
 
-		boolean isValid     = false;
-		Principal principal = null;
+		boolean isValid             = false;
+		final boolean publicKeyOnly = Settings.SSHPublicKeyOnly.getValue();
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
+		if (publicKeyOnly) {
+
+			isValid = false;
+			logger.warn("Password-based SSH connections are forbidden. Rejecting connection attempt by user '{}'", username);
 
 			try {
+				session.disconnect(401, "Password-based SSH connections are forbidden");
 
-				principal = AuthHelper.getPrincipalForPassword(AbstractNode.name, username, password);
+			} catch (IOException ignore) { }
 
-				if (principal != null) {
+		} else {
 
-					if (principal.isAdmin()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-						isValid = true;
-						securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
+				try {
 
-					} else {
+					Principal principal = AuthHelper.getPrincipalForPassword(AbstractNode.name, username, password);
 
-						isValid = false;
-						logger.warn("Rejecting SSH connection attempt from non-admin user '{}'", username);
-						session.disconnect(401, "SSH access is only allowed for admin users!");
+					if (principal != null) {
+
+						if (principal.isAdmin()) {
+
+							isValid = true;
+							securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
+
+						} else {
+
+							isValid = false;
+							logger.warn("Rejecting SSH connection attempt by non-admin user '{}'", username);
+							session.disconnect(401, "SSH access is only allowed for admin users!");
+						}
 					}
+
+				} catch (UnauthorizedException ae) {
+
+					logger.warn(ae.getMessage());
+
+					isValid = false;
 				}
 
-			} catch (UnauthorizedException ae) {
+				tx.success();
 
-				logger.warn(ae.getMessage());
+			} catch (Throwable t) {
+
+				logger.warn("", t);
 
 				isValid = false;
 			}
 
-			tx.success();
+			try {
+				if (isValid) {
+					session.setAuthenticated();
+				}
 
-		} catch (Throwable t) {
-
-			logger.warn("", t);
-
-			isValid = false;
-		}
-
-		try {
-			if (isValid) {
-				session.setAuthenticated();
+			} catch (IOException ex) {
+				logger.error("", ex);
 			}
-
-		} catch (IOException ex) {
-			logger.error("", ex);
 		}
 
 		return isValid;
@@ -286,7 +299,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 					} else {
 
 						isValid = false;
-						logger.warn("Rejecting SSH connection attempt from non-admin user '{}'", username);
+						logger.warn("Rejecting SSH connection attempt by non-admin user '{}'", username);
 						session.disconnect(401, "SSH access is only allowed for admin users!");
 					}
 				}
