@@ -395,80 +395,80 @@ public class Settings {
 
 
 	// oauth settings
-	public static final Setting<String> OAuthServers            = new StringSetting(oauthGroup, "General", "oauth.servers", "github twitter linkedin google facebook auth0");
+	public static final Setting<String> OAuthServers            = new StringSetting(oauthGroup, "General", "oauth.servers", "github twitter linkedin google facebook auth0", "Space-seperated List of available oauth services. Defaults to \"github twitter linkedin google facebook auth0\"");
 
-	public static final Setting<String> OAuthGithubAuthLocation   = new StringSetting(oauthGroup, "GitHub", "oauth.github.authorization_location", "https://github.com/login/oauth/authorize");
-	public static final Setting<String> OAuthGithubTokenLocation  = new StringSetting(oauthGroup, "GitHub", "oauth.github.token_location", "https://github.com/login/oauth/access_token");
-	public static final Setting<String> OAuthGithubClientId       = new StringSetting(oauthGroup, "GitHub", "oauth.github.client_id", "");
-	public static final Setting<String> OAuthGithubClientSecret   = new StringSetting(oauthGroup, "GitHub", "oauth.github.client_secret", "");
-	public static final Setting<String> OAuthGithubRedirectUri    = new StringSetting(oauthGroup, "GitHub", "oauth.github.redirect_uri", "/oauth/github/auth");
-	public static final Setting<String> OAuthGithubUserDetailsUri = new StringSetting(oauthGroup, "GitHub", "oauth.github.user_details_resource_uri", "https://api.github.com/user/emails");
-	public static final Setting<String> OAuthGithubErrorUri       = new StringSetting(oauthGroup, "GitHub", "oauth.github.error_uri", "/login");
-	public static final Setting<String> OAuthGithubReturnUri      = new StringSetting(oauthGroup, "GitHub", "oauth.github.return_uri", "/");
-	public static final Setting<String> OAuthGithubScope          = new StringSetting(oauthGroup, "GitHub", "oauth.github.scope", "user:email");
+	public static final Setting<String> OAuthGithubAuthLocation   = new StringSetting(oauthGroup, "GitHub", "oauth.github.authorization_location", "https://github.com/login/oauth/authorize", "URL of the authorization endpoint.");
+	public static final Setting<String> OAuthGithubTokenLocation  = new StringSetting(oauthGroup, "GitHub", "oauth.github.token_location", "https://github.com/login/oauth/access_token", "URL of the token endpoint.");
+	public static final Setting<String> OAuthGithubClientId       = new StringSetting(oauthGroup, "GitHub", "oauth.github.client_id", "", "Client ID used for oauth.");
+	public static final Setting<String> OAuthGithubClientSecret   = new StringSetting(oauthGroup, "GitHub", "oauth.github.client_secret", "", "Client secret used for oauth");
+	public static final Setting<String> OAuthGithubRedirectUri    = new StringSetting(oauthGroup, "GitHub", "oauth.github.redirect_uri", "/oauth/github/auth", "Structr endpoint for the service oauth authorization.");
+	public static final Setting<String> OAuthGithubUserDetailsUri = new StringSetting(oauthGroup, "GitHub", "oauth.github.user_details_resource_uri", "https://api.github.com/user/emails", "Points to the user details endpoint of the service provider.");
+	public static final Setting<String> OAuthGithubErrorUri       = new StringSetting(oauthGroup, "GitHub", "oauth.github.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
+	public static final Setting<String> OAuthGithubReturnUri      = new StringSetting(oauthGroup, "GitHub", "oauth.github.return_uri", "/", "Structr redirects to this URI on successful authentification.");
+	public static final Setting<String> OAuthGithubScope          = new StringSetting(oauthGroup, "GitHub", "oauth.github.scope", "user:email", "Specifies the scope of the authentifcation. Defaults to \"user:email\".");
 
-	public static final Setting<String> OAuthTwitterAuthLocation  = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.authorization_location", "https://api.twitter.com/oauth/authorize");
-	public static final Setting<String> OAuthTwitterTokenLocation = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.token_location", "https://api.twitter.com/oauth/access_token");
-	public static final Setting<String> OAuthTwitterClientId      = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.client_id", "");
-	public static final Setting<String> OAuthTwitterClientSecret  = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.client_secret", "");
-	public static final Setting<String> OAuthTwitterRedirectUri   = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.redirect_uri", "/oauth/twitter/auth");
-	public static final Setting<String> OAuthTwitterErrorUri      = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.error_uri", "/login");
-	public static final Setting<String> OAuthTwitterReturnUri     = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.return_uri", "/");
-	public static final Setting<String> OAuthTwitterScope         = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.scope", "");
+	public static final Setting<String> OAuthTwitterAuthLocation  = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.authorization_location", "https://api.twitter.com/oauth/authorize", "URL of the authorization endpoint.");
+	public static final Setting<String> OAuthTwitterTokenLocation = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.token_location", "https://api.twitter.com/oauth/access_token", "URL of the token endpoint.");
+	public static final Setting<String> OAuthTwitterClientId      = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.client_id", "", "Client ID used for oauth.");
+	public static final Setting<String> OAuthTwitterClientSecret  = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.client_secret", "", "Client secret used for oauth");
+	public static final Setting<String> OAuthTwitterRedirectUri   = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.redirect_uri", "/oauth/twitter/auth", "Structr redirects to this URI on successful authentification.");
+	public static final Setting<String> OAuthTwitterErrorUri      = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
+	public static final Setting<String> OAuthTwitterReturnUri     = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.return_uri", "/", "Structr redirects to this URI on successful authentification.");
+	public static final Setting<String> OAuthTwitterScope         = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.scope", "", "Specifies the scope of the authentifcation.");
 
-	public static final Setting<String> OAuthLinkedInAuthLocation   = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.authorization_location", "https://www.linkedin.com/oauth/v2/authorization");
-	public static final Setting<String> OAuthLinkedInTokenLocation  = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.token_location", "https://www.linkedin.com/oauth/v2/accessToken");
-	public static final Setting<String> OAuthLinkedInClientId       = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.client_id", "");
-	public static final Setting<String> OAuthLinkedInClientSecret   = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.client_secret", "");
-	public static final Setting<String> OAuthLinkedInRedirectUri    = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.redirect_uri", "/oauth/linkedin/auth");
-	public static final Setting<String> OAuthLinkedInUserDetailsUri = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.user_details_resource_uri", "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))");
-	public static final Setting<String> OAuthLinkedInUserProfileUri = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.user_profile_resource_uri", "https://api.linkedin.com/v2/me");
-	public static final Setting<String> OAuthLinkedInErrorUri       = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.error_uri", "/login");
-	public static final Setting<String> OAuthLinkedInReturnUri      = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.return_uri", "/");
-	public static final Setting<String> OAuthLinkedInScope          = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.scope", "r_liteprofile r_emailaddress");
+	public static final Setting<String> OAuthLinkedInAuthLocation   = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.authorization_location", "https://www.linkedin.com/oauth/v2/authorization", "URL of the authorization endpoint.");
+	public static final Setting<String> OAuthLinkedInTokenLocation  = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.token_location", "https://www.linkedin.com/oauth/v2/accessToken", "URL of the token endpoint.");
+	public static final Setting<String> OAuthLinkedInClientId       = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.client_id", "", "Client ID used for oauth.");
+	public static final Setting<String> OAuthLinkedInClientSecret   = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.client_secret", "", "Client secret used for oauth");
+	public static final Setting<String> OAuthLinkedInRedirectUri    = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.redirect_uri", "/oauth/linkedin/auth", "Structr redirects to this URI on successful authentification.");
+	public static final Setting<String> OAuthLinkedInUserDetailsUri = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.user_details_resource_uri", "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))", "Points to the user details endpoint of the service provider.");
+	public static final Setting<String> OAuthLinkedInUserProfileUri = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.user_profile_resource_uri", "https://api.linkedin.com/v2/me", "Points to the user profile endpoint of the service provider.");
+	public static final Setting<String> OAuthLinkedInErrorUri       = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
+	public static final Setting<String> OAuthLinkedInReturnUri      = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.return_uri", "/", "Structr redirects to this URI on successful authentification.");
+	public static final Setting<String> OAuthLinkedInScope          = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.scope", "r_liteprofile r_emailaddress", "oauth.twitter.scope");
 
-	public static final Setting<String> OAuthGoogleAuthLocation   = new StringSetting(oauthGroup, "Google", "oauth.google.authorization_location", "https://accounts.google.com/o/oauth2/auth");
-	public static final Setting<String> OAuthGoogleTokenLocation  = new StringSetting(oauthGroup, "Google", "oauth.google.token_location", "https://accounts.google.com/o/oauth2/token");
-	public static final Setting<String> OAuthGoogleClientId       = new StringSetting(oauthGroup, "Google", "oauth.google.client_id", "");
-	public static final Setting<String> OAuthGoogleClientSecret   = new StringSetting(oauthGroup, "Google", "oauth.google.client_secret", "");
-	public static final Setting<String> OAuthGoogleRedirectUri    = new StringSetting(oauthGroup, "Google", "oauth.google.redirect_uri", "/oauth/google/auth");
+	public static final Setting<String> OAuthGoogleAuthLocation   = new StringSetting(oauthGroup, "Google", "oauth.google.authorization_location", "https://accounts.google.com/o/oauth2/auth", "URL of the authorization endpoint.");
+	public static final Setting<String> OAuthGoogleTokenLocation  = new StringSetting(oauthGroup, "Google", "oauth.google.token_location", "https://accounts.google.com/o/oauth2/token", "URL of the token endpoint.");
+	public static final Setting<String> OAuthGoogleClientId       = new StringSetting(oauthGroup, "Google", "oauth.google.client_id", "", "Client ID used for oauth.");
+	public static final Setting<String> OAuthGoogleClientSecret   = new StringSetting(oauthGroup, "Google", "oauth.google.client_secret", "", "Client secret used for oauth");
+	public static final Setting<String> OAuthGoogleRedirectUri    = new StringSetting(oauthGroup, "Google", "oauth.google.redirect_uri", "/oauth/google/auth", "Structr redirects to this URI on successful authentification.");
 	public static final Setting<String> OAuthGoogleUserDetailsUri = new StringSetting(oauthGroup, "Google", "oauth.google.user_details_resource_uri", "https://www.googleapis.com/oauth2/v3/userinfo");
-	public static final Setting<String> OAuthGoogleErrorUri       = new StringSetting(oauthGroup, "Google", "oauth.google.error_uri", "/login");
-	public static final Setting<String> OAuthGoogleReturnUri      = new StringSetting(oauthGroup, "Google", "oauth.google.return_uri", "/");
-	public static final Setting<String> OAuthGoogleScope          = new StringSetting(oauthGroup, "Google", "oauth.google.scope", "email");
+	public static final Setting<String> OAuthGoogleErrorUri       = new StringSetting(oauthGroup, "Google", "oauth.google.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
+	public static final Setting<String> OAuthGoogleReturnUri      = new StringSetting(oauthGroup, "Google", "oauth.google.return_uri", "/", "Structr redirects to this URI on successful authentification.");
+	public static final Setting<String> OAuthGoogleScope          = new StringSetting(oauthGroup, "Google", "oauth.google.scope", "email", "Specifies the scope of the authentifcation.");
 
-	public static final Setting<String> OAuthFacebookAuthLocation   = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.authorization_location", "https://www.facebook.com/dialog/oauth");
-	public static final Setting<String> OAuthFacebookTokenLocation  = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.token_location", "https://graph.facebook.com/oauth/access_token");
-	public static final Setting<String> OAuthFacebookClientId       = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.client_id", "");
-	public static final Setting<String> OAuthFacebookClientSecret   = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.client_secret", "");
-	public static final Setting<String> OAuthFacebookRedirectUri    = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.redirect_uri", "/oauth/facebook/auth");
-	public static final Setting<String> OAuthFacebookUserDetailsUri = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.user_details_resource_uri", "https://graph.facebook.com/me?fields=id,name,email");
-	public static final Setting<String> OAuthFacebookErrorUri       = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.error_uri", "/login");
-	public static final Setting<String> OAuthFacebookReturnUri      = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.return_uri", "/");
-	public static final Setting<String> OAuthFacebookScope          = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.scope", "email");
+	public static final Setting<String> OAuthFacebookAuthLocation   = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.authorization_location", "https://www.facebook.com/dialog/oauth", "URL of the authorization endpoint.");
+	public static final Setting<String> OAuthFacebookTokenLocation  = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.token_location", "https://graph.facebook.com/oauth/access_token", "URL of the token endpoint.");
+	public static final Setting<String> OAuthFacebookClientId       = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.client_id", "", "Client ID used for oauth.");
+	public static final Setting<String> OAuthFacebookClientSecret   = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.client_secret", "", "Client secret used for oauth");
+	public static final Setting<String> OAuthFacebookRedirectUri    = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.redirect_uri", "/oauth/facebook/auth", "Structr redirects to this URI on successful authentification.");
+	public static final Setting<String> OAuthFacebookUserDetailsUri = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.user_details_resource_uri", "https://graph.facebook.com/me?fields=id,name,email", "Points to the user details endpoint of the service provider.");
+	public static final Setting<String> OAuthFacebookErrorUri       = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
+	public static final Setting<String> OAuthFacebookReturnUri      = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.return_uri", "/", "Structr redirects to this URI on successful authentification.");
+	public static final Setting<String> OAuthFacebookScope          = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.scope", "email", "Specifies the scope of the authentifcation.");
 
-	public static final Setting<String> OAuthAuth0AuthLocation   = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.authorization_location", "");
-	public static final Setting<String> OAuthAuth0TokenLocation  = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.token_location", "");
-	public static final Setting<String> OAuthAuth0ClientId       = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.client_id", "");
-	public static final Setting<String> OAuthAuth0ClientSecret   = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.client_secret", "");
-	public static final Setting<String> OAuthAuth0RedirectUri    = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.redirect_uri", "");
-	public static final Setting<String> OAuthAuth0UserDetailsUri = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.user_details_resource_uri", "");
-	public static final Setting<String> OAuthAuth0ErrorUri       = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.error_uri", "");
-	public static final Setting<String> OAuthAuth0ReturnUri      = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.return_uri", "");
-	public static final Setting<String> OAuthAuth0Scope          = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.scope", "openid profile email");
+	public static final Setting<String> OAuthAuth0AuthLocation   = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.authorization_location", "", "URL of the authorization endpoint.");
+	public static final Setting<String> OAuthAuth0TokenLocation  = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.token_location", "", "URL of the token endpoint.");
+	public static final Setting<String> OAuthAuth0ClientId       = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.client_id", "", "Client ID use for oauth.");
+	public static final Setting<String> OAuthAuth0ClientSecret   = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.client_secret", "", "Client secret used for oauth.");
+	public static final Setting<String> OAuthAuth0RedirectUri    = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.redirect_uri", "", "Structr redirects to this URI on successful authentification.");
+	public static final Setting<String> OAuthAuth0UserDetailsUri = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.user_details_resource_uri", "", "Points to the user details endpoint of the service provider.");
+	public static final Setting<String> OAuthAuth0ErrorUri       = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.error_uri", "", "Structr redirects to this URI on unsuccessful authentication.");
+	public static final Setting<String> OAuthAuth0ReturnUri      = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.return_uri", "", "Structr redirects to this URI on successful authentification.");
+	public static final Setting<String> OAuthAuth0Scope          = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.scope", "openid profile email", "Specifies the scope of the authentifcation.");
 
 	// LDAP settings
-	public static final Setting<String> LDAPHost            = new StringSetting(ldapGroup,  "General", "ldap.host", "localhost");
-	public static final Setting<Integer> LDAPPort           = new IntegerSetting(ldapGroup, "General", "ldap.port", 389);
+	public static final Setting<String> LDAPHost            = new StringSetting(ldapGroup,  "General", "ldap.host", "localhost", "Address of the LDAP host.");
+	public static final Setting<Integer> LDAPPort           = new IntegerSetting(ldapGroup, "General", "ldap.port", 389, "Port of the LDAP host.");
 	public static final Setting<Integer> LDAPConnectTimeout = new IntegerSetting(ldapGroup, "General", "ldap.connecttimeout", 1000, "Connection timeout in milliseconds");
 	public static final Setting<String> LDAPBindDN          = new StringSetting(ldapGroup,  "General", "ldap.binddn", "", "DN that is used to authenticate synchronization");
-	public static final Setting<String> LDAPSecret          = new StringSetting(ldapGroup,  "General", "ldap.secret", "");
-	public static final Setting<Boolean> LDAPUseSSL         = new BooleanSetting(ldapGroup, "General", "ldap.usessl", false);
-	public static final Setting<String> LDAPScope           = new StringSetting(ldapGroup,  "General", "ldap.scope", "SUBTREE");
+	public static final Setting<String> LDAPSecret          = new StringSetting(ldapGroup,  "General", "ldap.secret", "", "Used in conjunction with bind DN to handle authentication.");
+	public static final Setting<Boolean> LDAPUseSSL         = new BooleanSetting(ldapGroup, "General", "ldap.usessl", false, "Enables SSL for the LDAP connection.");
+	public static final Setting<String> LDAPScope           = new StringSetting(ldapGroup,  "General", "ldap.scope", "SUBTREE", "Specifies the LDAP scope. Defaults to \"SUBTREE\"");
 	public static final Setting<String> LDAPPrimaryKey      = new StringSetting(ldapGroup,  "General", "ldap.primarykey", "dn", "Name of primary identification property of LDAP objects, must uniquely identify users and groups");
 	public static final Setting<String> LDAPPropertyMapping = new StringSetting(ldapGroup,  "General", "ldap.propertymapping", "{ sn: name, email: eMail }", "Mapping from LDAP properties to Structr properties");
 	public static final Setting<String> LDAPGroupNames      = new StringSetting(ldapGroup,  "General", "ldap.groupnames", "{ group: member, groupOfNames: member, groupOfUniqueNames: uniqueMember }", "LDAP objectclass tuples for group and member identification.");
-	public static final Setting<Integer> LDAPUpdateInterval = new IntegerSetting(ldapGroup, "General", "ldap.updateinterval", 600, "Update interval for group synchronization in seconds");
+	public static final Setting<Integer> LDAPUpdateInterval = new IntegerSetting(ldapGroup, "General", "ldap.updateinterval", 600, "Update interval for group synchronization in seconds.");
 
 	// miscellaneous settings
 	public static final Setting<String> PaymentPaypalMode      = new StringSetting(miscGroup,  "Payment Options", "paypal.mode",         "");
