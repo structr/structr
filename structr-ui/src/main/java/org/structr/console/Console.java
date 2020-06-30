@@ -254,7 +254,7 @@ public class Console {
 
 			} else {
 
-				writable.print("Too many results (> " + maxResults + "), please use LIMIT to reduce the result count of your Cypher query.");
+				writable.print("Too many results (> " + maxResults + "), please use LIMIT to reduce the result count of your Cypher query or increase the limit via structr.conf");
 			}
 
 			writable.println();
