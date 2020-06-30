@@ -19,7 +19,7 @@ export class LayoutManager {
 
         if (this._flowEditor._flowContainer.activeConfiguration !== null && this._flowEditor._flowContainer.activeConfiguration !== undefined) {
             let restResult = await this._structrRest.getById('FlowContainerConfiguration', this._flowEditor._flowContainer.activeConfiguration.id, 'all');
-			layout = await JSON.parse(restResult.result.configJson);
+			layout = await JSON.parse(restResult.result[0].configJson);
 		}
 
         return layout;
