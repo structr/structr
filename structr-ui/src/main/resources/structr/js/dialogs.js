@@ -27,10 +27,13 @@ var _Dialogs = {
 			var title        = callbackObject.title;
 			var id           = callbackObject.id;
 
-			// call method with the same callback object for intial callback and show callback
-			_Entities.appendPropTab(entity, mainTabs, contentEl, id, title, true, callback, undefined, callback);
+			if (callbackObject.condition === undefined || (typeof callbackObject.condition === 'function' && callbackObject.condition())) {
 
-			return true;
+				// call method with the same callback object for intial callback and show callback
+				_Entities.appendPropTab(entity, mainTabs, contentEl, id, title, true, callback, undefined, callback);
+
+				return true;
+			}
 		}
 
 		return false;
@@ -153,27 +156,30 @@ var _Dialogs = {
 
 		if (el && entity) {
 
-			Structr.fetchHtmlTemplate('dialogs/file.options', { file: entity }, function (html) {
+			if (Structr.isModulePresent('text-search')) {
 
-				el.empty();
-				el.append(html);
+				Structr.fetchHtmlTemplate('dialogs/file.options', { file: entity }, function (html) {
 
-				$('button#extract-structure-button').on('click', function() {
+					el.empty();
+					el.append(html);
 
-					Structr.showAndHideInfoBoxMessage('Extracting structure..', 'info', 2000, 200);
+					$('button#extract-structure-button').on('click', function() {
 
-					$.ajax({
-						url: '/structr/rest/' + entity.type + '/' + entity.id + '/extractStructure',
-						method: 'post',
-						statusCode: {
-							200: function() {
-								Structr.showAndHideInfoBoxMessage('Structure extracted, see Contents area.', 'success', 2000, 200);
+						Structr.showAndHideInfoBoxMessage('Extracting structure..', 'info', 2000, 200);
+
+						$.ajax({
+							url: '/structr/rest/' + entity.type + '/' + entity.id + '/extractStructure',
+							method: 'post',
+							statusCode: {
+								200: function() {
+									Structr.showAndHideInfoBoxMessage('Structure extracted, see Contents area.', 'success', 2000, 200);
+								}
 							}
-						}
+						});
 					});
-				});
 
-			});
+				});
+			}
 
 		} else if (el) {
 
@@ -387,10 +393,10 @@ var registeredDialogs = {
 	'A': { id: 'a', title : 'General', callback: _Dialogs.aDialog },
 	'Button': { id: 'button', title : 'General', callback: _Dialogs.buttonDialog },
 	'Div': { id: 'div', title : 'General', callback: _Dialogs.divDialog },
-	'File':  { id: 'file', title: 'Advanced', callback: _Dialogs.fileDialog },
+	'File':  { id: 'file', title: 'Advanced', callback: _Dialogs.fileDialog, condition: function() { return Structr.isModulePresent('text-search'); } },
 	'Image':  { id: 'file', title: 'Advanced', callback: _Dialogs.fileDialog },
 	'Input':  { id: 'input', title: 'General', callback: _Dialogs.inputDialog },
-	'LDAPGroup':  { id: 'ldapgroup', title: 'LDAP configuration', callback: _Dialogs.ldapGroupDialog },
+	'LDAPGroup':  { id: 'ldapgroup', title: 'LDAP configuration', callback: _Dialogs.ldapGroupDialog, condition: function() { return Structr.isModulePresent('ldap-client'); } },
 	'Page': { id: 'page', title : 'General', callback: _Dialogs.pageDialog },
 	'User': { id: 'user', title : 'General', callback: _Dialogs.userDialog }
 };

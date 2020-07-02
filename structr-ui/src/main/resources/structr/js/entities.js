@@ -201,7 +201,7 @@ var _Entities = {
 		var queryTypes = [
 			{ title: 'REST Query',     propertyName: 'restQuery' },
 			{ title: 'Cypher Query',   propertyName: 'cypherQuery' },
-			{ title: 'XPath Query',    propertyName: 'xpathQuery' },
+//			{ title: 'XPath Query',    propertyName: 'xpathQuery' },
 			{ title: 'Function Query', propertyName: 'functionQuery' }
 		];
 
@@ -321,11 +321,11 @@ var _Entities = {
 		};
 
 		if (Structr.isModulePresent('flows')) {
-			
+
 			if (flowSelector && flowSelector.length) {
 				flowSelector.remove();
 			}
-			
+
 			flowSelector = $('<select class="hidden" id="flow-selector"></select>').insertBefore(textArea);
 
 			flowSelector.append('<option>--- Select Flow ---</option>');
