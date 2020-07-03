@@ -90,6 +90,7 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 	private String databaseUrl                                        = null;
 	private String databasePath                                       = null;
 	private Driver driver                                             = null;
+	private boolean supportsANY                                       = false;
 
 	@Override
 	public boolean initialize(final String name) {
@@ -139,6 +140,18 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 
 			RelationshipWrapper.initialize(relCacheSize);
 			logger.info("Relationship cache size set to {}", relCacheSize);
+
+
+			// auto-detect support for ANY
+			try (final Transaction tx = beginTx()) {
+
+				execute("MATCH (n) WHERE ANY (x in n.test WHERE x = 'test') RETURN n LIMIT 1");
+				supportsANY = true;
+				tx.success();
+
+			} catch (Throwable t) {
+				supportsANY = false;
+			}
 
 			// signal success
 			return true;
@@ -452,19 +465,17 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 
 			executor.submit(() -> {
 
-				try (final Transaction tx = beginTx(timeoutSeconds)) {
+				try (Session session = driver.session()) {
 
-					for (final Map<String, Object> row : execute("SHOW INDEX INFO")) {
+					for (final Map row : session.run("SHOW INDEX INFO").list(r -> r.asMap())) {
 
 						if ("label+property".equals(row.get("index type"))) {
 
 							final String description = "INDEX ON :" + row.get("label") + "(`" + row.get("property") + "`)";
 
-							existingDbIndexes.put(description, "UNKNOWN");
+							existingDbIndexes.put(description, "ONLINE");
 						}
 					}
-
-					tx.success();
 				}
 
 			}).get(timeoutSeconds, TimeUnit.SECONDS);
@@ -853,6 +864,10 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 		}
 
 		return false;
+	}
+
+	public String anyOrSingleFunction() {
+		return (supportsANY ? "ANY" : "SINGLE");
 	}
 
 	@Override
