@@ -835,9 +835,10 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 		final String tenantId = getTenantIdentifier();
 		final String part     = tenantId != null ? ":" + tenantId : "";
 		final long nodeCount  = getCount("MATCH (n" + part + ":NodeInterface) RETURN COUNT(n) AS count", "count");
-		final long relCount   = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN count(r) AS count", "count");
+		final long relCount   = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN COUNT(r) AS count", "count");
+		final long userCount  = getCount("MATCH (n" + part + ":User) RETURN COUNT(n) AS count", "count");
 
-		return new CountResult(nodeCount, relCount);
+		return new CountResult(nodeCount, relCount, userCount);
 	}
 
 	@Override

@@ -62,15 +62,18 @@ import org.structr.api.service.ServiceResult;
 import org.structr.api.service.StartServiceInMaintenanceMode;
 import org.structr.api.service.StopServiceForMaintenanceMode;
 import org.structr.api.service.StructrServices;
+import org.structr.api.util.CountResult;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
 import org.structr.common.VersionHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.ManageDatabasesCommand;
 import org.structr.core.graph.NodeService;
+import org.structr.core.graph.Tx;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
 import org.structr.util.StructrLicenseManager;
@@ -1144,8 +1147,35 @@ public class Services implements StructrServices {
 	// ----- nested classes -----
 	private class SystemInfoSender extends Thread {
 
+		public SystemInfoSender() {
+
+			super("SystemInfoSenderThread");
+
+			setDaemon(true);
+		}
+
 		@Override
 		public void run() {
+
+			final String systemInfoDataId = sendInitialSystemInfoData();
+			if (systemInfoDataId != null) {
+
+				while (true) {
+
+					try {
+
+						sendContinuedSystemInfoData(systemInfoDataId);
+						Thread.sleep(TimeUnit.HOURS.toMillis(24));
+
+					} catch (Throwable ignore) {}
+				}
+			}
+		}
+
+		// ----- private methods -----
+		private String sendInitialSystemInfoData() {
+
+			String id = null;
 
 			try {
 
@@ -1184,7 +1214,25 @@ public class Services implements StructrServices {
 				if (input != null) {
 
 					// consume response
-					IOUtils.toString(input, "utf-8");
+					final String responseText          = IOUtils.toString(input, "utf-8");
+					final Map<String, Object> response = gson.fromJson(responseText, Map.class);
+
+					if (response != null) {
+
+						final Object result = response.get("result");
+						if (result instanceof List) {
+
+							final List list = (List)result;
+							if (!list.isEmpty()) {
+
+								final Object entry = list.get(0);
+								if (entry instanceof String) {
+
+									id = (String)entry;
+								}
+							}
+						}
+					}
 				}
 
 				final InputStream error = http.getErrorStream();
@@ -1197,6 +1245,70 @@ public class Services implements StructrServices {
 				http.disconnect();
 
 			} catch (Throwable ignore) {}
+
+			return id;
+		}
+
+		private void sendContinuedSystemInfoData(final String id) {
+
+			try {
+
+				final URL url                  = new URL("https://sysinfo.structr.com/structr/rest/SystemInfoDataUpdate");
+				final Map<String, Object> data = new LinkedHashMap<>();
+				final URLConnection con        = url.openConnection();
+				final HttpURLConnection http   = (HttpURLConnection)con;
+				final Gson gson                = new GsonBuilder().create();
+
+				try (final Tx tx = StructrApp.getInstance().tx()) {
+
+					final DatabaseService db = Services.getInstance().getDatabaseService();
+					final CountResult cr     = db.getNodeAndRelationshipCount();
+
+					data.put("users",         cr.getUserCount());
+					data.put("nodes",         cr.getNodeCount());
+					data.put("relationships", cr.getRelationshipCount());
+
+					tx.success();
+				}
+
+				data.put("now",      System.currentTimeMillis());
+				data.put("uptime",   ManagementFactory.getRuntimeMXBean().getUptime());
+				data.put("parentId", id);
+
+				http.setRequestProperty("ContentType", "application/json");
+				http.setReadTimeout(1000);
+				http.setConnectTimeout(1000);
+				http.setRequestMethod("POST");
+				http.setDoOutput(true);
+				http.setDoInput(true);
+				http.connect();
+
+				// write request body
+				try (final Writer writer = new OutputStreamWriter(http.getOutputStream())) {
+
+					gson.toJson(data, writer);
+					writer.flush();
+				}
+
+				final InputStream input = http.getInputStream();
+				if (input != null) {
+
+					// consume response
+					IOUtils.toString(input, "utf-8");
+				}
+
+				final InputStream error = http.getErrorStream();
+				if (error != null) {
+
+					// consume error stream
+					IOUtils.toString(error, "utf-8");
+				}
+
+				http.disconnect();
+
+			} catch (Throwable ignore) {
+				ignore.printStackTrace();
+			}
 		}
 	}
 }
