@@ -481,6 +481,9 @@ public class Settings {
 	public static final Setting<String> PaymentPaypalRedirect  = new StringSetting(miscGroup,  "Payment Options", "paypal.redirect",     "");
 	public static final Setting<String> PaymentStripeApiKey    = new StringSetting(miscGroup,  "Payment Options", "stripe.apikey",       "");
 
+	// sysinfo
+	public static final Setting<Boolean> DisableSendSystemInfo = new BooleanSetting(miscGroup, "hidden", "application.systeminfo.disabled", false);
+
 	public static Collection<SettingsGroup> getGroups() {
 		return groups.values();
 	}

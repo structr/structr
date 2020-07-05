@@ -18,10 +18,18 @@
  */
 package org.structr.core;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.lang.management.ManagementFactory;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -36,6 +44,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -391,6 +400,10 @@ public class Services implements StructrServices {
 		setOverridingSchemaTypesAllowed(false);
 
 		initializationDone = true;
+
+		if (licenseManager != null && !Settings.DisableSendSystemInfo.getValue(false)) {
+			new SystemInfoSender().start();
+		}
 	}
 
 	@Override
@@ -1125,6 +1138,61 @@ public class Services implements StructrServices {
 
 		if (licenseManager != null) {
 			licenseManager.refresh();
+		}
+	}
+
+	// ----- nested classes -----
+	private class SystemInfoSender extends Thread {
+
+		@Override
+		public void run() {
+
+			try {
+
+				final URL url                  = new URL("https://sysinfo.structr.com/structr/rest/SystemInfoData");
+				final Map<String, Object> data = new LinkedHashMap<>();
+				final URLConnection con        = url.openConnection();
+				final HttpURLConnection http   = (HttpURLConnection)con;
+				final Gson gson                = new GsonBuilder().create();
+
+				data.put("version",  VersionHelper.getFullVersionInfo());
+				data.put("edition",  licenseManager.getEdition());
+				data.put("licensee", licenseManager.getLicensee());
+				data.put("hostId",   licenseManager.getHardwareFingerprint());
+				data.put("jvm",      Runtime.version().toString());
+
+				http.setRequestProperty("ContentType", "application/json");
+				http.setReadTimeout(1000);
+				http.setConnectTimeout(1000);
+				http.setRequestMethod("POST");
+				http.setDoOutput(true);
+				http.setDoInput(true);
+				http.connect();
+
+				// write request body
+				try (final Writer writer = new OutputStreamWriter(http.getOutputStream())) {
+
+					gson.toJson(data, writer);
+					writer.flush();
+				}
+
+				final InputStream input = http.getInputStream();
+				if (input != null) {
+
+					// consume response
+					IOUtils.toString(input, "utf-8");
+				}
+
+				final InputStream error = http.getErrorStream();
+				if (error != null) {
+
+					// consume error stream
+					IOUtils.toString(error, "utf-8");
+				}
+
+				http.disconnect();
+
+			} catch (Throwable ignore) {}
 		}
 	}
 }
