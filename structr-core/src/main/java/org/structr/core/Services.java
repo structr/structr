@@ -1154,12 +1154,16 @@ public class Services implements StructrServices {
 				final URLConnection con        = url.openConnection();
 				final HttpURLConnection http   = (HttpURLConnection)con;
 				final Gson gson                = new GsonBuilder().create();
+				final Runtime runtime          = Runtime.getRuntime();
 
 				data.put("version",  VersionHelper.getFullVersionInfo());
 				data.put("edition",  licenseManager.getEdition());
 				data.put("licensee", licenseManager.getLicensee());
 				data.put("hostId",   licenseManager.getHardwareFingerprint());
 				data.put("jvm",      Runtime.version().toString());
+				data.put("memory",   runtime.maxMemory() / 1024 / 1024);
+				data.put("cpus",     runtime.availableProcessors());
+				data.put("os",       System.getProperty("os.name"));
 
 				http.setRequestProperty("ContentType", "application/json");
 				http.setReadTimeout(1000);
