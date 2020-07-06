@@ -42,6 +42,7 @@ import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -702,7 +703,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				return gson.toJson(analyzer.getStructure(100));
 
 			} catch (XMLStreamException | IOException ex) {
-				ex.printStackTrace();
+				LoggerFactory.getLogger(File.class).error("{}", ExceptionUtils.getStackTrace(ex));
 			}
 		}
 
@@ -854,7 +855,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			lines.append(new String(buf, 0, i));
 
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			LoggerFactory.getLogger(File.class).error("{}", ExceptionUtils.getStackTrace(ex));
 		}
 
 		return new LineAndSeparator(lines.toString(), new String(separator, 0, separatorLength));
@@ -874,15 +875,16 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		if (previousFile != null && previousFile.exists() && newFile != null && !newFile.exists() && !previousFile.equals(newFile)) {
 
+			final Logger logger = LoggerFactory.getLogger(File.class);
+
 			try {
 
-				final Logger logger = LoggerFactory.getLogger(File.class);
 				logger.info("Moving file {} from {} to {}..", previousFile, previousParent, newFile);
 
 				Files.move(previousFile, newFile);
 
 			} catch (IOException ioex) {
-				ioex.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(ioex));
 			}
 		}
 	}

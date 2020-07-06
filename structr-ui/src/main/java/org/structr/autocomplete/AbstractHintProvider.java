@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -51,6 +54,8 @@ import org.structr.web.entity.dom.Content.ContentHandler;
 
 
 public abstract class AbstractHintProvider {
+
+	private static final Logger logger = LoggerFactory.getLogger(AbstractHintProvider.class);
 
 	private enum QueryType {
 		REST, Cypher, XPath, Function
@@ -100,7 +105,7 @@ public abstract class AbstractHintProvider {
 					}
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.error(ExceptionUtils.getStackTrace(t));
 				}
 			}
 

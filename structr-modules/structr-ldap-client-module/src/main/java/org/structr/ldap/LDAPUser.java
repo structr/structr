@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -106,7 +107,7 @@ public interface LDAPUser extends User {
 
 
 		} catch (final LdapInvalidAttributeValueException ex) {
-			ex.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(ex));
 		}
 	}
 

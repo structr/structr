@@ -55,6 +55,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -1316,7 +1317,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			writeStringToFile(schemaJson, schema.toString());
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 	}
 
@@ -1570,7 +1571,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
 		mailTemplates.sort(new AbstractMapComparator<Object>() {
@@ -1800,7 +1801,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		} catch (FrameworkException fex) {
 
 			logger.error("Unable to import {}, aborting with {}", type.getSimpleName(), fex.getMessage());
-			fex.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(fex));
 
 			throw fex;
 		}
@@ -1840,7 +1841,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		} catch (FrameworkException fex) {
 
 			logger.error("Unable to import site, aborting with {}", fex.getMessage());
-			fex.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(fex));
 
 			throw fex;
 		}

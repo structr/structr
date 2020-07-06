@@ -19,6 +19,7 @@
 package org.structr.api.util;
 
 import java.util.Iterator;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,7 +113,7 @@ public class PagingIterable<T> implements ResultStream<T> {
 				((AutoCloseable)source).close();
 
 			} catch (Exception ex) {
-				ex.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(ex));
 			}
 		}
 	}

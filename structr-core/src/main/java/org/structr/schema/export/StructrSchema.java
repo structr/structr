@@ -26,6 +26,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -46,6 +49,8 @@ import org.structr.core.entity.SchemaRelationshipNode;
  *
  */
 public class StructrSchema {
+
+	private static final Logger logger = LoggerFactory.getLogger(StructrSchema.class);
 
 	/**
 	 * Creates JsonSchema instance from the current schema in Structr.
@@ -172,7 +177,7 @@ public class StructrSchema {
 
 			} else {
 
-				ex.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(ex));
 
 				final FrameworkException fex = new FrameworkException(500, "Unable to import schema");
 				fex.initCause(ex);

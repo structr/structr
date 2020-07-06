@@ -19,6 +19,8 @@
 package org.structr.web.entity;
 
 import java.net.URI;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
@@ -107,7 +109,7 @@ public interface User extends Principal {
 		user.addViewProperty(PropertyView.Ui, "twoFactorToken");
 		user.addViewProperty(PropertyView.Ui, "isTwoFactorUser");
 		user.addViewProperty(PropertyView.Ui, "twoFactorConfirmed");
-		
+
 		user.addViewProperty(PropertyView.Ui, "twitterName");
 
 		user.addViewProperty(PropertyView.Ui, "passwordAttempts");
@@ -197,7 +199,7 @@ public interface User extends Principal {
 
 				} catch (Throwable t) {
 
-					t.printStackTrace();
+					LoggerFactory.getLogger(User.class).error("{}", ExceptionUtils.getStackTrace(t));
 				}
 			}
 

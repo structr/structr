@@ -18,6 +18,7 @@
  */
 package org.structr.core.script;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.IdFunctionCall;
 import org.mozilla.javascript.IdFunctionObject;
@@ -120,7 +121,9 @@ public class BatchFunctionCall implements IdFunctionCall {
 		// wait for batch processing to finish?
 		if (!background) {
 
-			try { workerThread.join(); } catch (Throwable t) { t.printStackTrace(); }
+			try { workerThread.join(); } catch (Throwable t) {
+				logger.error(ExceptionUtils.getStackTrace(t));
+			}
 		}
 
 		return null;

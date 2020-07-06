@@ -37,6 +37,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -644,8 +645,7 @@ public abstract class StreamingWriter {
 				}
 
 			} catch (Throwable t) {
-
-				t.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(t));
 			}
 		}
 	}
