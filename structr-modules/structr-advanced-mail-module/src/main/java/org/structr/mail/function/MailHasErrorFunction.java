@@ -18,24 +18,23 @@
  */
 package org.structr.mail.function;
 
-import org.apache.commons.mail.EmailException;
 import org.structr.common.AdvancedMailContainer;
 import org.structr.common.error.FrameworkException;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
-public class MailSendFunction extends AdvancedMailModuleFunction {
+public class MailHasErrorFunction extends AdvancedMailModuleFunction {
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_send()}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_send() }}";
+	public final String ERROR_MESSAGE    = "Usage: ${mail_has_error()}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_has_error() }}";
 
-	public MailSendFunction(final AdvancedMailModule parent) {
+	public MailHasErrorFunction(final AdvancedMailModule parent) {
 		super(parent);
 	}
 
 	@Override
 	public String getName() {
-		return "mail_send";
+		return "mail_has_error";
 	}
 
 	@Override
@@ -48,32 +47,7 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 
 		AdvancedMailContainer amc = ctx.getAdvancedMailContainer();
 
-		try {
-
-			amc.clearError();
-
-			return amc.send(ctx.getSecurityContext());
-
-		} catch (FrameworkException ex) {
-
-			logger.warn(ex.getMessage());
-
-			amc.setError(ex.getMessage());
-
-		} catch (EmailException ex) {
-
-			logException(caller, ex, sources);
-
-			amc.setError(ex.getMessage());
-
-		} catch (Throwable t) {
-
-			logException(caller, t, sources);
-
-			amc.setError(t.getMessage());
-		}
-
-		return "";
+		return amc.hasError();
 	}
 
 	@Override
@@ -83,6 +57,6 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Sends the current mail";
+		return "Returns true if an error occurred while sending the mail";
 	}
 }
