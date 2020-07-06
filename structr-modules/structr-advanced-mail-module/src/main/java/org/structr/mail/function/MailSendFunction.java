@@ -58,19 +58,19 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 
 			logger.warn(ex.getMessage());
 
-			amc.setError(ex.getMessage());
+			amc.setError(ex);
 
 		} catch (EmailException ex) {
 
 			logException(caller, ex, sources);
 
-			amc.setError(ex.getMessage());
+			amc.setError(ex);
 
 		} catch (Throwable t) {
 
 			logException(caller, t, sources);
 
-			amc.setError(t.getMessage());
+			amc.setError(t);
 		}
 
 		return "";

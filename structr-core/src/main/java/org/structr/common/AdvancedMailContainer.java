@@ -281,8 +281,13 @@ public class AdvancedMailContainer {
 		return smtpRequireTLS;
 	}
 
-	public void setError(final String err) {
-		error = err;
+	public void setError(final Throwable ex) {
+
+		error = ex.getMessage();
+
+		if (ex.getCause() != null) {
+			error += "\n" + ex.getCause().getMessage();
+		}
 	}
 
 	public String getError() {
