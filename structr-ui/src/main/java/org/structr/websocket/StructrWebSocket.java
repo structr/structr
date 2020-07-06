@@ -31,7 +31,6 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DatabaseServiceNotAvailableException;
@@ -533,19 +532,13 @@ public class StructrWebSocket implements WebSocketListener {
 	public boolean isAuthenticated() {
 
 		final Principal user = getCurrentUser();
-		return (!timedOut && user != null && (isPrivilegedUser(user) || isFrontendWebsocketAccessEnabled()));
+		return (!timedOut && user != null && isPrivilegedUser(user));
 
 	}
 
 	public boolean isPrivilegedUser(Principal user) {
 
 		return (user != null && user.isAdmin());
-
-	}
-
-	public boolean isFrontendWebsocketAccessEnabled() {
-
-		return Settings.WebsocketFrontendAccess.getValue();
 
 	}
 

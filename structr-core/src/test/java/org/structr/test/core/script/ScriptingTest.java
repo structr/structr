@@ -2031,6 +2031,16 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid get_or_create() result", newUuid2, Scripting.replaceVariables(ctx, null, "${{ Structr.getOrCreate('TestOne', { 'name': 'new-object-2', 'anInt': 13, 'aString': 'string' }) }}"));
 			assertEquals("Invalid get_or_create() result", newUuid2, Scripting.replaceVariables(ctx, null, "${{ Structr.getOrCreate('TestOne', { 'name': 'new-object-2', 'anInt': 13, 'aString': 'string' }) }}"));
 
+			// sleep
+			final long t0 = System.currentTimeMillis();
+			Scripting.replaceVariables(ctx, null, "${sleep(1000)}");
+			final long dt = System.currentTimeMillis() - t0;
+			assertTrue("Sleep() function did not wait for the specified amount of time: " + dt, dt >= 1000);
+
+			// random_uuid
+			final String randomUuid = Scripting.replaceVariables(ctx, null, "${random_uuid()}");
+			assertTrue("Invalid UUID returned by random_uuid(): " + randomUuid, randomUuid.matches("[a-fA-F0-9]{32}"));
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -5038,6 +5048,32 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 
+	}
+
+	@Test
+	public void testHMCAFunction () {
+		/*
+			This test ensures, that the core function hmac() returns the correct HEX String for the given values.
+		*/
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			final String resultSHA256 = (String) ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testHMACFunctionSHA256.js"));
+			assertEquals("Result does match the expected SHA256 hmac", "88cd2108b5347d973cf39cdf9053d7dd42704876d8c9a9bd8e2d168259d3ddf7", resultSHA256);
+
+			final String resultMD5 = (String) ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testHMACFunctionMD5.js"));
+			assertEquals("Result does match the expected MD5 hmac", "cd4b0dcbe0f4538b979fb73664f51abe", resultMD5);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+
+			fail("Unexpected exception");
+		}
 	}
 
 	@Test

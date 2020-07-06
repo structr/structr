@@ -22,11 +22,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import org.structr.api.AbstractDatabaseService;
 import org.structr.api.DatabaseFeature;
-import static org.structr.api.DatabaseFeature.LargeStringIndexing;
-import static org.structr.api.DatabaseFeature.QueryLanguage;
 import org.structr.api.NativeQuery;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.Transaction;
@@ -52,7 +49,6 @@ import org.structr.memory.index.filter.TargetNodeFilter;
  */
 public class MemoryDatabaseService extends AbstractDatabaseService implements GraphProperties {
 
-	private static final Map<String, RelationshipType> relTypeCache     = new ConcurrentHashMap<>();
 	private static final ThreadLocal<MemoryTransaction> transactions    = new ThreadLocal<>();
 	private static final Map<String, Object> graphProperties            = new HashMap<>();
 	private final MemoryRelationshipRepository relationships            = new MemoryRelationshipRepository();
@@ -249,8 +245,14 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 
 	@Override
 	public CountResult getNodeAndRelationshipCount() {
+
 		final MemoryTransaction tx = getCurrentTransaction();
-		return new CountResult(Iterables.count(tx.getNodes(null)), Iterables.count(tx.getRelationships(null)));
+
+		final long nodeCount       = Iterables.count(tx.getNodes(null));
+		final long relCount        = Iterables.count(tx.getRelationships(null));
+		final long userCount       = Iterables.count(tx.getNodes(new MemoryLabelFilter<>("User")));
+
+		return new CountResult(nodeCount, relCount, userCount);
 	}
 
 	@Override
@@ -304,6 +306,9 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 				return false;
 
 			case SpatialQueries:
+				return false;
+
+			case AuthenticationRequired:
 				return false;
 		}
 

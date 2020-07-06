@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -65,7 +64,6 @@ import org.structr.api.graph.GraphProperties;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
-import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.Index;
 import org.structr.api.search.ExactQuery;
 import org.structr.api.search.Occurrence;
@@ -82,9 +80,7 @@ import org.structr.api.util.NodeWithOwnerResult;
 public class BoltDatabaseService extends AbstractDatabaseService implements GraphProperties {
 
 	private static final Logger logger                                = LoggerFactory.getLogger(BoltDatabaseService.class.getName());
-	private static final Map<String, RelationshipType> relTypeCache   = new ConcurrentHashMap<>();
 	private static final ThreadLocal<SessionTransaction> sessions     = new ThreadLocal<>();
-	private static final long nanoEpoch                               = System.nanoTime();
 	private final Set<String> supportedQueryLanguages                 = new LinkedHashSet<>();
 	private Properties globalGraphProperties                          = null;
 	private CypherRelationshipIndex relationshipIndex                 = null;
@@ -811,9 +807,10 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		final String tenantId = getTenantIdentifier();
 		final String part     = tenantId != null ? ":" + tenantId : "";
 		final long nodeCount  = getCount("MATCH (n" + part + ":NodeInterface) RETURN COUNT(n) AS count", "count");
-		final long relCount   = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN count(r) AS count", "count");
+		final long relCount   = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN COUNT(r) AS count", "count");
+		final long userCount  = getCount("MATCH (n" + part + ":User) RETURN COUNT(n) AS count", "count");
 
-		return new CountResult(nodeCount, relCount);
+		return new CountResult(nodeCount, relCount, userCount);
 	}
 
 	@Override
@@ -834,6 +831,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 			case SpatialQueries:
 				return true;
+
+			case AuthenticationRequired:
+				return true;
 		}
 
 		return false;
@@ -847,7 +847,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public Map<String, Map<String, Integer>> getCachesInfo() {
 		return Map.of(
-			"nodes", NodeWrapper.nodeCache.getCacheInfo(),
+			"nodes",         NodeWrapper.nodeCache.getCacheInfo(),
 			"relationships", RelationshipWrapper.relationshipCache.getCacheInfo()
 		);
 	}

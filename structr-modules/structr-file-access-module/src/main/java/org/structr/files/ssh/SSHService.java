@@ -54,21 +54,21 @@ import org.structr.api.service.Command;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.ServiceResult;
 import org.structr.api.service.SingletonService;
+import org.structr.api.service.StartServiceInMaintenanceMode;
+import org.structr.api.service.StopServiceForMaintenanceMode;
 import org.structr.api.service.StructrServices;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console.ConsoleMode;
 import org.structr.core.app.StructrApp;
-import org.structr.core.auth.exception.AuthenticationException;
+import org.structr.core.auth.exception.UnauthorizedException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.SchemaService;
-import org.structr.api.service.StartServiceInMaintenanceMode;
-import org.structr.api.service.StopServiceForMaintenanceMode;
 
 /**
  *
@@ -185,38 +185,66 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	@Override
 	public boolean authenticate(final String username, final String password, final ServerSession session) {
 
-		boolean isValid     = false;
-		Principal principal = null;
+		boolean isValid             = false;
+		final boolean publicKeyOnly = Settings.SSHPublicKeyOnly.getValue();
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
-
-			principal = AuthHelper.getPrincipalForPassword(AbstractNode.name, username, password);
-			if (principal != null) {
-
-				isValid = true;
-				securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
-			}
-
-			tx.success();
-
-		} catch (AuthenticationException ae) {
-			logger.warn(ae.getMessage());
+		if (publicKeyOnly) {
 
 			isValid = false;
+			logger.warn("Password-based SSH connections are forbidden. Rejecting connection attempt by user '{}'", username);
 
-		} catch (Throwable t) {
-			logger.warn("", t);
+			try {
+				session.disconnect(401, "Password-based SSH connections are forbidden");
 
-			isValid = false;
-		}
+			} catch (IOException ignore) { }
 
-		try {
-			if (isValid) {
-				session.setAuthenticated();
+		} else {
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				try {
+
+					Principal principal = AuthHelper.getPrincipalForPassword(AbstractNode.name, username, password);
+
+					if (principal != null) {
+
+						if (principal.isAdmin()) {
+
+							isValid = true;
+							securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
+
+						} else {
+
+							isValid = false;
+							logger.warn("Rejecting SSH connection attempt by non-admin user '{}'", username);
+							session.disconnect(401, "SSH access is only allowed for admin users!");
+						}
+					}
+
+				} catch (UnauthorizedException ae) {
+
+					logger.warn(ae.getMessage());
+
+					isValid = false;
+				}
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				logger.warn("", t);
+
+				isValid = false;
 			}
 
-		} catch (IOException ex) {
-			logger.error("", ex);
+			try {
+				if (isValid) {
+					session.setAuthenticated();
+				}
+
+			} catch (IOException ex) {
+				logger.error("", ex);
+			}
 		}
 
 		return isValid;
@@ -233,43 +261,60 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final Principal principal = StructrApp.getInstance().nodeQuery(Principal.class).andName(username).getFirst();
-			if (principal != null) {
+			try {
 
-				securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
+				final Principal principal = StructrApp.getInstance().nodeQuery(Principal.class).andName(username).getFirst();
+				if (principal != null) {
 
-				// check single (main) pubkey
-				final String pubKeyData = principal.getProperty(StructrApp.key(Principal.class, "publicKey"));
-				if (pubKeyData != null) {
+					if (principal.isAdmin()) {
 
-					final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(pubKeyData).resolvePublicKey(PublicKeyEntryResolver.FAILING);
+						securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
 
-					isValid = KeyUtils.compareKeys(pubKey, key);
+						// check single (main) pubkey
+						final String pubKeyData = principal.getProperty(StructrApp.key(Principal.class, "publicKey"));
+						if (pubKeyData != null) {
 
-				}
+							final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(pubKeyData).resolvePublicKey(PublicKeyEntryResolver.FAILING);
 
-				// check array of pubkeys for this user
-				final String[] pubKeysData = principal.getProperty(StructrApp.key(Principal.class, "publicKeys"));
-				if (pubKeysData != null) {
+							isValid = KeyUtils.compareKeys(pubKey, key);
+						}
 
-					for (final String k : pubKeysData) {
+						// check array of pubkeys for this user
+						final String[] pubKeysData = principal.getProperty(StructrApp.key(Principal.class, "publicKeys"));
+						if (pubKeysData != null) {
 
-						if (k != null) {
-							final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(k).resolvePublicKey(PublicKeyEntryResolver.FAILING);
-							if (KeyUtils.compareKeys(pubKey, key)) {
+							for (final String k : pubKeysData) {
 
-								isValid = true;
-								break;
+								if (k != null) {
+									final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(k).resolvePublicKey(PublicKeyEntryResolver.FAILING);
+									if (KeyUtils.compareKeys(pubKey, key)) {
+
+										isValid = true;
+										break;
+									}
+								}
 							}
 						}
-					}
 
+					} else {
+
+						isValid = false;
+						logger.warn("Rejecting SSH connection attempt by non-admin user '{}'", username);
+						session.disconnect(401, "SSH access is only allowed for admin users!");
+					}
 				}
+
+			} catch (UnauthorizedException ae) {
+
+				logger.warn(ae.getMessage());
+
+				isValid = false;
 			}
 
 			tx.success();
 
 		} catch (Throwable t) {
+
 			logger.warn("", t);
 
 			isValid = false;

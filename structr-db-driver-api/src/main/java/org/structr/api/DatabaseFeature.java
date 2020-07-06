@@ -24,5 +24,5 @@ package org.structr.api;
  */
 public enum DatabaseFeature {
 
-	QueryLanguage, LargeStringIndexing, SpatialQueries
+	QueryLanguage, LargeStringIndexing, SpatialQueries, AuthenticationRequired
 }

@@ -46,6 +46,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.auth.AuthHelper;
+import org.structr.rest.common.StatsCallback;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
@@ -60,6 +61,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 	protected final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 	protected final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
+	protected StatsCallback stats                                       = null;
 
 	static PropertyKey<String[]> sessionIdsPropertyKey = null;
 	static PropertyKey<Iterable<Principal>> membersKey = null;
@@ -139,6 +141,11 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 	@Override
 	public StructrHttpServiceConfig getConfig() {
 		return config;
+	}
+
+	@Override
+	public void registerStatsCallback(final StatsCallback stats) {
+		this.stats = stats;
 	}
 
 	public static void broadcastEvent(final String name, final String data) {
