@@ -29,6 +29,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.polyglot.function.BatchFunction;
+import org.structr.core.script.polyglot.function.IncludeJSFunction;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -65,6 +66,8 @@ public class StructrBinding implements ProxyObject {
 				return new PredicateBinding(actionContext, entity);
 			case "batch":
 				return new BatchFunction(actionContext);
+			case "includeJs":
+				return new IncludeJSFunction(actionContext);
 			default:
 				if (actionContext.getConstant(name) != null) {
 					return wrap(actionContext,actionContext.getConstant(name));
@@ -91,6 +94,7 @@ public class StructrBinding implements ProxyObject {
 		keys.add("me");
 		keys.add("predicate");
 		keys.add("batch");
+		keys.add("includeJs");
 		return keys;
 	}
 
@@ -109,7 +113,7 @@ public class StructrBinding implements ProxyObject {
 		return arguments -> {
 
 			try {
-				Object[] args = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(arg)).toArray();
+				Object[] args = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
 
 				if (args.length == 1) {
 

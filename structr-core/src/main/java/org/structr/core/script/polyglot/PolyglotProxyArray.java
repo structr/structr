@@ -87,10 +87,10 @@ public class PolyglotProxyArray implements ProxyArray {
 				list.add(null);
 			}
 
-			list.add(PolyglotWrapper.unwrap(value));
+			list.add(PolyglotWrapper.unwrap(actionContext, value));
 		} else {
 
-			list.set((int) index, PolyglotWrapper.unwrap(value));
+			list.set((int) index, PolyglotWrapper.unwrap(actionContext, value));
 		}
 
 		writeListToSource();

@@ -16,42 +16,34 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.script.polyglot;
 
+package org.structr.core.script.polyglot.function;
+
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
+import org.structr.core.script.polyglot.FunctionWrapper;
+import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 import java.util.Arrays;
 
-public class FunctionWrapper implements ProxyExecutable {
-
-	private static final Logger logger = LoggerFactory.getLogger(FunctionWrapper.class.getName());
-
+public class IncludeJSFunction implements ProxyExecutable {
 	private final ActionContext actionContext;
-	private final GraphObject entity;
-	private final Function<Object, Object> func;
 
-	public FunctionWrapper(final ActionContext actionContext, final GraphObject entity, final Function<Object, Object> func) {
-		this.entity = entity;
+	public IncludeJSFunction(final ActionContext actionContext) {
+
 		this.actionContext = actionContext;
-		this.func = func;
 	}
 
 	@Override
 	public Object execute(Value... arguments) {
-		try {
-			Object[] args = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
+		Object[] args = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
+		String sourceFileName;
 
-			return PolyglotWrapper.wrap(actionContext, func.apply(actionContext, entity, args));
-		} catch (FrameworkException ex) {
-
-			logger.error("Error while executing function in scripting context.", ex);
+		if (args.length > 0 && args[0] instanceof String) {
+			sourceFileName = (String)args[0];
+			Context.getCurrent().eval("js", actionContext.getJavascriptLibraryCode(sourceFileName));
 		}
 
 		return null;

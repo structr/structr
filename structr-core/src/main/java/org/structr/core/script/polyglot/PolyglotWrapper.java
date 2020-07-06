@@ -33,7 +33,10 @@ public abstract class PolyglotWrapper {
 	// Wraps values going into the scripting context. E.g.: GraphObject -> StructrPolyglotGraphObjectWrapper
 	public static Object wrap(ActionContext actionContext, Object obj) {
 
-		if (obj instanceof GraphObject) {
+		if (obj == null) {
+
+			return null;
+		} else if (obj instanceof GraphObject) {
 
 			return new GraphObjectWrapper(actionContext, (GraphObject) obj);
 		} else if (obj.getClass().isArray()) {
@@ -51,17 +54,17 @@ public abstract class PolyglotWrapper {
 	}
 
 	// Unwraps values coming out of the scripting engine. Maps/Lists will be unwrapped recursively to ensure all values will be in their native state.
-	public static Object unwrap(Object obj) {
+	public static Object unwrap(final ActionContext actionContext, final Object obj) {
 
 		if (obj instanceof Value) {
 			Value value = (Value) obj;
 
 			if (value.canExecute()) {
 
-				return new FunctionWrapper(value);
+				return new FunctionWrapper(actionContext, value);
 			} else if (value.isHostObject()) {
 
-				return unwrap(value.asHostObject());
+				return unwrap(actionContext, value.asHostObject());
 			} else if (value.isProxyObject() && value.hasMembers()) {
 				ProxyObject proxy = value.asProxyObject();
 
@@ -76,23 +79,23 @@ public abstract class PolyglotWrapper {
 				}
 			} else if (value.hasArrayElements()) {
 
-				return convertValueToList(value);
+				return convertValueToList(actionContext, value);
 			} else if (value.hasMembers()) {
 
-				return convertValueToMap(value);
+				return convertValueToMap(actionContext, value);
 			} else {
 
-				return unwrap(value.as(Object.class));
+				return unwrap(actionContext, value.as(Object.class));
 			}
 		} else if (obj instanceof GraphObjectWrapper) {
 
 			return ((GraphObjectWrapper)obj).getOriginalObject();
 		} else if (obj instanceof Iterable) {
 
-			return unwrapIterable((Iterable) obj);
+			return unwrapIterable(actionContext, (Iterable) obj);
 		} else if(obj instanceof Map) {
 
-			return unwrapMap((Map<String, Object>) obj);
+			return unwrapMap(actionContext, (Map<String, Object>) obj);
 		} else {
 
 			return obj;
@@ -110,29 +113,29 @@ public abstract class PolyglotWrapper {
 		return wrappedList;
 	}
 
-	protected static List<Object> unwrapIterable(final Iterable<Object> iterable) {
+	protected static List<Object> unwrapIterable(final ActionContext actionContext, final Iterable<Object> iterable) {
 
 		final List<Object> unwrappedList = new ArrayList<>();
 
 		for (Object o : iterable) {
 
-			unwrappedList.add(unwrap(o));
+			unwrappedList.add(unwrap(actionContext, o));
 		}
 		return unwrappedList;
 	}
 
-	protected static Map<String, Object> unwrapMap(final Map<String, Object> map) {
+	protected static Map<String, Object> unwrapMap(final ActionContext actionContext, final Map<String, Object> map) {
 
 		final Map<String, Object> unwrappedMap = new HashMap<>();
 
 		for (Map.Entry<String,Object> entry : map.entrySet()) {
 
-			unwrappedMap.put(entry.getKey(), unwrap(entry.getValue()));
+			unwrappedMap.put(entry.getKey(), unwrap(actionContext, entry.getValue()));
 		}
 		return unwrappedMap;
 	}
 
-	protected static List<Object> convertValueToList(final Value value) {
+	protected static List<Object> convertValueToList(final ActionContext actionContext, final Value value) {
 
 		final List<Object> resultList = new ArrayList<>();
 
@@ -140,14 +143,14 @@ public abstract class PolyglotWrapper {
 
 			for (int i = 0; i < value.getArraySize(); i++) {
 
-				resultList.add(unwrap(value.getArrayElement(i)));
+				resultList.add(unwrap(actionContext, value.getArrayElement(i)));
 			}
 		}
 
 		return resultList;
 	}
 
-	protected static Map<String, Object> convertValueToMap(final Value value) {
+	protected static Map<String, Object> convertValueToMap(final ActionContext actionContext, final Value value) {
 
 		final Map<String, Object> resultMap = new HashMap<>();
 
@@ -155,7 +158,7 @@ public abstract class PolyglotWrapper {
 
 			for (String key : value.getMemberKeys()) {
 
-				resultMap.put(key, unwrap(value.getMember(key)));
+				resultMap.put(key, unwrap(actionContext, value.getMember(key)));
 			}
 		}
 
@@ -164,8 +167,9 @@ public abstract class PolyglotWrapper {
 
 	private static class FunctionWrapper implements ProxyExecutable {
 		private Value func;
+		private ActionContext actionContext;
 
-		public FunctionWrapper(final Value func) {
+		public FunctionWrapper(final ActionContext actionContext, final Value func) {
 
 			if (func.canExecute()) {
 
@@ -175,7 +179,8 @@ public abstract class PolyglotWrapper {
 
 		@Override
 		public Object execute(Value... arguments) {
-			return func.execute(arguments);
+
+			return PolyglotWrapper.unwrap(actionContext, func.execute(arguments));
 		}
 	}
 }
