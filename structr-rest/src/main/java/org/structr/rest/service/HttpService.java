@@ -46,6 +46,7 @@ import org.apache.chemistry.opencmis.server.impl.browser.CmisBrowserBindingServl
 import org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.Connector;
@@ -145,7 +146,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			}
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
 		// The jsp directory is created by the container, but we don't need it

@@ -162,8 +162,6 @@ var _Files = {
 				Command.create({ type: $('select#file-type').val(), size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null });
 			});
 
-			$('.duplicate_finder', main).on('click', _DuplicateFinder.openDuplicateFinderDialog);
-
 			$('.mount_folder', main).on('click', _Files.openMountDialog);
 
 			$('.add_folder_icon', main).on('click', function(e) {

@@ -18,17 +18,17 @@
  */
 package org.structr.api.util;
 
-/**
- *
- */
 public class CountResult {
 
 	private long nodeCount = 0;
 	private long relCount  = 0;
+	private long userCount = 0;
 
-	public CountResult(final long nodeCount, final long relCount) {
+	public CountResult(final long nodeCount, final long relCount, final long userCount) {
+
 		this.nodeCount = nodeCount;
 		this.relCount  = relCount;
+		this.userCount = userCount;
 	}
 
 	public long getNodeCount() {
@@ -37,5 +37,9 @@ public class CountResult {
 
 	public long getRelationshipCount() {
 		return relCount;
+	}
+
+	public long getUserCount() {
+		return userCount;
 	}
 }

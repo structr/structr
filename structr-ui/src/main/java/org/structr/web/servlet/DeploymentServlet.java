@@ -38,6 +38,7 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -121,7 +122,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 
 		initRequest(request, response);
-		
+
 		SecurityContext securityContext = null;
 
 		setCustomResponseHeaders(response);
@@ -137,57 +138,57 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				response.getOutputStream().write("ERROR (401): Invalid user or password.\n".getBytes("UTF-8"));
 				return;
 			}
-			
+
 			final Principal user = securityContext.getUser(false);
-			
+
 			if (user == null && !user.isAdmin()) {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				response.getOutputStream().write("ERROR (401): Download of export ZIP file only allowed for admins.\n".getBytes("UTF-8"));
 				return;
 			}
-			
+
 			tx.success();
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
-		
+
 		final String path = request.getParameter(PATH_PARAMETER);
-		
+
 		if (StringUtils.isNotBlank(path)) {
-			
+
 			try {
-				
+
 				final File file = zip(path);
-				
+
 				response.setContentType("application/zip");
 				response.addHeader("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"");
-				
+
 				final FileInputStream     in  = new FileInputStream(file);
 				final ServletOutputStream out = response.getOutputStream();
-				
+
 				final long fileSize = IOUtils.copyLarge(in, out);
 				final int status    = response.getStatus();
-				
+
 				response.addHeader("Content-Length", Long.toString(fileSize));
 				response.setStatus(status);
-				
+
 				out.flush();
 				out.close();
-				
+
 			} catch (IOException ex) {
 				java.util.logging.Logger.getLogger(DeploymentServlet.class.getName()).log(Level.SEVERE, null, ex);
 			}
 
 		}
-		
+
 	}
-	
+
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 
 		initRequest(request, response);
-		
+
 		SecurityContext securityContext = null;
 
 		setCustomResponseHeaders(response);
@@ -219,9 +220,9 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			tx.success();
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
-		
+
 		String redirectUrl = null;
 
 		try {
@@ -283,22 +284,22 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			}
 
 			if (StringUtils.isNotBlank(downloadUrl)) {
-				
-				try {		
+
+				try {
 
 					HttpHelper.streamURLToFile(downloadUrl, file);
 					fileName = PathHelper.getName(downloadUrl);
 
 				} catch (final Throwable t) {
-					
+
 					final String message = "ERROR (400): Unable to download from URL.\n" + t.getMessage() + "\n";
-					
+
 					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 					response.getOutputStream().write(message.getBytes("UTF-8"));
 
 					return;
 				}
-					
+
 
 			} else {
 
@@ -335,7 +336,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 		} catch (Exception t) {
 
 			logger.error("Exception while processing request", t);
-			
+
 			// send redirect to allow form-based file upload without JavaScript..
 			if (StringUtils.isNotBlank(redirectUrl)) {
 
@@ -360,7 +361,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	 * @return file
 	 */
 	private File zip(final String sourceDirectoryPath) throws IOException {
-		
+
 		final String zipFilePath   = StringUtils.stripEnd(sourceDirectoryPath, "/").concat(".zip");
 
 		final ZipFile zipFile = new ZipFile(zipFilePath);
@@ -380,16 +381,16 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 		new ZipFile(file).extractAll(outputDir);
 	}
 
-	
+
 	/**
 	 * Initalize request.
-	 * 
+	 *
 	 * @param request
 	 * @param response
-	 * @throws ServletException 
+	 * @throws ServletException
 	 */
 	private void initRequest(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
-		
+
 		try {
 
 			assertInitialized();
@@ -406,6 +407,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			}
 
 		}
-	}	
+	}
 }
 

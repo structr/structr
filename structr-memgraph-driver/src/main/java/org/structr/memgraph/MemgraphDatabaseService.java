@@ -41,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Config;
 import org.neo4j.driver.v1.Driver;
@@ -90,6 +91,7 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 	private String databaseUrl                                        = null;
 	private String databasePath                                       = null;
 	private Driver driver                                             = null;
+	private boolean supportsANY                                       = false;
 
 	@Override
 	public boolean initialize(final String name) {
@@ -139,6 +141,18 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 
 			RelationshipWrapper.initialize(relCacheSize);
 			logger.info("Relationship cache size set to {}", relCacheSize);
+
+
+			// auto-detect support for ANY
+			try (final Transaction tx = beginTx()) {
+
+				execute("MATCH (n) WHERE ANY (x in n.test WHERE x = 'test') RETURN n LIMIT 1");
+				supportsANY = true;
+				tx.success();
+
+			} catch (Throwable t) {
+				supportsANY = false;
+			}
 
 			// signal success
 			return true;
@@ -452,25 +466,23 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 
 			executor.submit(() -> {
 
-				try (final Transaction tx = beginTx(timeoutSeconds)) {
+				try (Session session = driver.session()) {
 
-					for (final Map<String, Object> row : execute("SHOW INDEX INFO")) {
+					for (final Map row : session.run("SHOW INDEX INFO").list(r -> r.asMap())) {
 
 						if ("label+property".equals(row.get("index type"))) {
 
 							final String description = "INDEX ON :" + row.get("label") + "(`" + row.get("property") + "`)";
 
-							existingDbIndexes.put(description, "UNKNOWN");
+							existingDbIndexes.put(description, "ONLINE");
 						}
 					}
-
-					tx.success();
 				}
 
 			}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
 		logger.debug("Found {} existing indexes", existingDbIndexes.size());
@@ -523,7 +535,7 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 							}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 						} catch (Throwable t) {
-							t.printStackTrace();
+							logger.error(ExceptionUtils.getStackTrace(t));
 						}
 					}
 				}
@@ -824,9 +836,10 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 		final String tenantId = getTenantIdentifier();
 		final String part     = tenantId != null ? ":" + tenantId : "";
 		final long nodeCount  = getCount("MATCH (n" + part + ":NodeInterface) RETURN COUNT(n) AS count", "count");
-		final long relCount   = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN count(r) AS count", "count");
+		final long relCount   = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN COUNT(r) AS count", "count");
+		final long userCount  = getCount("MATCH (n" + part + ":User) RETURN COUNT(n) AS count", "count");
 
-		return new CountResult(nodeCount, relCount);
+		return new CountResult(nodeCount, relCount, userCount);
 	}
 
 	@Override
@@ -853,6 +866,10 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 		}
 
 		return false;
+	}
+
+	public String anyOrSingleFunction() {
+		return (supportsANY ? "ANY" : "SINGLE");
 	}
 
 	@Override

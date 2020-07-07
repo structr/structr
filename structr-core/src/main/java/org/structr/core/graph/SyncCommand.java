@@ -47,6 +47,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -312,7 +313,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			importFromStream(graphDb, securityContext, fis, doValidation, batchSize);
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 			throw new FrameworkException(500, t.getMessage());
 		}
 	}

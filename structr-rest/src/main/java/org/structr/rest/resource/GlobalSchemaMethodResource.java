@@ -21,6 +21,9 @@ package org.structr.rest.resource;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
@@ -40,6 +43,7 @@ import org.structr.schema.action.Actions;
  */
 public class GlobalSchemaMethodResource extends Resource {
 
+	private static final Logger logger = LoggerFactory.getLogger(GlobalSchemaMethodResource.class);
 	private String methodName = null;
 
 	@Override
@@ -62,7 +66,7 @@ public class GlobalSchemaMethodResource extends Resource {
 			}
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(fex));
 		}
 
 		return false;

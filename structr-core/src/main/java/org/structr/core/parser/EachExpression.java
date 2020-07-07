@@ -20,6 +20,7 @@ package org.structr.core.parser;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -92,11 +93,11 @@ public class EachExpression extends Expression {
 		}
 
 		Object listSource = listExpression.evaluate(ctx, entity);
-		
+
 		if (listSource != null && listSource.getClass().isArray()) {
 			listSource = Arrays.asList((Object[]) listSource);
 		}
-		
+
 		if (listSource != null && listSource instanceof Iterable) {
 
 			final Iterable source     = (Iterable)listSource;
@@ -127,8 +128,7 @@ public class EachExpression extends Expression {
 					} catch (FrameworkException fex) {
 
 						logger.warn(fex.getMessage());
-						logger.warn(fex.toString());
-						fex.printStackTrace();
+						logger.warn(ExceptionUtils.getStackTrace(fex));
 					}
 
 					logger.debug("Committing batch after {} objects", count);

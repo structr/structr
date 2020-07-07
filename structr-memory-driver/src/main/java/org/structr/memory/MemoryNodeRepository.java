@@ -27,6 +27,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import static org.structr.memory.EntityRepository.STORAGE_FORMAT_VERSION;
 import org.structr.memory.index.filter.Filter;
@@ -36,6 +39,8 @@ import org.structr.memory.index.filter.MemoryTypeFilter;
 /**
  */
 public class MemoryNodeRepository extends EntityRepository {
+
+	private static final Logger logger = LoggerFactory.getLogger(MemoryNodeRepository.class);
 
 	final Map<MemoryIdentity, MemoryNode> masterData  = new ConcurrentHashMap<>();
 	final Map<String, Set<MemoryIdentity>> labelCache = new ConcurrentHashMap<>();
@@ -173,7 +178,7 @@ public class MemoryNodeRepository extends EntityRepository {
 				}
 
 			} catch (final Throwable t) {
-				t.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(t));
 			}
 		}
 	}
@@ -201,7 +206,7 @@ public class MemoryNodeRepository extends EntityRepository {
 			out.flush();
 
 		} catch (final IOException ex) {
-			ex.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(ex));
 		}
 	}
 

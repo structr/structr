@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -207,9 +208,9 @@ public interface Principal extends NodeInterface, AccessControllable {
 		} catch (FrameworkException fex) {
 
 			final Logger logger = LoggerFactory.getLogger(Principal.class);
-			logger.warn("Caught exception while fetching groups for user '{}' ({})", principal.getName(), principal.getUuid());
 
-			fex.printStackTrace();
+			logger.warn("Caught exception while fetching groups for user '{}' ({})", principal.getName(), principal.getUuid());
+			logger.warn(ExceptionUtils.getStackTrace(fex));
 
 			return Collections.emptyList();
 		}
@@ -250,7 +251,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 			final Logger logger = LoggerFactory.getLogger(Principal.class);
 			logger.error("Could not add sessionId " + sessionId + " to array of sessionIds", ex);
-			
+
 			return false;
 		}
 	}

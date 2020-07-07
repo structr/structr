@@ -39,6 +39,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -149,7 +150,7 @@ public class SchemaService implements Service {
 					tx.success();
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.error(ExceptionUtils.getStackTrace(t));
 				}
 
 
@@ -268,7 +269,7 @@ public class SchemaService implements Service {
 									if (retryCount == 0) {
 
 										for (final ErrorToken token : errorBuffer.getErrorTokens()) {
-											logger.error("{}", token.toString());
+											logger.error(token.toString());
 										}
 
 										return new ServiceResult(false);
@@ -366,8 +367,8 @@ public class SchemaService implements Service {
 										.build();
 
 								} catch (Throwable t) {
-									t.printStackTrace();
 									logger.warn("Unable to build GraphQL schema: {}", t.getMessage());
+									logger.error(ExceptionUtils.getStackTrace(t));
 								}
 							}
 						}
@@ -375,22 +376,21 @@ public class SchemaService implements Service {
 
 				} catch (FrameworkException fex) {
 
-					fex.printStackTrace();
-
 					FlushCachesCommand.flushAll();
 
 					logger.error("Unable to compile dynamic schema: {}", fex.getMessage());
+					logger.error(ExceptionUtils.getStackTrace(fex));
 					success = false;
 
 					errorBuffer.getErrorTokens().addAll(fex.getErrorBuffer().getErrorTokens());
 
 				} catch (Throwable t) {
 
-					t.printStackTrace();
-
 					FlushCachesCommand.flushAll();
 
 					logger.error("Unable to compile dynamic schema: {}", t.getMessage());
+					logger.error(ExceptionUtils.getStackTrace(t));
+
 					success = false;
 				}
 

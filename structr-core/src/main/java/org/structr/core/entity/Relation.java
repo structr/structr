@@ -20,6 +20,8 @@ package org.structr.core.entity;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.RelationshipType;
@@ -128,7 +130,7 @@ public interface Relation<A extends NodeInterface, B extends NodeInterface, S ex
 
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				LoggerFactory.getLogger(Relation.class).error("{}", ExceptionUtils.getStackTrace(t));
 			}
 		}
 

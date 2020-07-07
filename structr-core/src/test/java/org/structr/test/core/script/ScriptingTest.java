@@ -5051,6 +5051,32 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
+	public void testHMCAFunction () {
+		/*
+			This test ensures, that the core function hmac() returns the correct HEX String for the given values.
+		*/
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			final String resultSHA256 = (String) ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testHMACFunctionSHA256.js"));
+			assertEquals("Result does match the expected SHA256 hmac", "88cd2108b5347d973cf39cdf9053d7dd42704876d8c9a9bd8e2d168259d3ddf7", resultSHA256);
+
+			final String resultMD5 = (String) ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testHMACFunctionMD5.js"));
+			assertEquals("Result does match the expected MD5 hmac", "cd4b0dcbe0f4538b979fb73664f51abe", resultMD5);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
 	public void testSlice() {
 
 		final ActionContext ctx           = new ActionContext(securityContext);

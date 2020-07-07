@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Setting;
@@ -57,6 +60,8 @@ import org.structr.core.property.GenericProperty;
 /**
  */
 public class ManageDatabasesCommand extends NodeServiceCommand implements MaintenanceCommand {
+
+	private static final Logger logger = LoggerFactory.getLogger(ManageDatabasesCommand.class);
 
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
@@ -91,7 +96,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 				Settings.storeConfiguration("structr.conf");
 
 			} catch (IOException ex) {
-				ex.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(ex));
 			}
 
 		} else {

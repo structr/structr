@@ -136,7 +136,7 @@ public class FileHelper {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param <T>
 	 * @param securityContext
 	 * @param existingFileOnDisk
@@ -144,19 +144,19 @@ public class FileHelper {
 	 * @param name
 	 * @return
 	 * @throws FrameworkException
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public static <T extends File> T createFile(final SecurityContext securityContext, final java.io.File existingFileOnDisk, final String contentType, final String name)
 		throws FrameworkException, IOException {
-		
+
 		final T newFile = (T) StructrApp.getInstance(securityContext).create(File.class, name);
 		final java.io.File newFileOnDisk = newFile.getFileOnDisk(false);
-		
+
 		FileUtils.moveFile(existingFileOnDisk, newFileOnDisk);
-		
+
 		return newFile;
 	}
-	
+
 	/**
 	 * Create a new file node from the given input stream and sets the parentFolder
 	 *
@@ -294,13 +294,13 @@ public class FileHelper {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param file
 	 * @param fileData
 	 * @param contentType
 	 * @param updateMetadata
 	 * @throws FrameworkException
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public static void setFileData(final File file, final byte[] fileData, final String contentType, final boolean updateMetadata) throws FrameworkException, IOException {
 
@@ -669,7 +669,6 @@ public class FileHelper {
 			return StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).and(StructrApp.key(AbstractFile.class, "path"), absolutePath).getFirst();
 
 		} catch (FrameworkException ex) {
-			ex.printStackTrace();
 			logger.warn("File not found: {}", absolutePath);
 		}
 

@@ -24,8 +24,6 @@ import java.util.Map;
 import java.util.Set;
 import org.structr.api.AbstractDatabaseService;
 import org.structr.api.DatabaseFeature;
-import static org.structr.api.DatabaseFeature.LargeStringIndexing;
-import static org.structr.api.DatabaseFeature.QueryLanguage;
 import org.structr.api.NativeQuery;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.Transaction;
@@ -247,8 +245,14 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 
 	@Override
 	public CountResult getNodeAndRelationshipCount() {
+
 		final MemoryTransaction tx = getCurrentTransaction();
-		return new CountResult(Iterables.count(tx.getNodes(null)), Iterables.count(tx.getRelationships(null)));
+
+		final long nodeCount       = Iterables.count(tx.getNodes(null));
+		final long relCount        = Iterables.count(tx.getRelationships(null));
+		final long userCount       = Iterables.count(tx.getNodes(new MemoryLabelFilter<>("User")));
+
+		return new CountResult(nodeCount, relCount, userCount);
 	}
 
 	@Override

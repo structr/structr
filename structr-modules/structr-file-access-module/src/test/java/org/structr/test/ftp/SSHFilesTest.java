@@ -30,9 +30,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Vector;
 import org.apache.commons.io.IOUtils;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
@@ -43,6 +43,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 /**
  * Tests for the SSH file interface.
@@ -56,7 +57,9 @@ public class SSHFilesTest extends SSHTest {
 	@Test
 	public void test00RootDirectoriesAndAttributes() {
 
-		final ChannelSftp sftp = setupSftpClient("ftpuser1", "ftpuserpw1");
+		Settings.SSHPublicKeyOnly.setValue(false);
+
+		final ChannelSftp sftp = setupSftpClient("ftpuser1", "ftpuserpw1", true);
 
 		try {
 
@@ -108,7 +111,9 @@ public class SSHFilesTest extends SSHTest {
 	@Test
 	public void test00StoreFile() {
 
-		ChannelSftp sftp          = setupSftpClient("ftpuser1", "ftpuserpw1");
+		Settings.SSHPublicKeyOnly.setValue(false);
+
+		ChannelSftp sftp          = setupSftpClient("ftpuser1", "ftpuserpw1", true);
 		final String testContent1 = "Test Content öäü";
 		final String testContent2 = "Test Content 2";
 		final String name1        = "file1.txt";
@@ -212,7 +217,9 @@ public class SSHFilesTest extends SSHTest {
 	@Test
 	public void test02RenameFile() {
 
-		ChannelSftp sftp          = setupSftpClient("ftpuser1", "ftpuserpw1");
+		Settings.SSHPublicKeyOnly.setValue(false);
+
+		ChannelSftp sftp          = setupSftpClient("ftpuser1", "ftpuserpw1", true);
 		final String testContent1 = "Test Content öäü";
 		final String name1        = "file1.txt";
 		final String name2        = "fileöäüß.txt";
@@ -262,7 +269,9 @@ public class SSHFilesTest extends SSHTest {
 	@Test
 	public void test03MoveFile() {
 
-		ChannelSftp sftp          = setupSftpClient("ftpuser1", "ftpuserpw1");
+		Settings.SSHPublicKeyOnly.setValue(false);
+
+		ChannelSftp sftp          = setupSftpClient("ftpuser1", "ftpuserpw1", true);
 		final String testContent1 = "Test Content öäü";
 		final String name1        = "file1.txt";
 		final String name2        = "fileöäüß.txt";
@@ -318,7 +327,9 @@ public class SSHFilesTest extends SSHTest {
 	@Test
 	public void test04OverwriteFile() {
 
-		ChannelSftp sftp          = setupSftpClient("ftpuser1", "ftpuserpw1");
+		Settings.SSHPublicKeyOnly.setValue(false);
+
+		ChannelSftp sftp          = setupSftpClient("ftpuser1", "ftpuserpw1", true);
 		final String testContent1 = "Initial Content";
 		final String testContent2 = "Overwritten Content";
 		final String name         = "file1.txt";
@@ -413,7 +424,9 @@ public class SSHFilesTest extends SSHTest {
 	@Test
 	public void test05DeleteFile() {
 
-		final ChannelSftp sftp   = setupSftpClient("ftpuser1", "ftpuserpw1");
+		Settings.SSHPublicKeyOnly.setValue(false);
+
+		final ChannelSftp sftp   = setupSftpClient("ftpuser1", "ftpuserpw1", true);
 		final String testContent = "Test Content öäü";
 		final String name        = "file1.txt";
 
@@ -488,7 +501,9 @@ public class SSHFilesTest extends SSHTest {
 	@Test
 	public void test06DeleteDirectory() {
 
-		final ChannelSftp sftp   = setupSftpClient("ftpuser1", "ftpuserpw1");
+		Settings.SSHPublicKeyOnly.setValue(false);
+
+		final ChannelSftp sftp   = setupSftpClient("ftpuser1", "ftpuserpw1", true);
 
 		try {
 
