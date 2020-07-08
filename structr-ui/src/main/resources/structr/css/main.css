@@ -3989,6 +3989,14 @@ table#schema-grants th, table#schema-grants td {
 	height: calc(100% - 240px);
 }
 
+#methods-content {
+	height: calc(100% - 26px);
+}
+
+#methods-content .method-tab-content {
+	height: 100%;
+}
+
 #method-code-container .editor,
 #method-code-container .cm-s-default {
 	height: 100%;

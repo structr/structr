@@ -140,12 +140,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String DEPLOYMENT_IMPORT_STATUS   = "DEPLOYMENT_IMPORT_STATUS";
 	private final static String DEPLOYMENT_EXPORT_STATUS   = "DEPLOYMENT_EXPORT_STATUS";
 
-	private final static String DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER = "_globalMethods";
-	private final static String DEPLOYMENT_SCHEMA_METHODS_FOLDER        = "methods";
-	private final static String DEPLOYMENT_SCHEMA_FUNCTIONS_FOLDER      = "functions";
-	private final static String DEPLOYMENT_SCHEMA_READ_FUNCTION_SUFFIX  = ".readFunction";
-	private final static String DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX = ".writeFunction";
-	private final static String DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY  = "source";
+	private final static String DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER  = "_globalMethods";
+	private final static String DEPLOYMENT_SCHEMA_METHODS_FOLDER         = "methods";
+	private final static String DEPLOYMENT_SCHEMA_FUNCTIONS_FOLDER       = "functions";
+	private final static String DEPLOYMENT_SCHEMA_READ_FUNCTION_SUFFIX   = ".readFunction";
+	private final static String DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX  = ".writeFunction";
+	private final static String DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY   = "source";
+	private final static String DEPLOYMENT_SCHEMA_COMMENT_ATTRIBUTE_KEY  = "comment";
+	private final static String DEPLOYMENT_SCHEMA_COMMENT_SUFFIX         = ".comment";
 
 	static {
 
@@ -1231,18 +1233,32 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					for (Map<String, Object> schemaMethod : globalSchemaMethods) {
 
-						final String methodSource     = (String) schemaMethod.get(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY);
-						final Path globalMethodFile   = globalMethodsFolder.resolve((String) schemaMethod.get("name"));
-						final String relativeFilePath = "./" + targetFolder.relativize(globalMethodFile).toString();
+						final String methodName            = (String) schemaMethod.get("name");
 
-						schemaMethod.put(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY, relativeFilePath);
+						final String methodSource          = (String) schemaMethod.get(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY);
+						final Path globalMethodSourceFile  = globalMethodsFolder.resolve(methodName);
 
-						if (Files.exists(globalMethodFile)) {
-							logger.warn("File '{}' already exists - this can happen if there is a non-unique global method definition. This is not supported in tree-based schema export and will causes errors!", relativeFilePath);
+						final String methodComment         = (String) schemaMethod.get(DEPLOYMENT_SCHEMA_COMMENT_ATTRIBUTE_KEY);
+						final Path globalMethodCommentFile = globalMethodsFolder.resolve(methodName + DEPLOYMENT_SCHEMA_COMMENT_SUFFIX);
+
+						final String relativeSourceFilePath  = "./" + targetFolder.relativize(globalMethodSourceFile).toString();
+						final String relativeCommentFilePath = "./" + targetFolder.relativize(globalMethodCommentFile).toString();
+
+						schemaMethod.put(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY, relativeSourceFilePath);
+						schemaMethod.put(DEPLOYMENT_SCHEMA_COMMENT_ATTRIBUTE_KEY, relativeCommentFilePath);
+
+						if (Files.exists(globalMethodSourceFile)) {
+							logger.warn("File '{}' already exists - this can happen if there is a non-unique global method definition. This is not supported in tree-based schema export and will causes errors!", relativeSourceFilePath);
+						}
+						if (Files.exists(globalMethodCommentFile)) {
+							logger.warn("File '{}' already exists - this can happen if there is a non-unique global method definition. This is not supported in tree-based schema export and will causes errors!", relativeCommentFilePath);
 						}
 
 						if (methodSource != null) {
-							writeStringToFile(globalMethodFile, methodSource);
+							writeStringToFile(globalMethodSourceFile, methodSource);
+						}
+						if (methodComment != null) {
+							writeStringToFile(globalMethodCommentFile, methodComment);
 						}
 					}
 				}
@@ -1298,13 +1314,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 							for (final Object m : typeDef.getMethods()) {
 
 								final StructrMethodDefinition method = (StructrMethodDefinition)m;
-								final String methodSource            = method.getSource();
 
-								final Path methodFile = methodsFolder.resolve(method.getName());
+								final String methodName              = method.getName();
+								final String methodSource            = method.getSource();
+								final String methodComment           = method.getComment();
+
+								final Path methodSourceFile  = methodsFolder.resolve(methodName);
+								final Path methodCommentFile = methodsFolder.resolve(methodName + DEPLOYMENT_SCHEMA_COMMENT_SUFFIX);
 
 								if (methodSource != null) {
-									writeStringToFile(methodFile, methodSource);
-									method.setSource("./" + targetFolder.relativize(methodFile).toString());
+									writeStringToFile(methodSourceFile, methodSource);
+									method.setSource("./" + targetFolder.relativize(methodSourceFile).toString());
+								}
+
+								if (methodComment != null) {
+									writeStringToFile(methodCommentFile, methodComment);
+									method.setComment("./" + targetFolder.relativize(methodCommentFile).toString());
 								}
 							}
 						}
@@ -1877,9 +1902,25 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 						for (Map<String, Object> schemaMethod : schema.getGlobalMethods()) {
 
-							final Path globalMethodFile = globalMethodsFolder.resolve((String) schemaMethod.get("name"));
+							final String methodName = (String) schemaMethod.get("name");
 
-							schemaMethod.put(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY, (Files.exists(globalMethodFile)) ? new String(Files.readAllBytes(globalMethodFile)) : null);
+							final Path globalMethodSourceFile = globalMethodsFolder.resolve(methodName);
+							schemaMethod.put(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY, (Files.exists(globalMethodSourceFile)) ? new String(Files.readAllBytes(globalMethodSourceFile)) : null);
+
+							if (schemaMethod.containsKey(DEPLOYMENT_SCHEMA_COMMENT_ATTRIBUTE_KEY)) {
+
+								final String methodComment = (String) schemaMethod.get(DEPLOYMENT_SCHEMA_COMMENT_ATTRIBUTE_KEY);
+
+								if (methodComment != null) {
+
+									final Path globalMethodCommentFile = globalMethodsFolder.resolve(methodName + DEPLOYMENT_SCHEMA_COMMENT_SUFFIX);
+
+									if (methodComment.equals("./" + schemaFolder.relativize(globalMethodCommentFile).toString())) {
+										// only overwrite if comment is path
+										schemaMethod.put(DEPLOYMENT_SCHEMA_COMMENT_ATTRIBUTE_KEY, (Files.exists(globalMethodCommentFile)) ? new String(Files.readAllBytes(globalMethodCommentFile)) : null);
+									}
+								}
+							}
 						}
 					}
 
@@ -1933,16 +1974,28 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 								for (final Object m : typeDef.getMethods()) {
 
 									final StructrMethodDefinition method = (StructrMethodDefinition)m;
+									final String methodName              = method.getName();
 
 									if (method.getSource() != null) {
 
-										final Path methodSourceFile = methodsFolder.resolve(method.getName());
+										final Path methodSourceFile = methodsFolder.resolve(methodName);
 
 										if (Files.exists(methodSourceFile)) {
 											method.setSource(new String(Files.readAllBytes(methodSourceFile)));
 										} else {
 											method.setSource(null);
 											DeployCommand.addMissingSchemaFile(schemaFolder.relativize(methodSourceFile).toString());
+										}
+									}
+
+									final String methodComment = method.getComment();
+									if (methodComment != null) {
+
+										final Path methodCommentFile = methodsFolder.resolve(methodName + DEPLOYMENT_SCHEMA_COMMENT_SUFFIX);
+
+										if (methodComment.equals("./" + schemaFolder.relativize(methodCommentFile).toString())) {
+
+											method.setComment((Files.exists(methodCommentFile)) ? new String(Files.readAllBytes(methodCommentFile)) : null);
 										}
 									}
 								}
