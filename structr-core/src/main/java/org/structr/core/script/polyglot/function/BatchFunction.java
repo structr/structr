@@ -18,7 +18,6 @@
  */
 package org.structr.core.script.polyglot.function;
 
-import com.oracle.truffle.api.object.DynamicObject;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.slf4j.Logger;

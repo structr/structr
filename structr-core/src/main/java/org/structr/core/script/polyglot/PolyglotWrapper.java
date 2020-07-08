@@ -22,6 +22,7 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.schema.action.ActionContext;
 
 import java.util.*;

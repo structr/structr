@@ -26,8 +26,10 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.ArrayProperty;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 import org.structr.schema.action.ActionContext;
@@ -36,6 +38,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 
 public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 	private static final Logger logger = LoggerFactory.getLogger(GraphObjectWrapper.class);
@@ -54,66 +57,87 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 	@Override
 	public Object getMember(String key) {
-		Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class);
-		if (methods.containsKey(key)) {
-			Method method = methods.get(key);
 
-			return (ProxyExecutable) arguments -> {
+		if (getOriginalObject() instanceof GraphObjectMap) {
 
-				Map<String, Object> params = null;
-				if (arguments.length >= 1) {
-					Object arg0 = PolyglotWrapper.unwrap(actionContext, arguments[0]);
-					if (arg0 instanceof Map) {
-						params = (Map<String, Object>) arg0;
+			return PolyglotWrapper.wrap(actionContext, ((GraphObjectMap) getOriginalObject()).get(new GenericProperty<>(key)));
+		} else {
+
+			Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class);
+			if (methods.containsKey(key)) {
+				Method method = methods.get(key);
+
+				return (ProxyExecutable) arguments -> {
+
+					Map<String, Object> params = null;
+					if (arguments.length >= 1) {
+						Object arg0 = PolyglotWrapper.unwrap(actionContext, arguments[0]);
+						if (arg0 instanceof Map) {
+							params = (Map<String, Object>) arg0;
+						}
+					} else {
+
+						params = new HashMap<>();
 					}
-				} else {
+					try {
 
-					params = new HashMap<>();
-				}
-				try {
+						return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext(), params));
+					} catch (IllegalAccessException | InvocationTargetException ex) {
 
-					return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext(), params));
-				} catch (IllegalAccessException | InvocationTargetException ex) {
+						logger.error("Could not invoke method on graph object.", ex);
+					}
+					return null;
+				};
+			}
 
-					logger.error("Could not invoke method on graph object.", ex);
-				}
-				return null;
-			};
+			PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+			if (propKey instanceof RelationProperty || propKey instanceof ArrayProperty) {
+				// RelationshipProperty needs special binding
+				// ArrayProperty values need synchronized ProxyArrays as well
+				return new PolyglotProxyArray(actionContext, node, propKey);
+			}
+
+			return PolyglotWrapper.wrap(actionContext, node.getProperty(key));
 		}
-
-		PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
-		if (propKey instanceof RelationProperty || propKey instanceof ArrayProperty) {
-			// RelationshipProperty needs special binding
-			// ArrayProperty values need synchronized ProxyArrays as well
-			return new PolyglotProxyArray(actionContext, node, propKey);
-		}
-
-		return PolyglotWrapper.wrap(actionContext, node.getProperty(key));
 	}
 
 	@Override
 	public Object getMemberKeys() {
+		if (getOriginalObject() instanceof GraphObjectMap) {
+
+			return ((GraphObjectMap) getOriginalObject()).toMap().keySet().toArray();
+		}
 		return null;
 	}
 
 	@Override
 	public boolean hasMember(String key) {
-		return StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class).containsKey(key) ||
-				StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key) != null;
+		if (getOriginalObject() instanceof GraphObjectMap) {
+
+			return ((GraphObjectMap) getOriginalObject()).containsKey(new GenericProperty<>(key));
+		} else {
+
+			return StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class).containsKey(key) || StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key) != null;
+		}
 	}
 
 	@Override
 	public void putMember(String key, Value value) {
+		Object unwrappedValue = PolyglotWrapper.unwrap(actionContext, value);
 
-		try {
+		if (getOriginalObject() instanceof GraphObjectMap) {
 
-			final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
-			Object unwrappedValue = PolyglotWrapper.unwrap(actionContext, value);
-			Object convertedValue = propKey.inputConverter(actionContext.getSecurityContext()).convert(unwrappedValue);
-			node.setProperty(propKey, convertedValue);
-		} catch (FrameworkException ex) {
+			((GraphObjectMap) getOriginalObject()).put(new GenericProperty<>(key), unwrappedValue);
+		} else {
 
-			logger.error("Could not set property on graph object within scripting context.", ex);
+			try {
+
+				final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+				Object convertedValue = propKey.inputConverter(actionContext.getSecurityContext()).convert(unwrappedValue);
+				node.setProperty(propKey, convertedValue);
+			} catch (FrameworkException ex) {
+				logger.error("Could not set property on graph object within scripting context.", ex);
+			}
 		}
 	}
 }

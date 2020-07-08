@@ -225,10 +225,19 @@ public class Scripting {
 		final String entityName        = entity != null ? entity.getProperty(AbstractNode.name) : null;
 		final String entityDescription = entity != null ? ( StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + entity.getUuid() : "anonymous";
 
+		// Clear output buffer
+		actionContext.clear();
+
 		Context context = ContextFactory.getContext("js", actionContext, entity);
 
 		try {
 			Object result = PolyglotWrapper.unwrap(actionContext, context.eval("js", embedInFunction(snippet.getSource())));
+
+			final String outputBuffer = actionContext.getOutput();
+			if (outputBuffer != null && !outputBuffer.isEmpty()) {
+
+				return outputBuffer;
+			}
 
 			return result;
 		} catch (Exception ex) {
@@ -237,6 +246,7 @@ public class Scripting {
 		}
 
 	}
+
 
 	private static String getExceptionMessage (final ActionContext actionContext) {
 
@@ -272,6 +282,9 @@ public class Scripting {
 
 			final StringBuilder wrappedScript = new StringBuilder();
 
+			// Clear output buffer
+			actionContext.clear();
+
 			switch (engineName) {
 				case "R":
 					wrappedScript.append("main <- function() {");
@@ -287,9 +300,18 @@ public class Scripting {
 					break;
 			}
 
+			final Object result = PolyglotWrapper.unwrap(actionContext, context.getBindings(engineName).getMember("main").execute());
+
 			context.eval(engineName, wrappedScript.toString());
 
-			return PolyglotWrapper.unwrap(actionContext, context.getBindings(engineName).getMember("main").execute());
+			// Prefer explicitly printed output over actual result
+			final String outputBuffer = actionContext.getOutput();
+			if (outputBuffer != null && !outputBuffer.isEmpty()) {
+
+				return outputBuffer;
+			}
+
+			return result;
 		} catch (PolyglotException ex) {
 
 			throw new FrameworkException(422, ex.getMessage());

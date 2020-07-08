@@ -29,6 +29,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.polyglot.function.BatchFunction;
+import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
 import org.structr.core.script.polyglot.function.IncludeJSFunction;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -68,6 +69,8 @@ public class StructrBinding implements ProxyObject {
 				return new BatchFunction(actionContext);
 			case "includeJs":
 				return new IncludeJSFunction(actionContext);
+			case "doPrivileged":
+				return new DoPrivilegedFunction(actionContext);
 			default:
 				if (actionContext.getConstant(name) != null) {
 					return wrap(actionContext,actionContext.getConstant(name));
