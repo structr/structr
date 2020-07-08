@@ -2414,6 +2414,10 @@ var _Code = {
 				}
 			}
 
+			if (_Code.searchIsActive()) {
+				tree.element[0].scrollTo(0,0);
+			}
+
 		} else {
 
 			tree.open_node(searchId, function(n) {
@@ -2560,7 +2564,7 @@ var _Code = {
 		_Code.searchTextLength = text.length;
 	},
 	searchIsActive: function() {
-		var text = $('#tree-search-input').val();
+		let text = $('#tree-search-input').val();
 		return text && text.length >= _Code.searchThreshold;
 	},
 	cancelSearch: function() {
