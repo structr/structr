@@ -300,9 +300,9 @@ public class Scripting {
 					break;
 			}
 
-			final Object result = PolyglotWrapper.unwrap(actionContext, context.getBindings(engineName).getMember("main").execute());
-
 			context.eval(engineName, wrappedScript.toString());
+
+			final Object result = PolyglotWrapper.unwrap(actionContext, context.getBindings(engineName).getMember("main").execute());
 
 			// Prefer explicitly printed output over actual result
 			final String outputBuffer = actionContext.getOutput();

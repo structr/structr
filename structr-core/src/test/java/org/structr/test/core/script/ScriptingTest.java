@@ -34,6 +34,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -645,7 +648,7 @@ public class ScriptingTest extends StructrTest {
 
 			//assertEquals("Invalid python scripting evaluation result", "Hello World from Python!\n", Scripting.evaluate(ctx, null, "${python{print \"Hello World from Python!\"}}"));
 
-			System.out.println(Scripting.evaluate(ctx, null, "${python{print(Structr.get('me').id)}}", "test"));
+			System.out.println(Scripting.evaluate(ctx, null, "${python{Structr.print(Structr.get('me').id)}}", "test"));
 
 			tx.success();
 
