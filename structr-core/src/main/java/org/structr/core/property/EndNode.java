@@ -21,6 +21,7 @@ package org.structr.core.property;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -319,7 +320,7 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
 		return null;

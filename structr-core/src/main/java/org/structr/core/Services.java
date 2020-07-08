@@ -1306,9 +1306,7 @@ public class Services implements StructrServices {
 
 				http.disconnect();
 
-			} catch (Throwable ignore) {
-				ignore.printStackTrace();
-			}
+			} catch (Throwable ignore) {}
 		}
 	}
 }

@@ -61,7 +61,7 @@ import org.structr.web.entity.User;
 
 public class DeployDataCommand extends DeployCommand {
 
-	private static final Logger logger                     = LoggerFactory.getLogger(DeployDataCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DeployDataCommand.class);
 
 	private Map<String, List<Map<String, Object>>> relationshipMap;
 	private Set<String> alreadyExportedRelationships;
@@ -697,7 +697,6 @@ public class DeployDataCommand extends DeployCommand {
 		} catch (FrameworkException fex) {
 
 			logger.error("Unable to import relationships for type {}. Cause: {}", type.getSimpleName(), fex.getMessage());
-			fex.printStackTrace();
 		}
 	}
 
@@ -766,7 +765,6 @@ public class DeployDataCommand extends DeployCommand {
 			} catch (FrameworkException fex) {
 
 				logger.error("Unable to import nodes for type {}. Cause: {}", defaultType.getSimpleName(), fex.getMessage());
-				fex.printStackTrace();
 			}
 		}
 	}

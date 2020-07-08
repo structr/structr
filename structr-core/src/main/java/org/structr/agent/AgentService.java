@@ -29,6 +29,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.service.Command;
@@ -229,8 +230,7 @@ public class AgentService extends Thread implements RunnableService {
 			}
 
 		} catch (Throwable t) {
-
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
 		return (agent);

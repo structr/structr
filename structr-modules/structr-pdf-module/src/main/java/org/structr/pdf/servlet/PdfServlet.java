@@ -47,6 +47,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.structr.rest.common.StatsCallback;
 
 public class PdfServlet extends HtmlServlet {
@@ -133,8 +134,8 @@ public class PdfServlet extends HtmlServlet {
 
 				} catch (Throwable t) {
 
-					t.printStackTrace();
 					logger.warn("Error while rendering page {}: {}", rootNode.getName(), t.getMessage());
+					logger.warn(ExceptionUtils.getStackTrace(t));
 
 					try {
 

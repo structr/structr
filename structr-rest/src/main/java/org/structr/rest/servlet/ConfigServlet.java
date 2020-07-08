@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -84,7 +85,7 @@ public class ConfigServlet extends AbstractServletBase {
 				writer.flush();
 
 			} catch (IOException ioex) {
-				ioex.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(ioex));
 			}
 
 		} else {
@@ -213,7 +214,7 @@ public class ConfigServlet extends AbstractServletBase {
 					cmd.addConnection(connection, false);
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					logger.error(ExceptionUtils.getStackTrace(fex));
 				}
 
 				// finish wizard
@@ -268,7 +269,7 @@ public class ConfigServlet extends AbstractServletBase {
 					writer.flush();
 
 				} catch (IOException ioex) {
-					ioex.printStackTrace();
+					logger.error(ExceptionUtils.getStackTrace(ioex));
 				}
 			}
 		}

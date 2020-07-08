@@ -19,6 +19,7 @@
 package org.structr.geo;
 
 import com.vividsolutions.jts.io.WKTReader;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
@@ -60,8 +61,7 @@ public class WKTToGeometryFunction extends GeoFunction {
 						return reader.read(wkt);
 
 					} catch (Throwable t) {
-
-						t.printStackTrace();
+						logger.error(ExceptionUtils.getStackTrace(t));
 					}
 				}
 

@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -204,7 +205,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 				}
 
 			} catch (InterruptedException ex) {
-				ex.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(ex));
 			}
 
 			final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
@@ -226,8 +227,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 				tx.success();
 
 			} catch (Throwable t) {
-
-				t.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(t));
 			}
 
 		}
@@ -246,7 +246,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 			logger.info("Watch service successfully registered");
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(ioex));
 		}
 
 		final PropertyKey<String> mountTargetKey = StructrApp.key(Folder.class, "mountTarget");
@@ -353,7 +353,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(fex));
 		}
 
 		return result;
@@ -415,7 +415,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(fex));
 			}
 		}
 

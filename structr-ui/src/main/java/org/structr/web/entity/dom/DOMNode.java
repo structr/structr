@@ -737,8 +737,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			} catch (FrameworkException ex) {
 
-				ex.printStackTrace();
-
 				throw new DOMException(DOMException.INVALID_STATE_ERR, ex.toString());
 			}
 		}

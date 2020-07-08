@@ -36,6 +36,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -210,7 +211,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} catch (AssertException aex) {
 
 			logger.warn("Assertion error in DELETE", aex.getMessage());
-			aex.printStackTrace();
+			logger.warn(ExceptionUtils.getStackTrace(aex));
 
 			int code = aex.getStatusCode();
 
@@ -358,7 +359,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} catch (AssertException aex) {
 
 			logger.warn("Assertion error in OPTIONS", aex.getMessage());
-			aex.printStackTrace();
+			logger.warn(ExceptionUtils.getStackTrace(aex));
 
 			int code = aex.getStatusCode();
 
@@ -555,7 +556,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} catch (UnsupportedOperationException uoe) {
 
 			logger.warn("Unsupported operation in POST", uoe.getMessage());
-			uoe.printStackTrace();
+			logger.warn(ExceptionUtils.getStackTrace(uoe));
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -565,7 +566,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} catch (AssertException aex) {
 
 			logger.warn("Assertion error in POST", aex.getMessage());
-			aex.printStackTrace();
+			logger.warn(ExceptionUtils.getStackTrace(aex));
 
 			int code = aex.getStatusCode();
 
@@ -701,7 +702,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} catch (AssertException aex) {
 
 			logger.warn("Assertion error in PUT", aex.getMessage());
-			aex.printStackTrace();
+			logger.warn(ExceptionUtils.getStackTrace(aex));
 
 			int code = aex.getStatusCode();
 
@@ -884,7 +885,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} catch (UnsupportedOperationException uoe) {
 
 			logger.warn("Unsupported operation in PATCH", uoe.getMessage());
-			uoe.printStackTrace();
+			logger.warn(ExceptionUtils.getStackTrace(uoe));
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -894,7 +895,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} catch (AssertException aex) {
 
 			logger.warn("Assertion error in PATCH", aex.getMessage());
-			aex.printStackTrace();
+			logger.warn(ExceptionUtils.getStackTrace(aex));
 
 			int code = aex.getStatusCode();
 
@@ -1043,7 +1044,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} catch (AssertException aex) {
 
 			logger.warn("Assertion error in GET", aex.getMessage());
-			aex.printStackTrace();
+			logger.warn(ExceptionUtils.getStackTrace(aex));
 
 			int code = aex.getStatusCode();
 

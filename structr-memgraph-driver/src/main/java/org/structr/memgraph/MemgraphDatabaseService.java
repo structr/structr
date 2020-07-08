@@ -41,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Config;
 import org.neo4j.driver.v1.Driver;
@@ -481,7 +482,7 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 			}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
 		logger.debug("Found {} existing indexes", existingDbIndexes.size());
@@ -534,7 +535,7 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 							}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 						} catch (Throwable t) {
-							t.printStackTrace();
+							logger.error(ExceptionUtils.getStackTrace(t));
 						}
 					}
 				}
