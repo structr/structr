@@ -62,6 +62,8 @@ public class AdvancedMailContainer {
 	private Boolean smtpUseTLS     = null;
 	private Boolean smtpRequireTLS = null;
 
+	private String error           = null;
+
 	public String getFromName() {
 		return fromName;
 	}
@@ -258,20 +260,46 @@ public class AdvancedMailContainer {
 	public String getSmtpHost() {
 		return smtpHost;
 	}
+
 	public int getSmtpPort() {
 		return smtpPort;
 	}
+
 	public String getSmtpUser() {
 		return smtpUser;
 	}
+
 	public String getSmtpPassword() {
 		return smtpPassword;
 	}
+
 	public boolean getSmtpUseTLS() {
 		return smtpUseTLS;
 	}
+
 	public boolean getSmtpRequireTLS() {
 		return smtpRequireTLS;
+	}
+
+	public void setError(final Throwable ex) {
+
+		error = ex.getMessage();
+
+		if (ex.getCause() != null) {
+			error += "\n" + ex.getCause().getMessage();
+		}
+	}
+
+	public String getError() {
+		return error;
+	}
+
+	public boolean hasError() {
+		return (error != null);
+	}
+
+	public void clearError() {
+		error = null;
 	}
 
 	public void resetManualConfiguration() {
@@ -309,6 +337,8 @@ public class AdvancedMailContainer {
 		clearReplyTo();
 		clearAttachments();
 		clearCustomHeaders();
+
+		clearError();
 	}
 
 	public String send(final SecurityContext securityContext) throws EmailException, FrameworkException {

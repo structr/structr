@@ -42,6 +42,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.shredzone.acme4j.Account;
 import org.shredzone.acme4j.AccountBuilder;
 import org.shredzone.acme4j.Authorization;
@@ -459,7 +460,9 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 				});
 
 				workerThread.start();
-				try { workerThread.join(); } catch (Throwable t) { t.printStackTrace(); }
+				try { workerThread.join(); } catch (Throwable t) {
+					logger.error(ExceptionUtils.getStackTrace(t));
+				}
 			}
 		}
 	}
@@ -552,7 +555,9 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			});
 
 			workerThread.start();
-			try { workerThread.join(); } catch (Throwable t) { t.printStackTrace(); }
+			try { workerThread.join(); } catch (Throwable t) {
+				logger.error(ExceptionUtils.getStackTrace(t));
+			}
 
 			if (exceptionFromThread.get(null) != null) {
 				FrameworkException fex = exceptionFromThread.get(null);

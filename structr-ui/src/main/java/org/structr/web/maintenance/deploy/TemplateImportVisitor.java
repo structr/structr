@@ -50,7 +50,7 @@ import org.structr.websocket.command.CreateComponentCommand;
  */
 public class TemplateImportVisitor implements FileVisitor<Path> {
 
-	private static final Logger logger          = LoggerFactory.getLogger(TemplateImportVisitor.class.getName());
+	private static final Logger logger                             = LoggerFactory.getLogger(TemplateImportVisitor.class.getName());
 	private static final GenericProperty internalSharedTemplateKey = new GenericProperty("shared");
 
 	private Map<String, Object> configuration = null;
@@ -248,7 +248,6 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 		} catch (Throwable t) {
 
 			logger.error("Error trying to create template {}", fileName);
-			t.printStackTrace();
 		}
 	}
 }

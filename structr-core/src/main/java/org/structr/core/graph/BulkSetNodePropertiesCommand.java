@@ -21,6 +21,7 @@ package org.structr.core.graph;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -108,7 +109,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 										val = inputConverter.convert(entry.getValue());
 
 									} catch (FrameworkException ex) {
-										ex.printStackTrace();
+										logger.error(ExceptionUtils.getStackTrace(ex));
 									}
 
 								} else {

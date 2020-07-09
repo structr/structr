@@ -18,17 +18,6 @@
  */
 package org.structr.memgraph;
 
-import org.structr.memgraph.factory.GroupQueryFactory;
-import org.structr.memgraph.factory.NotEmptyQueryFactory;
-import org.structr.memgraph.factory.TypeQueryFactory;
-import org.structr.memgraph.factory.RangeQueryFactory;
-import org.structr.memgraph.factory.EmptyQueryFactory;
-import org.structr.memgraph.factory.ComparisonQueryFactory;
-import org.structr.memgraph.factory.RelationshipQueryFactory;
-import org.structr.memgraph.factory.SpatialQueryFactory;
-import org.structr.memgraph.factory.ArrayQueryFactory;
-import org.structr.memgraph.factory.KeywordQueryFactory;
-import org.structr.memgraph.factory.UuidQueryFactory;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -51,6 +40,17 @@ import org.structr.memgraph.converter.IntTypeConverter;
 import org.structr.memgraph.converter.LongTypeConverter;
 import org.structr.memgraph.converter.ShortTypeConverter;
 import org.structr.memgraph.converter.StringTypeConverter;
+import org.structr.memgraph.factory.ArrayQueryFactory;
+import org.structr.memgraph.factory.ComparisonQueryFactory;
+import org.structr.memgraph.factory.EmptyQueryFactory;
+import org.structr.memgraph.factory.GroupQueryFactory;
+import org.structr.memgraph.factory.KeywordQueryFactory;
+import org.structr.memgraph.factory.NotEmptyQueryFactory;
+import org.structr.memgraph.factory.RangeQueryFactory;
+import org.structr.memgraph.factory.RelationshipQueryFactory;
+import org.structr.memgraph.factory.SpatialQueryFactory;
+import org.structr.memgraph.factory.TypeQueryFactory;
+import org.structr.memgraph.factory.UuidQueryFactory;
 
 /**
  *
@@ -100,6 +100,10 @@ abstract class AbstractCypherIndex<T extends PropertyContainer> extends Abstract
 
 	public boolean supports(final Class type) {
 		return INDEXABLE.contains(type);
+	}
+
+	public String anyOrSingleFunction() {
+		return db.anyOrSingleFunction();
 	}
 
 	// ----- private methods -----

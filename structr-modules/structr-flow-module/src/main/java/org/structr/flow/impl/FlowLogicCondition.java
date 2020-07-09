@@ -61,7 +61,7 @@ public abstract class FlowLogicCondition extends FlowCondition implements Deploy
 
 		if (StreamSupport.stream(getProperty(dataSources).spliterator(), false).count() == 1) {
 
-			return getBoolean(context, getProperty(dataSources).iterator().next());
+			return combine(null, getBoolean(context, getProperty(dataSources).iterator().next()));
 		}
 
 		Boolean result = null;

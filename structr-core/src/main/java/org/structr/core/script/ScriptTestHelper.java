@@ -21,12 +21,17 @@ package org.structr.core.script;
 import java.io.IOException;
 import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
 /**
  */
 public class ScriptTestHelper {
+
+	private static final Logger logger = LoggerFactory.getLogger(ScriptTestHelper.class);
 
 	public static Object testExternalScript(final ActionContext actionContext, final InputStream stream) throws FrameworkException {
 
@@ -37,9 +42,9 @@ public class ScriptTestHelper {
 
 				return Scripting.evaluateJavascript(actionContext, null, new TestSnippet("test", script));
 			}
-			
+
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(ioex));
 		}
 
 		return null;

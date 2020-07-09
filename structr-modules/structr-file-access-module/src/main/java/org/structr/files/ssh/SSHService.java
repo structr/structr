@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.config.keys.KeyUtils;
@@ -124,9 +125,8 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 		} catch (IOException ex) {
 
-			ex.printStackTrace();
-
 			logger.warn("Initialization failed.");
+			logger.warn(ExceptionUtils.getStackTrace(ex));
 		}
 
 		return new ServiceResult(running);

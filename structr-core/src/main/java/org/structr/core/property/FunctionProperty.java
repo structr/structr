@@ -123,8 +123,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
-			logger.warn("Exception while evaluating read function in Function property \"{}\"", jsonName());
+			logger.warn("Exception while evaluating read function in Function property '" + jsonName() + "'", t);
 		}
 
 		return null;

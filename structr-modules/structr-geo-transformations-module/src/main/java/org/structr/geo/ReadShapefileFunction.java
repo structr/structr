@@ -28,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.geotools.data.PrjFileReader;
 import org.geotools.data.shapefile.dbf.DbaseFileHeader;
 import org.geotools.data.shapefile.dbf.DbaseFileReader;
@@ -148,7 +149,7 @@ public class ReadShapefileFunction extends GeoFunction {
 
 					} catch (Throwable t) {
 
-						t.printStackTrace();
+						logger.error(ExceptionUtils.getStackTrace(t));
 
 					} finally {
 
@@ -260,7 +261,7 @@ public class ReadShapefileFunction extends GeoFunction {
 			return data;
 
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(e));
 		}
 
 		return null;

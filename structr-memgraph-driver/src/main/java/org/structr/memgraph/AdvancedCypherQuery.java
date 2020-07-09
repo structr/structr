@@ -281,12 +281,14 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 	public void addListParameter(final String key, final String operator, final Object value) {
 
+		final String listFunction = index.anyOrSingleFunction();
+
 		if (value != null) {
 
 			final String paramKey = "param" + count++;
 
-			// TODO: should be ANY when memgraph supports it
-			buffer.append("SINGLE(x IN n.`");
+			buffer.append(listFunction);
+			buffer.append("(x IN n.`");
 			buffer.append(key);
 			buffer.append("` WHERE x ");
 			buffer.append(operator);
@@ -298,8 +300,8 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 		} else {
 
-			// TODO: should be ANY when memgraph supports it
-			buffer.append("SINGLE(x IN n.`");
+			buffer.append(listFunction);
+			buffer.append("(x IN n.`");
 			buffer.append(key);
 			buffer.append("` WHERE x ");
 			buffer.append(operator);

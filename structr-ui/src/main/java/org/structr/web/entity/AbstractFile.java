@@ -28,6 +28,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -39,9 +42,6 @@ import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.web.common.FileHelper;
 import org.structr.web.property.MethodProperty;
 import org.structr.web.property.PathProperty;
@@ -173,6 +173,32 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		return true;
 	}
 
+	static String getRenamedFilename(final String oldName) {
+
+		final String insertionPosition  = Settings.UniquePathsInsertionPosition.getValue();
+		final String timestamp          = FileHelper.getDateString();
+
+		switch (insertionPosition) {
+
+			case "beforeextension":
+				if (oldName.contains(".")) {
+					final int lastDot = oldName.lastIndexOf(".");
+					return oldName.substring(0, lastDot).concat("_").concat(timestamp).concat(oldName.substring(lastDot));
+
+				} else {
+					return oldName.concat("_").concat(timestamp);
+				}
+
+			case "start":
+				return timestamp.concat("_").concat(oldName);
+
+			case "end":
+			default:
+				return oldName.concat("_").concat(timestamp);
+		}
+
+	}
+
 	static boolean validateAndRenameFileOnce(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyKey<String> pathKey = StructrApp.key(AbstractFile.class, "path");
@@ -182,7 +208,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 			final Logger logger       = LoggerFactory.getLogger(AbstractFile.class);
 			final String originalPath = thisFile.getProperty(pathKey);
-			final String newName      = thisFile.getProperty(AbstractFile.name).concat("_").concat(FileHelper.getDateString());
+			final String newName      = getRenamedFilename(thisFile.getProperty(AbstractFile.name));
 
 			thisFile.setProperty(AbstractNode.name, newName);
 

@@ -23,6 +23,7 @@ import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 
@@ -66,7 +67,7 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 			return Base64.getEncoder().encodeToString(cipher.doFinal(clearText.getBytes(CHARSET)));
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
 		return null;
@@ -91,7 +92,7 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 			return Base64.getEncoder().encodeToString(cipher.doFinal(clearText.getBytes(CHARSET)));
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
 		return null;

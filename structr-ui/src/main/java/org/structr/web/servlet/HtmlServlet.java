@@ -51,6 +51,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.io.QuietException;
@@ -869,8 +870,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				} catch (Throwable t) {
 
-					t.printStackTrace();
 					logger.warn("Error while rendering page {}: {}", rootNode.getName(), t.getMessage());
+					logger.warn(ExceptionUtils.getStackTrace(t));
 
 					try {
 
@@ -878,7 +879,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						finished.set(true);
 
 					} catch (IOException ex) {
-						logger.warn("", ex);
+						logger.warn(ExceptionUtils.getStackTrace(ex));
 					}
 				}
 
@@ -1914,8 +1915,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				}
 
 			} catch (Throwable ex) {
-
-				ex.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(ex));
 			}
 		}
 

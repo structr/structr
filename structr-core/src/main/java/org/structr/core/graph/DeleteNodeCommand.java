@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -167,9 +168,8 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
-
 			logger.warn("Exception while deleting node {}: {}", node, t.getMessage());
+			logger.warn(ExceptionUtils.getStackTrace(t));
 		}
 
 		return;

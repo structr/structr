@@ -381,8 +381,6 @@ var StructrModel = {
 
 		if (obj) {
 
-			_DuplicateFinder.reactToUpdateNotification(obj);
-
 			var element = Structr.node(id);
 
 			if (graphBrowser) {
@@ -575,7 +573,6 @@ StructrFolder.prototype.setProperty = function(key, value, recursive, callback) 
 StructrFolder.prototype.remove = function() {
 	if (Structr.isModuleActive(_Files)) {
 		_Files.refreshTree();
-		_DuplicateFinder.reactToDeleteNotification(this.id);
 	}
 };
 
@@ -609,9 +606,6 @@ StructrFile.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrFile.prototype.remove = function() {
-	if (Structr.isModuleActive(_Files)) {
-		_DuplicateFinder.reactToDeleteNotification(this.id);
-	}
 };
 
 StructrFile.prototype.append = function() {
@@ -649,9 +643,6 @@ StructrImage.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrImage.prototype.remove = function() {
-	if (Structr.isModuleActive(_Files)) {
-		_DuplicateFinder.reactToDeleteNotification(this.id);
-	}
 };
 
 StructrImage.prototype.append = function() {
