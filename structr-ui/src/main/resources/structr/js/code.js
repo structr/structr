@@ -927,8 +927,6 @@ var _Code = {
 		_Code.resize();
 
 		editor.refresh();
-
-		_Code.displayDefaultMethodOptions(entity);
 	},
 	displayCreateButtons: function(showCreateMethodsButton, showCreateGlobalButton, showCreateTypeButton, schemaNodeId) {
 
@@ -1274,7 +1272,27 @@ var _Code = {
 							codeContents.append(html);
 
 							LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
-							_Code.editPropertyContent(result, 'source', codeContents);
+							_Code.editPropertyContent(result, 'source', $('#tabView-source', codeContents));
+							_Code.editPropertyContent(result, 'comment', $('#tabView-comment', codeContents));
+
+							_Code.displayDefaultMethodOptions(result);
+
+							let activateTab = function(tabName) {
+								$('.method-tab-content', codeContents).hide();
+								$('li', codeContents).removeClass('active');
+								$('#tabView-' + tabName, codeContents).show();
+								$('li[data-name="' + tabName + '"]', codeContents).addClass('active');
+
+//								if (_Schema.methods.cm && _Schema.methods.cm[tabName]) {
+//									_Schema.methods.cm[tabName].refresh();
+//								}
+							};
+
+							$('li', codeContents).off('click').on('click', function(e) {
+								e.stopPropagation();
+								activateTab($(this).data('name'));
+							});
+							activateTab('source');
 						});
 					});
 					break;
@@ -2414,6 +2432,10 @@ var _Code = {
 				}
 			}
 
+			if (_Code.searchIsActive()) {
+				tree.element[0].scrollTo(0,0);
+			}
+
 		} else {
 
 			tree.open_node(searchId, function(n) {
@@ -2560,7 +2582,7 @@ var _Code = {
 		_Code.searchTextLength = text.length;
 	},
 	searchIsActive: function() {
-		var text = $('#tree-search-input').val();
+		let text = $('#tree-search-input').val();
 		return text && text.length >= _Code.searchThreshold;
 	},
 	cancelSearch: function() {
