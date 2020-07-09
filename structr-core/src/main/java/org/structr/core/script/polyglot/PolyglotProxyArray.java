@@ -23,6 +23,7 @@ import org.graalvm.polyglot.proxy.ProxyArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ScriptingError;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
@@ -159,7 +160,7 @@ public class PolyglotProxyArray implements ProxyArray {
 				node.setProperty(propKey, propKey.inputConverter(actionContext.getSecurityContext()).convert(list));
 			} catch (FrameworkException ex) {
 
-				logger.error("Could not set relationship property on node.", ex);
+				actionContext.raiseError(422, new ScriptingError(ex));
 			}
 		}
 	}

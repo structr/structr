@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ScriptingError;
 import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
 import org.structr.core.script.Scripting;
@@ -41,11 +42,8 @@ import java.util.Set;
 import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
 
 public class StructrBinding implements ProxyObject {
-
-	private static final Logger logger           = LoggerFactory.getLogger(StructrBinding.class.getName());
-
-	private GraphObject entity                   = null;
-	private ActionContext actionContext          = null;
+	private final GraphObject entity;
+	private final ActionContext actionContext;
 
 	public StructrBinding(final ActionContext actionContext, final GraphObject entity) {
 
@@ -130,7 +128,7 @@ public class StructrBinding implements ProxyObject {
 
 			} catch (FrameworkException ex) {
 
-				logger.error("Exception while trying to call get on scripting object.", ex);
+				actionContext.raiseError(422, new ScriptingError(ex));
 			}
 
 			return null;
