@@ -28,10 +28,7 @@ import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
-import org.structr.core.property.ArrayProperty;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.RelationProperty;
+import org.structr.core.property.*;
 import org.structr.schema.action.ActionContext;
 
 import java.lang.reflect.InvocationTargetException;
@@ -91,10 +88,17 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 			}
 
 			PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
-			if (propKey instanceof RelationProperty || propKey instanceof ArrayProperty) {
-				// RelationshipProperty needs special binding
-				// ArrayProperty values need synchronized ProxyArrays as well
-				return new PolyglotProxyArray(actionContext, node, propKey);
+
+			if (propKey != null) {
+
+				if (propKey instanceof RelationProperty || propKey instanceof ArrayProperty) {
+					// RelationshipProperty needs special binding
+					// ArrayProperty values need synchronized ProxyArrays as well
+					return new PolyglotProxyArray(actionContext, node, propKey);
+				} else if (propKey instanceof EnumProperty) {
+
+					return node.getProperty(key).toString();
+				}
 			}
 
 			return PolyglotWrapper.wrap(actionContext, node.getProperty(key));
@@ -133,8 +137,12 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 			try {
 
 				final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
-				Object convertedValue = propKey.inputConverter(actionContext.getSecurityContext()).convert(unwrappedValue);
-				node.setProperty(propKey, convertedValue);
+
+				if (!propKey.valueType().isAssignableFrom(unwrappedValue.getClass())) {
+
+					unwrappedValue = propKey.inputConverter(actionContext.getSecurityContext()).convert(unwrappedValue);
+				}
+				node.setProperty(propKey, unwrappedValue);
 			} catch (FrameworkException ex) {
 				logger.error("Could not set property on graph object within scripting context.", ex);
 			}
