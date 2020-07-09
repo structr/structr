@@ -26,10 +26,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.tika.io.IOUtils;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
@@ -42,8 +43,6 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.export.StructrSchema;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
@@ -59,6 +58,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 
 public class UiTest extends StructrUiTest {
@@ -449,6 +449,86 @@ public class UiTest extends StructrUiTest {
 		}
 
 		assertNotEquals(rootFile1.getName(), rootFile2.getName());
+	}
+
+	@Test
+	public void testAutoRenameFileWithIdenticalPathInRootFolderWithDifferentInsertionPoints() {
+
+		Settings.UniquePaths.setValue(Boolean.TRUE);
+
+		final String fileName = "test.file.txt";
+
+		File rootFile1 = null;
+		File rootFile2 = null;
+		File rootFile3 = null;
+		File rootFile4 = null;
+
+		try (final Tx tx = app.tx()) {
+
+			rootFile1 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, fileName));
+			assertNotNull(rootFile1);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
+		final String file1Name = rootFile1.getName();
+
+		Settings.UniquePathsInsertionPosition.setValue("end");
+		try (final Tx tx = app.tx()) {
+
+			rootFile2 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, fileName));
+			assertNotNull(rootFile2);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
+		final String file2Name = rootFile2.getName();
+
+		assertNotEquals(file1Name, file2Name);
+		assertEquals("underscore+timestamp should be after filename for insertion position 'end'", file2Name.charAt(fileName.length()), '_');
+
+		Settings.UniquePathsInsertionPosition.setValue("start");
+		try (final Tx tx = app.tx()) {
+
+			rootFile3 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, fileName));
+			assertNotNull(rootFile3);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
+		final String file3Name = rootFile3.getName();
+
+		assertNotEquals(file1Name, file3Name);
+		assertNotEquals(file2Name, file3Name);
+		assertEquals("timestamp+underscore should be before filename for insertion position 'start'", file3Name.charAt(file3Name.length() - fileName.length() - 1), '_');
+
+		Settings.UniquePathsInsertionPosition.setValue("beforeextension");
+		try (final Tx tx = app.tx()) {
+
+			rootFile4 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, fileName));
+			assertNotNull(rootFile4);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
+		final String file4Name = rootFile4.getName();
+
+		assertNotEquals(file1Name, file4Name);
+		assertNotEquals(file2Name, file4Name);
+		assertNotEquals(file3Name, file4Name);
+		assertEquals("underscore+timestamp should be before extension for insertion position 'beforeextension'", file4Name.charAt(fileName.length() - 4), '_');
 	}
 
 	@Test
