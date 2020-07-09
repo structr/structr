@@ -92,7 +92,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 			if (propKey != null) {
 
-				if (propKey instanceof RelationProperty || propKey instanceof ArrayProperty) {
+				if (propKey instanceof RelationProperty || propKey instanceof ArrayProperty || (propKey instanceof AbstractPrimitiveProperty && propKey.valueType().isArray())) {
 					// RelationshipProperty needs special binding
 					// ArrayProperty values need synchronized ProxyArrays as well
 					return new PolyglotProxyArray(actionContext, node, propKey);
