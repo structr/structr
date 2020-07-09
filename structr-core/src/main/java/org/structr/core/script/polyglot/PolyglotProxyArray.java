@@ -129,24 +129,27 @@ public class PolyglotProxyArray implements ProxyArray {
 			list.clear();
 			Object value = node.getProperty(propKey);
 
-			if (value.getClass().isArray()) {
+			if (value != null) {
 
-				for (Object o : (Object[])value) {
+				if (value.getClass().isArray()) {
 
-					list.add(o);
-				}
-			} else if (value instanceof Iterable) {
+					for (Object o : (Object[]) value) {
 
-				Iterable it = (Iterable)value;
-				list = (List) StreamSupport.stream(it.spliterator(), false).collect(Collectors.toList());
-			} else if (value instanceof Collection) {
+						list.add(o);
+					}
+				} else if (value instanceof Iterable) {
 
-				if (!(value instanceof List)) {
+					Iterable it = (Iterable) value;
+					list = (List) StreamSupport.stream(it.spliterator(), false).collect(Collectors.toList());
+				} else if (value instanceof Collection) {
 
-					list = new ArrayList<>((Collection) value);
-				} else {
+					if (!(value instanceof List)) {
 
-					list = (List)value;
+						list = new ArrayList<>((Collection) value);
+					} else {
+
+						list = (List) value;
+					}
 				}
 			}
 		}
