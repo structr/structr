@@ -44,7 +44,7 @@ public class PolyglotProxyMap implements ProxyObject {
 
 	@Override
 	public Object getMemberKeys() {
-		return map.keySet();
+		return map.keySet().toArray();
 	}
 
 	@Override

@@ -23,22 +23,23 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ScriptingError;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
-import org.structr.core.property.ArrayProperty;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.RelationProperty;
+import org.structr.core.property.*;
 import org.structr.schema.action.ActionContext;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 
 public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
-	private static final Logger logger = LoggerFactory.getLogger(GraphObjectWrapper.class);
 	private final T node;
 	private ActionContext actionContext;
 
@@ -54,66 +55,99 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 	@Override
 	public Object getMember(String key) {
-		Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class);
-		if (methods.containsKey(key)) {
-			Method method = methods.get(key);
 
-			return (ProxyExecutable) arguments -> {
+		if (getOriginalObject() instanceof GraphObjectMap) {
 
-				Map<String, Object> params = null;
-				if (arguments.length >= 1) {
-					Object arg0 = PolyglotWrapper.unwrap(actionContext, arguments[0]);
-					if (arg0 instanceof Map) {
-						params = (Map<String, Object>) arg0;
+			return PolyglotWrapper.wrap(actionContext, ((GraphObjectMap) getOriginalObject()).get(new GenericProperty<>(key)));
+		} else {
+
+			Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class);
+			if (methods.containsKey(key)) {
+				Method method = methods.get(key);
+
+				return (ProxyExecutable) arguments -> {
+
+					Map<String, Object> params = null;
+					if (arguments.length >= 1) {
+						Object arg0 = PolyglotWrapper.unwrap(actionContext, arguments[0]);
+						if (arg0 instanceof Map) {
+							params = (Map<String, Object>) arg0;
+						}
+					} else {
+
+						params = new HashMap<>();
 					}
-				} else {
+					try {
 
-					params = new HashMap<>();
+						return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext(), params));
+					} catch (IllegalAccessException | InvocationTargetException ex) {
+
+						actionContext.raiseError(422, new ScriptingError(ex));
+					}
+					return null;
+				};
+			}
+
+			PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+
+			if (propKey != null) {
+
+				if (propKey instanceof RelationProperty || propKey instanceof ArrayProperty || (propKey instanceof AbstractPrimitiveProperty && propKey.valueType().isArray())) {
+					// RelationshipProperty needs special binding
+					// ArrayProperty values need synchronized ProxyArrays as well
+					return new PolyglotProxyArray(actionContext, node, propKey);
+				} else if (propKey instanceof EnumProperty) {
+
+					return node.getProperty(key).toString();
 				}
-				try {
+			}
 
-					return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext(), params));
-				} catch (IllegalAccessException | InvocationTargetException ex) {
-
-					logger.error("Could not invoke method on graph object.", ex);
-				}
-				return null;
-			};
+			return PolyglotWrapper.wrap(actionContext, node.getProperty(key));
 		}
-
-		PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
-		if (propKey instanceof RelationProperty || propKey instanceof ArrayProperty) {
-			// RelationshipProperty needs special binding
-			// ArrayProperty values need synchronized ProxyArrays as well
-			return new PolyglotProxyArray(actionContext, node, propKey);
-		}
-
-		return PolyglotWrapper.wrap(actionContext, node.getProperty(key));
 	}
 
 	@Override
 	public Object getMemberKeys() {
+		if (getOriginalObject() instanceof GraphObjectMap) {
+
+			return ((GraphObjectMap) getOriginalObject()).toMap().keySet().toArray();
+		}
 		return null;
 	}
 
 	@Override
 	public boolean hasMember(String key) {
-		return StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class).containsKey(key) ||
-				StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key) != null;
+		if (getOriginalObject() instanceof GraphObjectMap) {
+
+			return ((GraphObjectMap) getOriginalObject()).containsKey(new GenericProperty<>(key));
+		} else {
+
+			return StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class).containsKey(key) || StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key) != null;
+		}
 	}
 
 	@Override
 	public void putMember(String key, Value value) {
+		Object unwrappedValue = PolyglotWrapper.unwrap(actionContext, value);
 
-		try {
+		if (getOriginalObject() instanceof GraphObjectMap) {
 
-			final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
-			Object unwrappedValue = PolyglotWrapper.unwrap(actionContext, value);
-			Object convertedValue = propKey.inputConverter(actionContext.getSecurityContext()).convert(unwrappedValue);
-			node.setProperty(propKey, convertedValue);
-		} catch (FrameworkException ex) {
+			((GraphObjectMap) getOriginalObject()).put(new GenericProperty<>(key), unwrappedValue);
+		} else {
 
-			logger.error("Could not set property on graph object within scripting context.", ex);
+			try {
+
+				final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+
+				if (!propKey.valueType().isAssignableFrom(unwrappedValue.getClass())) {
+
+					unwrappedValue = propKey.inputConverter(actionContext.getSecurityContext()).convert(unwrappedValue);
+				}
+				node.setProperty(propKey, unwrappedValue);
+			} catch (FrameworkException ex) {
+
+				actionContext.raiseError(422, new ScriptingError(ex));
+			}
 		}
 	}
 }

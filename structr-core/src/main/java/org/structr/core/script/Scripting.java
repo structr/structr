@@ -27,7 +27,9 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ScriptingError;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -41,7 +43,9 @@ import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyParser;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -225,18 +229,47 @@ public class Scripting {
 		final String entityName        = entity != null ? entity.getProperty(AbstractNode.name) : null;
 		final String entityDescription = entity != null ? ( StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + entity.getUuid() : "anonymous";
 
+		// Clear output buffer
+		actionContext.clear();
+
+		if (actionContext.hasError()) {
+			// Reset error buffer
+			actionContext.getErrorBuffer().getErrorTokens().clear();
+			actionContext.getErrorBuffer().setStatus(0);
+		}
+
 		Context context = ContextFactory.getContext("js", actionContext, entity);
 
 		try {
 			Object result = PolyglotWrapper.unwrap(actionContext, context.eval("js", embedInFunction(snippet.getSource())));
 
+			if (actionContext.hasError()) {
+
+				for (ErrorToken errorToken : actionContext.getErrorBuffer().getErrorTokens()) {
+
+					if (errorToken instanceof ScriptingError) {
+
+						throw ((ScriptingError)errorToken).getRootCause();
+					}
+				}
+
+				throw new FrameworkException(422, "Server-side scripting error", actionContext.getErrorBuffer());
+			}
+
+			final String outputBuffer = actionContext.getOutput();
+			if (outputBuffer != null && !outputBuffer.isEmpty()) {
+
+				return outputBuffer;
+			}
+
 			return result;
-		} catch (Exception ex) {
+		} catch (Throwable ex) {
 
 			throw new FrameworkException(422, ex.getMessage());
 		}
 
 	}
+
 
 	private static String getExceptionMessage (final ActionContext actionContext) {
 
@@ -272,6 +305,15 @@ public class Scripting {
 
 			final StringBuilder wrappedScript = new StringBuilder();
 
+			// Clear output buffer
+			actionContext.clear();
+
+			if (actionContext.hasError()) {
+				// Reset error buffer
+				actionContext.getErrorBuffer().getErrorTokens().clear();
+				actionContext.getErrorBuffer().setStatus(0);
+			}
+
 			switch (engineName) {
 				case "R":
 					wrappedScript.append("main <- function() {");
@@ -289,7 +331,29 @@ public class Scripting {
 
 			context.eval(engineName, wrappedScript.toString());
 
-			return PolyglotWrapper.unwrap(actionContext, context.getBindings(engineName).getMember("main").execute());
+			final Object result = PolyglotWrapper.unwrap(actionContext, context.getBindings(engineName).getMember("main").execute());
+
+			if (actionContext.hasError()) {
+
+				for (ErrorToken errorToken : actionContext.getErrorBuffer().getErrorTokens()) {
+
+					if (errorToken instanceof ScriptingError) {
+
+						throw ((ScriptingError)errorToken).getRootCause();
+					}
+				}
+
+				throw new FrameworkException(422, "Server-side scripting error", actionContext.getErrorBuffer());
+			}
+
+			// Prefer explicitly printed output over actual result
+			final String outputBuffer = actionContext.getOutput();
+			if (outputBuffer != null && !outputBuffer.isEmpty()) {
+
+				return outputBuffer;
+			}
+
+			return result;
 		} catch (PolyglotException ex) {
 
 			throw new FrameworkException(422, ex.getMessage());

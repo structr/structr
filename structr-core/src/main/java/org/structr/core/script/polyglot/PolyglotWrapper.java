@@ -22,8 +22,10 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.schema.action.ActionContext;
 
+import java.time.ZoneId;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
@@ -65,6 +67,15 @@ public abstract class PolyglotWrapper {
 			} else if (value.isHostObject()) {
 
 				return unwrap(actionContext, value.asHostObject());
+			} else if (value.isDate()) {
+
+				if (value.isTime()) {
+
+					return Date.from(value.asDate().atTime(value.asTime()).atZone(ZoneId.systemDefault()).toInstant());
+				} else {
+
+					return Date.from(value.asDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+				}
 			} else if (value.isProxyObject() && value.hasMembers()) {
 				ProxyObject proxy = value.asProxyObject();
 

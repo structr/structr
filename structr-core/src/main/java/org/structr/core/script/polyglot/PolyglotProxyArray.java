@@ -23,6 +23,7 @@ import org.graalvm.polyglot.proxy.ProxyArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ScriptingError;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
@@ -128,24 +129,27 @@ public class PolyglotProxyArray implements ProxyArray {
 			list.clear();
 			Object value = node.getProperty(propKey);
 
-			if (value.getClass().isArray()) {
+			if (value != null) {
 
-				for (Object o : (Object[])value) {
+				if (value.getClass().isArray()) {
 
-					list.add(o);
-				}
-			} else if (value instanceof Iterable) {
+					for (Object o : (Object[]) value) {
 
-				Iterable it = (Iterable)value;
-				list = (List) StreamSupport.stream(it.spliterator(), false).collect(Collectors.toList());
-			} else if (value instanceof Collection) {
+						list.add(o);
+					}
+				} else if (value instanceof Iterable) {
 
-				if (!(value instanceof List)) {
+					Iterable it = (Iterable) value;
+					list = (List) StreamSupport.stream(it.spliterator(), false).collect(Collectors.toList());
+				} else if (value instanceof Collection) {
 
-					list = new ArrayList<>((Collection) value);
-				} else {
+					if (!(value instanceof List)) {
 
-					list = (List)value;
+						list = new ArrayList<>((Collection) value);
+					} else {
+
+						list = (List) value;
+					}
 				}
 			}
 		}
@@ -159,7 +163,7 @@ public class PolyglotProxyArray implements ProxyArray {
 				node.setProperty(propKey, propKey.inputConverter(actionContext.getSecurityContext()).convert(list));
 			} catch (FrameworkException ex) {
 
-				logger.error("Could not set relationship property on node.", ex);
+				actionContext.raiseError(422, new ScriptingError(ex));
 			}
 		}
 	}
