@@ -867,11 +867,12 @@ var _Code = {
 			return false;
 		});
 	},
-	editPropertyContent: function(entity, key, element) {
+	editPropertyContent: function(entity, key, element, behaviorOverride = {}) {
 
-		var text       = entity[key] || '';
-		var contentBox = $('.editor', element);
-		var editor     = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
+		let text       = entity[key] || '';
+		let contentBox = $('.editor', element);
+
+		let cmConfig = Structr.getCodeMirrorSettings({
 			value: text,
 			mode: _Code.getEditorModeForContent(text),
 			lineNumbers: true,
@@ -879,43 +880,62 @@ var _Code = {
 			indentUnit: 4,
 			tabSize: 4,
 			indentWithTabs: true,
-			lint: {
+			extraKeys: {}
+		});
+
+		if (behaviorOverride.lint !== false) {
+			cmConfig.gutters = ["CodeMirror-lint-markers"];
+			cmConfig.lint = {
 				getAnnotations: function(text, callback) {
 					_Code.showScriptErrors(entity, text, callback);
 				},
 				async: true
-			},
-			gutters: ["CodeMirror-lint-markers"],
-			extraKeys: {
-				"Ctrl-Space": "autocomplete"
-			}
-		}));
+			};
+		}
 
-		_Code.setupAutocompletion(editor, entity.id, true);
+		if (behaviorOverride.autoComplete !== false) {
+			cmConfig.extraKeys["Ctrl-Space"] = "autocomplete";
+		}
 
-		var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
+		let editor = CodeMirror(contentBox.get(0), cmConfig);
+
+		if (behaviorOverride.autoComplete !== false) {
+			_Code.setupAutocompletion(editor, entity.id, true);
+		}
+
+		let scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
 		if (scrollInfo) {
 			editor.scrollTo(scrollInfo.left, scrollInfo.top);
 		}
 
 		editor.on('scroll', function() {
-			var scrollInfo = editor.getScrollInfo();
+			let scrollInfo = editor.getScrollInfo();
 			LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
 		});
 
-		if (entity.codeType === 'java') {
+		if (behaviorOverride.setMode !== false) {
 
-			editor.setOption('mode', 'text/x-java');
+			if (entity.propertyType === 'Cypher') {
 
-		} else {
+				editor.setOption('mode', 'cypher');
 
-			editor.on('change', function() {
-				var type = _Code.getEditorModeForContent(editor.getValue());
-				var prev = editor.getOption('mode');
-				if (prev !== type) {
-					editor.setOption('mode', type);
+			} else {
+
+				if (entity.codeType === 'java') {
+
+					editor.setOption('mode', 'text/x-java');
+
+				} else {
+
+					editor.on('change', function() {
+						let type = _Code.getEditorModeForContent(editor.getValue());
+						let prev = editor.getOption('mode');
+						if (prev !== type) {
+							editor.setOption('mode', type);
+						}
+					});
 				}
-			});
+			}
 		}
 
 		editor.id = entity.id;
@@ -927,8 +947,6 @@ var _Code = {
 		_Code.resize();
 
 		editor.refresh();
-
-		_Code.displayDefaultMethodOptions(entity);
 	},
 	displayCreateButtons: function(showCreateMethodsButton, showCreateGlobalButton, showCreateTypeButton, schemaNodeId) {
 
@@ -1274,7 +1292,23 @@ var _Code = {
 							codeContents.append(html);
 
 							LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
-							_Code.editPropertyContent(result, 'source', codeContents);
+							_Code.editPropertyContent(result, 'source', $('#tabView-source', codeContents), {});
+							_Code.editPropertyContent(result, 'comment', $('#tabView-comment', codeContents), {autoComplete: false, setMode: false, lint: false});
+
+							_Code.displayDefaultMethodOptions(result);
+
+							let activateTab = function(tabName) {
+								$('.method-tab-content', codeContents).hide();
+								$('li', codeContents).removeClass('active');
+								$('#tabView-' + tabName, codeContents).show();
+								$('li[data-name="' + tabName + '"]', codeContents).addClass('active');
+							};
+
+							$('li', codeContents).off('click').on('click', function(e) {
+								e.stopPropagation();
+								activateTab($(this).data('name'));
+							});
+							activateTab('source');
 						});
 					});
 					break;
@@ -2000,7 +2034,7 @@ var _Code = {
 		Structr.fetchHtmlTemplate('code/cypher-property', { property: property }, function(html) {
 			codeContents.append(html);
 
-			_Code.editPropertyContent(property, 'format', $('#cypher-code-container'));
+			_Code.editPropertyContent(property, 'format', $('#cypher-code-container'), {lint: false, autoComplete: false});
 			_Code.displayDefaultPropertyOptions(property);
 		});
 	},
@@ -2414,6 +2448,10 @@ var _Code = {
 				}
 			}
 
+			if (_Code.searchIsActive()) {
+				tree.element[0].scrollTo(0,0);
+			}
+
 		} else {
 
 			tree.open_node(searchId, function(n) {
@@ -2560,7 +2598,7 @@ var _Code = {
 		_Code.searchTextLength = text.length;
 	},
 	searchIsActive: function() {
-		var text = $('#tree-search-input').val();
+		let text = $('#tree-search-input').val();
 		return text && text.length >= _Code.searchThreshold;
 	},
 	cancelSearch: function() {

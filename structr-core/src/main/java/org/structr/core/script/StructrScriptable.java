@@ -162,7 +162,9 @@ public class StructrScriptable extends ScriptableObject {
 
 						try {
 
-							final Function func = Functions.get(name);
+							final String fnName = ("includeChild".equals(name)) ? "include_child" : name;
+
+							final Function func = Functions.get(fnName);
 
 							if (func != null) {
 

@@ -45,6 +45,11 @@ public class MQTTClientConnection implements MqttCallback {
 		client.setCallback(this);
 		connOpts = new MqttConnectOptions();
 		connOpts.setCleanSession(true);
+
+		if (info.getUsername() != null && info.getPassword() != null) {
+			connOpts.setUserName(info.getUsername());
+			connOpts.setPassword(info.getPassword().toCharArray());
+		}
 	}
 
 	public void connect() throws FrameworkException {
