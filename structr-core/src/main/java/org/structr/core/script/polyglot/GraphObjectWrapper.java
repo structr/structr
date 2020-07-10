@@ -80,6 +80,9 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 						} else if (paramCount == 1) {
 
 							return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext()));
+						} else if (paramCount == 2 && arguments.length == 0) {
+
+							return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext(), new HashMap<String, Object>()));
 						} else if (arguments.length == 0) {
 
 							return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext()));
