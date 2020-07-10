@@ -5258,7 +5258,7 @@ public class ScriptingTest extends StructrTest {
 		buf.append(end);
 		buf.append("'); return $.find('Project', { ");
 		buf.append(fieldName);
-		buf.append(": $.range(startDate, endDate) }, $.sort('name')); }}");
+		buf.append(": $.predicate.range(startDate, endDate) }, $.predicate.sort('name')); }}");
 
 		return buf.toString();
 	}

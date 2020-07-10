@@ -265,7 +265,7 @@ public class Scripting {
 			return result != null ? result : "";
 		} catch (Throwable ex) {
 
-			throw new FrameworkException(422, ex.getMessage());
+			throw new FrameworkException(422, ex.getMessage(), new ScriptingError(ex));
 		}
 
 	}
@@ -356,10 +356,10 @@ public class Scripting {
 			return result != null ? result : "";
 		} catch (PolyglotException ex) {
 
-			throw new FrameworkException(422, ex.getMessage());
+			throw new FrameworkException(422, ex.getMessage(), new ScriptingError(ex));
 		} catch (Throwable ex) {
 
-			throw new FrameworkException(422, ex.getMessage());
+			throw new FrameworkException(422, ex.getMessage(), new ScriptingError(ex));
 		}
 
 	}
