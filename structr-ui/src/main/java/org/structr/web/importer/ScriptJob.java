@@ -21,8 +21,8 @@ package org.structr.web.importer;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.mozilla.javascript.Script;
+
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
@@ -36,6 +36,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.scheduler.ScheduledJob;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
+import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 
 /**
@@ -71,10 +72,10 @@ public class ScriptJob extends ScheduledJob {
 
 				reportBegin();
 
-				// called from JavaScript?
-				if (script instanceof Script) {
+				// If a polyglot function was supplied, execute it directly
+				if (script instanceof PolyglotWrapper.FunctionWrapper) {
 
-					Scripting.evaluateJavascript(actionContext, null, new Snippet((Script)script));
+					((PolyglotWrapper.FunctionWrapper)script).execute();
 
 				} else if (script instanceof String) {
 

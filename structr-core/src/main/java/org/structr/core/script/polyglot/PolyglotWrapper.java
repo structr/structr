@@ -176,7 +176,7 @@ public abstract class PolyglotWrapper {
 		return resultMap;
 	}
 
-	private static class FunctionWrapper implements ProxyExecutable {
+	public static class FunctionWrapper implements ProxyExecutable {
 		private Value func;
 		private ActionContext actionContext;
 
