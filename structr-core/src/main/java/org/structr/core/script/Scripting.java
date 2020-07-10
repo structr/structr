@@ -262,7 +262,7 @@ public class Scripting {
 				return outputBuffer;
 			}
 
-			return result;
+			return result != null ? result : "";
 		} catch (Throwable ex) {
 
 			throw new FrameworkException(422, ex.getMessage());
@@ -353,7 +353,7 @@ public class Scripting {
 				return outputBuffer;
 			}
 
-			return result;
+			return result != null ? result : "";
 		} catch (PolyglotException ex) {
 
 			throw new FrameworkException(422, ex.getMessage());

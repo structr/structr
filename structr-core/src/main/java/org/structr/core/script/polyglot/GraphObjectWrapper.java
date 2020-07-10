@@ -114,7 +114,10 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 					return new GraphObjectWrapper<>(actionContext, graphObject);
 				} else if (propKey instanceof EnumProperty) {
 
-					return node.getProperty(key).toString();
+					return node.getProperty(propKey).toString();
+				} else {
+
+					return PolyglotWrapper.wrap(actionContext, node.getProperty(propKey));
 				}
 			}
 
