@@ -33,6 +33,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.*;
+import org.structr.core.script.polyglot.function.GrantFunction;
 import org.structr.schema.action.ActionContext;
 
 import java.lang.reflect.InvocationTargetException;
@@ -98,6 +99,10 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 					return null;
 				};
+			} else if (key.equals("grant")) {
+
+				// grant() on GraphObject needs special handling
+				return new GrantFunction(actionContext, node);
 			}
 
 			PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
