@@ -18,16 +18,8 @@
  */
 package org.structr.console;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.ScriptableObject;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
@@ -36,22 +28,20 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.console.rest.RestCommand;
 import org.structr.console.shell.AdminConsoleCommand;
-import org.structr.console.tabcompletion.AdminTabCompletionProvider;
-import org.structr.console.tabcompletion.CypherTabCompletionProvider;
-import org.structr.console.tabcompletion.JavaScriptTabCompletionProvider;
-import org.structr.console.tabcompletion.RestTabCompletionProvider;
-import org.structr.console.tabcompletion.StructrScriptTabCompletionProvider;
-import org.structr.console.tabcompletion.TabCompletionProvider;
-import org.structr.console.tabcompletion.TabCompletionResult;
+import org.structr.console.tabcompletion.*;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.Tx;
-import org.structr.core.script.StructrScriptable;
+import org.structr.core.script.Scripting;
+import org.structr.core.script.Snippet;
 import org.structr.schema.action.ActionContext;
 import org.structr.util.Writable;
+
+import java.io.IOException;
+import java.util.*;
 
 
 public class Console {
@@ -62,9 +52,7 @@ public class Console {
 
 	private final Map<ConsoleMode, TabCompletionProvider> tabCompletionProviders = new HashMap<>();
 	private ConsoleMode mode                                                     = null;
-	private StructrScriptable scriptable                                         = null;
 	private ActionContext actionContext                                          = null;
-	private ScriptableObject scope                                               = null;
 	private String username                                                      = null;
 	private String password                                                      = null;
 
@@ -294,29 +282,14 @@ public class Console {
 
 	private void runJavascript(final String line, final Writable writable) throws FrameworkException {
 
-		final Context scriptingContext = Context.enter();
-
-		init(scriptingContext);
-
 		actionContext.setJavaScriptContext(true);
 
 		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-			Object extractedValue = scriptingContext.evaluateString(scope, line, "interactive script, line ", 1, null);
+			Object extractedValue = Scripting.evaluateJavascript(actionContext, null, new Snippet("interactive script, line ", "return " + line));
 
-			if (scriptable.hasException()) {
-				final FrameworkException ex = scriptable.getException();
-				scriptable.clearException();
-				throw ex;
-			}
-
-			// prioritize written output over result returned from method
-			final String output = actionContext.getOutput();
-			if (output != null && !output.isEmpty()) {
-				extractedValue = output;
-			}
-
-			if (extractedValue != null) {
+			if (!extractedValue.toString().isEmpty()) {
+				
 				writable.println(extractedValue.toString());
 			}
 
@@ -331,9 +304,6 @@ public class Console {
 
 			throw new FrameworkException(422, t.getMessage());
 
-		} finally {
-
-			Context.exit();
 		}
 	}
 
@@ -369,37 +339,6 @@ public class Console {
 
 			writable.println("Syntax error.");
 		}
-	}
-
-	private void init(final Context scriptingContext) {
-
-		scriptingContext.setLanguageVersion(Context.VERSION_ES6);
-		scriptingContext.setInstructionObserverThreshold(0);
-		scriptingContext.setGenerateObserverCount(false);
-		scriptingContext.setGeneratingDebug(true);
-
-		// Initialize the standard objects (Object, Function, etc.)
-		// This must be done before scripts can be executed.
-		if (this.scope == null) {
-			this.scope = scriptingContext.initStandardObjects();
-		}
-
-		// set optimization level to interpreter mode to avoid
-		// class loading / PermGen space bug in Rhino
-		//scriptingContext.setOptimizationLevel(-1);
-
-		if (this.scriptable == null) {
-
-			this.scriptable = new StructrScriptable(actionContext, null, scriptingContext);
-			this.scriptable.setParentScope(scope);
-
-			// register Structr scriptable
-			scope.put("Structr", scope, scriptable);
-			scope.put("$",       scope, scriptable);
-		}
-
-		// clear output buffer
-		actionContext.clear();
 	}
 
 	private List<String> splitAndClean(final String src) {

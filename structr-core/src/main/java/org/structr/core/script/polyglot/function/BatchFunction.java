@@ -79,7 +79,7 @@ public class BatchFunction implements ProxyExecutable {
 									// Execute error handler
 									try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-										result = PolyglotWrapper.unwrap(actionContext, ((PolyglotWrapper.FunctionWrapper)unwrappedArgs[1]));
+										result = PolyglotWrapper.unwrap(actionContext, ((PolyglotWrapper.FunctionWrapper)unwrappedArgs[1]).execute());
 										tx.success();
 									} catch (FrameworkException ex) {
 
@@ -88,7 +88,7 @@ public class BatchFunction implements ProxyExecutable {
 								}
 							}
 
-						} while (result.equals(true));
+						} while (result != null && result.equals(true));
 					}
 
 
