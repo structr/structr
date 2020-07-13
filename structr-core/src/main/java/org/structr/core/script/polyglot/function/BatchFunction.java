@@ -29,6 +29,8 @@ import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
+import java.util.Arrays;
+
 public class BatchFunction implements ProxyExecutable {
 	private static final Logger logger = LoggerFactory.getLogger(BatchFunction.class.getName());
 	private final ActionContext actionContext;
@@ -41,61 +43,64 @@ public class BatchFunction implements ProxyExecutable {
 	@Override
 	public Object execute(Value... arguments) {
 
-		boolean runInBackground = arguments != null && arguments.length >= 3 && arguments[2] != null && PolyglotWrapper.unwrap(actionContext, arguments[2]) instanceof Boolean ? (Boolean) PolyglotWrapper.unwrap(actionContext, arguments[2]) : false;
+		if (arguments != null && arguments.length > 0) {
+			Object[] unwrappedArgs = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
 
-		final Thread workerThread = new Thread(() -> {
+			boolean runInBackground = unwrappedArgs.length >= 3 ? (Boolean) unwrappedArgs[2] : false;
 
-			if (arguments != null) {
+			final Thread workerThread = new Thread(() -> {
 
-				// Execute main batch function
-				if (arguments[0].canExecute()) {
+						// Execute main batch function
+						Object result = null;
 
-					Object result = null;
+					if 	(unwrappedArgs[0] instanceof PolyglotWrapper.FunctionWrapper) {
+						// Execute batch function until it returns anything but true
+						do {
+							boolean hasError = false;
 
-					// Execute batch function until it returns anything but true
-					do {
-						boolean hasError = false;
+							try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-						try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
+								result = PolyglotWrapper.unwrap(actionContext, ((PolyglotWrapper.FunctionWrapper)unwrappedArgs[0]).execute());
+								tx.success();
+							} catch (FrameworkException ex) {
 
-							result = PolyglotWrapper.unwrap(actionContext, arguments[0].execute());
-							tx.success();
-						} catch (FrameworkException ex) {
+								hasError = true;
+								// Log if no error handler is given
+								if (unwrappedArgs.length < 2 || ! (unwrappedArgs[1] instanceof PolyglotWrapper.FunctionWrapper)) {
 
-							hasError = true;
-							// Log if no error handler is given
-							if (arguments.length < 2 || !arguments[1].canExecute()) {
-
-								Function.logException(logger, ex, "Error in batch function: {}", new Object[]{ex.getMessage()});
-							}
-						}
-
-						if (actionContext.hasError() || hasError) {
-
-							if (arguments.length >= 2 && arguments[1].canExecute()) {
-
-								// Execute error handler
-								try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
-
-									result = PolyglotWrapper.unwrap(actionContext, arguments[1].execute());
-									tx.success();
-								} catch (FrameworkException ex) {
-
-									Function.logException(logger, ex, "Error in batch error handler: {}", new Object[] { ex.getMessage() });
+									Function.logException(logger, ex, "Error in batch function: {}", new Object[]{ex.getMessage()});
 								}
 							}
-						}
 
-					} while (result.equals(true));
-				}
+							if (actionContext.hasError() || hasError) {
+
+								if (unwrappedArgs.length >= 2 && unwrappedArgs[1] instanceof PolyglotWrapper.FunctionWrapper) {
+
+									// Execute error handler
+									try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
+
+										result = PolyglotWrapper.unwrap(actionContext, ((PolyglotWrapper.FunctionWrapper)unwrappedArgs[1]));
+										tx.success();
+									} catch (FrameworkException ex) {
+
+										Function.logException(logger, ex, "Error in batch error handler: {}", new Object[]{ex.getMessage()});
+									}
+								}
+							}
+
+						} while (result.equals(true));
+					}
+
+
+
+			});
+
+			workerThread.start();
+
+			if (!runInBackground) {
+
+				try { workerThread.join(); } catch (Throwable t) { t.printStackTrace(); }
 			}
-		});
-
-		workerThread.start();
-
-		if (!runInBackground) {
-
-			try { workerThread.join(); } catch (Throwable t) { t.printStackTrace(); }
 		}
 
 		return null;

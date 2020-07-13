@@ -96,6 +96,7 @@ public class StructrBinding implements ProxyObject {
 		keys.add("predicate");
 		keys.add("batch");
 		keys.add("includeJs");
+		keys.add("doPrivileged");
 		return keys;
 	}
 
