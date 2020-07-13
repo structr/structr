@@ -27,7 +27,9 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.service.Service;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 
 public class MQTTClientConnection implements MqttCallback {
 	private MemoryPersistence persistence = new MemoryPersistence();
@@ -45,6 +47,11 @@ public class MQTTClientConnection implements MqttCallback {
 		client.setCallback(this);
 		connOpts = new MqttConnectOptions();
 		connOpts.setCleanSession(true);
+
+		if (info.getUsername() != null && info.getPassword() != null) {
+			connOpts.setUserName(info.getUsername());
+			connOpts.setPassword(info.getPassword().toCharArray());
+		}
 	}
 
 	public void connect() throws FrameworkException {
@@ -136,8 +143,10 @@ public class MQTTClientConnection implements MqttCallback {
 	@Override
 	public void messageArrived(String topic, MqttMessage msg) throws Exception {
 
-		Thread workerThread = new Thread(new CallbackWorker(info, topic, msg.toString()));
-		workerThread.start();
+		if (!Services.getInstance().isShuttingDown() && !Services.getInstance().isShutdownDone()) {
+			Thread workerThread = new Thread(new CallbackWorker(info, topic, msg.toString()));
+			workerThread.start();
+		}
 	}
 
 	@Override
@@ -180,6 +189,7 @@ public class MQTTClientConnection implements MqttCallback {
 		public void run() {
 
 			try {
+				if (!Services.getInstance().isShuttingDown() && !Services.getInstance().isShutdownDone())
 				info.messageCallback(topic, message);
 			} catch (FrameworkException e) {
 				logger.error("Error during MQTT message callback: " + e.getMessage());

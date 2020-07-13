@@ -128,7 +128,7 @@ public interface MessageSubscriber extends NodeInterface {
 			ActionContext ac = new ActionContext(securityContext, params);
 			ac.setConstant("topic", topic);
 			ac.setConstant("message", message);
-			Scripting.replaceVariables(ac, thisSubscriber, script);
+			Scripting.evaluate(ac, thisSubscriber, script, "onMessage_Callback");
 		}
 
 		return new RestMethodResult(200);

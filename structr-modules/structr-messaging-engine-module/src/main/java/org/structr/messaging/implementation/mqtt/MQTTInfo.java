@@ -27,6 +27,8 @@ public interface MQTTInfo {
 	public int getPort();
 	public int getQos();
 	public String getUuid();
+	public String getUsername();
+	public String getPassword();
 
 	public String[] getTopics();
 

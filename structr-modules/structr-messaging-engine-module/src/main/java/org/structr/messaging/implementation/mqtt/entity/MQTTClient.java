@@ -54,12 +54,14 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 
 			type.setExtends(URI.create("#/definitions/MessageClient"));
 
-			type.addStringProperty("protocol",     PropertyView.Public, PropertyView.Ui).setDefaultValue("tcp://");
-			type.addStringProperty("url",          PropertyView.Public, PropertyView.Ui);
-			type.addIntegerProperty("port",        PropertyView.Public, PropertyView.Ui);
+			type.addStringProperty("protocol",     PropertyView.Public, PropertyView.Ui).setDefaultValue("tcp://").setRequired(true);
+			type.addStringProperty("url",          PropertyView.Public, PropertyView.Ui).setRequired(true);
+			type.addIntegerProperty("port",        PropertyView.Public, PropertyView.Ui).setDefaultValue("1883").setRequired(true);
 			type.addIntegerProperty("qos",         PropertyView.Public, PropertyView.Ui).setDefaultValue("0");
 			type.addBooleanProperty("isEnabled",   PropertyView.Public, PropertyView.Ui);
 			type.addBooleanProperty("isConnected", PropertyView.Public, PropertyView.Ui);
+			type.addStringProperty("username",     PropertyView.Public, PropertyView.Ui);
+			type.addStringProperty("password",     PropertyView.Public, PropertyView.Ui);
 
 			type.addPropertyGetter("isConnected", Boolean.TYPE);
 			type.addPropertyGetter("isEnabled",   Boolean.TYPE);
@@ -68,6 +70,8 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 			type.addPropertyGetter("port",        Integer.TYPE);
 			type.addPropertyGetter("qos",         Integer.TYPE);
 			type.addPropertyGetter("subscribers", Iterable.class);
+			type.addPropertyGetter("username",    String.class);
+			type.addPropertyGetter("password",    String.class);
 
 			type.addPropertySetter("isConnected", Boolean.TYPE);
 
@@ -90,6 +94,8 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 	boolean getIsConnected();
 	boolean getIsEnabled();
 	int getQos();
+	String getUsername();
+	String getPassword();
 
 	void setIsConnected(boolean connected) throws FrameworkException;
 
