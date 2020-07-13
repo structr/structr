@@ -78,6 +78,8 @@ public abstract class ContextFactory {
 				// TODO: Add config switch to toggle Host Class Lookup
 				//.allowHostClassLookup(s -> true)
 				// TODO: Add configurable chrome debug
+				//.option("inspect", "4242")
+				//.option("inspect.Path", "/structr/scripting/remotedebugger/" + java.util.UUID.randomUUID().toString())
 				.allowExperimentalOptions(true)
 				.option("js.experimental-foreign-object-prototype", "true")
 				.option("js.nashorn-compat", "true")
