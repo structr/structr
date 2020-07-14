@@ -1005,6 +1005,16 @@ var _Elements = {
 			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), _Elements.isInheritVisibililtyFlagsChecked());
 		};
 
+		var handleInsertBeforeAction = function (itemText) {
+
+			Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'Before', _Elements.isInheritVisibililtyFlagsChecked());
+		};
+
+		var handleInsertAfterAction = function (itemText) {
+
+			Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'After', _Elements.isInheritVisibililtyFlagsChecked());
+		};
+
 		var handleWrapInHTMLAction = function (itemText) {
 
 			Command.wrapDOMNodeInNewDOMNode(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibililtyFlagsChecked());
@@ -1019,6 +1029,7 @@ var _Elements = {
 		};
 
 		if (!isContent) {
+
 			elements.push({
 				name: 'Insert HTML element',
 				elements: !isPage ? _Elements.sortedElementGroups : ['html'],
@@ -1052,6 +1063,50 @@ var _Elements = {
 		appendSeparator();
 
 		if (!isPage && entity.parent !== null && entity.parent.type !== 'Page') {
+
+			elements.push({
+				name: 'Insert before...',
+				elements: [
+					{
+						name: '... HTML element',
+						elements: _Elements.sortedElementGroups,
+						forcedClickHandler: handleInsertBeforeAction
+					},
+					{
+						name: '... Content element',
+						elements: ['content', 'template'],
+						forcedClickHandler: handleInsertBeforeAction
+					},
+					{
+						name: '... div element',
+						clickHandler: function () {
+							handleInsertBeforeAction('div');
+						}
+					}
+				]
+			});
+
+			elements.push({
+				name: 'Insert after...',
+				elements: [
+					{
+						name: '... HTML element',
+						elements: _Elements.sortedElementGroups,
+						forcedClickHandler: handleInsertAfterAction
+					},
+					{
+						name: '... Content element',
+						elements: ['content', 'template'],
+						forcedClickHandler: handleInsertAfterAction
+					},
+					{
+						name: '... div element',
+						clickHandler: function () {
+							handleInsertAfterAction('div');
+						}
+					}
+				]
+			});
 
 			elements.push({
 				name: 'Wrap element in...',
