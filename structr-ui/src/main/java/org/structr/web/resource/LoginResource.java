@@ -131,7 +131,8 @@ public class LoginResource extends FilterableResource {
 
 			} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
 
-				returnedMethodResult = new RestMethodResult(401);
+				logger.info("Unable to login {}: {}", emailOrUsername, ex.getMessage());
+				returnedMethodResult = new RestMethodResult(401, ex.getMessage());
 				returnedMethodResult.addHeader("reason", ex.getReason());
 
 			} catch (TwoFactorAuthenticationRequiredException ex) {
@@ -157,12 +158,10 @@ public class LoginResource extends FilterableResource {
 
 				securityContext.getAuthenticator().doLogout(securityContext.getRequest());
 
-
 			} catch (AuthenticationException ae) {
 
 				logger.info("Invalid credentials for {}", emailOrUsername);
 				returnedMethodResult = new RestMethodResult(401, ae.getMessage());
-
 			}
 
 			tx.success();
