@@ -164,7 +164,7 @@ public class FlowEngine {
 			}
 		} catch (NullPointerException ex) {
 
-			logger.warn("Exception while processing FlowException.", ex);
+			logger.error("Exception while processing FlowException.", ex);
 		}
 
 		// In case no handler is present at all, print the stack trace and return the intermediate result
