@@ -23,7 +23,6 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ScriptingError;
 import org.structr.core.GraphObject;
-import org.structr.core.script.StructrScriptable;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 

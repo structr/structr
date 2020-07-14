@@ -514,10 +514,6 @@ public class Scripting {
 
 			return Iterables.toList((Iterable)value).toString();
 
-		} else if (value instanceof NativeObject) {
-
-			return StructrScriptable.formatForLogging(value);
-
 		} else {
 
 			return value.toString();
@@ -574,10 +570,6 @@ public class Scripting {
 			buf.append(")");
 
 			return buf.toString();
-
-		} else if (value instanceof NativeObject) {
-
-			return StructrScriptable.formatForLogging(value);
 
 		} else {
 
