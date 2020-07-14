@@ -80,6 +80,7 @@ public class DeployDataCommand extends DeployCommand {
 	private final static String DEPLOYMENT_DATA_EXPORT_STATUS   = "DEPLOYMENT_DATA_EXPORT_STATUS";
 
 	private boolean doInnerCallbacks  = false;
+	private boolean doOuterCallbacks  = false;
 	private boolean doCascadingDelete = false;
 
 
@@ -249,6 +250,7 @@ public class DeployDataCommand extends DeployCommand {
 			}
 
 			doInnerCallbacks  = parameters.get("doInnerCallbacks") == null  ? false : "true".equals(parameters.get("doInnerCallbacks").toString());
+			doOuterCallbacks  = parameters.get("doOuterCallbacks") == null  ? false : "true".equals(parameters.get("doOuterCallbacks").toString());
 			doCascadingDelete = parameters.get("doCascadingDelete") == null ? false : "true".equals(parameters.get("doCascadingDelete").toString());
 
 			doImportFromDirectory(source);
@@ -285,6 +287,11 @@ public class DeployDataCommand extends DeployCommand {
 
 			logger.info("You provided the 'doInnerCallbacks' parameter - if you encounter problems caused by onCreate/onSave methods or function properties, you might want to disable this.");
 			context.enableInnerCallbacks();
+		}
+
+		if (Boolean.TRUE.equals(doOuterCallbacks)) {
+
+			logger.info("You provided the 'doOuterCallbacks' parameter - if you encounter problems caused by afterCreate method you might want to disable this.");
 		}
 
 		if (Boolean.TRUE.equals(doCascadingDelete)) {
@@ -406,7 +413,6 @@ public class DeployDataCommand extends DeployCommand {
 			publishWarningMessage(title, text);
 		}
 
-
 		final long endTime = System.currentTimeMillis();
 		final DecimalFormat decimalFormat  = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 		final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
@@ -419,7 +425,6 @@ public class DeployDataCommand extends DeployCommand {
 		broadcastData.put("end", endTime);
 		broadcastData.put("duration", duration);
 		publishEndMessage(DEPLOYMENT_DATA_IMPORT_STATUS, broadcastData);
-
 	}
 
 	protected SecurityContext getRecommendedSecurityContext () {
@@ -433,7 +438,6 @@ public class DeployDataCommand extends DeployCommand {
 		context.setDoCascadingDelete(false);
 
 		return context;
-
 	}
 
 	private void removeInheritingTypesFromSet(final HashSet<Class> types) {
@@ -651,7 +655,7 @@ public class DeployDataCommand extends DeployCommand {
 
 		final App app = StructrApp.getInstance(context);
 
-		try (final Tx tx = app.tx()) {
+		try (final Tx tx = app.tx(true, doOuterCallbacks)) {
 
 			tx.disableChangelog();
 
@@ -714,7 +718,7 @@ public class DeployDataCommand extends DeployCommand {
 
 			final App app = StructrApp.getInstance(context);
 
-			try (final Tx tx = app.tx()) {
+			try (final Tx tx = app.tx(true, doOuterCallbacks)) {
 
 				tx.disableChangelog();
 

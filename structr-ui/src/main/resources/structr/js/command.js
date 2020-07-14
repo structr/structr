@@ -690,6 +690,27 @@ var Command = {
 		return sendObj(obj);
 	},
 	/**
+	 * Send a CREATE_AND_INSERT_RELATIVE_TO_DOM_NODE command to the server.
+	 *
+	 * The server will create a new DOM node with the given tag name and
+	 * insert it relative to the node with the given id.
+	 *
+	 */
+	createAndInsertRelativeToDOMNode: function(pageId, nodeId, tagName, relativePosition, inheritVisibilityFlags) {
+		var obj = {
+			command: 'CREATE_AND_INSERT_RELATIVE_TO_DOM_NODE',
+			pageId: pageId,
+			data: {
+				nodeId: nodeId,
+				tagName: tagName,
+				inheritVisibilityFlags: (inheritVisibilityFlags || false),
+				relativePosition: relativePosition
+			}
+		};
+
+		return sendObj(obj);
+	},
+	/**
 	 * Send a WRAP_DOM_NODE command to the server.
 	 *
 	 * The server will create a new DOM node with the given tag name and

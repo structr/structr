@@ -447,7 +447,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public void afterCreation(SecurityContext securityContext) {
+	public void afterCreation(SecurityContext securityContext) throws FrameworkException {
 	}
 
 	@Override

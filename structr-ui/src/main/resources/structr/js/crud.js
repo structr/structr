@@ -145,7 +145,7 @@ var _Crud = {
 						}
 
 					} else {
-						Structr.error('Error: No type information found for type: ' + type, true);
+						new MessageBuilder().error('Error: No type information found for type: ' + type).delayDuration(5000).fadeDuration(1000).show();
 					}
 				},
 				400: errorFn,

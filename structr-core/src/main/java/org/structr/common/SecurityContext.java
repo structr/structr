@@ -73,7 +73,7 @@ public class SecurityContext {
 	private boolean modifyAccessTime                      = true;
 	private boolean disableSoftLimit                      = false;
 	private boolean forceResultCount                      = false;
-	private boolean preventDuplicateRelationships                     = true;
+	private boolean preventDuplicateRelationships         = true;
 	private boolean doInnerCallbacks                      = true;
 	private boolean isReadOnlyTransaction                 = false;
 	private boolean doMultiThreadedJsonOutput             = false;
