@@ -158,7 +158,7 @@ public class LoginCommand extends AbstractCommand {
 
 			} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
 
-				logger.info(ex.getMessage());
+				logger.info("Unable to login {}: {}", username, ex.getMessage());
 				getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).data("reason", ex.getReason()).build(), true);
 
 			} catch (TwoFactorAuthenticationRequiredException ex) {
