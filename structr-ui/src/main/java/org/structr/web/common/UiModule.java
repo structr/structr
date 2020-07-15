@@ -91,6 +91,7 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new HttpDeleteFunction());
 		Functions.put(licenseManager, new AddHeaderFunction());
 		Functions.put(licenseManager, new SetResponseHeaderFunction());
+		Functions.put(licenseManager, new RemoveResponseHeaderFunction());
 		Functions.put(licenseManager, new SetResponseCodeFunction());
 		Functions.put(licenseManager, new GetRequestHeaderFunction());
 		Functions.put(licenseManager, new GetCookieFunction());
