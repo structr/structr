@@ -18,21 +18,31 @@
  */
 package org.structr.web.function;
 
+import javax.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
-import javax.servlet.http.HttpServletResponse;
-
 public class RemoveResponseHeaderFunction extends UiAdvancedFunction {
 
-    public static final String ERROR_MESSAGE_REMOVE_RESPONSE_HEADER    = "Usage: ${remove_response_header(field)}. Example: ${set_response_header('X-Frame-Options'}";
-    public static final String ERROR_MESSAGE_REMOVE_RESPONSE_HEADER_JS = "Usage: ${{Structr.removeResponseHeader(field)}}. Example: ${{Structr.setResponseHeader('X-Frame-Options')}}";
+    public static final String ERROR_MESSAGE_REMOVE_RESPONSE_HEADER    = "Usage: ${remove_response_header(field)}. Example: ${remove_response_header('X-Frame-Options'}";
+    public static final String ERROR_MESSAGE_REMOVE_RESPONSE_HEADER_JS = "Usage: ${{Structr.removeResponseHeader(field)}}. Example: ${{Structr.removeResponseHeader('X-Frame-Options')}}";
+
+    @Override
+    public String getName() {
+        return "remove_response_header";
+    }
+
+    @Override
+    public String getSignature() {
+        return "field";
+    }
 
     @Override
     public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+
         try {
+
             assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
             final String name = sources[0].toString();
@@ -47,8 +57,9 @@ public class RemoveResponseHeaderFunction extends UiAdvancedFunction {
                 }
             }
 
-        } catch (ArgumentCountException pe) {
-            logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+        } catch (IllegalArgumentException e) {
+
+            logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
             return usage(ctx.isJavaScriptContext());
         }
 
@@ -63,15 +74,5 @@ public class RemoveResponseHeaderFunction extends UiAdvancedFunction {
     @Override
     public String shortDescription() {
         return "Removes the given header field from the server response";
-    }
-
-    @Override
-    public String getSignature() {
-        return "field";
-    }
-
-    @Override
-    public String getName() {
-        return "remove_response_header";
     }
 }

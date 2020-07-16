@@ -19,16 +19,13 @@
 package org.structr.web.function;
 
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ArgumentCountException;
 import org.structr.schema.action.ActionContext;
 
 public class SetResponseHeaderFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER    = "Usage: ${set_response_header(field, value [, override])}. Example: ${set_response_header('X-User', 'johndoe', true)}";
-	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER_JS = "Usage: ${{Structr.setResponseHeader(field, value [, override])}}. Example: ${{Structr.setResponseHeader('X-User', 'johndoe', true)}}";
+	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER    = "Usage: ${set_response_header(field, value [, override = false ])}. Example: ${set_response_header('X-User', 'johndoe', true)}";
+	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER_JS = "Usage: ${{Structr.setResponseHeader(field, value [, override = false ])}}. Example: ${{Structr.setResponseHeader('X-User', 'johndoe', true)}}";
 
 	@Override
 	public String getName() {
@@ -37,17 +34,18 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getSignature() {
-		return "name, value";
+		return "name, value [, override = false ]";
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {
+
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-			final String name = sources[0].toString();
-			final String value = sources[1].toString();
+			final String name      = sources[0].toString();
+			final String value     = sources[1].toString();
 			final Boolean override = sources.length > 2 ? (Boolean) sources[2] : false;
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
@@ -57,7 +55,6 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 				if (response != null) {
 
 					if (override) {
-
 						response.setHeader(name, value);
 					} else {
 						response.addHeader(name, value);
@@ -65,8 +62,9 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 				}
 			}
 
-		} catch (ArgumentCountException pe) {
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+		} catch (IllegalArgumentException e) {
+
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
 
