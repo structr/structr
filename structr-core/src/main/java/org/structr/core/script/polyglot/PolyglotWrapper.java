@@ -61,6 +61,31 @@ public abstract class PolyglotWrapper {
 		if (obj instanceof Value) {
 			Value value = (Value) obj;
 
+			// Deal with wrapped primitives
+			if (value.isString()) {
+
+				return value.asString();
+			} else if (value.isBoolean()) {
+
+				return value.asBoolean();
+			} else if (value.isNumber()) {
+
+				if (value.fitsInInt()) {
+
+					return value.asInt();
+				} else if (value.fitsInLong()) {
+
+					return value.asLong();
+				} else if (value.fitsInFloat()) {
+
+					return value.asFloat();
+				} else if (value.fitsInDouble()) {
+
+					return value.asDouble();
+				}
+			}
+
+			// Deal with more complex values
 			if (value.canExecute()) {
 
 				return new FunctionWrapper(actionContext, value);
