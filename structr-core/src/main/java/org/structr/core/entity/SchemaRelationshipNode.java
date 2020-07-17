@@ -412,7 +412,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 				if (!newStatementOnly) {
 
-					line.append("\tpublic static final Property<java.lang.Iterable<");
+					line.append("public static final Property<java.lang.Iterable<");
 					line.append("org.structr.dynamic.".concat(_sourceType));
 					line.append(">> ");
 					line.append(SchemaHelper.cleanPropertyName(propertyName));
