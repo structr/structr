@@ -2057,23 +2057,23 @@ var Structr = {
 	},
 	getDocumentationURLForTopic: function (topic) {
 		switch (topic) {
-			case 'virtual-types':  return 'https://support.structr.com/article/233';
-			case 'security':       return 'https://support.structr.com/article/207';
-			case 'schema-enum':    return 'https://support.structr.com/article/329';
-			case 'schema':         return 'https://support.structr.com/article/193';
-			case 'pages':          return 'https://support.structr.com/article/204';
-			case 'mail-templates': return 'https://support.structr.com/article/343';
-			case 'localization':   return 'https://support.structr.com/article/135';
-			case 'graph':          return 'https://support.structr.com/article/203';
-			case 'flows':          return 'https://support.structr.com/article/527';
-			case 'files':          return 'https://support.structr.com/article/49';
-			case 'dashboard':      return 'https://support.structr.com/article/202';
-			case 'crud':           return 'https://support.structr.com/article/210';
+			case 'security':       return 'https://docs.structr.com/docs/security';
+			case 'schema-enum':    return 'https://docs.structr.com/docs/troubleshooting-guide#enum-property';
+			case 'schema':         return 'https://docs.structr.com/docs/schema';
+			case 'pages':          return 'https://docs.structr.com/docs/pages';
+			case 'flows':          return 'https://docs.structr.com/docs/flow-engine---editor';
+			case 'files':          return 'https://docs.structr.com/docs/files';
+			case 'dashboard':      return 'https://docs.structr.com/docs/the-dashboard';
+			case 'crud':           return 'https://docs.structr.com/docs/data';
 
 			case 'contents':
 			case 'crawler':
+			case 'mail-templates':
+			case 'virtual-types':
+			case 'localization':
+			case 'graph':
 			default:
-				return 'https://support.structr.com/knowledge-graph';
+				return 'https://docs.structr.com/';
 		}
 	}
 };
