@@ -1464,7 +1464,7 @@ public class SystemTest extends StructrTest {
 		// test - delete groups => should work and remove schema grant as well
 		try (final Tx tx = app.tx()) {
 
-			app.delete(Group.class);
+			app.deleteAllNodesOfType(Group.class);
 
 			tx.success();
 

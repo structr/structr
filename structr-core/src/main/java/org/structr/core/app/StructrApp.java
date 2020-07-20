@@ -39,7 +39,6 @@ import org.structr.api.graph.PropertyContainer;
 import org.structr.api.service.Command;
 import org.structr.api.service.Service;
 import org.structr.api.util.FixedSizeCache;
-import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.ContentAnalyzer;
@@ -153,14 +152,37 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public <T extends NodeInterface> void delete(final Class<T> type) throws FrameworkException {
+	public <T extends NodeInterface> void deleteAllNodesOfType(final Class<T> type) throws FrameworkException {
 
-		try (final ResultStream<T> result = nodeQuery(type).getResultStream()) {
+		final DeleteNodeCommand cmd = command(DeleteNodeCommand.class);
+		boolean hasMore             = true;
+
+		while (hasMore) {
+
+			// will be set to true below if at least one result was processed
+			hasMore = false;
+
+			for (final T t : this.nodeQuery(type).pageSize(1000).page(1).getAsList()) {
+
+				cmd.execute(t);
+				hasMore = true;
+			}
+		}
+
+		/*
+
+		final Query<T> query = nodeQuery(type);
+
+		// set large fetch size to avoid problems when deleting large numbers of nodes
+		query.overrideFetchSize(100_000);
+
+		try (final ResultStream<T> result = query.getResultStream()) {
 
 			for (final T node : result) {
 				delete(node);
 			}
 		}
+		*/
 	}
 
 	@Override

@@ -157,13 +157,13 @@ public class StructrSchema {
 
 		try (final Tx tx = app.tx()) {
 
-			app.delete(SchemaRelationshipNode.class);
-			app.delete(SchemaNode.class);
-			app.delete(SchemaMethod.class);
-			app.delete(SchemaMethodParameter.class);
-			app.delete(SchemaProperty.class);
-			app.delete(SchemaView.class);
-			app.delete(SchemaGrant.class);
+			app.deleteAllNodesOfType(SchemaRelationshipNode.class);
+			app.deleteAllNodesOfType(SchemaNode.class);
+			app.deleteAllNodesOfType(SchemaMethod.class);
+			app.deleteAllNodesOfType(SchemaMethodParameter.class);
+			app.deleteAllNodesOfType(SchemaProperty.class);
+			app.deleteAllNodesOfType(SchemaView.class);
+			app.deleteAllNodesOfType(SchemaGrant.class);
 
 			newSchema.createDatabaseSchema(JsonSchema.ImportMode.replace);
 

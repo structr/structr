@@ -38,7 +38,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 	private final Set<String> indexLabels           = new LinkedHashSet<>();
 	private final Set<String> typeLabels            = new LinkedHashSet<>();
 	private final StringBuilder buffer              = new StringBuilder();
-	private final int fetchSize                     = Settings.FetchSize.getValue();
+	private int fetchSize                           = Settings.FetchSize.getValue();
 	private String sourceTypeLabel                  = null;
 	private String targetTypeLabel                  = null;
 	private AbstractCypherIndex<?> index            = null;
@@ -51,6 +51,15 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 		this.queryContext      = queryContext;
 		this.index             = index;
+
+		if (queryContext.overridesFetchSize()) {
+
+			final int overriddenFetchSize = queryContext.getOverriddenFetchSize();
+			if (overriddenFetchSize > 0) {
+
+				this.fetchSize = overriddenFetchSize;
+			}
+		}
 
 		if (queryContext.isSuperuser() && requestedPageSize < Integer.MAX_VALUE) {
 

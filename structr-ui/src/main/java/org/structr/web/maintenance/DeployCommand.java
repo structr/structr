@@ -554,14 +554,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Removing pages, templates and components");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing pages, templates and components");
 
-					app.delete(DOMNode.class);
+					app.deleteAllNodesOfType(DOMNode.class);
 
 					if (Files.exists(sitesConfFile)) {
 
 						logger.info("Removing sites");
 						publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing sites");
 
-						app.delete(Site.class);
+						app.deleteAllNodesOfType(Site.class);
 					}
 
 					FlushCachesCommand.flushAll();
