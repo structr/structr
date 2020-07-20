@@ -51,17 +51,7 @@ public interface App extends Closeable {
 	<T extends NodeInterface> T create(final Class<T> type, final PropertyMap properties) throws FrameworkException;
 	<T extends NodeInterface> T create(final Class<T> type, final NodeAttribute<?>... attributes) throws FrameworkException;
 
-	/**
-	 * Deletes all nodes of the given type, regardless of ownership
-	 * and permissions! Caution, this method should only be used in
-	 * superuser contexts.
-	 *
-	 * @param <T>
-	 * @param type
-	 * @throws FrameworkException
-	 */
 	<T extends NodeInterface> void deleteAllNodesOfType(final Class<T> type) throws FrameworkException;
-
 	void delete(final NodeInterface node) throws FrameworkException;
 
 	<A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException;

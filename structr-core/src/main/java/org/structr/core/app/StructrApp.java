@@ -168,21 +168,6 @@ public class StructrApp implements App {
 				hasMore = true;
 			}
 		}
-
-		/*
-
-		final Query<T> query = nodeQuery(type);
-
-		// set large fetch size to avoid problems when deleting large numbers of nodes
-		query.overrideFetchSize(100_000);
-
-		try (final ResultStream<T> result = query.getResultStream()) {
-
-			for (final T node : result) {
-				delete(node);
-			}
-		}
-		*/
 	}
 
 	@Override
