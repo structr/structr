@@ -50,6 +50,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
@@ -83,6 +84,9 @@ public class DeployDataCommand extends DeployCommand {
 	private boolean doOuterCallbacks  = false;
 	private boolean doCascadingDelete = false;
 
+	private boolean relationshipToFileTypeExists = false;
+
+	private final static Set<String> blacklistedRelationshipTypes = Set.of("PrincipalOwnsNode", "Security");
 
 	static {
 
@@ -124,6 +128,7 @@ public class DeployDataCommand extends DeployCommand {
 			missingTypesForExport        = new HashSet();
 			relationshipMap              = new TreeMap();
 			alreadyExportedRelationships = new HashSet();
+			relationshipToFileTypeExists = false;
 
 			Files.createDirectories(target);
 
@@ -197,6 +202,24 @@ public class DeployDataCommand extends DeployCommand {
 				);
 
 				publishWarningMessage(title, text);
+
+				if (relationshipToFileTypeExists) {
+
+					final String ftitle = "Relationship(s) to/from file types exported";
+					final String ftext = "Relationships to/from file types are present in the exported data set.<br>"
+							+ "If the files are present in the application deployment export package this should work fine.<br><br>"
+							+ "Otherwise the import of these relationships might fail.";
+
+					logger.info("\n###############################################################################\n"
+							+ "\tWarning: " + ftitle + "!\n"
+							+ "\tRelationships to/from file types are present in the exported data set.\n"
+							+ "\tIf the files are present in the application deployment export package this should work fine.\n\n"
+							+ "\tOtherwise the import of these relationships might fail.\n"
+							+ "###############################################################################"
+					);
+
+					publishWarningMessage(ftitle, ftext);
+				}
 			}
 
 			final long endTime = System.currentTimeMillis();
@@ -546,41 +569,10 @@ public class DeployDataCommand extends DeployCommand {
 
 	private void exportRelationshipsForNode(final SecurityContext context, final AbstractNode node) throws FrameworkException {
 
-		final List<GraphObjectMap> customProperties = SchemaHelper.getSchemaTypeInfo(context, node.getType(), node.getClass(), "custom");
+		final Iterator<AbstractRelationship> it = node.getRelationships().iterator();
 
-		for (final GraphObjectMap propertyInfo : customProperties) {
-
-			final Map propInfo        = propertyInfo.toMap();
-			final String propertyName = (String) propInfo.get("jsonName");
-
-			if (propInfo.get("relatedType") != null && !propInfo.get("className").equals("org.structr.core.property.EntityNotionProperty") && !propInfo.get("className").equals("org.structr.core.property.CollectionNotionProperty")) {
-
-				if (Boolean.TRUE.equals(propInfo.get("isCollection"))) {
-
-					final Iterable res = node.getProperty(StructrApp.key(node.getClass(), propertyName));
-					if (res != null) {
-						final Iterator<AbstractNode> it = res.iterator();
-
-						while (it.hasNext()) {
-							final AbstractNode relatedNode = it.next();
-							final RelationshipInterface r = (RelationshipInterface) relatedNode.getPath(context);
-							if (r != null) {
-								exportRelationship(context, r);
-							}
-						}
-					}
-
-				} else {
-
-					final AbstractNode relatedNode = node.getProperty(StructrApp.key(node.getClass(), propertyName));
-					if (relatedNode != null) {
-						final RelationshipInterface r = (RelationshipInterface) relatedNode.getPath(context);
-						if (r != null) {
-							exportRelationship(context, r);
-						}
-					}
-				}
-			}
+		while (it.hasNext()) {
+			exportRelationship(context, it.next());
 		}
 	}
 
@@ -599,43 +591,56 @@ public class DeployDataCommand extends DeployCommand {
 
 	private void exportRelationship(final SecurityContext context, final RelationshipInterface rel) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(context);
+		final String relTypeName = rel.getClass().getSimpleName();
 
-		try (final Tx tx = app.tx()) {
+		if (!blacklistedRelationshipTypes.contains(relTypeName)) {
 
-			final String relUuid = rel.getUuid();
-			if (!alreadyExportedRelationships.contains(relUuid)) {
+			final App app = StructrApp.getInstance(context);
 
-				final Map<String, Object> entry = new TreeMap<>();
+			try (final Tx tx = app.tx()) {
 
-				final Class sourceNodeClass = rel.getSourceNode().getClass();
-				final Class targetNodeClass = rel.getTargetNode().getClass();
+				final String relUuid = rel.getUuid();
+				if (!alreadyExportedRelationships.contains(relUuid)) {
 
-				if (!missingTypesForExport.contains(sourceNodeClass) && !isTypeInExportedTypes(sourceNodeClass)) {
+					final Map<String, Object> entry = new TreeMap<>();
 
-					missingTypeNamesForExport.add(sourceNodeClass.getSimpleName());
+					final Class sourceNodeClass = rel.getSourceNode().getClass();
+					final Class targetNodeClass = rel.getTargetNode().getClass();
+
+					if (!missingTypesForExport.contains(sourceNodeClass) && !isTypeInExportedTypes(sourceNodeClass)) {
+
+						missingTypeNamesForExport.add(sourceNodeClass.getSimpleName());
+
+						if (AbstractFile.class.isAssignableFrom(sourceNodeClass)) {
+							relationshipToFileTypeExists = true;
+						}
+					}
+
+					if (!missingTypesForExport.contains(targetNodeClass) && !isTypeInExportedTypes(targetNodeClass)) {
+
+						missingTypeNamesForExport.add(targetNodeClass.getSimpleName());
+
+						if (AbstractFile.class.isAssignableFrom(targetNodeClass)) {
+							relationshipToFileTypeExists = true;
+						}
+					}
+
+					entry.put("sourceId", rel.getSourceNodeId());
+					entry.put("targetId", rel.getTargetNodeId());
+
+					final PropertyContainer pc = rel.getPropertyContainer();
+
+					for (final String key : pc.getPropertyKeys()) {
+						putData(entry, key, pc.getProperty(key));
+					}
+
+					addRelationshipToMap(rel.getClass().getSimpleName(), entry);
+
+					alreadyExportedRelationships.add(relUuid);
 				}
 
-				if (!missingTypesForExport.contains(targetNodeClass) && !isTypeInExportedTypes(targetNodeClass)) {
-
-					missingTypeNamesForExport.add(targetNodeClass.getSimpleName());
-				}
-
-				entry.put("sourceId", rel.getSourceNodeId());
-				entry.put("targetId", rel.getTargetNodeId());
-
-				final PropertyContainer pc = rel.getPropertyContainer();
-
-				for (final String key : pc.getPropertyKeys()) {
-					putData(entry, key, pc.getProperty(key));
-				}
-
-				addRelationshipToMap(rel.getClass().getSimpleName(), entry);
-
-				alreadyExportedRelationships.add(relUuid);
+				tx.success();
 			}
-
-			tx.success();
 		}
 	}
 

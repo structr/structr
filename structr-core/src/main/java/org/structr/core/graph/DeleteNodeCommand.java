@@ -33,7 +33,9 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 
 /**
- * Deletes a node.
+ * Deletes a node. Caution, this command cannot be used multiple times, please instantiate
+ * a new command for every delete action.
+ *
  */
 public class DeleteNodeCommand extends NodeServiceCommand {
 
@@ -41,7 +43,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 	private final Set<NodeInterface> deletedNodes = new HashSet<>();
 
-	public void execute(NodeInterface node) {
+	public void execute(final NodeInterface node) {
 
 		if (securityContext.doCascadingDelete()) {
 
@@ -61,6 +63,9 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			node.onNodeDeletion();
 			node.getNode().delete(true);
 		}
+
+		// allow re-used of this command
+		deletedNodes.clear();
 	}
 
 	private void doDeleteNode(final NodeInterface node) {

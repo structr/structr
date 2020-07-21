@@ -34,7 +34,7 @@ public class RuntimeEventLog {
 	private static final BlockingDeque<RuntimeEvent> events = new LinkedBlockingDeque<>(101_000);
 
 	private enum EventType {
-		Transaction, Maintenance, Cron, ResourceAccess, Authentication, Rest, Http, Csv, Javascript
+		Transaction, Maintenance, Cron, ResourceAccess, Authentication, Rest, Http, Csv, Javascript, SystemInfo
 	}
 
 	public static void resourceAccess(final String description, final Object... data) {
@@ -119,6 +119,10 @@ public class RuntimeEventLog {
 
 	public static void javascript(final String errorName, final Object... data) {
 		add(EventType.Javascript, errorName, data);
+	}
+
+	public static void systemInfo(final String info, final Object... data) {
+		add(EventType.SystemInfo, info, data);
 	}
 
 	public static List<RuntimeEvent> getEvents() {

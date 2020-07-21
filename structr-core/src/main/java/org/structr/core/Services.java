@@ -69,6 +69,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.VersionHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.ManageDatabasesCommand;
@@ -290,12 +291,14 @@ public class Services implements StructrServices {
 			logger.warn("Please configure AT LEAST 8 GBs of heap memory using -Xmx8g.");
 
 			// reduce fetch size
-			Settings.FetchSize.setValue(10_000);
+			final int maxFetchSize = (max < 1) ? 1_000 : 10_000;
 
-			if (max < 1) {
+			if (Settings.FetchSize.getValue() > maxFetchSize) {
 
-				// reduce fetch size even more for < 1 GB heap
-				Settings.FetchSize.setValue(1_000);
+				logger.info("Reducing fetch size setting '{}' to {} to reduce low-memory performance problems", Settings.FetchSize.getKey(), maxFetchSize);
+				Settings.FetchSize.setValue(maxFetchSize);
+
+				RuntimeEventLog.systemInfo("Reducing fetch size setting to reduce low-memory performance problems", Settings.FetchSize.getKey(), maxFetchSize);
 			}
 		}
 

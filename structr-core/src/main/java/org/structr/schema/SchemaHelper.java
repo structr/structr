@@ -26,6 +26,7 @@ import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import static graphql.schema.GraphQLTypeReference.typeRef;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -282,7 +283,6 @@ public class SchemaHelper {
 
 	private static String stem(final String term) {
 
-
 		String lastWord;
 		String begin = "";
 
@@ -369,52 +369,92 @@ public class SchemaHelper {
 
 	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId) {
 
-		try {
+		final ServiceResult res = SchemaService.reloadSchema(errorBuffer, initiatedBySessionId);
 
-			final App app = StructrApp.getInstance();
+		if (!errorBuffer.hasError()) {
 
-			final List<SchemaNode> existingSchemaNodes = app.nodeQuery(SchemaNode.class).getAsList();
+			try {
 
-			// initialize cache
-			app.nodeQuery(ResourceAccess.class).getAsList();
+				final App app = StructrApp.getInstance();
 
-			cleanUnusedDynamicGrants(existingSchemaNodes);
+				final List<SchemaNode> existingSchemaNodes = app.nodeQuery(SchemaNode.class).getAsList();
 
-			for (final SchemaNode schemaNode : existingSchemaNodes) {
+				// initialize cache
+				app.nodeQuery(ResourceAccess.class).getAsList();
 
-				createDynamicGrants(schemaNode.getResourceSignature());
+				cleanUnusedDynamicGrants(existingSchemaNodes);
 
+				for (final SchemaNode schemaNode : existingSchemaNodes) {
+
+					createDynamicGrants(schemaNode.getResourceSignature());
+				}
+
+				for (final SchemaRelationshipNode schemaRelationship : StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class).getAsList()) {
+
+					createDynamicGrants(schemaRelationship.getResourceSignature());
+					createDynamicGrants(schemaRelationship.getInverseResourceSignature());
+				}
+
+			} catch (Throwable t) {
+
+				logger.warn("", t);
 			}
-
-			for (final SchemaRelationshipNode schemaRelationship : StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class).getAsList()) {
-
-				createDynamicGrants(schemaRelationship.getResourceSignature());
-				createDynamicGrants(schemaRelationship.getInverseResourceSignature());
-
-			}
-
-		} catch (Throwable t) {
-
-			logger.warn("", t);
 		}
 
-		return SchemaService.reloadSchema(errorBuffer, initiatedBySessionId);
-
+		return res;
 	}
 
 	public static void cleanUnusedDynamicGrants(final List<SchemaNode> existingSchemaNodes) {
 
 		try {
 
-			final List<DynamicResourceAccess> existingDynamicGrants = StructrApp.getInstance().nodeQuery(DynamicResourceAccess.class).getAsList();
-			final Set<String> existingSchemaNodeNames               = new HashSet<>();
+			final Set<String> existingSchemaNodeNames                    = new HashSet<>();
+			final Set<String> existingSchemaRelationshipNodeNames        = new HashSet<>();
+			final Set<String> existingGlobalSchemaMethodNames            = new HashSet<>();
+			final Map<String, Set<String>> existingTypeSchemaMethodNames = new HashMap<>();
+
+			final ConfigurationProvider config = StructrApp.getConfiguration();
+			existingSchemaNodeNames.addAll(config.getNodeEntities().keySet());
+			existingSchemaRelationshipNodeNames.addAll(config.getRelationshipEntities().keySet());
 
 			for (final SchemaNode schemaNode : existingSchemaNodes) {
 
 				existingSchemaNodeNames.add(schemaNode.getResourceSignature());
 			}
 
-			for (final DynamicResourceAccess grant : existingDynamicGrants) {
+			final List<SchemaRelationshipNode> existingRelationshipTypes = StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class).getAsList();
+			for (final SchemaRelationshipNode relType : existingRelationshipTypes) {
+
+				existingSchemaRelationshipNodeNames.add(relType.getName());
+			}
+
+			final List<SchemaMethod> existingSchemaMethods = StructrApp.getInstance().nodeQuery(SchemaMethod.class).getAsList();
+
+			for (final SchemaMethod schemaMethod : existingSchemaMethods) {
+
+				final String capitalizedSchemaMethodName = PlingStemmer.stem(StringUtils.capitalize(schemaMethod.getName()));
+
+				final AbstractSchemaNode schemaNode = schemaMethod.getProperty(SchemaMethod.schemaNode);
+
+				if (schemaNode == null) {
+
+					existingGlobalSchemaMethodNames.add(capitalizedSchemaMethodName);
+
+				} else {
+
+					final String schemaNodeName = schemaNode.getName();
+
+					if (!existingTypeSchemaMethodNames.containsKey(schemaNodeName)) {
+						existingTypeSchemaMethodNames.put(schemaNodeName, new HashSet());
+					}
+
+					existingTypeSchemaMethodNames.get(schemaNodeName).add(capitalizedSchemaMethodName);
+				}
+			}
+
+			final List<ResourceAccess> existingGrants = StructrApp.getInstance().nodeQuery(ResourceAccess.class).sort(ResourceAccess.signature).getAsList();
+
+			for (final ResourceAccess grant : existingGrants) {
 
 				boolean foundAllParts = true;
 
@@ -422,26 +462,73 @@ public class SchemaHelper {
 
 					final String sig = grant.getResourceSignature();
 
-					// Try to find schema nodes for all parts of the grant signature
-					final String[] parts = StringUtils.split(sig, "/");
+					if (sig != null) {
 
-					if (parts != null) {
+						// Try to find schema nodes for all parts of the grant signature
+						final List<String> parts = new LinkedList(List.of(StringUtils.split(sig, "/")));
+
+						if (parts.size() == 1) {
+
+							// only one part. can be view, node type, relationship type or global schema method
+
+							final String onlyPart = parts.get(0);
+
+							foundAllParts = onlyPart.startsWith("_") || existingSchemaNodeNames.contains(onlyPart) || existingSchemaRelationshipNodeNames.contains(onlyPart) || existingGlobalSchemaMethodNames.contains(onlyPart);
 
 
-						for (final String sigPart : parts) {
+						} else if (parts.size() > 1) {
 
-							if ("/".equals(sigPart) || sigPart.startsWith("_")) {
-								continue;
+							final String lastPart = parts.remove(parts.size() - 1);
+
+							// the first (n - 1) must be underscore-prefixed or types
+							for (final String sigPart : parts) {
+
+								if (sigPart.startsWith("_") || existingSchemaNodeNames.contains(sigPart)) {
+									continue;
+								}
+
+								foundAllParts = false;
 							}
 
-							// If one of the signature parts doesn't have an equivalent existing schema node, remove it
-							foundAllParts &= existingSchemaNodeNames.contains(sigPart);
+							// only the last part can be a view or a type or a schema method (also check methods on all superclasses)
+							if (foundAllParts && !lastPart.startsWith("_") && !existingSchemaNodeNames.contains(lastPart)) {
+
+								final String previousPart = parts.get(parts.size() - 1);
+
+								Class type = SchemaHelper.getEntityClassForRawType(previousPart);
+
+								boolean methodFound = false;
+
+								while (type != null && !type.equals(Object.class) && !methodFound) {
+
+									final String simpleTypeName = type.getSimpleName();
+
+									if (existingTypeSchemaMethodNames.containsKey(simpleTypeName) && existingTypeSchemaMethodNames.get(simpleTypeName).contains(lastPart)) {
+
+										methodFound = true;
+
+									} else {
+
+										// try reflection
+										for (final Method m : type.getMethods()) {
+											final String stemmedName = PlingStemmer.stem(StringUtils.capitalize(m.getName()));
+											if (lastPart.equals(stemmedName)) {
+												methodFound = true;
+											}
+										}
+									}
+
+									type = type.getSuperclass();
+								}
+
+								if (!methodFound) {
+									foundAllParts = false;
+								}
+							}
 						}
 					}
 
 					if (!foundAllParts) {
-
-						logger.info("Did not find all parts of signature, will be removed: {} ", sig);
 
 						removeDynamicGrants(sig);
 					}
@@ -462,7 +549,7 @@ public class SchemaHelper {
 		final App app = StructrApp.getInstance();
 		try {
 
-			ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
+			final ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
 
 			if (grant == null) {
 
@@ -475,9 +562,9 @@ public class SchemaHelper {
 				logger.debug("New signature created: {}", new Object[]{ (signature) });
 			}
 
-			final String schemaSig = schemaResourceSignature(signature);
+			final String schemaSig           = schemaResourceSignature(signature);
+			final ResourceAccess schemaGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, schemaSig).getFirst();
 
-			ResourceAccess schemaGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, schemaSig).getFirst();
 			if (schemaGrant == null) {
 				// create additional grant for the _schema resource
 				grants.add(app.create(DynamicResourceAccess.class,
@@ -488,9 +575,9 @@ public class SchemaHelper {
 				logger.debug("New signature created: {}", new Object[]{ schemaSig });
 			}
 
-			final String uiSig = uiViewResourceSignature(signature);
+			final String uiSig               = uiViewResourceSignature(signature);
+			final ResourceAccess uiViewGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, uiSig).getFirst();
 
-			ResourceAccess uiViewGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, uiSig).getFirst();
 			if (uiViewGrant == null) {
 
 				// create additional grant for the Ui view
@@ -508,23 +595,6 @@ public class SchemaHelper {
 		}
 
 		return grants;
-
-	}
-
-	public static void removeAllDynamicGrants() {
-
-		final App app = StructrApp.getInstance();
-		try {
-
-			// delete grants
-			for (DynamicResourceAccess grant : app.nodeQuery(DynamicResourceAccess.class).getAsList()) {
-				app.delete(grant);
-			}
-
-		} catch (Throwable t) {
-
-			logger.warn("", t);
-		}
 	}
 
 	public static void removeDynamicGrants(final String signature) {
@@ -533,22 +603,31 @@ public class SchemaHelper {
 		try {
 
 			// delete grant
-			DynamicResourceAccess grant = app.nodeQuery(DynamicResourceAccess.class).and(DynamicResourceAccess.signature, signature).getFirst();
+			final ResourceAccess grant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
+
 			if (grant != null) {
 
+				logger.info("Did not find all parts of signature, will be removed: {} (Flags: {}) ", signature, grant.getFlags());
 				app.delete(grant);
 			}
 
-			// delete grant
-			DynamicResourceAccess schemaGrant = app.nodeQuery(DynamicResourceAccess.class).and(DynamicResourceAccess.signature, "_schema/" + signature).getFirst();
+			// delete _schema grant
+			final String schemaSignature = "_schema/" + signature;
+			final ResourceAccess schemaGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, schemaSignature).getFirst();
+
 			if (schemaGrant != null) {
 
+				logger.info("Did not find all parts of signature, will be removed: {} (Flags: {}) ", schemaSignature, schemaGrant.getFlags());
 				app.delete(schemaGrant);
 			}
-			// delete grant
-			DynamicResourceAccess viewGrant = app.nodeQuery(DynamicResourceAccess.class).and(DynamicResourceAccess.signature, signature + "/_Ui").getFirst();
+
+			// delete ui view grant
+			final String viewSignature = signature + "/_Ui";
+			final ResourceAccess viewGrant = app.nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, viewSignature).getFirst();
+
 			if (viewGrant != null) {
 
+				logger.info("Did not find all parts of signature, will be removed: {} (Flags: {}) ", viewSignature, viewGrant.getFlags());
 				app.delete(viewGrant);
 			}
 
@@ -556,7 +635,6 @@ public class SchemaHelper {
 
 			logger.warn("", t);
 		}
-
 	}
 
 	public static void getSource(final SourceFile sourceFile, final AbstractSchemaNode schemaNode, final Map<String, SchemaNode> schemaNodes, final Set<String> blacklist, final ErrorBuffer errorBuffer) throws FrameworkException, UnlicensedTypeException {

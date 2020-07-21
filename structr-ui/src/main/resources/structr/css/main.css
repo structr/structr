@@ -2871,6 +2871,10 @@ table.push {
 	max-height: 120px ! important;
 }
 
+#dashboard-deployment .chosen-container .chosen-results {
+	max-height: 240px ! important;
+}
+
 .loader-icon {
 	width: 24px;
 	height: 24px;

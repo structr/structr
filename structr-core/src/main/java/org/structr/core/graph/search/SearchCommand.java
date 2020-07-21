@@ -868,6 +868,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return this;
 	}
 
+	@Override
+	public void overrideFetchSize(final int fetchSizeForThisRequest) {
+		queryContext.overrideFetchSize(fetchSizeForThisRequest);
+	}
+
 	// ----- private methods ----
 	private void assertPropertyIsIndexed(final PropertyKey key) {
 

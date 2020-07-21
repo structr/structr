@@ -554,14 +554,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Removing pages, templates and components");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing pages, templates and components");
 
-					app.delete(DOMNode.class);
+					app.deleteAllNodesOfType(DOMNode.class);
 
 					if (Files.exists(sitesConfFile)) {
 
 						logger.info("Removing sites");
 						publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing sites");
 
-						app.delete(Site.class);
+						app.deleteAllNodesOfType(Site.class);
 					}
 
 					FlushCachesCommand.flushAll();
@@ -1186,29 +1186,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			tx.success();
 		}
 
-		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
-
-			final Gson gson                = new GsonBuilder().serializeNulls().create();
-			final StringBuilder sb         = new StringBuilder("[");
-			final List<String> jsonStrings = new LinkedList();
-
-			for (final Map<String, Object> grant : grants) {
-
-				jsonStrings.add("\t" + gson.toJson(grant));
-			}
-
-			if (!jsonStrings.isEmpty()) {
-
-				sb.append("\n").append(String.join(",\n", jsonStrings)).append("\n");
-			}
-
-			sb.append("]");
-
-			fos.write(sb.toString());
-
-		} catch (IOException ioex) {
-			logger.warn("", ioex);
-		}
+		writeSortedCompactJsonToFile(target, grants, null);
 	}
 
 	private void exportSchema(final Path targetFolder) throws FrameworkException {

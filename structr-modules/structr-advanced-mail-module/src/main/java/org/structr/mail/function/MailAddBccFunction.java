@@ -55,7 +55,7 @@ public class MailAddBccFunction extends AdvancedMailModuleFunction {
 
 		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
 
