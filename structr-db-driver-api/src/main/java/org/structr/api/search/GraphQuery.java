@@ -16,41 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.function.search;
+package org.structr.api.search;
 
-/**
- */
-public class SearchParameter {
+import java.util.Set;
+import org.structr.api.graph.Direction;
 
-	protected boolean exact = true;
-	protected String key    = null;
-	protected Object value  = null;
 
-	public SearchParameter(final String key, final Object value, final boolean exact) {
+public interface GraphQuery extends QueryPredicate {
 
-		this.exact = exact;
-		this.key   = key;
-		this.value = value;
-	}
-
-	@Override
-	public String toString() {
-		return "Exact(" + key + ", " + value + ")";
-	}
-
-	public boolean isExact() {
-		return exact;
-	}
-
-	public String getKey() {
-		return key;
-	}
-
-	public Object getValue() {
-		return value;
-	}
-
-	public boolean isEmptyPredicate() {
-		return false;
-	}
+	Set<Object> getValues();
+	String getRelationship();
+	String getOtherLabel();
+	Direction getDirection();
+	String getNotionPropertyName();
 }

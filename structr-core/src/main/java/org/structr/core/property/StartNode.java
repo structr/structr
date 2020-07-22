@@ -18,9 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -36,9 +33,8 @@ import org.structr.core.entity.OneStartpoint;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Target;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.EmptySearchAttribute;
+import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 
@@ -211,61 +207,7 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 
 	@Override
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, S searchValue, boolean exactMatch, final Query query) {
-
-		final Predicate<GraphObject> predicate    = query != null ? query.toPredicate() : null;
-		final SourceSearchAttribute attr          = new SourceSearchAttribute(occur);
-
-		if (searchValue != null && !StringUtils.isBlank(searchValue.toString())) {
-
-			if (!Occurrence.FORBIDDEN.equals(occur)) {
-
-				final Set<GraphObject> intersectionResult = new LinkedHashSet<>();
-
-				intersectionResult.addAll(getRelatedNodesReverse(securityContext, searchValue, declaringClass, predicate));
-
-				attr.setResult(intersectionResult);
-			}
-
-		} else {
-
-			// experimental filter attribute that removes entities with a non-empty value in the given field
-			return new EmptySearchAttribute(this, null, true);
-		}
-
-		return attr;
-	}
-
-	// ----- overridden methods from super class -----
-	@Override
-	protected <T extends NodeInterface> Set<T> getRelatedNodesReverse(final SecurityContext securityContext, final NodeInterface obj, final Class destinationType, final Predicate<GraphObject> predicate) {
-
-		Set<T> relatedNodes = new LinkedHashSet<>();
-
-		try {
-
-			final Object target = relation.getTarget().get(securityContext, obj, predicate);
-			if (target != null) {
-
-				if (target instanceof Iterable) {
-
-					Iterable<T> nodes = (Iterable<T>)target;
-					for (final T n : nodes) {
-
-						relatedNodes.add(n);
-					}
-
-				} else {
-
-					relatedNodes.add((T)target);
-				}
-			}
-
-		} catch (Throwable t) {
-
-			logger.warn("Unable to fetch related node: {}", t.getMessage());
-		}
-
-		return relatedNodes;
+		return new GraphSearchAttribute<>(this, searchValue, occur, exactMatch);
 	}
 
 	@Override

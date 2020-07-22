@@ -553,5 +553,10 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 
 			return statement;
 		}
+
+		@Override
+		public int pageSize() {
+			return Integer.MAX_VALUE;
+		}
 	}
 }

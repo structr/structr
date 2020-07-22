@@ -39,7 +39,6 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 	private static final Logger logger        = LoggerFactory.getLogger(IterableQueueingRecordConsumer.class);
 	private final BlockingQueue<Record> queue = new LinkedBlockingQueue<>();
 	private final AtomicInteger elementCount  = new AtomicInteger(0);
-	private final AtomicInteger queueSize     = new AtomicInteger(0);
 	private final AtomicBoolean aborted       = new AtomicBoolean(false);
 	private final AtomicBoolean finished      = new AtomicBoolean(false);
 	private final AtomicBoolean added         = new AtomicBoolean(false);
@@ -81,7 +80,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 		// result cursor have been consumed. We now need to decide whether we want
 		// to fetch more.
 
-		// This method will be called from a different Thread, so there is no
+		// This method will be called from a different thread, so there is no
 		// transaction context..
 
 		if (elementCount.get() == query.pageSize() && !aborted.get()) {
@@ -139,7 +138,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 			if (System.currentTimeMillis() > yieldStart + 180_000) {
 
 				logger.warn("#######################################################################################################");
-				logger.warn("IterableQueueingRecordConsumer waited for 2 minutes, aborting");
+				logger.warn("IterableQueueingRecordConsumer waited for 3 minutes, aborting");
 				logger.warn("statement: {}", query.getStatement(true));
 				logger.warn("throwable: {}", throwable);
 				logger.warn("finished:  {}", finished.get());
@@ -156,8 +155,6 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 
 	@Override
 	public Record next() {
-
-		queueSize.decrementAndGet();
 		return queue.poll();
 	}
 
@@ -171,7 +168,6 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 		queue.add(t);
 		added.set(true);
 
-		queueSize.incrementAndGet();
 		elementCount.incrementAndGet();
 	}
 

@@ -128,7 +128,6 @@ public class SearchAttributeGroup extends SearchAttribute implements GroupQuery 
 			}
 		}
 
-
 		return includeInResult;
 	}
 

@@ -21,9 +21,13 @@ package org.structr.bolt;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
+import org.structr.api.graph.Direction;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
@@ -37,8 +41,11 @@ public class AdvancedCypherQuery implements CypherQuery {
 	private final Map<String, Object> parameters    = new HashMap<>();
 	private final Set<String> indexLabels           = new LinkedHashSet<>();
 	private final Set<String> typeLabels            = new LinkedHashSet<>();
+	private final List<GraphQueryPart> parts        = new LinkedList<>();
 	private final StringBuilder buffer              = new StringBuilder();
 	private int fetchSize                           = Settings.FetchSize.getValue();
+	private boolean hasOptionalParts                = false;
+	private String currentGraphPartIdentifier       = "n";
 	private String sourceTypeLabel                  = null;
 	private String targetTypeLabel                  = null;
 	private AbstractCypherIndex<?> index            = null;
@@ -103,7 +110,8 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 			case 0:
 
-				buf.append(index.getQueryPrefix(getTypeQueryLabel(null), sourceTypeLabel, targetTypeLabel, hasPredicates));
+				buf.append(index.getQueryPrefix(getTypeQueryLabel(null), sourceTypeLabel, targetTypeLabel, hasPredicates, hasOptionalParts));
+				buf.append(getGraphPartForMatch());
 
 				if (hasPredicates) {
 					buf.append(" WHERE ");
@@ -115,7 +123,8 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 			case 1:
 
-				buf.append(index.getQueryPrefix(getTypeQueryLabel(Iterables.first(typeLabels)), sourceTypeLabel, targetTypeLabel, hasPredicates));
+				buf.append(index.getQueryPrefix(getTypeQueryLabel(Iterables.first(typeLabels)), sourceTypeLabel, targetTypeLabel, hasPredicates, hasOptionalParts));
+				buf.append(getGraphPartForMatch());
 
 				if (hasPredicates) {
 					buf.append(" WHERE ");
@@ -130,7 +139,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 				// create UNION query
 				for (final Iterator<String> it = typeLabels.iterator(); it.hasNext();) {
 
-					buf.append(index.getQueryPrefix(getTypeQueryLabel(it.next()), sourceTypeLabel, targetTypeLabel, hasPredicates));
+					buf.append(index.getQueryPrefix(getTypeQueryLabel(it.next()), sourceTypeLabel, targetTypeLabel, hasPredicates, hasOptionalParts));
 
 					if (hasPredicates) {
 						buf.append(" WHERE ");
@@ -236,6 +245,10 @@ public class AdvancedCypherQuery implements CypherQuery {
 	}
 
 	public void addSimpleParameter(final String key, final String operator, final Object value, final boolean isProperty, final boolean caseInsensitive) {
+		addSimpleParameter("n", key, operator, value, isProperty, caseInsensitive);
+	}
+
+	public void addSimpleParameter(final String identifier, final String key, final String operator, final Object value, final boolean isProperty, final boolean caseInsensitive) {
 
 		if (value != null) {
 
@@ -247,7 +260,8 @@ public class AdvancedCypherQuery implements CypherQuery {
 					buffer.append("toLower(");
 				}
 
-				buffer.append("n.`");
+				buffer.append(identifier);
+				buffer.append(".`");
 			}
 
 			buffer.append(key);
@@ -274,7 +288,8 @@ public class AdvancedCypherQuery implements CypherQuery {
 		} else {
 
 			if (isProperty) {
-				buffer.append("n.`");
+				buffer.append(identifier);
+				buffer.append(".`");
 			}
 
 			buffer.append(key);
@@ -284,8 +299,60 @@ public class AdvancedCypherQuery implements CypherQuery {
 			}
 
 			buffer.append(operator);
-			buffer.append(" Null");
+			buffer.append(" null");
 		}
+	}
+
+	public void addNullObjectParameter(final Direction direction, final String relationship) {
+
+		buffer.append("not (n)");
+
+		switch (direction) {
+
+			case INCOMING:
+				buffer.append("<");
+				break;
+		}
+
+		buffer.append("-[:");
+		buffer.append(relationship);
+		buffer.append("]-");
+
+		switch (direction) {
+
+			case OUTGOING:
+				buffer.append(">");
+				break;
+		}
+
+		buffer.append("()");
+	}
+
+	public void addPatternParameter(final Direction direction, final String relationship, final String identifier) {
+
+		buffer.append("(n)");
+
+		switch (direction) {
+
+			case INCOMING:
+				buffer.append("<");
+				break;
+		}
+
+		buffer.append("-[:");
+		buffer.append(relationship);
+		buffer.append("]-");
+
+		switch (direction) {
+
+			case OUTGOING:
+				buffer.append(">");
+				break;
+		}
+
+		buffer.append("(");
+		buffer.append(identifier);
+		buffer.append(")");
 	}
 
 	public void addListParameter(final String key, final String operator, final Object value) {
@@ -310,7 +377,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 			buffer.append(key);
 			buffer.append("` WHERE x ");
 			buffer.append(operator);
-			buffer.append(" Null)");
+			buffer.append(" null)");
 		}
 	}
 
@@ -338,6 +405,13 @@ public class AdvancedCypherQuery implements CypherQuery {
 		parameters.put(paramKey2, value2);
 	}
 
+	public void addGraphQueryPart(final GraphQueryPart part) {
+
+		part.setIdentifier(getNextGraphPartIdentifier());
+
+		this.parts.add(part);
+	}
+
 	@Override
 	public void sort(final SortOrder sortOrder) {
 		this.sortOrder = sortOrder;
@@ -357,6 +431,10 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 	public String getTargetType() {
 		return targetTypeLabel;
+	}
+
+	public void hasOptionalParts() {
+		hasOptionalParts = true;
 	}
 
 	@Override
@@ -382,5 +460,38 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 		// null indicates "no main type"
 		return null;
+	}
+
+	private String getGraphPartForMatch() {
+
+		final DatabaseService db = index.getDatabaseService();
+		final String tenantId    = db.getTenantIdentifier();
+		final StringBuilder buf  = new StringBuilder();
+
+		for (final GraphQueryPart part : parts) {
+
+			buf.append(", (");
+			buf.append(part.getIdentifier());
+			buf.append(":NodeInterface");
+
+			if (tenantId != null) {
+
+				buf.append(":");
+				buf.append(tenantId);
+			}
+
+			buf.append(":");
+			buf.append(part.getOtherLabel());
+			buf.append(")");
+		}
+
+		return buf.toString();
+	}
+
+	private String getNextGraphPartIdentifier() {
+
+		currentGraphPartIdentifier = Character.toString(currentGraphPartIdentifier.charAt(0) + 1);
+
+		return currentGraphPartIdentifier;
 	}
 }

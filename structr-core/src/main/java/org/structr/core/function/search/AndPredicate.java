@@ -45,7 +45,16 @@ public class AndPredicate extends AbstractPredicate {
 
 				} else {
 
-					query.and(key, value, p.isExact());
+					if (p.isEmptyPredicate()) {
+
+						query.and();
+						query.blank(key);
+						query.parent();
+
+					} else {
+
+						query.and(key, value, p.isExact());
+					}
 				}
 			}
 		}

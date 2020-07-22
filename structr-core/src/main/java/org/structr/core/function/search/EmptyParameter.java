@@ -20,37 +20,19 @@ package org.structr.core.function.search;
 
 /**
  */
-public class SearchParameter {
+public class EmptyParameter extends SearchParameter {
 
-	protected boolean exact = true;
-	protected String key    = null;
-	protected Object value  = null;
+	public EmptyParameter(final String key) {
 
-	public SearchParameter(final String key, final Object value, final boolean exact) {
-
-		this.exact = exact;
-		this.key   = key;
-		this.value = value;
+		super(key, null, true);
 	}
 
 	@Override
 	public String toString() {
-		return "Exact(" + key + ", " + value + ")";
-	}
-
-	public boolean isExact() {
-		return exact;
-	}
-
-	public String getKey() {
-		return key;
-	}
-
-	public Object getValue() {
-		return value;
+		return "Empty(" + key + ")";
 	}
 
 	public boolean isEmptyPredicate() {
-		return false;
+		return true;
 	}
 }

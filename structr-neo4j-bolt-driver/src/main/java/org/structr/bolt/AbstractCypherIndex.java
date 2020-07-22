@@ -51,6 +51,7 @@ import org.structr.bolt.converter.IntTypeConverter;
 import org.structr.bolt.converter.LongTypeConverter;
 import org.structr.bolt.converter.ShortTypeConverter;
 import org.structr.bolt.converter.StringTypeConverter;
+import org.structr.bolt.factory.GraphQueryFactory;
 
 /**
  *
@@ -68,7 +69,7 @@ abstract class AbstractCypherIndex<T extends PropertyContainer> extends Abstract
 	private final Map<Class, QueryFactory> factories   = new HashMap<>();
 	protected BoltDatabaseService db                   = null;
 
-	public abstract String getQueryPrefix(final String mainType, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates);
+	public abstract String getQueryPrefix(final String mainType, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates, final boolean hasOptionalParts);
 	public abstract String getQuerySuffix(final AdvancedCypherQuery query);
 
 	public AbstractCypherIndex(final BoltDatabaseService db) {
@@ -98,6 +99,7 @@ abstract class AbstractCypherIndex<T extends PropertyContainer> extends Abstract
 		return db;
 	}
 
+	@Override
 	public boolean supports(final Class type) {
 		return INDEXABLE.contains(type);
 	}
@@ -108,6 +110,7 @@ abstract class AbstractCypherIndex<T extends PropertyContainer> extends Abstract
 		factories.put(NotEmptyQuery.class,     new NotEmptyQueryFactory(this));
 		factories.put(FulltextQuery.class,     new KeywordQueryFactory(this));
 		factories.put(SpatialQuery.class,      new SpatialQueryFactory(this));
+		factories.put(GraphQuery.class,        new GraphQueryFactory(this));
 		factories.put(GroupQuery.class,        new GroupQueryFactory(this));
 		factories.put(RangeQuery.class,        new RangeQueryFactory(this));
 		factories.put(ExactQuery.class,        new KeywordQueryFactory(this));

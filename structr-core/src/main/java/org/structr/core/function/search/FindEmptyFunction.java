@@ -38,7 +38,7 @@ public class FindEmptyFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			return new SearchParameter(sources[0].toString(), null, true);
+			return new EmptyParameter(sources[0].toString());
 
 		} catch (final IllegalArgumentException e) {
 
