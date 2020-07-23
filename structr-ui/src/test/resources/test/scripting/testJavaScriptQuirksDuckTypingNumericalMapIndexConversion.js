@@ -4,7 +4,7 @@ function test() {
 
 	x['24'] = 'jack bauer';
 
-	$.log($.toJson(x));
+	return $.toJson(x);
 }
 
 let _structrMainResult = test();
