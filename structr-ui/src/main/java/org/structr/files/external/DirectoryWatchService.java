@@ -47,6 +47,7 @@ import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.ServiceResult;
+import org.structr.api.service.StopServiceForMaintenanceMode;
 import org.structr.api.service.StructrServices;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -57,7 +58,6 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
 import org.structr.web.entity.Folder;
-import org.structr.api.service.StopServiceForMaintenanceMode;
 
 /**
  */
@@ -419,7 +419,9 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 			}
 		}
 
-		logger.info("{}: {} files", path.toString(), count);
+		if (Boolean.FALSE.equals(Settings.LogDirectoryWatchServiceQuiet.getValue())) {
+			logger.info("{}: {} files", path.toString(), count);
+		}
 
 		// recurse
 		for (final File directory : directories) {
