@@ -21,10 +21,13 @@ package org.structr.core.graph.search;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.structr.api.graph.Direction;
+import org.structr.api.graph.Identity;
+import org.structr.api.graph.Node;
 import org.structr.api.search.GraphQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 
@@ -135,6 +138,21 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 	@Override
 	public String getNotionPropertyName() {
 		return notionKey.dbName();
+	}
+
+	@Override
+	public Identity getIdentity() {
+
+		final Object value = getValue();
+		if (value instanceof NodeInterface) {
+
+			final NodeInterface g = (NodeInterface)value;
+			final Node node       = g.getNode();
+
+			return node.getId();
+		}
+
+		return null;
 	}
 
 	// ----- private methods -----

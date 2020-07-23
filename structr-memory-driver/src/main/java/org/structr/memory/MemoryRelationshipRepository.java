@@ -22,10 +22,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -42,11 +43,20 @@ public class MemoryRelationshipRepository extends EntityRepository {
 
 	private static final Logger logger = LoggerFactory.getLogger(MemoryRelationshipRepository.class);
 
-	final Map<MemoryIdentity, MemoryRelationship> masterData   = new ConcurrentHashMap<>();
-	final Map<String, Set<MemoryIdentity>> typeCache           = new ConcurrentHashMap<>();
-	final Map<MemoryIdentity, Set<MemoryIdentity>> sourceCache = new ConcurrentHashMap<>();
-	final Map<MemoryIdentity, Set<MemoryIdentity>> targetCache = new ConcurrentHashMap<>();
+	final Map<MemoryIdentity, MemoryRelationship> masterData   = new ConcurrentSkipListMap<>();
+	final Map<String, Set<MemoryIdentity>> typeCache           = new ConcurrentSkipListMap<>();
+	final Map<MemoryIdentity, Set<MemoryIdentity>> sourceCache = new ConcurrentSkipListMap<>();
+	final Map<MemoryIdentity, Set<MemoryIdentity>> targetCache = new ConcurrentSkipListMap<>();
 	final Set<String> duplicatesCheckCache                     = new LinkedHashSet<>();
+	boolean disableDuplicatesCheck                             = false;
+
+	public MemoryRelationshipRepository() {
+		this(false);
+	}
+
+	public MemoryRelationshipRepository(final boolean disableDuplicatesCheck) {
+		this.disableDuplicatesCheck = disableDuplicatesCheck;
+	}
 
 	MemoryRelationship get(final MemoryIdentity id) {
 		return masterData.get(id);
@@ -70,7 +80,11 @@ public class MemoryRelationshipRepository extends EntityRepository {
 
 				for (final String label : mt.getLabels()) {
 
-					cache.addAll(getCacheForType(label));
+					final Set<MemoryIdentity> set = getCacheForType(label, false);
+					if (set != null) {
+
+						cache.addAll(set);
+					}
 				}
 
 				return Iterables.map(i -> masterData.get(i), cache);
@@ -79,17 +93,29 @@ public class MemoryRelationshipRepository extends EntityRepository {
 			if (filter instanceof SourceNodeFilter) {
 
 				final SourceNodeFilter<MemoryRelationship> s = (SourceNodeFilter<MemoryRelationship>)filter;
-				final MemoryIdentity id     = s.getIdentity();
+				final MemoryIdentity id                      = s.getIdentity();
 
-				return Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(getCacheForSource(id)));
+				final Set<MemoryIdentity> set = getCacheForSource(id, false);
+				if (set != null) {
+
+					return Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(set));
+				}
+
+				return Collections.EMPTY_LIST;
 			}
 
 			if (filter instanceof TargetNodeFilter) {
 
 				final TargetNodeFilter<MemoryRelationship> s = (TargetNodeFilter<MemoryRelationship>)filter;
-				final MemoryIdentity id     = s.getIdentity();
+				final MemoryIdentity id                      = s.getIdentity();
 
-				return Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(getCacheForTarget(id)));
+				final Set<MemoryIdentity> set = getCacheForTarget(id, false);
+				if (set != null) {
+
+					return Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(set));
+				}
+
+				return Collections.EMPTY_LIST;
 			}
 		}
 
@@ -112,11 +138,14 @@ public class MemoryRelationshipRepository extends EntityRepository {
 		final MemoryIdentity id        = relationship.getIdentity();
 		final String key               = relationship.getUniquenessKey();
 
-		if (duplicatesCheckCache.contains(key)) {
-			throw new IllegalStateException("Duplicate relationship: " + key);
-		}
+		if (!disableDuplicatesCheck) {
 
-		duplicatesCheckCache.add(key);
+			if (duplicatesCheckCache.contains(key)) {
+				throw new IllegalStateException("Duplicate relationship: " + key);
+			}
+
+			duplicatesCheckCache.add(key);
+		}
 
 		for (final String label : relationship.getLabels()) {
 
@@ -138,10 +167,13 @@ public class MemoryRelationshipRepository extends EntityRepository {
 
 			masterData.keySet().removeAll(ids);
 
-			// clear uniqueness check cache as well
-			for (final MemoryRelationship rel : relationships.values()) {
+			if (!disableDuplicatesCheck) {
 
-				duplicatesCheckCache.remove(rel.getUniquenessKey());
+				// clear uniqueness check cache as well
+				for (final MemoryRelationship rel : relationships.values()) {
+
+					duplicatesCheckCache.remove(rel.getUniquenessKey());
+				}
 			}
 
 			for (final Set<MemoryIdentity> cache : typeCache.values()) {
@@ -222,11 +254,19 @@ public class MemoryRelationshipRepository extends EntityRepository {
 		}
 	}
 
+	Map<MemoryIdentity, MemoryRelationship> getMasterData() {
+		return masterData;
+	}
+
 	// ----- private methods -----
-	private synchronized Set<MemoryIdentity> getCacheForType(final String type) {
+	private Set<MemoryIdentity> getCacheForType(final String type) {
+		return getCacheForType(type, true);
+	}
+
+	private synchronized Set<MemoryIdentity> getCacheForType(final String type, final boolean create) {
 
 		Set<MemoryIdentity> cache = typeCache.get(type);
-		if (cache == null) {
+		if (cache == null && create) {
 
 			cache = new CopyOnWriteArraySet<>();
 			typeCache.put(type, cache);
@@ -235,10 +275,14 @@ public class MemoryRelationshipRepository extends EntityRepository {
 		return cache;
 	}
 
-	private synchronized Set<MemoryIdentity> getCacheForSource(final MemoryIdentity source) {
+	private Set<MemoryIdentity> getCacheForSource(final MemoryIdentity source) {
+		return getCacheForSource(source, true);
+	}
+
+	private synchronized Set<MemoryIdentity> getCacheForSource(final MemoryIdentity source, final boolean create) {
 
 		Set<MemoryIdentity> cache = sourceCache.get(source);
-		if (cache == null) {
+		if (cache == null && create) {
 
 			cache = new CopyOnWriteArraySet<>();
 			sourceCache.put(source, cache);
@@ -247,10 +291,14 @@ public class MemoryRelationshipRepository extends EntityRepository {
 		return cache;
 	}
 
-	private synchronized Set<MemoryIdentity> getCacheForTarget(final MemoryIdentity target) {
+	private Set<MemoryIdentity> getCacheForTarget(final MemoryIdentity target) {
+		return getCacheForTarget(target, true);
+	}
+
+	private synchronized Set<MemoryIdentity> getCacheForTarget(final MemoryIdentity target, final boolean create) {
 
 		Set<MemoryIdentity> cache = targetCache.get(target);
-		if (cache == null) {
+		if (cache == null && create) {
 
 			cache = new CopyOnWriteArraySet<>();
 			targetCache.put(target, cache);

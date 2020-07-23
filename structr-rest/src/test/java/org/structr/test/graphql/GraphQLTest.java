@@ -619,35 +619,35 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Task(project: { name: { _equals: \"project1\"}}) { name, project { name }}}");
+			final Map<String, Object> result = fetchGraphQL("{ Task(_sort: \"name\", project: { name: { _equals: \"project1\"}}) { name, project { name }}}");
 			assertMapPathValueIs(result, "Task.#",                 2);
 			assertMapPathValueIs(result, "Task.0.name",            "task0");
 			assertMapPathValueIs(result, "Task.1.name",            "task1");
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Task(project: { name: { _equals: \"project2\"}}) { name, project { name }}}");
+			final Map<String, Object> result = fetchGraphQL("{ Task(_sort: \"name\", project: { name: { _equals: \"project2\"}}) { name, project { name }}}");
 			assertMapPathValueIs(result, "Task.#",                 2);
 			assertMapPathValueIs(result, "Task.0.name",            "task2");
 			assertMapPathValueIs(result, "Task.1.name",            "task3");
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Task(project: { name: { _equals: \"project3\"}}) { name, project { name }}}");
+			final Map<String, Object> result = fetchGraphQL("{ Task(_sort: \"name\", project: { name: { _equals: \"project3\"}}) { name, project { name }}}");
 			assertMapPathValueIs(result, "Task.#",                 2);
 			assertMapPathValueIs(result, "Task.0.name",            "task4");
 			assertMapPathValueIs(result, "Task.1.name",            "task5");
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Task(project: { name: { _equals: \"project4\"}}) { name, project { name }}}");
+			final Map<String, Object> result = fetchGraphQL("{ Task(_sort: \"name\", project: { name: { _equals: \"project4\"}}) { name, project { name }}}");
 			assertMapPathValueIs(result, "Task.#",                 2);
 			assertMapPathValueIs(result, "Task.0.name",            "task6");
 			assertMapPathValueIs(result, "Task.1.name",            "task7");
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Task(project: { name: { _equals: \"project5\"}}) { name, project { name }}}");
+			final Map<String, Object> result = fetchGraphQL("{ Task(_sort: \"name\", project: { name: { _equals: \"project5\"}}) { name, project { name }}}");
 			assertMapPathValueIs(result, "Task.#",                 2);
 			assertMapPathValueIs(result, "Task.0.name",            "task8");
 			assertMapPathValueIs(result, "Task.1.name",            "task9");
@@ -679,7 +679,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _equals: \"p2\"}}) { name }}");
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(_sort: \"name\", owner: { name: { _equals: \"p2\"}}) { name }}");
 			assertMapPathValueIs(result, "MailTemplate.#",                 2);
 			assertMapPathValueIs(result, "MailTemplate.0.name",            "m3");
 			assertMapPathValueIs(result, "MailTemplate.1.name",            "m4");

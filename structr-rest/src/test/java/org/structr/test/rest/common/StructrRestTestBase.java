@@ -50,7 +50,6 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
-import org.structr.bolt.BoltDatabaseService;
 import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -214,8 +213,7 @@ public abstract class StructrRestTestBase {
 	protected void setupDatabaseConnection() {
 
 		// use database driver from system property, default to MemoryDatabaseService
-		//Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
-		Settings.DatabaseDriver.setValue(BoltDatabaseService.class.getName());
+		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());

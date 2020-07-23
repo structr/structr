@@ -34,7 +34,7 @@ public class NodeAttribute<T> {
 	}
 
 	public NodeAttribute(final PropertyKey<T> key, final T value) {
-		this.key = key;
+		this.key   = key;
 		this.value = value;
 	}
 

@@ -85,4 +85,40 @@ public class GraphQueryPart {
 	public void setDirection(final Direction direction) {
 		this.direction = direction;
 	}
+
+	public String getRelationshipPattern() {
+
+		final StringBuilder buf  = new StringBuilder();
+
+		switch (direction) {
+
+			case INCOMING:
+				buf.append("<-");
+				break;
+
+			case BOTH:
+			case OUTGOING:
+				buf.append("-");
+				break;
+		}
+
+		buf.append("[:");
+		buf.append(relationship);
+		buf.append("]");
+
+		switch (direction) {
+
+			case BOTH:
+			case INCOMING:
+				buf.append("-");
+				break;
+
+			case OUTGOING:
+				buf.append("->");
+				break;
+		}
+
+		return buf.toString();
+	}
+
 }
