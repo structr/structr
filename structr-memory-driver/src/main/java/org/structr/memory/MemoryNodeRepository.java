@@ -210,6 +210,10 @@ public class MemoryNodeRepository extends EntityRepository {
 		}
 	}
 
+	Map<MemoryIdentity, MemoryNode> getMasterData() {
+		return masterData;
+	}
+
 	// ----- private methods -----
 	private synchronized Set<MemoryIdentity> getCacheForLabel(final String type) {
 

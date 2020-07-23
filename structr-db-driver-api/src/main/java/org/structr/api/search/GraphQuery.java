@@ -20,6 +20,7 @@ package org.structr.api.search;
 
 import java.util.Set;
 import org.structr.api.graph.Direction;
+import org.structr.api.graph.Identity;
 
 
 public interface GraphQuery extends QueryPredicate {
@@ -29,4 +30,5 @@ public interface GraphQuery extends QueryPredicate {
 	String getOtherLabel();
 	Direction getDirection();
 	String getNotionPropertyName();
+	Identity getIdentity();
 }

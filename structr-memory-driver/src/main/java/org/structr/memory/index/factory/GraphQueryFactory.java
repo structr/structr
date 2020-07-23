@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt.factory;
+package org.structr.memory.index.factory;
 
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -24,65 +24,34 @@ import org.structr.api.index.AbstractIndex;
 
 import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.GraphQuery;
-import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryPredicate;
-import org.structr.bolt.AdvancedCypherQuery;
-import org.structr.bolt.BoltIdentity;
-import org.structr.bolt.GraphQueryPart;
+import org.structr.memory.index.MemoryQuery;
+import org.structr.memory.index.predicate.GraphPredicate;
+import org.structr.memory.index.predicate.NoRelationshipPredicate;
 
-public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
+public class GraphQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 	public GraphQueryFactory(final AbstractIndex index) {
 		super(index);
 	}
 
 	@Override
-	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
+	public boolean createQuery(final QueryPredicate predicate, final MemoryQuery query, final boolean isFirst) {
 
 		final GraphQuery graphQuery = (GraphQuery)predicate;
-		final GraphQueryPart part   = new GraphQueryPart(graphQuery);
 		final Set<Object> values    = graphQuery.getValues();
 
 		if (values.isEmpty() || onlyEmptyValues(values)) {
 
 			checkOccur(query, predicate.getOccurrence(), isFirst);
 
-			query.addNullObjectParameter(graphQuery.getDirection(), graphQuery.getRelationship());
+			query.addPredicate(new NoRelationshipPredicate<>(predicate.getName(), graphQuery));
 
 		} else {
 
 			checkOccur(query, predicate.getOccurrence(), isFirst);
 
-			query.addGraphQueryPart(part);
-
-			final String name = graphQuery.getNotionPropertyName();
-			boolean first     = true;
-
-			for (final Object value : graphQuery.getValues()) {
-
-				checkOccur(query, Occurrence.OPTIONAL, first);
-
-				if (predicate.isExactMatch()) {
-
-					final BoltIdentity boltIdentity = (BoltIdentity)graphQuery.getIdentity();
-					if (boltIdentity != null) {
-
-						final long id = boltIdentity.getId();
-
-						query.addSimpleParameter("ID(" + part.getIdentifier() + ")", "=", id, false, false);
-
-					} else {
-
-						query.addSimpleParameter(part.getIdentifier(), name, "=", value, true, false);
-					}
-
-				} else {
-
-					query.addSimpleParameter(part.getIdentifier(), name, "CONTAINS", value, true, true);
-				}
-
-				first = false;
-			}
+			query.addPredicate(new GraphPredicate(graphQuery));
 		}
 
 		return true;

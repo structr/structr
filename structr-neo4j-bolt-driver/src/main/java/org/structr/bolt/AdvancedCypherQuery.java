@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
@@ -467,22 +468,55 @@ public class AdvancedCypherQuery implements CypherQuery {
 		final DatabaseService db = index.getDatabaseService();
 		final String tenantId    = db.getTenantIdentifier();
 		final StringBuilder buf  = new StringBuilder();
+		final Set<String> with   = new LinkedHashSet<>();
+		boolean first            = true;
 
 		for (final GraphQueryPart part : parts) {
 
-			buf.append(", (");
-			buf.append(part.getIdentifier());
-			buf.append(":NodeInterface");
+			if (first) {
 
-			if (tenantId != null) {
+				buf.append(part.getRelationshipPattern());
+
+				buf.append("(");
+				buf.append(part.getIdentifier());
+				buf.append(":NodeInterface");
+
+				if (tenantId != null) {
+
+					buf.append(":");
+					buf.append(tenantId);
+				}
 
 				buf.append(":");
-				buf.append(tenantId);
+				buf.append(part.getOtherLabel());
+				buf.append(")");
+
+			} else {
+
+				buf.append(" WITH n, ");
+				buf.append(StringUtils.join(with, ", "));
+				buf.append(" MATCH (n)");
+				buf.append(part.getRelationshipPattern());
+
+				buf.append("(");
+				buf.append(part.getIdentifier());
+				buf.append(":NodeInterface");
+
+				if (tenantId != null) {
+
+					buf.append(":");
+					buf.append(tenantId);
+				}
+
+				buf.append(":");
+				buf.append(part.getOtherLabel());
+				buf.append(")");
+
 			}
 
-			buf.append(":");
-			buf.append(part.getOtherLabel());
-			buf.append(")");
+			first = false;
+
+			with.add(part.getIdentifier());
 		}
 
 		return buf.toString();

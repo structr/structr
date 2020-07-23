@@ -44,6 +44,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
@@ -430,16 +431,21 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 					if (searchValue instanceof Map) {
 
 						final Map<String, Object> searchMap = (Map)searchValue;
-						final Object contains               = searchMap.get("_contains");
-						final Object equals                 = searchMap.get("_equals");
+						Object contains                     = searchMap.get("_contains");
+						Object equals                       = searchMap.get("_equals");
 
 						if (relatedType != null) {
 
 							final PropertyKey notionKey = StructrApp.key(relatedType, searchKey);
-
 							if (notionKey != null) {
 
 								if (equals != null) {
+
+									final PropertyConverter conv = notionKey.inputConverter(securityContext);
+									if (conv != null) {
+
+										equals = conv.convert(equals);
+									}
 
 									addAttribute(key, new GraphSearchAttribute(notionKey, key, equals, Occurrence.REQUIRED, true), Occurrence.REQUIRED);
 
@@ -447,6 +453,12 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 									//addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, equals, true, null), Occurrence.REQUIRED);
 
 								} else if (contains != null) {
+
+									final PropertyConverter conv = notionKey.inputConverter(securityContext);
+									if (conv != null) {
+
+										contains = conv.convert(contains);
+									}
 
 									addAttribute(key, new GraphSearchAttribute(notionKey, key, contains, Occurrence.REQUIRED, false), Occurrence.REQUIRED);
 
