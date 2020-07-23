@@ -566,10 +566,10 @@ public abstract class Function<S, T> extends Hint {
 			return;
 		}
 
-		for (final Map.Entry<String, Object> entry : source.entrySet()) {
+		for (final Map.Entry entry : source.entrySet()) {
 
 			final ConfigurationProvider provider = StructrApp.getConfiguration();
-			final String key                     = entry.getKey();
+			final String key                     = entry.getKey().toString();
 			final Object value                   = entry.getValue();
 
 			if (value instanceof Map) {
