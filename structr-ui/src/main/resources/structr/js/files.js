@@ -39,6 +39,7 @@ $(document).ready(function() {
 var _Files = {
 	_moduleName: 'files',
 	_viewMode: LSWrapper.getItem(filesViewModeKey) || 'list',
+	defaultFolderAttributes: 'id,name,type,owner,isFolder,path,visibleToPublicUsers,visibleToAuthenticatedUsers,ownerId,isMounted,parentId,foldersCount,filesCount',
 	getViewMode: function () {
 		return _Files._viewMode || 'list';
 	},
@@ -91,38 +92,6 @@ var _Files = {
 		_Files.moveResizer();
 		Structr.resize();
 
-		var nameColumnWidth;
-		if (_Files.isViewModeActive('list')) {
-
-			nameColumnWidth = $('#files-table th:nth-child(2)').width();
-
-			if (nameColumnWidth < 300) {
-				$('#files-table th:nth-child(4)').css({ display: 'none' });
-				$('#files-table td:nth-child(4)').css({ display: 'none' });
-				$('#files-table th:nth-child(5)').css({ display: 'none' });
-				$('#files-table td:nth-child(5)').css({ display: 'none' });
-			}
-
-			if (nameColumnWidth > 550) {
-				$('#files-table th:nth-child(4)').css({ display: 'table-cell' });
-				$('#files-table td:nth-child(4)').css({ display: 'table-cell' });
-				$('#files-table th:nth-child(5)').css({ display: 'table-cell' });
-				$('#files-table td:nth-child(5)').css({ display: 'table-cell' });
-			}
-
-			nameColumnWidth = $('#files-table th:nth-child(2)').width() - 96;
-
-		} else if (_Files.isViewModeActive('tiles')) {
-			nameColumnWidth = 80;
-		} else if (_Files.isViewModeActive('img')) {
-			nameColumnWidth = 240;
-		}
-
-		$('.node.file .name_').each(function(i, el) {
-			var title = $(el).attr('title');
-			$(el).replaceWith('<b title="' +  title + '" class="name_">' + fitStringToWidth(title ? title : '[unnamed]', nameColumnWidth) + '</b>');
-		});
-
 		if (folderContents) {
 			folderContents.find('.node').each(function() {
 				_Entities.setMouseOver($(this), true);
@@ -130,7 +99,6 @@ var _Files = {
 		}
 
 		$('div.xml-mapping').css({ height: dialogBox.height()- 118 });
-
 	},
 	moveResizer: function(left) {
 		left = left || LSWrapper.getItem(filesResizerLeftKey) || 300;
@@ -245,7 +213,6 @@ var _Files = {
 
 		_Files.resize();
 		Structr.adaptUiToAvailableFeatures();
-
 	},
 	deepOpen: function(d, dirs) {
 
@@ -254,11 +221,22 @@ var _Files = {
 	},
 	refreshTree: function() {
 
+		let selectedId = fileTree.jstree('get_selected');
+
 		_TreeHelper.refreshTree(fileTree, function() {
 			_TreeHelper.makeTreeElementDroppable(fileTree, 'root');
 			_TreeHelper.makeTreeElementDroppable(fileTree, 'favorites');
-		});
 
+			fileTree.jstree('deselect_all');
+			fileTree.jstree('activate_node', selectedId);
+		});
+	},
+	refreshNode: function(nodeId, newName) {
+
+		let node = fileTree.jstree('get_node', nodeId);
+		node.text = newName;
+
+		_TreeHelper.refreshNode(fileTree, node);
 	},
 	treeInitFunction: function(obj, callback) {
 
@@ -421,7 +399,6 @@ var _Files = {
 
 			callback();
 		});
-
 	},
 	load: function(id, callback) {
 
@@ -432,8 +409,8 @@ var _Files = {
 			folders.forEach(function(d) {
 				list.push({
 					id: d.id,
-					text:  d.name ? d.name : '[unnamed]',
-					children: d.isFolder && d.folders.length > 0,
+					text:  d.name || '[unnamed]',
+					children: d.foldersCount > 0,
 					icon: 'fa fa-folder',
 					path: d.path
 				});
@@ -442,22 +419,20 @@ var _Files = {
 			callback(list);
 
 			_TreeHelper.makeDroppable(fileTree, list);
-
 		};
 
 		if (!id) {
-			Command.list('Folder', true, folderPageSize, folderPage, 'name', 'asc', 'id,name,isFolder,folders,files,icon,path,visibleToPublicUsers,visibleToAuthenticatedUsers,isMounted', displayFunction);
+			Command.list('Folder', true, folderPageSize, folderPage, 'name', 'asc', _Files.defaultFolderAttributes, displayFunction);
 		} else {
-			Command.query('Folder', folderPageSize, folderPage, 'name', 'asc', {parent: id}, displayFunction, true);
+			Command.query('Folder', folderPageSize, folderPage, 'name', 'asc', {parent: id}, displayFunction, true, 'public', _Files.defaultFolderAttributes);
 		}
-
 	},
 	setWorkingDirectory: function(id) {
 
 		if (id === 'root') {
 			currentWorkingDir = null;
 		} else {
-			currentWorkingDir = { 'id': id };
+			currentWorkingDir = { id: id };
 		}
 
 		$.ajax({
@@ -466,6 +441,31 @@ var _Files = {
 			contentType: 'application/json; UTF-8',
 			type: 'PUT',
 			data: JSON.stringify({'workingDirectory': currentWorkingDir})
+		});
+	},
+	registerFolderLinks: function() {
+
+		$('.is-folder.file-icon', folderContents).off('click').on('click', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+
+			let el = $(this);
+			let targetId = el.data('targetId');
+
+			let openTargetNode = () => {
+				fileTree.jstree('open_node', targetId, () => {
+					fileTree.jstree('activate_node', targetId);
+				});
+			};
+
+			let parentId = el.data('parentId');
+
+			if (!parentId || fileTree.jstree('is_open', parentId)) {
+				openTargetNode();
+			} else {
+				fileTree.jstree('open_node', parentId, openTargetNode);
+			}
+
 		});
 	},
 	displayFolderContents: function(id, parentId, nodePath, parents) {
@@ -480,12 +480,22 @@ var _Files = {
 
 		_Files.insertLayoutSwitches(id, parentId, nodePath, parents);
 
-		var handleChildren = function(children) {
-			if (children && children.length) {
-				children.forEach(_Files.appendFileOrFolder);
-			}
+		// store current folder id so we can filter slow requests
+		folderContents.data('currentFolder', id);
 
-			_Files.resize();
+		let handleChildren = function(children) {
+
+			let currentFolder = folderContents.data('currentFolder');
+
+			if (currentFolder === id) {
+
+				if (children && children.length) {
+					children.forEach(_Files.appendFileOrFolder);
+				}
+
+				_Files.resize();
+				_Files.registerFolderLinks();
+			}
 		};
 
 		if (displayingFavorites === true) {
@@ -514,9 +524,9 @@ var _Files = {
 			$('#folder-contents-container > button').removeClass('disabled').attr('disabled', null);
 
 			if (isRootFolder) {
-				Command.list('Folder', true, 1000, 1, 'name', 'asc', 'id,name,type,isFolder,folders,files,icon,path,visibleToPublicUsers,visibleToAuthenticatedUsers,owner,isMounted', handleChildren);
+				Command.list('Folder', true, 1000, 1, 'name', 'asc', _Files.defaultFolderAttributes, handleChildren);
 			} else {
-				Command.query('Folder', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren, true, 'public');
+				Command.query('Folder', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren, true, null, _Files.defaultFolderAttributes);
 			}
 
 			_Pager.initPager('filesystem-files', 'File', 1, 25, 'name', 'asc');
@@ -531,9 +541,9 @@ var _Files = {
 				filterOptions.isThumbnail = false;
 			}
 
-			_Pager.initFilters('filesystem-files', 'File', filterOptions);
+			_Pager.initFilters('filesystem-files', 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			var filesPager = _Pager.addPager('filesystem-files', folderContents, false, 'File', 'public', handleChildren);
+			var filesPager = _Pager.addPager('filesystem-files', folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isThumbnail,path,size,owner');
 
 			filesPager.cleanupFunction = function () {
 				var toRemove = $('.node.file', filesPager.el).closest( (_Files.isViewModeActive('list') ? 'tr' : '.tile') );
@@ -553,36 +563,31 @@ var _Files = {
 			if (_Files.isViewModeActive('list')) {
 				folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
 					+ '<tbody id="files-table-body">'
-					+ (!isRootFolder ? '<tr id="parent-file-link"><td class="file-type"><i class="fa fa-folder"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td></tr>' : '')
+					+ (!isRootFolder ? '<tr><td class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td></tr>' : '')
 					+ '</tbody></table>');
 
 			} else if (_Files.isViewModeActive('tiles')) {
 				if (!isRootFolder) {
-					folderContents.append('<div id="parent-file-link" class="tile"><div class="node folder"><div class="file-type"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
+					folderContents.append('<div class="tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
 				}
 			} else if (_Files.isViewModeActive('img')) {
 				if (!isRootFolder) {
-					folderContents.append('<div id="parent-file-link" class="tile img-tile"><div class="node folder"><div class="file-type"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
+					folderContents.append('<div class="tile img-tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
 				}
 			}
-
-			$('#parent-file-link').on('click', function(e) {
-
-				if (!parentIsRoot) {
-					$('#' + parentId + '_anchor').click();
-				}
-			});
 		}
 	},
 	insertBreadCrumbNavigation: function(parents, nodePath) {
 
 		if (parents) {
 
-			var path = '';
+			let path = '';
 
 			parents = [].concat(parents).reverse().slice(1);
-			var pathNames = nodePath.split('/');
-			pathNames[0] = '/';
+			let pathNames = ['/'];
+			if (nodePath !== '/') {
+				pathNames = pathNames.concat(nodePath.slice(1).split('/'));
+			}
 			path = parents.map(function(parent, idx) {
 				return '<a class="breadcrumb-entry" data-folder-id="' + parent + '"><i class="fa fa-caret-right"></i> ' + pathNames[idx] + '</a>';
 			}).join(' ');
@@ -595,7 +600,6 @@ var _Files = {
 				e.preventDefault();
 
 				$('#' + $(this).data('folderId') + '_anchor').click();
-
 			});
 		}
 	},
@@ -640,32 +644,29 @@ var _Files = {
 
 		if (!d.isFile && !d.isFolder) return;
 
-		// add folder/file to global model
 		StructrModel.createFromData(d, null, false);
 
-		var files = d.files || [];
-		var folders = d.folders || [];
-		var size = d.isFolder ? (folders.length + files.length) : (d.size ? d.size : '-');
-		var icon = d.isFolder ? 'fa-folder' : _Icons.getFileIconClass(d);
+		let size = d.isFolder ? (d.foldersCount + d.filesCount) : (d.size ? d.size : '-');
+		let icon = d.isFolder ? 'fa-folder' : _Icons.getFileIconClass(d);
+		let name = d.name ? d.name : '[unnamed]';
 
 		if (_Files.isViewModeActive('list')) {
 
-			var tableBody = $('#files-table-body');
+			let tableBody = $('#files-table-body');
 
 			$('#row' + d.id, tableBody).remove();
 
-			var rowId = 'row' + d.id;
+			let rowId = 'row' + d.id;
 			tableBody.append('<tr id="' + rowId + '"' + (d.isThumbnail ? ' class="thumbnail"' : '') + '></tr>');
-			var row = $('#' + rowId);
+			let row = $('#' + rowId);
 
 			if (d.isFolder) {
-				var icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-2x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
-				row.append('<td class="file-type">' + icon_element + '</td>');
-				row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node folder"><b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 200) + '</b> <span class="id">' + d.id + '</span></div></td>');
+				let icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-2x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
+				row.append('<td class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</td>');
+				row.append('<td><div id="id_' + d.id + '" class="node folder"><b title="' + name + '" class="name_ name-abbr name-abbr-200">' + name + '</b></div></td>');
 			} else {
-				row.append('<td class="file-type"><a href="' + d.path + '" target="_blank"><i class="fa ' + icon + '"></i></a></td>');
-				row.append('<td><div id="id_' + d.id + '" data-structr_type="file" class="node file">'
-				+ '<b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_">' + fitStringToWidth(d.name ? d.name : '[unnamed]', 200) + '</b>'
+				row.append('<td class="file-icon"><a href="' + d.path + '" target="_blank"><i class="fa ' + icon + '"></i></a></td>');
+				row.append('<td><div id="id_' + d.id + '" class="node file"><b title="' + name + '" class="name_ name-abbr name-abbr-200">' + name + '</b>'
 				+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + d.size + '</span></div></div></div><span class="id">' + d.id + '</span></div></td>');
 			}
 
@@ -673,55 +674,50 @@ var _Files = {
 			row.append('<td>' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
 			row.append('<td>' + (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '') + '</td>');
 
-			_Files.registerParentLink(d, $('#id_' + d.id + '.folder').parent().prev());
-
 		} else if (_Files.isViewModeActive('tiles')) {
 
-			var tileId = 'tile' + d.id;
+			let tileId = 'tile' + d.id;
 			folderContents.append('<div id="' + tileId + '" class="tile' + (d.isThumbnail ? ' thumbnail' : '') + '"></div>');
-			var tile = $('#' + tileId);
+			let tile = $('#' + tileId);
 
 			if (d.isFolder) {
 
-				var icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-1x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
+				let icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-1x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
 
-				tile.append('<div id="id_' + d.id + '" data-structr_type="folder" class="node folder"><div class="file-type">' + icon_element + '</div>'
-						+ '<b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 80) + '</b><span class="id">' + d.id + '</span></div>');
+				tile.append('<div id="id_' + d.id + '" class="node folder"><div class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</div><b title="' + name + '" class="name_ name-abbr name-abbr-80">' + name + '</b></div>');
+
 			} else {
 
-				var iconOrThumbnail = d.isImage && !d.isThumbnail && d.tnSmall ? '<img class="tn" src="' + d.tnSmall.path + '">' : '<i class="fa ' + icon + '"></i>';
+				let iconOrThumbnail = d.isImage && !d.isThumbnail && d.tnSmall ? '<img class="tn" src="' + d.tnSmall.path + '">' : '<i class="fa ' + icon + '"></i>';
 
-				tile.append('<div id="id_' + d.id + '" data-structr_type="file" class="node file"><div class="file-type"><a href="' + d.path + '" target="_blank">' + iconOrThumbnail + '</a></div>'
-					+ '<b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_">' + fitStringToWidth(d.name ? d.name : '[unnamed]', 80) + '</b>'
+				tile.append('<div id="id_' + d.id + '" class="node file"><div class="file-icon"><a href="' + d.path + '" target="_blank">' + iconOrThumbnail + '</a></div>'
+					+ '<b title="' + name + '" class="name_ name-abbr name-abbr-80">' + name + '</b>'
 					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + size + '</span></div></div></div><span class="id">' + d.id + '</span></div>');
 			}
-
-			_Files.registerParentLink(d, $('#id_' + d.id + '.folder .file-type i'));
 
 		} else if (_Files.isViewModeActive('img')) {
 
-			var tileId = 'tile' + d.id;
+			let tileId = 'tile' + d.id;
 			folderContents.append('<div id="' + tileId + '" class="tile img-tile' + (d.isThumbnail ? ' thumbnail' : '') + '"></div>');
-			var tile = $('#' + tileId);
+			let tile = $('#' + tileId);
 
 			if (d.isFolder) {
-				var icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-1x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
 
-				tile.append('<div id="id_' + d.id + '" data-structr_type="folder" class="node folder"><div class="file-type">' + icon_element + '</div>'
-						+ '<b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 240) + '</b><span class="id">' + d.id + '</span></div>');
+				let icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-1x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
+
+				tile.append('<div id="id_' + d.id + '" class="node folder"><div class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</div><b title="' + name + '" class="name_ name-abbr name-abbr-240">' + name + '</b></div>');
+
 			} else {
 
-				var iconOrThumbnail = d.isImage && !d.isThumbnail && d.tnMid ? '<img class="tn" src="' + d.tnMid.path + '">' : '<i class="fa ' + icon + '"></i>';
+				let iconOrThumbnail = d.isImage && !d.isThumbnail && d.tnMid ? '<img class="tn" src="' + d.tnMid.path + '">' : '<i class="fa ' + icon + '"></i>';
 
-				tile.append('<div id="id_' + d.id + '" data-structr_type="file" class="node file"><div class="file-type"><a href="' + d.path + '" target="_blank">' + iconOrThumbnail + '</a></div>'
-					+ '<b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_">' + fitStringToWidth(d.name ? d.name : '[unnamed]', 240) + '</b>'
+				tile.append('<div id="id_' + d.id + '" class="node file"><div class="file-icon"><a href="' + d.path + '" target="_blank">' + iconOrThumbnail + '</a></div>'
+					+ '<b title="' + name + '" class="name_  name-abbr name-abbr-240">' + name + '</b>'
 					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + size + '</span></div></div></div><span class="id">' + d.id + '</span></div>');
 			}
-
-			_Files.registerParentLink(d, $('#id_' + d.id + '.folder .file-type i'));
 		}
 
-		var div = Structr.node(d.id);
+		let div = Structr.node(d.id);
 
 		if (!div || !div.length)
 			return;
@@ -755,13 +751,13 @@ var _Files = {
 				});
 			},
 			helper: function(event) {
-				var helperEl = $(this);
+				let helperEl = $(this);
 				selectedElements = $('.node.selected');
 				if (selectedElements.length > 1) {
 					selectedElements.removeClass('selected');
 					return $('<i class="node-helper ' + _Icons.getFullSpriteClass(_Icons.page_white_stack_icon) + '" />');
 				}
-				var hlp = helperEl.clone();
+				let hlp = helperEl.clone();
 				hlp.find('.button').remove();
 				return hlp;
 			}
@@ -769,33 +765,6 @@ var _Files = {
 
 		_Entities.appendEditPropertiesIcon(div, d);
 		_Entities.makeSelectable(div);
-
-		_Files.resize();
-	},
-	registerParentLink: function(d, triggerEl) {
-
-		// Change working dir by click on folder icon
-		triggerEl.on('click', function(e) {
-
-			e.preventDefault();
-			e.stopPropagation();
-
-			if (d.parentId) {
-
-				fileTree.jstree('open_node', $('#' + d.parentId), function() {
-					if (d.name === '..') {
-						$('#' + d.parentId + '_anchor').click();
-					} else {
-						$('#' + d.id + '_anchor').click();
-					}
-				});
-
-			} else {
-				$('#' + d.id + '_anchor').click();
-			}
-
-			return false;
-		});
 	},
 	handleFolder: function(div, d) {
 
@@ -807,15 +776,15 @@ var _Files = {
 			});
 		}
 
-		var delIcon = div.children('.delete_icon');
-		var newDelIcon = '<i title="Delete folder \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
+		var delIcon = $('.delete_icon', div);
+		var newDelIcon = $('<i title="Delete folder \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
 
 		if (delIcon && delIcon.length) {
 			delIcon.replaceWith(newDelIcon);
 		} else {
 			div.append(newDelIcon);
 		}
-		div.children('.delete_icon').on('click', function(e) {
+		newDelIcon.on('click', function(e) {
 			e.stopPropagation();
 
 			selectedElements = $('.node.selected');
@@ -880,7 +849,6 @@ var _Files = {
 				return false;
 			}
 		});
-
 	},
 	handleFile: function(div, d) {
 

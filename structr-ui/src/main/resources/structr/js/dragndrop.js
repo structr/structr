@@ -89,17 +89,14 @@ var _Dragndrop = {
 							Command.favorites('add', sourceId, function() {
 
 								blinkGreen(Structr.node(sourceId));
-
 							});
 
 						} else {
 
 							blinkRed(Structr.node(sourceId));
-
 						}
 
 						return;
-
 					}
 				}
 
@@ -154,10 +151,8 @@ var _Dragndrop = {
 					$(ui.draggable).remove();
 					sortParent = undefined;
 				}
-
 			}
 		});
-
 	},
 	makeSortable: function(element) {
 		var el = $(element);

@@ -1525,14 +1525,10 @@ var _Entities = {
 		var isProtected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
 
 		var keyIcon = $('.key_icon', parent);
-		var newKeyIcon = '<i title="Access Control and Visibility" class="key_icon button ' + _Icons.getFullSpriteClass(_Icons.key_icon) + '" />';
 		if (!(keyIcon && keyIcon.length)) {
-			parent.append(newKeyIcon);
-			keyIcon = $('.key_icon', parent);
-			if (isProtected) {
-				keyIcon.show();
-				keyIcon.addClass('donthide');
-			}
+
+			keyIcon = $('<i title="Access Control and Visibility" class="key_icon button ' + (isProtected ? 'donthide ' : '') + _Icons.getFullSpriteClass(_Icons.key_icon) + '" ' + (isProtected ? 'style="display: inline-block;"' : '') + '/>');
+			parent.append(keyIcon);
 
 			_Entities.bindAccessControl(keyIcon, entity);
 		}
@@ -1836,8 +1832,8 @@ var _Entities = {
 		var editIcon = $('.edit_props_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			parent.append('<i title="Edit Properties" class="edit_props_icon button ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" />');
-			editIcon = $('.edit_props_icon', parent);
+			editIcon = $('<i title="Edit Properties" class="edit_props_icon button ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" />');
+			parent.append(editIcon);
 		}
 		editIcon.on('click', function(e) {
 			e.stopPropagation();

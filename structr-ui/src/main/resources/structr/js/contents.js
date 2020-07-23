@@ -342,7 +342,7 @@ var _Contents = {
 				'<h2>' + path + '</h2>'
 				+ '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th>><th>Modified</th></tr></thead>'
 				+ '<tbody id="files-table-body">'
-				+ ((id !== 'root') ? '<tr id="parent-file-link"><td class="file-type"><i class="fa fa-folder-o"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td><td></td></tr>' : '')
+				+ ((id !== 'root') ? '<tr id="parent-file-link"><td class="file-icon"><i class="fa fa-folder-o"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td><td></td></tr>' : '')
 				+ '</tbody></table>'
 		);
 
@@ -380,12 +380,12 @@ var _Contents = {
 		var icon = d.isContentContainer ? 'fa-folder-o' : _Contents.getIcon(d);
 
 		if (d.isContentContainer) {
-			row.append('<td class="file-type"><i class="fa ' + icon + '"></i></td>');
+			row.append('<td class="file-icon"><i class="fa ' + icon + '"></i></td>');
 			row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node container"><b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 200) + '</b> <span class="id">' + d.id + '</span></div></td>');
 		} else {
-			row.append('<td class="file-type"><a href="javascript:void(0)"><i class="fa ' + icon + '"></i></a></td>');
+			row.append('<td class="file-icon"><a href="javascript:void(0)"><i class="fa ' + icon + '"></i></a></td>');
 			row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item"><b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_">' + (d.name ? fitStringToWidth(d.name, 200) : '[unnamed]') + '</b></td>');
-			$('.file-type', row).on('click', function() {
+			$('.file-icon', row).on('click', function() {
 				_Contents.editItem(d);
 			});
 

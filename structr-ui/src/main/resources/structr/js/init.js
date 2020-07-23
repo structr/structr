@@ -24,7 +24,7 @@ var editorCursor, ignoreKeyUp;
 var dialog, isMax = false;
 var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogHead, dialogCancelButton, dialogSaveButton, saveAndClose, loginBox, dialogCloseButton;
 var dialogId;
-var pagerType = {}, page = {}, pageSize = {}, sortKey = {}, sortOrder = {}, pagerFilters = {};
+var pagerType = {}, page = {}, pageSize = {}, sortKey = {}, sortOrder = {}, pagerFilters = {}, pagerExactFilterKeys = {};
 var dialogMaximizedKey = 'structrDialogMaximized_' + port;
 var expandedIdsKey = 'structrTreeExpandedIds_' + port;
 var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
@@ -2150,8 +2150,11 @@ var _TreeHelper = {
 	makeDroppable: function(tree, list) {
 		window.setTimeout(function() {
 			list.forEach(function(obj) {
-				StructrModel.create({id: obj.id}, null, false);
-				_TreeHelper.makeTreeElementDroppable(tree, obj.id);
+				// only load data necessary for dnd. prevent from loading the complete folder (with its files)
+				Command.get(obj.id, 'id,type,isFolder', function(data) {
+					StructrModel.createFromData(data, null, false);
+					_TreeHelper.makeTreeElementDroppable(tree, obj.id);
+				});
 			});
 		}, 500);
 	},

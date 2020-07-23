@@ -63,13 +63,21 @@ var StructrModel = {
 		var keys = Object.keys(data);
 
 		if (keys.length === 1 && keys[0] === 'id') {
-			Command.get(data.id, null, function(data) {
-				return StructrModel.createFromData(data, refId, append);
-			});
+
+			let existingObj = StructrModel.obj(data.id);
+
+			if (existingObj) {
+				return existingObj;
+			} else {
+
+				Command.get(data.id, null, function(data) {
+					return StructrModel.createFromData(data, refId, append);
+				});
+			}
+
 		} else {
 			return StructrModel.createFromData(data, refId, append);
 		}
-
 	},
 	createFromData: function(data, refId, append) {
 
@@ -365,7 +373,7 @@ var StructrModel = {
 			} else if (Structr.getClass(element) === 'folder') {
 
 				if (Structr.isModuleActive(_Files)) {
-					_Files.refreshTree();
+					_Files.refreshNode(id, newValue);
 				}
 			}
 		}
@@ -443,9 +451,8 @@ var StructrModel = {
 			} else if (element.hasClass('folder')) {
 
 				if (Structr.isModuleActive(_Files)) {
-					_Files.refreshTree();
+					_Files.refreshNode(id, obj.name);
 				}
-
 			}
 
 			var iconEl = element.children('.typeIcon');

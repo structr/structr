@@ -52,8 +52,9 @@ var _Pager = {
 		_Pager.storePagerData(id, type, page[id], pageSize[id], sortKey[id], sortOrder[id], pagerFilters[id]);
 	},
 
-	initFilters: function(id, type, filters) {
+	initFilters: function(id, type, filters, exactFilterKeys) {
 		pagerFilters[id] = filters;
+		pagerExactFilterKeys[id] = exactFilterKeys;
 		_Pager.storePagerData(id, type, page[id], pageSize[id], sortKey[id], sortOrder[id], pagerFilters[id]);
 	},
 
@@ -90,10 +91,8 @@ var _Pager = {
 			sortKey[id]   = pagerData.sort;
 			sortOrder[id] = pagerData.order;
 			if (pagerData.filters) {
-				//console.log(pagerData);
 				pagerFilters[id] = pagerFilters[id] || {};
 				$.extend(pagerFilters[id], pagerData.filters);
-				//console.log(pagerFilters[id]);
 			}
 
 			return true;
@@ -101,15 +100,27 @@ var _Pager = {
 
 		return false;
 	},
-	addPager: function (id, el, rootOnly, type, view, callback, optionalTransportFunction) {
-		_Logger.log(_LogType.PAGER, 'add Pager', type, pageSize[id], page[id], sortKey[id], sortOrder[id]);
-		var pager = new Pager(id, el, rootOnly, type, view, callback);
+	addPager: function (id, el, rootOnly, type, view, callback, optionalTransportFunction, customView) {
+
+		let pager = new Pager(id, el, rootOnly, type, view, callback);
+
 		pager.transportFunction = function() {
-			var filterAttrs = pager.getNonEmptyFilterAttributes();
+			let filterAttrs = pager.getNonEmptyFilterAttributes();
+
+			let isExactPager = false;
+
+			if (pagerExactFilterKeys[id]) {
+
+				let keysToFilter = Object.keys(filterAttrs);
+				let inExactKeys = keysToFilter.filter((k) => { return !pagerExactFilterKeys[id].includes(k); });
+
+				isExactPager = (inExactKeys.length === 0);
+			}
+
 			if (typeof optionalTransportFunction === "function") {
 				optionalTransportFunction(id, pageSize[id], page[id], filterAttrs, pager.internalCallback);
 			} else {
-				Command.query(pager.type, pageSize[id], page[id], sortKey[id], sortOrder[id], filterAttrs, pager.internalCallback, false, view);
+				Command.query(pager.type, pageSize[id], page[id], sortKey[id], sortOrder[id], filterAttrs, pager.internalCallback, isExactPager, view, customView);
 			}
 		};
 		pager.init();
@@ -177,52 +188,52 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 		this.pageCount = $('.pageCount', this.pager);
 
 		this.pageSize.on('change', function(e) {
-                    pageSize[pagerObj.id] = $(this).val();
-                    page[pagerObj.id] = 1;
-                    pagerObj.updatePagerElements();
-                    pagerObj.transportFunction();
+			pageSize[pagerObj.id] = $(this).val();
+			page[pagerObj.id] = 1;
+			pagerObj.updatePagerElements();
+			pagerObj.transportFunction();
 		});
 
 
-                let limitPager = function(inputEl) {
-                    let val = $(inputEl).val();
-                    if (val < 1 || val > pageCount[pagerObj.id]) {
-                            $(inputEl).val(page[pagerObj.id]);
-                    } else {
-                        page[pagerObj.id] = val;
-                    }
-                    pagerObj.updatePagerElements();
-                    pagerObj.transportFunction();
-                };
+		let limitPager = function(inputEl) {
+			let val = $(inputEl).val();
+			if (val < 1 || val > pageCount[pagerObj.id]) {
+					$(inputEl).val(page[pagerObj.id]);
+			} else {
+				page[pagerObj.id] = val;
+			}
+			pagerObj.updatePagerElements();
+			pagerObj.transportFunction();
+		};
 
 		this.pageNo.on('keypress', function(e) {
-                    if (e.keyCode === 13) {
-                        limitPager(this);
-                    }
+			if (e.keyCode === 13) {
+				limitPager(this);
+			}
 		});
 
 		this.pageNo.on('blur', function(e) {
-                    if (e.target.classList.contains('disabled')) return;
-                    limitPager(this);
+			if (e.target.classList.contains('disabled')) return;
+			limitPager(this);
 		});
 
-                this.pageNo.on('click', function(e) {
-                    if (e.target.classList.contains('disabled')) return;
-                    e.target.select();
+		this.pageNo.on('click', function(e) {
+			if (e.target.classList.contains('disabled')) return;
+			e.target.select();
 		});
 
 		this.pageLeft.on('click', function(e) {
-                    if (e.target.classList.contains('disabled')) return;
-                    page[pagerObj.id]--;
-                    pagerObj.updatePagerElements();
-                    pagerObj.transportFunction();
+			if (e.target.classList.contains('disabled')) return;
+			page[pagerObj.id]--;
+			pagerObj.updatePagerElements();
+			pagerObj.transportFunction();
 		});
 
 		this.pageRight.on('click', function(e) {
-                    if (e.target.classList.contains('disabled')) return;
-                    page[pagerObj.id]++;
-                    pagerObj.updatePagerElements();
-                    pagerObj.transportFunction();
+			if (e.target.classList.contains('disabled')) return;
+			page[pagerObj.id]++;
+			pagerObj.updatePagerElements();
+			pagerObj.transportFunction();
 		});
 
 		pagerObj.transportFunction();
