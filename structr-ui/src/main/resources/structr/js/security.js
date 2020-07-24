@@ -30,11 +30,13 @@ var _Security = {
 	resourceAccesses: undefined,
 	securityTabKey: 'structrSecurityTab_' + port,
 	init: function() {
+
 		_Pager.initPager('users',           'User', 1, 25, 'name', 'asc');
 		_Pager.initPager('groups',          'Group', 1, 25, 'name', 'asc');
 		_Pager.initPager('resource-access', 'ResourceAccess', 1, 25, 'signature', 'asc');
 	},
 	onload: function() {
+
 		_Security.init();
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('security'));
@@ -94,7 +96,6 @@ var _UsersAndGroups = {
 				$('#add-user-button', main).find('span').text('Add ' + $(this).val());
 			});
 
-			// list types that extend User
 			_Schema.getDerivedTypes('org.structr.dynamic.User', [], function(types) {
 				var elem = $('select#user-type');
 				types.forEach(function(type) {
@@ -120,6 +121,7 @@ var _UsersAndGroups = {
 		userElement.data('userId', user.id);
 
 		if (group) {
+
 			userElement.append('<i title="Remove user \'' + userName + '\' from group \'' + group.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.user_delete_icon) + '" />');
 
 			$('.delete_icon', userElement).on('click', function(e) {
@@ -128,7 +130,9 @@ var _UsersAndGroups = {
 					_UsersAndGroups.deactivateNodeHover(user.id, '.userid_');
 				});
 			});
+
 		} else {
+
 			userElement.append('<i title="Delete user \'' + userName + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
 
 			$('.delete_icon', userElement).on('click', function(e) {
@@ -136,6 +140,8 @@ var _UsersAndGroups = {
 				_UsersAndGroups.deleteUser(this, user);
 			});
 		}
+
+		_UsersAndGroups.makeDraggable(userElement);
 
 		return userElement;
 	},
@@ -150,31 +156,46 @@ var _UsersAndGroups = {
 
 		_Security.users.append(userDiv);
 
-		userDiv.draggable({
-			revert: 'invalid',
-			helper: 'clone',
-			stack: '.node',
-			appendTo: '#main',
-			zIndex: 99
-		});
-
 		_Entities.appendEditPropertiesIcon(userDiv, user);
 		_UsersAndGroups.setMouseOver(userDiv, user.id, '.userid_');
 	},
+	appendMembersToGroup: function(members, group, groupDiv) {
+
+		for (let member of members) {
+
+			// if model is not yet loaded (can happen for users/groups which are not part of the current page (but which are visible as members of visible groups)
+			if (!StructrModel.obj(member.id)) {
+
+				if (member.isGroup) {
+					// can have members which are not loaded yet
+					// if a user is removed from this group the model will try to filter its members array (which is null atm) which leads to an error, therefor fetch it
+					Command.get(member.id, null, (g) => {
+						StructrModel.createFromData(g, group.id, true);
+					});
+
+				} else {
+
+					// member is a user, no danger
+					StructrModel.createFromData(member, group.id, true);
+				}
+
+			} else {
+				_UsersAndGroups.appendMemberToGroup(member, group, groupDiv);
+			}
+		}
+	},
 	appendMemberToGroup: function (member, group, groupEl) {
 
-		var groupId = group.id;
-		var prefix = (member.isUser) ? '.userid_' : '.groupid_';
+		let groupId    = group.id;
+		let isExpanded = Structr.isExpanded(groupId);
 
-		var isExpanded = Structr.isExpanded(groupId);
-
-		groupEl.each(function (idx, grp) {
-			_Entities.appendExpandIcon($(grp), group, true, isExpanded);
-		});
+		_Entities.appendExpandIcon(groupEl, group, true, isExpanded);
 
 		if (!isExpanded) {
 			return;
 		}
+
+		var prefix = (member.isUser) ? '.userid_' : '.groupid_';
 
 		if (member.isUser) {
 
@@ -198,49 +219,42 @@ var _UsersAndGroups = {
 
 		} else {
 
-			groupEl.each(function (idx, grpEl) {
+			let alreadyShownInParents = _UsersAndGroups.isGroupAlreadyShown(member, groupEl);
+			let alreadyShownInMembers = $(prefix + member.id, groupEl).length > 0;
 
-				let alreadyShownInParents = _UsersAndGroups.isGroupAlreadyShown(member, $(grpEl));
-				let alreadyShownInMembers = $(prefix + member.id, grpEl).length > 0;
+			if (!alreadyShownInMembers && !alreadyShownInParents) {
 
-				if (!alreadyShownInMembers && !alreadyShownInParents) {
+				var groupDiv = _UsersAndGroups.createGroupElement(member);
 
-					var groupDiv = _UsersAndGroups.createGroupElement(member);
+				$('.delete_icon', groupDiv).remove();
 
-					$('.delete_icon', groupDiv).remove();
+				groupDiv.append('<i title="Remove \'' + member.name + '\' from group \'' + group.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.user_delete_icon) + '" />');
 
-					groupDiv.append('<i title="Remove \'' + member.name + '\' from group \'' + group.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.user_delete_icon) + '" />');
-
-					$('.delete_icon', groupDiv).on('click', function(e) {
-						e.stopPropagation();
-						Command.removeFromCollection(group.id, 'members', member.id, function () {
-							_UsersAndGroups.deactivateNodeHover(member.id, prefix);
-						});
+				$('.delete_icon', groupDiv).on('click', function(e) {
+					e.stopPropagation();
+					Command.removeFromCollection(group.id, 'members', member.id, function () {
+						_UsersAndGroups.deactivateNodeHover(member.id, prefix);
 					});
+				});
 
-					$(grpEl).append(groupDiv.css({
-						top: 0,
-						left: 0
-					}));
+				groupEl.append(groupDiv.css({
+					top: 0,
+					left: 0
+				}));
 
-					groupDiv.removeClass('disabled');
+				groupDiv.removeClass('disabled');
 
-					_Entities.appendEditPropertiesIcon(groupDiv, member);
-					_UsersAndGroups.setMouseOver(groupDiv, member.id, prefix);
+				_Entities.appendEditPropertiesIcon(groupDiv, member);
+				_UsersAndGroups.setMouseOver(groupDiv, member.id, prefix);
 
-					if (member.members === null) {
-						Command.get(member.id, null, function (fetchedGroup) {
-							fetchedGroup.members.forEach(function(subMember) {
-								_UsersAndGroups.appendMemberToGroup(subMember, member, groupDiv);
-							});
-						});
-					} else if (member.members && member.members.length) {
-						member.members.forEach(function(subMember) {
-							_UsersAndGroups.appendMemberToGroup(subMember, member, groupDiv);
-						});
-					}
+				if (member.members === null) {
+					Command.get(member.id, null, function (fetchedGroup) {
+						_UsersAndGroups.appendMembersToGroup(fetchedGroup.members, member, groupDiv);
+					});
+				} else if (member.members && member.members.length) {
+					_UsersAndGroups.appendMembersToGroup(member.members, member, groupDiv);
 				}
-			});
+			}
 		}
 	},
 	isGroupAlreadyShown: function(group, groupEl) {
@@ -302,23 +316,7 @@ var _UsersAndGroups = {
 			_UsersAndGroups.deleteGroup(this, group);
 		});
 
-		return groupElement;
-	},
-	appendGroupElement: function(element, group) {
-
-		var hasChildren = group.members && group.members.length;
-
-		_Logger.log(_LogType.SECURTIY, 'appendGroupElement', group, hasChildren);
-
-		var groupDiv = _UsersAndGroups.createGroupElement(group);
-		//$('.typeIcon', groupDiv).removeClass('typeIcon-nochildren');
-		element.append(groupDiv);
-
-		_Entities.appendExpandIcon(groupDiv, group, hasChildren, Structr.isExpanded(group.id));
-		_Entities.appendEditPropertiesIcon(groupDiv, group);
-		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.groupid_');
-
-		groupDiv.droppable({
+		groupElement.droppable({
 			accept: '.user, .group',
 			greedy: true,
 			hoverClass: 'nodeHover',
@@ -336,29 +334,29 @@ var _UsersAndGroups = {
 					if (nodeId !== group.id) {
 						Command.appendMember(nodeId, group.id);
 					} else {
-						new MessageBuilder()
-								.title("Warning")
-								.warning("Prevented adding group as a member of itself")
-								.show();
+						new MessageBuilder().title("Warning").warning("Prevented adding group as a member of itself").show();
 					}
-				} else {
-					_Logger.log(_LogType.SECURTIY, 'drop on group -> could not identify node/user', ui.draggable);
 				}
 			}
 		});
 
-		groupDiv.draggable({
-			revert: 'invalid',
-			helper: 'clone',
-			stack: '.node',
-			appendTo: '#main',
-			zIndex: 99
-		});
+		_UsersAndGroups.makeDraggable(groupElement);
+
+		return groupElement;
+	},
+	appendGroupElement: function(element, group) {
+
+		var hasChildren = group.members && group.members.length;
+
+		var groupDiv = _UsersAndGroups.createGroupElement(group);
+		element.append(groupDiv);
+
+		_Entities.appendExpandIcon(groupDiv, group, hasChildren, Structr.isExpanded(group.id));
+		_Entities.appendEditPropertiesIcon(groupDiv, group);
+		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.groupid_');
 
 		if (hasChildren) {
-			group.members.forEach(function(member) {
-				_UsersAndGroups.appendMemberToGroup(member, group, groupDiv);
-			});
+			_UsersAndGroups.appendMembersToGroup(group.members, group, groupDiv);
 		}
 
 		return groupDiv;
@@ -395,6 +393,15 @@ var _UsersAndGroups = {
 		var nodes = $(prefix + id);
 		nodes.each(function (i, el) {
 			$(el).removeClass('nodeHover').children('i.button').hide();
+		});
+	},
+	makeDraggable: function(el) {
+		el.draggable({
+			revert: 'invalid',
+			helper: 'clone',
+			stack: '.node',
+			appendTo: '#main',
+			zIndex: 99
 		});
 	}
 };

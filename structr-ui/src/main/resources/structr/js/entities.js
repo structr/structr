@@ -1850,17 +1850,12 @@ var _Entities = {
 	},
 	appendExpandIcon: function(el, entity, hasChildren, expanded) {
 
-		_Logger.log(_LogType.ENTITIES, '_Entities.appendExpandIcon', el, entity, hasChildren, expanded);
-
 		var button = $(el.children('.expand_icon').first());
 		if (button && button.length) {
-			_Logger.log(_LogType.ENTITIES, 'Expand icon already existing', el, button);
 			return;
 		}
 
 		if (hasChildren) {
-
-			_Logger.log(_LogType.ENTITIES, 'appendExpandIcon hasChildren?', hasChildren, 'expand?', expanded);
 
 			var typeIcon = $(el.children('.typeIcon').first());
 			var icon = expanded ? _Icons.expanded_icon : _Icons.collapsed_icon;
@@ -2109,35 +2104,29 @@ var _Entities = {
 			pages.animate({
 				scrollTop: el.offset().top - pages.offset().top + pages.scrollTop()
 			});
-
 		}
-
 	},
 	toggleElement: function(element, expanded) {
 
 		var el = $(element);
 		var id = Structr.getId(el) || Structr.getComponentId(el) || Structr.getGroupId(el);
 
-		_Logger.log(_LogType.ENTITIES, 'toggleElement: ', el, id);
-
 		var b = el.children('.expand_icon').first();
 		var displayName = getElementDisplayName(Structr.entity(id));
 
 		if (_Entities.isExpanded(element)) {
 
-			$.each(el.children('.node'), function(i, child) {
-				$(child).remove();
-			});
+			el.children('.node').remove();
 
 			b.removeClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon))
 				.addClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon))
 				.prop('title', 'Expand ' + displayName);
 
 			Structr.removeExpandedNode(id);
+
 		} else {
 
 			if (!expanded) {
-				_Logger.log(_LogType.ENTITIES, 'toggleElement: fetch children', id);
 				Command.children(id);
 			}
 
@@ -2147,7 +2136,6 @@ var _Entities = {
 
 			Structr.addExpandedNode(id);
 		}
-
 	},
 	makeAttributeEditable: function(parentElement, id, attributeSelector, attributeName, width, callback) {
 		var w = width || 200;

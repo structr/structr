@@ -757,9 +757,9 @@ StructrGroup.prototype.removeUser = function(userId) {
 	});
 
 	if (Structr.isModuleActive(_Security)) {
-		var groupEl = Structr.node(this.id, '.groupid_');
+		var groupEl = $('.groupid_' + this.id);
 		if (groupEl && groupEl.length) {
-			$('.userid_' + userId, groupEl).remove();
+			groupEl.children('.userid_' + userId).remove();
 
 			if (this.members.length === 0) {
 				_Entities.removeExpandIcon(groupEl);

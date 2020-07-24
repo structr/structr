@@ -282,7 +282,7 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 	 * @returns {undefined}
 	 */
 	this.transportFunction = function () {
-		console.warning('default implementation does nothing!');
+		console.warn('default implementation does nothing!');
 	};
 
 	/**
@@ -292,7 +292,6 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 	this.cleanupFunction = function () {
 		$('.node', pagerObj.el).remove();
 	};
-
 
 	/**
 	 * activate the filter elements for the pager
