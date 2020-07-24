@@ -1209,7 +1209,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 			final Object result = ScriptTestHelper.testExternalScript(ctx, UiScriptingTest.class.getResourceAsStream("/test/scripting/testJavaScriptQuirksDuckTypingNumericalMapIndexConversion.js"));
 
-			final String expectedResult = "{\n\t\\\"result\\\": {\n\t\t\\\"24\\\": \\\"jack bauer\\\"\n\t}\n}";
+			final String expectedResult = "{\n\t\"result\": {\n\t\t\"24\": \"jack bauer\"\n\t}\n}";
 
 			assertEquals("Result should be a JSON string! Maps with numerical indexes should work.", expectedResult, result);
 
