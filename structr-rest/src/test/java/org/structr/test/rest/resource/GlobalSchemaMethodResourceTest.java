@@ -113,7 +113,7 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(200)
 				.body("result.name",  equalTo("test"))
-				.body("result.count", equalTo(1.0f))
+				.body("result.count", equalTo(1))
 			.when()
 				.post(concat("/maintenance/globalSchemaMethods/myTestMethod02"));
 

@@ -450,7 +450,7 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			final ActionContext ctx = new ActionContext(securityContext, null);
 
-			assertEquals("Calling group.addMember(user) should be possible from JavaScript!", 1.0, Scripting.evaluate(ctx, null, addMemberScript, "test"));
+			assertEquals("Calling group.addMember(user) should be possible from JavaScript!", 1, Scripting.evaluate(ctx, null, addMemberScript, "test"));
 
 			tx.success();
 
