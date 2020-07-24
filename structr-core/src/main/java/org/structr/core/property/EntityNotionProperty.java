@@ -18,10 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -30,15 +26,11 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
 import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.EmptySearchAttribute;
+import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.notion.Notion;
 
 /**
@@ -156,84 +148,7 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 
 	@Override
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, T searchValue, boolean exactMatch, final Query query) {
-
-		final Predicate<GraphObject> predicate    = query != null ? query.toPredicate() : null;
-		final SourceSearchAttribute attr          = new SourceSearchAttribute(occur);
-		final Set<GraphObject> intersectionResult = new LinkedHashSet<>();
-		boolean alreadyAdded                      = false;
-
-		try {
-
-			if (searchValue != null && !StringUtils.isBlank(searchValue.toString())) {
-
-				final App app                          = StructrApp.getInstance(securityContext);
-				final PropertyKey key                  = notion.getPrimaryPropertyKey();
-				final PropertyConverter inputConverter = key != null ? key.inputConverter(securityContext) : null;
-
-				// transform search values using input convert of notion property
-				final Object transformedValue          = inputConverter != null ? inputConverter.convert(searchValue) : searchValue;
-
-				if (exactMatch) {
-
-					final List<AbstractNode> result = app.nodeQuery(entityProperty.relatedType()).and(key, transformedValue).getAsList();
-
-					for (AbstractNode node : result) {
-
-						switch (occur) {
-
-							case REQUIRED:
-
-								if (!alreadyAdded) {
-
-									// the first result is the basis of all subsequent intersections
-									intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
-
-									// the next additions are intersected with this one
-									alreadyAdded = true;
-
-								} else {
-
-									intersectionResult.retainAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
-								}
-
-								break;
-
-							case OPTIONAL:
-								intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
-								break;
-
-							case FORBIDDEN:
-								break;
-						}
-					}
-
-				} else {
-
-					final List<AbstractNode> result = app.nodeQuery(entityProperty.relatedType()).and(key, transformedValue, false).getAsList();
-
-					// loose search behaves differently, all results must be combined
-					for (AbstractNode node : result) {
-
-						intersectionResult.addAll(entityProperty.getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
-					}
-				}
-
-				attr.setResult(intersectionResult);
-
-			} else {
-
-				// experimental filter attribute that
-				// removes entities with a non-empty
-				// value in the given field
-				return new EmptySearchAttribute(this, null);
-			}
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-		}
-
-		return attr;
+		return new GraphSearchAttribute(notion.getPrimaryPropertyKey(), entityProperty, searchValue, occur, exactMatch);
 	}
 
 	@Override

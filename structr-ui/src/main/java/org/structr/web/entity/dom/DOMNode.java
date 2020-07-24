@@ -1911,7 +1911,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		final String name = thisNode.getProperty(DOMNode.name);
 		if (name!= null) {
 
-			for (final DOMNode syncedNode : thisNode.getSyncedNodes()) {
+			final List<DOMNode> syncedNodes = Iterables.toList(thisNode.getSyncedNodes());
+			for (final DOMNode syncedNode : syncedNodes) {
 
 				syncedNode.setProperty(DOMNode.name, name);
 			}

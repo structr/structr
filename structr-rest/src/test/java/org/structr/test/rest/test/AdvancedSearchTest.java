@@ -86,6 +86,8 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 		String test23 = createEntity("/test_eights", "{ name: test23, testSixIds: [", test21, ",", test22, "], aString: string23, anInt: 23 }");
 
+		Settings.CypherDebugLogging.setValue(true);
+
 		// test simple related search with one object,
 		// expected result is a list of two elements:
 		// test05 and test07
@@ -381,6 +383,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			.when()
 				.get(concat("/test_sixs?sort=name&testSevenName=&testEightStrings=string23&aString=string21&anInt=21"));
 
+		Settings.CypherDebugLogging.setValue(false);
 	}
 
 	@Test

@@ -34,9 +34,16 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates) {
+	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates, final boolean hasOptionalParts) {
 
-		final StringBuilder buf = new StringBuilder("MATCH (n");
+		final StringBuilder buf = new StringBuilder();
+
+		if (hasOptionalParts) {
+
+			buf.append("OPTIONAL ");
+		}
+	
+		buf.append("MATCH (n");
 
 		// Only add :NodeInterface label when query has predicates, single label queries are much faster.
 		if (hasPredicates) {

@@ -162,7 +162,7 @@ public class StructrApp implements App {
 			// will be set to true below if at least one result was processed
 			hasMore = false;
 
-			for (final T t : this.nodeQuery(type).pageSize(1000).page(1).getAsList()) {
+			for (final T t : this.nodeQuery(type).pageSize(Settings.FetchSize.getValue()).page(1).getAsList()) {
 
 				cmd.execute(t);
 				hasMore = true;

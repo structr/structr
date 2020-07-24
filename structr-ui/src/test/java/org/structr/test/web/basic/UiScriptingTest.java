@@ -75,7 +75,9 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
@@ -1192,6 +1194,32 @@ public class UiScriptingTest extends StructrUiTest {
 				.body("html.body.div",   Matchers.equalTo("ABCDEFGHIJKLMNOPRSTUVW"))
 			.when()
 			.get("/test/" + userId + "?myParam=myValue&locale=de_DE");
+	}
+
+	@Test
+	public void testJavaScriptQuirksDuckTypingNumericalMapIndexConversion () {
+
+		/*
+			This test makes sure that javascript maps with numerical string indexes (e.g. "24") can be converted using the recursivelyConvertMapToGraphObjectMap function
+		*/
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final Object result = ScriptTestHelper.testExternalScript(ctx, UiScriptingTest.class.getResourceAsStream("/test/scripting/testJavaScriptQuirksDuckTypingNumericalMapIndexConversion.js"));
+
+			final String expectedResult = "{\n\t\"result\": {\n\t\t\"24\": \"jack bauer\"\n\t}\n}";
+
+			assertEquals("Result should be a JSON string! Maps with numerical indexes should work.", expectedResult, result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
 	}
 
 	// ----- private methods -----

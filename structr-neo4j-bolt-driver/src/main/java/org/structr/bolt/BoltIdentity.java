@@ -22,7 +22,7 @@ import org.structr.api.graph.Identity;
 
 /**
  */
-class BoltIdentity implements Identity {
+public class BoltIdentity implements Identity {
 
 	private long id = -1L;
 

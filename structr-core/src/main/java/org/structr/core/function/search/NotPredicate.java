@@ -48,7 +48,16 @@ public class NotPredicate extends AbstractPredicate {
 				} else {
 
 					query.not();
-					query.and(key, value, p.isExact());
+
+					if (p.isEmptyPredicate()) {
+
+						query.blank(key);
+
+					} else {
+
+						query.and(key, value, p.isExact());
+					}
+
 					query.parent();
 				}
 			}

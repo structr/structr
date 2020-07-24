@@ -205,6 +205,8 @@ public class StructrSchema {
 
 		} catch (Exception ex) {
 
+			logger.error(ExceptionUtils.getStackTrace(ex));
+
 			if (ex instanceof FrameworkException) {
 				throw (FrameworkException)ex;
 			}

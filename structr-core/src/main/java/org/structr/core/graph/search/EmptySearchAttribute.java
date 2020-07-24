@@ -57,6 +57,7 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 	@Override
 	public boolean includeInResult(GraphObject entity) {
 
+		/*
 		Occurrence occur = getOccurrence();
 		T searchValue    = getValue();
 		T nodeValue      = entity.getProperty(getKey());
@@ -84,6 +85,7 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 				}
 			}
 		}
+		*/
 
 		return true;
 	}

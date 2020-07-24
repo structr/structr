@@ -44,9 +44,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
-import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
@@ -430,72 +431,43 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 					if (searchValue instanceof Map) {
 
 						final Map<String, Object> searchMap = (Map)searchValue;
-						final Object contains               = searchMap.get("_contains");
-						final Object equals                 = searchMap.get("_equals");
+						Object contains                     = searchMap.get("_contains");
+						Object equals                       = searchMap.get("_equals");
 
 						if (relatedType != null) {
 
-							// relationship property
-							final PropertyKey searchPropertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(key.relatedType(), searchKey, false);
-							if (searchPropertyKey != null) {
-
-								final Query<GraphObject> query = StructrApp.getInstance(securityContext).nodeQuery(relatedType);
-								Occurrence occurrence          = Occurrence.REQUIRED;
-								boolean exactMatch             = true;
+							final PropertyKey notionKey = StructrApp.key(relatedType, searchKey);
+							if (notionKey != null) {
 
 								if (equals != null) {
 
-									query.and(searchPropertyKey, equals);
-									exactMatch = true;
+									final PropertyConverter conv = notionKey.inputConverter(securityContext);
+									if (conv != null) {
+
+										equals = conv.convert(equals);
+									}
+
+									addAttribute(key, new GraphSearchAttribute(notionKey, key, equals, Occurrence.REQUIRED, true), Occurrence.REQUIRED);
+
+									// primitive property
+									//addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, equals, true, null), Occurrence.REQUIRED);
 
 								} else if (contains != null) {
 
-									query.and(searchPropertyKey, contains, false);
-									occurrence = Occurrence.OPTIONAL;
-									exactMatch = false;
-								}
+									final PropertyConverter conv = notionKey.inputConverter(securityContext);
+									if (conv != null) {
 
-								// add sources that will be merged later on
-								if (key.isCollection()) {
-
-									final List<GraphObject> list = query.getAsList();
-									if (list.isEmpty()) {
-
-										addAttribute(key, new SourceSearchAttribute(Occurrence.REQUIRED), occurrence);
-
-									} else {
-
-										addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, list, exactMatch, null), Occurrence.REQUIRED);
+										contains = conv.convert(contains);
 									}
 
-								} else {
+									addAttribute(key, new GraphSearchAttribute(notionKey, key, contains, Occurrence.REQUIRED, false), Occurrence.REQUIRED);
 
-									final List<GraphObject> list = query.getAsList();
-									if (list.isEmpty()) {
-
-										addAttribute(key, new SourceSearchAttribute(Occurrence.REQUIRED), occurrence);
-
-									} else {
-
-										// collect all results in a single SourceSearchAttribute instead of using one for each item
-										SearchAttribute attribute = null;
-
-										for (final GraphObject candidate : query.getAsList()) {
-
-											final SearchAttribute attr = key.getSearchAttribute(securityContext, Occurrence.REQUIRED, candidate, exactMatch, null);
-											if (attribute == null) {
-
-												attribute = attr;
-
-												addAttribute(key, attribute, Occurrence.REQUIRED);
-
-											} else {
-
-												attribute.addToResult(attr.getResult());
-											}
-										}
-									}
+									//addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, contains, false, null), Occurrence.REQUIRED);
 								}
+
+							} else {
+
+								// throw error here!
 							}
 
 						} else {
@@ -625,4 +597,73 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		}
 	}
 }
+
+
+
+/**
+
+
+							// relationship property
+							final PropertyKey searchPropertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(key.relatedType(), searchKey, false);
+							if (searchPropertyKey != null) {
+
+								final Query<GraphObject> query = StructrApp.getInstance(securityContext).nodeQuery(relatedType);
+								Occurrence occurrence          = Occurrence.REQUIRED;
+								boolean exactMatch             = true;
+
+								if (equals != null) {
+
+									query.and(searchPropertyKey, equals);
+									exactMatch = true;
+
+								} else if (contains != null) {
+
+									query.and(searchPropertyKey, contains, false);
+									occurrence = Occurrence.OPTIONAL;
+									exactMatch = false;
+								}
+
+								// add sources that will be merged later on
+								if (key.isCollection()) {
+
+									final List<GraphObject> list = query.getAsList();
+									if (list.isEmpty()) {
+
+										addAttribute(key, new SourceSearchAttribute(Occurrence.REQUIRED), occurrence);
+
+									} else {
+
+										addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, list, exactMatch, null), Occurrence.REQUIRED);
+									}
+
+								} else {
+
+									final List<GraphObject> list = query.getAsList();
+									if (list.isEmpty()) {
+
+										addAttribute(key, new SourceSearchAttribute(Occurrence.REQUIRED), occurrence);
+
+									} else {
+
+										// collect all results in a single SourceSearchAttribute instead of using one for each item
+										SearchAttribute attribute = null;
+
+										for (final GraphObject candidate : query.getAsList()) {
+
+											final SearchAttribute attr = key.getSearchAttribute(securityContext, Occurrence.REQUIRED, candidate, exactMatch, null);
+											if (attribute == null) {
+
+												attribute = attr;
+
+												addAttribute(key, attribute, Occurrence.REQUIRED);
+
+											} else {
+
+												attribute.addToResult(attr.getResult());
+											}
+										}
+									}
+								}
+							}
+ */
 

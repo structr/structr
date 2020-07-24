@@ -835,38 +835,6 @@ var _Code = {
 		fastRemoveAllChildren(codeContents[0]);
 		fastRemoveAllChildren($('#code-button-container')[0]);
 	},
-	fileOrFolderCreationNotification: function (newFileOrFolder) {
-		if ((currentWorkingDir === undefined || currentWorkingDir === null) && newFileOrFolder.parent === null) {
-			_Code.appendFileOrFolder(newFileOrFolder);
-		} else if ((currentWorkingDir !== undefined && currentWorkingDir !== null) && newFileOrFolder.parent && currentWorkingDir.id === newFileOrFolder.parent.id) {
-			_Code.appendFileOrFolder(newFileOrFolder);
-		}
-	},
-	registerParentLink: function(d, triggerEl) {
-
-		// Change working dir by click on folder icon
-		triggerEl.on('click', function(e) {
-
-			e.preventDefault();
-			e.stopPropagation();
-
-			if (d.parentId) {
-
-				codeTree.jstree('open_node', $('#' + d.parentId), function() {
-					if (d.name === '..') {
-						$('#' + d.parentId + '_anchor').click();
-					} else {
-						$('#' + d.id + '_anchor').click();
-					}
-				});
-
-			} else {
-				$('#' + d.id + '_anchor').click();
-			}
-
-			return false;
-		});
-	},
 	editPropertyContent: function(entity, key, element, behaviorOverride = {}) {
 
 		let text       = entity[key] || '';
@@ -968,7 +936,6 @@ var _Code = {
 					_Code.createMethodAndRefreshTree('SchemaMethod', 'onSave', schemaNodeId);
 				});
 			});
-
 		}
 
 		if (showCreateGlobalButton) {
@@ -981,7 +948,6 @@ var _Code = {
 					_Code.createMethodAndRefreshTree('SchemaMethod', $('#schema-method-name').val() || 'unnamed');
 				});
 			});
-
 		}
 
 		if (showCreateTypeButton) {
@@ -994,7 +960,6 @@ var _Code = {
 					_Code.createMethodAndRefreshTree('SchemaNode', $('#schema-type-name').val());
 				});
 			});
-
 		}
 	},
 	createMethodAndRefreshTree: function(type, name, schemaNode, callback) {

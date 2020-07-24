@@ -171,25 +171,24 @@ public class SecurityContext {
 
 			try {
 				final String acceptedContentType = request.getHeader("Accept");
-				//if (acceptedContentType != null && acceptedContentType.startsWith("application/json")) {
+				final Matcher matcher            = customViewPattern.matcher(acceptedContentType);
 
-					final Matcher matcher = customViewPattern.matcher(acceptedContentType);
-					if (matcher.matches()) {
+				if (matcher.matches()) {
 
-						customView = new LinkedHashSet<>();
+					customView = new LinkedHashSet<>();
 
-						final String properties = matcher.group(1);
-						final String[] parts = properties.split("[,]+");
-						for (final String part : parts) {
+					final String properties = matcher.group(1);
+					final String[] parts    = properties.split("[,]+");
 
-							final String p = part.trim();
-							if (p.length() > 0) {
+					for (final String part : parts) {
 
-								customView.add(p);
-							}
+						final String p = part.trim();
+						if (p.length() > 0) {
+
+							customView.add(p);
 						}
 					}
-				//}
+				}
 
 			} catch (Throwable ignore) {
 			}

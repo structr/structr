@@ -1531,6 +1531,60 @@ public class SystemTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testNumberOfRelationshipsEqualToFetchSize() {
+
+		final int num = 100;
+
+		// setup: create groups
+		try (final Tx tx = app.tx()) {
+
+			final Group root      = app.create(Group.class, "root");
+			final PropertyKey key = StructrApp.key(Group.class, "groups");
+
+			for (int i=0; i<num; i++) {
+
+				app.create(Group.class,
+					new NodeAttribute<>(AbstractNode.name, "child" + i),
+					new NodeAttribute<>(key, Arrays.asList(root))
+				);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		Settings.CypherDebugLogging.setValue(true);
+		Settings.FetchSize.setValue(num);
+
+		// test: load all groups
+		try (final Tx tx = app.tx()) {
+
+			final Group root = app.nodeQuery(Group.class).andName("root").getFirst();
+			int count        = 0;
+
+			for (final Principal p : root.getMembers()) {
+
+				assertTrue("RelationshipQuery returns too many results", count++ < num);
+			}
+
+			System.out.println("count: " + count);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		Settings.CypherDebugLogging.setValue(false);
+		Settings.FetchSize.setValue(Settings.FetchSize.getDefaultValue());
+	}
+
+
 	// ----- nested classes -----
 	private static class TestRunner implements Runnable {
 

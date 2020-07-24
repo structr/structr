@@ -70,6 +70,9 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextA
 		type.addStringProperty("mountTargetFileType",      PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("mountTargetFolderType",    PropertyView.Public, PropertyView.Ui);
 
+		type.addFunctionProperty("filesCount", "public").setReadFunction("size(this.files)").setTypeHint("int");
+		type.addFunctionProperty("foldersCount", "public").setReadFunction("size(this.folders)").setTypeHint("int");
+
 		type.addPropertyGetter("mountTarget", String.class);
 		type.addPropertyGetter("mountTargetFileType", String.class);
 		type.addPropertyGetter("mountTargetFolderType", String.class);
