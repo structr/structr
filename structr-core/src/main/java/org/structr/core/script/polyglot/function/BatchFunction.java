@@ -18,6 +18,7 @@
  */
 package org.structr.core.script.polyglot.function;
 
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.slf4j.Logger;
@@ -26,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
+import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -46,27 +48,40 @@ public class BatchFunction implements ProxyExecutable {
 		if (arguments != null && arguments.length > 0) {
 			Object[] unwrappedArgs = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
 
-			boolean runInBackground = unwrappedArgs.length >= 3 ? (Boolean) unwrappedArgs[2] : false;
+			try {
+				Context context = ContextFactory.getContext("js", actionContext, null);
 
-			final Thread workerThread = new Thread(() -> {
+				context.leave();
 
-						// Execute main batch function
-						Object result = null;
+				final Thread workerThread = new Thread(() -> {
 
-					if 	(unwrappedArgs[0] instanceof PolyglotWrapper.FunctionWrapper) {
+					// Execute main batch function
+					Object result = null;
+
+					if (unwrappedArgs[0] instanceof PolyglotWrapper.FunctionWrapper) {
+
+						Context innerContext = null;
+						try {
+							innerContext = ContextFactory.getContext("js", actionContext, null);
+						} catch (FrameworkException ex) {
+							logger.error("Could not retrieve context in BatchFunction worker.", ex);
+							return;
+						}
+						innerContext.enter();
+
 						// Execute batch function until it returns anything but true
 						do {
 							boolean hasError = false;
 
 							try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-								result = PolyglotWrapper.unwrap(actionContext, ((PolyglotWrapper.FunctionWrapper)unwrappedArgs[0]).execute());
+								result = PolyglotWrapper.unwrap(actionContext, ((PolyglotWrapper.FunctionWrapper) unwrappedArgs[0]).execute());
 								tx.success();
 							} catch (FrameworkException ex) {
 
 								hasError = true;
 								// Log if no error handler is given
-								if (unwrappedArgs.length < 2 || ! (unwrappedArgs[1] instanceof PolyglotWrapper.FunctionWrapper)) {
+								if (unwrappedArgs.length < 2 || !(unwrappedArgs[1] instanceof PolyglotWrapper.FunctionWrapper)) {
 
 									Function.logException(logger, ex, "Error in batch function: {}", new Object[]{ex.getMessage()});
 								}
@@ -79,27 +94,39 @@ public class BatchFunction implements ProxyExecutable {
 									// Execute error handler
 									try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-										result = PolyglotWrapper.unwrap(actionContext, ((PolyglotWrapper.FunctionWrapper)unwrappedArgs[1]).execute());
+										result = PolyglotWrapper.unwrap(actionContext, ((PolyglotWrapper.FunctionWrapper) unwrappedArgs[1]).execute());
 										tx.success();
+
+										// Error has been handled, clear error buffer.
+										actionContext.getErrorBuffer().setStatus(0);
+										actionContext.getErrorBuffer().getErrorTokens().clear();
 									} catch (FrameworkException ex) {
 
 										Function.logException(logger, ex, "Error in batch error handler: {}", new Object[]{ex.getMessage()});
 									}
+
 								}
 							}
 
 						} while (result != null && result.equals(true));
+
+						innerContext.leave();
 					}
 
 
+				});
 
-			});
+				workerThread.start();
+				try {
+					workerThread.join();
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
+				context.enter();
 
-			workerThread.start();
+			} catch (FrameworkException ex) {
 
-			if (!runInBackground) {
-
-				try { workerThread.join(); } catch (Throwable t) { t.printStackTrace(); }
+				logger.error("Exception in BatchFunction.", ex);
 			}
 		}
 

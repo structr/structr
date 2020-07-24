@@ -239,6 +239,7 @@ public class Scripting {
 		}
 
 		Context context = ContextFactory.getContext("js", actionContext, entity);
+		context.enter();
 
 		try {
 			Object result = PolyglotWrapper.unwrap(actionContext, context.eval("js", embedInFunction(snippet.getSource())));
@@ -266,6 +267,9 @@ public class Scripting {
 		} catch (Throwable ex) {
 
 			throw new FrameworkException(422, ex.getMessage(), new ScriptingError(ex));
+		} finally {
+
+			context.leave();
 		}
 
 	}
@@ -302,6 +306,7 @@ public class Scripting {
 		try {
 
 			final Context context = ContextFactory.getContext(engineName, actionContext, entity);
+			context.enter();
 
 			final StringBuilder wrappedScript = new StringBuilder();
 
@@ -330,8 +335,8 @@ public class Scripting {
 			}
 
 			context.eval(engineName, wrappedScript.toString());
-
 			final Object result = PolyglotWrapper.unwrap(actionContext, context.getBindings(engineName).getMember("main").execute());
+			context.leave();
 
 			if (actionContext.hasError()) {
 

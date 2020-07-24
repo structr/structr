@@ -218,5 +218,10 @@ public abstract class PolyglotWrapper {
 
 			return PolyglotWrapper.unwrap(actionContext, func.execute(arguments));
 		}
+
+		public Value getValue() {
+
+			return func;
+		}
 	}
 }
