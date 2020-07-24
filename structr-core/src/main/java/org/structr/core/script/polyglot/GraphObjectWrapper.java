@@ -163,7 +163,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 				final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
 
-				if (!propKey.valueType().isAssignableFrom(unwrappedValue.getClass())) {
+				if (unwrappedValue != null && !propKey.valueType().isAssignableFrom(unwrappedValue.getClass())) {
 
 					unwrappedValue = propKey.inputConverter(actionContext.getSecurityContext()).convert(unwrappedValue);
 				}
