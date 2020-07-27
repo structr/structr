@@ -2229,6 +2229,9 @@ var _Code = {
 				_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.exec_blue_icon), 'run', 'Run method', function() {
 					_Code.runGlobalSchemaMethod(method);
 				});
+
+				$('.checkbox.hidden', buttons).removeClass('hidden');
+				Structr.activateCommentsInElement(buttons);
 			}
 
 			_Code.updateDirtyFlag(method);
