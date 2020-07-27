@@ -541,9 +541,10 @@ var _Files = {
 				filterOptions.isThumbnail = false;
 			}
 
-			_Pager.initFilters('filesystem-files', 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
+			let pagerId = 'filesystem-files';
+			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			var filesPager = _Pager.addPager('filesystem-files', folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isThumbnail,path,size,owner');
+			var filesPager = _Pager.addPager(pagerId, folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isThumbnail,path,size,owner');
 
 			filesPager.cleanupFunction = function () {
 				var toRemove = $('.node.file', filesPager.el).closest( (_Files.isViewModeActive('list') ? 'tr' : '.tile') );
