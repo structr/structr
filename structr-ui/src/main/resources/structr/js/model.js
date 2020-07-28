@@ -163,11 +163,6 @@ var StructrModel = {
 			return;
 		}
 
-		if (obj.content) {
-			// only show the first 40 characters for content elements
-			obj.content = obj.content.substring(0, 40);
-		}
-
 		obj.append(refId);
 
 	},
