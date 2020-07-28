@@ -92,12 +92,6 @@ var _Files = {
 		_Files.moveResizer();
 		Structr.resize();
 
-		if (folderContents) {
-			folderContents.find('.node').each(function() {
-				_Entities.setMouseOver($(this), true);
-			});
-		}
-
 		$('div.xml-mapping').css({ height: dialogBox.height()- 118 });
 
 	},
@@ -729,6 +723,8 @@ var _Files = {
 
 		if (!div || !div.length)
 			return;
+
+		_Entities.setMouseOver(div, true);
 
 		div.on('remove', function() {
 			div.closest('tr').remove();
