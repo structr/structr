@@ -342,9 +342,6 @@ var _Dashboard = {
 	displayVersion: function(obj) {
 		return (obj.version ? ' (v' + obj.version + ')': '');
 	},
-	displayName: function(obj) {
-		return fitStringToWidth(obj.name, 160);
-	},
 	clearLocalStorageOnServer: function(userId) {
 
 		Command.setProperty(userId, 'localStorage', null, false, function() {

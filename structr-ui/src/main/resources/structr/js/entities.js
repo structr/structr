@@ -1250,7 +1250,7 @@ var _Entities = {
 						}
 
 						var displayName = node.title || node.name || node.id;
-						box.append('<div title="' + displayName + '" " class="_' + node.id + ' node element">' + fitStringToWidth(displayName, 120) + '</div>');
+						box.append('<div title="' + displayName + '" " class="_' + node.id + ' node element abbr-ellipsis abbr-120">' + displayName + '</div>');
 						$('._' + node.id, box).on('click', function() {
 
 							var nodeEl = $(this);
@@ -1274,10 +1274,8 @@ var _Entities = {
 									dialogCancelButton.click();
 								});
 							}
-
 						});
 					});
-
 				};
 
 				if (searchString.trim() === '*') {
@@ -1285,7 +1283,6 @@ var _Entities = {
 				} else {
 					Command.search(searchString, type, false, resultHandler);
 				}
-
 
 			} else if (e.keyCode === 27) {
 
@@ -1376,7 +1373,7 @@ var _Entities = {
 	},
 	appendRelatedNode: function(cell, node, onDelete) {
 		var displayName = _Crud.displayName(node);
-		cell.append('<div title="' + displayName + '" class="_' + node.id + ' node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
+		cell.append('<div title="' + displayName + '" class="_' + node.id + ' node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_"><span class="abbr-ellipsis abbr-80">' + displayName + '</span><i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 		var nodeEl = $('._' + node.id, cell);
 
 		nodeEl.on('click', function(e) {
@@ -2137,8 +2134,7 @@ var _Entities = {
 			Structr.addExpandedNode(id);
 		}
 	},
-	makeAttributeEditable: function(parentElement, id, attributeSelector, attributeName, width, callback) {
-		var w = width || 200;
+	makeAttributeEditable: function(parentElement, id, attributeSelector, attributeName, callback) {
 		var attributeElement = parentElement.find(attributeSelector).first();
 		var attributeElementTagName = attributeElement.prop('tagName').toLowerCase();
 		var oldValue = $.trim(attributeElement.attr('title'));
@@ -2150,10 +2146,10 @@ var _Entities = {
 
 		var makeNonEditable = function (el, commitChanges) {
 			var displayValue = (commitChanges === true) ? el.val() : oldValue;
-			el.replaceWith('<' + attributeElementTagName + ' title="' + displayValue + '" class="' + attributeName + '_">' + fitStringToWidth(displayValue, w) + '</' + attributeElementTagName + '>');
+			el.replaceWith('<' + attributeElementTagName + ' title="' + displayValue + '" class="' + attributeName + '_ abbr-ellipsis abbr-75pc">' + displayValue + '</' + attributeElementTagName + '>');
 			parentElement.find(attributeSelector).first().off('click').on('click', function(e) {
 				e.stopPropagation();
-				_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, w);
+				_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName);
 			});
 			if (commitChanges === true) {
 				_Entities.setNewAttributeValue(parentElement, id, attributeName, displayValue, callback, function () {
@@ -2178,9 +2174,9 @@ var _Entities = {
 			}
 		});
 	},
-	makeNameEditable: function(element, width, callback) {
+	makeNameEditable: function(element, callback) {
 		var id = Structr.getId(element);
-		_Entities.makeAttributeEditable(element, id, 'b.name_', 'name', width, callback);
+		_Entities.makeAttributeEditable(element, id, 'b.name_', 'name', callback);
 	},
 	setNewName: function(element, newName, callback) {
 		var id = Structr.getId(element);
@@ -2255,9 +2251,9 @@ var _Entities = {
 				}
 
 				div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
-					+ '<b title="' + name + '">' + fitStringToWidth(name, 180, 'slideOut') + '</b>'
+					+ '<b title="' + name + '" class="abbr-ellipsis abbr-75pc">' + name + '</b>'
 					+ '<b class="action">' + (action ? action : '&nbsp;') + '</b>'
-					+ '<span class="content_">' + (content ? fitStringToWidth(content, 180, 'slideOut') : '&nbsp;') + '</span>'
+					+ '<span class="content_ abbr-ellipsis abbr-75pc">' + (content ? content : '&nbsp;') + '</span>'
 					+ '<span class="id">' + entity.id + '</span>'
 				);
 
@@ -2353,7 +2349,7 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 	} else if (obj.constructor === Object) {
 
 		var displayName = _Crud.displayName(obj);
-		return '<div title="' + displayName + '" id="_' + obj.id + '" class="node ' + (obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')) + ' ' + obj.id + '_">' + fitStringToWidth(displayName, 80) + '<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>';
+		return '<div title="' + displayName + '" id="_' + obj.id + '" class="node ' + (obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')) + ' ' + obj.id + '_"><span class="abbr-ellipsis abbr-80">' + displayName + '</span><i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>';
 
 	} else if (obj.constructor === Array) {
 

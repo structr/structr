@@ -64,34 +64,6 @@ var _Code = {
 		_Code.updatedResizers();
 		Structr.resize();
 
-		var nameColumnWidth = $('#code-table th:nth-child(2)').width();
-
-		if (nameColumnWidth < 300) {
-			$('#code-table th:nth-child(4)').css({ display: 'none' });
-			$('#code-table td:nth-child(4)').css({ display: 'none' });
-			$('#code-table th:nth-child(5)').css({ display: 'none' });
-			$('#code-table td:nth-child(5)').css({ display: 'none' });
-		}
-
-		if (nameColumnWidth > 550) {
-			$('#code-table th:nth-child(4)').css({ display: 'table-cell' });
-			$('#code-table td:nth-child(4)').css({ display: 'table-cell' });
-			$('#code-table th:nth-child(5)').css({ display: 'table-cell' });
-			$('#code-table td:nth-child(5)').css({ display: 'table-cell' });
-		}
-
-		nameColumnWidth = $('#code-table th:nth-child(2)').width() - 96;
-
-		$('.node.method .name_').each(function(i, el) {
-			var title = $(el).attr('title');
-			$(el).replaceWith('<b title="' +  title + '" class="name_">' + fitStringToWidth(title ? title : '[unnamed]', nameColumnWidth) + '</b>');
-		});
-
-		if (codeContents) {
-			codeContents.find('.node').each(function() {
-				_Entities.setMouseOver($(this), true);
-			});
-		}
 	},
 	moveLeftResizer: function(left) {
 		left = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || 300;

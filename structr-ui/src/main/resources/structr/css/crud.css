@@ -341,7 +341,7 @@ input.readonly {
 
 .props .node i,
 .resourceBox div.node i {
-	vertical-align: middle;
+	vertical-align: top;
 	margin: 0 0 6px 4px;
 }
 
@@ -361,7 +361,8 @@ input.readonly {
 
 .props td i.remove,
 .resourceBox td i.remove {
-	margin: 4px 0 2px 1px;
+	margin: 4px 0 0px 4px;
+	vertical-align: top;
 }
 
 .resourceBox div.node i.add:hover, .resourceBox td i.add:hover, .props td i.add:hover,
