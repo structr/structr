@@ -287,6 +287,7 @@ var _Files = {
 		fastRemoveAllChildren($('#files-main', main));
 	},
 	activateUpload: function() {
+
 		if (window.File && window.FileReader && window.FileList && window.Blob) {
 
 			drop = $('#folder-contents');
@@ -334,10 +335,14 @@ var _Files = {
 					new MessageBuilder().error(errorText).title('File(s) too large for upload').requiresConfirmation().show();
 				}
 
-				filesToUpload.forEach(function(file) {
-					file.parentId = currentWorkingDir ? currentWorkingDir.id : null;
-					file.hasParent = true; // Setting hasParent = true forces the backend to upload the file to the root dir even if parentId is null
-					Command.createFile(file); // appending to UI is triggered by StructrModel call only
+				filesToUpload.forEach(function(fileToUpload) {
+					fileToUpload.parentId = currentWorkingDir ? currentWorkingDir.id : null;
+					fileToUpload.hasParent = true; // Setting hasParent = true forces the backend to upload the file to the root dir even if parentId is null
+
+					Command.createFile(fileToUpload, (createdFileNode) => {
+						fileToUpload.id = createdFileNode.id;
+						_Files.uploadFile(createdFileNode);
+					});
 				});
 
 				return false;
@@ -364,13 +369,10 @@ var _Files = {
 		};
 
 		$(fileList).each(function(i, fileObj) {
-			// check if the original filename is at the start of the ws notification filename. otherwise auto-renamed files will not be uploaded
-			if (file.name.indexOf(fileObj.name) === 0) {
-				_Logger.log(_LogType.FILES, 'Uploading chunks for file ' + file.id);
+			if (file.id === fileObj.id) {
 				worker.postMessage(fileObj);
 			}
 		});
-
 	},
 	fulltextSearch: function(searchString) {
 		var content = $('#folder-contents');
