@@ -54,7 +54,12 @@ import org.structr.web.function.BarcodeFunction;
  */
 public class LoginResource extends FilterableResource {
 
-	private static final Logger logger = LoggerFactory.getLogger(LoginResource.class.getName());
+	protected static final Logger logger = LoggerFactory.getLogger(LoginResource.class.getName());
+	protected HttpServletRequest request;
+
+	public String getErrorMessage() {
+		return AuthHelper.STANDARD_ERROR_MSG;
+	}
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
@@ -62,7 +67,7 @@ public class LoginResource extends FilterableResource {
 		this.securityContext = securityContext;
 
 		if (getUriPart().equals(part)) {
-
+			this.request = request;
 			return true;
 		}
 
@@ -98,36 +103,7 @@ public class LoginResource extends FilterableResource {
 
 			try {
 
-				if (StringUtils.isNotEmpty(twoFactorToken)) {
-
-					user = AuthHelper.getUserForTwoFactorToken(twoFactorToken);
-
-				} else if (StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) {
-
-					user = securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
-				}
-
-				if (user != null) {
-
-					final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(securityContext.getRequest()));
-
-					if (twoFactorAuthenticationSuccessOrNotNecessary) {
-
-						AuthHelper.doLogin(securityContext.getRequest(), user);
-
-						logger.info("Login successful: {}", user);
-
-						RuntimeEventLog.login("Login successful", user.getUuid(), user.getName());
-
-						user.setSecurityContext(securityContext);
-
-						// make logged in user available to caller
-						securityContext.setCachedUser(user);
-
-						returnedMethodResult = new RestMethodResult(200);
-						returnedMethodResult.addContent(user);
-					}
-				}
+				returnedMethodResult = getUserForCredentials(securityContext, emailOrUsername, password, twoFactorToken, twoFactorCode);
 
 			} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
 
@@ -169,7 +145,7 @@ public class LoginResource extends FilterableResource {
 
 		if (returnedMethodResult == null) {
 			// should not happen
-			throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
+			throw new AuthenticationException(getErrorMessage());
 		}
 
 		return returnedMethodResult;
@@ -213,5 +189,60 @@ public class LoginResource extends FilterableResource {
 	@Override
 	public boolean createPostTransaction() {
 		return false;
+	}
+
+	protected RestMethodResult getUserForCredentials(SecurityContext securityContext, String emailOrUsername, String password, String twoFactorToken, String twoFactorCode) throws FrameworkException {
+		Principal user = null;
+
+		user = getUserForTwoFactorTokenOrEmailOrUsername(twoFactorToken, emailOrUsername, password);
+
+		if (user != null) {
+
+			final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(securityContext.getRequest()));
+
+			if (twoFactorAuthenticationSuccessOrNotNecessary) {
+
+				 return doLogin(securityContext, user);
+			}
+		}
+
+		return null;
+	}
+
+	protected Principal getUserForTwoFactorTokenOrEmailOrUsername(String twoFactorToken, String emailOrUsername, String password) throws FrameworkException {
+		Principal user = null;
+
+		if (StringUtils.isNotEmpty(twoFactorToken)) {
+
+			user = AuthHelper.getUserForTwoFactorToken(twoFactorToken);
+
+		} else if (StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) {
+
+			user = securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
+		}
+
+		return user;
+	}
+
+	protected RestMethodResult doLogin(SecurityContext securityContext, Principal user) throws FrameworkException {
+		AuthHelper.doLogin(securityContext.getRequest(), user);
+
+		logger.info("Login successful: {}", user);
+
+		RuntimeEventLog.login("Login successful", user.getUuid(), user.getName());
+
+		user.setSecurityContext(securityContext);
+
+		// make logged in user available to caller
+		securityContext.setCachedUser(user);
+
+		return createRestMethodResult(user);
+	}
+
+	protected RestMethodResult createRestMethodResult(Principal user) {
+		RestMethodResult  returnedMethodResult = new RestMethodResult(200);
+		returnedMethodResult.addContent(user);
+
+		return returnedMethodResult;
 	}
 }
