@@ -654,6 +654,9 @@ StructrImage.prototype.append = function() {
 	if (image.parent) {
 		var parentFolder = StructrModel.obj(image.parent.id);
 		if (parentFolder) {
+			if (!parentFolder.files) {
+				parentFolder.files = [];
+			}
 			parentFolder.files.push(image);
 		}
 	}
