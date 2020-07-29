@@ -104,6 +104,7 @@ public interface User extends Principal {
 		user.addViewProperty(PropertyView.Ui, "proxyUsername");
 		user.addViewProperty(PropertyView.Ui, "publicKey");
 		user.addViewProperty(PropertyView.Ui, "sessionIds");
+		user.addViewProperty(PropertyView.Ui, "refreshTokens");
 		user.addViewProperty(PropertyView.Ui, "workingDirectory");
 
 		user.addViewProperty(PropertyView.Ui, "twoFactorToken");

@@ -375,12 +375,12 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public boolean addRefreshToken(String sessionId) {
+	public boolean addRefreshToken(String refreshToken) {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
-	public void removeRefreshToken(String sessionId) {
+	public void removeRefreshToken(String refreshToken) {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 

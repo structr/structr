@@ -568,7 +568,7 @@ public class UiAuthenticator implements Authenticator {
 				user = AuthHelper.getPrincipalForSessionId(request.getSession(false).getId());
 			}
 
-		} else {
+		} else if (authorizationToken != null) {
 
 			final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
 			user = AuthHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);

@@ -23,7 +23,6 @@ import io.jsonwebtoken.security.Keys;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
@@ -35,6 +34,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.Actions;
@@ -260,7 +260,7 @@ public class AuthHelper {
 		Jws<Claims> jws = validateTokenWithKeystore(token, publicKey);
 
 		if (jws == null) {
-			throw new FrameworkException(400, "access_token invalid");
+			throw new FrameworkException(400, AuthHelper.TOKEN_ERROR_MSG);
 		}
 
 		return getPrincipalForTokenClaims(jws.getBody(), eMailKey);
@@ -273,41 +273,48 @@ public class AuthHelper {
 		Jws<Claims> jws = validateTokenWithSecret(token, secret);
 
 		if (jws == null) {
-			throw new FrameworkException(400, "access_token invalid");
+			throw new FrameworkException(400, AuthHelper.TOKEN_ERROR_MSG);
 		}
 
 		return getPrincipalForTokenClaims(jws.getBody(), eMailKey);
 	}
 
-	public static Map<String, String>  createTokensForUser(final Principal user) throws FrameworkException {
-
+	public static Map<String, String> createTokensForUser(Principal user, Date accessTokenLifetime, Date refreshTokenLifetime) throws FrameworkException {
 		final String jwtSecretType = Settings.JWTSecretType.getValue();
 		Map<String, String>  tokens = null;
 
 		if (user == null) {
 			throw new FrameworkException(400, "Cannot create token if user is missing");
 		}
-
 		final String instanceName = Settings.InstanceName.getValue();
-
-		Calendar accessTokenExpirationDate = Calendar.getInstance();
-		accessTokenExpirationDate.add(Calendar.MINUTE, Settings.JWTExpirationTime.getValue());
-
-		Calendar refreshTokenExpirationDate = Calendar.getInstance();
-		refreshTokenExpirationDate.add(Calendar.MINUTE, Settings.JWTRefreshTokenExpirationTime.getValue());
 
 		switch (jwtSecretType) {
 			default:
 			case "secret":
-				tokens = createTokensForUserWithSecret(user, accessTokenExpirationDate.getTime(), refreshTokenExpirationDate.getTime(), instanceName);
+				tokens = createTokensForUserWithSecret(user, accessTokenLifetime, refreshTokenLifetime, instanceName);
 				break;
 
 			case "keypair":
-				tokens = createTokensForUserWithKeystore(user, accessTokenExpirationDate.getTime(), refreshTokenExpirationDate.getTime(), instanceName);
+				tokens = createTokensForUserWithKeystore(user, accessTokenLifetime, refreshTokenLifetime, instanceName);
 				break;
 		}
 
 		return tokens;
+	}
+
+	public static Map<String, String> createTokensForUser(final Principal user) throws FrameworkException {
+
+		if (user == null) {
+			throw new FrameworkException(400, "Cannot create token if user is missing");
+		}
+
+		Calendar accessTokenExpirationDate = Calendar.getInstance();
+		accessTokenExpirationDate.add(Calendar.MINUTE, Settings.JWTExpirationTimeout.getValue());
+
+		Calendar refreshTokenExpirationDate = Calendar.getInstance();
+		refreshTokenExpirationDate.add(Calendar.MINUTE, Settings.JWTRefreshTokenExpirationTimeout.getValue());
+
+		return createTokensForUser(user, accessTokenExpirationDate.getTime(), refreshTokenExpirationDate.getTime());
 	}
 
 	public static Map<String, String> createTokensForUserWithSecret(Principal user, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName) throws FrameworkException {
@@ -318,29 +325,37 @@ public class AuthHelper {
 
 		SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
 		String accessToken = Jwts.builder()
-				.setSubject(user.getName())
-				.setExpiration(accessTokenExpirationDate)
-				.setIssuer(jwtIssuer)
-				.claim("instance", instanceName)
-				.claim("uuid", user.getUuid())
-				.claim("eMail", user.getEMail())
-				.claim("tokenType", "access_token")
-				.signWith(key)
-				.compact();
+			.setSubject(user.getName())
+			.setExpiration(accessTokenExpirationDate)
+			.setIssuer(jwtIssuer)
+			.claim("instance", instanceName)
+			.claim("uuid", user.getUuid())
+			.claim("eMail", user.getEMail())
+			.claim("tokenType", "access_token")
+			.signWith(key)
+			.compact();
 
-		String refreshToken = Jwts.builder()
+		tokens.put("access_token", accessToken);
+
+		if (refreshTokenExpirationDate != null) {
+			final String tokenId = NodeServiceCommand.getNextUuid();
+
+			String refreshToken = Jwts.builder()
 				.setSubject(user.getName())
 				.setExpiration(refreshTokenExpirationDate)
 				.setIssuer(jwtIssuer)
 				.claim("instance", instanceName)
 				.claim("uuid", user.getUuid())
 				.claim("eMail", user.getEMail())
+				.claim("tokenId", tokenId)
 				.claim("tokenType", "refresh_token")
 				.signWith(key)
 				.compact();
 
-		tokens.put("access_token", accessToken);
-		tokens.put("refresh_token", refreshToken);
+			Principal.addRefreshToken(user, tokenId);
+			tokens.put("refresh_token", refreshToken);
+		}
+
 		return tokens;
 	}
 
@@ -356,31 +371,36 @@ public class AuthHelper {
 		final String jwtIssuer = Settings.JWTIssuer.getValue();
 
 		String accessToken = Jwts.builder()
-				.setSubject(user.getName())
-				.setExpiration(accessTokenExpirationDate)
-				.setIssuer(jwtIssuer)
-				.claim("instance", instanceName)
-				.claim("uuid", user.getUuid())
-				.claim("eMail", user.getEMail())
-				.claim("tokenType", "access_token")
-				.signWith(privateKey)
-				.compact();
+			.setSubject(user.getName())
+			.setExpiration(accessTokenExpirationDate)
+			.setIssuer(jwtIssuer)
+			.claim("instance", instanceName)
+			.claim("uuid", user.getUuid())
+			.claim("eMail", user.getEMail())
+			.claim("tokenType", "access_token")
+			.signWith(privateKey)
+			.compact();
 
-		String refreshToken = Jwts.builder()
+		tokens.put("access_token", accessToken);
+
+		if (refreshTokenExpirationDate != null) {
+			final String tokenId = NodeServiceCommand.getNextUuid();
+
+			String refreshToken = Jwts.builder()
 				.setSubject(user.getName())
 				.setExpiration(refreshTokenExpirationDate)
 				.setIssuer(jwtIssuer)
 				.claim("instance", instanceName)
 				.claim("uuid", user.getUuid())
 				.claim("eMail", user.getEMail())
+				.claim("tokenId", tokenId)
 				.claim("tokenType", "refresh_token")
 				.signWith(privateKey)
 				.compact();
 
-		tokens.put("access_token", accessToken);
-		tokens.put("refresh_token", refreshToken);
-
-		Principal.addRefreshToken(user, refreshToken);
+			Principal.addRefreshToken(user, tokenId);
+			tokens.put("refresh_token", refreshToken);
+		}
 
 		return tokens;
 	}
@@ -408,16 +428,21 @@ public class AuthHelper {
 		}
 
 		if (claims == null) {
-			throw new FrameworkException(400, "refresh_token not valid");
+			throw new FrameworkException(400, AuthHelper.TOKEN_ERROR_MSG);
 		}
 
-		Principal user = getPrincipalForCredential(StructrApp.key(Principal.class, "refreshTokens"), new String[]{ refreshToken }, false);
+		final String tokenId = (String) claims.getBody().get("tokenId");
+		if (tokenId == null) {
+			throw new FrameworkException(400, AuthHelper.TOKEN_ERROR_MSG);
+		}
+
+		Principal user = getPrincipalForCredential(StructrApp.key(Principal.class, "refreshTokens"), new String[]{ tokenId }, false);
 
 		if (user == null) {
 			return null;
 		}
 
-		Principal.removeRefreshToken(user, refreshToken);
+		Principal.removeRefreshToken(user, tokenId);
 		return user;
 	}
 
@@ -811,7 +836,7 @@ public class AuthHelper {
 				.setSigningKey(secret)
 				.build()
 				.parseClaimsJws(token);
-		} catch (JwtException e) {
+		} catch (Exception e) {
 			logger.warn("Invalid token", e);
 		}
 
@@ -824,7 +849,7 @@ public class AuthHelper {
 				.setSigningKey(key)
 				.build()
 				.parseClaimsJws(token);
-		} catch (JwtException e) {
+		} catch (Exception e) {
 			logger.warn("Invalid token", e);
 		}
 
