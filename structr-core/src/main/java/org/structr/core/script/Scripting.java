@@ -368,6 +368,11 @@ public class Scripting {
 			throw new FrameworkException(422, ex.getMessage(), new ScriptingError(ex));
 		} catch (Throwable ex) {
 
+			if (actionContext.hasError()) {
+
+				throw new FrameworkException(422, ex.getMessage(), actionContext.getErrorBuffer());
+			}
+			
 			throw new FrameworkException(422, ex.getMessage(), new ScriptingError(ex));
 		}
 
