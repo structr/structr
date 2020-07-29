@@ -1557,6 +1557,11 @@ button.action.disabled:hover {
 	min-width: 100px;
 }
 
+.dialogText #foldersToLink .node {
+	vertical-align: top;
+	cursor: pointer;
+}
+
 .dialogText .nodeHover b {
 	cursor: pointer ! important;
 }
@@ -4409,7 +4414,7 @@ i.fa-file-archive-o {
 	color: orange;
 }
 
-i.fa-folder, i.fa-sitemap {
+i.fa-folder, i.fa-folder-open, i.fa-sitemap {
 	color: #f1cd2e;
 }
 

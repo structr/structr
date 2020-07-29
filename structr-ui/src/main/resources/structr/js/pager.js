@@ -345,6 +345,10 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 
 			} else if (e.keyCode === 27) {
 
+				// allow ESC in pagers in dialogs (do not close dialog on ESC while focus in input)
+				e.preventDefault();
+				e.stopPropagation();
+
 				pagerFilters[pagerObj.id][filterAttribute] = null;
 				$filterEl.val('');
 
