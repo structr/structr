@@ -18,11 +18,14 @@
  */
 package org.structr.common.error;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 public class ScriptingError extends ErrorToken {
 	private final Throwable rootCause;
 
 	public ScriptingError(Throwable rootCause) {
-		super(null, null, rootCause.getMessage(), rootCause.getStackTrace());
+		super(null, null, rootCause.getMessage(), Arrays.stream(rootCause.getStackTrace()).map(Objects::toString).reduce("", (stackTraceString, currentTraceElement) -> stackTraceString += currentTraceElement + "\n"));
 		this.rootCause = rootCause;
 	}
 
