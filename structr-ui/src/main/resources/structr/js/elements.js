@@ -497,7 +497,7 @@ var _Elements = {
 		var icon = _Elements.getElementIcon(entity);
 
 		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
-			+ '<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b><span class="id">' + entity.id + '</span>'
+			+ '<b title="' + displayName + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b><span class="id">' + entity.id + '</span>'
 			+ _Elements.classIdString(entity._html_id, entity._html_class));
 
 		div.append('<i title="Clone ' + displayName + ' element ' + entity.id + '\" class="clone_icon button ' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" />');
@@ -1458,7 +1458,7 @@ var _Elements = {
 		var icon = _Elements.getContentIcon(entity);
 		var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '') + '">'
 				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + ' typeIcon-nochildren" />'
-				+ (name ? ('<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
+				+ (name ? ('<b title="' + displayName + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b>') : ('<div class="content_ abbr-ellipsis abbr-75pc">' + escapeTags(entity.content) + '</div>'))
 				+ '<span class="id">' + entity.id + '</span>'
 				+ '</div>';
 

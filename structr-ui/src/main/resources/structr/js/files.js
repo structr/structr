@@ -92,20 +92,19 @@ var _Files = {
 		_Files.moveResizer();
 		Structr.resize();
 
-		if (folderContents) {
-			folderContents.find('.node').each(function() {
-				_Entities.setMouseOver($(this), true);
-			});
-		}
-
 		$('div.xml-mapping').css({ height: dialogBox.height()- 118 });
+
 	},
 	moveResizer: function(left) {
-		left = left || LSWrapper.getItem(filesResizerLeftKey) || 300;
-		$('.column-resizer', filesMain).css({ left: left });
 
-		$('#file-tree').css({width: left - 14 + 'px'});
-		$('#folder-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 50 + 'px'});
+		// throttle
+		requestAnimationFrame(() => {
+			left = left || LSWrapper.getItem(filesResizerLeftKey) || 300;
+			$('.column-resizer', filesMain).css({ left: left });
+
+			$('#file-tree').css({width: left - 14 + 'px'});
+			$('#folder-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 50 + 'px'});
+		});
 	},
 	onload: function() {
 
@@ -282,6 +281,7 @@ var _Files = {
 		fastRemoveAllChildren($('#files-main', main));
 	},
 	activateUpload: function() {
+
 		if (window.File && window.FileReader && window.FileList && window.Blob) {
 
 			drop = $('#folder-contents');
@@ -329,10 +329,14 @@ var _Files = {
 					new MessageBuilder().error(errorText).title('File(s) too large for upload').requiresConfirmation().show();
 				}
 
-				filesToUpload.forEach(function(file) {
-					file.parentId = currentWorkingDir ? currentWorkingDir.id : null;
-					file.hasParent = true; // Setting hasParent = true forces the backend to upload the file to the root dir even if parentId is null
-					Command.createFile(file); // appending to UI is triggered by StructrModel call only
+				filesToUpload.forEach(function(fileToUpload) {
+					fileToUpload.parentId = currentWorkingDir ? currentWorkingDir.id : null;
+					fileToUpload.hasParent = true; // Setting hasParent = true forces the backend to upload the file to the root dir even if parentId is null
+
+					Command.createFile(fileToUpload, (createdFileNode) => {
+						fileToUpload.id = createdFileNode.id;
+						_Files.uploadFile(createdFileNode);
+					});
 				});
 
 				return false;
@@ -359,13 +363,10 @@ var _Files = {
 		};
 
 		$(fileList).each(function(i, fileObj) {
-			// check if the original filename is at the start of the ws notification filename. otherwise auto-renamed files will not be uploaded
-			if (file.name.indexOf(fileObj.name) === 0) {
-				_Logger.log(_LogType.FILES, 'Uploading chunks for file ' + file.id);
+			if (file.id === fileObj.id) {
 				worker.postMessage(fileObj);
 			}
 		});
-
 	},
 	fulltextSearch: function(searchString) {
 		var content = $('#folder-contents');
@@ -541,9 +542,10 @@ var _Files = {
 				filterOptions.isThumbnail = false;
 			}
 
-			_Pager.initFilters('filesystem-files', 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
+			let pagerId = 'filesystem-files';
+			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			var filesPager = _Pager.addPager('filesystem-files', folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isThumbnail,path,size,owner');
+			var filesPager = _Pager.addPager(pagerId, folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,path,size,owner');
 
 			filesPager.cleanupFunction = function () {
 				var toRemove = $('.node.file', filesPager.el).closest( (_Files.isViewModeActive('list') ? 'tr' : '.tile') );
@@ -663,10 +665,10 @@ var _Files = {
 			if (d.isFolder) {
 				let icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-2x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
 				row.append('<td class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</td>');
-				row.append('<td><div id="id_' + d.id + '" class="node folder"><b title="' + name + '" class="name_ name-abbr name-abbr-200">' + name + '</b></div></td>');
+				row.append('<td><div id="id_' + d.id + '" class="node folder"><b title="' + name + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b></div></td>');
 			} else {
 				row.append('<td class="file-icon"><a href="' + d.path + '" target="_blank"><i class="fa ' + icon + '"></i></a></td>');
-				row.append('<td><div id="id_' + d.id + '" class="node file"><b title="' + name + '" class="name_ name-abbr name-abbr-200">' + name + '</b>'
+				row.append('<td><div id="id_' + d.id + '" class="node file"><b title="' + name + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b>'
 				+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + d.size + '</span></div></div></div><span class="id">' + d.id + '</span></div></td>');
 			}
 
@@ -684,14 +686,14 @@ var _Files = {
 
 				let icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-1x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
 
-				tile.append('<div id="id_' + d.id + '" class="node folder"><div class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</div><b title="' + name + '" class="name_ name-abbr name-abbr-80">' + name + '</b></div>');
+				tile.append('<div id="id_' + d.id + '" class="node folder"><div class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</div><b title="' + name + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b></div>');
 
 			} else {
 
 				let iconOrThumbnail = d.isImage && !d.isThumbnail && d.tnSmall ? '<img class="tn" src="' + d.tnSmall.path + '">' : '<i class="fa ' + icon + '"></i>';
 
 				tile.append('<div id="id_' + d.id + '" class="node file"><div class="file-icon"><a href="' + d.path + '" target="_blank">' + iconOrThumbnail + '</a></div>'
-					+ '<b title="' + name + '" class="name_ name-abbr name-abbr-80">' + name + '</b>'
+					+ '<b title="' + name + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b>'
 					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + size + '</span></div></div></div><span class="id">' + d.id + '</span></div>');
 			}
 
@@ -705,14 +707,14 @@ var _Files = {
 
 				let icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-1x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
 
-				tile.append('<div id="id_' + d.id + '" class="node folder"><div class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</div><b title="' + name + '" class="name_ name-abbr name-abbr-240">' + name + '</b></div>');
+				tile.append('<div id="id_' + d.id + '" class="node folder"><div class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</div><b title="' + name + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b></div>');
 
 			} else {
 
 				let iconOrThumbnail = d.isImage && !d.isThumbnail && d.tnMid ? '<img class="tn" src="' + d.tnMid.path + '">' : '<i class="fa ' + icon + '"></i>';
 
 				tile.append('<div id="id_' + d.id + '" class="node file"><div class="file-icon"><a href="' + d.path + '" target="_blank">' + iconOrThumbnail + '</a></div>'
-					+ '<b title="' + name + '" class="name_  name-abbr name-abbr-240">' + name + '</b>'
+					+ '<b title="' + name + '" class="name_  abbr-ellipsis abbr-75pc">' + name + '</b>'
 					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + size + '</span></div></div></div><span class="id">' + d.id + '</span></div>');
 			}
 		}
@@ -721,6 +723,8 @@ var _Files = {
 
 		if (!div || !div.length)
 			return;
+
+		_Entities.setMouseOver(div, true);
 
 		div.on('remove', function() {
 			div.closest('tr').remove();
