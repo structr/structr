@@ -544,23 +544,19 @@ var _Elements = {
 			div.append('<i title="Edit Link" class="link_icon button ' + _Icons.getFullSpriteClass(_Icons.link_icon) + '" />');
 			if (entity.linkableId) {
 
-				Command.get(entity.linkableId, 'id,type,name,isFile,isPage', function(linkedEntity) {
+				Command.get(entity.linkableId, 'id,type,name,isFile,isImage,isPage,isTemplate', function(linkedEntity) {
 
-					div.append('<span class="linkable">' + linkedEntity.name + '</span>');
+					div.append('<span class="linkable' + (linkedEntity.isImage ? ' default-cursor' : '') + '">' + linkedEntity.name + '</span>');
 
-					if (linkedEntity.isFile) {
+					if (linkedEntity.isFile && !linkedEntity.isImage) {
 
 						$('.linkable', div).on('click', function(e) {
 							e.stopPropagation();
 
-							var file = {'name': linkedEntity.name, 'id': linkedEntity.id};
-
-							Structr.dialog('Edit ' + file.name, function() {
-								_Logger.log(_LogType.ELEMENTS, 'content saved');
+							Structr.dialog('Edit ' + linkedEntity.name, function() {
 							}, function() {
-								_Logger.log(_LogType.ELEMENTS, 'cancelled');
 							});
-							_Files.editContent(this, file, $('#dialogBox .dialogText'));
+							_Files.editContent(this, linkedEntity, $('#dialogBox .dialogText'));
 						});
 					}
 				});
@@ -600,9 +596,7 @@ var _Elements = {
 							var div = $('.' + page.id + '_', pagesToLink);
 
 							_Elements.handleLinkableElement(div, entity, page);
-
 						});
-
 					});
 
 					dialog.append('<h3>Files</h3><div class="linkBox" id="foldersToLink"></div><div class="linkBox" id="filesToLink"></div>');

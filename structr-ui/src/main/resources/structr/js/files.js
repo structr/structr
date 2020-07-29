@@ -1243,7 +1243,7 @@ var _Files = {
 	},
 	editContent: function(button, file, element) {
 		var url = viewRootUrl + file.id + '?edit=1';
-		_Logger.log(_LogType.FILES, 'editContent', button, file, element, url);
+
 		var text = '';
 
 		var contentType = file.contentType;

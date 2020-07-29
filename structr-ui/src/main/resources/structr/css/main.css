@@ -1941,6 +1941,14 @@ button.enabled, button.active {
 	color: #555;
 }
 
+.node .linkable.default-cursor {
+	cursor: default;
+}
+
+.node .linkable.default-cursor:hover {
+	color: #888;
+}
+
 .callToAction {
 	background-color: #81ce25;
 	width: 248px;
