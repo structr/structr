@@ -2039,6 +2039,10 @@ button.enabled, button.active {
 	text-align: left;
 }
 
+.pager input[type=checkbox].filter {
+	width: auto;
+}
+
 .pager > div {
 	display: inline;
 	white-space: nowrap;
