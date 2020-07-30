@@ -123,6 +123,7 @@ var _Pager = {
 				Command.query(pager.type, pageSize[id], page[id], sortKey[id], sortOrder[id], filterAttrs, pager.internalCallback, isExactPager, view, customView);
 			}
 		};
+
 		pager.init();
 		return pager;
 	}
@@ -157,9 +158,19 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 
 		rawResultCount[pagerObj.id] = count;
 		pageCount[pagerObj.id] = Math.max(1, Math.ceil(rawResultCount[pagerObj.id] / pageSize[pagerObj.id]));
-		pagerObj.updatePager(pagerObj.id, dialog.is(':visible') ? dialog : undefined);
-
 		pagerObj.pageCount.val(pageCount[pagerObj.id]);
+
+		if (page[pagerObj.id] < 1) {
+			page[pagerObj.id] = 1;
+			pagerObj.pageNo.val(page[pagerObj.id]);
+		}
+
+		if (page[pagerObj.id] > pageCount[pagerObj.id]) {
+			page[pagerObj.id] = pageCount[pagerObj.id];
+			pagerObj.pageNo.val(page[pagerObj.id]);
+		}
+
+		pagerObj.updatePager(pagerObj.id, dialog.is(':visible') ? dialog : undefined);
 
 		pagerObj.callback(result);
 	};
@@ -282,7 +293,7 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 	 * @returns {undefined}
 	 */
 	this.transportFunction = function () {
-		console.warning('default implementation does nothing!');
+		console.warn('default implementation does nothing!');
 	};
 
 	/**
@@ -292,7 +303,6 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 	this.cleanupFunction = function () {
 		$('.node', pagerObj.el).remove();
 	};
-
 
 	/**
 	 * activate the filter elements for the pager
@@ -334,6 +344,10 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 				}
 
 			} else if (e.keyCode === 27) {
+
+				// allow ESC in pagers in dialogs (do not close dialog on ESC while focus in input)
+				e.preventDefault();
+				e.stopPropagation();
 
 				pagerFilters[pagerObj.id][filterAttribute] = null;
 				$filterEl.val('');

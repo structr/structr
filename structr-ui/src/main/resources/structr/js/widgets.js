@@ -101,7 +101,7 @@ var _Widgets = {
 				});
 			});
 
-			_wPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name" />');
+			_wPager.pager.append('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" /></span>');
 			_wPager.activateFilterElements();
 
 			_Widgets.remoteWidgetsEl = $('#remoteWidgets', widgetsSlideout);
@@ -355,7 +355,7 @@ var _Widgets = {
 		var expanded = Structr.isExpanded(id);
 
 		parent.append('<div id="' + id + '_folder" class="widget node">'
-			+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" /><b title="' + name + '" class="name">' + fitStringToWidth(name, 200) + '</b>'
+			+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" /><b title="' + name + '" class="name abbr-ellipsis abbr-66pc">' + name + '</b>'
 			+ '<div id="' + id + '" class="node' + (expanded ? ' hidden' : '') + '"></div>'
 			+ '</div>');
 
@@ -375,7 +375,7 @@ var _Widgets = {
 
 			parent.append('<div id="id_' + widget.id + '" class="node widget">'
 				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
-				+ '<b title="' + widget.name + '" class="name_">' + fitStringToWidth(widget.name, 200) + '</b> <span class="id">' + widget.id + '</span>'
+				+ '<b title="' + widget.name + '" class="name_ abbr-ellipsis abbr-66pc">' + widget.name + '</b> <span class="id">' + widget.id + '</span>'
 				+ '</div>');
 			div = Structr.node(widget.id);
 		}

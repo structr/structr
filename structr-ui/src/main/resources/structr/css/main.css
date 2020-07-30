@@ -965,23 +965,46 @@ ul#previewTabs {
 	font-weight: normal;
 }
 
-.name_.name-abbr {
-	overflow: hidden;
+.name_.abbr-ellipsis {
 	display: inline-block;
 	height: calc(1.7em - 5px);
 }
 
-.name_.name-abbr.name-abbr-80 {
+.abbr-ellipsis {
+	display: inline-block;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.abbr-ellipsis.abbr-66pc {
+	max-width: 66%;
+}
+
+.abbr-ellipsis.abbr-75pc {
+	max-width: 75%;
+}
+
+.abbr-ellipsis.abbr-80 {
 	max-width: 80px;
 }
 
-.name_.name-abbr.name-abbr-200 {
+.abbr-ellipsis.abbr-120 {
+	max-width: 120px;
+}
+
+.abbr-ellipsis.abbr-180 {
+	max-width: 180px;
+}
+
+.abbr-ellipsis.abbr-200 {
 	max-width: 200px;
 }
 
-.name_.name-abbr.name-abbr-240 {
+.abbr-ellipsis.abbr-240 {
 	max-width: 240px;
 }
+
 
 .new-name, .new-relationshipType {
 	border: 1px solid #a5a5a5;
@@ -1043,6 +1066,7 @@ span.id {
 	padding: 2px 2px 2px 4px;
 	margin: 0 0 0 11px;
 	position: relative;
+	white-space: nowrap;
 }
 
 .active-element .edit_icon {
@@ -1533,6 +1557,11 @@ button.action.disabled:hover {
 	min-width: 100px;
 }
 
+.dialogText #foldersToLink .node {
+	vertical-align: top;
+	cursor: pointer;
+}
+
 .dialogText .nodeHover b {
 	cursor: pointer ! important;
 }
@@ -1915,6 +1944,14 @@ button.enabled, button.active {
 
 .node .linkable:hover {
 	color: #555;
+}
+
+.node .linkable.default-cursor {
+	cursor: default;
+}
+
+.node .linkable.default-cursor:hover {
+	color: #888;
 }
 
 .callToAction {
@@ -3780,8 +3817,24 @@ input.tree-search-input:focus {
 	padding: 4px;
 	border: 1px solid #eee;
 	cursor: pointer;
-	overflow: hidden;
 	box-shadow: 0px 0px 6px rgba(127,127,127,.1);
+	position: relative;
+}
+
+#code-context .code-favorite span {
+	margin-left: .3em;
+	display: inline-block;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	width: calc(100% - 32px);
+}
+
+#code-context .code-favorite .fa-remove {
+	color: #ddd;
+	position: absolute;
+	top: 5px;
+	right: 5px;
 }
 
 .sortable-list-item {
@@ -4361,7 +4414,7 @@ i.fa-file-archive-o {
 	color: orange;
 }
 
-i.fa-folder, i.fa-sitemap {
+i.fa-folder, i.fa-folder-open, i.fa-sitemap {
 	color: #f1cd2e;
 }
 
