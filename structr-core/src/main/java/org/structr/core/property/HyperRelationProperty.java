@@ -89,4 +89,10 @@ public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNod
 	public SortType getSortType() {
 		return SortType.Default;
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(java.lang.String type, final String viewName) {
+		return null;
+	}
 }

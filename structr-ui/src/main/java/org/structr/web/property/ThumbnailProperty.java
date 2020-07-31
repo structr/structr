@@ -123,4 +123,10 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 	public boolean isPassivelyIndexed() {
 		return false;
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
 }

@@ -33,8 +33,6 @@ import org.structr.api.schema.JsonStringProperty;
  */
 public class StructrPasswordProperty extends StructrPropertyDefinition implements JsonStringProperty {
 
-	private String contentType;
-
 	public StructrPasswordProperty(final StructrTypeDefinition parent, final String name) {
 		super(parent, name);
 	}

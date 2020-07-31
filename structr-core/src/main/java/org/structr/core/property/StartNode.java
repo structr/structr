@@ -245,4 +245,10 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	public String getDirectionKey() {
 		return "in";
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
 }

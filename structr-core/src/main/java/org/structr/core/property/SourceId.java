@@ -127,4 +127,10 @@ public class SourceId extends Property<String> {
 	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext) {
 		return null;
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
 }

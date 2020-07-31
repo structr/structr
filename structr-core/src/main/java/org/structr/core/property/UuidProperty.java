@@ -47,4 +47,10 @@ public class UuidProperty extends StringProperty {
 	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final String searchValue, final boolean exactMatch, final Query query) {
 		return new UuidSearchAttribute(searchValue, occur);
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(java.lang.String type, final String viewName) {
+		return "8ef5a68735f5412bab168333f7efd5ce";
+	}
 }

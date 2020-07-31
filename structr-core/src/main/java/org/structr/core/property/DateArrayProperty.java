@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -268,6 +269,12 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 	@Override
 	public PropertyType getDataType() {
 		return PropertyType.DATETIME;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return List.of(new SimpleDateFormat(this.format).format(System.currentTimeMillis()));
 	}
 
 	// ----- static methods -----

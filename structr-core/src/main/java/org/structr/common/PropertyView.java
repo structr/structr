@@ -30,13 +30,13 @@ public interface PropertyView {
 	 * The "all" view, a system view that is created automatically when
 	 * scanning the entities upon system start.
 	 */
-	public static final String All =	"all";
-	
+	public static final String All =	 "all";
+
 	/**
 	 * The "public" view, this is the default view for structr entities.
 	 */
 	public static final String Public =	"public";
-	
+
 	/**
 	 * The "custom" view, this is the default view for custom attributes.
 	 */
@@ -46,17 +46,17 @@ public interface PropertyView {
 	 * The "protected" view, free to use.
 	 */
 	public static final String Protected =	"protected";
-	
+
 	/**
 	 * The "private" view, free to use.
 	 */
 	public static final String Private =	"private";
-	
+
 	/**
 	 * The "ui" view used by structr UI.
 	 */
 	public static final String Ui	=	"ui";
-	
+
 	/**
 	 * The "html" view used by structr UI.
 	 */

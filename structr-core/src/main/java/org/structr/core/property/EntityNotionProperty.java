@@ -165,4 +165,10 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	public int getProcessingOrderPosition() {
 		return 1000;
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
 }

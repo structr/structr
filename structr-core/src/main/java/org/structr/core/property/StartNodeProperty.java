@@ -85,4 +85,10 @@ public class StartNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	public SortType getSortType() {
 		return SortType.Default;
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
 }
