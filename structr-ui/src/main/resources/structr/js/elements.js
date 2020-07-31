@@ -688,7 +688,7 @@ var _Elements = {
 			e.stopPropagation();
 			e.preventDefault();
 
-			if (!subFolderEl.children('.node').length) {
+			if (!subFolderEl.children('.fa-folder-open').length) {
 
 				_Elements.expandFolder(entityToLinkTo, subFolder);
 
@@ -743,10 +743,12 @@ var _Elements = {
 			event.stopPropagation();
 
 			if (div.hasClass('nodeActive')) {
+
 				Command.setProperty(entityToLinkTo.id, 'linkableId', null);
+
 			} else {
 
-				var attrName = (entityToLinkTo.type === 'Link') ? '_html_href' : '_html_src';
+				let attrName = (entityToLinkTo.type === 'Link') ? '_html_href' : '_html_src';
 
 				Command.getProperty(entityToLinkTo.id, attrName, function(val) {
 					if (!val || val === '') {
@@ -765,14 +767,11 @@ var _Elements = {
 			$.unblockUI({
 				fadeOut: 25
 			});
-		}).css({
-			cursor: 'pointer'
 		}).hover(function() {
 			$(this).addClass('nodeHover');
 		}, function() {
 			$(this).removeClass('nodeHover');
 		});
-
 	},
 	enableContextMenuOnElement: function (div, entity) {
 

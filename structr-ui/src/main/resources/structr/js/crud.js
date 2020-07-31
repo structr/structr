@@ -145,7 +145,8 @@ var _Crud = {
 						}
 
 					} else {
-						new MessageBuilder().error('Error: No type information found for type: ' + type).delayDuration(5000).fadeDuration(1000).show();
+						new MessageBuilder().error('No type information found for type: ' + type).delayDuration(5000).fadeDuration(1000).show();
+						_Crud.showMessageAfterDelay('No type information found for type: <b>' + type + '</b>', 500);
 					}
 				},
 				400: errorFn,
@@ -155,7 +156,6 @@ var _Crud = {
 				422: errorFn
 			},
 			error: function () {
-				console.log("ERROR: loading Schema for " + type);
 			}
 		});
 	},
@@ -179,6 +179,7 @@ var _Crud = {
 
 				if (Object.keys(properties).length === 0) {
 					new MessageBuilder().warning("Unable to find schema information for type '" + type + "'. There might be database nodes with no type information or a type unknown to Structr in the database.").show();
+					_Crud.showMessageAfterDelay("Unable to find schema information for type '" + type + "'.<br>There might be database nodes with no type information or a type unknown to Structr in the database.", 500);
 				} else {
 
 					if (callback) {
@@ -233,7 +234,7 @@ var _Crud = {
 
 		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search"><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 		main.append('<div id="crud-main"><div class="column-resizer"></div><div id="crud-left">'
-				+ '<div id="crud-types" class="resourceBox"><h2>All Types</h2><i id="crudTypesFilterToggle" title="Auto-filter types" class="' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" /><div id="crudTypeFilterSettings" class="hidden"></div><input placeholder="Filter types..." id="crudTypesSearch"><ul id="crud-types-list"></ul></div>'
+				+ '<div id="crud-types" class="resourceBox"><h2>Types</h2><i id="crudTypesFilterToggle" title="Auto-filter types" class="' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" /><div id="crudTypeFilterSettings" class="hidden"></div><input placeholder="Filter types..." id="crudTypesSearch"><ul id="crud-types-list"></ul></div>'
 				+ '<div id="crud-recent-types" class="resourceBox"><h2>Recent</h2><ul id="crud-recent-types-list"></ul></div></div>'
 				+ '<div id="crud-right" class="resourceBox full-height-box"></div></div>');
 
@@ -380,19 +381,28 @@ var _Crud = {
 		_Crud.filterTypes($('#crudTypesSearch').val().toLowerCase());
 		_Crud.resize();
 	},
-	loadingMessageTimeout: undefined,
+	messageTimeout: undefined,
 	showLoadingMessageAfterDelay: function (message, delay) {
 
-		clearTimeout(_Crud.loadingMessageTimeout);
+		_Crud.showMessageAfterDelay('<img src="' + _Icons.getSpinnerImageAsData() + '"> ' + message + ' - please stand by', delay);
 
-		_Crud.loadingMessageTimeout = setTimeout(function() {
-			var crudRight = $('#crud-right');
-			crudRight.append('<div class="crud-loading"><div class="crud-centered"><img src="' + _Icons.getSpinnerImageAsData() + '"> ' + message + ' - please stand by</div></div>');
+	},
+	showMessageAfterDelay: function (message, delay) {
+
+		clearTimeout(_Crud.messageTimeout);
+
+		_Crud.messageTimeout = setTimeout(function() {
+
+			_Crud.removeMessage();
+
+			let crudRight = $('#crud-right');
+			crudRight.append('<div class="crud-message"><div class="crud-centered">' + message + '</div></div>');
+
 		}, delay);
 
 	},
-	removeLoadingMessage: function() {
-		$('#crud-right .crud-loading').remove();
+	removeMessage: function() {
+		$('#crud-right .crud-message').remove();
 	},
 	typeSelected: function (type) {
 
@@ -406,7 +416,7 @@ var _Crud = {
 
 		_Crud.getProperties(type, function() {
 
-			clearTimeout(_Crud.loadingMessageTimeout);
+			clearTimeout(_Crud.messageTimeout);
 
 			fastRemoveAllChildren(crudRight[0]);
 
@@ -1082,8 +1092,8 @@ var _Crud = {
 			contentType: 'application/json; charset=utf-8',
 			success: function(data) {
 
-				clearTimeout(_Crud.loadingMessageTimeout);
-				_Crud.removeLoadingMessage();
+				clearTimeout(_Crud.messageTimeout);
+				_Crud.removeMessage();
 
 				if (!data) {
 					return;
@@ -1117,8 +1127,8 @@ var _Crud = {
 			error: function(a, b, c) {
 				console.log(a, b, c, type, url);
 
-				clearTimeout(_Crud.loadingMessageTimeout);
-				_Crud.removeLoadingMessage();
+				clearTimeout(_Crud.messageTimeout);
+				_Crud.removeMessage();
 			}
 		});
 	},

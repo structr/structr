@@ -310,9 +310,6 @@ img.disabled {
 #files,
 #code,
 #trees,
-#groups,
-#images,
-#users,
 .slideOutLeft,
 .slideOutRight {
 	float: left;
@@ -967,7 +964,7 @@ ul#previewTabs {
 
 .name_.abbr-ellipsis {
 	display: inline-block;
-	height: calc(1.7em - 5px);
+	height: calc(1.7em - 3px);
 }
 
 .abbr-ellipsis {
@@ -1377,10 +1374,6 @@ i.button {
 	border: 1px solid #aaa;
 }
 
-.nodeHover {
-	/*z-index: 2;*/
-}
-
 .nodeSelected {
 	background-color: #fffcdd ! important;
 	/*border: 1px solid #ca0;*/
@@ -1569,14 +1562,12 @@ button.action.disabled:hover {
 .dialogText .linkBox {
 	border: 1px solid #ccc;
 	background-color: #fff;
-	padding: 6px;
 }
 
 .dialogText .linkBox .pager {
 	border-bottom: 1px solid #ccc;
 	background-color: #e5e5e5;
-	margin: -6px -6px 4px -6px;
-	padding: 5px 5px 0px 5px;
+	padding: 3px 0px 3px 6px;
 }
 
 .dialogText label {
@@ -2013,7 +2004,7 @@ button.enabled, button.active {
 }
 
 .pager input.pageCount {
-	background-color: #fff ! important;
+	background-color: rgba(0,0,0,0) ! important;
 	border: none;
 }
 
@@ -3009,8 +3000,12 @@ table.push {
 }
 
 /**
- * Resource Access editor
+ * Security
  */
+
+#usersAndGroups-inner {
+	display: flex;
+}
 
 #usersAndGroups, #resourceAccess {
 	height: calc(100% - 28px);
