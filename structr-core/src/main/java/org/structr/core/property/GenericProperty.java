@@ -18,25 +18,16 @@
  */
 package org.structr.core.property;
 
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.lang.reflect.ParameterizedType;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * A generic dummy property that does nothing.
- *
- *
  */
 public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {
-
-	//~--- constructors ---------------------------------------------------
 
 	public GenericProperty(String name) {
 
@@ -49,8 +40,6 @@ public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {
 		super(jsonName, dbName);
 
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public String typeName() {
@@ -100,8 +89,6 @@ public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {
 		return null;
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public boolean isCollection() {
 		return false;
@@ -110,5 +97,11 @@ public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {
 	@Override
 	public SortType getSortType() {
 		return SortType.Default;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
 	}
 }

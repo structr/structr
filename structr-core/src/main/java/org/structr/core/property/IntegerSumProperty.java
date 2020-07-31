@@ -83,4 +83,10 @@ public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 	public boolean isCollection() {
 		return false;
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return 1;
+	}
 }

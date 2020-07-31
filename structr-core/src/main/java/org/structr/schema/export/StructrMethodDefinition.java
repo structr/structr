@@ -20,13 +20,16 @@ package org.structr.schema.export;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +44,7 @@ import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonParameter;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
+import org.structr.schema.openapi.OpenAPIMethodOperation;
 
 /**
  *
@@ -52,6 +56,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 	private final List<StructrParameterDefinition> parameters = new LinkedList<>();
 	private final List<String> exceptions                     = new LinkedList<>();
+	private final Set<String> tags                            = new TreeSet<>();
 	private SchemaMethod schemaMethod                         = null;
 	private boolean overridesExisting                         = false;
 	private boolean doExport                                  = false;
@@ -237,6 +242,16 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	@Override
+	public Set<String> getTags() {
+		return tags;
+	}
+
+	@Override
+	public void addTags(final String... tags) {
+		this.tags.addAll(Arrays.asList(tags));
+	}
+
+	@Override
 	public StructrDefinition resolveJsonPointerKey(final String key) {
 		return null;
 	}
@@ -271,6 +286,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		updateProperties.put(SchemaMethod.source,                getSource());
 		updateProperties.put(SchemaMethod.isPartOfBuiltInSchema, true);
+		updateProperties.put(SchemaMethod.tags,                  tags.toArray(new String[0]));
 
 		method.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
@@ -278,6 +294,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		for (final StructrParameterDefinition param : parameters) {
 			param.createDatabaseSchema(app, method, index++);
 		}
+
 
 		this.schemaMethod = method;
 
@@ -365,6 +382,15 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			// sort parameters
 			Collections.sort(parameters, (o1, o2) -> Integer.valueOf(o1.getIndex()).compareTo(o2.getIndex()));
 		}
+
+		if (source.containsKey(JsonSchema.KEY_TAGS)) {
+
+			final Object tagsValue = source.get(JsonSchema.KEY_TAGS);
+			if (tagsValue instanceof List) {
+
+				tags.addAll((List<String>)tagsValue);
+			}
+		}
 	}
 
 	void deserialize(final SchemaMethod method) {
@@ -400,6 +426,12 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		Collections.sort(parameters, (p1, p2) -> {
 			return Integer.valueOf(p1.getIndex()).compareTo(p2.getIndex());
 		});
+
+		final String[] tagArray = method.getProperty(SchemaMethod.tags);
+		if (tagArray != null) {
+
+			this.tags.addAll(Arrays.asList(tagArray));
+		}
 	}
 
 	Map<String, Object> serialize() {
@@ -422,6 +454,10 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		if (!params.isEmpty()) {
 			map.put(JsonSchema.KEY_PARAMETERS, params);
+		}
+
+		if (!tags.isEmpty()) {
+			map.put(JsonSchema.KEY_TAGS, tags);
 		}
 
 		return map;
@@ -451,6 +487,17 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 	void diff(final StructrMethodDefinition other) {
 	}
+
+	// ----- OpenAPI -----
+	public Map<String, Object> serializeOpenAPI() {
+
+		final Map<String, Object> operations = new LinkedHashMap<>();
+
+		operations.put("/" + getParent().getName() + "/{uuid}/" + getName(), Map.of("post", new OpenAPIMethodOperation(this)));
+
+		return operations;
+	}
+
 
 	// ----- static methods -----
 	static StructrMethodDefinition deserialize(final StructrTypeDefinition parent, final String name, final Map<String, Object> source) {

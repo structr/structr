@@ -355,4 +355,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	// ----- CMIS support -----
 	PropertyType getDataType();
 	boolean isCMISProperty();
+
+	// ----- OpenAPI -----
+	Object getExampleValue(java.lang.String type, final String viewName);
 }

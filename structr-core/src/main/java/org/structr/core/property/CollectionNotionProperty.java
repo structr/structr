@@ -202,4 +202,10 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	protected boolean multiValueSplitAllowed() {
 		return false;
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(java.lang.String type, final String viewName) {
+		return null;
+	}
 }

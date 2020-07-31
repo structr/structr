@@ -20,6 +20,7 @@ package org.structr.api.schema;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 
 /**
  */
@@ -57,4 +58,7 @@ public interface JsonMethod extends Comparable<JsonMethod> {
 
 	public String getCodeType();
 	public JsonMethod setCodeType(final String codeType);
+
+	Set<String> getTags();
+	void addTags(final String... tags);
 }

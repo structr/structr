@@ -150,6 +150,12 @@ public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 		return this;
 	}
 
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return "lowercase string example";
+	}
+
 	// ----- CMIS support -----
 	@Override
 	public PropertyType getDataType() {

@@ -107,4 +107,10 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 	public SortType getSortType() {
 		return SortType.Default;
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
 }

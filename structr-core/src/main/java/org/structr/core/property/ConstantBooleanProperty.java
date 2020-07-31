@@ -33,13 +33,13 @@ import org.structr.core.converter.PropertyConverter;
 public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	 {
 
 	private boolean constantValue;
-	
+
 	public ConstantBooleanProperty(final String name, final boolean constantValue) {
-		
+
 		super(name);
 		systemInternal();
 		readOnly();
-		
+
 		this.constantValue = constantValue;
 	}
 
@@ -54,11 +54,11 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 
 	@Override
 	public Boolean getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
-		
+
 		if (declaringClass.isAssignableFrom(obj.getClass())) {
 			return this.constantValue;
 		}
-		
+
 		return false; // null = false
 	}
 
@@ -116,10 +116,16 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	public SortType getSortType() {
 		return SortType.Default;
 	}
-	
+
 	// ----- CMIS support -----
 	@Override
 	public PropertyType getDataType() {
 		return PropertyType.BOOLEAN;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return constantValue;
 	}
 }

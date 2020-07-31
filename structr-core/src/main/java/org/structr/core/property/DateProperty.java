@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
@@ -207,6 +208,12 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	@Override
 	public PropertyType getDataType() {
 		return PropertyType.DATETIME;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return new SimpleDateFormat(this.format).format(System.currentTimeMillis());
 	}
 
 	// ----- static methods -----

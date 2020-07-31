@@ -504,6 +504,15 @@ var _Code = {
 							opened: true
 						}
 					},
+					{
+						id: 'apis',
+						text: 'APIs',
+						children: true,
+						icon: _Icons.database_gear_icon,
+						state: {
+							opened: true
+						}
+					},
 					/*
 					{
 						id: 'facetsearch',
