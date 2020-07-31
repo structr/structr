@@ -598,7 +598,7 @@ var _Elements = {
 						});
 					});
 
-					let pagesPagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name"/></span>');
+					let pagesPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"/></span>');
 					pagesPager.pager.append(pagesPagerFilters);
 					pagesPager.activateFilterElements();
 
@@ -616,7 +616,7 @@ var _Elements = {
 						};
 					}, null, 'id,name,hasParent');
 
-					let folderPagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" /></span>');
+					let folderPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name" /></span>');
 					linkFolderPager.pager.append(folderPagerFilters);
 					linkFolderPager.activateFilterElements();
 
@@ -658,7 +658,7 @@ var _Elements = {
 						});
 					}, null, 'id,name,contentType,linkingElementsIds,path,tnSmall');
 
-					let imagesPagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name"/></span>');
+					let imagesPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"/></span>');
 					imagesPager.pager.append(imagesPagerFilters);
 					imagesPager.activateFilterElements();
 				}
