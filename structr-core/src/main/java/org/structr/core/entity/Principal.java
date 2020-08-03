@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -46,6 +45,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
+import org.structr.core.app.App;
 
 public interface Principal extends NodeInterface, AccessControllable {
 
@@ -170,7 +170,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 	Iterable<Group> getGroups();
 
 	Iterable<Principal> getParents();
-	List<Principal> getParentsPrivileged();
+	Iterable<Principal> getParentsPrivileged();
 
 	boolean isValidPassword(final String password);
 
@@ -199,11 +199,14 @@ public interface Principal extends NodeInterface, AccessControllable {
 		return principal.getProperty(StructrApp.key(Principal.class, "groups"));
 	}
 
-	public static List<Principal> getParentsPrivileged(final Principal principal) {
+	public static Iterable<Principal> getParentsPrivileged(final Principal principal) {
 
 		try {
 
-			return StructrApp.getInstance().nodeQuery(Principal.class).and(StructrApp.key(Group.class, "members"), Arrays.asList(principal)).getAsList();
+			final App app                       = StructrApp.getInstance();
+			final Principal privilegedPrincipal = app.get(Principal.class, principal.getUuid());
+
+			return privilegedPrincipal.getProperty(StructrApp.key(Principal.class, "groups"));
 
 		} catch (FrameworkException fex) {
 
