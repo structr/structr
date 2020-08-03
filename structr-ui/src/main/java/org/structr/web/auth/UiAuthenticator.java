@@ -409,7 +409,7 @@ public class UiAuthenticator implements Authenticator {
 		}
 
 		String[] headerParts = authorizationHeader.split(" ");
-		if (StringUtils.equals(headerParts[0], "Bearer")) {
+		if (StringUtils.equals(headerParts[0], "Bearer") && headerParts.length > 1) {
 
 			return headerParts[1];
 

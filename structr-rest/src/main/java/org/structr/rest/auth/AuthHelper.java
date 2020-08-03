@@ -260,7 +260,7 @@ public class AuthHelper {
 		Jws<Claims> jws = validateTokenWithKeystore(token, publicKey);
 
 		if (jws == null) {
-			throw new FrameworkException(400, AuthHelper.TOKEN_ERROR_MSG);
+			throw new FrameworkException(401, AuthHelper.TOKEN_ERROR_MSG);
 		}
 
 		return getPrincipalForTokenClaims(jws.getBody(), eMailKey);
@@ -273,7 +273,7 @@ public class AuthHelper {
 		Jws<Claims> jws = validateTokenWithSecret(token, secret);
 
 		if (jws == null) {
-			throw new FrameworkException(400, AuthHelper.TOKEN_ERROR_MSG);
+			throw new FrameworkException(401, AuthHelper.TOKEN_ERROR_MSG);
 		}
 
 		return getPrincipalForTokenClaims(jws.getBody(), eMailKey);
@@ -336,6 +336,7 @@ public class AuthHelper {
 			.compact();
 
 		tokens.put("access_token", accessToken);
+		tokens.put("expiration_date", Long.toString(accessTokenExpirationDate.getTime()));
 
 		if (refreshTokenExpirationDate != null) {
 			final String tokenId = NodeServiceCommand.getNextUuid();
@@ -344,9 +345,6 @@ public class AuthHelper {
 				.setSubject(user.getName())
 				.setExpiration(refreshTokenExpirationDate)
 				.setIssuer(jwtIssuer)
-				.claim("instance", instanceName)
-				.claim("uuid", user.getUuid())
-				.claim("eMail", user.getEMail())
 				.claim("tokenId", tokenId)
 				.claim("tokenType", "refresh_token")
 				.signWith(key)
@@ -382,6 +380,7 @@ public class AuthHelper {
 			.compact();
 
 		tokens.put("access_token", accessToken);
+		tokens.put("expiration_date", Long.toString(accessTokenExpirationDate.getTime()));
 
 		if (refreshTokenExpirationDate != null) {
 			final String tokenId = NodeServiceCommand.getNextUuid();
@@ -390,9 +389,6 @@ public class AuthHelper {
 				.setSubject(user.getName())
 				.setExpiration(refreshTokenExpirationDate)
 				.setIssuer(jwtIssuer)
-				.claim("instance", instanceName)
-				.claim("uuid", user.getUuid())
-				.claim("eMail", user.getEMail())
 				.claim("tokenId", tokenId)
 				.claim("tokenType", "refresh_token")
 				.signWith(privateKey)
@@ -428,12 +424,13 @@ public class AuthHelper {
 		}
 
 		if (claims == null) {
-			throw new FrameworkException(400, AuthHelper.TOKEN_ERROR_MSG);
+			throw new FrameworkException(401, AuthHelper.TOKEN_ERROR_MSG);
 		}
 
 		final String tokenId = (String) claims.getBody().get("tokenId");
-		if (tokenId == null) {
-			throw new FrameworkException(400, AuthHelper.TOKEN_ERROR_MSG);
+		final String tokenType = (String) claims.getBody().get("tokenType");
+		if (tokenId == null || tokenType == null || !StringUtils.equals(tokenType, "refresh_token")) {
+			throw new FrameworkException(401, AuthHelper.TOKEN_ERROR_MSG);
 		}
 
 		Principal user = getPrincipalForCredential(StructrApp.key(Principal.class, "refreshTokens"), new String[]{ tokenId }, false);
