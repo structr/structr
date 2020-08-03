@@ -122,4 +122,10 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 	public boolean isCollection() {
 		return false;
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(java.lang.String type, final String viewName) {
+		return 1;
+	}
 }

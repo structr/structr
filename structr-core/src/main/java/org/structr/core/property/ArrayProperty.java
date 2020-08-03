@@ -249,6 +249,12 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		return true;
 	}
 
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
+
 	// ----- private methods -----
 	private T[] convert(final List source) throws FrameworkException {
 

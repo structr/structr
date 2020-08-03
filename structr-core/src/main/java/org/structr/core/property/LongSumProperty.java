@@ -89,4 +89,10 @@ public class LongSumProperty extends AbstractReadOnlyProperty<Long> {
 	public SortType getSortType() {
 		return SortType.Long;
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return 1L;
+	}
 }

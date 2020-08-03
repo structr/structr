@@ -19,6 +19,7 @@
 package org.structr.schema.export;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -70,21 +71,40 @@ import org.structr.api.schema.JsonScriptProperty;
 import org.structr.api.schema.JsonStringArrayProperty;
 import org.structr.api.schema.JsonStringProperty;
 import org.structr.api.schema.JsonType;
+import org.structr.common.PropertyView;
+import org.structr.common.Visitor;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaGrant;
+import org.structr.core.property.PropertyKey;
+import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.openapi.OpenAPIDeleteMultipleOperation;
+import org.structr.schema.openapi.OpenAPIDeleteSingleOperation;
+import org.structr.schema.openapi.OpenAPIGetMultipleOperation;
+import org.structr.schema.openapi.OpenAPIGetSingleOperation;
+import org.structr.schema.openapi.OpenAPIPostOperation;
+import org.structr.schema.openapi.OpenAPIPropertyQueryParameter;
+import org.structr.schema.openapi.OpenAPIPropertySchema;
+import org.structr.schema.openapi.OpenAPIPutSingleOperation;
+import org.structr.schema.openapi.OpenAPIReference;
 
 /**
  * @param <T>
  */
 public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implements JsonType, StructrDefinition {
 
+	public static final Set<String> VIEW_BLACKLIST = new LinkedHashSet<>(Arrays.asList("_graph", "_html_", "all", "category", "custom", "editWidget", "effectiveNameView", "export", "fav", "schema", "ui"));
+	public static final Set<String> TagBlacklist   = new LinkedHashSet<>(Arrays.asList("core", "default", "html", "ui"));
+
 	private static final Logger logger = LoggerFactory.getLogger(StructrTypeDefinition.class);
 
+	private final Set<String> filterPropertyBlacklist             = new LinkedHashSet<>(Arrays.asList("id", "type", "hidden"));
 	protected final Set<StructrPropertyDefinition> properties     = new TreeSet<>();
 	protected final Map<String, Set<String>> views                = new TreeMap<>();
 	protected final Map<String, String> viewOrder                 = new TreeMap<>();
 	protected final List<StructrMethodDefinition> methods         = new LinkedList<>();
 	protected final List<StructrGrantDefinition> grants           = new LinkedList<>();
 	protected final Set<URI> implementedInterfaces                = new TreeSet<>();
+	protected final Set<String> tags                              = new TreeSet<>();
 	protected boolean visibleToAuthenticatedUsers                 = false;
 	protected boolean visibleToPublicUsers                        = false;
 	protected boolean isInterface                                 = false;
@@ -149,6 +169,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	public JsonType setCategory(final String category) {
 
 		this.category = category;
+
+		// test
+		this.addTags(category);
+
 		return this;
 	}
 
@@ -348,6 +372,16 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	@Override
 	public List<JsonGrant> getGrants() {
 		return (List)grants;
+	}
+
+	@Override
+	public Set<String> getTags() {
+		return tags;
+	}
+
+	@Override
+	public void addTags(final String... tags) {
+		this.tags.addAll(Arrays.asList(tags));
 	}
 
 	@Override
@@ -769,8 +803,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		// views
 		if (!views.isEmpty()) {
 
-			// FIXME: views are different
-
 			serializedForm.put(JsonSchema.KEY_VIEWS, views);
 			serializedForm.put(JsonSchema.KEY_VIEW_ORDER, viewOrder);
 		}
@@ -806,6 +838,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		if (StringUtils.isNotBlank(category)) {
 			serializedForm.put(JsonSchema.KEY_CATEGORY, category);
+		}
+
+		if (!tags.isEmpty()) {
+			serializedForm.put(JsonSchema.KEY_TAGS, tags);
 		}
 
 		return serializedForm;
@@ -867,6 +903,15 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 					this.implementedInterfaces.add(root.getId().relativize(URI.create(jsonPointerFormat)));
 				}
+			}
+		}
+
+		if (source.containsKey(JsonSchema.KEY_TAGS)) {
+
+			final Object tagsValue = source.get(JsonSchema.KEY_TAGS);
+			if (tagsValue instanceof List) {
+
+				tags.addAll((List<String>)tagsValue);
 			}
 		}
 	}
@@ -974,7 +1019,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		this.isAbstract                  = schemaNode.getProperty(SchemaNode.isAbstract);
 		this.isBuiltinType               = schemaNode.getProperty(SchemaNode.isBuiltinType);
 		this.changelogDisabled           = schemaNode.getProperty(SchemaNode.changelogDisabled);
-		this.visibleToPublicUsers     = schemaNode.getProperty(SchemaNode.defaultVisibleToPublic);
+		this.visibleToPublicUsers        = schemaNode.getProperty(SchemaNode.defaultVisibleToPublic);
 		this.visibleToAuthenticatedUsers = schemaNode.getProperty(SchemaNode.defaultVisibleToAuth);
 		this.category                    = schemaNode.getProperty(SchemaNode.category);
 		this.schemaNode                  = schemaNode;
@@ -986,6 +1031,12 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 				this.category = type.getCategory();
 			}
+		}
+
+		final String[] tagArray = schemaNode.getProperty(SchemaNode.tags);
+		if (tagArray != null) {
+
+			this.tags.addAll(Arrays.asList(tagArray));
 		}
 	}
 
@@ -1179,6 +1230,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 			nodeProperties.put(SchemaNode.implementsInterfaces, StringUtils.join(interfaces, ", "));
 		}
+
+		nodeProperties.put(SchemaNode.tags, tags.toArray(new String[0]));
 
 		schemaNode.setProperties(SecurityContext.getSuperUserInstance(), nodeProperties);
 
@@ -1648,5 +1701,190 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	private void handleRemovedProperty(final StructrPropertyDefinition property) throws FrameworkException {
 		//logger.warn("Property {}.{} was removed or renamed in the current version of the Structr schema, no action taken.", getName(), property.getName());
+	}
+
+	// ----- OpenAPI methods -----
+	public Map<String, Object> serializeOpenAPI(final String viewName, final boolean forWriteRequests) {
+
+		final Map<String, Object> serializedForm       = new TreeMap<>();
+		final Map<String, Object> serializedProperties = new TreeMap<>();
+
+		// populate properties
+		visitProperties(property -> {
+
+			if (!property.isReadOnly() || !forWriteRequests) {
+
+				serializedProperties.put(property.jsonName(), new OpenAPIPropertySchema(property, viewName));
+			}
+
+		}, viewName);
+
+		serializedForm.put(JsonSchema.KEY_TYPE, "object");
+
+		// properties
+		if (!serializedProperties.isEmpty()) {
+			serializedForm.put(JsonSchema.KEY_PROPERTIES, serializedProperties);
+		}
+
+		// required
+		final Set<String> requiredProperties = getRequiredProperties();
+		if (!requiredProperties.isEmpty()) {
+			serializedForm.put(JsonSchema.KEY_REQUIRED, requiredProperties);
+		}
+
+		return serializedForm;
+	}
+
+	public Map<String, Object> serializeOpenAPIOperations() {
+
+		final Map<String, Object> root      = new LinkedHashMap<>();
+		final Map<String, Object> singleOps = new LinkedHashMap<>();
+		final Map<String, Object> multiOps  = new LinkedHashMap<>();
+		final Set<String> views             = getInheritedViewNamesExcludingPublic();
+
+		for (final String view : views) {
+
+			root.put("/" + name + "/" + view, Map.of("get", new OpenAPIGetMultipleOperation(this, view)));
+		}
+
+		root.put("/" + name, multiOps);
+
+		multiOps.put("get",    new OpenAPIGetMultipleOperation(this, PropertyView.Public));
+		//multiOps.put("patch",  new OpenAPIPatchOperation(this));
+		multiOps.put("post",   new OpenAPIPostOperation(this));
+		multiOps.put("delete", new OpenAPIDeleteMultipleOperation(this));
+
+
+		for (final String view : views) {
+
+			root.put("/" + name + "/{uuid}" + "/" + view, Map.of("get", new OpenAPIGetSingleOperation(this, view)));
+		}
+
+		root.put("/" + name + "/{uuid}", singleOps);
+
+		singleOps.put("get",    new OpenAPIGetSingleOperation(this, PropertyView.Public));
+		singleOps.put("put",    new OpenAPIPutSingleOperation(this));
+		singleOps.put("delete", new OpenAPIDeleteSingleOperation(this));
+
+		// methods
+		for (final StructrMethodDefinition method : methods) {
+
+			root.putAll(method.serializeOpenAPI());
+		}
+
+		return root;
+	}
+
+	public Set<String> getTagsForOpenAPI() {
+
+		final Set<String> result = new LinkedHashSet<>();
+
+		//result.addAll(tags);
+
+		// group by type
+		result.add(name);
+
+		return result;
+	}
+
+	public boolean isSelected(final String tag) {
+
+		final Set<String> tags = getTags();
+		boolean selected       = tag == null || tags.contains(tag);
+
+		// don't show types without tags
+		if (tags.isEmpty()) {
+			return false;
+		}
+
+		// skip blacklisted tags
+		if (intersects(TagBlacklist, tags)) {
+
+			// if a tag is selected, it overrides the blacklist
+			selected = tag != null && tags.contains(tag);
+		}
+
+		return selected;
+	}
+
+	public void visitProperties(final Visitor<PropertyKey> visitor, final String viewName) {
+
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+		final Class type                   = config.getNodeEntityClass(name);
+
+		if (type != null) {
+
+			final Set<PropertyKey> keys = config.getPropertySet(type, viewName);
+			if (keys != null) {
+
+				keys.stream().forEach(visitor::visit);
+
+			} else {
+
+				// fallback: iterate over id, type, name
+				List.of(AbstractNode.id, AbstractNode.type, AbstractNode.name).stream().forEach(visitor::visit);
+			}
+		}
+	}
+
+	public List<Map<String, Object>> getOpenAPIParameters(final String viewName) {
+
+		final List<Map<String, Object>> params = new LinkedList<>();
+
+		// add indexed properties
+		visitProperties(property -> {
+
+			if (property.isIndexed() && !filterPropertyBlacklist.contains(property.jsonName())) {
+
+				params.add(new OpenAPIPropertyQueryParameter(property, viewName));
+			}
+
+		}, viewName);
+
+		params.add(new OpenAPIReference("#/components/parameters/page"));
+		params.add(new OpenAPIReference("#/components/parameters/pageSize"));
+		params.add(new OpenAPIReference("#/components/parameters/inexactSearch"));
+
+		return params;
+	}
+
+	protected Set<String> getInheritedViewNamesExcludingPublic() {
+
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+		final Class type                   = config.getNodeEntityClass(name);
+		final Set<String> inherited        = new LinkedHashSet<>();
+
+		if (type != null) {
+
+			inherited.addAll(config.getPropertyViewsForType(type));
+
+			inherited.removeAll(VIEW_BLACKLIST);
+			inherited.remove("public");
+		}
+
+		return inherited;
+	}
+
+	String resolveTypeReferenceForOpenAPI(final URI reference) {
+
+		// do not include static Structr Schema URIs here
+		if (reference != null && !reference.toString().startsWith("https://structr.org/v1.1/")) {
+
+			// non-default base type?
+			final String name = StringUtils.substringAfterLast(reference.getPath(), "/");
+
+			return "#/components/schemas/" + name;
+		}
+
+		return null;
+	}
+
+	private boolean intersects(final Set<String> set1, final Set<String> set2) {
+
+		final Set<String> intersection = new LinkedHashSet<>(set1);
+
+		intersection.retainAll(set2);
+
+		return !intersection.isEmpty();
 	}
 }

@@ -129,4 +129,10 @@ public class SourceNodeProperty extends Property<NodeInterface> {
 	public boolean isPassivelyIndexed() {
 		return false;
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
 }

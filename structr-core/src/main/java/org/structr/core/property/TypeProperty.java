@@ -147,4 +147,10 @@ public class TypeProperty extends StringProperty {
 			dbNode.addLabel(add);
 		}
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(java.lang.String type, final String viewName) {
+		return type;
+	}
 }

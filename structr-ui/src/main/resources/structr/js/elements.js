@@ -598,7 +598,7 @@ var _Elements = {
 						});
 					});
 
-					let pagesPagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name"/></span>');
+					let pagesPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"/></span>');
 					pagesPager.pager.append(pagesPagerFilters);
 					pagesPager.activateFilterElements();
 
@@ -616,26 +616,25 @@ var _Elements = {
 						};
 					}, null, 'id,name,hasParent');
 
-					let folderPagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name"/></span>');
+					let folderPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name" /></span>');
 					linkFolderPager.pager.append(folderPagerFilters);
 					linkFolderPager.activateFilterElements();
 
 					_Pager.initPager('files-to-link', 'File', 1, 25);
-					_Pager.forceAddFilters('files-to-link', 'File', { hasParent: false });
 					let linkFilesPager = _Pager.addPager('files-to-link', filesToLink, true, 'File', 'ui', function(files) {
 
 						files.forEach(function(file) {
 
 							filesToLink.append('<div class="node file ' + file.id + '_"><i class="fa ' + _Icons.getFileIconClass(file) + '"></i> '
-									+ '<b title="' + file.name + '" class="name_ abbr-ellipsis abbr-120">' + file.name + '</b></div>');
+									+ '<b title="' + file.path + '" class="name_ abbr-ellipsis abbr-120">' + file.name + '</b></div>');
 
 							var div = $('.' + file.id + '_', filesToLink);
 
 							_Elements.handleLinkableElement(div, entity, file);
 						});
-					});
+					}, null, 'id,name,contentType,linkingElementsIds,path');
 
-					let filesPagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name"/></span>');
+					let filesPagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" /><label><input type="checkbox"  class="filter" data-attribute="hasParent" /> Include subdirectories</label></span>');
 					linkFilesPager.pager.append(filesPagerFilters);
 					linkFilesPager.activateFilterElements();
 				}
@@ -651,15 +650,15 @@ var _Elements = {
 
 						images.forEach(function(image) {
 
-							imagesToLink.append('<div class="node file ' + image.id + '_">' + _Icons.getImageOrIcon(image) + '<b title="' + image.name + '" class="name_ abbr-ellipsis abbr-120">' + image.name + '</b></div>');
+							imagesToLink.append('<div class="node file ' + image.id + '_" title="' + image.path + '">' + _Icons.getImageOrIcon(image) + '<b class="name_ abbr-ellipsis abbr-120">' + image.name + '</b></div>');
 
 							var div = $('.' + image.id + '_', imagesToLink);
 
 							_Elements.handleLinkableElement(div, entity, image);
 						});
-					});
+					}, null, 'id,name,contentType,linkingElementsIds,path,tnSmall');
 
-					let imagesPagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name"/></span>');
+					let imagesPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"/></span>');
 					imagesPager.pager.append(imagesPagerFilters);
 					imagesPager.activateFilterElements();
 				}
@@ -689,7 +688,7 @@ var _Elements = {
 			e.stopPropagation();
 			e.preventDefault();
 
-			if (!subFolderEl.children('.node').length) {
+			if (!subFolderEl.children('.fa-folder-open').length) {
 
 				_Elements.expandFolder(entityToLinkTo, subFolder);
 
@@ -721,10 +720,10 @@ var _Elements = {
 
 			for (let f of node.files) {
 
-				Command.get(f.id, 'id,name,contentType,linkingElements', function(file) {
+				Command.get(f.id, 'id,name,contentType,linkingElementsIds,path', function(file) {
 
 					$('.' + node.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><i class="fa ' + _Icons.getFileIconClass(file) + '"></i> '
-							+ '<b title="' + file.name + '" class="name_ abbr-ellipsis abbr-200">' + file.name + '</b></div>');
+							+ '<b title="' + file.path + '" class="name_ abbr-ellipsis abbr-200">' + file.name + '</b></div>');
 
 					let div = $('.' + file.id + '_');
 
@@ -744,10 +743,12 @@ var _Elements = {
 			event.stopPropagation();
 
 			if (div.hasClass('nodeActive')) {
+
 				Command.setProperty(entityToLinkTo.id, 'linkableId', null);
+
 			} else {
 
-				var attrName = (entityToLinkTo.type === 'Link') ? '_html_href' : '_html_src';
+				let attrName = (entityToLinkTo.type === 'Link') ? '_html_href' : '_html_src';
 
 				Command.getProperty(entityToLinkTo.id, attrName, function(val) {
 					if (!val || val === '') {
@@ -766,14 +767,11 @@ var _Elements = {
 			$.unblockUI({
 				fadeOut: 25
 			});
-		}).css({
-			cursor: 'pointer'
 		}).hover(function() {
 			$(this).addClass('nodeHover');
 		}, function() {
 			$(this).removeClass('nodeHover');
 		});
-
 	},
 	enableContextMenuOnElement: function (div, entity) {
 

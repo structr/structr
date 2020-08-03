@@ -80,4 +80,10 @@ public class CypherProperty<T> extends AbstractPrimitiveProperty<T> {
 	public Object fixDatabaseProperty(final Object value) {
 		return null;
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
 }

@@ -285,4 +285,10 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	public String getDirectionKey() {
 		return "out";
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
 }

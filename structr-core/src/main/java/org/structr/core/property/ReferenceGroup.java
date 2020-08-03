@@ -271,4 +271,10 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 			key.extractSearchableAttribute(securityContext, request, exactMatch, query);
 		}
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(java.lang.String type, final String viewName) {
+		return null;
+	}
 }

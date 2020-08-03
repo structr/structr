@@ -112,6 +112,12 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 		return PropertyType.STRING;
 	}
 
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return "abc";
+	}
+
 	protected class DatabaseConverter extends PropertyConverter<T, String> {
 
 		public DatabaseConverter(SecurityContext securityContext, GraphObject entity) {

@@ -407,4 +407,10 @@ public class Reference<T> implements PropertyKey<T> {
 	public Comparator<GraphObject> sorted(final boolean descending) {
 		return propertyKey.sorted(descending);
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return propertyKey.getExampleValue(type, viewName);
+	}
 }

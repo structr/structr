@@ -19,6 +19,7 @@
 package org.structr.schema.export;
 
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -52,6 +53,22 @@ public abstract class StructrDynamicProperty extends StructrStringProperty imple
 	@Override
 	public String getTypeHint() {
 		return typeHint;
+	}
+
+	@Override
+	public Map<String, Object> serializeOpenAPI() {
+
+		final Map<String, Object> map = super.serializeOpenAPI();
+
+		// remove format
+		map.remove(JsonSchema.KEY_FORMAT);
+
+		if (StringUtils.isNotBlank(typeHint)) {
+
+			map.put(JsonSchema.KEY_TYPE, typeHint.toLowerCase());
+		}
+
+		return map;
 	}
 
 	@Override
