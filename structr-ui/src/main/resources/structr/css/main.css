@@ -964,7 +964,8 @@ ul#previewTabs {
 
 .name_.abbr-ellipsis {
 	display: inline-block;
-	height: calc(1.7em - 3px);
+	line-height: 1.3em;
+	margin: 4px 0 -2px 0;
 }
 
 .abbr-ellipsis {

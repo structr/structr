@@ -570,15 +570,11 @@ StructrFolder.prototype.setProperty = function(key, value, recursive, callback) 
 };
 
 StructrFolder.prototype.remove = function() {
-	if (Structr.isModuleActive(_Files)) {
-		_Files.refreshTree();
-	}
 };
 
 StructrFolder.prototype.append = function() {
 
 	if (Structr.isModuleActive(_Files)) {
-		_Files.fileOrFolderCreationNotification(this);
 		_Files.refreshTree();
 	}
 };

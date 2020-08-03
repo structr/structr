@@ -63,6 +63,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		// FIXME: indexedWhenEmpty() is not possible here, but needed?
 		principal.addStringArrayProperty("sessionIds").setIndexed(true);
+		principal.addStringArrayProperty("refreshTokens").setIndexed(true);
 
 		principal.addStringProperty("sessionData");
 
@@ -135,8 +136,13 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.overrideMethod("getParents",                      false, "return " + Principal.class.getName() + ".getParents(this);");
 		principal.overrideMethod("getParentsPrivileged",            false, "return " + Principal.class.getName() + ".getParentsPrivileged(this);");
 		principal.overrideMethod("isValidPassword",                 false, "return " + Principal.class.getName() + ".isValidPassword(this, arg0);");
+
 		principal.overrideMethod("addSessionId",                    false, "return " + Principal.class.getName() + ".addSessionId(this, arg0);");
+		principal.overrideMethod("addRefreshToken",                 false, "return " + Principal.class.getName() + ".addRefreshToken(this, arg0);");
+
 		principal.overrideMethod("removeSessionId",                 false, Principal.class.getName() + ".removeSessionId(this, arg0);");
+		principal.overrideMethod("removeRefreshToken",                 false, Principal.class.getName() + ".removeRefreshToken(this, arg0);");
+
 		principal.overrideMethod("onAuthenticate",                  false, "");
 
 		// override getProperty
@@ -176,6 +182,9 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 	boolean addSessionId(final String sessionId);
 	void removeSessionId(final String sessionId);
+
+	boolean addRefreshToken(final String refreshToken);
+	void removeRefreshToken(final String refreshToken);
 
 	String getSessionData();
 	String getEMail();
@@ -259,6 +268,45 @@ public interface Principal extends NodeInterface, AccessControllable {
 		}
 	}
 
+	public static boolean addRefreshToken(final Principal principal, final String refreshToken) {
+		try {
+
+			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "refreshTokens");
+			final String[] refreshTokens    = principal.getProperty(key);
+
+			if (refreshTokens != null) {
+
+				if (!ArrayUtils.contains(refreshTokens, refreshToken)) {
+
+					if (Settings.MaxSessionsPerUser.getValue() > 0 && refreshTokens.length >= Settings.MaxSessionsPerUser.getValue()) {
+
+						final Logger logger = LoggerFactory.getLogger(Principal.class);
+
+						final String errorMessage = "Not adding session id, limit " + Settings.MaxSessionsPerUser.getKey() + " exceeded.";
+						logger.warn(errorMessage);
+
+						return false;
+					}
+
+					principal.setProperty(key, (String[]) ArrayUtils.add(principal.getProperty(key), refreshToken));
+				}
+
+			} else {
+
+				principal.setProperty(key, new String[] {  refreshToken } );
+			}
+
+			return true;
+
+		} catch (FrameworkException ex) {
+
+			final Logger logger = LoggerFactory.getLogger(Principal.class);
+			logger.error("Could not add refreshToken " + refreshToken + " to array of refreshTokens", ex);
+
+			return false;
+		}
+	}
+
 	public static void removeSessionId(final Principal principal, final String sessionId) {
 
 		try {
@@ -279,6 +327,29 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 			final Logger logger = LoggerFactory.getLogger(Principal.class);
 			logger.error("Could not remove sessionId " + sessionId + " from array of sessionIds", ex);
+		}
+	}
+
+	public static void removeRefreshToken(final Principal principal, final String refreshToken) {
+
+		try {
+
+			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "refreshTokens");
+			final String[] refreshTokens    = principal.getProperty(key);
+
+			if (refreshTokens != null) {
+
+				final Set<String> sessionIds = new HashSet<>(Arrays.asList(refreshTokens));
+
+				sessionIds.remove(refreshToken);
+
+				principal.setProperty(key, (String[]) sessionIds.toArray(new String[0]));
+			}
+
+		} catch (FrameworkException ex) {
+
+			final Logger logger = LoggerFactory.getLogger(Principal.class);
+			logger.error("Could not remove refreshToken " + refreshToken + " from array of refreshTokens", ex);
 		}
 	}
 

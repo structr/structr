@@ -375,6 +375,16 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
+	public boolean addRefreshToken(String refreshToken) {
+		throw new UnsupportedOperationException("Not supported.");
+	}
+
+	@Override
+	public void removeRefreshToken(String refreshToken) {
+		throw new UnsupportedOperationException("Not supported.");
+	}
+
+	@Override
 	public SecurityContext getSecurityContext() {
 		throw new UnsupportedOperationException("Not supported.");
 	}

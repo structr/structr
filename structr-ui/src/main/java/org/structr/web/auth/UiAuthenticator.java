@@ -108,7 +108,20 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public SecurityContext initializeAndExamineRequest(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
 
-		Principal user = SessionHelper.checkSessionAuthentication(request);
+		Principal user = null;
+
+		String authorizationToken = getAuthorizationToken(request);
+
+		if (authorizationToken == null || StringUtils.equals(authorizationToken, "")) {
+
+			user = SessionHelper.checkSessionAuthentication(request);
+
+		} else {
+
+			final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
+			user = AuthHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
+		}
+
 		SecurityContext securityContext;
 
 		if (user == null) {
@@ -351,6 +364,19 @@ public class UiAuthenticator implements Authenticator {
 
 		return user;
 	}
+	/*
+	@Override
+	public Principal doLogin(final HttpServletRequest request) throws AuthenticationException, FrameworkException {
+
+		String token = getAuthorizationToken(request);
+		String refreshToken = request.getHeader("refresh_token");
+
+		final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
+		final Principal user               = AuthHelper.getPrincipalForToken(token, refreshToken, eMailKey);
+
+		return user;
+	}
+	 */
 
 	@Override
 	public void doLogout(final HttpServletRequest request) {
@@ -371,6 +397,26 @@ public class UiAuthenticator implements Authenticator {
 		} catch (IllegalStateException | FrameworkException ex) {
 
 			logger.warn("Error while logging out user", ex);
+		}
+	}
+
+	private String getAuthorizationToken(HttpServletRequest request) {
+
+		String authorizationHeader = request.getHeader("Authorization");
+
+		if (authorizationHeader == null) {
+			return null;
+		}
+
+		String[] headerParts = authorizationHeader.split(" ");
+		if (StringUtils.equals(headerParts[0], "Bearer") && headerParts.length > 1) {
+
+			return headerParts[1];
+
+		} else {
+
+			return null;
+
 		}
 	}
 
@@ -512,13 +558,20 @@ public class UiAuthenticator implements Authenticator {
 
 		Principal user = null;
 
-		if (request.getAttribute(SessionHelper.SESSION_IS_NEW) == null) {
+		String authorizationToken = getAuthorizationToken(request);
+
+		if ((authorizationToken == null || StringUtils.equals(authorizationToken, "")) && request.getAttribute(SessionHelper.SESSION_IS_NEW) == null) {
 
 			// First, check session (JSESSIONID cookie)
 			if (request.getSession(false) != null) {
 
 				user = AuthHelper.getPrincipalForSessionId(request.getSession(false).getId());
 			}
+
+		} else if (authorizationToken != null) {
+
+			final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
+			user = AuthHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
 		}
 
 		if (user == null) {
