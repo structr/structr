@@ -30,7 +30,6 @@ $(document).ready(function() {
 var _Contents = {
 	_moduleName: 'contents',
 	init: function() {
-		_Logger.log(_LogType.CONTENTS, '_Contents.init');
 
 		main = $('#main');
 		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
@@ -470,7 +469,6 @@ var _Contents = {
 					var self = $(this);
 					var itemId = Structr.getId(ui.draggable);
 					var containerId = Structr.getId(self);
-					_Logger.log(_LogType.CONTENTS, 'itemId, containerId', itemId, containerId);
 
 					if (!(itemId === containerId)) {
 						var nodeData = {};
@@ -561,9 +559,7 @@ var _Contents = {
 	editItem: function(item) {
 
 		Structr.dialog('Edit ' + item.name, function() {
-			_Logger.log(_LogType.CONTENTS, 'content saved');
 		}, function() {
-			_Logger.log(_LogType.CONTENTS, 'cancelled');
 		});
 
 		Command.get(item.id, null, function(entity) {

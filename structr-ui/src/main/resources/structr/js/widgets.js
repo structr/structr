@@ -69,10 +69,7 @@ var _Widgets = {
 
 					if (sourceWidget && sourceWidget.isWidget) {
 						if (sourceWidget.treePath) {
-							_Logger.log(_LogType.WIDGETS, 'Copying remote widget', sourceWidget);
-
 							Command.create({ type: 'Widget', name: sourceWidget.name + ' (copied)', source: sourceWidget.source, description: sourceWidget.description, configuration: sourceWidget.configuration }, function(entity) {
-								_Logger.log(_LogType.WIDGETS, 'Copied remote widget successfully', entity);
 								dropBlocked = false;
 							});
 						}
@@ -83,7 +80,6 @@ var _Widgets = {
 							statusCode: {
 								200: function(data) {
 									Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function(entity) {
-										_Logger.log(_LogType.WIDGETS, 'Created widget successfully', entity);
 										dropBlocked = false;
 									});
 								}
@@ -364,8 +360,6 @@ var _Widgets = {
 		_Widgets.appendVisualExpandIcon(div, id, name, true, false);
 	},
 	appendWidgetElement: function(widget, remote, el) {
-
-		_Logger.log(_LogType.WIDGETS, 'Widgets.appendWidgetElement', widget, remote);
 
 		var icon = _Icons.widget_icon;
 		var parent = _Widgets.getTreeParent(el ? el : (remote ? _Widgets.remoteWidgetsEl : _Widgets.localWidgetsEl), widget.treePath, remote ? '_remote' : '_local');

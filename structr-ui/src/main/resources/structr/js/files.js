@@ -52,7 +52,6 @@ var _Files = {
 	},
 	init: function() {
 
-		_Logger.log(_LogType.FILES, '_Files.init');
 		_Files.setViewMode(LSWrapper.getItem(filesViewModeKey) || 'list');
 
 		main = $('#main');
@@ -287,7 +286,6 @@ var _Files = {
 			drop = $('#folder-contents');
 
 			drop.on('dragover', function(event) {
-				_Logger.log(_LogType.FILES, 'dragging over #files area');
 				event.originalEvent.dataTransfer.dropEffect = 'copy';
 				return false;
 			});
@@ -826,7 +824,6 @@ var _Files = {
 				var self = $(this);
 				var fileId = Structr.getId(ui.draggable);
 				var folderId = Structr.getId(self);
-				_Logger.log(_LogType.FILES, 'fileId, folderId', fileId, folderId);
 				if (!(fileId === folderId)) {
 					var nodeData = {};
 					nodeData.id = fileId;
@@ -867,7 +864,6 @@ var _Files = {
 		if (_Files.isArchive(d)) {
 			div.append('<i class="unarchive_icon button ' + _Icons.getFullSpriteClass(_Icons.compress_icon) + '" />');
 			$('.unarchive_icon', div).on('click', function() {
-				_Logger.log(_LogType.FILES, 'unarchive', d.id);
 
 				$('#tempInfoBox .infoHeading, #tempInfoBox .infoMsg').empty();
 				$('#tempInfoBox .closeButton').hide();
@@ -973,15 +969,12 @@ var _Files = {
 		viewIcon.on('click', function(e) {
 			e.stopPropagation();
 			Structr.dialog('' + image.name, function() {
-				_Logger.log(_LogType.IMAGES, 'content saved');
 			}, function() {
-				_Logger.log(_LogType.IMAGES, 'cancelled');
 			});
 			_Files.viewImage(image, $('#dialogBox .dialogText'));
 		});
 	},
 	viewImage: function(image, el) {
-		_Logger.log(_LogType.IMAGES, image);
 		dialogMeta.hide();
 
 		el.append('<div class="image-editor-menubar ">'
@@ -1053,9 +1046,7 @@ var _Files = {
 			}
 
 			Structr.dialog('Edit files', function() {
-				_Logger.log(_LogType.FILES, 'content saved');
 			}, function() {
-				_Logger.log(_LogType.FILES, 'cancelled');
 			});
 
 			dialogText.append('<div id="files-tabs" class="files-tabs"><ul></ul></div>');
@@ -1258,14 +1249,12 @@ var _Files = {
 				contentType = 'text/plain';
 			}
 		}
-		_Logger.log(_LogType.FILES, viewRootUrl, url);
 
 		$.ajax({
 			url: url,
 			dataType: dataType,
 			contentType: contentType,
 			success: function(data) {
-				_Logger.log(_LogType.FILES, file.id, fileContents);
 				text = fileContents[file.id] || data;
 				if (Structr.isButtonDisabled(button)) {
 					return;

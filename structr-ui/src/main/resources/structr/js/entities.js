@@ -29,8 +29,6 @@ var _Entities = {
 	collectionPropertiesResultCount: {},
 	changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
 
-		_Logger.log(_LogType.ENTITIES, 'Change boolean attribute ', attrElement, ' to ', value);
-
 		if (value === true) {
 			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html('<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' + (activeLabel ? ' ' + activeLabel : ''));
 		} else {
@@ -40,8 +38,6 @@ var _Entities = {
 	},
 	reloadChildren: function(id) {
 		var el = Structr.node(id);
-
-		_Logger.log(_LogType.ENTITIES, 'reloadChildren', el);
 
 		$(el).children('.node').remove();
 		_Entities.resetMouseOverState(el);
@@ -367,9 +363,7 @@ var _Entities = {
 	editSource: function(entity) {
 
 		Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function () {
-			_Logger.log(_LogType.ENTITIES, 'Element source saved');
 		}, function () {
-			_Logger.log(_LogType.ENTITIES, 'cancelled');
 		});
 
 		// Get content in widget mode
@@ -1419,9 +1413,6 @@ var _Entities = {
 			});
 
 			input.off('focusout').on('focusout', function() {
-				_Logger.log(_LogType.ENTITIES, 'relId', relId);
-				_Logger.log(_LogType.ENTITIES, 'set properties of obj', objId);
-
 				_Entities.saveValue(input, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback);
 
 				input.removeClass('active');
@@ -1459,7 +1450,6 @@ var _Entities = {
 		var isPassword = input.prop('type') === 'password';
 		if (input.data('changed')) {
 			input.data('changed', false);
-			_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
 			_Entities.setProperty(objId, key, val, false, function(newVal) {
 				if (isPassword || (newVal !== oldVal)) {
 					blinkGreen(input);
@@ -1492,7 +1482,6 @@ var _Entities = {
 
 		var val = _Entities.getArrayValue(key, cell);
 
-		_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
 		_Entities.setProperty(objId, key, val, false, function(newVal) {
 			if (newVal !== oldVal) {
 				blinkGreen(cell);
@@ -1776,7 +1765,6 @@ var _Entities = {
 		var btn = $('.save_' + key, el);
 		btn.on('click', function() {
 			Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
-				_Logger.log(_LogType.ENTITIES, key + ' successfully updated!', obj[key]);
 				blinkGreen(btn);
 				_Pages.reloadPreviews();
 			});
@@ -1813,12 +1801,9 @@ var _Entities = {
 			}
 			editIcon.on('click', function(e) {
 				e.stopPropagation();
-				_Logger.log(_LogType.ENTITIES, 'editSource', entity);
 				_Entities.editSource(entity);
 			});
-
 		}
-
 	},
 	appendEditPropertiesIcon: function(parent, entity, visible) {
 
@@ -1830,7 +1815,6 @@ var _Entities = {
 		}
 		editIcon.on('click', function(e) {
 			e.stopPropagation();
-			_Logger.log(_LogType.ENTITIES, 'showProperties', entity);
 			_Entities.showProperties(entity);
 		});
 		if (visible) {
@@ -1889,7 +1873,6 @@ var _Entities = {
 	removeExpandIcon: function(el) {
 		if (!el)
 			return;
-		_Logger.log(_LogType.ENTITIES, 'removeExpandIcon', el);
 		var button = $(el.children('.expand_icon').first());
 
 		// unregister click handlers
@@ -2016,8 +1999,6 @@ var _Entities = {
 		if (force === false && _Entities.isExpanded(element)) {
 			return;
 		} else {
-			_Logger.log(_LogType.ENTITIES, 'ensureExpanded: fetch children', el);
-
 			Command.children(id, callback);
 			var displayName = getElementDisplayName(Structr.entity(id));
 
