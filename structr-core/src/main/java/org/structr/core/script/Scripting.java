@@ -338,7 +338,7 @@ public class Scripting {
 
 			return result != null ? result : "";
 		} catch (Exception ex) {
-
+			
 			throw new FrameworkException(422, ex.getMessage());
 		}
 

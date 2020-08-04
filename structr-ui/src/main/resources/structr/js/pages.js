@@ -309,21 +309,12 @@ var _Pages = {
 			_Pages.clearPreviews();
 			$('.node', pages).remove();
 		};
-		pPager.pager.append('Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name"/>');
+		let pagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name"/></span>');
+		pPager.pager.append(pagerFilters);
 		var categoryFilter = $('<input type="text" class="filter page-label" data-attribute="category" placeholder="Category" />');
-		pPager.pager.append(categoryFilter);
+		pagerFilters.append(categoryFilter);
 		pPager.activateFilterElements();
-		/*
-		var bulkEditingHelper = $(
-			'<button type="button" title="Open Bulk Editing Helper (Ctrl-Alt-E)" class="icon-button">'
-			+ '<i class="icon ' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" />'
-			+ '</button>');
-		pPager.pager.append(bulkEditingHelper);
-		bulkEditingHelper.on('click', e => {
-			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
-			new RefactoringHelper(dialog).show();
-		});
-		*/
+
 		$.ajax({
 			url: '/structr/rest/Page/category',
 			success: function(data) {
@@ -344,6 +335,18 @@ var _Pages = {
 				categoryFilter.attr('title', helpText);
 			}
 		});
+
+		/*
+		var bulkEditingHelper = $(
+			'<button type="button" title="Open Bulk Editing Helper (Ctrl-Alt-E)" class="icon-button">'
+			+ '<i class="icon ' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" />'
+			+ '</button>');
+		pPager.pager.append(bulkEditingHelper);
+		bulkEditingHelper.on('click', e => {
+			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
+			new RefactoringHelper(dialog).show();
+		});
+		*/
 
 		previewTabs.append('<li id="import_page" title="Import Template" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + '" /></li>');
 		previewTabs.append('<li id="add_page" title="Add page" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /></li>');
@@ -454,7 +457,7 @@ var _Pages = {
 
 		var tab = $('#show_' + entity.id, previews);
 
-		tab.append('<div class="fill-pixel"></div><b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b>');
+		tab.append('<div class="fill-pixel"></div><b title="' + entity.name + '" class="name_ abbr-ellipsis abbr-200">' + entity.name + '</b>');
 		tab.append('<i title="Edit page settings of ' + entity.name + '" class="edit_ui_properties_icon button ' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" />');
 		tab.append('<i title="View ' + entity.name + ' in new window" class="view_icon button ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" />');
 
@@ -846,7 +849,7 @@ var _Pages = {
 		let pageName = (entity.name ? entity.name : '[' + entity.type + ']');
 
 		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.page_icon) + '" />'
-				+ '<b title="' + entity.name + '" class="name_">' + fitStringToWidth(pageName, 200) + '</b> <span class="id">' + entity.id + '</span>' + (entity.position ? ' <span class="position">' + entity.position + '</span>' : ''));
+				+ '<b title="' + entity.name + '" class="name_ abbr-ellipsis abbr-75pc">' + pageName + '</b> <span class="id">' + entity.id + '</span>' + (entity.position ? ' <span class="position">' + entity.position + '</span>' : ''));
 
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 		_Entities.appendAccessControlIcon(div, entity);
@@ -1365,15 +1368,15 @@ var _Pages = {
 		var detailHtml = '';
 
 		if (entity.type === 'Content') {
-			detailHtml = '<div class="content_">' + fitStringToWidth(escapeTags(entity.content), 200) + '</div>';
+			detailHtml = '<div class="abbr-ellipsis abbr-75pc">' + entity.content + '</div>';
 		} else if (entity.type === 'Template') {
 			if (entity.name) {
-				detailHtml = '<div class="content_">' + displayName + '</div>';
+				detailHtml = '<div class="abbr-ellipsis abbr-75pc">' + displayName + '</div>';
 			} else {
-				detailHtml = '<div class="content_">' + escapeTags(entity.content) + '</div>';
+				detailHtml = '<div class="abbr-ellipsis abbr-75pc">' + escapeTags(entity.content) + '</div>';
 			}
 		} else {
-			detailHtml = '<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b>';
+			detailHtml = '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>';
 		}
 
 		div.append('<i class="typeIcon ' + iconClass + '" />' + detailHtml + _Elements.classIdString(entity._html_id, entity._html_class));

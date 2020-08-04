@@ -163,11 +163,6 @@ var StructrModel = {
 			return;
 		}
 
-		if (obj.content) {
-			// only show the first 40 characters for content elements
-			obj.content = obj.content.substring(0, 40);
-		}
-
 		obj.append(refId);
 
 	},
@@ -293,9 +288,7 @@ var StructrModel = {
 	 * Refresh the object's UI representation with
 	 * the current model value for the given key
 	 */
-	refreshKey: function(id, key, width) {
-
-		var w = width || 200;
+	refreshKey: function(id, key) {
 
 		var obj = StructrModel.obj(id);
 		if (!obj) {
@@ -329,9 +322,8 @@ var StructrModel = {
 				if (attrElement && tag === 'select') {
 					attrElement.val(newValue);
 				} else {
-					_Logger.log(_LogType.MODEL, key, newValue);
 					if (key === 'name') {
-						attrElement.attr('title', newValue).html(fitStringToWidth(newValue, w));
+						attrElement.attr('title', newValue).html(newValue);
 					}
 				}
 
@@ -364,7 +356,7 @@ var StructrModel = {
 
 					blinkGreen(tabNameElement);
 
-					tabNameElement.attr('title', newValue).html(fitStringToWidth(newValue, w));
+					tabNameElement.attr('title', newValue).html(newValue);
 
 					_Logger.log(_LogType.MODEL, 'Model: Reload iframe', id, newValue);
 					_Pages.reloadIframe(id);
@@ -482,22 +474,22 @@ var StructrModel = {
 				// Did name change from null?
 				if ((obj.type === 'Template' || obj.isContent)) {
 					if (obj.name) {
-						element.children('.content_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
+						element.children('.content_').replaceWith('<b title="' + displayName + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b>');
 						element.children('.content_').off('click').on('click', function(e) {
 							e.stopPropagation();
-							_Entities.makeNameEditable(element, 200);
+							_Entities.makeNameEditable(element);
 						});
 
-						element.children('.name_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
+						element.children('.name_').replaceWith('<b title="' + displayName + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b>');
 						element.children('b.name_').off('click').on('click', function(e) {
 							e.stopPropagation();
-							_Entities.makeNameEditable(element, 200);
+							_Entities.makeNameEditable(element);
 						});
 					} else {
 						element.children('.name_').html(escapeTags(obj.content));
 					}
 				} else {
-					element.children('.name_').attr('title', displayName).html(fitStringToWidth(displayName, 200));
+					element.children('.name_').attr('title', displayName).html(displayName);
 				}
 			}
 		}
@@ -657,6 +649,9 @@ StructrImage.prototype.append = function() {
 	if (image.parent) {
 		var parentFolder = StructrModel.obj(image.parent.id);
 		if (parentFolder) {
+			if (!parentFolder.files) {
+				parentFolder.files = [];
+			}
 			parentFolder.files.push(image);
 		}
 	}
@@ -757,9 +752,9 @@ StructrGroup.prototype.removeUser = function(userId) {
 	});
 
 	if (Structr.isModuleActive(_Security)) {
-		var groupEl = Structr.node(this.id, '.groupid_');
+		var groupEl = $('.groupid_' + this.id);
 		if (groupEl && groupEl.length) {
-			$('.userid_' + userId, groupEl).remove();
+			groupEl.children('.userid_' + userId).remove();
 
 			if (this.members.length === 0) {
 				_Entities.removeExpandIcon(groupEl);

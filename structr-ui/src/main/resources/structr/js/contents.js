@@ -380,11 +380,14 @@ var _Contents = {
 		var icon = d.isContentContainer ? 'fa-folder-o' : _Contents.getIcon(d);
 
 		if (d.isContentContainer) {
+
 			row.append('<td class="file-icon"><i class="fa ' + icon + '"></i></td>');
-			row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node container"><b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 200) + '</b> <span class="id">' + d.id + '</span></div></td>');
+			row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node container"><b title="' + d.name + '" class="name_ abbr-ellipsis abbr-75pc">' + d.name + '</b> <span class="id">' + d.id + '</span></div></td>');
+
 		} else {
+
 			row.append('<td class="file-icon"><a href="javascript:void(0)"><i class="fa ' + icon + '"></i></a></td>');
-			row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item"><b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_">' + (d.name ? fitStringToWidth(d.name, 200) : '[unnamed]') + '</b></td>');
+			row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item"><b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_ abbr-ellipsis abbr-75pc">' + (d.name ? d.name : '[unnamed]') + '</b></td>');
 			$('.file-icon', row).on('click', function() {
 				_Contents.editItem(d);
 			});
@@ -787,7 +790,7 @@ var _Contents = {
 									// update title in list
 									if (key === 'title') {
 										var f = $('#row' + entity.id + ' .item-title b');
-										f.text(fitStringToWidth(newVal, 200));
+										f.text(newVal);
 										blinkGreen(f);
 									}
 								});
@@ -800,7 +803,6 @@ var _Contents = {
 					setTimeout(function() {
 						refreshBtn.click();
 					}, 500);
-
 
 				}, true);
 

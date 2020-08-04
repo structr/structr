@@ -515,8 +515,6 @@ function wsConnect() {
 								_Pages.activateTab(tab);
 							}, 1000);
 						}
-					} else if (command === 'CREATE' && (entity.isFile || entity.isImage || entity.isVideo)) {
-						_Files.uploadFile(entity);
 					} else if (entity.pageId) {
 						_Pages.reloadIframe(entity.pageId);
 					}

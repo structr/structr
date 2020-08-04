@@ -2110,6 +2110,7 @@ var _Crud = {
 		});
 	},
 	getAndAppendNode: function(parentType, parentId, key, obj, cell, preloadedNode, insertFakeInput) {
+
 		if (!obj) {
 			return;
 		}
@@ -2141,7 +2142,7 @@ var _Crud = {
 
 			var displayName = _Crud.displayName(node);
 
-			cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.isImage ? 'image ' : '') + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80));
+			cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.isImage ? 'image ' : '') + ' ' + node.id + '_"><span title="' + displayName + '" class="name_ abbr-ellipsis abbr-75pc">' + displayName + '</span></div>');
 			var nodeEl = $('#_' + node.id, cell);
 
 			var isSourceOrTarget = _Crud.types[parentType].isRel && (key === 'sourceId' || key === 'targetId');
@@ -2343,7 +2344,7 @@ var _Crud = {
 			searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox"><h3>' + type.capitalize() + '</h3></div>');
 		}
 		var displayName = _Crud.displayName(node);
-		$('#resultsFor' + type, searchResults).append('<div title="name: ' + node.name + '\nid: ' + node.id  + '' + ' \ntype: ' + node.type + '' + '" class="_' + node.id + ' node">' + fitStringToWidth(displayName, 120) + '</div>');
+		$('#resultsFor' + type, searchResults).append('<div title="name: ' + node.name + '\nid: ' + node.id  + '' + ' \ntype: ' + node.type + '' + '" class="_' + node.id + ' node abbr-ellipsis abbr-120">' + displayName + '</div>');
 
 		var nodeEl = $('#resultsFor' + type + ' ._' + node.id, searchResults);
 		if (node.isImage) {
