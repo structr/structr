@@ -363,7 +363,6 @@ public class Settings {
 	public static final Setting<String> OpenAPIResourceProvider  = new StringSetting(servletsGroup,  "hidden", "openapiservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
 	public static final Setting<String> OpenAPIDefaultView       = new StringSetting(servletsGroup,  "hidden", "openapiservlet.defaultview",           "public");
 	public static final Setting<Integer> OpenAPIOutputDepth      = new IntegerSetting(servletsGroup, "hidden", "openapiservlet.outputdepth",           1);
-	//public static final Setting<String> OpenAPIWhitelist         = new StringSetting(servletsGroup,  "HealthCheckServlet", "openapiservlet.whitelist",              "127.0.0.1, localhost, ::1", "IP addresses in this list are allowed to access the health check endpoint at /structr/health.");
 
 	// cron settings
 	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations");
@@ -386,8 +385,7 @@ public class Settings {
 	public static final Setting<String> TwoFactorWhitelistedIPs        = new StringSetting(securityGroup,        "Two Factor Authentication", "security.twofactorauthentication.whitelistedips",       "",            "A comma-separated (,) list of IPs for which two factor authentication is disabled.");
 
 	public static final Setting<String> JWTSecretType                     = new ChoiceSetting(securityGroup, "JWT Authentication & Authorization",  "security.jwt.secrettype", "secret", Settings.getStringsAsSet("secret", "keypair", "jwks"), "Selects the secret type that will be used to sign or verify a given access or refresh token");
-	//public static final Setting<String> JWTAlgorithm                    = new ChoiceSetting(securityGroup, "JWT Authentication & Authorization",  "security.jwt.algorithm", "SHA256", Settings.getStringsAsSet("secret", "keypair, jwks"));
-	public static final Setting<String> JWTSecret                         = new StringSetting(securityGroup, "JWT Authentication & Authorization",  "security.jwt.secret", "Used if 'security.jwt.secrettype'=secret. The secret that will be used to sign and verify all tokens issued and sent to Structr");
+	public static final Setting<String> JWTSecret                         = new StringSetting(securityGroup, "JWT Authentication & Authorization",  "security.jwt.secret", "", "Used if 'security.jwt.secrettype'=secret. The secret that will be used to sign and verify all tokens issued and sent to Structr");
 	public static final Setting<String> JWTIssuer                         = new StringSetting(securityGroup, "JWT Authentication & Authorization",  "security.jwt.jwtIssuer", "structr", "The issuer for the JWTs created by this Structr instance.");
 	public static final Setting<Integer> JWTExpirationTimeout             = new IntegerSetting(securityGroup, "JWT Authentication & Authorization",  "security.jwt.expirationtime", 60, "Access token timeout in minutes.");
 	public static final Setting<Integer> JWTRefreshTokenExpirationTimeout = new IntegerSetting(securityGroup, "JWT Authentication & Authorization",  "security.jwt.refreshtoken.expirationtime", 1440,"Refresh token timeout in minutes.");
