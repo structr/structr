@@ -18,6 +18,8 @@
  */
 package org.structr.api.util;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -30,9 +32,10 @@ public class QueryHistogram {
 	private static final int HISTOGRAM_SIZE      = 100_000;
 
 	private static final String COUNT      = "Count";
-	private static final String TOTAL_TIME = "Total time (ms)";
-	private static final String MAX_TIME   = "Max time (ms)";
-	private static final String MIN_TIME   = "Min time (ms)";
+	private static final String TOTAL_TIME = "Total time (s)";
+	private static final String MAX_TIME   = "Max time (s)";
+	private static final String MIN_TIME   = "Min time (s)";
+	private static final String AVG_TIME   = "Avg time (s)";
 
 	public static synchronized QueryTimer newTimer() {
 
@@ -62,7 +65,7 @@ public class QueryHistogram {
 			if (!timer.isEmpty()) {
 
 				final String statement    = timer.getStatement();
-				final long duration       = timer.getOverallDuration();
+				final double duration     = timer.getOverallDuration();
 				Map<String, Object> value = data.get(statement);
 
 				if (value == null) {
@@ -74,34 +77,64 @@ public class QueryHistogram {
 					value.put("Query", statement);
 				}
 
-				value.put(COUNT,      get(value, COUNT, 0L) + 1);
-				value.put(TOTAL_TIME, get(value, TOTAL_TIME, 0L) + duration);
-				value.put(MAX_TIME,   Math.max(get(value, MAX_TIME, Long.MIN_VALUE), duration));
-				value.put(MIN_TIME,   Math.min(get(value, MIN_TIME, Long.MAX_VALUE), duration));
+				value.put(COUNT,      get(value, COUNT, 0.0) + 1.0);
+				value.put(TOTAL_TIME, get(value, TOTAL_TIME, 0.0) + duration);
+				value.put(MAX_TIME,   Math.max(get(value, MAX_TIME, Double.MIN_VALUE), duration));
+				value.put(MIN_TIME,   Math.min(get(value, MIN_TIME, Double.MAX_VALUE), duration));
 			}
 		}
 
-		sorted.addAll(data.values());
+		for (final Map<String, Object> value : data.values()) {
+
+			// calculate average
+			final double count = get(value, COUNT,      1.0);
+			final double time  = get(value, TOTAL_TIME, 0.0);
+
+			if (count > 0) {
+
+				value.put(AVG_TIME, (time / count));
+
+			} else {
+
+				value.put(AVG_TIME, 0L);
+			}
+
+			// round values to 4 decimal places
+			round(value, COUNT,      0);
+			round(value, TOTAL_TIME, 8);
+			round(value, MAX_TIME,   8);
+			round(value, MIN_TIME,   8);
+			round(value, AVG_TIME,   8);
+
+			sorted.add(value);
+		}
 
 		Collections.sort(sorted, (v1, v2) -> {
 
-			final long count1 = get(v1, COUNT, 0L);
-			final long count2 = get(v2, COUNT, 0L);
+			final BigDecimal count1 = (BigDecimal)v1.get(TOTAL_TIME);
+			final BigDecimal count2 = (BigDecimal)v2.get(TOTAL_TIME);
 
-			return Long.compare(count2, count1);
+			return count2.compareTo(count1);
 		});
 
 		return sorted;
 	}
 
-	private static long get(final Map<String, Object> value, final String key, final long defaultValue) {
+	private static double get(final Map<String, Object> value, final String key, final double defaultValue) {
 
-		final Long data = (Long)value.get(key);
+		final Double data = (Double)value.get(key);
 		if (data != null) {
 
 			return data;
 		}
 
 		return defaultValue;
+	}
+
+	private static void round(final Map<String, Object> value, final String key, final int scale) {
+
+		final BigDecimal decimal = BigDecimal.valueOf(get(value, key, 0.0));
+
+		value.put(key, decimal.setScale(scale, RoundingMode.CEILING));
 	}
 }

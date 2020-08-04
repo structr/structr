@@ -23,42 +23,31 @@ import java.util.Map;
 
 public class QueryTimer {
 
-	private final Map<String, Long> timestamps = new LinkedHashMap<>();
-	private String statement                   = null;
+	private final Map<String, Double> timestamps = new LinkedHashMap<>();
+	private String statement                     = null;
 
 	// prevent access outside of package
 	QueryTimer() {}
-
-	@Override
-	public String toString() {
-
-		final StringBuilder buf = new StringBuilder();
-
-		buf.append(getTimeDeltas());
-		buf.append(": ");
-		buf.append(statement);
-
-		return buf.toString();
-	}
 
 	public String getStatement() {
 		return statement;
 	}
 
-	public long getOverallDuration() {
+	public double getOverallDuration() {
 
-		long min = Long.MAX_VALUE;
-		long max = Long.MIN_VALUE;
+		double min = Double.MAX_VALUE;
+		double max = Double.MIN_VALUE;
 
 		for (final String key : timestamps.keySet()) {
 
-			long value = value(key);
+			double value = value(key);
 
 			min = Math.min(min, value);
 			max = Math.max(max, value);
 		}
 
-		return (max - min);
+		// return milliseconds
+		return (max - min) / 1000000000.0;
 	}
 
 	public boolean isEmpty() {
@@ -96,58 +85,19 @@ public class QueryTimer {
 		recordTime("finished");
 	}
 
-	public Map<String, Long> getTimestamps() {
-		return timestamps;
-	}
-
-	public Map<String, Long> getTimeDeltas() {
-
-		final Map<String, Long> deltas = new LinkedHashMap<>();
-		String previousKey             = null;
-		long start                     = -1L;
-
-		for (final String key : timestamps.keySet()) {
-
-			if (start == -1) {
-
-				start = value(key);
-
-			} else {
-
-				if (previousKey != null) {
-
-					final long value = value(key);
-					if (value > 0) {
-
-						deltas.put(key, (value - start));
-					}
-				}
-			}
-
-			previousKey = key;
-
-		}
-
-		return deltas;
-	}
-
-	public boolean longerThan(final long milliseconds) {
-		return value("consumed") - value("started") > milliseconds;
-	}
-
 	// ----- private methods -----
 	private void recordTime(final String key) {
-		timestamps.put(key, System.currentTimeMillis());
+		timestamps.put(key, Double.valueOf(System.nanoTime()));
 	}
 
-	private long value(final String key) {
+	private double value(final String key) {
 
-		Long value = timestamps.get(key);
+		Double value = timestamps.get(key);
 		if (value != null) {
 
 			return value;
 		}
 
-		return 0L;
+		return 0;
 	}
 }
