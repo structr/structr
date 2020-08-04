@@ -32,10 +32,10 @@ public class QueryHistogram {
 	private static final int HISTOGRAM_SIZE      = 100_000;
 
 	private static final String COUNT      = "Count";
-	private static final String TOTAL_TIME = "Total time (s)";
-	private static final String MAX_TIME   = "Max time (s)";
-	private static final String MIN_TIME   = "Min time (s)";
-	private static final String AVG_TIME   = "Avg time (s)";
+	private static final String TOTAL_TIME = "Overall time (s)";
+	private static final String MAX_TIME   = "Maximum time (s)";
+	private static final String MIN_TIME   = "Minimum time (s)";
+	private static final String AVG_TIME   = "Average time (s)";
 
 	public static synchronized QueryTimer newTimer() {
 
@@ -55,10 +55,33 @@ public class QueryHistogram {
 		timers.clear();
 	}
 
-	public static synchronized List<Map<String, Object>> analyze() {
+	public static synchronized List<Map<String, Object>> analyze(final String sortKey, final int topCount) {
 
 		final Map<String, Map<String, Object>> data = new LinkedHashMap<>();
 		final List<Map<String, Object>> sorted      = new LinkedList<>();
+		String actualSortKey                        = TOTAL_TIME;
+
+		if (sortKey != null) {
+
+			switch (sortKey) {
+
+				case "min":
+					actualSortKey = MIN_TIME;
+					break;
+
+				case "max":
+					actualSortKey = MAX_TIME;
+					break;
+
+				case "avg":
+					actualSortKey = AVG_TIME;
+					break;
+
+				case "count":
+					actualSortKey = COUNT;
+					break;
+			}
+		}
 
 		for (final QueryTimer timer : timers) {
 
@@ -109,15 +132,17 @@ public class QueryHistogram {
 			sorted.add(value);
 		}
 
+		final String finalActualSortKey = actualSortKey;
+
 		Collections.sort(sorted, (v1, v2) -> {
 
-			final BigDecimal count1 = (BigDecimal)v1.get(TOTAL_TIME);
-			final BigDecimal count2 = (BigDecimal)v2.get(TOTAL_TIME);
+			final BigDecimal count1 = (BigDecimal)v1.get(finalActualSortKey);
+			final BigDecimal count2 = (BigDecimal)v2.get(finalActualSortKey);
 
 			return count2.compareTo(count1);
 		});
 
-		return sorted;
+		return sorted.subList(0, Math.max(0, Math.min(sorted.size(), topCount)));
 	}
 
 	private static double get(final Map<String, Object> value, final String key, final double defaultValue) {

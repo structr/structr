@@ -58,7 +58,10 @@ public class HistogramServlet extends HealthCheckServlet {
 
 		try (final Writer writer = response.getWriter()) {
 
-			gson.toJson(QueryHistogram.analyze(), writer);
+			final String sortKey = request.getParameter("sort");
+			final String top     = request.getParameter("top");
+
+			gson.toJson(QueryHistogram.analyze(stringOrDefault(sortKey, "total"), intOrDefault(top, 1000)), writer);
 
 			response.setStatus(HttpServletResponse.SC_OK);
 			response.setHeader("Cache-Control", "max-age=60");
@@ -73,5 +76,26 @@ public class HistogramServlet extends HealthCheckServlet {
 
 			QueryHistogram.clear();
 		}
+	}
+
+	// ----- private methods -----
+	private int intOrDefault(final String value, int defaultValue) {
+
+		if (value != null) {
+
+			try { return Integer.valueOf(value); } catch (Throwable t) {}
+		}
+
+		return defaultValue;
+	}
+
+	private String stringOrDefault(final String value, String defaultValue) {
+
+		if (value != null) {
+
+			return value;
+		}
+
+		return defaultValue;
 	}
 }
