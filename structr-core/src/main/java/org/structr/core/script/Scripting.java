@@ -38,6 +38,7 @@ import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyParser;
 
+import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -236,7 +237,15 @@ public class Scripting {
 		context.enter();
 
 		try {
-			Object result = PolyglotWrapper.unwrap(actionContext, context.eval("js", embedInFunction(snippet.getSource())));
+
+			Object result = null;
+			try {
+
+				result = PolyglotWrapper.unwrap(actionContext, context.eval("js", embedInFunction(snippet.getSource())));
+			} catch (PolyglotException ex) {
+
+				throw ex.asHostException();
+			}
 
 			if (actionContext.hasError()) {
 
@@ -250,7 +259,16 @@ public class Scripting {
 			}
 
 			return result != null ? result : "";
-		} catch (Exception ex) {
+		} catch (RuntimeException ex) {
+
+			if (ex.getCause() instanceof FrameworkException) {
+
+				throw (FrameworkException)ex.getCause();
+			} else {
+
+				throw new FrameworkException(422, ex.getMessage());
+			}
+		} catch (Throwable ex) {
 
 			throw new FrameworkException(422, ex.getMessage());
 		} finally {
@@ -321,7 +339,16 @@ public class Scripting {
 			}
 
 			context.eval(engineName, wrappedScript.toString());
-			final Object result = PolyglotWrapper.unwrap(actionContext, context.getBindings(engineName).getMember("main").execute());
+			Object result = null;
+
+			try {
+
+				result = PolyglotWrapper.unwrap(actionContext, context.getBindings(engineName).getMember("main").execute());
+			} catch (PolyglotException ex) {
+
+				throw ex.asHostException();
+			}
+
 			context.leave();
 
 			if (actionContext.hasError()) {
@@ -337,7 +364,16 @@ public class Scripting {
 			}
 
 			return result != null ? result : "";
-		} catch (Exception ex) {
+		} catch (RuntimeException ex) {
+
+			if (ex.getCause() instanceof FrameworkException) {
+
+				throw (FrameworkException)ex.getCause();
+			} else {
+
+				throw new FrameworkException(422, ex.getMessage());
+			}
+		}  catch (Throwable ex) {
 			
 			throw new FrameworkException(422, ex.getMessage());
 		}

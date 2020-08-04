@@ -34,6 +34,7 @@ import org.structr.common.error.ScriptingException;
 import org.structr.core.script.polyglot.function.GrantFunction;
 import org.structr.schema.action.ActionContext;
 
+import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -95,6 +96,10 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 						logger.error("Unexpected exception while trying to get GraphObject member.", ex);
 					} catch (InvocationTargetException ex) {
 
+						if (ex.getTargetException() instanceof FrameworkException) {
+
+							throw new RuntimeException(ex.getTargetException());
+						}
 						logger.error("Unexpected exception while trying to get GraphObject member.", ex);
 					}
 
@@ -172,7 +177,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				node.setProperty(propKey, unwrappedValue);
 			} catch (FrameworkException ex) {
 
-				logger.error("Unexpected exception while trying to set property ket on GraphObject", ex);
+				throw new RuntimeException(ex);
 			}
 		}
 	}
