@@ -244,7 +244,11 @@ public class Scripting {
 				result = PolyglotWrapper.unwrap(actionContext, context.eval("js", embedInFunction(snippet.getSource())));
 			} catch (PolyglotException ex) {
 
-				throw ex.asHostException();
+				if (ex.isHostException()) {
+					throw ex.asHostException();
+				}
+
+				throw ex;
 			}
 
 			if (actionContext.hasError()) {
@@ -263,14 +267,17 @@ public class Scripting {
 
 			if (ex.getCause() instanceof FrameworkException) {
 
-				throw (FrameworkException)ex.getCause();
+				throw (FrameworkException) ex.getCause();
 			} else {
 
-				throw new FrameworkException(422, ex.getMessage());
+				throw new FrameworkException(422, "Server-side scripting error", ex);
 			}
+		} catch (FrameworkException ex) {
+
+			throw ex;
 		} catch (Throwable ex) {
 
-			throw new FrameworkException(422, ex.getMessage());
+			throw new FrameworkException(422, "Server-side scripting error", ex);
 		} finally {
 
 			context.leave();
@@ -346,7 +353,11 @@ public class Scripting {
 				result = PolyglotWrapper.unwrap(actionContext, context.getBindings(engineName).getMember("main").execute());
 			} catch (PolyglotException ex) {
 
-				throw ex.asHostException();
+				if (ex.isHostException()) {
+					throw ex.asHostException();
+				}
+
+				throw ex;
 			}
 
 			context.leave();
@@ -368,14 +379,17 @@ public class Scripting {
 
 			if (ex.getCause() instanceof FrameworkException) {
 
-				throw (FrameworkException)ex.getCause();
+				throw (FrameworkException) ex.getCause();
 			} else {
 
-				throw new FrameworkException(422, ex.getMessage());
+				throw new FrameworkException(422, "Server-side scripting error", ex);
 			}
-		}  catch (Throwable ex) {
-			
-			throw new FrameworkException(422, ex.getMessage());
+		} catch (FrameworkException ex) {
+
+			throw ex;
+		} catch (Throwable ex) {
+
+			throw new FrameworkException(422, "Server-side scripting error", ex);
 		}
 
 	}

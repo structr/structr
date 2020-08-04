@@ -81,7 +81,6 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 
 			final List<Object> result = new ArrayList<>();
 			result.add(flowResult.getError());
-			logger.error("Error while evaluating flow: {}",  flowResult.getError().getMessage());
 			return result;
 		}
 
