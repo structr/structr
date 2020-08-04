@@ -28,8 +28,6 @@ var pageSize = 25;
 var sort = 'name';
 var order = 'asc';
 
-var footer = $('#footer');
-
 var rootUrl = '/structr/rest/';
 var csvRootUrl = '/structr/csv/';
 var viewRootUrl = '/';
@@ -37,8 +35,6 @@ var wsRoot = '/structr/ws';
 var port = document.location.port;
 
 function wsConnect() {
-
-	_Logger.log(_LogType.WEBSOCKET, '################ Global connect() ################', ws, ws ? ws.readyState : '');
 
 	try {
 
@@ -56,7 +52,6 @@ function wsConnect() {
 			var host = document.location.host;
 			var wsUrl = 'ws' + (isEnc ? 's' : '') + '://' + host + wsRoot;
 
-			_Logger.log(_LogType.WEBSOCKET, wsUrl);
 			if ('WebSocket' in window) {
 
 				try {
@@ -79,27 +74,19 @@ function wsConnect() {
 
 		ws.onopen = function () {
 
-			_Logger.log(_LogType.WEBSOCKET, '############### WebSocket onopen ###############');
-
 			if ($.unblockUI) {
 				$.unblockUI({
 					fadeOut: 25
 				});
 			}
 
-			_Logger.log(_LogType.WEBSOCKET, 'de-activating reconnect loop', reconn);
 			Structr.stopReconnect();
-
 			Structr.init();
-
 		};
 
 		ws.onclose = function () {
 
-			_Logger.log(_LogType.WEBSOCKET, '############### WebSocket onclose ###############', reconn);
-
 			if (reconn) {
-				_Logger.log(_LogType.WEBSOCKET, 'Automatic reconnect already active');
 				return;
 			}
 
@@ -115,11 +102,8 @@ function wsConnect() {
 				}
 				Structr.reconnectDialog('<b>Connection lost or timed out.</b><br><br>Don\'t reload the page!' + restoreDialogText + '<br><br>Trying to reconnect... <img class="al" src="' + _Icons.getSpinnerImageAsData() + '">');
 
-				_Logger.log(_LogType.WEBSOCKET, 'ws onclose');
 				Structr.reconnect();
-
 			}, 100);
-
 		};
 
 		ws.onmessage = function (message) {
@@ -132,9 +116,6 @@ function wsConnect() {
 			var sessionValid = data.sessionValid;
 			var code = data.code;
 
-			_Logger.log(_LogType.WS[command], 'ws.onmessage:', data);
-			_Logger.log(_LogType.WS[command], '####################################### ', command, ' #########################################');
-
 			if (command === 'LOGIN' || code === 100) {
 
 				if (command === 'LOGIN' || !userId) {
@@ -146,8 +127,6 @@ function wsConnect() {
 
 				me = data.data;
 				isAdmin = data.data.isAdmin;
-
-				_Logger.log(_LogType.WS[command], code, 'user:', user, 'session valid:', sessionValid, 'isAdmin', isAdmin);
 
 				if (!sessionValid) {
 					Structr.clearMain();
@@ -176,8 +155,6 @@ function wsConnect() {
 				StructrModel.callCallback(data.callback, data);
 
 			} else if (command === 'STATUS') {
-
-				_Logger.log(_LogType.WS[command], 'Error code: ' + code, message);
 
 				if (code === 403) {
 					user = null;
@@ -305,13 +282,10 @@ function wsConnect() {
 
 			} else if (command === 'GET_PROPERTY') {
 
-				_Logger.log(_LogType.WS[command], data.id, data.data['key'], data.data[data.data['key']]);
 				StructrModel.updateKey(data.id, data.data['key'], data.data[data.data['key']]);
 				StructrModel.callCallback(data.callback, data.data[data.data['key']]);
 
 			} else if (command === 'UPDATE' || command === 'SET_PERMISSION') {
-
-				_Logger.log(_LogType.WS[command], data);
 
 				var obj = StructrModel.obj(data.id);
 
@@ -324,19 +298,13 @@ function wsConnect() {
 
 			} else if (command === 'GET' || command === 'GET_RELATIONSHIP' || command === 'GET_PROPERTIES') {
 
-				_Logger.log(_LogType.WS[command], data);
-
 				StructrModel.callCallback(data.callback, result[0]);
 
 			} else if (command.startsWith('GET') || command === 'GET_BY_TYPE' || command === 'GET_SCHEMA_INFO' || command === 'CREATE_RELATIONSHIP') {
 
-				_Logger.log(_LogType.WS[command], data);
-
 				StructrModel.callCallback(data.callback, result);
 
 			} else if (command === 'CHILDREN') {
-
-				_Logger.log(_LogType.WS[command], data);
 
 				if (result.length > 0 && result[0].name) {
 					result.sort(function (a, b) {
@@ -359,8 +327,6 @@ function wsConnect() {
 
 			} else if (command.endsWith('CHILDREN')) {
 
-				_Logger.log(_LogType.WS[command], data);
-
 				$(result).each(function (i, entity) {
 					StructrModel.create(entity);
 				});
@@ -375,62 +341,42 @@ function wsConnect() {
 
 			} else if (command.startsWith('LIST_UNATTACHED_NODES')) {
 
-				_Logger.log(_LogType.WS[command], result, data);
-
 				StructrModel.callCallback(data.callback, result);
 
 			} else if (command.startsWith('LIST_SCHEMA_PROPERTIES')) {
-
-				_Logger.log(_LogType.WS[command], result, data);
 
 				// send full result in a single callback
 				StructrModel.callCallback(data.callback, result);
 
 			} else if (command.startsWith('LIST_COMPONENTS')) {
 
-				_Logger.log(_LogType.WS[command], result, data);
-
 				StructrModel.callCallback(data.callback, result);
 
 			} else if (command.startsWith('LIST_SYNCABLES')) {
-
-				_Logger.log(_LogType.WS[command], result, data);
 
 				StructrModel.callCallback(data.callback, result);
 
 			} else if (command.startsWith('LIST_ACTIVE_ELEMENTS')) {
 
-				_Logger.log(_LogType.WS[command], result, data);
-
 				StructrModel.callCallback(data.callback, result);
 
 			} else if (command.startsWith('LIST_LOCALIZATIONS')) {
-
-				_Logger.log(_LogType.WS[command], result, data);
 
 				StructrModel.callCallback(data.callback, result);
 
 			} else if (command.startsWith('SNAPSHOTS')) {
 
-				_Logger.log(_LogType.WS[command], result, data);
-
 				StructrModel.callCallback(data.callback, result);
 
 			} else if (command.startsWith('LIST')) {
-
-				_Logger.log(_LogType.WS[command], result, data);
 
 				StructrModel.callCallback(data.callback, result, data.rawResultCount);
 
 			} else if (command.startsWith('QUERY')) {
 
-				_Logger.log(_LogType.WS[command], result, data);
-
 				StructrModel.callCallback(data.callback, result, data.rawResultCount);
 
 			} else if (command.startsWith('CLONE') || command === 'REPLACE_TEMPLATE') {
-
-				_Logger.log(_LogType.WS[command], result, data);
 
 				StructrModel.callCallback(data.callback, result, data.rawResultCount);
 
@@ -454,7 +400,6 @@ function wsConnect() {
 
 				var obj = StructrModel.obj(data.id);
 				if (obj) {
-					_Logger.log(_LogType.WS[command], 'Remove object from model', obj);
 					obj.remove();
 				}
 
@@ -464,7 +409,6 @@ function wsConnect() {
 
 				var obj = StructrModel.obj(data.id);
 				if (obj) {
-					_Logger.log(_LogType.WS[command], 'Remove object from parent', data, obj);
 					obj.remove(data.data.parentId);
 				}
 
@@ -556,28 +500,25 @@ function wsConnect() {
 
 			} else if (command === 'GET_SUGGESTIONS') {
 
-				console.log(result);
-
 				StructrModel.callCallback(data.callback, result);
 
 			} else if (command === 'SERVER_LOG') {
 
-                		StructrModel.callCallback(data.callback, result);
+				StructrModel.callCallback(data.callback, result);
 
 			} else if (command === 'SAVE_LOCAL_STORAGE') {
 
-		                StructrModel.callCallback(data.callback, result);
+				StructrModel.callCallback(data.callback, result);
 
 			} else if (command === 'APPEND_WIDGET') {
 
-		                StructrModel.callCallback(data.callback, result);
+				StructrModel.callCallback(data.callback, result);
 
 			} else {
 
 				console.log('Received unknown command: ' + command);
 
 				if (sessionValid === false) {
-					_Logger.log(_LogType.WS[command], 'invalid session');
 					user = null;
 					userId = null;
 					clearMain();
@@ -588,13 +529,11 @@ function wsConnect() {
 		};
 
 	} catch (exception) {
-		_Logger.log(_LogType.WEBSOCKET, 'Error in connect(): ' + exception);
 		if (ws) {
 			ws.close();
 			ws.length = 0;
 		}
 	}
-
 }
 
 function sendObj(obj, callback) {
@@ -607,22 +546,18 @@ function sendObj(obj, callback) {
 	var t = JSON.stringify(obj);
 
 	if (!t) {
-		_Logger.log(_LogType.WEBSOCKET, 'No text to send!');
 		return false;
 	}
 
 	try {
 		ws.send(t);
-		_Logger.log(_LogType.WS[obj.command], 'Sent: ' + t);
 	} catch (exception) {
-		_Logger.log(_LogType.WEBSOCKET, 'Error in send(): ' + exception);
+		// console.log('Error in send(): ' + exception);
 	}
 	return true;
 }
 
 function send(text) {
-
-	_Logger.log(_LogType.WEBSOCKET, 'Sending text: "' + text + '" - ws.readyState=' + ws.readyState);
 
 	var obj = JSON.parse(text);
 	return sendObj(obj);
@@ -636,12 +571,4 @@ function getAnchorFromUrl(url) {
 		}
 	}
 	return null;
-}
-
-function utf8_to_b64(str) {
-	return window.btoa(unescape(encodeURIComponent(str)));
-}
-
-function b64_to_utf8(str) {
-	return decodeURIComponent(escape(window.atob(str)));
 }

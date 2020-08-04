@@ -35,8 +35,6 @@ var _Flows = {
 	flowsResizerLeftKey: 'structrFlowsResizerLeftKey_' + port,
 	init: function() {
 
-		_Logger.log(_LogType.FLOWS, '_Flows.init');
-
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
 

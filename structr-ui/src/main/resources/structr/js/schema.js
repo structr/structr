@@ -1494,8 +1494,7 @@ var _Schema = {
 			if (Structr.isButtonDisabled(button)) {
 				return;
 			}
-			var div = element.append('<div class="editor"></div>');
-			_Logger.log(_LogType.SCHEMA, div);
+			element.append('<div class="editor"></div>');
 			var contentBox = $('.editor', element);
 			contentType = contentType ? contentType : entity.contentType;
 			var text1, text2;
@@ -1582,9 +1581,6 @@ var _Schema = {
 					text1 = '';
 				if (!text2)
 					text2 = '';
-
-				_Logger.consoleLog('text1', text1);
-				_Logger.consoleLog('text2', text2);
 
 				if (text1 === text2) {
 					return;
@@ -4011,19 +4007,15 @@ var _Schema = {
 
 	typeInfoCache: {},
 	clearTypeInfoCache: function () {
-		_Logger.log(_LogType.SCHEMA, 'Clear Schema Type Cache');
 		_Schema.typeInfoCache = {};
 	},
 	getTypeInfo: function (type, callback) {
 
 		if (_Schema.typeInfoCache[type] !== undefined) {
 
-			_Logger.log(_LogType.SCHEMA, 'Cache Hit: ', type);
 			callback(_Schema.typeInfoCache[type]);
 
 		} else {
-
-			_Logger.log(_LogType.SCHEMA, 'Cache MISS: ', type);
 
 			Command.getSchemaInfo(type, function(schemaInfo) {
 

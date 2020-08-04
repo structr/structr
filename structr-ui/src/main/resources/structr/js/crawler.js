@@ -32,7 +32,6 @@ var _Crawler = {
 	_moduleName: 'crawler',
 	init: function() {
 
-		_Logger.log(_LogType.CRAWLER, '_Crawler.init');
 
 		main = $('#main');
 

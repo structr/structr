@@ -707,7 +707,7 @@ var _Graph = {
 			graphBrowser.dataChanged();
 
 		} catch (error) {
-			_Logger.log(_LogType.GRAPH, 'Node: ' + node.id + 'already in the graph');
+//			console.log('Node: ' + node.id + 'already in the graph');
 		}
 	},
 
@@ -733,7 +733,7 @@ var _Graph = {
 			_Graph.updateRelationshipTypes();
 		}
 		catch(error){
-			_Logger.log(_LogType.GRAPH, 'Edge: ' + r.id + 'already in the graph');
+//			console.log('Edge: ' + r.id + 'already in the graph');
 		}
 
 	},
@@ -1000,7 +1000,6 @@ var _Graph = {
 		var node = clickedNode.data.node;
 
 		if (hasDoubleClicked) {
-			_Logger.log(_LogType.GRAPH, 'double clicked, returning');
 			return false;
 		}
 
@@ -1008,8 +1007,6 @@ var _Graph = {
 			hasDragged = false;
 			return false;
 		}
-
-		_Logger.log(_LogType.GRAPH, 'clickNode');
 
 		clickTimeout = window.setTimeout(function() {
 			_Entities.showProperties(node);

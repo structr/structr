@@ -1032,9 +1032,9 @@ var _Crud = {
 
 			},
 			error:function(jqXHR, textStatus, errorThrown) {
-				_Logger.log(_LogType.CRUD, 'appendCellPager', id, el, type, key);
-				_Logger.log(_LogType.CRUD, 'Property: ', _Crud.keys[type][key]);
-				_Logger.log(_LogType.CRUD, 'Error: ', textStatus, errorThrown, jqXHR.responseJSON);
+//				console.log('appendCellPager', id, el, type, key);
+//				console.log('Property: ', _Crud.keys[type][key]);
+//				console.log('Error: ', textStatus, errorThrown, jqXHR.responseJSON);
 			}
 
 		});

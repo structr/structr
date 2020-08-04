@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var header, main, footer;
+var header, main;
 var sessionId, user;
 var lastMenuEntry, menuBlocked;
 var dmp;
@@ -44,10 +44,7 @@ $(function() {
 
 	header = $('#header');
 	main = $('#main');
-	footer = $('#footer');
 	loginBox = $('#login');
-
-	_Logger.initLogger(urlParam('debug'), urlParam('events'));
 
 	dialogBox          = $('#dialogBox');
 	dialog             = $('.dialogText', dialogBox);
@@ -309,15 +306,12 @@ var Structr = {
 	}),
 
 	reconnect: function() {
-		_Logger.log(_LogType.INIT, 'deactivated ping');
 		Structr.stopPing();
-		_Logger.log(_LogType.INIT, 'activating reconnect loop');
 		Structr.stopReconnect();
 		reconn = window.setInterval(function() {
 			wsConnect();
 		}, 1000);
 		wsConnect();
-		_Logger.log(_LogType.INIT, 'activated reconnect loop', reconn);
 	},
 	stopReconnect: function() {
 		if (reconn) {
@@ -327,9 +321,7 @@ var Structr = {
 		}
 	},
 	init: function() {
-		_Logger.log(_LogType.INIT, '###################### Initialize UI ####################');
 		$('#errorText').empty();
-		_Logger.log(_LogType.INIT, 'user', user);
 		Structr.ping();
 		Structr.startPing();
 	},
@@ -375,9 +367,7 @@ var Structr = {
 		}
 	},
 	startPing: function() {
-		_Logger.log(_LogType.INIT, 'Starting PING');
 		Structr.stopPing();
-		_Logger.log(_LogType.INIT, 'ping', ping);
 		if (!ping) {
 			ping = window.setInterval(function() {
 				Structr.ping();
@@ -394,7 +384,6 @@ var Structr = {
 		return Cookies.get('JSESSIONID');
 	},
 	connect: function() {
-		_Logger.log(_LogType.INIT, 'connect');
 		sessionId = Structr.getSessionId();
 		if (!sessionId) {
 			Structr.renewSessionId(function() {
@@ -424,8 +413,6 @@ var Structr = {
 			$('#errorText').html(text);
 			$('#errorText-two-factor').html(text);
 		}
-
-		//Structr.activateMenuEntry('logout');
 	},
 	clearLoginForm: function() {
 		loginBox.find('#usernameField').val('');
@@ -479,7 +466,6 @@ var Structr = {
 		if (Command.logout(user)) {
 			Cookies.remove('JSESSIONID');
 			sessionId.length = 0;
-			//LSWrapper.clear();
 			Structr.renewSessionId();
 			Structr.clearMain();
 			Structr.clearVersionInfo();
@@ -513,17 +499,13 @@ var Structr = {
 		LSWrapper.restore(function() {
 
 			Structr.expanded = JSON.parse(LSWrapper.getItem(expandedIdsKey));
-			_Logger.log(_LogType.INIT, '######## Expanded IDs after reload ##########', Structr.expanded);
 
 			var browserUrl = window.location.href;
 			var anchor = getAnchorFromUrl(browserUrl);
 			lastMenuEntry = ((!isLogin && anchor && anchor !== 'logout') ? anchor : Structr.getActiveModuleName());
 			if (!lastMenuEntry) {
 				lastMenuEntry = Structr.getActiveModuleName() || 'dashboard';
-			} else {
-				_Logger.log(_LogType.INIT, 'Last menu entry found: ' + lastMenuEntry);
 			}
-			_Logger.log(_LogType.INIT, 'lastMenuEntry', lastMenuEntry);
 			Structr.updateVersionInfo(0, isLogin);
 			Structr.doActivateModule(lastMenuEntry);
 
@@ -580,7 +562,6 @@ var Structr = {
 
 	},
 	restoreDialog: function(dialogData) {
-		_Logger.log(_LogType.INIT, 'restoreDialog', dialogData, dialogBox);
 
 		window.setTimeout(function() {
 
@@ -643,7 +624,6 @@ var Structr = {
 			Structr.resize();
 
 			dimensions.text = text;
-			_Logger.log(_LogType.INIT, 'Open dialog', dialog, dimensions, callbackOk, callbackCancel);
 			LSWrapper.setItem(dialogDataKey, JSON.stringify(dimensions));
 		}
 	},
@@ -966,7 +946,6 @@ var Structr = {
 
 			return moduleAllowsNavigation;
 		} else {
-			_Logger.log(_LogType.INIT, 'Module ' + name + ' does not exist.');
 			Structr.unblockMenu();
 		}
 
@@ -994,7 +973,6 @@ var Structr = {
 			new MessageBuilder().error("Cannot register module without a name - ignoring attempt. To fix this error, please add the '_moduleName' variable to the module.").show();
 		} else if (!Structr.modules[name]) {
 			Structr.modules[name] = module;
-			_Logger.log(_LogType.INIT, 'Module ' + name + ' registered');
 		} else {
 			new MessageBuilder().error("Cannot register module '" + name + "' a second time - ignoring attempt.").show();
 		}
@@ -1009,7 +987,6 @@ var Structr = {
 		return (module._moduleName === Structr.getActiveModuleName());
 	},
 	containsNodes: function(element) {
-		_Logger.log(_LogType.INIT, element, Structr.numberOfNodes(element), Structr.numberOfNodes(element) > 0);
 		return (element && Structr.numberOfNodes(element) && Structr.numberOfNodes(element) > 0);
 	},
 	numberOfNodes: function(element, excludeId) {
@@ -1018,17 +995,14 @@ var Structr = {
 			childNodes = childNodes.not('.' + excludeId + '_');
 		}
 		var n = childNodes.length;
-		_Logger.log(_LogType.INIT, 'children', $(element).children('.node'));
-		_Logger.log(_LogType.INIT, 'number of nodes in element', element, n);
+
 		return n;
 	},
 	findParent: function(parentId, componentId, pageId, defaultElement) {
 		var parent = Structr.node(parentId, null, componentId, pageId);
-		_Logger.log(_LogType.INIT, 'findParent', parentId, componentId, pageId, defaultElement, parent);
-		_Logger.log(_LogType.INIT, 'findParent: parent element from Structr.node: ', parent);
-		if (!parent)
+		if (!parent) {
 			parent = defaultElement;
-		_Logger.log(_LogType.INIT, 'findParent: final parent element: ', parent);
+		}
 		return parent;
 	},
 	parent: function(id) {
@@ -1046,18 +1020,14 @@ var Structr = {
 	},
 	getClass: function(el) {
 		var c;
-		_Logger.log(_LogType.INIT, Structr.classes);
 		$(Structr.classes).each(function(i, cls) {
-			_Logger.log(_LogType.INIT, 'testing class', cls);
 			if (el && $(el).hasClass(cls)) {
 				c = cls;
-				_Logger.log(_LogType.INIT, 'found class', cls);
 			}
 		});
 		return c;
 	},
 	entityFromElement: function(element) {
-		_Logger.log(_LogType.INIT, element);
 
 		var entity = {};
 		entity.id = Structr.getId($(element));
@@ -1085,7 +1055,7 @@ var Structr = {
 		try {
 			$('#pages_').droppable('destroy');
 		} catch (err) {
-			_Logger.log(_LogType.INIT, 'exception:', err.toString());
+			// console.log(err);
 		}
 
 		$('#pages_').droppable({
@@ -1097,7 +1067,6 @@ var Structr = {
 
 				e.stopPropagation();
 				$('a#pages_').droppable('disable');
-				_Logger.log(_LogType.INIT, 'over is off');
 
 				Structr.activateMenuEntry('pages');
 				window.location.href = '/structr/#pages';
@@ -1533,7 +1502,6 @@ var Structr = {
 		$(btn).removeClass('disabled').removeAttr('disabled');
 	},
 	addExpandedNode: function(id) {
-		_Logger.log(_LogType.INIT, 'addExpandedNode', id);
 
 		if (id) {
 			var alreadyStored = Structr.getExpanded()[id];
@@ -1546,7 +1514,6 @@ var Structr = {
 		}
 	},
 	removeExpandedNode: function(id) {
-		_Logger.log(_LogType.INIT, 'removeExpandedNode', id);
 
 		if (id) {
 			delete Structr.getExpanded()[id];
@@ -1554,12 +1521,9 @@ var Structr = {
 		}
 	},
 	isExpanded: function(id) {
-		_Logger.log(_LogType.INIT, 'id, Structr.getExpanded()[id]', id, Structr.getExpanded()[id]);
 
 		if (id) {
 			var isExpanded = (Structr.getExpanded()[id] === true) ? true : false;
-
-			_Logger.log(_LogType.INIT, isExpanded);
 
 			return isExpanded;
 		}
@@ -2479,7 +2443,6 @@ window.addEventListener('beforeunload', (event) => {
 			LSWrapper.setItem(lastMenuEntryKey, lastMenuEntry);
 		}
 
-		_Logger.log(_LogType.INIT, '########################################### unload #####################################################');
 		// Remove dialog data in case of page reload
 		LSWrapper.removeItem(dialogDataKey);
 		LSWrapper.save();

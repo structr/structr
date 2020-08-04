@@ -362,7 +362,6 @@ var _UsersAndGroups = {
 		return groupDiv;
 	},
 	deleteGroup: function(button, group) {
-		_Logger.log(_LogType.SECURTIY, 'deleteGroup ' + group);
 		_Entities.deleteNode(button, group);
 	},
 
