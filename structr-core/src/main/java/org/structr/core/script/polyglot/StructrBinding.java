@@ -25,23 +25,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.ScriptingError;
 import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
-import org.structr.core.script.Scripting;
+import org.structr.common.error.ScriptingException;
 import org.structr.core.script.polyglot.function.BatchFunction;
 import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
 import org.structr.core.script.polyglot.function.IncludeJSFunction;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-import java.sql.Struct;
 import java.util.Arrays;
 import java.util.Set;
 
 import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
 
 public class StructrBinding implements ProxyObject {
+	private final static Logger logger = LoggerFactory.getLogger(StructrBinding.class);
 	private final GraphObject entity;
 	private final ActionContext actionContext;
 
@@ -129,7 +128,7 @@ public class StructrBinding implements ProxyObject {
 
 			} catch (FrameworkException ex) {
 
-				actionContext.raiseError(422, new ScriptingError(ex));
+				logger.error("Unexpected exception in StructrBinding.", ex);
 			}
 
 			return null;

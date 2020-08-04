@@ -23,14 +23,15 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.ScriptingError;
 import org.structr.core.GraphObject;
+import org.structr.common.error.ScriptingException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
 import java.util.Arrays;
 
 public class FunctionWrapper implements ProxyExecutable {
+	private final static Logger logger = LoggerFactory.getLogger(FunctionWrapper.class);
 	private final ActionContext actionContext;
 	private final GraphObject entity;
 	private final Function<Object, Object> func;
@@ -49,7 +50,7 @@ public class FunctionWrapper implements ProxyExecutable {
 			return PolyglotWrapper.wrap(actionContext, func.apply(actionContext, entity, args));
 		} catch (FrameworkException ex) {
 
-			actionContext.raiseError(422, new ScriptingError(ex));
+			logger.error("Unexpected exception while trying to execute function in scripting context.", ex);
 		}
 
 		return null;

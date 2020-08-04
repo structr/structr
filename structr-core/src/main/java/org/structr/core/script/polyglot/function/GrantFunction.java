@@ -20,8 +20,9 @@ package org.structr.core.script.polyglot.function;
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.ScriptingError;
 import org.structr.core.GraphObject;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
@@ -29,6 +30,7 @@ import org.structr.schema.action.ActionContext;
 import java.util.Arrays;
 
 public class GrantFunction<T extends GraphObject> implements ProxyExecutable {
+	private Logger logger = LoggerFactory.getLogger(GrantFunction.class);
 	private final ActionContext actionContext;
 	private final T node;
 
@@ -73,7 +75,7 @@ public class GrantFunction<T extends GraphObject> implements ProxyExecutable {
 
 				} catch (FrameworkException ex) {
 
-					actionContext.raiseError(422, new ScriptingError(ex));
+					logger.error("Unexpected function in Grant function.", ex);
 				}
 			}
 		}

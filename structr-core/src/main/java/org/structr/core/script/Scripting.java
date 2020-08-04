@@ -21,29 +21,23 @@ package org.structr.core.script;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
-import org.mozilla.javascript.NativeObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.ScriptingError;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.function.Functions;
 import org.structr.core.property.DateProperty;
-import org.structr.core.script.polyglot.AccessProvider;
-import org.structr.core.script.polyglot.StructrBinding;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyParser;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -246,14 +240,6 @@ public class Scripting {
 
 			if (actionContext.hasError()) {
 
-				for (ErrorToken errorToken : actionContext.getErrorBuffer().getErrorTokens()) {
-
-					if (errorToken instanceof ScriptingError) {
-
-						throw ((ScriptingError)errorToken).getRootCause();
-					}
-				}
-
 				throw new FrameworkException(422, "Server-side scripting error", actionContext.getErrorBuffer());
 			}
 
@@ -264,9 +250,9 @@ public class Scripting {
 			}
 
 			return result != null ? result : "";
-		} catch (Throwable ex) {
+		} catch (Exception ex) {
 
-			throw new FrameworkException(422, ex.getMessage(), new ScriptingError(ex));
+			throw new FrameworkException(422, ex.getMessage());
 		} finally {
 
 			context.leave();
@@ -340,14 +326,6 @@ public class Scripting {
 
 			if (actionContext.hasError()) {
 
-				for (ErrorToken errorToken : actionContext.getErrorBuffer().getErrorTokens()) {
-
-					if (errorToken instanceof ScriptingError) {
-
-						throw ((ScriptingError)errorToken).getRootCause();
-					}
-				}
-
 				throw new FrameworkException(422, "Server-side scripting error", actionContext.getErrorBuffer());
 			}
 
@@ -359,12 +337,9 @@ public class Scripting {
 			}
 
 			return result != null ? result : "";
-		} catch (PolyglotException ex) {
+		} catch (Exception ex) {
 
-			throw new FrameworkException(422, ex.getMessage(), new ScriptingError(ex));
-		} catch (Throwable ex) {
-
-			throw new FrameworkException(422, ex.getMessage(), new ScriptingError(ex));
+			throw new FrameworkException(422, ex.getMessage());
 		}
 
 	}

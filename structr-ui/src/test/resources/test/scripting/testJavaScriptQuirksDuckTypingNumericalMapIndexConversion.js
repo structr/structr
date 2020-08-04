@@ -7,4 +7,4 @@ function test() {
 	return $.toJson(x);
 }
 
-let _structrMainResult = test();
+return test();

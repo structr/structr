@@ -24,15 +24,13 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.ScriptingError;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.*;
+import org.structr.common.error.ScriptingException;
 import org.structr.core.script.polyglot.function.GrantFunction;
 import org.structr.schema.action.ActionContext;
 
@@ -41,9 +39,9 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.StreamSupport;
 
 public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
+	private static final Logger logger = LoggerFactory.getLogger(GraphObjectWrapper.class);
 	private final T node;
 	private ActionContext actionContext;
 
@@ -92,12 +90,16 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 							return PolyglotWrapper.wrap(actionContext, method.invoke(node, ArrayUtils.add(Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray(), 0, actionContext.getSecurityContext())));
 						}
 
-					} catch (IllegalAccessException | InvocationTargetException ex) {
+					} catch (IllegalAccessException ex) {
 
-						actionContext.raiseError(422, new ScriptingError(ex));
+						logger.error("Unexpected exception while trying to get GraphObject member.", ex);
+					} catch (InvocationTargetException ex) {
+
+						logger.error("Unexpected exception while trying to get GraphObject member.", ex);
 					}
 
 					return null;
+
 				};
 			} else if (key.equals("grant")) {
 
@@ -170,7 +172,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				node.setProperty(propKey, unwrappedValue);
 			} catch (FrameworkException ex) {
 
-				actionContext.raiseError(422, new ScriptingError(ex));
+				logger.error("Unexpected exception while trying to set property ket on GraphObject", ex);
 			}
 		}
 	}

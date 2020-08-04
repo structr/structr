@@ -18,16 +18,10 @@
  */
 package org.structr.common.error;
 
-public class ScriptingError extends ErrorToken {
-	private final Throwable rootCause;
+public class ScriptingException extends RuntimeException {
 
-	public ScriptingError(Throwable rootCause) {
-		super(null, null, rootCause.getMessage(), rootCause.getStackTrace());
-		this.rootCause = rootCause;
-	}
+	public ScriptingException(Throwable ex) {
 
-	public final Throwable getRootCause() {
-
-		return rootCause;
+		super(ex);
 	}
 }
