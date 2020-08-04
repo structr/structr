@@ -22,7 +22,6 @@ package org.structr.core.script.polyglot.function;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
-import org.structr.core.script.polyglot.FunctionWrapper;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 

@@ -22,11 +22,11 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.service.LicenseManager;
 import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
 import org.structr.core.function.RangeFunction;
 import org.structr.core.function.search.*;
+import org.structr.core.script.polyglot.wrappers.FunctionWrapper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 

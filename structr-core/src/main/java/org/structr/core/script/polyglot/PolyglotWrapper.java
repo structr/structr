@@ -22,12 +22,13 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
+import org.structr.core.script.polyglot.wrappers.GraphObjectWrapper;
+import org.structr.core.script.polyglot.wrappers.PolyglotProxyArray;
+import org.structr.core.script.polyglot.wrappers.PolyglotProxyMap;
 import org.structr.schema.action.ActionContext;
 
 import java.time.ZoneId;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 public abstract class PolyglotWrapper {

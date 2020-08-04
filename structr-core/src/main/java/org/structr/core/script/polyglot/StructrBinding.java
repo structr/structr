@@ -27,13 +27,15 @@ import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
-import org.structr.common.error.ScriptingException;
 import org.structr.core.script.polyglot.function.BatchFunction;
 import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
 import org.structr.core.script.polyglot.function.IncludeJSFunction;
+import org.structr.core.script.polyglot.wrappers.FunctionWrapper;
+import org.structr.core.script.polyglot.wrappers.HttpServletRequestWrapper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -68,6 +70,8 @@ public class StructrBinding implements ProxyObject {
 				return new IncludeJSFunction(actionContext);
 			case "doPrivileged":
 				return new DoPrivilegedFunction(actionContext);
+			case "request":
+				return new HttpServletRequestWrapper(actionContext.getSecurityContext().getRequest());
 			default:
 				if (actionContext.getConstant(name) != null) {
 					return wrap(actionContext,actionContext.getConstant(name));
@@ -83,6 +87,14 @@ public class StructrBinding implements ProxyObject {
 					return new FunctionWrapper(actionContext, entity, func);
 				}
 
+				try {
+
+					return PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0));
+				} catch (FrameworkException ex) {
+
+					logger.error("Unexpected exception while trying to apply get function shortcut on script binding object.", ex);
+				}
+
 				return null;
 		}
 	}
@@ -96,6 +108,7 @@ public class StructrBinding implements ProxyObject {
 		keys.add("batch");
 		keys.add("includeJs");
 		keys.add("doPrivileged");
+		keys.add("request");
 		return keys;
 	}
 
@@ -117,6 +130,12 @@ public class StructrBinding implements ProxyObject {
 				Object[] args = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
 
 				if (args.length == 1) {
+
+					// Special handling for request keyword, as it needs a wrapper
+					if (args[0].toString().equals("request")) {
+
+						return new HttpServletRequestWrapper(actionContext.getSecurityContext().getRequest());
+					}
 
 					return PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, args[0].toString(), null, null, 0));
 				} else if (args.length > 1) {
