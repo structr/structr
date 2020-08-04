@@ -415,7 +415,7 @@ var _ResourceAccessGrants = {
 
 			_Security.resourceAccesses.append(html);
 
-			var raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', 'public');
+			let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', 'public');
 
 			raPager.cleanupFunction = function () {
 				$('#resourceAccessesTable tbody tr').remove();
@@ -437,16 +437,16 @@ var _ResourceAccessGrants = {
 	addResourceGrant: function(e) {
 		e.stopPropagation();
 
-		var inp = $('#resource-signature');
+		let inp = $('#resource-signature');
 		inp.attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
 		$('.add_grant_icon', _Security.resourceAccesses).attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
 
-		var reEnableInput = function () {
+		let reEnableInput = function () {
 			$('.add_grant_icon', _Security.resourceAccesses).attr('disabled', null).removeClass('disabled').removeClass('read-only');
 			inp.attr('disabled', null).removeClass('disabled').removeClass('readonly');
 		};
 
-		var sig = inp.val();
+		let sig = inp.val();
 		if (sig) {
 			Command.create({type: 'ResourceAccess', signature: sig, flags: 0}, function() {
 				reEnableInput();
@@ -458,9 +458,7 @@ var _ResourceAccessGrants = {
 		}
 		window.setTimeout(reEnableInput, 250);
 	},
-
 	deleteResourceAccess: function(button, resourceAccess) {
-		_Logger.log(_LogType.SECURTIY, 'deleteResourceAccess ' + resourceAccess);
 		_Entities.deleteNode(button, resourceAccess);
 	},
 	appendResourceAccessElement: function(resourceAccess) {
@@ -488,26 +486,28 @@ var _ResourceAccessGrants = {
 			NON_AUTH_USER_PATCH         : 8192
 		};
 
-		var flags = parseInt(resourceAccess.flags);
-		var trHtml = '<tr id="id_' + resourceAccess.id + '" class="resourceAccess"></tr>';
+		let flags = parseInt(resourceAccess.flags);
 
-		var replaceElement = $('#resourceAccessesTable #id_' + resourceAccess.id);
-
-		if (replaceElement && replaceElement.length) {
-			replaceElement.replaceWith(trHtml);
-		} else {
-			$('#resourceAccessesTable').append(trHtml);
-		}
-
-		var tr = $('#resourceAccessesTable tr#id_' + resourceAccess.id);
-
-		tr.append('<td class="title-cell"><b title="' + resourceAccess.signature + '" class="name_">' + resourceAccess.signature + '</b></td>');
+		let trHtml = '<tr id="id_' + resourceAccess.id + '" class="resourceAccess"><td class="title-cell"><b title="' + resourceAccess.signature + '" class="name_">' + resourceAccess.signature + '</b></td>';
 
 		Object.keys(mask).forEach(function(key) {
-			tr.append('<td><input type="checkbox" ' + (flags & mask[key] ? 'checked="checked"' : '') + ' data-flag="' + mask[key] + '" class="resource-access-flag ' + key + '"></td>');
+			trHtml += '<td><input type="checkbox" ' + (flags & mask[key] ? 'checked="checked"' : '') + ' data-flag="' + mask[key] + '" class="resource-access-flag "></td>';
 		});
 
-		tr.append('<td><input type="text" class="bitmask" size="4" value="' + flags + '"></td>');
+		trHtml += '<td><input type="text" class="bitmask" size="4" value="' + flags + '"></td>' +
+				'<td><i title="Delete Resource Access ' + resourceAccess.id + '" class="delete-resource-access button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /></td></tr>';
+
+		let tr = $(trHtml);
+
+		let replaceElement = $('#resourceAccessesTable #id_' + resourceAccess.id);
+
+		if (replaceElement && replaceElement.length) {
+			replaceElement.replaceWith(tr);
+			blinkGreen(tr.find('td'));
+		} else {
+			$('#resourceAccessesTable').append(tr);
+		}
+
 		var bitmaskInput = $('.bitmask', tr);
 		bitmaskInput.on('blur', function() {
 			_ResourceAccessGrants.updateResourceAccessFlags(resourceAccess.id, $(this).val());
@@ -515,25 +515,20 @@ var _ResourceAccessGrants = {
 
 		bitmaskInput.keypress(function(e) {
 			if (e.keyCode === 13) {
-				_ResourceAccessGrants.updateResourceAccessFlags(resourceAccess.id, $(this).val());
+				$(this).blur();
 			}
 		});
 
-		tr.append('<td><i title="Delete Resource Access ' + resourceAccess.id + '" class="delete-resource-access button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /></td>');
 		$('.delete-resource-access', tr).on('click', function(e) {
 			e.stopPropagation();
 			resourceAccess.name = resourceAccess.signature;
 			_ResourceAccessGrants.deleteResourceAccess(this, resourceAccess);
 		});
 
-		if (replaceElement && replaceElement.length) {
-			blinkGreen(tr.find('td'));
-		}
-
 		var div = Structr.node(resourceAccess.id);
 
-		$('#resourceAccessesTable #id_' + resourceAccess.id + ' input[type=checkbox].resource-access-flag').on('change', function() {
-			var newFlags = 0;
+		$('input[type=checkbox].resource-access-flag', tr).on('change', function() {
+			let newFlags = 0;
 			tr.find('input:checked').each(function(i, input) {
 				newFlags += parseInt($(input).attr('data-flag'));
 			});

@@ -585,6 +585,52 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		}
 	}
 
+	public Map<String, Object> serializeRelationshipPropertyForOpenAPI(final boolean outgoing) {
+
+		final Map<String, Object> map   = new TreeMap<>();
+		final Map<String, Object> items = new TreeMap<>();
+
+		if (outgoing) {
+
+			switch (cardinality) {
+
+				case OneToOne:
+				case ManyToOne:
+					map.put(JsonSchema.KEY_TYPE, "object");
+					map.put(JsonSchema.KEY_REFERENCE, resolveTypeReferenceForOpenAPI(targetType));
+					break;
+
+				case OneToMany:
+				case ManyToMany:
+					map.put(JsonSchema.KEY_TYPE, "array");
+					map.put(JsonSchema.KEY_ITEMS, items);
+					items.put(JsonSchema.KEY_REFERENCE, resolveTypeReferenceForOpenAPI(targetType));
+					break;
+			}
+
+		} else {
+
+			switch (cardinality) {
+
+				case OneToOne:
+				case OneToMany:
+					map.put(JsonSchema.KEY_TYPE, "object");
+					map.put(JsonSchema.KEY_REFERENCE, resolveTypeReferenceForOpenAPI(sourceType));
+					break;
+
+				case ManyToOne:
+				case ManyToMany:
+					map.put(JsonSchema.KEY_TYPE, "array");
+					map.put(JsonSchema.KEY_ITEMS, items);
+					items.put(JsonSchema.KEY_REFERENCE, resolveTypeReferenceForOpenAPI(sourceType));
+					break;
+			}
+
+		}
+
+		return map;
+	}
+
 	Map<String, Object> serializeRelationshipProperty(final boolean outgoing) {
 
 		final Map<String, Object> map   = new TreeMap<>();

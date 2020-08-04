@@ -190,6 +190,12 @@ public class BooleanArrayProperty extends AbstractPrimitiveProperty<Boolean[]> {
 		return true;
 	}
 
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return List.of(true);
+	}
+
 	// ----- private methods -----
 	private Boolean[] convert(final List source) {
 

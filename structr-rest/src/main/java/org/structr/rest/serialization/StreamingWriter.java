@@ -24,7 +24,7 @@ import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -44,7 +44,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.ProgressWatcher;
 import org.structr.api.util.ResultStream;
-import org.structr.common.PropertyView;
 import org.structr.common.QueryRange;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -56,6 +55,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.schema.Schema;
 
 /**
  *
@@ -64,19 +64,7 @@ import org.structr.core.property.PropertyMap;
 public abstract class StreamingWriter {
 
 	private static final Logger logger                   = LoggerFactory.getLogger(StreamingWriter.class.getName());
-	private static final Set<PropertyKey> idTypeNameOnly = new LinkedHashSet<>();
-	private static final Set<String> restrictedViews     = new HashSet<>();
-
-	static {
-
-		idTypeNameOnly.add(GraphObject.id);
-		idTypeNameOnly.add(AbstractNode.type);
-		idTypeNameOnly.add(AbstractNode.name);
-
-		restrictedViews.add(PropertyView.All);
-		restrictedViews.add(PropertyView.Ui);
-		restrictedViews.add(PropertyView.Custom);
-	}
+	private static final Set<PropertyKey> idTypeNameOnly = new LinkedHashSet<>(Arrays.asList(GraphObject.id, AbstractNode.type, AbstractNode.name));
 
 	private final ExecutorService threadPool              = Executors.newWorkStealingPool();
 	private final Map<String, Serializer> serializerCache = new LinkedHashMap<>();
@@ -416,7 +404,7 @@ public abstract class StreamingWriter {
 					if (keys != null) {
 
 						// speciality for all, custom and ui view: limit recursive rendering to (id, name)
-						if (compactNestedProperties && depth > 0 && restrictedViews.contains(localPropertyView)) {
+						if (compactNestedProperties && depth > 0 && Schema.RestrictedViews.contains(localPropertyView)) {
 							keys = idTypeNameOnly;
 						}
 

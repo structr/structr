@@ -250,6 +250,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 	@Override
 	public T convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException {
+
 		if (typeHint != null) {
 
 			PropertyConverter converter = null;
@@ -295,5 +296,24 @@ public class FunctionProperty<T> extends Property<T> {
 		}
 
 		return defaultValue;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+
+		if (typeHint != null) {
+
+			switch (typeHint.toLowerCase()) {
+
+				case "boolean": return pBoolean.getExampleValue(type, viewName);
+				case "int":     return pInt.getExampleValue(type, viewName);
+				case "long":    return pLong.getExampleValue(type, viewName);
+				case "double":  return pDouble.getExampleValue(type, viewName);
+				case "date":    return pDate.getExampleValue(type, viewName);
+			}
+		}
+
+		return null;
 	}
 }

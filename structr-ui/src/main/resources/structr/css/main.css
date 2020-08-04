@@ -310,9 +310,6 @@ img.disabled {
 #files,
 #code,
 #trees,
-#groups,
-#images,
-#users,
 .slideOutLeft,
 .slideOutRight {
 	float: left;
@@ -967,7 +964,8 @@ ul#previewTabs {
 
 .name_.abbr-ellipsis {
 	display: inline-block;
-	height: calc(1.7em - 5px);
+	line-height: 1.3em;
+	margin: 4px 0 -2px 0;
 }
 
 .abbr-ellipsis {
@@ -1377,10 +1375,6 @@ i.button {
 	border: 1px solid #aaa;
 }
 
-.nodeHover {
-	/*z-index: 2;*/
-}
-
 .nodeSelected {
 	background-color: #fffcdd ! important;
 	/*border: 1px solid #ca0;*/
@@ -1557,6 +1551,11 @@ button.action.disabled:hover {
 	min-width: 100px;
 }
 
+.dialogText #foldersToLink .node {
+	vertical-align: top;
+	cursor: pointer;
+}
+
 .dialogText .nodeHover b {
 	cursor: pointer ! important;
 }
@@ -1564,14 +1563,12 @@ button.action.disabled:hover {
 .dialogText .linkBox {
 	border: 1px solid #ccc;
 	background-color: #fff;
-	padding: 6px;
 }
 
 .dialogText .linkBox .pager {
 	border-bottom: 1px solid #ccc;
 	background-color: #e5e5e5;
-	margin: -6px -6px 4px -6px;
-	padding: 5px 5px 0px 5px;
+	padding: 3px 0px 3px 6px;
 }
 
 .dialogText label {
@@ -1941,6 +1938,14 @@ button.enabled, button.active {
 	color: #555;
 }
 
+.node .linkable.default-cursor {
+	cursor: default;
+}
+
+.node .linkable.default-cursor:hover {
+	color: #888;
+}
+
 .callToAction {
 	background-color: #81ce25;
 	width: 248px;
@@ -2000,7 +2005,7 @@ button.enabled, button.active {
 }
 
 .pager input.pageCount {
-	background-color: #fff ! important;
+	background-color: rgba(0,0,0,0) ! important;
 	border: none;
 }
 
@@ -2024,6 +2029,10 @@ button.enabled, button.active {
 	width: 52px;
 	font-size: 1.1em;
 	text-align: left;
+}
+
+.pager input[type=checkbox].filter {
+	width: auto;
 }
 
 .pager > div {
@@ -2992,8 +3001,12 @@ table.push {
 }
 
 /**
- * Resource Access editor
+ * Security
  */
+
+#usersAndGroups-inner {
+	display: flex;
+}
 
 #usersAndGroups, #resourceAccess {
 	height: calc(100% - 28px);
@@ -4401,7 +4414,7 @@ i.fa-file-archive-o {
 	color: orange;
 }
 
-i.fa-folder, i.fa-sitemap {
+i.fa-folder, i.fa-folder-open, i.fa-sitemap {
 	color: #f1cd2e;
 }
 

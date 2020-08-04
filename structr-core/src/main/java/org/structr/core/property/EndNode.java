@@ -267,4 +267,10 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 
 		return null;
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
 }

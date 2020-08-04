@@ -155,4 +155,10 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 	public PropertyType getDataType() {
 		return PropertyType.INTEGER;
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return 1L;
+	}
 }

@@ -111,4 +111,10 @@ public class MethodProperty extends AbstractReadOnlyProperty<Object> {
 			}
 		}
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
 }

@@ -97,9 +97,9 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 
 			if (securityContext != null) {
 
-				final LoginResource loginResource = new LoginResource();
+				final LoginResource loginResource = getLoginResource();
 
-				if (loginResource.checkAndConfigure("login", securityContext, request)) {
+				if (loginResource.checkAndConfigure(getUriPart(), securityContext, request)) {
 
 					final Map<String, Object> properties = new LinkedHashMap<>();
 
@@ -152,6 +152,14 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 			logger.error("Exception while processing request: {}", ioex.getMessage());
 			UiAuthenticator.writeInternalServerError(response);
 		}
+	}
+
+	protected String getUriPart() {
+		return "login";
+	}
+
+	protected LoginResource getLoginResource() {
+		return new LoginResource();
 	}
 
 	// ----- private methods -----

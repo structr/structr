@@ -92,4 +92,10 @@ public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	public SortType getSortType() {
 		return targetKey.getSortType();
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(java.lang.String type, final String viewName) {
+		return null;
+	}
 }

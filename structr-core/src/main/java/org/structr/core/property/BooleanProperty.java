@@ -123,6 +123,12 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 		return PropertyType.BOOLEAN;
 	}
 
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return true;
+	}
+
 	// ----- nested classes -----
 	protected class DatabaseConverter extends PropertyConverter<Boolean, Object> {
 

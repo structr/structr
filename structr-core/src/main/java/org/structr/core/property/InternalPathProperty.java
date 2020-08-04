@@ -73,4 +73,10 @@ public class InternalPathProperty extends AbstractReadOnlyProperty<String> {
 	public SortType getSortType() {
 		return SortType.Default;
 	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
 }

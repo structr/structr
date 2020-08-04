@@ -545,7 +545,7 @@ var _Files = {
 			let pagerId = 'filesystem-files';
 			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			var filesPager = _Pager.addPager(pagerId, folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,path,size,owner');
+			let filesPager = _Pager.addPager(pagerId, folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers');
 
 			filesPager.cleanupFunction = function () {
 				var toRemove = $('.node.file', filesPager.el).closest( (_Files.isViewModeActive('list') ? 'tr' : '.tile') );
@@ -1243,7 +1243,7 @@ var _Files = {
 	},
 	editContent: function(button, file, element) {
 		var url = viewRootUrl + file.id + '?edit=1';
-		_Logger.log(_LogType.FILES, 'editContent', button, file, element, url);
+
 		var text = '';
 
 		var contentType = file.contentType;

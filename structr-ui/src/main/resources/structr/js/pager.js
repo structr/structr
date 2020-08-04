@@ -327,7 +327,46 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 			var $filterEl = $(this);
 			var filterAttribute = $filterEl.data('attribute');
 
+			if (e.keyCode === 13) {
+
+				if (filterAttribute && filterAttribute.length) {
+
+					let filterVal = $filterEl.val();
+
+					if (filterVal === '') {
+						pagerFilters[pagerObj.id][filterAttribute] = null;
+					} else {
+						pagerFilters[pagerObj.id][filterAttribute] = filterVal;
+					}
+
+					page[pagerObj.id] = 1;
+					pagerFilters[pagerObj.id][filterAttribute] = filterVal;
+					pagerObj.updatePagerElements();
+					pagerObj.transportFunction();
+				}
+
+			} else if (e.keyCode === 27) {
+
+				// allow ESC in pagers in dialogs (do not close dialog on ESC while focus in input)
+				e.preventDefault();
+				e.stopPropagation();
+
+				pagerFilters[pagerObj.id][filterAttribute] = null;
+				$filterEl.val('');
+
+				page[pagerObj.id] = 1;
+				pagerObj.updatePagerElements();
+				pagerObj.transportFunction();
+			}
+		});
+
+		$('input.filter[type=text]', this.filterEl).on('blur', function(e) {
+			var $filterEl = $(this);
+			var filterAttribute = $filterEl.data('attribute');
+
 			let filterVal = $filterEl.val();
+
+			let lastFilterValue = pagerFilters[pagerObj.id][filterAttribute];
 
 			if (filterVal === '') {
 				pagerFilters[pagerObj.id][filterAttribute] = null;
@@ -335,15 +374,15 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 				pagerFilters[pagerObj.id][filterAttribute] = filterVal;
 			}
 
-			if (e.keyCode === 13) {
+			if (filterAttribute && filterAttribute.length) {
 
-				if (filterAttribute && filterAttribute.length) {
+				if (lastFilterValue !== filterVal && !(filterVal === '' && lastFilterValue === null)) {
 					page[pagerObj.id] = 1;
 					pagerObj.updatePagerElements();
 					pagerObj.transportFunction();
 				}
 
-			} else if (e.keyCode === 27) {
+			} else {
 
 				pagerFilters[pagerObj.id][filterAttribute] = null;
 				$filterEl.val('');

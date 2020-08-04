@@ -221,8 +221,8 @@ public class Settings {
 
 	// servlets
 	public static final StringMultiChoiceSetting Servlets     = new StringMultiChoiceSetting(servletsGroup, "General", "httpservice.servlets",
-		"JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet LoginServlet LogoutServlet HealthCheckServlet",
-		Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet", "EventSourceServlet", "HealthCheckServlet"),
+		"JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet LoginServlet LogoutServlet TokenServlet HealthCheckServlet OpenAPIServlet",
+		Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet", "TokenServlet", "EventSourceServlet", "HealthCheckServlet"),
 		"Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
 
 	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "configservlet.enabled",             true, "Enables the config servlet (available under <code>http(s)://&lt;your-server&gt;/structr/config</code>)");
@@ -315,6 +315,13 @@ public class Settings {
 	public static final Setting<String> LogoutDefaultView       = new StringSetting(servletsGroup,  "LogoutServlet", "logoutservlet.defaultview",           "public", "Default view to use when no view is given in the URL.");
 	public static final Setting<Integer> LogoutOutputDepth      = new IntegerSetting(servletsGroup, "LogoutServlet", "logoutservlet.outputdepth",	   3, "Maximum nesting depth of JSON output.");
 
+	public static final Setting<String> TokenServletPath       = new StringSetting(servletsGroup,  "hidden", "tokenservlet.path",                  "/structr/token", "The URI under which requests are accepted by the servlet. Needs to include a wildcard at the end.");
+	public static final Setting<String> TokenServletClass      = new StringSetting(servletsGroup,  "hidden", "tokenservlet.class",                 "org.structr.web.servlet.TokenServlet");
+	public static final Setting<String> TokenAuthenticator     = new StringSetting(servletsGroup,  "hidden", "tokenservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> TokenResourceProvider  = new StringSetting(servletsGroup,  "hidden", "tokenservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
+	public static final Setting<String> TokenDefaultView       = new StringSetting(servletsGroup,  "TokenServlet", "tokenservlet.defaultview",           "public", "Default view to use when no view is given in the URL.");
+	public static final Setting<Integer> TokenOutputDepth      = new IntegerSetting(servletsGroup, "TokenServlet", "tokenservlet.outputdepth",	   3, "Maximum nesting depth of JSON output.");
+
 	public static final Setting<String> DeploymentServletPath                = new StringSetting(servletsGroup,  "hidden", "deploymentservlet.path",                      "/structr/deploy");
 	public static final Setting<String> DeploymentServletClass               = new StringSetting(servletsGroup,  "hidden", "deploymentservlet.class",                     "org.structr.web.servlet.DeploymentServlet");
 	public static final Setting<String> DeploymentAuthenticator              = new StringSetting(servletsGroup,  "hidden", "deploymentservlet.authenticator",             "org.structr.web.auth.UiAuthenticator");
@@ -350,6 +357,14 @@ public class Settings {
 	public static final Setting<Integer> HealthCheckOutputDepth      = new IntegerSetting(servletsGroup, "hidden", "healthcheckservlet.outputdepth",           1);
 	public static final Setting<String> HealthCheckWhitelist         = new StringSetting(servletsGroup,  "HealthCheckServlet", "healthcheckservlet.whitelist",              "127.0.0.1, localhost, ::1", "IP addresses in this list are allowed to access the health check endpoint at /structr/health.");
 
+	public static final Setting<String> OpenAPIServletPath       = new StringSetting(servletsGroup,  "hidden", "openapiservlet.path",                  "/structr/openapi/*");
+	public static final Setting<String> OpenAPIServletClass      = new StringSetting(servletsGroup,  "hidden", "openapiservlet.class",                 "org.structr.rest.servlet.OpenAPIServlet");
+	public static final Setting<String> OpenAPIAuthenticator     = new StringSetting(servletsGroup,  "hidden", "openapiservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> OpenAPIResourceProvider  = new StringSetting(servletsGroup,  "hidden", "openapiservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
+	public static final Setting<String> OpenAPIDefaultView       = new StringSetting(servletsGroup,  "hidden", "openapiservlet.defaultview",           "public");
+	public static final Setting<Integer> OpenAPIOutputDepth      = new IntegerSetting(servletsGroup, "hidden", "openapiservlet.outputdepth",           1);
+	//public static final Setting<String> OpenAPIWhitelist         = new StringSetting(servletsGroup,  "HealthCheckServlet", "openapiservlet.whitelist",              "127.0.0.1, localhost, ::1", "IP addresses in this list are allowed to access the health check endpoint at /structr/health.");
+
 	// cron settings
 	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations");
 	public static final Setting<Boolean> CronAllowParallelExecution = new BooleanSetting(cronGroup,  "", "CronService.allowparallelexecution", false, "Enables the parallel execution of *the same* cron job. This can happen if the method runs longer than the defined cron interval. As thisand could possibly create problems the default is false.");
@@ -369,6 +384,17 @@ public class Settings {
 	public static final Setting<Integer> TwoFactorLoginTimeout         = new IntegerSetting(securityGroup,       "Two Factor Authentication", "security.twofactorauthentication.logintimeout",         30,            "Defines how long the two-factor login time window in seconds is. After entering the username and password the user has this amount of time to enter a two factor token before he has to re-authenticate via password");
 	public static final Setting<String> TwoFactorLoginPage             = new StringSetting(securityGroup,        "Two Factor Authentication", "security.twofactorauthentication.loginpage",            "/twofactor",  "The application page where the user enters the current two factor token");
 	public static final Setting<String> TwoFactorWhitelistedIPs        = new StringSetting(securityGroup,        "Two Factor Authentication", "security.twofactorauthentication.whitelistedips",       "",            "A comma-separated (,) list of IPs for which two factor authentication is disabled.");
+
+	public static final Setting<String> JWTSecretType                     = new ChoiceSetting(securityGroup, "JWT Authentication & Authorization",  "security.jwt.secrettype", "secret", Settings.getStringsAsSet("secret", "keypair", "jwks"), "Selects the secret type that will be used to sign or verify a given access or refresh token");
+	//public static final Setting<String> JWTAlgorithm                    = new ChoiceSetting(securityGroup, "JWT Authentication & Authorization",  "security.jwt.algorithm", "SHA256", Settings.getStringsAsSet("secret", "keypair, jwks"));
+	public static final Setting<String> JWTSecret                         = new StringSetting(securityGroup, "JWT Authentication & Authorization",  "security.jwt.secret", "Used if 'security.jwt.secrettype'=secret. The secret that will be used to sign and verify all tokens issued and sent to Structr");
+	public static final Setting<String> JWTIssuer                         = new StringSetting(securityGroup, "JWT Authentication & Authorization",  "security.jwt.jwtIssuer", "structr", "The issuer for the JWTs created by this Structr instance.");
+	public static final Setting<Integer> JWTExpirationTimeout             = new IntegerSetting(securityGroup, "JWT Authentication & Authorization",  "security.jwt.expirationtime", 60, "Access token timeout in minutes.");
+	public static final Setting<Integer> JWTRefreshTokenExpirationTimeout = new IntegerSetting(securityGroup, "JWT Authentication & Authorization",  "security.jwt.refreshtoken.expirationtime", 1440,"Refresh token timeout in minutes.");
+	public static final Setting<String> JWTKeyStore                       = new StringSetting(securityGroup, "JWT Authentication & Authorization",  "security.jwt.keystore", "Used if 'security.jwt.secrettype'=keypair. A valid keystore file containing a private/public keypair that can be used to sign and verify JWTs");
+	public static final Setting<String> JWTKeyStorePassword               = new StringSetting(securityGroup, "JWT Authentication & Authorization",  "security.jwt.keystore.password", "The password for the given 'security.jwt.keystore'");
+	public static final Setting<String> JWTKeyAlias                       = new StringSetting(securityGroup, "JWT Authentication & Authorization",  "security.jwt.key.alias", "The alias of the private key of the given 'security.jwt.keystore'");
+	public static final Setting<String> JWTSProvider                      = new StringSetting(securityGroup, "JWT Authentication & Authorization",  "security.jwks.provider", "");
 
 	public static final Setting<Boolean> PasswordForceChange                 = new BooleanSetting(securityGroup, "Password Policy", "security.passwordpolicy.forcechange",                         false, "Indicates if a forced password change is active");
 	public static final Setting<Boolean> PasswordClearSessionsOnChange       = new BooleanSetting(securityGroup, "Password Policy", "security.passwordpolicy.onchange.clearsessions",              false, "Clear all sessions of a user on password change.");

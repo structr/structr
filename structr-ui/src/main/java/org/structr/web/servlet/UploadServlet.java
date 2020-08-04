@@ -480,7 +480,6 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 				final FileItemStream fileItem = fileItemsIterator.next();
 
 				try {
-
 					final GraphObject node = StructrApp.getInstance().getNodeById(uuid);
 
 					if (node == null) {

@@ -38,6 +38,7 @@ var _Icons = {
 	database_icon: 'icon/database.png',
 	database_table_icon: 'icon/database_table.png',
 	database_add_icon: 'icon/database_add.png',
+	database_gear_icon: 'icon/database_gear.png',
 	view_detail_icon: 'icon/application_view_detail.png',
 	calendar_icon: 'icon/calendar.png',
 	add_grey_icon: 'icon/add_grey.png',

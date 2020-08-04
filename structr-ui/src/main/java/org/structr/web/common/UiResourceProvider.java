@@ -24,10 +24,7 @@ import java.util.regex.Pattern;
 import org.structr.common.PropertyView;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.resource.*;
-import org.structr.web.resource.LoginResource;
-import org.structr.web.resource.LogoutResource;
-import org.structr.web.resource.RegistrationResource;
-import org.structr.web.resource.ResetPasswordResource;
+import org.structr.web.resource.*;
 
 /**
  * The default resource provider for structr-ui.
@@ -43,6 +40,7 @@ public class UiResourceProvider implements ResourceProvider {
 		resourceMap.put(Pattern.compile("cypher"), CypherQueryResource.class);          // cypher query
 		resourceMap.put(Pattern.compile("graphQL"), GraphQLResource.class);             // graphQL query
 		resourceMap.put(Pattern.compile("login"), LoginResource.class);                 // login
+		resourceMap.put(Pattern.compile("token"), TokenResource.class);                 // token
 		resourceMap.put(Pattern.compile("logout"), LogoutResource.class);               // logout
 		resourceMap.put(Pattern.compile("registration"), RegistrationResource.class);   // self-registration
 		resourceMap.put(Pattern.compile("me"), MeResource.class);                       // me

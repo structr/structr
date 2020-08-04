@@ -107,6 +107,12 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 		return new InputConverter(securityContext);
 	}
 
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
+
 	protected class InputConverter extends PropertyConverter<Object, Integer> {
 
 		public InputConverter(SecurityContext securityContext) {
