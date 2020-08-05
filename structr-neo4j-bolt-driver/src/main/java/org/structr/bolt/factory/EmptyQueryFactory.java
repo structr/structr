@@ -41,8 +41,13 @@ public class EmptyQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 			query.indexLabel(label);
 		}
 
-		// not empty query is simple
-		query.addSimpleParameter(predicate.getName(), "is", null);
+		final String name = predicate.getName();
+
+		query.beginGroup();
+		query.addSimpleParameter(name, "is", null);
+		query.or();
+		query.addSimpleParameter(name, "=", "");
+		query.endGroup();
 
 		return true;
 	}
