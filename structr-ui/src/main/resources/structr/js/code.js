@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* global Command, Structr, LSWrapper, _TreeHelper, _Icons, scrollInfoKey, Promise, _Schema, dialogBtn, dialog, me, rootUrl, port, _LogType, _Logger, _Entities */
+/* global Command, Structr, LSWrapper, _TreeHelper, _Icons, scrollInfoKey, Promise, _Schema, dialogBtn, dialog, me, rootUrl, port, _LogType, _Entities */
 
 var main, codeMain, codeTree, codeContents, codeContext;
 var drop;
@@ -45,8 +45,6 @@ var _Code = {
 	codeResizerLeftKey: 'structrCodeResizerLeftKey_' + port,
 	codeResizerRightKey: 'structrCodeResizerRightKey_' + port,
 	init: function() {
-
-		_Logger.log(_LogType.CODE, '_Code.init');
 
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();

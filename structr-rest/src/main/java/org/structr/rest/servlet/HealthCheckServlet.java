@@ -49,13 +49,13 @@ public class HealthCheckServlet extends AbstractDataServlet {
 
 	private static final Logger logger  = LoggerFactory.getLogger(HealthCheckServlet.class);
 
-	private final Gson gson                = new GsonBuilder().setPrettyPrinting().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").create();
-	private final Set<String> whitelist    = new LinkedHashSet<>();
-	private final Map<String, Object> data = new LinkedHashMap<>();
-	private final long updateInterval      = 1000L;
-	private long lastUpdate                = 0L;
-	private String previousWhitelist       = "";
-	private int statusCode                 = -1;
+	protected final Gson gson                = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").create();
+	protected final Set<String> whitelist    = new LinkedHashSet<>();
+	protected final Map<String, Object> data = new LinkedHashMap<>();
+	protected final long updateInterval      = 1000L;
+	protected long lastUpdate                = 0L;
+	protected String previousWhitelist       = "";
+	protected int statusCode                 = -1;
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -192,6 +192,31 @@ public class HealthCheckServlet extends AbstractDataServlet {
 		return "rest";
 	}
 
+	// ----- protected methods -----
+	protected synchronized Set<String> getWhitelistAddresses() {
+
+		final String whitelistSource = Settings.HealthCheckWhitelist.getValue();
+		if (!whitelistSource.equals(previousWhitelist)) {
+
+			whitelist.clear();
+
+			for (final String entry : whitelistSource.split(",")) {
+
+				final String trimmed = entry.trim();
+
+				if (StringUtils.isNotBlank(trimmed)) {
+
+					whitelist.add(trimmed);
+				}
+			}
+
+			// cache contents to detect changes
+			previousWhitelist = whitelistSource;
+		}
+
+		return whitelist;
+	}
+
 	// ----- private methods -----
 	private void embedGroup(final Map<String, Object> dest, final String name, final Map<String, Object>... data) {
 
@@ -221,29 +246,5 @@ public class HealthCheckServlet extends AbstractDataServlet {
 		valueContainer.put("time", new Date(lastUpdate));
 
 		return valueContainer;
-	}
-
-	private synchronized Set<String> getWhitelistAddresses() {
-
-		final String whitelistSource = Settings.HealthCheckWhitelist.getValue();
-		if (!whitelistSource.equals(previousWhitelist)) {
-
-			whitelist.clear();
-
-			for (final String entry : whitelistSource.split(",")) {
-
-				final String trimmed = entry.trim();
-
-				if (StringUtils.isNotBlank(trimmed)) {
-
-					whitelist.add(trimmed);
-				}
-			}
-
-			// cache contents to detect changes
-			previousWhitelist = whitelistSource;
-		}
-
-		return whitelist;
 	}
 }

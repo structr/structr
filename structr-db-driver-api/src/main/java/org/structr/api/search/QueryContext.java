@@ -124,9 +124,8 @@ public class QueryContext {
 	}
 
 	public void overrideFetchSize(final int newFetchSize) {
-		
+
 		this.overriddenFetchSize = newFetchSize;
 		this.overridesFetchSize  = true;
 	}
-
 }

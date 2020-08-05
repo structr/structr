@@ -29,8 +29,6 @@ var _Entities = {
 	collectionPropertiesResultCount: {},
 	changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
 
-		_Logger.log(_LogType.ENTITIES, 'Change boolean attribute ', attrElement, ' to ', value);
-
 		if (value === true) {
 			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html('<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' + (activeLabel ? ' ' + activeLabel : ''));
 		} else {
@@ -40,8 +38,6 @@ var _Entities = {
 	},
 	reloadChildren: function(id) {
 		var el = Structr.node(id);
-
-		_Logger.log(_LogType.ENTITIES, 'reloadChildren', el);
 
 		$(el).children('.node').remove();
 		_Entities.resetMouseOverState(el);
@@ -367,9 +363,7 @@ var _Entities = {
 	editSource: function(entity) {
 
 		Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function () {
-			_Logger.log(_LogType.ENTITIES, 'Element source saved');
 		}, function () {
-			_Logger.log(_LogType.ENTITIES, 'cancelled');
 		});
 
 		// Get content in widget mode
@@ -1419,9 +1413,6 @@ var _Entities = {
 			});
 
 			input.off('focusout').on('focusout', function() {
-				_Logger.log(_LogType.ENTITIES, 'relId', relId);
-				_Logger.log(_LogType.ENTITIES, 'set properties of obj', objId);
-
 				_Entities.saveValue(input, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback);
 
 				input.removeClass('active');
@@ -1459,7 +1450,6 @@ var _Entities = {
 		var isPassword = input.prop('type') === 'password';
 		if (input.data('changed')) {
 			input.data('changed', false);
-			_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
 			_Entities.setProperty(objId, key, val, false, function(newVal) {
 				if (isPassword || (newVal !== oldVal)) {
 					blinkGreen(input);
@@ -1492,7 +1482,6 @@ var _Entities = {
 
 		var val = _Entities.getArrayValue(key, cell);
 
-		_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
 		_Entities.setProperty(objId, key, val, false, function(newVal) {
 			if (newVal !== oldVal) {
 				blinkGreen(cell);
@@ -1543,48 +1532,8 @@ var _Entities = {
 
 		var handleGraphObject = function(entity) {
 
-			var owner_select_id = 'owner_select_' + id;
+			let owner_select_id = 'owner_select_' + id;
 			el.append('<h3>Owner</h3><div><select id="' + owner_select_id + '"></select></div>');
-			var owner_select = $('#' + owner_select_id, el);
-
-			if (entity.owner) {
-				owner_select.append('<option value="' + entity.owner.id + '" selected="selected">' + entity.owner.name + '</option>');
-			}
-
-			owner_select.select2({
-				placeholder: 'Search user',
-				minimumInputLength: 2,
-				width: '300px',
-				style:"text-align:left;",
-				ajax: {
-					url: '/structr/rest/User',
-					dataType: 'json',
-					data: function (params) {
-						//console.log(params);
-						return {
-							name: params.term,
-							loose: 1
-						};
-					},
-					processResults: function (data) {
-						return {
-							results: data.result.map(function(item) {
-								return {
-									id: item.id,
-									text: item.name
-								};
-							})
-						};
-					}
-				},
-				dropdownParent: $('.blockPage')
-			}).on('select2:select', function (e) {
-				var data = e.params.data;
-				Command.setProperty(id, 'owner', data.id, false, function() {
-					blinkGreen(owner_select.parent());
-				});
-			});
-
 			el.append('<h3>Visibility</h3>');
 
 			let allowRecursive = (entity.type === 'Template' || entity.isFolder || (Structr.isModuleActive(_Pages) && !(entity.isContent)));
@@ -1600,7 +1549,7 @@ var _Entities = {
 			el.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th>' + (allowRecursive ? '<th></th>' : '') + '</tr></thead><tbody></tbody></table');
 
 			var tb = $('#principals tbody', el);
-			tb.append('<tr id="new"><td><select style="z-index: 999" id="newPrincipal"></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td>' + (allowRecursive ? '<td></td>' : '') + '</tr>');
+			tb.append('<tr id="new"><td><select style="z-index: 999" id="newPrincipal"><option></option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td>' + (allowRecursive ? '<td></td>' : '') + '</tr>');
 
 			$.ajax({
 				url: rootUrl + '/' + entity.id + '/in',
@@ -1608,68 +1557,107 @@ var _Entities = {
 				contentType: 'application/json; charset=utf-8',
 				success: function(data) {
 
-					$(data.result).each(function(i, result) {
+					for (let result of data.result) {
 
-						var permissions = {
-							'read': isIn('read', result.allowed),
-							'write': isIn('write', result.allowed),
-							'delete': isIn('delete', result.allowed),
-							'accessControl': isIn('accessControl', result.allowed)
+						let permissions = {
+							read: isIn('read', result.allowed),
+							write: isIn('write', result.allowed),
+							delete: isIn('delete', result.allowed),
+							accessControl: isIn('accessControl', result.allowed)
 						};
 
-						var principalId = result.principalId;
+						let principalId = result.principalId;
 						if (principalId) {
 							Command.get(principalId, 'id,name,isGroup', function(p) {
 								_Entities.addPrincipal(entity, p, permissions, allowRecursive);
 							});
 						}
-					});
+					}
 				}
 			});
 
-			var select = $('#newPrincipal');
+			let ownerSelect = $('#' + owner_select_id, el);
+			let granteeSelect = $('#newPrincipal', el);
+			let spinnerIcon = Structr.loaderIcon(granteeSelect.parent(), {float: 'right'});
 
-			select.select2({
-				placeholder: 'Select Group/User',
-				minimumInputLength: 2,
-				width: '100%',
-				ajax: {
-					url: '/structr/rest/Principal',
-					dataType: 'json',
-					data: function (params) {
-						return {
-							name: params.term,
-							loose: 1
-						};
-					},
-					processResults: function (data) {
-						return {
-							results: data.result.map(function(item) {
-								return {
-									id: item.id,
-									text: item.name
-								};
-							})
-						};
+			Command.getByType('Principal', null, null, 'name', 'asc', 'id,name,isGroup', false, function(principals) {
+
+				let ownerOptions = '';
+				let granteeGroupOptions = '';
+				let granteeUserOptions = '';
+
+				if (entity.owner) {
+					// owner is first entry
+					ownerOptions += '<option value="' + entity.owner.id + '">' + entity.owner.name + '</option>';
+				} else {
+					ownerOptions += '<option></option>';
+				}
+
+				principals.forEach(function(p) {
+
+					if (p.isGroup) {
+						granteeGroupOptions += '<option value="' + p.id + '">' + p.name + '</option>';
+					} else {
+						granteeUserOptions += '<option value="' + p.id + '">' + p.name + '</option>';
+
+						if (!entity.owner || entity.owner.id !== p.id) {
+							ownerOptions += '<option value="' + p.id + '">' + p.name + '</option>';
+						}
 					}
-				},
-				dropdownParent: $('.blockPage')
-			}).on('select2:select', function (e) {
-				var data = e.params.data;
-				var pId = data.id;
-				var rec = $('#recursive', el).is(':checked');
-				Command.setPermission(entity.id, pId, 'grant', 'read', rec);
-
-				Command.get(pId, 'id,name,isGroup', function(p) {
-					_Entities.addPrincipal(entity, p, {'read': true}, allowRecursive);
 				});
+
+				ownerSelect.append(ownerOptions);
+				granteeSelect.append('<option disabled>Groups</option>' + granteeGroupOptions);
+				granteeSelect.append('<option disabled>Users</option>' + granteeUserOptions);
+
+				ownerSelect.select2({
+					allowClear: true,
+					placeholder: 'Owner',
+					width: '300px',
+					style:"text-align:left;",
+					dropdownParent: $('.blockPage')
+				}).on('select2:unselecting', function (e) {
+					e.preventDefault();
+
+					Command.setProperty(id, 'owner', null, false, function() {
+						blinkGreen(ownerSelect.parent());
+						ownerSelect.val(null).trigger('change');
+					});
+
+				}).on('select2:select', function (e) {
+
+					let data = e.params.data;
+					Command.setProperty(id, 'owner', data.id, false, function() {
+						blinkGreen(ownerSelect.parent());
+					});
+				});
+
+				granteeSelect.select2({
+					placeholder: 'Select Group/User',
+					width: '100%',
+					dropdownParent: $('.blockPage')
+				}).on('select2:select', function (e) {
+
+					let data = e.params.data;
+					let pId = data.id;
+					let rec = $('#recursive', el).is(':checked');
+					Command.setPermission(entity.id, pId, 'grant', 'read', rec);
+
+					Command.get(pId, 'id,name,isGroup', function(p) {
+						_Entities.addPrincipal(entity, p, {read: true}, allowRecursive);
+					});
+				});
+
+				if (spinnerIcon.length) {
+					spinnerIcon.remove();
+				}
 			});
 		};
 
 		if (entity.targetId) {
-			Command.getRelationship(id, entity.targetId, 'id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', function(entity) { handleGraphObject(entity); });
+			Command.getRelationship(id, entity.targetId, 'id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 		} else {
-			Command.get(id, 'id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', function(entity) { handleGraphObject(entity); });
+			Command.get(id, 'id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 		}
 	},
 	showAccessControlDialog: function(entity) {
@@ -1715,9 +1703,8 @@ var _Entities = {
 			return;
 		}
 
-		$('#new').after('<tr class="_' + principal.id + '"><td><i class="typeIcon ' + _Icons.getFullSpriteClass((principal.isGroup ? _Icons.group_icon : _Icons.user_icon)) + '" /> <span class="name">' + principal.name + '</span></td><tr>');
-
-		var row = $('#principals ._' + principal.id, dialogText);
+		var row = $('<tr class="_' + principal.id + '"><td><i class="typeIcon ' + _Icons.getFullSpriteClass((principal.isGroup ? _Icons.group_icon : _Icons.user_icon)) + '"></i> <span class="name">' + principal.name + '</span></td></tr>');
+		$('#new').after(row);
 
 		['read', 'write', 'delete', 'accessControl'].forEach(function(perm) {
 
@@ -1730,18 +1717,17 @@ var _Entities = {
 			$('.' + perm, row).on('click', function(e) {
 				e.preventDefault();
 
-				var checkbox = $(this);
+				let checkbox = $(this);
 				checkbox.prop('disabled', true);
 
 				if (!$('input:checked', row).length) {
 					row.remove();
 				}
-				var recursive = $('#recursive', dialogText).is(':checked');
+				let recursive = $('#recursive', dialogText).is(':checked');
 
 				Command.setPermission(entity.id, principal.id, permissions[perm] ? 'revoke' : 'grant', perm, recursive, function() {
 					permissions[perm] = !permissions[perm];
 					checkbox.prop('checked', permissions[perm]);
-					_Logger.log(_LogType.ENTITIES, 'Permission successfully updated!');
 
 					checkbox.prop('disabled', false);
 
@@ -1766,7 +1752,6 @@ var _Entities = {
 				Command.setPermission(entity.id, principal.id, 'setAllowed', permissions, true, function() {
 
 					button.removeAttribute('disabled');
-
 					blinkGreen(row);
 				});
 			});
@@ -1780,7 +1765,6 @@ var _Entities = {
 		var btn = $('.save_' + key, el);
 		btn.on('click', function() {
 			Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
-				_Logger.log(_LogType.ENTITIES, key + ' successfully updated!', obj[key]);
 				blinkGreen(btn);
 				_Pages.reloadPreviews();
 			});
@@ -1817,12 +1801,9 @@ var _Entities = {
 			}
 			editIcon.on('click', function(e) {
 				e.stopPropagation();
-				_Logger.log(_LogType.ENTITIES, 'editSource', entity);
 				_Entities.editSource(entity);
 			});
-
 		}
-
 	},
 	appendEditPropertiesIcon: function(parent, entity, visible) {
 
@@ -1834,7 +1815,6 @@ var _Entities = {
 		}
 		editIcon.on('click', function(e) {
 			e.stopPropagation();
-			_Logger.log(_LogType.ENTITIES, 'showProperties', entity);
 			_Entities.showProperties(entity);
 		});
 		if (visible) {
@@ -1893,7 +1873,6 @@ var _Entities = {
 	removeExpandIcon: function(el) {
 		if (!el)
 			return;
-		_Logger.log(_LogType.ENTITIES, 'removeExpandIcon', el);
 		var button = $(el.children('.expand_icon').first());
 
 		// unregister click handlers
@@ -2020,8 +1999,6 @@ var _Entities = {
 		if (force === false && _Entities.isExpanded(element)) {
 			return;
 		} else {
-			_Logger.log(_LogType.ENTITIES, 'ensureExpanded: fetch children', el);
-
 			Command.children(id, callback);
 			var displayName = getElementDisplayName(Structr.entity(id));
 

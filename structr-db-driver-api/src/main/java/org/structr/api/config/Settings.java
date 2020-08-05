@@ -221,8 +221,8 @@ public class Settings {
 
 	// servlets
 	public static final StringMultiChoiceSetting Servlets     = new StringMultiChoiceSetting(servletsGroup, "General", "httpservice.servlets",
-		"JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet LoginServlet LogoutServlet TokenServlet HealthCheckServlet OpenAPIServlet",
-		Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet", "TokenServlet", "EventSourceServlet", "HealthCheckServlet"),
+		"JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet LoginServlet LogoutServlet TokenServlet HealthCheckServlet HistogramServlet OpenAPIServlet",
+		Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet", "TokenServlet", "EventSourceServlet", "HealthCheckServlet", "HistogramServlet", "OpenAPIServlet"),
 		"Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
 
 	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "configservlet.enabled",             true, "Enables the config servlet (available under <code>http(s)://&lt;your-server&gt;/structr/config</code>)");
@@ -356,6 +356,14 @@ public class Settings {
 	public static final Setting<String> HealthCheckDefaultView       = new StringSetting(servletsGroup,  "hidden", "healthcheckservlet.defaultview",           "public");
 	public static final Setting<Integer> HealthCheckOutputDepth      = new IntegerSetting(servletsGroup, "hidden", "healthcheckservlet.outputdepth",           1);
 	public static final Setting<String> HealthCheckWhitelist         = new StringSetting(servletsGroup,  "HealthCheckServlet", "healthcheckservlet.whitelist",              "127.0.0.1, localhost, ::1", "IP addresses in this list are allowed to access the health check endpoint at /structr/health.");
+
+	public static final Setting<String> HistogramServletPath       = new StringSetting(servletsGroup,  "hidden", "histogramservlet.path",                  "/structr/histogram");
+	public static final Setting<String> HistogramServletClass      = new StringSetting(servletsGroup,  "hidden", "histogramservlet.class",                 "org.structr.rest.servlet.HistogramServlet");
+	public static final Setting<String> HistogramAuthenticator     = new StringSetting(servletsGroup,  "hidden", "histogramservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> HistogramResourceProvider  = new StringSetting(servletsGroup,  "hidden", "histogramservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
+	public static final Setting<String> HistogramDefaultView       = new StringSetting(servletsGroup,  "hidden", "histogramservlet.defaultview",           "public");
+	public static final Setting<Integer> HistogramOutputDepth      = new IntegerSetting(servletsGroup, "hidden", "histogramservlet.outputdepth",           1);
+	public static final Setting<String> HistogramWhitelist         = new StringSetting(servletsGroup,  "HistogramServlet", "histogramservlet.whitelist", "127.0.0.1, localhost, ::1", "IP addresses in this list are allowed to access the query histogram endpoint at /structr/histogram.");
 
 	public static final Setting<String> OpenAPIServletPath       = new StringSetting(servletsGroup,  "hidden", "openapiservlet.path",                  "/structr/openapi/*");
 	public static final Setting<String> OpenAPIServletClass      = new StringSetting(servletsGroup,  "hidden", "openapiservlet.class",                 "org.structr.rest.servlet.OpenAPIServlet");

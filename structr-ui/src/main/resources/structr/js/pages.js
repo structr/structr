@@ -131,9 +131,6 @@ var _Pages = {
 		activeTab = LSWrapper.getItem(_Pages.activeTabKey);
 		activeTabLeft = LSWrapper.getItem(_Pages.activeTabLeftKey);
 		activeTabRight = LSWrapper.getItem(_Pages.activeTabRightKey);
-		_Logger.log(_LogType.PAGES, 'value read from local storage', activeTab);
-
-		_Logger.log(_LogType.PAGES, 'onload');
 
 		main.prepend(
 				'<div class="column-resizer-blocker"></div><div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
@@ -373,7 +370,6 @@ var _Pages = {
 
 			$('#_address', dialog).on('blur', function() {
 				var addr = $(this).val().replace(/\/+$/, "");
-				_Logger.log(_LogType.PAGES, addr);
 				$('#_name', dialog).val(addr.substring(addr.lastIndexOf("/") + 1));
 			});
 
@@ -395,7 +391,6 @@ var _Pages = {
 				var includeInExport = $('#_includeInExport', dialog).prop('checked');
 				var processDeploymentInfo = $('#_processDeploymentInfo', dialog).prop('checked');
 
-				_Logger.log(_LogType.PAGES, 'start');
 				return Command.importPage(code, address, name, publicVisible, authVisible, includeInExport, processDeploymentInfo);
 			});
 
@@ -608,8 +603,6 @@ var _Pages = {
 	},
 	resetTab: function(element) {
 
-		_Logger.log(_LogType.PAGES, 'resetTab', element);
-
 		element.children('input').hide();
 		element.children('.name_').show();
 
@@ -629,7 +622,6 @@ var _Pages = {
 			var self = $(this);
 			var clicks = e.originalEvent.detail;
 			if (clicks === 1) {
-				_Logger.log(_LogType.PAGES, 'click', self, self.css('z-index'));
 				if (self.hasClass('active')) {
 					_Pages.makeTabEditable(self);
 				} else {
@@ -643,9 +635,6 @@ var _Pages = {
 		}
 	},
 	activateTab: function(element) {
-
-		var name = $.trim(element.children('b.name_').attr('title'));
-		_Logger.log(_LogType.PAGES, 'activateTab', element, name);
 
 		previewTabs.children('li').each(function() {
 			$(this).removeClass('active');
@@ -663,7 +652,6 @@ var _Pages = {
 		element.addClass('active');
 		previews.removeClass('no-preview');
 
-		_Logger.log(_LogType.PAGES, 'store active tab', activeTab);
 		LSWrapper.setItem(_Pages.activeTabKey, activeTab);
 
 		if (LSWrapper.getItem(_Pages.activeTabLeftKey) === $('#activeElementsTab').prop('id')) {
@@ -721,7 +709,6 @@ var _Pages = {
 				let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + id) : '');
 				var url = viewRootUrl + obj.name + detailsObject + '?edit=2' + requestParameters;
 				iframe.prop('src', url);
-				_Logger.log(_LogType.PAGES, 'iframe', id, 'activated');
 
 				_Pages.hideAllPreviews();
 				iframe.parent().show();
@@ -755,7 +742,6 @@ var _Pages = {
 		return ($('#show_' + id, previewTabs).length > 0);
 	},
 	unloadIframes: function() {
-		_Logger.log(_LogType.PAGES, 'unloading all preview iframes');
 		_Pages.clearIframeDroppables();
 		$('iframe', previews).each(function() {
 			var pageId = $(this).prop('id').substring('preview_'.length);
@@ -763,7 +749,6 @@ var _Pages = {
 			try {
 				iframe.contents().empty();
 			} catch (e) {}
-			_Logger.log(_LogType.PAGES, 'iframe', pageId, 'deactivated');
 		});
 	},
 	/**
@@ -804,7 +789,6 @@ var _Pages = {
 
 		input.on('blur', function() {
 			input.off('blur');
-			_Logger.log(_LogType.PAGES, 'blur');
 			var self = $(this);
 			var newName = self.val();
 			Command.setProperty(id, "name", newName);
@@ -814,7 +798,6 @@ var _Pages = {
 		input.keypress(function(e) {
 			if (e.keyCode === 13 || e.keyCode === 9) {
 				e.preventDefault();
-				_Logger.log(_LogType.PAGES, 'keypress');
 				var self = $(this);
 				var newName = self.val();
 				Command.setProperty(id, "name", newName);
@@ -934,11 +917,9 @@ var _Pages = {
 //							e.stopPropagation();
 //							var self = $(this);
 //							var element = self.closest('[data-structr-id]');
-//							_Logger.log(_LogType.PAGES, element);
 //							var entity = Structr.entity(structrId, element.prop('data-structr-id'));
 //							entity.type = element.prop('data-structr_type');
 //							entity.name = element.prop('data-structr_name');
-//							_Logger.log(_LogType.PAGES, 'move', entity);
 //							self.parent().children('.structr-node').show();
 //						});
 //
@@ -949,7 +930,6 @@ var _Pages = {
 //							var entity = Structr.entity(structrId, element.prop('data-structr-id'));
 //							entity.type = element.prop('data-structr_type');
 //							entity.name = element.prop('data-structr_name');
-//							_Logger.log(_LogType.PAGES, 'delete', entity);
 //							var parentId = element.prop('data-structr-id');
 //
 //							Command.removeSourceFromTarget(entity.id, parentId);
@@ -991,7 +971,6 @@ var _Pages = {
 									left: pos.left + offsetLeft + 'px',
 									cursor: 'pointer'
 								}).show();
-								_Logger.log(_LogType.PAGES, header);
 							},
 							mouseout: function(e) {
 								e.stopPropagation();
@@ -1105,7 +1084,6 @@ var _Pages = {
 		return droppables;
 	},
 	appendElementElement: function(entity, refNode, refNodeIsParent) {
-		_Logger.log(_LogType.PAGES, '_Pages.appendElementElement(', entity, refNode, refNodeIsParent, ');');
 		entity = StructrModel.ensureObject(entity);
 		var div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
 

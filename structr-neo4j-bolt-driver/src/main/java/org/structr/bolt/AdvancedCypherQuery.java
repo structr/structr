@@ -33,6 +33,8 @@ import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
 import org.structr.api.util.Iterables;
+import org.structr.api.util.QueryHistogram;
+import org.structr.api.util.QueryTimer;
 
 /**
  *
@@ -44,6 +46,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 	private final Set<String> typeLabels            = new LinkedHashSet<>();
 	private final List<GraphQueryPart> parts        = new LinkedList<>();
 	private final StringBuilder buffer              = new StringBuilder();
+	private QueryTimer queryTimer                   = null;
 	private int fetchSize                           = Settings.FetchSize.getValue();
 	private boolean hasOptionalParts                = false;
 	private String currentGraphPartIdentifier       = "n";
@@ -441,6 +444,15 @@ public class AdvancedCypherQuery implements CypherQuery {
 	@Override
 	public QueryContext getQueryContext() {
 		return queryContext;
+	}
+
+	public QueryTimer getQueryTimer() {
+
+		if (queryTimer == null) {
+			queryTimer = QueryHistogram.newTimer();
+		}
+
+		return queryTimer;
 	}
 
 	// ----- private methods -----

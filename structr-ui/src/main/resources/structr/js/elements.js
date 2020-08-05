@@ -292,7 +292,6 @@ var _Elements = {
 		if (!$('.draggable', palette).length) {
 
 			$(_Elements.elementGroups).each(function(i, group) {
-				_Logger.log(_LogType.ELEMENTS, group);
 				palette.append('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
 				$(group.elements).each(function(j, elem) {
 					var div = $('#group_' + group.name);
@@ -359,7 +358,6 @@ var _Elements = {
 		if (!sourceId) return false;
 		var obj = StructrModel.obj(sourceId);
 		if (obj && obj.syncedNodesIds && obj.syncedNodesIds.length || sourceEl.parent().attr('id') === 'componentsArea') {
-			_Logger.log(_LogType.ELEMENTS, 'component dropped on components area, aborting');
 			return false;
 		}
 		Command.createComponent(sourceId);
@@ -435,7 +433,6 @@ var _Elements = {
 		return $($('#componentId_' + id)[0]);
 	},
 	appendElementElement: function(entity, refNode, refNodeIsParent) {
-		_Logger.log(_LogType.ELEMENTS, '_Elements.appendElementElement', entity);
 
 		if (!entity) {
 			return false;
@@ -450,7 +447,6 @@ var _Elements = {
 			parent = entity.parent && entity.parent.id ? Structr.node(entity.parent.id) : elements;
 		}
 
-		_Logger.log(_LogType.ELEMENTS, 'appendElementElement parent, refNode, refNodeIsParent', parent, refNode, refNodeIsParent);
 		if (!parent) {
 			return false;
 		}
@@ -486,8 +482,6 @@ var _Elements = {
 
 		var div = Structr.node(id);
 
-		_Logger.log(_LogType.ELEMENTS, 'Element appended (div, parent)', div, parent);
-
 		if (!div) {
 			return false;
 		}
@@ -503,7 +497,6 @@ var _Elements = {
 		div.append('<i title="Clone ' + displayName + ' element ' + entity.id + '\" class="clone_icon button ' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" />');
 		$('.clone_icon', div).on('click', function(e) {
 			e.stopPropagation();
-			_Logger.log(_LogType.ELEMENTS, 'Cloning node (div, parent)', entity, entity.parent);
 			Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
 		});
 
@@ -1454,7 +1447,6 @@ var _Elements = {
 		div.append('<i title="Clone content node ' + entity.id + '" class="clone_icon button ' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" />');
 		$('.clone_icon', div).on('click', function(e) {
 			e.stopPropagation();
-			_Logger.log(_LogType.ELEMENTS, 'Cloning node (div, parent)', entity, entity.parent);
 			Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
 		});
 
@@ -1500,9 +1492,7 @@ var _Elements = {
 	},
 	openEditContentDialog: function(btn, entity) {
 		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {
-			_Logger.log(_LogType.CONTENTS, 'content saved');
 		}, function() {
-			_Logger.log(_LogType.CONTENTS, 'cancelled');
 		});
 		Command.get(entity.id, 'content,contentType', function(data) {
             currentEntity = entity;
@@ -1530,15 +1520,13 @@ var _Elements = {
 			return;
 		}
 
-		var div = element.append('<div class="editor"></div>');
-		_Logger.log(_LogType.CONTENTS, div);
+		element.append('<div class="editor"></div>');
 		var contentBox = $('.editor', element);
 		contentType = entity.contentType || 'text/plain';
 
 		_Elements.activateEditorMode(contentType);
 
 		var text1, text2;
-
 
 		// Intitialize editor
 		CodeMirror.defineMIME("text/html", "htmlmixed-structr");

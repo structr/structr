@@ -54,8 +54,6 @@ var StructrModel = {
 	 */
 	create: function(data, refId, append) {
 
-		_Logger.log(_LogType.MODEL, "StructrModel.create", data);
-
 		if (!data || !data.id) {
 			return;
 		}
@@ -140,7 +138,6 @@ var StructrModel = {
 				if (el.parent().prop('id') === 'elementsArea') {
 					el.remove();
 				} else {
-					_Logger.log(_LogType.MODEL, 'obj exists');
 					return obj;
 				}
 			}
@@ -171,8 +168,6 @@ var StructrModel = {
 	 */
 	expand: function(element, obj) {
 
-		_Logger.log(_LogType.MODEL, 'StructrModel.expand', element, obj);
-
 		if (element) {
 
 			if (Structr.isExpanded(obj.id)) {
@@ -183,11 +178,8 @@ var StructrModel = {
 
 			if (parent && parent.hasClass('node') && parent.children('.node') && parent.children('.node').length) {
 
-				_Logger.log(_LogType.MODEL, 'parent of last appended object has children');
-
 				var ent = Structr.entityFromElement(parent);
 				_Entities.ensureExpanded(parent);
-				_Logger.log(_LogType.MODEL, 'entity', ent);
 				_Entities.appendExpandIcon(parent, ent, true, true);
 
 			}
@@ -276,7 +268,6 @@ var StructrModel = {
 
 	},
 	updateKey: function(id, key, value) {
-		_Logger.log(_LogType.MODEL, 'StructrModel.updateKey', id, key, value);
 		var obj = StructrModel.obj(id);
 
 		if (obj) {
@@ -302,9 +293,7 @@ var StructrModel = {
 		}
 
 		var inputElement = $('td.' + key + '_ input', element);
-		_Logger.log(_LogType.MODEL, inputElement);
 		var newValue = obj[key];
-		_Logger.log(_LogType.MODEL, key, newValue, typeof newValue);
 
 		var attrElement = element.children('.' + key + '_');
 
@@ -333,8 +322,6 @@ var StructrModel = {
 
 				if (key === 'content') {
 
-					_Logger.log(_LogType.MODEL, attrElement.text(), newValue);
-
 					attrElement.text(newValue);
 
 					if (Structr.isModuleActive(_Pages)) {
@@ -343,8 +330,6 @@ var StructrModel = {
 				}
 			}
 		}
-
-		_Logger.log(_LogType.MODEL, key, Structr.getClass(element));
 
 		if (key === 'name') {
 
@@ -358,7 +343,6 @@ var StructrModel = {
 
 					tabNameElement.attr('title', newValue).html(newValue);
 
-					_Logger.log(_LogType.MODEL, 'Model: Reload iframe', id, newValue);
 					_Pages.reloadIframe(id);
 				}
 
@@ -377,7 +361,6 @@ var StructrModel = {
 	refresh: function(id) {
 
 		var obj = StructrModel.obj(id);
-		_Logger.log(_LogType.MODEL, 'Model refresh, updated object', obj);
 
 		if (obj) {
 
@@ -390,8 +373,6 @@ var StructrModel = {
 			if (!element) {
 				return;
 			}
-
-			_Logger.log(_LogType.MODEL, obj, id, element);
 
 			// update values with given key
 			$.each(Object.keys(obj), function(i, key) {
@@ -505,7 +486,6 @@ var StructrModel = {
 	 */
 	save: function(id) {
 		var obj = StructrModel.obj(id);
-		_Logger.log(_LogType.MODEL, 'StructrModel.save', obj);
 
 		// Filter out object type data
 		var data = {};
@@ -523,10 +503,8 @@ var StructrModel = {
 
 	callCallback: function(callback, entity, resultSize, errorOccurred) {
 		if (callback) {
-			_Logger.log(_LogType.MODEL, 'Calling callback', callback, 'on entity', entity, resultSize);
 			var callbackFunction = StructrModel.callbacks[callback];
 			if (callbackFunction) {
-				_Logger.log(_LogType.MODEL, callback, callbackFunction.toString());
 				try {
 					StructrModel.callbacks[callback](entity, resultSize, errorOccurred);
 				} catch (e) {
@@ -887,8 +865,6 @@ StructrElement.prototype.remove = function() {
 			element.remove();
 		}
 
-		_Logger.log(_LogType.MODEL, this, element, parent, Structr.containsNodes(parent));
-
 		if (element && parent && !Structr.containsNodes(parent)) {
 			_Entities.removeExpandIcon(parent);
 		}
@@ -1003,8 +979,6 @@ StructrContent.prototype.append = function(refId) {
 		if (!div) {
 			return;
 		}
-
-		_Logger.log(_LogType.MODEL, 'appendContentElement div', div);
 
 		StructrModel.expand(div, this);
 
