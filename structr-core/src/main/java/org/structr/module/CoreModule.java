@@ -24,7 +24,6 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.*;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
-import org.structr.schema.action.Function;
 
 /**
  *
@@ -65,6 +64,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new CleanFunction());
 		Functions.put(licenseManager, new CoalesceFunction());
 		Functions.put(licenseManager, new CoalesceObjectsFunction());
+		Functions.put(licenseManager, new FormUrlEncodeFunction());
 		Functions.put(licenseManager, new UrlEncodeFunction());
 		Functions.put(licenseManager, new EscapeJavascriptFunction());
 		Functions.put(licenseManager, new EscapeJsonFunction());
