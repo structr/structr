@@ -1,0 +1,28 @@
+<div id="openapi-options">
+	<p class="input">
+		<label>Tags</label>
+		<select id="tags-select" data-property="tags" multiple="multiple">
+			${ ((config.availableTags) ? config.availableTags.map((t) => { let selected = (config.element.tags && config.element.tags.includes(t)); return '<option' + (selected ? ' selected' : '') + '>' + t + '</option>'}).join() : '')}
+		</select>
+	</p>
+
+	<p class="input">
+		<label>Description</label>
+		<input data-property="description" value="${config.element.description || ''}" type="text">
+	</p>
+
+	<p class="input">
+		<label>Summary</label>
+		<input data-property="summary" value="${config.element.summary || ''}" type="text">
+	</p>
+
+<!--	<p class="input">
+		<label>Input</label>
+		<input data-property="input" value="${config.element.input || ''}" type="text">
+	</p>
+
+	<p class="input">
+		<label>Ouput</label>
+		<input data-property="output" value="${config.element.output || ''}" type="text">
+	</p>-->
+</div>
