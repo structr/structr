@@ -4365,6 +4365,99 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
+	public void testFindNotEmpty() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createEmptySchema();
+			final JsonObjectType contact = schema.addType("Contact");
+
+			contact.addIntegerProperty("num").setIndexed(true);
+
+			// add
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class contactClass = StructrApp.getConfiguration().getNodeEntityClass("Contact");
+		final PropertyKey numKey = StructrApp.key(contactClass, "num");
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact01"), new NodeAttribute<>(numKey,   12));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact02"), new NodeAttribute<>(numKey,   11));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact03"), new NodeAttribute<>(numKey, null));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name,          ""), new NodeAttribute<>(numKey,    9));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact05"), new NodeAttribute<>(numKey,    8));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact06"), new NodeAttribute<>(numKey,    7));
+			app.create(contactClass,                                                      new NodeAttribute<>(numKey,    6));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact08"), new NodeAttribute<>(numKey,    5));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact09"), new NodeAttribute<>(numKey, null));
+			app.create(contactClass,                                                      new NodeAttribute<>(numKey,    3));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact11"), new NodeAttribute<>(numKey,    2));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact12"), new NodeAttribute<>(numKey,    1));
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			Settings.CypherDebugLogging.setValue(true);
+
+			final String query1               = "${find('Contact', not(empty('name')), sort('name'))}";
+			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, query1, "test1");
+
+			final String query2               = "${find('Contact', not(empty('num')), sort('num'))}";
+			final List<NodeInterface> result2 = (List)Scripting.evaluate(ctx, null, query2, "test2");
+
+			Settings.CypherDebugLogging.setValue(false);
+
+			// expected: 1, 2, 3, 5, 6, 8, 9, 11, 12
+			assertEquals("Invalid result for advanced find with graph predicate", "contact01", result1.get(0).getProperty(AbstractNode.name));
+			assertEquals("Invalid result for advanced find with graph predicate", "contact02", result1.get(1).getProperty(AbstractNode.name));
+			assertEquals("Invalid result for advanced find with graph predicate", "contact03", result1.get(2).getProperty(AbstractNode.name));
+			assertEquals("Invalid result for advanced find with graph predicate", "contact05", result1.get(3).getProperty(AbstractNode.name));
+			assertEquals("Invalid result for advanced find with graph predicate", "contact06", result1.get(4).getProperty(AbstractNode.name));
+			assertEquals("Invalid result for advanced find with graph predicate", "contact08", result1.get(5).getProperty(AbstractNode.name));
+			assertEquals("Invalid result for advanced find with graph predicate", "contact09", result1.get(6).getProperty(AbstractNode.name));
+			assertEquals("Invalid result for advanced find with graph predicate", "contact11", result1.get(7).getProperty(AbstractNode.name));
+			assertEquals("Invalid result for advanced find with graph predicate", "contact12", result1.get(8).getProperty(AbstractNode.name));
+
+			// expected: 12, 11, 9, 8, 7, 6, 5, 3, 2, 1
+			assertEquals("Invalid result for advanced find with graph predicate",  1, result2.get(0).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate",  2, result2.get(1).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate",  3, result2.get(2).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate",  5, result2.get(3).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate",  6, result2.get(4).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate",  7, result2.get(5).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate",  8, result2.get(6).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate",  9, result2.get(7).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", 11, result2.get(8).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", 12, result2.get(9).getProperty(numKey));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
 	public void testAdvancedFindNotEqualWithQuery() {
 
 		final ActionContext ctx = new ActionContext(securityContext);
