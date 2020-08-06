@@ -708,7 +708,7 @@ public class AuthHelper {
 					final String newTwoFactorToken = AuthHelper.getIdentificationTokenForPrincipal();
 					principal.setProperty(twoFactorTokenKey, newTwoFactorToken);
 
-					throw new TwoFactorAuthenticationRequiredException(newTwoFactorToken, !twoFactorConfirmed);
+					throw new TwoFactorAuthenticationRequiredException(principal, newTwoFactorToken, !twoFactorConfirmed);
 
 				} else {
 

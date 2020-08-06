@@ -403,6 +403,13 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 	public static String getTwoFactorUrl(final Principal principal) {
 
+		if (principal == null) {
+
+			LoggerFactory.getLogger(Principal.class).warn("Cannot fetch twofactor URL from user, user is null!");
+
+			return null;
+		}
+
 		final String twoFactorIssuer    = Settings.TwoFactorIssuer.getValue();
 		final String twoFactorAlgorithm = Settings.TwoFactorAlgorithm.getValue();
 		final Integer twoFactorDigits   = Settings.TwoFactorDigits.getValue();

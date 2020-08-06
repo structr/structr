@@ -18,16 +18,21 @@
  */
 package org.structr.core.auth.exception;
 
+import org.structr.core.entity.Principal;
+
 public class TwoFactorAuthenticationRequiredException extends UnauthorizedException {
 
+	private Principal user       = null;
 	private String nextStepToken = null;
 	private boolean showQrCode   = false;
 
-	public TwoFactorAuthenticationRequiredException(final String token, final boolean showQrCode) {
+	public TwoFactorAuthenticationRequiredException(final Principal user, final String token, final boolean showQrCode) {
+
 		super("Two factor authentication - login via OTC required");
 
 		this.nextStepToken = token;
 		this.showQrCode    = showQrCode;
+		this.user          = user;
 	}
 
 	public String getNextStepToken() {
@@ -36,6 +41,10 @@ public class TwoFactorAuthenticationRequiredException extends UnauthorizedExcept
 
 	public boolean showQrCode() {
 		return showQrCode;
+	}
+
+	public Principal getUser() {
+		return user;
 	}
 
 }
