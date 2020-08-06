@@ -242,7 +242,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 		final RelationshipResult cache = getRelationshipCache(null, null);
 		final String tenantIdentifier  = getTenantIdentifer(db);
 
-		return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r]-()"), "(n)-[]-()", "RETURN r ORDER BY r.internalTimestamp");
+		return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r]-(o)"), "RETURN r, o ORDER BY r.internalTimestamp");
 	}
 
 	@Override
@@ -259,10 +259,10 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 				return getRelationships();
 
 			case OUTGOING:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r]->()"), "(n)-[]->()", "RETURN r ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r]->(t)"), "RETURN r, t ORDER BY r.internalTimestamp");
 
 			case INCOMING:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier , ")<-[r]-()"), "(n)<-[]-()", "RETURN r ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier , ")<-[r]-(s)"), "RETURN r, s ORDER BY r.internalTimestamp");
 		}
 
 		return null;
@@ -280,13 +280,13 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 		switch (direction) {
 
 			case BOTH:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]-()"), concat("(n)-[:", rel, "]-()"), "RETURN r ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]-(o)"), "RETURN r, o ORDER BY r.internalTimestamp");
 
 			case OUTGOING:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->()"), concat("(n)-[:", rel, "]->()"), "RETURN r ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(t)"), "RETURN r, t ORDER BY r.internalTimestamp");
 
 			case INCOMING:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-()"), concat("(n)<-[:", rel, "]-()"), "RETURN r ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-(s)"), "RETURN r, s ORDER BY r.internalTimestamp");
 		}
 
 		return null;
@@ -507,7 +507,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 			}
 		}
 
-		public synchronized Iterable<Relationship> getResult(final BoltDatabaseService db, final long id, final String match, final String pattern, final String returnStatement) {
+		public synchronized Iterable<Relationship> getResult(final BoltDatabaseService db, final long id, final String match, final String returnStatement) {
 
 			final String whereStatement         = " WHERE ID(n) = $id ";
 			final String statement              = concat("MATCH ", match, whereStatement, returnStatement);
