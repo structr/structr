@@ -153,25 +153,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	}
 
 	@Override
-	public void init() {
-
-		/*
-		try (final Tx tx = StructrApp.getInstance().tx()) {
-
-			AbstractCommand.getOrCreateHiddenDocument();
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("Unable to create shadow page: {}", fex.getMessage());
-		}
-		*/
-	}
-
-	@Override
-	public void destroy() {
-	}
-
-	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
 		final long t0                   = System.currentTimeMillis();
@@ -524,7 +505,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								logger.warn("", ioex);
 							}
 
-							this.stats.recordStatsValue("html", System.currentTimeMillis() - t0);
+							this.stats.recordStatsValue(rootElement.getName(), System.currentTimeMillis() - t0);
 						}
 					}
 				}
@@ -884,7 +865,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				}
 
 				// record async rendering time
-				HtmlServlet.super.stats.recordStatsValue("html", System.currentTimeMillis() - requestStartTime);
+				HtmlServlet.super.stats.recordStatsValue(rootElement.getName(), System.currentTimeMillis() - requestStartTime);
 			}
 
 		});

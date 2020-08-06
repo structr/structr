@@ -88,7 +88,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 
 					data.clear();
 
-					data.put("version", "1.0");
+					data.put("version", "1.1");
 					data.put("description", "Structr system health status");
 
 					// service layer available?
@@ -101,26 +101,26 @@ public class HealthCheckServlet extends AbstractDataServlet {
 						final ThreadMXBean threadMXBean   = ManagementFactory.getThreadMXBean();
 						final Runtime runtime             = Runtime.getRuntime();
 
-						data.put("details", details);
+						data.put("checks", details);
 
 						embedGroup(details, "memory:utilization",
-							embedValue("free memory",  runtime.freeMemory(),  "bytes", "pass"),
-							embedValue("max memory",   runtime.maxMemory(),   "bytes", "pass"),
-							embedValue("total memory", runtime.totalMemory(), "bytes", "pass")
+							embedValue("free memory",  "system", runtime.freeMemory(),  "bytes", "pass"),
+							embedValue("max memory",   "system", runtime.maxMemory(),   "bytes", "pass"),
+							embedValue("total memory", "system", runtime.totalMemory(), "bytes", "pass")
 						);
 
 						embedGroup(details, "cpu:utilization",
-							embedValue("load average 1 min", ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage(), null, "pass")
+							embedValue("load average 1 min", "system", ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage(), null, "pass")
 						);
 
 						embedGroup(details, "uptime",
-							embedValue("uptime",  ManagementFactory.getRuntimeMXBean().getUptime(), "ms", "pass")
+							embedValue("uptime",  "system", ManagementFactory.getRuntimeMXBean().getUptime(), "ms", "pass")
 						);
 
 						embedGroup(details, "threads",
-							embedValue("current thread count", threadMXBean.getThreadCount(),       null, "pass"),
-							embedValue("peak thread count",    threadMXBean.getPeakThreadCount(),   null, "pass"),
-							embedValue("daemon thread count",  threadMXBean.getDaemonThreadCount(), null, "pass")
+							embedValue("current thread count", "system", threadMXBean.getThreadCount(),       null, "pass"),
+							embedValue("peak thread count",    "system", threadMXBean.getPeakThreadCount(),   null, "pass"),
+							embedValue("daemon thread count",  "system", threadMXBean.getDaemonThreadCount(), null, "pass")
 						);
 
 						final Map<String, Map<String, Integer>> info = Services.getInstance().getDatabaseService().getCachesInfo();
@@ -130,21 +130,25 @@ public class HealthCheckServlet extends AbstractDataServlet {
 						if (nodeCacheInfo != null) {
 
 							embedGroup(details, "cache:node",
-								embedValue("size",  nodeCacheInfo.get("max"),  null, "pass"),
-								embedValue("count", nodeCacheInfo.get("size"), null, "pass")
+								embedValue("size",  "system", nodeCacheInfo.get("max"),  null, "pass"),
+								embedValue("count", "system", nodeCacheInfo.get("size"), null, "pass")
 							);
 						}
 
 						if (relCacheInfo != null) {
 
 							embedGroup(details, "cache:relationship",
-								embedValue("size",  relCacheInfo.get("max"),  null, "pass"),
-								embedValue("count", relCacheInfo.get("size"), null, "pass")
+								embedValue("size",  "system", relCacheInfo.get("max"),  null, "pass"),
+								embedValue("count", "system", relCacheInfo.get("size"), null, "pass")
 							);
 						}
 
 						final HttpService httpService = Services.getInstance().getService(HttpService.class, "default");
 						if (httpService != null) {
+
+							final List<Map<String, Object>> measurements = new LinkedList<>();
+
+							details.put("html:responseTime", measurements);
 
 							final Map<String, Stats> stats = httpService.getRequestStats();
 							if (stats != null) {
@@ -153,12 +157,10 @@ public class HealthCheckServlet extends AbstractDataServlet {
 
 									final Stats statsData = stats.get(key);
 
-									embedGroup(details, key + ":reponseTime",
-										embedValue("min",     statsData.getMinValue(),     "ms", "pass"),
-										embedValue("max",     statsData.getMaxValue(),     "ms", "pass"),
-										embedValue("average", statsData.getAverageValue(), "ms", "pass"),
-										embedValue("count",   statsData.getCount(),        null, "pass")
-									);
+									measurements.add(embedValue(key, "page", statsData.getMinValue(),     "ms", "pass",   "min"));
+									measurements.add(embedValue(key, "page", statsData.getMaxValue(),     "ms", "pass",   "max"));
+									measurements.add(embedValue(key, "page", statsData.getAverageValue(), "ms", "pass",   "avg"));
+									measurements.add(embedValue(key, "page", statsData.getCount(),        null, "pass", "count"));
 								}
 							}
 						}
@@ -230,12 +232,16 @@ public class HealthCheckServlet extends AbstractDataServlet {
 		dest.put(name, list);
 	}
 
-	private Map<String, Object> embedValue(final String componentId, final Object value, final String unit, final String status) {
+	private Map<String, Object> embedValue(final String componentId, final String componentType, final Object value, final String unit, final String status) {
+		return embedValue(componentId, componentType, value, unit, status, null);
+	}
+
+	private Map<String, Object> embedValue(final String componentId, final String componentType, final Object value, final String unit, final String status, final String valueDescription) {
 
 		final Map<String, Object> valueContainer = new LinkedHashMap<>();
 
-		valueContainer.put("componentType", "system");
-		valueContainer.put("componentId", componentId);
+		valueContainer.put("componentType", componentType);
+		valueContainer.put("componentId",   componentId);
 		valueContainer.put("observedValue", value);
 
 		if (unit != null) {
@@ -244,6 +250,10 @@ public class HealthCheckServlet extends AbstractDataServlet {
 
 		valueContainer.put("status", status);
 		valueContainer.put("time", new Date(lastUpdate));
+
+		if (valueDescription != null) {
+			valueContainer.put("valueDescription", valueDescription);
+		}
 
 		return valueContainer;
 	}
