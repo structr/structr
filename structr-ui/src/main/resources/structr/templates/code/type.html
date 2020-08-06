@@ -1,10 +1,10 @@
 <h2>Class ${config.type.name}</h2>
 <div class="property-options-group">
-	<div><label>Type actions</label></div>
+	<div><label>Actions</label></div>
 	<div id="type-actions"></div>
 	<div style="clear:both;"></div>
 </div>
-<h3 id="type-working-sets-heading">Working Sets</h3>
+<h3 id="type-working-sets-heading" data-comment="Working Sets are identical to layouts. Removing an element from a group removes it from the layout">Working Sets</h3>
 <div class="property-options-group">
 	<div>
 		<select id="type-groups" multiple="multiple"></select>
@@ -15,9 +15,15 @@
 <h3>Options</h3>
 <div class="property-options-group">
 	<div>
-		<label><input id="changelog-checkbox" type="checkbox" /> Disable changelog</label>
-		<label><input id="public-checkbox" type="checkbox" /> Visible for public users</label>
-		<label><input id="authenticated-checkbox" type="checkbox" /> Visible for authenticated users</label>
+		<label data-comment="Only takes effect if the changelog is active"><input id="changelog-checkbox" type="checkbox" data-property="changelogDisabled" ${config.type.changelogDisabled ? 'checked' : ''} /> Disable changelog</label>
+		<label data-comment="Makes all nodes of this type visible to public users if checked"><input id="public-checkbox" type="checkbox" data-property="defaultVisibleToPublic" ${config.type.defaultVisibleToPublic ? 'checked' : ''} /> Visible for public users</label>
+		<label data-comment="Makes all nodes of this type visible to authenticated users if checked"><input id="authenticated-checkbox" type="checkbox" data-property="defaultVisibleToAuth" ${config.type.defaultVisibleToAuth ? 'checked' : ''} /> Visible for authenticated users</label>
+	</div>
+	<div style="clear:both;"></div>
+</div>
+<h3>OpenAPI</h3>
+<div class="property-options-group">
+	<div id="type-openapi">
 	</div>
 	<div style="clear:both;"></div>
 </div>

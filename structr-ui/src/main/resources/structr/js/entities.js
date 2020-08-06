@@ -1596,7 +1596,7 @@ var _Entities = {
 				principals.forEach(function(p) {
 
 					if (p.isGroup) {
-						granteeGroupOptions += '<option value="' + p.id + '">' + p.name + '</option>';
+						granteeGroupOptions += '<option value="' + p.id + '">A<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.group_icon) + '"></i>' + p.name + '</option>';
 					} else {
 						granteeUserOptions += '<option value="' + p.id + '">' + p.name + '</option>';
 
@@ -1943,7 +1943,6 @@ var _Entities = {
 				}
 				self.addClass('nodeHover');
 				self.children('i.button').showInlineBlock();
-//				self.children('.icons').children('img.button').show();
 			},
 			mouseout: function(e) {
 				e.stopPropagation();
@@ -1966,7 +1965,6 @@ var _Entities = {
 		var node = el.closest('.node');
 		if (node) {
 			node.removeClass('nodeHover');
-//			node.find('img.button').not('.donthide').hide().css('display', 'none');
 			node.find('i.button').not('.donthide').hide().css('display', 'none');
 		}
 		var page = node.closest('.page');

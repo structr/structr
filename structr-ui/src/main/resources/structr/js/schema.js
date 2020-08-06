@@ -2507,7 +2507,7 @@ var _Schema = {
 
 			let activateTab = function(tabName) {
 				$('.method-tab-content', contentDiv).hide();
-				$('li', contentDiv).removeClass('active');
+				$('li[data-name]', contentDiv).removeClass('active');
 				$('#tabView-' + tabName, contentDiv).show();
 				$('li[data-name="' + tabName + '"]', contentDiv).addClass('active');
 
@@ -2516,7 +2516,7 @@ var _Schema = {
 				}
 			};
 
-			$('li', contentDiv).off('click').on('click', function(e) {
+			$('li[data-name]', contentDiv).off('click').on('click', function(e) {
 				e.stopPropagation();
 				activateTab($(this).data('name'));
 			});

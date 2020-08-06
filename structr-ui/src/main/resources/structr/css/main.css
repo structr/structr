@@ -4044,7 +4044,7 @@ table#schema-grants th, table#schema-grants td {
 
 /* BEGIN: styles to maximize methods editors in bulk save dialog for CODE area */
 #code-methods-container {
-	height: calc(100% - 37px);
+	height: calc(100% - 40px);
 }
 #code-methods-container #methods-container {
 	height: 100%;
@@ -4184,7 +4184,8 @@ button.create-form-button.accept {
 
 #code-contents #property-options input[type="text"],
 #code-contents #method-options input[type="text"],
-#code-contents #view-options input[type="text"] {
+#code-contents #view-options input[type="text"],
+#code-contents #openapi-options input[type="text"] {
 	width: 100%;
 }
 
