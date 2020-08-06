@@ -89,11 +89,9 @@ public class LoginResource extends FilterableResource {
 			emailOrUsername = emailOrUsername.trim().toLowerCase();
 		}
 
-		Principal user = null;
 		RestMethodResult returnedMethodResult = null;
-
-		final SecurityContext ctx       = SecurityContext.getSuperUserInstance();
-		final App app                   = StructrApp.getInstance(ctx);
+		final SecurityContext ctx             = SecurityContext.getSuperUserInstance();
+		final App app                         = StructrApp.getInstance(ctx);
 
 		if (Settings.CallbacksOnLogin.getValue() == false) {
 			ctx.disableInnerCallbacks();
@@ -121,7 +119,9 @@ public class LoginResource extends FilterableResource {
 
 					try {
 
+						final Principal user            = ex.getUser();
 						final Map<String, Object> hints = new HashMap();
+
 						hints.put("MARGIN", 0);
 						hints.put("ERROR_CORRECTION", "M");
 
