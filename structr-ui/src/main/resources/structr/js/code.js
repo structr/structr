@@ -400,6 +400,9 @@ var _Code = {
 			}
 
 			Command.setProperties(entity.id, formData, function() {
+
+				_Code.addAvailableTagsForEntities([formData]);
+
 				Object.assign(entity, formData);
 				_Code.updateDirtyFlag(entity);
 
@@ -1792,7 +1795,6 @@ var _Code = {
 		Structr.fetchHtmlTemplate('code/custom', { }, function(html) {
 			codeContents.append(html);
 
-			// create button
 			_Code.displayCreateTypeButton("#type-actions");
 
 			// list of existing custom types
