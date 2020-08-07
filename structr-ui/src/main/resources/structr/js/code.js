@@ -282,7 +282,7 @@ var _Code = {
 				delete formContent[key];
 			}
 
-			if (formContent[key]) {
+			if (Array.isArray(formContent[key])) {
 				if (formContent[key].length === 0 && (!entity[key] || entity[key].length === 0)) {
 					delete formContent[key];
 				} else if (entity[key] && entity[key].length === formContent[key].length) {
