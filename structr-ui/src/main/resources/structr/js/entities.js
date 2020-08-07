@@ -1244,7 +1244,7 @@ var _Entities = {
 						}
 
 						var displayName = node.title || node.name || node.id;
-						box.append('<div title="' + displayName + '" " class="_' + node.id + ' node element abbr-ellipsis abbr-120">' + displayName + '</div>');
+						box.append('<div title="' + escapeForHtmlAttributes(displayName) + '" " class="_' + node.id + ' node element abbr-ellipsis abbr-120">' + displayName + '</div>');
 						$('._' + node.id, box).on('click', function() {
 
 							var nodeEl = $(this);
@@ -1367,7 +1367,7 @@ var _Entities = {
 	},
 	appendRelatedNode: function(cell, node, onDelete) {
 		var displayName = _Crud.displayName(node);
-		cell.append('<div title="' + displayName + '" class="_' + node.id + ' node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_"><span class="abbr-ellipsis abbr-80">' + displayName + '</span><i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
+		cell.append('<div title="' + escapeForHtmlAttributes(displayName) + '" class="_' + node.id + ' node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_"><span class="abbr-ellipsis abbr-80">' + displayName + '</span><i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 		var nodeEl = $('._' + node.id, cell);
 
 		nodeEl.on('click', function(e) {
@@ -2139,7 +2139,7 @@ var _Entities = {
 
 		var makeNonEditable = function (el, commitChanges) {
 			var displayValue = (commitChanges === true) ? el.val() : oldValue;
-			el.replaceWith('<' + attributeElementTagName + ' title="' + displayValue + '" class="' + attributeName + '_ abbr-ellipsis abbr-75pc">' + displayValue + '</' + attributeElementTagName + '>');
+			el.replaceWith('<' + attributeElementTagName + ' title="' + escapeForHtmlAttributes(displayValue) + '" class="' + attributeName + '_ abbr-ellipsis abbr-75pc">' + displayValue + '</' + attributeElementTagName + '>');
 			parentElement.find(attributeSelector).first().off('click').on('click', function(e) {
 				e.stopPropagation();
 				_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName);
@@ -2244,7 +2244,7 @@ var _Entities = {
 				}
 
 				div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
-					+ '<b title="' + name + '" class="abbr-ellipsis abbr-75pc">' + name + '</b>'
+					+ '<b title="' + escapeForHtmlAttributes(name) + '" class="abbr-ellipsis abbr-75pc">' + name + '</b>'
 					+ '<b class="action">' + (action ? action : '&nbsp;') + '</b>'
 					+ '<span class="content_ abbr-ellipsis abbr-75pc">' + (content ? content : '&nbsp;') + '</span>'
 					+ '<span class="id">' + entity.id + '</span>'
@@ -2342,7 +2342,7 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 	} else if (obj.constructor === Object) {
 
 		var displayName = _Crud.displayName(obj);
-		return '<div title="' + displayName + '" id="_' + obj.id + '" class="node ' + (obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')) + ' ' + obj.id + '_"><span class="abbr-ellipsis abbr-80">' + displayName + '</span><i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>';
+		return '<div title="' + escapeForHtmlAttributes(displayName) + '" id="_' + obj.id + '" class="node ' + (obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')) + ' ' + obj.id + '_"><span class="abbr-ellipsis abbr-80">' + displayName + '</span><i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>';
 
 	} else if (obj.constructor === Array) {
 

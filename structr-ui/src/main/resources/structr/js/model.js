@@ -455,13 +455,13 @@ var StructrModel = {
 				// Did name change from null?
 				if ((obj.type === 'Template' || obj.isContent)) {
 					if (obj.name) {
-						element.children('.content_').replaceWith('<b title="' + displayName + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b>');
+						element.children('.content_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b>');
 						element.children('.content_').off('click').on('click', function(e) {
 							e.stopPropagation();
 							_Entities.makeNameEditable(element);
 						});
 
-						element.children('.name_').replaceWith('<b title="' + displayName + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b>');
+						element.children('.name_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b>');
 						element.children('b.name_').off('click').on('click', function(e) {
 							e.stopPropagation();
 							_Entities.makeNameEditable(element);

@@ -491,7 +491,7 @@ var _Elements = {
 		var icon = _Elements.getElementIcon(entity);
 
 		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
-			+ '<b title="' + displayName + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b><span class="id">' + entity.id + '</span>'
+			+ '<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b><span class="id">' + entity.id + '</span>'
 			+ _Elements.classIdString(entity._html_id, entity._html_class));
 
 		div.append('<i title="Clone ' + displayName + ' element ' + entity.id + '\" class="clone_icon button ' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" />');
@@ -582,7 +582,7 @@ var _Elements = {
 
 							if (page.type !== 'ShadowDocument') {
 
-								pagesToLink.append('<div class="node page ' + page.id + '_"><i class="' + _Icons.getFullSpriteClass(_Icons.page_icon) + '" /><b title="' + page.name + '" class="name_ abbr-ellipsis abbr-120">' + page.name + '</b></div>');
+								pagesToLink.append('<div class="node page ' + page.id + '_"><i class="' + _Icons.getFullSpriteClass(_Icons.page_icon) + '" /><b title="' + escapeForHtmlAttributes(page.name) + '" class="name_ abbr-ellipsis abbr-120">' + page.name + '</b></div>');
 
 								var div = $('.' + page.id + '_', pagesToLink);
 
@@ -619,7 +619,7 @@ var _Elements = {
 						files.forEach(function(file) {
 
 							filesToLink.append('<div class="node file ' + file.id + '_"><i class="fa ' + _Icons.getFileIconClass(file) + '"></i> '
-									+ '<b title="' + file.path + '" class="name_ abbr-ellipsis abbr-120">' + file.name + '</b></div>');
+									+ '<b title="' + escapeForHtmlAttributes(file.path) + '" class="name_ abbr-ellipsis abbr-120">' + file.name + '</b></div>');
 
 							var div = $('.' + file.id + '_', filesToLink);
 
@@ -643,7 +643,7 @@ var _Elements = {
 
 						images.forEach(function(image) {
 
-							imagesToLink.append('<div class="node file ' + image.id + '_" title="' + image.path + '">' + _Icons.getImageOrIcon(image) + '<b class="name_ abbr-ellipsis abbr-120">' + image.name + '</b></div>');
+							imagesToLink.append('<div class="node file ' + image.id + '_" title="' + escapeForHtmlAttributes(image.path) + '">' + _Icons.getImageOrIcon(image) + '<b class="name_ abbr-ellipsis abbr-120">' + image.name + '</b></div>');
 
 							var div = $('.' + image.id + '_', imagesToLink);
 
@@ -673,7 +673,7 @@ var _Elements = {
 	appendFolder: function(entityToLinkTo, folderEl, subFolder) {
 
 		folderEl.append((subFolder.hasParent ? '<div class="clear"></div>' : '') + '<div class="node folder ' + (subFolder.hasParent ? 'sub ' : '') + subFolder.id + '_"><i class="fa fa-folder"></i> '
-				+ '<b title="' + subFolder.name + '" class="name_ abbr-ellipsis abbr-200">' + subFolder.name + '</b></div>');
+				+ '<b title="' + escapeForHtmlAttributes(subFolder.name) + '" class="name_ abbr-ellipsis abbr-200">' + subFolder.name + '</b></div>');
 
 		let subFolderEl = $('.' + subFolder.id + '_', folderEl);
 
@@ -716,7 +716,7 @@ var _Elements = {
 				Command.get(f.id, 'id,name,contentType,linkingElementsIds,path', function(file) {
 
 					$('.' + node.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><i class="fa ' + _Icons.getFileIconClass(file) + '"></i> '
-							+ '<b title="' + file.path + '" class="name_ abbr-ellipsis abbr-200">' + file.name + '</b></div>');
+							+ '<b title="' + escapeForHtmlAttributes(file.path) + '" class="name_ abbr-ellipsis abbr-200">' + file.name + '</b></div>');
 
 					let div = $('.' + file.id + '_');
 
@@ -1422,7 +1422,7 @@ var _Elements = {
 		var icon = _Elements.getContentIcon(entity);
 		var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '') + '">'
 				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + ' typeIcon-nochildren" />'
-				+ (name ? ('<b title="' + displayName + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b>') : ('<div class="content_ abbr-ellipsis abbr-75pc">' + escapeTags(entity.content) + '</div>'))
+				+ (name ? ('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b>') : ('<div class="content_ abbr-ellipsis abbr-75pc">' + escapeTags(entity.content) + '</div>'))
 				+ '<span class="id">' + entity.id + '</span>'
 				+ '</div>';
 

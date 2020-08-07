@@ -663,10 +663,10 @@ var _Files = {
 			if (d.isFolder) {
 				let icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-2x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
 				row.append('<td class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</td>');
-				row.append('<td><div id="id_' + d.id + '" class="node folder"><b title="' + name + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b></div></td>');
+				row.append('<td><div id="id_' + d.id + '" class="node folder"><b title="' + escapeForHtmlAttributes(name) + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b></div></td>');
 			} else {
 				row.append('<td class="file-icon"><a href="' + d.path + '" target="_blank"><i class="fa ' + icon + '"></i></a></td>');
-				row.append('<td><div id="id_' + d.id + '" class="node file"><b title="' + name + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b>'
+				row.append('<td><div id="id_' + d.id + '" class="node file"><b title="' + escapeForHtmlAttributes(name) + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b>'
 				+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + d.size + '</span></div></div></div><span class="id">' + d.id + '</span></div></td>');
 			}
 
@@ -684,14 +684,14 @@ var _Files = {
 
 				let icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-1x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
 
-				tile.append('<div id="id_' + d.id + '" class="node folder"><div class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</div><b title="' + name + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b></div>');
+				tile.append('<div id="id_' + d.id + '" class="node folder"><div class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</div><b title="' + escapeForHtmlAttributes(name) + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b></div>');
 
 			} else {
 
 				let iconOrThumbnail = d.isImage && !d.isThumbnail && d.tnSmall ? '<img class="tn" src="' + d.tnSmall.path + '">' : '<i class="fa ' + icon + '"></i>';
 
 				tile.append('<div id="id_' + d.id + '" class="node file"><div class="file-icon"><a href="' + d.path + '" target="_blank">' + iconOrThumbnail + '</a></div>'
-					+ '<b title="' + name + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b>'
+					+ '<b title="' + escapeForHtmlAttributes(name) + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b>'
 					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + size + '</span></div></div></div><span class="id">' + d.id + '</span></div>');
 			}
 
@@ -705,14 +705,14 @@ var _Files = {
 
 				let icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-1x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
 
-				tile.append('<div id="id_' + d.id + '" class="node folder"><div class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</div><b title="' + name + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b></div>');
+				tile.append('<div id="id_' + d.id + '" class="node folder"><div class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</div><b title="' + escapeForHtmlAttributes(name) + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b></div>');
 
 			} else {
 
 				let iconOrThumbnail = d.isImage && !d.isThumbnail && d.tnMid ? '<img class="tn" src="' + d.tnMid.path + '">' : '<i class="fa ' + icon + '"></i>';
 
 				tile.append('<div id="id_' + d.id + '" class="node file"><div class="file-icon"><a href="' + d.path + '" target="_blank">' + iconOrThumbnail + '</a></div>'
-					+ '<b title="' + name + '" class="name_  abbr-ellipsis abbr-75pc">' + name + '</b>'
+					+ '<b title="' + escapeForHtmlAttributes(name) + '" class="name_  abbr-ellipsis abbr-75pc">' + name + '</b>'
 					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + size + '</span></div></div></div><span class="id">' + d.id + '</span></div>');
 			}
 		}

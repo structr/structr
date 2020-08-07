@@ -452,7 +452,7 @@ var _Pages = {
 
 		var tab = $('#show_' + entity.id, previews);
 
-		tab.append('<div class="fill-pixel"></div><b title="' + entity.name + '" class="name_ abbr-ellipsis abbr-200">' + entity.name + '</b>');
+		tab.append('<div class="fill-pixel"></div><b title="' + escapeForHtmlAttributes(entity.name) + '" class="name_ abbr-ellipsis abbr-200">' + entity.name + '</b>');
 		tab.append('<i title="Edit page settings of ' + entity.name + '" class="edit_ui_properties_icon button ' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" />');
 		tab.append('<i title="View ' + entity.name + ' in new window" class="view_icon button ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" />');
 
@@ -832,7 +832,7 @@ var _Pages = {
 		let pageName = (entity.name ? entity.name : '[' + entity.type + ']');
 
 		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.page_icon) + '" />'
-				+ '<b title="' + entity.name + '" class="name_ abbr-ellipsis abbr-75pc">' + pageName + '</b> <span class="id">' + entity.id + '</span>' + (entity.position ? ' <span class="position">' + entity.position + '</span>' : ''));
+				+ '<b title="' + escapeForHtmlAttributes(entity.name) + '" class="name_ abbr-ellipsis abbr-75pc">' + pageName + '</b> <span class="id">' + entity.id + '</span>' + (entity.position ? ' <span class="position">' + entity.position + '</span>' : ''));
 
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 		_Entities.appendAccessControlIcon(div, entity);
@@ -1354,7 +1354,7 @@ var _Pages = {
 				detailHtml = '<div class="abbr-ellipsis abbr-75pc">' + escapeTags(entity.content) + '</div>';
 			}
 		} else {
-			detailHtml = '<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>';
+			detailHtml = '<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>';
 		}
 
 		div.append('<i class="typeIcon ' + iconClass + '" />' + detailHtml + _Elements.classIdString(entity._html_id, entity._html_class));
