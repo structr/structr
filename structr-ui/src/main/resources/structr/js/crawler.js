@@ -327,9 +327,9 @@ var _Crawler = {
 		var icon = 'fa-file-code-o';
 
 		row.append(`<td class="file-icon"><a href="${sourcePage.url || ''}" target="_blank"><i class="fa ${icon}"></i></a></td>`);
-		row.append(`<td><div id="id_${sourcePage.id}" data-structr_type="item" class="node item"><b title="${sourcePage.name ? sourcePage.name : '[unnamed]'}" class="name_ abbr-ellipsis abbr-75pc">${sourcePage.name ? sourcePage.name : '[unnamed]'}</b></td>`);
+		row.append(`<td><div id="id_${sourcePage.id}" data-structr_type="item" class="node item"><b title="${escapeForHtmlAttributes(sourcePage.name ? sourcePage.name : '[unnamed]')}" class="name_ abbr-ellipsis abbr-75pc">${sourcePage.name ? sourcePage.name : '[unnamed]'}</b></td>`);
 
-		row.append(`<td><div class="editable url_" title="${sourcePage.url || ''}">${sourcePage.url && sourcePage.url.length ? sourcePage.url : '<span class="placeholder">click to edit</span>'}</div></td>`);
+		row.append(`<td><div class="editable url_" title="${escapeForHtmlAttributes(sourcePage.url || '')}">${sourcePage.url && sourcePage.url.length ? sourcePage.url : '<span class="placeholder">click to edit</span>'}</div></td>`);
 		row.append(`<td>${sourcePage.isLoginPage ? '✓' : ''}</td>`);
 
 		var div = Structr.node(sourcePage.id);
@@ -694,7 +694,7 @@ var _Crawler = {
 			var name = subPattern.name;
 			tableBody.append('<tr id="row' + subPattern.id + '">'
 				+ '<td class="file-icon"><a href="javascript:void(0)"><i class="fa fa-code"></i></a></td>'
-				+ '<td><div id="id_' + subPattern.id + '" data-structr_type="item" class="node item"><b title="' +  (name ? name : '[unnamed]') + '" class="name_ abbr-ellipsis abbr-75pc">' + (name ? name : '[unnamed]') + '</b></td>'
+				+ '<td><div id="id_' + subPattern.id + '" data-structr_type="item" class="node item"><b title="' +  escapeForHtmlAttributes(name ? name : '[unnamed]') + '" class="name_ abbr-ellipsis abbr-75pc">' + (name ? name : '[unnamed]') + '</b></td>'
 				+ '<td><div data-raw-value="' + (subPattern.selector || '') + '" class="editable sub-selector">' + (subPattern.selector || '<span class="placeholder">click to edit</span>') + '</div></td>'
 				+ '<td><div title="' + (subPattern.mappedType || '') + '" class="editable mappedType_"></div></td>'
 				+ '<td><div title="' + (subPattern.mappedAttribute || '') + '" class="editable mappedAttribute_"></div></td>'
@@ -791,7 +791,7 @@ var _Crawler = {
 		var row = $('#' + rowId);
 
 		row.append('<td class="file-icon"><a href="javascript:void(0)"><i class="fa fa-code"></i></a></td>');
-		row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item"><b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_ abbr-ellipsis abbr-75pc">' + (d.name ? d.name : '[unnamed]') + '</b></td>');
+		row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item"><b title="' +  escapeForHtmlAttributes(d.name ? d.name : '[unnamed]') + '" class="name_ abbr-ellipsis abbr-75pc">' + (d.name ? d.name : '[unnamed]') + '</b></td>');
 		$('.file-icon', row).on('click', function() {
 			_Crawler.editItem(d);
 		});

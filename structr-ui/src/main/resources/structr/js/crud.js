@@ -2152,7 +2152,7 @@ var _Crud = {
 
 			var displayName = _Crud.displayName(node);
 
-			cell.append('<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.isImage ? 'image ' : '') + ' ' + node.id + '_"><span title="' + displayName + '" class="name_ abbr-ellipsis abbr-75pc">' + displayName + '</span></div>');
+			cell.append('<div title="' + escapeForHtmlAttributes(displayName) + '" id="_' + node.id + '" class="node ' + (node.isImage ? 'image ' : '') + ' ' + node.id + '_"><span class="name_ abbr-ellipsis abbr-75pc">' + displayName + '</span></div>');
 			var nodeEl = $('#_' + node.id, cell);
 
 			var isSourceOrTarget = _Crud.types[parentType].isRel && (key === 'sourceId' || key === 'targetId');
@@ -2353,10 +2353,11 @@ var _Crud = {
 		if (!$('#resultsFor' + type, searchResults).length) {
 			searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox"><h3>' + type.capitalize() + '</h3></div>');
 		}
-		var displayName = _Crud.displayName(node);
-		$('#resultsFor' + type, searchResults).append('<div title="name: ' + node.name + '\nid: ' + node.id  + '' + ' \ntype: ' + node.type + '' + '" class="_' + node.id + ' node abbr-ellipsis abbr-120">' + displayName + '</div>');
+		let displayName = _Crud.displayName(node);
+		let title = 'name: ' + node.name + '\nid: ' + node.id  + '' + ' \ntype: ' + node.type;
+		$('#resultsFor' + type, searchResults).append('<div title="' + escapeForHtmlAttributes(title) + '" class="_' + node.id + ' node abbr-ellipsis abbr-120">' + displayName + '</div>');
 
-		var nodeEl = $('#resultsFor' + type + ' ._' + node.id, searchResults);
+		let nodeEl = $('#resultsFor' + type + ' ._' + node.id, searchResults);
 		if (node.isImage) {
 			nodeEl.append('<div class="wrap"><img class="thumbnail" src="/' + node.id + '"></div>');
 		}
@@ -2367,7 +2368,7 @@ var _Crud = {
 	},
 	displayName: function(node) {
 		var displayName;
-		if (node.isContent && node.content) {
+		if (node.isContent && node.content && !node.name) {
 			displayName = escapeTags(node.content.substring(0, 100));
 		} else {
 			displayName = node.name || node.id || node;
