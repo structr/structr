@@ -1588,7 +1588,7 @@ var _Entities = {
 
 				if (entity.owner) {
 					// owner is first entry
-					ownerOptions += '<option value="' + entity.owner.id + '">' + entity.owner.name + '</option>';
+					ownerOptions += '<option value="' + entity.owner.id + '" data-type="User">' + entity.owner.name + '</option>';
 				} else {
 					ownerOptions += '<option></option>';
 				}
@@ -1596,26 +1596,41 @@ var _Entities = {
 				principals.forEach(function(p) {
 
 					if (p.isGroup) {
-						granteeGroupOptions += '<option value="' + p.id + '">A<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.group_icon) + '"></i>' + p.name + '</option>';
+						granteeGroupOptions += '<option value="' + p.id + '" data-type="Group">' + p.name + '</option>';
 					} else {
-						granteeUserOptions += '<option value="' + p.id + '">' + p.name + '</option>';
+						granteeUserOptions += '<option value="' + p.id + '" data-type="User">' + p.name + '</option>';
 
 						if (!entity.owner || entity.owner.id !== p.id) {
-							ownerOptions += '<option value="' + p.id + '">' + p.name + '</option>';
+							ownerOptions += '<option value="' + p.id + '" data-type="User">' + p.name + '</option>';
 						}
 					}
 				});
 
 				ownerSelect.append(ownerOptions);
-				granteeSelect.append('<option disabled>Groups</option>' + granteeGroupOptions);
-				granteeSelect.append('<option disabled>Users</option>' + granteeUserOptions);
+				granteeSelect.append(granteeGroupOptions + granteeUserOptions);
+
+				let templateOption = (state, isSelection) => {
+					if (!state.id || state.disabled) {
+						return state.text;
+					}
+
+					let icon = (state.element.dataset['type'] === 'Group') ? _Icons.group_icon : _Icons.user_icon ;
+
+					return $('<span class="' + (isSelection ? 'select-selection-with-icon' : 'select-result-with-icon') + '"><i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '"></i> ' + state.text + '</span>');
+				};
 
 				ownerSelect.select2({
 					allowClear: true,
 					placeholder: 'Owner',
 					width: '300px',
-					style:"text-align:left;",
-					dropdownParent: $('.blockPage')
+					style: 'text-align:left;',
+					dropdownParent: $('.blockPage'),
+					templateResult: (state) => {
+						return templateOption(state, false);
+					},
+					templateSelection: (state) => {
+						return templateOption(state, true);
+					}
 				}).on('select2:unselecting', function (e) {
 					e.preventDefault();
 
@@ -1635,7 +1650,10 @@ var _Entities = {
 				granteeSelect.select2({
 					placeholder: 'Select Group/User',
 					width: '100%',
-					dropdownParent: $('.blockPage')
+					dropdownParent: $('.blockPage'),
+					templateResult: (state) => {
+						return templateOption(state, false);
+					}
 				}).on('select2:select', function (e) {
 
 					let data = e.params.data;

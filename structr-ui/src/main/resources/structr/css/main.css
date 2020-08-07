@@ -5598,6 +5598,14 @@ dl.help-definitions dd {
 	width: calc(100% - 4px);
 }
 
+.select-selection-with-icon i.typeIcon {
+	margin-top: 6px;
+}
+
+.select-result-with-icon i.typeIcon {
+	margin-top: -1px;
+}
+
 table#principals tbody td:first-of-type {
 	text-align: left;
 }
