@@ -33,8 +33,8 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.api.schema.JsonSchema;
-import org.structr.schema.openapi.OpenAPIOperation;
-import org.structr.schema.openapi.OpenAPIReference;
+import org.structr.schema.openapi.operation.OpenAPIOperation;
+import org.structr.schema.openapi.common.OpenAPIReference;
 
 public class StructrGlobalSchemaMethods {
 

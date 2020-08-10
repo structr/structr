@@ -16,29 +16,20 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.schema;
+package org.structr.schema.openapi.parameter;
 
-import java.net.URI;
+import org.structr.schema.openapi.schema.OpenAPIPropertySchema;
+import java.util.TreeMap;
+import org.structr.core.property.PropertyKey;
 
-/**
- */
-public interface JsonParameter extends Comparable<JsonParameter> {
+public class OpenAPIPropertyQueryParameter extends TreeMap<String, Object> {
 
-	public URI getId();
-	public JsonMethod getParent();
+	public OpenAPIPropertyQueryParameter(final PropertyKey property, final String viewName) {
 
-	public String getName();
-	public JsonParameter setName(final String name);
-
-	public String getType();
-	public JsonParameter setType(final String type);
-
-	public int getIndex();
-	public JsonParameter setIndex(final int index);
-
-	public String getDescription();
-	public JsonParameter setDescription(final String descString);
-
-	public Object getExampleValue();
-	public JsonParameter setExampleValue(final Object exampleValue);
+		put("name",            property.jsonName());
+		put("in",              "query");
+		put("description",     "Filter by " + property.jsonName());
+		put("allowEmptyValue", property.isIndexedWhenEmpty());
+		put("schema",          new OpenAPIPropertySchema(property, viewName));
+	}
 }

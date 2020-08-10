@@ -79,8 +79,6 @@ public class RegistrationResource extends Resource {
 		ERROR_PAGE_KEY
 	}
 
-	//~--- methods --------------------------------------------------------
-
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 

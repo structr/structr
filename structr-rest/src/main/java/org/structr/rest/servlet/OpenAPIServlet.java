@@ -38,18 +38,24 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrSchemaDefinition;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.export.StructrTypeDefinitions;
-import org.structr.schema.openapi.OpenAPIArraySchema;
-import org.structr.schema.openapi.OpenAPIExampleAnyResult;
-import org.structr.schema.openapi.OpenAPIObjectSchema;
-import org.structr.schema.openapi.OpenAPIQueryParameter;
-import org.structr.schema.openapi.OpenAPIRequestResponse;
-import org.structr.schema.openapi.OpenAPIResultSchema;
-import org.structr.schema.openapi.OpenAPIStructrTypeSchema;
+import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.operation.OpenAPILoginOperation;
+import org.structr.schema.openapi.operation.OpenAPILogoutOperation;
+import org.structr.schema.openapi.operation.OpenAPIRegistrationOperation;
+import org.structr.schema.openapi.operation.OpenAPIResetPasswordOperation;
+import org.structr.schema.openapi.parameter.OpenAPIHeaderParameter;
+import org.structr.schema.openapi.parameter.OpenAPIQueryParameter;
+import org.structr.schema.openapi.request.OpenAPIRequestResponse;
+import org.structr.schema.openapi.result.OpenAPIExampleAnyResult;
+import org.structr.schema.openapi.schema.OpenAPIArraySchema;
+import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
+import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
+import org.structr.schema.openapi.schema.OpenAPIResultSchema;
+import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchema;
 
 /**
  * A servlet that implements the OpenAPI endpoint.
@@ -124,8 +130,9 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		root.put("info",       createInfoObject());
 		root.put("servers",    createServersObject());
 		root.put("components", createComponentsObject(schema, tag));
-		root.put("paths",      schema.serializeOpenAPIOperations(tag));
+		root.put("paths",      createPathsObject(schema, tag));
 		root.put("tags",       createTagsObject(schema, tag));
+		root.put("security",   createGlobalSecurityObject());
 
 		return root;
 	}
@@ -158,11 +165,35 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		final Map<String, Object> components = new TreeMap<>();
 
-		components.put("schemas",    createSchemasObject(schema, tag));
-		components.put("responses",  createResponsesObject());
-		components.put("parameters", createParametersObject());
+		components.put("securitySchemes", createSecuritySchemesObject());
+		components.put("schemas",         createSchemasObject(schema, tag));
+		components.put("responses",       createResponsesObject());
+		components.put("parameters",      createParametersObject());
 
 		return components;
+	}
+
+	private Map<String, Object> createSecuritySchemesObject() {
+
+		final Map<String, Object> schemes = new LinkedHashMap<>();
+		final Map<String, Object> auth    = new LinkedHashMap<>();
+
+		schemes.put("cookieAuth", auth);
+
+		auth.put("type", "apiKey");
+		auth.put("in",   "cookie");
+
+		return schemes;
+	}
+
+	private Map<String, Object> createGlobalSecurityObject() {
+
+		final Map<String, Object> security = new LinkedHashMap<>();
+		final Map<String, Object> auth    = new LinkedHashMap<>();
+
+		security.put("cookieAuth", List.of());
+
+		return security;
 	}
 
 	private List<Map<String, Object>> createTagsObject(final StructrSchemaDefinition schema, final String tag) {
@@ -197,14 +228,40 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		// base classes
 		map.put("AbstractNode", new OpenAPIStructrTypeSchema(AbstractNode.class, PropertyView.Public));
-		map.put("Principal",    new OpenAPIStructrTypeSchema(Principal.class, PropertyView.Public));
+		map.put("Principal",    new OpenAPIStructrTypeSchema(AbstractNode.class, PropertyView.Public));
 
 		for (final String view : StructrApp.getConfiguration().getPropertyViews().stream().filter(name -> !StructrTypeDefinition.VIEW_BLACKLIST.contains(name)).collect(Collectors.toSet())) {
 
 			map.putAll(definitions.serializeOpenAPI(tag, view));
 		}
 
+		map.put("StructrErrorToken",  new OpenAPIObjectSchema("An error token used in semantic error messages returned by the REST server.",
+			new OpenAPIPrimitiveSchema("The type that caused the error.", "type",     "string"),
+			new OpenAPIPrimitiveSchema("The property that caused the error (if applicable).", "property", "string"),
+			new OpenAPIPrimitiveSchema("The error token identifier.", "token",    "string"),
+			new OpenAPIPrimitiveSchema("Optional detail information.", "detail",   "string")
+		));
+
+		map.put("StructrRESTResponse", new OpenAPIObjectSchema("HTTP status code, message and optional error tokens used in semantic error messages returned by the REST server.",
+			new OpenAPIPrimitiveSchema("The error code.",    "code",    "string"),
+			new OpenAPIPrimitiveSchema("The error message.", "message", "string"),
+			Map.of("errors", new OpenAPIArraySchema("A list of error tokens.", new OpenAPIReference("#/components/schemas/StructrErrorToken")))
+		));
+
 		return map;
+	}
+
+	private Map<String, Object> createPathsObject(final StructrSchemaDefinition schema, final String tag) {
+
+		final Map<String, Object> paths = new LinkedHashMap<>();
+
+		paths.putAll(new OpenAPIResetPasswordOperation());
+		paths.putAll(new OpenAPIRegistrationOperation());
+		paths.putAll(new OpenAPILoginOperation());
+		paths.putAll(new OpenAPILogoutOperation());
+		paths.putAll(schema.serializeOpenAPIOperations(tag));
+
+		return paths;
 	}
 
 	private String getStructrUrl() {
@@ -224,52 +281,46 @@ public class OpenAPIServlet extends AbstractDataServlet {
 	private Map<String, Object> createResponsesObject() {
 
 		final Map<String, Object> responses = new LinkedHashMap<>();
-		final Map<String, Object> errors    = new LinkedHashMap<>();
-		final Map<String, Object> items     = new LinkedHashMap<>();
 
 		responses.put("created", new OpenAPIRequestResponse("Created",
-			new OpenAPIResultSchema(new OpenAPIArraySchema(Map.of("type", "string")), false),
+			new OpenAPIResultSchema(new OpenAPIArraySchema("The UUID(s) of the created object(s).", Map.of("type", "string")), false),
 			new OpenAPIExampleAnyResult(Arrays.asList("cf8b18f28b7c4dada3085656e78d9bd2"))
 		));
 
+		responses.put("loginError", new OpenAPIRequestResponse("Unauthorized",
+			new OpenAPIReference("#/components/schemas/StructrRESTResponse"),
+			Map.of("code", "401", "message", "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!")
+		));
+
+		responses.put("grantError", new OpenAPIRequestResponse("Forbidden",
+			new OpenAPIReference("#/components/schemas/StructrRESTResponse"),
+			Map.of("code", "401", "message", "Unauthorized", "errors", List.of())
+		));
+
+		responses.put("unauthorized", new OpenAPIRequestResponse("Unauthorized",
+			new OpenAPIReference("#/components/schemas/StructrRESTResponse"),
+			Map.of("code", "401", "message", "Unauthorized", "errors", List.of())
+		));
+
 		responses.put("forbidden", new OpenAPIRequestResponse("Forbidden",
-			new OpenAPIObjectSchema(Map.of(
-				"code",    Map.of("type", "integer"),
-				"message", Map.of("type", "string")
-			)),
-			Map.of("code", "401", "message", "Forbidden")
+			new OpenAPIReference("#/components/schemas/StructrRESTResponse"),
+			Map.of("code", "403", "message", "Forbidden", "errors", List.of())
 		));
 
 		responses.put("notFound", new OpenAPIRequestResponse("Not Found",
-			new OpenAPIObjectSchema(Map.of(
-				"code",    Map.of("type", "integer"),
-				"message", Map.of("type", "string")
-			)),
-			Map.of("code", "404", "message", "Not Found")
+			new OpenAPIReference("#/components/schemas/StructrRESTResponse"),
+			Map.of("code", "404", "message", "Not Found", "errors", List.of())
 		));
 
 		responses.put("validationError", new OpenAPIRequestResponse("Validation Error",
-			new OpenAPIObjectSchema(Map.of(
-				"code",    Map.of("type", "integer"),
-				"message", Map.of("type", "string"),
-				"errors",  errors
-			)),
+			new OpenAPIReference("#/components/schemas/StructrRESTResponse"),
 			Map.of("code", "422", "message", "Unable to commit transaction, validation failed", "errors", List.of(
 				Map.of("type", "Folder", "property", "name", "token", "must_not_be_empty"),
 				Map.of("type", "Folder", "property", "name", "token", "must_match", "detail", "[^\\\\/\\\\x00]+")
 			))
 		));
 
-		errors.put("type", "array");
-		errors.put("items", items);
-
-		items.put("type",       "object");
-		items.put("properties", Map.of(
-			"type",     Map.of("type", "string"),
-			"property", Map.of("type", "string"),
-			"token",    Map.of("type", "string"),
-			"detail",   Map.of("type", "string")
-		));
+		;
 
 		return responses;
 	}
@@ -283,6 +334,17 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		parameters.put("inexactSearch", new OpenAPIQueryParameter("loose",    "Use inexact search",                   Map.of("type", "boolean", "default", false)));
 
 		return parameters;
+	}
+
+	// unused
+	private Map<String, Object> createSecurityObject() {
+
+		final Map<String, Object> security  = new LinkedHashMap<>();
+
+		security.put("x-user",     new OpenAPIHeaderParameter("X-User",     "Username used in header-based authentication.", Map.of("type", "string")));
+		security.put("x-password", new OpenAPIHeaderParameter("X-Password", "Password used in header-based authentication.", Map.of("type", "string")));
+
+		return security;
 	}
 
 	private String getTagFromURLPath(final HttpServletRequest request) {

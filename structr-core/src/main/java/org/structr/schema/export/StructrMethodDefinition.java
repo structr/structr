@@ -45,7 +45,9 @@ import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonParameter;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
-import org.structr.schema.openapi.OpenAPIMethodOperation;
+import org.structr.schema.openapi.operation.OpenAPIMethodOperation;
+import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
+import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
 
 /**
  *
@@ -70,7 +72,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private String summary                                    = null;
 	private String comment                                    = null;
 	private String source                                     = null;
-
 
 	StructrMethodDefinition(final JsonType parent, final String name) {
 
@@ -568,6 +569,30 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		intersection.retainAll(set2);
 
 		return !intersection.isEmpty();
+	}
+
+	public Map<String, Object> getOpenAPIRequestSchema() {
+
+		final Map<String, Object> schema = new LinkedHashMap<>();
+
+		for (final JsonParameter param : getParameters()) {
+
+			schema.putAll(new OpenAPIPrimitiveSchema(param.getDescription(), param.getName(), param.getType()));
+		}
+
+		return new OpenAPIObjectSchema("Parameters", schema);
+	}
+
+	public Map<String, Object> getOpenAPIRequestBodyExample() {
+
+		final Map<String, Object> schema = new LinkedHashMap<>();
+
+		for (final JsonParameter param : getParameters()) {
+
+			schema.put(param.getName(), param.getExampleValue());
+		}
+
+		return schema;
 	}
 
 	// ----- static methods -----

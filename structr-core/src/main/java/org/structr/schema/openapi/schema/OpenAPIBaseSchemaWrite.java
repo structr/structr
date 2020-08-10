@@ -16,29 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.schema;
+package org.structr.schema.openapi.schema;
 
-import java.net.URI;
+import java.util.Map;
 
-/**
- */
-public interface JsonParameter extends Comparable<JsonParameter> {
+public class OpenAPIBaseSchemaWrite extends OpenAPIObjectSchema {
 
-	public URI getId();
-	public JsonMethod getParent();
+	public OpenAPIBaseSchemaWrite() {
 
-	public String getName();
-	public JsonParameter setName(final String name);
-
-	public String getType();
-	public JsonParameter setType(final String type);
-
-	public int getIndex();
-	public JsonParameter setIndex(final int index);
-
-	public String getDescription();
-	public JsonParameter setDescription(final String descString);
-
-	public Object getExampleValue();
-	public JsonParameter setExampleValue(final Object exampleValue);
+		super(Map.of(
+			"name",                        Map.of("type", "string"),
+			"visibleToAuthenticatedUsers", Map.of("type", "boolean", "default", false),
+			"visibleToPublicUsers",        Map.of("type", "boolean", "default", false)
+		));
+	}
 }
