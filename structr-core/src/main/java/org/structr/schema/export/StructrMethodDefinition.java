@@ -23,6 +23,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +66,8 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private String returnType                                 = "void";
 	private String codeType                                   = null;
 	private String name                                       = null;
+	private String description                                = null;
+	private String summary                                    = null;
 	private String comment                                    = null;
 	private String source                                     = null;
 
@@ -150,6 +153,28 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	@Override
 	public JsonMethod setComment(String comment) {
 		this.comment = comment;
+		return this;
+	}
+
+	@Override
+	public String getSummary() {
+		return summary;
+	}
+
+	@Override
+	public JsonMethod setSummary(String summary) {
+		this.summary = summary;
+		return this;
+	}
+
+	@Override
+	public String getDescription() {
+		return description;
+	}
+
+	@Override
+	public JsonMethod setDescription(String description) {
+		this.description = description;
 		return this;
 	}
 
@@ -284,6 +309,8 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			method = app.create(SchemaMethod.class, getOrCreateProperties);
 		}
 
+		updateProperties.put(SchemaMethod.summary,               getSummary());
+		updateProperties.put(SchemaMethod.description,           getDescription());
 		updateProperties.put(SchemaMethod.source,                getSource());
 		updateProperties.put(SchemaMethod.isPartOfBuiltInSchema, true);
 		updateProperties.put(SchemaMethod.tags,                  tags.toArray(new String[0]));
@@ -315,6 +342,18 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		if (_comment != null && _comment instanceof String) {
 
 			this.comment = (String)_comment;
+		}
+
+		final Object _summary = source.get(JsonSchema.KEY_SUMMARY);
+		if (_summary != null && _summary instanceof String) {
+
+			this.summary = (String)_summary;
+		}
+
+		final Object _description = source.get(JsonSchema.KEY_DESCRIPTION);
+		if (_description != null && _description instanceof String) {
+
+			this.description = (String)_description;
 		}
 
 		final Object _codeType = source.get(JsonSchema.KEY_CODE_TYPE);
@@ -400,6 +439,8 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		setName(method.getName());
 		setSource(method.getProperty(SchemaMethod.source));
 		setComment(method.getProperty(SchemaMethod.comment));
+		setSummary(method.getProperty(SchemaMethod.summary));
+		setDescription(method.getProperty(SchemaMethod.description));
 		setCodeType(method.getProperty(SchemaMethod.codeType));
 		setReturnType(method.getProperty(SchemaMethod.returnType));
 		setCallSuper(method.getProperty(SchemaMethod.callSuper));
@@ -441,6 +482,8 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		map.put(JsonSchema.KEY_SOURCE, source);
 		map.put(JsonSchema.KEY_COMMENT, comment);
+		map.put(JsonSchema.KEY_SUMMARY, summary);
+		map.put(JsonSchema.KEY_DESCRIPTION, description);
 		map.put(JsonSchema.KEY_CODE_TYPE, codeType);
 		map.put(JsonSchema.KEY_RETURN_TYPE, returnType);
 		map.put(JsonSchema.KEY_EXCEPTIONS, exceptions);
@@ -498,6 +541,34 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		return operations;
 	}
 
+	public boolean isSelected(final String tag) {
+
+		final Set<String> tags = getTags();
+		boolean selected       = tag == null || tags.contains(tag);
+
+		// don't show types without tags
+		if (tags.isEmpty()) {
+			return false;
+		}
+
+		// skip blacklisted tags
+		if (intersects(StructrTypeDefinition.TagBlacklist, tags)) {
+
+			// if a tag is selected, it overrides the blacklist
+			selected = tag != null && tags.contains(tag);
+		}
+
+		return selected;
+	}
+
+	private boolean intersects(final Set<String> set1, final Set<String> set2) {
+
+		final Set<String> intersection = new LinkedHashSet<>(set1);
+
+		intersection.retainAll(set2);
+
+		return !intersection.isEmpty();
+	}
 
 	// ----- static methods -----
 	static StructrMethodDefinition deserialize(final StructrTypeDefinition parent, final String name, final Map<String, Object> source) {

@@ -30,10 +30,10 @@ public class OpenAPIMethodOperation extends OpenAPIOperation {
 
 		super(
 			// summary
-			StringUtils.defaultString(method.getComment(), "Executes " + method.getName() + "() on the entity with the given UUID."),
+			StringUtils.isBlank(method.getSummary()) ? "Executes " + method.getName() + "() on the entity with the given UUID." : method.getSummary(),
 
 			// description
-			StringUtils.defaultString(method.getComment(), "Executes " + method.getName() + "() on the entity with the given UUID."),
+			StringUtils.isBlank(method.getDescription()) ? "Executes " + method.getName() + "() on the entity with the given UUID." : method.getDescription(),
 
 			// operationId
 			"execute" + method.getParent().getName() + "." + method.getName(),

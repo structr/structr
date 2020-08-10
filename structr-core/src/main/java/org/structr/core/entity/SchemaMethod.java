@@ -78,8 +78,8 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<String>             codeType                = new StringProperty("codeType").indexed();
 	public static final Property<Boolean>            isPartOfBuiltInSchema   = new BooleanProperty("isPartOfBuiltInSchema").indexed();
 	public static final Property<String[]>           tags                    = new ArrayProperty("tags", String.class).indexed();
-	public static final Property<String>             summary                 = new StringProperty("summary").indexed();
-	public static final Property<String>             description             = new StringProperty("description").indexed();
+	public static final Property<String>             summary                 = new StringProperty("summary");
+	public static final Property<String>             description             = new StringProperty("description");
 
 	// property which is only used to mark a schema method as "will be deleted"
 	public static final Property<Boolean>            deleteMethod             = new BooleanProperty("deleteMethod").defaultValue(Boolean.FALSE);

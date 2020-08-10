@@ -190,7 +190,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 			if (type.isSelected(tag)) {
 
-				map.putAll(type.serializeOpenAPIOperations());
+				map.putAll(type.serializeOpenAPIOperations(tag));
 			}
 		}
 
