@@ -63,8 +63,20 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		String tag = getTagFromURLPath(request);
 
-		// FIXME
-		response.addHeader("Access-Control-Allow-Origin", "null");
+
+		final String requestOrigin = request.getHeader("origin");
+
+		if (requestOrigin != null) {
+
+			String allowOrigin = Settings.OpenAPIAllowOrigin.getValue();
+
+			if (StringUtils.equals(allowOrigin, "")) {
+				allowOrigin = requestOrigin;
+			}
+
+			response.addHeader("Access-Control-Allow-Origin", allowOrigin);
+		}
+
 
 		if (StringUtils.isEmpty(tag)) {
 

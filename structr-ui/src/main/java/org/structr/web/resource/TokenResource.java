@@ -18,6 +18,8 @@
  */
 package org.structr.web.resource;
 
+import org.apache.commons.lang3.StringUtils;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -26,6 +28,10 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.action.ActionContext;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
+import javax.swing.text.html.HTML;
+import java.net.HttpCookie;
 import java.util.Map;
 
 public class TokenResource extends LoginResource {
@@ -89,10 +95,24 @@ public class TokenResource extends LoginResource {
         securityContext.setCachedUser(user);
         tokenMap.put("token_type", "Bearer");
 
-        return createRestMethodResult(tokenMap);
+        return createRestMethodResult(securityContext, tokenMap);
     }
 
     private String getRefreshToken() {
+
+        final Cookie[] cookies = request.getCookies();
+
+        // first check for token in cookie
+        if (cookies != null) {
+
+            for (Cookie cookie : request.getCookies()) {
+
+                if (StringUtils.equals(cookie.getName(), "refresh_token")) {
+
+                    return cookie.getValue();
+                }
+            }
+        }
 
         if (this.request == null) {
             return null;
@@ -105,12 +125,27 @@ public class TokenResource extends LoginResource {
         return refreshToken;
     }
 
-    private RestMethodResult createRestMethodResult(Map<String, String> tokenMap) {
+    private RestMethodResult createRestMethodResult(SecurityContext securityContext, Map<String, String> tokenMap) {
         RestMethodResult returnedMethodResult = new RestMethodResult(200);
         returnedMethodResult.addContent(tokenMap);
 
-        returnedMethodResult.addHeader("access_token", tokenMap.get("access_token"));
-        returnedMethodResult.addHeader("refresh_token", tokenMap.get("refresh_token"));
+        final HttpServletResponse response = securityContext.getResponse();
+
+        if (response != null) {
+            final int tokenMaxAge = Settings.JWTExpirationTimeout.getValue();
+            final int refreshMaxAge = Settings.JWTRefreshTokenExpirationTimeout.getValue();
+
+            final Cookie tokenCookie = new Cookie("access_token", tokenMap.get("access_token"));
+            tokenCookie.setHttpOnly(true);
+            tokenCookie.setMaxAge(tokenMaxAge * 60);
+
+            final Cookie refreshCookie = new Cookie("refresh_token", tokenMap.get("refresh_token"));
+            refreshCookie.setHttpOnly(true);
+            refreshCookie.setMaxAge(refreshMaxAge * 60);
+
+            response.addCookie(tokenCookie);
+            response.addCookie(refreshCookie);
+        }
 
         return returnedMethodResult;
     }
