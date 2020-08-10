@@ -25,7 +25,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.schema.export.StructrMethodDefinition;
 import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
 import org.structr.schema.openapi.common.OpenAPIReference;
-import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 
 public class OpenAPIMethodOperation extends OpenAPIOperation {
 
@@ -50,11 +49,11 @@ public class OpenAPIMethodOperation extends OpenAPIOperation {
 			),
 
 			// request body
-			new OpenAPIRequestResponse("Parameter object", method.getOpenAPIRequestSchema(), method.getOpenAPIRequestBodyExample(), null),
+			method.getOpenAPIRequestBody(),
 
 			// responses
 			Map.of(
-				"200", new OpenAPIReference("#/components/responses/ok"),
+				"200", method.getOpenAPISuccessResponse(),
 				"403", new OpenAPIReference("#/components/responses/forbidden"),
 				"422", new OpenAPIReference("#/components/responses/validationError")
 			)

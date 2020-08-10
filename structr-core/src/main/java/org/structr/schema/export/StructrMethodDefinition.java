@@ -18,6 +18,7 @@
  */
 package org.structr.schema.export;
 
+import com.google.gson.GsonBuilder;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -46,6 +47,7 @@ import org.structr.api.schema.JsonParameter;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.schema.openapi.operation.OpenAPIMethodOperation;
+import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
 
@@ -593,6 +595,23 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		}
 
 		return schema;
+	}
+
+	public Map<String, Object> getOpenAPIRequestBody() {
+		return new OpenAPIRequestResponse("Parameters", getOpenAPIRequestSchema(), getOpenAPIRequestBodyExample(), null);
+	}
+
+	public Map<String, Object> getOpenAPISuccessResponse() {
+
+		final Map<String, Object> schemaFromJsonString = new LinkedHashMap<>();
+
+		try {
+
+			schemaFromJsonString.putAll(new GsonBuilder().create().fromJson(getReturnType(), Map.class));
+
+		} catch (Throwable ignore) {}
+
+		return new OpenAPIRequestResponse("Parameter object", schemaFromJsonString, null, null);
 	}
 
 	// ----- static methods -----

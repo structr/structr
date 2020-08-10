@@ -45,7 +45,7 @@ public class SchemaMethodParameter extends SchemaReloadingNode {
 	public boolean reloadSchemaOnCreate() {
 
 		final SchemaMethod method = getProperty(schemaMethod);
-		if (method.isJava()) {
+		if (method != null && method.isJava()) {
 
 			return true;
 		}
@@ -58,7 +58,7 @@ public class SchemaMethodParameter extends SchemaReloadingNode {
 	public boolean reloadSchemaOnModify(final ModificationQueue modificationQueue) {
 
 		final SchemaMethod method = getProperty(schemaMethod);
-		if (method.isJava()) {
+		if (method != null && method.isJava()) {
 
 			return true;
 		}
@@ -71,7 +71,7 @@ public class SchemaMethodParameter extends SchemaReloadingNode {
 	public boolean reloadSchemaOnDelete() {
 
 		final SchemaMethod method = getProperty(schemaMethod);
-		if (method.isJava()) {
+		if (method != null && method.isJava()) {
 
 			return true;
 		}
