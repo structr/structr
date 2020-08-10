@@ -40,6 +40,7 @@ var _Code = {
 	lastClickedPath: '',
 	layouter: null,
 	seed: 42,
+	availableTags: [],
 	codeRecentElementsKey: 'structrCodeRecentElements_' + port,
 	codeLastOpenMethodKey: 'structrCodeLastOpenMethod_' + port,
 	codeResizerLeftKey: 'structrCodeResizerLeftKey_' + port,
@@ -88,6 +89,9 @@ var _Code = {
 		$('#code-contents').css({width: middleWidth + 'px'});
 	},
 	onload: function() {
+
+		Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', null, _Code.addAvailableTagsForEntities, false, null, 'tags');
+		Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', null, _Code.addAvailableTagsForEntities, false, null, 'tags');
 
 		Structr.fetchHtmlTemplate('code/main', {}, function(html) {
 
@@ -142,6 +146,21 @@ var _Code = {
 			});
 		});
 
+	},
+	addAvailableTagsForEntities: function(entities) {
+
+		for (let entity of entities) {
+
+			if (entity.tags) {
+				for (let tag of entity.tags) {
+					if (!_Code.availableTags.includes(tag)) {
+						_Code.availableTags.push(tag);
+					}
+				}
+			}
+		}
+
+		_Code.availableTags.sort();
 	},
 	handleKeyDownEvent: function(e) {
 
@@ -239,6 +258,10 @@ var _Code = {
 			}
 		}
 
+		for (let p of document.querySelectorAll('#code-contents select[data-property]')) {
+			propertyData[p.dataset.property] = Array.prototype.map.call(p.selectedOptions, (o) => o.value);
+		}
+
 		for (let p of document.querySelectorAll('#code-contents div.editor[data-property]')) {
 			let cm = p.querySelector('.CodeMirror');
 			if (cm) {
@@ -253,9 +276,24 @@ var _Code = {
 		let formContent = _Code.collectPropertyData();
 		let keys = Object.keys(formContent);
 
+		// remove unchanged keys
 		for (let key of keys) {
-			if (!(formContent[key] !== entity[key] && !((formContent[key] === null && entity[key] === "") || (formContent[key] === "" && entity[key] === null)))) {
+			if ( (formContent[key] === entity[key]) || (!formContent[key] && entity[key] === "") || (formContent[key] === "" && !entity[key]) || (!formContent[key] && !entity[key])) {
 				delete formContent[key];
+			}
+
+			if (Array.isArray(formContent[key])) {
+				if (formContent[key].length === 0 && (!entity[key] || entity[key].length === 0)) {
+					delete formContent[key];
+				} else if (entity[key] && entity[key].length === formContent[key].length) {
+					// check if same
+					let diff = formContent[key].filter((v) => {
+						return !entity[key].includes(v);
+					});
+					if (diff.length === 0) {
+						delete formContent[key];
+					}
+				}
 			}
 		}
 
@@ -273,9 +311,17 @@ var _Code = {
 					break;
 				case "text":
 				default:
-					p.value = entity[p.dataset.property];
+					p.value = entity[p.dataset.property] || '';
 					break;
 			}
+		}
+
+		for (let p of document.querySelectorAll('#code-contents select[data-property]')) {
+			for (let option of p.options) {
+				option.selected = (entity[p.dataset.property] && entity[p.dataset.property].includes(option.value));
+			}
+
+			p.dispatchEvent(new Event('change'));
 		}
 
 		for (let p of document.querySelectorAll('#code-contents div.editor[data-property]')) {
@@ -354,6 +400,9 @@ var _Code = {
 			}
 
 			Command.setProperties(entity.id, formData, function() {
+
+				_Code.addAvailableTagsForEntities([formData]);
+
 				Object.assign(entity, formData);
 				_Code.updateDirtyFlag(entity);
 
@@ -473,27 +522,7 @@ var _Code = {
 						state: {
 							opened: true
 						}
-					},
-					{
-						id: 'apis',
-						text: 'APIs',
-						children: true,
-						icon: _Icons.database_gear_icon,
-						state: {
-							opened: true
-						}
-					},
-					/*
-					{
-						id: 'facetsearch',
-						text: 'Faceted Search Configurations',
-						children: true,
-						icon: _Icons.find_icon,
-						state: {
-							opened: false
-						}
 					}
-					*/
 				];
 
 				if (_Code.searchIsActive()) {
@@ -1239,16 +1268,42 @@ var _Code = {
 							_Code.editPropertyContent(result, 'source', $('#tabView-source', codeContents), {});
 							_Code.editPropertyContent(result, 'comment', $('#tabView-comment', codeContents), {autoComplete: false, setMode: false, lint: false});
 
+
+							Structr.fetchHtmlTemplate('code/openapi-config', { element: result, availableTags: _Code.availableTags }, function(inner) {
+
+								let apiTab = $('#tabView-api', codeContents);
+								apiTab.append(inner);
+
+								$('#tags-select', apiTab).select2({
+									tags: true,
+									width: '100%'
+								}).on('change', () => {
+									_Code.updateDirtyFlag(result);
+								});
+
+								$('input[type=text]', apiTab).on('keyup', function() {
+									_Code.updateDirtyFlag(result);
+								});
+
+							});
+
 							_Code.displayDefaultMethodOptions(result);
 
 							let activateTab = function(tabName) {
 								$('.method-tab-content', codeContents).hide();
-								$('li', codeContents).removeClass('active');
-								$('#tabView-' + tabName, codeContents).show();
+								$('li[data-name]', codeContents).removeClass('active');
+
+								let activeTab = $('#tabView-' + tabName, codeContents);
+								activeTab.show();
 								$('li[data-name="' + tabName + '"]', codeContents).addClass('active');
+
+								let editor = $('.CodeMirror', activeTab);
+								if (editor.length > 0 && editor[0].CodeMirror) {
+									editor[0].CodeMirror.refresh();
+								}
 							};
 
-							$('li', codeContents).off('click').on('click', function(e) {
+							$('li[data-name]', codeContents).off('click').on('click', function(e) {
 								e.stopPropagation();
 								activateTab($(this).data('name'));
 							});
@@ -1296,6 +1351,19 @@ var _Code = {
 				codeContents.empty();
 				codeContents.append(html);
 
+				_Code.runCurrentEntitySaveAction = function() {
+					_Code.saveEntityAction(result);
+				};
+
+				var buttons = $('#method-buttons');
+				buttons.prepend(html);
+
+				_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save', _Code.runCurrentEntitySaveAction);
+
+				_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
+					_Code.revertFormData(result);
+				});
+
 				// delete button
 				if (!result.isBuiltinType) {
 					_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete type ' + result.name, function() {
@@ -1304,11 +1372,21 @@ var _Code = {
 					});
 				}
 
-				Structr.appendInfoTextToElement({
-					element: $('#type-working-sets-heading'),
-					text: "Working Sets are identical to layouts. Removing an element from a group removes it from the layout",
-					css: { marginLeft: "5px" },
-					helpElementCss: { fontSize: "12px" }
+				Structr.fetchHtmlTemplate('code/openapi-config', { element: result, availableTags: _Code.availableTags }, function(inner) {
+
+					let apiTab = $('#type-openapi', codeContents);
+					apiTab.append(inner);
+
+					$('#tags-select', apiTab).select2({
+						tags: true,
+						width: '100%'
+					}).on('change', () => {
+						_Code.updateDirtyFlag(result);
+					});
+
+					$('input[type=text]', apiTab).on('keyup', function() {
+						_Code.updateDirtyFlag(result);
+					});
 				});
 
 				// manage working sets
@@ -1316,19 +1394,23 @@ var _Code = {
 
 					let groupSelect = document.querySelector('select#type-groups');
 
+					let createAndAddWorkingSetOption = function(set, forceAdd) {
+
+						let setOption = document.createElement('option');
+						setOption.textContent = set.name;
+						setOption.dataset['groupId'] = set.id;
+
+						if (forceAdd === true || set.children && set.children.includes(result.name)) {
+							setOption.selected = true;
+						}
+
+						groupSelect.appendChild(setOption);
+					};
+
 					for (let set of workingSets) {
 
 						if (set.name !== _WorkingSets.recentlyUsedName) {
-
-							let setOption = document.createElement('option');
-							setOption.textContent = set.name;
-							setOption.dataset['groupId'] = set.id;
-
-							if (set.children.includes(result.name)) {
-								setOption.selected = true;
-							}
-
-							groupSelect.appendChild(setOption);
+							createAndAddWorkingSetOption(set);
 						}
 					}
 
@@ -1363,69 +1445,26 @@ var _Code = {
 
 					_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.add_folder_icon), 'new', 'Create new Working Set', function() {
 
-						_WorkingSets.createNewSetAndAddType(result.name, function() {
+						_WorkingSets.createNewSetAndAddType(result.name, function(ws) {
 							_TreeHelper.refreshNode('#code-tree', 'workingsets');
-							_Code.displaySchemaNodeContent(data);
+
+							createAndAddWorkingSetOption(ws, true);
+							$(groupSelect).trigger('change');
 						});
 					});
 				});
 
-				// changelog
-				{
-					let changelogCheckbox = $('#changelog-checkbox');
-					Structr.appendInfoTextToElement({
-						element: changelogCheckbox.closest('label'),
-						text: "Only takes effect if the changelog is active",
-						css: { marginLeft: "5px", marginRight: "20px" },
-						helpElementCss: { fontSize: "12px" }
-					});
-					changelogCheckbox.prop('checked', result.changelogDisabled);
-					changelogCheckbox.on('click', function() {
-						_Code.showSchemaRecompileMessage();
-						Command.setProperties(result.id, { changelogDisabled: changelogCheckbox.prop('checked') }, function() {
-							_Code.hideSchemaRecompileMessage();
-							_Code.displaySchemaNodeContent(data);
-						});
-					});
-				}
+				_Code.updateDirtyFlag(result);
 
-				// global visibility for public users
-				{
-					let publicCheckbox = $('#public-checkbox');
-					Structr.appendInfoTextToElement({
-						element: publicCheckbox.closest('label'),
-						text: "Makes all nodes of this type visible to public users if checked",
-						css: { marginLeft: "5px", marginRight: "20px" },
-						helpElementCss: { fontSize: "12px" }
-					});
-					publicCheckbox.prop('checked', result.defaultVisibleToPublic);
-					publicCheckbox.on('click', function() {
-						_Code.showSchemaRecompileMessage();
-						Command.setProperties(result.id, { defaultVisibleToPublic: publicCheckbox.prop('checked') }, function() {
-							_Code.hideSchemaRecompileMessage();
-							_Code.displaySchemaNodeContent(data);
-						});
-					});
-				}
+				$('input[type=checkbox]', codeContents).on('change', function() {
+					_Code.updateDirtyFlag(result);
+				});
 
-				// global visibility for authenticated users
-				{
-					let authenticatedCheckbox = $('#authenticated-checkbox');
-					Structr.appendInfoTextToElement({
-						element: authenticatedCheckbox.closest('label'),
-						text: "Makes all nodes of this type visible to authenticated users if checked",
-						css: { marginLeft: "5px", marginRight: "20px" },
-						helpElementCss: { fontSize: "12px" }
-					});
-					authenticatedCheckbox.prop('checked', result.defaultVisibleToAuth);
-					authenticatedCheckbox.on('click', function() {
-						_Code.showSchemaRecompileMessage();
-						Command.setProperties(result.id, { defaultVisibleToAuth: authenticatedCheckbox.prop('checked') }, function() {
-							_Code.hideSchemaRecompileMessage();
-							_Code.displaySchemaNodeContent(data);
-						});
-					});
-				}
+				$('input[type=text]', codeContents).on('keyup', function() {
+					_Code.updateDirtyFlag(result);
+				});
+
+				Structr.activateCommentsInElement(codeContents);
 
 				let schemaGrantsTableConfig = {
 					class: 'schema-grants-table schema-props',
@@ -1756,11 +1795,11 @@ var _Code = {
 		Structr.fetchHtmlTemplate('code/custom', { }, function(html) {
 			codeContents.append(html);
 
-			// create button
 			_Code.displayCreateTypeButton("#type-actions");
 
 			// list of existing custom types
 			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: false }, function(result) {
+
 				result.forEach(function(t) {
 					_Code.displayActionButton('#existing-types', 'fa fa-file-code-o', t.id, t.name, function() {
 						_Code.findAndOpenNode('Types/Custom/' + t.name);
@@ -2183,7 +2222,7 @@ var _Code = {
 	displayDefaultMethodOptions: function(method, callback) {
 
 		// default buttons
-		Structr.fetchHtmlTemplate('code/method-options', { method: method }, function(html) {
+		Structr.fetchHtmlTemplate('code/method-options', { method: method, availableTags: ['test'] }, function(html) {
 
 			_Code.runCurrentEntitySaveAction = function() {
 				_Code.saveEntityAction(method);

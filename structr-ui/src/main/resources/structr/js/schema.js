@@ -243,7 +243,18 @@ var _Schema = {
 
 					if (info.connection.scope === 'jsPlumb_DefaultScope') {
 						if (originalEvent) {
-							_Schema.connect(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'));
+
+							Structr.dialog("Create Relationship", function() {
+								dialogMeta.show();
+							}, function() {
+								_Schema.currentNodeDialogId = null;
+
+								dialogMeta.show();
+								instance.repaintEverything();
+								instance.detach(info.connection);
+							}, ['schema-edit-dialog']);
+
+							_Schema.createRelationship(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'), dialogHead, dialogText);
 						}
 					} else {
 						new MessageBuilder().warning('Moving existing relationships is not permitted!').title('Not allowed').requiresConfirmation().show();
@@ -251,8 +262,11 @@ var _Schema = {
 					}
 				});
 				instance.bind('connectionDetached', function(info) {
-					new MessageBuilder().warning('Deleting relationships is only possible via the delete button!').title('Not allowed').requiresConfirmation().show();
-					_Schema.reload();
+
+					if (info.connection.scope !== 'jsPlumb_DefaultScope') {
+						new MessageBuilder().warning('Deleting relationships is only possible via the delete button!').title('Not allowed').requiresConfirmation().show();
+						_Schema.reload();
+					}
 				});
 				reload = false;
 
@@ -953,20 +967,89 @@ var _Schema = {
 
 		Structr.resize();
 	},
-	loadRelationship: function(entity, headEl, contentEl) {
+	createRelationship: function(sourceId, targetId, headEl, contentEl) {
 
-		var id = '___' + entity.id;
-
-		Structr.fetchHtmlTemplate('schema/dialog.relationship', {id: id}, function (html) {
+		Structr.fetchHtmlTemplate('schema/dialog.relationship', {}, function (html) {
 			headEl.append(html);
 
-			Structr.appendInfoTextToElement({
-				text: '<dl class="help-definitions"><dt>NONE</dt><dd>No cascading delete</dd><dt>SOURCE_TO_TARGET</dt><dd>Delete target node when source node is deleted</dd><dt>TARGET_TO_SOURCE</dt><dd>Delete source node when target node is deleted</dd><dt>ALWAYS</dt><dd>Delete source node if target node is deleted AND delete target node if source node is deleted</dd><dt>CONSTRAINT_BASED</dt><dd>Delete source or target node if deletion of the other side would result in a constraint violation on the node (e.g. notNull constraint)</dd></dl>',
-				element: $('#cascading-delete-selector'),
-				insertAfter: true
+			_Schema.appendCascadingDeleteHelpText();
+
+			$('#source-type-name').text(nodes[sourceId].name);
+			$('#target-type-name').text(nodes[targetId].name);
+
+			$('#edit-rel-options-button').hide();
+			var saveButton = $('#save-rel-options-button');
+			var cancelButton = $('#cancel-rel-options-button');
+
+			saveButton.off('click').on('click', function(e) {
+
+				var relData = {
+					sourceId: sourceId,
+					targetId: targetId,
+					sourceMultiplicity: $('#source-multiplicity-selector').val(),
+					relationshipType: $('#relationship-type-name').val(),
+					targetMultiplicity: $('#target-multiplicity-selector').val(),
+					cascadingDeleteFlag: parseInt($('#cascading-delete-selector').val()),
+					autocreationFlag: parseInt($('#autocreate-selector').val()),
+					permissionPropagation: $('#propagation-selector').val(),
+					readPropagation: $('#read-selector').val(),
+					writePropagation: $('#write-selector').val(),
+					deletePropagation: $('#delete-selector').val(),
+					accessControlPropagation: $('#access-control-selector').val(),
+					propertyMask: $('#masked-properties').val()
+				};
+
+				if (relData.relationshipType.trim() === '') {
+
+					blinkRed($('#relationship-type-name'));
+
+				} else {
+
+					_Schema.createRelationshipDefinition(relData, function(data) {
+
+						_Schema.openEditDialog(data.result[0]);
+
+						_Schema.reload();
+
+					}, function(data) {
+
+						var additionalInformation = {};
+
+						if (data.responseJSON.errors.some((e) => { return (e.detail.indexOf('duplicate class') !== -1); })) {
+							additionalInformation.requiresConfirmation = true;
+							additionalInformation.title = 'Error';
+							additionalInformation.overrideText = 'You are trying to create a second relationship named <strong>' + relData.relationshipType + '</strong> between these types.<br>Relationship names between types have to be unique.';
+						}
+
+						Structr.errorFromResponse(data.responseJSON, null, additionalInformation);
+					});
+				}
 			});
 
-			var mainTabs = $('#' + id + '_head #tabs');
+			cancelButton.off('click').on('click', function(e) {
+				dialogCancelButton.click();
+			});
+
+			Structr.resize();
+		});
+	},
+	appendCascadingDeleteHelpText: function() {
+		Structr.appendInfoTextToElement({
+			text: '<dl class="help-definitions"><dt>NONE</dt><dd>No cascading delete</dd><dt>SOURCE_TO_TARGET</dt><dd>Delete target node when source node is deleted</dd><dt>TARGET_TO_SOURCE</dt><dd>Delete source node when target node is deleted</dd><dt>ALWAYS</dt><dd>Delete source node if target node is deleted AND delete target node if source node is deleted</dd><dt>CONSTRAINT_BASED</dt><dd>Delete source or target node if deletion of the other side would result in a constraint violation on the node (e.g. notNull constraint)</dd></dl>',
+			element: $('#cascading-delete-selector'),
+			insertAfter: true
+		});
+	},
+	loadRelationship: function(entity, headEl, contentEl) {
+
+		Structr.fetchHtmlTemplate('schema/dialog.relationship', {}, function (html) {
+			headEl.append(html);
+
+			$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', true);
+
+			_Schema.appendCascadingDeleteHelpText();
+
+			let mainTabs = $('#tabs', headEl);
 
 			let contentDiv = $('<div class="schema-details"></div>');
 			contentEl.append(contentDiv);
@@ -1024,12 +1107,6 @@ var _Schema = {
 
 			saveButton.off('click').on('click', function(e) {
 
-				$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', true);
-
-				editButton.show();
-				saveButton.hide();
-				cancelButton.hide();
-
 				var newData = {
 					sourceMultiplicity: $('#source-multiplicity-selector').val(),
 					relationshipType: $('#relationship-type-name').val(),
@@ -1045,9 +1122,6 @@ var _Schema = {
 				};
 
 				Object.keys(newData).forEach(function(key) {
-					if (key === 'relationshipType' && newData[key].trim() === '') {
-						newData[key] = initialRelType;
-					}
 					if ( (entity[key] === newData[key])
 							|| (key === 'cascadingDeleteFlag' && !(entity[key]) && newData[key] === 0)
 							|| (key === 'autocreationFlag' && !(entity[key]) && newData[key] === 0)
@@ -1057,18 +1131,30 @@ var _Schema = {
 					}
 				});
 
-				if (Object.keys(newData).length > 0) {
+				if (newData.relationshipType.trim() === '') {
+
+					blinkRed($('#relationship-type-name'));
+
+				} else if (Object.keys(newData).length > 0) {
+
+					$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', true);
+
+					editButton.show();
+					saveButton.hide();
+					cancelButton.hide();
+
 					_Schema.updateRelationship(entity, newData, function() {
+
 						Object.keys(newData).forEach(function(attribute) {
 							blinkGreen($('#relationship-options [data-attr-name=' + attribute + ']'));
 							entity[attribute] = newData[attribute];
 						});
+
 					}, function(data) {
+
 						var additionalInformation = {};
-						var causedByIdenticalRelName = data.responseJSON.errors.some(function (e) {
-							return (e.detail.indexOf('duplicate class') !== -1);
-						});
-						if (causedByIdenticalRelName) {
+
+						if (data.responseJSON.errors.some((e) => { return (e.detail.indexOf('duplicate class') !== -1); })) {
 							additionalInformation.requiresConfirmation = true;
 							additionalInformation.title = 'Error';
 							additionalInformation.overrideText = 'You are trying to create a second relationship named <strong>' + newData.relationshipType + '</strong> between these types.<br>Relationship names between types have to be unique.';
@@ -1081,7 +1167,6 @@ var _Schema = {
 						Object.keys(newData).forEach(function(attribute) {
 							blinkRed($('#relationship-options [data-attr-name=' + attribute + ']'));
 						});
-
 					});
 				}
 			});
@@ -2507,7 +2592,7 @@ var _Schema = {
 
 			let activateTab = function(tabName) {
 				$('.method-tab-content', contentDiv).hide();
-				$('li', contentDiv).removeClass('active');
+				$('li[data-name]', contentDiv).removeClass('active');
 				$('#tabView-' + tabName, contentDiv).show();
 				$('li[data-name="' + tabName + '"]', contentDiv).addClass('active');
 
@@ -2516,7 +2601,7 @@ var _Schema = {
 				}
 			};
 
-			$('li', contentDiv).off('click').on('click', function(e) {
+			$('li[data-name]', contentDiv).off('click').on('click', function(e) {
 				e.stopPropagation();
 				activateTab($(this).data('name'));
 			});
@@ -2996,19 +3081,10 @@ var _Schema = {
 			}
 		});
 	},
-	createRelationshipDefinition: function(sourceId, targetId, relationshipType) {
+	createRelationshipDefinition: function(data, onSuccess, onError) {
 
 		_Schema.showSchemaRecompileMessage();
 
-		var data = {
-			sourceId: sourceId,
-			targetId: targetId,
-			sourceMultiplicity: '*',
-			targetMultiplicity: '*'
-		};
-		if (relationshipType && relationshipType.length) {
-			data.relationshipType = relationshipType;
-		}
 		$.ajax({
 			url: rootUrl + 'schema_relationship_nodes',
 			type: 'POST',
@@ -3016,27 +3092,21 @@ var _Schema = {
 			contentType: 'application/json; charset=utf-8',
 			data: JSON.stringify(data),
 			statusCode: {
-				201: function() {
-					_Schema.reload();
+				201: function(data) {
+
 					_Schema.hideSchemaRecompileMessage();
+
+					if (onSuccess) {
+						onSuccess(data);
+					}
 				},
 				422: function(data) {
 
 					_Schema.hideSchemaRecompileMessage();
 
-					var additionalInformation = {};
-					var causedByUndefinedRelName = data.responseJSON.errors.some(function (e) {
-						return (e.type.indexOf(undefinedRelType) !== -1);
-					});
-					if (causedByUndefinedRelName) {
-						additionalInformation.requiresConfirmation = true;
-						additionalInformation.title = 'Duplicate unnamed relationship';
-						additionalInformation.overrideText = 'You are trying to create a second <strong>unnamed</strong> relationship between these types.<br>Please rename the existing unnamed relationship first before creating another relationship.';
+					if (onError) {
+						onError(data);
 					}
-
-					Structr.errorFromResponse(data.responseJSON, null, additionalInformation);
-
-					_Schema.reload();
 				}
 			}
 		});
@@ -3113,9 +3183,6 @@ var _Schema = {
 				}
 			}
 		});
-	},
-	connect: function(sourceId, targetId) {
-		_Schema.createRelationshipDefinition(sourceId, targetId, initialRelType);
 	},
 	askDeleteRelationship: function (resId, name) {
 		name = name ? ' \'' + name + '\'' : '';

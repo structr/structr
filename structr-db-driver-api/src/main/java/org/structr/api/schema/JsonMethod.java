@@ -38,6 +38,12 @@ public interface JsonMethod extends Comparable<JsonMethod> {
 	public String getComment();
 	public JsonMethod setComment(final String comment);
 
+	public String getSummary();
+	public JsonMethod setSummary(final String summary);
+
+	public String getDescription();
+	public JsonMethod setDescription(final String description);
+
 	public List<JsonParameter> getParameters();
 	public JsonMethod addParameter(final String name, final String type);
 

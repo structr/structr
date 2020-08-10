@@ -32,7 +32,7 @@ public class SchemaMethodParameter extends SchemaReloadingNode {
 
 	public static final Property<SchemaMethod> schemaMethod = new StartNode<>("schemaMethod", SchemaMethodParameters.class);
 	public static final Property<String> parameterType      = new StringProperty("parameterType");
-	public static final Property<Integer> index             = new IntProperty("index");
+	public static final Property<Integer> index             = new IntProperty("index").defaultValue(0);
 
 	public String getParameterType() {
 		return getProperty(parameterType);

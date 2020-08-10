@@ -101,21 +101,23 @@ public class SchemaNode extends AbstractSchemaNode {
 	public static final Property<Boolean>                          isAbstract             = new BooleanProperty("isAbstract").indexed();
 	public static final Property<String>                           category               = new StringProperty("category").indexed();
 	public static final Property<String[]>                         tags                   = new ArrayProperty("tags", String.class).indexed();
+	public static final Property<String>                           summary                = new StringProperty("summary").indexed();
+	public static final Property<String>                           description            = new StringProperty("description").indexed();
 
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
-		extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, defaultVisibleToPublic, defaultVisibleToAuth, tags
+		extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description
 	);
 
 	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
-		name, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, category, defaultVisibleToPublic, defaultVisibleToAuth, tags
+		name, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, category, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description
 	);
 
 	public static final View schemaView = new View(SchemaNode.class, "schema",
-		name, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, schemaGrants, defaultVisibleToPublic, defaultVisibleToAuth, tags
+		name, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, schemaGrants, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description
 	);
 
 	public static final View exportView = new View(SchemaNode.class, "export",
-		extendsClass, implementsInterfaces, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, defaultVisibleToPublic, defaultVisibleToAuth, tags
+		extendsClass, implementsInterfaces, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description
 	);
 
 	@Override
@@ -183,7 +185,6 @@ public class SchemaNode extends AbstractSchemaNode {
 					multiplicity = getMultiplicity(parentSchemaNode, propertyNameToCheck);
 
 				}
-
 			}
 		}
 

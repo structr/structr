@@ -1735,7 +1735,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		return serializedForm;
 	}
 
-	public Map<String, Object> serializeOpenAPIOperations() {
+	public Map<String, Object> serializeOpenAPIOperations(final String tag) {
 
 		final Map<String, Object> root      = new LinkedHashMap<>();
 		final Map<String, Object> singleOps = new LinkedHashMap<>();
@@ -1769,7 +1769,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		// methods
 		for (final StructrMethodDefinition method : methods) {
 
-			root.putAll(method.serializeOpenAPI());
+			if (method.isSelected(tag)) {
+
+				root.putAll(method.serializeOpenAPI());
+			}
 		}
 
 		return root;
