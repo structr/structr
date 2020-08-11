@@ -96,10 +96,6 @@ import org.structr.api.service.StopServiceForMaintenanceMode;
 import org.structr.rest.common.Stats;
 import org.structr.rest.common.StatsCallback;
 
-/**
- *
- *
- */
 @ServiceDependency(SchemaService.class)
 @StopServiceForMaintenanceMode
 @StartServiceInMaintenanceMode
@@ -114,7 +110,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		Started, Stopped
 	}
 
-	private Map<String, Stats> stats              = new LinkedHashMap<>();
+	private Map<String, Map<String, Stats>> stats = new LinkedHashMap<>();
 	private DefaultSessionCache sessionCache      = null;
 	private GzipHandler gzipHandler               = null;
 	private HttpConfiguration httpConfig          = null;
@@ -758,22 +754,32 @@ public class HttpService implements RunnableService, StatsCallback {
 		return httpsActive;
 	}
 
-	public Map<String, Stats> getRequestStats() {
-		return stats;
+	public Map<String, Stats> getRequestStats(final String key) {
+
+		Map<String, Stats> map = stats.get(key);
+		if (map == null) {
+
+			map = new LinkedHashMap<>();
+			stats.put(key, map);
+		}
+
+		return map;
 	}
 
 	// ----- interface StatsCallback -----
 	@Override
-	public void recordStatsValue(final String source, final long value) {
+	public void recordStatsValue(final String key, final String source, final long value) {
 
-		Stats data = stats.get(source);
-		if (data == null) {
+		final Map<String, Stats> map = getRequestStats(key);
+		Stats stats                  = map.get(source);
 
-			data = new Stats();
-			stats.put(source, data);
+		if (stats == null) {
+
+			stats = new Stats();
+			map.put(source, stats);
 		}
 
-		data.value(value);
+		stats.value(value);
 	}
 
 

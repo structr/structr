@@ -505,7 +505,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								logger.warn("", ioex);
 							}
 
-							this.stats.recordStatsValue(rootElement.getName(), System.currentTimeMillis() - t0);
+							this.stats.recordStatsValue("html", rootElement.getName(), System.currentTimeMillis() - t0);
 						}
 					}
 				}
@@ -865,7 +865,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				}
 
 				// record async rendering time
-				HtmlServlet.super.stats.recordStatsValue(rootElement.getName(), System.currentTimeMillis() - requestStartTime);
+				HtmlServlet.super.stats.recordStatsValue("html", rootElement.getName(), System.currentTimeMillis() - requestStartTime);
 			}
 
 		});
