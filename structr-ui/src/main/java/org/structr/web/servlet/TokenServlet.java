@@ -18,16 +18,10 @@
  */
 package org.structr.web.servlet;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Principal;
-import org.structr.rest.RestMethodResult;
-import org.structr.rest.auth.AuthHelper;
-import org.structr.schema.action.ActionContext;
 import org.structr.web.resource.LoginResource;
 import org.structr.web.resource.TokenResource;
 
-public class TokenServlet extends LoginServlet{
+public class TokenServlet extends LoginServlet {
     @Override
     protected String getUriPart() {
         return "token";

@@ -104,6 +104,8 @@ public class SchemaNode extends AbstractSchemaNode {
 	public static final Property<String>                           summary                = new StringProperty("summary").indexed();
 	public static final Property<String>                           description            = new StringProperty("description").indexed();
 
+	private static final Set<PropertyKey> PropertiesThatDoNotRequireRebuild = new LinkedHashSet<>(Arrays.asList(tags, summary, description));
+
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
 		extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description
 	);
@@ -538,7 +540,16 @@ public class SchemaNode extends AbstractSchemaNode {
 
 	@Override
 	public boolean reloadSchemaOnModify(final ModificationQueue modificationQueue) {
-		return true;
+
+		final Set<PropertyKey> modifiedProperties = modificationQueue.getModifiedProperties();
+		for (final PropertyKey modifiedProperty : modifiedProperties) {
+
+			if (!PropertiesThatDoNotRequireRebuild.contains(modifiedProperty)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	@Override

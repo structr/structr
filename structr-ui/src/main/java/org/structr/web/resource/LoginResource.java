@@ -192,6 +192,7 @@ public class LoginResource extends FilterableResource {
 	}
 
 	protected RestMethodResult getUserForCredentials(SecurityContext securityContext, String emailOrUsername, String password, String twoFactorToken, String twoFactorCode) throws FrameworkException {
+		
 		Principal user = null;
 
 		user = getUserForTwoFactorTokenOrEmailOrUsername(twoFactorToken, emailOrUsername, password);
@@ -210,6 +211,7 @@ public class LoginResource extends FilterableResource {
 	}
 
 	protected Principal getUserForTwoFactorTokenOrEmailOrUsername(String twoFactorToken, String emailOrUsername, String password) throws FrameworkException {
+
 		Principal user = null;
 
 		if (StringUtils.isNotEmpty(twoFactorToken)) {
@@ -225,6 +227,7 @@ public class LoginResource extends FilterableResource {
 	}
 
 	protected RestMethodResult doLogin(SecurityContext securityContext, Principal user) throws FrameworkException {
+
 		AuthHelper.doLogin(securityContext.getRequest(), user);
 
 		logger.info("Login successful: {}", user);
@@ -240,6 +243,7 @@ public class LoginResource extends FilterableResource {
 	}
 
 	protected RestMethodResult createRestMethodResult(Principal user) {
+
 		RestMethodResult  returnedMethodResult = new RestMethodResult(200);
 		returnedMethodResult.addContent(user);
 

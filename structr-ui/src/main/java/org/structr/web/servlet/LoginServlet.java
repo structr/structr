@@ -20,10 +20,12 @@ package org.structr.web.servlet;
 
 
 import java.io.IOException;
+import java.net.HttpCookie;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -105,7 +107,7 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 
 					for (final Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
 
-						final String key      = entry.getKey();
+						final String key = entry.getKey();
 						final String[] values = entry.getValue();
 
 						if (values.length > 0) {

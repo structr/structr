@@ -16,29 +16,43 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.schema;
+package org.structr.schema.openapi.operation;
 
-import java.net.URI;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
-/**
- */
-public interface JsonParameter extends Comparable<JsonParameter> {
+public class OpenAPIRegistrationOperation extends LinkedHashMap<String, Object> {
 
-	public URI getId();
-	public JsonMethod getParent();
+	public OpenAPIRegistrationOperation() {
 
-	public String getName();
-	public JsonParameter setName(final String name);
+		final Map<String, Object> operations = new LinkedHashMap<>();
 
-	public String getType();
-	public JsonParameter setType(final String type);
+		put("/registration", operations);
 
-	public int getIndex();
-	public JsonParameter setIndex(final int index);
+		operations.put("post", new OpenAPIOperation(
 
-	public String getDescription();
-	public JsonParameter setDescription(final String descString);
+			// summary
+			"Start user self-registration process",
 
-	public Object getExampleValue();
-	public JsonParameter setExampleValue(final Object exampleValue);
+			// description
+			"[...]",
+
+			// operation ID
+			"register",
+
+			// tags
+			Set.of("Session handling and user management"),
+
+			// parameters
+			null,
+
+			// request body
+			null,
+
+			// responses
+			null
+		));
+
+	}
 }

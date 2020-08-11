@@ -16,29 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.schema;
+package org.structr.schema.openapi.common;
 
-import java.net.URI;
+import java.util.TreeMap;
 
-/**
- */
-public interface JsonParameter extends Comparable<JsonParameter> {
+public class OpenAPIReference extends TreeMap<String, Object> {
 
-	public URI getId();
-	public JsonMethod getParent();
+	public OpenAPIReference(final String reference) {
+		this(reference, null);
+	}
 
-	public String getName();
-	public JsonParameter setName(final String name);
+	public OpenAPIReference(final String reference, final String viewName) {
 
-	public String getType();
-	public JsonParameter setType(final String type);
+		if (viewName == null || "public".equals(viewName)) {
 
-	public int getIndex();
-	public JsonParameter setIndex(final int index);
+			put("$ref", reference);
 
-	public String getDescription();
-	public JsonParameter setDescription(final String descString);
+		} else {
 
-	public Object getExampleValue();
-	public JsonParameter setExampleValue(final Object exampleValue);
+			put("$ref", reference + "." + viewName);
+		}
+	}
 }

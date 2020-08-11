@@ -16,29 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.schema;
+package org.structr.schema.openapi.result;
 
-import java.net.URI;
+import org.structr.schema.openapi.example.OpenAPIStructrTypeExample;
+import java.util.LinkedHashMap;
+import java.util.List;
+import org.structr.schema.export.StructrTypeDefinition;
 
-/**
- */
-public interface JsonParameter extends Comparable<JsonParameter> {
+public class OpenAPIExampleArrayResult extends LinkedHashMap<String, Object> {
 
-	public URI getId();
-	public JsonMethod getParent();
+	public OpenAPIExampleArrayResult(final StructrTypeDefinition type, final String view) {
 
-	public String getName();
-	public JsonParameter setName(final String name);
-
-	public String getType();
-	public JsonParameter setType(final String type);
-
-	public int getIndex();
-	public JsonParameter setIndex(final int index);
-
-	public String getDescription();
-	public JsonParameter setDescription(final String descString);
-
-	public Object getExampleValue();
-	public JsonParameter setExampleValue(final Object exampleValue);
+		put("result",             List.of(new OpenAPIStructrTypeExample(type, view)));
+		put("query_time",         "0.001659655");
+		put("result_count",       1);
+		put("page_count",         1);
+		put("result_count_time",  "0.000195496");
+		put("serialization_time", "0.001270261");
+	}
 }

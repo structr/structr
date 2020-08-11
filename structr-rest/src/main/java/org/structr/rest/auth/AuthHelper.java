@@ -20,6 +20,7 @@ package org.structr.rest.auth;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.WeakKeyException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -280,15 +281,18 @@ public class AuthHelper {
 	}
 
 	public static Map<String, String> createTokensForUser(Principal user, Date accessTokenLifetime, Date refreshTokenLifetime) throws FrameworkException {
+
 		final String jwtSecretType = Settings.JWTSecretType.getValue();
 		Map<String, String>  tokens = null;
 
 		if (user == null) {
-			throw new FrameworkException(400, "Cannot create token if user is missing");
+			throw new FrameworkException(400, "Can't create token if no user is given");
 		}
+
 		final String instanceName = Settings.InstanceName.getValue();
 
 		switch (jwtSecretType) {
+
 			default:
 			case "secret":
 				tokens = createTokensForUserWithSecret(user, accessTokenLifetime, refreshTokenLifetime, instanceName);
@@ -305,7 +309,7 @@ public class AuthHelper {
 	public static Map<String, String> createTokensForUser(final Principal user) throws FrameworkException {
 
 		if (user == null) {
-			throw new FrameworkException(400, "Cannot create token if user is missing");
+			throw new FrameworkException(400, "Can't create token if no user is given");
 		}
 
 		Calendar accessTokenExpirationDate = Calendar.getInstance();
@@ -323,36 +327,43 @@ public class AuthHelper {
 		final String secret = Settings.JWTSecret.getValue();
 		final String jwtIssuer = Settings.JWTIssuer.getValue();
 
-		SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-		String accessToken = Jwts.builder()
-			.setSubject(user.getName())
-			.setExpiration(accessTokenExpirationDate)
-			.setIssuer(jwtIssuer)
-			.claim("instance", instanceName)
-			.claim("uuid", user.getUuid())
-			.claim("eMail", user.getEMail())
-			.claim("tokenType", "access_token")
-			.signWith(key)
-			.compact();
+		try {
+			SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+			String accessToken = Jwts.builder()
+					.setSubject(user.getName())
+					.setExpiration(accessTokenExpirationDate)
+					.setIssuer(jwtIssuer)
+					.claim("instance", instanceName)
+					.claim("uuid", user.getUuid())
+					.claim("eMail", user.getEMail())
+					.claim("tokenType", "access_token")
+					.signWith(key)
+					.compact();
 
-		tokens.put("access_token", accessToken);
-		tokens.put("expiration_date", Long.toString(accessTokenExpirationDate.getTime()));
+			tokens.put("access_token", accessToken);
+			tokens.put("expiration_date", Long.toString(accessTokenExpirationDate.getTime()));
 
-		if (refreshTokenExpirationDate != null) {
-			final String tokenId = NodeServiceCommand.getNextUuid();
+			if (refreshTokenExpirationDate != null) {
+				final String tokenId = NodeServiceCommand.getNextUuid();
 
-			String refreshToken = Jwts.builder()
-				.setSubject(user.getName())
-				.setExpiration(refreshTokenExpirationDate)
-				.setIssuer(jwtIssuer)
-				.claim("tokenId", tokenId)
-				.claim("tokenType", "refresh_token")
-				.signWith(key)
-				.compact();
+				String refreshToken = Jwts.builder()
+						.setSubject(user.getName())
+						.setExpiration(refreshTokenExpirationDate)
+						.setIssuer(jwtIssuer)
+						.claim("tokenId", tokenId)
+						.claim("tokenType", "refresh_token")
+						.signWith(key)
+						.compact();
 
-			Principal.addRefreshToken(user, tokenId);
-			tokens.put("refresh_token", refreshToken);
+				Principal.addRefreshToken(user, tokenId);
+				tokens.put("refresh_token", refreshToken);
+			}
+		} catch (WeakKeyException ex) {
+
+			throw new FrameworkException(500, "The provided secret is too weak (must be at least 32 characters)");
 		}
+
+
 
 		return tokens;
 	}
@@ -363,6 +374,7 @@ public class AuthHelper {
 		Key privateKey = getPrivateKeyForToken();
 
 		if (privateKey == null) {
+
 			throw new FrameworkException(400, "Cannot read private key file");
 		}
 
@@ -383,6 +395,7 @@ public class AuthHelper {
 		tokens.put("expiration_date", Long.toString(accessTokenExpirationDate.getTime()));
 
 		if (refreshTokenExpirationDate != null) {
+
 			final String tokenId = NodeServiceCommand.getNextUuid();
 
 			String refreshToken = Jwts.builder()
@@ -409,16 +422,19 @@ public class AuthHelper {
 		switch (jwtSecretType) {
 			default:
 			case "secret":
+
 				final String secret = Settings.JWTSecret.getValue();
 				claims = validateTokenWithSecret(refreshToken, secret);
 				break;
 
 			case "keypair":
+
 				final Key publicKey = getPublicKeyForToken();
 				claims = validateTokenWithKeystore(refreshToken, publicKey);
 				break;
 
 			case "jwks":
+
 				throw new FrameworkException(400, "will not validate refresh_token because authentication is not handled by this instance");
 
 		}
@@ -787,10 +803,7 @@ public class AuthHelper {
 		} catch (UnrecoverableKeyException e) {
 
 			logger.warn("Error while reading jwt keystore, probably wrong password", e);
-		} catch (KeyStoreException e) {
-
-			logger.warn("Error while reading jwt keystore", e);
-		} catch (NoSuchAlgorithmException e) {
+		} catch (Exception e) {
 
 			logger.warn("Error while reading jwt keystore", e);
 		}
@@ -814,13 +827,7 @@ public class AuthHelper {
 
 			return publicKey;
 
-		}catch (IOException e) {
-			logger.warn("Error while reading jwt keystore", e);
-		} catch (CertificateException e) {
-			logger.warn("Error while reading jwt keystore", e);
-		} catch (NoSuchAlgorithmException e) {
-			logger.warn("Error while reading jwt keystore", e);
-		} catch (KeyStoreException e) {
+		} catch (Exception e) {
 			logger.warn("Error while reading jwt keystore", e);
 		}
 
@@ -829,10 +836,14 @@ public class AuthHelper {
 
 	private static Jws<Claims> validateTokenWithSecret(String token, String secret) {
 		try {
+
+			SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+
 			return Jwts.parserBuilder()
-				.setSigningKey(secret)
+				.setSigningKey(key)
 				.build()
 				.parseClaimsJws(token);
+
 		} catch (Exception e) {
 			logger.warn("Invalid token", e);
 		}
@@ -842,10 +853,12 @@ public class AuthHelper {
 
 	private static Jws<Claims> validateTokenWithKeystore(String token, Key key) {
 		try {
+
 			return Jwts.parserBuilder()
 				.setSigningKey(key)
 				.build()
 				.parseClaimsJws(token);
+
 		} catch (Exception e) {
 			logger.warn("Invalid token", e);
 		}
