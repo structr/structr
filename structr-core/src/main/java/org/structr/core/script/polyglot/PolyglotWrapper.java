@@ -139,17 +139,6 @@ public abstract class PolyglotWrapper {
 		}
 	}
 
-	protected static List<Object> wrapIterable(ActionContext actionContext, final Iterable<Object> iterable) {
-
-		final List<Object> wrappedList = new ArrayList<>();
-
-		for (Object o : iterable) {
-
-			wrappedList.add(wrap(actionContext, o));
-		}
-		return wrappedList;
-	}
-
 	protected static List<Object> unwrapIterable(final ActionContext actionContext, final Iterable<Object> iterable) {
 
 		final List<Object> unwrappedList = new ArrayList<>();
@@ -207,6 +196,8 @@ public abstract class PolyglotWrapper {
 		private ActionContext actionContext;
 
 		public FunctionWrapper(final ActionContext actionContext, final Value func) {
+
+			this.actionContext = actionContext;
 
 			if (func.canExecute()) {
 
