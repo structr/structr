@@ -381,9 +381,9 @@ public interface KafkaClient extends MessageClient {
 				}
 			}
 
-
-
 			final App app = StructrApp.getInstance();
+
+			boolean wasDisabled = true;
 
 			while (running) {
 
@@ -395,9 +395,12 @@ public interface KafkaClient extends MessageClient {
 					}
 
 					if (this.client.getServers() != null && this.client.getServers().length > 0 && this.client.getEnabled()) {
-						if (this.consumer == null) {
+
+						if (this.consumer == null || wasDisabled) {
+
 							this.refreshConsumer();
 							this.updateSubscriptions(true);
+							wasDisabled = false;
 
 						} else {
 
@@ -421,6 +424,7 @@ public interface KafkaClient extends MessageClient {
 								});
 
 							} else {
+								wasDisabled = true;
 								try {
 									Thread.sleep(1000);
 								} catch (InterruptedException iex) {
