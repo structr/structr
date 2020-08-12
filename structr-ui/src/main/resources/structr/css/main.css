@@ -3389,7 +3389,7 @@ table#relationship-options {
 	font-size: 20px;
 }
 
-#relationship-options #basic-options * {
+#relationship-options #basic-options > * {
 	vertical-align: text-top;
 }
 
