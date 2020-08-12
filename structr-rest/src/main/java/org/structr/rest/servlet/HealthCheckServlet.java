@@ -146,21 +146,45 @@ public class HealthCheckServlet extends AbstractDataServlet {
 						final HttpService httpService = Services.getInstance().getService(HttpService.class, "default");
 						if (httpService != null) {
 
-							final List<Map<String, Object>> measurements = new LinkedList<>();
+							{
+								// html
+								final List<Map<String, Object>> measurements = new LinkedList<>();
 
-							details.put("html:responseTime", measurements);
+								details.put("html:responseTime", measurements);
 
-							final Map<String, Stats> stats = httpService.getRequestStats();
-							if (stats != null) {
+								final Map<String, Stats> stats = httpService.getRequestStats("html");
+								if (stats != null) {
 
-								for (final String key : stats.keySet()) {
+									for (final String key : stats.keySet()) {
 
-									final Stats statsData = stats.get(key);
+										final Stats statsData = stats.get(key);
 
-									measurements.add(embedValue(key, "page", statsData.getMinValue(),     "ms", "pass",   "min"));
-									measurements.add(embedValue(key, "page", statsData.getMaxValue(),     "ms", "pass",   "max"));
-									measurements.add(embedValue(key, "page", statsData.getAverageValue(), "ms", "pass",   "avg"));
-									measurements.add(embedValue(key, "page", statsData.getCount(),        null, "pass", "count"));
+										measurements.add(embedValue(key, "page", statsData.getMinValue(),     "ms", "pass",   "min"));
+										measurements.add(embedValue(key, "page", statsData.getMaxValue(),     "ms", "pass",   "max"));
+										measurements.add(embedValue(key, "page", statsData.getAverageValue(), "ms", "pass",   "avg"));
+										measurements.add(embedValue(key, "page", statsData.getCount(),        null, "pass", "count"));
+									}
+								}
+							}
+
+							{
+								// json
+								final List<Map<String, Object>> measurements = new LinkedList<>();
+
+								details.put("json:responseTime", measurements);
+
+								final Map<String, Stats> stats = httpService.getRequestStats("json");
+								if (stats != null) {
+
+									for (final String key : stats.keySet()) {
+
+										final Stats statsData = stats.get(key);
+
+										measurements.add(embedValue(key, "endpoint", statsData.getMinValue(),     "ms", "pass",   "min"));
+										measurements.add(embedValue(key, "endpoint", statsData.getMaxValue(),     "ms", "pass",   "max"));
+										measurements.add(embedValue(key, "endpoint", statsData.getAverageValue(), "ms", "pass",   "avg"));
+										measurements.add(embedValue(key, "endpoint", statsData.getCount(),        null, "pass", "count"));
+									}
 								}
 							}
 						}
