@@ -983,21 +983,9 @@ var _Schema = {
 
 			saveButton.off('click').on('click', function(e) {
 
-				var relData = {
-					sourceId: sourceId,
-					targetId: targetId,
-					sourceMultiplicity: $('#source-multiplicity-selector').val(),
-					relationshipType: $('#relationship-type-name').val(),
-					targetMultiplicity: $('#target-multiplicity-selector').val(),
-					cascadingDeleteFlag: parseInt($('#cascading-delete-selector').val()),
-					autocreationFlag: parseInt($('#autocreate-selector').val()),
-					permissionPropagation: $('#propagation-selector').val(),
-					readPropagation: $('#read-selector').val(),
-					writePropagation: $('#write-selector').val(),
-					deletePropagation: $('#delete-selector').val(),
-					accessControlPropagation: $('#access-control-selector').val(),
-					propertyMask: $('#masked-properties').val()
-				};
+				let relData = _Schema.getRelationshipDefinitionDataFromForm();
+				relData.sourceId = sourceId;
+				relData.targetId = targetId;
 
 				if (relData.relationshipType.trim() === '') {
 
@@ -1040,6 +1028,25 @@ var _Schema = {
 			insertAfter: true
 		});
 	},
+	getRelationshipDefinitionDataFromForm: function() {
+
+		return {
+			relationshipType: $('#relationship-type-name').val(),
+			sourceMultiplicity: $('#source-multiplicity-selector').val(),
+			targetMultiplicity: $('#target-multiplicity-selector').val(),
+			sourceJsonName: $('#source-json-name').val(),
+			targetJsonName: $('#target-json-name').val(),
+			cascadingDeleteFlag: parseInt($('#cascading-delete-selector').val()),
+			autocreationFlag: parseInt($('#autocreate-selector').val()),
+			permissionPropagation: $('#propagation-selector').val(),
+			readPropagation: $('#read-selector').val(),
+			writePropagation: $('#write-selector').val(),
+			deletePropagation: $('#delete-selector').val(),
+			accessControlPropagation: $('#access-control-selector').val(),
+			propertyMask: $('#masked-properties').val()
+		};
+
+	},
 	loadRelationship: function(entity, headEl, contentEl) {
 
 		Structr.fetchHtmlTemplate('schema/dialog.relationship', {}, function (html) {
@@ -1068,6 +1075,8 @@ var _Schema = {
 
 			var selectRelationshipOptions = function(rel) {
 				$('#source-type-name').text(nodes[rel.sourceId].name).data('objectId', rel.sourceId);
+				$('#source-json-name').val(rel.sourceJsonName || rel.oldSourceJsonName);
+				$('#target-json-name').val(rel.targetJsonName || rel.oldTargetJsonName);
 				$('#source-multiplicity-selector').val(rel.sourceMultiplicity || '*');
 				$('#relationship-type-name').val(rel.relationshipType === initialRelType ? '' : rel.relationshipType);
 				$('#target-multiplicity-selector').val(rel.targetMultiplicity || '*');
@@ -1107,19 +1116,8 @@ var _Schema = {
 
 			saveButton.off('click').on('click', function(e) {
 
-				var newData = {
-					sourceMultiplicity: $('#source-multiplicity-selector').val(),
-					relationshipType: $('#relationship-type-name').val(),
-					targetMultiplicity: $('#target-multiplicity-selector').val(),
-					cascadingDeleteFlag: parseInt($('#cascading-delete-selector').val()),
-					autocreationFlag: parseInt($('#autocreate-selector').val()),
-					permissionPropagation: $('#propagation-selector').val(),
-					readPropagation: $('#read-selector').val(),
-					writePropagation: $('#write-selector').val(),
-					deletePropagation: $('#delete-selector').val(),
-					accessControlPropagation: $('#access-control-selector').val(),
-					propertyMask: $('#masked-properties').val()
-				};
+				let newData = _Schema.getRelationshipDefinitionDataFromForm();
+				let relType = newData.relationshipType;
 
 				Object.keys(newData).forEach(function(key) {
 					if ( (entity[key] === newData[key])
@@ -1131,7 +1129,7 @@ var _Schema = {
 					}
 				});
 
-				if (newData.relationshipType.trim() === '') {
+				if (relType.trim() === '') {
 
 					blinkRed($('#relationship-type-name'));
 

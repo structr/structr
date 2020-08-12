@@ -3385,16 +3385,20 @@ table#relationship-options {
 
 #relationship-options #basic-options {
 	text-align: center;
-	padding: 10px 0px 20px 0px;
+	padding: 4px 0px 20px 0px;
+	font-size: 20px;
+}
+
+#relationship-options #basic-options * {
+	vertical-align: text-top;
 }
 
 #relationship-options #basic-options .relationship-emphasis {
-	font-size: 1.4em;
-	font-weight: bold;
+	font-weight: 600;
 }
 
 #relationship-options #basic-options select, #basic-options input {
-	margin: 0 10px;
+	margin: 2px 2px 5px;
 }
 
 #relationship-options #basic-options input[disabled] {
@@ -3425,7 +3429,9 @@ td#cascading-options, td#propagation-options {
 }
 
 #relationship-options select {
-	margin: 0 12px 0 0;
+	margin: 0 4px 0 0;
+	height: 26px;
+	padding: 4px 4px;
 }
 
 #relationship-options span.button {
@@ -5063,7 +5069,7 @@ input#element-class {
 	color: #b5b5b5;
 	position: absolute;
 	top: calc(50% - 1em);
-	content: '║';
+	content: '\2551';  /* ║ character */
 	font-size: 1.5em;
 	margin-left: -.16em;
 	text-align: left;
