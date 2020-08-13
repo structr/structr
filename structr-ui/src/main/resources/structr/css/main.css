@@ -3398,13 +3398,18 @@ table#relationship-options {
 }
 
 #relationship-options #basic-options select, #basic-options input {
-	margin: 2px 2px 5px;
+	margin: 2px 2px 7px;
 }
 
 #relationship-options #basic-options input[disabled] {
 	color: graytext;
 	border: 1px solid #ccc;
 	background-color: #f3f3f3;
+}
+
+#basic-options input.remote-property-name {
+	margin-top: 0;
+	vertical-align: top;
 }
 
 td#cascading-options, td#propagation-options {
