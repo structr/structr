@@ -21,6 +21,7 @@ package org.structr.web.auth;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -402,7 +403,21 @@ public class UiAuthenticator implements Authenticator {
 
 	private String getAuthorizationToken(HttpServletRequest request) {
 
-		String authorizationHeader = request.getHeader("Authorization");
+		final Cookie[] cookies = request.getCookies();
+
+		// first check for token in cookie
+		if (cookies != null) {
+
+			for (Cookie cookie : request.getCookies()) {
+
+				if (StringUtils.equals(cookie.getName(), "access_token")) {
+
+					return cookie.getValue();
+				}
+			}
+		}
+
+		final String authorizationHeader = request.getHeader("Authorization");
 
 		if (authorizationHeader == null) {
 			return null;

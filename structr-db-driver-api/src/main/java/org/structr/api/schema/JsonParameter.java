@@ -35,4 +35,10 @@ public interface JsonParameter extends Comparable<JsonParameter> {
 
 	public int getIndex();
 	public JsonParameter setIndex(final int index);
+
+	public String getDescription();
+	public JsonParameter setDescription(final String descString);
+
+	public Object getExampleValue();
+	public JsonParameter setExampleValue(final Object exampleValue);
 }

@@ -37,6 +37,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.function.Functions;
 import org.structr.core.function.KeywordHint;
 import org.structr.core.function.ParseResult;
@@ -46,6 +47,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper;
+import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.action.Function;
 import org.structr.schema.action.Hint;
 import org.structr.web.entity.dom.Content;
@@ -300,6 +302,19 @@ public abstract class AbstractHintProvider {
 		}
 	}
 
+	protected void addHintsForFunctionProperty(final SecurityContext securityContext, final SchemaProperty property, final List<Hint> hints, final ParseResult result) {
+
+		final AbstractSchemaNode node = property.getProperty(SchemaProperty.schemaNode);
+		if (node != null) {
+
+			final Class type = StructrApp.getConfiguration().getNodeEntityClass(node.getClassName());
+			if (type != null) {
+
+				addHintsForType(securityContext, type, hints, result);
+			}
+		}
+	}
+
 	protected void addHintsForType(final SecurityContext securityContext, final Class type, final List<Hint> hints, final ParseResult result) {
 
 		try {
@@ -348,6 +363,10 @@ public abstract class AbstractHintProvider {
 			if(currentNode instanceof SchemaMethod) {
 
 				addHintsForSchemaMethod(securityContext, (SchemaMethod)currentNode, hints, result);
+
+			} else if (currentNode instanceof SchemaProperty && Type.Function.equals(((SchemaProperty)currentNode).getPropertyType())) {
+
+				addHintsForFunctionProperty(securityContext, (SchemaProperty)currentNode, hints, result);
 
 			} else if (currentNode != null) {
 

@@ -111,6 +111,7 @@ public interface JsonSchema {
 	public static final String KEY_ACL_ACCESS_CONTROL_MASK  = "aclAccessControlMask";
 	public static final String KEY_ACL_HIDDEN_PROPERTIES    = "aclHiddenProperties";
 	public static final String KEY_IS_CACHING_ENABLED       = "cachingEnabled";
+	public static final String KEY_EXAMPLE_VALUE            = "exampleValue";
 	public static final String KEY_TAGS                     = "tags";
 
 	public static final String KEY_GRANT_READ               = "read";

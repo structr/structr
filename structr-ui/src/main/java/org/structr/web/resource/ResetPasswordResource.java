@@ -41,7 +41,6 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
@@ -76,7 +75,6 @@ public class ResetPasswordResource extends Resource {
 		this.securityContext = securityContext;
 
 		return (getUriPart().equals(part));
-
 	}
 
 	@Override
@@ -103,7 +101,6 @@ public class ResetPasswordResource extends Resource {
 			// cleanup user input
 			emailString = emailString.trim().toLowerCase();
 
-			final ConfigurationProvider config        = StructrApp.getConfiguration();
 			final PropertyKey<String> confirmationKey = StructrApp.key(User.class, "confirmationKey");
 			final PropertyKey<String> eMail           = StructrApp.key(User.class, "eMail");
 			final String localeString                 = (String) propertySet.get("locale");
@@ -136,9 +133,7 @@ public class ResetPasswordResource extends Resource {
 
 			// return 400 Bad request
 			return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
-
 		}
-
 	}
 
 	@Override
@@ -150,7 +145,6 @@ public class ResetPasswordResource extends Resource {
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
 
 		return null;
-
 	}
 
 	private boolean sendResetPasswordLink(final Principal user, final Map<String, Object> propertySetFromUserPOST, final String localeString, final String confKey) {
@@ -224,7 +218,6 @@ public class ResetPasswordResource extends Resource {
 		}
 
 		return null;
-
 	}
 
 	private static void populateReplacementMap(final Map<String, String> replacementMap, final Map<String, Object> props) {
@@ -232,45 +225,35 @@ public class ResetPasswordResource extends Resource {
 		for (Entry<String, Object> entry : props.entrySet()) {
 
 			replacementMap.put(toPlaceholder(entry.getKey()), entry.getValue().toString());
-
 		}
-
 	}
 
 	private static String toPlaceholder(final String key) {
 
 		return "${".concat(key).concat("}");
-
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public Class getEntityClass() {
 
 		return null;
-
 	}
 
 	@Override
 	public String getUriPart() {
 
 		return "reset-password";
-
 	}
 
 	@Override
 	public String getResourceSignature() {
 
 		return "_resetPassword";
-
 	}
 
 	@Override
 	public boolean isCollectionResource() {
 
 		return false;
-
 	}
-
 }

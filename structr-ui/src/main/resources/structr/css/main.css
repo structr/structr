@@ -3385,22 +3385,31 @@ table#relationship-options {
 
 #relationship-options #basic-options {
 	text-align: center;
-	padding: 10px 0px 20px 0px;
+	padding: 4px 0px 20px 0px;
+	font-size: 20px;
+}
+
+#relationship-options #basic-options > * {
+	vertical-align: text-top;
 }
 
 #relationship-options #basic-options .relationship-emphasis {
-	font-size: 1.4em;
-	font-weight: bold;
+	font-weight: 600;
 }
 
 #relationship-options #basic-options select, #basic-options input {
-	margin: 0 10px;
+	margin: 2px 2px 7px;
 }
 
 #relationship-options #basic-options input[disabled] {
 	color: graytext;
 	border: 1px solid #ccc;
 	background-color: #f3f3f3;
+}
+
+#basic-options input.remote-property-name {
+	margin-top: 0;
+	vertical-align: top;
 }
 
 td#cascading-options, td#propagation-options {
@@ -3425,7 +3434,9 @@ td#cascading-options, td#propagation-options {
 }
 
 #relationship-options select {
-	margin: 0 12px 0 0;
+	margin: 0 4px 0 0;
+	height: 26px;
+	padding: 4px 4px;
 }
 
 #relationship-options span.button {
@@ -4191,6 +4202,44 @@ button.create-form-button.accept {
 
 #code-contents input[type="checkbox"] {
 	vertical-align: top;
+}
+
+#code-contents #openapi-options .input {
+	margin-top: 4px;
+}
+
+#code-contents #openapi-options #add-parameter-button {
+	margin: 0 ! important;
+	border: 0;
+	padding: 0;
+	height: 21px;
+}
+
+#code-contents #openapi-options .method-parameter-grid {
+	display: grid;
+}
+
+#code-contents #openapi-options .method-parameter-heading {
+	font-weight: 600;
+}
+
+#code-contents #openapi-options .method-parameter,
+#code-contents #openapi-options .method-parameter-heading {
+	grid-template-columns: 4fr 15fr 20fr 30fr 18fr 4fr;
+	display: grid;
+	grid-gap: 6px;
+	margin-top: 4px;
+}
+
+#code-contents #openapi-options .method-parameter input {
+	width: calc(100% - 10px);
+}
+
+#code-contents #openapi-options .method-parameter-delete button {
+	height: 100%;
+	width: 100%;
+	padding: 0;
+	margin: 0 ! important;
 }
 
 #folder-contents .tile {
@@ -5025,7 +5074,7 @@ input#element-class {
 	color: #b5b5b5;
 	position: absolute;
 	top: calc(50% - 1em);
-	content: '║';
+	content: '\2551';  /* ║ character */
 	font-size: 1.5em;
 	margin-left: -.16em;
 	text-align: left;
