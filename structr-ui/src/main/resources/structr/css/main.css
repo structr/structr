@@ -5663,6 +5663,10 @@ table#principals tbody td {
 	text-align: center;
 }
 
+table#principals .typeIcon {
+	cursor: initial ! important;
+}
+
 /**
  * Advanced CSV import dialog
  */

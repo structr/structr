@@ -1549,7 +1549,7 @@ var _Entities = {
 			el.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th>' + (allowRecursive ? '<th></th>' : '') + '</tr></thead><tbody></tbody></table');
 
 			var tb = $('#principals tbody', el);
-			tb.append('<tr id="new"><td><select style="z-index: 999" id="newPrincipal"><option></option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td>' + (allowRecursive ? '<td></td>' : '') + '</tr>');
+			tb.append('<tr id="new"><td><select style="z-index: 999" id="newPrincipal"><option></option></select></td><td></td><td></td><td></td><td></td>' + (allowRecursive ? '<td></td>' : '') + '</tr>');
 
 			$.ajax({
 				url: rootUrl + '/' + entity.id + '/in',
@@ -1721,7 +1721,7 @@ var _Entities = {
 			return;
 		}
 
-		var row = $('<tr class="_' + principal.id + '"><td><i class="typeIcon ' + _Icons.getFullSpriteClass((principal.isGroup ? _Icons.group_icon : _Icons.user_icon)) + '"></i> <span class="name">' + principal.name + '</span></td></tr>');
+		let row = $('<tr class="_' + principal.id + '"><td><i class="typeIcon ' + _Icons.getFullSpriteClass((principal.isGroup ? _Icons.group_icon : _Icons.user_icon)) + '"></i> <span class="name">' + principal.name + '</span></td></tr>');
 		$('#new').after(row);
 
 		['read', 'write', 'delete', 'accessControl'].forEach(function(perm) {
@@ -1755,6 +1755,7 @@ var _Entities = {
 		});
 
 		if (allowRecursive) {
+
 			row.append('<td><button class="action apply-to-child-nodes">Apply to child nodes</button></td>');
 
 			let button = row[0].querySelector('button.apply-to-child-nodes');
