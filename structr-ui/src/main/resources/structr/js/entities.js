@@ -1549,7 +1549,7 @@ var _Entities = {
 			el.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th>' + (allowRecursive ? '<th></th>' : '') + '</tr></thead><tbody></tbody></table');
 
 			var tb = $('#principals tbody', el);
-			tb.append('<tr id="new"><td><select style="z-index: 999" id="newPrincipal"><option></option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td>' + (allowRecursive ? '<td></td>' : '') + '</tr>');
+			tb.append('<tr id="new"><td><select style="z-index: 999" id="newPrincipal"><option></option></select></td><td></td><td></td><td></td><td></td>' + (allowRecursive ? '<td></td>' : '') + '</tr>');
 
 			$.ajax({
 				url: rootUrl + '/' + entity.id + '/in',
@@ -1721,7 +1721,7 @@ var _Entities = {
 			return;
 		}
 
-		var row = $('<tr class="_' + principal.id + '"><td><i class="typeIcon ' + _Icons.getFullSpriteClass((principal.isGroup ? _Icons.group_icon : _Icons.user_icon)) + '"></i> <span class="name">' + principal.name + '</span></td></tr>');
+		let row = $('<tr class="_' + principal.id + '"><td><i class="typeIcon ' + _Icons.getFullSpriteClass((principal.isGroup ? _Icons.group_icon : _Icons.user_icon)) + '"></i> <span class="name">' + principal.name + '</span></td></tr>');
 		$('#new').after(row);
 
 		['read', 'write', 'delete', 'accessControl'].forEach(function(perm) {
@@ -1755,6 +1755,7 @@ var _Entities = {
 		});
 
 		if (allowRecursive) {
+
 			row.append('<td><button class="action apply-to-child-nodes">Apply to child nodes</button></td>');
 
 			let button = row[0].querySelector('button.apply-to-child-nodes');
@@ -2128,70 +2129,101 @@ var _Entities = {
 		}
 	},
 	makeAttributeEditable: function(parentElement, id, attributeSelector, attributeName, callback) {
-		var attributeElement = parentElement.find(attributeSelector).first();
-		var attributeElementTagName = attributeElement.prop('tagName').toLowerCase();
-		var oldValue = $.trim(attributeElement.attr('title'));
+
+		let attributeElement        = parentElement.find(attributeSelector).first();
+		let attributeElementTagName = attributeElement.prop('tagName').toLowerCase();
+		let oldValue                = $.trim(attributeElement.attr('title'));
 
 		attributeElement.replaceWith('<input type="text" size="' + (oldValue.length + 4) + '" class="new-' + attributeName + '" value="' + oldValue + '">');
 
-		var input = $('input', parentElement);
+		let input = $('input', parentElement);
 		input.focus().select();
 
-		var makeNonEditable = function (el, commitChanges) {
-			var displayValue = (commitChanges === true) ? el.val() : oldValue;
-			el.replaceWith('<' + attributeElementTagName + ' title="' + escapeForHtmlAttributes(displayValue) + '" class="' + attributeName + '_ abbr-ellipsis abbr-75pc">' + displayValue + '</' + attributeElementTagName + '>');
+		let restoreNonEditableTag = function(el, text) {
+
+			el.replaceWith('<' + attributeElementTagName + ' title="' + escapeForHtmlAttributes(text) + '" class="' + attributeName + '_ abbr-ellipsis abbr-75pc">' + text + '</' + attributeElementTagName + '>');
+
 			parentElement.find(attributeSelector).first().off('click').on('click', function(e) {
 				e.stopPropagation();
 				_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName);
 			});
-			if (commitChanges === true) {
-				_Entities.setNewAttributeValue(parentElement, id, attributeName, displayValue, callback, function () {
-					var attributeElement = parentElement.find(attributeSelector).first();
-					attributeElement.attr('title', oldValue).text(oldValue);
-					blinkRed(parentElement);
-				});
-			}
+		};
+
+		var saveAndUpdate = function (el) {
+
+			let newVal = el.val();
+
+			// first restore old value. only update with new value if save succeeds
+			restoreNonEditableTag(el, oldValue);
+
+			let successFunction = () => {
+
+				restoreNonEditableTag(el, newVal);
+
+				if (callback) {
+					callback();
+				}
+			};
+
+			_Entities.setNewAttributeValue(parentElement, id, attributeName, newVal, successFunction, function () {
+
+				let attributeElement = parentElement.find(attributeSelector).first();
+				attributeElement.attr('title', oldValue).text(oldValue);
+				blinkRed(parentElement);
+			});
 		};
 
 		input.on('blur', function() {
-			makeNonEditable($(this), true);
+			saveAndUpdate($(this));
 		});
 
 		input.keydown(function(e) {
+
 			if (e.keyCode === 13) {
-				makeNonEditable($(this), true);
+				saveAndUpdate($(this));
 
 			} else if (e.keyCode === 27) {
 				e.stopPropagation();
-				makeNonEditable($(this), false);
+				restoreNonEditableTag($(this), oldValue);
 			}
 		});
 	},
 	makeNameEditable: function(element, callback) {
-		var id = Structr.getId(element);
+		let id = Structr.getId(element);
 		_Entities.makeAttributeEditable(element, id, 'b.name_', 'name', callback);
 	},
 	setNewName: function(element, newName, callback) {
-		var id = Structr.getId(element);
+		let id = Structr.getId(element);
 		_Entities.setNewAttributeValue(element, id, 'name', newName, callback);
 	},
 	setNewAttributeValue: function(element, id, attributeName, newValue, callback, failCallback) {
+
 		Command.setProperty(id, attributeName, newValue, false, function(entity, resultSize, errorOccurred) {
+
 			if (!errorOccurred || errorOccurred === false) {
+
 				blinkGreen(element.find('.' + attributeName + '_').first());
+
 				if (Structr.isModuleActive(_Pages)) {
+
 					_Pages.reloadPreviews();
+
 				} else if (Structr.isModuleActive(_Contents)) {
+
 					_Contents.refreshTree();
+
 				} else if (Structr.isModuleActive(_Files) && attributeName === 'name') {
-					var a = element.closest('td').prev().children('a').first();
+
+					let a = element.closest('td').prev().children('a').first();
 					Command.getProperty(id, 'path', function(newPath) {
 						a.attr('href', newPath);
 					});
 				}
+
 				if (callback) {
 					callback();
 				}
+
 			} else if (failCallback) {
 				failCallback();
 			}
