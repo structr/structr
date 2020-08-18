@@ -28,6 +28,6 @@ public class FlowException extends Exception {
 	}
 
 	public Exception getRootCause() {
-		return this.getRootCause();
+		return this.rootCause;
 	}
 }
