@@ -32,7 +32,6 @@ var _Crawler = {
 	_moduleName: 'crawler',
 	init: function() {
 
-
 		main = $('#main');
 
 		Structr.makePagesMenuDroppable();
@@ -47,8 +46,7 @@ var _Crawler = {
 		left = left || LSWrapper.getItem(crawlerResizerLeftKey) || 300;
 		$('.column-resizer', crawlerMain).css({ left: left });
 
-		$('#crawler-tree-container').css({width: left - 14 + 'px'});
-		$('#crawler-list').css({ left: left + 8 + 'px', width: $(window).width() - left - 50 + 'px' });
+		crawlerTree.css({width: left - 14 + 'px'});
 	},
 	onload: function() {
 
@@ -59,7 +57,7 @@ var _Crawler = {
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('crawler'));
 
-		main.append(`<div class="tree-main" id="crawler-main"><div class="column-resizer"></div><div class="tree-container" id="crawler-tree-container"><div class="tree" id="crawler-tree"></div></div><div class="fit-to-height tree-contents-container" id="crawler-list-container"><div class="tree-contents tree-contents-with-top-buttons" id="crawler-list"></div></div>`);
+		main.append('<div class="tree-main" id="crawler-main"><div class="column-resizer"></div><div class="tree-container" id="crawler-tree-container"><div class="tree" id="crawler-tree"></div></div><div class="tree-contents-container" id="crawler-list-container"><div class="tree-contents tree-contents-with-top-buttons" id="crawler-list"></div></div>');
 		crawlerMain = $('#crawler-main');
 
 		crawlerTree = $('#crawler-tree');

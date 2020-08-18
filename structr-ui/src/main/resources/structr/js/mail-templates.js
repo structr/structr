@@ -107,8 +107,7 @@ var _MailTemplates = {
 		left = left || LSWrapper.getItem(_MailTemplates.mailTemplatesResizerLeftKey) || 300;
 		$('.column-resizer', main).css({ left: left });
 
-		$('#mail-templates-list').css({width: left - 24 + 'px'});
-		$('#mail-template-detail').css({width: $(window).width() - left - 47 + 'px'});
+		$('#mail-templates-list').css({width: left - 25 + 'px'});
 	},
 	switchMode: function(mode) {
 

@@ -89,8 +89,7 @@ var _Localization = {
 		left = left || LSWrapper.getItem(_Localization.localizationsResizerLeftKey) || 300;
 		$('.column-resizer', main).css({ left: left });
 
-		$('#localizations-list').css({width: left - 24 + 'px'});
-		$('#localization-detail').css({width: $(window).width() - left - 47 + 'px'});
+		$('#localizations-list').css({width: left - 25 + 'px'});
 
 	},
 	listKeysAndDomains: function () {

@@ -3785,8 +3785,9 @@ input.tree-search-input:focus {
 	font-size: 9pt;
 }
 
-#contents-contents-container, #folder-contents-container, #code-context-container, #crawler-list-container {
+#contents-contents-container, #folder-contents-container, #code-context-container, #crawler-list-container, #flows-canvas-container, #localization-detail, #virtual-type-detail, #mail-template-detail {
 	margin-left: 2px;
+	width: 100%;
 }
 
 #code-contents-container {
