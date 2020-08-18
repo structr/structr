@@ -18,11 +18,14 @@
  */
 package org.structr.flow.servlet;
 
+import com.google.gson.Gson;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.IJsonInput;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -57,7 +60,6 @@ public class FlowServlet extends JsonRestServlet {
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
 		ResultStream result             = null;
-		Resource resource               = null;
 
 		setCustomResponseHeaders(response);
 
@@ -82,13 +84,6 @@ public class FlowServlet extends JsonRestServlet {
 				tx.success();
 			}
 
-			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-				resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
-				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
-				tx.success();
-			}
-
 			final App app = StructrApp.getInstance(securityContext);
 
 			// evaluate constraints and measure query time
@@ -96,11 +91,12 @@ public class FlowServlet extends JsonRestServlet {
 
 			try (final Tx tx = app.tx()) {
 
-				final List<GraphObject> source = Iterables.toList(resource.doGet(null, -1, -1));
+				final String flowName = request.getPathInfo().substring(1);
+				final FlowContainer flow = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery(FlowContainer.class).and(FlowContainer.effectiveName, flowName).getFirst() : null;
 
-				if (!source.isEmpty() && source.size() == 1 && source.get(0) instanceof FlowContainer) {
+				if (flow != null) {
 
-					flowResult = ((FlowContainer)source.get(0)).evaluate(securityContext, flowParameters);
+					flowResult = flow.evaluate(securityContext, flowParameters);
 
 					result = new PagingIterable<>(flowResult);
 
@@ -112,11 +108,15 @@ public class FlowServlet extends JsonRestServlet {
 						DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 						result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
-						processResult(securityContext, request, response, result, depth, resource.isCollectionResource());
+						processResult(securityContext, request, response, result, depth, false);
 					}
 
 					response.setStatus(HttpServletResponse.SC_OK);
 
+				} else {
+
+					response.setStatus(404);
+					response.getWriter().append(RestMethodResult.jsonError(404, "Requested flow could not be found."));
 				}
 
 				tx.success();
@@ -139,7 +139,7 @@ public class FlowServlet extends JsonRestServlet {
 		} finally {
 
 			try {
-				//response.getWriter().flush();
+
 				response.getWriter().close();
 
 			} catch (Throwable t) {
@@ -186,7 +186,98 @@ public class FlowServlet extends JsonRestServlet {
 
 	@Override
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		throw new UnsupportedOperationException("POST is not supported by the FlowServlet");
+		SecurityContext securityContext = null;
+		Authenticator authenticator     = null;
+		ResultStream result             = null;
+
+		setCustomResponseHeaders(response);
+
+		String requestBody = IOUtils.toString(request.getReader());
+
+		Gson gson = getGson();
+		Map<String, Object> flowParameters = gson.fromJson(requestBody, Map.class);
+
+		try {
+
+			final Iterable<Object> flowResult;
+			final int depth = Services.parseInt(request.getParameter(REQUEST_PARAMTER_OUTPUT_DEPTH), config.getOutputNestingDepth());
+
+			// set default value for property view
+			propertyView.set(securityContext, config.getDefaultPropertyView());
+
+			// first thing to do!
+			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
+			response.setContentType("application/json; charset=utf-8");
+
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				authenticator = config.getAuthenticator();
+				securityContext = authenticator.initializeAndExamineRequest(request, response);
+				tx.success();
+			}
+
+			final App app = StructrApp.getInstance(securityContext);
+
+			// evaluate constraints and measure query time
+			double queryTimeStart    = System.nanoTime();
+
+			try (final Tx tx = app.tx()) {
+
+				final String flowName = request.getPathInfo().substring(1);
+				final FlowContainer flow = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery(FlowContainer.class).and(FlowContainer.effectiveName, flowName).getFirst() : null;
+
+				if (flow != null) {
+
+					flowResult = flow.evaluate(securityContext, flowParameters);
+
+					result = new PagingIterable<>(flowResult);
+
+					// timing..
+					double queryTimeEnd = System.nanoTime();
+
+					DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
+
+					processResult(securityContext, request, response, result, depth, false);
+
+					response.setStatus(HttpServletResponse.SC_OK);
+
+				} else {
+
+					response.setStatus(404);
+					response.getWriter().append(RestMethodResult.jsonError(404, "Requested flow could not be found."));
+				}
+
+				tx.success();
+			}
+
+		} catch (FrameworkException frameworkException) {
+
+			writeException(response, frameworkException);
+
+		} catch (Throwable t) {
+
+			logger.warn("Exception in POST (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
+			logger.warn(" => Error thrown: ", t);
+
+			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "Exception in POST: " + t.getMessage()));
+
+		} finally {
+
+			try {
+
+				response.getWriter().close();
+
+			} catch (Throwable t) {
+
+				logger.warn("Unable to flush and close response: {}", t.getMessage());
+			}
+
+		}
 	}
 
 	@Override

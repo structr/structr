@@ -549,10 +549,10 @@ export class FlowEditor {
 
 		let rest = new Rest();
 
-		rest.post('/structr/rest/FlowContainer/' + this._flowContainer.id + '/evaluate', {}, true).then((res) => {
-			new ResultPanel(res, this);
-		});
-
+        rest.post('/structr/flow/' + this._flowContainer.effectiveName, {}, true).then((res) => {
+            new ResultPanel(res, this);
+        });
+        
 	}
 
 	async saveLayout(visibleForPublic, saveAsNewLayout) {
