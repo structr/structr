@@ -1739,6 +1739,10 @@ var _Entities = {
 				checkbox.prop('disabled', true);
 
 				if (!$('input:checked', row).length) {
+
+					$('#newPrincipal').append('<option value="' + principal.id + '">' + principal.name + '</option>');
+					$('#newPrincipal').trigger('chosen:updated');
+
 					row.remove();
 				}
 				let recursive = $('#recursive', dialogText).is(':checked');
