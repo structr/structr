@@ -19,18 +19,14 @@
 @charset "UTF-8";
 
 #crud-main {
-	border: none;
-	background: none;
-	padding: 0;
-	font-family: Roboto, Arial, Helvetica, Sans-serif;
-	height: 100%;
+	display: flex;
+	height: calc(100% - 24px);
+	margin: 12px;
 }
 
-#crud-left {
-	width: 210px;
-	margin: 12px 4px 12px 12px;
-	display: inline-block;
-	height: calc(100% - 12px);
+#crud-left-inner {
+	height: calc(100% + 14px);
+	margin-right: 14px;
 }
 
 #crud-left .resourceBox {
@@ -148,8 +144,11 @@
 }
 
 #crud-right {
-	width: calc(100% - 280px);
-	margin: 12px 0 12px 4px;
+	padding: 6px;
+	vertical-align: top;
+	overflow: auto;
+	height: 100%;
+	width: 100%;
 }
 
 .resourceBox {
