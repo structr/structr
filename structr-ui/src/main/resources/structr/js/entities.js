@@ -2141,12 +2141,15 @@ var _Entities = {
 
 		let restoreNonEditableTag = function(el, text) {
 
-			el.replaceWith('<' + attributeElementTagName + ' title="' + escapeForHtmlAttributes(text) + '" class="' + attributeName + '_ abbr-ellipsis abbr-75pc">' + text + '</' + attributeElementTagName + '>');
+			let newEl = $('<' + attributeElementTagName + ' title="' + escapeForHtmlAttributes(text) + '" class="' + attributeName + '_ abbr-ellipsis abbr-75pc">' + text + '</' + attributeElementTagName + '>');
+			el.replaceWith(newEl);
 
 			parentElement.find(attributeSelector).first().off('click').on('click', function(e) {
 				e.stopPropagation();
 				_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName);
 			});
+
+			return newEl;
 		};
 
 		var saveAndUpdate = function (el) {
@@ -2154,11 +2157,11 @@ var _Entities = {
 			let newVal = el.val();
 
 			// first restore old value. only update with new value if save succeeds
-			restoreNonEditableTag(el, oldValue);
+			let newEl = restoreNonEditableTag(el, oldValue);
 
 			let successFunction = () => {
 
-				restoreNonEditableTag(el, newVal);
+				restoreNonEditableTag(newEl, newVal);
 
 				if (callback) {
 					callback();
