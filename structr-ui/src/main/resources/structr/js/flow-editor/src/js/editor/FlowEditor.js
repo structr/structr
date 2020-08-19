@@ -552,7 +552,7 @@ export class FlowEditor {
         rest.post('/structr/flow/' + this._flowContainer.effectiveName, {}, true).then((res) => {
             new ResultPanel(res, this);
         });
-        
+      
 	}
 
 	async saveLayout(visibleForPublic, saveAsNewLayout) {
