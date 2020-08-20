@@ -1191,7 +1191,6 @@ public class Services implements StructrServices {
 
 				data.put("version",  VersionHelper.getFullVersionInfo());
 				data.put("edition",  licenseManager.getEdition());
-				data.put("licensee", licenseManager.getLicensee());
 				data.put("hostId",   licenseManager.getHardwareFingerprint());
 				data.put("jvm",      Runtime.version().toString());
 				data.put("memory",   runtime.maxMemory() / 1024 / 1024);
