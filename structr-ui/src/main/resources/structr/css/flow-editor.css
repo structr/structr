@@ -216,6 +216,12 @@
 	background-color: #664200; }
 .node-editor .node .socket.input.condition_baseNode:hover {
 	background-color: orange; }
+.node-editor .node .socket.input.switch.used {
+	background-color: orange; }
+.node-editor .node .socket.input.switch:not(.used) {
+	background-color: #664200; }
+.node-editor .node .socket.input.switch:hover {
+	background-color: orange; }
 .node-editor .node .socket.output.used {
 	background-color: white; }
 .node-editor .node .socket.output:not(.used) {
@@ -282,6 +288,12 @@
 	background-color: #660000; }
 .node-editor .node .socket.output.exceptionHandler:hover {
 	background-color: red; }
+.node-editor .node .socket.output.cases.used {
+	background-color: orange; }
+.node-editor .node .socket.output.cases:not(.used) {
+	background-color: #664200; }
+.node-editor .node .socket.output.cases:hover {
+	background-color: orange; }
 .node-editor .node .input-title, .node-editor .node .output-title {
 	vertical-align: middle;
 	display: inline-block;
@@ -433,6 +445,8 @@
 	stroke: #6666ff; }
 .node-editor .connections .connection.output-exceptionhandler.input-handlednodes {
 	stroke: red; }
+.node-editor .connections .connection.output-cases.input-switch {
+    stroke: orange; }
 .node-editor select, .node-editor input {
 	width: 60px;
 	padding: 3px 6px;

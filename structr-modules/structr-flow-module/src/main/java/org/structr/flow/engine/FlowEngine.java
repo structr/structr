@@ -117,6 +117,7 @@ public class FlowEngine {
 		handlers.put(FlowType.Exception, 	new ExceptionHandler());
 		handlers.put(FlowType.Filter,		new FilterHandler());
 		handlers.put(FlowType.Fork,			new ForkHandler());
+		handlers.put(FlowType.Switch,       new SwitchHandler());
 	}
 
 	private FlowResult handleException(final Context context, final FlowException exception, final FlowElement current) {
