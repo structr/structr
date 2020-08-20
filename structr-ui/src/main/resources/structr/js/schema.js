@@ -967,6 +967,28 @@ var _Schema = {
 
 		Structr.resize();
 	},
+	createRemotePropertyNameSuggestion: function(typeName, cardinality) {
+
+		if (cardinality === '1') {
+
+			return 'a' + typeName;
+
+		} else if (cardinality === '*') {
+
+			let suggestion = 'many' + typeName;
+
+			if (suggestion.slice(-1) !== 's') {
+				suggestion += 's';
+			}
+
+			return suggestion;
+
+		} else {
+
+			new MessageBuilder().title('Unsupported cardinality: ' + cardinality).warning('Unable to generate suggestion for remote property name. Unsupported cardinality encountered!').requiresConfirmation().show();
+			return typeName;
+		}
+	},
 	createRelationship: function(sourceId, targetId, headEl, contentEl) {
 
 		Structr.fetchHtmlTemplate('schema/dialog.relationship', {}, function (html) {
@@ -974,30 +996,44 @@ var _Schema = {
 
 			_Schema.appendCascadingDeleteHelpText();
 
-			$('#source-type-name').text(nodes[sourceId].name);
-			$('#target-type-name').text(nodes[targetId].name);
+			let sourceTypeName = nodes[sourceId].name;
+			let targetTypeName = nodes[targetId].name;
+
+			$('#source-type-name').text(sourceTypeName);
+			$('#target-type-name').text(targetTypeName);
 
 			$('#edit-rel-options-button').hide();
-			var saveButton = $('#save-rel-options-button');
-			var cancelButton = $('#cancel-rel-options-button');
+			let saveButton = $('#save-rel-options-button');
+			let cancelButton = $('#cancel-rel-options-button');
+
+			let previousSourceSuggestion = '';
+			let previousTargetSuggestion = '';
+
+			let updateSuggestions = () => {
+
+				let currentSourceSuggestion = _Schema.createRemotePropertyNameSuggestion(sourceTypeName, $('#source-multiplicity-selector').val());
+				let currentTargetSuggestion = _Schema.createRemotePropertyNameSuggestion(targetTypeName, $('#target-multiplicity-selector').val());
+
+				if (previousSourceSuggestion === $('#source-json-name').val()) {
+					$('#source-json-name').val(currentSourceSuggestion);
+					previousSourceSuggestion = currentSourceSuggestion;
+				}
+
+				if (previousTargetSuggestion === $('#target-json-name').val()) {
+					$('#target-json-name').val(currentTargetSuggestion);
+					previousTargetSuggestion = currentTargetSuggestion;
+				}
+			};
+			updateSuggestions();
+
+			$('#source-multiplicity-selector').on('change', updateSuggestions);
+			$('#target-multiplicity-selector').on('change', updateSuggestions);
 
 			saveButton.off('click').on('click', function(e) {
 
-				var relData = {
-					sourceId: sourceId,
-					targetId: targetId,
-					sourceMultiplicity: $('#source-multiplicity-selector').val(),
-					relationshipType: $('#relationship-type-name').val(),
-					targetMultiplicity: $('#target-multiplicity-selector').val(),
-					cascadingDeleteFlag: parseInt($('#cascading-delete-selector').val()),
-					autocreationFlag: parseInt($('#autocreate-selector').val()),
-					permissionPropagation: $('#propagation-selector').val(),
-					readPropagation: $('#read-selector').val(),
-					writePropagation: $('#write-selector').val(),
-					deletePropagation: $('#delete-selector').val(),
-					accessControlPropagation: $('#access-control-selector').val(),
-					propertyMask: $('#masked-properties').val()
-				};
+				let relData = _Schema.getRelationshipDefinitionDataFromForm();
+				relData.sourceId = sourceId;
+				relData.targetId = targetId;
 
 				if (relData.relationshipType.trim() === '') {
 
@@ -1013,7 +1049,7 @@ var _Schema = {
 
 					}, function(data) {
 
-						var additionalInformation = {};
+						let additionalInformation = {};
 
 						if (data.responseJSON.errors.some((e) => { return (e.detail.indexOf('duplicate class') !== -1); })) {
 							additionalInformation.requiresConfirmation = true;
@@ -1039,6 +1075,25 @@ var _Schema = {
 			element: $('#cascading-delete-selector'),
 			insertAfter: true
 		});
+	},
+	getRelationshipDefinitionDataFromForm: function() {
+
+		return {
+			relationshipType: $('#relationship-type-name').val(),
+			sourceMultiplicity: $('#source-multiplicity-selector').val(),
+			targetMultiplicity: $('#target-multiplicity-selector').val(),
+			sourceJsonName: $('#source-json-name').val(),
+			targetJsonName: $('#target-json-name').val(),
+			cascadingDeleteFlag: parseInt($('#cascading-delete-selector').val()),
+			autocreationFlag: parseInt($('#autocreate-selector').val()),
+			permissionPropagation: $('#propagation-selector').val(),
+			readPropagation: $('#read-selector').val(),
+			writePropagation: $('#write-selector').val(),
+			deletePropagation: $('#delete-selector').val(),
+			accessControlPropagation: $('#access-control-selector').val(),
+			propertyMask: $('#masked-properties').val()
+		};
+
 	},
 	loadRelationship: function(entity, headEl, contentEl) {
 
@@ -1066,8 +1121,10 @@ var _Schema = {
 				_Schema.methods.appendMethods(c, entity, entity.schemaMethods);
 			}, null, _Schema.methods.refreshEditors);
 
-			var selectRelationshipOptions = function(rel) {
+			let selectRelationshipOptions = function(rel) {
 				$('#source-type-name').text(nodes[rel.sourceId].name).data('objectId', rel.sourceId);
+				$('#source-json-name').val(rel.sourceJsonName || rel.oldSourceJsonName);
+				$('#target-json-name').val(rel.targetJsonName || rel.oldTargetJsonName);
 				$('#source-multiplicity-selector').val(rel.sourceMultiplicity || '*');
 				$('#relationship-type-name').val(rel.relationshipType === initialRelType ? '' : rel.relationshipType);
 				$('#target-multiplicity-selector').val(rel.targetMultiplicity || '*');
@@ -1084,22 +1141,65 @@ var _Schema = {
 
 			$('.edit-schema-object', headEl).off('click').on('click', function(e) {
 				e.stopPropagation();
+
+				// todo: only navigate if no changes
+
 				_Schema.openEditDialog($(this).data('objectId'));
 				return false;
 			});
 
 			selectRelationshipOptions(entity);
 
-			var editButton = $('#edit-rel-options-button');
-			var saveButton = $('#save-rel-options-button').hide();
-			var cancelButton = $('#cancel-rel-options-button').hide();
+			let sourceHelpElements = undefined;
+			let targetHelpElements = undefined;
+
+			let appendMultiplicityChangeInfo = (el) => {
+				return Structr.appendInfoTextToElement({
+					text: 'Multiplicity was changed without changing the remote property name - make sure this is correct',
+					element: el,
+					insertAfter: true,
+					customToggleIcon: _Icons.error_icon,
+					helpElementCss: {
+						fontSize: '9pt'
+					}
+				});
+			};
+
+			let reactToCardinalityChange = () => {
+
+				if (sourceHelpElements) {
+					sourceHelpElements.map(e => e.remove());
+					sourceHelpElements = undefined;
+				}
+
+				if ($('#source-multiplicity-selector').val() !== (entity.sourceMultiplicity || '*') && $('#source-json-name').val() === (entity.sourceJsonName || entity.oldSourceJsonName)) {
+					sourceHelpElements = appendMultiplicityChangeInfo($('#source-json-name'));
+				}
+
+				if (targetHelpElements) {
+					targetHelpElements.map(e => e.remove());
+					targetHelpElements = undefined;
+				}
+
+				if ($('#target-multiplicity-selector').val() !== (entity.targetMultiplicity || '*') && $('#target-json-name').val() === (entity.targetJsonName || entity.oldTargetJsonName)) {
+					targetHelpElements = appendMultiplicityChangeInfo($('#target-json-name'));
+				}
+			};
+
+			$('#source-multiplicity-selector').on('change', reactToCardinalityChange);
+			$('#target-multiplicity-selector').on('change', reactToCardinalityChange);
+			$('#source-json-name').on('keyup', reactToCardinalityChange);
+			$('#target-json-name').on('keyup', reactToCardinalityChange);
+
+			let editButton = $('#edit-rel-options-button');
+			let saveButton = $('#save-rel-options-button').hide();
+			let cancelButton = $('#cancel-rel-options-button').hide();
 
 			editButton.off('click').on('click', function(e) {
 				e.preventDefault();
 
-				$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', false);
-				$('#relationship-options select, #relationship-options textarea, #relationship-options input').css('color', '');
-				$('#relationship-options select, #relationship-options textarea, #relationship-options input').css('background-color', '');
+				$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', false).css('color', '').css('background-color', '');
+
 				editButton.hide();
 				saveButton.show();
 				cancelButton.show();
@@ -1107,19 +1207,8 @@ var _Schema = {
 
 			saveButton.off('click').on('click', function(e) {
 
-				var newData = {
-					sourceMultiplicity: $('#source-multiplicity-selector').val(),
-					relationshipType: $('#relationship-type-name').val(),
-					targetMultiplicity: $('#target-multiplicity-selector').val(),
-					cascadingDeleteFlag: parseInt($('#cascading-delete-selector').val()),
-					autocreationFlag: parseInt($('#autocreate-selector').val()),
-					permissionPropagation: $('#propagation-selector').val(),
-					readPropagation: $('#read-selector').val(),
-					writePropagation: $('#write-selector').val(),
-					deletePropagation: $('#delete-selector').val(),
-					accessControlPropagation: $('#access-control-selector').val(),
-					propertyMask: $('#masked-properties').val()
-				};
+				let newData = _Schema.getRelationshipDefinitionDataFromForm();
+				let relType = newData.relationshipType;
 
 				Object.keys(newData).forEach(function(key) {
 					if ( (entity[key] === newData[key])
@@ -1131,7 +1220,7 @@ var _Schema = {
 					}
 				});
 
-				if (newData.relationshipType.trim() === '') {
+				if (relType.trim() === '') {
 
 					blinkRed($('#relationship-type-name'));
 
@@ -1922,8 +2011,8 @@ var _Schema = {
 				propertyName: (out ? 'targetJsonName' : 'sourceJsonName'),
 				targetCollection: (out ? 'relatedTo' : 'relatedFrom'),
 				attributeName: attributeName,
-				arrowLeft: (out ? '' : '&lt;'),
-				arrowRight: (out ? '&gt;' : ''),
+				arrowLeft: (out ? '' : '&#9668;'),
+				arrowRight: (out ? '&#9658;' : ''),
 				cardinalityClassLeft: _Schema.remoteProperties.cardinalityClasses[(out ? rel.sourceMultiplicity : rel.targetMultiplicity)],
 				cardinalityClassRight: _Schema.remoteProperties.cardinalityClasses[(out ? rel.targetMultiplicity : rel.sourceMultiplicity)],
 				relatedNodeId: relatedNodeId

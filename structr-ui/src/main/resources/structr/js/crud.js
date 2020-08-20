@@ -223,20 +223,15 @@ var _Crud = {
 		left = left || LSWrapper.getItem(_Crud.crudResizerLeftKey) || 210;
 		$('.column-resizer', main).css({ left: left });
 
-		$('#crud-types').css({width: left - 12 + 'px'});
-		$('#crud-recent-types').css({width: left - 12 + 'px'});
-		$('#crud-right').css({left: left - 220 + 'px', width: window.innerWidth - left - 58 + 'px'});
+		$('#crud-left-inner').css({width: left - 14 + 'px'});
 	},
 	init: function() {
 
-		// remove position: relative (which is set when 'Schema' is opened once). This gets rid of the issue that appending a new line in the builtin console causes the crud-right element to be pushed down
-		$('body').css('position', '');
-
 		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search"><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
-		main.append('<div id="crud-main"><div class="column-resizer"></div><div id="crud-left">'
+		main.append('<div id="crud-main"><div class="column-resizer"></div><div id="crud-left"><div id="crud-left-inner">'
 				+ '<div id="crud-types" class="resourceBox"><h2>Types</h2><i id="crudTypesFilterToggle" title="Auto-filter types" class="' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" /><div id="crudTypeFilterSettings" class="hidden"></div><input placeholder="Filter types..." id="crudTypesSearch"><ul id="crud-types-list"></ul></div>'
-				+ '<div id="crud-recent-types" class="resourceBox"><h2>Recent</h2><ul id="crud-recent-types-list"></ul></div></div>'
-				+ '<div id="crud-right" class="resourceBox full-height-box"></div></div>');
+				+ '<div id="crud-recent-types" class="resourceBox"><h2>Recent</h2><ul id="crud-recent-types-list"></ul></div></div></div>'
+				+ '<div id="crud-right" class="resourceBox"></div></div>');
 
 		_Crud.moveResizer();
 		Structr.initVerticalSlider($('.column-resizer', main), _Crud.crudResizerLeftKey, 204, _Crud.moveResizer);

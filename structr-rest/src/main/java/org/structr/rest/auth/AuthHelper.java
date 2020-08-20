@@ -281,15 +281,18 @@ public class AuthHelper {
 	}
 
 	public static Map<String, String> createTokensForUser(Principal user, Date accessTokenLifetime, Date refreshTokenLifetime) throws FrameworkException {
+
 		final String jwtSecretType = Settings.JWTSecretType.getValue();
 		Map<String, String>  tokens = null;
 
 		if (user == null) {
 			throw new FrameworkException(400, "Can't create token if no user is given");
 		}
+
 		final String instanceName = Settings.InstanceName.getValue();
 
 		switch (jwtSecretType) {
+
 			default:
 			case "secret":
 				tokens = createTokensForUserWithSecret(user, accessTokenLifetime, refreshTokenLifetime, instanceName);

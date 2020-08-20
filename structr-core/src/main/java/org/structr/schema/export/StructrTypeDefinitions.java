@@ -37,7 +37,7 @@ import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
-import org.structr.schema.openapi.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPIReference;
 
 /**
  *

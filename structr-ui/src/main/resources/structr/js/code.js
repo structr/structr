@@ -45,6 +45,7 @@ var _Code = {
 	codeLastOpenMethodKey: 'structrCodeLastOpenMethod_' + port,
 	codeResizerLeftKey: 'structrCodeResizerLeftKey_' + port,
 	codeResizerRightKey: 'structrCodeResizerRightKey_' + port,
+	additionalDirtyChecks: [],
 	init: function() {
 
 		Structr.makePagesMenuDroppable();
@@ -210,6 +211,10 @@ var _Code = {
 		let formContent = _Code.collectChangedPropertyData(entity);
 		let dirty       = Object.keys(formContent).length > 0;
 
+		for (let additionalCheck of _Code.additionalDirtyChecks) {
+			dirty = dirty || additionalCheck();
+		}
+
 		if (dirty) {
 			$('#action-button-save').removeClass('disabled').attr('disabled', null);
 			$('#action-button-cancel').removeClass('disabled').attr('disabled', null);
@@ -274,7 +279,7 @@ var _Code = {
 	collectChangedPropertyData: function(entity) {
 
 		let formContent = _Code.collectPropertyData();
-		let keys = Object.keys(formContent);
+		let keys        = Object.keys(formContent);
 
 		// remove unchanged keys
 		for (let key of keys) {
@@ -388,11 +393,16 @@ var _Code = {
 			new MessageBuilder().warning('No save action is defined - but the editor is dirty!').requiresConfirmation().show();
 		}
 	},
-	saveEntityAction:function(entity, callback) {
+	saveEntityAction: function(entity, callback, optionalFormDataModificationFunctions = []) {
 
 		if (_Code.isDirty()) {
 
 			let formData        = _Code.collectChangedPropertyData(entity);
+
+			for (let modFn of optionalFormDataModificationFunctions) {
+				modFn(formData);
+			}
+
 			let compileRequired = _Code.isCompileRequiredForSave(formData);
 
 			if (compileRequired) {
@@ -837,13 +847,12 @@ var _Code = {
 						break;
 				}
 		}
-
 	},
 	clearMainArea: function() {
 		fastRemoveAllChildren(codeContents[0]);
 		fastRemoveAllChildren($('#code-button-container')[0]);
 	},
-	editPropertyContent: function(entity, key, element, behaviorOverride = {}) {
+	editPropertyContent: function(entity, key, element, configOverride = {}) {
 
 		let text       = entity[key] || '';
 		let contentBox = $('.editor', element);
@@ -859,25 +868,9 @@ var _Code = {
 			extraKeys: {}
 		});
 
-		if (behaviorOverride.lint !== false) {
-			cmConfig.gutters = ["CodeMirror-lint-markers"];
-			cmConfig.lint = {
-				getAnnotations: function(text, callback) {
-					_Code.showScriptErrors(entity, text, callback);
-				},
-				async: true
-			};
-		}
-
-		if (behaviorOverride.autoComplete !== false) {
-			cmConfig.extraKeys["Ctrl-Space"] = "autocomplete";
-		}
+		cmConfig = Object.assign(cmConfig, configOverride);
 
 		let editor = CodeMirror(contentBox.get(0), cmConfig);
-
-		if (behaviorOverride.autoComplete !== false) {
-			_Code.setupAutocompletion(editor, entity.id, true);
-		}
 
 		let scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
 		if (scrollInfo) {
@@ -889,31 +882,6 @@ var _Code = {
 			LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
 		});
 
-		if (behaviorOverride.setMode !== false) {
-
-			if (entity.propertyType === 'Cypher') {
-
-				editor.setOption('mode', 'cypher');
-
-			} else {
-
-				if (entity.codeType === 'java') {
-
-					editor.setOption('mode', 'text/x-java');
-
-				} else {
-
-					editor.on('change', function() {
-						let type = _Code.getEditorModeForContent(editor.getValue());
-						let prev = editor.getOption('mode');
-						if (prev !== type) {
-							editor.setOption('mode', type);
-						}
-					});
-				}
-			}
-		}
-
 		editor.id = entity.id;
 
 		editor.on('change', function(cm, change) {
@@ -923,6 +891,8 @@ var _Code = {
 		_Code.resize();
 
 		editor.refresh();
+
+		return editor;
 	},
 	displayCreateButtons: function(showCreateMethodsButton, showCreateGlobalButton, showCreateTypeButton, schemaNodeId) {
 
@@ -1173,6 +1143,7 @@ var _Code = {
 		if (_Code.testAllowNavigation()) {
 
 			_Code.dirty = false;
+			_Code.additionalDirtyChecks = [];
 
 			// clear page
 			_Code.clearMainArea();
@@ -1244,8 +1215,6 @@ var _Code = {
 	},
 	handleNodeObjectClick: function(data) {
 
-		var identifier = _Code.splitIdentifier(data.id);
-
 		if (data.type) {
 
 			switch (data.type) {
@@ -1259,57 +1228,7 @@ var _Code = {
 					break;
 
 				case 'SchemaMethod':
-					Command.get(identifier.id, null, function(result) {
-						_Code.updateRecentlyUsed(result, data.updateLocationStack);
-						Structr.fetchHtmlTemplate('code/method', { method: result }, function(html) {
-							codeContents.append(html);
-
-							LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
-							_Code.editPropertyContent(result, 'source', $('#tabView-source', codeContents), {});
-							_Code.editPropertyContent(result, 'comment', $('#tabView-comment', codeContents), {autoComplete: false, setMode: false, lint: false});
-
-
-							Structr.fetchHtmlTemplate('code/openapi-config', { element: result, availableTags: _Code.availableTags }, function(inner) {
-
-								let apiTab = $('#tabView-api', codeContents);
-								apiTab.append(inner);
-
-								$('#tags-select', apiTab).select2({
-									tags: true,
-									width: '100%'
-								}).on('change', () => {
-									_Code.updateDirtyFlag(result);
-								});
-
-								$('input[type=text]', apiTab).on('keyup', function() {
-									_Code.updateDirtyFlag(result);
-								});
-
-							});
-
-							_Code.displayDefaultMethodOptions(result);
-
-							let activateTab = function(tabName) {
-								$('.method-tab-content', codeContents).hide();
-								$('li[data-name]', codeContents).removeClass('active');
-
-								let activeTab = $('#tabView-' + tabName, codeContents);
-								activeTab.show();
-								$('li[data-name="' + tabName + '"]', codeContents).addClass('active');
-
-								let editor = $('.CodeMirror', activeTab);
-								if (editor.length > 0 && editor[0].CodeMirror) {
-									editor[0].CodeMirror.refresh();
-								}
-							};
-
-							$('li[data-name]', codeContents).off('click').on('click', function(e) {
-								e.stopPropagation();
-								activateTab($(this).data('name'));
-							});
-							activateTab('source');
-						});
-					});
+					_Code.displaySchemaMethodContent(data);
 					break;
 
 				case 'SchemaNode':
@@ -1322,6 +1241,8 @@ var _Code = {
 			}
 
 		} else {
+
+			var identifier = _Code.splitIdentifier(data.id);
 
 			switch (identifier.id) {
 
@@ -1376,6 +1297,8 @@ var _Code = {
 
 					let apiTab = $('#type-openapi', codeContents);
 					apiTab.append(inner);
+
+					$('.hidden', apiTab).remove();
 
 					$('#tags-select', apiTab).select2({
 						tags: true,
@@ -1593,6 +1516,261 @@ var _Code = {
 				});
 			});
 		}, 'schema');
+	},
+	displaySchemaMethodContent: function(data, lastOpenTab) {
+
+		var identifier = _Code.splitIdentifier(data.id);
+
+		Command.get(identifier.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,schemaNode,source,comment,returnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters', function(result) {
+
+			_Code.updateRecentlyUsed(result, data.updateLocationStack);
+
+			Structr.fetchHtmlTemplate('code/method', { method: result }, function(html) {
+
+				codeContents.empty();
+				codeContents.append(html);
+
+				LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
+
+				let sourceEditorConfig = {
+					extraKeys: { "Ctrl-Space": "autocomplete" },
+					gutters: ["CodeMirror-lint-markers"],
+					lint: {
+						getAnnotations: function(text, callback) {
+							_Code.showScriptErrors(result, text, callback);
+						},
+						async: true
+					}
+				};
+
+				let sourceEditor = _Code.editPropertyContent(result, 'source', $('#tabView-source', codeContents), sourceEditorConfig);
+				_Code.setCodeMirorUpdateMode(result, sourceEditor);
+				_Code.setupAutocompletion(sourceEditor, result.id, true);
+
+				_Code.editPropertyContent(result, 'comment', $('#tabView-comment', codeContents));
+
+				if (result.codeType === 'java') {
+
+					$('li[data-name=api]').hide();
+
+				} else {
+
+					Structr.fetchHtmlTemplate('code/openapi-config', { element: result, availableTags: _Code.availableTags }, function(inner) {
+
+						let apiTab = $('#tabView-api', codeContents);
+						apiTab.append(inner);
+
+						$('.hidden', apiTab).removeClass('hidden');
+
+						let parameterTplRow = $('.template', apiTab);
+						let parameterContainer = parameterTplRow.parent();
+						parameterTplRow.remove();
+
+						let addParameterRow = function(parameter) {
+
+							let clone = parameterTplRow.clone().removeClass('template');
+
+							if (parameter) {
+								$('input[data-parameter-property=index]', clone).val(parameter.index);
+								$('input[data-parameter-property=name]', clone).val(parameter.name);
+								$('input[data-parameter-property=parameterType]', clone).val(parameter.parameterType);
+								$('input[data-parameter-property=description]', clone).val(parameter.description);
+								$('input[data-parameter-property=exampleValue]', clone).val(parameter.exampleValue);
+							} else {
+								let maxCnt = 0;
+								for (let indexInput of apiTab[0].querySelectorAll('input[data-parameter-property=index]')) {
+									maxCnt = Math.max(maxCnt, parseInt(indexInput.value) + 1);
+								}
+
+								$('input[data-parameter-property=index]', clone).val(maxCnt);
+							}
+
+							$('input[data-parameter-property]', clone).on('keyup', () => {
+								_Code.updateDirtyFlag(result);
+							});
+
+							parameterContainer.append(clone);
+
+							$('.method-parameter-delete button', clone).on('click', () => {
+								clone.remove();
+
+								_Code.updateDirtyFlag(result);
+							});
+
+							_Code.updateDirtyFlag(result);
+						};
+
+						Command.query('SchemaMethodParameter', 1000, 1, 'index', 'asc', {schemaMethod: result.id}, (parameters) => {
+
+							_Code.additionalDirtyChecks.push(() => {
+								return _Code.schemaMethodParametersChanged(parameters);
+							});
+
+							for (let p of parameters) {
+
+								addParameterRow(p);
+							}
+
+						}, true, null, 'index,name,parameterType,description,exampleValue');
+
+
+						$('#add-parameter-button').on('click', () => { addParameterRow(); });
+
+						$('#tags-select', apiTab).select2({
+							tags: true,
+							width: '100%'
+						}).on('change', () => {
+							_Code.updateDirtyFlag(result);
+						});
+
+						$('input[type=text]', apiTab).on('keyup', function() {
+							_Code.updateDirtyFlag(result);
+						});
+
+						_Code.editPropertyContent(result, 'returnType', $('.editor-wrapper', apiTab), {mode: "application/json", lint: true, gutters: ["CodeMirror-lint-markers"]});
+					});
+				}
+
+				// default buttons
+				Structr.fetchHtmlTemplate('code/method-options', { method: result }, function(html) {
+
+					_Code.runCurrentEntitySaveAction = function() {
+
+						let storeParametersInFormDataFunction = function(formData) {
+							let parametersData = _Code.collectSchemaMethodParameters();
+
+							formData['parameters'] = parametersData;
+						};
+
+						let afterSaveCallback = () => {
+							_Code.additionalDirtyChecks = [];
+							_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'));
+						};
+
+						_Code.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
+					};
+
+					var buttons = $('#method-buttons');
+					buttons.prepend(html);
+
+					_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save method', _Code.runCurrentEntitySaveAction);
+
+					_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
+						_Code.additionalDirtyChecks = [];
+						_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'));
+
+					});
+
+					// delete button
+					_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete method', function() {
+						_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration');
+					});
+
+					// run button
+					if (!result.schemaNode && !result.isPartOfBuiltInSchema) {
+						_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.exec_blue_icon), 'run', 'Run method', function() {
+							_Code.runGlobalSchemaMethod(result);
+						});
+
+						$('.checkbox.hidden', buttons).removeClass('hidden');
+						Structr.activateCommentsInElement(buttons);
+					}
+
+					_Code.updateDirtyFlag(result);
+
+					$('input[type=checkbox]', buttons).on('change', function() {
+						_Code.updateDirtyFlag(result);
+					});
+
+					$('input[type=text]', buttons).on('keyup', function() {
+						_Code.updateDirtyFlag(result);
+					});
+
+					if (typeof callback === 'function') {
+						callback();
+					}
+				});
+
+				let activateTab = function(tabName) {
+					$('.method-tab-content', codeContents).hide();
+					$('li[data-name]', codeContents).removeClass('active');
+
+					let activeTab = $('#tabView-' + tabName, codeContents);
+					activeTab.show();
+					$('li[data-name="' + tabName + '"]', codeContents).addClass('active');
+
+					let editor = $('.CodeMirror', activeTab);
+					if (editor.length > 0 && editor[0].CodeMirror) {
+						editor[0].CodeMirror.refresh();
+					}
+				};
+
+				$('li[data-name]', codeContents).off('click').on('click', function(e) {
+					e.stopPropagation();
+					activateTab($(this).data('name'));
+				});
+				activateTab(lastOpenTab || 'source');
+			});
+		}, );
+	},
+	collectSchemaMethodParameters: function() {
+
+		let parametersData = [];
+		for (let formParam of codeContents[0].querySelectorAll('.method-parameter')) {
+			let pData = {};
+			for (let formParamValue of formParam.querySelectorAll('[data-parameter-property]')) {
+
+				if (formParamValue.type === 'number') {
+					pData[formParamValue.dataset['parameterProperty']] = parseInt(formParamValue.value);
+				} else {
+					pData[formParamValue.dataset['parameterProperty']] = formParamValue.value;
+				}
+
+			}
+
+			parametersData.push(pData);
+		}
+
+		return parametersData;
+	},
+	schemaMethodParametersChanged: function(parameters) {
+
+		let parametersData = _Code.collectSchemaMethodParameters();
+
+		let easyAccessFormData = {};
+		for (let fp of parametersData) {
+			easyAccessFormData[fp.index] = fp;
+		}
+
+		// if params have same length AND every element from original params is identical to formData ==> ALLOW
+		if (parametersData.length !== parameters.length) {
+
+			return true;
+
+		} else {
+
+			for (let originalParameter of parameters) {
+
+				let sameIndexFromForm = easyAccessFormData[originalParameter.index];
+
+				if (sameIndexFromForm) {
+
+					for (let key in sameIndexFromForm) {
+
+						if (sameIndexFromForm[key] !== originalParameter[key] && !(sameIndexFromForm[key] === '' && !originalParameter[key])) {
+							return true;
+						}
+					}
+
+				} else {
+
+					return true;
+
+				}
+			}
+		}
+
+		return false;
 	},
 	displaySchemaGroupContent: function(data) {
 
@@ -2001,14 +2179,21 @@ var _Code = {
 		});
 	},
 	displayFunctionPropertyDetails: function(property) {
+
 		Structr.fetchHtmlTemplate('code/function-property', { property: property }, function(html) {
 
 			codeContents.append(html);
 
 			Structr.activateCommentsInElement(codeContents, {insertAfter: true});
 
-			_Code.editPropertyContent(property, 'readFunction',  $('#read-code-container'));
-			_Code.editPropertyContent(property, 'writeFunction', $('#write-code-container'));
+			let readFnEditor = _Code.editPropertyContent(property, 'readFunction', $('#read-code-container'), {extraKeys: {"Ctrl-Space": "autocomplete"}});
+			_Code.setCodeMirorUpdateMode(property, readFnEditor);
+			_Code.setupAutocompletion(readFnEditor, property.id, true);
+
+			let writeFnEditor = _Code.editPropertyContent(property, 'writeFunction', $('#write-code-container'), {extraKeys: {"Ctrl-Space": "autocomplete"}});
+			_Code.setCodeMirorUpdateMode(property, writeFnEditor);
+			_Code.setupAutocompletion(writeFnEditor, property.id, true);
+
 			_Code.displayDefaultPropertyOptions(property);
 		});
 	},
@@ -2017,7 +2202,7 @@ var _Code = {
 		Structr.fetchHtmlTemplate('code/cypher-property', { property: property }, function(html) {
 			codeContents.append(html);
 
-			_Code.editPropertyContent(property, 'format', $('#cypher-code-container'), {lint: false, autoComplete: false});
+			_Code.editPropertyContent(property, 'format', $('#cypher-code-container'), {mode: 'cypher'});
 			_Code.displayDefaultPropertyOptions(property);
 		});
 	},
@@ -2044,7 +2229,6 @@ var _Code = {
 	},
 	displayDefaultPropertyOptions: function(property, callback) {
 
-		// default buttons
 		Structr.fetchHtmlTemplate('code/property-options', { property: property }, function(html) {
 
 			_Code.runCurrentEntitySaveAction = function() {
@@ -2060,7 +2244,6 @@ var _Code = {
 				_Code.revertFormData(property);
 			});
 
-			// delete button
 			if (!property.schemaNode.isBuiltinType) {
 
 				_Code.displayActionButton('#property-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete property', function() {
@@ -2217,54 +2400,6 @@ var _Code = {
 			}).chosenSortable(function() {
 				changeFn();
 			});
-		});
-	},
-	displayDefaultMethodOptions: function(method, callback) {
-
-		// default buttons
-		Structr.fetchHtmlTemplate('code/method-options', { method: method, availableTags: ['test'] }, function(html) {
-
-			_Code.runCurrentEntitySaveAction = function() {
-				_Code.saveEntityAction(method);
-			};
-
-			var buttons = $('#method-buttons');
-			buttons.prepend(html);
-
-			_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save method', _Code.runCurrentEntitySaveAction);
-
-			_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
-				_Code.revertFormData(method);
-			});
-
-			// delete button
-			_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete method', function() {
-				_Code.deleteSchemaEntity(method, 'Delete method ' + method.name + '?', 'Note: Builtin methods will be restored in their initial configuration');
-			});
-
-			// run button
-			if (!method.schemaNode && !method.isPartOfBuiltInSchema) {
-				_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.exec_blue_icon), 'run', 'Run method', function() {
-					_Code.runGlobalSchemaMethod(method);
-				});
-
-				$('.checkbox.hidden', buttons).removeClass('hidden');
-				Structr.activateCommentsInElement(buttons);
-			}
-
-			_Code.updateDirtyFlag(method);
-
-			$('input[type=checkbox]', buttons).on('change', function() {
-				_Code.updateDirtyFlag(method);
-			});
-
-			$('input[type=text]', buttons).on('keyup', function() {
-				_Code.updateDirtyFlag(method);
-			});
-
-			if (typeof callback === 'function') {
-				callback();
-			}
 		});
 	},
 	setupAutocompletion: function(editor, id, isAutoscriptEnv) {
@@ -2848,6 +2983,23 @@ var _Code = {
 				}
 			}
 		});
+	},
+	setCodeMirorUpdateMode: function (entity, editor) {
+
+		if (entity.codeType === 'java') {
+
+			editor.setOption('mode', 'text/x-java');
+
+		} else {
+
+			editor.on('change', function() {
+				let type = _Code.getEditorModeForContent(editor.getValue());
+				let prev = editor.getOption('mode');
+				if (prev !== type) {
+					editor.setOption('mode', type);
+				}
+			});
+		}
 	}
 };
 
@@ -3076,5 +3228,5 @@ var _WorkingSets = {
 			}
 
 		}, true, null, 'id,name,content');
-	}
+	},
 };

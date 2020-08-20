@@ -36,32 +36,6 @@ $(function() {
 
 var _Elements = {
 	inheritVisibilityFlagsKey: 'inheritVisibilityFlags_' + port,
-	elementNames: [
-		// The root element
-		'html',
-		// Document metadata
-		'head', 'title', 'base', 'link', 'meta', 'style',
-		// Scripting
-		'script', 'noscript',
-		// Sections
-		'body', 'section', 'nav', 'article', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'header', 'footer', 'address', 'main',
-		// Grouping content
-		'p', 'hr', 'pre', 'blockquote', 'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'figure', 'figcaption', 'div',
-		// Text-level semantics
-		'a', 'em', 'strong', 'small', 's', 'cite', 'g', 'dfn', 'abbr', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup',
-		'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr',
-		// Edits
-		'ins', 'del',
-		// Embedded content
-		'img', 'iframe', 'embed', 'object', 'param', 'video', 'audio', 'source', 'track', 'canvas', 'map', 'area',
-		// Tabular data
-		'table', 'caption', 'colgroup', 'col', 'tbody', 'thead', 'tfoot', 'tr', 'td', 'th',
-		// Forms
-		'form', 'fieldset', 'legend', 'label', 'input', 'button', 'select', 'datalist', 'optgroup', 'option', 'textarea', 'keygen', 'output',
-		'progress', 'meter',
-		// Interactive elements
-		'details', 'summary', 'command', 'menu'
-	],
 	elementGroups: [
 		{
 			name: 'Root',
@@ -89,7 +63,7 @@ var _Elements = {
 		},
 		{
 			name: 'Text',
-			elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'g', 'dfn', 'abbr', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr']
+			elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'g', 'dfn', 'abbr', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr', 'q']
 		},
 		{
 			name: 'Edits',
@@ -230,7 +204,7 @@ var _Elements = {
 		},
 		{
 			name: 'p-r',
-			elements: ['p', 'param', 'pre', 'progress', '|', 'rp', 'rt', 'ruby']
+			elements: ['p', 'param', 'pre', 'progress', '|',  'q', '|', 'rp', 'rt', 'ruby']
 		},
 		{
 			name: 's',

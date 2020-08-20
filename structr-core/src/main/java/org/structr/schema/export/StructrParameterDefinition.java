@@ -42,10 +42,12 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrParameterDefinition.class.getName());
 
-	private JsonMethod parent = null;
-	private String name       = null;
-	private String type       = null;
-	private int index         = 0;
+	private JsonMethod parent   = null;
+	private String description  = null;
+	private Object exampleValue = null;
+	private String name         = null;
+	private String type         = null;
+	private int index           = 0;
 
 	StructrParameterDefinition(final JsonMethod parent, final String name) {
 
@@ -110,6 +112,18 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 	}
 
 	@Override
+	public String getDescription() {
+		return description;
+	}
+
+	@Override
+	public JsonParameter setDescription(final String description) {
+
+		this.description = description;
+		return this;
+	}
+
+	@Override
 	public String getType() {
 		return type;
 	}
@@ -117,6 +131,17 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 	@Override
 	public JsonParameter setType(final String type) {
 		this.type = type;
+		return this;
+	}
+
+	@Override
+	public Object getExampleValue() {
+		return exampleValue;
+	}
+
+	@Override
+	public JsonParameter setExampleValue(final Object exampleValue) {
+		this.exampleValue = exampleValue;
 		return this;
 	}
 
@@ -157,6 +182,8 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 		}
 
 		updateProperties.put(SchemaMethodParameter.parameterType, type);
+		updateProperties.put(SchemaMethodParameter.description, description);
+		updateProperties.put(SchemaMethodParameter.exampleValue, exampleValue);
 		updateProperties.put(SchemaMethodParameter.index, index);
 
 		// update properties
@@ -180,6 +207,14 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 
 			this.index = ((Number)_index).intValue();
 		}
+
+		final Object _description = source.get(JsonSchema.KEY_DESCRIPTION);
+		if (_description != null && _description instanceof String) {
+
+			this.description = (String)_description;
+		}
+
+		this.exampleValue = source.get(JsonSchema.KEY_EXAMPLE_VALUE);
 	}
 
 	void deserialize(final SchemaMethodParameter method) {
@@ -187,6 +222,8 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 		setName(method.getName());
 		setType(method.getProperty(SchemaMethodParameter.parameterType));
 		setIndex(method.getProperty(SchemaMethodParameter.index));
+		setDescription(method.getProperty(SchemaMethodParameter.description));
+		setExampleValue(method.getProperty(SchemaMethodParameter.exampleValue));
 	}
 
 	Map<String, Object> serialize() {
@@ -195,6 +232,8 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 
 		map.put(JsonSchema.KEY_PARAMETER_TYPE, type);
 		map.put(JsonSchema.KEY_PARAMETER_INDEX, index);
+		map.put(JsonSchema.KEY_DESCRIPTION, description);
+		map.put(JsonSchema.KEY_EXAMPLE_VALUE, exampleValue);
 
 		return map;
 	}

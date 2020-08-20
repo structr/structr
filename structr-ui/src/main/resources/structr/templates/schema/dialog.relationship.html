@@ -2,24 +2,46 @@
 	<table id="relationship-options">
 		<tr>
 			<td colspan=2 id="basic-options">
-				<span class="relationship-emphasis"><span id="source-type-name" class="edit-schema-object"></span> &#8212;</span>
-				<select id="source-multiplicity-selector" data-attr-name="sourceMultiplicity">
-					<option value="1">1</option>
-					<option value="*" selected>*</option>
-				</select>
 
-				<span class="relationship-emphasis">&#8212;[</span>
+				<span id="source-type-name" class="edit-schema-object relationship-emphasis"></span>
+
+				<div style="display:inline-block;">
+
+					<span style="float: left;">&#8212;</span>
+
+					<select id="source-multiplicity-selector" data-attr-name="sourceMultiplicity">
+						<option value="1">1</option>
+						<option value="*" selected>*</option>
+					</select>
+
+					<span style="float: right;">&#8212;[</span>
+
+					<br>
+
+					<input id="source-json-name" class="remote-property-name" data-attr-name="sourceJsonName">
+
+				</div>
 
 				<input id="relationship-type-name" data-attr-name="relationshipType">
 
-				<span class="relationship-emphasis">]&#8212;</span>
+				<div style="display:inline-block;">
 
-				<select id="target-multiplicity-selector" data-attr-name="targetMultiplicity">
-					<option value="1">1</option>
-					<option value="*" selected>*</option>
-				</select>
+					<span style="float: left;">]&#8212;</span>
 
-				<span class="relationship-emphasis">&#8212;&#9658; <span id="target-type-name" class="edit-schema-object"></span></span>
+					<select id="target-multiplicity-selector" data-attr-name="targetMultiplicity">
+						<option value="1">1</option>
+						<option value="*" selected>*</option>
+					</select>
+
+					<span style="float: right;">&#8212;&#9658;</span>
+
+					<br>
+
+					<input id="target-json-name" class="remote-property-name" data-attr-name="targetJsonName">
+
+				</div>
+
+				<span id="target-type-name" class="edit-schema-object relationship-emphasis"></span>
 			</td>
 		</tr>
 		<tr>

@@ -77,15 +77,15 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaGrant;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
-import org.structr.schema.openapi.OpenAPIDeleteMultipleOperation;
-import org.structr.schema.openapi.OpenAPIDeleteSingleOperation;
-import org.structr.schema.openapi.OpenAPIGetMultipleOperation;
-import org.structr.schema.openapi.OpenAPIGetSingleOperation;
-import org.structr.schema.openapi.OpenAPIPostOperation;
-import org.structr.schema.openapi.OpenAPIPropertyQueryParameter;
-import org.structr.schema.openapi.OpenAPIPropertySchema;
-import org.structr.schema.openapi.OpenAPIPutSingleOperation;
-import org.structr.schema.openapi.OpenAPIReference;
+import org.structr.schema.openapi.operation.OpenAPIDeleteMultipleOperation;
+import org.structr.schema.openapi.operation.OpenAPIDeleteSingleOperation;
+import org.structr.schema.openapi.operation.OpenAPIGetMultipleOperation;
+import org.structr.schema.openapi.operation.OpenAPIGetSingleOperation;
+import org.structr.schema.openapi.operation.OpenAPIPostOperation;
+import org.structr.schema.openapi.parameter.OpenAPIPropertyQueryParameter;
+import org.structr.schema.openapi.schema.OpenAPIPropertySchema;
+import org.structr.schema.openapi.operation.OpenAPIPutSingleOperation;
+import org.structr.schema.openapi.common.OpenAPIReference;
 
 /**
  * @param <T>

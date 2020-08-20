@@ -771,14 +771,14 @@ var _Pages = {
 		$.ui.ddmanager.droppables['default'] = droppablesArray;
 	},
 	makeTabEditable: function(element) {
-		var id = element.prop('id').substring(5);
+
+		let id = element.prop('id').substring(5);
 
 		element.off('hover');
-		//var oldName = $.trim(element.children('.name_').text());
-		var oldName = $.trim(element.children('b.name_').attr('title'));
+		let oldName = $.trim(element.children('b.name_').attr('title'));
 		element.children('b').hide();
 		element.find('.button').hide();
-		var input = $('input.new-name', element);
+		let input = $('input.new-name', element);
 
 		if (!input.length) {
 			element.append('<input type="text" size="' + (oldName.length + 4) + '" class="new-name" value="' + oldName + '">');
@@ -787,26 +787,26 @@ var _Pages = {
 
 		input.show().focus().select();
 
-		input.on('blur', function() {
-			input.off('blur');
-			var self = $(this);
-			var newName = self.val();
+		let saveFn = (self) => {
+			let newName = self.val();
 			Command.setProperty(id, "name", newName);
 			_Pages.resetTab(element, newName);
+		};
+
+		input.off('blur').on('blur', function() {
+			input.off('blur');
+			saveFn($(this));
 		});
 
-		input.keypress(function(e) {
+		input.off('keypress').on('keypress', function(e) {
 			if (e.keyCode === 13 || e.keyCode === 9) {
-				e.preventDefault();
-				var self = $(this);
-				var newName = self.val();
-				Command.setProperty(id, "name", newName);
-				_Pages.resetTab(element, newName);
+				e.stopPropagation();
+				input.off('blur');
+				saveFn($(this));
 			}
 		});
 
 		element.off('click');
-
 	},
 	appendPageElement: function(entity) {
 
