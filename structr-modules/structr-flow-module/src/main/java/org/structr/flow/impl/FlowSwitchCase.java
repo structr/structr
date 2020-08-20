@@ -19,35 +19,25 @@
 package org.structr.flow.impl;
 
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
 import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
-import org.structr.flow.impl.rels.FlowContainerBaseNode;
+import org.structr.core.property.StringProperty;
+import org.structr.flow.api.FlowElement;
+import org.structr.flow.api.FlowType;
+import org.structr.flow.api.Switch;
+import org.structr.flow.impl.rels.FlowSwitchCases;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- */
-public abstract class FlowBaseNode extends AbstractNode implements DeployableEntity {
+public class FlowSwitchCase extends FlowNode implements Switch, DeployableEntity {
+	public static final Property<String> switchCase                    = new StringProperty("case");
+	public static final Property<FlowSwitch> switchNode                = new StartNode<>("switch", FlowSwitchCases.class);
 
-	public static final Property<FlowContainer> flowContainer = new StartNode<>("flowContainer", FlowContainerBaseNode.class).indexed();
-
-	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public);
-	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui, flowContainer);
-
-	@Override
-	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		super.onCreation(securityContext, errorBuffer);
-
-		this.setProperty(visibleToAuthenticatedUsers, true);
-		this.setProperty(visibleToPublicUsers, true);
-	}
+	public static final View defaultView 						       = new View(FlowAction.class, PropertyView.Public, switchCase, next, switchNode);
+	public static final View uiView      						       = new View(FlowAction.class, PropertyView.Ui, switchCase, next, switchNode);
 
 	@Override
 	public Map<String, Object> exportData() {
@@ -55,9 +45,25 @@ public abstract class FlowBaseNode extends AbstractNode implements DeployableEnt
 
 		result.put("id", this.getUuid());
 		result.put("type", this.getClass().getSimpleName());
+		result.put("switchCase", this.getProperty(switchCase));
 		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
 		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
 
 		return result;
+	}
+
+	@Override
+	public FlowType getFlowType() {
+		return FlowType.Switch;
+	}
+
+	@Override
+	public FlowContainer getFlowContainer() {
+		return getProperty(flowContainer);
+	}
+
+	@Override
+	public FlowElement next() {
+		return getProperty(next);
 	}
 }

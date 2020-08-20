@@ -55,7 +55,9 @@ public abstract class FlowAbstractDeploymentHandler implements FlowDeploymentInt
 			FlowFilter.class,
 			FlowComparison.class,
 			FlowFork.class,
-			FlowForkJoin.class
+			FlowForkJoin.class,
+			FlowSwitch.class,
+			FlowSwitchCase.class
 	};
 
 	protected static final Class[] relsToExport = {
@@ -84,7 +86,8 @@ public abstract class FlowAbstractDeploymentHandler implements FlowDeploymentInt
 			FlowContainerPackageFlow.class,
 			FlowContainerPackagePackage.class,
 			FlowConditionBaseNode.class,
-			FlowForkBody.class
+			FlowForkBody.class,
+			FlowSwitchCases.class
 	};
 
 }

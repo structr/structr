@@ -18,19 +18,9 @@
  */
 package org.structr.flow.api;
 
-/**
- *
- */
-public enum FlowType {
+public interface Switch extends FlowElement {
 
-	Action,
-	Decision,
-	Return,
-	ForEach,
-	Store,
-	Aggregation,
-	Exception,
-	Filter,
-	Fork,
-	Switch
+	default FlowType getFlowType() {
+		return FlowType.Switch;
+	}
 }
