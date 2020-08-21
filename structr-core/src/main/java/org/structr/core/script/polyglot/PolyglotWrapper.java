@@ -51,6 +51,16 @@ public abstract class PolyglotWrapper {
 		} else if (obj instanceof Map) {
 
 			return new PolyglotProxyMap(actionContext, (Map<String, Object>)obj);
+		} else if (obj instanceof Enumeration) {
+
+			Enumeration enumeration = (Enumeration)obj;
+			List<Object> enumList = new ArrayList<>();
+			while (enumeration.hasMoreElements()) {
+
+				enumList.add(enumeration.nextElement());
+			}
+
+			return new PolyglotProxyArray(actionContext, enumList.toArray());
 		}
 
 		return obj;
