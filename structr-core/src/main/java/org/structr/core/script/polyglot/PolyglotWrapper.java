@@ -44,7 +44,7 @@ public abstract class PolyglotWrapper {
 			return new GraphObjectWrapper(actionContext, (GraphObject) obj);
 		} else if (obj.getClass().isArray()) {
 
-			return new PolyglotProxyArray(actionContext, (Object[])obj);
+			return new PolyglotProxyArray(actionContext, (Object[]) obj);
 		} else 	if (obj instanceof Iterable) {
 
 			return new PolyglotProxyArray(actionContext, StreamSupport.stream(((Iterable)obj).spliterator(), false).toArray());
