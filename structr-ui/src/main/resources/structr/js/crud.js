@@ -17,7 +17,6 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var defaultType, defaultView, defaultSort, defaultOrder, defaultPage, defaultPageSize;
-var searchField;
 var browser = (typeof document === 'object');
 
 if (browser) {
@@ -35,36 +34,6 @@ if (browser) {
 		main = $('#main');
 
 		Structr.registerModule(_Crud);
-
-		$(document).on('click', '#crud-left li', function() {
-			_Crud.typeSelected($(this).data('type'));
-		});
-
-		$(document).on('click', '#crud-recent-types .remove-recent-type', function (e) {
-			e.stopPropagation();
-			_Crud.removeRecentType($(this).closest('li').data('type'));
-		});
-
-		$(document).on('click', '#crudTypesFilterToggle', function (e) {
-			e.preventDefault();
-			$('#crudTypeFilterSettings').toggleClass('hidden');
-			return false;
-		});
-
-		$(document).on('click', '#crudTypeFilterSettings', function(e) {
-			e.stopPropagation();
-		});
-
-		$(document).on('change', '#crudTypeFilterSettings input', function(e) {
-			_Crud.updateTypeList();
-			LSWrapper.setItem(_Crud.displayTypeConfigKey, _Crud.getTypeVisibilityConfig());
-		});
-
-		$(document).on('click', function() {
-			if ($('#crudTypeFilterSettings').is(':visible')) {
-				_Crud.hideTypeVisibilityConfig();
-			}
-		});
 	});
 
 } else {
@@ -75,13 +44,12 @@ var _Crud = {
 	_moduleName: 'crud',
 	defaultCollectionPageSize: 10,
 	resultCountSoftLimit: 10000,
-	displayTypeConfigKey: 'structrCrudDisplayTypes_' + port,
 	crudPagerDataKey: 'structrCrudPagerData_' + port + '_',
 	crudTypeKey: 'structrCrudType_' + port,
 	crudHiddenColumnsKey: 'structrCrudHiddenColumns_' + port,
 	crudRecentTypesKey: 'structrCrudRecentTypes_' + port,
-	crudResizerLeftKey: 'structrCrudResizerLeft_' + port,
 	crudExactTypeKey: 'structrCrudExactType_' + port,
+	searchField: undefined,
 	types: {},
 	availableViews: {},
 	relInfo: {},
@@ -161,7 +129,6 @@ var _Crud = {
 	},
 	getProperties: function(type, callback) {
 
-		// We need at least the type to do anything
 		if (type === null) {
 			return;
 		}
@@ -197,75 +164,12 @@ var _Crud = {
 	page: {},
 	exact: {},
 	pageSize: {},
-	typeCategories: {
-		rels: 'Relationship Types',
-		custom: 'Custom Types',
-		core: 'Core Types',
-		html: 'HTML Types',
-		file: 'File Types',
-		ui: 'UI Types',
-		flow: 'Flow Types',
-		log: 'Log Types',
-		other: 'Other Types'
-	},
-	defaultTypeVisibility: {
-		rels: false,
-		custom: true,
-		core: false,
-		html: false,
-		file: false,
-		ui: true,
-		flow: false,
-		log: false,
-		other: true
-	},
-	moveResizer: function(left) {
-		left = left || LSWrapper.getItem(_Crud.crudResizerLeftKey) || 210;
-		$('.column-resizer', main).css({ left: left });
-
-		$('#crud-left-inner').css({width: left - 14 + 'px'});
-	},
 	init: function() {
 
-		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search"><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
-		main.append('<div id="crud-main"><div class="column-resizer"></div><div id="crud-left"><div id="crud-left-inner">'
-				+ '<div id="crud-types" class="resourceBox"><h2>Types</h2><i id="crudTypesFilterToggle" title="Auto-filter types" class="' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" /><div id="crudTypeFilterSettings" class="hidden"></div><input placeholder="Filter types..." id="crudTypesSearch"><ul id="crud-types-list"></ul></div>'
-				+ '<div id="crud-recent-types" class="resourceBox"><h2>Recent</h2><ul id="crud-recent-types-list"></ul></div></div></div>'
-				+ '<div id="crud-right" class="resourceBox"></div></div>');
-
-		_Crud.moveResizer();
-		Structr.initVerticalSlider($('.column-resizer', main), _Crud.crudResizerLeftKey, 204, _Crud.moveResizer);
-
-		let filterSettings = $('#crudTypeFilterSettings');
-		var savedTypeVisibility = LSWrapper.getItem(_Crud.displayTypeConfigKey) || {};
+		main.append('<div class="searchBox"><input class="search" name="crud-search" placeholder="Search"><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
+		main.append('<div id="crud-main"><div id="crud-top"><select id="crud-types-select"><optgroup label="Recent Types" id="crud-types-select-recent"></optgroup><optgroup label="All Types" id="crud-types-select-all"></optgroup></select></div><div id="crud-type-detail" class="resourceBox"></div></div>');
 
 		_Crud.exact = LSWrapper.getItem(_Crud.crudExactTypeKey) || {};
-
-		Object.keys(_Crud.typeCategories).forEach(function(k) {
-			let elId = 'crudTypeToggle' + k;
-			filterSettings.append('<div><input type="checkbox" id="' + elId + '"><label for="' + elId + '"> ' + _Crud.typeCategories[k] + '</label></div>');
-			$('#' + elId).prop('checked', (savedTypeVisibility[k] === undefined ? _Crud.defaultTypeVisibility[k] : savedTypeVisibility[k]));
-		});
-
-		$('#crudTypesSearch').keyup(function (e) {
-			if (e.keyCode === 27) {
-
-				$(this).val('');
-
-			} else if (e.keyCode === 13) {
-
-				var filterVal = $(this).val().toLowerCase();
-				var matchingTypes = Object.keys(_Crud.types).filter(function(type) {
-					return type.toLowerCase() === filterVal;
-				});
-
-				if (matchingTypes.length === 1) {
-					_Crud.typeSelected(matchingTypes[0]);
-				}
-			}
-
-			_Crud.filterTypes($(this).val().toLowerCase());
-		});
 
 		_Crud.schemaLoading = false;
 		_Crud.schemaLoaded = false;
@@ -274,37 +178,100 @@ var _Crud = {
 		_Crud.loadSchema(function() {
 
 			if (browser) {
-				_Crud.updateTypeList();
+
+				let typeSelect = document.getElementById('crud-types-select');
+				let optGroupAll = document.getElementById('crud-types-select-all');
+				let optGroupRecent = document.getElementById('crud-types-select-recent');
+
+				let allTypes    = Object.keys(_Crud.types).sort();
+				let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
+
+				for (let recentTypeName of recentTypes) {
+
+					// only add to list if it exists!
+					if (allTypes.includes(recentTypeName)) {
+
+						let option = document.createElement('option');
+						option.id = recentTypeName;
+						option.textContent = recentTypeName;
+						option.selected = (recentTypeName === _Crud.type);
+
+						optGroupRecent.appendChild(option);
+					}
+				}
+
+				allTypes.map((typeName) => {
+					let option = document.createElement('option');
+					option.id = typeName;
+					option.textContent = typeName;
+
+					if (typeName !== _Crud.type && !recentTypes.includes(typeName)) {
+						optGroupAll.appendChild(option);
+					}
+				});
+
+				let select2 = $(typeSelect).select2({
+					dropdownParent: $('#crud-top')
+				});
+				select2.on('select2:select', (e) => {
+
+					let typeName = e.params.data.text;
+					let element  = e.params.data.element;
+
+					optGroupRecent.insertBefore(element, optGroupRecent.firstChild);
+
+					select2 = $(typeSelect).select2({
+						dropdownParent: $('#crud-top')
+					});
+
+					_Crud.typeSelected(typeName);
+				});
+
 				_Crud.typeSelected(_Crud.type);
-				_Crud.updateRecentTypeList(_Crud.type);
 			}
 			_Crud.resize();
 			Structr.unblockMenu();
 		});
 
-		searchField = $('.search', main);
-		searchField.focus();
+		_Crud.searchField = $('.search', main);
+		_Crud.searchField.focus();
 
-		searchField.keyup(function(e) {
+		Structr.appendInfoTextToElement({
+			element: _Crud.searchField,
+			text: 'By default a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search like so:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
+			insertAfter: true,
+			css: {
+				left: '-18px',
+				position: 'absolute'
+			},
+			helpElementCss: {
+				fontSize: '12px',
+				lineHeight: '1.1em'
+			}
+		});
+
+		let crudMain = $('#crud-main');
+
+		_Crud.searchField.keyup(function(e) {
 			var searchString = $(this).val();
 			if (searchString && searchString.length && e.keyCode === 13) {
 
 				$('.clearSearchIcon').show().on('click', function() {
-					_Crud.clearSearch(main);
+					_Crud.clearSearch(crudMain);
 				});
 
-				_Crud.search(searchString, main, null, function(e, node) {
+				_Crud.search(searchString, crudMain, null, function(e, node) {
 					e.preventDefault();
 					_Crud.showDetails(node, false, node.type);
 					return false;
 				});
 
-				$('#crud-main', main).hide();
-				$('#resourceBox', main).hide();
+				$('#crud-top').hide();
+				$('#crud-type-detail').hide();
 
 			} else if (e.keyCode === 27 || searchString === '') {
 
-				_Crud.clearSearch(main);
+				_Crud.clearSearch(crudMain);
 			}
 		});
 	},
@@ -331,51 +298,6 @@ var _Crud = {
 			_Crud.resize();
 		});
 	},
-	updateTypeList: function () {
-
-		var $typesList = $('#crud-types-list');
-		$typesList.empty();
-
-		var typeVisibility = _Crud.getTypeVisibilityConfig();
-
-		var extendsHtmlType = function (extendsClass) {
-			return (['org.structr.dynamic.DOMElement', 'org.structr.dynamic.DOMNode', 'org.structr.dynamic.LinkSource', 'org.structr.dynamic.Content'].indexOf(extendsClass) !== -1);
-		};
-
-		var extendsFileType = function (extendsClass) {
-			return (['org.structr.dynamic.File', 'org.structr.dynamic.AbstractFile', 'org.structr.dynamic.Folder', 'org.structr.dynamic.Image'].indexOf(extendsClass) !== -1);
-		};
-
-		var isPrincipalType = function (type) {
-			return type.className === 'org.structr.dynamic.Principal' || type.extendsClass === 'org.structr.dynamic.Principal';
-		};
-
-		Object.keys(_Crud.types).sort().forEach(function(typeName) {
-
-			var type = _Crud.types[typeName];
-
-			var isRelType     = type.isRel;
-			var isDynamicType = !isRelType && (type.className.startsWith('org.structr.dynamic') && !extendsHtmlType(type.extendsClass) && !extendsFileType(type.extendsClass) && !isPrincipalType(type));
-			var isCoreType    = !isRelType && type.className.startsWith('org.structr.core.entity');
-			var isHtmlType    = !isRelType && extendsHtmlType(type.extendsClass);
-			var isFileType    = !isRelType && extendsFileType(type.extendsClass);
-			var isUiType      = !isRelType && isPrincipalType(type);
-			var isFlowType    = !isRelType && type.className.startsWith('org.structr.flow');
-			var isLogType     = !isRelType && type.className.startsWith('org.structr.rest.logging.entity');
-			var isOtherType   = !(isRelType || isDynamicType || isCoreType || isHtmlType || isFileType || isUiType || isFlowType || isLogType);
-
-			var hide =	(!typeVisibility.rels && isRelType) || (!typeVisibility.custom && isDynamicType) || (!typeVisibility.core && isCoreType) || (!typeVisibility.html && isHtmlType) ||
-						(!typeVisibility.file && isFileType) || (!typeVisibility.ui && isUiType) || (!typeVisibility.flow && isFlowType) || (!typeVisibility.log && isLogType) || (!typeVisibility.other && isOtherType);
-
-			if (!hide) {
-				$typesList.append('<li class="crud-type" data-type="' + typeName + '">' + typeName + '</li>');
-			}
-		});
-
-		_Crud.highlightCurrentType(_Crud.type);
-		_Crud.filterTypes($('#crudTypesSearch').val().toLowerCase());
-		_Crud.resize();
-	},
 	messageTimeout: undefined,
 	showLoadingMessageAfterDelay: function (message, delay) {
 
@@ -390,22 +312,20 @@ var _Crud = {
 
 			_Crud.removeMessage();
 
-			let crudRight = $('#crud-right');
+			let crudRight = $('#crud-type-detail');
 			crudRight.append('<div class="crud-message"><div class="crud-centered">' + message + '</div></div>');
 
 		}, delay);
 
 	},
 	removeMessage: function() {
-		$('#crud-right .crud-message').remove();
+		$('#crud-type-detail .crud-message').remove();
 	},
 	typeSelected: function (type) {
 
-		_Crud.hideTypeVisibilityConfig();
 		_Crud.updateRecentTypeList(type);
-		_Crud.highlightCurrentType(type);
 
-		var crudRight = $('#crud-right');
+		var crudRight = $('#crud-type-detail');
 		fastRemoveAllChildren(crudRight[0]);
 		_Crud.showLoadingMessageAfterDelay('Loading schema information for type <b>' + type + '</b>', 500);
 
@@ -472,6 +392,26 @@ var _Crud = {
 			_Crud.updateUrl(type);
 		});
 	},
+	updateRecentTypeList: function (selectedType) {
+
+		let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
+
+		if (recentTypes && selectedType) {
+
+			recentTypes = recentTypes.filter(function(type) {
+				return (type !== selectedType);
+			});
+			recentTypes.unshift(selectedType);
+
+		} else if (selectedType) {
+
+			recentTypes = [selectedType];
+
+		}
+
+		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
+
+	},
 	getCurrentProperties: function(type) {
 		let properties = _Crud.availableViews[type].all;
 
@@ -489,102 +429,13 @@ var _Crud = {
 
 		let properties = _Crud.getCurrentProperties(type);
 
-		var tableHeaderRow = $('#crud-right table thead tr');
+		var tableHeaderRow = $('#crud-type-detail table thead tr');
 		fastRemoveAllChildren(tableHeaderRow[0]);
 
 		_Crud.filterKeys(type, Object.keys(properties)).forEach(function(key) {
 			tableHeaderRow.append('<th class="' + _Crud.cssClassForKey(key) + '">' + key + '</th>');
 		});
 		tableHeaderRow.append('<th class="___action_header">Actions</th>');
-	},
-	getTypeVisibilityConfig: function () {
-
-		let visibility = {};
-
-		Object.keys(_Crud.typeCategories).forEach(function(k) {
-			visibility[k] = $('#crudTypeToggle' + k).prop('checked');
-		});
-
-		return visibility;
-	},
-	hideTypeVisibilityConfig: function () {
-		$('#crudTypeFilterSettings').addClass('hidden');
-	},
-	highlightCurrentType: function (selectedType) {
-
-		$('#crud-left li').removeClass('active');
-		$('#crud-left li[data-type="' + selectedType + '"]').addClass('active');
-
-		var $crudTypesList = $('#crud-types-list');
-		var $selectedElementInTypeList = $('li[data-type="' + selectedType + '"]', $crudTypesList);
-
-		if ($selectedElementInTypeList && $selectedElementInTypeList.length > 0) {
-			var positionOfList = $crudTypesList.position().top;
-			var scrollTopOfList = $crudTypesList.scrollTop();
-			var positionOfElement = $selectedElementInTypeList.position().top;
-			$crudTypesList.animate({scrollTop: positionOfElement + scrollTopOfList - positionOfList });
-		} else {
-			$crudTypesList.animate({scrollTop: 0});
-		}
-
-	},
-	filterTypes: function (filterVal) {
-		$('#crud-types-list li').each(function (i, el) {
-			var $el = $(el);
-			($el.data('type').toLowerCase().indexOf(filterVal) === -1) ? $el.hide() : $el.show();
-		});
-	},
-	updateRecentTypeList: function (selectedType) {
-
-		var recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
-
-		if (recentTypes && selectedType) {
-
-			var recentTypes = recentTypes.filter(function(type) {
-				return (type !== selectedType);
-			});
-			recentTypes.unshift(selectedType);
-
-		} else if (selectedType) {
-
-			recentTypes = [selectedType];
-
-		}
-
-		recentTypes = recentTypes.slice(0, 12);
-
-		if (recentTypes) {
-			var $recentTypesList = $('#crud-recent-types-list');
-
-			$('li', $recentTypesList).remove();
-
-			recentTypes.forEach(function (type) {
-				$recentTypesList.append('<li class="crud-type' + (selectedType === type ? ' active' : '') + '" data-type="' + type + '">' + type + '<i class="remove-recent-type ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></li>');
-			});
-
-		}
-
-		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
-
-	},
-	removeRecentType: function (typeToRemove) {
-
-		var currentType = LSWrapper.getItem(_Crud.crudTypeKey);
-		if (typeToRemove === currentType) {
-			LSWrapper.removeItem(_Crud.crudTypeKey);
-		}
-
-		var recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
-
-		if (recentTypes) {
-			recentTypes = recentTypes.filter(function(type) {
-				return (type !== typeToRemove);
-			});
-		}
-
-		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
-
-		_Crud.updateRecentTypeList();
 	},
 	updateUrl: function(type) {
 
@@ -595,7 +446,7 @@ var _Crud = {
 			window.location.hash = 'crud';
 
 		}
-		searchField.focus();
+		_Crud.searchField.focus();
 
 	},
 	/**
@@ -774,7 +625,7 @@ var _Crud = {
 		return LSWrapper.getItem(_Crud.crudPagerDataKey + '_collectionPage_' + type + '.' + _Crud.cssClassForKey(key));
 	},
 	replaceSortHeader: function(type) {
-		var table = $('#crud-right table');
+		var table = $('#crud-type-detail table');
 		var newOrder = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
 		$('th', table).each(function(i, t) {
 			var th = $(t);
@@ -1066,7 +917,7 @@ var _Crud = {
 		_Crud.list(type, url);
 	},
 	clearList: function(type) {
-		var div = $('#crud-right table tbody');
+		var div = $('#crud-type-detail table tbody');
 		fastRemoveAllChildren(div[0]);
 	},
 	list: function(type, url) {
@@ -1150,7 +1001,7 @@ var _Crud = {
 		}
 	},
 	crudExport: function(type) {
-		var url = csvRootUrl + '/' + $('#crud-right').data('url') + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+		var url = csvRootUrl + '/' + $('#crud-type-detail').data('url') + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
 
 		_Crud.dialog('Export ' + type + ' list as CSV', function() {}, function() {});
 
@@ -1193,7 +1044,7 @@ var _Crud = {
 	},
 	crudImport: function(type) {
 
-		var url = csvRootUrl + $('#crud-right').data('url');
+		var url = csvRootUrl + $('#crud-type-detail').data('url');
 
 		_Crud.dialog('Import CSV data for type ' + type + '', function() {}, function() {});
 
@@ -1301,7 +1152,7 @@ var _Crud = {
 	updatePager: function(type, qt, st, ps, p, pc) {
 
 		let softLimited = false;
-		var typeNode = $('#crud-right');
+		var typeNode = $('#crud-type-detail');
 		$('.queryTime', typeNode).text(qt);
 		$('.serTime', typeNode).text(st);
 		$('.pageSize', typeNode).val(ps);
@@ -1831,7 +1682,7 @@ var _Crud = {
 		_Crud.getProperties(item.type, function() {
 
 			var id = item['id'];
-			var tbody = $('#crud-right table tbody');
+			var tbody = $('#crud-type-detail table tbody');
 			var row = _Crud.row(id);
 			if ( !(row && row.length) ) {
 				tbody.append('<tr class="_' + id + '"></tr>');
@@ -2217,15 +2068,14 @@ var _Crud = {
 		if (_Crud.clearSearchResults(el)) {
 			$('.clearSearchIcon').hide().off('click');
 			$('.search').val('');
-			$('#crud-main', main).show();
-			$('#resourceBox', main).show();
+			$('#crud-top').show();
+			$('#crud-type-detail').show();
 		}
 	},
 	clearSearchResults: function(el) {
 		var searchResults = $('.searchResults', el);
 		if (searchResults.length) {
 			searchResults.remove();
-			$('.searchResultsTitle').remove();
 			return true;
 		}
 		return false;
@@ -2239,8 +2089,7 @@ var _Crud = {
 
 		_Crud.clearSearchResults(el);
 
-		el.append('<h2 class="searchResultsTitle">Search Results</h2>');
-		el.append('<div class="searchResults"></div>');
+		el.append('<div class="searchResults"><h2>Search Results</h2></div>');
 		var searchResults = $('.searchResults', el);
 
 		_Crud.resize();
@@ -2263,10 +2112,12 @@ var _Crud = {
 			if (type) {
 				types = type.split(',').filter(function(t) { return t.trim() !== ''; });
 			} else {
-				types = Object.keys(_Crud.types);
+				// only search in node types
+				types = Object.keys(_Crud.types).filter((t) => { return !_Crud.types[t].isRel; });
 			}
 			if (searchString.match(/[0-9a-f]{32}/)) {
 				attr = 'uuid'; // UUID
+				types = ['AbstractNode'];
 			}
 		}
 
@@ -2602,7 +2453,7 @@ var _Crud = {
 						dialogCloseButton.remove();
 					}
 					$('#saveProperties').remove();
-					searchField.focus();
+					_Crud.searchField.focus();
 				});
 			}
 
@@ -2624,19 +2475,12 @@ var _Crud = {
 				top: dimensions.top + 'px',
 				left: dimensions.left + 'px'
 			});
-
 		}
 
 		$('#dialogBox .dialogTextWrapper').css({
 			width: (dimensions.width - 28) + 'px',
 			height: (dimensions.height - 106) + 'px'
 		});
-
-		$('.searchResults').css({
-			height: ($(window).height() - 103) + 'px'
-		});
-
-		_Crud.moveResizer();
 
 		Structr.resize();
 
@@ -2961,7 +2805,7 @@ var _Crud = {
 
 			hiddenKeys.push(key);
 
-			var table = $('#crud-right table');
+			var table = $('#crud-type-detail table');
 
 			// remove column(s) from table
 			$('th.' + _Crud.cssClassForKey(key), table).remove();
