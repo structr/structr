@@ -186,8 +186,8 @@ public interface DataFeed extends NodeInterface {
 
 				final PropertyKey<Date> dateKey  = StructrApp.key(FeedItem.class, "pubDate");
 				final PropertyKey<String> urlKey = StructrApp.key(FeedItem.class, "url");
-                                final URL remote                 = new URL(remoteUrl);
-                                final SyndFeedInput input        = new SyndFeedInput();
+				final URL remote                 = new URL(remoteUrl);
+				final SyndFeedInput input        = new SyndFeedInput();
 
 				try (final Reader reader = new XmlReader(remote)) {
 
