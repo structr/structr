@@ -1123,25 +1123,29 @@ var _Pages = {
 	reloadDataBindingWizard: function() {
 		dataBindingSlideout.children('#wizard').remove();
 		dataBindingSlideout.prepend('<div class="inner" id="wizard"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');
-		// Command.list(type, rootOnly, pageSize, page, sort, order, callback) {
-		var selectedType = LSWrapper.getItem(_Pages.selectedTypeKey);
-		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', 'id,name', function(typeNodes) {
-			typeNodes.forEach(function(typeNode) {
-				$('#type-selector').append('<option ' + (typeNode.id === selectedType ? 'selected' : '') + ' value="' + typeNode.id + '">' + typeNode.name + '</option>');
-			});
-		});
 
-		$('#data-wizard-attributes').empty();
-		if (selectedType) {
-			_Pages.showTypeData(selectedType);
-		}
+		let lastSelectedType = LSWrapper.getItem(_Pages.selectedTypeKey);
+
+		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', 'id,name', function(typeNodes) {
+
+			let lastSelectedTypeExists = false;
+
+			typeNodes.forEach(function(typeNode) {
+				lastSelectedTypeExists = (typeNode.id === lastSelectedType);
+				$('#type-selector').append('<option ' + (lastSelectedTypeExists ? 'selected' : '') + ' value="' + typeNode.id + '">' + typeNode.name + '</option>');
+			});
+
+			$('#data-wizard-attributes').empty();
+			if (lastSelectedType && lastSelectedTypeExists) {
+				_Pages.showTypeData(lastSelectedType);
+			}
+		});
 
 		$('#type-selector').on('change', function() {
 			$('#data-wizard-attributes').empty();
-			var id = $(this).children(':selected').attr('value');
+			let id = $(this).children(':selected').attr('value');
 			_Pages.showTypeData(id);
 		});
-
 	},
 	showTypeData: function(id) {
 		if (!id) {
