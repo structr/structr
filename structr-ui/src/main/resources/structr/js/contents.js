@@ -260,7 +260,13 @@ var _Contents = {
 	},
 	load: function(id, callback) {
 
-		Command.query('ContentContainer', containerPageSize, containerPage, 'position', 'asc', {parent: id}, function(folders) {
+		let filter = null;
+
+		if (id) {
+			filter = {parent: id};
+		}
+
+		Command.query('ContentContainer', containerPageSize, containerPage, 'position', 'asc', filter, function(folders) {
 
 			var list = [];
 
@@ -279,7 +285,7 @@ var _Contents = {
 
 			_TreeHelper.makeDroppable(contentTree, list);
 
-		}, true);
+		}, true, null, 'id,name,items,isContentContainer,childContainers,path');
 
 	},
 	setWorkingDirectory: function(id) {
