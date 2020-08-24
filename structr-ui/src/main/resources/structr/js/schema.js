@@ -325,7 +325,7 @@ var _Schema = {
 	},
 	onload: function() {
 		main.append(
-			'<div id="inheritance-tree" class="slideOut slideOutLeft"><div class="compTab" id="inheritanceTab">Inheritance Tree</div>Search: <input type="text" id="search-classes"><div id="inheritance-tree-container" class="ver-scrollable hidden"></div></div>'
+			'<div id="inheritance-tree" class="slideOut slideOutLeft"><div class="compTab" id="inheritanceTab">Inheritance Tree</div><div class="inheritance-search">Search: <input type="text" id="search-classes"></div><div id="inheritance-tree-container" class="ver-scrollable hidden"></div></div>'
 			+ '<div id="schema-container"></div>'
 		);
 		schemaContainer = $('#schema-container');
@@ -333,10 +333,6 @@ var _Schema = {
 		inheritanceTree = $('#inheritance-tree-container');
 
 		var updateCanvasTranslation = function() {
-			var windowHeight = $(window).height();
-			$('.ver-scrollable').css({
-				height: (windowHeight - inheritanceTree.offset().top - 25) + 'px'
-			});
 			canvas.css('transform', _Schema.ui.getSchemaCSSTransform());
 			_Schema.resize();
 		};

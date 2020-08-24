@@ -252,16 +252,8 @@ var _Elements = {
 	reloadPalette: function() {
 
 		paletteSlideout.find(':not(.compTab)').remove();
-		paletteSlideout.append('<div class="ver-scrollable" id="paletteArea"></div>');
+		paletteSlideout.append('<div id="paletteArea"></div>');
 		palette = $('#paletteArea', paletteSlideout);
-
-		palette.droppable({
-			drop: function(e, ui) {
-				e.preventDefault();
-				e.stopPropagation();
-				return false;
-			}
-		});
 
 		if (!$('.draggable', palette).length) {
 
@@ -291,7 +283,7 @@ var _Elements = {
 		componentsSlideout.append('<div class="" id="newComponentDropzone"><div class="new-component-info"><i class="active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /><i class="inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> Drop element here to create new shared component</div></div>');
 		let newComponentDropzone = $('#newComponentDropzone', componentsSlideout);
 
-		componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>');
+		componentsSlideout.append('<div id="componentsArea"></div>');
 		components = $('#componentsArea', componentsSlideout);
 
 		newComponentDropzone.droppable({
@@ -347,7 +339,7 @@ var _Elements = {
 
 			_Elements.clearUnattachedNodes();
 
-			elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>');
+			elementsSlideout.append('<div id="elementsArea"></div>');
 			elements = $('#elementsArea', elementsSlideout);
 
 			elements.before('<button class="btn action disabled" id="delete-all-unattached-nodes" disabled>Loading </button>');
@@ -400,7 +392,6 @@ var _Elements = {
 					_Entities.ensureExpanded(el);
 				}
 			}
-
 		});
 	},
 	componentNode: function(id) {

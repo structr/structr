@@ -301,6 +301,7 @@ img.disabled {
 }
 
 #pages,
+#activeElements,
 #dataBinding,
 #localizations,
 #propertyDefinitions,
@@ -318,17 +319,34 @@ img.disabled {
 	padding: 6px;
 }
 
+.slideOutLeft {
+	margin: 3px 9px 6px 0;
+}
+
+.slideOutRight {
+	margin: 3px 0 6px 9px;
+}
+
 #users > .node.user, #groups > .node.group {
 	margin-left: 0;
 }
 
-#widgets,
-#remoteWidgets {
-	width: calc(100% - 10px)
+#widgetsSlideout #widgets, #widgetsSlideout #remoteWidgets {
+	min-height: 48px;
+	margin-right: 26px;
+}
+
+#widgetsSlideout {
+	padding: 0 0 0 12px;
 }
 
 #remoteWidgets input:first-of-type  {
 	margin-top: -6px;
+}
+
+#widgetsSlideout .inner {
+	height: 100%;
+	overflow: auto;
 }
 
 #widgetsSlideout select#widget-server-selector {
@@ -366,28 +384,6 @@ img.disabled {
 
 .ver-scrollable h2 {
 	margin-top: 8px;
-}
-
-#previews {
-	margin: 4px 25px 0 25px;
-}
-
-#previews.no-preview::before {
-	content: "- no preview selected -";
-	font-style: italic;
-	position: absolute;
-	left: 50%;
-	top: 50%;
-	z-index: -1;
-}
-
-.slideOutLeft {
-	margin: 3px 9px 6px 0;
-}
-
-.slideOutRight {
-	margin: 3px 0 6px 9px;
-
 }
 
 #images > div:first-child {
@@ -512,7 +508,7 @@ img.disabled {
 }
 
 .slideOut {
-	min-height: 800px;
+	height: calc(100% - 120px);
 	margin: 0;
 	border-top: 1px solid rgba(0,0,0,.125) ! important;
 	border-bottom: 1px solid rgba(0,0,0,.125) ! important;
@@ -527,8 +523,8 @@ img.disabled {
 }
 
 #inheritance-tree.slideOut {
-	top: 101px;
-	min-height: inherit;
+	display: flex;
+	flex-direction: column;
 }
 
 #inheritance-tree .icon {
@@ -541,7 +537,7 @@ img.disabled {
 }
 
 #inheritance-tree .jstree-anchor {
-	width: 100%;
+	width: calc(100% - 30px);
 }
 
 #inheritance-tree .edit_icon, #inheritance-tree .delete_icon {
@@ -557,7 +553,7 @@ img.disabled {
 }
 
 #inheritance-tree-container {
-	overflow-x: hidden;
+	overflow: auto;
 }
 
 .ver-scrollable > .node {
@@ -579,20 +575,15 @@ img.disabled {
 	border-right: 1px solid rgba(0,0,0,.125) ! important;
 }
 
-#widgetsSlideout #widgets, #widgetsSlideout #remoteWidgets {
-	min-height: 48px;
-	margin: 0 ! important;
-}
-
-#widgetsSlideout {
-	padding: 0 0 0 12px;
+#paletteArea {
+	height: 100%;
+	overflow: auto;
 }
 
 #palette .elementGroup {
-	float: left;
 	padding: 0;
-	margin: 0;
-	width: 380px;
+	margin-right: 10px;
+	margin-bottom: 6px;
 }
 
 #palette h2 {
@@ -612,8 +603,8 @@ img.disabled {
 .draggable {
 	font-size: 1.25em;
 	padding: 3px 6px;
-	float: left;
 	color: #333;
+	display: inline-block;
 	border: 1px solid transparent;
 	margin: 2px 2px;
 	background-color: #e3e3e3;
@@ -780,7 +771,6 @@ ul#previewTabs {
 	margin: 0;
 	padding: 0;
 	border: none;
-	height: 25px;
 }
 
 .data-tabs, .data-tabs ul, #tabs, #tabs ul, .files-tabs ul, .code-tabs ul, .favs-tabs ul, .dialogHeaderWrapper ul, .dialogText .schema-details ul {
@@ -914,7 +904,19 @@ ul#previewTabs {
 }
 
 #previews {
-	/*overflow: hidden ! important;*/
+	display: flex;
+	flex-direction: column;
+	margin: 4px 25px 0 25px;
+	height: calc(100% - 8px);
+}
+
+#previews.no-preview::before {
+	content: "- no preview selected -";
+	font-style: italic;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	z-index: -1;
 }
 
 .previewBox {
@@ -960,6 +962,7 @@ ul#previewTabs {
 
 .page b.name_ {
 	font-weight: normal;
+	margin-top: 2px;
 }
 
 .name_.abbr-ellipsis {
@@ -1308,6 +1311,15 @@ i.button {
 	border-right: 0px;
 }
 
+#components, #elements {
+	display: flex;
+	flex-direction: column;
+}
+
+#componentsArea, #elementsArea {
+	overflow: auto;
+}
+
 #componentsArea > .node, #elementsArea > .node {
 	margin-left: 0;
 }
@@ -1353,9 +1365,14 @@ i.button {
 	padding-left: 0;
 }
 
-#pages .ver-scrollable {
-	overflow-x: hidden;
-	margin-top: 4px;
+#pagesTree {
+	height: calc(100% - 26px);
+	overflow: auto;
+}
+
+#pages {
+	display: flex;
+	flex-direction: column;
 }
 
 #pages .node.page {
@@ -2694,7 +2711,8 @@ input.property-name:disabled {
  */
 #activeElements .inner {
 	margin-left: 12px;
-	margin-right: 12px;
+	height: 100%;
+	overflow: auto;
 }
 
 #activeElements h3 {
@@ -2722,13 +2740,20 @@ input.property-name:disabled {
 #dataBinding .inner {
 	margin-top: 16px;
 	margin-left: 28px;
+	height: calc(100% - 16px);
 }
 
 #dataBinding #type-selector {
 	width: 100%;
 }
 
-#dataBinding .draggable {
+#data-wizard-attributes {
+	height: calc(100% - 26px);
+}
+
+#data-wizard-attributes .properties {
+	max-height: calc(100% - 168px);
+	overflow: auto;
 }
 
 #dataBinding #flow-selector {
@@ -2772,7 +2797,13 @@ input.dataKey_ {
  */
 #localizations .inner {
 	margin-left: 12px;
-	margin-right: 12px;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+#localizations .results {
+	overflow: auto;
 }
 
 #localizations .inner input.locale {
@@ -2803,7 +2834,7 @@ input.dataKey_ {
 }
 
 .localization-element table td.input input {
-	width: calc(100% - 8px);
+	width: calc(100% - 12px);
 }
 
 /* Special highlighting for data-structr-hash attribute in internal editor */
