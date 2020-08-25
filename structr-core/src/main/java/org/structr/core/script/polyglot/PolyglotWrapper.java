@@ -44,13 +44,23 @@ public abstract class PolyglotWrapper {
 			return new GraphObjectWrapper(actionContext, (GraphObject) obj);
 		} else if (obj.getClass().isArray()) {
 
-			return new PolyglotProxyArray(actionContext, (Object[])obj);
+			return new PolyglotProxyArray(actionContext, (Object[]) obj);
 		} else 	if (obj instanceof Iterable) {
 
 			return new PolyglotProxyArray(actionContext, StreamSupport.stream(((Iterable)obj).spliterator(), false).toArray());
 		} else if (obj instanceof Map) {
 
 			return new PolyglotProxyMap(actionContext, (Map<String, Object>)obj);
+		} else if (obj instanceof Enumeration) {
+
+			Enumeration enumeration = (Enumeration)obj;
+			List<Object> enumList = new ArrayList<>();
+			while (enumeration.hasMoreElements()) {
+
+				enumList.add(enumeration.nextElement());
+			}
+
+			return new PolyglotProxyArray(actionContext, enumList.toArray());
 		}
 
 		return obj;

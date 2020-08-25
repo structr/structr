@@ -71,7 +71,7 @@ public class StructrBinding implements ProxyObject {
 			case "doPrivileged":
 				return new DoPrivilegedFunction(actionContext);
 			case "request":
-				return new HttpServletRequestWrapper(actionContext.getSecurityContext().getRequest());
+				return new HttpServletRequestWrapper(actionContext, actionContext.getSecurityContext().getRequest());
 			default:
 				if (actionContext.getConstant(name) != null) {
 					return wrap(actionContext,actionContext.getConstant(name));
@@ -134,7 +134,7 @@ public class StructrBinding implements ProxyObject {
 					// Special handling for request keyword, as it needs a wrapper
 					if (args[0].toString().equals("request")) {
 
-						return new HttpServletRequestWrapper(actionContext.getSecurityContext().getRequest());
+						return new HttpServletRequestWrapper(actionContext, actionContext.getSecurityContext().getRequest());
 					}
 
 					return PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, args[0].toString(), null, null, 0));

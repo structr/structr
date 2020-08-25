@@ -141,6 +141,9 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 		if (getOriginalObject() instanceof GraphObjectMap) {
 
 			return ((GraphObjectMap) getOriginalObject()).toMap().keySet().toArray();
+		} else if (getOriginalObject() != null){
+
+			return getOriginalObject().getPropertyKeys("all").stream().map(PropertyKey::dbName).toArray();
 		}
 		return null;
 	}
