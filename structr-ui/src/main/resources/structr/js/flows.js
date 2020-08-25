@@ -45,10 +45,9 @@ var _Flows = {
 	},
 	moveResizer: function(left) {
 		left = left || LSWrapper.getItem(_Flows.flowsResizerLeftKey) || 300;
-		document.querySelector('#flows-main .column-resizer').style.left = left + 'px';
+		flowsMain.querySelector('.column-resizer').style.left = left + 'px';
 
-		document.querySelector('#flows-tree-container').style.width   = left - 12 + 'px';
-		document.querySelector('#flows-canvas-container').style.width = window.innerWidth - left - 40 + 'px';
+		main.querySelector('#flows-tree').style.width = left - 14 + 'px';
 	},
 	onload: function() {
 
@@ -72,7 +71,7 @@ var _Flows = {
 
 		document.querySelector('#flows-canvas-container').insertAdjacentHTML('afterbegin', markup);
 
-        let rest = new Rest();
+		let rest = new Rest();
 		let persistence = new Persistence();
 
 		async function getOrCreateFlowPackage(packageArray) {

@@ -1078,6 +1078,6 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		}
 
-		this.stats.recordStatsValue("json", System.currentTimeMillis() - t0);
+		this.stats.recordStatsValue("json", resource.getResourceSignature(), System.currentTimeMillis() - t0);
 	}
 }

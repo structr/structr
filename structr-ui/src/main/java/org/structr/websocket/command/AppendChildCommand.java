@@ -22,10 +22,12 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+import org.w3c.dom.DOMException;
 
 /**
  *
@@ -94,12 +96,15 @@ public class AppendChildCommand extends AbstractCommand {
 
 				try {
 
-					final boolean isShadowPage = parentDOMNode.getOwnerDocument().equals(CreateComponentCommand.getOrCreateHiddenDocument());
-					final boolean isTemplate   = (parentDOMNode instanceof Template);
+					if (!(parentDOMNode instanceof Page)) {
 
-					if (isShadowPage && isTemplate && parentDOMNode.getParent() == null) {
-						getWebSocket().send(MessageBuilder.status().code(422).message("Appending children to root-level shared component Templates is not allowed").build(), true);
-						return;
+						final boolean isShadowPage = parentDOMNode.getOwnerDocument().equals(CreateComponentCommand.getOrCreateHiddenDocument());
+						final boolean isTemplate   = (parentDOMNode instanceof Template);
+
+						if (isShadowPage && isTemplate && parentDOMNode.getParent() == null) {
+							getWebSocket().send(MessageBuilder.status().code(422).message("Appending children to root-level shared component Templates is not allowed").build(), true);
+							return;
+						}
 					}
 
 				} catch (FrameworkException ex) {
@@ -108,7 +113,15 @@ public class AppendChildCommand extends AbstractCommand {
 
 				}
 
-				parentDOMNode.appendChild(node);
+				try {
+
+					parentDOMNode.appendChild(node);
+
+				} catch (DOMException dex) {
+
+					// send DOM exception
+					getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
+				}
 			}
 
 			TransactionCommand.registerNodeCallback(node, callback);

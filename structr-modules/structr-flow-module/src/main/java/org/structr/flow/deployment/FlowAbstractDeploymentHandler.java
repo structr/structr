@@ -55,7 +55,9 @@ public abstract class FlowAbstractDeploymentHandler implements FlowDeploymentInt
 			FlowFilter.class,
 			FlowComparison.class,
 			FlowFork.class,
-			FlowForkJoin.class
+			FlowForkJoin.class,
+			FlowSwitch.class,
+			FlowSwitchCase.class
 	};
 
 	protected static final Class[] relsToExport = {
@@ -66,17 +68,14 @@ public abstract class FlowAbstractDeploymentHandler implements FlowDeploymentInt
 			FlowContainerFlowNode.class,
 			FlowDataInput.class,
 			FlowDataInputs.class,
-			FlowDataSourceForEach.class,
 			FlowDecisionCondition.class,
 			FlowDecisionFalse.class,
 			FlowDecisionTrue.class,
 			FlowForEachBody.class,
-			FlowKeySource.class,
 			FlowKeyValueObjectInput.class,
 			FlowNameDataSource.class,
 			FlowNodeDataSource.class,
 			FlowNodes.class,
-			FlowValueSource.class,
 			FlowAggregateStartValue.class,
 			FlowScriptConditionSource.class,
 			FlowActiveContainerConfiguration.class,
@@ -84,7 +83,8 @@ public abstract class FlowAbstractDeploymentHandler implements FlowDeploymentInt
 			FlowContainerPackageFlow.class,
 			FlowContainerPackagePackage.class,
 			FlowConditionBaseNode.class,
-			FlowForkBody.class
+			FlowForkBody.class,
+			FlowSwitchCases.class
 	};
 
 }

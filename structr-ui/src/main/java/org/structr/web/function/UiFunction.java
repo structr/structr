@@ -23,11 +23,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-import org.structr.rest.common.HttpHelper;
 
 /**
  *
@@ -47,10 +46,6 @@ public abstract class UiFunction extends Function<Object, Object> {
 	protected GraphObjectMap headFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws IOException, FrameworkException {
 
 		final Map<String, String> headers = HttpHelper.head(requestUrl, password, username, ctx.getHeaders());
-
-		final GraphObjectMap response = new GraphObjectMap();
-		response.setProperty(new IntProperty("status"), headers.get("status"));
-		headers.remove("status");
 
 		final GraphObjectMap map = new GraphObjectMap();
 

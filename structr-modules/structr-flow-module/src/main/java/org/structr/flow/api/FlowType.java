@@ -31,5 +31,6 @@ public enum FlowType {
 	Aggregation,
 	Exception,
 	Filter,
-	Fork
+	Fork,
+	Switch
 }

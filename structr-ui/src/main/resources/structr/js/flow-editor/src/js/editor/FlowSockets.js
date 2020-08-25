@@ -86,6 +86,12 @@ export class FlowSockets {
         forkBody.combineWith(this._sockets['prev']);
         this._sockets['forkBody'] = forkBody;
 
+        let switch_switch = new D3NE.Socket('switch', 'Switch element', 'Connected to a switch\'s cases port.');
+        let switch_cases = new D3NE.Socket('cases', 'Case elements', 'Connects to a cases\'s switch port.');
+        switch_cases.combineWith(switch_switch);
+        this._sockets['switch'] = switch_switch;
+        this._sockets['cases'] = switch_cases;
+
     }
 
     static getInst() {

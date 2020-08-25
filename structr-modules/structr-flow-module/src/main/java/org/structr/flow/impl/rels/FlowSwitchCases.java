@@ -21,34 +21,33 @@ package org.structr.flow.impl.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.common.PermissionPropagation;
-import org.structr.core.entity.OneToOne;
-import org.structr.core.entity.Relation;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.impl.FlowKeyValue;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.ManyToOne;
+import org.structr.core.entity.OneToMany;
+import org.structr.core.property.PropertyMap;
+import org.structr.flow.impl.FlowNode;
+import org.structr.flow.impl.FlowSwitch;
+import org.structr.flow.impl.FlowSwitchCase;
 
 /**
  *
  */
-public class FlowKeySource extends OneToOne<DataSource, FlowKeyValue> implements PermissionPropagation {
+public class FlowSwitchCases extends OneToMany<FlowSwitch, FlowSwitchCase> implements PermissionPropagation {
 
 	@Override
-	public Class<DataSource> getSourceType() {
-		return DataSource.class;
+	public Class<FlowSwitch> getSourceType() {
+		return FlowSwitch.class;
 	}
 
 	@Override
-	public Class<FlowKeyValue> getTargetType() {
-		return FlowKeyValue.class;
+	public Class<FlowSwitchCase> getTargetType() {
+		return FlowSwitchCase.class;
 	}
 
 	@Override
 	public String name() {
-		return "KEY_SOURCE";
-	}
-
-	@Override
-	public int getAutocreationFlag() {
-		return Relation.ALWAYS;
+		return "SWITCH_CASE";
 	}
 
 	@Override

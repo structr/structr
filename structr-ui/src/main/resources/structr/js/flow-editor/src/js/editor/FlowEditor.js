@@ -40,9 +40,9 @@ import {FlowFilter} from "./entities/FlowFilter.js";
 import {FlowComparison} from "./entities/FlowComparison.js";
 import {FlowFork} from "./entities/FlowFork.js";
 import {FlowForkJoin} from "./entities/FlowForkJoin.js";
+import {FlowSwitch} from "./entities/FlowSwitch.js";
+import {FlowSwitchCase} from "./entities/FlowSwitchCase.js";
 import {CloneHandler} from "./utility/CloneHandler.js";
-
-
 
 export class FlowEditor {
 
@@ -265,7 +265,8 @@ export class FlowEditor {
 			'FlowAggregate',
 			'FlowLog',
 			'FlowFilter',
-			'FlowFork'
+			'FlowFork',
+			'FlowSwitch'
 		];
 	}
 
@@ -452,7 +453,9 @@ export class FlowEditor {
 			new FlowFilter(),
 			new FlowComparison(),
 			new FlowFork(),
-			new FlowForkJoin()
+			new FlowForkJoin(),
+			new FlowSwitch(),
+			new FlowSwitchCase()
 		];
 	}
 
@@ -528,7 +531,9 @@ export class FlowEditor {
 				'And' : self._getNodeCreationFunction("FlowAnd"),
 				'IsTrue' : self._getNodeCreationFunction("FlowIsTrue"),
 				'Comparison' : self._getNodeCreationFunction("FlowComparison"),
-				'ScriptCondition' : self._getNodeCreationFunction("FlowScriptCondition")
+				'ScriptCondition' : self._getNodeCreationFunction("FlowScriptCondition"),
+				'Switch' : self._getNodeCreationFunction("FlowSwitch"),
+				'SwitchCase' : self._getNodeCreationFunction("FlowSwitchCase"),
 			},
 			'Actions': {
 				'Execute Flow': function() { self.executeFlow() },
@@ -703,6 +708,12 @@ export class FlowEditor {
 			case 'FlowForkJoin':
 				fNode = new FlowForkJoin(node, this);
 				break;
+			case 'FlowSwitch':
+                fNode = new FlowSwitch(node, this);
+                break;
+            case 'FlowSwitchCase':
+                fNode = new FlowSwitchCase(node, this);
+                break;
 			default:
 				console.log('FlowEditor: renderNode() -> Used default FlowNode class. Implement custom class for proper handling! Given node type: ' + node.type);
 				fNode = new FlowNode(node, this);

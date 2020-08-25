@@ -16,27 +16,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity;
+package org.structr.flow.api;
 
-import java.net.URI;
-import org.structr.schema.SchemaService;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
+public interface Switch extends FlowElement {
 
-/**
- *
- *
- *
- */
-public interface CsvFile extends File {
-
-	static class Impl { static {
-
-		final JsonSchema schema = SchemaService.getDynamicSchema();
-		final JsonType type     = schema.addType("CsvFile");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/CsvFile"));
-		type.setExtends(URI.create("#/definitions/File"));
-		type.setCategory("ui");
-	}}
+	default FlowType getFlowType() {
+		return FlowType.Switch;
+	}
 }

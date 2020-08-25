@@ -1585,23 +1585,26 @@ var Structr = {
 	},
 	appendInfoTextToElement: function(config) {
 
-		var element            = config.element;
-		var appendToElement    = config.appendToElement || element;
-		var text               = config.text || 'No text supplied!';
-		var toggleElementCss   = config.css || {};
-		var toggleElementClass = config.class || undefined;
-		var elementCss         = config.elementCss || {};
-		var helpElementCss     = config.helpElementCss || {};
-		var customToggleIcon   = config.customToggleIcon || _Icons.information_icon;
-		var insertAfter        = config.insertAfter || false;
-		var offsetX            = config.offsetX || 0;
-		var offsetY            = config.offsetY || 0;
+		let element            = config.element;
+		let appendToElement    = config.appendToElement || element;
+		let text               = config.text || 'No text supplied!';
+		let toggleElementCss   = config.css || {};
+		let toggleElementClass = config.class || undefined;
+		let elementCss         = config.elementCss || {};
+		let helpElementCss     = config.helpElementCss || {};
+		let customToggleIcon   = config.customToggleIcon || _Icons.information_icon;
+		let insertAfter        = config.insertAfter || false;
+		let offsetX            = config.offsetX || 0;
+		let offsetY            = config.offsetY || 0;
 
-		var customToggleElement = true;
-		var toggleElement = config.toggleElement;
+		let createdElements = [];
+
+		let customToggleElement = true;
+		let toggleElement = config.toggleElement;
 		if (!toggleElement) {
 			customToggleElement = false;
 			toggleElement = $('<span><i class="' + _Icons.getFullSpriteClass(customToggleIcon) + '"></span>');
+			createdElements.push(toggleElement);
 		}
 
 		if (toggleElementClass) {
@@ -1610,7 +1613,8 @@ var Structr = {
 		toggleElement.css(toggleElementCss);
 		appendToElement.css(elementCss);
 
-		var helpElement = $('<span class="context-help-text">' + text + '</span>');
+		let helpElement = $('<span class="context-help-text">' + text + '</span>');
+		createdElements.push(helpElement);
 
 		toggleElement
 				.on("mousemove", function(e) {
@@ -1636,6 +1640,8 @@ var Structr = {
 		}
 
 		helpElement.css(helpElementCss);
+
+		return createdElements;
 	},
 	refreshPositionsForCurrentlyActiveSortable: function() {
 
