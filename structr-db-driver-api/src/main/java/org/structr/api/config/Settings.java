@@ -371,7 +371,7 @@ public class Settings {
 	public static final Setting<String> OpenAPIResourceProvider  = new StringSetting(servletsGroup,  "hidden", "openapiservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
 	public static final Setting<String> OpenAPIDefaultView       = new StringSetting(servletsGroup,  "hidden", "openapiservlet.defaultview",           "public");
 	public static final Setting<Integer> OpenAPIOutputDepth      = new IntegerSetting(servletsGroup, "hidden", "openapiservlet.outputdepth",           1);
-	public static final Setting<String> OpenAPIAllowOrigin       = new StringSetting(servletsGroup,  "hidden", "openapiservlet.allow.origin",          "", "Value that will be set in the Access-Control-Allow-Origin response header of the OpenAPI Servlet");
+	public static final Setting<String> OpenAPIAllowOrigin       = new StringSetting(servletsGroup,  "OpenAPIServlet", "openapiservlet.allow.origin",          "", "Value that will be set in the Access-Control-Allow-Origin response header of the OpenAPI Servlet");
 
 	// cron settings
 	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations");

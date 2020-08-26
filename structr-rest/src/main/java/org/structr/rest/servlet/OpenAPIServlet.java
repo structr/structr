@@ -176,22 +176,33 @@ public class OpenAPIServlet extends AbstractDataServlet {
 	private Map<String, Object> createSecuritySchemesObject() {
 
 		final Map<String, Object> schemes = new LinkedHashMap<>();
-		final Map<String, Object> auth    = new LinkedHashMap<>();
+		final Map<String, Object> cookieAuth = new LinkedHashMap<>();
+		final Map<String, Object> bearerAuth = new LinkedHashMap<>();
 
-		schemes.put("cookieAuth", auth);
+		cookieAuth.put("type", "apiKey");
+		cookieAuth.put("in",   "cookie");
+		cookieAuth.put("name", "JSESSIONID");
 
-		auth.put("type", "apiKey");
-		auth.put("in",   "cookie");
+		bearerAuth.put("type", "http");
+		bearerAuth.put("scheme",   "bearer");
+		bearerAuth.put("bearerFormat", "JWT");
+
+		schemes.put("CookieAuth", cookieAuth);
+		schemes.put("BearerAuth", bearerAuth);
 
 		return schemes;
 	}
 
-	private Map<String, Object> createGlobalSecurityObject() {
+	private List<Map<String, Object>> createGlobalSecurityObject() {
 
-		final Map<String, Object> security = new LinkedHashMap<>();
+		final List<Map<String, Object>> security = new LinkedList<>();
+		final Map<String, Object> securitySchemes = new LinkedHashMap<>();
 		final Map<String, Object> auth    = new LinkedHashMap<>();
 
-		security.put("cookieAuth", List.of());
+		securitySchemes.put("CookieAuth", List.of());
+		securitySchemes.put("BearerAuth", List.of());
+
+		security.add(securitySchemes);
 
 		return security;
 	}
