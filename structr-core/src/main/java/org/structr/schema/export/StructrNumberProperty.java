@@ -109,30 +109,6 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 	}
 
 	@Override
-	public Map<String, Object> serializeOpenAPI() {
-
-		final Map<String, Object> map = super.serializeOpenAPI();
-
-		if (exclusiveMinimum) {
-			map.put(JsonSchema.KEY_EXCLUSIVE_MINIMUM, true);
-		}
-
-		if (exclusiveMaximum) {
-			map.put(JsonSchema.KEY_EXCLUSIVE_MAXIMUM, true);
-		}
-
-		if (minimum != null) {
-			map.put(JsonSchema.KEY_MINIMUM, minimum);
-		}
-
-		if (maximum != null) {
-			map.put(JsonSchema.KEY_MAXIMUM, maximum);
-		}
-
-		return map;
-	}
-
-	@Override
 	Map<String, Object> serialize() {
 
 		final Map<String, Object> map = super.serialize();

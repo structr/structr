@@ -20,6 +20,8 @@ package org.structr.core.property;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
+import java.util.TreeMap;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.ScriptRuntime;
@@ -214,6 +216,18 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
 		return new SimpleDateFormat(this.format).format(System.currentTimeMillis());
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly) {
+
+		final Map<String, Object> map = new TreeMap<>();
+
+		map.put("type",   "string");
+		map.put("format", "date-time");
+
+		return map;
 	}
 
 	// ----- static methods -----

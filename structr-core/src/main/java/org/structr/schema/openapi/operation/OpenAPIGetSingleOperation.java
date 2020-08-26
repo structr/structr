@@ -21,11 +21,11 @@ package org.structr.schema.openapi.operation;
 import java.util.List;
 import java.util.Map;
 import org.structr.schema.export.StructrTypeDefinition;
-import org.structr.schema.openapi.example.OpenAPIObjectResultExample;
 import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
 import org.structr.schema.openapi.common.OpenAPIReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIResultSchema;
+import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchema;
 
 public class OpenAPIGetSingleOperation extends OpenAPIOperation {
 
@@ -55,8 +55,7 @@ public class OpenAPIGetSingleOperation extends OpenAPIOperation {
 			// responses
 			Map.of(
 				"200", new OpenAPIRequestResponse("Ok",
-					new OpenAPIResultSchema(new OpenAPIReference("#/components/schemas/" + type.getName(), view), true),
-					new OpenAPIObjectResultExample(type, view)
+					new OpenAPIResultSchema(new OpenAPIStructrTypeSchema(type, view, 0, false), true)
 				),
 				"403", new OpenAPIReference("#/components/responses/forbidden"),
 				"404", new OpenAPIReference("#/components/responses/notFound")

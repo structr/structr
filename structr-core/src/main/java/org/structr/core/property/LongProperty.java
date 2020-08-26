@@ -18,6 +18,8 @@
  */
 package org.structr.core.property;
 
+import java.util.Map;
+import java.util.TreeMap;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -160,5 +162,35 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
 		return 1L;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly) {
+
+		final Map<String, Object> map = new TreeMap<>();
+
+		map.put("type",    "integer");
+		map.put("format",  "int64");
+		map.put("example", 12467634433L);
+
+		/*
+		if (exclusiveMinimum) {
+			map.put(JsonSchema.KEY_EXCLUSIVE_MINIMUM, true);
+		}
+
+		if (exclusiveMaximum) {
+			map.put(JsonSchema.KEY_EXCLUSIVE_MAXIMUM, true);
+		}
+
+		if (minimum != null) {
+			map.put(JsonSchema.KEY_MINIMUM, minimum);
+		}
+
+		if (maximum != null) {
+			map.put(JsonSchema.KEY_MAXIMUM, maximum);
+		}
+		*/
+
+		return map;
 	}
 }

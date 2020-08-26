@@ -25,6 +25,7 @@ import org.structr.schema.openapi.common.OpenAPIAllOf;
 import org.structr.schema.openapi.schema.OpenAPIBaseSchemaWrite;
 import org.structr.schema.openapi.common.OpenAPIReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
+import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchema;
 
 public class OpenAPIPatchOperation extends OpenAPIOperation {
 
@@ -49,7 +50,7 @@ public class OpenAPIPatchOperation extends OpenAPIOperation {
 			// request body
 			new OpenAPIRequestResponse("Contents of new " + type.getName() + " object to add.", new OpenAPIAllOf(
 				new OpenAPIBaseSchemaWrite(),
-				type.serializeOpenAPI(PropertyView.Ui, true)
+				new OpenAPIStructrTypeSchema(type, PropertyView.Ui, 0, true)
 			)),
 
 			// responses

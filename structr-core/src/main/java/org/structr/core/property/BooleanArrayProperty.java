@@ -21,6 +21,8 @@ package org.structr.core.property;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -194,6 +196,20 @@ public class BooleanArrayProperty extends AbstractPrimitiveProperty<Boolean[]> {
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
 		return List.of(true);
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly) {
+
+		final Map<String, Object> items = new TreeMap<>();
+		final Map<String, Object> map   = new TreeMap<>();
+
+		items.put("type", typeName().toLowerCase());
+
+		map.put("type", "array");
+		map.put("items", items);
+
+		return map;
 	}
 
 	// ----- private methods -----

@@ -20,7 +20,6 @@ package org.structr.schema.export;
 
 import java.net.URI;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import org.structr.api.graph.Cardinality;
 import static org.structr.api.graph.Cardinality.ManyToOne;
@@ -139,51 +138,6 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 		}
 
 		throw new IllegalStateException("External reference " + externalTypeReference + " not found.");
-	}
-
-	@Override
-	public Map<String, Object> serializeOpenAPI(final String viewName, final boolean forWriteRequests) {
-
-		final Map<String, Object> map = super.serializeOpenAPI(viewName, forWriteRequests);
-		final Set<String> view        = views.get(viewName);
-
-		Map<String, Object> serializedProperties = (Map)map.get(JsonSchema.KEY_PROPERTIES);
-		if (serializedProperties == null) {
-
-			serializedProperties = new TreeMap<>();
-			map.put(JsonSchema.KEY_PROPERTIES, serializedProperties);
-		}
-
-		// serialize remote properties
-		for (final StructrRelationshipTypeDefinition rel : root.getRelationships()) {
-
-			if (getId().equals(rel.getSourceType())) {
-
-				// outgoing
-				final Map<String, Object> property = rel.serializeRelationshipPropertyForOpenAPI(true);
-				if (property != null && view != null && view.contains(rel.getTargetPropertyName())) {
-
-					serializedProperties.put(rel.getTargetPropertyName(), property);
-				}
-			}
-
-			if (getId().equals(rel.getTargetType())) {
-
-				// incoming
-				final Map<String, Object> property = rel.serializeRelationshipPropertyForOpenAPI(false);
-				if (property != null && view != null && view.contains(rel.getSourcePropertyName())) {
-
-					serializedProperties.put(rel.getSourcePropertyName(), property);
-				}
-			}
-		}
-
-		// remove empty objects from json
-		if (serializedProperties.isEmpty()) {
-			map.remove(JsonSchema.KEY_PROPERTIES);
-		}
-
-		return map;
 	}
 
 	@Override

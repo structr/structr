@@ -54,18 +54,6 @@ public class StructrDateProperty extends StructrStringProperty implements JsonDa
 		return datePattern;
 	}
 
-	@Override
-	public Map<String, Object> serializeOpenAPI() {
-
-		final Map<String, Object> map = super.serializeOpenAPI();
-
-		if (datePattern != null) {
-			map.put(JsonSchema.KEY_DATE_PATTERN, datePattern);
-		}
-
-		return map;
-	}
-
 	// ----- package methods -----
 	@Override
 	Map<String, Object> serialize() {

@@ -110,34 +110,6 @@ public class StructrLongArrayProperty extends StructrPropertyDefinition implemen
 	}
 
 	@Override
-	public Map<String, Object> serializeOpenAPI() {
-
-		final Map<String, Object> map   = super.serializeOpenAPI();
-		final Map<String, Object> items = new TreeMap<>();
-
-		map.put(JsonSchema.KEY_ITEMS, items);
-		items.put(JsonSchema.KEY_TYPE, "long");
-
-		if (exclusiveMinimum) {
-			items.put(JsonSchema.KEY_EXCLUSIVE_MINIMUM, true);
-		}
-
-		if (exclusiveMaximum) {
-			items.put(JsonSchema.KEY_EXCLUSIVE_MAXIMUM, true);
-		}
-
-		if (minimum != null) {
-			items.put(JsonSchema.KEY_MINIMUM, minimum);
-		}
-
-		if (maximum != null) {
-			items.put(JsonSchema.KEY_MAXIMUM, maximum);
-		}
-
-		return map;
-	}
-
-	@Override
 	Map<String, Object> serialize() {
 
 		final Map<String, Object> map   = super.serialize();

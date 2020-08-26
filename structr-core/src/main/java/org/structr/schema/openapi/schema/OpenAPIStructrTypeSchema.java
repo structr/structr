@@ -19,28 +19,74 @@
 package org.structr.schema.openapi.schema;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.export.StructrTypeDefinition;
 
 public class OpenAPIStructrTypeSchema extends TreeMap<String, Object> {
 
-	public OpenAPIStructrTypeSchema(final Class type, final String viewName) {
+	public OpenAPIStructrTypeSchema(final StructrTypeDefinition<?> type, final String viewName, final int level, final boolean skipReadonly) {
+
+		if (level > 2) {
+			return;
+		}
 
 		final Map<String, Object> properties = new LinkedHashMap<>();
+		final String typeName                = type.getName();
 
-		put("type",       "object");
-		put("properties", properties);
+		put("type",        "object");
+		put("description", typeName);
+		put("properties",  properties);
+
+		type.visitProperties(key -> {
+
+			if (!key.isReadOnly() || !skipReadonly) {
+
+				properties.put(key.jsonName(), key.describeOpenAPIType(typeName, viewName, level, skipReadonly));
+			}
+
+		}, viewName);
+	}
+
+	public OpenAPIStructrTypeSchema(final Class type, final String viewName, final int level, final boolean skipReadonly) {
+
+		if (level > 2) {
+			return;
+		}
+
+		final Map<String, Object> properties = new LinkedHashMap<>();
+		final String typeName                = type.getSimpleName();
+
+		put("type",        "object");
+		put("description", typeName);
+		put("properties",  properties);
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final Set<PropertyKey> keys        = config.getPropertySet(type, viewName);
 
-		for (PropertyKey key : keys) {
+		if (keys != null && !keys.isEmpty()) {
 
-			properties.put(key.jsonName(), new OpenAPIPropertySchema(key, viewName));
+			for (PropertyKey key : keys) {
+
+				if (!key.isReadOnly() || !skipReadonly) {
+
+					properties.put(key.jsonName(), key.describeOpenAPIType(typeName, viewName, level, skipReadonly));
+				}
+			}
+
+		} else {
+
+			// default properties
+			List.of(AbstractNode.id, AbstractNode.type, AbstractNode.name).stream().forEach(key -> {
+
+				properties.put(key.jsonName(), key.describeOpenAPIType(typeName, viewName, level, skipReadonly));
+			});
 		}
 	}
 }

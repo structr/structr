@@ -18,6 +18,8 @@
  */
 package org.structr.core.property;
 
+import java.util.Map;
+import java.util.TreeMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ReadOnlyPropertyToken;
@@ -89,5 +91,20 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 	@Override
 	public boolean isReadOnly() {
 		return true;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly) {
+
+		final Map<String, Object> map = new TreeMap<>();
+		final Class valueType         = valueType();
+
+		if (valueType != null) {
+
+			map.put("type", valueType.getSimpleName().toLowerCase());
+		}
+
+		return map;
 	}
 }

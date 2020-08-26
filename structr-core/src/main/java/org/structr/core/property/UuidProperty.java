@@ -18,9 +18,12 @@
  */
 package org.structr.core.property;
 
+import java.util.Map;
+import java.util.TreeMap;
 import org.structr.api.search.Occurrence;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.Query;
+import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.UuidSearchAttribute;
 
@@ -51,6 +54,17 @@ public class UuidProperty extends StringProperty {
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(java.lang.String type, final String viewName) {
-		return "8ef5a68735f5412bab168333f7efd5ce";
+		return NodeServiceCommand.getNextUuid();
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly) {
+
+		final Map<String, Object> map = new TreeMap<>();
+
+		map.put("type",   "string");
+		map.put("example", getExampleValue(type, viewName));
+
+		return map;
 	}
 }

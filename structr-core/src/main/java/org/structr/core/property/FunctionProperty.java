@@ -18,7 +18,9 @@
  */
 package org.structr.core.property;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -315,5 +317,24 @@ public class FunctionProperty<T> extends Property<T> {
 		}
 
 		return null;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly) {
+
+		if (typeHint != null) {
+
+			switch (typeHint.toLowerCase()) {
+
+				case "boolean": return pBoolean.describeOpenAPIType(type, viewName, level + 1, skipReadonly);
+				case "int":     return pInt.describeOpenAPIType(type, viewName, level + 1, skipReadonly);
+				case "long":    return pLong.describeOpenAPIType(type, viewName, level + 1, skipReadonly);
+				case "double":  return pDouble.describeOpenAPIType(type, viewName, level + 1, skipReadonly);
+				case "date":    return pDate.describeOpenAPIType(type, viewName, level + 1, skipReadonly);
+			}
+		}
+
+		return Collections.EMPTY_MAP;
 	}
 }

@@ -20,6 +20,8 @@ package org.structr.core.property;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -42,6 +44,7 @@ import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
+import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchema;
 
 /**
  * A property that defines a relationship with the given parameters between a node and a collection of other nodes.
@@ -290,5 +293,22 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
 		return null;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly) {
+
+		final Map<String, Object> items = new TreeMap<>();
+		final Map<String, Object> map   = new TreeMap<>();
+
+		if (destType != null) {
+
+			map.put("type", "array");
+			map.put("items", items);
+
+			items.putAll(new OpenAPIStructrTypeSchema(destType, viewName, level + 1, skipReadonly));
+		}
+
+		return map;
 	}
 }

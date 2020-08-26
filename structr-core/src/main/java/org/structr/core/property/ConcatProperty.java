@@ -18,6 +18,8 @@
  */
 package org.structr.core.property;
 
+import java.util.Map;
+import java.util.TreeMap;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -87,5 +89,20 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
 		return "concatenated string";
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly) {
+
+		final Map<String, Object> map = new TreeMap<>();
+		final Class valueType         = valueType();
+
+		if (valueType != null) {
+
+			map.put("type", valueType.getSimpleName().toLowerCase());
+		}
+
+		return map;
 	}
 }

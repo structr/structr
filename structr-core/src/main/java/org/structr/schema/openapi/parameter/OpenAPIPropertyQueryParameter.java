@@ -18,18 +18,17 @@
  */
 package org.structr.schema.openapi.parameter;
 
-import org.structr.schema.openapi.schema.OpenAPIPropertySchema;
 import java.util.TreeMap;
 import org.structr.core.property.PropertyKey;
 
 public class OpenAPIPropertyQueryParameter extends TreeMap<String, Object> {
 
-	public OpenAPIPropertyQueryParameter(final PropertyKey property, final String viewName) {
+	public OpenAPIPropertyQueryParameter(final String type, final PropertyKey property, final String viewName, final int level) {
 
 		put("name",            property.jsonName());
 		put("in",              "query");
 		put("description",     "Filter by " + property.jsonName());
 		put("allowEmptyValue", property.isIndexedWhenEmpty());
-		put("schema",          new OpenAPIPropertySchema(property, viewName));
+		put("schema",          property.describeOpenAPIType(type, viewName, level + 1, true));
 	}
 }

@@ -20,7 +20,9 @@ package org.structr.core.property;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Node;
 import org.structr.api.util.Iterables;
@@ -150,7 +152,18 @@ public class TypeProperty extends StringProperty {
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(java.lang.String type, final String viewName) {
+	public Object getExampleValue(final String type, final String viewName) {
 		return type;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly) {
+
+		final Map<String, Object> map = new TreeMap<>();
+
+		map.put("type",   "string");
+		map.put("example", getExampleValue(type, viewName));
+
+		return map;
 	}
 }

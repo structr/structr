@@ -18,6 +18,8 @@
  */
 package org.structr.core.property;
 
+import java.util.Collections;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -134,5 +136,10 @@ public class TargetNodeProperty extends Property<NodeInterface> {
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
 		return null;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly) {
+		return Collections.EMPTY_MAP;
 	}
 }

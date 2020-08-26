@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -276,5 +277,10 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 	@Override
 	public Object getExampleValue(java.lang.String type, final String viewName) {
 		return null;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly) {
+		return Collections.EMPTY_MAP;
 	}
 }

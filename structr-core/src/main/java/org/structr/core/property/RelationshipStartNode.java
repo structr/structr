@@ -23,6 +23,8 @@
 
 package org.structr.core.property;
 
+import java.util.Collections;
+import java.util.Map;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -105,5 +107,10 @@ public class RelationshipStartNode<T extends AbstractNode> extends AbstractReadO
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
 		return null;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly) {
+		return Collections.EMPTY_MAP;
 	}
 }
