@@ -72,7 +72,7 @@ public class FlowScriptCondition extends FlowCondition implements 	DeployableEnt
 
 		} catch (FrameworkException fex) {
 
-			throw new FlowException(fex);
+			throw new FlowException(fex, this);
 		}
 
 		return null;
