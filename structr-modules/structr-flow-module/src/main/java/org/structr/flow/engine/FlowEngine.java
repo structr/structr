@@ -121,10 +121,12 @@ public class FlowEngine {
 	}
 
 	private FlowResult handleException(final Context context, final FlowException exception, final FlowElement current) {
-		// Check if current element has a linked FlowExceptionHandler or if there is a global one
-		if (current instanceof ThrowingElement) {
+		ThrowingElement throwingElement = exception.getThrowingElement();
 
-			FlowExceptionHandler exceptionHandler = ((ThrowingElement)current).getExceptionHandler(context);
+		// Check if throwing element has a linked FlowExceptionHandler or if there is a global one
+		if (throwingElement != null) {
+
+			FlowExceptionHandler exceptionHandler = throwingElement.getExceptionHandler(context);
 
 			if (exceptionHandler != null) {
 

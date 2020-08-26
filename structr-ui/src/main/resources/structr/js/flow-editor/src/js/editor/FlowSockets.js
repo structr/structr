@@ -13,7 +13,7 @@ export class FlowSockets {
 
         let dataSource = new D3NE.Socket('dataSource', 'Data Source Node', 'The connected node will provide data for this node.');
         let dataSources = new D3NE.Socket('dataSources', 'Data Source Nodes', 'The connected nodes will provide data for this node.');
-        let dataTarget = new D3NE.Socket('dataTarget', 'Data Target Node', 'Connect to a node\'s prev port.');
+        let dataTarget = new D3NE.Socket('dataTarget', 'Data Target Node', 'Connect to a node\'s DataSource port.');
         dataTarget.combineWith(dataSource);
         dataTarget.combineWith(dataSources);
         this._sockets['dataSource'] = dataSource;

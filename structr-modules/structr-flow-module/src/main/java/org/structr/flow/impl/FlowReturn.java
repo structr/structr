@@ -71,7 +71,7 @@ public class FlowReturn extends FlowNode implements Return, DeployableEntity, Th
 
 		} catch (FrameworkException fex) {
 
-			throw new FlowException(fex);
+			throw new FlowException(fex, this);
 		}
 
 	}
