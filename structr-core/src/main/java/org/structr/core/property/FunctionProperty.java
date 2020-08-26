@@ -321,17 +321,35 @@ public class FunctionProperty<T> extends Property<T> {
 
 	// ----- OpenAPI -----
 	@Override
-	public Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly) {
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
 
 		if (typeHint != null) {
 
 			switch (typeHint.toLowerCase()) {
 
-				case "boolean": return pBoolean.describeOpenAPIType(type, viewName, level + 1, skipReadonly);
-				case "int":     return pInt.describeOpenAPIType(type, viewName, level + 1, skipReadonly);
-				case "long":    return pLong.describeOpenAPIType(type, viewName, level + 1, skipReadonly);
-				case "double":  return pDouble.describeOpenAPIType(type, viewName, level + 1, skipReadonly);
-				case "date":    return pDate.describeOpenAPIType(type, viewName, level + 1, skipReadonly);
+				case "boolean": return pBoolean.describeOpenAPIOutputType(type, viewName, level + 1);
+				case "int":     return pInt.describeOpenAPIOutputType(type, viewName, level + 1);
+				case "long":    return pLong.describeOpenAPIOutputType(type, viewName, level + 1);
+				case "double":  return pDouble.describeOpenAPIOutputType(type, viewName, level + 1);
+				case "date":    return pDate.describeOpenAPIOutputType(type, viewName, level + 1);
+			}
+		}
+
+		return Collections.EMPTY_MAP;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+
+		if (typeHint != null) {
+
+			switch (typeHint.toLowerCase()) {
+
+				case "boolean": return pBoolean.describeOpenAPIInputType(type, viewName, level + 1);
+				case "int":     return pInt.describeOpenAPIInputType(type, viewName, level + 1);
+				case "long":    return pLong.describeOpenAPIInputType(type, viewName, level + 1);
+				case "double":  return pDouble.describeOpenAPIInputType(type, viewName, level + 1);
+				case "date":    return pDate.describeOpenAPIInputType(type, viewName, level + 1);
 			}
 		}
 

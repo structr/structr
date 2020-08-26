@@ -40,7 +40,7 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.schema.openapi.common.OpenAPIReference;
-import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchema;
+import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
 /**
  *
@@ -176,7 +176,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 						final StructrTypeDefinition baseType = (StructrTypeDefinition)def;
 						if (!schemas.containsKey(baseType.getName())) {
 
-							schemas.putAll(new OpenAPIStructrTypeSchema(baseType, viewName, 0, false));
+							schemas.putAll(new OpenAPIStructrTypeSchemaOutput(baseType, viewName, 0));
 						}
 					}
 				}
@@ -193,7 +193,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 				}
 
 				// add actual type definition
-				schemas.putAll(new OpenAPIStructrTypeSchema(type, viewName, 0, false));
+				schemas.putAll(new OpenAPIStructrTypeSchemaOutput(type, viewName, 0));
 			}
 		}
 

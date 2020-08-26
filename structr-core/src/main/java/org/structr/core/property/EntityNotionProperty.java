@@ -175,7 +175,12 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	}
 
 	@Override
-	public Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly) {
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+		return Collections.EMPTY_MAP;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
 		return Collections.EMPTY_MAP;
 	}
 }

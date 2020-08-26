@@ -165,7 +165,7 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 	}
 
 	@Override
-	public Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly) {
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
 
 		final Map<String, Object> map = new TreeMap<>();
 
@@ -173,23 +173,17 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 		map.put("format",  "int64");
 		map.put("example", 12467634433L);
 
-		/*
-		if (exclusiveMinimum) {
-			map.put(JsonSchema.KEY_EXCLUSIVE_MINIMUM, true);
-		}
+		return map;
+	}
 
-		if (exclusiveMaximum) {
-			map.put(JsonSchema.KEY_EXCLUSIVE_MAXIMUM, true);
-		}
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
 
-		if (minimum != null) {
-			map.put(JsonSchema.KEY_MINIMUM, minimum);
-		}
+		final Map<String, Object> map = new TreeMap<>();
 
-		if (maximum != null) {
-			map.put(JsonSchema.KEY_MAXIMUM, maximum);
-		}
-		*/
+		map.put("type",    "integer");
+		map.put("format",  "int64");
+		map.put("example", 12467634433L);
 
 		return map;
 	}

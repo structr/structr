@@ -29,11 +29,11 @@ import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrTypeDefinition;
 
-public class OpenAPIStructrTypeSchema extends TreeMap<String, Object> {
+public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 
-	public OpenAPIStructrTypeSchema(final StructrTypeDefinition<?> type, final String viewName, final int level, final boolean skipReadonly) {
+	public OpenAPIStructrTypeSchemaOutput(final StructrTypeDefinition<?> type, final String viewName, final int level) {
 
-		if (level > 2) {
+		if (level > 3) {
 			return;
 		}
 
@@ -46,17 +46,14 @@ public class OpenAPIStructrTypeSchema extends TreeMap<String, Object> {
 
 		type.visitProperties(key -> {
 
-			if (!key.isReadOnly() || !skipReadonly) {
-
-				properties.put(key.jsonName(), key.describeOpenAPIType(typeName, viewName, level, skipReadonly));
-			}
+			properties.put(key.jsonName(), key.describeOpenAPIOutputType(typeName, viewName, level));
 
 		}, viewName);
 	}
 
-	public OpenAPIStructrTypeSchema(final Class type, final String viewName, final int level, final boolean skipReadonly) {
+	public OpenAPIStructrTypeSchemaOutput(final Class type, final String viewName, final int level) {
 
-		if (level > 2) {
+		if (level > 3) {
 			return;
 		}
 
@@ -74,10 +71,7 @@ public class OpenAPIStructrTypeSchema extends TreeMap<String, Object> {
 
 			for (PropertyKey key : keys) {
 
-				if (!key.isReadOnly() || !skipReadonly) {
-
-					properties.put(key.jsonName(), key.describeOpenAPIType(typeName, viewName, level, skipReadonly));
-				}
+				properties.put(key.jsonName(), key.describeOpenAPIOutputType(typeName, viewName, level));
 			}
 
 		} else {
@@ -85,7 +79,7 @@ public class OpenAPIStructrTypeSchema extends TreeMap<String, Object> {
 			// default properties
 			List.of(AbstractNode.id, AbstractNode.type, AbstractNode.name).stream().forEach(key -> {
 
-				properties.put(key.jsonName(), key.describeOpenAPIType(typeName, viewName, level, skipReadonly));
+				properties.put(key.jsonName(), key.describeOpenAPIOutputType(typeName, viewName, level));
 			});
 		}
 	}

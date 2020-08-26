@@ -359,5 +359,6 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 
 	// ----- OpenAPI -----
 	Object getExampleValue(final String type, final String viewName);
-	Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly);
+	Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level);
+	Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level);
 }

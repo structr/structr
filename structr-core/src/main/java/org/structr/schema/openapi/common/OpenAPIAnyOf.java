@@ -16,19 +16,16 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.schema.openapi.parameter;
+package org.structr.schema.openapi.common;
 
+import java.util.Arrays;
+import java.util.Map;
 import java.util.TreeMap;
-import org.structr.core.property.PropertyKey;
 
-public class OpenAPIPropertyQueryParameter extends TreeMap<String, Object> {
+public class OpenAPIAnyOf extends TreeMap<String, Object> {
 
-	public OpenAPIPropertyQueryParameter(final String type, final PropertyKey property, final String viewName, final int level) {
+	public OpenAPIAnyOf(final Map<String, Object>... items) {
 
-		put("name",            property.jsonName());
-		put("in",              "query");
-		put("description",     "Filter by " + property.jsonName());
-		put("allowEmptyValue", property.isIndexedWhenEmpty());
-		put("schema",          property.describeOpenAPIInputType(type, viewName, level + 1));
+		put("anyOf", Arrays.asList(items));
 	}
 }

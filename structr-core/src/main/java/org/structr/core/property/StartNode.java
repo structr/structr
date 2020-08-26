@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import java.util.Collections;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,11 +35,14 @@ import org.structr.core.entity.OneStartpoint;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Target;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
-import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchema;
+import org.structr.schema.openapi.common.OpenAPIAnyOf;
+import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
+import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
 /**
  * A property that defines a relationship with the given parameters between two nodes.
@@ -255,7 +259,22 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	}
 
 	@Override
-	public Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly) {
-		return new OpenAPIStructrTypeSchema(destType, viewName, level + 1, skipReadonly);
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+		return new OpenAPIStructrTypeSchemaOutput(destType, viewName, level + 1);
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+
+		if (level > 4) {
+			return Collections.EMPTY_MAP;
+		}
+
+		return new OpenAPIAnyOf(
+			Map.of("type", "string", "example", NodeServiceCommand.getNextUuid(), "description", "The UUID of an existing object"),
+			new OpenAPIObjectSchema("An existing object, referenced by its UUID",
+				Map.of("id", Map.of("type", "string", "example", NodeServiceCommand.getNextUuid()))
+			)
+		);
 	}
 }

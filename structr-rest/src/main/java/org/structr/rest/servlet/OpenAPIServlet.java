@@ -38,6 +38,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeServiceCommand;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrSchemaDefinition;
 import org.structr.schema.export.StructrTypeDefinition;
@@ -53,7 +54,7 @@ import org.structr.schema.openapi.schema.OpenAPIArraySchema;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
 import org.structr.schema.openapi.schema.OpenAPIResultSchema;
-import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchema;
+import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
 /**
  * A servlet that implements the OpenAPI endpoint.
@@ -99,7 +100,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 			try (final Writer writer = response.getWriter()) {
 
-				gson.toJson(createOpenAPIRoot(tag), writer);
+				gson.toJson(createOpenAPIRoot(request, tag), writer);
 
 				response.setStatus(HttpServletResponse.SC_OK);
 				response.setHeader("Cache-Control", "no-cache");
@@ -119,14 +120,14 @@ public class OpenAPIServlet extends AbstractDataServlet {
 	}
 
 	// ----- private methods -----
-	private Map<String, Object> createOpenAPIRoot(final String tag) throws FrameworkException {
+	private Map<String, Object> createOpenAPIRoot(final HttpServletRequest request, final String tag) throws FrameworkException {
 
 		final StructrSchemaDefinition schema = (StructrSchemaDefinition)StructrSchema.createFromDatabase(StructrApp.getInstance());
 		final Map<String, Object> root       = new LinkedHashMap<>();
 
 		root.put("openapi",    "3.0.2");
 		root.put("info",       createInfoObject());
-		root.put("servers",    createServersObject());
+		root.put("servers",    createServersObject(request));
 		root.put("components", createComponentsObject(schema, tag));
 		root.put("paths",      createPathsObject(schema, tag));
 		root.put("tags",       createTagsObject(schema, tag));
@@ -145,12 +146,12 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		return info;
 	}
 
-	private List<Map<String, Object>> createServersObject() {
+	private List<Map<String, Object>> createServersObject(final HttpServletRequest request) {
 
 		final List<Map<String, Object>> servers = new LinkedList<>();
 		final Map<String, Object> server        = new LinkedHashMap<>();
 
-		server.put("url",         getStructrUrl());
+		server.put("url",         getStructrUrl(request));
 		server.put("description", "The Structr REST Server");
 
 		// add server to list
@@ -235,8 +236,8 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		final Map<String, Object> map = new TreeMap<>();
 
 		// base classes
-		map.put("AbstractNode", new OpenAPIStructrTypeSchema(AbstractNode.class, PropertyView.Public, 0, false));
-		map.put("Principal",    new OpenAPIStructrTypeSchema(AbstractNode.class, PropertyView.Public, 0, false));
+		map.put("AbstractNode", new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, PropertyView.Public, 0));
+		map.put("Principal",    new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, PropertyView.Public, 0));
 
 		map.put("StructrErrorToken",  new OpenAPIObjectSchema("An error token used in semantic error messages returned by the REST server.",
 			new OpenAPIPrimitiveSchema("The type that caused the error.", "type",     "string"),
@@ -267,17 +268,11 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		return paths;
 	}
 
-	private String getStructrUrl() {
+	private String getStructrUrl(final HttpServletRequest request) {
 
 		final StringBuilder buf = new StringBuilder();
 
-		// TODO: use ActionContext.getBaseUrl()
-
-		buf.append("http");
-		buf.append("://");
-		buf.append(Settings.ApplicationHost.getValue());
-		buf.append(":");
-		buf.append(Settings.HttpPort.getValue());
+		buf.append(ActionContext.getBaseUrl(request));
 		buf.append(Settings.RestPath.getValue());
 
 		return buf.toString();

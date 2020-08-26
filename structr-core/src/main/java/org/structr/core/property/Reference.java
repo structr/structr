@@ -416,7 +416,12 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly) {
-		return propertyKey.describeOpenAPIType(type, viewName, level, skipReadonly);
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+		return propertyKey.describeOpenAPIOutputType(type, viewName, level);
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+		return propertyKey.describeOpenAPIInputType(type, viewName, level);
 	}
 }

@@ -93,7 +93,22 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 
 	// ----- OpenAPI -----
 	@Override
-	public Map<String, Object> describeOpenAPIType(final String type, final String viewName, final int level, final boolean skipReadonly) {
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+
+		final Map<String, Object> map = new TreeMap<>();
+		final Class valueType         = valueType();
+
+		if (valueType != null) {
+
+			map.put("type",    valueType.getSimpleName().toLowerCase());
+			map.put("example", getExampleValue(type, viewName));
+		}
+
+		return map;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
 
 		final Map<String, Object> map = new TreeMap<>();
 		final Class valueType         = valueType();
@@ -101,6 +116,7 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 		if (valueType != null) {
 
 			map.put("type", valueType.getSimpleName().toLowerCase());
+			map.put("example", getExampleValue(type, viewName));
 		}
 
 		return map;
