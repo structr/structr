@@ -75,7 +75,7 @@ public class FlowLog extends FlowActionNode implements DeployableEntity, Throwin
 
 		} catch (FrameworkException fex) {
 
-			throw new FlowException(fex);
+			throw new FlowException(fex, this);
 		}
 
 	}
