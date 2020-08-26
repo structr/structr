@@ -1320,6 +1320,10 @@ i.button {
 	overflow: auto;
 }
 
+#elements #delete-all-unattached-nodes {
+	min-height: 24px;
+}
+
 #componentsArea > .node, #elementsArea > .node {
 	margin-left: 0;
 }
