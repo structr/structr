@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.App;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.*;
 import org.structr.core.entity.AbstractNode;
@@ -49,6 +50,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.time.Instant;
 import java.util.*;
 
 
@@ -303,7 +305,45 @@ public class AuthHelper {
 				break;
 		}
 
+		clearTimedoutRefreshTokens(user);
 		return tokens;
+	}
+
+	private static void clearTimedoutRefreshTokens(Principal user) {
+
+		final PropertyKey<String[]> key = StructrApp.key(Principal.class, "refreshTokens");
+		final String[] refreshTokens    = user.getProperty(key);
+
+		try {
+			for (final String refreshToken : refreshTokens) {
+
+				if (refreshTokenTimedOut(refreshToken)) {
+
+					logger.debug("RefreshToken {} timed out", new Object[]{refreshToken});
+
+					user.removeRefreshToken(refreshToken);
+
+				}
+			}
+
+		} catch (Exception fex) {
+
+			logger.warn("Error while removing refreshToken of user " + user.getUuid(), fex);
+		}
+	}
+
+	private static boolean refreshTokenTimedOut(String refreshToken) {
+
+		final String[] splittedToken = refreshToken.split("_");
+
+		if (splittedToken.length > 1 && splittedToken[1] != null) {
+
+			if (Calendar.getInstance().getTimeInMillis() > Long.parseLong(splittedToken[1])) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public static Map<String, String> createTokensForUser(final Principal user) throws FrameworkException {
@@ -344,7 +384,12 @@ public class AuthHelper {
 			tokens.put("expiration_date", Long.toString(accessTokenExpirationDate.getTime()));
 
 			if (refreshTokenExpirationDate != null) {
-				final String tokenId = NodeServiceCommand.getNextUuid();
+
+				final String newTokenUUID = NodeServiceCommand.getNextUuid();
+				StringBuilder tokenStringBuilder = new StringBuilder();
+				tokenStringBuilder.append(newTokenUUID).append("_").append(refreshTokenExpirationDate.getTime());
+
+				final String tokenId = tokenStringBuilder.toString();
 
 				String refreshToken = Jwts.builder()
 						.setSubject(user.getName())
@@ -363,12 +408,10 @@ public class AuthHelper {
 			throw new FrameworkException(500, "The provided secret is too weak (must be at least 32 characters)");
 		}
 
-
-
 		return tokens;
 	}
 
-	public static Map<String, String>  createTokensForUserWithKeystore(Principal user, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName) throws FrameworkException {
+	public static Map<String, String> createTokensForUserWithKeystore(Principal user, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName) throws FrameworkException {
 		final Map<String, String> tokens = new HashMap<>();
 
 		Key privateKey = getPrivateKeyForToken();
@@ -396,7 +439,11 @@ public class AuthHelper {
 
 		if (refreshTokenExpirationDate != null) {
 
-			final String tokenId = NodeServiceCommand.getNextUuid();
+			final String newTokenUUID = NodeServiceCommand.getNextUuid();
+			StringBuilder tokenStringBuilder = new StringBuilder();
+			tokenStringBuilder.append(newTokenUUID).append("_").append(refreshTokenExpirationDate.getTime());
+
+			final String tokenId = tokenStringBuilder.toString();
 
 			String refreshToken = Jwts.builder()
 				.setSubject(user.getName())
