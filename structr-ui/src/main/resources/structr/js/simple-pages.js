@@ -377,9 +377,7 @@ var _SimplePages = {
 			dialogCancelButton = $('.closeButton', dialogBox);
 		});
 
-		Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
-
-			let shadowPage = entities[0];
+		Structr.getShadowPage(() => {
 
 			Command.query('TemplateCategory', 10, 1, 'name', 'desc', { name: 'Page Templates' }, function(categories) {
 
@@ -390,7 +388,6 @@ var _SimplePages = {
 					});
 				});
 			});
-
 		});
 
 	},
@@ -429,9 +426,7 @@ var _SimplePages = {
 			_SimplePages.refreshCurrentPage();
 		});
 
-		Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
-
-			let shadowPage = entities[0];
+		Structr.getShadowPage(() => {
 
 			Command.query('Template', 1000, 1, 'name', 'desc', { hidden: false, pageId: shadowPage.id }, function(templates) {
 
