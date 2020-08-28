@@ -65,7 +65,7 @@ public class FlowAction extends FlowActionNode implements DataSource, Deployable
 
 			} catch (FrameworkException fex) {
 
-				throw new FlowException(fex);
+				throw new FlowException(fex, this);
 			}
 		}
 

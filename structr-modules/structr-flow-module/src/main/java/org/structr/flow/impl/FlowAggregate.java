@@ -72,7 +72,7 @@ public class FlowAggregate extends FlowNode implements Aggregation, DataSource, 
 
 		} catch (FrameworkException ex) {
 
-			throw new FlowException(ex);
+			throw new FlowException(ex, this);
 		}
 
 	}

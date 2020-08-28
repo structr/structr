@@ -112,8 +112,7 @@ var _VirtualTypes = {
 		left = left || LSWrapper.getItem(_VirtualTypes.virtualTypesResizerLeftKey) || 300;
 		$('.column-resizer', main).css({ left: left });
 
-		$('#virtual-types-list').css({width: left - 24 + 'px'});
-		$('#virtual-type-detail').css({width: $(window).width() - left - 47 + 'px'});
+		$('#virtual-types-list').css({width: left - 25 + 'px'});
 	},
 	activateInfoTextsInColumnHeaders: function() {
 		$('th[data-info-text]').each(function(i, el) {

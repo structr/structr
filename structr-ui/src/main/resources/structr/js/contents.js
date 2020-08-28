@@ -65,8 +65,7 @@ var _Contents = {
 		left = left || LSWrapper.getItem(contentsResizerLeftKey) || 300;
 		$('.column-resizer', contentsMain).css({ left: left });
 
-		$('#contents-tree').css({width: left - 14 + 'px'});
-		$('#contents-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 50 + 'px'});
+		contentTree.css({width: left - 14 + 'px'});
 	},
 	onload: function() {
 
@@ -261,7 +260,13 @@ var _Contents = {
 	},
 	load: function(id, callback) {
 
-		Command.query('ContentContainer', containerPageSize, containerPage, 'position', 'asc', {parent: id}, function(folders) {
+		let filter = null;
+
+		if (id) {
+			filter = {parent: id};
+		}
+
+		Command.query('ContentContainer', containerPageSize, containerPage, 'position', 'asc', filter, function(folders) {
 
 			var list = [];
 
@@ -280,7 +285,7 @@ var _Contents = {
 
 			_TreeHelper.makeDroppable(contentTree, list);
 
-		}, true);
+		}, true, null, 'id,name,items,isContentContainer,childContainers,path');
 
 	},
 	setWorkingDirectory: function(id) {

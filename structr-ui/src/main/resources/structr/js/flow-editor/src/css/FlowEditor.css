@@ -350,6 +350,8 @@ html, body {
         stroke: #6666ff; }
       .node-editor .connections .connection.output-exceptionhandler.input-handlednodes {
         stroke: red; }
+      .node-editor .connections .connection.output-cases.input-switch {
+        stroke: orange; }
   .node-editor select, .node-editor input {
     width: 60px;
     background-color: transparent;

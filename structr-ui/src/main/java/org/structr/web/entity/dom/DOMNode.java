@@ -1899,9 +1899,18 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	static void checkName(final DOMNode thisNode, final ErrorBuffer errorBuffer) {
 
 		final String _name = thisNode.getProperty(AbstractNode.name);
-		if (_name != null && _name.contains("/")) {
+		if (_name != null) {
 
-			errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name, "may_not_contain_slashes", _name));
+			if (_name.contains("/")) {
+
+				errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name, "may_not_contain_slashes", _name));
+
+			} else if (thisNode instanceof Page) {
+
+				if (!_name.equals(_name.replaceAll("[#?\\%;/]", ""))) {
+					errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name, "contains_illegal_characters", _name));
+				}
+			}
 		}
 	}
 

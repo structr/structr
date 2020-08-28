@@ -77,7 +77,7 @@ public class FlowForkJoin extends FlowNode implements Action, DeployableEntity, 
 
 		} catch (ExecutionException | InterruptedException ex) {
 
-			throw new FlowException(ex);
+			throw new FlowException(ex, this);
 
 		}
 

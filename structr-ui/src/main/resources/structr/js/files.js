@@ -101,8 +101,7 @@ var _Files = {
 			left = left || LSWrapper.getItem(filesResizerLeftKey) || 300;
 			$('.column-resizer', filesMain).css({ left: left });
 
-			$('#file-tree').css({width: left - 14 + 'px'});
-			$('#folder-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 50 + 'px'});
+			fileTree.css({width: left - 14 + 'px'});
 		});
 	},
 	onload: function() {

@@ -19,137 +19,28 @@
 @charset "UTF-8";
 
 #crud-main {
-	border: none;
-	background: none;
-	padding: 0;
-	font-family: Roboto, Arial, Helvetica, Sans-serif;
-	height: 100%;
+	height: calc(100% - 24px);
+	margin: 12px;
 }
 
-#crud-left {
-	width: 210px;
-	margin: 12px 4px 12px 12px;
-	display: inline-block;
-	height: calc(100% - 12px);
+#crud-top {
+	height: 36px;
 }
 
-#crud-left .resourceBox {
-	display: inline-block;
-	vertical-align: top;
-	height: calc(50% - 5px);
-	width: 100%;
-}
-
-#crud-left h2 {
-	margin: 6px 0 6px 12px;
+#crud-top .select2-container--default .select2-results>.select2-results__options {
+	max-height: 400px;
 }
 
 .resourceBox h2 {
 	margin: 2px 0 12px 0;
 }
 
-#crud-types {
-	margin-bottom: 3px;
-}
-
-#crudTypesFilterToggle {
-	position: absolute;
-	top: 2px;
-	right: 2px;
-	margin: 4px;
-	cursor: pointer;
-}
-
-#crudTypeFilterSettings {
-	position: absolute;
-	border: 1px solid #999 ! important;
-	left: calc(100% + 5px);
-	top: 0;
-	z-index: 100;
-	background-color: #fff ! important;
-	margin-top: -1px;
-	padding: 8px 20px 6px 10px;
-}
-
-#crudTypeFilterSettings div {
-	white-space: nowrap;
-}
-
-#crudTypeFilterSettings label {
-	vertical-align: middle;
-}
-
-#crudTypeFilterSettings button.close-button {
-	margin-top: 10px;
-}
-
-#crudTypesSearch {
-	margin: 0px 10px 5px 8px;
-}
-
-#crud-recent-types {
-	margin-top: 3px;
-}
-
-#crud-recent-types li .remove-recent-type {
-	display: none;
-}
-
-#crud-recent-types li:hover .remove-recent-type {
-	position: absolute;
-	right: 4px;
-	display: inline-block;
-	width: 14px;
-	height: 14px;
-	margin: 2px;
-}
-
-#crudTypesFilterToggle:hover,
-#crudTypesFilterToggle.active,
-#crud-recent-types li .remove-recent-type:hover {
-	filter: alpha(opacity=60);
-	-khtml-opacity: 0.6;
-	-moz-opacity: 0.6;
-	opacity: 0.6;
-}
-
-#crud-left ul {
-	padding: 1px 0 0 0;
-	margin: 0;
-	overflow-wrap: break-word;
-	height: calc(100% - 70px);
+#crud-type-detail {
+	padding: 6px;
+	vertical-align: top;
 	overflow: auto;
-}
-
-#crud-left li {
-	border-bottom: 1px solid #f6f6f6;
-	border-top: 1px solid #f6f6f6;
-	margin-top: -1px;
-	list-style: none;
-	padding: 2px 5px 2px 10px;
-	cursor: pointer;
-	height: 18px;
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-}
-
-#crud-left li.active {
-	background-color: #81ce25;
-	border-bottom: 1px solid #f6f6f6;
-	border-top: 1px solid #f6f6f6;
-}
-
-#crud-left li:hover {
-	background-color: #81ce25;
-	border-bottom: 1px solid #f6f6f6;
-	border-top: 1px solid #f6f6f6;
-	z-index: 1000;
-}
-
-#crud-right {
-	width: calc(100% - 280px);
-	margin: 12px 0 12px 4px;
+	height: calc(100% - 36px);
+	width: calc(100% - 12px);
 }
 
 .resourceBox {
@@ -161,7 +52,7 @@
 	border: 1px solid rgba(0,0,0,.125);
 }
 
-#crud-right .crud-message {
+#crud-type-detail .crud-message {
 	width: 100%;
 	height: 100%;
 	text-align: center;
@@ -170,13 +61,13 @@
 	left: 0;
 }
 
-#crud-right .crud-message .crud-centered {
+#crud-type-detail .crud-message .crud-centered {
 	position: relative;
 	top: 50%;
 	vertical-align: middle;
 }
 
-#crud-right .crud-message .crud-centered img {
+#crud-type-detail .crud-message .crud-centered img {
 	vertical-align: middle;
 }
 
@@ -230,7 +121,7 @@
 	position: -o-sticky;
 	position: sticky;
 	top: 0;
-	z-index: 9;
+	z-index: 2;
 	white-space: nowrap;
 	vertical-align: middle;
 }
@@ -475,13 +366,12 @@ table.props td.__value {
 /*
 * Search
 */
-
 .searchBox {
-	 position: absolute;
-	 right: 12px;
-	 top: 14px;
-	 z-index: 5;
-	 line-height: 1em;
+	position: absolute;
+	right: 50px;
+	top: 70px;
+	z-index: 5;
+	line-height: 1em;
 }
 
 .searchBoxDialog {
@@ -496,15 +386,8 @@ table.props td.__value {
 }
 
 .searchResults {
-	margin-top: 42px;
+	height: 100%;
 	overflow-y: auto;
-}
-
-h2.searchResultsTitle {
-	position: absolute;
-	color: #333;
-	top: 60px;
-	left: 12px;
 }
 
 .searchResults h3 {
@@ -530,14 +413,6 @@ i.clearSearchIcon {
 	top: 9px;
 	right: 8px;
 	cursor: pointer;
-}
-
-.dialogText h2.searchResultsTitle {
-	top: 0px;
-}
-
-.dialogText .searchResults {
-	margin-top: 0;
 }
 
 .dialogText .searchResultGroup {

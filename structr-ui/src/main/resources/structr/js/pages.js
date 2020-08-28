@@ -53,9 +53,7 @@ var _Pages = {
 			_Elements.removeContextMenu();
 		});
 
-		Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
-			shadowPage = entities[0];
-		});
+		Structr.getShadowPage();
 
 	},
 	resize: function(offsetLeft, offsetRight) {
@@ -66,9 +64,7 @@ var _Pages = {
 			position: 'fixed'
 		});
 
-		var windowWidth = $(window).width();
-		var windowHeight = $(window).height();
-		var headerOffsetHeight = 84, previewOffset = 30;
+		let windowWidth = $(window).width();
 
 		if (previews) {
 
@@ -84,43 +80,21 @@ var _Pages = {
 				});
 			}
 
-			var w = windowWidth - parseInt(previews.css('marginLeft')) - parseInt(previews.css('marginRight')) - 15 + 'px';
+			let w = windowWidth - parseInt(previews.css('marginLeft')) - parseInt(previews.css('marginRight')) - 15 + 'px';
 
 			previews.css({
-				width: w,
-				height: windowHeight - headerOffsetHeight - 2 + 'px'
+				width: w
 			});
 
 			$('.previewBox', previews).css({
-				width: w,
-				height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
+				width: w
 			});
 
 			var iframes = $('.previewBox', previews).find('iframe');
 			iframes.css({
-				width: w,
-				height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
+				width: w
 			});
 		}
-
-		var leftSlideout = $('#' + activeTabLeft).closest('.slideOut');
-		leftSlideout.css({
-			height: windowHeight - headerOffsetHeight - 42 + 'px'
-		});
-
-		var rightSlideout = $('#' + activeTabRight).closest('.slideOut');
-		rightSlideout.css({
-			height: windowHeight - headerOffsetHeight - 42 + 'px'
-		});
-
-		$('.ver-scrollable').each(function(i, el) {
-
-			let topOffset = ($(this).parent().hasClass('slideOut')) ? $(this).position().top : 0;
-
-			$(this).css({
-				height: windowHeight - headerOffsetHeight - topOffset - 42 + 'px'
-			});
-		});
 	},
 	onload: function() {
 
@@ -136,11 +110,11 @@ var _Pages = {
 				'<div class="column-resizer-blocker"></div><div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
 				+ '<div id="activeElements" class="slideOut slideOutLeft"><div class="compTab" id="activeElementsTab">Active Elements</div><div class="page inner"></div></div>'
 				+ '<div id="dataBinding" class="slideOut slideOutLeft"><div class="compTab" id="dataBindingTab">Data Binding</div></div>'
-				+ '<div id="localizations" class="slideOut slideOutLeft"><div class="compTab" id="localizationsTab">Localizations</div><div class="page inner"><input class="locale" placeholder="Locale"><button class="refresh action button">' + _Icons.getHtmlForIcon(_Icons.refresh_icon) + ' Refresh</button><div class="results ver-scrollable"></div></div></div>'
+				+ '<div id="localizations" class="slideOut slideOutLeft"><div class="compTab" id="localizationsTab">Localizations</div><div class="page inner"><div class="localizations-inputs"><input class="locale" placeholder="Locale"><button class="refresh action button">' + _Icons.getHtmlForIcon(_Icons.refresh_icon) + ' Refresh</button></div><div class="results"></div></div></div>'
 				+ '<div id="previews" class="no-preview"></div>'
 				+ '<div id="widgetsSlideout" class="slideOut slideOutRight"><div class="compTab" id="widgetsTab">Widgets</div></div>'
 				+ '<div id="palette" class="slideOut slideOutRight"><div class="compTab" id="paletteTab">HTML Palette</div></div>'
-				+ '<div id="components" class="slideOut slideOutRight"><div class="compTab" id="componentsTab">Shared Components</div></div>'
+				+ '<div id="components" class="slideOut slideOutRight"><div class="compTab" id="componentsTab">Shared Components</div><div class="inner"></div></div>'
 				+ '<div id="elements" class="slideOut slideOutRight"><div class="compTab" id="elementsTab">Unused Elements</div></div>');
 
 		pagesSlideout = $('#pages');
@@ -292,7 +266,7 @@ var _Pages = {
 		previewTabs.empty();
 
 		pagesSlideout.append('<div id="pagesPager"></div>');
-		pagesSlideout.append('<div class="ver-scrollable" id="pagesTree"></div>');
+		pagesSlideout.append('<div id="pagesTree"></div>');
 		let pagesPager = $('#pagesPager', pagesSlideout);
 		pages = $('#pagesTree', pagesSlideout);
 
@@ -771,14 +745,14 @@ var _Pages = {
 		$.ui.ddmanager.droppables['default'] = droppablesArray;
 	},
 	makeTabEditable: function(element) {
-		var id = element.prop('id').substring(5);
+
+		let id = element.prop('id').substring(5);
 
 		element.off('hover');
-		//var oldName = $.trim(element.children('.name_').text());
-		var oldName = $.trim(element.children('b.name_').attr('title'));
+		let oldName = $.trim(element.children('b.name_').attr('title'));
 		element.children('b').hide();
 		element.find('.button').hide();
-		var input = $('input.new-name', element);
+		let input = $('input.new-name', element);
 
 		if (!input.length) {
 			element.append('<input type="text" size="' + (oldName.length + 4) + '" class="new-name" value="' + oldName + '">');
@@ -787,26 +761,26 @@ var _Pages = {
 
 		input.show().focus().select();
 
-		input.on('blur', function() {
-			input.off('blur');
-			var self = $(this);
-			var newName = self.val();
+		let saveFn = (self) => {
+			let newName = self.val();
 			Command.setProperty(id, "name", newName);
 			_Pages.resetTab(element, newName);
+		};
+
+		input.off('blur').on('blur', function() {
+			input.off('blur');
+			saveFn($(this));
 		});
 
-		input.keypress(function(e) {
+		input.off('keypress').on('keypress', function(e) {
 			if (e.keyCode === 13 || e.keyCode === 9) {
-				e.preventDefault();
-				var self = $(this);
-				var newName = self.val();
-				Command.setProperty(id, "name", newName);
-				_Pages.resetTab(element, newName);
+				e.stopPropagation();
+				input.off('blur');
+				saveFn($(this));
 			}
 		});
 
 		element.off('click');
-
 	},
 	appendPageElement: function(entity) {
 
@@ -1123,25 +1097,35 @@ var _Pages = {
 	reloadDataBindingWizard: function() {
 		dataBindingSlideout.children('#wizard').remove();
 		dataBindingSlideout.prepend('<div class="inner" id="wizard"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');
-		// Command.list(type, rootOnly, pageSize, page, sort, order, callback) {
-		var selectedType = LSWrapper.getItem(_Pages.selectedTypeKey);
-		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', 'id,name', function(typeNodes) {
-			typeNodes.forEach(function(typeNode) {
-				$('#type-selector').append('<option ' + (typeNode.id === selectedType ? 'selected' : '') + ' value="' + typeNode.id + '">' + typeNode.name + '</option>');
-			});
-		});
 
-		$('#data-wizard-attributes').empty();
-		if (selectedType) {
-			_Pages.showTypeData(selectedType);
-		}
+		let lastSelectedType = LSWrapper.getItem(_Pages.selectedTypeKey);
+
+		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', 'id,name', function(typeNodes) {
+
+			let lastSelectedTypeExists = false;
+
+			typeNodes.forEach(function(typeNode) {
+
+				let selected = '';
+				if (typeNode.id === lastSelectedType) {
+					lastSelectedTypeExists = true;
+					selected = 'selected';
+				}
+
+				$('#type-selector').append('<option ' + selected + ' value="' + typeNode.id + '">' + typeNode.name + '</option>');
+			});
+
+			$('#data-wizard-attributes').empty();
+			if (lastSelectedType && lastSelectedTypeExists) {
+				_Pages.showTypeData(lastSelectedType);
+			}
+		});
 
 		$('#type-selector').on('change', function() {
 			$('#data-wizard-attributes').empty();
-			var id = $(this).children(':selected').attr('value');
+			let id = $(this).children(':selected').attr('value');
 			_Pages.showTypeData(id);
 		});
-
 	},
 	showTypeData: function(id) {
 		if (!id) {
@@ -1156,7 +1140,7 @@ var _Pages = {
 					.append('<div class="clear">&nbsp;</div><p>You can drag and drop the type box onto a block in a page. The type will be bound to the block which will loop over the result set.</p>')
 					.append('<div class="data-binding-type draggable">:' + sourceSchemaNode.name + '</div>')
 					.append('<h3>Properties</h3><div class="properties"></div>')
-					.append('<div class="clear">&nbsp;</div><p>Drag and drop these elements onto the page for data binding.</p>');
+					.append('<p>Drag and drop these elements onto the page for data binding.</p>');
 
 			var draggableSettings = {
 				iframeFix: true,

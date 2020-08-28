@@ -619,7 +619,7 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag row1     = table.block("tr");
 
 		row1.block("td").block("label").attr(new Attr("for", "passwordField")).text("Password:");
-		row1.block("td").empty("input").attr(new Attr("autofocus", "tur")).id("passwordField").attr(new Type("password"), new Name("password"));
+		row1.block("td").empty("input").attr(new Attr("autofocus", "true")).id("passwordField").attr(new Type("password"), new Name("password"));
 
 		final Tag row2     = table.block("tr");
 		final Tag cell13   = row2.block("td").attr(new Attr("colspan", "2")).css("btn");

@@ -25,13 +25,13 @@ import org.structr.schema.openapi.common.OpenAPIAllOf;
 import org.structr.schema.openapi.schema.OpenAPIBaseSchemaWrite;
 import org.structr.schema.openapi.common.OpenAPIReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
+import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaInput;
 
 public class OpenAPIPatchOperation extends OpenAPIOperation {
 
 	public OpenAPIPatchOperation(final StructrTypeDefinition type) {
 
-		super(
-			// summary
+		super(// summary
 			"Updates multiple existing object of type " + type.getName(),
 
 			// description
@@ -49,7 +49,7 @@ public class OpenAPIPatchOperation extends OpenAPIOperation {
 			// request body
 			new OpenAPIRequestResponse("Contents of new " + type.getName() + " object to add.", new OpenAPIAllOf(
 				new OpenAPIBaseSchemaWrite(),
-				type.serializeOpenAPI(PropertyView.Ui, true)
+				new OpenAPIStructrTypeSchemaInput(type, PropertyView.Ui, 0)
 			)),
 
 			// responses

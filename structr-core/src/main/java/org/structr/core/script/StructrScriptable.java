@@ -35,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.AccessMode;
 import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -44,6 +45,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
 import org.structr.core.function.GrantFunction;
 import org.structr.core.parser.CacheExpression;
@@ -298,6 +300,76 @@ public class StructrScriptable extends ScriptableObject {
 						StructrScriptable.this.actionContext.setSecurityContext(securityContext);
 					}
 
+				}
+
+			}, null, 0, 0);
+		}
+
+		if ("doAs".equals(name) || "do_as".equals(name)) {
+
+			return new IdFunctionObject(new IdFunctionCall() {
+
+				@Override
+				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
+
+					// backup security context
+					final SecurityContext currentSecurityContext = StructrScriptable.this.actionContext.getSecurityContext();
+
+					if (parameters != null && parameters.length == 2) {
+
+						final Object userParam = parameters[0];
+
+						if (userParam instanceof GraphObjectWrapper) {
+
+							final Object unwrappedFirstParameter = ((GraphObjectWrapper)userParam).unwrap();
+
+							if (unwrappedFirstParameter instanceof Principal) {
+
+								// copy context store from outer context
+								final SecurityContext userContext = SecurityContext.getInstance((Principal)unwrappedFirstParameter, currentSecurityContext.getRequest(), AccessMode.Frontend);
+								userContext.setContextStore(currentSecurityContext.getContextStore());
+
+								// replace security context with super user context
+								actionContext.setSecurityContext(userContext);
+
+								final Object scriptParam = parameters[1];
+								if (scriptParam instanceof Script) {
+
+									try {
+
+										final Script script = (Script)scriptParam;
+										return script.exec(context, scope);
+
+									} finally {
+
+										// overwrite context store with possibly changed context store
+										currentSecurityContext.setContextStore(userContext.getContextStore());
+
+										// restore saved security context
+										StructrScriptable.this.actionContext.setSecurityContext(currentSecurityContext);
+									}
+
+								} else {
+
+									logger.warn("do_as: Second parameter must be a script!");
+								}
+
+							} else {
+
+								logger.warn("do_as: First parameter must be a principal!");
+							}
+
+						} else {
+
+							logger.warn("do_as: First parameter must be a principal!");
+						}
+
+					} else {
+
+						//...
+					}
+
+					return null;
 				}
 
 			}, null, 0, 0);

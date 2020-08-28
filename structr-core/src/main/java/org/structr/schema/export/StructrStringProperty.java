@@ -71,22 +71,6 @@ public class StructrStringProperty extends StructrPropertyDefinition implements 
 	}
 
 	@Override
-	public Map<String, Object> serializeOpenAPI() {
-
-		final Map<String, Object> map = super.serializeOpenAPI();
-
-		if (contentType != null) {
-			map.put(JsonSchema.KEY_CONTENT_TYPE, contentType);
-		}
-
-		if (format != null) {
-			map.put(JsonSchema.KEY_FORMAT, format);
-		}
-
-		return map;
-	}
-
-	@Override
 	Map<String, Object> serialize() {
 
 		final Map<String, Object> map = super.serialize();
