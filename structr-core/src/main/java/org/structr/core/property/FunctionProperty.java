@@ -113,6 +113,25 @@ public class FunctionProperty<T> extends Property<T> {
 
 					Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction.trim()).concat("}"), "getProperty(" + jsonName + ")");
 
+					PropertyConverter converter = null;
+
+					if (typeHint != null && result != null) {
+
+						switch (typeHint.toLowerCase()) {
+
+							case "boolean": converter = pBoolean.inputConverter(securityContext); break;
+							case "int":     converter = pInt.inputConverter(securityContext); break;
+							case "long":    converter = pLong.inputConverter(securityContext); break;
+							case "double":  converter = pDouble.inputConverter(securityContext); break;
+							case "date":    converter = pDate.inputConverter(securityContext); break;
+						}
+
+						if (converter != null) {
+
+							result = converter.convert(result);
+						}
+					}
+
 					securityContext.getContextStore().storeFunctionPropertyResult(obj.getUuid(), jsonName, result);
 
 					return (T)result;
