@@ -5345,6 +5345,37 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testPolyglotArraySorting () {
+
+		/*
+			Ensure that PolyglotProxyArray entries can be properly set by ensuring the proper function of sort on a proxy array.
+		*/
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final Object result = ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testPolyglotArraySorting.js"));
+
+			assertNotNull(result);
+			assertTrue(result instanceof List);
+			List resultList = (List)result;
+
+			assertEquals(resultList.size(), 10);
+			assertTrue(resultList.get(0) instanceof TestOne);
+			assertEquals(((TestOne)resultList.get(0)).getName(), "TestOne9");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
+	}
+
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource, final String comment) {
 
