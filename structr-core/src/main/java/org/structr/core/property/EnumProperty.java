@@ -18,6 +18,9 @@
  */
 package org.structr.core.property;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.TreeMap;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -116,6 +119,37 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
 		return "abc";
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+
+		final Map<String, Object> items = new TreeMap<>();
+		final Map<String, Object> map   = new TreeMap<>();
+
+		map.put("type", "array");
+		map.put("items", items);
+
+		items.put("type", "string");
+		items.put("enum", Arrays.asList(enumType.getEnumConstants()));
+
+		return map;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+
+		final Map<String, Object> items = new TreeMap<>();
+		final Map<String, Object> map   = new TreeMap<>();
+
+		map.put("type", "array");
+		map.put("items", items);
+
+		items.put("type", "string");
+		items.put("enum", Arrays.asList(enumType.getEnumConstants()));
+
+		return map;
 	}
 
 	protected class DatabaseConverter extends PropertyConverter<T, String> {

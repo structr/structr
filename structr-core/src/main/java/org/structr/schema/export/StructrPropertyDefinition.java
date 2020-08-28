@@ -268,15 +268,6 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		return null;
 	}
 
-	public Map<String, Object> serializeOpenAPI() {
-
-		final Map<String, Object> map = new TreeMap<>();
-
-		map.put(JsonSchema.KEY_TYPE, getType());
-
-		return map;
-	}
-
 	// ----- package methods -----
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 

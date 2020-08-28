@@ -23,17 +23,17 @@ import java.util.Map;
 import org.structr.common.PropertyView;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPIAllOf;
-import org.structr.schema.openapi.schema.OpenAPIBaseSchemaWrite;
 import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
 import org.structr.schema.openapi.common.OpenAPIReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
+import org.structr.schema.openapi.schema.OpenAPIBaseSchemaWrite;
+import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaInput;
 
 public class OpenAPIPutSingleOperation extends OpenAPIOperation {
 
 	public OpenAPIPutSingleOperation(final StructrTypeDefinition type) {
 
-		super(
-			// summary
+		super(// summary
 			"Updates an existing object of type " + type.getName(),
 
 			// description
@@ -53,7 +53,7 @@ public class OpenAPIPutSingleOperation extends OpenAPIOperation {
 			// request body
 			new OpenAPIRequestResponse("Properties to update.", new OpenAPIAllOf(
 				new OpenAPIBaseSchemaWrite(),
-				type.serializeOpenAPI(PropertyView.Ui, true)
+				new OpenAPIStructrTypeSchemaInput(type, PropertyView.Custom, 0)
 			)),
 
 			// responses

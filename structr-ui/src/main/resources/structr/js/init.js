@@ -2045,6 +2045,28 @@ var Structr = {
 			default:
 				return 'https://docs.structr.com/';
 		}
+	},
+	getShadowPage: function(callback) {
+
+		if (shadowPage) {
+
+			if (callback) {
+				callback();
+			}
+
+		} else {
+
+			// wrap getter for shadowdocument in listComponents so we're sure that shadow document has been created
+			Command.listComponents(1, 1, 'name', 'asc', function(result) {
+				Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
+					shadowPage = entities[0];
+
+					if (callback) {
+						callback();
+					}
+				});
+			});
+		}
 	}
 };
 

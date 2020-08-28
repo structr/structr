@@ -49,6 +49,10 @@ public class RuntimeEventLog {
 		add(EventType.Authentication, description, data);
 	}
 
+	public static void token(final String description, final Object... data) {
+		add(EventType.Authentication, description, data);
+	}
+
 	public static void logout(final String description, final Object... data) {
 		add(EventType.Authentication, description, data);
 	}

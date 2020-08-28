@@ -22,16 +22,16 @@ import java.util.Map;
 import org.structr.common.PropertyView;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPIAllOf;
-import org.structr.schema.openapi.schema.OpenAPIBaseSchemaWrite;
 import org.structr.schema.openapi.common.OpenAPIReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
+import org.structr.schema.openapi.schema.OpenAPIBaseSchemaWrite;
+import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaInput;
 
 public class OpenAPIPostOperation extends OpenAPIOperation {
 
 	public OpenAPIPostOperation(final StructrTypeDefinition type) {
 
-		super(
-			// summary
+		super(// summary
 			"Creates a new object of type " + type.getName(),
 
 			// description
@@ -49,7 +49,7 @@ public class OpenAPIPostOperation extends OpenAPIOperation {
 			// request body
 			new OpenAPIRequestResponse("Contents of new " + type.getName() + " object to add.", new OpenAPIAllOf(
 				new OpenAPIBaseSchemaWrite(),
-				type.serializeOpenAPI(PropertyView.All, true)
+				new OpenAPIStructrTypeSchemaInput(type, PropertyView.Custom, 0)
 			)),
 
 			// responses

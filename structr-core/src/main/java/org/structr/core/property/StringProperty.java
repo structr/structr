@@ -134,7 +134,7 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(java.lang.String type, final String viewName) {
+	public Object getExampleValue(final String type, final String viewName) {
 		return "Example value";
 	}
 

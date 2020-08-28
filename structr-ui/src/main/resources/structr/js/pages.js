@@ -53,9 +53,7 @@ var _Pages = {
 			_Elements.removeContextMenu();
 		});
 
-		Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
-			shadowPage = entities[0];
-		});
+		Structr.getShadowPage();
 
 	},
 	resize: function(offsetLeft, offsetRight) {

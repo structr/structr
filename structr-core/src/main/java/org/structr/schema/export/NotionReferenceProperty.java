@@ -108,30 +108,6 @@ class NotionReferenceProperty extends StructrReferenceProperty {
 	}
 
 	@Override
-	public Map<String, Object> serializeOpenAPI() {
-
-		final Map<String, Object> map = super.serializeOpenAPI();
-		final String type             = getType();
-
-		switch (type) {
-
-			case "object":
-				map.put(JsonSchema.KEY_REFERENCE, reference);
-				break;
-
-			case "array":
-				final Map<String, Object> items = new TreeMap<>();
-				map.put(JsonSchema.KEY_ITEMS, items);
-				items.put(JsonSchema.KEY_REFERENCE, reference);
-				break;
-		}
-
-		map.put(JsonSchema.KEY_PROPERTIES, this.properties);
-
-		return map;
-	}
-
-	@Override
 	Map<String, Object> serialize() {
 
 		final Map<String, Object> map = super.serialize();

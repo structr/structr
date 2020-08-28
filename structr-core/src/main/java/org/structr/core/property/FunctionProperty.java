@@ -18,7 +18,9 @@
  */
 package org.structr.core.property;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -315,5 +317,42 @@ public class FunctionProperty<T> extends Property<T> {
 		}
 
 		return null;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+
+		if (typeHint != null) {
+
+			switch (typeHint.toLowerCase()) {
+
+				case "boolean": return pBoolean.describeOpenAPIOutputType(type, viewName, level + 1);
+				case "int":     return pInt.describeOpenAPIOutputType(type, viewName, level + 1);
+				case "long":    return pLong.describeOpenAPIOutputType(type, viewName, level + 1);
+				case "double":  return pDouble.describeOpenAPIOutputType(type, viewName, level + 1);
+				case "date":    return pDate.describeOpenAPIOutputType(type, viewName, level + 1);
+			}
+		}
+
+		return Collections.EMPTY_MAP;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+
+		if (typeHint != null) {
+
+			switch (typeHint.toLowerCase()) {
+
+				case "boolean": return pBoolean.describeOpenAPIInputType(type, viewName, level + 1);
+				case "int":     return pInt.describeOpenAPIInputType(type, viewName, level + 1);
+				case "long":    return pLong.describeOpenAPIInputType(type, viewName, level + 1);
+				case "double":  return pDouble.describeOpenAPIInputType(type, viewName, level + 1);
+				case "date":    return pDate.describeOpenAPIInputType(type, viewName, level + 1);
+			}
+		}
+
+		return Collections.EMPTY_MAP;
 	}
 }

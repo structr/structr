@@ -231,4 +231,41 @@
 		</pluginManagement>
 	</build>
 
+	<profiles>
+		<profile>
+			<activation>
+				<file>
+					<exists>/usr/bin/notify-send</exists>
+				</file>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>3.0.0</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<phase>prepare-package</phase>
+							</execution>
+						</executions>
+						<configuration>
+							<executable>/usr/bin/notify-send</executable>
+							<arguments>
+								<argument>-a</argument>
+								<argument>Structr Maven Build Process</argument>
+								<argument>-t</argument>
+								<argument>3000</argument>
+								<argument>Build finished</argument>
+							</arguments>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
 </project>

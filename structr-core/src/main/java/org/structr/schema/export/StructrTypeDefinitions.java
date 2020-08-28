@@ -18,6 +18,7 @@
  */
 package org.structr.schema.export;
 
+import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,7 +38,9 @@ import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
+import org.structr.common.PropertyView;
 import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
 /**
  *
@@ -148,7 +151,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		return map;
 	}
 
-	public Map<String, Object> serializeOpenAPI(final String tag, final String viewName) {
+	public Map<String, Object> serializeOpenAPI(final Map<String, Object> schemas, final String tag, final String viewName) {
 
 		final Map<String, Object> map = new TreeMap<>();
 
@@ -163,6 +166,21 @@ public class StructrTypeDefinitions implements StructrDefinition {
 				map.put(typeName, typeMap);
 				typeMap.put("allOf", allOf);
 
+				// base type must be resolve and added as well
+				final URI baseTypeReference = type.getExtends();
+				if (baseTypeReference != null) {
+
+					final Object def = root.resolveURI(baseTypeReference);
+					if (def != null && def instanceof StructrTypeDefinition) {
+
+						final StructrTypeDefinition baseType = (StructrTypeDefinition)def;
+						if (!schemas.containsKey(baseType.getName())) {
+
+							schemas.putAll(new OpenAPIStructrTypeSchemaOutput(baseType, viewName, 0));
+						}
+					}
+				}
+
 				final String reference = type.resolveTypeReferenceForOpenAPI(type.getExtends());
 				if (reference != null) {
 
@@ -171,11 +189,11 @@ public class StructrTypeDefinitions implements StructrDefinition {
 				} else {
 
 					// default base type AbstractNode
-					allOf.add(new OpenAPIReference("#/components/schemas/AbstractNode", viewName));
+					allOf.add(new OpenAPIReference("#/components/schemas/AbstractNode", PropertyView.Public));
 				}
 
 				// add actual type definition
-				allOf.add(type.serializeOpenAPI(viewName, false));
+				schemas.putAll(new OpenAPIStructrTypeSchemaOutput(type, viewName, 0));
 			}
 		}
 

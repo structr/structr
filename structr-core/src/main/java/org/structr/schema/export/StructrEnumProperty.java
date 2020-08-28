@@ -91,25 +91,6 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 	}
 
 	@Override
-	public Map<String, Object> serializeOpenAPI() {
-
-		final Map<String, Object> map = super.serializeOpenAPI();
-
-		if (fqcn != null) {
-
-			map.put(JsonSchema.KEY_FQCN, fqcn);
-
-		} else {
-
-			map.put(JsonSchema.KEY_ENUM, enums);
-		}
-
-		map.remove(JsonSchema.KEY_FORMAT);
-
-		return map;
-	}
-
-	@Override
 	void deserialize(final Map<String, Object> source) {
 
 		super.deserialize(source);
