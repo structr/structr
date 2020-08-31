@@ -3612,11 +3612,18 @@ var EditorView = function () {
 
             d3.select(window).on('mousemove.d3ne' + this.editor._id, function () {
 
-                var k = _this.transform.k;
-                var position = d3.mouse(_this.view.node());
+                if (d3.event.buttons !== 0) {
 
-                _this.mouse = [position[0] / k, position[1] / k];
-                _this.update();
+                    var k = _this.transform.k;
+                    var position = d3.mouse(_this.view.node());
+
+                    _this.mouse = [position[0] / k, position[1] / k];
+
+                    requestAnimationFrame(() => {
+                        _this.update();
+		           });
+                }
+
             }).on('keydown.d3ne' + this.editor._id, function (e) {
                 if (_this.container.node() === document.activeElement) _this.editor.keyDown(e);
             }).on('resize.d3ne' + this.editor._id, this.resize.bind(this));
@@ -3967,7 +3974,7 @@ var EventListener = function () {
 
             return this.events[name].reduce(function (r, e) {
                 return e(param, _this2.persistent) !== false && r;
-            }, true); // return false if at least one event is false        
+            }, true); // return false if at least one event is false
         }
     }]);
     return EventListener;
