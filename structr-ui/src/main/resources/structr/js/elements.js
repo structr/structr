@@ -297,8 +297,7 @@ var _Elements = {
 				} else {
 					if (!shadowPage) {
 						// Create shadow page if not existing
-						Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
-							shadowPage = entities[0];
+						Structr.getShadowPage(() => {
 							_Elements.createComponent(ui);
 						});
 					} else {

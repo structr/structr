@@ -89,10 +89,20 @@ public abstract class PolyglotWrapper {
 					return value.asLong();
 				} else if (value.fitsInFloat()) {
 
-					return value.asFloat();
+					Float f = value.asFloat();
+					if (!Float.isNaN(f)) {
+
+						return f;
+					}
+					return null;
 				} else if (value.fitsInDouble()) {
 
-					return value.asDouble();
+					Double d = value.asDouble();
+					if (!Double.isNaN(d)) {
+
+						return d;
+					}
+					return null;
 				}
 			}
 

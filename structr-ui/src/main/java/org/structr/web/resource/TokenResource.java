@@ -87,7 +87,7 @@ public class TokenResource extends LoginResource {
 
         logger.info("Token creation successful: {}", user);
 
-        RuntimeEventLog.login("Token creation successful", user.getUuid(), user.getName());
+        RuntimeEventLog.token("Token creation successful", user.getUuid(), user.getName());
 
         user.setSecurityContext(securityContext);
 

@@ -21,18 +21,17 @@ package org.structr.schema.openapi.operation;
 import java.util.List;
 import java.util.Map;
 import org.structr.schema.export.StructrTypeDefinition;
-import org.structr.schema.openapi.example.OpenAPIObjectResultExample;
 import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
 import org.structr.schema.openapi.common.OpenAPIReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIResultSchema;
+import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
 public class OpenAPIGetSingleOperation extends OpenAPIOperation {
 
 	public OpenAPIGetSingleOperation(final StructrTypeDefinition type, final String view) {
 
-		super(
-			// summary
+		super(// summary
 			"Fetches the contents of a single " + type.getName() + " object.",
 
 			// description
@@ -53,10 +52,8 @@ public class OpenAPIGetSingleOperation extends OpenAPIOperation {
 			null,
 
 			// responses
-			Map.of(
-				"200", new OpenAPIRequestResponse("Ok",
-					new OpenAPIResultSchema(new OpenAPIReference("#/components/schemas/" + type.getName(), view), true),
-					new OpenAPIObjectResultExample(type, view)
+				Map.of("200", new OpenAPIRequestResponse("Ok",
+					new OpenAPIResultSchema(new OpenAPIStructrTypeSchemaOutput(type, view, 0), true)
 				),
 				"403", new OpenAPIReference("#/components/responses/forbidden"),
 				"404", new OpenAPIReference("#/components/responses/notFound")

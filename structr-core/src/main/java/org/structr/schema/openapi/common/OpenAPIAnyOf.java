@@ -18,38 +18,14 @@
  */
 package org.structr.schema.openapi.common;
 
+import java.util.Arrays;
+import java.util.Map;
 import java.util.TreeMap;
-import org.structr.schema.export.StructrTypeDefinition;
 
-public class OpenAPIReference extends TreeMap<String, Object> {
+public class OpenAPIAnyOf extends TreeMap<String, Object> {
 
-	public OpenAPIReference(final String reference) {
-		this(reference, null);
-	}
+	public OpenAPIAnyOf(final Map<String, Object>... items) {
 
-	public OpenAPIReference(final StructrTypeDefinition type, final String viewName) {
-
-		final String base = "#/components/schemas/";
-
-		if (viewName == null || "public".equals(viewName) || !type.getViewNames().contains(viewName)) {
-
-			put("$ref", base + type.getName());
-
-		} else {
-
-			put("$ref", base + type.getName() + "." + viewName);
-		}
-	}
-
-	public OpenAPIReference(final String reference, final String viewName) {
-
-		if (viewName == null || "public".equals(viewName)) {
-
-			put("$ref", reference);
-
-		} else {
-
-			put("$ref", reference + "." + viewName);
-		}
+		put("anyOf", Arrays.asList(items));
 	}
 }

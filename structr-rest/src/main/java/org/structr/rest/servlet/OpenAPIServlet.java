@@ -28,7 +28,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -38,16 +37,16 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeServiceCommand;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrSchemaDefinition;
 import org.structr.schema.export.StructrTypeDefinition;
-import org.structr.schema.export.StructrTypeDefinitions;
 import org.structr.schema.openapi.common.OpenAPIReference;
 import org.structr.schema.openapi.operation.OpenAPILoginOperation;
 import org.structr.schema.openapi.operation.OpenAPILogoutOperation;
 import org.structr.schema.openapi.operation.OpenAPIRegistrationOperation;
 import org.structr.schema.openapi.operation.OpenAPIResetPasswordOperation;
-import org.structr.schema.openapi.parameter.OpenAPIHeaderParameter;
 import org.structr.schema.openapi.parameter.OpenAPIQueryParameter;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.result.OpenAPIExampleAnyResult;
@@ -55,7 +54,7 @@ import org.structr.schema.openapi.schema.OpenAPIArraySchema;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
 import org.structr.schema.openapi.schema.OpenAPIResultSchema;
-import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchema;
+import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
 /**
  * A servlet that implements the OpenAPI endpoint.
@@ -101,7 +100,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 			try (final Writer writer = response.getWriter()) {
 
-				gson.toJson(createOpenAPIRoot(tag), writer);
+				gson.toJson(createOpenAPIRoot(request, tag), writer);
 
 				response.setStatus(HttpServletResponse.SC_OK);
 				response.setHeader("Cache-Control", "no-cache");
@@ -121,14 +120,14 @@ public class OpenAPIServlet extends AbstractDataServlet {
 	}
 
 	// ----- private methods -----
-	private Map<String, Object> createOpenAPIRoot(final String tag) throws FrameworkException {
+	private Map<String, Object> createOpenAPIRoot(final HttpServletRequest request, final String tag) throws FrameworkException {
 
 		final StructrSchemaDefinition schema = (StructrSchemaDefinition)StructrSchema.createFromDatabase(StructrApp.getInstance());
 		final Map<String, Object> root       = new LinkedHashMap<>();
 
 		root.put("openapi",    "3.0.2");
 		root.put("info",       createInfoObject());
-		root.put("servers",    createServersObject());
+		root.put("servers",    createServersObject(request));
 		root.put("components", createComponentsObject(schema, tag));
 		root.put("paths",      createPathsObject(schema, tag));
 		root.put("tags",       createTagsObject(schema, tag));
@@ -147,12 +146,12 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		return info;
 	}
 
-	private List<Map<String, Object>> createServersObject() {
+	private List<Map<String, Object>> createServersObject(final HttpServletRequest request) {
 
 		final List<Map<String, Object>> servers = new LinkedList<>();
 		final Map<String, Object> server        = new LinkedHashMap<>();
 
-		server.put("url",         getStructrUrl());
+		server.put("url",         getStructrUrl(request));
 		server.put("description", "The Structr REST Server");
 
 		// add server to list
@@ -176,22 +175,33 @@ public class OpenAPIServlet extends AbstractDataServlet {
 	private Map<String, Object> createSecuritySchemesObject() {
 
 		final Map<String, Object> schemes = new LinkedHashMap<>();
-		final Map<String, Object> auth    = new LinkedHashMap<>();
+		final Map<String, Object> cookieAuth = new LinkedHashMap<>();
+		final Map<String, Object> bearerAuth = new LinkedHashMap<>();
 
-		schemes.put("cookieAuth", auth);
+		cookieAuth.put("type", "apiKey");
+		cookieAuth.put("in",   "cookie");
+		cookieAuth.put("name", "JSESSIONID");
 
-		auth.put("type", "apiKey");
-		auth.put("in",   "cookie");
+		bearerAuth.put("type", "http");
+		bearerAuth.put("scheme",   "bearer");
+		bearerAuth.put("bearerFormat", "JWT");
+
+		schemes.put("CookieAuth", cookieAuth);
+		schemes.put("BearerAuth", bearerAuth);
 
 		return schemes;
 	}
 
-	private Map<String, Object> createGlobalSecurityObject() {
+	private List<Map<String, Object>> createGlobalSecurityObject() {
 
-		final Map<String, Object> security = new LinkedHashMap<>();
+		final List<Map<String, Object>> security = new LinkedList<>();
+		final Map<String, Object> securitySchemes = new LinkedHashMap<>();
 		final Map<String, Object> auth    = new LinkedHashMap<>();
 
-		security.put("cookieAuth", List.of());
+		securitySchemes.put("CookieAuth", List.of());
+		securitySchemes.put("BearerAuth", List.of());
+
+		security.add(securitySchemes);
 
 		return security;
 	}
@@ -223,17 +233,11 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 	private Map<String, Object> createSchemasObject(final StructrSchemaDefinition schema, final String tag) {
 
-		final StructrTypeDefinitions definitions = schema.getTypeDefinitionsObject();
-		final Map<String, Object> map            = new TreeMap<>();
+		final Map<String, Object> map = new TreeMap<>();
 
 		// base classes
-		map.put("AbstractNode", new OpenAPIStructrTypeSchema(AbstractNode.class, PropertyView.Public));
-		map.put("Principal",    new OpenAPIStructrTypeSchema(AbstractNode.class, PropertyView.Public));
-
-		for (final String view : StructrApp.getConfiguration().getPropertyViews().stream().filter(name -> !StructrTypeDefinition.VIEW_BLACKLIST.contains(name)).collect(Collectors.toSet())) {
-
-			map.putAll(definitions.serializeOpenAPI(tag, view));
-		}
+		map.put("AbstractNode", new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, PropertyView.Public, 0));
+		map.put("Principal",    new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, PropertyView.Public, 0));
 
 		map.put("StructrErrorToken",  new OpenAPIObjectSchema("An error token used in semantic error messages returned by the REST server.",
 			new OpenAPIPrimitiveSchema("The type that caused the error.", "type",     "string"),
@@ -243,7 +247,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		));
 
 		map.put("StructrRESTResponse", new OpenAPIObjectSchema("HTTP status code, message and optional error tokens used in semantic error messages returned by the REST server.",
-			new OpenAPIPrimitiveSchema("The error code.",    "code",    "string"),
+			new OpenAPIPrimitiveSchema("The error code.",    "code",    "integer"),
 			new OpenAPIPrimitiveSchema("The error message.", "message", "string"),
 			Map.of("errors", new OpenAPIArraySchema("A list of error tokens.", new OpenAPIReference("#/components/schemas/StructrErrorToken")))
 		));
@@ -264,15 +268,11 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		return paths;
 	}
 
-	private String getStructrUrl() {
+	private String getStructrUrl(final HttpServletRequest request) {
 
 		final StringBuilder buf = new StringBuilder();
 
-		buf.append("http");
-		buf.append("://");
-		buf.append(Settings.ApplicationHost.getValue());
-		buf.append(":");
-		buf.append(Settings.HttpPort.getValue());
+		buf.append(ActionContext.getBaseUrl(request));
 		buf.append(Settings.RestPath.getValue());
 
 		return buf.toString();
@@ -283,7 +283,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		final Map<String, Object> responses = new LinkedHashMap<>();
 
 		responses.put("created", new OpenAPIRequestResponse("Created",
-			new OpenAPIResultSchema(new OpenAPIArraySchema("The UUID(s) of the created object(s).", Map.of("type", "string")), false),
+			new OpenAPIResultSchema(new OpenAPIArraySchema("The UUID(s) of the created object(s).", Map.of("type", "string", "example", NodeServiceCommand.getNextUuid())), false),
 			new OpenAPIExampleAnyResult(Arrays.asList("cf8b18f28b7c4dada3085656e78d9bd2"))
 		));
 
@@ -320,8 +320,6 @@ public class OpenAPIServlet extends AbstractDataServlet {
 			))
 		));
 
-		;
-
 		return responses;
 	}
 
@@ -334,17 +332,6 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		parameters.put("inexactSearch", new OpenAPIQueryParameter("loose",    "Use inexact search",                   Map.of("type", "boolean", "default", false)));
 
 		return parameters;
-	}
-
-	// unused
-	private Map<String, Object> createSecurityObject() {
-
-		final Map<String, Object> security  = new LinkedHashMap<>();
-
-		security.put("x-user",     new OpenAPIHeaderParameter("X-User",     "Username used in header-based authentication.", Map.of("type", "string")));
-		security.put("x-password", new OpenAPIHeaderParameter("X-Password", "Password used in header-based authentication.", Map.of("type", "string")));
-
-		return security;
 	}
 
 	private String getTagFromURLPath(final HttpServletRequest request) {

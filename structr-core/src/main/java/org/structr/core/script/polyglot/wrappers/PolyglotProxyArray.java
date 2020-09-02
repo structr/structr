@@ -77,7 +77,7 @@ public class PolyglotProxyArray implements ProxyArray {
 		this.checkIndex(index);
 		updateListFromSource();
 
-		if (list.size() >= index) {
+		if (list.size() <= index) {
 
 			// Determine delta between current index and target index
 			long indexDelta = index -(list.size() -1);

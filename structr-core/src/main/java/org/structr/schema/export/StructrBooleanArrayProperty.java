@@ -56,18 +56,6 @@ public class StructrBooleanArrayProperty extends StructrPropertyDefinition imple
 	}
 
 	@Override
-	public Map<String, Object> serializeOpenAPI() {
-
-		final Map<String, Object> map   = super.serializeOpenAPI();
-		final Map<String, Object> items = new TreeMap<>();
-
-		map.put(JsonSchema.KEY_ITEMS, items);
-		items.put(JsonSchema.KEY_TYPE, "boolean");
-
-		return map;
-	}
-
-	@Override
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);

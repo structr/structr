@@ -42,7 +42,7 @@ public class OpenAPIDeleteMultipleOperation extends OpenAPIOperation {
 			type.getTagsForOpenAPI(),
 
 			// parameters
-			type.getOpenAPIParameters(PropertyView.All),
+			type.getOpenAPIParameters(PropertyView.All, 0),
 
 			// request body
 			null,

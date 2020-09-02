@@ -19,6 +19,7 @@
 package org.structr.core.property;
 
 import java.util.Comparator;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.structr.api.Predicate;
@@ -357,5 +358,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	boolean isCMISProperty();
 
 	// ----- OpenAPI -----
-	Object getExampleValue(java.lang.String type, final String viewName);
+	Object getExampleValue(final String type, final String viewName);
+	Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level);
+	Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level);
 }

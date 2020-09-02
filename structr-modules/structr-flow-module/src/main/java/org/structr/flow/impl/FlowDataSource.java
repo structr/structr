@@ -68,7 +68,7 @@ public class FlowDataSource extends FlowBaseNode implements DataSource, Deployab
 					return result;
 				} catch (FrameworkException fex) {
 
-					throw new FlowException(fex);
+					throw new FlowException(fex, this);
 				}
 			}
 

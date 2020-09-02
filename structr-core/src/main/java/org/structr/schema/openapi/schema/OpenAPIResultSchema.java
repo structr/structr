@@ -34,12 +34,12 @@ public class OpenAPIResultSchema extends TreeMap<String, Object> {
 		properties.put("result", result);
 
 		if (includeQueryTime) {
-			properties.put("query_time",         Map.of("type", "string"));
+			properties.put("query_time", Map.of("type", "string", "example", "0.003547842"));
 		}
 
-		properties.put("result_count",       Map.of("type", "integer"));
-		properties.put("page_count",         Map.of("type", "integer"));
-		properties.put("result_count_time",  Map.of("type", "string"));
-		properties.put("serialization_time", Map.of("type", "string"));
+		properties.put("result_count",       Map.of("type", "integer", "example", 1));
+		properties.put("page_count",         Map.of("type", "integer", "example", 1));
+		properties.put("result_count_time",  Map.of("type", "string", "example", "0.004132365"));
+		properties.put("serialization_time", Map.of("type", "string", "example", "0.000642111"));
 	}
 }

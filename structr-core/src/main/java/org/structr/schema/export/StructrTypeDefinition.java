@@ -83,7 +83,6 @@ import org.structr.schema.openapi.operation.OpenAPIGetMultipleOperation;
 import org.structr.schema.openapi.operation.OpenAPIGetSingleOperation;
 import org.structr.schema.openapi.operation.OpenAPIPostOperation;
 import org.structr.schema.openapi.parameter.OpenAPIPropertyQueryParameter;
-import org.structr.schema.openapi.schema.OpenAPIPropertySchema;
 import org.structr.schema.openapi.operation.OpenAPIPutSingleOperation;
 import org.structr.schema.openapi.common.OpenAPIReference;
 
@@ -1704,37 +1703,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	// ----- OpenAPI methods -----
-	public Map<String, Object> serializeOpenAPI(final String viewName, final boolean forWriteRequests) {
-
-		final Map<String, Object> serializedForm       = new TreeMap<>();
-		final Map<String, Object> serializedProperties = new TreeMap<>();
-
-		// populate properties
-		visitProperties(property -> {
-
-			if (!property.isReadOnly() || !forWriteRequests) {
-
-				serializedProperties.put(property.jsonName(), new OpenAPIPropertySchema(property, viewName));
-			}
-
-		}, viewName);
-
-		serializedForm.put(JsonSchema.KEY_TYPE, "object");
-
-		// properties
-		if (!serializedProperties.isEmpty()) {
-			serializedForm.put(JsonSchema.KEY_PROPERTIES, serializedProperties);
-		}
-
-		// required
-		final Set<String> requiredProperties = getRequiredProperties();
-		if (!requiredProperties.isEmpty()) {
-			serializedForm.put(JsonSchema.KEY_REQUIRED, requiredProperties);
-		}
-
-		return serializedForm;
-	}
-
 	public Map<String, Object> serializeOpenAPIOperations(final String tag) {
 
 		final Map<String, Object> root      = new LinkedHashMap<>();
@@ -1830,7 +1798,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 	}
 
-	public List<Map<String, Object>> getOpenAPIParameters(final String viewName) {
+	public List<Map<String, Object>> getOpenAPIParameters(final String viewName, final int level) {
 
 		final List<Map<String, Object>> params = new LinkedList<>();
 
@@ -1839,7 +1807,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 			if (property.isIndexed() && !filterPropertyBlacklist.contains(property.jsonName())) {
 
-				params.add(new OpenAPIPropertyQueryParameter(property, viewName));
+				params.add(new OpenAPIPropertyQueryParameter(name, property, viewName, level));
 			}
 
 		}, viewName);

@@ -22,18 +22,17 @@ import java.util.Map;
 import org.structr.common.PropertyView;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.schema.OpenAPIArraySchema;
-import org.structr.schema.openapi.result.OpenAPIExampleArrayResult;
 import org.structr.schema.openapi.common.OpenAPIOneOf;
 import org.structr.schema.openapi.common.OpenAPIReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIResultSchema;
+import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
 public class OpenAPIGetMultipleOperation extends OpenAPIOperation {
 
 	public OpenAPIGetMultipleOperation(final StructrTypeDefinition type, final String view) {
 
-		super(
-			// summary
+		super(// summary
 			"Lists all objects of type " + type.getName(),
 
 			// description
@@ -46,24 +45,24 @@ public class OpenAPIGetMultipleOperation extends OpenAPIOperation {
 			type.getTagsForOpenAPI(),
 
 			// parameters
-			type.getOpenAPIParameters(PropertyView.All),
+			type.getOpenAPIParameters(PropertyView.All, 0),
 
 			// requestBody
 			null,
 
 			// responses
-			Map.of(
-				"403", new OpenAPIReference("#/components/responses/forbidden"),
-				"200", new OpenAPIRequestResponse("Ok",
+				Map.of("200", new OpenAPIRequestResponse("Ok",
 					new OpenAPIResultSchema(
 						new OpenAPIArraySchema(
 							"List of objects of type " + type.getName() + " and subtypes.",
-							new OpenAPIOneOf(new OpenAPIReference("#/components/schemas/" + type.getName(), view))
+							new OpenAPIOneOf(
+								new OpenAPIStructrTypeSchemaOutput(type, view, 0)
+							)
 						),
 						true
-					),
-					new OpenAPIExampleArrayResult(type, view)
-				)
+					)
+				),
+				"403", new OpenAPIReference("#/components/responses/forbidden")
 			)
 		);
 	}
