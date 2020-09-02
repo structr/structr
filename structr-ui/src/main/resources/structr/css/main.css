@@ -3766,6 +3766,10 @@ input.tree-search-input:focus {
 	background-color: #f1f1f1;
 }
 
+#flows-canvas-container #flow-focus-select {
+	padding: 2px 2px 2px 2px;
+}
+
 .tree-contents-container select:hover {
 	background-color: #fff;
 }
