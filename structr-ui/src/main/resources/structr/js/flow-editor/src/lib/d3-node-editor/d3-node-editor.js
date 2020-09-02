@@ -3612,17 +3612,14 @@ var EditorView = function () {
 
             d3.select(window).on('mousemove.d3ne' + this.editor._id, function () {
 
-                if (d3.event.buttons !== 0) {
+				var k = _this.transform.k;
+				var position = d3.mouse(_this.view.node());
 
-                    var k = _this.transform.k;
-                    var position = d3.mouse(_this.view.node());
+				_this.mouse = [position[0] / k, position[1] / k];
 
-                    _this.mouse = [position[0] / k, position[1] / k];
-
-                    requestAnimationFrame(() => {
-                        _this.update();
-		           });
-                }
+				requestAnimationFrame(() => {
+					_this.update();
+			   });
 
             }).on('keydown.d3ne' + this.editor._id, function (e) {
                 if (_this.container.node() === document.activeElement) _this.editor.keyDown(e);
