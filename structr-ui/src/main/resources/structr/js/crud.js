@@ -184,7 +184,7 @@ var _Crud = {
 				let optGroupRecent = document.getElementById('crud-types-select-recent');
 
 				let allTypes    = Object.keys(_Crud.types).sort();
-				let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
+				let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey, []);
 
 				for (let recentTypeName of recentTypes) {
 
