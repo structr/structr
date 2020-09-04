@@ -263,7 +263,7 @@ public class AuthHelper {
 		Jws<Claims> jws = validateTokenWithKeystore(token, publicKey);
 
 		if (jws == null) {
-			throw new FrameworkException(401, AuthHelper.TOKEN_ERROR_MSG);
+			throw new FrameworkException(404, AuthHelper.TOKEN_ERROR_MSG);
 		}
 
 		return getPrincipalForTokenClaims(jws.getBody(), eMailKey);
@@ -276,7 +276,7 @@ public class AuthHelper {
 		Jws<Claims> jws = validateTokenWithSecret(token, secret);
 
 		if (jws == null) {
-			throw new FrameworkException(401, AuthHelper.TOKEN_ERROR_MSG);
+			throw new FrameworkException(404, AuthHelper.TOKEN_ERROR_MSG);
 		}
 
 		return getPrincipalForTokenClaims(jws.getBody(), eMailKey);
@@ -285,7 +285,7 @@ public class AuthHelper {
 	public static Map<String, String> createTokensForUser(Principal user, Date accessTokenLifetime, Date refreshTokenLifetime) throws FrameworkException {
 
 		final String jwtSecretType = Settings.JWTSecretType.getValue();
-		Map<String, String>  tokens = null;
+		Map<String, String> tokens = null;
 
 		if (user == null) {
 			throw new FrameworkException(400, "Can't create token if no user is given");
@@ -315,6 +315,7 @@ public class AuthHelper {
 		final String[] refreshTokens    = user.getProperty(key);
 
 		try {
+
 			for (final String refreshToken : refreshTokens) {
 
 				if (refreshTokenTimedOut(refreshToken)) {
@@ -361,78 +362,19 @@ public class AuthHelper {
 		return createTokensForUser(user, accessTokenExpirationDate.getTime(), refreshTokenExpirationDate.getTime());
 	}
 
-	public static Map<String, String> createTokensForUserWithSecret(Principal user, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName) throws FrameworkException {
-
-		final Map<String, String> tokens = new HashMap<>();
-		final String secret = Settings.JWTSecret.getValue();
-		final String jwtIssuer = Settings.JWTIssuer.getValue();
-
-		try {
-			SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-			String accessToken = Jwts.builder()
-					.setSubject(user.getName())
-					.setExpiration(accessTokenExpirationDate)
-					.setIssuer(jwtIssuer)
-					.claim("instance", instanceName)
-					.claim("uuid", user.getUuid())
-					.claim("eMail", user.getEMail())
-					.claim("tokenType", "access_token")
-					.signWith(key)
-					.compact();
-
-			tokens.put("access_token", accessToken);
-			tokens.put("expiration_date", Long.toString(accessTokenExpirationDate.getTime()));
-
-			if (refreshTokenExpirationDate != null) {
-
-				final String newTokenUUID = NodeServiceCommand.getNextUuid();
-				StringBuilder tokenStringBuilder = new StringBuilder();
-				tokenStringBuilder.append(newTokenUUID).append("_").append(refreshTokenExpirationDate.getTime());
-
-				final String tokenId = tokenStringBuilder.toString();
-
-				String refreshToken = Jwts.builder()
-						.setSubject(user.getName())
-						.setExpiration(refreshTokenExpirationDate)
-						.setIssuer(jwtIssuer)
-						.claim("tokenId", tokenId)
-						.claim("tokenType", "refresh_token")
-						.signWith(key)
-						.compact();
-
-				Principal.addRefreshToken(user, tokenId);
-				tokens.put("refresh_token", refreshToken);
-			}
-		} catch (WeakKeyException ex) {
-
-			throw new FrameworkException(500, "The provided secret is too weak (must be at least 32 characters)");
-		}
-
-		return tokens;
-	}
-
-	public static Map<String, String> createTokensForUserWithKeystore(Principal user, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName) throws FrameworkException {
-		final Map<String, String> tokens = new HashMap<>();
-
-		Key privateKey = getPrivateKeyForToken();
-
-		if (privateKey == null) {
-
-			throw new FrameworkException(400, "Cannot read private key file");
-		}
-
-		final String jwtIssuer = Settings.JWTIssuer.getValue();
+	public static Map<String, String> createTokens (Principal user, Key key, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName, String jwtIssuer) {
+		final  Map<String, String> tokens = new HashMap<>();
 
 		String accessToken = Jwts.builder()
-			.setSubject(user.getName())
-			.setExpiration(accessTokenExpirationDate)
-			.setIssuer(jwtIssuer)
-			.claim("instance", instanceName)
-			.claim("uuid", user.getUuid())
-			.claim("eMail", user.getEMail())
-			.claim("tokenType", "access_token")
-			.signWith(privateKey)
-			.compact();
+				.setSubject(user.getName())
+				.setExpiration(accessTokenExpirationDate)
+				.setIssuer(jwtIssuer)
+				.claim("instance", instanceName)
+				.claim("uuid", user.getUuid())
+				.claim("eMail", user.getEMail())
+				.claim("tokenType", "access_token")
+				.signWith(key)
+				.compact();
 
 		tokens.put("access_token", accessToken);
 		tokens.put("expiration_date", Long.toString(accessTokenExpirationDate.getTime()));
@@ -446,19 +388,49 @@ public class AuthHelper {
 			final String tokenId = tokenStringBuilder.toString();
 
 			String refreshToken = Jwts.builder()
-				.setSubject(user.getName())
-				.setExpiration(refreshTokenExpirationDate)
-				.setIssuer(jwtIssuer)
-				.claim("tokenId", tokenId)
-				.claim("tokenType", "refresh_token")
-				.signWith(privateKey)
-				.compact();
+					.setSubject(user.getName())
+					.setExpiration(refreshTokenExpirationDate)
+					.setIssuer(jwtIssuer)
+					.claim("tokenId", tokenId)
+					.claim("tokenType", "refresh_token")
+					.signWith(key)
+					.compact();
 
 			Principal.addRefreshToken(user, tokenId);
 			tokens.put("refresh_token", refreshToken);
 		}
 
 		return tokens;
+	}
+
+	public static Map<String, String> createTokensForUserWithSecret(Principal user, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName) throws FrameworkException {
+
+		final String secret = Settings.JWTSecret.getValue();
+		final String jwtIssuer = Settings.JWTIssuer.getValue();
+
+		try {
+
+			SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+			return createTokens(user, key, accessTokenExpirationDate, refreshTokenExpirationDate, instanceName, jwtIssuer);
+
+		} catch (WeakKeyException ex) {
+
+			throw new FrameworkException(500, "The provided secret is too weak (must be at least 32 characters)");
+		}
+	}
+
+	public static Map<String, String> createTokensForUserWithKeystore(Principal user, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName) throws FrameworkException {
+
+		Key privateKey = getPrivateKeyForToken();
+
+		if (privateKey == null) {
+
+			throw new FrameworkException(400, "Cannot read private key file");
+		}
+
+		final String jwtIssuer = Settings.JWTIssuer.getValue();
+
+		return createTokens(user, privateKey, accessTokenExpirationDate, refreshTokenExpirationDate, instanceName, jwtIssuer);
 	}
 
 	public static Principal getPrincipalForRefreshToken(String refreshToken) throws FrameworkException {
@@ -892,7 +864,7 @@ public class AuthHelper {
 				.parseClaimsJws(token);
 
 		} catch (Exception e) {
-			logger.warn("Invalid token", e);
+			logger.debug("Invalid token", e);
 		}
 
 		return null;
@@ -907,7 +879,7 @@ public class AuthHelper {
 				.parseClaimsJws(token);
 
 		} catch (Exception e) {
-			logger.warn("Invalid token", e);
+			logger.debug("Invalid token", e);
 		}
 
 		return null;
