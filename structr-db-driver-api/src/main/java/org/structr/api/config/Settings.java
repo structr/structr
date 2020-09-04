@@ -56,6 +56,7 @@ public class Settings {
 	public static final SettingsGroup oauthGroup              = new SettingsGroup("oauth",       "OAuth Settings");
 	public static final SettingsGroup ldapGroup               = new SettingsGroup("ldap",        "LDAP Settings");
 	public static final SettingsGroup miscGroup               = new SettingsGroup("misc",        "Miscellaneous");
+	public static final SettingsGroup licensingGroup          = new SettingsGroup("licensing",   "Licensing");
 
 	// general settings
 	public static final Setting<String> ReleasesIndexUrl         = new StringSetting(generalGroup,             "Application", "application.releases.index.url",        "https://structr.com/repositories/releases/org/structr/structr/index", "URL with release index (list of version strings for Structr releases)");
@@ -516,6 +517,9 @@ public class Settings {
 	public static final Setting<String> PaymentPaypalSignature = new StringSetting(miscGroup,  "Payment Options", "paypal.signature",    "");
 	public static final Setting<String> PaymentPaypalRedirect  = new StringSetting(miscGroup,  "Payment Options", "paypal.redirect",     "");
 	public static final Setting<String> PaymentStripeApiKey    = new StringSetting(miscGroup,  "Payment Options", "stripe.apikey",       "");
+
+	// licence settings
+	public static final Setting<String> LicenseKey      = new StringSetting(licensingGroup,  "Licensing", "license.key",         "");
 
 	public static Collection<SettingsGroup> getGroups() {
 		return groups.values();
