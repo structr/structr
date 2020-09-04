@@ -136,6 +136,7 @@ public class TokenResource extends LoginResource {
             final int refreshMaxAge = Settings.JWTRefreshTokenExpirationTimeout.getValue();
 
             final Cookie tokenCookie = new Cookie("access_token", tokenMap.get("access_token"));
+            tokenCookie.setPath("/");
             tokenCookie.setHttpOnly(true);
             tokenCookie.setMaxAge(tokenMaxAge * 60);
 
