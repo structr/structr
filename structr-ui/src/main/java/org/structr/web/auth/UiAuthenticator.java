@@ -110,20 +110,20 @@ public class UiAuthenticator implements Authenticator {
 	public SecurityContext initializeAndExamineRequest(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
 
 		Principal user = null;
+		SecurityContext securityContext;
 
 		String authorizationToken = getAuthorizationToken(request);
 
 		if (authorizationToken == null || StringUtils.equals(authorizationToken, "")) {
 
 			user = SessionHelper.checkSessionAuthentication(request);
+		}
 
-		} else {
+		if (user == null && authorizationToken != null) {
 
 			final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
 			user = AuthHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
 		}
-
-		SecurityContext securityContext;
 
 		if (user == null) {
 
