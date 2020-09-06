@@ -58,12 +58,15 @@ public class TokenResource extends LoginResource {
 
         user = getUserForTwoFactorTokenOrEmailOrUsername(twoFactorToken, emailOrUsername, password);
 
+        boolean sendLoginNotification = true;
+
         if (user == null) {
             String refreshToken = getRefreshToken();
 
             if (refreshToken != null) {
 
                 user = AuthHelper.getPrincipalForRefreshToken(refreshToken);
+                sendLoginNotification = false;
 
             }
         }
@@ -73,6 +76,11 @@ public class TokenResource extends LoginResource {
             final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(securityContext.getRequest()));
 
             if (twoFactorAuthenticationSuccessOrNotNecessary) {
+
+                if (sendLoginNotification) {
+
+                    AuthHelper.sendLoginNotification(user);
+                }
 
                 return doLogin(securityContext, user);
             }
@@ -136,12 +144,20 @@ public class TokenResource extends LoginResource {
             final int refreshMaxAge = Settings.JWTRefreshTokenExpirationTimeout.getValue();
 
             final Cookie tokenCookie = new Cookie("access_token", tokenMap.get("access_token"));
-            tokenCookie.setHttpOnly(true);
+            tokenCookie.setPath("/");
+            tokenCookie.setHttpOnly(false);
             tokenCookie.setMaxAge(tokenMaxAge * 60);
 
             final Cookie refreshCookie = new Cookie("refresh_token", tokenMap.get("refresh_token"));
             refreshCookie.setHttpOnly(true);
             refreshCookie.setMaxAge(refreshMaxAge * 60);
+
+            if (Settings.ForceHttps.getValue()) {
+
+                tokenCookie.setSecure(true);
+                refreshCookie.setSecure(true);
+
+            }
 
             response.addCookie(tokenCookie);
             response.addCookie(refreshCookie);

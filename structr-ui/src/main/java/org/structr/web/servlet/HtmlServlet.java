@@ -314,7 +314,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								}
 							}
 
-						} else if (uriParts.length == 2) {
+						} else if (uriParts.length ==  2) {
 
 							final String pagePart = StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP);
 
@@ -325,7 +325,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								final AbstractNode possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(pagePart));
 
 								// check visibleForSite here as well
-								if (!(possibleRootNode instanceof Page) || isVisibleForSite(request, (Page)possibleRootNode)) {
+								if (possibleRootNode instanceof DOMNode && (!(possibleRootNode instanceof Page) || isVisibleForSite(request, (Page)possibleRootNode))) {
 
 									rootElement = ((DOMNode) possibleRootNode);
 								}
