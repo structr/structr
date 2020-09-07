@@ -519,7 +519,7 @@ public class Settings {
 	public static final Setting<String> PaymentStripeApiKey    = new StringSetting(miscGroup,  "Payment Options", "stripe.apikey",       "");
 
 	// licence settings
-	public static final Setting<String> LicenseKey      = new StringSetting(licensingGroup,  "Licensing", "license.key",         "");
+	public static final Setting<String> LicenseKey      = new StringSetting(licensingGroup,  "Licensing", "license.key",         "", "Base64-encoded string that contains the complete license data, typically saved as 'license.key' in the main directory.");
 
 	public static Collection<SettingsGroup> getGroups() {
 		return groups.values();
