@@ -678,7 +678,11 @@ public class Scripting {
 
 	public static String formatToDefaultDateOrString(final Object value) {
 
-		if (value instanceof Date) {
+		if (value == null) {
+
+			return "null";
+
+		} else if (value instanceof Date) {
 
 			return DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
 
