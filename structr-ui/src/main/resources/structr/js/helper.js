@@ -714,6 +714,10 @@ var _Console = new (function() {
 				term.set_prompt(prompt + '> ');
 			}
 			var result = data.message;
+
+			// prevent jquery terminal from trying to use format expressions ('[[') and remove newlines so the result is printed
+			result = result.replaceAll('[[', '[&#8203;[').replaceAll('\n', ' ');
+
 			if (result !== undefined) {
 				term.echo(new String(result));
 			}
