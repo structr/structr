@@ -23,10 +23,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -38,7 +39,6 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -48,7 +48,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.rest.common.HttpHelper;
 import org.structr.rest.service.HttpServiceServlet;
@@ -67,7 +66,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 	private static final String DOWNLOAD_URL_PARAMETER = "downloadUrl";
 	private static final String REDIRECT_URL_PARAMETER = "redirectUrl";
-	private static final String PATH_PARAMETER         = "path";
+	private static final String NAME_PARAMETER         = "name";
 	private static final int MEGABYTE = 1024 * 1024;
 	private static final int MEMORY_THRESHOLD = 10 * MEGABYTE;  // above 10 MB, files are stored on disk
 
@@ -130,6 +129,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			try {
+
 				securityContext = getConfig().getAuthenticator().initializeAndExamineRequest(request, response);
 
 			} catch (AuthenticationException ae) {
@@ -139,9 +139,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				return;
 			}
 
-			final Principal user = securityContext.getUser(false);
-
-			if (user == null && !user.isAdmin()) {
+			if (!securityContext.isSuperUser()) {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				response.getOutputStream().write("ERROR (401): Download of export ZIP file only allowed for admins.\n".getBytes("UTF-8"));
 				return;
@@ -150,38 +148,71 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			tx.success();
 
 		} catch (Throwable t) {
-			logger.error(ExceptionUtils.getStackTrace(t));
+
+			logger.error("Exception while processing request", t);
 		}
 
-		final String path = request.getParameter(PATH_PARAMETER);
+		try {
 
-		if (StringUtils.isNotBlank(path)) {
+			final String name = request.getParameter(NAME_PARAMETER);
 
-			try {
+			if (name != null) {
 
-				final File file = zip(path);
+				logger.info("Preparing deployment export for download as zip");
 
-				response.setContentType("application/zip");
-				response.addHeader("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"");
+				DeployCommand deployCommand = StructrApp.getInstance(securityContext).command(DeployCommand.class);
+				final Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"), Long.toString(System.currentTimeMillis()), name);
+				final String exportTargetFolder = tmpDir.toString();
 
-				final FileInputStream     in  = new FileInputStream(file);
-				final ServletOutputStream out = response.getOutputStream();
+				if (!exportTargetFolder.equals(tmpDir.normalize().toString())) {
 
-				final long fileSize = IOUtils.copyLarge(in, out);
-				final int status    = response.getStatus();
+					final String message = "ERROR (403): Path traversal not allowed - not serving deployment zip!\n";
+					logger.error(message);
 
-				response.addHeader("Content-Length", Long.toString(fileSize));
-				response.setStatus(status);
+					response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+					response.getOutputStream().write(message.getBytes("UTF-8"));
 
-				out.flush();
-				out.close();
+					return;
+				}
 
-			} catch (IOException ex) {
-				java.util.logging.Logger.getLogger(DeploymentServlet.class.getName()).log(Level.SEVERE, null, ex);
+				final Map<String, Object> attributes = new HashMap<>();
+
+				attributes.put("mode", "export");
+				attributes.put("target", exportTargetFolder);
+
+				deployCommand.execute(attributes);
+
+				try {
+
+					logger.info("Creating zip");
+
+					final File file = zip(exportTargetFolder);
+
+					response.setContentType("application/zip");
+					response.addHeader("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"");
+
+					final FileInputStream     in  = new FileInputStream(file);
+					final ServletOutputStream out = response.getOutputStream();
+
+					final long fileSize = IOUtils.copyLarge(in, out);
+					final int status    = response.getStatus();
+
+					response.addHeader("Content-Length", Long.toString(fileSize));
+					response.setStatus(status);
+
+					out.flush();
+					out.close();
+
+				} catch (IOException ex) {
+
+					logger.error("Exception while processing request", ex);
+				}
 			}
 
-		}
+		} catch (Throwable t) {
 
+			logger.error("Exception while processing request", t);
+		}
 	}
 
 	@Override
@@ -202,6 +233,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			}
 
 			try {
+
 				securityContext = getConfig().getAuthenticator().initializeAndExamineRequest(request, response);
 
 			} catch (AuthenticationException ae) {
@@ -220,12 +252,15 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			tx.success();
 
 		} catch (Throwable t) {
-			logger.error(ExceptionUtils.getStackTrace(t));
+
+			logger.error("Exception while processing request", t);
+			return;
 		}
 
 		String redirectUrl = null;
 
 		try {
+
 			// Ensure access mode is frontend
 			securityContext.setAccessMode(AccessMode.Frontend);
 
@@ -299,7 +334,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 					return;
 				}
-
 
 			} else {
 
