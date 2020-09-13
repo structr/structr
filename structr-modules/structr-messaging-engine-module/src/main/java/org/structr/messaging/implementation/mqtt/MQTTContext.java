@@ -60,8 +60,10 @@ public abstract class MQTTContext {
 
 		if(con != null){
 
-			con.disconnect();
 			connections.remove(info.getUuid());
+			if (con.isConnected()) {
+				con.disconnect();
+			}
 		}
 	}
 

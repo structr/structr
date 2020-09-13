@@ -156,6 +156,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 		final String uuid = properties.get(id);
 		if (uuid != null) {
 
+			MQTTContext.disconnect(thisClient);
 			final MQTTClientConnection connection = MQTTContext.getClientForId(uuid);
 			if (connection != null) {
 
