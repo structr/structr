@@ -83,7 +83,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 			type.overrideMethod("connectionStatusCallback", false, MQTTClient.class.getName() + ".connectionStatusCallback(this, arg0);");
 			type.overrideMethod("getTopics",                false, "return " + MQTTClient.class.getName() + ".getTopics(this);");
 
-			type.overrideMethod("sendMessage", true, "return " + MQTTClient.class.getName() + ".sendMessage(this, topic, message, this.getSecurityContext());");
+			type.overrideMethod("sendMessage", false, "return " + MQTTClient.class.getName() + ".sendMessage(this, topic, message, this.getSecurityContext());");
 			type.overrideMethod("subscribeTopic", false, "return " + MQTTClient.class.getName() + ".subscribeTopic(this, topic);");
 			type.overrideMethod("unsubscribeTopic", false, "return " + MQTTClient.class.getName() + ".unsubscribeTopic(this, topic);");
 

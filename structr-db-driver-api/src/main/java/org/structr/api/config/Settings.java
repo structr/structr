@@ -99,7 +99,7 @@ public class Settings {
 	public static final Setting<Integer> SshPort              = new IntegerSetting(serverGroup, "Interfaces", "application.ssh.port",          8022, "SSH port the Structr server will listen on (if SSHService is enabled)");
 	public static final Setting<Integer> FtpPort              = new IntegerSetting(serverGroup, "Interfaces", "application.ftp.port",          8021, "FTP port the Structr server will listen on (if FtpService is enabled)");
 	public static final Setting<Boolean> HttpsEnabled         = new BooleanSetting(serverGroup, "Interfaces", "application.https.enabled",     false, "Whether SSL is enabled");
-	public static final Setting<String> KeystorePath          = new StringSetting(serverGroup,  "Interfaces", "application.keystore.path",     "", "The path to the JKS keystore containing the SSL certificate");
+	public static final Setting<String> KeystorePath          = new StringSetting(serverGroup,  "Interfaces", "application.keystore.path",     "domain.key.keystore", "The path to the JKS keystore containing the SSL certificate. Default value is 'domain.key.keystore' which fits with the default value for letsencrypt.domain.key.filename which is 'domain.key'.");
 	public static final Setting<String> KeystorePassword      = new StringSetting(serverGroup,  "Interfaces", "application.keystore.password", "", "The password for the JKS keystore");
 	public static final Setting<String> RestPath              = new StringSetting(serverGroup,  "hidden",     "application.rest.path",         "/structr/rest", "Defines the URL path of the Structr REST server. Should not be changed because it is hard-coded in many parts of the application.");
 	public static final Setting<String> BaseUrlOverride       = new StringSetting(serverGroup,  "Interfaces", "application.baseurl.override",  "", "Overrides the baseUrl that can be used to prefix links to local web resources. By default, the value is assembled from the protocol, hostname and port of the server instance Structr is running on");
@@ -519,7 +519,7 @@ public class Settings {
 	public static final Setting<String> PaymentStripeApiKey    = new StringSetting(miscGroup,  "Payment Options", "stripe.apikey",       "");
 
 	// licence settings
-	public static final Setting<String> LicenseKey      = new StringSetting(licensingGroup,  "Licensing", "license.key",         "");
+	public static final Setting<String> LicenseKey      = new StringSetting(licensingGroup,  "Licensing", "license.key",         "", "Base64-encoded string that contains the complete license data, typically saved as 'license.key' in the main directory.");
 
 	public static Collection<SettingsGroup> getGroups() {
 		return groups.values();
