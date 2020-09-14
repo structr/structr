@@ -46,7 +46,9 @@ public class MQTTClientConnection implements MqttCallback {
 		client = new MqttClient(info.getMainBrokerURL(), info.getUuid(), persistence);
 		client.setCallback(this);
 		connOpts = new MqttConnectOptions();
-		connOpts.setServerURIs(info.getFallbackBrokerURLs());
+		if (info.getFallbackBrokerURLs() != null) {
+			connOpts.setServerURIs(info.getFallbackBrokerURLs());
+		}
 		connOpts.setCleanSession(true);
 
 		if (info.getUsername() != null && info.getPassword() != null) {
