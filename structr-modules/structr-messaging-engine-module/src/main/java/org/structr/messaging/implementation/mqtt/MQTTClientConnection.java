@@ -42,10 +42,11 @@ public class MQTTClientConnection implements MqttCallback {
 	public MQTTClientConnection(MQTTInfo info) throws MqttException{
 
 		this.info = info;
-		String broker = info.getProtocol() + info.getUrl() + ":" + info.getPort();
-		client = new MqttClient(broker, info.getUuid(), persistence);
+
+		client = new MqttClient(info.getMainBrokerURL(), info.getUuid(), persistence);
 		client.setCallback(this);
 		connOpts = new MqttConnectOptions();
+		connOpts.setServerURIs(info.getFallbackBrokerURLs());
 		connOpts.setCleanSession(true);
 
 		if (info.getUsername() != null && info.getPassword() != null) {

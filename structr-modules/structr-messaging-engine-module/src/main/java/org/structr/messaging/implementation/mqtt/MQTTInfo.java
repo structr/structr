@@ -22,9 +22,8 @@ import org.structr.common.error.FrameworkException;
 
 public interface MQTTInfo {
 
-	public String getProtocol();
-	public String getUrl();
-	public int getPort();
+	public String getMainBrokerURL();
+	public String[] getFallbackBrokerURLs();
 	public int getQos();
 	public String getUuid();
 	public String getUsername();
