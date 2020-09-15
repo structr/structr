@@ -40,6 +40,7 @@ var _Files = {
 	_moduleName: 'files',
 	_viewMode: LSWrapper.getItem(filesViewModeKey) || 'list',
 	defaultFolderAttributes: 'id,name,type,owner,isFolder,path,visibleToPublicUsers,visibleToAuthenticatedUsers,ownerId,isMounted,parentId,foldersCount,filesCount',
+	searchField: undefined,
 	getViewMode: function () {
 		return _Files._viewMode || 'list';
 	},
@@ -58,13 +59,13 @@ var _Files = {
 
 		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 
-		searchField = $('.search', main);
+		_Files.searchField = $('.search', main);
 
-		if (searchField && searchField.length > 0) {
+		if (_Files.searchField && _Files.searchField.length > 0) {
 
-			searchField.focus();
+			_Files.searchField.focus();
 
-			searchField.keyup(function(e) {
+			_Files.searchField.keyup(function(e) {
 
 				var searchString = $(this).val();
 				if (searchString && searchString.length && e.keyCode === 13) {
