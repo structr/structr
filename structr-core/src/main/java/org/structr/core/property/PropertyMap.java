@@ -104,6 +104,10 @@ public class PropertyMap {
 		return (T)properties.put(key, value);
 	}
 
+	public <T> T putIfAbsent(PropertyKey<T> key, T value) {
+		return (T)properties.putIfAbsent(key, value);
+	}
+
 	public final void putAll(PropertyMap source) {
 
 		if (source != null) {
@@ -405,7 +409,7 @@ public class PropertyMap {
 					} else {
 
 						// check settings on how to handle invalid JSON input
-						
+
 					}
 				}
 			}

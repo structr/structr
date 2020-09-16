@@ -21,6 +21,7 @@ package org.structr.web.entity.dom;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -34,9 +35,13 @@ import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Export;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -46,7 +51,9 @@ import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.common.AsyncBuffer;
+import org.structr.web.common.EventContext;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -68,8 +75,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	static class Impl { static {
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("DOMElement");
+		final JsonSchema schema       = SchemaService.getDynamicSchema();
+		final JsonObjectType type     = schema.addType("DOMElement");
 
 		//type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMElement"));
@@ -135,7 +142,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addStringProperty("_html_data", PropertyView.Html);
 
 		// data-structr-* attibutes
-		type.addBooleanProperty("data-structr-reload",              PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If active, the page will refresh after a successfull action.");
+		type.addBooleanProperty("data-structr-reload",              PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If active, the page will refresh after a successful action.");
 		type.addBooleanProperty("data-structr-confirm",             PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If active, a user has to confirm the action.");
 		type.addBooleanProperty("data-structr-append-id",           PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("On create, append ID of first created object to the return URI.");
 		type.addStringProperty("data-structr-action",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("The action of the dynamic form (e.g create:&lt;Type&gt; | delete:&lt;Type&gt; | edit | registration | login | logout)");
@@ -153,6 +160,12 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addStringProperty("data-structr-format",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Custom format for Date or Enum properties. (Example: Date: dd.MM.yyyy - Enum: Value1,Value2,Value3");
 		type.addBooleanProperty("data-structr-insert",              PropertyView.Ui);
 		type.addBooleanProperty("data-structr-from-widget",         PropertyView.Ui);
+
+		// simple interactive elements
+		type.addBooleanProperty("data-structr-interactive",         PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If active, this element will trigger events on the server, as configured by the properties below.");
+		type.addStringProperty("data-structr-event",                PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Name of the event that this element triggers on the server: (create | update | delete | <method name>).");
+		type.addStringProperty("data-structr-target",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Event target, usually something like ${dataKey.id} for custom, update and delete events, or the entity type for create events.");
+		type.addStringProperty("data-structr-reload-target",        PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("CSS selector that specifies which partials to reload.");
 
 		// Core attributes
 		type.addStringProperty("_html_accesskey", PropertyView.Html);
@@ -289,6 +302,172 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys(String propertyView);
+
+	@Export
+	default Object event(final SecurityContext securityContext, final java.util.Map<String, java.lang.Object> parameters) throws FrameworkException {
+
+		final ActionContext actionContext = new ActionContext(securityContext);
+		final EventContext eventContext   = new EventContext();
+		final String action               = (String)parameters.get("structrEvent");
+
+		if (action == null) {
+			throw new FrameworkException(422, "Cannot execute action without action name (data-action attribute).");
+		}
+
+		// first thing to do: remove ID from parameters since it is only used to identify this element as event target
+		parameters.remove("id");
+
+		// store event context in object
+		actionContext.setConstant("eventContext", eventContext);
+
+		switch (action) {
+
+			case "create":
+				handleCreateAction(actionContext, parameters, eventContext);
+				break;
+
+			case "update":
+				handleUpdateAction(actionContext, parameters, eventContext);
+				break;
+
+			case "delete":
+				handleDeleteAction(actionContext, parameters, eventContext);
+				break;
+
+			default:
+				// execute custom method (and return the result directly)
+				return handleCustomAction(actionContext, parameters, eventContext, action);
+		}
+
+		return eventContext;
+	}
+
+	default void handleCreateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		final SecurityContext securityContext = actionContext.getSecurityContext();
+
+		// create new object of type?
+		final String targetType = (String)parameters.get("structrTarget");
+		if (targetType == null) {
+
+			throw new FrameworkException(422, "Cannot execute create action without target type (data-structr-target attribute).");
+		}
+
+		// resolve target type
+		Class type = StructrApp.getConfiguration().getNodeEntityClass(targetType);
+		if (type == null) {
+
+			type = StructrApp.getConfiguration().getRelationshipEntityClass(targetType);
+		}
+
+		if (type == null) {
+
+			throw new FrameworkException(422, "Cannot execute create action with target type " + targetType + ", type does not exist.");
+		}
+
+		// remove internal keys
+		parameters.remove("structrTarget");
+		parameters.remove("structrEvent");
+
+		// convert input
+		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, parameters);
+
+		// create entity
+		StructrApp.getInstance(securityContext).create(type, properties);
+	}
+
+	default void handleUpdateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		final SecurityContext securityContext = actionContext.getSecurityContext();
+		final String dataTarget               = (String)parameters.get("structrTarget");
+
+		if (dataTarget == null) {
+
+			throw new FrameworkException(422, "Cannot execute update action without target UUID (data-structr-target attribute).");
+		}
+
+		// remove internal keys
+		parameters.remove("structrTarget");
+		parameters.remove("structrEvent");
+
+		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
+
+			// convert input
+			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, target.getEntityType(), parameters);
+
+			// update properties
+			target.setProperties(securityContext, properties);
+
+		}
+	}
+
+	default void handleDeleteAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		final SecurityContext securityContext = actionContext.getSecurityContext();
+		final App app                         = StructrApp.getInstance(securityContext);
+		final String dataTarget               = (String)parameters.get("structrTarget");
+
+		if (dataTarget == null) {
+
+			throw new FrameworkException(422, "Cannot execute delete action without target UUID (data-structr-target attribute).");
+		}
+
+		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
+
+			if (target.isNode()) {
+
+				app.delete((AbstractNode)target);
+
+			} else {
+
+				app.delete((AbstractRelationship)target);
+			}
+		}
+	}
+
+	default Object handleCustomAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
+
+		final String dataTarget = (String)parameters.get("structrTarget");
+		if (dataTarget == null) {
+
+			throw new FrameworkException(422, "Cannot execute event without target (data-structr-target attribute).");
+		}
+
+		final List<GraphObject> targets = DOMElement.resolveDataTargets(actionContext, this, dataTarget);
+		final Logger logger             = LoggerFactory.getLogger(getClass());
+
+		if (targets.size() > 1) {
+			logger.warn("Custom action has multiple targets, this is not supported yet. Returning only the result of the first target.");
+		}
+
+		// remove internal keys
+		parameters.remove("structrTarget");
+		parameters.remove("structrEvent");
+
+		for (final GraphObject target : targets) {
+
+			// try to execute event method
+			return target.invokeMethod(actionContext.getSecurityContext(), action, parameters, false);
+		}
+
+		return null;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	// ----- static methods -----
 	public static String getOffsetAttributeName(final DOMElement elem, final String name, final int offset) {
@@ -566,7 +745,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					out.append(" ").append(key).append("=\"").append(value).append("\"");
 
 				}
-
 			}
 
 			// include arbitrary data-* attributes
@@ -605,6 +783,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				case RAW:
 
 					out.append(" ").append("data-structr-hash").append("=\"").append(thisElement.getIdHash()).append("\"");
+					break;
+
+				case NONE:
+					// simple interactive elements include their own UUID when enabled
+					final boolean isInteractive = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-interactive"));
+					if (isInteractive) {
+						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+					}
 					break;
 	 		}
 		}
@@ -801,6 +987,53 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 
 		return null;
+	}
+
+	public static List<GraphObject> resolveDataTargets(final ActionContext actionContext, final DOMElement thisElement, final String dataTarget) throws FrameworkException {
+
+		final App app                   = StructrApp.getInstance(thisElement.getSecurityContext());
+		final List<GraphObject> targets = new LinkedList<>();
+
+		if (dataTarget.length() >= 32) {
+
+			// list of UUIDs or single UUID, below code should handle both
+			for (final String part : dataTarget.split(",")) {
+
+				final String cleaned = part.trim();
+				if (StringUtils.isNotBlank(cleaned) && cleaned.length() == 32) {
+
+					final AbstractNode node = app.get(AbstractNode.class, cleaned);
+					if (node != null) {
+
+						targets.add(node);
+					}
+				}
+			}
+
+		} else {
+
+			// evaluate single keyword
+			final Object result = thisElement.evaluate(actionContext, dataTarget, null);
+			if (result != null) {
+
+				if (result instanceof Iterable) {
+
+					for (final Object o : (Iterable)result) {
+
+						if (o instanceof GraphObject) {
+							targets.add((GraphObject)o);
+						}
+					}
+
+				} else if (result instanceof GraphObject) {
+
+					targets.add((GraphObject)result);
+				}
+			}
+
+		}
+
+		return targets;
 	}
 
 	public static class TagPredicate implements Predicate<Node> {

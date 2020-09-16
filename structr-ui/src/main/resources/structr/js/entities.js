@@ -127,32 +127,53 @@ var _Entities = {
 	},
 	dataBindingDialog: function(entity, el, typeInfo) {
 
-		el.append('<table class="props"></table>');
-		var t = $('.props', el);
+		el.append('<h3>Simple Interactive Elements</h3>');
+		el.append('<table class="props" id="new-data-binding-properties"></table>');
+		var tNew = $('#new-data-binding-properties', el);
 
-		// General
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-id',                   'Element ID', typeInfo);
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-attr',                 'Attribute Key', typeInfo);
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-type',                 'Data type', typeInfo);
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-placeholder',          'Placeholder text', typeInfo);
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-custom-options-query', 'Custom REST query', typeInfo);
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-options-key',          'Options attribute key', typeInfo);
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-raw-value',            'Raw value', typeInfo);
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-hide',                 'Hide mode(s)', typeInfo);
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-edit-class',           'Edit mode CSS class', typeInfo);
+		_Entities.appendRowWithBooleanSwitch(entity, tNew, 'data-structr-interactive',     'Enabled',   '', typeInfo);
+		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-event',              'Event type',    typeInfo);
+		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-target',             'Event target',  typeInfo);
+		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-reload-target',      'Reload target', typeInfo);
 
 		if (entity.type === 'Button' || entity.type === 'A') {
 
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-action',           'Action', typeInfo);
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-attributes',       'Attributes', typeInfo);
-			_Entities.appendRowWithBooleanSwitch(entity, t, 'data-structr-reload',        'Reload', '', typeInfo);
-			_Entities.appendRowWithBooleanSwitch(entity, t, 'data-structr-confirm',       'Confirm action?', '', typeInfo);
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-return',           'Return URI', typeInfo);
-			_Entities.appendRowWithBooleanSwitch(entity, t, 'data-structr-append-id',     'Append ID on create', '', typeInfo);
+			el.append('<h4>You can specify the data fields for create and update using data-Attributes like this:</h4>');
+			el.append('<pre>data-name        = css(input#name-input)\ndata-description = css(input#description-input)\ndata-parent      = json({ id: "5c6214fde6db45d09df027b16a0d6c0e" })</pre>');
+			el.append('<h4>Which will produce the following JSON payload:</h4>');
+			el.append('<pre>{\n    name: "&lt;value from input#name-input&gt;",\n    description: "&lt;value from input#description-input&gt;",\n    parent: {\n        id: "5c6214fde6db45d09df027b16a0d6c0e"\n    }\n}\n</p>');
 
 		} else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-name',             'Field name', typeInfo);
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-format',           'Custom Format', typeInfo);
+			_Entities.appendRowWithInputField(entity, tNew, '_custom_html_data-name',             'Property name', typeInfo);
+		}
+
+		el.append('<h3>Deprecated Edit Mode Binding</h3>');
+		el.append('<table class="props" id="deprecated-data-binding-properties"></table>');
+		var tOld = $('#deprecated-data-binding-properties', el);
+
+		// General
+		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-id',                   'Element ID', typeInfo);
+		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-attr',                 'Attribute Key', typeInfo);
+		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-type',                 'Data type', typeInfo);
+		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-placeholder',          'Placeholder text', typeInfo);
+		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-custom-options-query', 'Custom REST query', typeInfo);
+		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-options-key',          'Options attribute key', typeInfo);
+		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-raw-value',            'Raw value', typeInfo);
+		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-hide',                 'Hide mode(s)', typeInfo);
+		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-edit-class',           'Edit mode CSS class', typeInfo);
+
+		if (entity.type === 'Button' || entity.type === 'A') {
+
+			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-action',           'Action', typeInfo);
+			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-attributes',       'Attributes', typeInfo);
+			_Entities.appendRowWithBooleanSwitch(entity, tOld, 'data-structr-reload',        'Reload', '', typeInfo);
+			_Entities.appendRowWithBooleanSwitch(entity, tOld, 'data-structr-confirm',       'Confirm action?', '', typeInfo);
+			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-return',           'Return URI', typeInfo);
+			_Entities.appendRowWithBooleanSwitch(entity, tOld, 'data-structr-append-id',     'Append ID on create', '', typeInfo);
+
+		} else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
+			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-name',             'Field name', typeInfo);
+			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-format',           'Custom Format', typeInfo);
 		}
 	},
 	appendRowWithInputField: function(entity, el, key, label, typeInfo) {

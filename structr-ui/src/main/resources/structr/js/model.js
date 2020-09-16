@@ -910,7 +910,8 @@ StructrElement.prototype.isActiveNode = function() {
 		//Boolean attributes
 		|| this["data-structr-append-id"] === true
 		|| this["data-structr-confirm"] === true
-		|| this["data-structr-reload"] === true;
+		|| this["data-structr-reload"] === true
+		|| this.isInteractive === true;
 };
 
 /**************************************

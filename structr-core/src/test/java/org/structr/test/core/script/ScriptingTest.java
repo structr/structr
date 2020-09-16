@@ -3850,7 +3850,6 @@ public class ScriptingTest extends StructrTest {
 			app.create(projectType, new NodeAttribute<>(projectName, "p6b"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task3)) );
 			app.create(projectType, new NodeAttribute<>(projectName, "p7b"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task2, task3)) );
 
-
 			app.create(projectType, new NodeAttribute<>(projectName, "p8a"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task2, task3, task4)) );
 
 			tx.success();
