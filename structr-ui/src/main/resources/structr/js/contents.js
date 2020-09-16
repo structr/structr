@@ -29,15 +29,16 @@ $(document).ready(function() {
 
 var _Contents = {
 	_moduleName: 'contents',
+	searchField: undefined,
 	init: function() {
 
 		main = $('#main');
 		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 
-		searchField = $('.search', main);
-		searchField.focus();
+		_Contents.searchField = $('.search', main);
+		_Contents.searchField.focus();
 
-		searchField.keyup(function(e) {
+		_Contents.searchField.keyup(function(e) {
 
 			var searchString = $(this).val();
 			if (searchString && searchString.length && e.keyCode === 13) {

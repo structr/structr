@@ -18,6 +18,7 @@
  */
 package org.structr.messaging.implementation.mqtt;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -31,6 +32,9 @@ import org.structr.api.service.Service;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MQTTClientConnection implements MqttCallback {
 	private MemoryPersistence persistence = new MemoryPersistence();
 	private MqttConnectOptions connOpts;
@@ -42,10 +46,24 @@ public class MQTTClientConnection implements MqttCallback {
 	public MQTTClientConnection(MQTTInfo info) throws MqttException{
 
 		this.info = info;
-		String broker = info.getProtocol() + info.getUrl() + ":" + info.getPort();
-		client = new MqttClient(broker, info.getUuid(), persistence);
+
+		client = new MqttClient(info.getMainBrokerURL(), info.getUuid(), persistence);
 		client.setCallback(this);
 		connOpts = new MqttConnectOptions();
+		if (info.getFallbackBrokerURLs() != null) {
+			String[] fallBackBrokers;
+			if (info.getMainBrokerURL() != null) {
+
+				List<String> mergedBrokers = new ArrayList<>();
+				mergedBrokers.add(info.getMainBrokerURL());
+				mergedBrokers.addAll(List.of(info.getFallbackBrokerURLs()));
+				fallBackBrokers = mergedBrokers.toArray(String[]::new);
+			} else {
+
+				fallBackBrokers = info.getFallbackBrokerURLs();
+			}
+			connOpts.setServerURIs(fallBackBrokers);
+		}
 		connOpts.setCleanSession(true);
 
 		if (info.getUsername() != null && info.getPassword() != null) {

@@ -555,26 +555,8 @@ var _Dashboard = {
 	},
 	exportAsZip: function() {
 
-		var data = {
-			mode: 'export',
-			target: '/tmp/app-data-' + new Date().getTime()
-		};
+		window.location = '/structr/deploy?name=webapp';
 
-		$.ajax({
-			url: rootUrl + '/maintenance/deploy',
-			data: JSON.stringify(data),
-			method: 'POST',
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
-			statusCode: {
-				422: function(data) {
-					//new MessageBuilder().title('Unable to start app ' + mode + '').warning(data.responseJSON.message).requiresConfirmation().show();
-				}
-			},
-			success: function() {
-				window.location = '/structr/deploy?path=' + data.target;
-			}
-		});
 	},
 	deployFromURL: function(redirectUrl, downloadUrl) {
 
@@ -597,12 +579,6 @@ var _Dashboard = {
 				400: function(data) {
 					new MessageBuilder().title('Unable to import app from URL').warning(data.responseText).requiresConfirmation().show();
 				}
-			},
-			error: function(a,b,c) {
-				console.log('Deployment failed:',a,b,c);
-			},
-			success: function(a,b,c) {
-				console.log('Deployment successful:',a,b,c);
 			}
 		});
 	},

@@ -602,12 +602,11 @@ var Structr = {
 				dialogText.empty();
 				$.unblockUI({
 					fadeOut: 25
-
 				});
+
 				dialogBtn.children(':not(.closeButton)').remove();
-				if (searchField) {
-					searchField.focus();
-				}
+
+				Structr.focusSearchField();
 
 				LSWrapper.removeItem(dialogDataKey);
 
@@ -625,6 +624,16 @@ var Structr = {
 
 			dimensions.text = text;
 			LSWrapper.setItem(dialogDataKey, JSON.stringify(dimensions));
+		}
+	},
+	focusSearchField: function() {
+		let activeModule = Structr.getActiveModule();
+		if (activeModule) {
+			let searchField = activeModule.searchField;
+
+			if (searchField) {
+				searchField.focus();
+			}
 		}
 	},
 	getDialogDimensions: function(marginLeft, marginTop) {
@@ -884,8 +893,8 @@ var Structr = {
 				fadeOut: 25
 			});
 			dialogBtn.children(':not(.closeButton)').remove();
-			if (searchField)
-				searchField.focus();
+
+			Structr.focusSearchField();
 		});
 
 		$.blockUI({
