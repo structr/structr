@@ -150,9 +150,8 @@ public class MessageEngineModule implements StructrModule {
 				entry.put("type",client.getType());
 				entry.put("name", client.getName());
 
-				entry.put("protocol", client.getProtocol());
-				entry.put("url", client.getUrl());
-				entry.put("port", client.getPort());
+				entry.put("mainBrokerURL", client.getMainBrokerURL());
+				entry.put("fallbackBrokerURLs", client.getFallbackBrokerURLs());
 				entry.put("qos", client.getQos());
 				entry.put("isEnabled", client.getIsEnabled());
 
