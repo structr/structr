@@ -637,7 +637,23 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> blank(final PropertyKey key) {
 
-		currentGroup.getSearchAttributes().add(new EmptySearchAttribute(key, null));
+		if (key.relatedType() != null) {
+
+			// related nodes
+			if (key.isCollection()) {
+
+				currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Occurrence.EXACT, Collections.EMPTY_LIST, true, this));
+
+			} else {
+
+				currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Occurrence.EXACT, null, true, this));
+			}
+
+		} else {
+
+			// everything else
+			currentGroup.getSearchAttributes().add(new EmptySearchAttribute(key, null));
+		}
 
 		assertPropertyIsIndexed(key);
 
