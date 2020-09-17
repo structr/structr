@@ -44,15 +44,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.service.Command;
 import org.structr.api.service.Service;
 import org.structr.api.service.ServiceDependency;
+import org.structr.api.service.ServiceResult;
 import org.structr.api.service.StructrServices;
 import org.structr.common.AccessPathCache;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InstantiationErrorToken;
+import org.structr.common.error.InvalidSchemaToken;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -76,8 +79,6 @@ import org.structr.schema.compiler.RemoveDuplicateClasses;
 import org.structr.schema.compiler.RemoveExportedMethodsWithoutSecurityContext;
 import org.structr.schema.compiler.RemoveMethodsWithUnusedSignature;
 import org.structr.schema.export.StructrSchema;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.service.ServiceResult;
 
 /**
  * Structr Schema Service for dynamic class support at runtime.
@@ -111,7 +112,7 @@ public class SchemaService implements Service {
 
 	@Override
 	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-		return reloadSchema(new ErrorBuffer(), null);
+		return SchemaHelper.reloadSchema(new ErrorBuffer(), null);
 	}
 
 	public static JsonSchema getDynamicSchema() {
@@ -130,7 +131,11 @@ public class SchemaService implements Service {
 		int retryCount                     = 2;
 
 		// compiling must only be done once
-		if (compiling.compareAndSet(false, true)) {
+		if (!compiling.compareAndSet(false, true)) {
+
+			errorBuffer.add(new InvalidSchemaToken("Base", "source", "token"));
+
+		} else {
 
 			FlushCachesCommand.flushAll();
 
