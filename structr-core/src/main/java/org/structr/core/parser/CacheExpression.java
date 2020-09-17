@@ -142,7 +142,7 @@ public class CacheExpression extends Expression {
 
 		final CachedValue cachedValue = (CachedValue)Services.getInstance().getAttribute(key);
 
-		if (cachedValue == null) {
+		if (cachedValue == null || cachedValue.isExpired()) {
 
 			return null;
 		}
