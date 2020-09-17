@@ -920,13 +920,13 @@ var _Crud = {
 		var div = $('#crud-type-detail table tbody');
 		fastRemoveAllChildren(div[0]);
 	},
-	list: function(type, url) {
+	list: function(type, url, isRetry) {
 
 		let properties = _Crud.getCurrentProperties(type);
 
 		_Crud.showLoadingMessageAfterDelay('Loading data for type <b>' + type + '</b>', 100);
 
-		var acceptHeaderProperties = ' properties=' + _Crud.filterKeys(type, Object.keys(properties)).join(',');
+		let acceptHeaderProperties = (isRetry ? '' : ' properties=' + _Crud.filterKeys(type, Object.keys(properties)).join(','));
 
 		$.ajax({
 			headers: {
@@ -966,12 +966,22 @@ var _Crud = {
 						offsetY: -50,
 						insertAfter: true
 					});
-
 				}
-
 			},
-			error: function(a, b, c) {
-				console.log(a, b, c, type, url);
+			error: function(response, b, c) {
+
+				if (response.status === 431) {
+					// Happens if headers grow too large (property list too long)
+
+					if (!isRetry) {
+						_Crud.list(type, url, true);
+					} else {
+						_Crud.showMessageAfterDelay('<img src="' + _Icons.getSpinnerImageAsData() + '"> View is too large - please select different view', 1);
+					}
+
+				} else {
+					console.log(response, b, c, type, url);
+				}
 
 				clearTimeout(_Crud.messageTimeout);
 				_Crud.removeMessage();
