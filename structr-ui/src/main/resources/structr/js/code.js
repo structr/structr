@@ -763,10 +763,10 @@ var _Code = {
 
 					if (parts.length === 2 && parts[1].trim() !== '') {
 
-						let handleSchemaNodes = function(result) {
+						let handleExactSchemaNodeSearch = function(result) {
 
 							if (result.length === 0) {
-								// because we will not find methods/properties
+								// because we will not find methods/properties if no schema node was found via exact search
 								count += 2;
 							}
 
@@ -779,6 +779,10 @@ var _Code = {
 
 								for (let method of schemaNode.schemaMethods) {
 									if (method.name.indexOf(parts[1]) === 0) {
+
+										// populate backRef to schemaNode because it only contains id by default
+										method.schemaNode = schemaNode;
+
 										matchingMethods.push(method);
 									}
 								}
@@ -787,6 +791,10 @@ var _Code = {
 								let matchingProperties = [];
 								for (let property of schemaNode.schemaProperties) {
 									if (property.name.indexOf(parts[1]) === 0) {
+
+										// populate backRef to schemaNode because it only contains id by default
+										property.schemaNode = schemaNode;
+
 										matchingProperties.push(property);
 									}
 								}
@@ -794,7 +802,7 @@ var _Code = {
 							}
 						};
 
-						Command.query('SchemaNode',     methodPageSize, methodPage, 'name', 'asc', { name: parts[0] }, handleSchemaNodes, true);
+						Command.query('SchemaNode',     methodPageSize, methodPage, 'name', 'asc', { name: parts[0] }, handleExactSchemaNodeSearch, true);
 
 					} else {
 
