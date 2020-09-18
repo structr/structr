@@ -337,7 +337,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 
 		// parse event mapping property on this node and determine event type
-		final String eventMapping = getProperty(StructrApp.key(DOMElement.class, "data-structr-event-mapping"));
+		final String eventMapping = getProperty(StructrApp.key(DOMElement.class, "eventMapping"));
 		if (eventMapping != null) {
 
 			final Map<String, Object> mapping = getMappedEvents();
