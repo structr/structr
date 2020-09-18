@@ -1080,7 +1080,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		final PropertyKey<Iterable<DOMElement>> reloadTargetsKey = StructrApp.key(DOMElement.class, "reloadTargets");
 		final PropertyKey<String> reloadTargetKey                = StructrApp.key(DOMElement.class, "data-structr-reload-target");
-		final PropertyKey<String[]> classKey                     = StructrApp.key(DOMElement.class, "_html_class");
+		final PropertyKey<String> classKey                       = StructrApp.key(DOMElement.class, "_html_class");
 		final PropertyKey<String> idKey                          = StructrApp.key(DOMElement.class, "_html_id");
 		final String reloadTargets                               = thisElement.getProperty(reloadTargetKey);
 		final Page page                                          = thisElement.getOwnerDocument();
@@ -1097,12 +1097,16 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 					final DOMElement possibleReloadTarget = (DOMElement)possibleReloadTargetNode;
 					final org.jsoup.nodes.Element element = new org.jsoup.nodes.Element(possibleReloadTarget.getTag());
-					final String[] classes                = possibleReloadTarget.getProperty(classKey);
+					final String classes                  = possibleReloadTarget.getProperty(classKey);
 
 					if (classes != null) {
 
-						for (final String css : classes) {
-							element.addClass(css);
+						for (final String css : classes.split(" ")) {
+
+							if (StringUtils.isNotBlank(css)) {
+								
+								element.addClass(css.trim());
+							}
 						}
 					}
 
