@@ -18,11 +18,14 @@
  */
 package org.structr.web.entity.dom;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -34,6 +37,7 @@ import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
@@ -42,6 +46,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -72,6 +77,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	static final String lowercaseBodyName        = "body";
 
 	static final int HtmlPrefixLength            = PropertyView.Html.length();
+	static final Gson gson                       = new GsonBuilder().create();
 
 	static class Impl { static {
 
@@ -162,10 +168,13 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addBooleanProperty("data-structr-from-widget",         PropertyView.Ui);
 
 		// simple interactive elements
-		type.addBooleanProperty("data-structr-interactive",         PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If active, this element will trigger events on the server, as configured by the properties below.");
-		type.addStringProperty("data-structr-event",                PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Name of the event that this element triggers on the server: (create | update | delete | <method name>).");
 		type.addStringProperty("data-structr-target",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Event target, usually something like ${dataKey.id} for custom, update and delete events, or the entity type for create events.");
+		type.addStringProperty("data-structr-options",              PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Event target, usually something like ${dataKey.id} for custom, update and delete events, or the entity type for create events.");
 		type.addStringProperty("data-structr-reload-target",        PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("CSS selector that specifies which partials to reload.");
+		type.addStringProperty("eventMapping",                      PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
+		type.addPropertyGetter("eventMapping", String.class);
+		type.addBooleanProperty("isReloadTarget");
+		type.addViewProperty("_html_name", PropertyView.Ui);
 
 		// Core attributes
 		type.addStringProperty("_html_accesskey", PropertyView.Html);
@@ -193,6 +202,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addStringProperty("_html_role", PropertyView.Html);
 
 		type.addPropertyGetter("tag", String.class);
+
+		type.overrideMethod("onCreation",             true,  DOMElement.class.getName() + ".onCreation(this, arg0, arg1);");
+		type.overrideMethod("onModification",         true,  DOMElement.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 
 		type.overrideMethod("updateFromNode",         false, DOMElement.class.getName() + ".updateFromNode(this, arg0);");
 		type.overrideMethod("getHtmlAttributes",      false, "return _html_View.properties();");
@@ -299,19 +311,39 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	Property[] getHtmlAttributes();
 	List<String> getHtmlAttributeNames();
+	String getEventMapping();
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys(String propertyView);
+	Set<PropertyKey> getPropertyKeys(String propertyView);
+
+	static void onCreation(final DOMElement thisElement, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+		DOMElement.updateReloadTargets(thisElement);
+	}
+
+	static void onModification(final DOMElement thisElement, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+		DOMElement.updateReloadTargets(thisElement);
+	}
 
 	@Export
 	default Object event(final SecurityContext securityContext, final java.util.Map<String, java.lang.Object> parameters) throws FrameworkException {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
 		final EventContext eventContext   = new EventContext();
-		final String action               = (String)parameters.get("structrEvent");
+		String action                     = (String)parameters.get("htmlEvent");
 
 		if (action == null) {
-			throw new FrameworkException(422, "Cannot execute action without action name (data-action attribute).");
+			throw new FrameworkException(422, "Cannot execute action without event name (htmlEvent property).");
+		}
+
+		// parse event mapping property on this node and determine event type
+		final String eventMapping = getProperty(StructrApp.key(DOMElement.class, "data-structr-event-mapping"));
+		if (eventMapping != null) {
+
+			final Map<String, Object> mapping = getMappedEvents();
+			if (mapping != null) {
+
+				action = (String)mapping.get(action);
+			}
 		}
 
 		// first thing to do: remove ID from parameters since it is only used to identify this element as event target
@@ -367,7 +399,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		// remove internal keys
 		parameters.remove("structrTarget");
-		parameters.remove("structrEvent");
+		parameters.remove("htmlEvent");
 
 		// convert input
 		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, parameters);
@@ -388,7 +420,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		// remove internal keys
 		parameters.remove("structrTarget");
-		parameters.remove("structrEvent");
+		parameters.remove("htmlEvent");
 
 		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
 
@@ -442,7 +474,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		// remove internal keys
 		parameters.remove("structrTarget");
-		parameters.remove("structrEvent");
+		parameters.remove("htmlEvent");
 
 		for (final GraphObject target : targets) {
 
@@ -786,9 +818,16 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					break;
 
 				case NONE:
+
 					// simple interactive elements include their own UUID when enabled
-					final boolean isInteractive = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-interactive"));
-					if (isInteractive) {
+					final Map<String, Object> mapping = thisElement.getMappedEvents();
+					if (mapping != null) {
+
+						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+						out.append(" data-structr-events=\"").append(StringUtils.join(mapping.keySet(), ",")).append("\"");
+
+					} else if (isReloadTarget(thisElement)) {
+
 						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
 					}
 					break;
@@ -796,6 +835,10 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 
 		out.append(">");
+	}
+
+	public static boolean isReloadTarget(final DOMElement thisElement) {
+		return thisElement.getProperty(StructrApp.key(DOMElement.class, "isReloadTarget"));
 	}
 
 	public static Node doImport(final DOMElement thisNode, final Page newPage) throws DOMException {
@@ -1034,6 +1077,60 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 
 		return targets;
+	}
+
+	public static void updateReloadTargets(final DOMElement thisElement) throws FrameworkException {
+
+		final PropertyKey<String> reloadTargetKey = StructrApp.key(DOMElement.class, "data-structr-reload-target");
+		final PropertyKey<Boolean> isReloadTarget = StructrApp.key(DOMElement.class, "isReloadTarget");
+		final PropertyKey<String[]> classKey      = StructrApp.key(DOMElement.class, "_html_class");
+		final PropertyKey<String> idKey           = StructrApp.key(DOMElement.class, "_html_id");
+		final String reloadTargets                = thisElement.getProperty(reloadTargetKey);
+		final Page page                           = thisElement.getOwnerDocument();
+
+		if (reloadTargets != null) {
+
+			for (final DOMNode node : page.getAllChildNodes()) {
+
+				if (node instanceof DOMElement) {
+
+					final DOMElement pageElement          = (DOMElement)node;
+					final org.jsoup.nodes.Element element = new org.jsoup.nodes.Element(pageElement.getTag());
+					final String[] classes                = pageElement.getProperty(classKey);
+
+					if (classes != null) {
+
+						for (final String css : classes) {
+							element.addClass(css);
+						}
+					}
+
+					final String name = pageElement.getProperty(AbstractNode.name);
+					if (name != null) {
+						element.attr("name", name);
+					}
+
+					final String htmlId = pageElement.getProperty(idKey);
+					if (htmlId != null) {
+
+						element.attr("id", htmlId);
+					}
+
+					pageElement.setProperty(isReloadTarget, element.select(reloadTargets).first() != null);
+				}
+			}
+		}
+	}
+
+	private Map<String, Object> getMappedEvents() {
+
+		final String mapping = getEventMapping();
+		if (mapping != null) {
+
+			return gson.fromJson(mapping, Map.class);
+		}
+
+		return null;
 	}
 
 	public static class TagPredicate implements Predicate<Node> {

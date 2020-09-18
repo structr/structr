@@ -28,18 +28,21 @@ export class Frontend {
 		// functions that have 'this' bound to the class instance. This is necessary
 		// because we must remove and re-add event handlers after a partial reload,
 		// which is only possible with the exact same function instance..
-
-		this.boundHandleCheckboxClick = this.handleCheckboxClick.bind(this);
-		this.boundHandleSelectChange  = this.handleSelectChange.bind(this);
-		this.boundHandleButtonClick   = this.handleButtonClick.bind(this);
-		this.boundHandleInputBlur     = this.handleInputBlur.bind(this);
+		this.boundHandleGenericEvent  = this.handleGenericEvent.bind(this);
 
 		this.bindEvents();
 	}
 
-	resolveData(data) {
+	resolveData(target) {
 
+		let data     = target.dataset;
 		let resolved = {};
+
+		// active input fields with a name
+		if (target.name && target.name.length > 0) {
+
+			resolved[target.name] = this.resolveValue(target);
+		}
 
 		for (var key in data) {
 
@@ -56,7 +59,8 @@ export class Frontend {
 					let element  = document.querySelector(selector);
 
 					if (element) {
-						resolved[key] = element.value;
+
+						resolved[key] = this.resolveValue(element);
 					}
 
 				} else if (value.indexOf('json(') === 0 && value[lastIndex] === ')') {
@@ -73,6 +77,20 @@ export class Frontend {
 		}
 
 		return resolved;
+	}
+
+	resolveValue(element) {
+
+		if (element.nodeName === 'INPUT' && element.type === 'checkbox') {
+
+			// input[type="checkbox"]
+			return element.checked;
+
+		} else {
+
+			// all other node types
+			return element.value;
+		}
 	}
 
 	handleResult(button, result) {
@@ -112,7 +130,7 @@ export class Frontend {
 						if (!response.ok) { throw new Error('Network response was not ok.'); }
 						return response.text();
 					}).then(html => {
-						var content = document.createElement('div');
+						var content = document.createElement(container.nodeName);
 						content.innerHTML = html;
 						container.replaceWith(content.children[0]);
 						this.bindEvents();
@@ -127,158 +145,49 @@ export class Frontend {
 			}
 
 		} else {
+
 			console.log('Container with selector ' + selector + ' not found.');
 		}
 	}
 
-	handleButtonClick(event) {
+	handleGenericEvent(event) {
 
-		let button = event.target;
-		let data   = button.dataset;
-		let id     = data.structrId;
-
-		if (id && id.length === 32) {
-
-			fetch('/structr/rest/Button/' + id + '/event', {
-				body: JSON.stringify(this.resolveData(data)),
-				method: 'post',
-				credentials: 'same-origin'
-			})
-			.then(response => response.json())
-			.then(json     => this.handleResult(button, json.result))
-			.catch(error   => this.handleError(button, error));
-		}
-	}
-
-	handleInputBlur(event) {
-
-		let input = event.target;
-		let data  = Object.assign({}, input.dataset);
-		let value = input.value;
-		let orig  = input.defaultValue;
-		let name  = data.name;
-		let id    = data.structrId;
-
-		if (id && id.length === 32 && value !== orig) {
-
-			// remove internal properties
-			delete data.structrId;
-			delete data.name;
-
-			// store property value to be set
-			data[name] = value;
-
-			fetch('/structr/rest/Input/' + id + '/event', {
-				body: JSON.stringify(data),
-				method: 'post',
-				credentials: 'same-origin'
-			})
-			.then(response => response.json())
-			.then(json     => this.handleResult(input, json.result))
-			.catch(error   => this.handleError(input, error));
-		}
-	}
-
-	handleCheckboxClick(event) {
-
-		let input = event.target;
-		let data  = Object.assign({}, input.dataset);
-		let name  = data.name;
-		let value = input.checked;
-		let id    = data.structrId;
-
-		if (id && id.length === 32) {
-
-			// remove internal properties
-			delete data.structrId;
-			delete data.name;
-
-			// store property value to be set
-			data[name] = value;
-
-			fetch('/structr/rest/Input/' + id + '/event', {
-				body: JSON.stringify(data),
-				method: 'post',
-				credentials: 'same-origin'
-			})
-			.then(response => response.json())
-			.then(json     => this.handleResult(input, json.result))
-			.catch(error   => this.handleError(input, error));
-		}
-	}
-
-        handleSelectChange(event) {
-
-                let select = event.target;
-		let data   = Object.assign({}, select.dataset);
-                let value  = select.value;
-                let name   = data.name;
+                let target = event.target;
+		let data   = target.dataset;
                 let id     = data.structrId;
 
                 if (id && id.length === 32) {
 
-			// remove internal properties
-			delete data.structrId;
-			delete data.name;
-
                         // store property value to be set
-                        data[name] = value;
+			data.htmlEvent = event.type;
 
-                        fetch('/structr/rest/Select/' + id + '/event', {
-                                body: JSON.stringify(data),
+                        fetch('/structr/rest/DOMElement/' + id + '/event', {
+				body: JSON.stringify(this.resolveData(target)),
                                 method: 'post',
                                 credentials: 'same-origin'
                         })
                         .then(response => response.json())
-                        .then(json     => this.handleResult(select, json.result))
-                        .catch(error   => this.handleError(select, error));
+                        .then(json     => this.handleResult(target, json.result))
+                        .catch(error   => this.handleError(target, error));
                 }
         }
 
 	bindEvents() {
 
 		// buttons
-		document.querySelectorAll('button[data-structr-id]').forEach(btn => {
-			btn.removeEventListener('click', this.boundHandleButtonClick);
-			btn.addEventListener('click', this.boundHandleButtonClick);
-		});
+		document.querySelectorAll('*[data-structr-events]').forEach(elem => {
 
-		// text inputs
-		document.querySelectorAll('input[type="text"][data-structr-id]').forEach(inp => {
-			inp.removeEventListener('blur', this.boundHandleInputBlur);
-			inp.addEventListener('blur', this.boundHandleInputBlur);
-		});
+			let source = elem.dataset.structrEvents;
+			if (source) {
 
-		// date inputs
-		document.querySelectorAll('input[type="date"][data-structr-id]').forEach(inp => {
-			inp.removeEventListener('change', this.boundHandleInputBlur);
-			inp.addEventListener('change', this.boundHandleInputBlur);
-		});
+				let mapping = source.split(",");
+				for (let event of mapping) {
 
-		// number inputs
-		document.querySelectorAll('input[type="number"][data-structr-id]').forEach(inp => {
-			inp.removeEventListener('blur', this.boundHandleInputBlur);
-			inp.addEventListener('blur', this.boundHandleInputBlur);
+					elem.removeEventListener(event, this.boundHandleGenericEvent);
+					elem.addEventListener(event, this.boundHandleGenericEvent);
+				}
+			}
 		});
-
-		// textareas
-		document.querySelectorAll('textarea[data-structr-id]').forEach(inp => {
-			inp.removeEventListener('blur', this.boundHandleInputBlur);
-			inp.addEventListener('blur', this.boundHandleInputBlur);
-		});
-
-		// checkboxes
-		document.querySelectorAll('input[type="checkbox"][data-structr-id]').forEach(inp => {
-			inp.removeEventListener('click', this.boundHandleCheckboxClick);
-			inp.addEventListener('click', this.boundHandleCheckboxClick);
-		});
-
-		// selects
-		document.querySelectorAll('select[data-structr-id]').forEach(inp => {
-			inp.removeEventListener('change', this.boundHandleSelectChange);
-			inp.addEventListener('change', this.boundHandleSelectChange);
-		});
-
 	}
 }
 
