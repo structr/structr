@@ -28,12 +28,15 @@ export class Frontend {
 		// functions that have 'this' bound to the class instance. This is necessary
 		// because we must remove and re-add event handlers after a partial reload,
 		// which is only possible with the exact same function instance..
-		this.boundHandleGenericEvent  = this.handleGenericEvent.bind(this);
+		this.boundHandleGenericEvent = this.handleGenericEvent.bind(this);
+		this.boundHandleDragStart    = this.handleDragStart.bind(this);
+		this.boundHandleDragOver     = this.handleDragOver.bind(this);
+		this.boundHandleDrag         = this.handleDrag.bind(this);
 
 		this.bindEvents();
 	}
 
-	resolveData(target) {
+	resolveData(event, target) {
 
 		let data     = target.dataset;
 		let resolved = {};
@@ -68,13 +71,31 @@ export class Frontend {
 					let json = value.substring(5, lastIndex);
 					resolved[key] = JSON.parse(json);
 
+				} else if (value.indexOf('data(') === 0 && value[lastIndex] === ')') {
+
+					let data = event.dataTransfer.getData('application/json');
+					resolved[key] = JSON.parse(data);
+
 				} else {
 
-					// just copy the value
-					resolved[key] = data[key];
+					switch (key) {
+
+						// do not resolve internal keys
+						case 'structrId':
+						case 'structrEvents':
+						case 'structrReloadTarget':
+							break;
+
+						default:
+							// just copy the value
+							resolved[key] = data[key];
+					}
+
 				}
 			}
 		}
+
+		console.log(resolved);
 
 		return resolved;
 	}
@@ -152,6 +173,9 @@ export class Frontend {
 
 	handleGenericEvent(event) {
 
+		event.preventDefault();
+		event.stopPropagation();
+
 		let target = event.currentTarget;
 		let data   = target.dataset;
 		let id     = data.structrId;
@@ -162,7 +186,7 @@ export class Frontend {
 			data.htmlEvent = event.type;
 
 			fetch('/structr/rest/DOMElement/' + id + '/event', {
-				body: JSON.stringify(this.resolveData(target)),
+				body: JSON.stringify(this.resolveData(event, target)),
 				method: 'post',
 				credentials: 'same-origin'
 			})
@@ -170,6 +194,27 @@ export class Frontend {
 			.then(json     => this.handleResult(target, json.result))
 			.catch(error   => this.handleError(target, error));
 		}
+	}
+
+	handleDragStart(event) {
+
+		let data = this.resolveData(event, event.currentTarget.dataset);
+
+		// store UUID of structr node explicitly for drag and drop
+		data.id = event.currentTarget.dataset.structrId;
+
+		// initialize dataTransfer object
+		event.dataTransfer.setData("application/json", JSON.stringify(data));
+		event.dataTransfer.dropEffect = "move";
+	}
+
+	handleDragOver(event) {
+		event.preventDefault();
+		event.dataTransfer.dropEffect = "move";
+	}
+
+	handleDrag(event) {
+		event.preventDefault();
 	}
 
 	bindEvents() {
@@ -185,6 +230,17 @@ export class Frontend {
 
 					elem.removeEventListener(event, this.boundHandleGenericEvent);
 					elem.addEventListener(event, this.boundHandleGenericEvent);
+
+					if (event === 'drop') {
+
+						elem.removeEventListener('dragstart', this.boundHandleDragStart);
+						elem.removeEventListener('dragover',  this.boundHandleDragOver);
+						elem.removeEventListener('drag',      this.boundHandleDrag);
+
+						elem.addEventListener('dragstart', this.boundHandleDragStart);
+						elem.addEventListener('dragover',  this.boundHandleDragOver);
+						elem.addEventListener('drag',      this.boundHandleDrag);
+					}
 				}
 			}
 		});
