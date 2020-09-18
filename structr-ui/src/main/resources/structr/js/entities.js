@@ -142,8 +142,10 @@ var _Entities = {
 			el.append('<h4>Which will produce the following JSON payload:</h4>');
 			el.append('<pre>{\n    name: "&lt;value from input#name-input&gt;",\n    description: "&lt;value from input#description-input&gt;",\n    parent: {\n        id: "5c6214fde6db45d09df027b16a0d6c0e"\n    }\n}\n</p>');
 
+		/*
 		} else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
 			_Entities.appendRowWithInputField(entity, tNew, '_html_name',             'Property name', typeInfo);
+		*/
 		}
 
 		el.append('<h3>Deprecated Edit Mode Binding</h3>');
