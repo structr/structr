@@ -95,8 +95,6 @@ export class Frontend {
 			}
 		}
 
-		console.log(resolved);
-
 		return resolved;
 	}
 
@@ -198,6 +196,8 @@ export class Frontend {
 
 	handleDragStart(event) {
 
+		event.stopPropagation();
+
 		let data = this.resolveData(event, event.currentTarget.dataset);
 
 		// store UUID of structr node explicitly for drag and drop
@@ -210,11 +210,13 @@ export class Frontend {
 
 	handleDragOver(event) {
 		event.preventDefault();
+		event.stopPropagation();
 		event.dataTransfer.dropEffect = "move";
 	}
 
 	handleDrag(event) {
 		event.preventDefault();
+		event.stopPropagation();
 	}
 
 	bindEvents() {
