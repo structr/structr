@@ -152,25 +152,25 @@ export class Frontend {
 
 	handleGenericEvent(event) {
 
-                let target = event.target;
+		let target = event.currentTarget;
 		let data   = target.dataset;
-                let id     = data.structrId;
+		let id     = data.structrId;
 
-                if (id && id.length === 32) {
+		if (id && id.length === 32) {
 
-                        // store property value to be set
+			// store property value to be set
 			data.htmlEvent = event.type;
 
-                        fetch('/structr/rest/DOMElement/' + id + '/event', {
+			fetch('/structr/rest/DOMElement/' + id + '/event', {
 				body: JSON.stringify(this.resolveData(target)),
-                                method: 'post',
-                                credentials: 'same-origin'
-                        })
-                        .then(response => response.json())
-                        .then(json     => this.handleResult(target, json.result))
-                        .catch(error   => this.handleError(target, error));
-                }
-        }
+				method: 'post',
+				credentials: 'same-origin'
+			})
+			.then(response => response.json())
+			.then(json     => this.handleResult(target, json.result))
+			.catch(error   => this.handleError(target, error));
+		}
+	}
 
 	bindEvents() {
 
