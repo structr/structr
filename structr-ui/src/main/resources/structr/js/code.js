@@ -753,13 +753,57 @@ var _Code = {
 						result.forEach(function(r) {
 							searchResults[r.id] = r;
 						});
+						// only show results after all 6 searches are finished (to prevent duplicates)
 						if (++count === 6) {
 							displayFunction(Object.values(searchResults), 0, true);
 						}
 					};
-					Command.query('SchemaNode',     methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
-					Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
-					Command.query('SchemaMethod',   methodPageSize, methodPage, 'name', 'asc', { name: text}, collectFunction, false);
+
+					let parts = text.split('.');
+
+					if (parts.length === 2 && parts[1].trim() !== '') {
+
+						let handleSchemaNodes = function(result) {
+
+							if (result.length === 0) {
+								// because we will not find methods/properties
+								count += 2;
+							}
+
+							collectFunction(result);
+
+							for (let schemaNode of result) {
+								// should yield at max one hit because we are using exact search
+
+								let matchingMethods = [];
+
+								for (let method of schemaNode.schemaMethods) {
+									if (method.name.indexOf(parts[1]) === 0) {
+										matchingMethods.push(method);
+									}
+								}
+								collectFunction(matchingMethods);
+
+								let matchingProperties = [];
+								for (let property of schemaNode.schemaProperties) {
+									if (property.name.indexOf(parts[1]) === 0) {
+										matchingProperties.push(property);
+									}
+								}
+								collectFunction(matchingProperties);
+							}
+						};
+
+						Command.query('SchemaNode',     methodPageSize, methodPage, 'name', 'asc', { name: parts[0] }, handleSchemaNodes, true);
+
+					} else {
+
+						Command.query('SchemaNode',     methodPageSize, methodPage, 'name', 'asc', { name: text }, collectFunction, false);
+						Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', { name: text }, collectFunction, false);
+						Command.query('SchemaMethod',   methodPageSize, methodPage, 'name', 'asc', { name: text }, collectFunction, false);
+					}
+
+					// text search always happens
 					Command.query('SchemaMethod',   methodPageSize, methodPage, 'name', 'asc', { source: text}, collectFunction, false);
 					Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', { writeFunction: text}, collectFunction, false);
 					Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', { readFunction: text}, collectFunction, false);
