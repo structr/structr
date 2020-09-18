@@ -182,7 +182,7 @@ export class Frontend {
 
 		if (id && id.length === 32) {
 
-			// store property value to be set
+			// store event type in htmlEvent property
 			data.htmlEvent = event.type;
 
 			fetch('/structr/rest/DOMElement/' + id + '/event', {
@@ -201,7 +201,7 @@ export class Frontend {
 		let data = this.resolveData(event, event.currentTarget.dataset);
 
 		// store UUID of structr node explicitly for drag and drop
-		data.id = event.currentTarget.dataset.structrId;
+		data.id = event.currentTarget.dataset.structrTarget;
 
 		// initialize dataTransfer object
 		event.dataTransfer.setData("application/json", JSON.stringify(data));
