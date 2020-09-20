@@ -112,11 +112,11 @@ export class Frontend {
 		}
 	}
 
-	handleResult(button, result) {
+	handleResult(element, parameters) {
 
-		if (button.dataset.structrReloadTarget) {
+		if (element.dataset.structrReloadTarget) {
 
-			this.reloadPartial(button.dataset.structrReloadTarget);
+			this.reloadPartial(element.dataset.structrReloadTarget, parameters);
 
 		} else {
 
@@ -130,7 +130,7 @@ export class Frontend {
 		console.log(error);
 	}
 
-	reloadPartial(selector) {
+	reloadPartial(selector, parameters) {
 
 		let reloadTargets = document.querySelectorAll(selector);
 		if (reloadTargets.length) {
@@ -142,7 +142,11 @@ export class Frontend {
 
 				if (id && id.length === 32) {
 
-					fetch('/structr/html/' + id, {
+					let base   = '/structr/html/' + id;
+					let params = this.encodeRequestParameters(data, parameters);
+					let uri    = base + params;
+
+					fetch(uri, {
 						method: 'GET',
 						credentials: 'same-origin'
 					}).then(response => {
@@ -153,6 +157,8 @@ export class Frontend {
 						content.innerHTML = html;
 						container.replaceWith(content.children[0]);
 						this.bindEvents();
+						// TODO: make this optional, might be not desired?
+						window.history.pushState(null, null, params);
 					}).catch(e => {
 						console.log(e);
 					});
@@ -169,6 +175,61 @@ export class Frontend {
 		}
 	}
 
+	/**
+	 * Transforms, merges and encodes parameter sets from different objects. All key-value
+	 * pairs from fromDataset that are prefixed with "request" are un-prefixed and copied into
+	 * the result object. Then all pairs from the override object are copied into the result
+	 * object as well. After that, all key-value pairs are URI-encoded and returned
+	 *
+	 * @param {type} fromDataset
+	 * @param {type} override
+	 * @returns {String} the URI-encoded objects
+	 */
+	encodeRequestParameters(fromDataset, override) {
+
+		let params = {};
+
+		// copy all values prefixed with request (data-request-*)
+		for (let key of Object.keys(fromDataset)) {
+
+			if (key.indexOf('request') === 0) {
+
+				let name = key.substring(7).toLowerCase();
+				if (name.length) {
+
+					params[name] = fromDataset[key];
+				}
+			}
+		}
+
+		if (override) {
+
+			// copy all keys from override object into params
+			for (let key of Object.keys(override)) {
+
+				params[key] = override[key];
+			}
+		}
+
+		if (params) {
+
+			let result = [];
+
+			for (let key of Object.keys(params)) {
+
+				let value = params[key];
+				result.push(key + '=' + encodeURIComponent(value));
+			}
+
+			if (result.length) {
+
+				return '?' + result.join('&');
+			}
+		}
+
+		return '';
+	}
+
 	handleGenericEvent(event) {
 
 		event.preventDefault();
@@ -178,19 +239,48 @@ export class Frontend {
 		let data   = target.dataset;
 		let id     = data.structrId;
 
-		if (id && id.length === 32) {
+		// special handling for frontend-only events (pagination, sorting)
+		if (data.structrTarget && data[data.structrTarget]) {
 
-			// store event type in htmlEvent property
-			data.htmlEvent = event.type;
+			this.handlePagination(event);
 
-			fetch('/structr/rest/DOMElement/' + id + '/event', {
-				body: JSON.stringify(this.resolveData(event, target)),
-				method: 'post',
-				credentials: 'same-origin'
-			})
-			.then(response => response.json())
-			.then(json     => this.handleResult(target, json.result))
-			.catch(error   => this.handleError(target, error));
+		} else {
+
+			// server-side
+			if (id && id.length === 32) {
+
+				// store event type in htmlEvent property
+				data.htmlEvent = event.type;
+
+				fetch('/structr/rest/DOMElement/' + id + '/event', {
+					body: JSON.stringify(this.resolveData(event, target)),
+					method: 'post',
+					credentials: 'same-origin'
+				})
+				.then(response => response.json())
+				.then(json     => this.handleResult(target, json.result))
+				.catch(error   => this.handleError(target, error));
+			}
+		}
+	}
+
+	handlePagination(event) {
+
+		let target   = event.currentTarget;
+		let data     = target.dataset;
+		let selector = data.structrTarget;
+
+		if (selector) {
+
+			let parameters = {};
+
+			parameters[selector] = data[selector];
+
+			this.handleResult(target, parameters);
+
+		} else {
+
+			console.log('Selector not found');
 		}
 	}
 
@@ -221,7 +311,6 @@ export class Frontend {
 
 	bindEvents() {
 
-		// buttons
 		document.querySelectorAll('*[data-structr-events]').forEach(elem => {
 
 			let source = elem.dataset.structrEvents;
@@ -233,6 +322,7 @@ export class Frontend {
 					elem.removeEventListener(event, this.boundHandleGenericEvent);
 					elem.addEventListener(event, this.boundHandleGenericEvent);
 
+					// add event listeners to support drag and drop
 					if (event === 'drop') {
 
 						elem.removeEventListener('dragstart', this.boundHandleDragStart);

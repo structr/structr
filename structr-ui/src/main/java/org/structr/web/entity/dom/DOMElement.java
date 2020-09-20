@@ -26,7 +26,9 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -174,7 +176,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addStringProperty("data-structr-reload-target",        PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("CSS selector that specifies which partials to reload.");
 		type.addStringProperty("eventMapping",                      PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
 		type.addPropertyGetter("eventMapping", String.class);
-		type.relate(type, "RELOADS", Cardinality.ManyToMany, "reloadSources", "reloadTargets");
+		type.relate(type, "RELOADS",   Cardinality.ManyToMany, "reloadSources",     "reloadTargets");
 		type.addViewProperty("_html_name", PropertyView.Ui);
 
 		// Core attributes
@@ -827,10 +829,65 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
 						out.append(" data-structr-events=\"").append(StringUtils.join(mapping.keySet(), ",")).append("\"");
 
+						final String clickMapping = (String)mapping.get("click");
+						if (clickMapping != null) {
+
+							final String parameterName = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-target"));
+							String value               = renderContext.getRequestParameter(parameterName);
+
+							if (parameterName != null && value != null) {
+
+								// special handling for pagination
+								switch (clickMapping) {
+
+									case "previous-page":
+										final int prev = DOMElement.intOrOne(value);
+										out.append(" data-").append(parameterName).append("=\"").append(String.valueOf(Math.max(1, prev - 1))).append("\"");
+										break;
+
+									case "next-page":
+										final int next = DOMElement.intOrOne(value);
+										out.append(" data-").append(parameterName).append("=\"").append(String.valueOf(next + 1)).append("\"");
+										break;
+
+									case "first-page":
+										out.append(" data-").append(parameterName).append("=\"1\"");
+										break;
+
+									case "last-page":
+										// should we really count all objects?
+										out.append(" data-").append(parameterName).append("=\"1000\"");
+										break;
+
+									default:
+										break;
+								}
+							}
+						}
+
+
 					} else if (isReloadTarget(thisElement)) {
 
 						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+
+						// realization: all dynamic parameters must be stored on the reload target!
+						final HttpServletRequest request = renderContext.getRequest();
+						if (request != null) {
+
+							final Map<String, String[]> parameters = request.getParameterMap();
+							for (final Entry<String, String[]> entry : parameters.entrySet()) {
+
+								final String key      = entry.getKey();
+								final String[] values = entry.getValue();
+
+								if (values.length > 0) {
+
+									out.append(" data-request-").append(DOMElement.toHtmlAttributeName(key)).append("=\"").append(values[0]).append("\"");
+								}
+							}
+						}
 					}
+
 					break;
 	 		}
 		}
@@ -1078,59 +1135,83 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	public static void updateReloadTargets(final DOMElement thisElement) throws FrameworkException {
 
-		final PropertyKey<Iterable<DOMElement>> reloadTargetsKey = StructrApp.key(DOMElement.class, "reloadTargets");
-		final PropertyKey<String> reloadTargetKey                = StructrApp.key(DOMElement.class, "data-structr-reload-target");
-		final PropertyKey<String> classKey                       = StructrApp.key(DOMElement.class, "_html_class");
-		final PropertyKey<String> idKey                          = StructrApp.key(DOMElement.class, "_html_id");
-		final String reloadTargets                               = thisElement.getProperty(reloadTargetKey);
-		final Page page                                          = thisElement.getOwnerDocument();
+		try {
 
-		// this list will contain all matching reload targets
-		final List<DOMElement> actualReloadTargets = new LinkedList<>();
-
-		// if the reloadTarget property is empty, the list will be empty
-		if (reloadTargets != null) {
+			final PropertyKey<Iterable<DOMElement>> reloadSourcesKey     = StructrApp.key(DOMElement.class, "reloadSources");
+			final PropertyKey<Iterable<DOMElement>> reloadTargetsKey     = StructrApp.key(DOMElement.class, "reloadTargets");
+			final PropertyKey<String> reloadTargetKey                    = StructrApp.key(DOMElement.class, "data-structr-reload-target");
+			final List<DOMElement> actualReloadSources                   = new LinkedList<>();
+			final List<DOMElement> actualReloadTargets                   = new LinkedList<>();
+			final org.jsoup.nodes.Element matchElement                   = thisElement.getMatchElement();
+			final String reloadTargets                                   = thisElement.getProperty(reloadTargetKey);
+			final Page page                                              = thisElement.getOwnerDocument();
 
 			for (final DOMNode possibleReloadTargetNode : page.getAllChildNodes()) {
 
 				if (possibleReloadTargetNode instanceof DOMElement) {
 
-					final DOMElement possibleReloadTarget = (DOMElement)possibleReloadTargetNode;
-					final org.jsoup.nodes.Element element = new org.jsoup.nodes.Element(possibleReloadTarget.getTag());
-					final String classes                  = possibleReloadTarget.getProperty(classKey);
+					final DOMElement possibleTarget       = (DOMElement)possibleReloadTargetNode;
+					final org.jsoup.nodes.Element element = possibleTarget.getMatchElement();
+					final String otherReloadTarget        = possibleTarget.getProperty(reloadTargetKey);
 
-					if (classes != null) {
+					if (reloadTargets != null) {
 
-						for (final String css : classes.split(" ")) {
+						if (element.select(reloadTargets).first() != null) {
 
-							if (StringUtils.isNotBlank(css)) {
-								
-								element.addClass(css.trim());
-							}
+							actualReloadTargets.add(possibleTarget);
 						}
 					}
 
-					final String name = possibleReloadTarget.getProperty(AbstractNode.name);
-					if (name != null) {
-						element.attr("name", name);
+					if (otherReloadTarget != null) {
+
+						if (matchElement.select(otherReloadTarget).first() != null) {
+
+							actualReloadSources.add(possibleTarget);
+						}
 					}
+				}
+			}
 
-					final String htmlId = possibleReloadTarget.getProperty(idKey);
-					if (htmlId != null) {
+			// update reload targets with list from above
+			thisElement.setProperty(reloadSourcesKey,     actualReloadSources);
+			thisElement.setProperty(reloadTargetsKey,     actualReloadTargets);
 
-						element.attr("id", htmlId);
-					}
+		} catch (Throwable t) {
 
-					if (element.select(reloadTargets).first() != null) {
+			t.printStackTrace();
+		}
+	}
 
-						actualReloadTargets.add(possibleReloadTarget);
-					}
+	private org.jsoup.nodes.Element getMatchElement() {
+
+		final PropertyKey<String> classKey    = StructrApp.key(DOMElement.class, "_html_class");
+		final PropertyKey<String> idKey       = StructrApp.key(DOMElement.class, "_html_id");
+		final org.jsoup.nodes.Element element = new org.jsoup.nodes.Element(getTag());
+		final String classes                  = getProperty(classKey);
+
+		if (classes != null) {
+
+			for (final String css : classes.split(" ")) {
+
+				if (StringUtils.isNotBlank(css)) {
+
+					element.addClass(css.trim());
 				}
 			}
 		}
 
-		// update reload targets with list from above
-		thisElement.setProperty(reloadTargetsKey, actualReloadTargets);
+		final String name = getProperty(AbstractNode.name);
+		if (name != null) {
+			element.attr("name", name);
+		}
+
+		final String htmlId = getProperty(idKey);
+		if (htmlId != null) {
+
+			element.attr("id", htmlId);
+		}
+
+		return element;
 	}
 
 	public static boolean isReloadTarget(final DOMElement thisElement) {
@@ -1150,6 +1231,51 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 
 		return null;
+	}
+
+	private static int intOrOne(final String source) {
+
+		if (source != null) {
+
+			try {
+
+				return Integer.valueOf(source);
+
+			} catch (Throwable t) {
+			}
+		}
+
+		return 1;
+	}
+
+	private static String stringOrDefault(final String value, final String defaultValue) {
+
+		if (value != null) {
+
+			return value;
+		}
+
+		return defaultValue;
+	}
+
+	private static String toHtmlAttributeName(final String camelCaseName) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		camelCaseName.chars().forEach(c -> {
+
+			if (Character.isUpperCase(c)) {
+
+				buf.append("-");
+				buf.append(Character.toLowerCase(c));
+
+			} else {
+
+				buf.append(Character.toString(c));
+			}
+		});
+
+		return buf.toString();
 	}
 
 	public static class TagPredicate implements Predicate<Node> {

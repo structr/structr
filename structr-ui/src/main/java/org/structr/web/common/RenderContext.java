@@ -364,6 +364,20 @@ public class RenderContext extends ActionContext {
 		return anyChildNodeCreatesNewLine;
 	}
 
+	public boolean shouldIndentHtml() {
+		return indentHtml;
+	}
+
+	public String getRequestParameter(final String name) {
+
+		if (request != null) {
+
+			return request.getParameter(name);
+		}
+
+		return null;
+	}
+
 	@Override
 	public boolean returnRawValue() {
 		final EditMode editMode = getEditMode(securityContext.getUser(false));
@@ -464,9 +478,5 @@ public class RenderContext extends ActionContext {
 	// ----- private methods -----
 	private void readConfigParameters () {
 		indentHtml = Settings.HtmlIndentation.getValue();
-	}
-
-	public boolean shouldIndentHtml() {
-		return indentHtml;
 	}
 }
