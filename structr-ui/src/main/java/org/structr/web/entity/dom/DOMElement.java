@@ -1146,27 +1146,30 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			final String reloadTargets                                   = thisElement.getProperty(reloadTargetKey);
 			final Page page                                              = thisElement.getOwnerDocument();
 
-			for (final DOMNode possibleReloadTargetNode : page.getAllChildNodes()) {
+			if (page != null) {
 
-				if (possibleReloadTargetNode instanceof DOMElement) {
+				for (final DOMNode possibleReloadTargetNode : page.getAllChildNodes()) {
 
-					final DOMElement possibleTarget       = (DOMElement)possibleReloadTargetNode;
-					final org.jsoup.nodes.Element element = possibleTarget.getMatchElement();
-					final String otherReloadTarget        = possibleTarget.getProperty(reloadTargetKey);
+					if (possibleReloadTargetNode instanceof DOMElement) {
 
-					if (reloadTargets != null) {
+						final DOMElement possibleTarget       = (DOMElement)possibleReloadTargetNode;
+						final org.jsoup.nodes.Element element = possibleTarget.getMatchElement();
+						final String otherReloadTarget        = possibleTarget.getProperty(reloadTargetKey);
 
-						if (element.select(reloadTargets).first() != null) {
+						if (reloadTargets != null && element != null) {
 
-							actualReloadTargets.add(possibleTarget);
+							if (element.select(reloadTargets).first() != null) {
+
+								actualReloadTargets.add(possibleTarget);
+							}
 						}
-					}
 
-					if (otherReloadTarget != null) {
+						if (otherReloadTarget != null && matchElement != null) {
 
-						if (matchElement.select(otherReloadTarget).first() != null) {
+							if (matchElement.select(otherReloadTarget).first() != null) {
 
-							actualReloadSources.add(possibleTarget);
+								actualReloadSources.add(possibleTarget);
+							}
 						}
 					}
 				}
@@ -1186,32 +1189,39 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		final PropertyKey<String> classKey    = StructrApp.key(DOMElement.class, "_html_class");
 		final PropertyKey<String> idKey       = StructrApp.key(DOMElement.class, "_html_id");
-		final org.jsoup.nodes.Element element = new org.jsoup.nodes.Element(getTag());
-		final String classes                  = getProperty(classKey);
+		final String tag                      = getTag();
 
-		if (classes != null) {
+		if (StringUtils.isNotBlank(tag)) {
 
-			for (final String css : classes.split(" ")) {
+			final org.jsoup.nodes.Element element = new org.jsoup.nodes.Element(tag);
+			final String classes                  = getProperty(classKey);
 
-				if (StringUtils.isNotBlank(css)) {
+			if (classes != null) {
 
-					element.addClass(css.trim());
+				for (final String css : classes.split(" ")) {
+
+					if (StringUtils.isNotBlank(css)) {
+
+						element.addClass(css.trim());
+					}
 				}
 			}
+
+			final String name = getProperty(AbstractNode.name);
+			if (name != null) {
+				element.attr("name", name);
+			}
+
+			final String htmlId = getProperty(idKey);
+			if (htmlId != null) {
+
+				element.attr("id", htmlId);
+			}
+
+			return element;
 		}
 
-		final String name = getProperty(AbstractNode.name);
-		if (name != null) {
-			element.attr("name", name);
-		}
-
-		final String htmlId = getProperty(idKey);
-		if (htmlId != null) {
-
-			element.attr("id", htmlId);
-		}
-
-		return element;
+		return null;
 	}
 
 	public static boolean isReloadTarget(final DOMElement thisElement) {
