@@ -73,6 +73,8 @@ export class Frontend {
 
 				} else if (value.indexOf('data(') === 0 && value[lastIndex] === ')') {
 
+					// data() refers to the dataset of the datatransfer object in a drag and drop
+					// event, maybe the name of the key needs some more thought..
 					let data = event.dataTransfer.getData('application/json');
 					resolved[key] = JSON.parse(data);
 
@@ -207,7 +209,15 @@ export class Frontend {
 			// copy all keys from override object into params
 			for (let key of Object.keys(override)) {
 
-				params[key] = override[key];
+				let value = override[key];
+				if (value === '') {
+
+					delete params[key];
+
+				} else {
+
+					params[key] = value;
+				}
 			}
 		}
 
@@ -239,8 +249,16 @@ export class Frontend {
 		let data   = target.dataset;
 		let id     = data.structrId;
 
+		// special handling for possible sort keys (can contain multiple values, separated by ,)
+		let sortKey = this.getFirst(data.structrTarget);
+
 		// special handling for frontend-only events (pagination, sorting)
-		if (data.structrTarget && data[data.structrTarget]) {
+		if (sortKey && data[sortKey]) {
+
+			// The above condition is true when the dataset of an element contains a value with the same name as the
+			// data-structr-target attribute. This is currently only true for pagination and sorting, where
+			// data-structr-target="page" and data-page="1" (which comes from the backend), or
+			// data-structr-target="sort" and data-sort="sortKeyName".
 
 			this.handlePagination(event);
 
@@ -264,6 +282,17 @@ export class Frontend {
 		}
 	}
 
+	getFirst(csvString) {
+
+		if (csvString && csvString.length) {
+
+			let parts = csvString.split(',');
+			return parts[0];
+		}
+
+		return csvString;
+	}
+
 	handlePagination(event) {
 
 		let target   = event.currentTarget;
@@ -273,10 +302,39 @@ export class Frontend {
 		if (selector) {
 
 			let parameters = {};
+			let parts      = selector.split(',');
+			let sortKey    = selector;
+			let orderKey   = 'descending';
 
-			parameters[selector] = data[selector];
+			// parse optional order key (default is "descending")
+			if (parts.length > 1) {
 
-			console.log(parameters);
+				sortKey  = parts[0].trim();
+				orderKey = parts[1].trim();
+			}
+
+			parameters[sortKey] = data[sortKey];
+
+			// set order depending on query string in URL (toggle boolean flag if sort key stays the same)
+			if (window.location && window.location.search) {
+
+				let decoded = decodeURI(window.location.search);
+				let parsed  = this.parseQueryString(decoded);
+
+				if (parsed[sortKey] === data[sortKey]) {
+
+					// The values need to be strings because we're
+					// parsing them from the request query string.
+					if (!parsed[orderKey] || parsed[orderKey] === 'false') {
+
+						parameters[orderKey] = 'true';
+
+					} else {
+
+						parameters[orderKey] = '';
+					}
+				}
+			}
 
 			this.handleResult(target, parameters);
 
@@ -284,6 +342,28 @@ export class Frontend {
 
 			console.log('Selector not found');
 		}
+	}
+
+	parseQueryString(query) {
+
+		let result = {};
+
+		if (query.length > 0) {
+
+			for (let part of query.substring(1).split('&')) {
+
+				let keyvalue = part.split('=');
+				let key      = keyvalue[0];
+				let value    = keyvalue[1];
+
+				if (key && value) {
+
+					result[key] = value;
+				}
+			}
+		}
+
+		return result;
 	}
 
 	handleDragStart(event) {
