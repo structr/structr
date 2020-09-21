@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -820,6 +821,15 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					out.append(" ").append("data-structr-hash").append("=\"").append(thisElement.getIdHash()).append("\"");
 					break;
 
+				case DEPLOYMENT:
+
+					final String eventMapping = (String)thisElement.getProperty(StructrApp.key(DOMElement.class, "eventMapping"));
+					if (eventMapping != null) {
+
+						out.append(" ").append("data-structr-meta-event-mapping").append("=\"").append(StringEscapeUtils.escapeHtml(eventMapping)).append("\"");
+					}
+					break;
+
 				case NONE:
 
 					// simple interactive elements include their own UUID when enabled
@@ -835,7 +845,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 							final String parameterName = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-target"));
 							String value               = renderContext.getRequestParameter(parameterName);
 
-							if (parameterName != null && value != null) {
+							if (parameterName != null) {
 
 								// special handling for pagination
 								switch (clickMapping) {

@@ -276,6 +276,8 @@ export class Frontend {
 
 			parameters[selector] = data[selector];
 
+			console.log(parameters);
+
 			this.handleResult(target, parameters);
 
 		} else {
