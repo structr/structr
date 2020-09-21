@@ -54,4 +54,14 @@ public class FacebookAuthClient extends StructrOAuthClient {
 	public String getCredential(final HttpServletRequest request) {
 		return StringUtils.replace(getValue(request, "email"), "\u0040", "@");
 	}
+
+	@Override
+	protected String getAccessTokenLocationKey() {
+		return Settings.OAuthFacebookAccessTokenLocation.getKey();
+	}
+
+	@Override
+	protected String getAccessTokenLocation() {
+		return Settings.OAuthFacebookAccessTokenLocation.getValue("query");
+	}
 }

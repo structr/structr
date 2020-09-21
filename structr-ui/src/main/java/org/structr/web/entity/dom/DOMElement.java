@@ -1158,7 +1158,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			if (page != null) {
 
-				for (final DOMNode possibleReloadTargetNode : page.getAllChildNodes()) {
+				for (final DOMNode possibleReloadTargetNode : page.getElements()) {
 
 					if (possibleReloadTargetNode instanceof DOMElement) {
 
