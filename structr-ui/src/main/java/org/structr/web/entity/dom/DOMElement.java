@@ -173,8 +173,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		// simple interactive elements
 		type.addStringProperty("data-structr-target",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Event target, usually something like ${dataKey.id} for custom, update and delete events, or the entity type for create events.");
-		type.addStringProperty("data-structr-options",              PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Event target, usually something like ${dataKey.id} for custom, update and delete events, or the entity type for create events.");
+		type.addStringProperty("data-structr-options",              PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Configuration options for simple interactive elements, reserved for future use.");
 		type.addStringProperty("data-structr-reload-target",        PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("CSS selector that specifies which partials to reload.");
+		type.addStringProperty("data-structr-tree-children",        PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.");
 		type.addStringProperty("eventMapping",                      PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
 		type.addPropertyGetter("eventMapping", String.class);
 		type.relate(type, "RELOADS",   Cardinality.ManyToMany, "reloadSources",     "reloadTargets");
@@ -370,6 +371,12 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				handleDeleteAction(actionContext, parameters, eventContext);
 				break;
 
+			case "open-tree-item":
+			case "close-tree-item":
+			case "toggle-tree-item":
+				handleTreeAction(actionContext, parameters, eventContext, action);
+				break;
+
 			default:
 				// execute custom method (and return the result directly)
 				return handleCustomAction(actionContext, parameters, eventContext, action);
@@ -378,7 +385,45 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		return eventContext;
 	}
 
-	default void handleCreateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+	private void handleTreeAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
+
+		final SecurityContext securityContext = actionContext.getSecurityContext();
+
+		if (parameters.containsKey("structrTarget")) {
+
+			final String key = getTreeItemSessionIdentifier((String)parameters.get("structrTarget"));
+
+			switch (action) {
+
+				case "open-tree-item":
+					setSessionAttribute(securityContext, key, true);
+					break;
+
+				case "close-tree-item":
+					removeSessionAttribute(securityContext, key);
+					break;
+
+				case "toggle-tree-item":
+
+					if (Boolean.TRUE.equals(getSessionAttribute(securityContext, key))) {
+
+						removeSessionAttribute(securityContext, key);
+
+					} else {
+
+						setSessionAttribute(securityContext, key, true);
+					}
+					break;
+			}
+
+
+		} else {
+
+			throw new FrameworkException(422, "Cannot execute update action without target UUID (data-structr-target attribute).");
+		}
+	}
+
+	private void handleCreateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 
@@ -412,7 +457,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		StructrApp.getInstance(securityContext).create(type, properties);
 	}
 
-	default void handleUpdateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+	private void handleUpdateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 		final String dataTarget               = (String)parameters.get("structrTarget");
@@ -437,7 +482,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 	}
 
-	default void handleDeleteAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+	private void handleDeleteAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);
@@ -461,7 +506,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 	}
 
-	default Object handleCustomAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
+	private Object handleCustomAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
 
 		final String dataTarget = (String)parameters.get("structrTarget");
 		if (dataTarget == null) {
@@ -489,11 +534,16 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		return null;
 	}
 
+	private Map<String, Object> getMappedEvents() {
 
+		final String mapping = getEventMapping();
+		if (mapping != null) {
 
+			return gson.fromJson(mapping, Map.class);
+		}
 
-
-
+		return null;
+	}
 
 
 
@@ -821,6 +871,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					out.append(" ").append("data-structr-hash").append("=\"").append(thisElement.getIdHash()).append("\"");
 					break;
 
+				case WIDGET:
 				case DEPLOYMENT:
 
 					final String eventMapping = (String)thisElement.getProperty(StructrApp.key(DOMElement.class, "eventMapping"));
@@ -839,13 +890,15 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
 						out.append(" data-structr-events=\"").append(StringUtils.join(mapping.keySet(), ",")).append("\"");
 
-						final String clickMapping = (String)mapping.get("click");
-						if (clickMapping != null) {
+						final PropertyKey<String> targetKey = StructrApp.key(DOMElement.class, "data-structr-target");
+						final String parameterName          = thisElement.getProperty(targetKey);
 
-							final String parameterName = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-target"));
-							String value               = renderContext.getRequestParameter(parameterName);
+						if (parameterName != null) {
 
-							if (parameterName != null) {
+							final String clickMapping  = (String)mapping.get("click");
+							if (clickMapping != null) {
+
+								final String value = renderContext.getRequestParameter(parameterName);
 
 								// special handling for pagination
 								switch (clickMapping) {
@@ -872,6 +925,16 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 									default:
 										break;
 								}
+							}
+
+							// toggle-tree-item
+							if (mapping.containsValue("toggle-tree-item")) {
+
+								final String targetValue = thisElement.getPropertyWithVariableReplacement(renderContext, targetKey);
+								final String key         = thisElement.getTreeItemSessionIdentifier(targetValue);
+								final boolean open       = thisElement.getSessionAttribute(renderContext.getSecurityContext(), key) != null;
+
+								out.append(" data-tree-item-state=\"").append(open ? "open" : "closed").append("\"");
 							}
 						}
 
@@ -1242,17 +1305,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		return !reloadSources.isEmpty();
 	}
 
-	private Map<String, Object> getMappedEvents() {
-
-		final String mapping = getEventMapping();
-		if (mapping != null) {
-
-			return gson.fromJson(mapping, Map.class);
-		}
-
-		return null;
-	}
-
 	private static int intOrOne(final String source) {
 
 		if (source != null) {
@@ -1266,16 +1318,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 
 		return 1;
-	}
-
-	private static String stringOrDefault(final String value, final String defaultValue) {
-
-		if (value != null) {
-
-			return value;
-		}
-
-		return defaultValue;
 	}
 
 	private static String toHtmlAttributeName(final String camelCaseName) {

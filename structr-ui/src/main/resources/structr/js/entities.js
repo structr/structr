@@ -131,9 +131,10 @@ var _Entities = {
 		el.append('<table class="props" id="new-data-binding-properties"></table>');
 		var tNew = $('#new-data-binding-properties', el);
 
-		_Entities.appendRowWithInputField(entity, tNew, 'eventMapping',                    'Event mapping', typeInfo);
-		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-target',             'Event target',  typeInfo);
-		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-reload-target',      'Reload target', typeInfo);
+		_Entities.appendRowWithInputField(entity, tNew, 'eventMapping',                    'Event mapping',     typeInfo);
+		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-target',             'Event target',      typeInfo);
+		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-reload-target',      'Reload target',     typeInfo);
+		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-tree-children',      'Tree children key', typeInfo);
 
 		if (entity.type === 'Button' || entity.type === 'A') {
 
