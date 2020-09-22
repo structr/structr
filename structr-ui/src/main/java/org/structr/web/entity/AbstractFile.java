@@ -35,11 +35,14 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.error.UniqueToken;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
 import org.structr.web.common.FileHelper;
@@ -140,7 +143,27 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 		thisFile.setHasParent(thisFile.getParent() != null);
 
-		if (org.structr.api.config.Settings.UniquePaths.getValue()) {
+		if (thisFile.isExternal()) {
+
+			// check if name changed
+			final GraphObjectMap beforeProps = modificationQueue.getModifications(thisFile).get(new GenericProperty<>("before"));
+
+			if (beforeProps != null) {
+
+				final String prevName = beforeProps.getProperty(new GenericProperty<>("name"));
+
+				if (prevName != null) {
+
+					final boolean renameSuccess = AbstractFile.renameMountedAbstractFile(thisFile.getParent(), thisFile, "", prevName);
+
+					if (!renameSuccess) {
+						errorBuffer.add(new SemanticErrorToken("RenameFailed", AbstractFile.name, "Renaming failed"));
+					}
+				}
+			}
+
+		} else if (org.structr.api.config.Settings.UniquePaths.getValue()) {
+
 			AbstractFile.validateAndRenameFileOnce(thisFile, securityContext, errorBuffer);
 		}
 	}
@@ -219,11 +242,61 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 			} else {
 				logger.warn("File {} already existed. Tried renaming to {} and failed. Aborting.", new Object[] { originalPath, newName });
 			}
-
 		}
 
 		return valid;
+	}
 
+	static boolean renameMountedAbstractFile (final Folder thisFolder, final AbstractFile file, final String path, final String previousName) {
+
+		final String _mountTarget = thisFolder.getMountTarget();
+		final Folder parentFolder = thisFolder.getParent();
+
+		if (_mountTarget != null) {
+
+			final String fullOldPath         = Folder.removeDuplicateSlashes(_mountTarget + "/" + path + "/" + previousName);
+			final String fullNewPath         = Folder.removeDuplicateSlashes(_mountTarget + "/" + path + "/" + file.getProperty(File.name));
+			final java.io.File oldFileOnDisk = new java.io.File(fullOldPath);
+			final java.io.File newFileOnDisk = new java.io.File(fullNewPath);
+
+			if (newFileOnDisk.exists()) {
+
+				final Logger logger = LoggerFactory.getLogger(Folder.class);
+				logger.error("Preventing renaming file {} from {} to {} because a file with the target name already exists", file, previousName, file.getProperty(File.name));
+
+			} else if (oldFileOnDisk.exists()) {
+
+				try {
+
+					final boolean renameResult = oldFileOnDisk.renameTo(newFileOnDisk);
+
+					if (!renameResult) {
+						final Logger logger = LoggerFactory.getLogger(Folder.class);
+						logger.error("Renaming file failed {}: From {} to {}", file, previousName, file.getProperty(File.name));
+					}
+
+					return renameResult;
+
+				} catch (Throwable t) {
+
+					final Logger logger = LoggerFactory.getLogger(Folder.class);
+					logger.error("Unable to rename file {}: {}", file, t.getMessage());
+				}
+			}
+
+		} else if (parentFolder != null) {
+
+			return AbstractFile.renameMountedAbstractFile(parentFolder, file, thisFolder.getProperty(Folder.name) + "/" + path, previousName);
+
+		} else {
+
+			// this should not happen. This means a file/folder marked as "isExternal" has no mounted folder in its parents
+			final Logger logger = LoggerFactory.getLogger(Folder.class);
+			logger.error("Unable to rename file {}: Mount target not found!", file);
+
+		}
+
+		return false;
 	}
 
 	static String getFolderPath(final AbstractFile thisFile) {
