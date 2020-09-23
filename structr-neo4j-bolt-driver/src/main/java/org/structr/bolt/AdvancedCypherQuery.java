@@ -57,6 +57,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 	private int fetchPage                           = 0;
 	private int count                               = 0;
 	private QueryContext queryContext               = null;
+	private boolean timeoutViolated                 = false;
 
 	public AdvancedCypherQuery(final QueryContext queryContext, final AbstractCypherIndex<?> index, final int requestedPageSize, final int requestedPage) {
 
@@ -539,5 +540,13 @@ public class AdvancedCypherQuery implements CypherQuery {
 		currentGraphPartIdentifier = Character.toString(currentGraphPartIdentifier.charAt(0) + 1);
 
 		return currentGraphPartIdentifier;
+	}
+
+	public void setTimeoutViolated () {
+		this.timeoutViolated = true;
+	}
+
+	public boolean timeoutViolated() {
+		return this.timeoutViolated;
 	}
 }

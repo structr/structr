@@ -33,7 +33,7 @@ public class AsyncBuffer {
 	public AsyncBuffer append(final String s) {
 
 		synchronized(queue) {
-			
+
 			if (s != null) {
 				queue.add(s);
 			}

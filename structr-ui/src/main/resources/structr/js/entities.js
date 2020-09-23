@@ -131,10 +131,10 @@ var _Entities = {
 		el.append('<table class="props" id="new-data-binding-properties"></table>');
 		var tNew = $('#new-data-binding-properties', el);
 
-		_Entities.appendRowWithBooleanSwitch(entity, tNew, 'data-structr-interactive',     'Enabled',   '', typeInfo);
-		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-event',              'Event type',    typeInfo);
-		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-target',             'Event target',  typeInfo);
-		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-reload-target',      'Reload target', typeInfo);
+		_Entities.appendRowWithInputField(entity, tNew, 'eventMapping',                    'Event mapping',     typeInfo);
+		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-target',             'Event target',      typeInfo);
+		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-reload-target',      'Reload target',     typeInfo);
+		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-tree-children',      'Tree children key', typeInfo);
 
 		if (entity.type === 'Button' || entity.type === 'A') {
 
@@ -142,9 +142,6 @@ var _Entities = {
 			el.append('<pre>data-name        = css(input#name-input)\ndata-description = css(input#description-input)\ndata-parent      = json({ id: "5c6214fde6db45d09df027b16a0d6c0e" })</pre>');
 			el.append('<h4>Which will produce the following JSON payload:</h4>');
 			el.append('<pre>{\n    name: "&lt;value from input#name-input&gt;",\n    description: "&lt;value from input#description-input&gt;",\n    parent: {\n        id: "5c6214fde6db45d09df027b16a0d6c0e"\n    }\n}\n</p>');
-
-		} else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
-			_Entities.appendRowWithInputField(entity, tNew, '_custom_html_data-name',             'Property name', typeInfo);
 		}
 
 		el.append('<h3>Deprecated Edit Mode Binding</h3>');

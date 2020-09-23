@@ -28,18 +28,24 @@ export class Frontend {
 		// functions that have 'this' bound to the class instance. This is necessary
 		// because we must remove and re-add event handlers after a partial reload,
 		// which is only possible with the exact same function instance..
-
-		this.boundHandleCheckboxClick = this.handleCheckboxClick.bind(this);
-		this.boundHandleSelectChange  = this.handleSelectChange.bind(this);
-		this.boundHandleButtonClick   = this.handleButtonClick.bind(this);
-		this.boundHandleInputBlur     = this.handleInputBlur.bind(this);
+		this.boundHandleGenericEvent = this.handleGenericEvent.bind(this);
+		this.boundHandleDragStart    = this.handleDragStart.bind(this);
+		this.boundHandleDragOver     = this.handleDragOver.bind(this);
+		this.boundHandleDrag         = this.handleDrag.bind(this);
 
 		this.bindEvents();
 	}
 
-	resolveData(data) {
+	resolveData(event, target) {
 
+		let data     = target.dataset;
 		let resolved = {};
+
+		// active input fields with a name
+		if (target.name && target.name.length > 0) {
+
+			resolved[target.name] = this.resolveValue(target);
+		}
 
 		for (var key in data) {
 
@@ -56,7 +62,8 @@ export class Frontend {
 					let element  = document.querySelector(selector);
 
 					if (element) {
-						resolved[key] = element.value;
+
+						resolved[key] = this.resolveValue(element);
 					}
 
 				} else if (value.indexOf('json(') === 0 && value[lastIndex] === ')') {
@@ -64,10 +71,28 @@ export class Frontend {
 					let json = value.substring(5, lastIndex);
 					resolved[key] = JSON.parse(json);
 
+				} else if (value.indexOf('data(') === 0 && value[lastIndex] === ')') {
+
+					// data() refers to the dataset of the datatransfer object in a drag and drop
+					// event, maybe the name of the key needs some more thought..
+					let data = event.dataTransfer.getData('application/json');
+					resolved[key] = JSON.parse(data);
+
 				} else {
 
-					// just copy the value
-					resolved[key] = data[key];
+					switch (key) {
+
+						// do not resolve internal keys
+						case 'structrId':
+						case 'structrEvents':
+						case 'structrReloadTarget':
+							break;
+
+						default:
+							// just copy the value
+							resolved[key] = data[key];
+					}
+
 				}
 			}
 		}
@@ -75,11 +100,25 @@ export class Frontend {
 		return resolved;
 	}
 
-	handleResult(button, result) {
+	resolveValue(element) {
 
-		if (button.dataset.structrReloadTarget) {
+		if (element.nodeName === 'INPUT' && element.type === 'checkbox') {
 
-			this.reloadPartial(button.dataset.structrReloadTarget);
+			// input[type="checkbox"]
+			return element.checked;
+
+		} else {
+
+			// all other node types
+			return element.value;
+		}
+	}
+
+	handleResult(element, parameters) {
+
+		if (element.dataset.structrReloadTarget) {
+
+			this.reloadPartial(element.dataset.structrReloadTarget, parameters);
 
 		} else {
 
@@ -93,7 +132,7 @@ export class Frontend {
 		console.log(error);
 	}
 
-	reloadPartial(selector) {
+	reloadPartial(selector, parameters) {
 
 		let reloadTargets = document.querySelectorAll(selector);
 		if (reloadTargets.length) {
@@ -105,17 +144,23 @@ export class Frontend {
 
 				if (id && id.length === 32) {
 
-					fetch('/structr/html/' + id, {
+					let base   = '/structr/html/' + id;
+					let params = this.encodeRequestParameters(data, parameters);
+					let uri    = base + params;
+
+					fetch(uri, {
 						method: 'GET',
 						credentials: 'same-origin'
 					}).then(response => {
 						if (!response.ok) { throw new Error('Network response was not ok.'); }
 						return response.text();
 					}).then(html => {
-						var content = document.createElement('div');
+						var content = document.createElement(container.nodeName);
 						content.innerHTML = html;
 						container.replaceWith(content.children[0]);
 						this.bindEvents();
+						// TODO: make this optional, might be not desired?
+						window.history.pushState(null, null, params);
 					}).catch(e => {
 						console.log(e);
 					});
@@ -127,158 +172,252 @@ export class Frontend {
 			}
 
 		} else {
+
 			console.log('Container with selector ' + selector + ' not found.');
 		}
 	}
 
-	handleButtonClick(event) {
+	/**
+	 * Transforms, merges and encodes parameter sets from different objects. All key-value
+	 * pairs from fromDataset that are prefixed with "request" are un-prefixed and copied into
+	 * the result object. Then all pairs from the override object are copied into the result
+	 * object as well. After that, all key-value pairs are URI-encoded and returned
+	 *
+	 * @param {type} fromDataset
+	 * @param {type} override
+	 * @returns {String} the URI-encoded objects
+	 */
+	encodeRequestParameters(fromDataset, override) {
 
-		let button = event.target;
-		let data   = button.dataset;
+		let params = {};
+
+		// copy all values prefixed with request (data-request-*)
+		for (let key of Object.keys(fromDataset)) {
+
+			if (key.indexOf('request') === 0) {
+
+				let name = key.substring(7).toLowerCase();
+				if (name.length) {
+
+					params[name] = fromDataset[key];
+				}
+			}
+		}
+
+		if (override) {
+
+			// copy all keys from override object into params
+			for (let key of Object.keys(override)) {
+
+				let value = override[key];
+				if (value === '') {
+
+					delete params[key];
+
+				} else {
+
+					params[key] = value;
+				}
+			}
+		}
+
+		if (params) {
+
+			let result = [];
+
+			for (let key of Object.keys(params)) {
+
+				let value = params[key];
+				result.push(key + '=' + encodeURIComponent(value));
+			}
+
+			if (result.length) {
+
+				return '?' + result.join('&');
+			}
+		}
+
+		return '';
+	}
+
+	handleGenericEvent(event) {
+
+		event.preventDefault();
+		event.stopPropagation();
+
+		let target = event.currentTarget;
+		let data   = target.dataset;
 		let id     = data.structrId;
 
-		if (id && id.length === 32) {
+		// special handling for possible sort keys (can contain multiple values, separated by ,)
+		let sortKey = this.getFirst(data.structrTarget);
 
-			fetch('/structr/rest/Button/' + id + '/event', {
-				body: JSON.stringify(this.resolveData(data)),
-				method: 'post',
-				credentials: 'same-origin'
-			})
-			.then(response => response.json())
-			.then(json     => this.handleResult(button, json.result))
-			.catch(error   => this.handleError(button, error));
+		// special handling for frontend-only events (pagination, sorting)
+		if (sortKey && data[sortKey]) {
+
+			// The above condition is true when the dataset of an element contains a value with the same name as the
+			// data-structr-target attribute. This is currently only true for pagination and sorting, where
+			// data-structr-target="page" and data-page="1" (which comes from the backend), or
+			// data-structr-target="sort" and data-sort="sortKeyName".
+
+			this.handlePagination(event);
+
+		} else {
+
+			// server-side
+			if (id && id.length === 32) {
+
+				// store event type in htmlEvent property
+				data.htmlEvent = event.type;
+
+				fetch('/structr/rest/DOMElement/' + id + '/event', {
+					body: JSON.stringify(this.resolveData(event, target)),
+					method: 'post',
+					credentials: 'same-origin'
+				})
+				.then(response => response.json())
+				.then(json     => this.handleResult(target, json.result))
+				.catch(error   => this.handleError(target, error));
+			}
 		}
 	}
 
-	handleInputBlur(event) {
+	getFirst(csvString) {
 
-		let input = event.target;
-		let data  = Object.assign({}, input.dataset);
-		let value = input.value;
-		let orig  = input.defaultValue;
-		let name  = data.name;
-		let id    = data.structrId;
+		if (csvString && csvString.length) {
 
-		if (id && id.length === 32 && value !== orig) {
+			let parts = csvString.split(',');
+			return parts[0];
+		}
 
-			// remove internal properties
-			delete data.structrId;
-			delete data.name;
+		return csvString;
+	}
 
-			// store property value to be set
-			data[name] = value;
+	handlePagination(event) {
 
-			fetch('/structr/rest/Input/' + id + '/event', {
-				body: JSON.stringify(data),
-				method: 'post',
-				credentials: 'same-origin'
-			})
-			.then(response => response.json())
-			.then(json     => this.handleResult(input, json.result))
-			.catch(error   => this.handleError(input, error));
+		let target   = event.currentTarget;
+		let data     = target.dataset;
+		let selector = data.structrTarget;
+
+		if (selector) {
+
+			let parameters = {};
+			let parts      = selector.split(',');
+			let sortKey    = selector;
+			let orderKey   = 'descending';
+
+			// parse optional order key (default is "descending")
+			if (parts.length > 1) {
+
+				sortKey  = parts[0].trim();
+				orderKey = parts[1].trim();
+			}
+
+			parameters[sortKey] = data[sortKey];
+
+			// set order depending on query string in URL (toggle boolean flag if sort key stays the same)
+			if (window.location && window.location.search) {
+
+				let decoded = decodeURI(window.location.search);
+				let parsed  = this.parseQueryString(decoded);
+
+				if (parsed[sortKey] === data[sortKey]) {
+
+					// The values need to be strings because we're
+					// parsing them from the request query string.
+					if (!parsed[orderKey] || parsed[orderKey] === 'false') {
+
+						parameters[orderKey] = 'true';
+
+					} else {
+
+						parameters[orderKey] = '';
+					}
+				}
+			}
+
+			this.handleResult(target, parameters);
+
+		} else {
+
+			console.log('Selector not found');
 		}
 	}
 
-	handleCheckboxClick(event) {
+	parseQueryString(query) {
 
-		let input = event.target;
-		let data  = Object.assign({}, input.dataset);
-		let name  = data.name;
-		let value = input.checked;
-		let id    = data.structrId;
+		let result = {};
 
-		if (id && id.length === 32) {
+		if (query.length > 0) {
 
-			// remove internal properties
-			delete data.structrId;
-			delete data.name;
+			for (let part of query.substring(1).split('&')) {
 
-			// store property value to be set
-			data[name] = value;
+				let keyvalue = part.split('=');
+				let key      = keyvalue[0];
+				let value    = keyvalue[1];
 
-			fetch('/structr/rest/Input/' + id + '/event', {
-				body: JSON.stringify(data),
-				method: 'post',
-				credentials: 'same-origin'
-			})
-			.then(response => response.json())
-			.then(json     => this.handleResult(input, json.result))
-			.catch(error   => this.handleError(input, error));
+				if (key && value) {
+
+					result[key] = value;
+				}
+			}
 		}
+
+		return result;
 	}
 
-        handleSelectChange(event) {
+	handleDragStart(event) {
 
-                let select = event.target;
-		let data   = Object.assign({}, select.dataset);
-                let value  = select.value;
-                let name   = data.name;
-                let id     = data.structrId;
+		event.stopPropagation();
 
-                if (id && id.length === 32) {
+		let data = this.resolveData(event, event.currentTarget.dataset);
 
-			// remove internal properties
-			delete data.structrId;
-			delete data.name;
+		// store UUID of structr node explicitly for drag and drop
+		data.id = event.currentTarget.dataset.structrTarget;
 
-                        // store property value to be set
-                        data[name] = value;
+		// initialize dataTransfer object
+		event.dataTransfer.setData("application/json", JSON.stringify(data));
+		event.dataTransfer.dropEffect = "move";
+	}
 
-                        fetch('/structr/rest/Select/' + id + '/event', {
-                                body: JSON.stringify(data),
-                                method: 'post',
-                                credentials: 'same-origin'
-                        })
-                        .then(response => response.json())
-                        .then(json     => this.handleResult(select, json.result))
-                        .catch(error   => this.handleError(select, error));
-                }
-        }
+	handleDragOver(event) {
+		event.preventDefault();
+		event.stopPropagation();
+		event.dataTransfer.dropEffect = "move";
+	}
+
+	handleDrag(event) {
+		event.preventDefault();
+		event.stopPropagation();
+	}
 
 	bindEvents() {
 
-		// buttons
-		document.querySelectorAll('button[data-structr-id]').forEach(btn => {
-			btn.removeEventListener('click', this.boundHandleButtonClick);
-			btn.addEventListener('click', this.boundHandleButtonClick);
-		});
+		document.querySelectorAll('*[data-structr-events]').forEach(elem => {
 
-		// text inputs
-		document.querySelectorAll('input[type="text"][data-structr-id]').forEach(inp => {
-			inp.removeEventListener('blur', this.boundHandleInputBlur);
-			inp.addEventListener('blur', this.boundHandleInputBlur);
-		});
+			let source = elem.dataset.structrEvents;
+			if (source) {
 
-		// date inputs
-		document.querySelectorAll('input[type="date"][data-structr-id]').forEach(inp => {
-			inp.removeEventListener('change', this.boundHandleInputBlur);
-			inp.addEventListener('change', this.boundHandleInputBlur);
-		});
+				let mapping = source.split(",");
+				for (let event of mapping) {
 
-		// number inputs
-		document.querySelectorAll('input[type="number"][data-structr-id]').forEach(inp => {
-			inp.removeEventListener('blur', this.boundHandleInputBlur);
-			inp.addEventListener('blur', this.boundHandleInputBlur);
-		});
+					elem.removeEventListener(event, this.boundHandleGenericEvent);
+					elem.addEventListener(event, this.boundHandleGenericEvent);
 
-		// textareas
-		document.querySelectorAll('textarea[data-structr-id]').forEach(inp => {
-			inp.removeEventListener('blur', this.boundHandleInputBlur);
-			inp.addEventListener('blur', this.boundHandleInputBlur);
-		});
+					// add event listeners to support drag and drop
+					if (event === 'drop') {
 
-		// checkboxes
-		document.querySelectorAll('input[type="checkbox"][data-structr-id]').forEach(inp => {
-			inp.removeEventListener('click', this.boundHandleCheckboxClick);
-			inp.addEventListener('click', this.boundHandleCheckboxClick);
-		});
+						elem.removeEventListener('dragstart', this.boundHandleDragStart);
+						elem.removeEventListener('dragover',  this.boundHandleDragOver);
+						elem.removeEventListener('drag',      this.boundHandleDrag);
 
-		// selects
-		document.querySelectorAll('select[data-structr-id]').forEach(inp => {
-			inp.removeEventListener('change', this.boundHandleSelectChange);
-			inp.addEventListener('change', this.boundHandleSelectChange);
+						elem.addEventListener('dragstart', this.boundHandleDragStart);
+						elem.addEventListener('dragover',  this.boundHandleDragOver);
+						elem.addEventListener('drag',      this.boundHandleDrag);
+					}
+				}
+			}
 		});
-
 	}
 }
 

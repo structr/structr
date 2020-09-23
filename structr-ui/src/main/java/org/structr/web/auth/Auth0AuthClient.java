@@ -72,4 +72,14 @@ public class Auth0AuthClient extends StructrOAuthClient {
 			user.setProperty(Principal.name, name);
 		}
 	}
+
+	@Override
+	protected String getAccessTokenLocationKey() {
+		return Settings.OAuthAuth0AccessTokenLocation.getKey();
+	}
+
+	@Override
+	protected String getAccessTokenLocation() {
+		return Settings.OAuthAuth0AccessTokenLocation.getValue("query");
+	}
 }

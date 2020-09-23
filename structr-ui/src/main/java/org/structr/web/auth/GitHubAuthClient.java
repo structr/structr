@@ -92,4 +92,14 @@ public class GitHubAuthClient extends StructrOAuthClient {
 
 		return null;
 	}
+
+	@Override
+	protected String getAccessTokenLocationKey() {
+		return Settings.OAuthGithubAccessTokenLocation.getKey();
+	}
+
+	@Override
+	protected String getAccessTokenLocation() {
+		return Settings.OAuthGithubAccessTokenLocation.getValue("query");
+	}
 }

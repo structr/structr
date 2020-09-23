@@ -29,7 +29,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.App;
-import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.*;
 import org.structr.core.entity.AbstractNode;
@@ -50,7 +49,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.time.Instant;
 import java.util.*;
 
 
@@ -314,22 +312,24 @@ public class AuthHelper {
 		final PropertyKey<String[]> key = StructrApp.key(Principal.class, "refreshTokens");
 		final String[] refreshTokens    = user.getProperty(key);
 
-		try {
+		if (refreshTokens != null) {
 
-			for (final String refreshToken : refreshTokens) {
+			try {
 
-				if (refreshTokenTimedOut(refreshToken)) {
+				for (final String refreshToken : refreshTokens) {
 
-					logger.debug("RefreshToken {} timed out", new Object[]{refreshToken});
+					if (refreshTokenTimedOut(refreshToken)) {
 
-					user.removeRefreshToken(refreshToken);
+						logger.debug("RefreshToken {} timed out", new Object[]{refreshToken});
 
+						user.removeRefreshToken(refreshToken);
+					}
 				}
+
+			} catch (Exception fex) {
+
+				logger.warn("Error while removing refreshToken of user " + user.getUuid(), fex);
 			}
-
-		} catch (Exception fex) {
-
-			logger.warn("Error while removing refreshToken of user " + user.getUuid(), fex);
 		}
 	}
 

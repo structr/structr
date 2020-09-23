@@ -18,22 +18,30 @@
  */
 package org.structr.web.entity.dom;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
@@ -42,6 +50,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -72,6 +81,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	static final String lowercaseBodyName        = "body";
 
 	static final int HtmlPrefixLength            = PropertyView.Html.length();
+	static final Gson gson                       = new GsonBuilder().create();
 
 	static class Impl { static {
 
@@ -162,10 +172,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addBooleanProperty("data-structr-from-widget",         PropertyView.Ui);
 
 		// simple interactive elements
-		type.addBooleanProperty("data-structr-interactive",         PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If active, this element will trigger events on the server, as configured by the properties below.");
-		type.addStringProperty("data-structr-event",                PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Name of the event that this element triggers on the server: (create | update | delete | <method name>).");
 		type.addStringProperty("data-structr-target",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Event target, usually something like ${dataKey.id} for custom, update and delete events, or the entity type for create events.");
+		type.addStringProperty("data-structr-options",              PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Configuration options for simple interactive elements, reserved for future use.");
 		type.addStringProperty("data-structr-reload-target",        PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("CSS selector that specifies which partials to reload.");
+		type.addStringProperty("data-structr-tree-children",        PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.");
+		type.addStringProperty("eventMapping",                      PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
+		type.addPropertyGetter("eventMapping", String.class);
+		type.relate(type, "RELOADS",   Cardinality.ManyToMany, "reloadSources",     "reloadTargets");
+		type.addViewProperty("_html_name", PropertyView.Ui);
 
 		// Core attributes
 		type.addStringProperty("_html_accesskey", PropertyView.Html);
@@ -193,6 +207,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addStringProperty("_html_role", PropertyView.Html);
 
 		type.addPropertyGetter("tag", String.class);
+
+		type.overrideMethod("onCreation",             true,  DOMElement.class.getName() + ".onCreation(this, arg0, arg1);");
+		type.overrideMethod("onModification",         true,  DOMElement.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 
 		type.overrideMethod("updateFromNode",         false, DOMElement.class.getName() + ".updateFromNode(this, arg0);");
 		type.overrideMethod("getHtmlAttributes",      false, "return _html_View.properties();");
@@ -299,19 +316,39 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	Property[] getHtmlAttributes();
 	List<String> getHtmlAttributeNames();
+	String getEventMapping();
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys(String propertyView);
+	Set<PropertyKey> getPropertyKeys(String propertyView);
+
+	static void onCreation(final DOMElement thisElement, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+		DOMElement.updateReloadTargets(thisElement);
+	}
+
+	static void onModification(final DOMElement thisElement, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+		DOMElement.updateReloadTargets(thisElement);
+	}
 
 	@Export
 	default Object event(final SecurityContext securityContext, final java.util.Map<String, java.lang.Object> parameters) throws FrameworkException {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
 		final EventContext eventContext   = new EventContext();
-		final String action               = (String)parameters.get("structrEvent");
+		String action                     = (String)parameters.get("htmlEvent");
 
 		if (action == null) {
-			throw new FrameworkException(422, "Cannot execute action without action name (data-action attribute).");
+			throw new FrameworkException(422, "Cannot execute action without event name (htmlEvent property).");
+		}
+
+		// parse event mapping property on this node and determine event type
+		final String eventMapping = getProperty(StructrApp.key(DOMElement.class, "eventMapping"));
+		if (eventMapping != null) {
+
+			final Map<String, Object> mapping = getMappedEvents();
+			if (mapping != null) {
+
+				action = (String)mapping.get(action);
+			}
 		}
 
 		// first thing to do: remove ID from parameters since it is only used to identify this element as event target
@@ -334,6 +371,12 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				handleDeleteAction(actionContext, parameters, eventContext);
 				break;
 
+			case "open-tree-item":
+			case "close-tree-item":
+			case "toggle-tree-item":
+				handleTreeAction(actionContext, parameters, eventContext, action);
+				break;
+
 			default:
 				// execute custom method (and return the result directly)
 				return handleCustomAction(actionContext, parameters, eventContext, action);
@@ -342,7 +385,45 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		return eventContext;
 	}
 
-	default void handleCreateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+	private void handleTreeAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
+
+		final SecurityContext securityContext = actionContext.getSecurityContext();
+
+		if (parameters.containsKey("structrTarget")) {
+
+			final String key = getTreeItemSessionIdentifier((String)parameters.get("structrTarget"));
+
+			switch (action) {
+
+				case "open-tree-item":
+					setSessionAttribute(securityContext, key, true);
+					break;
+
+				case "close-tree-item":
+					removeSessionAttribute(securityContext, key);
+					break;
+
+				case "toggle-tree-item":
+
+					if (Boolean.TRUE.equals(getSessionAttribute(securityContext, key))) {
+
+						removeSessionAttribute(securityContext, key);
+
+					} else {
+
+						setSessionAttribute(securityContext, key, true);
+					}
+					break;
+			}
+
+
+		} else {
+
+			throw new FrameworkException(422, "Cannot execute update action without target UUID (data-structr-target attribute).");
+		}
+	}
+
+	private void handleCreateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 
@@ -367,7 +448,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		// remove internal keys
 		parameters.remove("structrTarget");
-		parameters.remove("structrEvent");
+		parameters.remove("htmlEvent");
 
 		// convert input
 		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, parameters);
@@ -376,7 +457,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		StructrApp.getInstance(securityContext).create(type, properties);
 	}
 
-	default void handleUpdateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+	private void handleUpdateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 		final String dataTarget               = (String)parameters.get("structrTarget");
@@ -388,7 +469,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		// remove internal keys
 		parameters.remove("structrTarget");
-		parameters.remove("structrEvent");
+		parameters.remove("htmlEvent");
 
 		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
 
@@ -401,7 +482,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 	}
 
-	default void handleDeleteAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+	private void handleDeleteAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);
@@ -425,7 +506,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 	}
 
-	default Object handleCustomAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
+	private Object handleCustomAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
 
 		final String dataTarget = (String)parameters.get("structrTarget");
 		if (dataTarget == null) {
@@ -442,7 +523,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		// remove internal keys
 		parameters.remove("structrTarget");
-		parameters.remove("structrEvent");
+		parameters.remove("htmlEvent");
 
 		for (final GraphObject target : targets) {
 
@@ -453,11 +534,16 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		return null;
 	}
 
+	private Map<String, Object> getMappedEvents() {
 
+		final String mapping = getEventMapping();
+		if (mapping != null) {
 
+			return gson.fromJson(mapping, Map.class);
+		}
 
-
-
+		return null;
+	}
 
 
 
@@ -785,12 +871,96 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					out.append(" ").append("data-structr-hash").append("=\"").append(thisElement.getIdHash()).append("\"");
 					break;
 
-				case NONE:
-					// simple interactive elements include their own UUID when enabled
-					final boolean isInteractive = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-interactive"));
-					if (isInteractive) {
-						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+				case WIDGET:
+				case DEPLOYMENT:
+
+					final String eventMapping = (String)thisElement.getProperty(StructrApp.key(DOMElement.class, "eventMapping"));
+					if (eventMapping != null) {
+
+						out.append(" ").append("data-structr-meta-event-mapping").append("=\"").append(StringEscapeUtils.escapeHtml(eventMapping)).append("\"");
 					}
+					break;
+
+				case NONE:
+
+					// simple interactive elements include their own UUID when enabled
+					final Map<String, Object> mapping = thisElement.getMappedEvents();
+					if (mapping != null) {
+
+						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+						out.append(" data-structr-events=\"").append(StringUtils.join(mapping.keySet(), ",")).append("\"");
+
+						final PropertyKey<String> targetKey = StructrApp.key(DOMElement.class, "data-structr-target");
+						final String parameterName          = thisElement.getProperty(targetKey);
+
+						if (parameterName != null) {
+
+							final String clickMapping  = (String)mapping.get("click");
+							if (clickMapping != null) {
+
+								final String value = renderContext.getRequestParameter(parameterName);
+
+								// special handling for pagination
+								switch (clickMapping) {
+
+									case "previous-page":
+										final int prev = DOMElement.intOrOne(value);
+										out.append(" data-").append(parameterName).append("=\"").append(String.valueOf(Math.max(1, prev - 1))).append("\"");
+										break;
+
+									case "next-page":
+										final int next = DOMElement.intOrOne(value);
+										out.append(" data-").append(parameterName).append("=\"").append(String.valueOf(next + 1)).append("\"");
+										break;
+
+									case "first-page":
+										out.append(" data-").append(parameterName).append("=\"1\"");
+										break;
+
+									case "last-page":
+										// should we really count all objects?
+										out.append(" data-").append(parameterName).append("=\"1000\"");
+										break;
+
+									default:
+										break;
+								}
+							}
+
+							// toggle-tree-item
+							if (mapping.containsValue("toggle-tree-item")) {
+
+								final String targetValue = thisElement.getPropertyWithVariableReplacement(renderContext, targetKey);
+								final String key         = thisElement.getTreeItemSessionIdentifier(targetValue);
+								final boolean open       = thisElement.getSessionAttribute(renderContext.getSecurityContext(), key) != null;
+
+								out.append(" data-tree-item-state=\"").append(open ? "open" : "closed").append("\"");
+							}
+						}
+
+
+					} else if (isReloadTarget(thisElement)) {
+
+						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+
+						// realization: all dynamic parameters must be stored on the reload target!
+						final HttpServletRequest request = renderContext.getRequest();
+						if (request != null) {
+
+							final Map<String, String[]> parameters = request.getParameterMap();
+							for (final Entry<String, String[]> entry : parameters.entrySet()) {
+
+								final String key      = entry.getKey();
+								final String[] values = entry.getValue();
+
+								if (values.length > 0) {
+
+									out.append(" data-request-").append(DOMElement.toHtmlAttributeName(key)).append("=\"").append(values[0]).append("\"");
+								}
+							}
+						}
+					}
+
 					break;
 	 		}
 		}
@@ -1034,6 +1204,140 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 
 		return targets;
+	}
+
+	public static void updateReloadTargets(final DOMElement thisElement) throws FrameworkException {
+
+		try {
+
+			final PropertyKey<Iterable<DOMElement>> reloadSourcesKey     = StructrApp.key(DOMElement.class, "reloadSources");
+			final PropertyKey<Iterable<DOMElement>> reloadTargetsKey     = StructrApp.key(DOMElement.class, "reloadTargets");
+			final PropertyKey<String> reloadTargetKey                    = StructrApp.key(DOMElement.class, "data-structr-reload-target");
+			final List<DOMElement> actualReloadSources                   = new LinkedList<>();
+			final List<DOMElement> actualReloadTargets                   = new LinkedList<>();
+			final org.jsoup.nodes.Element matchElement                   = thisElement.getMatchElement();
+			final String reloadTargets                                   = thisElement.getProperty(reloadTargetKey);
+			final Page page                                              = thisElement.getOwnerDocument();
+
+			if (page != null) {
+
+				for (final DOMNode possibleReloadTargetNode : page.getElements()) {
+
+					if (possibleReloadTargetNode instanceof DOMElement) {
+
+						final DOMElement possibleTarget       = (DOMElement)possibleReloadTargetNode;
+						final org.jsoup.nodes.Element element = possibleTarget.getMatchElement();
+						final String otherReloadTarget        = possibleTarget.getProperty(reloadTargetKey);
+
+						if (reloadTargets != null && element != null) {
+
+							if (element.select(reloadTargets).first() != null) {
+
+								actualReloadTargets.add(possibleTarget);
+							}
+						}
+
+						if (otherReloadTarget != null && matchElement != null) {
+
+							if (matchElement.select(otherReloadTarget).first() != null) {
+
+								actualReloadSources.add(possibleTarget);
+							}
+						}
+					}
+				}
+			}
+
+			// update reload targets with list from above
+			thisElement.setProperty(reloadSourcesKey,     actualReloadSources);
+			thisElement.setProperty(reloadTargetsKey,     actualReloadTargets);
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+		}
+	}
+
+	private org.jsoup.nodes.Element getMatchElement() {
+
+		final PropertyKey<String> classKey    = StructrApp.key(DOMElement.class, "_html_class");
+		final PropertyKey<String> idKey       = StructrApp.key(DOMElement.class, "_html_id");
+		final String tag                      = getTag();
+
+		if (StringUtils.isNotBlank(tag)) {
+
+			final org.jsoup.nodes.Element element = new org.jsoup.nodes.Element(tag);
+			final String classes                  = getProperty(classKey);
+
+			if (classes != null) {
+
+				for (final String css : classes.split(" ")) {
+
+					if (StringUtils.isNotBlank(css)) {
+
+						element.addClass(css.trim());
+					}
+				}
+			}
+
+			final String name = getProperty(AbstractNode.name);
+			if (name != null) {
+				element.attr("name", name);
+			}
+
+			final String htmlId = getProperty(idKey);
+			if (htmlId != null) {
+
+				element.attr("id", htmlId);
+			}
+
+			return element;
+		}
+
+		return null;
+	}
+
+	public static boolean isReloadTarget(final DOMElement thisElement) {
+
+		final PropertyKey<Iterable<DOMElement>> reloadSourcesKey = StructrApp.key(DOMElement.class, "reloadSources");
+		final List<DOMElement> reloadSources                     = Iterables.toList(thisElement.getProperty(reloadSourcesKey));
+
+		return !reloadSources.isEmpty();
+	}
+
+	private static int intOrOne(final String source) {
+
+		if (source != null) {
+
+			try {
+
+				return Integer.valueOf(source);
+
+			} catch (Throwable t) {
+			}
+		}
+
+		return 1;
+	}
+
+	private static String toHtmlAttributeName(final String camelCaseName) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		camelCaseName.chars().forEach(c -> {
+
+			if (Character.isUpperCase(c)) {
+
+				buf.append("-");
+				buf.append(Character.toLowerCase(c));
+
+			} else {
+
+				buf.append(Character.toString(c));
+			}
+		});
+
+		return buf.toString();
 	}
 
 	public static class TagPredicate implements Predicate<Node> {

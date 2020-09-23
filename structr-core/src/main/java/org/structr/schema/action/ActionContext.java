@@ -28,6 +28,7 @@ import java.util.Locale;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +55,7 @@ import org.structr.schema.parser.DatePropertyParser;
 public class ActionContext {
 
 	private static final Logger logger = LoggerFactory.getLogger(ActionContext.class.getName());
+	public static final String SESSION_ATTRIBUTE_PREFIX = "user.";
 
 	// cache is not static => library cache is per request
 	private final Map<String, String> libraryCache = new HashMap<>();
@@ -219,14 +221,28 @@ public class ActionContext {
 
 			// special HttpServletRequest handling
 			if (data instanceof HttpServletRequest) {
-				value = ((HttpServletRequest)data).getParameterValues(key);
 
+				value = ((HttpServletRequest)data).getParameterValues(key);
 				if (value != null) {
+
 					if (((String[]) value).length == 1) {
+
 						value = ((String[]) value)[0];
+
 					} else {
+
 						value = Arrays.asList((String[]) value);
 					}
+				}
+			}
+
+			// HttpSession
+			if (data instanceof HttpSession) {
+
+				if (StringUtils.isNotBlank(key)) {
+
+					// use "user." prefix to separate user and system data
+					value = ((HttpSession)data).getAttribute(SESSION_ATTRIBUTE_PREFIX + key);
 				}
 			}
 
@@ -272,6 +288,12 @@ public class ActionContext {
 
 						case "request":
 							return securityContext.getRequest();
+
+						case "session":
+							if (securityContext.getRequest() != null) {
+								return securityContext.getRequest().getSession(false);
+							}
+							break;
 
 						case "baseUrl":
 						case "base_url":

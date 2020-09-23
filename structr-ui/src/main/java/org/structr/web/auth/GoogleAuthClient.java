@@ -45,4 +45,14 @@ public class GoogleAuthClient extends StructrOAuthClient {
 	public String getErrorUri() {
 		return Settings.OAuthGoogleErrorUri.getValue();
 	}
+
+	@Override
+	protected String getAccessTokenLocationKey() {
+		return Settings.OAuthGoogleAccessTokenLocation.getKey();
+	}
+
+	@Override
+	protected String getAccessTokenLocation() {
+		return Settings.OAuthGoogleAccessTokenLocation.getValue("query");
+	}
 }
