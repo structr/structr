@@ -30,11 +30,11 @@ Structr is Open Source software and dual licensed under the GPLv3/AGPLv3 and a c
 
 ## Documentation
 
-The one-stop documentation and support site can be found at [https://support.structr.com/](https://support.structr.com/).
+The one-stop documentation and support site can be found at [https://docs.structr.com/docs](https://docs.structr.com/docs).
 
 ## Installation and Setup
 
-Prerequisites are the Java JDK 1.8 (JRE is not sufficient). See [https://support.structr.com/article/246](https://support.structr.com/article/246) for instructions on how to install and start Structr.
+Prerequisites are the Java JDK 1.8 (JRE is not sufficient). See [https://docs.structr.com/docs/running-structr#installation](https://docs.structr.com/docs/running-structr#installation) for instructions on how to install and start Structr.
 
 ## First Login
 
