@@ -438,7 +438,7 @@ public class UiAuthenticator implements Authenticator {
 
 		if (uriParts == null || uriParts.length != 3 || !("oauth".equals(uriParts[0]))) {
 
-			logger.debug("Incorrect URI parts for OAuth process, need /oauth/<name>/<action>");
+			logger.debug("No OAuth keywords in URI, ignoring. (needs /oauth/<name>/<action>)");
 			return null;
 		}
 
@@ -450,7 +450,7 @@ public class UiAuthenticator implements Authenticator {
 
 		if (oauthServer == null) {
 
-			logger.debug("No OAuth2 authentication server configured for {}", path);
+			logger.warn("No OAuth2 authentication server configured for {}", path);
 			return null;
 
 		}
@@ -477,24 +477,38 @@ public class UiAuthenticator implements Authenticator {
 				logger.debug("Got access token {}", accessToken);
 
 				String value = oauthServer.getCredential(request);
-				logger.debug("Got credential value: {}", new Object[] { value });
+
+				logger.debug("Got credential value: {}", value);
 
 				if (value != null) {
 
 					final PropertyKey credentialKey = oauthServer.getCredentialKey();
-					Principal user                  = AuthHelper.getPrincipalForCredential(credentialKey, value);
 
-					if (user == null && Settings.RestUserAutocreate.getValue()) {
+					logger.debug("Fetching user with {} {}", credentialKey, value);
 
-						user = RegistrationResource.createUser(superUserContext, credentialKey, value, true, getUserClass(), null);
+					Principal user = AuthHelper.getPrincipalForCredential(credentialKey, value);
+					if (user == null) {
 
-						// let oauth implementation augment user info
-						oauthServer.initializeUser(user);
+						if (Settings.RestUserAutocreate.getValue()) {
 
-						RuntimeEventLog.registration("OAuth user created", user.getUuid(), user.getName());
+							logger.debug("No user found, creating new user for {} {}.", credentialKey, value);
+
+							user = RegistrationResource.createUser(superUserContext, credentialKey, value, true, getUserClass(), null);
+
+							// let oauth implementation augment user info
+							oauthServer.initializeUser(user);
+
+							RuntimeEventLog.registration("OAuth user created", user.getUuid(), user.getName());
+
+						} else {
+
+							logger.debug("No user found, but jsonrestservlet.user.autocreate is false, so I'm not allowed to create a new user for {} {}.", credentialKey, value);
+						}
 					}
 
 					if (user != null) {
+
+						logger.debug("Logging in user {}", user);
 
 						AuthHelper.doLogin(request, user);
 						HtmlServlet.setNoCacheHeaders(response);
@@ -510,7 +524,12 @@ public class UiAuthenticator implements Authenticator {
 							logger.error("Could not redirect to {}: {}", new Object[]{oauthServer.getReturnUri(), ex});
 
 						}
+
 						return user;
+
+					} else {
+
+						logger.debug("Still no valid user found, no oauth authentication possible.");
 					}
 				}
 			}
