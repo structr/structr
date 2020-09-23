@@ -398,16 +398,16 @@ public class DeployDataCommand extends DeployCommand {
 
 			final String title = "Missing Principal(s)";
 			final String text = "The following user(s) and/or group(s) are missing for grants or node ownership during <b>data deployment</b>.<br>"
-					+ "Because of these missing grants/ownerships, <b>the functionality is not identical to the export you just imported</b>!<br><br>"
-					+ String.join(", ",  missingPrincipals)
-					+ "<br><br>Consider adding these principals to your <a href=\"https://support.structr.com/article/428#pre-deployconf-javascript\">pre-data-deploy.conf</a> and re-importing.";
+					+ "Because of these missing grants/ownerships, <b>the functionality is not identical to the export you just imported</b>!"
+					+ "<ul><li>" + String.join("</li><li>",  missingPrincipals) + "</li></ul>"
+					+ "Consider adding these principals to your <a href=\"https://docs.structr.com/docs/fundamental-concepts#pre-deployconf\">pre-data-deploy.conf</a> and re-importing.";
 
 			logger.info("\n###############################################################################\n"
 					+ "\tWarning: " + title + "!\n"
 					+ "\tThe following user(s) and/or group(s) are missing for grants or node ownership during deployment.\n"
 					+ "\tBecause of these missing grants/ownerships, the functionality is not identical to the export you just imported!\n\n"
 					+ "\t" + String.join(", ",  missingPrincipals)
-					+ "\n\n\tConsider adding these principals to your 'pre-data-deploy.conf' (see https://support.structr.com/article/428#pre-deployconf-javascript) and re-importing.\n"
+					+ "\n\n\tConsider adding these principals to your 'pre-data-deploy.conf' (see https://docs.structr.com/docs/fundamental-concepts#pre-deployconf) and re-importing.\n"
 					+ "###############################################################################"
 			);
 
