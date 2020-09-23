@@ -90,7 +90,6 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 	}
 
 	boolean getIsConnected();
-	boolean getIsEnabled();
 	int getQos();
 	String getUsername();
 	String getPassword();
@@ -101,7 +100,14 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 
 		if (thisClient.getIsEnabled()) {
 
-			MQTTContext.connect(thisClient);
+			try {
+
+				MQTTContext.connect(thisClient);
+			} catch (FrameworkException ex) {
+
+				thisClient.setProperty(StructrApp.key(MQTTClient.class, "isEnabled"), false);
+				thisClient.setProperty(StructrApp.key(MQTTClient.class, "isConnected"), false);
+			}
 		}
 
 	}

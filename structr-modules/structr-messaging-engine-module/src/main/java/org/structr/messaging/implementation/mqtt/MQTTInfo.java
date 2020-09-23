@@ -28,6 +28,7 @@ public interface MQTTInfo {
 	public String getUuid();
 	public String getUsername();
 	public String getPassword();
+	boolean getIsEnabled();
 
 	public String[] getTopics();
 
