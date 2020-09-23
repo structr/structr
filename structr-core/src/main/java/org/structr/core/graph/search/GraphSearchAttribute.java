@@ -108,9 +108,18 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 	public Direction getDirection() {
 
 		final PropertyKey<T> key = getKey();
-		final Relation rel       = ((RelationProperty)key).getRelation(); // provoke ClassCastException if type doesn't match
+		final RelationProperty p = (RelationProperty)key;
 
-		return rel.getDirectionForType(key.getDeclaringClass());
+		switch (p.getDirectionKey()) {
+
+			case "in":
+				return Direction.INCOMING;
+
+			case "out":
+				return Direction.OUTGOING;
+		}
+
+		return Direction.BOTH;
 	}
 
 	@Override

@@ -179,12 +179,15 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 
 				logger.warn("#######################################################################################################");
 				logger.warn("IterableQueueingRecordConsumer waited for 1 minute, aborting");
-				logger.warn("statement: {}", query.getStatement(true));
-				logger.warn("throwable: {}", throwable);
-				logger.warn("finished:  {}", finished.get());
-				logger.warn("added:     {}", added.get());
-				logger.warn("queue:     {}", queue);
+				logger.warn("statement:  {}", query.getStatement(true));
+				logger.warn("parameters: {}", query.getParameters());
+				logger.warn("throwable:  {}", throwable);
+				logger.warn("finished:   {}", finished.get());
+				logger.warn("added:      {}", added.get());
+				logger.warn("queue:      {}", queue);
 				logger.warn("#######################################################################################################");
+
+				query.setTimeoutViolated();
 
 				return false;
 			}

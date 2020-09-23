@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.oltu.oauth2.client.OAuthClient;
 import org.apache.oltu.oauth2.client.URLConnectionClient;
 import org.apache.oltu.oauth2.client.request.OAuthBearerClientRequest;
@@ -102,12 +101,12 @@ public class LinkedInAuthClient extends StructrOAuthClient {
 
 		String body = userResponse.getBody();
 		logger.debug("User response body: {}", body);
-		
+
 		final JsonParser parser = new JsonParser();
 		final JsonElement result = parser.parse(body);
 
 		final JsonArray elementsArray = result.getAsJsonObject().getAsJsonArray("elements");
-		
+
 		if (elementsArray != null) {
 
 			final Iterator<JsonElement> iterator = elementsArray.iterator();
@@ -115,9 +114,9 @@ public class LinkedInAuthClient extends StructrOAuthClient {
 			if (iterator.hasNext()) {
 
 				final JsonElement el = iterator.next();
-				
+
 				if (el.getAsJsonObject().get("handle~") != null) {
-				
+
 					final String address = el.getAsJsonObject().get("handle~").getAsJsonObject().get("emailAddress").getAsString();
 					logger.info("Got 'email' credential from GitHub: {}", address);
 
@@ -182,5 +181,15 @@ public class LinkedInAuthClient extends StructrOAuthClient {
 		}
 
 		return null;
+	}
+
+	@Override
+	protected String getAccessTokenLocationKey() {
+		return Settings.OAuthLinkedInAccessTokenLocation.getKey();
+	}
+
+	@Override
+	protected String getAccessTokenLocation() {
+		return Settings.OAuthLinkedInAccessTokenLocation.getValue("query");
 	}
 }

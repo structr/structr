@@ -94,6 +94,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.core.graphql.GraphQLListType;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
@@ -373,7 +374,7 @@ public class SchemaHelper {
 
 		if (!errorBuffer.hasError()) {
 
-			try {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 
 				final App app = StructrApp.getInstance();
 
@@ -394,6 +395,8 @@ public class SchemaHelper {
 					createDynamicGrants(schemaRelationship.getResourceSignature());
 					createDynamicGrants(schemaRelationship.getInverseResourceSignature());
 				}
+
+				tx.success();
 
 			} catch (Throwable t) {
 

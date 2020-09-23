@@ -3853,7 +3853,6 @@ public class ScriptingTest extends StructrTest {
 			app.create(projectType, new NodeAttribute<>(projectName, "p6b"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task3)) );
 			app.create(projectType, new NodeAttribute<>(projectName, "p7b"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task2, task3)) );
 
-
 			app.create(projectType, new NodeAttribute<>(projectName, "p8a"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task2, task3, task4)) );
 
 			tx.success();
@@ -3904,13 +3903,105 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', $.predicate.and($.predicate.contains(t1), $.predicate.contains(t5))); }}", "testFindNewSyntax")).size());
 
 			// ($.not and $.empty)
-			//assertEquals("Advanced find() should understand $.not predicate for remote properties", 4, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.not($.empty('projects'))); }}", "testFindNewSyntax")).size());
-			//assertEquals("Advanced find() should understand $.not predicate for remote properties", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.empty('projects')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should understand $.not predicate for remote properties", 4, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.not($.empty('projects'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should understand $.empty predicate for remote properties", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.empty('projects')); }}", "testFindNewSyntax")).size());
 
 		} catch (FrameworkException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testEmptyPredicateForRemoteProperties() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			// create relation
+			project.relate(project, "SUB", Cardinality.OneToMany, "parent", "children");
+			 project.relate(task, "TASK", Cardinality.OneToMany, "project", "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final ActionContext ctx = new ActionContext(securityContext);
+		final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class taskType    = StructrApp.getConfiguration().getNodeEntityClass("Task");
+
+		final PropertyKey projectChildren = StructrApp.key(projectType, "children");
+		final PropertyKey projectTasks    = StructrApp.key(projectType, "tasks");
+
+		final PropertyKey taskName     = StructrApp.key(taskType, "name");
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface task1 = app.create(taskType, new NodeAttribute<>(taskName, "t1") );
+			final NodeInterface task2 = app.create(taskType, new NodeAttribute<>(taskName, "t2") );
+			final NodeInterface task3 = app.create(taskType, new NodeAttribute<>(taskName, "t3") );
+			final NodeInterface task4 = app.create(taskType, new NodeAttribute<>(taskName, "t4") );
+			final NodeInterface task5 = app.create(taskType, new NodeAttribute<>(taskName, "t5") );
+			final NodeInterface task6 = app.create(taskType, new NodeAttribute<>(taskName, "t6") );
+			final NodeInterface task7 = app.create(taskType, new NodeAttribute<>(taskName, "t7") );
+			final NodeInterface task8 = app.create(taskType, new NodeAttribute<>(taskName, "t8") );
+
+			final NodeInterface project1 = app.create(projectType,
+				new NodeAttribute<>(AbstractNode.name, "Project #1"),
+				new NodeAttribute<>(projectTasks, List.of(task1, task2))
+			);
+
+			final NodeInterface project2 = app.create(projectType,
+				new NodeAttribute<>(AbstractNode.name, "Project #2"),
+				new NodeAttribute<>(projectTasks, List.of(task3, task4)),
+				new NodeAttribute<>(projectChildren, List.of(project1))
+			);
+
+			app.create(projectType,
+				new NodeAttribute<>(AbstractNode.name, "Project #3"),
+				new NodeAttribute<>(projectTasks, List.of(task5, task6)),
+				new NodeAttribute<>(projectChildren, List.of(project2))
+			);
+
+			app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project #4"));
+			app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project #5"));
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final String errorMessage = "Advanced find() should understand $.empty predicate for remote properties";
+
+			Settings.CypherDebugLogging.setValue(true);
+
+			assertEquals(errorMessage, 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.empty('parent')); }}", "testFindNewSyntax1")).size());
+			assertEquals(errorMessage, 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.empty('children')); }}", "testFindNewSyntax2")).size());
+			assertEquals(errorMessage, 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.empty('project')); }}", "testFindNewSyntax3")).size());
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+
+		} finally {
+
+			Settings.CypherDebugLogging.setValue(false);
 		}
 	}
 

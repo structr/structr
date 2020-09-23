@@ -907,10 +907,12 @@ StructrElement.prototype.isActiveNode = function() {
 		|| this["data-structr-raw-value"]
 		|| this["data-structr-return"]
 		|| this["data-structr-type"]
+		|| this["eventMapping"]
 		//Boolean attributes
 		|| this["data-structr-append-id"] === true
 		|| this["data-structr-confirm"] === true
-		|| this["data-structr-reload"] === true;
+		|| this["data-structr-reload"] === true
+		;
 };
 
 /**************************************

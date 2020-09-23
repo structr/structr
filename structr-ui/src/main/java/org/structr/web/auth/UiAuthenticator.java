@@ -365,19 +365,6 @@ public class UiAuthenticator implements Authenticator {
 
 		return user;
 	}
-	/*
-	@Override
-	public Principal doLogin(final HttpServletRequest request) throws AuthenticationException, FrameworkException {
-
-		String token = getAuthorizationToken(request);
-		String refreshToken = request.getHeader("refresh_token");
-
-		final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
-		final Principal user               = AuthHelper.getPrincipalForToken(token, refreshToken, eMailKey);
-
-		return user;
-	}
-	 */
 
 	@Override
 	public void doLogout(final HttpServletRequest request) {

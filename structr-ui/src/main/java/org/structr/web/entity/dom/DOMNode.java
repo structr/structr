@@ -28,6 +28,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +72,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaService;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
@@ -1493,6 +1496,23 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			return;
 		}
 
+		// special handling for tree items that explicitly opt-in to be controlled automatically, configured with the toggle-tree-item event.
+		final String treeItemDataKey = thisNode.getProperty(StructrApp.key(DOMElement.class, "data-structr-tree-children"));
+		if (treeItemDataKey != null) {
+
+			final GraphObject treeItem = renderContext.getDataNode(treeItemDataKey);
+			if (treeItem != null) {
+
+				final String key = thisNode.getTreeItemSessionIdentifier(treeItem.getUuid());
+
+				if (thisNode.getSessionAttribute(renderContext.getSecurityContext(), key) == null) {
+
+					// do not render children of tree elements
+					return;
+				}
+			}
+		}
+
 		final GraphObject details = renderContext.getDetailsDataObject();
 		final boolean detailMode = details != null;
 
@@ -1927,6 +1947,52 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			}
 		}
 	}
+
+	default public void setSessionAttribute(final SecurityContext securityContext, final String key, final Object value) {
+
+		final HttpServletRequest request = securityContext.getRequest();
+		if (request != null) {
+
+			final HttpSession session = request.getSession(false);
+			if (session != null) {
+
+				session.setAttribute(ActionContext.SESSION_ATTRIBUTE_PREFIX + key, value);
+			}
+		}
+	}
+
+	default public void removeSessionAttribute(final SecurityContext securityContext, final String key) {
+
+		final HttpServletRequest request = securityContext.getRequest();
+		if (request != null) {
+
+			final HttpSession session = request.getSession(false);
+			if (session != null) {
+
+				session.removeAttribute(ActionContext.SESSION_ATTRIBUTE_PREFIX + key);
+			}
+		}
+	}
+
+	default public Object getSessionAttribute(final SecurityContext securityContext, final String key) {
+
+		final HttpServletRequest request = securityContext.getRequest();
+		if (request != null) {
+
+			final HttpSession session = request.getSession(false);
+			if (session != null) {
+
+				return session.getAttribute(ActionContext.SESSION_ATTRIBUTE_PREFIX + key);
+			}
+		}
+
+		return null;
+	}
+
+	default public String getTreeItemSessionIdentifier(final String target) {
+		return "tree-item-" + target + "-is-open";
+	}
+
 
 	// ----- nested classes -----
 	static class TextCollector implements Predicate<Node> {

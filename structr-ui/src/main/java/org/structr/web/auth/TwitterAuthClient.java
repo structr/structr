@@ -154,7 +154,7 @@ public class TwitterAuthClient extends StructrOAuthClient {
 	public String getUserResourceUri() {
 		return "";
 	}
-	
+
 	@Override
 	protected String getScope() {
 		return Settings.OAuthTwitterScope.getValue();
@@ -178,5 +178,15 @@ public class TwitterAuthClient extends StructrOAuthClient {
 	@Override
 	public String getCredential(final HttpServletRequest request) {
 		return getValue(request, "screen_name");
+	}
+
+	@Override
+	protected String getAccessTokenLocationKey() {
+		return Settings.OAuthTwitterAccessTokenLocation.getKey();
+	}
+
+	@Override
+	protected String getAccessTokenLocation() {
+		return Settings.OAuthTwitterAccessTokenLocation.getValue("query");
 	}
 }

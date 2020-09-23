@@ -18,31 +18,31 @@
  */
 package org.structr.web.common;
 
-import java.util.ArrayDeque;
-import java.util.Queue;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-/**
- * Special buffer for asynchronous streaming of chunked output.
- *
- *
- */
-public class AsyncBuffer {
+public class EventContext extends LinkedHashMap<String, Object> {
 
-	private final Queue<String> queue = new ArrayDeque<>(1000);
+	private static final String KEY_DATA = "data";
 
-	public AsyncBuffer append(final String s) {
-
-		synchronized(queue) {
-
-			if (s != null) {
-				queue.add(s);
-			}
-		}
-
-		return this;
+	public void data(final String key, final Object value) {
+		getData().put(key, value);
 	}
 
-	public Queue<String> getQueue() {
-		return queue;
+	public void data(final Map<String, Object> data) {
+		getData().putAll(data);
+	}
+
+	// ----- private methods -----
+	private Map<String, Object> getData() {
+
+		Map<String, Object> data = (Map<String, Object>)get(KEY_DATA);
+		if (data == null) {
+
+			data = new LinkedHashMap<>();
+			put(KEY_DATA, data);
+		}
+
+		return data;
 	}
 }

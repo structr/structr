@@ -435,7 +435,7 @@ public class Settings {
 
 
 	// oauth settings
-	public static final Setting<String> OAuthServers            = new StringSetting(oauthGroup, "General", "oauth.servers", "github twitter linkedin google facebook auth0", "Space-seperated List of available oauth services. Defaults to \"github twitter linkedin google facebook auth0\"");
+	public static final Setting<String> OAuthServers = new StringSetting(oauthGroup, "General", "oauth.servers", "github twitter linkedin google facebook auth0", "Space-seperated List of available oauth services. Defaults to \"github twitter linkedin google facebook auth0\"");
 
 	public static final Setting<String> OAuthGithubAuthLocation   = new StringSetting(oauthGroup, "GitHub", "oauth.github.authorization_location", "https://github.com/login/oauth/authorize", "URL of the authorization endpoint.");
 	public static final Setting<String> OAuthGithubTokenLocation  = new StringSetting(oauthGroup, "GitHub", "oauth.github.token_location", "https://github.com/login/oauth/access_token", "URL of the token endpoint.");
@@ -446,6 +446,7 @@ public class Settings {
 	public static final Setting<String> OAuthGithubErrorUri       = new StringSetting(oauthGroup, "GitHub", "oauth.github.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
 	public static final Setting<String> OAuthGithubReturnUri      = new StringSetting(oauthGroup, "GitHub", "oauth.github.return_uri", "/", "Structr redirects to this URI on successful authentification.");
 	public static final Setting<String> OAuthGithubScope          = new StringSetting(oauthGroup, "GitHub", "oauth.github.scope", "user:email", "Specifies the scope of the authentifcation. Defaults to \"user:email\".");
+	public static final ChoiceSetting OAuthGithubAccessTokenLocation = new ChoiceSetting(oauthGroup, "GitHub", "oauth.github.accesstoken.location", "query", Set.of("body", "header", "query"), "Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. ");
 
 	public static final Setting<String> OAuthTwitterAuthLocation  = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.authorization_location", "https://api.twitter.com/oauth/authorize", "URL of the authorization endpoint.");
 	public static final Setting<String> OAuthTwitterTokenLocation = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.token_location", "https://api.twitter.com/oauth/access_token", "URL of the token endpoint.");
@@ -455,6 +456,7 @@ public class Settings {
 	public static final Setting<String> OAuthTwitterErrorUri      = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
 	public static final Setting<String> OAuthTwitterReturnUri     = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.return_uri", "/", "Structr redirects to this URI on successful authentification.");
 	public static final Setting<String> OAuthTwitterScope         = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.scope", "", "Specifies the scope of the authentifcation.");
+	public static final ChoiceSetting OAuthTwitterAccessTokenLocation = new ChoiceSetting(oauthGroup, "Twitter", "oauth.twitter.accesstoken.location", "query", Set.of("body", "header", "query"), "Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. ");
 
 	public static final Setting<String> OAuthLinkedInAuthLocation   = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.authorization_location", "https://www.linkedin.com/oauth/v2/authorization", "URL of the authorization endpoint.");
 	public static final Setting<String> OAuthLinkedInTokenLocation  = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.token_location", "https://www.linkedin.com/oauth/v2/accessToken", "URL of the token endpoint.");
@@ -466,6 +468,7 @@ public class Settings {
 	public static final Setting<String> OAuthLinkedInErrorUri       = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
 	public static final Setting<String> OAuthLinkedInReturnUri      = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.return_uri", "/", "Structr redirects to this URI on successful authentification.");
 	public static final Setting<String> OAuthLinkedInScope          = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.scope", "r_liteprofile r_emailaddress", "oauth.twitter.scope");
+	public static final ChoiceSetting OAuthLinkedInAccessTokenLocation = new ChoiceSetting(oauthGroup, "LinkedIn", "oauth.linkedin.accesstoken.location", "query", Set.of("body", "header", "query"), "Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. ");
 
 	public static final Setting<String> OAuthGoogleAuthLocation   = new StringSetting(oauthGroup, "Google", "oauth.google.authorization_location", "https://accounts.google.com/o/oauth2/auth", "URL of the authorization endpoint.");
 	public static final Setting<String> OAuthGoogleTokenLocation  = new StringSetting(oauthGroup, "Google", "oauth.google.token_location", "https://accounts.google.com/o/oauth2/token", "URL of the token endpoint.");
@@ -476,6 +479,7 @@ public class Settings {
 	public static final Setting<String> OAuthGoogleErrorUri       = new StringSetting(oauthGroup, "Google", "oauth.google.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
 	public static final Setting<String> OAuthGoogleReturnUri      = new StringSetting(oauthGroup, "Google", "oauth.google.return_uri", "/", "Structr redirects to this URI on successful authentification.");
 	public static final Setting<String> OAuthGoogleScope          = new StringSetting(oauthGroup, "Google", "oauth.google.scope", "email", "Specifies the scope of the authentifcation.");
+	public static final ChoiceSetting OAuthGoogleAccessTokenLocation = new ChoiceSetting(oauthGroup, "Google", "oauth.google.accesstoken.location", "query", Set.of("body", "header", "query"), "Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. ");
 
 	public static final Setting<String> OAuthFacebookAuthLocation   = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.authorization_location", "https://www.facebook.com/dialog/oauth", "URL of the authorization endpoint.");
 	public static final Setting<String> OAuthFacebookTokenLocation  = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.token_location", "https://graph.facebook.com/oauth/access_token", "URL of the token endpoint.");
@@ -486,6 +490,7 @@ public class Settings {
 	public static final Setting<String> OAuthFacebookErrorUri       = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
 	public static final Setting<String> OAuthFacebookReturnUri      = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.return_uri", "/", "Structr redirects to this URI on successful authentification.");
 	public static final Setting<String> OAuthFacebookScope          = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.scope", "email", "Specifies the scope of the authentifcation.");
+	public static final ChoiceSetting OAuthFacebookAccessTokenLocation = new ChoiceSetting(oauthGroup, "Facebook", "oauth.facebook.accesstoken.location", "query", Set.of("body", "header", "query"), "Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. ");
 
 	public static final Setting<String> OAuthAuth0AuthLocation   = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.authorization_location", "", "URL of the authorization endpoint.");
 	public static final Setting<String> OAuthAuth0TokenLocation  = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.token_location", "", "URL of the token endpoint.");
@@ -496,6 +501,7 @@ public class Settings {
 	public static final Setting<String> OAuthAuth0ErrorUri       = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.error_uri", "", "Structr redirects to this URI on unsuccessful authentication.");
 	public static final Setting<String> OAuthAuth0ReturnUri      = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.return_uri", "", "Structr redirects to this URI on successful authentification.");
 	public static final Setting<String> OAuthAuth0Scope          = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.scope", "openid profile email", "Specifies the scope of the authentifcation.");
+	public static final ChoiceSetting OAuthAuth0AccessTokenLocation = new ChoiceSetting(oauthGroup, "Auth0", "oauth.auth0.accesstoken.location", "query", Set.of("body", "header", "query"), "Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. ");
 
 	// LDAP settings
 	public static final Setting<String> LDAPHost            = new StringSetting(ldapGroup,  "General", "ldap.host", "localhost", "Address of the LDAP host.");

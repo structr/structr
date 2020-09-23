@@ -527,6 +527,10 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 
 					// add elements
 					set.addAll(Iterables.toList(index.getResult(query)));
+
+					if (query.timeoutViolated()) {
+						set = null;
+					}
 				}
 
 				return set;

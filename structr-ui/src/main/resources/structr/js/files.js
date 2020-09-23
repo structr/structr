@@ -792,7 +792,7 @@ var _Files = {
 			selectedElements = $('.node.selected');
 			var selectedCount = selectedElements.length;
 
-			if (selectedCount > 1) {
+			if (selectedCount > 1 && div.hasClass('selected')) {
 
 				var files = [];
 
@@ -916,7 +916,7 @@ var _Files = {
 				selectedElements = $('.node.selected');
 				var selectedCount = selectedElements.length;
 
-				if (selectedCount > 1) {
+				if (selectedCount > 1 && div.hasClass('selected')) {
 
 					var files = [];
 
@@ -1038,8 +1038,10 @@ var _Files = {
 			fileContents = {};
 			editor = undefined;
 
+			console.log(parent)
+
 			selectedElements = $('.node.selected');
-			if (selectedElements.length > 1) {
+			if (selectedElements.length > 1 && parent.hasClass('selected')) {
 				selectedElements.removeClass('selected');
 			} else {
 				selectedElements = parent;
