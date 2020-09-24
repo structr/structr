@@ -1950,7 +1950,7 @@ button.enabled, button.active {
 	color: #888;
 }
 
-._html_class_ {
+#pagesTree ._html_class_ {
 	margin-top: -1px;
 	display: inline-block;
 	vertical-align: top;
