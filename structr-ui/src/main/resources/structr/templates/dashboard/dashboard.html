@@ -106,6 +106,8 @@
 						<h3>Export and download <u>application</u> as ZIP file</h3>
 						${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Export and download as ZIP file is not possible because <code>DeployServlet</code> is not running.</span>')}
 						<div>
+							<input type="text" id="zip-export-prefix" placeholder="ZIP File prefix" ${(config.deployServletAvailable ? '' : 'disabled')} value="${(config.zipExportPrefix || 'webapp')}"><br>
+							<label class="checkbox-label"><input type="checkbox" id="zip-export-append-timestamp" ${(config.deployServletAvailable ? '' : 'disabled')} ${(config.zipExportAppendTimestamp ? 'checked' : '')}> Append timestamp</label>
 							<button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-export-to-zip">Export and download app as ZIP file</button>
 						</div>
 
@@ -296,9 +298,14 @@
 			display: inline-block;
 		}
 
-		#dashboard-deployment input {
+		#dashboard-deployment input[type=text] {
 			width: calc(100% - 24px);
-			/*width: 425px;*/
+			height: 15px;
+			margin: 0 4px 12px 0;
+		}
+
+		#dashboard-deployment label.checkbox-label {
+			display: block;
 			height: 15px;
 			margin: 0 4px 12px 0;
 		}

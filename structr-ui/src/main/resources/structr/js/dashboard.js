@@ -27,6 +27,8 @@ var _Dashboard = {
 	activeTabPrefixKey: 'activeDashboardTabPrefix' + port,
 	logRefreshTimeIntervalKey: 'dashboardLogRefreshTimeInterval' + port,
 	logLinesKey: 'dashboardNumberOfLines' + port,
+	zipExportPrefixKey: 'zipExportPrefix' + port,
+	zipExportAppendTimestampKey: 'zipExportAppendTimestamp' + port,
 
 	init: function() {},
 	unload: function() {
@@ -101,6 +103,9 @@ var _Dashboard = {
 			templateConfig.deployServletAvailable = (result.status !== 404);
 
 		}).then(function() {
+
+			templateConfig.zipExportPrefix = LSWrapper.getItem(_Dashboard.zipExportPrefixKey);
+			templateConfig.zipExportAppendTimestamp = LSWrapper.getItem(_Dashboard.zipExportAppendTimestampKey, true);
 
 			Structr.fetchHtmlTemplate('dashboard/dashboard', templateConfig, function(html) {
 
@@ -555,8 +560,30 @@ var _Dashboard = {
 	},
 	exportAsZip: function() {
 
-		window.location = '/structr/deploy?name=webapp';
+		let prefix = document.getElementById('zip-export-prefix').value;
 
+		let cleaned = prefix.replaceAll(/[^a-zA-Z0-9 _-]/g, '').trim();
+		if (cleaned !== prefix) {
+			new MessageBuilder().title('Cleaned prefix').info('The given filename prefix was changed to "' + cleaned + '".').requiresConfirmation().show();
+			prefix = cleaned;
+		}
+		LSWrapper.setItem(_Dashboard.zipExportPrefixKey, prefix);
+
+		let appendTimestamp = document.getElementById('zip-export-append-timestamp').checked;
+		LSWrapper.setItem(_Dashboard.zipExportAppendTimestampKey, appendTimestamp);
+
+		if (appendTimestamp) {
+
+			let zeroPad = (v) => {
+				return ((v < 10) ? '0' : '') + v;
+			};
+
+			let date = new Date();
+
+			prefix += '_' + date.getFullYear() + zeroPad(date.getMonth()+1) + zeroPad(date.getDate()) + '_' + zeroPad(date.getHours()) + zeroPad(date.getMinutes()) + zeroPad(date.getSeconds());
+		}
+
+		window.location = '/structr/deploy?name=' + prefix;
 	},
 	deployFromURL: function(redirectUrl, downloadUrl) {
 
