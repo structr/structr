@@ -20,40 +20,28 @@ package org.structr.web.function;
 
 import com.steadystate.css.parser.CSSOMParser;
 import com.steadystate.css.parser.SACParserCSS3;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.asciidoctor.internal.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
-import org.w3c.css.sac.CSSParseException;
-import org.w3c.css.sac.InputSource;
-import org.w3c.css.sac.Parser;
 import org.w3c.dom.css.CSSRule;
 import org.w3c.dom.css.CSSRuleList;
 import org.w3c.dom.css.CSSStyleSheet;
-
-import java.awt.*;
 import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Scanner;
+import org.structr.web.entity.css.CssDeclaration;
+import org.structr.web.entity.css.CssRule;
+import org.structr.web.entity.css.CssSelector;
+import org.w3c.css.sac.InputSource;
 
 public class ImportCssFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_IMPORT_CSS    = "Usage: ${import_css(file)}. Example: ${import_css(cssFile)}";
 	public static final String ERROR_MESSAGE_IMPORT_CSS_JS = "Usage: ${{Structr.importCss(file)}}. Example: ${{Structr.importCss(cssFile)}}";
-
-	Class cssSelectorClass;
-	Class cssRuleClass;
-	Class cssSemanticClassClass;
-	Class cssDeclarationClass;
-	App   app;
 
 	@Override
 	public String getName() {
@@ -78,19 +66,12 @@ public class ImportCssFunction extends UiAdvancedFunction {
 				return "";
 			}
 
-			try {
+			try (final FileReader reader = new FileReader(file.getFileOnDisk())) {
 
-				cssSelectorClass      = StructrApp.getConfiguration().getNodeEntityClass("CssSelector");
-				cssRuleClass          = StructrApp.getConfiguration().getNodeEntityClass("CssRule");
-				cssSemanticClassClass = StructrApp.getConfiguration().getNodeEntityClass("CssSemanticClass");
-				cssDeclarationClass   = StructrApp.getConfiguration().getNodeEntityClass("CssDeclaration");
-
-				app = StructrApp.getInstance();
-
-				final CSSOMParser parser = new CSSOMParser(new SACParserCSS3());
-				final CSSStyleSheet styleSheet = parser.parseStyleSheet(new InputSource(new FileReader(file.getFileOnDisk())), null, null);
-
-				final CSSRuleList rules = styleSheet.getCssRules();
+				final InputSource source       = new InputSource(reader);
+				final CSSOMParser parser       = new CSSOMParser(new SACParserCSS3());
+				final CSSStyleSheet styleSheet = parser.parseStyleSheet(source, null, null);
+				final CSSRuleList rules        = styleSheet.getCssRules();
 
 				for (int i=0; i<rules.getLength(); i++) {
 
@@ -125,17 +106,18 @@ public class ImportCssFunction extends UiAdvancedFunction {
 		// Check if rule already exists and skip if yes
 		final String cssText         = rule.getCssText();
 		final String selectorsString = StringUtils.trim(StringUtils.substringBefore(cssText, "{"));
+		final App app                = StructrApp.getInstance();
 
-		final NodeInterface existingRuleNode = (NodeInterface) app.nodeQuery(cssRuleClass).andName(selectorsString).getFirst();
+		final NodeInterface existingRuleNode = (NodeInterface) app.nodeQuery(CssRule.class).andName(selectorsString).getFirst();
 		if (existingRuleNode != null) {
 			return existingRuleNode;
 		}
 
 		// Create node for CSS rule
-		final NodeInterface cssRuleNode = app.create(cssRuleClass, selectorsString);
+		final NodeInterface cssRuleNode = app.create(CssRule.class, selectorsString);
 
-		cssRuleNode.setProperty(StructrApp.key(cssRuleClass,"cssText"), cssText);
-		cssRuleNode.setProperty(StructrApp.key(cssRuleClass,"ruleType"), Short.toUnsignedInt(rule.getType()));
+		cssRuleNode.setProperty(StructrApp.key(CssRule.class,"cssText"), cssText);
+		cssRuleNode.setProperty(StructrApp.key(CssRule.class,"ruleType"), Short.toUnsignedInt(rule.getType()));
 
 		// Extract and link selectors
 		final List<NodeInterface> cssSelectors = new LinkedList<>();
@@ -143,11 +125,11 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 		for (final String selector : selectors) {
 
-			final NodeInterface cssSelectorNode = app.create(cssSelectorClass, StringUtils.trim(selector));
+			final NodeInterface cssSelectorNode = app.create(CssSelector.class, StringUtils.trim(selector));
 			cssSelectors.add(cssSelectorNode);
 		}
 
-		cssRuleNode.setProperty(StructrApp.key(cssRuleClass,"selectors"), cssSelectors);
+		cssRuleNode.setProperty(StructrApp.key(CssRule.class,"selectors"), cssSelectors);
 
 		// Extract and link declarations
 		final List<NodeInterface> cssDeclarations = new LinkedList<>();
@@ -158,19 +140,19 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 			if (StringUtils.isNotBlank(declaration)) {
 
-				final NodeInterface cssDeclarationNode = app.create(cssDeclarationClass, StringUtils.trim(declaration));
+				final NodeInterface cssDeclarationNode = app.create(CssDeclaration.class, StringUtils.trim(declaration));
 				cssDeclarations.add(cssDeclarationNode);
 			}
 		}
 
-		cssRuleNode.setProperty(StructrApp.key(cssRuleClass,"declarations"), cssDeclarations);
+		cssRuleNode.setProperty(StructrApp.key(CssRule.class,"declarations"), cssDeclarations);
 
 		// Import and link parent rule
 		CSSRule parentRule = rule.getParentRule();
 		if (parentRule != null) {
 
 			final NodeInterface parentRuleNode = importCSSRule(parentRule);
-			cssRuleNode.setProperty(StructrApp.key(cssRuleClass,"parentRule"), parentRuleNode);
+			cssRuleNode.setProperty(StructrApp.key(CssRule.class,"parentRule"), parentRuleNode);
 		}
 
 		return cssRuleNode;
