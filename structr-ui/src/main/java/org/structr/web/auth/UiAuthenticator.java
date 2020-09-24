@@ -486,7 +486,18 @@ public class UiAuthenticator implements Authenticator {
 
 					logger.debug("Fetching user with {} {}", credentialKey, value);
 
+					// first try: literal, unchanged value from oauth provider
 					Principal user = AuthHelper.getPrincipalForCredential(credentialKey, value);
+					if (user == null) {
+
+						// since e-mail addresses are stored in lower case, we need
+						// to search for users with lower-case e-mail address value..
+						logger.debug("2nd try: fetching user with lowercase {} {}", credentialKey, value.toLowerCase());
+
+						// second try: lowercase value
+						user = AuthHelper.getPrincipalForCredential(credentialKey, value.toLowerCase());
+					}
+
 					if (user == null) {
 
 						if (Settings.RestUserAutocreate.getValue()) {
