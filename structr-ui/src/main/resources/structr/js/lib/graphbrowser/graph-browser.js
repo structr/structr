@@ -809,7 +809,7 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 
 		addMethod('getNodes', function(node, inOrOut, onResult, view){
 			if(!view) view = "_graph"
-			var url = "/structr/rest/" + node.id + "/" + inOrOut + "/" + view;
+			var url = "/structr/rest/" + (node.nodeType ? node.nodeType + "/" : "") + node.id + "/" + inOrOut + "/" + view;
 			var ajax = sendRequest(url, "GET");
 			restRequest(ajax, onResult, node);
 		});
@@ -870,8 +870,8 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 			restRequest(ajax, onResult, undefined, onError);
 		});
 
-		addMethod('deleteRelationship', function(relId, onResult){
-			var url = '/structr/rest/' + relId;
+		addMethod('deleteRelationship', function(rel, onResult){
+			var url = '/structr/rest/' + rel.type + '/ ' + rel.id;
 			var ajax = sendRequest(url, "DELETE");
 			restRequest(ajax, onResult);
 		});
@@ -2899,7 +2899,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				_onDeleteRelation(edge, source, target, handleEdgeDeleteEvent);
 			}
 			if(del){
-				_callbacks.conn.deleteRelationship(edge.id, function(result){
+				_callbacks.conn.deleteRelationship(edge, function(result){
 					console.log("DeleteEdgeEvent: " + edge.id);
 					_s.graph.dropEdge(edge.id);
 					sigma.canvas.edges.autoCurve(_s);

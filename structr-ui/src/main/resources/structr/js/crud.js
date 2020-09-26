@@ -54,9 +54,10 @@ var _Crud = {
 	availableViews: {},
 	relInfo: {},
 	keys: {},
-	crudCache: new AsyncObjectCache(function (id) {
+	crudCache: new AsyncObjectCache(function(obj) {
+
 		$.ajax({
-			url: rootUrl + id + '/' + defaultView,
+			url: rootUrl + (obj.type ? obj.type + '/' : '') + obj.id + '/' + defaultView,
 			type: 'GET',
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8;',
@@ -72,7 +73,7 @@ var _Crud = {
 			}
 		});
 	}),
-	getTypeInfo: function (type, callback) {
+	getTypeInfo: function(type, callback) {
 
 		let url = rootUrl + '_schema/' + type;
 
@@ -1256,7 +1257,7 @@ var _Crud = {
 		var t = type || _Crud.type;
 
 		$.ajax({
-			url: rootUrl + id + '/public',
+			url: rootUrl + t + '/' + id + '/public',
 			type: 'GET',
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
@@ -1980,14 +1981,15 @@ var _Crud = {
 		if (!obj) {
 			return;
 		}
-		var id;
+		var id, type;
 		if ((typeof obj) === 'object') {
 			id = obj.id;
+			type = obj.type;
 		} else if (isUUID(obj)) {
 			id = obj;
 		} else {
 			// search object by name
-			var type = _Crud.keys[parentType][key].relatedType.split('.').pop();
+			type = _Crud.keys[parentType][key].relatedType.split('.').pop();
 
 			$.ajax({
 				url: rootUrl + type + '?name=' + obj,
@@ -2004,7 +2006,7 @@ var _Crud = {
 			return;
 		}
 
-		var nodeHandler = function (node) {
+		var nodeHandler = function(node) {
 
 			var displayName = _Crud.displayName(node);
 
@@ -2070,7 +2072,7 @@ var _Crud = {
 		if (preloadedNode) {
 			nodeHandler(preloadedNode);
 		} else {
-			_Crud.crudCache.registerCallback(id, id, nodeHandler);
+			_Crud.crudCache.registerCallback({id: id, type: type}, id, nodeHandler);
 		}
 
 	},
@@ -2362,7 +2364,7 @@ var _Crud = {
 		});
 	},
 	removeStringFromArray: function(type, id, key, obj, pos, callback) {
-		var url = rootUrl + '/' + id + '/public';
+		var url = rootUrl + type + '/' + id + '/public';
 		$.ajax({
 			url: url,
 			type: 'GET',
@@ -2401,7 +2403,7 @@ var _Crud = {
 		});
 	},
 	addStringToArray: function(type, id, key, obj, callback) {
-		var url = rootUrl + '/' + id + '/all';
+		var url = rootUrl + type + '/' + id + '/all';
 		$.ajax({
 			url: url,
 			type: 'GET',
@@ -2513,7 +2515,7 @@ var _Crud = {
 		var view = _Crud.view[type] || 'ui';
 
 		$.ajax({
-			url: rootUrl + n.id + '/' + view,
+			url: rootUrl + type + '/' + n.id + '/' + view,
 			type: 'GET',
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8;',

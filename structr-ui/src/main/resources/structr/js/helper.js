@@ -979,7 +979,7 @@ var AsyncObjectCache = function(fetchFunction) {
 	 * If the resource has been requested before, the callback is added to the callbacks list.<br>
 	 * If the result for the cacheId is present in the cache, the callback is executed directly.
 	 *
-	 * @param {string} resource The parameter to pass in the fetchFunction
+	 * @param {object} resource The parameter to pass in the fetchFunction, typically { id: ..., type: ... }
 	 * @param {string} cacheId The ID under which to cache the result
 	 * @param {function} callback The callback to execute with the fetched object. Needs to take the object as single paramter.
 	 */
