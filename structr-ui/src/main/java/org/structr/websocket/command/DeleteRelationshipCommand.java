@@ -41,7 +41,8 @@ public class DeleteRelationshipCommand extends AbstractCommand {
 		setDoTransactionNotifications(true);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final AbstractRelationship obj        = getRelationship(webSocketData.getId());
+		final String nodeId                   = webSocketData.getNodeDataStringValueTrimmed("nodeId");
+		final AbstractRelationship obj        = getRelationship(webSocketData.getId(), nodeId);
 
 		if (obj != null) {
 
