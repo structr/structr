@@ -54,7 +54,12 @@ public class GetSchemaInfoCommand extends AbstractCommand {
 
 			if (type != null) {
 
-				final Class typeClass = StructrApp.getConfiguration().getNodeEntityClass(type);
+				Class typeClass = StructrApp.getConfiguration().getNodeEntityClass(type);
+
+				if (typeClass == null) {
+					typeClass = StructrApp.getConfiguration().getRelationshipEntityClass(type);
+				}
+
 				final List results    = Iterables.toList(SchemaTypeResource.getSchemaTypeResult(getWebSocket().getSecurityContext(), typeClass, PropertyView.All));
 
 				webSocketData.setResult(results);
