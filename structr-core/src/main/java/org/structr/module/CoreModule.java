@@ -144,6 +144,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new SleepFunction());
 		Functions.put(licenseManager, new RandomUUIDFunction());
 		Functions.put(licenseManager, new HMACFunction());
+		Functions.put(licenseManager, new OneFunction());
 
 		Functions.put(licenseManager, new HasCacheValueFunction());
 		Functions.put(licenseManager, new GetCacheValueFunction());

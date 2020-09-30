@@ -16,22 +16,25 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.messaging.implementation.mqtt;
+package org.structr.web.entity.css;
 
-import org.structr.common.error.FrameworkException;
+import java.net.URI;
+import org.structr.schema.SchemaService;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.common.PropertyView;
+import org.structr.core.graph.NodeInterface;
 
-public interface MQTTInfo {
+public interface CssDeclaration extends NodeInterface {
 
-	public String getMainBrokerURL();
-	public String[] getFallbackBrokerURLs();
-	public int getQos();
-	public String getUuid();
-	public String getUsername();
-	public String getPassword();
-	boolean getIsEnabled();
+	static class Impl { static {
 
-	public String[] getTopics();
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType decl = schema.addType("CssDeclaration");
 
-	public void messageCallback(String topic, String message) throws FrameworkException;
-	public void connectionStatusCallback(boolean connected);
+		decl.setImplements(URI.create("https://structr.org/v1.1/definitions/CssDeclaration"));
+		decl.setCategory("html");
+
+		decl.addViewProperty(PropertyView.Ui, "rule");
+	}}
 }

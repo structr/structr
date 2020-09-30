@@ -4163,7 +4163,7 @@ var _Schema = {
 	},
 	getTypeInfo: function (type, callback) {
 
-		if (_Schema.typeInfoCache[type] !== undefined) {
+		if (_Schema.typeInfoCache[type] && typeof _Schema.typeInfoCache[type] === Object) {
 
 			callback(_Schema.typeInfoCache[type]);
 

@@ -140,8 +140,14 @@ public abstract class MQTTContext {
 					// enable clients on startup
 					if (client.getProperty(StructrApp.key(MQTTClient.class,"isEnabled"))) {
 
-						MQTTContext.connect(client);
-						MQTTContext.subscribeAllTopics(client);
+						try {
+
+							MQTTContext.connect(client);
+							MQTTContext.subscribeAllTopics(client);
+						} catch (FrameworkException ex) {
+
+							client.setProperty(StructrApp.key(MQTTClient.class, "isEnabled"), false);
+						}
 					}
 				}
 

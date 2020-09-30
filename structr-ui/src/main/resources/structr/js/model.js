@@ -198,14 +198,14 @@ var StructrModel = {
 		}
 
 		var node = Structr.node(id);
-		if (node && !node.hasClass("schema")) {
+		if (node && node.remove && !node.hasClass("schema")) {
 			node.remove();
 		}
 
 		// Since users/groups are not displayed as '#id_'-elements anymore, Structr.node() does not find (all of) them.
 		// therefor we let the object itself handle its removal in this case.
 		var obj = StructrModel.obj(id);
-		if (obj) {
+		if (obj && obj.remove) {
 			obj.remove();
 		}
 

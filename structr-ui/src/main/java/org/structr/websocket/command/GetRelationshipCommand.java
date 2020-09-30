@@ -30,8 +30,8 @@ import org.structr.websocket.message.WebSocketMessage;
 /**
  * Websocket command to retrieve a single relationship by id.
  *
- *
- *
+ * An optional node ID should be used to improve performance in large databases,
+ * depending on the driver implementation and underlying database.
  */
 public class GetRelationshipCommand extends AbstractCommand {
 
