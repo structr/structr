@@ -101,8 +101,15 @@ var Command = {
 	 *
 	 * The server will return a single relationship with all properties
 	 * with the given id to the sending client (no broadcast).
+	 *
+	 * Providing a nodeId is strongly recommended.
 	 */
 	getRelationship: function(id, nodeId, properties, callback) {
+
+		if (!nodeId) {
+			console.warn('getRelationship called without nodeId');
+		}
+
 		var obj = {
 			command: 'GET_RELATIONSHIP',
 			id: id,

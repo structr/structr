@@ -134,18 +134,29 @@ public class TypedIdResource extends FilterableResource {
 	// ----- public methods -----
 	public GraphObject getEntity() throws FrameworkException {
 
-		final GraphObject entity = idResource.getEntity();
-		if (entity != null) {
+		final App app    = StructrApp.getInstance(securityContext);
 
-			final String type       = SchemaHelper.normalizeEntityName(typeResource.getRawType());
-			final String entityType = entity.getClass().getSimpleName();
+		final Class type  = typeResource.entityClass;
+		final String uuid = idResource.getUuid();
 
-			if (GenericNode.class.equals(entity.getClass()) || SearchCommand.getAllSubtypesAsStringSet(type).contains(entityType)) {
-				return entity;
-			}
+		GraphObject entity = app.nodeQuery(type).uuid(uuid).getFirst();
+		if (entity == null) {
+
+			entity = app.relationshipQuery(type).uuid(uuid).getFirst();
 		}
 
-		throw new NotFoundException("Entity with ID " + idResource.getUuid() + " not found");
+		if (entity == null) {
+			throw new NotFoundException("Entity with ID " + uuid + " not found");
+		}
+
+		final String rawType    = SchemaHelper.normalizeEntityName(typeResource.getRawType());
+		final String entityType = entity.getClass().getSimpleName();
+
+		if (GenericNode.class.equals(entity.getClass()) || SearchCommand.getAllSubtypesAsStringSet(rawType).contains(entityType)) {
+			return entity;
+		}
+
+		throw new NotFoundException("Entity with ID " + idResource.getUuid() + " of type " +  typeResource.getRawType() +  " not found");
 	}
 
 	@Override

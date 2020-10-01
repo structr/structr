@@ -1238,7 +1238,16 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			nodeProperties.put(SchemaNode.implementsInterfaces, StringUtils.join(interfaces, ", "));
 		}
 
-		nodeProperties.put(SchemaNode.tags, tags.toArray(new String[0]));
+		final Set<String> mergedTags     = new LinkedHashSet<>(this.tags);
+		final String[] existingTagsArray = schemaNode.getProperty(SchemaNode.tags);
+
+		if (existingTagsArray != null) {
+
+			mergedTags.addAll(Arrays.asList(existingTagsArray));
+		}
+
+		// merge tags, don't overwrite
+		nodeProperties.put(SchemaNode.tags, mergedTags.toArray(new String[0]));
 
 		schemaNode.setProperties(SecurityContext.getSuperUserInstance(), nodeProperties);
 

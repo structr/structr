@@ -24,6 +24,8 @@
 		<appender-ref ref="SERVERLOG" />
 	</root>
 
+	<include file="logback-include.xml" optional="true" />
+
 	<!-- Module specific logging configuration -->
 	<logger name="org.apache.kafka">
 		<level value="warn" />

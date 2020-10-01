@@ -316,7 +316,15 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		updateProperties.put(SchemaMethod.description,           getDescription());
 		updateProperties.put(SchemaMethod.source,                getSource());
 		updateProperties.put(SchemaMethod.isPartOfBuiltInSchema, true);
-		updateProperties.put(SchemaMethod.tags,                  tags.toArray(new String[0]));
+
+		final Set<String> mergedTags     = new LinkedHashSet<>(this.tags);
+		final String[] existingTagsArray = method.getProperty(SchemaMethod.tags);
+
+		if (existingTagsArray != null) {
+
+			mergedTags.addAll(Arrays.asList(existingTagsArray));
+		}
+		updateProperties.put(SchemaMethod.tags, mergedTags.toArray(new String[0]));
 
 		method.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
