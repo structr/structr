@@ -27,6 +27,7 @@ import org.structr.core.script.polyglot.wrappers.PolyglotProxyArray;
 import org.structr.core.script.polyglot.wrappers.PolyglotProxyMap;
 import org.structr.schema.action.ActionContext;
 
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.StreamSupport;
@@ -61,8 +62,10 @@ public abstract class PolyglotWrapper {
 			}
 
 			return new PolyglotProxyArray(actionContext, enumList.toArray());
+		} else if (obj instanceof Date) {
+			
+			return Date.from(((Date)obj).toInstant());
 		}
-
 		return obj;
 	}
 
