@@ -68,10 +68,15 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 			try (final FileReader reader = new FileReader(file.getFileOnDisk())) {
 
+				logger.info("Parsing CSS from {}..", file.getName());
+
 				final InputSource source       = new InputSource(reader);
 				final CSSOMParser parser       = new CSSOMParser(new SACParserCSS3());
 				final CSSStyleSheet styleSheet = parser.parseStyleSheet(source, null, null);
 				final CSSRuleList rules        = styleSheet.getCssRules();
+				int count                      = 0;
+
+				logger.info("{} rules", styleSheet.getCssRules().getLength());
 
 				for (int i=0; i<rules.getLength(); i++) {
 
@@ -79,7 +84,12 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 					importCSSRule(rule);
 
+					count++;
 				}
+
+				logger.info("{} rules imported", count);
+
+				return true;
 
 			} catch (final Exception e) {
 

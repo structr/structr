@@ -319,6 +319,9 @@ public class ActionContext {
 							case "host":
 								return request.getServerName();
 
+							case "ip":
+								return request.getLocalAddr();
+
 							case "port":
 								return request.getServerPort();
 
