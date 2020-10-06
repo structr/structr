@@ -840,7 +840,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			return false;
 		}
 
-		if (doLog) { logger.info("{} ({}): {} check on level {}", getUuid(), getType(), permission.name(), level); }
+		if (doLog) { logger.info("{}{} ({}): {} check on level {} for {}", StringUtils.repeat("    ", level), getUuid(), getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null); }
 
 		// use quick checks for maximum performance
 		if (isCreation && (accessingUser == null || accessingUser.equals(this) || accessingUser.equals(getOwnerNode()) ) ) {
@@ -858,7 +858,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			// schema- (type-) based permissions
 			if (allowedBySchema(accessingUser, permission)) {
 
-				if (doLog) { logger.info("{} ({}): {} allowed on level {} by schema configuration", getUuid(), getType(), permission.name(), level); }
+				if (doLog) { logger.info("{}{} ({}): {} allowed on level {} by schema configuration for {}", StringUtils.repeat("    ", level), getUuid(), getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null); }
 				return true;
 			}
 		}
@@ -901,7 +901,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			final Security security                                        = getSecurityRelationship(accessingUser, localIncomingSecurityRelationships);
 
 			if (security != null && security.isAllowed(permission)) {
-				if (doLog) { logger.info("{} ({}): {} allowed on level {} by security relationship", getUuid(), getType(), permission.name(), level); }
+				if (doLog) { logger.info("{}{} ({}): {} allowed on level {} by security relationship for {}", StringUtils.repeat("    ", level), getUuid(), getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null); }
 				return true;
 			}
 
@@ -1040,7 +1040,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			return false;
 		}
 
-		if (doLog) { logger.info("{} ({}): checking {} access on level {}", getUuid(), getType(), permission.name(), level); }
+		if (doLog) { logger.info("{}{} ({}): checking {} access on level {} for {}", StringUtils.repeat("    ", level), getUuid(), getType(), permission.name(), level, principal != null ? principal.getName() : null); }
 
 		for (final Class<Relation> propagatingType : SchemaRelationshipNode.getPropagatingRelationshipTypes()) {
 
@@ -1053,7 +1053,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 					final PermissionPropagation perm = (PermissionPropagation)source;
 					final RelationshipInterface rel  = (RelationshipInterface)source;
 
-					if (doLog) { logger.info("{}: checking {} access on level {} via {}", getUuid(), permission.name(), level, rel.getRelType().name()); }
+					if (doLog) { logger.info("{}{}: checking {} access on level {} via {} for {}", StringUtils.repeat("    ", level), getUuid(), permission.name(), level, rel.getRelType().name(), principal != null ? principal.getName() : null); }
 
 					// check propagation direction vs. evaluation direction
 					if (propagationAllowed(this, rel, perm.getPropagationDirection(), doLog)) {
