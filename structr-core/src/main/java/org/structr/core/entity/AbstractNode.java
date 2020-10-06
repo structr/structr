@@ -1045,40 +1045,49 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		for (final Class<Relation> propagatingType : SchemaRelationshipNode.getPropagatingRelationshipTypes()) {
 
 			// iterate over list of relationships
-			final Iterable<Relation> iterable = getRelationshipsAsSuperUser(propagatingType);
-			for (final Relation source : iterable) {
+			final List<Relation> list = Iterables.toList(getRelationshipsAsSuperUser(propagatingType));
+			final int count           = list.size();
 
-				if (source instanceof PermissionPropagation) {
+			if (count < 1000) {
 
-					final PermissionPropagation perm = (PermissionPropagation)source;
-					final RelationshipInterface rel  = (RelationshipInterface)source;
+				for (final Relation source : list) {
 
-					if (doLog) { logger.info("{}{}: checking {} access on level {} via {} for {}", StringUtils.repeat("    ", level), getUuid(), permission.name(), level, rel.getRelType().name(), principal != null ? principal.getName() : null); }
+					if (source instanceof PermissionPropagation) {
 
-					// check propagation direction vs. evaluation direction
-					if (propagationAllowed(this, rel, perm.getPropagationDirection(), doLog)) {
+						final PermissionPropagation perm = (PermissionPropagation)source;
+						final RelationshipInterface rel  = (RelationshipInterface)source;
 
-						applyCurrentStep(perm, mask);
+						if (doLog) { logger.info("{}{}: checking {} access on level {} via {} for {}", StringUtils.repeat("    ", level), getUuid(), permission.name(), level, rel.getRelType().name(), principal != null ? principal.getName() : null); }
 
-						if (mask.allowsPermission(permission)) {
+						// check propagation direction vs. evaluation direction
+						if (propagationAllowed(this, rel, perm.getPropagationDirection(), doLog)) {
 
-							final AbstractNode otherNode = (AbstractNode)rel.getOtherNode(this);
+							applyCurrentStep(perm, mask);
 
-							if (otherNode.isGranted(permission, principal, mask, level, alreadyTraversed, false, doLog, isCreation)) {
+							if (mask.allowsPermission(permission)) {
 
-								otherNode.storePermissionResolutionResult(principal.getUuid(), permission, true);
+								final AbstractNode otherNode = (AbstractNode)rel.getOtherNode(this);
 
-								// break early
-								return true;
+								if (otherNode.isGranted(permission, principal, mask, level + 1, alreadyTraversed, false, doLog, isCreation)) {
 
-							} else {
+									otherNode.storePermissionResolutionResult(principal.getUuid(), permission, true);
 
-								// add node to BFS queue
-								bfsNodes.add(new BFSInfo(parent, otherNode));
+									// break early
+									return true;
+
+								} else {
+
+									// add node to BFS queue
+									bfsNodes.add(new BFSInfo(parent, otherNode));
+								}
 							}
 						}
 					}
 				}
+
+			} else {
+
+				logger.warn("Refusing to resolve permissions with {} because there are more than 1000 nodes.", propagatingType.getSimpleName());
 			}
 		}
 
