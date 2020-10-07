@@ -20,7 +20,9 @@ package org.structr.common;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.mail.EmailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +49,8 @@ public class AdvancedMailContainer {
 	private final Map<String, String> replyTo = new LinkedHashMap<>(0);
 	private final Map<String, String> headers = new LinkedHashMap<>(0);
 
-	private final ArrayList<DynamicMailAttachment> attachments = new ArrayList();
+	private final List<DynamicMailAttachment> attachments = new ArrayList();
+	private final List<Pair<String, String>> mimeParts    = new ArrayList();
 
 	private boolean saveOutgoingMessage = false;
 	private Object lastOutgoingMessage = null;
@@ -161,19 +164,29 @@ public class AdvancedMailContainer {
 		getReplyTo().clear();
 	}
 
+	public List<Pair<String, String>> getMimeParts() {
+		return mimeParts;
+	}
 
-	public ArrayList<DynamicMailAttachment> getAttachments() {
+	public List<DynamicMailAttachment> getAttachments() {
 		return attachments;
+	}
+
+	public void addMimePart(final String content, String contentType) {
+		getMimeParts().add(Pair.of(content, contentType));
 	}
 
 	public void addAttachment(final DynamicMailAttachment att) {
 		getAttachments().add(att);
 	}
 
+	public void clearMimeParts() {
+		getMimeParts().clear();
+	}
+
 	public void clearAttachments() {
 		getAttachments().clear();
 	}
-
 
 	public Map<String, String> getCustomHeaders() {
 		return headers;
@@ -335,6 +348,7 @@ public class AdvancedMailContainer {
 		clearCc();
 		clearBcc();
 		clearReplyTo();
+		clearMimeParts();
 		clearAttachments();
 		clearCustomHeaders();
 
