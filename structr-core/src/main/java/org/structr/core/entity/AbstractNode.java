@@ -840,8 +840,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			return false;
 		}
 
+		if (doLog) { logger.info("{}{} ({}): {} check on level {} for {}", StringUtils.repeat("    ", level), getUuid(), getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null); }
+
 		// use quick checks for maximum performance
 		if (isCreation && (accessingUser == null || accessingUser.equals(this) || accessingUser.equals(getOwnerNode()) ) ) {
+
 			return true;
 		}
 
@@ -854,6 +857,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 			// schema- (type-) based permissions
 			if (allowedBySchema(accessingUser, permission)) {
+
+				if (doLog) { logger.info("{}{} ({}): {} allowed on level {} by schema configuration for {}", StringUtils.repeat("    ", level), getUuid(), getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null); }
 				return true;
 			}
 		}
@@ -896,6 +901,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			final Security security                                        = getSecurityRelationship(accessingUser, localIncomingSecurityRelationships);
 
 			if (security != null && security.isAllowed(permission)) {
+				if (doLog) { logger.info("{}{} ({}): {} allowed on level {} by security relationship for {}", StringUtils.repeat("    ", level), getUuid(), getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null); }
 				return true;
 			}
 
@@ -1034,41 +1040,54 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			return false;
 		}
 
+		if (doLog) { logger.info("{}{} ({}): checking {} access on level {} for {}", StringUtils.repeat("    ", level), getUuid(), getType(), permission.name(), level, principal != null ? principal.getName() : null); }
+
 		for (final Class<Relation> propagatingType : SchemaRelationshipNode.getPropagatingRelationshipTypes()) {
 
 			// iterate over list of relationships
-			final Iterable<Relation> iterable = getRelationshipsAsSuperUser(propagatingType);
-			for (final Relation source : iterable) {
+			final List<Relation> list = Iterables.toList(getRelationshipsAsSuperUser(propagatingType));
+			final int count           = list.size();
 
-				if (source instanceof PermissionPropagation) {
+			if (count < 1000) {
 
-					final PermissionPropagation perm = (PermissionPropagation)source;
-					final RelationshipInterface rel  = (RelationshipInterface)source;
+				for (final Relation source : list) {
 
-					// check propagation direction vs. evaluation direction
-					if (propagationAllowed(this, rel, perm.getPropagationDirection(), doLog)) {
+					if (source instanceof PermissionPropagation) {
 
-						applyCurrentStep(perm, mask);
+						final PermissionPropagation perm = (PermissionPropagation)source;
+						final RelationshipInterface rel  = (RelationshipInterface)source;
 
-						if (mask.allowsPermission(permission)) {
+						if (doLog) { logger.info("{}{}: checking {} access on level {} via {} for {}", StringUtils.repeat("    ", level), getUuid(), permission.name(), level, rel.getRelType().name(), principal != null ? principal.getName() : null); }
 
-							final AbstractNode otherNode = (AbstractNode)rel.getOtherNode(this);
+						// check propagation direction vs. evaluation direction
+						if (propagationAllowed(this, rel, perm.getPropagationDirection(), doLog)) {
 
-							if (otherNode.isGranted(permission, principal, mask, level, alreadyTraversed, false, doLog, isCreation)) {
+							applyCurrentStep(perm, mask);
 
-								otherNode.storePermissionResolutionResult(principal.getUuid(), permission, true);
+							if (mask.allowsPermission(permission)) {
 
-								// break early
-								return true;
+								final AbstractNode otherNode = (AbstractNode)rel.getOtherNode(this);
 
-							} else {
+								if (otherNode.isGranted(permission, principal, mask, level + 1, alreadyTraversed, false, doLog, isCreation)) {
 
-								// add node to BFS queue
-								bfsNodes.add(new BFSInfo(parent, otherNode));
+									otherNode.storePermissionResolutionResult(principal.getUuid(), permission, true);
+
+									// break early
+									return true;
+
+								} else {
+
+									// add node to BFS queue
+									bfsNodes.add(new BFSInfo(parent, otherNode));
+								}
 							}
 						}
 					}
 				}
+
+			} else {
+
+				logger.warn("Refusing to resolve permissions with {} because there are more than 1000 nodes.", propagatingType.getSimpleName());
 			}
 		}
 
