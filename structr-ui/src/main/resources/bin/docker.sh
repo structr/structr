@@ -1,5 +1,24 @@
 #!/bin/sh
 
+
+if [ "$AGREE_TO_STRUCTR_PRIVACY_POLICY" != "yes" ]; then
+
+	echo
+	echo
+	echo "In order to use Structr you must agree to the privacy policy"
+	echo "at https://structr.com/privacy. To do so set the environment"
+	echo "variable AGREE_TO_STRUCTR_PRIVACY_POLICY=yes"
+	echo
+	echo "Use the following docker command line argument to do so:"
+	echo
+	echo "    --env=AGREE_TO_STRUCTR_PRIVACY_POLICY=yes"
+	echo
+	echo
+
+	exit 1
+
+fi
+
 . bin/config
 
 LOGS_DIR="logs"
