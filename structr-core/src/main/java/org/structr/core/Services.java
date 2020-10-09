@@ -226,6 +226,7 @@ public class Services implements StructrServices {
 					connection.setUrl(Settings.ConnectionUrl.getValue());
 					connection.setUsername(Settings.ConnectionUser.getValue());
 					connection.setPassword(Settings.ConnectionPassword.getValue());
+					connection.setDriver(Settings.DEFAULT_REMOTE_DATABASE_DRIVER);
 
 					final ManageDatabasesCommand cmd = new ManageDatabasesCommand();
 
@@ -242,7 +243,7 @@ public class Services implements StructrServices {
 						Settings.DatabaseDriverMode.setValue(Settings.DatabaseDriverMode.getDefaultValue());
 
 					} catch (FrameworkException fex) {
-						logger.warn("Unable migrate configuration: {}", fex.getMessage());
+						logger.warn("Unable to migrate configuration: {}", fex.getMessage());
 					}
 				}
 			}

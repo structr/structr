@@ -39,6 +39,8 @@ import org.apache.commons.lang3.StringUtils;
 public class Settings {
 
 	public static final String DEFAULT_DATABASE_DRIVER        = "org.structr.memory.MemoryDatabaseService";
+	public static final String DEFAULT_REMOTE_DATABASE_DRIVER = "org.structr.bolt.BoltDatabaseService";
+
 	public static final String MAINTENANCE_PREFIX             = "maintenance";
 
 	private static final Map<String, Setting> settings        = new LinkedHashMap<>();
