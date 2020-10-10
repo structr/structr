@@ -64,7 +64,7 @@ public class RuntimeEventLogResource extends Resource {
 		final Predicate<RuntimeEvent> predicate = getPredicate();
 		final List<GraphObject> resultList      = RuntimeEventLog.getEvents(predicate).stream().map(e -> e.toGraphObject()).collect(Collectors.toList());
 
-		return new PagingIterable(resultList, pageSize, page);
+		return new PagingIterable("/" + getUriPart(), resultList, pageSize, page);
 	}
 
 	@Override

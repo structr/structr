@@ -22,8 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.EntityAndPropertiesContainer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -45,8 +43,6 @@ import org.structr.core.property.RelationProperty;
  *
  */
 public class IdDeserializationStrategy<S, T extends NodeInterface> extends DeserializationStrategy<S, T> {
-
-	private static final Logger logger = LoggerFactory.getLogger(IdDeserializationStrategy.class.getName());
 
 	protected RelationProperty<S> relationProperty = null;
 

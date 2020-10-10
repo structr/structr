@@ -96,7 +96,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 		final Filter filter                       = new Filter(securityContext, thisType.getFilterExpression());
 		final Iterable<GraphObject> iterable      = Iterables.map(mapper, Iterables.filter(filter, result));
 
-		return new PagingIterable(iterable);
+		return new PagingIterable("VirtualType.transformOutput()", iterable);
 	}
 
 	public static void transformInput(final VirtualType thisType, final SecurityContext securityContext, final Class type, final Map<String, Object> propertySet) throws FrameworkException {

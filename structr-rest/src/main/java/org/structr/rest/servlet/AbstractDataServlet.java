@@ -122,7 +122,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 			final List<Object> content = result.getContent();
 			if (content != null) {
 
-				writeJson(securityContext, response, new PagingIterable(content), baseUrl, outputDepth, wrapSingleResultInArray);
+				writeJson(securityContext, response, new PagingIterable(request.toString(), content), baseUrl, outputDepth, wrapSingleResultInArray);
 
 			} else {
 
@@ -135,9 +135,9 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 					final Object nonGraphObjectResult = result.getNonGraphObjectResult();
 					if (nonGraphObjectResult != null && nonGraphObjectResult instanceof Iterable) {
-						writeJson(securityContext, response, new PagingIterable((Iterable) (nonGraphObjectResult)), baseUrl, outputDepth, wrapSingleResultInArray);
+						writeJson(securityContext, response, new PagingIterable(request.toString(), (Iterable) (nonGraphObjectResult)), baseUrl, outputDepth, wrapSingleResultInArray);
 					} else {
-						writeJson(securityContext, response, new PagingIterable(Arrays.asList(nonGraphObjectResult)), baseUrl, outputDepth, wrapSingleResultInArray);
+						writeJson(securityContext, response, new PagingIterable(request.toString(), Arrays.asList(nonGraphObjectResult)), baseUrl, outputDepth, wrapSingleResultInArray);
 					}
 				}
 

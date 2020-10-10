@@ -81,7 +81,7 @@ public class RelationshipNodeResource extends WrappingResource {
 					}
 				}
 
-				return new PagingIterable<>(resultList, pageSize, page);
+				return new PagingIterable<>("/" + getUriPart(), resultList, pageSize, page);
 
 			} catch(Throwable t) {
 

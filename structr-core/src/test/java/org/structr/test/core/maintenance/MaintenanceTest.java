@@ -308,7 +308,7 @@ public class MaintenanceTest extends StructrTest {
 				assertEquals(100, app.nodeQuery(Group.class).getAsList().size());
 
 				// check nodes
-				for (final Group group : app.nodeQuery(Group.class)) {
+				for (final Group group : app.nodeQuery(Group.class).getResultStream()) {
 
 					final Set<String> labels = Iterables.toSet(group.getNode().getLabels());
 
@@ -403,7 +403,7 @@ public class MaintenanceTest extends StructrTest {
 				assertEquals(100, app.nodeQuery(TestOne.class).getAsList().size());
 
 				// check nodes
-				for (final TestOne test : app.nodeQuery(TestOne.class)) {
+				for (final TestOne test : app.nodeQuery(TestOne.class).getResultStream()) {
 
 					assertEquals(one, test.getProperty(TestOne.anInt));
 					assertEquals("one", test.getProperty(TestOne.aString));

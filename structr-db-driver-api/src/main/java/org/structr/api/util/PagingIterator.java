@@ -18,26 +18,37 @@
  */
 package org.structr.api.util;
 
+import java.lang.StackWalker.Option;
+import java.lang.StackWalker.StackFrame;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 
 /**
  * Custom iterator to allow pagination of query results.
  */
 public class PagingIterator<T> implements Iterator<T>, AutoCloseable {
 
-	private final Iterator<T> iterator;
-	private final int page;
-	private final int pageSize;
-	private int currentIndex;
-	private boolean consumed = false;
+	private static final Logger logger = LoggerFactory.getLogger(PagingIterator.class);
+	private final long startTimestamp  = System.currentTimeMillis();
+	private Iterator<T> iterator       = null;
+	private String description         = null;
+	private boolean alreadyClosed      = false;
+	private boolean consumed           = false;
+	private int currentIndex           = 0;
+	private int page                   = 0;
+	private int pageSize               = 0;
 
-	public PagingIterator(final Iterator<T> iterator, final int page, final int pageSize) {
-		this(iterator, page, pageSize, 0);
+	public PagingIterator(final String description, final Iterator<T> iterator, final int page, final int pageSize) {
+		this(description, iterator, page, pageSize, 0);
 	}
 
-	public PagingIterator(final Iterator<T> iterator, final int page, final int pageSize, final int skipped) {
+	public PagingIterator(final String description, final Iterator<T> iterator, final int page, final int pageSize, final int skipped) {
 
+		this.description  = description;
 		this.currentIndex = skipped;
 		this.iterator     = iterator;
 		this.page         = page;
@@ -170,9 +181,42 @@ public class PagingIterator<T> implements Iterator<T>, AutoCloseable {
 	@Override
 	public void close() throws Exception {
 
+		final long queryRuntime = System.currentTimeMillis() - startTimestamp;
+		if (!alreadyClosed && queryRuntime > Settings.QueryTimeLoggingThreshold.getValue(3000)) {
+
+			logger.warn("{}: {} ms.", getDescription(description), queryRuntime);
+			alreadyClosed = true;
+		}
+
 		if (iterator instanceof AutoCloseable) {
 
 			((AutoCloseable)iterator).close();
 		}
+	}
+
+	// ----- private methods -----
+	private String getDescription(final String additional) {
+
+		final Optional<StackFrame> frames = StackWalker.getInstance(Option.RETAIN_CLASS_REFERENCE).walk(s -> s.dropWhile(f -> !f.getClassName().startsWith("org.structr.")).skip(5).findFirst());
+		if (frames.isPresent()) {
+
+			final StringBuilder buf = new StringBuilder();
+			final StackFrame frame  = frames.get();
+
+			buf.append(frame.getDeclaringClass().getSimpleName());
+			buf.append(".");
+			buf.append(frame.getMethodName());
+			buf.append("()");
+
+			if (additional != null) {
+
+				buf.append(": ");
+				buf.append(additional);
+			}
+
+			return buf.toString();
+		}
+
+		return null;
 	}
 }
