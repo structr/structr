@@ -22,18 +22,7 @@ import com.google.gson.GsonBuilder;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -5464,6 +5453,75 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 
+	}
+
+	@Test
+	public void testContextStorePollutionInSchemaMethodCall() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType project  = schema.addType("ContextTest");
+
+			project.addIntegerProperty("result");
+
+			final JsonFunctionProperty p1 = project.addFunctionProperty("input1");
+			final JsonFunctionProperty p2 = project.addFunctionProperty("input2");
+
+			p1.setTypeHint("int");
+			p2.setTypeHint("int");
+
+			p1.setWriteFunction("{$.this.doTest($.get('value'));}");
+			p2.setWriteFunction("{$.this.doTest($.get('value'));}");
+
+			project.addMethod("doTest", "{ $.this.result =  $.retrieve('key1') + $.retrieve('key2'); }", "");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class type       = StructrApp.getConfiguration().getNodeEntityClass("ContextTest");
+		final PropertyKey key1 = StructrApp.key(type, "input1");
+		final PropertyKey key2 = StructrApp.key(type, "input2");
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			Map<String, Object> p1 = Map.ofEntries(new AbstractMap.SimpleEntry<>("key1", 1));
+			Map<String, Object> p2 = Map.ofEntries(new AbstractMap.SimpleEntry<>("key2", 1));
+
+			app.create(type,
+					new NodeAttribute<>(key1, p1),
+					new NodeAttribute<>(key2, p2)
+			);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// check result
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject node = app.nodeQuery(type).getFirst();
+			assertEquals(1, (int)node.getProperty("result"));
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 	}
 
 
