@@ -113,6 +113,7 @@ public class Actions {
 
 		final ActionContext context = new ActionContext(securityContext, parameters);
 		final Object result         = Scripting.evaluate(context, entity, source, methodName);
+		context.getContextStore().clearTemporaryParameters();
 
 		// check for errors raised by scripting
 		if (context.hasError()) {

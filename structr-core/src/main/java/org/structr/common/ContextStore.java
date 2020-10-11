@@ -32,6 +32,7 @@ public class ContextStore {
 	protected Map<String, String> headers               = new HashMap<>();
 	protected Map<String, Object> constants             = new HashMap<>();
 	protected Map<String, Object> tmpStore              = new HashMap<>();
+	protected Map<String, Object> tmpParameters         = new HashMap<>();
 	protected Map<String, Date> timerStore              = new HashMap<>();
 	protected Map<Integer, Integer> counters            = new HashMap<>();
 	protected AdvancedMailContainer amc                 = new AdvancedMailContainer();
@@ -83,11 +84,15 @@ public class ContextStore {
 	}
 
 	// --- store() / retrieve() ---
-	public void setParameters(Map<String, Object> parameters) {
+	public void setTemporaryParameters(Map<String, Object> parameters) {
 
 		if (parameters != null) {
-			this.tmpStore.putAll(parameters);
+			this.tmpParameters.putAll(parameters);
 		}
+	}
+
+	public void clearTemporaryParameters() {
+		this.tmpParameters.clear();
 	}
 
 	public void store(final String key, final Object value) {
@@ -95,6 +100,10 @@ public class ContextStore {
 	}
 
 	public Object retrieve(final String key) {
+
+		if (tmpParameters.containsKey(key)) {
+			return tmpParameters.get(key);
+		}
 		return tmpStore.get(key);
 	}
 
