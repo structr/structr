@@ -32,16 +32,16 @@ public class PagingIterable<T> implements ResultStream<T> {
 	private PagingIterator<T> source   = null;
 	private String queryTimeFormatted  = null;
 
-	public PagingIterable(final Iterable<T> source) {
-		this(source, Integer.MAX_VALUE, 1);
+	public PagingIterable(final String description, final Iterable<T> source) {
+		this(description, source, Integer.MAX_VALUE, 1);
 	}
 
-	public PagingIterable(final Iterable<T> source, final int pageSize, final int page) {
-		this(source, pageSize, page, 0);
+	public PagingIterable(final String description, final Iterable<T> source, final int pageSize, final int page) {
+		this(description, source, pageSize, page, 0);
 	}
 
-	public PagingIterable(final Iterable<T> source, final int pageSize, final int page, final int skipped) {
-		this.source = new PagingIterator<>(source.iterator(), page, pageSize, skipped);
+	public PagingIterable(final String description, final Iterable<T> source, final int pageSize, final int page, final int skipped) {
+		this.source = new PagingIterator<>(description, source.iterator(), page, pageSize, skipped);
 	}
 
 	@Override
@@ -86,7 +86,7 @@ public class PagingIterable<T> implements ResultStream<T> {
 		return queryTimeFormatted;
 	}
 
-	public static final PagingIterable EMPTY_ITERABLE = new PagingIterable(() -> new Iterator() {
+	public static final PagingIterable EMPTY_ITERABLE = new PagingIterable("EMPTY_ITERABLE", () -> new Iterator() {
 
 		@Override
 		public boolean hasNext() {

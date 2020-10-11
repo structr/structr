@@ -226,7 +226,7 @@ public class SchemaResource extends Resource {
 
 		}
 
-		return new PagingIterable<>(resultList);
+		return new PagingIterable<>("/_schema", resultList);
 
 	}
 

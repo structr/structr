@@ -20,8 +20,6 @@ package org.structr.rest.resource;
 
 import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -38,8 +36,6 @@ import org.structr.rest.exception.NotFoundException;
  */
 public class UuidResource extends FilterableResource {
 
-	private static final Logger logger = LoggerFactory.getLogger(UuidResource.class.getName());
-
 	private String uuid = null;
 
 	@Override
@@ -48,7 +44,7 @@ public class UuidResource extends FilterableResource {
 		GraphObject obj = getEntity();
 		if (obj != null) {
 
-			return new PagingIterable<>(Arrays.asList(obj));
+			return new PagingIterable<>("/" + getUriPart(), Arrays.asList(obj));
 
 		}
 

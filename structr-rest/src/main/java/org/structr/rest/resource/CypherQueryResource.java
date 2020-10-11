@@ -68,7 +68,7 @@ public class CypherQueryResource extends Resource {
 				String query                     = queryObject.toString();
 				Iterable<GraphObject> resultList = StructrApp.getInstance(securityContext).command(NativeQueryCommand.class).execute(query, Collections.EMPTY_MAP);
 
-				return new PagingIterable<>(resultList);
+				return new PagingIterable<>("/" + getUriPart(), resultList);
 			}
 
 		} catch (org.structr.api.NotFoundException nfe) {

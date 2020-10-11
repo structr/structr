@@ -95,7 +95,7 @@ public class EnvResource extends Resource {
 
 		resultList.add(info);
 
-		return new PagingIterable(resultList);
+		return new PagingIterable("/" + getUriPart(), resultList);
 	}
 
 	@Override
