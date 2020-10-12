@@ -259,7 +259,7 @@ public class ModificationQueue {
 
 		if (Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue()) {
 
-			getState(node).updateChangeLog(user, GraphObjectModificationState.Verb.create, node.getUuid());
+			getState(node).updateChangeLog(user, GraphObjectModificationState.Verb.create, node);
 		}
 	}
 
@@ -336,7 +336,7 @@ public class ModificationQueue {
 
 		if (Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue()) {
 
-			getState(node).updateChangeLog(user, GraphObjectModificationState.Verb.delete, node.getUuid());
+			getState(node).updateChangeLog(user, GraphObjectModificationState.Verb.delete, node);
 		}
 	}
 
