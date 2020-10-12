@@ -3892,8 +3892,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', $.predicate.and($.predicate.contains(t1), $.predicate.contains(t5))); }}", "testFindNewSyntax")).size());
 
 			// ($.not and $.empty)
-			assertEquals("Advanced find() should understand $.not predicate for remote properties", 4, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.not($.empty('projects'))); }}", "testFindNewSyntax")).size());
-			assertEquals("Advanced find() should understand $.empty predicate for remote properties", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.empty('projects')); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should understand $.not predicate for remote properties", 4, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.predicate.not($.predicate.empty('projects'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should understand $.empty predicate for remote properties", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.predicate.empty('projects')); }}", "testFindNewSyntax")).size());
 
 		} catch (FrameworkException t) {
 
@@ -3979,9 +3979,9 @@ public class ScriptingTest extends StructrTest {
 
 			Settings.CypherDebugLogging.setValue(true);
 
-			assertEquals(errorMessage, 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.empty('parent')); }}", "testFindNewSyntax1")).size());
-			assertEquals(errorMessage, 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.empty('children')); }}", "testFindNewSyntax2")).size());
-			assertEquals(errorMessage, 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.empty('project')); }}", "testFindNewSyntax3")).size());
+			assertEquals(errorMessage, 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.empty('parent')); }}", "testFindNewSyntax1")).size());
+			assertEquals(errorMessage, 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.empty('children')); }}", "testFindNewSyntax2")).size());
+			assertEquals(errorMessage, 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.predicate.empty('project')); }}", "testFindNewSyntax3")).size());
 
 		} catch (FrameworkException t) {
 
