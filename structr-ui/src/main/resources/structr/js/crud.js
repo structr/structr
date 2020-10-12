@@ -1573,8 +1573,8 @@ var _Crud = {
 			}
 		});
 	},
-	crudDelete: function(id) {
-		var url = rootUrl + '/' + id;
+	crudDelete: function(type, id) {
+		var url = rootUrl + '/' + type + '/' + id;
 		$.ajax({
 			url: url,
 			type: 'DELETE',
@@ -1724,7 +1724,7 @@ var _Crud = {
 				event.preventDefault();
 				var c = confirm('Are you sure you want to delete ' + type + ' ' + id + ' ?');
 				if (c === true) {
-					_Crud.crudDelete(id);
+					_Crud.crudDelete(type, id);
 				}
 			});
 
