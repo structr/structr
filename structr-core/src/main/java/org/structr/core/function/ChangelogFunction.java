@@ -304,6 +304,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 		private final Property<String>  changelog_key                         = new StringProperty("key");
 		private final Property<String>  changelog_prev                        = new StringProperty("prev");
 		private final Property<String>  changelog_val                         = new StringProperty("val");
+		private final Property<String>  changelog_type                        = new StringProperty("type");
 
 		public void setIsUserCentricChangelog(final boolean userCentric) {
 			_isUserCentricChangelog = userCentric;
@@ -370,7 +371,6 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 			assignStringsIfPresent(javascriptConfigObject.get("target"), _filterTarget);
 			assignStringsIfPresent(javascriptConfigObject.get("key"), _filterKey);
-
 		}
 
 		private void assignLongIfPresent (final Object possibleLong, Long targetLongReference) {
@@ -400,8 +400,8 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 			final List list = new ArrayList();
 
 			_noFilterConfig = (
-					_filterVerbs.isEmpty() && _filterTimeFrom == null && _filterTimeTo == null && _filterUserId.isEmpty() &&
-					_filterUserName.isEmpty() && _filterRelType.isEmpty() && _filterRelDir == null && _filterTarget.isEmpty() && _filterKey.isEmpty()
+				_filterVerbs.isEmpty() && _filterTimeFrom == null && _filterTimeTo == null && _filterUserId.isEmpty() &&
+				_filterUserName.isEmpty() && _filterRelType.isEmpty() && _filterRelDir == null && _filterTarget.isEmpty() && _filterKey.isEmpty()
 			);
 
 			for (final String entry : changelog.split("\n")) {
@@ -416,6 +416,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 				final String relDir   = (jsonObj.has("relDir") ? jsonObj.get("relDir").getAsString() : null);
 				final String target   = (jsonObj.has("target") ? jsonObj.get("target").getAsString() : null);
 				final String key      = (jsonObj.has("key") ? jsonObj.get("key").getAsString() : null);
+				final String type     = (jsonObj.has("type") ? jsonObj.get("type").getAsString() : null);
 
 				if (doesFilterApply(verb, time, userId, userName, relType, relDir, target, key)) {
 
@@ -433,6 +434,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 						case "create":
 						case "delete":
 							obj.put(changelog_target, target);
+							obj.put(changelog_type, type);
 							if (_resolveTargets) {
 								obj.put(changelog_targetObj, _app.getNodeById(target));
 							}
@@ -456,9 +458,12 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 							obj.put(changelog_prev, _gson.toJson(jsonObj.get("prev")));
 							obj.put(changelog_val, _gson.toJson(jsonObj.get("val")));
 
-							obj.put(changelog_target, target);
-							if (_resolveTargets) {
-								obj.put(changelog_targetObj, _app.getNodeById(target));
+							if (_isUserCentricChangelog) {
+
+								obj.put(changelog_target, target);
+								if (_resolveTargets) {
+									obj.put(changelog_targetObj, _app.getNodeById(target));
+								}
 							}
 
 							list.add(obj);

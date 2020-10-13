@@ -42,6 +42,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.TypeProperty;
 
 /**
  *
@@ -49,7 +50,7 @@ import org.structr.core.property.PropertyMap;
  */
 public class GraphObjectModificationState implements ModificationEvent {
 
-	private static final Set<String> hiddenPropertiesInAuditLog = new HashSet<>(Arrays.asList(new String[] { "id", "type", "sessionIds", "localStorage", "salt", "password", "twoFactorSecret" } ));
+	private static final Set<String> hiddenPropertiesInAuditLog = new HashSet<>(Arrays.asList(new String[] { "id", "sessionIds", "localStorage", "salt", "password", "twoFactorSecret" } ));
 
 	public static final int STATE_DELETED =                    1;
 	public static final int STATE_MODIFIED =                   2;
@@ -487,7 +488,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 			final String name = key.jsonName();
 
-			if (!hiddenPropertiesInAuditLog.contains(name) && !(key.isUnvalidated() || key.isReadOnly())) {
+			if (!hiddenPropertiesInAuditLog.contains(name) && !(key.isUnvalidated() || key.isReadOnly()) || key instanceof TypeProperty) {
 
 				final JsonObject obj = new JsonObject();
 
@@ -573,7 +574,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	}
 
 	// Update changelog for Verb.create and Verb.delete
-	public void updateChangeLog(final Principal user, final Verb verb, final String object) {
+	public void updateChangeLog(final Principal user, final Verb verb, final NodeInterface node) {
 
 		if ((Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue())) {
 
@@ -590,7 +591,8 @@ public class GraphObjectModificationState implements ModificationEvent {
 			}
 
 			obj.add("verb",   toElement(verb));
-			obj.add("target", toElement(object));
+			obj.add("target", toElement(node.getUuid()));
+			obj.add("type", toElement(node.getType()));
 
 
 			if (Settings.ChangelogEnabled.getValue()) {
