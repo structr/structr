@@ -83,7 +83,7 @@ public abstract class ContextFactory {
 				.allowExperimentalOptions(true)
 				.option("js.experimental-foreign-object-prototype", "true")
 				.option("js.nashorn-compat", "true")
-				.option("js.ecmascript-version", "2020")
+				.option("js.ecmascript-version", "2021")
 				.build();
 
 		return updateBindings(context, "js", actionContext, entity);
