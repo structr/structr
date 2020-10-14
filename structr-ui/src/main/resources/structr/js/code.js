@@ -448,8 +448,13 @@ var _Code = {
 
 		var name      = _Code.getDisplayNameInRecentsForType(entity);
 		var iconClass = 'fa fa-' + _Code.getIconForNodeType(entity);
+		var localPath = path;
 
-		_Code.addRecentlyUsedElement(entity.id, name, iconClass, path, fromStorage);
+		if (localPath.indexOf('searchresults-') === 0) {
+			localPath = _Code.removeSearchResultsPartFromPath(localPath, entity);
+		}
+
+		_Code.addRecentlyUsedElement(entity.id, name, iconClass, localPath, fromStorage);
 	},
 	addRecentlyUsedElement: function(id, name, iconClass, path, fromStorage) {
 
@@ -504,6 +509,105 @@ var _Code = {
 
 		LSWrapper.setItem(_Code.codeRecentElementsKey, filteredRecentElements);
 
+	},
+	removeSearchResultsPartFromPath: function(path, entity) {
+
+		var parts = path.split('-');
+
+		// we need to change tree paths that start with searchresults-
+		switch (entity.type) {
+
+			case 'SchemaNode':
+				if (entity.isBuiltinType) {
+					parts[0] = 'builtin';
+				} else {
+					parts[0] = 'custom';
+				}
+				break;
+
+			case 'SchemaProperty':
+			case 'SchemaView':
+				if (entity.schemaNode) {
+					if (entity.schemaNode.isBuiltinType) {
+						parts[0] = 'builtin';
+					} else {
+						parts[0] = 'custom';
+					}
+				} else {
+					console.log('Missing schemaNode for ' + entity.id);
+				}
+				break;
+
+			case 'SchemaMethod':
+				if (entity.schemaNode) {
+					if (entity.schemaNode.isBuiltinType) {
+						parts[0] = 'builtin';
+					} else {
+						parts[0] = 'custom';
+					}
+				} else {
+					parts[0] = 'globals';
+				}
+				break;
+
+			default:
+				console.log('Unhandled entity type ' + entity.type);
+				break;
+		}
+
+		return parts.join('-');
+	},
+	createFullPath: function(entity) {
+
+		var parts = [];
+
+		// we need to change tree paths that start with searchresults-
+		switch (entity.type) {
+
+			case 'SchemaNode':
+				parts.push('');
+				parts.push(entity.id);
+				break;
+
+			case 'SchemaProperty':
+				if (entity.schemaNode) {
+					parts.push('');
+					parts.push(entity.schemaNode.id);
+					parts.push('properties');
+					parts.push(entity.id);
+				} else {
+					console.log('Missing schemaNode for ' + entity.id);
+				}
+				break;
+
+			case 'SchemaView':
+				if (entity.schemaNode) {
+					parts.push('');
+					parts.push(entity.schemaNode.id);
+					parts.push('views');
+					parts.push(entity.id);
+				} else {
+					console.log('Missing schemaNode for ' + entity.id);
+				}
+				break;
+
+			case 'SchemaMethod':
+				if (entity.schemaNode) {
+					parts.push('');
+					parts.push(entity.schemaNode.id);
+					parts.push('methods');
+					parts.push(entity.id);
+				} else {
+					parts.push('globals');
+				}
+				break;
+
+			default:
+				console.log('Unhandled entity type ' + entity.type);
+				break;
+		}
+
+		return parts.join('-');
 	},
 	refreshTree: function() {
 		_TreeHelper.refreshTree(codeTree);
@@ -574,7 +678,7 @@ var _Code = {
 
 		return allow;
 	},
-	displayFunction: function (result, identifier, dontSort) {
+	displayFunction: function (result, identifier, dontSort, isSearch) {
 
 		var list = [];
 
@@ -585,15 +689,15 @@ var _Code = {
 				return;
 			}
 
-			var icon = _Code.getIconForNodeType(entity);
-			var nestedId = identifier.source + '-' + entity.id;
+			var icon     = _Code.getIconForNodeType(entity);
+			var treeId = identifier.source + '-' + entity.id;
 
 			switch (entity.type) {
 
 				case 'SchemaGroup':
 
 					list.push({
-						id: nestedId,
+						id: treeId,
 						text:  entity.name,
 						children: entity.children.length > 0,
 						icon: entity.name === _WorkingSets.recentlyUsedName ? _Icons.clock_icon : _Icons.folder_icon,
@@ -616,7 +720,7 @@ var _Code = {
 					// build list of children for this type
 					{
 						children.push({
-							id: nestedId + '-properties',
+							id: treeId + '-properties',
 							text: 'Local Attributes',
 							children: entity.schemaProperties.length > 0,
 							icon: 'fa fa-sliders gray',
@@ -624,7 +728,7 @@ var _Code = {
 						});
 
 						children.push({
-							id: nestedId + '-remoteproperties',
+							id: treeId + '-remoteproperties',
 							text: 'Remote Attributes',
 							children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
 							icon: 'fa fa-sliders gray',
@@ -632,7 +736,7 @@ var _Code = {
 						});
 
 						children.push({
-							id: nestedId + '-views',
+							id: treeId + '-views',
 							text: 'Views',
 							children: entity.schemaViews.length > 0,
 							icon: 'fa fa-television gray',
@@ -640,7 +744,7 @@ var _Code = {
 						});
 
 						children.push({
-							id: nestedId + '-methods',
+							id: treeId + '-methods',
 							text: 'Methods',
 							children: entity.schemaMethods.length > 0,
 							icon: 'fa fa-code gray',
@@ -648,7 +752,7 @@ var _Code = {
 						});
 
 						children.push({
-							id: nestedId + '-inheritedproperties',
+							id: treeId + '-inheritedproperties',
 							text: 'Inherited Attributes',
 							children: true,
 							icon: 'fa fa-sliders gray',
@@ -657,7 +761,7 @@ var _Code = {
 					}
 
 					list.push({
-						id: nestedId,
+						id: treeId,
 						text:  entity.name,
 						children: children,
 						icon: 'fa fa-' + icon,
@@ -671,10 +775,16 @@ var _Code = {
 				default:
 
 					var name = entity.name || '[unnamed]';
+
+					if (isSearch && entity.schemaNode) {
+						name = entity.schemaNode.name + '.' + name;
+						treeId = 'searchresults-' + _Code.createFullPath(entity);
+					}
+
 					if (entity.inherited) {
 
 						list.push({
-							id: nestedId,
+							id: treeId,
 							text:  name + (' (' + (entity.propertyType || '') + ')'),
 							children: false,
 							icon: 'fa fa-' + icon,
@@ -701,7 +811,7 @@ var _Code = {
 						}
 
 						list.push({
-							id: nestedId,
+							id: treeId,
 							text:  name,
 							children: hasVisibleChildren,
 							icon: 'fa fa-' + icon,
@@ -736,7 +846,9 @@ var _Code = {
 		switch (identifier.root) {
 
 			case 'searchresults':
-				if (identifier.typeId) {
+				if (identifier.memberCollection) {
+				       _Code.loadTypeMembers(identifier);
+			       } else if (identifier.typeId) {
 					_Code.loadType(identifier);
 				} else {
 					_Code.loadSearchResults(identifier);
@@ -771,7 +883,7 @@ var _Code = {
 			});
 			// only show results after all 6 searches are finished (to prevent duplicates)
 			if (++count === 6) {
-				_Code.displayFunction(Object.values(searchResults), identifier);
+				_Code.displayFunction(Object.values(searchResults), identifier, false, true);
 			}
 		};
 
@@ -908,7 +1020,7 @@ var _Code = {
 	loadRemoteProperties: function(identifier) {
 
 		if (identifier.memberId) {
-
+			// hm?
 		} else {
 
 			Command.get(identifier.typeId, null, entity => {
@@ -933,18 +1045,17 @@ var _Code = {
 	},
 	loadViews: function(identifier) {
 
-			Command.query('SchemaView', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.typeId }, function(result) {
-				_Code.displayFunction(result, identifier);
-			}, true, 'ui');
+		Command.query('SchemaView', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.typeId }, function(result) {
+			_Code.displayFunction(result, identifier);
+		}, true, 'ui');
 	},
 	loadMethods: function(identifier) {
 
-				Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.typeId }, function(result) {
-					_Code.displayFunction(result, identifier);
-				}, true, 'ui');
+		Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.typeId }, function(result) {
+			_Code.displayFunction(result, identifier);
+		}, true, 'ui');
 	},
 	loadInheritedProperties: function(identifier) {
-
 		Command.listSchemaProperties(identifier.typeId, 'custom', function(result) {
 			var filtered = result.filter(function(p) {
 				return p.declaringClass !== identifier.obj.data.type;
@@ -952,7 +1063,7 @@ var _Code = {
 			_Code.displayFunction(filtered.map(function(s) {
 
 				return {
-					id: identifier.source + '-' + s.name,
+					id: s.declaringUuid + '-' + s.name,
 					type: 'SchemaProperty',
 					name: s.declaringClass + '.' + s.name,
 					propertyType: s.declaringPropertyType ? s.declaringPropertyType : s.propertyType,
@@ -1258,7 +1369,19 @@ var _Code = {
 			// the order of the checks is important: member id first, then member collection, then type, then root
 			if (identifier.memberId) {
 
-				_Code.handleNodeObjectClick(data);
+				switch (identifier.memberId) {
+
+					case 'custom':
+					case 'searchresults':
+					case 'undefined':
+					case 'null':
+						break;
+
+					default:
+						_Code.handleNodeObjectClick(data);
+						break;
+				}
+
 
 			} else if (identifier.memberCollection) {
 
@@ -1285,11 +1408,7 @@ var _Code = {
 						break;
 
 					case 'inherited':
-						if (identifier.isBuiltinType) {
-							_Code.findAndOpenNode('Types/Built-In/' + identifier.base + '/Local Attributes/' + identifier.property, true);
-						} else {
-							_Code.findAndOpenNode('Types/Custom/' + identifier.base + '/Local Attributes/' + identifier.property, true);
-						}
+						_Code.findAndOpenNode(identifier.source, true);
 						break;
 				}
 
@@ -1299,7 +1418,7 @@ var _Code = {
 
 			} else if (identifier.workingSetId) {
 
-				_Code.displaySchemaGroupContent(data);
+				_Code.displaySchemaGroupContent(data, identifier);
 
 			} else {
 
@@ -1330,16 +1449,18 @@ var _Code = {
 	},
 	handleNodeObjectClick: function(data) {
 
+		var identifier = _Code.splitIdentifier(data);
+
 		if (data.type) {
 
 			switch (data.type) {
 
 				case 'SchemaView':
-					_Code.displayViewDetails(data);
+					_Code.displayViewDetails(data, identifier);
 					break;
 
 				case 'SchemaProperty':
-					_Code.displayPropertyDetails(data);
+					_Code.displayPropertyDetails(data, identifier);
 					break;
 
 				case 'SchemaMethod':
@@ -1347,17 +1468,15 @@ var _Code = {
 					break;
 
 				case 'SchemaNode':
-					_Code.displaySchemaNodeContent(data);
+					_Code.displaySchemaNodeContent(data, identifier);
 					break;
 
 				case 'SchemaGroup':
-					_Code.displaySchemaGroupContent(data);
+					_Code.displaySchemaGroupContent(data, identifier);
 					break;
 			}
 
 		} else {
-
-			var identifier = _Code.splitIdentifier(data);
 
 			switch (identifier.root) {
 
@@ -1371,9 +1490,7 @@ var _Code = {
 			}
 		}
 	},
-	displaySchemaNodeContent: function(data) {
-
-		var identifier = _Code.splitIdentifier(data);
+	displaySchemaNodeContent: function(data, identifier) {
 
 		Command.get(identifier.typeId, null, function(result) {
 
@@ -1884,9 +2001,7 @@ var _Code = {
 
 		return false;
 	},
-	displaySchemaGroupContent: function(data) {
-
-		var identifier = _Code.splitIdentifier(data);
+	displaySchemaGroupContent: function(data, identifier) {
 
 		_WorkingSets.getWorkingSet(identifier.workingSetId, function(workingSet) {
 
@@ -2184,7 +2299,7 @@ var _Code = {
 	},
 	displayGlobalMethodsContent: function(selection) {
 
-		_Code.addRecentlyUsedElement(selection.source, "Global methods", _Icons.getFullSpriteClass(_Icons.world_icon), selection.id, false);
+		_Code.addRecentlyUsedElement(selection.source, "Global methods", _Icons.getFullSpriteClass(_Icons.world_icon), selection.source, false);
 
 		Structr.fetchHtmlTemplate('code/globals', { }, function(html) {
 			codeContents.append(html);
@@ -2212,7 +2327,7 @@ var _Code = {
 			_Code.lastClickedPath = selection.source;
 		}
 
-		_Code.addRecentlyUsedElement(selection.source, selection.obj.type + ' Methods' , 'fa fa-code gray', selection.id, false);
+		_Code.addRecentlyUsedElement(selection.source, selection.obj.type + ' Methods' , 'fa fa-code gray', selection.source, false);
 
 		Structr.fetchHtmlTemplate('code/methods', { identifier: selection }, function(html) {
 			codeContents.append(html);
@@ -2248,13 +2363,11 @@ var _Code = {
 			});
 		});
 	},
-	displayPropertyDetails: function(selection) {
+	displayPropertyDetails: function(selection, identifier) {
 
-		var id = _Code.splitIdentifier(selection);
+		Command.get(identifier.memberId, null, function(result) {
 
-		Command.get(id.memberId, null, function(result) {
-
-			_Code.updateRecentlyUsed(result, id.source, selection.updateLocationStack);
+			_Code.updateRecentlyUsed(result, identifier.source, selection.updateLocationStack);
 
 			if (result.propertyType) {
 
@@ -2264,19 +2377,19 @@ var _Code = {
 						break;
 
 					case 'Function':
-						_Code.displayFunctionPropertyDetails(result, id);
+						_Code.displayFunctionPropertyDetails(result, identifier);
 						break;
 
 					case 'String':
-						_Code.displayStringPropertyDetails(result, id);
+						_Code.displayStringPropertyDetails(result, identifier);
 						break;
 
 					case 'Boolean':
-						_Code.displayBooleanPropertyDetails(result, id);
+						_Code.displayBooleanPropertyDetails(result, identifier);
 						break;
 
 					default:
-						_Code.displayDefaultPropertyDetails(result, id);
+						_Code.displayDefaultPropertyDetails(result, identifier);
 						break;
 				}
 
@@ -2291,15 +2404,15 @@ var _Code = {
 	},
 	displayViewDetails: function(selection) {
 
-		var id = _Code.splitIdentifier(selection);
+		var identifier = _Code.splitIdentifier(selection);
 
-		Command.get(id.memberId, null, function(result) {
+		Command.get(identifier.memberId, null, function(result) {
 
-			_Code.updateRecentlyUsed(result, id.source, selection.updateLocationStack);
+			_Code.updateRecentlyUsed(result, identifier.source, selection.updateLocationStack);
 
 			Structr.fetchHtmlTemplate('code/default-view', { view: result }, function(html) {
 				codeContents.append(html);
-				_Code.displayDefaultViewOptions(result);
+				_Code.displayDefaultViewOptions(result, undefined, identifier);
 			});
 		});
 	},
@@ -2319,7 +2432,7 @@ var _Code = {
 			_Code.setCodeMirorUpdateMode(property, writeFnEditor);
 			_Code.setupAutocompletion(writeFnEditor, property.id, true);
 
-			_Code.displayDefaultPropertyOptions(property, identifier);
+			_Code.displayDefaultPropertyOptions(property, undefined, identifier);
 		});
 	},
 	displayCypherPropertyDetails: function(property, identifier) {
@@ -2328,28 +2441,28 @@ var _Code = {
 			codeContents.append(html);
 
 			_Code.editPropertyContent(property, 'format', $('#cypher-code-container'), {mode: 'cypher'});
-			_Code.displayDefaultPropertyOptions(property, identifier);
+			_Code.displayDefaultPropertyOptions(property, undefined, identifier);
 		});
 	},
 	displayStringPropertyDetails: function(property, identifier) {
 
 		Structr.fetchHtmlTemplate('code/string-property', { property: property }, function(html) {
 			codeContents.append(html);
-			_Code.displayDefaultPropertyOptions(property, identifier);
+			_Code.displayDefaultPropertyOptions(property, undefined, identifier);
 		});
 	},
 	displayBooleanPropertyDetails: function(property, identifier) {
 
 		Structr.fetchHtmlTemplate('code/boolean-property', { property: property }, function(html) {
 			codeContents.append(html);
-			_Code.displayDefaultPropertyOptions(property, identifier);
+			_Code.displayDefaultPropertyOptions(property, undefined, identifier);
 		});
 	},
 	displayDefaultPropertyDetails: function(property, identifier) {
 
 		Structr.fetchHtmlTemplate('code/default-property', { property: property }, function(html) {
 			codeContents.append(html);
-			_Code.displayDefaultPropertyOptions(property, identifier);
+			_Code.displayDefaultPropertyOptions(property, undefined, identifier);
 		});
 	},
 	displayDefaultPropertyOptions: function(property, callback, identifier) {
@@ -2372,7 +2485,7 @@ var _Code = {
 			if (!property.schemaNode.isBuiltinType) {
 
 				_Code.displayActionButton('#property-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete property', function() {
-					_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'No data will be removed.', identifier)
+					_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'No data will be removed.', identifier);
 				});
 			}
 
@@ -2640,7 +2753,9 @@ var _Code = {
 	},
 	findAndOpenNode: function(path, updateLocationStack) {
 		var tree = $('#code-tree').jstree(true);
-		_Code.findAndOpenNodeRecursive(tree, path, 0, updateLocationStack);
+		tree.open_node('root', function() {
+			_Code.findAndOpenNodeRecursive(tree, path, 0, updateLocationStack);
+		});
 	},
 	findAndOpenNodeRecursive: function(tree, path, depth, updateLocationStack) {
 
@@ -2652,8 +2767,16 @@ var _Code = {
 		var id = parts.slice(0, depth + 1).join('-');
 
 		// special handling for globals, custom and builtin because these ids include an additional dash that skips the workingSetId
-		if (id === 'globals' || id === 'custom' || id === 'builtin') {
-			id = id + '-';
+		switch (id) {
+			case 'globals':
+			case 'custom':
+			case 'builtin':
+				id = id + '-';
+				break;
+			case 'searchresults':
+				// skip first part..
+				id = parts.slice(1, depth + 1).join('-');
+				break;
 		}
 
 		if (depth === parts.length) {
