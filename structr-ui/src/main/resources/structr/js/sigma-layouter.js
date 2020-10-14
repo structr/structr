@@ -79,7 +79,7 @@ class SigmaLayouter {
 		this.seed = 42;
 	}
 
-	addNode(node) {
+	addNode(node, path) {
 
 		let id    = node.id;
 		let name  = node.name;
@@ -94,7 +94,9 @@ class SigmaLayouter {
 			y: this.random() * 1000.0,
 			color: color,
 			label: name,
-			nodeType: type
+			nodeType: type,
+			path: path,
+			builtIn: node.isBuiltinType
 		});
 
 		return id;
@@ -141,7 +143,7 @@ class SigmaLayouter {
 	}
 
 	on(event, func) {
-		//this.network.off(event).on(event, func);
+		this.graphBrowser.bindEvent(event, func);
 	}
 
 	focus(id) {
