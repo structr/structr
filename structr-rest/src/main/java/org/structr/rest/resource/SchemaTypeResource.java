@@ -99,6 +99,6 @@ public class SchemaTypeResource extends Resource {
 
 	// ----- public static methods -----
 	public static ResultStream getSchemaTypeResult(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
-		return new PagingIterable<>(SchemaHelper.getSchemaTypeInfo(securityContext, rawType, type, propertyView));
+		return new PagingIterable<>("getSchemaTypeResult(" + type.getSimpleName() + ")", SchemaHelper.getSchemaTypeInfo(securityContext, rawType, type, propertyView));
 	}
 }

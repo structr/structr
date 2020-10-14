@@ -109,7 +109,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public abstract boolean isRelationshipSearch();
 	public abstract Index<S> getIndex();
 
-	private ResultStream<T> doSearch() throws FrameworkException {
+	private ResultStream<T> doSearch(final String description) throws FrameworkException {
 
 		if (page == 0 || pageSize <= 0) {
 
@@ -188,7 +188,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 					Collections.sort(rawResult, comparator);
 
 					// return paging iterable
-					return new PagingIterable(rawResult, pageSize, page, queryContext.getSkipped());
+					return new PagingIterable(description, rawResult, pageSize, page, queryContext.getSkipped());
 				}
 			}
 		}
@@ -244,12 +244,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				Collections.sort(finalResult, sortOrder);
 			}
 
-			return new PagingIterable(finalResult, pageSize, page, queryContext.getSkipped());
+			return new PagingIterable(description, finalResult, pageSize, page, queryContext.getSkipped());
 
 		} else {
 
 			// no filtering
-			return new PagingIterable(indexHits, pageSize, page, queryContext.getSkipped());
+			return new PagingIterable(description, indexHits, pageSize, page, queryContext.getSkipped());
 		}
 	}
 
@@ -345,25 +345,23 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	@Override
 	public ResultStream<T> getResultStream() throws FrameworkException {
-		return doSearch();
+		return doSearch("getResultStream" + getQueryDescription());
 	}
 
 	@Override
 	public List<T> getAsList() throws FrameworkException {
-		return Iterables.toList(doSearch());
+		return Iterables.toList(doSearch("getAsList" + getQueryDescription()));
 	}
 
 	@Override
 	public T getFirst() throws FrameworkException {
 
-		final List<T> result = getAsList();
+		for (final T result : doSearch("getFirst" + getQueryDescription())) {
 
-		if (result.isEmpty()) {
-
-			return null;
+			return result;
 		}
 
-		return result.get(0);
+		return null;
 	}
 
 	// ----- builder methods -----
@@ -738,23 +736,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
-	public Iterator<T> iterator() {
-
-		try {
-			return getAsList().iterator();
-
-		} catch (FrameworkException fex) {
-
-			// there is no way to handle this elegantly with the
-			// current Iterator<> interface, so we just have to
-			// drop the exception here, which is ugly ugly ugly. :(
-			logger.warn("", fex);
-		}
-
-		return null;
-	}
-
-	@Override
 	public SearchAttributeGroup getRootAttributeGroup() {
 		return rootGroup;
 	}
@@ -895,6 +876,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				logger.warn("Non-indexed property key {}{} is used in query. This can lead to performance problems in large databases.", className, key.jsonName());
 			}
 		}
+	}
+
+	private String getQueryDescription() {
+
+		if (type != null) {
+
+			return "(" + type.getSimpleName() + ")";
+		}
+
+		return null;
 	}
 
 	// ----- nested classes -----

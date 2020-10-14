@@ -46,8 +46,12 @@ public class HttpServletRequestWrapper implements ProxyObject {
 		if (request != null) {
 			Object value = request.getParameterValues(key);
 			if (value != null && ((String[]) value).length == 1) {
+
 				value = ((String[]) value)[0];
 				return value;
+			} else if (value != null && ((String[]) value).length > 1) {
+
+				return PolyglotWrapper.wrap(actionContext, value);
 			} else {
 
 				Method[] methods = request.getClass().getMethods();

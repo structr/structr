@@ -54,6 +54,11 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 		this.queryContext = queryContext;
 	}
 
+	@Override
+	public String toString() {
+		return "MemoryQuery(" + labels.toString() + ")";
+	}
+
 	public void addTypeLabel(final String typeLabel) {
 
 		labels.add(typeLabel);

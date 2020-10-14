@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.mail.Email;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
@@ -106,12 +107,14 @@ public abstract class MailHelper {
 		}
 
 		mail.setSubject(amc.getSubject());
-
-
 		mail.setHtmlMsg(amc.getHtmlContent());
 
 		if (StringUtils.isNotBlank(amc.getTextContent())) {
 			mail.setTextMsg(amc.getTextContent());
+		}
+
+		for (final Pair<String, String> part : amc.getMimeParts()) {
+			mail.addPart(part.getLeft(), part.getRight());
 		}
 
 		for (final DynamicMailAttachment attachment : amc.getAttachments()) {

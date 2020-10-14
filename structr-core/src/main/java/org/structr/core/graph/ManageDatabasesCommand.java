@@ -365,18 +365,30 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		data.put(KEY_NAME,        cleaned);
 
 		// connection cannot be named "default"
-		if ("default".equals((String)data.get(KEY_NAME))) {
+		if ("default".equals((String) data.get(KEY_NAME))) {
 			errorBuffer.add(new UniqueToken("Connection", new GenericProperty("name"), "default"));
 		}
 
 		if (!nameOnly) {
 
-			if (StringUtils.isEmpty((String)data.get(KEY_URL))) {
+			if (StringUtils.isEmpty((String) data.get(KEY_URL))) {
 				errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("url")));
 			}
 
 			try {
-				DatabaseService databaseService = (DatabaseService)Class.forName((String)data.get(KEY_DRIVER)).newInstance();
+
+				final Object driverClassString = data.get(KEY_DRIVER);
+				DatabaseService databaseService = null;
+
+				if (driverClassString != null) {
+
+					databaseService = (DatabaseService) Class.forName((String) driverClassString).newInstance();
+
+				} else {
+
+					databaseService = (DatabaseService) Class.forName("org.structr.bolt.BoltDatabaseService").newInstance();
+				}
+
 				if (databaseService == null) {
 
 					errorBuffer.add(new SemanticErrorToken("Driver", new GenericProperty("driver"), "driver_not_found"));
@@ -384,11 +396,12 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 				} else {
 
 					if (databaseService.supportsFeature(DatabaseFeature.AuthenticationRequired)) {
-						if (StringUtils.isEmpty((String)data.get(KEY_USERNAME))) {
+
+						if (StringUtils.isEmpty((String) data.get(KEY_USERNAME))) {
 							errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("username")));
 						}
 
-						if (StringUtils.isEmpty((String)data.get(KEY_PASSWORD))) {
+						if (StringUtils.isEmpty((String) data.get(KEY_PASSWORD))) {
 							errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("password")));
 						}
 					}

@@ -39,6 +39,8 @@ import org.apache.commons.lang3.StringUtils;
 public class Settings {
 
 	public static final String DEFAULT_DATABASE_DRIVER        = "org.structr.memory.MemoryDatabaseService";
+	public static final String DEFAULT_REMOTE_DATABASE_DRIVER = "org.structr.bolt.BoltDatabaseService";
+
 	public static final String MAINTENANCE_PREFIX             = "maintenance";
 
 	private static final Map<String, Setting> settings        = new LinkedHashMap<>();
@@ -77,6 +79,7 @@ public class Settings {
 	public static final Setting<String> WebDataPath              = new StringSetting(generalGroup,             "Paths",       "data.webapp.path",                      "webapp-data" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<Boolean> LogSchemaOutput         = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log",                      false, "Whether to write dynamically created Java code to the logfile, for debugging purposes.");
 	public static final Setting<Boolean> LogSchemaErrors         = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log.errors",               true);
+	public static final Setting<Integer> QueryTimeLoggingThreshold = new IntegerSetting(generalGroup,          "Logging",     "log.querytime.threshold",               3000, "Milliseconds after which a long-running query will be logged");
 	public static final Setting<Boolean> RequestLogging          = new BooleanSetting(generalGroup,            "Logging",     "log.requests",                          false);
 	public static final Setting<Boolean> DebugLogging            = new BooleanSetting(generalGroup,            "Logging",     "log.debug",                             false, "Controls the behaviour of the debug() function. If disabled, the debug() function behaves like a NOP. If enabled, it behaves exactly like the log() function.");
 	public static final Setting<Boolean> LogFunctionsStackTrace  = new BooleanSetting(generalGroup,            "Logging",     "log.functions.stacktrace",              false, "If true, the full stacktrace is logged for exceptions in built-in functions.");

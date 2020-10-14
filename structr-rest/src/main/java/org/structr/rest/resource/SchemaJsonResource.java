@@ -22,7 +22,6 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
-import org.slf4j.LoggerFactory;
 import org.structr.api.schema.InvalidSchemaException;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
@@ -40,7 +39,6 @@ import org.structr.api.schema.JsonSchema;
 public class SchemaJsonResource extends Resource {
 
 	private static final String resourceIdentifier = "_schemaJson";
-	private static final org.slf4j.Logger logger   = LoggerFactory.getLogger(SchemaResource.class.getName());
 	private String uriPart                         = null;
 
 	@Override
@@ -89,7 +87,7 @@ public class SchemaJsonResource extends Resource {
 		final JsonSchema jsonSchema = StructrSchema.createFromDatabase(StructrApp.getInstance());
 		schema                      = jsonSchema.toString();
 
-		return new PagingIterable<>(Arrays.asList(schema));
+		return new PagingIterable<>("/" + getUriPart(), Arrays.asList(schema));
 
 	}
 

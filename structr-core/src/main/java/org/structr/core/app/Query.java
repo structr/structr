@@ -37,7 +37,7 @@ import org.structr.core.property.PropertyMap;
  *
  * @param <T>
  */
-public interface Query<T extends GraphObject> extends Iterable<T> {
+public interface Query<T extends GraphObject> {
 
 	public void setQueryContext(final QueryContext queryContext);
 	public QueryContext getQueryContext();

@@ -19,6 +19,9 @@
 package org.structr.common;
 
 import java.util.*;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.Localization;
@@ -29,9 +32,12 @@ import org.structr.core.property.GenericProperty;
  */
 public class ContextStore {
 
+	private final static Logger logger = LoggerFactory.getLogger(ContextStore.class);
+
 	protected Map<String, String> headers               = new HashMap<>();
 	protected Map<String, Object> constants             = new HashMap<>();
 	protected Map<String, Object> tmpStore              = new HashMap<>();
+	protected Map<String, Object> tmpParameters         = new HashMap<>();
 	protected Map<String, Date> timerStore              = new HashMap<>();
 	protected Map<Integer, Integer> counters            = new HashMap<>();
 	protected AdvancedMailContainer amc                 = new AdvancedMailContainer();
@@ -83,18 +89,32 @@ public class ContextStore {
 	}
 
 	// --- store() / retrieve() ---
-	public void setParameters(Map<String, Object> parameters) {
+	public void setTemporaryParameters(Map<String, Object> parameters) {
 
 		if (parameters != null) {
-			this.tmpStore.putAll(parameters);
+			this.tmpParameters.putAll(parameters);
 		}
 	}
 
+	public void clearTemporaryParameters() {
+		this.tmpParameters.clear();
+	}
+
 	public void store(final String key, final Object value) {
+
+		if (tmpParameters.containsKey(key)) {
+			
+			logger.info("Function store() was called for key \"" + key + "\", which is already used in the current context by a method parameter and won't be accessible.");
+		}
+
 		tmpStore.put(key, value);
 	}
 
 	public Object retrieve(final String key) {
+
+		if (tmpParameters.containsKey(key)) {
+			return tmpParameters.get(key);
+		}
 		return tmpStore.get(key);
 	}
 

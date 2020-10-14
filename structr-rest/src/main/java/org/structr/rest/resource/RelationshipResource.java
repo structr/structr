@@ -118,7 +118,7 @@ public class RelationshipResource extends WrappingResource {
 				}
 
 				//return new ResultStream(PagingHelper.subList(resultList, pageSize, page), true, false);
-				return new PagingIterable<>(resultList, pageSize, page);
+				return new PagingIterable<>("/" + getUriPart(), resultList, pageSize, page);
 
 			} catch (Throwable t) {
 

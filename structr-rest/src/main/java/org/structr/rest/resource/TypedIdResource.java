@@ -70,7 +70,7 @@ public class TypedIdResource extends FilterableResource {
 
 	@Override
 	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-		return new PagingIterable<>(Arrays.asList(getEntity()));
+		return new PagingIterable<>("/" + getUriPart(), Arrays.asList(getEntity()));
 	}
 
 	@Override
@@ -164,7 +164,7 @@ public class TypedIdResource extends FilterableResource {
 
 		final App app = StructrApp.getInstance(securityContext);
 
-		try (final Tx tx = app.tx(false, false, false)) {
+		try (final Tx tx = app.tx(true, true, false)) {
 
 			final GraphObject obj = getEntity();
 

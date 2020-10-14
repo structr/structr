@@ -98,7 +98,7 @@ public class FlowServlet extends JsonRestServlet {
 
 					flowResult = flow.evaluate(securityContext, flowParameters);
 
-					result = new PagingIterable<>(flowResult);
+					result = new PagingIterable<>("FlowContainer " + flow.getUuid(), flowResult);
 
 					if (returnContent) {
 
@@ -231,7 +231,7 @@ public class FlowServlet extends JsonRestServlet {
 
 					flowResult = flow.evaluate(securityContext, flowParameters);
 
-					result = new PagingIterable<>(flowResult);
+					result = new PagingIterable<>("FlowContainer " + flow.getUuid(), flowResult);
 
 					// timing..
 					double queryTimeEnd = System.nanoTime();
