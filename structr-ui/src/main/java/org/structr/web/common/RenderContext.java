@@ -475,6 +475,10 @@ public class RenderContext extends ActionContext {
 		return value;
 	}
 
+	public boolean isRenderContext() {
+		return true;
+	}
+
 	// ----- private methods -----
 	private void readConfigParameters () {
 		indentHtml = Settings.HtmlIndentation.getValue();

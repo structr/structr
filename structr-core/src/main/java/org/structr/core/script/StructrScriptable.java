@@ -170,10 +170,18 @@ public class StructrScriptable extends ScriptableObject {
 
 							if (func != null) {
 
-								actionContext.print(func.apply(actionContext, entity, parameters ));
-							}
+								final Object str = func.apply(actionContext, entity, parameters);
 
-							return null;
+								if (actionContext.isRenderContext()) {
+
+									actionContext.print(str);
+									return null;
+
+								} else {
+
+									return str;
+								}
+							}
 
 						} catch (FrameworkException ex) {
 							exception = ex;

@@ -580,4 +580,8 @@ public class ActionContext {
 	public ContextStore getContextStore() {
 		return this.securityContext.getContextStore();
 	}
+
+	public boolean isRenderContext() {
+		return false;
+	}
 }
