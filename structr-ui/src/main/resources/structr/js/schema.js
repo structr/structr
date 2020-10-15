@@ -466,7 +466,9 @@ var _Schema = {
 
 		let handleSchemaNodeData = function(data) {
 
-			var hierarchy = {};
+			var entities         = {};
+			var inheritancePairs = {};
+			var hierarchy        = {};
 			var x=0, y=0;
 
 			if (savedHiddenSchemaNodesNull) {
@@ -541,6 +543,19 @@ var _Schema = {
 
 				if (!hierarchy[level]) { hierarchy[level] = []; }
 				hierarchy[level].push(entity);
+
+				entities['org.structr.dynamic.' + entity.name] = entity.id;
+			});
+
+			data.result.forEach(function(entity) {
+
+				if (entity.extendsClass && entity.extendsClass !== 'org.structr.core.entity.AbstractNode') {
+
+					if (entities[entity.extendsClass]) {
+						var target = entities[entity.extendsClass];
+						inheritancePairs['id_' + entity.id] = 'id_' + target;
+					}
+				}
 			});
 
 			Object.keys(hierarchy).forEach(function(key) {
@@ -698,6 +713,24 @@ var _Schema = {
 				y++;
 				x = 0;
 			});
+
+			for (var source of Object.keys(inheritancePairs)) {
+
+				let target = inheritancePairs[source];
+
+				instance.connect({
+					source: source,
+					target: target,
+					endpoint: 'Blank',
+					anchors: [
+						[ 'Perimeter', { shape: 'Rectangle' } ],
+						[ 'Perimeter', { shape: 'Rectangle' } ]
+					],
+					connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
+					paintStyle: { lineWidth: 5, strokeStyle: "#dddddd", dashstyle: '2 2' }
+				});
+			}
+
 		};
 
 	},
