@@ -592,4 +592,9 @@ public class ActionContext {
 
 		scriptingContexts.put(language, context);
 	}
+
+	public boolean isRenderContext() {
+		return false;
+
+	}
 }

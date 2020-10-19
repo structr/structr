@@ -53,7 +53,7 @@ public class RenderFunction extends UiCommunityFunction {
 			boolean useBuffer      = false;
 			RenderContext innerCtx = null;
 
-			if (ctx instanceof RenderContext) {
+			if (ctx.isRenderContext()) {
 
 				innerCtx  = new RenderContext((RenderContext)ctx);
 				useBuffer = true;
