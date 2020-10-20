@@ -493,8 +493,8 @@ public class GraphObjectModificationState implements ModificationEvent {
 				final JsonObject obj = new JsonObject();
 
 				obj.add("time",     toElement(System.currentTimeMillis()));
-				obj.add("userId",   toElement(user.getUuid()));
-				obj.add("userName", toElement(user.getName()));
+				obj.add("userId",   toElement((user == null) ? Principal.ANONYMOUS : user.getUuid()));
+				obj.add("userName", toElement((user == null) ? Principal.ANONYMOUS : user.getName()));
 				obj.add("verb",     toElement(verb));
 				obj.add("key",      toElement(key.jsonName()));
 				obj.add("prev",     toElement(previousValue));
@@ -505,7 +505,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 					changeLog.append("\n");
 				}
 
-				if (Settings.UserChangelogEnabled.getValue()) {
+				if (Settings.UserChangelogEnabled.getValue() && user != null) {
 
 					// remove user for user-centric logging to reduce redundancy
 					obj.remove("userId");
@@ -528,8 +528,8 @@ public class GraphObjectModificationState implements ModificationEvent {
 			final JsonObject obj = new JsonObject();
 
 			obj.add("time",     toElement(System.currentTimeMillis()));
-			obj.add("userId",   toElement(user.getUuid()));
-			obj.add("userName", toElement(user.getName()));
+			obj.add("userId",   toElement((user == null) ? Principal.ANONYMOUS : user.getUuid()));
+			obj.add("userName", toElement((user == null) ? Principal.ANONYMOUS : user.getName()));
 			obj.add("verb",     toElement(verb));
 			obj.add("rel",      toElement(linkType));
 			obj.add("relId",    toElement(linkId));
@@ -549,8 +549,8 @@ public class GraphObjectModificationState implements ModificationEvent {
 			final JsonObject obj = new JsonObject();
 
 			obj.add("time",     toElement(System.currentTimeMillis()));
-			obj.add("userId",   toElement(user.getUuid()));
-			obj.add("userName", toElement(user.getName()));
+			obj.add("userId",   toElement((user == null) ? Principal.ANONYMOUS : user.getUuid()));
+			obj.add("userName", toElement((user == null) ? Principal.ANONYMOUS : user.getName()));
 			obj.add("verb",     toElement(verb));
 			obj.add("rel",      toElement(linkType));
 			obj.add("relId",    toElement(linkId));
@@ -562,7 +562,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 				changeLog.append("\n");
 			}
 
-			if (Settings.UserChangelogEnabled.getValue()) {
+			if (Settings.UserChangelogEnabled.getValue() && user != null) {
 
 				// remove user for user-centric logging to reduce redundancy
 				obj.remove("userId");
@@ -580,20 +580,12 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 			final JsonObject obj = new JsonObject();
 
-			obj.add("time", toElement(System.currentTimeMillis()));
-
-			if (user != null) {
-				obj.add("userId",   toElement(user.getUuid()));
-				obj.add("userName", toElement(user.getName()));
-			} else {
-				obj.add("userId",   JsonNull.INSTANCE);
-				obj.add("userName", JsonNull.INSTANCE);
-			}
-
-			obj.add("verb",   toElement(verb));
-			obj.add("target", toElement(node.getUuid()));
-			obj.add("type", toElement(node.getType()));
-
+			obj.add("time",     toElement(System.currentTimeMillis()));
+			obj.add("userId",   toElement((user == null) ? Principal.ANONYMOUS : user.getUuid()));
+			obj.add("userName", toElement((user == null) ? Principal.ANONYMOUS : user.getName()));
+			obj.add("verb",     toElement(verb));
+			obj.add("target",   toElement(object));
+			obj.add("type",     toElement(node.getType()));
 
 			if (Settings.ChangelogEnabled.getValue()) {
 
