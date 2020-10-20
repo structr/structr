@@ -753,7 +753,8 @@ var _Schema = {
 							[ 'Perimeter', { shape: 'Rectangle' } ]
 						],
 						connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
-						paintStyle: { lineWidth: 5, strokeStyle: "#dddddd", dashstyle: '2 2' }
+						paintStyle: { lineWidth: 5, strokeStyle: "#dddddd", dashstyle: '2 2' },
+						cssClass: "dashed-inheritance-relationship"
 					});
 				}
 			}
@@ -4307,7 +4308,11 @@ var _Schema = {
 
 			_Schema.ui.selectedRel = rel;
 			_Schema.ui.selectedRel.css({zIndex: ++_Schema.ui.maxZ});
-			_Schema.ui.selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++_Schema.ui.maxZ, border: '1px solid ' + _Schema.ui.relHighlightColor, borderRadius:'2px', background: 'rgba(255, 255, 255, 1)'});
+
+			if (!rel.hasClass('dashed-inheritance-relationship')) {
+				_Schema.ui.selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++_Schema.ui.maxZ, border: '1px solid ' + _Schema.ui.relHighlightColor, borderRadius:'2px', background: 'rgba(255, 255, 255, 1)'});
+			}
+
 			var pathElements = _Schema.ui.selectedRel.find('path');
 			pathElements.css({stroke: _Schema.ui.relHighlightColor});
 			$(pathElements[1]).css({fill: _Schema.ui.relHighlightColor});
