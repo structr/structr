@@ -47,6 +47,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.property.EndNodeProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -435,10 +436,13 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 						case "delete":
 							obj.put(changelog_target, target);
 							obj.put(changelog_type, type);
+
 							if (_resolveTargets) {
-								obj.put(changelog_targetObj, _app.getNodeById(target));
+								obj.put(changelog_targetObj, resolveTarget(target));
 							}
+
 							list.add(obj);
+
 							break;
 
 						case "link":
@@ -447,10 +451,13 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 							obj.put(changelog_relId, relId);
 							obj.put(changelog_relDir, relDir);
 							obj.put(changelog_target, target);
+
 							if (_resolveTargets) {
-								obj.put(changelog_targetObj, _app.getNodeById(target));
+								obj.put(changelog_targetObj, resolveTarget(target));
 							}
+
 							list.add(obj);
+
 							break;
 
 						case "change":
@@ -462,11 +469,12 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 								obj.put(changelog_target, target);
 								if (_resolveTargets) {
-									obj.put(changelog_targetObj, _app.getNodeById(target));
+									obj.put(changelog_targetObj, resolveTarget(target));
 								}
 							}
 
 							list.add(obj);
+
 							break;
 
 						default:
@@ -477,6 +485,17 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 			}
 
 			return list;
+		}
+
+		private Object resolveTarget(final String targetId) throws FrameworkException {
+
+			if (Principal.SUPERUSER_ID.equals(targetId)) {
+				return null;
+			} else if (Principal.ANONYMOUS.equals(targetId)) {
+				return null;
+			}
+
+			return _app.getNodeById(targetId);
 		}
 
 		public boolean doesFilterApply (final String verb, final long time, final String userId, final String userName, final String relType, final String relDir, final String target, final String key) {

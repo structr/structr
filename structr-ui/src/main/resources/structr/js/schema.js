@@ -56,6 +56,7 @@ var _Schema = {
 	hiddenSchemaNodesKey: 'structrHiddenSchemaNodes_' + port,
 	schemaPositionsKey: 'structrSchemaPositions_' + port,
 	showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + port,
+	showSchemaInheritanceKey: 'structrShowSchemaInheritance_' + port,
 	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + port,
 	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + port,
 	activeSchemaToolsSelectedTabLevel1Key: 'structrSchemaToolsSelectedTabLevel1_' + port,
@@ -143,8 +144,9 @@ var _Schema = {
 
 		var schemaInputContainer = $('.schema-input-container');
 
-		_Schema.ui.connectorStyle = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
-		_Schema.ui.zoomLevel = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
+		_Schema.ui.connectorStyle  = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
+		_Schema.ui.zoomLevel       = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
+		_Schema.ui.showInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceKey, true) || true;
 
 		schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="action btn"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add</button></div>');
 
@@ -177,12 +179,17 @@ var _Schema = {
 		});
 
 		schemaInputContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays"><label for="schema-show-overlays"> Show relationship labels</label>');
+		schemaInputContainer.append('<input type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"><label for="schema-show-inheritance"> Show inheritance</label>');
 		schemaInputContainer.append('<button class="btn" id="schema-tools"><i class="' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" /> Tools</button>');
 		schemaInputContainer.append('<button class="btn" id="global-schema-methods"><i class="' + _Icons.getFullSpriteClass(_Icons.book_icon) + '" /> Global schema methods</button>');
 		schemaInputContainer.append(' <select id="saved-layout-selector-main"></select> <button class="btn schema-tool-button action" id="restore-schema-layout"><i class="' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" /> Apply Layout</button>');
 
 		$('#schema-show-overlays').off('change').on('change', function() {
 			_Schema.ui.updateOverlayVisibility($(this).prop('checked'));
+		});
+		$('#schema-show-inheritance').off('change').on('change', function() {
+			_Schema.ui.updateInheritanceVisibility($(this).prop('checked'));
+			_Schema.reload();
 		});
 		$('#schema-tools').off('click').on('click', _Schema.openSchemaToolsDialog);
 		$('#global-schema-methods').off('click').on('click', _Schema.methods.showGlobalSchemaMethods);
@@ -301,6 +308,10 @@ var _Schema = {
 				var overlaysVisible = LSWrapper.getItem(_Schema.showSchemaOverlaysKey);
 				var showSchemaOverlays = (overlaysVisible === null) ? true : overlaysVisible;
 				_Schema.ui.updateOverlayVisibility(showSchemaOverlays);
+
+				var inheritanceVisible = LSWrapper.getItem(_Schema.showSchemaInheritanceKey);
+				var showSchemaInheritance = (inheritanceVisible === null) ? true : inheritanceVisible;
+				_Schema.ui.updateInheritanceVisibility(showSchemaInheritance);
 
 				if (scrollPosition) {
 					window.scrollTo(scrollPosition.x, scrollPosition.y);
@@ -553,7 +564,7 @@ var _Schema = {
 
 					if (entities[entity.extendsClass]) {
 						var target = entities[entity.extendsClass];
-						inheritancePairs['id_' + entity.id] = 'id_' + target;
+						inheritancePairs[entity.id] = target;
 					}
 				}
 			});
@@ -571,7 +582,8 @@ var _Schema = {
 					var id = 'id_' + entity.id;
 					canvas.append('<div class="schema node compact'
 							+ (entity.isBuiltinType ? ' light' : '')
-							+ '" id="' + id + '"><b>' + entity.name + '</b>'
+							+ '" id="' + id + '">'
+							+ '<b>' + entity.name + '</b>'
 							+ '<i class="icon delete ' + _Icons.getFullSpriteClass((entity.isBuiltinType ? _Icons.delete_disabled_icon : _Icons.delete_icon)) + '" />'
 							+ '<i class="icon edit ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />'
 							+ '</div>');
@@ -714,23 +726,38 @@ var _Schema = {
 				x = 0;
 			});
 
-			for (var source of Object.keys(inheritancePairs)) {
+			var inheritanceVisible = LSWrapper.getItem(_Schema.showSchemaInheritanceKey);
+			var showSchemaInheritance = (inheritanceVisible === null) ? true : inheritanceVisible;
 
-				let target = inheritancePairs[source];
+			if (showSchemaInheritance) {
 
-				instance.connect({
-					source: source,
-					target: target,
-					endpoint: 'Blank',
-					anchors: [
-						[ 'Perimeter', { shape: 'Rectangle' } ],
-						[ 'Perimeter', { shape: 'Rectangle' } ]
-					],
-					connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
-					paintStyle: { lineWidth: 5, strokeStyle: "#dddddd", dashstyle: '2 2' }
-				});
+				for (var source of Object.keys(inheritancePairs)) {
+
+					let target = inheritancePairs[source];
+					let sourceEntity = nodes[source];
+					let targetEntity = nodes[target];
+
+					let i1 = _Schema.hiddenSchemaNodes.indexOf(sourceEntity.name);
+					let i2 = _Schema.hiddenSchemaNodes.indexOf(targetEntity.name);
+
+					if (_Schema.hiddenSchemaNodes.length > 0 && (i1 > -1 || i2 > -1)) {
+						continue;
+					}
+
+					instance.connect({
+						source: 'id_' + source,
+						target: 'id_' + target,
+						endpoint: 'Blank',
+						anchors: [
+							[ 'Perimeter', { shape: 'Rectangle' } ],
+							[ 'Perimeter', { shape: 'Rectangle' } ]
+						],
+						connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
+						paintStyle: { lineWidth: 5, strokeStyle: "#dddddd", dashstyle: '2 2' },
+						cssClass: "dashed-inheritance-relationship"
+					});
+				}
 			}
-
 		};
 
 	},
@@ -4038,6 +4065,16 @@ var _Schema = {
 			_Schema.reload();
 		}
 	},
+	hideSingleSchemaType: function (name) {
+
+		if (name) {
+
+			_Schema.hiddenSchemaNodes.push(name);
+
+			LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
+			_Schema.reload();
+		}
+	},
 	sort: function(collection, sortKey, secondarySortKey) {
 		if (!sortKey) {
 			sortKey = "name";
@@ -4254,6 +4291,7 @@ var _Schema = {
 		});
 	},
 	ui: {
+		showInheritance: true,
 		connectorStyle: undefined,
 		zoomLevel: undefined,
 		selectedRel: undefined,
@@ -4270,7 +4308,11 @@ var _Schema = {
 
 			_Schema.ui.selectedRel = rel;
 			_Schema.ui.selectedRel.css({zIndex: ++_Schema.ui.maxZ});
-			_Schema.ui.selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++_Schema.ui.maxZ, border: '1px solid ' + _Schema.ui.relHighlightColor, borderRadius:'2px', background: 'rgba(255, 255, 255, 1)'});
+
+			if (!rel.hasClass('dashed-inheritance-relationship')) {
+				_Schema.ui.selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++_Schema.ui.maxZ, border: '1px solid ' + _Schema.ui.relHighlightColor, borderRadius:'2px', background: 'rgba(255, 255, 255, 1)'});
+			}
+
 			var pathElements = _Schema.ui.selectedRel.find('path');
 			pathElements.css({stroke: _Schema.ui.relHighlightColor});
 			$(pathElements[1]).css({fill: _Schema.ui.relHighlightColor});
@@ -4399,6 +4441,13 @@ var _Schema = {
 				$('.rel-type, .multiplicity').show();
 			} else {
 				$('.rel-type, .multiplicity').hide();
+			}
+		},
+		updateInheritanceVisibility: function(show) {
+			LSWrapper.setItem(_Schema.showSchemaInheritanceKey, show);
+			$('#schema-show-inheritance').prop('checked', show);
+			if (show) {
+			} else {
 			}
 		},
 	},
