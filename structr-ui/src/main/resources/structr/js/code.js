@@ -1699,7 +1699,7 @@ var _Code = {
 							if (response.ok) {
 
 								_Code.hideSchemaRecompileMessage();
-								_Code.displaySchemaNodeContent(data);
+								_Code.displaySchemaNodeContent(data, identifier);
 							}
 						});
 					});
