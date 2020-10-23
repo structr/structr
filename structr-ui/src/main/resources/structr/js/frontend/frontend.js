@@ -160,7 +160,7 @@ export class Frontend {
 						container.replaceWith(content.children[0]);
 						this.bindEvents();
 						// TODO: make this optional, might be not desired?
-						window.history.pushState(null, null, params);
+						//window.history.pushState(null, null, params);
 					}).catch(e => {
 						console.log(e);
 					});
