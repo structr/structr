@@ -1406,6 +1406,10 @@ var _Elements = {
 			_Entities.appendExpandIcon(div, entity, hasChildren);
 		}
 
+		if (entity.hidden === true) {
+			div.addClass('is-hidden');
+		}
+
 		_Entities.appendAccessControlIcon(div, entity);
 
 		div.append('<i title="Clone content node ' + entity.id + '" class="clone_icon button ' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" />');
