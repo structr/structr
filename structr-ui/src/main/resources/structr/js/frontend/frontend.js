@@ -160,7 +160,7 @@ export class Frontend {
 						container.replaceWith(content.children[0]);
 						this.bindEvents();
 						// TODO: make this optional, might be not desired?
-						window.history.pushState(null, null, params);
+						//window.history.pushState(null, null, params);
 					}).catch(e => {
 						console.log(e);
 					});
@@ -189,7 +189,14 @@ export class Frontend {
 	 */
 	encodeRequestParameters(fromDataset, override) {
 
-		let params = {};
+		let params  = {};
+		let current = '';
+
+		// current object set?
+		if (fromDataset.currentObjectId) {
+			current = '/' + fromDataset.currentObjectId;
+		}
+
 
 		// copy all values prefixed with request (data-request-*)
 		for (let key of Object.keys(fromDataset)) {
@@ -233,11 +240,11 @@ export class Frontend {
 
 			if (result.length) {
 
-				return '?' + result.join('&');
+				return current + '?' + result.join('&');
 			}
 		}
 
-		return '';
+		return current;
 	}
 
 	handleGenericEvent(event) {

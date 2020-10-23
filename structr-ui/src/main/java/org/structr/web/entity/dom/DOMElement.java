@@ -943,6 +943,13 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
 
+						// make current object ID available in reload targets
+						final GraphObject current = renderContext.getDetailsDataObject();
+						if (current != null) {
+
+							out.append(" data-current-object-id=\"").append(current.getUuid()).append("\"");
+						}
+
 						// realization: all dynamic parameters must be stored on the reload target!
 						final HttpServletRequest request = renderContext.getRequest();
 						if (request != null) {
