@@ -44,11 +44,11 @@ var _Files = {
 	getViewMode: function () {
 		return _Files._viewMode || 'list';
 	},
-	setViewMode: function (viewMode) {
+	setViewMode: function(viewMode) {
 		_Files._viewMode = viewMode;
 		LSWrapper.setItem(filesViewModeKey, viewMode);
 	},
-	isViewModeActive: function (viewMode) {
+	isViewModeActive: function(viewMode) {
 		return (viewMode === _Files.getViewMode());
 	},
 	init: function() {
@@ -535,10 +535,6 @@ var _Files = {
 				parentId: (parentIsRoot ? '' : id),
 				hasParent: (!parentIsRoot)
 			};
-
-			if (_Files.isViewModeActive('img')) {
-				filterOptions.isThumbnail = false;
-			}
 
 			let pagerId = 'filesystem-files';
 			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
