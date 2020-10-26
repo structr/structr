@@ -32,6 +32,7 @@ export class Frontend {
 		this.boundHandleDragStart    = this.handleDragStart.bind(this);
 		this.boundHandleDragOver     = this.handleDragOver.bind(this);
 		this.boundHandleDrag         = this.handleDrag.bind(this);
+		this.timeout                 = -1;
 
 		this.bindEvents();
 	}
@@ -280,7 +281,27 @@ export class Frontend {
 			// data-structr-target="page" and data-page="1" (which comes from the backend), or
 			// data-structr-target="sort" and data-sort="sortKeyName".
 
-			this.handlePagination(event);
+			let delay = 0;
+
+			if (data && data.structrOptions) {
+				try {
+					let options = JSON.parse(data.structrOptions);
+					if (options && options.delay) {
+						delay = options.delay;
+					}
+				} catch (e) {}
+			}
+
+			if (this.timeout) {
+				window.clearTimeout(this.timeout);
+			}
+
+			this.timeout = window.setTimeout(() => {
+				// handlePagination uses the event.target property because
+				// the event handling is delayed and currentTarget is not
+				// available in delayed event handlers.
+				this.handlePagination(event);
+			}, delay);
 
 		} else {
 
@@ -315,7 +336,7 @@ export class Frontend {
 
 	handlePagination(event) {
 
-		let target       = event.currentTarget;
+		let target       = event.target;
 		let data         = target.dataset;
 		let selector     = data.structrTarget;
 		let reloadTarget = data.structrReloadTarget;
@@ -334,7 +355,8 @@ export class Frontend {
 				orderKey = parts[1].trim();
 			}
 
-			parameters[sortKey] = data[sortKey];
+			let resolved        = this.resolveData(event, target);
+			parameters[sortKey] = resolved[sortKey];
 
 			let reloadTargets = document.querySelectorAll(reloadTarget);
 			if (reloadTargets.length) {
@@ -343,7 +365,7 @@ export class Frontend {
 				let sortValue     = sortContainer.getAttribute('data-request-' + sortKey);
 				let orderValue    = sortContainer.getAttribute('data-request-' + orderKey);
 
-				if (sortValue === data[sortKey]) {
+				if (sortValue === resolved[sortKey]) {
 
 					// The values need to be strings because we're
 					// parsing them from the request query string.
