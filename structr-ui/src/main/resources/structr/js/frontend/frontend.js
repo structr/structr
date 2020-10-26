@@ -118,7 +118,16 @@ export class Frontend {
 
 		if (element.dataset.structrReloadTarget) {
 
-			this.reloadPartial(element.dataset.structrReloadTarget, parameters);
+			let reloadTarget = element.dataset.structrReloadTarget;
+
+			if (reloadTarget.indexOf('url:') === 0) {
+
+				window.location.href = reloadTarget.substring(4);
+
+			} else {
+
+				this.reloadPartial(reloadTarget, parameters);
+			}
 
 		} else {
 
@@ -156,11 +165,15 @@ export class Frontend {
 						return response.text();
 					}).then(html => {
 						var content = document.createElement(container.nodeName);
-						content.innerHTML = html;
-						container.replaceWith(content.children[0]);
+						if (content) {
+							content.innerHTML = html;
+							if (content && content.children && content.children.length) {
+								container.replaceWith(content.children[0]);
+							} else {
+								container.replaceWith('');
+							}
+						}
 						this.bindEvents();
-						// TODO: make this optional, might be not desired?
-						//window.history.pushState(null, null, params);
 					}).catch(e => {
 						console.log(e);
 					});
@@ -302,9 +315,10 @@ export class Frontend {
 
 	handlePagination(event) {
 
-		let target   = event.currentTarget;
-		let data     = target.dataset;
-		let selector = data.structrTarget;
+		let target       = event.currentTarget;
+		let data         = target.dataset;
+		let selector     = data.structrTarget;
+		let reloadTarget = data.structrReloadTarget;
 
 		if (selector) {
 
@@ -322,17 +336,18 @@ export class Frontend {
 
 			parameters[sortKey] = data[sortKey];
 
-			// set order depending on query string in URL (toggle boolean flag if sort key stays the same)
-			if (window.location && window.location.search) {
+			let reloadTargets = document.querySelectorAll(reloadTarget);
+			if (reloadTargets.length) {
 
-				let decoded = decodeURI(window.location.search);
-				let parsed  = this.parseQueryString(decoded);
+				let sortContainer = reloadTargets[0];
+				let sortValue     = sortContainer.getAttribute('data-request-' + sortKey);
+				let orderValue    = sortContainer.getAttribute('data-request-' + orderKey);
 
-				if (parsed[sortKey] === data[sortKey]) {
+				if (sortValue === data[sortKey]) {
 
 					// The values need to be strings because we're
 					// parsing them from the request query string.
-					if (!parsed[orderKey] || parsed[orderKey] === 'false') {
+					if (!orderValue || orderValue === 'false') {
 
 						parameters[orderKey] = 'true';
 
