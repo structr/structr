@@ -21,6 +21,16 @@ package org.structr.rest.auth;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.WeakKeyException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.*;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.util.*;
+import javax.crypto.SecretKey;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,18 +49,6 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.Actions;
-
-import javax.crypto.SecretKey;
-import javax.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.*;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.util.*;
-
 
 /**
  * Utility class for authentication.
@@ -140,9 +138,11 @@ public class AuthHelper {
 
 			if (principal == null) {
 
-				logger.info("No principal found for {} {}", key.dbName(), value);
+				final String keyMessage = ("name".equals(key.dbName())) ? "name" : "name OR " + key.dbName();
 
-				RuntimeEventLog.failedLogin("No principal found", key.dbName(), value);
+				logger.info("No principal found for {} {}", keyMessage, value);
+
+				RuntimeEventLog.failedLogin("No principal found", keyMessage, value);
 
 				throw new AuthenticationException(STANDARD_ERROR_MSG);
 
