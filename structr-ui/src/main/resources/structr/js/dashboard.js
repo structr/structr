@@ -690,7 +690,7 @@ var _Dashboard = {
 
 					if (event.type === 'Authentication') {
 						if (event.data[1]) {
-							event.data[1] = '<code style="white-space: pre; text-decoration: underline; text-underline-position: under;">' + event.data[1] + '  </code>';
+							event.data[1] = '<code style="white-space: pre; text-decoration: underline; text-underline-position: under;">' + event.data[1] + '</code>';
 						}
 					}
 
