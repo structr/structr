@@ -680,16 +680,6 @@ var _Dashboard = {
 		fetch(url)
 			.then(response => response.json())
 			.then(result => {
-				/*
-				<th>Timestamp</th>
-				<th>Type</th>
-				<th>Message</th>
-				<th></th>
-				<th></th>
-				<th></th>
-				<th></th>
-				<th></th>
-				 */
 
 				for (let event of result.result) {
 
@@ -697,6 +687,12 @@ var _Dashboard = {
 					let tr        = document.createElement('tr');
 
 					let firstDataCol = ("object" === typeof event.data[0]) ? JSON.stringify(event.data) : event.data[0];
+
+					if (event.type === 'Authentication') {
+						if (event.data[1]) {
+							event.data[1] = '<code style="white-space: pre; text-decoration: underline; text-underline-position: under;">' + event.data[1] + '  </code>';
+						}
+					}
 
 					_Dashboard.elementWithContent(tr, 'td', timestamp);
 					_Dashboard.elementWithContent(tr, 'td', event.type);
