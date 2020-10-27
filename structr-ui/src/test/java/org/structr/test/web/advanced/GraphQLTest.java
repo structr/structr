@@ -22,6 +22,8 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.InputStream;
 import static org.hamcrest.Matchers.equalTo;
+
+import org.structr.common.error.FrameworkException;
 import org.testng.annotations.Test;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
@@ -30,6 +32,8 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.User;
+
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -40,13 +44,14 @@ public class GraphQLTest extends StructrUiTest {
 	@Test
 	public void testDataPropertyOnThumbnail() {
 
+		Image image = null;
 		// setup
 		try (final Tx tx = app.tx()) {
 
 			try (final InputStream is = GraphQLTest.class.getResourceAsStream("/test/test.png")) {
 
-				ImageHelper.createImage(securityContext, is, "image/png", Image.class, "test.png", false);
-
+				image = ImageHelper.createImage(securityContext, is, "image/png", Image.class, "test.png", false);
+				image.getProperty(StructrApp.key(Image.class, "tnSmall"));
 				is.close();
 			}
 
@@ -60,6 +65,20 @@ public class GraphQLTest extends StructrUiTest {
 
 		} catch (Throwable fex) {
 			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			Thread.sleep(2500);
+			Image tnSmall = image.getProperty(StructrApp.key(Image.class, "tnSmall"));
+
+			assertNotNull(tnSmall);
+
+			tx.success();
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
 

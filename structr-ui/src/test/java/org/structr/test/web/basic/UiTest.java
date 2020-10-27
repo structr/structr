@@ -70,16 +70,27 @@ public class UiTest extends StructrUiTest {
 	public void test01CreateThumbnail() {
 
 		final Class imageType = createTestImageType();
+		Image img = null;
 
 		try (final Tx tx = app.tx()) {
 
-			Image img = (Image) ImageHelper.createFileBase64(securityContext, base64Image, imageType);
-
+			img = (Image) ImageHelper.createFileBase64(securityContext, base64Image, imageType);
 			img.setProperties(img.getSecurityContext(), new PropertyMap(AbstractNode.name, "test-image.png"));
 
 			assertNotNull(img);
 			assertTrue(img instanceof Image);
 
+			Image tn = img.getProperty(StructrApp.key(imageType, "thumbnail"));
+
+			tx.success();
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+			Thread.sleep(2500);
 			Image tn = img.getProperty(StructrApp.key(imageType, "thumbnail"));
 
 			assertNotNull(tn);
@@ -111,8 +122,21 @@ public class UiTest extends StructrUiTest {
 			assertNotNull(testImage);
 			assertTrue(testImage instanceof Image);
 
+			// Retrieve tn properties to force their generation
 			final Image tnSmall = testImage.getProperty(StructrApp.key(Image.class, "tnSmall"));
-			final Image tnMid   = testImage.getProperty(StructrApp.key(Image.class, "tnMid"));
+			final Image tnMid = testImage.getProperty(StructrApp.key(Image.class, "tnMid"));
+
+			tx.success();
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+			Thread.sleep(2500);
+			final Image tnSmall = testImage.getProperty(StructrApp.key(Image.class, "tnSmall"));
+			final Image tnMid = testImage.getProperty(StructrApp.key(Image.class, "tnMid"));
 
 			assertEquals("Initial small thumbnail name not as expected", ImageHelper.getThumbnailName(initialImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(StructrApp.key(Image.class, "name")));
 			assertEquals("Initial mid thumbnail name not as expected", ImageHelper.getThumbnailName(initialImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(StructrApp.key(Image.class, "name")));
@@ -121,7 +145,7 @@ public class UiTest extends StructrUiTest {
 
 		} catch (Exception ex) {
 
-			logger.error(ex.toString());
+			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -172,6 +196,21 @@ public class UiTest extends StructrUiTest {
 			assertNotNull(subclassTestImage);
 			assertTrue(subclassTestImage instanceof Image);
 
+			final Image tnSmall  = subclassTestImage.getProperty(StructrApp.key(testImageType, "tnSmall"));
+			final Image tnMid    = subclassTestImage.getProperty(StructrApp.key(testImageType, "tnMid"));
+			final Image tnCustom = subclassTestImage.getProperty(StructrApp.key(testImageType, "thumbnail"));
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+		}
+
+
+		try (final Tx tx = app.tx()) {
+			Thread.sleep(2500);
 			final Image tnSmall  = subclassTestImage.getProperty(StructrApp.key(testImageType, "tnSmall"));
 			final Image tnMid    = subclassTestImage.getProperty(StructrApp.key(testImageType, "tnMid"));
 			final Image tnCustom = subclassTestImage.getProperty(StructrApp.key(testImageType, "thumbnail"));
@@ -767,28 +806,38 @@ public class UiTest extends StructrUiTest {
 
 		User tester = null;
 		String uuid = null;
+		Image image = null;
 
 		try (final Tx tx = app.tx()) {
 
-			final Image image = ImageHelper.createFileBase64(securityContext, base64Image, Image.class);
-			tester            = app.create(User.class, "tester");
+			image = ImageHelper.createFileBase64(securityContext, base64Image, Image.class);
+			tester = app.create(User.class, "tester");
 
 			image.setProperty(Image.name, "test.png");
 
 			// allow non-admin user to delete the image
 			image.grant(Permission.delete, tester);
-			image.grant(Permission.read,   tester);
+			image.grant(Permission.read, tester);
 
 			image.getProperty(StructrApp.key(Image.class, "tnSmall"));
 			image.getProperty(StructrApp.key(Image.class, "tnMid"));
 
+			tx.success();
+		} catch (IOException | FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+			Thread.sleep(2500);
 			assertEquals("Image should have two thumbnails", 2, Iterables.count(image.getThumbnails()));
 
 			uuid = image.getUuid();
 
 			tx.success();
 
-		} catch (IOException | FrameworkException fex) {
+		} catch (Exception fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception");
@@ -820,9 +869,9 @@ public class UiTest extends StructrUiTest {
 
 				final SimpleDateFormat df = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.S");
 
-				for (final Image image : images) {
+				for (final Image im : images) {
 
-					System.out.println("Found Image " + image.getName() + " (" + image.getUuid() + "), created " + df.format(image.getCreatedDate()) + " which should have been deleted.");
+					System.out.println("Found Image " + im.getName() + " (" + im.getUuid() + "), created " + df.format(im.getCreatedDate()) + " which should have been deleted.");
 				}
 			}
 

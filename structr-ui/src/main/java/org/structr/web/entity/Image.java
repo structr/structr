@@ -48,6 +48,7 @@ import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonSchema.Cascade;
+import org.structr.web.agent.ThumbnailTask;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.common.ImageHelper.Thumbnail;
@@ -224,7 +225,7 @@ public interface Image extends File {
 
 			if (modificationQueue.isPropertyModified(thisImage, name)) {
 
-				final String newImageName = getName();
+				final String newImageName = thisImage.getName();
 
 				for (Image tn : thisImage.getThumbnails()) {
 
@@ -321,25 +322,16 @@ public interface Image extends File {
 		if (securityContext.isReadOnlyTransaction()) {
 
 			return null;
-		} else if (!thisImage.getIsCreatingThumb()) {
-			final Logger logger = LoggerFactory.getLogger(Image.class);
-
-			try {
-
-				// No thumbnail exists, or thumbnail was too old, so let's create a new one
-				logger.debug("Creating thumbnail for {} (w={} h={} crop={})", new Object[]{thisImage.getName(), maxWidth, maxHeight, cropToFit});
-
-				// Mark original image as creating thumbnails
-				thisImage.unlockSystemPropertiesOnce();
-				thisImage.setIsCreatingThumb(true);
-
-				TransactionCommand.queuePostProcessProcedure(() -> createThumbnail(securityContext, thisImage.getUuid(), maxWidth, maxHeight, cropToFit));
-				TransactionCommand.queuePostProcessProcedure(() -> deleteDeprecatedThumbnails(deprecatedThumbnails));
-			} catch (FrameworkException ex) {
-
-				logger.warn("Could not create thumbnail for image " + thisImage.getUuid());
-			}
 		}
+
+		// Queue deprecated thumbnails to be removed
+		if (deprecatedThumbnails.size() > 0) {
+
+			TransactionCommand.queuePostProcessProcedure(() -> deleteDeprecatedThumbnails(deprecatedThumbnails));
+		}
+
+		// Request creation of thumbnail
+		StructrApp.getInstance().processTasks(new ThumbnailTask(thisImage.getUuid(), maxWidth, maxHeight, cropToFit));
 
 		return null;
 	}
@@ -367,80 +359,7 @@ public interface Image extends File {
 		return StringUtils.stripEnd(thisImage.getName(),  "_thumb_" + tnWidth + "x" + tnHeight);
 	}
 
-	/** --- Private Methods --- **/
-
-	private static void createThumbnail(final SecurityContext securityContext, final String imageUuid, final int maxWidth, final int maxHeight, final boolean cropToFit) {
-		final Logger logger = LoggerFactory.getLogger(Image.class);
-		final App app = StructrApp.getInstance();
-
-		try (final Tx tx = app.tx()) {
-
-			final Class<Relation> thumbnailRel    = StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage");
-			final Image originalImage             = app.nodeQuery(Image.class).uuid(imageUuid).getFirst();
-			final Thumbnail thumbnailData         = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
-			Image thumbnail = null;
-
-			if (thumbnailData != null) {
-
-				final Integer tnWidth  = thumbnailData.getWidth();
-				final Integer tnHeight = thumbnailData.getHeight();
-				byte[] data            = null;
-
-				try {
-
-					data = thumbnailData.getBytes();
-					final String thumbnailName = ImageHelper.getThumbnailName(originalImage.getName(), tnWidth, tnHeight);
-
-					// create thumbnail node
-					thumbnail = ImageHelper.createImageNode(securityContext, data, "image/" + Thumbnail.defaultFormat, Image.class, thumbnailName, true);
-
-				} catch (IOException ex) {
-
-					logger.warn("Could not create thumbnail image for " + originalImage.getUuid(), ex);
-				}
-
-				if (thumbnail != null && data != null) {
-
-					// Create a thumbnail relationship
-					final PropertyMap relProperties = new PropertyMap();
-					relProperties.put(StructrApp.key(Image.class, "width"),                  tnWidth);
-					relProperties.put(StructrApp.key(Image.class, "height"),                 tnHeight);
-					relProperties.put(StructrApp.key(Image.class, "checksum"),               originalImage.getChecksum());
-
-					app.create(originalImage, thumbnail, thumbnailRel, relProperties);
-
-					// Create thumbnail Image node
-					final PropertyMap properties = new PropertyMap();
-					properties.put(StructrApp.key(Image.class, "width"),                              tnWidth);
-					properties.put(StructrApp.key(Image.class, "height"),                             tnHeight);
-					properties.put(StructrApp.key(AbstractNode.class, "hidden"),                      originalImage.getProperty(AbstractNode.hidden));
-					properties.put(StructrApp.key(AbstractNode.class, "visibleToAuthenticatedUsers"), originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
-					properties.put(StructrApp.key(AbstractNode.class, "visibleToPublicUsers"),        originalImage.getProperty(AbstractNode.visibleToPublicUsers));
-					properties.put(StructrApp.key(File.class, "size"),                                Long.valueOf(data.length));
-					properties.put(StructrApp.key(AbstractNode.class, "owner"),                       originalImage.getProperty(AbstractNode.owner));
-					properties.put(StructrApp.key(File.class, "parent"),                              originalImage.getThumbnailParentFolder(originalImage.getProperty(StructrApp.key(File.class, "parent")), securityContext));
-					properties.put(StructrApp.key(File.class, "hasParent"),                           originalImage.getProperty(StructrApp.key(Image.class, "hasParent")));
-
-					thumbnail.unlockSystemPropertiesOnce();
-					thumbnail.setProperties(securityContext, properties);
-				}
-
-			} else {
-
-				logger.debug("Could not create thumbnail for image {} ({})", originalImage.getName(), imageUuid);
-
-			}
-
-			originalImage.unlockSystemPropertiesOnce();
-			originalImage.setIsCreatingThumb(false);
-
-			tx.success();
-		} catch (FrameworkException fex) {
-
-			logger.warn("Unable to create thumbnail for " + imageUuid, fex);
-
-		}
-	}
+	/** Private Methods **/
 
 	private static void deleteDeprecatedThumbnails(final List<String> thumbnailUuids) {
 		final App app = StructrApp.getInstance();
