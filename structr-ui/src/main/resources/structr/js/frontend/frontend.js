@@ -300,7 +300,7 @@ export class Frontend {
 				// handlePagination uses the event.target property because
 				// the event handling is delayed and currentTarget is not
 				// available in delayed event handlers.
-				this.handlePagination(event);
+				this.handlePagination(event, target);
 			}, delay);
 
 		} else {
@@ -334,9 +334,9 @@ export class Frontend {
 		return csvString;
 	}
 
-	handlePagination(event) {
+	handlePagination(event, target) {
 
-		let target       = event.target;
+		//let target       = event.target;
 		let data         = target.dataset;
 		let selector     = data.structrTarget;
 		let reloadTarget = data.structrReloadTarget;
@@ -384,7 +384,9 @@ export class Frontend {
 
 		} else {
 
-			console.log('Selector not found');
+			console.log('Selector not found: ' + selector);
+			console.log(target);
+			console.log(data);
 		}
 	}
 
