@@ -58,7 +58,7 @@ import org.structr.web.property.ThumbnailProperty;
 /**
  * An image whose binary data will be stored on disk.
  */
-public interface Image extends File {
+public interface 	Image extends File {
 
 	final static String STRUCTR_THUMBNAIL_FOLDER = "._structr_thumbnails/";
 

@@ -20,18 +20,6 @@ package org.structr.test.web;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -45,17 +33,20 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
-import org.structr.core.graph.FlushCachesCommand;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.Tx;
+import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * Base class for all structr UI tests.
@@ -624,5 +615,45 @@ public abstract class StructrUiTest {
 		Settings.ConnectionPassword.setValue("admin");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 		Settings.TenantIdentifier.setValue(randomTenantId);
+	}
+
+	protected void tryWithTimeout(final Supplier<Boolean> workload, final Runnable onTimeout, final int timeoutInMS) {
+
+		if (workload != null && timeoutInMS >= 0) {
+			final long startTime = System.currentTimeMillis();
+
+			do {
+				if (workload.get()) {
+					return;
+				}
+			} while ((startTime + timeoutInMS) >= System.currentTimeMillis());
+		}
+
+		if (onTimeout != null) {
+			onTimeout.run();
+		}
+	}
+
+	protected void tryWithTimeout(final Supplier<Boolean> workload, final Runnable onTimeout, final int timeoutInMS, final int retryDelayInMS) {
+
+		final long startTime = System.currentTimeMillis();
+
+		if (workload != null && onTimeout != null && timeoutInMS >= 0 && retryDelayInMS > 0) {
+			do {
+				if (workload.get()) {
+					return;
+				}
+
+				try {
+
+					Thread.sleep(retryDelayInMS);
+				} catch (InterruptedException ex) {
+
+					return;
+				}
+			} while ((startTime + timeoutInMS) >= System.currentTimeMillis());
+
+			onTimeout.run();
+		}
 	}
 }
