@@ -299,7 +299,7 @@ public interface Image extends File {
 				final Integer h = r.getProperty(StructrApp.key(Image.class, "height"));
 
 				if (w != null && h != null) {
-					if (((w == maxWidth) && (h <= maxHeight)) || ((w <= maxWidth) && (h == maxHeight))) {
+					if (((w == maxWidth) && (h <= maxHeight)) || ((w <= maxWidth) && (h == maxHeight)) || (thisImage.getWidth() != null && thisImage.getHeight() != null && thisImage.getWidth() < maxWidth)) {
 
 						//FIXME: Implement deletion of mismatching thumbnails, since they have become obsolete
 						final Image thumbnail = (Image) r.getTargetNode();

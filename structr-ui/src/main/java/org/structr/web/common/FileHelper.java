@@ -18,6 +18,7 @@
  */
 package org.structr.web.common;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -29,6 +30,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import javax.activation.MimetypesFileTypeMap;
+import javax.imageio.ImageIO;
+
 import net.openhft.hashing.Access;
 import net.openhft.hashing.LongHashFunction;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -344,6 +347,13 @@ public class FileHelper {
 		map.put(StructrApp.key(File.class, "version"),     1);
 
 		map.putAll(getChecksums(file, fileOnDisk));
+
+		if (file instanceof Image) {
+
+			BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
+			map.put(StructrApp.key(Image.class, "width"), bufferedImage.getWidth());
+			map.put(StructrApp.key(Image.class, "height"), bufferedImage.getHeight());
+		}
 
 		file.setProperties(file.getSecurityContext(), map);
 	}
