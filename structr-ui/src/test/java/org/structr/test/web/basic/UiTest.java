@@ -90,7 +90,8 @@ public class UiTest extends StructrUiTest {
 		}
 
 		try (final Tx tx = app.tx()) {
-			Thread.sleep(2500);
+			final Image immutableImage = img;
+			tryWithTimeout(() -> (immutableImage.getProperty(StructrApp.key(Image.class, "thumbnail")) != null), ()->fail("Exceeded timeout while waiting for thumbnail creation."), 30000, 1000);
 			Image tn = img.getProperty(StructrApp.key(imageType, "thumbnail"));
 
 			assertNotNull(tn);
@@ -134,7 +135,8 @@ public class UiTest extends StructrUiTest {
 		}
 
 		try (final Tx tx = app.tx()) {
-			Thread.sleep(2500);
+			final Image immutableImage = testImage;
+			tryWithTimeout(() -> (immutableImage.getProperty(StructrApp.key(Image.class, "tnSmall")) != null && immutableImage.getProperty(StructrApp.key(Image.class, "tnMid")) != null), ()->fail("Exceeded timeout while waiting for thumbnail creation."), 30000, 1000);
 			final Image tnSmall = testImage.getProperty(StructrApp.key(Image.class, "tnSmall"));
 			final Image tnMid = testImage.getProperty(StructrApp.key(Image.class, "tnMid"));
 
@@ -210,7 +212,17 @@ public class UiTest extends StructrUiTest {
 
 
 		try (final Tx tx = app.tx()) {
-			Thread.sleep(2500);
+			final Image immutableImage = subclassTestImage;
+			tryWithTimeout(
+					() -> (
+							immutableImage.getProperty(StructrApp.key(Image.class, "tnSmall")) != null &&
+							immutableImage.getProperty(StructrApp.key(Image.class, "tnMid")) != null &&
+							immutableImage.getProperty(StructrApp.key(Image.class, "thumbnail")) != null
+					),
+					()->fail("Exceeded timeout while waiting for thumbnail creation."),
+					30000,
+					1000
+			);
 			final Image tnSmall  = subclassTestImage.getProperty(StructrApp.key(testImageType, "tnSmall"));
 			final Image tnMid    = subclassTestImage.getProperty(StructrApp.key(testImageType, "tnMid"));
 			final Image tnCustom = subclassTestImage.getProperty(StructrApp.key(testImageType, "thumbnail"));
@@ -830,7 +842,8 @@ public class UiTest extends StructrUiTest {
 		}
 
 		try (final Tx tx = app.tx()) {
-			Thread.sleep(2500);
+			final Image immutableImage = image;
+			tryWithTimeout(() -> (Iterables.count(immutableImage.getThumbnails()) == 2), ()->fail("Exceeded timeout while waiting for thumbnail generation"), 30000, 1000);
 			assertEquals("Image should have two thumbnails", 2, Iterables.count(image.getThumbnails()));
 
 			uuid = image.getUuid();
