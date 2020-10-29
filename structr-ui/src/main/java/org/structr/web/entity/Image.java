@@ -299,7 +299,7 @@ public interface Image extends File {
 				final Integer h = r.getProperty(StructrApp.key(Image.class, "height"));
 
 				if (w != null && h != null) {
-					if (((w == maxWidth) && (h <= maxHeight)) || ((w <= maxWidth) && (h == maxHeight))) {
+					if (((w == maxWidth) && (h <= maxHeight)) || ((w <= maxWidth) && (h == maxHeight)) || (thisImage.getWidth() != null && thisImage.getHeight() != null && thisImage.getWidth() < maxWidth)) {
 
 						//FIXME: Implement deletion of mismatching thumbnails, since they have become obsolete
 						final Image thumbnail = (Image) r.getTargetNode();
@@ -323,6 +323,9 @@ public interface Image extends File {
 
 			return null;
 		}
+
+		// Read Exif and GPS data from image and update properties
+		ImageHelper.getExifData(thisImage);
 
 		// Queue deprecated thumbnails to be removed
 		if (deprecatedThumbnails.size() > 0) {
