@@ -36,11 +36,15 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 
 	public static final Logger logger                        = LoggerFactory.getLogger(ThumbnailAgent.class);
 	public static final String TASK_NAME                     = "FulltextIndexing";
+	public static final Set queuedImageUUIDs                 = Collections.synchronizedSet(new HashSet<>());
 
 	public ThumbnailAgent() {
 
@@ -81,6 +85,14 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 		final Logger logger = LoggerFactory.getLogger(Image.class);
 		final App app = StructrApp.getInstance();
 
+		synchronized (queuedImageUUIDs) {
+
+			if (queuedImageUUIDs.contains(imageUuid)) {
+
+				return;
+			}
+		}
+
 		try (final Tx tx = app.tx()) {
 
 			final Class<Relation> thumbnailRel    = StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage");
@@ -90,6 +102,11 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 			if (originalImage == null) {
 
 				return;
+			}
+
+			synchronized (queuedImageUUIDs) {
+
+				queuedImageUUIDs.add(imageUuid);
 			}
 
 			final ImageHelper.Thumbnail thumbnailData         = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
@@ -147,6 +164,11 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 
 			originalImage.unlockSystemPropertiesOnce();
 			originalImage.setIsCreatingThumb(false);
+
+			synchronized (queuedImageUUIDs) {
+
+				queuedImageUUIDs.remove(imageUuid);
+			}
 
 			tx.success();
 		} catch (FrameworkException fex) {
