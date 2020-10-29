@@ -99,7 +99,7 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 			final Image originalImage             = app.nodeQuery(Image.class).uuid(imageUuid).getFirst();
 			Image thumbnail = null;
 
-			if (originalImage == null) {
+			if (originalImage == null || Image.getExistingThumbnail(originalImage, maxWidth, maxHeight) != null) {
 
 				return;
 			}
