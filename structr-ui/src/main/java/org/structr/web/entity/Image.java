@@ -280,42 +280,18 @@ public interface Image extends File {
 	 * @return scaled image
 	 * */
 	public static Image getScaledImage(final Image thisImage, final int maxWidth, final int maxHeight, final boolean cropToFit) {
-		final Class<Relation> thumbnailRel              = StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage");
-		final Iterable<Relation> thumbnailRelationships = thisImage.getOutgoingRelationships(thumbnailRel);
 		final SecurityContext securityContext           = thisImage.getSecurityContext();
 		final String originalContentType                = thisImage.getContentType();
-		final List<String> deprecatedThumbnails         = new ArrayList<>();
+		final Image existingThumbnail                   = getExistingThumbnail(thisImage, maxWidth, maxHeight);
+
+		if (existingThumbnail != null) {
+
+			return existingThumbnail;
+		}
 
 		if (originalContentType != null && (originalContentType.startsWith("image/svg") || (originalContentType.startsWith("image/") && originalContentType.endsWith("icon")))) {
 
 			return thisImage;
-		}
-
-		// Try to find an existing thumbnail that matches the specifications
-		if (thumbnailRelationships != null) {
-			for (final Relation r : thumbnailRelationships) {
-
-				final Integer w = r.getProperty(StructrApp.key(Image.class, "width"));
-				final Integer h = r.getProperty(StructrApp.key(Image.class, "height"));
-
-				if (w != null && h != null) {
-					if (((w == maxWidth) && (h <= maxHeight)) || ((w <= maxWidth) && (h == maxHeight)) || (thisImage.getWidth() != null && thisImage.getHeight() != null && thisImage.getWidth() < maxWidth)) {
-
-						//FIXME: Implement deletion of mismatching thumbnails, since they have become obsolete
-						final Image thumbnail = (Image) r.getTargetNode();
-
-						// Check if existing thumbnail rel matches the correct checksum and mark as deprecated otherwise
-						if (r.getProperty(StructrApp.key(Image.class, "checksum")).equals(thisImage.getChecksum())) {
-
-							return thumbnail;
-						} else {
-
-							deprecatedThumbnails.add(thumbnail.getUuid());
-						}
-					}
-				}
-
-			}
 		}
 
 		// Do not create thumbnails if this transaction is set to read-only
@@ -326,12 +302,6 @@ public interface Image extends File {
 
 		// Read Exif and GPS data from image and update properties
 		ImageHelper.getExifData(thisImage);
-
-		// Queue deprecated thumbnails to be removed
-		if (deprecatedThumbnails.size() > 0) {
-
-			TransactionCommand.queuePostProcessProcedure(() -> deleteDeprecatedThumbnails(deprecatedThumbnails));
-		}
 
 		// Request creation of thumbnail
 		StructrApp.getInstance().processTasks(new ThumbnailTask(thisImage.getUuid(), maxWidth, maxHeight, cropToFit));
@@ -360,6 +330,47 @@ public interface Image extends File {
 		final Integer tnHeight = thisImage.getHeight();
 
 		return StringUtils.stripEnd(thisImage.getName(),  "_thumb_" + tnWidth + "x" + tnHeight);
+	}
+
+	public static Image getExistingThumbnail(final Image thisImage, final int maxWidth, final int maxHeight) {
+		final Class<Relation> thumbnailRel              = StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage");
+		final Iterable<Relation> thumbnailRelationships = thisImage.getOutgoingRelationships(thumbnailRel);
+		final List<String> deprecatedThumbnails         = new ArrayList<>();
+
+		// Try to find an existing thumbnail that matches the specifications
+		if (thumbnailRelationships != null) {
+			for (final Relation r : thumbnailRelationships) {
+
+				final Integer w = r.getProperty(StructrApp.key(Image.class, "width"));
+				final Integer h = r.getProperty(StructrApp.key(Image.class, "height"));
+
+				if (w != null && h != null) {
+					if (((w == maxWidth) && (h <= maxHeight)) || ((w <= maxWidth) && (h == maxHeight)) || (thisImage.getWidth() != null && thisImage.getHeight() != null && thisImage.getWidth() < maxWidth)) {
+
+						//FIXME: Implement deletion of mismatching thumbnails, since they have become obsolete
+						final Image thumbnail = (Image) r.getTargetNode();
+
+						// Check if existing thumbnail rel matches the correct checksum and mark as deprecated otherwise
+						if (r.getProperty(StructrApp.key(Image.class, "checksum")).equals(thisImage.getChecksum())) {
+
+							return thumbnail;
+						} else {
+
+							deprecatedThumbnails.add(thumbnail.getUuid());
+						}
+					}
+				}
+
+			}
+		}
+
+		// Queue deprecated thumbnails to be removed
+		if (deprecatedThumbnails.size() > 0) {
+
+			TransactionCommand.queuePostProcessProcedure(() -> deleteDeprecatedThumbnails(deprecatedThumbnails));
+		}
+
+		return null;
 	}
 
 	/** Private Methods **/
