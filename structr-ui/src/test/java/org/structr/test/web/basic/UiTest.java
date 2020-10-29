@@ -91,7 +91,7 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 			final Image immutableImage = img;
-			tryWithTimeout(() -> (immutableImage.getProperty(StructrApp.key(Image.class, "thumbnail")) != null), ()->fail("Exceeded timeout while waiting for thumbnail creation."), 30000, 1000);
+			tryWithTimeout(() -> (immutableImage.getProperty(StructrApp.key(imageType, "thumbnail")) != null), ()->fail("Exceeded timeout while waiting for thumbnail creation."), 30000, 1000);
 			Image tn = img.getProperty(StructrApp.key(imageType, "thumbnail"));
 
 			assertNotNull(tn);
@@ -215,9 +215,9 @@ public class UiTest extends StructrUiTest {
 			final Image immutableImage = subclassTestImage;
 			tryWithTimeout(
 					() -> (
-							immutableImage.getProperty(StructrApp.key(Image.class, "tnSmall")) != null &&
-							immutableImage.getProperty(StructrApp.key(Image.class, "tnMid")) != null &&
-							immutableImage.getProperty(StructrApp.key(Image.class, "thumbnail")) != null
+							immutableImage.getProperty(StructrApp.key(testImageType, "tnSmall")) != null &&
+							immutableImage.getProperty(StructrApp.key(testImageType, "tnMid")) != null &&
+							immutableImage.getProperty(StructrApp.key(testImageType, "thumbnail")) != null
 					),
 					()->fail("Exceeded timeout while waiting for thumbnail creation."),
 					30000,
