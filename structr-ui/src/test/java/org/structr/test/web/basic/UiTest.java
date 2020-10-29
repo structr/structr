@@ -843,7 +843,16 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 			final Image immutableImage = image;
-			tryWithTimeout(() -> (Iterables.count(immutableImage.getThumbnails()) == 2), ()->fail("Exceeded timeout while waiting for thumbnail generation"), 30000, 1000);
+			tryWithTimeout(
+					() -> {
+						immutableImage.getProperty(StructrApp.key(Image.class, "tnSmall"));
+						immutableImage.getProperty(StructrApp.key(Image.class, "tnMid"));
+						return (Iterables.count(immutableImage.getThumbnails()) == 2);
+					},
+					()->fail("Exceeded timeout while waiting for thumbnail generation"),
+					30000,
+					1000
+			);
 			assertEquals("Image should have two thumbnails", 2, Iterables.count(image.getThumbnails()));
 
 			uuid = image.getUuid();
