@@ -71,7 +71,7 @@ public class GraphQLTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Image currentImage = image;
-			tryWithTimeout(() -> currentImage.getProperty(StructrApp.key(Image.class, "tnSmall")) != null, () -> fail("Exceeded timeout while waiting for thumbnail to be available"), 60000, 5000);
+			tryWithTimeout(() -> currentImage.getProperty(StructrApp.key(Image.class, "tnSmall")) != null, () -> fail("Exceeded timeout while waiting for thumbnail to be available"), 30000, 5000);
 
 			tx.success();
 		} catch (Exception ex) {
