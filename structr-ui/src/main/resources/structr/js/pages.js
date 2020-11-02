@@ -164,6 +164,11 @@ var _Pages = {
 			}, _Pages.slideoutClosedCallback);
 		});
 
+		$('#localizations input.locale').on('keydown', function (e) {
+			if (e.which === 13) {
+				_Pages.refreshLocalizations();
+			}
+		});
 		$('#localizations button.refresh').on('click', function () {
 			_Pages.refreshLocalizations();
 		});
@@ -1231,73 +1236,83 @@ var _Pages = {
 		}
 	},
 	refreshLocalizations: function() {
-		var id = activeTab;
+
+		let id = activeTab;
 
 		if (_Pages.isPageTabPresent(id)) {
 
-			var localeInput = $('#localizations input.locale');
-			var locale = localeInput.val();
+			let localeInput = $('#localizations input.locale');
+			let locale      = localeInput.val();
 
 			if (!locale) {
 				blinkRed(localeInput);
 				return;
 			}
 
-			var detailObjectId = LSWrapper.getItem(_Pages.detailsObjectIdKey + id);
-			var queryString    = LSWrapper.getItem(_Pages.requestParametersKey + id);
+			let detailObjectId = LSWrapper.getItem(_Pages.detailsObjectIdKey + id);
+			let queryString    = LSWrapper.getItem(_Pages.requestParametersKey + id);
 
 			Command.listLocalizations(id, locale, detailObjectId, queryString, function(result) {
 
 				$('#localizations .page').prop('id', 'id_' + id);
 
-				var localizationsContainer = $('#localizations div.inner div.results');
+				let localizationsContainer = $('#localizations div.inner div.results');
 				localizationsContainer.empty().attr('id', 'id_' + id);
 
 				if (result.length > 0) {
 
-					result.forEach(function(res) {
+					for (let res of result) {
 
-						var div = _Pages.getNodeForLocalization(localizationsContainer, res.node);
-
-						var tbody = $('tbody', div);
-
-						var row = $('<tr><td>' + res.key + '</td><td>' + res.domain + '</td><td>' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td><td class="input"><input class="localized-value" placeholder="..."></td></tr>');
-
-						var input = $('input.localized-value', row);
+						let div   = _Pages.getNodeForLocalization(localizationsContainer, res.node);
+						let tbody = $('tbody', div);
+						let row   = $('<tr><td>' + res.key + '</td><td>' + res.domain + '</td><td>' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td><td class="input"><input class="localized-value" placeholder="..."></td></tr>');
+						let input = $('input.localized-value', row);
 
 						if (res.localization !== null) {
-							input.val(res.localization.localizedName).data('localizationId', res.localization.id);
+							input.val(res.localization.localizedName).data('localizationId', res.localization.id).data('previousValue', res.localization.localizedName);
 						}
 
 						input.on('blur', function() {
-							var el = $(this);
 
-							var value = el.val();
-							var localizationId = el.data('localizationId');
-							if (localizationId) {
-								Command.setProperties(localizationId, {
-									localizedName: value
-								}, function() {
-									blinkGreen(el);
-								});
+							let el             = $(this);
+							let newValue       = el.val();
+							let localizationId = el.data('localizationId');
+							let previousValue  = el.data('previousValue');
+							let isChange       = !previousValue || (previousValue && previousValue !== newValue);
 
-							} else {
-								Command.create({
-									type: 'Localization',
-									name: res.key,
-									domain: res.domain || null,
-									locale: res.locale,
-									localizedName: value
-								},
-								function(createdLocalization) {
-									el.data('localizationId', createdLocalization.id);
-									blinkGreen(el);
-								});
+							if (isChange) {
+
+								let createNew = !localizationId || (res.domain !== res.localization.domain);
+
+								if (!createNew) {
+
+									Command.setProperties(localizationId, {
+										localizedName: newValue
+									}, function() {
+										blinkGreen(el);
+										el.data('previousValue', newValue);
+									});
+
+								} else {
+
+									Command.create({
+										type: 'Localization',
+										name: res.key,
+										domain: res.domain || null,
+										locale: res.locale,
+										localizedName: newValue
+									},
+									function(createdLocalization) {
+										el.data('localizationId', createdLocalization.id);
+										el.data('previousValue', newValue);
+										blinkGreen(el);
+									});
+								}
 							}
 						});
 
 						tbody.append(row);
-					});
+					};
 
 				} else {
 
