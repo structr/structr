@@ -99,7 +99,7 @@ var _VirtualTypes = {
 			Structr.unblockMenu(100);
 
 			_VirtualTypes.moveResizer();
-			Structr.initVerticalSlider($('.column-resizer', main), _VirtualTypes.virtualTypesResizerLeftKey, 204, _VirtualTypes.moveResizer);
+			Structr.initVerticalSlider($('.column-resizer', main), _VirtualTypes.virtualTypesResizerLeftKey, 300, _VirtualTypes.moveResizer);
 
 			_VirtualTypes.resize();
 		});

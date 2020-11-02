@@ -76,7 +76,7 @@ var _Localization = {
 			Structr.unblockMenu(100);
 
 			_Localization.moveResizer();
-			Structr.initVerticalSlider($('.column-resizer', main), _Localization.localizationsResizerLeftKey, 204, _Localization.moveResizer);
+			Structr.initVerticalSlider($('.column-resizer', main), _Localization.localizationsResizerLeftKey, 340, _Localization.moveResizer);
 
 			_Localization.resize();
 		});
@@ -86,7 +86,7 @@ var _Localization = {
 	},
 	moveResizer: function(left) {
 
-		left = left || LSWrapper.getItem(_Localization.localizationsResizerLeftKey) || 300;
+		left = left || LSWrapper.getItem(_Localization.localizationsResizerLeftKey) || 340;
 		$('.column-resizer', main).css({ left: left });
 
 		$('#localizations-list').css({width: left - 25 + 'px'});
@@ -128,7 +128,7 @@ var _Localization = {
 	appendKeyAndDomainListRow: function (keyAndDomainObject) {
 		_Localization.keysAndDomainsList.append(
 			'<tr class="key-domain-pair">' +
-				'<td>' + keyAndDomainObject.name + '</td>' +
+				'<td class="allow-break">' + keyAndDomainObject.name + '</td>' +
 				'<td>' + (keyAndDomainObject.domain || '') + '</td>' +
 				'<td class="actions">' +
 					'<a title="Edit Properties" class="properties"><i class="' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /></a>' +
