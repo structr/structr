@@ -94,7 +94,7 @@ var _MailTemplates = {
 			Structr.unblockMenu(100);
 
 			_MailTemplates.moveResizer();
-			Structr.initVerticalSlider($('.column-resizer', main), _MailTemplates.mailTemplatesResizerLeftKey, 204, _MailTemplates.moveResizer);
+			Structr.initVerticalSlider($('.column-resizer', main), _MailTemplates.mailTemplatesResizerLeftKey, 300, _MailTemplates.moveResizer);
 
 			_MailTemplates.resize();
 		});

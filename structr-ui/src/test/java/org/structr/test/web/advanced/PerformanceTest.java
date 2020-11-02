@@ -119,7 +119,7 @@ public class PerformanceTest extends IndexingTest {
 		Double rate                 = number / ((t1 - t0) / 1000.0);
 
 		logger.info("Created {} nodes in {} seconds ({} per s)", number, decimalFormat.format(time), decimalFormat.format(rate) );
-		assertTrue("Creation rate of nodes too low, expected > 40, was " + rate, rate > 40);
+		assertTrue("Creation rate of nodes too low, expected > 30, was " + rate, rate > 30);
 	}
 
 	/**

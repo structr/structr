@@ -4849,6 +4849,10 @@ i.fa.ps {
 	margin-right: 9px;
 }
 
+#virtual-types-list td.allow-break, #mail-templates-list td.allow-break, #localizations-list td.allow-break {
+	word-break: break-all;
+}
+
 #virtual-type-detail, #mail-template-detail, #localization-detail {
 	padding: 6px;
 	vertical-align: top;
