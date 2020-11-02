@@ -21,6 +21,7 @@ package org.structr.test.web.basic;
 import com.jayway.restassured.RestAssured;
 import java.io.IOException;
 import org.hamcrest.Matchers;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
@@ -33,10 +34,19 @@ import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import static org.testng.AssertJUnit.fail;
+
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 
 public class BasicAuthTest extends StructrUiTest {
+
+	@BeforeClass(alwaysRun = true)
+	@Override
+	public void setup() {
+		super.setup();
+		Settings.HttpBasicAuthEnabled.setValue(true);
+	}
 
 	@Test
 	public void test00BasicAuthOnPage() {
