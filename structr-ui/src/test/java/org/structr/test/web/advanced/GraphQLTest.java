@@ -71,7 +71,7 @@ public class GraphQLTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Image currentImage = image;
-			tryWithTimeout(() -> currentImage.getProperty(StructrApp.key(Image.class, "tnSmall")) != null, () -> fail("Exceeded timeout while waiting for thumbnail to be available"), 30000, 1000);
+			tryWithTimeout(() -> currentImage.getProperty(StructrApp.key(Image.class, "tnSmall")) != null, () -> fail("Exceeded timeout while waiting for thumbnail to be available"), 30000, 500);
 
 			tx.success();
 		} catch (Exception ex) {
@@ -88,7 +88,7 @@ public class GraphQLTest extends StructrUiTest {
 				.header("X-User", "admin")
 				.header("X-Password", "admin")
 				.contentType("application/json; charset=UTF-8")
-				.body("{ Image { tnSmall { imageData, base64Data }}}")
+				.body("{ Image(isThumbnail: {_equals: false}) { tnSmall { imageData, base64Data }}}")
 
 			.expect()
 				.statusCode(200)
