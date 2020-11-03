@@ -360,8 +360,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		switch (action) {
 
 			case "create":
-				handleCreateAction(actionContext, parameters, eventContext);
-				break;
+				return handleCreateAction(actionContext, parameters, eventContext);
 
 			case "update":
 				handleUpdateAction(actionContext, parameters, eventContext);
@@ -423,7 +422,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 	}
 
-	private void handleCreateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+	private GraphObject handleCreateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 
@@ -454,7 +453,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, parameters);
 
 		// create entity
-		StructrApp.getInstance(securityContext).create(type, properties);
+		return StructrApp.getInstance(securityContext).create(type, properties);
 	}
 
 	private void handleUpdateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
@@ -1215,6 +1214,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	public static void updateReloadTargets(final DOMElement thisElement) throws FrameworkException {
 
+		final Logger logger = LoggerFactory.getLogger(DOMElement.class);
+
 		try {
 
 			final PropertyKey<Iterable<DOMElement>> reloadSourcesKey     = StructrApp.key(DOMElement.class, "reloadSources");
@@ -1238,17 +1239,39 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 						if (reloadTargets != null && element != null) {
 
-							if (element.select(reloadTargets).first() != null) {
+							for (final String part : reloadTargets.split(",")) {
 
-								actualReloadTargets.add(possibleTarget);
+								final String targetSelector = part.trim();
+
+								try {
+
+									if (StringUtils.isNotBlank(targetSelector) && element.select(targetSelector).first() != null) {
+
+										actualReloadTargets.add(possibleTarget);
+									}
+
+								} catch (Throwable t) {
+									//logger.warn("Unable to match element with selector {}: {}", targetSelector, t);
+								}
 							}
 						}
 
 						if (otherReloadTarget != null && matchElement != null) {
 
-							if (matchElement.select(otherReloadTarget).first() != null) {
+							for (final String part : otherReloadTarget.split(",")) {
 
-								actualReloadSources.add(possibleTarget);
+								final String targetSelector = part.trim();
+
+								try {
+
+									if (StringUtils.isNotBlank(targetSelector) && matchElement.select(targetSelector).first() != null) {
+
+										actualReloadSources.add(possibleTarget);
+									}
+
+								} catch (Throwable t) {
+									//logger.warn("Unable to match element with selector {}: {}", targetSelector, t);
+								}
 							}
 						}
 					}

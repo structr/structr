@@ -74,27 +74,24 @@ public class RangeSearchAttribute<T> extends SearchAttribute<T> implements Range
 		final T value = entity.getProperty(searchKey);
 		if (value != null) {
 
-			if (value instanceof Comparable && rangeStart instanceof Comparable && rangeEnd instanceof Comparable) {
+			final Comparable cv = (Comparable)value;
+			final Comparable cs = (Comparable)rangeStart;
+			final Comparable ce = (Comparable)rangeEnd;
 
-				final Comparable cv = (Comparable)value;
-				final Comparable cs = (Comparable)rangeStart;
-				final Comparable ce = (Comparable)rangeEnd;
+			if (includeStart && includeEnd) {
+				return (cs == null || cs.compareTo(cv) <= 0) && (ce == null || ce.compareTo(cv) >= 0);
+			}
 
-				if (includeStart && includeEnd) {
-					return cs.compareTo(cv) <= 0 && ce.compareTo(cv) >= 0;
-				}
+			if (includeStart && !includeEnd) {
+				return (cs == null || cs.compareTo(cv) <= 0) && (ce == null || ce.compareTo(cv) > 0);
+			}
 
-				if (includeStart && !includeEnd) {
-					return cs.compareTo(cv) <= 0 && ce.compareTo(cv) > 0;
-				}
+			if (!includeStart && includeEnd) {
+				return (cs == null || cs.compareTo(cv) < 0) && (ce == null || ce.compareTo(cv) >= 0);
+			}
 
-				if (!includeStart && includeEnd) {
-					return cs.compareTo(cv) < 0 && ce.compareTo(cv) >= 0;
-				}
-
-				if (!includeStart && !includeEnd) {
-					return cs.compareTo(cv) < 0 && ce.compareTo(cv) > 0;
-				}
+			if (!includeStart && !includeEnd) {
+				return (cs == null || cs.compareTo(cv) < 0) && (ce == null || ce.compareTo(cv) > 0);
 			}
 		}
 

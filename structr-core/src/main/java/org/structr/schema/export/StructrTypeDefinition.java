@@ -773,7 +773,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		// populate grants
 		for (final StructrGrantDefinition grant : grants) {
 
-			serializedGrants.put(grant.getPrincipalName(), grant.serialize());
+			serializedGrants.put(grant.getPrincipalId(), grant.serialize());
 		}
 
 		serializedForm.put(JsonSchema.KEY_TYPE, "object");
@@ -1134,7 +1134,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			final SchemaGrant schemaGrant = grant.createDatabaseSchema(app, schemaNode);
 			if (schemaGrant != null) {
 
-				schemaGrants.put(schemaGrant.getPrincipalName(), schemaGrant);
+				schemaGrants.put(schemaGrant.getPrincipalId(), schemaGrant);
 			}
 		}
 
@@ -1489,7 +1489,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 					final StructrGrantDefinition grant = StructrGrantDefinition.deserialize(typeDefinition, principalName, (Map)value);
 					if (grant != null) {
 
-						deserializedGrants.put(grant.getPrincipalName(), grant);
+						deserializedGrants.put(grant.getPrincipalId(), grant);
 						typeDefinition.getGrants().add(grant);
 					}
 

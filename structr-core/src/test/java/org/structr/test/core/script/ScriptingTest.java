@@ -5326,7 +5326,7 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testHMCAFunction () {
 		/*
-			This test ensures, that the core function hmac() returns the correct HEX String for the given values.
+			This test ensures that the core function hmac() returns the correct HEX String for the given values.
 		*/
 
 		final ActionContext ctx = new ActionContext(securityContext);
