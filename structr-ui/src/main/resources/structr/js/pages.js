@@ -1259,38 +1259,66 @@ var _Pages = {
 				let localizationsContainer = $('#localizations div.inner div.results');
 				localizationsContainer.empty().attr('id', 'id_' + id);
 
+				let localizationIdKey = 'localizationId';
+				let previousValueKey  = 'previousValue';
+
+
 				if (result.length > 0) {
 
 					for (let res of result) {
 
 						let div   = _Pages.getNodeForLocalization(localizationsContainer, res.node);
 						let tbody = $('tbody', div);
-						let row   = $('<tr><td>' + res.key + '</td><td>' + res.domain + '</td><td>' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td><td class="input"><input class="localized-value" placeholder="..."></td></tr>');
+						let row   = $('<tr><td><div class="key-column allow-break">' + res.key + '</div></td><td class="domain-column">' + res.domain + '</td><td class="locale-column">' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td><td class="input"><input class="localized-value" placeholder="..."><a title="Delete" class="delete"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /></a></td></tr>');
+						let key   = $('div.key-column', row).attr('title', res.key);
 						let input = $('input.localized-value', row);
 
-						if (res.localization !== null) {
-							input.val(res.localization.localizedName).data('localizationId', res.localization.id).data('previousValue', res.localization.localizedName);
+						if (res.localization) {
+							let domainIdentical = (res.localization.domain === res.domain) || (!res.localization.domain && !res.domain);
+							if (!domainIdentical) {
+								res.localization = null;
+								// we are getting the fallback localization for this entry - do not show this as we would update the wrong localization otherwise
+							}
 						}
+
+						if (res.localization !== null) {
+							row.addClass('has-value');
+							input.val(res.localization.localizedName).data(localizationIdKey, res.localization.id).data(previousValueKey, res.localization.localizedName);
+						}
+
+						$('.delete', row).on('click', function(event) {
+							event.preventDefault();
+
+							let id = input.data(localizationIdKey);
+
+							if (id) {
+								var c = confirm('Are you sure you want to delete this localization ' + id + ' ?');
+								if (c === true) {
+									Command.deleteNode(id, false, () => {
+										row.removeClass('has-value');
+										input.data(localizationIdKey, null).data(previousValueKey, null).val('');
+									});
+								}
+							}
+						});
 
 						input.on('blur', function() {
 
 							let el             = $(this);
 							let newValue       = el.val();
-							let localizationId = el.data('localizationId');
-							let previousValue  = el.data('previousValue');
-							let isChange       = !previousValue || (previousValue && previousValue !== newValue);
+							let localizationId = el.data(localizationIdKey);
+							let previousValue  = el.data(previousValueKey);
+							let isChange       = (!previousValue && newValue !== '') || (previousValue && previousValue !== newValue);
 
 							if (isChange) {
 
-								let createNew = !localizationId || (res.domain !== res.localization.domain);
-
-								if (!createNew) {
+								if (localizationId) {
 
 									Command.setProperties(localizationId, {
 										localizedName: newValue
 									}, function() {
 										blinkGreen(el);
-										el.data('previousValue', newValue);
+										el.data(previousValueKey, newValue);
 									});
 
 								} else {
@@ -1303,8 +1331,9 @@ var _Pages = {
 										localizedName: newValue
 									},
 									function(createdLocalization) {
-										el.data('localizationId', createdLocalization.id);
-										el.data('previousValue', newValue);
+										el.data(localizationIdKey, createdLocalization.id);
+										el.data(previousValueKey, newValue);
+										row.addClass('has-value');
 										blinkGreen(el);
 									});
 								}
@@ -1326,23 +1355,20 @@ var _Pages = {
 	},
 	getNodeForLocalization: function (container, entity) {
 
-		var idString = 'locNode_' + entity.id;
-
-		var existing = $('#' + idString, container);
+		let idString = 'locNode_' + entity.id;
+		let existing = $('#' + idString, container);
 
 		if (existing.length) {
 			return existing;
 		}
 
-		var div = $('<div id="' + idString + '" class="node localization-element ' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
+		let div = $('<div id="' + idString + '" class="node localization-element ' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
 
-		// add node id to enable hover effect
 		div.data('nodeId', (_Entities.isContentElement(entity) ? entity.parent.id : entity.id ));
 
-		var displayName = getElementDisplayName(entity);
-		var iconClass = _Icons.getFullSpriteClass(_Elements.getElementIcon(entity));
-
-		var detailHtml = '';
+		let displayName = getElementDisplayName(entity);
+		let iconClass   = _Icons.getFullSpriteClass(_Elements.getElementIcon(entity));
+		let detailHtml  = '';
 
 		if (entity.type === 'Content') {
 			detailHtml = '<div class="abbr-ellipsis abbr-75pc">' + entity.content + '</div>';
@@ -1361,7 +1387,6 @@ var _Pages = {
 		if (_Entities.isContentElement(entity)) {
 
 			_Elements.appendEditContentIcon(div, entity);
-
 		}
 
 		_Entities.appendEditPropertiesIcon(div, entity, false);
@@ -1370,7 +1395,7 @@ var _Pages = {
 
 		container.append(div);
 
-		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds&&entity.syncedNodesIds.length)?entity.syncedNodesIds:[entity.sharedComponentId]));
+		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId] ));
 
 		return div;
 	}
