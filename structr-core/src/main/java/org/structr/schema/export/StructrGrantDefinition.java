@@ -20,6 +20,7 @@ package org.structr.schema.export;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import org.slf4j.Logger;
@@ -46,26 +47,26 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 	private JsonType parent            = null;
 	private SchemaGrant schemaGrant    = null;
-	private String principalId         = null;
+	private String principalName       = null;
 	private boolean allowRead          = false;
 	private boolean allowWrite         = false;
 	private boolean allowDelete        = false;
 	private boolean allowAccessControl = false;
 
-	StructrGrantDefinition(final JsonType parent, final String principalId) {
+	StructrGrantDefinition(final JsonType parent, final String principalName) {
 
-		this.parent      = parent;
-		this.principalId = principalId;
+		this.parent        = parent;
+		this.principalName = principalName;
 	}
 
 	@Override
 	public String toString() {
-		return "StructrGrantDefinition(" + principalId + ", " + allowRead + ", " + allowWrite + ", " + allowDelete + ", " + allowAccessControl + ")";
+		return "StructrGrantDefinition(" + principalName + ", " + allowRead + ", " + allowWrite + ", " + allowDelete + ", " + allowAccessControl + ")";
 	}
 
 	@Override
 	public int hashCode() {
-		return principalId.hashCode();
+		return principalName.hashCode();
 	}
 
 	@Override
@@ -87,7 +88,7 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 			try {
 				final URI containerURI = new URI(parentId.toString() + "/");
-				return containerURI.resolve("grants/" + getPrincipalId());
+				return containerURI.resolve("grants/" + getPrincipalName());
 
 			} catch (URISyntaxException urex) {
 				logger.warn("", urex);
@@ -103,8 +104,8 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 	}
 
 	@Override
-	public String getPrincipalId() {
-		return principalId;
+	public String getPrincipalName() {
+		return principalName;
 	}
 
 	@Override
@@ -129,7 +130,7 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 	@Override
 	public int compareTo(final JsonGrant o) {
-		return getPrincipalId().compareTo(o.getPrincipalId());
+		return getPrincipalName().compareTo(o.getPrincipalName());
 	}
 
 	@Override
@@ -146,16 +147,23 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 		final PropertyMap getOrCreateProperties = new PropertyMap();
 		final PropertyMap updateProperties      = new PropertyMap();
-		final Principal principal              = app.get(Principal.class, principalId);
+		final List<Principal> principals        = app.nodeQuery(Principal.class).andName(principalName).getAsList();
 
-		if (principal == null) {
+		if (principals.isEmpty()) {
 
 			// log error
-			logger.warn("No node of type Principal found for schema grant {}, ignoring.", principalId);
+			logger.warn("No node of type Principal found for schema grant {}, ignoring.", principalName);
 			return null;
 		}
 
-		getOrCreateProperties.put(SchemaGrant.principal,  principal);
+		if (principals.size() > 1) {
+
+			// log error
+			logger.warn("Found {} candidates for type Principal in schema grant {}, ignoring.", principals.size(), principalName);
+			return null;
+		}
+
+		getOrCreateProperties.put(SchemaGrant.principal,  principals.get(0));
 		getOrCreateProperties.put(SchemaGrant.schemaNode, (SchemaNode)schemaNode);
 
 		SchemaGrant grant = app.nodeQuery(SchemaGrant.class).and(getOrCreateProperties).getFirst();
@@ -244,7 +252,7 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 	static StructrGrantDefinition deserialize(final StructrTypeDefinition parent, final SchemaGrant grant) {
 
-		final StructrGrantDefinition newGrant = new StructrGrantDefinition(parent, grant.getPrincipalId());
+		final StructrGrantDefinition newGrant = new StructrGrantDefinition(parent, grant.getPrincipalName());
 
 		newGrant.deserialize(grant);
 

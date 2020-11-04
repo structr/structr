@@ -587,7 +587,13 @@ public class Deployment4Test extends DeploymentTestBase {
 
 
 		// test
-		compare(calculateHash(), true);
+		final String hash1 = calculateHash();
+
+		// roundtrip
+		doImportExportRoundtrip(true, false, null);
+
+		// test
+		final String hash2 = calculateHash();
 
 		// test after roundtrip
 		RestAssured
@@ -646,7 +652,10 @@ public class Deployment4Test extends DeploymentTestBase {
 
 
 		// test
-		compare(calculateHash(), true);
+		final String hash3 = calculateHash();
+
+		// roundtrip
+		doImportExportRoundtrip(true, false, null);
 
 		// test after roundtrip
 		RestAssured
@@ -667,6 +676,9 @@ public class Deployment4Test extends DeploymentTestBase {
 
 			.when()
 				.get("/Project");
+
+		assertEquals("Invalid deployment roundtrip result", hash1, hash2);
+		assertEquals("Invalid deployment roundtrip result", hash2, hash3);
 	}
 
 	@Test
@@ -814,9 +826,10 @@ public class Deployment4Test extends DeploymentTestBase {
 		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Authenticated");
 		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
 
-
-		// test
-		compare(calculateHash(), true);
+		// roundtrip and compare
+		final String hash1 = calculateHash();
+		doImportExportRoundtrip(true, false, null);
+		final String hash2 = calculateHash();
 
 		// test after roundtrip
 		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");
@@ -826,6 +839,8 @@ public class Deployment4Test extends DeploymentTestBase {
 		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");
 		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Authenticated");
 		RestAssured.given().header("X-User", "user").header("X-Password", "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
+
+		assertEquals("Invalid deployment roundtrip result", hash1, hash2);
 	}
 
 	// ----- private methods -----

@@ -27,7 +27,7 @@ public interface JsonGrant extends Comparable<JsonGrant> {
 	public URI getId();
 	public JsonType getParent();
 
-	public String getPrincipalId();
+	public String getPrincipalName();
 	public boolean getAllowRead();
 	public boolean getAllowWrite();
 	public boolean getAllowDelete();

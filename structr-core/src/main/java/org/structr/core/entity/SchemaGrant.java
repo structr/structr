@@ -30,6 +30,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.PrincipalSchemaGrantRelationship;
 import org.structr.core.entity.relationship.SchemaGrantSchemaNodeRelationship;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNode;
@@ -78,6 +79,28 @@ public class SchemaGrant extends SchemaReloadingNode {
 			if (rel != null && rel instanceof PrincipalSchemaGrantRelationship) {
 
 				return rel.getSourceNodeId();
+			}
+		}
+
+		return null;
+	}
+
+	public String getPrincipalName() {
+
+		// When Structr starts, the schema is not yet compiled and the Principal class does not yet
+		// exist, so we only get GenericNode instances. Relationships are filtered by node type, and
+		// that filter removes GenericNode instances, so we must use the unfiltered relationship
+		// collection and check manually.
+
+		for (final AbstractRelationship rel : getIncomingRelationships()) {
+
+			if (rel != null && rel instanceof PrincipalSchemaGrantRelationship) {
+
+				final NodeInterface _principal = rel.getSourceNode();
+				if (_principal != null) {
+
+					return _principal.getProperty(AbstractNode.name);
+				}
 			}
 		}
 
