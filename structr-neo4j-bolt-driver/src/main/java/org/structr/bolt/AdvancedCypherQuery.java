@@ -20,9 +20,8 @@ package org.structr.bolt;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +43,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 	private final Map<String, Object> parameters    = new HashMap<>();
 	private final Set<String> indexLabels           = new LinkedHashSet<>();
 	private final Set<String> typeLabels            = new LinkedHashSet<>();
-	private final List<GraphQueryPart> parts        = new LinkedList<>();
+	private final Map<String, GraphQueryPart> parts = new LinkedHashMap<>();
 	private final StringBuilder buffer              = new StringBuilder();
 	private QueryTimer queryTimer                   = null;
 	private int fetchSize                           = Settings.FetchSize.getValue();
@@ -410,11 +409,24 @@ public class AdvancedCypherQuery implements CypherQuery {
 		parameters.put(paramKey2, value2);
 	}
 
-	public void addGraphQueryPart(final GraphQueryPart part) {
+	public void addGraphQueryPart(final GraphQueryPart newPart) {
 
-		part.setIdentifier(getNextGraphPartIdentifier());
+		final String label                = newPart.getOtherLabel();
+		final GraphQueryPart existingPart = parts.get(label);
 
-		this.parts.add(part);
+		if (existingPart != null) {
+
+			// re-use identifier in query, do not add new part
+			newPart.setIdentifier(existingPart.getIdentifier());
+
+		} else {
+
+			final String identifier = getNextGraphPartIdentifier();
+
+			newPart.setIdentifier(identifier);
+
+			this.parts.put(label, newPart);
+		}
 	}
 
 	@Override
@@ -484,7 +496,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 		final Set<String> with   = new LinkedHashSet<>();
 		boolean first            = true;
 
-		for (final GraphQueryPart part : parts) {
+		for (final GraphQueryPart part : parts.values()) {
 
 			if (first) {
 

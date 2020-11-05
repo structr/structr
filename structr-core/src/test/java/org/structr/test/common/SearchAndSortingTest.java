@@ -19,6 +19,7 @@
 package org.structr.test.common;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,7 @@ import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
@@ -2488,6 +2490,51 @@ public class SearchAndSortingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testFindQueryWithOrPredicate() {
+
+		/*
+		 * This test verifies that the query builder creates efficient queries for
+		 * $.or() and $.and() predicates with graph properties.
+		 */
+
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createEmptySchema();
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "TASK", Cardinality.OneToMany, "project", "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			final List<AbstractNode> result1 = (List)ScriptTestHelper.testExternalScript(ctx, SearchAndSortingTest.class.getResourceAsStream("/test/scripting/testFindQueryWithOrPredicate.js"));
+
+			assertEquals("Wrong result for predicate list,", "[Project0, Project1, Project3]", result1.stream().map(r -> r.getProperty(AbstractNode.name)).collect(Collectors.toList()).toString());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			fail("Unexpected exception");
+		}
+	}
 
 	// ----- private methods -----
 	private void testPaging(final Class type, final int pageSize, final int page, final int number, final int offset, final boolean includeHidden, final PropertyKey sortKey, final boolean sortDesc) throws FrameworkException {

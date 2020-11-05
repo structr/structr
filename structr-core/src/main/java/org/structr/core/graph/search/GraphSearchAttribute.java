@@ -19,6 +19,7 @@
 package org.structr.core.graph.search;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Identity;
@@ -153,12 +154,29 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 	public Identity getIdentity() {
 
 		final Object value = getValue();
+
 		if (value instanceof NodeInterface) {
 
 			final NodeInterface g = (NodeInterface)value;
 			final Node node       = g.getNode();
 
 			return node.getId();
+		}
+
+		if (value instanceof List) {
+
+			final List collection = (List)value;
+			if (collection.size() == 1) {
+
+				final Object item = collection.get(0);
+				if (item instanceof NodeInterface) {
+
+					final NodeInterface g = (NodeInterface)item;
+					final Node node       = g.getNode();
+
+					return node.getId();
+				}
+			}
 		}
 
 		return null;
