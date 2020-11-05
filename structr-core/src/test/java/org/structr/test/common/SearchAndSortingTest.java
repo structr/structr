@@ -2522,6 +2522,8 @@ public class SearchAndSortingTest extends StructrTest {
 		// test
 		try (final Tx tx = app.tx()) {
 
+			Settings.CypherDebugLogging.setValue(true);
+
 			final List<AbstractNode> result1 = (List)ScriptTestHelper.testExternalScript(ctx, SearchAndSortingTest.class.getResourceAsStream("/test/scripting/testFindQueryWithOrPredicate.js"));
 
 			assertEquals("Wrong result for predicate list,", "[Project0, Project1, Project3]", result1.stream().map(r -> r.getProperty(AbstractNode.name)).collect(Collectors.toList()).toString());

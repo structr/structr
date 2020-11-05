@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
+import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
@@ -411,13 +412,25 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 	public void addGraphQueryPart(final GraphQueryPart newPart) {
 
-		final String label                = newPart.getOtherLabel();
-		final GraphQueryPart existingPart = parts.get(label);
+		final Occurrence occurrence = newPart.getOccurrence();
+		if (Occurrence.OPTIONAL.equals(occurrence)) {
 
-		if (existingPart != null) {
+			final String linkIdentifier       = newPart.getLinkIdentifier();
+			final GraphQueryPart existingPart = parts.get(linkIdentifier);
 
-			// re-use identifier in query, do not add new part
-			newPart.setIdentifier(existingPart.getIdentifier());
+			if (existingPart != null) {
+
+				// re-use identifier in query, do not add new part
+				newPart.setIdentifier(existingPart.getIdentifier());
+
+			} else {
+
+				final String identifier = getNextGraphPartIdentifier();
+
+				newPart.setIdentifier(identifier);
+
+				this.parts.put(linkIdentifier, newPart);
+			}
 
 		} else {
 
@@ -425,7 +438,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 			newPart.setIdentifier(identifier);
 
-			this.parts.put(label, newPart);
+			this.parts.put(identifier, newPart);
 		}
 	}
 
