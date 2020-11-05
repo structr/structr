@@ -433,23 +433,32 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			.when()
 				.get(concat("/test_sevens?sort=name&testSixs=", test01, ",", test06));
 
-		// test simple related search with two objects, AND,
-		// expected result is exactly one element
-		RestAssured
+		try {
 
-			.given()
-				.contentType("application/json; charset=UTF-8")
+			Settings.CypherDebugLogging.setValue(true);
 
-			.expect()
-				.statusCode(200)
+			// test simple related search with two objects, AND,
+			// expected result is exactly one element
+			RestAssured
 
-				.body("result",	      hasSize(1))
-				.body("result_count", equalTo(1))
+				.given()
+					.contentType("application/json; charset=UTF-8")
 
-				.body("result[0].id", equalTo(test09))
+				.expect()
+					.statusCode(200)
 
-			.when()
-				.get(concat("/test_sevens?sort=name&testSixs=", test01, ",", test02));
+					.body("result",	      hasSize(1))
+					.body("result_count", equalTo(1))
+
+					.body("result[0].id", equalTo(test09))
+
+				.when()
+					.get(concat("/test_sevens?sort=name&testSixs=", test01, ",", test02));
+
+		} finally {
+
+			Settings.CypherDebugLogging.setValue(false);
+		}
 
 		// test simple related search with two objects, OR
 		// expected result is a list of two elements:

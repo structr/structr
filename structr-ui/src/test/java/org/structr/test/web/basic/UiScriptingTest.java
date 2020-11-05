@@ -1260,7 +1260,6 @@ public class UiScriptingTest extends StructrUiTest {
 
 			Settings.CypherDebugLogging.setValue(false);
 		}
-
 	}
 
 	// ----- private methods -----
