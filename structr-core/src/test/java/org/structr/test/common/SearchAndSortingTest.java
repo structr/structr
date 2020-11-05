@@ -2363,6 +2363,131 @@ public class SearchAndSortingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testGraphSearchWithRange() {
+
+		// setup
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema     = StructrSchema.createEmptySchema();
+			final JsonObjectType center = schema.addType("Center");
+			final JsonObjectType type1  = schema.addType("Type1");
+
+			center.relate(type1, "type1", Cardinality.ManyToMany, "centers", "types1");
+
+			center.addStringProperty("string").setIndexed(true);
+			center.addIntegerProperty("integer").setIndexed(true);
+			center.addLongProperty("long").setIndexed(true);
+			center.addNumberProperty("double").setIndexed(true);
+			center.addDateProperty("date").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class centerType = StructrApp.getConfiguration().getNodeEntityClass("Center");
+		final Class type1      = StructrApp.getConfiguration().getNodeEntityClass("Type1");
+
+		final PropertyKey types1Key      = StructrApp.key(centerType, "types1");
+		final PropertyKey stringKey      = StructrApp.key(centerType, "string");
+		final PropertyKey intKey         = StructrApp.key(centerType, "integer");
+		final PropertyKey longKey        = StructrApp.key(centerType, "long");
+		final PropertyKey doubleKey      = StructrApp.key(centerType, "double");
+		final PropertyKey dateKey        = StructrApp.key(centerType, "date");
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface type11 = app.create(type1);
+
+			app.create(centerType, new NodeAttribute<>(stringKey, "string3"), new NodeAttribute<>(intKey, 1), new NodeAttribute<>(longKey, 1L), new NodeAttribute<>(doubleKey, 1.0), new NodeAttribute<>(dateKey, new Date(5000L)), new NodeAttribute<>(types1Key, Arrays.asList(type11)));
+			app.create(centerType, new NodeAttribute<>(stringKey, "string1"), new NodeAttribute<>(intKey, 2), new NodeAttribute<>(longKey, 2L), new NodeAttribute<>(doubleKey, 2.0), new NodeAttribute<>(dateKey, new Date(4000L)), new NodeAttribute<>(types1Key, Arrays.asList(type11)));
+			app.create(centerType, new NodeAttribute<>(stringKey, "string5"), new NodeAttribute<>(intKey, 3), new NodeAttribute<>(longKey, 3L), new NodeAttribute<>(doubleKey, 3.0), new NodeAttribute<>(dateKey, new Date(3000L)), new NodeAttribute<>(types1Key, Arrays.asList(type11)));
+			app.create(centerType, new NodeAttribute<>(stringKey, "string2"), new NodeAttribute<>(intKey, 4), new NodeAttribute<>(longKey, 4L), new NodeAttribute<>(doubleKey, 4.0), new NodeAttribute<>(dateKey, new Date(2000L)), new NodeAttribute<>(types1Key, Arrays.asList(type11)));
+			app.create(centerType, new NodeAttribute<>(stringKey, "string4"), new NodeAttribute<>(intKey, 5), new NodeAttribute<>(longKey, 5L), new NodeAttribute<>(doubleKey, 5.0), new NodeAttribute<>(dateKey, new Date(1000L)), new NodeAttribute<>(types1Key, Arrays.asList(type11)));
+			app.create(centerType, new NodeAttribute<>(stringKey, "string2"), new NodeAttribute<>(intKey, 1), new NodeAttribute<>(longKey, 1L), new NodeAttribute<>(doubleKey, 1.0), new NodeAttribute<>(dateKey, new Date(5000L)));
+			app.create(centerType, new NodeAttribute<>(stringKey, "string4"), new NodeAttribute<>(intKey, 2), new NodeAttribute<>(longKey, 2L), new NodeAttribute<>(doubleKey, 2.0), new NodeAttribute<>(dateKey, new Date(4000L)));
+			app.create(centerType, new NodeAttribute<>(stringKey, "string3"), new NodeAttribute<>(intKey, 3), new NodeAttribute<>(longKey, 3L), new NodeAttribute<>(doubleKey, 3.0), new NodeAttribute<>(dateKey, new Date(3000L)));
+			app.create(centerType, new NodeAttribute<>(stringKey, "string1"), new NodeAttribute<>(intKey, 4), new NodeAttribute<>(longKey, 4L), new NodeAttribute<>(doubleKey, 4.0), new NodeAttribute<>(dateKey, new Date(2000L)));
+			app.create(centerType, new NodeAttribute<>(stringKey, "string5"), new NodeAttribute<>(intKey, 5), new NodeAttribute<>(longKey, 5L), new NodeAttribute<>(doubleKey, 5.0), new NodeAttribute<>(dateKey, new Date(1000L)));
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface type11 = (NodeInterface)app.nodeQuery(type1).getFirst();
+
+			// string
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, null, "string4", false, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, null, "string4", false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, null, "string4",  true, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, null, "string4",  true,  true).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, "string3", null, false, false).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, "string3", null, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, "string3", null,  true, false).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, "string3", null,  true,  true).getAsList().size());
+
+			// integer
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, null, 4, false, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, null, 4, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, null, 4,  true, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, null, 4,  true,  true).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, 3, null, false, false).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, 3, null, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, 3, null,  true, false).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, 3, null,  true,  true).getAsList().size());
+
+			// long
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, null, 4L, false, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, null, 4L, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, null, 4L,  true, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, null, 4L,  true,  true).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, 3L, null, false, false).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, 3L, null, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, 3L, null,  true, false).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, 3L, null,  true,  true).getAsList().size());
+
+			// double
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, null, 4.0, false, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, null, 4.0, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, null, 4.0,  true, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, null, 4.0,  true,  true).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, 3.0, null, false, false).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, 3.0, null, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, 3.0, null,  true, false).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, 3.0, null,  true,  true).getAsList().size());
+
+			// date
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, null, new Date(4000L), false, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, null, new Date(4000L), false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, null, new Date(4000L),  true, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, null, new Date(4000L),  true,  true).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, new Date(3000L), null, false, false).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, new Date(3000L), null, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, new Date(3000L), null,  true, false).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, new Date(3000L), null,  true,  true).getAsList().size());
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
 
 	// ----- private methods -----
 	private void testPaging(final Class type, final int pageSize, final int page, final int number, final int offset, final boolean includeHidden, final PropertyKey sortKey, final boolean sortDesc) throws FrameworkException {

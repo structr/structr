@@ -53,10 +53,10 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 	private boolean allowDelete        = false;
 	private boolean allowAccessControl = false;
 
-	StructrGrantDefinition(final JsonType parent, final String principalId) {
+	StructrGrantDefinition(final JsonType parent, final String principalName) {
 
-		this.parent      = parent;
-		this.principalName = principalId;
+		this.parent        = parent;
+		this.principalName = principalName;
 	}
 
 	@Override
@@ -147,7 +147,6 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 		final PropertyMap getOrCreateProperties = new PropertyMap();
 		final PropertyMap updateProperties      = new PropertyMap();
-
 		final List<Principal> principals        = app.nodeQuery(Principal.class).andName(principalName).getAsList();
 
 		if (principals.isEmpty()) {
@@ -173,7 +172,6 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 			grant = app.create(SchemaGrant.class, getOrCreateProperties);
 		}
 
-		updateProperties.put(SchemaGrant.principalName,      principalName);
 		updateProperties.put(SchemaGrant.allowRead,          getAllowRead());
 		updateProperties.put(SchemaGrant.allowWrite,         getAllowWrite());
 		updateProperties.put(SchemaGrant.allowDelete,        getAllowDelete());

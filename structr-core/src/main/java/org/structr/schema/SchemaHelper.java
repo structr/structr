@@ -1547,22 +1547,22 @@ public class SchemaHelper {
 
 				for (final SchemaGrant grant : list) {
 
-					final String principalName = grant.getProperty(SchemaGrant.principalName);
+					final String id = grant.getPrincipalId();
 
 					if (grant.getProperty(SchemaGrant.allowRead)) {
-						read.add(principalName);
+						read.add(id);
 					}
 
 					if (grant.getProperty(SchemaGrant.allowWrite)) {
-						write.add(principalName);
+						write.add(id);
 					}
 
 					if (grant.getProperty(SchemaGrant.allowDelete)) {
-						delete.add(principalName);
+						delete.add(id);
 					}
 
 					if (grant.getProperty(SchemaGrant.allowAccessControl)) {
-						accessControl.add(principalName);
+						accessControl.add(id);
 					}
 				}
 
@@ -1574,13 +1574,13 @@ public class SchemaHelper {
 				src.line(schemaNode, "@Override");
 				src.begin(schemaNode, "protected boolean allowedBySchema(final org.structr.core.entity.Principal principal, final org.structr.common.Permission permission) {");
 
-				src.line(schemaNode, "final String name = principal.getName();");
+				src.line(schemaNode, "final String id = principal.getUuid();");
 
 				src.begin(schemaNode, "switch (permission.name()) {");
-				src.line(schemaNode, "case \"read\":          return readGrants.contains(name);");
-				src.line(schemaNode, "case \"write\":         return writeGrants.contains(name);");
-				src.line(schemaNode, "case \"delete\":        return deleteGrants.contains(name);");
-				src.line(schemaNode, "case \"accessControl\": return accessControlGrants.contains(name);");
+				src.line(schemaNode, "case \"read\":          return readGrants.contains(id);");
+				src.line(schemaNode, "case \"write\":         return writeGrants.contains(id);");
+				src.line(schemaNode, "case \"delete\":        return deleteGrants.contains(id);");
+				src.line(schemaNode, "case \"accessControl\": return accessControlGrants.contains(id);");
 				src.end();
 
 				src.line(schemaNode, "return super.allowedBySchema(principal, permission);");

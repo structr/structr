@@ -2844,7 +2844,8 @@ input.dataKey_ {
 }
 
 .localization-element table td.input input {
-	width: calc(100% - 12px);
+	width: calc(100% - 28px);
+	margin-right: 2px;
 }
 
 /* Special highlighting for data-structr-hash attribute in internal editor */
@@ -4851,6 +4852,25 @@ i.fa.ps {
 
 #virtual-types-list td.allow-break, #mail-templates-list td.allow-break, #localizations-list td.allow-break {
 	word-break: break-all;
+}
+
+#localizations div.allow-break {
+	word-break: break-all;
+	white-space: normal;
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	overflow: hidden;
+	-webkit-box-orient: vertical;
+	text-overflow: ellipsis;
+}
+
+#localizations .node.nodeHover tr:not(.has-value) .delete,
+#localizations .node:not(.nodeHover) .delete {
+	display:none;
+}
+
+#localizations .node.nodeHover .has-value .delete {
+	display:inline;
 }
 
 #virtual-type-detail, #mail-template-detail, #localization-detail {

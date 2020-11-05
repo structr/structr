@@ -30,12 +30,12 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.PrincipalSchemaGrantRelationship;
 import org.structr.core.entity.relationship.SchemaGrantSchemaNodeRelationship;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
 
 /**
  *
@@ -46,7 +46,6 @@ public class SchemaGrant extends SchemaReloadingNode {
 	private static final Logger logger                              = LoggerFactory.getLogger(SchemaGrant.class.getName());
 	public static final Property<Principal>  principal              = new StartNode<>("principal", PrincipalSchemaGrantRelationship.class);
 	public static final Property<SchemaNode> schemaNode             = new EndNode<>("schemaNode", SchemaGrantSchemaNodeRelationship.class);
-	public static final Property<String> principalName              = new StringProperty("principalName");
 	public static final Property<Boolean> allowRead                 = new BooleanProperty("allowRead");
 	public static final Property<Boolean> allowWrite                = new BooleanProperty("allowWrite");
 	public static final Property<Boolean> allowDelete               = new BooleanProperty("allowDelete");
@@ -68,8 +67,44 @@ public class SchemaGrant extends SchemaReloadingNode {
 		principal, schemaNode, allowRead, allowWrite, allowDelete, allowAccessControl
 	);
 
+	public String getPrincipalId() {
+
+		// When Structr starts, the schema is not yet compiled and the Principal class does not yet
+		// exist, so we only get GenericNode instances. Relationships are filtered by node type, and
+		// that filter removes GenericNode instances, so we must use the unfiltered relationship
+		// collection and check manually.
+
+		for (final AbstractRelationship rel : getIncomingRelationships()) {
+
+			if (rel != null && rel instanceof PrincipalSchemaGrantRelationship) {
+
+				return rel.getSourceNodeId();
+			}
+		}
+
+		return null;
+	}
+
 	public String getPrincipalName() {
-		return getProperty(principalName);
+
+		// When Structr starts, the schema is not yet compiled and the Principal class does not yet
+		// exist, so we only get GenericNode instances. Relationships are filtered by node type, and
+		// that filter removes GenericNode instances, so we must use the unfiltered relationship
+		// collection and check manually.
+
+		for (final AbstractRelationship rel : getIncomingRelationships()) {
+
+			if (rel != null && rel instanceof PrincipalSchemaGrantRelationship) {
+
+				final NodeInterface _principal = rel.getSourceNode();
+				if (_principal != null) {
+
+					return _principal.getProperty(AbstractNode.name);
+				}
+			}
+		}
+
+		return null;
 	}
 
 	@Override
@@ -89,11 +124,7 @@ public class SchemaGrant extends SchemaReloadingNode {
 		super.onCreation(securityContext, errorBuffer);
 
 		final Principal p = getProperty(principal);
-		if (p != null) {
-
-			setProperty(principalName, p.getName());
-
-		} else {
+		if (p == null) {
 
 			// no principal => delete
 			logger.warn("Deleting SchemaGrant {} because it is not linked to a principal.", getUuid());
@@ -113,11 +144,7 @@ public class SchemaGrant extends SchemaReloadingNode {
 		super.onModification(securityContext, errorBuffer, modificationQueue);
 
 		final Principal p = getProperty(principal);
-		if (p != null) {
-
-			setProperty(principalName, p.getName());
-
-		} else {
+		if (p == null) {
 
 			// no principal => delete
 			logger.warn("Deleting SchemaGrant {} because it is not linked to a principal.", getUuid());

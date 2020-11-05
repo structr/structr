@@ -104,6 +104,10 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 				// execute deploy command
 				cmd.execute(firstExportParams);
 
+				if (cleanDatabase) {
+					cleanDatabase();
+				}
+
 				// apply callback if present
 				if (callback != null) {
 					callback.apply(null);

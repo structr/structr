@@ -269,58 +269,57 @@ export class Frontend {
 		let target = event.currentTarget;
 		let data   = target.dataset;
 		let id     = data.structrId;
+		let delay  = 0;
 
-		// special handling for possible sort keys (can contain multiple values, separated by ,)
-		let sortKey = this.getFirst(data.structrTarget);
-
-		// special handling for frontend-only events (pagination, sorting)
-		if (sortKey && data[sortKey]) {
-
-			// The above condition is true when the dataset of an element contains a value with the same name as the
-			// data-structr-target attribute. This is currently only true for pagination and sorting, where
-			// data-structr-target="page" and data-page="1" (which comes from the backend), or
-			// data-structr-target="sort" and data-sort="sortKeyName".
-
-			let delay = 0;
-
-			if (data && data.structrOptions) {
-				try {
-					let options = JSON.parse(data.structrOptions);
-					if (options && options.delay) {
-						delay = options.delay;
-					}
-				} catch (e) {}
-			}
-
-			if (this.timeout) {
-				window.clearTimeout(this.timeout);
-			}
-
-			this.timeout = window.setTimeout(() => {
-				// handlePagination uses the event.target property because
-				// the event handling is delayed and currentTarget is not
-				// available in delayed event handlers.
-				this.handlePagination(event, target);
-			}, delay);
-
-		} else {
-
-			// server-side
-			if (id && id.length === 32) {
-
-				// store event type in htmlEvent property
-				data.htmlEvent = event.type;
-
-				fetch('/structr/rest/DOMElement/' + id + '/event', {
-					body: JSON.stringify(this.resolveData(event, target)),
-					method: 'post',
-					credentials: 'same-origin'
-				})
-				.then(response => response.json())
-				.then(json     => this.handleResult(target, json.result))
-				.catch(error   => this.handleError(target, error));
-			}
+		// adjust debounce delay if set
+		if (data && data.structrOptions) {
+			try {
+				let options = JSON.parse(data.structrOptions);
+				if (options && options.delay) {
+					delay = options.delay;
+				}
+			} catch (e) {}
 		}
+
+		if (this.timeout) {
+			window.clearTimeout(this.timeout);
+		}
+
+		this.timeout = window.setTimeout(() => {
+
+			// special handling for possible sort keys (can contain multiple values, separated by ,)
+			let sortKey = this.getFirst(data.structrTarget);
+
+			// special handling for frontend-only events (pagination, sorting)
+			if (sortKey && data[sortKey]) {
+
+				// The above condition is true when the dataset of an element contains a value with the same name as the
+				// data-structr-target attribute. This is currently only true for pagination and sorting, where
+				// data-structr-target="page" and data-page="1" (which comes from the backend), or
+				// data-structr-target="sort" and data-sort="sortKeyName".
+
+				this.handlePagination(event, target);
+
+			} else {
+
+				// server-side
+				if (id && id.length === 32) {
+
+					// store event type in htmlEvent property
+					data.htmlEvent = event.type;
+
+					fetch('/structr/rest/DOMElement/' + id + '/event', {
+						body: JSON.stringify(this.resolveData(event, target)),
+						method: 'post',
+						credentials: 'same-origin'
+					})
+					.then(response => response.json())
+					.then(json     => this.handleResult(target, json.result))
+					.catch(error   => this.handleError(target, error));
+				}
+			}
+
+		}, delay);
 	}
 
 	getFirst(csvString) {
