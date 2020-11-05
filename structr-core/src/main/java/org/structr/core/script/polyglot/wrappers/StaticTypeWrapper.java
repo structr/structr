@@ -34,6 +34,7 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Actions;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -59,89 +60,51 @@ public class StaticTypeWrapper implements ProxyObject {
 	@Override
 	public Object getMember(String key) {
 
-		Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods(referencedClass, Export.class);
+		// Ensure that  method is static
+		try (final Tx tx = app.tx()) {
+			SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(referencedClass.getSimpleName()).getFirst();
 
-		if (methods.containsKey(key)) {
-			Method method = methods.get(key);
+			if (schemaNode != null) {
 
-			// Ensure that  method is static
-			try (final Tx tx = app.tx()) {
-				SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(referencedClass.getSimpleName()).getFirst();
+				List<SchemaMethod> schemaMethods = Iterables.toList(schemaNode.getSchemaMethods());
 
-				if (schemaNode != null) {
+				for (SchemaMethod m : schemaMethods) {
 
-					List<SchemaMethod> schemaMethods = Iterables.toList(schemaNode.getSchemaMethods());
-					boolean matchingStaticMethodFound = false;
+					if (m.getName().equals(key) && m.isStaticMethod()) {
 
-					for (SchemaMethod m : schemaMethods) {
 
-						if (m.getName().equals(key) && m.isStaticMethod()) {
+						return (ProxyExecutable) arguments -> {
 
-							matchingStaticMethodFound = true;
-							break;
-						}
-					}
+							try {
+								Map<String, Object> parameters = new HashMap<>();
 
-					if (!matchingStaticMethodFound) {
+								if (arguments.length == 1) {
 
-						return null;
+									Object parameter = PolyglotWrapper.unwrap(actionContext, arguments[0]);
+									if (parameter instanceof Map) {
+
+										parameters = (Map<String, Object>)parameter;
+									}
+								}
+
+								return Actions.execute(actionContext.getSecurityContext(), null, SchemaMethod.getCachedSourceCode(m.getUuid()), parameters, referencedClass.getSimpleName() + "." + key);
+							} catch (FrameworkException ex) {
+
+								logger.error("Unexpected exception while trying to call static schema type method.", ex);
+							}
+
+							return null;
+						};
 					}
 				}
 
-				tx.success();
-			} catch (FrameworkException ex) {
-
-				logger.warn("Unexpected exception while trying to look up schema method.", ex);
-				return null;
 			}
 
-			return (ProxyExecutable) arguments -> {
+			tx.success();
+		} catch (FrameworkException ex) {
 
-				try {
-
-					int paramCount = method.getParameterCount();
-
-					// FixMe: Ensure that static schema methods get compiled to static java methods and pass null as caller object instead new instance
-					Object newInstance = null;
-					try {
-						newInstance = referencedClass.newInstance();
-					} catch (Exception ex) {
-						logger.warn("Could not instantiate new instance of class " + referencedClass.getSimpleName());
-					}
-
-					if (paramCount == 0) {
-
-						return PolyglotWrapper.wrap(actionContext, method.invoke(newInstance));
-					} else if (paramCount == 1) {
-
-						return PolyglotWrapper.wrap(actionContext, method.invoke(newInstance, actionContext.getSecurityContext()));
-					} else if (paramCount == 2 && arguments.length == 0) {
-
-						return PolyglotWrapper.wrap(actionContext, method.invoke(newInstance, actionContext.getSecurityContext(), new HashMap<String, Object>()));
-					} else if (arguments.length == 0) {
-
-						return PolyglotWrapper.wrap(actionContext, method.invoke(newInstance, actionContext.getSecurityContext()));
-					} else {
-
-						return PolyglotWrapper.wrap(actionContext, method.invoke(newInstance, ArrayUtils.add(Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray(), 0, actionContext.getSecurityContext())));
-					}
-
-				} catch (IllegalAccessException ex) {
-
-					logger.error("Unexpected exception while trying to get GraphObject member.", ex);
-				} catch (InvocationTargetException ex) {
-
-					if (ex.getTargetException() instanceof FrameworkException) {
-
-						throw new RuntimeException(ex.getTargetException());
-					}
-					logger.error("Unexpected exception while trying to get GraphObject member.", ex);
-				}
-
-				return null;
-
-			};
-
+			logger.warn("Unexpected exception while trying to look up schema method.", ex);
+			return null;
 		}
 
 		return null;
