@@ -80,6 +80,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<String[]>           tags                    = new ArrayProperty("tags", String.class).indexed();
 	public static final Property<String>             summary                 = new StringProperty("summary");
 	public static final Property<String>             description             = new StringProperty("description");
+	public static final Property<Boolean>            isStatic                = new BooleanProperty("isStatic");
 
 	// property which is only used to mark a schema method as "will be deleted"
 	public static final Property<Boolean>            deleteMethod             = new BooleanProperty("deleteMethod").defaultValue(Boolean.FALSE);
@@ -89,15 +90,15 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	));
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
-		name, schemaNode, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description
+		name, schemaNode, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic
 	);
 
 	public static final View uiView = new View(SchemaMethod.class, PropertyView.Ui,
-		name, schemaNode, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description
+		name, schemaNode, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
-		id, type, schemaNode, name, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description
+		id, type, schemaNode, name, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic
 	);
 
 	public ActionEntry getActionEntry(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode schemaEntity) throws FrameworkException {
@@ -140,6 +141,8 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 		return entry;
 	}
+
+	public boolean isStaticMethod() { return getProperty(isStatic);}
 
 	public boolean isJava() {
 		return "java".equals(getProperty(codeType));
