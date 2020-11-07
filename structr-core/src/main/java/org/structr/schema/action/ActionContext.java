@@ -120,30 +120,42 @@ public class ActionContext {
 		this.temporaryContextStore.setConstant(name, data);
 	}
 
-	public Object getReferencedProperty(final GraphObject entity, final String refKey, final Object initialData, final int depth) throws FrameworkException {
+	public Object getReferencedProperty(final GraphObject entity, final String initialRefKey, final Object initialData, final int depth) throws FrameworkException {
 
 		final String DEFAULT_VALUE_SEP = "!";
-		final String[] parts           = refKey.split("[\\.]+");
-		Object _data                   = initialData;
+
+		// split
+		String refKey        = initialRefKey;
+		String[] parts       = refKey.split("[\\.]+");
+		Object _data         = initialData;
+		String defaultValue  = null;
+
+		if (StringUtils.contains(refKey, DEFAULT_VALUE_SEP)) {
+
+			String[] refs = StringUtils.split(refKey, DEFAULT_VALUE_SEP);
+			refKey        = refs[0];
+
+			if (refs.length > 1) {
+				defaultValue = refs[1];
+			}
+		}
 
 		// walk through template parts
 		for (int i = 0; i < parts.length; i++) {
 
-			String key          = parts[i];
-			String defaultValue = null;
+			String key = parts[i];
+			_data      = evaluate(entity, key, _data, defaultValue, i+depth);
 
+			// stop evaluation on null, return default value or null
+			if (_data == null) {
 
-			if (StringUtils.contains(key, DEFAULT_VALUE_SEP)) {
+				// default value?
+				if (defaultValue != null) {
 
-				String[] ref = StringUtils.split(key, DEFAULT_VALUE_SEP);
-				key          = ref[0];
-
-				if (ref.length > 1) {
-					defaultValue = ref[1];
+					return defaultValue;
 				}
+				break;
 			}
-
-			_data = evaluate(entity, key, _data, defaultValue, i+depth);
 		}
 
 		return _data;
