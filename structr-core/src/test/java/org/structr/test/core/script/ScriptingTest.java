@@ -31,11 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonFunctionProperty;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
+import org.structr.api.schema.*;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
 import org.structr.common.AccessMode;
@@ -5522,6 +5518,156 @@ public class ScriptingTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
+	}
+	
+	@Test
+	public void testStaticAndDynamicMethodCall() {
+
+		/**
+		 * 1. Call context tests
+		 * 2. Reference this tests
+		 * 3. Binding order test
+		 * */
+
+		// setup schema
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType project  = schema.addType("StaticMethodTest");
+
+			JsonMethod staticCallTestMethod  = project.addMethod("doStaticTest", "{}", "");
+			JsonMethod dynamicCallTestMethod = project.addMethod("doDynamicTest", "{}", "");
+
+			JsonMethod staticThisTestMethod  = project.addMethod("doStaticTestWithThis", "{ return $.this.type; }", "");
+			JsonMethod dynamicThisTestMethod = project.addMethod("doDynamicTestWithThis", "{ return $.this.type; }", "");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			// make methods static
+			SchemaNode schemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName("StaticMethodTest").getFirst();
+			List<SchemaMethod> schemaMethods = Iterables.toList(schemaNode.getSchemaMethods());
+
+			for(SchemaMethod method : schemaMethods) {
+
+				if(method.getName().equals("doStaticTest") || method.getName().equals("doStaticTestWithThis")) {
+					method.setProperty(SchemaMethod.isStatic, true);
+				}
+
+			}
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+
+		}
+
+		/**
+		 * 1. Call context tests
+		 *
+		 * Method  | Context | Expected Result
+		 * --------+---------+----------------
+		 * static  | static  | success
+		 * static  | dynamic | failure
+		 * dynamic | static  | failure
+		 * dynamic | dynamic | success
+		 *
+		 * */
+
+		final ActionContext ctx = new ActionContext(securityContext);
+		final Class testType    = StructrApp.getConfiguration().getNodeEntityClass("StaticMethodTest");
+
+		// call static method from static context
+		try (final Tx tx = app.tx()) {
+
+			final Object result = Scripting.evaluate(ctx, null, "${{ $.StaticMethodTest.doStaticTest(); }}", "doStaticTest");
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+
+		}
+
+		// call static method from dynamic context
+		try (final Tx tx = app.tx()) {
+
+			app.create(testType, "test");
+
+			final Object result = Scripting.evaluate(ctx, null, "${{ const test = $.find('StaticMethodTest')[0]; test.doStaticTest(); }}", "test");
+
+			fail("Calling static method from dynamic context should result in an Exception!");
+
+		} catch (Throwable fex) {}
+
+		// call dynamic method from static context
+		try (final Tx tx = app.tx()) {
+
+			final Object result = Scripting.evaluate(ctx, null, "${{ $.StaticMethodTest.doDynamicTest(); }}", "doDynamicTest");
+			fail("Calling dynamic method from static context should result in an Exception!");
+
+		} catch (Throwable fex) {}
+
+		// call dynamic method from dynamic context
+		try (final Tx tx = app.tx()) {
+
+			app.create(testType, "test");
+
+			final Object result = Scripting.evaluate(ctx, null, "${{ const test = $.find('StaticMethodTest')[0]; test.doDynamicTest(); }}", "doDynamicTest");
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+
+		}
+
+		/**
+		 * 2. Reference this tests
+		 *
+		 * Method  | Access $.this | Expected Result
+		 * --------+---------------+----------------
+		 * static  | true          | failure
+		 * dynamic | true          | success
+		 *
+		 * */
+
+		// reference $.this from static method
+		try (final Tx tx = app.tx()) {
+
+			final Object result = Scripting.evaluate(ctx, null, "${{ $.StaticMethodTest.doStaticTestWithThis(); }}", "doStaticTestWithThis");
+			fail("Referencing $.this from a static method should result in an Exception!");
+
+		} catch (Throwable fex) {}
+
+		// reference $.this from dynamic method
+		try (final Tx tx = app.tx()) {
+
+			app.create(testType, "test");
+
+			final Object result = Scripting.evaluate(ctx, null, "${{ const test = $.find('StaticMethodTest')[0]; test.doDynamicTestWithThis(); }}", "doDynamicTestWithThis");
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+
+		}
+
+		/**
+		 * 3. Binding order test
+		 * local variables bind stronger than class names
+		 * */
+
+
+		// reference $.this from static method
+		try (final Tx tx = app.tx()) {
+
+			ctx.setConstant("StaticMethodTest", Boolean.TRUE);
+			final Object result = Scripting.evaluate(ctx, null, "${{ $.StaticMethodTest.doStaticTest(); }}", "doStaticTest");
+			fail("Local variable or constant should overwrite the Class constant!");
+
+		} catch (Throwable fex) {}
+
 	}
 
 
