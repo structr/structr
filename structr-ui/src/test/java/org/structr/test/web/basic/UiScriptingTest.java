@@ -84,6 +84,7 @@ import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.test.web.entity.TestOne;
+import org.structr.test.web.entity.TestTwo;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
@@ -98,6 +99,7 @@ import org.structr.web.entity.html.Table;
 import org.structr.websocket.command.CreateComponentCommand;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
@@ -1261,6 +1263,49 @@ public class UiScriptingTest extends StructrUiTest {
 			Settings.CypherDebugLogging.setValue(false);
 		}
 	}
+
+	@Test
+	public void testLeakingKeywordsAndDefaultsInStructrScriptDotExpressions() {
+
+		final RenderContext ctx = new RenderContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			createTestNode(TestOne.class);
+			createTestNode(TestTwo.class);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final TestOne testOne = app.nodeQuery(TestOne.class).getFirst();
+			final TestTwo testTwo = app.nodeQuery(TestTwo.class).getFirst();
+
+			ctx.setConstant("existing", testOne);
+			ctx.setDetailsDataObject(testTwo);
+
+			assertEquals("Invalid dot notation result for existing keyword",     testOne.getUuid(), Scripting.evaluate(ctx, testOne, "${existing.id}", "existing keyword test"));
+			assertEquals("Invalid dot notation result for current",              testTwo.getUuid(), Scripting.evaluate(ctx, testOne, "${current.id}", "current test"));
+			assertEquals("Invalid dot notation result for current with default",            "test", Scripting.evaluate(ctx, testOne, "${current.nonexisting!test}", "current test"));
+			assertEquals("Invalid dot notation result with default",                        "moep", Scripting.evaluate(ctx, testOne, "${nonexisting.existing.id!moep}", "keyword chain test"));
+			assertEquals("Invalid dot notation result with default",                       "moep2", Scripting.evaluate(ctx, testOne, "${existing.nonexisting.id!moep2}", "keyword chain test"));
+			assertEquals("Invalid dot notation result with default",                       "moep3", Scripting.evaluate(ctx, testOne, "${nonexisting.id!moep3}", "nonexisting keyword test"));
+			assertNull("Invalid dot notation result for nonexisting keyword",                       Scripting.evaluate(ctx, testOne, "${nonexisting.id}", "nonexisting keyword test"));
+			assertNull("Invalid dot notation result for keyword chain",                             Scripting.evaluate(ctx, testOne, "${existing.nonexisting.id}", "keyword chain test"));
+			assertNull("Invalid dot notation result for keyword chain",                             Scripting.evaluate(ctx, testOne, "${nonexisting.existing.id}", "keyword chain test"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+		}
+	}
+
 
 	// ----- private methods -----
 	private String getEncodingInUse() {

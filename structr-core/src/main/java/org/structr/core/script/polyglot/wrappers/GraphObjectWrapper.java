@@ -24,11 +24,17 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.function.GrantFunction;
@@ -38,6 +44,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
@@ -66,6 +73,36 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 			Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class);
 			if (methods.containsKey(key)) {
 				Method method = methods.get(key);
+
+				App app = StructrApp.getInstance();
+
+				try (final Tx tx = app.tx()) {
+
+					SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(((AbstractNode) node).getClass().getSimpleName()).getFirst();
+					List<SchemaMethod> schemaMethods = Iterables.toList(schemaNode.getSchemaMethods());
+
+					boolean nonStaticMethodFound = false;
+
+					for (SchemaMethod schemaMethod : schemaMethods) {
+
+						if (schemaMethod.getName().equals(key) && !schemaMethod.isStaticMethod()) {
+
+							nonStaticMethodFound = true;
+							break;
+						}
+					}
+
+					if (!nonStaticMethodFound) {
+
+						logger.warn("Tried calling a static type method in a non-static way on a type instance.");
+						return null;
+					}
+
+					tx.success();
+				} catch (FrameworkException ex) {
+
+					logger.error("Unexpected exception while trying to retrieve member method of graph object.", ex);
+				}
 
 				return (ProxyExecutable) arguments -> {
 
