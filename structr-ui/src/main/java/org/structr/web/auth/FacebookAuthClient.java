@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -32,7 +32,7 @@ public class FacebookAuthClient extends StructrOAuthClient {
 
 	@Override
 	public String getScope() {
-		return "email";
+		return Settings.OAuthFacebookScope.getValue();
 	}
 
 	@Override
@@ -53,5 +53,15 @@ public class FacebookAuthClient extends StructrOAuthClient {
 	@Override
 	public String getCredential(final HttpServletRequest request) {
 		return StringUtils.replace(getValue(request, "email"), "\u0040", "@");
+	}
+
+	@Override
+	protected String getAccessTokenLocationKey() {
+		return Settings.OAuthFacebookAccessTokenLocation.getKey();
+	}
+
+	@Override
+	protected String getAccessTokenLocation() {
+		return Settings.OAuthFacebookAccessTokenLocation.getValue("query");
 	}
 }

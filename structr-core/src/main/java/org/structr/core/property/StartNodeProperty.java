@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -24,56 +24,38 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.RelationshipStartNodeConverter;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * A property that returns the start node of a relationship.
- *
- *
  */
 public class StartNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 
 	public StartNodeProperty(String name) {
-
 		super(name);
-
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
-
 		return databaseConverter(securityContext, null);
-
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
-
 		return new RelationshipStartNodeConverter(securityContext, entity);
-
 	}
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
-
 		return null;
-
 	}
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
-
 		return null;
-
 	}
 
 	@Override
 	public String typeName() {
-
 		return null;
-
 	}
 
 	@Override
@@ -84,5 +66,11 @@ public class StartNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	@Override
 	public SortType getSortType() {
 		return SortType.Default;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
 	}
 }

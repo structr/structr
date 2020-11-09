@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -91,9 +91,11 @@ public class EnvResource extends Resource {
 		info.setProperty(new StringProperty("availableReleasesUrl"), Settings.ReleasesIndexUrl.getValue());
 		info.setProperty(new StringProperty("availableSnapshotsUrl"), Settings.SnapshotsIndexUrl.getValue());
 
+		info.setProperty(new StringProperty("maintenanceModeActive"), Settings.MaintenanceModeEnabled.getValue());
+
 		resultList.add(info);
 
-		return new PagingIterable(resultList);
+		return new PagingIterable("/" + getUriPart(), resultList);
 	}
 
 	@Override

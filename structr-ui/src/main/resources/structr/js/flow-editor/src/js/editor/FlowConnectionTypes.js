@@ -105,6 +105,12 @@ export class FlowConnectionTypes {
                 sourceAttribute: "forkBody",
                 targetAttribute: "prev",
                 type: "FlowForkBody"
+            },
+            FlowSwitchCases: {
+                name: "SWITCH_CASE",
+                sourceAttribute: "cases",
+                targetAttribute: "switch",
+                type: "FlowSwitchCases"
             }
         };
 

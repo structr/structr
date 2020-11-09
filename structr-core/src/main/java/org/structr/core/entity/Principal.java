@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -24,17 +24,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.Node;
-import org.structr.common.AccessControllable;
-import org.structr.common.EMailValidator;
-import org.structr.common.LowercaseTransformator;
-import org.structr.common.PropertyView;
+import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
@@ -46,6 +45,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
+import org.structr.core.app.App;
 
 public interface Principal extends NodeInterface, AccessControllable {
 
@@ -63,6 +63,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		// FIXME: indexedWhenEmpty() is not possible here, but needed?
 		principal.addStringArrayProperty("sessionIds").setIndexed(true);
+		principal.addStringArrayProperty("refreshTokens").setIndexed(true);
 
 		principal.addStringProperty("sessionData");
 
@@ -70,10 +71,10 @@ public interface Principal extends NodeInterface, AccessControllable {
 			.setIndexed(true)
 			.setUnique(true)
 			.addValidator(EMailValidator.class.getName())
-			.addTransformer(LowercaseTransformator.class.getName());
+			.addTransformer(LowercaseTransformator.class.getName())
+			.addTransformer(TrimTransformator.class.getName());
 
 		principal.addPasswordProperty("password");
-
 
 		// Password Policy
 		principal.addDateProperty("passwordChangeDate");
@@ -135,8 +136,13 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.overrideMethod("getParents",                      false, "return " + Principal.class.getName() + ".getParents(this);");
 		principal.overrideMethod("getParentsPrivileged",            false, "return " + Principal.class.getName() + ".getParentsPrivileged(this);");
 		principal.overrideMethod("isValidPassword",                 false, "return " + Principal.class.getName() + ".isValidPassword(this, arg0);");
+
 		principal.overrideMethod("addSessionId",                    false, "return " + Principal.class.getName() + ".addSessionId(this, arg0);");
+		principal.overrideMethod("addRefreshToken",                 false, "return " + Principal.class.getName() + ".addRefreshToken(this, arg0);");
+
 		principal.overrideMethod("removeSessionId",                 false, Principal.class.getName() + ".removeSessionId(this, arg0);");
+		principal.overrideMethod("removeRefreshToken",                 false, Principal.class.getName() + ".removeRefreshToken(this, arg0);");
+
 		principal.overrideMethod("onAuthenticate",                  false, "");
 
 		// override getProperty
@@ -170,12 +176,15 @@ public interface Principal extends NodeInterface, AccessControllable {
 	Iterable<Group> getGroups();
 
 	Iterable<Principal> getParents();
-	List<Principal> getParentsPrivileged();
+	Iterable<Principal> getParentsPrivileged();
 
 	boolean isValidPassword(final String password);
 
 	boolean addSessionId(final String sessionId);
 	void removeSessionId(final String sessionId);
+
+	boolean addRefreshToken(final String refreshToken);
+	void removeRefreshToken(final String refreshToken);
 
 	String getSessionData();
 	String getEMail();
@@ -199,16 +208,21 @@ public interface Principal extends NodeInterface, AccessControllable {
 		return principal.getProperty(StructrApp.key(Principal.class, "groups"));
 	}
 
-	public static List<Principal> getParentsPrivileged(final Principal principal) {
+	public static Iterable<Principal> getParentsPrivileged(final Principal principal) {
 
 		try {
 
-			return StructrApp.getInstance().nodeQuery(Principal.class).and(StructrApp.key(Group.class, "members"), Arrays.asList(principal)).getAsList();
+			final App app                       = StructrApp.getInstance();
+			final Principal privilegedPrincipal = app.get(Principal.class, principal.getUuid());
+
+			return privilegedPrincipal.getProperty(StructrApp.key(Principal.class, "groups"));
 
 		} catch (FrameworkException fex) {
 
+			final Logger logger = LoggerFactory.getLogger(Principal.class);
+
 			logger.warn("Caught exception while fetching groups for user '{}' ({})", principal.getName(), principal.getUuid());
-			fex.printStackTrace();
+			logger.warn(ExceptionUtils.getStackTrace(fex));
 
 			return Collections.emptyList();
 		}
@@ -227,6 +241,8 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 					if (Settings.MaxSessionsPerUser.getValue() > 0 && ids.length >= Settings.MaxSessionsPerUser.getValue()) {
 
+						final Logger logger = LoggerFactory.getLogger(Principal.class);
+
 						final String errorMessage = "Not adding session id, limit " + Settings.MaxSessionsPerUser.getKey() + " exceeded.";
 						logger.warn(errorMessage);
 
@@ -244,7 +260,49 @@ public interface Principal extends NodeInterface, AccessControllable {
 			return true;
 
 		} catch (FrameworkException ex) {
+
+			final Logger logger = LoggerFactory.getLogger(Principal.class);
 			logger.error("Could not add sessionId " + sessionId + " to array of sessionIds", ex);
+
+			return false;
+		}
+	}
+
+	public static boolean addRefreshToken(final Principal principal, final String refreshToken) {
+		try {
+
+			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "refreshTokens");
+			final String[] refreshTokens    = principal.getProperty(key);
+
+			if (refreshTokens != null) {
+
+				if (!ArrayUtils.contains(refreshTokens, refreshToken)) {
+
+					if (Settings.MaxSessionsPerUser.getValue() > 0 && refreshTokens.length >= Settings.MaxSessionsPerUser.getValue()) {
+
+						final Logger logger = LoggerFactory.getLogger(Principal.class);
+
+						final String errorMessage = "Not adding session id, limit " + Settings.MaxSessionsPerUser.getKey() + " exceeded.";
+						logger.warn(errorMessage);
+
+						return false;
+					}
+
+					principal.setProperty(key, (String[]) ArrayUtils.add(principal.getProperty(key), refreshToken));
+				}
+
+			} else {
+
+				principal.setProperty(key, new String[] {  refreshToken } );
+			}
+
+			return true;
+
+		} catch (FrameworkException ex) {
+
+			final Logger logger = LoggerFactory.getLogger(Principal.class);
+			logger.error("Could not add refreshToken " + refreshToken + " to array of refreshTokens", ex);
+
 			return false;
 		}
 	}
@@ -266,7 +324,32 @@ public interface Principal extends NodeInterface, AccessControllable {
 			}
 
 		} catch (FrameworkException ex) {
+
+			final Logger logger = LoggerFactory.getLogger(Principal.class);
 			logger.error("Could not remove sessionId " + sessionId + " from array of sessionIds", ex);
+		}
+	}
+
+	public static void removeRefreshToken(final Principal principal, final String refreshToken) {
+
+		try {
+
+			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "refreshTokens");
+			final String[] refreshTokens    = principal.getProperty(key);
+
+			if (refreshTokens != null) {
+
+				final Set<String> sessionIds = new HashSet<>(Arrays.asList(refreshTokens));
+
+				sessionIds.remove(refreshToken);
+
+				principal.setProperty(key, (String[]) sessionIds.toArray(new String[0]));
+			}
+
+		} catch (FrameworkException ex) {
+
+			final Logger logger = LoggerFactory.getLogger(Principal.class);
+			logger.error("Could not remove refreshToken " + refreshToken + " from array of refreshTokens", ex);
 		}
 	}
 
@@ -320,6 +403,13 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 	public static String getTwoFactorUrl(final Principal principal) {
 
+		if (principal == null) {
+
+			LoggerFactory.getLogger(Principal.class).warn("Cannot fetch twofactor URL from user, user is null!");
+
+			return null;
+		}
+
 		final String twoFactorIssuer    = Settings.TwoFactorIssuer.getValue();
 		final String twoFactorAlgorithm = Settings.TwoFactorAlgorithm.getValue();
 		final Integer twoFactorDigits   = Settings.TwoFactorDigits.getValue();
@@ -345,7 +435,10 @@ public interface Principal extends NodeInterface, AccessControllable {
 			return new URI("otpauth", null, "totp", -1, path.toString(), query.toString(), null).toString();
 
 		} catch (URISyntaxException use) {
+
+			final Logger logger = LoggerFactory.getLogger(Principal.class);
 			logger.warn("two_factor_url(): URISyntaxException for {}?{}", path, query, use);
+
 			return "URISyntaxException for " + path + "?" + query;
 		}
 	}

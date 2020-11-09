@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -19,6 +19,7 @@
 package org.structr.core.property;
 
 import java.util.Comparator;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.structr.api.Predicate;
@@ -406,5 +407,21 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public Comparator<GraphObject> sorted(final boolean descending) {
 		return propertyKey.sorted(descending);
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return propertyKey.getExampleValue(type, viewName);
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+		return propertyKey.describeOpenAPIOutputType(type, viewName, level);
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+		return propertyKey.describeOpenAPIInputType(type, viewName, level);
 	}
 }

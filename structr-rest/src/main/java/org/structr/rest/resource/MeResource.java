@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -81,7 +81,7 @@ public class MeResource extends TypedIdResource {
 		Principal user = securityContext.getUser(true);
 		if (user != null) {
 
-			return new PagingIterable<>(Arrays.asList(user));
+			return new PagingIterable<>("/" + getUriPart(), Arrays.asList(user));
 			//return new ResultStream(resultList, isCollectionResource(), isPrimitiveArray());
 
 		} else {

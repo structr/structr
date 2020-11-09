@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -20,9 +20,13 @@ package org.structr.web.entity;
 
 import java.io.IOException;
 import java.net.URI;
+import java.sql.Struct;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.Permission;
@@ -35,6 +39,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
@@ -42,6 +48,7 @@ import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonSchema.Cascade;
+import org.structr.web.agent.ThumbnailTask;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.common.ImageHelper.Thumbnail;
@@ -218,7 +225,7 @@ public interface Image extends File {
 
 			if (modificationQueue.isPropertyModified(thisImage, name)) {
 
-				final String newImageName = getName();
+				final String newImageName = thisImage.getName();
 
 				for (Image tn : thisImage.getThumbnails()) {
 
@@ -227,6 +234,7 @@ public interface Image extends File {
 
 					if ( !expectedThumbnailName.equals(currentThumbnailName) ) {
 
+						final Logger logger = LoggerFactory.getLogger(Image.class);
 						logger.debug("Auto-renaming Thumbnail({}) from '{}' to '{}'", tn.getUuid(), currentThumbnailName, expectedThumbnailName);
 						tn.setProperty(AbstractNode.name, expectedThumbnailName);
 
@@ -234,33 +242,6 @@ public interface Image extends File {
 				}
 			}
 		}
-	}
-
-	/*
-
-	public Integer getWidth() {
-
-		return getProperty(Image.width);
-
-	}
-
-	public Integer getHeight() {
-
-		return getProperty(Image.height);
-
-	}
-
-	public List<Image> getThumbnails() {
-
-		final List<Image> thumbnails = new LinkedList<>();
-
-		for (final AbstractRelationship s : getThumbnailRelationships()) {
-
-			thumbnails.add((Image) s.getTargetNode());
-		}
-
-		return thumbnails;
-
 	}
 
 	/**
@@ -299,176 +280,33 @@ public interface Image extends File {
 	 * @return scaled image
 	 * */
 	public static Image getScaledImage(final Image thisImage, final int maxWidth, final int maxHeight, final boolean cropToFit) {
-
-		final Class<Relation> thumbnailRel              = StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage");
-		final Iterable<Relation> thumbnailRelationships = thisImage.getOutgoingRelationships(thumbnailRel);
 		final SecurityContext securityContext           = thisImage.getSecurityContext();
-		final List<Image> oldThumbnails                 = new LinkedList<>();
-		Image thumbnail                                 = null;
-		final Image originalImage                       = thisImage;
-		final Integer origWidth                         = originalImage.getWidth();
-		final Integer origHeight                        = originalImage.getHeight();
-		final Long currentChecksum                      = originalImage.getChecksum();
-		Long newChecksum                                = 0L;
+		final String originalContentType                = thisImage.getContentType();
+		final Image existingThumbnail                   = getExistingThumbnail(thisImage, maxWidth, maxHeight);
 
-		if (currentChecksum == null || currentChecksum == 0) {
+		if (existingThumbnail != null) {
 
-			try {
-
-				newChecksum = FileHelper.getChecksum(originalImage.getFileOnDisk());
-
-				if (newChecksum == null || newChecksum == 0) {
-
-					logger.warn("Unable to calculate checksum of {}", originalImage.getName());
-					return null;
-				}
-
-			} catch (IOException ex) {
-				logger.warn("Unable to calculate checksum of {}: {}", originalImage.getName(), ex.getMessage());
-			}
-
-		} else {
-
-			newChecksum = currentChecksum;
+			return existingThumbnail;
 		}
 
-		// Read Exif and GPS data from image and update properties
-		ImageHelper.getExifData(originalImage);
-
-		// Return self if SVG image
-		final String _contentType = thisImage.getContentType();
-		if (_contentType != null && (_contentType.startsWith("image/svg") || (_contentType.startsWith("image/") && _contentType.endsWith("icon")))) {
+		if (originalContentType != null && (originalContentType.startsWith("image/svg") || (originalContentType.startsWith("image/") && originalContentType.endsWith("icon")))) {
 
 			return thisImage;
 		}
 
-		if (origWidth != null && origHeight != null && thumbnailRelationships != null) {
-
-			for (final Relation r : thumbnailRelationships) {
-
-				final Integer w = r.getProperty(StructrApp.key(Image.class, "width"));
-				final Integer h = r.getProperty(StructrApp.key(Image.class, "height"));
-
-				if (w != null && h != null) {
-
-					// orginal image is equal or smaller than requested size
-					if (((w == maxWidth) && (h <= maxHeight)) || ((w <= maxWidth) && (h == maxHeight)) || ((origWidth <= w) && (origHeight <= h))) {
-
-						thumbnail = (Image)r.getTargetNode();
-
-						// Use thumbnail only if checksum of original image matches with stored checksum
-						final Long storedChecksum = r.getProperty(StructrApp.key(Image.class, "checksum"));
-
-						if (storedChecksum != null && storedChecksum.equals(newChecksum)) {
-
-							return thumbnail;
-
-						} else {
-
-							oldThumbnails.add(thumbnail);
-						}
-					}
-
-				}
-
-			}
-
-		}
-
-		// do not create thumbnails if this transaction is set to read-only
+		// Do not create thumbnails if this transaction is set to read-only
 		if (securityContext.isReadOnlyTransaction()) {
+
 			return null;
 		}
 
-		if (originalImage.getIsCreatingThumb()) {
+		// Read Exif and GPS data from image and update properties
+		ImageHelper.getExifData(thisImage);
 
-			logger.debug("Another thumbnail is being created - waiting....");
+		// Request creation of thumbnail
+		StructrApp.getInstance().processTasks(new ThumbnailTask(thisImage.getUuid(), maxWidth, maxHeight, cropToFit));
 
-		} else {
-
-			try {
-
-				// No thumbnail exists, or thumbnail was too old, so let's create a new one
-				logger.debug("Creating thumbnail for {} (w={} h={} crop={})", new Object[] { getName(), maxWidth, maxHeight, cropToFit });
-
-				originalImage.unlockSystemPropertiesOnce();
-				originalImage.setIsCreatingThumb(true);
-
-				final App app = StructrApp.getInstance();
-
-				originalImage.unlockSystemPropertiesOnce();
-				originalImage.setProperty(StructrApp.key(File.class, "checksum"), newChecksum);
-
-				final Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
-				if (thumbnailData != null) {
-
-					final Integer tnWidth  = thumbnailData.getWidth();
-					final Integer tnHeight = thumbnailData.getHeight();
-					byte[] data            = null;
-
-					try {
-
-						data = thumbnailData.getBytes();
-						final String thumbnailName = ImageHelper.getThumbnailName(originalImage.getName(), tnWidth, tnHeight);
-
-						// create thumbnail node
-						thumbnail = ImageHelper.createImageNode(securityContext, data, "image/" + Thumbnail.defaultFormat, Image.class, thumbnailName, true);
-
-					} catch (IOException ex) {
-
-						logger.warn("Could not create thumbnail image for " + getUuid(), ex);
-
-					}
-
-					if (thumbnail != null && data != null) {
-
-						// Create a thumbnail relationship
-						final PropertyMap relProperties = new PropertyMap();
-						relProperties.put(StructrApp.key(Image.class, "width"),                  tnWidth);
-						relProperties.put(StructrApp.key(Image.class, "height"),                 tnHeight);
-						relProperties.put(StructrApp.key(Image.class, "checksum"),               newChecksum);
-
-						app.create(originalImage, thumbnail, thumbnailRel, relProperties);
-
-						final PropertyMap properties = new PropertyMap();
-						properties.put(StructrApp.key(Image.class, "width"),                              tnWidth);
-						properties.put(StructrApp.key(Image.class, "height"),                             tnHeight);
-						properties.put(StructrApp.key(AbstractNode.class, "hidden"),                      originalImage.getProperty(AbstractNode.hidden));
-						properties.put(StructrApp.key(AbstractNode.class, "visibleToAuthenticatedUsers"), originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
-						properties.put(StructrApp.key(AbstractNode.class, "visibleToPublicUsers"),        originalImage.getProperty(AbstractNode.visibleToPublicUsers));
-						properties.put(StructrApp.key(File.class, "size"),                                Long.valueOf(data.length));
-						properties.put(StructrApp.key(AbstractNode.class, "owner"),                       originalImage.getProperty(AbstractNode.owner));
-						properties.put(StructrApp.key(File.class, "parent"),                              originalImage.getThumbnailParentFolder(originalImage.getProperty(StructrApp.key(File.class, "parent")), securityContext));
-						properties.put(StructrApp.key(File.class, "hasParent"),                           originalImage.getProperty(StructrApp.key(Image.class, "hasParent")));
-
-						thumbnail.unlockSystemPropertiesOnce();
-						thumbnail.setProperties(securityContext, properties);
-
-						// Delete outdated thumbnails
-						for (final Image tn : oldThumbnails) {
-							app.delete(tn);
-						}
-
-					}
-
-				} else {
-
-					logger.debug("Could not create thumbnail for image {} ({})", getName(), getUuid());
-
-				}
-
-				originalImage.unlockSystemPropertiesOnce();
-				originalImage.setIsCreatingThumb(false);
-
-			} catch (FrameworkException fex) {
-
-				logger.warn("Unable to create thumbnail for " + getUuid(), fex);
-
-			}
-
-		}
-
-		return thumbnail;
+		return null;
 	}
 
 	/**
@@ -492,5 +330,67 @@ public interface Image extends File {
 		final Integer tnHeight = thisImage.getHeight();
 
 		return StringUtils.stripEnd(thisImage.getName(),  "_thumb_" + tnWidth + "x" + tnHeight);
+	}
+
+	public static Image getExistingThumbnail(final Image thisImage, final int maxWidth, final int maxHeight) {
+		final Class<Relation> thumbnailRel              = StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage");
+		final Iterable<Relation> thumbnailRelationships = thisImage.getOutgoingRelationships(thumbnailRel);
+		final List<String> deprecatedThumbnails         = new ArrayList<>();
+
+		// Try to find an existing thumbnail that matches the specifications
+		if (thumbnailRelationships != null) {
+			for (final Relation r : thumbnailRelationships) {
+
+				final Integer w = r.getProperty(StructrApp.key(Image.class, "width"));
+				final Integer h = r.getProperty(StructrApp.key(Image.class, "height"));
+
+				if (w != null && h != null) {
+					if (((w == maxWidth) && (h <= maxHeight)) || ((w <= maxWidth) && (h == maxHeight)) || (thisImage.getWidth() != null && thisImage.getHeight() != null && thisImage.getWidth() < maxWidth)) {
+
+						//FIXME: Implement deletion of mismatching thumbnails, since they have become obsolete
+						final Image thumbnail = (Image) r.getTargetNode();
+
+						// Check if existing thumbnail rel matches the correct checksum and mark as deprecated otherwise
+						if (r.getProperty(StructrApp.key(Image.class, "checksum")).equals(thisImage.getChecksum())) {
+
+							return thumbnail;
+						} else {
+
+							deprecatedThumbnails.add(thumbnail.getUuid());
+						}
+					}
+				}
+
+			}
+		}
+
+		// Queue deprecated thumbnails to be removed
+		if (deprecatedThumbnails.size() > 0) {
+
+			TransactionCommand.queuePostProcessProcedure(() -> deleteDeprecatedThumbnails(deprecatedThumbnails));
+		}
+
+		return null;
+	}
+
+	/** Private Methods **/
+
+	private static void deleteDeprecatedThumbnails(final List<String> thumbnailUuids) {
+		final App app = StructrApp.getInstance();
+		final Logger logger = LoggerFactory.getLogger(Image.class);
+
+		try (final Tx tx = app.tx()) {
+
+			for (final String uuid : thumbnailUuids) {
+
+				Image oldThumbnail = app.nodeQuery(Image.class).uuid(uuid).getFirst();
+				app.delete(oldThumbnail);
+			}
+
+			tx.success();
+		} catch (FrameworkException ex) {
+
+			logger.error("Unable to delete deprecated thumbnail", ex);
+		}
 	}
 }

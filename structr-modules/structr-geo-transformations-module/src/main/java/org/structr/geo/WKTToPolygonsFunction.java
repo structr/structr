@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -30,6 +30,7 @@ import com.vividsolutions.jts.io.WKTReader;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.geotools.geometry.jts.JTS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,8 +77,7 @@ public class WKTToPolygonsFunction extends GeoFunction {
 						return result;
 
 					} catch (Throwable t) {
-
-						t.printStackTrace();
+						logger.error(ExceptionUtils.getStackTrace(t));
 					}
 				}
 

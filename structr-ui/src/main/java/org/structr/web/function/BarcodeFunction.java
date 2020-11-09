@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -72,26 +72,29 @@ public class BarcodeFunction extends UiAdvancedFunction {
 
 	public static String getQRCode(final String barcodeData, final String barcodeType, final Number width, final Number height, final Map<String, Object> hints) {
 
-		final MultiFormatWriter barcodeWriter = new MultiFormatWriter();
+		if (barcodeData != null) {
 
-		try {
+			final MultiFormatWriter barcodeWriter = new MultiFormatWriter();
 
-			BitMatrix bitMatrix = barcodeWriter.encode(barcodeData, BarcodeFormat.valueOf(barcodeType), width.intValue(), height.intValue(), BarcodeFunction.parseHints(hints));
+			try {
 
-			final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				BitMatrix bitMatrix = barcodeWriter.encode(barcodeData, BarcodeFormat.valueOf(barcodeType), width.intValue(), height.intValue(), BarcodeFunction.parseHints(hints));
 
-			ImageIO.write(MatrixToImageWriter.toBufferedImage(bitMatrix), "PNG", baos);
+				final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-			return baos.toString("ISO-8859-1");
+				ImageIO.write(MatrixToImageWriter.toBufferedImage(bitMatrix), "PNG", baos);
 
-		} catch(WriterException we) {
+				return baos.toString("ISO-8859-1");
 
-			logger.warn("barcode(): WriterException while encoding barcode: {} {}", barcodeType, barcodeData, we);
+			} catch(WriterException we) {
 
-		} catch(IOException ioe) {
+				logger.warn("barcode(): WriterException while encoding barcode: {} {}", barcodeType, barcodeData, we);
 
-			logger.warn("barcode(): IOException", ioe);
+			} catch(IOException ioe) {
 
+				logger.warn("barcode(): IOException", ioe);
+
+			}
 		}
 
 		return "";

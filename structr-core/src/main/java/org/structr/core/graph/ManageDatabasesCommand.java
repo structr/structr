@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -26,6 +26,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseFeature;
+import org.structr.api.DatabaseService;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.service.DatabaseConnection;
@@ -42,10 +47,10 @@ import static org.structr.api.service.DatabaseConnection.KEY_URL;
 import static org.structr.api.service.DatabaseConnection.KEY_USERNAME;
 import static org.structr.api.service.DatabaseConnection.KEY_UUID_CACHE_SIZE;
 import org.structr.api.service.ServiceResult;
-import org.structr.bolt.BoltDatabaseService;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.error.UniqueToken;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
@@ -55,6 +60,8 @@ import org.structr.core.property.GenericProperty;
 /**
  */
 public class ManageDatabasesCommand extends NodeServiceCommand implements MaintenanceCommand {
+
+	private static final Logger logger = LoggerFactory.getLogger(ManageDatabasesCommand.class);
 
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
@@ -89,7 +96,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 				Settings.storeConfiguration("structr.conf");
 
 			} catch (IOException ex) {
-				ex.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(ex));
 			}
 
 		} else {
@@ -156,9 +163,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 		if (!connectionNames.contains(prefix)) {
 
-			//setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
-			Settings.DatabaseDriver.getPrefixedSetting(prefix).setValue(BoltDatabaseService.class.getName());
-
+			setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
 			setOrDefault(Settings.ConnectionName,        prefix, data, KEY_DISPLAYNAME);
 			setOrDefault(Settings.ConnectionUrl,         prefix, data, KEY_URL);
 			setOrDefault(Settings.ConnectionUser,        prefix, data, KEY_USERNAME);
@@ -206,9 +211,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 		if (connectionNames.contains(prefix)) {
 
-			//setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
-			Settings.DatabaseDriver.getPrefixedSetting(prefix).setValue(BoltDatabaseService.class.getName());
-
+			setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
 			setOrDefault(Settings.ConnectionUrl,         prefix, data, KEY_URL);
 			setOrDefault(Settings.ConnectionUser,        prefix, data, KEY_USERNAME);
 			setOrDefault(Settings.ConnectionPassword,    prefix, data, KEY_PASSWORD);
@@ -362,22 +365,50 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		data.put(KEY_NAME,        cleaned);
 
 		// connection cannot be named "default"
-		if ("default".equals((String)data.get(KEY_NAME))) {
+		if ("default".equals((String) data.get(KEY_NAME))) {
 			errorBuffer.add(new UniqueToken("Connection", new GenericProperty("name"), "default"));
 		}
 
 		if (!nameOnly) {
 
-			if (StringUtils.isEmpty((String)data.get(KEY_URL))) {
+			if (StringUtils.isEmpty((String) data.get(KEY_URL))) {
 				errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("url")));
 			}
 
-			if (StringUtils.isEmpty((String)data.get(KEY_USERNAME))) {
-				errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("username")));
-			}
+			try {
 
-			if (StringUtils.isEmpty((String)data.get(KEY_PASSWORD))) {
-				errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("password")));
+				final Object driverClassString = data.get(KEY_DRIVER);
+				DatabaseService databaseService = null;
+
+				if (driverClassString != null) {
+
+					databaseService = (DatabaseService) Class.forName((String) driverClassString).newInstance();
+
+				} else {
+
+					databaseService = (DatabaseService) Class.forName("org.structr.bolt.BoltDatabaseService").newInstance();
+				}
+
+				if (databaseService == null) {
+
+					errorBuffer.add(new SemanticErrorToken("Driver", new GenericProperty("driver"), "driver_not_found"));
+
+				} else {
+
+					if (databaseService.supportsFeature(DatabaseFeature.AuthenticationRequired)) {
+
+						if (StringUtils.isEmpty((String) data.get(KEY_USERNAME))) {
+							errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("username")));
+						}
+
+						if (StringUtils.isEmpty((String) data.get(KEY_PASSWORD))) {
+							errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("password")));
+						}
+					}
+				}
+
+			} catch (ClassNotFoundException|InstantiationException|IllegalAccessException ex) {
+				errorBuffer.add(new SemanticErrorToken("Driver", new GenericProperty("driver"), "driver_error"));
 			}
 		}
 

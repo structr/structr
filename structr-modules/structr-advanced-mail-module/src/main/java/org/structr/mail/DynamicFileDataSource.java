@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -26,7 +26,8 @@ import java.nio.charset.IllegalCharsetNameException;
 import javax.activation.DataSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import static org.structr.core.GraphObject.logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.web.entity.File;
 
 
@@ -36,6 +37,8 @@ import org.structr.web.entity.File;
  * 2. Generate the dynamic file content at attachment time so the currently store'd variables are used and can be overwritten without losing the file contents
  */
 public class DynamicFileDataSource implements DataSource {
+
+	private static final Logger logger = LoggerFactory.getLogger(DynamicFileDataSource.class);
 
 	private final String contentType;
 	private final String fileName;

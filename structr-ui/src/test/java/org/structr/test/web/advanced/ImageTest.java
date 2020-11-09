@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -142,6 +142,27 @@ public class ImageTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
+			// Wait for asynchronous thumbnail generation
+			tryWithTimeout(() -> {
+
+				boolean allThumbnailsAvailable = true;
+				try {
+
+					List<Image> images = app.nodeQuery(Image.class).and("isThumbnail", false).getAsList();
+					for (Image img : images) {
+
+						allThumbnailsAvailable &= img.getProperty(StructrApp.key(Image.class, "tnMid")) != null;
+					}
+				} catch (FrameworkException ex) {
+
+					ex.printStackTrace();
+					fail("Unexpected exception");
+				}
+
+				return allThumbnailsAvailable;
+			}, () -> fail("Exceeded timeout while waiting for thumbnails to be available."), 30000, 1000);
+
+
 			System.out.println("############# Folders:");
 
 			final List<Folder> folders = app.nodeQuery(Folder.class).sort(StructrApp.key(Folder.class, "path")).getAsList();
@@ -162,7 +183,8 @@ public class ImageTest extends StructrUiTest {
 
 			tx.success();
 
-		} catch (FrameworkException fex) {
+		} catch (Exception ex) {
+			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}

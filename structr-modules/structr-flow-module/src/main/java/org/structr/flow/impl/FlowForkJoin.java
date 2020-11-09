@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -77,7 +77,7 @@ public class FlowForkJoin extends FlowNode implements Action, DeployableEntity, 
 
 		} catch (ExecutionException | InterruptedException ex) {
 
-			throw new FlowException(ex);
+			throw new FlowException(ex, this);
 
 		}
 

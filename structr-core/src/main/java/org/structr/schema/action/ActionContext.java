@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -28,6 +28,7 @@ import java.util.Locale;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +55,7 @@ import org.structr.schema.parser.DatePropertyParser;
 public class ActionContext {
 
 	private static final Logger logger = LoggerFactory.getLogger(ActionContext.class.getName());
+	public static final String SESSION_ATTRIBUTE_PREFIX = "user.";
 
 	// cache is not static => library cache is per request
 	private final Map<String, String> libraryCache = new HashMap<>();
@@ -118,30 +120,42 @@ public class ActionContext {
 		this.temporaryContextStore.setConstant(name, data);
 	}
 
-	public Object getReferencedProperty(final GraphObject entity, final String refKey, final Object initialData, final int depth) throws FrameworkException {
+	public Object getReferencedProperty(final GraphObject entity, final String initialRefKey, final Object initialData, final int depth) throws FrameworkException {
 
 		final String DEFAULT_VALUE_SEP = "!";
-		final String[] parts           = refKey.split("[\\.]+");
-		Object _data                   = initialData;
+
+		// split
+		String refKey        = initialRefKey;
+		String[] parts       = refKey.split("[\\.]+");
+		Object _data         = initialData;
+		String defaultValue  = null;
+
+		if (StringUtils.contains(refKey, DEFAULT_VALUE_SEP)) {
+
+			String[] refs = StringUtils.split(refKey, DEFAULT_VALUE_SEP);
+			refKey        = refs[0];
+
+			if (refs.length > 1) {
+				defaultValue = refs[1];
+			}
+		}
 
 		// walk through template parts
 		for (int i = 0; i < parts.length; i++) {
 
-			String key          = parts[i];
-			String defaultValue = null;
+			String key = parts[i];
+			_data      = evaluate(entity, key, _data, defaultValue, i+depth);
 
+			// stop evaluation on null, return default value or null
+			if (_data == null) {
 
-			if (StringUtils.contains(key, DEFAULT_VALUE_SEP)) {
+				// default value?
+				if (defaultValue != null) {
 
-				String[] ref = StringUtils.split(key, DEFAULT_VALUE_SEP);
-				key          = ref[0];
-
-				if (ref.length > 1) {
-					defaultValue = ref[1];
+					return defaultValue;
 				}
+				break;
 			}
-
-			_data = evaluate(entity, key, _data, defaultValue, i+depth);
 		}
 
 		return _data;
@@ -219,14 +233,28 @@ public class ActionContext {
 
 			// special HttpServletRequest handling
 			if (data instanceof HttpServletRequest) {
-				value = ((HttpServletRequest)data).getParameterValues(key);
 
+				value = ((HttpServletRequest)data).getParameterValues(key);
 				if (value != null) {
+
 					if (((String[]) value).length == 1) {
+
 						value = ((String[]) value)[0];
+
 					} else {
+
 						value = Arrays.asList((String[]) value);
 					}
+				}
+			}
+
+			// HttpSession
+			if (data instanceof HttpSession) {
+
+				if (StringUtils.isNotBlank(key)) {
+
+					// use "user." prefix to separate user and system data
+					value = ((HttpSession)data).getAttribute(SESSION_ATTRIBUTE_PREFIX + key);
 				}
 			}
 
@@ -273,6 +301,12 @@ public class ActionContext {
 						case "request":
 							return securityContext.getRequest();
 
+						case "session":
+							if (securityContext.getRequest() != null) {
+								return securityContext.getRequest().getSession(false);
+							}
+							break;
+
 						case "baseUrl":
 						case "base_url":
 							return getBaseUrl(securityContext.getRequest());
@@ -294,6 +328,9 @@ public class ActionContext {
 
 							case "host":
 								return request.getServerName();
+
+							case "ip":
+								return request.getLocalAddr();
 
 							case "port":
 								return request.getServerPort();
@@ -398,11 +435,11 @@ public class ActionContext {
 		return null;
 	}
 
-	public static String getBaseUrl () {
+	public static String getBaseUrl() {
 		return getBaseUrl(null);
 	}
 
-	public static String getBaseUrl (final HttpServletRequest request) {
+	public static String getBaseUrl(final HttpServletRequest request) {
 
 		final String baseUrlOverride = Settings.BaseUrlOverride.getValue();
 
@@ -414,7 +451,7 @@ public class ActionContext {
 
 		final Boolean httpsEnabled       = Settings.HttpsEnabled.getValue();
 		final String name                = (request != null) ? request.getServerName() : Settings.ApplicationHost.getValue();
-		final Integer port               = (request != null) ? request.getServerPort() : ((httpsEnabled) ? Settings.HttpsPort.getValue() : Settings.HttpPort.getValue());
+		final Integer port               = (request != null) ? request.getServerPort() : ((httpsEnabled) ? Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getValue() : Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
 
 		if (httpsEnabled) {
 			sb.append("s");
@@ -554,5 +591,9 @@ public class ActionContext {
 
 	public ContextStore getContextStore() {
 		return this.securityContext.getContextStore();
+	}
+
+	public boolean isRenderContext() {
+		return false;
 	}
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -21,7 +21,6 @@ package org.structr.util;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,19 +44,9 @@ import java.security.Signature;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
+import java.util.*;
 import java.util.Base64.Decoder;
 import java.util.Base64.Encoder;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.GregorianCalendar;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -65,11 +54,15 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+
+import com.ibm.wsdl.util.IOUtils;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.service.Feature;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
@@ -148,7 +141,13 @@ public class StructrLicenseManager implements LicenseManager {
 		this.publicKey   = certificate.getPublicKey();
 
 		// check license
-		final Map<String, String> properties = read(licenseFileName);
+		Map<String, String> properties = readFileToProperties(licenseFileName);
+
+		if (!licensePresent) {
+
+			properties = readLicenseKeyFromConfig();
+		}
+
 		if (licensePresent) {
 
 			// read license file (if present)
@@ -468,17 +467,41 @@ public class StructrLicenseManager implements LicenseManager {
 		return (endDate != null && now.after(endDate) && !now.equals(endDate));
 	}
 
-	private Map<String, String> read(final String fileName) {
+	private String readFileToString(final String fileName) {
 
 		final Decoder base64Decoder          = java.util.Base64.getMimeDecoder();
 		final Map<String, String> properties = new LinkedHashMap<>();
 
 		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(base64Decoder.wrap(new FileInputStream(fileName))))) {
 
+			return IOUtils.getStringFromReader(reader);
+
+		} catch (final IOException ioex) {
+			logger.warn("Error reading license file: {}", ioex.getMessage());
+		}
+
+		return null;
+	}
+
+	private Map<String, String> readFileToProperties(final String fileName) {
+		final String licenseKey = readFileToString(fileName);
+		return getLicenseKeyFromString(licenseKey);
+	}
+
+	private Map<String, String> readLicenseKeyFromConfig() {
+		final String licenseKey     = Settings.LicenseKey.getValue();
+		final Decoder base64Decoder = java.util.Base64.getMimeDecoder();
+		final String decodedKey = new String(base64Decoder.decode(licenseKey));
+		return getLicenseKeyFromString(decodedKey);
+	}
+
+	private Map<String, String> getLicenseKeyFromString(final String licenseKey) {
+
+		if (StringUtils.isNotBlank(licenseKey)) {
 			licensePresent = true;
 
-			String line = reader.readLine();
-			while (line != null) {
+			final Map<String, String> properties = new LinkedHashMap<>();
+			licenseKey.lines().forEach(line -> {
 
 				final int pos = line.indexOf("=");
 				if (pos >= 0) {
@@ -488,17 +511,13 @@ public class StructrLicenseManager implements LicenseManager {
 
 					properties.put(key, value);
 				}
+			});
 
-				line = reader.readLine();
-			}
+			return properties;
 
-		} catch (FileNotFoundException fnex) {
-			licensePresent = false;
-		} catch (IOException ioex) {
-			logger.warn("Error reading license file: {}", ioex.getMessage());
+		} else {
+			return Collections.emptyMap();
 		}
-
-		return properties;
 	}
 
 	private Certificate certFromBase64(final String src) {
@@ -739,7 +758,7 @@ public class StructrLicenseManager implements LicenseManager {
 			}
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
 		return false;

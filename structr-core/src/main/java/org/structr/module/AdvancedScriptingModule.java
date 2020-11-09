@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -31,8 +31,8 @@ import org.structr.core.function.ChangelogFunction;
 import org.structr.core.function.ConfigFunction;
 import org.structr.core.function.DecryptFunction;
 import org.structr.core.function.DisableCascadingDeleteFunction;
-import org.structr.core.function.DisablePreventDuplicateRelationshipsFunction;
 import org.structr.core.function.DisableNotificationsFunction;
+import org.structr.core.function.DisablePreventDuplicateRelationshipsFunction;
 import org.structr.core.function.EnableCascadingDeleteFunction;
 import org.structr.core.function.EnableNotificationsFunction;
 import org.structr.core.function.EncryptFunction;
@@ -62,6 +62,7 @@ import org.structr.core.function.RevokeFunction;
 import org.structr.core.function.ServerLogFunction;
 import org.structr.core.function.SetEncryptionKeyFunction;
 import org.structr.core.function.SetPrivilegedFunction;
+import org.structr.core.function.SystemInfoFunction;
 import org.structr.core.function.TemplateFunction;
 import org.structr.core.function.TypeInfoFunction;
 import org.structr.core.function.UnlockReadonlyPropertiesFunction;
@@ -71,7 +72,6 @@ import org.structr.core.function.WriteFunction;
 import org.structr.core.function.XPathFunction;
 import org.structr.core.function.XmlFunction;
 import org.structr.core.function.search.FindAndFunction;
-import org.structr.core.function.search.FindWithinDistanceFunction;
 import org.structr.core.function.search.FindContainsFunction;
 import org.structr.core.function.search.FindEmptyFunction;
 import org.structr.core.function.search.FindEqualsFunction;
@@ -79,6 +79,7 @@ import org.structr.core.function.search.FindNotFunction;
 import org.structr.core.function.search.FindOrFunction;
 import org.structr.core.function.search.FindPageFunction;
 import org.structr.core.function.search.FindSortFunction;
+import org.structr.core.function.search.FindWithinDistanceFunction;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
@@ -162,6 +163,8 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new FindNotFunction());
 		Functions.put(licenseManager, new FindSortFunction());
 		Functions.put(licenseManager, new FindPageFunction());
+
+		Functions.put(licenseManager, new SystemInfoFunction());
 	}
 
 	@Override

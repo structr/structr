@@ -1,0 +1,7 @@
+<tr data-group-id="${config.groupId}" data-grant-id="${config.grantId}">
+	<td>${config.name}</td>
+	<td class="centered"><input type="checkbox" name="allowRead" ${(config.allowRead ? 'checked="checked"' : '')}/></td>
+	<td class="centered"><input type="checkbox" name="allowWrite" ${(config.allowWrite ? 'checked="checked"' : '')}/></td>
+	<td class="centered"><input type="checkbox" name="allowDelete" ${(config.allowDelete ? 'checked="checked"' : '')}/></td>
+	<td class="centered"><input type="checkbox" name="allowAccessControl" ${(config.allowAccessControl ? 'checked="checked"' : '')}/></td>
+</tr>

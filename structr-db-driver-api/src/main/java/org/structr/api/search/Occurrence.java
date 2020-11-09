@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -25,5 +25,7 @@ public enum Occurrence {
 
 	REQUIRED,
 	OPTIONAL,
+	EXACT,
+	CONTAINS,
 	FORBIDDEN
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -71,7 +71,7 @@ public class FlowReturn extends FlowNode implements Return, DeployableEntity, Th
 
 		} catch (FrameworkException fex) {
 
-			throw new FlowException(fex);
+			throw new FlowException(fex, this);
 		}
 
 	}

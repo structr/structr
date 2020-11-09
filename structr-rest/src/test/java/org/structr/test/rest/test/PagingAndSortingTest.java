@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -91,7 +91,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.statusCode(200)
 				.body("result_count",       equalTo(1))
 				.body("query_time",         lessThan("0.5"))
-				.body("serialization_time", lessThan("0.05"))
+				.body("serialization_time", lessThan("0.1"))
 				.body("result[0]",          isEntity(TestOne.class))
 			.when()
 				.get("/test_one");

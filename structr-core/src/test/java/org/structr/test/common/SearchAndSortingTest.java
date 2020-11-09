@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -19,11 +19,15 @@
 package org.structr.test.common;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
 import org.structr.api.config.Settings;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.api.util.ResultStream;
@@ -49,8 +53,10 @@ import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.export.StructrSchema;
 import org.structr.test.core.entity.SixOneManyToMany;
 import org.structr.test.core.entity.TestOne;
 import org.structr.test.core.entity.TestSeven;
@@ -1882,6 +1888,8 @@ public class SearchAndSortingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
+			Settings.CypherDebugLogging.setValue(true);
+
 			// search for a group with empty list of parents
 			final List<Group> result1 = app.nodeQuery(Group.class).and(groupsKey, new LinkedList<>()).getAsList();
 			assertEquals("Invalid search result", 1, result1.size());
@@ -1894,11 +1902,15 @@ public class SearchAndSortingTest extends StructrTest {
 			final List<Group> result3 = app.nodeQuery(Group.class).andName("Group3").and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
 			assertEquals("Invalid search result", 1, result3.size());
 
+			Settings.CypherDebugLogging.setValue(false);
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
 		}
+
+		Settings.CypherDebugLogging.setValue(false);
 	}
 
 	@Test
@@ -2152,6 +2164,378 @@ public class SearchAndSortingTest extends StructrTest {
 			fex.printStackTrace();
 			System.out.println(fex.getMessage());
 			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testGraphSearchWithMultipleComponents() {
+
+		// setup
+
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema          = StructrSchema.createEmptySchema();
+
+			final JsonObjectType center = schema.addType("Center");
+			final JsonObjectType type1  = schema.addType("Type1");
+			final JsonObjectType type2  = schema.addType("Type2");
+			final JsonObjectType type3  = schema.addType("Type3");
+			final JsonObjectType type4  = schema.addType("Type4");
+			final JsonObjectType type5  = schema.addType("Type5");
+
+			center.relate(type1, "type1", Cardinality.ManyToMany, "centers", "types1");
+			type2.relate(center, "type2", Cardinality.ManyToMany, "types2", "centers");
+			center.relate(type3, "type3", Cardinality.ManyToMany, "centers", "types3");
+			type4.relate(center, "type4", Cardinality.ManyToMany, "types4", "centers");
+			center.relate(type5, "type5", Cardinality.ManyToMany, "centers", "types5");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class centerType = StructrApp.getConfiguration().getNodeEntityClass("Center");
+		final Class type1      = StructrApp.getConfiguration().getNodeEntityClass("Type1");
+		final Class type2      = StructrApp.getConfiguration().getNodeEntityClass("Type2");
+		final Class type3      = StructrApp.getConfiguration().getNodeEntityClass("Type3");
+		final Class type4      = StructrApp.getConfiguration().getNodeEntityClass("Type4");
+		final Class type5      = StructrApp.getConfiguration().getNodeEntityClass("Type5");
+
+		final PropertyKey type1CenterKey = StructrApp.key(type1, "centers");
+		final PropertyKey type2CenterKey = StructrApp.key(type2, "centers");
+		final PropertyKey type3CenterKey = StructrApp.key(type3, "centers");
+		final PropertyKey type4CenterKey = StructrApp.key(type4, "centers");
+		final PropertyKey type5CenterKey = StructrApp.key(type5, "centers");
+
+		final PropertyKey types1Key = StructrApp.key(centerType, "types1");
+		final PropertyKey types2Key = StructrApp.key(centerType, "types2");
+		final PropertyKey types3Key = StructrApp.key(centerType, "types3");
+		final PropertyKey types4Key = StructrApp.key(centerType, "types4");
+		final PropertyKey types5Key = StructrApp.key(centerType, "types5");
+
+		NodeInterface center1 = null;
+		NodeInterface center2 = null;
+		NodeInterface center3 = null;
+		NodeInterface center4 = null;
+		NodeInterface center5 = null;
+
+		NodeInterface type11 = null;
+		NodeInterface type12 = null;
+		NodeInterface type13 = null;
+		NodeInterface type14 = null;
+		NodeInterface type15 = null;
+
+		NodeInterface type21 = null;
+		NodeInterface type22 = null;
+		NodeInterface type23 = null;
+		NodeInterface type24 = null;
+
+		NodeInterface type31 = null;
+		NodeInterface type32 = null;
+		NodeInterface type33 = null;
+
+		NodeInterface type41 = null;
+		NodeInterface type42 = null;
+
+		NodeInterface type51 = null;
+
+		try (final Tx tx = app.tx()) {
+
+			center1 = app.create(centerType, "center1");
+			center2 = app.create(centerType, "center2");
+			center3 = app.create(centerType, "center3");
+			center4 = app.create(centerType, "center4");
+			center5 = app.create(centerType, "center5");
+
+			type11 = app.create(type1, new NodeAttribute<>(type1CenterKey, Arrays.asList(center1)));
+			type12 = app.create(type1, new NodeAttribute<>(type1CenterKey, Arrays.asList(center2)));
+			type13 = app.create(type1, new NodeAttribute<>(type1CenterKey, Arrays.asList(center3)));
+			type14 = app.create(type1, new NodeAttribute<>(type1CenterKey, Arrays.asList(center4)));
+			type15 = app.create(type1, new NodeAttribute<>(type1CenterKey, Arrays.asList(center5)));
+
+			type21 = app.create(type2, new NodeAttribute<>(type2CenterKey, Arrays.asList(center2)));
+			type22 = app.create(type2, new NodeAttribute<>(type2CenterKey, Arrays.asList(center3)));
+			type23 = app.create(type2, new NodeAttribute<>(type2CenterKey, Arrays.asList(center4)));
+			type24 = app.create(type2, new NodeAttribute<>(type2CenterKey, Arrays.asList(center5)));
+
+			type31 = app.create(type3, new NodeAttribute<>(type3CenterKey, Arrays.asList(center3)));
+			type32 = app.create(type3, new NodeAttribute<>(type3CenterKey, Arrays.asList(center4)));
+			type33 = app.create(type3, new NodeAttribute<>(type3CenterKey, Arrays.asList(center5)));
+
+			type41 = app.create(type4, new NodeAttribute<>(type4CenterKey, Arrays.asList(center4)));
+			type42 = app.create(type4, new NodeAttribute<>(type4CenterKey, Arrays.asList(center5)));
+
+			type51 = app.create(type5, new NodeAttribute<>(type5CenterKey, Arrays.asList(center5)));
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			Settings.CypherDebugLogging.setValue(true);
+
+			final List<NodeInterface> result1 = app.nodeQuery(centerType)
+				.and(types1Key, Arrays.asList(type11))
+				.getAsList();
+
+			final List<NodeInterface> result2 = app.nodeQuery(centerType)
+				.and(types1Key, Arrays.asList(type12))
+				.and(types2Key, Arrays.asList(type21))
+				.getAsList();
+
+			final List<NodeInterface> result3 = app.nodeQuery(centerType)
+				.and(types1Key, Arrays.asList(type13))
+				.and(types2Key, Arrays.asList(type22))
+				.and(types3Key, Arrays.asList(type31))
+				.getAsList();
+
+			final List<NodeInterface> result4 = app.nodeQuery(centerType)
+				.and(types1Key, Arrays.asList(type14))
+				.and(types2Key, Arrays.asList(type23))
+				.and(types3Key, Arrays.asList(type32))
+				.and(types4Key, Arrays.asList(type41))
+				.getAsList();
+
+			final List<NodeInterface> result5 = app.nodeQuery(centerType)
+				.and(types1Key, Arrays.asList(type15))
+				.and(types2Key, Arrays.asList(type24))
+				.and(types3Key, Arrays.asList(type33))
+				.and(types4Key, Arrays.asList(type42))
+				.and(types5Key, Arrays.asList(type51))
+				.getAsList();
+
+
+			// expected result: center object is found
+			assertEquals("Invalid graph search result with 1 component",  1, result1.size());
+			assertEquals("Invalid graph search result with 2 components", 1, result2.size());
+			assertEquals("Invalid graph search result with 3 components", 1, result3.size());
+			assertEquals("Invalid graph search result with 4 components", 1, result4.size());
+			assertEquals("Invalid graph search result with 5 components", 1, result5.size());
+
+			assertEquals("Invalid graph search result with 1 component",  center1.getUuid(), result1.get(0).getUuid());
+			assertEquals("Invalid graph search result with 2 components", center2.getUuid(), result2.get(0).getUuid());
+			assertEquals("Invalid graph search result with 3 components", center3.getUuid(), result3.get(0).getUuid());
+			assertEquals("Invalid graph search result with 4 components", center4.getUuid(), result4.get(0).getUuid());
+			assertEquals("Invalid graph search result with 5 components", center5.getUuid(), result5.get(0).getUuid());
+
+			// test negative results as well (expect 0 results)
+			assertEquals("Invalid graph search result with 2 wrong components", 0, app.nodeQuery(centerType)
+				.and(types1Key, Arrays.asList(type12))
+				.and(types2Key, Arrays.asList(type23))
+				.getAsList().size());
+
+			assertEquals("Invalid graph search result with 3 wrong components", 0, app.nodeQuery(centerType)
+				.and(types1Key, Arrays.asList(type12))
+				.and(types2Key, Arrays.asList(type23))
+				.and(types3Key, Arrays.asList(type31))
+				.getAsList().size());
+
+			assertEquals("Invalid graph search result with 3 wrong components", 0, app.nodeQuery(centerType)
+				.and(types1Key, Arrays.asList(type12))
+				.and(types2Key, Arrays.asList(type23))
+				.and(types3Key, Arrays.asList(type31))
+				.and(types4Key, Arrays.asList(type41))
+				.getAsList().size());
+
+			assertEquals("Invalid graph search result with 3 wrong components", 0, app.nodeQuery(centerType)
+				.and(types1Key, Arrays.asList(type12))
+				.and(types2Key, Arrays.asList(type23))
+				.and(types3Key, Arrays.asList(type31))
+				.and(types4Key, Arrays.asList(type42))
+				.and(types5Key, Arrays.asList(type51))
+				.getAsList().size());
+
+			Settings.CypherDebugLogging.setValue(false);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testGraphSearchWithRange() {
+
+		// setup
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema     = StructrSchema.createEmptySchema();
+			final JsonObjectType center = schema.addType("Center");
+			final JsonObjectType type1  = schema.addType("Type1");
+
+			center.relate(type1, "type1", Cardinality.ManyToMany, "centers", "types1");
+
+			center.addStringProperty("string").setIndexed(true);
+			center.addIntegerProperty("integer").setIndexed(true);
+			center.addLongProperty("long").setIndexed(true);
+			center.addNumberProperty("double").setIndexed(true);
+			center.addDateProperty("date").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class centerType = StructrApp.getConfiguration().getNodeEntityClass("Center");
+		final Class type1      = StructrApp.getConfiguration().getNodeEntityClass("Type1");
+
+		final PropertyKey types1Key      = StructrApp.key(centerType, "types1");
+		final PropertyKey stringKey      = StructrApp.key(centerType, "string");
+		final PropertyKey intKey         = StructrApp.key(centerType, "integer");
+		final PropertyKey longKey        = StructrApp.key(centerType, "long");
+		final PropertyKey doubleKey      = StructrApp.key(centerType, "double");
+		final PropertyKey dateKey        = StructrApp.key(centerType, "date");
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface type11 = app.create(type1);
+
+			app.create(centerType, new NodeAttribute<>(stringKey, "string3"), new NodeAttribute<>(intKey, 1), new NodeAttribute<>(longKey, 1L), new NodeAttribute<>(doubleKey, 1.0), new NodeAttribute<>(dateKey, new Date(5000L)), new NodeAttribute<>(types1Key, Arrays.asList(type11)));
+			app.create(centerType, new NodeAttribute<>(stringKey, "string1"), new NodeAttribute<>(intKey, 2), new NodeAttribute<>(longKey, 2L), new NodeAttribute<>(doubleKey, 2.0), new NodeAttribute<>(dateKey, new Date(4000L)), new NodeAttribute<>(types1Key, Arrays.asList(type11)));
+			app.create(centerType, new NodeAttribute<>(stringKey, "string5"), new NodeAttribute<>(intKey, 3), new NodeAttribute<>(longKey, 3L), new NodeAttribute<>(doubleKey, 3.0), new NodeAttribute<>(dateKey, new Date(3000L)), new NodeAttribute<>(types1Key, Arrays.asList(type11)));
+			app.create(centerType, new NodeAttribute<>(stringKey, "string2"), new NodeAttribute<>(intKey, 4), new NodeAttribute<>(longKey, 4L), new NodeAttribute<>(doubleKey, 4.0), new NodeAttribute<>(dateKey, new Date(2000L)), new NodeAttribute<>(types1Key, Arrays.asList(type11)));
+			app.create(centerType, new NodeAttribute<>(stringKey, "string4"), new NodeAttribute<>(intKey, 5), new NodeAttribute<>(longKey, 5L), new NodeAttribute<>(doubleKey, 5.0), new NodeAttribute<>(dateKey, new Date(1000L)), new NodeAttribute<>(types1Key, Arrays.asList(type11)));
+			app.create(centerType, new NodeAttribute<>(stringKey, "string2"), new NodeAttribute<>(intKey, 1), new NodeAttribute<>(longKey, 1L), new NodeAttribute<>(doubleKey, 1.0), new NodeAttribute<>(dateKey, new Date(5000L)));
+			app.create(centerType, new NodeAttribute<>(stringKey, "string4"), new NodeAttribute<>(intKey, 2), new NodeAttribute<>(longKey, 2L), new NodeAttribute<>(doubleKey, 2.0), new NodeAttribute<>(dateKey, new Date(4000L)));
+			app.create(centerType, new NodeAttribute<>(stringKey, "string3"), new NodeAttribute<>(intKey, 3), new NodeAttribute<>(longKey, 3L), new NodeAttribute<>(doubleKey, 3.0), new NodeAttribute<>(dateKey, new Date(3000L)));
+			app.create(centerType, new NodeAttribute<>(stringKey, "string1"), new NodeAttribute<>(intKey, 4), new NodeAttribute<>(longKey, 4L), new NodeAttribute<>(doubleKey, 4.0), new NodeAttribute<>(dateKey, new Date(2000L)));
+			app.create(centerType, new NodeAttribute<>(stringKey, "string5"), new NodeAttribute<>(intKey, 5), new NodeAttribute<>(longKey, 5L), new NodeAttribute<>(doubleKey, 5.0), new NodeAttribute<>(dateKey, new Date(1000L)));
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface type11 = (NodeInterface)app.nodeQuery(type1).getFirst();
+
+			// string
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, null, "string4", false, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, null, "string4", false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, null, "string4",  true, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, null, "string4",  true,  true).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, "string3", null, false, false).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, "string3", null, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, "string3", null,  true, false).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(stringKey, "string3", null,  true,  true).getAsList().size());
+
+			// integer
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, null, 4, false, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, null, 4, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, null, 4,  true, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, null, 4,  true,  true).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, 3, null, false, false).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, 3, null, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, 3, null,  true, false).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(intKey, 3, null,  true,  true).getAsList().size());
+
+			// long
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, null, 4L, false, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, null, 4L, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, null, 4L,  true, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, null, 4L,  true,  true).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, 3L, null, false, false).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, 3L, null, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, 3L, null,  true, false).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(longKey, 3L, null,  true,  true).getAsList().size());
+
+			// double
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, null, 4.0, false, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, null, 4.0, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, null, 4.0,  true, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, null, 4.0,  true,  true).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, 3.0, null, false, false).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, 3.0, null, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, 3.0, null,  true, false).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(doubleKey, 3.0, null,  true,  true).getAsList().size());
+
+			// date
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, null, new Date(4000L), false, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, null, new Date(4000L), false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, null, new Date(4000L),  true, false).getAsList().size());
+			assertEquals("", 4, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, null, new Date(4000L),  true,  true).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, new Date(3000L), null, false, false).getAsList().size());
+			assertEquals("", 2, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, new Date(3000L), null, false,  true).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, new Date(3000L), null,  true, false).getAsList().size());
+			assertEquals("", 3, app.nodeQuery(centerType).and(types1Key, Arrays.asList(type11)).andRange(dateKey, new Date(3000L), null,  true,  true).getAsList().size());
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testFindQueryWithOrPredicate() {
+
+		/*
+		 * This test verifies that the query builder creates efficient queries for
+		 * $.or() and $.and() predicates with graph properties.
+		 */
+
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createEmptySchema();
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "TASK", Cardinality.OneToMany, "project", "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			Settings.CypherDebugLogging.setValue(true);
+
+			final List<AbstractNode> result1 = (List)ScriptTestHelper.testExternalScript(ctx, SearchAndSortingTest.class.getResourceAsStream("/test/scripting/testFindQueryWithOrPredicate.js"));
+
+			assertEquals("Wrong result for predicate list,", "[Project0, Project1, Project3]", result1.stream().map(r -> r.getProperty(AbstractNode.name)).collect(Collectors.toList()).toString());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			fail("Unexpected exception");
 		}
 	}
 

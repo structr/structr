@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -20,6 +20,7 @@ package org.structr.api.schema;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 
 /**
  */
@@ -36,6 +37,12 @@ public interface JsonMethod extends Comparable<JsonMethod> {
 
 	public String getComment();
 	public JsonMethod setComment(final String comment);
+
+	public String getSummary();
+	public JsonMethod setSummary(final String summary);
+
+	public String getDescription();
+	public JsonMethod setDescription(final String description);
 
 	public List<JsonParameter> getParameters();
 	public JsonMethod addParameter(final String name, final String type);
@@ -57,4 +64,7 @@ public interface JsonMethod extends Comparable<JsonMethod> {
 
 	public String getCodeType();
 	public JsonMethod setCodeType(final String codeType);
+
+	Set<String> getTags();
+	void addTags(final String... tags);
 }

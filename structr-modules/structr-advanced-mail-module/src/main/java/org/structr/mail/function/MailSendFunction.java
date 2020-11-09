@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -19,6 +19,7 @@
 package org.structr.mail.function;
 
 import org.apache.commons.mail.EmailException;
+import org.structr.common.AdvancedMailContainer;
 import org.structr.common.error.FrameworkException;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
@@ -45,19 +46,33 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
+		AdvancedMailContainer amc = ctx.getAdvancedMailContainer();
+
 		try {
 
-			return ctx.getAdvancedMailContainer().send(ctx.getSecurityContext());
+			amc.clearError();
+
+			return amc.send(ctx.getSecurityContext());
 
 		} catch (FrameworkException ex) {
 
 			logger.warn(ex.getMessage());
 
+			amc.setError(ex);
+
 		} catch (EmailException ex) {
 
 			logException(caller, ex, sources);
 
+			amc.setError(ex);
+
+		} catch (Throwable t) {
+
+			logException(caller, t, sources);
+
+			amc.setError(t);
 		}
+
 		return "";
 	}
 

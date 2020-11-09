@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -162,6 +162,8 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 		if (data != null && data instanceof Map) {
 
 			try {
+
+				DeployCommand.checkOwnerAndSecurity((Map<String, Object>)data);
 
 				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), DOMNode.class, (Map<String, Object>)data);
 

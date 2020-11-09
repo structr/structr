@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -74,6 +76,7 @@ public interface MinifiedCssFile extends AbstractMinifiedFile {
 
 	static void minify(final MinifiedCssFile thisFile, final SecurityContext securityContext) throws FrameworkException, IOException {
 
+		final Logger logger = LoggerFactory.getLogger(MinifiedCssFile.class);
 		logger.info("Running minification of MinifiedCssFile: {}", thisFile.getUuid());
 
 		FileHelper.setFileData(thisFile, AbstractMinifiedFile.getConcatenatedSource(thisFile).getBytes(), null);
@@ -128,10 +131,10 @@ public interface MinifiedCssFile extends AbstractMinifiedFile {
 			int maxIndex = css.length() - 1;
 			int appendIndex = 0;
 
-			StringBuffer sb = new StringBuffer();
+			final StringBuffer sb = new StringBuffer();
 
-			Pattern p = Pattern.compile("(?i)url\\(\\s*([\"']?)data\\:");
-			Matcher m = p.matcher(css);
+			final Pattern p = Pattern.compile("(?i)url\\(\\s*([\"']?)data\\:");
+			final Matcher m = p.matcher(css);
 
 			/*
 			 * Since we need to account for non-base64 data urls, we need to handle

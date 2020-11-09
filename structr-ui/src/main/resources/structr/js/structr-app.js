@@ -673,6 +673,11 @@ function StructrApp(baseUrl, locale) {
 
 		var data = this.collectValues(attrs);
 
+		// trim and tranform to lowercase
+		if (data.eMail) {
+		    data.eMail = data.eMail.trim().toLowerCase();
+		}
+
 		var msgBox = $('#msg');
 		if (msgBox && msgBox.length) {
 			$('span', msgBox).remove();

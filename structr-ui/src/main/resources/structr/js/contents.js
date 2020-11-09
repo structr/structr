@@ -29,16 +29,16 @@ $(document).ready(function() {
 
 var _Contents = {
 	_moduleName: 'contents',
+	searchField: undefined,
 	init: function() {
-		_Logger.log(_LogType.CONTENTS, '_Contents.init');
 
 		main = $('#main');
 		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 
-		searchField = $('.search', main);
-		searchField.focus();
+		_Contents.searchField = $('.search', main);
+		_Contents.searchField.focus();
 
-		searchField.keyup(function(e) {
+		_Contents.searchField.keyup(function(e) {
 
 			var searchString = $(this).val();
 			if (searchString && searchString.length && e.keyCode === 13) {
@@ -66,14 +66,13 @@ var _Contents = {
 		left = left || LSWrapper.getItem(contentsResizerLeftKey) || 300;
 		$('.column-resizer', contentsMain).css({ left: left });
 
-		$('#contents-tree').css({width: left - 14 + 'px'});
-		$('#contents-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 50 + 'px'});
+		contentTree.css({width: left - 14 + 'px'});
 	},
 	onload: function() {
 
 		_Contents.init();
 
-		Structr.updateMainHelpLink('https://support.structr.com/knowledge-graph');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('contents'));
 
 		main.append('<div class="tree-main" id="contents-main"><div class="column-resizer"></div><div class="tree-container" id="content-tree-container"><div class="tree" id="contents-tree"></div></div><div class="tree-contents-container" id="contents-contents-container"><div class="tree-contents tree-contents-with-top-buttons" id="contents-contents"></div></div>');
 		contentsMain = $('#contents-main');
@@ -262,7 +261,13 @@ var _Contents = {
 	},
 	load: function(id, callback) {
 
-		Command.query('ContentContainer', containerPageSize, containerPage, 'position', 'asc', {parent: id}, function(folders) {
+		let filter = null;
+
+		if (id) {
+			filter = {parent: id};
+		}
+
+		Command.query('ContentContainer', containerPageSize, containerPage, 'position', 'asc', filter, function(folders) {
 
 			var list = [];
 
@@ -281,7 +286,7 @@ var _Contents = {
 
 			_TreeHelper.makeDroppable(contentTree, list);
 
-		}, true);
+		}, true, null, 'id,name,items,isContentContainer,childContainers,path');
 
 	},
 	setWorkingDirectory: function(id) {
@@ -342,7 +347,7 @@ var _Contents = {
 				'<h2>' + path + '</h2>'
 				+ '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th>><th>Modified</th></tr></thead>'
 				+ '<tbody id="files-table-body">'
-				+ ((id !== 'root') ? '<tr id="parent-file-link"><td class="file-type"><i class="fa fa-folder-o"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td><td></td></tr>' : '')
+				+ ((id !== 'root') ? '<tr id="parent-file-link"><td class="file-icon"><i class="fa fa-folder-o"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td><td></td></tr>' : '')
 				+ '</tbody></table>'
 		);
 
@@ -379,16 +384,20 @@ var _Contents = {
 		var row = $('#' + rowId);
 		var icon = d.isContentContainer ? 'fa-folder-o' : _Contents.getIcon(d);
 
+		let title = (d.name ? d.name : '[unnamed]');
+
 		if (d.isContentContainer) {
-			row.append('<td class="file-type"><i class="fa ' + icon + '"></i></td>');
-			row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node container"><b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 200) + '</b> <span class="id">' + d.id + '</span></div></td>');
+
+			row.append('<td class="file-icon"><i class="fa ' + icon + '"></i></td>');
+			row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node container"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ abbr-ellipsis abbr-75pc">' + d.name + '</b> <span class="id">' + d.id + '</span></div></td>');
+
 		} else {
-			row.append('<td class="file-type"><a href="javascript:void(0)"><i class="fa ' + icon + '"></i></a></td>');
-			row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item"><b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_">' + (d.name ? fitStringToWidth(d.name, 200) : '[unnamed]') + '</b></td>');
-			$('.file-type', row).on('click', function() {
+
+			row.append('<td class="file-icon"><a href="javascript:void(0)"><i class="fa ' + icon + '"></i></a></td>');
+			row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ abbr-ellipsis abbr-75pc">' + (d.name ? d.name : '[unnamed]') + '</b></td>');
+			$('.file-icon', row).on('click', function() {
 				_Contents.editItem(d);
 			});
-
 		}
 
 		$('.item-title b', row).on('click', function() {
@@ -467,7 +476,6 @@ var _Contents = {
 					var self = $(this);
 					var itemId = Structr.getId(ui.draggable);
 					var containerId = Structr.getId(self);
-					_Logger.log(_LogType.CONTENTS, 'itemId, containerId', itemId, containerId);
 
 					if (!(itemId === containerId)) {
 						var nodeData = {};
@@ -558,9 +566,7 @@ var _Contents = {
 	editItem: function(item) {
 
 		Structr.dialog('Edit ' + item.name, function() {
-			_Logger.log(_LogType.CONTENTS, 'content saved');
 		}, function() {
-			_Logger.log(_LogType.CONTENTS, 'cancelled');
 		});
 
 		Command.get(item.id, null, function(entity) {
@@ -787,7 +793,7 @@ var _Contents = {
 									// update title in list
 									if (key === 'title') {
 										var f = $('#row' + entity.id + ' .item-title b');
-										f.text(fitStringToWidth(newVal, 200));
+										f.text(newVal);
 										blinkGreen(f);
 									}
 								});
@@ -800,7 +806,6 @@ var _Contents = {
 					setTimeout(function() {
 						refreshBtn.click();
 					}, 500);
-
 
 				}, true);
 

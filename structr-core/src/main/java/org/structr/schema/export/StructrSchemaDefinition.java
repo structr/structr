@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -34,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -66,6 +65,10 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 	@Override
 	public URI getId() {
 		return id;
+	}
+
+	public StructrTypeDefinitions getTypeDefinitionsObject() {
+		return typeDefinitions;
 	}
 
 	public Set<StructrTypeDefinition> getTypeDefinitions() {
@@ -198,17 +201,28 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 		this.typeDefinitions.diff(other.typeDefinitions);
 	}
 
-	// ----- package methods -----
-	Map<String, Object> serialize() {
+	public Map<String, Object> serialize() {
 
 		final Map<String, Object> map = new TreeMap<>();
 
 		map.put(JsonSchema.KEY_DEFINITIONS, typeDefinitions.serialize());
-		map.put(JsonSchema.KEY_METHODS, globalMethods.serialize());
+		map.put(JsonSchema.KEY_METHODS,     globalMethods.serialize());
 
 		return map;
 	}
 
+	// ----- OpenAPI -----
+	public Map<String, Object> serializeOpenAPIOperations(final String tag) {
+
+		final Map<String, Object> operations = new TreeMap<>();
+
+		operations.putAll(globalMethods.serializeOpenAPIOperations(tag));
+		operations.putAll(typeDefinitions.serializeOpenAPIOperations(tag));
+
+		return operations;
+	}
+
+	// ----- package methods -----
 	void deserialize(final Map<String, Object> source) {
 
 		final Map<String, Object> definitions = (Map<String, Object>) source.get(JsonSchema.KEY_DEFINITIONS);
@@ -229,7 +243,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 		} else {
 
 			final String title = "Deprecation warning";
-			final String text = "This schema snapshot was created with an older version of structr. Newer versions contain global schema methods. Re-create the snapshot with the current version to avoid compatibility issues.";
+			final String text = "This schema snapshot was created with an older version of Structr. More recent versions support global schema methods. Please re-create the snapshot with the latest version to avoid compatibility issues.";
 
 			final Map<String, Object> deprecationBroadcastData = new TreeMap();
 			deprecationBroadcastData.put("type", "WARNING");

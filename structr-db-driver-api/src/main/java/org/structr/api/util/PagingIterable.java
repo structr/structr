@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -19,6 +19,7 @@
 package org.structr.api.util;
 
 import java.util.Iterator;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,16 +32,16 @@ public class PagingIterable<T> implements ResultStream<T> {
 	private PagingIterator<T> source   = null;
 	private String queryTimeFormatted  = null;
 
-	public PagingIterable(final Iterable<T> source) {
-		this(source, Integer.MAX_VALUE, 1);
+	public PagingIterable(final String description, final Iterable<T> source) {
+		this(description, source, Integer.MAX_VALUE, 1);
 	}
 
-	public PagingIterable(final Iterable<T> source, final int pageSize, final int page) {
-		this(source, pageSize, page, 0);
+	public PagingIterable(final String description, final Iterable<T> source, final int pageSize, final int page) {
+		this(description, source, pageSize, page, 0);
 	}
 
-	public PagingIterable(final Iterable<T> source, final int pageSize, final int page, final int skipped) {
-		this.source = new PagingIterator<>(source.iterator(), page, pageSize, skipped);
+	public PagingIterable(final String description, final Iterable<T> source, final int pageSize, final int page, final int skipped) {
+		this.source = new PagingIterator<>(description, source.iterator(), page, pageSize, skipped);
 	}
 
 	@Override
@@ -85,7 +86,7 @@ public class PagingIterable<T> implements ResultStream<T> {
 		return queryTimeFormatted;
 	}
 
-	public static final PagingIterable EMPTY_ITERABLE = new PagingIterable(() -> new Iterator() {
+	public static final PagingIterable EMPTY_ITERABLE = new PagingIterable("EMPTY_ITERABLE", () -> new Iterator() {
 
 		@Override
 		public boolean hasNext() {
@@ -112,7 +113,7 @@ public class PagingIterable<T> implements ResultStream<T> {
 				((AutoCloseable)source).close();
 
 			} catch (Exception ex) {
-				ex.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(ex));
 			}
 		}
 	}

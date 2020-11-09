@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -29,8 +29,8 @@ public interface Button extends DOMElement {
 
 	static class Impl { static {
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Button");
+		final JsonSchema schema       = SchemaService.getDynamicSchema();
+		final JsonObjectType type     = schema.addType("Button");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Button"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
@@ -47,23 +47,4 @@ public interface Button extends DOMElement {
 		type.addStringProperty("_html_type",           PropertyView.Html);
 		type.addStringProperty("_html_value",          PropertyView.Html);
 	}}
-
-	/*
-	public static final Property<String> _autofocus      = new HtmlProperty("autofocus");
-	public static final Property<String> _disabled       = new HtmlProperty("disabled");
-	public static final Property<String> _form           = new HtmlProperty("form");
-	public static final Property<String> _formaction     = new HtmlProperty("formaction");
-	public static final Property<String> _formenctype    = new HtmlProperty("formenctype");
-	public static final Property<String> _formmethod     = new HtmlProperty("formmethod");
-	public static final Property<String> _formnovalidate = new HtmlProperty("formnovalidate");
-	public static final Property<String> _formtarget     = new HtmlProperty("formtarget");
-	public static final Property<String> _type           = new HtmlProperty("type");
-	public static final Property<String> _value          = new HtmlProperty("value");
-
-	public static final View htmlView = new View(Button.class, PropertyView.Html,
-
-		_autofocus, _disabled, _form, _formaction, _formenctype, _formmethod,
-		_formnovalidate, _formtarget, _type, _value
-	 );
-	*/
 }

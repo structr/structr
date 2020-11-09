@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -80,14 +80,14 @@ public class IncludeFunction extends UiCommunityFunction {
 			boolean useBuffer      = false;
 			DOMNode node           = null;
 
-			if (ctx instanceof RenderContext) {
+			if (ctx.isRenderContext()) {
 
 				innerCtx  = new RenderContext((RenderContext)ctx);
 				useBuffer = true;
 
 			} else {
 
-				innerCtx  = new RenderContext(ctx.getSecurityContext());
+				innerCtx  = new RenderContext(securityContext);
 				useBuffer = false;
 			}
 
@@ -242,4 +242,7 @@ public class IncludeFunction extends UiCommunityFunction {
 		}
 	}
 
+	public static boolean isRenderContext (final ActionContext ctx) {
+		return (ctx instanceof RenderContext);
+	}
 }

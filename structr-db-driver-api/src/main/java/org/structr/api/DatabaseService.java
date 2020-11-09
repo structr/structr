@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -80,6 +80,8 @@ public interface DatabaseService {
 	String getTenantIdentifier();
 	String getInternalTimestamp();
 	String getErrorMessage();
+
+	public Map<String, Map<String, Integer>> getCachesInfo();
 
 	// ----- index -----
 	Index<Node> nodeIndex();

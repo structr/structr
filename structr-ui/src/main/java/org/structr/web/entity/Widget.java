@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -22,7 +22,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.regex.Matcher;
-import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -30,11 +31,9 @@ import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import static org.structr.core.entity.SchemaMethod.source;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
@@ -50,7 +49,6 @@ public interface Widget extends NodeInterface {
 
 		final JsonSchema schema    = SchemaService.getDynamicSchema();
 		final JsonObjectType type  = schema.addType("Widget");
-		final JsonObjectType image = schema.addType("Image");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Widget"));
 		type.setCategory("ui");
@@ -63,13 +61,8 @@ public interface Widget extends NodeInterface {
 		type.addStringArrayProperty("selectors",  PropertyView.Ui, PropertyView.Public, "editWidget");
 		type.addBooleanProperty("isPageTemplate", PropertyView.Ui, PropertyView.Public, "editWidget").setIndexed(true);
 
-		image.relate(type, "PICTURE_OF", Cardinality.ManyToOne, "pictures", "widget");
-
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "name");
-		type.addViewProperty(PropertyView.Public, "pictures");
-
-		type.addViewProperty(PropertyView.Ui, "pictures");
 	}}
 
 	static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[^\\]]+\\]");
@@ -81,7 +74,7 @@ public interface Widget extends NodeInterface {
 
 		if (_source == null) {
 
-			errorBuffer.add(new EmptyPropertyToken(Widget.class.getSimpleName(), source));
+			errorBuffer.add(new EmptyPropertyToken(Widget.class.getSimpleName(), StructrApp.key(Widget.class, "source")));
 
 		} else {
 
@@ -105,9 +98,7 @@ public interface Widget extends NodeInterface {
 					_source = _source.replace(group, value.toString());
 					matcher.reset(_source);
 				}
-
 			}
-
 		}
 
 		if (!errorBuffer.hasError()) {

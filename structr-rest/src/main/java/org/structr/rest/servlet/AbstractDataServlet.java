@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -37,12 +37,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.io.QuietException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import static org.structr.core.GraphObject.logger;
 import org.structr.core.IJsonInput;
 import org.structr.core.Services;
 import org.structr.core.Value;
@@ -63,6 +64,8 @@ import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMTER_OUTPUT_D
  *
  */
 public abstract class AbstractDataServlet extends AbstractServletBase implements HttpServiceServlet {
+
+	private static final Logger logger = LoggerFactory.getLogger(AbstractDataServlet.class);
 
 	// final fields
 	protected final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
@@ -119,7 +122,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 			final List<Object> content = result.getContent();
 			if (content != null) {
 
-				writeJson(securityContext, response, new PagingIterable(content), baseUrl, outputDepth, wrapSingleResultInArray);
+				writeJson(securityContext, response, new PagingIterable(request.toString(), content), baseUrl, outputDepth, wrapSingleResultInArray);
 
 			} else {
 
@@ -132,9 +135,9 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 					final Object nonGraphObjectResult = result.getNonGraphObjectResult();
 					if (nonGraphObjectResult != null && nonGraphObjectResult instanceof Iterable) {
-						writeJson(securityContext, response, new PagingIterable((Iterable) (nonGraphObjectResult)), baseUrl, outputDepth, wrapSingleResultInArray);
+						writeJson(securityContext, response, new PagingIterable(request.toString(), (Iterable) (nonGraphObjectResult)), baseUrl, outputDepth, wrapSingleResultInArray);
 					} else {
-						writeJson(securityContext, response, new PagingIterable(Arrays.asList(nonGraphObjectResult)), baseUrl, outputDepth, wrapSingleResultInArray);
+						writeJson(securityContext, response, new PagingIterable(request.toString(), Arrays.asList(nonGraphObjectResult)), baseUrl, outputDepth, wrapSingleResultInArray);
 					}
 				}
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -512,22 +512,32 @@ public abstract class Function<S, T> extends Hint {
 
 		if (!basePath.isEmpty()) {
 
-			boolean isDebug = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments().toString().contains("jdwp");
-
 			final String logPath = basePath.endsWith(File.separator) ? basePath.concat("logs" + File.separator) : basePath.concat(File.separator + "logs" + File.separator);
 
-			File logFile = new File(logPath.concat(isDebug ? "debug.log" : "server.log"));
+			File logFile;
+
+			// log file name from env
+			final String envLogFile = System.getenv("LOG_FILE");
+			if (envLogFile != null) {
+
+				logFile = new File(envLogFile);
+				if (logFile.exists()) {
+
+					return logFile;
+				}
+			}
+
+			// logs/server.log
+			logFile = new File(logPath.concat("server.log"));
 			if (logFile.exists()) {
 
 				return logFile;
+			}
 
-			} else if (!isDebug) {
-
-				// special handling for .deb installation
-				logFile = new File("/var/log/structr.log");
-				if (logFile.exists()) {
-					return logFile;
-				}
+			// special handling for .deb installation
+			logFile = new File("/var/log/structr.log");
+			if (logFile.exists()) {
+				return logFile;
 			}
 
 			logger.warn("Could not locate logfile");
@@ -556,10 +566,10 @@ public abstract class Function<S, T> extends Hint {
 			return;
 		}
 
-		for (final Map.Entry<String, Object> entry : source.entrySet()) {
+		for (final Map.Entry entry : source.entrySet()) {
 
 			final ConfigurationProvider provider = StructrApp.getConfiguration();
-			final String key                     = entry.getKey();
+			final String key                     = entry.getKey().toString();
 			final Object value                   = entry.getValue();
 
 			if (value instanceof Map) {

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -42,7 +42,7 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 
 		if (sources != null && sources.length == 1) {
 
-			if (ctx instanceof RenderContext) {
+			if (ctx.isRenderContext()) {
 
 				if (sources[0] instanceof GraphObject) {
 
@@ -52,6 +52,7 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 
 					logger.warn("Error: Parameter 1 is not a graph object. Parameters: {}", getParametersAsString(sources));
 				}
+
 			} else {
 
 				logger.warn("Error: set_details_object() can only be called in a page-rendering context! Parameters: {}", getParametersAsString(sources));

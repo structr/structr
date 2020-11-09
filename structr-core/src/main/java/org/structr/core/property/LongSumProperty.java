@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -88,5 +88,11 @@ public class LongSumProperty extends AbstractReadOnlyProperty<Long> {
 	@Override
 	public SortType getSortType() {
 		return SortType.Long;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return 1L;
 	}
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,13 +18,27 @@
  */
 package org.structr.web.auth;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.StringUtils;
+
+import org.apache.oltu.oauth2.client.OAuthClient;
+import org.apache.oltu.oauth2.client.URLConnectionClient;
+import org.apache.oltu.oauth2.client.request.OAuthBearerClientRequest;
+import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
 import org.apache.oltu.oauth2.client.response.OAuthResourceResponse;
+import org.apache.oltu.oauth2.common.utils.JSONUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Person;
+import org.structr.core.entity.Principal;
 
 /**
  *
@@ -34,7 +48,9 @@ public class LinkedInAuthClient extends StructrOAuthClient {
 
 	private static final Logger logger = LoggerFactory.getLogger(LinkedInAuthClient.class.getName());
 
-	public LinkedInAuthClient() {};
+	public LinkedInAuthClient() {}
+
+	private Map<String, Object> userProfileInfo = null;
 
 	@Override
 	protected String getAccessTokenParameterKey() {
@@ -43,7 +59,7 @@ public class LinkedInAuthClient extends StructrOAuthClient {
 
 	@Override
 	public String getScope() {
-		return "r_basicprofile r_emailaddress";
+		return Settings.OAuthLinkedInScope.getValue();
 	}
 
 	@Override
@@ -69,19 +85,111 @@ public class LinkedInAuthClient extends StructrOAuthClient {
 	@Override
 	public String getCredential(final HttpServletRequest request) {
 
-		OAuthResourceResponse userResponse = getUserResponse(request);
+		OAuthResourceResponse userProfileResponse = getUserProfileResponse(request);
+
+		if (userProfileResponse != null) {
+
+			userProfileInfo = JSONUtils.parseJSON(userProfileResponse.getBody());
+		}
+
+		final OAuthResourceResponse userResponse = getUserResponse(request);
 
 		if (userResponse == null) {
 
 			return null;
-
 		}
 
 		String body = userResponse.getBody();
 		logger.debug("User response body: {}", body);
 
-		String[] addresses = StringUtils.stripAll(StringUtils.stripAll(StringUtils.stripEnd(StringUtils.stripStart(body, "["), "]").split(",")), "\"");
+		final JsonParser parser = new JsonParser();
+		final JsonElement result = parser.parse(body);
 
-		return addresses.length > 0 ? addresses[0] : null;
+		final JsonArray elementsArray = result.getAsJsonObject().getAsJsonArray("elements");
+
+		if (elementsArray != null) {
+
+			final Iterator<JsonElement> iterator = elementsArray.iterator();
+
+			if (iterator.hasNext()) {
+
+				final JsonElement el = iterator.next();
+
+				if (el.getAsJsonObject().get("handle~") != null) {
+
+					final String address = el.getAsJsonObject().get("handle~").getAsJsonObject().get("emailAddress").getAsString();
+					logger.info("Got 'email' credential from GitHub: {}", address);
+
+					return address;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public void initializeUser(final Principal user) throws FrameworkException {
+
+		// initialize user from user profile response
+		if (userProfileInfo != null) {
+
+			final String firstName = (String) userProfileInfo.get("localizedFirstName");
+			final String lastName  = (String) userProfileInfo.get("localizedLastName");
+			final String name      = "" + firstName + " " + lastName;
+
+			user.setProperty(Principal.name, name);
+			user.setProperty(StructrApp.key(Person.class, "firstName"), firstName);
+			user.setProperty(StructrApp.key(Person.class, "lastName"), firstName);
+		}
+	}
+
+	private OAuthResourceResponse getUserProfileResponse(final HttpServletRequest request) {
+
+		try {
+
+			String accessToken = getAccessToken(request);
+
+			if (accessToken != null) {
+
+				final String accessTokenParameterKey = this.getAccessTokenParameterKey();
+
+				OAuthClientRequest clientReq = new OAuthBearerClientRequest(Settings.OAuthLinkedInUserProfileUri.getValue()) {
+
+					@Override
+					public OAuthBearerClientRequest setAccessToken(String accessToken) {
+						this.parameters.put(accessTokenParameterKey, accessToken);
+						return this;
+					}
+				}
+					.setAccessToken(accessToken)
+					.buildQueryMessage();
+
+				logger.info("User profile request: {}", clientReq.getLocationUri());
+
+				OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
+
+				OAuthResourceResponse userProfileResponse = oAuthClient.resource(clientReq, "GET", OAuthResourceResponse.class);
+				logger.info("User profile response: {}", userProfileResponse);
+
+				return userProfileResponse;
+			}
+
+		} catch (Throwable t) {
+
+			logger.error("Could not get user profile response", t);
+		}
+
+		return null;
+	}
+
+	@Override
+	protected String getAccessTokenLocationKey() {
+		return Settings.OAuthLinkedInAccessTokenLocation.getKey();
+	}
+
+	@Override
+	protected String getAccessTokenLocation() {
+		return Settings.OAuthLinkedInAccessTokenLocation.getValue("query");
 	}
 }

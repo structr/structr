@@ -32,8 +32,6 @@ var _Crawler = {
 	_moduleName: 'crawler',
 	init: function() {
 
-		_Logger.log(_LogType.CRAWLER, '_Crawler.init');
-
 		main = $('#main');
 
 		Structr.makePagesMenuDroppable();
@@ -48,8 +46,7 @@ var _Crawler = {
 		left = left || LSWrapper.getItem(crawlerResizerLeftKey) || 300;
 		$('.column-resizer', crawlerMain).css({ left: left });
 
-		$('#crawler-tree-container').css({width: left - 14 + 'px'});
-		$('#crawler-list').css({ left: left + 8 + 'px', width: $(window).width() - left - 50 + 'px' });
+		crawlerTree.css({width: left - 14 + 'px'});
 	},
 	onload: function() {
 
@@ -58,9 +55,9 @@ var _Crawler = {
 			_Crawler.init();
 		});
 
-		Structr.updateMainHelpLink('https://support.structr.com/knowledge-graph');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('crawler'));
 
-		main.append(`<div class="tree-main" id="crawler-main"><div class="column-resizer"></div><div class="tree-container" id="crawler-tree-container"><div class="tree" id="crawler-tree"></div></div><div class="fit-to-height tree-contents-container" id="crawler-list-container"><div class="tree-contents tree-contents-with-top-buttons" id="crawler-list"></div></div>`);
+		main.append('<div class="tree-main" id="crawler-main"><div class="column-resizer"></div><div class="tree-container" id="crawler-tree-container"><div class="tree" id="crawler-tree"></div></div><div class="tree-contents-container" id="crawler-list-container"><div class="tree-contents tree-contents-with-top-buttons" id="crawler-list"></div></div>');
 		crawlerMain = $('#crawler-main');
 
 		crawlerTree = $('#crawler-tree');
@@ -268,7 +265,7 @@ var _Crawler = {
 
 			var nameEl = $('.site-header .site-name', crawlerList);
 			nameEl.children('b.name_').off('click').on('click', function (e) {
-				_Entities.makeNameEditable(nameEl, 200, function() {
+				_Entities.makeNameEditable(nameEl, function() {
 					_Crawler.refreshTree();
 				});
 			});
@@ -327,10 +324,10 @@ var _Crawler = {
 		var row = $('#' + rowId);
 		var icon = 'fa-file-code-o';
 
-		row.append(`<td class="file-type"><a href="${sourcePage.url || ''}" target="_blank"><i class="fa ${icon}"></i></a></td>`);
-		row.append(`<td><div id="id_${sourcePage.id}" data-structr_type="item" class="node item"><b title="${sourcePage.name ? sourcePage.name : '[unnamed]'}" class="name_">${sourcePage.name ? fitStringToWidth(sourcePage.name, 200) : '[unnamed]'}</b></td>`);
+		row.append(`<td class="file-icon"><a href="${sourcePage.url || ''}" target="_blank"><i class="fa ${icon}"></i></a></td>`);
+		row.append(`<td><div id="id_${sourcePage.id}" data-structr_type="item" class="node item"><b title="${escapeForHtmlAttributes(sourcePage.name ? sourcePage.name : '[unnamed]')}" class="name_ abbr-ellipsis abbr-75pc">${sourcePage.name ? sourcePage.name : '[unnamed]'}</b></td>`);
 
-		row.append(`<td><div class="editable url_" title="${sourcePage.url || ''}">${sourcePage.url && sourcePage.url.length ? sourcePage.url : '<span class="placeholder">click to edit</span>'}</div></td>`);
+		row.append(`<td><div class="editable url_" title="${escapeForHtmlAttributes(sourcePage.url || '')}">${sourcePage.url && sourcePage.url.length ? sourcePage.url : '<span class="placeholder">click to edit</span>'}</div></td>`);
 		row.append(`<td>${sourcePage.isLoginPage ? '✓' : ''}</td>`);
 
 		var div = Structr.node(sourcePage.id);
@@ -340,7 +337,7 @@ var _Crawler = {
 
 		row.find('.url_').on('click', function(e) {
 			e.stopPropagation();
-			_Entities.makeAttributeEditable(row, sourcePage.id, '.url_', 'url', 200, function() {
+			_Entities.makeAttributeEditable(row, sourcePage.id, '.url_', 'url', function() {
 				_Crawler.refreshTree();
 			});
 		});
@@ -419,7 +416,7 @@ var _Crawler = {
 			var nameEl = $('.page-header .page-name', crawlerList);
 			nameEl.children('b.name_').off('click').on('click', function (e) {
 				e.stopPropagation();
-				_Entities.makeNameEditable(nameEl, 200, function() {
+				_Entities.makeNameEditable(nameEl, function() {
 					_Crawler.refreshTree();
 				});
 			});
@@ -694,8 +691,8 @@ var _Crawler = {
 
 			var name = subPattern.name;
 			tableBody.append('<tr id="row' + subPattern.id + '">'
-				+ '<td class="file-type"><a href="javascript:void(0)"><i class="fa fa-code"></i></a></td>'
-				+ '<td><div id="id_' + subPattern.id + '" data-structr_type="item" class="node item"><b title="' +  (name ? name : '[unnamed]') + '" class="name_">' + (name ? fitStringToWidth(name, 200) : '[unnamed]') + '</b></td>'
+				+ '<td class="file-icon"><a href="javascript:void(0)"><i class="fa fa-code"></i></a></td>'
+				+ '<td><div id="id_' + subPattern.id + '" data-structr_type="item" class="node item"><b title="' +  escapeForHtmlAttributes(name ? name : '[unnamed]') + '" class="name_ abbr-ellipsis abbr-75pc">' + (name ? name : '[unnamed]') + '</b></td>'
 				+ '<td><div data-raw-value="' + (subPattern.selector || '') + '" class="editable sub-selector">' + (subPattern.selector || '<span class="placeholder">click to edit</span>') + '</div></td>'
 				+ '<td><div title="' + (subPattern.mappedType || '') + '" class="editable mappedType_"></div></td>'
 				+ '<td><div title="' + (subPattern.mappedAttribute || '') + '" class="editable mappedAttribute_"></div></td>'
@@ -762,7 +759,7 @@ var _Crawler = {
 
 			row.find('.mappedAttributeFunction_').on('click', function(e) {
 				e.stopPropagation();
-				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttributeFunction_', 'mappedAttributeFunction', 200);
+				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttributeFunction_', 'mappedAttributeFunction');
 			});
 
 			var div = Structr.node(subPattern.id);
@@ -791,9 +788,9 @@ var _Crawler = {
 
 		var row = $('#' + rowId);
 
-		row.append('<td class="file-type"><a href="javascript:void(0)"><i class="fa fa-code"></i></a></td>');
-		row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item"><b title="' +  (d.name ? d.name : '[unnamed]') + '" class="name_">' + (d.name ? fitStringToWidth(d.name, 200) : '[unnamed]') + '</b></td>');
-		$('.file-type', row).on('click', function() {
+		row.append('<td class="file-icon"><a href="javascript:void(0)"><i class="fa fa-code"></i></a></td>');
+		row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item"><b title="' +  escapeForHtmlAttributes(d.name ? d.name : '[unnamed]') + '" class="name_ abbr-ellipsis abbr-75pc">' + (d.name ? d.name : '[unnamed]') + '</b></td>');
+		$('.file-icon', row).on('click', function() {
 			_Crawler.editItem(d);
 		});
 
@@ -882,12 +879,12 @@ var _Crawler = {
 
 		row.find('.inputValue_').on('click', function(e) {
 			e.stopPropagation();
-			_Entities.makeAttributeEditable(row, d.id, '.inputValue_', 'inputValue', 200);
+			_Entities.makeAttributeEditable(row, d.id, '.inputValue_', 'inputValue');
 		});
 
 		row.find('.mappedAttributeFunction_').on('click', function(e) {
 			e.stopPropagation();
-			_Entities.makeAttributeEditable(row, d.id, '.mappedAttributeFunction_', 'mappedAttributeFunction', 200);
+			_Entities.makeAttributeEditable(row, d.id, '.mappedAttributeFunction_', 'mappedAttributeFunction');
 		});
 
 		var div = Structr.node(d.id);

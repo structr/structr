@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -53,7 +53,7 @@ public class RenderFunction extends UiCommunityFunction {
 			boolean useBuffer      = false;
 			RenderContext innerCtx = null;
 
-			if (ctx instanceof RenderContext) {
+			if (ctx.isRenderContext()) {
 
 				innerCtx  = new RenderContext((RenderContext)ctx);
 				useBuffer = true;

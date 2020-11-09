@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,6 +18,7 @@
  */
 package org.structr.web.common;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -29,6 +30,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import javax.activation.MimetypesFileTypeMap;
+import javax.imageio.ImageIO;
+
 import net.openhft.hashing.Access;
 import net.openhft.hashing.LongHashFunction;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -133,6 +136,28 @@ public class FileHelper {
 
 		return createFile(securityContext, fileStream, contentType, fileType, name, null);
 
+	}
+
+	/**
+	 *
+	 * @param <T>
+	 * @param securityContext
+	 * @param existingFileOnDisk
+	 * @param contentType
+	 * @param name
+	 * @return
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static <T extends File> T createFile(final SecurityContext securityContext, final java.io.File existingFileOnDisk, final String contentType, final String name)
+		throws FrameworkException, IOException {
+
+		final T newFile = (T) StructrApp.getInstance(securityContext).create(File.class, name);
+		final java.io.File newFileOnDisk = newFile.getFileOnDisk(false);
+
+		FileUtils.moveFile(existingFileOnDisk, newFileOnDisk);
+
+		return newFile;
 	}
 
 	/**
@@ -264,7 +289,6 @@ public class FileHelper {
 	 * @param file
 	 * @param fileData
 	 * @param contentType if null, try to auto-detect content type
-	 * @param updateMetadata
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
@@ -272,6 +296,15 @@ public class FileHelper {
 		FileHelper.setFileData(file, fileData, contentType, true);
 	}
 
+	/**
+	 *
+	 * @param file
+	 * @param fileData
+	 * @param contentType
+	 * @param updateMetadata
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
 	public static void setFileData(final File file, final byte[] fileData, final String contentType, final boolean updateMetadata) throws FrameworkException, IOException {
 
 		FileHelper.writeToFile(file, fileData);
@@ -314,6 +347,13 @@ public class FileHelper {
 		map.put(StructrApp.key(File.class, "version"),     1);
 
 		map.putAll(getChecksums(file, fileOnDisk));
+
+		if (file instanceof Image) {
+
+			BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
+			map.put(StructrApp.key(Image.class, "width"), bufferedImage.getWidth());
+			map.put(StructrApp.key(Image.class, "height"), bufferedImage.getHeight());
+		}
 
 		file.setProperties(file.getSecurityContext(), map);
 	}
@@ -639,7 +679,6 @@ public class FileHelper {
 			return StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).and(StructrApp.key(AbstractFile.class, "path"), absolutePath).getFirst();
 
 		} catch (FrameworkException ex) {
-			ex.printStackTrace();
 			logger.warn("File not found: {}", absolutePath);
 		}
 

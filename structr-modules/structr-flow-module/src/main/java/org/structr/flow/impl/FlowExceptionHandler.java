@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -36,8 +36,13 @@ import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FlowExceptionHandler extends FlowNode implements Exception, DataSource, DeployableEntity {
+
+	private static final Logger logger = LoggerFactory.getLogger(FlowExceptionHandler.class);
 
 	public static final Property<Iterable<FlowBaseNode>> handledNodes = new StartNodes<>("handledNodes", FlowExceptionHandlerNodes.class);
 	public static final Property<Iterable<FlowBaseNode>> dataTarget   = new EndNodes<>("dataTarget", FlowDataInput.class);
@@ -56,7 +61,7 @@ public class FlowExceptionHandler extends FlowNode implements Exception, DataSou
 
 		if (next == null && exception != null) {
 			context.error(new FlowError(exception.getMessage()));
-			exception.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(exception));
 		}
 	}
 

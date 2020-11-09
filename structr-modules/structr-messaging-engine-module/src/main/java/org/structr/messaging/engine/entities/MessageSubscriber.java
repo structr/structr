@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -22,6 +22,8 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.cxf.common.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
@@ -83,9 +85,14 @@ public interface MessageSubscriber extends NodeInterface {
 
 			Iterable<MessageClient> clientsList = thisSubscriber.getClients();
 			clientsList.forEach(client -> {
+
 				try {
+
 					client.invokeMethod(securityContext, "subscribeTopic", params, false);
+
 				} catch (FrameworkException e) {
+
+					final Logger logger = LoggerFactory.getLogger(MessageSubscriber.class);
 					logger.error("Could not invoke subscribeTopic on MessageClient: " + e.getMessage());
 				}
 			});
@@ -121,7 +128,7 @@ public interface MessageSubscriber extends NodeInterface {
 			ActionContext ac = new ActionContext(securityContext, params);
 			ac.setConstant("topic", topic);
 			ac.setConstant("message", message);
-			Scripting.replaceVariables(ac, thisSubscriber, script);
+			Scripting.evaluate(ac, thisSubscriber, script, "onMessage_Callback");
 		}
 
 		return new RestMethodResult(200);

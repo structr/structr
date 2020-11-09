@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -19,6 +19,8 @@
 package org.structr.web.entity;
 
 import java.net.URI;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
@@ -102,11 +104,14 @@ public interface User extends Principal {
 		user.addViewProperty(PropertyView.Ui, "proxyUsername");
 		user.addViewProperty(PropertyView.Ui, "publicKey");
 		user.addViewProperty(PropertyView.Ui, "sessionIds");
+		user.addViewProperty(PropertyView.Ui, "refreshTokens");
 		user.addViewProperty(PropertyView.Ui, "workingDirectory");
 
 		user.addViewProperty(PropertyView.Ui, "twoFactorToken");
 		user.addViewProperty(PropertyView.Ui, "isTwoFactorUser");
 		user.addViewProperty(PropertyView.Ui, "twoFactorConfirmed");
+
+		user.addViewProperty(PropertyView.Ui, "twitterName");
 
 		user.addViewProperty(PropertyView.Ui, "passwordAttempts");
 		user.addViewProperty(PropertyView.Ui, "passwordChangeDate");
@@ -195,7 +200,7 @@ public interface User extends Principal {
 
 				} catch (Throwable t) {
 
-					t.printStackTrace();
+					LoggerFactory.getLogger(User.class).error("{}", ExceptionUtils.getStackTrace(t));
 				}
 			}
 

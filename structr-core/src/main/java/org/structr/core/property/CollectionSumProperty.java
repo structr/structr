@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -121,5 +121,11 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 	@Override
 	public boolean isCollection() {
 		return false;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(java.lang.String type, final String viewName) {
+		return 1;
 	}
 }

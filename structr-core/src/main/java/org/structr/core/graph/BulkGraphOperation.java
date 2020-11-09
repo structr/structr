@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -36,13 +37,13 @@ public abstract class BulkGraphOperation<T> {
 	public abstract boolean handleGraphObject(SecurityContext securityContext, T obj) throws FrameworkException;
 
 	public void handleThrowable(final SecurityContext securityContext, final Throwable t, final T currentObject) {
-		t.printStackTrace();
 		logger.warn("Exception in bulk graph operation.", t);
+		logger.warn(ExceptionUtils.getStackTrace(t));
 	}
 
 	public void handleTransactionFailure(final SecurityContext securityContext, final Throwable t) {
-		t.printStackTrace();
 		logger.warn("Transaction failure in bulk graph operation.", t);
+		logger.warn(ExceptionUtils.getStackTrace(t));
 	}
 
 	public Predicate<Long> getCondition() {

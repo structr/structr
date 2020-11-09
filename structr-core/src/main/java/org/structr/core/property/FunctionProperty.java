@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,7 +18,10 @@
  */
 package org.structr.core.property;
 
+import java.awt.*;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -111,6 +114,45 @@ public class FunctionProperty<T> extends Property<T> {
 
 					Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction.trim()).concat("}"), "getProperty(" + jsonName + ")");
 
+					PropertyConverter converter = null;
+
+					if (typeHint != null && result != null) {
+
+						switch (typeHint.toLowerCase()) {
+
+							case "boolean":
+								converter = pBoolean.inputConverter(securityContext);
+								break;
+							case "int":
+								converter = pInt.inputConverter(securityContext);
+								break;
+							case "long":
+								converter = pLong.inputConverter(securityContext);
+								break;
+							case "double":
+								converter = pDouble.inputConverter(securityContext);
+								break;
+							case "date":
+								converter = pDate.inputConverter(securityContext);
+								break;
+						}
+
+						if (converter != null) {
+							{
+								try {
+
+									Object convertedResult = converter.convert(result);
+									if (convertedResult != null) {
+										result = convertedResult;
+									}
+								} catch (FrameworkException ex) {
+
+									logger.warn("Could not convert value of function property. Conversion type: :%s, Raw value: " + result.toString(), ex);
+								}
+							}
+						}
+					}
+
 					securityContext.getContextStore().storeFunctionPropertyResult(obj.getUuid(), jsonName, result);
 
 					return (T)result;
@@ -123,8 +165,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
-			logger.warn("Exception while evaluating read function in Function property \"{}\"", jsonName());
+			logger.warn("Exception while evaluating read function in Function property '" + jsonName() + "'", t);
 		}
 
 		return null;
@@ -251,6 +292,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 	@Override
 	public T convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException {
+
 		if (typeHint != null) {
 
 			PropertyConverter converter = null;
@@ -296,5 +338,61 @@ public class FunctionProperty<T> extends Property<T> {
 		}
 
 		return defaultValue;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+
+		if (typeHint != null) {
+
+			switch (typeHint.toLowerCase()) {
+
+				case "boolean": return pBoolean.getExampleValue(type, viewName);
+				case "int":     return pInt.getExampleValue(type, viewName);
+				case "long":    return pLong.getExampleValue(type, viewName);
+				case "double":  return pDouble.getExampleValue(type, viewName);
+				case "date":    return pDate.getExampleValue(type, viewName);
+			}
+		}
+
+		return null;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+
+		if (typeHint != null) {
+
+			switch (typeHint.toLowerCase()) {
+
+				case "boolean": return pBoolean.describeOpenAPIOutputType(type, viewName, level + 1);
+				case "int":     return pInt.describeOpenAPIOutputType(type, viewName, level + 1);
+				case "long":    return pLong.describeOpenAPIOutputType(type, viewName, level + 1);
+				case "double":  return pDouble.describeOpenAPIOutputType(type, viewName, level + 1);
+				case "date":    return pDate.describeOpenAPIOutputType(type, viewName, level + 1);
+			}
+		}
+
+		return Collections.EMPTY_MAP;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+
+		if (typeHint != null) {
+
+			switch (typeHint.toLowerCase()) {
+
+				case "boolean": return pBoolean.describeOpenAPIInputType(type, viewName, level + 1);
+				case "int":     return pInt.describeOpenAPIInputType(type, viewName, level + 1);
+				case "long":    return pLong.describeOpenAPIInputType(type, viewName, level + 1);
+				case "double":  return pDouble.describeOpenAPIInputType(type, viewName, level + 1);
+				case "date":    return pDate.describeOpenAPIInputType(type, viewName, level + 1);
+			}
+		}
+
+		return Collections.EMPTY_MAP;
 	}
 }

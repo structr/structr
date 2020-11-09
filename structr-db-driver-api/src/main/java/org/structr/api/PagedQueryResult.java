@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -23,18 +23,21 @@ import org.structr.api.util.PagingIterator;
 
 public class PagedQueryResult<T> implements Iterable<T> {
 
+	private final String description;
 	private final Iterable<T> result;
 	private final int page;
 	private final int pageSize;
 
-	public PagedQueryResult(final Iterable<T> result, final int page, final int pageSize) {
-		this.result = result;
-		this.page = page;
-		this.pageSize = pageSize;
+	public PagedQueryResult(final String description, final Iterable<T> result, final int page, final int pageSize) {
+
+		this.description = description;
+		this.result      = result;
+		this.page        = page;
+		this.pageSize    = pageSize;
 	}
 
 	@Override
 	public Iterator<T> iterator() {
-		return new PagingIterator(result.iterator(), page, pageSize);
+		return new PagingIterator(description, result.iterator(), page, pageSize);
 	}
 }

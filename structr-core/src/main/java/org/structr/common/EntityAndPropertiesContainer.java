@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -496,5 +496,10 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	@Override
 	public long getSourceTransactionId() {
 		return entity.getSourceTransactionId();
+	}
+
+	@Override
+	public boolean changelogEnabled() {
+		return entity.changelogEnabled();
 	}
 }

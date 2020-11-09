@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -31,7 +31,7 @@ import org.testng.annotations.BeforeClass;
 public abstract class StructrFileTestBase extends StructrUiTest {
 
 	protected int ftpPort = 8876 + new Random().nextInt(1000);
-	protected int sshPort = 8877 + new Random().nextInt(1000);;
+	protected int sshPort = 8877 + new Random().nextInt(1000);
 
 	@BeforeClass(alwaysRun = true)
 	@Override

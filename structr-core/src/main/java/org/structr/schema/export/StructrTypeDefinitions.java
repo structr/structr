@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,7 +18,9 @@
  */
 package org.structr.schema.export;
 
+import java.net.URI;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -36,6 +38,9 @@ import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
+import org.structr.common.PropertyView;
+import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
 /**
  *
@@ -134,8 +139,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		return null;
 	}
 
-	// ----- package methods -----
-	Map<String, Object> serialize() {
+	public Map<String, Object> serialize() {
 
 		final Map<String, Object> map = new TreeMap<>();
 
@@ -147,6 +151,71 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		return map;
 	}
 
+	public Map<String, Object> serializeOpenAPI(final Map<String, Object> schemas, final String tag, final String viewName) {
+
+		final Map<String, Object> map = new TreeMap<>();
+
+		for (final StructrTypeDefinition type : typeDefinitions) {
+
+			if (type.isSelected(tag)) {
+
+				final List<Map<String, Object>> allOf = new LinkedList<>();
+				final Map<String, Object> typeMap     = new TreeMap<>();
+				final String typeName                 = type.getName() + (viewName == null || "public".equals(viewName) ? "" : "." + viewName);
+
+				map.put(typeName, typeMap);
+				typeMap.put("allOf", allOf);
+
+				// base type must be resolve and added as well
+				final URI baseTypeReference = type.getExtends();
+				if (baseTypeReference != null) {
+
+					final Object def = root.resolveURI(baseTypeReference);
+					if (def != null && def instanceof StructrTypeDefinition) {
+
+						final StructrTypeDefinition baseType = (StructrTypeDefinition)def;
+						if (!schemas.containsKey(baseType.getName())) {
+
+							schemas.putAll(new OpenAPIStructrTypeSchemaOutput(baseType, viewName, 0));
+						}
+					}
+				}
+
+				final String reference = type.resolveTypeReferenceForOpenAPI(type.getExtends());
+				if (reference != null) {
+
+					allOf.add(new OpenAPIReference(reference, viewName));
+
+				} else {
+
+					// default base type AbstractNode
+					allOf.add(new OpenAPIReference("#/components/schemas/AbstractNode", PropertyView.Public));
+				}
+
+				// add actual type definition
+				schemas.putAll(new OpenAPIStructrTypeSchemaOutput(type, viewName, 0));
+			}
+		}
+
+		return map;
+	}
+
+	public Map<String, Object> serializeOpenAPIOperations(final String tag) {
+
+		final Map<String, Object> map = new TreeMap<>();
+
+		for (final StructrTypeDefinition type : typeDefinitions) {
+
+			if (type.isSelected(tag)) {
+
+				map.putAll(type.serializeOpenAPIOperations(tag));
+			}
+		}
+
+		return map;
+	}
+
+	// ----- package methods -----
 	void deserialize(final Map<String, Object> source) {
 		deserialize(source, null);
 	}
@@ -291,5 +360,4 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		// We can not determine yet if the type was deleted or renamed, so we need to delete it..
 		StructrApp.getInstance().delete(type.getSchemaNode());
 	}
-
 }

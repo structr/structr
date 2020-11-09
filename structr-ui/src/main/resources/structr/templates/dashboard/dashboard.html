@@ -17,6 +17,9 @@
 			<a href="#dashboard-server-log">Server Log</a>
 		</li>
 		<li>
+			<a href="#dashboard-event-log">Event Log</a>
+		</li>
+		<li>
 			<a href="#dashboard-ui-config">UI Settings</a>
 		</li>
 <!--		<li>
@@ -100,6 +103,14 @@
 							<button class="action" id="do-data-export">Export data to local directory</button>
 						</div>
 
+						<h3>Export and download <u>application</u> as ZIP file</h3>
+						${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Export and download as ZIP file is not possible because <code>DeployServlet</code> is not running.</span>')}
+						<div>
+							<input type="text" id="zip-export-prefix" placeholder="ZIP File prefix" ${(config.deployServletAvailable ? '' : 'disabled')} value="${(config.zipExportPrefix || 'webapp')}"><br>
+							<label class="checkbox-label"><input type="checkbox" id="zip-export-append-timestamp" ${(config.deployServletAvailable ? '' : 'disabled')} ${(config.zipExportAppendTimestamp ? 'checked' : '')}> Append timestamp</label>
+							<button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-export-to-zip">Export and download app as ZIP file</button>
+						</div>
+
 					</td>
 				</tr>
 			</table>
@@ -157,6 +168,43 @@
 			</div>
 
 			<button id="save-menu-config" class="action">Save & Apply</button>
+		</div>
+
+		<div class="tab-content" id="dashboard-event-log">
+
+			<div id="event-log-options">
+				<label>Filter: </label>
+				<select id="event-type-filter">
+					<option value="">All events</option>
+					<option value="Authentication">Authentication events</option>
+					<option value="Cron">Cron events</option>
+					<option value="Csv">CSV requests</option>
+					<option value="Javascript">Javascript events</option>
+					<option value="Rest">REST requests</option>
+					<option value="ResourceAccess">ResourceAccess events</option>
+					<option value="Transaction">Transactions</option>
+					<option value="SystemInfo">SystemInfo</option>
+				</select>
+				<label>Number of events to show: </label>
+				<input id="event-type-page-size" type="number" size="6" value="100" />
+				<button id="refresh-event-log"><i class="sprite sprite-arrow_refresh"></i> Refresh</button>
+			</div>
+
+			<table class="props">
+				<thead>
+					<tr>
+						<th style="text-align: left;">Timestamp</th>
+						<th style="text-align: left;">Type</th>
+						<th style="text-align: left;">Action</th>
+						<th style="text-align: left;">Data</th>
+						<th></th>
+						<th></th>
+						<th></th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody id="event-log-container"></tbody>
+			</table>
 		</div>
 
 	</div>
@@ -250,9 +298,14 @@
 			display: inline-block;
 		}
 
-		#dashboard-deployment input {
+		#dashboard-deployment input[type=text] {
 			width: calc(100% - 24px);
-			/*width: 425px;*/
+			height: 15px;
+			margin: 0 4px 12px 0;
+		}
+
+		#dashboard-deployment label.checkbox-label {
+			display: block;
 			height: 15px;
 			margin: 0 4px 12px 0;
 		}

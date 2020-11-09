@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -32,7 +33,9 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 
 /**
- * Deletes a node.
+ * Deletes a node. Caution, this command cannot be used multiple times, please instantiate
+ * a new command for every delete action.
+ *
  */
 public class DeleteNodeCommand extends NodeServiceCommand {
 
@@ -40,7 +43,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 	private final Set<NodeInterface> deletedNodes = new HashSet<>();
 
-	public void execute(NodeInterface node) {
+	public void execute(final NodeInterface node) {
 
 		if (securityContext.doCascadingDelete()) {
 
@@ -60,6 +63,9 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			node.onNodeDeletion();
 			node.getNode().delete(true);
 		}
+
+		// allow re-used of this command
+		deletedNodes.clear();
 	}
 
 	private void doDeleteNode(final NodeInterface node) {
@@ -167,9 +173,8 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
-
 			logger.warn("Exception while deleting node {}: {}", node, t.getMessage());
+			logger.warn(ExceptionUtils.getStackTrace(t));
 		}
 
 		return;

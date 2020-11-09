@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.structr</groupId>
 	<artifactId>structr-binaries</artifactId>
-	<version>3.5.1</version>
+	<version>3.6-SNAPSHOT</version>
 
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>3.5.1</version>
+		<version>3.6-SNAPSHOT</version>
 	</parent>
 
 	<build>
@@ -133,17 +133,6 @@
 									</mapper>
 								</data>
 
-								<!--
-								<data>
-									<src>${basedir}/src/main/deb/logrotate.d</src>
-									<type>directory</type>
-									<mapper>
-										<type>perm</type>
-										<prefix>/etc/logrotate.d</prefix>
-										<filemode>755</filemode>
-									</mapper>
-								</data>
-								-->
 							</dataSet>
 						</configuration>
 					</execution>
@@ -253,5 +242,42 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+
+	<profiles>
+		<profile>
+			<activation>
+				<file>
+					<exists>/usr/bin/notify-send</exists>
+				</file>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>3.0.0</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<phase>prepare-package</phase>
+							</execution>
+						</executions>
+						<configuration>
+							<executable>/usr/bin/notify-send</executable>
+							<arguments>
+								<argument>-a</argument>
+								<argument>Structr Maven Build Process</argument>
+								<argument>-t</argument>
+								<argument>3000</argument>
+								<argument>Build finished</argument>
+							</arguments>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>

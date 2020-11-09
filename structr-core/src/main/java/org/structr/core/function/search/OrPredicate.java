@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -45,7 +45,16 @@ public class OrPredicate extends AbstractPredicate {
 
 				} else {
 
-					query.or(key, value, p.isExact());
+					if (p.isEmptyPredicate()) {
+
+						query.or();
+						query.blank(key);
+						query.parent();
+						
+					} else {
+
+						query.or(key, value, p.isExact());
+					}
 				}
 			}
 		}

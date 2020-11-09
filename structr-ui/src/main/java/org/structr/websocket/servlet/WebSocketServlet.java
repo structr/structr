@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -23,6 +23,7 @@ import com.google.gson.GsonBuilder;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.structr.api.config.Settings;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.rest.common.StatsCallback;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.websocket.StructrWebSocket;
@@ -39,6 +40,7 @@ public class WebSocketServlet extends org.eclipse.jetty.websocket.servlet.WebSoc
 	private static final int MAX_TEXT_MESSAGE_SIZE = 1024 * 1024;
 
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
+	protected StatsCallback stats                 = null;
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
@@ -86,5 +88,10 @@ public class WebSocketServlet extends org.eclipse.jetty.websocket.servlet.WebSoc
 
 		factory.getPolicy().setMaxTextMessageSize(MAX_TEXT_MESSAGE_SIZE);
 
+	}
+
+	@Override
+	public void registerStatsCallback(final StatsCallback stats) {
+		this.stats = stats;
 	}
 }

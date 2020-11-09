@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -61,7 +61,7 @@ public class FindFunction extends AbstractQueryFunction {
 
 			final ConfigurationProvider config    = StructrApp.getConfiguration();
 			final App app                         = StructrApp.getInstance(securityContext);
-			final Query query                     = app.nodeQuery();//.sort(GraphObject.createdDate).order(false);
+			final Query query                     = app.nodeQuery();
 
 			// the type to query for
 			Class type = null;
@@ -77,7 +77,7 @@ public class FindFunction extends AbstractQueryFunction {
 
 				} else {
 
-					logger.warn("Error in find(): type \"{}\" not found.", typeString);
+					logger.warn("Error in find(): type '{}' not found.", typeString);
 					return ERROR_MESSAGE_FIND_TYPE_NOT_FOUND + typeString;
 
 				}
@@ -92,7 +92,7 @@ public class FindFunction extends AbstractQueryFunction {
 			// apply sorting and pagination by surrounding sort() and slice() expressions
 			applyQueryParameters(securityContext, query);
 
-			return handleQuerySources(securityContext, type, query, sources, true);
+			return handleQuerySources(securityContext, type, query, sources, true, usage(ctx.isJavaScriptContext()));
 
 		} catch (final IllegalArgumentException e) {
 

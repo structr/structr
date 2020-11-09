@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -61,7 +61,7 @@ public abstract class FlowLogicCondition extends FlowCondition implements Deploy
 
 		if (StreamSupport.stream(getProperty(dataSources).spliterator(), false).count() == 1) {
 
-			return getBoolean(context, getProperty(dataSources).iterator().next());
+			return combine(null, getBoolean(context, getProperty(dataSources).iterator().next()));
 		}
 
 		Boolean result = null;

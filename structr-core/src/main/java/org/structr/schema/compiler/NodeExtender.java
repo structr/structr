@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -100,12 +100,12 @@ public class NodeExtender {
 
 			if (Settings.LogSchemaOutput.getValue()) {
 
-				System.out.println("########################################################################################################################################################");
+				logger.info("######################################## {}", sourceFile.getName());
 
 				int count = 0;
 
 				for (final SourceLine line : sourceFile.getLines()) {
-					System.out.println(StringUtils.rightPad(++count + ": ", 6) + line);
+					logger.info(StringUtils.rightPad(++count + ": ", 6) + line);
 				}
 			}
 		}
@@ -191,7 +191,6 @@ public class NodeExtender {
 
 			if (diagnostic.getKind().equals(Kind.ERROR)) {
 
-				final int errorContext    = 5;
 				final int errorLineNumber = Long.valueOf(diagnostic.getLineNumber()).intValue();
 				final SourceFile obj      = (SourceFile)diagnostic.getSource();
 				String name               = obj.getName();
@@ -204,41 +203,42 @@ public class NodeExtender {
 					final List<SourceLine> code = sourceFile.getLines();
 					final SourceLine line       = code.get(errorLineNumber - 1);
 					final AbstractNode source   = (AbstractNode)line.getCodeSource();
+					final int size              = code.size();
+
+					logger.error(diagnostic.getMessage(Locale.ENGLISH));
 
 					if (source != null) {
-						System.out.println("Code source: " + source.getUuid() + " of type " + source.getClass().getSimpleName() + " name " + source.getName());
-					}
-					System.out.println("Error: " + diagnostic.getMessage(Locale.ENGLISH));
-
-					if (errorLineNumber - 3 >= 0) {
-						System.out.println("  " + StringUtils.leftPad("" + (errorLineNumber-3), 4) + ": " + code.get(errorLineNumber - 3));
-					}
-					if (errorLineNumber - 2 >= 0) {
-						System.out.println("  " + StringUtils.leftPad("" + (errorLineNumber-2), 4) + ": " + code.get(errorLineNumber - 2));
+						logger.error("code source: {} of type {} name {}", source.getUuid(), source.getClass().getSimpleName(), source.getName());
 					}
 
-					System.out.println("> " + StringUtils.leftPad("" + (errorLineNumber-1), 4) + ": " + line);
+					for (int i = errorLineNumber - 3; i < errorLineNumber + 3; i++) {
 
-					if (errorLineNumber <= code.size()) {
-						System.out.println("  " + StringUtils.leftPad("" + (errorLineNumber), 4) + ": " + code.get(errorLineNumber));
+						if (inRange(i, size)) {
+
+							String prefix = "  ";
+
+							if (i == errorLineNumber-1) {
+								prefix = "> ";
+							}
+
+							logger.error(prefix + StringUtils.leftPad("" + i, 5) + ": " + code.get(i));
+						}
 					}
-					if (errorLineNumber + 1 <= code.size()) {
-						System.out.println("  " + StringUtils.leftPad("" + (errorLineNumber+1), 4) + ": " + code.get(errorLineNumber));
-					}
-
-					/*
-					final String src = ((JavaFileObject) diagnostic.getSource()).getCharContent(true).toString();
-
-					// Add line numbers
-					final AtomicInteger index = new AtomicInteger();
-					final List<String> code   = Arrays.asList(src.split("\\R")).stream().map(line -> (index.getAndIncrement()+1) + ": " + line).collect(Collectors.toList());
-					final String context      = StringUtils.join(code.subList(Math.max(0, errorLineNumber - errorContext), Math.min(code.size(), errorLineNumber + errorContext)), "\n");
-
-					// log also to log file
-					logger.error("Unable to compile dynamic entity {}:{}: {}\n{}", name, diagnostic.getLineNumber(), diagnostic.getMessage(Locale.ENGLISH), context);
-					*/
 				}
 			}
+		}
+
+		private boolean inRange(final int index, final int size) {
+
+			if (index < 0) {
+				return false;
+			}
+
+			if (index >= size) {
+				return false;
+			}
+
+			return true;
 		}
 	}
 }

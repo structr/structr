@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -27,6 +27,9 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.ocr.TesseractOCRConfig;
+import org.codehaus.plexus.util.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.ContentAnalyzer;
@@ -51,6 +54,7 @@ import org.structr.text.model.StructuredTextNode;
  */
 public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, StructrModule {
 
+	private static final Logger logger              = LoggerFactory.getLogger(TextSearchModule.class);
 	private static final GenericProperty contextKey = new GenericProperty("context");
 
 	@Override
@@ -265,7 +269,7 @@ public class TextSearchModule implements FulltextIndexer, ContentAnalyzer, Struc
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 	}
 

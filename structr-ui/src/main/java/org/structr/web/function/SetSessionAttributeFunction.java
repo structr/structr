@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -28,7 +28,6 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_SET_SESSION_ATTRIBUTE    = "Usage: ${set_session_attribute(key, value)}. Example: ${set_session_attribute(\"do_no_track\", true)}";
 	public static final String ERROR_MESSAGE_SET_SESSION_ATTRIBUTE_JS = "Usage: ${{Structr.set_session_attribute(key, value)}}. Example: ${{Structr.set_session_attribute(\"do_not_track\", true)}}";
-	public static final String SESSION_ATTRIBUTE_PREFIX = "user.";
 
 	@Override
 	public String getName() {
@@ -50,7 +49,7 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 			final HttpSession session = ctx.getSecurityContext().getSession();
 
 			if (session != null) {
-				session.setAttribute(SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()), sources[1]);
+				session.setAttribute(ActionContext.SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()), sources[1]);
 			} else {
 				logger.warn("{}: No session available to set session attribute! (this can happen in onStructrLogin/onStructrLogout)", getReplacement());
 			}

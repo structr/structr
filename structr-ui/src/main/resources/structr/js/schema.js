@@ -56,6 +56,7 @@ var _Schema = {
 	hiddenSchemaNodesKey: 'structrHiddenSchemaNodes_' + port,
 	schemaPositionsKey: 'structrSchemaPositions_' + port,
 	showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + port,
+	showSchemaInheritanceKey: 'structrShowSchemaInheritance_' + port,
 	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + port,
 	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + port,
 	activeSchemaToolsSelectedTabLevel1Key: 'structrSchemaToolsSelectedTabLevel1_' + port,
@@ -143,8 +144,9 @@ var _Schema = {
 
 		var schemaInputContainer = $('.schema-input-container');
 
-		_Schema.ui.connectorStyle = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
-		_Schema.ui.zoomLevel = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
+		_Schema.ui.connectorStyle  = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
+		_Schema.ui.zoomLevel       = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
+		_Schema.ui.showInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceKey, true) || true;
 
 		schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="action btn"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add</button></div>');
 
@@ -177,12 +179,17 @@ var _Schema = {
 		});
 
 		schemaInputContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays"><label for="schema-show-overlays"> Show relationship labels</label>');
+		schemaInputContainer.append('<input type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"><label for="schema-show-inheritance"> Show inheritance</label>');
 		schemaInputContainer.append('<button class="btn" id="schema-tools"><i class="' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" /> Tools</button>');
 		schemaInputContainer.append('<button class="btn" id="global-schema-methods"><i class="' + _Icons.getFullSpriteClass(_Icons.book_icon) + '" /> Global schema methods</button>');
 		schemaInputContainer.append(' <select id="saved-layout-selector-main"></select> <button class="btn schema-tool-button action" id="restore-schema-layout"><i class="' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" /> Apply Layout</button>');
 
 		$('#schema-show-overlays').off('change').on('change', function() {
 			_Schema.ui.updateOverlayVisibility($(this).prop('checked'));
+		});
+		$('#schema-show-inheritance').off('change').on('change', function() {
+			_Schema.ui.updateInheritanceVisibility($(this).prop('checked'));
+			_Schema.reload();
 		});
 		$('#schema-tools').off('click').on('click', _Schema.openSchemaToolsDialog);
 		$('#global-schema-methods').off('click').on('click', _Schema.methods.showGlobalSchemaMethods);
@@ -243,7 +250,18 @@ var _Schema = {
 
 					if (info.connection.scope === 'jsPlumb_DefaultScope') {
 						if (originalEvent) {
-							_Schema.connect(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'));
+
+							Structr.dialog("Create Relationship", function() {
+								dialogMeta.show();
+							}, function() {
+								_Schema.currentNodeDialogId = null;
+
+								dialogMeta.show();
+								instance.repaintEverything();
+								instance.detach(info.connection);
+							}, ['schema-edit-dialog']);
+
+							_Schema.createRelationship(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'), dialogHead, dialogText);
 						}
 					} else {
 						new MessageBuilder().warning('Moving existing relationships is not permitted!').title('Not allowed').requiresConfirmation().show();
@@ -251,8 +269,11 @@ var _Schema = {
 					}
 				});
 				instance.bind('connectionDetached', function(info) {
-					new MessageBuilder().warning('Deleting relationships is only possible via the delete button!').title('Not allowed').requiresConfirmation().show();
-					_Schema.reload();
+
+					if (info.connection.scope !== 'jsPlumb_DefaultScope') {
+						new MessageBuilder().warning('Deleting relationships is only possible via the delete button!').title('Not allowed').requiresConfirmation().show();
+						_Schema.reload();
+					}
 				});
 				reload = false;
 
@@ -288,6 +309,10 @@ var _Schema = {
 				var showSchemaOverlays = (overlaysVisible === null) ? true : overlaysVisible;
 				_Schema.ui.updateOverlayVisibility(showSchemaOverlays);
 
+				var inheritanceVisible = LSWrapper.getItem(_Schema.showSchemaInheritanceKey);
+				var showSchemaInheritance = (inheritanceVisible === null) ? true : inheritanceVisible;
+				_Schema.ui.updateInheritanceVisibility(showSchemaInheritance);
+
 				if (scrollPosition) {
 					window.scrollTo(scrollPosition.x, scrollPosition.y);
 				}
@@ -311,7 +336,7 @@ var _Schema = {
 	},
 	onload: function() {
 		main.append(
-			'<div id="inheritance-tree" class="slideOut slideOutLeft"><div class="compTab" id="inheritanceTab">Inheritance Tree</div>Search: <input type="text" id="search-classes"><div id="inheritance-tree-container" class="ver-scrollable hidden"></div></div>'
+			'<div id="inheritance-tree" class="slideOut slideOutLeft"><div class="compTab" id="inheritanceTab">Inheritance Tree</div><div class="inheritance-search">Search: <input type="text" id="search-classes"></div><div id="inheritance-tree-container" class="ver-scrollable hidden"></div></div>'
 			+ '<div id="schema-container"></div>'
 		);
 		schemaContainer = $('#schema-container');
@@ -319,10 +344,6 @@ var _Schema = {
 		inheritanceTree = $('#inheritance-tree-container');
 
 		var updateCanvasTranslation = function() {
-			var windowHeight = $(window).height();
-			$('.ver-scrollable').css({
-				height: (windowHeight - inheritanceTree.offset().top - 25) + 'px'
-			});
 			canvas.css('transform', _Schema.ui.getSchemaCSSTransform());
 			_Schema.resize();
 		};
@@ -332,7 +353,7 @@ var _Schema = {
 		});
 
 		_Schema.init();
-		Structr.updateMainHelpLink('https://support.structr.com/article/193');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('schema'));
 
 		$(window).off('resize').on('resize', function() {
 			_Schema.resize();
@@ -456,7 +477,9 @@ var _Schema = {
 
 		let handleSchemaNodeData = function(data) {
 
-			var hierarchy = {};
+			var entities         = {};
+			var inheritancePairs = {};
+			var hierarchy        = {};
 			var x=0, y=0;
 
 			if (savedHiddenSchemaNodesNull) {
@@ -531,6 +554,19 @@ var _Schema = {
 
 				if (!hierarchy[level]) { hierarchy[level] = []; }
 				hierarchy[level].push(entity);
+
+				entities['org.structr.dynamic.' + entity.name] = entity.id;
+			});
+
+			data.result.forEach(function(entity) {
+
+				if (entity.extendsClass && entity.extendsClass !== 'org.structr.core.entity.AbstractNode') {
+
+					if (entities[entity.extendsClass]) {
+						var target = entities[entity.extendsClass];
+						inheritancePairs[entity.id] = target;
+					}
+				}
 			});
 
 			Object.keys(hierarchy).forEach(function(key) {
@@ -546,7 +582,8 @@ var _Schema = {
 					var id = 'id_' + entity.id;
 					canvas.append('<div class="schema node compact'
 							+ (entity.isBuiltinType ? ' light' : '')
-							+ '" id="' + id + '"><b>' + entity.name + '</b>'
+							+ '" id="' + id + '">'
+							+ '<b>' + entity.name + '</b>'
 							+ '<i class="icon delete ' + _Icons.getFullSpriteClass((entity.isBuiltinType ? _Icons.delete_disabled_icon : _Icons.delete_icon)) + '" />'
 							+ '<i class="icon edit ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />'
 							+ '</div>');
@@ -688,6 +725,39 @@ var _Schema = {
 				y++;
 				x = 0;
 			});
+
+			var inheritanceVisible = LSWrapper.getItem(_Schema.showSchemaInheritanceKey);
+			var showSchemaInheritance = (inheritanceVisible === null) ? true : inheritanceVisible;
+
+			if (showSchemaInheritance) {
+
+				for (var source of Object.keys(inheritancePairs)) {
+
+					let target = inheritancePairs[source];
+					let sourceEntity = nodes[source];
+					let targetEntity = nodes[target];
+
+					let i1 = _Schema.hiddenSchemaNodes.indexOf(sourceEntity.name);
+					let i2 = _Schema.hiddenSchemaNodes.indexOf(targetEntity.name);
+
+					if (_Schema.hiddenSchemaNodes.length > 0 && (i1 > -1 || i2 > -1)) {
+						continue;
+					}
+
+					instance.connect({
+						source: 'id_' + source,
+						target: 'id_' + target,
+						endpoint: 'Blank',
+						anchors: [
+							[ 'Perimeter', { shape: 'Rectangle' } ],
+							[ 'Perimeter', { shape: 'Rectangle' } ]
+						],
+						connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
+						paintStyle: { lineWidth: 5, strokeStyle: "#dddddd", dashstyle: '2 2' },
+						cssClass: "dashed-inheritance-relationship"
+					});
+				}
+			}
 		};
 
 	},
@@ -953,20 +1023,144 @@ var _Schema = {
 
 		Structr.resize();
 	},
-	loadRelationship: function(entity, headEl, contentEl) {
+	createRemotePropertyNameSuggestion: function(typeName, cardinality) {
 
-		var id = '___' + entity.id;
+		if (cardinality === '1') {
 
-		Structr.fetchHtmlTemplate('schema/dialog.relationship', {id: id}, function (html) {
+			return 'a' + typeName;
+
+		} else if (cardinality === '*') {
+
+			let suggestion = 'many' + typeName;
+
+			if (suggestion.slice(-1) !== 's') {
+				suggestion += 's';
+			}
+
+			return suggestion;
+
+		} else {
+
+			new MessageBuilder().title('Unsupported cardinality: ' + cardinality).warning('Unable to generate suggestion for remote property name. Unsupported cardinality encountered!').requiresConfirmation().show();
+			return typeName;
+		}
+	},
+	createRelationship: function(sourceId, targetId, headEl, contentEl) {
+
+		Structr.fetchHtmlTemplate('schema/dialog.relationship', {}, function (html) {
 			headEl.append(html);
 
-			Structr.appendInfoTextToElement({
-				text: '<dl class="help-definitions"><dt>NONE</dt><dd>No cascading delete</dd><dt>SOURCE_TO_TARGET</dt><dd>Delete target node when source node is deleted</dd><dt>TARGET_TO_SOURCE</dt><dd>Delete source node when target node is deleted</dd><dt>ALWAYS</dt><dd>Delete source node if target node is deleted AND delete target node if source node is deleted</dd><dt>CONSTRAINT_BASED</dt><dd>Delete source or target node if deletion of the other side would result in a constraint violation on the node (e.g. notNull constraint)</dd></dl>',
-				element: $('#cascading-delete-selector'),
-				insertAfter: true
+			_Schema.appendCascadingDeleteHelpText();
+
+			let sourceTypeName = nodes[sourceId].name;
+			let targetTypeName = nodes[targetId].name;
+
+			$('#source-type-name').text(sourceTypeName);
+			$('#target-type-name').text(targetTypeName);
+
+			$('#edit-rel-options-button').hide();
+			let saveButton = $('#save-rel-options-button');
+			let cancelButton = $('#cancel-rel-options-button');
+
+			let previousSourceSuggestion = '';
+			let previousTargetSuggestion = '';
+
+			let updateSuggestions = () => {
+
+				let currentSourceSuggestion = _Schema.createRemotePropertyNameSuggestion(sourceTypeName, $('#source-multiplicity-selector').val());
+				let currentTargetSuggestion = _Schema.createRemotePropertyNameSuggestion(targetTypeName, $('#target-multiplicity-selector').val());
+
+				if (previousSourceSuggestion === $('#source-json-name').val()) {
+					$('#source-json-name').val(currentSourceSuggestion);
+					previousSourceSuggestion = currentSourceSuggestion;
+				}
+
+				if (previousTargetSuggestion === $('#target-json-name').val()) {
+					$('#target-json-name').val(currentTargetSuggestion);
+					previousTargetSuggestion = currentTargetSuggestion;
+				}
+			};
+			updateSuggestions();
+
+			$('#source-multiplicity-selector').on('change', updateSuggestions);
+			$('#target-multiplicity-selector').on('change', updateSuggestions);
+
+			saveButton.off('click').on('click', function(e) {
+
+				let relData = _Schema.getRelationshipDefinitionDataFromForm();
+				relData.sourceId = sourceId;
+				relData.targetId = targetId;
+
+				if (relData.relationshipType.trim() === '') {
+
+					blinkRed($('#relationship-type-name'));
+
+				} else {
+
+					_Schema.createRelationshipDefinition(relData, function(data) {
+
+						_Schema.openEditDialog(data.result[0]);
+
+						_Schema.reload();
+
+					}, function(data) {
+
+						let additionalInformation = {};
+
+						if (data.responseJSON.errors.some((e) => { return (e.detail.indexOf('duplicate class') !== -1); })) {
+							additionalInformation.requiresConfirmation = true;
+							additionalInformation.title = 'Error';
+							additionalInformation.overrideText = 'You are trying to create a second relationship named <strong>' + relData.relationshipType + '</strong> between these types.<br>Relationship names between types have to be unique.';
+						}
+
+						Structr.errorFromResponse(data.responseJSON, null, additionalInformation);
+					});
+				}
 			});
 
-			var mainTabs = $('#' + id + '_head #tabs');
+			cancelButton.off('click').on('click', function(e) {
+				dialogCancelButton.click();
+			});
+
+			Structr.resize();
+		});
+	},
+	appendCascadingDeleteHelpText: function() {
+		Structr.appendInfoTextToElement({
+			text: '<dl class="help-definitions"><dt>NONE</dt><dd>No cascading delete</dd><dt>SOURCE_TO_TARGET</dt><dd>Delete target node when source node is deleted</dd><dt>TARGET_TO_SOURCE</dt><dd>Delete source node when target node is deleted</dd><dt>ALWAYS</dt><dd>Delete source node if target node is deleted AND delete target node if source node is deleted</dd><dt>CONSTRAINT_BASED</dt><dd>Delete source or target node if deletion of the other side would result in a constraint violation on the node (e.g. notNull constraint)</dd></dl>',
+			element: $('#cascading-delete-selector'),
+			insertAfter: true
+		});
+	},
+	getRelationshipDefinitionDataFromForm: function() {
+
+		return {
+			relationshipType: $('#relationship-type-name').val(),
+			sourceMultiplicity: $('#source-multiplicity-selector').val(),
+			targetMultiplicity: $('#target-multiplicity-selector').val(),
+			sourceJsonName: $('#source-json-name').val(),
+			targetJsonName: $('#target-json-name').val(),
+			cascadingDeleteFlag: parseInt($('#cascading-delete-selector').val()),
+			autocreationFlag: parseInt($('#autocreate-selector').val()),
+			permissionPropagation: $('#propagation-selector').val(),
+			readPropagation: $('#read-selector').val(),
+			writePropagation: $('#write-selector').val(),
+			deletePropagation: $('#delete-selector').val(),
+			accessControlPropagation: $('#access-control-selector').val(),
+			propertyMask: $('#masked-properties').val()
+		};
+
+	},
+	loadRelationship: function(entity, headEl, contentEl) {
+
+		Structr.fetchHtmlTemplate('schema/dialog.relationship', {}, function (html) {
+			headEl.append(html);
+
+			$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', true);
+
+			_Schema.appendCascadingDeleteHelpText();
+
+			let mainTabs = $('#tabs', headEl);
 
 			let contentDiv = $('<div class="schema-details"></div>');
 			contentEl.append(contentDiv);
@@ -983,8 +1177,10 @@ var _Schema = {
 				_Schema.methods.appendMethods(c, entity, entity.schemaMethods);
 			}, null, _Schema.methods.refreshEditors);
 
-			var selectRelationshipOptions = function(rel) {
+			let selectRelationshipOptions = function(rel) {
 				$('#source-type-name').text(nodes[rel.sourceId].name).data('objectId', rel.sourceId);
+				$('#source-json-name').val(rel.sourceJsonName || rel.oldSourceJsonName);
+				$('#target-json-name').val(rel.targetJsonName || rel.oldTargetJsonName);
 				$('#source-multiplicity-selector').val(rel.sourceMultiplicity || '*');
 				$('#relationship-type-name').val(rel.relationshipType === initialRelType ? '' : rel.relationshipType);
 				$('#target-multiplicity-selector').val(rel.targetMultiplicity || '*');
@@ -1001,22 +1197,65 @@ var _Schema = {
 
 			$('.edit-schema-object', headEl).off('click').on('click', function(e) {
 				e.stopPropagation();
+
+				// todo: only navigate if no changes
+
 				_Schema.openEditDialog($(this).data('objectId'));
 				return false;
 			});
 
 			selectRelationshipOptions(entity);
 
-			var editButton = $('#edit-rel-options-button');
-			var saveButton = $('#save-rel-options-button').hide();
-			var cancelButton = $('#cancel-rel-options-button').hide();
+			let sourceHelpElements = undefined;
+			let targetHelpElements = undefined;
+
+			let appendMultiplicityChangeInfo = (el) => {
+				return Structr.appendInfoTextToElement({
+					text: 'Multiplicity was changed without changing the remote property name - make sure this is correct',
+					element: el,
+					insertAfter: true,
+					customToggleIcon: _Icons.error_icon,
+					helpElementCss: {
+						fontSize: '9pt'
+					}
+				});
+			};
+
+			let reactToCardinalityChange = () => {
+
+				if (sourceHelpElements) {
+					sourceHelpElements.map(e => e.remove());
+					sourceHelpElements = undefined;
+				}
+
+				if ($('#source-multiplicity-selector').val() !== (entity.sourceMultiplicity || '*') && $('#source-json-name').val() === (entity.sourceJsonName || entity.oldSourceJsonName)) {
+					sourceHelpElements = appendMultiplicityChangeInfo($('#source-json-name'));
+				}
+
+				if (targetHelpElements) {
+					targetHelpElements.map(e => e.remove());
+					targetHelpElements = undefined;
+				}
+
+				if ($('#target-multiplicity-selector').val() !== (entity.targetMultiplicity || '*') && $('#target-json-name').val() === (entity.targetJsonName || entity.oldTargetJsonName)) {
+					targetHelpElements = appendMultiplicityChangeInfo($('#target-json-name'));
+				}
+			};
+
+			$('#source-multiplicity-selector').on('change', reactToCardinalityChange);
+			$('#target-multiplicity-selector').on('change', reactToCardinalityChange);
+			$('#source-json-name').on('keyup', reactToCardinalityChange);
+			$('#target-json-name').on('keyup', reactToCardinalityChange);
+
+			let editButton = $('#edit-rel-options-button');
+			let saveButton = $('#save-rel-options-button').hide();
+			let cancelButton = $('#cancel-rel-options-button').hide();
 
 			editButton.off('click').on('click', function(e) {
 				e.preventDefault();
 
-				$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', false);
-				$('#relationship-options select, #relationship-options textarea, #relationship-options input').css('color', '');
-				$('#relationship-options select, #relationship-options textarea, #relationship-options input').css('background-color', '');
+				$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', false).css('color', '').css('background-color', '');
+
 				editButton.hide();
 				saveButton.show();
 				cancelButton.show();
@@ -1024,30 +1263,10 @@ var _Schema = {
 
 			saveButton.off('click').on('click', function(e) {
 
-				$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', true);
-
-				editButton.show();
-				saveButton.hide();
-				cancelButton.hide();
-
-				var newData = {
-					sourceMultiplicity: $('#source-multiplicity-selector').val(),
-					relationshipType: $('#relationship-type-name').val(),
-					targetMultiplicity: $('#target-multiplicity-selector').val(),
-					cascadingDeleteFlag: parseInt($('#cascading-delete-selector').val()),
-					autocreationFlag: parseInt($('#autocreate-selector').val()),
-					permissionPropagation: $('#propagation-selector').val(),
-					readPropagation: $('#read-selector').val(),
-					writePropagation: $('#write-selector').val(),
-					deletePropagation: $('#delete-selector').val(),
-					accessControlPropagation: $('#access-control-selector').val(),
-					propertyMask: $('#masked-properties').val()
-				};
+				let newData = _Schema.getRelationshipDefinitionDataFromForm();
+				let relType = newData.relationshipType;
 
 				Object.keys(newData).forEach(function(key) {
-					if (key === 'relationshipType' && newData[key].trim() === '') {
-						newData[key] = initialRelType;
-					}
 					if ( (entity[key] === newData[key])
 							|| (key === 'cascadingDeleteFlag' && !(entity[key]) && newData[key] === 0)
 							|| (key === 'autocreationFlag' && !(entity[key]) && newData[key] === 0)
@@ -1057,18 +1276,30 @@ var _Schema = {
 					}
 				});
 
-				if (Object.keys(newData).length > 0) {
+				if (relType.trim() === '') {
+
+					blinkRed($('#relationship-type-name'));
+
+				} else if (Object.keys(newData).length > 0) {
+
+					$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', true);
+
+					editButton.show();
+					saveButton.hide();
+					cancelButton.hide();
+
 					_Schema.updateRelationship(entity, newData, function() {
+
 						Object.keys(newData).forEach(function(attribute) {
 							blinkGreen($('#relationship-options [data-attr-name=' + attribute + ']'));
 							entity[attribute] = newData[attribute];
 						});
+
 					}, function(data) {
+
 						var additionalInformation = {};
-						var causedByIdenticalRelName = data.responseJSON.errors.some(function (e) {
-							return (e.detail.indexOf('duplicate class') !== -1);
-						});
-						if (causedByIdenticalRelName) {
+
+						if (data.responseJSON.errors.some((e) => { return (e.detail.indexOf('duplicate class') !== -1); })) {
 							additionalInformation.requiresConfirmation = true;
 							additionalInformation.title = 'Error';
 							additionalInformation.overrideText = 'You are trying to create a second relationship named <strong>' + newData.relationshipType + '</strong> between these types.<br>Relationship names between types have to be unique.';
@@ -1081,7 +1312,6 @@ var _Schema = {
 						Object.keys(newData).forEach(function(attribute) {
 							blinkRed($('#relationship-options [data-attr-name=' + attribute + ']'));
 						});
-
 					});
 				}
 			});
@@ -1463,7 +1693,7 @@ var _Schema = {
 
 				if (containsSpace) {
 					blinkRed($('.property-format', tr).closest('td'));
-					new MessageBuilder().warning('Enum values must be separated by commas and cannot contain spaces<br>See the <a href="https://support.structr.com/article/329" target="_blank">support article on enum properties</a> for more information.').requiresConfirmation().show();
+					new MessageBuilder().warning('Enum values must be separated by commas and cannot contain spaces<br>See the <a href="' + Structr.getDocumentationURLForTopic('schema-enum') + '" target="_blank">support article on enum properties</a> for more information.').requiresConfirmation().show();
 					return false;
 				}
 			}
@@ -1494,8 +1724,7 @@ var _Schema = {
 			if (Structr.isButtonDisabled(button)) {
 				return;
 			}
-			var div = element.append('<div class="editor"></div>');
-			_Logger.log(_LogType.SCHEMA, div);
+			element.append('<div class="editor"></div>');
 			var contentBox = $('.editor', element);
 			contentType = contentType ? contentType : entity.contentType;
 			var text1, text2;
@@ -1582,9 +1811,6 @@ var _Schema = {
 					text1 = '';
 				if (!text2)
 					text2 = '';
-
-				_Logger.consoleLog('text1', text1);
-				_Logger.consoleLog('text2', text2);
 
 				if (text1 === text2) {
 					return;
@@ -1841,8 +2067,8 @@ var _Schema = {
 				propertyName: (out ? 'targetJsonName' : 'sourceJsonName'),
 				targetCollection: (out ? 'relatedTo' : 'relatedFrom'),
 				attributeName: attributeName,
-				arrowLeft: (out ? '' : '&lt;'),
-				arrowRight: (out ? '&gt;' : ''),
+				arrowLeft: (out ? '' : '&#9668;'),
+				arrowRight: (out ? '&#9658;' : ''),
 				cardinalityClassLeft: _Schema.remoteProperties.cardinalityClasses[(out ? rel.sourceMultiplicity : rel.targetMultiplicity)],
 				cardinalityClassRight: _Schema.remoteProperties.cardinalityClasses[(out ? rel.targetMultiplicity : rel.sourceMultiplicity)],
 				relatedNodeId: relatedNodeId
@@ -2321,10 +2547,10 @@ var _Schema = {
 
 							_Schema.methods.bindRowEvents(fakeRow, entity, method);
 
-							// auto-edit first method
-							if (isFirst) {
+							// auto-edit first method (or last used)
+							if (isFirst|| (_Schema.methods.lastEditedMethod && ((_Schema.methods.lastEditedMethod.isNew === false && _Schema.methods.lastEditedMethod.id === method.id) || (_Schema.methods.lastEditedMethod.isNew === true && _Schema.methods.lastEditedMethod.name === method.name)))) {
 								isFirst = false;
-								$('.edit-action', methodsFakeTable).click();
+								$('.edit-action', fakeRow).click();
 							}
 						});
 					});
@@ -2362,8 +2588,8 @@ var _Schema = {
 
 			fakeTbody.find('.fake-tr').each((i, tr) => {
 
-				let row    = $(tr);
-				let methodId = row.data('methodId');
+				let row        = $(tr);
+				let methodId   = row.data('methodId');
 				let methodData = _Schema.methods.methodsData[methodId];
 
 				if (methodData.isNew === false) {
@@ -2416,6 +2642,13 @@ var _Schema = {
 				message += (counts.update > 0 ? 'Update ' + counts.update + ' methods.\n' : '');
 
 				if (confirm(message)) {
+
+					let activeMethod = fakeTbody.find('.fake-tr.editing');
+					if (activeMethod) {
+						_Schema.methods.lastEditedMethod = _Schema.methods.methodsData[activeMethod.data('methodId')];
+					} else {
+						_Schema.methods.lastEditedMethod = undefined;
+					}
 
 					_Schema.showSchemaRecompileMessage();
 
@@ -2485,17 +2718,15 @@ var _Schema = {
 					_Schema.methods.appendEmptyMethod(fakeTbody, getNewMethodTemplateConfig('onCreate'));
 				});
 
-				if (entity.type === 'SchemaNode') {
-					$('.add-afterCreate-button', el).off('click').on('click', function() {
-						_Schema.methods.appendEmptyMethod(fakeTbody, getNewMethodTemplateConfig('afterCreate'));
-					});
+				$('.add-afterCreate-button', el).off('click').on('click', function() {
+					_Schema.methods.appendEmptyMethod(fakeTbody, getNewMethodTemplateConfig('afterCreate'));
+				});
 
-					Structr.appendInfoTextToElement({
-						text: "The difference between onCreate an afterCreate is that afterCreate is called after all checks have run and the transaction is committed.<br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.",
-						element: $('.add-afterCreate-button', el),
-						insertAfter: true
-					});
-				}
+				Structr.appendInfoTextToElement({
+					text: "The difference between onCreate an afterCreate is that afterCreate is called after all checks have run and the transaction is committed.<br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.",
+					element: $('.add-afterCreate-button', el),
+					insertAfter: true
+				});
 
 				$('.add-onSave-button', el).off('click').on('click', function() {
 					_Schema.methods.appendEmptyMethod(fakeTbody, getNewMethodTemplateConfig('onSave'));
@@ -2506,7 +2737,7 @@ var _Schema = {
 
 			let activateTab = function(tabName) {
 				$('.method-tab-content', contentDiv).hide();
-				$('li', contentDiv).removeClass('active');
+				$('li[data-name]', contentDiv).removeClass('active');
 				$('#tabView-' + tabName, contentDiv).show();
 				$('li[data-name="' + tabName + '"]', contentDiv).addClass('active');
 
@@ -2515,7 +2746,7 @@ var _Schema = {
 				}
 			};
 
-			$('li', contentDiv).off('click').on('click', function(e) {
+			$('li[data-name]', contentDiv).off('click').on('click', function(e) {
 				e.stopPropagation();
 				activateTab($(this).data('name'));
 			});
@@ -2672,6 +2903,7 @@ var _Schema = {
 			_Schema.methods.cm.source.setValue(methodData.source);
 			_Schema.methods.cm.source.setOption('mode', _Schema.methods.senseCodeMirrorMode(methodData.source));
 			_Schema.methods.cm.source.refresh();
+			_Schema.methods.cm.source.clearHistory();
 			_Schema.methods.cm.source.on('change', function (cm, changeset) {
 				cm.save();
 				cm.setOption('mode', _Schema.methods.senseCodeMirrorMode(cm.getValue()));
@@ -2696,6 +2928,7 @@ var _Schema = {
 			$(_Schema.methods.cm.comment.getWrapperElement()).addClass('cm-schema-methods');
 			_Schema.methods.cm.comment.setValue(methodData.comment);
 			_Schema.methods.cm.comment.refresh();
+			_Schema.methods.cm.comment.clearHistory();
 			_Schema.methods.cm.comment.on('change', function (cm, changeset) {
 				cm.save();
 				$(cm.getTextArea()).trigger('change');
@@ -2993,19 +3226,10 @@ var _Schema = {
 			}
 		});
 	},
-	createRelationshipDefinition: function(sourceId, targetId, relationshipType) {
+	createRelationshipDefinition: function(data, onSuccess, onError) {
 
 		_Schema.showSchemaRecompileMessage();
 
-		var data = {
-			sourceId: sourceId,
-			targetId: targetId,
-			sourceMultiplicity: '*',
-			targetMultiplicity: '*'
-		};
-		if (relationshipType && relationshipType.length) {
-			data.relationshipType = relationshipType;
-		}
 		$.ajax({
 			url: rootUrl + 'schema_relationship_nodes',
 			type: 'POST',
@@ -3013,27 +3237,21 @@ var _Schema = {
 			contentType: 'application/json; charset=utf-8',
 			data: JSON.stringify(data),
 			statusCode: {
-				201: function() {
-					_Schema.reload();
+				201: function(data) {
+
 					_Schema.hideSchemaRecompileMessage();
+
+					if (onSuccess) {
+						onSuccess(data);
+					}
 				},
 				422: function(data) {
 
 					_Schema.hideSchemaRecompileMessage();
 
-					var additionalInformation = {};
-					var causedByUndefinedRelName = data.responseJSON.errors.some(function (e) {
-						return (e.type.indexOf(undefinedRelType) !== -1);
-					});
-					if (causedByUndefinedRelName) {
-						additionalInformation.requiresConfirmation = true;
-						additionalInformation.title = 'Duplicate unnamed relationship';
-						additionalInformation.overrideText = 'You are trying to create a second <strong>unnamed</strong> relationship between these types.<br>Please rename the existing unnamed relationship first before creating another relationship.';
+					if (onError) {
+						onError(data);
 					}
-
-					Structr.errorFromResponse(data.responseJSON, null, additionalInformation);
-
-					_Schema.reload();
 				}
 			}
 		});
@@ -3110,9 +3328,6 @@ var _Schema = {
 				}
 			}
 		});
-	},
-	connect: function(sourceId, targetId) {
-		_Schema.createRelationshipDefinition(sourceId, targetId, initialRelType);
 	},
 	askDeleteRelationship: function (resId, name) {
 		name = name ? ' \'' + name + '\'' : '';
@@ -3850,6 +4065,16 @@ var _Schema = {
 			_Schema.reload();
 		}
 	},
+	hideSingleSchemaType: function (name) {
+
+		if (name) {
+
+			_Schema.hiddenSchemaNodes.push(name);
+
+			LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
+			_Schema.reload();
+		}
+	},
 	sort: function(collection, sortKey, secondarySortKey) {
 		if (!sortKey) {
 			sortKey = "name";
@@ -4004,19 +4229,15 @@ var _Schema = {
 
 	typeInfoCache: {},
 	clearTypeInfoCache: function () {
-		_Logger.log(_LogType.SCHEMA, 'Clear Schema Type Cache');
 		_Schema.typeInfoCache = {};
 	},
 	getTypeInfo: function (type, callback) {
 
-		if (_Schema.typeInfoCache[type] !== undefined) {
+		if (_Schema.typeInfoCache[type] && typeof _Schema.typeInfoCache[type] === Object) {
 
-			_Logger.log(_LogType.SCHEMA, 'Cache Hit: ', type);
 			callback(_Schema.typeInfoCache[type]);
 
 		} else {
-
-			_Logger.log(_LogType.SCHEMA, 'Cache MISS: ', type);
 
 			Command.getSchemaInfo(type, function(schemaInfo) {
 
@@ -4070,6 +4291,7 @@ var _Schema = {
 		});
 	},
 	ui: {
+		showInheritance: true,
 		connectorStyle: undefined,
 		zoomLevel: undefined,
 		selectedRel: undefined,
@@ -4086,7 +4308,11 @@ var _Schema = {
 
 			_Schema.ui.selectedRel = rel;
 			_Schema.ui.selectedRel.css({zIndex: ++_Schema.ui.maxZ});
-			_Schema.ui.selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++_Schema.ui.maxZ, border: '1px solid ' + _Schema.ui.relHighlightColor, borderRadius:'2px', background: 'rgba(255, 255, 255, 1)'});
+
+			if (!rel.hasClass('dashed-inheritance-relationship')) {
+				_Schema.ui.selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++_Schema.ui.maxZ, border: '1px solid ' + _Schema.ui.relHighlightColor, borderRadius:'2px', background: 'rgba(255, 255, 255, 1)'});
+			}
+
 			var pathElements = _Schema.ui.selectedRel.find('path');
 			pathElements.css({stroke: _Schema.ui.relHighlightColor});
 			$(pathElements[1]).css({fill: _Schema.ui.relHighlightColor});
@@ -4215,6 +4441,13 @@ var _Schema = {
 				$('.rel-type, .multiplicity').show();
 			} else {
 				$('.rel-type, .multiplicity').hide();
+			}
+		},
+		updateInheritanceVisibility: function(show) {
+			LSWrapper.setItem(_Schema.showSchemaInheritanceKey, show);
+			$('#schema-show-inheritance').prop('checked', show);
+			if (show) {
+			} else {
 			}
 		},
 	},

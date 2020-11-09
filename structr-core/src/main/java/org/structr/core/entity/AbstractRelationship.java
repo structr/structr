@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -447,7 +447,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public void afterCreation(SecurityContext securityContext) {
+	public void afterCreation(SecurityContext securityContext) throws FrameworkException {
 	}
 
 	@Override
@@ -669,6 +669,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	public PropertyKey getTargetProperty() {
 		return targetProperty;
+	}
+
+	@Override
+	public boolean changelogEnabled() {
+		return true;
 	}
 
 	// ----- protected methods -----

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -20,6 +20,7 @@ package org.structr.rest.service;
 
 import javax.servlet.Servlet;
 import org.structr.api.service.Feature;
+import org.structr.rest.common.StatsCallback;
 
 /**
  *
@@ -29,5 +30,6 @@ import org.structr.api.service.Feature;
 public interface HttpServiceServlet extends Servlet, Feature {
 
 	public StructrHttpServiceConfig getConfig();
+	public void registerStatsCallback(final StatsCallback stats);
 
 }

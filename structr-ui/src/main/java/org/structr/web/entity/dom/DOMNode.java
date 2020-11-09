@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -28,7 +28,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
@@ -68,6 +72,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaService;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
@@ -640,6 +645,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			} catch (FrameworkException fex) {
 
+				final Logger logger = LoggerFactory.getLogger(DOMNode.class);
 				logger.warn("Unable fetch ShadowDocument node: {}", fex.getMessage());
 			}
 		}
@@ -733,8 +739,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 				return app.create(thisNode.getClass(), properties);
 
 			} catch (FrameworkException ex) {
-
-				ex.printStackTrace();
 
 				throw new DOMException(DOMException.INVALID_STATE_ERR, ex.toString());
 			}
@@ -969,6 +973,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			// Shadow doc is neutral
 			if (otherDoc != null && !doc.equals(otherDoc) && !(doc instanceof ShadowDocument)) {
 
+				final Logger logger = LoggerFactory.getLogger(DOMNode.class);
 				logger.warn("{} node with UUID {} has owner document {} with UUID {} whereas this node has owner document {} with UUID {}",
 					otherNode.getClass().getSimpleName(),
 					((NodeInterface)otherNode).getUuid(),
@@ -1069,12 +1074,16 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		} catch (UnlicensedScriptException | FrameworkException ex) {
 
+			final Logger logger        = LoggerFactory.getLogger(DOMNode.class);
 			final boolean isShadowPage = DOMNode.isSharedComponent(thisNode);
 
 			if (!isShadowPage) {
+
 				final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
 				logger.error("Error while evaluating hide condition '{}' in page {}[{}], DOMNode[{}]", _hideConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, ex);
+
 			} else {
+
 				logger.error("Error while evaluating hide condition '{}' in shared component, DOMNode[{}]", _hideConditions, thisNode, ex);
 			}
 		}
@@ -1087,12 +1096,16 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		} catch (UnlicensedScriptException | FrameworkException ex) {
 
+			final Logger logger        = LoggerFactory.getLogger(DOMNode.class);
 			final boolean isShadowPage = DOMNode.isSharedComponent(thisNode);
 
 			if (!isShadowPage) {
+
 				final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
 				logger.error("Error while evaluating show condition '{}' in page {}[{}], DOMNode[{}]", _showConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, ex);
+
 			} else {
+
 				logger.error("Error while evaluating show condition '{}' in shared component, DOMNode[{}]", _showConditions, thisNode, ex);
 			}
 		}
@@ -1239,6 +1252,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 				} else {
 
+					final Logger logger = LoggerFactory.getLogger(DOMNode.class);
 					logger.warn("Cannot export linkable relationship, no path.");
 				}
 			}
@@ -1463,6 +1477,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			}
 
 		} catch (FrameworkException ex) {
+
+			final Logger logger = LoggerFactory.getLogger(DOMNode.class);
 			logger.warn("", ex);
 		}
 	}
@@ -1478,6 +1494,23 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		if (!isAdminOnlyEditMode && !securityContext.isVisible(thisNode)) {
 			return;
+		}
+
+		// special handling for tree items that explicitly opt-in to be controlled automatically, configured with the toggle-tree-item event.
+		final String treeItemDataKey = thisNode.getProperty(StructrApp.key(DOMElement.class, "data-structr-tree-children"));
+		if (treeItemDataKey != null) {
+
+			final GraphObject treeItem = renderContext.getDataNode(treeItemDataKey);
+			if (treeItem != null) {
+
+				final String key = thisNode.getTreeItemSessionIdentifier(treeItem.getUuid());
+
+				if (thisNode.getSessionAttribute(renderContext.getSecurityContext(), key) == null) {
+
+					// do not render children of tree elements
+					return;
+				}
+			}
 		}
 
 		final GraphObject details = renderContext.getDetailsDataObject();
@@ -1616,6 +1649,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			} catch (FrameworkException fex) {
 
+				final Logger logger = LoggerFactory.getLogger(DOMNode.class);
 				logger.warn("Could not retrieve data from graph data source {}: {}", source, fex);
 			}
 		}
@@ -1885,9 +1919,18 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	static void checkName(final DOMNode thisNode, final ErrorBuffer errorBuffer) {
 
 		final String _name = thisNode.getProperty(AbstractNode.name);
-		if (_name != null && _name.contains("/")) {
+		if (_name != null) {
 
-			errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name, "may_not_contain_slashes", _name));
+			if (_name.contains("/")) {
+
+				errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name, "may_not_contain_slashes", _name));
+
+			} else if (thisNode instanceof Page) {
+
+				if (!_name.equals(_name.replaceAll("[#?\\%;/]", ""))) {
+					errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name, "contains_illegal_characters", _name));
+				}
+			}
 		}
 	}
 
@@ -1897,12 +1940,59 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		final String name = thisNode.getProperty(DOMNode.name);
 		if (name!= null) {
 
-			for (final DOMNode syncedNode : thisNode.getSyncedNodes()) {
+			final List<DOMNode> syncedNodes = Iterables.toList(thisNode.getSyncedNodes());
+			for (final DOMNode syncedNode : syncedNodes) {
 
 				syncedNode.setProperty(DOMNode.name, name);
 			}
 		}
 	}
+
+	default public void setSessionAttribute(final SecurityContext securityContext, final String key, final Object value) {
+
+		final HttpServletRequest request = securityContext.getRequest();
+		if (request != null) {
+
+			final HttpSession session = request.getSession(false);
+			if (session != null) {
+
+				session.setAttribute(ActionContext.SESSION_ATTRIBUTE_PREFIX + key, value);
+			}
+		}
+	}
+
+	default public void removeSessionAttribute(final SecurityContext securityContext, final String key) {
+
+		final HttpServletRequest request = securityContext.getRequest();
+		if (request != null) {
+
+			final HttpSession session = request.getSession(false);
+			if (session != null) {
+
+				session.removeAttribute(ActionContext.SESSION_ATTRIBUTE_PREFIX + key);
+			}
+		}
+	}
+
+	default public Object getSessionAttribute(final SecurityContext securityContext, final String key) {
+
+		final HttpServletRequest request = securityContext.getRequest();
+		if (request != null) {
+
+			final HttpSession session = request.getSession(false);
+			if (session != null) {
+
+				return session.getAttribute(ActionContext.SESSION_ATTRIBUTE_PREFIX + key);
+			}
+		}
+
+		return null;
+	}
+
+	default public String getTreeItemSessionIdentifier(final String target) {
+		return "tree-item-" + target + "-is-open";
+	}
+
 
 	// ----- nested classes -----
 	static class TextCollector implements Predicate<Node> {

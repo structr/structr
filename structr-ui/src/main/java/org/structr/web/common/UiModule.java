@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -20,6 +20,8 @@ package org.structr.web.common;
 
 import java.net.URL;
 import java.util.Set;
+
+import org.python.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.datasources.DataSources;
 import org.structr.core.entity.AbstractSchemaNode;
@@ -28,6 +30,7 @@ import org.structr.files.url.StructrURLStreamHandlerFactory;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
+import org.structr.schema.action.Function;
 import org.structr.web.datasource.CypherGraphDataSource;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.datasource.IdRequestParameterGraphDataSource;
@@ -69,6 +72,7 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new RenderFunction());
 		Functions.put(licenseManager, new SetDetailsObjectFunction());
 		Functions.put(licenseManager, new ConfirmationKeyFunction());
+		Functions.put(licenseManager, new ImportCssFunction());
 
 		Functions.put(licenseManager, new SendHtmlMailFunction());
 		Functions.put(licenseManager, new SendPlaintextMailFunction());
@@ -91,17 +95,25 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new HttpDeleteFunction());
 		Functions.put(licenseManager, new AddHeaderFunction());
 		Functions.put(licenseManager, new SetResponseHeaderFunction());
+		Functions.put(licenseManager, new RemoveResponseHeaderFunction());
 		Functions.put(licenseManager, new SetResponseCodeFunction());
 		Functions.put(licenseManager, new GetRequestHeaderFunction());
 		Functions.put(licenseManager, new GetCookieFunction());
 		Functions.put(licenseManager, new SetCookieFunction());
 		Functions.put(licenseManager, new FromXmlFunction());
 		Functions.put(licenseManager, new CreateArchiveFunction());
+		Functions.put(licenseManager, new CreateZipFunction());
 		Functions.put(licenseManager, new ScheduleFunction());
 		Functions.put(licenseManager, new MaintenanceFunction());
 		Functions.put(licenseManager, new BarcodeFunction());
 		Functions.put(licenseManager, new JobInfoFunction());
 		Functions.put(licenseManager, new JobListFunction());
+		Functions.put(licenseManager, new CreateAccessTokenFunction());
+		Functions.put(licenseManager, new CreateAccessAndRefreshTokenFunction());
+
+
+		Functions.put(licenseManager, new SendEventFunction());
+		Functions.put(licenseManager, new BroadcastEventFunction());
 	}
 
 	@Override

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -119,7 +119,7 @@ public class StaticRelationshipResource extends WrappingResource {
 
 						// return result
 						//return new ResultStream(PagingHelper.subList(finalResult, pageSize, page), isCollectionResource(), isPrimitiveArray());
-						return new PagingIterable<>(finalResult, pageSize, page);
+						return new PagingIterable<>("/" + getUriPart(), finalResult, pageSize, page);
 
 					} else {
 
@@ -175,7 +175,7 @@ public class StaticRelationshipResource extends WrappingResource {
 
 							gObject.setProperty(new ArrayProperty(this.typeResource.rawType, Object.class), propertyResults.toArray());
 
-							return new PagingIterable<>(Arrays.asList(gObject));
+							return new PagingIterable<>("/" + getUriPart(), Arrays.asList(gObject));
 
 							//final ResultStream r = new ResultStream(gObject, true);
 							//return r;
@@ -192,11 +192,11 @@ public class StaticRelationshipResource extends WrappingResource {
 
 						// return result
 						//return new ResultStream(PagingHelper.subList(finalResult, pageSize, page), isCollectionResource(), isPrimitiveArray());
-						return new PagingIterable<>(finalResult, pageSize, page);
+						return new PagingIterable<>("/" + getUriPart(), finalResult, pageSize, page);
 
 					} else if (value instanceof GraphObject) {
 
-						return new PagingIterable<>(Arrays.asList(value));
+						return new PagingIterable<>("/" + getUriPart(), Arrays.asList(value));
 						//return new ResultStream((GraphObject) value, isPrimitiveArray());
 
 					} else {
@@ -229,7 +229,7 @@ public class StaticRelationshipResource extends WrappingResource {
 
 						gObject.setProperty(key, value);
 
-						return new PagingIterable<>(Arrays.asList(gObject));
+						return new PagingIterable<>("/" + getUriPart(), Arrays.asList(gObject));
 						//return new ResultStream(gObject, true);
 
 					}

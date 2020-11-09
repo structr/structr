@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -55,6 +55,7 @@ import org.structr.api.schema.JsonSchema;
 public interface KafkaClient extends MessageClient {
 
 	class Impl {
+
 		static {
 
 
@@ -88,7 +89,7 @@ public interface KafkaClient extends MessageClient {
 			type.overrideMethod("onModification", true, KafkaClient.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 			type.overrideMethod("onDeletion",     true, KafkaClient.class.getName() + ".onDeletion(this, arg0, arg1, arg2);");
 
-			type.overrideMethod("sendMessage", true, "return " + KafkaClient.class.getName() + ".sendMessage(this,topic,message);");
+			type.overrideMethod("sendMessage", false, "return " + KafkaClient.class.getName() + ".sendMessage(this,topic,message);");
 			type.overrideMethod("subscribeTopic", false, "return " + KafkaClient.class.getName() + ".subscribeTopic(this,topic);");
 			type.overrideMethod("unsubscribeTopic", false, "return " + KafkaClient.class.getName() + ".unsubscribeTopic(this,topic);");
 
@@ -105,6 +106,7 @@ public interface KafkaClient extends MessageClient {
 					tx.success();
 
 				} catch (Throwable t) {
+					final Logger logger = LoggerFactory.getLogger(KafkaClient.class);
 					logger.error("Unable to initialize Kafka clients: {}", t.getMessage());
 				}
 			});
@@ -154,6 +156,7 @@ public interface KafkaClient extends MessageClient {
 		if(getProducer(thisClient) == null && thisClient.getServers() != null && thisClient.getServers().length > 0) {
 			setProducer(thisClient,new KafkaProducer<>(getConfiguration(thisClient, KafkaProducer.class)));
 		} else if(thisClient.getServers() == null || thisClient.getServers().length == 0) {
+			final Logger logger = LoggerFactory.getLogger(KafkaClient.class);
 			logger.error("Could not initialize producer. No servers configured.");
 			return new RestMethodResult(422);
 		}
@@ -202,6 +205,7 @@ public interface KafkaClient extends MessageClient {
 				setProducer(thisClient, new KafkaProducer<>(getConfiguration(thisClient, KafkaProducer.class)));
 			}
 		} catch (JsonSyntaxException | KafkaException ex) {
+			final Logger logger = LoggerFactory.getLogger(KafkaClient.class);
 			logger.error("Could not refresh Kafka configuration: " + ex.getLocalizedMessage());
 		}
 	}
@@ -252,6 +256,7 @@ public interface KafkaClient extends MessageClient {
 
 		} catch (FrameworkException ex) {
 
+			final Logger logger = LoggerFactory.getLogger(KafkaClient.class);
 			logger.error("Exception while trying to generate KafkaClient configuration: ", ex);
 		}
 
@@ -376,9 +381,9 @@ public interface KafkaClient extends MessageClient {
 				}
 			}
 
-
-
 			final App app = StructrApp.getInstance();
+
+			boolean wasDisabled = true;
 
 			while (running) {
 
@@ -390,9 +395,12 @@ public interface KafkaClient extends MessageClient {
 					}
 
 					if (this.client.getServers() != null && this.client.getServers().length > 0 && this.client.getEnabled()) {
-						if (this.consumer == null) {
+
+						if (this.consumer == null || wasDisabled) {
+
 							this.refreshConsumer();
 							this.updateSubscriptions(true);
+							wasDisabled = false;
 
 						} else {
 
@@ -416,6 +424,7 @@ public interface KafkaClient extends MessageClient {
 								});
 
 							} else {
+								wasDisabled = true;
 								try {
 									Thread.sleep(1000);
 								} catch (InterruptedException iex) {

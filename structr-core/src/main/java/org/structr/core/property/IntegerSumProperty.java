@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -82,5 +82,11 @@ public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 	@Override
 	public boolean isCollection() {
 		return false;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return 1;
 	}
 }

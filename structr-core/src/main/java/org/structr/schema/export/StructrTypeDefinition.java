@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -19,6 +19,7 @@
 package org.structr.schema.export;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -55,6 +56,7 @@ import org.structr.api.schema.JsonDateProperty;
 import org.structr.api.schema.JsonDynamicProperty;
 import org.structr.api.schema.JsonEnumProperty;
 import org.structr.api.schema.JsonFunctionProperty;
+import org.structr.api.schema.JsonGrant;
 import org.structr.api.schema.JsonIntegerArrayProperty;
 import org.structr.api.schema.JsonIntegerProperty;
 import org.structr.api.schema.JsonLongArrayProperty;
@@ -69,22 +71,45 @@ import org.structr.api.schema.JsonScriptProperty;
 import org.structr.api.schema.JsonStringArrayProperty;
 import org.structr.api.schema.JsonStringProperty;
 import org.structr.api.schema.JsonType;
+import org.structr.common.PropertyView;
+import org.structr.common.Visitor;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.SchemaGrant;
+import org.structr.core.property.PropertyKey;
+import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.openapi.operation.OpenAPIDeleteMultipleOperation;
+import org.structr.schema.openapi.operation.OpenAPIDeleteSingleOperation;
+import org.structr.schema.openapi.operation.OpenAPIGetMultipleOperation;
+import org.structr.schema.openapi.operation.OpenAPIGetSingleOperation;
+import org.structr.schema.openapi.operation.OpenAPIPostOperation;
+import org.structr.schema.openapi.parameter.OpenAPIPropertyQueryParameter;
+import org.structr.schema.openapi.operation.OpenAPIPutSingleOperation;
+import org.structr.schema.openapi.common.OpenAPIReference;
 
 /**
  * @param <T>
  */
 public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implements JsonType, StructrDefinition {
 
+	public static final Set<String> VIEW_BLACKLIST = new LinkedHashSet<>(Arrays.asList("_graph", "_html_", "all", "category", "custom", "editWidget", "effectiveNameView", "export", "fav", "schema", "ui"));
+	public static final Set<String> TagBlacklist   = new LinkedHashSet<>(Arrays.asList("core", "default", "html", "ui"));
+
 	private static final Logger logger = LoggerFactory.getLogger(StructrTypeDefinition.class);
 
+	private final Set<String> filterPropertyBlacklist             = new LinkedHashSet<>(Arrays.asList("id", "type", "hidden"));
 	protected final Set<StructrPropertyDefinition> properties     = new TreeSet<>();
 	protected final Map<String, Set<String>> views                = new TreeMap<>();
 	protected final Map<String, String> viewOrder                 = new TreeMap<>();
 	protected final List<StructrMethodDefinition> methods         = new LinkedList<>();
+	protected final List<StructrGrantDefinition> grants           = new LinkedList<>();
 	protected final Set<URI> implementedInterfaces                = new TreeSet<>();
+	protected final Set<String> tags                              = new TreeSet<>();
+	protected boolean visibleToAuthenticatedUsers                 = false;
+	protected boolean visibleToPublicUsers                        = false;
 	protected boolean isInterface                                 = false;
 	protected boolean isAbstract                                  = false;
 	protected boolean isBuiltinType                               = false;
+	protected boolean changelogDisabled                           = false;
 	protected StructrSchemaDefinition root                        = null;
 	protected URI baseTypeReference                               = null;
 	protected String category                                     = null;
@@ -143,6 +168,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	public JsonType setCategory(final String category) {
 
 		this.category = category;
+
+		// test
+		this.addTags(category);
+
 		return this;
 	}
 
@@ -177,6 +206,39 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	@Override
 	public JsonType setIsAbstract() {
 		this.isAbstract = true;
+		return this;
+	}
+
+	@Override
+	public boolean isChangelogDisabled() {
+		return changelogDisabled;
+	}
+
+	@Override
+	public JsonType setIsChangelogDisabled() {
+		this.changelogDisabled = true;
+		return this;
+	}
+
+	@Override
+	public boolean isVisibleForPublicUsers() {
+		return this.visibleToPublicUsers;
+	}
+
+	@Override
+	public JsonType setVisibleForPublicUsers() {
+		this.visibleToPublicUsers = true;
+		return this;
+	}
+
+	@Override
+	public boolean isVisibleForAuthenticatedUsers() {
+		return this.visibleToAuthenticatedUsers;
+	}
+
+	@Override
+	public JsonType setVisibleForAuthenticatedUsers() {
+		this.visibleToAuthenticatedUsers = true;
 		return this;
 	}
 
@@ -235,7 +297,15 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, "get" + StringUtils.capitalize(propertyName));
 
 		newMethod.setSource("return getProperty(" + propertyName + "Property);");
-		newMethod.setReturnType(type.getName().replace("$", "."));
+
+		if (type.isArray()) {
+
+			newMethod.setReturnType(type.getPackageName() + "." +  type.getSimpleName());
+		} else {
+
+			newMethod.setReturnType(type.getName().replace("$", "."));
+		}
+
 		newMethod.setCodeType("java");
 
 		methods.add(newMethod);
@@ -304,6 +374,21 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	@Override
 	public List<JsonMethod> getMethods() {
 		return (List)methods;
+	}
+
+	@Override
+	public List<JsonGrant> getGrants() {
+		return (List)grants;
+	}
+
+	@Override
+	public Set<String> getTags() {
+		return tags;
+	}
+
+	@Override
+	public void addTags(final String... tags) {
+		this.tags.addAll(Arrays.asList(tags));
 	}
 
 	@Override
@@ -637,6 +722,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		final Map<String, Object> serializedForm       = new TreeMap<>();
 		final Map<String, Object> serializedProperties = new TreeMap<>();
 		final Map<String, Object> serializedMethods    = new TreeMap<>();
+		final Map<String, Object> serializedGrants     = new TreeMap<>();
 
 		// populate properties
 		for (final StructrPropertyDefinition property : properties) {
@@ -684,9 +770,28 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
+		// populate grants
+		for (final StructrGrantDefinition grant : grants) {
+
+			serializedGrants.put(grant.getPrincipalName(), grant.serialize());
+		}
+
 		serializedForm.put(JsonSchema.KEY_TYPE, "object");
 		serializedForm.put(JsonSchema.KEY_IS_ABSTRACT, isAbstract);
 		serializedForm.put(JsonSchema.KEY_IS_INTERFACE, isInterface);
+
+		if (changelogDisabled) {
+			serializedForm.put(JsonSchema.KEY_CHANGELOG_DISABLED, true);
+		}
+
+		if (visibleToPublicUsers) {
+			serializedForm.put(JsonSchema.KEY_VISIBLE_TO_PUBLIC, true);
+		}
+
+		if (visibleToAuthenticatedUsers) {
+			serializedForm.put(JsonSchema.KEY_VISIBLE_TO_AUTHENTICATED, true);
+		}
+
 		if (getClass().equals(StructrNodeTypeDefinition.class)) {
 			serializedForm.put(JsonSchema.KEY_IS_BUILTIN_TYPE, isBuiltinType);
 		}
@@ -705,8 +810,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		// views
 		if (!views.isEmpty()) {
 
-			// FIXME: views are different
-
 			serializedForm.put(JsonSchema.KEY_VIEWS, views);
 			serializedForm.put(JsonSchema.KEY_VIEW_ORDER, viewOrder);
 		}
@@ -714,6 +817,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		// methods
 		if (!serializedMethods.isEmpty()) {
 			serializedForm.put(JsonSchema.KEY_METHODS, serializedMethods);
+		}
+
+		// grants
+		if (!serializedGrants.isEmpty()) {
+			serializedForm.put(JsonSchema.KEY_GRANTS, serializedGrants);
 		}
 
 		final URI ext = getExtends();
@@ -739,6 +847,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			serializedForm.put(JsonSchema.KEY_CATEGORY, category);
 		}
 
+		if (!tags.isEmpty()) {
+			serializedForm.put(JsonSchema.KEY_TAGS, tags);
+		}
+
 		return serializedForm;
 	}
 
@@ -754,6 +866,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		if (source.containsKey(JsonSchema.KEY_IS_BUILTIN_TYPE)) {
 			this.isBuiltinType = (Boolean)source.get(JsonSchema.KEY_IS_BUILTIN_TYPE);
+		}
+
+		if (source.containsKey(JsonSchema.KEY_CHANGELOG_DISABLED)) {
+			this.changelogDisabled = (Boolean)source.get(JsonSchema.KEY_CHANGELOG_DISABLED);
+		}
+
+		if (source.containsKey(JsonSchema.KEY_VISIBLE_TO_PUBLIC)) {
+			this.visibleToPublicUsers = (Boolean)source.get(JsonSchema.KEY_VISIBLE_TO_PUBLIC);
+		}
+
+		if (source.containsKey(JsonSchema.KEY_VISIBLE_TO_AUTHENTICATED)) {
+			this.visibleToAuthenticatedUsers = (Boolean)source.get(JsonSchema.KEY_VISIBLE_TO_AUTHENTICATED);
 		}
 
 		if (source.containsKey(JsonSchema.KEY_EXTENDS)) {
@@ -786,6 +910,15 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 					this.implementedInterfaces.add(root.getId().relativize(URI.create(jsonPointerFormat)));
 				}
+			}
+		}
+
+		if (source.containsKey(JsonSchema.KEY_TAGS)) {
+
+			final Object tagsValue = source.get(JsonSchema.KEY_TAGS);
+			if (tagsValue instanceof List) {
+
+				tags.addAll((List<String>)tagsValue);
 			}
 		}
 	}
@@ -842,6 +975,15 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
+		for (final SchemaGrant grant : schemaNode.getProperty(SchemaNode.schemaGrants)) {
+
+			final StructrGrantDefinition newGrant = StructrGrantDefinition.deserialize(this, grant);
+			if (newGrant != null) {
+
+				grants.add(newGrant);
+			}
+		}
+
 		// $extends
 		final String extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
 		if (extendsClass != null) {
@@ -880,11 +1022,14 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
-		this.isInterface   = schemaNode.getProperty(SchemaNode.isInterface);
-		this.isAbstract    = schemaNode.getProperty(SchemaNode.isAbstract);
-		this.isBuiltinType = schemaNode.getProperty(SchemaNode.isBuiltinType);
-		this.category      = schemaNode.getProperty(SchemaNode.category);
-		this.schemaNode    = schemaNode;
+		this.isInterface                 = schemaNode.getProperty(SchemaNode.isInterface);
+		this.isAbstract                  = schemaNode.getProperty(SchemaNode.isAbstract);
+		this.isBuiltinType               = schemaNode.getProperty(SchemaNode.isBuiltinType);
+		this.changelogDisabled           = schemaNode.getProperty(SchemaNode.changelogDisabled);
+		this.visibleToPublicUsers        = schemaNode.getProperty(SchemaNode.defaultVisibleToPublic);
+		this.visibleToAuthenticatedUsers = schemaNode.getProperty(SchemaNode.defaultVisibleToAuth);
+		this.category                    = schemaNode.getProperty(SchemaNode.category);
+		this.schemaNode                  = schemaNode;
 
 		if (this.category == null && getClass().equals(StructrNodeTypeDefinition.class)) {
 
@@ -894,12 +1039,19 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				this.category = type.getCategory();
 			}
 		}
+
+		final String[] tagArray = schemaNode.getProperty(SchemaNode.tags);
+		if (tagArray != null) {
+
+			this.tags.addAll(Arrays.asList(tagArray));
+		}
 	}
 
 	AbstractSchemaNode createDatabaseSchema(final Map<String, SchemaNode> schemaNodes, final App app) throws FrameworkException {
 
 		final Map<String, SchemaProperty> schemaProperties = new TreeMap<>();
 		final Map<String, SchemaMethod> schemaMethods      = new TreeMap<>();
+		final Map<String, SchemaGrant> schemaGrants        = new TreeMap<>();
 		final PropertyMap createProperties                 = new PropertyMap();
 		final PropertyMap nodeProperties                   = new PropertyMap();
 
@@ -908,6 +1060,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		createProperties.put(SchemaNode.isAbstract, isAbstract);
 		createProperties.put(SchemaNode.category, category);
 		createProperties.put(SchemaNode.isBuiltinType, isBuiltinType || SchemaService.DynamicSchemaRootURI.equals(root.getId()));
+		createProperties.put(SchemaNode.changelogDisabled, changelogDisabled);
+		createProperties.put(SchemaNode.defaultVisibleToPublic, visibleToPublicUsers);
+		createProperties.put(SchemaNode.defaultVisibleToAuth, visibleToAuthenticatedUsers);
 
 		final T schemaNode = createSchemaNode(schemaNodes, app, createProperties);
 
@@ -971,6 +1126,15 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			if (schemaMethod != null) {
 
 				schemaMethods.put(schemaMethod.getName(), schemaMethod);
+			}
+		}
+
+		for (final StructrGrantDefinition grant : grants) {
+
+			final SchemaGrant schemaGrant = grant.createDatabaseSchema(app, schemaNode);
+			if (schemaGrant != null) {
+
+				schemaGrants.put(schemaGrant.getPrincipalName(), schemaGrant);
 			}
 		}
 
@@ -1073,6 +1237,17 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 			nodeProperties.put(SchemaNode.implementsInterfaces, StringUtils.join(interfaces, ", "));
 		}
+
+		final Set<String> mergedTags     = new LinkedHashSet<>(this.tags);
+		final String[] existingTagsArray = schemaNode.getProperty(SchemaNode.tags);
+
+		if (existingTagsArray != null) {
+
+			mergedTags.addAll(Arrays.asList(existingTagsArray));
+		}
+
+		// merge tags, don't overwrite
+		nodeProperties.put(SchemaNode.tags, mergedTags.toArray(new String[0]));
 
 		schemaNode.setProperties(SecurityContext.getSuperUserInstance(), nodeProperties);
 
@@ -1191,12 +1366,14 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		final Map<String, StructrPropertyDefinition> deserializedProperties = new TreeMap<>();
 		final Map<String, StructrMethodDefinition> deserializedMethods      = new TreeMap<>();
+		final Map<String, StructrGrantDefinition> deserializedGrants        = new TreeMap<>();
 		final StructrTypeDefinition typeDefinition                          = StructrTypeDefinition.determineType(root, name, source);
 		final Map<String, Object> properties                                = (Map)source.get(JsonSchema.KEY_PROPERTIES);
 		final List<String> requiredPropertyNames                            = (List)source.get(JsonSchema.KEY_REQUIRED);
 		final Map<String, Object> views                                     = (Map)source.get(JsonSchema.KEY_VIEWS);
 		final Map<String, String> viewOrder                                 = (Map)source.get(JsonSchema.KEY_VIEW_ORDER);
 		final Map<String, Object> methods                                   = (Map)source.get(JsonSchema.KEY_METHODS);
+		final Map<String, Object> grants                                    = (Map)source.get(JsonSchema.KEY_GRANTS);
 
 		if (properties != null) {
 
@@ -1300,6 +1477,29 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
+		if (grants != null) {
+
+			for (final Entry<String, Object> entry : grants.entrySet()) {
+
+				final String principalName = entry.getKey();
+				final Object value         = entry.getValue();
+
+				if (value instanceof Map) {
+
+					final StructrGrantDefinition grant = StructrGrantDefinition.deserialize(typeDefinition, principalName, (Map)value);
+					if (grant != null) {
+
+						deserializedGrants.put(grant.getPrincipalName(), grant);
+						typeDefinition.getGrants().add(grant);
+					}
+
+				} else {
+
+					throw new IllegalStateException("Grant definition " + principalName + " must be of type map.");
+				}
+			}
+		}
+
 		final Object isAbstractValue = source.get(JsonSchema.KEY_IS_ABSTRACT);
 		if (isAbstractValue != null && Boolean.TRUE.equals(isAbstractValue)) {
 
@@ -1316,6 +1516,24 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		if (isBuiltinType != null && Boolean.TRUE.equals(isBuiltinType)) {
 
 			typeDefinition.setIsBuiltinType();
+		}
+
+		final Object isChangelogDisabled = source.get(JsonSchema.KEY_CHANGELOG_DISABLED);
+		if (isChangelogDisabled != null && Boolean.TRUE.equals(isChangelogDisabled)) {
+
+			typeDefinition.setIsChangelogDisabled();
+		}
+
+		final Object isVisibleToAnonymous = source.get(JsonSchema.KEY_VISIBLE_TO_PUBLIC);
+		if (isVisibleToAnonymous != null && Boolean.TRUE.equals(isVisibleToAnonymous)) {
+
+			typeDefinition.setVisibleForPublicUsers();
+		}
+
+		final Object isVisibleToAuthenticated = source.get(JsonSchema.KEY_VISIBLE_TO_AUTHENTICATED);
+		if (isVisibleToAuthenticated != null && Boolean.TRUE.equals(isVisibleToAuthenticated)) {
+
+			typeDefinition.setVisibleForAuthenticatedUsers();
 		}
 
 		final Object categoryValue = source.get(JsonSchema.KEY_CATEGORY);
@@ -1499,5 +1717,162 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	private void handleRemovedProperty(final StructrPropertyDefinition property) throws FrameworkException {
 		//logger.warn("Property {}.{} was removed or renamed in the current version of the Structr schema, no action taken.", getName(), property.getName());
+	}
+
+	// ----- OpenAPI methods -----
+	public Map<String, Object> serializeOpenAPIOperations(final String tag) {
+
+		final Map<String, Object> root      = new LinkedHashMap<>();
+		final Map<String, Object> singleOps = new LinkedHashMap<>();
+		final Map<String, Object> multiOps  = new LinkedHashMap<>();
+		final Set<String> views             = getInheritedViewNamesExcludingPublic();
+
+		for (final String view : views) {
+
+			root.put("/" + name + "/" + view, Map.of("get", new OpenAPIGetMultipleOperation(this, view)));
+		}
+
+		root.put("/" + name, multiOps);
+
+		multiOps.put("get",    new OpenAPIGetMultipleOperation(this, PropertyView.Public));
+		//multiOps.put("patch",  new OpenAPIPatchOperation(this));
+		multiOps.put("post",   new OpenAPIPostOperation(this));
+		multiOps.put("delete", new OpenAPIDeleteMultipleOperation(this));
+
+
+		for (final String view : views) {
+
+			root.put("/" + name + "/{uuid}" + "/" + view, Map.of("get", new OpenAPIGetSingleOperation(this, view)));
+		}
+
+		root.put("/" + name + "/{uuid}", singleOps);
+
+		singleOps.put("get",    new OpenAPIGetSingleOperation(this, PropertyView.Public));
+		singleOps.put("put",    new OpenAPIPutSingleOperation(this));
+		singleOps.put("delete", new OpenAPIDeleteSingleOperation(this));
+
+		// methods
+		for (final StructrMethodDefinition method : methods) {
+
+			if (method.isSelected(tag)) {
+
+				root.putAll(method.serializeOpenAPI());
+			}
+		}
+
+		return root;
+	}
+
+	public Set<String> getTagsForOpenAPI() {
+
+		final Set<String> result = new LinkedHashSet<>();
+
+		//result.addAll(tags);
+
+		// group by type
+		result.add(name);
+
+		return result;
+	}
+
+	public boolean isSelected(final String tag) {
+
+		final Set<String> tags = getTags();
+		boolean selected       = tag == null || tags.contains(tag);
+
+		// don't show types without tags
+		if (tags.isEmpty()) {
+			return false;
+		}
+
+		// skip blacklisted tags
+		if (intersects(TagBlacklist, tags)) {
+
+			// if a tag is selected, it overrides the blacklist
+			selected = tag != null && tags.contains(tag);
+		}
+
+		return selected;
+	}
+
+	public void visitProperties(final Visitor<PropertyKey> visitor, final String viewName) {
+
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+		final Class type                   = config.getNodeEntityClass(name);
+
+		if (type != null) {
+
+			final Set<PropertyKey> keys = config.getPropertySet(type, viewName);
+			if (keys != null) {
+
+				keys.stream().forEach(visitor::visit);
+
+			} else {
+
+				// fallback: iterate over id, type, name
+				List.of(AbstractNode.id, AbstractNode.type, AbstractNode.name).stream().forEach(visitor::visit);
+			}
+		}
+	}
+
+	public List<Map<String, Object>> getOpenAPIParameters(final String viewName, final int level) {
+
+		final List<Map<String, Object>> params = new LinkedList<>();
+
+		// add indexed properties
+		visitProperties(property -> {
+
+			if (property.isIndexed() && !filterPropertyBlacklist.contains(property.jsonName())) {
+
+				params.add(new OpenAPIPropertyQueryParameter(name, property, viewName, level));
+			}
+
+		}, viewName);
+
+		params.add(new OpenAPIReference("#/components/parameters/page"));
+		params.add(new OpenAPIReference("#/components/parameters/pageSize"));
+		params.add(new OpenAPIReference("#/components/parameters/inexactSearch"));
+
+		return params;
+	}
+
+	protected Set<String> getInheritedViewNamesExcludingPublic() {
+
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+		final Class type                   = config.getNodeEntityClass(name);
+		final Set<String> inherited        = new LinkedHashSet<>();
+
+		if (type != null) {
+
+			inherited.addAll(config.getPropertyViewsForType(type));
+
+			inherited.removeAll(VIEW_BLACKLIST);
+			inherited.remove("public");
+		}
+
+		return inherited;
+	}
+
+	String resolveTypeReferenceForOpenAPI(final URI reference) {
+
+		// do not include static Structr Schema URIs here
+		if (reference != null && !reference.toString().startsWith("https://structr.org/v1.1/")) {
+
+			// non-default base type?
+			final String name = StringUtils.substringAfterLast(reference.getPath(), "/");
+
+			return "#/components/schemas/" + name;
+		}
+
+		return null;
+	}
+
+	private boolean intersects(final Set<String> set1, final Set<String> set2) {
+
+		final Set<String> intersection = new LinkedHashSet<>(set1);
+
+		intersection.retainAll(set2);
+
+		return !intersection.isEmpty();
 	}
 }

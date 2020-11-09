@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -134,5 +134,11 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 				searchRecursively(app, (Folder)folder, attr, (ArrayList<String>) parts.clone());
 			}
 		}
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
 	}
 }

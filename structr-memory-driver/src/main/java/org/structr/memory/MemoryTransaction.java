@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -35,9 +35,12 @@ public class MemoryTransaction implements Transaction {
 
 	private static final AtomicLong idCounter = new AtomicLong();
 
-	private final Map<MemoryIdentity, MemoryRelationship> createdRelationships = new LinkedHashMap<>();
+	private final MemoryRelationshipRepository createdRelationships            = new MemoryRelationshipRepository(true);
+	private final MemoryNodeRepository createdNodes                            = new MemoryNodeRepository();
+
+	//private final Map<MemoryIdentity, MemoryRelationship> createdRelationships = new LinkedHashMap<>();
 	private final Map<MemoryIdentity, MemoryRelationship> deletedRelationships = new LinkedHashMap<>();
-	private final Map<MemoryIdentity, MemoryNode> createdNodes                 = new LinkedHashMap<>();
+	//private final Map<MemoryIdentity, MemoryNode> createdNodes                 = new LinkedHashMap<>();
 	private final Set<MemoryEntity> modifiedEntities                           = new LinkedHashSet<>();
 	private final Set<MemoryIdentity> deletedNodes                             = new LinkedHashSet<>();
 	private final long transactionId                                           = idCounter.incrementAndGet();
@@ -72,7 +75,7 @@ public class MemoryTransaction implements Transaction {
 				entity.commit(transactionId);
 			}
 
-			db.commitTransaction(createdNodes, createdRelationships, deletedNodes, deletedRelationships);
+			db.commitTransaction(createdNodes.getMasterData(), createdRelationships.getMasterData(), deletedNodes, deletedRelationships);
 
 		} else {
 
@@ -84,16 +87,16 @@ public class MemoryTransaction implements Transaction {
 			db.rollbackTransaction();
 		}
 
-		createdNodes.values().stream().forEach(n -> n.unlock());
-		createdRelationships.values().stream().forEach(r -> r.unlock());
+		createdNodes.getMasterData().values().stream().forEach(n -> n.unlock());
+		createdRelationships.getMasterData().values().stream().forEach(r -> r.unlock());
 	}
 
 	public void create(final MemoryNode newNode) {
-		createdNodes.put(newNode.getIdentity(), newNode);
+		createdNodes.add(newNode);
 	}
 
 	public void create(final MemoryRelationship newRelationship) {
-		createdRelationships.put(newRelationship.getIdentity(), newRelationship);
+		createdRelationships.add(newRelationship);
 	}
 
 	public void modify(final MemoryEntity entity) {
@@ -120,7 +123,7 @@ public class MemoryTransaction implements Transaction {
 		final List<Iterable<MemoryNode>> sources = new LinkedList<>();
 
 		// FIXME: this might return wrong data when newly created nodes match the filter but are not filtered
-		sources.add(createdNodes.values());
+		sources.add(createdNodes.values(filter));
 		sources.add(db.getNodes(filter));
 
 		// return union of new and existing nodes, filtered for deleted nodes
@@ -131,7 +134,7 @@ public class MemoryTransaction implements Transaction {
 
 		final List<Iterable<MemoryRelationship>> sources = new LinkedList<>();
 
-		sources.add(createdRelationships.values());
+		sources.add(createdRelationships.values(filter));
 		sources.add(db.getRelationships(filter));
 
 		// return union of new and existing nodes
@@ -196,9 +199,9 @@ public class MemoryTransaction implements Transaction {
 
 		if (id.isNode()) {
 
-			return createdNodes.containsKey(id) || db.exists(id);
+			return createdNodes.contains(id) || db.exists(id);
 		}
 
-		return createdRelationships.containsKey(id) || db.exists(id);
+		return createdRelationships.contains(id) || db.exists(id);
 	}
 }

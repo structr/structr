@@ -13,7 +13,7 @@ export class FlowSockets {
 
         let dataSource = new D3NE.Socket('dataSource', 'Data Source Node', 'The connected node will provide data for this node.');
         let dataSources = new D3NE.Socket('dataSources', 'Data Source Nodes', 'The connected nodes will provide data for this node.');
-        let dataTarget = new D3NE.Socket('dataTarget', 'Data Target Node', 'Connect to a node\'s prev port.');
+        let dataTarget = new D3NE.Socket('dataTarget', 'Data Target Node', 'Connect to a node\'s DataSource port.');
         dataTarget.combineWith(dataSource);
         dataTarget.combineWith(dataSources);
         this._sockets['dataSource'] = dataSource;
@@ -85,6 +85,12 @@ export class FlowSockets {
         let forkBody = new D3NE.Socket('forkBody', 'ForkBody', 'Connected nodes will be executed in a new forked thread.');
         forkBody.combineWith(this._sockets['prev']);
         this._sockets['forkBody'] = forkBody;
+
+        let switch_switch = new D3NE.Socket('switch', 'Switch element', 'Connected to a switch\'s cases port.');
+        let switch_cases = new D3NE.Socket('cases', 'Case elements', 'Connects to a cases\'s switch port.');
+        switch_cases.combineWith(switch_switch);
+        this._sockets['switch'] = switch_switch;
+        this._sockets['cases'] = switch_cases;
 
     }
 

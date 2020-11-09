@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -37,7 +37,7 @@ import org.structr.web.entity.dom.Template;
  */
 public class IncludeChildFunction extends IncludeFunction {
 
-	public static final String ERROR_MESSAGE_INCLUDE    = "Usage: ${include_child(name)}. Example: ${includeChild(\"Child Node\")}";
+	public static final String ERROR_MESSAGE_INCLUDE    = "Usage: ${include_child(name)}. Example: ${include_child(\"Child Node\")}";
 	public static final String ERROR_MESSAGE_INCLUDE_JS = "Usage: ${{Structr.includeChild(name)}}. Example: ${{Structr.includeChild(\"Child Node\")}}";
 
 	@Override

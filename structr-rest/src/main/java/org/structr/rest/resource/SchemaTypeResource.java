@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -34,11 +34,11 @@ import org.structr.schema.SchemaHelper;
  */
 public class SchemaTypeResource extends Resource {
 
-	protected Class entityClass          = null;
-	private static String        rawType = null;
 	protected HttpServletRequest request = null;
 	protected TypeResource typeResource  = null;
-	private   String propertyView        = null;
+	protected Class entityClass          = null;
+	private String propertyView          = null;
+	private String rawType               = null;
 
 	public SchemaTypeResource(SecurityContext securityContext, TypeResource typeResource) {
 		this.securityContext = securityContext;
@@ -54,7 +54,7 @@ public class SchemaTypeResource extends Resource {
 	@Override
 	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 		final Class type = typeResource.getEntityClass();
-		return getSchemaTypeResult(securityContext, type, propertyView);
+		return getSchemaTypeResult(securityContext, rawType, type, propertyView);
 	}
 
 	@Override
@@ -98,7 +98,7 @@ public class SchemaTypeResource extends Resource {
 	}
 
 	// ----- public static methods -----
-	public static ResultStream getSchemaTypeResult(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
-		return new PagingIterable<>(SchemaHelper.getSchemaTypeInfo(securityContext, rawType, type, propertyView));
+	public static ResultStream getSchemaTypeResult(final SecurityContext securityContext, final String rawType, final Class type, final String propertyView) throws FrameworkException {
+		return new PagingIterable<>("getSchemaTypeResult(" + rawType + ")", SchemaHelper.getSchemaTypeInfo(securityContext, rawType, type, propertyView));
 	}
 }

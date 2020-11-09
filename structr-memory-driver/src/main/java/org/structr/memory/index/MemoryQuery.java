@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -23,6 +23,9 @@ import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.search.QueryContext;
@@ -38,6 +41,8 @@ import org.structr.memory.index.predicate.NotPredicate;
  */
 public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, Predicate<T> {
 
+	private static final Logger logger = LoggerFactory.getLogger(MemoryQuery.class);
+
 	private final GroupPredicate<T> rootPredicate = new GroupPredicate<>(null, Conjunction.And);
 	private final Set<String> labels              = new LinkedHashSet<>();
 	private GroupPredicate<T> currentPredicate    = rootPredicate;
@@ -47,6 +52,11 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 
 	public MemoryQuery(final QueryContext queryContext) {
 		this.queryContext = queryContext;
+	}
+
+	@Override
+	public String toString() {
+		return "MemoryQuery(" + labels.toString() + ")";
 	}
 
 	public void addTypeLabel(final String typeLabel) {
@@ -125,7 +135,7 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 				return list;
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(t));
 			}
 		}
 

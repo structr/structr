@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -33,7 +33,7 @@ public class AsyncBuffer {
 	public AsyncBuffer append(final String s) {
 
 		synchronized(queue) {
-			
+
 			if (s != null) {
 				queue.add(s);
 			}

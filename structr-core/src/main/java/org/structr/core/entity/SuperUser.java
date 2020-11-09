@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -375,6 +375,16 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
+	public boolean addRefreshToken(String refreshToken) {
+		throw new UnsupportedOperationException("Not supported.");
+	}
+
+	@Override
+	public void removeRefreshToken(String refreshToken) {
+		throw new UnsupportedOperationException("Not supported.");
+	}
+
+	@Override
 	public SecurityContext getSecurityContext() {
 		throw new UnsupportedOperationException("Not supported.");
 	}
@@ -537,5 +547,10 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	@Override
 	public long getSourceTransactionId() {
 		return TransactionCommand.getCurrentTransactionId();
+	}
+
+	@Override
+	public boolean changelogEnabled() {
+		return true;
 	}
 }

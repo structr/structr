@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,6 +18,7 @@
  */
 package org.structr.core.function.search;
 
+import org.structr.api.search.Occurrence;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
@@ -35,6 +36,14 @@ public class EqualsPredicate extends AbstractPredicate {
 
 	@Override
 	public void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey propertyKey, final Query query, final boolean exact) throws FrameworkException {
-		query.and(propertyKey, value, true);
+
+		if (propertyKey.isCollection()) {
+
+			query.and(propertyKey, value, true, Occurrence.EXACT);
+
+		} else {
+
+			query.and(propertyKey, value, true);
+		}
 	}
 }

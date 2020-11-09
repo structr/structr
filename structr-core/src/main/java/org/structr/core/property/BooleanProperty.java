@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -121,6 +121,12 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	@Override
 	public PropertyType getDataType() {
 		return PropertyType.BOOLEAN;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return true;
 	}
 
 	// ----- nested classes -----

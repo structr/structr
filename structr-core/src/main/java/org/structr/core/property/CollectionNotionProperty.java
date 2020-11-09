@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -19,29 +19,22 @@
 package org.structr.core.property;
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
-import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
 import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.EmptySearchAttribute;
+import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.notion.Notion;
 
 /**
@@ -58,7 +51,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	private static final Logger logger = LoggerFactory.getLogger(CollectionIdProperty.class.getName());
 
 	private Property<Iterable<S>> collectionProperty = null;
-	private Notion<S, T> notion                  = null;
+	private Notion<S, T> notion                      = null;
 
 	public CollectionNotionProperty(String name, Property<Iterable<S>> base, Notion<S, T> notion) {
 
@@ -188,122 +181,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 	@Override
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Iterable<T> searchValueIterable, boolean exactMatch, final Query query) {
-
-		final Predicate<GraphObject> predicate    = query != null ? query.toPredicate() : null;
-		final List<T> searchValues                = Iterables.toList(searchValueIterable);
-		final SourceSearchAttribute attr          = new SourceSearchAttribute(occur);
-		final Set<GraphObject> intersectionResult = new LinkedHashSet<>();
-		boolean alreadyAdded                      = false;
-
-		try {
-
-			if (searchValues != null && !searchValues.isEmpty()) {
-
-				final PropertyKey key                  = notion.getPrimaryPropertyKey();
-				final PropertyConverter inputConverter = key.inputConverter(securityContext);
-				final List<Object> transformedValues   = new LinkedList<>();
-				boolean allBlank                       = true;
-
-				// transform search values using input convert of notion property
-				for (T searchValue : searchValues) {
-
-					if (inputConverter != null) {
-
-						transformedValues.add(inputConverter.convert(searchValue));
-					} else {
-
-						transformedValues.add(searchValue);
-					}
-				}
-
-				// iterate over transformed values
-				for (Object searchValue : transformedValues) {
-
-					// check if the list contains non-empty search values
-					if (StringUtils.isBlank(searchValue.toString())) {
-
-						continue;
-
-					} else {
-
-						allBlank = false;
-					}
-
-					final App app = StructrApp.getInstance(securityContext);
-
-
-					if (exactMatch) {
-
-						final List<AbstractNode> result = app.nodeQuery(collectionProperty.relatedType()).and(notion.getPrimaryPropertyKey(), searchValue).getAsList();
-						for (AbstractNode node : result) {
-
-							switch (occur) {
-
-								case REQUIRED:
-
-									if (!alreadyAdded) {
-
-										// the first result is the basis of all subsequent intersections
-										intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
-
-										// the next additions are intersected with this one
-										alreadyAdded = true;
-
-									} else {
-
-										intersectionResult.retainAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
-									}
-
-									break;
-
-								case OPTIONAL:
-									intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
-									break;
-
-								case FORBIDDEN:
-									break;
-							}
-						}
-
-					} else {
-
-						// inexact search behaves differently, all results must be combined
-						final List<AbstractNode> result = app.nodeQuery(collectionProperty.relatedType()).and(notion.getPrimaryPropertyKey(), searchValue, false).getAsList();
-						for (AbstractNode node : result) {
-
-							intersectionResult.addAll(collectionProperty.getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
-						}
-
-					}
-				}
-
-				if (allBlank) {
-
-					// experimental filter attribute that
-					// removes entities with a non-empty
-					// value in the given field
-					return new EmptySearchAttribute(this, Collections.emptyList());
-
-				} else {
-
-					attr.setResult(intersectionResult);
-				}
-
-			} else {
-
-				// experimental filter attribute that
-				// removes entities with a non-empty
-				// value in the given field
-				return new EmptySearchAttribute(this, Collections.emptyList());
-
-			}
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-		}
-
-		return attr;
+		return new GraphSearchAttribute(notion.getPrimaryPropertyKey(), collectionProperty, searchValueIterable, occur, exactMatch);
 	}
 
 	@Override
@@ -325,5 +203,21 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	@Override
 	protected boolean multiValueSplitAllowed() {
 		return false;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(java.lang.String type, final String viewName) {
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+		return Collections.EMPTY_MAP;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+		return Collections.EMPTY_MAP;
 	}
 }

@@ -74,6 +74,7 @@ $(document).ready(function() {
 var _Graph = {
 	_moduleName: 'graph',
 	displayTypeConfigKey: 'structrGraphDisplayTypes_' + port,
+	searchField: undefined,
 	init: function() {
 
 		// Colors created with http://paletton.com
@@ -194,7 +195,7 @@ var _Graph = {
 
 	onload: function() {
 
-		Structr.updateMainHelpLink('https://support.structr.com/article/203');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('graph'));
 
 		activeTabLeftGraph = LSWrapper.getItem(activeTabRightGraphKey);
 		activeTabRightGraph = LSWrapper.getItem(activeTabLeftGraphKey);
@@ -506,9 +507,9 @@ var _Graph = {
 		queriesSlideout.append('<div><h3>Saved Queries</h3></div>');
 		_Graph.listSavedQueries();
 
-		searchField = $('.search', queriesSlideout);
-		searchField.focus();
-		searchField.keyup(function(e) {
+		_Graph.searchField = $('.search', queriesSlideout);
+		_Graph.searchField.focus();
+		_Graph.searchField.keyup(function(e) {
 			var self = $(this);
 			var searchString = self.val();
 			var type = self.attr('name');
@@ -707,7 +708,7 @@ var _Graph = {
 			graphBrowser.dataChanged();
 
 		} catch (error) {
-			_Logger.log(_LogType.GRAPH, 'Node: ' + node.id + 'already in the graph');
+//			console.log('Node: ' + node.id + 'already in the graph');
 		}
 	},
 
@@ -733,7 +734,7 @@ var _Graph = {
 			_Graph.updateRelationshipTypes();
 		}
 		catch(error){
-			_Logger.log(_LogType.GRAPH, 'Edge: ' + r.id + 'already in the graph');
+//			console.log('Edge: ' + r.id + 'already in the graph');
 		}
 
 	},
@@ -1000,7 +1001,6 @@ var _Graph = {
 		var node = clickedNode.data.node;
 
 		if (hasDoubleClicked) {
-			_Logger.log(_LogType.GRAPH, 'double clicked, returning');
 			return false;
 		}
 
@@ -1008,8 +1008,6 @@ var _Graph = {
 			hasDragged = false;
 			return false;
 		}
-
-		_Logger.log(_LogType.GRAPH, 'clickNode');
 
 		clickTimeout = window.setTimeout(function() {
 			_Entities.showProperties(node);

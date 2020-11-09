@@ -32,7 +32,6 @@ var Command = {
 			sessionId: Structr.getSessionId(),
 			data: data
 		};
-		_Logger.log(_LogType.WS[obj.command], 'login() with ' + JSON.stringify(data));
 		return sendObj(obj);
 	},
 	/**
@@ -46,7 +45,6 @@ var Command = {
 				username: username
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'logout() ' + username);
 		return sendObj(obj);
 	},
 	/**
@@ -57,7 +55,6 @@ var Command = {
 			command: 'PING',
 			sessionId: Structr.getSessionId()
 		};
-		_Logger.log(_LogType.WS[obj.command], 'ping()');
 		return sendObj(obj, callback);
 	},
 	/**
@@ -80,7 +77,6 @@ var Command = {
 		if (view) {
 			obj.view = view;
 		}
-		_Logger.log(_LogType.WS[obj.command], 'get()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -98,7 +94,6 @@ var Command = {
 				completion: (completion === true ? true : false)
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'console()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -106,8 +101,15 @@ var Command = {
 	 *
 	 * The server will return a single relationship with all properties
 	 * with the given id to the sending client (no broadcast).
+	 *
+	 * Providing a nodeId is strongly recommended.
 	 */
 	getRelationship: function(id, nodeId, properties, callback) {
+
+		if (!nodeId) {
+			console.warn('getRelationship called without nodeId');
+		}
+
 		var obj = {
 			command: 'GET_RELATIONSHIP',
 			id: id,
@@ -116,9 +118,8 @@ var Command = {
 			}
 		};
 		if (properties !== null) {
-			obj.data.properties = properties
+			obj.data.properties = properties;
 		}
-		_Logger.log(_LogType.WS[obj.command], 'getRelationship()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -141,7 +142,6 @@ var Command = {
 		if (sort) obj.sort = sort;
 		if (order) obj.order = order;
 		if (properties) obj.data.properties = properties;
-		_Logger.log(_LogType.WS[obj.command], 'getByType()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -157,7 +157,6 @@ var Command = {
 				type: type
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'getTypeInfo()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -172,7 +171,6 @@ var Command = {
 				type: type
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'getSchemaInfo()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -196,7 +194,6 @@ var Command = {
 			}
 		};
 		if (properties) obj.data.properties = properties;
-		_Logger.log(_LogType.WS[obj.command], 'list()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -222,7 +219,6 @@ var Command = {
 		if (exact !== null) obj.data.exact = exact;
 		if (view) obj.view = view;
 		if (customView) obj.data.customView = customView;
-		_Logger.log(_LogType.WS[obj.command], 'query()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -241,12 +237,10 @@ var Command = {
 		var structrObj = StructrModel.obj(id);
 		if (structrObj && (structrObj instanceof StructrElement || structrObj.type === 'Template')) {
 			obj.command = 'DOM_NODE_CHILDREN';
-			_Logger.log(_LogType.WS[obj.command], 'children of DOM node requested', structrObj);
 		} else {
 			obj.command = 'CHILDREN';
 		}
 
-		_Logger.log(_LogType.WS[obj.command], 'children()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -263,7 +257,6 @@ var Command = {
 				key: key
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'getProperty()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -285,7 +278,6 @@ var Command = {
 				exact: exact
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'search()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -299,7 +291,6 @@ var Command = {
 				restQuery: searchString
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'rest()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -318,7 +309,6 @@ var Command = {
 			obj.pageSize = pageSize;
 			obj.page = page;
 		}
-		_Logger.log(_LogType.WS[obj.command], 'cypher()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -334,7 +324,6 @@ var Command = {
 			data: {}
 		};
 		if (recursive) obj.data.recursive = recursive;
-		_Logger.log(_LogType.WS[obj.command], 'deleteNode()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -351,7 +340,6 @@ var Command = {
 			}
 		};
 		if (recursive) obj.data.recursive = recursive;
-		_Logger.log(_LogType.WS[obj.command], 'deleteNodes()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -367,7 +355,6 @@ var Command = {
 			data: {}
 		};
 		if (recursive) obj.data.recursive = recursive;
-		_Logger.log(_LogType.WS[obj.command], 'deleteRelationship()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -384,7 +371,6 @@ var Command = {
 				id: parentId
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'removeSourceFromTarget()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -399,7 +385,6 @@ var Command = {
 			id: id,
 			data: {}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'removeChild()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -417,7 +402,6 @@ var Command = {
 				idToRemove: idToRemove
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'removeFromCollection()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -437,7 +421,6 @@ var Command = {
 		};
 		obj.data[key] = value;
 		if (recursive) obj.data.recursive = true;
-		_Logger.log(_LogType.WS[obj.command], 'setProperty()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -452,7 +435,6 @@ var Command = {
 			id: id,
 			data: data
 		};
-		_Logger.log(_LogType.WS[obj.command], 'setProperties()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -472,7 +454,6 @@ var Command = {
 				recursive: recursive
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'setPermission()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -494,7 +475,6 @@ var Command = {
 				parentId: parentId
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'appendFile()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -508,7 +488,6 @@ var Command = {
 				parentId: parentId
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'appendContentItem()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -526,7 +505,6 @@ var Command = {
 				parentFolderId: parentFolderId
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'unarchive()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -544,7 +522,6 @@ var Command = {
 				parentId: groupId
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'appendMember()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -567,7 +544,6 @@ var Command = {
 				key: key
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'appendChild()', obj, key);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -595,7 +571,6 @@ var Command = {
 		if (attributes) {
 			$.extend(obj.data, attributes);
 		}
-		_Logger.log(_LogType.WS[obj.command], 'appendWidget()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -613,7 +588,6 @@ var Command = {
 				source: source
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'saveNode()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -639,7 +613,6 @@ var Command = {
 		var obj = {
 			command: 'GET_LOCAL_STORAGE'
 		};
-		_Logger.log(_LogType.WS[obj.command], 'getLocalStorage()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -662,7 +635,6 @@ var Command = {
 				parentId: parentId
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'insertBefore()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -686,7 +658,27 @@ var Command = {
 			}
 		};
 		$.extend(obj.data, attributes);
-		_Logger.log(_LogType.WS[obj.command], 'createAndAppendDOMNode()', obj);
+		return sendObj(obj);
+	},
+	/**
+	 * Send a CREATE_AND_INSERT_RELATIVE_TO_DOM_NODE command to the server.
+	 *
+	 * The server will create a new DOM node with the given tag name and
+	 * insert it relative to the node with the given id.
+	 *
+	 */
+	createAndInsertRelativeToDOMNode: function(pageId, nodeId, tagName, relativePosition, inheritVisibilityFlags) {
+		var obj = {
+			command: 'CREATE_AND_INSERT_RELATIVE_TO_DOM_NODE',
+			pageId: pageId,
+			data: {
+				nodeId: nodeId,
+				tagName: tagName,
+				inheritVisibilityFlags: (inheritVisibilityFlags || false),
+				relativePosition: relativePosition
+			}
+		};
+
 		return sendObj(obj);
 	},
 	/**
@@ -707,7 +699,6 @@ var Command = {
 			}
 		};
 		$.extend(obj.data, attributes);
-		_Logger.log(_LogType.WS[obj.command], 'wrapDOMNodeInNewDOMNode()', obj);
 		return sendObj(obj);
 	},
 	wrapContent: function(pageId, parentId, tagName) {
@@ -719,7 +710,6 @@ var Command = {
 				tagName: tagName
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'wrapContentInElement()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -733,7 +723,6 @@ var Command = {
 			command: 'CREATE_COMPONENT',
 			id: id
 		};
-		_Logger.log(_LogType.WS[obj.command], 'createComponent()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -751,7 +740,6 @@ var Command = {
 				parentId: parentId
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'cloneComponent()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -769,7 +757,6 @@ var Command = {
 				newTemplateId: newTemplateId
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'replaceTemplate()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -787,7 +774,6 @@ var Command = {
 				source: source
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'createLocalWidget()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -806,7 +792,6 @@ var Command = {
 				deep: deep
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'cloneNode()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -828,7 +813,6 @@ var Command = {
 				syncMode: mode
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'setSyncMode()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -864,7 +848,6 @@ var Command = {
 		if (obj.data.isContent && !obj.data.content) {
 			obj.data.content = obj.data.name;
 		}
-		_Logger.log(_LogType.WS[obj.command], 'createAndAdd()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -884,7 +867,6 @@ var Command = {
 		if (obj.data.isContent && !obj.data.content) {
 			obj.data.content = obj.data.name;
 		}
-		_Logger.log(_LogType.WS[obj.command], 'create()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -898,7 +880,6 @@ var Command = {
 			command: 'CREATE_RELATIONSHIP',
 			relData: relData
 		};
-		_Logger.log(_LogType.WS[obj.command], 'createRelationship()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -914,7 +895,6 @@ var Command = {
 				name: 'New Page ' + Math.floor(Math.random() * (999999 - 1))
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'createSimplePage()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -941,7 +921,6 @@ var Command = {
 				processDeploymentInfo: processDeploymentInfo
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'importPage()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -972,8 +951,6 @@ var Command = {
 				patch: strp
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], strp, JSON.stringify(strp));
-		_Logger.log(_LogType.WS[obj.command], 'patch()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -993,7 +970,6 @@ var Command = {
 				name: 'New Page ' + Math.floor(Math.random() * (999999 - 1))
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'clonePage()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -1018,7 +994,6 @@ var Command = {
 				chunks: chunks
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'chunk()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -1039,7 +1014,6 @@ var Command = {
 				type: (isImage(file.type) ? 'Image' : (isVideo(file.type) && Structr.isModulePresent('media')) ? 'VideoFile' : 'File')
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'createFile()', obj);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -1055,7 +1029,6 @@ var Command = {
 				fileData: fileData
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'upload()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -1074,7 +1047,6 @@ var Command = {
 				targetId: targetId
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'link()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -1090,16 +1062,16 @@ var Command = {
 			command: 'LIST_ACTIVE_ELEMENTS',
 			id: pageId
 		};
-		_Logger.log(_LogType.WS[obj.command], 'list_active_elements()', obj);
 		return sendObj(obj, callback);
 	},
-	listLocalizations: function(pageId, locale, detailObjectId, callback) {
+	listLocalizations: function(pageId, locale, detailObjectId, queryString, callback) {
 		var obj = {
 			command: 'LIST_LOCALIZATIONS',
 			id: pageId,
 			data: {
 				locale: locale,
-				detailObjectId: detailObjectId
+				detailObjectId: detailObjectId,
+				queryString: queryString
 			}
 		};
 		return sendObj(obj, callback);
@@ -1120,7 +1092,6 @@ var Command = {
 			sort: sort,
 			order: order
 		};
-		_Logger.log(_LogType.WS[obj.command], 'listComponents()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -1139,7 +1110,6 @@ var Command = {
 			sort: sort,
 			order: order
 		};
-		_Logger.log(_LogType.WS[obj.command], 'listUnattachedNodes()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -1154,7 +1124,6 @@ var Command = {
 		var obj = {
 			command: 'DELETE_UNATTACHED_NODES'
 		};
-		_Logger.log(_LogType.WS[obj.command], 'deleteUnattachedNodes()', obj);
 		return sendObj(obj);
 	},
 	/**
@@ -1170,7 +1139,6 @@ var Command = {
 				view: view
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'listSchemaProperties()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -1189,7 +1157,6 @@ var Command = {
 		if (types && types.length) {
 			obj.data.types = types.join(',');
 		}
-		_Logger.log(_LogType.WS[obj.command], 'snapshots()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**
@@ -1210,7 +1177,6 @@ var Command = {
 				isAutoscriptEnv: isAutoscriptEnv
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'autocomplete()', obj, callback);
 		return sendObj(obj, callback);
 	},
 	/**

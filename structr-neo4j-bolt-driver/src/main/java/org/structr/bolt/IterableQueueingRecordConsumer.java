@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -28,36 +28,53 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.StatementResultCursor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.util.QueryTimer;
 
 /**
  *
  */
 public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterator<Record>, AutoCloseable, Consumer<Record> {
 
+	private static final Logger logger        = LoggerFactory.getLogger(IterableQueueingRecordConsumer.class);
 	private final BlockingQueue<Record> queue = new LinkedBlockingQueue<>();
 	private final AtomicInteger elementCount  = new AtomicInteger(0);
-	private final AtomicInteger queueSize     = new AtomicInteger(0);
 	private final AtomicBoolean aborted       = new AtomicBoolean(false);
 	private final AtomicBoolean finished      = new AtomicBoolean(false);
 	private final AtomicBoolean added         = new AtomicBoolean(false);
 	private final AtomicBoolean started       = new AtomicBoolean(false);
+	private QueryTimer queryTimer             = null;
 	private BoltDatabaseService db            = null;
 	private StatementResultCursor cursor      = null;
 	private AdvancedCypherQuery query         = null;
 	private Throwable throwable               = null;
+	private boolean isClosed                  = false;
 
 	public IterableQueueingRecordConsumer(final BoltDatabaseService db, final AdvancedCypherQuery query) {
 
-		this.query = query;
-		this.db    = db;
+		this.queryTimer = query.getQueryTimer();
+		this.query      = query;
+		this.db         = db;
 	}
 
 	public void start() {
 
+		final String statement = query.getStatement(true);
+
+		if (queryTimer != null) {
+			queryTimer.started(statement);
+		}
+
 		final SessionTransaction tx = db.getCurrentTransaction();
-		tx.collectRecords(query.getStatement(true), query.getParameters(), this);
+		tx.setIsPing(query.getQueryContext().isPing());
+		tx.collectRecords(statement, query.getParameters(), this);
 
 		started.set(true);
+
+		if (queryTimer != null) {
+			queryTimer.querySent();
+		}
 	}
 
 	@Override
@@ -67,17 +84,35 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 
 	@Override
 	public void close() {
-		aborted.set(true);
-		cursor.consumeAsync();
+
+		if (!isClosed) {
+
+			if (queryTimer != null) {
+				queryTimer.closed();
+			}
+
+			aborted.set(true);
+			cursor.consumeAsync();
+
+			if (queryTimer != null) {
+				queryTimer.consumed();
+			}
+		}
+
+		isClosed = true;
 	}
 
 	public void finish() {
+
+		if (queryTimer != null) {
+			queryTimer.finishReceived();
+		}
 
 		// This method will only be called when all the records from the current
 		// result cursor have been consumed. We now need to decide whether we want
 		// to fetch more.
 
-		// This method will be called from a different Thread, so there is no
+		// This method will be called from a different thread, so there is no
 		// transaction context..
 
 		if (elementCount.get() == query.pageSize() && !aborted.get()) {
@@ -91,10 +126,18 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 			// signal other thread that new results should be fetched
 			started.set(false);
 
+			if (queryTimer != null) {
+				queryTimer.nextPage();
+			}
+
 		} else {
 
 			finished.set(true);
 			added.set(true);
+
+			if (queryTimer != null) {
+				queryTimer.finished();
+			}
 		}
 	}
 
@@ -103,6 +146,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 
 		// make the consuming thread wait for results util elements have been
 		// added OR the producer has no more results (finished == true)
+		final long yieldStart = System.currentTimeMillis();
 
 		while (!added.get() || (!finished.get() && queue.isEmpty())) {
 
@@ -131,6 +175,23 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 
 			// wait for data (or exception)
 			try { Thread.yield(); } catch (Throwable t) {}
+
+			if (System.currentTimeMillis() > yieldStart + 60_000) {
+
+				logger.warn("#######################################################################################################");
+				logger.warn("IterableQueueingRecordConsumer waited for 1 minute, aborting");
+				logger.warn("statement:  {}", query.getStatement(true));
+				logger.warn("parameters: {}", query.getParameters());
+				logger.warn("throwable:  {}", throwable);
+				logger.warn("finished:   {}", finished.get());
+				logger.warn("added:      {}", added.get());
+				logger.warn("queue:      {}", queue);
+				logger.warn("#######################################################################################################");
+
+				query.setTimeoutViolated();
+
+				return false;
+			}
 		}
 
 		return !queue.isEmpty();
@@ -138,8 +199,6 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 
 	@Override
 	public Record next() {
-
-		queueSize.decrementAndGet();
 		return queue.poll();
 	}
 
@@ -153,7 +212,6 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 		queue.add(t);
 		added.set(true);
 
-		queueSize.incrementAndGet();
 		elementCount.incrementAndGet();
 	}
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -51,18 +51,20 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.io.QuietException;
-import org.neo4j.driver.internal.util.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
@@ -151,27 +153,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	}
 
 	@Override
-	public void init() {
-
-		/*
-		try (final Tx tx = StructrApp.getInstance().tx()) {
-
-			AbstractCommand.getOrCreateHiddenDocument();
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("Unable to create shadow page: {}", fex.getMessage());
-		}
-		*/
-	}
-
-	@Override
-	public void destroy() {
-	}
-
-	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
+		final long t0                   = System.currentTimeMillis();
 		final Authenticator auth        = getConfig().getAuthenticator();
 		List<Page> pages                = null;
 		boolean requestUriContainsUuids = false;
@@ -239,6 +223,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					dontCache = true;
 
 				}
+
+				RuntimeEventLog.http(path, user);
 
 				final RenderContext renderContext = RenderContext.getInstance(securityContext, request, response);
 
@@ -328,7 +314,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								}
 							}
 
-						} else if (uriParts.length == 2) {
+						} else if (uriParts.length ==  2) {
 
 							final String pagePart = StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP);
 
@@ -339,9 +325,14 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								final AbstractNode possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(pagePart));
 
 								// check visibleForSite here as well
-								if (!(possibleRootNode instanceof Page) || isVisibleForSite(request, (Page)possibleRootNode)) {
+								if (possibleRootNode instanceof DOMNode && (!(possibleRootNode instanceof Page) || isVisibleForSite(request, (Page)possibleRootNode))) {
 
 									rootElement = ((DOMNode) possibleRootNode);
+								}
+
+								if (rootElement == null) {
+
+									rootElement = findPartialByName(securityContext, PathHelper.getName(pagePart));
 								}
 
 								dataNode = findNodeByUuid(securityContext, PathHelper.getName(path));
@@ -496,7 +487,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						// async or not?
 						if (isAsync && !createsRawData) {
 
-							renderAsyncOutput(request, response, app, renderContext, rootElement);
+							renderAsyncOutput(request, response, app, renderContext, rootElement, t0);
 
 						} else {
 
@@ -513,6 +504,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 							} catch (IOException ioex) {
 								logger.warn("", ioex);
 							}
+
+							this.stats.recordStatsValue("html", rootElement.getName(), System.currentTimeMillis() - t0);
 						}
 					}
 				}
@@ -836,11 +829,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 	}
 
-	protected void renderAsyncOutput(HttpServletRequest request, HttpServletResponse response, App app, RenderContext renderContext, DOMNode rootElement) throws IOException {
-		final AsyncContext async = request.startAsync();
+	protected void renderAsyncOutput(HttpServletRequest request, HttpServletResponse response, App app, RenderContext renderContext, DOMNode rootElement, final long requestStartTime) throws IOException {
+
+		final AsyncContext async      = request.startAsync();
 		final ServletOutputStream out = async.getResponse().getOutputStream();
-		final AtomicBoolean finished = new AtomicBoolean(false);
-		final DOMNode rootNode = rootElement;
+		final AtomicBoolean finished  = new AtomicBoolean(false);
+		final DOMNode rootNode        = rootElement;
 
 		threadPool.submit(new Runnable() {
 
@@ -857,8 +851,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				} catch (Throwable t) {
 
-					t.printStackTrace();
 					logger.warn("Error while rendering page {}: {}", rootNode.getName(), t.getMessage());
+					logger.warn(ExceptionUtils.getStackTrace(t));
 
 					try {
 
@@ -866,9 +860,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						finished.set(true);
 
 					} catch (IOException ex) {
-						logger.warn("", ex);
+						logger.warn(ExceptionUtils.getStackTrace(ex));
 					}
 				}
+
+				// record async rendering time
+				HtmlServlet.super.stats.recordStatsValue("html", rootElement.getName(), System.currentTimeMillis() - requestStartTime);
 			}
 
 		});
@@ -935,6 +932,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	}
 
 	protected void writeOutputSteam(HttpServletResponse response, StringRenderBuffer buffer) throws IOException {
+
 		response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
 		response.getOutputStream().flush();
 		response.getOutputStream().close();
@@ -949,7 +947,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 *
 	 * @param response
 	 * @param securityContext
-	 * @param renderContext
 	 * @throws IOException
 	 * @throws FrameworkException
 	 */
@@ -1015,7 +1012,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 * Find node by uuid
 	 *
 	 * @param securityContext
-	 * @param request
 	 * @param uuid
 	 * @return node
 	 * @throws FrameworkException
@@ -1682,7 +1678,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	public static boolean isVisibleForSite(final HttpServletRequest request, final Page page) {
 
-		final List<Site> sites = Iterables.asList(page.getSites());
+		final List<Site> sites = Iterables.toList(page.getSites());
 		if (sites == null || sites.isEmpty()) {
 
 			return true;
@@ -1900,8 +1896,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				}
 
 			} catch (Throwable ex) {
-
-				ex.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(ex));
 			}
 		}
 

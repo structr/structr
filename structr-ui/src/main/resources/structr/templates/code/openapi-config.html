@@ -1,0 +1,74 @@
+<div id="openapi-options">
+	<p class="input">
+		<label>Tags</label>
+		<select id="tags-select" data-property="tags" multiple="multiple">
+			${ ((config.availableTags) ? config.availableTags.map((t) => { let selected = (config.element.tags && config.element.tags.includes(t)); return '<option' + (selected ? ' selected' : '') + '>' + t + '</option>'}).join() : '')}
+		</select>
+	</p>
+
+	<p class="input">
+		<label>Summary</label>
+		<input data-property="summary" value="${config.element.summary || ''}" type="text">
+	</p>
+
+	<p class="input">
+		<label>Description</label>
+		<input data-property="description" value="${config.element.description || ''}" type="text">
+	</p>
+
+	<div style="clear: both;"></div>
+
+	<div class="hidden">
+
+		<div class="input">
+			<label>Parameters</label>
+
+			<button id="add-parameter-button"><i class="${ _Icons.getFullSpriteClass(_Icons.add_icon)}"></i></button>
+
+			<div class="method-parameter-grid">
+				<div class="method-parameter-heading">
+					<div>Index</div>
+					<div>Name</div>
+					<div>Parameter Type</div>
+					<div>Description</div>
+					<div>Example Value</div>
+					<div></div>
+				</div>
+			</div>
+
+			<div class="method-parameter-grid template">
+				<div class="method-parameter">
+					<div>
+						<input data-parameter-property="index" type="number">
+					</div>
+					<div>
+						<input data-parameter-property="name">
+					</div>
+					<div>
+						<input data-parameter-property="parameterType">
+					</div>
+					<div>
+						<input data-parameter-property="description">
+					</div>
+					<div>
+						<input data-parameter-property="exampleValue">
+					</div>
+
+					<div class="method-parameter-property method-parameter-delete">
+						<button><i class="${ _Icons.getFullSpriteClass(_Icons.delete_icon)}"></i></button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div style="clear: both;"></div>
+
+		<div class="input">
+			<p><label>ReturnType</label></p>
+			<div class="editor-wrapper">
+				<div class="editor" data-property="returnType"></div>
+			</div>
+		</div>
+	</div>
+
+</div>

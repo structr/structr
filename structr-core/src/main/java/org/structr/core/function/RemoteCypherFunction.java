@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.neo4j.driver.v1.AccessMode;
 import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Config;
@@ -156,7 +157,7 @@ public class RemoteCypherFunction extends CoreFunction {
 				return handleObject(securityContext, key, value, 0);
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(fex));
 			}
 
 		} else {
@@ -171,7 +172,7 @@ public class RemoteCypherFunction extends CoreFunction {
 					return handleObject(securityContext, key, val, 0);
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					logger.error(ExceptionUtils.getStackTrace(fex));
 				}
 
 				return null;

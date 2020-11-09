@@ -36,7 +36,7 @@ var _VirtualTypes = {
 	unload: function() {},
 	onload: function() {
 
-		Structr.updateMainHelpLink('https://support.structr.com/article/233');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('virtual-types'));
 
 		Structr.fetchHtmlTemplate('virtual-types/main', {}, function (html) {
 
@@ -99,7 +99,7 @@ var _VirtualTypes = {
 			Structr.unblockMenu(100);
 
 			_VirtualTypes.moveResizer();
-			Structr.initVerticalSlider($('.column-resizer', main), _VirtualTypes.virtualTypesResizerLeftKey, 204, _VirtualTypes.moveResizer);
+			Structr.initVerticalSlider($('.column-resizer', main), _VirtualTypes.virtualTypesResizerLeftKey, 300, _VirtualTypes.moveResizer);
 
 			_VirtualTypes.resize();
 		});
@@ -112,8 +112,7 @@ var _VirtualTypes = {
 		left = left || LSWrapper.getItem(_VirtualTypes.virtualTypesResizerLeftKey) || 300;
 		$('.column-resizer', main).css({ left: left });
 
-		$('#virtual-types-list').css({width: left - 24 + 'px'});
-		$('#virtual-type-detail').css({width: $(window).width() - left - 47 + 'px'});
+		$('#virtual-types-list').css({width: left - 25 + 'px'});
 	},
 	activateInfoTextsInColumnHeaders: function() {
 		$('th[data-info-text]').each(function(i, el) {

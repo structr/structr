@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,7 +18,6 @@
  */
 package org.structr.common;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 
 //~--- classes ----------------------------------------------------------------
@@ -76,21 +75,6 @@ public class CaseHelper {
 		return plural
 		       ? plural(output)
 		       : output;
-	}
-
-	/**
-	 * Test method.
-	 */
-	public static void main(String[] args) {
-
-		String[] input = { "check_ins", "CheckIns", "blog_entry", "BlogEntry", "blog_entries", "BlogEntries", "blogentry", "blogentries" };
-
-		for (int i = 0; i < input.length; i++) {
-
-			System.out.println(StringUtils.rightPad(input[i], 20) + StringUtils.leftPad(toUpperCamelCase(input[i]), 20) + StringUtils.leftPad(toUnderscore(input[i], true), 20)
-					   + StringUtils.leftPad(toUnderscore(input[i], false), 20));
-
-		}
 	}
 
 	public static String plural(String type) {

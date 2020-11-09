@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,12 +18,11 @@
  */
 package org.structr.core.property;
 
-import java.util.LinkedHashSet;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Map;
+import java.util.TreeMap;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
@@ -40,11 +39,14 @@ import org.structr.core.entity.ManyStartpoint;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Target;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.EmptySearchAttribute;
+import org.structr.core.graph.NodeServiceCommand;
+import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
+import org.structr.schema.openapi.common.OpenAPIAnyOf;
+import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
+import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
 /**
  * A property that defines a relationship with the given parameters between a node and a collection of other nodes.
@@ -52,8 +54,6 @@ import org.structr.core.notion.ObjectNotion;
  *
  */
 public class StartNodes<S extends NodeInterface, T extends NodeInterface> extends Property<Iterable<S>> implements RelationProperty<S> {
-
-	private static final Logger logger = LoggerFactory.getLogger(StartNodes.class.getName());
 
 	private Relation<S, T, ManyStartpoint<S>, ? extends Target> relation = null;
 	private Notion notion                                                = null;
@@ -247,64 +247,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 
 	@Override
 	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Iterable<S> searchValue, boolean exactMatch, final Query query) {
-
-		final Predicate<GraphObject> predicate    = query != null ? query.toPredicate() : null;
-		final SourceSearchAttribute attr          = new SourceSearchAttribute(occur);
-
-		if (searchValue != null && searchValue.iterator().hasNext()) {
-
-			if (!Occurrence.FORBIDDEN.equals(occur)) {
-
-				final Set<GraphObject> intersectionResult = new LinkedHashSet<>();
-
-				for (NodeInterface node : searchValue) {
-
-					intersectionResult.addAll(getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
-				}
-
-				attr.setResult(intersectionResult);
-			}
-
-		} else {
-
-			// experimental filter attribute that removes entities with a non-empty value in the given field
-			return new EmptySearchAttribute(this, null, true);
-		}
-
-		return attr;
-	}
-
-	// ----- overridden methods from super class -----
-	@Override
-	protected <T extends NodeInterface> Set<T> getRelatedNodesReverse(final SecurityContext securityContext, final NodeInterface obj, final Class destinationType, final Predicate<GraphObject> predicate) {
-
-		Set<T> relatedNodes = new LinkedHashSet<>();
-
-		try {
-
-			final Object target = relation.getTarget().get(securityContext, obj, predicate);
-			if (target != null) {
-
-				if (target instanceof Iterable) {
-
-					Iterable<T> nodes = (Iterable<T>)target;
-					for (final T n : nodes) {
-
-						relatedNodes.add(n);
-					}
-
-				} else {
-
-					relatedNodes.add((T)target);
-				}
-			}
-
-		} catch (Throwable t) {
-
-			logger.warn("Unable to fetch related node: {}", t.getMessage());
-		}
-
-		return relatedNodes;
+		return new GraphSearchAttribute<>(this, searchValue, occur, exactMatch);
 	}
 
 	@Override
@@ -341,5 +284,54 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	@Override
 	public String getDirectionKey() {
 		return "in";
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+
+		final Map<String, Object> items = new TreeMap<>();
+		final Map<String, Object> map   = new TreeMap<>();
+
+		if (destType != null) {
+
+			map.put("type", "array");
+			map.put("items", items);
+
+			items.putAll(new OpenAPIStructrTypeSchemaOutput(destType, viewName, level + 1));
+		}
+
+		return map;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+
+		if (level > 4) {
+			return Collections.EMPTY_MAP;
+		}
+
+		final Map<String, Object> items = new TreeMap<>();
+		final Map<String, Object> map   = new TreeMap<>();
+
+		if (destType != null) {
+
+			map.put("type", "array");
+			map.put("items", items);
+
+			items.putAll(new OpenAPIAnyOf(
+				Map.of("type", "string", "example", NodeServiceCommand.getNextUuid(), "description", "The UUID of an existing object"),
+				new OpenAPIObjectSchema("An existing object, referenced by its UUID",
+					Map.of("id", Map.of("type", "string", "example", NodeServiceCommand.getNextUuid()))
+				)
+			));
+		}
+
+		return map;
 	}
 }

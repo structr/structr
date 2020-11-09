@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -22,11 +22,13 @@ import org.structr.common.error.FrameworkException;
 
 public interface MQTTInfo {
 
-	public String getProtocol();
-	public String getUrl();
-	public int getPort();
+	public String getMainBrokerURL();
+	public String[] getFallbackBrokerURLs();
 	public int getQos();
 	public String getUuid();
+	public String getUsername();
+	public String getPassword();
+	boolean getIsEnabled();
 
 	public String[] getTopics();
 

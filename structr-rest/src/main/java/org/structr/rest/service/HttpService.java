@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -22,6 +22,10 @@ import ch.qos.logback.access.jetty.RequestLogImpl;
 import ch.qos.logback.access.servlet.TeeFilter;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
@@ -30,6 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import javax.servlet.DispatcherType;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -41,6 +46,9 @@ import org.apache.chemistry.opencmis.server.impl.browser.CmisBrowserBindingServl
 import org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.eclipse.jetty.http.HttpMethod;
+import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -50,6 +58,7 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
@@ -82,13 +91,15 @@ import org.structr.rest.ResourceProvider;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.schema.SchemaService;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
+import org.structr.api.service.StartServiceInMaintenanceMode;
+import org.structr.api.service.StopServiceForMaintenanceMode;
+import org.structr.rest.common.Stats;
+import org.structr.rest.common.StatsCallback;
 
-/**
- *
- *
- */
 @ServiceDependency(SchemaService.class)
-public class HttpService implements RunnableService {
+@StopServiceForMaintenanceMode
+@StartServiceInMaintenanceMode
+public class HttpService implements RunnableService, StatsCallback {
 
 	private static final Logger logger = LoggerFactory.getLogger(HttpService.class.getName());
 
@@ -99,11 +110,14 @@ public class HttpService implements RunnableService {
 		Started, Stopped
 	}
 
+	private Map<String, Map<String, Stats>> stats = new LinkedHashMap<>();
 	private DefaultSessionCache sessionCache      = null;
 	private GzipHandler gzipHandler               = null;
 	private HttpConfiguration httpConfig          = null;
 	private HttpConfiguration httpsConfig         = null;
+	private SslContextFactory sslContextFactory   = null;
 	private Server server                         = null;
+	private Server maintenanceServer              = null;
 	private int maxIdleTime                       = 30000;
 	private int requestHeaderSize                 = 8192;
 	private boolean httpsActive                   = false;
@@ -111,11 +125,15 @@ public class HttpService implements RunnableService {
 	@Override
 	public void startService() throws Exception {
 
-		logger.info("Starting {} (host={}:{}, maxIdleTime={}, requestHeaderSize={})", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.HttpPort.getValue(), maxIdleTime, requestHeaderSize);
+		logger.info("Starting {} (host={}:{}, maxIdleTime={}, requestHeaderSize={})", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue(), maxIdleTime, requestHeaderSize);
 		logger.info("Base path {}", Settings.getBasePath());
-		logger.info("{} started at http://{}:{}", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.HttpPort.getValue());
+		logger.info("{} started at http://{}:{}", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
 
 		server.start();
+
+		if (maintenanceServer != null) {
+			maintenanceServer.start();
+		}
 
 		try {
 
@@ -124,7 +142,7 @@ public class HttpService implements RunnableService {
 			}
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
 		// The jsp directory is created by the container, but we don't need it
@@ -144,6 +162,16 @@ public class HttpService implements RunnableService {
 
 			} catch (Exception ex) {
 				logger.warn("Exception while stopping Jetty: {}", ex.getMessage());
+			}
+		}
+
+		if (maintenanceServer != null) {
+
+			try {
+				maintenanceServer.stop();
+
+			} catch (Exception ex) {
+				logger.warn("Exception while stopping temporary maintenance server: {}", ex.getMessage());
 			}
 		}
 	}
@@ -197,7 +225,10 @@ public class HttpService implements RunnableService {
 		final boolean logRequests           = Settings.RequestLogging.getValue();
 		final String logPrefix              = Settings.LogPrefix.getValue();
 		final String host                   = Settings.ApplicationHost.getValue();
-		final int httpsPort                 = Settings.HttpsPort.getValue();
+		final boolean mainteanceModeActive  = Settings.MaintenanceModeEnabled.getValue();
+		final int httpPort                  = Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue();
+		final int httpsPort                 = Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getValue();
+		boolean forceHttps                  = Settings.getSettingOrMaintenanceSetting(Settings.ForceHttps).getValue();
 		boolean enableRewriteFilter         = true;
 
 		// get current base path
@@ -214,7 +245,7 @@ public class HttpService implements RunnableService {
 			baseDir.mkdirs();
 		}
 
-		server = new Server(Settings.HttpPort.getValue());
+		server = new Server(httpPort);
 		final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
 		contexts.addHandler(new DefaultHandler());
@@ -423,18 +454,18 @@ public class HttpService implements RunnableService {
 		httpConfig.setOutputBufferSize(1024); // intentionally low buffer size to allow even small bits of content to be sent to the client in case of slow rendering
 		httpConfig.setRequestHeaderSize(requestHeaderSize);
 
-		if (StringUtils.isNotBlank(host) && Settings.HttpPort.getValue() > -1) {
+		if (StringUtils.isNotBlank(host) && httpPort > -1) {
 
 			final ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
 
 			httpConnector.setHost(host);
-			httpConnector.setPort(Settings.HttpPort.getValue());
+			httpConnector.setPort(httpPort);
 
 			connectors.add(httpConnector);
 
 		} else {
 
-			logger.warn("Unable to configure HTTP server port, please make sure that {} and {} are set correctly in structr.conf.", Settings.ApplicationHost.getKey(), Settings.HttpPort.getKey());
+			logger.warn("Unable to configure HTTP server port, please make sure that {} and {} are set correctly in structr.conf.", Settings.ApplicationHost.getKey(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getKey());
 		}
 
 		httpsActive = false;
@@ -448,7 +479,7 @@ public class HttpService implements RunnableService {
 				httpsConfig = new HttpConfiguration(httpConfig);
 				httpsConfig.addCustomizer(new SecureRequestCustomizer());
 
-				final SslContextFactory sslContextFactory = new SslContextFactory();
+				sslContextFactory = new SslContextFactory();
 				sslContextFactory.setKeyStorePath(keyStorePath);
 				sslContextFactory.setKeyStorePassword(keyStorePassword);
 
@@ -475,7 +506,7 @@ public class HttpService implements RunnableService {
 					new SslConnectionFactory(sslContextFactory, "http/1.1"),
 					new HttpConnectionFactory(httpsConfig));
 
-				if (Settings.ForceHttps.getValue()) {
+				if (forceHttps) {
 					sessionCache.getSessionHandler().setSecureRequestOnly(true);
 				}
 
@@ -496,7 +527,7 @@ public class HttpService implements RunnableService {
 				httpsActive = false;
 
 				logger.warn("Unable to configure SSL, please make sure that {}, {} and {} are set correctly in structr.conf.", new Object[]{
-					Settings.HttpsPort.getKey(),
+					Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getKey(),
 					Settings.KeystorePath.getKey(),
 					Settings.KeystorePassword.getKey()
 				});
@@ -516,7 +547,166 @@ public class HttpService implements RunnableService {
 		server.setStopTimeout(1000);
 		server.setStopAtShutdown(true);
 
+		setupMaintenanceServer(mainteanceModeActive);
+
 		return new ServiceResult(true);
+	}
+
+	private void setupMaintenanceServer(final boolean mainteanceModeActive) {
+
+		if (mainteanceModeActive) {
+
+			final String keyStorePath           = Settings.KeystorePath.getValue();
+			final String keyStorePassword       = Settings.KeystorePassword.getValue();
+			final String contextPath            = System.getProperty("contextPath", "/");
+			final boolean enableHttps           = Settings.HttpsEnabled.getValue();
+			final String host                   = Settings.ApplicationHost.getValue();
+			final int httpPort                  = Settings.HttpPort.getValue();
+			final int httpsPort                 = Settings.HttpsPort.getValue();
+
+			maintenanceServer = new Server(Settings.HttpPort.getValue());
+
+			final String resourceBase = Settings.MaintenanceResourcePath.getValue();
+
+			boolean useDefaultHandler = true;
+
+			if (!StringUtils.isEmpty(resourceBase)) {
+
+				final Path maintenanceResourceBase = Paths.get(resourceBase);
+				if (Files.exists(maintenanceResourceBase) && Files.isDirectory(maintenanceResourceBase)) {
+					useDefaultHandler = false;
+				} else {
+					logger.warn("Falling back to default maintenance handler. Given path does not exist or is not a directory. {}: {}", Settings.MaintenanceResourcePath.getKey(), resourceBase);
+				}
+			}
+
+			if (useDefaultHandler) {
+
+				maintenanceServer.setHandler(new AbstractHandler() {
+					@Override
+					public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+
+						if (response.isCommitted() || baseRequest.isHandled())
+							return;
+
+						baseRequest.setHandled(true);
+
+						final String method = request.getMethod();
+
+						if (!HttpMethod.GET.is(method)) {
+							response.sendError(HttpServletResponse.SC_NOT_FOUND);
+							return;
+						}
+
+						response.setStatus(HttpServletResponse.SC_OK);
+						response.setContentType(MimeTypes.Type.TEXT_HTML_UTF_8.toString());
+
+						final StringBuilder maintenanceHTML = new StringBuilder();
+						maintenanceHTML.append("<!DOCTYPE html>\n");
+						maintenanceHTML.append("<html lang=\"en\">\n<head>\n");
+						maintenanceHTML.append("<title>Maintenance Mode Active</title>\n");
+						maintenanceHTML.append("<meta charset=\"utf-8\">\n");
+						maintenanceHTML.append("</head>\n<body>\n");
+						maintenanceHTML.append("<h2>Maintenance Mode Active</h2>\n");
+						maintenanceHTML.append("<p>");
+						maintenanceHTML.append(Settings.MaintenanceMessage.getValue());
+						maintenanceHTML.append("</p>\n");
+						maintenanceHTML.append("</body>\n</html>\n");
+
+						response.setContentLength(maintenanceHTML.length());
+
+						try (OutputStream out = response.getOutputStream()) {
+							out.write(maintenanceHTML.toString().getBytes());
+						}
+					}
+				});
+
+			} else {
+
+				final ResourceHandler resourceHandler = new RedirectingResourceHandler();
+				resourceHandler.setDirectoriesListed(false);
+
+				resourceHandler.setResourceBase(resourceBase);
+				resourceHandler.setCacheControl("max-age=0");
+
+				final ContextHandler staticResourceHandler = new ContextHandler();
+				staticResourceHandler.setContextPath(contextPath);
+				staticResourceHandler.setHandler(resourceHandler);
+
+				maintenanceServer.setHandler(staticResourceHandler);
+			}
+
+			final List<Connector> connectors = new LinkedList<>();
+
+			httpConfig = new HttpConfiguration();
+			httpConfig.setSecureScheme("https");
+			httpConfig.setSecurePort(httpsPort);
+
+			if (StringUtils.isNotBlank(host) && httpPort > -1) {
+
+				final ServerConnector httpConnector = new ServerConnector(maintenanceServer, new HttpConnectionFactory(httpConfig));
+
+				httpConnector.setHost(host);
+				httpConnector.setPort(httpPort);
+
+				connectors.add(httpConnector);
+			}
+
+			if (enableHttps) {
+
+				if (httpsPort > -1 && keyStorePath != null && !keyStorePath.isEmpty() && keyStorePassword != null) {
+
+					final ServerConnector httpsConnector = new ServerConnector(maintenanceServer,
+						new SslConnectionFactory(sslContextFactory, "http/1.1"),
+						new HttpConnectionFactory(httpsConfig));
+
+					httpsConnector.setPort(httpsPort);
+					httpsConnector.setIdleTimeout(500000);
+
+					httpsConnector.setHost(host);
+					httpsConnector.setPort(httpsPort);
+
+					connectors.add(httpsConnector);
+				}
+			}
+
+			if (!connectors.isEmpty()) {
+
+				maintenanceServer.setConnectors(connectors.toArray(new Connector[0]));
+			}
+
+			maintenanceServer.setStopTimeout(1000);
+			maintenanceServer.setStopAtShutdown(true);
+		}
+	}
+
+	public void reloadSSLCertificate() {
+
+		if (sslContextFactory != null) {
+
+			try {
+
+				final String keyStorePath           = Settings.KeystorePath.getValue();
+				final String keyStorePassword       = Settings.KeystorePassword.getValue();
+
+				// in case path/password changed
+				sslContextFactory.setKeyStorePath(keyStorePath);
+				sslContextFactory.setKeyStorePassword(keyStorePassword);
+
+				sslContextFactory.reload(new Consumer<SslContextFactory>() {
+					@Override
+					public void accept(SslContextFactory t) {
+					}
+				});
+
+			} catch (Exception e) {
+
+				logger.error("Unable to reload SSL certificate.", e);
+			}
+		} else {
+
+			logger.warn("Server started without SSL. Need to restart service.");
+		}
 	}
 
 	@Override
@@ -563,6 +753,35 @@ public class HttpService implements RunnableService {
 	public boolean isHttpsActive() {
 		return httpsActive;
 	}
+
+	public Map<String, Stats> getRequestStats(final String key) {
+
+		Map<String, Stats> map = stats.get(key);
+		if (map == null) {
+
+			map = new LinkedHashMap<>();
+			stats.put(key, map);
+		}
+
+		return map;
+	}
+
+	// ----- interface StatsCallback -----
+	@Override
+	public void recordStatsValue(final String key, final String source, final long value) {
+
+		final Map<String, Stats> map = getRequestStats(key);
+		Stats stats                  = map.get(source);
+
+		if (stats == null) {
+
+			stats = new Stats();
+			map.put(source, stats);
+		}
+
+		stats.value(value);
+	}
+
 
 	// ----- interface Feature -----
 	@Override
@@ -676,6 +895,9 @@ public class HttpService implements RunnableService {
 
 											servlets.put(servletPath + "/*", new ServletHolder(servlet));
 										}
+
+										// callback for statistics
+										httpServiceServlet.registerStatsCallback(this);
 									}
 								}
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -2416,7 +2416,7 @@ public class PropertyTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// delete all nodes of given type
-			app.delete(projectType);
+			app.deleteAllNodesOfType(projectType);
 
 			tx.success();
 

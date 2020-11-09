@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -20,6 +20,8 @@ package org.structr.messaging.implementation.mqtt.entity;
 
 import java.net.URI;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
@@ -52,20 +54,22 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 
 			type.setExtends(URI.create("#/definitions/MessageClient"));
 
-			type.addStringProperty("protocol",     PropertyView.Public, PropertyView.Ui).setDefaultValue("tcp://");
-			type.addStringProperty("url",          PropertyView.Public, PropertyView.Ui);
-			type.addIntegerProperty("port",        PropertyView.Public, PropertyView.Ui);
-			type.addIntegerProperty("qos",         PropertyView.Public, PropertyView.Ui).setDefaultValue("0");
-			type.addBooleanProperty("isEnabled",   PropertyView.Public, PropertyView.Ui);
-			type.addBooleanProperty("isConnected", PropertyView.Public, PropertyView.Ui);
+			type.addStringProperty("mainBrokerURL",             PropertyView.Public, PropertyView.Ui).setRequired(true);
+			type.addStringArrayProperty("fallbackBrokerURLs",   PropertyView.Public, PropertyView.Ui);
+			type.addIntegerProperty("qos",                      PropertyView.Public, PropertyView.Ui).setDefaultValue("0");
+			type.addBooleanProperty("isEnabled",                PropertyView.Public, PropertyView.Ui);
+			type.addBooleanProperty("isConnected",              PropertyView.Public, PropertyView.Ui);
+			type.addStringProperty("username",                  PropertyView.Public, PropertyView.Ui);
+			type.addStringProperty("password",                  PropertyView.Public, PropertyView.Ui);
 
-			type.addPropertyGetter("isConnected", Boolean.TYPE);
-			type.addPropertyGetter("isEnabled",   Boolean.TYPE);
-			type.addPropertyGetter("protocol",    String.class);
-			type.addPropertyGetter("url",         String.class);
-			type.addPropertyGetter("port",        Integer.TYPE);
-			type.addPropertyGetter("qos",         Integer.TYPE);
-			type.addPropertyGetter("subscribers", Iterable.class);
+			type.addPropertyGetter("isConnected",         Boolean.TYPE);
+			type.addPropertyGetter("isEnabled",           Boolean.TYPE);
+			type.addPropertyGetter("qos",                 Integer.TYPE);
+			type.addPropertyGetter("subscribers",         Iterable.class);
+			type.addPropertyGetter("username",            String.class);
+			type.addPropertyGetter("password",            String.class);
+			type.addPropertyGetter("mainBrokerURL",       String.class);
+			type.addPropertyGetter("fallbackBrokerURLs",  String[].class);
 
 			type.addPropertySetter("isConnected", Boolean.TYPE);
 
@@ -77,7 +81,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 			type.overrideMethod("connectionStatusCallback", false, MQTTClient.class.getName() + ".connectionStatusCallback(this, arg0);");
 			type.overrideMethod("getTopics",                false, "return " + MQTTClient.class.getName() + ".getTopics(this);");
 
-			type.overrideMethod("sendMessage", true, "return " + MQTTClient.class.getName() + ".sendMessage(this, topic, message, this.getSecurityContext());");
+			type.overrideMethod("sendMessage", false, "return " + MQTTClient.class.getName() + ".sendMessage(this, topic, message, this.getSecurityContext());");
 			type.overrideMethod("subscribeTopic", false, "return " + MQTTClient.class.getName() + ".subscribeTopic(this, topic);");
 			type.overrideMethod("unsubscribeTopic", false, "return " + MQTTClient.class.getName() + ".unsubscribeTopic(this, topic);");
 
@@ -86,8 +90,9 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 	}
 
 	boolean getIsConnected();
-	boolean getIsEnabled();
 	int getQos();
+	String getUsername();
+	String getPassword();
 
 	void setIsConnected(boolean connected) throws FrameworkException;
 
@@ -95,19 +100,26 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 
 		if (thisClient.getIsEnabled()) {
 
-			MQTTContext.connect(thisClient);
+			try {
+
+				MQTTContext.connect(thisClient);
+			} catch (FrameworkException ex) {
+
+				thisClient.setProperty(StructrApp.key(MQTTClient.class, "isEnabled"), false);
+				thisClient.setProperty(StructrApp.key(MQTTClient.class, "isConnected"), false);
+			}
 		}
 
 	}
 
 	static void onModification(MQTTClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		if (modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"protocol")) || modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"url")) || modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"port"))) {
+		if (modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"mainBrokerURL")) || modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"fallbackBrokerURLs"))) {
 
 			MQTTContext.disconnect(thisClient);
 		}
 
-		if(modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"isEnabled")) || modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"protocol")) || modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"url")) || modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"port"))){
+		if(modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"isEnabled")) || modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"mainBrokerURL")) || modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"fallbackBrokerURLs"))){
 
 			MQTTClientConnection connection = MQTTContext.getClientForId(thisClient.getUuid());
 			boolean enabled                 = thisClient.getIsEnabled();
@@ -148,6 +160,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 		final String uuid = properties.get(id);
 		if (uuid != null) {
 
+			MQTTContext.disconnect(uuid);
 			final MQTTClientConnection connection = MQTTContext.getClientForId(uuid);
 			if (connection != null) {
 
@@ -167,6 +180,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 			tx.success();
 		} catch (FrameworkException ex) {
 
+			final Logger logger = LoggerFactory.getLogger(MQTTClient.class);
 			logger.warn("Error in connection status callback for MQTTClient.");
 		}
 
@@ -189,6 +203,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 
 		} catch (FrameworkException ex ) {
 
+			final Logger logger = LoggerFactory.getLogger(MQTTClient.class);
 			logger.error("Couldn't retrieve client topics for MQTT subscription.");
 			return null;
 		}

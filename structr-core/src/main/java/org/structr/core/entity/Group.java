@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -45,6 +45,11 @@ public interface Group extends Principal {
 		group.setImplements(URI.create("https://structr.org/v1.1/definitions/Group"));
 		group.setExtends(URI.create("#/definitions/Principal"));
 		group.setCategory("core");
+
+		group.addStringProperty("name")
+			.setIndexed(true)
+			.setRequired(true)
+			.setUnique(true);
 
 		group.addBooleanProperty("isGroup", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 		group.addPropertyGetter("members", Iterable.class);

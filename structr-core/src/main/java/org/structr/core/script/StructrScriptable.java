@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -23,7 +23,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.AccessMode;
 import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -44,6 +45,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
 import org.structr.core.function.GrantFunction;
 import org.structr.core.parser.CacheExpression;
@@ -162,14 +164,24 @@ public class StructrScriptable extends ScriptableObject {
 
 						try {
 
-							final Function func = Functions.get(name);
+							final String fnName = ("includeChild".equals(name)) ? "include_child" : name;
+
+							final Function func = Functions.get(fnName);
 
 							if (func != null) {
 
-								actionContext.print(func.apply(actionContext, entity, parameters ));
-							}
+								final Object str = func.apply(actionContext, entity, parameters);
 
-							return null;
+								if (actionContext.isRenderContext()) {
+
+									actionContext.print(str);
+									return null;
+
+								} else {
+
+									return str;
+								}
+							}
 
 						} catch (FrameworkException ex) {
 							exception = ex;
@@ -241,13 +253,6 @@ public class StructrScriptable extends ScriptableObject {
 			}, null, 0, 0);
 		}
 
-		/*
-		if ("slice".equals(name)) {
-
-			return new IdFunctionObject(new SliceFunctionCall(), null, 0, 0);
-		}
-		*/
-
 		if ("doPrivileged".equals(name) || "do_privileged".equals(name)) {
 
 			return new IdFunctionObject(new IdFunctionCall() {
@@ -296,6 +301,76 @@ public class StructrScriptable extends ScriptableObject {
 						StructrScriptable.this.actionContext.setSecurityContext(securityContext);
 					}
 
+				}
+
+			}, null, 0, 0);
+		}
+
+		if ("doAs".equals(name) || "do_as".equals(name)) {
+
+			return new IdFunctionObject(new IdFunctionCall() {
+
+				@Override
+				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
+
+					// backup security context
+					final SecurityContext currentSecurityContext = StructrScriptable.this.actionContext.getSecurityContext();
+
+					if (parameters != null && parameters.length == 2) {
+
+						final Object userParam = parameters[0];
+
+						if (userParam instanceof GraphObjectWrapper) {
+
+							final Object unwrappedFirstParameter = ((GraphObjectWrapper)userParam).unwrap();
+
+							if (unwrappedFirstParameter instanceof Principal) {
+
+								// copy context store from outer context
+								final SecurityContext userContext = SecurityContext.getInstance((Principal)unwrappedFirstParameter, currentSecurityContext.getRequest(), AccessMode.Frontend);
+								userContext.setContextStore(currentSecurityContext.getContextStore());
+
+								// replace security context with super user context
+								actionContext.setSecurityContext(userContext);
+
+								final Object scriptParam = parameters[1];
+								if (scriptParam instanceof Script) {
+
+									try {
+
+										final Script script = (Script)scriptParam;
+										return script.exec(context, scope);
+
+									} finally {
+
+										// overwrite context store with possibly changed context store
+										currentSecurityContext.setContextStore(userContext.getContextStore());
+
+										// restore saved security context
+										StructrScriptable.this.actionContext.setSecurityContext(currentSecurityContext);
+									}
+
+								} else {
+
+									logger.warn("do_as: Second parameter must be a script!");
+								}
+
+							} else {
+
+								logger.warn("do_as: First parameter must be a principal!");
+							}
+
+						} else {
+
+							logger.warn("do_as: First parameter must be a principal!");
+						}
+
+					} else {
+
+						//...
+					}
+
+					return null;
 				}
 
 			}, null, 0, 0);
@@ -459,22 +534,27 @@ public class StructrScriptable extends ScriptableObject {
 				final Double value = ScriptRuntime.toNumber(source);
 				return new Date(value.longValue());
 
-			} else if (source instanceof Map && source instanceof NativeObject) {
+			} else if (source instanceof NativeObject) {
 
-				// Map can contain ConsString and other things that need unwrapping
-				final Map<String, Object> tmp = new HashMap<>();
+				// NativeObject can contain ConsString and other things that need unwrapping
+				for (Map.Entry entry : ((NativeObject)source).entrySet()) {
 
-				((Map<Object, Object>)source).forEach((k, v) -> {
-					tmp.put(k.toString(), unwrap(v));
-				});
+					final Object value     = entry.getValue();
+					final Object overwrite = (value instanceof NativeObject) ? unwrap(value) : (value instanceof ConsString) ? value.toString() : value;
 
-				return tmp;
+					if (entry.getKey() instanceof Integer) {
+						NativeObject.putProperty((NativeObject)source, (Integer)entry.getKey(), overwrite);
+					} else {
+						NativeObject.putProperty((NativeObject)source, entry.getKey().toString(), overwrite);
+					}
+				}
+
+				return source;
 
 			} else {
 
 				return ScriptUtils.unwrap(source);
 			}
-
 		}
 
 		return source;
@@ -502,6 +582,36 @@ public class StructrScriptable extends ScriptableObject {
 		}
 
 		return Functions.get(word);
+	}
+
+	public static String formatForLogging(final Object value) {
+
+		if (value instanceof NativeObject) {
+
+			final StringBuffer buf = new StringBuffer("{");
+
+			// NativeObject can contain ConsString and other things that need unwrapping
+			for (final Iterator<Map.Entry<Object, Object>> it = ((NativeObject)value).entrySet().iterator(); it.hasNext();) {
+
+				final Map.Entry entry = it.next();
+
+				buf.append(Scripting.formatForLogging(entry.getKey()));
+				buf.append(": ");
+				buf.append(Scripting.formatForLogging(entry.getValue()));
+
+				if (it.hasNext()) {
+					buf.append(", ");
+				}
+			}
+
+			buf.append("}");
+
+			return buf.toString();
+
+		} else {
+
+			return value.toString();
+		}
 	}
 
 	// ----- nested classes -----

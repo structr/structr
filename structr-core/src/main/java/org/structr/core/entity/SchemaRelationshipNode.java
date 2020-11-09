@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -412,7 +412,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 				if (!newStatementOnly) {
 
-					line.append("\tpublic static final Property<java.lang.Iterable<");
+					line.append("public static final Property<java.lang.Iterable<");
 					line.append("org.structr.dynamic.".concat(_sourceType));
 					line.append(">> ");
 					line.append(SchemaHelper.cleanPropertyName(propertyName));
@@ -946,6 +946,11 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	@Override
 	public boolean reloadSchemaOnDelete() {
 		return true;
+	}
+
+	@Override
+	public Iterable<SchemaGrant> getSchemaGrants() {
+		return Collections.emptyList();
 	}
 
 	// ----- private methods -----

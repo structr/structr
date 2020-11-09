@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -48,7 +48,16 @@ public class NotPredicate extends AbstractPredicate {
 				} else {
 
 					query.not();
-					query.and(key, value, p.isExact());
+
+					if (p.isEmptyPredicate()) {
+
+						query.blank(key);
+
+					} else {
+
+						query.and(key, value, p.isExact());
+					}
+
 					query.parent();
 				}
 			}

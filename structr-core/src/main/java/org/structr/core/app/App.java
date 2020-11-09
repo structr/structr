@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -50,8 +50,8 @@ public interface App extends Closeable {
 	<T extends NodeInterface> T create(final Class<T> type, final String name) throws FrameworkException;
 	<T extends NodeInterface> T create(final Class<T> type, final PropertyMap properties) throws FrameworkException;
 	<T extends NodeInterface> T create(final Class<T> type, final NodeAttribute<?>... attributes) throws FrameworkException;
-	<T extends NodeInterface> void delete(final Class<T> type) throws FrameworkException;
 
+	<T extends NodeInterface> void deleteAllNodesOfType(final Class<T> type) throws FrameworkException;
 	void delete(final NodeInterface node) throws FrameworkException;
 
 	<A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException;

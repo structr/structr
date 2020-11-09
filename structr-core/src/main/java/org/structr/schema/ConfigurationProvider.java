@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -73,6 +73,7 @@ public interface ConfigurationProvider {
 	public Set<String> getPropertyViews();
 	public Set<String> getPropertyViewsForType(final Class type);
 	public void registerDynamicViews(final Set<String> dynamicViews);
+	public boolean hasView(final Class type, final String propertyView);
 
 	public void registerPropertySet(final Class type, final String propertyView, final PropertyKey... propertyKey);
 	public void registerPropertySet(final Class type, final String propertyView, final String propertyName);

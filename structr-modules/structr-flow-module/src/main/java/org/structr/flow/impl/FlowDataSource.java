@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -68,7 +68,7 @@ public class FlowDataSource extends FlowBaseNode implements DataSource, Deployab
 					return result;
 				} catch (FrameworkException fex) {
 
-					throw new FlowException(fex);
+					throw new FlowException(fex, this);
 				}
 			}
 

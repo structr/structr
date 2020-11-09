@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -36,6 +36,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,7 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
 import org.structr.core.IJsonInput;
 import org.structr.core.JsonInput;
@@ -162,6 +164,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 				tx.success();
 			}
 
+			RuntimeEventLog.rest("Delete", resource.getResourceSignature(), securityContext.getUser(false));
+
 			// isolate doDelete
 			boolean retry = true;
 			while (retry) {
@@ -207,7 +211,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} catch (AssertException aex) {
 
 			logger.warn("Assertion error in DELETE", aex.getMessage());
-			aex.printStackTrace();
+			logger.warn(ExceptionUtils.getStackTrace(aex));
 
 			int code = aex.getStatusCode();
 
@@ -306,6 +310,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 				tx.success();
 			}
 
+			RuntimeEventLog.rest("Options", resource.getResourceSignature(), securityContext.getUser(false));
+
 			// isolate doOptions
 			boolean retry = true;
 			while (retry) {
@@ -353,7 +359,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} catch (AssertException aex) {
 
 			logger.warn("Assertion error in OPTIONS", aex.getMessage());
-			aex.printStackTrace();
+			logger.warn(ExceptionUtils.getStackTrace(aex));
 
 			int code = aex.getStatusCode();
 
@@ -426,6 +432,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
+
+				RuntimeEventLog.rest("Post", resource.getResourceSignature(), securityContext.getUser(false));
 
 				// isolate doPost
 				boolean retry = true;
@@ -548,7 +556,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} catch (UnsupportedOperationException uoe) {
 
 			logger.warn("Unsupported operation in POST", uoe.getMessage());
-			uoe.printStackTrace();
+			logger.warn(ExceptionUtils.getStackTrace(uoe));
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -558,7 +566,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} catch (AssertException aex) {
 
 			logger.warn("Assertion error in POST", aex.getMessage());
-			aex.printStackTrace();
+			logger.warn(ExceptionUtils.getStackTrace(aex));
 
 			int code = aex.getStatusCode();
 
@@ -632,6 +640,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 					tx.success();
 				}
 
+				RuntimeEventLog.rest("Put", resource.getResourceSignature(), securityContext.getUser(false));
+
 				// isolate doPut
 				boolean retry = true;
 				while (retry) {
@@ -692,7 +702,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} catch (AssertException aex) {
 
 			logger.warn("Assertion error in PUT", aex.getMessage());
-			aex.printStackTrace();
+			logger.warn(ExceptionUtils.getStackTrace(aex));
 
 			int code = aex.getStatusCode();
 
@@ -780,6 +790,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
+
+				RuntimeEventLog.rest("Patch", resource.getResourceSignature(), securityContext.getUser(false));
 
 				if (resource.isCollectionResource()) {
 
@@ -873,7 +885,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} catch (UnsupportedOperationException uoe) {
 
 			logger.warn("Unsupported operation in PATCH", uoe.getMessage());
-			uoe.printStackTrace();
+			logger.warn(ExceptionUtils.getStackTrace(uoe));
 
 			int code = HttpServletResponse.SC_BAD_REQUEST;
 
@@ -883,7 +895,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} catch (AssertException aex) {
 
 			logger.warn("Assertion error in PATCH", aex.getMessage());
-			aex.printStackTrace();
+			logger.warn(ExceptionUtils.getStackTrace(aex));
 
 			int code = aex.getStatusCode();
 
@@ -961,6 +973,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 	protected void doGetOrHead(final HttpServletRequest request, final HttpServletResponse response, final boolean returnContent) throws ServletException, IOException {
 
+		final long t0 = System.currentTimeMillis();
+
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
 		Resource resource               = null;
@@ -984,6 +998,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 			// isolate resource authentication
 			resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 			authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+
+			RuntimeEventLog.rest(returnContent ? "Get" : "Head", resource.getResourceSignature(), securityContext.getUser(false));
 
 			// add sorting && pagination
 			final String pageSizeParameter          = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
@@ -1028,7 +1044,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} catch (AssertException aex) {
 
 			logger.warn("Assertion error in GET", aex.getMessage());
-			aex.printStackTrace();
+			logger.warn(ExceptionUtils.getStackTrace(aex));
 
 			int code = aex.getStatusCode();
 
@@ -1063,6 +1079,10 @@ public class JsonRestServlet extends AbstractDataServlet {
 				logger.warn("Unable to flush and close response: {}", t.getMessage());
 			}
 
+		}
+
+		if (resource != null) {
+			this.stats.recordStatsValue("json", resource.getResourceSignature(), System.currentTimeMillis() - t0);
 		}
 	}
 }

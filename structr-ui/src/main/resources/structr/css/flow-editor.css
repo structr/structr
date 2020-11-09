@@ -216,6 +216,12 @@
 	background-color: #664200; }
 .node-editor .node .socket.input.condition_baseNode:hover {
 	background-color: orange; }
+.node-editor .node .socket.input.switch.used {
+	background-color: orange; }
+.node-editor .node .socket.input.switch:not(.used) {
+	background-color: #664200; }
+.node-editor .node .socket.input.switch:hover {
+	background-color: orange; }
 .node-editor .node .socket.output.used {
 	background-color: white; }
 .node-editor .node .socket.output:not(.used) {
@@ -282,6 +288,12 @@
 	background-color: #660000; }
 .node-editor .node .socket.output.exceptionHandler:hover {
 	background-color: red; }
+.node-editor .node .socket.output.cases.used {
+	background-color: orange; }
+.node-editor .node .socket.output.cases:not(.used) {
+	background-color: #664200; }
+.node-editor .node .socket.output.cases:hover {
+	background-color: orange; }
 .node-editor .node .input-title, .node-editor .node .output-title {
 	vertical-align: middle;
 	display: inline-block;
@@ -392,6 +404,36 @@
 	position: absolute;
 	overflow: visible;
 	pointer-events: none; }
+
+
+#flows-canvas.focus .connections .connection {
+	stroke-width: 0.5px; }
+#flows-canvas.focus-action .connections .connection.output-loopbody.input-prev,
+#flows-canvas.focus-action .connections .connection.output-forkbody.input-prev,
+#flows-canvas.focus-action .connections .connection.output-next.input-prev,
+#flows-canvas.focus-action .connections .connection.output-falseelement.input-prev,
+#flows-canvas.focus-action .connections .connection.output-trueelement.input-prev {
+	stroke-width: 4px; }
+
+#flows-canvas.focus-data .connections .connection.output-datatarget.input-datasource,
+#flows-canvas.focus-data .connections .connection.output-datatarget.input-datasources,
+#flows-canvas.focus-data .connections .connection.output-objectdatatarget.input-keyvaluesources,
+#flows-canvas.focus-data .connections .connection.output-call.input-parameters,
+#flows-canvas.focus-data .connections .connection.output-datatarget.input-startvalue,
+#flows-canvas.focus-data .connections .connection.output-datatarget.input-scriptsource,
+#flows-canvas.focus-data .connections .connection.output-datatarget.input-nodesource,
+#flows-canvas.focus-data .connections .connection.output-datatarget.input-propertynamesource {
+	stroke-width: 4px; }
+
+#flows-canvas.focus-exception .connections .connection.output-exceptionhandler.input-handlednodes {
+	stroke-width: 4px; }
+
+#flows-canvas.focus-logic .connections .connection.output-cases.input-switch,
+#flows-canvas.focus-logic .connections .connection.output-result.input-condition,
+#flows-canvas.focus-logic .connections .connection.output-result.input-conditions,
+#flows-canvas.focus-logic .connections .connection.output-result.input-condition_basenode {
+	stroke-width: 4px; }
+
 .node-editor .connections .connection {
 	fill: none;
 	stroke: #eee;
@@ -399,30 +441,26 @@
 	pointer-events: none; }
 .node-editor .connections .connection.active {
 	stroke: #aaa; }
+
 .node-editor .connections .connection.output-next.input-prev {
 	stroke: #00e600; }
 .node-editor .connections .connection.output-falseelement.input-prev {
 	stroke: #00e600; }
 .node-editor .connections .connection.output-trueelement.input-prev {
 	stroke: #00e600; }
+.node-editor .connections .connection.output-loopbody.input-prev {
+	stroke: #00e600; }
+.node-editor .connections .connection.output-forkbody.input-prev {
+	stroke: #00e600; }
+
 .node-editor .connections .connection.output-datatarget.input-datasource {
 	stroke: #6666ff; }
 .node-editor .connections .connection.output-datatarget.input-datasources {
 	stroke: #6666ff; }
 .node-editor .connections .connection.output-objectdatatarget.input-keyvaluesources {
 	stroke: #6666ff; }
-.node-editor .connections .connection.output-result.input-condition {
-	stroke: orange; }
-.node-editor .connections .connection.output-result.input-conditions {
-	stroke: orange; }
-.node-editor .connections .connection.output-result.input-condition_basenode {
-	stroke: orange; }
 .node-editor .connections .connection.output-call.input-parameters {
 	stroke: #6666ff; }
-.node-editor .connections .connection.output-loopbody.input-prev {
-	stroke: #00e600; }
-.node-editor .connections .connection.output-forkbody.input-prev {
-	stroke: #00e600; }
 .node-editor .connections .connection.output-datatarget.input-startvalue {
 	stroke: #6666ff; }
 .node-editor .connections .connection.output-datatarget.input-scriptsource {
@@ -431,8 +469,19 @@
 	stroke: #6666ff; }
 .node-editor .connections .connection.output-datatarget.input-propertynamesource {
 	stroke: #6666ff; }
+
 .node-editor .connections .connection.output-exceptionhandler.input-handlednodes {
 	stroke: red; }
+
+.node-editor .connections .connection.output-cases.input-switch {
+    stroke: orange; }
+.node-editor .connections .connection.output-result.input-condition {
+	stroke: orange; }
+.node-editor .connections .connection.output-result.input-conditions {
+	stroke: orange; }
+.node-editor .connections .connection.output-result.input-condition_basenode {
+	stroke: orange; }
+
 .node-editor select, .node-editor input {
 	width: 60px;
 	padding: 3px 6px;

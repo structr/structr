@@ -52,8 +52,9 @@ var _Pager = {
 		_Pager.storePagerData(id, type, page[id], pageSize[id], sortKey[id], sortOrder[id], pagerFilters[id]);
 	},
 
-	initFilters: function(id, type, filters) {
+	initFilters: function(id, type, filters, exactFilterKeys) {
 		pagerFilters[id] = filters;
+		pagerExactFilterKeys[id] = exactFilterKeys;
 		_Pager.storePagerData(id, type, page[id], pageSize[id], sortKey[id], sortOrder[id], pagerFilters[id]);
 	},
 
@@ -90,10 +91,8 @@ var _Pager = {
 			sortKey[id]   = pagerData.sort;
 			sortOrder[id] = pagerData.order;
 			if (pagerData.filters) {
-				//console.log(pagerData);
 				pagerFilters[id] = pagerFilters[id] || {};
 				$.extend(pagerFilters[id], pagerData.filters);
-				//console.log(pagerFilters[id]);
 			}
 
 			return true;
@@ -101,17 +100,30 @@ var _Pager = {
 
 		return false;
 	},
-	addPager: function (id, el, rootOnly, type, view, callback, optionalTransportFunction) {
-		_Logger.log(_LogType.PAGER, 'add Pager', type, pageSize[id], page[id], sortKey[id], sortOrder[id]);
-		var pager = new Pager(id, el, rootOnly, type, view, callback);
+	addPager: function (id, el, rootOnly, type, view, callback, optionalTransportFunction, customView) {
+
+		let pager = new Pager(id, el, rootOnly, type, view, callback);
+
 		pager.transportFunction = function() {
-			var filterAttrs = pager.getNonEmptyFilterAttributes();
+			let filterAttrs = pager.getNonEmptyFilterAttributes();
+
+			let isExactPager = false;
+
+			if (pagerExactFilterKeys[id]) {
+
+				let keysToFilter = Object.keys(filterAttrs);
+				let inExactKeys = keysToFilter.filter((k) => { return !pagerExactFilterKeys[id].includes(k); });
+
+				isExactPager = (inExactKeys.length === 0);
+			}
+
 			if (typeof optionalTransportFunction === "function") {
 				optionalTransportFunction(id, pageSize[id], page[id], filterAttrs, pager.internalCallback);
 			} else {
-				Command.query(pager.type, pageSize[id], page[id], sortKey[id], sortOrder[id], filterAttrs, pager.internalCallback, false, view);
+				Command.query(pager.type, pageSize[id], page[id], sortKey[id], sortOrder[id], filterAttrs, pager.internalCallback, isExactPager, view, customView);
 			}
 		};
+
 		pager.init();
 		return pager;
 	}
@@ -146,9 +158,19 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 
 		rawResultCount[pagerObj.id] = count;
 		pageCount[pagerObj.id] = Math.max(1, Math.ceil(rawResultCount[pagerObj.id] / pageSize[pagerObj.id]));
-		pagerObj.updatePager(pagerObj.id, dialog.is(':visible') ? dialog : undefined);
-
 		pagerObj.pageCount.val(pageCount[pagerObj.id]);
+
+		if (page[pagerObj.id] < 1) {
+			page[pagerObj.id] = 1;
+			pagerObj.pageNo.val(page[pagerObj.id]);
+		}
+
+		if (page[pagerObj.id] > pageCount[pagerObj.id]) {
+			page[pagerObj.id] = pageCount[pagerObj.id];
+			pagerObj.pageNo.val(page[pagerObj.id]);
+		}
+
+		pagerObj.updatePager(pagerObj.id, dialog.is(':visible') ? dialog : undefined);
 
 		pagerObj.callback(result);
 	};
@@ -177,52 +199,52 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 		this.pageCount = $('.pageCount', this.pager);
 
 		this.pageSize.on('change', function(e) {
-                    pageSize[pagerObj.id] = $(this).val();
-                    page[pagerObj.id] = 1;
-                    pagerObj.updatePagerElements();
-                    pagerObj.transportFunction();
+			pageSize[pagerObj.id] = $(this).val();
+			page[pagerObj.id] = 1;
+			pagerObj.updatePagerElements();
+			pagerObj.transportFunction();
 		});
 
 
-                let limitPager = function(inputEl) {
-                    let val = $(inputEl).val();
-                    if (val < 1 || val > pageCount[pagerObj.id]) {
-                            $(inputEl).val(page[pagerObj.id]);
-                    } else {
-                        page[pagerObj.id] = val;
-                    }
-                    pagerObj.updatePagerElements();
-                    pagerObj.transportFunction();
-                };
+		let limitPager = function(inputEl) {
+			let val = $(inputEl).val();
+			if (val < 1 || val > pageCount[pagerObj.id]) {
+					$(inputEl).val(page[pagerObj.id]);
+			} else {
+				page[pagerObj.id] = val;
+			}
+			pagerObj.updatePagerElements();
+			pagerObj.transportFunction();
+		};
 
 		this.pageNo.on('keypress', function(e) {
-                    if (e.keyCode === 13) {
-                        limitPager(this);
-                    }
+			if (e.keyCode === 13) {
+				limitPager(this);
+			}
 		});
 
 		this.pageNo.on('blur', function(e) {
-                    if (e.target.classList.contains('disabled')) return;
-                    limitPager(this);
+			if (e.target.classList.contains('disabled')) return;
+			limitPager(this);
 		});
 
-                this.pageNo.on('click', function(e) {
-                    if (e.target.classList.contains('disabled')) return;
-                    e.target.select();
+		this.pageNo.on('click', function(e) {
+			if (e.target.classList.contains('disabled')) return;
+			e.target.select();
 		});
 
 		this.pageLeft.on('click', function(e) {
-                    if (e.target.classList.contains('disabled')) return;
-                    page[pagerObj.id]--;
-                    pagerObj.updatePagerElements();
-                    pagerObj.transportFunction();
+			if (e.target.classList.contains('disabled')) return;
+			page[pagerObj.id]--;
+			pagerObj.updatePagerElements();
+			pagerObj.transportFunction();
 		});
 
 		this.pageRight.on('click', function(e) {
-                    if (e.target.classList.contains('disabled')) return;
-                    page[pagerObj.id]++;
-                    pagerObj.updatePagerElements();
-                    pagerObj.transportFunction();
+			if (e.target.classList.contains('disabled')) return;
+			page[pagerObj.id]++;
+			pagerObj.updatePagerElements();
+			pagerObj.transportFunction();
 		});
 
 		pagerObj.transportFunction();
@@ -271,7 +293,7 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 	 * @returns {undefined}
 	 */
 	this.transportFunction = function () {
-		console.warning('default implementation does nothing!');
+		console.warn('default implementation does nothing!');
 	};
 
 	/**
@@ -281,7 +303,6 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 	this.cleanupFunction = function () {
 		$('.node', pagerObj.el).remove();
 	};
-
 
 	/**
 	 * activate the filter elements for the pager
@@ -306,7 +327,46 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 			var $filterEl = $(this);
 			var filterAttribute = $filterEl.data('attribute');
 
+			if (e.keyCode === 13) {
+
+				if (filterAttribute && filterAttribute.length) {
+
+					let filterVal = $filterEl.val();
+
+					if (filterVal === '') {
+						pagerFilters[pagerObj.id][filterAttribute] = null;
+					} else {
+						pagerFilters[pagerObj.id][filterAttribute] = filterVal;
+					}
+
+					page[pagerObj.id] = 1;
+					pagerFilters[pagerObj.id][filterAttribute] = filterVal;
+					pagerObj.updatePagerElements();
+					pagerObj.transportFunction();
+				}
+
+			} else if (e.keyCode === 27) {
+
+				// allow ESC in pagers in dialogs (do not close dialog on ESC while focus in input)
+				e.preventDefault();
+				e.stopPropagation();
+
+				pagerFilters[pagerObj.id][filterAttribute] = null;
+				$filterEl.val('');
+
+				page[pagerObj.id] = 1;
+				pagerObj.updatePagerElements();
+				pagerObj.transportFunction();
+			}
+		});
+
+		$('input.filter[type=text]', this.filterEl).on('blur', function(e) {
+			var $filterEl = $(this);
+			var filterAttribute = $filterEl.data('attribute');
+
 			let filterVal = $filterEl.val();
+
+			let lastFilterValue = pagerFilters[pagerObj.id][filterAttribute];
 
 			if (filterVal === '') {
 				pagerFilters[pagerObj.id][filterAttribute] = null;
@@ -314,15 +374,15 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 				pagerFilters[pagerObj.id][filterAttribute] = filterVal;
 			}
 
-			if (e.keyCode === 13) {
+			if (filterAttribute && filterAttribute.length) {
 
-				if (filterAttribute && filterAttribute.length) {
+				if (lastFilterValue !== filterVal && !(filterVal === '' && lastFilterValue === null)) {
 					page[pagerObj.id] = 1;
 					pagerObj.updatePagerElements();
 					pagerObj.transportFunction();
 				}
 
-			} else if (e.keyCode === 27) {
+			} else {
 
 				pagerFilters[pagerObj.id][filterAttribute] = null;
 				$filterEl.val('');

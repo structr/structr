@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -107,7 +107,7 @@ public class HttpHelper {
 
 		if (StringUtils.isNotBlank(proxyUrl)) {
 
-			proxy         = HttpHost.create(proxyUrl);
+			proxy = HttpHost.create(proxyUrl);
 
 			if (StringUtils.isNoneBlank(proxyUsername, proxyPassword)) {
 
@@ -116,7 +116,6 @@ public class HttpHelper {
 					new UsernamePasswordCredentials(proxyUsername, proxyPassword)
 				);
 			}
-
 		}
 
 		client = HttpClients.custom()
@@ -129,6 +128,9 @@ public class HttpHelper {
 			.setProxy(proxy)
 			.setRedirectsEnabled(followRedirects)
 			.setCookieSpec(CookieSpecs.DEFAULT)
+			.setConnectTimeout(Settings.HttpConnectTimeout.getValue() * 1000)
+			.setSocketTimeout(Settings.HttpSocketTimeout.getValue() * 1000)
+			.setConnectionRequestTimeout(Settings.HttpConnectionRequestTimeout.getValue() * 1000)
 			.build();
 
 		req.setConfig(reqConfig);
@@ -176,7 +178,7 @@ public class HttpHelper {
 	throws FrameworkException {
 		return getBinary(address, username, password, null, null, null, null, headers);
 	}
-	
+
 	public static String get(final String address, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers)
 	throws FrameworkException {
 		return get(address, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
@@ -289,7 +291,7 @@ public class HttpHelper {
 				final InputStream responseContent = entity.getContent();
 
 				if (responseContent != null) {
-					
+
 					content = IOUtils.toString(responseContent, charset(response));
 				}
 			}
@@ -558,7 +560,6 @@ public class HttpHelper {
 
 				content = skipBOMIfPresent(content);
 
-				System.out.println("Response body: " + content);
 				logger.warn("Unable to create file from URI {}: status code was {}", new Object[]{ address, statusCode });
 			}
 

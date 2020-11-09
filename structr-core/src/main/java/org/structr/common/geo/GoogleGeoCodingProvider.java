@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -44,7 +44,7 @@ import org.structr.common.geo.GeoCodingResult.Type;
 public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(GoogleGeoCodingProvider.class.getName());
-	
+
 	private int count = 0;
 
 	@Override
@@ -121,11 +121,11 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 		// List<Element> rootChildren = root.elements();
 		String status = root.element("status").getTextTrim();
-		
+
 		if ("OK".equals(status)) {
 
 			try {
-				
+
 				return new GoogleGeoCodingResult(address, root);
 
 			} catch (final Throwable t) {
@@ -134,11 +134,11 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 			}
 
 		} else if ("OVER_QUERY_LIMIT".equals(status)) {
-			
+
 			if (count < 3) {
-			
+
 				count++;
-				
+
 				logger.warn("Status OVER_QUERY_LIMIT for address {}, trying again after 2 seconds.", new Object[] { address });
 
 				try {
@@ -146,14 +146,28 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 					Thread.sleep(2000L);
 
 				} catch (final InterruptedException ex) {}
-			
+
 				return geocode(street, house, postalCode, city, state, country, language);
-				
+
 			} else {
-				
+
 				logger.warn("Too many attempts with status OVER_QUERY_LIMIT for address {}, aborting.", new Object[] { address });
 			}
-			
+
+		} else if ("REQUEST_DENIED".equals(status)) {
+
+			final String errorMessage = root.element("error_message").getTextTrim();
+
+			if (errorMessage != null) {
+
+				logger.warn("Unable to gecode address {}. Error: {} - {}", address, status, errorMessage);
+
+			} else {
+
+				logger.warn("Unable to gecode address {}. Error: {}", address, status);
+
+			}
+
 		} else {
 
 			logger.warn("Status not OK for address {}: {}", new Object[] { address, status });
@@ -163,7 +177,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 	}
 
 	//~--- inner classes --------------------------------------------------
-	
+
 	public static class GoogleGeoCodingResult implements GeoCodingResult {
 
 		private List<AddressComponent> addressComponents = new LinkedList<>();

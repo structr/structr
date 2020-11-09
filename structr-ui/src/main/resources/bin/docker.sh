@@ -1,5 +1,24 @@
 #!/bin/sh
 
+
+if [ "$AGREE_TO_STRUCTR_PRIVACY_POLICY" != "yes" ]; then
+
+	echo
+	echo
+	echo "In order to use Structr you must agree to the privacy policy"
+	echo "at https://structr.com/privacy. To do so set the environment"
+	echo "variable AGREE_TO_STRUCTR_PRIVACY_POLICY=yes"
+	echo
+	echo "Use the following docker command line argument to do so:"
+	echo
+	echo "    --env=AGREE_TO_STRUCTR_PRIVACY_POLICY=yes"
+	echo
+	echo
+
+	exit 1
+
+fi
+
 . bin/config
 
 LOGS_DIR="logs"
@@ -11,7 +30,7 @@ if [ -e $PID_FILE ]; then
 	result=$?
 
 	if [ $result -eq 1 ]; then
-		echo 
+		echo
 		echo "        Found $PID_FILE, but server is not running."
 		echo "        Removing $PID_FILE and proceeding with startup."
 		echo
@@ -37,13 +56,6 @@ if [ ! -d $LOGS_DIR ]; then
         touch $LOG_FILE
 fi
 
-echo -n "        Starting structr server $DISPLAY_NAME: "
+echo "        Starting structr server $DISPLAY_NAME"
 
-java $RUN_OPTS $JAVA_OPTS $MAIN_CLASS >$LOG_FILE 2>&1 & echo $! >$PID_FILE
-
-sleep 1
-
-echo "OK"
-echo
-
-tail -f $LOG_FILE
+java $RUN_OPTS $JAVA_OPTS $MAIN_CLASS

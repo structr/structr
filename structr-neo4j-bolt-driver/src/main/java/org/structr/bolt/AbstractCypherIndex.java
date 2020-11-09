@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -35,8 +35,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.AbstractIndex;
@@ -51,13 +49,12 @@ import org.structr.bolt.converter.IntTypeConverter;
 import org.structr.bolt.converter.LongTypeConverter;
 import org.structr.bolt.converter.ShortTypeConverter;
 import org.structr.bolt.converter.StringTypeConverter;
+import org.structr.bolt.factory.GraphQueryFactory;
 
 /**
  *
  */
 abstract class AbstractCypherIndex<T extends PropertyContainer> extends AbstractIndex<AdvancedCypherQuery, T> {
-
-	private static final Logger logger = LoggerFactory.getLogger(AbstractCypherIndex.class.getName());
 
 	public static final Set<Class> INDEXABLE = new HashSet<>(Arrays.asList(new Class[] {
 		String.class,   Boolean.class,   Short.class,   Integer.class,   Long.class,   Character.class,   Float.class,   Double.class,   byte.class,
@@ -68,7 +65,7 @@ abstract class AbstractCypherIndex<T extends PropertyContainer> extends Abstract
 	private final Map<Class, QueryFactory> factories   = new HashMap<>();
 	protected BoltDatabaseService db                   = null;
 
-	public abstract String getQueryPrefix(final String mainType, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates);
+	public abstract String getQueryPrefix(final String mainType, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates, final boolean hasOptionalParts);
 	public abstract String getQuerySuffix(final AdvancedCypherQuery query);
 
 	public AbstractCypherIndex(final BoltDatabaseService db) {
@@ -98,6 +95,7 @@ abstract class AbstractCypherIndex<T extends PropertyContainer> extends Abstract
 		return db;
 	}
 
+	@Override
 	public boolean supports(final Class type) {
 		return INDEXABLE.contains(type);
 	}
@@ -108,6 +106,7 @@ abstract class AbstractCypherIndex<T extends PropertyContainer> extends Abstract
 		factories.put(NotEmptyQuery.class,     new NotEmptyQueryFactory(this));
 		factories.put(FulltextQuery.class,     new KeywordQueryFactory(this));
 		factories.put(SpatialQuery.class,      new SpatialQueryFactory(this));
+		factories.put(GraphQuery.class,        new GraphQueryFactory(this));
 		factories.put(GroupQuery.class,        new GroupQueryFactory(this));
 		factories.put(RangeQuery.class,        new RangeQueryFactory(this));
 		factories.put(ExactQuery.class,        new KeywordQueryFactory(this));

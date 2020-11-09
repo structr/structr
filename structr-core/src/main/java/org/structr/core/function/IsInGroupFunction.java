@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,6 +18,8 @@
  */
 package org.structr.core.function;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -29,8 +31,8 @@ import org.structr.schema.action.ActionContext;
 
 public class IsInGroupFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE    = "Usage: ${is_in_group(group, principal)}";
-	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.isInGroup(group, principal);}}";
+	public static final String ERROR_MESSAGE    = "Usage: ${is_in_group(group, principal [, checkHierarchy = false ])}";
+	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.isInGroup(group, principal [, checkHierarchy = false ]);}}";
 
 	@Override
 	public String getName() {
@@ -39,7 +41,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getSignature() {
-		return "group, user";
+		return "group, user [, checkHierarchy = false ]";
 	}
 
 	@Override
@@ -47,7 +49,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 3);
 
 			if (!(sources[0] instanceof Group)) {
 
@@ -61,11 +63,13 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 				return "Error: second argument is not a Principal.";
 			}
 
+			boolean checkHierarchy = (sources.length > 2 && sources[2] instanceof Boolean) ? (boolean) sources[2] : false;
+
 			final RelationshipType type = StructrApp.getInstance().getDatabaseService().forName(RelationshipType.class, "CONTAINS");
 			final Group group           = (Group)sources[0];
-			final Principal user        = (Principal)sources[1];
+			final Principal principal   = (Principal)sources[1];
 
-			return group.hasRelationshipTo(type, user);
+			return principalInGroup(new HashSet<String>(), group, principal, type, checkHierarchy);
 
 		} catch (ArgumentNullException pe) {
 
@@ -79,6 +83,26 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 		}
 	}
 
+	private boolean principalInGroup (final Set<String> seenGroups, final Group group, final Principal principal, final RelationshipType relType, final boolean checkHierarchy) {
+
+		boolean isInGroup = group.hasRelationshipTo(relType, principal);
+
+		if (!isInGroup && checkHierarchy) {
+
+			for (final Group principalGroup : principal.getGroups()) {
+
+				if (!isInGroup && !seenGroups.contains(principalGroup.getUuid())) {
+
+					seenGroups.add(principalGroup.getUuid());
+
+					isInGroup = principalInGroup(seenGroups, group, principalGroup, relType, checkHierarchy);
+				}
+			}
+		}
+
+		return isInGroup;
+	}
+
 	@Override
 	public String usage(boolean inJavaScriptContext) {
 		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
@@ -86,6 +110,6 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Returns true if a user is in the given group.";
+		return "Returns true if a user is in the given group. If the optional parameter checkHierarchy is set to false, only a direct group membership is checked. Otherwise the group hierarchy is checked.";
 	}
 }

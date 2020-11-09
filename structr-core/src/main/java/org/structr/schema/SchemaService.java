@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -39,19 +39,23 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.service.Command;
 import org.structr.api.service.Service;
 import org.structr.api.service.ServiceDependency;
+import org.structr.api.service.ServiceResult;
 import org.structr.api.service.StructrServices;
 import org.structr.common.AccessPathCache;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InstantiationErrorToken;
+import org.structr.common.error.InvalidSchemaToken;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -75,8 +79,6 @@ import org.structr.schema.compiler.RemoveDuplicateClasses;
 import org.structr.schema.compiler.RemoveExportedMethodsWithoutSecurityContext;
 import org.structr.schema.compiler.RemoveMethodsWithUnusedSignature;
 import org.structr.schema.export.StructrSchema;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.service.ServiceResult;
 
 /**
  * Structr Schema Service for dynamic class support at runtime.
@@ -110,7 +112,7 @@ public class SchemaService implements Service {
 
 	@Override
 	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-		return reloadSchema(new ErrorBuffer(), null);
+		return SchemaHelper.reloadSchema(new ErrorBuffer(), null);
 	}
 
 	public static JsonSchema getDynamicSchema() {
@@ -129,7 +131,11 @@ public class SchemaService implements Service {
 		int retryCount                     = 2;
 
 		// compiling must only be done once
-		if (compiling.compareAndSet(false, true)) {
+		if (!compiling.compareAndSet(false, true)) {
+
+			errorBuffer.add(new InvalidSchemaToken("Base", "source", "token"));
+
+		} else {
 
 			FlushCachesCommand.flushAll();
 
@@ -149,7 +155,7 @@ public class SchemaService implements Service {
 					tx.success();
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.error(ExceptionUtils.getStackTrace(t));
 				}
 
 
@@ -268,7 +274,7 @@ public class SchemaService implements Service {
 									if (retryCount == 0) {
 
 										for (final ErrorToken token : errorBuffer.getErrorTokens()) {
-											logger.error("{}", token.toString());
+											logger.error(token.toString());
 										}
 
 										return new ServiceResult(false);
@@ -366,8 +372,8 @@ public class SchemaService implements Service {
 										.build();
 
 								} catch (Throwable t) {
-									t.printStackTrace();
 									logger.warn("Unable to build GraphQL schema: {}", t.getMessage());
+									logger.error(ExceptionUtils.getStackTrace(t));
 								}
 							}
 						}
@@ -375,22 +381,21 @@ public class SchemaService implements Service {
 
 				} catch (FrameworkException fex) {
 
-					fex.printStackTrace();
-
 					FlushCachesCommand.flushAll();
 
 					logger.error("Unable to compile dynamic schema: {}", fex.getMessage());
+					logger.error(ExceptionUtils.getStackTrace(fex));
 					success = false;
 
 					errorBuffer.getErrorTokens().addAll(fex.getErrorBuffer().getErrorTokens());
 
 				} catch (Throwable t) {
 
-					t.printStackTrace();
-
 					FlushCachesCommand.flushAll();
 
 					logger.error("Unable to compile dynamic schema: {}", t.getMessage());
+					logger.error(ExceptionUtils.getStackTrace(t));
+
 					success = false;
 				}
 

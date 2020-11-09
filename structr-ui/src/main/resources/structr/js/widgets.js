@@ -69,10 +69,7 @@ var _Widgets = {
 
 					if (sourceWidget && sourceWidget.isWidget) {
 						if (sourceWidget.treePath) {
-							_Logger.log(_LogType.WIDGETS, 'Copying remote widget', sourceWidget);
-
 							Command.create({ type: 'Widget', name: sourceWidget.name + ' (copied)', source: sourceWidget.source, description: sourceWidget.description, configuration: sourceWidget.configuration }, function(entity) {
-								_Logger.log(_LogType.WIDGETS, 'Copied remote widget successfully', entity);
 								dropBlocked = false;
 							});
 						}
@@ -83,7 +80,6 @@ var _Widgets = {
 							statusCode: {
 								200: function(data) {
 									Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function(entity) {
-										_Logger.log(_LogType.WIDGETS, 'Created widget successfully', entity);
 										dropBlocked = false;
 									});
 								}
@@ -101,7 +97,7 @@ var _Widgets = {
 				});
 			});
 
-			_wPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name" />');
+			_wPager.pager.append('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" /></span>');
 			_wPager.activateFilterElements();
 
 			_Widgets.remoteWidgetsEl = $('#remoteWidgets', widgetsSlideout);
@@ -355,7 +351,7 @@ var _Widgets = {
 		var expanded = Structr.isExpanded(id);
 
 		parent.append('<div id="' + id + '_folder" class="widget node">'
-			+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" /><b title="' + name + '" class="name">' + fitStringToWidth(name, 200) + '</b>'
+			+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" /><b title="' + escapeForHtmlAttributes(name) + '" class="name abbr-ellipsis abbr-66pc">' + name + '</b>'
 			+ '<div id="' + id + '" class="node' + (expanded ? ' hidden' : '') + '"></div>'
 			+ '</div>');
 
@@ -365,8 +361,6 @@ var _Widgets = {
 	},
 	appendWidgetElement: function(widget, remote, el) {
 
-		_Logger.log(_LogType.WIDGETS, 'Widgets.appendWidgetElement', widget, remote);
-
 		var icon = _Icons.widget_icon;
 		var parent = _Widgets.getTreeParent(el ? el : (remote ? _Widgets.remoteWidgetsEl : _Widgets.localWidgetsEl), widget.treePath, remote ? '_remote' : '_local');
 		var div = Structr.node(widget.id);
@@ -375,7 +369,7 @@ var _Widgets = {
 
 			parent.append('<div id="id_' + widget.id + '" class="node widget">'
 				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
-				+ '<b title="' + widget.name + '" class="name_">' + fitStringToWidth(widget.name, 200) + '</b> <span class="id">' + widget.id + '</span>'
+				+ '<b title="' + escapeForHtmlAttributes(widget.name) + '" class="name_ abbr-ellipsis abbr-66pc">' + widget.name + '</b> <span class="id">' + widget.id + '</span>'
 				+ '</div>');
 			div = Structr.node(widget.id);
 		}

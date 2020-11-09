@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -75,6 +75,7 @@ import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
@@ -2030,6 +2031,16 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid get_or_create() result", newUuid2, Scripting.replaceVariables(ctx, null, "${{ Structr.getOrCreate('TestOne', { 'name': 'new-object-2', 'anInt': 13, 'aString': 'string' }) }}"));
 			assertEquals("Invalid get_or_create() result", newUuid2, Scripting.replaceVariables(ctx, null, "${{ Structr.getOrCreate('TestOne', { 'name': 'new-object-2', 'anInt': 13, 'aString': 'string' }) }}"));
 
+			// sleep
+			final long t0 = System.currentTimeMillis();
+			Scripting.replaceVariables(ctx, null, "${sleep(1000)}");
+			final long dt = System.currentTimeMillis() - t0;
+			assertTrue("Sleep() function did not wait for the specified amount of time: " + dt, dt >= 1000);
+
+			// random_uuid
+			final String randomUuid = Scripting.replaceVariables(ctx, null, "${random_uuid()}");
+			assertTrue("Invalid UUID returned by random_uuid(): " + randomUuid, randomUuid.matches("[a-fA-F0-9]{32}"));
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -2782,7 +2793,7 @@ public class ScriptingTest extends StructrTest {
 			final Principal testUser = StructrApp.getInstance().nodeQuery(Principal.class).and(AbstractNode.name, "testuser").getFirst();
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
 
-			assertEquals("User should be able to find newly created object!", userObjects + "]", Scripting.replaceVariables(ctx, null, "${ find('TestOne', 'owner', me.id) }"));
+			assertEquals("User should be able to find newly created object!", userObjects + "]", Scripting.replaceVariables(ctx, null, "${ find('TestOne', 'owner', me.id, sort('createdDate', 'desc')) }"));
 
 			tx.success();
 
@@ -3435,10 +3446,10 @@ public class ScriptingTest extends StructrTest {
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			// create some test objects
-			Scripting.evaluate(ctx, null, "${{ Structr.create('Group', { name: 'test' + 123 + 'structr' }); }}", "test");
-			Scripting.evaluate(ctx, null, "${{ var g = Structr.create('Group'); g.name = 'test' + 123 + 'structr'; }}", "test");
-			Scripting.evaluate(ctx, null, "${{ var g = Structr.create('Group'); Structr.set(g, 'name', 'test' + 123 + 'structr'); }}", "test");
-			Scripting.evaluate(ctx, null, "${{ Structr.create('Group', 'name', 'test' + 123 + 'structr'); }}", "test");
+			Scripting.evaluate(ctx, null, "${{ Structr.create('Group', { name: 'test' + 1231 + 'structr' }); }}", "test");
+			Scripting.evaluate(ctx, null, "${{ var g = Structr.create('Group'); g.name = 'test' + 1232 + 'structr'; }}", "test");
+			Scripting.evaluate(ctx, null, "${{ var g = Structr.create('Group'); Structr.set(g, 'name', 'test' + 1233 + 'structr'); }}", "test");
+			Scripting.evaluate(ctx, null, "${{ Structr.create('Group', 'name', 'test' + 1234 + 'structr'); }}", "test");
 
 			tx.success();
 
@@ -3455,11 +3466,11 @@ public class ScriptingTest extends StructrTest {
 
 			int index = 1;
 
-			for (final Group group : app.nodeQuery(Group.class).getAsList()) {
+			for (final Group group : app.nodeQuery(Group.class).sort(Group.name).getAsList()) {
 
 				System.out.println(group.getName());
 
-				assertEquals("Invalid JavaScript string concatenation result for script #" + index++, "test123structr", group.getName());
+				assertEquals("Invalid JavaScript string concatenation result for script #" + index, "test123" + index++ + "structr", group.getName());
 			}
 
 			final NodeInterface project = app.create(projectType, "structr");
@@ -3650,10 +3661,10 @@ public class ScriptingTest extends StructrTest {
 		final Class testType    = StructrApp.getConfiguration().getNodeEntityClass("Test");
 		final Class type        = StructrApp.getConfiguration().getNodeEntityClass("Project");
 		final PropertyKey name1 = StructrApp.key(type, "name1");
-                final PropertyKey name2 = StructrApp.key(type, "name2");
-                final PropertyKey name3 = StructrApp.key(type, "name3");
-                final PropertyKey age   = StructrApp.key(type, "age");
-                final PropertyKey count = StructrApp.key(type, "count");
+		final PropertyKey name2 = StructrApp.key(type, "name2");
+		final PropertyKey name3 = StructrApp.key(type, "name3");
+		final PropertyKey age   = StructrApp.key(type, "age");
+		final PropertyKey count = StructrApp.key(type, "count");
 
 		String group1 = null;
 		String group2 = null;
@@ -3783,6 +3794,215 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
+	public void testAdvancedFindForRemoteProperties() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			// create relation
+			final JsonReferenceType rel = project.relate(task, "has", Cardinality.ManyToMany, "projects", "tasks");
+			rel.setName("ProjectTasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final ActionContext ctx = new ActionContext(securityContext);
+		final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class taskType    = StructrApp.getConfiguration().getNodeEntityClass("Task");
+
+		final PropertyKey projectName  = StructrApp.key(projectType, "name");
+		final PropertyKey projectTasks = StructrApp.key(projectType, "tasks");
+
+		final PropertyKey taskName     = StructrApp.key(taskType, "name");
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface task1 = app.create(taskType, new NodeAttribute<>(taskName, "t1") );
+			final NodeInterface task2 = app.create(taskType, new NodeAttribute<>(taskName, "t2") );
+			final NodeInterface task3 = app.create(taskType, new NodeAttribute<>(taskName, "t3") );
+
+			final NodeInterface task4 = app.create(taskType, new NodeAttribute<>(taskName, "t4") );
+			final NodeInterface task5 = app.create(taskType, new NodeAttribute<>(taskName, "t5") );
+
+			app.create(projectType, new NodeAttribute<>(projectName, "p1a"), new NodeAttribute<>(projectTasks, Arrays.asList(task1)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p2a"), new NodeAttribute<>(projectTasks, Arrays.asList(task2)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p3a"), new NodeAttribute<>(projectTasks, Arrays.asList(task3)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p4a"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task2)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p5a"), new NodeAttribute<>(projectTasks, Arrays.asList(task2, task3)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p6a"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task3)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p7a"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task2, task3)) );
+
+			app.create(projectType, new NodeAttribute<>(projectName, "p1b"), new NodeAttribute<>(projectTasks, Arrays.asList(task1)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p2b"), new NodeAttribute<>(projectTasks, Arrays.asList(task2)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p3b"), new NodeAttribute<>(projectTasks, Arrays.asList(task3)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p4b"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task2)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p5b"), new NodeAttribute<>(projectTasks, Arrays.asList(task2, task3)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p6b"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task3)) );
+			app.create(projectType, new NodeAttribute<>(projectName, "p7b"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task2, task3)) );
+
+			app.create(projectType, new NodeAttribute<>(projectName, "p8a"), new NodeAttribute<>(projectTasks, Arrays.asList(task1, task2, task3, task4)) );
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', t1); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t2 = $.find('Task', 'name', 't2'); return $.find('Project', 'tasks', t2); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t3 = $.find('Task', 'name', 't3'); return $.find('Project', 'tasks', t3); }}", "testFindOldSyntax")).size());
+
+			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't2'))); return $.find('Project', 'tasks', t1_t2); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t3 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't3'))); return $.find('Project', 'tasks', t1_t3); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 13, ((List)Scripting.evaluate(ctx, null, "${{ let t2_t3 = $.find('Task', 'name', $.or($.equals('name', 't2'), $.equals('name', 't3'))); return $.find('Project', 'tasks', t2_t3); }}", "testFindOldSyntax")).size());
+
+			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't2'), $.equals('name', 't3'))); return $.find('Project', 'tasks', t1_t2_t3); }}", "testFindOldSyntax")).size());
+			assertEquals("Normal find() should use OR to search for remote properties", 15, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', 'tasks', $.find('Task')); }}", "testFindOldSyntax")).size());
+
+
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', $.equals(t1)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't2'))); return $.find('Project', 'tasks', $.equals(t1_t2)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 2, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t3 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't3'))); return $.find('Project', 'tasks', $.equals(t1_t3)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); return $.find('Project', 'tasks', $.contains(t1)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 5, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't2'))); return $.find('Project', 'tasks', $.contains(t1_t2)); }}", "testFindNewSyntax")).size());
+
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 3, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t2_t3 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't2'), $.equals('name', 't3'))); return $.find('Project', 'tasks', $.contains(t1_t2_t3)); }}", "testFindOldSyntax")).size());
+
+			// test with unconnected Task
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t5 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't5'))); return $.find('Project', 'tasks', $.equals(t1_t5)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t1_t5 = $.find('Task', 'name', $.or($.equals('name', 't1'), $.equals('name', 't5'))); return $.find('Project', 'tasks', $.contains(t1_t5)); }}", "testFindNewSyntax")).size());
+
+			// test unconnected Task
+			assertEquals("Normal find() should use OR to search for remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', t5); }}", "testFindOldSyntax")).size());
+			assertEquals("Advanced find() should use EXACT search for $.equals predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', $.equals(t5)); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', $.contains(t5)); }}", "testFindNewSyntax")).size());
+
+
+			// ($.and and $.or with $.contains)
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 9, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', $.or($.contains(t1), $.contains(t5))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should use CONTAINS search for $.contains predicate on remote properties", 0, ((List)Scripting.evaluate(ctx, null, "${{ let t1 = $.find('Task', 'name', 't1'); let t5 = $.find('Task', 'name', 't5'); return $.find('Project', 'tasks', $.and($.contains(t1), $.contains(t5))); }}", "testFindNewSyntax")).size());
+
+			// ($.not and $.empty)
+			assertEquals("Advanced find() should understand $.not predicate for remote properties", 4, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.not($.empty('projects'))); }}", "testFindNewSyntax")).size());
+			assertEquals("Advanced find() should understand $.empty predicate for remote properties", 1, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.empty('projects')); }}", "testFindNewSyntax")).size());
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testEmptyPredicateForRemoteProperties() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			// create relation
+			project.relate(project, "SUB", Cardinality.OneToMany, "parent", "children");
+			 project.relate(task, "TASK", Cardinality.OneToMany, "project", "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final ActionContext ctx = new ActionContext(securityContext);
+		final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class taskType    = StructrApp.getConfiguration().getNodeEntityClass("Task");
+
+		final PropertyKey projectChildren = StructrApp.key(projectType, "children");
+		final PropertyKey projectTasks    = StructrApp.key(projectType, "tasks");
+
+		final PropertyKey taskName     = StructrApp.key(taskType, "name");
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface task1 = app.create(taskType, new NodeAttribute<>(taskName, "t1") );
+			final NodeInterface task2 = app.create(taskType, new NodeAttribute<>(taskName, "t2") );
+			final NodeInterface task3 = app.create(taskType, new NodeAttribute<>(taskName, "t3") );
+			final NodeInterface task4 = app.create(taskType, new NodeAttribute<>(taskName, "t4") );
+			final NodeInterface task5 = app.create(taskType, new NodeAttribute<>(taskName, "t5") );
+			final NodeInterface task6 = app.create(taskType, new NodeAttribute<>(taskName, "t6") );
+			final NodeInterface task7 = app.create(taskType, new NodeAttribute<>(taskName, "t7") );
+			final NodeInterface task8 = app.create(taskType, new NodeAttribute<>(taskName, "t8") );
+
+			final NodeInterface project1 = app.create(projectType,
+				new NodeAttribute<>(AbstractNode.name, "Project #1"),
+				new NodeAttribute<>(projectTasks, List.of(task1, task2))
+			);
+
+			final NodeInterface project2 = app.create(projectType,
+				new NodeAttribute<>(AbstractNode.name, "Project #2"),
+				new NodeAttribute<>(projectTasks, List.of(task3, task4)),
+				new NodeAttribute<>(projectChildren, List.of(project1))
+			);
+
+			app.create(projectType,
+				new NodeAttribute<>(AbstractNode.name, "Project #3"),
+				new NodeAttribute<>(projectTasks, List.of(task5, task6)),
+				new NodeAttribute<>(projectChildren, List.of(project2))
+			);
+
+			app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project #4"));
+			app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project #5"));
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final String errorMessage = "Advanced find() should understand $.empty predicate for remote properties";
+
+			Settings.CypherDebugLogging.setValue(true);
+
+			assertEquals(errorMessage, 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.empty('parent')); }}", "testFindNewSyntax1")).size());
+			assertEquals(errorMessage, 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.empty('children')); }}", "testFindNewSyntax2")).size());
+			assertEquals(errorMessage, 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.empty('project')); }}", "testFindNewSyntax3")).size());
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+
+		} finally {
+
+			Settings.CypherDebugLogging.setValue(false);
+		}
+	}
+
+	@Test
 	public void testNewFindSyntaxInJavaScript() {
 
 		// setup
@@ -3866,8 +4086,6 @@ public class ScriptingTest extends StructrTest {
 		}
 
 		try (final Tx tx = app.tx()) {
-
-			Settings.CypherDebugLogging.setValue(true);
 
 			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', { 'name2': $.contains('s') }, $.sort('name', true)); }}", "testFindNewSyntax");
 			final List<NodeInterface> result2 = (List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.sort('name', true)); }}", "testFindNewSyntax");
@@ -3953,9 +4171,6 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Advanced find() with sort() and page() returns wrong result", "test010", page3.get(0).getName());
 			assertEquals("Advanced find() with sort() and page() returns wrong result", "test011", page3.get(1).getName());
 			assertEquals("Advanced find() with sort() and page() returns wrong result", "test014", page3.get(4).getName());
-
-
-			Settings.CypherDebugLogging.setValue(false);
 
 			tx.success();
 
@@ -4238,6 +4453,195 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
+	public void testFindNotEmpty() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createEmptySchema();
+			final JsonObjectType contact = schema.addType("Contact");
+
+			contact.addIntegerProperty("num").setIndexed(true);
+
+			// add
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class contactClass = StructrApp.getConfiguration().getNodeEntityClass("Contact");
+		final PropertyKey numKey = StructrApp.key(contactClass, "num");
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact01"), new NodeAttribute<>(numKey,   12));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact02"), new NodeAttribute<>(numKey,   11));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact03"), new NodeAttribute<>(numKey, null));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name,          ""), new NodeAttribute<>(numKey,    9));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact05"), new NodeAttribute<>(numKey,    8));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact06"), new NodeAttribute<>(numKey,    7));
+			app.create(contactClass,                                                      new NodeAttribute<>(numKey,    6));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact08"), new NodeAttribute<>(numKey,    5));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact09"), new NodeAttribute<>(numKey, null));
+			app.create(contactClass,                                                      new NodeAttribute<>(numKey,    3));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact11"), new NodeAttribute<>(numKey,    2));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact12"), new NodeAttribute<>(numKey,    1));
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			Settings.CypherDebugLogging.setValue(true);
+
+			final String query1               = "${find('Contact', not(empty('name')), sort('name'))}";
+			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, query1, "test1");
+
+			final String query2               = "${find('Contact', not(empty('num')), sort('num'))}";
+			final List<NodeInterface> result2 = (List)Scripting.evaluate(ctx, null, query2, "test2");
+
+			Settings.CypherDebugLogging.setValue(false);
+
+			// expected: 1, 2, 3, 5, 6, 8, 9, 11, 12
+			assertEquals("Invalid result for advanced find with graph predicate", "contact01", result1.get(0).getProperty(AbstractNode.name));
+			assertEquals("Invalid result for advanced find with graph predicate", "contact02", result1.get(1).getProperty(AbstractNode.name));
+			assertEquals("Invalid result for advanced find with graph predicate", "contact03", result1.get(2).getProperty(AbstractNode.name));
+			assertEquals("Invalid result for advanced find with graph predicate", "contact05", result1.get(3).getProperty(AbstractNode.name));
+			assertEquals("Invalid result for advanced find with graph predicate", "contact06", result1.get(4).getProperty(AbstractNode.name));
+			assertEquals("Invalid result for advanced find with graph predicate", "contact08", result1.get(5).getProperty(AbstractNode.name));
+			assertEquals("Invalid result for advanced find with graph predicate", "contact09", result1.get(6).getProperty(AbstractNode.name));
+			assertEquals("Invalid result for advanced find with graph predicate", "contact11", result1.get(7).getProperty(AbstractNode.name));
+			assertEquals("Invalid result for advanced find with graph predicate", "contact12", result1.get(8).getProperty(AbstractNode.name));
+
+			// expected: 12, 11, 9, 8, 7, 6, 5, 3, 2, 1
+			assertEquals("Invalid result for advanced find with graph predicate",  1, result2.get(0).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate",  2, result2.get(1).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate",  3, result2.get(2).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate",  5, result2.get(3).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate",  6, result2.get(4).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate",  7, result2.get(5).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate",  8, result2.get(6).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate",  9, result2.get(7).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", 11, result2.get(8).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", 12, result2.get(9).getProperty(numKey));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testAdvancedFindNotEqualWithQuery() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema          = StructrSchema.createEmptySchema();
+			final JsonObjectType contact     = schema.addType("Contact");
+			final JsonObjectType contactType = schema.addType("ContactType");
+
+			contactType.relate(contact, "has", Cardinality.OneToMany, "contactType", "contacts");
+
+			contact.addIntegerProperty("num").setIndexed(true);
+
+			// add
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class contactClass  = StructrApp.getConfiguration().getNodeEntityClass("Contact");
+		final Class typeClass     = StructrApp.getConfiguration().getNodeEntityClass("ContactType");
+		final PropertyKey typeKey = StructrApp.key(contactClass, "contactType");
+		final PropertyKey numKey  = StructrApp.key(contactClass, "num");
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface type1 = app.create(typeClass, "type1");
+			final NodeInterface type2 = app.create(typeClass, "type2");
+			final NodeInterface type3 = app.create(typeClass, "type3");
+
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact01"), new NodeAttribute<>(numKey,  1), new NodeAttribute<>(typeKey, type1));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact02"), new NodeAttribute<>(numKey,  2), new NodeAttribute<>(typeKey, type2)); // this
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact03"), new NodeAttribute<>(numKey,  3), new NodeAttribute<>(typeKey, type2)); // this
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact04"),                                  new NodeAttribute<>(typeKey, type1));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact05"),                                  new NodeAttribute<>(typeKey, type1));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact06"), new NodeAttribute<>(numKey,  6), new NodeAttribute<>(typeKey, type1));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact07"), new NodeAttribute<>(numKey,  7), new NodeAttribute<>(typeKey, type2)); // this
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact08"), new NodeAttribute<>(numKey,  8), new NodeAttribute<>(typeKey, type2)); // this
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact09"),                                  new NodeAttribute<>(typeKey, type3));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact10"),                                  new NodeAttribute<>(typeKey, type3));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact11"), new NodeAttribute<>(numKey, 12), new NodeAttribute<>(typeKey, type3)); // this
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact12"), new NodeAttribute<>(numKey, 13), new NodeAttribute<>(typeKey, type3)); // this
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact13"),                                  new NodeAttribute<>(typeKey, type1));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact14"), new NodeAttribute<>(numKey, 15), new NodeAttribute<>(typeKey, type2)); // this
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact15"), new NodeAttribute<>(numKey, 16), new NodeAttribute<>(typeKey, type3)); // this
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact16"), new NodeAttribute<>(numKey, 17), new NodeAttribute<>(typeKey, type1));
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact17"), new NodeAttribute<>(numKey, 18), new NodeAttribute<>(typeKey, type2)); // this
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact18"), new NodeAttribute<>(numKey, 19), new NodeAttribute<>(typeKey, type3)); // this
+			app.create(contactClass, new NodeAttribute<>(AbstractNode.name, "contact19"), new NodeAttribute<>(numKey, 20), new NodeAttribute<>(typeKey, type1));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			Settings.CypherDebugLogging.setValue(true);
+
+			final String query1               = "${find('Contact', and(not(empty('num')), not(equals('contactType', first(find('ContactType', 'name', 'type1'))))), sort('num', true), page(1, 20))}";
+			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, query1, "test1");
+
+			Settings.CypherDebugLogging.setValue(false);
+
+			// expected: 19, 18, 16, 15, 13, 12, 8, 7, 3, 2
+			assertEquals("Invalid result for advanced find with graph predicate", 19, result1.get(0).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", 18, result1.get(1).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", 16, result1.get(2).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", 15, result1.get(3).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", 13, result1.get(4).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", 12, result1.get(5).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate",  8, result1.get(6).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate",  7, result1.get(7).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate",  3, result1.get(8).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate",  2, result1.get(9).getProperty(numKey));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
 	public void testLoggingOfGraphObjects() {
 
 		final ActionContext ctx = new ActionContext(securityContext);
@@ -4246,7 +4650,7 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(Group.class, "group1");
-			app.create(Group.class);
+			app.create(Group.class, "group2");
 
 			tx.success();
 
@@ -4906,18 +5310,7 @@ public class ScriptingTest extends StructrTest {
 		// test
 		try (final Tx tx = app.tx()) {
 
-			final String script =  "${{\n" +
-				"	$.store('testStore', {\n" +
-				"		'01': 'valueAtZeroOne',\n" +
-				"		'2' : 'valueAtTwo'\n" +
-				"	});\n" +
-				"	\n" +
-				"	let x = $.retrieve('testStore');\n" +
-				"	\n" +
-				"	return (x['2'] === 'valueAtTwo');\n" +
-				"}}";
-
-			final Object result = Scripting.evaluate(ctx, null, script, "test");
+			final Object result = ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testJavaScriptQuirksDuckTypingNumericalMapIndex.js"));
 
 			assertEquals("Result should not be undefined! Access to maps at numerical indexes should work.", true, result);
 
@@ -4928,6 +5321,32 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 
+	}
+
+	@Test
+	public void testHMCAFunction () {
+		/*
+			This test ensures that the core function hmac() returns the correct HEX String for the given values.
+		*/
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			final String resultSHA256 = (String) ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testHMACFunctionSHA256.js"));
+			assertEquals("Result does match the expected SHA256 hmac", "88cd2108b5347d973cf39cdf9053d7dd42704876d8c9a9bd8e2d168259d3ddf7", resultSHA256);
+
+			final String resultMD5 = (String) ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testHMACFunctionMD5.js"));
+			assertEquals("Result does match the expected MD5 hmac", "cd4b0dcbe0f4538b979fb73664f51abe", resultMD5);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+
+			fail("Unexpected exception");
+		}
 	}
 
 	@Test
@@ -4972,8 +5391,6 @@ public class ScriptingTest extends StructrTest {
 			fex.printStackTrace();
 		}
 
-		Settings.CypherDebugLogging.setValue(true);
-
 		try (final Tx tx = app.tx()) {
 
 			// slice
@@ -5013,10 +5430,6 @@ public class ScriptingTest extends StructrTest {
 		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
-
-		} finally {
-
-			Settings.CypherDebugLogging.setValue(false);
 		}
 	}
 

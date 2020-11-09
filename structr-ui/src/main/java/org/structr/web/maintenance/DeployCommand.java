@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -55,6 +55,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -79,6 +80,8 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.CypherProperty;
+import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
@@ -137,12 +140,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String DEPLOYMENT_IMPORT_STATUS   = "DEPLOYMENT_IMPORT_STATUS";
 	private final static String DEPLOYMENT_EXPORT_STATUS   = "DEPLOYMENT_EXPORT_STATUS";
 
-	private final static String DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER = "_globalMethods";
-	private final static String DEPLOYMENT_SCHEMA_METHODS_FOLDER        = "methods";
-	private final static String DEPLOYMENT_SCHEMA_FUNCTIONS_FOLDER      = "functions";
-	private final static String DEPLOYMENT_SCHEMA_READ_FUNCTION_SUFFIX  = ".readFunction";
-	private final static String DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX = ".writeFunction";
-	private final static String DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY  = "source";
+	private final static String DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER  = "_globalMethods";
+	private final static String DEPLOYMENT_SCHEMA_METHODS_FOLDER         = "methods";
+	private final static String DEPLOYMENT_SCHEMA_FUNCTIONS_FOLDER       = "functions";
+	private final static String DEPLOYMENT_SCHEMA_READ_FUNCTION_SUFFIX   = ".readFunction";
+	private final static String DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX  = ".writeFunction";
+	private final static String DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY   = "source";
+	private final static String DEPLOYMENT_SCHEMA_COMMENT_ATTRIBUTE_KEY  = "comment";
+	private final static String DEPLOYMENT_SCHEMA_COMMENT_SUFFIX         = ".comment";
 
 	static {
 
@@ -307,11 +312,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final String exportVersion  = StringUtils.defaultIfEmpty(deploymentConf.get(DEPLOYMENT_VERSION_KEY), "pre 3.5");
 
 				final String title = "Incompatible Deployment Import";
-				final String text = "The deployment export data currently being imported has been created with a newer version of Structr\n"
+				final String text = "The deployment export data currently being imported has been created with a newer version of Structr "
 						+ "which is not supported because of incompatible changes in the deployment format.\n"
 						+ "Current version: " + currentVersion + "\n"
 						+ "Export version:  " + exportVersion;
-				final String htmlText = "The deployment export data currently being imported has been created with a newer version of Structr<br>"
+				final String htmlText = "The deployment export data currently being imported has been created with a newer version of Structr "
 						+ "which is not supported because of incompatible changes in the deployment format.<br><br><table>"
 						+ "<tr><th>Current version: </th><td>" + currentVersion + "</td></tr>"
 						+ "<tr><th>Export version: </th><td>" + exportVersion + "</td></tr>"
@@ -336,13 +341,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			if (!relativeVisibility) {
 
 				final String title = "Important Information";
-				final String text = "The deployment export data currently being imported has been created with an older version of Structr\n"
-						+ "in which the visibility flags of DOM elements were exported depending on the flags of the containing page.\n"
-						+ "***The data will be imported correctly, based on the old format.***\n"
+				final String text = "The deployment export data currently being imported has been created with an older version of Structr "
+						+ "in which the visibility flags of DOM elements were exported depending on the flags of the containing page.\n\n"
+						+ "***The data will be imported correctly, based on the old format.***\n\n"
 						+ "After this import has finished, you should **export again to the same location** so that the deployment export data will be upgraded to the most recent format.";
-				final String htmlText = "The deployment export currently being imported has been created with an older version of Structr<br>"
-						+ "in which the visibility flags of DOM elements were exported depending on the flags of the containing page.<br>"
-						+ "<b>The data will be imported correctly, based on the old format.</b><br>"
+				final String htmlText = "The deployment export currently being imported has been created with an older version of Structr "
+						+ "in which the visibility flags of DOM elements were exported depending on the flags of the containing page.<br><br>"
+						+ "<b>The data will be imported correctly, based on the old format.</b><br><br>"
 						+ "After this import has finished, you should <b>export again to the same location</b> so that the deployment export data will be upgraded to the most recent format.";
 
 				logger.info(title + ": " + text);
@@ -432,7 +437,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				importListData(Localization.class, readConfigList(localizationsMetadataFile), additionalData);
 			}
 
-			// read widgets.json
+			// read application-configuration-data.json
 			final Path applicationConfigurationDataMetadataFile = source.resolve("application-configuration-data.json");
 			if (Files.exists(applicationConfigurationDataMetadataFile)) {
 
@@ -549,14 +554,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Removing pages, templates and components");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing pages, templates and components");
 
-					app.delete(DOMNode.class);
+					app.deleteAllNodesOfType(DOMNode.class);
 
 					if (Files.exists(sitesConfFile)) {
 
 						logger.info("Removing sites");
 						publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing sites");
 
-						app.delete(Site.class);
+						app.deleteAllNodesOfType(Site.class);
 					}
 
 					FlushCachesCommand.flushAll();
@@ -688,14 +693,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final String text = "The following user(s) and/or group(s) are missing for grants or node ownership during <b>deployment</b>.<br>"
 						+ "Because of these missing grants/ownerships, <b>the functionality is not identical to the export you just imported</b>!"
 						+ "<ul><li>" + String.join("</li><li>",  missingPrincipals) + "</li></ul>"
-						+ "Consider adding these principals to your <a href=\"https://support.structr.com/article/428#pre-deployconf-javascript\">pre-deploy.conf</a> and re-importing.";
+						+ "Consider adding these principals to your <a href=\"https://docs.structr.com/docs/fundamental-concepts#pre-deployconf\">pre-deploy.conf</a> and re-importing.";
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
 						+ "\tThe following user(s) and/or group(s) are missing for grants or node ownership during deployment.\n"
 						+ "\tBecause of these missing grants/ownerships, the functionality is not identical to the export you just imported!\n\n"
 						+ "\t" + String.join("\n\t",  missingPrincipals)
-						+ "\n\n\tConsider adding these principals to your 'pre-deploy.conf' (see https://support.structr.com/article/428#pre-deployconf-javascript) and re-importing.\n"
+						+ "\n\n\tConsider adding these principals to your 'pre-deploy.conf' (see https://docs.structr.com/docs/fundamental-concepts#pre-deployconf) and re-importing.\n"
 						+ "###############################################################################"
 				);
 				publishWarningMessage(title, text);
@@ -1014,9 +1019,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		writeJsonToFile(target, sites);
 	}
 
-	private void exportPages(final Path target, final Path configTarget) throws FrameworkException {
+	private void exportPages(final Path targetFolder, final Path configTarget) throws FrameworkException {
 
-		logger.info("Exporting pages (unchanged pages will be skipped)");
+		logger.info("Exporting pages");
+
+		try {
+			deleteDirectoryContentsRecursively(targetFolder);
+		} catch (IOException ioe) {
+			logger.warn("Unable to clean up {}: {}", targetFolder, ioe.getMessage());
+		}
 
 		final Map<String, Object> pagesConfig = new TreeMap<>();
 		final App app                         = StructrApp.getInstance();
@@ -1032,29 +1043,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 						final Map<String, Object> properties = new TreeMap<>();
 						final String name                    = page.getName();
-						final Path pageFile                  = target.resolve(name + ".html");
-						boolean doExport                     = true;
-
-						if (Files.exists(pageFile)) {
-
-							try {
-
-								final String existingContent = new String(Files.readAllBytes(pageFile), "utf-8");
-								doExport = !existingContent.equals(content);
-
-							} catch (IOException ignore) {
-								logger.warn("", ignore);
-							}
-						}
+						final Path pageFile                  = targetFolder.resolve(name + ".html");
 
 						pagesConfig.put(name, properties);
 						exportConfiguration(page, properties);
 						exportOwnershipAndSecurity(page, properties);
 
-						if (doExport) {
-
-							writeStringToFile(pageFile, content);
-						}
+						writeStringToFile(pageFile, content);
 					}
 				}
 			}
@@ -1065,9 +1060,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		writeJsonToFile(configTarget, pagesConfig);
 	}
 
-	private void exportComponents(final Path target, final Path configTarget) throws FrameworkException {
+	private void exportComponents(final Path targetFolder, final Path configTarget) throws FrameworkException {
 
-		logger.info("Exporting components (unchanged components will be skipped)");
+		logger.info("Exporting components");
+
+		try {
+			deleteDirectoryContentsRecursively(targetFolder);
+		} catch (IOException ioe) {
+			logger.warn("Unable to clean up {}: {}", targetFolder, ioe.getMessage());
+		}
 
 		final Map<String, Object> configuration = new TreeMap<>();
 		final App app                           = StructrApp.getInstance();
@@ -1081,7 +1082,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					final boolean hasParent = node.getParent() != null;
 					final boolean inTrash   = node.inTrash();
-					boolean doExport        = true;
 
 					// skip nodes in trash and non-toplevel nodes
 					if (inTrash || hasParent) {
@@ -1089,42 +1089,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					}
 
 					final String content = node.getContent(RenderContext.EditMode.DEPLOYMENT);
-					if (content != null) {
 
-						// name with uuid or just uuid
-						String name = node.getProperty(AbstractNode.name);
-
-						if (name != null) {
-
-							name += "-" + node.getUuid();
-
-						} else {
-
-							name = node.getUuid();
-						}
-
-
-						final Map<String, Object> properties = new TreeMap<>();
-						final Path targetFile = target.resolve(name + ".html");
-
-						if (Files.exists(targetFile)) {
-
-							try {
-
-								final String existingContent = new String(Files.readAllBytes(targetFile), "utf-8");
-								doExport = !existingContent.equals(content);
-
-							} catch (IOException ignore) {}
-						}
-
-						configuration.put(name, properties);
-						exportConfiguration(node, properties);
-
-						if (doExport) {
-
-							writeStringToFile(targetFile, content);
-						}
-					}
+					exportContentElementSource(targetFolder, node, configuration, content);
 				}
 			}
 
@@ -1134,9 +1100,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		writeJsonToFile(configTarget, configuration);
 	}
 
-	private void exportTemplates(final Path target, final Path configTarget) throws FrameworkException {
+	private void exportTemplates(final Path targetFolder, final Path configTarget) throws FrameworkException {
 
-		logger.info("Exporting templates (unchanged templates will be skipped)");
+		logger.info("Exporting templates");
+
+		try {
+			deleteDirectoryContentsRecursively(targetFolder);
+		} catch (IOException ioe) {
+			logger.warn("Unable to clean up {}: {}", targetFolder, ioe.getMessage());
+		}
 
 		final Map<String, Object> configuration = new TreeMap<>();
 		final App app                           = StructrApp.getInstance();
@@ -1153,7 +1125,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					continue;
 				}
 
-				exportTemplateSource(target, template, configuration);
+				final String content = template.getProperty(StructrApp.key(Template.class, "content"));
+
+				exportContentElementSource(targetFolder, template, configuration, content);
 			}
 
 			tx.success();
@@ -1162,43 +1136,31 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		writeJsonToFile(configTarget, configuration);
 	}
 
-	private void exportTemplateSource(final Path target, final DOMNode template, final Map<String, Object> configuration) throws FrameworkException {
-
-		final String content                 = template.getProperty(StructrApp.key(Template.class, "content"));
-		final Map<String, Object> properties = new TreeMap<>();
-		boolean doExport                     = true;
+	/**
+	 * Consolidated export method for Content and Template
+	 */
+	private void exportContentElementSource(final Path targetFolder, final DOMNode node, final Map<String, Object> configuration, final String content) throws FrameworkException {
 
 		if (content != null) {
 
 			// name with uuid or just uuid
-			String name = template.getProperty(AbstractNode.name);
+			String name = node.getProperty(AbstractNode.name);
 			if (name != null) {
 
-				name += "-" + template.getUuid();
+				name += "-" + node.getUuid();
 
 			} else {
 
-				name = template.getUuid();
+				name = node.getUuid();
 			}
 
-			final Path targetFile = target.resolve(name + ".html");
-			if (Files.exists(targetFile)) {
-
-				try {
-
-					final String existingContent = new String(Files.readAllBytes(targetFile), "utf-8");
-					doExport = !existingContent.equals(content);
-
-				} catch (IOException ignore) {}
-			}
+			final Map<String, Object> properties = new TreeMap<>();
+			final Path targetFile = targetFolder.resolve(name + ".html");
 
 			configuration.put(name, properties);
-			exportConfiguration(template, properties);
+			exportConfiguration(node, properties);
 
-			if (doExport) {
-
-				writeStringToFile(targetFile, content);
-			}
+			writeStringToFile(targetFile, content);
 		}
 	}
 
@@ -1224,29 +1186,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			tx.success();
 		}
 
-		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
-
-			final Gson gson                = new GsonBuilder().serializeNulls().create();
-			final StringBuilder sb         = new StringBuilder("[");
-			final List<String> jsonStrings = new LinkedList();
-
-			for (final Map<String, Object> grant : grants) {
-
-				jsonStrings.add("\t" + gson.toJson(grant));
-			}
-
-			if (!jsonStrings.isEmpty()) {
-
-				sb.append("\n").append(String.join(",\n", jsonStrings)).append("\n");
-			}
-
-			sb.append("]");
-
-			fos.write(sb.toString());
-
-		} catch (IOException ioex) {
-			logger.warn("", ioex);
-		}
+		writeSortedCompactJsonToFile(target, grants, null);
 	}
 
 	private void exportSchema(final Path targetFolder) throws FrameworkException {
@@ -1271,18 +1211,32 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					for (Map<String, Object> schemaMethod : globalSchemaMethods) {
 
-						final String methodSource     = (String) schemaMethod.get(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY);
-						final Path globalMethodFile   = globalMethodsFolder.resolve((String) schemaMethod.get("name"));
-						final String relativeFilePath = "./" + targetFolder.relativize(globalMethodFile).toString();
+						final String methodName            = (String) schemaMethod.get("name");
 
-						schemaMethod.put(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY, relativeFilePath);
+						final String methodSource          = (String) schemaMethod.get(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY);
+						final Path globalMethodSourceFile  = globalMethodsFolder.resolve(methodName);
 
-						if (Files.exists(globalMethodFile)) {
-							logger.warn("File '{}' already exists - this can happen if there is a non-unique global method definition. This is not supported in tree-based schema export and will causes errors!", relativeFilePath);
+						final String methodComment         = (String) schemaMethod.get(DEPLOYMENT_SCHEMA_COMMENT_ATTRIBUTE_KEY);
+						final Path globalMethodCommentFile = globalMethodsFolder.resolve(methodName + DEPLOYMENT_SCHEMA_COMMENT_SUFFIX);
+
+						final String relativeSourceFilePath  = "./" + targetFolder.relativize(globalMethodSourceFile).toString();
+						final String relativeCommentFilePath = "./" + targetFolder.relativize(globalMethodCommentFile).toString();
+
+						schemaMethod.put(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY, relativeSourceFilePath);
+						schemaMethod.put(DEPLOYMENT_SCHEMA_COMMENT_ATTRIBUTE_KEY, relativeCommentFilePath);
+
+						if (Files.exists(globalMethodSourceFile)) {
+							logger.warn("File '{}' already exists - this can happen if there is a non-unique global method definition. This is not supported in tree-based schema export and will causes errors!", relativeSourceFilePath);
+						}
+						if (Files.exists(globalMethodCommentFile)) {
+							logger.warn("File '{}' already exists - this can happen if there is a non-unique global method definition. This is not supported in tree-based schema export and will causes errors!", relativeCommentFilePath);
 						}
 
 						if (methodSource != null) {
-							writeStringToFile(globalMethodFile, methodSource);
+							writeStringToFile(globalMethodSourceFile, methodSource);
+						}
+						if (methodComment != null) {
+							writeStringToFile(globalMethodCommentFile, methodComment);
 						}
 					}
 				}
@@ -1338,13 +1292,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 							for (final Object m : typeDef.getMethods()) {
 
 								final StructrMethodDefinition method = (StructrMethodDefinition)m;
-								final String methodSource            = method.getSource();
 
-								final Path methodFile = methodsFolder.resolve(method.getName());
+								final String methodName              = method.getName();
+								final String methodSource            = method.getSource();
+								final String methodComment           = method.getComment();
+
+								final Path methodSourceFile  = methodsFolder.resolve(methodName);
+								final Path methodCommentFile = methodsFolder.resolve(methodName + DEPLOYMENT_SCHEMA_COMMENT_SUFFIX);
 
 								if (methodSource != null) {
-									writeStringToFile(methodFile, methodSource);
-									method.setSource("./" + targetFolder.relativize(methodFile).toString());
+									writeStringToFile(methodSourceFile, methodSource);
+									method.setSource("./" + targetFolder.relativize(methodSourceFile).toString());
+								}
+
+								if (methodComment != null) {
+									writeStringToFile(methodCommentFile, methodComment);
+									method.setComment("./" + targetFolder.relativize(methodCommentFile).toString());
 								}
 							}
 						}
@@ -1357,7 +1320,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			writeStringToFile(schemaJson, schema.toString());
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 	}
 
@@ -1395,7 +1358,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(node.getClass(), PropertyView.All)) {
 
 			// only export dynamic (=> additional) keys that are *not* remote properties
-			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null) {
+			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
 
 				putData(config, key.jsonName(), node.getProperty(key));
 			}
@@ -1468,7 +1431,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(abstractFile.getClass(), PropertyView.All)) {
 
 			// only export dynamic (=> additional) keys that are *not* remote properties
-			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null) {
+			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null && !(key instanceof FunctionProperty) && !(key instanceof CypherProperty)) {
 
 				putData(config, key.jsonName(), abstractFile.getProperty(key));
 			}
@@ -1517,7 +1480,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		config.put("grantees", grantees);
 	}
 
-	protected void checkOwnerAndSecurity(final Map<String, Object> entry) throws FrameworkException {
+	public static void checkOwnerAndSecurity(final Map<String, Object> entry) throws FrameworkException {
+		checkOwnerAndSecurity(entry, true);
+	}
+
+	public static void checkOwnerAndSecurity(final Map<String, Object> entry, final boolean removeNullOwner) throws FrameworkException {
 
 		if (entry.containsKey("owner")) {
 
@@ -1533,7 +1500,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					entry.remove("owner");
 				}
 
-			} else {
+			} else if (removeNullOwner) {
 				entry.remove("owner");
 			}
 		}
@@ -1607,7 +1574,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
 		mailTemplates.sort(new AbstractMapComparator<Object>() {
@@ -1683,7 +1650,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			tx.success();
 		}
 
-		writeJsonToFile(target, applicationConfigurationDataNodes);
+		writeSortedCompactJsonToFile(target, applicationConfigurationDataNodes, new AbstractMapComparator<Object>() {
+			@Override
+			public String getKey (Map<String, Object> map) {
+
+				final Object configType = map.get("configType");
+				final Object name       = map.get("name");
+				final Object id         = map.get("id");
+
+				return (configType != null ? configType.toString() : "00-configType").concat((name != null ? name.toString() : "00-name")).concat(id.toString());
+			}
+		});
 	}
 
 	private void exportLocalizations(final Path target) throws FrameworkException {
@@ -1718,44 +1695,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			tx.success();
 		}
 
-		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+		writeSortedCompactJsonToFile(target, localizations, new AbstractMapComparator<Object>() {
+			@Override
+			public String getKey (Map<String, Object> map) {
 
-			localizations.sort(new AbstractMapComparator<Object>() {
-				@Override
-				public String getKey (Map<String, Object> map) {
+				final Object name   = map.get("name");
+				final Object domain = map.get("domain");
+				final Object locale = map.get("locale");
+				final Object id     = map.get("id");
 
-					final Object name   = map.get("name");
-					final Object domain = map.get("domain");
-					final Object locale = map.get("locale");
-					final Object id     = map.get("id");
-
-					// null domain is replaced by a string so that those localizations are shown first
-					return (name != null ? name.toString() : "null").concat((domain != null ? domain.toString() : "00-nulldomain")).concat((locale != null ? locale.toString() : "null")).concat(id.toString());
-				}
-			});
-
-			final Gson gson = new GsonBuilder().serializeNulls().create();
-
-			final StringBuilder sb = new StringBuilder("[");
-
-			List<String> jsonStrings = new LinkedList();
-
-			for (Map<String, Object> loc : localizations) {
-				jsonStrings.add("\t" + gson.toJson(loc));
+				// null domain is replaced by a string so that those localizations are shown first
+				return (name != null ? name.toString() : "null").concat((domain != null ? domain.toString() : "00-nulldomain")).concat((locale != null ? locale.toString() : "null")).concat(id.toString());
 			}
-
-			if (!jsonStrings.isEmpty()) {
-
-				sb.append("\n").append(String.join(",\n", jsonStrings)).append("\n");
-			}
-
-			sb.append("]");
-
-			fos.write(sb.toString());
-
-		} catch (IOException ioex) {
-			logger.warn("", ioex);
-		}
+		});
 	}
 
 	protected void putData(final Map<String, Object> target, final String key, final Object value) {
@@ -1852,7 +1804,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		} catch (FrameworkException fex) {
 
 			logger.error("Unable to import {}, aborting with {}", type.getSimpleName(), fex.getMessage());
-			fex.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(fex));
 
 			throw fex;
 		}
@@ -1892,7 +1844,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		} catch (FrameworkException fex) {
 
 			logger.error("Unable to import site, aborting with {}", fex.getMessage());
-			fex.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(fex));
 
 			throw fex;
 		}
@@ -1928,9 +1880,25 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 						for (Map<String, Object> schemaMethod : schema.getGlobalMethods()) {
 
-							final Path globalMethodFile = globalMethodsFolder.resolve((String) schemaMethod.get("name"));
+							final String methodName = (String) schemaMethod.get("name");
 
-							schemaMethod.put(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY, (Files.exists(globalMethodFile)) ? new String(Files.readAllBytes(globalMethodFile)) : null);
+							final Path globalMethodSourceFile = globalMethodsFolder.resolve(methodName);
+							schemaMethod.put(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY, (Files.exists(globalMethodSourceFile)) ? new String(Files.readAllBytes(globalMethodSourceFile)) : null);
+
+							if (schemaMethod.containsKey(DEPLOYMENT_SCHEMA_COMMENT_ATTRIBUTE_KEY)) {
+
+								final String methodComment = (String) schemaMethod.get(DEPLOYMENT_SCHEMA_COMMENT_ATTRIBUTE_KEY);
+
+								if (methodComment != null) {
+
+									final Path globalMethodCommentFile = globalMethodsFolder.resolve(methodName + DEPLOYMENT_SCHEMA_COMMENT_SUFFIX);
+
+									if (methodComment.equals("./" + schemaFolder.relativize(globalMethodCommentFile).toString())) {
+										// only overwrite if comment is path
+										schemaMethod.put(DEPLOYMENT_SCHEMA_COMMENT_ATTRIBUTE_KEY, (Files.exists(globalMethodCommentFile)) ? new String(Files.readAllBytes(globalMethodCommentFile)) : null);
+									}
+								}
+							}
 						}
 					}
 
@@ -1984,16 +1952,28 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 								for (final Object m : typeDef.getMethods()) {
 
 									final StructrMethodDefinition method = (StructrMethodDefinition)m;
+									final String methodName              = method.getName();
 
 									if (method.getSource() != null) {
 
-										final Path methodSourceFile = methodsFolder.resolve(method.getName());
+										final Path methodSourceFile = methodsFolder.resolve(methodName);
 
 										if (Files.exists(methodSourceFile)) {
 											method.setSource(new String(Files.readAllBytes(methodSourceFile)));
 										} else {
 											method.setSource(null);
 											DeployCommand.addMissingSchemaFile(schemaFolder.relativize(methodSourceFile).toString());
+										}
+									}
+
+									final String methodComment = method.getComment();
+									if (methodComment != null) {
+
+										final Path methodCommentFile = methodsFolder.resolve(methodName + DEPLOYMENT_SCHEMA_COMMENT_SUFFIX);
+
+										if (methodComment.equals("./" + schemaFolder.relativize(methodCommentFile).toString())) {
+
+											method.setComment((Files.exists(methodCommentFile)) ? new String(Files.readAllBytes(methodCommentFile)) : null);
 										}
 									}
 								}
@@ -2130,6 +2110,37 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	protected void writeSortedCompactJsonToFile (final Path target, final List<Map<String, Object>> objects, final AbstractMapComparator<Object> sortComparator) {
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+
+			if (sortComparator != null) {
+				objects.sort(sortComparator);
+			}
+
+			final Gson gson = new GsonBuilder().serializeNulls().create();
+
+			final StringBuilder sb = new StringBuilder("[");
+
+			List<String> jsonStrings = new LinkedList();
+
+			for (Map<String, Object> obj : objects) {
+				jsonStrings.add("\t" + gson.toJson(obj));
+			}
+
+			if (!jsonStrings.isEmpty()) {
+				sb.append("\n").append(String.join(",\n", jsonStrings)).append("\n");
+			}
+
+			sb.append("]");
+
+			fos.write(sb.toString());
+
+		} catch (IOException ioex) {
+			logger.warn("", ioex);
+		}
+	}
+
 	private boolean isTrue(final Object value) {
 
 		if (value != null) {
@@ -2197,12 +2208,5 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 			return o1.compareTo(o2);
 		}
-	}
-
-
-	public static void main(final String[] args) {
-
-		System.out.println(Float.valueOf("3.5-SNAPSHPOT"));
-		System.out.println(Float.valueOf("3.4.3"));
 	}
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -142,7 +142,7 @@ public class CacheExpression extends Expression {
 
 		final CachedValue cachedValue = (CachedValue)Services.getInstance().getAttribute(key);
 
-		if (cachedValue == null) {
+		if (cachedValue == null || cachedValue.isExpired()) {
 
 			return null;
 		}

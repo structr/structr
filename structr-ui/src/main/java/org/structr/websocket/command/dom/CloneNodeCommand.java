@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -23,8 +23,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
+import org.structr.websocket.command.CreateComponentCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
@@ -98,6 +100,17 @@ public class CloneNodeCommand extends AbstractCommand {
 			}
 
 			try {
+
+				if (parent != null) {
+
+					final boolean isShadowPage = ownerPage.equals(CreateComponentCommand.getOrCreateHiddenDocument());
+					final boolean isTemplate   = (parent instanceof Template);
+
+					if (isShadowPage && isTemplate && parent.getParent() == null) {
+						getWebSocket().send(MessageBuilder.status().code(422).message("Appending children to root-level shared component Templates is not allowed").build(), true);
+						return;
+					}
+				}
 
 				DOMNode clonedNode = (DOMNode) node.cloneNode(deep);
 

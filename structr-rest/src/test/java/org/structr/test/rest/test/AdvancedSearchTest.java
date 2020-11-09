@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -85,6 +85,8 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		String test22 = createEntity("/test_sixs", "{ name: test22, aString: string22, anInt: 22 }");
 
 		String test23 = createEntity("/test_eights", "{ name: test23, testSixIds: [", test21, ",", test22, "], aString: string23, anInt: 23 }");
+
+		Settings.CypherDebugLogging.setValue(true);
 
 		// test simple related search with one object,
 		// expected result is a list of two elements:
@@ -381,6 +383,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			.when()
 				.get(concat("/test_sixs?sort=name&testSevenName=&testEightStrings=string23&aString=string21&anInt=21"));
 
+		Settings.CypherDebugLogging.setValue(false);
 	}
 
 	@Test
@@ -430,23 +433,32 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			.when()
 				.get(concat("/test_sevens?sort=name&testSixs=", test01, ",", test06));
 
-		// test simple related search with two objects, AND,
-		// expected result is exactly one element
-		RestAssured
+		try {
 
-			.given()
-				.contentType("application/json; charset=UTF-8")
+			Settings.CypherDebugLogging.setValue(true);
 
-			.expect()
-				.statusCode(200)
+			// test simple related search with two objects, AND,
+			// expected result is exactly one element
+			RestAssured
 
-				.body("result",	      hasSize(1))
-				.body("result_count", equalTo(1))
+				.given()
+					.contentType("application/json; charset=UTF-8")
 
-				.body("result[0].id", equalTo(test09))
+				.expect()
+					.statusCode(200)
 
-			.when()
-				.get(concat("/test_sevens?sort=name&testSixs=", test01, ",", test02));
+					.body("result",	      hasSize(1))
+					.body("result_count", equalTo(1))
+
+					.body("result[0].id", equalTo(test09))
+
+				.when()
+					.get(concat("/test_sevens?sort=name&testSixs=", test01, ",", test02));
+
+		} finally {
+
+			Settings.CypherDebugLogging.setValue(false);
+		}
 
 		// test simple related search with two objects, OR
 		// expected result is a list of two elements:

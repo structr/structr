@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -31,6 +31,7 @@ import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
@@ -53,7 +54,12 @@ import org.structr.web.function.BarcodeFunction;
  */
 public class LoginResource extends FilterableResource {
 
-	private static final Logger logger = LoggerFactory.getLogger(LoginResource.class.getName());
+	protected static final Logger logger = LoggerFactory.getLogger(LoginResource.class.getName());
+	protected HttpServletRequest request;
+
+	public String getErrorMessage() {
+		return AuthHelper.STANDARD_ERROR_MSG;
+	}
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
@@ -61,7 +67,7 @@ public class LoginResource extends FilterableResource {
 		this.securityContext = securityContext;
 
 		if (getUriPart().equals(part)) {
-
+			this.request = request;
 			return true;
 		}
 
@@ -77,13 +83,15 @@ public class LoginResource extends FilterableResource {
 		final String twoFactorToken = (String) propertySet.get("twoFactorToken");
 		final String twoFactorCode  = (String) propertySet.get("twoFactorCode");
 
-		final String emailOrUsername = StringUtils.isNotEmpty(email) ? email : username;
+		String emailOrUsername = StringUtils.isNotEmpty(email) ? email : username;
 
-		Principal user = null;
+		if (StringUtils.contains(emailOrUsername, "@")) {
+			emailOrUsername = emailOrUsername.trim().toLowerCase();
+		}
+
 		RestMethodResult returnedMethodResult = null;
-
-		final SecurityContext ctx       = SecurityContext.getSuperUserInstance();
-		final App app                   = StructrApp.getInstance(ctx);
+		final SecurityContext ctx             = SecurityContext.getSuperUserInstance();
+		final App app                         = StructrApp.getInstance(ctx);
 
 		if (Settings.CallbacksOnLogin.getValue() == false) {
 			ctx.disableInnerCallbacks();
@@ -93,38 +101,12 @@ public class LoginResource extends FilterableResource {
 
 			try {
 
-				if (StringUtils.isNotEmpty(twoFactorToken)) {
-
-					user = AuthHelper.getUserForTwoFactorToken(twoFactorToken);
-
-				} else if (StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) {
-
-					user = securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
-				}
-
-				if (user != null) {
-
-					final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(securityContext.getRequest()));
-
-					if (twoFactorAuthenticationSuccessOrNotNecessary) {
-
-						AuthHelper.doLogin(securityContext.getRequest(), user);
-
-						logger.info("Login successful: {}", user);
-
-						user.setSecurityContext(securityContext);
-
-						// make logged in user available to caller
-						securityContext.setCachedUser(user);
-
-						returnedMethodResult = new RestMethodResult(200);
-						returnedMethodResult.addContent(user);
-					}
-				}
+				returnedMethodResult = getUserForCredentials(securityContext, emailOrUsername, password, twoFactorToken, twoFactorCode);
 
 			} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
 
-				returnedMethodResult = new RestMethodResult(401);
+				logger.info("Unable to login {}: {}", emailOrUsername, ex.getMessage());
+				returnedMethodResult = new RestMethodResult(401, ex.getMessage());
 				returnedMethodResult.addHeader("reason", ex.getReason());
 
 			} catch (TwoFactorAuthenticationRequiredException ex) {
@@ -137,7 +119,9 @@ public class LoginResource extends FilterableResource {
 
 					try {
 
+						final Principal user            = ex.getUser();
 						final Map<String, Object> hints = new HashMap();
+
 						hints.put("MARGIN", 0);
 						hints.put("ERROR_CORRECTION", "M");
 
@@ -150,12 +134,10 @@ public class LoginResource extends FilterableResource {
 
 				securityContext.getAuthenticator().doLogout(securityContext.getRequest());
 
-
 			} catch (AuthenticationException ae) {
 
 				logger.info("Invalid credentials for {}", emailOrUsername);
 				returnedMethodResult = new RestMethodResult(401, ae.getMessage());
-
 			}
 
 			tx.success();
@@ -163,7 +145,7 @@ public class LoginResource extends FilterableResource {
 
 		if (returnedMethodResult == null) {
 			// should not happen
-			throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
+			throw new AuthenticationException(getErrorMessage());
 		}
 
 		return returnedMethodResult;
@@ -207,5 +189,64 @@ public class LoginResource extends FilterableResource {
 	@Override
 	public boolean createPostTransaction() {
 		return false;
+	}
+
+	protected RestMethodResult getUserForCredentials(SecurityContext securityContext, String emailOrUsername, String password, String twoFactorToken, String twoFactorCode) throws FrameworkException {
+		
+		Principal user = null;
+
+		user = getUserForTwoFactorTokenOrEmailOrUsername(twoFactorToken, emailOrUsername, password);
+
+		if (user != null) {
+
+			final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(securityContext.getRequest()));
+
+			if (twoFactorAuthenticationSuccessOrNotNecessary) {
+
+				 return doLogin(securityContext, user);
+			}
+		}
+
+		return null;
+	}
+
+	protected Principal getUserForTwoFactorTokenOrEmailOrUsername(String twoFactorToken, String emailOrUsername, String password) throws FrameworkException {
+
+		Principal user = null;
+
+		if (StringUtils.isNotEmpty(twoFactorToken)) {
+
+			user = AuthHelper.getUserForTwoFactorToken(twoFactorToken);
+
+		} else if (StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) {
+
+			user = securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
+		}
+
+		return user;
+	}
+
+	protected RestMethodResult doLogin(SecurityContext securityContext, Principal user) throws FrameworkException {
+
+		AuthHelper.doLogin(securityContext.getRequest(), user);
+
+		logger.info("Login successful: {}", user);
+
+		RuntimeEventLog.login("Login successful", user.getUuid(), user.getName());
+
+		user.setSecurityContext(securityContext);
+
+		// make logged in user available to caller
+		securityContext.setCachedUser(user);
+
+		return createRestMethodResult(user);
+	}
+
+	protected RestMethodResult createRestMethodResult(Principal user) {
+
+		RestMethodResult  returnedMethodResult = new RestMethodResult(200);
+		returnedMethodResult.addContent(user);
+
+		return returnedMethodResult;
 	}
 }

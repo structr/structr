@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -54,14 +54,29 @@ public abstract class MQTTContext {
 		return connections.get(id);
 	}
 
+	public static void disconnect(String uuid) throws FrameworkException {
+
+		MQTTClientConnection con = getClientForId(uuid);
+
+		if(con != null){
+
+			connections.remove(uuid);
+			if (con.isConnected()) {
+				con.disconnect();
+			}
+		}
+	}
+
 	public static void disconnect(MQTTInfo info) throws FrameworkException {
 
 		MQTTClientConnection con = getClientForId(info.getUuid());
 
 		if(con != null){
 
-			con.disconnect();
 			connections.remove(info.getUuid());
+			if (con.isConnected()) {
+				con.disconnect();
+			}
 		}
 	}
 
@@ -125,8 +140,14 @@ public abstract class MQTTContext {
 					// enable clients on startup
 					if (client.getProperty(StructrApp.key(MQTTClient.class,"isEnabled"))) {
 
-						MQTTContext.connect(client);
-						MQTTContext.subscribeAllTopics(client);
+						try {
+
+							MQTTContext.connect(client);
+							MQTTContext.subscribeAllTopics(client);
+						} catch (FrameworkException ex) {
+
+							client.setProperty(StructrApp.key(MQTTClient.class, "isEnabled"), false);
+						}
 					}
 				}
 

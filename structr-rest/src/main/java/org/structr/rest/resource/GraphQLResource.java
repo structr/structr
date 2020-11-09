@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -74,11 +74,6 @@ public class GraphQLResource extends Resource {
 
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
-
-		System.out.println(propertySet);
-
-
 		throw new FrameworkException(500, "Not implemented");
 	}
-
 }

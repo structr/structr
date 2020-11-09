@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -34,7 +34,7 @@ import org.structr.core.property.PropertyMap;
  *
  * @param <T>
  */
-public abstract class LinkedListNodeImpl<T extends NodeInterface> extends ValidatedNode implements LinkedListNode<T> {
+public abstract class LinkedListNodeImpl<T extends NodeInterface> extends AbstractNode implements LinkedListNode<T> {
 
 	/**
 	 * Returns the predecessor of the given element in the list structure

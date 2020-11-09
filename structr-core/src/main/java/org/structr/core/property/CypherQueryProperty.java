@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -93,5 +93,11 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<Iterable<Graph
 	@Override
 	public SortType getSortType() {
 		return SortType.Default;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
 	}
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -148,6 +148,12 @@ public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 	public LowercaseStringProperty contentType(final String contentType) {
 		this.contentType = parse(contentType);
 		return this;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return "lowercase string example";
 	}
 
 	// ----- CMIS support -----

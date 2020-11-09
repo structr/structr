@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -109,7 +109,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public abstract boolean isRelationshipSearch();
 	public abstract Index<S> getIndex();
 
-	private ResultStream<T> doSearch() throws FrameworkException {
+	private ResultStream<T> doSearch(final String description) throws FrameworkException {
 
 		if (page == 0 || pageSize <= 0) {
 
@@ -118,18 +118,13 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		final Factory<S, T> factory  = getFactory(securityContext, includeHidden, publicOnly, pageSize, page);
 		final Principal user         = securityContext.getUser(false);
-		boolean hasGraphSources      = false;
-		boolean hasSpatialSource     = false;
+		final SearchConfig config    = new SearchConfig();
 
 		if (user == null) {
 
 			if (isRelationshipSearch()) {
 
 				rootGroup.add(new RelationshipVisibilitySearchAttribute());
-
-			} else {
-
-				rootGroup.add(new PropertySearchAttribute(GraphObject.visibleToPublicUsers, true, Occurrence.REQUIRED, true));
 			}
 
 		} else {
@@ -154,75 +149,14 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		// At this point, all search attributes are ready
 		final List<SourceSearchAttribute> sources    = new ArrayList<>();
-		boolean hasEmptySearchFields                 = false;
-		boolean hasRelationshipVisibilitySearch      = false;
 		Iterable indexHits                           = null;
 
-		// check for optional-only queries
-		// (some query types seem to allow no MUST occurs)
-		for (final Iterator<SearchAttribute> it = rootGroup.getSearchAttributes().iterator(); it.hasNext();) {
-
-			final SearchAttribute attr = it.next();
-
-			if (attr instanceof SearchAttributeGroup) {
-
-				// fixme: this needs to be done recursively, but how?
-				for (final Iterator<SearchAttribute> groupIterator = ((SearchAttributeGroup)attr).getSearchAttributes().iterator(); groupIterator.hasNext();) {
-
-					final SearchAttribute item = groupIterator.next();
-					if (item instanceof SourceSearchAttribute) {
-
-						sources.add((SourceSearchAttribute)item);
-
-						// remove attribute from filter list
-						groupIterator.remove();
-
-						hasGraphSources = true;
-
-					}
-
-					if (item instanceof EmptySearchAttribute) {
-						hasEmptySearchFields = true;
-					}
-				}
-			}
-
-			// check for distance search and initialize
-			if (attr instanceof DistanceSearchAttribute) {
-
-				final DistanceSearchAttribute distanceSearch = (DistanceSearchAttribute) attr;
-				if (distanceSearch.needsGeocding()) {
-
-					final GeoCodingResult coords = GeoHelper.geocode(distanceSearch);
-					if (coords != null) {
-
-						distanceSearch.setCoords(coords.toArray());
-					}
-				}
-
-				hasSpatialSource = true;
-			}
-
-			// store source attributes for later use
-			if (attr instanceof SourceSearchAttribute) {
-
-				sources.add((SourceSearchAttribute)attr);
-
-				hasGraphSources = true;
-			}
-
-			if (attr instanceof EmptySearchAttribute) {
-				hasEmptySearchFields = true;
-			}
-
-			if (attr instanceof RelationshipVisibilitySearchAttribute) {
-				hasRelationshipVisibilitySearch = true;
-			}
-		}
+		// resolve search attribute groups
+		handleSearchAttributeGroup(config, rootGroup, sources);
 
 		// only do "normal" query if no other sources are present
 		// use filters to filter sources otherwise
-		if (!hasSpatialSource && !sources.isEmpty()) {
+		if (!config.hasSpatialSource && !sources.isEmpty()) {
 
 			indexHits = new LinkedList<>();
 
@@ -238,7 +172,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			if (index != null) {
 
 				// paging needs to be done AFTER instantiating all nodes
-				if (hasEmptySearchFields || comparator != null) {
+				if (config.hasEmptySearchFields || comparator != null) {
 					factory.disablePaging();
 				}
 
@@ -254,12 +188,13 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 					Collections.sort(rawResult, comparator);
 
 					// return paging iterable
-					return new PagingIterable(rawResult, pageSize, page, queryContext.getSkipped());
+					return new PagingIterable(description, rawResult, pageSize, page, queryContext.getSkipped());
 				}
 			}
 		}
 
-		if (indexHits != null && (hasEmptySearchFields || hasGraphSources || hasSpatialSource || hasRelationshipVisibilitySearch)) {
+		//if (indexHits != null && (config.hasEmptySearchFields || config.hasGraphSources || config.hasSpatialSource || config.hasRelationshipVisibilitySearch)) {
+		if (indexHits != null && (config.hasGraphSources || config.hasSpatialSource || config.hasRelationshipVisibilitySearch)) {
 
 			// sorted result set
 			final Set<T> intermediateResultSet = new LinkedHashSet<>(Iterables.toList(indexHits));
@@ -269,12 +204,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			// If there was only a single source, the final result is the result of that source. If there are
 			// multiple sources, the result is the intersection of all the sources, depending on the occur flag.
 
-			if (hasGraphSources) {
+			if (config.hasGraphSources) {
 
 				// merge sources according to their occur flag
 				final Set<T> mergedSources = mergeSources(sources);
 
-				if (hasSpatialSource) {
+				if (config.hasSpatialSource) {
 
 					// CHM 2014-02-24: preserve sorting of intermediate result, might be sorted by distance which we cannot reproduce easily
 					intermediateResultSet.retainAll(mergedSources);
@@ -309,12 +244,63 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				Collections.sort(finalResult, sortOrder);
 			}
 
-			return new PagingIterable(finalResult, pageSize, page, queryContext.getSkipped());
+			return new PagingIterable(description, finalResult, pageSize, page, queryContext.getSkipped());
 
 		} else {
 
 			// no filtering
-			return new PagingIterable(indexHits, pageSize, page, queryContext.getSkipped());
+			return new PagingIterable(description, indexHits, pageSize, page, queryContext.getSkipped());
+		}
+	}
+
+	private void handleSearchAttributeGroup(final SearchConfig config, final SearchAttributeGroup group, final List<SourceSearchAttribute> sources) throws FrameworkException {
+
+		// check for optional-only queries
+		// (some query types seem to allow no MUST occurs)
+		for (final Iterator<SearchAttribute> it = group.getSearchAttributes().iterator(); it.hasNext();) {
+
+			final SearchAttribute attr = it.next();
+
+			if (attr instanceof SearchAttributeGroup) {
+
+				handleSearchAttributeGroup(config, (SearchAttributeGroup)attr, sources);
+			}
+
+			// check for distance search and initialize
+			if (attr instanceof DistanceSearchAttribute) {
+
+				final DistanceSearchAttribute distanceSearch = (DistanceSearchAttribute) attr;
+				if (distanceSearch.needsGeocding()) {
+
+					final GeoCodingResult coords = GeoHelper.geocode(distanceSearch);
+					if (coords != null) {
+
+						distanceSearch.setCoords(coords.toArray());
+					}
+				}
+
+				config.hasSpatialSource = true;
+			}
+
+			// store source attributes for later use
+			if (attr instanceof SourceSearchAttribute) {
+
+				sources.add((SourceSearchAttribute)attr);
+
+				config.hasGraphSources = true;
+			}
+
+			if (attr instanceof GraphSearchAttribute) {
+				config.hasGraphSources = true;
+			}
+
+			if (attr instanceof EmptySearchAttribute) {
+				config.hasEmptySearchFields = true;
+			}
+
+			if (attr instanceof RelationshipVisibilitySearchAttribute) {
+				config.hasRelationshipVisibilitySearch = true;
+			}
 		}
 	}
 
@@ -359,25 +345,23 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	@Override
 	public ResultStream<T> getResultStream() throws FrameworkException {
-		return doSearch();
+		return doSearch("getResultStream" + getQueryDescription());
 	}
 
 	@Override
 	public List<T> getAsList() throws FrameworkException {
-		return Iterables.toList(doSearch());
+		return Iterables.toList(doSearch("getAsList" + getQueryDescription()));
 	}
 
 	@Override
 	public T getFirst() throws FrameworkException {
 
-		final List<T> result = getAsList();
+		for (final T result : doSearch("getFirst" + getQueryDescription())) {
 
-		if (result.isEmpty()) {
-
-			return null;
+			return result;
 		}
 
-		return result.get(0);
+		return null;
 	}
 
 	// ----- builder methods -----
@@ -558,7 +542,20 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		assertPropertyIsIndexed(key);
 
-		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Occurrence.REQUIRED, value, exact, this));
+		return and(key, value, exact, Occurrence.REQUIRED);
+	}
+
+	@Override
+	public <P> org.structr.core.app.Query<T> and(final PropertyKey<P> key, final P value, final boolean exact, final Occurrence occur) {
+
+		if (GraphObject.id.equals(key)) {
+
+			this.doNotSort = false;
+		}
+
+		assertPropertyIsIndexed(key);
+
+		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, occur, value, exact, this));
 
 		return this;
 	}
@@ -638,7 +635,23 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> blank(final PropertyKey key) {
 
-		currentGroup.getSearchAttributes().add(new EmptySearchAttribute(key, null));
+		if (key.relatedType() != null) {
+
+			// related nodes
+			if (key.isCollection()) {
+
+				currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Occurrence.EXACT, Collections.EMPTY_LIST, true, this));
+
+			} else {
+
+				currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Occurrence.EXACT, null, true, this));
+			}
+
+		} else {
+
+			// everything else
+			currentGroup.getSearchAttributes().add(new EmptySearchAttribute(key, null));
+		}
 
 		assertPropertyIsIndexed(key);
 
@@ -720,23 +733,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public Predicate<GraphObject> toPredicate() {
 		return new AndPredicate(rootGroup.getSearchAttributes());
-	}
-
-	@Override
-	public Iterator<T> iterator() {
-
-		try {
-			return getAsList().iterator();
-
-		} catch (FrameworkException fex) {
-
-			// there is no way to handle this elegantly with the
-			// current Iterator<> interface, so we just have to
-			// drop the exception here, which is ugly ugly ugly. :(
-			logger.warn("", fex);
-		}
-
-		return null;
 	}
 
 	@Override
@@ -855,6 +851,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return this;
 	}
 
+	@Override
+	public void overrideFetchSize(final int fetchSizeForThisRequest) {
+		queryContext.overrideFetchSize(fetchSizeForThisRequest);
+	}
+
 	// ----- private methods ----
 	private void assertPropertyIsIndexed(final PropertyKey key) {
 
@@ -877,6 +878,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 	}
 
+	private String getQueryDescription() {
+
+		if (type != null) {
+
+			return "(" + type.getSimpleName() + ")";
+		}
+
+		return null;
+	}
+
 	// ----- nested classes -----
 	private class AndPredicate implements Predicate<GraphObject> {
 
@@ -888,14 +899,26 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				if (attr instanceof SearchAttributeGroup) {
 
-					for (final SearchAttribute groupAttr : ((SearchAttributeGroup)attr).getSearchAttributes()) {
-						// ignore type search attributes as the nodes will
-						// already have the correct type when arriving here
-						if (groupAttr instanceof TypeSearchAttribute) {
-							continue;
-						}
+					final SearchAttributeGroup group            = (SearchAttributeGroup)attr;
+					final List<SearchAttribute> groupAttributes = group.getSearchAttributes();
 
-						predicates.add(attr);
+					if (groupAttributes.isEmpty()) {
+
+						// empty group? check occur (might be a "NOT")
+
+
+					} else {
+
+						for (final SearchAttribute groupAttr : group.getSearchAttributes()) {
+
+							// ignore type search attributes as the nodes will
+							// already have the correct type when arriving here
+							if (groupAttr instanceof TypeSearchAttribute) {
+								continue;
+							}
+
+							predicates.add(attr);
+						}
 					}
 
 				} else {
@@ -926,4 +949,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 
+	private class SearchConfig {
+
+		public boolean hasGraphSources                 = false;
+		public boolean hasSpatialSource                = false;
+		public boolean hasEmptySearchFields            = false;
+		public boolean hasRelationshipVisibilitySearch = false;
+	}
 }

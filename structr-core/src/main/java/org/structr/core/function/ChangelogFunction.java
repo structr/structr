@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -23,6 +23,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.IOException;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -43,6 +47,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.property.EndNodeProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
@@ -224,6 +229,37 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 		return file;
 	}
 
+	public static SeekableByteChannel getWriterForChangeLogOnDisk(final String typeFolderName, final String uuid, final boolean create) {
+
+		final String changelogPath    = Settings.ChangelogPath.getValue();
+		final String uuidPath         = getDirectoryPath(uuid);
+		final java.nio.file.Path path = Paths.get(changelogPath, typeFolderName, uuidPath, uuid);
+
+		try {
+
+			// create parent directory tree
+			Files.createDirectories(path.getParent());
+
+			// create file only if requested
+			if (create) {
+
+				if (!Files.exists(path)) {
+
+					Files.createFile(path);
+				}
+			}
+
+			//return Files.newBufferedWriter(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
+			return Files.newByteChannel(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
+
+		} catch (IOException ioex) {
+
+			logger.error("Unable to create changelog file {}: {}", path.toString(), ioex.getMessage());
+		}
+
+		return null;
+	}
+
 	static String getDirectoryPath(final String uuid) {
 
 		return (uuid != null)
@@ -269,6 +305,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 		private final Property<String>  changelog_key                         = new StringProperty("key");
 		private final Property<String>  changelog_prev                        = new StringProperty("prev");
 		private final Property<String>  changelog_val                         = new StringProperty("val");
+		private final Property<String>  changelog_type                        = new StringProperty("type");
 
 		public void setIsUserCentricChangelog(final boolean userCentric) {
 			_isUserCentricChangelog = userCentric;
@@ -335,7 +372,6 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 			assignStringsIfPresent(javascriptConfigObject.get("target"), _filterTarget);
 			assignStringsIfPresent(javascriptConfigObject.get("key"), _filterKey);
-
 		}
 
 		private void assignLongIfPresent (final Object possibleLong, Long targetLongReference) {
@@ -365,8 +401,8 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 			final List list = new ArrayList();
 
 			_noFilterConfig = (
-					_filterVerbs.isEmpty() && _filterTimeFrom == null && _filterTimeTo == null && _filterUserId.isEmpty() &&
-					_filterUserName.isEmpty() && _filterRelType.isEmpty() && _filterRelDir == null && _filterTarget.isEmpty() && _filterKey.isEmpty()
+				_filterVerbs.isEmpty() && _filterTimeFrom == null && _filterTimeTo == null && _filterUserId.isEmpty() &&
+				_filterUserName.isEmpty() && _filterRelType.isEmpty() && _filterRelDir == null && _filterTarget.isEmpty() && _filterKey.isEmpty()
 			);
 
 			for (final String entry : changelog.split("\n")) {
@@ -381,6 +417,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 				final String relDir   = (jsonObj.has("relDir") ? jsonObj.get("relDir").getAsString() : null);
 				final String target   = (jsonObj.has("target") ? jsonObj.get("target").getAsString() : null);
 				final String key      = (jsonObj.has("key") ? jsonObj.get("key").getAsString() : null);
+				final String type     = (jsonObj.has("type") ? jsonObj.get("type").getAsString() : null);
 
 				if (doesFilterApply(verb, time, userId, userName, relType, relDir, target, key)) {
 
@@ -398,10 +435,14 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 						case "create":
 						case "delete":
 							obj.put(changelog_target, target);
+							obj.put(changelog_type, type);
+
 							if (_resolveTargets) {
-								obj.put(changelog_targetObj, _app.getNodeById(target));
+								obj.put(changelog_targetObj, resolveTarget(target));
 							}
+
 							list.add(obj);
+
 							break;
 
 						case "link":
@@ -410,10 +451,13 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 							obj.put(changelog_relId, relId);
 							obj.put(changelog_relDir, relDir);
 							obj.put(changelog_target, target);
+
 							if (_resolveTargets) {
-								obj.put(changelog_targetObj, _app.getNodeById(target));
+								obj.put(changelog_targetObj, resolveTarget(target));
 							}
+
 							list.add(obj);
+
 							break;
 
 						case "change":
@@ -421,12 +465,16 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 							obj.put(changelog_prev, _gson.toJson(jsonObj.get("prev")));
 							obj.put(changelog_val, _gson.toJson(jsonObj.get("val")));
 
-							obj.put(changelog_target, target);
-							if (_resolveTargets) {
-								obj.put(changelog_targetObj, _app.getNodeById(target));
+							if (_isUserCentricChangelog) {
+
+								obj.put(changelog_target, target);
+								if (_resolveTargets) {
+									obj.put(changelog_targetObj, resolveTarget(target));
+								}
 							}
 
 							list.add(obj);
+
 							break;
 
 						default:
@@ -437,6 +485,17 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 			}
 
 			return list;
+		}
+
+		private Object resolveTarget(final String targetId) throws FrameworkException {
+
+			if (Principal.SUPERUSER_ID.equals(targetId)) {
+				return null;
+			} else if (Principal.ANONYMOUS.equals(targetId)) {
+				return null;
+			}
+
+			return _app.getNodeById(targetId);
 		}
 
 		public boolean doesFilterApply (final String verb, final long time, final String userId, final String userName, final String relType, final String relDir, final String target, final String key) {

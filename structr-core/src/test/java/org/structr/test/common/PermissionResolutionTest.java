@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -31,8 +31,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
+import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeAttribute;
@@ -423,6 +425,116 @@ public class PermissionResolutionTest extends StructrTest {
 		testGranted(projectType, new boolean[] { false, false, false, false });
 	}
 
+	@Test
+	public void testSchemaGrants() {
+
+		cleanDatabaseAndSchema();
+
+		final App app    = StructrApp.getInstance();
+		String uuid      = null;
+
+		try (final Tx tx = app.tx()) {
+
+			// create schema setup with permission propagation
+			app.create(SchemaNode.class, "Project");
+			app.create(Principal.class, "tester");
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// setup 2 - schema grant
+		try (final Tx tx = app.tx()) {
+
+			final Group testGroup1 = app.create(Group.class, "Group1");
+			final Group testGroup2 = app.create(Group.class, "Group2");
+			final Group testGroup3 = app.create(Group.class, "Group3");
+			final Principal tester = app.nodeQuery(Principal.class).andName("tester").getFirst();
+
+			// create group hierarchy for test user
+			testGroup1.addMember(securityContext, testGroup2);
+			testGroup2.addMember(securityContext, testGroup3);
+			testGroup3.addMember(securityContext, tester);
+
+			// create grant
+			final SchemaNode projectNode = app.nodeQuery(SchemaNode.class).andName("Project").getFirst();
+			final SchemaGrant grant      = app.create(SchemaGrant.class,
+				new NodeAttribute<>(SchemaGrant.schemaNode,          projectNode),
+				new NodeAttribute<>(SchemaGrant.principal,           testGroup1),
+				new NodeAttribute<>(SchemaGrant.allowRead,           false),
+				new NodeAttribute<>(SchemaGrant.allowWrite,          false),
+				new NodeAttribute<>(SchemaGrant.allowDelete,         false),
+				new NodeAttribute<>(SchemaGrant.allowAccessControl,  false)
+			);
+
+			uuid = grant.getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+
+		try (final Tx tx = app.tx()) {
+
+			final Principal tester = app.nodeQuery(Principal.class).andName("tester").getFirst();
+
+			app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project1"), new NodeAttribute<>(AbstractNode.owner, tester));
+			app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project2"));
+			app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project3"));
+			app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project4"));
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		testGranted(projectType, new boolean[] { false, false, false, false });
+		configureSchemaGrant(uuid, SchemaGrant.allowRead, true);
+		testGranted(projectType, new boolean[] { true, false, false, false });
+		configureSchemaGrant(uuid, SchemaGrant.allowWrite, true);
+		testGranted(projectType, new boolean[] { true, true, false, false });
+		configureSchemaGrant(uuid, SchemaGrant.allowDelete, true);
+		testGranted(projectType, new boolean[] { true, true, true, false });
+		configureSchemaGrant(uuid, SchemaGrant.allowAccessControl, true);
+		testGranted(projectType, new boolean[] { true, true, true, true });
+
+		configureSchemaGrant(uuid, SchemaGrant.allowRead, false);
+		testGranted(projectType, new boolean[] { false, true, true, true });
+		configureSchemaGrant(uuid, SchemaGrant.allowWrite, false);
+		testGranted(projectType, new boolean[] { false, false, true, true });
+		configureSchemaGrant(uuid, SchemaGrant.allowDelete, false);
+		testGranted(projectType, new boolean[] { false, false, false, true });
+		configureSchemaGrant(uuid, SchemaGrant.allowAccessControl, false);
+		testGranted(projectType, new boolean[] { false, false, false, false });
+
+		// allow all, but remove group link
+		configureSchemaGrant(uuid, SchemaGrant.allowRead, true);
+		configureSchemaGrant(uuid, SchemaGrant.allowWrite, true);
+		configureSchemaGrant(uuid, SchemaGrant.allowDelete, true);
+		configureSchemaGrant(uuid, SchemaGrant.allowAccessControl, true);
+
+		try (final Tx tx = app.tx()) {
+
+			// delete Group2 which links tester to granted Group1
+			app.delete(app.nodeQuery(Group.class).andName("Group2").getFirst());
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		testGranted(projectType, new boolean[] { false, false, false, false });
+	}
+
 	public static void clearResourceAccess() {
 
 		final App app = StructrApp.getInstance();
@@ -460,33 +572,50 @@ public class PermissionResolutionTest extends StructrTest {
 		}
 	}
 
+	private void configureSchemaGrant(final String uuid, final PropertyKey key, final boolean value) {
+
+		// enable permission resolution
+		try (final Tx tx = app.tx()) {
+
+			final SchemaGrant grant = app.get(SchemaGrant.class, uuid);
+
+			grant.setProperty(key, value);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
 	private void testGranted(final Class projectType, final boolean[] expected) {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester            = app.nodeQuery(Principal.class).getFirst();
+			final Principal tester            = app.nodeQuery(Principal.class).andName("tester").getFirst();
 			final SecurityContext userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
 			final List<NodeInterface> result  = app.nodeQuery(projectType).sort(AbstractNode.name).getAsList();
 
-			assertEquals("Invalid permission resolution precondition",  true, result.get(0).isGranted(Permission.read,          userContext));
-			assertEquals("Invalid permission resolution precondition",  true, result.get(0).isGranted(Permission.write,         userContext));
-			assertEquals("Invalid permission resolution precondition",  true, result.get(0).isGranted(Permission.delete,        userContext));
-			assertEquals("Invalid permission resolution precondition",  true, result.get(0).isGranted(Permission.accessControl, userContext));
+			assertEquals("Invalid permission resolution result",  true, result.get(0).isGranted(Permission.read,          userContext));
+			assertEquals("Invalid permission resolution result",  true, result.get(0).isGranted(Permission.write,         userContext));
+			assertEquals("Invalid permission resolution result",  true, result.get(0).isGranted(Permission.delete,        userContext));
+			assertEquals("Invalid permission resolution result",  true, result.get(0).isGranted(Permission.accessControl, userContext));
 
-			assertEquals("Invalid permission resolution precondition",  expected[0], result.get(1).isGranted(Permission.read,          userContext));
-			assertEquals("Invalid permission resolution precondition",  expected[1], result.get(1).isGranted(Permission.write,         userContext));
-			assertEquals("Invalid permission resolution precondition",  expected[2], result.get(1).isGranted(Permission.delete,        userContext));
-			assertEquals("Invalid permission resolution precondition",  expected[3], result.get(1).isGranted(Permission.accessControl, userContext));
+			assertEquals("Invalid permission resolution result",  expected[0], result.get(1).isGranted(Permission.read,          userContext));
+			assertEquals("Invalid permission resolution result",  expected[1], result.get(1).isGranted(Permission.write,         userContext));
+			assertEquals("Invalid permission resolution result",  expected[2], result.get(1).isGranted(Permission.delete,        userContext));
+			assertEquals("Invalid permission resolution result",  expected[3], result.get(1).isGranted(Permission.accessControl, userContext));
 
-			assertEquals("Invalid permission resolution precondition",  expected[0], result.get(2).isGranted(Permission.read,          userContext));
-			assertEquals("Invalid permission resolution precondition",  expected[1], result.get(2).isGranted(Permission.write,         userContext));
-			assertEquals("Invalid permission resolution precondition",  expected[2], result.get(2).isGranted(Permission.delete,        userContext));
-			assertEquals("Invalid permission resolution precondition",  expected[3], result.get(2).isGranted(Permission.accessControl, userContext));
+			assertEquals("Invalid permission resolution result",  expected[0], result.get(2).isGranted(Permission.read,          userContext));
+			assertEquals("Invalid permission resolution result",  expected[1], result.get(2).isGranted(Permission.write,         userContext));
+			assertEquals("Invalid permission resolution result",  expected[2], result.get(2).isGranted(Permission.delete,        userContext));
+			assertEquals("Invalid permission resolution result",  expected[3], result.get(2).isGranted(Permission.accessControl, userContext));
 
-			assertEquals("Invalid permission resolution precondition",  expected[0], result.get(3).isGranted(Permission.read,          userContext));
-			assertEquals("Invalid permission resolution precondition",  expected[1], result.get(3).isGranted(Permission.write,         userContext));
-			assertEquals("Invalid permission resolution precondition",  expected[2], result.get(3).isGranted(Permission.delete,        userContext));
-			assertEquals("Invalid permission resolution precondition",  expected[3], result.get(3).isGranted(Permission.accessControl, userContext));
+			assertEquals("Invalid permission resolution result",  expected[0], result.get(3).isGranted(Permission.read,          userContext));
+			assertEquals("Invalid permission resolution result",  expected[1], result.get(3).isGranted(Permission.write,         userContext));
+			assertEquals("Invalid permission resolution result",  expected[2], result.get(3).isGranted(Permission.delete,        userContext));
+			assertEquals("Invalid permission resolution result",  expected[3], result.get(3).isGranted(Permission.accessControl, userContext));
 
 			tx.success();
 

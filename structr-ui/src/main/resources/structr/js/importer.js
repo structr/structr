@@ -63,6 +63,21 @@ var Importer = {
 				Importer.updateJobTable();
 			});
 
+			$('#cancel-all-queued-after').click(function () {
+
+				let jobId = parseInt($('#cancel-all-queued-after-job-id').val());
+
+				if (isNaN(jobId)) {
+					new MessageBuilder().warning("Unable to parse job id").show();
+				} else {
+					Command.fileImport('cancelAllAfter', jobId, () => {
+
+						$('#cancel-all-queued-after-job-id').val('');
+						Importer.updateJobTable();
+					});
+				}
+			});
+
 			let showNotifications = Importer.isShowNotifications();
 
 			let showNotificationsCheckbox = document.querySelector('#importer-show-notifications');

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -205,7 +205,7 @@ public class LogResource extends Resource {
 				overviewMap.put(firstEntryProperty, new Date(logState.beginTimestamp()));
 				overviewMap.put(lastEntryProperty, new Date(logState.endTimestamp()));
 
-				return new PagingIterable<>(Arrays.asList(overviewMap));
+				return new PagingIterable<>("/" + getUriPart(), Arrays.asList(overviewMap));
 
 			} else if (logState.doHistogram()) {
 
@@ -222,7 +222,7 @@ public class LogResource extends Resource {
 				// sort result
 				logState.sortEntries();
 
-				return new PagingIterable<>(wrap(logState.entries()));
+				return new PagingIterable<>("/" + getUriPart(), wrap(logState.entries()));
 				//return new ResultStream(wrap(logState.entries()), true, false);
 			}
 		}
@@ -418,10 +418,6 @@ public class LogResource extends Resource {
 
 		for (final LogEvent event : result) {
 
-			if ((++count % 100000) == 0) {
-				System.out.println(count);
-			}
-
 			final String pathSubjectId = state.inverse() ? event.getObjectId() : event.getSubjectId();
 			final String pathObjectId  = state.inverse() ? event.getSubjectId() : event.getObjectId();
 			final long timestamp       = event.getTimestamp();
@@ -508,7 +504,7 @@ public class LogResource extends Resource {
 
 		} else {
 
-			System.out.println("Skipping entry " + fileName);
+			logger.warn("Skipping entry {}", fileName);
 		}
 
 		return count;
@@ -578,7 +574,7 @@ public class LogResource extends Resource {
 			result.put(new GenericProperty(Long.toString(current)), sum);
 		}
 
-		return new PagingIterable<>(Arrays.asList(result));
+		return new PagingIterable<>("/" + getUriPart(), Arrays.asList(result));
 	}
 
 	private ResultStream histogram(final LogState state) throws FrameworkException {
@@ -630,7 +626,7 @@ public class LogResource extends Resource {
 			result.put(new GenericProperty(Long.toString(current)), sum);
 		}
 
-		return new PagingIterable<>(Arrays.asList(result));
+		return new PagingIterable<>("/" + getUriPart(), Arrays.asList(result));
 	}
 
 	private long alignDateOnFormat(final String dateFormat, final long timestamp) {

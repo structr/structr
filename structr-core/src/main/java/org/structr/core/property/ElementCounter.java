@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -105,6 +105,12 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 	@Override
 	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
 		return new InputConverter(securityContext);
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
 	}
 
 	protected class InputConverter extends PropertyConverter<Object, Integer> {

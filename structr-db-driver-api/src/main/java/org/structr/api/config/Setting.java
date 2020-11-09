@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -19,8 +19,6 @@
 package org.structr.api.config;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
 
@@ -28,8 +26,6 @@ import org.structr.api.util.html.Tag;
  * A configuration setting with a key and a type.
  */
 public abstract class Setting<T> {
-
-	private static final Logger logger = LoggerFactory.getLogger(Setting.class);
 
 	protected SettingsGroup group = null;
 	protected boolean isDynamic   = false;

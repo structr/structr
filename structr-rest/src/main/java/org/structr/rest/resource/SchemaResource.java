@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -226,7 +226,7 @@ public class SchemaResource extends Resource {
 
 		}
 
-		return new PagingIterable<>(resultList);
+		return new PagingIterable<>("/_schema", resultList);
 
 	}
 

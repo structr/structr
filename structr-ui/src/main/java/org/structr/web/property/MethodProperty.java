@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -20,6 +20,9 @@ package org.structr.web.property;
 
 import java.lang.reflect.Method;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -29,6 +32,8 @@ import org.structr.core.property.AbstractReadOnlyProperty;
 /**
  */
 public class MethodProperty extends AbstractReadOnlyProperty<Object> {
+
+	private static final Logger logger = LoggerFactory.getLogger(MethodProperty.class);
 
 	private Method method = null;
 
@@ -66,7 +71,7 @@ public class MethodProperty extends AbstractReadOnlyProperty<Object> {
 				return method.invoke(obj);
 
 			} catch (Throwable t) {
-				t.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(t));
 			}
 		}
 
@@ -101,9 +106,15 @@ public class MethodProperty extends AbstractReadOnlyProperty<Object> {
 					this.method      = type.getMethod(methodName);
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.error(ExceptionUtils.getStackTrace(t));
 				}
 			}
 		}
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
 	}
 }

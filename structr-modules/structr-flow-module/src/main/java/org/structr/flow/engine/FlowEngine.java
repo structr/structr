@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -32,6 +32,9 @@ import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.impl.FlowExceptionHandler;
 
 public class FlowEngine {
+
+	private static final Logger logger = LoggerFactory.getLogger(FlowEngine.class);
+	
 	private final Map<FlowType, FlowHandler> handlers 	= new EnumMap<>(FlowType.class);
 	private Context context                           	= null;
 
@@ -89,7 +92,7 @@ public class FlowEngine {
 
 			} else {
 
-				System.out.println("No handler registered for type " + current.getFlowType() + ", aborting.");
+				logger.warn("No handler registered for type {}, aborting.", current.getFlowType());
 
 			}
 
@@ -114,13 +117,16 @@ public class FlowEngine {
 		handlers.put(FlowType.Exception, 	new ExceptionHandler());
 		handlers.put(FlowType.Filter,		new FilterHandler());
 		handlers.put(FlowType.Fork,			new ForkHandler());
+		handlers.put(FlowType.Switch,       new SwitchHandler());
 	}
 
 	private FlowResult handleException(final Context context, final FlowException exception, final FlowElement current) {
-		// Check if current element has a linked FlowExceptionHandler or if there is a global one
-		if (current instanceof ThrowingElement) {
+		ThrowingElement throwingElement = exception.getThrowingElement();
 
-			FlowExceptionHandler exceptionHandler = ((ThrowingElement)current).getExceptionHandler(context);
+		// Check if throwing element has a linked FlowExceptionHandler or if there is a global one
+		if (throwingElement != null) {
+
+			FlowExceptionHandler exceptionHandler = throwingElement.getExceptionHandler(context);
 
 			if (exceptionHandler != null) {
 

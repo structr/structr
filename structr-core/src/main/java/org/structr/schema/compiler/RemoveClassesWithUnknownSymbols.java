@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -47,7 +47,7 @@ public class RemoveClassesWithUnknownSymbols implements MigrationHandler {
 			final Matcher matcher = PATTERN.matcher(detail);
 			if (matcher.matches()) {
 
-				System.out.println(errorToken.toJSON());
+				logger.warn(errorToken.toJSON().getAsString());
 
 				/*
 

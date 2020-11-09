@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -81,7 +81,7 @@ public class RelationshipNodeResource extends WrappingResource {
 					}
 				}
 
-				return new PagingIterable<>(resultList, pageSize, page);
+				return new PagingIterable<>("/" + getUriPart(), resultList, pageSize, page);
 
 			} catch(Throwable t) {
 

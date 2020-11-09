@@ -29,8 +29,6 @@ var _Entities = {
 	collectionPropertiesResultCount: {},
 	changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
 
-		_Logger.log(_LogType.ENTITIES, 'Change boolean attribute ', attrElement, ' to ', value);
-
 		if (value === true) {
 			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html('<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' + (activeLabel ? ' ' + activeLabel : ''));
 		} else {
@@ -40,8 +38,6 @@ var _Entities = {
 	},
 	reloadChildren: function(id) {
 		var el = Structr.node(id);
-
-		_Logger.log(_LogType.ENTITIES, 'reloadChildren', el);
 
 		$(el).children('.node').remove();
 		_Entities.resetMouseOverState(el);
@@ -131,32 +127,50 @@ var _Entities = {
 	},
 	dataBindingDialog: function(entity, el, typeInfo) {
 
-		el.append('<table class="props"></table>');
-		var t = $('.props', el);
+		el.append('<h3>Simple Interactive Elements</h3>');
+		el.append('<table class="props" id="new-data-binding-properties"></table>');
+		var tNew = $('#new-data-binding-properties', el);
 
-		// General
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-id',                   'Element ID', typeInfo);
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-attr',                 'Attribute Key', typeInfo);
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-type',                 'Data type', typeInfo);
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-placeholder',          'Placeholder text', typeInfo);
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-custom-options-query', 'Custom REST query', typeInfo);
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-options-key',          'Options attribute key', typeInfo);
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-raw-value',            'Raw value', typeInfo);
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-hide',                 'Hide mode(s)', typeInfo);
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-edit-class',           'Edit mode CSS class', typeInfo);
+		_Entities.appendRowWithInputField(entity, tNew, 'eventMapping',                    'Event mapping',     typeInfo);
+		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-target',             'Event target',      typeInfo);
+		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-reload-target',      'Reload target',     typeInfo);
+		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-tree-children',      'Tree children key', typeInfo);
 
 		if (entity.type === 'Button' || entity.type === 'A') {
 
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-action',           'Action', typeInfo);
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-attributes',       'Attributes', typeInfo);
-			_Entities.appendRowWithBooleanSwitch(entity, t, 'data-structr-reload',        'Reload', '', typeInfo);
-			_Entities.appendRowWithBooleanSwitch(entity, t, 'data-structr-confirm',       'Confirm action?', '', typeInfo);
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-return',           'Return URI', typeInfo);
-			_Entities.appendRowWithBooleanSwitch(entity, t, 'data-structr-append-id',     'Append ID on create', '', typeInfo);
+			el.append('<h4>You can specify the data fields for create and update using data-Attributes like this:</h4>');
+			el.append('<pre>data-name        = css(input#name-input)\ndata-description = css(input#description-input)\ndata-parent      = json({ id: "5c6214fde6db45d09df027b16a0d6c0e" })</pre>');
+			el.append('<h4>Which will produce the following JSON payload:</h4>');
+			el.append('<pre>{\n    name: "&lt;value from input#name-input&gt;",\n    description: "&lt;value from input#description-input&gt;",\n    parent: {\n        id: "5c6214fde6db45d09df027b16a0d6c0e"\n    }\n}\n</p>');
+		}
+
+		el.append('<h3>Deprecated Edit Mode Binding</h3>');
+		el.append('<table class="props" id="deprecated-data-binding-properties"></table>');
+		var tOld = $('#deprecated-data-binding-properties', el);
+
+		// General
+		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-id',                   'Element ID', typeInfo);
+		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-attr',                 'Attribute Key', typeInfo);
+		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-type',                 'Data type', typeInfo);
+		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-placeholder',          'Placeholder text', typeInfo);
+		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-custom-options-query', 'Custom REST query', typeInfo);
+		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-options-key',          'Options attribute key', typeInfo);
+		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-raw-value',            'Raw value', typeInfo);
+		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-hide',                 'Hide mode(s)', typeInfo);
+		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-edit-class',           'Edit mode CSS class', typeInfo);
+
+		if (entity.type === 'Button' || entity.type === 'A') {
+
+			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-action',           'Action', typeInfo);
+			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-attributes',       'Attributes', typeInfo);
+			_Entities.appendRowWithBooleanSwitch(entity, tOld, 'data-structr-reload',        'Reload', '', typeInfo);
+			_Entities.appendRowWithBooleanSwitch(entity, tOld, 'data-structr-confirm',       'Confirm action?', '', typeInfo);
+			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-return',           'Return URI', typeInfo);
+			_Entities.appendRowWithBooleanSwitch(entity, tOld, 'data-structr-append-id',     'Append ID on create', '', typeInfo);
 
 		} else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-name',             'Field name', typeInfo);
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-format',           'Custom Format', typeInfo);
+			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-name',             'Field name', typeInfo);
+			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-format',           'Custom Format', typeInfo);
 		}
 	},
 	appendRowWithInputField: function(entity, el, key, label, typeInfo) {
@@ -201,7 +215,7 @@ var _Entities = {
 		var queryTypes = [
 			{ title: 'REST Query',     propertyName: 'restQuery' },
 			{ title: 'Cypher Query',   propertyName: 'cypherQuery' },
-			{ title: 'XPath Query',    propertyName: 'xpathQuery' },
+//			{ title: 'XPath Query',    propertyName: 'xpathQuery' },
 			{ title: 'Function Query', propertyName: 'functionQuery' }
 		];
 
@@ -321,11 +335,11 @@ var _Entities = {
 		};
 
 		if (Structr.isModulePresent('flows')) {
-			
+
 			if (flowSelector && flowSelector.length) {
 				flowSelector.remove();
 			}
-			
+
 			flowSelector = $('<select class="hidden" id="flow-selector"></select>').insertBefore(textArea);
 
 			flowSelector.append('<option>--- Select Flow ---</option>');
@@ -367,9 +381,7 @@ var _Entities = {
 	editSource: function(entity) {
 
 		Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function () {
-			_Logger.log(_LogType.ENTITIES, 'Element source saved');
 		}, function () {
-			_Logger.log(_LogType.ENTITIES, 'cancelled');
 		});
 
 		// Get content in widget mode
@@ -1250,7 +1262,7 @@ var _Entities = {
 						}
 
 						var displayName = node.title || node.name || node.id;
-						box.append('<div title="' + displayName + '" " class="_' + node.id + ' node element">' + fitStringToWidth(displayName, 120) + '</div>');
+						box.append('<div title="' + escapeForHtmlAttributes(displayName) + '" " class="_' + node.id + ' node element abbr-ellipsis abbr-120">' + displayName + '</div>');
 						$('._' + node.id, box).on('click', function() {
 
 							var nodeEl = $(this);
@@ -1274,10 +1286,8 @@ var _Entities = {
 									dialogCancelButton.click();
 								});
 							}
-
 						});
 					});
-
 				};
 
 				if (searchString.trim() === '*') {
@@ -1285,7 +1295,6 @@ var _Entities = {
 				} else {
 					Command.search(searchString, type, false, resultHandler);
 				}
-
 
 			} else if (e.keyCode === 27) {
 
@@ -1376,7 +1385,7 @@ var _Entities = {
 	},
 	appendRelatedNode: function(cell, node, onDelete) {
 		var displayName = _Crud.displayName(node);
-		cell.append('<div title="' + displayName + '" class="_' + node.id + ' node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
+		cell.append('<div title="' + escapeForHtmlAttributes(displayName) + '" class="_' + node.id + ' node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_"><span class="abbr-ellipsis abbr-80">' + displayName + '</span><i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 		var nodeEl = $('._' + node.id, cell);
 
 		nodeEl.on('click', function(e) {
@@ -1422,9 +1431,6 @@ var _Entities = {
 			});
 
 			input.off('focusout').on('focusout', function() {
-				_Logger.log(_LogType.ENTITIES, 'relId', relId);
-				_Logger.log(_LogType.ENTITIES, 'set properties of obj', objId);
-
 				_Entities.saveValue(input, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback);
 
 				input.removeClass('active');
@@ -1462,7 +1468,6 @@ var _Entities = {
 		var isPassword = input.prop('type') === 'password';
 		if (input.data('changed')) {
 			input.data('changed', false);
-			_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
 			_Entities.setProperty(objId, key, val, false, function(newVal) {
 				if (isPassword || (newVal !== oldVal)) {
 					blinkGreen(input);
@@ -1495,7 +1500,6 @@ var _Entities = {
 
 		var val = _Entities.getArrayValue(key, cell);
 
-		_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
 		_Entities.setProperty(objId, key, val, false, function(newVal) {
 			if (newVal !== oldVal) {
 				blinkGreen(cell);
@@ -1525,14 +1529,10 @@ var _Entities = {
 		var isProtected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
 
 		var keyIcon = $('.key_icon', parent);
-		var newKeyIcon = '<i title="Access Control and Visibility" class="key_icon button ' + _Icons.getFullSpriteClass(_Icons.key_icon) + '" />';
 		if (!(keyIcon && keyIcon.length)) {
-			parent.append(newKeyIcon);
-			keyIcon = $('.key_icon', parent);
-			if (isProtected) {
-				keyIcon.show();
-				keyIcon.addClass('donthide');
-			}
+
+			keyIcon = $('<i title="Access Control and Visibility" class="key_icon button ' + (isProtected ? 'donthide ' : '') + _Icons.getFullSpriteClass(_Icons.key_icon) + '" ' + (isProtected ? 'style="display: inline-block;"' : '') + '/>');
+			parent.append(keyIcon);
 
 			_Entities.bindAccessControl(keyIcon, entity);
 		}
@@ -1550,48 +1550,8 @@ var _Entities = {
 
 		var handleGraphObject = function(entity) {
 
-			var owner_select_id = 'owner_select_' + id;
+			let owner_select_id = 'owner_select_' + id;
 			el.append('<h3>Owner</h3><div><select id="' + owner_select_id + '"></select></div>');
-			var owner_select = $('#' + owner_select_id, el);
-
-			if (entity.owner) {
-				owner_select.append('<option value="' + entity.owner.id + '" selected="selected">' + entity.owner.name + '</option>');
-			}
-
-			owner_select.select2({
-				placeholder: 'Search user',
-				minimumInputLength: 2,
-				width: '300px',
-				style:"text-align:left;",
-				ajax: {
-					url: '/structr/rest/User',
-					dataType: 'json',
-					data: function (params) {
-						//console.log(params);
-						return {
-							name: params.term,
-							loose: 1
-						};
-					},
-					processResults: function (data) {
-						return {
-							results: data.result.map(function(item) {
-								return {
-									id: item.id,
-									text: item.name
-								};
-							})
-						};
-					}
-				},
-				dropdownParent: $('.blockPage')
-			}).on('select2:select', function (e) {
-				var data = e.params.data;
-				Command.setProperty(id, 'owner', data.id, false, function() {
-					blinkGreen(owner_select.parent());
-				});
-			});
-
 			el.append('<h3>Visibility</h3>');
 
 			let allowRecursive = (entity.type === 'Template' || entity.isFolder || (Structr.isModuleActive(_Pages) && !(entity.isContent)));
@@ -1607,7 +1567,7 @@ var _Entities = {
 			el.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th>' + (allowRecursive ? '<th></th>' : '') + '</tr></thead><tbody></tbody></table');
 
 			var tb = $('#principals tbody', el);
-			tb.append('<tr id="new"><td><select style="z-index: 999" id="newPrincipal"></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td>' + (allowRecursive ? '<td></td>' : '') + '</tr>');
+			tb.append('<tr id="new"><td><select style="z-index: 999" id="newPrincipal"><option></option></select></td><td></td><td></td><td></td><td></td>' + (allowRecursive ? '<td></td>' : '') + '</tr>');
 
 			$.ajax({
 				url: rootUrl + '/' + entity.id + '/in',
@@ -1615,68 +1575,125 @@ var _Entities = {
 				contentType: 'application/json; charset=utf-8',
 				success: function(data) {
 
-					$(data.result).each(function(i, result) {
+					for (let result of data.result) {
 
-						var permissions = {
-							'read': isIn('read', result.allowed),
-							'write': isIn('write', result.allowed),
-							'delete': isIn('delete', result.allowed),
-							'accessControl': isIn('accessControl', result.allowed)
+						let permissions = {
+							read: isIn('read', result.allowed),
+							write: isIn('write', result.allowed),
+							delete: isIn('delete', result.allowed),
+							accessControl: isIn('accessControl', result.allowed)
 						};
 
-						var principalId = result.principalId;
+						let principalId = result.principalId;
 						if (principalId) {
 							Command.get(principalId, 'id,name,isGroup', function(p) {
 								_Entities.addPrincipal(entity, p, permissions, allowRecursive);
 							});
 						}
-					});
+					}
 				}
 			});
 
-			var select = $('#newPrincipal');
+			let ownerSelect = $('#' + owner_select_id, el);
+			let granteeSelect = $('#newPrincipal', el);
+			let spinnerIcon = Structr.loaderIcon(granteeSelect.parent(), {float: 'right'});
 
-			select.select2({
-				placeholder: 'Select Group/User',
-				minimumInputLength: 2,
-				width: '100%',
-				ajax: {
-					url: '/structr/rest/Principal',
-					dataType: 'json',
-					data: function (params) {
-						return {
-							name: params.term,
-							loose: 1
-						};
-					},
-					processResults: function (data) {
-						return {
-							results: data.result.map(function(item) {
-								return {
-									id: item.id,
-									text: item.name
-								};
-							})
-						};
+			Command.getByType('Principal', null, null, 'name', 'asc', 'id,name,isGroup', false, function(principals) {
+
+				let ownerOptions = '';
+				let granteeGroupOptions = '';
+				let granteeUserOptions = '';
+
+				if (entity.owner) {
+					// owner is first entry
+					ownerOptions += '<option value="' + entity.owner.id + '" data-type="User">' + entity.owner.name + '</option>';
+				} else {
+					ownerOptions += '<option></option>';
+				}
+
+				principals.forEach(function(p) {
+
+					if (p.isGroup) {
+						granteeGroupOptions += '<option value="' + p.id + '" data-type="Group">' + p.name + '</option>';
+					} else {
+						granteeUserOptions += '<option value="' + p.id + '" data-type="User">' + p.name + '</option>';
+
+						if (!entity.owner || entity.owner.id !== p.id) {
+							ownerOptions += '<option value="' + p.id + '" data-type="User">' + p.name + '</option>';
+						}
 					}
-				},
-				dropdownParent: $('.blockPage')
-			}).on('select2:select', function (e) {
-				var data = e.params.data;
-				var pId = data.id;
-				var rec = $('#recursive', el).is(':checked');
-				Command.setPermission(entity.id, pId, 'grant', 'read', rec);
-
-				Command.get(pId, 'id,name,isGroup', function(p) {
-					_Entities.addPrincipal(entity, p, {'read': true}, allowRecursive);
 				});
+
+				ownerSelect.append(ownerOptions);
+				granteeSelect.append(granteeGroupOptions + granteeUserOptions);
+
+				let templateOption = (state, isSelection) => {
+					if (!state.id || state.disabled) {
+						return state.text;
+					}
+
+					let icon = (state.element.dataset['type'] === 'Group') ? _Icons.group_icon : _Icons.user_icon ;
+
+					return $('<span class="' + (isSelection ? 'select-selection-with-icon' : 'select-result-with-icon') + '"><i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '"></i> ' + state.text + '</span>');
+				};
+
+				ownerSelect.select2({
+					allowClear: true,
+					placeholder: 'Owner',
+					width: '300px',
+					style: 'text-align:left;',
+					dropdownParent: $('.blockPage'),
+					templateResult: (state) => {
+						return templateOption(state, false);
+					},
+					templateSelection: (state) => {
+						return templateOption(state, true);
+					}
+				}).on('select2:unselecting', function (e) {
+					e.preventDefault();
+
+					Command.setProperty(id, 'owner', null, false, function() {
+						blinkGreen(ownerSelect.parent());
+						ownerSelect.val(null).trigger('change');
+					});
+
+				}).on('select2:select', function (e) {
+
+					let data = e.params.data;
+					Command.setProperty(id, 'owner', data.id, false, function() {
+						blinkGreen(ownerSelect.parent());
+					});
+				});
+
+				granteeSelect.select2({
+					placeholder: 'Select Group/User',
+					width: '100%',
+					dropdownParent: $('.blockPage'),
+					templateResult: (state) => {
+						return templateOption(state, false);
+					}
+				}).on('select2:select', function (e) {
+
+					let data = e.params.data;
+					let pId = data.id;
+					let rec = $('#recursive', el).is(':checked');
+					Command.setPermission(entity.id, pId, 'grant', 'read', rec);
+
+					Command.get(pId, 'id,name,isGroup', function(p) {
+						_Entities.addPrincipal(entity, p, {read: true}, allowRecursive);
+					});
+				});
+
+				if (spinnerIcon.length) {
+					spinnerIcon.remove();
+				}
 			});
 		};
 
 		if (entity.targetId) {
-			Command.getRelationship(id, entity.targetId, 'id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', function(entity) { handleGraphObject(entity); });
+			Command.getRelationship(id, entity.targetId, 'id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 		} else {
-			Command.get(id, 'id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', function(entity) { handleGraphObject(entity); });
+			Command.get(id, 'id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 		}
 	},
 	showAccessControlDialog: function(entity) {
@@ -1722,9 +1739,8 @@ var _Entities = {
 			return;
 		}
 
-		$('#new').after('<tr class="_' + principal.id + '"><td><i class="typeIcon ' + _Icons.getFullSpriteClass((principal.isGroup ? _Icons.group_icon : _Icons.user_icon)) + '" /> <span class="name">' + principal.name + '</span></td><tr>');
-
-		var row = $('#principals ._' + principal.id, dialogText);
+		let row = $('<tr class="_' + principal.id + '"><td><i class="typeIcon ' + _Icons.getFullSpriteClass((principal.isGroup ? _Icons.group_icon : _Icons.user_icon)) + '"></i> <span class="name">' + principal.name + '</span></td></tr>');
+		$('#new').after(row);
 
 		['read', 'write', 'delete', 'accessControl'].forEach(function(perm) {
 
@@ -1737,18 +1753,21 @@ var _Entities = {
 			$('.' + perm, row).on('click', function(e) {
 				e.preventDefault();
 
-				var checkbox = $(this);
+				let checkbox = $(this);
 				checkbox.prop('disabled', true);
 
 				if (!$('input:checked', row).length) {
+
+					$('#newPrincipal').append('<option value="' + principal.id + '">' + principal.name + '</option>');
+					$('#newPrincipal').trigger('chosen:updated');
+
 					row.remove();
 				}
-				var recursive = $('#recursive', dialogText).is(':checked');
+				let recursive = $('#recursive', dialogText).is(':checked');
 
 				Command.setPermission(entity.id, principal.id, permissions[perm] ? 'revoke' : 'grant', perm, recursive, function() {
 					permissions[perm] = !permissions[perm];
 					checkbox.prop('checked', permissions[perm]);
-					_Logger.log(_LogType.ENTITIES, 'Permission successfully updated!');
 
 					checkbox.prop('disabled', false);
 
@@ -1758,6 +1777,7 @@ var _Entities = {
 		});
 
 		if (allowRecursive) {
+
 			row.append('<td><button class="action apply-to-child-nodes">Apply to child nodes</button></td>');
 
 			let button = row[0].querySelector('button.apply-to-child-nodes');
@@ -1773,7 +1793,6 @@ var _Entities = {
 				Command.setPermission(entity.id, principal.id, 'setAllowed', permissions, true, function() {
 
 					button.removeAttribute('disabled');
-
 					blinkGreen(row);
 				});
 			});
@@ -1787,7 +1806,6 @@ var _Entities = {
 		var btn = $('.save_' + key, el);
 		btn.on('click', function() {
 			Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
-				_Logger.log(_LogType.ENTITIES, key + ' successfully updated!', obj[key]);
 				blinkGreen(btn);
 				_Pages.reloadPreviews();
 			});
@@ -1824,24 +1842,20 @@ var _Entities = {
 			}
 			editIcon.on('click', function(e) {
 				e.stopPropagation();
-				_Logger.log(_LogType.ENTITIES, 'editSource', entity);
 				_Entities.editSource(entity);
 			});
-
 		}
-
 	},
 	appendEditPropertiesIcon: function(parent, entity, visible) {
 
 		var editIcon = $('.edit_props_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			parent.append('<i title="Edit Properties" class="edit_props_icon button ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" />');
-			editIcon = $('.edit_props_icon', parent);
+			editIcon = $('<i title="Edit Properties" class="edit_props_icon button ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" />');
+			parent.append(editIcon);
 		}
 		editIcon.on('click', function(e) {
 			e.stopPropagation();
-			_Logger.log(_LogType.ENTITIES, 'showProperties', entity);
 			_Entities.showProperties(entity);
 		});
 		if (visible) {
@@ -1854,17 +1868,12 @@ var _Entities = {
 	},
 	appendExpandIcon: function(el, entity, hasChildren, expanded) {
 
-		_Logger.log(_LogType.ENTITIES, '_Entities.appendExpandIcon', el, entity, hasChildren, expanded);
-
 		var button = $(el.children('.expand_icon').first());
 		if (button && button.length) {
-			_Logger.log(_LogType.ENTITIES, 'Expand icon already existing', el, button);
 			return;
 		}
 
 		if (hasChildren) {
-
-			_Logger.log(_LogType.ENTITIES, 'appendExpandIcon hasChildren?', hasChildren, 'expand?', expanded);
 
 			var typeIcon = $(el.children('.typeIcon').first());
 			var icon = expanded ? _Icons.expanded_icon : _Icons.collapsed_icon;
@@ -1905,7 +1914,6 @@ var _Entities = {
 	removeExpandIcon: function(el) {
 		if (!el)
 			return;
-		_Logger.log(_LogType.ENTITIES, 'removeExpandIcon', el);
 		var button = $(el.children('.expand_icon').first());
 
 		// unregister click handlers
@@ -1976,7 +1984,6 @@ var _Entities = {
 				}
 				self.addClass('nodeHover');
 				self.children('i.button').showInlineBlock();
-//				self.children('.icons').children('img.button').show();
 			},
 			mouseout: function(e) {
 				e.stopPropagation();
@@ -1999,7 +2006,6 @@ var _Entities = {
 		var node = el.closest('.node');
 		if (node) {
 			node.removeClass('nodeHover');
-//			node.find('img.button').not('.donthide').hide().css('display', 'none');
 			node.find('i.button').not('.donthide').hide().css('display', 'none');
 		}
 		var page = node.closest('.page');
@@ -2032,8 +2038,6 @@ var _Entities = {
 		if (force === false && _Entities.isExpanded(element)) {
 			return;
 		} else {
-			_Logger.log(_LogType.ENTITIES, 'ensureExpanded: fetch children', el);
-
 			Command.children(id, callback);
 			var displayName = getElementDisplayName(Structr.entity(id));
 
@@ -2113,35 +2117,29 @@ var _Entities = {
 			pages.animate({
 				scrollTop: el.offset().top - pages.offset().top + pages.scrollTop()
 			});
-
 		}
-
 	},
 	toggleElement: function(element, expanded) {
 
 		var el = $(element);
 		var id = Structr.getId(el) || Structr.getComponentId(el) || Structr.getGroupId(el);
 
-		_Logger.log(_LogType.ENTITIES, 'toggleElement: ', el, id);
-
 		var b = el.children('.expand_icon').first();
 		var displayName = getElementDisplayName(Structr.entity(id));
 
 		if (_Entities.isExpanded(element)) {
 
-			$.each(el.children('.node'), function(i, child) {
-				$(child).remove();
-			});
+			el.children('.node').remove();
 
 			b.removeClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon))
 				.addClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon))
 				.prop('title', 'Expand ' + displayName);
 
 			Structr.removeExpandedNode(id);
+
 		} else {
 
 			if (!expanded) {
-				_Logger.log(_LogType.ENTITIES, 'toggleElement: fetch children', id);
 				Command.children(id);
 			}
 
@@ -2151,74 +2149,106 @@ var _Entities = {
 
 			Structr.addExpandedNode(id);
 		}
-
 	},
-	makeAttributeEditable: function(parentElement, id, attributeSelector, attributeName, width, callback) {
-		var w = width || 200;
-		var attributeElement = parentElement.find(attributeSelector).first();
-		var attributeElementTagName = attributeElement.prop('tagName').toLowerCase();
-		var oldValue = $.trim(attributeElement.attr('title'));
+	makeAttributeEditable: function(parentElement, id, attributeSelector, attributeName, callback) {
+
+		let attributeElement        = parentElement.find(attributeSelector).first();
+		let attributeElementTagName = attributeElement.prop('tagName').toLowerCase();
+		let oldValue                = $.trim(attributeElement.attr('title'));
 
 		attributeElement.replaceWith('<input type="text" size="' + (oldValue.length + 4) + '" class="new-' + attributeName + '" value="' + oldValue + '">');
 
-		var input = $('input', parentElement);
+		let input = $('input', parentElement);
 		input.focus().select();
 
-		var makeNonEditable = function (el, commitChanges) {
-			var displayValue = (commitChanges === true) ? el.val() : oldValue;
-			el.replaceWith('<' + attributeElementTagName + ' title="' + displayValue + '" class="' + attributeName + '_">' + fitStringToWidth(displayValue, w) + '</' + attributeElementTagName + '>');
+		let restoreNonEditableTag = function(el, text) {
+
+			let newEl = $('<' + attributeElementTagName + ' title="' + escapeForHtmlAttributes(text) + '" class="' + attributeName + '_ abbr-ellipsis abbr-75pc">' + text + '</' + attributeElementTagName + '>');
+			el.replaceWith(newEl);
+
 			parentElement.find(attributeSelector).first().off('click').on('click', function(e) {
 				e.stopPropagation();
-				_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, w);
+				_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName);
 			});
-			if (commitChanges === true) {
-				_Entities.setNewAttributeValue(parentElement, id, attributeName, displayValue, callback, function () {
-					var attributeElement = parentElement.find(attributeSelector).first();
-					attributeElement.attr('title', oldValue).text(oldValue);
-					blinkRed(parentElement);
-				});
-			}
+
+			return newEl;
+		};
+
+		var saveAndUpdate = function (el) {
+
+			let newVal = el.val();
+
+			// first restore old value. only update with new value if save succeeds
+			let newEl = restoreNonEditableTag(el, oldValue);
+
+			let successFunction = () => {
+
+				restoreNonEditableTag(newEl, newVal);
+
+				if (callback) {
+					callback();
+				}
+			};
+
+			_Entities.setNewAttributeValue(parentElement, id, attributeName, newVal, successFunction, function () {
+
+				let attributeElement = parentElement.find(attributeSelector).first();
+				attributeElement.attr('title', oldValue).text(oldValue);
+				blinkRed(parentElement);
+			});
 		};
 
 		input.on('blur', function() {
-			makeNonEditable($(this), true);
+			saveAndUpdate($(this));
 		});
 
 		input.keydown(function(e) {
+
 			if (e.keyCode === 13) {
-				makeNonEditable($(this), true);
+				saveAndUpdate($(this));
 
 			} else if (e.keyCode === 27) {
 				e.stopPropagation();
-				makeNonEditable($(this), false);
+				restoreNonEditableTag($(this), oldValue);
 			}
 		});
 	},
-	makeNameEditable: function(element, width, callback) {
-		var id = Structr.getId(element);
-		_Entities.makeAttributeEditable(element, id, 'b.name_', 'name', width, callback);
+	makeNameEditable: function(element, callback) {
+		let id = Structr.getId(element);
+		_Entities.makeAttributeEditable(element, id, 'b.name_', 'name', callback);
 	},
 	setNewName: function(element, newName, callback) {
-		var id = Structr.getId(element);
+		let id = Structr.getId(element);
 		_Entities.setNewAttributeValue(element, id, 'name', newName, callback);
 	},
 	setNewAttributeValue: function(element, id, attributeName, newValue, callback, failCallback) {
+
 		Command.setProperty(id, attributeName, newValue, false, function(entity, resultSize, errorOccurred) {
+
 			if (!errorOccurred || errorOccurred === false) {
+
 				blinkGreen(element.find('.' + attributeName + '_').first());
+
 				if (Structr.isModuleActive(_Pages)) {
+
 					_Pages.reloadPreviews();
+
 				} else if (Structr.isModuleActive(_Contents)) {
+
 					_Contents.refreshTree();
+
 				} else if (Structr.isModuleActive(_Files) && attributeName === 'name') {
-					var a = element.closest('td').prev().children('a').first();
+
+					let a = element.closest('td').prev().children('a').first();
 					Command.getProperty(id, 'path', function(newPath) {
 						a.attr('href', newPath);
 					});
 				}
+
 				if (callback) {
 					callback();
 				}
+
 			} else if (failCallback) {
 				failCallback();
 			}
@@ -2271,9 +2301,9 @@ var _Entities = {
 				}
 
 				div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
-					+ '<b title="' + name + '">' + fitStringToWidth(name, 180, 'slideOut') + '</b>'
+					+ '<b title="' + escapeForHtmlAttributes(name) + '" class="abbr-ellipsis abbr-75pc">' + name + '</b>'
 					+ '<b class="action">' + (action ? action : '&nbsp;') + '</b>'
-					+ '<span class="content_">' + (content ? fitStringToWidth(content, 180, 'slideOut') : '&nbsp;') + '</span>'
+					+ '<span class="content_ abbr-ellipsis abbr-75pc">' + (content ? content : '&nbsp;') + '</span>'
 					+ '<span class="id">' + entity.id + '</span>'
 				);
 
@@ -2369,7 +2399,7 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 	} else if (obj.constructor === Object) {
 
 		var displayName = _Crud.displayName(obj);
-		return '<div title="' + displayName + '" id="_' + obj.id + '" class="node ' + (obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')) + ' ' + obj.id + '_">' + fitStringToWidth(displayName, 80) + '<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>';
+		return '<div title="' + escapeForHtmlAttributes(displayName) + '" id="_' + obj.id + '" class="node ' + (obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')) + ' ' + obj.id + '_"><span class="abbr-ellipsis abbr-80">' + displayName + '</span><i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>';
 
 	} else if (obj.constructor === Array) {
 

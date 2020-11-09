@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -101,7 +101,7 @@ public class TextContentHandler implements ContentHandler {
 							break;
 
 						default:
-							System.out.println("Unknown meta key " + metaKey);
+							logger.warn("Unknown meta key {}", metaKey);
 					}
 				}
 
@@ -259,7 +259,7 @@ public class TextContentHandler implements ContentHandler {
 
 				} else {
 
-					System.out.println("NO PAGE FOR content " + line);
+					logger.warn("No page for content {}", line);
 				}
 			}
 

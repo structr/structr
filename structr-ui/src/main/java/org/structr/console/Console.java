@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -29,6 +29,7 @@ import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ScriptableObject;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -241,18 +242,19 @@ public class Console {
 			final List<GraphObject> result = Iterables.toList(app.query(line, Collections.emptyMap()));
 			final long t1                  = System.currentTimeMillis();
 			final int size                 = result.size();
+			final int maxResults           = Settings.CypherConsoleMaxResults.getValue();
 
 			writable.print("Query returned ", size, " objects in ", (t1-t0), " ms.");
 			writable.println();
 			writable.println();
 
-			if (size <= 10) {
+			if (size <= maxResults) {
 
 				writable.print(Functions.get("to_json").apply(actionContext, null, new Object[] { result } ));
 
 			} else {
 
-				writable.print("Too many results (> 10), please use LIMIT to reduce the result count of your Cypher query.");
+				writable.print("Too many results (> " + maxResults + "), please use LIMIT to reduce the result count of your Cypher query or increase the limit via structr.conf");
 			}
 
 			writable.println();

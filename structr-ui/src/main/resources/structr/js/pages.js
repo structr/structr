@@ -53,9 +53,7 @@ var _Pages = {
 			_Elements.removeContextMenu();
 		});
 
-		Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
-			shadowPage = entities[0];
-		});
+		Structr.getShadowPage();
 
 	},
 	resize: function(offsetLeft, offsetRight) {
@@ -66,9 +64,7 @@ var _Pages = {
 			position: 'fixed'
 		});
 
-		var windowWidth = $(window).width();
-		var windowHeight = $(window).height();
-		var headerOffsetHeight = 84, previewOffset = 30;
+		let windowWidth = $(window).width();
 
 		if (previews) {
 
@@ -84,66 +80,41 @@ var _Pages = {
 				});
 			}
 
-			var w = windowWidth - parseInt(previews.css('marginLeft')) - parseInt(previews.css('marginRight')) - 15 + 'px';
+			let w = windowWidth - parseInt(previews.css('marginLeft')) - parseInt(previews.css('marginRight')) - 15 + 'px';
 
 			previews.css({
-				width: w,
-				height: windowHeight - headerOffsetHeight - 2 + 'px'
+				width: w
 			});
 
 			$('.previewBox', previews).css({
-				width: w,
-				height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
+				width: w
 			});
 
 			var iframes = $('.previewBox', previews).find('iframe');
 			iframes.css({
-				width: w,
-				height: windowHeight - (headerOffsetHeight + previewOffset) + 'px'
+				width: w
 			});
 		}
-
-		var leftSlideout = $('#' + activeTabLeft).closest('.slideOut');
-		leftSlideout.css({
-			height: windowHeight - headerOffsetHeight - 42 + 'px'
-		});
-
-		var rightSlideout = $('#' + activeTabRight).closest('.slideOut');
-		rightSlideout.css({
-			height: windowHeight - headerOffsetHeight - 42 + 'px'
-		});
-
-		$('.ver-scrollable').each(function(i, el) {
-
-			let topOffset = ($(this).parent().hasClass('slideOut')) ? $(this).position().top : 0;
-
-			$(this).css({
-				height: windowHeight - headerOffsetHeight - topOffset - 42 + 'px'
-			});
-		});
 	},
 	onload: function() {
 
 		_Pages.init();
 
-		Structr.updateMainHelpLink('https://support.structr.com/article/204');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('pages'));
 
 		activeTab = LSWrapper.getItem(_Pages.activeTabKey);
 		activeTabLeft = LSWrapper.getItem(_Pages.activeTabLeftKey);
 		activeTabRight = LSWrapper.getItem(_Pages.activeTabRightKey);
-		_Logger.log(_LogType.PAGES, 'value read from local storage', activeTab);
-
-		_Logger.log(_LogType.PAGES, 'onload');
 
 		main.prepend(
 				'<div class="column-resizer-blocker"></div><div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
 				+ '<div id="activeElements" class="slideOut slideOutLeft"><div class="compTab" id="activeElementsTab">Active Elements</div><div class="page inner"></div></div>'
 				+ '<div id="dataBinding" class="slideOut slideOutLeft"><div class="compTab" id="dataBindingTab">Data Binding</div></div>'
-				+ '<div id="localizations" class="slideOut slideOutLeft"><div class="compTab" id="localizationsTab">Localizations</div><div class="page inner"><input class="locale" placeholder="Locale"><button class="refresh action button">' + _Icons.getHtmlForIcon(_Icons.refresh_icon) + ' Refresh</button><div class="results ver-scrollable"></div></div></div>'
+				+ '<div id="localizations" class="slideOut slideOutLeft"><div class="compTab" id="localizationsTab">Localizations</div><div class="page inner"><div class="localizations-inputs"><input class="locale" placeholder="Locale"><button class="refresh action button">' + _Icons.getHtmlForIcon(_Icons.refresh_icon) + ' Refresh</button></div><div class="results"></div></div></div>'
 				+ '<div id="previews" class="no-preview"></div>'
 				+ '<div id="widgetsSlideout" class="slideOut slideOutRight"><div class="compTab" id="widgetsTab">Widgets</div></div>'
 				+ '<div id="palette" class="slideOut slideOutRight"><div class="compTab" id="paletteTab">HTML Palette</div></div>'
-				+ '<div id="components" class="slideOut slideOutRight"><div class="compTab" id="componentsTab">Shared Components</div></div>'
+				+ '<div id="components" class="slideOut slideOutRight"><div class="compTab" id="componentsTab">Shared Components</div><div class="inner"></div></div>'
 				+ '<div id="elements" class="slideOut slideOutRight"><div class="compTab" id="elementsTab">Unused Elements</div></div>');
 
 		pagesSlideout = $('#pages');
@@ -193,13 +164,18 @@ var _Pages = {
 			}, _Pages.slideoutClosedCallback);
 		});
 
+		$('#localizations input.locale').on('keydown', function (e) {
+			if (e.which === 13) {
+				_Pages.refreshLocalizations();
+			}
+		});
 		$('#localizations button.refresh').on('click', function () {
 			_Pages.refreshLocalizations();
 		});
 
 		Structr.appendInfoTextToElement({
 			element: $('#localizations button.refresh'),
-			text: "On this tab you can load the localizations requested for the given locale on the currently previewed page (including the UUID of the details object which is also used for the preview).<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
+			text: "On this tab you can load the localizations requested for the given locale on the currently previewed page (including the UUID of the details object and the query parameters which are also used for the preview).<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
 			insertAfter: true,
 			css: {
 				right: "2px",
@@ -295,7 +271,7 @@ var _Pages = {
 		previewTabs.empty();
 
 		pagesSlideout.append('<div id="pagesPager"></div>');
-		pagesSlideout.append('<div class="ver-scrollable" id="pagesTree"></div>');
+		pagesSlideout.append('<div id="pagesTree"></div>');
 		let pagesPager = $('#pagesPager', pagesSlideout);
 		pages = $('#pagesTree', pagesSlideout);
 
@@ -309,21 +285,12 @@ var _Pages = {
 			_Pages.clearPreviews();
 			$('.node', pages).remove();
 		};
-		pPager.pager.append('Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name"/>');
+		let pagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name"/></span>');
+		pPager.pager.append(pagerFilters);
 		var categoryFilter = $('<input type="text" class="filter page-label" data-attribute="category" placeholder="Category" />');
-		pPager.pager.append(categoryFilter);
+		pagerFilters.append(categoryFilter);
 		pPager.activateFilterElements();
-		/*
-		var bulkEditingHelper = $(
-			'<button type="button" title="Open Bulk Editing Helper (Ctrl-Alt-E)" class="icon-button">'
-			+ '<i class="icon ' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" />'
-			+ '</button>');
-		pPager.pager.append(bulkEditingHelper);
-		bulkEditingHelper.on('click', e => {
-			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
-			new RefactoringHelper(dialog).show();
-		});
-		*/
+
 		$.ajax({
 			url: '/structr/rest/Page/category',
 			success: function(data) {
@@ -344,6 +311,18 @@ var _Pages = {
 				categoryFilter.attr('title', helpText);
 			}
 		});
+
+		/*
+		var bulkEditingHelper = $(
+			'<button type="button" title="Open Bulk Editing Helper (Ctrl-Alt-E)" class="icon-button">'
+			+ '<i class="icon ' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" />'
+			+ '</button>');
+		pPager.pager.append(bulkEditingHelper);
+		bulkEditingHelper.on('click', e => {
+			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
+			new RefactoringHelper(dialog).show();
+		});
+		*/
 
 		previewTabs.append('<li id="import_page" title="Import Template" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + '" /></li>');
 		previewTabs.append('<li id="add_page" title="Add page" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /></li>');
@@ -370,7 +349,6 @@ var _Pages = {
 
 			$('#_address', dialog).on('blur', function() {
 				var addr = $(this).val().replace(/\/+$/, "");
-				_Logger.log(_LogType.PAGES, addr);
 				$('#_name', dialog).val(addr.substring(addr.lastIndexOf("/") + 1));
 			});
 
@@ -392,7 +370,6 @@ var _Pages = {
 				var includeInExport = $('#_includeInExport', dialog).prop('checked');
 				var processDeploymentInfo = $('#_processDeploymentInfo', dialog).prop('checked');
 
-				_Logger.log(_LogType.PAGES, 'start');
 				return Command.importPage(code, address, name, publicVisible, authVisible, includeInExport, processDeploymentInfo);
 			});
 
@@ -454,7 +431,7 @@ var _Pages = {
 
 		var tab = $('#show_' + entity.id, previews);
 
-		tab.append('<div class="fill-pixel"></div><b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b>');
+		tab.append('<div class="fill-pixel"></div><b title="' + escapeForHtmlAttributes(entity.name) + '" class="name_ abbr-ellipsis abbr-200">' + entity.name + '</b>');
 		tab.append('<i title="Edit page settings of ' + entity.name + '" class="edit_ui_properties_icon button ' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" />');
 		tab.append('<i title="View ' + entity.name + ' in new window" class="view_icon button ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" />');
 
@@ -605,8 +582,6 @@ var _Pages = {
 	},
 	resetTab: function(element) {
 
-		_Logger.log(_LogType.PAGES, 'resetTab', element);
-
 		element.children('input').hide();
 		element.children('.name_').show();
 
@@ -626,7 +601,6 @@ var _Pages = {
 			var self = $(this);
 			var clicks = e.originalEvent.detail;
 			if (clicks === 1) {
-				_Logger.log(_LogType.PAGES, 'click', self, self.css('z-index'));
 				if (self.hasClass('active')) {
 					_Pages.makeTabEditable(self);
 				} else {
@@ -640,9 +614,6 @@ var _Pages = {
 		}
 	},
 	activateTab: function(element) {
-
-		var name = $.trim(element.children('b.name_').attr('title'));
-		_Logger.log(_LogType.PAGES, 'activateTab', element, name);
 
 		previewTabs.children('li').each(function() {
 			$(this).removeClass('active');
@@ -660,7 +631,6 @@ var _Pages = {
 		element.addClass('active');
 		previews.removeClass('no-preview');
 
-		_Logger.log(_LogType.PAGES, 'store active tab', activeTab);
 		LSWrapper.setItem(_Pages.activeTabKey, activeTab);
 
 		if (LSWrapper.getItem(_Pages.activeTabLeftKey) === $('#activeElementsTab').prop('id')) {
@@ -718,7 +688,6 @@ var _Pages = {
 				let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + id) : '');
 				var url = viewRootUrl + obj.name + detailsObject + '?edit=2' + requestParameters;
 				iframe.prop('src', url);
-				_Logger.log(_LogType.PAGES, 'iframe', id, 'activated');
 
 				_Pages.hideAllPreviews();
 				iframe.parent().show();
@@ -752,7 +721,6 @@ var _Pages = {
 		return ($('#show_' + id, previewTabs).length > 0);
 	},
 	unloadIframes: function() {
-		_Logger.log(_LogType.PAGES, 'unloading all preview iframes');
 		_Pages.clearIframeDroppables();
 		$('iframe', previews).each(function() {
 			var pageId = $(this).prop('id').substring('preview_'.length);
@@ -760,7 +728,6 @@ var _Pages = {
 			try {
 				iframe.contents().empty();
 			} catch (e) {}
-			_Logger.log(_LogType.PAGES, 'iframe', pageId, 'deactivated');
 		});
 	},
 	/**
@@ -783,14 +750,14 @@ var _Pages = {
 		$.ui.ddmanager.droppables['default'] = droppablesArray;
 	},
 	makeTabEditable: function(element) {
-		var id = element.prop('id').substring(5);
+
+		let id = element.prop('id').substring(5);
 
 		element.off('hover');
-		//var oldName = $.trim(element.children('.name_').text());
-		var oldName = $.trim(element.children('b.name_').attr('title'));
+		let oldName = $.trim(element.children('b.name_').attr('title'));
 		element.children('b').hide();
 		element.find('.button').hide();
-		var input = $('input.new-name', element);
+		let input = $('input.new-name', element);
 
 		if (!input.length) {
 			element.append('<input type="text" size="' + (oldName.length + 4) + '" class="new-name" value="' + oldName + '">');
@@ -799,28 +766,26 @@ var _Pages = {
 
 		input.show().focus().select();
 
-		input.on('blur', function() {
-			input.off('blur');
-			_Logger.log(_LogType.PAGES, 'blur');
-			var self = $(this);
-			var newName = self.val();
+		let saveFn = (self) => {
+			let newName = self.val();
 			Command.setProperty(id, "name", newName);
 			_Pages.resetTab(element, newName);
+		};
+
+		input.off('blur').on('blur', function() {
+			input.off('blur');
+			saveFn($(this));
 		});
 
-		input.keypress(function(e) {
+		input.off('keypress').on('keypress', function(e) {
 			if (e.keyCode === 13 || e.keyCode === 9) {
-				e.preventDefault();
-				_Logger.log(_LogType.PAGES, 'keypress');
-				var self = $(this);
-				var newName = self.val();
-				Command.setProperty(id, "name", newName);
-				_Pages.resetTab(element, newName);
+				e.stopPropagation();
+				input.off('blur');
+				saveFn($(this));
 			}
 		});
 
 		element.off('click');
-
 	},
 	appendPageElement: function(entity) {
 
@@ -846,7 +811,7 @@ var _Pages = {
 		let pageName = (entity.name ? entity.name : '[' + entity.type + ']');
 
 		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.page_icon) + '" />'
-				+ '<b title="' + entity.name + '" class="name_">' + fitStringToWidth(pageName, 200) + '</b> <span class="id">' + entity.id + '</span>' + (entity.position ? ' <span class="position">' + entity.position + '</span>' : ''));
+				+ '<b title="' + escapeForHtmlAttributes(entity.name) + '" class="name_ abbr-ellipsis abbr-75pc">' + pageName + '</b> <span class="id">' + entity.id + '</span>' + (entity.position ? ' <span class="position">' + entity.position + '</span>' : ''));
 
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 		_Entities.appendAccessControlIcon(div, entity);
@@ -931,11 +896,9 @@ var _Pages = {
 //							e.stopPropagation();
 //							var self = $(this);
 //							var element = self.closest('[data-structr-id]');
-//							_Logger.log(_LogType.PAGES, element);
 //							var entity = Structr.entity(structrId, element.prop('data-structr-id'));
 //							entity.type = element.prop('data-structr_type');
 //							entity.name = element.prop('data-structr_name');
-//							_Logger.log(_LogType.PAGES, 'move', entity);
 //							self.parent().children('.structr-node').show();
 //						});
 //
@@ -946,7 +909,6 @@ var _Pages = {
 //							var entity = Structr.entity(structrId, element.prop('data-structr-id'));
 //							entity.type = element.prop('data-structr_type');
 //							entity.name = element.prop('data-structr_name');
-//							_Logger.log(_LogType.PAGES, 'delete', entity);
 //							var parentId = element.prop('data-structr-id');
 //
 //							Command.removeSourceFromTarget(entity.id, parentId);
@@ -988,7 +950,6 @@ var _Pages = {
 									left: pos.left + offsetLeft + 'px',
 									cursor: 'pointer'
 								}).show();
-								_Logger.log(_LogType.PAGES, header);
 							},
 							mouseout: function(e) {
 								e.stopPropagation();
@@ -1102,7 +1063,6 @@ var _Pages = {
 		return droppables;
 	},
 	appendElementElement: function(entity, refNode, refNodeIsParent) {
-		_Logger.log(_LogType.PAGES, '_Pages.appendElementElement(', entity, refNode, refNodeIsParent, ');');
 		entity = StructrModel.ensureObject(entity);
 		var div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
 
@@ -1142,25 +1102,35 @@ var _Pages = {
 	reloadDataBindingWizard: function() {
 		dataBindingSlideout.children('#wizard').remove();
 		dataBindingSlideout.prepend('<div class="inner" id="wizard"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');
-		// Command.list(type, rootOnly, pageSize, page, sort, order, callback) {
-		var selectedType = LSWrapper.getItem(_Pages.selectedTypeKey);
-		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', 'id,name', function(typeNodes) {
-			typeNodes.forEach(function(typeNode) {
-				$('#type-selector').append('<option ' + (typeNode.id === selectedType ? 'selected' : '') + ' value="' + typeNode.id + '">' + typeNode.name + '</option>');
-			});
-		});
 
-		$('#data-wizard-attributes').empty();
-		if (selectedType) {
-			_Pages.showTypeData(selectedType);
-		}
+		let lastSelectedType = LSWrapper.getItem(_Pages.selectedTypeKey);
+
+		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', 'id,name', function(typeNodes) {
+
+			let lastSelectedTypeExists = false;
+
+			typeNodes.forEach(function(typeNode) {
+
+				let selected = '';
+				if (typeNode.id === lastSelectedType) {
+					lastSelectedTypeExists = true;
+					selected = 'selected';
+				}
+
+				$('#type-selector').append('<option ' + selected + ' value="' + typeNode.id + '">' + typeNode.name + '</option>');
+			});
+
+			$('#data-wizard-attributes').empty();
+			if (lastSelectedType && lastSelectedTypeExists) {
+				_Pages.showTypeData(lastSelectedType);
+			}
+		});
 
 		$('#type-selector').on('change', function() {
 			$('#data-wizard-attributes').empty();
-			var id = $(this).children(':selected').attr('value');
+			let id = $(this).children(':selected').attr('value');
 			_Pages.showTypeData(id);
 		});
-
 	},
 	showTypeData: function(id) {
 		if (!id) {
@@ -1175,7 +1145,7 @@ var _Pages = {
 					.append('<div class="clear">&nbsp;</div><p>You can drag and drop the type box onto a block in a page. The type will be bound to the block which will loop over the result set.</p>')
 					.append('<div class="data-binding-type draggable">:' + sourceSchemaNode.name + '</div>')
 					.append('<h3>Properties</h3><div class="properties"></div>')
-					.append('<div class="clear">&nbsp;</div><p>Drag and drop these elements onto the page for data binding.</p>');
+					.append('<p>Drag and drop these elements onto the page for data binding.</p>');
 
 			var draggableSettings = {
 				iframeFix: true,
@@ -1266,72 +1236,112 @@ var _Pages = {
 		}
 	},
 	refreshLocalizations: function() {
-		var id = activeTab;
+
+		let id = activeTab;
 
 		if (_Pages.isPageTabPresent(id)) {
 
-			var localeInput = $('#localizations input.locale');
-			var locale = localeInput.val();
+			let localeInput = $('#localizations input.locale');
+			let locale      = localeInput.val();
 
 			if (!locale) {
 				blinkRed(localeInput);
 				return;
 			}
 
-			var detailObjectId = LSWrapper.getItem(_Pages.detailsObjectIdKey + id);
+			let detailObjectId = LSWrapper.getItem(_Pages.detailsObjectIdKey + id);
+			let queryString    = LSWrapper.getItem(_Pages.requestParametersKey + id);
 
-			Command.listLocalizations(id, locale, detailObjectId, function(result) {
+			Command.listLocalizations(id, locale, detailObjectId, queryString, function(result) {
 
 				$('#localizations .page').prop('id', 'id_' + id);
 
-				var localizationsContainer = $('#localizations div.inner div.results');
+				let localizationsContainer = $('#localizations div.inner div.results');
 				localizationsContainer.empty().attr('id', 'id_' + id);
+
+				let localizationIdKey = 'localizationId';
+				let previousValueKey  = 'previousValue';
+
 
 				if (result.length > 0) {
 
-					result.forEach(function(res) {
+					for (let res of result) {
 
-						var div = _Pages.getNodeForLocalization(localizationsContainer, res.node);
+						let div   = _Pages.getNodeForLocalization(localizationsContainer, res.node);
+						let tbody = $('tbody', div);
+						let row   = $('<tr><td><div class="key-column allow-break">' + res.key + '</div></td><td class="domain-column">' + res.domain + '</td><td class="locale-column">' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td><td class="input"><input class="localized-value" placeholder="..."><a title="Delete" class="delete"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /></a></td></tr>');
+						let key   = $('div.key-column', row).attr('title', res.key);
+						let input = $('input.localized-value', row);
 
-						var tbody = $('tbody', div);
-
-						var row = $('<tr><td>' + res.key + '</td><td>' + res.domain + '</td><td>' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td><td class="input"><input class="localized-value" placeholder="..."></td></tr>');
-
-						var input = $('input.localized-value', row);
-
-						if (res.localization !== null) {
-							input.val(res.localization.localizedName).data('localizationId', res.localization.id);
+						if (res.localization) {
+							let domainIdentical = (res.localization.domain === res.domain) || (!res.localization.domain && !res.domain);
+							if (!domainIdentical) {
+								res.localization = null;
+								// we are getting the fallback localization for this entry - do not show this as we would update the wrong localization otherwise
+							}
 						}
 
+						if (res.localization !== null) {
+							row.addClass('has-value');
+							input.val(res.localization.localizedName).data(localizationIdKey, res.localization.id).data(previousValueKey, res.localization.localizedName);
+						}
+
+						$('.delete', row).on('click', function(event) {
+							event.preventDefault();
+
+							let id = input.data(localizationIdKey);
+
+							if (id) {
+								var c = confirm('Are you sure you want to delete this localization ' + id + ' ?');
+								if (c === true) {
+									Command.deleteNode(id, false, () => {
+										row.removeClass('has-value');
+										input.data(localizationIdKey, null).data(previousValueKey, null).val('');
+									});
+								}
+							}
+						});
+
 						input.on('blur', function() {
-							var el = $(this);
 
-							var value = el.val();
-							var localizationId = el.data('localizationId');
-							if (localizationId) {
-								Command.setProperties(localizationId, {
-									localizedName: value
-								}, function() {
-									blinkGreen(el);
-								});
+							let el             = $(this);
+							let newValue       = el.val();
+							let localizationId = el.data(localizationIdKey);
+							let previousValue  = el.data(previousValueKey);
+							let isChange       = (!previousValue && newValue !== '') || (previousValue && previousValue !== newValue);
 
-							} else {
-								Command.create({
-									type: 'Localization',
-									name: res.key,
-									domain: res.domain || null,
-									locale: res.locale,
-									localizedName: value
-								},
-								function(createdLocalization) {
-									el.data('localizationId', createdLocalization.id);
-									blinkGreen(el);
-								});
+							if (isChange) {
+
+								if (localizationId) {
+
+									Command.setProperties(localizationId, {
+										localizedName: newValue
+									}, function() {
+										blinkGreen(el);
+										el.data(previousValueKey, newValue);
+									});
+
+								} else {
+
+									Command.create({
+										type: 'Localization',
+										name: res.key,
+										domain: res.domain || null,
+										locale: res.locale,
+										localizedName: newValue
+									},
+									function(createdLocalization) {
+										el.data(localizationIdKey, createdLocalization.id);
+										el.data(previousValueKey, newValue);
+										row.addClass('has-value');
+										blinkGreen(el);
+									});
+								}
 							}
 						});
 
 						tbody.append(row);
-					});
+					};
 
 				} else {
 
@@ -1345,34 +1355,31 @@ var _Pages = {
 	},
 	getNodeForLocalization: function (container, entity) {
 
-		var idString = 'locNode_' + entity.id;
-
-		var existing = $('#' + idString, container);
+		let idString = 'locNode_' + entity.id;
+		let existing = $('#' + idString, container);
 
 		if (existing.length) {
 			return existing;
 		}
 
-		var div = $('<div id="' + idString + '" class="node localization-element ' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
+		let div = $('<div id="' + idString + '" class="node localization-element ' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
 
-		// add node id to enable hover effect
 		div.data('nodeId', (_Entities.isContentElement(entity) ? entity.parent.id : entity.id ));
 
-		var displayName = getElementDisplayName(entity);
-		var iconClass = _Icons.getFullSpriteClass(_Elements.getElementIcon(entity));
-
-		var detailHtml = '';
+		let displayName = getElementDisplayName(entity);
+		let iconClass   = _Icons.getFullSpriteClass(_Elements.getElementIcon(entity));
+		let detailHtml  = '';
 
 		if (entity.type === 'Content') {
-			detailHtml = '<div class="content_">' + fitStringToWidth(escapeTags(entity.content), 200) + '</div>';
+			detailHtml = '<div class="abbr-ellipsis abbr-75pc">' + entity.content + '</div>';
 		} else if (entity.type === 'Template') {
 			if (entity.name) {
-				detailHtml = '<div class="content_">' + displayName + '</div>';
+				detailHtml = '<div class="abbr-ellipsis abbr-75pc">' + displayName + '</div>';
 			} else {
-				detailHtml = '<div class="content_">' + escapeTags(entity.content) + '</div>';
+				detailHtml = '<div class="abbr-ellipsis abbr-75pc">' + escapeTags(entity.content) + '</div>';
 			}
 		} else {
-			detailHtml = '<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b>';
+			detailHtml = '<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>';
 		}
 
 		div.append('<i class="typeIcon ' + iconClass + '" />' + detailHtml + _Elements.classIdString(entity._html_id, entity._html_class));
@@ -1380,7 +1387,6 @@ var _Pages = {
 		if (_Entities.isContentElement(entity)) {
 
 			_Elements.appendEditContentIcon(div, entity);
-
 		}
 
 		_Entities.appendEditPropertiesIcon(div, entity, false);
@@ -1389,7 +1395,7 @@ var _Pages = {
 
 		container.append(div);
 
-		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds&&entity.syncedNodesIds.length)?entity.syncedNodesIds:[entity.sharedComponentId]));
+		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId] ));
 
 		return div;
 	}

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
@@ -94,7 +96,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 		final Filter filter                       = new Filter(securityContext, thisType.getFilterExpression());
 		final Iterable<GraphObject> iterable      = Iterables.map(mapper, Iterables.filter(filter, result));
 
-		return new PagingIterable(iterable);
+		return new PagingIterable("VirtualType.transformOutput()", iterable);
 	}
 
 	public static void transformInput(final VirtualType thisType, final SecurityContext securityContext, final Class type, final Map<String, Object> propertySet) throws FrameworkException {
@@ -110,6 +112,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 			final String propertyName = it.next();
 
 			if (!targetNames.contains(propertyName)) {
+				final Logger logger = LoggerFactory.getLogger(VirtualType.class);
 				logger.debug("Removing property '{}' with value '{}' from propertyset because no matching virtual property was found", propertyName, propertySet.get(propertyName));
 				it.remove();
 			}
@@ -163,6 +166,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 					return Boolean.TRUE.equals(Scripting.evaluate(ctx, value, "${" + expression.trim() + "}", "virtual type filter"));
 
 				} catch (FrameworkException fex) {
+					final Logger logger = LoggerFactory.getLogger(VirtualType.class);
 					logger.warn("", fex);
 				}
 			}
@@ -205,6 +209,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 				}
 
 			} catch (FrameworkException ex) {
+				final Logger logger = LoggerFactory.getLogger(VirtualType.class);
 				logger.error("", ex);
 			}
 

@@ -36,10 +36,7 @@ var _Dragndrop = {
 			hoverClass: 'nodeHover',
 			drop: function(e, ui) {
 
-				_Logger.log(_LogType.DND, 'Drop event', e, ui);
-
 				if (dropBlocked) {
-					_Logger.log(_LogType.DND, 'Drop in iframe was blocked');
 					dropBlocked = false;
 					return false;
 				}
@@ -89,17 +86,14 @@ var _Dragndrop = {
 							Command.favorites('add', sourceId, function() {
 
 								blinkGreen(Structr.node(sourceId));
-
 							});
 
 						} else {
 
 							blinkRed(Structr.node(sourceId));
-
 						}
 
 						return;
-
 					}
 				}
 
@@ -107,9 +101,7 @@ var _Dragndrop = {
 					targetId = self.attr('data-structr-id');
 				}
 
-				_Logger.log(_LogType.DND, 'dropped onto', self, targetId, Structr.getId(sortParent));
 				if (targetId === Structr.getId(sortParent)) {
-					_Logger.log(_LogType.DND, 'target id == sortParent id', targetId, Structr.getId(sortParent));
 					return false;
 				}
 
@@ -140,8 +132,6 @@ var _Dragndrop = {
 					pageId = target.id;
 				}
 
-				_Logger.log(_LogType.DND, source, target, pageId, tag, related);
-
 				if (target.isContent && target.type !== 'Template' && source) {
 					return false;
 				}
@@ -154,10 +144,8 @@ var _Dragndrop = {
 					$(ui.draggable).remove();
 					sortParent = undefined;
 				}
-
 			}
 		});
-
 	},
 	makeSortable: function(element) {
 		var el = $(element);
@@ -184,7 +172,6 @@ var _Dragndrop = {
 			start: function(event, ui) {
 				sorting = true;
 				sortParent = $(ui.item).parent();
-				_Logger.log(_LogType.DND, '### sortable start: sorting?', sorting, Structr.getId(el), Structr.getId(self), Structr.getId(sortParent));
 				Structr.currentlyActiveSortable = el;
 				$('#newComponentDropzone').addClass("allow-drop");
 			},
@@ -202,8 +189,6 @@ var _Dragndrop = {
 				if (!refId) {
 					refId = Structr.getComponentId(nextNode);
 				}
-
-				_Logger.log(_LogType.DND, '### sortable update: sorting?', sorting, Structr.getId(el), Structr.getId(self), Structr.getId(sortParent), nextNode, refId);
 
 				var parentId = Structr.getId(sortParent);
 				el.remove();
@@ -241,22 +226,19 @@ var _Dragndrop = {
 	 */
 	dropAction: function(source, target, pageId, tag, related) {
 
-		_Logger.log(_LogType.DND, 'dropAction', source, target, pageId, tag, related);
-
 		if (source && pageId && source.pageId && pageId !== source.pageId) {
 
 			if (shadowPage && source.pageId === shadowPage.id) {
+
 				Command.cloneComponent(source.id, target.id);
-				_Logger.log(_LogType.DND, 'dropped', source.id, 'onto', target.id, 'in page', pageId, ', cloneComponent');
 
 			} else if (source.pageId !== target.pageId) {
+
 				Command.cloneNode(source.id, target.id, true);
-				_Logger.log(_LogType.DND, 'dropped', source.id, 'onto', target.id, 'in page', pageId, ', cloneNode');
 
 			} else {
-				Command.appendChild(source.id, target.id, pageId);
-				_Logger.log(_LogType.DND, 'dropped', source.id, 'onto', target.id, 'in page', pageId, ', appendChild');
 
+				Command.appendChild(source.id, target.id, pageId);
 			}
 
 			return false;
@@ -264,7 +246,6 @@ var _Dragndrop = {
 
 		// element dropped on itself?
 		if (source && target && (source.id === target.id)) {
-			_Logger.log(_LogType.DND, 'drop on self not allowed');
 			return false;
 		}
 
@@ -288,13 +269,11 @@ var _Dragndrop = {
 
 			if (tag.indexOf('.') !== -1) {
 
-				_Logger.log(_LogType.DND, tag, source, target, related);
-
 				Command.get(target.id, 'id,children', function(target) {
 					var firstContentId = target.children[0].id;
 					if (related) {
 						var key = tag.substring(tag.indexOf('.') + 1);
-						_Logger.log(_LogType.DND, 'tag, key, subkey', tag, key, related.subKey);
+
 						if (related.isCollection) {
 							Command.setProperty(firstContentId, 'content', '${' + key + '.' + related.subKey + '}');
 							Command.setProperty(firstContentId, 'dataKey', key);
@@ -328,27 +307,20 @@ var _Dragndrop = {
 			if (source && target && source.id && target.id) {
 
 				sorting = false;
-				_Logger.log(_LogType.DND, 'appendChild', source, target);
 				Command.appendChild(source.id, target.id);
 
 				return true;
 
-			} else {
-				_Logger.log(_LogType.DND, 'unknown drag\'n drop  situation', source, target);
 			}
 		}
-
-		_Logger.log(_LogType.DND, 'drop event in appendElementElement', pageId, Structr.getId(self), (tag !== 'content' ? tag : ''));
-
 	},
 	htmlElementFromPaletteDropped: function(tag, target, pageId) {
 		var nodeData = _Dragndrop.getAdditionalDataForElementCreation(tag, target.tag);
 
 		if (target.type !== 'Template' && (target.isContent || target.type === 'Comment')) {
 			if (tag === 'content' || tag === 'comment') {
-				_Logger.log(_LogType.DND, 'content element dropped on content or comment, doing nothing');
+				// content element dropped on content or comment, doing nothing
 			} else {
-				_Logger.log(_LogType.DND, 'wrap content', pageId, target.id, tag);
 				Command.wrapContent(pageId, target.id, tag);
 			}
 		} else {
@@ -401,7 +373,6 @@ var _Dragndrop = {
 		Structr.makePagesMenuDroppable();
 
 		_Widgets.insertWidgetIntoPage(source, target, pageId);
-
 	},
 	fileDropped: function(source, target, pageId) {
 		var refreshTimeout;
@@ -428,7 +399,6 @@ var _Dragndrop = {
 							_Files.refreshTree();
 							refreshTimeout = 0;
 						}, 100);
-
 					});
 				});
 				selectedElements.length = 0;
@@ -442,23 +412,15 @@ var _Dragndrop = {
 			return true;
 		}
 
-		var nodeData = {}, tag;
+		let nodeData = {}, tag;
+		let name = source.name;
+		let parentTag = target.tag;
 
-		name = source.name;
-
-		var parentTag = target.tag;
-
-		//var parentTag = self.children('.tag_').text();
-		_Logger.log(_LogType.DND, source, target, parentTag);
 		nodeData.linkableId = source.id;
 
 		if (parentTag === 'head') {
 
-			_Logger.log(_LogType.DND, 'File dropped in <head>');
-
 			if (name.endsWith('.css')) {
-
-				//console.log('CSS file dropped in <head>, creating <link>');
 
 				tag = 'link';
 				nodeData._html_href = '${link.path}?${link.version}';
@@ -468,14 +430,12 @@ var _Dragndrop = {
 
 			} else if (name.endsWith('.js')) {
 
-				_Logger.log(_LogType.DND, 'JS file dropped in <head>, creating <script>');
 				tag = 'script';
 				nodeData._html_src = '${link.path}?${link.version}';
 			}
 
 		} else {
 
-			_Logger.log(_LogType.DND, 'File dropped, creating <a> node', name);
 			nodeData._html_href = '${link.path}';
 			nodeData._html_title = '${link.name}';
 			nodeData.childContent = '${parent.link.name}';
@@ -491,7 +451,6 @@ var _Dragndrop = {
 	imageDropped: function(source, target, pageId) {
 
 		var nodeData = {}, name = source.name, tag;
-		_Logger.log(_LogType.DND, 'Image dropped, creating img node', name);
 		nodeData._html_src = '${link.path}?${link.version}';
 		nodeData.linkableId = source.id;
 		tag = 'img';

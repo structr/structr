@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -140,7 +140,6 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 		throw new IllegalStateException("External reference " + externalTypeReference + " not found.");
 	}
 
-	// ----- package methods -----
 	@Override
 	Map<String, Object> serialize() {
 
@@ -185,6 +184,7 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 		return map;
 	}
 
+	// ----- package methods -----
 	@Override
 	void deserialize(final Map<String, Object> source) {
 		super.deserialize(source);

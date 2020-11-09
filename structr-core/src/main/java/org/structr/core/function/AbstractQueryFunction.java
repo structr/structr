@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -28,7 +28,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import static org.structr.core.function.FindFunction.ERROR_MESSAGE_FIND;
 import org.structr.core.function.search.AndPredicate;
 import org.structr.core.function.search.SearchFunctionPredicate;
 import org.structr.core.function.search.SearchParameter;
@@ -136,7 +135,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 		return false;
 	}
 
-	protected Object handleQuerySources(final SecurityContext securityContext, final Class type, final Query query, final Object[] sources, final boolean exact) throws FrameworkException {
+	protected Object handleQuerySources(final SecurityContext securityContext, final Class type, final Query query, final Object[] sources, final boolean exact, final String errorMessage) throws FrameworkException {
 
 		// extension for native javascript objects
 		if (sources.length == 2) {
@@ -187,7 +186,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 						// check number of parameters dynamically
 						if (c + 1 >= sources.length) {
 
-							throw new FrameworkException(400, "Invalid number of parameters, missing value for key " + key.jsonName() + ": " + ERROR_MESSAGE_FIND);
+							throw new FrameworkException(400, "Invalid number of parameters, missing value for key " + key.jsonName() + ": " + errorMessage);
 						}
 
 						Object value = sources[++c]; // increment c to

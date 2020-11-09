@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,13 +18,19 @@
  */
 package org.structr.core;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.lang.management.ManagementFactory;
+import java.net.HttpURLConnection;
 import java.net.URI;
-import java.text.SimpleDateFormat;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -38,6 +44,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,16 +59,22 @@ import org.structr.api.service.RunnableService;
 import org.structr.api.service.Service;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.ServiceResult;
+import org.structr.api.service.StartServiceInMaintenanceMode;
+import org.structr.api.service.StopServiceForMaintenanceMode;
 import org.structr.api.service.StructrServices;
+import org.structr.api.util.CountResult;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
 import org.structr.common.VersionHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.ManageDatabasesCommand;
 import org.structr.core.graph.NodeService;
+import org.structr.core.graph.Tx;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
 import org.structr.util.StructrLicenseManager;
@@ -213,6 +226,7 @@ public class Services implements StructrServices {
 					connection.setUrl(Settings.ConnectionUrl.getValue());
 					connection.setUsername(Settings.ConnectionUser.getValue());
 					connection.setPassword(Settings.ConnectionPassword.getValue());
+					connection.setDriver(Settings.DEFAULT_REMOTE_DATABASE_DRIVER);
 
 					final ManageDatabasesCommand cmd = new ManageDatabasesCommand();
 
@@ -229,7 +243,7 @@ public class Services implements StructrServices {
 						Settings.DatabaseDriverMode.setValue(Settings.DatabaseDriverMode.getDefaultValue());
 
 					} catch (FrameworkException fex) {
-						logger.warn("Unable migrate configuration: {}", fex.getMessage());
+						logger.warn("Unable to migrate configuration: {}", fex.getMessage());
 					}
 				}
 			}
@@ -276,23 +290,44 @@ public class Services implements StructrServices {
 
 			logger.warn("Maximum heap size is smaller than recommended, this can lead to problems with large databases!");
 			logger.warn("Please configure AT LEAST 8 GBs of heap memory using -Xmx8g.");
+
+			// reduce fetch size
+			final int maxFetchSize = (max < 1) ? 1_000 : 10_000;
+
+			if (Settings.FetchSize.getValue() > maxFetchSize) {
+
+				logger.info("Reducing fetch size setting '{}' to {} to reduce low-memory performance problems", Settings.FetchSize.getKey(), maxFetchSize);
+				Settings.FetchSize.setValue(maxFetchSize);
+
+				RuntimeEventLog.systemInfo("Reducing fetch size setting to reduce low-memory performance problems", Settings.FetchSize.getKey(), maxFetchSize);
+			}
 		}
 
 		final List<Class> configuredServiceClasses = getCongfiguredServiceClasses();
 
 		logger.info("Starting services: {}", configuredServiceClasses.stream().map(Class::getSimpleName).collect(Collectors.toList()));
 
-		// initialize other services
+		final boolean maintenanceEnabled = Settings.MaintenanceModeEnabled.getValue();
+
 		for (final Class serviceClass : configuredServiceClasses) {
 
-			try {
+			final StopServiceForMaintenanceMode stopAnnotation  = (StopServiceForMaintenanceMode)serviceClass.getAnnotation(StopServiceForMaintenanceMode.class);
+			final StartServiceInMaintenanceMode startAnnotation = (StartServiceInMaintenanceMode)serviceClass.getAnnotation(StartServiceInMaintenanceMode.class);
 
-				final String activeServiceName = getNameOfActiveService(serviceClass);
+			if (maintenanceEnabled == false || (stopAnnotation == null && startAnnotation == null) || (stopAnnotation != null && startAnnotation != null)) {
 
-				startService(serviceClass, activeServiceName, false);
+				try {
 
-			} catch (FrameworkException ex) {
-				logger.warn("Service {} failed to start: {}", serviceClass.getSimpleName(), ex.getMessage());
+					final String activeServiceName = getNameOfActiveService(serviceClass);
+					startService(serviceClass, activeServiceName, false);
+
+				} catch (FrameworkException ex) {
+					logger.warn("Service {} failed to start: {}", serviceClass.getSimpleName(), ex.getMessage());
+				}
+
+			} else {
+
+				logger.warn("Service {} not started in maintenance mode", serviceClass.getSimpleName());
 			}
 		}
 
@@ -367,13 +402,15 @@ public class Services implements StructrServices {
 		}
 
 		logger.info("Started Structr {}", VersionHelper.getFullVersionInfo());
-
-		// Don't use logger here because start/stop scripts rely on this line.
-		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.ms").format(new Date()) + "  ---------------- Initialization complete ----------------");
+		logger.info("---------------- Initialization complete ----------------");
 
 		setOverridingSchemaTypesAllowed(false);
 
 		initializationDone = true;
+
+		if (licenseManager != null && !Settings.DisableSendSystemInfo.getValue(false)) {
+			new SystemInfoSender().start();
+		}
 	}
 
 	@Override
@@ -406,7 +443,6 @@ public class Services implements StructrServices {
 		return "Services is not initialized yet.";
 	}
 
-
 	public boolean isOverridingSchemaTypesAllowed() {
 		return overridingSchemaTypesAllowed;
 	}
@@ -414,7 +450,6 @@ public class Services implements StructrServices {
 	public void setOverridingSchemaTypesAllowed(final boolean allow) {
 		overridingSchemaTypesAllowed = allow;
 	}
-
 
 	public void shutdown() {
 
@@ -427,7 +462,7 @@ public class Services implements StructrServices {
 
 		if (!shutdownDone) {
 
-			System.out.println("INFO: Shutting down...");
+			logger.info("Shutting down...");
 
 			final List<Class> configuredServiceClasses = getCongfiguredServiceClasses();
 			final List<Class> reverseServiceClassNames = new LinkedList<>(configuredServiceClasses);
@@ -439,7 +474,7 @@ public class Services implements StructrServices {
 
 			if (!serviceCache.isEmpty()) {
 
-				System.out.println("Not all services were removed: " + serviceCache);
+				logger.info("Not all services were removed: " + serviceCache);
 				serviceCache.clear();
 			}
 
@@ -449,12 +484,50 @@ public class Services implements StructrServices {
 			// clear singleton instance
 			singletonInstance = null;
 
-			System.out.println("INFO: Shutdown complete");
+			logger.info("Shutdown complete");
 
 			// signal shutdown is complete
 			shutdownDone = true;
 		}
+	}
 
+	public void setMaintenanceMode(final Boolean maintenanceEnabled) {
+
+		logger.info("Setting maintenace mode = {}", maintenanceEnabled);
+
+		final List<Class> configuredServiceClasses = getCongfiguredServiceClasses();
+		final List<Class> reverseServiceClassNames = new LinkedList<>(configuredServiceClasses);
+		Collections.reverse(reverseServiceClassNames);
+
+		for (final Class serviceClass : reverseServiceClassNames) {
+
+			final StopServiceForMaintenanceMode stopAnnotation = (StopServiceForMaintenanceMode)serviceClass.getAnnotation(StopServiceForMaintenanceMode.class);
+			if (stopAnnotation != null) {
+
+				shutdownServices(serviceClass);
+			}
+		}
+
+		for (final Class serviceClass : configuredServiceClasses) {
+
+			final StopServiceForMaintenanceMode stopAnnotation = (StopServiceForMaintenanceMode)serviceClass.getAnnotation(StopServiceForMaintenanceMode.class);
+			if (stopAnnotation != null) {
+
+				final StartServiceInMaintenanceMode startAnnotation = (StartServiceInMaintenanceMode)serviceClass.getAnnotation(StartServiceInMaintenanceMode.class);
+
+				if (maintenanceEnabled == false || startAnnotation != null) {
+
+					try {
+
+						final String activeServiceName = getNameOfActiveService(serviceClass);
+						startService(serviceClass, activeServiceName, false);
+
+					} catch (FrameworkException ex) {
+						logger.warn("Service {} failed to start: {}", serviceClass.getSimpleName(), ex.getMessage());
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -700,7 +773,7 @@ public class Services implements StructrServices {
 
 		} catch (Throwable t) {
 
-			System.out.println("WARNING: Failed to shut down " + service.getName() + ": " + t.getMessage());
+			logger.warn("Failed to shut down " + service.getName() + ": " + t.getMessage());
 		}
 
 		// remove from service cache
@@ -1072,6 +1145,171 @@ public class Services implements StructrServices {
 
 		if (licenseManager != null) {
 			licenseManager.refresh();
+		}
+	}
+
+	// ----- nested classes -----
+	private class SystemInfoSender extends Thread {
+
+		public SystemInfoSender() {
+
+			super("SystemInfoSenderThread");
+
+			setDaemon(true);
+		}
+
+		@Override
+		public void run() {
+
+			final String systemInfoDataId = sendInitialSystemInfoData();
+			if (systemInfoDataId != null) {
+
+				while (true) {
+
+					try {
+
+						sendContinuedSystemInfoData(systemInfoDataId);
+						Thread.sleep(TimeUnit.HOURS.toMillis(24));
+
+					} catch (Throwable ignore) {}
+				}
+			}
+		}
+
+		// ----- private methods -----
+		private String sendInitialSystemInfoData() {
+
+			String id = null;
+
+			try {
+
+				final URL url                  = new URL("https://sysinfo.structr.com/structr/rest/SystemInfoData");
+				final Map<String, Object> data = new LinkedHashMap<>();
+				final URLConnection con        = url.openConnection();
+				final HttpURLConnection http   = (HttpURLConnection)con;
+				final Gson gson                = new GsonBuilder().create();
+				final Runtime runtime          = Runtime.getRuntime();
+
+				data.put("version",  VersionHelper.getFullVersionInfo());
+				data.put("edition",  licenseManager.getEdition());
+				data.put("hostId",   licenseManager.getHardwareFingerprint());
+				data.put("jvm",      Runtime.version().toString());
+				data.put("memory",   runtime.maxMemory() / 1024 / 1024);
+				data.put("cpus",     runtime.availableProcessors());
+				data.put("os",       System.getProperty("os.name"));
+
+				http.setRequestProperty("ContentType", "application/json");
+				http.setReadTimeout(1000);
+				http.setConnectTimeout(1000);
+				http.setRequestMethod("POST");
+				http.setDoOutput(true);
+				http.setDoInput(true);
+				http.connect();
+
+				// write request body
+				try (final Writer writer = new OutputStreamWriter(http.getOutputStream())) {
+
+					gson.toJson(data, writer);
+					writer.flush();
+				}
+
+				final InputStream input = http.getInputStream();
+				if (input != null) {
+
+					// consume response
+					final String responseText          = IOUtils.toString(input, "utf-8");
+					final Map<String, Object> response = gson.fromJson(responseText, Map.class);
+
+					if (response != null) {
+
+						final Object result = response.get("result");
+						if (result instanceof List) {
+
+							final List list = (List)result;
+							if (!list.isEmpty()) {
+
+								final Object entry = list.get(0);
+								if (entry instanceof String) {
+
+									id = (String)entry;
+								}
+							}
+						}
+					}
+				}
+
+				final InputStream error = http.getErrorStream();
+				if (error != null) {
+
+					// consume error stream
+					IOUtils.toString(error, "utf-8");
+				}
+
+				http.disconnect();
+
+			} catch (Throwable ignore) {}
+
+			return id;
+		}
+
+		private void sendContinuedSystemInfoData(final String id) {
+
+			try {
+
+				final URL url                  = new URL("https://sysinfo.structr.com/structr/rest/SystemInfoDataUpdate");
+				final Map<String, Object> data = new LinkedHashMap<>();
+				final URLConnection con        = url.openConnection();
+				final HttpURLConnection http   = (HttpURLConnection)con;
+				final Gson gson                = new GsonBuilder().create();
+
+				try (final Tx tx = StructrApp.getInstance().tx()) {
+
+					final DatabaseService db = Services.getInstance().getDatabaseService();
+					final CountResult cr     = db.getNodeAndRelationshipCount();
+
+					data.put("users",         cr.getUserCount());
+					data.put("nodes",         cr.getNodeCount());
+					data.put("relationships", cr.getRelationshipCount());
+
+					tx.success();
+				}
+
+				data.put("now",      System.currentTimeMillis());
+				data.put("uptime",   ManagementFactory.getRuntimeMXBean().getUptime());
+				data.put("parentId", id);
+
+				http.setRequestProperty("ContentType", "application/json");
+				http.setReadTimeout(1000);
+				http.setConnectTimeout(1000);
+				http.setRequestMethod("POST");
+				http.setDoOutput(true);
+				http.setDoInput(true);
+				http.connect();
+
+				// write request body
+				try (final Writer writer = new OutputStreamWriter(http.getOutputStream())) {
+
+					gson.toJson(data, writer);
+					writer.flush();
+				}
+
+				final InputStream input = http.getInputStream();
+				if (input != null) {
+
+					// consume response
+					IOUtils.toString(input, "utf-8");
+				}
+
+				final InputStream error = http.getErrorStream();
+				if (error != null) {
+
+					// consume error stream
+					IOUtils.toString(error, "utf-8");
+				}
+
+				http.disconnect();
+
+			} catch (Throwable ignore) {}
 		}
 	}
 }

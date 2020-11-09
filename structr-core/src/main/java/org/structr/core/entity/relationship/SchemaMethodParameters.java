@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -51,5 +51,10 @@ public class SchemaMethodParameters extends OneToMany<SchemaMethod, SchemaMethod
 	@Override
 	public boolean isInternal() {
 		return true;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.SOURCE_TO_TARGET;
 	}
 }

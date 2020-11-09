@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -24,8 +24,8 @@ import org.structr.schema.action.ActionContext;
 
 public class SetResponseHeaderFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER    = "Usage: ${set_response_header(field, value)}. Example: ${set_response_header('X-User', 'johndoe')}";
-	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER_JS = "Usage: ${{Structr.setResponseHeader(field, value)}}. Example: ${{Structr.setResponseHeader('X-User', 'johndoe')}}";
+	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER    = "Usage: ${set_response_header(field, value [, override = false ])}. Example: ${set_response_header('X-User', 'johndoe', true)}";
+	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER_JS = "Usage: ${{Structr.setResponseHeader(field, value [, override = false ])}}. Example: ${{Structr.setResponseHeader('X-User', 'johndoe', true)}}";
 
 	@Override
 	public String getName() {
@@ -34,16 +34,19 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getSignature() {
-		return "name, value";
+		return "name, value [, override = false ]";
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
-		if (sources != null && sources.length == 2) {
+		try {
 
-			final String name = sources[0].toString();
-			final String value = sources[1].toString();
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
+
+			final String name      = sources[0].toString();
+			final String value     = sources[1].toString();
+			final Boolean override = sources.length > 2 ? (Boolean) sources[2] : false;
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			if (securityContext != null) {
@@ -51,20 +54,21 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 				final HttpServletResponse response = securityContext.getResponse();
 				if (response != null) {
 
-					response.addHeader(name, value);
+					if (override) {
+						response.setHeader(name, value);
+					} else {
+						response.addHeader(name, value);
+					}
 				}
 			}
 
-			return "";
+		} catch (IllegalArgumentException e) {
 
-		} else {
-
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 
+		return "";
 	}
 
 	@Override

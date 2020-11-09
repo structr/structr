@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -34,13 +34,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Config;
 import org.neo4j.driver.v1.Driver;
@@ -65,7 +65,6 @@ import org.structr.api.graph.GraphProperties;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
-import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.Index;
 import org.structr.api.search.ExactQuery;
 import org.structr.api.search.Occurrence;
@@ -82,9 +81,7 @@ import org.structr.api.util.NodeWithOwnerResult;
 public class BoltDatabaseService extends AbstractDatabaseService implements GraphProperties {
 
 	private static final Logger logger                                = LoggerFactory.getLogger(BoltDatabaseService.class.getName());
-	private static final Map<String, RelationshipType> relTypeCache   = new ConcurrentHashMap<>();
 	private static final ThreadLocal<SessionTransaction> sessions     = new ThreadLocal<>();
-	private static final long nanoEpoch                               = System.nanoTime();
 	private final Set<String> supportedQueryLanguages                 = new LinkedHashSet<>();
 	private Properties globalGraphProperties                          = null;
 	private CypherRelationshipIndex relationshipIndex                 = null;
@@ -449,7 +446,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
 		logger.debug("Found {} existing indexes", existingDbIndexes.size());
@@ -464,12 +461,13 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 			for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
 
-				final String indexDescription = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
-				final String state            = existingDbIndexes.get(indexDescription);
-				final boolean alreadySet      = Boolean.TRUE.equals("ONLINE".equals(state));
-				final boolean createIndex     = propertyIndexConfig.getValue();
+				final String indexDescriptionForLookup = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
+				final String indexDescription          = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
+				final String currentState              = existingDbIndexes.get(indexDescriptionForLookup);
+				final boolean indexAlreadyOnline       = Boolean.TRUE.equals("ONLINE".equals(currentState));
+				final boolean configuredAsIndexed      = propertyIndexConfig.getValue();
 
-				if ("FAILED".equals(state)) {
+				if ("FAILED".equals(currentState)) {
 
 					logger.warn("Index is in FAILED state - dropping the index before handling it further. {}. If this error is recurring, please verify that the data in the concerned property is indexable by Neo4j", indexDescription);
 
@@ -504,7 +502,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 							}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 						} catch (Throwable t) {
-							t.printStackTrace();
+							logger.error(ExceptionUtils.getStackTrace(t));
 						}
 					}
 				}
@@ -522,9 +520,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 							try (final Transaction tx = beginTx(timeoutSeconds)) {
 
-								if (createIndex) {
+								if (configuredAsIndexed) {
 
-									if (!alreadySet) {
+									if (!indexAlreadyOnline) {
 
 										try {
 
@@ -536,7 +534,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 										}
 									}
 
-								} else if (alreadySet && !createOnly) {
+								} else if (indexAlreadyOnline && !createOnly) {
 
 									try {
 
@@ -593,11 +591,12 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 				for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
 
-					final String indexDescription = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
-					final boolean indexExists     = Boolean.TRUE.equals(existingDbIndexes.get(indexDescription));
-					final boolean dropIndex       = propertyIndexConfig.getValue();
+					final String indexDescriptionForLookup = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
+					final String indexDescription          = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
+					final boolean indexExists              = (existingDbIndexes.get(indexDescriptionForLookup) != null);
+					final boolean configuredAsIndexed      = propertyIndexConfig.getValue();
 
-					if (indexExists && dropIndex) {
+					if (indexExists && configuredAsIndexed) {
 
 						final AtomicBoolean retry = new AtomicBoolean(true);
 						final AtomicInteger retryCount = new AtomicInteger(0);
@@ -809,9 +808,10 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		final String tenantId = getTenantIdentifier();
 		final String part     = tenantId != null ? ":" + tenantId : "";
 		final long nodeCount  = getCount("MATCH (n" + part + ":NodeInterface) RETURN COUNT(n) AS count", "count");
-		final long relCount   = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN count(r) AS count", "count");
+		final long relCount   = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN COUNT(r) AS count", "count");
+		final long userCount  = getCount("MATCH (n" + part + ":User) RETURN COUNT(n) AS count", "count");
 
-		return new CountResult(nodeCount, relCount);
+		return new CountResult(nodeCount, relCount, userCount);
 	}
 
 	@Override
@@ -832,6 +832,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 			case SpatialQueries:
 				return true;
+
+			case AuthenticationRequired:
+				return true;
 		}
 
 		return false;
@@ -840,6 +843,14 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public String getErrorMessage() {
 		return errorMessage;
+	}
+
+	@Override
+	public Map<String, Map<String, Integer>> getCachesInfo() {
+		return Map.of(
+			"nodes",         NodeWrapper.nodeCache.getCacheInfo(),
+			"relationships", RelationshipWrapper.relationshipCache.getCacheInfo()
+		);
 	}
 
 	// ----- private methods -----

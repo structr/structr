@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -29,18 +29,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Utility class for recurring dates
- *
- *
+ * Utility class for recurring dates.
  */
 public class RecurringDateHelper {
 
 	private static final Logger logger = LoggerFactory.getLogger(RecurringDateHelper.class.getName());
-	
+
 	private enum ShortWeekday {
 
 		Mo, Di, Mi, Do, Fr, Sa, So
-
 	}
 
 	public static class Appointment {
@@ -54,7 +51,7 @@ public class RecurringDateHelper {
 			this.endDate   = endDate;
 
 		}
-		
+
 		@Override
 		public String toString() {
 			return this.startDate + " - " + this.endDate;
@@ -62,43 +59,18 @@ public class RecurringDateHelper {
 
 	}
 
-
-	public static void main(String[] args) {
-
-		String startTimeString = "14:30";
-		String endTimeString   = "17:00";
-		Calendar cal           = GregorianCalendar.getInstance();
-		Date startDate         = new Date();
-
-		cal.setTime(startDate);
-		cal.add(Calendar.DAY_OF_WEEK, 20);
-
-		Date endDate = cal.getTime();
-
-		System.out.println("Start date: " + startDate);
-		System.out.println("End date: " + endDate);
-		
-		List<Appointment> appointments = generateAppointments(startDate, endDate, "Mo,Di,Do,Fr,So", startTimeString, endTimeString);
-		
-		for (Appointment app : appointments) {
-			System.out.println(app);
-		}
-		
-
-	}
-
 	public static List<Appointment> generateAppointments(final Date startDate, final Date endDate, final String weekdays, final String startTimeString, final String endTimeString) {
 
-                
+
 		List<Appointment> appointments = new LinkedList();
 		//check if a Date is empty
-		if(	startDate == null || startDate.getTime() == 0 || 
+		if(	startDate == null || startDate.getTime() == 0 ||
 			endDate == null || endDate.getTime() == 0 ||
-			weekdays == null || weekdays.equals("") || 
-			startTimeString == null || startTimeString.equals("") || 
+			weekdays == null || weekdays.equals("") ||
+			startTimeString == null || startTimeString.equals("") ||
 			endTimeString == null || endTimeString.equals(""))
 			return appointments;
-		
+
 		String[] wd      = StringUtils.split(weekdays, ",");
 		Date start       = dateFromDateAndTimeString(startDate, wd[0], startTimeString);
 		Calendar cal     = GregorianCalendar.getInstance();
@@ -118,7 +90,7 @@ public class RecurringDateHelper {
 			if (ArrayUtils.contains(wd, shortWeekday)) {
 
 				Date end = dateFromDateAndTimeString(start, shortWeekday, endTimeString);
-				
+
 				appointments.add(new Appointment(start, end));
 
 			}
@@ -140,18 +112,18 @@ public class RecurringDateHelper {
 		Calendar cal        = GregorianCalendar.getInstance();
 
 		cal.setTime(date);
-		
+
 		cal.set(Calendar.DAY_OF_WEEK, getDayOfWeek(shortWeekday));
-		
+
 		try {
 			cal.set(Calendar.HOUR_OF_DAY, Integer.parseInt(hourMinute[0]));
 			cal.set(Calendar.MINUTE, Integer.parseInt(hourMinute[1]));
-			
+
 		} catch (Throwable t) {
-			
+
 			logger.warn("Unable to parse time from string {}", timeString);
 		}
-		
+
 		cal.set(Calendar.SECOND, 0);
 
 		return cal.getTime();
@@ -159,7 +131,7 @@ public class RecurringDateHelper {
 	}
 
 	private static int getDayOfWeek(final String shortWeekday) {
-		
+
 		if (shortWeekday != null && !shortWeekday.equals(""))
 			try {
 				ShortWeekday wd = ShortWeekday.valueOf(shortWeekday);

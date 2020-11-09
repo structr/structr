@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -188,5 +188,11 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 	@Override
 	public PropertyType getDataType() {
 		return PropertyType.DECIMAL;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return 1.0;
 	}
 }

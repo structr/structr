@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -23,6 +23,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.Occurrence;
@@ -247,6 +249,40 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	@Override
 	public boolean isCollection() {
 		return true;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+
+		final Map<String, Object> items = new TreeMap<>();
+		final Map<String, Object> map   = new TreeMap<>();
+
+		items.put("type", componentType.getSimpleName().toLowerCase());
+
+		map.put("type", "array");
+		map.put("items", items);
+
+		return map;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+
+		final Map<String, Object> items = new TreeMap<>();
+		final Map<String, Object> map   = new TreeMap<>();
+
+		items.put("type", componentType.getSimpleName().toLowerCase());
+
+		map.put("type", "array");
+		map.put("items", items);
+
+		return map;
 	}
 
 	// ----- private methods -----

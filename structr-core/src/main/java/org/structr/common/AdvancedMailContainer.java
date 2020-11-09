@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -20,7 +20,9 @@ package org.structr.common;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.mail.EmailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,12 +49,23 @@ public class AdvancedMailContainer {
 	private final Map<String, String> replyTo = new LinkedHashMap<>(0);
 	private final Map<String, String> headers = new LinkedHashMap<>(0);
 
-	private final ArrayList<DynamicMailAttachment> attachments = new ArrayList();
+	private final List<DynamicMailAttachment> attachments = new ArrayList();
+	private final List<Pair<String, String>> mimeParts    = new ArrayList();
 
 	private boolean saveOutgoingMessage = false;
 	private Object lastOutgoingMessage = null;
 
 	private String configurationPrefix = null;
+
+	private boolean useManualConfiguration = false;
+	private String smtpHost        = null;
+	private Integer smtpPort       = null;
+	private String smtpUser        = null;
+	private String smtpPassword    = null;
+	private Boolean smtpUseTLS     = null;
+	private Boolean smtpRequireTLS = null;
+
+	private String error           = null;
 
 	public String getFromName() {
 		return fromName;
@@ -151,19 +164,29 @@ public class AdvancedMailContainer {
 		getReplyTo().clear();
 	}
 
+	public List<Pair<String, String>> getMimeParts() {
+		return mimeParts;
+	}
 
-	public ArrayList<DynamicMailAttachment> getAttachments() {
+	public List<DynamicMailAttachment> getAttachments() {
 		return attachments;
+	}
+
+	public void addMimePart(final String content, String contentType) {
+		getMimeParts().add(Pair.of(content, contentType));
 	}
 
 	public void addAttachment(final DynamicMailAttachment att) {
 		getAttachments().add(att);
 	}
 
+	public void clearMimeParts() {
+		getMimeParts().clear();
+	}
+
 	public void clearAttachments() {
 		getAttachments().clear();
 	}
-
 
 	public Map<String, String> getCustomHeaders() {
 		return headers;
@@ -231,6 +254,79 @@ public class AdvancedMailContainer {
 		this.configurationPrefix = configurationPrefix;
 	}
 
+	public boolean shouldUseManualConfiguration() {
+		return useManualConfiguration;
+	}
+
+	public void setManualConfiguration(final String smtpHost, final int smtpPort, final String smtpUser, final String smtpPassword, final boolean smtpUseTLS, final boolean smtpRequireTLS) {
+
+		useManualConfiguration = true;
+
+		this.smtpHost       = smtpHost;
+		this.smtpPort       = smtpPort;
+		this.smtpUser       = smtpUser;
+		this.smtpPassword   = smtpPassword;
+		this.smtpUseTLS     = smtpUseTLS;
+		this.smtpRequireTLS = smtpRequireTLS;
+	}
+
+	public String getSmtpHost() {
+		return smtpHost;
+	}
+
+	public int getSmtpPort() {
+		return smtpPort;
+	}
+
+	public String getSmtpUser() {
+		return smtpUser;
+	}
+
+	public String getSmtpPassword() {
+		return smtpPassword;
+	}
+
+	public boolean getSmtpUseTLS() {
+		return smtpUseTLS;
+	}
+
+	public boolean getSmtpRequireTLS() {
+		return smtpRequireTLS;
+	}
+
+	public void setError(final Throwable ex) {
+
+		error = ex.getMessage();
+
+		if (ex.getCause() != null) {
+			error += "\n" + ex.getCause().getMessage();
+		}
+	}
+
+	public String getError() {
+		return error;
+	}
+
+	public boolean hasError() {
+		return (error != null);
+	}
+
+	public void clearError() {
+		error = null;
+	}
+
+	public void resetManualConfiguration() {
+
+		useManualConfiguration = false;
+
+		this.smtpHost       = null;
+		this.smtpPort       = null;
+		this.smtpUser       = null;
+		this.smtpPassword   = null;
+		this.smtpUseTLS     = null;
+		this.smtpRequireTLS = null;
+	}
+
 	public void clearMailContainer() {
 
 		setFromName(null);
@@ -246,14 +342,17 @@ public class AdvancedMailContainer {
 		this.lastOutgoingMessage = null;
 
 		setConfigurationPrefix(null);
+		resetManualConfiguration();
 
 		clearTo();
 		clearCc();
 		clearBcc();
 		clearReplyTo();
+		clearMimeParts();
 		clearAttachments();
 		clearCustomHeaders();
 
+		clearError();
 	}
 
 	public String send(final SecurityContext securityContext) throws EmailException, FrameworkException {

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -47,6 +47,7 @@ import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
 import org.structr.core.JsonInput;
 import org.structr.core.Services;
@@ -131,6 +132,8 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 				tx.success();
 			}
+
+			RuntimeEventLog.csv("Get", resource.getResourceSignature(), securityContext.getUser(false));
 
 			try (final Tx tx = app.tx()) {
 
@@ -274,6 +277,8 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 					tx.success();
 				}
+
+				RuntimeEventLog.csv("Post", resource.getResourceSignature(), securityContext.getUser(false));
 
 				// do not send websocket notifications for created objects
 				securityContext.setDoTransactionNotifications(false);

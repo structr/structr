@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -78,6 +78,8 @@ public abstract class StructrOAuthClient {
 	public abstract String getReturnUri();
 	public abstract String getErrorUri();
 	protected abstract String getScope();
+	protected abstract String getAccessTokenLocationKey();
+	protected abstract String getAccessTokenLocation();
 
 	public StructrOAuthClient() {};
 
@@ -190,9 +192,9 @@ public abstract class StructrOAuthClient {
 							logger.error("Could not instantiate auth server", t);
 
 						}
-						
+
 					} else {
-					
+
 						logger.warn("No OAuth provider found for name {}, ignoring.", name);
 					}
 				}
@@ -229,19 +231,19 @@ public abstract class StructrOAuthClient {
 
 			case "github":
 				return GitHubAuthClient.class;
-				
+
 			case "twitter":
 				return TwitterAuthClient.class;
-				
+
 			case "facebook":
 				return FacebookAuthClient.class;
-				
+
 			case "linkedin":
 				return LinkedInAuthClient.class;
-				
+
 			case "google":
 				return GoogleAuthClient.class;
-				
+
 			case "auth0":
 				return Auth0AuthClient.class;
 		}
@@ -282,7 +284,7 @@ public abstract class StructrOAuthClient {
 
 		return null;
 	}
-	
+
 	public void initializeUser(final Principal user) throws FrameworkException {
 		// override me
 	}
@@ -323,7 +325,7 @@ public abstract class StructrOAuthClient {
 			this.userInfo = JSONUtils.parseJSON(body);
 
 			// return desired value
-			return (String)this.userInfo.get(key);
+			return (String) this.userInfo.get(key);
 
 		} catch (Exception ex) {
 
@@ -412,29 +414,52 @@ public abstract class StructrOAuthClient {
 
 		try {
 
-			String accessToken = getAccessToken(request);
-
+			final String accessToken = getAccessToken(request);
 			if (accessToken != null) {
 
-				final String accessTokenParameterKey = this.getAccessTokenParameterKey();
-
-				OAuthClientRequest clientReq = new OAuthBearerClientRequest(getUserResourceUri()) {
+				final String accessTokenParameterKey        = this.getAccessTokenParameterKey();
+				final OAuthBearerClientRequest oauthRequest = new OAuthBearerClientRequest(getUserResourceUri()) {
 
 					@Override
 					public OAuthBearerClientRequest setAccessToken(String accessToken) {
 					    this.parameters.put(accessTokenParameterKey, accessToken);
 					    return this;
 					}
+				};
+
+				oauthRequest.setAccessToken(accessToken);
+
+				final String accessTokenLocation = getAccessTokenLocation();
+				OAuthClientRequest clientReq     = null;
+
+				switch (accessTokenLocation) {
+
+					case "body":
+						clientReq = oauthRequest.buildBodyMessage();
+						break;
+
+					case "header":
+						clientReq = oauthRequest.buildHeaderMessage();
+						break;
+
+					case "query":
+						clientReq = oauthRequest.buildQueryMessage();
+						break;
 				}
-					.setAccessToken(accessToken)
-					.buildQueryMessage();
 
-				logger.info("User info request: {}", clientReq.getLocationUri());
+				if (clientReq != null) {
 
-				OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
+					logger.info("User info request: {}", clientReq.getLocationUri());
 
-				userResponse = oAuthClient.resource(clientReq, "GET", OAuthResourceResponse.class);
-				logger.info("User info response: {}", userResponse);
+					final OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
+
+					userResponse = oAuthClient.resource(clientReq, "GET", OAuthResourceResponse.class);
+					logger.info("User info response: {}", userResponse);
+
+				} else {
+
+					logger.warn("Unable to access userinfo endpoint, invalid access token location in configuration. Please set {} to one of [body, header, query]", getAccessTokenLocationKey());
+				}
 
 				return userResponse;
 			}

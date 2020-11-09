@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -23,13 +23,15 @@ package org.structr.api.search;
  */
 public class QueryContext {
 
-	private boolean deferred    = false;
-	private boolean isSuperuser = false;
-	private boolean sliced      = false;
-	private int skip            = -1;
-	private int limit           = -1;
-	private int skipped         = 0;
-	private boolean isPing      = false;
+	private boolean overridesFetchSize = false;
+	private boolean deferred           = false;
+	private boolean isSuperuser        = false;
+	private boolean sliced             = false;
+	private int overriddenFetchSize    = -1;
+	private int skip                   = -1;
+	private int limit                  = -1;
+	private int skipped                = 0;
+	private boolean isPing             = false;
 
 	public QueryContext() {
 	}
@@ -111,5 +113,19 @@ public class QueryContext {
 
 	public boolean isDeferred() {
 		return deferred;
+	}
+
+	public boolean overridesFetchSize() {
+		return overridesFetchSize;
+	}
+
+	public int getOverriddenFetchSize() {
+		return overriddenFetchSize;
+	}
+
+	public void overrideFetchSize(final int newFetchSize) {
+
+		this.overriddenFetchSize = newFetchSize;
+		this.overridesFetchSize  = true;
 	}
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -91,5 +91,11 @@ public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	@Override
 	public SortType getSortType() {
 		return targetKey.getSortType();
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(java.lang.String type, final String viewName) {
+		return null;
 	}
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -62,6 +62,7 @@ import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.ServiceResult;
+import org.structr.api.service.StopServiceForMaintenanceMode;
 import org.structr.api.service.StructrServices;
 import org.structr.common.AdvancedMailContainer;
 import org.structr.common.DynamicMailAttachment;
@@ -84,6 +85,7 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 
 @ServiceDependency(SchemaService.class)
+@StopServiceForMaintenanceMode
 public class MailService extends Thread implements RunnableService, MailServiceInterface {
 
 	private static final Logger logger                      = LoggerFactory.getLogger(MailService.class.getName());

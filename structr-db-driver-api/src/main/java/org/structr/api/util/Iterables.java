@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -26,9 +26,14 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Function;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 
 public class Iterables {
+
+	private static final Logger logger = LoggerFactory.getLogger(Iterables.class);
 
 	public static <T, C extends Collection<T>> C addAll(final C collection, final Iterable<? extends T> iterable) {
 
@@ -47,7 +52,7 @@ public class Iterables {
 
 		} catch (Throwable t) {
 
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 
 		} finally {
 

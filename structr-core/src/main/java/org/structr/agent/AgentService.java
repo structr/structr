@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -29,12 +29,14 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.ServiceResult;
+import org.structr.api.service.StopServiceForMaintenanceMode;
 import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
 import org.structr.schema.ConfigurationProvider;
@@ -44,6 +46,7 @@ import org.structr.schema.SchemaService;
  * The agent service main class.
  */
 @ServiceDependency(SchemaService.class)
+@StopServiceForMaintenanceMode
 public class AgentService extends Thread implements RunnableService {
 
 	private static final Logger logger = LoggerFactory.getLogger(AgentService.class.getName());
@@ -227,8 +230,7 @@ public class AgentService extends Thread implements RunnableService {
 			}
 
 		} catch (Throwable t) {
-
-			t.printStackTrace();
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 
 		return (agent);

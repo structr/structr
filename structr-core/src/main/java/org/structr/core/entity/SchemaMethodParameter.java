@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -20,6 +20,7 @@ package org.structr.core.entity;
 
 import org.structr.core.entity.relationship.SchemaMethodParameters;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
@@ -32,7 +33,9 @@ public class SchemaMethodParameter extends SchemaReloadingNode {
 
 	public static final Property<SchemaMethod> schemaMethod = new StartNode<>("schemaMethod", SchemaMethodParameters.class);
 	public static final Property<String> parameterType      = new StringProperty("parameterType");
-	public static final Property<Integer> index             = new IntProperty("index");
+	public static final Property<Integer> index             = new IntProperty("index").defaultValue(0);
+	public static final Property<String> description        = new StringProperty("description");
+	public static final Property<Object> exampleValue       = new GenericProperty("exampleValue");
 
 	public String getParameterType() {
 		return getProperty(parameterType);
@@ -40,16 +43,40 @@ public class SchemaMethodParameter extends SchemaReloadingNode {
 
 	@Override
 	public boolean reloadSchemaOnCreate() {
-		return true;
+
+		final SchemaMethod method = getProperty(schemaMethod);
+		if (method != null && method.isJava()) {
+
+			return true;
+		}
+
+		// only documentation, no reload
+		return false;
 	}
 
 	@Override
 	public boolean reloadSchemaOnModify(final ModificationQueue modificationQueue) {
-		return true;
+
+		final SchemaMethod method = getProperty(schemaMethod);
+		if (method != null && method.isJava()) {
+
+			return true;
+		}
+
+		// only documentation, no reload
+		return false;
 	}
 
 	@Override
 	public boolean reloadSchemaOnDelete() {
-		return true;
+
+		final SchemaMethod method = getProperty(schemaMethod);
+		if (method != null && method.isJava()) {
+
+			return true;
+		}
+
+		// only documentation, no reload
+		return false;
 	}
 }

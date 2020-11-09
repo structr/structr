@@ -1,7 +1,23 @@
 <h2>${(config.method.schemaNode ? config.method.schemaNode.name + '.' : '') + config.method.name}()</h2>
 <div id="method-buttons"></div>
-<div id="method-code-container" class="property-options-group">
-	<label>Source code</label>
-	<div class="code-button-container"></div>
-	<div class="editor" data-property="source" data-recompile="false"></div>
+<div id="method-code-container" class="data-tabs level-two">
+	<ul>
+		<li data-name="source">Code</li>
+		<li data-name="comment">Comment</li>
+		<li data-name="api">API</li>
+	</ul>
+	<div id="methods-content" style="background-color:#fff">
+
+		<div class="tab method-tab-content" id="tabView-source">
+			<div class="editor property-code" data-property="source"></div>
+		</div>
+
+		<div class="tab method-tab-content" id="tabView-comment">
+			<div class="editor property-comment" data-property="comment"></div>
+		</div>
+
+		<div class="tab method-tab-content" id="tabView-api">
+		</div>
+
+	</div>
 </div>

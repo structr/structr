@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -35,8 +35,7 @@ import org.structr.api.schema.JsonSchema;
  */
 public class StructrCustomProperty extends StructrDynamicProperty {
 
-	protected String typeHint = null;
-	protected String fqcn     = null;
+	protected String fqcn = null;
 
 	public StructrCustomProperty(final StructrTypeDefinition parent, final String name) {
 

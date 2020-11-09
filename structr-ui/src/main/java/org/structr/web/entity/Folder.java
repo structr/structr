@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -21,7 +21,11 @@ package org.structr.web.entity;
 import java.io.IOException;
 import java.net.URI;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISFolderInfo;
@@ -31,15 +35,13 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyMap;
 import org.structr.files.cmis.config.StructrFolderActions;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.core.Services;
 
 
 public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextAwareEntity {
@@ -67,6 +69,9 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextA
 		type.addLongProperty("mountLastScanned",           PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("mountTargetFileType",      PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("mountTargetFolderType",    PropertyView.Public, PropertyView.Ui);
+
+		type.addFunctionProperty("filesCount", "public").setReadFunction("size(this.files)").setTypeHint("int");
+		type.addFunctionProperty("foldersCount", "public").setReadFunction("size(this.folders)").setTypeHint("int");
 
 		type.addPropertyGetter("mountTarget", String.class);
 		type.addPropertyGetter("mountTargetFileType", String.class);
@@ -191,6 +196,7 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextA
 
 				} catch (IOException ioex) {
 
+					final Logger logger = LoggerFactory.getLogger(Folder.class);
 					logger.error("Unable to create file {}: {}", file, ioex.getMessage());
 				}
 			}
@@ -212,13 +218,18 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextA
 
 	public static boolean isMounted(final Folder thisFolder) {
 
-		final Folder parent = thisFolder.getParent();
-		if (parent != null) {
+		final boolean isThisMounted = (thisFolder.getMountTarget() != null);
 
-			return parent.isMounted();
-	}
+		if (!isThisMounted) {
 
-		return thisFolder.getMountTarget() != null;
+			final Folder parent = thisFolder.getParent();
+			if (parent != null) {
+
+				return parent.isMounted();
+			}
+		}
+
+		return isThisMounted;
 	}
 
 	static void setHasParent(final Folder thisFolder) throws FrameworkException {

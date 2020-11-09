@@ -35,8 +35,6 @@ var _Flows = {
 	flowsResizerLeftKey: 'structrFlowsResizerLeftKey_' + port,
 	init: function() {
 
-		_Logger.log(_LogType.FLOWS, '_Flows.init');
-
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
 
@@ -47,16 +45,15 @@ var _Flows = {
 	},
 	moveResizer: function(left) {
 		left = left || LSWrapper.getItem(_Flows.flowsResizerLeftKey) || 300;
-		document.querySelector('#flows-main .column-resizer').style.left = left + 'px';
+		flowsMain.querySelector('.column-resizer').style.left = left + 'px';
 
-		document.querySelector('#flows-tree-container').style.width   = left - 12 + 'px';
-		document.querySelector('#flows-canvas-container').style.width = window.innerWidth - left - 40 + 'px';
+		main.querySelector('#flows-tree').style.width = left - 14 + 'px';
 	},
 	onload: function() {
 
 		_Flows.init();
 
-		Structr.updateMainHelpLink('https://support.structr.com/article/527');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('flows'));
 
 		main = document.querySelector('#main');
 
@@ -65,8 +62,8 @@ var _Flows = {
 
 		let markup = `
 			<div class="input-and-button"><input id="name-input" type="text" placeholder="Enter flow name"><button id="create-new-flow" class="action btn"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add</button></div>
-			<!--button class="add-flow-node"><i class="${_Icons.getFullSpriteClass(_Icons.add_brick_icon)}"></i> Add node</button-->
 			<button class="delete_flow_icon button disabled"><i title="Delete" class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i> Delete flow</button>
+			<label>Highlight: <select id="flow-focus-select"><option value="none">-</option><option value="action">Execution Flow</option><option value="data">Data Flow</option><option value="logic">Logic Flow</option><option value="exception">Exception Handling</option></select></label>
 			<button class="run_flow_icon button disabled"><i title="Run" class="${_Icons.getFullSpriteClass(_Icons.exec_icon)}"></i> Run</button>
 			<button class="reset_view_icon button"><i title="Reset view" class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)}"></i> Reset view</button>
 			<button class="layout_icon button disabled"><i title="Layout" class="${_Icons.getFullSpriteClass(_Icons.wand_icon)}"></i> Layout</button>
@@ -74,7 +71,7 @@ var _Flows = {
 
 		document.querySelector('#flows-canvas-container').insertAdjacentHTML('afterbegin', markup);
 
-        let rest = new Rest();
+		let rest = new Rest();
 		let persistence = new Persistence();
 
 		async function getOrCreateFlowPackage(packageArray) {
@@ -161,6 +158,23 @@ var _Flows = {
 		});
 		document.querySelector('#create-new-flow').onclick = () => createFlow(document.getElementById('name-input'));
 		document.querySelector('.reset_view_icon').onclick = () => flowEditor.resetView();
+
+		let focusSelect = document.querySelector('#flow-focus-select');
+		focusSelect.onchange = () => {
+
+			let focus = focusSelect.value;
+
+			flowsCanvas.classList.remove('focus');
+			flowsCanvas.classList.remove('focus-action');
+			flowsCanvas.classList.remove('focus-data');
+			flowsCanvas.classList.remove('focus-exception');
+			flowsCanvas.classList.remove('focus-logic');
+
+			if (focus !== 'none') {
+				flowsCanvas.classList.add('focus');
+				flowsCanvas.classList.add('focus-' + focus);
+			}
+		};
 
 		document.querySelector('.delete_flow_icon').onclick = () => deleteFlow(flowId);
 		document.querySelector('.layout_icon').onclick = function() {
@@ -347,7 +361,6 @@ var _Flows = {
 
                 // display flow canvas
                 flowsCanvas.innerHTML = '<div id="nodeEditor" class="node-editor"></div>';
-
             };
 
             handleDeletion();

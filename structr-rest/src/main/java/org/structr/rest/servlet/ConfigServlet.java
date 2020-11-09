@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -20,6 +20,7 @@ package org.structr.rest.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,8 +33,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.Predicate;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.config.SettingsGroup;
@@ -41,12 +44,15 @@ import org.structr.api.service.DatabaseConnection;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Document;
 import org.structr.api.util.html.InputField;
+import org.structr.api.util.html.SelectField;
 import org.structr.api.util.html.Tag;
 import org.structr.api.util.html.attr.Href;
 import org.structr.api.util.html.attr.Rel;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.ManageDatabasesCommand;
+import org.structr.core.graph.TransactionCommand;
 
 /**
  *
@@ -79,7 +85,7 @@ public class ConfigServlet extends AbstractServletBase {
 				writer.flush();
 
 			} catch (IOException ioex) {
-				ioex.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(ioex));
 			}
 
 		} else {
@@ -124,7 +130,7 @@ public class ConfigServlet extends AbstractServletBase {
 			} else if (request.getParameter("start") != null) {
 
 				final String serviceName = request.getParameter("start");
-				if (serviceName != null && isAuthenticated(request)) {
+				if (serviceName != null) {
 
 					try {
 						Services.getInstance().startService(serviceName);
@@ -141,24 +147,22 @@ public class ConfigServlet extends AbstractServletBase {
 					}
 				}
 
-				// redirect
 				response.sendRedirect(ConfigUrl + "#services");
 
 			} else if (request.getParameter("stop") != null) {
 
 				final String serviceName = request.getParameter("stop");
-				if (serviceName != null && isAuthenticated(request)) {
+				if (serviceName != null) {
 
 					Services.getInstance().shutdownService(serviceName);
 				}
 
-				// redirect
 				response.sendRedirect(ConfigUrl + "#services");
 
 			} else if (request.getParameter("restart") != null) {
 
 				final String serviceName = request.getParameter("restart");
-				if (serviceName != null && isAuthenticated(request)) {
+				if (serviceName != null) {
 
 					new Thread(new Runnable() {
 
@@ -181,7 +185,6 @@ public class ConfigServlet extends AbstractServletBase {
 					}).start();
 				}
 
-				// redirect
 				response.sendRedirect(ConfigUrl + "#services");
 
 			} else if (request.getParameter("finish") != null) {
@@ -190,7 +193,6 @@ public class ConfigServlet extends AbstractServletBase {
 				Settings.SetupWizardCompleted.setValue(true);
 				Settings.storeConfiguration(ConfigName);
 
-				// redirect
 				response.sendRedirect(MainUrl);
 
 			} else if (request.getParameter("useDefault") != null) {
@@ -212,7 +214,7 @@ public class ConfigServlet extends AbstractServletBase {
 					cmd.addConnection(connection, false);
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					logger.error(ExceptionUtils.getStackTrace(fex));
 				}
 
 				// finish wizard
@@ -222,8 +224,36 @@ public class ConfigServlet extends AbstractServletBase {
 				// make session valid
 				authenticateSession(request);
 
-				// redirect
 				response.sendRedirect(ConfigUrl + "#databases");
+
+			} else if (request.getParameter("setMaintenance") != null) {
+
+				final Boolean mainteanceEnabled = Boolean.parseBoolean(request.getParameter("setMaintenance"));
+
+				Settings.MaintenanceModeEnabled.setValue(mainteanceEnabled);
+
+				Settings.storeConfiguration(ConfigName);
+
+				new Thread(new Runnable() {
+
+					@Override
+					public void run() {
+
+						try { Thread.sleep(1000); } catch (Throwable t) {}
+
+						Services.getInstance().setMaintenanceMode(mainteanceEnabled);
+					}
+				}).start();
+
+				final String baseUrl = getBaseUrl(request);
+
+				final Map<String, Object> msgData = new HashMap();
+				msgData.put(MaintenanceCommand.COMMAND_TYPE_KEY, "MAINTENANCE");
+				msgData.put("enabled",                           mainteanceEnabled);
+				msgData.put("baseUrl",                           baseUrl);
+				TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
+
+				response.sendRedirect(baseUrl + ConfigUrl + "#maintenance");
 
 			} else {
 
@@ -239,9 +269,8 @@ public class ConfigServlet extends AbstractServletBase {
 					writer.flush();
 
 				} catch (IOException ioex) {
-					ioex.printStackTrace();
+					logger.error(ExceptionUtils.getStackTrace(ioex));
 				}
-
 			}
 		}
 	}
@@ -281,6 +310,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 				final ManageDatabasesCommand cmd    = Services.getInstance().command(null, ManageDatabasesCommand.class);
 				final String name                   = request.getParameter("name");
+				final String driver                 = request.getParameter("driver");
 				final String url                    = request.getParameter("url");
 				final String username               = request.getParameter("username");
 				final String password               = request.getParameter("password");
@@ -288,6 +318,7 @@ public class ConfigServlet extends AbstractServletBase {
 				final DatabaseConnection connection = new DatabaseConnection();
 
 				connection.setName(name);
+				connection.setDriver(driver);
 				connection.setUrl(url);
 				connection.setUsername(username);
 				connection.setPassword(password);
@@ -327,11 +358,13 @@ public class ConfigServlet extends AbstractServletBase {
 						final String restAction          = parts[1];
 
 						// values for save action
+						final String driver              = request.getParameter("driver");
 						final String connectionUrl       = request.getParameter("url");
 						final String connectionUsername  = request.getParameter("username");
 						final String connectionPassword  = request.getParameter("password");
 
 						data.put(DatabaseConnection.KEY_NAME,     name);
+						data.put(DatabaseConnection.KEY_DRIVER,   driver);
 						data.put(DatabaseConnection.KEY_URL,      connectionUrl);
 						data.put(DatabaseConnection.KEY_USERNAME, connectionUsername);
 						data.put(DatabaseConnection.KEY_PASSWORD, connectionPassword);
@@ -467,18 +500,7 @@ public class ConfigServlet extends AbstractServletBase {
 			// settings tabs
 			for (final SettingsGroup group : Settings.getGroups()) {
 
-				final String key  = group.getKey();
-				final String name = group.getName();
-
-				menu.block("li").block("a").id(key + "Menu").attr(new Attr("href", "#" + key)).block("span").text(name);
-
-				final Tag container = tabs.block("div").css("tab-content").id(key);
-
-				// let settings group render itself
-				group.render(container);
-
-				// stop floating
-				container.block("div").attr(new Style("clear: both;"));
+				group.render(menu, tabs);
 			}
 
 			// services tab
@@ -515,7 +537,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 						row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?restart=" + serviceClassName + "';")).text("Restart");
 
-						if ("HttpService".equals(serviceClassName)) {
+						if ("HttpService.default".equals(serviceClassName)) {
 
 							row.block("td");
 
@@ -537,6 +559,36 @@ public class ConfigServlet extends AbstractServletBase {
 
 			// stop floating
 			container.block("div").attr(new Style("clear: both;"));
+
+			// maintenance tab
+			final boolean maintenanceModeActive = Settings.MaintenanceModeEnabled.getValue(false);
+			menu.block("li").block("a").id("maintenanceMenu").attr(new Attr("href", "#maintenance")).block("span").text("Maintenance");
+
+			final Tag mContainer     = tabs.block("div").css("tab-content").id("maintenance");
+
+			mContainer.block("h1").text("Maintenance");
+			final Tag group  = mContainer.block("div").css("form-group");
+			final Tag label  = group.block("label").text("Maintenance Mode is " + (maintenanceModeActive ? "active" : "not active"));
+			final Tag button = group.block("td").block("button").attr(new Attr("Type", "button"));
+
+			if (Settings.MaintenanceModeEnabled.getComment() != null) {
+				label.attr(new Attr("class", "has-comment"));
+				label.attr(new Attr("data-comment", Settings.MaintenanceModeEnabled.getComment()));
+			}
+
+			if (maintenanceModeActive) {
+
+				button.attr(new Attr("onclick", "window.location.href='?setMaintenance=false' + location.hash;"));
+				button.text("Disable");
+
+			} else {
+
+				button.attr(new Attr("onclick", "window.location.href='?setMaintenance=true' + location.hash;"));
+				button.text("Enable");
+			}
+
+			// stop floating
+			mContainer.block("div").attr(new Style("clear: both;"));
 
 			// buttons
 			final Tag buttons = form.block("div").css("buttons");
@@ -567,7 +619,7 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag row1     = table.block("tr");
 
 		row1.block("td").block("label").attr(new Attr("for", "passwordField")).text("Password:");
-		row1.block("td").empty("input").attr(new Attr("autofocus", "tur")).id("passwordField").attr(new Type("password"), new Name("password"));
+		row1.block("td").empty("input").attr(new Attr("autofocus", "true")).id("passwordField").attr(new Type("password"), new Name("password"));
 
 		final Tag row2     = table.block("tr");
 		final Tag cell13   = row2.block("td").attr(new Attr("colspan", "2")).css("btn");
@@ -642,6 +694,29 @@ public class ConfigServlet extends AbstractServletBase {
 		return false;
 	}
 
+	private String getBaseUrl(final HttpServletRequest request) {
+
+		final StringBuilder sb = new StringBuilder("http");
+
+		final Boolean httpsEnabled       = Settings.HttpsEnabled.getValue();
+		final String name                = (request != null) ? request.getServerName() : Settings.ApplicationHost.getValue();
+		final Integer port               = ((httpsEnabled) ? Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getValue() : Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
+
+		if (httpsEnabled) {
+			sb.append("s");
+		}
+
+		sb.append("://");
+		sb.append(name);
+
+		// we need to specify the port if (protocol = HTTPS and port != 443 OR protocol = HTTP and port != 80)
+		if ( (httpsEnabled && port != 443) || (!httpsEnabled && port != 80) ) {
+			sb.append(":").append(port);
+		}
+
+		return sb.toString();
+	}
+
 	private void welcomeTab(final Tag menu, final Tag tabs) {
 
 		final ManageDatabasesCommand cmd   = Services.getInstance().command(null, ManageDatabasesCommand.class);
@@ -709,13 +784,13 @@ public class ConfigServlet extends AbstractServletBase {
 		if (connections.isEmpty()) {
 
 			body.block("p").text("There are currently no database connections configured. To use Structr, you have the following options:");
-			
+
 			final Tag div = body.block("div");
-			
+
 			final Tag leftDiv  = div.block("div").css("inline-block");
 			leftDiv.block("button").css("default-action").attr(new Type("button")).text("Create new database connection").attr(new OnClick("$('.new-connection.collapsed').removeClass('collapsed')"));
 			leftDiv.block("p").text("Configure Structr to connect to a running database.");
-			
+
 			final Tag rightDiv = div.block("div").css("inline-block");
 			rightDiv.block("button").attr(new Type("button")).text("Start in demo mode").attr(new OnClick("window.location.href='" + ConfigUrl + "?finish';"));
 			rightDiv.block("p").text("Start Structr in demo mode. Please note that in this mode any data will be lost when stopping the server.");
@@ -747,6 +822,10 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag name = div.block("p");
 		name.block("label").text("Name");
 		name.add(new InputField(name, "text", "name-structr-new-connection", "", "Enter a connection name"));
+
+		final Tag driver = div.block("p");
+		driver.block("label").text("Driver");
+		driver.add(new SelectField(driver, "driver-structr-new-connection").addOption("Neo4j", "org.structr.bolt.BoltDatabaseService").addOption("Memgraph DB (experimental)", "org.structr.memgraph.MemgraphDatabaseService"));
 
 		final Tag url = div.block("p");
 		url.block("label").text("Connection URL");

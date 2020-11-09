@@ -6,19 +6,18 @@
 
 	<parent>
 		<groupId>org.structr</groupId>
-		<version>3.5.1</version>
 		<artifactId>structr-test-configuration</artifactId>
+		<version>3.6-SNAPSHOT</version>
 		<relativePath>../structr-test-configuration</relativePath>
 	</parent>
 
 	<groupId>org.structr</groupId>
 	<artifactId>structr-ui</artifactId>
 	<packaging>jar</packaging>
-	<version>3.5.1</version>
-
 	<properties>
 		<netbeans.hint.license>structr-agpl30</netbeans.hint.license>
 	</properties>
+	<version>3.6-SNAPSHOT</version>
 
 	<dependencies>
 		<dependency>
@@ -172,6 +171,11 @@
 			<version>0.8</version>
 		</dependency>
 		<dependency>
+			<groupId>net.lingala.zip4j</groupId>
+			<artifactId>zip4j</artifactId>
+			<version>2.5.2</version>
+		</dependency>
+		<dependency>
 			<groupId>com.google.zxing</groupId>
 			<artifactId>core</artifactId>
 			<version>3.3.3</version>
@@ -205,6 +209,11 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		<dependency>
+			<groupId>net.sourceforge.cssparser</groupId>
+			<artifactId>cssparser</artifactId>
+			<version>0.9.28</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>
@@ -214,7 +223,7 @@
 		</resources>
 		<testResources>
 			<testResource>
-				<directory>src/main/resources</directory>
+				<directory>src/test/resources</directory>
 			</testResource>
 		</testResources>
 		<plugins>

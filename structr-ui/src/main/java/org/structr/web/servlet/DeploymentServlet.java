@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,21 +18,21 @@
  */
 package org.structr.web.servlet;
 
-import com.google.common.io.Files;
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Enumeration;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import net.lingala.zip4j.ZipFile;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -66,6 +66,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 	private static final String DOWNLOAD_URL_PARAMETER = "downloadUrl";
 	private static final String REDIRECT_URL_PARAMETER = "redirectUrl";
+	private static final String NAME_PARAMETER         = "name";
 	private static final int MEGABYTE = 1024 * 1024;
 	private static final int MEMORY_THRESHOLD = 10 * MEGABYTE;  // above 10 MB, files are stored on disk
 
@@ -117,28 +118,109 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	}
 
 	@Override
-	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
+	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
+
+		initRequest(request, response);
+
+		SecurityContext securityContext = null;
+
+		setCustomResponseHeaders(response);
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			try {
+
+				securityContext = getConfig().getAuthenticator().initializeAndExamineRequest(request, response);
+
+			} catch (AuthenticationException ae) {
+
+				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+				response.getOutputStream().write("ERROR (401): Invalid user or password.\n".getBytes("UTF-8"));
+				return;
+			}
+
+			if (!securityContext.isSuperUser()) {
+				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+				response.getOutputStream().write("ERROR (401): Download of export ZIP file only allowed for admins.\n".getBytes("UTF-8"));
+				return;
+			}
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			logger.error("Exception while processing request", t);
+		}
 
 		try {
 
-			assertInitialized();
+			final String name = request.getParameter(NAME_PARAMETER);
 
-		} catch (FrameworkException fex) {
+			if (name != null) {
 
-			try {
-				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
+				logger.info("Preparing deployment export for download as zip");
 
-			} catch (IOException ioex) {
+				DeployCommand deployCommand = StructrApp.getInstance(securityContext).command(DeployCommand.class);
+				final Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"), Long.toString(System.currentTimeMillis()), name);
+				final String exportTargetFolder = tmpDir.toString();
 
-				logger.warn("Unable to send response", ioex);
+				if (!exportTargetFolder.equals(tmpDir.normalize().toString())) {
+
+					final String message = "ERROR (403): Path traversal not allowed - not serving deployment zip!\n";
+					logger.error(message);
+
+					response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+					response.getOutputStream().write(message.getBytes("UTF-8"));
+
+					return;
+				}
+
+				final Map<String, Object> attributes = new HashMap<>();
+
+				attributes.put("mode", "export");
+				attributes.put("target", exportTargetFolder);
+
+				deployCommand.execute(attributes);
+
+				try {
+
+					logger.info("Creating zip");
+
+					final File file = zip(exportTargetFolder);
+
+					response.setContentType("application/zip");
+					response.addHeader("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"");
+
+					final FileInputStream     in  = new FileInputStream(file);
+					final ServletOutputStream out = response.getOutputStream();
+
+					final long fileSize = IOUtils.copyLarge(in, out);
+					final int status    = response.getStatus();
+
+					response.addHeader("Content-Length", Long.toString(fileSize));
+					response.setStatus(status);
+
+					out.flush();
+					out.close();
+
+				} catch (IOException ex) {
+
+					logger.error("Exception while processing request", ex);
+				}
 			}
 
-			return;
+		} catch (Throwable t) {
+
+			logger.error("Exception while processing request", t);
 		}
+	}
+
+	@Override
+	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
+
+		initRequest(request, response);
 
 		SecurityContext securityContext = null;
-		String redirectUrl              = null;
 
 		setCustomResponseHeaders(response);
 
@@ -153,6 +235,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			}
 
 			try {
+
 				securityContext = getConfig().getAuthenticator().initializeAndExamineRequest(request, response);
 
 			} catch (AuthenticationException ae) {
@@ -171,10 +254,15 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			tx.success();
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+
+			logger.error("Exception while processing request", t);
+			return;
 		}
 
+		String redirectUrl = null;
+
 		try {
+
 			// Ensure access mode is frontend
 			securityContext.setAccessMode(AccessMode.Frontend);
 
@@ -213,7 +301,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 					if (DOWNLOAD_URL_PARAMETER.equals(fieldName)) {
 
-						downloadUrl = fieldValue;
+						downloadUrl = StringUtils.trim(fieldValue);
 						params.put(fieldName, fieldValue);
 
 					} else if (REDIRECT_URL_PARAMETER.equals(fieldName)) {
@@ -226,7 +314,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 					try (final InputStream is = item.openStream()) {
 
-						Files.write(IOUtils.toByteArray(is), file);
+						Files.write(file.toPath(), IOUtils.toByteArray(is));
 						fileName = item.getName();
 					}
 				}
@@ -234,8 +322,20 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 			if (StringUtils.isNotBlank(downloadUrl)) {
 
-				HttpHelper.streamURLToFile(downloadUrl, file);
-				fileName = PathHelper.getName(downloadUrl);
+				try {
+
+					HttpHelper.streamURLToFile(downloadUrl, file);
+					fileName = PathHelper.getName(downloadUrl);
+
+				} catch (final Throwable t) {
+
+					final String message = "ERROR (400): Unable to download from URL.\n" + t.getMessage() + "\n";
+
+					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+					response.getOutputStream().write(message.getBytes("UTF-8"));
+
+					return;
+				}
 
 			} else {
 
@@ -290,6 +390,23 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	}
 
 	/**
+	 * Zip given directory to file.
+	 *
+	 * @param sourceDirectoryPath
+	 * @throws IOException
+	 * @return file
+	 */
+	private File zip(final String sourceDirectoryPath) throws IOException {
+
+		final String zipFilePath   = StringUtils.stripEnd(sourceDirectoryPath, "/").concat(".zip");
+
+		final ZipFile zipFile = new ZipFile(zipFilePath);
+		zipFile.addFolder(new File(sourceDirectoryPath));
+
+		return zipFile.getFile();
+	}
+
+	/**
 	 * Unzip given file to given output directory.
 	 *
 	 * @param file
@@ -297,34 +414,35 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	 * @throws IOException
 	 */
 	private void unzip(final File file, final String outputDir) throws IOException {
-
-		try (final ZipFile zipFile = new ZipFile(file)) {
-
-			final Enumeration<? extends ZipEntry> entries = zipFile.entries();
-
-			while (entries.hasMoreElements()) {
-
-				final ZipEntry entry = entries.nextElement();
-				final File targetFile = new File(outputDir, entry.getName());
-
-				if (entry.isDirectory()) {
-
-					targetFile.mkdirs();
-
-				} else {
-
-					targetFile.getParentFile().mkdirs();
-					InputStream in = zipFile.getInputStream(entry);
-
-					try (OutputStream out = new FileOutputStream(targetFile)) {
-
-						IOUtils.copy(in, out);
-						IOUtils.closeQuietly(in);
-					}
-				}
-			}
-		}
+		new ZipFile(file).extractAll(outputDir);
 	}
 
+
+	/**
+	 * Initalize request.
+	 *
+	 * @param request
+	 * @param response
+	 * @throws ServletException
+	 */
+	private void initRequest(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
+
+		try {
+
+			assertInitialized();
+
+		} catch (FrameworkException fex) {
+
+			try {
+				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
+
+			} catch (IOException ioex) {
+
+				logger.warn("Unable to send response", ioex);
+			}
+
+		}
+	}
 }
 

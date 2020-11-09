@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,6 +18,7 @@
  */
 package org.structr.core.parser;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -95,7 +96,9 @@ public class BatchExpression extends Expression {
 
 			workerThread.start();
 
-			try { workerThread.join(); } catch (Throwable t) { t.printStackTrace(); }
+			try { workerThread.join(); } catch (Throwable t) {
+				logger.error(ExceptionUtils.getStackTrace(t));
+			}
 
 			if (exception.get(null) != null) {
 				throw exception.get(null);

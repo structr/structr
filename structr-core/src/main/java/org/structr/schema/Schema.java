@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -19,7 +19,10 @@
 package org.structr.schema;
 
 import java.util.Map;
+import java.util.Set;
 import org.structr.api.graph.PropertyContainer;
+import org.structr.common.PropertyView;
+import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
@@ -31,6 +34,9 @@ import org.structr.core.entity.SchemaView;
  */
 public interface Schema {
 
+	// views in this set will be serialized as (id, type, name) if nested
+	public static final Set<String> RestrictedViews = Set.of(PropertyView.All, PropertyView.Ui, PropertyView.Custom);
+
 	public String getMultiplicity(final Map<String, SchemaNode> schemaNodes, final String propertyNameToCheck);
 	public String getRelatedType(final Map<String, SchemaNode> schemaNodes, final String propertyNameToCheck);
 	public PropertyContainer getPropertyContainer();
@@ -41,4 +47,5 @@ public interface Schema {
 	public Iterable<SchemaProperty> getSchemaProperties();
 	public Iterable<SchemaView> getSchemaViews();
 	public Iterable<SchemaMethod> getSchemaMethods();
+	public Iterable<SchemaGrant> getSchemaGrants();
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -130,6 +130,12 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	@Override
 	public PropertyType getDataType() {
 		return PropertyType.STRING;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return "Example value";
 	}
 
 	// ----- private methods -----

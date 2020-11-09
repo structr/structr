@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -78,8 +78,6 @@ public class RegistrationResource extends Resource {
 		TARGET_PAGE_KEY,
 		ERROR_PAGE_KEY
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {

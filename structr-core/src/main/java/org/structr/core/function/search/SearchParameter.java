@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -22,9 +22,9 @@ package org.structr.core.function.search;
  */
 public class SearchParameter {
 
-	private boolean exact = true;
-	private String key    = null;
-	private Object value  = null;
+	protected boolean exact = true;
+	protected String key    = null;
+	protected Object value  = null;
 
 	public SearchParameter(final String key, final Object value, final boolean exact) {
 
@@ -48,5 +48,9 @@ public class SearchParameter {
 
 	public Object getValue() {
 		return value;
+	}
+
+	public boolean isEmptyPredicate() {
+		return false;
 	}
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -40,7 +40,7 @@ import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -835,21 +835,32 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	private boolean isGranted(final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final Map<String, Security> incomingSecurityRelationships, final boolean isCreation) {
 
-		final Map<String, Security> localIncomingSecurityRelationships = (Map<String, Security>) incomingSecurityRelationships != null ? incomingSecurityRelationships : mapSecurityRelationshipsMapped(getIncomingRelationshipsAsSuperUser(Security.class));
-
-		if (level > 100) {
-			logger.warn("Aborting recursive permission resolution because of recursion level > 100, this is quite likely an infinite loop.");
+		if (level > 300) {
+			logger.warn("Aborting recursive permission resolution for {} on {} because of recursion level > 300, this is quite likely an infinite loop.", permission.name(), getType() + "(" + getUuid() + ")");
 			return false;
 		}
 
+		if (doLog) { logger.info("{}{} ({}): {} check on level {} for {}", StringUtils.repeat("    ", level), getUuid(), getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null); }
+
 		// use quick checks for maximum performance
 		if (isCreation && (accessingUser == null || accessingUser.equals(this) || accessingUser.equals(getOwnerNode()) ) ) {
+
 			return true;
 		}
 
-		// this includes SuperUser
-		if (accessingUser != null && accessingUser.isAdmin()) {
-			return true;
+		if (accessingUser != null) {
+
+			// this includes SuperUser
+			if (accessingUser.isAdmin()) {
+				return true;
+			}
+
+			// schema- (type-) based permissions
+			if (allowedBySchema(accessingUser, permission)) {
+
+				if (doLog) { logger.info("{}{} ({}): {} allowed on level {} by schema configuration for {}", StringUtils.repeat("    ", level), getUuid(), getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null); }
+				return true;
+			}
 		}
 
 		// allow accessingUser to access itself, but not parents etc.
@@ -886,13 +897,16 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				return true;
 			}
 
-			final Security security = getSecurityRelationship(accessingUser, localIncomingSecurityRelationships);
+			final Map<String, Security> localIncomingSecurityRelationships = (Map<String, Security>) incomingSecurityRelationships != null ? incomingSecurityRelationships : mapSecurityRelationshipsMapped(getIncomingRelationshipsAsSuperUser(Security.class));
+			final Security security                                        = getSecurityRelationship(accessingUser, localIncomingSecurityRelationships);
+
 			if (security != null && security.isAllowed(permission)) {
+				if (doLog) { logger.info("{}{} ({}): {} allowed on level {} by security relationship for {}", StringUtils.repeat("    ", level), getUuid(), getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null); }
 				return true;
 			}
 
 			// new experimental custom permission resultion based on query
-			final PropertyKey<String> permissionPropertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "customPermissionQuery" + StringUtils.capitalise(permission.name()));
+			final PropertyKey<String> permissionPropertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "customPermissionQuery" + StringUtils.capitalize(permission.name()));
 			final String customPermissionQuery              = accessingUser.getProperty(permissionPropertyKey);
 
 			if (StringUtils.isNotEmpty(customPermissionQuery)) {
@@ -986,21 +1000,23 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	private void backtrack(final BFSInfo info, final String principalId, final Permission permission, final boolean value, final int level, final boolean doLog) {
 
+		final StringBuilder buf = new StringBuilder();
+
 		if (doLog) {
 
 			if (level == 0) {
 
 				if (value) {
 
-					System.out.print(permission.name() + ": granted: ");
+					buf.append(permission.name()).append(": granted: ");
 
 				} else {
 
-					System.out.print(permission.name() + ": denied: ");
+					buf.append(permission.name()).append(": denied: ");
 				}
 			}
 
-			System.out.print(info.node.getType() + " (" + info.node.getUuid() + ") --> ");
+			buf.append(info.node.getType()).append(" (").append(info.node.getUuid()).append(") --> ");
 		}
 
 		info.node.storePermissionResolutionResult(principalId, permission, value);
@@ -1012,7 +1028,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 
 		if (doLog && level == 0) {
-			System.out.println();
+			logger.info(buf.toString());
 		}
 	}
 
@@ -1024,41 +1040,55 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			return false;
 		}
 
+		if (doLog) { logger.info("{}{} ({}): checking {} access on level {} for {}", StringUtils.repeat("    ", level), getUuid(), getType(), permission.name(), level, principal != null ? principal.getName() : null); }
+
 		for (final Class<Relation> propagatingType : SchemaRelationshipNode.getPropagatingRelationshipTypes()) {
 
 			// iterate over list of relationships
-			final Iterable<Relation> iterable = getRelationshipsAsSuperUser(propagatingType);
-			for (final Relation source : iterable) {
+			final List<Relation> list = Iterables.toList(getRelationshipsAsSuperUser(propagatingType));
+			final int count           = list.size();
+			final int threshold       = 1000;
 
-				if (source instanceof PermissionPropagation) {
+			if (count < threshold) {
 
-					final PermissionPropagation perm = (PermissionPropagation)source;
-					final RelationshipInterface rel  = (RelationshipInterface)source;
+				for (final Relation source : list) {
 
-					// check propagation direction vs. evaluation direction
-					if (propagationAllowed(this, rel, perm.getPropagationDirection(), doLog)) {
+					if (source instanceof PermissionPropagation) {
 
-						applyCurrentStep(perm, mask);
+						final PermissionPropagation perm = (PermissionPropagation)source;
+						final RelationshipInterface rel  = (RelationshipInterface)source;
 
-						if (mask.allowsPermission(permission)) {
+						if (doLog) { logger.info("{}{}: checking {} access on level {} via {} for {}", StringUtils.repeat("    ", level), getUuid(), permission.name(), level, rel.getRelType().name(), principal != null ? principal.getName() : null); }
 
-							final AbstractNode otherNode = (AbstractNode)rel.getOtherNode(this);
+						// check propagation direction vs. evaluation direction
+						if (propagationAllowed(this, rel, perm.getPropagationDirection(), doLog)) {
 
-							if (otherNode.isGranted(permission, principal, mask, level, alreadyTraversed, false, doLog, isCreation)) {
+							applyCurrentStep(perm, mask);
 
-								otherNode.storePermissionResolutionResult(principal.getUuid(), permission, true);
+							if (mask.allowsPermission(permission)) {
 
-								// break early
-								return true;
+								final AbstractNode otherNode = (AbstractNode)rel.getOtherNode(this);
 
-							} else {
+								if (otherNode.isGranted(permission, principal, mask, level + 1, alreadyTraversed, false, doLog, isCreation)) {
 
-								// add node to BFS queue
-								bfsNodes.add(new BFSInfo(parent, otherNode));
+									otherNode.storePermissionResolutionResult(principal.getUuid(), permission, true);
+
+									// break early
+									return true;
+
+								} else {
+
+									// add node to BFS queue
+									bfsNodes.add(new BFSInfo(parent, otherNode));
+								}
 							}
 						}
 					}
 				}
+
+			} else if (doLog) {
+
+				logger.warn("Refusing to resolve permissions with {} because there are more than {} nodes.", propagatingType.getSimpleName(), threshold);
 			}
 		}
 
@@ -1351,17 +1381,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public final boolean isVisibleToPublicUsers() {
-
+	public boolean isVisibleToPublicUsers() {
 		return getVisibleToPublicUsers();
-
 	}
 
 	@Override
-	public final boolean isVisibleToAuthenticatedUsers() {
-
+	public boolean isVisibleToAuthenticatedUsers() {
 		return getProperty(visibleToAuthenticatedUsers);
-
 	}
 
 	@Override
@@ -1984,6 +2010,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return grants;
 	}
 
+	@Override
+	public boolean changelogEnabled() {
+		return true;
+	}
+
 	// ----- Cloud synchronization and replication -----
 	@Override
 	public List<GraphObject> getSyncData() throws FrameworkException {
@@ -2148,6 +2179,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	protected boolean isGenericNode() {
+		return false;
+	}
+
+	protected boolean allowedBySchema(final Principal principal, final Permission permission) {
 		return false;
 	}
 

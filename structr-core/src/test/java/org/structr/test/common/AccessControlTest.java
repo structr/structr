@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -21,6 +21,7 @@ package org.structr.test.common;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Relationship;
 import org.structr.api.schema.JsonSchema;
@@ -41,6 +42,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -878,6 +880,8 @@ public class AccessControlTest extends StructrTest {
 	@Test
 	public void testGroupHierarchyMembershipVisibility() {
 
+		Settings.CypherDebugLogging.setValue(true);
+
 		String user1Id = null;
 		String user2Id = null;
 		String group1Id = null;
@@ -1053,6 +1057,7 @@ public class AccessControlTest extends StructrTest {
 
 		}
 
+		Settings.CypherDebugLogging.setValue(false);
 	}
 
 	@Test
@@ -1606,9 +1611,87 @@ public class AccessControlTest extends StructrTest {
 			fail("Unexpected exception.");
 
 		}
-
 	}
 
+	@Test
+	public void testSchemaBasedVisibilityFlags() {
+
+		// setup 1 - schema type
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			// add test type
+			schema.addType("Public").setVisibleForPublicUsers();
+			schema.addType("Authenticated").setVisibleForAuthenticatedUsers();
+			schema.addType("Both").setVisibleForAuthenticatedUsers().setVisibleForPublicUsers();
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final Class anonClass = StructrApp.getConfiguration().getNodeEntityClass("Public");
+		final Class authClass = StructrApp.getConfiguration().getNodeEntityClass("Authenticated");
+		final Class bothClass = StructrApp.getConfiguration().getNodeEntityClass("Both");
+		Principal user        = null;
+
+		// setup 2 - schema grant
+		try (final Tx tx = app.tx()) {
+
+			app.create(anonClass, "anon1");
+			app.create(anonClass, "anon2");
+
+			app.create(authClass, "auth1");
+			app.create(authClass, "auth2");
+
+			app.create(bothClass, "both1");
+			app.create(bothClass, "both2");
+
+			user = app.create(Principal.class,
+				new NodeAttribute<>(AbstractNode.name, "user"),
+				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "password")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final SecurityContext ctx = SecurityContext.getInstance(user, AccessMode.Backend);
+		final App userApp         = StructrApp.getInstance(ctx);
+
+		try (final Tx tx = userApp.tx()) {
+
+			assertEquals("Schema-based visibility flags do not work as expected", 2, userApp.nodeQuery(anonClass).getAsList().size());
+			assertEquals("Schema-based visibility flags do not work as expected", 2, userApp.nodeQuery(authClass).getAsList().size());
+			assertEquals("Schema-based visibility flags do not work as expected", 2, userApp.nodeQuery(bothClass).getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final SecurityContext ctx2 = SecurityContext.getInstance(null, AccessMode.Frontend);
+		final App anonymousApp     = StructrApp.getInstance(ctx2);
+
+		try (final Tx tx = anonymousApp.tx()) {
+
+			assertEquals("Schema-based visibility flags do not work as expected", 2, anonymousApp.nodeQuery(anonClass).getAsList().size());
+			assertEquals("Schema-based visibility flags do not work as expected", 0, anonymousApp.nodeQuery(authClass).getAsList().size());
+			assertEquals("Schema-based visibility flags do not work as expected", 2, anonymousApp.nodeQuery(bothClass).getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+	}
 
 	// ----- private methods -----
 	public static void clearResourceAccess() {

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -104,6 +104,15 @@ public class JobQueueManager {
 
 	public void cancelQueuedJob(final Long jobId) {
 		removeFromQueueInternal(jobId);
+	}
+
+	public void cancelAllQueuedJobsAfter(final Long jobId) {
+
+		queuedJobs.keySet().forEach((queuedJobId) -> {
+			if (queuedJobId > jobId) {
+				removeFromQueueInternal(queuedJobId);
+			}
+		});
 	}
 
 	public List<Map<String, Object>> listJobs () {

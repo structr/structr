@@ -16,8 +16,6 @@ cd /usr/lib/structr/
 ulimit -Hn 50000
 ulimit -Sn 40000
 
-PID_FILE="/var/run/structr.pid"
-
 case "$1" in
   start)
         /usr/lib/structr/bin/start

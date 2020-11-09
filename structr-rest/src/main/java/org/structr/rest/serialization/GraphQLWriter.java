@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -259,8 +260,6 @@ public class GraphQLWriter {
 
 			} catch(Throwable t) {
 
-				t.printStackTrace();
-
 				logger.warn("Exception while serializing property {} ({}) of entity {} (value {}) : {}", new Object[] {
 					key.jsonName(),
 					key.getClass(),
@@ -269,6 +268,8 @@ public class GraphQLWriter {
 					value,
 					t.getMessage()
 				});
+
+				logger.warn(ExceptionUtils.getStackTrace(t));
 			}
 		}
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -19,6 +19,7 @@
 package org.structr.geo;
 
 import com.vividsolutions.jts.geom.Geometry;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -64,7 +65,7 @@ public class ConvertGeometryFunction extends GeoFunction {
 
 			} catch (Throwable t) {
 
-				logger.warn("", t);
+				logger.error(ExceptionUtils.getStackTrace(t));
 			}
 
 

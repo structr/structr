@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,6 +18,8 @@
  */
 package org.structr.core.property;
 
+import java.util.Map;
+import java.util.TreeMap;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -81,5 +83,42 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 	@Override
 	public SortType getSortType() {
 		return SortType.Default;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return "concatenated string";
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+
+		final Map<String, Object> map = new TreeMap<>();
+		final Class valueType         = valueType();
+
+		if (valueType != null) {
+
+			map.put("type",    valueType.getSimpleName().toLowerCase());
+			map.put("example", getExampleValue(type, viewName));
+		}
+
+		return map;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+
+		final Map<String, Object> map = new TreeMap<>();
+		final Class valueType         = valueType();
+
+		if (valueType != null) {
+
+			map.put("type", valueType.getSimpleName().toLowerCase());
+			map.put("example", getExampleValue(type, viewName));
+		}
+
+		return map;
 	}
 }

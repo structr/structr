@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -119,7 +119,7 @@ public class PerformanceTest extends IndexingTest {
 		Double rate                 = number / ((t1 - t0) / 1000.0);
 
 		logger.info("Created {} nodes in {} seconds ({} per s)", number, decimalFormat.format(time), decimalFormat.format(rate) );
-		assertTrue("Creation rate of nodes too low, expected > 100, was " + rate, rate > 50);
+		assertTrue("Creation rate of nodes too low, expected > 30, was " + rate, rate > 30);
 	}
 
 	/**
@@ -372,7 +372,7 @@ public class PerformanceTest extends IndexingTest {
 		Double rate                 = number / ((t1 - t0) / 1000.0);
 
 		logger.info("Deleted {} nodes in {} seconds ({} per s)", number, decimalFormat.format(time), decimalFormat.format(rate) );
-		assertTrue("Deletion rate of nodes too low, expected > 100, was " + rate, rate > 50);
+		assertTrue("Deletion rate of nodes too low, expected > 40, was " + rate, rate > 40);
 	}
 
 	// ----- private methods -----

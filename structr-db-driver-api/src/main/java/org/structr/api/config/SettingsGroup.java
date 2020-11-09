@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
 
 /**
@@ -60,6 +61,18 @@ public class SettingsGroup {
 
 	public List<Setting> getSettings() {
 		return settings;
+	}
+
+	public void render(final Tag menu, final Tag tabContainer) {
+
+		menu.block("li").block("a").id(key + "Menu").attr(new Attr("href", "#" + key)).block("span").text(name);
+
+		final Tag container = tabContainer.block("div").css("tab-content").id(key);
+
+		render(container);
+
+		// stop floating
+		container.block("div").attr(new Attr("style", "clear: both;"));
 	}
 
 	public void render(final Tag parent) {

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -24,6 +24,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Cardinality;
 import org.structr.common.ConstantBooleanTrue;
@@ -299,6 +301,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 
 			} catch (DOMException dex) {
 
+				final Logger logger = LoggerFactory.getLogger(Page.class);
 				logger.warn("", dex);
 
 				throw new FrameworkException(422, dex.getMessage());
@@ -329,6 +332,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		// Avoid creating an (invalid) 'Content' DOMElement
 		if (elementType == null || c.equals(elementType)) {
 
+			final Logger logger = LoggerFactory.getLogger(Page.class);
 			logger.warn("Blocked attempt to create a DOMElement of type {}", c);
 
 			return null;
@@ -360,6 +364,8 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		} catch (Throwable t) {
 
 			if (!suppressException) {
+
+				final Logger logger = LoggerFactory.getLogger(Page.class);
 				logger.error("Unable to instantiate element of type " + elementType, t);
 			}
 		}
@@ -467,6 +473,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 					Page.importNode(thisPage, child, deep, false);
 					child = child.getNextSibling();
 
+					final Logger logger = LoggerFactory.getLogger(Page.class);
 					logger.info("sibling is {}", child);
 				}
 
@@ -587,6 +594,8 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 			}
 
 		} catch (FrameworkException ex) {
+
+			final Logger logger = LoggerFactory.getLogger(Page.class);
 			logger.warn("Unable to add new child element to page: {}", ex.getMessage());
 		}
 
@@ -608,6 +617,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		} catch (FrameworkException fex) {
 
 			// FIXME: what to do with the exception here?
+			final Logger logger = LoggerFactory.getLogger(Page.class);
 			logger.warn("", fex);
 		}
 
@@ -634,6 +644,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		} catch (FrameworkException fex) {
 
 			// FIXME: what to do with the exception here?
+			final Logger logger = LoggerFactory.getLogger(Page.class);
 			logger.warn("", fex);
 		}
 
@@ -657,6 +668,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		} catch (FrameworkException fex) {
 
 			// FIXME: what to do with the exception here?
+			final Logger logger = LoggerFactory.getLogger(Page.class);
 			logger.warn("", fex);
 		}
 
@@ -679,6 +691,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		} catch (FrameworkException fex) {
 
 			// FIXME: what to do with the exception here?
+			final Logger logger = LoggerFactory.getLogger(Page.class);
 			logger.warn("", fex);
 		}
 
@@ -780,226 +793,4 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 			thisPage.setVersion(_version + 1);
 		}
 	}
-
-	/*
-	@Override
-	public void normalizeDocument() {
-		normalize();
-	}
-
-	@Override
-	public short getNodeType() {
-
-		return Element.DOCUMENT_NODE;
-	}
-
-	@Override
-	public DOMImplementation getImplementation() {
-
-		return this;
-	}
-
-	@Override
-	public String getInputEncoding() {
-		return null;
-	}
-
-	@Override
-	public String getXmlEncoding() {
-		return "UTF-8";
-	}
-
-	@Override
-	public boolean getXmlStandalone() {
-		return true;
-	}
-
-	@Override
-	public String getXmlVersion() {
-		return "1.0";
-	}
-
-	@Override
-	public boolean getStrictErrorChecking() {
-		return true;
-	}
-
-	@Override
-	public String getDocumentURI() {
-		return null;
-	}
-
-	@Override
-	public DOMConfiguration getDomConfig() {
-		return null;
-	}
-
-	@Override
-	public DocumentType getDoctype() {
-		return new Html5DocumentType(this);
-	}
-
-	@Override
-	public boolean hasFeature(String string, String string1) {
-		return false;
-	}
-
-	@Override
-	public boolean isSynced() {
-		return false;
-	}
-
-	@Override
-	public void setXmlStandalone(boolean bln) throws DOMException {
-	}
-
-	@Override
-	public void setXmlVersion(String string) throws DOMException {
-	}
-
-	@Override
-	public void setStrictErrorChecking(boolean bln) {
-	}
-
-	@Override
-	public void setDocumentURI(String string) {
-	}
-
-	// ----- interface org.w3c.dom.Node -----
-	@Override
-	public String getLocalName() {
-		return null;
-	}
-
-	@Override
-	public String getNodeName() {
-		return "#document";
-	}
-
-	@Override
-	public String getNodeValue() throws DOMException {
-		return null;
-	}
-
-	@Override
-	public void setNodeValue(String string) throws DOMException {
-	}
-
-	@Override
-	public NamedNodeMap getAttributes() {
-		return null;
-	}
-
-	@Override
-	public boolean hasAttributes() {
-		return false;
-	}
-
-	@Override
-	public NodeList getElementsByTagName(final String tagName) {
-
-		DOMNodeList results = new DOMNodeList();
-
-		collectNodesByPredicate(this, results, new Predicate<Node>() {
-
-			@Override
-			public boolean accept(Node obj) {
-
-				if (obj instanceof DOMElement) {
-
-					DOMElement elem = (DOMElement) obj;
-
-					if (tagName.equals(elem.getProperty(DOMElement.tag))) {
-						return true;
-					}
-				}
-
-				return false;
-			}
-
-		}, 0, false);
-
-		return results;
-	}
-
-	@Override
-	public NodeList getElementsByTagNameNS(String string, String tagName) {
-		throw new UnsupportedOperationException("Namespaces not supported.");
-	}
-
-	// ----- interface DOMAdoptable -----
-	@Override
-	public Node doAdopt(Page page) throws DOMException {
-		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC);
-	}
-
-	// ----- interface DOMImportable -----
-	@Override
-	public Node doImport(Page newPage) throws DOMException {
-		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE_IMPORT_DOC);
-	}
-
-	@Override
-	public String getFolderPath() {
-		return (getProperty(path) == null) ? getProperty(name) : getProperty(path);
-	}
-
-	// ----- diff methods -----
-	@Export
-	public void diff(final String file) throws FrameworkException {
-
-		final App app = StructrApp.getInstance(securityContext);
-
-		try (final Tx tx = app.tx()) {
-
-			final FileInputStream fis                             = new FileInputStream(file);
-			final String source                                   = IOUtils.toString(fis);
-			final Page diffPage                                   = Importer.parsePageFromSource(securityContext, source, this.getProperty(Page.name) + "diff");
-			final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
-
-			// close input stream after use
-			fis.close();
-
-			// build change set
-			changeSet.addAll(Importer.diffNodes(this, diffPage));
-
-			for (final InvertibleModificationOperation op : changeSet) {
-
-				System.out.println(op);
-
-				op.apply(app, this, diffPage);
-			}
-
-			// delete remaining children
-			for (final DOMNode child : diffPage.getProperty(Page.elements)) {
-				app.delete(child);
-			}
-
-			// delete imported page
-			app.delete(diffPage);
-
-			tx.success();
-
-		} catch (Throwable t) {
-			logger.warn("", t);
-		}
-	}
-
-	// ----- interface Syncable -----
-	@Override
-	public List<GraphObject> getSyncData() throws FrameworkException {
-
-		final List<GraphObject> data = super.getSyncData();
-
-		data.addAll(getProperty(Linkable.linkingElements));
-
-		for (final ResourceLink link : getRelationships(ResourceLink.class)) {
-			data.add(link);
-		}
-
-		return data;
-	}
-
-	// ----- private methods -----
-	*/
 }

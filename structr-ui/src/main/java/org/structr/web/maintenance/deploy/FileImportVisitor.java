@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -50,6 +50,7 @@ import org.structr.web.entity.AbstractMinifiedFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
+import org.structr.web.maintenance.DeployCommand;
 
 /**
  *
@@ -398,6 +399,8 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	}
 
 	private PropertyMap convertRawPropertiesForFileOrFolder(final Map<String, Object> data) throws FrameworkException {
+
+		DeployCommand.checkOwnerAndSecurity(data, false);
 
 		return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), StructrApp.getConfiguration().getNodeEntityClass((String)data.get("type")), data);
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -19,6 +19,8 @@
 package org.structr.web.entity.dom;
 
 import java.net.URI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -78,6 +80,7 @@ public interface Comment extends Content, org.w3c.dom.Comment, NonIndexed {
 			} catch (Throwable t) {
 
 				// catch exception to prevent ugly status 500 error pages in frontend.
+				final Logger logger = LoggerFactory.getLogger(Content.class);
 				logger.error("", t);
 
 			}

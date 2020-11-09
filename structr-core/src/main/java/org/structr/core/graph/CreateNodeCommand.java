@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.ConstraintViolationException;
@@ -319,14 +320,13 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 		} catch (ClassCastException cce) {
 
-			cce.printStackTrace();
-
 			logger.warn("Encountered ClassCastException which is likely caused by faulty cache invalidation. Relationship ID {} of type {}, start and end node IDs: {}, {}",
 				rel.getId(),
 				rel.getType().name(),
 				rel.getStartNode() != null ? rel.getStartNode().getId() : "null",
 				rel.getEndNode()   != null ? rel.getEndNode().getId()   : "null"
 			);
+			logger.warn(ExceptionUtils.getStackTrace(cce));
 
 			try {
 
@@ -358,14 +358,13 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 		} catch (ClassCastException cce) {
 
-			cce.printStackTrace();
-
 			logger.warn("Encountered ClassCastException which is likely caused by faulty cache invalidation. Relationship ID {} of type {}, start and end node IDs: {}, {}",
 				rel.getId(),
 				rel.getType().name(),
 				rel.getStartNode() != null ? rel.getStartNode().getId() : "null",
 				rel.getEndNode()   != null ? rel.getEndNode().getId()   : "null"
 			);
+			logger.warn(ExceptionUtils.getStackTrace(cce));
 
 			try {
 				// try again

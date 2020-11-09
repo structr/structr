@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -88,7 +88,7 @@ public class PaymentsModule implements StructrModule {
 		if (StringUtils.isEmpty(value)) {
 
 			// don't warn for empty values
-			//logger.warn("{}", message);
+			//logger.warn(message);
 
 		} else {
 

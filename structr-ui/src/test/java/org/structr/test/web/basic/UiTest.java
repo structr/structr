@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -26,10 +26,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.tika.io.IOUtils;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
@@ -42,8 +43,6 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.export.StructrSchema;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
@@ -59,6 +58,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 
 public class UiTest extends StructrUiTest {
@@ -70,16 +70,28 @@ public class UiTest extends StructrUiTest {
 	public void test01CreateThumbnail() {
 
 		final Class imageType = createTestImageType();
+		Image img = null;
 
 		try (final Tx tx = app.tx()) {
 
-			Image img = (Image) ImageHelper.createFileBase64(securityContext, base64Image, imageType);
-
+			img = (Image) ImageHelper.createFileBase64(securityContext, base64Image, imageType);
 			img.setProperties(img.getSecurityContext(), new PropertyMap(AbstractNode.name, "test-image.png"));
 
 			assertNotNull(img);
 			assertTrue(img instanceof Image);
 
+			Image tn = img.getProperty(StructrApp.key(imageType, "thumbnail"));
+
+			tx.success();
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+			final Image immutableImage = img;
+			tryWithTimeout(() -> (immutableImage.getProperty(StructrApp.key(imageType, "thumbnail")) != null), ()->fail("Exceeded timeout while waiting for thumbnail creation."), 30000, 1000);
 			Image tn = img.getProperty(StructrApp.key(imageType, "thumbnail"));
 
 			assertNotNull(tn);
@@ -111,8 +123,22 @@ public class UiTest extends StructrUiTest {
 			assertNotNull(testImage);
 			assertTrue(testImage instanceof Image);
 
+			// Retrieve tn properties to force their generation
 			final Image tnSmall = testImage.getProperty(StructrApp.key(Image.class, "tnSmall"));
-			final Image tnMid   = testImage.getProperty(StructrApp.key(Image.class, "tnMid"));
+			final Image tnMid = testImage.getProperty(StructrApp.key(Image.class, "tnMid"));
+
+			tx.success();
+		} catch (Exception ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+			final Image immutableImage = testImage;
+			tryWithTimeout(() -> (immutableImage.getProperty(StructrApp.key(Image.class, "tnSmall")) != null && immutableImage.getProperty(StructrApp.key(Image.class, "tnMid")) != null), ()->fail("Exceeded timeout while waiting for thumbnail creation."), 30000, 1000);
+			final Image tnSmall = testImage.getProperty(StructrApp.key(Image.class, "tnSmall"));
+			final Image tnMid = testImage.getProperty(StructrApp.key(Image.class, "tnMid"));
 
 			assertEquals("Initial small thumbnail name not as expected", ImageHelper.getThumbnailName(initialImageName, tnSmall.getWidth(), tnSmall.getHeight()), tnSmall.getProperty(StructrApp.key(Image.class, "name")));
 			assertEquals("Initial mid thumbnail name not as expected", ImageHelper.getThumbnailName(initialImageName, tnMid.getWidth(), tnMid.getHeight()), tnMid.getProperty(StructrApp.key(Image.class, "name")));
@@ -121,7 +147,7 @@ public class UiTest extends StructrUiTest {
 
 		} catch (Exception ex) {
 
-			logger.error(ex.toString());
+			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -172,6 +198,31 @@ public class UiTest extends StructrUiTest {
 			assertNotNull(subclassTestImage);
 			assertTrue(subclassTestImage instanceof Image);
 
+			final Image tnSmall  = subclassTestImage.getProperty(StructrApp.key(testImageType, "tnSmall"));
+			final Image tnMid    = subclassTestImage.getProperty(StructrApp.key(testImageType, "tnMid"));
+			final Image tnCustom = subclassTestImage.getProperty(StructrApp.key(testImageType, "thumbnail"));
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+		}
+
+
+		try (final Tx tx = app.tx()) {
+			final Image immutableImage = subclassTestImage;
+			tryWithTimeout(
+					() -> (
+							immutableImage.getProperty(StructrApp.key(testImageType, "tnSmall")) != null &&
+							immutableImage.getProperty(StructrApp.key(testImageType, "tnMid")) != null &&
+							immutableImage.getProperty(StructrApp.key(testImageType, "thumbnail")) != null
+					),
+					()->fail("Exceeded timeout while waiting for thumbnail creation."),
+					30000,
+					1000
+			);
 			final Image tnSmall  = subclassTestImage.getProperty(StructrApp.key(testImageType, "tnSmall"));
 			final Image tnMid    = subclassTestImage.getProperty(StructrApp.key(testImageType, "tnMid"));
 			final Image tnCustom = subclassTestImage.getProperty(StructrApp.key(testImageType, "thumbnail"));
@@ -452,6 +503,86 @@ public class UiTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testAutoRenameFileWithIdenticalPathInRootFolderWithDifferentInsertionPoints() {
+
+		Settings.UniquePaths.setValue(Boolean.TRUE);
+
+		final String fileName = "test.file.txt";
+
+		File rootFile1 = null;
+		File rootFile2 = null;
+		File rootFile3 = null;
+		File rootFile4 = null;
+
+		try (final Tx tx = app.tx()) {
+
+			rootFile1 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, fileName));
+			assertNotNull(rootFile1);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
+		final String file1Name = rootFile1.getName();
+
+		Settings.UniquePathsInsertionPosition.setValue("end");
+		try (final Tx tx = app.tx()) {
+
+			rootFile2 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, fileName));
+			assertNotNull(rootFile2);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
+		final String file2Name = rootFile2.getName();
+
+		assertNotEquals(file1Name, file2Name);
+		assertEquals("underscore+timestamp should be after filename for insertion position 'end'", file2Name.charAt(fileName.length()), '_');
+
+		Settings.UniquePathsInsertionPosition.setValue("start");
+		try (final Tx tx = app.tx()) {
+
+			rootFile3 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, fileName));
+			assertNotNull(rootFile3);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
+		final String file3Name = rootFile3.getName();
+
+		assertNotEquals(file1Name, file3Name);
+		assertNotEquals(file2Name, file3Name);
+		assertEquals("timestamp+underscore should be before filename for insertion position 'start'", file3Name.charAt(file3Name.length() - fileName.length() - 1), '_');
+
+		Settings.UniquePathsInsertionPosition.setValue("beforeextension");
+		try (final Tx tx = app.tx()) {
+
+			rootFile4 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, fileName));
+			assertNotNull(rootFile4);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
+		final String file4Name = rootFile4.getName();
+
+		assertNotEquals(file1Name, file4Name);
+		assertNotEquals(file2Name, file4Name);
+		assertNotEquals(file3Name, file4Name);
+		assertEquals("underscore+timestamp should be before extension for insertion position 'beforeextension'", file4Name.charAt(fileName.length() - 4), '_');
+	}
+
+	@Test
 	public void testAutoRenameFileWithIdenticalPathInSubFolder() {
 
 		Settings.UniquePaths.setValue(Boolean.TRUE);
@@ -687,28 +818,48 @@ public class UiTest extends StructrUiTest {
 
 		User tester = null;
 		String uuid = null;
+		Image image = null;
 
 		try (final Tx tx = app.tx()) {
 
-			final Image image = ImageHelper.createFileBase64(securityContext, base64Image, Image.class);
-			tester            = app.create(User.class, "tester");
+			image = ImageHelper.createFileBase64(securityContext, base64Image, Image.class);
+			tester = app.create(User.class, "tester");
 
 			image.setProperty(Image.name, "test.png");
 
 			// allow non-admin user to delete the image
 			image.grant(Permission.delete, tester);
-			image.grant(Permission.read,   tester);
+			image.grant(Permission.read, tester);
 
 			image.getProperty(StructrApp.key(Image.class, "tnSmall"));
 			image.getProperty(StructrApp.key(Image.class, "tnMid"));
 
+			tx.success();
+		} catch (IOException | FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+			final Image immutableImage = image;
+			tryWithTimeout(
+					() -> {
+						immutableImage.getProperty(StructrApp.key(Image.class, "tnSmall"));
+						immutableImage.getProperty(StructrApp.key(Image.class, "tnMid"));
+						return (Iterables.count(immutableImage.getThumbnails()) == 2);
+					},
+					()->fail("Exceeded timeout while waiting for thumbnail generation"),
+					30000,
+					1000
+			);
 			assertEquals("Image should have two thumbnails", 2, Iterables.count(image.getThumbnails()));
 
 			uuid = image.getUuid();
 
 			tx.success();
 
-		} catch (IOException | FrameworkException fex) {
+		} catch (Exception fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception");
@@ -740,9 +891,9 @@ public class UiTest extends StructrUiTest {
 
 				final SimpleDateFormat df = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.S");
 
-				for (final Image image : images) {
+				for (final Image im : images) {
 
-					System.out.println("Found Image " + image.getName() + " (" + image.getUuid() + "), created " + df.format(image.getCreatedDate()) + " which should have been deleted.");
+					System.out.println("Found Image " + im.getName() + " (" + im.getUuid() + "), created " + df.format(im.getCreatedDate()) + " which should have been deleted.");
 				}
 			}
 

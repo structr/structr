@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.InputField;
+import org.structr.api.util.html.SelectField;
 import org.structr.api.util.html.Tag;
 
 /**
@@ -51,6 +52,14 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 
 	public void setDisplayName(final String displayName) {
 		put(KEY_DISPLAYNAME, displayName);
+	}
+
+	public void setDriver(final String driver) {
+		put(KEY_DRIVER, driver);
+	}
+
+	public String getDriver() {
+		return (String)get(KEY_DRIVER);
 	}
 
 	public void setName(final String name) {
@@ -102,6 +111,14 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 		final Tag div            = parent.block("div").css("connection app-tile" + (active ? " active" : ""));
 
 		div.block("h4").text(displayName + (isActive() ? " (active)" : ""));
+
+		final Tag driver = div.block("p");
+		driver.block("label").text("Driver");
+		final SelectField driverSelect = new SelectField(driver, "driver-" + name, getDriver()).addOption("Neo4j", "org.structr.bolt.BoltDatabaseService").addOption("Memgraph DB (experimental)", "org.structr.memgraph.MemgraphDatabaseService");
+		if (isActive()) {
+			driverSelect.attr(new Attr("readonly", "readonly"));
+		}
+		driver.add(driverSelect);
 
 		final Tag url = div.block("p");
 		url.block("label").text("Connection URL");

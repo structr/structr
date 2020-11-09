@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -20,6 +20,8 @@ package org.structr.web.entity.html;
 
 import java.net.URI;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -56,42 +58,6 @@ public interface Script extends LinkSource {
 		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
 	}}
 
-
-	/*
-	public static final Property<String> _src     = new HtmlProperty("src");
-	public static final Property<String> _async   = new HtmlProperty("async");
-	public static final Property<String> _defer   = new HtmlProperty("defer");
-	public static final Property<String> _type    = new HtmlProperty("type");
-	public static final Property<String> _charset = new HtmlProperty("charset");
-
-	public static final View uiView = new View(Script.class, PropertyView.Ui,
-		linkableId, linkable
-	);
-
-	public static final View htmlView = new View(Script.class, PropertyView.Html,
-		_src, _async, _defer, _type, _charset
-	);
-
-	@Override
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		if (super.isValid(errorBuffer)) {
-
-			setProperty(Script._type, "text/javascript");
-			return true;
-		}
-
-		return false;
-	}
-
-	@Override
-	public Property[] getHtmlAttributes() {
-
-		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
-
-	}
-	*/
-
 	static void onCreation(final Script thisScript, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyKey<String> key = StructrApp.key(Script.class, "_html_type");
@@ -117,6 +83,7 @@ public interface Script extends LinkSource {
 
 			} catch (FrameworkException fex) {
 
+				final Logger logger = LoggerFactory.getLogger(Script.class);
 				logger.warn("Unable to set property on new child: {}", fex.getMessage());
 
 			}

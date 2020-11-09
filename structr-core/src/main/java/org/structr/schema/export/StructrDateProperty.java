@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -54,7 +54,6 @@ public class StructrDateProperty extends StructrStringProperty implements JsonDa
 		return datePattern;
 	}
 
-
 	// ----- package methods -----
 	@Override
 	Map<String, Object> serialize() {
@@ -67,7 +66,6 @@ public class StructrDateProperty extends StructrStringProperty implements JsonDa
 
 		return map;
 	}
-
 
 	@Override
 	void deserialize(final Map<String, Object> source) {

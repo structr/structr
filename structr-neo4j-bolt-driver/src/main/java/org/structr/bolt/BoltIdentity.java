@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -22,7 +22,7 @@ import org.structr.api.graph.Identity;
 
 /**
  */
-class BoltIdentity implements Identity {
+public class BoltIdentity implements Identity {
 
 	private long id = -1L;
 

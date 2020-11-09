@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -41,6 +41,7 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
+import org.structr.web.maintenance.DeployCommand;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -141,6 +142,8 @@ public class PageImportVisitor implements FileVisitor<Path> {
 		if (data != null && data instanceof Map) {
 
 			try {
+
+				DeployCommand.checkOwnerAndSecurity((Map<String, Object>)data);
 
 				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), Page.class, (Map<String, Object>)data);
 

@@ -13,6 +13,7 @@
 		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/vis.min.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/font-awesome.min.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="codemirror/lib/codemirror.css">
+		<link rel="stylesheet" type="text/css" media="screen" href="codemirror/addon/lint/lint.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="codemirror/addon/dialog/dialog.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="codemirror/addon/hint/show-hint.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="codemirror/addon/search/matchesonscrollbar.css">
@@ -52,6 +53,7 @@
 		<script src="js/lib/clipboard.min.js"></script>
 		<script src="js/lib/vis.min.js"></script>
 
+		<script src="js/lib/jsonlint.js"></script>
 		<script src="codemirror/lib/codemirror.js"></script>
 		<script src="codemirror/addon/scroll/annotatescrollbar.js"></script>
 		<script src="codemirror/addon/search/matchesonscrollbar.js"></script>
@@ -59,9 +61,13 @@
 		<script src="codemirror/addon/search/searchcursor.js"></script>
 		<script src="codemirror/addon/dialog/dialog.js"></script>
 		<script src="codemirror/addon/hint/show-hint.js"></script>
+		<script src="codemirror/addon/lint/lint.js"></script>
+		<script src="codemirror/addon/lint/javascript-lint.js"></script>
+		<script src="codemirror/addon/lint/json-lint.js"></script>
 		<script src="codemirror/mode/xml/xml.js"></script>
 		<script src="codemirror/mode/css/css.js"></script>
 		<script src="codemirror/mode/htmlembedded/htmlembedded.js"></script>
+		<script src="codemirror/mode/cypher/cypher.js"></script>
 		<script src="codemirror/mode/clike/clike.js"></script>
 		<script src="codemirror/mode/javascript/javascript.js"></script>
 		<script src="codemirror/mode/meta.js"></script>
@@ -92,16 +98,15 @@
 		<script src="js/model.js"></script>
 		<script src="js/speech.js"></script>
 		<script src="js/localization.js"></script>
-		<script src="js/crawler.js"></script>
+		<!--script src="js/crawler.js"></script-->
 		<script src="js/minification.js"></script>
-		<script src="js/find-duplicates.js"></script>
 		<script src="js/icons.js"></script>
 		<script src="js/init.js"></script>
 		<script src="js/importer.js"></script>
 		<script src="js/virtual-types.js"></script>
 		<script src="js/mail-templates.js"></script>
 		<script src="js/refactoring-helper.js"></script>
-		<script src="js/simple-pages.js"></script>
+		<!--script src="js/simple-pages.js"></script-->
 		<script src="js/flows.js" type="module"></script>
 	</head>
 	<body>
@@ -116,7 +121,7 @@
 							<li data-name="Dashboard"><a id="dashboard_" href="#dashboard" data-activate-module="dashboard">Dashboard</a></li>
 							<li data-name="Graph"><a id="graph_" href="#graph" data-activate-module="graph">Graph</a></li>
 							<li data-name="Contents"><a id="contents_" href="#contents" data-activate-module="contents">Contents</a></li>
-							<li data-name="Simple Pages"><a id="simple-pages_" href="#simple-pages" data-activate-module="simple-pages">Simple Pages</a></li>
+							<!--li data-name="Simple Pages"><a id="simple-pages_" href="#simple-pages" data-activate-module="simple-pages">Simple Pages</a></li-->
 							<li data-name="Pages"><a id="pages_" href="#pages" data-activate-module="pages">Pages</a></li>
 							<li data-name="Files"><a id="files_" href="#files" data-activate-module="files">Files</a></li>
 							<li data-name="Security"><a id="security_" href="#security" data-activate-module="security">Security</a></li>
@@ -125,7 +130,7 @@
 							<li data-name="Flows" class="module-dependend" data-structr-module="api-builder"><a id="flows_" href="#flows" data-activate-module="flows">Flows</a></li>
 							<li data-name="Data"><a id="crud_" href="#crud" data-activate-module="crud">Data</a></li>
 							<li data-name="Importer"><a id="importer_" href="#importer" data-activate-module="importer">Importer</a></li>
-							<li data-name="Crawler" class="module-dependend" data-structr-module="crawler"><a id="crawler_" href="#crawler" data-activate-module="crawler">Crawler</a></li>
+							<!--li data-name="Crawler" class="module-dependend" data-structr-module="crawler"><a id="crawler_" href="#crawler" data-activate-module="crawler">Crawler</a></li-->
 							<li data-name="Localization"><a id="localization_" href="#localization" data-activate-module="localization">Localization</a></li>
 							<li data-name="Virtual Types" class="module-dependend" data-structr-module="api-builder"><a id="virtual-types_" href="#virtual-types" data-activate-module="virtual-types">Virtual Types</a></li>
 							<li data-name="Mail Templates" class="edition-dependend" data-structr-edition="Enterprise"><a id="mail-templates_" href="#mail-templates" data-activate-module="mail-templates">Mail Templates</a></li>
@@ -140,6 +145,7 @@
 					<span class="structr-instance-db"></span>
 					<span class="structr-instance-name"></span>
 					<span class="structr-instance-stage"></span>
+					<span class="structr-instance-maintenance"></span>
 				</div>
 				<div class="structr-version"></div>
 			</div>
@@ -231,10 +237,6 @@
 			<div class="dialogBtn">
 				<button class="closeButton">Close</button>
 			</div>
-		</div>
-
-		<div id="footer">
-			<div id="log"></div>
 		</div>
 
 		<div id="menu-area"></div>

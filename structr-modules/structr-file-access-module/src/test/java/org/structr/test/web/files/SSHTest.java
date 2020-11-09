@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -126,11 +126,14 @@ public abstract class SSHTest extends StructrFileTestBase {
 	 * @param username
 	 * @return
 	 */
-	protected ChannelSftp setupSftpClient(final String username, final String password) {
+	protected ChannelSftp setupSftpClient(final String username, final String password, final boolean isAdmin) {
 
 		try (final Tx tx = app.tx()) {
 
 			ftpUser = createFTPUser(username, password);
+			if (isAdmin) {
+				ftpUser.setIsAdmin(true);
+			}
 			tx.success();
 
 		} catch (FrameworkException fex) {

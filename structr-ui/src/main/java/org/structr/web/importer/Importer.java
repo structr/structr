@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -310,6 +310,8 @@ public class Importer {
 
 			// create Head element and append nodes to it
 			final Head headElement = (Head)page.createElement("head");
+			headElement.setProperty(AbstractNode.visibleToPublicUsers,        publicVisible);
+			headElement.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
 			createChildNodes(head, headElement, page);
 
 			// head is a special case
@@ -318,7 +320,14 @@ public class Importer {
 
 		if (body != null && !body.html().isEmpty()) {
 
-			return createChildNodes(body, parent, page);
+			// create Head element and append nodes to it
+			final Body bodyElement = (Body)page.createElement("body");
+			bodyElement.setProperty(AbstractNode.visibleToPublicUsers,        publicVisible);
+			bodyElement.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+			createChildNodes(body, bodyElement, page);
+
+			// body is another special case
+			return bodyElement;
 		}
 
 		// fallback, no head no body => document is parent
@@ -699,7 +708,7 @@ public class Importer {
 
 						if (template == null) {
 
-							System.out.println("##################################### template with UUID " + src + " not found, this is a known bug");
+							logger.warn("##################################### template with UUID {} not found, this is a known bug", src);
 
 						}
 
@@ -710,7 +719,7 @@ public class Importer {
 
 						if (template == null) {
 
-							System.out.println("##################################### template with UUID " + uuid + " not found, this is a known bug");
+							logger.warn("##################################### template with UUID not found, this is a known bug", uuid);
 						}
 
 					} else {

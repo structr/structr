@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -81,7 +81,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 			try (final Tx tx = app.tx()) {
 
-				final Iterable<FlowContainer> flows = app.nodeQuery(FlowContainer.class);
+				final Iterable<FlowContainer> flows = app.nodeQuery(FlowContainer.class).getResultStream();
 
 				for (final FlowContainer flow : flows) {
 

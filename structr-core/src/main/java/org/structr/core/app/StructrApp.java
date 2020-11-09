@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -39,7 +39,6 @@ import org.structr.api.graph.PropertyContainer;
 import org.structr.api.service.Command;
 import org.structr.api.service.Service;
 import org.structr.api.util.FixedSizeCache;
-import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.ContentAnalyzer;
@@ -153,12 +152,20 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public <T extends NodeInterface> void delete(final Class<T> type) throws FrameworkException {
+	public <T extends NodeInterface> void deleteAllNodesOfType(final Class<T> type) throws FrameworkException {
 
-		try (final ResultStream<T> result = nodeQuery(type).getResultStream()) {
+		final DeleteNodeCommand cmd = command(DeleteNodeCommand.class);
+		boolean hasMore             = true;
 
-			for (final T node : result) {
-				delete(node);
+		while (hasMore) {
+
+			// will be set to true below if at least one result was processed
+			hasMore = false;
+
+			for (final T t : this.nodeQuery(type).pageSize(Settings.FetchSize.getValue()).page(1).getAsList()) {
+
+				cmd.execute(t);
+				hasMore = true;
 			}
 		}
 	}

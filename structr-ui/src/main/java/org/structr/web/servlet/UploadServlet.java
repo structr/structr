@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -480,7 +480,6 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 				final FileItemStream fileItem = fileItemsIterator.next();
 
 				try {
-
 					final GraphObject node = StructrApp.getInstance().getNodeById(uuid);
 
 					if (node == null) {

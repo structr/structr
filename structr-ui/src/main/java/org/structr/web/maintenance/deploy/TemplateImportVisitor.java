@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -50,7 +50,7 @@ import org.structr.websocket.command.CreateComponentCommand;
  */
 public class TemplateImportVisitor implements FileVisitor<Path> {
 
-	private static final Logger logger          = LoggerFactory.getLogger(TemplateImportVisitor.class.getName());
+	private static final Logger logger                             = LoggerFactory.getLogger(TemplateImportVisitor.class.getName());
 	private static final GenericProperty internalSharedTemplateKey = new GenericProperty("shared");
 
 	private Map<String, Object> configuration = null;
@@ -144,6 +144,8 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 		if (data != null && data instanceof Map) {
 
 			try {
+
+				DeployCommand.checkOwnerAndSecurity((Map<String, Object>)data);
 
 				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), Template.class, (Map<String, Object>)data);
 
@@ -246,7 +248,6 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 		} catch (Throwable t) {
 
 			logger.error("Error trying to create template {}", fileName);
-			t.printStackTrace();
 		}
 	}
 }

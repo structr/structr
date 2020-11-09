@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -808,6 +808,15 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
+	public boolean hasView(final Class type, final String propertyView) {
+
+		final Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
+		final Set<PropertyKey> properties = propertyViewMap.get(propertyView);
+
+		return (properties != null);
+	}
+
+	@Override
 	public Set<PropertyKey> getPropertySet(Class type, String propertyView) {
 
 		Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
@@ -1609,25 +1618,23 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	public void printCacheStats() {
 
-		System.out.println("###################################################");
- 		System.out.println("" + relationshipEntityClassCache.size());
- 		System.out.println("" + nodeEntityClassCache.size());
- 		System.out.println("" + nodeEntityPackages.size());
- 		System.out.println("" + relationshipPackages.size());
-		System.out.println("" + combinedTypeRelationClassCache.size());
- 		System.out.println("" + interfaceCache.size());
- 		System.out.println("" + globalPropertyViewMap.size());
-		System.out.println("" + globalValidatorMap.size());
- 		System.out.println("" + globalClassDBNamePropertyMap.size());
- 		System.out.println("" + globalClassJSNamePropertyMap.size());
-		System.out.println("" + globalAggregatedPropertyGroupMap.size());
-		System.out.println("" + globalPropertyGroupMap.size());
-		System.out.println("" + globalTransformationMap.size());
-		System.out.println("" + exportedMethodMap.size());
-		System.out.println("" + interfaceMap.size());
-	 	System.out.println("" + reverseInterfaceMap.size());
-		System.out.println("" + globalKnownPropertyKeys.size());
-		System.out.println("" + dynamicViews.size());
-		System.out.println("###################################################");
+ 		logger.info("{}", relationshipEntityClassCache.size());
+ 		logger.info("{}", nodeEntityClassCache.size());
+ 		logger.info("{}", nodeEntityPackages.size());
+ 		logger.info("{}", relationshipPackages.size());
+		logger.info("{}", combinedTypeRelationClassCache.size());
+ 		logger.info("{}", interfaceCache.size());
+ 		logger.info("{}", globalPropertyViewMap.size());
+		logger.info("{}", globalValidatorMap.size());
+ 		logger.info("{}", globalClassDBNamePropertyMap.size());
+ 		logger.info("{}", globalClassJSNamePropertyMap.size());
+		logger.info("{}", globalAggregatedPropertyGroupMap.size());
+		logger.info("{}", globalPropertyGroupMap.size());
+		logger.info("{}", globalTransformationMap.size());
+		logger.info("{}", exportedMethodMap.size());
+		logger.info("{}", interfaceMap.size());
+	 	logger.info("{}", reverseInterfaceMap.size());
+		logger.info("{}", globalKnownPropertyKeys.size());
+		logger.info("{}", dynamicViews.size());
 	}
 }

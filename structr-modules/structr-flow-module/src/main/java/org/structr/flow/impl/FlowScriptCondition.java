@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -72,7 +72,7 @@ public class FlowScriptCondition extends FlowCondition implements 	DeployableEnt
 
 		} catch (FrameworkException fex) {
 
-			throw new FlowException(fex);
+			throw new FlowException(fex, this);
 		}
 
 		return null;

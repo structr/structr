@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.odftoolkit.simple.TextDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
@@ -134,6 +136,7 @@ public interface ODTExporter extends ODFExporter {
 			text.close();
 
 		} catch (Exception e) {
+			final Logger logger = LoggerFactory.getLogger(ODTExporter.class);
 			logger.error("Error while exporting to ODT", e);
 		}
 	}

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -343,5 +343,15 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 		}
 
 		return -1L;
+	}
+
+	@Override
+	public boolean changelogEnabled() {
+
+		if (wrappedObj != null) {
+			return wrappedObj.changelogEnabled();
+		}
+
+		return true;
 	}
 }

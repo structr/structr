@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -24,7 +24,6 @@ import org.eclipse.jetty.io.EofException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -43,24 +42,23 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.structr.rest.common.StatsCallback;
 
 public class PdfServlet extends HtmlServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(HtmlServlet.class.getName());
 
-	private static final List<String> customResponseHeaders        = new LinkedList<>();
-	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
-	private static final ExecutorService threadPool                = Executors.newCachedThreadPool();
+	private static final ExecutorService threadPool                   = Executors.newCachedThreadPool();
 
 	private final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
 	private final Set<String> possiblePropertyNamesForEntityResolving = new LinkedHashSet<>();
+	protected StatsCallback stats                                     = null;
 
 	public PdfServlet() {
 
@@ -104,7 +102,13 @@ public class PdfServlet extends HtmlServlet {
 	}
 
 	@Override
-	protected void renderAsyncOutput(HttpServletRequest request, HttpServletResponse response, App app, RenderContext renderContext, DOMNode rootElement) throws IOException {
+	public void registerStatsCallback(final StatsCallback stats) {
+		this.stats = stats;
+	}
+
+	@Override
+	protected void renderAsyncOutput(HttpServletRequest request, HttpServletResponse response, App app, RenderContext renderContext, DOMNode rootElement, final long requestStartTime) throws IOException {
+
 		final AsyncContext async = request.startAsync();
 		final ServletOutputStream out = async.getResponse().getOutputStream();
 		final AtomicBoolean finished = new AtomicBoolean(false);
@@ -130,8 +134,8 @@ public class PdfServlet extends HtmlServlet {
 
 				} catch (Throwable t) {
 
-					t.printStackTrace();
 					logger.warn("Error while rendering page {}: {}", rootNode.getName(), t.getMessage());
+					logger.warn(ExceptionUtils.getStackTrace(t));
 
 					try {
 

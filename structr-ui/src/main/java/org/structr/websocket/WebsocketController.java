@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -139,7 +139,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 				try {
 
-					session.getRemote().sendString(message);
+					session.getRemote().sendStringByFuture(message);
 
 				} catch (Throwable t) {
 

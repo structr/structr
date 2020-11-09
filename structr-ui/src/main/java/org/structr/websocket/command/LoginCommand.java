@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -49,11 +49,6 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-/**
- *
- *
- */
 public class LoginCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(LoginCommand.class.getName());
@@ -61,10 +56,8 @@ public class LoginCommand extends AbstractCommand {
 	static {
 
 		StructrWebSocket.addCommand(LoginCommand.class);
-
 	}
 
-	//~--- methods --------------------------------------------------------
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
@@ -77,7 +70,7 @@ public class LoginCommand extends AbstractCommand {
 
 		try (final Tx tx = app.tx(true, true, true)) {
 
-			final String username       = webSocketData.getNodeDataStringValue("username");
+			String username       = webSocketData.getNodeDataStringValue("username");
 			final String password       = webSocketData.getNodeDataStringValue("password");
 			final String twoFactorToken = webSocketData.getNodeDataStringValue("twoFactorToken");
 			final String twoFactorCode  = webSocketData.getNodeDataStringValue("twoFactorCode");
@@ -92,6 +85,13 @@ public class LoginCommand extends AbstractCommand {
 					user = AuthHelper.getUserForTwoFactorToken(twoFactorToken);
 
 				} else if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
+
+					// cleanup user input
+					if (StringUtils.contains(username, "@")) {
+
+						username = username.toLowerCase();
+					}
+					username = username.trim();
 
 					user = auth.doLogin(getWebSocket().getRequest(), username, password);
 
@@ -151,7 +151,7 @@ public class LoginCommand extends AbstractCommand {
 
 			} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
 
-				logger.info(ex.getMessage());
+				logger.info("Unable to login {}: {}", username, ex.getMessage());
 				getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).data("reason", ex.getReason()).build(), true);
 
 			} catch (TwoFactorAuthenticationRequiredException ex) {
@@ -164,11 +164,12 @@ public class LoginCommand extends AbstractCommand {
 
 					try {
 
+						final Principal principal       = ex.getUser();
 						final Map<String, Object> hints = new HashMap();
 						hints.put("MARGIN", 0);
 						hints.put("ERROR_CORRECTION", "M");
 
-						final String qrdata = Base64.getEncoder().encodeToString(BarcodeFunction.getQRCode(Principal.getTwoFactorUrl(user), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1"));
+						final String qrdata = Base64.getEncoder().encodeToString(BarcodeFunction.getQRCode(Principal.getTwoFactorUrl(principal), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1"));
 
 						msg.data("qrdata", qrdata);
 
@@ -195,7 +196,6 @@ public class LoginCommand extends AbstractCommand {
 		}
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
 		return "LOGIN";

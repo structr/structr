@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,21 +18,35 @@
  */
 package org.structr.api;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  */
 public class AndPredicate<T> implements Predicate<T> {
 
-	private Predicate<T> p1 = null;
-	private Predicate<T> p2 = null;
+	private List<Predicate<T>> predicates = new LinkedList<>();
 
-	public AndPredicate(final Predicate<T> p1, final Predicate<T> p2) {
-
-		this.p1 = p1;
-		this.p2 = p2;
+	public AndPredicate(final Predicate<T>... predicates) {
+		this.predicates.addAll(Arrays.asList(predicates));
 	}
 
 	@Override
 	public boolean accept(final T value) {
-		return p1.accept(value) && p2.accept(value);
+
+		for (final Predicate<T> p : predicates) {
+
+			if (!p.accept(value)) {
+				return false;
+			}
+		}
+
+		// default is true if no values are given?
+		return true;
+	}
+
+	public void addPredicate(final Predicate<T> predicate) {
+		predicates.add(predicate);
 	}
 }

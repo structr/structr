@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -57,7 +57,7 @@ public class MemoryNodeIndex extends AbstractMemoryIndex<Node> {
 			final int pageSize = queryContext.getPageSize();
 			final int page     = queryContext.getPage();
 
-			result = new PagingIterable<>(result, pageSize, page);
+			result = new PagingIterable<>(query.toString(), result, pageSize, page);
 		}
 
 		return result;

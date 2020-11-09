@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,6 +18,7 @@
  */
 package org.structr.messaging.implementation.mqtt;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -27,7 +28,12 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.service.Service;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MQTTClientConnection implements MqttCallback {
 	private MemoryPersistence persistence = new MemoryPersistence();
@@ -40,11 +46,30 @@ public class MQTTClientConnection implements MqttCallback {
 	public MQTTClientConnection(MQTTInfo info) throws MqttException{
 
 		this.info = info;
-		String broker = info.getProtocol() + info.getUrl() + ":" + info.getPort();
-		client = new MqttClient(broker, info.getUuid(), persistence);
+
+		client = new MqttClient(info.getMainBrokerURL(), info.getUuid(), persistence);
 		client.setCallback(this);
 		connOpts = new MqttConnectOptions();
+		if (info.getFallbackBrokerURLs() != null) {
+			String[] fallBackBrokers;
+			if (info.getMainBrokerURL() != null) {
+
+				List<String> mergedBrokers = new ArrayList<>();
+				mergedBrokers.add(info.getMainBrokerURL());
+				mergedBrokers.addAll(List.of(info.getFallbackBrokerURLs()));
+				fallBackBrokers = mergedBrokers.toArray(String[]::new);
+			} else {
+
+				fallBackBrokers = info.getFallbackBrokerURLs();
+			}
+			connOpts.setServerURIs(fallBackBrokers);
+		}
 		connOpts.setCleanSession(true);
+
+		if (info.getUsername() != null && info.getPassword() != null) {
+			connOpts.setUserName(info.getUsername());
+			connOpts.setPassword(info.getPassword().toCharArray());
+		}
 	}
 
 	public void connect() throws FrameworkException {
@@ -136,8 +161,10 @@ public class MQTTClientConnection implements MqttCallback {
 	@Override
 	public void messageArrived(String topic, MqttMessage msg) throws Exception {
 
-		Thread workerThread = new Thread(new CallbackWorker(info, topic, msg.toString()));
-		workerThread.start();
+		if (!Services.getInstance().isShuttingDown() && !Services.getInstance().isShutdownDone()) {
+			Thread workerThread = new Thread(new CallbackWorker(info, topic, msg.toString()));
+			workerThread.start();
+		}
 	}
 
 	@Override
@@ -180,6 +207,7 @@ public class MQTTClientConnection implements MqttCallback {
 		public void run() {
 
 			try {
+				if (!Services.getInstance().isShuttingDown() && !Services.getInstance().isShutdownDone())
 				info.messageCallback(topic, message);
 			} catch (FrameworkException e) {
 				logger.error("Error during MQTT message callback: " + e.getMessage());

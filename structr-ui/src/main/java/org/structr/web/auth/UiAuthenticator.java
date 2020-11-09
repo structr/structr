@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -21,6 +21,7 @@ package org.structr.web.auth;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +32,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
@@ -107,8 +109,21 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public SecurityContext initializeAndExamineRequest(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
 
-		Principal user = SessionHelper.checkSessionAuthentication(request);
+		Principal user = null;
 		SecurityContext securityContext;
+
+		String authorizationToken = getAuthorizationToken(request);
+
+		if (authorizationToken == null || StringUtils.equals(authorizationToken, "")) {
+
+			user = SessionHelper.checkSessionAuthentication(request);
+		}
+
+		if (user == null && authorizationToken != null) {
+
+			final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
+			user = AuthHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
+		}
 
 		if (user == null) {
 
@@ -208,6 +223,8 @@ public class UiAuthenticator implements Authenticator {
 		if (resourceAccess == null) {
 
 			logger.info("No resource access grant found for signature '{}' (URI: {})", new Object[] { rawResourceSignature, securityContext.getCompoundRequestURI() } );
+
+			RuntimeEventLog.resourceAccess("No grant", rawResourceSignature, method, validUser);
 
 			throw new UnauthorizedException("Forbidden");
 
@@ -321,6 +338,8 @@ public class UiAuthenticator implements Authenticator {
 
 		logger.info("Resource access grant found for signature '{}', but method '{}' not allowed for {} users.", rawResourceSignature, method, (validUser ? "authenticated" : "public"));
 
+		RuntimeEventLog.resourceAccess("Method not allowed", rawResourceSignature, method, validUser);
+
 		throw new UnauthorizedException("Forbidden");
 
 	}
@@ -338,6 +357,7 @@ public class UiAuthenticator implements Authenticator {
 			if (user.getProperty(confKey) != null && !allowLoginBeforeConfirmation) {
 
 				logger.warn("Login as {} not allowed before confirmation.", user.getName());
+				RuntimeEventLog.failedLogin("Login attempt before confirmation", user.getUuid(), user.getName());
 				throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
 			}
 
@@ -368,6 +388,40 @@ public class UiAuthenticator implements Authenticator {
 		}
 	}
 
+	private String getAuthorizationToken(HttpServletRequest request) {
+
+		final Cookie[] cookies = request.getCookies();
+
+		// first check for token in cookie
+		if (cookies != null) {
+
+			for (Cookie cookie : request.getCookies()) {
+
+				if (StringUtils.equals(cookie.getName(), "access_token")) {
+
+					return cookie.getValue();
+				}
+			}
+		}
+
+		final String authorizationHeader = request.getHeader("Authorization");
+
+		if (authorizationHeader == null) {
+			return null;
+		}
+
+		String[] headerParts = authorizationHeader.split(" ");
+		if (StringUtils.equals(headerParts[0], "Bearer") && headerParts.length > 1) {
+
+			return headerParts[1];
+
+		} else {
+
+			return null;
+
+		}
+	}
+
 	/**
 	 * This method checks all configured external authentication services.
 	 *
@@ -384,7 +438,7 @@ public class UiAuthenticator implements Authenticator {
 
 		if (uriParts == null || uriParts.length != 3 || !("oauth".equals(uriParts[0]))) {
 
-			logger.debug("Incorrect URI parts for OAuth process, need /oauth/<name>/<action>");
+			logger.debug("No OAuth keywords in URI, ignoring. (needs /oauth/<name>/<action>)");
 			return null;
 		}
 
@@ -396,7 +450,7 @@ public class UiAuthenticator implements Authenticator {
 
 		if (oauthServer == null) {
 
-			logger.debug("No OAuth2 authentication server configured for {}", path);
+			logger.warn("No OAuth2 authentication server configured for {}", path);
 			return null;
 
 		}
@@ -423,22 +477,49 @@ public class UiAuthenticator implements Authenticator {
 				logger.debug("Got access token {}", accessToken);
 
 				String value = oauthServer.getCredential(request);
-				logger.debug("Got credential value: {}", new Object[] { value });
+
+				logger.debug("Got credential value: {}", value);
 
 				if (value != null) {
 
 					final PropertyKey credentialKey = oauthServer.getCredentialKey();
-					Principal user                  = AuthHelper.getPrincipalForCredential(credentialKey, value);
 
-					if (user == null && Settings.RestUserAutocreate.getValue()) {
+					logger.debug("Fetching user with {} {}", credentialKey, value);
 
-						user = RegistrationResource.createUser(superUserContext, credentialKey, value, true, getUserClass(), null);
+					// first try: literal, unchanged value from oauth provider
+					Principal user = AuthHelper.getPrincipalForCredential(credentialKey, value);
+					if (user == null) {
 
-						// let oauth implementation augment user info
-						oauthServer.initializeUser(user);
+						// since e-mail addresses are stored in lower case, we need
+						// to search for users with lower-case e-mail address value..
+						logger.debug("2nd try: fetching user with lowercase {} {}", credentialKey, value.toLowerCase());
+
+						// second try: lowercase value
+						user = AuthHelper.getPrincipalForCredential(credentialKey, value.toLowerCase());
+					}
+
+					if (user == null) {
+
+						if (Settings.RestUserAutocreate.getValue()) {
+
+							logger.debug("No user found, creating new user for {} {}.", credentialKey, value);
+
+							user = RegistrationResource.createUser(superUserContext, credentialKey, value, true, getUserClass(), null);
+
+							// let oauth implementation augment user info
+							oauthServer.initializeUser(user);
+
+							RuntimeEventLog.registration("OAuth user created", user.getUuid(), user.getName());
+
+						} else {
+
+							logger.debug("No user found, but jsonrestservlet.user.autocreate is false, so I'm not allowed to create a new user for {} {}.", credentialKey, value);
+						}
 					}
 
 					if (user != null) {
+
+						logger.debug("Logging in user {}", user);
 
 						AuthHelper.doLogin(request, user);
 						HtmlServlet.setNoCacheHeaders(response);
@@ -454,7 +535,12 @@ public class UiAuthenticator implements Authenticator {
 							logger.error("Could not redirect to {}: {}", new Object[]{oauthServer.getReturnUri(), ex});
 
 						}
+
 						return user;
+
+					} else {
+
+						logger.debug("Still no valid user found, no oauth authentication possible.");
 					}
 				}
 			}
@@ -504,13 +590,20 @@ public class UiAuthenticator implements Authenticator {
 
 		Principal user = null;
 
-		if (request.getAttribute(SessionHelper.SESSION_IS_NEW) == null) {
+		String authorizationToken = getAuthorizationToken(request);
+
+		if ((authorizationToken == null || StringUtils.equals(authorizationToken, "")) && request.getAttribute(SessionHelper.SESSION_IS_NEW) == null) {
 
 			// First, check session (JSESSIONID cookie)
 			if (request.getSession(false) != null) {
 
 				user = AuthHelper.getPrincipalForSessionId(request.getSession(false).getId());
 			}
+
+		} else if (authorizationToken != null) {
+
+			final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
+			user = AuthHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
 		}
 
 		if (user == null) {
@@ -530,7 +623,6 @@ public class UiAuthenticator implements Authenticator {
 				if (tryLogin) {
 
 					user = AuthHelper.getPrincipalForPassword(AbstractNode.name, userName, password);
-
 				}
 			}
 		}

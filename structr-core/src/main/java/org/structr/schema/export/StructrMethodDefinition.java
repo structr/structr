@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,15 +18,20 @@
  */
 package org.structr.schema.export;
 
+import com.google.gson.GsonBuilder;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +46,10 @@ import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonParameter;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
+import org.structr.schema.openapi.operation.OpenAPIMethodOperation;
+import org.structr.schema.openapi.request.OpenAPIRequestResponse;
+import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
+import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
 
 /**
  *
@@ -52,6 +61,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 	private final List<StructrParameterDefinition> parameters = new LinkedList<>();
 	private final List<String> exceptions                     = new LinkedList<>();
+	private final Set<String> tags                            = new TreeSet<>();
 	private SchemaMethod schemaMethod                         = null;
 	private boolean overridesExisting                         = false;
 	private boolean doExport                                  = false;
@@ -60,9 +70,10 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private String returnType                                 = "void";
 	private String codeType                                   = null;
 	private String name                                       = null;
+	private String description                                = null;
+	private String summary                                    = null;
 	private String comment                                    = null;
 	private String source                                     = null;
-
 
 	StructrMethodDefinition(final JsonType parent, final String name) {
 
@@ -145,6 +156,28 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	@Override
 	public JsonMethod setComment(String comment) {
 		this.comment = comment;
+		return this;
+	}
+
+	@Override
+	public String getSummary() {
+		return summary;
+	}
+
+	@Override
+	public JsonMethod setSummary(String summary) {
+		this.summary = summary;
+		return this;
+	}
+
+	@Override
+	public String getDescription() {
+		return description;
+	}
+
+	@Override
+	public JsonMethod setDescription(String description) {
+		this.description = description;
 		return this;
 	}
 
@@ -237,6 +270,16 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	@Override
+	public Set<String> getTags() {
+		return tags;
+	}
+
+	@Override
+	public void addTags(final String... tags) {
+		this.tags.addAll(Arrays.asList(tags));
+	}
+
+	@Override
 	public StructrDefinition resolveJsonPointerKey(final String key) {
 		return null;
 	}
@@ -269,8 +312,19 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			method = app.create(SchemaMethod.class, getOrCreateProperties);
 		}
 
+		updateProperties.put(SchemaMethod.summary,               getSummary());
+		updateProperties.put(SchemaMethod.description,           getDescription());
 		updateProperties.put(SchemaMethod.source,                getSource());
 		updateProperties.put(SchemaMethod.isPartOfBuiltInSchema, true);
+
+		final Set<String> mergedTags     = new LinkedHashSet<>(this.tags);
+		final String[] existingTagsArray = method.getProperty(SchemaMethod.tags);
+
+		if (existingTagsArray != null) {
+
+			mergedTags.addAll(Arrays.asList(existingTagsArray));
+		}
+		updateProperties.put(SchemaMethod.tags, mergedTags.toArray(new String[0]));
 
 		method.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
@@ -278,6 +332,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		for (final StructrParameterDefinition param : parameters) {
 			param.createDatabaseSchema(app, method, index++);
 		}
+
 
 		this.schemaMethod = method;
 
@@ -298,6 +353,18 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		if (_comment != null && _comment instanceof String) {
 
 			this.comment = (String)_comment;
+		}
+
+		final Object _summary = source.get(JsonSchema.KEY_SUMMARY);
+		if (_summary != null && _summary instanceof String) {
+
+			this.summary = (String)_summary;
+		}
+
+		final Object _description = source.get(JsonSchema.KEY_DESCRIPTION);
+		if (_description != null && _description instanceof String) {
+
+			this.description = (String)_description;
 		}
 
 		final Object _codeType = source.get(JsonSchema.KEY_CODE_TYPE);
@@ -365,6 +432,15 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			// sort parameters
 			Collections.sort(parameters, (o1, o2) -> Integer.valueOf(o1.getIndex()).compareTo(o2.getIndex()));
 		}
+
+		if (source.containsKey(JsonSchema.KEY_TAGS)) {
+
+			final Object tagsValue = source.get(JsonSchema.KEY_TAGS);
+			if (tagsValue instanceof List) {
+
+				tags.addAll((List<String>)tagsValue);
+			}
+		}
 	}
 
 	void deserialize(final SchemaMethod method) {
@@ -374,6 +450,8 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		setName(method.getName());
 		setSource(method.getProperty(SchemaMethod.source));
 		setComment(method.getProperty(SchemaMethod.comment));
+		setSummary(method.getProperty(SchemaMethod.summary));
+		setDescription(method.getProperty(SchemaMethod.description));
 		setCodeType(method.getProperty(SchemaMethod.codeType));
 		setReturnType(method.getProperty(SchemaMethod.returnType));
 		setCallSuper(method.getProperty(SchemaMethod.callSuper));
@@ -400,6 +478,12 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		Collections.sort(parameters, (p1, p2) -> {
 			return Integer.valueOf(p1.getIndex()).compareTo(p2.getIndex());
 		});
+
+		final String[] tagArray = method.getProperty(SchemaMethod.tags);
+		if (tagArray != null) {
+
+			this.tags.addAll(Arrays.asList(tagArray));
+		}
 	}
 
 	Map<String, Object> serialize() {
@@ -409,6 +493,8 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		map.put(JsonSchema.KEY_SOURCE, source);
 		map.put(JsonSchema.KEY_COMMENT, comment);
+		map.put(JsonSchema.KEY_SUMMARY, summary);
+		map.put(JsonSchema.KEY_DESCRIPTION, description);
 		map.put(JsonSchema.KEY_CODE_TYPE, codeType);
 		map.put(JsonSchema.KEY_RETURN_TYPE, returnType);
 		map.put(JsonSchema.KEY_EXCEPTIONS, exceptions);
@@ -422,6 +508,10 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		if (!params.isEmpty()) {
 			map.put(JsonSchema.KEY_PARAMETERS, params);
+		}
+
+		if (!tags.isEmpty()) {
+			map.put(JsonSchema.KEY_TAGS, tags);
 		}
 
 		return map;
@@ -450,6 +540,86 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	void diff(final StructrMethodDefinition other) {
+	}
+
+	// ----- OpenAPI -----
+	public Map<String, Object> serializeOpenAPI() {
+
+		final Map<String, Object> operations = new LinkedHashMap<>();
+
+		operations.put("/" + getParent().getName() + "/{uuid}/" + getName(), Map.of("post", new OpenAPIMethodOperation(this)));
+
+		return operations;
+	}
+
+	public boolean isSelected(final String tag) {
+
+		final Set<String> tags = getTags();
+		boolean selected       = tag == null || tags.contains(tag);
+
+		// don't show types without tags
+		if (tags.isEmpty()) {
+			return false;
+		}
+
+		// skip blacklisted tags
+		if (intersects(StructrTypeDefinition.TagBlacklist, tags)) {
+
+			// if a tag is selected, it overrides the blacklist
+			selected = tag != null && tags.contains(tag);
+		}
+
+		return selected;
+	}
+
+	private boolean intersects(final Set<String> set1, final Set<String> set2) {
+
+		final Set<String> intersection = new LinkedHashSet<>(set1);
+
+		intersection.retainAll(set2);
+
+		return !intersection.isEmpty();
+	}
+
+	public Map<String, Object> getOpenAPIRequestSchema() {
+
+		final Map<String, Object> schema = new LinkedHashMap<>();
+
+		for (final JsonParameter param : getParameters()) {
+
+			schema.putAll(new OpenAPIPrimitiveSchema(param.getDescription(), param.getName(), param.getType()));
+		}
+
+		return new OpenAPIObjectSchema("Parameters", schema);
+	}
+
+	public Map<String, Object> getOpenAPIRequestBodyExample() {
+
+		final Map<String, Object> schema = new LinkedHashMap<>();
+
+		for (final JsonParameter param : getParameters()) {
+
+			schema.put(param.getName(), param.getExampleValue());
+		}
+
+		return schema;
+	}
+
+	public Map<String, Object> getOpenAPIRequestBody() {
+		return new OpenAPIRequestResponse("Parameters", getOpenAPIRequestSchema(), getOpenAPIRequestBodyExample(), null);
+	}
+
+	public Map<String, Object> getOpenAPISuccessResponse() {
+
+		final Map<String, Object> schemaFromJsonString = new LinkedHashMap<>();
+
+		try {
+
+			schemaFromJsonString.putAll(new GsonBuilder().create().fromJson(getReturnType(), Map.class));
+
+		} catch (Throwable ignore) {}
+
+		return new OpenAPIRequestResponse("Parameter object", schemaFromJsonString, null, null);
 	}
 
 	// ----- static methods -----

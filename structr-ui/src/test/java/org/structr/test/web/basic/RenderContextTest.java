@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -520,6 +520,7 @@ public class RenderContextTest extends StructrUiTest {
 
 			// String default value
 			assertEquals("bar", Scripting.replaceVariables(ctx, p1, "${request.foo!bar}"));
+			assertEquals("camelCase", Scripting.replaceVariables(ctx, p1, "${request.foo!camelCase}"));
 
 			// Number default value (will be evaluated to a string)
 			assertEquals("1", Scripting.replaceVariables(ctx, p1, "${page.position!1}"));

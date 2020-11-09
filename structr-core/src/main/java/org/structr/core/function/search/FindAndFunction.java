@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,6 +18,7 @@
  */
 package org.structr.core.function.search;
 
+import java.util.List;
 import org.structr.core.function.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
@@ -38,16 +39,9 @@ public class FindAndFunction extends CoreFunction {
 
 		if (sources != null) {
 
-			for (Object i : sources) {
+			for (Object param : sources) {
 
-				if (i instanceof SearchParameter) {
-
-					andPredicate.addParameter((SearchParameter)i);
-
-				} else if (i instanceof SearchFunctionPredicate) {
-
-					andPredicate.addPredicate((SearchFunctionPredicate)i);
-				}
+				handleParameter(andPredicate, param);
 			}
 
 		} else {
@@ -76,5 +70,25 @@ public class FindAndFunction extends CoreFunction {
 	@Override
 	public String getSignature() {
 		return null;
+	}
+
+	// ----- private methods -----
+	private void handleParameter(final AndPredicate andPredicate, final Object param) {
+
+		if (param instanceof SearchParameter) {
+
+			andPredicate.addParameter((SearchParameter)param);
+
+		} else if (param instanceof SearchFunctionPredicate) {
+
+			andPredicate.addPredicate((SearchFunctionPredicate)param);
+
+		} else if (param instanceof List) {
+
+			for (final Object o : (List)param) {
+
+				handleParameter(andPredicate, o);
+			}
+		}
 	}
 }

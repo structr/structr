@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,9 +18,12 @@
  */
 package org.structr.core.property;
 
+import java.util.Map;
+import java.util.TreeMap;
 import org.structr.api.search.Occurrence;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.Query;
+import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.UuidSearchAttribute;
 
@@ -46,5 +49,33 @@ public class UuidProperty extends StringProperty {
 	@Override
 	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final String searchValue, final boolean exactMatch, final Query query) {
 		return new UuidSearchAttribute(searchValue, occur);
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(java.lang.String type, final String viewName) {
+		return NodeServiceCommand.getNextUuid();
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+
+		final Map<String, Object> map = new TreeMap<>();
+
+		map.put("type",   "string");
+		map.put("example", getExampleValue(type, viewName));
+
+		return map;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+
+		final Map<String, Object> map = new TreeMap<>();
+
+		map.put("type",   "string");
+		map.put("example", getExampleValue(type, viewName));
+
+		return map;
 	}
 }

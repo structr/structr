@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -50,6 +50,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
@@ -61,7 +62,7 @@ import org.structr.web.entity.User;
 
 public class DeployDataCommand extends DeployCommand {
 
-	private static final Logger logger                     = LoggerFactory.getLogger(DeployDataCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(DeployDataCommand.class);
 
 	private Map<String, List<Map<String, Object>>> relationshipMap;
 	private Set<String> alreadyExportedRelationships;
@@ -80,8 +81,12 @@ public class DeployDataCommand extends DeployCommand {
 	private final static String DEPLOYMENT_DATA_EXPORT_STATUS   = "DEPLOYMENT_DATA_EXPORT_STATUS";
 
 	private boolean doInnerCallbacks  = false;
+	private boolean doOuterCallbacks  = false;
 	private boolean doCascadingDelete = false;
 
+	private boolean relationshipToFileTypeExists = false;
+
+	private final static Set<String> blacklistedRelationshipTypes = Set.of("PrincipalOwnsNode", "Security");
 
 	static {
 
@@ -123,6 +128,7 @@ public class DeployDataCommand extends DeployCommand {
 			missingTypesForExport        = new HashSet();
 			relationshipMap              = new TreeMap();
 			alreadyExportedRelationships = new HashSet();
+			relationshipToFileTypeExists = false;
 
 			Files.createDirectories(target);
 
@@ -196,6 +202,24 @@ public class DeployDataCommand extends DeployCommand {
 				);
 
 				publishWarningMessage(title, text);
+
+				if (relationshipToFileTypeExists) {
+
+					final String ftitle = "Relationship(s) to/from file types exported";
+					final String ftext = "Relationships to/from file types are present in the exported data set.<br>"
+							+ "If the files are present in the application deployment export package this should work fine.<br><br>"
+							+ "Otherwise the import of these relationships might fail.";
+
+					logger.info("\n###############################################################################\n"
+							+ "\tWarning: " + ftitle + "!\n"
+							+ "\tRelationships to/from file types are present in the exported data set.\n"
+							+ "\tIf the files are present in the application deployment export package this should work fine.\n\n"
+							+ "\tOtherwise the import of these relationships might fail.\n"
+							+ "###############################################################################"
+					);
+
+					publishWarningMessage(ftitle, ftext);
+				}
 			}
 
 			final long endTime = System.currentTimeMillis();
@@ -249,6 +273,7 @@ public class DeployDataCommand extends DeployCommand {
 			}
 
 			doInnerCallbacks  = parameters.get("doInnerCallbacks") == null  ? false : "true".equals(parameters.get("doInnerCallbacks").toString());
+			doOuterCallbacks  = parameters.get("doOuterCallbacks") == null  ? false : "true".equals(parameters.get("doOuterCallbacks").toString());
 			doCascadingDelete = parameters.get("doCascadingDelete") == null ? false : "true".equals(parameters.get("doCascadingDelete").toString());
 
 			doImportFromDirectory(source);
@@ -285,6 +310,11 @@ public class DeployDataCommand extends DeployCommand {
 
 			logger.info("You provided the 'doInnerCallbacks' parameter - if you encounter problems caused by onCreate/onSave methods or function properties, you might want to disable this.");
 			context.enableInnerCallbacks();
+		}
+
+		if (Boolean.TRUE.equals(doOuterCallbacks)) {
+
+			logger.info("You provided the 'doOuterCallbacks' parameter - if you encounter problems caused by afterCreate method you might want to disable this.");
 		}
 
 		if (Boolean.TRUE.equals(doCascadingDelete)) {
@@ -368,16 +398,16 @@ public class DeployDataCommand extends DeployCommand {
 
 			final String title = "Missing Principal(s)";
 			final String text = "The following user(s) and/or group(s) are missing for grants or node ownership during <b>data deployment</b>.<br>"
-					+ "Because of these missing grants/ownerships, <b>the functionality is not identical to the export you just imported</b>!<br><br>"
-					+ String.join(", ",  missingPrincipals)
-					+ "<br><br>Consider adding these principals to your <a href=\"https://support.structr.com/article/428#pre-deployconf-javascript\">pre-data-deploy.conf</a> and re-importing.";
+					+ "Because of these missing grants/ownerships, <b>the functionality is not identical to the export you just imported</b>!"
+					+ "<ul><li>" + String.join("</li><li>",  missingPrincipals) + "</li></ul>"
+					+ "Consider adding these principals to your <a href=\"https://docs.structr.com/docs/fundamental-concepts#pre-deployconf\">pre-data-deploy.conf</a> and re-importing.";
 
 			logger.info("\n###############################################################################\n"
 					+ "\tWarning: " + title + "!\n"
 					+ "\tThe following user(s) and/or group(s) are missing for grants or node ownership during deployment.\n"
 					+ "\tBecause of these missing grants/ownerships, the functionality is not identical to the export you just imported!\n\n"
 					+ "\t" + String.join(", ",  missingPrincipals)
-					+ "\n\n\tConsider adding these principals to your 'pre-data-deploy.conf' (see https://support.structr.com/article/428#pre-deployconf-javascript) and re-importing.\n"
+					+ "\n\n\tConsider adding these principals to your 'pre-data-deploy.conf' (see https://docs.structr.com/docs/fundamental-concepts#pre-deployconf) and re-importing.\n"
 					+ "###############################################################################"
 			);
 
@@ -406,7 +436,6 @@ public class DeployDataCommand extends DeployCommand {
 			publishWarningMessage(title, text);
 		}
 
-
 		final long endTime = System.currentTimeMillis();
 		final DecimalFormat decimalFormat  = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 		final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
@@ -419,7 +448,6 @@ public class DeployDataCommand extends DeployCommand {
 		broadcastData.put("end", endTime);
 		broadcastData.put("duration", duration);
 		publishEndMessage(DEPLOYMENT_DATA_IMPORT_STATUS, broadcastData);
-
 	}
 
 	protected SecurityContext getRecommendedSecurityContext () {
@@ -433,7 +461,6 @@ public class DeployDataCommand extends DeployCommand {
 		context.setDoCascadingDelete(false);
 
 		return context;
-
 	}
 
 	private void removeInheritingTypesFromSet(final HashSet<Class> types) {
@@ -541,41 +568,10 @@ public class DeployDataCommand extends DeployCommand {
 
 	private void exportRelationshipsForNode(final SecurityContext context, final AbstractNode node) throws FrameworkException {
 
-		final List<GraphObjectMap> customProperties = SchemaHelper.getSchemaTypeInfo(context, node.getType(), node.getClass(), "custom");
+		final Iterator<AbstractRelationship> it = node.getRelationships().iterator();
 
-		for (final GraphObjectMap propertyInfo : customProperties) {
-
-			final Map propInfo        = propertyInfo.toMap();
-			final String propertyName = (String) propInfo.get("jsonName");
-
-			if (propInfo.get("relatedType") != null && !propInfo.get("className").equals("org.structr.core.property.EntityNotionProperty") && !propInfo.get("className").equals("org.structr.core.property.CollectionNotionProperty")) {
-
-				if (Boolean.TRUE.equals(propInfo.get("isCollection"))) {
-
-					final Iterable res = node.getProperty(StructrApp.key(node.getClass(), propertyName));
-					if (res != null) {
-						final Iterator<AbstractNode> it = res.iterator();
-
-						while (it.hasNext()) {
-							final AbstractNode relatedNode = it.next();
-							final RelationshipInterface r = (RelationshipInterface) relatedNode.getPath(context);
-							if (r != null) {
-								exportRelationship(context, r);
-							}
-						}
-					}
-
-				} else {
-
-					final AbstractNode relatedNode = node.getProperty(StructrApp.key(node.getClass(), propertyName));
-					if (relatedNode != null) {
-						final RelationshipInterface r = (RelationshipInterface) relatedNode.getPath(context);
-						if (r != null) {
-							exportRelationship(context, r);
-						}
-					}
-				}
-			}
+		while (it.hasNext()) {
+			exportRelationship(context, it.next());
 		}
 	}
 
@@ -594,43 +590,56 @@ public class DeployDataCommand extends DeployCommand {
 
 	private void exportRelationship(final SecurityContext context, final RelationshipInterface rel) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(context);
+		final String relTypeName = rel.getClass().getSimpleName();
 
-		try (final Tx tx = app.tx()) {
+		if (!blacklistedRelationshipTypes.contains(relTypeName)) {
 
-			final String relUuid = rel.getUuid();
-			if (!alreadyExportedRelationships.contains(relUuid)) {
+			final App app = StructrApp.getInstance(context);
 
-				final Map<String, Object> entry = new TreeMap<>();
+			try (final Tx tx = app.tx()) {
 
-				final Class sourceNodeClass = rel.getSourceNode().getClass();
-				final Class targetNodeClass = rel.getTargetNode().getClass();
+				final String relUuid = rel.getUuid();
+				if (!alreadyExportedRelationships.contains(relUuid)) {
 
-				if (!missingTypesForExport.contains(sourceNodeClass) && !isTypeInExportedTypes(sourceNodeClass)) {
+					final Map<String, Object> entry = new TreeMap<>();
 
-					missingTypeNamesForExport.add(sourceNodeClass.getSimpleName());
+					final Class sourceNodeClass = rel.getSourceNode().getClass();
+					final Class targetNodeClass = rel.getTargetNode().getClass();
+
+					if (!missingTypesForExport.contains(sourceNodeClass) && !isTypeInExportedTypes(sourceNodeClass)) {
+
+						missingTypeNamesForExport.add(sourceNodeClass.getSimpleName());
+
+						if (AbstractFile.class.isAssignableFrom(sourceNodeClass)) {
+							relationshipToFileTypeExists = true;
+						}
+					}
+
+					if (!missingTypesForExport.contains(targetNodeClass) && !isTypeInExportedTypes(targetNodeClass)) {
+
+						missingTypeNamesForExport.add(targetNodeClass.getSimpleName());
+
+						if (AbstractFile.class.isAssignableFrom(targetNodeClass)) {
+							relationshipToFileTypeExists = true;
+						}
+					}
+
+					entry.put("sourceId", rel.getSourceNodeId());
+					entry.put("targetId", rel.getTargetNodeId());
+
+					final PropertyContainer pc = rel.getPropertyContainer();
+
+					for (final String key : pc.getPropertyKeys()) {
+						putData(entry, key, pc.getProperty(key));
+					}
+
+					addRelationshipToMap(rel.getClass().getSimpleName(), entry);
+
+					alreadyExportedRelationships.add(relUuid);
 				}
 
-				if (!missingTypesForExport.contains(targetNodeClass) && !isTypeInExportedTypes(targetNodeClass)) {
-
-					missingTypeNamesForExport.add(targetNodeClass.getSimpleName());
-				}
-
-				entry.put("sourceId", rel.getSourceNodeId());
-				entry.put("targetId", rel.getTargetNodeId());
-
-				final PropertyContainer pc = rel.getPropertyContainer();
-
-				for (final String key : pc.getPropertyKeys()) {
-					putData(entry, key, pc.getProperty(key));
-				}
-
-				addRelationshipToMap(rel.getClass().getSimpleName(), entry);
-
-				alreadyExportedRelationships.add(relUuid);
+				tx.success();
 			}
-
-			tx.success();
 		}
 	}
 
@@ -650,7 +659,7 @@ public class DeployDataCommand extends DeployCommand {
 
 		final App app = StructrApp.getInstance(context);
 
-		try (final Tx tx = app.tx()) {
+		try (final Tx tx = app.tx(true, doOuterCallbacks)) {
 
 			tx.disableChangelog();
 
@@ -696,7 +705,6 @@ public class DeployDataCommand extends DeployCommand {
 		} catch (FrameworkException fex) {
 
 			logger.error("Unable to import relationships for type {}. Cause: {}", type.getSimpleName(), fex.getMessage());
-			fex.printStackTrace();
 		}
 	}
 
@@ -714,7 +722,7 @@ public class DeployDataCommand extends DeployCommand {
 
 			final App app = StructrApp.getInstance(context);
 
-			try (final Tx tx = app.tx()) {
+			try (final Tx tx = app.tx(true, doOuterCallbacks)) {
 
 				tx.disableChangelog();
 
@@ -765,7 +773,6 @@ public class DeployDataCommand extends DeployCommand {
 			} catch (FrameworkException fex) {
 
 				logger.error("Unable to import nodes for type {}. Cause: {}", defaultType.getSimpleName(), fex.getMessage());
-				fex.printStackTrace();
 			}
 		}
 	}

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -24,5 +24,5 @@ package org.structr.api;
  */
 public enum DatabaseFeature {
 
-	QueryLanguage, LargeStringIndexing, SpatialQueries
+	QueryLanguage, LargeStringIndexing, SpatialQueries, AuthenticationRequired
 }

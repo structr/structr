@@ -54,8 +54,6 @@ var StructrModel = {
 	 */
 	create: function(data, refId, append) {
 
-		_Logger.log(_LogType.MODEL, "StructrModel.create", data);
-
 		if (!data || !data.id) {
 			return;
 		}
@@ -63,13 +61,21 @@ var StructrModel = {
 		var keys = Object.keys(data);
 
 		if (keys.length === 1 && keys[0] === 'id') {
-			Command.get(data.id, null, function(data) {
-				return StructrModel.createFromData(data, refId, append);
-			});
+
+			let existingObj = StructrModel.obj(data.id);
+
+			if (existingObj) {
+				return existingObj;
+			} else {
+
+				Command.get(data.id, null, function(data) {
+					return StructrModel.createFromData(data, refId, append);
+				});
+			}
+
 		} else {
 			return StructrModel.createFromData(data, refId, append);
 		}
-
 	},
 	createFromData: function(data, refId, append) {
 
@@ -132,7 +138,6 @@ var StructrModel = {
 				if (el.parent().prop('id') === 'elementsArea') {
 					el.remove();
 				} else {
-					_Logger.log(_LogType.MODEL, 'obj exists');
 					return obj;
 				}
 			}
@@ -155,11 +160,6 @@ var StructrModel = {
 			return;
 		}
 
-		if (obj.content) {
-			// only show the first 40 characters for content elements
-			obj.content = obj.content.substring(0, 40);
-		}
-
 		obj.append(refId);
 
 	},
@@ -167,8 +167,6 @@ var StructrModel = {
 	 * Check expand status
 	 */
 	expand: function(element, obj) {
-
-		_Logger.log(_LogType.MODEL, 'StructrModel.expand', element, obj);
 
 		if (element) {
 
@@ -180,11 +178,8 @@ var StructrModel = {
 
 			if (parent && parent.hasClass('node') && parent.children('.node') && parent.children('.node').length) {
 
-				_Logger.log(_LogType.MODEL, 'parent of last appended object has children');
-
 				var ent = Structr.entityFromElement(parent);
 				_Entities.ensureExpanded(parent);
-				_Logger.log(_LogType.MODEL, 'entity', ent);
 				_Entities.appendExpandIcon(parent, ent, true, true);
 
 			}
@@ -203,14 +198,14 @@ var StructrModel = {
 		}
 
 		var node = Structr.node(id);
-		if (node && !node.hasClass("schema")) {
+		if (node && node.remove && !node.hasClass("schema")) {
 			node.remove();
 		}
 
 		// Since users/groups are not displayed as '#id_'-elements anymore, Structr.node() does not find (all of) them.
 		// therefor we let the object itself handle its removal in this case.
 		var obj = StructrModel.obj(id);
-		if (obj) {
+		if (obj && obj.remove) {
 			obj.remove();
 		}
 
@@ -273,7 +268,6 @@ var StructrModel = {
 
 	},
 	updateKey: function(id, key, value) {
-		_Logger.log(_LogType.MODEL, 'StructrModel.updateKey', id, key, value);
 		var obj = StructrModel.obj(id);
 
 		if (obj) {
@@ -285,9 +279,7 @@ var StructrModel = {
 	 * Refresh the object's UI representation with
 	 * the current model value for the given key
 	 */
-	refreshKey: function(id, key, width) {
-
-		var w = width || 200;
+	refreshKey: function(id, key) {
 
 		var obj = StructrModel.obj(id);
 		if (!obj) {
@@ -301,9 +293,7 @@ var StructrModel = {
 		}
 
 		var inputElement = $('td.' + key + '_ input', element);
-		_Logger.log(_LogType.MODEL, inputElement);
 		var newValue = obj[key];
-		_Logger.log(_LogType.MODEL, key, newValue, typeof newValue);
 
 		var attrElement = element.children('.' + key + '_');
 
@@ -321,9 +311,8 @@ var StructrModel = {
 				if (attrElement && tag === 'select') {
 					attrElement.val(newValue);
 				} else {
-					_Logger.log(_LogType.MODEL, key, newValue);
 					if (key === 'name') {
-						attrElement.attr('title', newValue).html(fitStringToWidth(newValue, w));
+						attrElement.attr('title', newValue).html(newValue);
 					}
 				}
 
@@ -333,8 +322,6 @@ var StructrModel = {
 
 				if (key === 'content') {
 
-					_Logger.log(_LogType.MODEL, attrElement.text(), newValue);
-
 					attrElement.text(newValue);
 
 					if (Structr.isModuleActive(_Pages)) {
@@ -343,8 +330,6 @@ var StructrModel = {
 				}
 			}
 		}
-
-		_Logger.log(_LogType.MODEL, key, Structr.getClass(element));
 
 		if (key === 'name') {
 
@@ -356,16 +341,15 @@ var StructrModel = {
 
 					blinkGreen(tabNameElement);
 
-					tabNameElement.attr('title', newValue).html(fitStringToWidth(newValue, w));
+					tabNameElement.attr('title', newValue).html(newValue);
 
-					_Logger.log(_LogType.MODEL, 'Model: Reload iframe', id, newValue);
 					_Pages.reloadIframe(id);
 				}
 
 			} else if (Structr.getClass(element) === 'folder') {
 
 				if (Structr.isModuleActive(_Files)) {
-					_Files.refreshTree();
+					_Files.refreshNode(id, newValue);
 				}
 			}
 		}
@@ -377,11 +361,8 @@ var StructrModel = {
 	refresh: function(id) {
 
 		var obj = StructrModel.obj(id);
-		_Logger.log(_LogType.MODEL, 'Model refresh, updated object', obj);
 
 		if (obj) {
-
-			_DuplicateFinder.reactToUpdateNotification(obj);
 
 			var element = Structr.node(id);
 
@@ -392,8 +373,6 @@ var StructrModel = {
 			if (!element) {
 				return;
 			}
-
-			_Logger.log(_LogType.MODEL, obj, id, element);
 
 			// update values with given key
 			$.each(Object.keys(obj), function(i, key) {
@@ -445,9 +424,8 @@ var StructrModel = {
 			} else if (element.hasClass('folder')) {
 
 				if (Structr.isModuleActive(_Files)) {
-					_Files.refreshTree();
+					_Files.refreshNode(id, obj.name);
 				}
-
 			}
 
 			var iconEl = element.children('.typeIcon');
@@ -477,22 +455,22 @@ var StructrModel = {
 				// Did name change from null?
 				if ((obj.type === 'Template' || obj.isContent)) {
 					if (obj.name) {
-						element.children('.content_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
+						element.children('.content_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b>');
 						element.children('.content_').off('click').on('click', function(e) {
 							e.stopPropagation();
-							_Entities.makeNameEditable(element, 200);
+							_Entities.makeNameEditable(element);
 						});
 
-						element.children('.name_').replaceWith('<b title="' + displayName + '" class="tag_ name_">' + displayName + '</b>');
+						element.children('.name_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b>');
 						element.children('b.name_').off('click').on('click', function(e) {
 							e.stopPropagation();
-							_Entities.makeNameEditable(element, 200);
+							_Entities.makeNameEditable(element);
 						});
 					} else {
 						element.children('.name_').html(escapeTags(obj.content));
 					}
 				} else {
-					element.children('.name_').attr('title', displayName).html(fitStringToWidth(displayName, 200));
+					element.children('.name_').attr('title', displayName).html(displayName);
 				}
 			}
 		}
@@ -508,7 +486,6 @@ var StructrModel = {
 	 */
 	save: function(id) {
 		var obj = StructrModel.obj(id);
-		_Logger.log(_LogType.MODEL, 'StructrModel.save', obj);
 
 		// Filter out object type data
 		var data = {};
@@ -526,10 +503,8 @@ var StructrModel = {
 
 	callCallback: function(callback, entity, resultSize, errorOccurred) {
 		if (callback) {
-			_Logger.log(_LogType.MODEL, 'Calling callback', callback, 'on entity', entity, resultSize);
 			var callbackFunction = StructrModel.callbacks[callback];
 			if (callbackFunction) {
-				_Logger.log(_LogType.MODEL, callback, callbackFunction.toString());
 				try {
 					StructrModel.callbacks[callback](entity, resultSize, errorOccurred);
 				} catch (e) {
@@ -573,16 +548,11 @@ StructrFolder.prototype.setProperty = function(key, value, recursive, callback) 
 };
 
 StructrFolder.prototype.remove = function() {
-	if (Structr.isModuleActive(_Files)) {
-		_Files.refreshTree();
-		_DuplicateFinder.reactToDeleteNotification(this.id);
-	}
 };
 
 StructrFolder.prototype.append = function() {
 
 	if (Structr.isModuleActive(_Files)) {
-		_Files.fileOrFolderCreationNotification(this);
 		_Files.refreshTree();
 	}
 };
@@ -609,9 +579,6 @@ StructrFile.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrFile.prototype.remove = function() {
-	if (Structr.isModuleActive(_Files)) {
-		_DuplicateFinder.reactToDeleteNotification(this.id);
-	}
 };
 
 StructrFile.prototype.append = function() {
@@ -649,9 +616,6 @@ StructrImage.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrImage.prototype.remove = function() {
-	if (Structr.isModuleActive(_Files)) {
-		_DuplicateFinder.reactToDeleteNotification(this.id);
-	}
 };
 
 StructrImage.prototype.append = function() {
@@ -659,6 +623,9 @@ StructrImage.prototype.append = function() {
 	if (image.parent) {
 		var parentFolder = StructrModel.obj(image.parent.id);
 		if (parentFolder) {
+			if (!parentFolder.files) {
+				parentFolder.files = [];
+			}
 			parentFolder.files.push(image);
 		}
 	}
@@ -759,9 +726,9 @@ StructrGroup.prototype.removeUser = function(userId) {
 	});
 
 	if (Structr.isModuleActive(_Security)) {
-		var groupEl = Structr.node(this.id, '.groupid_');
+		var groupEl = $('.groupid_' + this.id);
 		if (groupEl && groupEl.length) {
-			$('.userid_' + userId, groupEl).remove();
+			groupEl.children('.userid_' + userId).remove();
 
 			if (this.members.length === 0) {
 				_Entities.removeExpandIcon(groupEl);
@@ -898,8 +865,6 @@ StructrElement.prototype.remove = function() {
 			element.remove();
 		}
 
-		_Logger.log(_LogType.MODEL, this, element, parent, Structr.containsNodes(parent));
-
 		if (element && parent && !Structr.containsNodes(parent)) {
 			_Entities.removeExpandIcon(parent);
 		}
@@ -942,10 +907,12 @@ StructrElement.prototype.isActiveNode = function() {
 		|| this["data-structr-raw-value"]
 		|| this["data-structr-return"]
 		|| this["data-structr-type"]
+		|| this["eventMapping"]
 		//Boolean attributes
 		|| this["data-structr-append-id"] === true
 		|| this["data-structr-confirm"] === true
-		|| this["data-structr-reload"] === true;
+		|| this["data-structr-reload"] === true
+		;
 };
 
 /**************************************
@@ -1014,8 +981,6 @@ StructrContent.prototype.append = function(refId) {
 		if (!div) {
 			return;
 		}
-
-		_Logger.log(_LogType.MODEL, 'appendContentElement div', div);
 
 		StructrModel.expand(div, this);
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -18,6 +18,8 @@
  */
 package org.structr.core.property;
 
+import java.util.Map;
+import java.util.TreeMap;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -154,5 +156,35 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 	@Override
 	public PropertyType getDataType() {
 		return PropertyType.INTEGER;
+	}
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final String type, final String viewName) {
+		return 1L;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+
+		final Map<String, Object> map = new TreeMap<>();
+
+		map.put("type",    "integer");
+		map.put("format",  "int64");
+		map.put("example", 12467634433L);
+
+		return map;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+
+		final Map<String, Object> map = new TreeMap<>();
+
+		map.put("type",    "integer");
+		map.put("format",  "int64");
+		map.put("example", 12467634433L);
+
+		return map;
 	}
 }

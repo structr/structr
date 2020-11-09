@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -19,6 +19,7 @@
 package org.structr.geo;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.geotools.referencing.GeodeticCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +66,7 @@ public class GeoAzimuthFunction extends GeoFunction {
 
 				} catch (Throwable t) {
 
-					t.printStackTrace();
+					logger.error(ExceptionUtils.getStackTrace(t));
 				}
 			}
 

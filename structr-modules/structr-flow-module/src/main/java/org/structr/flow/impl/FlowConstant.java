@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -30,9 +30,12 @@ import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FlowConstant extends FlowBaseNode implements DataSource, DeployableEntity {
 
+	private static final Logger logger                              = LoggerFactory.getLogger(FlowConstant.class);
 	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<String> value                      = new StringProperty("value");
 	public static final Property<ConstantType> constantType         = new EnumProperty<>("constantType", ConstantType.class);

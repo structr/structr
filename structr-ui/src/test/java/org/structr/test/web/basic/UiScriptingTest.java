@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
+import java.util.stream.Collectors;
 import javax.servlet.AsyncContext;
 import javax.servlet.DispatcherType;
 import javax.servlet.RequestDispatcher;
@@ -56,6 +57,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
@@ -75,11 +77,14 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.test.web.entity.TestOne;
+import org.structr.test.web.entity.TestTwo;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
@@ -94,6 +99,7 @@ import org.structr.web.entity.html.Table;
 import org.structr.websocket.command.CreateComponentCommand;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
@@ -1193,6 +1199,113 @@ public class UiScriptingTest extends StructrUiTest {
 			.when()
 			.get("/test/" + userId + "?myParam=myValue&locale=de_DE");
 	}
+
+	@Test
+	public void testJavaScriptQuirksDuckTypingNumericalMapIndexConversion () {
+
+		/*
+			This test makes sure that javascript maps with numerical string indexes (e.g. "24") can be converted using the recursivelyConvertMapToGraphObjectMap function
+		*/
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final Object result = ScriptTestHelper.testExternalScript(ctx, UiScriptingTest.class.getResourceAsStream("/test/scripting/testJavaScriptQuirksDuckTypingNumericalMapIndexConversion.js"));
+
+			final String expectedResult = "{\n\t\"result\": {\n\t\t\"24\": \"jack bauer\"\n\t}\n}";
+
+			assertEquals("Result should be a JSON string! Maps with numerical indexes should work.", expectedResult, result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
+	}
+
+	@Test
+	public void testFindWithPredicateList() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			for (int i=14; i>=0; i--) {
+				app.create(TestOne.class, new NodeAttribute<>(TestOne.aString, "string" + StringUtils.leftPad(Integer.toString(i), 2, "0")));
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			Settings.CypherDebugLogging.setValue(true);
+
+			final List<AbstractNode> result1 = (List)ScriptTestHelper.testExternalScript(ctx, UiScriptingTest.class.getResourceAsStream("/test/scripting/testJavaScriptFindWithPredicateList.js"));
+
+			assertEquals("Wrong result for predicate list,", "[string01, string03, string13]", result1.stream().map(r -> r.getProperty(TestOne.aString)).collect(Collectors.toList()).toString());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			fail("Unexpected exception");
+		} finally {
+
+			Settings.CypherDebugLogging.setValue(false);
+		}
+	}
+
+	@Test
+	public void testLeakingKeywordsAndDefaultsInStructrScriptDotExpressions() {
+
+		final RenderContext ctx = new RenderContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			createTestNode(TestOne.class);
+			createTestNode(TestTwo.class);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final TestOne testOne = app.nodeQuery(TestOne.class).getFirst();
+			final TestTwo testTwo = app.nodeQuery(TestTwo.class).getFirst();
+
+			ctx.setConstant("existing", testOne);
+			ctx.setDetailsDataObject(testTwo);
+
+			assertEquals("Invalid dot notation result for existing keyword",     testOne.getUuid(), Scripting.evaluate(ctx, testOne, "${existing.id}", "existing keyword test"));
+			assertEquals("Invalid dot notation result for current",              testTwo.getUuid(), Scripting.evaluate(ctx, testOne, "${current.id}", "current test"));
+			assertEquals("Invalid dot notation result for current with default",            "test", Scripting.evaluate(ctx, testOne, "${current.nonexisting!test}", "current test"));
+			assertEquals("Invalid dot notation result with default",                        "moep", Scripting.evaluate(ctx, testOne, "${nonexisting.existing.id!moep}", "keyword chain test"));
+			assertEquals("Invalid dot notation result with default",                       "moep2", Scripting.evaluate(ctx, testOne, "${existing.nonexisting.id!moep2}", "keyword chain test"));
+			assertEquals("Invalid dot notation result with default",                       "moep3", Scripting.evaluate(ctx, testOne, "${nonexisting.id!moep3}", "nonexisting keyword test"));
+			assertNull("Invalid dot notation result for nonexisting keyword",                       Scripting.evaluate(ctx, testOne, "${nonexisting.id}", "nonexisting keyword test"));
+			assertNull("Invalid dot notation result for keyword chain",                             Scripting.evaluate(ctx, testOne, "${existing.nonexisting.id}", "keyword chain test"));
+			assertNull("Invalid dot notation result for keyword chain",                             Scripting.evaluate(ctx, testOne, "${nonexisting.existing.id}", "keyword chain test"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+		}
+	}
+
 
 	// ----- private methods -----
 	private String getEncodingInUse() {

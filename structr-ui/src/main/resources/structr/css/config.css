@@ -338,7 +338,8 @@ div.connection input[readonly="readonly"] {
 }
 
 div.connection input[type="password"],
-div.connection input[type="text"] {
+div.connection input[type="text"],
+div.connection select {
 	box-sizing: border-box;
 	width: 100%;
 }

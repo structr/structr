@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -125,30 +125,5 @@ public class GetSuggestionsCommand extends AbstractCommand {
 		}
 
 		return null;
-	}
-
-	public static void main(final String[] args) {
-
-		final Element elem = new Element("div");
-
-		elem.addClass("btn");
-		elem.addClass("btn-primary");
-		elem.addClass("btn-xs");
-
-		elem.attr("name", "name");
-		elem.attr("id",   "test");
-
-		final String[] tests = {
-			"div",
-			".btn",
-			"div.btn",
-			"div.btn.btn-primary",
-			"div.wurst",
-			"div#test"
-		};
-
-		for (final String test : tests) {
-			System.out.println(test + ": " + !elem.select(test).isEmpty());
-		}
 	}
 }

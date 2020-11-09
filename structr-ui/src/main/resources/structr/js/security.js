@@ -30,14 +30,16 @@ var _Security = {
 	resourceAccesses: undefined,
 	securityTabKey: 'structrSecurityTab_' + port,
 	init: function() {
+
 		_Pager.initPager('users',           'User', 1, 25, 'name', 'asc');
 		_Pager.initPager('groups',          'Group', 1, 25, 'name', 'asc');
 		_Pager.initPager('resource-access', 'ResourceAccess', 1, 25, 'signature', 'asc');
 	},
 	onload: function() {
+
 		_Security.init();
 
-		Structr.updateMainHelpLink('https://support.structr.com/article/207');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('security'));
 
 		Structr.fetchHtmlTemplate('security/main', {}, function (html) {
 
@@ -94,7 +96,6 @@ var _UsersAndGroups = {
 				$('#add-user-button', main).find('span').text('Add ' + $(this).val());
 			});
 
-			// list types that extend User
 			_Schema.getDerivedTypes('org.structr.dynamic.User', [], function(types) {
 				var elem = $('select#user-type');
 				types.forEach(function(type) {
@@ -120,6 +121,7 @@ var _UsersAndGroups = {
 		userElement.data('userId', user.id);
 
 		if (group) {
+
 			userElement.append('<i title="Remove user \'' + userName + '\' from group \'' + group.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.user_delete_icon) + '" />');
 
 			$('.delete_icon', userElement).on('click', function(e) {
@@ -128,7 +130,9 @@ var _UsersAndGroups = {
 					_UsersAndGroups.deactivateNodeHover(user.id, '.userid_');
 				});
 			});
+
 		} else {
+
 			userElement.append('<i title="Delete user \'' + userName + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
 
 			$('.delete_icon', userElement).on('click', function(e) {
@@ -136,6 +140,8 @@ var _UsersAndGroups = {
 				_UsersAndGroups.deleteUser(this, user);
 			});
 		}
+
+		_UsersAndGroups.makeDraggable(userElement);
 
 		return userElement;
 	},
@@ -150,47 +156,73 @@ var _UsersAndGroups = {
 
 		_Security.users.append(userDiv);
 
-		userDiv.draggable({
-			revert: 'invalid',
-			helper: 'clone',
-			stack: '.node',
-			appendTo: '#main',
-			zIndex: 99
-		});
-
 		_Entities.appendEditPropertiesIcon(userDiv, user);
 		_UsersAndGroups.setMouseOver(userDiv, user.id, '.userid_');
 	},
+	appendMembersToGroup: function(members, group, groupDiv) {
+
+		for (let member of members) {
+
+			// if model is not yet loaded (can happen for users/groups which are not part of the current page (but which are visible as members of visible groups)
+			if (!StructrModel.obj(member.id)) {
+
+				if (member.isGroup) {
+					// can have members which are not loaded yet
+					// if a user is removed from this group the model will try to filter its members array (which is null atm) which leads to an error, therefor fetch it
+					Command.get(member.id, null, (g) => {
+						StructrModel.createFromData(g, group.id, true);
+					});
+
+				} else {
+
+					// member is a user, no danger
+					StructrModel.createFromData(member, group.id, true);
+				}
+
+			} else {
+				_UsersAndGroups.appendMemberToGroup(member, group, groupDiv);
+			}
+		}
+	},
 	appendMemberToGroup: function (member, group, groupEl) {
-		var groupId = group.id;
-		var prefix = (member.isUser) ? '.userid_' : '.groupid_';
 
-		var isExpanded = Structr.isExpanded(groupId);
+		let groupId    = group.id;
+		let isExpanded = Structr.isExpanded(groupId);
 
-		groupEl.each(function (idx, grp) {
-			_Entities.appendExpandIcon($(grp), group, true, isExpanded);
-		});
+		_Entities.appendExpandIcon(groupEl, group, true, isExpanded);
 
 		if (!isExpanded) {
 			return;
 		}
 
+		var prefix = (member.isUser) ? '.userid_' : '.groupid_';
+
 		if (member.isUser) {
 
-			var userDiv = _UsersAndGroups.createUserElement(member, group);
+			groupEl.each(function (idx, grpEl) {
 
-			groupEl.append(userDiv.css({
-				top: 0,
-				left: 0
-			}));
-			userDiv.removeClass('disabled');
+				let memberAlreadyListed = $(prefix + member.id, grpEl).length > 0;
+				if (!memberAlreadyListed) {
 
-			_Entities.appendEditPropertiesIcon(userDiv, member);
-			_UsersAndGroups.setMouseOver(userDiv, member.id, prefix);
+					var userDiv = _UsersAndGroups.createUserElement(member, group);
+
+					$(grpEl).append(userDiv.css({
+						top: 0,
+						left: 0
+					}));
+					userDiv.removeClass('disabled');
+
+					_Entities.appendEditPropertiesIcon(userDiv, member);
+					_UsersAndGroups.setMouseOver(userDiv, member.id, prefix);
+				}
+			});
 
 		} else {
 
-			groupEl.each(function (idx, grpEl) {
+			let alreadyShownInParents = _UsersAndGroups.isGroupAlreadyShown(member, groupEl);
+			let alreadyShownInMembers = $(prefix + member.id, groupEl).length > 0;
+
+			if (!alreadyShownInMembers && !alreadyShownInParents) {
 
 				var groupDiv = _UsersAndGroups.createGroupElement(member);
 
@@ -205,7 +237,7 @@ var _UsersAndGroups = {
 					});
 				});
 
-				$(grpEl).append(groupDiv.css({
+				groupEl.append(groupDiv.css({
 					top: 0,
 					left: 0
 				}));
@@ -217,17 +249,24 @@ var _UsersAndGroups = {
 
 				if (member.members === null) {
 					Command.get(member.id, null, function (fetchedGroup) {
-						fetchedGroup.members.forEach(function(subMember) {
-							_UsersAndGroups.appendMemberToGroup(subMember, member, groupDiv);
-						});
+						_UsersAndGroups.appendMembersToGroup(fetchedGroup.members, member, groupDiv);
 					});
 				} else if (member.members && member.members.length) {
-					member.members.forEach(function(subMember) {
-						_UsersAndGroups.appendMemberToGroup(subMember, member, groupDiv);
-					});
+					_UsersAndGroups.appendMembersToGroup(member.members, member, groupDiv);
 				}
-			});
+			}
 		}
+	},
+	isGroupAlreadyShown: function(group, groupEl) {
+		if (groupEl.length === 0) {
+			return false;
+		}
+
+		let containerGroupId = groupEl.data('groupId');
+		if (containerGroupId === group.id) {
+			return true;
+		}
+		return _UsersAndGroups.isGroupAlreadyShown(group, groupEl.parent().closest('.group'));
 	},
 	deleteUser: function(button, user) {
 		_Entities.deleteNode(button, user);
@@ -277,23 +316,7 @@ var _UsersAndGroups = {
 			_UsersAndGroups.deleteGroup(this, group);
 		});
 
-		return groupElement;
-	},
-	appendGroupElement: function(element, group) {
-
-		var hasChildren = group.members && group.members.length;
-
-		_Logger.log(_LogType.SECURTIY, 'appendGroupElement', group, hasChildren);
-
-		var groupDiv = _UsersAndGroups.createGroupElement(group);
-		//$('.typeIcon', groupDiv).removeClass('typeIcon-nochildren');
-		element.append(groupDiv);
-
-		_Entities.appendExpandIcon(groupDiv, group, hasChildren, Structr.isExpanded(group.id));
-		_Entities.appendEditPropertiesIcon(groupDiv, group);
-		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.groupid_');
-
-		groupDiv.droppable({
+		groupElement.droppable({
 			accept: '.user, .group',
 			greedy: true,
 			hoverClass: 'nodeHover',
@@ -311,35 +334,34 @@ var _UsersAndGroups = {
 					if (nodeId !== group.id) {
 						Command.appendMember(nodeId, group.id);
 					} else {
-						new MessageBuilder()
-								.title("Warning")
-								.warning("Prevented adding group as a member of itself")
-								.show();
+						new MessageBuilder().title("Warning").warning("Prevented adding group as a member of itself").show();
 					}
-				} else {
-					_Logger.log(_LogType.SECURTIY, 'drop on group -> could not identify node/user', ui.draggable);
 				}
 			}
 		});
 
-		groupDiv.draggable({
-			revert: 'invalid',
-			helper: 'clone',
-			stack: '.node',
-			appendTo: '#main',
-			zIndex: 99
-		});
+		_UsersAndGroups.makeDraggable(groupElement);
+
+		return groupElement;
+	},
+	appendGroupElement: function(element, group) {
+
+		var hasChildren = group.members && group.members.length;
+
+		var groupDiv = _UsersAndGroups.createGroupElement(group);
+		element.append(groupDiv);
+
+		_Entities.appendExpandIcon(groupDiv, group, hasChildren, Structr.isExpanded(group.id));
+		_Entities.appendEditPropertiesIcon(groupDiv, group);
+		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.groupid_');
 
 		if (hasChildren) {
-			group.members.forEach(function(member) {
-				_UsersAndGroups.appendMemberToGroup(member, group, groupDiv);
-			});
+			_UsersAndGroups.appendMembersToGroup(group.members, group, groupDiv);
 		}
 
 		return groupDiv;
 	},
 	deleteGroup: function(button, group) {
-		_Logger.log(_LogType.SECURTIY, 'deleteGroup ' + group);
 		_Entities.deleteNode(button, group);
 	},
 
@@ -371,6 +393,15 @@ var _UsersAndGroups = {
 		nodes.each(function (i, el) {
 			$(el).removeClass('nodeHover').children('i.button').hide();
 		});
+	},
+	makeDraggable: function(el) {
+		el.draggable({
+			revert: 'invalid',
+			helper: 'clone',
+			stack: '.node',
+			appendTo: '#main',
+			zIndex: 99
+		});
 	}
 };
 
@@ -383,7 +414,7 @@ var _ResourceAccessGrants = {
 
 			_Security.resourceAccesses.append(html);
 
-			var raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', 'public');
+			let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', 'public');
 
 			raPager.cleanupFunction = function () {
 				$('#resourceAccessesTable tbody tr').remove();
@@ -405,16 +436,16 @@ var _ResourceAccessGrants = {
 	addResourceGrant: function(e) {
 		e.stopPropagation();
 
-		var inp = $('#resource-signature');
+		let inp = $('#resource-signature');
 		inp.attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
 		$('.add_grant_icon', _Security.resourceAccesses).attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
 
-		var reEnableInput = function () {
+		let reEnableInput = function () {
 			$('.add_grant_icon', _Security.resourceAccesses).attr('disabled', null).removeClass('disabled').removeClass('read-only');
 			inp.attr('disabled', null).removeClass('disabled').removeClass('readonly');
 		};
 
-		var sig = inp.val();
+		let sig = inp.val();
 		if (sig) {
 			Command.create({type: 'ResourceAccess', signature: sig, flags: 0}, function() {
 				reEnableInput();
@@ -426,9 +457,7 @@ var _ResourceAccessGrants = {
 		}
 		window.setTimeout(reEnableInput, 250);
 	},
-
 	deleteResourceAccess: function(button, resourceAccess) {
-		_Logger.log(_LogType.SECURTIY, 'deleteResourceAccess ' + resourceAccess);
 		_Entities.deleteNode(button, resourceAccess);
 	},
 	appendResourceAccessElement: function(resourceAccess) {
@@ -456,26 +485,28 @@ var _ResourceAccessGrants = {
 			NON_AUTH_USER_PATCH         : 8192
 		};
 
-		var flags = parseInt(resourceAccess.flags);
-		var trHtml = '<tr id="id_' + resourceAccess.id + '" class="resourceAccess"></tr>';
+		let flags = parseInt(resourceAccess.flags);
 
-		var replaceElement = $('#resourceAccessesTable #id_' + resourceAccess.id);
-
-		if (replaceElement && replaceElement.length) {
-			replaceElement.replaceWith(trHtml);
-		} else {
-			$('#resourceAccessesTable').append(trHtml);
-		}
-
-		var tr = $('#resourceAccessesTable tr#id_' + resourceAccess.id);
-
-		tr.append('<td class="title-cell"><b title="' + resourceAccess.signature + '" class="name_">' + resourceAccess.signature + '</b></td>');
+		let trHtml = '<tr id="id_' + resourceAccess.id + '" class="resourceAccess"><td class="title-cell"><b title="' + resourceAccess.signature + '" class="name_">' + resourceAccess.signature + '</b></td>';
 
 		Object.keys(mask).forEach(function(key) {
-			tr.append('<td><input type="checkbox" ' + (flags & mask[key] ? 'checked="checked"' : '') + ' data-flag="' + mask[key] + '" class="resource-access-flag ' + key + '"></td>');
+			trHtml += '<td><input type="checkbox" ' + (flags & mask[key] ? 'checked="checked"' : '') + ' data-flag="' + mask[key] + '" class="resource-access-flag "></td>';
 		});
 
-		tr.append('<td><input type="text" class="bitmask" size="4" value="' + flags + '"></td>');
+		trHtml += '<td><input type="text" class="bitmask" size="4" value="' + flags + '"></td>' +
+				'<td><i title="Delete Resource Access ' + resourceAccess.id + '" class="delete-resource-access button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /></td></tr>';
+
+		let tr = $(trHtml);
+
+		let replaceElement = $('#resourceAccessesTable #id_' + resourceAccess.id);
+
+		if (replaceElement && replaceElement.length) {
+			replaceElement.replaceWith(tr);
+			blinkGreen(tr.find('td'));
+		} else {
+			$('#resourceAccessesTable').append(tr);
+		}
+
 		var bitmaskInput = $('.bitmask', tr);
 		bitmaskInput.on('blur', function() {
 			_ResourceAccessGrants.updateResourceAccessFlags(resourceAccess.id, $(this).val());
@@ -483,25 +514,20 @@ var _ResourceAccessGrants = {
 
 		bitmaskInput.keypress(function(e) {
 			if (e.keyCode === 13) {
-				_ResourceAccessGrants.updateResourceAccessFlags(resourceAccess.id, $(this).val());
+				$(this).blur();
 			}
 		});
 
-		tr.append('<td><i title="Delete Resource Access ' + resourceAccess.id + '" class="delete-resource-access button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /></td>');
 		$('.delete-resource-access', tr).on('click', function(e) {
 			e.stopPropagation();
 			resourceAccess.name = resourceAccess.signature;
 			_ResourceAccessGrants.deleteResourceAccess(this, resourceAccess);
 		});
 
-		if (replaceElement && replaceElement.length) {
-			blinkGreen(tr.find('td'));
-		}
-
 		var div = Structr.node(resourceAccess.id);
 
-		$('#resourceAccessesTable #id_' + resourceAccess.id + ' input[type=checkbox].resource-access-flag').on('change', function() {
-			var newFlags = 0;
+		$('input[type=checkbox].resource-access-flag', tr).on('change', function() {
+			let newFlags = 0;
 			tr.find('input:checked').each(function(i, input) {
 				newFlags += parseInt($(input).attr('data-flag'));
 			});

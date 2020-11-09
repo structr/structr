@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -48,6 +48,14 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 
 				if (converter != null) {
 					this.searchValue = (T) converter.convert(value);
+				} else {
+					try {
+						
+						this.searchValue = (T)value.toString();
+					} catch (Throwable t) {
+
+						LoggerFactory.getLogger(ComparisonSearchAttribute.class).warn("Could not convert given value. " + t.getMessage());
+					}
 				}
 
 			} else {

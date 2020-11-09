@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -31,6 +31,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -77,6 +79,8 @@ public interface MinifiedJavaScriptFile extends AbstractMinifiedFile {
 	}
 
 	static void minify(final MinifiedJavaScriptFile thisFile, final SecurityContext securityContext) throws FrameworkException, IOException {
+
+		final Logger logger = LoggerFactory.getLogger(MinifiedJavaScriptFile.class);
 
 		logger.info("Running minification of MinifiedJavaScriptFile: {}", thisFile.getUuid());
 

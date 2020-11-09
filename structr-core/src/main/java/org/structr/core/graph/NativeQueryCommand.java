@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -110,7 +111,7 @@ public class NativeQueryCommand extends NodeServiceCommand {
 				return handleObject(nodeFactory, relFactory, key, value, includeHiddenAndDeleted, publicOnly, 0);
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(fex));
 			}
 
 		} else {
@@ -125,7 +126,7 @@ public class NativeQueryCommand extends NodeServiceCommand {
 					return handleObject(nodeFactory, relFactory, key, val, includeHiddenAndDeleted, publicOnly, 0);
 
 				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					logger.error(ExceptionUtils.getStackTrace(fex));
 				}
 
 				return null;

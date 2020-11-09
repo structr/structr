@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -24,10 +24,7 @@ import java.util.regex.Pattern;
 import org.structr.common.PropertyView;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.resource.*;
-import org.structr.web.resource.LoginResource;
-import org.structr.web.resource.LogoutResource;
-import org.structr.web.resource.RegistrationResource;
-import org.structr.web.resource.ResetPasswordResource;
+import org.structr.web.resource.*;
 
 /**
  * The default resource provider for structr-ui.
@@ -43,6 +40,7 @@ public class UiResourceProvider implements ResourceProvider {
 		resourceMap.put(Pattern.compile("cypher"), CypherQueryResource.class);          // cypher query
 		resourceMap.put(Pattern.compile("graphQL"), GraphQLResource.class);             // graphQL query
 		resourceMap.put(Pattern.compile("login"), LoginResource.class);                 // login
+		resourceMap.put(Pattern.compile("token"), TokenResource.class);                 // token
 		resourceMap.put(Pattern.compile("logout"), LogoutResource.class);               // logout
 		resourceMap.put(Pattern.compile("registration"), RegistrationResource.class);   // self-registration
 		resourceMap.put(Pattern.compile("me"), MeResource.class);                       // me
@@ -65,20 +63,21 @@ public class UiResourceProvider implements ResourceProvider {
 		resourceMap.put(Pattern.compile(PropertyView.Custom), ViewFilterResource.class);      // custom view
 
 		resourceMap.put(Pattern.compile("log"), LogResource.class);                           // log resource
-		resourceMap.put(Pattern.compile("resolver"), EntityResolverResource.class);		// resolves [] of UUIDs to complete result
+		resourceMap.put(Pattern.compile("resolver"), EntityResolverResource.class);           // resolves [] of UUIDs to complete result
 
 		resourceMap.put(Pattern.compile("[a-zA-Z]+"), MaintenanceParameterResource.class);    // maintenance parameter
 		resourceMap.put(Pattern.compile("[0-9]+"), UuidResource.class);                       // this matches the ID resource
 
-		resourceMap.put(Pattern.compile("_schema"), SchemaResource.class);	               // special resource for schema information
-		resourceMap.put(Pattern.compile("_schemaJson"), SchemaJsonResource.class);	// special resource for schema json import and export !needs to be below any type match
-		resourceMap.put(Pattern.compile("_env"), EnvResource.class);	                       // special resource for environment information
+		resourceMap.put(Pattern.compile("_schema"), SchemaResource.class);	               // schema information
+		resourceMap.put(Pattern.compile("_schemaJson"), SchemaJsonResource.class);             // schema json import and export !needs to be below any type match
+		resourceMap.put(Pattern.compile("_env"), EnvResource.class);	                       // environment information
+		resourceMap.put(Pattern.compile("_runtimeEventLog"), RuntimeEventLogResource.class);   // runtime events
 
 		resourceMap.put(Pattern.compile("globalSchemaMethods"),    GlobalSchemaMethodsResource.class);
 		resourceMap.put(Pattern.compile("[a-z_A-Z][a-z_A-Z0-9]*"), GlobalSchemaMethodResource.class);
 
 		// fallback, match any type
-		resourceMap.put(Pattern.compile("[a-z_A-Z][a-z_A-Z0-9]*"), TypeResource.class);	               // any type match
+		resourceMap.put(Pattern.compile("[a-z_A-Z][a-z_A-Z0-9]*"), TypeResource.class); // any type match
 
 		return resourceMap;
 

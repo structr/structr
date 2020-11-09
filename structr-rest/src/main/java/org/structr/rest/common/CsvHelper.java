@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -29,10 +29,11 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.util.RangesIterator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import static org.structr.core.GraphObject.logger;
 import org.structr.core.JsonInput;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
@@ -40,6 +41,8 @@ import static org.structr.rest.servlet.CsvServlet.DEFAULT_FIELD_SEPARATOR_COLLEC
 import static org.structr.rest.servlet.CsvServlet.DEFAULT_QUOTE_CHARACTER_COLLECTION_CONTENTS;
 
 public class CsvHelper {
+
+	private static final Logger logger = LoggerFactory.getLogger(CsvHelper.class);
 
 	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final Class type, final Character fieldSeparator, final Character quoteCharacter, final String range) throws FrameworkException, IOException {
 		return cleanAndParseCSV(securityContext, input, type, fieldSeparator, quoteCharacter, range, null, false, true);

@@ -40,7 +40,7 @@ var _MailTemplates = {
 	init: function() {},
 	unload: function() {},
 	onload: function() {
-		Structr.updateMainHelpLink('https://support.structr.com/article/343');
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('mail-templates'));
 
 		Structr.fetchHtmlTemplate('mail-templates/main', {}, function(html) {
 			main.append(html);
@@ -94,7 +94,7 @@ var _MailTemplates = {
 			Structr.unblockMenu(100);
 
 			_MailTemplates.moveResizer();
-			Structr.initVerticalSlider($('.column-resizer', main), _MailTemplates.mailTemplatesResizerLeftKey, 204, _MailTemplates.moveResizer);
+			Structr.initVerticalSlider($('.column-resizer', main), _MailTemplates.mailTemplatesResizerLeftKey, 300, _MailTemplates.moveResizer);
 
 			_MailTemplates.resize();
 		});
@@ -107,8 +107,7 @@ var _MailTemplates = {
 		left = left || LSWrapper.getItem(_MailTemplates.mailTemplatesResizerLeftKey) || 300;
 		$('.column-resizer', main).css({ left: left });
 
-		$('#mail-templates-list').css({width: left - 24 + 'px'});
-		$('#mail-template-detail').css({width: $(window).width() - left - 47 + 'px'});
+		$('#mail-templates-list').css({width: left - 25 + 'px'});
 	},
 	switchMode: function(mode) {
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -34,6 +37,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.function.Functions;
 import org.structr.core.function.KeywordHint;
 import org.structr.core.function.ParseResult;
@@ -43,6 +47,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper;
+import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.action.Function;
 import org.structr.schema.action.Hint;
 import org.structr.web.entity.dom.Content;
@@ -51,6 +56,8 @@ import org.structr.web.entity.dom.Content.ContentHandler;
 
 
 public abstract class AbstractHintProvider {
+
+	private static final Logger logger = LoggerFactory.getLogger(AbstractHintProvider.class);
 
 	private enum QueryType {
 		REST, Cypher, XPath, Function
@@ -100,7 +107,7 @@ public abstract class AbstractHintProvider {
 					}
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.error(ExceptionUtils.getStackTrace(t));
 				}
 			}
 
@@ -295,6 +302,19 @@ public abstract class AbstractHintProvider {
 		}
 	}
 
+	protected void addHintsForFunctionProperty(final SecurityContext securityContext, final SchemaProperty property, final List<Hint> hints, final ParseResult result) {
+
+		final AbstractSchemaNode node = property.getProperty(SchemaProperty.schemaNode);
+		if (node != null) {
+
+			final Class type = StructrApp.getConfiguration().getNodeEntityClass(node.getClassName());
+			if (type != null) {
+
+				addHintsForType(securityContext, type, hints, result);
+			}
+		}
+	}
+
 	protected void addHintsForType(final SecurityContext securityContext, final Class type, final List<Hint> hints, final ParseResult result) {
 
 		try {
@@ -343,6 +363,10 @@ public abstract class AbstractHintProvider {
 			if(currentNode instanceof SchemaMethod) {
 
 				addHintsForSchemaMethod(securityContext, (SchemaMethod)currentNode, hints, result);
+
+			} else if (currentNode instanceof SchemaProperty && Type.Function.equals(((SchemaProperty)currentNode).getPropertyType())) {
+
+				addHintsForFunctionProperty(securityContext, (SchemaProperty)currentNode, hints, result);
 
 			} else if (currentNode != null) {
 

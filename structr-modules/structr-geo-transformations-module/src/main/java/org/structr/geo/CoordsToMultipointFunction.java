@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -22,6 +22,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateList;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import java.util.List;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
@@ -71,8 +72,7 @@ public class CoordsToMultipointFunction extends GeoFunction {
 					return factory.createMultiPoint(coordinates.toCoordinateArray());
 
 				} catch (Throwable t) {
-
-					t.printStackTrace();
+					logger.error(ExceptionUtils.getStackTrace(t));
 				}
 			}
 

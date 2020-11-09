@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010-2020 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -38,7 +38,7 @@ public class FindEmptyFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			return new SearchParameter(sources[0].toString(), null, true);
+			return new EmptyParameter(sources[0].toString());
 
 		} catch (final IllegalArgumentException e) {
 
