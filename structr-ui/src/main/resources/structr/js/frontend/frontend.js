@@ -120,10 +120,13 @@ export class Frontend {
 		if (element.dataset.structrReloadTarget) {
 
 			let reloadTarget = element.dataset.structrReloadTarget;
-
 			if (reloadTarget.indexOf('url:') === 0) {
 
-				window.location.href = reloadTarget.substring(4);
+				let url     = reloadTarget.substring(4).replaceAll('{', '${');
+				let replace = new Function('result', 'return `' + url + '`;');
+				let value   = replace(parameters);
+
+				window.location.href = value;
 
 			} else {
 
