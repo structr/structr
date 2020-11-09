@@ -125,37 +125,30 @@ public class ActionContext {
 		final String DEFAULT_VALUE_SEP = "!";
 
 		// split
-		String refKey        = initialRefKey;
-		String[] parts       = refKey.split("[\\.]+");
+		final String[] refs  = StringUtils.split(initialRefKey, DEFAULT_VALUE_SEP);
+		final String refKey  = refs[0];
+		final String[] parts = refKey.split("[\\.]+");
 		Object _data         = initialData;
 		String defaultValue  = null;
 
-		if (StringUtils.contains(refKey, DEFAULT_VALUE_SEP)) {
-
-			String[] refs = StringUtils.split(refKey, DEFAULT_VALUE_SEP);
-			refKey        = refs[0];
-
-			if (refs.length > 1) {
-				defaultValue = refs[1];
-			}
+		if (refs.length > 1) {
+			defaultValue = refs[1];
 		}
 
 		// walk through template parts
 		for (int i = 0; i < parts.length; i++) {
 
 			String key = parts[i];
-			_data      = evaluate(entity, key, _data, defaultValue, i+depth);
+			_data      = evaluate(entity, key, _data, null, i+depth);
 
-			// stop evaluation on null, return default value or null
+			// stop evaluation on null
 			if (_data == null) {
-
-				// default value?
-				if (defaultValue != null) {
-
-					return defaultValue;
-				}
 				break;
 			}
+		}
+
+		if (_data == null && defaultValue != null) {
+			return Function.numberOrString(defaultValue);
 		}
 
 		return _data;
