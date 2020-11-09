@@ -1290,6 +1290,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 			assertEquals("Invalid dot notation result for existing keyword",     testOne.getUuid(), Scripting.evaluate(ctx, testOne, "${existing.id}", "existing keyword test"));
 			assertEquals("Invalid dot notation result for current",              testTwo.getUuid(), Scripting.evaluate(ctx, testOne, "${current.id}", "current test"));
+			assertEquals("Invalid dot notation result for current with default", testTwo.getUuid(), Scripting.evaluate(ctx, testOne, "${current.id!-}", "current test"));
+			assertEquals("Invalid dot notation result for current with default",               "-", Scripting.evaluate(ctx, testOne, "${current.nonexisting!-}", "current test"));
 			assertEquals("Invalid dot notation result for current with default",            "test", Scripting.evaluate(ctx, testOne, "${current.nonexisting!test}", "current test"));
 			assertEquals("Invalid dot notation result with default",                        "moep", Scripting.evaluate(ctx, testOne, "${nonexisting.existing.id!moep}", "keyword chain test"));
 			assertEquals("Invalid dot notation result with default",                       "moep2", Scripting.evaluate(ctx, testOne, "${existing.nonexisting.id!moep2}", "keyword chain test"));
@@ -1297,6 +1299,8 @@ public class UiScriptingTest extends StructrUiTest {
 			assertNull("Invalid dot notation result for nonexisting keyword",                       Scripting.evaluate(ctx, testOne, "${nonexisting.id}", "nonexisting keyword test"));
 			assertNull("Invalid dot notation result for keyword chain",                             Scripting.evaluate(ctx, testOne, "${existing.nonexisting.id}", "keyword chain test"));
 			assertNull("Invalid dot notation result for keyword chain",                             Scripting.evaluate(ctx, testOne, "${nonexisting.existing.id}", "keyword chain test"));
+			assertEquals("Invalid dot notation result for current with default", testOne.getUuid(), Scripting.evaluate(ctx, testOne, "${existing.id!-}", "default value test"));
+			assertEquals("Invalid dot notation result for current with default",               "-", Scripting.evaluate(ctx, testOne, "${existing.name!-}", "default value test"));
 
 			tx.success();
 
