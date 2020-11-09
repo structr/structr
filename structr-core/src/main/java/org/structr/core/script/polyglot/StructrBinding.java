@@ -130,7 +130,7 @@ public class StructrBinding implements ProxyObject {
 
 	@Override
 	public boolean hasMember(String key) {
-		return getMember(key) != null;
+		return true;
 	}
 
 	@Override
