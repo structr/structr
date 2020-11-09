@@ -1047,8 +1047,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			// iterate over list of relationships
 			final List<Relation> list = Iterables.toList(getRelationshipsAsSuperUser(propagatingType));
 			final int count           = list.size();
+			final int threshold       = 1000;
 
-			if (count < 1000) {
+			if (count < threshold) {
 
 				for (final Relation source : list) {
 
@@ -1085,9 +1086,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 					}
 				}
 
-			} else {
+			} else if (doLog) {
 
-				logger.warn("Refusing to resolve permissions with {} because there are more than 1000 nodes.", propagatingType.getSimpleName());
+				logger.warn("Refusing to resolve permissions with {} because there are more than {} nodes.", propagatingType.getSimpleName(), threshold);
 			}
 		}
 
