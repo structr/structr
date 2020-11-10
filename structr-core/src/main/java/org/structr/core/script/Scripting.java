@@ -28,6 +28,7 @@ import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.AbstractNode;
@@ -248,7 +249,15 @@ public class Scripting {
 					throw ex.asHostException();
 				}
 
-				throw ex;
+				final String type      = entity != null ? entity.getClass().getSimpleName() : "";
+				final String errorName = "Scripting Error";
+				final String message   = ex.getMessage();
+				final int lineNumber   = ex.getSourceLocation().getStartLine();
+				final int columnNumber = ex.getSourceLocation().getStartColumn();
+
+				RuntimeEventLog.javascript(errorName, message, lineNumber, columnNumber, type, snippet.getName(), entityDescription);
+
+				throw new FrameworkException(422, ex.getMessage());
 			}
 
 			if (actionContext.hasError()) {
