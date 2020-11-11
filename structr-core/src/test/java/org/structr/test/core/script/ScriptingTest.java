@@ -1046,7 +1046,7 @@ public class ScriptingTest extends StructrTest {
 			// disabled: java StreamTokenizer can NOT handle scientific notation
 //			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(23.4462, 2.34462e1)}"));
 //			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(0.00234462, 2.34462e-3)}"));
-//			assertEquals("Invalid if(equal()) result with null value", "false",  Scripting.replaceVariables(ctx, testOne, "${equal(this.alwaysNull, 2.34462e-3)}"));
+//			aFunction.logException(logger, ex, "Error in batch error handler: {}", new Object[]{ex.getMessage()});
 			assertEquals("Invalid if(equal()) result with null value", "false",  Scripting.replaceVariables(ctx, testOne, "${equal(0.00234462, this.alwaysNull)}"));
 			assertEquals("Invalid if(equal()) result with null value", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(this.alwaysNull, this.alwaysNull)}"));
 
@@ -5670,6 +5670,36 @@ public class ScriptingTest extends StructrTest {
 
 	}
 
+	@Test
+	public void testCacheFunction () {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+
+			final Object cachedResult = ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testCacheFunction.js"));
+
+			for (int i = 0; i < 4; i++) {
+
+				final Object result = ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testCacheFunction.js"));
+
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException ignored) {}
+
+				assertEquals(cachedResult, result);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
+	}
 
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource, final String comment) {

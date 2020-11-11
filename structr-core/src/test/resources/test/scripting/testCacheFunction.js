@@ -1,0 +1,1 @@
+return $.cache('testRandom', 3, Math.random());
