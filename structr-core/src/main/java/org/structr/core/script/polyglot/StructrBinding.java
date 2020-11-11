@@ -29,13 +29,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
-import org.structr.core.script.polyglot.function.BatchFunction;
-import org.structr.core.script.polyglot.function.CacheFunction;
-import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
-import org.structr.core.script.polyglot.function.IncludeJSFunction;
-import org.structr.core.script.polyglot.wrappers.FunctionWrapper;
-import org.structr.core.script.polyglot.wrappers.HttpServletRequestWrapper;
-import org.structr.core.script.polyglot.wrappers.StaticTypeWrapper;
+import org.structr.core.script.polyglot.function.*;
+import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -78,6 +73,10 @@ public class StructrBinding implements ProxyObject {
 				return new HttpServletRequestWrapper(actionContext, actionContext.getSecurityContext().getRequest());
 			case "cache":
 				return new CacheFunction(actionContext, entity);
+			case "vars":
+				return new PolyglotProxyMap(actionContext, actionContext.getAllVariables());
+			case "clear":
+				return new ClearFunction(actionContext);
 			default:
 				if (actionContext.getConstant(name) != null) {
 					return wrap(actionContext,actionContext.getConstant(name));

@@ -41,7 +41,7 @@ public class PredicateBinding implements ProxyObject {
 	private GraphObject entity                   = null;
 	private ActionContext actionContext          = null;
 
-	private final Map<String, Function<Object, Object>> predicateBindings = Map.ofEntries(
+	private static final Map<String, Function<Object, Object>> predicateBindings = Map.ofEntries(
 			entry("within_distance", Functions.getByClass(FindWithinDistanceFunction.class)),
 			entry("sort", Functions.getByClass(FindSortFunction.class)),
 			entry("page", Functions.getByClass(FindPageFunction.class)),

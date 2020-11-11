@@ -5704,6 +5704,52 @@ public class ScriptingTest extends StructrTest {
 
 	}
 
+	@Test
+	public void testVarsKeyword () {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			final Object result = ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testVarsKeyword.js"));
+
+			assertNotNull(result);
+			assertTrue("Result is not a map", result instanceof Map);
+			for (final Map.Entry<String, Integer> entry : Set.of(Map.entry("a", 0), Map.entry("b", 1), Map.entry("c", 2))) {
+				assertEquals(entry.getValue(), ((Map) result).get(entry.getKey()));
+			}
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			fail("Unexpected exception");
+		}
+
+	}
+
+	@Test
+	public void testClearKeywordFunction () {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			final Object result = ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testClearKeywordFunction.js"));
+
+			assertEquals("", result);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			fail("Unexpected exception");
+		}
+
+	}
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource, final String comment) {
 
