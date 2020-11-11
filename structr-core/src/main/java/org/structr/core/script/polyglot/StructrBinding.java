@@ -30,6 +30,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
 import org.structr.core.script.polyglot.function.BatchFunction;
+import org.structr.core.script.polyglot.function.CacheFunction;
 import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
 import org.structr.core.script.polyglot.function.IncludeJSFunction;
 import org.structr.core.script.polyglot.wrappers.FunctionWrapper;
@@ -75,6 +76,8 @@ public class StructrBinding implements ProxyObject {
 				return new DoPrivilegedFunction(actionContext);
 			case "request":
 				return new HttpServletRequestWrapper(actionContext, actionContext.getSecurityContext().getRequest());
+			case "cache":
+				return new CacheFunction(actionContext, entity);
 			default:
 				if (actionContext.getConstant(name) != null) {
 					return wrap(actionContext,actionContext.getConstant(name));
@@ -125,6 +128,7 @@ public class StructrBinding implements ProxyObject {
 		keys.add("includeJs");
 		keys.add("doPrivileged");
 		keys.add("request");
+		keys.add("cache");
 		return keys;
 	}
 
