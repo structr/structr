@@ -180,7 +180,7 @@ public class CacheExpression extends Expression {
 
 		public final void refresh(final Object value) {
 
-			this.timeout = System.currentTimeMillis() + ((timeoutSeconds + random.nextInt(10)) * 1000);
+			this.timeout = System.currentTimeMillis() + (timeoutSeconds * 1000);
 			this.value   = value;
 		}
 	}
