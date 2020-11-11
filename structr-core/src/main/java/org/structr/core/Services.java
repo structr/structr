@@ -97,7 +97,7 @@ public class Services implements StructrServices {
 	private final Set<Permission> permissionsForOwnerlessNodes  = new LinkedHashSet<>();
 	private final Map<String, Class> registeredServiceClasses   = new LinkedHashMap<>();
 	private final List<InitializationCallback> callbacks        = new LinkedList<>();
-	private final Map<String, Object> attributes                = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final Map<String, Object> cachedValues              = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final ReentrantReadWriteLock reloading              = new ReentrantReadWriteLock(true);
 	private LicenseManager licenseManager                       = null;
 	private ConfigurationProvider configuration                 = null;
@@ -574,34 +574,34 @@ public class Services implements StructrServices {
 	}
 
 	/**
-	 * Store an attribute value in the service config
+	 * Cache a value in the service config
 	 *
 	 * @param name
 	 * @param value
 	 */
-	public void setAttribute(final String name, final Object value) {
-		synchronized (attributes) {
-			attributes.put(name, value);
+	public void cacheValue(final String name, final Object value) {
+		synchronized (cachedValues) {
+			cachedValues.put(name, value);
 		}
 	}
 
 	/**
-	 * Retrieve attribute value from service config
+	 * Retrieve a cached value from service config
 	 *
 	 * @param name
 	 * @return attribute
 	 */
-	public Object getAttribute(final String name) {
-		return attributes.get(name);
+	public Object getCachedValue(final String name) {
+		return cachedValues.get(name);
 	}
 
 	/**
-	 * Remove attribute value from service config
+	 * Invalidate a cached value from service config
 	 *
 	 * @param name
 	 */
-	public void removeAttribute(final String name) {
-		attributes.remove(name);
+	public void invalidateCachedValue(final String name) {
+		cachedValues.remove(name);
 	}
 
 	public ServiceResult startService(final String serviceTypeAndName) throws FrameworkException {

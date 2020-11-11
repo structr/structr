@@ -105,11 +105,11 @@ public class CacheExpression extends Expression {
 
 		// get or create new cached value
 		final Services services = Services.getInstance();
-		CachedValue cachedValue = (CachedValue)services.getAttribute(key);
+		CachedValue cachedValue = (CachedValue)services.getCachedValue(key);
 		if (cachedValue == null) {
 
 			cachedValue = new CachedValue(timeout);
-			services.setAttribute(key, cachedValue);
+			services.cacheValue(key, cachedValue);
 
 		} else {
 
@@ -126,7 +126,7 @@ public class CacheExpression extends Expression {
 
 	public static boolean hasCachedValue(final String key) {
 
-		final CachedValue cachedValue = (CachedValue)Services.getInstance().getAttribute(key);
+		final CachedValue cachedValue = (CachedValue)Services.getInstance().getCachedValue(key);
 
 		if (cachedValue == null) {
 
@@ -140,7 +140,7 @@ public class CacheExpression extends Expression {
 
 	public static Object getCachedValue(final String key) {
 
-		final CachedValue cachedValue = (CachedValue)Services.getInstance().getAttribute(key);
+		final CachedValue cachedValue = (CachedValue)Services.getInstance().getCachedValue(key);
 
 		if (cachedValue == null || cachedValue.isExpired()) {
 
@@ -152,12 +152,11 @@ public class CacheExpression extends Expression {
 
 	public static void deleteCachedValue(final String key) {
 
-		Services.getInstance().removeAttribute(key);
+		Services.getInstance().invalidateCachedValue(key);
 	}
 
 	private static final class CachedValue {
 
-		private Random random       = new Random(System.currentTimeMillis());
 		private Object value        = null;
 		private long timeoutSeconds = 0L;
 		private long timeout        = 0L;
