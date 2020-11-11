@@ -48,6 +48,8 @@ public class DeleteCacheValueFunction extends CoreFunction {
 
 			final String cacheKey = sources[0].toString();
 
+			logger.warn("delete_cache_value() is deprecated and will be removed in a future version. Please use invalidate_cache_value() instead.");
+
 			CacheExpression.deleteCachedValue(cacheKey);
 
 		} catch (ArgumentNullException | ArgumentCountException pe) {

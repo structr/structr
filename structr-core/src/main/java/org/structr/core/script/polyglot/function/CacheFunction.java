@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.parser.CacheExpression;
 import org.structr.core.parser.ConstantExpression;
+import org.structr.core.parser.LazyEvaluatedFunctionExpression;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -53,7 +54,13 @@ public class CacheFunction implements ProxyExecutable {
 
 		try {
 			for (Object parameter : parameters) {
-				cacheExpr.add(new ConstantExpression(parameter));
+				if (parameter instanceof PolyglotWrapper.FunctionWrapper) {
+
+					cacheExpr.add(new LazyEvaluatedFunctionExpression(((PolyglotWrapper.FunctionWrapper) parameter)::execute));
+				} else {
+
+					cacheExpr.add(new ConstantExpression(parameter));
+				}
 			}
 
 			retVal = cacheExpr.evaluate(actionContext, entity);

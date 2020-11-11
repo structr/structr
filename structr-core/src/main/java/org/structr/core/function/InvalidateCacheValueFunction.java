@@ -24,19 +24,19 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.parser.CacheExpression;
 import org.structr.schema.action.ActionContext;
 
-public class GetCacheValueFunction extends CoreFunction {
+public class InvalidateCacheValueFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_GET_CACHE_VALUE    = "Usage: ${get_cache_value(cacheKey)}. Example: ${get_cache_value('mykey')}";
-	public static final String ERROR_MESSAGE_GET_CACHE_VALUE_JS = "Usage: ${{ Structr.get_cache_value(cacheKey); }}. Example: ${{ Structr.get_cache_value('mykey'); }}";
+	public static final String ERROR_MESSAGE_INVALIDATE_CACHE_VALUE    = "Usage: ${invalidate_cache_value(cacheKey)}. Example: ${invalidate_cache_value('mykey')}";
+	public static final String ERROR_MESSAGE_INVALIDATE_CACHE_VALUE_JS = "Usage: ${{ Structr.invalidate_cache_value(cacheKey); }}. Example: ${{ Structr.invalidate_cache_value('mykey'); }}";
 
 	@Override
 	public String getName() {
-		return "get_cache_value";
+		return "invalidate_cache_value";
 	}
 
 	@Override
 	public String getSignature() {
-		return "key";
+		return "cacheKey";
 	}
 
 	@Override
@@ -48,24 +48,24 @@ public class GetCacheValueFunction extends CoreFunction {
 
 			final String cacheKey = sources[0].toString();
 
-			logger.warn("get_cache_value() is deprecated and will be removed in a future version.");
-			return CacheExpression.getCachedValue(cacheKey);
+			CacheExpression.deleteCachedValue(cacheKey);
 
 		} catch (ArgumentNullException | ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			return false;
 		}
+
+		return null;
 	}
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return inJavaScriptContext ? ERROR_MESSAGE_GET_CACHE_VALUE_JS : ERROR_MESSAGE_GET_CACHE_VALUE;
+		return inJavaScriptContext ? ERROR_MESSAGE_INVALIDATE_CACHE_VALUE_JS : ERROR_MESSAGE_INVALIDATE_CACHE_VALUE;
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Retrieves the cached value for the given key. Returns null if no cached value exists.";
+		return "Invalidates the cached value for the given key (if present).";
 	}
 }
