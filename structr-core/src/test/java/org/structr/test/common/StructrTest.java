@@ -26,6 +26,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -375,5 +377,45 @@ public class StructrTest {
 		Settings.ConnectionPassword.setValue("admin");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 		Settings.TenantIdentifier.setValue(randomTenantId);
+	}
+
+	protected void tryWithTimeout(final Supplier<Boolean> workload, final Runnable onTimeout, final int timeoutInMS) {
+
+		if (workload != null && timeoutInMS >= 0) {
+			final long startTime = System.currentTimeMillis();
+
+			do {
+				if (workload.get()) {
+					return;
+				}
+			} while ((startTime + timeoutInMS) >= System.currentTimeMillis());
+		}
+
+		if (onTimeout != null) {
+			onTimeout.run();
+		}
+	}
+
+	protected void tryWithTimeout(final Supplier<Boolean> workload, final Runnable onTimeout, final int timeoutInMS, final int retryDelayInMS) {
+
+		final long startTime = System.currentTimeMillis();
+
+		if (workload != null && onTimeout != null && timeoutInMS >= 0 && retryDelayInMS > 0) {
+			do {
+				if (workload.get()) {
+					return;
+				}
+
+				try {
+
+					Thread.sleep(retryDelayInMS);
+				} catch (InterruptedException ex) {
+
+					return;
+				}
+			} while ((startTime + timeoutInMS) >= System.currentTimeMillis());
+
+			onTimeout.run();
+		}
 	}
 }

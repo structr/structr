@@ -1,1 +1,1 @@
-return $.cache('testRandom', 3, Math.random());
+return $.cache('testRandom', 2, Math.random()*1000);

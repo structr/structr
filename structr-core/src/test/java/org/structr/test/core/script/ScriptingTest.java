@@ -77,12 +77,9 @@ import org.structr.test.core.entity.TestSix;
 import org.structr.test.core.entity.TestThree;
 import org.structr.test.core.entity.TestTwo;
 import org.testng.Assert;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
+
+import static org.testng.AssertJUnit.*;
 
 
 /**
@@ -5680,21 +5677,27 @@ public class ScriptingTest extends StructrTest {
 
 
 			final Object cachedResult = ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testCacheFunction.js"));
+			Object result = ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testCacheFunction.js"));
+			assertEquals(cachedResult, result);
 
-			for (int i = 0; i < 4; i++) {
-
-				final Object result = ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testCacheFunction.js"));
-
+			tryWithTimeout(()-> {
 				try {
-					Thread.sleep(50);
-				} catch (InterruptedException ignored) {}
+					return !ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testCacheFunction.js")).equals(cachedResult);
+				} catch (FrameworkException ex) {
 
-				assertEquals(cachedResult, result);
-			}
+					return false;
+				}
+			}, ()-> fail("Timeout reached while waiting for cached value to change after timeout"), 20000, 1000);
+
+			final Object secondCachedResult = ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testCacheFunction.js"));
+
+			assertFalse("Cached value didn't change after timeout.", cachedResult.equals(secondCachedResult));
+			result = ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testCacheFunction.js"));
+			assertEquals(secondCachedResult, result);
 
 			tx.success();
 
-		} catch (FrameworkException fex) {
+		} catch (FrameworkException ex) {
 
 			fail("Unexpected exception");
 		}
