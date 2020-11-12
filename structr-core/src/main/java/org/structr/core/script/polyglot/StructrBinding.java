@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
@@ -77,6 +78,8 @@ public class StructrBinding implements ProxyObject {
 				return new PolyglotProxyMap(actionContext, actionContext.getAllVariables());
 			case "clear":
 				return new ClearFunction(actionContext);
+			case "applicationStore":
+				return new PolyglotProxyMap(actionContext, Services.getInstance().getApplicationStore());
 			default:
 				if (actionContext.getConstant(name) != null) {
 					return wrap(actionContext,actionContext.getConstant(name));
@@ -128,6 +131,7 @@ public class StructrBinding implements ProxyObject {
 		keys.add("doPrivileged");
 		keys.add("request");
 		keys.add("cache");
+		keys.add("applicationStore");
 		return keys;
 	}
 

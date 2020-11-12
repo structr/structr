@@ -98,6 +98,7 @@ public class Services implements StructrServices {
 	private final Map<String, Class> registeredServiceClasses   = new LinkedHashMap<>();
 	private final List<InitializationCallback> callbacks        = new LinkedList<>();
 	private final Map<String, Object> cachedValues              = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final Map<String, Object> applicationStore          = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final ReentrantReadWriteLock reloading              = new ReentrantReadWriteLock(true);
 	private LicenseManager licenseManager                       = null;
 	private ConfigurationProvider configuration                 = null;
@@ -1094,6 +1095,30 @@ public class Services implements StructrServices {
 
 	public static String getJVMIdentifier() {
 		return jvmIdentifier;
+	}
+
+	public Object applicationStoreGetAttribute(final String key) {
+		return applicationStore.get(key);
+	}
+
+	public boolean applicationStoreHasAttribute(final String key) {
+		return applicationStore.containsKey(key);
+	}
+
+	public Object applicationStoreSetAttribute(final String key, final Object value) {
+		return applicationStore.put(key, value);
+	}
+
+	public void applicationStoreDeleteAttribute(final String key) {
+		applicationStore.remove(key);
+	}
+
+	public Set<String> applicationStoreGetKeys() {
+		return applicationStore.keySet();
+	}
+
+	public Map<String, Object> getApplicationStore() {
+		return applicationStore;
 	}
 
 	// ----- private methods -----
