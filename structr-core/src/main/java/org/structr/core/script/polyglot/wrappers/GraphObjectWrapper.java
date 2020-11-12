@@ -79,7 +79,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				try (final Tx tx = app.tx()) {
 
 					SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(((AbstractNode) node).getClass().getSimpleName()).getFirst();
-					List<SchemaMethod> schemaMethods = Iterables.toList(schemaNode.getSchemaMethods());
+					List<SchemaMethod> schemaMethods = Iterables.toList(schemaNode.getSchemaMethodsIncludingInheritance());
 
 					boolean nonStaticMethodFound = false;
 

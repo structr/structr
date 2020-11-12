@@ -47,5 +47,6 @@ public interface Schema {
 	public Iterable<SchemaProperty> getSchemaProperties();
 	public Iterable<SchemaView> getSchemaViews();
 	public Iterable<SchemaMethod> getSchemaMethods();
+	public Iterable<SchemaMethod> getSchemaMethodsIncludingInheritance();
 	public Iterable<SchemaGrant> getSchemaGrants();
 }

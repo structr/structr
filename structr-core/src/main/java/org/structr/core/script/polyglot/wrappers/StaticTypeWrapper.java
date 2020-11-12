@@ -66,7 +66,7 @@ public class StaticTypeWrapper implements ProxyObject {
 
 			if (schemaNode != null) {
 
-				List<SchemaMethod> schemaMethods = Iterables.toList(schemaNode.getSchemaMethods());
+				List<SchemaMethod> schemaMethods = Iterables.toList(schemaNode.getSchemaMethodsIncludingInheritance());
 
 				for (SchemaMethod m : schemaMethods) {
 
