@@ -26,17 +26,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.neo4j.driver.v1.AccessMode;
-import org.neo4j.driver.v1.AuthTokens;
-import org.neo4j.driver.v1.Config;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.GraphDatabase;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.types.Node;
-import org.neo4j.driver.v1.types.Path;
-import org.neo4j.driver.v1.types.Path.Segment;
-import org.neo4j.driver.v1.types.Relationship;
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Config;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Path;
+import org.neo4j.driver.types.Path.Segment;
+import org.neo4j.driver.types.Relationship;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
@@ -85,9 +84,9 @@ public class RemoteCypherFunction extends CoreFunction {
 			final Driver driver = getDriver(url, username, password);
 			if (driver != null) {
 
-				try (final Session session = driver.session(AccessMode.READ)) {
+				try (final Session session = driver.session()) {
 
-					final StatementResult result         = session.run(query, params);
+					final Result result                  = session.run(query, params);
 					final List<Map<String, Object>> list = result.list(r -> {
 						return r.asMap();
 					});
@@ -130,7 +129,7 @@ public class RemoteCypherFunction extends CoreFunction {
 		Driver driver = driverCache.get(cacheKey);
 		if (driver == null) {
 
-			driver = GraphDatabase.driver(url, AuthTokens.basic(username, password), Config.build().withEncryption().toConfig());
+			driver = GraphDatabase.driver(url, AuthTokens.basic(username, password), Config.builder().withEncryption().build());
 
 			driverCache.put(cacheKey, driver);
 		}

@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.WeakHashMap;
-import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
-import org.neo4j.driver.v1.types.Entity;
+import org.neo4j.driver.exceptions.NoSuchRecordException;
+import org.neo4j.driver.types.Entity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
@@ -134,7 +134,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 		assertNotStale();
 
-		final SessionTransaction tx = db.getCurrentTransaction();
+		final ReactiveSessionTransaction tx = db.getCurrentTransaction();
 
 		// only update values if actually different from what is stored
 		if (needsUpdate(key, value)) {
@@ -168,7 +168,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 		if (!values.isEmpty()) {
 
 			final Map<String, Object> map = new HashMap<>();
-			final SessionTransaction tx   = db.getCurrentTransaction();
+			final ReactiveSessionTransaction tx   = db.getCurrentTransaction();
 			final String query            = getQueryPrefix() + " WHERE ID(n) = $id SET n += $properties";
 
 			// overwrite a potential "id" property
@@ -190,7 +190,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 		assertNotStale();
 
-		final SessionTransaction tx   = db.getCurrentTransaction();
+		final ReactiveSessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 		final String query            = getQueryPrefix() + " WHERE ID(n) = $id SET n.`" + key + "` = Null";
 
@@ -218,7 +218,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 		assertNotStale();
 
-		final SessionTransaction tx   = db.getCurrentTransaction();
+		final ReactiveSessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 		final StringBuilder buf       = new StringBuilder();
 
@@ -309,7 +309,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 			// if a node/rel was deleted in a previous transaction but the caller keeps a
 			// reference to this entity, we need to make sure that the reference is fresh.
 
-			final SessionTransaction tx   = db.getCurrentTransaction();
+			final ReactiveSessionTransaction tx   = db.getCurrentTransaction();
 			final Map<String, Object> map = new HashMap<>();
 
 			map.put("id", id);
@@ -397,7 +397,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 	private ChangeAwareMap accessData(final boolean write) {
 
 		// read-only access does not need a transaction
-		final SessionTransaction tx = db.getCurrentTransaction(false);
+		final ReactiveSessionTransaction tx = db.getCurrentTransaction(false);
 		if (tx != null) {
 
 			if (deleted || tx.isDeleted(this)) {

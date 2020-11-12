@@ -327,7 +327,6 @@ public class SchemaService implements Service {
 
 							tx.success();
 
-
 							final GraphQLObjectType.Builder queryTypeBuilder         = GraphQLObjectType.newObject();
 							final Map<String, GraphQLInputObjectType> selectionTypes = new LinkedHashMap<>();
 							final Set<String> existingQueryTypeNames                 = new LinkedHashSet<>();
@@ -356,6 +355,7 @@ public class SchemaService implements Service {
 									);
 
 								} catch (Throwable t) {
+									t.printStackTrace();
 									logger.warn("Unable to add GraphQL type {}: {}", className, t.getMessage());
 								}
 							}

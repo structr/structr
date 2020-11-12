@@ -30,7 +30,7 @@ public class IterableQuery extends AbstractNativeQuery<Iterable<Map<String, Obje
 	}
 
 	@Override
-	Iterable<Map<String, Object>> execute(final SessionTransaction tx) {
+	Iterable<Map<String, Object>> execute(final ReactiveSessionTransaction tx) {
 		return tx.run(query, parameters);
 	}
 }

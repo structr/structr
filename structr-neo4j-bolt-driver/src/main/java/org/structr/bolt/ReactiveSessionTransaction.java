@@ -26,17 +26,18 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
-import org.neo4j.driver.Session;
-import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
-import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.neo4j.driver.exceptions.TransientException;
+import org.neo4j.driver.internal.shaded.reactor.core.publisher.Flux;
+import org.neo4j.driver.internal.shaded.reactor.core.publisher.Mono;
+import org.neo4j.driver.reactive.RxResult;
 import org.neo4j.driver.reactive.RxSession;
+import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
@@ -54,9 +55,9 @@ import org.structr.api.util.Iterables;
 /**
  *
  */
-class SessionTransaction implements org.structr.api.Transaction {
+class ReactiveSessionTransaction implements org.structr.api.Transaction {
 
-	private static final Logger logger                = LoggerFactory.getLogger(SessionTransaction.class);
+	private static final Logger logger                = LoggerFactory.getLogger(ReactiveSessionTransaction.class);
 	private static final AtomicLong ID_SOURCE         = new AtomicLong();
 	private final Set<EntityWrapper> accessedEntities = new HashSet<>();
 	private final Set<EntityWrapper> modifiedEntities = new HashSet<>();
@@ -64,41 +65,37 @@ class SessionTransaction implements org.structr.api.Transaction {
 	private final Set<Long> deletedRels               = new HashSet<>();
 	private final Object transactionKey               = new Object();
 	private BoltDatabaseService db                    = null;
-	private RxSession rxSession                       = null;
-	private Session session                           = null;
-	private Transaction tx                            = null;
+	private RxSession session                         = null;
+	private RxTransaction tx                          = null;
 	private long transactionId                        = 0L;
 	private boolean closed                            = false;
 	private boolean success                           = false;
 	private boolean isPing                            = false;
 
-	public SessionTransaction(final BoltDatabaseService db, final Session session) {
+	public ReactiveSessionTransaction(final BoltDatabaseService db, final RxSession session) {
 
 		this.transactionId = ID_SOURCE.getAndIncrement();
 		this.session       = session;
-		this.tx            = session.beginTransaction(db.getTransactionConfig(transactionId));
+		this.tx            = Flux.from(session.beginTransaction(db.getTransactionConfig(transactionId))).blockFirst();
 		this.db            = db;
 	}
 
-	public SessionTransaction(final BoltDatabaseService db, final Session session, final int timeoutInSeconds) {
+	public ReactiveSessionTransaction(final BoltDatabaseService db, final RxSession session, final int timeoutInSeconds) {
 
 		final TransactionConfig config = db.getTransactionConfigForTimeout(timeoutInSeconds, transactionId);
 
 		this.transactionId = ID_SOURCE.getAndIncrement();
 		this.session       = session;
-		this.tx            = session.beginTransaction(config);
+		this.tx            = Flux.from(session.beginTransaction(config)).blockFirst();
 		this.db            = db;
 	}
 
 	@Override
 	public void failure() {
-		tx.rollback();
 	}
 
 	@Override
 	public void success() {
-
-		tx.commit();
 
 		// transaction must be marked successfull explicitly
 		success = true;
@@ -108,6 +105,8 @@ class SessionTransaction implements org.structr.api.Transaction {
 	public void close() {
 
 		if (!success) {
+
+			Mono.from(tx.rollback()).block();
 
 			for (final EntityWrapper entity : accessedEntities) {
 
@@ -120,6 +119,8 @@ class SessionTransaction implements org.structr.api.Transaction {
 			}
 
 		} else {
+
+			Mono.from(tx.commit()).block();
 
 			RelationshipWrapper.expunge(deletedRels);
 			NodeWrapper.expunge(deletedNodes);
@@ -139,7 +140,6 @@ class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
-			tx.close();
 			session.close();
 
 		} catch (TransientException tex) {
@@ -156,9 +156,7 @@ class SessionTransaction implements org.structr.api.Transaction {
 			}
 
 			// make sure that the resources are freed
-			if (session.isOpen()) {
-				session.close();
-			}
+			session.close();
 		}
 	}
 
@@ -185,9 +183,9 @@ class SessionTransaction implements org.structr.api.Transaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
+			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
+			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -196,7 +194,7 @@ class SessionTransaction implements org.structr.api.Transaction {
 		try {
 
 			logQuery(statement, map);
-			return tx.run(statement, map).next().get(0).asBoolean();
+			return Mono.from(tx.run(statement, map).records()).block().get(0).asBoolean();
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -206,9 +204,9 @@ class SessionTransaction implements org.structr.api.Transaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
+			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
+			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -227,9 +225,9 @@ class SessionTransaction implements org.structr.api.Transaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
+			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
+			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -238,7 +236,7 @@ class SessionTransaction implements org.structr.api.Transaction {
 		try {
 
 			logQuery(statement, map);
-			return tx.run(statement, map).next().get(0).asLong();
+			return Mono.from(tx.run(statement, map).records()).block().get(0).asLong();
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -248,9 +246,9 @@ class SessionTransaction implements org.structr.api.Transaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
+			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
+			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -259,11 +257,7 @@ class SessionTransaction implements org.structr.api.Transaction {
 		try {
 
 			logQuery(statement, map);
-			final Result result = tx.run(statement, map);
-			if (result.hasNext()) {
-
-				return result.next().get(0).asObject();
-			}
+			return Mono.from(tx.run(statement, map).records()).block().get(0).asObject();
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -273,12 +267,10 @@ class SessionTransaction implements org.structr.api.Transaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
+			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
+			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
-
-		return null;
 	}
 
 	public Entity getEntity(final String statement, final Map<String, Object> map) {
@@ -286,7 +278,7 @@ class SessionTransaction implements org.structr.api.Transaction {
 		try {
 
 			logQuery(statement, map);
-			return tx.run(statement, map).next().get(0).asEntity();
+			return Mono.from(tx.run(statement, map).records()).block().get(0).asEntity();
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -296,9 +288,9 @@ class SessionTransaction implements org.structr.api.Transaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
+			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
+			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -308,10 +300,12 @@ class SessionTransaction implements org.structr.api.Transaction {
 
 			logQuery(statement, map);
 
-			final Result result = tx.run(statement, map);
-			final Record single = result.single();
+			final RxResult result = tx.run(statement, map);
+			final Node node       =  Mono.from(result.records()).block().get(0).asNode();
 
-			return single.get(0).asNode();
+			Mono.from(result.consume()).block();
+
+			return node;
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -321,9 +315,9 @@ class SessionTransaction implements org.structr.api.Transaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
+			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
+			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -332,11 +326,7 @@ class SessionTransaction implements org.structr.api.Transaction {
 		try {
 
 			logQuery(statement, map);
-
-			final Result result = tx.run(statement, map);
-			final Record single = result.single();
-
-			return single.get(0).asRelationship();
+			return Mono.from(tx.run(statement, map).records()).block().get(0).asRelationship();
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -346,35 +336,39 @@ class SessionTransaction implements org.structr.api.Transaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
+			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
+			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
 	}
 
-	/*
-	public void collectRecords(final String statement, final Map<String, Object> map, final IterableQueueingRecordConsumer consumer) {
+	public Flux<Record> collectRecords(final String statement, final Map<String, Object> map) {
 
-		logQuery(statement, map);
+		try {
 
-		asyncSession.readTransactionAsync(tx -> tx.runAsync(statement, map)
-			.thenCompose(cursor -> consumer.start(cursor))
-			.thenCompose(cursor -> cursor.forEachAsync(consumer::accept))
-			.thenAccept(summary -> consumer.finish())
-			.exceptionally(t -> consumer.exception(t)));
+			logQuery(statement, map);
+			return Flux.from(tx.run(statement, map).records());
+
+		} catch (TransientException tex) {
+			closed = true;
+			throw new RetryException(tex);
+		} catch (NoSuchRecordException nex) {
+			throw new NotFoundException(nex);
+		} catch (ServiceUnavailableException ex) {
+			throw new NetworkException(ex.getMessage(), ex);
+		} catch (DatabaseException dex) {
+			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+		} catch (ClientException cex) {
+			throw ReactiveSessionTransaction.translateClientException(cex);
+		}
 	}
-	*/
 
 	public Iterable<String> getStrings(final String statement, final Map<String, Object> map) {
 
 		try {
 
 			logQuery(statement, map);
-			final Result result = tx.run(statement, map);
-			final Record record = result.next();
-			final Value value   = record.get(0);
-
-			return new IteratorWrapper<>(value.asList(Values.ofString()).iterator());
+			return new IteratorWrapper<>(Mono.from(tx.run(statement, map).records()).block().get(0).asList(Values.ofString()).iterator());
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -384,9 +378,9 @@ class SessionTransaction implements org.structr.api.Transaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
+			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
+			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -395,7 +389,12 @@ class SessionTransaction implements org.structr.api.Transaction {
 		try {
 
 			logQuery(statement, map);
-			return Iterables.map(new RecordMapMapper(db), new IteratorWrapper<>(tx.run(statement, map)));
+
+			final Iterable<Map<String, Object>> iterable = Iterables.map(new RecordMapMapper(db), Flux.from(tx.run(statement, map).records()).toIterable());
+
+			iterable.iterator().hasNext();
+
+			return iterable;
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -405,9 +404,9 @@ class SessionTransaction implements org.structr.api.Transaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
+			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
+			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -416,7 +415,7 @@ class SessionTransaction implements org.structr.api.Transaction {
 		try {
 
 			logQuery(statement, map);
-			tx.run(statement, map).consume();
+			Mono.from(tx.run(statement, map).consume()).block();
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -426,9 +425,9 @@ class SessionTransaction implements org.structr.api.Transaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
+			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
+			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -560,9 +559,9 @@ class SessionTransaction implements org.structr.api.Transaction {
 				return iterator.hasNext();
 
 			} catch (ClientException dex) {
-				throw SessionTransaction.translateClientException(dex);
+				throw ReactiveSessionTransaction.translateClientException(dex);
 			} catch (DatabaseException dex) {
-				throw SessionTransaction.translateDatabaseException(dex);
+				throw ReactiveSessionTransaction.translateDatabaseException(dex);
 			}
 		}
 
@@ -574,9 +573,9 @@ class SessionTransaction implements org.structr.api.Transaction {
 				return iterator.next();
 
 			} catch (ClientException dex) {
-				throw SessionTransaction.translateClientException(dex);
+				throw ReactiveSessionTransaction.translateClientException(dex);
 			} catch (DatabaseException dex) {
-				throw SessionTransaction.translateDatabaseException(dex);
+				throw ReactiveSessionTransaction.translateDatabaseException(dex);
 			}
 		}
 

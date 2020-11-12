@@ -41,6 +41,7 @@ import org.structr.api.config.Settings;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.error.FrameworkException;
@@ -498,7 +499,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 			for (final String source : sources) {
 
 				// be very tolerant here, just execute everything
-				app.query(source, Collections.emptyMap());
+				Iterables.count(app.query(source, Collections.emptyMap()));
 			}
 
 			tx.success();

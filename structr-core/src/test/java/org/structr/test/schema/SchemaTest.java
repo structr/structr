@@ -842,6 +842,8 @@ public class SchemaTest extends StructrTest {
 
 			cleanDatabaseAndSchema();
 
+			Settings.CypherDebugLogging.setValue(true);
+
 			final String tenantId = Services.getInstance().getDatabaseService().getTenantIdentifier();
 
 			try (final Tx tx = app.tx()) {

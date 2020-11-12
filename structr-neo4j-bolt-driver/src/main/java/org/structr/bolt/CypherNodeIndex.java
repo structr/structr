@@ -19,7 +19,6 @@
 package org.structr.bolt;
 
 import org.structr.api.graph.Node;
-import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
 import org.structr.api.util.Iterables;
@@ -42,7 +41,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
 			buf.append("OPTIONAL ");
 		}
-	
+
 		buf.append("MATCH (n");
 
 		// Only add :NodeInterface label when query has predicates, single label queries are much faster.
@@ -101,15 +100,6 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
 	@Override
 	public Iterable<Node> getResult(final AdvancedCypherQuery query) {
-
-		final IterableQueueingRecordConsumer consumer = new IterableQueueingRecordConsumer(db, query);
-		final QueryContext context                    = query.getQueryContext();
-
-		if (context != null && !context.isDeferred()) {
-			consumer.start();
-		}
-
-		// return mapped result
-		return Iterables.map(new NodeNodeMapper(db), Iterables.map(new RecordNodeMapper(), consumer));
+		return Iterables.map(new NodeNodeMapper(db), Iterables.map(new RecordNodeMapper(), new QueryIterable(db, query)));
 	}
 }

@@ -41,16 +41,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.neo4j.driver.v1.AuthTokens;
-import org.neo4j.driver.v1.Config;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.GraphDatabase;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.TransactionConfig;
-import org.neo4j.driver.v1.exceptions.AuthenticationException;
-import org.neo4j.driver.v1.exceptions.ClientException;
-import org.neo4j.driver.v1.exceptions.DatabaseException;
-import org.neo4j.driver.v1.exceptions.ServiceUnavailableException;
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.TransactionConfig;
+import org.neo4j.driver.exceptions.AuthenticationException;
+import org.neo4j.driver.exceptions.ClientException;
+import org.neo4j.driver.exceptions.DatabaseException;
+import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.AbstractDatabaseService;
@@ -81,7 +80,7 @@ import org.structr.api.util.NodeWithOwnerResult;
 public class BoltDatabaseService extends AbstractDatabaseService implements GraphProperties {
 
 	private static final Logger logger                                = LoggerFactory.getLogger(BoltDatabaseService.class.getName());
-	private static final ThreadLocal<SessionTransaction> sessions     = new ThreadLocal<>();
+	private static final ThreadLocal<ReactiveSessionTransaction> sessions     = new ThreadLocal<>();
 	private final Set<String> supportedQueryLanguages                 = new LinkedHashSet<>();
 	private Properties globalGraphProperties                          = null;
 	private CypherRelationshipIndex relationshipIndex                 = null;
@@ -127,8 +126,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		try {
 
 			driver = GraphDatabase.driver(databaseDriverUrl,
-				AuthTokens.basic(username, password),
-				Config.build().withEncryption().toConfig()
+				AuthTokens.basic(username, password)
 			);
 
 			final int relCacheSize  = Settings.RelationshipCacheSize.getPrefixedValue(serviceName);
@@ -163,11 +161,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public Transaction beginTx() {
 
-		SessionTransaction session = sessions.get();
+		ReactiveSessionTransaction session = sessions.get();
 		if (session == null || session.isClosed()) {
 
 			try {
-				session = new SessionTransaction(this, driver.session());
+				session = new ReactiveSessionTransaction(this, driver.rxSession());
 				sessions.set(session);
 
 			} catch (ServiceUnavailableException ex) {
@@ -183,11 +181,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public Transaction beginTx(final int timeoutInSeconds) {
 
-		SessionTransaction session = sessions.get();
+		ReactiveSessionTransaction session = sessions.get();
 		if (session == null || session.isClosed()) {
 
 			try {
-				session = new SessionTransaction(this, driver.session(), timeoutInSeconds);
+				session = new ReactiveSessionTransaction(this, driver.rxSession(), timeoutInSeconds);
 				sessions.set(session);
 
 			} catch (ServiceUnavailableException ex) {
@@ -365,7 +363,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		buf.append(label);
 		buf.append(") DETACH DELETE n");
 
-		execute(buf.toString());
+		consume(buf.toString());
 	}
 
 	@Override
@@ -484,7 +482,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 								try (final Transaction tx = beginTx(timeoutSeconds)) {
 
-									execute("DROP " + indexDescription);
+									consume("DROP " + indexDescription);
 
 									tx.success();
 
@@ -526,7 +524,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 										try {
 
-											execute("CREATE " + indexDescription);
+											consume("CREATE " + indexDescription);
 											createdIndexes.incrementAndGet();
 
 										} catch (Throwable t) {
@@ -538,7 +536,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 									try {
 
-										execute("DROP " + indexDescription);
+										consume("DROP " + indexDescription);
 										droppedIndexes.incrementAndGet();
 
 									} catch (Throwable t) {
@@ -612,7 +610,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 									try (final Transaction tx = beginTx(timeoutSeconds)) {
 
 										// drop index
-										execute("DROP " + indexDescription);
+										consume("DROP " + indexDescription);
 										droppedIndexesOfRemovedTypes.incrementAndGet();
 
 										tx.success();
@@ -679,21 +677,21 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		final String tenantId = getTenantIdentifier();
 		if (tenantId != null) {
 
-			execute("MATCH (n:" + tenantId + ") DETACH DELETE n", Collections.emptyMap());
+			consume("MATCH (n:" + tenantId + ") DETACH DELETE n", Collections.emptyMap());
 
 		} else {
 
-			execute("MATCH (n) DETACH DELETE n", Collections.emptyMap());
+			consume("MATCH (n) DETACH DELETE n", Collections.emptyMap());
 		}
 	}
 
-	public SessionTransaction getCurrentTransaction() {
+	public ReactiveSessionTransaction getCurrentTransaction() {
 		return getCurrentTransaction(true);
 	}
 
-	public SessionTransaction getCurrentTransaction(final boolean throwNotInTransactionException) {
+	public ReactiveSessionTransaction getCurrentTransaction(final boolean throwNotInTransactionException) {
 
-		final SessionTransaction tx = sessions.get();
+		final ReactiveSessionTransaction tx = sessions.get();
 		if (throwNotInTransactionException && (tx == null || tx.isClosed())) {
 
 			throw new NotInTransactionException("Not in transaction");
@@ -726,6 +724,14 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 	Relationship getRelationshipById(final long id) {
 		return RelationshipWrapper.newInstance(this, id);
+	}
+
+	void consume(final String nativeQuery) {
+		consume(nativeQuery, Collections.EMPTY_MAP);
+	}
+
+	void consume(final String nativeQuery, final Map<String, Object> parameters) {
+		getCurrentTransaction().set(nativeQuery, parameters);
 	}
 
 	Iterable<Map<String, Object>> execute(final String nativeQuery) {
@@ -860,18 +866,18 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		try (final Session session = driver.session()) {
 
 			// this call may fail silently (e.g. if the index does not exist yet)
-			try (final org.neo4j.driver.v1.Transaction tx = session.beginTransaction()) {
+			try (final org.neo4j.driver.Transaction tx = session.beginTransaction()) {
 
 				tx.run("DROP INDEX ON :NodeInterface(id)");
-				tx.success();
+				tx.commit();
 
 			} catch (Throwable t) { }
 
 			// this call may NOT fail silently, hence we don't catch any exceptions
-			try (final org.neo4j.driver.v1.Transaction tx = session.beginTransaction()) {
+			try (final org.neo4j.driver.Transaction tx = session.beginTransaction()) {
 
 				tx.run("CREATE CONSTRAINT ON (node:NodeInterface) ASSERT node.id IS UNIQUE");
-				tx.success();
+				tx.commit();
 			}
 		}
 	}

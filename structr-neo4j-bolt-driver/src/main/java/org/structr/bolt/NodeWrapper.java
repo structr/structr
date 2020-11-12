@@ -37,7 +37,7 @@ import org.structr.api.util.Iterables;
 /**
  *
  */
-class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implements Node {
+class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements Node {
 
 	protected static FixedSizeCache<Long, NodeWrapper> nodeCache                 = null;
 
@@ -49,7 +49,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 		super();
 	}
 
-	private NodeWrapper(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Node node) {
+	private NodeWrapper(final BoltDatabaseService db, final org.neo4j.driver.types.Node node) {
 		super(db, node);
 	}
 
@@ -100,7 +100,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 
 		assertNotStale();
 
-		final SessionTransaction tx   = db.getCurrentTransaction();
+		final ReactiveSessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 		final NodeWrapper otherNode   = (NodeWrapper)endNode;
 		final String tenantIdentifier = getTenantIdentifer(db);
@@ -120,7 +120,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 		buf.append("]->(m)");
 		buf.append(" SET r += $relProperties RETURN r");
 
-		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship(buf.toString(), map);
+		final org.neo4j.driver.types.Relationship rel = tx.getRelationship(buf.toString(), map);
 
 		setModified();
 		otherNode.setModified();
@@ -141,7 +141,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 
 		assertNotStale();
 
-		final SessionTransaction tx   = db.getCurrentTransaction();
+		final ReactiveSessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 		final String tenantIdentifier = getTenantIdentifer(db);
 
@@ -157,7 +157,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 
 		assertNotStale();
 
-		final SessionTransaction tx   = db.getCurrentTransaction();
+		final ReactiveSessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 		final String tenantIdentifier = getTenantIdentifer(db);
 
@@ -172,7 +172,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 
 		assertNotStale();
 
-		final SessionTransaction tx   = db.getCurrentTransaction();
+		final ReactiveSessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 		final String tenantIdentifier = getTenantIdentifer(db);
 
@@ -187,7 +187,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 
 		assertNotStale();
 
-		final SessionTransaction tx      = db.getCurrentTransaction();
+		final ReactiveSessionTransaction tx      = db.getCurrentTransaction();
 		final Map<String, Object> params = new LinkedHashMap<>();
 		final String tenantIdentifier    = getTenantIdentifer(db);
 
@@ -213,7 +213,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 
 		assertNotStale();
 
-		final SessionTransaction tx                 = db.getCurrentTransaction();
+		final ReactiveSessionTransaction tx                 = db.getCurrentTransaction();
 		final Map<String, Object> params            = new LinkedHashMap<>();
 		final String tenantIdentifier               = getTenantIdentifer(db);
 		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
@@ -294,7 +294,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 
 		super.delete(deleteRelationships);
 
-		final SessionTransaction tx = db.getCurrentTransaction();
+		final ReactiveSessionTransaction tx = db.getCurrentTransaction();
 		tx.deleted(this);
 	}
 
@@ -307,7 +307,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 	 */
 	public boolean evaluateCustomQuery(final String customQuery, final Map<String, Object> parameters) {
 
-		final SessionTransaction tx = db.getCurrentTransaction();
+		final ReactiveSessionTransaction tx = db.getCurrentTransaction();
 		boolean result              = false;
 
 		try {
@@ -374,7 +374,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 	}
 
 	// ----- public static methods -----
-	public static NodeWrapper newInstance(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Node node) {
+	public static NodeWrapper newInstance(final BoltDatabaseService db, final org.neo4j.driver.types.Node node) {
 
 		synchronized (nodeCache) {
 
@@ -396,13 +396,13 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 			NodeWrapper wrapper = nodeCache.get(id);
 			if (wrapper == null) { // || wrapper.stale) {
 
-				final SessionTransaction tx   = db.getCurrentTransaction();
+				final ReactiveSessionTransaction tx   = db.getCurrentTransaction();
 				final String tenantIdentifier = getTenantIdentifer(db);
 				final Map<String, Object> map = new HashMap<>();
 
 				map.put("id", id);
 
-				final org.neo4j.driver.v1.types.Node node = tx.getNode(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id RETURN DISTINCT n"), map);
+				final org.neo4j.driver.types.Node node = tx.getNode(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id RETURN DISTINCT n"), map);
 				if (node != null) {
 
 					wrapper = NodeWrapper.newInstance(db, node);

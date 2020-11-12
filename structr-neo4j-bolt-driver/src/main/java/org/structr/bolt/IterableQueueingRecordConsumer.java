@@ -26,8 +26,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.StatementResultCursor;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.async.ResultCursor;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.QueryTimer;
@@ -35,7 +37,7 @@ import org.structr.api.util.QueryTimer;
 /**
  *
  */
-public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterator<Record>, AutoCloseable, Consumer<Record> {
+public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterator<Record>, AutoCloseable, Consumer<Record>, Subscriber<Record> {
 
 	private static final Logger logger        = LoggerFactory.getLogger(IterableQueueingRecordConsumer.class);
 	private final BlockingQueue<Record> queue = new LinkedBlockingQueue<>();
@@ -46,7 +48,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 	private final AtomicBoolean started       = new AtomicBoolean(false);
 	private QueryTimer queryTimer             = null;
 	private BoltDatabaseService db            = null;
-	private StatementResultCursor cursor      = null;
+	private ResultCursor cursor               = null;
 	private AdvancedCypherQuery query         = null;
 	private Throwable throwable               = null;
 	private boolean isClosed                  = false;
@@ -66,7 +68,10 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 			queryTimer.started(statement);
 		}
 
-		final SessionTransaction tx = db.getCurrentTransaction();
+		throw new IllegalStateException("Cannot use IterableQueueingRecordConsumer with ReactiveSessionTransaction.");
+
+		/*
+		final ReactiveSessionTransaction tx = db.getCurrentTransaction();
 		tx.setIsPing(query.getQueryContext().isPing());
 		tx.collectRecords(statement, query.getParameters(), this);
 
@@ -75,6 +80,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 		if (queryTimer != null) {
 			queryTimer.querySent();
 		}
+		*/
 	}
 
 	@Override
@@ -165,10 +171,12 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 			// start fetching of next result portion while waiting for results
 			if (!started.getAndSet(true)) {
 
-				final SessionTransaction tx = db.getCurrentTransaction(false);
+				final ReactiveSessionTransaction tx = db.getCurrentTransaction(false);
 				if (tx != null && !tx.isClosed()) {
 
-					tx.collectRecords(query.getStatement(true), query.getParameters(), this);
+					throw new IllegalStateException("Cannot use IterableQueueingRecordConsumer with ReactiveSessionTransaction.");
+
+					//tx.collectRecords(query.getStatement(true), query.getParameters(), this);
 				}
 			}
 
@@ -214,7 +222,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 		elementCount.incrementAndGet();
 	}
 
-	public CompletionStage<StatementResultCursor> start(final StatementResultCursor cursor) {
+	public CompletionStage<ResultCursor> start(final ResultCursor cursor) {
 		this.cursor = cursor;
 		return CompletableFuture.completedFuture(cursor);
 	}
@@ -222,5 +230,26 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 	public Void exception(final Throwable t) {
 		this.throwable = t;
 		return null;
+	}
+
+	// ----- interface Subscriber -----
+	@Override
+	public void onSubscribe(final Subscription s) {
+		start();
+	}
+
+	@Override
+	public void onNext(final Record arg0) {
+		accept(arg0);
+	}
+
+	@Override
+	public void onError(final Throwable t) {
+		exception(t);
+	}
+
+	@Override
+	public void onComplete() {
+		finish();
 	}
 }

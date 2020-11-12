@@ -156,17 +156,24 @@ public abstract class StructrRestTestBase {
 		if (!first) {
 
 			try (final Tx tx = app.tx()) {
-			// delete everything
-			Services.getInstance().getDatabaseService().cleanDatabase();
 
 				// delete everything
 				Services.getInstance().getDatabaseService().cleanDatabase();
 
 				FlushCachesCommand.flushAll();
 
-				SchemaService.ensureBuiltinTypesExist(app);
-
 				tx.success();
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
+			}
+
+
+			try {
+
+				SchemaService.ensureBuiltinTypesExist(app);
 
 			} catch (Throwable t) {
 

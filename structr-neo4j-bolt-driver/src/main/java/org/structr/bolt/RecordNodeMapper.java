@@ -19,9 +19,9 @@
 package org.structr.bolt;
 
 import java.util.function.Function;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.exceptions.value.Uncoercible;
-import org.neo4j.driver.v1.types.Node;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.exceptions.value.Uncoercible;
+import org.neo4j.driver.types.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

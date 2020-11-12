@@ -67,6 +67,7 @@ public abstract class StructrUiTest {
 	protected final String htmlUrl     = "/structr/html";
 	protected final String wsUrl       = "/structr/ws";
 	protected String baseUri           = null;
+	protected boolean first            = true;
 
 	@BeforeClass(alwaysRun = true)
 	public void setup() {
@@ -130,25 +131,39 @@ public abstract class StructrUiTest {
 		System.out.println("######################################################################################");
 	}
 
-	@AfterMethod()
+	@BeforeMethod()
 	public void cleanDatabase() {
 
-		try (final Tx tx = app.tx()) {
+		if (!first) {
 
-			// delete everything
-			Services.getInstance().getDatabaseService().cleanDatabase();
+			try (final Tx tx = app.tx()) {
 
-			FlushCachesCommand.flushAll();
+				// delete everything
+				Services.getInstance().getDatabaseService().cleanDatabase();
 
-			SchemaService.ensureBuiltinTypesExist(app);
+				FlushCachesCommand.flushAll();
 
-			tx.success();
+				tx.success();
 
-		} catch (Throwable t) {
+			} catch (Throwable t) {
 
-			t.printStackTrace();
-			logger.error("Exception while trying to clean database: {}", t.getMessage());
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
+			}
+
+
+			try {
+
+				SchemaService.ensureBuiltinTypesExist(app);
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
+			}
 		}
+
+		first = false;
 	}
 
 	@AfterClass(alwaysRun = true)
