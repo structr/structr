@@ -87,7 +87,7 @@ public class StaticTypeWrapper implements ProxyObject {
 									}
 								}
 
-								return Actions.execute(actionContext.getSecurityContext(), null, SchemaMethod.getCachedSourceCode(m.getUuid()), parameters, referencedClass.getSimpleName() + "." + key);
+								return PolyglotWrapper.wrap(actionContext, Actions.execute(actionContext.getSecurityContext(), null, SchemaMethod.getCachedSourceCode(m.getUuid()), parameters, referencedClass.getSimpleName() + "." + key));
 							} catch (FrameworkException ex) {
 
 								logger.error("Unexpected exception while trying to call static schema type method.", ex);
