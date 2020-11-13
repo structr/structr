@@ -24,28 +24,30 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.schema.action.ActionContext;
 
-public class ApplicationStoreSetAttributeFunction extends UiAdvancedFunction {
+public class ApplicationStoreDeleteFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_SET_ATTRIBUTE    = "Usage: ${application_store_set_attribute(key,value)}. Example: ${application_store_set_attribute(\"do_no_track\", true)}";
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_SET_ATTRIBUTE_JS = "Usage: ${{Structr.application_store_set_attribute(key,value)}}. Example: ${{Structr.application_store_set_attribute(\"do_not_track\", true)}}";
+	public static final String ERROR_MESSAGE_APPLICATION_STORE_DELETE    = "Usage: ${application_store_delete(key)}. Example: ${application_store_delete(\"do_no_track\")}";
+	public static final String ERROR_MESSAGE_APPLICATION_STORE_DELETE_JS = "Usage: ${{Structr.application_store_delete(key)}}. Example: ${{Structr.application_store_delete(\"do_not_track\")}}";
 
 
 	@Override
 	public String getName() {
-		return "application_store_set_attribute";
+		return "application_store_delete";
 	}
 
 	@Override
 	public String getSignature() {
-		return "key, value";
+		return "key";
 	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
-			return Services.getInstance().applicationStoreSetAttribute(sources[0].toString(), sources[1]);
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+			Services.getInstance().applicationStoreDelete(sources[0].toString());
+
+			return null;
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
@@ -60,12 +62,12 @@ public class ApplicationStoreSetAttributeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_APPLICATION_STORE_SET_ATTRIBUTE_JS : ERROR_MESSAGE_APPLICATION_STORE_SET_ATTRIBUTE);
+		return (inJavaScriptContext ? ERROR_MESSAGE_APPLICATION_STORE_DELETE_JS : ERROR_MESSAGE_APPLICATION_STORE_DELETE);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Stores a value in the application level store.";
+		return "Removes a stored value from the application level store.";
 	}
 
 

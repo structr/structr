@@ -1097,19 +1097,19 @@ public class Services implements StructrServices {
 		return jvmIdentifier;
 	}
 
-	public Object applicationStoreGetAttribute(final String key) {
+	public Object applicationStoreGet(final String key) {
 		return applicationStore.get(key);
 	}
 
-	public boolean applicationStoreHasAttribute(final String key) {
+	public boolean applicationStoreHas(final String key) {
 		return applicationStore.containsKey(key);
 	}
 
-	public Object applicationStoreSetAttribute(final String key, final Object value) {
+	public Object applicationStorePut(final String key, final Object value) {
 		return applicationStore.put(key, value);
 	}
 
-	public void applicationStoreDeleteAttribute(final String key) {
+	public void applicationStoreDelete(final String key) {
 		applicationStore.remove(key);
 	}
 

@@ -27,14 +27,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.AsyncContext;
 import javax.servlet.DispatcherType;
@@ -1308,6 +1301,117 @@ public class UiScriptingTest extends StructrUiTest {
 
 			fex.printStackTrace();
 		}
+	}
+
+	@Test
+	public void testApplicationStoreFunctions () {
+
+		// test has(n't)
+		try {
+
+			Actions.execute(securityContext, null, "${application_store_put('testHas', 1)}","Store test value");
+
+			Object hasValueWrapper   = Actions.execute(securityContext, null, "${application_store_has('testHas')}","Probe key");
+			Object hasntValueWrapper = Actions.execute(securityContext, null, "${application_store_has('testHasnt')}","Probe missing key");
+			boolean hasValue   = ((Boolean) hasValueWrapper).booleanValue();
+			boolean hasntValue = ((Boolean) hasntValueWrapper).booleanValue();
+			assertTrue("ApplicationStore I/O failure, written key not present", hasValue);
+			assertFalse("ApplicationStore I/O failure, not written key present", hasntValue);
+
+		} catch (FrameworkException e) {
+
+			e.printStackTrace();
+
+		}
+
+		// test get
+		try {
+
+			Actions.execute(securityContext, null, "${application_store_put('testPut', 0)}","Store test value");
+			Object initialValueWrapper = Actions.execute(securityContext, null, "${application_store_get('testPut')}","Retrieve test key");
+			int initialValue = ((Double) initialValueWrapper).intValue();
+			assertEquals("ApplicationStore I/O failure, written key wrong value", initialValue, 0);
+
+			Actions.execute(securityContext, null, "${application_store_put('testPut', 1)}","Store test value");
+			Object overwrittenValueWrapper = Actions.execute(securityContext, null, "${application_store_get('testPut')}","Retrieve test key");
+			int overwrittenValue = ((Double) overwrittenValueWrapper).intValue();
+			assertEquals("ApplicationStore I/O failure, overwritten key wrong value", overwrittenValue, 1);
+
+		} catch (FrameworkException e) {
+
+			e.printStackTrace();
+
+		}
+
+		// test delete
+		try {
+
+			Actions.execute(securityContext, null, "${application_store_put('testDelete', 1)}","Store test value");
+			Actions.execute(securityContext, null, "${application_store_delete('testDelete')}","Delete test value");
+
+			Object deletedValueWrapper = Actions.execute(securityContext, null, "${application_store_has('testDelete')}","Probe deleted key");
+			boolean deletedValue = ((Boolean) deletedValueWrapper).booleanValue();
+			assertFalse("ApplicationStore I/O failure, deleted key present", deletedValue);
+
+		} catch (FrameworkException e) {
+
+			e.printStackTrace();
+
+		}
+
+		// test get_keys
+		try {
+
+			Actions.execute(securityContext, null, "${application_store_put('getKeys1', 1)}","Store test value");
+			Actions.execute(securityContext, null, "${application_store_put('getKeys2', 2)}","Store test value");
+
+			Object getKeysValueWrapper = Actions.execute(securityContext, null, "${application_store_get_keys('testDelete')}","Probe deleted key");
+			Set<String> getKeysValue = (Set<String>) getKeysValueWrapper;
+
+			Set<String> expectedKeySet = new HashSet<String>(Arrays.asList(new String[]{"getKeys1", "getKeys2"}));
+
+			assertTrue("ApplicationStore I/O failure, missing keys in key set", getKeysValue.containsAll(expectedKeySet));
+
+		} catch (FrameworkException e) {
+
+			e.printStackTrace();
+
+		}
+
+
+	}
+
+	@Test
+	public void testApplicationStoreScripting () {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		// test setup
+		try (final Tx tx = app.tx()) {
+
+			ScriptTestHelper.testExternalScript(ctx, UiScriptingTest.class.getResourceAsStream("/test/scripting/testApplicationStore.js"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+
+		}
+
+		// test i/o
+		try (final Tx tx = app.tx()) {
+
+			final Object readOne   = Scripting.evaluate(ctx, null, "${$.applicationStore.one}", "application store read one");
+			final Object readTwo   = Scripting.evaluate(ctx, null, "${$.applicationStore.two}", "application store read two");
+			final Object readThree = Scripting.evaluate(ctx, null, "${$.applicationStore.three}", "application store read three");
+			assertEquals("Application store i/o error, wrote 1, read " + readOne, readOne, 1);
+			assertEquals("Application store i/o error, wrote 2, read " + readTwo, readTwo, 2);
+			assertEquals("Application store i/o error, wrote 3, read " + readThree, readThree, 3);
+
+		} catch (Throwable fex) {}
+
 	}
 
 
