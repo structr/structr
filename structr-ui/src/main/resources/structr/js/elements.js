@@ -1458,14 +1458,14 @@ var _Elements = {
 		});
 
 	},
-	openEditContentDialog: function(btn, entity) {
+	openEditContentDialog: function(btn, entity, configOverride) {
 		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {
 		}, function() {
 		});
 		Command.get(entity.id, 'content,contentType', function(data) {
-            currentEntity = entity;
+			currentEntity = entity;
 			entity.contentType = data.contentType;
-			_Elements.editContent(this, entity, data.content, dialogText);
+			_Elements.editContent(this, entity, data.content, dialogText, configOverride);
 		});
 	},
 	activateEditorMode: function(contentType) {
@@ -1482,7 +1482,7 @@ var _Elements = {
 			}
 		}
 	},
-	editContent: function(button, entity, text, element) {
+	editContent: function(button, entity, text, element, configOverride = {}) {
 
 		if (Structr.isButtonDisabled(button)) {
 			return;
@@ -1496,9 +1496,7 @@ var _Elements = {
 
 		var text1, text2;
 
-		// Intitialize editor
-		CodeMirror.defineMIME("text/html", "htmlmixed-structr");
-		editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
+		let cmConfig = Structr.getCodeMirrorSettings({
 			value: text,
 			mode: mode || contentType,
 			lineNumbers: true,
@@ -1509,7 +1507,13 @@ var _Elements = {
 			indentUnit: 4,
 			tabSize: 4,
 			indentWithTabs: true
-		}));
+		});
+
+		cmConfig = Object.assign(cmConfig, configOverride);
+
+		// Intitialize editor
+		CodeMirror.defineMIME("text/html", "htmlmixed-structr");
+		editor = CodeMirror(contentBox.get(0), cmConfig);
 
 		_Code.setupAutocompletion(editor, entity.id);
 

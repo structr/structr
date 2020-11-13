@@ -39,12 +39,12 @@ import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyParser;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.structr.core.graph.TransactionCommand;
 
 public class Scripting {
 
@@ -255,7 +255,33 @@ public class Scripting {
 				final int lineNumber   = ex.getSourceLocation().getStartLine();
 				final int columnNumber = ex.getSourceLocation().getStartColumn();
 
-				RuntimeEventLog.javascript(errorName, message, lineNumber, columnNumber, type, snippet.getName(), entityDescription);
+				final Map<String, Object> eventData = new LinkedHashMap<>();
+
+				eventData.putAll(Map.of(
+					"errorName", errorName,
+					"message", message,
+					"row", lineNumber,
+					"column", columnNumber,
+					"type", type,
+					"name", snippet.getName(),
+					"entity", entityDescription
+				));
+
+				if (entity != null) {
+					eventData.put("id", entity.getUuid());
+					eventData.put("name", entityName);
+					eventData.put("type", entity.getClass().getSimpleName());
+				}
+
+				RuntimeEventLog.javascript(errorName, eventData);
+
+				TransactionCommand.simpleBroadcastGenericMessage(Map.of(
+					"type", "SCRIPTING_ERROR",
+					"message", message,
+					"nodeType", type,
+					"nodeId", entity != null ? entity.getUuid() : null
+				));
+
 
 				StringBuilder exceptionPrefix = new StringBuilder();
 				if (entity != null) {

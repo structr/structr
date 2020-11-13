@@ -18,9 +18,8 @@
  */
 package org.structr.common.event;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,19 +43,19 @@ public class RuntimeEvent {
 	private static final LongProperty _absoluteTimestamp = new LongProperty("absoluteTimestamp");
 	private static final LongProperty _relativeTimestamp = new LongProperty("relativeTimestamp");
 
-	private final long absoluteTimestamp = System.currentTimeMillis();
-	private final long relativeTimestamp = System.nanoTime();
-	private final List<Object> data      = new LinkedList<>();
-	private boolean seen                 = false;
-	private String description           = null;
-	private String type                  = null;
+	private final long absoluteTimestamp   = System.currentTimeMillis();
+	private final long relativeTimestamp   = System.nanoTime();
+	private final Map<String, Object> data = new LinkedHashMap<>();
+	private boolean seen                   = false;
+	private String description             = null;
+	private String type                    = null;
 
-	public RuntimeEvent(final String type, final String description, final Object... data) {
+	public RuntimeEvent(final String type, final String description, final Map<String, Object> data) {
 
 		this.type        = type;
 		this.description = description;
 
-		this.data.addAll(Arrays.asList(data));
+		this.data.putAll(data);
 	}
 
 	public long absoluteTimestamp() {
@@ -74,7 +73,7 @@ public class RuntimeEvent {
 		return description;
 	}
 
-	public List<Object> getData() {
+	public Map<String, Object> getData() {
 		return data;
 	}
 

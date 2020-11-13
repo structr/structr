@@ -3494,6 +3494,10 @@ td#cascading-options, td#propagation-options {
 	max-width: 800px;
 }
 
+.CodeMirror-lint-tooltip {
+	z-index: 2000;
+}
+
 #fruchterman-controlElement {
 	float: none ! important;
 	display: block;

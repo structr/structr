@@ -192,7 +192,7 @@ public class LoginResource extends FilterableResource {
 	}
 
 	protected RestMethodResult getUserForCredentials(SecurityContext securityContext, String emailOrUsername, String password, String twoFactorToken, String twoFactorCode) throws FrameworkException {
-		
+
 		Principal user = null;
 
 		user = getUserForTwoFactorTokenOrEmailOrUsername(twoFactorToken, emailOrUsername, password);
@@ -232,7 +232,7 @@ public class LoginResource extends FilterableResource {
 
 		logger.info("Login successful: {}", user);
 
-		RuntimeEventLog.login("Login successful", user.getUuid(), user.getName());
+		RuntimeEventLog.login("Login successful", Map.of("user", user.getUuid(), "name", user.getName()));
 
 		user.setSecurityContext(securityContext);
 

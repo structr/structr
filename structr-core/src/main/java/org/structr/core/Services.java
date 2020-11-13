@@ -300,7 +300,7 @@ public class Services implements StructrServices {
 				logger.info("Reducing fetch size setting '{}' to {} to reduce low-memory performance problems", Settings.FetchSize.getKey(), maxFetchSize);
 				Settings.FetchSize.setValue(maxFetchSize);
 
-				RuntimeEventLog.systemInfo("Reducing fetch size setting to reduce low-memory performance problems", Settings.FetchSize.getKey(), maxFetchSize);
+				RuntimeEventLog.systemInfo("Reducing fetch size setting to reduce low-memory performance problems", Map.of("key", Settings.FetchSize.getKey(), "value", maxFetchSize));
 			}
 		}
 

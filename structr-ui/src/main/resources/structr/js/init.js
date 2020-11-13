@@ -1910,6 +1910,47 @@ var Structr = {
 				new MessageBuilder().title('Exception in Scheduled Job').warning(data.message).requiresConfirmation().allowConfirmAll().show();
 				break;
 
+			case "RESOURCE_ACCESS":
+				new MessageBuilder().title('REST Access to \'' + data.uri + '\' denied').warning(data.message).requiresConfirmation().allowConfirmAll().show();
+				break;
+
+			case "SCRIPTING_ERROR":
+				if (data.nodeId && data.nodeType) {
+					new MessageBuilder().title('Server-side Scripting Error')
+						.warning(data.message)
+						.requiresConfirmation()
+						.specialInteractionButton('Open content in editor', function(btn) {
+							switch (data.nodeType) {
+								case 'Content':
+								case 'Template':
+									Command.get(data.nodeId, null, function (obj) {
+										_Elements.openEditContentDialog(btn, obj, {
+											extraKeys: { "Ctrl-Space": "autocomplete" },
+											gutters: ["CodeMirror-lint-markers"],
+											lint: {
+												getAnnotations: function(text, callback) {
+													_Code.showScriptErrors(obj, text, callback);
+												},
+												async: true
+											}
+										});
+									});
+									break;
+								default:
+									Command.get(data.nodeId, null, function (obj) {
+										_Entities.showProperties(obj);
+									});
+									break;
+							}
+						}, 'Dismiss')
+						.allowConfirmAll()
+						.show();
+
+				} else {
+					new MessageBuilder().title('Server-side Scripting Error').warning(data.message).requiresConfirmation().allowConfirmAll().show();
+				}
+				break;
+
 			default: {
 
 					var text = "<p>No handler for generic message of type <b>" + data.type + "</b> defined - printing complete message data.</p>";

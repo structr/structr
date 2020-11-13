@@ -123,7 +123,7 @@ public class AuthHelper {
 
 			principal = new SuperUser();
 
-			RuntimeEventLog.login("Authenticate", principal.getUuid(), principal.getName());
+			RuntimeEventLog.login("Authenticate", Map.of("id", principal.getUuid(), "name", principal.getName()));
 
 		} else {
 
@@ -142,7 +142,7 @@ public class AuthHelper {
 
 				logger.info("No principal found for {} {}", keyMessage, value);
 
-				RuntimeEventLog.failedLogin("No principal found", keyMessage, value);
+				RuntimeEventLog.failedLogin("No principal found", Map.of("keyMessage", keyMessage, "value", value));
 
 				throw new AuthenticationException(STANDARD_ERROR_MSG);
 
@@ -152,7 +152,7 @@ public class AuthHelper {
 
 					logger.info("Principal {} is blocked", principal);
 
-					RuntimeEventLog.failedLogin("Principal is blocked", principal.getUuid(), principal.getName());
+					RuntimeEventLog.failedLogin("Principal is blocked", Map.of("id", principal.getUuid(), "name", principal.getName()));
 
 					throw new AuthenticationException(STANDARD_ERROR_MSG);
 				}
@@ -169,7 +169,7 @@ public class AuthHelper {
 
 				if (!passwordValid) {
 
-					RuntimeEventLog.failedLogin("Wrong password", principal.getUuid(), principal.getName());
+					RuntimeEventLog.failedLogin("Wrong password", Map.of("id", principal.getUuid(), "name", principal.getName()));
 
 					throw new AuthenticationException(STANDARD_ERROR_MSG);
 
@@ -181,7 +181,7 @@ public class AuthHelper {
 					// allow external users (LDAP etc.) to update group membership
 					principal.onAuthenticate();
 
-					RuntimeEventLog.login("Authenticate", principal.getUuid(), principal.getName());
+					RuntimeEventLog.login("Authenticate", Map.of("id", principal.getUuid(), "name", principal.getName()));
 				}
 			}
 		}
@@ -508,7 +508,7 @@ public class AuthHelper {
 				SessionHelper.clearSession(sessionId);
 				SessionHelper.invalidateSession(sessionId);
 
-				RuntimeEventLog.failedLogin("Max. number of sessions exceeded", user.getName());
+				RuntimeEventLog.failedLogin("Max. number of sessions exceeded", Map.of("id", user.getUuid(), "name", user.getName()));
 				throw new SessionLimitExceededException();
 			}
 		}
@@ -523,7 +523,7 @@ public class AuthHelper {
 		SessionHelper.clearSession(sessionId);
 		SessionHelper.invalidateSession(sessionId);
 
-		RuntimeEventLog.logout("Logout", user.getUuid(), user.getName());
+		RuntimeEventLog.logout("Logout", Map.of("id", user.getUuid(), "name", user.getName()));
 
 		AuthHelper.sendLogoutNotification(user);
 	}
@@ -623,7 +623,12 @@ public class AuthHelper {
 
 			if (failedAttempts > maximumAllowedFailedAttempts) {
 
-				RuntimeEventLog.failedLogin("Too many login attempts", principal.getUuid(), principal.getName(), failedAttempts, maximumAllowedFailedAttempts);
+				RuntimeEventLog.failedLogin("Too many login attempts", Map.of(
+					"id", principal.getUuid(),
+					"name", principal.getName(),
+					"failedAttempts", failedAttempts,
+					"maxAttempts", maximumAllowedFailedAttempts
+				));
 
 				throw new TooManyFailedLoginAttemptsException();
 			}
@@ -681,7 +686,7 @@ public class AuthHelper {
 
 				principal.setProperty(twoFactorTokenKey, null);
 
-				RuntimeEventLog.failedLogin("Two factor authentication token not valid anymore", principal.getUuid(), principal.getName());
+				RuntimeEventLog.failedLogin("Two factor authentication token not valid anymore", Map.of("id", principal.getUuid(), "name", principal.getName()));
 
 				throw new TwoFactorAuthenticationTokenInvalidException();
 			}
@@ -760,7 +765,7 @@ public class AuthHelper {
 
 							logger.info("Successful two factor authentication ({})", principal.getName());
 
-							RuntimeEventLog.login("Two factor authentication successful", principal.getUuid(), principal.getName());
+							RuntimeEventLog.login("Two factor authentication successful", Map.of("id", principal.getUuid(), "name", principal.getName()));
 
 							return true;
 
@@ -769,7 +774,7 @@ public class AuthHelper {
 							// two factor authentication not successful
 						   logger.info("Two factor authentication failed ({})", principal.getName());
 
-						   RuntimeEventLog.failedLogin("Two factor authentication failed", principal.getUuid(), principal.getName());
+						   RuntimeEventLog.failedLogin("Two factor authentication failed", Map.of("id", principal.getUuid(), "name", principal.getName()));
 
 						   throw new TwoFactorAuthenticationFailedException();
 						}

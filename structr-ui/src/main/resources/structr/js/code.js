@@ -3035,8 +3035,25 @@ var _Code = {
 	},
 	showScriptErrors: function(entity, text, callback) {
 
-		let schemaType = entity && entity.schemaNode ? entity.schemaNode.name : '';
-		let methodName = entity.name;
+		let methodName = null;
+		let schemaType = '';
+
+		if (entity) {
+
+			switch (entity.type) {
+
+				case 'SchemaMethod':
+					if (entity.schemaNode && entity.schemaNode.name) {
+						schemaType = entity.schemaNode.name;
+					}
+					methodName = entity.name;
+					break;
+
+				default:
+					schemaType = entity.type;
+					break;
+			}
+		}
 
 		$.ajax({
 			url: '/structr/rest/_runtimeEventLog?type=Javascript&seen=false&pageSize=100',
@@ -3048,13 +3065,13 @@ var _Code = {
 
 					for (var runtimeEvent of eventLog.result) {
 
-						if (runtimeEvent.data && runtimeEvent.data.length >= 5) {
+						if (runtimeEvent.data) {
 
-							let message = runtimeEvent.data[0];
-							let line    = runtimeEvent.data[1];
-							let column  = runtimeEvent.data[2];
-							let type    = runtimeEvent.data[3];
-							let name    = runtimeEvent.data[4];
+							let message = runtimeEvent.data.message;
+							let line    = runtimeEvent.data.row;
+							let column  = runtimeEvent.data.column;
+							let type    = runtimeEvent.data.type;
+							let name    = runtimeEvent.data.name;
 
 							if (type === schemaType && name === methodName) {
 
@@ -3072,7 +3089,6 @@ var _Code = {
 								}
 
 								events.push({
-
 									from: CodeMirror.Pos(fromLine, fromCol),
 									to: CodeMirror.Pos(toLine, toCol),
 									message: 'Scripting error: ' + message,

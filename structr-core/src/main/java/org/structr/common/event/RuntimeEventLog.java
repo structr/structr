@@ -18,8 +18,10 @@
  */
 package org.structr.common.event;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import org.structr.api.Predicate;
@@ -34,42 +36,54 @@ public class RuntimeEventLog {
 	private static final BlockingDeque<RuntimeEvent> events = new LinkedBlockingDeque<>(101_000);
 
 	private enum EventType {
-		Transaction, Maintenance, Cron, ResourceAccess, Authentication, Rest, Http, Csv, Javascript, SystemInfo
+		Transaction, Maintenance, Cron, ResourceAccess, Authentication, Rest, Http, Csv, Javascript, SystemInfo, GraphQL
 	}
 
-	public static void resourceAccess(final String description, final Object... data) {
+	public static void resourceAccess(final String description, final Map<String, Object> data) {
 		add(EventType.ResourceAccess, description, data);
 	}
 
-	public static void failedLogin(final String description, final Object... data) {
+	public static void failedLogin(final String description, final Map<String, Object> data) {
 		add(EventType.Authentication, description, data);
 	}
 
-	public static void login(final String description, final Object... data) {
+	public static void login(final String description, final Map<String, Object> data) {
 		add(EventType.Authentication, description, data);
 	}
 
-	public static void token(final String description, final Object... data) {
+	public static void token(final String description, final Map<String, Object> data) {
 		add(EventType.Authentication, description, data);
 	}
 
-	public static void logout(final String description, final Object... data) {
+	public static void logout(final String description, final Map<String, Object> data) {
 		add(EventType.Authentication, description, data);
 	}
 
-	public static void registration(final String description, final Object... data) {
+	public static void registration(final String description, final Map<String, Object> data) {
 		add(EventType.Authentication, description, data);
 	}
 
-	public static void transaction(final String status, final Object... data) {
+	public static void transaction(final String status) {
+		add(EventType.Transaction, status);
+	}
+
+	public static void transaction(final String status, final Map<String, Object> data) {
 		add(EventType.Transaction, status, data);
 	}
 
-	public static void cron(final String command, final Object... data) {
+	public static void cron(final String command) {
+		add(EventType.Cron, command);
+	}
+
+	public static void cron(final String command, final Map<String, Object> data) {
 		add(EventType.Cron, command, data);
 	}
 
-	public static void maintenance(final String command, final Object... data) {
+	public static void maintenance(final String command) {
+		add(EventType.Maintenance, command);
+	}
+
+	public static void maintenance(final String command, final Map<String, Object> data) {
 		add(EventType.Maintenance, command, data);
 	}
 
@@ -77,11 +91,11 @@ public class RuntimeEventLog {
 
 		if (user != null) {
 
-			add(EventType.Rest, method, path, user.getUuid(), user.getName());
+			add(EventType.Rest, method, Map.of("method", method, "path", path, "id", user.getUuid(), "name", user.getName()));
 
 		} else {
 
-			add(EventType.Rest, method, path);
+			add(EventType.Rest, method, Map.of("method", method, "path", path));
 		}
 	}
 
@@ -89,11 +103,11 @@ public class RuntimeEventLog {
 
 		if (user != null) {
 
-			add(EventType.Csv, method, path, user.getUuid(), user.getName());
+			add(EventType.Csv, method, Map.of("method", method, "path", path, "id", user.getUuid(), "name", user.getName()));
 
 		} else {
 
-			add(EventType.Csv, method, path);
+			add(EventType.Csv, method, Map.of("method", method, "path", path));
 		}
 	}
 
@@ -101,7 +115,7 @@ public class RuntimeEventLog {
 
 		if (user != null) {
 
-			add(EventType.Csv, query, user.getUuid(), user.getName());
+			add(EventType.GraphQL, query, Map.of("id", user.getUuid(), "name", user.getName()));
 
 		} else {
 
@@ -113,7 +127,7 @@ public class RuntimeEventLog {
 
 		if (user != null) {
 
-			add(EventType.Http, path, user.getUuid(), user.getName());
+			add(EventType.Http, path, Map.of("id", user.getUuid(), "name", user.getName()));
 
 		} else {
 
@@ -121,11 +135,11 @@ public class RuntimeEventLog {
 		}
 	}
 
-	public static void javascript(final String errorName, final Object... data) {
+	public static void javascript(final String errorName, final Map<String, Object> data) {
 		add(EventType.Javascript, errorName, data);
 	}
 
-	public static void systemInfo(final String info, final Object... data) {
+	public static void systemInfo(final String info, final Map<String, Object> data) {
 		add(EventType.SystemInfo, info, data);
 	}
 
@@ -149,7 +163,11 @@ public class RuntimeEventLog {
 	}
 
 	// ----- private methods -----
-	private static void add(final EventType type, final String description, final Object... data) {
+	private static void add(final EventType type, final String description) {
+		add(type, description, Collections.EMPTY_MAP);
+	}
+
+	private static void add(final EventType type, final String description, final Map<String, Object> data) {
 
 		events.addFirst(new RuntimeEvent(type.name(), description, data));
 

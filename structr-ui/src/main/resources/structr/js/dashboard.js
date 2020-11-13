@@ -685,23 +685,54 @@ var _Dashboard = {
 
 					let timestamp = new Date(event.absoluteTimestamp).toISOString();
 					let tr        = document.createElement('tr');
-
-					let firstDataCol = ("object" === typeof event.data[0]) ? JSON.stringify(event.data) : event.data[0];
-
-					if (event.type === 'Authentication') {
-						if (event.data[1]) {
-							event.data[1] = '<code style="white-space: pre; text-decoration: underline; text-underline-position: under;">' + event.data[1] + '</code>';
-						}
-					}
+					let data      = event.data;
 
 					_Dashboard.elementWithContent(tr, 'td', timestamp);
 					_Dashboard.elementWithContent(tr, 'td', event.type);
 					_Dashboard.elementWithContent(tr, 'td', event.description);
-					_Dashboard.elementWithContent(tr, 'td', firstDataCol || '');
-					_Dashboard.elementWithContent(tr, 'td', event.data[1] || '');
-					_Dashboard.elementWithContent(tr, 'td', event.data[2] || '');
-					_Dashboard.elementWithContent(tr, 'td', event.data[3] || '');
-					_Dashboard.elementWithContent(tr, 'td', event.data[4] || '');
+
+					if (data) {
+
+						switch (event.type) {
+
+							case 'Authentication':
+								_Dashboard.elementWithContent(tr, 'td', '<code style="white-space: pre; text-decoration: underline; text-underline-position: under;">' + JSON.stringify(data) + '</code>');
+								break;
+
+							case 'Javascript':
+								_Dashboard.elementWithContent(tr, 'td', data.message);
+								break;
+
+							default:
+								_Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
+								break;
+						}
+
+					} else {
+
+						_Dashboard.elementWithContent(tr, 'td', '');
+					}
+
+					let buttonContainer = _Dashboard.elementWithContent(tr, 'td', '');
+					if (data.id && data.type) {
+
+						let button = _Dashboard.elementWithContent(buttonContainer, 'button', 'Open content in editor');
+						button.addEventListener('click', function() {
+
+							Command.get(data.id, null, function (obj) {
+								_Elements.openEditContentDialog(button, obj, {
+									extraKeys: { "Ctrl-Space": "autocomplete" },
+									gutters: ["CodeMirror-lint-markers"],
+									lint: {
+										getAnnotations: function(text, callback) {
+											_Code.showScriptErrors(obj, text, callback);
+										},
+										async: true
+									}
+								});
+							});
+						});
+					}
 
 					row.appendChild(tr);
 				}
@@ -718,3 +749,6 @@ var _Dashboard = {
 		return element;
 	}
 };
+
+/*
+ */

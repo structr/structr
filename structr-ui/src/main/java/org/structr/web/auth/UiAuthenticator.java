@@ -42,6 +42,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
@@ -224,7 +225,13 @@ public class UiAuthenticator implements Authenticator {
 
 			logger.info("No resource access grant found for signature '{}' (URI: {})", new Object[] { rawResourceSignature, securityContext.getCompoundRequestURI() } );
 
-			RuntimeEventLog.resourceAccess("No grant", rawResourceSignature, method, validUser);
+			RuntimeEventLog.resourceAccess("No grant", Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser));
+
+			TransactionCommand.simpleBroadcastGenericMessage(Map.of(
+				"type", "RESOURCE_ACCESS",
+				"message", "No resource access grant found for signature '" + rawResourceSignature + "' (URI: " + securityContext.getCompoundRequestURI() + ")",
+				"uri", securityContext.getCompoundRequestURI()
+			));
 
 			throw new UnauthorizedException("Forbidden");
 
@@ -338,7 +345,13 @@ public class UiAuthenticator implements Authenticator {
 
 		logger.info("Resource access grant found for signature '{}', but method '{}' not allowed for {} users.", rawResourceSignature, method, (validUser ? "authenticated" : "public"));
 
-		RuntimeEventLog.resourceAccess("Method not allowed", rawResourceSignature, method, validUser);
+		RuntimeEventLog.resourceAccess("Method not allowed", Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser));
+
+		TransactionCommand.simpleBroadcastGenericMessage(Map.of(
+			"type", "RESOURCE_ACCESS",
+			"message", "Resource access grant found for signature '" + rawResourceSignature + "', but method '" + method + "' not allowed for " + (validUser ? "authenticated" : "public") + " users.",
+			"uri", securityContext.getCompoundRequestURI()
+		));
 
 		throw new UnauthorizedException("Forbidden");
 
@@ -357,7 +370,7 @@ public class UiAuthenticator implements Authenticator {
 			if (user.getProperty(confKey) != null && !allowLoginBeforeConfirmation) {
 
 				logger.warn("Login as {} not allowed before confirmation.", user.getName());
-				RuntimeEventLog.failedLogin("Login attempt before confirmation", user.getUuid(), user.getName());
+				RuntimeEventLog.failedLogin("Login attempt before confirmation", Map.of("id", user.getUuid(), "name", user.getName()));
 				throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
 			}
 
@@ -509,7 +522,7 @@ public class UiAuthenticator implements Authenticator {
 							// let oauth implementation augment user info
 							oauthServer.initializeUser(user);
 
-							RuntimeEventLog.registration("OAuth user created", user.getUuid(), user.getName());
+							RuntimeEventLog.registration("OAuth user created", Map.of("id", user.getUuid(), "name", user.getName()));
 
 						} else {
 
