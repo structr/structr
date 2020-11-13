@@ -4156,6 +4156,28 @@ table#schema-grants th, table#schema-grants td {
 }
 /* END: styles to maximize methods editors in bulk save dialog for SCHEMA area */
 
+/**/
+.dialog.run-global-schema-method-dialog .dialogText {
+	display: flex;
+	flex-direction: column;
+	height: calc(100% - 40px);
+}
+
+.dialog.run-global-schema-method-dialog .dialogText h3 {
+	margin: 3px 0;
+}
+
+.dialog.run-global-schema-method-dialog .dialogText #global-method-comment {
+	margin: 3px 0;
+}
+
+.dialog.run-global-schema-method-dialog .dialogText #log-output {
+	flex-grow: 1;
+	margin: 3px 0;
+}
+
+/**/
+
 #type-content-add-property i,
 #type-content-add-method i {
 	color: #81ce25;
@@ -5587,8 +5609,6 @@ div#xml-configurations button {
 	background-color: #fff;
 	border: 1px solid #ddd;
 	padding: 2px;
-	min-height: 20px;
-	max-height: 300px;
 	overflow: auto;
 }
 

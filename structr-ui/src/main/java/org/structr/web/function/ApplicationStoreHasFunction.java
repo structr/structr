@@ -24,15 +24,15 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.schema.action.ActionContext;
 
-public class ApplicationStoreGetAttributeFunction extends UiAdvancedFunction {
+public class ApplicationStoreHasFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET_ATTRIBUTE    = "Usage: ${application_store_get_attribute(key)}. Example: ${application_store_get_attribute(\"do_no_track\")}";
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET_ATTRIBUTE_JS = "Usage: ${{Structr.application_store_get_attribute(key)}}. Example: ${{Structr.application_store_get_attribute(\"do_not_track\")}}";
+	public static final String ERROR_MESSAGE_APPLICATION_STORE_HAS = "Usage: ${application_store_has(key)}. Example: ${application_store_has(\"do_no_track\")}";
+	public static final String ERROR_MESSAGE_APPLICATION_STORE_HAS_JS = "Usage: ${{Structr.application_store_has(key)}}. Example: ${{Structr.application_store_has(\"do_not_track\")}}";
 
 
 	@Override
 	public String getName() {
-		return "application_store_get_attribute";
+		return "application_store_has";
 	}
 
 	@Override
@@ -45,7 +45,7 @@ public class ApplicationStoreGetAttributeFunction extends UiAdvancedFunction {
 		try {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
-			return Services.getInstance().applicationStoreGetAttribute(sources[0].toString());
+			return Services.getInstance().applicationStoreHas(sources[0].toString());
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
@@ -60,12 +60,12 @@ public class ApplicationStoreGetAttributeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_APPLICATION_STORE_GET_ATTRIBUTE_JS : ERROR_MESSAGE_APPLICATION_STORE_GET_ATTRIBUTE);
+		return (inJavaScriptContext ? ERROR_MESSAGE_APPLICATION_STORE_HAS_JS : ERROR_MESSAGE_APPLICATION_STORE_HAS);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Retrieves a stored value from the application level store.";
+		return "Checks if a key is present in the application level store.";
 	}
 
 

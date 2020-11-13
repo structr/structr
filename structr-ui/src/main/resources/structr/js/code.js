@@ -2953,7 +2953,7 @@ var _Code = {
 		Structr.dialog('Run global schema method ' + schemaMethod.name, function() {}, function() {
 			$('#run-method').remove();
 			$('#clear-log').remove();
-		});
+		}, ['run-global-schema-method-dialog']);
 
 		dialogBtn.prepend('<button id="run-method">Run</button>');
 		dialogBtn.append('<button id="clear-log">Clear output</button>');

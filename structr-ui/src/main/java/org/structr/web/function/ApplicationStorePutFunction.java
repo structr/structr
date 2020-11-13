@@ -24,28 +24,28 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.schema.action.ActionContext;
 
-public class ApplicationStoreHasAttributeFunction extends UiAdvancedFunction {
+public class ApplicationStorePutFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_HAS_ATTRIBUTE    = "Usage: ${application_store_has_attribute(key)}. Example: ${application_store_has_attribute(\"do_no_track\")}";
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_HAS_ATTRIBUTE_JS = "Usage: ${{Structr.application_store_has_attribute(key)}}. Example: ${{Structr.application_store_has_attribute(\"do_not_track\")}}";
+	public static final String ERROR_MESSAGE_APPLICATION_STORE_PUT = "Usage: ${application_store_put(key,value)}. Example: ${application_store_put(\"do_no_track\", true)}";
+	public static final String ERROR_MESSAGE_APPLICATION_STORE_PUT_JS = "Usage: ${{Structr.application_store_put(key,value)}}. Example: ${{Structr.application_store_put(\"do_not_track\", true)}}";
 
 
 	@Override
 	public String getName() {
-		return "application_store_has_attribute";
+		return "application_store_put";
 	}
 
 	@Override
 	public String getSignature() {
-		return "key";
+		return "key, value";
 	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
-			return Services.getInstance().applicationStoreHasAttribute(sources[0].toString());
+			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
+			return Services.getInstance().applicationStorePut(sources[0].toString(), sources[1]);
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
@@ -60,12 +60,12 @@ public class ApplicationStoreHasAttributeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_APPLICATION_STORE_HAS_ATTRIBUTE_JS : ERROR_MESSAGE_APPLICATION_STORE_HAS_ATTRIBUTE);
+		return (inJavaScriptContext ? ERROR_MESSAGE_APPLICATION_STORE_PUT_JS : ERROR_MESSAGE_APPLICATION_STORE_PUT);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Checks if a key is present in the application level store.";
+		return "Stores a value in the application level store.";
 	}
 
 

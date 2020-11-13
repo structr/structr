@@ -24,15 +24,15 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.schema.action.ActionContext;
 
-public class ApplicationStoreDeleteAttributeFunction extends UiAdvancedFunction {
+public class ApplicationStoreGetFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_DELETE_ATTRIBUTE    = "Usage: ${application_store_delete_attribute(key)}. Example: ${application_store_delete_attribute(\"do_no_track\")}";
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_DELETE_ATTRIBUTE_JS = "Usage: ${{Structr.application_store_delete_attribute(key)}}. Example: ${{Structr.application_store_delete_attribute(\"do_not_track\")}}";
+	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET = "Usage: ${application_store_get(key)}. Example: ${application_store_get(\"do_no_track\")}";
+	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET_JS = "Usage: ${{Structr.application_store_get(key)}}. Example: ${{Structr.application_store_get(\"do_not_track\")}}";
 
 
 	@Override
 	public String getName() {
-		return "application_store_delete_attribute";
+		return "application_store_get";
 	}
 
 	@Override
@@ -45,9 +45,7 @@ public class ApplicationStoreDeleteAttributeFunction extends UiAdvancedFunction 
 		try {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
-			Services.getInstance().applicationStoreDeleteAttribute(sources[0].toString());
-
-			return null;
+			return Services.getInstance().applicationStoreGet(sources[0].toString());
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
@@ -62,12 +60,12 @@ public class ApplicationStoreDeleteAttributeFunction extends UiAdvancedFunction 
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_APPLICATION_STORE_DELETE_ATTRIBUTE_JS : ERROR_MESSAGE_APPLICATION_STORE_DELETE_ATTRIBUTE);
+		return (inJavaScriptContext ? ERROR_MESSAGE_APPLICATION_STORE_GET_JS : ERROR_MESSAGE_APPLICATION_STORE_GET);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Removes a stored value from the application level store.";
+		return "Retrieves a stored value from the application level store.";
 	}
 
 
