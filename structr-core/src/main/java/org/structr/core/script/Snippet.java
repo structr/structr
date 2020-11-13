@@ -29,11 +29,19 @@ public class Snippet {
 	private Script compiled = null;
 	private String name     = null;
 	private String source   = null;
+	private boolean embed   = true;
 
 	public Snippet(final String name, final String source) {
 
 		this.source = source;
 		this.name   = name;
+	}
+
+	public Snippet(final String name, final String source, final boolean embed) {
+
+		this.source = source;
+		this.name = name;
+		this.embed = embed;
 	}
 
 	public Snippet(final Script compiled) {
@@ -53,6 +61,6 @@ public class Snippet {
 	}
 
 	public boolean embed() {
-		return true;
+		return embed;
 	}
 }

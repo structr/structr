@@ -18,6 +18,7 @@
  */
 package org.structr.core.script.polyglot;
 
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
@@ -65,7 +66,11 @@ public abstract class PolyglotWrapper {
 		} else if (obj instanceof Date) {
 			
 			return Date.from(((Date)obj).toInstant());
+		} else if (obj instanceof Value && !((Value)obj).getContext().equals(Context.getCurrent())) {
+			// Try tu rewrap objects from foreign contexts
+			return wrap(actionContext, unwrap(actionContext, obj));
 		}
+
 		return obj;
 	}
 

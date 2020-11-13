@@ -242,7 +242,7 @@ public class Scripting {
 			Object result = null;
 			try {
 
-				result = PolyglotWrapper.unwrap(actionContext, context.eval("js", embedInFunction(snippet.getSource())));
+				result = PolyglotWrapper.unwrap(actionContext, context.eval("js", embedInFunction(snippet)));
 			} catch (PolyglotException ex) {
 
 				if (ex.isHostException()) {
@@ -257,7 +257,23 @@ public class Scripting {
 
 				RuntimeEventLog.javascript(errorName, message, lineNumber, columnNumber, type, snippet.getName(), entityDescription);
 
-				throw new FrameworkException(422, ex.getMessage());
+				StringBuilder exceptionPrefix = new StringBuilder();
+				if (entity != null) {
+					exceptionPrefix
+							.append(entity.getClass().getSimpleName())
+							.append("[")
+							.append(entity.getUuid())
+							.append("]:");
+				}
+
+				exceptionPrefix
+						.append(snippet.getName())
+						.append(":")
+						.append(lineNumber)
+						.append(":")
+						.append(columnNumber);
+
+				throw new FrameworkException(422, exceptionPrefix.toString() + "\n" + ex.getMessage());
 			}
 
 			if (actionContext.hasError()) {

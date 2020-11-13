@@ -199,7 +199,7 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 				}
 
 				value = Scripting.replaceVariables(context.getActionContext(securityContext, this), null, value.toString());
-			} catch (FrameworkException | FlowException ex) {
+			} catch (FrameworkException ex) {
 				logger.warn("FlowTypeQuery: Could not evaluate given operation.", ex);
 			}
 		}
