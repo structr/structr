@@ -20,6 +20,7 @@ package org.structr.common.event;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +36,9 @@ import org.structr.core.property.StringProperty;
 public class RuntimeEvent {
 
 	private static final Logger logger = LoggerFactory.getLogger(RuntimeEvent.class);
+	private static final AtomicLong ID_SOURCE = new AtomicLong();
 
+	private static final LongProperty _id                = new LongProperty("id");
 	private static final StringProperty _type            = new StringProperty("type");
 	private static final GenericProperty _data           = new GenericProperty("data");
 	private static final BooleanProperty _seen           = new BooleanProperty("seen");
@@ -43,6 +46,7 @@ public class RuntimeEvent {
 	private static final LongProperty _absoluteTimestamp = new LongProperty("absoluteTimestamp");
 	private static final LongProperty _relativeTimestamp = new LongProperty("relativeTimestamp");
 
+	private final long id                  = ID_SOURCE.getAndIncrement();
 	private final long absoluteTimestamp   = System.currentTimeMillis();
 	private final long relativeTimestamp   = System.nanoTime();
 	private final Map<String, Object> data = new LinkedHashMap<>();
@@ -56,6 +60,10 @@ public class RuntimeEvent {
 		this.description = description;
 
 		this.data.putAll(data);
+	}
+
+	public long getId() {
+		return id;
 	}
 
 	public long absoluteTimestamp() {
@@ -88,6 +96,7 @@ public class RuntimeEvent {
 
 		try {
 
+			result.setProperty(_id,                id);
 			result.setProperty(_type,              type);
 			result.setProperty(_absoluteTimestamp, absoluteTimestamp);
 			result.setProperty(_relativeTimestamp, relativeTimestamp);

@@ -36,8 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -76,9 +74,7 @@ import org.structr.schema.SourceFile;
  */
 public class SchemaNode extends AbstractSchemaNode {
 
-	private static final Logger logger                  = LoggerFactory.getLogger(SchemaNode.class.getName());
 	public static final String GraphQLNodeReferenceName = "StructrNodeReference";
-
 	public static final String schemaNodeNamePattern    = "[A-Z][a-zA-Z0-9_]*";
 
 	private static final Set<String> EntityNameBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {

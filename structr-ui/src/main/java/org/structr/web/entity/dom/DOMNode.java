@@ -51,6 +51,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.error.UnlicensedScriptException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -412,6 +413,13 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		DOMNode.increasePageVersion(thisNode);
 		DOMNode.checkName(thisNode, errorBuffer);
 		DOMNode.syncName(thisNode, errorBuffer);
+
+		final String uuid = thisNode.getUuid();
+		if (uuid != null) {
+
+			// acknowledge all events for this node when it is modified
+			RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
+		}
 	}
 
 	public static String escapeForHtml(final String raw) {
@@ -1068,7 +1076,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		try {
 			// If hide conditions evaluates to "true", don't render
-			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Scripting.evaluate(renderContext, thisNode, "${".concat(_hideConditions.trim()).concat("}"), "hide condition"))) {
+			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Scripting.evaluate(renderContext, thisNode, "${".concat(_hideConditions.trim()).concat("}"), "hideConditions", thisNode.getUuid()))) {
 				return false;
 			}
 
@@ -1090,7 +1098,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		try {
 			// If show conditions evaluates to "false", don't render
-			if (StringUtils.isNotBlank(_showConditions) && Boolean.FALSE.equals(Scripting.evaluate(renderContext, thisNode, "${".concat(_showConditions.trim()).concat("}"), "show condition"))) {
+			if (StringUtils.isNotBlank(_showConditions) && Boolean.FALSE.equals(Scripting.evaluate(renderContext, thisNode, "${".concat(_showConditions.trim()).concat("}"), "showConditions", thisNode.getUuid()))) {
 				return false;
 			}
 

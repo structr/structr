@@ -26,11 +26,12 @@ import org.mozilla.javascript.Script;
  */
 public class Snippet {
 
-	private Script compiled = null;
-	private String name     = null;
-	private String source   = null;
-	private boolean embed   = true;
-	private int startRow    = 0;
+	private String codeSource = null;
+	private Script compiled   = null;
+	private String name       = null;
+	private String source     = null;
+	private boolean embed     = true;
+	private int startRow      = 0;
 
 	public Snippet(final String name, final String source) {
 
@@ -72,4 +73,13 @@ public class Snippet {
 	public int getStartRow() {
 		return this.startRow;
 	}
+
+	public void setCodeSource(final String codeSource) {
+		this.codeSource = codeSource;
+	}
+
+	public String getCodeSource() {
+		return codeSource;
+	}
+
 }

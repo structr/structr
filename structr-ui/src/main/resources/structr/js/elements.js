@@ -1453,7 +1453,16 @@ var _Elements = {
 		div.append('<i title="Edit Content of ' + (entity.name ? entity.name : entity.id) + '" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
 		$('.edit_icon', div).on('click', function(e) {
 			e.stopPropagation();
-			_Elements.openEditContentDialog(this, entity);
+			_Elements.openEditContentDialog(this, entity, {
+				extraKeys: { "Ctrl-Space": "autocomplete" },
+				gutters: ["CodeMirror-lint-markers"],
+				lint: {
+					getAnnotations: function(text, callback) {
+						_Code.showScriptErrors(entity, text, callback, 'content');
+					},
+					async: true
+				}
+			});
 			return false;
 		});
 
@@ -1530,7 +1539,6 @@ var _Elements = {
 				});
 			});
 		}
-
 
 		// Experimental speech recognition, works only in Chrome 25+
 		if (typeof(webkitSpeechRecognition) === 'function') {
@@ -1662,6 +1670,8 @@ var _Elements = {
 				Command.getProperty(entity.id, 'content', function(newText) {
 					text = newText;
 				});
+
+				window.setTimeout(function() { editor.performLint(); }, 300);
 			});
 
 		});
@@ -1698,6 +1708,8 @@ var _Elements = {
 		editor.id = entity.id;
 
 		editor.focus();
+
+		window.setTimeout(function() { editor.performLint(); }, 300);
 
 	},
 	getSuggestedWidgets: function(entity, callback) {

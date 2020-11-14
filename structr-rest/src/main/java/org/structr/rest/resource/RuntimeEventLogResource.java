@@ -115,6 +115,19 @@ public class RuntimeEventLogResource extends Resource {
 
 			final HttpServletRequest request   = securityContext.getRequest();
 
+			if (request.getParameter("id") != null) {
+
+				final long id = Long.parseLong(request.getParameter("id"));
+
+				root.addPredicate(new Predicate<>() {
+
+					@Override
+					public boolean accept(final RuntimeEvent value) {
+						return id == value.getId();
+					}
+				});
+			}
+
 			if (request.getParameter("seen") != null) {
 
 				final boolean seen = Boolean.parseBoolean(request.getParameter("seen"));

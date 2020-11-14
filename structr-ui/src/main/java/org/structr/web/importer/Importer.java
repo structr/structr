@@ -988,7 +988,7 @@ public class Importer {
 
 							try {
 
-								Actions.execute(securityContext, null, source, null);
+								Actions.execute(securityContext, null, source, null, null);
 
 							} catch (UnlicensedScriptException ex) {
 								ex.log(logger);
@@ -1005,7 +1005,7 @@ public class Importer {
 
 							try {
 
-								Actions.execute(securityContext, null, source, null);
+								Actions.execute(securityContext, null, source, null, null);
 
 							} catch (UnlicensedScriptException ex) {
 								ex.log(logger);

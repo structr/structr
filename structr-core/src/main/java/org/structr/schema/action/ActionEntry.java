@@ -235,7 +235,9 @@ public class ActionEntry implements Comparable<ActionEntry> {
 				line.append(", arg2");
 			}
 
-			line.append(");");
+			line.append(", \"");
+			line.append(codeSource.getUuid());
+			line.append("\");");
 		}
 	}
 

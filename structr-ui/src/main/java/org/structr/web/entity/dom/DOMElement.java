@@ -689,7 +689,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					final String _sharedComponentConfiguration = thisElement.getProperty(StructrApp.key(DOMElement.class, "sharedComponentConfiguration"));
 					if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
 
-						Scripting.evaluate(renderContext, thisElement, "${" + _sharedComponentConfiguration.trim() + "}", "shared component configuration");
+						Scripting.evaluate(renderContext, thisElement, "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", thisElement.getUuid());
 					}
 
 					for (final RelationshipInterface rel : rels) {

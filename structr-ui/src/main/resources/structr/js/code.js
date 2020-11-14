@@ -1778,6 +1778,10 @@ var _Code = {
 
 				_Code.editPropertyContent(result, 'comment', $('#tabView-comment', codeContents));
 
+				sourceEditor.on('focus', function() {
+					sourceEditor.performLint();
+				});
+
 				if (result.codeType === 'java') {
 
 					$('li[data-name=api]').hide();
@@ -3043,16 +3047,11 @@ var _Code = {
 			switch (entity.type) {
 
 				case 'SchemaMethod':
-					if (entity.schemaNode && entity.schemaNode.name) {
-						schemaType = entity.schemaNode.name;
-					}
 					methodName = entity.name;
 					break;
-
-				default:
-					schemaType = entity.type;
-					break;
 			}
+
+			schemaType = entity.type;
 		}
 
 		$.ajax({
@@ -3061,6 +3060,7 @@ var _Code = {
 			statusCode: {
 				200: function(eventLog) {
 
+					let keys   = {};
 					let events = [];
 
 					for (var runtimeEvent of eventLog.result) {
@@ -3074,7 +3074,22 @@ var _Code = {
 							let name    = runtimeEvent.data.name;
 							let id      = runtimeEvent.data.id;
 
-							if ((!id || (entity.id && id === entity.id)) && type === schemaType && name === methodName) {
+							/*
+							console.log({
+								id: id,
+								entityId: entity.id,
+								type: type,
+								schemaType: schemaType,
+								name: name,
+								methodName: methodName
+							});
+							*/
+
+							if (
+								(!id || (entity.id && id === entity.id)) &&
+								(!type || type === schemaType) &&
+								name === methodName
+							) {
 
 								let fromLine = line-1;
 								let toLine   = line-1;
@@ -3089,44 +3104,20 @@ var _Code = {
 									toCol   = 0;
 								}
 
-								events.push({
-									from: CodeMirror.Pos(fromLine, fromCol),
-									to: CodeMirror.Pos(toLine, toCol),
-									message: 'Scripting error: ' + message,
-									severity : 'warning'
-								});
-							}
-						}
-					}
+								let key = entity.id + '.' + entity.name + ':' + fromLine + ':' + toCol;
+								if (!keys[key]) {
 
-					if (events.length > 0) {
+									keys[key] = true;
 
-						// must be delayed because the button is not always loaded when this code runs.. :(
-						window.setTimeout(function() {
-
-							let button = $('#dismiss-warnings-button');
-							button.removeClass('hidden');
-							button.off('click').on('click', function() {
-								var editor = $('.CodeMirror')[0].CodeMirror;
-								if (editor) {
-
-									// mark events as seen
-									$.ajax({
-										url: '/structr/rest/_runtimeEventLog?type=Javascript',
-										method: 'post',
-										data: JSON.stringify({
-											action: 'acknowledge'
-										}),
-										statusCode: {
-											200: function() {
-												button.addClass('hidden');
-												editor.performLint();
-											}
-										}
+									events.push({
+										from: CodeMirror.Pos(fromLine, fromCol),
+										to: CodeMirror.Pos(toLine, toCol),
+										message: 'Scripting error: ' + message,
+										severity : 'warning'
 									});
 								}
-							});
-						}, 200);
+							}
+						}
 					}
 
 					callback(events);

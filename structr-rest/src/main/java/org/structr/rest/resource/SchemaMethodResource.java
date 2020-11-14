@@ -48,17 +48,17 @@ import org.structr.schema.action.Actions;
  */
 public class SchemaMethodResource extends WrappingResource {
 
-	private static final Logger logger   = LoggerFactory.getLogger(SchemaMethodResource.class);
+	private static final Logger logger  = LoggerFactory.getLogger(SchemaMethodResource.class);
 	private TypeResource typeResource   = null;
 	private TypeResource methodResource = null;
-	private String source               = null;
+	private SchemaMethod method         = null;
 
 	public SchemaMethodResource(final SecurityContext securityContext, final TypeResource typeResource, final TypeResource methodResource) throws IllegalPathException {
 
 		this.typeResource    = typeResource;
 		this.methodResource  = methodResource;
 		this.securityContext = securityContext;
-		this.source          = findMethodSource(typeResource.getEntityClass(), methodResource.getRawType());
+		this.method          = findMethod(typeResource.getEntityClass(), methodResource.getRawType());
 	}
 
 	@Override
@@ -84,11 +84,14 @@ public class SchemaMethodResource extends WrappingResource {
 		final App app           = StructrApp.getInstance(securityContext);
 		RestMethodResult result = null;
 
-		if (source != null) {
+		if (method != null) {
 
 			try (final Tx tx = app.tx()) {
 
-				result = SchemaMethodResource.invoke(securityContext, null, source, propertySet, methodResource.getUriPart());
+				final String source = method.getProperty(SchemaMethod.source);
+
+				result = SchemaMethodResource.invoke(securityContext, null, source, propertySet, methodResource.getUriPart(), method.getUuid());
+
 				tx.success();
 			}
 		}
@@ -106,11 +109,11 @@ public class SchemaMethodResource extends WrappingResource {
 	}
 
 	// ----- private methods -----
-	public static RestMethodResult invoke(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> propertySet, final String methodName) throws FrameworkException {
+	public static RestMethodResult invoke(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> propertySet, final String methodName, final String codeSource) throws FrameworkException {
 
 		try {
 
-			return SchemaMethodResource.wrapInResult(Actions.execute(securityContext, entity, "${" + source.trim() + "}", propertySet, methodName));
+			return SchemaMethodResource.wrapInResult(Actions.execute(securityContext, entity, "${" + source.trim() + "}", propertySet, methodName, codeSource));
 
 		} catch (UnlicensedScriptException ex) {
 			ex.log(logger);
@@ -139,7 +142,7 @@ public class SchemaMethodResource extends WrappingResource {
 
 	}
 
-	public static String findMethodSource(final Class type, final String methodName) throws IllegalPathException {
+	public static SchemaMethod findMethod(final Class type, final String methodName) throws IllegalPathException {
 
 		try {
 			final App app         = StructrApp.getInstance();
@@ -158,7 +161,8 @@ public class SchemaMethodResource extends WrappingResource {
 
 							logger.warn("Deprecation warning: Calling non-static method " + methodName + " of type " + type.getSimpleName() + " in a static context. This will be prevented in future versions.");
 						}
-						return method.getProperty(SchemaMethod.source);
+
+						return method;
 					}
 				}
 

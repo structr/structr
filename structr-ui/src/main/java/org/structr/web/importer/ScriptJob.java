@@ -35,7 +35,6 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.scheduler.ScheduledJob;
 import org.structr.core.script.Scripting;
-import org.structr.core.script.Snippet;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 
@@ -66,9 +65,10 @@ public class ScriptJob extends ScheduledJob {
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
 				final SecurityContext securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
+
 				securityContext.setContextStore(ctxStore);
+
 				final ActionContext actionContext     = new ActionContext(securityContext);
-				final long startTime                  = System.currentTimeMillis();
 
 				reportBegin();
 
@@ -79,7 +79,7 @@ public class ScriptJob extends ScheduledJob {
 
 				} else if (script instanceof String) {
 
-					Scripting.evaluate(actionContext, null, (String)script, jobName);
+					Scripting.evaluate(actionContext, null, (String)script, jobName, null);
 
 				} else if (script != null) {
 

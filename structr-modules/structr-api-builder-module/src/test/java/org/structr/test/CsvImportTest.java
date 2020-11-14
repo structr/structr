@@ -627,7 +627,7 @@ public class CsvImportTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final ActionContext ctx = new ActionContext(securityContext, null);
-			Scripting.evaluate(ctx, null, callCSVImportScript, "test");
+			Scripting.evaluate(ctx, null, callCSVImportScript, "test", null);
 
 			tx.success();
 

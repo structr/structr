@@ -39,6 +39,7 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaMethodParameters;
@@ -165,6 +166,13 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 		if (Boolean.TRUE.equals(getProperty(deleteMethod))) {
 			StructrApp.getInstance().delete(this);
+		}
+
+		final String uuid = getUuid();
+		if (uuid != null) {
+
+			// acknowledge all events for this node when it is modified
+			RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
 		}
 	}
 

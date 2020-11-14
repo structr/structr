@@ -163,7 +163,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 
 				try {
 
-					return Boolean.TRUE.equals(Scripting.evaluate(ctx, value, "${" + expression.trim() + "}", "virtual type filter"));
+					return Boolean.TRUE.equals(Scripting.evaluate(ctx, value, "${" + expression.trim() + "}", "virtual type filter", null));
 
 				} catch (FrameworkException fex) {
 					final Logger logger = LoggerFactory.getLogger(VirtualType.class);

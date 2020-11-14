@@ -18,7 +18,6 @@
  */
 package org.structr.core.script.polyglot.wrappers;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
@@ -26,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
@@ -36,11 +34,7 @@ import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class StaticTypeWrapper implements ProxyObject {
@@ -62,16 +56,13 @@ public class StaticTypeWrapper implements ProxyObject {
 
 		// Ensure that  method is static
 		try (final Tx tx = app.tx()) {
-			SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(referencedClass.getSimpleName()).getFirst();
 
+			SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(referencedClass.getSimpleName()).getFirst();
 			if (schemaNode != null) {
 
-				List<SchemaMethod> schemaMethods = Iterables.toList(schemaNode.getSchemaMethodsIncludingInheritance());
-
-				for (SchemaMethod m : schemaMethods) {
+				for (SchemaMethod m : Iterables.toList(schemaNode.getSchemaMethodsIncludingInheritance())) {
 
 					if (m.getName().equals(key) && m.isStaticMethod()) {
-
 
 						return (ProxyExecutable) arguments -> {
 
@@ -87,7 +78,8 @@ public class StaticTypeWrapper implements ProxyObject {
 									}
 								}
 
-								return PolyglotWrapper.wrap(actionContext, Actions.execute(actionContext.getSecurityContext(), null, SchemaMethod.getCachedSourceCode(m.getUuid()), parameters, referencedClass.getSimpleName() + "." + key));
+								return PolyglotWrapper.wrap(actionContext, Actions.execute(actionContext.getSecurityContext(), null, SchemaMethod.getCachedSourceCode(m.getUuid()), parameters, referencedClass.getSimpleName() + "." + key, m.getUuid()));
+								
 							} catch (FrameworkException ex) {
 
 								logger.error("Unexpected exception while trying to call static schema type method.", ex);

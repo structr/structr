@@ -46,6 +46,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.OtherNodeTypeRelationFilter;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
@@ -349,8 +350,10 @@ public class StaticRelationshipResource extends WrappingResource {
 			final String methodName = typeResource.getRawType();
 
 			try {
-				final String source = SchemaMethodResource.findMethodSource(entityType, methodName);
-				result = SchemaMethodResource.invoke(securityContext, typedIdResource.getEntity(), source, propertySet, methodName);
+				final SchemaMethod method = SchemaMethodResource.findMethod(entityType, methodName);
+				final String source       = method.getProperty(SchemaMethod.source);
+
+				result = SchemaMethodResource.invoke(securityContext, typedIdResource.getEntity(), source, propertySet, methodName, method.getUuid());
 
 			} catch (IllegalPathException ex) {
 

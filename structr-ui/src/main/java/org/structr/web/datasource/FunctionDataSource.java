@@ -54,7 +54,7 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 
 		try {
 
-			final Object result = Scripting.evaluate(renderContext, referenceNode, "${" + functionQuery.trim() + "}", "function query");
+			final Object result = Scripting.evaluate(renderContext, referenceNode, "${" + functionQuery.trim() + "}", "function query", referenceNode.getUuid());
 			if (result instanceof Iterable) {
 
 				return FunctionDataSource.map((Iterable)result);

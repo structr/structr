@@ -248,7 +248,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 			final String _sharedComponentConfiguration = thisNode.getSharedComponentConfiguration();
 			if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
 
-				Scripting.evaluate(renderContext, thisNode, "${" + _sharedComponentConfiguration.trim() + "}", "shared component configuration", 0);
+				Scripting.evaluate(renderContext, thisNode, "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", 0, thisNode.getUuid());
 			}
 
 			// determine some postprocessing flags
@@ -750,7 +750,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 			} else {
 
-				final Object value = Scripting.evaluate(renderContext, node, script, "content", row);
+				final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid());
 				if (value != null) {
 
 					String content = null;

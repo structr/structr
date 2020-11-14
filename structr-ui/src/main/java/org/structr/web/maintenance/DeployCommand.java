@@ -1753,7 +1753,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info(message);
 					publishProgressMessage(progressType, message);
 
-					Scripting.evaluate(new ActionContext(ctx), null, confSource, confFile.getFileName().toString());
+					Scripting.evaluate(new ActionContext(ctx), null, confSource, confFile.getFileName().toString(), null);
 
 				} else {
 

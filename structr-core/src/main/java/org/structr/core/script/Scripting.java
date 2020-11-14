@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
 
 public class Scripting {
@@ -89,7 +90,7 @@ public class Scripting {
 
 					try {
 
-						final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0);
+						final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0, entity != null ? entity.getUuid() : null);
 						String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
 
 						// non-null value?
@@ -135,24 +136,15 @@ public class Scripting {
 		return value;
 	}
 
-	/**
-	 * Evaluate the given script according to the parsing conventions: ${} will try to evaluate
-	 * Structr script, ${{}} means Javascript, ${ENGINE{}} means calling a script interpreter for ENGINE
-	 *
-	 * @param actionContext the action context
-	 * @param entity the entity - may not be null because internal functions will fetch the security context from it
-	 * @param input the scripting input
-	 * @param methodName the name of the method for error logging
-	 *
-	 * @return
-	 * @throws FrameworkException
-	 * @throws UnlicensedScriptException
-	 */
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName) throws FrameworkException, UnlicensedScriptException {
-		return evaluate(actionContext, entity, input, methodName, 0);
+		return evaluate(actionContext, entity, input, methodName, null);
 	}
 
-	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final int startRow) throws FrameworkException, UnlicensedScriptException {
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
+		return evaluate(actionContext, entity, input, methodName, 0, codeSource);
+	}
+
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final int startRow, final String codeSource) throws FrameworkException, UnlicensedScriptException {
 
 		final String expression = StringUtils.strip(input);
 		boolean isJavascript    = expression.startsWith("${{") && expression.endsWith("}}");
@@ -202,6 +194,8 @@ public class Scripting {
 		} else if (isJavascript) {
 
 			final Snippet snippet = new Snippet(methodName, source);
+
+			snippet.setCodeSource(codeSource);
 			snippet.setStartRow(startRow);
 
 			final Object result = evaluateJavascript(actionContext, entity, snippet);
@@ -259,41 +253,41 @@ public class Scripting {
 					throw ex.asHostException();
 				}
 
-				final String type      = entity != null ? entity.getClass().getSimpleName() : "";
 				final String errorName = "Scripting Error";
 				final String message   = ex.getMessage();
 				final int lineNumber   = ex.getSourceLocation().getStartLine();
 				final int columnNumber = ex.getSourceLocation().getStartColumn();
 
-				final Map<String, Object> eventData = new LinkedHashMap<>();
+				final Map<String, Object> messageData = new LinkedHashMap<>();
+				final Map<String, Object> eventData   = new LinkedHashMap<>();
 
-				eventData.putAll(Map.of(
-					"errorName", errorName,
-					"message", message,
-					"row", lineNumber + snippet.getStartRow(),
-					"column", columnNumber,
-					"type", type,
-					"name", snippet.getName(),
-					"entity", entityDescription
-				));
+				eventData.putAll(Map.of("errorName", errorName, "message", message, "row", lineNumber + snippet.getStartRow(), "column", columnNumber, "entity", entityDescription));
+				messageData.putAll(Map.of("type", "SCRIPTING_ERROR", "message", message, "row", lineNumber + snippet.getStartRow(), "column", columnNumber));
 
-				if (entity != null) {
-					eventData.put("id", entity.getUuid());
-					eventData.put("type", entity.getClass().getSimpleName());
+				final String codeSourceId    = snippet.getCodeSource();
+				if (codeSourceId != null) {
+
+					final GraphObject codeSource = StructrApp.getInstance().getNodeById(codeSourceId);
+					if (codeSource != null) {
+
+						final String nodeType = codeSource.getClass().getSimpleName();
+						final String nodeId   = codeSource.getUuid();
+
+						eventData.put("type", nodeType);
+						eventData.put("id",   nodeId);
+
+						messageData.put("nodeType", nodeType);
+						messageData.put("nodeId", nodeId);
+					}
+				}
+
+				if (snippet.getName() != null) {
+					eventData.put("name", snippet.getName());
+					messageData.put("name", snippet.getName());
 				}
 
 				RuntimeEventLog.javascript(errorName, eventData);
-
-				TransactionCommand.simpleBroadcastGenericMessage(Map.of(
-					"type", "SCRIPTING_ERROR",
-					"message", message,
-					"nodeType", type,
-					"nodeId", entity != null ? entity.getUuid() : null,
-					"name", snippet.getName(),
-					"row", lineNumber + snippet.getStartRow(),
-					"column", columnNumber
-				));
-
+				TransactionCommand.simpleBroadcastGenericMessage(messageData);
 
 				StringBuilder exceptionPrefix = new StringBuilder();
 				if (entity != null) {

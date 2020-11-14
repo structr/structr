@@ -128,7 +128,9 @@ public interface MessageSubscriber extends NodeInterface {
 			ActionContext ac = new ActionContext(securityContext, params);
 			ac.setConstant("topic", topic);
 			ac.setConstant("message", message);
-			Scripting.evaluate(ac, thisSubscriber, script, "onMessage_Callback");
+
+			// FIXME: the code source in this call should be the schema method that this subscriber was compiled from.
+			Scripting.evaluate(ac, thisSubscriber, script, "onMessage", null);
 		}
 
 		return new RestMethodResult(200);

@@ -1916,13 +1916,46 @@ var Structr = {
 
 			case "SCRIPTING_ERROR":
 				if (data.nodeId && data.nodeType) {
+					Command.get(data.nodeId, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
 
-					Command.get(data.nodeId, 'id,type,name,ownerDocument', function (obj) {
-						let name = data.name.slice(data.name.indexOf('_html_') === 0 ? 6 : 0);
-						let page = obj.ownerDocument.type === 'ShadowDocument' ? 'shared component' : obj.ownerDocument.name;
+						let name     = data.name.slice(data.name.indexOf('_html_') === 0 ? 6 : 0);
+						let property = 'Property';
+						let title    = '';
+
+						switch (obj.type) {
+
+							case 'SchemaMethod':
+								if (obj.schemaNode) {
+									title = 'type "' + obj.schemaNode.name + '"';
+									property = 'Method';
+								} else {
+									title = 'global schema method';
+									property = 'Method';
+								}
+								break;
+
+							default:
+								if (obj.ownerDocument) {
+									if (obj.ownerDocument.type === 'ShadowDocument') {
+										title = 'shared component';
+									} else {
+										title = 'page "' + obj.ownerDocument.name  + '"';
+									}
+
+								}
+								break;
+						}
+
+						let location = '<table>'
+							+ '<tr><th>Element:</th><td style="padding-left:8px;">' + data.nodeType + '[' + data.nodeId + ']</td></tr>'
+							+ '<tr><th>' + property + ':</th><td style="padding-left:8px;">' + name + '</td></tr>'
+							+ '<tr><th>Row:</th><td style="padding-left:8px;">' + data.row + '</td></tr>'
+							+ '<tr><th>Column:</th><td style="padding-left:8px;">' + data.column + '</td></tr>'
+							+ '</table>';
+
 						new MessageBuilder()
-							.title('Script Error in ' + '\'' + name + '\' attribute of ' + data.nodeType.toLowerCase() + ' ' + data.nodeId + ' in ' + page)
-							.warning(data.message)
+							.title('Scripting error in ' + title)
+							.warning(location + '<br/>' + data.message)
 							.requiresConfirmation()
 							.specialInteractionButton('Open in editor', function(btn) {
 								switch (data.nodeType) {
@@ -1940,16 +1973,13 @@ var Structr = {
 										});
 									break;
 								default:
-									Command.get(data.nodeId, null, function (obj) {
-										_Entities.showProperties(obj);
-									});
+									_Entities.showProperties(obj);
 									break;
 							}
 						}, 'Dismiss')
 						.allowConfirmAll()
 						.show();
 					});
-
 
 				} else {
 					new MessageBuilder().title('Server-side Scripting Error').warning(data.message).requiresConfirmation().allowConfirmAll().show();

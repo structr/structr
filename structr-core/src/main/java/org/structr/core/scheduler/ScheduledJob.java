@@ -321,7 +321,7 @@ public abstract class ScheduledJob {
 
 				} else if (onFinishScript instanceof String) {
 
-					Scripting.evaluate(actionContext, null, (String)onFinishScript, jobName);
+					Scripting.evaluate(actionContext, null, (String)onFinishScript, jobName, null);
 
 				} else if (onFinishScript != null) {
 

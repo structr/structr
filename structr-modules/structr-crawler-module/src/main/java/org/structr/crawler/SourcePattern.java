@@ -153,7 +153,7 @@ public class SourcePattern extends AbstractNode {
 					// input transformation requested
 					ActionContext ctx = new ActionContext(securityContext);
 					ctx.setConstant("input", convertedValue);
-					convertedValue = Scripting.evaluate(ctx, null, "${" + mappedAttributeFunction.trim() + "}", " virtual property " + mappedAttribute);
+					convertedValue = Scripting.evaluate(ctx, null, "${" + mappedAttributeFunction.trim() + "}", " virtual property " + mappedAttribute, null);
 
 				} else {
 

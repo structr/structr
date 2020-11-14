@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.awt.*;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
@@ -112,7 +111,7 @@ public class FunctionProperty<T> extends Property<T> {
 					// don't ignore predicate
 					actionContext.setPredicate(predicate);
 
-					Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction.trim()).concat("}"), "getProperty(" + jsonName + ")");
+					Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction.trim()).concat("}"), "getProperty(" + jsonName + ")", sourceUuid);
 
 					PropertyConverter converter = null;
 
@@ -263,7 +262,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 				ctx.setConstant("value", value);
 
-				result = (T)Scripting.evaluate(ctx, obj, "${".concat(func.trim()).concat("}"), "setProperty(" + jsonName + ")");
+				result = (T)Scripting.evaluate(ctx, obj, "${".concat(func.trim()).concat("}"), "setProperty(" + jsonName + ")", sourceUuid);
 
 			} catch (FrameworkException fex) {
 
@@ -318,16 +317,16 @@ public class FunctionProperty<T> extends Property<T> {
 
 	// ----- private methods -----
 	private String getReadFunction() throws FrameworkException {
-		return getCachedSourceCode(sourceUuid, SchemaProperty.readFunction, this.readFunction);
+		return getCachedSourceCode(SchemaProperty.readFunction, this.readFunction);
 	}
 
 	private String getWriteFunction() throws FrameworkException {
-		return getCachedSourceCode(sourceUuid, SchemaProperty.writeFunction, this.writeFunction);
+		return getCachedSourceCode(SchemaProperty.writeFunction, this.writeFunction);
 	}
 
-	public String getCachedSourceCode(final String uuid, final PropertyKey<String> key, final String defaultValue) throws FrameworkException {
+	public String getCachedSourceCode(final PropertyKey<String> key, final String defaultValue) throws FrameworkException {
 
-		final SchemaProperty property = StructrApp.getInstance().get(SchemaProperty.class, uuid);
+		final SchemaProperty property = getCodeSource();
 		if (property != null) {
 
 			final String value = property.getProperty(key);
@@ -338,6 +337,10 @@ public class FunctionProperty<T> extends Property<T> {
 		}
 
 		return defaultValue;
+	}
+
+	public SchemaProperty getCodeSource() throws FrameworkException {
+		return StructrApp.getInstance().get(SchemaProperty.class, sourceUuid);
 	}
 
 	// ----- OpenAPI -----
