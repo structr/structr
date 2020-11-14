@@ -1807,7 +1807,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				realm = possiblePage.getName();
 			} else {
-				realm = (String)Scripting.replaceVariables(new ActionContext(outerSecurityContext), possiblePage, realm, false);
+				realm = (String)Scripting.replaceVariables(new ActionContext(outerSecurityContext), possiblePage, realm, false, "realm");
 			}
 
 			// check Http Basic Authentication headers

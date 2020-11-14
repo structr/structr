@@ -53,10 +53,14 @@ public class Scripting {
 	//private static final Map<String, Script> compiledScripts = Collections.synchronizedMap(new LRUMap<>(10000));
 
 	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue) throws FrameworkException {
-		return replaceVariables(actionContext, entity, rawValue, false);
+		return replaceVariables(actionContext, entity, rawValue, false, "script source");
 	}
 
-	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue, final boolean returnNullValueForEmptyResult) throws FrameworkException {
+	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue, final String methodName) throws FrameworkException {
+		return replaceVariables(actionContext, entity, rawValue, false, methodName);
+	}
+
+	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue, final boolean returnNullValueForEmptyResult, final String methodName) throws FrameworkException {
 
 		if (rawValue == null) {
 
@@ -85,7 +89,7 @@ public class Scripting {
 
 					try {
 
-						final Object extractedValue = evaluate(actionContext, entity, expression, "script source");
+						final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0);
 						String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
 
 						// non-null value?
@@ -145,6 +149,10 @@ public class Scripting {
 	 * @throws UnlicensedScriptException
 	 */
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName) throws FrameworkException, UnlicensedScriptException {
+		return evaluate(actionContext, entity, input, methodName, 0);
+	}
+
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final int startRow) throws FrameworkException, UnlicensedScriptException {
 
 		final String expression = StringUtils.strip(input);
 		boolean isJavascript    = expression.startsWith("${{") && expression.endsWith("}}");
@@ -193,7 +201,10 @@ public class Scripting {
 
 		} else if (isJavascript) {
 
-			final Object result = evaluateJavascript(actionContext, entity, new Snippet(methodName, source));
+			final Snippet snippet = new Snippet(methodName, source);
+			snippet.setStartRow(startRow);
+
+			final Object result = evaluateJavascript(actionContext, entity, snippet);
 
 			if (enableTransactionNotifactions && securityContext != null) {
 				securityContext.setDoTransactionNotifications(true);
@@ -221,7 +232,6 @@ public class Scripting {
 
 	public static Object evaluateJavascript(final ActionContext actionContext, final GraphObject entity, final Snippet snippet) throws FrameworkException {
 
-		final String entityType        = entity != null ? (entity.getClass().getSimpleName() + ".") : "";
 		final String entityName        = entity != null ? entity.getProperty(AbstractNode.name) : null;
 		final String entityDescription = entity != null ? ( StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + entity.getUuid() : "anonymous";
 
@@ -260,7 +270,7 @@ public class Scripting {
 				eventData.putAll(Map.of(
 					"errorName", errorName,
 					"message", message,
-					"row", lineNumber,
+					"row", lineNumber + snippet.getStartRow(),
 					"column", columnNumber,
 					"type", type,
 					"name", snippet.getName(),
@@ -269,7 +279,6 @@ public class Scripting {
 
 				if (entity != null) {
 					eventData.put("id", entity.getUuid());
-					eventData.put("name", entityName);
 					eventData.put("type", entity.getClass().getSimpleName());
 				}
 
@@ -279,7 +288,10 @@ public class Scripting {
 					"type", "SCRIPTING_ERROR",
 					"message", message,
 					"nodeType", type,
-					"nodeId", entity != null ? entity.getUuid() : null
+					"nodeId", entity != null ? entity.getUuid() : null,
+					"name", snippet.getName(),
+					"row", lineNumber + snippet.getStartRow(),
+					"column", columnNumber
 				));
 
 

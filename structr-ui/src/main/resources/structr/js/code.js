@@ -3033,9 +3033,9 @@ var _Code = {
 			}
 		});
 	},
-	showScriptErrors: function(entity, text, callback) {
+	showScriptErrors: function(entity, text, callback, attributeName) {
 
-		let methodName = null;
+		let methodName = attributeName;
 		let schemaType = '';
 
 		if (entity) {
@@ -3072,8 +3072,9 @@ var _Code = {
 							let column  = runtimeEvent.data.column;
 							let type    = runtimeEvent.data.type;
 							let name    = runtimeEvent.data.name;
+							let id      = runtimeEvent.data.id;
 
-							if (type === schemaType && name === methodName) {
+							if ((!id || (entity.id && id === entity.id)) && type === schemaType && name === methodName) {
 
 								let fromLine = line-1;
 								let toLine   = line-1;

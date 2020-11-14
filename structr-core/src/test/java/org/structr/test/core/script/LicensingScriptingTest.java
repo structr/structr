@@ -44,7 +44,7 @@ public class LicensingScriptingTest extends LicensingTest {
 			final String expected   = expression;
 
 			// expect the expression that uses an unlicensed built-in function to return the script source instead of an evaluation result
-			assertEquals("Invalid result for quoted template expression", expected, Scripting.replaceVariables(ctx, null, expression));
+			assertEquals("Invalid result for quoted template expression", expected, Scripting.replaceVariables(ctx, null, expression, "testUnlicensedFunctions"));
 
 			tx.success();
 

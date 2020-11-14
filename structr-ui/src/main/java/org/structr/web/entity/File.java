@@ -480,7 +480,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 					try {
 
-						final String result = Scripting.replaceVariables(new ActionContext(securityContext), thisFile, content);
+						final String result = Scripting.replaceVariables(new ActionContext(securityContext), thisFile, content, "getInputStream");
 
 						String encoding = "UTF-8";
 

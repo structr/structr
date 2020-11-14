@@ -1605,7 +1605,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		try {
 
-			result = Scripting.replaceVariables(renderContext, this, value, true);
+			result = Scripting.replaceVariables(renderContext, this, value, true, key.jsonName());
 
 		} catch (Throwable t) {
 

@@ -68,7 +68,7 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<Iterable<Graph
 
 			try {
 
-				final String query = Scripting.replaceVariables(new ActionContext(securityContext), obj, this.format);
+				final String query = Scripting.replaceVariables(new ActionContext(securityContext), obj, this.format, this.jsonName());
 				final Map<String, Object> parameters = new LinkedHashMap<>();
 
 				parameters.put("id", obj.getUuid());

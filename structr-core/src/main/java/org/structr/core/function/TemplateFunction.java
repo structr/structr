@@ -72,7 +72,7 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 					if (text != null) {
 
 						// recursive replacement call, be careful here
-						return Scripting.replaceVariables(ctx, templateInstance, text);
+						return Scripting.replaceVariables(ctx, templateInstance, text, "template()");
 					}
 
 				} else {

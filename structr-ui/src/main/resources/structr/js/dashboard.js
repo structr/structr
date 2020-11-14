@@ -700,7 +700,7 @@ var _Dashboard = {
 								break;
 
 							case 'Javascript':
-								_Dashboard.elementWithContent(tr, 'td', data.message);
+								_Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
 								break;
 
 							default:

@@ -69,7 +69,7 @@ public class ReplaceFunction extends CoreFunction {
 			if (node != null) {
 
 				// recursive replacement call, be careful here
-				return Scripting.replaceVariables(ctx, node, template);
+				return Scripting.replaceVariables(ctx, node, template, "replace()");
 			}
 
 			return "";

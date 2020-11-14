@@ -248,7 +248,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 			final String _sharedComponentConfiguration = thisNode.getSharedComponentConfiguration();
 			if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
 
-				Scripting.evaluate(renderContext, thisNode, "${" + _sharedComponentConfiguration.trim() + "}", "shared component configuration");
+				Scripting.evaluate(renderContext, thisNode, "${" + _sharedComponentConfiguration.trim() + "}", "shared component configuration", 0);
 			}
 
 			// determine some postprocessing flags
@@ -542,6 +542,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 			boolean hasSlash                 = false;
 			boolean hasBackslash             = false;
 			boolean hasDollar                = false;
+			int startRow                     = 0;
 			int level                        = 0;
 			int row                          = 0;
 			int column                       = 0;
@@ -583,6 +584,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 					case '{':
 						if (!inTemplate && hasDollar && !inComment) {
 
+							startRow   = row;
 							inTemplate = true;
 
 							// extract and handle content from non-script buffer
@@ -619,7 +621,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 							scriptBuffer.append("}");
 
 							// call handler
-							handler.handleScript(scriptBuffer.toString());
+							handler.handleScript(scriptBuffer.toString(), startRow, column);
 
 							// switch to other buffer
 							scriptBuffer.setLength(0);
@@ -694,7 +696,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 	static interface ContentHandler {
 
-		void handleScript(final String script) throws FrameworkException, IOException;
+		void handleScript(final String script, final int row, final int column) throws FrameworkException, IOException;
 		void handleIncompleteScript(final String script) throws FrameworkException, IOException;
 		void handleText(final String text) throws FrameworkException;
 		void possibleStartOfScript(final int row, final int column);
@@ -736,7 +738,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		}
 
 		@Override
-		public void handleScript(final String script) throws FrameworkException, IOException {
+		public void handleScript(final String script, final int row, final int column) throws FrameworkException, IOException {
 
 			if (renderContext.returnRawValue()) {
 
@@ -748,7 +750,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 			} else {
 
-				final Object value = Scripting.evaluate(renderContext, node, script, "script source");
+				final Object value = Scripting.evaluate(renderContext, node, script, "content", row);
 				if (value != null) {
 
 					String content = null;

@@ -49,7 +49,7 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 			String script = "${" + sources[1].toString().trim() + "}";
 			GraphObject entity = (GraphObject)sources[0];
 
-			return Scripting.replaceVariables(ctx, entity, script);
+			return Scripting.replaceVariables(ctx, entity, script, "evaluate_script()");
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());

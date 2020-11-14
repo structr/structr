@@ -457,7 +457,7 @@ public abstract class AbstractHintProvider {
 		private String scriptText = null;
 
 		@Override
-		public void handleScript(String script) throws FrameworkException, IOException {
+		public void handleScript(String script, final int row, final int column) throws FrameworkException, IOException {
 			inScript = false;
 		}
 

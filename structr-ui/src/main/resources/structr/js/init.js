@@ -1916,25 +1916,28 @@ var Structr = {
 
 			case "SCRIPTING_ERROR":
 				if (data.nodeId && data.nodeType) {
-					new MessageBuilder().title('Server-side Scripting Error')
-						.warning(data.message)
-						.requiresConfirmation()
-						.specialInteractionButton('Open content in editor', function(btn) {
-							switch (data.nodeType) {
-								case 'Content':
-								case 'Template':
-									Command.get(data.nodeId, null, function (obj) {
+
+					Command.get(data.nodeId, 'id,type,name,ownerDocument', function (obj) {
+						let name = data.name.slice(data.name.indexOf('_html_') === 0 ? 6 : 0);
+						let page = obj.ownerDocument.type === 'ShadowDocument' ? 'shared component' : obj.ownerDocument.name;
+						new MessageBuilder()
+							.title('Script Error in ' + '\'' + name + '\' attribute of ' + data.nodeType.toLowerCase() + ' ' + data.nodeId + ' in ' + page)
+							.warning(data.message)
+							.requiresConfirmation()
+							.specialInteractionButton('Open in editor', function(btn) {
+								switch (data.nodeType) {
+									case 'Content':
+									case 'Template':
 										_Elements.openEditContentDialog(btn, obj, {
 											extraKeys: { "Ctrl-Space": "autocomplete" },
 											gutters: ["CodeMirror-lint-markers"],
 											lint: {
 												getAnnotations: function(text, callback) {
-													_Code.showScriptErrors(obj, text, callback);
+													_Code.showScriptErrors(obj, text, callback, data.name);
 												},
 												async: true
 											}
 										});
-									});
 									break;
 								default:
 									Command.get(data.nodeId, null, function (obj) {
@@ -1945,6 +1948,8 @@ var Structr = {
 						}, 'Dismiss')
 						.allowConfirmAll()
 						.show();
+					});
+
 
 				} else {
 					new MessageBuilder().title('Server-side Scripting Error').warning(data.message).requiresConfirmation().allowConfirmAll().show();

@@ -370,7 +370,7 @@ public class SystemTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Scripting.replaceVariables(ctx, testNode, "${ ( set(this, 'aString', 'NewString'), set(this, 'anInt', 'NOT_AN_INTEGER') ) }");
+			Scripting.replaceVariables(ctx, testNode, "${ ( set(this, 'aString', 'NewString'), set(this, 'anInt', 'NOT_AN_INTEGER') ) }", "testRoolbackOnError");
 			fail("StructrScript: setting anInt to 'NOT_AN_INTEGER' should cause an Exception");
 
 			tx.success();

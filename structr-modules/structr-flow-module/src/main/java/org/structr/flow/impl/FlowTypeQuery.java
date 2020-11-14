@@ -35,7 +35,6 @@ import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 
@@ -198,7 +197,7 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 					context.setData(getUuid(), data);
 				}
 
-				value = Scripting.replaceVariables(context.getActionContext(securityContext, this), null, value.toString());
+				value = Scripting.replaceVariables(context.getActionContext(securityContext, this), null, value.toString(), "FlowTypeQuery");
 			} catch (FrameworkException ex) {
 				logger.warn("FlowTypeQuery: Could not evaluate given operation.", ex);
 			}
