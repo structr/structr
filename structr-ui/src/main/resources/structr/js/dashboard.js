@@ -699,7 +699,7 @@ var _Dashboard = {
 								_Dashboard.elementWithContent(tr, 'td', '<code style="white-space: pre; text-decoration: underline; text-underline-position: under;">' + JSON.stringify(data) + '</code>');
 								break;
 
-							case 'Javascript':
+							case 'Scripting':
 								_Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
 								break;
 

@@ -45,8 +45,8 @@ import org.structr.core.script.Scripting;
  */
 public class Actions {
 
-	private static final Logger logger                   = LoggerFactory.getLogger(Actions.class.getName());
-	private static final Map<String, String> methodCache = new ConcurrentHashMap<>();
+	private static final Logger logger                         = LoggerFactory.getLogger(Actions.class.getName());
+	private static final Map<String, CachedMethod> methodCache = new ConcurrentHashMap<>();
 
 	public static final String NOTIFICATION_LOGIN  = "onStructrLogin";
 	public static final String NOTIFICATION_LOGOUT = "onStructrLogout";
@@ -138,10 +138,7 @@ public class Actions {
 
 	public static Object callWithSecurityContext(final String key, final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException, UnlicensedScriptException {
 
-		String cachedSource = methodCache.get(key);
-		SchemaMethod m      = null;
-		String name         = null;
-
+		CachedMethod cachedSource = methodCache.get(key);
 		if (cachedSource == null) {
 
 			final App app = StructrApp.getInstance(securityContext);
@@ -167,9 +164,7 @@ public class Actions {
 						final String source = method.getProperty(SchemaMethod.source);
 						if (source != null) {
 
-							cachedSource = source;
-							name         = method.getName();
-							m            = method;
+							cachedSource = new CachedMethod(source, method.getName(), method.getUuid());
 
 							// store in cache
 							methodCache.put(key, cachedSource);
@@ -189,7 +184,7 @@ public class Actions {
 		}
 
 		if (cachedSource != null) {
-			return Actions.execute(securityContext, null, "${" + StringUtils.strip(cachedSource) + "}", parameters, name, m != null ? m.getUuid() : null);
+			return Actions.execute(securityContext, null, "${" + StringUtils.strip(cachedSource.sourceCode) + "}", parameters, cachedSource.name, cachedSource.uuidOfSource);
 		}
 
 		return null;
@@ -197,5 +192,20 @@ public class Actions {
 
 	public static void clearCache() {
 		methodCache.clear();
+	}
+
+	// ----- nested classes -----
+	private static class CachedMethod {
+
+		public String sourceCode   = null;
+		public String uuidOfSource = null;
+		public String name         = null;
+
+		public CachedMethod(final String sourceCode, final String name, final String uuidOfSource) {
+
+			this.sourceCode   = sourceCode;
+			this.uuidOfSource = uuidOfSource;
+			this.name         = name;
+		}
 	}
 }

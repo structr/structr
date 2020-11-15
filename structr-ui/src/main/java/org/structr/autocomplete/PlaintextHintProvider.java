@@ -34,6 +34,7 @@ import org.structr.core.parser.Expression;
 import org.structr.core.parser.FunctionExpression;
 import org.structr.core.parser.RootExpression;
 import org.structr.core.parser.ValueExpression;
+import org.structr.core.script.Snippet;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Hint;
 
@@ -59,7 +60,7 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 		try {
 
 			// parse function but ignore exceptions, we're only interested in the expression structure
-			Functions.parse(ctx, currentNode, editorText, result);
+			Functions.parse(ctx, currentNode, new Snippet("hint", editorText), result);
 
 		} catch (FrameworkException ignore) { }
 

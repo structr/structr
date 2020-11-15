@@ -1946,18 +1946,41 @@ var Structr = {
 								break;
 						}
 
-						let location = '<table>'
+						let location = '<table class="scripting-error-location">'
 							+ '<tr><th>Element:</th><td style="padding-left:8px;">' + data.nodeType + '[' + data.nodeId + ']</td></tr>'
 							+ '<tr><th>' + property + ':</th><td style="padding-left:8px;">' + name + '</td></tr>'
 							+ '<tr><th>Row:</th><td style="padding-left:8px;">' + data.row + '</td></tr>'
 							+ '<tr><th>Column:</th><td style="padding-left:8px;">' + data.column + '</td></tr>'
 							+ '</table>';
 
-						new MessageBuilder()
+						let builder = new MessageBuilder()
 							.title('Scripting error in ' + title)
 							.warning(location + '<br/>' + data.message)
-							.requiresConfirmation()
-							.specialInteractionButton('Open in editor', function(btn) {
+							.requiresConfirmation();
+
+						if (data.nodeType === 'SchemaMethod') {
+
+							let pathToOpen = '';
+
+							if (obj.schemaNode) {
+
+								pathToOpen = 'custom--' + obj.schemaNode.id + '-methods-' + obj.id;
+								
+							} else {
+
+								pathToOpen = 'global--' + obj.id;
+							}
+
+							builder.specialInteractionButton('Go to method', function(btn) {
+								window.location.href = '#code';
+								window.setTimeout(function() {
+									_Code.findAndOpenNode(pathToOpen, false);
+								}, 1000);
+							}, 'Dismiss');
+
+						} else {
+
+							builder.specialInteractionButton('Open in editor', function(btn) {
 								switch (data.nodeType) {
 									case 'Content':
 									case 'Template':
@@ -1975,10 +1998,12 @@ var Structr = {
 								default:
 									_Entities.showProperties(obj);
 									break;
-							}
-						}, 'Dismiss')
-						.allowConfirmAll()
-						.show();
+								}
+							}, 'Dismiss');
+						}
+
+						// show message
+						builder.allowConfirmAll().show();
 					});
 
 				} else {

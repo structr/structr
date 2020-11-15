@@ -56,6 +56,8 @@ import org.structr.core.parser.NullExpression;
 import org.structr.core.parser.RootExpression;
 import org.structr.core.parser.SliceExpression;
 import org.structr.core.parser.ValueExpression;
+import org.structr.core.script.Snippet;
+import org.structr.core.script.StructrScriptException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -120,11 +122,11 @@ public class Functions {
 		return new LinkedList<>(functions.values());
 	}
 
-	public static Expression parse(final ActionContext actionContext, final GraphObject entity, final String expression, final ParseResult result) throws FrameworkException, UnlicensedScriptException {
+	public static Expression parse(final ActionContext actionContext, final GraphObject entity, final Snippet snippet, final ParseResult result) throws FrameworkException, UnlicensedScriptException {
 
 		final Map<Integer, String> namespaceMap = new TreeMap<>();
-		final String expressionWithoutNewlines  = expression.replace('\n', ' ').replace('\r', ' ');
-		final StreamTokenizer tokenizer         = new StreamTokenizer(new StringReader(expressionWithoutNewlines));
+		final String expression                 = snippet.getSource();
+		final StreamTokenizer tokenizer         = new StreamTokenizer(new StringReader(expression));
 		final List<String> tokens               = result.getTokens();
 
 		tokenizer.eolIsSignificant(true);
@@ -157,9 +159,10 @@ public class Functions {
 
 				case StreamTokenizer.TT_NUMBER:
 					if (current == null) {
-						throw new FrameworkException(422, "Invalid expression: mismatched opening bracket before NUMBER");
+						throw new StructrScriptException(422, "Invalid expression: mismatched opening bracket before NUMBER", tokenizer.lineno(), 0);
 					}
-					tokens.add(Double.valueOf(tokenizer.nval).toString());
+					final String stringToken = String.valueOf(tokenizer.nval);
+					tokens.add(stringToken);
 					next = new ConstantExpression(tokenizer.nval);
 					current.add(next);
 					lastToken += "NUMBER";
@@ -167,7 +170,7 @@ public class Functions {
 
 				case StreamTokenizer.TT_WORD:
 					if (current == null) {
-						throw new FrameworkException(422, "Invalid expression: mismatched opening bracket before " + tokenizer.sval);
+						throw new StructrScriptException(422, "Invalid expression: mismatched opening bracket before " + tokenizer.sval, tokenizer.lineno(), 0);
 					}
 					next = checkReservedWords(tokenizer.sval, level, namespaceMap);
 					Expression previousExpression = current.getPrevious();
@@ -192,6 +195,11 @@ public class Functions {
 						current.add(next);
 					}
 
+					// ValueExpression plus "(" => unknown function
+					if (next instanceof ValueExpression || next instanceof ConstantExpression) {
+						throw new StructrScriptException(422, "Unknown function: " + lastToken, tokenizer.lineno(), 0);
+					}
+
 					current = next;
 					tokens.add("(");
 					lastToken += "(";
@@ -200,11 +208,11 @@ public class Functions {
 
 				case ')':
 					if (current == null) {
-						throw new FrameworkException(422, "Invalid expression: mismatched opening bracket before " + lastToken);
+						throw new StructrScriptException(422, "Invalid expression: mismatched opening bracket before " + lastToken, tokenizer.lineno(), 0);
 					}
 					current = current.getParent();
 					if (current == null) {
-						throw new FrameworkException(422, "Invalid expression: mismatched closing bracket after " + lastToken);
+						throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket after " + lastToken, tokenizer.lineno(), 0);
 					}
 					tokens.add(")");
 					lastToken += ")";
@@ -224,11 +232,11 @@ public class Functions {
 
 				case ']':
 					if (current == null) {
-						throw new FrameworkException(422, "Invalid expression: mismatched closing bracket before " + lastToken);
+						throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket before " + lastToken, tokenizer.lineno(), 0);
 					}
 					current = current.getParent();
 					if (current == null) {
-						throw new FrameworkException(422, "Invalid expression: mismatched closing bracket after " + lastToken);
+						throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket after " + lastToken, tokenizer.lineno(), 0);
 					}
 					tokens.add("]");
 					lastToken += "]";
@@ -249,7 +257,7 @@ public class Functions {
 
 				default:
 					if (current == null) {
-						throw new FrameworkException(422, "Invalid expression: mismatched opening bracket before " + tokenizer.sval);
+						throw new StructrScriptException(422, "Invalid expression: mismatched opening bracket before " + tokenizer.sval, tokenizer.lineno(), 0);
 					}
 					final ConstantExpression constantExpression = new ConstantExpression(tokenizer.sval);
 					final String quoteChar                      = new String(new int[] { tokenizer.ttype }, 0, 1);
@@ -261,20 +269,21 @@ public class Functions {
 						tokens.add(quoteChar + tokenizer.sval + quoteChar);
 					}
 					lastToken = tokenizer.sval;
+					break;
 
 			}
 		}
 
 		if (level > 0) {
-			throw new FrameworkException(422, "Invalid expression: mismatched closing bracket after " + lastToken);
+			throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket after " + lastToken, tokenizer.lineno(), 0);
 		}
 
 		return root;
 	}
 
-	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException, UnlicensedScriptException {
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final Snippet snippet) throws FrameworkException, UnlicensedScriptException {
 
-		final Expression root = parse(actionContext, entity, expression, new ParseResult());
+		final Expression root = parse(actionContext, entity, snippet, new ParseResult());
 
 		return root.evaluate(actionContext, entity);
 	}

@@ -23,7 +23,6 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -51,7 +50,6 @@ public class Scripting {
 
 	private static final Logger logger                       = LoggerFactory.getLogger(Scripting.class.getName());
 	private static final Pattern ScriptEngineExpression      = Pattern.compile("^\\$\\{(\\w+)\\{(.*)\\}\\}$", Pattern.DOTALL);
-	//private static final Map<String, Script> compiledScripts = Collections.synchronizedMap(new LRUMap<>(10000));
 
 	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue) throws FrameworkException {
 		return replaceVariables(actionContext, entity, rawValue, false, "script source");
@@ -155,8 +153,8 @@ public class Scripting {
 			return null;
 		}
 
-		String engine = "";
 		boolean isScriptEngine = false;
+		String engine          = "";
 
 		if (!isJavascript) {
 
@@ -187,16 +185,15 @@ public class Scripting {
 			securityContext.setDoTransactionNotifications(false);
 		}
 
+		final Snippet snippet  = new Snippet(methodName, source);
+		snippet.setCodeSource(codeSource);
+		snippet.setStartRow(startRow);
+
 		if (isScriptEngine) {
 
-			return evaluateScript(actionContext, entity, engine, source);
+			return evaluateScript(actionContext, entity, engine, snippet);
 
 		} else if (isJavascript) {
-
-			final Snippet snippet = new Snippet(methodName, source);
-
-			snippet.setCodeSource(codeSource);
-			snippet.setStartRow(startRow);
 
 			final Object result = evaluateJavascript(actionContext, entity, snippet);
 
@@ -208,26 +205,36 @@ public class Scripting {
 
 		} else {
 
-			Object extractedValue = Functions.evaluate(actionContext, entity, source);
-			final String value    = extractedValue != null ? extractedValue.toString() : "";
-			final String output   = actionContext.getOutput();
+			try {
 
-			if (StringUtils.isEmpty(value) && output != null && !output.isEmpty()) {
-				extractedValue = output;
+				Object extractedValue = Functions.evaluate(actionContext, entity, snippet);
+				final String value    = extractedValue != null ? extractedValue.toString() : "";
+				final String output   = actionContext.getOutput();
+
+				if (StringUtils.isEmpty(value) && output != null && !output.isEmpty()) {
+					extractedValue = output;
+				}
+
+				if (enableTransactionNotifactions && securityContext != null) {
+					securityContext.setDoTransactionNotifications(true);
+				}
+
+				return extractedValue;
+
+			} catch (StructrScriptException t) {
+
+				reportError(t.getMessage(), t.getRow(), t.getColumn(), snippet);
+
+			} catch (Throwable t) {
+
+				reportError(t.getMessage(), 1, 1, snippet);
 			}
 
-			if (enableTransactionNotifactions && securityContext != null) {
-				securityContext.setDoTransactionNotifications(true);
-			}
-
-			return extractedValue;
+			return null;
 		}
 	}
 
 	public static Object evaluateJavascript(final ActionContext actionContext, final GraphObject entity, final Snippet snippet) throws FrameworkException {
-
-		final String entityName        = entity != null ? entity.getProperty(AbstractNode.name) : null;
-		final String entityDescription = entity != null ? ( StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + entity.getUuid() : "anonymous";
 
 		// Clear output buffer
 		actionContext.clear();
@@ -244,68 +251,18 @@ public class Scripting {
 		try {
 
 			Object result = null;
+
 			try {
 
 				result = PolyglotWrapper.unwrap(actionContext, context.eval("js", embedInFunction(snippet)));
+
 			} catch (PolyglotException ex) {
 
 				if (ex.isHostException()) {
 					throw ex.asHostException();
 				}
 
-				final String errorName = "Scripting Error";
-				final String message   = ex.getMessage();
-				final int lineNumber   = ex.getSourceLocation().getStartLine();
-				final int columnNumber = ex.getSourceLocation().getStartColumn();
-
-				final Map<String, Object> messageData = new LinkedHashMap<>();
-				final Map<String, Object> eventData   = new LinkedHashMap<>();
-
-				eventData.putAll(Map.of("errorName", errorName, "message", message, "row", lineNumber + snippet.getStartRow(), "column", columnNumber, "entity", entityDescription));
-				messageData.putAll(Map.of("type", "SCRIPTING_ERROR", "message", message, "row", lineNumber + snippet.getStartRow(), "column", columnNumber));
-
-				final String codeSourceId    = snippet.getCodeSource();
-				if (codeSourceId != null) {
-
-					final GraphObject codeSource = StructrApp.getInstance().getNodeById(codeSourceId);
-					if (codeSource != null) {
-
-						final String nodeType = codeSource.getClass().getSimpleName();
-						final String nodeId   = codeSource.getUuid();
-
-						eventData.put("type", nodeType);
-						eventData.put("id",   nodeId);
-
-						messageData.put("nodeType", nodeType);
-						messageData.put("nodeId", nodeId);
-					}
-				}
-
-				if (snippet.getName() != null) {
-					eventData.put("name", snippet.getName());
-					messageData.put("name", snippet.getName());
-				}
-
-				RuntimeEventLog.javascript(errorName, eventData);
-				TransactionCommand.simpleBroadcastGenericMessage(messageData);
-
-				StringBuilder exceptionPrefix = new StringBuilder();
-				if (entity != null) {
-					exceptionPrefix
-							.append(entity.getClass().getSimpleName())
-							.append("[")
-							.append(entity.getUuid())
-							.append("]:");
-				}
-
-				exceptionPrefix
-						.append(snippet.getName())
-						.append(":")
-						.append(lineNumber)
-						.append(":")
-						.append(columnNumber);
-
-				throw new FrameworkException(422, exceptionPrefix.toString() + "\n" + ex.getMessage());
+				reportError(ex, snippet);
 			}
 
 			if (actionContext.hasError()) {
@@ -320,21 +277,26 @@ public class Scripting {
 			}
 
 			return result != null ? result : "";
+
 		} catch (RuntimeException ex) {
 
 			if (ex.getCause() instanceof FrameworkException) {
 
 				throw (FrameworkException) ex.getCause();
+
 			} else {
 
 				throw new FrameworkException(422, "Server-side scripting error", ex);
 			}
+
 		} catch (FrameworkException ex) {
 
 			throw ex;
+
 		} catch (Throwable ex) {
 
 			throw new FrameworkException(422, "Server-side scripting error", ex);
+
 		} finally {
 
 			context.leave();
@@ -342,34 +304,8 @@ public class Scripting {
 
 	}
 
-
-	private static String getExceptionMessage (final ActionContext actionContext) {
-
-		final StringBuilder sb = new StringBuilder("Exception in Scripting context");
-
-		if (Settings.LogJSExcpetionRequest.getValue()) {
-
-			sb.append(" (");
-
-			final String requestInfo = actionContext.getRequestInfoForVerboseJavaScriptExceptionLog();
-
-			if (requestInfo != null) {
-
-				sb.append(requestInfo);
-
-			} else {
-
-				sb.append("no request information available for this scripting error");
-			}
-
-			sb.append(")");
-		}
-
-		return sb.toString();
-	}
-
 	// ----- private methods -----
-	private static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final String script) throws FrameworkException {
+	private static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final Snippet snippet) throws FrameworkException {
 
 		try {
 
@@ -390,12 +326,12 @@ public class Scripting {
 			switch (engineName) {
 				case "R":
 					wrappedScript.append("main <- function() {");
-					wrappedScript.append(script);
+					wrappedScript.append(snippet.getSource());
 					wrappedScript.append("}\n");
 					break;
 				case "python":
 					// Prepend tabs
-					final String tabPrependedScript = Arrays.stream(script.trim().split("\n")).map(line -> "	" + line).collect(Collectors.joining("\n"));
+					final String tabPrependedScript = Arrays.stream(snippet.getSource().trim().split("\n")).map(line -> "	" + line).collect(Collectors.joining("\n"));
 					wrappedScript.append("def main():\n");
 					wrappedScript.append(tabPrependedScript);
 					wrappedScript.append("\n");
@@ -408,13 +344,14 @@ public class Scripting {
 			try {
 
 				result = PolyglotWrapper.unwrap(actionContext, context.getBindings(engineName).getMember("main").execute());
+
 			} catch (PolyglotException ex) {
 
 				if (ex.isHostException()) {
 					throw ex.asHostException();
 				}
 
-				throw ex;
+				reportError(ex, snippet);
 			}
 
 			context.leave();
@@ -432,23 +369,26 @@ public class Scripting {
 			}
 
 			return result != null ? result : "";
+
 		} catch (RuntimeException ex) {
 
 			if (ex.getCause() instanceof FrameworkException) {
 
 				throw (FrameworkException) ex.getCause();
+
 			} else {
 
 				throw new FrameworkException(422, "Server-side scripting error", ex);
 			}
+
 		} catch (FrameworkException ex) {
 
 			throw ex;
+
 		} catch (Throwable ex) {
 
 			throw new FrameworkException(422, "Server-side scripting error", ex);
 		}
-
 	}
 
 
@@ -667,6 +607,60 @@ public class Scripting {
 			return value.toString();
 
 		}
+	}
+
+	private static void reportError(final PolyglotException ex, final Snippet snippet) throws FrameworkException {
+
+		final String message                  = ex.getMessage();
+		final int lineNumber                  = ex.getSourceLocation().getStartLine();
+		final int columnNumber                = ex.getSourceLocation().getStartColumn();
+
+		reportError(message, lineNumber, columnNumber, snippet);
+	}
+
+	private static void reportError(final String message, final int lineNumber, final int columnNumber, final Snippet snippet) throws FrameworkException {
+
+		final String entityName               = snippet.getName();
+		final String entityDescription        = (StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + snippet.getCodeSource();
+		final Map<String, Object> messageData = new LinkedHashMap<>();
+		final Map<String, Object> eventData   = new LinkedHashMap<>();
+		final StringBuilder exceptionPrefix   = new StringBuilder();
+		final String errorName                = "Scripting Error";
+
+		eventData.putAll(Map.of("errorName", errorName, "message", message, "row", lineNumber + snippet.getStartRow(), "column", columnNumber, "entity", entityDescription));
+		messageData.putAll(Map.of("type", "SCRIPTING_ERROR", "message", message, "row", lineNumber + snippet.getStartRow(), "column", columnNumber));
+
+		final String codeSourceId = snippet.getCodeSource();
+		if (codeSourceId != null) {
+
+			final GraphObject codeSource = StructrApp.getInstance().getNodeById(codeSourceId);
+			if (codeSource != null) {
+
+				final String nodeType = codeSource.getClass().getSimpleName();
+				final String nodeId   = codeSource.getUuid();
+
+				eventData.put("type", nodeType);
+				eventData.put("id",   nodeId);
+
+				messageData.put("nodeType", nodeType);
+				messageData.put("nodeId", nodeId);
+
+				// Content[72726c4697c843ba9c34cb17a3f76a7d]:
+				exceptionPrefix.append(nodeType).append("[").append(nodeId).append("]:");
+			}
+		}
+
+		if (snippet.getName() != null) {
+			eventData.put("name", snippet.getName());
+			messageData.put("name", snippet.getName());
+		}
+
+		RuntimeEventLog.scripting(errorName, eventData);
+		TransactionCommand.simpleBroadcastGenericMessage(messageData);
+
+		exceptionPrefix.append(snippet.getName()).append(":").append(lineNumber).append(":").append(columnNumber);
+
+		throw new FrameworkException(422, exceptionPrefix.toString() + "\n" + message);
 	}
 
 	// ----- nested classes -----

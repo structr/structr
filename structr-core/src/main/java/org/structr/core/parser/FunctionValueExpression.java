@@ -37,7 +37,6 @@ public class FunctionValueExpression extends Expression {
 		this.valueExpression    = valueExpression;
 	}
 
-
 	@Override
 	public String toString() {
 
@@ -69,5 +68,4 @@ public class FunctionValueExpression extends Expression {
 	public Object transform(ActionContext ctx, GraphObject entity, Object source) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
-
 }

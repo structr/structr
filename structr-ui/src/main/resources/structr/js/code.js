@@ -3055,7 +3055,7 @@ var _Code = {
 		}
 
 		$.ajax({
-			url: '/structr/rest/_runtimeEventLog?type=Javascript&seen=false&pageSize=100',
+			url: '/structr/rest/_runtimeEventLog?type=Scripting&seen=false&pageSize=100',
 			method: 'get',
 			statusCode: {
 				200: function(eventLog) {
@@ -3074,7 +3074,6 @@ var _Code = {
 							let name    = runtimeEvent.data.name;
 							let id      = runtimeEvent.data.id;
 
-							/*
 							console.log({
 								id: id,
 								entityId: entity.id,
@@ -3083,7 +3082,6 @@ var _Code = {
 								name: name,
 								methodName: methodName
 							});
-							*/
 
 							if (
 								(!id || (entity.id && id === entity.id)) &&

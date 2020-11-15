@@ -258,7 +258,7 @@ public class Console {
 
 		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-			final Object result = Functions.evaluate(actionContext, null, line);
+			final Object result = Functions.evaluate(actionContext, null, new Snippet("console", line));
 			if (result != null) {
 
 				if (result instanceof Iterable) {
@@ -290,7 +290,7 @@ public class Console {
 			Object extractedValue = Scripting.evaluateJavascript(actionContext, null, script);
 
 			if (!extractedValue.toString().isEmpty()) {
-				
+
 				writable.println(extractedValue.toString());
 			}
 
