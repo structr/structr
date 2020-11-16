@@ -1953,7 +1953,6 @@ button.enabled, button.active {
 #pagesTree ._html_class_ {
 	margin-top: -1px;
 	display: inline-block;
-	vertical-align: top;
 }
 
 .node .linkable {
@@ -4643,6 +4642,8 @@ i.fa.ps {
 }
 
 .class-id-attrs {
+	vertical-align: text-top;
+	line-height: 1.3em;
 	pointer-events: none;
 }
 
