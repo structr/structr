@@ -40,7 +40,7 @@ public class ScriptTestHelper {
 			final String script = IOUtils.toString(is, "utf-8");
 			if (script != null) {
 
-				return Scripting.evaluateJavascript(actionContext, null, new TestSnippet("test", script));
+				return Scripting.evaluateJavascript(actionContext, null, new Snippet("test", script));
 			}
 
 		} catch (IOException ioex) {
@@ -50,16 +50,4 @@ public class ScriptTestHelper {
 		return null;
 	}
 
-	// ----- nested classes -----
-	private static class TestSnippet extends Snippet {
-
-		public TestSnippet(final String name, final String source) {
-			super(name, source);
-		}
-
-		@Override
-		public boolean embed() {
-			return false;
-		}
-	}
 }

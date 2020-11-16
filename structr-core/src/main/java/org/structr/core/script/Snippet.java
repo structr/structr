@@ -37,6 +37,7 @@ public class Snippet {
 
 		this.source = source;
 		this.name   = name;
+		this.embed = true;
 	}
 
 	public Snippet(final String name, final String source, final boolean embed) {
@@ -63,7 +64,7 @@ public class Snippet {
 	}
 
 	public boolean embed() {
-		return embed;
+		return this.embed;
 	}
 
 	public void setStartRow(final int startRow) {
