@@ -23,8 +23,6 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -789,7 +787,9 @@ public class ScriptingTest extends StructrTest {
 				fail("A mismatched opening bracket should throw an exception.");
 
 			} catch (FrameworkException fex) {
-				assertEquals("Invalid expression: mismatched closing bracket after this.alwaysNull.size", fex.getMessage());
+
+				final String expectedMessage = "TestOne[" + testOne.getUuid() + "]:script source:1:0\nInvalid expression: mismatched closing bracket after this.alwaysNull.size";
+				assertEquals(expectedMessage, fex.getMessage());
 			}
 
 			assertEquals("Invalid size result", "", Scripting.replaceVariables(ctx, testOne, "${this.alwaysNull.size}"));
@@ -5516,7 +5516,7 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 	}
-	
+
 	@Test
 	public void testStaticAndDynamicMethodCall() {
 

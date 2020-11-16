@@ -223,11 +223,8 @@ public class Scripting {
 
 			} catch (StructrScriptException t) {
 
+				// StructrScript evaluation should not throw exceptions
 				reportError(t.getMessage(), t.getRow(), t.getColumn(), snippet);
-
-			} catch (Throwable t) {
-
-				reportError(t.getMessage(), 1, 1, snippet);
 			}
 
 			return null;
@@ -627,8 +624,11 @@ public class Scripting {
 		final StringBuilder exceptionPrefix   = new StringBuilder();
 		final String errorName                = "Scripting Error";
 
-		eventData.putAll(Map.of("errorName", errorName, "message", message, "row", lineNumber + snippet.getStartRow(), "column", columnNumber, "entity", entityDescription));
-		messageData.putAll(Map.of("type", "SCRIPTING_ERROR", "message", message, "row", lineNumber + snippet.getStartRow(), "column", columnNumber));
+		eventData.putAll(Map.of("errorName", errorName, "row", lineNumber + snippet.getStartRow(), "column", columnNumber, "entity", entityDescription));
+		messageData.putAll(Map.of("type", "SCRIPTING_ERROR", "row", lineNumber + snippet.getStartRow(), "column", columnNumber));
+
+		putIfNotNull(eventData,   "message", message);
+		putIfNotNull(messageData, "message", message);
 
 		final String codeSourceId = snippet.getCodeSource();
 		if (codeSourceId != null) {
@@ -663,6 +663,14 @@ public class Scripting {
 		throw new FrameworkException(422, exceptionPrefix.toString() + "\n" + message);
 	}
 
+	private static void putIfNotNull(final Map<String, Object> map, final String key, final Object value) {
+
+		if (value != null) {
+
+			map.put(key, value);
+		}
+	}
+
 	// ----- nested classes -----
 	private static class Tuple {
 
@@ -674,10 +682,4 @@ public class Scripting {
 			this.value = value;
 		}
 	}
-
-	public static void main(final String[] args) {
-
-		extractScripts("blah${'blah'}test");
-	}
-
 }
