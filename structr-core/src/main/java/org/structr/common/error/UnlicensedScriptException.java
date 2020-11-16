@@ -30,6 +30,8 @@ public class UnlicensedScriptException extends RuntimeException {
 
 	public UnlicensedScriptException(final String name, final String module) {
 
+		super("UnlicensedScriptException: " + module + ", " + name);
+
 		this.module = module;
 		this.name   = name;
 	}

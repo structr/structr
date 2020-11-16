@@ -197,7 +197,8 @@ public class Functions {
 
 					// ValueExpression plus "(" => unknown function
 					if (next instanceof ValueExpression || next instanceof ConstantExpression) {
-						throw new StructrScriptException(422, "Unknown function: " + lastToken, tokenizer.lineno(), 0);
+						//throw new StructrScriptException(422, "Unknown function: " + lastToken, tokenizer.lineno(), 0);
+						System.out.println(next);
 					}
 
 					current = next;
