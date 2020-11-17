@@ -18,8 +18,6 @@
  */
 package org.structr.core.script;
 
-import org.mozilla.javascript.Script;
-
 /**
  * A small piece of JavaScript code that can either be
  * compiled or run directly.
@@ -27,7 +25,6 @@ import org.mozilla.javascript.Script;
 public class Snippet {
 
 	private String codeSource = null;
-	private Script compiled   = null;
 	private String name       = null;
 	private String source     = null;
 	private boolean embed     = true;
@@ -45,14 +42,6 @@ public class Snippet {
 		this.source = source;
 		this.name = name;
 		this.embed = embed;
-	}
-
-	public Snippet(final Script compiled) {
-		this.compiled = compiled;
-	}
-
-	public Script getCompiledScript() {
-		return compiled;
 	}
 
 	public String getName() {

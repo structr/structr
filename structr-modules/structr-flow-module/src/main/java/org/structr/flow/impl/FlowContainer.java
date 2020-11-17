@@ -18,7 +18,6 @@
  */
 package org.structr.flow.impl;
 
-import org.mozilla.javascript.NativeArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;

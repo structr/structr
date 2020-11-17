@@ -23,8 +23,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.ClassUtils;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.ScriptRuntime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
@@ -203,7 +201,7 @@ public class SchemaMethodResource extends WrappingResource {
 				return false;
 			}
 
-			final Object unwrapped = Context.jsToJava(source, ScriptRuntime.ObjectClass);
+			final Object unwrapped = source;
 			if (unwrapped.getClass().isArray()) {
 
 				for (final Object element : (Object[])unwrapped) {
