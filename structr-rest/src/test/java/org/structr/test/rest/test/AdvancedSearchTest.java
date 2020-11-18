@@ -839,6 +839,8 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 		} catch (FrameworkException ex) {
 
+			ex.printStackTrace();
+
 			logger.warn("", ex);
 			fail("Unexpected exception");
 

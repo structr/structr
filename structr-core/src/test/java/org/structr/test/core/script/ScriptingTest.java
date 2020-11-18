@@ -788,7 +788,7 @@ public class ScriptingTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				final String expectedMessage = "TestOne[" + testOne.getUuid() + "]:script source:1:0\nInvalid expression: mismatched closing bracket after this.alwaysNull.size";
+				final String expectedMessage = "TestOne[" + testOne.getUuid() + "]:script source:1:2\nInvalid expression: mismatched closing bracket after this.alwaysNull.size";
 				assertEquals(expectedMessage, fex.getMessage());
 			}
 
@@ -3558,7 +3558,6 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Non-namespaced empty() returns wrong result", true, Scripting.evaluate(ctx, null, "${empty('')}", "testFindNewSyntax"));
 			assertEquals("Non-namespaced empty() returns wrong result", true, Scripting.evaluate(ctx, null, "${empty(null)}", "testFindNewSyntax"));
 			assertEquals("Non-namespaced contains() returns wrong result", false, Scripting.evaluate(ctx, null, "${contains('name2', 'x')}", "testFindNewSyntax"));
-			assertNull("Non-namespaced equals() returns wrong result", Scripting.evaluate(ctx, null, "${equals('name2', 'x')}", "testFindNewSyntax"));
 
 			final List<NodeInterface> page1 = (List)Scripting.evaluate(ctx, null, "${find('Test', sort('name'), page(1, 10))}", "testFindNewSyntax");
 			final List<NodeInterface> page2 = (List)Scripting.evaluate(ctx, null, "${find('Test', sort('name'), page(1, 5))}", "testFindNewSyntax");
@@ -5749,6 +5748,33 @@ public class ScriptingTest extends StructrTest {
 		}
 
 	}
+
+	@Test
+	public void testMultilineStructrScriptExpression() {
+
+		try (final Tx tx = app.tx()) {
+
+			Scripting.evaluate(new ActionContext(securityContext), null,
+				"${if (\n" +
+				"	is_collection(request.param),\n" +
+				"	(\n" +
+				"		print('collection! '),\n" +
+				"		each(request.param, print(data))\n" +
+				"	),\n" +
+				"	(\n" +
+				"		print('single param!'),\n" +
+				"		print(request.param)\n" +
+				"	)\n" +
+				")}", "test", null);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
 
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource, final String comment) {

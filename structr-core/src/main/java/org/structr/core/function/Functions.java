@@ -18,9 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.io.IOException;
-import java.io.StreamTokenizer;
-import java.io.StringReader;
 import java.text.Normalizer;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -126,55 +123,39 @@ public class Functions {
 
 		final Map<Integer, String> namespaceMap = new TreeMap<>();
 		final String expression                 = snippet.getSource();
-		final StreamTokenizer tokenizer         = new StreamTokenizer(new StringReader(expression));
 		final List<String> tokens               = result.getTokens();
-
-		tokenizer.eolIsSignificant(true);
-		tokenizer.ordinaryChar('.');
-		tokenizer.wordChars('_', '_');
-		tokenizer.wordChars('.', '.');
-		tokenizer.wordChars('!', '!');
+		final StructrScriptTokenizer tokenizer  = new StructrScriptTokenizer();
 
 		Expression root = new RootExpression();
 		Expression current = root;
 		Expression next = null;
-		String lastToken = null;
-		int token = 0;
+		Token lastToken = null;
 		int level = 0;
 
 		// store root result for access even when an exception occurs while parsing
 		result.setRootExpression(root);
 
-		while (token != StreamTokenizer.TT_EOF) {
+		for (final Token token : tokenizer.tokenize(expression)) {
 
-			token = nextToken(tokenizer);
+			switch (token.type) {
 
-			switch (token) {
-
-				case StreamTokenizer.TT_EOF:
-					break;
-
-				case StreamTokenizer.TT_EOL:
-					break;
-
-				case StreamTokenizer.TT_NUMBER:
+				case "number":
 					if (current == null) {
-						throw new StructrScriptException(422, "Invalid expression: mismatched opening bracket before NUMBER", tokenizer.lineno(), 0);
+						throw new StructrScriptException(422, "Invalid expression: mismatched opening bracket before NUMBER", token.row, token.column);
 					}
-					final String stringToken = String.valueOf(tokenizer.nval);
+					final String stringToken = String.valueOf(token.content);
 					tokens.add(stringToken);
-					next = new ConstantExpression(tokenizer.nval);
+					next = new ConstantExpression(Double.valueOf(token.content));
 					current.add(next);
-					lastToken += "NUMBER";
 					break;
 
-				case StreamTokenizer.TT_WORD:
+				case "identifier":
 					if (current == null) {
-						throw new StructrScriptException(422, "Invalid expression: mismatched opening bracket before " + tokenizer.sval, tokenizer.lineno(), 0);
+						throw new StructrScriptException(422, "Invalid expression: mismatched opening bracket before " + token.content, token.row, token.column);
 					}
-					next = checkReservedWords(tokenizer.sval, level, namespaceMap);
+					next = checkReservedWords(token.content, level, namespaceMap);
 					Expression previousExpression = current.getPrevious();
-					if (tokenizer.sval.startsWith(".") && previousExpression != null && previousExpression instanceof FunctionExpression && next instanceof ValueExpression) {
+					if (token.content.startsWith(".") && previousExpression != null && previousExpression instanceof FunctionExpression && next instanceof ValueExpression) {
 
 						final FunctionExpression previousFunctionExpression = (FunctionExpression) previousExpression;
 						final ValueExpression    valueExpression            = (ValueExpression) next;
@@ -183,11 +164,10 @@ public class Functions {
 					} else {
 						current.add(next);
 					}
-					tokens.add(tokenizer.sval);
-					lastToken = tokenizer.sval;
+					tokens.add(token.content);
 					break;
 
-				case '(':
+				case "(":
 					if (((current == null || current instanceof RootExpression) && next == null) || current == next) {
 
 						// an additional bracket without a new function, this can only be an execution group.
@@ -197,86 +177,84 @@ public class Functions {
 
 					// ValueExpression plus "(" => unknown function
 					if (next instanceof ValueExpression || next instanceof ConstantExpression) {
-						//throw new StructrScriptException(422, "Unknown function: " + lastToken, tokenizer.lineno(), 0);
-						System.out.println(next);
+
+						// check if the token is something like myEntity.methodToBeCalled() and don't throw an exception then
+						if (!lastToken.content.contains(".")) {
+
+							throw new StructrScriptException(422, "Unknown function: " + lastToken.content, token.row, token.column);
+						}
 					}
 
 					current = next;
 					tokens.add("(");
-					lastToken += "(";
 					level++;
 					break;
 
-				case ')':
+				case ")":
 					if (current == null) {
-						throw new StructrScriptException(422, "Invalid expression: mismatched opening bracket before " + lastToken, tokenizer.lineno(), 0);
+						throw new StructrScriptException(422, "Invalid expression: mismatched opening bracket before " + token.content, token.row, token.column);
 					}
 					current = current.getParent();
 					if (current == null) {
-						throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket after " + lastToken, tokenizer.lineno(), 0);
+						throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket after " + token.content, token.row, token.column);
 					}
 					tokens.add(")");
-					lastToken += ")";
 					level--;
 					namespaceMap.remove(level);
 					break;
 
-				case '[':
+				case "[":
 					// bind directly to the previous expression
 					next = new ArrayExpression();
 					current.add(next);
 					current = next;
 					tokens.add("[");
-					lastToken += "[";
 					level++;
 					break;
 
-				case ']':
+				case "]":
 					if (current == null) {
-						throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket before " + lastToken, tokenizer.lineno(), 0);
+						throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket before " + token.content, token.row, token.column);
 					}
 					current = current.getParent();
 					if (current == null) {
-						throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket after " + lastToken, tokenizer.lineno(), 0);
+						throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket after " + token.content, token.row, token.column);
 					}
 					tokens.add("]");
-					lastToken += "]";
 					level--;
 					break;
 
-				case ';':
+				case ";":
 					next = null;
 					tokens.add(";");
-					lastToken += ";";
 					break;
 
-				case ',':
+				case ",":
 					tokens.add(",");
 					next = current;
-					lastToken += ",";
 					break;
 
-				default:
+				case "string":
 					if (current == null) {
-						throw new StructrScriptException(422, "Invalid expression: mismatched opening bracket before " + tokenizer.sval, tokenizer.lineno(), 0);
+						throw new StructrScriptException(422, "Invalid expression: mismatched opening bracket before " + token.content, token.row, token.column);
 					}
-					final ConstantExpression constantExpression = new ConstantExpression(tokenizer.sval);
-					final String quoteChar                      = new String(new int[] { tokenizer.ttype }, 0, 1);
+					final ConstantExpression constantExpression = new ConstantExpression(token.content);
+					final String quoteChar                      = token.quote;
 					current.add(constantExpression);
 					constantExpression.setQuoteChar(quoteChar);
-					if (StringUtils.isEmpty(tokenizer.sval)) {
+					if (StringUtils.isEmpty(token.content)) {
 						tokens.add(quoteChar);
 					} else {
-						tokens.add(quoteChar + tokenizer.sval + quoteChar);
+						tokens.add(quoteChar + token.content + quoteChar);
 					}
-					lastToken = tokenizer.sval;
 					break;
-
 			}
+
+			lastToken = token;
 		}
 
 		if (level > 0) {
-			throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket after " + lastToken, tokenizer.lineno(), 0);
+			throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket after " + lastToken.content, lastToken.row, lastToken.column);
 		}
 
 		return root;
@@ -399,18 +377,6 @@ public class Functions {
 		}
 	}
 
-	private static int nextToken(final StreamTokenizer tokenizer) {
-
-		try {
-
-			return tokenizer.nextToken();
-
-		} catch (IOException ioex) {
-		}
-
-		return StreamTokenizer.TT_EOF;
-	}
-
 	private static String getNamespacedKeyword(final String keyword, final Collection<String> namespace) {
 
 		final StringBuilder buf = new StringBuilder(StringUtils.join(namespace, "."));
@@ -433,5 +399,367 @@ public class Functions {
 		}
 
 		return Functions.get(word);
+	}
+
+	private static class StructrScriptTokenizer {
+
+		private List<Tokenizer> candidates = new LinkedList<>();
+		private List<Token> tokens         = new LinkedList<>();
+		private Tokenizer currentToken     = null;
+		private int column                 = 1;
+		private int row                    = 1;
+
+		public StructrScriptTokenizer() {
+
+			candidates.add(new Identifier());
+			candidates.add(new SingleCharacter((char)9));  // tab
+			candidates.add(new SingleCharacter((char)10)); // newline
+			candidates.add(new SingleCharacter((char)13)); // carriage-return
+			candidates.add(new SingleCharacter((char)32)); // space
+			candidates.add(new SingleCharacter(','));
+			candidates.add(new SingleCharacter(';'));
+			candidates.add(new SingleCharacter('('));
+			candidates.add(new SingleCharacter(')'));
+			candidates.add(new SingleCharacter('['));
+			candidates.add(new SingleCharacter(']'));
+			candidates.add(new QuotedString('\''));
+			candidates.add(new QuotedString('\"'));
+			candidates.add(new Number());
+		}
+
+		public List<Token> tokenize(final String expression) {
+
+			final char[] chars = expression.toCharArray();
+			final int length   = chars.length;
+			int count          = 0;
+			int i              = 0;
+
+			while (i < length && count++ < 1000) {
+
+				while (i < length && currentToken != null && currentToken.accept(chars[i])) {
+
+					currentToken.add(chars[i]);
+
+					if (chars[i] == '\n') {
+						column = 1;
+						row++;
+					} else {
+						column++;
+					}
+
+					i++;
+				}
+
+				// find token for character
+				if (i < length) {
+
+					final Tokenizer nextToken = findToken(chars[i]);
+					if (nextToken != null) {
+
+						if (currentToken != null) {
+
+							tokens.add(currentToken.getToken());
+						}
+
+						currentToken = nextToken;
+
+					} else {
+
+						logger.warn("Unexpected character {} ({}) in string \"{}\". Tokens: {}", (int)chars[i], Character.toString(chars[i]), expression, tokens);
+
+						// no token, stop parsing
+						break;
+					}
+				}
+			}
+
+			if (currentToken != null) {
+
+				tokens.add(currentToken.getToken());
+			}
+
+			return tokens;
+		}
+
+		private Tokenizer findToken(final char c) {
+
+			for (final Tokenizer t : candidates) {
+
+				final Tokenizer instance = t.newInstance();
+				if (instance.accept(c)) {
+
+					instance.init(row, column);
+
+					return instance;
+				}
+			}
+
+			return null;
+		}
+	}
+
+	private static class Token {
+
+		private String type    = null;
+		private String content = null;
+		private String quote   = null;
+		private int row        = 1;
+		private int column     = 1;
+
+		public Token(final String type, final String content, final String quote, final int row, final int column) {
+
+			this.type    = type;
+			this.content = content;
+			this.row     = row;
+			this.column  = column;
+			this.quote   = quote;
+		}
+
+		@Override
+		public String toString() {
+			return content;
+		}
+
+	}
+
+	private static abstract class Tokenizer {
+
+		private StringBuilder buf = new StringBuilder();
+		private int row           = 0;
+		private int column        = 0;
+
+		abstract boolean accept(final char character);
+		abstract Tokenizer newInstance();
+		abstract String getQuoteChar();
+		abstract String getType();
+
+		@Override
+		public String toString() {
+			return getType();
+		}
+
+
+		public void add(final char character) {
+			buf.append(character);
+		}
+
+		public String getContent() {
+			return buf.toString();
+		}
+
+		public Token getToken() {
+			return new Token(getType(), getContent(), getQuoteChar(), row, column);
+		}
+
+		public void init(final int row, final int column) {
+			this.column = column;
+			this.row    = row;
+		}
+
+		public void reset() {
+			buf.setLength(0);
+		}
+	}
+
+	private static class Identifier extends Tokenizer {
+
+		private int index = 0;
+
+		@Override
+		public boolean accept(final char character) {
+
+			if (index == 0) {
+
+				return Character.isAlphabetic(character) || character == '_' || character == '.';
+
+			} else {
+
+				return Character.isAlphabetic(character) || Character.isDigit(character) || character == '_' || character == '.' || character == '!' || character == '-';
+			}
+		}
+
+		@Override
+		public void add(final char character) {
+			super.add(character);
+			index++;
+		}
+
+		@Override
+		public String getType() {
+			return "identifier";
+		}
+
+		@Override
+		public String getQuoteChar() {
+			return null;
+		}
+
+		@Override
+		Tokenizer newInstance() {
+			return new Identifier();
+		}
+	}
+
+	private static class Number extends Tokenizer {
+
+		private int index = 0;
+
+		@Override
+		public boolean accept(final char character) {
+
+			if (index == 0) {
+
+				return Character.isDigit(character) || character == '-';
+
+			} else {
+
+				return Character.isDigit(character) || character == '.';
+			}
+		}
+
+		@Override
+		public void add(final char character) {
+			super.add(character);
+			index++;
+		}
+
+		@Override
+		public String getType() {
+			return "number";
+		}
+
+		@Override
+		public String getQuoteChar() {
+			return null;
+		}
+
+		@Override
+		Tokenizer newInstance() {
+			return new Number();
+		}
+	}
+
+	private static class SingleCharacter extends Tokenizer {
+
+		private boolean first = true;
+		private char key      = 0;
+
+		public SingleCharacter(final char key) {
+			this.key = key;
+		}
+
+		@Override
+		public boolean accept(final char character) {
+			return first && key == character;
+		}
+
+		@Override
+		public String getType() {
+			return Character.toString(key);
+		}
+
+		@Override
+		public String getQuoteChar() {
+			return null;
+		}
+
+		@Override
+		public void add(final char character) {
+			super.add(character);
+			first = false;
+		}
+
+		@Override
+		public void reset() {
+			first = true;
+		}
+
+		@Override
+		Tokenizer newInstance() {
+			return new SingleCharacter(key);
+		}
+	}
+
+	private static class QuotedString extends Tokenizer {
+
+		private boolean esc     = false;
+		private char quoteChar  = 0;
+		private int state       = 0;
+
+		public QuotedString(final char quoteChar) {
+			this.quoteChar = quoteChar;
+		}
+
+		@Override
+		public boolean accept(final char character) {
+
+			switch (state) {
+
+				// not started
+				case 0:
+					if (character == quoteChar) {
+						return true;
+					}
+					break;
+
+				// in group (accept all)
+				case 1:
+					return true;
+			}
+
+			return false;
+		}
+
+		@Override
+		public void add(final char character) {
+
+			switch (state) {
+
+				case 0:
+					if (character == quoteChar && !esc) {
+						state = 1;
+					}
+					break;
+
+				case 1:
+					if (character == quoteChar && !esc) {
+						state = 2;
+					}
+					break;
+			}
+
+			if (esc || (character != quoteChar && (character != '\\'))) {
+				super.add(character);
+			}
+
+			if (character == '\\' && !esc) {
+
+				esc = true;
+
+			} else {
+
+				esc = false;
+			}
+		}
+
+		@Override
+		public void reset() {
+			state = 0;
+		}
+
+		@Override
+		public String getType() {
+			return "string";
+		}
+
+		@Override
+		public String getQuoteChar() {
+			return Character.toString(quoteChar);
+		}
+
+		@Override
+		Tokenizer newInstance() {
+			return new QuotedString(quoteChar);
+		}
 	}
 }

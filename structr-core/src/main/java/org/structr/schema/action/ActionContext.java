@@ -43,6 +43,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -389,6 +390,10 @@ public class ActionContext {
 					case "tenantIdentifier":
 					case "tenant_identifier":
 						return Settings.TenantIdentifier.getValue();
+
+					case "applicationStore":
+					case "application_store":
+						return Services.getInstance().getApplicationStore();
 				}
 			}
 		}

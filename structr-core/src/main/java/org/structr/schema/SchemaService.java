@@ -506,6 +506,8 @@ public class SchemaService implements Service {
 
 		if (Services.isTesting() && !Services.updateIndexConfiguration()) {
 
+			Thread.dumpStack();
+
 			logger.info("Skipping index creation in test mode.");
 			return;
 		}

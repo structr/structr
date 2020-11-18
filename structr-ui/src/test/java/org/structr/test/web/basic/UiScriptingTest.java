@@ -1007,9 +1007,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception");
-			t.printStackTrace();
 		}
 
 		final RenderContext renderContext = new RenderContext(SecurityContext.getSuperUserInstance(), new RequestMockUp(), new ResponseMockUp(), RenderContext.EditMode.NONE);
@@ -1046,7 +1046,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 			tx.success();
 
-		} catch (Throwable ex) {
+		} catch (FrameworkException ex) {
 			ex.printStackTrace();
 			fail("Unexpected exception");
 
@@ -1060,7 +1060,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 			Actions.execute(securityContext, null, SchemaMethod.getCachedSourceCode(testNode.getUuid()), "test");
 
-		} catch (Throwable ex) {
+		} catch (FrameworkException ex) {
 			ex.printStackTrace();
 			fail("Unexpected exception");
 
@@ -1403,15 +1403,33 @@ public class UiScriptingTest extends StructrUiTest {
 		// test i/o
 		try (final Tx tx = app.tx()) {
 
-			final Object readOne   = Scripting.evaluate(ctx, null, "${$.applicationStore.one}", "application store read one");
-			final Object readTwo   = Scripting.evaluate(ctx, null, "${$.applicationStore.two}", "application store read two");
-			final Object readThree = Scripting.evaluate(ctx, null, "${$.applicationStore.three}", "application store read three");
-			assertEquals("Application store i/o error, wrote 1, read " + readOne, readOne, 1);
-			assertEquals("Application store i/o error, wrote 2, read " + readTwo, readTwo, 2);
-			assertEquals("Application store i/o error, wrote 3, read " + readThree, readThree, 3);
+			{
+				final Object readOne   = Scripting.evaluate(ctx, null, "${applicationStore.one}", "application store read one");
+				final Object readTwo   = Scripting.evaluate(ctx, null, "${applicationStore.two}", "application store read two");
+				final Object readThree = Scripting.evaluate(ctx, null, "${applicationStore.three}", "application store read three");
+				assertEquals("Application store i/o error, wrote 1, read " + readOne, readOne, 1);
+				assertEquals("Application store i/o error, wrote 2, read " + readTwo, readTwo, 2);
+				assertEquals("Application store i/o error, wrote 3, read " + readThree, readThree, 3);
 
-		} catch (Throwable fex) {}
+			}
 
+
+			{
+				final Object readOne   = Scripting.evaluate(ctx, null, "${application_store.one}", "application store read one");
+				final Object readTwo   = Scripting.evaluate(ctx, null, "${application_store.two}", "application store read two");
+				final Object readThree = Scripting.evaluate(ctx, null, "${application_store.three}", "application store read three");
+				assertEquals("Application store i/o error, wrote 1, read " + readOne, readOne, 1);
+				assertEquals("Application store i/o error, wrote 2, read " + readTwo, readTwo, 2);
+				assertEquals("Application store i/o error, wrote 3, read " + readThree, readThree, 3);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
 	}
 
 
