@@ -573,9 +573,6 @@ var _Console = new (function() {
 
 	// public methods
 	this.logoutAction = function() {
-		Command.console('clear');
-		Command.console('exit');
-
 		_terminal.reset();
 		_initialized = false;
 		_hideConsole();
