@@ -232,7 +232,7 @@ public abstract class PolyglotWrapper {
 
 	public static class FunctionWrapper implements ProxyExecutable {
 		private Value func;
-		private ActionContext actionContext;
+		private final ActionContext actionContext;
 		private final Context funcContext;
 
 		public FunctionWrapper(final ActionContext actionContext, final Value func, final Context funcContext) {
