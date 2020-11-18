@@ -21,7 +21,6 @@ package org.structr.web.function;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Map;
-import org.mozilla.javascript.Wrapper;
 import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
 import org.structr.common.SecurityContext;
@@ -68,7 +67,7 @@ public class ToJsonFunction extends UiCommunityFunction {
 					outputDepth = ((Number)sources[2]).intValue();
 				}
 
-				final Object obj = (sources[0] instanceof Wrapper) ? ((Wrapper)sources[0]).unwrap() : sources[0];
+				final Object obj = sources[0];
 
 				if (obj instanceof GraphObject) {
 

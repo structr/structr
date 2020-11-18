@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.mozilla.javascript.Script;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
@@ -36,6 +35,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
+import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 
 public abstract class ScheduledJob {
@@ -314,11 +314,10 @@ public abstract class ScheduledJob {
 
 				final ActionContext actionContext = new ActionContext(securityContext);
 
-				// called from JavaScript?
-				if (onFinishScript instanceof Script) {
+				// If a polyglot function was supplied, execute it directly
+				if (onFinishScript instanceof PolyglotWrapper.FunctionWrapper) {
 
-					Scripting.evaluateJavascript(actionContext, null, new Snippet((Script)onFinishScript));
-
+					((PolyglotWrapper.FunctionWrapper)onFinishScript).execute();
 				} else if (onFinishScript instanceof String) {
 
 					Scripting.evaluate(actionContext, null, (String)onFinishScript, jobName, null);

@@ -22,7 +22,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import org.mozilla.javascript.ScriptRuntime;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -59,11 +58,6 @@ public class DateAddFunction extends CoreFunction {
 			} else if (sources[0] instanceof Number) {
 
 				date = new Date(((Number)sources[0]).longValue());
-
-			} else if (sources[0].getClass().getName().equals("org.mozilla.javascript.NativeDate")) {
-
-				final Double value = ScriptRuntime.toNumber(sources[0]);
-				date = new Date(value.longValue());
 
 			} else {
 

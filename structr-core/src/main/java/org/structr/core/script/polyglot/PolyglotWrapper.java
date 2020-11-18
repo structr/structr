@@ -22,7 +22,10 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.core.script.polyglot.wrappers.GraphObjectWrapper;
 import org.structr.core.script.polyglot.wrappers.PolyglotProxyArray;
 import org.structr.core.script.polyglot.wrappers.PolyglotProxyMap;
@@ -117,7 +120,15 @@ public abstract class PolyglotWrapper {
 			// Deal with more complex values
 			if (value.canExecute()) {
 
-				return new FunctionWrapper(actionContext, value);
+				try {
+
+					Context currentContext = ContextFactory.getContext("js", actionContext, null);
+					return new FunctionWrapper(actionContext, value, currentContext);
+				} catch (FrameworkException ex) {
+
+					LoggerFactory.getLogger(PolyglotWrapper.class).error("Could not retrieve current scripting context.", ex);
+				}
+				return null;
 			} else if (value.isHostObject()) {
 
 				return unwrap(actionContext, value.asHostObject());
@@ -221,11 +232,13 @@ public abstract class PolyglotWrapper {
 
 	public static class FunctionWrapper implements ProxyExecutable {
 		private Value func;
-		private ActionContext actionContext;
+		private final ActionContext actionContext;
+		private final Context funcContext;
 
-		public FunctionWrapper(final ActionContext actionContext, final Value func) {
+		public FunctionWrapper(final ActionContext actionContext, final Value func, final Context funcContext) {
 
 			this.actionContext = actionContext;
+			this.funcContext = funcContext;
 
 			if (func.canExecute()) {
 
@@ -236,7 +249,16 @@ public abstract class PolyglotWrapper {
 		@Override
 		public Object execute(Value... arguments) {
 
-			return PolyglotWrapper.unwrap(actionContext, func.execute(arguments));
+			if (funcContext != null && func != null) {
+
+				Object[] unwrappedArgs = Arrays.stream(arguments).map(a -> unwrap(actionContext, a)).toArray();
+				funcContext.enter();
+				Object result = func.execute(wrap(actionContext, unwrappedArgs));
+				funcContext.leave();
+				return result;
+			}
+
+			return null;
 		}
 
 		public Value getValue() {
