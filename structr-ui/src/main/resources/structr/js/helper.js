@@ -715,16 +715,22 @@ var _Console = new (function() {
 			}
 			var result = data.message;
 
-			// prevent jquery terminal from trying to use format expressions ('[[') and remove newlines so the result is printed
-			result = result.replaceAll('[[', '[&#8203;[').replaceAll('\n', ' ');
-
 			if (result !== undefined) {
-				term.echo(new String(result));
+
+				// prevent the output from being formatted and re-interpreted by term. ('[[1,2,3]]' leads to re-interpretation)
+				let echoConfig = {
+					exec: false,
+					raw: true,
+					finalize: (div) => {
+						div.css('white-space', 'pre');	// prevent the output from being put on one line
+						div.text(result);
+					}
+				};
+
+				term.echo( new String(result), echoConfig);
 			}
 		});
-
 	};
-
 });
 
 /**
