@@ -1054,6 +1054,10 @@ public class Services implements StructrServices {
 		updateIndexConfiguration = true;
 	}
 
+	public static void disableUpdateIndexConfiguration() {
+		updateIndexConfiguration = false;
+	}
+
 	public static void disableTestingMode() {
 		testingModeDisabled      = true;
 		updateIndexConfiguration = true;

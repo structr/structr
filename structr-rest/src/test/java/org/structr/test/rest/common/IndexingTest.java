@@ -87,6 +87,8 @@ public abstract class IndexingTest extends StructrRestTestBase {
 		RestAssured.basePath = "/structr/rest";
 		RestAssured.baseURI  = "http://" + host + ":" + httpPort;
 		RestAssured.port     = httpPort;
+
+		Services.disableUpdateIndexConfiguration();
 	}
 
 }

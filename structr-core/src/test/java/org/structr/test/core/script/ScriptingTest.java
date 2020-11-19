@@ -5775,6 +5775,29 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testDoubleBackslashEscaping() {
+
+		try (final Tx tx = app.tx()) {
+
+			final List<Group> groups = new LinkedList<>();
+
+			groups.add(app.create(Group.class, "Group1"));
+			groups.add(app.create(Group.class, "Group2"));
+			groups.add(app.create(Group.class, "Group3"));
+
+			final String result = Scripting.replaceVariables(new ActionContext(securityContext), null, "${concat(';', \"'\", '\\r\\n')}");
+
+			assertEquals("Invalid StructrScript tokenizer result: ", ";'\r\n", result);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
 
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource, final String comment) {

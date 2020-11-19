@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -729,7 +730,16 @@ public class Functions {
 			}
 
 			if (esc || (character != quoteChar && (character != '\\'))) {
-				super.add(character);
+
+				if (esc) {
+
+					// convert back to escape code
+					super.add(StringEscapeUtils.unescapeJava("\\" + Character.toString(character)).charAt(0));
+
+				} else {
+
+					super.add(character);
+				}
 			}
 
 			if (character == '\\' && !esc) {
