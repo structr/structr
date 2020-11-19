@@ -696,7 +696,7 @@ var _Dashboard = {
 						switch (event.type) {
 
 							case 'Authentication':
-								_Dashboard.elementWithContent(tr, 'td', '<code style="white-space: pre; text-decoration: underline; text-underline-position: under;">' + JSON.stringify(data) + '</code>');
+								_Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
 								break;
 
 							case 'Scripting':
