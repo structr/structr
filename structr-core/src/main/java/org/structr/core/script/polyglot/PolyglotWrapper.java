@@ -34,6 +34,8 @@ import org.structr.schema.action.ActionContext;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public abstract class PolyglotWrapper {
@@ -120,15 +122,7 @@ public abstract class PolyglotWrapper {
 			// Deal with more complex values
 			if (value.canExecute()) {
 
-				try {
-
-					Context currentContext = ContextFactory.getContext("js", actionContext, null);
-					return new FunctionWrapper(actionContext, value, currentContext);
-				} catch (FrameworkException ex) {
-
-					LoggerFactory.getLogger(PolyglotWrapper.class).error("Could not retrieve current scripting context.", ex);
-				}
-				return null;
+				return new FunctionWrapper(actionContext, value);
 			} else if (value.isHostObject()) {
 
 				return unwrap(actionContext, value.asHostObject());
@@ -233,12 +227,12 @@ public abstract class PolyglotWrapper {
 	public static class FunctionWrapper implements ProxyExecutable {
 		private Value func;
 		private final ActionContext actionContext;
-		private final Context funcContext;
+		private final ReentrantLock lock;
 
-		public FunctionWrapper(final ActionContext actionContext, final Value func, final Context funcContext) {
+		public FunctionWrapper(final ActionContext actionContext, final Value func) {
 
 			this.actionContext = actionContext;
-			this.funcContext = funcContext;
+			this.lock = new ReentrantLock();
 
 			if (func.canExecute()) {
 
@@ -249,15 +243,25 @@ public abstract class PolyglotWrapper {
 		@Override
 		public Object execute(Value... arguments) {
 
-			if (funcContext != null && func != null) {
+			synchronized (func.getContext()) {
 
-				Object[] unwrappedArgs = Arrays.stream(arguments).map(a -> unwrap(actionContext, a)).toArray();
-				funcContext.enter();
-				Object result = func.execute(wrap(actionContext, unwrappedArgs));
-				funcContext.leave();
-				return result;
+				if (func != null) {
+
+					lock.lock();
+					List<Value> processedArgs = Arrays.stream(arguments)
+							.map(a -> unwrap(actionContext, a))
+							.map(a -> wrap(actionContext, a))
+							.map(Value::asValue)
+							.collect(Collectors.toList());
+
+
+					Object result = func.execute(processedArgs.toArray(new Value[processedArgs.size()]));
+					lock.unlock();
+
+					return wrap(actionContext, unwrap(actionContext, result));
+				}
+
 			}
-
 			return null;
 		}
 
