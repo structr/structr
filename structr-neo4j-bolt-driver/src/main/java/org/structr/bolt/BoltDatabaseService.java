@@ -430,7 +430,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 				try (final Transaction tx = beginTx(timeoutSeconds)) {
 
-					for (final Map<String, Object> row : execute("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state}")) {
+					for (final Map<String, Object> row : execute("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state} ORDER BY description")) {
 
 						for (final Object value : row.values()) {
 
@@ -739,8 +739,16 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	TransactionConfig getTransactionConfig(final long id) {
 
 		final Map<String, Object> metadata = new HashMap<>();
+		final Thread currentThread         = Thread.currentThread();
 
-		metadata.put("id", id);
+		metadata.put("id",         id);
+		metadata.put("pid",        ProcessHandle.current().pid());
+		metadata.put("threadId",   currentThread.getId());
+
+		if (currentThread.getName() != null) {
+
+			metadata.put("threadName", currentThread.getName());
+		}
 
 		return TransactionConfig
 			.builder()
@@ -751,8 +759,16 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	TransactionConfig getTransactionConfigForTimeout(final int seconds, final long id) {
 
 		final Map<String, Object> metadata = new HashMap<>();
+		final Thread currentThread         = Thread.currentThread();
 
-		metadata.put("id", id);
+		metadata.put("id",         id);
+		metadata.put("pid",        ProcessHandle.current().pid());
+		metadata.put("threadId",   currentThread.getId());
+
+		if (currentThread.getName() != null) {
+
+			metadata.put("threadName", currentThread.getName());
+		}
 
 		return TransactionConfig
 			.builder()

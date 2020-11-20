@@ -88,6 +88,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	@Override
 	public Set<String> doGetExpired(final Set<String> candidates) {
+
 		final long sessionTimeout = Settings.SessionTimeout.getValue(1800) * 1000;
 		final Date timeoutDate    = new Date(System.currentTimeMillis() - sessionTimeout);
 
