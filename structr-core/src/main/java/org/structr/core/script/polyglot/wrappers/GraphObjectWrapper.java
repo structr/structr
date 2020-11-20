@@ -26,11 +26,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Converter;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
@@ -215,7 +217,12 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 				if (propKey != null && unwrappedValue != null && !propKey.valueType().isAssignableFrom(unwrappedValue.getClass())) {
 
-					unwrappedValue = propKey.inputConverter(actionContext.getSecurityContext()).convert(unwrappedValue);
+					PropertyConverter inputConverter = propKey.inputConverter(actionContext.getSecurityContext());
+
+					if (inputConverter != null) {
+
+						unwrappedValue = inputConverter.convert(unwrappedValue);
+					}
 				}
 				node.setProperty(propKey, unwrappedValue);
 			} catch (FrameworkException ex) {
