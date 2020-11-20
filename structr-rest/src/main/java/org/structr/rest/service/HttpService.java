@@ -85,16 +85,16 @@ import org.structr.api.service.LicenseManager;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.ServiceResult;
+import org.structr.api.service.StartServiceInMaintenanceMode;
+import org.structr.api.service.StopServiceForMaintenanceMode;
 import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.auth.SessionHelper;
-import org.structr.schema.SchemaService;
-import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
-import org.structr.api.service.StartServiceInMaintenanceMode;
-import org.structr.api.service.StopServiceForMaintenanceMode;
 import org.structr.rest.common.Stats;
 import org.structr.rest.common.StatsCallback;
+import org.structr.schema.SchemaService;
+import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
 @ServiceDependency(SchemaService.class)
 @StopServiceForMaintenanceMode
@@ -449,6 +449,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		contexts.addHandler(servletContext);
 
 		httpConfig = new HttpConfiguration();
+		httpConfig.setSendServerVersion(false);
 		httpConfig.setSecureScheme("https");
 		httpConfig.setSecurePort(httpsPort);
 		httpConfig.setOutputBufferSize(1024); // intentionally low buffer size to allow even small bits of content to be sent to the client in case of slow rendering
@@ -639,6 +640,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			final List<Connector> connectors = new LinkedList<>();
 
 			httpConfig = new HttpConfiguration();
+			httpConfig.setSendServerVersion(false);
 			httpConfig.setSecureScheme("https");
 			httpConfig.setSecurePort(httpsPort);
 
