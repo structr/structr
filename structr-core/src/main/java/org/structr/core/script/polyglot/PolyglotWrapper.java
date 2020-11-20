@@ -52,9 +52,12 @@ public abstract class PolyglotWrapper {
 		} else if (obj.getClass().isArray()) {
 
 			return new PolyglotProxyArray(actionContext, (Object[]) obj);
+		} else 	if (obj instanceof List) {
+
+			return new PolyglotProxyArray(actionContext, (List)obj);
 		} else 	if (obj instanceof Iterable) {
 
-			return new PolyglotProxyArray(actionContext, StreamSupport.stream(((Iterable)obj).spliterator(), false).toArray());
+			return new PolyglotProxyArray(actionContext, (List)StreamSupport.stream(((Iterable)obj).spliterator(), false).collect(Collectors.toList()));
 		} else if (obj instanceof Map) {
 
 			return new PolyglotProxyMap(actionContext, (Map<String, Object>)obj);

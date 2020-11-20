@@ -50,6 +50,13 @@ public class PolyglotProxyArray implements ProxyArray {
 		this.propKey = null;
 	}
 
+	public PolyglotProxyArray(final ActionContext actionContext, final List list) {
+		this.actionContext = actionContext;
+		this.list = list;
+		this.node = null;
+		this.propKey = null;
+	}
+
 	// Using StructrPolyglotProxyArray as a synchronized proxy that automatically writes updates to it's source object
 	public PolyglotProxyArray(final ActionContext actionContext, final GraphObject node, final PropertyKey propKey) {
 		this.actionContext = actionContext;
