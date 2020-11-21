@@ -53,9 +53,6 @@ public class HttpFunctionsTest extends StructrUiTest {
 				new NodeAttribute<>(StructrApp.key(Principal.class, "isAdmin"),  true)
 			);
 
-			// allow all access to group resource
-			grant("Group", 16383, true);
-
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -63,6 +60,9 @@ public class HttpFunctionsTest extends StructrUiTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
+
+		// allow all access to group resource
+		grant("Group", 16383, true);
 
 		try {
 
