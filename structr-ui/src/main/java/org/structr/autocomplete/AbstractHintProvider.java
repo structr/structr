@@ -19,6 +19,7 @@
 package org.structr.autocomplete;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -30,7 +31,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -45,9 +45,11 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.schema.action.Hint;
 import org.structr.web.entity.dom.Content;
@@ -71,12 +73,12 @@ public abstract class AbstractHintProvider {
 	public static final Property<Integer> line       = new IntProperty("line");
 	public static final Property<Integer> ch         = new IntProperty("ch");
 
-	protected abstract List<Hint> getAllHints(final SecurityContext securityContext, final GraphObject currentNode, final String editorText, final ParseResult parseResult);
+	protected abstract List<Hint> getAllHints(final ActionContext ionContext, final GraphObject currentNode, final String editorText, final ParseResult parseResult);
 	protected abstract String getFunctionName(final String sourceName);
 
 	protected final Comparator comparator     = new HintComparator();
 
-	public static List<GraphObject> getHints(final SecurityContext securityContext, final boolean isAutoscriptEnv, final GraphObject currentEntity, final String textBefore, final String textAfter, final int cursorLine, final int cursorPosition) {
+	public static List<GraphObject> getHints(final ActionContext actionContext, final boolean isAutoscriptEnv, final GraphObject currentEntity, final String textBefore, final String textAfter, final int cursorLine, final int cursorPosition) {
 
 		String text = null;
 
@@ -119,14 +121,14 @@ public abstract class AbstractHintProvider {
 					final JavascriptHintProvider provider = new JavascriptHintProvider();
 					final String source                   = text.substring(3);
 
-					return provider.getHints(securityContext, currentEntity, source, cursorLine, cursorPosition);
+					return provider.getHints(actionContext, currentEntity, source, cursorLine, cursorPosition);
 
 				} else if (text.startsWith("${")) {
 
 					final PlaintextHintProvider provider = new PlaintextHintProvider();
-					final String source                   = text.substring(2);
+					final String source                  = text.substring(2);
 
-					return provider.getHints(securityContext, currentEntity, source, cursorLine, cursorPosition);
+					return provider.getHints(actionContext, currentEntity, source, cursorLine, cursorPosition);
 				}
 			}
 		}
@@ -134,10 +136,10 @@ public abstract class AbstractHintProvider {
 		return Collections.EMPTY_LIST;
 	}
 
-	public List<GraphObject> getHints(final SecurityContext securityContext, final GraphObject currentEntity, final String script, final int cursorLine, final int cursorPosition) {
+	public List<GraphObject> getHints(final ActionContext actionContext, final GraphObject currentEntity, final String script, final int cursorLine, final int cursorPosition) {
 
 		final ParseResult parseResult = new ParseResult();
-		final List<Hint> allHints     = getAllHints(securityContext, currentEntity, script, parseResult);
+		final List<Hint> allHints     = getAllHints(actionContext, currentEntity, script, parseResult);
 		final List<GraphObject> hints = new LinkedList<>();
 		final String lastToken        = parseResult.getLastToken();
 		final boolean unrestricted    = lastToken.endsWith("(") || lastToken.endsWith(("."));
@@ -236,24 +238,15 @@ public abstract class AbstractHintProvider {
 		return source;
 	}
 
-	protected void handleJSExpression(final SecurityContext securityContext, final GraphObject currentNode, final String expression, final List<Hint> hints, final ParseResult result) {
+	protected void handleJSExpression(final ActionContext actionContext, final GraphObject currentNode, final String expression, final List<Hint> hints, final ParseResult result) {
 
-		final String[] expressionParts = expression.split("[\\.\\(]+");
+		final String[] expressionParts = StringUtils.splitPreserveAllTokens(expression, ".(");
+		final List<String> tokens      = Arrays.asList(expressionParts);
 		final int length               = expressionParts.length;
 
-		if (expression.endsWith(".") || expression.endsWith("(")) {
+		if (length > 1) {
 
-			// we're interested in the last part
-			final String token = expressionParts[length - 1];
-
-			handleToken(securityContext, token, currentNode, hints, result);
-
-		} else if (length > 1) {
-
-			// we're interested in the second last part
-			final String token = expressionParts[length - 2];
-
-			handleToken(securityContext, token, currentNode, hints, result);
+			handleTokens(actionContext, tokens, currentNode, hints, result);
 
 		} else {
 
@@ -289,37 +282,11 @@ public abstract class AbstractHintProvider {
 		}
 	}
 
-	protected void addHintsForSchemaMethod(final SecurityContext securityContext, final SchemaMethod method, final List<Hint> hints, final ParseResult result) {
-
-		final AbstractSchemaNode node = method.getProperty(SchemaMethod.schemaNode);
-		if (node != null) {
-
-			final Class type = StructrApp.getConfiguration().getNodeEntityClass(node.getClassName());
-			if (type != null) {
-
-				addHintsForType(securityContext, type, hints, result);
-			}
-		}
-	}
-
-	protected void addHintsForFunctionProperty(final SecurityContext securityContext, final SchemaProperty property, final List<Hint> hints, final ParseResult result) {
-
-		final AbstractSchemaNode node = property.getProperty(SchemaProperty.schemaNode);
-		if (node != null) {
-
-			final Class type = StructrApp.getConfiguration().getNodeEntityClass(node.getClassName());
-			if (type != null) {
-
-				addHintsForType(securityContext, type, hints, result);
-			}
-		}
-	}
-
-	protected void addHintsForType(final SecurityContext securityContext, final Class type, final List<Hint> hints, final ParseResult result) {
+	protected void addHintsForType(final ActionContext actionContext, final Class type, final List<Hint> hints, final ParseResult result) {
 
 		try {
 
-			final List<GraphObjectMap> typeInfo = SchemaHelper.getSchemaTypeInfo(securityContext, type.getSimpleName(), type, PropertyView.All);
+			final List<GraphObjectMap> typeInfo = SchemaHelper.getSchemaTypeInfo(actionContext.getSecurityContext(), type.getSimpleName(), type, PropertyView.All);
 
 			for (final GraphObjectMap property : typeInfo) {
 
@@ -349,66 +316,144 @@ public abstract class AbstractHintProvider {
 		Collections.sort(hints, comparator);
 	}
 
-	protected boolean handleToken(final SecurityContext securityContext, final String token, final GraphObject currentNode, final List<Hint> hints, final ParseResult result) {
+	protected boolean handleTokens(final ActionContext actionContext, final List<String> tokens, final GraphObject currentNode, final List<Hint> hints, final ParseResult result) {
 
-		if ("$".equals(token) || "Structr".equals(token)) {
+		List<String> tokenTypes = new LinkedList<>();
+		Class type              = null;
 
-			addAllHints(hints);
+		for (final String token : tokens) {
 
-			return true;
-		}
+			switch (token) {
 
-		if ("this".equals(token)) {
+				case "":
+					// last character in the expression is "."
+					tokenTypes.add("dot");
+					break;
 
-			if(currentNode instanceof SchemaMethod) {
+				case "$":
+				case "Structr":
+					tokenTypes.add("root");
+					break;
 
-				addHintsForSchemaMethod(securityContext, (SchemaMethod)currentNode, hints, result);
+				case "page":
+					tokenTypes.add("keyword");
+					type      = StructrApp.getConfiguration().getNodeEntityClass("Page");
+					break;
 
-			} else if (currentNode instanceof SchemaProperty && Type.Function.equals(((SchemaProperty)currentNode).getPropertyType())) {
+				case "me":
+					tokenTypes.add("keyword");
+					type      = StructrApp.getConfiguration().getNodeEntityClass("User");
+					break;
 
-				addHintsForFunctionProperty(securityContext, (SchemaProperty)currentNode, hints, result);
+				case "current":
+					tokenTypes.add("keyword");
+					type      = StructrApp.getConfiguration().getNodeEntityClass("AbstractNode");
+					break;
 
-			} else if (currentNode != null) {
+				case "this":
+					if(currentNode instanceof SchemaMethod) {
 
-				addHintsForType(securityContext, StructrApp.getConfiguration().getNodeEntityClass(currentNode.getType()), hints, result);
+						final AbstractSchemaNode node = currentNode.getProperty(SchemaMethod.schemaNode);
+						if (node != null) {
+
+							tokenTypes.add("keyword");
+							type = StructrApp.getConfiguration().getNodeEntityClass(node.getClassName());
+						}
+
+					} else if (currentNode instanceof SchemaProperty && Type.Function.equals(((SchemaProperty)currentNode).getPropertyType())) {
+
+
+						final AbstractSchemaNode node = currentNode.getProperty(SchemaMethod.schemaNode);
+						if (node != null) {
+
+							tokenTypes.add("keyword");
+							type = StructrApp.getConfiguration().getNodeEntityClass(node.getClassName());
+						}
+
+					} else if (currentNode != null) {
+
+						tokenTypes.add("keyword");
+						type      = StructrApp.getConfiguration().getNodeEntityClass(currentNode.getType());
+					}
+					break;
+
+				default:
+					// skip numbers
+					if (!StringUtils.isNumeric(token)) {
+
+						if (type != null) {
+
+							final String cleaned  = token.replaceAll("[\\W\\d]+", "");
+							final PropertyKey key = StructrApp.key(type, cleaned, false);
+
+							if (key != null && key.relatedType() != null) {
+
+								tokenTypes.add("keyword");
+								type = key.relatedType();
+
+							} else {
+
+								tokenTypes.add(token);
+							}
+
+						} else {
+
+							tokenTypes.add(token);
+						}
+					}
+					break;
 			}
-
-			return true;
 		}
 
-		if ("page".equals(token)) {
+		System.out.println(tokens);
 
-			addHintsForType(securityContext, StructrApp.getConfiguration().getNodeEntityClass("Page"), hints, result);
+		Collections.reverse(tokenTypes);
 
-			return true;
-		}
+		boolean requireValidPredecessor = false;
 
-		if ("me".equals(token)) {
+		for (final String tokenType : tokenTypes) {
 
-			addHintsForType(securityContext, StructrApp.getConfiguration().getNodeEntityClass("Principal"), hints, result);
+			switch (tokenType) {
 
-			return true;
-		}
+				case "dot":
+					// if the last token of an expression is a dot, e.g. "this.owner.", the preceding keyword must be valid
+					requireValidPredecessor = true;
+					break;
 
-		if ("current".equals(token)) {
+				case "root":
+					if (tokenTypes.size() < 3) {
+						addAllHints(hints);
+						return true;
+					}
+					break;
 
-			addHintsForType(securityContext, StructrApp.getConfiguration().getNodeEntityClass("AbstractNode"), hints, result);
+				case "keyword":
+					if (type != null) {
+						addHintsForType(actionContext, type, hints, result);
+						return true;
+					}
+					break;
 
-			return true;
-		}
+				default:
+					final Function func = Functions.get(tokenType);
+					if (func != null) {
 
-		final Function func = Functions.get(token);
-		if (func != null) {
+						final List<Hint> contextHints = func.getContextHints(result.getLastToken());
+						if (contextHints != null) {
 
-			final List<Hint> contextHints = func.getContextHints(result.getLastToken());
-			if (contextHints != null) {
+							hints.addAll(contextHints);
 
-				hints.addAll(contextHints);
+							Collections.sort(hints, comparator);
+						}
 
-				Collections.sort(hints, comparator);
+						return true;
+
+					} else if (requireValidPredecessor) {
+
+						return false;
+					}
+					break;
 			}
-
-			return true;
 		}
 
 		return false;
