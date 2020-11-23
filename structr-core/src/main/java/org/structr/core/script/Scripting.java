@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.structr.api.Predicate;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
 
@@ -224,7 +225,7 @@ public class Scripting {
 			} catch (StructrScriptException t) {
 
 				// StructrScript evaluation should not throw exceptions
-				reportError(t.getMessage(), t.getRow(), t.getColumn(), snippet);
+				reportError(actionContext.getSecurityContext(), t.getMessage(), t.getRow(), t.getColumn(), snippet);
 			}
 
 			return null;
@@ -255,7 +256,7 @@ public class Scripting {
 
 			} catch (PolyglotException ex) {
 
-				reportError(ex, snippet);
+				reportError(actionContext.getSecurityContext(), ex, snippet);
 			}
 
 			if (actionContext.hasError()) {
@@ -340,7 +341,7 @@ public class Scripting {
 
 			} catch (PolyglotException ex) {
 
-				reportError(ex, snippet);
+				reportError(actionContext.getSecurityContext(), ex, snippet);
 			}
 
 			context.leave();
@@ -598,16 +599,16 @@ public class Scripting {
 		}
 	}
 
-	private static void reportError(final PolyglotException ex, final Snippet snippet) throws FrameworkException {
+	private static void reportError(final SecurityContext securityContext, final PolyglotException ex, final Snippet snippet) throws FrameworkException {
 
 		final String message                  = ex.getMessage();
 		final int lineNumber                  = ex.getSourceLocation().getStartLine();
 		final int columnNumber                = ex.getSourceLocation().getStartColumn();
 
-		reportError(message, lineNumber, columnNumber, snippet);
+		reportError(securityContext, message, lineNumber, columnNumber, snippet);
 	}
 
-	private static void reportError(final String message, final int lineNumber, final int columnNumber, final Snippet snippet) throws FrameworkException {
+	private static void reportError(final SecurityContext securityContext, final String message, final int lineNumber, final int columnNumber, final Snippet snippet) throws FrameworkException {
 
 		final String entityName               = snippet.getName();
 		final String entityDescription        = (StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + snippet.getCodeSource();
@@ -637,7 +638,6 @@ public class Scripting {
 				messageData.put("nodeType", nodeType);
 				messageData.put("nodeId", nodeId);
 
-				// Content[72726c4697c843ba9c34cb17a3f76a7d]:
 				exceptionPrefix.append(nodeType).append("[").append(nodeId).append("]:");
 			}
 		}
@@ -648,7 +648,7 @@ public class Scripting {
 		}
 
 		RuntimeEventLog.scripting(errorName, eventData);
-		TransactionCommand.simpleBroadcastGenericMessage(messageData);
+		TransactionCommand.simpleBroadcastGenericMessage(messageData, Predicate.only(securityContext.getSessionId()));
 
 		exceptionPrefix.append(snippet.getName()).append(":").append(lineNumber).append(":").append(columnNumber);
 

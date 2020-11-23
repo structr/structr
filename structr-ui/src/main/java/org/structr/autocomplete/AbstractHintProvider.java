@@ -19,12 +19,14 @@
 package org.structr.autocomplete;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -284,10 +286,12 @@ public abstract class AbstractHintProvider {
 
 	protected void addHintsForType(final ActionContext actionContext, final Class type, final List<Hint> hints, final ParseResult result) {
 
+		final List<Hint> methodHints = new LinkedList<>();
+
 		try {
 
+			// properties
 			final List<GraphObjectMap> typeInfo = SchemaHelper.getSchemaTypeInfo(actionContext.getSecurityContext(), type.getSimpleName(), type, PropertyView.All);
-
 			for (final GraphObjectMap property : typeInfo) {
 
 				final Map<String, Object> map = property.toMap();
@@ -309,11 +313,25 @@ public abstract class AbstractHintProvider {
 				hints.add(createHint(name, propertyType, name));
 			}
 
+			// methods go into their own collection, are sorted and the appended to the list
+			final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(type);
+			for (final Entry<String, Method> entry : methods.entrySet()) {
+
+				final String name = entry.getKey();
+
+				methodHints.add(createHint(name + "()", "custom method", name));
+			}
+
+			Collections.sort(methodHints, comparator);
+
 		} catch (FrameworkException ex) {
 			java.util.logging.Logger.getLogger(JavascriptHintProvider.class.getName()).log(Level.SEVERE, null, ex);
 		}
 
 		Collections.sort(hints, comparator);
+
+		// add sorted method hints after the other hints
+		hints.addAll(methodHints);
 	}
 
 	protected boolean handleTokens(final ActionContext actionContext, final List<String> tokens, final GraphObject currentNode, final List<Hint> hints, final ParseResult result) {
