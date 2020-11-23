@@ -350,8 +350,10 @@ public interface Image extends File {
 						//FIXME: Implement deletion of mismatching thumbnails, since they have become obsolete
 						final Image thumbnail = (Image) r.getTargetNode();
 
+						final Long checksum = r.getProperty(StructrApp.key(Image.class, "checksum"));
+
 						// Check if existing thumbnail rel matches the correct checksum and mark as deprecated otherwise
-						if (r.getProperty(StructrApp.key(Image.class, "checksum")).equals(thisImage.getChecksum())) {
+						if (checksum != null && checksum.equals(thisImage.getChecksum())) {
 
 							return thumbnail;
 						} else {
