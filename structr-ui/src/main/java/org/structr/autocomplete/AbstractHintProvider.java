@@ -405,8 +405,6 @@ public abstract class AbstractHintProvider {
 			}
 		}
 
-		System.out.println(tokens);
-
 		Collections.reverse(tokenTypes);
 
 		boolean requireValidPredecessor = false;
