@@ -198,7 +198,13 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 			return ((GraphObjectMap) getOriginalObject()).containsKey(new GenericProperty<>(key));
 		} else {
 
-			return StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class).containsKey(key) || StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key) != null;
+			if (node != null) {
+				
+				return StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class).containsKey(key) || StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key) != null;
+			} else {
+
+				return false;
+			}
 		}
 	}
 
