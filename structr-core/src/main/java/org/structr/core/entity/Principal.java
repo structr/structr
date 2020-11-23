@@ -210,22 +210,59 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 	public static Iterable<Principal> getParentsPrivileged(final Principal principal) {
 
+		final Logger logger = LoggerFactory.getLogger(Principal.class);
+
 		try {
 
-			final App app                       = StructrApp.getInstance();
-			final Principal privilegedPrincipal = app.get(Principal.class, principal.getUuid());
+			if (principal != null) {
 
-			return privilegedPrincipal.getProperty(StructrApp.key(Principal.class, "groups"));
+				final String uuid = principal.getUuid();
+				if (uuid != null) {
+
+					final App app                       = StructrApp.getInstance();
+					final Principal privilegedPrincipal = app.get(Principal.class, uuid);
+
+					if (privilegedPrincipal != null) {
+
+						final PropertyKey<Iterable> key = StructrApp.key(Principal.class, "groups");
+						if (key != null) {
+
+							try {
+
+								return privilegedPrincipal.getProperty(key);
+
+							} catch (Throwable t) {
+
+								logger.error("Unable to fetch groups of principal " + principal.getName() + " (" + uuid + ") because something went wrong:", t);
+							}
+
+						} else {
+
+							logger.warn("No property key found for {}.{}", Principal.class.getSimpleName(), "groups");
+						}
+
+					} else {
+
+						logger.warn("No Principal with UUID {} found.", uuid);
+					}
+
+				} else {
+
+					logger.warn("Principal has no UUID.");
+				}
+
+			} else {
+
+				logger.warn("No principal present in getParentsPrivileged.");
+			}
 
 		} catch (FrameworkException fex) {
 
-			final Logger logger = LoggerFactory.getLogger(Principal.class);
-
 			logger.warn("Caught exception while fetching groups for user '{}' ({})", principal.getName(), principal.getUuid());
 			logger.warn(ExceptionUtils.getStackTrace(fex));
-
-			return Collections.emptyList();
 		}
+
+		return Collections.emptyList();
 	}
 
 	public static boolean addSessionId(final Principal principal, final String sessionId) {
