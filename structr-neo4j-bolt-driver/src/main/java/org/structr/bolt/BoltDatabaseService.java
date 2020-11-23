@@ -126,9 +126,24 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 		try {
 
+			if (password != null && !"neo4j".equals(password)) {
+
+				try {
+					driver = GraphDatabase.driver(databaseDriverUrl,
+						AuthTokens.basic(Settings.Neo4jDefaultUsername.getValue(), Settings.Neo4jDefaultPassword.getValue()),
+						Config.build().withEncryption().toConfig()
+					);
+					setInitialPassword(password);
+
+				} catch (AuthenticationException auex) {
+					logger.info("Login with default credentials failed (this is OK if a database password is already set).");
+				}
+
+			}
+
 			driver = GraphDatabase.driver(databaseDriverUrl,
-				AuthTokens.basic(username, password),
-				Config.build().withEncryption().toConfig()
+					AuthTokens.basic(username, password),
+					Config.build().withEncryption().toConfig()
 			);
 
 			final int relCacheSize  = Settings.RelationshipCacheSize.getPrefixedValue(serviceName);
@@ -1071,4 +1086,26 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 		return null;
 	}
+
+	private void setInitialPassword(final String initialPassword) {
+
+		try (final Session session = driver.session()) {
+
+			// this call may fail silently (e.g. if the index does not exist yet)
+			try (final org.neo4j.driver.v1.Transaction tx = session.beginTransaction()) {
+
+				tx.run("CALL dbms.changePassword('" + initialPassword + "')");
+				tx.success();
+
+			} catch (Throwable t) { }
+
+			// this call may NOT fail silently, hence we don't catch any exceptions
+			try (final org.neo4j.driver.v1.Transaction tx = session.beginTransaction()) {
+
+				tx.run("CREATE CONSTRAINT ON (node:NodeInterface) ASSERT node.id IS UNIQUE");
+				tx.success();
+			}
+		}
+	}
+
 }
