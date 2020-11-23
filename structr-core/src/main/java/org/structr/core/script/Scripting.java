@@ -255,10 +255,6 @@ public class Scripting {
 
 			} catch (PolyglotException ex) {
 
-				if (ex.isHostException()) {
-					throw ex.asHostException();
-				}
-
 				reportError(ex, snippet);
 			}
 
@@ -343,10 +339,6 @@ public class Scripting {
 				result = PolyglotWrapper.unwrap(actionContext, context.getBindings(engineName).getMember("main").execute());
 
 			} catch (PolyglotException ex) {
-
-				if (ex.isHostException()) {
-					throw ex.asHostException();
-				}
 
 				reportError(ex, snippet);
 			}
