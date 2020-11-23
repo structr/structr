@@ -24,6 +24,7 @@ import java.util.List;
 import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Hint;
 
 /**
@@ -32,7 +33,7 @@ import org.structr.schema.action.Hint;
 public class JavaHintProvider extends AbstractHintProvider {
 
 	@Override
-	protected List<Hint> getAllHints(final SecurityContext securityContext, final GraphObject currentNode, final String editorText, final ParseResult parseResult) {
+	protected List<Hint> getAllHints(final ActionContext ionContext, final GraphObject currentNode, final String editorText, final ParseResult parseResult) {
 		return new LinkedList<>();
 	}
 
