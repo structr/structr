@@ -390,10 +390,16 @@ public abstract class AbstractHintProvider {
 
 								tokenTypes.add("keyword");
 								type = key.relatedType();
-							}
-						}
 
-						tokenTypes.add(token);
+							} else {
+
+								tokenTypes.add(token);
+							}
+
+						} else {
+
+							tokenTypes.add(token);
+						}
 					}
 					break;
 			}
@@ -403,14 +409,15 @@ public abstract class AbstractHintProvider {
 
 		Collections.reverse(tokenTypes);
 
-		boolean lastIsDot = false;
+		boolean requireValidPredecessor = false;
 
 		for (final String tokenType : tokenTypes) {
 
 			switch (tokenType) {
 
 				case "dot":
-					lastIsDot = true;
+					// if the last token of an expression is a dot, e.g. "this.owner.", the preceding keyword must be valid
+					requireValidPredecessor = true;
 					break;
 
 				case "root":
@@ -440,6 +447,10 @@ public abstract class AbstractHintProvider {
 						}
 
 						return true;
+
+					} else if (requireValidPredecessor) {
+
+						return false;
 					}
 					break;
 			}

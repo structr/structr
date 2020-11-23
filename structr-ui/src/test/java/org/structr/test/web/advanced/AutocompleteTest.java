@@ -285,11 +285,13 @@ public class AutocompleteTest extends StructrUiTest {
 			assertFirstResult("text", "name",    AbstractHintProvider.getHints(actionContext, false, project, "${this.tasks[0].na", "", 0, 0));
 			assertFirstResult("text", "project", AbstractHintProvider.getHints(actionContext, false, task,    "${this.proj", "", 0, 0));
 			assertFirstResult("text", "name",    AbstractHintProvider.getHints(actionContext, false, task,    "${this.project.na", "", 0, 0));
+			assertFirstResult("text", "name",    AbstractHintProvider.getHints(actionContext, false, task,    "${this.project.owner.na", "", 0, 0));
 
 			// Javascript
 			assertFirstResult("text", "name",    AbstractHintProvider.getHints(actionContext, false, project, "${{ $.this.tasks[0].na", "", 0, 0));
 			assertFirstResult("text", "project", AbstractHintProvider.getHints(actionContext, false, task,    "${{ $.this.proj", "", 0, 0));
 			assertFirstResult("text", "name",    AbstractHintProvider.getHints(actionContext, false, project, "${{ $.this.project.na", "", 0, 0));
+			assertFirstResult("text", "name",    AbstractHintProvider.getHints(actionContext, false, project, "${{ $.this.project.owner.na", "", 0, 0));
 
 			tx.success();
 
