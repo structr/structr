@@ -126,7 +126,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 		try {
 
-			if (password != null && !"neo4j".equals(password)) {
+			final boolean isTesting = Settings.ConnectionUrl.getValue().equals(Settings.TestingConnectionUrl.getValue());
+
+			if (!isTesting && password != null && !"neo4j".equals(password)) {
 
 				try {
 					driver = GraphDatabase.driver(databaseDriverUrl,
