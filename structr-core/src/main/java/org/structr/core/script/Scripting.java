@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.graalvm.polyglot.SourceSection;
 import org.structr.api.Predicate;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
@@ -601,9 +602,16 @@ public class Scripting {
 
 	private static void reportError(final SecurityContext securityContext, final PolyglotException ex, final Snippet snippet) throws FrameworkException {
 
-		final String message                  = ex.getMessage();
-		final int lineNumber                  = ex.getSourceLocation().getStartLine();
-		final int columnNumber                = ex.getSourceLocation().getStartColumn();
+		final String message = ex.getMessage();
+		int lineNumber       = 1;
+		int columnNumber     = 1;
+
+		final SourceSection location = ex.getSourceLocation();
+		if (location != null) {
+
+			lineNumber   = ex.getSourceLocation().getStartLine();
+			columnNumber = ex.getSourceLocation().getStartColumn();
+		}
 
 		reportError(securityContext, message, lineNumber, columnNumber, snippet);
 	}
