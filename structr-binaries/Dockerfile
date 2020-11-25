@@ -1,4 +1,4 @@
-FROM oracle/graalvm-ce:20.2.0-java11
+FROM oracle/graalvm-ce:20.3.0-java11
 ARG STRUCTR_VERSION
 ADD ./target/structr-$STRUCTR_VERSION-dist.zip /root/
 RUN yum install -y unzip
