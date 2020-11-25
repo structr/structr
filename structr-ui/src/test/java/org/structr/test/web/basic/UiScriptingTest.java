@@ -72,6 +72,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.Snippet;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
@@ -1430,6 +1431,60 @@ public class UiScriptingTest extends StructrUiTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
+	}
+
+	@Test
+	public void testHttpSessionWrapper () {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
+			Template template1 = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
+			Template template2 = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
+
+			String script = "${{ let session = $.session; if ($.empty(session['test'])) { session['test'] = 123; } else { session['test'] = 456; } return $.session['test']; }}";
+			template1.setContent(script);
+			template2.setContent(script);
+
+			page.appendChild(template1);
+			page.appendChild(template2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		try (final Tx tx = app.tx()) {
+
+			RestAssured
+					.given()
+					//.headers("X-User", "admin" , "X-Password", "admin")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+					.expect()
+					.statusCode(200)
+					.body(equalTo("123456"))
+					.when()
+					.get("/test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
 	}
 
 

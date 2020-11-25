@@ -72,6 +72,8 @@ public class StructrBinding implements ProxyObject {
 				return new DoPrivilegedFunction(actionContext);
 			case "request":
 				return new HttpServletRequestWrapper(actionContext, actionContext.getSecurityContext().getRequest());
+			case "session":
+				return new HttpSessionWrapper(actionContext, actionContext.getSecurityContext().getSession());
 			case "cache":
 				return new CacheFunction(actionContext, entity);
 			case "vars":
@@ -130,6 +132,7 @@ public class StructrBinding implements ProxyObject {
 		keys.add("includeJs");
 		keys.add("doPrivileged");
 		keys.add("request");
+		keys.add("session");
 		keys.add("cache");
 		keys.add("applicationStore");
 		return keys;
