@@ -26,8 +26,8 @@ import org.structr.schema.action.ActionContext;
 
 public class EscapeHtmlFunction extends UiCommunityFunction {
 
-	public static final String ERROR_MESSAGE_ESCAPE_HTML    = "Usage: ${escape_html(text)}. Example: ${escape_html(\"test & test\")}";
-	public static final String ERROR_MESSAGE_ESCAPE_HTML_JS = "Usage: ${{Structr.escape_html(text)}}. Example: ${{Structr.escape_html(\"test & test\")}}";
+	public static final String ERROR_MESSAGE_ESCAPE_HTML    = "Usage: ${escape_html(string)}. Example: ${escape_html(\"test & test\")}";
+	public static final String ERROR_MESSAGE_ESCAPE_HTML_JS = "Usage: ${{Structr.escape_html(string)}}. Example: ${{Structr.escape_html(\"test & test\")}}";
 
 	@Override
 	public String getName() {
@@ -36,7 +36,7 @@ public class EscapeHtmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getSignature() {
-		return "text";
+		return "string";
 	}
 
 	@Override
@@ -48,14 +48,9 @@ public class EscapeHtmlFunction extends UiCommunityFunction {
 
 			return StringEscapeUtils.escapeHtml(sources[0].toString());
 
-		} catch (ArgumentNullException pe) {
+		} catch (ArgumentNullException | ArgumentCountException ae) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
-
-		} catch (ArgumentCountException pe) {
-
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ae.getMessage(), ctx.isJavaScriptContext());
 			return null;
 		}
 	}

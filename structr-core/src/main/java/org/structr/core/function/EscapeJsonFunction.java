@@ -27,6 +27,7 @@ import org.structr.schema.action.ActionContext;
 public class EscapeJsonFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_ESCAPE_JSON = "Usage: ${escape_json(string)}. Example: ${escape_json(this.name)}";
+	public static final String ERROR_MESSAGE_ESCAPE_JSON_JS = "Usage: ${{ Structr.escape_json(string) }}. Example: ${{ Structr.escape_json(this.name); }}";
 
 	@Override
 	public String getName() {
@@ -35,32 +36,28 @@ public class EscapeJsonFunction extends CoreFunction {
 
 	@Override
 	public String getSignature() {
-		return "str";
+		return "string";
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			return StringEscapeUtils.escapeJson(sources[0].toString());
 
-		} catch (ArgumentNullException pe) {
+		} catch (ArgumentNullException | ArgumentCountException ae) {
 
-			// silently ignore null arguments
+			logParameterError(caller, sources, ae.getMessage(), ctx.isJavaScriptContext());
 			return null;
-
-		} catch (ArgumentCountException pe) {
-
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_ESCAPE_JSON;
+		return (inJavaScriptContext ? ERROR_MESSAGE_ESCAPE_JSON_JS : ERROR_MESSAGE_ESCAPE_JSON);
 	}
 
 	@Override
