@@ -48,9 +48,14 @@ public class EscapeHtmlFunction extends UiCommunityFunction {
 
 			return StringEscapeUtils.escapeHtml(sources[0].toString());
 
-		} catch (ArgumentNullException | ArgumentCountException ae) {
+		} catch (ArgumentNullException ane) {
 
-			logParameterError(caller, sources, ae.getMessage(), ctx.isJavaScriptContext());
+			// silently ignore null strings
+			return null;
+
+		} catch (ArgumentCountException ace) {
+
+			logParameterError(caller, sources, ace.getMessage(), ctx.isJavaScriptContext());
 			return null;
 		}
 	}
