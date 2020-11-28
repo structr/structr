@@ -1950,11 +1950,6 @@ button.enabled, button.active {
 	color: #888;
 }
 
-#pagesTree ._html_class_ {
-	margin-top: -1px;
-	display: inline-block;
-}
-
 .node .linkable {
 	margin-left: 24px;
 	cursor: pointer;
