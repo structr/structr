@@ -22,16 +22,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.flow.api.*;
-import org.structr.flow.impl.FlowAggregate;
-import org.structr.flow.impl.FlowDecision;
-import org.structr.flow.impl.FlowForEach;
-import org.structr.flow.impl.FlowNode;
+import org.structr.flow.impl.*;
 
 /**
  *
  */
-public class ForEachHandler implements FlowHandler<FlowForEach> {
+public class ForEachHandler implements FlowHandler<FlowForEach>, ThrowingElement {
 
 	@Override
 	public FlowElement handle(final Context context, final FlowForEach flowElement) throws FlowException {
@@ -65,7 +63,13 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 
 						// Provide current element data for loop context and write evaluation result into main context data for this loop element
 						loopContext.setData(flowElement.getUuid(), o);
-						engine.execute(loopContext, loopBody);
+						try {
+
+							engine.execute(loopContext, loopBody);
+						} catch (FrameworkException ex) {
+
+							throw new FlowException(ex, this);
+						}
 						loopContext = openNewContext(context, loopContext, flowElement);
 
 						// Break when an intermediate result or error occurs
@@ -78,7 +82,14 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 
 					// Provide current element data for loop context and write evaluation result into main context data for this loop element
 					loopContext.setData(flowElement.getUuid(), data);
-					engine.execute(loopContext, loopBody);
+
+					try {
+
+						engine.execute(loopContext, loopBody);
+					} catch (FrameworkException ex) {
+
+						throw new FlowException(ex, this);
+					}
 				}
 
 				for (Map.Entry<String,Object> entry : getAggregationData(loopContext, flowElement).entrySet()) {
@@ -151,4 +162,8 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 		}
 	}
 
+	@Override
+	public FlowExceptionHandler getExceptionHandler(Context context) {
+		return null;
+	}
 }

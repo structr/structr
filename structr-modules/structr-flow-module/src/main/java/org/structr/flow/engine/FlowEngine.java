@@ -20,6 +20,7 @@ package org.structr.flow.engine;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
 import org.structr.flow.api.*;
 
 import java.util.EnumMap;
@@ -53,11 +54,11 @@ public class FlowEngine {
 		this.context = context;
 	}
 
-	public FlowResult execute(final FlowElement step) {
+	public FlowResult execute(final FlowElement step) throws FrameworkException {
 		return this.execute(this.context,step);
 	}
 
-	public FlowResult execute(final Context context, final FlowElement step) {
+	public FlowResult execute(final Context context, final FlowElement step) throws FrameworkException{
 
 		FlowElement current = step;
 
@@ -120,7 +121,7 @@ public class FlowEngine {
 		handlers.put(FlowType.Switch,       new SwitchHandler());
 	}
 
-	private FlowResult handleException(final Context context, final FlowException exception, final FlowElement current) {
+	private FlowResult handleException(final Context context, final FlowException exception, final FlowElement current) throws FrameworkException {
 		ThrowingElement throwingElement = exception.getThrowingElement();
 
 		// Check if throwing element has a linked FlowExceptionHandler or if there is a global one
@@ -173,8 +174,18 @@ public class FlowEngine {
 		// In case no handler is present at all, print the stack trace and return the intermediate result
 		FlowContainer container = current.getFlowContainer();
 		FlowBaseNode currentFlowNode = (FlowBaseNode) current;
-		logger.error((container.getName() != null ? ("[" + container.getProperty(FlowContainer.effectiveName) + "]") : "") + ("([" + currentFlowNode.getType() + "]" + currentFlowNode.getUuid() + ") Exception: "), exception.getRootCause());
-		context.error(new FlowError(exception.getMessage()));
+		if (exception.getRootCause() instanceof FrameworkException) {
+			FrameworkException fex = (FrameworkException)exception.getRootCause();
+			if (fex.getErrorBuffer() != null && fex.getErrorBuffer().hasError()) {
+
+				throw fex;
+			} else {
+
+				logger.error((container.getName() != null ? ("[" + container.getProperty(FlowContainer.effectiveName) + "]") : "") + ("([" + currentFlowNode.getType() + "]" + currentFlowNode.getUuid() + ") Exception: "), exception.getRootCause());
+				context.error(new FlowError(exception.getMessage()));
+			}
+		}
+
 		return new FlowResult(context);
 	}
 }

@@ -21,8 +21,10 @@ package org.structr.core.script;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.SourceSection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.Predicate;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -30,8 +32,10 @@ import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.function.Functions;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.DateProperty;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.context.ContextFactory;
@@ -39,14 +43,9 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyParser;
 
 import java.util.*;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.graalvm.polyglot.SourceSection;
-import org.structr.api.Predicate;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.TransactionCommand;
 
 public class Scripting {
 
@@ -257,6 +256,11 @@ public class Scripting {
 
 			} catch (PolyglotException ex) {
 
+				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
+
+					throw ex.asHostException();
+				}
+
 				reportError(actionContext.getSecurityContext(), ex, snippet);
 			}
 
@@ -341,6 +345,11 @@ public class Scripting {
 				result = PolyglotWrapper.unwrap(actionContext, context.getBindings(engineName).getMember("main").execute());
 
 			} catch (PolyglotException ex) {
+
+				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
+
+					throw ex.asHostException();
+				}
 
 				reportError(actionContext.getSecurityContext(), ex, snippet);
 			}
