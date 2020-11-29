@@ -578,7 +578,7 @@ public class GetLetsEncryptCertificateCommand extends Command implements Mainten
 			throw new FrameworkException(422, "No " + Dns01Challenge.TYPE + " challenge found, aborting.");
 		}
 
-		logger.info("Within the next " + (wait/1000) + " seconds, create a TXT record in your DNS for " + auth.getIdentifier().getDomain() + " with the folling data:");
+		logger.info("Within the next " + (wait/1000) + " seconds, create a TXT record in your DNS for " + auth.getIdentifier().getDomain() + " with the following data:");
 		logger.info("_acme-challenge.{}. IN TXT {}", auth.getIdentifier().getDomain(), challenge.getDigest());
 		logger.info("After " + (wait/1000) + " seconds, the certificate authority will probe the DNS record to authorize the challenge. If the record is not available, the authorization will fail.");
 
