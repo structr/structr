@@ -29,6 +29,7 @@ var _Dashboard = {
 	logLinesKey: 'dashboardNumberOfLines' + port,
 	zipExportPrefixKey: 'zipExportPrefix' + port,
 	zipExportAppendTimestampKey: 'zipExportAppendTimestamp' + port,
+	showScriptingErrorPopupsKey: 'showScriptinErrorPopups' + port,
 
 	init: function() {},
 	unload: function() {
@@ -257,6 +258,17 @@ var _Dashboard = {
 					Structr.updateMainMenu(newMenuConfig);
 				});
 
+				let showScriptingErrorPopups = _Dashboard.isShowScriptingErrorPopups();
+
+				let showScriptingErrorPopupsCheckbox = document.querySelector('#dashboard-show-scripting-error-popups');
+				if (showScriptingErrorPopupsCheckbox) {
+					showScriptingErrorPopupsCheckbox.checked = showScriptingErrorPopups;
+
+					showScriptingErrorPopupsCheckbox.addEventListener('change', () => {
+						LSWrapper.setItem(_Dashboard.showScriptingErrorPopupsKey, showScriptingErrorPopupsCheckbox.checked);
+					});
+				}
+
 				Structr.unblockMenu(100);
 			});
 		}).catch((e) => {
@@ -268,6 +280,9 @@ var _Dashboard = {
 				console.log(e);
 			}
 		});
+	},
+	isShowScriptingErrorPopups: function() {
+		return LSWrapper.getItem(_Dashboard.showScriptingErrorPopupsKey, true);
 	},
 	gatherVersionUpdateInfo(currentVersion, releasesIndexUrl, snapshotsIndexUrl) {
 
