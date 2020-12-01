@@ -29,6 +29,7 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +57,7 @@ public class NodeExtender {
 	private static final JavaFileManager fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
 	private static final ClassLoader classLoader     = fileManager.getClassLoader(null);
 	public static final Map<String, Class> classes  = new TreeMap<>();
-	public static final Map<String, String> contents = new HashMap<>();
+	public static final Map<String, String> contentsMD5 = new HashMap<>();
 
 	private List<SourceFile> sources     = null;
 	private Set<String> fqcns            = null;
@@ -89,7 +90,7 @@ public class NodeExtender {
 
 			sources.add(sourceFile);
 			fqcns.add(packageName.concat(".".concat(className)));
-			contents.put(className, sourceFile.getContent());
+			contentsMD5.put(className, DigestUtils.md5Hex(sourceFile.getContent()));
 
 			if (Settings.LogSchemaOutput.getValue()) {
 

@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -198,8 +199,8 @@ public class SchemaService implements Service {
 							SchemaHelper.getSource(sourceFile, schemaInfo, schemaNodes, blacklist, errorBuffer);
 
 							// only add if changed
-							String oldContent = NodeExtender.contents.get(className);
-							boolean hasChanged = oldContent == null || !sourceFile.getContent().equals(oldContent);
+							String oldContent = NodeExtender.contentsMD5.get(className);
+							boolean hasChanged = oldContent == null || !DigestUtils.md5Hex(sourceFile.getContent()).equals(oldContent);
 							if(hasChanged){
 								nodeExtender.addClass(className, sourceFile);
 							}
@@ -226,8 +227,8 @@ public class SchemaService implements Service {
 								schemaRelationship.getSource(relationshipSource, schemaNodes, errorBuffer);
 
 								// only add if changed
-								String oldContent = NodeExtender.contents.get(className);
-								boolean hasChanged = oldContent == null || !relationshipSource.getContent().equals(oldContent);
+								String oldContent = NodeExtender.contentsMD5.get(className);
+								boolean hasChanged = oldContent == null || !DigestUtils.md5Hex(relationshipSource.getContent()).equals(oldContent);
 								if(hasChanged){
 									nodeExtender.addClass(className, relationshipSource);
 								}
@@ -247,7 +248,7 @@ public class SchemaService implements Service {
 
 							// compile all classes at once and register
 							final Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
-
+							//todo: handle delete class (not in SchemaNodes or SchemaRelationshipNodes), remove from NodeExtender.classes and contentsMD5, and skip in newTypes
 							for (final Class newType : newTypes.values()) {
 
 								// instantiate classes to execute static initializer of helpers
