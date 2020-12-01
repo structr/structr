@@ -20,16 +20,7 @@ package org.structr.schema.compiler;
 
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
@@ -64,7 +55,8 @@ public class NodeExtender {
 	private static final JavaCompiler compiler       = ToolProvider.getSystemJavaCompiler();
 	private static final JavaFileManager fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
 	private static final ClassLoader classLoader     = fileManager.getClassLoader(null);
-	private static final Map<String, Class> classes  = new TreeMap<>();
+	public static final Map<String, Class> classes  = new TreeMap<>();
+	public static final Map<String, String> contents = new HashMap<>();
 
 	private List<SourceFile> sources     = null;
 	private Set<String> fqcns            = null;
@@ -97,6 +89,7 @@ public class NodeExtender {
 
 			sources.add(sourceFile);
 			fqcns.add(packageName.concat(".".concat(className)));
+			contents.put(className, sourceFile.getContent());
 
 			if (Settings.LogSchemaOutput.getValue()) {
 
@@ -148,9 +141,6 @@ public class NodeExtender {
 				for (final Class oldType : classes.values()) {
 					StructrApp.getConfiguration().unregisterEntityType(oldType);
 				}
-
-				// clear classes map
-				classes.clear();
 
 				// add new classes to map
 				for (final Class newType : newClasses) {

@@ -197,8 +197,14 @@ public class SchemaService implements Service {
 							// generate source code
 							SchemaHelper.getSource(sourceFile, schemaInfo, schemaNodes, blacklist, errorBuffer);
 
+							// only add if changed
+							String oldContent = NodeExtender.contents.get(className);
+							boolean hasChanged = oldContent == null || !sourceFile.getContent().equals(oldContent);
+							if(hasChanged){
+								nodeExtender.addClass(className, sourceFile);
+							}
+
 							// only load dynamic node if there were no errors while generating the source code (missing modules etc.)
-							nodeExtender.addClass(className, sourceFile);
 							dynamicViews.addAll(schemaInfo.getDynamicViews());
 
 							// initialize GraphQL engine as well
@@ -213,12 +219,19 @@ public class SchemaService implements Service {
 
 							if (!blacklist.contains(sourceType) && !blacklist.contains(targetType)) {
 
-								final SourceFile relationshipSource = new SourceFile(schemaRelationship.getClassName());
+								String className = schemaRelationship.getClassName();
+								final SourceFile relationshipSource = new SourceFile(className);
 
 								// generate source code
 								schemaRelationship.getSource(relationshipSource, schemaNodes, errorBuffer);
 
-								nodeExtender.addClass(schemaRelationship.getClassName(), relationshipSource);
+								// only add if changed
+								String oldContent = NodeExtender.contents.get(className);
+								boolean hasChanged = oldContent == null || !relationshipSource.getContent().equals(oldContent);
+								if(hasChanged){
+									nodeExtender.addClass(className, relationshipSource);
+								}
+
 								dynamicViews.addAll(schemaRelationship.getDynamicViews());
 
 								// initialize GraphQL engine as well
