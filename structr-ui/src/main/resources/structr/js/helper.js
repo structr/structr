@@ -722,7 +722,7 @@ var _Console = new (function() {
 					exec: false,
 					raw: true,
 					finalize: (div) => {
-						div.css('white-space', 'pre');	// prevent the output from being put on one line
+						div.css('white-space', 'pre-wrap');	// prevent the output from being put on one line but also prevent overflow
 						div.text(result);
 					}
 				};
