@@ -230,7 +230,7 @@ public class PermissionResolutionMask {
 
 	public void handleProperties(final String delta) {
 
-		if (delta != null) {
+		if (delta != null && !"".equals(delta.trim())) {
 
 			for (final String prop : delta.split("[, ]+")) {
 
