@@ -3074,14 +3074,14 @@ var _Code = {
 							let name    = runtimeEvent.data.name;
 							let id      = runtimeEvent.data.id;
 
-							console.log({
-								id: id,
-								entityId: entity.id,
-								type: type,
-								schemaType: schemaType,
-								name: name,
-								methodName: methodName
-							});
+//							console.log({
+//								id: id,
+//								entityId: entity.id,
+//								type: type,
+//								schemaType: schemaType,
+//								name: name,
+//								methodName: methodName
+//							});
 
 							if (
 								(!id || (entity.id && id === entity.id)) &&

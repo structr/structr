@@ -20,8 +20,6 @@ package org.structr.web.common;
 
 import java.net.URL;
 import java.util.Set;
-
-import org.python.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.datasources.DataSources;
 import org.structr.core.entity.AbstractSchemaNode;
@@ -30,7 +28,6 @@ import org.structr.files.url.StructrURLStreamHandlerFactory;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
-import org.structr.schema.action.Function;
 import org.structr.web.datasource.CypherGraphDataSource;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.datasource.IdRequestParameterGraphDataSource;
@@ -119,6 +116,8 @@ public class UiModule implements StructrModule {
 
 		Functions.put(licenseManager, new SendEventFunction());
 		Functions.put(licenseManager, new BroadcastEventFunction());
+
+		Functions.put(licenseManager, new GraphQLFunction());
 	}
 
 	@Override
