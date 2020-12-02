@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -198,14 +197,8 @@ public class SchemaService implements Service {
 							// generate source code
 							SchemaHelper.getSource(sourceFile, schemaInfo, schemaNodes, blacklist, errorBuffer);
 
-							// only add if changed
-							String oldContent = NodeExtender.contentsMD5.get(className);
-							boolean hasChanged = oldContent == null || !DigestUtils.md5Hex(sourceFile.getContent()).equals(oldContent);
-							if(hasChanged){
-								nodeExtender.addClass(className, sourceFile);
-							}
-
 							// only load dynamic node if there were no errors while generating the source code (missing modules etc.)
+							nodeExtender.addClass(className, sourceFile);
 							dynamicViews.addAll(schemaInfo.getDynamicViews());
 
 							// initialize GraphQL engine as well
@@ -220,19 +213,12 @@ public class SchemaService implements Service {
 
 							if (!blacklist.contains(sourceType) && !blacklist.contains(targetType)) {
 
-								String className = schemaRelationship.getClassName();
-								final SourceFile relationshipSource = new SourceFile(className);
+								final SourceFile relationshipSource = new SourceFile(schemaRelationship.getClassName());
 
 								// generate source code
 								schemaRelationship.getSource(relationshipSource, schemaNodes, errorBuffer);
 
-								// only add if changed
-								String oldContent = NodeExtender.contentsMD5.get(className);
-								boolean hasChanged = oldContent == null || !DigestUtils.md5Hex(relationshipSource.getContent()).equals(oldContent);
-								if(hasChanged){
-									nodeExtender.addClass(className, relationshipSource);
-								}
-
+								nodeExtender.addClass(schemaRelationship.getClassName(), relationshipSource);
 								dynamicViews.addAll(schemaRelationship.getDynamicViews());
 
 								// initialize GraphQL engine as well
@@ -248,7 +234,7 @@ public class SchemaService implements Service {
 
 							// compile all classes at once and register
 							final Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
-							//todo: handle delete class (not in SchemaNodes or SchemaRelationshipNodes), remove from NodeExtender.classes and contentsMD5, and skip in newTypes
+
 							for (final Class newType : newTypes.values()) {
 
 								// instantiate classes to execute static initializer of helpers
@@ -338,6 +324,8 @@ public class SchemaService implements Service {
 							config.registerDynamicViews(dynamicViews);
 
 							updateIndexConfiguration(removedClasses);
+
+							nodeExtender.prune();
 
 							tx.success();
 

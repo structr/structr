@@ -26,10 +26,8 @@ import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
-import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +43,8 @@ import org.structr.module.JarConfigurationProvider;
 import org.structr.schema.SourceFile;
 import org.structr.schema.SourceLine;
 
+import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
+
 /**
  *
  *
@@ -54,14 +54,17 @@ public class NodeExtender {
 	private static final Logger logger   = LoggerFactory.getLogger(NodeExtender.class.getName());
 
 	private static final JavaCompiler compiler       = ToolProvider.getSystemJavaCompiler();
-	private static final JavaFileManager fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
+	private static final ClassFileManager fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
 	private static final ClassLoader classLoader     = fileManager.getClassLoader(null);
-	public static final Map<String, Class> classes  = new TreeMap<>();
-	public static final Map<String, String> contentsMD5 = new HashMap<>();
+	private static final Map<String, Class> classes   = new TreeMap<>();
+	private static final Map<String, String> contentsMD5 = new HashMap<>();
 
 	private List<SourceFile> sources     = null;
 	private Set<String> fqcns            = null;
 	private String initiatedBySessionId  = null;
+
+	// used to detect deleted classes
+	private Set<String> retainedFqcns = new HashSet<>();
 
 	public NodeExtender(final String initiatedBySessionId) {
 
@@ -86,11 +89,20 @@ public class NodeExtender {
 
 		if (className != null && sourceFile != null) {
 
-			final String packageName = JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE;
+			final String fqcn = JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE + "." + className;
+
+			retainedFqcns.add(fqcn);
+
+			// continue only if changed
+			String oldMD5 = contentsMD5.get(fqcn);
+			String newMD5 = md5Hex(sourceFile.getContent());
+			if(newMD5.equals(oldMD5)){
+				return;
+			}
+			contentsMD5.put(fqcn, newMD5);
 
 			sources.add(sourceFile);
-			fqcns.add(packageName.concat(".".concat(className)));
-			contentsMD5.put(className, DigestUtils.md5Hex(sourceFile.getContent()));
+			fqcns.add(fqcn);
 
 			if (Settings.LogSchemaOutput.getValue()) {
 
@@ -159,6 +171,12 @@ public class NodeExtender {
 		}
 
 		return classes;
+	}
+
+	public void prune() {
+		fileManager.objects.entrySet().removeIf(entry -> !retainedFqcns.contains(entry.getKey()));
+		classes.entrySet().removeIf(entry -> !retainedFqcns.contains(entry.getKey()));
+		contentsMD5.entrySet().removeIf(entry -> !retainedFqcns.contains(entry.getKey()));
 	}
 
 	public String getInitiatedBySessionId () {

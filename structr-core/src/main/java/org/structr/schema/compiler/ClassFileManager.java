@@ -40,7 +40,7 @@ public class ClassFileManager extends ForwardingJavaFileManager {
 	 * Instance of JavaClassObject that will store the compiled byte code of
 	 * our class
 	 */
-	private final Map<String, JavaClassObject> objects = new LinkedHashMap<>();
+	public final Map<String, JavaClassObject> objects = new LinkedHashMap<>();
 
 	/**
 	 * Will initialize the manager with the specified standard java file
