@@ -441,11 +441,9 @@ var _Dashboard = {
 	},
     activateLogBox: function() {
 
-		let feedbackElement = document.querySelector('#dashboard-server-log-feedback');
-
-		let numberOfLines      = LSWrapper.getItem(_Dashboard.logLinesKey, 300);
-		let numberOfLinesInput = document.querySelector('#dashboard-server-log-lines');
-
+		let feedbackElement      = document.querySelector('#dashboard-server-log-feedback');
+		let numberOfLines        = LSWrapper.getItem(_Dashboard.logLinesKey, 300);
+		let numberOfLinesInput   = document.querySelector('#dashboard-server-log-lines');
 		numberOfLinesInput.value = numberOfLines;
 
 		numberOfLinesInput.addEventListener('change', () => {
@@ -455,12 +453,18 @@ var _Dashboard = {
 			blinkGreen($(numberOfLinesInput));
 		});
 
+		let manualRefreshButton       = document.querySelector('#dashboard-server-log-manual-refresh');
+		manualRefreshButton.addEventListener('click', () => updateLog());
+
 		let registerRefreshInterval = (timeInMs) => {
 
 			window.clearInterval(_Dashboard.logInterval);
 
 			if (timeInMs > 0) {
+				manualRefreshButton.classList.add('hidden');
 				_Dashboard.logInterval = window.setInterval(() => updateLog(), timeInMs);
+			} else {
+				manualRefreshButton.classList.remove('hidden');
 			}
 		};
 
