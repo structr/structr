@@ -325,8 +325,6 @@ public class SchemaService implements Service {
 
 							updateIndexConfiguration(removedClasses);
 
-							nodeExtender.prune();
-
 							tx.success();
 
 

@@ -63,9 +63,6 @@ public class NodeExtender {
 	private Set<String> fqcns            = null;
 	private String initiatedBySessionId  = null;
 
-	// used to detect deleted classes
-	private Set<String> retainedFqcns = new HashSet<>();
-
 	public NodeExtender(final String initiatedBySessionId) {
 
 		this.initiatedBySessionId = initiatedBySessionId;
@@ -90,19 +87,17 @@ public class NodeExtender {
 		if (className != null && sourceFile != null) {
 
 			final String fqcn = JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE + "." + className;
+			fqcns.add(fqcn);
 
-			retainedFqcns.add(fqcn);
-
-			// continue only if changed
+			// skip if not changed
 			String oldMD5 = contentsMD5.get(fqcn);
 			String newMD5 = md5Hex(sourceFile.getContent());
 			if(newMD5.equals(oldMD5)){
 				return;
 			}
-			contentsMD5.put(fqcn, newMD5);
 
+			contentsMD5.put(fqcn, newMD5);
 			sources.add(sourceFile);
-			fqcns.add(fqcn);
 
 			if (Settings.LogSchemaOutput.getValue()) {
 
@@ -155,10 +150,17 @@ public class NodeExtender {
 					StructrApp.getConfiguration().unregisterEntityType(oldType);
 				}
 
+				// clear classes map
+				classes.clear();
+
 				// add new classes to map
 				for (final Class newType : newClasses) {
 					classes.put(newType.getName(), newType);
 				}
+
+				// remove deleted classes (note: handle inner classes)
+				fileManager.objects.entrySet().removeIf(entry -> !fqcns.contains(entry.getKey().split("\\$")[0]));
+				contentsMD5.entrySet().removeIf(entry -> !fqcns.contains(entry.getKey()));
 
 				logger.info("Successfully compiled {} dynamic entities: {}", new Object[] { sources.size(), sources.stream().map(f -> f.getName().replaceFirst("/", "")).collect(Collectors.joining(", ")) });
 
@@ -171,12 +173,6 @@ public class NodeExtender {
 		}
 
 		return classes;
-	}
-
-	public void prune() {
-		fileManager.objects.entrySet().removeIf(entry -> !retainedFqcns.contains(entry.getKey()));
-		classes.entrySet().removeIf(entry -> !retainedFqcns.contains(entry.getKey()));
-		contentsMD5.entrySet().removeIf(entry -> !retainedFqcns.contains(entry.getKey()));
 	}
 
 	public String getInitiatedBySessionId () {
