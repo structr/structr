@@ -47,7 +47,7 @@ public class CoalesceFunction extends CoreFunction {
 			for (int i = 0; i < length; i++) {
 
 				if (sources[i] != null) {
-					return sources[i].toString();
+					return sources[i];
 				}
 			}
 
