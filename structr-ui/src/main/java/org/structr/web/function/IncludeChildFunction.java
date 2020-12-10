@@ -47,7 +47,7 @@ public class IncludeChildFunction extends IncludeFunction {
 
 	@Override
 	public String getSignature() {
-		return "name";
+		return "name [, collection, dataKey]";
 	}
 
 	@Override
@@ -126,7 +126,7 @@ public class IncludeChildFunction extends IncludeFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Includes the content of the node with the given name";
+		return "Includes the content of the node with the given name (optionally as a repeater element)";
 	}
 
 }
