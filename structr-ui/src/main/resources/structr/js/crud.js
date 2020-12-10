@@ -167,113 +167,120 @@ var _Crud = {
 	pageSize: {},
 	init: function() {
 
-		main.append('<div class="searchBox"><input class="search" name="crud-search" placeholder="Search"><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
-		main.append('<div id="crud-main"><div id="crud-top"><select id="crud-types-select"><optgroup label="Recent Types" id="crud-types-select-recent"></optgroup><optgroup label="All Types" id="crud-types-select-all"></optgroup></select></div><div id="crud-type-detail" class="resourceBox"></div></div>');
+		Structr.fetchHtmlTemplate('crud/main', {}, function(html) {
 
-		_Crud.exact = LSWrapper.getItem(_Crud.crudExactTypeKey) || {};
+			main.append(html);
 
-		_Crud.schemaLoading = false;
-		_Crud.schemaLoaded = false;
-		_Crud.keys = {};
+			_Crud.exact = LSWrapper.getItem(_Crud.crudExactTypeKey) || {};
 
-		_Crud.loadSchema(function() {
+			_Crud.schemaLoading = false;
+			_Crud.schemaLoaded = false;
+			_Crud.keys = {};
 
-			if (browser) {
+			_Crud.loadSchema(function() {
 
-				let typeSelect = document.getElementById('crud-types-select');
-				let optGroupAll = document.getElementById('crud-types-select-all');
-				let optGroupRecent = document.getElementById('crud-types-select-recent');
+				if (browser) {
 
-				let allTypes    = Object.keys(_Crud.types).sort();
-				let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey, []);
+					let typeSelect = document.getElementById('crud-types-select');
+					let optGroupAll = document.getElementById('crud-types-select-all');
+					let optGroupRecent = document.getElementById('crud-types-select-recent');
 
-				for (let recentTypeName of recentTypes) {
+					let allTypes    = Object.keys(_Crud.types).sort();
+					let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey, []);
 
-					// only add to list if it exists!
-					if (allTypes.includes(recentTypeName)) {
+					for (let recentTypeName of recentTypes) {
 
+						// only add to list if it exists!
+						if (allTypes.includes(recentTypeName)) {
+
+							let option = document.createElement('option');
+							option.id = recentTypeName;
+							option.textContent = recentTypeName;
+							option.selected = (recentTypeName === _Crud.type);
+
+							optGroupRecent.appendChild(option);
+						}
+					}
+
+					allTypes.map((typeName) => {
 						let option = document.createElement('option');
-						option.id = recentTypeName;
-						option.textContent = recentTypeName;
-						option.selected = (recentTypeName === _Crud.type);
+						option.id = typeName;
+						option.textContent = typeName;
 
-						optGroupRecent.appendChild(option);
-					}
-				}
-
-				allTypes.map((typeName) => {
-					let option = document.createElement('option');
-					option.id = typeName;
-					option.textContent = typeName;
-
-					if (typeName !== _Crud.type && !recentTypes.includes(typeName)) {
-						optGroupAll.appendChild(option);
-					}
-				});
-
-				let select2 = $(typeSelect).select2({
-					dropdownParent: $('#crud-top')
-				});
-				select2.on('select2:select', (e) => {
-
-					let typeName = e.params.data.text;
-					let element  = e.params.data.element;
-
-					optGroupRecent.insertBefore(element, optGroupRecent.firstChild);
-
-					select2 = $(typeSelect).select2({
-						dropdownParent: $('#crud-top')
+						if (typeName !== _Crud.type && !recentTypes.includes(typeName)) {
+							optGroupAll.appendChild(option);
+						}
 					});
 
-					_Crud.typeSelected(typeName);
-				});
+					let select2 = $(typeSelect).select2({
+						dropdownParent: $('#crud-top')
+					});
+					select2.on('select2:select', (e) => {
 
-				_Crud.typeSelected(_Crud.type);
-			}
-			_Crud.resize();
-			Structr.unblockMenu();
-		});
+						let typeName = e.params.data.text;
+						let element  = e.params.data.element;
 
-		_Crud.searchField = $('.search', main);
-		_Crud.searchField.focus();
+						optGroupRecent.insertBefore(element, optGroupRecent.firstChild);
 
-		Structr.appendInfoTextToElement({
-			element: _Crud.searchField,
-			text: 'By default a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search like so:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
-			insertAfter: true,
-			css: {
-				left: '-18px',
-				position: 'absolute'
-			},
-			helpElementCss: {
-				fontSize: '12px',
-				lineHeight: '1.1em'
-			}
-		});
+						select2 = $(typeSelect).select2({
+							dropdownParent: $('#crud-top')
+						});
 
-		let crudMain = $('#crud-main');
+						_Crud.typeSelected(typeName);
+					});
 
-		_Crud.searchField.keyup(function(e) {
-			var searchString = $(this).val();
-			if (searchString && searchString.length && e.keyCode === 13) {
+					let refreshButton = document.querySelector('#crud-refresh-list');
+					refreshButton.addEventListener('click', () => {
+						_Crud.typeSelected(_Crud.type);
+					});
 
-				$('.clearSearchIcon').show().on('click', function() {
+					_Crud.typeSelected(_Crud.type);
+				}
+				_Crud.resize();
+				Structr.unblockMenu();
+			});
+
+			_Crud.searchField = $('.search', main);
+			_Crud.searchField.focus();
+
+			Structr.appendInfoTextToElement({
+				element: _Crud.searchField,
+				text: 'By default a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search like so:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
+				insertAfter: true,
+				css: {
+					left: '-18px',
+					position: 'absolute'
+				},
+				helpElementCss: {
+					fontSize: '12px',
+					lineHeight: '1.1em'
+				}
+			});
+
+			let crudMain = $('#crud-main');
+
+			_Crud.searchField.keyup(function(e) {
+				var searchString = $(this).val();
+				if (searchString && searchString.length && e.keyCode === 13) {
+
+					$('.clearSearchIcon').show().on('click', function() {
+						_Crud.clearSearch(crudMain);
+					});
+
+					_Crud.search(searchString, crudMain, null, function(e, node) {
+						e.preventDefault();
+						_Crud.showDetails(node, false, node.type);
+						return false;
+					});
+
+					$('#crud-top').hide();
+					$('#crud-type-detail').hide();
+
+				} else if (e.keyCode === 27 || searchString === '') {
+
 					_Crud.clearSearch(crudMain);
-				});
-
-				_Crud.search(searchString, crudMain, null, function(e, node) {
-					e.preventDefault();
-					_Crud.showDetails(node, false, node.type);
-					return false;
-				});
-
-				$('#crud-top').hide();
-				$('#crud-type-detail').hide();
-
-			} else if (e.keyCode === 27 || searchString === '') {
-
-				_Crud.clearSearch(crudMain);
-			}
+				}
+			});
 		});
 	},
 	onload: function() {

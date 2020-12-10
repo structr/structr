@@ -24,11 +24,22 @@
 }
 
 #crud-top {
+	display: flex;
 	height: 36px;
 }
 
 #crud-top .select2-container--default .select2-results>.select2-results__options {
 	max-height: 400px;
+}
+
+#crud-top #crud-refresh-list {
+	height: 28px;
+	padding: 0 3px;
+	margin-left: 5px;
+}
+
+#crud-top #crud-refresh-list i {
+	margin: 5px;
 }
 
 .resourceBox h2 {
