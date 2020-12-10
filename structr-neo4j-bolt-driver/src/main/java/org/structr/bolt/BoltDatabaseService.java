@@ -128,25 +128,44 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 			final boolean isTesting = Settings.ConnectionUrl.getValue().equals(Settings.TestingConnectionUrl.getValue());
 
-			if (!isTesting && password != null && !"neo4j".equals(password)) {
+			try {
 
-				try {
-					driver = GraphDatabase.driver(databaseDriverUrl,
-						AuthTokens.basic(Settings.Neo4jDefaultUsername.getValue(), Settings.Neo4jDefaultPassword.getValue()),
+				driver = GraphDatabase.driver(databaseDriverUrl,
+						AuthTokens.basic(username, password),
 						Config.build().withEncryption().toConfig()
-					);
-					setInitialPassword(password);
+				);
 
-				} catch (AuthenticationException auex) {
-					logger.info("Login with default credentials failed (this is OK if a database password is already set).");
+			} catch (final AuthenticationException auex) {
+
+				if (!isTesting && password != null && !Settings.Neo4jDefaultPassword.getValue().equals(password)) {
+
+					logger.info("Login with credentials from config file failed, trying default credentials...");
+
+					try {
+						driver = GraphDatabase.driver(databaseDriverUrl,
+								AuthTokens.basic(Settings.Neo4jDefaultUsername.getValue(), Settings.Neo4jDefaultPassword.getValue()),
+								Config.build().withEncryption().toConfig()
+						);
+
+						logger.info("Successfully logged in with default credentials.");
+
+						setInitialPassword(password);
+
+						logger.info("Initial database password set to value from config file.");
+
+						driver = GraphDatabase.driver(databaseDriverUrl,
+								AuthTokens.basic(username, password),
+								Config.build().withEncryption().toConfig()
+						);
+
+						logger.info("Successfully logged in with configured credentials.");
+
+					} catch (final AuthenticationException auex2) {
+						logger.info("Login with default credentials failed.");
+					}
+
 				}
-
 			}
-
-			driver = GraphDatabase.driver(databaseDriverUrl,
-					AuthTokens.basic(username, password),
-					Config.build().withEncryption().toConfig()
-			);
 
 			final int relCacheSize  = Settings.RelationshipCacheSize.getPrefixedValue(serviceName);
 			final int nodeCacheSize = Settings.NodeCacheSize.getPrefixedValue(serviceName);
@@ -1099,13 +1118,8 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 				tx.run("CALL dbms.changePassword('" + initialPassword + "')");
 				tx.success();
 
-			} catch (Throwable t) { }
-
-			// this call may NOT fail silently, hence we don't catch any exceptions
-			try (final org.neo4j.driver.v1.Transaction tx = session.beginTransaction()) {
-
-				tx.run("CREATE CONSTRAINT ON (node:NodeInterface) ASSERT node.id IS UNIQUE");
-				tx.success();
+			} catch (Throwable t) {
+				logger.warn("Unable to change password properties file", t);
 			}
 		}
 	}
