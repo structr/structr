@@ -29,6 +29,7 @@ var _Dashboard = {
 	logLinesKey: 'dashboardNumberOfLines' + port,
 	zipExportPrefixKey: 'zipExportPrefix' + port,
 	zipExportAppendTimestampKey: 'zipExportAppendTimestamp' + port,
+	showScriptingErrorPopupsKey: 'showScriptinErrorPopups' + port,
 
 	init: function() {},
 	unload: function() {
@@ -257,6 +258,17 @@ var _Dashboard = {
 					Structr.updateMainMenu(newMenuConfig);
 				});
 
+				let showScriptingErrorPopups = _Dashboard.isShowScriptingErrorPopups();
+
+				let showScriptingErrorPopupsCheckbox = document.querySelector('#dashboard-show-scripting-error-popups');
+				if (showScriptingErrorPopupsCheckbox) {
+					showScriptingErrorPopupsCheckbox.checked = showScriptingErrorPopups;
+
+					showScriptingErrorPopupsCheckbox.addEventListener('change', () => {
+						LSWrapper.setItem(_Dashboard.showScriptingErrorPopupsKey, showScriptingErrorPopupsCheckbox.checked);
+					});
+				}
+
 				Structr.unblockMenu(100);
 			});
 		}).catch((e) => {
@@ -268,6 +280,9 @@ var _Dashboard = {
 				console.log(e);
 			}
 		});
+	},
+	isShowScriptingErrorPopups: function() {
+		return LSWrapper.getItem(_Dashboard.showScriptingErrorPopupsKey, true);
 	},
 	gatherVersionUpdateInfo(currentVersion, releasesIndexUrl, snapshotsIndexUrl) {
 
@@ -426,11 +441,9 @@ var _Dashboard = {
 	},
     activateLogBox: function() {
 
-		let feedbackElement = document.querySelector('#dashboard-server-log-feedback');
-
-		let numberOfLines      = LSWrapper.getItem(_Dashboard.logLinesKey, 300);
-		let numberOfLinesInput = document.querySelector('#dashboard-server-log-lines');
-
+		let feedbackElement      = document.querySelector('#dashboard-server-log-feedback');
+		let numberOfLines        = LSWrapper.getItem(_Dashboard.logLinesKey, 300);
+		let numberOfLinesInput   = document.querySelector('#dashboard-server-log-lines');
 		numberOfLinesInput.value = numberOfLines;
 
 		numberOfLinesInput.addEventListener('change', () => {
@@ -440,12 +453,18 @@ var _Dashboard = {
 			blinkGreen($(numberOfLinesInput));
 		});
 
+		let manualRefreshButton       = document.querySelector('#dashboard-server-log-manual-refresh');
+		manualRefreshButton.addEventListener('click', () => updateLog());
+
 		let registerRefreshInterval = (timeInMs) => {
 
 			window.clearInterval(_Dashboard.logInterval);
 
 			if (timeInMs > 0) {
+				manualRefreshButton.classList.add('hidden');
 				_Dashboard.logInterval = window.setInterval(() => updateLog(), timeInMs);
+			} else {
+				manualRefreshButton.classList.remove('hidden');
 			}
 		};
 

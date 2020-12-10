@@ -1666,6 +1666,7 @@ var Structr = {
 	handleGenericMessage: function(data) {
 
 		let showScheduledJobsNotifications = Importer.isShowNotifications();
+		let showScriptingErrorPopups       = _Dashboard.isShowScriptingErrorPopups();
 
 		switch (data.type) {
 
@@ -1915,99 +1916,101 @@ var Structr = {
 				break;
 
 			case "SCRIPTING_ERROR":
-				if (data.nodeId && data.nodeType) {
-					Command.get(data.nodeId, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
+				if (showScriptingErrorPopups) {
+					if (data.nodeId && data.nodeType) {
+						Command.get(data.nodeId, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
 
-						let name     = data.name.slice(data.name.indexOf('_html_') === 0 ? 6 : 0);
-						let property = 'Property';
-						let title    = '';
+							let name     = data.name.slice(data.name.indexOf('_html_') === 0 ? 6 : 0);
+							let property = 'Property';
+							let title    = '';
 
-						switch (obj.type) {
+							switch (obj.type) {
 
-							case 'SchemaMethod':
-								if (obj.schemaNode) {
-									title = 'type "' + obj.schemaNode.name + '"';
-									property = 'Method';
-								} else {
-									title = 'global schema method';
-									property = 'Method';
-								}
-								break;
-
-							default:
-								if (obj.ownerDocument) {
-									if (obj.ownerDocument.type === 'ShadowDocument') {
-										title = 'shared component';
+								case 'SchemaMethod':
+									if (obj.schemaNode) {
+										title = 'type "' + obj.schemaNode.name + '"';
+										property = 'Method';
 									} else {
-										title = 'page "' + obj.ownerDocument.name  + '"';
+										title = 'global schema method';
+										property = 'Method';
 									}
+									break;
 
-								}
-								break;
-						}
+								default:
+									if (obj.ownerDocument) {
+										if (obj.ownerDocument.type === 'ShadowDocument') {
+											title = 'shared component';
+										} else {
+											title = 'page "' + obj.ownerDocument.name  + '"';
+										}
 
-						let location = '<table class="scripting-error-location">'
-							+ '<tr><th>Element:</th><td style="padding-left:8px;">' + data.nodeType + '[' + data.nodeId + ']</td></tr>'
-							+ '<tr><th>' + property + ':</th><td style="padding-left:8px;">' + name + '</td></tr>'
-							+ '<tr><th>Row:</th><td style="padding-left:8px;">' + data.row + '</td></tr>'
-							+ '<tr><th>Column:</th><td style="padding-left:8px;">' + data.column + '</td></tr>'
-							+ '</table>';
-
-						let builder = new MessageBuilder()
-							.title('Scripting error in ' + title)
-							.warning(location + '<br/>' + data.message)
-							.requiresConfirmation();
-
-						if (data.nodeType === 'SchemaMethod') {
-
-							let pathToOpen = '';
-
-							if (obj.schemaNode) {
-
-								pathToOpen = 'custom--' + obj.schemaNode.id + '-methods-' + obj.id;
-								
-							} else {
-
-								pathToOpen = 'global--' + obj.id;
+									}
+									break;
 							}
 
-							builder.specialInteractionButton('Go to method', function(btn) {
-								window.location.href = '#code';
-								window.setTimeout(function() {
-									_Code.findAndOpenNode(pathToOpen, false);
-								}, 1000);
-							}, 'Dismiss');
+							let location = '<table class="scripting-error-location">'
+								+ '<tr><th>Element:</th><td style="padding-left:8px;">' + data.nodeType + '[' + data.nodeId + ']</td></tr>'
+								+ '<tr><th>' + property + ':</th><td style="padding-left:8px;">' + name + '</td></tr>'
+								+ '<tr><th>Row:</th><td style="padding-left:8px;">' + data.row + '</td></tr>'
+								+ '<tr><th>Column:</th><td style="padding-left:8px;">' + data.column + '</td></tr>'
+								+ '</table>';
 
-						} else {
+							let builder = new MessageBuilder()
+								.title('Scripting error in ' + title)
+								.warning(location + '<br/>' + data.message)
+								.requiresConfirmation();
 
-							builder.specialInteractionButton('Open in editor', function(btn) {
-								switch (data.nodeType) {
-									case 'Content':
-									case 'Template':
-										_Elements.openEditContentDialog(btn, obj, {
-											extraKeys: { "Ctrl-Space": "autocomplete" },
-											gutters: ["CodeMirror-lint-markers"],
-											lint: {
-												getAnnotations: function(text, callback) {
-													_Code.showScriptErrors(obj, text, callback, data.name);
-												},
-												async: true
-											}
-										});
-									break;
-								default:
-									_Entities.showProperties(obj);
-									break;
+							if (data.nodeType === 'SchemaMethod') {
+
+								let pathToOpen = '';
+
+								if (obj.schemaNode) {
+
+									pathToOpen = 'custom--' + obj.schemaNode.id + '-methods-' + obj.id;
+
+								} else {
+
+									pathToOpen = 'global--' + obj.id;
 								}
-							}, 'Dismiss');
-						}
 
-						// show message
-						builder.allowConfirmAll().show();
-					});
+								builder.specialInteractionButton('Go to method', function(btn) {
+									window.location.href = '#code';
+									window.setTimeout(function() {
+										_Code.findAndOpenNode(pathToOpen, false);
+									}, 1000);
+								}, 'Dismiss');
 
-				} else {
-					new MessageBuilder().title('Server-side Scripting Error').warning(data.message).requiresConfirmation().allowConfirmAll().show();
+							} else {
+
+								builder.specialInteractionButton('Open in editor', function(btn) {
+									switch (data.nodeType) {
+										case 'Content':
+										case 'Template':
+											_Elements.openEditContentDialog(btn, obj, {
+												extraKeys: { "Ctrl-Space": "autocomplete" },
+												gutters: ["CodeMirror-lint-markers"],
+												lint: {
+													getAnnotations: function(text, callback) {
+														_Code.showScriptErrors(obj, text, callback, data.name);
+													},
+													async: true
+												}
+											});
+										break;
+									default:
+										_Entities.showProperties(obj);
+										break;
+									}
+								}, 'Dismiss');
+							}
+
+							// show message
+							builder.allowConfirmAll().show();
+						});
+
+					} else {
+						new MessageBuilder().title('Server-side Scripting Error').warning(data.message).requiresConfirmation().allowConfirmAll().show();
+					}
 				}
 				break;
 
