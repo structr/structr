@@ -77,8 +77,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 		try {
 			if (!deletedNodes.contains(node) && node.getUuid() == null) {
 
-				logger.warn("Will not delete node which has no UUID, dumping stack.");
-				Thread.dumpStack();
+				logger.debug("Will not delete node which has no UUID: {}", node);
 
 				return;
 			}
