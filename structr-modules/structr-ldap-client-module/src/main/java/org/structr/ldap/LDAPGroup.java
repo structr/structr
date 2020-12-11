@@ -97,7 +97,7 @@ public interface LDAPGroup extends Group {
 
 			} catch (Throwable t) {
 
-				logger.warn("Unable to sync group {}: {}", thisGroup.getName(), t.getMessage());
+				logger.warn("Unable to sync group " + thisGroup.getName(), t.getMessage());
 			}
 
 		} else {

@@ -161,10 +161,10 @@ public class JsonRestServlet extends AbstractDataServlet {
 				resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 
+				RuntimeEventLog.rest("Delete", resource.getResourceSignature(), securityContext.getUser(false));
+
 				tx.success();
 			}
-
-			RuntimeEventLog.rest("Delete", resource.getResourceSignature(), securityContext.getUser(false));
 
 			// isolate doDelete
 			boolean retry = true;
@@ -307,10 +307,11 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+
+				RuntimeEventLog.rest("Options", resource.getResourceSignature(), securityContext.getUser(false));
+
 				tx.success();
 			}
-
-			RuntimeEventLog.rest("Options", resource.getResourceSignature(), securityContext.getUser(false));
 
 			// isolate doOptions
 			boolean retry = true;
@@ -430,10 +431,11 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+
+					RuntimeEventLog.rest("Post", resource.getResourceSignature(), securityContext.getUser(false));
+
 					tx.success();
 				}
-
-				RuntimeEventLog.rest("Post", resource.getResourceSignature(), securityContext.getUser(false));
 
 				// isolate doPost
 				boolean retry = true;
@@ -637,10 +639,11 @@ public class JsonRestServlet extends AbstractDataServlet {
 					// evaluate constraint chain
 					resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+
+					RuntimeEventLog.rest("Put", resource.getResourceSignature(), securityContext.getUser(false));
+
 					tx.success();
 				}
-
-				RuntimeEventLog.rest("Put", resource.getResourceSignature(), securityContext.getUser(false));
 
 				// isolate doPut
 				boolean retry = true;
@@ -788,10 +791,11 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+
+					RuntimeEventLog.rest("Patch", resource.getResourceSignature(), securityContext.getUser(false));
+
 					tx.success();
 				}
-
-				RuntimeEventLog.rest("Patch", resource.getResourceSignature(), securityContext.getUser(false));
 
 				if (resource.isCollectionResource()) {
 

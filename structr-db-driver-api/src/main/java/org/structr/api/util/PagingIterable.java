@@ -19,7 +19,6 @@
 package org.structr.api.util;
 
 import java.util.Iterator;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +49,6 @@ public class PagingIterable<T> implements ResultStream<T> {
 		if (isConsumed()) {
 
 			logger.error("PagingIterable already consumed, please use Iterables.toList() to be able to iterate a streaming result more than once.");
-			Thread.dumpStack();
 		}
 
 		return source;
@@ -113,7 +111,7 @@ public class PagingIterable<T> implements ResultStream<T> {
 				((AutoCloseable)source).close();
 
 			} catch (Exception ex) {
-				logger.error(ExceptionUtils.getStackTrace(ex));
+				logger.error("Unable to close iterable", ex);
 			}
 		}
 	}

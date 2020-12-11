@@ -133,7 +133,7 @@ public interface LDAPUser extends User {
 
 			if (!hasLDAPGroups) {
 
-				logger.info("LDAPUser {} with UUID {} is not associated with an LDAPGroup, authentication denied.", thisUser.getName(), thisUser.getUuid());
+				logger.warn("LDAPUser {} with UUID {} is not associated with an LDAPGroup, authentication denied.", thisUser.getName(), thisUser.getUuid());
 				return false;
 			}
 
