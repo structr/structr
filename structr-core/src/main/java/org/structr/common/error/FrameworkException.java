@@ -113,7 +113,14 @@ public class FrameworkException extends Exception {
 			}
 		}
 
-		container.add("message", (getMessage() != null) ? new JsonPrimitive(getMessage()) : JsonNull.INSTANCE);
+		if (getCause() instanceof UnlicensedScriptException) {
+
+			container.add("message", new JsonPrimitive(getCause().getMessage()));
+
+		} else {
+
+			container.add("message", (getMessage() != null) ? new JsonPrimitive(getMessage()) : JsonNull.INSTANCE);
+		}
 
 		// add errors if there are any
 		if (errorBuffer != null) {
