@@ -74,6 +74,7 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 			}
 
 		} catch (UnlicensedScriptException ex) {
+
 			ex.log(LoggerFactory.getLogger(FunctionDataSource.class));
 		}
 

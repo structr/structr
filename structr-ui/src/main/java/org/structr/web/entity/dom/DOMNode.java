@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1088,11 +1089,11 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			if (!isShadowPage) {
 
 				final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
-				logger.error("Error while evaluating hide condition '{}' in page {}[{}], DOMNode[{}]", _hideConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, ex);
+				DOMNode.logScriptingError(logger, ex, "Error while evaluating hide condition '{}' in page {}[{}], DOMNode[{}]", _hideConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode.getUuid());
 
 			} else {
 
-				logger.error("Error while evaluating hide condition '{}' in shared component, DOMNode[{}]", _hideConditions, thisNode, ex);
+				DOMNode.logScriptingError(logger, ex, "Error while evaluating hide condition '{}' in shared component, DOMNode[{}]", _hideConditions, thisNode.getUuid());
 			}
 		}
 
@@ -1110,15 +1111,35 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			if (!isShadowPage) {
 
 				final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
-				logger.error("Error while evaluating show condition '{}' in page {}[{}], DOMNode[{}]", _showConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, ex);
+				DOMNode.logScriptingError(logger, ex, "Error while evaluating show condition '{}' in page {}[{}], DOMNode[{}]", _showConditions, ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode.getUuid());
 
 			} else {
 
-				logger.error("Error while evaluating show condition '{}' in shared component, DOMNode[{}]", _showConditions, thisNode, ex);
+				DOMNode.logScriptingError(logger, ex, "Error while evaluating show condition '{}' in shared component, DOMNode[{}]", _showConditions, thisNode.getUuid());
 			}
 		}
 
 		return true;
+	}
+
+	static void logScriptingError (final Logger logger, final Throwable t, String message,  Object... arguments) {
+
+		if (t instanceof UnlicensedScriptException) {
+
+			message += "\n{}";
+			arguments = ArrayUtils.add(arguments, t.getMessage());
+
+		} else if (t.getCause() instanceof UnlicensedScriptException) {
+
+			message += "\n{}";
+			arguments = ArrayUtils.add(arguments, t.getCause().getMessage());
+
+		} else {
+
+			arguments = ArrayUtils.add(arguments, t);
+		}
+
+		logger.error(message, arguments);
 	}
 
 	static boolean shouldBeRendered(final DOMNode thisNode, final RenderContext renderContext) {
