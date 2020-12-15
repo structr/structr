@@ -23,9 +23,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -69,10 +66,9 @@ public class FrameworkException extends Exception {
 	public FrameworkException(final int status, final String message, final Throwable cause) {
 
 		this.status = status;
-		StringWriter sw = new StringWriter();
-		sw.append(message).append('\n');
-		cause.printStackTrace(new PrintWriter(sw));
-		this.message = sw.toString();
+		this.message = message;
+
+		initCause(cause);
 	}
 
 	@Override

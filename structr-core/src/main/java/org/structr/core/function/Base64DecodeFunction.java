@@ -81,7 +81,7 @@ public class Base64DecodeFunction extends CoreFunction {
 
 			} catch (UnsupportedCharsetException uce) {
 
-					logger.warn("base64decode: Unsupported charset {}", sources[2].toString(), uce);
+				logger.warn("base64decode: Unsupported charset {}", sources[2].toString(), uce);
 
 			} catch  (IllegalArgumentException iae) {
 

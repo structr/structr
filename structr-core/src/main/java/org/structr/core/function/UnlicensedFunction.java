@@ -48,7 +48,7 @@ public class UnlicensedFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(final boolean inJavaScriptContext) {
-		return new UnlicensedScriptException(name, module).buildLogMessage();
+		return UnlicensedScriptException.buildLogMessage(name, module);
 	}
 
 	@Override
