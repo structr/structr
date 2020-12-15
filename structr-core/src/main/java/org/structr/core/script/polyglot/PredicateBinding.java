@@ -25,8 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
-import org.structr.core.function.RangeFunction;
-import org.structr.core.function.search.*;
 import org.structr.core.script.polyglot.wrappers.FunctionWrapper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -39,16 +37,16 @@ public class PredicateBinding implements ProxyObject {
 	private ActionContext actionContext          = null;
 
 	private final Map<String, Function<Object, Object>> predicateBindings = Map.ofEntries(
-		Map.entry("within_distance", Functions.getByClass(FindWithinDistanceFunction.class)),
-		Map.entry("sort",            Functions.getByClass(FindSortFunction.class)),
-		Map.entry("page",            Functions.getByClass(FindPageFunction.class)),
-		Map.entry("not",             Functions.getByClass(FindNotFunction.class)),
-		Map.entry("empty",           Functions.getByClass(FindEmptyFunction.class)),
-		Map.entry("equals",          Functions.getByClass(FindEqualsFunction.class)),
-		Map.entry("or",              Functions.getByClass(FindOrFunction.class)),
-		Map.entry("and",             Functions.getByClass(FindAndFunction.class)),
-		Map.entry("contains",        Functions.getByClass(FindContainsFunction.class)),
-		Map.entry("range",           Functions.getByClass(RangeFunction.class))
+		Map.entry("within_distance", Functions.get("find.within_distance")),
+		Map.entry("sort",            Functions.get("find.sort")),
+		Map.entry("page",            Functions.get("find.page")),
+		Map.entry("not",             Functions.get("find.not")),
+		Map.entry("empty",           Functions.get("find.empty")),
+		Map.entry("equals",          Functions.get("find.equals")),
+		Map.entry("or",              Functions.get("find.or")),
+		Map.entry("and",             Functions.get("find.and")),
+		Map.entry("contains",        Functions.get("find.contains")),
+		Map.entry("range",           Functions.get("find.range"))
 	);
 
 	public PredicateBinding(final ActionContext actionContext, final GraphObject entity) {
