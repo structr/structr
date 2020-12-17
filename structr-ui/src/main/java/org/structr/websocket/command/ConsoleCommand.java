@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedScriptException;
 import org.structr.console.Console;
 import org.structr.console.Console.ConsoleMode;
 import org.structr.console.tabcompletion.TabCompletionResult;
@@ -115,11 +116,13 @@ public class ConsoleCommand extends AbstractCommand {
 
 			logger.debug("Error while executing console line {}", line, ex);
 
+			final String message = (ex.getCause() instanceof UnlicensedScriptException) ? ex.getCause().getMessage() : ex.getMessage();
+
 			getWebSocket().send(MessageBuilder.forName(getCommand())
 					.callback(webSocketData.getCallback())
 					.data(MODE_KEY, console.getMode())
 					.data(VERSION_INFO_KEY, VersionHelper.getFullVersionInfo())
-					.message(ex.getMessage())
+					.message(message)
 					.build(), true);
 		}
 	}

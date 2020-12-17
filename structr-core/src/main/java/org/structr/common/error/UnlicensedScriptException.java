@@ -25,32 +25,24 @@ import org.slf4j.Logger;
  */
 public class UnlicensedScriptException extends RuntimeException {
 
-	private String name   = null;
-	private String module = null;
-
 	public UnlicensedScriptException(final String name, final String module) {
 
-		super("UnlicensedScriptException: " + module + ", " + name);
-
-		this.module = module;
-		this.name   = name;
+		super(UnlicensedScriptException.buildLogMessage(name, module));
 	}
 
 	public void log(final Logger logger) {
 
-		final String msg = buildLogMessage();
-
 		if (logger != null) {
 
-			logger.error(msg);
+			logger.error(getMessage());
 
 		} else {
 
-			System.out.println(msg);
+			System.out.println(getMessage());
 		}
 	}
 
-	public String buildLogMessage() {
+	public static String buildLogMessage(final String name, final String module) {
 
 		final StringBuilder buf = new StringBuilder();
 
