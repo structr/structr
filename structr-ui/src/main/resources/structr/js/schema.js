@@ -189,7 +189,6 @@ var _Schema = {
 		});
 		$('#schema-show-inheritance').off('change').on('change', function() {
 			_Schema.ui.updateInheritanceVisibility($(this).prop('checked'));
-			_Schema.reload();
 		});
 		$('#schema-tools').off('click').on('click', _Schema.openSchemaToolsDialog);
 		$('#global-schema-methods').off('click').on('click', _Schema.methods.showGlobalSchemaMethods);
@@ -726,37 +725,31 @@ var _Schema = {
 				x = 0;
 			});
 
-			var inheritanceVisible = LSWrapper.getItem(_Schema.showSchemaInheritanceKey);
-			var showSchemaInheritance = (inheritanceVisible === null) ? true : inheritanceVisible;
+			for (var source of Object.keys(inheritancePairs)) {
 
-			if (showSchemaInheritance) {
+				let target = inheritancePairs[source];
+				let sourceEntity = nodes[source];
+				let targetEntity = nodes[target];
 
-				for (var source of Object.keys(inheritancePairs)) {
+				let i1 = _Schema.hiddenSchemaNodes.indexOf(sourceEntity.name);
+				let i2 = _Schema.hiddenSchemaNodes.indexOf(targetEntity.name);
 
-					let target = inheritancePairs[source];
-					let sourceEntity = nodes[source];
-					let targetEntity = nodes[target];
-
-					let i1 = _Schema.hiddenSchemaNodes.indexOf(sourceEntity.name);
-					let i2 = _Schema.hiddenSchemaNodes.indexOf(targetEntity.name);
-
-					if (_Schema.hiddenSchemaNodes.length > 0 && (i1 > -1 || i2 > -1)) {
-						continue;
-					}
-
-					instance.connect({
-						source: 'id_' + source,
-						target: 'id_' + target,
-						endpoint: 'Blank',
-						anchors: [
-							[ 'Perimeter', { shape: 'Rectangle' } ],
-							[ 'Perimeter', { shape: 'Rectangle' } ]
-						],
-						connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
-						paintStyle: { lineWidth: 5, strokeStyle: "#dddddd", dashstyle: '2 2' },
-						cssClass: "dashed-inheritance-relationship"
-					});
+				if (_Schema.hiddenSchemaNodes.length > 0 && (i1 > -1 || i2 > -1)) {
+					continue;
 				}
+
+				instance.connect({
+					source: 'id_' + source,
+					target: 'id_' + target,
+					endpoint: 'Blank',
+					anchors: [
+						[ 'Perimeter', { shape: 'Rectangle' } ],
+						[ 'Perimeter', { shape: 'Rectangle' } ]
+					],
+					connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
+					paintStyle: { lineWidth: 5, strokeStyle: "#dddddd", dashstyle: '2 2' },
+					cssClass: "dashed-inheritance-relationship"
+				});
 			}
 		};
 
@@ -4447,7 +4440,9 @@ var _Schema = {
 			LSWrapper.setItem(_Schema.showSchemaInheritanceKey, show);
 			$('#schema-show-inheritance').prop('checked', show);
 			if (show) {
+				$('.dashed-inheritance-relationship').show();
 			} else {
+				$('.dashed-inheritance-relationship').hide();
 			}
 		},
 	},
