@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -62,7 +63,7 @@ public interface DataFeed extends NodeInterface {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DataFeed"));
 
-		type.addStringProperty("url",          PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("url",          PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.addStringProperty("feedType",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("description",  PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
@@ -103,7 +104,7 @@ public interface DataFeed extends NodeInterface {
 			.setSource(DataFeed.class.getName() + ".updateIfDue(this, ctx);")
 			.setDoExport(true);
 
-		type.relate(item, "HAS_FEED_ITEMS", Cardinality.OneToMany, "feed", "items");
+		type.relate(item, "HAS_FEED_ITEMS", Cardinality.OneToMany, "feed", "items").setCascadingDelete(Cascade.sourceToTarget);
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "items");
@@ -205,8 +206,8 @@ public interface DataFeed extends NodeInterface {
 
 						final String link = entry.getLink();
 
-						// Check if item with this link already exists
-						if (app.nodeQuery(FeedItem.class).and(urlKey, link).getFirst() == null) {
+						// Check if item with this link is already attached to this feed
+						if (!newItems.stream().anyMatch(existingFeedItem -> existingFeedItem.getProperty(urlKey).equals(link))) {
 
 							props.put(urlKey,                                        entry.getLink());
 							props.put(StructrApp.key(FeedItem.class, "name"),        entry.getTitle());
