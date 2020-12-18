@@ -25,8 +25,8 @@ if (browser) {
 
 		defaultType = 'Page';
 		defaultView = 'all';
-		defaultSort = '';
-		defaultOrder = '';
+		defaultSort = 'createdDate';
+		defaultOrder = 'desc';
 
 		defaultPage = 1;
 		defaultPageSize = 10;
