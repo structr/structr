@@ -131,6 +131,8 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 
 								cmd.execute(params);
 
+								return cmd.getPayload();
+
 							} catch (FrameworkException ex) {
 								logger.warn("Unable to execute maintenance command {}: {}", commandName, ex.getMessage());
 							}
