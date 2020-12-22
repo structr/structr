@@ -1,0 +1,33 @@
+<div id="id_${config.eventHandler.id}" class="simple-pages-event-handler">
+	<span class="id hidden">${config.eventHandler.id}</span>
+	<!--i title="Collapse ${config.eventHandler.name}" class="expand_icon sprite sprite-tree_arrow_down"></i-->
+	<!--i class="typeIcon sprite sprite-page"></i-->
+	<div class="main-pane">
+		<div class="menu-container">
+			<!--span title="${config.eventHandler.name}" class="name_">${config.eventHandler.name || '- A eventHandler -'}</span-->
+			<svg class="open-context-menu open-event-handler-context-menu menu-icon" fill="currentColor" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" ><g transform="matrix(0.8333333333333334,0,0,0.8333333333333334,0,0)"><path d="M8.750 3.250 A3.250 3.250 0 1 0 15.250 3.250 A3.250 3.250 0 1 0 8.750 3.250 Z" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"></path><path d="M8.750 12.000 A3.250 3.250 0 1 0 15.250 12.000 A3.250 3.250 0 1 0 8.750 12.000 Z" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"></path><path d="M8.750 20.750 A3.250 3.250 0 1 0 15.250 20.750 A3.250 3.250 0 1 0 8.750 20.750 Z" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"></path></g></svg>
+			<!--svg class="open-page-context-menu menu-icon" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg-->
+		</div>
+		<div class="dom-container"></div>
+		<div class="form-group">
+			<label for="event">on </label>
+			<select id="event">
+				<option${config.eventHandler.event === 'blur' ? ' selected' : ''}>blur</option>
+				<option${config.eventHandler.event === 'click' ? ' selected' : ''}>click</option>
+				<option${config.eventHandler.event === 'mouseover' ? ' selected' : ''}>mouseover</option>
+				<option${config.eventHandler.event === 'mouseout' ? ' selected' : ''}>mouseout</option>
+				<option${config.eventHandler.event === 'mousedown' ? ' selected' : ''}>mousedown</option>
+				<option${config.eventHandler.event === 'mouseup' ? ' selected' : ''}>mouseup</option>
+				<option${config.eventHandler.event === 'enter' ? ' selected' : ''}>enter</option>
+			</select>
+		</div>
+		<div class="form-group">
+			<label for="action">action </label>
+			<select id="action">
+			<option${config.eventHandler.action === 'refresh' ? ' selected' : ''}>refresh</option>
+			<option${config.eventHandler.action === 'hide' ? ' selected' : ''}>hide</option>
+			<option${config.eventHandler.action === 'show' ? ' selected' : ''}>show</option>
+			</select>
+		</div>
+	</div>
+</div>

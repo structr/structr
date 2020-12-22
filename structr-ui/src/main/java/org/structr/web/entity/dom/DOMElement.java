@@ -59,6 +59,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.NonIndexed;
+import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.AsyncBuffer;
@@ -334,7 +335,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
 		final EventContext eventContext   = new EventContext();
-		String action                     = (String)parameters.get("htmlEvent");
+		String action                     = (String) parameters.get("htmlEvent");
 
 		if (action == null) {
 			throw new FrameworkException(422, "Cannot execute action without event name (htmlEvent property).");
@@ -347,7 +348,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			final Map<String, Object> mapping = getMappedEvents();
 			if (mapping != null) {
 
-				action = (String)mapping.get(action);
+				action = (String) mapping.get(action);
 			}
 		}
 
@@ -376,6 +377,10 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				handleTreeAction(actionContext, parameters, eventContext, action);
 				break;
 
+			case "event-handler":
+				handleEvents(actionContext, parameters, eventContext);
+				break;
+
 			default:
 				// execute custom method (and return the result directly)
 				return handleCustomAction(actionContext, parameters, eventContext, action);
@@ -390,7 +395,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		if (parameters.containsKey("structrTarget")) {
 
-			final String key = getTreeItemSessionIdentifier((String)parameters.get("structrTarget"));
+			final String key = getTreeItemSessionIdentifier((String) parameters.get("structrTarget"));
 
 			switch (action) {
 
@@ -427,7 +432,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 
 		// create new object of type?
-		final String targetType = (String)parameters.get("structrTarget");
+		final String targetType = (String) parameters.get("structrTarget");
 		if (targetType == null) {
 
 			throw new FrameworkException(422, "Cannot execute create action without target type (data-structr-target attribute).");
@@ -459,7 +464,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private void handleUpdateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = (String)parameters.get("structrTarget");
+		final String dataTarget               = (String) parameters.get("structrTarget");
 
 		if (dataTarget == null) {
 
@@ -485,7 +490,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);
-		final String dataTarget               = (String)parameters.get("structrTarget");
+		final String dataTarget               = (String) parameters.get("structrTarget");
 
 		if (dataTarget == null) {
 
@@ -500,14 +505,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			} else {
 
-				app.delete((AbstractRelationship)target);
+				app.delete((AbstractRelationship) target);
 			}
 		}
 	}
 
 	private Object handleCustomAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
 
-		final String dataTarget = (String)parameters.get("structrTarget");
+		final String dataTarget = (String) parameters.get("structrTarget");
 		if (dataTarget == null) {
 
 			throw new FrameworkException(422, "Cannot execute event without target (data-structr-target attribute).");
@@ -528,6 +533,40 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			// try to execute event method
 			return target.invokeMethod(actionContext.getSecurityContext(), action, parameters, false);
+		}
+
+		return null;
+	}
+
+	private Object handleEvents(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		final String dataTarget = (String) parameters.get("structrTarget");
+		if (dataTarget == null) {
+
+			throw new FrameworkException(422, "Cannot execute event without target (data-structr-target attribute).");
+		}
+
+		final List<GraphObject> targets = DOMElement.resolveDataTargets(actionContext, this, dataTarget);
+		final Logger logger             = LoggerFactory.getLogger(getClass());
+
+		if (targets.size() > 1) {
+			logger.warn("Custom action has multiple targets, this is not supported yet. Returning only the result of the first target.");
+		}
+
+		// remove internal keys
+		parameters.remove("structrTarget");
+		parameters.remove("htmlEvent");
+
+		// find event handler
+		//Class eventHandlerClass = SchemaHelper.getEntityClassForRawType("EventHandler");
+		final PropertyKey<Iterable<AbstractNode>> eventHandlersKey = StructrApp.key(DOMElement.class, "targetHandlers");
+
+		final AbstractNode eventHandler = this.getProperty(eventHandlersKey).iterator().next();
+		final AbstractNode  flow        = eventHandler.getProperty("flow");
+
+		if (flow != null) {
+			final Map<String, Object> params = Map.of("dataTarget", dataTarget, "params", parameters);
+			return flow.invokeMethod(actionContext.getSecurityContext(), "evaluate", params, false);
 		}
 
 		return null;

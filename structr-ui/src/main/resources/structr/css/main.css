@@ -3848,13 +3848,13 @@ input.tree-search-input:focus {
 	padding: 0;
 }
 
-#code-tree-container, #simple-pages-tree-container {
+#code-tree-container {
 	height: 100%;
 	border: none;
 	box-shadow: none;
 }
 
-#code-tree, #simple-pages-tree {
+#code-tree {
 	border: 1px solid rgba(0,0,0,.125);
 	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
 	height: calc(100% - 34px);
@@ -4848,15 +4848,6 @@ i.fa.ps {
 	font-style: italic;
 	white-space: nowrap;
 	text-align: center;
-}
-
-#simple-pages-main {
-	display: flex;
-}
-
-#simple-pages-contents-container {
-	margin-right: 9px;
-	margin-left: 2px;
 }
 
 #mail-templates-main, #virtual-types-main, #localization-main {

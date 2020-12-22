@@ -280,7 +280,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		synced.getTargetProperty().setCategory(PAGE_CATEGORY);
 
 		final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
-		if (licenseManager == null || licenseManager.isModuleLicensed("api-builder")) {
+		if (licenseManager == null || licenseManager.isModuleLicensed("flow")) {
 
 			try {
 

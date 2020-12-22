@@ -647,7 +647,7 @@ var Command = {
 	 * will create a content (#text) node.
 	 *
 	 */
-	createAndAppendDOMNode: function(pageId, parentId, tagName, attributes, inheritVisibilityFlags) {
+	createAndAppendDOMNode: function(pageId, parentId, tagName, attributes, inheritVisibilityFlags, callback) {
 		var obj = {
 			command: 'CREATE_AND_APPEND_DOM_NODE',
 			pageId: pageId,
@@ -658,7 +658,7 @@ var Command = {
 			}
 		};
 		$.extend(obj.data, attributes);
-		return sendObj(obj);
+		return sendObj(obj, callback);
 	},
 	/**
 	 * Send a CREATE_AND_INSERT_RELATIVE_TO_DOM_NODE command to the server.

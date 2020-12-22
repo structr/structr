@@ -29,6 +29,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -136,6 +137,22 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 						} catch (FrameworkException fex) {
 
 							logger.warn("Unable to set type of node {} to Template: {}", new Object[] { newNode.getUuid(), fex.getMessage() } );
+
+						}
+
+					} else if (tagName != null && "pageArea".equals(tagName)) {
+
+						newNode = (DOMNode) document.createTextNode("#pageArea");
+
+						try {
+
+							newNode.unlockSystemPropertiesOnce();
+
+							newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(NodeInterface.type, "PageArea"));
+
+						} catch (FrameworkException fex) {
+
+							logger.warn("Unable to set type of node {} to PageArea: {}", new Object[] { newNode.getUuid(), fex.getMessage() } );
 
 						}
 
@@ -247,6 +264,8 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 					}
 
 					tx.success();
+
+					TransactionCommand.registerNodeCallback(newNode, callback);
 
 				} catch (FrameworkException fex) {
 

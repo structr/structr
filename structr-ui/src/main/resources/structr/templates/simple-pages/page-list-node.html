@@ -1,10 +1,13 @@
-<div id="id_${config.page.id}" class="node page ui-sortable ui-droppable">
+<div id="id_${config.page.id}" class="simple-pages-page">
+	<span class="id hidden">${config.page.id}</span>
 	<!--i title="Collapse ${config.page.name}" class="expand_icon sprite sprite-tree_arrow_down"></i-->
-	<i class="typeIcon sprite sprite-page"></i>
-	<b title="${config.page.name}" class="name_">${config.page.name}</b>
-	<span class="id">${config.page.id}</span>
-	<i title="Access Control and Visibility" class="key_icon button sprite sprite-key donthide" style="display: inline-block;"></i>
-	<i title="Delete page '${config.page.name}'" class="delete_icon button sprite sprite-delete" style="display: none;"></i>
-	<i title="Edit Properties" class="edit_props_icon button sprite sprite-application_view_detail" style="display: none;"></i>
-	<i title="Clone page '${config.page.name}'" class="clone_icon button sprite sprite-page_copy" style="display: none;"></i>
+	<!--i class="typeIcon sprite sprite-page"></i-->
+	<div class="main-pane">
+		<div class="dom-container"></div>
+	</div>
+	<div class="menu-container">
+		<span title="${config.page.name}" class="name_">${config.page.name || ''}</span>
+		<svg class="open-context-menu open-page-context-menu menu-icon" fill="currentColor" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" ><g transform="matrix(0.8333333333333334,0,0,0.8333333333333334,0,0)"><path d="M8.750 3.250 A3.250 3.250 0 1 0 15.250 3.250 A3.250 3.250 0 1 0 8.750 3.250 Z" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"></path><path d="M8.750 12.000 A3.250 3.250 0 1 0 15.250 12.000 A3.250 3.250 0 1 0 8.750 12.000 Z" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"></path><path d="M8.750 20.750 A3.250 3.250 0 1 0 15.250 20.750 A3.250 3.250 0 1 0 8.750 20.750 Z" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"></path></g></svg>
+		<!--svg class="open-page-context-menu menu-icon" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg-->
+	</div>
 </div>

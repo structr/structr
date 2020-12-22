@@ -1893,6 +1893,33 @@ var Structr = {
 				}
 				break;
 
+			case "CERTIFICATE_RETRIEVAL_STATUS":
+
+				if (data.subtype === 'BEGIN') {
+
+					var text = "Process to retrieve a Let's Encrypt certificate via ACME started: " + new Date(data.start) + "<br>"
+						+ "This will take a couple of seconds. This message will be updated during the process.<br><ol class='message-steps'></ol>";
+
+					new MessageBuilder().title("Certificate retrieval progress").uniqueClass('cert-retrieval').info(text).requiresConfirmation().updatesText().show();
+
+				} else if (data.subtype === 'PROGRESS') {
+
+					new MessageBuilder().title("Certificate retrieval progress").uniqueClass('cert-retrieval').info("<li>" + data.message + "</li>").requiresConfirmation().appendsText('.message-steps').show();
+
+				} else if (data.subtype === 'END') {
+
+					var text = "<br>Certificate retrieval process finished: " + new Date(data.end)
+						+ "<br>Total duration: " + data.duration;
+
+					new MessageBuilder().title("Certificate retrieval finished").uniqueClass('cert-retrieval').success(text).appendsText().requiresConfirmation().show();
+
+				} else if (data.subtype === 'WARNING') {
+
+					new MessageBuilder().title("Certificate retrieval progress").warning(data.message).uniqueClass('cert-retrieval').requiresConfirmation().allowConfirmAll().show();
+				}
+
+				break;
+
 			case "MAINTENANCE":
 
 				let enabled = data.enabled ? 'enabeld' : 'disabled';
