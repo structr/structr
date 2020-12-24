@@ -222,15 +222,15 @@ $(function() {
 		}
 		// Ctrl-Alt-g
 		if (k === 71 && altKey && ctrlKey) {
-		    e.preventDefault();
-		    var uuid = prompt('Enter the UUID for which you want to open the access control dialog');
-		    if (uuid && uuid.length === 32) {
+			e.preventDefault();
+			var uuid = prompt('Enter the UUID for which you want to open the access control dialog');
+			if (uuid && uuid.length === 32) {
 				Command.get(uuid, null, function(obj) {
 					_Entities.showAccessControlDialog(obj);
 				});
 			} else {
 				alert('That does not look like a UUID! length != 32');
-		    }
+			}
 		}
 		// Ctrl-Alt-h
 		if (k === 72 && altKey && ctrlKey) {
@@ -482,11 +482,11 @@ var Structr = {
 			if (!sessionId && location.protocol === 'http:') {
 
 				new MessageBuilder()
-						.title("Unable to retrieve session id cookie")
-						.warning("This is most likely due to a pre-existing secure HttpOnly cookie. Please navigate to the HTTPS version of this page (even if HTTPS is inactive) and delete the JSESSIONID cookie. Then return to this page and reload. This should solve the problem.")
-						.requiresConfirmation()
-						.uniqueClass("http-only-cookie")
-						.show();
+					.title("Unable to retrieve session id cookie")
+					.warning("This is most likely due to a pre-existing secure HttpOnly cookie. Please navigate to the HTTPS version of this page (even if HTTPS is inactive) and delete the JSESSIONID cookie. Then return to this page and reload. This should solve the problem.")
+					.requiresConfirmation()
+					.uniqueClass("http-only-cookie")
+					.show();
 			}
 
 			if (typeof callback === "function") {
@@ -1626,15 +1626,15 @@ var Structr = {
 		createdElements.push(helpElement);
 
 		toggleElement
-				.on("mousemove", function(e) {
-					helpElement.show();
-					helpElement.css({
-						left: Math.min(e.clientX + 20 + offsetX, window.innerWidth - helpElement.width() - 50),
-						top: Math.min(e.clientY + 10 + offsetY, window.innerHeight - helpElement.height() - 10)
-					});
-				}).on("mouseout", function(e) {
-					helpElement.hide();
+			.on("mousemove", function(e) {
+				helpElement.show();
+				helpElement.css({
+					left: Math.min(e.clientX + 20 + offsetX, window.innerWidth - helpElement.width() - 50),
+					top: Math.min(e.clientY + 10 + offsetY, window.innerHeight - helpElement.height() - 10)
 				});
+			}).on("mouseout", function(e) {
+			helpElement.hide();
+		});
 
 		if (insertAfter) {
 			if (!customToggleElement) {
@@ -1694,11 +1694,11 @@ var Structr = {
 
 				if (me.username === data.username) {
 					new MessageBuilder()
-							.title(data.title)
-							.error(data.text)
-							.requiresConfirmation()
-							.allowConfirmAll()
-							.show();
+						.title(data.title)
+						.error(data.text)
+						.requiresConfirmation()
+						.allowConfirmAll()
+						.show();
 				}
 				break;
 
@@ -1731,10 +1731,10 @@ var Structr = {
 				if (showScheduledJobsNotifications && me.username === data.username) {
 
 					var msg = new MessageBuilder()
-							.title(data.jobtype + ' ' + fileImportTitles[data.subtype])
-							.className((data.subtype === 'END') ? 'success' : 'info')
-							.text(fileImportTexts[data.subtype])
-							.uniqueClass(data.jobtype + '-import-status-' + data.filepath);
+						.title(data.jobtype + ' ' + fileImportTitles[data.subtype])
+						.className((data.subtype === 'END') ? 'success' : 'info')
+						.text(fileImportTexts[data.subtype])
+						.uniqueClass(data.jobtype + '-import-status-' + data.filepath);
 
 					if (data.subtype !== 'QUEUED') {
 						msg.updatesText().requiresConfirmation().allowConfirmAll();
@@ -1758,11 +1758,11 @@ var Structr = {
 					}
 
 					new MessageBuilder()
-							.title("Exception while importing " + data.jobtype)
-							.error("File: " + data.filepath + "<br>" + text)
-							.requiresConfirmation()
-							.allowConfirmAll()
-							.show();
+						.title("Exception while importing " + data.jobtype)
+						.error("File: " + data.filepath + "<br>" + text)
+						.requiresConfirmation()
+						.allowConfirmAll()
+						.show();
 				}
 
 				if (Structr.isModuleActive(Importer)) {
@@ -1786,10 +1786,10 @@ var Structr = {
 				if (showScheduledJobsNotifications && me.username === data.username) {
 
 					let msg = new MessageBuilder()
-							.title(scriptJobTitles[data.subtype])
-							.className((data.subtype === 'END') ? 'success' : 'info')
-							.text('<div>' + scriptJobTexts[data.subtype] + '</div>')
-							.uniqueClass(data.jobtype + '-' + data.subtype).appendsText();
+						.title(scriptJobTitles[data.subtype])
+						.className((data.subtype === 'END') ? 'success' : 'info')
+						.text('<div>' + scriptJobTexts[data.subtype] + '</div>')
+						.uniqueClass(data.jobtype + '-' + data.subtype).appendsText();
 
 					if (data.subtype !== 'QUEUED') {
 						msg.requiresConfirmation().allowConfirmAll();
@@ -1817,8 +1817,8 @@ var Structr = {
 				if (data.subtype === 'BEGIN') {
 
 					var text = type + ' started: ' + new Date(data.start) + '<br>'
-							+ 'Importing from: ' + data.source + '<br><br>'
-							+ 'Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>';
+						+ 'Importing from: ' + data.source + '<br><br>'
+						+ 'Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>';
 
 					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info(text).requiresConfirmation().updatesText().show();
 
@@ -1829,8 +1829,8 @@ var Structr = {
 				} else if (data.subtype === 'END') {
 
 					var text = "<br>" + type + " finished: " + new Date(data.end)
-							+ "<br>Total duration: " + data.duration
-							+ "<br><br>Reload the page to see the new data.";
+						+ "<br>Total duration: " + data.duration
+						+ "<br><br>Reload the page to see the new data.";
 
 					new MessageBuilder().title(type + " finished").uniqueClass(messageCssClass).success(text).specialInteractionButton('Reload Page', function() { location.reload(); }, 'Ignore').appendsText().updatesButtons().show();
 
@@ -1851,8 +1851,8 @@ var Structr = {
 				if (data.subtype === 'BEGIN') {
 
 					var text = type + ' started: ' + new Date(data.start) + '<br>'
-							+ 'Exporting to: ' + data.target + '<br><br>'
-							+ 'System performance may be affected during Export.<br><ol class="message-steps"></ol>';
+						+ 'Exporting to: ' + data.target + '<br><br>'
+						+ 'System performance may be affected during Export.<br><ol class="message-steps"></ol>';
 
 					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info(text).requiresConfirmation().updatesText().show();
 
@@ -1863,7 +1863,7 @@ var Structr = {
 				} else if (data.subtype === 'END') {
 
 					var text = '<br>'+ type + ' finished: ' + new Date(data.end)
-							+ '<br>Total duration: ' + data.duration;
+						+ '<br>Total duration: ' + data.duration;
 
 					new MessageBuilder().title(type + ' finished').uniqueClass(messageCssClass).success(text).appendsText().requiresConfirmation().show();
 
@@ -1875,7 +1875,7 @@ var Structr = {
 				if (data.subtype === 'BEGIN') {
 
 					var text = "Schema Analysis started: " + new Date(data.start) + "<br>"
-							+ "Please wait until the import process is finished. This message will be updated during the process.<br><ol class='message-steps'></ol>";
+						+ "Please wait until the import process is finished. This message will be updated during the process.<br><ol class='message-steps'></ol>";
 
 					new MessageBuilder().title("Schema Analysis progress").uniqueClass('schema-analysis').info(text).requiresConfirmation().updatesText().show();
 
@@ -1886,11 +1886,38 @@ var Structr = {
 				} else if (data.subtype === 'END') {
 
 					var text = "<br>Schema Analysis finished: " + new Date(data.end)
-							+ "<br>Total duration: " + data.duration;
+						+ "<br>Total duration: " + data.duration;
 
 					new MessageBuilder().title("Schema Analysis finished").uniqueClass('schema-analysis').success(text).appendsText().requiresConfirmation().show();
 
 				}
+				break;
+
+			case "CERTIFICATE_RETRIEVAL_STATUS":
+
+				if (data.subtype === 'BEGIN') {
+
+					var text = "Process to retrieve a Let's Encrypt certificate via ACME started: " + new Date(data.start) + "<br>"
+						+ "This will take a couple of seconds. This message will be updated during the process.<br><ol class='message-steps'></ol>";
+
+					new MessageBuilder().title("Certificate retrieval progress").uniqueClass('cert-retrieval').info(text).requiresConfirmation().updatesText().show();
+
+				} else if (data.subtype === 'PROGRESS') {
+
+					new MessageBuilder().title("Certificate retrieval progress").uniqueClass('cert-retrieval').info("<li>" + data.message + "</li>").requiresConfirmation().appendsText('.message-steps').show();
+
+				} else if (data.subtype === 'END') {
+
+					var text = "<br>Certificate retrieval process finished: " + new Date(data.end)
+						+ "<br>Total duration: " + data.duration;
+
+					new MessageBuilder().title("Certificate retrieval finished").uniqueClass('cert-retrieval').success(text).appendsText().requiresConfirmation().show();
+
+				} else if (data.subtype === 'WARNING') {
+
+					new MessageBuilder().title("Certificate retrieval progress").warning(data.message).uniqueClass('cert-retrieval').requiresConfirmation().allowConfirmAll().show();
+				}
+
 				break;
 
 			case "MAINTENANCE":
@@ -1996,10 +2023,10 @@ var Structr = {
 													async: true
 												}
 											});
-										break;
-									default:
-										_Entities.showProperties(obj);
-										break;
+											break;
+										default:
+											_Entities.showProperties(obj);
+											break;
 									}
 								}, 'Dismiss');
 							}
@@ -2016,12 +2043,12 @@ var Structr = {
 
 			default: {
 
-					var text = "<p>No handler for generic message of type <b>" + data.type + "</b> defined - printing complete message data.</p>";
-					Object.keys(data).forEach(function(key) {
-						text += "<b>" + key + "</b>: " + data[key] + "<br>";
-					});
+				var text = "<p>No handler for generic message of type <b>" + data.type + "</b> defined - printing complete message data.</p>";
+				Object.keys(data).forEach(function(key) {
+					text += "<b>" + key + "</b>: " + data[key] + "<br>";
+				});
 
-					new MessageBuilder().title("GENERIC_MESSAGE").warning(text).requiresConfirmation().show();
+				new MessageBuilder().title("GENERIC_MESSAGE").warning(text).requiresConfirmation().show();
 
 			}
 		}
@@ -2366,8 +2393,8 @@ function MessageBuilder () {
 
 	this.getButtonHtml = function() {
 		return (this.params.requiresConfirmation ? '<button class="confirm">' + this.params.confirmButtonText + '</button>' : '') +
-			   (this.params.requiresConfirmation && this.params.allowConfirmAll ? '<button class="confirmAll">' + this.params.confirmAllButtonText + '</button>' : '') +
-			   (this.params.specialInteractionButton ? '<button class="special">' + this.params.specialInteractionButton.text + '</button>' : '');
+			(this.params.requiresConfirmation && this.params.allowConfirmAll ? '<button class="confirmAll">' + this.params.confirmAllButtonText + '</button>' : '') +
+			(this.params.specialInteractionButton ? '<button class="special">' + this.params.specialInteractionButton.text + '</button>' : '');
 	};
 
 	this.activateButtons = function(originalMsgBuilder, newMsgBuilder) {
@@ -2460,10 +2487,10 @@ function MessageBuilder () {
 
 			$('#info-area').append(
 				'<div class="' + this.params.classNames.join(' ') +  '" id="' + this.params.msgId + '">' +
-					(this.params.title ? '<h3 class="title">' + this.params.title + this.getUniqueCountElement() + '</h3>' : this.getUniqueCountElement()) +
-					'<div class="text">' + this.params.text + '</div>' +
-					(this.params.furtherText ? '<div class="furtherText">' + this.params.furtherText + '</div>' : '') +
-					'<div class="message-buttons">' + this.getButtonHtml() + '</div>' +
+				(this.params.title ? '<h3 class="title">' + this.params.title + this.getUniqueCountElement() + '</h3>' : this.getUniqueCountElement()) +
+				'<div class="text">' + this.params.text + '</div>' +
+				(this.params.furtherText ? '<div class="furtherText">' + this.params.furtherText + '</div>' : '') +
+				'<div class="message-buttons">' + this.getButtonHtml() + '</div>' +
 				'</div>'
 			);
 
