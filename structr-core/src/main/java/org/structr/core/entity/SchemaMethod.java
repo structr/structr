@@ -143,7 +143,9 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		return entry;
 	}
 
-	public boolean isStaticMethod() { return getProperty(isStatic);}
+	public boolean isStaticMethod() {
+		return getProperty(isStatic);
+	}
 
 	public boolean isJava() {
 		return "java".equals(getProperty(codeType));
