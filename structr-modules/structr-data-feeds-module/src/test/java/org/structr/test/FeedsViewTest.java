@@ -23,8 +23,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.structr.test.web.StructrUiTest;
-import org.testng.annotations.Test;
 import org.structr.web.common.TestHelper;
+import org.testng.annotations.Test;
 
 /**
  */
@@ -35,6 +35,7 @@ public class FeedsViewTest extends StructrUiTest {
 
 		final Map<String, List<String>> requiredAttributes   = new LinkedHashMap<>();
 
+		requiredAttributes.put("DataFeed", Arrays.asList("url"));
 		requiredAttributes.put("FeedItem", Arrays.asList("url"));
 
 		TestHelper.testViews(app, FeedsViewTest.class.getResourceAsStream("/views.properties"), requiredAttributes);
