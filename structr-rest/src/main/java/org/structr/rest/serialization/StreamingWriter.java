@@ -421,9 +421,9 @@ public abstract class StreamingWriter {
 					if (keys != null) {
 
 						// speciality for all, custom and ui view: limit recursive rendering to (id, name)
-						if (compactNestedProperties && depth > 0 && Schema.RestrictedViews.contains(localPropertyView)) {
-							keys = idTypeNameOnly;
-						}
+//						if (compactNestedProperties && depth > 0 && Schema.RestrictedViews.contains(localPropertyView)) {
+//							keys = idTypeNameOnly;
+//						}
 
 						for (final PropertyKey key : keys) {
 
@@ -491,7 +491,7 @@ public abstract class StreamingWriter {
 				// prevent endless recursion by pruning at depth n
 				if (depth <= outputNestingDepth) {
 
-					serializeRoot(parentWriter, firstValue, localPropertyView, depth + 1, visitedObjects);
+					serializeRoot(parentWriter, firstValue, localPropertyView, depth, visitedObjects);
 				}
 
 			} else {
@@ -503,20 +503,20 @@ public abstract class StreamingWriter {
 
 					// first value?
 					if (firstValue != null) {
-						serializeRoot(parentWriter, firstValue, localPropertyView, depth + 1, visitedObjects);
+						serializeRoot(parentWriter, firstValue, localPropertyView, depth+1, visitedObjects);
 						actualResultCount++;
 					}
 
 					// second value?
 					if (secondValue != null) {
 
-						serializeRoot(parentWriter, secondValue, localPropertyView, depth + 1, visitedObjects);
+						serializeRoot(parentWriter, secondValue, localPropertyView, depth+1, visitedObjects);
 						actualResultCount++;
 
 						// more values?
 						while (iterator.hasNext()) {
 
-							serializeRoot(parentWriter, iterator.next(), localPropertyView, depth + 1, visitedObjects);
+							serializeRoot(parentWriter, iterator.next(), localPropertyView, depth+1, visitedObjects);
 
 							actualResultCount++;
 
