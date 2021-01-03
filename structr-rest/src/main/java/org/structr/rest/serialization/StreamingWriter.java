@@ -421,9 +421,9 @@ public abstract class StreamingWriter {
 					if (keys != null) {
 
 						// speciality for all, custom and ui view: limit recursive rendering to (id, name)
-//						if (compactNestedProperties && depth > 0 && Schema.RestrictedViews.contains(localPropertyView)) {
-//							keys = idTypeNameOnly;
-//						}
+						if (compactNestedProperties && depth > 0 && Schema.RestrictedViews.contains(localPropertyView)) {
+							keys = idTypeNameOnly;
+						}
 
 						for (final PropertyKey key : keys) {
 
@@ -486,7 +486,7 @@ public abstract class StreamingWriter {
 			final Object secondValue              = iterator.hasNext() ? iterator.next() : null;
 			long actualResultCount                = 0;
 
-			if (!wrapSingleResultInArray && depth == 0 && firstValue != null && secondValue == null && !(firstValue.getClass().isArray() || firstValue instanceof Collection) && !Settings.ForceArrays.getValue()) {
+			if (!wrapSingleResultInArray && depth == 0 && firstValue != null && secondValue == null && !(value.getClass().isArray() || value instanceof Collection) && !Settings.ForceArrays.getValue()) {
 
 				// prevent endless recursion by pruning at depth n
 				if (depth <= outputNestingDepth) {
@@ -503,20 +503,20 @@ public abstract class StreamingWriter {
 
 					// first value?
 					if (firstValue != null) {
-						serializeRoot(parentWriter, firstValue, localPropertyView, depth+1, visitedObjects);
+						serializeRoot(parentWriter, firstValue, localPropertyView, depth, visitedObjects);
 						actualResultCount++;
 					}
 
 					// second value?
 					if (secondValue != null) {
 
-						serializeRoot(parentWriter, secondValue, localPropertyView, depth+1, visitedObjects);
+						serializeRoot(parentWriter, secondValue, localPropertyView, depth, visitedObjects);
 						actualResultCount++;
 
 						// more values?
 						while (iterator.hasNext()) {
 
-							serializeRoot(parentWriter, iterator.next(), localPropertyView, depth+1, visitedObjects);
+							serializeRoot(parentWriter, iterator.next(), localPropertyView, depth, visitedObjects);
 
 							actualResultCount++;
 
