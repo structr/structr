@@ -118,4 +118,34 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 				.post(concat("/maintenance/globalSchemaMethods/myTestMethod02"));
 
 	}
+
+	@Test
+	public void test003UnwrapArrayOfArrays() {
+		try (final Tx tx = app.tx()) {
+
+			app.create(SchemaMethod.class,
+					new NodeAttribute<>(SchemaMethod.name, "myTestMethod03"),
+					new NodeAttribute<>(SchemaMethod.source, "{ return [ [{'name': 'a'}], [{'name': 'b'}], [{'name': 'c'}] ]; }")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.expect()
+				.statusCode(200)
+				.body("result[0][0].name", equalTo("a"))
+				.body("result[1][0].name", equalTo("b"))
+				.body("result[2][0].name", equalTo("c"))
+				.when()
+				.post(concat("/maintenance/globalSchemaMethods/myTestMethod03"));
+	}
+
 }

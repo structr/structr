@@ -21,18 +21,11 @@ package org.structr.rest.serialization;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -493,12 +486,12 @@ public abstract class StreamingWriter {
 			final Object secondValue              = iterator.hasNext() ? iterator.next() : null;
 			long actualResultCount                = 0;
 
-			if (!wrapSingleResultInArray && depth == 0 && firstValue != null && secondValue == null && !Settings.ForceArrays.getValue()) {
+			if (!wrapSingleResultInArray && depth == 0 && firstValue != null && secondValue == null && !(firstValue.getClass().isArray() || firstValue instanceof Collection) && !Settings.ForceArrays.getValue()) {
 
 				// prevent endless recursion by pruning at depth n
 				if (depth <= outputNestingDepth) {
 
-					serializeRoot(parentWriter, firstValue, localPropertyView, depth, visitedObjects);
+					serializeRoot(parentWriter, firstValue, localPropertyView, depth + 1, visitedObjects);
 				}
 
 			} else {
@@ -510,20 +503,20 @@ public abstract class StreamingWriter {
 
 					// first value?
 					if (firstValue != null) {
-						serializeRoot(parentWriter, firstValue, localPropertyView, depth, visitedObjects);
+						serializeRoot(parentWriter, firstValue, localPropertyView, depth + 1, visitedObjects);
 						actualResultCount++;
 					}
 
 					// second value?
 					if (secondValue != null) {
 
-						serializeRoot(parentWriter, secondValue, localPropertyView, depth, visitedObjects);
+						serializeRoot(parentWriter, secondValue, localPropertyView, depth + 1, visitedObjects);
 						actualResultCount++;
 
 						// more values?
 						while (iterator.hasNext()) {
 
-							serializeRoot(parentWriter, iterator.next(), localPropertyView, depth, visitedObjects);
+							serializeRoot(parentWriter, iterator.next(), localPropertyView, depth + 1, visitedObjects);
 
 							actualResultCount++;
 
