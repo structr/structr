@@ -376,24 +376,32 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 	// ----- public static methods -----
 	public static NodeWrapper newInstance(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Node node) {
 
+		NodeWrapper wrapper;
+
 		synchronized (nodeCache) {
 
-			NodeWrapper wrapper = nodeCache.get(node.id());
+			wrapper = nodeCache.get(node.id());
 			if (wrapper == null) { // || wrapper.stale) {
 
 				wrapper = new NodeWrapper(db, node);
 				nodeCache.put(node.id(), wrapper);
 			}
-
-			return wrapper;
 		}
+
+		if (wrapper.isDeleted()) {
+			return null;
+		}
+
+		return wrapper;
 	}
 
 	public static NodeWrapper newInstance(final BoltDatabaseService db, final long id) {
 
+		NodeWrapper wrapper;
+
 		synchronized (nodeCache) {
 
-			NodeWrapper wrapper = nodeCache.get(id);
+			wrapper = nodeCache.get(id);
 			if (wrapper == null) { // || wrapper.stale) {
 
 				final SessionTransaction tx   = db.getCurrentTransaction();
@@ -414,9 +422,13 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 					throw new NotFoundException("Node with ID " + id + " not found.");
 				}
 			}
-
-			return wrapper;
 		}
+
+		if (wrapper.isDeleted()) {
+			return null;
+		}
+
+		return wrapper;
 	}
 
 	// ----- package-private static methods

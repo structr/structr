@@ -193,24 +193,32 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relati
 
 	public static RelationshipWrapper newInstance(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Relationship relationship) {
 
+		RelationshipWrapper wrapper;
+
 		synchronized (relationshipCache) {
 
-			RelationshipWrapper wrapper = relationshipCache.get(relationship.id());
+			wrapper = relationshipCache.get(relationship.id());
 			if (wrapper == null || wrapper.stale) {
 
 				wrapper = new RelationshipWrapper(db, relationship);
 				relationshipCache.put(relationship.id(), wrapper);
 			}
-
-			return wrapper;
 		}
+
+		if (wrapper.isDeleted()) {
+			return null;
+		}
+
+		return wrapper;
 	}
 
 	public static RelationshipWrapper newInstance(final BoltDatabaseService db, final long id) {
 
+		RelationshipWrapper wrapper;
+
 		synchronized (relationshipCache) {
 
-			RelationshipWrapper wrapper = relationshipCache.get(id);
+			wrapper = relationshipCache.get(id);
 			if (wrapper == null || wrapper.stale) {
 
 				final SessionTransaction tx   = db.getCurrentTransaction();
@@ -240,8 +248,12 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relati
 
 				relationshipCache.put(id, wrapper);
 			}
-
-			return wrapper;
 		}
+
+		if (wrapper.isDeleted()) {
+			return null;
+		}
+
+		return wrapper;
 	}
 }
