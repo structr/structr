@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -143,7 +143,9 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		return entry;
 	}
 
-	public boolean isStaticMethod() { return getProperty(isStatic);}
+	public boolean isStaticMethod() {
+		return getProperty(isStatic);
+	}
 
 	public boolean isJava() {
 		return "java".equals(getProperty(codeType));

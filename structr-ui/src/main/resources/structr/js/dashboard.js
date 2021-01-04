@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -409,34 +409,39 @@ var _Dashboard = {
 	},
 	appendGlobalSchemaMethods: function(container) {
 
-		var maintenanceList = $('<div></div>').appendTo(container);
+		let maintenanceList = $('<div></div>').appendTo(container);
 
 		$.get(rootUrl + '/SchemaMethod?schemaNode=&sort=name', function(data) {
 
-			data.result.forEach(function(result) {
+			if (data.result.length === 0) {
+				maintenanceList.append('No global schema methods.')
+			} else {
 
-				var methodRow = $('<div class="global-method" style=""></div>');
-				var methodName = $('<span>' + result.name + '</span>');
+				for (let method of data.result) {
 
-				methodRow.append('<button id="run-' + result.id + '" class="action button">Run now</button>').append(methodName);
-				maintenanceList.append(methodRow);
+					let methodRow = $('<div class="global-method" style=""></div>');
+					let methodName = $('<span>' + method.name + '</span>');
 
-				var cleanedComment = (result.comment && result.comment.trim() !== '') ? result.comment.replaceAll("\n", "<br>") : '';
+					methodRow.append('<button id="run-' + method.id + '" class="action button">Run now</button>').append(methodName);
+					maintenanceList.append(methodRow);
 
-				if (cleanedComment.trim() !== '') {
-					Structr.appendInfoTextToElement({
-						element: methodName,
-						text: cleanedComment,
-						helpElementCss: {
-							"line-height": "initial"
-						}
+					let cleanedComment = (method.comment && method.comment.trim() !== '') ? method.comment.replaceAll("\n", "<br>") : '';
+
+					if (cleanedComment.trim() !== '') {
+						Structr.appendInfoTextToElement({
+							element: methodName,
+							text: cleanedComment,
+							helpElementCss: {
+								"line-height": "initial"
+							}
+						});
+					}
+
+					$('button#run-' + method.id).on('click', function() {
+						_Code.runGlobalSchemaMethod(method);
 					});
 				}
-
-				$('button#run-' + result.id).on('click', function() {
-					_Code.runGlobalSchemaMethod(result);
-				});
-			});
+			}
 		});
 	},
     activateLogBox: function() {
