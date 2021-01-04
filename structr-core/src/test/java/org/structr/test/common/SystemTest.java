@@ -29,6 +29,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +71,7 @@ import org.structr.test.core.entity.TestFive;
 import org.structr.test.core.entity.TestOne;
 import org.structr.test.core.entity.TestSix;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -1584,6 +1586,141 @@ public class SystemTest extends StructrTest {
 		Settings.FetchSize.setValue(Settings.FetchSize.getDefaultValue());
 	}
 
+	@Test
+	public void testConcurrentDeleteAndFetch() {
+
+		final AtomicBoolean error = new AtomicBoolean(false);
+		final List<String> msgs   = new LinkedList<>();
+		int num                   = 0;
+
+		try {
+
+			for (int i=0; i<10; i++) {
+
+				// setup: create groups
+				try (final Tx tx = app.tx()) {
+
+					for (int j=0; j<10; j++) {
+
+						app.create(Group.class, "Group" + StringUtils.leftPad(String.valueOf(num++), 5));
+					}
+
+					tx.success();
+
+				} catch (FrameworkException fex) {
+					fex.printStackTrace();
+					fail("Unexpected exception.");
+				}
+			}
+
+			//Settings.CypherDebugLogging.setValue(true);
+
+			// start a worker thread that deletes groups in batches of 500
+			final Thread deleter = new Thread(() -> {
+
+				boolean run = true;
+
+				while (run) {
+
+					int count = 0;
+					run = false;
+
+					synchronized (System.out) {
+						System.out.println("Deleter: fetching objects...");
+					}
+
+					try (final Tx tx = app.tx()) {
+
+						for (final Group group : app.nodeQuery(Group.class).pageSize(10).getAsList()) {
+
+							app.delete(group);
+							run = true;
+							count++;
+						}
+
+						tx.success();
+
+					} catch (FrameworkException fex) {
+						fex.printStackTrace();
+						fail("Unexpected exception.");
+					}
+
+					synchronized (System.out) {
+						System.out.println("Deleter: deleted " + count + " objects");
+					}
+				}
+
+			}, "Deleter");
+
+			// start a worker thread that counts all groups until there are no more groups (or timeout occurs)
+			final Thread reader = new Thread(() -> {
+
+				try {
+
+					final long start = System.currentTimeMillis();
+					boolean run      = true;
+
+					// run for 10 seconds max
+					while (run && System.currentTimeMillis() < start + 100000) {
+
+						int count = 0;
+						run = false;
+
+						synchronized (System.out) {
+							System.out.println("Reader:  fetching objects...");
+						}
+
+						try (final Tx tx = app.tx()) {
+
+							for (final Group group : app.nodeQuery(Group.class).getResultStream()) {
+
+								run = true;
+								count++;
+							}
+
+							tx.success();
+
+						} catch (FrameworkException fex) {
+							fex.printStackTrace();
+						}
+
+						synchronized (System.out) {
+							System.out.println("Reader:  found " + count + " objects");
+						}
+					}
+
+				} catch (Throwable t) {
+
+					msgs.add(t.getMessage());
+					error.set(true);
+				}
+
+			}, "Reader");
+
+			deleter.start();
+			reader.start();
+
+			try {
+
+				deleter.join();
+				reader.join();
+
+			} catch (InterruptedException t) {
+				t.printStackTrace();
+			}
+
+			if (error.get()) {
+
+				System.out.println(msgs);
+			}
+
+			assertFalse("Reading and deleting nodes simultaneously causes an error", error.get());
+
+		} finally {
+
+			Settings.CypherDebugLogging.setValue(false);
+		}
+	}
 
 	// ----- nested classes -----
 	private static class TestRunner implements Runnable {

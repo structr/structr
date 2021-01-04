@@ -217,6 +217,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 	public void delete(final boolean deleteRelationships) throws NotInTransactionException {
 
 		assertNotStale();
+		removeFromCache();
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
@@ -393,7 +394,6 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 		return existingValue.equals(newValue);
 	}
 
-	// ----- private methods -----
 	private ChangeAwareMap accessData(final boolean write) {
 
 		// read-only access does not need a transaction
