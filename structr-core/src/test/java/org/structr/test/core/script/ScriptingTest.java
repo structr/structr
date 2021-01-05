@@ -23,7 +23,6 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,9 +74,8 @@ import org.structr.test.core.entity.TestSix;
 import org.structr.test.core.entity.TestThree;
 import org.structr.test.core.entity.TestTwo;
 import org.testng.Assert;
-import org.testng.annotations.Test;
-
 import static org.testng.AssertJUnit.*;
+import org.testng.annotations.Test;
 
 
 /**
@@ -4019,10 +4017,10 @@ public class ScriptingTest extends StructrTest {
 		final Class testType    = StructrApp.getConfiguration().getNodeEntityClass("Test");
 		final Class type        = StructrApp.getConfiguration().getNodeEntityClass("Project");
 		final PropertyKey name1 = StructrApp.key(type, "name1");
-                final PropertyKey name2 = StructrApp.key(type, "name2");
-                final PropertyKey name3 = StructrApp.key(type, "name3");
-                final PropertyKey age   = StructrApp.key(type, "age");
-                final PropertyKey count = StructrApp.key(type, "count");
+		final PropertyKey name2 = StructrApp.key(type, "name2");
+		final PropertyKey name3 = StructrApp.key(type, "name3");
+		final PropertyKey age   = StructrApp.key(type, "age");
+		final PropertyKey count = StructrApp.key(type, "count");
 
 		String group1 = null;
 		String group2 = null;
@@ -4155,6 +4153,138 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Advanced find() with sort() and page() returns wrong result", "test010", page3.get(0).getName());
 			assertEquals("Advanced find() with sort() and page() returns wrong result", "test011", page3.get(1).getName());
 			assertEquals("Advanced find() with sort() and page() returns wrong result", "test014", page3.get(4).getName());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testAdvancedFindRangeQueryLeak() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			schema.addType("Test");
+
+			final JsonType testType  = schema.addType("TestType");
+
+			testType.addIntegerProperty("count").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		final ActionContext ctx                = new ActionContext(securityContext);
+		final Class type                       = StructrApp.getConfiguration().getNodeEntityClass("TestType");
+		final PropertyKey count                = StructrApp.key(type, "count");
+		final PropertyKey visibleToPublicUsers = StructrApp.key(type, "visibleToPublicUsers");
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			int cnt = 0;
+
+			while (cnt < 10) {
+
+				app.create(type,
+					new NodeAttribute<>(visibleToPublicUsers, true),
+					new NodeAttribute<>(count, cnt)
+				);
+
+				app.create(type,
+					new NodeAttribute<>(visibleToPublicUsers, false),
+					new NodeAttribute<>(count, cnt + 10)
+				);
+
+				cnt++;
+			}
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			// AND: works
+			final String testRangeFunctionInANDGroup = "${{\n" +
+			"    let nodes = $.find('TestType', {\n" +
+			"            $and: {\n" +
+			"                'visibleToPublicUsers': true,\n" +
+			"                'count': $.predicate.range(5, 14)\n" +
+			"            }\n" +
+			"        }\n" +
+			"    );\n" +
+			"    return nodes;\n" +
+			"}}";
+
+			final List<NodeInterface> res1 = (List)Scripting.evaluate(ctx, null, testRangeFunctionInANDGroup, "testAdvancedFindRangeQueryLeak");
+			assertEquals("Advanced find range predicate does not filter correctly for surrounding AND", 5, res1.size());
+
+
+			// OR with workaround AND around range: works
+			final String testRangeFunctionORWrapRangeInAND = "${{\n" +
+			"    let nodes = $.find('TestType', {\n" +
+			"            $or: {\n" +
+			"                'visibleToPublicUsers': true,\n" +
+			"                $and: {\n" +
+			"                    'count': $.predicate.range(5, 14)\n" +
+			"                }\n" +
+			"            }\n" +
+			"        }\n" +
+			"    );\n" +
+			"    return nodes;\n" +
+			"}}";
+
+			final List<NodeInterface> res2 = (List)Scripting.evaluate(ctx, null, testRangeFunctionORWrapRangeInAND, "testAdvancedFindRangeQueryLeak");
+			assertEquals("Advanced find range predicate does not filter correctly for surrounding OR (even when wrapped in and() itself)", 15, res2.size());
+
+
+			// Plain OR with structrscript syntax: does not work
+			final String testRangeFunctionInORGroupStructrScriptSyntax = "${{\n" +
+			"    let nodes = $.find('TestType', \n" +
+			"            $.predicate.or(\n" +
+			"                $.predicate.equals('visibleToPublicUsers', true),\n" +
+			"                $.predicate.equals('count', $.predicate.range(5, 14))\n" +
+			"            )\n" +
+			"    );\n" +
+			"    return nodes;\n" +
+			"}}";
+
+			final List<NodeInterface> res3 = (List)Scripting.evaluate(ctx, null, testRangeFunctionInORGroupStructrScriptSyntax, "testAdvancedFindRangeQueryLeak");
+			assertEquals("Advanced find range predicate does not filter correctly for surrounding OR (range() leaks outward and turns OR into AND) [StructrScript Syntax]", 15, res3.size());
+
+
+			// Plain OR with JavaScript syntax: does not work
+			final String testRangeFunctionInORGroupOtherSyntax = "${{\n" +
+			"    let nodes = $.find('TestType', {\n" +
+			"            $or: {\n" +
+			"                'visibleToPublicUsers': true,\n" +
+			"                'count': $.predicate.range(5, 14)\n" +
+			"            }\n" +
+			"        }\n" +
+			"    );\n" +
+			"    return nodes;\n" +
+			"}}";
+
+			final List<NodeInterface> res4 = (List)Scripting.evaluate(ctx, null, testRangeFunctionInORGroupOtherSyntax, "testAdvancedFindRangeQueryLeak");
+			assertEquals("Advanced find range predicate does not filter correctly for surrounding OR (range() leaks outward and turns OR into AND) [JavaScript Syntax]", 15, res4.size());
+
 
 			tx.success();
 
