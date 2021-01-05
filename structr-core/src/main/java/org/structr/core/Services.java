@@ -273,7 +273,7 @@ public class Services implements StructrServices {
 		if (!isTesting()) {
 
 			// read license
-			licenseManager = new StructrLicenseManager(Settings.getBasePath() + "license.key");
+			licenseManager = new StructrLicenseManager();
 		}
 
 		// if configuration is not yet established, instantiate it
@@ -1170,10 +1170,16 @@ public class Services implements StructrServices {
 		getServices(type).put(name, service);
 	}
 
+	public void updateLicense() {
+		if (licenseManager != null) {
+			licenseManager.refresh(true);
+		}
+	}
+
 	private void checkLicense() {
 
 		if (licenseManager != null) {
-			licenseManager.refresh();
+			licenseManager.refresh(false);
 		}
 	}
 
