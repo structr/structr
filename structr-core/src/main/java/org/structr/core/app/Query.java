@@ -99,6 +99,7 @@ public interface Query<T extends GraphObject> {
 	public <P> Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd);
 	public <P> Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd);
 	public <P> Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd);
+	public <P> Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd);
 
 	public Query<T> or();
 	public Query<T> not();
@@ -110,4 +111,6 @@ public interface Query<T extends GraphObject> {
 	public SearchAttributeGroup getRootAttributeGroup();
 
 	void overrideFetchSize(final int fetchSizeForThisRequest);
+
+	public Occurrence getCurrentOccurrence();
 }
