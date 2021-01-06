@@ -82,7 +82,7 @@ public class NodeExtender {
 		return classes;
 	}
 
-	public void addClass(final String className, final SourceFile sourceFile) throws ClassNotFoundException {
+	public boolean addClass(final String className, final SourceFile sourceFile) throws ClassNotFoundException {
 
 		if (className != null && sourceFile != null) {
 
@@ -93,7 +93,7 @@ public class NodeExtender {
 			String oldMD5 = contentsMD5.get(fqcn);
 			String newMD5 = md5Hex(sourceFile.getContent());
 			if(newMD5.equals(oldMD5)){
-				return;
+				return false;
 			}
 
 			contentsMD5.put(fqcn, newMD5);
@@ -109,7 +109,11 @@ public class NodeExtender {
 					logger.info(StringUtils.rightPad(++count + ": ", 6) + line);
 				}
 			}
+
+			return true;
 		}
+
+		return false;
 	}
 
 	public synchronized Map<String, Class> compile(final ErrorBuffer errorBuffer) throws ClassNotFoundException {

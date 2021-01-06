@@ -39,6 +39,7 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.core.script.polyglot.PolyglotWrapper;
+import org.structr.core.script.polyglot.cache.ExecutableTypeMethodCache;
 import org.structr.core.script.polyglot.function.GrantFunction;
 import org.structr.schema.action.ActionContext;
 
@@ -72,6 +73,17 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 			return PolyglotWrapper.wrap(actionContext, ((GraphObjectMap) getOriginalObject()).get(new GenericProperty<>(key)));
 		} else {
 
+			// Check cache for already initialized executables
+			ExecutableTypeMethodCache methodCache = actionContext.getExecutableTypeMethodCache();
+
+			ProxyExecutable cachedExecutable = methodCache.getExecutable(node.getClass().getSimpleName(), key);
+
+			if (cachedExecutable != null) {
+
+				return cachedExecutable;
+			}
+
+			// Lookup method, if it's not in cache
 			Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class);
 			if (methods.containsKey(key)) {
 				Method method = methods.get(key);
@@ -106,7 +118,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 					logger.error("Unexpected exception while trying to retrieve member method of graph object.", ex);
 				}
 
-				return (ProxyExecutable) arguments -> {
+				final ProxyExecutable executable =  (ProxyExecutable) arguments -> {
 
 					try {
 
@@ -144,6 +156,11 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 					return null;
 
 				};
+
+				methodCache.cacheExecutable(node.getClass().getSimpleName(), key, executable);
+
+				return executable;
+
 			} else if (key.equals("grant")) {
 
 				// grant() on GraphObject needs special handling
