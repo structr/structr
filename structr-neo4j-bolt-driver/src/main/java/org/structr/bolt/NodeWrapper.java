@@ -98,6 +98,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 
 		dontUseCache = true;
 
+
 		assertNotStale();
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
@@ -388,10 +389,6 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 			}
 		}
 
-		if (wrapper.isDeleted()) {
-			return null;
-		}
-
 		return wrapper;
 	}
 
@@ -422,10 +419,6 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 					throw new NotFoundException("Node with ID " + id + " not found.");
 				}
 			}
-		}
-
-		if (wrapper.isDeleted()) {
-			return null;
 		}
 
 		return wrapper;

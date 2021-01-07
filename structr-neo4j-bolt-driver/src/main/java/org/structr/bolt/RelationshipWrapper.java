@@ -205,10 +205,6 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relati
 			}
 		}
 
-		if (wrapper.isDeleted()) {
-			return null;
-		}
-
 		return wrapper;
 	}
 
@@ -248,10 +244,6 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relati
 
 				relationshipCache.put(id, wrapper);
 			}
-		}
-
-		if (wrapper.isDeleted()) {
-			return null;
 		}
 
 		return wrapper;
