@@ -25,7 +25,9 @@ import java.util.Date;
  */
 public interface LicenseManager {
 
-	void refresh();
+	void logLicenseInfo();
+
+	void refresh(boolean readLicense);
 
 	String getEdition();
 

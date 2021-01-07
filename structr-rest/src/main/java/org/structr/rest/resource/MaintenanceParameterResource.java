@@ -69,6 +69,7 @@ public class MaintenanceParameterResource extends Resource {
 		maintenanceCommandMap.put("setRelationshipProperties", BulkSetRelationshipPropertiesCommand.class);
 		maintenanceCommandMap.put("copyRelationshipProperties", BulkCopyRelationshipPropertyCommand.class);
 		maintenanceCommandMap.put("createLicense", StructrLicenseManager.CreateLicenseCommand.class);
+		maintenanceCommandMap.put("updateLicense", StructrLicenseManager.UpdateLicenseCommand.class);
 		maintenanceCommandMap.put("setUuid", BulkSetUuidCommand.class);
 		maintenanceCommandMap.put("sync", SyncCommand.class);
 		maintenanceCommandMap.put("snapshot", SnapshotCommand.class);
