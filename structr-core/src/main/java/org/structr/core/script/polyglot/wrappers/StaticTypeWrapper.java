@@ -106,7 +106,6 @@ public class StaticTypeWrapper implements ProxyObject {
 
 			}
 
-			tx.success();
 		} catch (FrameworkException ex) {
 
 			logger.warn("Unexpected exception while trying to look up schema method.", ex);
@@ -123,11 +122,10 @@ public class StaticTypeWrapper implements ProxyObject {
 
 	@Override
 	public boolean hasMember(String key) {
-		return getMember(key) != null;
+		return true;
 	}
 
 	@Override
 	public void putMember(String key, Value value) {
-
 	}
 }
