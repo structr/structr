@@ -524,16 +524,25 @@ public class UiAuthenticator implements Authenticator {
 						AuthHelper.doLogin(request, user);
 						HtmlServlet.setNoCacheHeaders(response);
 
-						try {
+						logger.debug("Response status: {}", response.getStatus());
 
-							logger.debug("Response status: {}", response.getStatus());
+						if (Settings.OAuthDelayedRedirect.getValue(false)) {
 
-							response.sendRedirect(oauthServer.getReturnUri());
+							// delayed redirect might be necessary in some environments
+							response.setStatus(HttpServletResponse.SC_FOUND);
+							response.setHeader("Location", oauthServer.getReturnUri());
 
-						} catch (IOException ex) {
+						} else {
 
-							logger.error("Could not redirect to {}: {}", new Object[]{oauthServer.getReturnUri(), ex});
+							try {
 
+								// send redirect immediately
+								response.sendRedirect(oauthServer.getReturnUri());
+
+							} catch (IOException ex) {
+
+								logger.error("Could not redirect to {}: {}", new Object[]{oauthServer.getReturnUri(), ex});
+							}
 						}
 
 						return user;
