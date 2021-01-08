@@ -98,6 +98,7 @@ public abstract class ContextFactory {
 		final Context context = Context.newBuilder()
 				.engine(engine)
 				.allowAllAccess(true)
+				.allowHostAccess(AccessProvider.getHostAccessConfig())
 				.build();
 
 		return updateBindings(context, language, actionContext, entity);
