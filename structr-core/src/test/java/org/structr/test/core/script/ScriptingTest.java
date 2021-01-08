@@ -59,7 +59,6 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
@@ -2177,14 +2176,14 @@ public class ScriptingTest extends StructrTest {
 		final ActionContext ctx = new ActionContext(securityContext, null);
 
 		TestOne testNode = null;
-                String uuid ="";
+		String uuid ="";
 
 		try (final Tx tx = app.tx()) {
 
 			testNode = createTestNode(TestOne.class);
 			testNode.setProperty(TestOne.aString, "InitialString");
 			testNode.setProperty(TestOne.anInt, 42);
-                        uuid = testNode.getProperty(new StringProperty("id"));
+			uuid = testNode.getProperty(AbstractNode.id);
 
 			tx.success();
 
@@ -2197,21 +2196,19 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-                        assertEquals("JavaScript: Trying to find entity with type,key,value!", "InitialString", Scripting.replaceVariables(ctx, testNode, "${{ var t1 = Structr.first(Structr.find_privileged('TestOne','anInt','42')); Structr.print(t1.aString); }}"));
+			assertEquals("JavaScript: Trying to find entity with type,key,value!", "InitialString", Scripting.replaceVariables(ctx, testNode, "${{ var t1 = Structr.first(Structr.find_privileged('TestOne','anInt','42')); Structr.print(t1.aString); }}"));
 
-                        assertEquals("JavaScript: Trying to find entity with type,id!", "InitialString", Scripting.replaceVariables(ctx, testNode, "${{ var t1 = Structr.find_privileged('TestOne','"+uuid+"'); Structr.print(t1.aString); }}"));
+			assertEquals("JavaScript: Trying to find entity with type,id!", "InitialString", Scripting.replaceVariables(ctx, testNode, "${{ var t1 = Structr.find_privileged('TestOne','"+uuid+"'); Structr.print(t1.aString); }}"));
 
-                        assertEquals("JavaScript: Trying to find entity with type,key,value,key,value!", "InitialString", Scripting.replaceVariables(ctx, testNode, "${{ var t1 = Structr.first(Structr.find_privileged('TestOne','anInt','42','aString','InitialString')); Structr.print(t1.aString); }}"));
+			assertEquals("JavaScript: Trying to find entity with type,key,value,key,value!", "InitialString", Scripting.replaceVariables(ctx, testNode, "${{ var t1 = Structr.first(Structr.find_privileged('TestOne','anInt','42','aString','InitialString')); Structr.print(t1.aString); }}"));
 
 			tx.success();
 
 		} catch (FrameworkException ex) {
 
-                        logger.warn("", ex);
-                        fail("Unexpected exception");
-
-                }
-
+			logger.warn("", ex);
+			fail("Unexpected exception");
+		}
 	}
 
 	@Test
@@ -2285,16 +2282,13 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("${print(this.aDate)} should yield ISO 8601 date format", expectedDateOutput, dateOutput2);
 			assertEquals("${Structr.print(Structr.this.aDate)} should yield ISO 8601 date format", expectedDateOutput, dateOutput3);
 
-
 			tx.success();
 
 		} catch (FrameworkException fex) {
 
 			logger.warn("", fex);
-
 			fail(fex.getMessage());
 		}
-
 	}
 
 	@Test
@@ -2329,7 +2323,6 @@ public class ScriptingTest extends StructrTest {
 
 			fail(fex.getMessage());
 		}
-
 	}
 
 	@Test
@@ -3220,8 +3213,7 @@ public class ScriptingTest extends StructrTest {
 
 		final String storeKey        = "my-store-key";
 		final String userValue       = "USER-value";
-		final String privilegedValue = "PRVILIGED-value";
-
+		final String privilegedValue = "PRIVILEGED-value";
 
 		try (final Tx tx = app.tx()) {
 
@@ -5848,27 +5840,6 @@ public class ScriptingTest extends StructrTest {
 			for (final Map.Entry<String, Integer> entry : Set.of(Map.entry("a", 0), Map.entry("b", 1), Map.entry("c", 2))) {
 				assertEquals(entry.getValue(), ((Map) result).get(entry.getKey()));
 			}
-
-			tx.success();
-
-		} catch (FrameworkException ex) {
-
-			fail("Unexpected exception");
-		}
-
-	}
-
-	@Test
-	public void testClearKeywordFunction () {
-
-		final ActionContext ctx = new ActionContext(securityContext);
-
-		// test
-		try (final Tx tx = app.tx()) {
-
-			final Object result = ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testClearKeywordFunction.js"));
-
-			assertEquals("", result);
 
 			tx.success();
 

@@ -18,6 +18,8 @@
  */
 package org.structr.core.script.polyglot;
 
+import java.util.Arrays;
+import java.util.Set;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
@@ -27,19 +29,13 @@ import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
+import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
 import org.structr.core.script.polyglot.function.*;
 import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.Set;
-
-import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
 
 public class StructrBinding implements ProxyObject {
 	private final static Logger logger = LoggerFactory.getLogger(StructrBinding.class);
@@ -78,8 +74,6 @@ public class StructrBinding implements ProxyObject {
 				return new CacheFunction(actionContext, entity);
 			case "vars":
 				return new PolyglotProxyMap(actionContext, actionContext.getAllVariables());
-			case "clear":
-				return new ClearFunction(actionContext);
 			case "applicationStore":
 				return new PolyglotProxyMap(actionContext, Services.getInstance().getApplicationStore());
 			default:

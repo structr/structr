@@ -486,7 +486,7 @@ public class ActionContext {
 		return remoteAddress;
 	}
 
-	public void print(final Object... objects) {
+	public void print(final Object[] objects, final Object caller) {
 
 		for (final Object obj : objects) {
 

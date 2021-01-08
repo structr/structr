@@ -268,6 +268,7 @@ public class Scripting {
 				throw new FrameworkException(422, "Server-side scripting error", actionContext.getErrorBuffer());
 			}
 
+			// Prefer explicitly printed output over actual result
 			final String outputBuffer = actionContext.getOutput();
 			if (outputBuffer != null && !outputBuffer.isEmpty()) {
 
