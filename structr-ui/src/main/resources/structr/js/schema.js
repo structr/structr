@@ -2500,6 +2500,7 @@ var _Schema = {
 					class: 'actions schema-props',
 					cols: [
 						{ class: '', title: 'Name' },
+						{ class: 'isstatic-col', title: 'isStatic' },
 						{ class: 'actions-col', title: 'Action' }
 					]
 				};
@@ -2526,14 +2527,17 @@ var _Schema = {
 
 							fakeRow.data('type-name', (entity ? entity.name : 'global_schema_method')).data('method-name', method.name);
 							$('.property-name', fakeRow).val(method.name);
+							$('.property-isStatic', fakeRow).prop('checked', method.isStatic);
 
 							_Schema.methods.methodsData[method.id] = {
 								isNew: false,
 								id: method.id,
 								name: method.name,
+								isStatic: method.isStatic,
 								source: method.source || '',
 								comment: method.comment || '',
-								initialName: method.initialName,
+								initialName: method.name,
+								initialisStatic: method.isStatic,
 								initialSource: method.source || '',
 								initialComment: method.comment || ''
 							};
@@ -2596,10 +2600,11 @@ var _Schema = {
 						// changed lines
 						counts.update++;
 						methods.push({
-							id: methodId,
-							name: methodData.name,
-							source: methodData.source,
-							comment: methodData.comment
+							id:       methodId,
+							name:     methodData.name,
+							isStatic: methodData.isStatic,
+							source:   methodData.source,
+							comment:  methodData.comment
 						});
 						allow = _Schema.methods.validateMethodRow(row) && allow;
 					} else {
@@ -2617,10 +2622,11 @@ var _Schema = {
 					counts.new++;
 					allow = _Schema.methods.validateMethodRow(row) && allow;
 					let method = {
-						type: 'SchemaMethod',
-						name: methodData.name,
-						source: methodData.source,
-						comment: methodData.comment
+						type:     'SchemaMethod',
+						name:     methodData.name,
+						isStatic: methodData.isStatic,
+						source:   methodData.source,
+						comment:  methodData.comment
 					};
 
 					methods.push(method);
@@ -2770,12 +2776,17 @@ var _Schema = {
 				_Schema.methods.methodsData[tplConfig.methodId] = {
 					isNew: true,
 					name: tplConfig.name,
+					isStatic: false,
 					source: '',
 					comment: ''
 				};
 
 				$('.property-name', row).off('keyup').on('keyup', function() {
-					_Schema.methods.methodsData[tplConfig.methodId].name = $('.property-name', row).val();
+					_Schema.methods.methodsData[tplConfig.methodId].name = $(this).val();
+				});
+
+				$('.property-isStatic', row).off('change').on('change', function() {
+					_Schema.methods.methodsData[tplConfig.methodId].isStatic = $(this).prop('checked');
 				});
 
 				$('.edit-action', row).off('click').on('click', function() {
@@ -2832,6 +2843,11 @@ var _Schema = {
 				_Schema.methods.rowChanged(row, (methodData.name !== methodData.initialName));
 			});
 
+			$('.property-isStatic', row).off('change').on('change', function() {
+				methodData.isStatic = $(this).prop('checked');
+				_Schema.methods.rowChanged(row, (methodData.isStatic !== methodData.initialisStatic));
+			});
+
 			$('.edit-action', row).off('click').on('click', function() {
 				_Schema.methods.editMethod(row);
 			});
@@ -2848,11 +2864,13 @@ var _Schema = {
 					row.removeClass('to-delete');
 					row.removeClass('has-changes');
 
-					methodData.name    = method.name;
-					methodData.source  = methodData.initialSource;
-					methodData.comment = methodData.initialComment;
+					methodData.name     = methodData.initialName;
+					methodData.isStatic = methodData.initialisStatic;
+					methodData.source   = methodData.initialSource;
+					methodData.comment  = methodData.initialComment;
 
 					$('.property-name', row).val(methodData.name);
+					$('.property-isStatic', row).prop('checked', methodData.isStatic);
 
 					if (row.hasClass('editing')) {
 						_Schema.methods.editMethod(row);
