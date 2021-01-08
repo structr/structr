@@ -108,6 +108,11 @@ export class Frontend {
 			// input[type="checkbox"]
 			return element.checked;
 
+		} else if (element.nodeName === 'SELECT' && element.multiple) {
+
+			// select[multiple]
+			return [].map.call(element.selectedOptions, (e) => { return e.value; });
+
 		} else {
 
 			// all other node types
