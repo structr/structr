@@ -19,6 +19,7 @@
 package org.structr.core.script.polyglot.context;
 
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Engine;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.polyglot.AccessProvider;
@@ -28,6 +29,8 @@ import org.structr.schema.action.ActionContext;
 import java.util.concurrent.Callable;
 
 public abstract class ContextFactory {
+
+	private static final Engine engine = Engine.create();
 
 	public static Context getContext(final String language) throws FrameworkException {
 
@@ -73,6 +76,7 @@ public abstract class ContextFactory {
 	private static Context buildJSContext(final ActionContext actionContext, final GraphObject entity) {
 
 		final Context context = Context.newBuilder("js")
+				.engine(engine)
 				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
 				.allowHostAccess(AccessProvider.getHostAccessConfig())
 				// TODO: Add config switch to toggle Host Class Lookup
@@ -92,6 +96,7 @@ public abstract class ContextFactory {
 	private static Context buildGenericContext(final String language, final ActionContext actionContext, final GraphObject entity) {
 
 		final Context context = Context.newBuilder()
+				.engine(engine)
 				.allowAllAccess(true)
 				.build();
 
