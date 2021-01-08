@@ -61,7 +61,7 @@ public class StructrBinding implements ProxyObject {
 			case "predicate":
 				return new PredicateBinding(actionContext, entity);
 			case "batch":
-				return new BatchFunction(actionContext);
+				return new BatchFunction(actionContext, entity);
 			case "includeJs":
 				return new IncludeJSFunction(actionContext);
 			case "doPrivileged":
