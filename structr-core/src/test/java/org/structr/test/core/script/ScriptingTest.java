@@ -5899,6 +5899,23 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testThisKeywordAfterBatch() {
+
+		try (final Tx tx = app.tx()) {
+
+			final Group group = app.create(Group.class, "Group1");
+
+			Scripting.replaceVariables(new ActionContext(securityContext), group, "${{ $.log($.this.name); $.batch(function() { $.log('In batch()'); }); $.log($.this.name); }}");
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
 
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource, final String comment) {
