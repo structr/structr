@@ -74,7 +74,7 @@ public class StaticTypeWrapper implements ProxyObject {
 
 					if (m.getName().equals(key) && m.isStaticMethod()) {
 
-						ProxyExecutable executable =  (ProxyExecutable) arguments -> {
+						ProxyExecutable executable = arguments -> {
 
 							try {
 								Map<String, Object> parameters = new HashMap<>();

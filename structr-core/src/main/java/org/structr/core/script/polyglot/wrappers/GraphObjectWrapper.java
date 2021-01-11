@@ -42,7 +42,6 @@ import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.cache.ExecutableTypeMethodCache;
 import org.structr.core.script.polyglot.function.GrantFunction;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Actions;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -84,56 +83,85 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				return cachedExecutable;
 			}
 
+			// Lookup method, if it's not in cache
+			Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class);
+			if (methods.containsKey(key)) {
+				Method method = methods.get(key);
 
-			App app = StructrApp.getInstance();
+				App app = StructrApp.getInstance();
 
-			try (final Tx tx = app.tx()) {
+				try (final Tx tx = app.tx()) {
 
-				SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(node.getClass().getSimpleName()).getFirst();
-				if (schemaNode != null) {
+					SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(((AbstractNode) node).getClass().getSimpleName()).getFirst();
+					List<SchemaMethod> schemaMethods = Iterables.toList(schemaNode.getSchemaMethodsIncludingInheritance());
 
-					for (SchemaMethod m : Iterables.toList(schemaNode.getSchemaMethodsIncludingInheritance())) {
+					boolean nonStaticMethodFound = false;
 
-						if (m.getName().equals(key) && !m.isStaticMethod()) {
+					for (SchemaMethod schemaMethod : schemaMethods) {
 
-							ProxyExecutable executable =  (ProxyExecutable) arguments -> {
+						if (schemaMethod.getName().equals(key) && !schemaMethod.isStaticMethod()) {
 
-								try {
-									Map<String, Object> parameters = new HashMap<>();
-
-									if (arguments.length == 1) {
-
-										Object parameter = PolyglotWrapper.unwrap(actionContext, arguments[0]);
-										if (parameter instanceof Map) {
-
-											parameters = (Map<String, Object>) parameter;
-										}
-									}
-
-									return PolyglotWrapper.wrap(actionContext, Actions.execute(actionContext.getSecurityContext(), node, SchemaMethod.getCachedSourceCode(m.getUuid()), parameters, node.getClass().getSimpleName() + "." + key, m.getUuid()));
-
-								} catch (FrameworkException ex) {
-
-									logger.error("Unexpected exception while trying to call static schema type method.", ex);
-								}
-
-								return null;
-							};
-
-							methodCache.cacheExecutable(node.getClass().getSimpleName(), key, executable);
-
-							return executable;
+							nonStaticMethodFound = true;
+							break;
 						}
-
 					}
+
+					if (!nonStaticMethodFound) {
+
+						logger.warn("Tried calling a static type method in a non-static way on a type instance.");
+						return null;
+					}
+
+					tx.success();
+				} catch (FrameworkException ex) {
+
+					logger.error("Unexpected exception while trying to retrieve member method of graph object.", ex);
 				}
 
-			} catch (FrameworkException ex) {
+				final ProxyExecutable executable = arguments -> {
 
-				logger.error("Unexpected exception while trying to retrieve member method of graph object.", ex);
-			}
+					try {
 
-			if (key.equals("grant")) {
+						int paramCount = method.getParameterCount();
+
+						if (paramCount == 0) {
+
+							return PolyglotWrapper.wrap(actionContext, method.invoke(node));
+						} else if (paramCount == 1) {
+
+							return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext()));
+						} else if (paramCount == 2 && arguments.length == 0) {
+
+							return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext(), new HashMap<String, Object>()));
+						} else if (arguments.length == 0) {
+
+							return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext()));
+						} else {
+
+							return PolyglotWrapper.wrap(actionContext, method.invoke(node, ArrayUtils.add(Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray(), 0, actionContext.getSecurityContext())));
+						}
+
+					} catch (IllegalAccessException ex) {
+
+						logger.error("Unexpected exception while trying to get GraphObject member.", ex);
+					} catch (InvocationTargetException ex) {
+
+						if (ex.getTargetException() instanceof FrameworkException) {
+
+							throw new RuntimeException(ex.getTargetException());
+						}
+						logger.error("Unexpected exception while trying to get GraphObject member.", ex);
+					}
+
+					return null;
+
+				};
+
+				methodCache.cacheExecutable(node.getClass().getSimpleName(), key, executable);
+
+				return executable;
+
+			} else if (key.equals("grant")) {
 
 				// grant() on GraphObject needs special handling
 				return new GrantFunction(actionContext, node);
@@ -182,7 +210,19 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 	@Override
 	public boolean hasMember(String key) {
-		return true;
+		if (getOriginalObject() instanceof GraphObjectMap) {
+
+			return ((GraphObjectMap) getOriginalObject()).containsKey(new GenericProperty<>(key));
+		} else {
+
+			if (node != null) {
+				
+				return StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class).containsKey(key) || StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key) != null;
+			} else {
+
+				return false;
+			}
+		}
 	}
 
 	@Override
