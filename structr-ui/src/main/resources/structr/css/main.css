@@ -1557,10 +1557,6 @@ button.action.disabled:hover {
 	padding: 0;
 }
 
-.dialogTextWrapper {
-	overflow-y: auto;
-}
-
 .dialogText textarea {
 	width: 98%;
 	margin-top: 0;
