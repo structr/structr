@@ -50,21 +50,6 @@ public class FlowExceptionHandler extends FlowNode implements Exception, DataSou
 	public static final View defaultView = new View(FlowNode.class, PropertyView.Public,  next, handledNodes, dataTarget);
 	public static final View uiView      = new View(FlowNode.class, PropertyView.Ui,      next, handledNodes, dataTarget);
 
-
-	@Override
-	public void handleException(Context context) {
-		FlowNode next = getProperty(FlowExceptionHandler.next);
-
-		Object data = context.getData(getUuid());
-
-		FlowException exception = data != null ? (FlowException)data : null;
-
-		if (next == null && exception != null) {
-			context.error(new FlowError(exception.getMessage()));
-			logger.error(ExceptionUtils.getStackTrace(exception));
-		}
-	}
-
 	@Override
 	public Object get(Context context) throws FlowException {
 

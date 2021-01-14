@@ -18,11 +18,7 @@
  */
 package org.structr.flow.api;
 
-import org.structr.flow.engine.Context;
-
 public interface Exception extends FlowElement {
-
-	void handleException(final Context context);
 
 	@Override
 	default FlowType getFlowType() {
