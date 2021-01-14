@@ -66,7 +66,27 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 						loopContext.setData(flowElement.getUuid(), o);
 						try {
 
-							engine.execute(loopContext, loopBody);
+							final FlowResult result = engine.execute(loopContext, loopBody);
+							final FlowError error = result.getError();
+							if (error != null) {
+
+								if (error.getCause() != null) {
+
+									loopContext.clearError();
+									if (error.getCause() instanceof FlowException) {
+
+										throw (FlowException)error.getCause();
+									} else {
+
+										throw new FrameworkException(422, "Unexpected exception in FlowForEach loop body.", error.getCause());
+									}
+								} else {
+
+									loopContext.clearError();
+									throw new FrameworkException(422, "Unexpected exception in FlowForEach loop body. " + error.getMessage());
+								}
+							}
+
 						} catch (FrameworkException ex) {
 
 							final FlowException flowException = new FlowException(ex, flowElement);

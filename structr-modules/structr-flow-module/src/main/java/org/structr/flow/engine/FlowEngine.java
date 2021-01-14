@@ -83,7 +83,7 @@ public class FlowEngine {
 
 					if (next.equals(current)) {
 
-						context.error(new FlowError("FlowElement is connected to itself. Cancelling execution to prevent unlimited recursion."));
+						context.error(new FlowError("FlowElement is connected to itself. Cancelling execution to prevent unlimited recursion.", null));
 
 					}
 
@@ -179,7 +179,7 @@ public class FlowEngine {
 				throw fex;
 			} else {
 
-				throw exception;
+				context.error(new FlowError(exception.getMessage(), exception));
 			}
 		}
 

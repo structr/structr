@@ -71,6 +71,11 @@ public class Context {
 		this.error = error;
 	}
 
+	public void clearError() {
+
+		this.error = null;
+	}
+
 	public void setResult(final Object result) {
 		this.result = result;
 	}
