@@ -49,6 +49,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.cache.ExecutableStaticTypeMethodCache;
 import org.structr.core.script.polyglot.cache.ExecutableTypeMethodCache;
 import org.structr.schema.parser.DatePropertyParser;
 
@@ -66,7 +67,7 @@ public class ActionContext {
 	private final Map<String, Context> scriptingContexts                           = new HashMap<>();
 	private final Map<String, String> libraryCache                                 = new HashMap<>();
 	private final ExecutableTypeMethodCache executableTypeMethodCache              = new ExecutableTypeMethodCache();
-	private final ExecutableTypeMethodCache staticExecutableTypeMethodCache        = new ExecutableTypeMethodCache();
+	private final ExecutableStaticTypeMethodCache staticExecutableTypeMethodCache  = new ExecutableStaticTypeMethodCache();
 
 	// Regular members
 	protected SecurityContext securityContext                                      = null;
@@ -620,7 +621,7 @@ public class ActionContext {
 		return this.executableTypeMethodCache;
 	}
 
-	public ExecutableTypeMethodCache getStaticExecutableTypeMethodCache() {
+	public ExecutableStaticTypeMethodCache getStaticExecutableTypeMethodCache() {
 
 		return this.staticExecutableTypeMethodCache;
 	}

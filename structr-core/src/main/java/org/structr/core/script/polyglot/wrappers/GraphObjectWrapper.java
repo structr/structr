@@ -76,7 +76,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 			// Check cache for already initialized executables
 			ExecutableTypeMethodCache methodCache = actionContext.getExecutableTypeMethodCache();
 
-			ProxyExecutable cachedExecutable = methodCache.getExecutable(node.getClass().getSimpleName(), key);
+			ProxyExecutable cachedExecutable = methodCache.getExecutable(node, key);
 
 			if (cachedExecutable != null) {
 
@@ -157,7 +157,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 				};
 
-				methodCache.cacheExecutable(node.getClass().getSimpleName(), key, executable);
+				methodCache.cacheExecutable(node, key, executable);
 
 				return executable;
 

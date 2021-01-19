@@ -20,45 +20,44 @@ package org.structr.core.script.polyglot.cache;
 
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.structr.api.util.FixedSizeCache;
-import org.structr.core.GraphObject;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ExecutableTypeMethodCache {
-	private final FixedSizeCache<GraphObject, Map<String, ProxyExecutable>> typeMethodCache = new FixedSizeCache<>("executableTypeMethodCache", 100);
+public class ExecutableStaticTypeMethodCache {
+	private final FixedSizeCache<String, Map<String, ProxyExecutable>> staticTypeMethodCache = new FixedSizeCache<>("executableStaticTypeMethodCache", 100);
 
-	public ProxyExecutable getExecutable(final GraphObject instance, final String methodName) {
+	public ProxyExecutable getExecutable(final String typeName, final String methodName) {
 
-		if (typeMethodCache.containsKey(instance)) {
+		if (staticTypeMethodCache.containsKey(typeName)) {
 
-			return typeMethodCache.get(instance).get(methodName);
+			return staticTypeMethodCache.get(typeName).get(methodName);
 		}
 
 		return null;
 	}
 
-	public void cacheExecutable(final GraphObject instance, final String methodName, final ProxyExecutable executable) {
+	public void cacheExecutable(final String typeName, final String methodName, final ProxyExecutable executable) {
 
-		if (typeMethodCache.containsKey(instance)) {
+		if (staticTypeMethodCache.containsKey(typeName)) {
 
-			typeMethodCache.get(instance).put(methodName, executable);
+			staticTypeMethodCache.get(typeName).put(methodName, executable);
 		} else {
 
 			Map<String, ProxyExecutable> methodMap = new HashMap<>();
 			methodMap.put(methodName, executable);
-			typeMethodCache.put(instance, methodMap);
+			staticTypeMethodCache.put(typeName, methodMap);
 		}
 	}
 
-	public void clearCacheForType(final GraphObject instance) {
+	public void clearCacheForType(final String typeName) {
 
-		typeMethodCache.remove(instance);
+		staticTypeMethodCache.remove(typeName);
 	}
 
 	public void clearCache() {
 
-		typeMethodCache.clear();
+		staticTypeMethodCache.clear();
 	}
 
 }

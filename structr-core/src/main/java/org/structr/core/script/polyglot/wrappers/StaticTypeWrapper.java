@@ -31,7 +31,7 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
-import org.structr.core.script.polyglot.cache.ExecutableTypeMethodCache;
+import org.structr.core.script.polyglot.cache.ExecutableStaticTypeMethodCache;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 
@@ -56,7 +56,7 @@ public class StaticTypeWrapper implements ProxyObject {
 	public Object getMember(String key) {
 
 		// Try to lookup cached executable before initializing a new one
-		ExecutableTypeMethodCache staticMethodCache = actionContext.getStaticExecutableTypeMethodCache();
+		ExecutableStaticTypeMethodCache staticMethodCache = actionContext.getStaticExecutableTypeMethodCache();
 
 		ProxyExecutable cachedStaticExecutable = staticMethodCache.getExecutable(referencedClass.getSimpleName(), key);
 		if (cachedStaticExecutable != null) {
