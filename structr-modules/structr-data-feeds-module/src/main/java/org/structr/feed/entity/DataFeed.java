@@ -195,6 +195,10 @@ public interface DataFeed extends NodeInterface {
 					final SyndFeed      feed      = input.build(reader);
 					final List<SyndEntry> entries = feed.getEntries();
 
+					if (StringUtils.isEmpty(thisFeed.getProperty(DataFeed.name))) {
+						thisFeed.setProperty(DataFeed.name, feed.getTitle());
+					}
+
 					thisFeed.setProperty(StructrApp.key(DataFeed.class, "feedType"),    feed.getFeedType());
 					thisFeed.setProperty(StructrApp.key(DataFeed.class, "description"), feed.getDescription());
 
