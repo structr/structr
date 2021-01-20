@@ -4378,6 +4378,47 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
+	public void testAdvancedFindWithContainsPredicate() {
+
+		try (final Tx tx = app.tx()) {
+
+			int cnt = 0;
+
+			while (cnt < 10) {
+
+				app.create(Group.class, new NodeAttribute<>(Group.name, "node" + cnt));
+				cnt++;
+			}
+
+			tx.success();
+
+		} catch (Throwable fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final ActionContext ctx                = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final int testNodeCount = StructrApp.getInstance().nodeQuery(Group.class).getAsList().size();
+
+			assertEquals("All groups should be returned", testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('Group').length; }}", ""));
+			assertEquals("All groups should be returned with 'node' in their name", testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('Group', $.predicate.contains('name', 'node')).length; }}", ""));
+			assertEquals("All groups should be returned because the empty string is always contained in any string", testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('Group', $.predicate.contains('name', '')).length; }}", ""));
+			assertEquals("No groups should be found!", 0, Scripting.evaluate(ctx, null, "${{ return $.find('Group', $.predicate.contains('name', 'notinthere')).length; }}", ""));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
 	public void testJavascriptArrayWrapping() {
 
 		// setup
