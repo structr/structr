@@ -493,7 +493,19 @@ public class StructrLicenseManager implements LicenseManager {
 
 		final Date now = new Date();
 
-		return (licenseEndDate != null && now.after(licenseEndDate) && !now.equals(licenseEndDate));
+		if (licenseEndDate != null) {
+
+			final Calendar cal = Calendar.getInstance();
+
+			cal.setTime(licenseEndDate);
+			cal.add(Calendar.DAY_OF_YEAR, 1);
+
+			final Date dayAfterLicenseExpiryDate = cal.getTime();
+
+			return (licenseEndDate != null && now.after(dayAfterLicenseExpiryDate));
+		}
+
+		return true;
 	}
 
 	private String readFileToString(final String fileName) {
