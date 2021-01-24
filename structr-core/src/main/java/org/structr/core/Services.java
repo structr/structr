@@ -86,11 +86,11 @@ public class Services implements StructrServices {
 	// singleton instance
 	private static String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
 	private static final long licenseCheckInterval     = TimeUnit.HOURS.toMillis(2);
+	private static long lastLicenseCheck               = System.currentTimeMillis();
 	private static Services singletonInstance          = null;
 	private static boolean testingModeDisabled         = false;
 	private static boolean updateIndexConfiguration    = false;
 	private static Boolean cachedTestingFlag           = null;
-	private static long lastLicenseCheck               = 0L;
 
 	// non-static members
 	private final Map<Class, Map<String, Service>> serviceCache = new ConcurrentHashMap<>(10, 0.9f, 8);
