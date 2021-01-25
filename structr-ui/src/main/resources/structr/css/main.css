@@ -3084,6 +3084,10 @@ table.push {
 	height: 1em;
 }
 
+#resourceAccessesTable th.br-1, #resourceAccessesTable td.br-1 {
+	border-right: 1px solid #ccc;
+}
+
 #resourceAccessesTable .title-cell {
 	text-align: left;
 }

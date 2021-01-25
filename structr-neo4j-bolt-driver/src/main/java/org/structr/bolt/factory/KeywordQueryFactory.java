@@ -94,6 +94,10 @@ public class KeywordQueryFactory extends AbstractQueryFactory<AdvancedCypherQuer
 
 				query.addSimpleParameter(name, "CONTAINS", value, true, true);            // works and takes half the time
 
+			} else if ("".equals(predicate.getValue()) && isString) {
+
+				query.addSimpleParameter(name, "CONTAINS", "", true, true);               // works and takes half the time
+
 			} else {
 
 				query.beginGroup();
