@@ -27,6 +27,7 @@ import org.structr.core.script.polyglot.StructrBinding;
 import org.structr.schema.action.ActionContext;
 
 import java.util.concurrent.Callable;
+import java.util.function.Predicate;
 
 public abstract class ContextFactory {
 
@@ -80,7 +81,7 @@ public abstract class ContextFactory {
 				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
 				.allowHostAccess(AccessProvider.getHostAccessConfig())
 				// TODO: Add config switch to toggle Host Class Lookup
-				//.allowHostClassLookup(s -> true)
+				.allowHostClassLookup(new StructrClassPredicate())
 				// TODO: Add configurable chrome debug
 				//.option("inspect", "4242")
 				//.option("inspect.Path", "/structr/scripting/remotedebugger/" + java.util.UUID.randomUUID().toString())
@@ -99,6 +100,7 @@ public abstract class ContextFactory {
 				.engine(engine)
 				.allowAllAccess(true)
 				.allowHostAccess(AccessProvider.getHostAccessConfig())
+				.allowHostClassLookup(new StructrClassPredicate())
 				.build();
 
 		return updateBindings(context, language, actionContext, entity);
@@ -113,5 +115,14 @@ public abstract class ContextFactory {
 		}
 
 		return context;
+	}
+
+	private static class StructrClassPredicate implements Predicate<String> {
+		// Allows manually selected Structr classes to be accessed from scripting contexts
+
+		@Override
+		public boolean test(String s) {
+			return s.startsWith("org.structr.api.config.Settings");
+		}
 	}
 }
