@@ -28,8 +28,10 @@ import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.net.SocketException;
 import java.net.URI;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -185,10 +187,11 @@ public interface DataFeed extends NodeInterface {
 
 			try {
 
-				final PropertyKey<Date> dateKey  = StructrApp.key(FeedItem.class, "pubDate");
-				final PropertyKey<String> urlKey = StructrApp.key(FeedItem.class, "url");
-				final URL remote                 = new URL(remoteUrl);
-				final SyndFeedInput input        = new SyndFeedInput();
+				final PropertyKey<Date> pubDateKey     = StructrApp.key(FeedItem.class, "pubDate");
+				final PropertyKey<Date> updatedDateKey = StructrApp.key(FeedItem.class, "updatedDate");
+				final PropertyKey<String> urlKey       = StructrApp.key(FeedItem.class, "url");
+				final URL remote                       = new URL(remoteUrl);
+				final SyndFeedInput input              = new SyndFeedInput();
 
 				try (final Reader reader = new XmlReader(remote)) {
 
@@ -223,7 +226,8 @@ public interface DataFeed extends NodeInterface {
 							}
 
 							final FeedItem item = app.create(FeedItem.class, props);
-							item.setProperty(dateKey, entry.getPublishedDate());
+							item.setProperty(pubDateKey,     entry.getPublishedDate());
+							item.setProperty(updatedDateKey, entry.getUpdatedDate());
 
 							final List<FeedItemContent> itemContents = new LinkedList<>();
 							final List<FeedItemEnclosure> itemEnclosures = new LinkedList<>();
@@ -257,7 +261,7 @@ public interface DataFeed extends NodeInterface {
 							newItems.add(item);
 
 							final Logger logger = LoggerFactory.getLogger(DataFeed.class);
-							logger.debug("Created new item: {} ({}) ", item.getProperty(FeedItem.name), item.getProperty(dateKey));
+							logger.debug("Created new item: {} ({}) ", item.getProperty(FeedItem.name), item.getProperty(pubDateKey));
 						}
 					}
 
@@ -265,7 +269,24 @@ public interface DataFeed extends NodeInterface {
 					thisFeed.setProperty(StructrApp.key(DataFeed.class, "lastUpdated"), new Date());
 				}
 
-			} catch (IllegalArgumentException | IOException | FeedException | FrameworkException ex) {
+
+			} catch (UnknownHostException ex) {
+
+				final Logger logger = LoggerFactory.getLogger(DataFeed.class);
+				logger.error("Unknown host exception encountered while updating feed {}. Host: {}", ex.getMessage(), thisFeed.getUuid());
+
+			} catch (SocketException ex) {
+
+				final Logger logger = LoggerFactory.getLogger(DataFeed.class);
+				logger.error("Socket exception encountered while updating feed {}. {}", thisFeed.getUuid(), ex.getMessage());
+
+			} catch (IOException ex) {
+
+				final Logger logger = LoggerFactory.getLogger(DataFeed.class);
+				logger.error("I/O exception encountered while updating feed {}. {}", thisFeed.getUuid(), ex.getMessage());
+
+			} catch (IllegalArgumentException | FeedException | FrameworkException ex) {
+
 				final Logger logger = LoggerFactory.getLogger(DataFeed.class);
 				logger.error("Error while updating feed", ex);
 			}
