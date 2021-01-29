@@ -84,6 +84,7 @@ import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Renderable;
 import org.structr.web.property.CustomHtmlAttributeProperty;
+import org.structr.web.property.MethodProperty;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -146,6 +147,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.addPropertyGetter("ownerDocument", Page.class);
 		type.addPropertyGetter("sharedComponent", DOMNode.class);
 		type.addPropertyGetter("sharedComponentConfiguration", String.class);
+
+		type.addCustomProperty("sortedChildren", MethodProperty.class.getName()).setTypeHint("Iterable").setFormat(DOMNode.class.getName() + ", getChildNodes");
 
 		type.overrideMethod("onCreation",                  true,  DOMNode.class.getName() + ".onCreation(this, arg0, arg1);");
 		type.overrideMethod("onModification",              true,  DOMNode.class.getName() + ".onModification(this, arg0, arg1, arg2);");

@@ -172,11 +172,12 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addBooleanProperty("data-structr-from-widget",         PropertyView.Ui);
 
 		// simple interactive elements
-		type.addStringProperty("data-structr-target",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Event target, usually something like ${dataKey.id} for custom, update and delete events, or the entity type for create events.");
-		type.addStringProperty("data-structr-options",              PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Configuration options for simple interactive elements, reserved for future use.");
-		type.addStringProperty("data-structr-reload-target",        PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("CSS selector that specifies which partials to reload.");
-		type.addStringProperty("data-structr-tree-children",        PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.");
-		type.addStringProperty("eventMapping",                      PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
+		type.addStringProperty("data-structr-target",                PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Event target, usually something like ${dataKey.id} for custom, update and delete events, or the entity type for create events.");
+		type.addStringProperty("data-structr-options",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Configuration options for simple interactive elements, reserved for future use.");
+		type.addStringProperty("data-structr-reload-target",         PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("CSS selector that specifies which partials to reload.");
+		type.addStringProperty("data-structr-tree-children",         PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.");
+		type.addBooleanProperty("data-structr-manual-reload-target", PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Identifies this element as a manual reload target, this is necessary when using repeaters as reload targets.");
+		type.addStringProperty("eventMapping",                       PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
 		type.addPropertyGetter("eventMapping", String.class);
 		type.relate(type, "RELOADS",   Cardinality.ManyToMany, "reloadSources",     "reloadTargets");
 		type.addViewProperty("_html_name", PropertyView.Ui);
@@ -1214,7 +1215,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	public static void updateReloadTargets(final DOMElement thisElement) throws FrameworkException {
 
-		final Logger logger = LoggerFactory.getLogger(DOMElement.class);
+		final Logger logger                   = LoggerFactory.getLogger(DOMElement.class);
+		final SecurityContext securityContext = thisElement.getSecurityContext();
 
 		try {
 
@@ -1224,7 +1226,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			final List<DOMElement> actualReloadSources                   = new LinkedList<>();
 			final List<DOMElement> actualReloadTargets                   = new LinkedList<>();
 			final org.jsoup.nodes.Element matchElement                   = thisElement.getMatchElement();
-			final String reloadTargets                                   = thisElement.getProperty(reloadTargetKey);
+			final String reloadTargets                                   = thisElement.getPropertyWithVariableReplacement(new ActionContext(securityContext), reloadTargetKey);
 			final Page page                                              = thisElement.getOwnerDocument();
 
 			if (page != null) {
@@ -1235,7 +1237,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 						final DOMElement possibleTarget       = (DOMElement)possibleReloadTargetNode;
 						final org.jsoup.nodes.Element element = possibleTarget.getMatchElement();
-						final String otherReloadTarget        = possibleTarget.getProperty(reloadTargetKey);
+						final String otherReloadTarget        = possibleTarget.getPropertyWithVariableReplacement(new ActionContext(securityContext), reloadTargetKey);
 
 						if (reloadTargets != null && element != null) {
 
@@ -1279,8 +1281,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			}
 
 			// update reload targets with list from above
-			thisElement.setProperty(reloadSourcesKey,     actualReloadSources);
-			thisElement.setProperty(reloadTargetsKey,     actualReloadTargets);
+			thisElement.setProperty(reloadSourcesKey, actualReloadSources);
+			thisElement.setProperty(reloadTargetsKey, actualReloadTargets);
 
 		} catch (Throwable t) {
 
@@ -1329,10 +1331,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	public static boolean isReloadTarget(final DOMElement thisElement) {
 
+		final PropertyKey<Boolean> isManualReloadTargetKey       = StructrApp.key(DOMElement.class, "data-structr-manual-reload-target");
 		final PropertyKey<Iterable<DOMElement>> reloadSourcesKey = StructrApp.key(DOMElement.class, "reloadSources");
 		final List<DOMElement> reloadSources                     = Iterables.toList(thisElement.getProperty(reloadSourcesKey));
 
-		return !reloadSources.isEmpty();
+		return thisElement.getProperty(isManualReloadTargetKey) || !reloadSources.isEmpty();
 	}
 
 	private static int intOrOne(final String source) {
