@@ -1,4 +1,4 @@
-FROM ghcr.io/graalvm/graalvm-ce:20.3.0-java11
+FROM ghcr.io/graalvm/graalvm-ce:java11-20.3.0
 ARG STRUCTR_VERSION
 ADD ./target/structr-$STRUCTR_VERSION-dist.zip /root/
 RUN yum install -y unzip
