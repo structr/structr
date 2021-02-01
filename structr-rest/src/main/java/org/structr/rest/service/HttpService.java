@@ -115,7 +115,7 @@ public class HttpService implements RunnableService, StatsCallback {
 	private GzipHandler gzipHandler               = null;
 	private HttpConfiguration httpConfig          = null;
 	private HttpConfiguration httpsConfig         = null;
-	private SslContextFactory sslContextFactory   = null;
+	private SslContextFactory.Server sslServer    = null;
 	private Server server                         = null;
 	private Server maintenanceServer              = null;
 	private int maxIdleTime                       = 30000;
@@ -480,9 +480,9 @@ public class HttpService implements RunnableService, StatsCallback {
 				httpsConfig = new HttpConfiguration(httpConfig);
 				httpsConfig.addCustomizer(new SecureRequestCustomizer());
 
-				sslContextFactory = new SslContextFactory();
-				sslContextFactory.setKeyStorePath(keyStorePath);
-				sslContextFactory.setKeyStorePassword(keyStorePassword);
+				sslServer = new SslContextFactory.Server();
+				sslServer.setKeyStorePath(keyStorePath);
+				sslServer.setKeyStorePassword(keyStorePassword);
 
 				String excludedProtocols = Settings.excludedProtocols.getValue();
 				String includedProtocols = Settings.includedProtocols.getValue();
@@ -490,21 +490,21 @@ public class HttpService implements RunnableService, StatsCallback {
 
 				if (disabledCiphers.length() > 0) {
 					disabledCiphers = disabledCiphers.replaceAll("\\s+", "");
-					sslContextFactory.setExcludeCipherSuites(disabledCiphers.split(","));
+					sslServer.setExcludeCipherSuites(disabledCiphers.split(","));
 				}
 
 				if (excludedProtocols.length() > 0) {
 					excludedProtocols = excludedProtocols.replaceAll("\\s+", "");
-					sslContextFactory.setExcludeProtocols(excludedProtocols.split(","));
+					sslServer.setExcludeProtocols(excludedProtocols.split(","));
 				}
 
 				if (includedProtocols.length() > 0) {
 					includedProtocols = includedProtocols.replaceAll("\\s+", "");
-					sslContextFactory.setIncludeProtocols(includedProtocols.split(","));
+					sslServer.setIncludeProtocols(includedProtocols.split(","));
 				}
 
 				final ServerConnector httpsConnector = new ServerConnector(server,
-					new SslConnectionFactory(sslContextFactory, "http/1.1"),
+					new SslConnectionFactory(sslServer, "http/1.1"),
 					new HttpConnectionFactory(httpsConfig));
 
 				if (forceHttps) {
@@ -659,7 +659,7 @@ public class HttpService implements RunnableService, StatsCallback {
 				if (httpsPort > -1 && keyStorePath != null && !keyStorePath.isEmpty() && keyStorePassword != null) {
 
 					final ServerConnector httpsConnector = new ServerConnector(maintenanceServer,
-						new SslConnectionFactory(sslContextFactory, "http/1.1"),
+						new SslConnectionFactory(sslServer, "http/1.1"),
 						new HttpConnectionFactory(httpsConfig));
 
 					httpsConnector.setPort(httpsPort);
@@ -684,7 +684,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 	public void reloadSSLCertificate() {
 
-		if (sslContextFactory != null) {
+		if (sslServer != null) {
 
 			try {
 
@@ -692,10 +692,10 @@ public class HttpService implements RunnableService, StatsCallback {
 				final String keyStorePassword       = Settings.KeystorePassword.getValue();
 
 				// in case path/password changed
-				sslContextFactory.setKeyStorePath(keyStorePath);
-				sslContextFactory.setKeyStorePassword(keyStorePassword);
+				sslServer.setKeyStorePath(keyStorePath);
+				sslServer.setKeyStorePassword(keyStorePassword);
 
-				sslContextFactory.reload(new Consumer<SslContextFactory>() {
+				sslServer.reload(new Consumer<SslContextFactory>() {
 					@Override
 					public void accept(SslContextFactory t) {
 					}
