@@ -96,6 +96,10 @@ public class ContextStore {
 		}
 	}
 
+	public Set<String> getTemporaryParameterKeys() {
+		return this.tmpParameters.keySet();
+	}
+
 	public void clearTemporaryParameters() {
 		this.tmpParameters.clear();
 	}
