@@ -120,7 +120,7 @@ export class Frontend {
 		}
 	}
 
-	handleResult(element, parameters) {
+	handleResult(element, parameters, status) {
 
 		if (element.dataset.structrReloadTarget) {
 
@@ -132,6 +132,25 @@ export class Frontend {
 				let value   = replace(parameters);
 
 				window.location.href = value;
+
+			} else if (reloadTarget.indexOf('css:') === 0) {
+
+				let css = reloadTarget.substring(4);
+
+				element.classList.add(css);
+
+				window.setTimeout(() => {
+					element.classList.remove(css);
+				}, 1000);
+
+			} else if (reloadTarget === 'event') {
+
+				element.dispatchEvent(new Event('structr-success', { detail: parameters }));
+
+			} else if (reloadTarget === 'none') {
+
+				// do nothing
+				return;
 
 			} else {
 
@@ -146,8 +165,11 @@ export class Frontend {
 		}
 	}
 
-	handleError(button, error) {
-		console.log(error);
+	handleError(button, error, status) {
+
+		console.log(status);
+
+		element.dispatchEvent(new Event('structr-error', { detail: parameters }));
 	}
 
 	reloadPartial(selector, parameters) {
@@ -321,8 +343,18 @@ export class Frontend {
 						method: 'post',
 						credentials: 'same-origin'
 					})
-					.then(response => response.json())
-					.then(json     => this.handleResult(target, json.result))
+					.then(response => {
+
+						return {
+							json: response.json(),
+							status: {
+								code: response.status,
+								text: response.statusText,
+								headers: response.headers
+							}
+						}
+					})
+					.then(response => this.handleResult(target, response.json.result, response.status))
 					.catch(error   => this.handleError(target, error));
 				}
 			}
@@ -387,7 +419,7 @@ export class Frontend {
 				}
 			}
 
-			this.handleResult(target, parameters);
+			this.handleResult(target, parameters, { code: 200, statusText: "OK", headers: [] });
 
 		} else {
 
