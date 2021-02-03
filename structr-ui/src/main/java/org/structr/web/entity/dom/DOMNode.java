@@ -350,6 +350,10 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	String getDataKey();
 	String getPositionPath();
 
+	default String getCssClass() {
+		return null;
+	}
+
 	String getCypherQuery();
 	String getRestQuery();
 	String getXpathQuery();

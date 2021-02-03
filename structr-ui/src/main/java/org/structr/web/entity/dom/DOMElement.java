@@ -63,6 +63,7 @@ import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.AsyncBuffer;
+import org.structr.web.common.DOMNodeContent;
 import org.structr.web.common.EventContext;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
@@ -231,6 +232,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.overrideMethod("getNodeValue",           false, "return null;");
 		type.overrideMethod("getNodeType",            false, "return ELEMENT_NODE;");
 		type.overrideMethod("getPropertyKeys",        false, "final Set<PropertyKey> allProperties = new LinkedHashSet<>(); final Set<PropertyKey> htmlAttrs = super.getPropertyKeys(arg0); for (final PropertyKey attr : htmlAttrs) { allProperties.add(attr); } allProperties.addAll(getDataPropertyKeys()); return allProperties;");
+		type.overrideMethod("getCssClass",            false, "return getProperty(_html_classProperty);");
 
 		type.overrideMethod("openingTag",             false, DOMElement.class.getName() + ".openingTag(this, arg0, arg1, arg2, arg3, arg4);");
 		type.overrideMethod("renderContent",          false, DOMElement.class.getName() + ".renderContent(this, arg0, arg1);");
@@ -770,13 +772,21 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 				if (importer.parse(true)) {
 
+					final DOMNodeContent content = new DOMNodeContent();
+
+					// read content
+					content.loadFrom(child);
+
 					// remove child
 					parent.removeChild(child);
 
 					// move to trash
 					RemoveCommand.recursivelyRemoveNodesFromPage(child, actionContext.getSecurityContext());
 
-					importer.createChildNodes(parent, parent.getOwnerDocument(), true);
+					final DOMNode newChild = importer.createChildNodes(parent, parent.getOwnerDocument(), true);
+
+					// store existing content
+					content.moveTo(newChild);
 				}
 
 			} else {
@@ -798,8 +808,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		return null;
 	}
-
-
 
 
 
