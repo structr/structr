@@ -387,6 +387,10 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				handleInsertHtmlAction(actionContext, parameters, eventContext);
 				break;
 
+			case "replace-html":
+				handleReplaceHtmlAction(actionContext, parameters, eventContext);
+				break;
+
 			case "open-tree-item":
 			case "close-tree-item":
 			case "toggle-tree-item":
@@ -557,21 +561,21 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		if (dataTarget == null) {
 
-			throw new FrameworkException(422, "Cannot execute DOM action without target UUID (data-structr-target attribute).");
+			throw new FrameworkException(422, "Cannot execute append-child action without target UUID (data-structr-target attribute).");
 		}
 
 		// fetch child ID
 		final String childId = (String)parameters.get("childId");
 		if (childId == null) {
 
-			throw new FrameworkException(422, "Cannot execute DOM action without child UUID (data-child-id attribute).");
+			throw new FrameworkException(422, "Cannot execute append-child action without child UUID (data-child-id attribute).");
 		}
 
 		// load child node
 		final DOMNode child = StructrApp.getInstance(securityContext).get(DOMNode.class, childId);
 		if (child == null) {
 
-			throw new FrameworkException(422, "Cannot execute DOM action without child (object with ID not found or not a DOMNode).");
+			throw new FrameworkException(422, "Cannot execute append-child action without child (object with ID not found or not a DOMNode).");
 		}
 
 		// remove internal keys
@@ -588,7 +592,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			} else {
 
-				throw new FrameworkException(422, "Cannot execute DOM action on " + target.getClass().getSimpleName() + " (must be a DOMElement).");
+				throw new FrameworkException(422, "Cannot execute append-child action on " + target.getClass().getSimpleName() + " (must be a DOMElement).");
 			}
 		}
 
@@ -602,21 +606,21 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		if (dataTarget == null) {
 
-			throw new FrameworkException(422, "Cannot execute DOM action without target UUID (data-structr-target attribute).");
+			throw new FrameworkException(422, "Cannot execute remove-child action without target UUID (data-structr-target attribute).");
 		}
 
 		// fetch child ID
 		final String childId = (String)parameters.get("childId");
 		if (childId == null) {
 
-			throw new FrameworkException(422, "Cannot execute DOM action without child UUID (data-child-id attribute).");
+			throw new FrameworkException(422, "Cannot execute remove-child action without child UUID (data-child-id attribute).");
 		}
 
 		// load child node
 		final DOMNode child = StructrApp.getInstance(securityContext).get(DOMNode.class, childId);
 		if (child == null) {
 
-			throw new FrameworkException(422, "Cannot execute DOM action without child (object with ID not found or not a DOMNode).");
+			throw new FrameworkException(422, "Cannot execute remove-child action without child (object with ID not found or not a DOMNode).");
 		}
 
 		// remove internal keys
@@ -637,7 +641,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			} else {
 
-				throw new FrameworkException(422, "Cannot execute DOM action on " + target.getClass().getSimpleName() + " (must be a DOMElement).");
+				throw new FrameworkException(422, "Cannot execute remove-child action on " + target.getClass().getSimpleName() + " (must be a DOMElement).");
 			}
 		}
 
@@ -650,31 +654,31 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		final String dataTarget               = (String)parameters.get("structrTarget");
 		if (dataTarget == null) {
 
-			throw new FrameworkException(422, "Cannot execute DOM action without target UUID (data-structr-target attribute).");
+			throw new FrameworkException(422, "Cannot execute insert-html action without target UUID (data-structr-target attribute).");
 		}
 
 		final String sourceObjectId = (String)parameters.get("sourceObject");
 		if (sourceObjectId == null) {
 
-			throw new FrameworkException(422, "Cannot execute DOM action without html source object UUID (data-source-object).");
+			throw new FrameworkException(422, "Cannot execute insert-html action without html source object UUID (data-source-object).");
 		}
 
 		final String sourceProperty = (String)parameters.get("sourceProperty");
 		if (sourceProperty == null) {
 
-			throw new FrameworkException(422, "Cannot execute DOM action without html source property name (data-source-property).");
+			throw new FrameworkException(422, "Cannot execute insert-html action without html source property name (data-source-property).");
 		}
 
 		final GraphObject sourceObject = StructrApp.getInstance(securityContext).get(NodeInterface.class, sourceObjectId);
 		if (sourceObject == null) {
 
-			throw new FrameworkException(422, "Cannot execute DOM action without html source property name (data-source-property).");
+			throw new FrameworkException(422, "Cannot execute insert-html action without html source property name (data-source-property).");
 		}
 
 		final String htmlSource = sourceObject.getProperty(sourceProperty);
 		if (StringUtils.isBlank(htmlSource)) {
 
-			throw new FrameworkException(422, "Cannot execute DOM action without empty html source.");
+			throw new FrameworkException(422, "Cannot execute insert-html action without empty html source.");
 		}
 
 		// remove internal keys
@@ -696,7 +700,88 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			} else {
 
-				throw new FrameworkException(422, "Cannot execute DOM action on " + target.getClass().getSimpleName() + " (must be a DOMElement).");
+				throw new FrameworkException(422, "Cannot execute insert-html action on " + target.getClass().getSimpleName() + " (must be a DOMElement).");
+			}
+		}
+
+		return null;
+	}
+
+	private Object handleReplaceHtmlAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		final SecurityContext securityContext = actionContext.getSecurityContext();
+		final String dataTarget               = (String)parameters.get("structrTarget");
+		if (dataTarget == null) {
+
+			throw new FrameworkException(422, "Cannot execute replace-html action without target UUID (data-structr-target attribute).");
+		}
+
+		// fetch child ID
+		final String childId = (String)parameters.get("childId");
+		if (childId == null) {
+
+			throw new FrameworkException(422, "Cannot execute replace-html action without child UUID (data-child-id attribute).");
+		}
+
+		// load child node
+		final DOMNode child = StructrApp.getInstance(securityContext).get(DOMNode.class, childId);
+		if (child == null) {
+
+			throw new FrameworkException(422, "Cannot execute replace-html action without child (object with ID not found or not a DOMNode).");
+		}
+
+		final String sourceObjectId = (String)parameters.get("sourceObject");
+		if (sourceObjectId == null) {
+
+			throw new FrameworkException(422, "Cannot execute replace-html action without html source object UUID (data-source-object).");
+		}
+
+		final String sourceProperty = (String)parameters.get("sourceProperty");
+		if (sourceProperty == null) {
+
+			throw new FrameworkException(422, "Cannot execute replace-html action without html source property name (data-source-property).");
+		}
+
+		final GraphObject sourceObject = StructrApp.getInstance(securityContext).get(NodeInterface.class, sourceObjectId);
+		if (sourceObject == null) {
+
+			throw new FrameworkException(422, "Cannot execute replace-html action without html source property name (data-source-property).");
+		}
+
+		final String htmlSource = sourceObject.getProperty(sourceProperty);
+		if (StringUtils.isBlank(htmlSource)) {
+
+			throw new FrameworkException(422, "Cannot execute replace-html action without empty html source.");
+		}
+
+		// remove internal keys
+		parameters.remove("structrTarget");
+		parameters.remove("htmlEvent");
+
+		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
+
+			if (target instanceof DOMElement) {
+
+				final DOMElement parent = (DOMElement)target;
+				final Importer importer = new Importer(actionContext.getSecurityContext(), htmlSource, null, null, false, false, false, false);
+
+				importer.setIsDeployment(true);
+				importer.setCommentHandler(new DeploymentCommentHandler());
+
+				if (importer.parse(true)) {
+
+					// remove child
+					parent.removeChild(child);
+
+					// move to trash
+					RemoveCommand.recursivelyRemoveNodesFromPage(child, actionContext.getSecurityContext());
+
+					importer.createChildNodes(parent, parent.getOwnerDocument(), true);
+				}
+
+			} else {
+
+				throw new FrameworkException(422, "Cannot execute replace-html action on " + target.getClass().getSimpleName() + " (must be a DOMElement).");
 			}
 		}
 
