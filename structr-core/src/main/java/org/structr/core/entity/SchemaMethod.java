@@ -176,6 +176,10 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 			// acknowledge all events for this node when it is modified
 			RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
 		}
+
+		// Ensure AbstractSchemaNode methodCache is invalidated when a schema method changes
+		AbstractSchemaNode schemaNode = getProperty(SchemaMethod.schemaNode);
+		schemaNode.clearCachedSchemaMethodsForInstance();
 	}
 
 	@Override
