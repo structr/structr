@@ -46,6 +46,8 @@ import org.structr.core.entity.relationship.SchemaMethodParameters;
 import org.structr.core.entity.relationship.SchemaNodeMethod;
 import org.structr.core.graph.ModificationQueue;
 import static org.structr.core.graph.NodeInterface.name;
+
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
@@ -178,10 +180,12 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		}
 
 		// Ensure AbstractSchemaNode methodCache is invalidated when a schema method changes
-		AbstractSchemaNode schemaNode = getProperty(SchemaMethod.schemaNode);
-		if (schemaNode != null) {
+		if (!TransactionCommand.isDeleted(this.dbNode)) {
+			AbstractSchemaNode schemaNode = getProperty(SchemaMethod.schemaNode);
+			if (schemaNode != null) {
 
-			schemaNode.clearCachedSchemaMethodsForInstance();
+				schemaNode.clearCachedSchemaMethodsForInstance();
+			}
 		}
 	}
 
