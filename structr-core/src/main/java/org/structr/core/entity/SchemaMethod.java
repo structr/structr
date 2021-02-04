@@ -179,7 +179,10 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 		// Ensure AbstractSchemaNode methodCache is invalidated when a schema method changes
 		AbstractSchemaNode schemaNode = getProperty(SchemaMethod.schemaNode);
-		schemaNode.clearCachedSchemaMethodsForInstance();
+		if (schemaNode != null) {
+
+			schemaNode.clearCachedSchemaMethodsForInstance();
+		}
 	}
 
 	@Override
