@@ -18,6 +18,7 @@
  */
 package org.structr.web.function;
 
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import org.jsoup.Jsoup;
@@ -95,9 +96,9 @@ public class HttpGetFunction extends UiAdvancedFunction {
 						return doc.html();
 					}
 				} else if ("application/octet-stream".equals(contentType)) {
-					
+
 					return getBinaryFromUrl(ctx, address, username, password);
-					
+
 				} else {
 
 					return getFromUrl(ctx, address, username, password);
@@ -105,8 +106,14 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 			} catch (Throwable t) {
 
-				logException(caller, t, sources);
+				if (t.getCause() instanceof UnknownHostException) {
 
+					logger.warn("{}", t.getMessage());
+
+				} else {
+
+					logException(caller, t, sources);
+				}
 			}
 
 			return "";
