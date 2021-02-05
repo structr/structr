@@ -30,6 +30,7 @@ import org.apache.chemistry.opencmis.commons.data.Properties;
 import org.apache.chemistry.opencmis.commons.data.PropertyData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -370,14 +371,37 @@ public class PropertyMap {
 
 			for (final Entry<String, Object> entry : source.entrySet()) {
 
-				String key   = entry.getKey();
-				Object value = entry.getValue();
+				final String key   = entry.getKey();
+				final Object value = entry.getValue();
 
 				if (key != null) {
 
 					PropertyKey propertyKey = StructrApp.key(entity, key, false);
 					if (propertyKey == null) {
 						propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity, key);
+					}
+
+					if (propertyKey instanceof GenericProperty) {
+
+						// check settings on how to handle invalid JSON input
+						switch (Settings.InputValidationMode.getValue()) {
+
+							case "reject_warn":
+								logger.warn("Rejecting input with unknown JSON key \"{}\" = \"{}\"", key, value);
+							case "reject":
+								throw new FrameworkException(422, "Rejecting input with unknown JSON key \"" + key + "\" with value \"" + value + "\".");
+
+							case "ignore_warn":
+								logger.warn("Ignoring unknown JSON key \"{}\" = \"{}\"", key, value);
+							case "ignore":
+								// move on to the next key/value pair
+								continue;
+
+							case "accept_warn":
+								logger.warn("Accepting unknown JSON key \"{}\" = \"{}\"", key, value);
+							case "accept":
+								// allow the key/value pair to be read
+						}
 					}
 
 					if (propertyKey != null) {
@@ -405,11 +429,6 @@ public class PropertyMap {
 
 							resultMap.put(propertyKey, value);
 						}
-
-					} else {
-
-						// check settings on how to handle invalid JSON input
-
 					}
 				}
 			}
