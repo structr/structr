@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,8 +26,10 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ForEach;
+import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.flow.impl.rels.FlowForEachBody;
 import org.structr.module.api.DeployableEntity;
 
@@ -37,14 +39,15 @@ import java.util.Map;
 /**
  *
  */
-public class FlowForEach extends FlowNode implements ForEach, DataSource, DeployableEntity {
+public class FlowForEach extends FlowNode implements ForEach, DataSource, DeployableEntity, ThrowingElement {
 
-	public static final Property<DataSource> dataSource             = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<Iterable<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<FlowNode> loopBody                 = new EndNode<>("loopBody", FlowForEachBody.class);
+	public static final Property<DataSource> dataSource                  = new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<Iterable<FlowBaseNode>> dataTarget      = new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<FlowNode> loopBody                      = new EndNode<>("loopBody", FlowForEachBody.class);
+	public static final Property<FlowExceptionHandler> exceptionHandler  = new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
 
-	public static final View defaultView = new View(FlowForEach.class, PropertyView.Public, dataSource, loopBody, isStartNodeOfContainer);
-	public static final View uiView      = new View(FlowForEach.class, PropertyView.Ui,     dataSource, loopBody, isStartNodeOfContainer);
+	public static final View defaultView = new View(FlowForEach.class, PropertyView.Public, dataSource, loopBody, isStartNodeOfContainer, exceptionHandler);
+	public static final View uiView      = new View(FlowForEach.class, PropertyView.Ui,     dataSource, loopBody, isStartNodeOfContainer, exceptionHandler);
 
 
 	@Override
@@ -60,6 +63,11 @@ public class FlowForEach extends FlowNode implements ForEach, DataSource, Deploy
 	@Override
 	public Object get(Context context) {
 		return context.getData(getUuid());
+	}
+
+	@Override
+	public FlowExceptionHandler getExceptionHandler(Context context) {
+		return getProperty(exceptionHandler);
 	}
 
 	@Override

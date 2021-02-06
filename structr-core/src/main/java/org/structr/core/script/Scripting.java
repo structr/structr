@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.event.RuntimeEventLog;
@@ -268,6 +269,7 @@ public class Scripting {
 				throw new FrameworkException(422, "Server-side scripting error", actionContext.getErrorBuffer());
 			}
 
+			// Prefer explicitly printed output over actual result
 			final String outputBuffer = actionContext.getOutput();
 			if (outputBuffer != null && !outputBuffer.isEmpty()) {
 
@@ -282,6 +284,9 @@ public class Scripting {
 
 				throw (FrameworkException) ex.getCause();
 
+			} else if (ex instanceof AssertException) {
+
+				throw ex;
 			} else {
 
 				throw new FrameworkException(422, "Server-side scripting error", ex);
@@ -374,7 +379,9 @@ public class Scripting {
 			if (ex.getCause() instanceof FrameworkException) {
 
 				throw (FrameworkException) ex.getCause();
+			} else if (ex instanceof AssertException) {
 
+				throw ex;
 			} else {
 
 				throw new FrameworkException(422, "Server-side scripting error", ex);

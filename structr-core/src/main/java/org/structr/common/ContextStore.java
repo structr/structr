@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -94,6 +94,10 @@ public class ContextStore {
 		if (parameters != null) {
 			this.tmpParameters.putAll(parameters);
 		}
+	}
+
+	public Set<String> getTemporaryParameterKeys() {
+		return this.tmpParameters.keySet();
 	}
 
 	public void clearTemporaryParameters() {

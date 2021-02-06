@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -210,7 +210,15 @@ public class AdvancedCypherQuery implements CypherQuery {
 	}
 
 	public void endGroup() {
-		buffer.append(")");
+
+		if ('(' == buffer.charAt(buffer.length() - 1)) {
+
+			buffer.deleteCharAt(buffer.length() - 1);
+
+		} else {
+
+			buffer.append(")");
+		}
 	}
 
 	@Override

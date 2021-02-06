@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,8 @@
  */
 package org.structr.core.script.polyglot;
 
+import java.util.Arrays;
+import java.util.Set;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
@@ -27,19 +29,13 @@ import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
+import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
 import org.structr.core.script.polyglot.function.*;
 import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.Set;
-
-import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
 
 public class StructrBinding implements ProxyObject {
 	private final static Logger logger = LoggerFactory.getLogger(StructrBinding.class);
@@ -65,7 +61,7 @@ public class StructrBinding implements ProxyObject {
 			case "predicate":
 				return new PredicateBinding(actionContext, entity);
 			case "batch":
-				return new BatchFunction(actionContext);
+				return new BatchFunction(actionContext, entity);
 			case "includeJs":
 				return new IncludeJSFunction(actionContext);
 			case "doPrivileged":
@@ -78,23 +74,21 @@ public class StructrBinding implements ProxyObject {
 				return new CacheFunction(actionContext, entity);
 			case "vars":
 				return new PolyglotProxyMap(actionContext, actionContext.getAllVariables());
-			case "clear":
-				return new ClearFunction(actionContext);
 			case "applicationStore":
 				return new PolyglotProxyMap(actionContext, Services.getInstance().getApplicationStore());
 			default:
+				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
+				if (func != null) {
+
+					return new FunctionWrapper(actionContext, entity, func);
+				}
+
 				if (actionContext.getConstant(name) != null) {
 					return wrap(actionContext,actionContext.getConstant(name));
 				}
 
 				if (actionContext.getAllVariables().containsKey(name)) {
 					return wrap(actionContext, actionContext.getAllVariables().get(name));
-				}
-
-				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
-				if (func != null) {
-
-					return new FunctionWrapper(actionContext, entity, func);
 				}
 
 				Object structrScriptResult = null;

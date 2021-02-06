@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,12 +30,15 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.script.Scripting;
 import org.structr.rest.ResourceProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.Template;
 
 /**
  * Holds information about the context in which a resource is rendered, like
@@ -469,14 +472,33 @@ public class RenderContext extends ActionContext {
 						break;
 				}
 			}
-
 		}
 
 		return value;
 	}
 
+	@Override
 	public boolean isRenderContext() {
 		return true;
+	}
+
+	@Override
+	public void print(final Object[] objects, final Object caller) {
+
+		if ((caller instanceof Template) || (caller instanceof Content)) {
+
+			for (final Object obj : objects) {
+
+				if (obj != null) {
+
+					this.buffer.append(Scripting.formatToDefaultDateOrString(obj));
+				}
+			}
+
+		} else {
+
+			super.print(objects, null);
+		}
 	}
 
 	// ----- private methods -----

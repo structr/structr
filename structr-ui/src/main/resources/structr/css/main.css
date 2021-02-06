@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -1553,7 +1553,6 @@ button.action.disabled:hover {
 
 .dialogMeta {
 	height: 19px;
-	margin-top: -19px;
 	padding: 0;
 }
 
@@ -3085,6 +3084,10 @@ table.push {
 	height: 1em;
 }
 
+#resourceAccessesTable th.br-1, #resourceAccessesTable td.br-1 {
+	border-right: 1px solid #ccc;
+}
+
 #resourceAccessesTable .title-cell {
 	text-align: left;
 }
@@ -4049,7 +4052,7 @@ table#schema-grants th, table#schema-grants td {
 }
 /* END: runtime event log */
 
-/* BEGIN: Fake table styles for schema methods editor */
+/* BEGIN: Fake table styles for schema METHODS editor */
 .fake-tbody .fake-tr {
 	height: 34px;
 }
@@ -4059,10 +4062,25 @@ table#schema-grants th, table#schema-grants td {
 	font-weight: 700;
 }
 
-.fake-th, .fake-td {
+.global .fake-th, .global .fake-td {
 	display: inline-block;
 	padding: 4px 4px;
 	width: calc(100% - 77px);
+}
+
+.entity .fake-th, .entity .fake-td {
+	display: inline-block;
+	padding: 4px 4px;
+	width: calc(100% - 135px);
+}
+
+.global .fake-th.isstatic-col, .global .fake-td.isstatic-col {
+	display: none;
+}
+
+.entity .fake-th.isstatic-col, .entity .fake-td.isstatic-col {
+	width: 45px;
+	text-align: center;
 }
 
 .fake-th.actions-col, .fake-td.actions-col {

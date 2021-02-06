@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -107,6 +107,11 @@ export class Frontend {
 
 			// input[type="checkbox"]
 			return element.checked;
+
+		} else if (element.nodeName === 'SELECT' && element.multiple) {
+
+			// select[multiple]
+			return [].map.call(element.selectedOptions, (e) => { return e.value; });
 
 		} else {
 

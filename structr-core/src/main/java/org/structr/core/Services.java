@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -86,11 +86,11 @@ public class Services implements StructrServices {
 	// singleton instance
 	private static String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
 	private static final long licenseCheckInterval     = TimeUnit.HOURS.toMillis(2);
+	private static long lastLicenseCheck               = System.currentTimeMillis();
 	private static Services singletonInstance          = null;
 	private static boolean testingModeDisabled         = false;
 	private static boolean updateIndexConfiguration    = false;
 	private static Boolean cachedTestingFlag           = null;
-	private static long lastLicenseCheck               = 0L;
 
 	// non-static members
 	private final Map<Class, Map<String, Service>> serviceCache = new ConcurrentHashMap<>(10, 0.9f, 8);
@@ -273,7 +273,7 @@ public class Services implements StructrServices {
 		if (!isTesting()) {
 
 			// read license
-			licenseManager = new StructrLicenseManager(Settings.getBasePath() + "license.key");
+			licenseManager = new StructrLicenseManager();
 		}
 
 		// if configuration is not yet established, instantiate it
@@ -1170,10 +1170,16 @@ public class Services implements StructrServices {
 		getServices(type).put(name, service);
 	}
 
+	public void updateLicense() {
+		if (licenseManager != null) {
+			licenseManager.refresh(true);
+		}
+	}
+
 	private void checkLicense() {
 
 		if (licenseManager != null) {
-			licenseManager.refresh();
+			licenseManager.refresh(false);
 		}
 	}
 

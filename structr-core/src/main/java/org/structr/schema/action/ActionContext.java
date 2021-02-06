@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -48,6 +49,8 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.cache.ExecutableStaticTypeMethodCache;
+import org.structr.core.script.polyglot.cache.ExecutableTypeMethodCache;
 import org.structr.schema.parser.DatePropertyParser;
 
 /**
@@ -59,17 +62,22 @@ public class ActionContext {
 	private static final Logger logger = LoggerFactory.getLogger(ActionContext.class.getName());
 	public static final String SESSION_ATTRIBUTE_PREFIX = "user.";
 
+	// Caches
 	// cache is not static => library cache is per request
-	private final Map<String, Context> scriptingContexts = new HashMap<>();
-	private final Map<String, String> libraryCache       = new HashMap<>();
-	protected SecurityContext securityContext            = null;
-	protected Predicate predicate                        = null;
-	protected ErrorBuffer errorBuffer                    = new ErrorBuffer();
-	protected StringBuilder outputBuffer                 = new StringBuilder();
-	protected Locale locale                              = Locale.getDefault();
-	private boolean javaScriptContext                    = false;
-	private ContextStore temporaryContextStore           = new ContextStore();
-	private boolean disableVerboseExceptionLogging       = false;
+	private final Map<String, Context> scriptingContexts                           = new HashMap<>();
+	private final Map<String, String> libraryCache                                 = new HashMap<>();
+	private final ExecutableTypeMethodCache executableTypeMethodCache              = new ExecutableTypeMethodCache();
+	private final ExecutableStaticTypeMethodCache staticExecutableTypeMethodCache  = new ExecutableStaticTypeMethodCache();
+
+	// Regular members
+	protected SecurityContext securityContext                                      = null;
+	protected Predicate predicate                                                  = null;
+	protected ErrorBuffer errorBuffer                                              = new ErrorBuffer();
+	protected StringBuilder outputBuffer                                           = new StringBuilder();
+	protected Locale locale                                                        = Locale.getDefault();
+	private boolean javaScriptContext                                              = false;
+	private ContextStore temporaryContextStore                                     = new ContextStore();
+	private boolean disableVerboseExceptionLogging                                 = false;
 
 	public ActionContext(final SecurityContext securityContext) {
 		this(securityContext, null);
@@ -479,7 +487,7 @@ public class ActionContext {
 		return remoteAddress;
 	}
 
-	public void print(final Object... objects) {
+	public void print(final Object[] objects, final Object caller) {
 
 		for (final Object obj : objects) {
 
@@ -606,5 +614,15 @@ public class ActionContext {
 	public boolean isRenderContext() {
 		return false;
 
+	}
+
+	public ExecutableTypeMethodCache getExecutableTypeMethodCache() {
+
+		return this.executableTypeMethodCache;
+	}
+
+	public ExecutableStaticTypeMethodCache getStaticExecutableTypeMethodCache() {
+
+		return this.staticExecutableTypeMethodCache;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,6 +31,7 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
+import org.structr.core.script.polyglot.cache.ExecutableStaticTypeMethodCache;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 
@@ -54,6 +55,15 @@ public class StaticTypeWrapper implements ProxyObject {
 	@Override
 	public Object getMember(String key) {
 
+		// Try to lookup cached executable before initializing a new one
+		ExecutableStaticTypeMethodCache staticMethodCache = actionContext.getStaticExecutableTypeMethodCache();
+
+		ProxyExecutable cachedStaticExecutable = staticMethodCache.getExecutable(referencedClass.getSimpleName(), key);
+		if (cachedStaticExecutable != null) {
+
+			return cachedStaticExecutable;
+		}
+
 		// Ensure that  method is static
 		try (final Tx tx = app.tx()) {
 
@@ -64,7 +74,7 @@ public class StaticTypeWrapper implements ProxyObject {
 
 					if (m.getName().equals(key) && m.isStaticMethod()) {
 
-						return (ProxyExecutable) arguments -> {
+						ProxyExecutable executable = arguments -> {
 
 							try {
 								Map<String, Object> parameters = new HashMap<>();
@@ -87,12 +97,15 @@ public class StaticTypeWrapper implements ProxyObject {
 
 							return null;
 						};
+
+						staticMethodCache.cacheExecutable(referencedClass.getSimpleName(), key, executable);
+
+						return executable;
 					}
 				}
 
 			}
 
-			tx.success();
 		} catch (FrameworkException ex) {
 
 			logger.warn("Unexpected exception while trying to look up schema method.", ex);
@@ -109,11 +122,10 @@ public class StaticTypeWrapper implements ProxyObject {
 
 	@Override
 	public boolean hasMember(String key) {
-		return getMember(key) != null;
+		return true;
 	}
 
 	@Override
 	public void putMember(String key, Value value) {
-
 	}
 }

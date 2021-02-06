@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,6 +34,7 @@ import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -252,7 +253,13 @@ public class FlowServlet extends JsonRestServlet {
 			logger.warn("Exception in POST (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
 			logger.warn(" => Error thrown: ", t);
 
-			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in POST: " + t.getMessage());
+			int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+
+			if (t instanceof AssertException) {
+				statusCode = ((AssertException)t).getStatusCode();
+			}
+
+			writeJsonError(response, statusCode, t.getClass().getSimpleName() + " in POST: " + t.getMessage());
 
 		} finally {
 

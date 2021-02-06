@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -130,6 +130,8 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 							try {
 
 								cmd.execute(params);
+
+								return cmd.getPayload();
 
 							} catch (FrameworkException ex) {
 								logger.warn("Unable to execute maintenance command {}: {}", commandName, ex.getMessage());

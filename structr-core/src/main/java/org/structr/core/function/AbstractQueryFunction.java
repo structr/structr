@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.structr.api.search.Occurrence;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -198,10 +199,10 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 								value = inputConverter.convert(value);
 							}
 
+							// basic search is always AND
 							query.and(key, value, exact);
 						}
 					}
-
 				}
 			}
 		}
@@ -247,11 +248,19 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 						final PropertyConverter inputConverter = key.inputConverter(securityContext);
 						if (inputConverter != null) {
 
-							query.and(key, inputConverter.convert(value), exact);
+							if (Occurrence.OPTIONAL.equals(query.getCurrentOccurrence())) {
+								query.or(key, inputConverter.convert(value), exact);
+							} else {
+								query.and(key, inputConverter.convert(value), exact);
+							}
 
 						} else {
 
-							query.and(key, value, exact);
+							if (Occurrence.OPTIONAL.equals(query.getCurrentOccurrence())) {
+								query.or(key, value, exact);
+							} else {
+								query.and(key, value, exact);
+							}
 						}
 					}
 				}

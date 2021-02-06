@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.flow.engine;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Flow;
 import java.util.function.Consumer;
 
 import org.structr.common.error.FrameworkException;
@@ -29,7 +30,7 @@ import org.structr.flow.impl.*;
 /**
  *
  */
-public class ForEachHandler implements FlowHandler<FlowForEach>, ThrowingElement {
+public class ForEachHandler implements FlowHandler<FlowForEach> {
 
 	@Override
 	public FlowElement handle(final Context context, final FlowForEach flowElement) throws FlowException {
@@ -65,10 +66,53 @@ public class ForEachHandler implements FlowHandler<FlowForEach>, ThrowingElement
 						loopContext.setData(flowElement.getUuid(), o);
 						try {
 
-							engine.execute(loopContext, loopBody);
+							final FlowResult result = engine.execute(loopContext, loopBody);
+							final FlowError error = result.getError();
+							if (error != null) {
+
+								if (error.getCause() != null) {
+
+									loopContext.clearError();
+									if (error.getCause() instanceof FlowException) {
+
+										throw (FlowException)error.getCause();
+									} else {
+
+										throw new FrameworkException(422, "Unexpected exception in FlowForEach loop body.", error.getCause());
+									}
+								} else {
+
+									loopContext.clearError();
+									throw new FrameworkException(422, "Unexpected exception in FlowForEach loop body. " + error.getMessage());
+								}
+							}
+
 						} catch (FrameworkException ex) {
 
-							throw new FlowException(ex, this);
+							final FlowException flowException = new FlowException(ex, flowElement);
+							FlowExceptionHandler exceptionHandler = flowElement.getExceptionHandler(loopContext);
+
+							if (exceptionHandler != null) {
+
+								try {
+
+									engine.handleException(loopContext, flowException, flowElement);
+
+									// Handle returns issued by FlowReturn within a loop-nested exception handler
+									if (loopContext.hasResult()) {
+
+										context.setResult(loopContext.getResult());
+									}
+
+									continue;
+								} catch (FrameworkException handlingException) {
+
+									throw new FlowException(handlingException, flowElement);
+								}
+							}
+
+							throw flowException;
+
 						}
 						loopContext = openNewContext(context, loopContext, flowElement);
 
@@ -88,7 +132,7 @@ public class ForEachHandler implements FlowHandler<FlowForEach>, ThrowingElement
 						engine.execute(loopContext, loopBody);
 					} catch (FrameworkException ex) {
 
-						throw new FlowException(ex, this);
+						throw new FlowException(ex, flowElement);
 					}
 				}
 
@@ -162,8 +206,4 @@ public class ForEachHandler implements FlowHandler<FlowForEach>, ThrowingElement
 		}
 	}
 
-	@Override
-	public FlowExceptionHandler getExceptionHandler(Context context) {
-		return null;
-	}
 }

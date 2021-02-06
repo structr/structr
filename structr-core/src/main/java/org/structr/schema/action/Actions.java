@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,14 +18,12 @@
  */
 package org.structr.schema.action;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -115,10 +113,18 @@ public class Actions {
 
 	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
 
+		final Map<String, Object> previousParams = new HashMap<>();
+		final ContextStore store = securityContext.getContextStore();
+		for (final String key : store.getTemporaryParameterKeys()) {
+			previousParams.put(key, store.retrieve(key));
+		}
+
+		store.clearTemporaryParameters();
+
 		final ActionContext context = new ActionContext(securityContext, parameters);
 		final Object result         = Scripting.evaluate(context, entity, source, methodName, codeSource);
 
-		context.getContextStore().clearTemporaryParameters();
+		store.setTemporaryParameters(previousParams);
 
 		// check for errors raised by scripting
 		if (context.hasError()) {

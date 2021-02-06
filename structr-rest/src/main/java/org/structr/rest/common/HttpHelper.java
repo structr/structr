@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -120,14 +120,14 @@ public class HttpHelper {
 
 		client = HttpClients.custom()
 			.setDefaultConnectionConfig(ConnectionConfig.DEFAULT)
-			.setUserAgent("curl/7.35.0")
+			.setUserAgent(Settings.HttpUserAgent.getValue())
 			.setDefaultCredentialsProvider(credsProvider)
 			.build();
 
 		reqConfig = RequestConfig.custom()
 			.setProxy(proxy)
 			.setRedirectsEnabled(followRedirects)
-			.setCookieSpec(CookieSpecs.DEFAULT)
+			.setCookieSpec(CookieSpecs.STANDARD)
 			.setConnectTimeout(Settings.HttpConnectTimeout.getValue() * 1000)
 			.setSocketTimeout(Settings.HttpSocketTimeout.getValue() * 1000)
 			.setConnectionRequestTimeout(Settings.HttpConnectionRequestTimeout.getValue() * 1000)
@@ -203,14 +203,13 @@ public class HttpHelper {
 			content = skipBOMIfPresent(content);
 
 		} catch (final Throwable t) {
-			throw new FrameworkException(422, "Unable to fetch content from address " + address + ": " + t.getMessage());
+			throw new FrameworkException(422, "Unable to fetch content from address " + address + ": " + t.getMessage(), t);
 		}
 
 		return content;
 	}
 
-	public static byte[] getBinary(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers)
-	throws FrameworkException {
+	public static byte[] getBinary(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) throws FrameworkException {
 
 		try {
 
@@ -223,7 +222,7 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 			logger.error("Error while dowloading binary data from " + address, t);
-			throw new FrameworkException(422, "Unable to fetch binary data from address " + address + ": " + t.getMessage());
+			throw new FrameworkException(422, "Unable to fetch binary data from address " + address + ": " + t.getMessage(), t);
 		}
 	}
 
@@ -244,6 +243,7 @@ public class HttpHelper {
 		final Map<String, String> responseHeaders = new HashMap<>();
 
 		try {
+
 			final URI      url = URI.create(address);
 			final HttpHead req = new HttpHead(url);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -41,14 +41,14 @@ import org.structr.api.util.ChangeAwareMap;
 
 abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cachable {
 
-	private static final Logger logger = LoggerFactory.getLogger(EntityWrapper.class.getName());
+	private static final Logger logger                       = LoggerFactory.getLogger(EntityWrapper.class.getName());
 
-	private final Map<Object, ChangeAwareMap> txData = Collections.synchronizedMap(new WeakHashMap<>());
-	private final ChangeAwareMap entityData          = new ChangeAwareMap();
-	protected BoltDatabaseService db                 = null;
-	protected boolean deleted                        = false;
-	protected boolean stale                          = false;
-	protected long id                                = -1L;
+	private final Map<Object, ChangeAwareMap> txData         = Collections.synchronizedMap(new WeakHashMap<>());
+	private final ChangeAwareMap entityData                  = new ChangeAwareMap();
+	protected ThreadLocalBoolean deleted                     = new ThreadLocalBoolean();
+	protected BoltDatabaseService db                         = null;
+	protected boolean stale                                  = false;
+	protected long id                                        = -1L;
 
 	protected EntityWrapper() {
 		// nop constructor for cache access
@@ -217,6 +217,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 	public void delete(final boolean deleteRelationships) throws NotInTransactionException {
 
 		assertNotStale();
+		removeFromCache();
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
@@ -238,12 +239,12 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 		setModified();
 
 		stale   = true;
-		deleted = true;
+		deleted.set(true);
 	}
 
 	@Override
 	public boolean isDeleted() {
-		return deleted;
+		return deleted.get();
 	}
 
 	@Override
@@ -299,7 +300,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 	}
 
 	// ----- protected methods -----
-	protected synchronized void assertNotStale() {
+	protected void assertNotStale() {
 
 		if (stale) {
 
@@ -393,14 +394,13 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 		return existingValue.equals(newValue);
 	}
 
-	// ----- private methods -----
 	private ChangeAwareMap accessData(final boolean write) {
 
 		// read-only access does not need a transaction
 		final SessionTransaction tx = db.getCurrentTransaction(false);
 		if (tx != null) {
 
-			if (deleted || tx.isDeleted(this)) {
+			if (deleted.get() || tx.isDeleted(this)) {
 				throw new NotFoundException("Entity with ID " + id + " not found.");
 			}
 
@@ -422,6 +422,15 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 		} else {
 
 			return entityData;
+		}
+	}
+
+	// ----- nested classes -----
+	private static final class ThreadLocalBoolean extends ThreadLocal<Boolean> {
+
+		@Override
+		public Boolean initialValue() {
+			return false;
 		}
 	}
 }

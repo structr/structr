@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -198,7 +198,10 @@ public class SchemaService implements Service {
 							SchemaHelper.getSource(sourceFile, schemaInfo, schemaNodes, blacklist, errorBuffer);
 
 							// only load dynamic node if there were no errors while generating the source code (missing modules etc.)
-							nodeExtender.addClass(className, sourceFile);
+							// if addClass returns true, the class needs to be recompiled and cached methods must be cleared
+							if (nodeExtender.addClass(className, sourceFile)) {
+								schemaInfo.clearCachedSchemaMethodsForInstance();
+							}
 							dynamicViews.addAll(schemaInfo.getDynamicViews());
 
 							// initialize GraphQL engine as well

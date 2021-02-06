@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -65,7 +65,7 @@ public class FlowScriptCondition extends FlowCondition implements 	DeployableEnt
 
 					final String finalScript = _dynamicScript != null ? _dynamicScript : _script;
 
-					Object result =  Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + finalScript.trim() + "}", "FlowDataSource(" + getUuid() + ")");
+					Object result =  Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + finalScript.trim() + "}", "FlowScriptCondition(" + getUuid() + ")");
 					context.setData(getUuid(), result);
 					return result;
 			}

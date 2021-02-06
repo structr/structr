@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,6 +35,10 @@ import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.JsonMethod;
+import org.structr.api.schema.JsonParameter;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -42,10 +46,6 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.property.PropertyMap;
-import org.structr.api.schema.JsonMethod;
-import org.structr.api.schema.JsonParameter;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.schema.openapi.operation.OpenAPIMethodOperation;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
@@ -66,6 +66,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private boolean overridesExisting                         = false;
 	private boolean doExport                                  = false;
 	private boolean callSuper                                 = false;
+	private boolean isStatic                                  = false;
 	private JsonType parent                                   = null;
 	private String returnType                                 = "void";
 	private String codeType                                   = null;
@@ -221,6 +222,17 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	@Override
+	public boolean isStatic() {
+		return isStatic;
+	}
+
+	@Override
+	public JsonMethod setIsStatic(final boolean isStatic) {
+		this.isStatic = isStatic;
+		return this;
+	}
+
+	@Override
 	public boolean overridesExisting() {
 		return overridesExisting;
 	}
@@ -316,6 +328,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		updateProperties.put(SchemaMethod.description,           getDescription());
 		updateProperties.put(SchemaMethod.source,                getSource());
 		updateProperties.put(SchemaMethod.isPartOfBuiltInSchema, true);
+		updateProperties.put(SchemaMethod.isStatic,              isStatic());
 
 		final Set<String> mergedTags     = new LinkedHashSet<>(this.tags);
 		final String[] existingTagsArray = method.getProperty(SchemaMethod.tags);
@@ -395,6 +408,12 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			this.callSuper = (Boolean)_callSuper;
 		}
 
+		final Object _isStatic = source.get(JsonSchema.KEY_IS_STATIC);
+		if (_isStatic != null && _isStatic instanceof Boolean) {
+
+			this.isStatic = (Boolean)_isStatic;
+		}
+
 		final Object _overridesExisting = source.get(JsonSchema.KEY_OVERRIDES_EXISTING);
 		if (_overridesExisting != null && _overridesExisting instanceof Boolean) {
 
@@ -455,6 +474,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		setCodeType(method.getProperty(SchemaMethod.codeType));
 		setReturnType(method.getProperty(SchemaMethod.returnType));
 		setCallSuper(method.getProperty(SchemaMethod.callSuper));
+		setIsStatic(method.getProperty(SchemaMethod.isStatic));
 		setOverridesExisting(method.getProperty(SchemaMethod.overridesExisting));
 		setDoExport(method.getProperty(SchemaMethod.doExport));
 
@@ -499,6 +519,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		map.put(JsonSchema.KEY_RETURN_TYPE, returnType);
 		map.put(JsonSchema.KEY_EXCEPTIONS, exceptions);
 		map.put(JsonSchema.KEY_CALL_SUPER, callSuper);
+		map.put(JsonSchema.KEY_IS_STATIC, isStatic);
 		map.put(JsonSchema.KEY_OVERRIDES_EXISTING, overridesExisting);
 		map.put(JsonSchema.KEY_DO_EXPORT, doExport);
 

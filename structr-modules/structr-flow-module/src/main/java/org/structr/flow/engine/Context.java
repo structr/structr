@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -69,6 +69,11 @@ public class Context {
 
 	public void error(final FlowError error) {
 		this.error = error;
+	}
+
+	public void clearError() {
+
+		this.error = null;
 	}
 
 	public void setResult(final Object result) {

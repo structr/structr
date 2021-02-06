@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,11 +18,7 @@
  */
 package org.structr.flow.api;
 
-import org.structr.flow.engine.Context;
-
 public interface Exception extends FlowElement {
-
-	void handleException(final Context context);
 
 	@Override
 	default FlowType getFlowType() {
