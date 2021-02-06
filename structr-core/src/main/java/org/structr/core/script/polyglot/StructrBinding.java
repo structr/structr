@@ -77,18 +77,18 @@ public class StructrBinding implements ProxyObject {
 			case "applicationStore":
 				return new PolyglotProxyMap(actionContext, Services.getInstance().getApplicationStore());
 			default:
+				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
+				if (func != null) {
+
+					return new FunctionWrapper(actionContext, entity, func);
+				}
+
 				if (actionContext.getConstant(name) != null) {
 					return wrap(actionContext,actionContext.getConstant(name));
 				}
 
 				if (actionContext.getAllVariables().containsKey(name)) {
 					return wrap(actionContext, actionContext.getAllVariables().get(name));
-				}
-
-				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
-				if (func != null) {
-
-					return new FunctionWrapper(actionContext, entity, func);
 				}
 
 				Object structrScriptResult = null;
