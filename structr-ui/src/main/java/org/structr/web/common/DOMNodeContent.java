@@ -37,7 +37,9 @@ import org.structr.web.property.CustomHtmlAttributeProperty;
  */
 public class DOMNodeContent {
 
-	private static final Set<String> attributes  = new TreeSet<>(Set.of("functionQuery"));
+	private static final Set<String> whitelist   = new TreeSet<>(Set.of("structr", "root", "slot", "layout-container", "component-container", "list-container", "label", "leaf"));
+	private static final Set<String> attributes  = new TreeSet<>(Set.of("functionQuery, dataKey"));
+
 	private final Map<String, SlotData> slotData = new LinkedHashMap<>();
 
 	public void loadFrom(final DOMNode source) throws FrameworkException {
@@ -237,6 +239,7 @@ public class DOMNodeContent {
 
 			final Set<String> names = new TreeSet<>();
 			final String[] parts    = source.split(" ");
+			boolean isSlot          = false;
 
 			for (final String part : parts) {
 
@@ -244,11 +247,23 @@ public class DOMNodeContent {
 
 				if (StringUtils.isNotBlank(trimmed)) {
 
-					names.add(trimmed);
+					if ("slot".equals(trimmed)) {
+						isSlot = true;
+					}
+
+					if (whitelist.contains(trimmed)) {
+						names.add(trimmed);
+					}
 				}
 			}
 
-			return StringUtils.join(names, " ");
+			if (isSlot && !names.isEmpty()) {
+
+				return StringUtils.join(names, " ");
+			}
+
+			// node is not a slot => no data to copy
+			return null;
 		}
 
 		return null;

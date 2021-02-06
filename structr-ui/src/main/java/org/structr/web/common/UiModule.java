@@ -72,6 +72,8 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new ImportHtmlFunction());
 		Functions.put(licenseManager, new ImportCssFunction());
 		Functions.put(licenseManager, new RemoveDOMChildFunction());
+		Functions.put(licenseManager, new ReplaceDOMChildFunction());
+		Functions.put(licenseManager, new InsertHtmlFunction());
 		Functions.put(licenseManager, new GetSourceFunction());
 		Functions.put(licenseManager, new HasCssClassFunction());
 

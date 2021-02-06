@@ -167,9 +167,10 @@ export class Frontend {
 
 	handleError(button, error, status) {
 
+		console.log(error);
 		console.log(status);
 
-		element.dispatchEvent(new Event('structr-error', { detail: parameters }));
+		button.dispatchEvent(new Event('structr-error', { detail: status }));
 	}
 
 	reloadPartial(selector, parameters) {
@@ -203,6 +204,7 @@ export class Frontend {
 							} else {
 								container.replaceWith('');
 							}
+							container.dispatchEvent(new Event('structr-reload'));
 						}
 						this.bindEvents();
 					}).catch(e => {
@@ -240,7 +242,6 @@ export class Frontend {
 		if (fromDataset.currentObjectId) {
 			current = '/' + fromDataset.currentObjectId;
 		}
-
 
 		// copy all values prefixed with request (data-request-*)
 		for (let key of Object.keys(fromDataset)) {
@@ -343,19 +344,10 @@ export class Frontend {
 						method: 'post',
 						credentials: 'same-origin'
 					})
-					.then(response => {
 
-						return {
-							json: response.json(),
-							status: {
-								code: response.status,
-								text: response.statusText,
-								headers: response.headers
-							}
-						}
-					})
+					.then(response => response.json().then(json => ({ json: json, status: response.status, statusText: response.statusText })))
 					.then(response => this.handleResult(target, response.json.result, response.status))
-					.catch(error   => this.handleError(target, error));
+					.catch(error   => this.handleError(target, error, {}));
 				}
 			}
 

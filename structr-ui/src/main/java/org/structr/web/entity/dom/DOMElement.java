@@ -63,15 +63,14 @@ import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.AsyncBuffer;
-import org.structr.web.common.DOMNodeContent;
 import org.structr.web.common.EventContext;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
-import org.structr.web.importer.Importer;
-import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
-import org.structr.websocket.command.RemoveCommand;
+import org.structr.web.function.InsertHtmlFunction;
+import org.structr.web.function.RemoveDOMChildFunction;
+import org.structr.web.function.ReplaceDOMChildFunction;
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
@@ -386,12 +385,10 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				break;
 
 			case "insert-html":
-				handleInsertHtmlAction(actionContext, parameters, eventContext);
-				break;
+				return handleInsertHtmlAction(actionContext, parameters, eventContext);
 
 			case "replace-html":
-				handleReplaceHtmlAction(actionContext, parameters, eventContext);
-				break;
+				return handleReplaceHtmlAction(actionContext, parameters, eventContext);
 
 			case "open-tree-item":
 			case "close-tree-item":
@@ -633,13 +630,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			if (target instanceof DOMElement) {
 
-				final DOMElement domTarget = (DOMElement)target;
+				final DOMElement parent = (DOMElement)target;
 
-				// remove child
-				domTarget.removeChild(child);
-
-				// move to trash
-				RemoveCommand.recursivelyRemoveNodesFromPage(child, actionContext.getSecurityContext());
+				RemoveDOMChildFunction.apply(actionContext.getSecurityContext(), parent, child);
 
 			} else {
 
@@ -691,14 +684,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			if (target instanceof DOMElement) {
 
-				final DOMElement parent = (DOMElement)target;
-				final Importer importer = new Importer(actionContext.getSecurityContext(), htmlSource, null, null, false, false, false, false);
+				final DOMElement parent = (DOMElement) target;
 
-				importer.setIsDeployment(true);
-				importer.setCommentHandler(new DeploymentCommentHandler());
-
-				importer.parse(true);
-				importer.createChildNodes(parent, parent.getOwnerDocument(), true);
+				return InsertHtmlFunction.apply(securityContext, parent, htmlSource);
 
 			} else {
 
@@ -765,29 +753,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			if (target instanceof DOMElement) {
 
 				final DOMElement parent = (DOMElement)target;
-				final Importer importer = new Importer(actionContext.getSecurityContext(), htmlSource, null, null, false, false, false, false);
 
-				importer.setIsDeployment(true);
-				importer.setCommentHandler(new DeploymentCommentHandler());
-
-				if (importer.parse(true)) {
-
-					final DOMNodeContent content = new DOMNodeContent();
-
-					// read content
-					content.loadFrom(child);
-
-					// remove child
-					parent.removeChild(child);
-
-					// move to trash
-					RemoveCommand.recursivelyRemoveNodesFromPage(child, actionContext.getSecurityContext());
-
-					final DOMNode newChild = importer.createChildNodes(parent, parent.getOwnerDocument(), true);
-
-					// store existing content
-					content.moveTo(newChild);
-				}
+				return ReplaceDOMChildFunction.apply(securityContext, parent, child, htmlSource);
 
 			} else {
 

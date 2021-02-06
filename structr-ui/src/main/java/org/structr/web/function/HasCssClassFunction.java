@@ -58,7 +58,7 @@ public class HasCssClassFunction extends UiAdvancedFunction {
 			final String css            = (String)sources[1];
 			final String elementClasses = element.getProperty(StructrApp.key(DOMElement.class, "_html_class"));
 
-			if (StringUtils.isNotBlank(css)) {
+			if (StringUtils.isNotBlank(css) && StringUtils.isNotBlank(elementClasses)) {
 
 				final Set<String> elementParts = new LinkedHashSet<>(Arrays.asList(elementClasses.split(" ")));
 				final Set<String> inputParts   = new LinkedHashSet<>(Arrays.asList(css.split(" ")));
