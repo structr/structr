@@ -73,7 +73,8 @@ public class StructrBinding implements ProxyObject {
 			case "cache":
 				return new CacheFunction(actionContext, entity);
 			case "vars":
-				return new PolyglotProxyMap(actionContext, actionContext.getAllVariables());
+			case "requestStore":
+				return new PolyglotProxyMap(actionContext, actionContext.getRequestStore());
 			case "applicationStore":
 				return new PolyglotProxyMap(actionContext, Services.getInstance().getApplicationStore());
 			default:
@@ -87,8 +88,8 @@ public class StructrBinding implements ProxyObject {
 					return wrap(actionContext,actionContext.getConstant(name));
 				}
 
-				if (actionContext.getAllVariables().containsKey(name)) {
-					return wrap(actionContext, actionContext.getAllVariables().get(name));
+				if (actionContext.getRequestStore().containsKey(name)) {
+					return wrap(actionContext, actionContext.getRequestStore().get(name));
 				}
 
 				Object structrScriptResult = null;
@@ -118,7 +119,7 @@ public class StructrBinding implements ProxyObject {
 
 	@Override
 	public Object getMemberKeys() {
-		Set<String> keys = actionContext.getAllVariables().keySet();
+		Set<String> keys = actionContext.getRequestStore().keySet();
 		keys.add("this");
 		keys.add("me");
 		keys.add("predicate");

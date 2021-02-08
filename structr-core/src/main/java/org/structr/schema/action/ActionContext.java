@@ -31,7 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -198,8 +197,8 @@ public class ActionContext {
 		return getContextStore().retrieve(key);
 	}
 
-	public Map<String, Object> getAllVariables () {
-		return getContextStore().getAllVariables();
+	public Map<String, Object> getRequestStore() {
+		return getContextStore().getRequestStore();
 	}
 
 	public void addTimer(final String key) {
@@ -423,7 +422,7 @@ public class ActionContext {
 			sb.append(request.getPathInfo());
 
 			final String qs = request.getQueryString();
-			final Map pm    = getAllVariables();
+			final Map pm    = getRequestStore();
 
 			if (qs != null) {
 

@@ -36,7 +36,7 @@ public class ContextStore {
 
 	protected Map<String, String> headers               = new HashMap<>();
 	protected Map<String, Object> constants             = new HashMap<>();
-	protected Map<String, Object> tmpStore              = new HashMap<>();
+	protected Map<String, Object> requestStore = new HashMap<>();
 	protected Map<String, Object> tmpParameters         = new HashMap<>();
 	protected Map<String, Date> timerStore              = new HashMap<>();
 	protected Map<Integer, Integer> counters            = new HashMap<>();
@@ -55,7 +55,7 @@ public class ContextStore {
 
 		this.headers     = other.headers;
 		this.constants   = other.constants;
-		this.tmpStore    = other.tmpStore;
+		this.requestStore = other.requestStore;
 		this.timerStore  = other.timerStore;
 		this.counters    = other.counters;
 		this.amc         = other.amc;
@@ -111,7 +111,7 @@ public class ContextStore {
 			logger.info("Function store() was called for key \"" + key + "\", which is already used in the current context by a method parameter and won't be accessible.");
 		}
 
-		tmpStore.put(key, value);
+		requestStore.put(key, value);
 	}
 
 	public Object retrieve(final String key) {
@@ -119,13 +119,13 @@ public class ContextStore {
 		if (tmpParameters.containsKey(key)) {
 			return tmpParameters.get(key);
 		}
-		return tmpStore.get(key);
+		return requestStore.get(key);
 	}
 
-	public void remove(final String key) { tmpStore.remove(key);}
+	public void remove(final String key) { requestStore.remove(key);}
 
-	public Map<String, Object> getAllVariables () {
-		return tmpStore;
+	public Map<String, Object> getRequestStore() {
+		return requestStore;
 	}
 
 	// --- Function Properties ---

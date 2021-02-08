@@ -206,7 +206,7 @@ public class Console {
 	}
 
 	public Map<String, Object> getVariables() {
-		return actionContext.getAllVariables();
+		return actionContext.getRequestStore();
 	}
 
 	public void store(final String key, final Object value) {
