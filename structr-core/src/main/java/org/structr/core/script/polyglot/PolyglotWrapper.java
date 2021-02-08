@@ -156,6 +156,9 @@ public abstract class PolyglotWrapper {
 			} else if (value.hasMembers()) {
 
 				return convertValueToMap(actionContext, value);
+			} else if (value.isNull()) {
+
+				return null;
 			} else {
 
 				return unwrap(actionContext, value.as(Object.class));
