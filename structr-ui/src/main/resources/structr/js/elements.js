@@ -89,12 +89,12 @@ var _Elements = {
 		},
 		{
 			elements: ['input', 'textarea'],
-			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'style', 'rows', 'cols'],
+			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'style', 'rows', 'cols', 'required'],
 			focus: 'type'
 		},
 		{
 			elements: ['button'],
-			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'onclick', 'style', 'title']
+			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'onclick', 'style', 'title', 'form', 'formaction', 'formmethod']
 		},
 		{
 			elements: ['select', 'option'],
@@ -115,7 +115,7 @@ var _Elements = {
 			focus: 'src'
 		},
 		{
-			elements: ['script', 'img', 'object'],
+			elements: ['script', 'object'],
 			attrs: ['type', 'rel', 'href', 'media', 'src', 'style'],
 			focus: 'src'
 		},
