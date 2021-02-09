@@ -68,6 +68,8 @@ public class LoginCommand extends AbstractCommand {
 			ctx.disableInnerCallbacks();
 		}
 
+		boolean sendSuccess = false;
+
 		try (final Tx tx = app.tx(true, true, true)) {
 
 			String username       = webSocketData.getNodeDataStringValue("username");
@@ -136,9 +138,8 @@ public class LoginCommand extends AbstractCommand {
 
 								tx.setSecurityContext(getWebSocket().getSecurityContext());
 
-								// send data..
-								getWebSocket().send(webSocketData, false);
-
+								// send success message later (to first commit transaction)
+								sendSuccess = true;
 							}
 						}
 					}
@@ -193,6 +194,10 @@ public class LoginCommand extends AbstractCommand {
 			}
 
 			tx.success();
+		}
+
+		if (sendSuccess) {
+			getWebSocket().send(webSocketData, false);
 		}
 	}
 
