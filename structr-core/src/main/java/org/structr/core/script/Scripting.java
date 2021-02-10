@@ -258,6 +258,7 @@ public class Scripting {
 
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
 
+					reportError(actionContext.getSecurityContext(), ex, snippet);
 					throw ex.asHostException();
 				}
 
