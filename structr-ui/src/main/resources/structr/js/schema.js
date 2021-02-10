@@ -867,7 +867,7 @@ var _Schema = {
 							text: "It is highly advisable to set a relationship type on the relationship! To do this, click the pencil icon to open the edit dialog.<br><br><strong>Note: </strong>Any existing relationships of this type have to be migrated manually.",
 							element: $('span', relTypeOverlay),
 							customToggleIcon: _Icons.error_icon,
-							appendToElement: $('body')
+							appendToElement: $('#schema-container')
 						});
 					}
 
