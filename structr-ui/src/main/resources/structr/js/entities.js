@@ -1724,6 +1724,8 @@ var _Entities = {
 				} else {
 					Command.get(id, 'id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 				}
+			} else if (Structr.isModuleActive(_Security)) {
+				_ResourceAccessGrants.updateResourcesAccessRow(id, false);
 			}
 		});
 

@@ -3,32 +3,33 @@
 </div>
 <div id="filter-resource-access-grants">
 	<input type="text" class="filter" data-attribute="signature" placeholder="Filter/Search...">
+	<label><input type="checkbox" class="filter" data-attribute="flags"> Show only used grants</label>
 </div>
 
 <table id="resourceAccessesTable">
 	<thead>
 		<tr>
 			<th><div id="resourceAccessesPager"></div></th>
-			<th colspan="7" class="center">Authenticated users</th>
-			<th colspan="7" class="center">Non-authenticated (public) users</th>
-			<th colspan="3"></th>
+			<th colspan="7" class="center br-1 bl-1" data-comment="These flags determine the access rights for authenticated users to the <b>resource</b> described by the signature (<b>not the data</b> behind that resource).<br><br>If a user is not able to read the grant, access to the resource (described by the signature) is denied. If the user is able to read mutliple grants for the same signature, the flags for those grants are combined.">Authenticated users</th>
+			<th colspan="7" class="center br-1" data-comment="These flags determine the access rights for public (non-authenticated) users to the <b>resource</b> described by the signature (<b>not the data</b> behind that resource).">Non-authenticated (public) users</th>
+			<th colspan="2"></th>
 		</tr>
 		<tr>
 			<th class="title-cell">Signature</th>
+			<th class="bl-1">GET</th>
+			<th>PUT</th>
+			<th>POST</th>
+			<th>DELETE</th>
+			<th>OPTIONS</th>
+			<th>HEAD</th>
+			<th class="br-1">PATCH</th>
 			<th>GET</th>
 			<th>PUT</th>
 			<th>POST</th>
 			<th>DELETE</th>
 			<th>OPTIONS</th>
 			<th>HEAD</th>
-			<th>PATCH</th>
-			<th>GET</th>
-			<th>PUT</th>
-			<th>POST</th>
-			<th>DELETE</th>
-			<th>OPTIONS</th>
-			<th>HEAD</th>
-			<th>PATCH</th>
+			<th class="br-1">PATCH</th>
 			<th>Bitmask</th>
 			<th></th>
 		</tr>
