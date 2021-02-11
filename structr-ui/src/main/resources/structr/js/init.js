@@ -682,7 +682,7 @@ var Structr = {
 		var l = parseInt((w - dw) / 2);
 		var t = parseInt((h - dh) / 2);
 
-		var horizontalOffset = 98;
+		var horizontalOffset = 113;
 
 		// needs to be calculated like this because the elements in the dialogHead (tabs) are floated and thus the .height() method returns 0
 		var headerHeight = (dialogText.position().top + dialogText.scrollParent().scrollTop()) - dialogHead.position().top;
