@@ -67,6 +67,15 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 	@Override
 	public Object getMember(String key) {
+		
+		if (node instanceof AbstractNode) {
+			switch (key) {
+				case "owner":
+					return PolyglotWrapper.wrap(actionContext, ((AbstractNode) node).getOwnerNode());
+				case "_path":
+					return PolyglotWrapper.wrap(actionContext, ((AbstractNode) node).getPath(actionContext.getSecurityContext()));
+			}
+		}
 
 		if (getOriginalObject() instanceof GraphObjectMap) {
 
