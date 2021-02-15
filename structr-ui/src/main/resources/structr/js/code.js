@@ -746,7 +746,7 @@ var _Code = {
 						children.push({
 							id: treeId + '-methods',
 							text: 'Methods',
-							children: entity.schemaMethods.length > 0,
+							children: _Schema.filterJavaMethods(entity.schemaMethods).length > 0,
 							icon: 'fa fa-code gray',
 							data: data
 						});
@@ -905,7 +905,7 @@ var _Code = {
 
 					let matchingMethods = [];
 
-					for (let method of schemaNode.schemaMethods) {
+					for (let method of _Schema.filterJavaMethods(schemaNode.schemaMethods)) {
 						if (method.name.indexOf(parts[1]) === 0) {
 
 							// populate backRef to schemaNode because it only contains id by default
@@ -1052,7 +1052,7 @@ var _Code = {
 	loadMethods: function(identifier) {
 
 		Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.typeId }, function(result) {
-			_Code.displayFunction(result, identifier);
+			_Code.displayFunction(_Schema.filterJavaMethods(result), identifier);
 		}, true, 'ui');
 	},
 	loadInheritedProperties: function(identifier) {
@@ -1323,7 +1323,7 @@ var _Code = {
 
 		if (entity.schemaMethods) {
 
-			entity.schemaMethods.forEach(function(m) {
+			_Schema.filterJavaMethods(entity.schemaMethods).forEach(function(m) {
 
 				if (id === 'custom' || !m.isPartOfBuiltInSchema) {
 
@@ -2343,7 +2343,7 @@ var _Code = {
 
 			Command.get(selection.typeId, null, (entity) => {
 
-				_Schema.methods.appendMethods($('.content-container', codeContents), entity, entity.schemaMethods, function() {
+				_Schema.methods.appendMethods($('.content-container', codeContents), entity, _Schema.filterJavaMethods(entity.schemaMethods), function() {
 					if (selection && selection.extended) {
 						_TreeHelper.refreshNode('#code-tree', 'workingsets-' + selection.extended);
 					} else {

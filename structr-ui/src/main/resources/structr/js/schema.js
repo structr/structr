@@ -57,6 +57,7 @@ var _Schema = {
 	schemaPositionsKey: 'structrSchemaPositions_' + port,
 	showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + port,
 	showSchemaInheritanceKey: 'structrShowSchemaInheritance_' + port,
+	showJavaMethodsKey: 'structrShowJavaMethods_' + port,
 	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + port,
 	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + port,
 	activeSchemaToolsSelectedTabLevel1Key: 'structrSchemaToolsSelectedTabLevel1_' + port,
@@ -101,6 +102,7 @@ var _Schema = {
 		+ '</select>',
 	currentNodeDialogId: null,
 	globalLayoutSelector: null,
+	showJavaMethods: false,
 	reload: function(callback) {
 
 		_Schema.clearTypeInfoCache();
@@ -147,6 +149,7 @@ var _Schema = {
 		_Schema.ui.connectorStyle  = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
 		_Schema.ui.zoomLevel       = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
 		_Schema.ui.showInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceKey, true) || true;
+		_Schema.showJavaMethods    = LSWrapper.getItem(_Schema.showJavaMethodsKey, false) || false;
 
 		schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="action btn"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add</button></div>');
 
@@ -963,7 +966,7 @@ var _Schema = {
 		});
 
 		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', function(c) {
-			_Schema.methods.appendMethods(c, entity, entity.schemaMethods);
+			_Schema.methods.appendMethods(c, entity, _Schema.filterJavaMethods(entity.schemaMethods));
 		}, null, _Schema.methods.refreshEditors);
 
 		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Remote Attributes', targetView === 'remote', function(c) {
@@ -1167,7 +1170,7 @@ var _Schema = {
 			});
 
 			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', false, function(c) {
-				_Schema.methods.appendMethods(c, entity, entity.schemaMethods);
+				_Schema.methods.appendMethods(c, entity, _Schema.filterJavaMethods(entity.schemaMethods));
 			}, null, _Schema.methods.refreshEditors);
 
 			let selectRelationshipOptions = function(rel) {
@@ -2667,7 +2670,7 @@ var _Schema = {
 							if (entity) {
 								Command.get(entity.id, null, function(reloadedEntity) {
 									el.empty();
-									_Schema.methods.appendMethods(el, reloadedEntity, reloadedEntity.schemaMethods);
+									_Schema.methods.appendMethods(el, reloadedEntity, _Schema.filterJavaMethods(reloadedEntity.schemaMethods));
 									_Schema.hideSchemaRecompileMessage();
 
 									if (optionalAfterSaveCallback) {
@@ -2677,7 +2680,7 @@ var _Schema = {
 							} else {
 								Command.rest('SchemaMethod?schemaNode=null&sort=name&order=ascending', function (methods) {
 									el.empty();
-									_Schema.methods.appendMethods(el, null, methods);
+									_Schema.methods.appendMethods(el, null, _Schema.filterJavaMethods(methods));
 									_Schema.hideSchemaRecompileMessage();
 
 									if (optionalAfterSaveCallback) {
@@ -3617,6 +3620,16 @@ var _Schema = {
 			registerSchemaToolButtonAction($('#add-rel-uuids'), 'setUuid', relTypeSelector, function (type) {
 				return (type === 'allRels') ? {'allRels': true} : {'relType': type};
 			});
+
+			let showJavaMethodsCheckbox = $('#show-java-methods-in-schema-checkbox');
+			if (showJavaMethodsCheckbox) {
+				showJavaMethodsCheckbox.prop("checked", _Schema.showJavaMethods);
+				showJavaMethodsCheckbox.on('click', function() {
+					_Schema.showJavaMethods = showJavaMethodsCheckbox.prop('checked');
+					LSWrapper.setItem(_Schema.showJavaMethodsKey, _Schema.showJavaMethods);
+					blinkGreen(showJavaMethodsCheckbox.parent());
+				});
+			}
 		});
 	},
 	appendLayoutToolsToContainer: function(container) {
@@ -4464,4 +4477,10 @@ var _Schema = {
 			}
 		},
 	},
+	filterJavaMethods: function(methods) {
+		if (!_Schema.showJavaMethods) {
+			return methods.filter(m => m.codeType !== 'java');
+		}
+		return methods;
+	}
 };
