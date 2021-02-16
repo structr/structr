@@ -1217,11 +1217,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (!unreachableGrants.isEmpty()) {
 
-			final String text = "Found configured but unreachable grant(s)! The ability to use group/user rights to grants has been added to improve flexibility a lot. The following grants are inaccessible for any non-admin users:\n\n"
+			final String text = "Found configured but unreachable grant(s)! The ability to use group/user rights to grants has been added to improve flexibility.\n\n  The following grants are inaccessible for any non-admin users:\n\n"
 					+ unreachableGrants.stream().reduce( "", (acc, signature) -> acc.concat("  - ").concat(signature).concat("\n"))
-					+ "\n     You can edit the visibility in the 'Security' area.\n";
+					+ "\n  You can edit the visibility in the 'Security' area.\n";
 
-			final String htmlText = "The ability to use group/user rights to grants has been added to improve flexibility a lot. The following grants are inaccessible for any non-admin users:<br><br>"
+			final String htmlText = "The ability to use group/user rights to grants has been added to improve flexibility. The following grants are inaccessible for any non-admin users:<br><br>"
 					+ unreachableGrants.stream().reduce( "", (acc, signature) -> acc.concat("&nbsp;- ").concat(signature).concat("<br>"))
 					+ "<br>You can edit the visibility in the <a href=\"#security\">Security</a> area.";
 
@@ -1949,12 +1949,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						+ "    Configuration was auto-updated using this simple heuristic:\n"
 						+ "     * Grants with public access were set to **visibleToPublicUsers: true**\n"
 						+ "     * Grants with authenticated access were set to **visibleToAuthenticatedUsers: true**\n\n"
-						+ "    Please make any necessary changes in the 'Security' area as this may not suffice for your use case. In the current version the ability to use group/user rights to grants has been added to improve flexibility a lot.";
+						+ "    Please make any necessary changes in the 'Security' area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
 
 				final String htmlText = "Configuration was auto-updated using this simple heuristic:<br>"
 						+ "&nbsp;- Grants with public access were set to <code>visibleToPublicUsers: true</code><br>"
 						+ "&nbsp;- Grants with authenticated access were set to <code>visibleToAuthenticatedUsers: true</code><br><br>"
-						+ "Please make any necessary changes in the <a href=\"#security\">Security</a> area as this may not suffice for your use case. In the current version the ability to use group/user rights to grants has been added to improve flexibility a lot.";
+						+ "Please make any necessary changes in the <a href=\"#security\">Security</a> area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
 
 				deferredLogTexts.add(text + "\n\n" + grantMessagesText);
 				publishWarningMessage("Found grants.json file without visibility and grantees", htmlText + "<br><br>" + grantMessagesHtml);
