@@ -43,7 +43,7 @@
 	   overflow: auto;
 	   height: calc(100% - 5em);
 	   border-collapse: collapse;
-	   background: #fff;
+	   background: var(--solid-white);
 	   margin: 6px 0;
 	   width: 100%;
    }
@@ -53,23 +53,22 @@
    }
 
    #resourceAccessesTable tbody tr:hover {
-	   background-color: #a5e25a ! important;
+	   background-color: var(--very-light-structr-green) ! important;
    }
 
    #resourceAccessesTable td, #resourceAccessesTable th {
 	   padding: 3px;
-	   /*border: 1px solid #fff;*/
 	   text-align: center;
 	   vertical-align: middle;
 	   height: 1em;
    }
 
    #resourceAccessesTable th.br-1, #resourceAccessesTable td.br-1 {
-	   border-right: 1px solid #ccc;
+	   border-right: 1px solid var(--gray-ccc);
    }
 
    #resourceAccessesTable th.bl-1, #resourceAccessesTable td.bl-1 {
-	   border-left: 1px solid #ccc;
+	   border-left: 1px solid var(--gray-ccc);
    }
 
    #resourceAccessesTable .title-cell {
@@ -89,16 +88,16 @@
    }
 
    #resourceAccessesTable tr:nth-child(odd) {
-	   background: #f7f7f7 ! important;
+	   background: var(--light-gray-bg-f7) ! important;
    }
 
    #resourceAccessesTable tr:nth-child(even) {
-	   background: #fff ! important;
+	   background: var(--solid-white) ! important;
    }
 
    #resourceAccessesTable th {
-	   background: #f0f0f0;
-	   color: #333;
+	   background: var(--input-background);
+	   color: var(--gray-333);
 	   vertical-align: top;
 	   min-width: 60px;
    }
