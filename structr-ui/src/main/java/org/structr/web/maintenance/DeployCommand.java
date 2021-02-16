@@ -781,6 +781,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try {
 
+			deferredLogTexts.clear();
+
 			final long startTime = System.currentTimeMillis();
 			customHeaders.put("start", new Date(startTime).toString());
 
@@ -879,7 +881,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 
 		} catch (IOException ex) {
+
 			logger.warn("", ex);
+
+		} finally {
+
+			// log collected warnings at the end so they dont get lost
+			for (final String logText : deferredLogTexts) {
+				logger.info(logText);
+			}
 		}
 	}
 
@@ -1178,6 +1188,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final List<Map<String, Object>> grants = new LinkedList<>();
 		final App app                          = StructrApp.getInstance();
 
+		final List<String> unreachableGrants = new LinkedList<>();
+
 		try (final Tx tx = app.tx()) {
 
 			for (final ResourceAccess res : app.nodeQuery(ResourceAccess.class).sort(ResourceAccess.signature).getAsList()) {
@@ -1192,9 +1204,29 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				grant.put("visibleToAuthenticatedUsers", res.isVisibleToAuthenticatedUsers());
 
 				exportSecurity(res, grant);
+
+				final List grantees = (List)grant.get("grantees");
+
+				if (res.getProperty(ResourceAccess.flags) > 0 && res.isVisibleToPublicUsers() == false && res.isVisibleToAuthenticatedUsers() == false && grantees.isEmpty()) {
+					unreachableGrants.add(res.getProperty(ResourceAccess.signature));
+				}
 			}
 
 			tx.success();
+		}
+
+		if (!unreachableGrants.isEmpty()) {
+
+			final String text = "Found configured but unreachable grant(s)! The ability to use group/user rights to grants has been added to improve flexibility a lot. The following grants are inaccessible for any non-admin users:\n\n"
+					+ unreachableGrants.stream().reduce( "", (acc, signature) -> acc.concat("  - ").concat(signature).concat("\n"))
+					+ "\n     You can edit the visibility in the 'Security' area.\n";
+
+			final String htmlText = "The ability to use group/user rights to grants has been added to improve flexibility a lot. The following grants are inaccessible for any non-admin users:<br><br>"
+					+ unreachableGrants.stream().reduce( "", (acc, signature) -> acc.concat("&nbsp;- ").concat(signature).concat("<br>"))
+					+ "<br>You can edit the visibility in the <a href=\"#security\">Security</a> area.";
+
+			deferredLogTexts.add(text);
+			publishWarningMessage("Found configured but unreachable grant(s)", htmlText);
 		}
 
 		writeSortedCompactJsonToFile(target, grants, null);
@@ -1917,13 +1949,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						+ "    Configuration was auto-updated using this simple heuristic:\n"
 						+ "     * Grants with public access were set to **visibleToPublicUsers: true**\n"
 						+ "     * Grants with authenticated access were set to **visibleToAuthenticatedUsers: true**\n\n"
-						+ "    Please make any necessary changes as this may not suffice for your use case. In the current version the ability to use group/user rights to grants has been added to improve flexibility a lot.";
+						+ "    Please make any necessary changes in the 'Security' area as this may not suffice for your use case. In the current version the ability to use group/user rights to grants has been added to improve flexibility a lot.";
 
 				final String htmlText = "Configuration was auto-updated using this simple heuristic:<br>"
 						+ "&nbsp;- Grants with public access were set to <code>visibleToPublicUsers: true</code><br>"
 						+ "&nbsp;- Grants with authenticated access were set to <code>visibleToAuthenticatedUsers: true</code><br><br>"
-						+ "Please make any necessary changes as this may not suffice for your use case. In the current version the ability to use group/user rights to grants has been added to improve flexibility a lot.";
-
+						+ "Please make any necessary changes in the <a href=\"#security\">Security</a> area as this may not suffice for your use case. In the current version the ability to use group/user rights to grants has been added to improve flexibility a lot.";
 
 				deferredLogTexts.add(text + "\n\n" + grantMessagesText);
 				publishWarningMessage("Found grants.json file without visibility and grantees", htmlText + "<br><br>" + grantMessagesHtml);
