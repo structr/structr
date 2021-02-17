@@ -333,10 +333,6 @@ table.props td.__value {
 	margin-bottom: 4px;
 }
 
-.dialog {
-	margin: auto;
-}
-
 #dialogBox .dialogText .props {
 	height: 100%;
 }
