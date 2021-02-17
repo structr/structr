@@ -49,33 +49,34 @@ var _Dashboard = {
 			}
 		}
 	},
-	onload: function(retryCount = 0) {
+	onload: async function(retryCount = 0) {
 
-		_Dashboard.init();
-		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('dashboard'));
+		try {
 
-		let templateConfig = {};
-		let releasesIndexUrl = '';
-		let snapshotsIndexUrl = '';
+			_Dashboard.init();
 
-		fetch(rootUrl + '/_env').then(function(response) {
+			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('dashboard'));
 
-			if (response.ok) {
-				return response.json();
-			} else {
+			let templateConfig = {};
+			let releasesIndexUrl = '';
+			let snapshotsIndexUrl = '';
+
+			let envResponse = await fetch(rootUrl + '/_env');
+
+			if (!envResponse.ok) {
 				throw Error("Unable to read env resource data");
 			}
 
-		}).then(function(data) {
+			let envData = await envResponse.json();
 
-			templateConfig.envInfo = data.result;
+			templateConfig.envInfo = envData.result;
 
-			templateConfig.envInfo.version = (data.result.components['structr'] || data.result.components['structr-ui']).version || '';
-			templateConfig.envInfo.build   = (data.result.components['structr'] || data.result.components['structr-ui']).build   || '';
-			templateConfig.envInfo.date    = (data.result.components['structr'] || data.result.components['structr-ui']).date    || '';
+			templateConfig.envInfo.version = (envData.result.components['structr'] || envData.result.components['structr-ui']).version || '';
+			templateConfig.envInfo.build   = (envData.result.components['structr'] || envData.result.components['structr-ui']).build   || '';
+			templateConfig.envInfo.date    = (envData.result.components['structr'] || envData.result.components['structr-ui']).date    || '';
 
-			releasesIndexUrl  = data.result.availableReleasesUrl;
-			snapshotsIndexUrl = data.result.availableSnapshotsUrl;
+			releasesIndexUrl  = envData.result.availableReleasesUrl;
+			snapshotsIndexUrl = envData.result.availableSnapshotsUrl;
 
 			if (templateConfig.envInfo.startDate) {
 				templateConfig.envInfo.startDate = templateConfig.envInfo.startDate.slice(0, 10);
@@ -87,25 +88,15 @@ var _Dashboard = {
 
 			templateConfig.databaseDriver = Structr.getDatabaseDriverNameForDatabaseServiceName(templateConfig.envInfo.databaseService);
 
-			return fetch(rootUrl + '/me/ui');
+			let meResponse       = await fetch(rootUrl + '/me/ui');
+			let meData           = await meResponse.json();
+			templateConfig.meObj = meData.result;
 
-		}).then(function(response) {
+			let deployResponse = await fetch('/structr/deploy');
 
-			return response.json();
+			templateConfig.deployServletAvailable = (deployResponse.status !== 404);
 
-		}).then(function(data) {
-
-			templateConfig.meObj = data.result;
-
-			return fetch('/structr/deploy');
-
-		}).then((result) => {
-
-			templateConfig.deployServletAvailable = (result.status !== 404);
-
-		}).then(function() {
-
-			templateConfig.zipExportPrefix = LSWrapper.getItem(_Dashboard.zipExportPrefixKey);
+			templateConfig.zipExportPrefix          = LSWrapper.getItem(_Dashboard.zipExportPrefixKey);
 			templateConfig.zipExportAppendTimestamp = LSWrapper.getItem(_Dashboard.zipExportAppendTimestampKey, true);
 
 			Structr.fetchHtmlTemplate('dashboard/dashboard', templateConfig, function(html) {
@@ -217,7 +208,6 @@ var _Dashboard = {
 					Structr.resize();
 				});
 
-
 				let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
 				if (!userConfigMenu) {
 					userConfigMenu = {
@@ -271,7 +261,9 @@ var _Dashboard = {
 
 				Structr.unblockMenu(100);
 			});
-		}).catch((e) => {
+
+		} catch(e) {
+
 			if (retryCount < 3) {
 				setTimeout(() => {
 					_Dashboard.onload(++retryCount);
@@ -279,7 +271,7 @@ var _Dashboard = {
 			} else {
 				console.log(e);
 			}
-		});
+		}
 	},
 	isShowScriptingErrorPopups: function() {
 		return LSWrapper.getItem(_Dashboard.showScriptingErrorPopupsKey, true);
