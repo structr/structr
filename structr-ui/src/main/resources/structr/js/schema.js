@@ -64,42 +64,6 @@ var _Schema = {
 	activeSchemaToolsSelectedVisibilityTab: 'activeSchemaToolsSelectedVisibilityTab_' + port,
 	schemaZoomLevelKey: localStorageSuffix + 'zoomLevel',
 	schemaConnectorStyleKey: localStorageSuffix + 'connectorStyle',
-	typeOptions: '<select class="property-type"><option value="">--Select--</option>'
-		+ '<option value="String">String</option>'
-		+ '<option value="Encrypted">Encrypted</option>'
-		+ '<option value="StringArray">String[]</option>'
-		+ '<option value="Integer">Integer</option>'
-		+ '<option value="IntegerArray">Integer[]</option>'
-		+ '<option value="Long">Long</option>'
-		+ '<option value="LongArray">Long[]</option>'
-		+ '<option value="Double">Double</option>'
-		+ '<option value="DoubleArray">Double[]</option>'
-		+ '<option value="Boolean">Boolean</option>'
-		+ '<option value="BooleanArray">Boolean[]</option>'
-		+ '<option value="Enum">Enum</option>'
-		+ '<option value="Date">Date</option>'
-		+ '<option value="DateArray">Date[]</option>'
-		+ '<option value="Count">Count</option>'
-		+ '<option value="Function" data-indexed="false">Function</option>'
-		+ '<option value="Notion">Notion</option>'
-		+ '<option value="Join">Join</option>'
-		+ '<option value="Cypher" data-indexed="false">Cypher</option>'
-		+ '<option value="Thumbnail">Thumbnail</option>'
-		+ '<option value="IdNotion" data-protected="true" disabled>IdNotion</option>'
-		+ '<option value="Custom" data-protected="true" disabled>Custom</option>'
-		+ '<option value="Password" data-protected="true" disabled>Password</option>'
-		+ '</select>',
-	typeHintOptions: '<select class="type-hint">'
-		+ '<optgroup label="Type Hint">'
-		+ '<option value="null">-</option>'
-		+ '<option value="boolean">Boolean</option>'
-		+ '<option value="string">String</option>'
-		+ '<option value="int">Int</option>'
-		+ '<option value="long">Long</option>'
-		+ '<option value="double">Double</option>'
-		+ '<option value="date">Date</option>'
-		+ '</optgroup>'
-		+ '</select>',
 	currentNodeDialogId: null,
 	globalLayoutSelector: null,
 	showJavaMethods: false,
@@ -137,198 +101,185 @@ var _Schema = {
 	},
 	init: function(scrollPosition, callback) {
 
-		_Schema.schemaLoading = false;
-		_Schema.schemaLoaded = false;
-		_Schema.schema = [];
-		_Schema.keys = [];
+		Structr.fetchHtmlTemplate('schema/schema-container', {}, function(html) {
 
-		schemaContainer.append('<div class="schema-input-container"></div>');
+			schemaContainer[0].innerHTML = html;
 
-		var schemaInputContainer = $('.schema-input-container');
+			_Schema.schemaLoading = false;
+			_Schema.schemaLoaded = false;
+			_Schema.schema = [];
+			_Schema.keys = [];
 
-		_Schema.ui.connectorStyle  = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
-		_Schema.ui.zoomLevel       = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
-		_Schema.ui.showInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceKey, true) || true;
-		_Schema.showJavaMethods    = LSWrapper.getItem(_Schema.showJavaMethodsKey, false) || false;
+			_Schema.ui.connectorStyle  = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
+			_Schema.ui.zoomLevel       = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
+			_Schema.ui.showInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceKey, true) || true;
+			_Schema.showJavaMethods    = LSWrapper.getItem(_Schema.showJavaMethodsKey, false) || false;
 
-		schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="action btn"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add</button></div>');
-
-		schemaInputContainer.append('<select id="connector-style"></select>');
-		['Flowchart', 'Bezier', 'StateMachine', 'Straight'].forEach(function(style) {
-			$('#connector-style').append('<option value="' + style + '" ' + (style === _Schema.ui.connectorStyle ? 'selected="selected"' : '') + '>' + style + '</option>');
-		});
-		$('#connector-style').off('change').on('change', function() {
-			var newStyle = $(this).val();
-			_Schema.ui.connectorStyle = newStyle;
-			LSWrapper.setItem(_Schema.schemaConnectorStyleKey, newStyle);
-			_Schema.reload();
-		});
-
-		schemaInputContainer.append('<div id="zoom-slider"></div>');
-		$('#zoom-slider').slider({
-			min:0.25,
-			max:1,
-			step:0.05,
-			value:_Schema.ui.zoomLevel,
-			slide: function( event, ui ) {
-				_Schema.ui.zoomLevel = ui.value;
-				LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.ui.zoomLevel);
-				_Schema.ui.setZoom(_Schema.ui.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
-				if (_Schema.ui.selectedNodes.length > 0) {
-					_Schema.ui.updateSelectedNodes();
-				}
-				_Schema.resize();
-			}
-		});
-
-		schemaInputContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays"><label for="schema-show-overlays"> Show relationship labels</label>');
-		schemaInputContainer.append('<input type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"><label for="schema-show-inheritance"> Show inheritance</label>');
-		schemaInputContainer.append('<button class="btn" id="schema-tools"><i class="' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" /> Tools</button>');
-		schemaInputContainer.append('<button class="btn" id="global-schema-methods"><i class="' + _Icons.getFullSpriteClass(_Icons.book_icon) + '" /> Global schema methods</button>');
-		schemaInputContainer.append(' <select id="saved-layout-selector-main"></select> <button class="btn schema-tool-button action" id="restore-schema-layout"><i class="' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" /> Apply Layout</button>');
-
-		$('#schema-show-overlays').off('change').on('change', function() {
-			_Schema.ui.updateOverlayVisibility($(this).prop('checked'));
-		});
-		$('#schema-show-inheritance').off('change').on('change', function() {
-			_Schema.ui.updateInheritanceVisibility($(this).prop('checked'));
-		});
-		$('#schema-tools').off('click').on('click', _Schema.openSchemaToolsDialog);
-		$('#global-schema-methods').off('click').on('click', _Schema.methods.showGlobalSchemaMethods);
-
-		_Schema.globalLayoutSelector = $('#saved-layout-selector-main');
-		_Schema.updateGroupedLayoutSelector([_Schema.globalLayoutSelector], () => {
-			$('#restore-schema-layout').off('click').on('click', () => {
-				_Schema.restoreLayout(_Schema.globalLayoutSelector);
+			$('#connector-style').val(_Schema.ui.connectorStyle);
+			$('#connector-style').off('change').on('change', function() {
+				var newStyle = $(this).val();
+				_Schema.ui.connectorStyle = newStyle;
+				LSWrapper.setItem(_Schema.schemaConnectorStyleKey, newStyle);
+				_Schema.reload();
 			});
-		});
 
-		$('#type-name').off('keyup').on('keyup', function(e) {
-
-			if (e.keyCode === 13) {
-				e.preventDefault();
-				if ($('#type-name').val().length) {
-					$('#create-type').click();
+			$('#zoom-slider').slider({
+				min:0.25,
+				max:1,
+				step:0.05,
+				value:_Schema.ui.zoomLevel,
+				slide: function( event, ui ) {
+					_Schema.ui.zoomLevel = ui.value;
+					LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.ui.zoomLevel);
+					_Schema.ui.setZoom(_Schema.ui.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
+					if (_Schema.ui.selectedNodes.length > 0) {
+						_Schema.ui.updateSelectedNodes();
+					}
+					_Schema.resize();
 				}
-				return false;
-			}
-		});
+			});
 
-		$('#create-type').off('click').on('click', function() {
-			_Schema.createNode($('#type-name').val());
-		});
+			$('#schema-show-overlays').off('change').on('change', function() {
+				_Schema.ui.updateOverlayVisibility($(this).prop('checked'));
+			});
+			$('#schema-show-inheritance').off('change').on('change', function() {
+				_Schema.ui.updateInheritanceVisibility($(this).prop('checked'));
+			});
+			$('#schema-tools').off('click').on('click', _Schema.openSchemaToolsDialog);
+			$('#global-schema-methods').off('click').on('click', _Schema.methods.showGlobalSchemaMethods);
 
-		jsPlumb.ready(function() {
-			schemaContainer.append('<div class="canvas" id="schema-graph"></div>');
+			_Schema.globalLayoutSelector = $('#saved-layout-selector-main');
+			_Schema.updateGroupedLayoutSelector([_Schema.globalLayoutSelector], () => {
+				$('#restore-schema-layout').off('click').on('click', () => {
+					_Schema.restoreLayout(_Schema.globalLayoutSelector);
+				});
+			});
 
-			canvas = $('#schema-graph');
+			$('#type-name').off('keyup').on('keyup', function(e) {
 
-			instance = jsPlumb.getInstance({
-				//Connector: "StateMachine",
-				PaintStyle: {
-					lineWidth: 5,
-					strokeStyle: "#81ce25"
-				},
-				Endpoint: ["Dot", {radius: 6}],
-				EndpointStyle: {
-					fillStyle: "#aaa"
-				},
-				Container: "schema-graph",
-				ConnectionOverlays: [
-					["PlainArrow", {
-							location: 1,
-							width: 15,
-							length: 12
-						}
+				if (e.keyCode === 13) {
+					e.preventDefault();
+					if ($('#type-name').val().length) {
+						$('#create-type').click();
+					}
+					return false;
+				}
+			});
+
+			$('#create-type').off('click').on('click', function() {
+				_Schema.createNode($('#type-name').val());
+			});
+
+			jsPlumb.ready(function() {
+				canvas = $('#schema-graph');
+
+				instance = jsPlumb.getInstance({
+					//Connector: "StateMachine",
+					PaintStyle: {
+						lineWidth: 5,
+						strokeStyle: "#81ce25"
+					},
+					Endpoint: ["Dot", {radius: 6}],
+					EndpointStyle: {
+						fillStyle: "#aaa"
+					},
+					Container: "schema-graph",
+					ConnectionOverlays: [
+						["PlainArrow", {
+								location: 1,
+								width: 15,
+								length: 12
+							}
+						]
 					]
-				]
-			});
+				});
 
-			_Schema.loadSchema(function() {
+				_Schema.loadSchema(function() {
 
-				$('.node').css({zIndex: ++_Schema.ui.maxZ});
+					$('.node').css({zIndex: ++_Schema.ui.maxZ});
 
-				instance.bind('connection', function(info, originalEvent) {
+					instance.bind('connection', function(info, originalEvent) {
 
-					if (info.connection.scope === 'jsPlumb_DefaultScope') {
-						if (originalEvent) {
+						if (info.connection.scope === 'jsPlumb_DefaultScope') {
+							if (originalEvent) {
 
-							Structr.dialog("Create Relationship", function() {
-								dialogMeta.show();
-							}, function() {
-								_Schema.currentNodeDialogId = null;
+								Structr.dialog("Create Relationship", function() {
+									dialogMeta.show();
+								}, function() {
+									_Schema.currentNodeDialogId = null;
 
-								dialogMeta.show();
-								instance.repaintEverything();
-								instance.detach(info.connection);
-							}, ['schema-edit-dialog']);
+									dialogMeta.show();
+									instance.repaintEverything();
+									instance.detach(info.connection);
+								}, ['schema-edit-dialog']);
 
-							_Schema.createRelationship(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'), dialogHead, dialogText);
+								_Schema.createRelationship(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'), dialogHead, dialogText);
+							}
+						} else {
+							new MessageBuilder().warning('Moving existing relationships is not permitted!').title('Not allowed').requiresConfirmation().show();
+							_Schema.reload();
 						}
-					} else {
-						new MessageBuilder().warning('Moving existing relationships is not permitted!').title('Not allowed').requiresConfirmation().show();
-						_Schema.reload();
+					});
+					instance.bind('connectionDetached', function(info) {
+
+						if (info.connection.scope !== 'jsPlumb_DefaultScope') {
+							new MessageBuilder().warning('Deleting relationships is only possible via the delete button!').title('Not allowed').requiresConfirmation().show();
+							_Schema.reload();
+						}
+					});
+					reload = false;
+
+					_Schema.ui.setZoom(_Schema.ui.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
+
+					$('._jsPlumb_connector').click(function(e) {
+						e.stopPropagation();
+						_Schema.ui.selectRel($(this));
+					});
+
+					canvas.off('mousedown').on('mousedown', function(e) {
+						if (e.which === 1) {
+							_Schema.ui.clearSelection();
+							_Schema.ui.selectionStart(e);
+						}
+					});
+
+					canvas.off('mousemove').on('mousemove', function(e) {
+						if (e.which === 1) {
+							_Schema.ui.selectionDrag(e);
+						}
+					});
+
+					canvas.off('mouseup').on('mouseup', function(e) {
+						_Schema.ui.selectionStop();
+					});
+
+					_Schema.resize();
+
+					Structr.unblockMenu(500);
+
+					var overlaysVisible = LSWrapper.getItem(_Schema.showSchemaOverlaysKey);
+					var showSchemaOverlays = (overlaysVisible === null) ? true : overlaysVisible;
+					_Schema.ui.updateOverlayVisibility(showSchemaOverlays);
+
+					var inheritanceVisible = LSWrapper.getItem(_Schema.showSchemaInheritanceKey);
+					var showSchemaInheritance = (inheritanceVisible === null) ? true : inheritanceVisible;
+					_Schema.ui.updateInheritanceVisibility(showSchemaInheritance);
+
+					if (scrollPosition) {
+						window.scrollTo(scrollPosition.x, scrollPosition.y);
+					}
+
+					if (typeof callback === "function") {
+						callback();
 					}
 				});
-				instance.bind('connectionDetached', function(info) {
-
-					if (info.connection.scope !== 'jsPlumb_DefaultScope') {
-						new MessageBuilder().warning('Deleting relationships is only possible via the delete button!').title('Not allowed').requiresConfirmation().show();
-						_Schema.reload();
-					}
-				});
-				reload = false;
-
-				_Schema.ui.setZoom(_Schema.ui.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
-
-				$('._jsPlumb_connector').click(function(e) {
-					e.stopPropagation();
-					_Schema.ui.selectRel($(this));
-				});
-
-				canvas.off('mousedown').on('mousedown', function(e) {
-					if (e.which === 1) {
-						_Schema.ui.clearSelection();
-						_Schema.ui.selectionStart(e);
-					}
-				});
-
-				canvas.off('mousemove').on('mousemove', function(e) {
-					if (e.which === 1) {
-						_Schema.ui.selectionDrag(e);
-					}
-				});
-
-				canvas.off('mouseup').on('mouseup', function(e) {
-					_Schema.ui.selectionStop();
-				});
-
-				_Schema.resize();
-
-				Structr.unblockMenu(500);
-
-				var overlaysVisible = LSWrapper.getItem(_Schema.showSchemaOverlaysKey);
-				var showSchemaOverlays = (overlaysVisible === null) ? true : overlaysVisible;
-				_Schema.ui.updateOverlayVisibility(showSchemaOverlays);
-
-				var inheritanceVisible = LSWrapper.getItem(_Schema.showSchemaInheritanceKey);
-				var showSchemaInheritance = (inheritanceVisible === null) ? true : inheritanceVisible;
-				_Schema.ui.updateInheritanceVisibility(showSchemaInheritance);
-
-				if (scrollPosition) {
-					window.scrollTo(scrollPosition.x, scrollPosition.y);
-				}
-
-				if (typeof callback === "function") {
-					callback();
-				}
 			});
+
+			_Schema.resize();
+
+			Structr.adaptUiToAvailableFeatures();
+
 		});
-
-		_Schema.resize();
-
-		Structr.adaptUiToAvailableFeatures();
-
 	},
 	showSchemaRecompileMessage: function() {
 		Structr.showNonBlockUILoadingMessage('Schema is compiling', 'Please wait...');
@@ -337,28 +288,30 @@ var _Schema = {
 		Structr.hideNonBlockUILoadingMessage();
 	},
 	onload: function() {
-		main.append(
-			'<div id="inheritance-tree" class="slideOut slideOutLeft"><div class="compTab" id="inheritanceTab">Inheritance Tree</div><div class="inheritance-search">Search: <input type="text" id="search-classes"></div><div id="inheritance-tree-container" class="ver-scrollable hidden"></div></div>'
-			+ '<div id="schema-container"></div>'
-		);
-		schemaContainer = $('#schema-container');
-		inheritanceSlideout = $('#inheritance-tree');
-		inheritanceTree = $('#inheritance-tree-container');
 
-		var updateCanvasTranslation = function() {
-			canvas.css('transform', _Schema.ui.getSchemaCSSTransform());
-			_Schema.resize();
-		};
+		Structr.fetchHtmlTemplate('schema/schema', {}, function(html) {
 
-		$('#inheritanceTab').off('click').on('click', function() {
-			_Pages.leftSlideoutTrigger(this, inheritanceSlideout, [], _Schema.schemaActiveTabLeftKey, function() { inheritanceTree.show(); updateCanvasTranslation(); }, function() { updateCanvasTranslation(); inheritanceTree.hide(); });
-		});
+			main[0].innerHTML = html;
 
-		_Schema.init();
-		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('schema'));
+			schemaContainer     = $('#schema-container');
+			inheritanceSlideout = $('#inheritance-tree');
+			inheritanceTree     = $('#inheritance-tree-container');
 
-		$(window).off('resize').on('resize', function() {
-			_Schema.resize();
+			var updateCanvasTranslation = function() {
+				canvas.css('transform', _Schema.ui.getSchemaCSSTransform());
+				_Schema.resize();
+			};
+
+			$('#inheritanceTab').off('click').on('click', function() {
+				_Pages.leftSlideoutTrigger(this, inheritanceSlideout, [], _Schema.schemaActiveTabLeftKey, function() { inheritanceTree.show(); updateCanvasTranslation(); }, function() { updateCanvasTranslation(); inheritanceTree.hide(); });
+			});
+
+			_Schema.init();
+			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('schema'));
+
+			$(window).off('resize').on('resize', function() {
+				_Schema.resize();
+			});
 		});
 	},
 	loadSchema: function(callback) {
@@ -1355,14 +1308,20 @@ var _Schema = {
 
 				$.each(entity.schemaProperties, function(i, prop) {
 
-					Structr.fetchHtmlTemplate('schema/property.local', {property: prop}, function(html) {
+					Structr.fetchHtmlTemplate('schema/type-options', {}, function(typeOptions) {
 
-						let row = $(html);
+						Structr.fetchHtmlTemplate('schema/type-hint-options', {}, function(typeHintOptions) {
 
-						tbody.append(row);
+							Structr.fetchHtmlTemplate('schema/property.local', {property: prop, typeOptions: typeOptions, typeHintOptions: typeHintOptions}, function(html) {
 
-						_Schema.properties.setAttributesInRow(prop, row);
-						_Schema.properties.bindRowEvents(prop, row, overrides);
+								let row = $(html);
+
+								tbody.append(row);
+
+								_Schema.properties.setAttributesInRow(prop, row);
+								_Schema.properties.bindRowEvents(prop, row, overrides);
+							});
+						});
 					});
 				});
 
@@ -1376,32 +1335,34 @@ var _Schema = {
 
 				$('.add-local-attribute', el).off('click').on('click', function() {
 
-					Structr.fetchHtmlTemplate('schema/property.new', {}, function(html) {
+					Structr.fetchHtmlTemplate('schema/type-options', {}, function(typeOptions) {
+						Structr.fetchHtmlTemplate('schema/property.new', {typeOptions: typeOptions}, function(html) {
 
-						let tr = $(html);
-						tbody.append(tr);
+							let tr = $(html);
+							tbody.append(tr);
 
-						$('.property-type', tr).off('change').on('change', function() {
-							let selectedOption = $('option:selected', this);
-							let shouldIndex = selectedOption.data('indexed');
-							if (shouldIndex === undefined) {
-								shouldIndex = true;
-							}
-							let indexedCb = $('.indexed', tr);
-							if (indexedCb.prop('checked') !== shouldIndex) {
-								indexedCb.prop('checked', shouldIndex);
+							$('.property-type', tr).off('change').on('change', function() {
+								let selectedOption = $('option:selected', this);
+								let shouldIndex = selectedOption.data('indexed');
+								if (shouldIndex === undefined) {
+									shouldIndex = true;
+								}
+								let indexedCb = $('.indexed', tr);
+								if (indexedCb.prop('checked') !== shouldIndex) {
+									indexedCb.prop('checked', shouldIndex);
 
-								blink(indexedCb.closest('td'), '#fff', '#bde5f8');
-								Structr.showAndHideInfoBoxMessage('Automatically updated indexed flag to default behavior for property type (you can still override this)', 'info', 2000, 200);
-							}
-						});
+									blink(indexedCb.closest('td'), '#fff', '#bde5f8');
+									Structr.showAndHideInfoBoxMessage('Automatically updated indexed flag to default behavior for property type (you can still override this)', 'info', 2000, 200);
+								}
+							});
 
-						$('.discard-changes', tr).off('click').on('click', function() {
-							tr.remove();
+							$('.discard-changes', tr).off('click').on('click', function() {
+								tr.remove();
+								_Schema.properties.tableChanged(propertiesTable);
+							});
+
 							_Schema.properties.tableChanged(propertiesTable);
 						});
-
-						_Schema.properties.tableChanged(propertiesTable);
 					});
 				});
 			});

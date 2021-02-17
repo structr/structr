@@ -1,8 +1,8 @@
 <tr data-property-id="${config.property.id}" >
 	<td><input size="15" type="text" class="property-name" value="${escapeForHtmlAttributes(config.property.name)}"></td>
 	<td><input size="15" type="text" class="property-dbname" value="${escapeForHtmlAttributes(config.property.dbName)}"></td>
-	<td>${_Schema.typeOptions}</td>
-	<td>${((config.property.propertyType !== 'Function') ? '<input size="15" type="text" class="property-format" value="' + (config.property.format ? escapeForHtmlAttributes(config.property.format) : '') + '">' : `<button class="edit-read-function">Read</button><button class="edit-write-function">Write</button><input id="checkbox-${config.property.id}" class="caching-enabled" type="checkbox" ${(config.property.isCachingEnabled ? 'checked' : '')}><label for="checkbox-${config.property.id}">Cache</label>${_Schema.typeHintOptions}`)}</td>
+	<td>${config.typeOptions}</td>
+	<td>${((config.property.propertyType !== 'Function') ? '<input size="15" type="text" class="property-format" value="' + (config.property.format ? escapeForHtmlAttributes(config.property.format) : '') + '">' : `<button class="edit-read-function">Read</button><button class="edit-write-function">Write</button><input id="checkbox-${config.property.id}" class="caching-enabled" type="checkbox" ${(config.property.isCachingEnabled ? 'checked' : '')}><label for="checkbox-${config.property.id}">Cache</label>${config.typeHintOptions}`)}</td>
 	<td class="centered"><input class="not-null" type="checkbox" ${(config.property.notNull ? 'checked' : '')}></td>
 	<td class="centered"><input class="compound" type="checkbox" ${(config.property.compound ? 'checked' : '')}></td>
 	<td class="centered"><input class="unique" type="checkbox" ${(config.property.unique ? 'checked' : '')}></td>
