@@ -64,125 +64,123 @@ var _Contents = {
 
 		contentTree.css({width: left - 14 + 'px'});
 	},
-	onload: function() {
+	onload: async function() {
 
-		Structr.fetchHtmlTemplate('contents/contents', {}, function(html) {
+		let contentsHtml = await Structr.fetchHtmlTemplate('contents/contents', {});
 
-			main[0].innerHTML = html;
+		main[0].innerHTML = contentsHtml;
 
-			_Contents.init();
+		_Contents.init();
 
-			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('contents'));
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('contents'));
 
-			contentsMain = $('#contents-main');
+		contentsMain = $('#contents-main');
 
-			contentTree = $('#contents-tree');
-			contentsContents = $('#contents-contents');
+		contentTree = $('#contents-tree');
+		contentsContents = $('#contents-contents');
 
-			_Contents.moveResizer();
-			Structr.initVerticalSlider($('.column-resizer', contentsMain), contentsResizerLeftKey, 204, _Contents.moveResizer);
+		_Contents.moveResizer();
+		Structr.initVerticalSlider($('.column-resizer', contentsMain), contentsResizerLeftKey, 204, _Contents.moveResizer);
 
-			Structr.fetchHtmlTemplate('contents/buttons.new', {}, function(html) {
+		let buttonsHtml = await Structr.fetchHtmlTemplate('contents/buttons.new', {});
 
-				$('#contents-contents-container').prepend(html);
+		$('#contents-contents-container').prepend(buttonsHtml);
 
-				$('.add_item_icon', main).on('click', function(e) {
-					var containers = (currentContentContainer ? [ { id : currentContentContainer.id } ] : null);
-					Command.create({ type: $('select#content-item-type').val(), size: 0, containers: containers }, function(f) {
-						_Contents.appendItemOrContainerRow(f);
-						_Contents.refreshTree();
-					});
-				});
+		$('.add_item_icon', main).on('click', function(e) {
+			var containers = (currentContentContainer ? [ { id : currentContentContainer.id } ] : null);
+			Command.create({ type: $('select#content-item-type').val(), size: 0, containers: containers }, function(f) {
+				_Contents.appendItemOrContainerRow(f);
+				_Contents.refreshTree();
+			});
+		});
 
 
-				$('.add_container_icon', main).on('click', function(e) {
-					Command.create({ type: $('select#content-container-type').val(), parent: currentContentContainer ? currentContentContainer.id : null }, function(f) {
-						_Contents.appendItemOrContainerRow(f);
-						_Contents.refreshTree();
-					});
-				});
+		$('.add_container_icon', main).on('click', function(e) {
+			Command.create({ type: $('select#content-container-type').val(), parent: currentContentContainer ? currentContentContainer.id : null }, function(f) {
+				_Contents.appendItemOrContainerRow(f);
+				_Contents.refreshTree();
+			});
+		});
 
-				$('select#content-item-type').on('change', function() {
-					$('#add-item-button', main).find('span').text('Add ' + $(this).val());
-				});
+		$('select#content-item-type').on('change', function() {
+			$('#add-item-button', main).find('span').text('Add ' + $(this).val());
+		});
 
-				$('select#content-container-type').on('change', function() {
-					$('#add-container-button', main).find('span').text('Add ' + $(this).val());
-				});
+		$('select#content-container-type').on('change', function() {
+			$('#add-container-button', main).find('span').text('Add ' + $(this).val());
+		});
 
-				// list types that extend ContentItem
-				_Schema.getDerivedTypes('org.structr.dynamic.ContentItem', [], function(types) {
-					var elem = $('select#content-item-type');
-					types.forEach(function(type) {
-						elem.append('<option value="' + type + '">' + type + '</option>');
-					});
+		// list types that extend ContentItem
+		_Schema.getDerivedTypes('org.structr.dynamic.ContentItem', [], function(types) {
+			var elem = $('select#content-item-type');
+			types.forEach(function(type) {
+				elem.append('<option value="' + type + '">' + type + '</option>');
+			});
 
-					if (types.length === 0) {
-						Structr.appendInfoTextToElement({
-							text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentItem</u></b> to add ContentItems",
-							element: elem.parent(),
-							after: true,
-							css: {
-								marginLeft: '-4px',
-								marginRight: '4px'
-							}
-						});
+			if (types.length === 0) {
+				Structr.appendInfoTextToElement({
+					text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentItem</u></b> to add ContentItems",
+					element: elem.parent(),
+					after: true,
+					css: {
+						marginLeft: '-4px',
+						marginRight: '4px'
 					}
 				});
+			}
+		});
 
-				// list types that extend ContentContainer
-				_Schema.getDerivedTypes('org.structr.dynamic.ContentContainer', [], function(types) {
-					var elem = $('select#content-container-type');
-					types.forEach(function(type) {
-						elem.append('<option value="' + type + '">' + type + '</option>');
-					});
+		// list types that extend ContentContainer
+		_Schema.getDerivedTypes('org.structr.dynamic.ContentContainer', [], function(types) {
+			var elem = $('select#content-container-type');
+			types.forEach(function(type) {
+				elem.append('<option value="' + type + '">' + type + '</option>');
+			});
 
-					if (types.length === 0) {
-						Structr.appendInfoTextToElement({
-							text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers",
-							element: elem.parent(),
-							after: true,
-							css: {
-								marginLeft: '-4px',
-								marginRight: '4px'
-							}
-						});
+			if (types.length === 0) {
+				Structr.appendInfoTextToElement({
+					text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers",
+					element: elem.parent(),
+					after: true,
+					css: {
+						marginLeft: '-4px',
+						marginRight: '4px'
 					}
 				});
+			}
+		});
+
+		$.jstree.defaults.core.themes.dots      = false;
+		$.jstree.defaults.dnd.inside_pos        = 'last';
+		$.jstree.defaults.dnd.large_drop_target = true;
+
+		contentTree.on('ready.jstree', function() {
+			_TreeHelper.makeTreeElementDroppable(contentTree, 'root');
+
+			_Contents.loadAndSetWorkingDir(function() {
+				if (currentContentContainer) {
+					_Contents.deepOpen(currentContentContainer);
+				}
 			});
+		});
 
-			$.jstree.defaults.core.themes.dots      = false;
-			$.jstree.defaults.dnd.inside_pos        = 'last';
-			$.jstree.defaults.dnd.large_drop_target = true;
+		contentTree.on('select_node.jstree', function(evt, data) {
 
-			contentTree.on('ready.jstree', function() {
-				_TreeHelper.makeTreeElementDroppable(contentTree, 'root');
-
-				_Contents.loadAndSetWorkingDir(function() {
-					if (currentContentContainer) {
-						_Contents.deepOpen(currentContentContainer);
-					}
-				});
-			});
-
-			contentTree.on('select_node.jstree', function(evt, data) {
-
-				_Contents.setWorkingDirectory(data.node.id);
-				_Contents.displayContainerContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
-
-			});
-
-			_TreeHelper.initTree(contentTree, _Contents.treeInitFunction, 'structr-ui-contents');
-
-			$(window).off('resize').resize(function() {
-				_Contents.resize();
-			});
-
-			Structr.unblockMenu(100);
-
-			_Contents.resize();
+			_Contents.setWorkingDirectory(data.node.id);
+			_Contents.displayContainerContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
 
 		});
+
+		_TreeHelper.initTree(contentTree, _Contents.treeInitFunction, 'structr-ui-contents');
+
+		$(window).off('resize').resize(function() {
+			_Contents.resize();
+		});
+
+		Structr.unblockMenu(100);
+
+		_Contents.resize();
+
 	},
 	deepOpen: function(d, dirs) {
 

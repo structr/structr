@@ -96,163 +96,162 @@ var _Pages = {
 			});
 		}
 	},
-	onload: function() {
+	onload: async function() {
 
-		Structr.fetchHtmlTemplate('pages/pages', {}, function(html) {
+		let html = await Structr.fetchHtmlTemplate('pages/pages', {});
 
-			main[0].innerHTML = html;
+		main[0].innerHTML = html;
 
-			_Pages.init();
+		_Pages.init();
 
-			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('pages'));
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('pages'));
 
-			activeTab = LSWrapper.getItem(_Pages.activeTabKey);
-			activeTabLeft = LSWrapper.getItem(_Pages.activeTabLeftKey);
-			activeTabRight = LSWrapper.getItem(_Pages.activeTabRightKey);
+		activeTab = LSWrapper.getItem(_Pages.activeTabKey);
+		activeTabLeft = LSWrapper.getItem(_Pages.activeTabLeftKey);
+		activeTabRight = LSWrapper.getItem(_Pages.activeTabRightKey);
 
-			pagesSlideout = $('#pages');
-			activeElementsSlideout = $('#activeElements');
-			dataBindingSlideout = $('#dataBinding');
-			localizationsSlideout = $('#localizations');
+		pagesSlideout = $('#pages');
+		activeElementsSlideout = $('#activeElements');
+		dataBindingSlideout = $('#dataBinding');
+		localizationsSlideout = $('#localizations');
 
-			previews = $('#previews');
+		previews = $('#previews');
 
-			widgetsSlideout = $('#widgetsSlideout');
-			paletteSlideout = $('#palette');
-			componentsSlideout = $('#components');
-			elementsSlideout = $('#elements');
-			elementsSlideout.data('closeCallback', _Elements.clearUnattachedNodes);
+		widgetsSlideout = $('#widgetsSlideout');
+		paletteSlideout = $('#palette');
+		componentsSlideout = $('#components');
+		elementsSlideout = $('#elements');
+		elementsSlideout.data('closeCallback', _Elements.clearUnattachedNodes);
 
-			var pagesTabSlideoutAction = function() {
-				_Pages.leftSlideoutTrigger(this, pagesSlideout, [activeElementsSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function (params) {
-					_Pages.resize(params.sw, 0);
-				}, _Pages.slideoutClosedCallback);
-			};
-			$('#pagesTab').on('click', pagesTabSlideoutAction).droppable({
-				tolerance: 'touch',
-				over: pagesTabSlideoutAction
-			});
-
-			$('#activeElementsTab').on('click', function() {
-				_Pages.leftSlideoutTrigger(this, activeElementsSlideout, [pagesSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function(params) {
-					if (params.isOpenAction) {
-						_Pages.refreshActiveElements();
-					}
-					_Pages.resize(params.sw, 0);
-				}, _Pages.slideoutClosedCallback);
-			});
-
-			$('#dataBindingTab').on('click', function() {
-				_Pages.leftSlideoutTrigger(this, dataBindingSlideout, [pagesSlideout, activeElementsSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function(params) {
-					if (params.isOpenAction) {
-						_Pages.reloadDataBindingWizard();
-					}
-					_Pages.resize(params.sw, 0);
-				}, _Pages.slideoutClosedCallback);
-			});
-
-			$('#localizationsTab').on('click', function() {
-				_Pages.leftSlideoutTrigger(this, localizationsSlideout, [pagesSlideout, activeElementsSlideout, dataBindingSlideout], _Pages.activeTabLeftKey, function(params) {
-					_Pages.resize(params.sw, 0);
-				}, _Pages.slideoutClosedCallback);
-			});
-
-			$('#localizations input.locale').on('keydown', function (e) {
-				if (e.which === 13) {
-					_Pages.refreshLocalizations();
-				}
-			});
-			$('#localizations button.refresh').on('click', function () {
-				_Pages.refreshLocalizations();
-			});
-
-			Structr.appendInfoTextToElement({
-				element: $('#localizations button.refresh'),
-				text: "On this tab you can load the localizations requested for the given locale on the currently previewed page (including the UUID of the details object and the query parameters which are also used for the preview).<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
-				insertAfter: true,
-				css: {
-					right: "2px",
-					top: "2px"
-				},
-				helpElementCss: {
-					width: "200px"
-				},
-				offsetX: -50
-			});
-
-			$('#widgetsTab').on('click', function() {
-				_Pages.rightSlideoutClickTrigger(this, widgetsSlideout, [paletteSlideout, componentsSlideout, elementsSlideout], _Pages.activeTabRightKey, function(params) {
-					if (params.isOpenAction) {
-						_Widgets.reloadWidgets();
-					}
-					_Pages.resize(0, params.sw);
-				}, _Pages.slideoutClosedCallback);
-			});
-
-			$('#paletteTab').on('click', function() {
-				_Pages.rightSlideoutClickTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], _Pages.activeTabRightKey, function(params) {
-					if (params.isOpenAction) {
-						_Elements.reloadPalette();
-					}
-					_Pages.resize(0, params.sw);
-				}, _Pages.slideoutClosedCallback);
-			});
-
-			var componentsTabSlideoutAction = function() {
-				_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], _Pages.activeTabRightKey, function(params) {
-					if (params.isOpenAction) {
-						_Elements.reloadComponents();
-					}
-					_Pages.resize(0, params.sw);
-				}, _Pages.slideoutClosedCallback);
-			};
-			$('#componentsTab').on('click', componentsTabSlideoutAction).droppable({
-				tolerance: 'touch',
-				over: function() {
-					if (!componentsSlideout.hasClass('open')) {
-						componentsTabSlideoutAction();
-					}
-				}
-			});
-
-			$('#elementsTab').on('click', function() {
-				_Pages.rightSlideoutClickTrigger(this, elementsSlideout, [widgetsSlideout, paletteSlideout, componentsSlideout], _Pages.activeTabRightKey, function(params) {
-					if (params.isOpenAction) {
-						_Elements.reloadUnattachedNodes();
-					}
-					_Pages.resize(0, params.sw);
-				}, _Pages.slideoutClosedCallback);
-			});
-
-			previewTabs = $('<ul id="previewTabs"></ul>');
-			previews.append(previewTabs);
-
-			_Pages.refresh();
-
-			if (activeTabLeft) {
-				$('#' + activeTabLeft).addClass('active').click();
-			}
-
-			if (activeTabRight) {
-				$('#' + activeTabRight).addClass('active').click();
-			}
-
-			// activate first page if local storage is empty
-			if (!LSWrapper.getItem(_Pages.activeTabKey)) {
-				window.setTimeout(function(e) {
-					_Pages.activateTab($('#previewTabs .page').first());
-				}, 1000);
-			}
-
-			_Pages.resize();
-
-			$(window).off('resize').resize(function() {
-				_Pages.resize();
-			});
-
-			Structr.unblockMenu(500);
-
+		var pagesTabSlideoutAction = function() {
+			_Pages.leftSlideoutTrigger(this, pagesSlideout, [activeElementsSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function (params) {
+				_Pages.resize(params.sw, 0);
+			}, _Pages.slideoutClosedCallback);
+		};
+		$('#pagesTab').on('click', pagesTabSlideoutAction).droppable({
+			tolerance: 'touch',
+			over: pagesTabSlideoutAction
 		});
+
+		$('#activeElementsTab').on('click', function() {
+			_Pages.leftSlideoutTrigger(this, activeElementsSlideout, [pagesSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function(params) {
+				if (params.isOpenAction) {
+					_Pages.refreshActiveElements();
+				}
+				_Pages.resize(params.sw, 0);
+			}, _Pages.slideoutClosedCallback);
+		});
+
+		$('#dataBindingTab').on('click', function() {
+			_Pages.leftSlideoutTrigger(this, dataBindingSlideout, [pagesSlideout, activeElementsSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function(params) {
+				if (params.isOpenAction) {
+					_Pages.reloadDataBindingWizard();
+				}
+				_Pages.resize(params.sw, 0);
+			}, _Pages.slideoutClosedCallback);
+		});
+
+		$('#localizationsTab').on('click', function() {
+			_Pages.leftSlideoutTrigger(this, localizationsSlideout, [pagesSlideout, activeElementsSlideout, dataBindingSlideout], _Pages.activeTabLeftKey, function(params) {
+				_Pages.resize(params.sw, 0);
+			}, _Pages.slideoutClosedCallback);
+		});
+
+		$('#localizations input.locale').on('keydown', function (e) {
+			if (e.which === 13) {
+				_Pages.refreshLocalizations();
+			}
+		});
+		$('#localizations button.refresh').on('click', function () {
+			_Pages.refreshLocalizations();
+		});
+
+		Structr.appendInfoTextToElement({
+			element: $('#localizations button.refresh'),
+			text: "On this tab you can load the localizations requested for the given locale on the currently previewed page (including the UUID of the details object and the query parameters which are also used for the preview).<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
+			insertAfter: true,
+			css: {
+				right: "2px",
+				top: "2px"
+			},
+			helpElementCss: {
+				width: "200px"
+			},
+			offsetX: -50
+		});
+
+		$('#widgetsTab').on('click', function() {
+			_Pages.rightSlideoutClickTrigger(this, widgetsSlideout, [paletteSlideout, componentsSlideout, elementsSlideout], _Pages.activeTabRightKey, function(params) {
+				if (params.isOpenAction) {
+					_Widgets.reloadWidgets();
+				}
+				_Pages.resize(0, params.sw);
+			}, _Pages.slideoutClosedCallback);
+		});
+
+		$('#paletteTab').on('click', function() {
+			_Pages.rightSlideoutClickTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], _Pages.activeTabRightKey, function(params) {
+				if (params.isOpenAction) {
+					_Elements.reloadPalette();
+				}
+				_Pages.resize(0, params.sw);
+			}, _Pages.slideoutClosedCallback);
+		});
+
+		var componentsTabSlideoutAction = function() {
+			_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], _Pages.activeTabRightKey, function(params) {
+				if (params.isOpenAction) {
+					_Elements.reloadComponents();
+				}
+				_Pages.resize(0, params.sw);
+			}, _Pages.slideoutClosedCallback);
+		};
+		$('#componentsTab').on('click', componentsTabSlideoutAction).droppable({
+			tolerance: 'touch',
+			over: function() {
+				if (!componentsSlideout.hasClass('open')) {
+					componentsTabSlideoutAction();
+				}
+			}
+		});
+
+		$('#elementsTab').on('click', function() {
+			_Pages.rightSlideoutClickTrigger(this, elementsSlideout, [widgetsSlideout, paletteSlideout, componentsSlideout], _Pages.activeTabRightKey, function(params) {
+				if (params.isOpenAction) {
+					_Elements.reloadUnattachedNodes();
+				}
+				_Pages.resize(0, params.sw);
+			}, _Pages.slideoutClosedCallback);
+		});
+
+		previewTabs = $('<ul id="previewTabs"></ul>');
+		previews.append(previewTabs);
+
+		_Pages.refresh();
+
+		if (activeTabLeft) {
+			$('#' + activeTabLeft).addClass('active').click();
+		}
+
+		if (activeTabRight) {
+			$('#' + activeTabRight).addClass('active').click();
+		}
+
+		// activate first page if local storage is empty
+		if (!LSWrapper.getItem(_Pages.activeTabKey)) {
+			window.setTimeout(function(e) {
+				_Pages.activateTab($('#previewTabs .page').first());
+			}, 1000);
+		}
+
+		_Pages.resize();
+
+		$(window).off('resize').resize(function() {
+			_Pages.resize();
+		});
+
+		Structr.unblockMenu(500);
+
 	},
 	clearPreviews: function() {
 

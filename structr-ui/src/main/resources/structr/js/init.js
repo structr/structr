@@ -295,16 +295,27 @@ var Structr = {
 		border: 'none',
 		backgroundColor: 'transparent'
 	},
-	templateCache: new AsyncObjectCache(function(templateName) {
+	templateCache: {
+		cache: {},
+		get: async (templateName) => {
 
-		Promise.resolve($.ajax('templates/' + templateName + '.html?t=' + (new Date().getTime()))).then(function(templateHtml) {
-			Structr.templateCache.addObject(templateHtml, templateName);
-		}).catch(function(e) {
-			console.log(e.statusText, templateName, e);
-		});
+			if (Structr.templateCache.cache[templateName]) {
+				return Structr.templateCache.cache[templateName];
+			}
 
-	}),
+			let response = await fetch('templates/' + templateName + '.html?t=' + (new Date().getTime()));
+			if (response.ok) {
 
+				let templateHtml = await response.text();
+				Structr.templateCache.cache[templateName] = templateHtml;
+				return Structr.templateCache.cache[templateName];
+
+			} else {
+
+				new MessageBuilder().title('Unable to fetch template "' + templateName + '"').warning('The server responded with <code>' + response.statusText + '</code>. The template can not be displayed. Please refresh to resolve the issue.').requiresConfirmation().allowConfirmAll().show();
+			}
+		}
+	},
 	reconnect: function() {
 		Structr.stopPing();
 		Structr.stopReconnect();
@@ -2053,13 +2064,15 @@ var Structr = {
 			}
 		}
 	},
-	fetchHtmlTemplate: function(templateName, templateConfig, callback) {
+	fetchHtmlTemplate: async function(templateName, templateConfig) {
 
-		Structr.templateCache.registerCallback(templateName, templateName, function(templateHtml, cacheHit) {
-			var convertTemplateToLiteral = new Function('config', 'return `' + templateHtml + '`;');
-			var parameterizedTemplate = convertTemplateToLiteral(templateConfig);
-			callback(parameterizedTemplate, cacheHit);
-		});
+		let templateHtml = await Structr.templateCache.get(templateName);
+
+		let convertTemplateToLiteral = new Function('config', 'return `' + templateHtml + '`;');
+		let parameterizedTemplate = convertTemplateToLiteral(templateConfig);
+
+		return parameterizedTemplate;
+
 	},
 	activateCommentsInElement: function(elem, defaults) {
 
