@@ -277,10 +277,6 @@ table.props input.readonly {
 	background-color: transparent ! important;
 }
 
-table.props td.key {
-	width: 20%;
-}
-
 table.props td.__value {
 	width: 80%;
 }

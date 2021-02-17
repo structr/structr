@@ -5692,3 +5692,7 @@ div#database-connections form input {
 	height: 16px;
 	width: 200px;
 }
+
+table.props td.key {
+	width: 20%;
+}
