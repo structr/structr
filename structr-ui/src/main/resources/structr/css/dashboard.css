@@ -195,3 +195,7 @@ div#dashboard .tabs-contents {
 	margin-bottom: 4px;
 	padding: 4px;
 }
+
+table.props td.key {
+	width: 20%;
+}

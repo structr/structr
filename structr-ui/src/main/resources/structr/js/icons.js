@@ -379,6 +379,6 @@ var _Icons = {
 	},
 
 	getHtmlForIcon: function (icon) {
-		return '<i class="' + _Icons.getFullSpriteClass(icon) + '" />';
+		return '<i class="' + _Icons.getFullSpriteClass(icon) + '"></i>';
 	}
 };

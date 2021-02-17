@@ -983,22 +983,6 @@ ul#previewTabs {
 	background-image: none;
 }
 
-#previews {
-	display: flex;
-	flex-direction: column;
-	margin: 4px 25px 0 25px;
-	height: calc(100% - 8px);
-}
-
-#previews.no-preview::before {
-	content: "- no preview selected -";
-	font-style: italic;
-	position: absolute;
-	left: 50%;
-	top: 50%;
-	z-index: -1;
-}
-
 .previewBox {
 	float: left;
 	background: var(--solid-white);
@@ -1187,14 +1171,6 @@ span.id {
 	margin-right: 4px;
 	position: relative;
 	color: var(--gray-555);
-}
-
-#folder-contents .thumbnailZoom {
-	max-width: 300px;
-	max-height: 300px;
-	position: absolute;
-	z-index: 4;
-	display: none;
 }
 
 #imageFolders .folder {
@@ -1478,18 +1454,6 @@ i.button {
 .nodeSelected {
 	background-color: var(--light-yellow-bg) ! important;
 	box-shadow: 0 0 36px var(--gray-opacity-20);
-}
-
-#folder-contents .nodeActive {
-	background-color: var(--light-gray-bg-f5) ! important;
-	border: 1px solid var(--gray-eee);
-}
-
-#folder-contents .nodeHover, .image.nodeHover {
-	color: var(--gray-333) ! important;
-	background: var(--light-structr-green) ! important;
-	border: 1px solid transparent;
-	z-index: 1;
 }
 
 #graph-canvas {
@@ -3758,10 +3722,6 @@ input.tree-search-input:focus {
 	margin-left: 0;
 }
 
-#folder-contents-container select.select-create-type {
-	min-width: 100px;
-}
-
 .tree-contents-container > .button, .tree-context-container > .button, .tree-contents-container > .button:hover, .tree-context-container > .button:hover {
 	margin-bottom: 0;
 	vertical-align: top;
@@ -3904,27 +3864,6 @@ input.tree-search-input:focus {
 	margin: 0px;
 	font-size: 9pt;
 	width: 100%;
-}
-
-#code-contents table,
-#folder-contents table {
-	table-layout: fixed;
-}
-
-#folder-contents table th:nth-child(1) {
-	width: 24px;
-}
-
-#folder-contents table th:nth-child(3) {
-	width: 48px;
-}
-
-#folder-contents table th:nth-child(4) {
-	width: 192px;
-}
-
-#folder-contents table th:nth-child(5) {
-	width: 120px;
 }
 
 #folder-contents td.file-icon, #code-contents td.code-type, #contents-contents td.file-icon, #crawler-list td.file-icon {
@@ -4299,122 +4238,6 @@ button.create-form-button.accept {
 	margin: 0 ! important;
 }
 
-#folder-contents .tile {
-	display: inline-block;
-	text-align: center;
-	position: relative;
-}
-
-#folder-contents .tile .node {
-	width: 100px;
-	height: 100px;
-}
-
-#folder-contents .img-tile .node {
-	width: 300px;
-	height: 300px;
-}
-
-#folder-contents .tile .file-icon {
-	margin-top: 6px;
-	margin-bottom: 2px;
-	height: 48px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-}
-
-#folder-contents .img-tile .file-icon {
-	margin-top: 6px;
-	margin-bottom: 2px;
-	height: 296px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-}
-
-#folder-contents .file-icon img.thumbnail {
-	max-height: 48px;
-	max-width: 48px;
-	margin: auto;
-}
-
-#folder-contents .tile i.fa {
-	font-size: 48px;
-}
-
-#folder-contents .tile i.fa.fa-plug {
-	font-size: 18px;
-	left: 26px;
-	top: 8px;
-}
-
-#folder-contents .tile i.button,
-#folder-contents .tile .minify_file_icon {
-	position: absolute;
-	bottom: 4px;
-}
-
-#folder-contents .tile .push_icon {
-	left: 24px;
-}
-
-#folder-contents .tile i.edit_file_icon,
-#folder-contents .tile i.view_icon,
-#folder-contents .tile .minify_file_icon {
-	left: 44px;
-}
-
-#folder-contents .tile i.edit_props_icon {
-	left: 64px;
-}
-
-#folder-contents .img-tile i.edit_props_icon {
-	left: 260px;
-}
-
-#folder-contents .tile i.edit_icon {
-	left: 44px;
-}
-
-#folder-contents .img-tile i.edit_icon {
-	left: 240px;
-}
-
-#folder-contents .tile img.tn {
-	max-width: 64px;
-	max-height: 48px;
-}
-
-#folder-contents .img-tile img.tn {
-	max-width: 296px;
-	max-height: 296px;
-}
-
-#folder-contents .tile i.delete_icon, #folder-contents .tile i.remove_favorite_icon {
-	top: 4px;
-	right: 4px;
-}
-
-#folder-contents .tile i.key_icon {
-	left: 84px;
-}
-
-#folder-contents .img-tile i.key_icon {
-	left: 280px;
-}
-
-#folder-contents .tile .minify_file_icon i {
-	font-size: 16px ! important;
-}
-
-#folder-contents table th, #contents-contents table th, #crawler-list table th {
-	text-align: left;
-	padding-left: 8px;
-}
-
 table.dataTable thead th, table.dataTable thead td {
 	border-bottom: 1px solid var(--gray-ccc) !important;
 }
@@ -4465,16 +4288,6 @@ table.dataTable thead th, table.dataTable thead td {
 #files-table tbody tr td input {
 	margin-top: 4px;
 	min-width: 100px;
-}
-
-#folder-contents .thumbnail,
-#folder-contents .thumbnail .file,
-#folder-contents .thumbnail i.fa-file-image-o {
-	color: var(--gray-aaa);
-}
-
-#folder-contents .thumbnail i.fa-file-image-o {
-	font-size: 16px;
 }
 
 i.fa {
