@@ -56,7 +56,7 @@ var _Pages = {
 		Structr.getShadowPage();
 
 	},
-	resize: function(offsetLeft, offsetRight) {
+	resize: function() {
 
 		Structr.resize();
 
@@ -68,32 +68,27 @@ var _Pages = {
 
 		if (previews) {
 
-			if (offsetLeft) {
-				previews.css({
-					marginLeft: '+=' + offsetLeft + 'px'
-				});
-			}
+			let leftSlideout  = $('.slideOutLeft.open');
+			let leftTab       = (leftSlideout.length === 0)  ? $('.slideOutRight .compTab') : $('.compTab', leftSlideout);
+			let marginLeft    = (leftSlideout.length > 0 && leftTab.length > 0)   ? leftSlideout[0].getBoundingClientRect().right : 0;
+			marginLeft       += leftTab[0].getBoundingClientRect().width;
 
-			if (offsetRight) {
-				previews.css({
-					marginRight: '+=' + offsetRight + 'px'
-				});
-			}
+			let rightSlideout = $('.slideOutRight.open');
+			let rightTab      = (rightSlideout.length === 0) ? $('.slideOutRight .compTab') : $('.compTab', rightSlideout);
+			let marginRight   = (rightSlideout.length > 0) ? (rightSlideout[0].getBoundingClientRect().right - rightSlideout[0].getBoundingClientRect().left) : 0;
+			marginRight      += rightTab[0].getBoundingClientRect().width;
 
-			let w = windowWidth - parseInt(previews.css('marginLeft')) - parseInt(previews.css('marginRight')) - 15 + 'px';
+			previews.css('marginLeft', marginLeft);
+			previews.css('marginRight', marginRight);
 
-			previews.css({
-				width: w
-			});
+			let w = windowWidth - marginLeft - marginRight - 15 + 'px';
 
-			$('.previewBox', previews).css({
-				width: w
-			});
+			previews.css('width', w);
+
+			$('.previewBox', previews).css('width', w);
 
 			var iframes = $('.previewBox', previews).find('iframe');
-			iframes.css({
-				width: w
-			});
+			iframes.css('width', w);
 		}
 	},
 	onload: async function() {
@@ -110,22 +105,22 @@ var _Pages = {
 		activeTabLeft = LSWrapper.getItem(_Pages.activeTabLeftKey);
 		activeTabRight = LSWrapper.getItem(_Pages.activeTabRightKey);
 
-		pagesSlideout = $('#pages');
+		pagesSlideout          = $('#pages');
 		activeElementsSlideout = $('#activeElements');
-		dataBindingSlideout = $('#dataBinding');
-		localizationsSlideout = $('#localizations');
+		dataBindingSlideout    = $('#dataBinding');
+		localizationsSlideout  = $('#localizations');
 
 		previews = $('#previews');
 
-		widgetsSlideout = $('#widgetsSlideout');
-		paletteSlideout = $('#palette');
+		widgetsSlideout    = $('#widgetsSlideout');
+		paletteSlideout    = $('#palette');
 		componentsSlideout = $('#components');
-		elementsSlideout = $('#elements');
+		elementsSlideout   = $('#elements');
 		elementsSlideout.data('closeCallback', _Elements.clearUnattachedNodes);
 
 		var pagesTabSlideoutAction = function() {
 			_Pages.leftSlideoutTrigger(this, pagesSlideout, [activeElementsSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function (params) {
-				_Pages.resize(params.sw, 0);
+				_Pages.resize();
 			}, _Pages.slideoutClosedCallback);
 		};
 		$('#pagesTab').on('click', pagesTabSlideoutAction).droppable({
@@ -138,7 +133,7 @@ var _Pages = {
 				if (params.isOpenAction) {
 					_Pages.refreshActiveElements();
 				}
-				_Pages.resize(params.sw, 0);
+				_Pages.resize();
 			}, _Pages.slideoutClosedCallback);
 		});
 
@@ -147,13 +142,13 @@ var _Pages = {
 				if (params.isOpenAction) {
 					_Pages.reloadDataBindingWizard();
 				}
-				_Pages.resize(params.sw, 0);
+				_Pages.resize();
 			}, _Pages.slideoutClosedCallback);
 		});
 
 		$('#localizationsTab').on('click', function() {
 			_Pages.leftSlideoutTrigger(this, localizationsSlideout, [pagesSlideout, activeElementsSlideout, dataBindingSlideout], _Pages.activeTabLeftKey, function(params) {
-				_Pages.resize(params.sw, 0);
+				_Pages.resize();
 			}, _Pages.slideoutClosedCallback);
 		});
 
@@ -185,7 +180,7 @@ var _Pages = {
 				if (params.isOpenAction) {
 					_Widgets.reloadWidgets();
 				}
-				_Pages.resize(0, params.sw);
+				_Pages.resize();
 			}, _Pages.slideoutClosedCallback);
 		});
 
@@ -194,7 +189,7 @@ var _Pages = {
 				if (params.isOpenAction) {
 					_Elements.reloadPalette();
 				}
-				_Pages.resize(0, params.sw);
+				_Pages.resize();
 			}, _Pages.slideoutClosedCallback);
 		});
 
@@ -203,7 +198,7 @@ var _Pages = {
 				if (params.isOpenAction) {
 					_Elements.reloadComponents();
 				}
-				_Pages.resize(0, params.sw);
+				_Pages.resize();
 			}, _Pages.slideoutClosedCallback);
 		};
 		$('#componentsTab').on('click', componentsTabSlideoutAction).droppable({
@@ -220,7 +215,7 @@ var _Pages = {
 				if (params.isOpenAction) {
 					_Elements.reloadUnattachedNodes();
 				}
-				_Pages.resize(0, params.sw);
+				_Pages.resize();
 			}, _Pages.slideoutClosedCallback);
 		});
 
@@ -1224,9 +1219,9 @@ var _Pages = {
 			}
 		}
 	},
-	slideoutClosedCallback: function(wasOpen, offsetLeft, offsetRight) {
+	slideoutClosedCallback: function(wasOpen) {
 		if (wasOpen) {
-			_Pages.resize(offsetLeft, offsetRight);
+			_Pages.resize();
 		}
 	},
 	refreshLocalizations: function() {

@@ -1113,12 +1113,11 @@ var Structr = {
 
 		var t = $(triggerEl);
 		t.addClass('active');
-		var slideoutWidth = rsw + 12;
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
 		slideoutElement.width(rsw);
 		slideoutElement.animate({right: 0 + 'px'}, 100, function() {
 			if (typeof callback === 'function') {
-				callback({sw: slideoutWidth, isOpenAction: true});
+				callback({isOpenAction: true});
 			}
 		}).zIndex(1);
 		slideoutElement.addClass('open');
@@ -1136,12 +1135,10 @@ var Structr = {
 				});
 				ui.position.top += (ui.helper.width() / 2 - 6);
 				ui.position.left = - t.width() / 2 - 20;
-				var oldRightSlideoutWidth = slideoutWidth;
-				slideoutWidth = w + 12;
 
 				if (typeof callback === 'function') {
 					LSWrapper.setItem(_Pages.rightSlideoutWidthKey, slideoutElement.width());
-					callback({sw: (slideoutWidth - oldRightSlideoutWidth)});
+					callback();
 				}
 			},
 			stop: function(e, ui) {
@@ -1159,20 +1156,18 @@ var Structr = {
 		});
 	},
 	openLeftSlideOut: function(triggerEl, slideoutElement, activeTabKey, callback) {
+
 		var storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.leftSlideoutWidthKey);
 		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (slideoutElement.width() + 12);
 
 		var t = $(triggerEl);
 		t.addClass('active');
-		var slideoutWidth = psw + 12;
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
 		slideoutElement.width(psw);
 		slideoutElement.animate({left: 0 + 'px'}, 100, function() {
 			if (typeof callback === 'function') {
-				callback({sw: slideoutWidth, isOpenAction: true});
+				callback({isOpenAction: true});
 			}
-		}).zIndex(1);
-		slideoutElement.addClass('open');
 
 		t.draggable({
 			axis: 'x',
@@ -1185,14 +1180,12 @@ var Structr = {
 				slideoutElement.css({
 					width: w + 'px'
 				});
-				ui.position.top += (ui.helper.width() / 2 - 6);
+				ui.position.top  += (ui.helper.width() / 2 - 6);
 				ui.position.left -= (ui.helper.width() / 2 - 6);
-				var oldLeftSlideoutWidth = slideoutWidth;
-				slideoutWidth = w + 12;
 
 				if (typeof callback === 'function') {
 					LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
-					callback({sw: (slideoutWidth - oldLeftSlideoutWidth)});
+					callback();
 				}
 			},
 			stop: function(e, ui) {
@@ -1208,10 +1201,13 @@ var Structr = {
 				});
 			}
 		});
+		}).zIndex(1);
+
+		slideoutElement.addClass('open');
+
 	},
 	closeSlideOuts: function(slideouts, activeTabKey, callback) {
 		var wasOpen = false;
-		var rsw = 0;
 
 		slideouts.forEach(function(slideout) {
 			slideout.removeClass('open');
@@ -1220,10 +1216,9 @@ var Structr = {
 
 			if (Math.abs($(window).width() - left) >= 3) {
 				wasOpen = true;
-				rsw = sw;
 				slideout.animate({right: '-=' + sw + 'px'}, 100, function() {
 					if (typeof callback === 'function') {
-						callback(wasOpen, 0, -rsw);
+						callback(wasOpen);
 					}
 				}).zIndex(2);
 				$('.compTab.active', slideout).removeClass('active').draggable('destroy');
