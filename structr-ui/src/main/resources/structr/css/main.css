@@ -5767,3 +5767,7 @@ table.props td.__value {
 #dialogBox .dialogText .props {
 	height: 100%;
 }
+
+#dialogBox .dialogText {
+	position: relative;
+}

@@ -266,10 +266,6 @@ input.readonly {
 	clear: both;
 }
 
-#dialogBox .dialogText {
-	position: relative;
-}
-
 #dialogBox .dialogText .thumbnailZoom {
 	max-width: 776px;
 	max-height: 480px;
