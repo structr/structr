@@ -31,9 +31,15 @@ export class Frontend {
 		this.boundHandleGenericEvent = this.handleGenericEvent.bind(this);
 		this.boundHandleDragStart    = this.handleDragStart.bind(this);
 		this.boundHandleDragOver     = this.handleDragOver.bind(this);
+		this.boundHandleFocus        = this.handleFocus.bind(this);
+		this.boundHandleBlur         = this.handleBlur.bind(this);
 		this.boundHandleDrag         = this.handleDrag.bind(this);
+
+		// variables
+		this.currentlyFocusedElement = '';
 		this.timeout                 = -1;
 
+		// init
 		this.bindEvents();
 	}
 
@@ -154,7 +160,7 @@ export class Frontend {
 
 			} else {
 
-				this.reloadPartial(reloadTarget, parameters);
+				this.reloadPartial(reloadTarget, parameters, element);
 			}
 
 		} else {
@@ -165,15 +171,21 @@ export class Frontend {
 		}
 	}
 
-	handleError(button, error, status) {
+	handleError(element, error, status) {
 
-		console.log(error);
-		console.log(status);
+		if (error && error.status) {
 
-		button.dispatchEvent(new Event('structr-error', { detail: status }));
+			switch (error.status) {
+
+				case 401:
+				case 403:
+					window.location.reload();
+					break;
+			}
+		}
 	}
 
-	reloadPartial(selector, parameters) {
+	reloadPartial(selector, parameters, element) {
 
 		let reloadTargets = document.querySelectorAll(selector);
 		if (reloadTargets.length) {
@@ -193,7 +205,7 @@ export class Frontend {
 						method: 'GET',
 						credentials: 'same-origin'
 					}).then(response => {
-						if (!response.ok) { throw new Error('Network response was not ok.'); }
+						if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
 						return response.text();
 					}).then(html => {
 						var content = document.createElement(container.nodeName);
@@ -206,9 +218,22 @@ export class Frontend {
 							}
 							container.dispatchEvent(new Event('structr-reload'));
 						}
+
+						// restore focus on selected element after partial reload
+						if (this.focusId && this.focusTarget && this.focusName) {
+
+							let restoreFocus = document.querySelector('*[name="' + this.focusName + '"][data-structr-id="' + this.focusId + '"][data-structr-target="' + this.focusTarget + '"]');
+							if (restoreFocus) {
+
+								if (restoreFocus.focus && typeof restoreFocus.focus === 'function') { restoreFocus.focus(); }
+								if (restoreFocus.select && typeof restoreFocus.select === 'function') { restoreFocus.select(); }
+							}
+						}
+
 						this.bindEvents();
+
 					}).catch(e => {
-						console.log(e);
+						this.handleError(element, e, {});
 					});
 
 				} else {
@@ -345,7 +370,10 @@ export class Frontend {
 						credentials: 'same-origin'
 					})
 
-					.then(response => response.json().then(json => ({ json: json, status: response.status, statusText: response.statusText })))
+					.then(response => {
+						if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
+						return response.json().then(json => ({ json: json, status: response.status, statusText: response.statusText }))
+					})
 					.then(response => this.handleResult(target, response.json.result, response.status))
 					.catch(error   => this.handleError(target, error, {}));
 				}
@@ -468,6 +496,18 @@ export class Frontend {
 		event.stopPropagation();
 	}
 
+	handleFocus(event) {
+		this.focusTarget = event.currentTarget.dataset.structrTarget;
+		this.focusId     = event.currentTarget.dataset.structrId;
+		this.focusName   = event.currentTarget.name;
+	}
+
+	handleBlur(event) {
+		this.focusTarget = undefined;
+		this.focusName   = undefined;
+		this.focusId     = undefined;
+	}
+
 	bindEvents() {
 
 		document.querySelectorAll('*[data-structr-events]').forEach(elem => {
@@ -493,6 +533,17 @@ export class Frontend {
 						elem.addEventListener('drag',      this.boundHandleDrag);
 					}
 				}
+			}
+
+			if (elem.dataset.structrId && elem.dataset.structrTarget && elem.name) {
+
+				// capture focus
+				elem.removeEventListener('focus', this.boundHandleFocus);
+				elem.addEventListener('focus', this.boundHandleFocus);
+
+				// capture blur
+				elem.removeEventListener('blur', this.boundHandleBlur);
+				elem.addEventListener('blur', this.boundHandleBlur);
 			}
 		});
 	}

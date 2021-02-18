@@ -16,18 +16,29 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-.dialog {
-	margin: auto;
+
+/*
+* Search (similar to crud search box but different)
+*/
+.searchBox {
+	position: absolute;
+	right: 50px;
+	top: 70px;
+	z-index: 5;
+	line-height: 1em;
 }
 
-div#ldap-group-config div.row {
-	margin-bottom: 12px;
+.searchBox input.search {
+	border: 1px solid var(--link-color-active);
+	width: 260px;
+	height: 22px;
+	padding: 2px 4px;
 }
 
-div.custom-dialog {
-	padding: 12px 0 12px 0;
-}
-
-div.custom-dialog div.row label {
-	min-width: 120px !important;
+i.clearSearchIcon {
+	display: none;
+	position: absolute;
+	top: 9px;
+	right: 8px;
+	cursor: pointer;
 }

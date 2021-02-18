@@ -16,18 +16,19 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-.dialog {
-	margin: auto;
+
+#previews {
+	display: flex;
+	flex-direction: column;
+	margin: 4px 25px 0 25px;
+	height: calc(100% - 8px);
 }
 
-div#ldap-group-config div.row {
-	margin-bottom: 12px;
-}
-
-div.custom-dialog {
-	padding: 12px 0 12px 0;
-}
-
-div.custom-dialog div.row label {
-	min-width: 120px !important;
+#previews.no-preview::before {
+	content: "- no preview selected -";
+	font-style: italic;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	z-index: -1;
 }

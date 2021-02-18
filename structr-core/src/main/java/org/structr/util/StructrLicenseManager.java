@@ -457,6 +457,9 @@ public class StructrLicenseManager implements LicenseManager {
 			return false;
 		}
 
+		startDate = licenseStartDate;
+		endDate   = licenseEndDate;
+
 		if ("*".equals(hostId)) {
 
 			// check volume license against server addresses
@@ -482,9 +485,6 @@ public class StructrLicenseManager implements LicenseManager {
 				return false;
 			}
 		}
-
-		startDate = licenseStartDate;
-		endDate   = licenseEndDate;
 
 		return true;
 	}

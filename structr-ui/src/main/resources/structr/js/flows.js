@@ -49,90 +49,82 @@ var _Flows = {
 
 		main.querySelector('#flows-tree').style.width = left - 14 + 'px';
 	},
-	onload: function() {
+	onload: async function() {
+
+		let html = await Structr.fetchHtmlTemplate('flows/flows', {});
+
+		main = document.querySelector('#main');
+
+		main.innerHTML = html;
 
 		_Flows.init();
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('flows'));
 
-		main = document.querySelector('#main');
-
-		main.innerHTML = '<div class="tree-main" id="flows-main"><div class="column-resizer"></div><div class="tree-container" id="flows-tree-container"><div class="tree" id="flows-tree"></div></div><div class="tree-contents-container" id="flows-canvas-container"><div class="tree-contents tree-contents-with-top-buttons" id="flows-canvas"></div></div>';
 		flowsMain = document.querySelector('#flows-main');
-
-		let markup = `
-			<div class="input-and-button"><input id="name-input" type="text" placeholder="Enter flow name"><button id="create-new-flow" class="action btn"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add</button></div>
-			<button class="delete_flow_icon button disabled"><i title="Delete" class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i> Delete flow</button>
-			<label>Highlight: <select id="flow-focus-select"><option value="none">-</option><option value="action">Execution Flow</option><option value="data">Data Flow</option><option value="logic">Logic Flow</option><option value="exception">Exception Handling</option></select></label>
-			<button class="run_flow_icon button disabled"><i title="Run" class="${_Icons.getFullSpriteClass(_Icons.exec_icon)}"></i> Run</button>
-			<button class="reset_view_icon button"><i title="Reset view" class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)}"></i> Reset view</button>
-			<button class="layout_icon button disabled"><i title="Layout" class="${_Icons.getFullSpriteClass(_Icons.wand_icon)}"></i> Layout</button>
-		`;
-
-		document.querySelector('#flows-canvas-container').insertAdjacentHTML('afterbegin', markup);
 
 		let rest = new Rest();
 		let persistence = new Persistence();
 
 		async function getOrCreateFlowPackage(packageArray) {
 
-		    if (packageArray !== null && packageArray.length > 0) {
+			if (packageArray !== null && packageArray.length > 0) {
 
-		        let currentPackage = packageArray[packageArray.length-1];
-		        packageArray.pop();
+				let currentPackage = packageArray[packageArray.length-1];
+				packageArray.pop();
 
-                let result = await persistence.getNodesByName(currentPackage, {type:"FlowContainerPackage"});
+				let result = await persistence.getNodesByName(currentPackage, {type:"FlowContainerPackage"});
 
-                if (result != null && result.length > 0 && result[0].effectiveName === (packageArray.join('.') + '.' + currentPackage)) {
+				if (result != null && result.length > 0 && result[0].effectiveName === (packageArray.join('.') + '.' + currentPackage)) {
 
-                    result = result[0];
-                } else {
+					result = result[0];
+				} else {
 
-                    result = await persistence.createNode({type: "FlowContainerPackage", name: currentPackage});
-                }
+					result = await persistence.createNode({type: "FlowContainerPackage", name: currentPackage});
+				}
 
-		        if (packageArray.length > 0) {
-		            result.parent = await getOrCreateFlowPackage(packageArray);
-                }
+				if (packageArray.length > 0) {
+					result.parent = await getOrCreateFlowPackage(packageArray);
+				}
 
-		        return result;
-            }
+				return result;
+			}
 
-            return null;
-        }
+			return null;
+		}
 
 		async function createFlow(inputElement) {
-            let name = inputElement.value;
-            inputElement.value = "";
+			let name = inputElement.value;
+			inputElement.value = "";
 
-            let parentPackage = null;
+			let parentPackage = null;
 
-            if (name.indexOf(".") !== -1) {
-                let nameElements = name.split(".");
-                name = nameElements[nameElements.length -1];
-                nameElements.pop();
+			if (name.indexOf(".") !== -1) {
+				let nameElements = name.split(".");
+				name = nameElements[nameElements.length -1];
+				nameElements.pop();
 
-                parentPackage = await getOrCreateFlowPackage(nameElements);
-            }
+				parentPackage = await getOrCreateFlowPackage(nameElements);
+			}
 
-            let flowObject = {
-                type: "FlowContainer",
-                name: name
-            };
+			let flowObject = {
+				type: "FlowContainer",
+				name: name
+			};
 
-            if (parentPackage !== null) {
-                flowObject.flowPackage = parentPackage.id;
-            }
+			if (parentPackage !== null) {
+				flowObject.flowPackage = parentPackage.id;
+			}
 
-            persistence.createNode(flowObject).then( (r) => {
-               if (r !== null && r !== undefined && r.id !== null && r.id !== undefined) {
-                    _Flows.refreshTree(() => {
-                        $(flowsTree).jstree("deselect_all");
-                        $(flowsTree).jstree(true).select_node('li[id=\"' + r.id + '\"]');
-                    });
-               }
-            });
-        }
+			persistence.createNode(flowObject).then( (r) => {
+			   if (r !== null && r !== undefined && r.id !== null && r.id !== undefined) {
+					_Flows.refreshTree(() => {
+						$(flowsTree).jstree("deselect_all");
+						$(flowsTree).jstree(true).select_node('li[id=\"' + r.id + '\"]');
+					});
+			   }
+			});
+		}
 
 		function deleteFlow(id) {
 			if (!document.querySelector(".delete_flow_icon").getAttribute('class').includes('disabled')) {
@@ -144,17 +136,17 @@ var _Flows = {
 			}
 		}
 
-        async function getPackageByEffectiveName(name) {
-            let nameComponents = name.split("/");
-            nameComponents = nameComponents.slice(1, nameComponents.length);
-            let packages = await rest.get('/structr/rest/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join(".")));
-            return packages.result.length > 0 ? packages.result[0] : null;
-        }
+		async function getPackageByEffectiveName(name) {
+			let nameComponents = name.split("/");
+			nameComponents = nameComponents.slice(1, nameComponents.length);
+			let packages = await rest.get('/structr/rest/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join(".")));
+			return packages.result.length > 0 ? packages.result[0] : null;
+		}
 
-        document.querySelector('#name-input').onkeydown = ((event) => {
-            if (event.key === "Enter") {
-                createFlow(document.getElementById('name-input'));
-            }
+		document.querySelector('#name-input').onkeydown = ((event) => {
+			if (event.key === "Enter") {
+				createFlow(document.getElementById('name-input'));
+			}
 		});
 		document.querySelector('#create-new-flow').onclick = () => createFlow(document.getElementById('name-input'));
 		document.querySelector('.reset_view_icon').onclick = () => flowEditor.resetView();
@@ -195,8 +187,8 @@ var _Flows = {
 		_Flows.moveResizer();
 		Structr.initVerticalSlider(document.querySelector('#flows-main .column-resizer'), _Flows.flowsResizerLeftKey, 204, _Flows.moveResizer);
 
-        $(flowsTree).jstree({
-            plugins: ["themes", "dnd", "search", "state", "types", "wholerow","sort", "contextmenu"],
+		$(flowsTree).jstree({
+			plugins: ["themes", "dnd", "search", "state", "types", "wholerow","sort", "contextmenu"],
 			core: {
 				check_callback: true,
 				animation: 0,
@@ -219,97 +211,97 @@ var _Flows = {
 				}
 			},
 			contextmenu: {
-            	items: function(node) {
+				items: function(node) {
 					let menuItems = {};
 
-                    if (node.data === null || node.id === "root") {
+					if (node.data === null || node.id === "root") {
 
-                        menuItems.addFlow = {
-                            label: "Add Flow",
-                            action: async function (node) {
-                                let ref = $.jstree.reference(node.reference);
-                                let sel = ref.get_selected();
-                                if(!sel.length) { return false; }
+						menuItems.addFlow = {
+							label: "Add Flow",
+							action: async function (node) {
+								let ref = $.jstree.reference(node.reference);
+								let sel = ref.get_selected();
+								if(!sel.length) { return false; }
 
-                                let p = null;
-                                if (sel[0] !== "root") {
-                                    p = await getPackageByEffectiveName(sel[0]);
-                                }
+								let p = null;
+								if (sel[0] !== "root") {
+									p = await getPackageByEffectiveName(sel[0]);
+								}
 
-                                let newFlow = await persistence.createNode({
-                                    type: "FlowContainer",
-                                    flowPackage: p !== null ? p.id : null
-                                });
-                                newFlow.name = 'NewFlow-' + newFlow.id;
+								let newFlow = await persistence.createNode({
+									type: "FlowContainer",
+									flowPackage: p !== null ? p.id : null
+								});
+								newFlow.name = 'NewFlow-' + newFlow.id;
 
-                                newFlow = (await persistence.getNodesById(newFlow.id, {type: "FlowContainer"}))[0];
-                                _Flows.refreshTree(() => {
-                                    $(flowsTree).jstree("deselect_all");
-                                    $(flowsTree).jstree(true).select_node('li[id=\"' + newFlow.id + '\"]');
-                                    _Flows.initFlow(newFlow.id);
-                                });
+								newFlow = (await persistence.getNodesById(newFlow.id, {type: "FlowContainer"}))[0];
+								_Flows.refreshTree(() => {
+									$(flowsTree).jstree("deselect_all");
+									$(flowsTree).jstree(true).select_node('li[id=\"' + newFlow.id + '\"]');
+									_Flows.initFlow(newFlow.id);
+								});
 
-                            }
-                        };
-                        menuItems.addPackage = {
-                            label: "Add Package",
-                            action: async function (node) {
-                                let ref = $.jstree.reference(node.reference);
-                                let sel = ref.get_selected();
-                                if(!sel.length) { return false; }
+							}
+						};
+						menuItems.addPackage = {
+							label: "Add Package",
+							action: async function (node) {
+								let ref = $.jstree.reference(node.reference);
+								let sel = ref.get_selected();
+								if(!sel.length) { return false; }
 
-                                let p = null;
-                                if (sel[0] !== "root") {
-                                    p = await getPackageByEffectiveName(sel[0]);
-                                }
+								let p = null;
+								if (sel[0] !== "root") {
+									p = await getPackageByEffectiveName(sel[0]);
+								}
 
-                                let newFlowPackage = await persistence.createNode({
-                                    type: "FlowContainerPackage",
-                                    parent: p !== null ? p.id : null
-                                });
-                                newFlowPackage.name = 'NewFlowPackage-' + newFlowPackage.id;
+								let newFlowPackage = await persistence.createNode({
+									type: "FlowContainerPackage",
+									parent: p !== null ? p.id : null
+								});
+								newFlowPackage.name = 'NewFlowPackage-' + newFlowPackage.id;
 
-                                newFlowPackage = await persistence.getNodesById(newFlowPackage.id, {type: "FlowContainerPackage"});
-                                _Flows.refreshTree(() => {
-                                    $(flowsTree).jstree("deselect_all");
-                                    $(flowsTree).jstree(true).select_node('li[id=\"' + newFlowPackage.id + '\"]');
-                                });
-                            }
-                        };
+								newFlowPackage = await persistence.getNodesById(newFlowPackage.id, {type: "FlowContainerPackage"});
+								_Flows.refreshTree(() => {
+									$(flowsTree).jstree("deselect_all");
+									$(flowsTree).jstree(true).select_node('li[id=\"' + newFlowPackage.id + '\"]');
+								});
+							}
+						};
 
-                    }
+					}
 
-            		if (node.id !== 'root' && node.id !== 'globals') {
+					if (node.id !== 'root' && node.id !== 'globals') {
 						menuItems.renameItem = {
 							label: "Rename",
 							action: function(node) {
-                                let ref = $.jstree.reference(node.reference);
-                                let sel = ref.get_selected();
-                                if(!sel.length) { return false; }
-                                sel = sel[0];
-                                if(sel) {
-                                    ref.edit(sel);
-                                }
+								let ref = $.jstree.reference(node.reference);
+								let sel = ref.get_selected();
+								if(!sel.length) { return false; }
+								sel = sel[0];
+								if(sel) {
+									ref.edit(sel);
+								}
 							}
 						};
 						menuItems.deleteItem = {
 							label: "Delete",
 							action: function(node) {
-                                let ref = $.jstree.reference(node.reference);
-                                let sel = ref.get_selected();
-                                if(!sel.length) { return false; }
-                                sel = sel[0];
-                                if(sel) {
-                                    let deleteMsg = null;
-                                    if (ref._model.data[sel].data !== null && ref._model.data[sel].data.type === "FlowContainer") {
-                                        deleteMsg = "Delete flow?";
-                                    }  else {
-                                        deleteMsg = "Delete recurively?";
-                                    }
-                                    if (confirm(deleteMsg)) {
-                                        ref.delete_node(sel);
-                                    }
-                                }
+								let ref = $.jstree.reference(node.reference);
+								let sel = ref.get_selected();
+								if(!sel.length) { return false; }
+								sel = sel[0];
+								if(sel) {
+									let deleteMsg = null;
+									if (ref._model.data[sel].data !== null && ref._model.data[sel].data.type === "FlowContainer") {
+										deleteMsg = "Delete flow?";
+									}  else {
+										deleteMsg = "Delete recurively?";
+									}
+									if (confirm(deleteMsg)) {
+										ref.delete_node(sel);
+									}
+								}
 							}
 						};
 					}
@@ -325,7 +317,7 @@ var _Flows = {
 
 		$(flowsTree).on('select_node.jstree', function(a, b) {
 
-            if (b.event && b.event.type === "contextmenu") {
+			if (b.event && b.event.type === "contextmenu") {
 				return;
 			}
 
@@ -335,109 +327,109 @@ var _Flows = {
 			}
 		});
 
-        $(flowsTree).on('delete_node.jstree', function(event, data) {
+		$(flowsTree).on('delete_node.jstree', function(event, data) {
 
-        	let handleDeletion = async function() {
+			let handleDeletion = async function() {
 
-                let type = data.node.data !== null && data.node.data.type !== null ? data.node.data.type : "FlowContainerPackage";
-                let id = type === "FlowContainer" ? data.node.id : null;
+				let type = data.node.data !== null && data.node.data.type !== null ? data.node.data.type : "FlowContainerPackage";
+				let id = type === "FlowContainer" ? data.node.id : null;
 
-                if (id === null && type === "FlowContainerPackage") {
+				if (id === null && type === "FlowContainerPackage") {
 					let p = await getPackageByEffectiveName(data.node.id);
-                    id = p.id;
+					id = p.id;
 				}
 
 				if (id !== null) {
-                    persistence.deleteNode({
+					persistence.deleteNode({
 						type: type,
 						id: id
 					});
-                }
+				}
 
-                if (flowEditor !== undefined && flowEditor !== null && flowEditor.cleanup !== undefined) {
-                    flowEditor.cleanup();
-                    flowEditor = undefined;
-                }
+				if (flowEditor !== undefined && flowEditor !== null && flowEditor.cleanup !== undefined) {
+					flowEditor.cleanup();
+					flowEditor = undefined;
+				}
 
-                // display flow canvas
-                flowsCanvas.innerHTML = '<div id="nodeEditor" class="node-editor"></div>';
-            };
+				// display flow canvas
+				flowsCanvas.innerHTML = '<div id="nodeEditor" class="node-editor"></div>';
+			};
 
-            handleDeletion();
+			handleDeletion();
 
-        });
+		});
 
-        $(flowsTree).on('rename_node.jstree', function(event, data) {
+		$(flowsTree).on('rename_node.jstree', function(event, data) {
 
-            let handleRename = async function() {
+			let handleRename = async function() {
 
-                let type = data.node.data !== null && data.node.data.type !== null ? data.node.data.type : "FlowContainerPackage";
-                let id = type === "FlowContainer" ? data.node.id : null;
-                let name = data.text;
+				let type = data.node.data !== null && data.node.data.type !== null ? data.node.data.type : "FlowContainerPackage";
+				let id = type === "FlowContainer" ? data.node.id : null;
+				let name = data.text;
 
-                if (id === null && type === "FlowContainerPackage") {
-                    let p = await getPackageByEffectiveName(data.node.id);
-                    if (p !== null) {
-                        id = p.id;
-                    }
-                }
+				if (id === null && type === "FlowContainerPackage") {
+					let p = await getPackageByEffectiveName(data.node.id);
+					if (p !== null) {
+						id = p.id;
+					}
+				}
 
-                let dataObject = {
+				let dataObject = {
 					type: type,
 					id: id,
 					scheduledForIndexing: true
 				};
 
-                if (name.indexOf(".") !== -1) {
+				if (name.indexOf(".") !== -1) {
 					dataObject.effectiveName = name;
 				} else {
-                	dataObject.name = name;
+					dataObject.name = name;
 				}
 
-                if (id !== null) {
-                    await persistence._persistObject(dataObject);
+				if (id !== null) {
+					await persistence._persistObject(dataObject);
 
-                    _Flows.refreshTree(() => {});
-                }
+					_Flows.refreshTree(() => {});
+				}
 
-            };
+			};
 
-            handleRename();
+			handleRename();
 
-        });
+		});
 
-        $(flowsTree).on('move_node.jstree', function(event, data) {
+		$(flowsTree).on('move_node.jstree', function(event, data) {
 
-        	let handleParentChange = async function() {
+			let handleParentChange = async function() {
 
-                let type = data.node.data !== null && data.node.data.type !== null ? data.node.data.type : "FlowContainerPackage";
-                let parent = data.node.parent;
-                let id = type === "FlowContainer" ? data.node.id : null;
+				let type = data.node.data !== null && data.node.data.type !== null ? data.node.data.type : "FlowContainerPackage";
+				let parent = data.node.parent;
+				let id = type === "FlowContainer" ? data.node.id : null;
 
-                let persistNode = async function(node) {
-                    persistence._persistObject(node);
-                };
+				let persistNode = async function(node) {
+					persistence._persistObject(node);
+				};
 
-        		if (id === null && type === "FlowContainerPackage") {
-        			let p = await getPackageByEffectiveName(data.node.id);
-        			id = p.id;
+				if (id === null && type === "FlowContainerPackage") {
+					let p = await getPackageByEffectiveName(data.node.id);
+					id = p.id;
 				}
 
 				let parentId = null;
 
-                if (parent !== "root") {
-                    let p = await getPackageByEffectiveName(parent);
-                    parentId = p.id;
-                }
+				if (parent !== "root") {
+					let p = await getPackageByEffectiveName(parent);
+					parentId = p.id;
+				}
 
-                let objectData = {
-                    type: type,
-                    id: id,
-                    scheduledForIndexing: true
-                };
+				let objectData = {
+					type: type,
+					id: id,
+					scheduledForIndexing: true
+				};
 
-                let parentKey = null;
-                switch (type) {
+				let parentKey = null;
+				switch (type) {
 					case "FlowContainer":
 						parentKey = "flowPackage";
 						break;
@@ -447,27 +439,26 @@ var _Flows = {
 				}
 
 				if (parentKey != null) {
-                	objectData[parentKey] = parentId;
-                    await persistNode(objectData);
-                }
+					objectData[parentKey] = parentId;
+					await persistNode(objectData);
+				}
 
 			};
 
-        	handleParentChange();
+			handleParentChange();
 
-        });
-
-		document.addEventListener("floweditor.nodescriptclick", event => {
-            _Flows.openCodemirror(event.detail.element, event.detail.nodeType);
 		});
 
-        document.addEventListener("floweditor.loadflow", event => {
-        	if (event.detail.id !== undefined && event.detail.id !== null) {
-                $(flowsTree).jstree("deselect_all");
-                $(flowsTree).jstree(true).select_node('li[id=\"' + event.detail.id + '\"]');
-            }
-        });
+		document.addEventListener("floweditor.nodescriptclick", event => {
+			_Flows.openCodemirror(event.detail.element, event.detail.nodeType);
+		});
 
+		document.addEventListener("floweditor.loadflow", event => {
+			if (event.detail.id !== undefined && event.detail.id !== null) {
+				$(flowsTree).jstree("deselect_all");
+				$(flowsTree).jstree(true).select_node('li[id=\"' + event.detail.id + '\"]');
+			}
+		});
 	},
 	refreshTree: function(callback) {
 		_TreeHelper.refreshTree(flowsTree, callback);

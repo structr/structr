@@ -1,0 +1,104 @@
+<link rel="stylesheet" type="text/css" media="screen" href="css/graph_editor.css">
+
+<div id="graph-box" class="graphNoSelect">
+	<div id="graph-info"></div>
+
+	<div id="queries" class="slideOut slideOutLeft">
+		<div class="compTab" id="queriesTab">Queries</div>
+
+		<div>
+			<button id="clear-graph">Clear Graph</button>
+		</div>
+
+		<div class="query-box">
+			<textarea class="search" name="rest" cols="39" rows="4" placeholder="Enter a REST query here"></textarea>
+
+			<i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}" id="clear-rest" data-type="rest"></i>
+			<button id="exec-rest">Execute REST query</button>
+		</div>
+
+		<div class="query-box">
+			<textarea class="search" name="cypher" cols="39" rows="4" placeholder="Enter a Cypher query here"></textarea>
+			<i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}" id="clear-cypher" data-type="cypher"></i>
+			<button id="exec-cypher">Execute Cypher query</button>
+		</div>
+
+		<div id="cypher-params">
+			<h3>Cypher Parameters</h3>
+			<i id="add-cypher-parameter" class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i>
+		</div>
+
+		<div><h3>Saved Queries</h3></div>
+		<div id="saved-queries"></div>
+	</div>
+
+	<div id="display" class="slideOut slideOutLeft">
+
+		<div class="compTab" id="displayTab">Control Options</div>
+
+		<div id="graphDisplayTab">
+
+			<div id="displayOptions">
+				<h3>Display Options</h3>
+				<button id="toggleNodeLabels">Hide node labels</button>
+				<button id="toggleEdgeLabels">Hide edge labels</button>
+			</div>
+
+			<div id="graphLayouts">
+				<h3>Layouts</h3>
+				<button id="fruchterman-controlElement">Fruchterman Layout</button>
+				<button id="dagre-controlElement">Dagre Layout</button>
+				<h4 style="margin-bottom: -8px;">Force Atlas 2</h4>
+				<button id="start-forceAtlas-controlElement">Start ForceAtlas2</button>
+				<button id="stop-forceAtlas-controlElement">Stop ForceAtlas2</button>
+			</div>
+
+			<div id="graphSelectionTools">
+				<h3>Selection Tools</h3>
+				<button id="newSelectionGroup">New Selection</button>
+				<button id="selectionLasso">Lasso</button>
+				<div id="selectionToolsTableContainer">
+					<table id="selectionToolsTable" class="graphtable responsive">
+						<thead id="selectionToolsTableHead">
+							<tr>
+								<th>Group</th>
+								<th>Fixed</th>
+								<th>Hidden</th>
+								<th>Remove</th>
+							</tr>
+						</thead>
+						<tbody id="selectiontools-selectionTable-groupSelectionItems">
+						<tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="filters" class="slideOut slideOutLeft">
+
+		<div class="compTab" id="filtersTab">Filters</div>
+
+		<div id="nodeFilters">
+			<h3>Node Filters</h3>
+
+			<div><input type="checkbox" id="graphTypeToggleCore"><label for="graphTypeToggleCore"> Core Types</label></div>
+			<div><input type="checkbox" id="graphTypeToggleUi"><label for="graphTypeToggleUi"> UI Types</label></div>
+			<div><input type="checkbox" id="graphTypeToggleCustom"><label for="graphTypeToggleCustom"> Custom Types</label></div>
+			<div><input type="checkbox" id="graphTypeToggleHtml"><label for="graphTypeToggleHtml"> HTML Types</label></div>
+			<div><input type="checkbox" id="graphTypeToggleLog"><label for="graphTypeToggleLog"> Log Types</label></div>
+			<div><input type="checkbox" id="graphTypeToggleOther"><label for="graphTypeToggleOther"> Other Types</label></div>
+		</div>
+
+		<div id="relFilters">
+			<h3>Relationship Filters</h3>
+		</div>
+	</div>
+
+	<div class="canvas" id="graph-canvas"></div>
+
+	<div id="node-types" class="graph-object-types"></div>
+
+	<div id="relationship-types" class="graph-object-types"></div>
+
+</div>

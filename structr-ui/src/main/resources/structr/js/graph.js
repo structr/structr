@@ -68,7 +68,6 @@ $(document).ready(function() {
 	$(document).on('click', '.remove-cypher-parameter', function() {
 		$(this).parent().remove();
 	});
-
 });
 
 var _Graph = {
@@ -193,37 +192,21 @@ var _Graph = {
 		graphBrowser.bindEvent('clickEdge', _Graph.handleClickEdgeEvent);
 	},
 
-	onload: function() {
+	onload: async function() {
+
+		let html = await Structr.fetchHtmlTemplate('graph/graph', {});
+
+		main[0].innerHTML = html;
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('graph'));
 
 		activeTabLeftGraph = LSWrapper.getItem(activeTabRightGraphKey);
 		activeTabRightGraph = LSWrapper.getItem(activeTabLeftGraphKey);
 
-		main.prepend(
-			'<div id="graph-box" class="graphNoSelect"><div id="graph-info"></div><div id="queries" class="slideOut slideOutLeft"><div class="compTab" id="queriesTab">Queries</div><div><button id="clear-graph">Clear Graph</button></div></div>'
-			+ '<div id="display" class="slideOut slideOutLeft"><div class="compTab" id="displayTab">Control Options</div></div>'
-			+ '<div id="filters" class="slideOut slideOutLeft"><div class="compTab" id="filtersTab">Filters</div><div id="nodeFilters"><h3>Node Filters</h3></div><div id="relFilters"><h3>Relationship Filters</h3></div></div>'
-			+ '<div class="canvas" id="graph-canvas"></div>'
-			+ '<div id="node-types" class="graph-object-types"></div>'
-			+ '<div id="relationship-types" class="graph-object-types"></div>'
-			+ '</div>'
-		);
 
 		queriesSlideout = $('#queries');
 		displaySlideout = $('#display');
 		filtersSlideout = $('#filters');
-
-		var nodeFilters = $('#nodeFilters', filtersSlideout);
-
-		nodeFilters.append(
-			'<div><input type="checkbox" id="graphTypeToggleCore"><label for="graphTypeToggleCore"> Core Types</label></div>' +
-			'<div><input type="checkbox" id="graphTypeToggleUi"><label for="graphTypeToggleUi"> UI Types</label></div>' +
-			'<div><input type="checkbox" id="graphTypeToggleCustom"><label for="graphTypeToggleCustom"> Custom Types</label></div>' +
-			'<div><input type="checkbox" id="graphTypeToggleHtml"><label for="graphTypeToggleHtml"> HTML Types</label></div>' +
-			'<div><input type="checkbox" id="graphTypeToggleLog"><label for="graphTypeToggleLog"> Log Types</label></div>' +
-			'<div><input type="checkbox" id="graphTypeToggleOther"><label for="graphTypeToggleOther"> Other Types</label></div>'
-		);
 
 		var savedTypeVisibility = LSWrapper.getItem(_Graph.displayTypeConfigKey) || {};
 		$('#graphTypeToggleRels').prop('checked', (savedTypeVisibility.rels === undefined ? true : savedTypeVisibility.rels));
@@ -234,55 +217,19 @@ var _Graph = {
 		$('#graphTypeToggleLog').prop('checked', (savedTypeVisibility.log === undefined ? true : savedTypeVisibility.log));
 		$('#graphTypeToggleOther').prop('checked', (savedTypeVisibility.other === undefined ? true : savedTypeVisibility.other));
 
-
-		$('#display').append(
-			'<div id="graphDisplayTab">' +
-				'<div id="displayOptions">' +
-					'<h3>Display Options</h3>' +
-					'<button id="toggleNodeLabels">Hide node labels</button>' +
-					'<button id="toggleEdgeLabels">Hide edge labels</button>' +
-				'</div>' +
-				'<div id="graphLayouts">' +
-					'<h3>Layouts</h3>' +
-					'<button id="fruchterman-controlElement">Fruchterman Layout</button>' +
-                                        '<button id="dagre-controlElement">Dagre Layout</button>' +
-                                        '<h4 style="margin-bottom: -8px;">Force Atlas 2<h4/>' +
-                                        '<button id="start-forceAtlas-controlElement">Start ForceAtlas2</button>' +
-                                        '<button id="stop-forceAtlas-controlElement">Stop ForceAtlas2</button>' +
-				'</div>' +
-				'<div id="graphSelectionTools">' +
-					'<h3>Selection Tools</h3>' +
-					'<button id="newSelectionGroup">New Selection</button>' +
-					'<button id="selectionLasso">Lasso</button>' +
-					'<div id="selectionToolsTableContainer">' +
-						'<table id="selectionToolsTable" class="graphtable responsive">' +
-							'<thead id="selectionToolsTableHead"><tr>' +
-								'<th>Group</th>' +
-								'<th>Fixed</th>' +
-								'<th>Hidden</th>' +
-								'<th>Remove</th>' +
-							'</tr></thead>' +
-							'<tbody id="selectiontools-selectionTable-groupSelectionItems">' +
-							'<tbody>' +
-						'</table>' +
-					'</div>' +
-				'</div>' +
-			'</div>'
-		);
-
 		$('#fruchterman-controlElement').on('click', function() {
 			graphBrowser.doLayout('fruchtermanReingold');
 		});
 
-                $('#dagre-controlElement').on('click', function() {
+		$('#dagre-controlElement').on('click', function() {
 			graphBrowser.doLayout('dagre');
 		});
 
-                $('#start-forceAtlas-controlElement').on('click', function() {
+		$('#start-forceAtlas-controlElement').on('click', function() {
 			graphBrowser.startForceAtlas2();
 		});
 
-                $('#stop-forceAtlas-controlElement').on('click', function() {
+		$('#stop-forceAtlas-controlElement').on('click', function() {
 			graphBrowser.stopForceAtlas2();
 		});
 
@@ -304,16 +251,13 @@ var _Graph = {
 			}
 		});
 
-		$('#newSelectionGroup').on('click', function() {
-			var newId = graphBrowser.createSelectionGroup();
-			$('#selectiontools-selectionTable-groupSelectionItems').append(
-				'<tr>' +
-					'<td><input type="checkbox" name="selectedGroup[]" value="selected.' + newId + '">' + newId + '</td>' +
-					'<td style="text-align: center;"><input type="checkbox" name="Fixed[]" value="fixed.' + newId + '"></td>' +
-					'<td style="text-align: center;"><input type="checkbox" name="Hidden[]" value="hidden.' + newId + '"></td>' +
-					'<td style="text-align: center;"><button class="selectionTableRemoveBtn" value="' + newId + '">Remove</button></td>' +
-				'</tr>'
-			);
+		$('#newSelectionGroup').on('click', async function() {
+
+			let newId = graphBrowser.createSelectionGroup();
+
+			let html = await Structr.fetchHtmlTemplate('graph/new_selection_group', {newId: newId});
+
+			$('#selectiontools-selectionTable-groupSelectionItems').append(html);
 			$("input[name='selectedGroup[]']").trigger('click');
 			$("input[value='selected." + newId + "']").prop('checked', true);
 		});
@@ -408,11 +352,11 @@ var _Graph = {
 				Command.create({
 					type: nodeType
 				}, function(obj) {
-                                    if(obj != null) {
-					Command.get(obj.id, 'id,type,name,color,tag', function(node) {
-						_Graph.drawNode(node);
-					});
-                                    }
+					if(obj != null) {
+						Command.get(obj.id, 'id,type,name,color,tag', function(node) {
+							_Graph.drawNode(node);
+						});
+					}
 				});
 			}
 		});
@@ -449,13 +393,6 @@ var _Graph = {
 			$('#' + activeTabRightGraph).addClass('active').click();
 		}
 
-		queriesSlideout.append('<div class="query-box"><textarea class="search" name="rest" cols="39" rows="4" placeholder="Enter a REST query here"></textarea><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" id="clear-rest" data-type="rest" />'
-			+ '<button id="exec-rest">Execute REST query</button></div>');
-
-		queriesSlideout.append('<div class="query-box"><textarea class="search" name="cypher" cols="39" rows="4" placeholder="Enter a Cypher query here"></textarea><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" id="clear-cypher" data-type="cypher" />'
-			+ '<button id="exec-cypher">Execute Cypher query</button></div>');
-
-		queriesSlideout.append('<div id="cypher-params"><h3>Cypher Parameters</h3><i id="add-cypher-parameter" class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
 		_Graph.appendCypherParameter($('#cypher-params'));
 
 		$('#clear-graph').on('click', function() {
@@ -504,7 +441,6 @@ var _Graph = {
 
 		_Graph.clearSearch('rest');
 		_Graph.clearSearch('cypher');
-		queriesSlideout.append('<div><h3>Saved Queries</h3></div>');
 		_Graph.listSavedQueries();
 
 		_Graph.searchField = $('.search', queriesSlideout);
@@ -536,8 +472,8 @@ var _Graph = {
 
 		$('#newSelectionGroup').trigger('click');
 		Structr.unblockMenu(100);
-	},
 
+	},
 	execQuery: function(query, type, params) {
 		if (query && query.length) {
 			if (type === 'cypher') {
@@ -614,7 +550,7 @@ var _Graph = {
 	},
 	listSavedQueries: function() {
 		$('#saved-queries').empty();
-		queriesSlideout.append('<div id="saved-queries"></div>');
+
 		var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
 		$.each(savedQueries, function(q, query) {
 			if (query.type === 'cypher') {
@@ -744,13 +680,8 @@ var _Graph = {
 
 		var windowHeight = $(window).height();
 		var windowWidth = $(window).width();
-		var offsetHeight = 360;
 
-		$('#saved-queries').css({
-			height: windowHeight - offsetHeight + 'px'
-		});
-
-		var ch = windowHeight - 64;
+		var ch = windowHeight - graph.offset().top;
 
 		graph.css({
 			height: ch,

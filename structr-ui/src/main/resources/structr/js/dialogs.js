@@ -62,87 +62,84 @@ var _Dialogs = {
 			});
 		});
 	},
-	showVisibilityOptions: function(entity, el) {
+	showVisibilityOptions: async function(entity, el) {
 
 		let showConditionsContainer = $('.show-hide-conditions-container', el);
 
 		if (showConditionsContainer.length) {
 
-			Structr.fetchHtmlTemplate('dialogs/visibility-partial', { entity: entity }, function (html) {
+			let html = await Structr.fetchHtmlTemplate('dialogs/visibility-partial', { entity: entity });
 
-				showConditionsContainer.html(html);
+			showConditionsContainer.html(html);
 
-				let showConditionsInput  = $('input#show-conditions');
-				let showConditionsSelect = $('select#show-conditions-templates');
-				let hideConditionsInput  = $('input#hide-conditions');
-				let hideConditionsSelect = $('select#hide-conditions-templates');
+			let showConditionsInput  = $('input#show-conditions');
+			let showConditionsSelect = $('select#show-conditions-templates');
+			let hideConditionsInput  = $('input#hide-conditions');
+			let hideConditionsSelect = $('select#hide-conditions-templates');
 
-				showConditionsInput.on('change', () => { _Entities.setPropertyWithFeedback(entity, 'showConditions', showConditionsInput.val(), showConditionsInput); });
-				hideConditionsInput.on('change', () => { _Entities.setPropertyWithFeedback(entity, 'hideConditions', hideConditionsInput.val(), hideConditionsInput); });
+			showConditionsInput.on('change', () => { _Entities.setPropertyWithFeedback(entity, 'showConditions', showConditionsInput.val(), showConditionsInput); });
+			hideConditionsInput.on('change', () => { _Entities.setPropertyWithFeedback(entity, 'hideConditions', hideConditionsInput.val(), hideConditionsInput); });
 
-				showConditionsSelect.on('change', () => {
-					showConditionsInput.val(showConditionsSelect.val()).trigger('change');
-				});
-				hideConditionsSelect.on('change', () => {
-					hideConditionsInput.val(hideConditionsSelect.val()).trigger('change');
-				});
+			showConditionsSelect.on('change', () => {
+				showConditionsInput.val(showConditionsSelect.val()).trigger('change');
+			});
+			hideConditionsSelect.on('change', () => {
+				hideConditionsInput.val(hideConditionsSelect.val()).trigger('change');
 			});
 		}
 	},
-	showRepeaterOptions: function(entity, el) {
+	showRepeaterOptions: async function(entity, el) {
 
 		let repeaterConfigContainer = $('.repeater-config-container', el);
 
 		if (repeaterConfigContainer.length) {
 
-			Structr.fetchHtmlTemplate('dialogs/repeater-partial', { entity: entity }, function (html) {
+			let html = await Structr.fetchHtmlTemplate('dialogs/repeater-partial', { entity: entity });
 
-				repeaterConfigContainer.html(html);
+			repeaterConfigContainer.html(html);
 
-				[ 'function-query', 'data-key' ].forEach(p => {
-					_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), entity, p.toCamel());
-				});
+			[ 'function-query', 'data-key' ].forEach(p => {
+				_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), entity, p.toCamel());
 			});
 		}
 	},
 
 	// ----- custom dialogs -----
-	ldapGroupDialog: function(el, entity) {
+	ldapGroupDialog: async function(el, entity) {
 
 		if (el && entity) {
 
-			Structr.fetchHtmlTemplate('dialogs/ldap.group', { group: entity }, function (html) {
+			let html = await Structr.fetchHtmlTemplate('dialogs/ldap.group', { group: entity });
 
-				el.empty();
-				el.append(html);
+			el.empty();
+			el.append(html);
 
-				var dnInput     = $('input#ldap-group-dn');
-				var pathInput   = $('input#ldap-group-path');
-				var filterInput = $('input#ldap-group-filter');
-				var scopeInput  = $('input#ldap-group-scope');
+			var dnInput     = $('input#ldap-group-dn');
+			var pathInput   = $('input#ldap-group-path');
+			var filterInput = $('input#ldap-group-filter');
+			var scopeInput  = $('input#ldap-group-scope');
 
-				// dialog logic here..
-				dnInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'distinguishedName', dnInput.val(), dnInput); });
-				pathInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'path', pathInput.val(), pathInput); });
-				filterInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'filter', filterInput.val(), filterInput); });
-				scopeInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'scope', scopeInput.val(), scopeInput); });
+			// dialog logic here..
+			dnInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'distinguishedName', dnInput.val(), dnInput); });
+			pathInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'path', pathInput.val(), pathInput); });
+			filterInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'filter', filterInput.val(), filterInput); });
+			scopeInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'scope', scopeInput.val(), scopeInput); });
 
-				$('i#clear-ldap-group-dn').on('click', function() { setNull(entity.id, 'distinguishedName', dnInput); });
-				$('i#clear-ldap-group-path').on('click', function() { setNull(entity.id, 'path', pathInput); });
-				$('i#clear-ldap-group-filter').on('click', function() { setNull(entity.id, 'filter', filterInput); });
-				$('i#clear-ldap-group-scope').on('click', function() { setNull(entity.id, 'scope', scopeInput); });
+			$('i#clear-ldap-group-dn').on('click', function() { setNull(entity.id, 'distinguishedName', dnInput); });
+			$('i#clear-ldap-group-path').on('click', function() { setNull(entity.id, 'path', pathInput); });
+			$('i#clear-ldap-group-filter').on('click', function() { setNull(entity.id, 'filter', filterInput); });
+			$('i#clear-ldap-group-scope').on('click', function() { setNull(entity.id, 'scope', scopeInput); });
 
-				$('button#ldap-sync-button').on('click', function() {
+			$('button#ldap-sync-button').on('click', function() {
 
-					$.ajax({
-						url: '/structr/rest/' + entity.type + '/' + entity.id + '/update',
-						method: 'post',
-						statusCode: {
-							200: function() {
-								Structr.showAndHideInfoBoxMessage('Updated LDAP group successfully', 'success', 2000, 200);
-							}
+				$.ajax({
+					url: '/structr/rest/' + entity.type + '/' + entity.id + '/update',
+					method: 'post',
+					statusCode: {
+						200: function() {
+							Structr.showAndHideInfoBoxMessage('Updated LDAP group successfully', 'success', 2000, 200);
 						}
-					});
+					}
 				});
 			});
 
@@ -152,32 +149,30 @@ var _Dialogs = {
 			$('input#ldap-group-dn').val(el.distinguishedName);
 		}
 	},
-	fileDialog: function(el, entity) {
+	fileDialog: async function(el, entity) {
 
 		if (el && entity) {
 
 			if (Structr.isModulePresent('text-search')) {
 
-				Structr.fetchHtmlTemplate('dialogs/file.options', { file: entity }, function (html) {
+				let html = await Structr.fetchHtmlTemplate('dialogs/file.options', { file: entity });
 
-					el.empty();
-					el.append(html);
+				el.empty();
+				el.append(html);
 
-					$('button#extract-structure-button').on('click', function() {
+				$('button#extract-structure-button').on('click', function() {
 
-						Structr.showAndHideInfoBoxMessage('Extracting structure..', 'info', 2000, 200);
+					Structr.showAndHideInfoBoxMessage('Extracting structure..', 'info', 2000, 200);
 
-						$.ajax({
-							url: '/structr/rest/' + entity.type + '/' + entity.id + '/extractStructure',
-							method: 'post',
-							statusCode: {
-								200: function() {
-									Structr.showAndHideInfoBoxMessage('Structure extracted, see Contents area.', 'success', 2000, 200);
-								}
+					$.ajax({
+						url: '/structr/rest/' + entity.type + '/' + entity.id + '/extractStructure',
+						method: 'post',
+						statusCode: {
+							200: function() {
+								Structr.showAndHideInfoBoxMessage('Structure extracted, see Contents area.', 'success', 2000, 200);
 							}
-						});
+						}
 					});
-
 				});
 			}
 
@@ -206,25 +201,24 @@ var _Dialogs = {
 
 		if (el && entity) {
 
-			Command.get(entity.id, null, function(a) {
+			Command.get(entity.id, null, async function(a) {
 
-				Structr.fetchHtmlTemplate('dialogs/a.options', { entity: entity, a: a, title: _Dialogs.getTitle() }, function (html) {
+				let html = await Structr.fetchHtmlTemplate('dialogs/a.options', { entity: entity, a: a, title: _Dialogs.getTitle() });
 
-					el.empty();
-					el.append(html);
+				el.empty();
+				el.append(html);
 
-					[ 'id', 'class', 'href', 'style' ].forEach(p => {
-						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), a, '_html_' + p);
-					});
-
-					// focus on first input field
-					$('input#class-input').focus();
-					$('input#class-input').select();
-
-					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showRepeaterOptions(entity, el);
-					_Dialogs.showVisibilityOptions(entity, el);
+				[ 'id', 'class', 'href', 'style' ].forEach(p => {
+					_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), a, '_html_' + p);
 				});
+
+				// focus on first input field
+				$('input#class-input').focus();
+				$('input#class-input').select();
+
+				_Dialogs.showCustomProperties(entity);
+				_Dialogs.showRepeaterOptions(entity, el);
+				_Dialogs.showVisibilityOptions(entity, el);
 
 			}, '_html_');
 		}
@@ -234,25 +228,24 @@ var _Dialogs = {
 
 		if (el && entity) {
 
-			Command.get(entity.id, null, function(button) {
+			Command.get(entity.id, null, async function(button) {
 
-				Structr.fetchHtmlTemplate('dialogs/button.options', { entity: entity, button: button, title: _Dialogs.getTitle() }, function (html) {
+				let html = await Structr.fetchHtmlTemplate('dialogs/button.options', { entity: entity, button: button, title: _Dialogs.getTitle() });
 
-					el.empty();
-					el.append(html);
+				el.empty();
+				el.append(html);
 
-					[ 'id', 'class', 'onclick', 'title', 'type', 'style' ].forEach(p => {
-						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), button, '_html_' + p);
-					});
-
-					// focus on first input field
-					$('input#class-input').focus();
-					$('input#class-input').select();
-
-					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showRepeaterOptions(entity, el);
-					_Dialogs.showVisibilityOptions(entity, el);
+				[ 'id', 'class', 'onclick', 'title', 'type', 'style' ].forEach(p => {
+					_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), button, '_html_' + p);
 				});
+
+				// focus on first input field
+				$('input#class-input').focus();
+				$('input#class-input').select();
+
+				_Dialogs.showCustomProperties(entity);
+				_Dialogs.showRepeaterOptions(entity, el);
+				_Dialogs.showVisibilityOptions(entity, el);
 
 			}, '_html_');
 		}
@@ -261,25 +254,24 @@ var _Dialogs = {
 
 		if (el && entity) {
 
-			Command.get(entity.id, null, function(input) {
+			Command.get(entity.id, null, async function(input) {
 
-				Structr.fetchHtmlTemplate('dialogs/input.options', { entity: entity, input: input, title: _Dialogs.getTitle() }, function (html) {
+				let html = await Structr.fetchHtmlTemplate('dialogs/input.options', { entity: entity, input: input, title: _Dialogs.getTitle() });
 
-					el.empty();
-					el.append(html);
+				el.empty();
+				el.append(html);
 
-					[ 'id', 'class', 'title', 'placeholder', 'type', 'style' ].forEach(p => {
-						let input = $('input#' + p + '-input');
-						_Dialogs.registerSimpleInputBlurhandler(input, entity, '_html_' + p);
-					});
-
-					// focus on first input field
-					$('input#class-input').focus();
-					$('input#class-input').select();
-
-					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showVisibilityOptions(entity, el);
+				[ 'id', 'class', 'title', 'placeholder', 'type', 'style' ].forEach(p => {
+					let input = $('input#' + p + '-input');
+					_Dialogs.registerSimpleInputBlurhandler(input, entity, '_html_' + p);
 				});
+
+				// focus on first input field
+				$('input#class-input').focus();
+				$('input#class-input').select();
+
+				_Dialogs.showCustomProperties(entity);
+				_Dialogs.showVisibilityOptions(entity, el);
 
 			}, '_html_');
 		}
@@ -288,25 +280,24 @@ var _Dialogs = {
 
 		if (el && entity) {
 
-			Command.get(entity.id, null, function(div) {
+			Command.get(entity.id, null, async function(div) {
 
-				Structr.fetchHtmlTemplate('dialogs/div.options', { entity: entity, div: div, title: _Dialogs.getTitle() }, function (html) {
+				let html = await Structr.fetchHtmlTemplate('dialogs/div.options', { entity: entity, div: div, title: _Dialogs.getTitle() });
 
-					el.empty();
-					el.append(html);
+				el.empty();
+				el.append(html);
 
-					[ 'id', 'class', 'style' ].forEach(p => {
-						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), div, '_html_' + p);
-					});
-
-					// focus on first input field
-					$('input#class-input').focus();
-					$('input#class-input').select();
-
-					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showRepeaterOptions(entity, el);
-					_Dialogs.showVisibilityOptions(entity, el);
+				[ 'id', 'class', 'style' ].forEach(p => {
+					_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), div, '_html_' + p);
 				});
+
+				// focus on first input field
+				$('input#class-input').focus();
+				$('input#class-input').select();
+
+				_Dialogs.showCustomProperties(entity);
+				_Dialogs.showRepeaterOptions(entity, el);
+				_Dialogs.showVisibilityOptions(entity, el);
 
 			}, '_html_');
 		}
@@ -315,36 +306,35 @@ var _Dialogs = {
 
 		if (el && entity) {
 
-			Command.get(entity.id, null, function(div) {
+			Command.get(entity.id, null, async function(div) {
 
-				Structr.fetchHtmlTemplate('dialogs/user.options', { entity: entity, user: entity, title: _Dialogs.getTitle() }, function (html) {
+				let html = await Structr.fetchHtmlTemplate('dialogs/user.options', { entity: entity, user: entity, title: _Dialogs.getTitle() });
 
-					el.empty();
-					el.append(html);
+				el.empty();
+				el.append(html);
 
-					[ 'name', 'e-mail' ].forEach(p => {
-						let input = $('input#' + p + '-input');
-						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val() || null, input); });
-					});
-
-					[ 'is-admin', 'is-two-factor-user', 'skip-security-relationships' ].forEach(p => {
-						let name  = p.toCamel();
-						let input = $('input#' + p + '-checkbox');
-						input.prop('checked', entity[name]);
-						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, name, input.is(':checked'), input); });
-					});
-
-					$('button#set-password-button').on('click', function(e) {
-						let input = $('input#password-input');
-						_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
-					});
-
-					// focus on first input field
-					$('input#name-input').focus();
-					$('input#name-input').select();
-
-					_Dialogs.showCustomProperties(entity);
+				[ 'name', 'e-mail' ].forEach(p => {
+					let input = $('input#' + p + '-input');
+					input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val() || null, input); });
 				});
+
+				[ 'is-admin', 'is-two-factor-user', 'skip-security-relationships' ].forEach(p => {
+					let name  = p.toCamel();
+					let input = $('input#' + p + '-checkbox');
+					input.prop('checked', entity[name]);
+					input.on('change', function() { _Entities.setPropertyWithFeedback(entity, name, input.is(':checked'), input); });
+				});
+
+				$('button#set-password-button').on('click', function(e) {
+					let input = $('input#password-input');
+					_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
+				});
+
+				// focus on first input field
+				$('input#name-input').focus();
+				$('input#name-input').select();
+
+				_Dialogs.showCustomProperties(entity);
 
 			}, '_html_');
 		}
@@ -353,36 +343,35 @@ var _Dialogs = {
 
 		if (el && entity) {
 
-			Command.get(entity.id, null, function(page) {
+			Command.get(entity.id, null, async function(page) {
 
-				Structr.fetchHtmlTemplate('dialogs/page.options', { entity: entity, page: entity, title: _Dialogs.getTitle() }, function (html) {
+				let html = await Structr.fetchHtmlTemplate('dialogs/page.options', { entity: entity, page: entity, title: _Dialogs.getTitle() });
 
-					el.empty();
-					el.append(html);
+				el.empty();
+				el.append(html);
 
-					[ 'name', 'content-type', 'category', 'position', 'show-on-error-codes' ].forEach(p => {
-						let input = $('input#' + p + '-input');
-						_Dialogs.registerSimpleInputBlurhandler(input, entity, p.toCamel());
-					});
-
-					[ 'dont-cache', 'page-creates-raw-data' ].forEach(p => {
-						let name  = p.toCamel();
-						let input = $('input#' + p + '-checkbox');
-						input.prop('checked', entity[name]);
-						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, name, input.is(':checked'), input); });
-					});
-
-					$('button#set-password-button').on('click', function(e) {
-						let input = $('input#password-input');
-						_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
-					});
-
-					// focus on first input field
-					$('input#name-input').focus();
-					$('input#name-input').select();
-
-					_Dialogs.showCustomProperties(entity);
+				[ 'name', 'content-type', 'category', 'position', 'show-on-error-codes' ].forEach(p => {
+					let input = $('input#' + p + '-input');
+					_Dialogs.registerSimpleInputBlurhandler(input, entity, p.toCamel());
 				});
+
+				[ 'dont-cache', 'page-creates-raw-data' ].forEach(p => {
+					let name  = p.toCamel();
+					let input = $('input#' + p + '-checkbox');
+					input.prop('checked', entity[name]);
+					input.on('change', function() { _Entities.setPropertyWithFeedback(entity, name, input.is(':checked'), input); });
+				});
+
+				$('button#set-password-button').on('click', function(e) {
+					let input = $('input#password-input');
+					_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
+				});
+
+				// focus on first input field
+				$('input#name-input').focus();
+				$('input#name-input').select();
+
+				_Dialogs.showCustomProperties(entity);
 
 			}, '_html_');
 		}

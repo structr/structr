@@ -34,75 +34,74 @@ var _VirtualTypes = {
 
 	init: function() {},
 	unload: function() {},
-	onload: function() {
+	onload: async function() {
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('virtual-types'));
 
-		Structr.fetchHtmlTemplate('virtual-types/main', {}, function (html) {
+		let html = await Structr.fetchHtmlTemplate('virtual-types/main', {});
 
-			main.append(html);
+		main.append(html);
 
-			$('#create-virtual-type').on('click', function() {
-				_VirtualTypes.clearVirtualTypeDetails();
+		$('#create-virtual-type').on('click', function() {
+			_VirtualTypes.clearVirtualTypeDetails();
 
-				_VirtualTypes.enableCreateMode();
-				_VirtualTypes.virtualTypeDetail.show();
-			});
-
-			_VirtualTypes.virtualTypesList = $('#virtual-types-table tbody');
-			_VirtualTypes.listVirtualTypes();
-
-			_VirtualTypes.virtualTypeDetail = $('#virtual-type-detail').hide();
-			_VirtualTypes.resourceLink = $('.resource-link a', _VirtualTypes.virtualTypeDetail);
-			_VirtualTypes.virtualTypeDetailTableRow = $('#virtual-type-detail-table tbody tr');
-			_VirtualTypes.virtualPropertiesTableBody = $('#virtual-properties-table tbody');
-
-			$('<button class="create"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> New Virtual Property</button>').on('click', function() {
-				_VirtualTypes.appendVirtualProperty();
-			}).appendTo($('#virtual-properties', _VirtualTypes.virtualTypeDetail));
-
-			_VirtualTypes.registerChangeListeners();
-
-			var actionsCol = $('.actions', _VirtualTypes.virtualTypeDetail);
-
-			$('<i class="button ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />').on('click', function() {
-
-				var data = _VirtualTypes.getVirtualObjectDataFromRow(_VirtualTypes.virtualTypeDetailTableRow);
-
-				_VirtualTypes.saveVirtualObject('VirtualType', data, _VirtualTypes.virtualTypeDetailTableRow, function (data) {
-					var createdId = data.result[0];
-					_VirtualTypes.virtualTypeDetailTableRow.data('virtual-type-id', createdId);
-					_VirtualTypes.updateResourceLink(_VirtualTypes.getVirtualObjectDataFromRow(_VirtualTypes.virtualTypeDetailTableRow));
-
-					_VirtualTypes.disableCreateMode();
-					_VirtualTypes.virtualTypesPager.refresh();
-				});
-
-			}).appendTo(actionsCol);
-
-			$('<i class="button ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />').on('click', function () {
-				_VirtualTypes.clearVirtualTypeDetails();
-
-				_VirtualTypes.virtualTypeDetail.hide();
-			}).appendTo(actionsCol);
-
-			Structr.appendInfoTextToElement({
-				element: $('.resource-link'),
-				text: "Preview the virtual type in a new window/tab.<br>The request parameter pageSize=1 is automatically appended to reduce the number of results in the preview.",
-				css: { marginLeft: "5px" },
-				offsetX: -300,
-				offsetY: 10
-			});
-
-			_VirtualTypes.activateInfoTextsInColumnHeaders();
-
-			Structr.unblockMenu(100);
-
-			_VirtualTypes.moveResizer();
-			Structr.initVerticalSlider($('.column-resizer', main), _VirtualTypes.virtualTypesResizerLeftKey, 300, _VirtualTypes.moveResizer);
-
-			_VirtualTypes.resize();
+			_VirtualTypes.enableCreateMode();
+			_VirtualTypes.virtualTypeDetail.show();
 		});
+
+		_VirtualTypes.virtualTypesList = $('#virtual-types-table tbody');
+		_VirtualTypes.listVirtualTypes();
+
+		_VirtualTypes.virtualTypeDetail = $('#virtual-type-detail').hide();
+		_VirtualTypes.resourceLink = $('.resource-link a', _VirtualTypes.virtualTypeDetail);
+		_VirtualTypes.virtualTypeDetailTableRow = $('#virtual-type-detail-table tbody tr');
+		_VirtualTypes.virtualPropertiesTableBody = $('#virtual-properties-table tbody');
+
+		$('<button class="create"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> New Virtual Property</button>').on('click', function() {
+			_VirtualTypes.appendVirtualProperty();
+		}).appendTo($('#virtual-properties', _VirtualTypes.virtualTypeDetail));
+
+		_VirtualTypes.registerChangeListeners();
+
+		var actionsCol = $('.actions', _VirtualTypes.virtualTypeDetail);
+
+		$('<i class="button ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />').on('click', function() {
+
+			var data = _VirtualTypes.getVirtualObjectDataFromRow(_VirtualTypes.virtualTypeDetailTableRow);
+
+			_VirtualTypes.saveVirtualObject('VirtualType', data, _VirtualTypes.virtualTypeDetailTableRow, function (data) {
+				var createdId = data.result[0];
+				_VirtualTypes.virtualTypeDetailTableRow.data('virtual-type-id', createdId);
+				_VirtualTypes.updateResourceLink(_VirtualTypes.getVirtualObjectDataFromRow(_VirtualTypes.virtualTypeDetailTableRow));
+
+				_VirtualTypes.disableCreateMode();
+				_VirtualTypes.virtualTypesPager.refresh();
+			});
+
+		}).appendTo(actionsCol);
+
+		$('<i class="button ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />').on('click', function () {
+			_VirtualTypes.clearVirtualTypeDetails();
+
+			_VirtualTypes.virtualTypeDetail.hide();
+		}).appendTo(actionsCol);
+
+		Structr.appendInfoTextToElement({
+			element: $('.resource-link'),
+			text: "Preview the virtual type in a new window/tab.<br>The request parameter pageSize=1 is automatically appended to reduce the number of results in the preview.",
+			css: { marginLeft: "5px" },
+			offsetX: -300,
+			offsetY: 10
+		});
+
+		_VirtualTypes.activateInfoTextsInColumnHeaders();
+
+		Structr.unblockMenu(100);
+
+		_VirtualTypes.moveResizer();
+		Structr.initVerticalSlider($('.column-resizer', main), _VirtualTypes.virtualTypesResizerLeftKey, 300, _VirtualTypes.moveResizer);
+
+		_VirtualTypes.resize();
 	},
 	resize: function() {
 		_VirtualTypes.moveResizer();
@@ -183,38 +182,37 @@ var _VirtualTypes = {
 			pagerData.forEach(_VirtualTypes.appendVirtualType);
 		}
 	},
-	appendVirtualType: function (virtualType) {
+	appendVirtualType: async function (virtualType) {
 
-		Structr.fetchHtmlTemplate('virtual-types/row.type', {virtualType: virtualType}, function(html) {
+		let html = await Structr.fetchHtmlTemplate('virtual-types/row.type', {virtualType: virtualType});
 
-			var row = $(html);
+		var row = $(html);
 
-			_VirtualTypes.populateVirtualTypeRow(row, virtualType);
-			_VirtualTypes.virtualTypesList.append(row);
+		_VirtualTypes.populateVirtualTypeRow(row, virtualType);
+		_VirtualTypes.virtualTypesList.append(row);
 
-			var actionsCol = $('.actions', row);
+		var actionsCol = $('.actions', row);
 
-			$('<a title="Edit Properties" class="properties"><i class=" button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /></a>').on('click', function () {
-				_VirtualTypes.showVirtualTypeDetails(virtualType.id);
-			}).appendTo(actionsCol);
+		$('<a title="Edit Properties" class="properties"><i class=" button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /></a>').on('click', function () {
+			_VirtualTypes.showVirtualTypeDetails(virtualType.id);
+		}).appendTo(actionsCol);
 
-			_VirtualTypes.appendDeleteIcon(actionsCol, 'Do you really want to delete the virtual type "' + virtualType.name + '" with all its virtual properties?', function() {
+		_VirtualTypes.appendDeleteIcon(actionsCol, 'Do you really want to delete the virtual type "' + virtualType.name + '" with all its virtual properties?', function() {
 
-				Command.get(virtualType.id, 'id,properties', function(vt) {
+			Command.get(virtualType.id, 'id,properties', function(vt) {
 
-					vt.properties.forEach(function(vp) {
-						Command.deleteNode(vp.id);
-					});
-
-					Command.deleteNode(vt.id);
-
-					if (virtualType.id === _VirtualTypes.virtualTypeDetailTableRow.data('virtual-type-id')) {
-						_VirtualTypes.clearVirtualTypeDetails();
-						_VirtualTypes.virtualTypeDetail.hide();
-					}
-
-					row.remove();
+				vt.properties.forEach(function(vp) {
+					Command.deleteNode(vp.id);
 				});
+
+				Command.deleteNode(vt.id);
+
+				if (virtualType.id === _VirtualTypes.virtualTypeDetailTableRow.data('virtual-type-id')) {
+					_VirtualTypes.clearVirtualTypeDetails();
+					_VirtualTypes.virtualTypeDetail.hide();
+				}
+
+				row.remove();
 			});
 		});
 	},
@@ -300,57 +298,56 @@ var _VirtualTypes = {
 			_VirtualTypes.appendVirtualProperty(p);
 		});
 	},
-	appendVirtualProperty: function(optionalProperty) {
+	appendVirtualProperty: async function(optionalProperty) {
 
-		Structr.fetchHtmlTemplate('virtual-types/row.property', {}, function(html) {
+		let html = await Structr.fetchHtmlTemplate('virtual-types/row.property', {});
 
-			var row = $(html);
+		var row = $(html);
 
-			var actionsCol = $('.actions', row);
+		var actionsCol = $('.actions', row);
 
-			if (optionalProperty) {
-				row.data('virtual-property-id', optionalProperty.id);
+		if (optionalProperty) {
+			row.data('virtual-property-id', optionalProperty.id);
 
-				_VirtualTypes.appendDeleteIcon(actionsCol, 'Do you really want to delete the virtual property?', function() {
-					_VirtualTypes.deleteVirtualProperty(row.data('virtual-property-id'), row);
-				});
+			_VirtualTypes.appendDeleteIcon(actionsCol, 'Do you really want to delete the virtual property?', function() {
+				_VirtualTypes.deleteVirtualProperty(row.data('virtual-property-id'), row);
+			});
 
-				$('.property', row).each(function(idx, el) {
-					var el = $(el);
-					var val = optionalProperty[el.data('property')];
+			$('.property', row).each(function(idx, el) {
+				var el = $(el);
+				var val = optionalProperty[el.data('property')];
 
-					if (el.attr('type') === 'checkbox') {
-						el.prop('checked', (val === true));
-					} else {
-						el.val(val);
-					}
-				});
+				if (el.attr('type') === 'checkbox') {
+					el.prop('checked', (val === true));
+				} else {
+					el.val(val);
+				}
+			});
 
-			} else {
+		} else {
 
-				$('<i class="button ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />').on('click', function() {
+			$('<i class="button ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />').on('click', function() {
 
-					var data = _VirtualTypes.getVirtualObjectDataFromRow(row);
-					data.virtualType = _VirtualTypes.virtualTypeDetailTableRow.data('virtual-type-id');
+				var data = _VirtualTypes.getVirtualObjectDataFromRow(row);
+				data.virtualType = _VirtualTypes.virtualTypeDetailTableRow.data('virtual-type-id');
 
-					_VirtualTypes.saveVirtualObject('VirtualProperty', data, row, function (data) {
-						row.data('virtual-property-id', data.result[0]);
-						fastRemoveAllChildren(actionsCol[0]);
+				_VirtualTypes.saveVirtualObject('VirtualProperty', data, row, function (data) {
+					row.data('virtual-property-id', data.result[0]);
+					fastRemoveAllChildren(actionsCol[0]);
 
-						_VirtualTypes.appendDeleteIcon(actionsCol, 'Do you really want to delete the virtual property?', function() {
-							_VirtualTypes.deleteVirtualProperty(row.data('virtual-property-id'), row);
-						});
+					_VirtualTypes.appendDeleteIcon(actionsCol, 'Do you really want to delete the virtual property?', function() {
+						_VirtualTypes.deleteVirtualProperty(row.data('virtual-property-id'), row);
 					});
+				});
 
-				}).appendTo(actionsCol);
+			}).appendTo(actionsCol);
 
-				$('<i class=" button ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />').on('click', function () {
-					row.remove();
-				}).appendTo(actionsCol);
-			}
+			$('<i class=" button ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />').on('click', function () {
+				row.remove();
+			}).appendTo(actionsCol);
+		}
 
-			_VirtualTypes.virtualPropertiesTableBody.append(row);
-		});
+		_VirtualTypes.virtualPropertiesTableBody.append(row);
 	},
 	appendDeleteIcon: function(insertPoint, confirmText, deletionActionCallback) {
 

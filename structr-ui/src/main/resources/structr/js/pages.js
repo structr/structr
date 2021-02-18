@@ -96,7 +96,11 @@ var _Pages = {
 			});
 		}
 	},
-	onload: function() {
+	onload: async function() {
+
+		let html = await Structr.fetchHtmlTemplate('pages/pages', {});
+
+		main[0].innerHTML = html;
 
 		_Pages.init();
 
@@ -105,17 +109,6 @@ var _Pages = {
 		activeTab = LSWrapper.getItem(_Pages.activeTabKey);
 		activeTabLeft = LSWrapper.getItem(_Pages.activeTabLeftKey);
 		activeTabRight = LSWrapper.getItem(_Pages.activeTabRightKey);
-
-		main.prepend(
-				'<div class="column-resizer-blocker"></div><div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
-				+ '<div id="activeElements" class="slideOut slideOutLeft"><div class="compTab" id="activeElementsTab">Active Elements</div><div class="page inner"></div></div>'
-				+ '<div id="dataBinding" class="slideOut slideOutLeft"><div class="compTab" id="dataBindingTab">Data Binding</div></div>'
-				+ '<div id="localizations" class="slideOut slideOutLeft"><div class="compTab" id="localizationsTab">Localizations</div><div class="page inner"><div class="localizations-inputs"><input class="locale" placeholder="Locale"><button class="refresh action button">' + _Icons.getHtmlForIcon(_Icons.refresh_icon) + ' Refresh</button></div><div class="results"></div></div></div>'
-				+ '<div id="previews" class="no-preview"></div>'
-				+ '<div id="widgetsSlideout" class="slideOut slideOutRight"><div class="compTab" id="widgetsTab">Widgets</div></div>'
-				+ '<div id="palette" class="slideOut slideOutRight"><div class="compTab" id="paletteTab">HTML Palette</div></div>'
-				+ '<div id="components" class="slideOut slideOutRight"><div class="compTab" id="componentsTab">Shared Components</div><div class="inner"></div></div>'
-				+ '<div id="elements" class="slideOut slideOutRight"><div class="compTab" id="elementsTab">Unused Elements</div></div>');
 
 		pagesSlideout = $('#pages');
 		activeElementsSlideout = $('#activeElements');
@@ -258,6 +251,7 @@ var _Pages = {
 		});
 
 		Structr.unblockMenu(500);
+
 	},
 	clearPreviews: function() {
 

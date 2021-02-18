@@ -568,12 +568,14 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			if (grant != null) {
 
 				grant.setProperty(ResourceAccess.flags, 4L);
+				grant.setProperty(ResourceAccess.visibleToAuthenticatedUsers, true);
 
 			} else {
 
 				app.create(ResourceAccess.class,
-					new NodeAttribute<>(ResourceAccess.signature, "Image"),
-					new NodeAttribute<>(ResourceAccess.flags,          4L)
+					new NodeAttribute<>(ResourceAccess.signature,                   "Image"),
+					new NodeAttribute<>(ResourceAccess.flags,                       4L),
+					new NodeAttribute<>(ResourceAccess.visibleToAuthenticatedUsers, true)
 				);
 			}
 
