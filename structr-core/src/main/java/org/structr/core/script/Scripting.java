@@ -258,16 +258,11 @@ public class Scripting {
 
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
 
-					reportError(actionContext.getSecurityContext(), ex, snippet);
+					reportError(actionContext.getSecurityContext(), ex, snippet, false);
 					throw ex.asHostException();
 				}
 
 				reportError(actionContext.getSecurityContext(), ex, snippet);
-			}
-
-			if (actionContext.hasError()) {
-
-				throw new FrameworkException(422, "Server-side scripting error", actionContext.getErrorBuffer());
 			}
 
 			// Prefer explicitly printed output over actual result
@@ -353,6 +348,7 @@ public class Scripting {
 
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
 
+					reportError(actionContext.getSecurityContext(), ex, snippet, false);
 					throw ex.asHostException();
 				}
 
@@ -618,6 +614,11 @@ public class Scripting {
 
 	private static void reportError(final SecurityContext securityContext, final PolyglotException ex, final Snippet snippet) throws FrameworkException {
 
+		reportError(securityContext, ex, snippet, true);
+	}
+
+	private static void reportError(final SecurityContext securityContext, final PolyglotException ex, final Snippet snippet, final boolean shouldThrow) throws FrameworkException {
+
 		final String message = ex.getMessage();
 		int lineNumber       = 1;
 		int columnNumber     = 1;
@@ -629,10 +630,15 @@ public class Scripting {
 			columnNumber = ex.getSourceLocation().getStartColumn();
 		}
 
-		reportError(securityContext, message, lineNumber, columnNumber, snippet);
+		reportError(securityContext, message, lineNumber, columnNumber, snippet, shouldThrow);
 	}
 
 	private static void reportError(final SecurityContext securityContext, final String message, final int lineNumber, final int columnNumber, final Snippet snippet) throws FrameworkException {
+
+		reportError(securityContext, message, lineNumber, columnNumber, snippet, true);
+	}
+
+	private static void reportError(final SecurityContext securityContext, final String message, final int lineNumber, final int columnNumber, final Snippet snippet, final boolean shouldThrow) throws FrameworkException {
 
 		final String entityName               = snippet.getName();
 		final String entityDescription        = (StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + snippet.getCodeSource();
@@ -676,7 +682,9 @@ public class Scripting {
 
 		exceptionPrefix.append(snippet.getName()).append(":").append(lineNumber).append(":").append(columnNumber);
 
-		throw new FrameworkException(422, exceptionPrefix.toString() + "\n" + message);
+		if (shouldThrow) {
+			throw new FrameworkException(422, exceptionPrefix.toString() + "\n" + message);
+		}
 	}
 
 	private static void putIfNotNull(final Map<String, Object> map, final String key, final Object value) {

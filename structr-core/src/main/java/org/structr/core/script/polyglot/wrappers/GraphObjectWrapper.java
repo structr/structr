@@ -124,7 +124,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 					tx.success();
 				} catch (FrameworkException ex) {
 
-					logger.error("Unexpected exception while trying to retrieve member method of graph object.", ex);
+					throw new RuntimeException(ex);
 				}
 
 				final ProxyExecutable executable = arguments -> {
