@@ -1949,8 +1949,13 @@ var Structr = {
 				break;
 
 			case "SCRIPTING_ERROR":
+
 				if (showScriptingErrorPopups) {
+
 					if (data.nodeId && data.nodeType) {
+
+						let uniqueClass = 'n' + data.nodeId + data.nodeType + data.row + data.column;
+
 						Command.get(data.nodeId, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
 
 							let name     = data.name.slice(data.name.indexOf('_html_') === 0 ? 6 : 0);
@@ -1988,7 +1993,7 @@ var Structr = {
 								+ '<tr><th>Column:</th><td style="padding-left:8px;">' + data.column + '</td></tr>'
 								+ '</table>';
 
-							let builder = new MessageBuilder()
+							let builder = new MessageBuilder().uniqueClass(uniqueClass).incrementsUniqueCount(true)
 								.title('Scripting error in ' + title)
 								.warning(location + '<br/>' + data.message)
 								.requiresConfirmation();
