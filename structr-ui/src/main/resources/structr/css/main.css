@@ -3292,6 +3292,7 @@ th.center {
 	overflow: auto;
 	background-position: 16px 16px;
 	margin-bottom: 2px;
+	max-height: 75vh;
 }
 
 #info-area .message h3 {
