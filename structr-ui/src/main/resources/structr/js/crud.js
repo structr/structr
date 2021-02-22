@@ -1211,7 +1211,7 @@ var _Crud = {
 
 		} else {
 			if (response.status !== 422 || !dialogBox.is(':visible')) {
-				Structr.errorFromResponse(data.responseJSON, url, {statusCode: response.status, requiresConfirmation: true});
+				Structr.errorFromResponse(data, url, {statusCode: response.status, requiresConfirmation: true});
 			}
 
 			_Crud.showCreateError(type, data, onError);
@@ -1227,7 +1227,6 @@ var _Crud = {
 			if (!dialogBox.is(':visible')) {
 				_Crud.showCreate(null, type);
 			}
-			var resp = JSON.parse(data.responseText);
 
 			$('.props input', dialogBox).css({
 				backgroundColor: '#fff',
@@ -1246,7 +1245,7 @@ var _Crud = {
 
 			window.setTimeout(function() {
 
-				for (let error of errors) {
+				for (let error of data.errors) {
 					var key = error.property;
 					var errorMsg = error.token;
 
@@ -1310,7 +1309,7 @@ var _Crud = {
 		let url = rootUrl + id;
 
 		let handleError = function (data, code) {
-			Structr.errorFromResponse(data.responseJSON, url, {statusCode: code, requiresConfirmation: true});
+			Structr.errorFromResponse(data, url, {statusCode: code, requiresConfirmation: true});
 
 			if (typeof onError === "function") {
 				onError();
@@ -1349,7 +1348,7 @@ var _Crud = {
 		}
 
 		let handleError = function (data, code) {
-			Structr.errorFromResponse(data.responseJSON, url, {statusCode: code, requiresConfirmation: true});
+			Structr.errorFromResponse(data, url, {statusCode: code, requiresConfirmation: true});
 
 			if (typeof onError === "function") {
 				onError();
@@ -1389,7 +1388,7 @@ var _Crud = {
 		};
 
 		let handleError = function (data, code) {
-			Structr.errorFromResponse(data.responseJSON, url, {statusCode: code, requiresConfirmation: true});
+			Structr.errorFromResponse(data, url, {statusCode: code, requiresConfirmation: true});
 
 			if (typeof onError === "function") {
 				onError();
