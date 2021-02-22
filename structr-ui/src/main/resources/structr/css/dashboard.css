@@ -195,3 +195,23 @@ div#dashboard .tabs-contents {
 	margin-bottom: 4px;
 	padding: 4px;
 }
+
+/* BEGIN: runtime event log */
+#event-log-options {
+	margin-bottom: 4px;
+}
+
+#event-log-options label {
+}
+
+#event-type-filter {
+	margin-right: 16px;
+}
+
+#event-type-page-size {
+	margin-right: 32px;
+}
+
+#refresh-event-log {
+}
+/* END: runtime event log */

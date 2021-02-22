@@ -1711,7 +1711,7 @@ var _Entities = {
 			if (Structr.isModuleActive(_Crud)) {
 
 				var handleGraphObject = function(entity) {
-					if (!entity.owner || initialObj.ownerId !== entity.owner.id) {
+					if ((!entity.owner && initialObj.owner !== null) || initialObj.ownerId !== entity.owner.id) {
 						_Crud.refreshCell(id, "owner", entity.owner, entity.type, initialObj.ownerId);
 					}
 
