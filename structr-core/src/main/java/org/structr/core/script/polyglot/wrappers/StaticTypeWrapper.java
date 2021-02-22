@@ -92,10 +92,9 @@ public class StaticTypeWrapper implements ProxyObject {
 								
 							} catch (FrameworkException ex) {
 
-								logger.error("Unexpected exception while trying to call static schema type method.", ex);
+								throw new RuntimeException(ex);
 							}
 
-							return null;
 						};
 
 						staticMethodCache.cacheExecutable(referencedClass.getSimpleName(), key, executable);

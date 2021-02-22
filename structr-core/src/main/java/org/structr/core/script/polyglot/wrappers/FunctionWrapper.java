@@ -50,9 +50,7 @@ public class FunctionWrapper implements ProxyExecutable {
 			return PolyglotWrapper.wrap(actionContext, func.apply(actionContext, entity, args));
 		} catch (FrameworkException ex) {
 
-			logger.error("Unexpected exception while trying to execute function in scripting context.", ex);
+			throw new RuntimeException(ex);
 		}
-
-		return null;
 	}
 }

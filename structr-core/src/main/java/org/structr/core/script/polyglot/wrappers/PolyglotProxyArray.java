@@ -170,7 +170,7 @@ public class PolyglotProxyArray implements ProxyArray {
 				node.setProperty(propKey, propKey.inputConverter(actionContext.getSecurityContext()).convert(list));
 			} catch (FrameworkException ex) {
 
-				logger.error("Unexpected exception while trying to update collection attribute on GraphObject.", ex);
+				throw new RuntimeException(ex);
 			}
 		}
 	}
