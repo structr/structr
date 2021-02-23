@@ -2741,7 +2741,7 @@ var _Schema = {
 					$('#methods-container-right').hide();
 				}
 				row.remove();
-				_Schema.methods.rowChanged(fakeTbody.closest('.fake-table'));
+				_Schema.methods.fakeTableChanged(fakeTbody.closest('.fake-table'));
 			});
 
 			_Schema.methods.fakeTableChanged(fakeTbody.closest('.fake-table'));
@@ -2796,7 +2796,7 @@ var _Schema = {
 
 			$('.remove-action', row).off('click').on('click', function() {
 				row.addClass('to-delete');
-				_Schema.methods.rowChanged(row, entity, method);
+				_Schema.methods.rowChanged(row, true);
 			});
 
 			$('.discard-changes', row).off('click').on('click', function() {
