@@ -916,6 +916,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			@Override
 			public void onError(Throwable t) {
+
+				// prevent async from running into default timeout of 30s
+				async.complete();
+
 				if (t instanceof QuietException) {
 					// ignore exceptions which (by jettys standards) should be handled less verbosely
 				} else {
