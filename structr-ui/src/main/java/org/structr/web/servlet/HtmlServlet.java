@@ -1155,7 +1155,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		final PropertyKey<Integer> positionKey = StructrApp.key(Page.class, "position");
 
-		List<Page> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).notBlank(positionKey).getAsList();
+		List<Page> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).notBlank(positionKey).sort(positionKey).getAsList();
 
 		for (Page page : possiblePages) {
 
