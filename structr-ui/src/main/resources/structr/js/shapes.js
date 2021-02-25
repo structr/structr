@@ -27,19 +27,21 @@ $(document).ready(function() {
 var _Shapes = {
 	_moduleName: 'shapes',
 	autoRefresh: [],
-	onload: async function() {
+	onload: function() {
 
-		let html = await Structr.fetchHtmlTemplate('shapes/main', {});
+		Structr.fetchHtmlTemplate('shapes/main', {}, function(html) {
 
-		main.append(html);
+			main.append(html);
 
-		_Shapes.init();
+			_Shapes.init();
 
-		$(window).off('resize').resize(function() {
-			_Shapes.resize();
+			$(window).off('resize').resize(function() {
+				_Shapes.resize();
+			});
+
+			Structr.unblockMenu(500);
+
 		});
-
-		Structr.unblockMenu(500);
 
 	},
 	init: function() {

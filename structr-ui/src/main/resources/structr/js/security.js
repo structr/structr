@@ -35,29 +35,30 @@ var _Security = {
 		_Pager.initPager('groups',          'Group', 1, 25, 'name', 'asc');
 		_Pager.initPager('resource-access', 'ResourceAccess', 1, 25, 'signature', 'asc');
 	},
-	onload: async function() {
+	onload: function() {
 
 		_Security.init();
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('security'));
 
-		let html = await Structr.fetchHtmlTemplate('security/main', {});
+		Structr.fetchHtmlTemplate('security/main', {}, function (html) {
 
-		main.append(html);
+			main.append(html);
 
-		_Security.groups = $('#groups');
-		_Security.users = $('#users');
-		_Security.resourceAccesses = $('#resourceAccesses');
+			_Security.groups = $('#groups');
+			_Security.users = $('#users');
+			_Security.resourceAccesses = $('#resourceAccesses');
 
-		var activeTab = LSWrapper.getItem(_Security.securityTabKey) || 'usersAndGroups';
-		_Security.selectTab(activeTab);
-
-		$('#securityTabsMenu > li > a').on('click', function() {
-			activeTab = $(this).attr('id').slice(0, -1);
+			var activeTab = LSWrapper.getItem(_Security.securityTabKey) || 'usersAndGroups';
 			_Security.selectTab(activeTab);
-		});
 
-		Structr.unblockMenu(100);
+			$('#securityTabsMenu > li > a').on('click', function() {
+				activeTab = $(this).attr('id').slice(0, -1);
+				_Security.selectTab(activeTab);
+			});
+
+			Structr.unblockMenu(100);
+		});
 	},
 	selectTab: function(tab) {
 
@@ -79,32 +80,33 @@ var _Security = {
 
 var _UsersAndGroups = {
 
-	refreshUsers: async function() {
+	refreshUsers: function() {
 
-		let html = await Structr.fetchHtmlTemplate('security/button.user.new', {});
+		Structr.fetchHtmlTemplate('security/button.user.new', {}, function (html) {
 
-		_Security.users.empty();
-		_Security.users.append(html);
+			_Security.users.empty();
+			_Security.users.append(html);
 
-		$('.add_user_icon', main).on('click', function(e) {
-			e.stopPropagation();
-			return Command.create({type: $('select#user-type').val()});
-		});
-
-		$('select#user-type').on('change', function() {
-			$('#add-user-button', main).find('span').text('Add ' + $(this).val());
-		});
-
-		_Schema.getDerivedTypes('org.structr.dynamic.User', [], function(types) {
-			var elem = $('select#user-type');
-			types.forEach(function(type) {
-				elem.append('<option value="' + type + '">' + type + '</option>');
+			$('.add_user_icon', main).on('click', function(e) {
+				e.stopPropagation();
+				return Command.create({type: $('select#user-type').val()});
 			});
-		});
 
-		var userPager = _Pager.addPager('users', _Security.users, true, 'User', 'public');
-		userPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></th></div>');
-		userPager.activateFilterElements();
+			$('select#user-type').on('change', function() {
+				$('#add-user-button', main).find('span').text('Add ' + $(this).val());
+			});
+
+			_Schema.getDerivedTypes('org.structr.dynamic.User', [], function(types) {
+				var elem = $('select#user-type');
+				types.forEach(function(type) {
+					elem.append('<option value="' + type + '">' + type + '</option>');
+				});
+			});
+
+			var userPager = _Pager.addPager('users', _Security.users, true, 'User', 'public');
+			userPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></th></div>');
+			userPager.activateFilterElements();
+		});
 	},
 	createUserElement:function (user, group) {
 
@@ -269,33 +271,34 @@ var _UsersAndGroups = {
 	deleteUser: function(button, user) {
 		_Entities.deleteNode(button, user);
 	},
-	refreshGroups: async function() {
+	refreshGroups: function() {
 
-		let html = await Structr.fetchHtmlTemplate('security/button.group.new', {});
+		Structr.fetchHtmlTemplate('security/button.group.new', {}, function (html) {
 
-		_Security.groups.empty();
-		_Security.groups.append(html);
+			_Security.groups.empty();
+			_Security.groups.append(html);
 
-		$('.add_group_icon', main).on('click', function(e) {
-			e.stopPropagation();
-			return Command.create({type: $('select#group-type').val()});
-		});
-
-		$('select#group-type').on('change', function() {
-			$('#add-group-button', main).find('span').text('Add ' + $(this).val());
-		});
-
-		// list types that extend User
-		_Schema.getDerivedTypes('org.structr.dynamic.Group', [], function(types) {
-			var elem = $('select#group-type');
-			types.forEach(function(type) {
-				elem.append('<option value="' + type + '">' + type + '</option>');
+			$('.add_group_icon', main).on('click', function(e) {
+				e.stopPropagation();
+				return Command.create({type: $('select#group-type').val()});
 			});
-		});
 
-		var groupPager = _Pager.addPager('groups', _Security.groups, true, 'Group', 'public');
-		groupPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
-		groupPager.activateFilterElements();
+			$('select#group-type').on('change', function() {
+				$('#add-group-button', main).find('span').text('Add ' + $(this).val());
+			});
+
+			// list types that extend User
+			_Schema.getDerivedTypes('org.structr.dynamic.Group', [], function(types) {
+				var elem = $('select#group-type');
+				types.forEach(function(type) {
+					elem.append('<option value="' + type + '">' + type + '</option>');
+				});
+			});
+
+			var groupPager = _Pager.addPager('groups', _Security.groups, true, 'Group', 'public');
+			groupPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
+			groupPager.activateFilterElements();
+		});
 	},
 	createGroupElement: function (group) {
 
@@ -404,32 +407,32 @@ var _UsersAndGroups = {
 
 var _ResourceAccessGrants = {
 
-	refreshResourceAccesses: async function() {
-
+	refreshResourceAccesses: function() {
 		_Security.resourceAccesses.empty();
 
-		let html = await Structr.fetchHtmlTemplate('security/resource-access', {});
+		Structr.fetchHtmlTemplate('security/resource-access', {}, function (html) {
 
-		_Security.resourceAccesses.append(html);
+			_Security.resourceAccesses.append(html);
 
-		Structr.activateCommentsInElement(_Security.resourceAccesses);
+			Structr.activateCommentsInElement(_Security.resourceAccesses);
 
-		let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', undefined, undefined, _ResourceAccessGrants.customPagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees');
+			let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', undefined, undefined, _ResourceAccessGrants.customPagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees');
 
-		raPager.cleanupFunction = function () {
-			$('#resourceAccessesTable tbody tr').remove();
-		};
+			raPager.cleanupFunction = function () {
+				$('#resourceAccessesTable tbody tr').remove();
+			};
 
-		raPager.activateFilterElements(_Security.resourceAccesses);
+			raPager.activateFilterElements(_Security.resourceAccesses);
 
-		$('.add_grant_icon', _Security.resourceAccesses).on('click', function (e) {
-			_ResourceAccessGrants.addResourceGrant(e);
-		});
-
-		$('#resource-signature', _Security.resourceAccesses).on('keyup', function (e) {
-			if (e.keyCode === 13) {
+			$('.add_grant_icon', _Security.resourceAccesses).on('click', function (e) {
 				_ResourceAccessGrants.addResourceGrant(e);
-			}
+			});
+
+			$('#resource-signature', _Security.resourceAccesses).on('keyup', function (e) {
+				if (e.keyCode === 13) {
+					_ResourceAccessGrants.addResourceGrant(e);
+				}
+			});
 		});
 	},
 	customPagerTransportFunction: function(type, pageSize, page, filterAttrs, callback) {

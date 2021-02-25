@@ -295,27 +295,16 @@ var Structr = {
 		border: 'none',
 		backgroundColor: 'transparent'
 	},
-	templateCache: {
-		cache: {},
-		get: async (templateName) => {
+	templateCache: new AsyncObjectCache(function(templateName) {
 
-			if (Structr.templateCache.cache[templateName]) {
-				return Structr.templateCache.cache[templateName];
-			}
+		Promise.resolve($.ajax('templates/' + templateName + '.html?t=' + (new Date().getTime()))).then(function(templateHtml) {
+			Structr.templateCache.addObject(templateHtml, templateName);
+		}).catch(function(e) {
+			console.log(e.statusText, templateName, e);
+		});
 
-			let response = await fetch('templates/' + templateName + '.html?t=' + (new Date().getTime()));
-			if (response.ok) {
+	}),
 
-				let templateHtml = await response.text();
-				Structr.templateCache.cache[templateName] = templateHtml;
-				return Structr.templateCache.cache[templateName];
-
-			} else {
-
-				new MessageBuilder().title('Unable to fetch template "' + templateName + '"').warning('The server responded with <code>' + response.statusText + '</code>. The template can not be displayed. Please refresh to resolve the issue.').requiresConfirmation().allowConfirmAll().show();
-			}
-		}
-	},
 	reconnect: function() {
 		Structr.stopPing();
 		Structr.stopReconnect();
@@ -1138,7 +1127,7 @@ var Structr = {
 
 				if (typeof callback === 'function') {
 					LSWrapper.setItem(_Pages.rightSlideoutWidthKey, slideoutElement.width());
-					callback();
+					callback({isOpenAction: false});
 				}
 			},
 			stop: function(e, ui) {
@@ -1185,7 +1174,7 @@ var Structr = {
 
 				if (typeof callback === 'function') {
 					LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
-					callback();
+					callback({isOpenAction: false});
 				}
 			},
 			stop: function(e, ui) {
@@ -2064,15 +2053,13 @@ var Structr = {
 			}
 		}
 	},
-	fetchHtmlTemplate: async function(templateName, templateConfig) {
+	fetchHtmlTemplate: function(templateName, templateConfig, callback) {
 
-		let templateHtml = await Structr.templateCache.get(templateName);
-
-		let convertTemplateToLiteral = new Function('config', 'return `' + templateHtml + '`;');
-		let parameterizedTemplate = convertTemplateToLiteral(templateConfig);
-
-		return parameterizedTemplate;
-
+		Structr.templateCache.registerCallback(templateName, templateName, function(templateHtml, cacheHit) {
+			var convertTemplateToLiteral = new Function('config', 'return `' + templateHtml + '`;');
+			var parameterizedTemplate = convertTemplateToLiteral(templateConfig);
+			callback(parameterizedTemplate, cacheHit);
+		});
 	},
 	activateCommentsInElement: function(elem, defaults) {
 

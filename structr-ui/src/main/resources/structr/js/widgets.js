@@ -30,7 +30,7 @@ var _Widgets = {
 	localWidgetsCollapsedKey: 'structrWidgetLocalCollapsedKey_' + port,
 	remoteWidgetsCollapsedKey: 'structrWidgetRemoteCollapsedKey_' + port,
 
-	reloadWidgets: async function() {
+	reloadWidgets: function() {
 
 		widgetsSlideout.find(':not(.compTab)').remove();
 
@@ -39,82 +39,83 @@ var _Widgets = {
 			remoteCollapsed: LSWrapper.getItem(_Widgets.remoteWidgetsCollapsedKey, false)
 		};
 
-		let html = await Structr.fetchHtmlTemplate('widgets/slideout', templateConfig);
+		Structr.fetchHtmlTemplate('widgets/slideout', templateConfig, function(html) {
 
-		widgetsSlideout.append(html);
+			widgetsSlideout.append(html);
 
-		widgetsSlideout[0].querySelectorAll('a.tab-group-toggle').forEach(function(toggleLink) {
+			widgetsSlideout[0].querySelectorAll('a.tab-group-toggle').forEach(function(toggleLink) {
 
-			toggleLink.addEventListener('click', function(event) {
-				let tabGroup = event.target.closest('.tab-group');
-				tabGroup.classList.toggle('collapsed');
-				LSWrapper.setItem(tabGroup.dataset.key, tabGroup.classList.contains('collapsed'));
+				toggleLink.addEventListener('click', function(event) {
+					let tabGroup = event.target.closest('.tab-group');
+					tabGroup.classList.toggle('collapsed');
+					LSWrapper.setItem(tabGroup.dataset.key, tabGroup.classList.contains('collapsed'));
+				});
 			});
-		});
 
-		_Widgets.localWidgetsEl = $('#widgets', widgetsSlideout);
+			_Widgets.localWidgetsEl = $('#widgets', widgetsSlideout);
 
-		$('.add_widgets_icon', widgetsSlideout).on('click', function(e) {
-			e.stopPropagation();
-			Command.create({type: 'Widget'});
-		});
-
-		_Widgets.localWidgetsEl.droppable({
-			drop: function(e, ui) {
-				e.preventDefault();
+			$('.add_widgets_icon', widgetsSlideout).on('click', function(e) {
 				e.stopPropagation();
-				dropBlocked = true;
-				var sourceId = Structr.getId($(ui.draggable));
-				var sourceWidget = StructrModel.obj(sourceId);
+				Command.create({type: 'Widget'});
+			});
 
-				if (sourceWidget && sourceWidget.isWidget) {
-					if (sourceWidget.treePath) {
-						Command.create({ type: 'Widget', name: sourceWidget.name + ' (copied)', source: sourceWidget.source, description: sourceWidget.description, configuration: sourceWidget.configuration }, function(entity) {
-							dropBlocked = false;
+			_Widgets.localWidgetsEl.droppable({
+				drop: function(e, ui) {
+					e.preventDefault();
+					e.stopPropagation();
+					dropBlocked = true;
+					var sourceId = Structr.getId($(ui.draggable));
+					var sourceWidget = StructrModel.obj(sourceId);
+
+					if (sourceWidget && sourceWidget.isWidget) {
+						if (sourceWidget.treePath) {
+							Command.create({ type: 'Widget', name: sourceWidget.name + ' (copied)', source: sourceWidget.source, description: sourceWidget.description, configuration: sourceWidget.configuration }, function(entity) {
+								dropBlocked = false;
+							});
+						}
+					} else if (sourceId) {
+						$.ajax({
+							url: viewRootUrl + sourceId + '?edit=1',
+							contentType: 'text/html',
+							statusCode: {
+								200: function(data) {
+									Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function(entity) {
+										dropBlocked = false;
+									});
+								}
+							}
 						});
 					}
-				} else if (sourceId) {
-					$.ajax({
-						url: viewRootUrl + sourceId + '?edit=1',
-						contentType: 'text/html',
-						statusCode: {
-							200: function(data) {
-								Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function(entity) {
-									dropBlocked = false;
-								});
-							}
-						}
-					});
 				}
-			}
-		});
-
-		_Pager.initPager('local-widgets', 'Widget', 1, 25, 'treePath', 'asc');
-		var _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl, true, 'Widget', 'public', function(entities) {
-			entities.forEach(function (entity) {
-				StructrModel.create(entity, null, false);
-				_Widgets.appendWidgetElement(entity, false, _Widgets.localWidgetsEl);
 			});
-		});
 
-		_wPager.pager.append('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" /></span>');
-		_wPager.activateFilterElements();
+			_Pager.initPager('local-widgets', 'Widget', 1, 25, 'treePath', 'asc');
+			var _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl, true, 'Widget', 'public', function(entities) {
+				entities.forEach(function (entity) {
+					StructrModel.create(entity, null, false);
+					_Widgets.appendWidgetElement(entity, false, _Widgets.localWidgetsEl);
+				});
+			});
 
-		_Widgets.remoteWidgetsEl = $('#remoteWidgets', widgetsSlideout);
+			_wPager.pager.append('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" /></span>');
+			_wPager.activateFilterElements();
 
-		_Widgets.remoteWidgetFilterEl = $('#remoteWidgetsFilter');
-		_Widgets.remoteWidgetFilterEl.keyup(function (e) {
-			if (e.keyCode === 27) {
-				$(this).val('');
-			}
+			_Widgets.remoteWidgetsEl = $('#remoteWidgets', widgetsSlideout);
 
-			_Widgets.repaintRemoteWidgets();
-		});
+			_Widgets.remoteWidgetFilterEl = $('#remoteWidgetsFilter');
+			_Widgets.remoteWidgetFilterEl.keyup(function (e) {
+				if (e.keyCode === 27) {
+					$(this).val('');
+				}
 
-		document.querySelector('button#edit-widget-servers').addEventListener('click', _Widgets.showWidgetServersDialog);
+				_Widgets.repaintRemoteWidgets();
+			});
 
-		_Widgets.updateWidgetServerSelector(function() {
-			_Widgets.refreshRemoteWidgets();
+			document.querySelector('button#edit-widget-servers').addEventListener('click', _Widgets.showWidgetServersDialog);
+
+			_Widgets.updateWidgetServerSelector(function() {
+				_Widgets.refreshRemoteWidgets();
+			});
 		});
 	},
 	getWidgetServerUrl: function() {
@@ -133,82 +134,84 @@ var _Widgets = {
 		});
 
 	},
-	showWidgetServersDialog: async function() {
+	showWidgetServersDialog: function() {
 
-		let html = await Structr.fetchHtmlTemplate('widgets/servers-dialog', {});
+		Structr.fetchHtmlTemplate('widgets/servers-dialog', {}, function(html) {
 
-		Structr.dialog('Widget Servers');
-		dialogText.html(html);
+			Structr.dialog('Widget Servers');
+			dialogText.html(html);
 
-		Structr.activateCommentsInElement(dialogText, {helpElementCss: { 'font-size': '13px'}});
+			Structr.activateCommentsInElement(dialogText, {helpElementCss: { 'font-size': '13px'}});
 
-		_Widgets.updateWidgetServersTable();
+			_Widgets.updateWidgetServersTable();
 
-		dialogText[0].querySelector('button#save-widget-server').addEventListener('click', function () {
-			let name = document.querySelector("#new-widget-server-name").value;
-			let url = document.querySelector("#new-widget-server-url").value;
+			dialogText[0].querySelector('button#save-widget-server').addEventListener('click', function () {
+				let name = document.querySelector("#new-widget-server-name").value;
+				let url = document.querySelector("#new-widget-server-url").value;
 
-			Command.createApplicationConfigurationDataNode(_Widgets.applicationConfigurationDataNodeKey, name, url, function(e) {
-				_Widgets.updateWidgetServersTable();
-				_Widgets.updateWidgetServerSelector();
+				Command.createApplicationConfigurationDataNode(_Widgets.applicationConfigurationDataNodeKey, name, url, function(e) {
+					_Widgets.updateWidgetServersTable();
+					_Widgets.updateWidgetServerSelector();
+				});
 			});
 		});
 
 	},
 	updateWidgetServersTable: function() {
 
-		_Widgets.getConfiguredWidgetServers(async function(serverConfigs) {
+		_Widgets.getConfiguredWidgetServers(function(serverConfigs) {
 
-			let html = await Structr.fetchHtmlTemplate('widgets/servers-table', {servers: serverConfigs});
+			Structr.fetchHtmlTemplate('widgets/servers-table', {servers: serverConfigs}, function(html) {
 
-			let tableContainer = dialogText[0].querySelector('#widget-servers-table-container');
+				let tableContainer = dialogText[0].querySelector('#widget-servers-table-container');
 
-			tableContainer.innerHTML = html;
+				tableContainer.innerHTML = html;
 
-			tableContainer.querySelectorAll('button.delete').forEach(function(deleteButton) {
-				deleteButton.addEventListener('click', function(e) {
-					let el = e.target;
-					let tr = el.closest('tr');
-					let acdnID = tr.dataset.acdnId;
+				tableContainer.querySelectorAll('button.delete').forEach(function(deleteButton) {
+					deleteButton.addEventListener('click', function(e) {
+						let el = e.target;
+						let tr = el.closest('tr');
+						let acdnID = tr.dataset.acdnId;
 
-					Structr.confirmation('Really delete Widget Server URL?', function() {
-						Command.deleteNode(acdnID, false, function() {
-							tr.remove();
+						Structr.confirmation('Really delete Widget Server URL?', function() {
+							Command.deleteNode(acdnID, false, function() {
+								tr.remove();
 
-							let currentServer = LSWrapper.getItem(_Widgets.widgetServerKey);
-							let needsRefresh = (_Widgets.widgetServerSelector.value === currentServer);
-							if (needsRefresh) {
-								LSWrapper.removeItem(_Widgets.widgetServerKey);
-							}
-
-							_Widgets.updateWidgetServerSelector(function() {
+								let currentServer = LSWrapper.getItem(_Widgets.widgetServerKey);
+								let needsRefresh = (_Widgets.widgetServerSelector.value === currentServer);
 								if (needsRefresh) {
-									_Widgets.refreshRemoteWidgets();
+									LSWrapper.removeItem(_Widgets.widgetServerKey);
 								}
-							});
 
-							$.unblockUI({
-								fadeOut: 25
-							});
+								_Widgets.updateWidgetServerSelector(function() {
+									if (needsRefresh) {
+										_Widgets.refreshRemoteWidgets();
+									}
+								});
 
-							_Widgets.showWidgetServersDialog();
+								$.unblockUI({
+									fadeOut: 25
+								});
+
+								_Widgets.showWidgetServersDialog();
+							});
 						});
 					});
 				});
-			});
 
-			tableContainer.querySelectorAll('table input').forEach(function(input) {
-				input.addEventListener('change', function(e) {
-					let el = e.target;
-					let acdnID = el.closest('tr').dataset.acdnId;
-					let key = el.dataset.key;
-					console.log(acdnID, key, el.value);
+				tableContainer.querySelectorAll('table input').forEach(function(input) {
+					input.addEventListener('change', function(e) {
+						let el = e.target;
+						let acdnID = el.closest('tr').dataset.acdnId;
+						let key = el.dataset.key;
+						console.log(acdnID, key, el.value);
 
-					Command.setProperty(acdnID, key, el.value, false, function(e) {
+						Command.setProperty(acdnID, key, el.value, false, function(e) {
 
-						blinkGreen($(el));
+							blinkGreen($(el));
 
-						_Widgets.updateWidgetServerSelector();
+							_Widgets.updateWidgetServerSelector();
+						});
 					});
 				});
 			});
@@ -216,25 +219,26 @@ var _Widgets = {
 	},
 	updateWidgetServerSelector: function(callback) {
 
-		_Widgets.getConfiguredWidgetServers(async function(serverConfigs) {
+		_Widgets.getConfiguredWidgetServers(function(serverConfigs) {
 
 			let templateConfig = {
 				servers: serverConfigs,
 				selectedServerURL: LSWrapper.getItem(_Widgets.widgetServerKey, _Widgets.defaultWidgetServerUrl)
 			};
 
-			let html = await Structr.fetchHtmlTemplate('widgets/servers-selector', templateConfig);
+			Structr.fetchHtmlTemplate('widgets/servers-selector', templateConfig, function(html) {
 
-			let selectorContainer = document.querySelector('#widget-server-selector-container');
+				let selectorContainer = document.querySelector('#widget-server-selector-container');
 
-			selectorContainer.innerHTML = html;
+				selectorContainer.innerHTML = html;
 
-			_Widgets.widgetServerSelector = document.querySelector('#widget-server-selector');
-			_Widgets.widgetServerSelector.addEventListener('change', _Widgets.refreshRemoteWidgets);
+				_Widgets.widgetServerSelector = document.querySelector('#widget-server-selector');
+				_Widgets.widgetServerSelector.addEventListener('change', _Widgets.refreshRemoteWidgets);
 
-			if (typeof callback === 'function') {
-				callback();
-			}
+				if (typeof callback === 'function') {
+					callback();
+				}
+			});
 		});
 	},
 	refreshRemoteWidgets: function() {
@@ -543,16 +547,21 @@ var _Widgets = {
 			readOnly: !allowEdit
 		}));
 	},
-	appendWidgetSelectorEditor: async function (container, entity, allowEdit) {
+	appendWidgetSelectorEditor: function (container, entity, allowEdit) {
 
-		let html = await Structr.fetchHtmlTemplate('widgets/edit-selectors', {});
-		container.append(html);
+		Structr.fetchHtmlTemplate('widgets/edit-selectors', {}, function(html) {
+
+			container.append(html);
+
+
+		});
 
 	},
-	appendWidgetHelpText: async function(container) {
+	appendWidgetHelpText: function(container) {
 
-		let html = await Structr.fetchHtmlTemplate('widgets/help', {});
-		container.append(html);
+		Structr.fetchHtmlTemplate('widgets/help', {}, function(html) {
+			container.append(html);
+		});
 	},
 	appendVisualExpandIcon: function(el, id, name, hasChildren, expand) {
 

@@ -99,167 +99,168 @@ var _Dashboard = {
 			templateConfig.zipExportPrefix          = LSWrapper.getItem(_Dashboard.zipExportPrefixKey);
 			templateConfig.zipExportAppendTimestamp = LSWrapper.getItem(_Dashboard.zipExportAppendTimestampKey, true);
 
-			let html = await Structr.fetchHtmlTemplate('dashboard/dashboard', templateConfig);
+			Structr.fetchHtmlTemplate('dashboard/dashboard', templateConfig, function(html) {
 
-			main.append(html);
+				main.append(html);
 
-			if (templateConfig.envInfo.databaseService === 'MemoryDatabaseService') {
-				Structr.appendInMemoryInfoToElement($('#dashboard-about-structr .db-driver'));
-			}
+				if (templateConfig.envInfo.databaseService === 'MemoryDatabaseService') {
+					Structr.appendInMemoryInfoToElement($('#dashboard-about-structr .db-driver'));
+				}
 
-			_Dashboard.gatherVersionUpdateInfo(templateConfig.envInfo.version, releasesIndexUrl, snapshotsIndexUrl);
+				_Dashboard.gatherVersionUpdateInfo(templateConfig.envInfo.version, releasesIndexUrl, snapshotsIndexUrl);
 
-			document.querySelectorAll('#dashboard .tabs-menu li a').forEach(function(tabLink) {
-				tabLink.addEventListener('click', function(e) {
-					e.preventDefault();
+				document.querySelectorAll('#dashboard .tabs-menu li a').forEach(function(tabLink) {
+					tabLink.addEventListener('click', function(e) {
+						e.preventDefault();
 
-					let activeLink = document.querySelector('#dashboard .tabs-menu li.active a');
-					if (activeLink) {
-						$(activeLink.getAttribute('href')).trigger('hide');
+						let activeLink = document.querySelector('#dashboard .tabs-menu li.active a');
+						if (activeLink) {
+							$(activeLink.getAttribute('href')).trigger('hide');
+						}
+
+						let targetId = e.target.getAttribute('href');
+
+						_Dashboard.removeActiveClass(document.querySelectorAll('#dashboard .tabs-contents .tab-content'));
+						_Dashboard.removeActiveClass(document.querySelectorAll('#dashboard .tabs-menu li'));
+
+						e.target.closest('li').classList.add('active');
+						document.querySelector(targetId).classList.add('active');
+						LSWrapper.setItem(_Dashboard.activeTabPrefixKey, targetId);
+
+						$(targetId).trigger('show');
+					});
+				});
+
+				document.querySelector('#clear-local-storage-on-server').addEventListener('click', function() {
+					_Dashboard.clearLocalStorageOnServer(templateConfig.meObj.id);
+				});
+
+				_Dashboard.checkLicenseEnd(templateConfig.envInfo, $('#dashboard-about-structr .end-date'));
+
+				$('button#do-app-import').on('click', function() {
+					_Dashboard.deploy('import', $('#deployment-source-input').val());
+				});
+
+				$('button#do-app-export').on('click', function() {
+					_Dashboard.deploy('export', $('#app-export-target-input').val());
+				});
+
+				$('button#do-app-import-from-url').on('click', function() {
+					_Dashboard.deployFromURL($('#redirect-url').val(), $('#deployment-url-input').val());
+				});
+
+				$('button#do-data-import').on('click', function() {
+					_Dashboard.deployData('import', $('#data-import-source-input').val());
+				});
+
+				$('button#do-data-export').on('click', function() {
+					_Dashboard.deployData('export', $('#data-export-target-input').val(), $('#data-export-types-input').val());
+				});
+
+				$('button#do-app-export-to-zip').on('click', function() {
+					_Dashboard.exportAsZip();
+				});
+
+				_Dashboard.initializeRuntimeEventLog();
+
+				let typesSelectElem = $('#data-export-types-input');
+
+				Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isBuiltinType', function(nodes) {
+
+					let builtinTypes = [];
+					let customTypes = [];
+
+					for (let n of nodes) {
+						if (n.isBuiltinType) {
+							builtinTypes.push(n);
+						} else {
+							customTypes.push(n);
+						}
 					}
 
-					let targetId = e.target.getAttribute('href');
+					if (customTypes.length > 0) {
 
-					_Dashboard.removeActiveClass(document.querySelectorAll('#dashboard .tabs-contents .tab-content'));
-					_Dashboard.removeActiveClass(document.querySelectorAll('#dashboard .tabs-menu li'));
+						typesSelectElem.append(customTypes.reduce(function(html, node) {
+							return html + '<option>' + node.name + '</option>';
+						}, '<optgroup label="Custom Types">') + '</optgroup>');
+					}
 
-					e.target.closest('li').classList.add('active');
-					document.querySelector(targetId).classList.add('active');
-					LSWrapper.setItem(_Dashboard.activeTabPrefixKey, targetId);
+					typesSelectElem.append(builtinTypes.reduce(function(html, node) {
+							return html + '<option>' + node.name + '</option>';
+						}, '<optgroup label="Builtin Types">') + '</optgroup>');
 
-					$(targetId).trigger('show');
+
+					typesSelectElem.chosen({
+						search_contains: true,
+						width: 'calc(100% - 14px)',
+						display_selected_options: false,
+						hide_results_on_select: false,
+						display_disabled_options: false
+					}).chosenSortable();
 				});
-			});
 
-			document.querySelector('#clear-local-storage-on-server').addEventListener('click', function() {
-				_Dashboard.clearLocalStorageOnServer(templateConfig.meObj.id);
-			});
+				_Dashboard.activateLogBox();
+				_Dashboard.activateLastActiveTab();
+				_Dashboard.appendGlobalSchemaMethods($('#dashboard-global-schema-methods'));
 
-			_Dashboard.checkLicenseEnd(templateConfig.envInfo, $('#dashboard-about-structr .end-date'));
+				$(window).off('resize');
+				$(window).on('resize', function() {
+					Structr.resize();
+				});
 
-			$('button#do-app-import').on('click', function() {
-				_Dashboard.deploy('import', $('#deployment-source-input').val());
-			});
+				let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
+				if (!userConfigMenu) {
+					userConfigMenu = {
+						main: templateConfig.envInfo.mainMenu,
+						sub: []
+					};
+				}
 
-			$('button#do-app-export').on('click', function() {
-				_Dashboard.deploy('export', $('#app-export-target-input').val());
-			});
+				let mainMenuConfigContainer = document.querySelector('#main-menu-entries-config');
+				let subMenuConfigContainer = document.querySelector('#sub-menu-entries-config');
 
-			$('button#do-app-import-from-url').on('click', function() {
-				_Dashboard.deployFromURL($('#redirect-url').val(), $('#deployment-url-input').val());
-			});
+				for (let menuitem of document.querySelectorAll('#menu li[data-name]')) {
 
-			$('button#do-data-import').on('click', function() {
-				_Dashboard.deployData('import', $('#data-import-source-input').val());
-			});
-
-			$('button#do-data-export').on('click', function() {
-				_Dashboard.deployData('export', $('#data-export-target-input').val(), $('#data-export-types-input').val());
-			});
-
-			$('button#do-app-export-to-zip').on('click', function() {
-				_Dashboard.exportAsZip();
-			});
-
-			_Dashboard.initializeRuntimeEventLog();
-
-			let typesSelectElem = $('#data-export-types-input');
-
-			Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isBuiltinType', function(nodes) {
-
-				let builtinTypes = [];
-				let customTypes = [];
-
-				for (let n of nodes) {
-					if (n.isBuiltinType) {
-						builtinTypes.push(n);
-					} else {
-						customTypes.push(n);
+					// account for missing modules because of license
+					if (menuitem.style.display !== 'none') {
+						let n = document.createElement('div');
+						n.classList.add('menu-item');
+						n.textContent = menuitem.dataset.name;
+						n.dataset.name = menuitem.dataset.name;
+						subMenuConfigContainer.appendChild(n);
 					}
 				}
 
-				if (customTypes.length > 0) {
-
-					typesSelectElem.append(customTypes.reduce(function(html, node) {
-						return html + '<option>' + node.name + '</option>';
-					}, '<optgroup label="Custom Types">') + '</optgroup>');
+				for (let mainMenuItem of userConfigMenu.main) {
+					mainMenuConfigContainer.appendChild(subMenuConfigContainer.querySelector('div[data-name="' + mainMenuItem + '"]'));
 				}
 
-				typesSelectElem.append(builtinTypes.reduce(function(html, node) {
-						return html + '<option>' + node.name + '</option>';
-					}, '<optgroup label="Builtin Types">') + '</optgroup>');
+				$('#main-menu-entries-config, #sub-menu-entries-config').sortable({
+					connectWith: ".connectedSortable"
+				}).disableSelection();
 
+				document.querySelector('#save-menu-config').addEventListener('click', () => {
+					let newMenuConfig = {
+						main: [].map.call(mainMenuConfigContainer.querySelectorAll('div.menu-item'), (el) => { return el.dataset.name; }),
+						sub: [].map.call(subMenuConfigContainer.querySelectorAll('div.menu-item'), (el) => { return el.dataset.name; })
+					};
 
-				typesSelectElem.chosen({
-					search_contains: true,
-					width: 'calc(100% - 14px)',
-					display_selected_options: false,
-					hide_results_on_select: false,
-					display_disabled_options: false
-				}).chosenSortable();
-			});
-
-			_Dashboard.activateLogBox();
-			_Dashboard.activateLastActiveTab();
-			_Dashboard.appendGlobalSchemaMethods($('#dashboard-global-schema-methods'));
-
-			$(window).off('resize');
-			$(window).on('resize', function() {
-				Structr.resize();
-			});
-
-			let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
-			if (!userConfigMenu) {
-				userConfigMenu = {
-					main: templateConfig.envInfo.mainMenu,
-					sub: []
-				};
-			}
-
-			let mainMenuConfigContainer = document.querySelector('#main-menu-entries-config');
-			let subMenuConfigContainer = document.querySelector('#sub-menu-entries-config');
-
-			for (let menuitem of document.querySelectorAll('#menu li[data-name]')) {
-
-				// account for missing modules because of license
-				if (menuitem.style.display !== 'none') {
-					let n = document.createElement('div');
-					n.classList.add('menu-item');
-					n.textContent = menuitem.dataset.name;
-					n.dataset.name = menuitem.dataset.name;
-					subMenuConfigContainer.appendChild(n);
-				}
-			}
-
-			for (let mainMenuItem of userConfigMenu.main) {
-				mainMenuConfigContainer.appendChild(subMenuConfigContainer.querySelector('div[data-name="' + mainMenuItem + '"]'));
-			}
-
-			$('#main-menu-entries-config, #sub-menu-entries-config').sortable({
-				connectWith: ".connectedSortable"
-			}).disableSelection();
-
-			document.querySelector('#save-menu-config').addEventListener('click', () => {
-				let newMenuConfig = {
-					main: [].map.call(mainMenuConfigContainer.querySelectorAll('div.menu-item'), (el) => { return el.dataset.name; }),
-					sub: [].map.call(subMenuConfigContainer.querySelectorAll('div.menu-item'), (el) => { return el.dataset.name; })
-				};
-
-				Structr.updateMainMenu(newMenuConfig);
-			});
-
-			let showScriptingErrorPopups = _Dashboard.isShowScriptingErrorPopups();
-
-			let showScriptingErrorPopupsCheckbox = document.querySelector('#dashboard-show-scripting-error-popups');
-			if (showScriptingErrorPopupsCheckbox) {
-				showScriptingErrorPopupsCheckbox.checked = showScriptingErrorPopups;
-
-				showScriptingErrorPopupsCheckbox.addEventListener('change', () => {
-					LSWrapper.setItem(_Dashboard.showScriptingErrorPopupsKey, showScriptingErrorPopupsCheckbox.checked);
+					Structr.updateMainMenu(newMenuConfig);
 				});
-			}
 
-			Structr.unblockMenu(100);
+				let showScriptingErrorPopups = _Dashboard.isShowScriptingErrorPopups();
+
+				let showScriptingErrorPopupsCheckbox = document.querySelector('#dashboard-show-scripting-error-popups');
+				if (showScriptingErrorPopupsCheckbox) {
+					showScriptingErrorPopupsCheckbox.checked = showScriptingErrorPopups;
+
+					showScriptingErrorPopupsCheckbox.addEventListener('change', () => {
+						LSWrapper.setItem(_Dashboard.showScriptingErrorPopupsKey, showScriptingErrorPopupsCheckbox.checked);
+					});
+				}
+
+				Structr.unblockMenu(100);
+			});
 
 		} catch(e) {
 

@@ -89,60 +89,62 @@ var _Code = {
 
 		$('#code-contents').css({width: middleWidth + 'px'});
 	},
-	onload: async function() {
+	onload: function() {
 
 		Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', null, _Code.addAvailableTagsForEntities, false, null, 'tags');
 		Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', null, _Code.addAvailableTagsForEntities, false, null, 'tags');
 
-		let codeMainHtml = await Structr.fetchHtmlTemplate('code/main', {});
+		Structr.fetchHtmlTemplate('code/main', {}, function(html) {
 
-		main.append(codeMainHtml);
+			main.append(html);
 
-		// preload action button
-		await Structr.fetchHtmlTemplate('code/action-button', {});
+			// preload action button
+			Structr.fetchHtmlTemplate('code/action-button', { }, function(html) {
 
-		_Code.init();
+				_Code.init();
 
-		codeMain     = $('#code-main');
-		codeTree     = $('#code-tree');
-		codeContents = $('#code-contents');
-		codeContext  = $('#code-context');
+				codeMain     = $('#code-main');
+				codeTree     = $('#code-tree');
+				codeContents = $('#code-contents');
+				codeContext  = $('#code-context');
 
-		Structr.initVerticalSlider($('.column-resizer-left', codeMain), _Code.codeResizerLeftKey, 204, _Code.moveLeftResizer);
-		Structr.initVerticalSlider($('.column-resizer-right', codeMain), _Code.codeResizerRightKey, 204, _Code.moveRightResizer, true);
+				Structr.initVerticalSlider($('.column-resizer-left', codeMain), _Code.codeResizerLeftKey, 204, _Code.moveLeftResizer);
+				Structr.initVerticalSlider($('.column-resizer-right', codeMain), _Code.codeResizerRightKey, 204, _Code.moveRightResizer, true);
 
-		$.jstree.defaults.core.themes.dots      = false;
-		$.jstree.defaults.dnd.inside_pos        = 'last';
-		$.jstree.defaults.dnd.large_drop_target = true;
+				$.jstree.defaults.core.themes.dots      = false;
+				$.jstree.defaults.dnd.inside_pos        = 'last';
+				$.jstree.defaults.dnd.large_drop_target = true;
 
-		codeTree.on('select_node.jstree', _Code.handleTreeClick);
-		codeTree.on('refresh.jstree', _Code.activateLastClicked);
+				codeTree.on('select_node.jstree', _Code.handleTreeClick);
+				codeTree.on('refresh.jstree', _Code.activateLastClicked);
 
-		_Code.loadRecentlyUsedElements(function() {
+				_Code.loadRecentlyUsedElements(function() {
 
-			_TreeHelper.initTree(codeTree, _Code.treeInitFunction, 'structr-ui-code');
-		});
+					_TreeHelper.initTree(codeTree, _Code.treeInitFunction, 'structr-ui-code');
+				});
 
-		$(window).off('resize').resize(function() {
-			_Code.resize();
-		});
+				$(window).off('resize').resize(function() {
+					_Code.resize();
+				});
 
-		Structr.unblockMenu(100);
+				Structr.unblockMenu(100);
 
-		_Code.resize();
-		Structr.adaptUiToAvailableFeatures();
+				_Code.resize();
+				Structr.adaptUiToAvailableFeatures();
 
-		$('#tree-search-input').on('input', _Code.debounce(_Code.doSearch, 300));
-		$('#tree-forward-button').on('click', _Code.pathLocationForward);
-		$('#tree-back-button').on('click', _Code.pathLocationBackward);
-		$('#cancel-search-button').on('click', _Code.cancelSearch);
+				$('#tree-search-input').on('input', _Code.debounce(_Code.doSearch, 300));
+				$('#tree-forward-button').on('click', _Code.pathLocationForward);
+				$('#tree-back-button').on('click', _Code.pathLocationBackward);
+				$('#cancel-search-button').on('click', _Code.cancelSearch);
 
-		$(window).on('keydown.search', function(e) {
-			if (_Code.searchIsActive()) {
-				if (e.key === 'Escape') {
-					_Code.cancelSearch();
-				}
-			};
+				$(window).on('keydown.search', function(e) {
+					if (_Code.searchIsActive()) {
+						if (e.key === 'Escape') {
+							_Code.cancelSearch();
+						}
+					};
+				});
+			});
 		});
 
 	},
@@ -454,7 +456,7 @@ var _Code = {
 
 		_Code.addRecentlyUsedElement(entity.id, name, iconClass, localPath, fromStorage);
 	},
-	addRecentlyUsedElement: async function(id, name, iconClass, path, fromStorage) {
+	addRecentlyUsedElement: function(id, name, iconClass, path, fromStorage) {
 
 		if (!fromStorage) {
 
@@ -477,22 +479,22 @@ var _Code = {
 			LSWrapper.setItem(_Code.codeRecentElementsKey, updatedList);
 		}
 
-		let html = await Structr.fetchHtmlTemplate('code/recently-used-button', { id: id, name: name, iconClass: iconClass });
+		Structr.fetchHtmlTemplate('code/recently-used-button', { id: id, name: name, iconClass: iconClass }, function(html) {
+			var ctx  = $('#code-context');
 
-		var ctx  = $('#code-context');
+			if (fromStorage) {
+				ctx.append(html);
+			} else {
+				ctx.prepend(html);
+			}
 
-		if (fromStorage) {
-			ctx.append(html);
-		} else {
-			ctx.prepend(html);
-		}
-
-		$('#recently-used-' + id).on('click.recently-used', function() {
-			_Code.findAndOpenNode(path, true);
-		});
-		$('#remove-recently-used-' + id).on('click.recently-used', function(e) {
-			e.stopPropagation();
-			_Code.deleteRecentlyUsedElement(id);
+			$('#recently-used-' + id).on('click.recently-used', function() {
+				_Code.findAndOpenNode(path, true);
+			});
+			$('#remove-recently-used-' + id).on('click.recently-used', function(e) {
+				e.stopPropagation();
+				_Code.deleteRecentlyUsedElement(id);
+			});
 		});
 
 	},
@@ -1134,46 +1136,49 @@ var _Code = {
 
 		return editor;
 	},
-	displayCreateButtons: async function(showCreateMethodsButton, showCreateGlobalButton, showCreateTypeButton, schemaNodeId) {
+	displayCreateButtons: function(showCreateMethodsButton, showCreateGlobalButton, showCreateTypeButton, schemaNodeId) {
 
 		if (showCreateMethodsButton) {
 
-			let html = await Structr.fetchHtmlTemplate('code/method-button', {});
+			Structr.fetchHtmlTemplate('code/method-button', {}, function(html) {
 
-			$('#code-button-container').append(html);
+				$('#code-button-container').append(html);
 
-			$('#add-method-button').on('click', function() {
-				_Code.createMethodAndRefreshTree('SchemaMethod', $('#schema-method-name').val() || 'unnamed', schemaNodeId);
-			});
+				$('#add-method-button').on('click', function() {
+					_Code.createMethodAndRefreshTree('SchemaMethod', $('#schema-method-name').val() || 'unnamed', schemaNodeId);
+				});
 
-			$('#add-onCreate-button').on('click', function() {
-				_Code.createMethodAndRefreshTree('SchemaMethod', 'onCreate', schemaNodeId);
-			});
+				$('#add-onCreate-button').on('click', function() {
+					_Code.createMethodAndRefreshTree('SchemaMethod', 'onCreate', schemaNodeId);
+				});
 
-			$('#add-onSave-button').on('click', function() {
-				_Code.createMethodAndRefreshTree('SchemaMethod', 'onSave', schemaNodeId);
+				$('#add-onSave-button').on('click', function() {
+					_Code.createMethodAndRefreshTree('SchemaMethod', 'onSave', schemaNodeId);
+				});
 			});
 		}
 
 		if (showCreateGlobalButton) {
 
-			let html = await Structr.fetchHtmlTemplate('code/global-button', {});
+			Structr.fetchHtmlTemplate('code/global-button', {}, function(html) {
 
-			$('#code-button-container').append(html);
+				$('#code-button-container').append(html);
 
-			$('#create-global-method-button').on('click', function() {
-				_Code.createMethodAndRefreshTree('SchemaMethod', $('#schema-method-name').val() || 'unnamed');
+				$('#create-global-method-button').on('click', function() {
+					_Code.createMethodAndRefreshTree('SchemaMethod', $('#schema-method-name').val() || 'unnamed');
+				});
 			});
 		}
 
 		if (showCreateTypeButton) {
 
-			let html = await Structr.fetchHtmlTemplate('code/type-button', {});
+			Structr.fetchHtmlTemplate('code/type-button', {}, function(html) {
 
-			$('#code-button-container').append(html);
+				$('#code-button-container').append(html);
 
-			$('#add-type-button').on('click', function() {
-				_Code.createMethodAndRefreshTree('SchemaNode', $('#schema-type-name').val());
+				$('#add-type-button').on('click', function() {
+					_Code.createMethodAndRefreshTree('SchemaNode', $('#schema-type-name').val());
+				});
 			});
 		}
 	},
@@ -1487,252 +1492,256 @@ var _Code = {
 	},
 	displaySchemaNodeContent: function(data, identifier) {
 
-		Command.get(identifier.typeId, null, async function(result) {
+		Command.get(identifier.typeId, null, function(result) {
 
 			_Code.updateRecentlyUsed(result, identifier.source, data.updateLocationStack);
-			let html = await Structr.fetchHtmlTemplate('code/type', { type: result });
+			Structr.fetchHtmlTemplate('code/type', { type: result }, function(html) {
 
-			codeContents.empty();
-			codeContents.append(html);
+				codeContents.empty();
+				codeContents.append(html);
 
-			_Code.runCurrentEntitySaveAction = function() {
-				_Code.saveEntityAction(result);
-			};
-
-			var buttons = $('#method-buttons');
-			buttons.prepend(html);
-
-			_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save', _Code.runCurrentEntitySaveAction);
-
-			_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
-				_Code.revertFormData(result);
-			});
-
-			// delete button
-			if (!result.isBuiltinType) {
-				_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete type ' + result.name, function() {
-					_Code.deleteSchemaEntity(result, 'Delete type ' + result.name + '?', 'This will delete all schema relationships as well, but no data will be removed.', identifier);
-					_TreeHelper.refreshTree('#code-tree');
-				});
-			}
-
-			let inner = await Structr.fetchHtmlTemplate('code/openapi-config', { element: result, availableTags: _Code.availableTags });
-
-			let apiTab = $('#type-openapi', codeContents);
-			apiTab.append(inner);
-
-			$('.hidden', apiTab).remove();
-
-			$('#tags-select', apiTab).select2({
-				tags: true,
-				width: '100%'
-			}).on('change', () => {
-				_Code.updateDirtyFlag(result);
-			});
-
-			$('input[type=text]', apiTab).on('keyup', function() {
-				_Code.updateDirtyFlag(result);
-			});
-
-			// manage working sets
-			_WorkingSets.getWorkingSets(function(workingSets) {
-
-				let groupSelect = document.querySelector('select#type-groups');
-
-				let createAndAddWorkingSetOption = function(set, forceAdd) {
-
-					let setOption = document.createElement('option');
-					setOption.textContent = set.name;
-					setOption.dataset['groupId'] = set.id;
-
-					if (forceAdd === true || set.children && set.children.includes(result.name)) {
-						setOption.selected = true;
-					}
-
-					groupSelect.appendChild(setOption);
+				_Code.runCurrentEntitySaveAction = function() {
+					_Code.saveEntityAction(result);
 				};
 
-				for (let set of workingSets) {
+				var buttons = $('#method-buttons');
+				buttons.prepend(html);
 
-					if (set.name !== _WorkingSets.recentlyUsedName) {
-						createAndAddWorkingSetOption(set);
-					}
+				_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save', _Code.runCurrentEntitySaveAction);
+
+				_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
+					_Code.revertFormData(result);
+				});
+
+				// delete button
+				if (!result.isBuiltinType) {
+					_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete type ' + result.name, function() {
+						_Code.deleteSchemaEntity(result, 'Delete type ' + result.name + '?', 'This will delete all schema relationships as well, but no data will be removed.', identifier);
+						_TreeHelper.refreshTree('#code-tree');
+					});
 				}
 
-				let isUnselect = false;
-				$(groupSelect).select2({
-					search_contains: true,
-					width: '100%',
-					closeOnSelect: false
-				}).on('select2:unselecting', function(e, p) {
-					isUnselect = true;
+				Structr.fetchHtmlTemplate('code/openapi-config', { element: result, availableTags: _Code.availableTags }, function(inner) {
 
-				}).on('select2:opening', function(e, p) {
-					if (isUnselect) {
-						e.preventDefault();
-						isUnselect = false;
-					}
+					let apiTab = $('#type-openapi', codeContents);
+					apiTab.append(inner);
 
-				}).on('select2:select', function(e, p) {
-					let id = e.params.data.element.dataset['groupId'];
+					$('.hidden', apiTab).remove();
 
-					_WorkingSets.addTypeToSet(id, result.name, function() {
-						_TreeHelper.refreshNode('#code-tree', 'workingsets-' + id);
+					$('#tags-select', apiTab).select2({
+						tags: true,
+						width: '100%'
+					}).on('change', () => {
+						_Code.updateDirtyFlag(result);
 					});
 
-				}).on('select2:unselect', function(e, p) {
-					let id = e.params.data.element.dataset['groupId'];
-
-					_WorkingSets.removeTypeFromSet(id, result.name, function() {
-						_TreeHelper.refreshNode('#code-tree', 'workingsets-' + id);
+					$('input[type=text]', apiTab).on('keyup', function() {
+						_Code.updateDirtyFlag(result);
 					});
 				});
 
-				_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.add_folder_icon), 'new', 'Create new Working Set', function() {
+				// manage working sets
+				_WorkingSets.getWorkingSets(function(workingSets) {
 
-					_WorkingSets.createNewSetAndAddType(result.name, function(ws) {
-						_TreeHelper.refreshNode('#code-tree', 'workingsets');
+					let groupSelect = document.querySelector('select#type-groups');
 
-						createAndAddWorkingSetOption(ws, true);
-						$(groupSelect).trigger('change');
-					});
-				});
-			});
+					let createAndAddWorkingSetOption = function(set, forceAdd) {
 
-			_Code.updateDirtyFlag(result);
+						let setOption = document.createElement('option');
+						setOption.textContent = set.name;
+						setOption.dataset['groupId'] = set.id;
 
-			$('input[type=checkbox]', codeContents).on('change', function() {
-				_Code.updateDirtyFlag(result);
-			});
-
-			$('input[type=text]', codeContents).on('keyup', function() {
-				_Code.updateDirtyFlag(result);
-			});
-
-			Structr.activateCommentsInElement(codeContents);
-
-			let schemaGrantsTableConfig = {
-				class: 'schema-grants-table schema-props',
-				cols: [
-					{ class: '', title: 'Name' },
-					{ class: '', title: 'read' },
-					{ class: '', title: 'write' },
-					{ class: '', title: 'delete' },
-					{ class: '', title: 'access control' }
-				]
-			};
-
-			let inner2 = await Structr.fetchHtmlTemplate('code/schema-grants-table', schemaGrantsTableConfig);
-
-			let schemaGrantsContainer = document.querySelector('#schema-grants');
-			schemaGrantsContainer.innerHTML = inner2;
-
-			let tbody = schemaGrantsContainer.querySelector('tbody');
-			let tfoot = schemaGrantsContainer.querySelector('tfoot');
-
-			let schemaGrantsTableChange = function (cb, rowConfig) {
-				if (rowConfig[cb.name] !== cb.checked) {
-					cb.classList.add('changed');
-				} else {
-					cb.classList.remove('changed');
-				}
-
-				if (schemaGrantsContainer.querySelector('.changed')) {
-					tfoot.classList.remove('hidden');
-				} else {
-					tfoot.classList.add('hidden');
-				}
-			};
-
-			schemaGrantsContainer.querySelector('.discard-all').addEventListener('click', function (e) {
-
-				for (let changedCb of tbody.querySelectorAll('.changed')) {
-
-					changedCb.checked = !changedCb.checked;
-					changedCb.classList.remove('changed');
-				}
-
-				tfoot.classList.add('hidden');
-			});
-
-			schemaGrantsContainer.querySelector('.save-all').addEventListener('click', function (e) {
-
-				let grantData = [];
-
-				for (let row of tbody.querySelectorAll('tr')) {
-
-					if (row.querySelector('.changed')) {
-
-						let rowConfig = {
-							principal:          row.dataset['groupId'],
-							schemaNode:         result.id,
-							allowRead:          row.querySelector('input[name=allowRead]').checked,
-							allowWrite:         row.querySelector('input[name=allowWrite]').checked,
-							allowDelete:        row.querySelector('input[name=allowDelete]').checked,
-							allowAccessControl: row.querySelector('input[name=allowAccessControl]').checked
-						};
-
-						let grantId = row.dataset['grantId'];
-						if (grantId) {
-							rowConfig.id = grantId;
+						if (forceAdd === true || set.children && set.children.includes(result.name)) {
+							setOption.selected = true;
 						}
 
-						grantData.push(rowConfig);
-					}
-				}
-
-				_Code.showSchemaRecompileMessage();
-
-				fetch(rootUrl + 'SchemaGrant', {
-					dataType: 'json',
-					contentType: 'application/json; charset=utf-8',
-					method: 'PATCH',
-					body: JSON.stringify(grantData)
-				}).then((response) => {
-
-					if (response.ok) {
-
-						_Code.hideSchemaRecompileMessage();
-						_Code.displaySchemaNodeContent(data, identifier);
-					}
-				});
-			});
-
-			let grants = {};
-
-			result.schemaGrants.forEach(function(grant) {
-				grants[grant.principal.id] = grant;
-			});
-
-			Command.query('Group', 1000, 1, 'name', 'asc', {}, async function(groupResult) {
-
-				for (let group of groupResult) {
-
-					let tplConfig = {
-						groupId: group.id,
-						name: group.name,
-						grantId            : (!grants[group.id]) ? '' : grants[group.id].id,
-						allowRead          : (!grants[group.id]) ? false : grants[group.id].allowRead,
-						allowWrite         : (!grants[group.id]) ? false : grants[group.id].allowWrite,
-						allowDelete        : (!grants[group.id]) ? false : grants[group.id].allowDelete,
-						allowAccessControl : (!grants[group.id]) ? false : grants[group.id].allowAccessControl
+						groupSelect.appendChild(setOption);
 					};
 
-					let html = await Structr.fetchHtmlTemplate('code/schema-grants-row', tplConfig);
+					for (let set of workingSets) {
 
-					let dummyTbody = document.createElement('tbody');
-					dummyTbody.innerHTML = html;
-					let row = dummyTbody.firstChild;
-
-					tbody.appendChild(row);
-
-					for (let cb of row.querySelectorAll('input')) {
-
-						cb.addEventListener('change', function (e) {
-							schemaGrantsTableChange(cb, tplConfig);
-						});
+						if (set.name !== _WorkingSets.recentlyUsedName) {
+							createAndAddWorkingSetOption(set);
+						}
 					}
-				}
+
+					let isUnselect = false;
+					$(groupSelect).select2({
+						search_contains: true,
+						width: '100%',
+						closeOnSelect: false
+					}).on('select2:unselecting', function(e, p) {
+						isUnselect = true;
+
+					}).on('select2:opening', function(e, p) {
+						if (isUnselect) {
+							e.preventDefault();
+							isUnselect = false;
+						}
+
+					}).on('select2:select', function(e, p) {
+						let id = e.params.data.element.dataset['groupId'];
+
+						_WorkingSets.addTypeToSet(id, result.name, function() {
+							_TreeHelper.refreshNode('#code-tree', 'workingsets-' + id);
+						});
+
+					}).on('select2:unselect', function(e, p) {
+						let id = e.params.data.element.dataset['groupId'];
+
+						_WorkingSets.removeTypeFromSet(id, result.name, function() {
+							_TreeHelper.refreshNode('#code-tree', 'workingsets-' + id);
+						});
+					});
+
+					_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.add_folder_icon), 'new', 'Create new Working Set', function() {
+
+						_WorkingSets.createNewSetAndAddType(result.name, function(ws) {
+							_TreeHelper.refreshNode('#code-tree', 'workingsets');
+
+							createAndAddWorkingSetOption(ws, true);
+							$(groupSelect).trigger('change');
+						});
+					});
+				});
+
+				_Code.updateDirtyFlag(result);
+
+				$('input[type=checkbox]', codeContents).on('change', function() {
+					_Code.updateDirtyFlag(result);
+				});
+
+				$('input[type=text]', codeContents).on('keyup', function() {
+					_Code.updateDirtyFlag(result);
+				});
+
+				Structr.activateCommentsInElement(codeContents);
+
+				let schemaGrantsTableConfig = {
+					class: 'schema-grants-table schema-props',
+					cols: [
+						{ class: '', title: 'Name' },
+						{ class: '', title: 'read' },
+						{ class: '', title: 'write' },
+						{ class: '', title: 'delete' },
+						{ class: '', title: 'access control' }
+					]
+				};
+
+				Structr.fetchHtmlTemplate('code/schema-grants-table', schemaGrantsTableConfig, function(html) {
+
+					let schemaGrantsContainer = document.querySelector('#schema-grants');
+					schemaGrantsContainer.innerHTML = html;
+
+					let tbody = schemaGrantsContainer.querySelector('tbody');
+					let tfoot = schemaGrantsContainer.querySelector('tfoot');
+
+					let schemaGrantsTableChange = function (cb, rowConfig) {
+						if (rowConfig[cb.name] !== cb.checked) {
+							cb.classList.add('changed');
+						} else {
+							cb.classList.remove('changed');
+						}
+
+						if (schemaGrantsContainer.querySelector('.changed')) {
+							tfoot.classList.remove('hidden');
+						} else {
+							tfoot.classList.add('hidden');
+						}
+					};
+
+					schemaGrantsContainer.querySelector('.discard-all').addEventListener('click', function (e) {
+
+						for (let changedCb of tbody.querySelectorAll('.changed')) {
+
+							changedCb.checked = !changedCb.checked;
+							changedCb.classList.remove('changed');
+						}
+
+						tfoot.classList.add('hidden');
+					});
+
+					schemaGrantsContainer.querySelector('.save-all').addEventListener('click', function (e) {
+
+						let grantData = [];
+
+						for (let row of tbody.querySelectorAll('tr')) {
+
+							if (row.querySelector('.changed')) {
+
+								let rowConfig = {
+									principal:          row.dataset['groupId'],
+									schemaNode:         result.id,
+									allowRead:          row.querySelector('input[name=allowRead]').checked,
+									allowWrite:         row.querySelector('input[name=allowWrite]').checked,
+									allowDelete:        row.querySelector('input[name=allowDelete]').checked,
+									allowAccessControl: row.querySelector('input[name=allowAccessControl]').checked
+								};
+
+								let grantId = row.dataset['grantId'];
+								if (grantId) {
+									rowConfig.id = grantId;
+								}
+
+								grantData.push(rowConfig);
+							}
+						}
+
+						_Code.showSchemaRecompileMessage();
+
+						fetch(rootUrl + 'SchemaGrant', {
+							dataType: 'json',
+							contentType: 'application/json; charset=utf-8',
+							method: 'PATCH',
+							body: JSON.stringify(grantData)
+						}).then((response) => {
+
+							if (response.ok) {
+
+								_Code.hideSchemaRecompileMessage();
+								_Code.displaySchemaNodeContent(data, identifier);
+							}
+						});
+					});
+
+					let grants = {};
+
+					result.schemaGrants.forEach(function(grant) {
+						grants[grant.principal.id] = grant;
+					});
+
+					Command.query('Group', 1000, 1, 'name', 'asc', { }, function(groupResult) {
+
+						for (let group of groupResult) {
+
+							let tplConfig = {
+								groupId: group.id,
+								name: group.name,
+								grantId            : (!grants[group.id]) ? '' : grants[group.id].id,
+								allowRead          : (!grants[group.id]) ? false : grants[group.id].allowRead,
+								allowWrite         : (!grants[group.id]) ? false : grants[group.id].allowWrite,
+								allowDelete        : (!grants[group.id]) ? false : grants[group.id].allowDelete,
+								allowAccessControl : (!grants[group.id]) ? false : grants[group.id].allowAccessControl
+							};
+
+							Structr.fetchHtmlTemplate('code/schema-grants-row', tplConfig, function(html) {
+
+								let dummyTbody = document.createElement('tbody');
+								dummyTbody.innerHTML = html;
+								let row = dummyTbody.firstChild;
+
+								tbody.appendChild(row);
+
+								for (let cb of row.querySelectorAll('input')) {
+
+									cb.addEventListener('change', function (e) {
+										schemaGrantsTableChange(cb, tplConfig);
+									});
+								}
+							});
+						}
+					});
+				});
 			});
 		}, 'schema');
 	},
@@ -1741,200 +1750,206 @@ var _Code = {
 		var identifier = _Code.splitIdentifier(data);
 
 		// ID of schema method can either be in typeId (for global schema methods) or in memberId (for type methods)
-		Command.get(identifier.memberId || identifier.typeId, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,isStatic,schemaNode,source,comment,returnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters', async function(result) {
+		Command.get(identifier.memberId || identifier.typeId, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,isStatic,schemaNode,source,comment,returnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters', function(result) {
 
 			_Code.updateRecentlyUsed(result, identifier.source, data.updateLocationStack);
 
-			let html = await Structr.fetchHtmlTemplate('code/method', { method: result });
+			Structr.fetchHtmlTemplate('code/method', { method: result }, function(html) {
 
-			codeContents.empty();
-			codeContents.append(html);
+				codeContents.empty();
+				codeContents.append(html);
 
-			LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
+				LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
 
-			let sourceEditorConfig = {
-				extraKeys: { "Ctrl-Space": "autocomplete" },
-				gutters: ["CodeMirror-lint-markers"],
-				lint: {
-					getAnnotations: function(text, callback) {
-						_Code.showScriptErrors(result, text, callback);
-					},
-					async: true
+				let sourceEditorConfig = {
+					extraKeys: { "Ctrl-Space": "autocomplete" },
+					gutters: ["CodeMirror-lint-markers"],
+					lint: {
+						getAnnotations: function(text, callback) {
+							_Code.showScriptErrors(result, text, callback);
+						},
+						async: true
+					}
+				};
+
+				let sourceEditor = _Code.editPropertyContent(result, 'source', $('#tabView-source', codeContents), sourceEditorConfig);
+				_Code.setCodeMirorUpdateMode(result, sourceEditor);
+				_Code.setupAutocompletion(sourceEditor, result.id, true);
+
+				_Code.editPropertyContent(result, 'comment', $('#tabView-comment', codeContents));
+
+				sourceEditor.on('focus', function() {
+					sourceEditor.performLint();
+				});
+
+				if (result.codeType === 'java') {
+
+					$('li[data-name=api]').hide();
+
+				} else {
+
+					Structr.fetchHtmlTemplate('code/openapi-config', { element: result, availableTags: _Code.availableTags }, function(inner) {
+
+						let apiTab = $('#tabView-api', codeContents);
+						apiTab.append(inner);
+
+						$('.hidden', apiTab).removeClass('hidden');
+
+						let parameterTplRow = $('.template', apiTab);
+						let parameterContainer = parameterTplRow.parent();
+						parameterTplRow.remove();
+
+						let addParameterRow = function(parameter) {
+
+							let clone = parameterTplRow.clone().removeClass('template');
+
+							if (parameter) {
+								$('input[data-parameter-property=index]', clone).val(parameter.index);
+								$('input[data-parameter-property=name]', clone).val(parameter.name);
+								$('input[data-parameter-property=parameterType]', clone).val(parameter.parameterType);
+								$('input[data-parameter-property=description]', clone).val(parameter.description);
+								$('input[data-parameter-property=exampleValue]', clone).val(parameter.exampleValue);
+							} else {
+								let maxCnt = 0;
+								for (let indexInput of apiTab[0].querySelectorAll('input[data-parameter-property=index]')) {
+									maxCnt = Math.max(maxCnt, parseInt(indexInput.value) + 1);
+								}
+
+								$('input[data-parameter-property=index]', clone).val(maxCnt);
+							}
+
+							$('input[data-parameter-property]', clone).on('keyup', () => {
+								_Code.updateDirtyFlag(result);
+							});
+
+							parameterContainer.append(clone);
+
+							$('.method-parameter-delete button', clone).on('click', () => {
+								clone.remove();
+
+								_Code.updateDirtyFlag(result);
+							});
+
+							_Code.updateDirtyFlag(result);
+						};
+
+						Command.query('SchemaMethodParameter', 1000, 1, 'index', 'asc', {schemaMethod: result.id}, (parameters) => {
+
+							_Code.additionalDirtyChecks.push(() => {
+								return _Code.schemaMethodParametersChanged(parameters);
+							});
+
+							for (let p of parameters) {
+
+								addParameterRow(p);
+							}
+
+						}, true, null, 'index,name,parameterType,description,exampleValue');
+
+
+						$('#add-parameter-button').on('click', () => { addParameterRow(); });
+
+						$('#tags-select', apiTab).select2({
+							tags: true,
+							width: '100%'
+						}).on('change', () => {
+							_Code.updateDirtyFlag(result);
+						});
+
+						$('input[type=text]', apiTab).on('keyup', function() {
+							_Code.updateDirtyFlag(result);
+						});
+
+						_Code.editPropertyContent(result, 'returnType', $('.editor-wrapper', apiTab), {mode: "application/json", lint: true, gutters: ["CodeMirror-lint-markers"]});
+					});
 				}
-			};
 
-			let sourceEditor = _Code.editPropertyContent(result, 'source', $('#tabView-source', codeContents), sourceEditorConfig);
-			_Code.setCodeMirorUpdateMode(result, sourceEditor);
-			_Code.setupAutocompletion(sourceEditor, result.id, true);
+				// default buttons
+				Structr.fetchHtmlTemplate('code/method-options', { method: result }, function(html) {
 
-			_Code.editPropertyContent(result, 'comment', $('#tabView-comment', codeContents));
+					_Code.runCurrentEntitySaveAction = function() {
 
-			sourceEditor.on('focus', function() {
-				sourceEditor.performLint();
-			});
+						let storeParametersInFormDataFunction = function(formData) {
+							let parametersData = _Code.collectSchemaMethodParameters();
 
-			if (result.codeType === 'java') {
+							formData['parameters'] = parametersData;
+						};
 
-				$('li[data-name=api]').hide();
+						let afterSaveCallback = () => {
+							_Code.additionalDirtyChecks = [];
+							_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'));
+						};
 
-			} else {
+						_Code.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
+					};
 
-				let inner = await Structr.fetchHtmlTemplate('code/openapi-config', { element: result, availableTags: _Code.availableTags });
+					var buttons = $('#method-buttons');
+					buttons.prepend(html);
 
-				let apiTab = $('#tabView-api', codeContents);
-				apiTab.append(inner);
+					_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save method', _Code.runCurrentEntitySaveAction);
 
-				$('.hidden', apiTab).removeClass('hidden');
+					_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
+						_Code.additionalDirtyChecks = [];
+						_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'));
 
-				let parameterTplRow = $('.template', apiTab);
-				let parameterContainer = parameterTplRow.parent();
-				parameterTplRow.remove();
+					});
 
-				let addParameterRow = function(parameter) {
+					// delete button
+					_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete method', function() {
+						_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', identifier);
+					});
 
-					let clone = parameterTplRow.clone().removeClass('template');
+					// run button and global schema method flags
+					if (!result.schemaNode && !result.isPartOfBuiltInSchema) {
+						_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.exec_blue_icon), 'run', 'Run method', function() {
+							_Code.runGlobalSchemaMethod(result);
+						});
 
-					if (parameter) {
-						$('input[data-parameter-property=index]', clone).val(parameter.index);
-						$('input[data-parameter-property=name]', clone).val(parameter.name);
-						$('input[data-parameter-property=parameterType]', clone).val(parameter.parameterType);
-						$('input[data-parameter-property=description]', clone).val(parameter.description);
-						$('input[data-parameter-property=exampleValue]', clone).val(parameter.exampleValue);
-					} else {
-						let maxCnt = 0;
-						for (let indexInput of apiTab[0].querySelectorAll('input[data-parameter-property=index]')) {
-							maxCnt = Math.max(maxCnt, parseInt(indexInput.value) + 1);
-						}
+						$('.checkbox.global-method.hidden', buttons).removeClass('hidden');
+						Structr.activateCommentsInElement(buttons);
 
-						$('input[data-parameter-property=index]', clone).val(maxCnt);
+					} else if (result.schemaNode) {
+
+						$('.checkbox.entity-method.hidden', buttons).removeClass('hidden');
+						Structr.activateCommentsInElement(buttons);
 					}
 
-					$('input[data-parameter-property]', clone).on('keyup', () => {
+					_Code.updateDirtyFlag(result);
+
+					$('input[type=checkbox]', buttons).on('change', function() {
 						_Code.updateDirtyFlag(result);
 					});
 
-					parameterContainer.append(clone);
-
-					$('.method-parameter-delete button', clone).on('click', () => {
-						clone.remove();
-
+					$('input[type=text]', buttons).on('keyup', function() {
 						_Code.updateDirtyFlag(result);
 					});
 
-					_Code.updateDirtyFlag(result);
-				};
-
-				Command.query('SchemaMethodParameter', 1000, 1, 'index', 'asc', {schemaMethod: result.id}, (parameters) => {
-
-					_Code.additionalDirtyChecks.push(() => {
-						return _Code.schemaMethodParametersChanged(parameters);
-					});
-
-					for (let p of parameters) {
-						addParameterRow(p);
+					if (typeof callback === 'function') {
+						callback();
 					}
-
-				}, true, null, 'index,name,parameterType,description,exampleValue');
-
-				$('#add-parameter-button').on('click', () => { addParameterRow(); });
-
-				$('#tags-select', apiTab).select2({
-					tags: true,
-					width: '100%'
-				}).on('change', () => {
-					_Code.updateDirtyFlag(result);
 				});
 
-				$('input[type=text]', apiTab).on('keyup', function() {
-					_Code.updateDirtyFlag(result);
-				});
+				let activateTab = function(tabName) {
+					$('.method-tab-content', codeContents).hide();
+					$('li[data-name]', codeContents).removeClass('active');
 
-				_Code.editPropertyContent(result, 'returnType', $('.editor-wrapper', apiTab), {mode: "application/json", lint: true, gutters: ["CodeMirror-lint-markers"]});
-			}
+					let activeTab = $('#tabView-' + tabName, codeContents);
+					activeTab.show();
+					$('li[data-name="' + tabName + '"]', codeContents).addClass('active');
 
-			// default buttons
-			let methodOptionsHtml = await Structr.fetchHtmlTemplate('code/method-options', { method: result });
-
-			_Code.runCurrentEntitySaveAction = function() {
-
-				let storeParametersInFormDataFunction = function(formData) {
-					let parametersData = _Code.collectSchemaMethodParameters();
-
-					formData['parameters'] = parametersData;
+					let editor = $('.CodeMirror', activeTab);
+					if (editor.length > 0 && editor[0].CodeMirror) {
+						editor[0].CodeMirror.refresh();
+					}
 				};
 
-				let afterSaveCallback = () => {
-					_Code.additionalDirtyChecks = [];
-					_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'));
-				};
-
-				_Code.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
-			};
-
-			var buttons = $('#method-buttons');
-			buttons.prepend(methodOptionsHtml);
-
-			_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save method', _Code.runCurrentEntitySaveAction);
-
-			_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
-				_Code.additionalDirtyChecks = [];
-				_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'));
-			});
-
-			// delete button
-			_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete method', function() {
-				_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', identifier);
-			});
-
-			// run button and global schema method flags
-			if (!result.schemaNode && !result.isPartOfBuiltInSchema) {
-				_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.exec_blue_icon), 'run', 'Run method', function() {
-					_Code.runGlobalSchemaMethod(result);
+				$('li[data-name]', codeContents).off('click').on('click', function(e) {
+					e.stopPropagation();
+					activateTab($(this).data('name'));
 				});
-
-				$('.checkbox.global-method.hidden', buttons).removeClass('hidden');
-				Structr.activateCommentsInElement(buttons);
-
-			} else if (result.schemaNode) {
-
-				$('.checkbox.entity-method.hidden', buttons).removeClass('hidden');
-				Structr.activateCommentsInElement(buttons);
-			}
-
-			_Code.updateDirtyFlag(result);
-
-			$('input[type=checkbox]', buttons).on('change', function() {
-				_Code.updateDirtyFlag(result);
+				activateTab(lastOpenTab || 'source');
 			});
-
-			$('input[type=text]', buttons).on('keyup', function() {
-				_Code.updateDirtyFlag(result);
-			});
-
-			if (typeof callback === 'function') {
-				callback();
-			}
-
-			let activateTab = function(tabName) {
-				$('.method-tab-content', codeContents).hide();
-				$('li[data-name]', codeContents).removeClass('active');
-
-				let activeTab = $('#tabView-' + tabName, codeContents);
-				activeTab.show();
-				$('li[data-name="' + tabName + '"]', codeContents).addClass('active');
-
-				let editor = $('.CodeMirror', activeTab);
-				if (editor.length > 0 && editor[0].CodeMirror) {
-					editor[0].CodeMirror.refresh();
-				}
-			};
-
-			$('li[data-name]', codeContents).off('click').on('click', function(e) {
-				e.stopPropagation();
-				activateTab($(this).data('name'));
-			});
-			activateTab(lastOpenTab || 'source');
-		});
+		}, );
 	},
 	collectSchemaMethodParameters: function() {
 
@@ -1997,90 +2012,92 @@ var _Code = {
 	},
 	displaySchemaGroupContent: function(data, identifier) {
 
-		_WorkingSets.getWorkingSet(identifier.workingSetId, async function(workingSet) {
+		_WorkingSets.getWorkingSet(identifier.workingSetId, function(workingSet) {
 
 			_Code.updateRecentlyUsed(workingSet, identifier.source, data.updateLocationStack);
-			let html = await Structr.fetchHtmlTemplate('code/group', { type: workingSet });
+			Structr.fetchHtmlTemplate('code/group', { type: workingSet }, function(html) {
 
-			codeContents.empty();
-			codeContents.append(html);
+				codeContents.empty();
+				codeContents.append(html);
 
-			if (workingSet.name === _WorkingSets.recentlyUsedName) {
+				if (workingSet.name === _WorkingSets.recentlyUsedName) {
 
-				_Code.displayActionButton('#working-set-content', _Icons.getFullSpriteClass(_Icons.delete_icon), 'clear', 'Clear', function() {
-					_WorkingSets.clearRecentlyUsed(function() {
-						_TreeHelper.refreshTree('#code-tree');
-					});
-				});
-
-				$('#group-name-input').prop('disabled', true);
-
-			} else {
-
-				_Code.displayActionButton('#working-set-content', _Icons.getFullSpriteClass(_Icons.delete_icon), 'remove', 'Remove', function() {
-					_WorkingSets.deleteSet(identifier.workingSetId, function() {
-						_TreeHelper.refreshNode('#code-tree', 'workingsets');
-						_Code.findAndOpenNode('workingsets');
-					});
-				});
-
-				_Code.activatePropertyValueInput('group-name-input', workingSet.id, 'name');
-			}
-
-			let rootHtml = await Structr.fetchHtmlTemplate('code/root', { });
-
-			$('#schema-graph').append(rootHtml);
-
-			var layouter = new SigmaLayouter('group-contents');
-
-			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, function(result1) {
-
-				result1.forEach(function(node) {
-					if (workingSet.children.includes(node.name)) {
-						layouter.addNode(node, identifier.source);
-					}
-				});
-
-				Command.query('SchemaRelationshipNode', 10000, 1, 'name', 'asc', { }, function(result2) {
-
-					result2.forEach(function(r) {
-						layouter.addEdge(r.id, r.relationshipType, r.sourceId, r.targetId, true);
+					_Code.displayActionButton('#working-set-content', _Icons.getFullSpriteClass(_Icons.delete_icon), 'clear', 'Clear', function() {
+						_WorkingSets.clearRecentlyUsed(function() {
+							_TreeHelper.refreshTree('#code-tree');
+						});
 					});
 
-					layouter.refresh();
-					layouter.layout();
-					layouter.on('clickNode', _Code.handleGraphClick);
+					$('#group-name-input').prop('disabled', true);
 
-					_Code.layouter = layouter;
+ 				} else {
 
-					// experimental: use positions from schema layouter to initialize positions in schema editor
-					window.setTimeout(function() {
+					_Code.displayActionButton('#working-set-content', _Icons.getFullSpriteClass(_Icons.delete_icon), 'remove', 'Remove', function() {
+						_WorkingSets.deleteSet(identifier.workingSetId, function() {
+							_TreeHelper.refreshNode('#code-tree', 'workingsets');
+							_Code.findAndOpenNode('workingsets');
+						});
+					});
 
-						let minX = 0;
-						let minY = 0;
+					_Code.activatePropertyValueInput('group-name-input', workingSet.id, 'name');
+				}
 
-						layouter.getNodes().forEach(function(node) {
-							if (node.x < minX) { minX = node.x; }
-							if (node.y < minY) { minY = node.y; }
+				Structr.fetchHtmlTemplate('code/root', { }, function(html) {
+
+					$('#schema-graph').append(html);
+
+					var layouter = new SigmaLayouter('group-contents');
+
+					Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, function(result1) {
+
+						result1.forEach(function(node) {
+							if (workingSet.children.includes(node.name)) {
+								layouter.addNode(node, identifier.source);
+							}
 						});
 
-						let positions = {};
+						Command.query('SchemaRelationshipNode', 10000, 1, 'name', 'asc', { }, function(result2) {
 
-						layouter.getNodes().forEach(function(node) {
+							result2.forEach(function(r) {
+								layouter.addEdge(r.id, r.relationshipType, r.sourceId, r.targetId, true);
+							});
 
-							positions[node.label] = {
-								top: node.y - minY + 20,
-								left: node.x - minX + 20
-							};
-						});
+							layouter.refresh();
+							layouter.layout();
+							layouter.on('clickNode', _Code.handleGraphClick);
 
-						_WorkingSets.updatePositions(workingSet.id, positions);
+							_Code.layouter = layouter;
 
-					}, 300);
+							// experimental: use positions from schema layouter to initialize positions in schema editor
+							window.setTimeout(function() {
 
-				}, true, 'ui');
+								let minX = 0;
+								let minY = 0;
 
-			}, true, 'ui');
+								layouter.getNodes().forEach(function(node) {
+									if (node.x < minX) { minX = node.x; }
+									if (node.y < minY) { minY = node.y; }
+								});
+
+								let positions = {};
+
+								layouter.getNodes().forEach(function(node) {
+
+									positions[node.label] = {
+										top: node.y - minY + 20,
+										left: node.x - minX + 20
+									};
+								});
+
+								_WorkingSets.updatePositions(workingSet.id, positions);
+
+							}, 300);
+
+						}, true, 'ui');
+
+					}, true, 'ui');
+				});
+			});
 		});
 	},
 	showGeneratedSource: function() {
@@ -2116,39 +2133,45 @@ var _Code = {
 			}
 		}
 	},
+	displayContent: function(templateName) {
+		Structr.fetchHtmlTemplate('code/' + templateName, { }, function(html) {
+			codeContents.append(html);
+		});
+	},
 	random: function() {
 	    var x = Math.sin(_Code.seed++) * 10000;
 	    return x - Math.floor(x);
 	},
-	displayRootContent: async function() {
+	displayRootContent: function() {
 
-		let html = await Structr.fetchHtmlTemplate('code/root', {});
+		Structr.fetchHtmlTemplate('code/root', { }, function(html) {
 
-		codeContents.append(html);
+			codeContents.append(html);
 
-		var layouter = new SigmaLayouter('all-types');
+			var layouter = new SigmaLayouter('all-types');
 
-		Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, function(result1) {
+			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, function(result1) {
 
-			result1.forEach(function(node) {
-				layouter.addNode(node, '');
-			});
-
-			Command.query('SchemaRelationshipNode', 10000, 1, 'name', 'asc', { }, function(result2) {
-
-				result2.forEach(function(r) {
-					layouter.addEdge(r.id, r.relationshipType, r.sourceId, r.targetId, true);
+				result1.forEach(function(node) {
+					layouter.addNode(node, '');
 				});
 
-				layouter.refresh();
-				layouter.layout();
-				layouter.on('clickNode', _Code.handleGraphClick);
+				Command.query('SchemaRelationshipNode', 10000, 1, 'name', 'asc', { }, function(result2) {
 
-				_Code.layouter = layouter;
+					result2.forEach(function(r) {
+						layouter.addEdge(r.id, r.relationshipType, r.sourceId, r.targetId, true);
+					});
+
+					layouter.refresh();
+					layouter.layout();
+					layouter.on('clickNode', _Code.handleGraphClick);
+
+					_Code.layouter = layouter;
+
+				}, true, 'ui');
 
 			}, true, 'ui');
-
-		}, true, 'ui');
+		});
 	},
 	handleGraphClick: function(e) {
 
@@ -2171,135 +2194,142 @@ var _Code = {
 		}
 
 	},
-	displaySchemaNodeContext: async function(entity) {
+	displaySchemaNodeContext:function(entity) {
 
-		let html = await Structr.fetchHtmlTemplate('code/type-context', { entity: entity });
+		Structr.fetchHtmlTemplate('code/type-context', { entity: entity }, function(html) {
 
-		codeContext.append(html);
+			codeContext.append(html);
 
-		$('#schema-node-name').off('blur').on('blur', function() {
+			$('#schema-node-name').off('blur').on('blur', function() {
 
-			var name = $(this).val();
+				var name = $(this).val();
 
-			_Code.showSchemaRecompileMessage();
+				_Code.showSchemaRecompileMessage();
 
-			Command.setProperty(entity.id, 'name', name, false, function() {
+				Command.setProperty(entity.id, 'name', name, false, function() {
 
-				_Code.layouter.getNodes().update({ id: entity.id, label: '<b>' + name + '</b>' });
-				_Code.hideSchemaRecompileMessage();
-				_Code.refreshTree();
-			});
-		});
-
-	},
-	displayCustomTypesContent: async function(data) {
-
-		let html = await Structr.fetchHtmlTemplate('code/custom', { });
-		codeContents.append(html);
-
-		_Code.displayCreateTypeButton("#type-actions");
-
-		// list of existing custom types
-		Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: false }, function(result) {
-
-			result.forEach(function(t) {
-				_Code.displayActionButton('#existing-types', 'fa fa-file-code-o', t.id, t.name, function() {
-					_Code.findAndOpenNode('Types/Custom/' + t.name);
+					_Code.layouter.getNodes().update({ id: entity.id, label: '<b>' + name + '</b>' });
+					_Code.hideSchemaRecompileMessage();
+					_Code.refreshTree();
 				});
 			});
-		}, true);
+		});
+
 	},
-	displayWorkingSetsContent: async function() {
-		let html = await Structr.fetchHtmlTemplate('code/groups', {});
-		codeContents.append(html);
+	displayCustomTypesContent: function(data) {
+		Structr.fetchHtmlTemplate('code/custom', { }, function(html) {
+			codeContents.append(html);
+
+			_Code.displayCreateTypeButton("#type-actions");
+
+			// list of existing custom types
+			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: false }, function(result) {
+
+				result.forEach(function(t) {
+					_Code.displayActionButton('#existing-types', 'fa fa-file-code-o', t.id, t.name, function() {
+						_Code.findAndOpenNode('Types/Custom/' + t.name);
+					});
+				});
+			}, true);
+		});
 	},
-	displayBuiltInTypesContent: async function() {
-		let html = await Structr.fetchHtmlTemplate('code/builtin', {});
-		codeContents.append(html);
+	displayWorkingSetsContent: function() {
+		Structr.fetchHtmlTemplate('code/groups', { }, function(html) {
+			codeContents.append(html);
+		});
 	},
-	displayPropertiesContent: async function(selection, updateLocationStack) {
+	displayBuiltInTypesContent: function() {
+		Structr.fetchHtmlTemplate('code/builtin', { }, function(html) {
+			codeContents.append(html);
+		});
+	},
+	displayPropertiesContent: function(selection, updateLocationStack) {
 
 		if (updateLocationStack === true) {
 			_Code.updatePathLocationStack(selection.source);
 			_Code.lastClickedPath = selection.source;
 		}
 
-		let html = await Structr.fetchHtmlTemplate('code/properties.local', { identifier: selection });
+		Structr.fetchHtmlTemplate('code/properties.local', { identifier: selection }, function(html) {
 
-		codeContents.append(html);
+			codeContents.append(html);
 
-		Command.get(selection.typeId, null, (entity) => {
-			_Schema.properties.appendLocalProperties($('.content-container', codeContents), entity, {
-				editReadWriteFunction: (property) => {
-					_Code.handleSelection(property);
-				}
-			}, _Code.refreshTree);
+			Command.get(selection.typeId, null, (entity) => {
+				_Schema.properties.appendLocalProperties($('.content-container', codeContents), entity, {
+					editReadWriteFunction: (property) => {
+						_Code.handleSelection(property);
+					}
+				}, _Code.refreshTree);
 
-			_Code.runCurrentEntitySaveAction = () => {
-				$('.save-all', codeContents).click();
-			};
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
+			});
 		});
 	},
-	displayRemotePropertiesContent: async function (selection, updateLocationStack) {
+	displayRemotePropertiesContent: function (selection, updateLocationStack) {
 
 		if (updateLocationStack === true) {
 			_Code.updatePathLocationStack(selection.source);
 			_Code.lastClickedPath = selection.source;
 		}
 
-		let html = await Structr.fetchHtmlTemplate('code/properties.remote', { identifier: selection });
+		Structr.fetchHtmlTemplate('code/properties.remote', { identifier: selection }, function(html) {
 
-		codeContents.append(html);
+			codeContents.append(html);
 
-		Command.get(selection.typeId, null, (entity) => {
-			_Schema.remoteProperties.appendRemote($('.content-container', codeContents), entity, _Code.schemaNodes, _Code.refreshTree);
+			Command.get(selection.typeId, null, (entity) => {
+				_Schema.remoteProperties.appendRemote($('.content-container', codeContents), entity, _Code.schemaNodes, _Code.refreshTree);
 
-			_Code.runCurrentEntitySaveAction = () => {
-				$('.save-all', codeContents).click();
-			};
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
+			});
 		});
 	},
-	displayViewsContent: async function(selection, updateLocationStack) {
+	displayViewsContent: function(selection, updateLocationStack) {
 
 		if (updateLocationStack === true) {
 			_Code.updatePathLocationStack(selection.source);
 			_Code.lastClickedPath = selection.source;
 		}
 
-		let html = await Structr.fetchHtmlTemplate('code/views', { identifier: selection });
-		codeContents.append(html);
+		Structr.fetchHtmlTemplate('code/views', { identifier: selection }, function(html) {
+			codeContents.append(html);
 
-		Command.get(selection.typeId, null, (entity) => {
-			_Schema.views.appendViews($('.content-container', codeContents), entity, _Code.refreshTree);
+			Command.get(selection.typeId, null, (entity) => {
+				_Schema.views.appendViews($('.content-container', codeContents), entity, _Code.refreshTree);
 
-			_Code.runCurrentEntitySaveAction = () => {
-				$('.save-all', codeContents).click();
-			};
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
+			});
 		});
 	},
-	displayGlobalMethodsContent: async function(selection) {
+	displayGlobalMethodsContent: function(selection) {
 
 		_Code.addRecentlyUsedElement(selection.source, "Global methods", _Icons.getFullSpriteClass(_Icons.world_icon), selection.source, false);
 
-		let html = await Structr.fetchHtmlTemplate('code/globals', { });
-		codeContents.append(html);
+		Structr.fetchHtmlTemplate('code/globals', { }, function(html) {
+			codeContents.append(html);
 
-		Command.rest('SchemaMethod?schemaNode=null&sort=name&order=ascending', function (methods) {
+			Command.rest('SchemaMethod?schemaNode=null&sort=name&order=ascending', function (methods) {
 
-			_Schema.methods.appendMethods($('.content-container', codeContents), null, methods, function() {
-				if (selection && selection.extended) {
-					_TreeHelper.refreshNode('#code-tree', 'workingsets-' + selection.extended);
-				} else {
-					_Code.refreshTree();
-				}
+				_Schema.methods.appendMethods($('.content-container', codeContents), null, methods, function() {
+					if (selection && selection.extended) {
+						_TreeHelper.refreshNode('#code-tree', 'workingsets-' + selection.extended);
+					} else {
+						_Code.refreshTree();
+					}
+				});
+
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
 			});
-
-			_Code.runCurrentEntitySaveAction = () => {
-				$('.save-all', codeContents).click();
-			};
 		});
 	},
-	displayMethodsContent: async function(selection, updateLocationStack) {
+	displayMethodsContent: function(selection, updateLocationStack) {
 
 		if (updateLocationStack === true) {
 			_Code.updatePathLocationStack(selection.source);
@@ -2308,36 +2338,38 @@ var _Code = {
 
 		_Code.addRecentlyUsedElement(selection.source, selection.obj.type + ' Methods' , 'fa fa-code gray', selection.source, false);
 
-		let html = await Structr.fetchHtmlTemplate('code/methods', { identifier: selection });
-		codeContents.append(html);
+		Structr.fetchHtmlTemplate('code/methods', { identifier: selection }, function(html) {
+			codeContents.append(html);
 
-		Command.get(selection.typeId, null, (entity) => {
+			Command.get(selection.typeId, null, (entity) => {
 
-			_Schema.methods.appendMethods($('.content-container', codeContents), entity, _Schema.filterJavaMethods(entity.schemaMethods), function() {
-				if (selection && selection.extended) {
-					_TreeHelper.refreshNode('#code-tree', 'workingsets-' + selection.extended);
-				} else {
-					_Code.refreshTree();
-				}
+				_Schema.methods.appendMethods($('.content-container', codeContents), entity, _Schema.filterJavaMethods(entity.schemaMethods), function() {
+					if (selection && selection.extended) {
+						_TreeHelper.refreshNode('#code-tree', 'workingsets-' + selection.extended);
+					} else {
+						_Code.refreshTree();
+					}
+				});
+
+				_Code.runCurrentEntitySaveAction = () => {
+					$('.save-all', codeContents).click();
+				};
 			});
-
-			_Code.runCurrentEntitySaveAction = () => {
-				$('.save-all', codeContents).click();
-			};
 		});
 	},
-	displayInheritedPropertiesContent: async function(selection, updateLocationStack) {
+	displayInheritedPropertiesContent: function(selection, updateLocationStack) {
 
 		if (updateLocationStack === true) {
 			_Code.updatePathLocationStack(selection.source);
 			_Code.lastClickedPath = selection.source;
 		}
 
-		let html = await Structr.fetchHtmlTemplate('code/properties.inherited', { identifier: selection });
-		codeContents.append(html);
+		Structr.fetchHtmlTemplate('code/properties.inherited', { identifier: selection }, function(html) {
+			codeContents.append(html);
 
-		Command.get(selection.typeId, null, (entity) => {
-			_Schema.properties.appendBuiltinProperties($('.content-container', codeContents), entity);
+			Command.get(selection.typeId, null, (entity) => {
+				_Schema.properties.appendBuiltinProperties($('.content-container', codeContents), entity);
+			});
 		});
 	},
 	displayPropertyDetails: function(selection, identifier) {
@@ -2383,179 +2415,182 @@ var _Code = {
 
 		var identifier = _Code.splitIdentifier(selection);
 
-		Command.get(identifier.memberId, null, async function(result) {
+		Command.get(identifier.memberId, null, function(result) {
 
 			_Code.updateRecentlyUsed(result, identifier.source, selection.updateLocationStack);
 
-			let html = await Structr.fetchHtmlTemplate('code/default-view', { view: result });
+			Structr.fetchHtmlTemplate('code/default-view', { view: result }, function(html) {
+				codeContents.append(html);
+				_Code.displayDefaultViewOptions(result, undefined, identifier);
+			});
+		});
+	},
+	displayFunctionPropertyDetails: function(property, identifier) {
+
+		Structr.fetchHtmlTemplate('code/function-property', { property: property }, function(html) {
+
 			codeContents.append(html);
-			_Code.displayDefaultViewOptions(result, undefined, identifier);
+
+			Structr.activateCommentsInElement(codeContents, {insertAfter: true});
+
+			let readFnEditor = _Code.editPropertyContent(property, 'readFunction', $('#read-code-container'), {extraKeys: {"Ctrl-Space": "autocomplete"}});
+			_Code.setCodeMirorUpdateMode(property, readFnEditor);
+			_Code.setupAutocompletion(readFnEditor, property.id, true);
+
+			let writeFnEditor = _Code.editPropertyContent(property, 'writeFunction', $('#write-code-container'), {extraKeys: {"Ctrl-Space": "autocomplete"}});
+			_Code.setCodeMirorUpdateMode(property, writeFnEditor);
+			_Code.setupAutocompletion(writeFnEditor, property.id, true);
+
+			_Code.displayDefaultPropertyOptions(property, undefined, identifier);
 		});
 	},
-	displayFunctionPropertyDetails: async function(property, identifier) {
+	displayCypherPropertyDetails: function(property, identifier) {
 
-		let html = await Structr.fetchHtmlTemplate('code/function-property', { property: property });
+		Structr.fetchHtmlTemplate('code/cypher-property', { property: property }, function(html) {
+			codeContents.append(html);
 
-		codeContents.append(html);
-
-		Structr.activateCommentsInElement(codeContents, {insertAfter: true});
-
-		let readFnEditor = _Code.editPropertyContent(property, 'readFunction', $('#read-code-container'), {extraKeys: {"Ctrl-Space": "autocomplete"}});
-		_Code.setCodeMirorUpdateMode(property, readFnEditor);
-		_Code.setupAutocompletion(readFnEditor, property.id, true);
-
-		let writeFnEditor = _Code.editPropertyContent(property, 'writeFunction', $('#write-code-container'), {extraKeys: {"Ctrl-Space": "autocomplete"}});
-		_Code.setCodeMirorUpdateMode(property, writeFnEditor);
-		_Code.setupAutocompletion(writeFnEditor, property.id, true);
-
-		_Code.displayDefaultPropertyOptions(property, undefined, identifier);
-
-	},
-	displayCypherPropertyDetails: async function(property, identifier) {
-
-		let html = await Structr.fetchHtmlTemplate('code/cypher-property', { property: property });
-		codeContents.append(html);
-
-		_Code.editPropertyContent(property, 'format', $('#cypher-code-container'), {mode: 'cypher'});
-		_Code.displayDefaultPropertyOptions(property, undefined, identifier);
-
-	},
-	displayStringPropertyDetails: async function(property, identifier) {
-
-		let html = await Structr.fetchHtmlTemplate('code/string-property', { property: property });
-		codeContents.append(html);
-		_Code.displayDefaultPropertyOptions(property, undefined, identifier);
-
-	},
-	displayBooleanPropertyDetails: async function(property, identifier) {
-
-		let html = await Structr.fetchHtmlTemplate('code/boolean-property', { property: property });
-		codeContents.append(html);
-		_Code.displayDefaultPropertyOptions(property, undefined, identifier);
-
-	},
-	displayDefaultPropertyDetails: async function(property, identifier) {
-
-		let html = await Structr.fetchHtmlTemplate('code/default-property', { property: property });
-		codeContents.append(html);
-		_Code.displayDefaultPropertyOptions(property, undefined, identifier);
-
-	},
-	displayDefaultPropertyOptions: async function(property, callback, identifier) {
-
-		let html = await Structr.fetchHtmlTemplate('code/property-options', { property: property });
-
-		_Code.runCurrentEntitySaveAction = function() {
-			_Code.saveEntityAction(property);
-		};
-
-		var buttons = $('#property-buttons');
-		buttons.prepend(html);
-
-		_Code.displayActionButton('#property-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save property', _Code.runCurrentEntitySaveAction);
-
-		_Code.displayActionButton('#property-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
-			_Code.revertFormData(property);
+			_Code.editPropertyContent(property, 'format', $('#cypher-code-container'), {mode: 'cypher'});
+			_Code.displayDefaultPropertyOptions(property, undefined, identifier);
 		});
+	},
+	displayStringPropertyDetails: function(property, identifier) {
 
-		if (!property.schemaNode.isBuiltinType) {
+		Structr.fetchHtmlTemplate('code/string-property', { property: property }, function(html) {
+			codeContents.append(html);
+			_Code.displayDefaultPropertyOptions(property, undefined, identifier);
+		});
+	},
+	displayBooleanPropertyDetails: function(property, identifier) {
 
-			_Code.displayActionButton('#property-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete property', function() {
-				_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'No data will be removed.', identifier);
+		Structr.fetchHtmlTemplate('code/boolean-property', { property: property }, function(html) {
+			codeContents.append(html);
+			_Code.displayDefaultPropertyOptions(property, undefined, identifier);
+		});
+	},
+	displayDefaultPropertyDetails: function(property, identifier) {
+
+		Structr.fetchHtmlTemplate('code/default-property', { property: property }, function(html) {
+			codeContents.append(html);
+			_Code.displayDefaultPropertyOptions(property, undefined, identifier);
+		});
+	},
+	displayDefaultPropertyOptions: function(property, callback, identifier) {
+
+		Structr.fetchHtmlTemplate('code/property-options', { property: property }, function(html) {
+
+			_Code.runCurrentEntitySaveAction = function() {
+				_Code.saveEntityAction(property);
+			};
+
+			var buttons = $('#property-buttons');
+			buttons.prepend(html);
+
+			_Code.displayActionButton('#property-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save property', _Code.runCurrentEntitySaveAction);
+
+			_Code.displayActionButton('#property-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
+				_Code.revertFormData(property);
 			});
-		}
 
-		_Code.updateDirtyFlag(property);
+			if (!property.schemaNode.isBuiltinType) {
 
-		if (property.propertyType !== 'Function') {
-			$('#property-type-hint-input').parent().remove();
-		}
-
-		if (property.propertyType === 'Cypher') {
-			$('#property-format-input').parent().remove();
-		}
-
-		$('input[type=checkbox]', buttons).on('change', function() {
-			_Code.updateDirtyFlag(property);
-		});
-
-		$('input[type=text]', buttons).on('keyup', function() {
-			_Code.updateDirtyFlag(property);
-		});
-
-		if (property.schemaNode.isBuiltinType) {
-			$('button#delete-property-button').parent().remove();
-		} else {
-			$('button#delete-property-button').on('click', function() {
-				_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'Property values will not be removed from data nodes.', identifier);
-			});
-		}
-
-		if (typeof callback === 'function') {
-			callback();
-		}
-	},
-	displayDefaultViewOptions: async function(view, callback, identifier) {
-
-		// default buttons
-		let html = await Structr.fetchHtmlTemplate('code/view-options', { view: view });
-
-		_Code.runCurrentEntitySaveAction = function() {
-
-			if (_Code.isDirty()) {
-
-				// update entity before storing the view to make sure that nonGraphProperties are correctly identified..
-				Command.get(view.schemaNode.id, null, function(reloadedEntity) {
-
-					let formData = _Code.collectChangedPropertyData(view);
-					let sortedAttrs = $('.property-attrs.view').sortedVals();
-					formData.schemaProperties   = _Schema.views.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
-					formData.nonGraphProperties = _Schema.views.findNonGraphProperties(reloadedEntity, sortedAttrs);
-
-					_Code.showSchemaRecompileMessage();
-
-					Command.setProperties(view.id, formData, function() {
-						Object.assign(view, formData);
-						_Code.updateDirtyFlag(view);
-
-						_Code.showSaveAction(formData);
-
-						if (formData.name) {
-							_Code.refreshTree();
-						}
-
-						_Code.hideSchemaRecompileMessage();
-					});
+				_Code.displayActionButton('#property-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete property', function() {
+					_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'No data will be removed.', identifier);
 				});
 			}
-		};
 
-		var buttons = $('#view-buttons');
-		buttons.prepend(html);
+			_Code.updateDirtyFlag(property);
 
-		_Code.displayActionButton('#view-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save view', _Code.runCurrentEntitySaveAction);
+			if (property.propertyType !== 'Function') {
+				$('#property-type-hint-input').parent().remove();
+			}
 
-		_Code.displayActionButton('#view-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
-			_Code.revertFormData(view);
-			_Code.displayViewSelect(view);
+			if (property.propertyType === 'Cypher') {
+				$('#property-format-input').parent().remove();
+			}
+
+			$('input[type=checkbox]', buttons).on('change', function() {
+				_Code.updateDirtyFlag(property);
+			});
+
+			$('input[type=text]', buttons).on('keyup', function() {
+				_Code.updateDirtyFlag(property);
+			});
+
+			if (property.schemaNode.isBuiltinType) {
+				$('button#delete-property-button').parent().remove();
+			} else {
+				$('button#delete-property-button').on('click', function() {
+					_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'Property values will not be removed from data nodes.', identifier);
+				});
+			}
+
+			if (typeof callback === 'function') {
+				callback();
+			}
 		});
+	},
+	displayDefaultViewOptions: function(view, callback, identifier) {
 
-		// delete button
-		_Code.displayActionButton('#view-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete view', function() {
-			_Code.deleteSchemaEntity(view, 'Delete view' + ' ' + view.name + '?', 'Note: Builtin views will be restored in their initial configuration', identifier);
-		});
+		// default buttons
+		Structr.fetchHtmlTemplate('code/view-options', { view: view }, function(html) {
 
-		_Code.updateDirtyFlag(view);
+			_Code.runCurrentEntitySaveAction = function() {
 
-		$('input[type=text]', buttons).on('keyup', function() {
+				if (_Code.isDirty()) {
+
+					// update entity before storing the view to make sure that nonGraphProperties are correctly identified..
+					Command.get(view.schemaNode.id, null, function(reloadedEntity) {
+
+						let formData = _Code.collectChangedPropertyData(view);
+						let sortedAttrs = $('.property-attrs.view').sortedVals();
+						formData.schemaProperties   = _Schema.views.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
+						formData.nonGraphProperties = _Schema.views.findNonGraphProperties(reloadedEntity, sortedAttrs);
+
+						_Code.showSchemaRecompileMessage();
+
+						Command.setProperties(view.id, formData, function() {
+							Object.assign(view, formData);
+							_Code.updateDirtyFlag(view);
+
+							_Code.showSaveAction(formData);
+
+							if (formData.name) {
+								_Code.refreshTree();
+							}
+
+							_Code.hideSchemaRecompileMessage();
+						});
+					});
+				}
+			};
+
+			var buttons = $('#view-buttons');
+			buttons.prepend(html);
+
+			_Code.displayActionButton('#view-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save view', _Code.runCurrentEntitySaveAction);
+
+			_Code.displayActionButton('#view-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
+				_Code.revertFormData(view);
+				_Code.displayViewSelect(view);
+			});
+
+			// delete button
+			_Code.displayActionButton('#view-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete view', function() {
+				_Code.deleteSchemaEntity(view, 'Delete view' + ' ' + view.name + '?', 'Note: Builtin views will be restored in their initial configuration', identifier);
+			});
+
 			_Code.updateDirtyFlag(view);
+
+			$('input[type=text]', buttons).on('keyup', function() {
+				_Code.updateDirtyFlag(view);
+			});
+
+			_Code.displayViewSelect(view);
+
+			if (typeof callback === 'function') {
+				callback();
+			}
 		});
-
-		_Code.displayViewSelect(view);
-
-		if (typeof callback === 'function') {
-			callback();
-		}
 	},
 	displayViewSelect: function(view) {
 
@@ -2650,45 +2685,48 @@ var _Code = {
 			_Code.activateCreateDialog(suffix, presetValue, nodeData, elHtml);
 		};
 
-		button.on('click.create-object-' + suffix, async function() {
+		button.on('click.create-object-' + suffix, function() {
 
 			button.off('click');
 			button.addClass('action-button-open');
 
-			let html = await Structr.fetchHtmlTemplate('code/create-object-form', { value: presetValue, suffix: suffix });
-			button.append(html);
-			$('#new-object-name-' + suffix).focus();
-			$('#new-object-name-' + suffix).on('keyup', function(e) {
-				if (e.keyCode === 27) { revertFunction(); }
-				if (e.keyCode === 13) { $('#create-button-' + suffix).click(); }
-			});
-			button.off('click.create-object-' + suffix);
-			$('#cancel-button-' + suffix).on('click', function() {
-				revertFunction();
-			});
-			$('#create-button-' + suffix).on('click', function() {
-				var data = Object.assign({}, nodeData);
-				data['name'] = $('#new-object-name-' + suffix).val();
-				_Code.showSchemaRecompileMessage();
-				Command.create(data, function() {
-					_Code.refreshTree();
-					_Code.clearMainArea();
-					_Code.displayCustomTypesContent();
-					_Code.hideSchemaRecompileMessage();
+			Structr.fetchHtmlTemplate('code/create-object-form', { value: presetValue, suffix: suffix }, function(html) {
+				button.append(html);
+				$('#new-object-name-' + suffix).focus();
+				$('#new-object-name-' + suffix).on('keyup', function(e) {
+					if (e.keyCode === 27) { revertFunction(); }
+					if (e.keyCode === 13) { $('#create-button-' + suffix).click(); }
+				});
+				button.off('click.create-object-' + suffix);
+				$('#cancel-button-' + suffix).on('click', function() {
+					revertFunction();
+				});
+				$('#create-button-' + suffix).on('click', function() {
+					var data = Object.assign({}, nodeData);
+					data['name'] = $('#new-object-name-' + suffix).val();
+					_Code.showSchemaRecompileMessage();
+					Command.create(data, function() {
+						_Code.refreshTree();
+						_Code.clearMainArea();
+						_Code.displayCustomTypesContent();
+						_Code.hideSchemaRecompileMessage();
+					});
 				});
 			});
 		});
 	},
-	displayCreateButton: async function(targetId, iconClass, suffix, name, presetValue, createData) {
-		let html = await Structr.fetchHtmlTemplate('code/action-button', { iconClass: iconClass, suffix: suffix, name: name });
-		$(targetId).append(html);
-		_Code.activateCreateDialog(suffix, presetValue, createData, html);
+	displayCreateButton: function(targetId, iconClass, suffix, name, presetValue, createData) {
+		Structr.fetchHtmlTemplate('code/action-button', { iconClass: iconClass, suffix: suffix, name: name }, function(html) {
+			$(targetId).append(html);
+			_Code.activateCreateDialog(suffix, presetValue, createData, html);
+		});
 	},
-	displayActionButton: async function(targetId, iconClass, suffix, name, callback) {
+	displayActionButton: function(targetId, iconClass, suffix, name, callback) {
 		let buttonId = '#action-button-' + suffix;
-		let html = await Structr.fetchHtmlTemplate('code/action-button', { iconClass: iconClass, suffix: suffix, name: name });
-		$(targetId).append(html);
-		$(buttonId).off('click.action').on('click.action', callback);
+		Structr.fetchHtmlTemplate('code/action-button', { iconClass: iconClass, suffix: suffix, name: name }, function(html) {
+			$(targetId).append(html);
+			$(buttonId).off('click.action').on('click.action', callback);
+		});
 		return buttonId;
 	},
 	displayCreatePropertyButton: function(targetId, type, nodeData) {

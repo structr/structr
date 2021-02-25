@@ -27,87 +27,98 @@ var _Apps = {
 
 	init: function() {},
 	unload: function() {},
-	onload: async function() {
+	onload: function() {
 
 		_Apps.init();
 
-		let deployResponse = await fetch('/structr/deploy');
-		_Apps.deployServletAvailable = (deployResponse.status !== 404);
+		fetch('/structr/deploy').then((result) => {
+			_Apps.deployServletAvailable = (result.status !== 404);
+		}).then(() => {
 
+			Structr.fetchHtmlTemplate('apps/apps', {hideInfo: _Apps.deployServletAvailable}, function(html) {
 
-		let html = await Structr.fetchHtmlTemplate('apps/apps', {hideInfo: _Apps.deployServletAvailable});
-		main.append(html);
+				main.append(html);
 
-		_Apps.appsContainer = $('#apps', main);
+				_Apps.appsContainer = $('#apps', main);
 
-		_Apps.loadData();
+				_Apps.loadData();
 
-		$(window).off('resize');
-		$(window).on('resize', function() {
-			Structr.resize();
-		});
+				$(window).off('resize');
+				$(window).on('resize', function() {
+					Structr.resize();
+				});
 
-		Structr.unblockMenu(100);
-	},
-	loadData: async function() {
-
-		let res    = await fetch('https://structr.com/structr/rest/StructrApplicationCategory?sort=position');
-		let result = await res.json();
-		result.result.forEach(function(category) {
-			_Apps.appendCategory(category);
-		});
-	},
-	appendCategory: async function(category) {
-
-		let html = await Structr.fetchHtmlTemplate('apps/category', category);
-
-		_Apps.appsContainer.append(html);
-		var container = $('#' + category.id);
-
-		category.apps.sort(function(a, b) {
-			if (a.position > b.position) return 1;
-			if (a.position < b.position) return -1;
-			return 0;
-		});
-
-		category.apps.forEach(function(app) {
-
-			_Apps.appendTile(container, app);
-		});
-	},
-	appendTile: async function(container, app) {
-
-		let tile = await Structr.fetchHtmlTemplate('apps/tile', app);
-
-		let $tile = $(tile);
-		container.append($tile);
-
-		let form = $tile.find('form');
-		if (form.length > 0) {
-			form[0].addEventListener('submit', (e) => {
-				e.preventDefault();
-
-				if (_Apps.deployServletAvailable) {
-
-					Structr.confirmation(
-						'<h3>Install "' + app.name + '"?</h3><p>The current application will be <b>REMOVED</b>!</p><p>Make sure you have a backup or nothing important in this installation!</p>',
-						function() {
-							$.unblockUI({ fadeOut: 25 });
-
-							LSWrapper.removeItem(_Schema.hiddenSchemaNodesKey);
-							LSWrapper.save(function() {
-								form.submit();
-							});
-						}
-					);
-
-				} else {
-					_Apps.showDeploymentServletUnavailableMessage(app);
-				}
-
-				return false;
+				Structr.unblockMenu(100);
 			});
-		}
+		});
+	},
+	loadData: function() {
+
+		$.ajax({
+			url: 'https://structr.com/structr/rest/StructrApplicationCategory?sort=position',
+			statusCode: {
+				200: function(result) {
+					result.result.forEach(function(category) {
+						_Apps.appendCategory(category);
+					});
+				}
+			}
+		});
+	},
+	appendCategory: function(category) {
+
+		Structr.fetchHtmlTemplate('apps/category', category, function(html) {
+
+			_Apps.appsContainer.append(html);
+			var container = $('#' + category.id);
+
+			category.apps.sort(function(a, b) {
+				if (a.position > b.position) return 1;
+				if (a.position < b.position) return -1;
+				return 0;
+			});
+
+			category.apps.forEach(function(app) {
+
+				_Apps.appendTile(container, app);
+
+			});
+		});
+	},
+	appendTile: function(container, app) {
+
+		Structr.fetchHtmlTemplate('apps/tile', app, function(tile) {
+
+			let $tile = $(tile);
+			container.append($tile);
+
+			let form = $tile.find('form');
+			if (form.length > 0) {
+				form[0].addEventListener('submit', (e) => {
+					e.preventDefault();
+
+					if (_Apps.deployServletAvailable) {
+
+						Structr.confirmation(
+							'<h3>Install "' + app.name + '"?</h3><p>The current application will be <b>REMOVED</b>!</p><p>Make sure you have a backup or nothing important in this installation!</p>',
+							function() {
+								$.unblockUI({ fadeOut: 25 });
+
+								LSWrapper.removeItem(_Schema.hiddenSchemaNodesKey);
+								LSWrapper.save(function() {
+									form.submit();
+								});
+							}
+						);
+
+					} else {
+						_Apps.showDeploymentServletUnavailableMessage(app);
+					}
+
+					return false;
+				});
+			}
+		});
 	},
 	showDeploymentServletUnavailableMessage: function(app) {
 
