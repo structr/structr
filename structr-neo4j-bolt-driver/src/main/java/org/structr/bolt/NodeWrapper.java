@@ -100,7 +100,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		assertNotStale();
 
-		final ReactiveSessionTransaction tx   = db.getCurrentTransaction();
+		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 		final NodeWrapper otherNode   = (NodeWrapper)endNode;
 		final String tenantIdentifier = getTenantIdentifer(db);
@@ -141,7 +141,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		assertNotStale();
 
-		final ReactiveSessionTransaction tx   = db.getCurrentTransaction();
+		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 		final String tenantIdentifier = getTenantIdentifer(db);
 
@@ -157,7 +157,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		assertNotStale();
 
-		final ReactiveSessionTransaction tx   = db.getCurrentTransaction();
+		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 		final String tenantIdentifier = getTenantIdentifer(db);
 
@@ -172,7 +172,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		assertNotStale();
 
-		final ReactiveSessionTransaction tx   = db.getCurrentTransaction();
+		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 		final String tenantIdentifier = getTenantIdentifer(db);
 
@@ -187,7 +187,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		assertNotStale();
 
-		final ReactiveSessionTransaction tx      = db.getCurrentTransaction();
+		final SessionTransaction tx      = db.getCurrentTransaction();
 		final Map<String, Object> params = new LinkedHashMap<>();
 		final String tenantIdentifier    = getTenantIdentifer(db);
 
@@ -213,7 +213,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		assertNotStale();
 
-		final ReactiveSessionTransaction tx                 = db.getCurrentTransaction();
+		final SessionTransaction tx                 = db.getCurrentTransaction();
 		final Map<String, Object> params            = new LinkedHashMap<>();
 		final String tenantIdentifier               = getTenantIdentifer(db);
 		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
@@ -294,7 +294,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		super.delete(deleteRelationships);
 
-		final ReactiveSessionTransaction tx = db.getCurrentTransaction();
+		final SessionTransaction tx = db.getCurrentTransaction();
 		tx.deleted(this);
 	}
 
@@ -307,7 +307,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	 */
 	public boolean evaluateCustomQuery(final String customQuery, final Map<String, Object> parameters) {
 
-		final ReactiveSessionTransaction tx = db.getCurrentTransaction();
+		final SessionTransaction tx = db.getCurrentTransaction();
 		boolean result              = false;
 
 		try {
@@ -396,7 +396,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 			NodeWrapper wrapper = nodeCache.get(id);
 			if (wrapper == null) { // || wrapper.stale) {
 
-				final ReactiveSessionTransaction tx   = db.getCurrentTransaction();
+				final SessionTransaction tx   = db.getCurrentTransaction();
 				final String tenantIdentifier = getTenantIdentifer(db);
 				final Map<String, Object> map = new HashMap<>();
 

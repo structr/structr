@@ -100,6 +100,6 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
 	@Override
 	public Iterable<Node> getResult(final AdvancedCypherQuery query) {
-		return Iterables.map(new NodeNodeMapper(db), Iterables.map(new RecordNodeMapper(), new QueryIterable(db, query)));
+		return Iterables.map(new NodeNodeMapper(db), Iterables.map(new RecordNodeMapper(), new LazyRecordIterable(db, query)));
 	}
 }

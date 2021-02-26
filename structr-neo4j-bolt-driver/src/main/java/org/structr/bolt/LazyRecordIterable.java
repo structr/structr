@@ -18,17 +18,25 @@
  */
 package org.structr.bolt;
 
-/**
- *
- */
-public class LongQuery extends AbstractNativeQuery<Boolean> {
+import java.util.Iterator;
+import org.neo4j.driver.Record;
 
-	public LongQuery(final String query) {
-		super(query);
+public class LazyRecordIterable implements Iterable<Record> {
+
+	private AdvancedCypherQuery query = null;
+	private BoltDatabaseService db    = null;
+
+	public LazyRecordIterable(final BoltDatabaseService db, final AdvancedCypherQuery query) {
+		this.query = query;
+		this.db    = db;
 	}
 
 	@Override
-	Boolean execute(final SessionTransaction tx) {
-		return tx.getBoolean(query, parameters);
+	public Iterator<Record> iterator() {
+
+		final SessionTransaction tx     = db.getCurrentTransaction();
+		final Iterable<Record> iterable = tx.newIterable(db, query);
+
+		return iterable.iterator();
 	}
 }

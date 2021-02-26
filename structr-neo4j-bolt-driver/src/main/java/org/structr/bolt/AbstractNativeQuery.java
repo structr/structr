@@ -33,7 +33,7 @@ public abstract class AbstractNativeQuery<T> implements NativeQuery<T> {
 		this.query = query;
 	}
 
-	abstract T execute(final ReactiveSessionTransaction tx);
+	abstract T execute(final SessionTransaction tx);
 
 	public String getQuery() {
 		return query;

@@ -160,7 +160,7 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 
 		super.delete(deleteRelationships);
 
-		final ReactiveSessionTransaction tx = db.getCurrentTransaction();
+		final SessionTransaction tx = db.getCurrentTransaction();
 		tx.deleted(this);
 
 		clearCaches();
@@ -213,7 +213,7 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 			RelationshipWrapper wrapper = relationshipCache.get(id);
 			if (wrapper == null || wrapper.stale) {
 
-				final ReactiveSessionTransaction tx   = db.getCurrentTransaction();
+				final SessionTransaction tx   = db.getCurrentTransaction();
 				final Map<String, Object> map = new HashMap<>();
 				final StringBuilder buf       = new StringBuilder();
 				final String tenantIdentifier = db.getTenantIdentifier();

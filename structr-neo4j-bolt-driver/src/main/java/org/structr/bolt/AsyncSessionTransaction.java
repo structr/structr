@@ -20,50 +20,53 @@ package org.structr.bolt;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletionStage;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.async.AsyncSession;
+import org.neo4j.driver.async.AsyncTransaction;
+import org.neo4j.driver.async.ResultCursor;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.neo4j.driver.exceptions.TransientException;
-import org.neo4j.driver.internal.shaded.reactor.core.publisher.Flux;
-import org.neo4j.driver.internal.shaded.reactor.core.publisher.Mono;
-import org.neo4j.driver.reactive.RxResult;
-import org.neo4j.driver.reactive.RxSession;
-import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.NetworkException;
 import org.structr.api.NotFoundException;
 import org.structr.api.RetryException;
+import org.structr.api.search.QueryContext;
 import org.structr.api.util.Iterables;
 
 /**
  *
  */
-class ReactiveSessionTransaction extends SessionTransaction {
+class AsyncSessionTransaction extends SessionTransaction {
 
-	private BoltDatabaseService db = null;
-	private RxSession session      = null;
-	private RxTransaction tx       = null;
-	private boolean closed         = false;
+	private static final Logger logger = LoggerFactory.getLogger(AsyncSessionTransaction.class);
+	private AsyncSession session       = null;
+	private AsyncTransaction tx        = null;
+	private boolean closed             = false;
 
-	public ReactiveSessionTransaction(final BoltDatabaseService db, final RxSession session) {
+	public AsyncSessionTransaction(final BoltDatabaseService db, final AsyncSession session) {
 
 		super(db);
 
-		this.transactionId = ID_SOURCE.getAndIncrement();
 		this.session       = session;
-		this.tx            = Flux.from(session.beginTransaction(db.getTransactionConfig(transactionId))).blockFirst();
+		this.tx            = resolveImmediately(session.beginTransactionAsync(db.getTransactionConfig(transactionId)));
 		this.db            = db;
 	}
 
-	public ReactiveSessionTransaction(final BoltDatabaseService db, final RxSession session, final int timeoutInSeconds) {
+	public AsyncSessionTransaction(final BoltDatabaseService db, final AsyncSession session, final int timeoutInSeconds) {
 
 		super(db);
 
@@ -71,7 +74,7 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 		this.transactionId = ID_SOURCE.getAndIncrement();
 		this.session       = session;
-		this.tx            = Flux.from(session.beginTransaction(config)).blockFirst();
+		this.tx            = resolveImmediately(session.beginTransactionAsync(config));
 		this.db            = db;
 	}
 
@@ -91,7 +94,7 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 		if (!success) {
 
-			Mono.from(tx.rollback()).block();
+			resolveImmediately(tx.rollbackAsync());
 
 			for (final EntityWrapper entity : accessedEntities) {
 
@@ -105,7 +108,7 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 		} else {
 
-			Mono.from(tx.commit()).block();
+			resolveImmediately(tx.commitAsync());
 
 			RelationshipWrapper.expunge(deletedRels);
 			NodeWrapper.expunge(deletedNodes);
@@ -125,7 +128,8 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 		try {
 
-			session.close();
+			//tx.close();
+			resolveImmediately(session.closeAsync());
 
 		} catch (TransientException tex) {
 
@@ -141,12 +145,18 @@ class ReactiveSessionTransaction extends SessionTransaction {
 			}
 
 			// make sure that the resources are freed
-			session.close();
+			//if (session.isOpen()) {
+				resolveImmediately(session.closeAsync());
+			//}
 		}
 	}
 
 	public boolean isClosed() {
 		return closed;
+	}
+
+	public void setClosed(final boolean closed) {
+		this.closed = closed;
 	}
 
 	@Override
@@ -165,9 +175,9 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw ReactiveSessionTransaction.translateClientException(cex);
+			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -177,7 +187,10 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		try {
 
 			logQuery(statement, map);
-			return Mono.from(tx.run(statement, map).records()).block().get(0).asBoolean();
+
+			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
+
+			return resolveImmediately(cursor.peekAsync()).get(0).asBoolean();
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -187,9 +200,9 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw ReactiveSessionTransaction.translateClientException(cex);
+			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -209,9 +222,9 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw ReactiveSessionTransaction.translateClientException(cex);
+			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -221,7 +234,10 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		try {
 
 			logQuery(statement, map);
-			return Mono.from(tx.run(statement, map).records()).block().get(0).asLong();
+
+			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
+
+			return resolveImmediately(cursor.peekAsync()).get(0).asLong();
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -231,9 +247,9 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw ReactiveSessionTransaction.translateClientException(cex);
+			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -243,7 +259,10 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		try {
 
 			logQuery(statement, map);
-			return Mono.from(tx.run(statement, map).records()).block().get(0).asObject();
+
+			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
+
+			return resolveImmediately(cursor.peekAsync()).get(0).asObject();
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -253,9 +272,9 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw ReactiveSessionTransaction.translateClientException(cex);
+			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -265,7 +284,10 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		try {
 
 			logQuery(statement, map);
-			return Mono.from(tx.run(statement, map).records()).block().get(0).asEntity();
+
+			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
+
+			return resolveImmediately(cursor.peekAsync()).get(0).asEntity();
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -275,9 +297,9 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw ReactiveSessionTransaction.translateClientException(cex);
+			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -288,12 +310,9 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 			logQuery(statement, map);
 
-			final RxResult result = tx.run(statement, map);
-			final Node node       =  Mono.from(result.records()).block().get(0).asNode();
+			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
 
-			Mono.from(result.consume()).block();
-
-			return node;
+			return resolveImmediately(cursor.peekAsync()).get(0).asNode();
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -303,9 +322,9 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw ReactiveSessionTransaction.translateClientException(cex);
+			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -315,7 +334,10 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		try {
 
 			logQuery(statement, map);
-			return Mono.from(tx.run(statement, map).records()).block().get(0).asRelationship();
+
+			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
+
+			return resolveImmediately(cursor.peekAsync()).get(0).asRelationship();
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -325,32 +347,26 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw ReactiveSessionTransaction.translateClientException(cex);
+			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
 
 	@Override
-	public Object collectRecords(final String statement, final Map<String, Object> map, final Object flux) {
+	public Object collectRecords(final String statement, final Map<String, Object> map, final Object input) {
 
-		try {
+		logQuery(statement, map);
 
-			logQuery(statement, map);
-			return Flux.from(tx.run(statement, map).records());
+		final IterableQueueingRecordConsumer consumer = (IterableQueueingRecordConsumer)input;
 
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw ReactiveSessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw ReactiveSessionTransaction.translateClientException(cex);
-		}
+		tx.runAsync(statement, map)
+			.thenCompose(cursor -> consumer.start(cursor))
+			.thenCompose(cursor -> cursor.forEachAsync(consumer::accept))
+			.thenAccept(summary -> consumer.finish())
+			.exceptionally(t -> consumer.exception(t));
+
+		return consumer;
 	}
 
 	@Override
@@ -359,7 +375,10 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		try {
 
 			logQuery(statement, map);
-			return new IteratorWrapper<>(Mono.from(tx.run(statement, map).records()).block().get(0).asList(Values.ofString()).iterator());
+
+			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
+
+			return new LinkedList<>(resolveImmediately(cursor.peekAsync()).get(0).asList(Values.ofString()));
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -369,9 +388,9 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw ReactiveSessionTransaction.translateClientException(cex);
+			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -382,11 +401,10 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 			logQuery(statement, map);
 
-			final Iterable<Map<String, Object>> iterable = Iterables.map(new RecordMapMapper(db), Flux.from(tx.run(statement, map).records()).toIterable());
+			final ResultCursor cursor  = resolveImmediately(tx.runAsync(statement, map));
+			final List<Record> records = resolveImmediately(cursor.listAsync());
 
-			iterable.iterator().hasNext();
-
-			return iterable;
+			return Iterables.map(new RecordMapMapper(db), records);
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -396,9 +414,9 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw ReactiveSessionTransaction.translateClientException(cex);
+			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
 
@@ -408,7 +426,8 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		try {
 
 			logQuery(statement, map);
-			Mono.from(tx.run(statement, map).consume()).block();
+
+			resolveImmediately(tx.runAsync(statement, map));
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -418,17 +437,38 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
-			throw ReactiveSessionTransaction.translateDatabaseException(dex);
+			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
-			throw ReactiveSessionTransaction.translateClientException(cex);
+			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
 
 	@Override
 	public Iterable<Record> newIterable(final BoltDatabaseService db, final AdvancedCypherQuery query) {
-		return new QueryIterable(db, query);
+
+		final IterableQueueingRecordConsumer consumer = new IterableQueueingRecordConsumer(db, query);
+		final QueryContext context                    = query.getQueryContext();
+
+		if (context != null && !context.isDeferred()) {
+			consumer.start();
+		}
+
+		// return mapped result
+		return consumer;
 	}
 
+	// ----- private methods -----
+	private <T> T resolveImmediately(final CompletionStage<T> stage) {
+
+		try {
+			return stage.toCompletableFuture().get();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		return null;
+	}
 
 	// ----- nested classes -----
 	public class IteratorWrapper<T> implements Iterable<T> {
@@ -460,9 +500,9 @@ class ReactiveSessionTransaction extends SessionTransaction {
 				return iterator.hasNext();
 
 			} catch (ClientException dex) {
-				throw ReactiveSessionTransaction.translateClientException(dex);
+				throw AsyncSessionTransaction.translateClientException(dex);
 			} catch (DatabaseException dex) {
-				throw ReactiveSessionTransaction.translateDatabaseException(dex);
+				throw AsyncSessionTransaction.translateDatabaseException(dex);
 			}
 		}
 
@@ -474,9 +514,9 @@ class ReactiveSessionTransaction extends SessionTransaction {
 				return iterator.next();
 
 			} catch (ClientException dex) {
-				throw ReactiveSessionTransaction.translateClientException(dex);
+				throw AsyncSessionTransaction.translateClientException(dex);
 			} catch (DatabaseException dex) {
-				throw ReactiveSessionTransaction.translateDatabaseException(dex);
+				throw AsyncSessionTransaction.translateDatabaseException(dex);
 			}
 		}
 

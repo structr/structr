@@ -28,7 +28,7 @@ public class BooleanQuery extends AbstractNativeQuery<Boolean> {
 	}
 
 	@Override
-	Boolean execute(final ReactiveSessionTransaction tx) {
+	Boolean execute(final SessionTransaction tx) {
 		return tx.getBoolean(query, parameters);
 	}
 }

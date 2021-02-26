@@ -29,23 +29,18 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.TransactionConfig;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.exceptions.AuthenticationException;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
@@ -57,7 +52,6 @@ import org.structr.api.DatabaseFeature;
 import org.structr.api.NativeQuery;
 import org.structr.api.NetworkException;
 import org.structr.api.NotInTransactionException;
-import org.structr.api.RetryException;
 import org.structr.api.Transaction;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.GraphProperties;
@@ -79,16 +73,18 @@ import org.structr.api.util.NodeWithOwnerResult;
  */
 public class BoltDatabaseService extends AbstractDatabaseService implements GraphProperties {
 
-	private static final Logger logger                                = LoggerFactory.getLogger(BoltDatabaseService.class.getName());
-	private static final ThreadLocal<ReactiveSessionTransaction> sessions     = new ThreadLocal<>();
-	private final Set<String> supportedQueryLanguages                 = new LinkedHashSet<>();
-	private Properties globalGraphProperties                          = null;
-	private CypherRelationshipIndex relationshipIndex                 = null;
-	private CypherNodeIndex nodeIndex                                 = null;
-	private String errorMessage                                       = null;
-	private String databaseUrl                                        = null;
-	private String databasePath                                       = null;
-	private Driver driver                                             = null;
+	private static final Logger logger                            = LoggerFactory.getLogger(BoltDatabaseService.class.getName());
+	private static final ThreadLocal<SessionTransaction> sessions = new ThreadLocal<>();
+	private final Set<String> supportedQueryLanguages             = new LinkedHashSet<>();
+	private Properties globalGraphProperties                      = null;
+	private CypherRelationshipIndex relationshipIndex             = null;
+	private CypherNodeIndex nodeIndex                             = null;
+	private boolean supportsIdempotentIndexCreation               = false;
+	private boolean supportsReactive                              = false;
+	private String errorMessage                                   = null;
+	private String databaseUrl                                    = null;
+	private String databasePath                                   = null;
+	private Driver driver                                         = null;
 
 	@Override
 	public boolean initialize(final String name) {
@@ -129,6 +125,8 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 				AuthTokens.basic(username, password)
 			);
 
+			configureVersionDependentFeatures();
+
 			final int relCacheSize  = Settings.RelationshipCacheSize.getPrefixedValue(serviceName);
 			final int nodeCacheSize = Settings.NodeCacheSize.getPrefixedValue(serviceName);
 
@@ -161,11 +159,20 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public Transaction beginTx() {
 
-		ReactiveSessionTransaction session = sessions.get();
+		SessionTransaction session = sessions.get();
 		if (session == null || session.isClosed()) {
 
 			try {
-				session = new ReactiveSessionTransaction(this, driver.rxSession());
+
+				if (supportsReactive) {
+
+					session = new ReactiveSessionTransaction(this, driver.rxSession());
+
+				} else {
+
+					session = new AsyncSessionTransaction(this, driver.asyncSession());
+				}
+
 				sessions.set(session);
 
 			} catch (ServiceUnavailableException ex) {
@@ -181,11 +188,20 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public Transaction beginTx(final int timeoutInSeconds) {
 
-		ReactiveSessionTransaction session = sessions.get();
+		SessionTransaction session = sessions.get();
 		if (session == null || session.isClosed()) {
 
 			try {
-				session = new ReactiveSessionTransaction(this, driver.rxSession(), timeoutInSeconds);
+
+				if (supportsReactive) {
+
+					session = new ReactiveSessionTransaction(this, driver.rxSession(), timeoutInSeconds);
+
+				} else {
+
+					session = new AsyncSessionTransaction(this, driver.asyncSession(), timeoutInSeconds);
+				}
+
 				sessions.set(session);
 
 			} catch (ServiceUnavailableException ex) {
@@ -290,9 +306,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			}
 
 		} catch (ClientException dex) {
-			throw SessionTransaction.translateClientException(dex);
+			throw AsyncSessionTransaction.translateClientException(dex);
 		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
+			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		}
 
 		return null;
@@ -418,223 +434,15 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfigSource, final Map<String, Map<String, Boolean>> removedClassesSource, final boolean createOnly) {
 
-		final ExecutorService executor              = Executors.newCachedThreadPool();
-		final Map<String, String> existingDbIndexes = new HashMap<>();
-		final int timeoutSeconds                    = 10;
+		if (supportsIdempotentIndexCreation) {
 
-		try {
+			// idempotent index update, no need to check for existance first
+			new Neo4IndexUpdater(this).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
 
-			executor.submit(() -> {
+		} else {
 
-				try (final Transaction tx = beginTx(timeoutSeconds)) {
-
-					for (final Map<String, Object> row : execute("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state}")) {
-
-						for (final Object value : row.values()) {
-
-							final Map<String, String> valueMap = (Map<String, String>)value;
-
-							existingDbIndexes.put(valueMap.get("description"), valueMap.get("state"));
-						}
-					}
-
-					tx.success();
-				}
-
-			}).get(timeoutSeconds, TimeUnit.SECONDS);
-
-		} catch (Throwable t) {
-			logger.error(ExceptionUtils.getStackTrace(t));
-		}
-
-		logger.debug("Found {} existing indexes", existingDbIndexes.size());
-
-		final AtomicInteger createdIndexes = new AtomicInteger(0);
-		final AtomicInteger droppedIndexes = new AtomicInteger(0);
-
-		// create indices for properties of existing classes
-		for (final Map.Entry<String, Map<String, Boolean>> entry : schemaIndexConfigSource.entrySet()) {
-
-			final String typeName = entry.getKey();
-
-			for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
-
-				final String indexDescriptionForLookup = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
-				final String indexDescription          = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
-				final String currentState              = existingDbIndexes.get(indexDescriptionForLookup);
-				final boolean indexAlreadyOnline       = Boolean.TRUE.equals("ONLINE".equals(currentState));
-				final boolean configuredAsIndexed      = propertyIndexConfig.getValue();
-
-				if ("FAILED".equals(currentState)) {
-
-					logger.warn("Index is in FAILED state - dropping the index before handling it further. {}. If this error is recurring, please verify that the data in the concerned property is indexable by Neo4j", indexDescription);
-
-					final AtomicBoolean retry = new AtomicBoolean(true);
-					final AtomicInteger retryCount = new AtomicInteger(0);
-
-					while (retry.get()) {
-
-						retry.set(false);
-
-						try {
-
-							executor.submit(() -> {
-
-								try (final Transaction tx = beginTx(timeoutSeconds)) {
-
-									consume("DROP " + indexDescription);
-
-									tx.success();
-
-								} catch (RetryException rex) {
-
-									retry.set(retryCount.incrementAndGet() < 3);
-									logger.info("DROP INDEX: retry {}", retryCount.get());
-
-								} catch (Throwable t) {
-									logger.warn("Unable to drop failed index: {}", t.getMessage());
-								}
-
-								return null;
-
-							}).get(timeoutSeconds, TimeUnit.SECONDS);
-
-						} catch (Throwable t) {
-							logger.error(ExceptionUtils.getStackTrace(t));
-						}
-					}
-				}
-
-				final AtomicBoolean retry = new AtomicBoolean(true);
-				final AtomicInteger retryCount = new AtomicInteger(0);
-
-				while (retry.get()) {
-
-					retry.set(false);
-
-					try {
-
-						executor.submit(() -> {
-
-							try (final Transaction tx = beginTx(timeoutSeconds)) {
-
-								if (configuredAsIndexed) {
-
-									if (!indexAlreadyOnline) {
-
-										try {
-
-											consume("CREATE " + indexDescription);
-											createdIndexes.incrementAndGet();
-
-										} catch (Throwable t) {
-											logger.warn("Unable to create {}: {}", indexDescription, t.getMessage());
-										}
-									}
-
-								} else if (indexAlreadyOnline && !createOnly) {
-
-									try {
-
-										consume("DROP " + indexDescription);
-										droppedIndexes.incrementAndGet();
-
-									} catch (Throwable t) {
-										logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
-									}
-								}
-
-								tx.success();
-
-							} catch (RetryException rex) {
-
-								retry.set(retryCount.incrementAndGet() < 3);
-								logger.info("INDEX update: retry {}", retryCount.get());
-
-							} catch (IllegalStateException i) {
-
-								// if the driver instance is already closed, there is nothing we can do => exit
-								return;
-
-							} catch (Throwable t) {
-
-								logger.warn("Unable to update index configuration: {}", t.getMessage());
-							}
-
-						}).get(timeoutSeconds, TimeUnit.SECONDS);
-
-					} catch (Throwable t) {}
-				}
-			}
-		}
-
-		if (createdIndexes.get() > 0) {
-			logger.debug("Created {} indexes", createdIndexes.get());
-		}
-
-		if (droppedIndexes.get() > 0) {
-			logger.debug("Dropped {} indexes", droppedIndexes.get());
-		}
-
-		if (!createOnly) {
-
-			final AtomicInteger droppedIndexesOfRemovedTypes = new AtomicInteger(0);
-			final List removedTypes = new LinkedList();
-
-			// drop indices for all indexed properties of removed classes
-			for (final Map.Entry<String, Map<String, Boolean>> entry : removedClassesSource.entrySet()) {
-
-				final String typeName = entry.getKey();
-				removedTypes.add(typeName);
-
-				for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
-
-					final String indexDescriptionForLookup = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
-					final String indexDescription          = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
-					final boolean indexExists              = (existingDbIndexes.get(indexDescriptionForLookup) != null);
-					final boolean configuredAsIndexed      = propertyIndexConfig.getValue();
-
-					if (indexExists && configuredAsIndexed) {
-
-						final AtomicBoolean retry = new AtomicBoolean(true);
-						final AtomicInteger retryCount = new AtomicInteger(0);
-
-						while (retry.get()) {
-
-							retry.set(false);
-
-							try {
-
-								executor.submit(() -> {
-
-									try (final Transaction tx = beginTx(timeoutSeconds)) {
-
-										// drop index
-										consume("DROP " + indexDescription);
-										droppedIndexesOfRemovedTypes.incrementAndGet();
-
-										tx.success();
-
-									} catch (RetryException rex) {
-
-										retry.set(retryCount.incrementAndGet() < 3);
-										logger.info("DROP INDEX: retry {}", retryCount.get());
-
-									} catch (Throwable t) {
-										logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
-									}
-
-								}).get(timeoutSeconds, TimeUnit.SECONDS);
-
-							} catch (Throwable t) {}
-						}
-					}
-				}
-			}
-
-			if (droppedIndexesOfRemovedTypes.get() > 0) {
-				logger.debug("Dropped {} indexes of deleted types ({})", droppedIndexesOfRemovedTypes.get(), StringUtils.join(removedTypes, ", "));
-			}
+			// non-idempotent index update, need to check for existance first
+			new Neo3IndexUpdater(this).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
 		}
 	}
 
@@ -685,13 +493,13 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 	}
 
-	public ReactiveSessionTransaction getCurrentTransaction() {
+	public SessionTransaction getCurrentTransaction() {
 		return getCurrentTransaction(true);
 	}
 
-	public ReactiveSessionTransaction getCurrentTransaction(final boolean throwNotInTransactionException) {
+	public SessionTransaction getCurrentTransaction(final boolean throwNotInTransactionException) {
 
-		final ReactiveSessionTransaction tx = sessions.get();
+		final SessionTransaction tx = sessions.get();
 		if (throwNotInTransactionException && (tx == null || tx.isClosed())) {
 
 			throw new NotInTransactionException("Not in transaction");
@@ -860,6 +668,36 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	}
 
 	// ----- private methods -----
+	private String getNeo4jVersion() {
+
+		try {
+
+			try (final Session session = driver.session()) {
+
+				try (final org.neo4j.driver.Transaction tx = session.beginTransaction()) {
+
+					final Result result     = tx.run("CALL dbms.components() YIELD versions UNWIND versions AS version RETURN version");
+					final List<Record> list = result.list();
+
+					for (final Record record : list) {
+
+						final Value version = record.get("version");
+						if (!version.isNull() && !version.isEmpty()) {
+
+							return version.asString();
+						}
+					}
+
+				}
+			}
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		return "0.0.0";
+	}
+
 	private void createUUIDConstraint() {
 
 		// add UUID uniqueness constraint
@@ -915,6 +753,17 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		return 0;
+	}
+
+	private void configureVersionDependentFeatures() {
+
+		final String versionString  = getNeo4jVersion();
+		final long versionNumber    = parseVersionString(versionString);
+
+		logger.info("Neo4j version is {}", versionString);
+
+		this.supportsIdempotentIndexCreation = versionNumber >= parseVersionString("4.1.3");
+		this.supportsReactive                = versionNumber >= parseVersionString("4.0.0");
 	}
 
 	// ----- nested classes -----
@@ -1060,5 +909,37 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		return null;
+	}
+
+	/**
+	 * Splits version strings into individual elements and creates comparable numbers.
+	 * This implementation supports version strings with up to 4 components
+	 * and minor versions up to 9999. If you need more, please  adapt the "num"
+	 * and "size values below.
+
+	 * @param version
+	 * @return a numerical representation of the version string
+	 */
+	private long parseVersionString(final String version) {
+
+		final String[] parts = version.split("\\.");
+		final int num        = 4; // 4 components
+		final int size       = 4; // 0 - 9999
+		long versionNumber   = 0L;
+		int exponent         = num * size;
+
+		for (final String part : parts) {
+
+			try {
+
+				final int value = Integer.valueOf(part.trim());
+				versionNumber += value * Math.pow(10, exponent);
+
+			} catch (Throwable t) {}
+
+			exponent -= size;
+		}
+
+		return versionNumber;
 	}
 }
