@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -192,7 +192,7 @@ public class LoginResource extends FilterableResource {
 	}
 
 	protected RestMethodResult getUserForCredentials(SecurityContext securityContext, String emailOrUsername, String password, String twoFactorToken, String twoFactorCode) throws FrameworkException {
-		
+
 		Principal user = null;
 
 		user = getUserForTwoFactorTokenOrEmailOrUsername(twoFactorToken, emailOrUsername, password);
@@ -232,7 +232,7 @@ public class LoginResource extends FilterableResource {
 
 		logger.info("Login successful: {}", user);
 
-		RuntimeEventLog.login("Login successful", user.getUuid(), user.getName());
+		RuntimeEventLog.login("Login successful", Map.of("user", user.getUuid(), "name", user.getName()));
 
 		user.setSecurityContext(securityContext);
 

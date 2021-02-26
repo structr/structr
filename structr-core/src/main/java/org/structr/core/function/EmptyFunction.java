@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,8 +21,6 @@ package org.structr.core.function;
 import java.util.Collection;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
-import org.mozilla.javascript.NativeObject;
-import org.mozilla.javascript.Undefined;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
@@ -52,7 +50,7 @@ public class EmptyFunction extends CoreFunction {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		if (sources.length == 0 || sources[0] == null || sources[0] == Undefined.instance || StringUtils.isEmpty(sources[0].toString())) {
+		if (sources.length == 0 || sources[0] == null || StringUtils.isEmpty(sources[0].toString())) {
 
 			return true;
 
@@ -67,10 +65,6 @@ public class EmptyFunction extends CoreFunction {
 		} else if (sources[0].getClass().isArray()) {
 
 			return (((Object[]) sources[0]).length == 0);
-
-		} else if (sources[0] instanceof NativeObject) {
-
-			return (((NativeObject) sources[0]).size() == 0);
 
 		} else if (sources[0] instanceof Map) {
 

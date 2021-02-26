@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,9 +31,15 @@ export class Frontend {
 		this.boundHandleGenericEvent = this.handleGenericEvent.bind(this);
 		this.boundHandleDragStart    = this.handleDragStart.bind(this);
 		this.boundHandleDragOver     = this.handleDragOver.bind(this);
+		this.boundHandleFocus        = this.handleFocus.bind(this);
+		this.boundHandleBlur         = this.handleBlur.bind(this);
 		this.boundHandleDrag         = this.handleDrag.bind(this);
+
+		// variables
+		this.currentlyFocusedElement = '';
 		this.timeout                 = -1;
 
+		// init
 		this.bindEvents();
 	}
 
@@ -108,6 +114,11 @@ export class Frontend {
 			// input[type="checkbox"]
 			return element.checked;
 
+		} else if (element.nodeName === 'SELECT' && element.multiple) {
+
+			// select[multiple]
+			return [].map.call(element.selectedOptions, (e) => { return e.value; });
+
 		} else {
 
 			// all other node types
@@ -115,7 +126,7 @@ export class Frontend {
 		}
 	}
 
-	handleResult(element, parameters) {
+	handleResult(element, parameters, status) {
 
 		if (element.dataset.structrReloadTarget) {
 
@@ -128,9 +139,28 @@ export class Frontend {
 
 				window.location.href = value;
 
+			} else if (reloadTarget.indexOf('css:') === 0) {
+
+				let css = reloadTarget.substring(4);
+
+				element.classList.add(css);
+
+				window.setTimeout(() => {
+					element.classList.remove(css);
+				}, 1000);
+
+			} else if (reloadTarget === 'event') {
+
+				element.dispatchEvent(new Event('structr-success', { detail: parameters }));
+
+			} else if (reloadTarget === 'none') {
+
+				// do nothing
+				return;
+
 			} else {
 
-				this.reloadPartial(reloadTarget, parameters);
+				this.reloadPartial(reloadTarget, parameters, element);
 			}
 
 		} else {
@@ -141,11 +171,21 @@ export class Frontend {
 		}
 	}
 
-	handleError(button, error) {
-		console.log(error);
+	handleError(element, error, status) {
+
+		if (error && error.status) {
+
+			switch (error.status) {
+
+				case 401:
+				case 403:
+					window.location.reload();
+					break;
+			}
+		}
 	}
 
-	reloadPartial(selector, parameters) {
+	reloadPartial(selector, parameters, element) {
 
 		let reloadTargets = document.querySelectorAll(selector);
 		if (reloadTargets.length) {
@@ -165,7 +205,7 @@ export class Frontend {
 						method: 'GET',
 						credentials: 'same-origin'
 					}).then(response => {
-						if (!response.ok) { throw new Error('Network response was not ok.'); }
+						if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
 						return response.text();
 					}).then(html => {
 						var content = document.createElement(container.nodeName);
@@ -176,10 +216,24 @@ export class Frontend {
 							} else {
 								container.replaceWith('');
 							}
+							container.dispatchEvent(new Event('structr-reload'));
 						}
+
+						// restore focus on selected element after partial reload
+						if (this.focusId && this.focusTarget && this.focusName) {
+
+							let restoreFocus = document.querySelector('*[name="' + this.focusName + '"][data-structr-id="' + this.focusId + '"][data-structr-target="' + this.focusTarget + '"]');
+							if (restoreFocus) {
+
+								if (restoreFocus.focus && typeof restoreFocus.focus === 'function') { restoreFocus.focus(); }
+								if (restoreFocus.select && typeof restoreFocus.select === 'function') { restoreFocus.select(); }
+							}
+						}
+
 						this.bindEvents();
+
 					}).catch(e => {
-						console.log(e);
+						this.handleError(element, e, {});
 					});
 
 				} else {
@@ -213,7 +267,6 @@ export class Frontend {
 		if (fromDataset.currentObjectId) {
 			current = '/' + fromDataset.currentObjectId;
 		}
-
 
 		// copy all values prefixed with request (data-request-*)
 		for (let key of Object.keys(fromDataset)) {
@@ -316,9 +369,13 @@ export class Frontend {
 						method: 'post',
 						credentials: 'same-origin'
 					})
-					.then(response => response.json())
-					.then(json     => this.handleResult(target, json.result))
-					.catch(error   => this.handleError(target, error));
+
+					.then(response => {
+						if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
+						return response.json().then(json => ({ json: json, status: response.status, statusText: response.statusText }))
+					})
+					.then(response => this.handleResult(target, response.json.result, response.status))
+					.catch(error   => this.handleError(target, error, {}));
 				}
 			}
 
@@ -382,7 +439,7 @@ export class Frontend {
 				}
 			}
 
-			this.handleResult(target, parameters);
+			this.handleResult(target, parameters, { code: 200, statusText: "OK", headers: [] });
 
 		} else {
 
@@ -439,6 +496,18 @@ export class Frontend {
 		event.stopPropagation();
 	}
 
+	handleFocus(event) {
+		this.focusTarget = event.currentTarget.dataset.structrTarget;
+		this.focusId     = event.currentTarget.dataset.structrId;
+		this.focusName   = event.currentTarget.name;
+	}
+
+	handleBlur(event) {
+		this.focusTarget = undefined;
+		this.focusName   = undefined;
+		this.focusId     = undefined;
+	}
+
 	bindEvents() {
 
 		document.querySelectorAll('*[data-structr-events]').forEach(elem => {
@@ -464,6 +533,17 @@ export class Frontend {
 						elem.addEventListener('drag',      this.boundHandleDrag);
 					}
 				}
+			}
+
+			if (elem.dataset.structrId && elem.dataset.structrTarget && elem.name) {
+
+				// capture focus
+				elem.removeEventListener('focus', this.boundHandleFocus);
+				elem.addEventListener('focus', this.boundHandleFocus);
+
+				// capture blur
+				elem.removeEventListener('blur', this.boundHandleBlur);
+				elem.addEventListener('blur', this.boundHandleBlur);
 			}
 		});
 	}

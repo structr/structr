@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -47,7 +47,7 @@ public class IncludeChildFunction extends IncludeFunction {
 
 	@Override
 	public String getSignature() {
-		return "name";
+		return "name [, collection, dataKey]";
 	}
 
 	@Override
@@ -126,7 +126,7 @@ public class IncludeChildFunction extends IncludeFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Includes the content of the node with the given name";
+		return "Includes the content of the node with the given name (optionally as a repeater element)";
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -89,12 +89,12 @@ var _Elements = {
 		},
 		{
 			elements: ['input', 'textarea'],
-			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'style', 'rows', 'cols'],
+			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'style', 'rows', 'cols', 'required'],
 			focus: 'type'
 		},
 		{
 			elements: ['button'],
-			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'onclick', 'style', 'title']
+			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'onclick', 'style', 'title', 'form', 'formaction', 'formmethod']
 		},
 		{
 			elements: ['select', 'option'],
@@ -115,7 +115,7 @@ var _Elements = {
 			focus: 'src'
 		},
 		{
-			elements: ['script', 'img', 'object'],
+			elements: ['script', 'object'],
 			attrs: ['type', 'rel', 'href', 'media', 'src', 'style'],
 			focus: 'src'
 		},
@@ -630,7 +630,7 @@ var _Elements = {
 		return (isActiveNode ? _Icons.repeater_icon : (isComponent ? _Icons.comp_icon : _Icons.brick_icon));
 	},
 	classIdString: function(idString, classString) {
-		var classIdString = '<span class="class-id-attrs">' + (idString ? '<span class="_html_id_">#' + idString.replace(/\${.*}/g, '${…}') + '</span>' : '')
+		var classIdString = '<span class="class-id-attrs abbr-ellipsis abbr-75pc">' + (idString ? '<span class="_html_id_">#' + idString.replace(/\${.*}/g, '${…}') + '</span>' : '')
 				+ (classString ? '<span class="_html_class_">.' + classString.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '') + '</span>';
 		return classIdString;
 	},
@@ -1453,19 +1453,28 @@ var _Elements = {
 		div.append('<i title="Edit Content of ' + (entity.name ? entity.name : entity.id) + '" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
 		$('.edit_icon', div).on('click', function(e) {
 			e.stopPropagation();
-			_Elements.openEditContentDialog(this, entity);
+			_Elements.openEditContentDialog(this, entity, {
+				extraKeys: { "Ctrl-Space": "autocomplete" },
+				gutters: ["CodeMirror-lint-markers"],
+				lint: {
+					getAnnotations: function(text, callback) {
+						_Code.showScriptErrors(entity, text, callback, 'content');
+					},
+					async: true
+				}
+			});
 			return false;
 		});
 
 	},
-	openEditContentDialog: function(btn, entity) {
+	openEditContentDialog: function(btn, entity, configOverride) {
 		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {
 		}, function() {
 		});
 		Command.get(entity.id, 'content,contentType', function(data) {
-            currentEntity = entity;
+			currentEntity = entity;
 			entity.contentType = data.contentType;
-			_Elements.editContent(this, entity, data.content, dialogText);
+			_Elements.editContent(this, entity, data.content, dialogText, configOverride);
 		});
 	},
 	activateEditorMode: function(contentType) {
@@ -1482,7 +1491,7 @@ var _Elements = {
 			}
 		}
 	},
-	editContent: function(button, entity, text, element) {
+	editContent: function(button, entity, text, element, configOverride = {}) {
 
 		if (Structr.isButtonDisabled(button)) {
 			return;
@@ -1496,9 +1505,7 @@ var _Elements = {
 
 		var text1, text2;
 
-		// Intitialize editor
-		CodeMirror.defineMIME("text/html", "htmlmixed-structr");
-		editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
+		let cmConfig = Structr.getCodeMirrorSettings({
 			value: text,
 			mode: mode || contentType,
 			lineNumbers: true,
@@ -1509,7 +1516,13 @@ var _Elements = {
 			indentUnit: 4,
 			tabSize: 4,
 			indentWithTabs: true
-		}));
+		});
+
+		cmConfig = Object.assign(cmConfig, configOverride);
+
+		// Intitialize editor
+		CodeMirror.defineMIME("text/html", "htmlmixed-structr");
+		editor = CodeMirror(contentBox.get(0), cmConfig);
 
 		_Code.setupAutocompletion(editor, entity.id);
 
@@ -1526,7 +1539,6 @@ var _Elements = {
 				});
 			});
 		}
-
 
 		// Experimental speech recognition, works only in Chrome 25+
 		if (typeof(webkitSpeechRecognition) === 'function') {
@@ -1658,6 +1670,8 @@ var _Elements = {
 				Command.getProperty(entity.id, 'content', function(newText) {
 					text = newText;
 				});
+
+				window.setTimeout(function() { editor.performLint(); }, 300);
 			});
 
 		});
@@ -1694,6 +1708,8 @@ var _Elements = {
 		editor.id = entity.id;
 
 		editor.focus();
+
+		window.setTimeout(function() { editor.performLint(); }, 300);
 
 	},
 	getSuggestedWidgets: function(entity, callback) {

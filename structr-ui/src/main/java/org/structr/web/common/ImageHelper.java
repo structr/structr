@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -261,13 +261,16 @@ public abstract class ImageHelper extends FileHelper {
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final String formatString, final boolean crop, final Integer reqOffsetX, final Integer reqOffsetY) {
 
 		Thumbnail.Format format = Thumbnail.defaultFormat;
+
 		try {
+
 			final String imageFormatString = getImageFormatString(originalImage);
 			format = formatString != null ? Thumbnail.Format.valueOf(formatString) : (imageFormatString != null ? Thumbnail.Format.valueOf(imageFormatString) : Thumbnail.defaultFormat);
+
 		} catch (IllegalArgumentException iae) {
+
 			logger.debug("Unsupported thumbnail format - using default");
 		}
-
 
 		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		final Thumbnail tn               = new Thumbnail();
@@ -410,7 +413,7 @@ public abstract class ImageHelper extends FileHelper {
 
 			} else {
 
-				logger.debug("Cropped image could not be created");
+				logger.warn("Cropped image could not be created for '{}'", originalImage.getPath());
 				return null;
 			}
 
@@ -495,8 +498,9 @@ public abstract class ImageHelper extends FileHelper {
 
 				return destinationImage;
 			}
+
 		} catch (IOException ex) {
-			logger.warn("Unable to rotate image", ex);
+			logger.debug("Unable to rotate image", ex);
 		}
 
 		return null;

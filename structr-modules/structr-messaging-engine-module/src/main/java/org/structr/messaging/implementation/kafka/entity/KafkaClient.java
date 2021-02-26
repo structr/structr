@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -235,7 +235,7 @@ public interface KafkaClient extends MessageClient {
 
 				if (thisClient.getGroupId() != null) {
 
-					gId = Scripting.replaceVariables(new ActionContext(SecurityContext.getSuperUserInstance()), null, thisClient.getGroupId(), false);
+					gId = Scripting.replaceVariables(new ActionContext(SecurityContext.getSuperUserInstance()), null, thisClient.getGroupId(), false, "groupId");
 				} else {
 					gId = thisClient.getGroupId();
 				}
@@ -298,7 +298,7 @@ public interface KafkaClient extends MessageClient {
 				this.consumer = new KafkaConsumer<>(getConfiguration(client, KafkaConsumer.class));
 
 				if (client.getGroupId() != null) {
-					this.currentGroupId = Scripting.replaceVariables(new ActionContext(SecurityContext.getSuperUserInstance()), null, client.getGroupId(), false);
+					this.currentGroupId = Scripting.replaceVariables(new ActionContext(SecurityContext.getSuperUserInstance()), null, client.getGroupId(), false, "groupId");
 				} else {
 					this.currentGroupId = client.getGroupId();
 				}
@@ -319,7 +319,7 @@ public interface KafkaClient extends MessageClient {
 				String cId = null;
 
 				if (client.getGroupId() != null) {
-					cId = Scripting.replaceVariables(new ActionContext(SecurityContext.getSuperUserInstance()), null, client.getGroupId(), false);
+					cId = Scripting.replaceVariables(new ActionContext(SecurityContext.getSuperUserInstance()), null, client.getGroupId(), false, "groupId");
 				} else {
 					cId = client.getGroupId();
 				}

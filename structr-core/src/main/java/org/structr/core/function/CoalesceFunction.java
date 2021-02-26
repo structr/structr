@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -47,7 +47,7 @@ public class CoalesceFunction extends CoreFunction {
 			for (int i = 0; i < length; i++) {
 
 				if (sources[i] != null) {
-					return sources[i].toString();
+					return sources[i];
 				}
 			}
 

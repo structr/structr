@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -55,7 +55,7 @@ public class IncludeFunction extends UiCommunityFunction {
 
 	@Override
 	public String getSignature() {
-		return "name";
+		return "name [, collection, dataKey]";
 	}
 
 	@Override
@@ -148,7 +148,7 @@ public class IncludeFunction extends UiCommunityFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Includes the content of the node with the given name";
+		return "Includes the content of the node with the given name (optionally as a repeater element)";
 	}
 
 	protected String renderNode(final SecurityContext securityContext, final ActionContext ctx, final RenderContext innerCtx, final Object[] sources, final App app, final DOMNode node, final boolean useBuffer) throws FrameworkException {

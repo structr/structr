@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import org.apache.commons.io.IOUtils;
+import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
@@ -67,5 +68,25 @@ public interface FeedItemEnclosure extends NodeInterface, Indexable {
 
 	static InputStream getInputStream(final FeedItemEnclosure thisItem) {
 		return IOUtils.toInputStream(thisItem.getUrl(), Charset.forName("utf-8"));
+	}
+
+	@Override
+	default boolean indexingEnabled() {
+		return Settings.FeedItemEnclosureIndexingEnabled.getValue();
+	}
+
+	@Override
+	default Integer maximumIndexedWords() {
+		return Settings.FeedItemEnclosureIndexingLimit.getValue();
+	}
+
+	@Override
+	default Integer indexedWordMinLength() {
+		return Settings.FeedItemEnclosureIndexingMinLength.getValue();
+	}
+
+	@Override
+	default Integer indexedWordMaxLength() {
+		return Settings.FeedItemEnclosureIndexingMaxLength.getValue();
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -480,7 +480,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 					try {
 
-						final String result = Scripting.replaceVariables(new ActionContext(securityContext), thisFile, content);
+						final String result = Scripting.replaceVariables(new ActionContext(securityContext), thisFile, content, "getInputStream");
 
 						String encoding = "UTF-8";
 

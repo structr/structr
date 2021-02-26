@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -114,6 +114,19 @@ public class RuntimeEventLogResource extends Resource {
 		if (securityContext != null && securityContext.getRequest() != null) {
 
 			final HttpServletRequest request   = securityContext.getRequest();
+
+			if (request.getParameter("id") != null) {
+
+				final long id = Long.parseLong(request.getParameter("id"));
+
+				root.addPredicate(new Predicate<>() {
+
+					@Override
+					public boolean accept(final RuntimeEvent value) {
+						return id == value.getId();
+					}
+				});
+			}
 
 			if (request.getParameter("seen") != null) {
 

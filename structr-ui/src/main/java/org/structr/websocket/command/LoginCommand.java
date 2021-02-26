@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -67,6 +67,8 @@ public class LoginCommand extends AbstractCommand {
 		if (Settings.CallbacksOnLogin.getValue() == false) {
 			ctx.disableInnerCallbacks();
 		}
+
+		boolean sendSuccess = false;
 
 		try (final Tx tx = app.tx(true, true, true)) {
 
@@ -136,9 +138,8 @@ public class LoginCommand extends AbstractCommand {
 
 								tx.setSecurityContext(getWebSocket().getSecurityContext());
 
-								// send data..
-								getWebSocket().send(webSocketData, false);
-
+								// send success message later (to first commit transaction)
+								sendSuccess = true;
 							}
 						}
 					}
@@ -193,6 +194,10 @@ public class LoginCommand extends AbstractCommand {
 			}
 
 			tx.success();
+		}
+
+		if (sendSuccess) {
+			getWebSocket().send(webSocketData, false);
 		}
 	}
 

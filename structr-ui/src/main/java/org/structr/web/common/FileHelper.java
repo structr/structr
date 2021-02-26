@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.UUID;
 import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
-
 import net.openhft.hashing.Access;
 import net.openhft.hashing.LongHashFunction;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -350,9 +349,20 @@ public class FileHelper {
 
 		if (file instanceof Image) {
 
-			BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
-			map.put(StructrApp.key(Image.class, "width"), bufferedImage.getWidth());
-			map.put(StructrApp.key(Image.class, "height"), bufferedImage.getHeight());
+			try {
+
+				BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
+
+				if (bufferedImage != null) {
+
+					map.put(StructrApp.key(Image.class, "width"), bufferedImage.getWidth());
+					map.put(StructrApp.key(Image.class, "height"), bufferedImage.getHeight());
+				}
+
+			} catch (IOException ioe) {
+
+				logger.warn("Unexpected IOException while reading image '{}'. Unable to extract width and height of image.", file.getPath());
+			}
 		}
 
 		file.setProperties(file.getSecurityContext(), map);

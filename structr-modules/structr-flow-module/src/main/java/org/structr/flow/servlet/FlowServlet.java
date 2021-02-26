@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,13 +19,23 @@
 package org.structr.flow.servlet;
 
 import com.google.gson.Gson;
+import java.io.IOException;
+import java.io.Writer;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.*;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
+import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.IJsonInput;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -33,22 +43,7 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.Tx;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.JsonRestServlet;
-import org.structr.rest.servlet.ResourceHelper;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.Writer;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.*;
-import org.structr.api.config.Settings;
-import org.structr.api.util.Iterables;
-import org.structr.api.util.PagingIterable;
-import org.structr.api.util.ResultStream;
 
 public class FlowServlet extends JsonRestServlet {
 
@@ -131,10 +126,7 @@ public class FlowServlet extends JsonRestServlet {
 			logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
 			logger.warn(" => Error thrown: ", t);
 
-			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Exception in GET: " + t.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in GET: " + t.getMessage());
 
 		} finally {
 
@@ -261,10 +253,13 @@ public class FlowServlet extends JsonRestServlet {
 			logger.warn("Exception in POST (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
 			logger.warn(" => Error thrown: ", t);
 
-			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+			int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Exception in POST: " + t.getMessage()));
+			if (t instanceof AssertException) {
+				statusCode = ((AssertException)t).getStatusCode();
+			}
+
+			writeJsonError(response, statusCode, t.getClass().getSimpleName() + " in POST: " + t.getMessage());
 
 		} finally {
 

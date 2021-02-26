@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -230,7 +230,7 @@ public class PermissionResolutionMask {
 
 	public void handleProperties(final String delta) {
 
-		if (delta != null) {
+		if (delta != null && !"".equals(delta.trim())) {
 
 			for (final String prop : delta.split("[, ]+")) {
 

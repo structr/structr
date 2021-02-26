@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,9 +32,6 @@ var _Contents = {
 	searchField: undefined,
 	init: function() {
 
-		main = $('#main');
-		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
-
 		_Contents.searchField = $('.search', main);
 		_Contents.searchField.focus();
 
@@ -52,7 +49,6 @@ var _Contents = {
 			} else if (e.keyCode === 27 || searchString === '') {
 				_Contents.clearSearch();
 			}
-
 		});
 
 		Structr.makePagesMenuDroppable();
@@ -70,120 +66,123 @@ var _Contents = {
 	},
 	onload: function() {
 
-		_Contents.init();
+		Structr.fetchHtmlTemplate('contents/contents', {}, function(html) {
 
-		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('contents'));
+			main[0].innerHTML = html;
 
-		main.append('<div class="tree-main" id="contents-main"><div class="column-resizer"></div><div class="tree-container" id="content-tree-container"><div class="tree" id="contents-tree"></div></div><div class="tree-contents-container" id="contents-contents-container"><div class="tree-contents tree-contents-with-top-buttons" id="contents-contents"></div></div>');
-		contentsMain = $('#contents-main');
+			_Contents.init();
 
-		contentTree = $('#contents-tree');
-		contentsContents = $('#contents-contents');
+			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('contents'));
 
-		_Contents.moveResizer();
-		Structr.initVerticalSlider($('.column-resizer', contentsMain), contentsResizerLeftKey, 204, _Contents.moveResizer);
+			contentsMain = $('#contents-main');
 
+			contentTree = $('#contents-tree');
+			contentsContents = $('#contents-contents');
 
-		Structr.fetchHtmlTemplate('contents/buttons.new', {}, function(html) {
+			_Contents.moveResizer();
+			Structr.initVerticalSlider($('.column-resizer', contentsMain), contentsResizerLeftKey, 204, _Contents.moveResizer);
 
-			$('#contents-contents-container').prepend(html);
+			Structr.fetchHtmlTemplate('contents/buttons.new', {}, function(html) {
 
-			$('.add_item_icon', main).on('click', function(e) {
-				var containers = (currentContentContainer ? [ { id : currentContentContainer.id } ] : null);
-				Command.create({ type: $('select#content-item-type').val(), size: 0, containers: containers }, function(f) {
-					_Contents.appendItemOrContainerRow(f);
-					_Contents.refreshTree();
-				});
-			});
+				$('#contents-contents-container').prepend(html);
 
-
-			$('.add_container_icon', main).on('click', function(e) {
-				Command.create({ type: $('select#content-container-type').val(), parent: currentContentContainer ? currentContentContainer.id : null }, function(f) {
-					_Contents.appendItemOrContainerRow(f);
-					_Contents.refreshTree();
-				});
-			});
-
-			$('select#content-item-type').on('change', function() {
-				$('#add-item-button', main).find('span').text('Add ' + $(this).val());
-			});
-
-			$('select#content-container-type').on('change', function() {
-				$('#add-container-button', main).find('span').text('Add ' + $(this).val());
-			});
-
-			// list types that extend ContentItem
-			_Schema.getDerivedTypes('org.structr.dynamic.ContentItem', [], function(types) {
-				var elem = $('select#content-item-type');
-				types.forEach(function(type) {
-					elem.append('<option value="' + type + '">' + type + '</option>');
-				});
-
-				if (types.length === 0) {
-					Structr.appendInfoTextToElement({
-						text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentItem</u></b> to add ContentItems",
-						element: elem.parent(),
-						after: true,
-						css: {
-							marginLeft: '-4px',
-							marginRight: '4px'
-						}
+				$('.add_item_icon', main).on('click', function(e) {
+					var containers = (currentContentContainer ? [ { id : currentContentContainer.id } ] : null);
+					Command.create({ type: $('select#content-item-type').val(), size: 0, containers: containers }, function(f) {
+						_Contents.appendItemOrContainerRow(f);
+						_Contents.refreshTree();
 					});
-				}
-			});
-
-			// list types that extend ContentContainer
-			_Schema.getDerivedTypes('org.structr.dynamic.ContentContainer', [], function(types) {
-				var elem = $('select#content-container-type');
-				types.forEach(function(type) {
-					elem.append('<option value="' + type + '">' + type + '</option>');
 				});
 
-				if (types.length === 0) {
-					Structr.appendInfoTextToElement({
-						text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers",
-						element: elem.parent(),
-						after: true,
-						css: {
-							marginLeft: '-4px',
-							marginRight: '4px'
-						}
+
+				$('.add_container_icon', main).on('click', function(e) {
+					Command.create({ type: $('select#content-container-type').val(), parent: currentContentContainer ? currentContentContainer.id : null }, function(f) {
+						_Contents.appendItemOrContainerRow(f);
+						_Contents.refreshTree();
 					});
-				}
+				});
+
+				$('select#content-item-type').on('change', function() {
+					$('#add-item-button', main).find('span').text('Add ' + $(this).val());
+				});
+
+				$('select#content-container-type').on('change', function() {
+					$('#add-container-button', main).find('span').text('Add ' + $(this).val());
+				});
+
+				// list types that extend ContentItem
+				_Schema.getDerivedTypes('org.structr.dynamic.ContentItem', [], function(types) {
+					var elem = $('select#content-item-type');
+					types.forEach(function(type) {
+						elem.append('<option value="' + type + '">' + type + '</option>');
+					});
+
+					if (types.length === 0) {
+						Structr.appendInfoTextToElement({
+							text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentItem</u></b> to add ContentItems",
+							element: elem.parent(),
+							after: true,
+							css: {
+								marginLeft: '-4px',
+								marginRight: '4px'
+							}
+						});
+					}
+				});
+
+				// list types that extend ContentContainer
+				_Schema.getDerivedTypes('org.structr.dynamic.ContentContainer', [], function(types) {
+					var elem = $('select#content-container-type');
+					types.forEach(function(type) {
+						elem.append('<option value="' + type + '">' + type + '</option>');
+					});
+
+					if (types.length === 0) {
+						Structr.appendInfoTextToElement({
+							text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers",
+							element: elem.parent(),
+							after: true,
+							css: {
+								marginLeft: '-4px',
+								marginRight: '4px'
+							}
+						});
+					}
+				});
 			});
-		});
 
-		$.jstree.defaults.core.themes.dots      = false;
-		$.jstree.defaults.dnd.inside_pos        = 'last';
-		$.jstree.defaults.dnd.large_drop_target = true;
+			$.jstree.defaults.core.themes.dots      = false;
+			$.jstree.defaults.dnd.inside_pos        = 'last';
+			$.jstree.defaults.dnd.large_drop_target = true;
 
-		contentTree.on('ready.jstree', function() {
-			_TreeHelper.makeTreeElementDroppable(contentTree, 'root');
+			contentTree.on('ready.jstree', function() {
+				_TreeHelper.makeTreeElementDroppable(contentTree, 'root');
 
-			_Contents.loadAndSetWorkingDir(function() {
-				if (currentContentContainer) {
-					_Contents.deepOpen(currentContentContainer);
-				}
+				_Contents.loadAndSetWorkingDir(function() {
+					if (currentContentContainer) {
+						_Contents.deepOpen(currentContentContainer);
+					}
+				});
 			});
-		});
 
-		contentTree.on('select_node.jstree', function(evt, data) {
+			contentTree.on('select_node.jstree', function(evt, data) {
 
-			_Contents.setWorkingDirectory(data.node.id);
-			_Contents.displayContainerContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
+				_Contents.setWorkingDirectory(data.node.id);
+				_Contents.displayContainerContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
 
-		});
+			});
 
-		_TreeHelper.initTree(contentTree, _Contents.treeInitFunction, 'structr-ui-contents');
+			_TreeHelper.initTree(contentTree, _Contents.treeInitFunction, 'structr-ui-contents');
 
-		$(window).off('resize').resize(function() {
+			$(window).off('resize').resize(function() {
+				_Contents.resize();
+			});
+
+			Structr.unblockMenu(100);
+
 			_Contents.resize();
+
 		});
-
-		Structr.unblockMenu(100);
-
-		_Contents.resize();
-
 	},
 	deepOpen: function(d, dirs) {
 

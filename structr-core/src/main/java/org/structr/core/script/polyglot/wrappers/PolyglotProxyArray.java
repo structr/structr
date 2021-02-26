@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -46,6 +46,13 @@ public class PolyglotProxyArray implements ProxyArray {
 	public PolyglotProxyArray(final ActionContext actionContext, final Object[] arr) {
 		this.actionContext = actionContext;
 		this.list = Arrays.asList(arr);
+		this.node = null;
+		this.propKey = null;
+	}
+
+	public PolyglotProxyArray(final ActionContext actionContext, final List list) {
+		this.actionContext = actionContext;
+		this.list = list;
 		this.node = null;
 		this.propKey = null;
 	}
@@ -163,7 +170,7 @@ public class PolyglotProxyArray implements ProxyArray {
 				node.setProperty(propKey, propKey.inputConverter(actionContext.getSecurityContext()).convert(list));
 			} catch (FrameworkException ex) {
 
-				logger.error("Unexpected exception while trying to update collection attribute on GraphObject.", ex);
+				throw new RuntimeException(ex);
 			}
 		}
 	}

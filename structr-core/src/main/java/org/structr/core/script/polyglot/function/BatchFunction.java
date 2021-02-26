@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,12 +18,14 @@
  */
 package org.structr.core.script.polyglot.function;
 
+import java.util.Arrays;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
@@ -31,15 +33,15 @@ import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-import java.util.Arrays;
-
 public class BatchFunction implements ProxyExecutable {
 	private static final Logger logger = LoggerFactory.getLogger(BatchFunction.class.getName());
 	private final ActionContext actionContext;
+	private final GraphObject entity;
 
-	public BatchFunction(final ActionContext actionContext) {
+	public BatchFunction(final ActionContext actionContext, final GraphObject entity) {
 
 		this.actionContext = actionContext;
+		this.entity = entity;
 	}
 
 	@Override
@@ -49,7 +51,7 @@ public class BatchFunction implements ProxyExecutable {
 			Object[] unwrappedArgs = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
 
 			try {
-				Context context = ContextFactory.getContext("js", actionContext, null);
+				Context context = ContextFactory.getContext("js", actionContext, entity);
 
 				context.leave();
 
@@ -62,7 +64,7 @@ public class BatchFunction implements ProxyExecutable {
 
 						Context innerContext = null;
 						try {
-							innerContext = ContextFactory.getContext("js", actionContext, null);
+							innerContext = ContextFactory.getContext("js", actionContext, entity);
 						} catch (FrameworkException ex) {
 							logger.error("Could not retrieve context in BatchFunction worker.", ex);
 							return;

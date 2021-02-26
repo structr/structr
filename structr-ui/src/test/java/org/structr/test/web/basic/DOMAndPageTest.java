@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -957,7 +957,6 @@ public class DOMAndPageTest extends StructrUiTest {
 			.header("X-XSS-Protection", "1;mode=block")
 			.header("Vary", "Accept-Encoding, User-Agent")
 			.header("Content-Length", "133")
-			.header("Server", "Jetty(9.4.18.v20190429)")
 			.statusCode(200)
 			.when()
 			.get(baseUri + "test");

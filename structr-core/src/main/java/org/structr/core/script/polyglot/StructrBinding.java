@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,8 @@
  */
 package org.structr.core.script.polyglot;
 
+import java.util.Arrays;
+import java.util.Set;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
@@ -26,23 +28,14 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
+import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
-import org.structr.core.script.polyglot.function.BatchFunction;
-import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
-import org.structr.core.script.polyglot.function.IncludeJSFunction;
-import org.structr.core.script.polyglot.wrappers.FunctionWrapper;
-import org.structr.core.script.polyglot.wrappers.HttpServletRequestWrapper;
-import org.structr.core.script.polyglot.wrappers.StaticTypeWrapper;
+import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
+import org.structr.core.script.polyglot.function.*;
+import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.Set;
-
-import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
 
 public class StructrBinding implements ProxyObject {
 	private final static Logger logger = LoggerFactory.getLogger(StructrBinding.class);
@@ -68,26 +61,35 @@ public class StructrBinding implements ProxyObject {
 			case "predicate":
 				return new PredicateBinding(actionContext, entity);
 			case "batch":
-				return new BatchFunction(actionContext);
+				return new BatchFunction(actionContext, entity);
 			case "includeJs":
 				return new IncludeJSFunction(actionContext);
 			case "doPrivileged":
 				return new DoPrivilegedFunction(actionContext);
 			case "request":
 				return new HttpServletRequestWrapper(actionContext, actionContext.getSecurityContext().getRequest());
+			case "session":
+				return new HttpSessionWrapper(actionContext, actionContext.getSecurityContext().getSession());
+			case "cache":
+				return new CacheFunction(actionContext, entity);
+			case "vars":
+			case "requestStore":
+				return new PolyglotProxyMap(actionContext, actionContext.getRequestStore());
+			case "applicationStore":
+				return new PolyglotProxyMap(actionContext, Services.getInstance().getApplicationStore());
 			default:
-				if (actionContext.getConstant(name) != null) {
-					return wrap(actionContext,actionContext.getConstant(name));
-				}
-
-				if (actionContext.getAllVariables().containsKey(name)) {
-					return wrap(actionContext, actionContext.getAllVariables().get(name));
-				}
-
 				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
 				if (func != null) {
 
 					return new FunctionWrapper(actionContext, entity, func);
+				}
+
+				if (actionContext.getConstant(name) != null) {
+					return wrap(actionContext,actionContext.getConstant(name));
+				}
+
+				if (actionContext.getRequestStore().containsKey(name)) {
+					return wrap(actionContext, actionContext.getRequestStore().get(name));
 				}
 
 				Object structrScriptResult = null;
@@ -117,7 +119,7 @@ public class StructrBinding implements ProxyObject {
 
 	@Override
 	public Object getMemberKeys() {
-		Set<String> keys = actionContext.getAllVariables().keySet();
+		Set<String> keys = actionContext.getRequestStore().keySet();
 		keys.add("this");
 		keys.add("me");
 		keys.add("predicate");
@@ -125,6 +127,9 @@ public class StructrBinding implements ProxyObject {
 		keys.add("includeJs");
 		keys.add("doPrivileged");
 		keys.add("request");
+		keys.add("session");
+		keys.add("cache");
+		keys.add("applicationStore");
 		return keys;
 	}
 

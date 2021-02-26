@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,11 +26,17 @@ import org.structr.schema.action.ActionContext;
 
 public class EscapeJavascriptFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_ESCAPE_JS = "Usage: ${escape_javascript(string)}. Example: ${escape_javascript(this.name)}";
+	public static final String ERROR_MESSAGE_ESCAPE_JAVASCRIPT = "Usage: ${escape_javascript(string)}. Example: ${escape_javascript(this.name)}";
+	public static final String ERROR_MESSAGE_ESCAPE_JAVASCRIPT_JS = "Usage: ${{ Structr.escape_javascript(string) }}. Example: ${{ Structr.escape_javascript(this.name); }}";
 
 	@Override
 	public String getName() {
 		return "escape_javascript";
+	}
+
+	@Override
+	public String getSignature() {
+		return "string";
 	}
 
 	@Override
@@ -42,30 +48,25 @@ public class EscapeJavascriptFunction extends CoreFunction {
 
 			return StringEscapeUtils.escapeEcmaScript(sources[0].toString());
 
-		} catch (ArgumentNullException pne) {
+		} catch (ArgumentNullException ane) {
 
-			// silently ignore null arguments
+			// silently ignore null strings
 			return null;
 
-		} catch (ArgumentCountException pce) {
+		} catch (ArgumentCountException ace) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ace.getMessage(), ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_ESCAPE_JS;
+		return (inJavaScriptContext ? ERROR_MESSAGE_ESCAPE_JAVASCRIPT_JS : ERROR_MESSAGE_ESCAPE_JAVASCRIPT);
 	}
 
 	@Override
 	public String shortDescription() {
 		return "Escapes the given string for use with Javascript";
-	}
-
-	@Override
-	public String getSignature() {
-		return "";
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.util.Collections;
 import java.util.List;
 import org.structr.api.util.Iterables;
+import org.structr.common.PathResolvingComparator;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -69,22 +70,35 @@ public class SortFunction extends CoreFunction {
 					if (firstElement instanceof GraphObject) {
 
 						final List<GraphObject> sortCollection = (List<GraphObject>)list;
-						final DefaultSortOrder order           = new DefaultSortOrder();
-						final Class type                       = firstElement.getClass();
 						final int length                       = sources.length;
 
-						for (int i=1; i<length; i+=2) {
+						if (sources.length <= 3 && sortKey.contains(".")) {
 
-							final String name        = (String)sources[i];
-							final PropertyKey key    = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, name);
-							final boolean descending = length > i+1 && sources[i+1] != null && "true".equals(sources[i+1].toString());
+							final boolean descending = length > 2 && sources[2] != null && "true".equals(sources[2].toString());
+							final PathResolvingComparator comparator = new PathResolvingComparator(ctx, sortKey, descending);
 
-							order.addElement(key, descending);
-						}
+							// experimental: use path-resolving comparator
+							Collections.sort(sortCollection, comparator);
 
-						if (!order.isEmpty()) {
+						} else {
 
-							Collections.sort(sortCollection, order);
+							final DefaultSortOrder order           = new DefaultSortOrder();
+							final Class type                       = firstElement.getClass();
+
+							for (int i=1; i<length; i+=2) {
+
+								final String name        = (String)sources[i];
+								final PropertyKey key    = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, name);
+								final boolean descending = length > i+1 && sources[i+1] != null && "true".equals(sources[i+1].toString());
+
+								order.addElement(key, descending);
+							}
+
+							if (!order.isEmpty()) {
+
+								Collections.sort(sortCollection, order);
+							}
+
 						}
 
 						return sortCollection;

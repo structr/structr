@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,6 +39,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
@@ -54,6 +55,7 @@ import org.structr.websocket.command.CreateComponentCommand;
 public class ComponentImportVisitor implements FileVisitor<Path> {
 
 	private static final Logger logger       = LoggerFactory.getLogger(ComponentImportVisitor.class.getName());
+	private static final GenericProperty internalSharedTemplateKey = new GenericProperty("shared");
 
 	private final List<Path> deferredPaths    = new LinkedList<>();
 	private Map<String, Object> configuration = null;
@@ -163,9 +165,14 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 			try {
 
-				DeployCommand.checkOwnerAndSecurity((Map<String, Object>)data);
+				final Map dataMap = ((Map<String, Object>)data);
 
-				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), DOMNode.class, (Map<String, Object>)data);
+				// remove unnecessary "shared" key
+				dataMap.remove(internalSharedTemplateKey.jsonName());
+
+				DeployCommand.checkOwnerAndSecurity(dataMap);
+
+				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), DOMNode.class, dataMap);
 
 			} catch (FrameworkException ex) {
 				logger.warn("Unable to resolve properties for shared component: {}", ex.getMessage());
@@ -284,8 +291,6 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 						// there are missing components => defer import for this file
 						deferredPaths.add(file);
 					}
-
-
 				}
 			}
 

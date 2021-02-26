@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,7 +36,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -161,10 +160,10 @@ public class JsonRestServlet extends AbstractDataServlet {
 				resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
 
+				RuntimeEventLog.rest("Delete", resource.getResourceSignature(), securityContext.getUser(false));
+
 				tx.success();
 			}
-
-			RuntimeEventLog.rest("Delete", resource.getResourceSignature(), securityContext.getUser(false));
 
 			// isolate doDelete
 			boolean retry = true;
@@ -194,38 +193,26 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			logger.warn("JsonSyntaxException in DELETE", jsex);
 
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in DELETE: " + jsex.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonSyntaxException in DELETE: " + jsex.getMessage());
 
 		} catch (JsonParseException jpex) {
 
 			logger.warn("JsonParseException in DELETE", jpex);
 
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonParseException in DELETE: " + jpex.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonParseException in DELETE: " + jpex.getMessage());
 
 		} catch (AssertException aex) {
 
 			logger.warn("Assertion error in DELETE", aex.getMessage());
-			logger.warn(ExceptionUtils.getStackTrace(aex));
+			logger.warn(" => Error thrown: ", aex);
 
-			int code = aex.getStatusCode();
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Assertion error in DELETE: " + aex.getMessage()));
+			writeJsonError(response, aex.getStatusCode(), "Assertion error in DELETE: " + aex.getMessage());
 
 		} catch (Throwable t) {
 
 			logger.warn("Exception in DELETE", t);
 
-			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, t.getClass().getSimpleName() + " in DELETE: " + t.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in DELETE: " + t.getMessage());
 
 		} finally {
 
@@ -307,10 +294,11 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+
+				RuntimeEventLog.rest("Options", resource.getResourceSignature(), securityContext.getUser(false));
+
 				tx.success();
 			}
-
-			RuntimeEventLog.rest("Options", resource.getResourceSignature(), securityContext.getUser(false));
 
 			// isolate doOptions
 			boolean retry = true;
@@ -342,38 +330,26 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			logger.warn("JsonSyntaxException in OPTIONS", jsex);
 
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in OPTIONS: " + jsex.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonSyntaxException in OPTIONS: " + jsex.getMessage());
 
 		} catch (JsonParseException jpex) {
 
 			logger.warn("JsonParseException in OPTIONS", jpex);
 
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonParseException in OPTIONS: " + jpex.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonParseException in OPTIONS: " + jpex.getMessage());
 
 		} catch (AssertException aex) {
 
 			logger.warn("Assertion error in OPTIONS", aex.getMessage());
-			logger.warn(ExceptionUtils.getStackTrace(aex));
+			logger.warn(" => Error thrown: ", aex);
 
-			int code = aex.getStatusCode();
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Assertion error in OPTIONS: " + aex.getMessage()));
+			writeJsonError(response, aex.getStatusCode(), "Assertion error in OPTIONS: " + aex.getMessage());
 
 		} catch (Throwable t) {
 
 			logger.warn("Exception in OPTIONS", t);
 
-			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, t.getClass().getSimpleName() + " in OPTIONS: " + t.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in OPTIONS: " + t.getMessage());
 
 		} finally {
 
@@ -430,10 +406,11 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+
+					RuntimeEventLog.rest("Post", resource.getResourceSignature(), securityContext.getUser(false));
+
 					tx.success();
 				}
-
-				RuntimeEventLog.rest("Post", resource.getResourceSignature(), securityContext.getUser(false));
 
 				// isolate doPost
 				boolean retry = true;
@@ -539,48 +516,33 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			logger.warn("POST: Invalid JSON syntax", jsex.getMessage());
 
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in POST: " + jsex.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonSyntaxException in POST: " + jsex.getMessage());
 
 		} catch (JsonParseException jpex) {
 
 			logger.warn("Unable to parse JSON string", jpex.getMessage());
 
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonParseException in POST: " + jpex.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonParseException in POST: " + jpex.getMessage());
 
 		} catch (UnsupportedOperationException uoe) {
 
 			logger.warn("Unsupported operation in POST", uoe.getMessage());
-			logger.warn(ExceptionUtils.getStackTrace(uoe));
+			logger.warn(" => Error thrown: ", uoe);
 
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Unsupported operation in POST: " + uoe.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "Unsupported operation in POST: " + uoe.getMessage());
 
 		} catch (AssertException aex) {
 
 			logger.warn("Assertion error in POST", aex.getMessage());
-			logger.warn(ExceptionUtils.getStackTrace(aex));
+			logger.warn(" => Error thrown: ", aex);
 
-			int code = aex.getStatusCode();
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Assertion error in POST: " + aex.getMessage()));
+			writeJsonError(response, aex.getStatusCode(), "Assertion error in POST: " + aex.getMessage());
 
 		} catch (Throwable t) {
 
 			logger.warn("Exception in POST", t);
 
-			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, t.getClass().getSimpleName() + " in POST: " + t.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in POST: " + t.getMessage());
 
 		} finally {
 
@@ -592,7 +554,6 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				logger.warn("Unable to flush and close response: {}", t.getMessage());
 			}
-
 		}
 	}
 
@@ -637,10 +598,11 @@ public class JsonRestServlet extends AbstractDataServlet {
 					// evaluate constraint chain
 					resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+
+					RuntimeEventLog.rest("Put", resource.getResourceSignature(), securityContext.getUser(false));
+
 					tx.success();
 				}
-
-				RuntimeEventLog.rest("Put", resource.getResourceSignature(), securityContext.getUser(false));
 
 				// isolate doPut
 				boolean retry = true;
@@ -685,39 +647,27 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			logger.warn("PUT: Invalid JSON syntax", jsex.getMessage());
 
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in PUT: " + jsex.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonSyntaxException in PUT: " + jsex.getMessage());
 
 		} catch (JsonParseException jpex) {
 
 			logger.warn("PUT: Unable to parse JSON string", jpex.getMessage());
 
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonParseException in PUT: " + jpex.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonParseException in PUT: " + jpex.getMessage());
 
 		} catch (AssertException aex) {
 
 			logger.warn("Assertion error in PUT", aex.getMessage());
-			logger.warn(ExceptionUtils.getStackTrace(aex));
+			logger.warn(" => Error thrown: ", aex);
 
-			int code = aex.getStatusCode();
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Assertion error in PUT: " + aex.getMessage()));
+			writeJsonError(response, aex.getStatusCode(), "Assertion error in PUT: " + aex.getMessage());
 
 		} catch (Throwable t) {
 
 			logger.warn("Exception in PUT", t);
-			logger.warn("", t);
+			logger.warn(" => Error thrown: ", t);
 
-			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, t.getClass().getSimpleName() + " in PUT: " + t.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in PUT: " + t.getMessage());
 
 		} finally {
 
@@ -741,10 +691,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		response.setContentType("application/json; charset=UTF-8");
 		response.setCharacterEncoding("UTF-8");
 
-		int code = HttpServletResponse.SC_METHOD_NOT_ALLOWED;
-
-		response.setStatus(code);
-		response.getWriter().append(RestMethodResult.jsonError(code, "TRACE method not allowed"));
+		writeJsonError(response, HttpServletResponse.SC_METHOD_NOT_ALLOWED, "TRACE method not allowed");
 	}
 
 	protected void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -788,10 +735,11 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
 					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+
+					RuntimeEventLog.rest("Patch", resource.getResourceSignature(), securityContext.getUser(false));
+
 					tx.success();
 				}
-
-				RuntimeEventLog.rest("Patch", resource.getResourceSignature(), securityContext.getUser(false));
 
 				if (resource.isCollectionResource()) {
 
@@ -868,48 +816,33 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			logger.warn("PATCH: Invalid JSON syntax", jsex.getMessage());
 
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in PATCH: " + jsex.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonSyntaxException in PATCH: " + jsex.getMessage());
 
 		} catch (JsonParseException jpex) {
 
 			logger.warn("Unable to parse JSON string", jpex.getMessage());
 
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonParseException in PATCH: " + jpex.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonParseException in PATCH: " + jpex.getMessage());
 
 		} catch (UnsupportedOperationException uoe) {
 
 			logger.warn("Unsupported operation in PATCH", uoe.getMessage());
-			logger.warn(ExceptionUtils.getStackTrace(uoe));
+			logger.warn(" => Error thrown: ", uoe);
 
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Unsupported operation in PATCH: " + uoe.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "Unsupported operation in PATCH: " + uoe.getMessage());
 
 		} catch (AssertException aex) {
 
 			logger.warn("Assertion error in PATCH", aex.getMessage());
-			logger.warn(ExceptionUtils.getStackTrace(aex));
+			logger.warn(" => Error thrown: ", aex);
 
-			int code = aex.getStatusCode();
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Assertion error in PATCH: " + aex.getMessage()));
+			writeJsonError(response, aex.getStatusCode(), "Assertion error in PATCH: " + aex.getMessage());
 
 		} catch (Throwable t) {
 
 			logger.warn("Exception in PATCH", t);
 
-			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, t.getClass().getSimpleName() + " in PATCH: " + t.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in PATCH: " + t.getMessage());
 
 		} finally {
 
@@ -1044,12 +977,9 @@ public class JsonRestServlet extends AbstractDataServlet {
 		} catch (AssertException aex) {
 
 			logger.warn("Assertion error in GET", aex.getMessage());
-			logger.warn(ExceptionUtils.getStackTrace(aex));
+			logger.warn(" => Error thrown: ", aex);
 
-			int code = aex.getStatusCode();
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Assertion error in GET: " + aex.getMessage()));
+			writeJsonError(response, aex.getStatusCode(), "Assertion error in GET: " + aex.getMessage());
 
 		} catch (Throwable t) {
 
@@ -1060,10 +990,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 				logger.warn(" => Error thrown: ", t);
 			}
 
-			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Exception in GET: " + t.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in GET: " + t.getMessage());
 
 		} finally {
 

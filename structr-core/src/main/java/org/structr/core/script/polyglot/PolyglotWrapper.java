@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,10 +18,14 @@
  */
 package org.structr.core.script.polyglot;
 
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.core.script.polyglot.wrappers.GraphObjectWrapper;
 import org.structr.core.script.polyglot.wrappers.PolyglotProxyArray;
 import org.structr.core.script.polyglot.wrappers.PolyglotProxyMap;
@@ -30,6 +34,8 @@ import org.structr.schema.action.ActionContext;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public abstract class PolyglotWrapper {
@@ -46,9 +52,12 @@ public abstract class PolyglotWrapper {
 		} else if (obj.getClass().isArray()) {
 
 			return new PolyglotProxyArray(actionContext, (Object[]) obj);
+		} else 	if (obj instanceof List) {
+
+			return new PolyglotProxyArray(actionContext, (List)obj);
 		} else 	if (obj instanceof Iterable) {
 
-			return new PolyglotProxyArray(actionContext, StreamSupport.stream(((Iterable)obj).spliterator(), false).toArray());
+			return new PolyglotProxyArray(actionContext, (List)StreamSupport.stream(((Iterable)obj).spliterator(), false).collect(Collectors.toList()));
 		} else if (obj instanceof Map) {
 
 			return new PolyglotProxyMap(actionContext, (Map<String, Object>)obj);
@@ -65,7 +74,11 @@ public abstract class PolyglotWrapper {
 		} else if (obj instanceof Date) {
 			
 			return Date.from(((Date)obj).toInstant());
+		} else if (obj instanceof Value && !((Value)obj).getContext().equals(Context.getCurrent())) {
+			// Try tu rewrap objects from foreign contexts
+			return wrap(actionContext, unwrap(actionContext, obj));
 		}
+
 		return obj;
 	}
 
@@ -143,6 +156,9 @@ public abstract class PolyglotWrapper {
 			} else if (value.hasMembers()) {
 
 				return convertValueToMap(actionContext, value);
+			} else if (value.isNull()) {
+
+				return null;
 			} else {
 
 				return unwrap(actionContext, value.as(Object.class));
@@ -216,11 +232,13 @@ public abstract class PolyglotWrapper {
 
 	public static class FunctionWrapper implements ProxyExecutable {
 		private Value func;
-		private ActionContext actionContext;
+		private final ActionContext actionContext;
+		private final ReentrantLock lock;
 
 		public FunctionWrapper(final ActionContext actionContext, final Value func) {
 
 			this.actionContext = actionContext;
+			this.lock = new ReentrantLock();
 
 			if (func.canExecute()) {
 
@@ -231,7 +249,26 @@ public abstract class PolyglotWrapper {
 		@Override
 		public Object execute(Value... arguments) {
 
-			return PolyglotWrapper.unwrap(actionContext, func.execute(arguments));
+			synchronized (func.getContext()) {
+
+				if (func != null) {
+
+					lock.lock();
+					List<Value> processedArgs = Arrays.stream(arguments)
+							.map(a -> unwrap(actionContext, a))
+							.map(a -> wrap(actionContext, a))
+							.map(Value::asValue)
+							.collect(Collectors.toList());
+
+
+					Object result = func.execute(processedArgs.toArray(new Value[processedArgs.size()]));
+					lock.unlock();
+
+					return wrap(actionContext, unwrap(actionContext, result));
+				}
+
+			}
+			return null;
 		}
 
 		public Value getValue() {

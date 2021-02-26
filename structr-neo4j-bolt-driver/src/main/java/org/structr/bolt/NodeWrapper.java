@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -97,6 +97,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties) {
 
 		dontUseCache = true;
+
 
 		assertNotStale();
 
@@ -376,24 +377,28 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	// ----- public static methods -----
 	public static NodeWrapper newInstance(final BoltDatabaseService db, final org.neo4j.driver.types.Node node) {
 
+		NodeWrapper wrapper;
+
 		synchronized (nodeCache) {
 
-			NodeWrapper wrapper = nodeCache.get(node.id());
+			wrapper = nodeCache.get(node.id());
 			if (wrapper == null) { // || wrapper.stale) {
 
 				wrapper = new NodeWrapper(db, node);
 				nodeCache.put(node.id(), wrapper);
 			}
-
-			return wrapper;
 		}
+
+		return wrapper;
 	}
 
 	public static NodeWrapper newInstance(final BoltDatabaseService db, final long id) {
 
+		NodeWrapper wrapper;
+
 		synchronized (nodeCache) {
 
-			NodeWrapper wrapper = nodeCache.get(id);
+			wrapper = nodeCache.get(id);
 			if (wrapper == null) { // || wrapper.stale) {
 
 				final SessionTransaction tx   = db.getCurrentTransaction();
@@ -414,9 +419,9 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 					throw new NotFoundException("Node with ID " + id + " not found.");
 				}
 			}
-
-			return wrapper;
 		}
+
+		return wrapper;
 	}
 
 	// ----- package-private static methods

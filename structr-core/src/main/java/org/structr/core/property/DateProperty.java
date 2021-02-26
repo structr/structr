@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,13 +18,8 @@
  */
 package org.structr.core.property;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Map;
-import java.util.TreeMap;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
-import org.mozilla.javascript.ScriptRuntime;
 import org.structr.api.config.Settings;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -33,6 +28,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.schema.parser.DatePropertyParser;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
 * A property that stores and retrieves a simple string-based Date with
@@ -182,11 +182,6 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 						throw new FrameworkException(422, "Cannot parse input " + source + " for property " + jsonName(), new DateFormatToken(declaringClass.getSimpleName(), DateProperty.this));
 
 					}
-
-				} else if (source.getClass().getName().equals("org.mozilla.javascript.NativeDate")) {
-
-					final Double value = ScriptRuntime.toNumber(source);
-					return new Date(value.longValue());
 
 				} else {
 

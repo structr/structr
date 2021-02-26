@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -93,6 +93,10 @@ public class KeywordQueryFactory extends AbstractQueryFactory<AdvancedCypherQuer
 			if (value != null && isString) {
 
 				query.addSimpleParameter(name, "CONTAINS", value, true, true);            // works and takes half the time
+
+			} else if ("".equals(predicate.getValue()) && isString) {
+
+				query.addSimpleParameter(name, "CONTAINS", "", true, true);               // works and takes half the time
 
 			} else {
 

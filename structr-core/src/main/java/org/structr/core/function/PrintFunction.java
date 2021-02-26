@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,15 +44,11 @@ public class PrintFunction extends CoreFunction {
 
 		if (sources != null) {
 
-			for (Object i : sources) {
-
-				ctx.print(i);
-			}
+			ctx.print(sources, caller);
 
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
 		}
 
 		return "";
@@ -67,5 +63,4 @@ public class PrintFunction extends CoreFunction {
 	public String shortDescription() {
 		return "Prints the given strings or objects to the output buffer";
 	}
-
 }

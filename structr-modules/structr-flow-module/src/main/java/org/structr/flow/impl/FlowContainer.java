@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.flow.impl;
 
-import org.mozilla.javascript.NativeArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -78,6 +77,15 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 		final FlowResult flowResult       = engine.execute(context, entry);
 
 		if (flowResult.getError() != null) {
+
+			// Log in case of error
+			if (flowResult.getError().getCause() != null) {
+
+				logger.error("Unexpected exception in flow [" + getProperty(effectiveName) + "]:" , flowResult.getError().getCause());
+			} else {
+
+				logger.error("Unexpected exception in flow [" + getProperty(effectiveName) + "]:" + flowResult.getError().getMessage());
+			}
 
 			final List<Object> result = new ArrayList<>();
 			result.add(flowResult.getError());

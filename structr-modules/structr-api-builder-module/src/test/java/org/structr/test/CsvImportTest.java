@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -627,7 +627,7 @@ public class CsvImportTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final ActionContext ctx = new ActionContext(securityContext, null);
-			Scripting.evaluate(ctx, null, callCSVImportScript, "test");
+			Scripting.evaluate(ctx, null, callCSVImportScript, "test", null);
 
 			tx.success();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -83,6 +83,10 @@ public class FixedSizeCache<K, V> {
 
 	public synchronized boolean isEmpty() {
 		return cache.isEmpty();
+	}
+
+	public synchronized boolean containsKey(final K key) {
+		return cache.containsKey(key);
 	}
 
 	// ----- private methods -----

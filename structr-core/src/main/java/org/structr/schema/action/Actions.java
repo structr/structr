@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,14 +18,12 @@
  */
 package org.structr.schema.action;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -45,8 +43,8 @@ import org.structr.core.script.Scripting;
  */
 public class Actions {
 
-	private static final Logger logger                   = LoggerFactory.getLogger(Actions.class.getName());
-	private static final Map<String, String> methodCache = new ConcurrentHashMap<>();
+	private static final Logger logger                         = LoggerFactory.getLogger(Actions.class.getName());
+	private static final Map<String, CachedMethod> methodCache = new ConcurrentHashMap<>();
 
 	public static final String NOTIFICATION_LOGIN  = "onStructrLogin";
 	public static final String NOTIFICATION_LOGOUT = "onStructrLogout";
@@ -96,24 +94,37 @@ public class Actions {
 	}
 
 	// ----- public static methods -----
-	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final String methodName, final ModificationQueue modificationEvents) throws FrameworkException, UnlicensedScriptException {
+	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final String methodName, final ModificationQueue modificationEvents, final String codeSource) throws FrameworkException, UnlicensedScriptException {
 
 		final Map<String, Object> parameters = new LinkedHashMap<>();
 
 		parameters.put("modifications", modificationEvents.getModifications(entity));
 
-		return execute(securityContext, entity, source, parameters, methodName);
+		return execute(securityContext, entity, source, parameters, methodName, codeSource);
 	}
 
 	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final String methodName) throws FrameworkException, UnlicensedScriptException {
-		return execute(securityContext, entity, source, Collections.EMPTY_MAP, methodName);
+		return execute(securityContext, entity, source, methodName, null);
 	}
 
-	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName) throws FrameworkException, UnlicensedScriptException {
+	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
+		return execute(securityContext, entity, source, Collections.EMPTY_MAP, methodName, codeSource);
+	}
+
+	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
+
+		final Map<String, Object> previousParams = new HashMap<>();
+		final ContextStore store = securityContext.getContextStore();
+		for (final String key : store.getTemporaryParameterKeys()) {
+			previousParams.put(key, store.retrieve(key));
+		}
+
+		store.clearTemporaryParameters();
 
 		final ActionContext context = new ActionContext(securityContext, parameters);
-		final Object result         = Scripting.evaluate(context, entity, source, methodName);
-		context.getContextStore().clearTemporaryParameters();
+		final Object result         = Scripting.evaluate(context, entity, source, methodName, codeSource);
+
+		store.setTemporaryParameters(previousParams);
 
 		// check for errors raised by scripting
 		if (context.hasError()) {
@@ -133,9 +144,7 @@ public class Actions {
 
 	public static Object callWithSecurityContext(final String key, final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException, UnlicensedScriptException {
 
-		String cachedSource = methodCache.get(key);
-		String name         = null;
-
+		CachedMethod cachedSource = methodCache.get(key);
 		if (cachedSource == null) {
 
 			final App app = StructrApp.getInstance(securityContext);
@@ -161,8 +170,7 @@ public class Actions {
 						final String source = method.getProperty(SchemaMethod.source);
 						if (source != null) {
 
-							cachedSource = source;
-							name         = method.getName();
+							cachedSource = new CachedMethod(source, method.getName(), method.getUuid());
 
 							// store in cache
 							methodCache.put(key, cachedSource);
@@ -182,7 +190,7 @@ public class Actions {
 		}
 
 		if (cachedSource != null) {
-			return Actions.execute(securityContext, null, "${" + StringUtils.strip(cachedSource) + "}", parameters, name);
+			return Actions.execute(securityContext, null, "${" + StringUtils.strip(cachedSource.sourceCode) + "}", parameters, cachedSource.name, cachedSource.uuidOfSource);
 		}
 
 		return null;
@@ -190,5 +198,20 @@ public class Actions {
 
 	public static void clearCache() {
 		methodCache.clear();
+	}
+
+	// ----- nested classes -----
+	private static class CachedMethod {
+
+		public String sourceCode   = null;
+		public String uuidOfSource = null;
+		public String name         = null;
+
+		public CachedMethod(final String sourceCode, final String name, final String uuidOfSource) {
+
+			this.sourceCode   = sourceCode;
+			this.uuidOfSource = uuidOfSource;
+			this.name         = name;
+		}
 	}
 }

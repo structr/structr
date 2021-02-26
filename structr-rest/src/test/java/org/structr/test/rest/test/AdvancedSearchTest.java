@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -838,6 +838,8 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 
 		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
 
 			logger.warn("", ex);
 			fail("Unexpected exception");

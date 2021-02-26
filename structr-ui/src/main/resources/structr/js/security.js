@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -414,7 +414,9 @@ var _ResourceAccessGrants = {
 
 			_Security.resourceAccesses.append(html);
 
-			let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', 'public');
+			Structr.activateCommentsInElement(_Security.resourceAccesses);
+
+			let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', undefined, undefined, _ResourceAccessGrants.customPagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees');
 
 			raPager.cleanupFunction = function () {
 				$('#resourceAccessesTable tbody tr').remove();
@@ -432,6 +434,20 @@ var _ResourceAccessGrants = {
 				}
 			});
 		});
+	},
+	customPagerTransportFunction: function(type, pageSize, page, filterAttrs, callback) {
+		let filterString = "";
+		let presentFilters = Object.keys(filterAttrs);
+		if (presentFilters.length > 0) {
+			filterString = 'WHERE ' + presentFilters.map(function(key) {
+				if (key === 'flags') {
+					return (filterAttrs[key] === true) ? 'n.flags > 0' : 'n.flags >= 0';
+				} else {
+					return 'n.' + key + ' =~ "(?i).*' + filterAttrs[key] + '.*"';
+				}
+			}).join(' AND ');
+		}
+		Command.cypher('MATCH (n:ResourceAccess) ' + filterString + ' RETURN DISTINCT n ORDER BY n.' + sortKey[type] + ' ' + sortOrder[type], undefined, callback, pageSize, page);
 	},
 	addResourceGrant: function(e) {
 		e.stopPropagation();
@@ -460,14 +476,16 @@ var _ResourceAccessGrants = {
 	deleteResourceAccess: function(button, resourceAccess) {
 		_Entities.deleteNode(button, resourceAccess);
 	},
-	appendResourceAccessElement: function(resourceAccess) {
+	getVerbFromKey: function(key = '') {
+		return key.substring(key.lastIndexOf('_')+1, key.length);
+	},
+	appendResourceAccessElement: function(resourceAccess, blinkAfterUpdate = true) {
 
 		if (!_Security.resourceAccesses || !_Security.resourceAccesses.is(':visible')) {
 			return;
 		}
 
-		var mask = {
-			//FORBIDDEN                   : 0,
+		let mask = {
 			AUTH_USER_GET               : 1,
 			AUTH_USER_PUT               : 2,
 			AUTH_USER_POST              : 4,
@@ -487,27 +505,112 @@ var _ResourceAccessGrants = {
 
 		let flags = parseInt(resourceAccess.flags);
 
-		let trHtml = '<tr id="id_' + resourceAccess.id + '" class="resourceAccess"><td class="title-cell"><b title="' + resourceAccess.signature + '" class="name_">' + resourceAccess.signature + '</b></td>';
+		let trHtml = '<tr id="id_' + resourceAccess.id + '" class="resourceAccess"><td class="title-cell"><b class="name_">' + resourceAccess.signature + '</b></td>';
 
-		Object.keys(mask).forEach(function(key) {
-			trHtml += '<td><input type="checkbox" ' + (flags & mask[key] ? 'checked="checked"' : '') + ' data-flag="' + mask[key] + '" class="resource-access-flag "></td>';
-		});
+		let noAuthAccessPossible = resourceAccess.visibleToAuthenticatedUsers === false && (!resourceAccess.grantees || resourceAccess.grantees.length === 0);
 
-		trHtml += '<td><input type="text" class="bitmask" size="4" value="' + flags + '"></td>' +
-				'<td><i title="Delete Resource Access ' + resourceAccess.id + '" class="delete-resource-access button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /></td></tr>';
+		let flagWarningTexts = {};
+		let flagSanityInfos  = {};
+
+		let hasAuthFlag    = false;
+		let hasNonAuthFlag = false;
+
+		for (let key in mask) {
+
+			let flagIsSet = (flags & mask[key]);
+
+			let disabledBecauseNotPublic    = (key.startsWith('NON_AUTH_') && resourceAccess.visibleToPublicUsers === false);
+			let disabledBecausePublic       = (key.startsWith('AUTH_')     && resourceAccess.visibleToPublicUsers === true);
+			let disabledBecauseNoAuthAccess = (key.startsWith('AUTH_')     && noAuthAccessPossible);
+
+			if (flagIsSet && disabledBecausePublic) {
+				// CRITICAL: If the grant is visibleToPublicUsers and includes grants for authenticated users it can be a security threat! Disable and WARN
+				let arr = flagWarningTexts[key] || [];
+				arr.push('Should <b>not</b> be set because the grant itself is visible to public users. Every authenticated user can also see the grant which is probably not intended.<br><br>This might have a <b>security impact</b> as the resource is accessible with the <b>' + _ResourceAccessGrants.getVerbFromKey(key) + '</b> method (<b>but not the data</b> behind that resource)!<br><br><b>Quick Fix</b>: Remove the visibleToPublicUsers flag from this grant.');
+				flagWarningTexts[key] = arr;
+			}
+			if (flagIsSet && disabledBecauseNotPublic) {
+				let arr = flagSanityInfos[key] || [];
+				arr.push('Active for public users but grant can not be seen by public users.<br><br>This has no security-impact and is probably only misconfigured.');
+				flagSanityInfos[key] = arr;
+			}
+			if (flagIsSet && disabledBecauseNoAuthAccess) {
+				let arr = flagSanityInfos[key] || [];
+				arr.push('Active for authenticated users but grant can not be seen by authenticated users or a group.<br><br>This has no security-impact and is probably only misconfigured.');
+				flagSanityInfos[key] = arr;
+			}
+
+			hasNonAuthFlag = hasNonAuthFlag || (flagIsSet && key.startsWith('NON_AUTH_'));
+			hasAuthFlag    = hasAuthFlag    || (flagIsSet && key.startsWith('AUTH_'));
+
+			let isDisabled = false && (disabledBecauseNotPublic || disabledBecauseNoAuthAccess);
+
+			let additionalClasses = [];
+			if (key === 'AUTH_USER_GET') { additionalClasses.push('bl-1'); }
+			if (key === 'AUTH_USER_PATCH') { additionalClasses.push('br-1'); }
+			if (key === 'NON_AUTH_USER_PATCH') { additionalClasses.push('br-1'); }
+
+			trHtml += '<td class="' + additionalClasses.join(' ') + '"><input type="checkbox" ' + (flagIsSet ? 'checked="checked"' : '') + (isDisabled ? ' disabled' : '') + ' data-flag="' + mask[key] + '" class="resource-access-flag" data-key="' + key +'"></td>';
+		}
+
+		trHtml += '<td><input type="text" class="bitmask" size="4" value="' + flags + '"></td><td>' +
+				'<i class="acl-resource-access button ' + _Icons.getFullSpriteClass(_Icons.key_icon) + '" /> ' +
+				'<i title="Delete Resource Access ' + resourceAccess.id + '" class="delete-resource-access button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />' +
+				'</td></tr>';
 
 		let tr = $(trHtml);
+
+		if (hasAuthFlag && hasNonAuthFlag) {
+			Structr.appendInfoTextToElement({
+				text: 'Grant has flags for authenticated and public users. This is probably misconfigured and should be changed or split into two grants.',
+				element: $('.title-cell b', tr),
+				customToggleIcon: _Icons.error_icon,
+				css: {
+					float:'right',
+					marginRight: '5px'
+				}
+			});
+		}
+
+		for (let key in flagWarningTexts) {
+			Structr.appendInfoTextToElement({
+				text: flagWarningTexts[key].join('<br><br>'),
+				element: $('input[data-key=' + key + ']', tr),
+				customToggleIcon: _Icons.error_icon,
+				css: {position:'absolute'},
+				insertAfter: true
+			});
+		}
+
+		for (let key in flagSanityInfos) {
+			if (!flagWarningTexts[key]) {
+				Structr.appendInfoTextToElement({
+					text: flagSanityInfos[key].join('<br><br>'),
+					element: $('input[data-key=' + key + ']', tr),
+					customToggleIcon: _Icons.warning_icon,
+					css: {position:'absolute'},
+					insertAfter: true
+				});
+			}
+		}
+
+		_Entities.bindAccessControl($('.acl-resource-access', tr), resourceAccess);
 
 		let replaceElement = $('#resourceAccessesTable #id_' + resourceAccess.id);
 
 		if (replaceElement && replaceElement.length) {
+
 			replaceElement.replaceWith(tr);
-			blinkGreen(tr.find('td'));
+			if (blinkAfterUpdate) {
+				blinkGreen(tr.find('td'));
+			}
+
 		} else {
+
 			$('#resourceAccessesTable').append(tr);
 		}
 
-		var bitmaskInput = $('.bitmask', tr);
+		let bitmaskInput = $('.bitmask', tr);
 		bitmaskInput.on('blur', function() {
 			_ResourceAccessGrants.updateResourceAccessFlags(resourceAccess.id, $(this).val());
 		});
@@ -524,7 +627,7 @@ var _ResourceAccessGrants = {
 			_ResourceAccessGrants.deleteResourceAccess(this, resourceAccess);
 		});
 
-		var div = Structr.node(resourceAccess.id);
+		let div = Structr.node(resourceAccess.id);
 
 		$('input[type=checkbox].resource-access-flag', tr).on('change', function() {
 			let newFlags = 0;
@@ -539,9 +642,12 @@ var _ResourceAccessGrants = {
 	updateResourceAccessFlags: function (id, newFlags) {
 
 		Command.setProperty(id, 'flags', newFlags, false, function() {
-			Command.get(id, 'id,flags,name,signature', function(obj) {
-				_ResourceAccessGrants.appendResourceAccessElement(obj);
-			});
+			_ResourceAccessGrants.updateResourcesAccessRow(id);
+		});
+	},
+	updateResourcesAccessRow: function (id, blinkGreen = true) {
+		Command.get(id, 'id,flags,type,signature,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees', function(obj) {
+			_ResourceAccessGrants.appendResourceAccessElement(obj, blinkGreen);
 		});
 	}
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +18,10 @@
  */
 package org.structr.console;
 
+import java.io.IOException;
+import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
-import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
@@ -39,9 +40,6 @@ import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
 import org.structr.schema.action.ActionContext;
 import org.structr.util.Writable;
-
-import java.io.IOException;
-import java.util.*;
 
 
 public class Console {
@@ -208,7 +206,7 @@ public class Console {
 	}
 
 	public Map<String, Object> getVariables() {
-		return actionContext.getAllVariables();
+		return actionContext.getRequestStore();
 	}
 
 	public void store(final String key, final Object value) {
@@ -258,7 +256,7 @@ public class Console {
 
 		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-			final Object result = Functions.evaluate(actionContext, null, line);
+			final Object result = Functions.evaluate(actionContext, null, new Snippet("console", line));
 			if (result != null) {
 
 				if (result instanceof Iterable) {
@@ -274,8 +272,11 @@ public class Console {
 			tx.success();
 
 		} catch (UnlicensedScriptException ex) {
-			ex.log(LoggerFactory.getLogger(Console.class));
+
+			throw new FrameworkException(422, "Unlicensed function called", ex);
+
 		} catch (Throwable t) {
+
 			throw new FrameworkException(422, t.getMessage());
 		}
 	}
@@ -286,10 +287,11 @@ public class Console {
 
 		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-			Object extractedValue = Scripting.evaluateJavascript(actionContext, null, new Snippet("interactive script, line ", "return " + line));
+			Snippet script = new Snippet("interactive script, line ", line, false);
+			Object extractedValue = Scripting.evaluateJavascript(actionContext, null, script);
 
 			if (!extractedValue.toString().isEmpty()) {
-				
+
 				writable.println(extractedValue.toString());
 			}
 

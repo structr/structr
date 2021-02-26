@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -77,8 +77,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 		try {
 			if (!deletedNodes.contains(node) && node.getUuid() == null) {
 
-				logger.warn("Will not delete node which has no UUID, dumping stack.");
-				Thread.dumpStack();
+				logger.debug("Will not delete node which has no UUID: {}", node);
 
 				return;
 			}

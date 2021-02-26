@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,12 +23,9 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.Tx;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.fail;
 
 /**
  *
@@ -43,127 +40,67 @@ public class LoginLogoutTest extends StructrUiTest {
 
 		createEntityAsSuperUser("/User", "{ 'name': 'User1', 'password': 'geheim'}");
 
-		try (final Tx tx = app.tx()) {
+		grant("_login", UiAuthenticator.NON_AUTH_USER_POST, true);
+		grant("_logout", UiAuthenticator.AUTH_USER_POST, false);
+		grant("User", UiAuthenticator.AUTH_USER_GET, false);
 
-			grant("_login", UiAuthenticator.NON_AUTH_USER_POST, true);
-			grant("_logout", UiAuthenticator.AUTH_USER_POST, false);
-			grant("User", UiAuthenticator.AUTH_USER_GET, false);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
-
-		String sessionId = null;
-
-		try (final Tx tx = app.tx()) {
-
-			// first post is to login
-			sessionId = RestAssured
-				.given()
-					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.body("{ 'name': 'User1', 'password': 'geheim'}")
-				.expect()
-					.statusCode(200)
-				.when()
-					.post("/login")
-				.getSessionId();
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
+		final String sessionId = RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body("{ 'name': 'User1', 'password': 'geheim'}")
+		.expect()
+			.statusCode(200)
+		.when()
+			.post("/login")
+		.getSessionId();
 
 		assertNotNull(sessionId);
 
-		try (final Tx tx = app.tx()) {
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.sessionId(sessionId)
+		.expect()
+			.statusCode(200)
+		.when()
+			.get("/me");
 
-			RestAssured
-				.given()
-					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.sessionId(sessionId)
-				.expect()
-					.statusCode(200)
-				.when()
-					.get("/me");
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.sessionId(sessionId)
+		.expect()
+			.statusCode(200)
+		.when()
+			.post("/logout");
 
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
-
-		try (final Tx tx = app.tx()) {
-
-			RestAssured
-				.given()
-					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.sessionId(sessionId)
-				.expect()
-					.statusCode(200)
-				.when()
-					.post("/logout");
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
-
-		// Check that we're really logged out
-
-		try (final Tx tx = app.tx()) {
-
-			RestAssured
-				.given()
-					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.sessionId(sessionId)
-				.expect()
-					.statusCode(401)
-				.when()
-					.get("/me");
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
-
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.sessionId(sessionId)
+		.expect()
+			.statusCode(401)
+		.when()
+			.get("/me");
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -121,9 +121,43 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 		try {
 
-			driver = GraphDatabase.driver(databaseDriverUrl,
-				AuthTokens.basic(username, password)
-			);
+			final boolean isTesting = Settings.ConnectionUrl.getValue().equals(Settings.TestingConnectionUrl.getValue());
+
+			try {
+
+				driver = GraphDatabase.driver(databaseDriverUrl,
+						AuthTokens.basic(username, password)
+				);
+
+			} catch (final AuthenticationException auex) {
+
+				if (!isTesting && password != null && !Settings.Neo4jDefaultPassword.getValue().equals(password)) {
+
+					logger.info("Login with credentials from config file failed, trying default credentials...");
+
+					try {
+						driver = GraphDatabase.driver(databaseDriverUrl,
+								AuthTokens.basic(Settings.Neo4jDefaultUsername.getValue(), Settings.Neo4jDefaultPassword.getValue())
+						);
+
+						logger.info("Successfully logged in with default credentials.");
+
+						setInitialPassword(password);
+
+						logger.info("Initial database password set to value from config file.");
+
+						driver = GraphDatabase.driver(databaseDriverUrl,
+								AuthTokens.basic(username, password)
+						);
+
+						logger.info("Successfully logged in with configured credentials.");
+
+					} catch (final AuthenticationException auex2) {
+						logger.info("Login with default credentials failed.");
+					}
+
+				}
+			}
 
 			configureVersionDependentFeatures();
 
@@ -553,8 +587,16 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	TransactionConfig getTransactionConfig(final long id) {
 
 		final Map<String, Object> metadata = new HashMap<>();
+		final Thread currentThread         = Thread.currentThread();
 
-		metadata.put("id", id);
+		metadata.put("id",         id);
+		metadata.put("pid",        ProcessHandle.current().pid());
+		metadata.put("threadId",   currentThread.getId());
+
+		if (currentThread.getName() != null) {
+
+			metadata.put("threadName", currentThread.getName());
+		}
 
 		return TransactionConfig
 			.builder()
@@ -565,8 +607,16 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	TransactionConfig getTransactionConfigForTimeout(final int seconds, final long id) {
 
 		final Map<String, Object> metadata = new HashMap<>();
+		final Thread currentThread         = Thread.currentThread();
 
-		metadata.put("id", id);
+		metadata.put("id",         id);
+		metadata.put("pid",        ProcessHandle.current().pid());
+		metadata.put("threadId",   currentThread.getId());
+
+		if (currentThread.getName() != null) {
+
+			metadata.put("threadName", currentThread.getName());
+		}
 
 		return TransactionConfig
 			.builder()
@@ -941,5 +991,20 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		return versionNumber;
+	}
+
+	private void setInitialPassword(final String initialPassword) {
+
+		try (final Session session = driver.session()) {
+
+			// this call may fail silently (e.g. if the index does not exist yet)
+			try (final org.neo4j.driver.Transaction tx = session.beginTransaction()) {
+
+				tx.run("CALL dbms.changePassword('" + initialPassword + "')");
+
+			} catch (Throwable t) {
+				logger.warn("Unable to change password properties file", t);
+			}
+		}
 	}
 }

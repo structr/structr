@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,12 +39,15 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaMethodParameters;
 import org.structr.core.entity.relationship.SchemaNodeMethod;
 import org.structr.core.graph.ModificationQueue;
 import static org.structr.core.graph.NodeInterface.name;
+
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
@@ -142,7 +145,9 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		return entry;
 	}
 
-	public boolean isStaticMethod() { return getProperty(isStatic);}
+	public boolean isStaticMethod() {
+		return getProperty(isStatic);
+	}
 
 	public boolean isJava() {
 		return "java".equals(getProperty(codeType));
@@ -165,6 +170,22 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 		if (Boolean.TRUE.equals(getProperty(deleteMethod))) {
 			StructrApp.getInstance().delete(this);
+		}
+
+		final String uuid = getUuid();
+		if (uuid != null) {
+
+			// acknowledge all events for this node when it is modified
+			RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
+		}
+
+		// Ensure AbstractSchemaNode methodCache is invalidated when a schema method changes
+		if (!TransactionCommand.isDeleted(this.dbNode)) {
+			AbstractSchemaNode schemaNode = getProperty(SchemaMethod.schemaNode);
+			if (schemaNode != null) {
+
+				schemaNode.clearCachedSchemaMethodsForInstance();
+			}
 		}
 	}
 

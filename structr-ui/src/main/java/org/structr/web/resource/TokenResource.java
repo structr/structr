@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,8 +30,6 @@ import org.structr.schema.action.ActionContext;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import javax.swing.text.html.HTML;
-import java.net.HttpCookie;
 import java.util.Map;
 
 public class TokenResource extends LoginResource {
@@ -95,7 +93,7 @@ public class TokenResource extends LoginResource {
 
         logger.info("Token creation successful: {}", user);
 
-        RuntimeEventLog.token("Token creation successful", user.getUuid(), user.getName());
+        RuntimeEventLog.token("Token creation successful", Map.of("id", user.getUuid(), "name", user.getName()));
 
         user.setSecurityContext(securityContext);
 

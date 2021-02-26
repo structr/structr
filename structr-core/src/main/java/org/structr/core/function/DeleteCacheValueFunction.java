@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -47,6 +47,8 @@ public class DeleteCacheValueFunction extends CoreFunction {
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			final String cacheKey = sources[0].toString();
+
+			logger.warn("delete_cache_value() is deprecated and will be removed in a future version. Please use invalidate_cache_value() instead.");
 
 			CacheExpression.deleteCachedValue(cacheKey);
 

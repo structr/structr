@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -746,7 +746,7 @@ var _Code = {
 						children.push({
 							id: treeId + '-methods',
 							text: 'Methods',
-							children: entity.schemaMethods.length > 0,
+							children: _Schema.filterJavaMethods(entity.schemaMethods).length > 0,
 							icon: 'fa fa-code gray',
 							data: data
 						});
@@ -905,7 +905,7 @@ var _Code = {
 
 					let matchingMethods = [];
 
-					for (let method of schemaNode.schemaMethods) {
+					for (let method of _Schema.filterJavaMethods(schemaNode.schemaMethods)) {
 						if (method.name.indexOf(parts[1]) === 0) {
 
 							// populate backRef to schemaNode because it only contains id by default
@@ -1052,7 +1052,7 @@ var _Code = {
 	loadMethods: function(identifier) {
 
 		Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.typeId }, function(result) {
-			_Code.displayFunction(result, identifier);
+			_Code.displayFunction(_Schema.filterJavaMethods(result), identifier);
 		}, true, 'ui');
 	},
 	loadInheritedProperties: function(identifier) {
@@ -1323,7 +1323,7 @@ var _Code = {
 
 		if (entity.schemaMethods) {
 
-			entity.schemaMethods.forEach(function(m) {
+			_Schema.filterJavaMethods(entity.schemaMethods).forEach(function(m) {
 
 				if (id === 'custom' || !m.isPartOfBuiltInSchema) {
 
@@ -1750,7 +1750,7 @@ var _Code = {
 		var identifier = _Code.splitIdentifier(data);
 
 		// ID of schema method can either be in typeId (for global schema methods) or in memberId (for type methods)
-		Command.get(identifier.memberId || identifier.typeId, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,schemaNode,source,comment,returnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters', function(result) {
+		Command.get(identifier.memberId || identifier.typeId, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,isStatic,schemaNode,source,comment,returnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters', function(result) {
 
 			_Code.updateRecentlyUsed(result, identifier.source, data.updateLocationStack);
 
@@ -1777,6 +1777,10 @@ var _Code = {
 				_Code.setupAutocompletion(sourceEditor, result.id, true);
 
 				_Code.editPropertyContent(result, 'comment', $('#tabView-comment', codeContents));
+
+				sourceEditor.on('focus', function() {
+					sourceEditor.performLint();
+				});
 
 				if (result.codeType === 'java') {
 
@@ -1895,13 +1899,18 @@ var _Code = {
 						_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', identifier);
 					});
 
-					// run button
+					// run button and global schema method flags
 					if (!result.schemaNode && !result.isPartOfBuiltInSchema) {
 						_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.exec_blue_icon), 'run', 'Run method', function() {
 							_Code.runGlobalSchemaMethod(result);
 						});
 
-						$('.checkbox.hidden', buttons).removeClass('hidden');
+						$('.checkbox.global-method.hidden', buttons).removeClass('hidden');
+						Structr.activateCommentsInElement(buttons);
+
+					} else if (result.schemaNode) {
+
+						$('.checkbox.entity-method.hidden', buttons).removeClass('hidden');
 						Structr.activateCommentsInElement(buttons);
 					}
 
@@ -2334,7 +2343,7 @@ var _Code = {
 
 			Command.get(selection.typeId, null, (entity) => {
 
-				_Schema.methods.appendMethods($('.content-container', codeContents), entity, entity.schemaMethods, function() {
+				_Schema.methods.appendMethods($('.content-container', codeContents), entity, _Schema.filterJavaMethods(entity.schemaMethods), function() {
 					if (selection && selection.extended) {
 						_TreeHelper.refreshNode('#code-tree', 'workingsets-' + selection.extended);
 					} else {
@@ -2953,7 +2962,7 @@ var _Code = {
 		Structr.dialog('Run global schema method ' + schemaMethod.name, function() {}, function() {
 			$('#run-method').remove();
 			$('#clear-log').remove();
-		});
+		}, ['run-global-schema-method-dialog']);
 
 		dialogBtn.prepend('<button id="run-method">Run</button>');
 		dialogBtn.append('<button id="clear-log">Clear output</button>');
@@ -3033,30 +3042,57 @@ var _Code = {
 			}
 		});
 	},
-	showScriptErrors: function(entity, text, callback) {
+	showScriptErrors: function(entity, text, callback, attributeName) {
 
-		let schemaType = entity && entity.schemaNode ? entity.schemaNode.name : '';
-		let methodName = entity.name;
+		let methodName = attributeName;
+		let schemaType = '';
+
+		if (entity) {
+
+			switch (entity.type) {
+
+				case 'SchemaMethod':
+					methodName = entity.name;
+					break;
+			}
+
+			schemaType = entity.type;
+		}
 
 		$.ajax({
-			url: '/structr/rest/_runtimeEventLog?type=Javascript&seen=false&pageSize=100',
+			url: '/structr/rest/_runtimeEventLog?type=Scripting&seen=false&pageSize=100',
 			method: 'get',
 			statusCode: {
 				200: function(eventLog) {
 
+					let keys   = {};
 					let events = [];
 
 					for (var runtimeEvent of eventLog.result) {
 
-						if (runtimeEvent.data && runtimeEvent.data.length >= 5) {
+						if (runtimeEvent.data) {
 
-							let message = runtimeEvent.data[0];
-							let line    = runtimeEvent.data[1];
-							let column  = runtimeEvent.data[2];
-							let type    = runtimeEvent.data[3];
-							let name    = runtimeEvent.data[4];
+							let message = runtimeEvent.data.message;
+							let line    = runtimeEvent.data.row;
+							let column  = runtimeEvent.data.column;
+							let type    = runtimeEvent.data.type;
+							let name    = runtimeEvent.data.name;
+							let id      = runtimeEvent.data.id;
 
-							if (type === schemaType && name === methodName) {
+//							console.log({
+//								id: id,
+//								entityId: entity.id,
+//								type: type,
+//								schemaType: schemaType,
+//								name: name,
+//								methodName: methodName
+//							});
+
+							if (
+								(!id || (entity.id && id === entity.id)) &&
+								(!type || type === schemaType) &&
+								name === methodName
+							) {
 
 								let fromLine = line-1;
 								let toLine   = line-1;
@@ -3071,45 +3107,20 @@ var _Code = {
 									toCol   = 0;
 								}
 
-								events.push({
+								let key = entity.id + '.' + entity.name + ':' + fromLine + ':' + toCol;
+								if (!keys[key]) {
 
-									from: CodeMirror.Pos(fromLine, fromCol),
-									to: CodeMirror.Pos(toLine, toCol),
-									message: 'Scripting error: ' + message,
-									severity : 'warning'
-								});
-							}
-						}
-					}
+									keys[key] = true;
 
-					if (events.length > 0) {
-
-						// must be delayed because the button is not always loaded when this code runs.. :(
-						window.setTimeout(function() {
-
-							let button = $('#dismiss-warnings-button');
-							button.removeClass('hidden');
-							button.off('click').on('click', function() {
-								var editor = $('.CodeMirror')[0].CodeMirror;
-								if (editor) {
-
-									// mark events as seen
-									$.ajax({
-										url: '/structr/rest/_runtimeEventLog?type=Javascript',
-										method: 'post',
-										data: JSON.stringify({
-											action: 'acknowledge'
-										}),
-										statusCode: {
-											200: function() {
-												button.addClass('hidden');
-												editor.performLint();
-											}
-										}
+									events.push({
+										from: CodeMirror.Pos(fromLine, fromCol),
+										to: CodeMirror.Pos(toLine, toCol),
+										message: 'Scripting error: ' + message,
+										severity : 'warning'
 									});
 								}
-							});
-						}, 200);
+							}
+						}
 					}
 
 					callback(events);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -69,7 +69,7 @@ public class ReplaceFunction extends CoreFunction {
 			if (node != null) {
 
 				// recursive replacement call, be careful here
-				return Scripting.replaceVariables(ctx, node, template);
+				return Scripting.replaceVariables(ctx, node, template, "replace()");
 			}
 
 			return "";

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -53,9 +53,6 @@ public class HttpFunctionsTest extends StructrUiTest {
 				new NodeAttribute<>(StructrApp.key(Principal.class, "isAdmin"),  true)
 			);
 
-			// allow all access to group resource
-			grant("Group", 16383, true);
-
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -63,6 +60,9 @@ public class HttpFunctionsTest extends StructrUiTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
+
+		// allow all access to group resource
+		grant("Group", 16383, true);
 
 		try {
 

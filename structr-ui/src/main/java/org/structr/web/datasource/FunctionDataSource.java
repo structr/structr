@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -54,7 +54,7 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 
 		try {
 
-			final Object result = Scripting.evaluate(renderContext, referenceNode, "${" + functionQuery.trim() + "}", "function query");
+			final Object result = Scripting.evaluate(renderContext, referenceNode, "${" + functionQuery.trim() + "}", "function query", referenceNode.getUuid());
 			if (result instanceof Iterable) {
 
 				return FunctionDataSource.map((Iterable)result);
@@ -74,6 +74,7 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 			}
 
 		} catch (UnlicensedScriptException ex) {
+
 			ex.log(LoggerFactory.getLogger(FunctionDataSource.class));
 		}
 

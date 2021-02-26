@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,15 +18,16 @@
  */
 package org.structr.flow.engine;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.flow.api.ThrowingElement;
 
-public class FlowException extends Exception {
+public class FlowException extends FrameworkException {
 
 	private final Exception rootCause;
 	private final ThrowingElement causeElement;
 
 	public FlowException(final Exception rootCause, ThrowingElement causeElement) {
-		super(rootCause);
+		super(422, rootCause.getMessage());
 		this.rootCause = rootCause;
 		this.causeElement = causeElement;
 	}

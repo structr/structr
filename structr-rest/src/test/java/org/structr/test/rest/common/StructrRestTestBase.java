@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -322,7 +322,7 @@ public abstract class StructrRestTestBase {
 			final JsonType type     = schema.addType("TestUser");
 
 			type.setExtends(URI.create("#/definitions/Principal"));
-			type.overrideMethod("onCreate", true, "setProperty(name, \"test\" + System.currentTimeMillis());");
+			type.overrideMethod("onCreate", true, "set(this, 'name', concat('test', now));");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 

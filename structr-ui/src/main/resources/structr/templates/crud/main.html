@@ -1,0 +1,22 @@
+<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css">
+
+<div class="searchBox">
+	<input class="search" name="crud-search" placeholder="Search"><i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}" />
+</div>
+
+<div id="crud-main">
+
+	<div id="crud-top">
+
+		<select id="crud-types-select">
+			<optgroup label="Recent Types" id="crud-types-select-recent"></optgroup>
+			<optgroup label="All Types" id="crud-types-select-all"></optgroup>
+		</select>
+
+		<button id="crud-refresh-list"><i class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)}"> </i></button>
+
+	</div>
+
+	<div id="crud-type-detail" class="resourceBox"></div>
+
+</div>

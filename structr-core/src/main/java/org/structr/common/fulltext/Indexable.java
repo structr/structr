@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,16 +20,17 @@ package org.structr.common.fulltext;
 
 import java.io.InputStream;
 import java.net.URI;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
-import org.structr.api.schema.JsonSchema;
 
 /**
  */
@@ -58,4 +59,20 @@ public interface Indexable extends NodeInterface {
 
 	@Export
 	GraphObject getSearchContext(final SecurityContext ctx, final String searchTerm, final int contextLength);
+
+	default boolean indexingEnabled() {
+		return Settings.IndexingEnabled.getValue();
+	}
+
+	default Integer maximumIndexedWords() {
+		return Settings.IndexingLimit.getValue();
+	}
+
+	default Integer indexedWordMinLength() {
+		return Settings.IndexingMinLength.getValue();
+	}
+
+	default Integer indexedWordMaxLength() {
+		return Settings.IndexingMaxLength.getValue();
+	}
 }

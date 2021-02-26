@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -624,7 +624,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public final String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException {
-		return Scripting.replaceVariables(renderContext, this, getProperty(key));
+		return Scripting.replaceVariables(renderContext, this, getProperty(key), key.jsonName());
 	}
 
 	@Override

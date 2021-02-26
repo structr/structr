@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -163,7 +163,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 
 				try {
 
-					return Boolean.TRUE.equals(Scripting.evaluate(ctx, value, "${" + expression.trim() + "}", "virtual type filter"));
+					return Boolean.TRUE.equals(Scripting.evaluate(ctx, value, "${" + expression.trim() + "}", "virtual type filter", null));
 
 				} catch (FrameworkException fex) {
 					final Logger logger = LoggerFactory.getLogger(VirtualType.class);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -85,16 +85,16 @@ import org.structr.api.service.LicenseManager;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.ServiceResult;
+import org.structr.api.service.StartServiceInMaintenanceMode;
+import org.structr.api.service.StopServiceForMaintenanceMode;
 import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.auth.SessionHelper;
-import org.structr.schema.SchemaService;
-import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
-import org.structr.api.service.StartServiceInMaintenanceMode;
-import org.structr.api.service.StopServiceForMaintenanceMode;
 import org.structr.rest.common.Stats;
 import org.structr.rest.common.StatsCallback;
+import org.structr.schema.SchemaService;
+import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
 @ServiceDependency(SchemaService.class)
 @StopServiceForMaintenanceMode
@@ -115,7 +115,7 @@ public class HttpService implements RunnableService, StatsCallback {
 	private GzipHandler gzipHandler               = null;
 	private HttpConfiguration httpConfig          = null;
 	private HttpConfiguration httpsConfig         = null;
-	private SslContextFactory sslContextFactory   = null;
+	private SslContextFactory.Server sslServer    = null;
 	private Server server                         = null;
 	private Server maintenanceServer              = null;
 	private int maxIdleTime                       = 30000;
@@ -449,6 +449,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		contexts.addHandler(servletContext);
 
 		httpConfig = new HttpConfiguration();
+		httpConfig.setSendServerVersion(false);
 		httpConfig.setSecureScheme("https");
 		httpConfig.setSecurePort(httpsPort);
 		httpConfig.setOutputBufferSize(1024); // intentionally low buffer size to allow even small bits of content to be sent to the client in case of slow rendering
@@ -479,9 +480,9 @@ public class HttpService implements RunnableService, StatsCallback {
 				httpsConfig = new HttpConfiguration(httpConfig);
 				httpsConfig.addCustomizer(new SecureRequestCustomizer());
 
-				sslContextFactory = new SslContextFactory();
-				sslContextFactory.setKeyStorePath(keyStorePath);
-				sslContextFactory.setKeyStorePassword(keyStorePassword);
+				sslServer = new SslContextFactory.Server();
+				sslServer.setKeyStorePath(keyStorePath);
+				sslServer.setKeyStorePassword(keyStorePassword);
 
 				String excludedProtocols = Settings.excludedProtocols.getValue();
 				String includedProtocols = Settings.includedProtocols.getValue();
@@ -489,21 +490,21 @@ public class HttpService implements RunnableService, StatsCallback {
 
 				if (disabledCiphers.length() > 0) {
 					disabledCiphers = disabledCiphers.replaceAll("\\s+", "");
-					sslContextFactory.setExcludeCipherSuites(disabledCiphers.split(","));
+					sslServer.setExcludeCipherSuites(disabledCiphers.split(","));
 				}
 
 				if (excludedProtocols.length() > 0) {
 					excludedProtocols = excludedProtocols.replaceAll("\\s+", "");
-					sslContextFactory.setExcludeProtocols(excludedProtocols.split(","));
+					sslServer.setExcludeProtocols(excludedProtocols.split(","));
 				}
 
 				if (includedProtocols.length() > 0) {
 					includedProtocols = includedProtocols.replaceAll("\\s+", "");
-					sslContextFactory.setIncludeProtocols(includedProtocols.split(","));
+					sslServer.setIncludeProtocols(includedProtocols.split(","));
 				}
 
 				final ServerConnector httpsConnector = new ServerConnector(server,
-					new SslConnectionFactory(sslContextFactory, "http/1.1"),
+					new SslConnectionFactory(sslServer, "http/1.1"),
 					new HttpConnectionFactory(httpsConfig));
 
 				if (forceHttps) {
@@ -639,6 +640,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			final List<Connector> connectors = new LinkedList<>();
 
 			httpConfig = new HttpConfiguration();
+			httpConfig.setSendServerVersion(false);
 			httpConfig.setSecureScheme("https");
 			httpConfig.setSecurePort(httpsPort);
 
@@ -657,7 +659,7 @@ public class HttpService implements RunnableService, StatsCallback {
 				if (httpsPort > -1 && keyStorePath != null && !keyStorePath.isEmpty() && keyStorePassword != null) {
 
 					final ServerConnector httpsConnector = new ServerConnector(maintenanceServer,
-						new SslConnectionFactory(sslContextFactory, "http/1.1"),
+						new SslConnectionFactory(sslServer, "http/1.1"),
 						new HttpConnectionFactory(httpsConfig));
 
 					httpsConnector.setPort(httpsPort);
@@ -682,7 +684,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 	public void reloadSSLCertificate() {
 
-		if (sslContextFactory != null) {
+		if (sslServer != null) {
 
 			try {
 
@@ -690,10 +692,10 @@ public class HttpService implements RunnableService, StatsCallback {
 				final String keyStorePassword       = Settings.KeystorePassword.getValue();
 
 				// in case path/password changed
-				sslContextFactory.setKeyStorePath(keyStorePath);
-				sslContextFactory.setKeyStorePassword(keyStorePassword);
+				sslServer.setKeyStorePath(keyStorePath);
+				sslServer.setKeyStorePassword(keyStorePassword);
 
-				sslContextFactory.reload(new Consumer<SslContextFactory>() {
+				sslServer.reload(new Consumer<SslContextFactory>() {
 					@Override
 					public void accept(SslContextFactory t) {
 					}

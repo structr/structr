@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -86,18 +86,19 @@ public class Services implements StructrServices {
 	// singleton instance
 	private static String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
 	private static final long licenseCheckInterval     = TimeUnit.HOURS.toMillis(2);
+	private static long lastLicenseCheck               = System.currentTimeMillis();
 	private static Services singletonInstance          = null;
 	private static boolean testingModeDisabled         = false;
 	private static boolean updateIndexConfiguration    = false;
 	private static Boolean cachedTestingFlag           = null;
-	private static long lastLicenseCheck               = 0L;
 
 	// non-static members
 	private final Map<Class, Map<String, Service>> serviceCache = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Set<Permission> permissionsForOwnerlessNodes  = new LinkedHashSet<>();
 	private final Map<String, Class> registeredServiceClasses   = new LinkedHashMap<>();
 	private final List<InitializationCallback> callbacks        = new LinkedList<>();
-	private final Map<String, Object> attributes                = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final Map<String, Object> cachedValues              = new ConcurrentHashMap<>(10, 0.9f, 8);
+	private final Map<String, Object> applicationStore          = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final ReentrantReadWriteLock reloading              = new ReentrantReadWriteLock(true);
 	private LicenseManager licenseManager                       = null;
 	private ConfigurationProvider configuration                 = null;
@@ -272,7 +273,7 @@ public class Services implements StructrServices {
 		if (!isTesting()) {
 
 			// read license
-			licenseManager = new StructrLicenseManager(Settings.getBasePath() + "license.key");
+			licenseManager = new StructrLicenseManager();
 		}
 
 		// if configuration is not yet established, instantiate it
@@ -299,7 +300,7 @@ public class Services implements StructrServices {
 				logger.info("Reducing fetch size setting '{}' to {} to reduce low-memory performance problems", Settings.FetchSize.getKey(), maxFetchSize);
 				Settings.FetchSize.setValue(maxFetchSize);
 
-				RuntimeEventLog.systemInfo("Reducing fetch size setting to reduce low-memory performance problems", Settings.FetchSize.getKey(), maxFetchSize);
+				RuntimeEventLog.systemInfo("Reducing fetch size setting to reduce low-memory performance problems", Map.of("key", Settings.FetchSize.getKey(), "value", maxFetchSize));
 			}
 		}
 
@@ -574,34 +575,34 @@ public class Services implements StructrServices {
 	}
 
 	/**
-	 * Store an attribute value in the service config
+	 * Cache a value in the service config
 	 *
 	 * @param name
 	 * @param value
 	 */
-	public void setAttribute(final String name, final Object value) {
-		synchronized (attributes) {
-			attributes.put(name, value);
+	public void cacheValue(final String name, final Object value) {
+		synchronized (cachedValues) {
+			cachedValues.put(name, value);
 		}
 	}
 
 	/**
-	 * Retrieve attribute value from service config
+	 * Retrieve a cached value from service config
 	 *
 	 * @param name
 	 * @return attribute
 	 */
-	public Object getAttribute(final String name) {
-		return attributes.get(name);
+	public Object getCachedValue(final String name) {
+		return cachedValues.get(name);
 	}
 
 	/**
-	 * Remove attribute value from service config
+	 * Invalidate a cached value from service config
 	 *
 	 * @param name
 	 */
-	public void removeAttribute(final String name) {
-		attributes.remove(name);
+	public void invalidateCachedValue(final String name) {
+		cachedValues.remove(name);
 	}
 
 	public ServiceResult startService(final String serviceTypeAndName) throws FrameworkException {
@@ -1053,6 +1054,10 @@ public class Services implements StructrServices {
 		updateIndexConfiguration = true;
 	}
 
+	public static void disableUpdateIndexConfiguration() {
+		updateIndexConfiguration = false;
+	}
+
 	public static void disableTestingMode() {
 		testingModeDisabled      = true;
 		updateIndexConfiguration = true;
@@ -1094,6 +1099,30 @@ public class Services implements StructrServices {
 
 	public static String getJVMIdentifier() {
 		return jvmIdentifier;
+	}
+
+	public Object applicationStoreGet(final String key) {
+		return applicationStore.get(key);
+	}
+
+	public boolean applicationStoreHas(final String key) {
+		return applicationStore.containsKey(key);
+	}
+
+	public Object applicationStorePut(final String key, final Object value) {
+		return applicationStore.put(key, value);
+	}
+
+	public void applicationStoreDelete(final String key) {
+		applicationStore.remove(key);
+	}
+
+	public Set<String> applicationStoreGetKeys() {
+		return applicationStore.keySet();
+	}
+
+	public Map<String, Object> getApplicationStore() {
+		return applicationStore;
 	}
 
 	// ----- private methods -----
@@ -1141,10 +1170,16 @@ public class Services implements StructrServices {
 		getServices(type).put(name, service);
 	}
 
+	public void updateLicense() {
+		if (licenseManager != null) {
+			licenseManager.refresh(true);
+		}
+	}
+
 	private void checkLicense() {
 
 		if (licenseManager != null) {
-			licenseManager.refresh();
+			licenseManager.refresh(false);
 		}
 	}
 

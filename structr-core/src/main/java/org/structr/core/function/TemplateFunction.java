@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -72,7 +72,7 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 					if (text != null) {
 
 						// recursive replacement call, be careful here
-						return Scripting.replaceVariables(ctx, templateInstance, text);
+						return Scripting.replaceVariables(ctx, templateInstance, text, "template()");
 					}
 
 				} else {

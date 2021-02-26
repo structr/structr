@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -255,7 +255,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
-		return Scripting.replaceVariables(renderContext, this, getProperty(key));
+		return Scripting.replaceVariables(renderContext, this, getProperty(key), key.jsonName());
 	}
 
 	@Override

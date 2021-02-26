@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,17 +26,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Converter;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.core.script.polyglot.PolyglotWrapper;
+import org.structr.core.script.polyglot.cache.ExecutableTypeMethodCache;
 import org.structr.core.script.polyglot.function.GrantFunction;
 import org.structr.schema.action.ActionContext;
 
@@ -64,12 +67,32 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 	@Override
 	public Object getMember(String key) {
+		
+		if (node instanceof AbstractNode) {
+			switch (key) {
+				case "owner":
+					return PolyglotWrapper.wrap(actionContext, ((AbstractNode) node).getOwnerNode());
+				case "_path":
+					return PolyglotWrapper.wrap(actionContext, ((AbstractNode) node).getPath(actionContext.getSecurityContext()));
+			}
+		}
 
 		if (getOriginalObject() instanceof GraphObjectMap) {
 
 			return PolyglotWrapper.wrap(actionContext, ((GraphObjectMap) getOriginalObject()).get(new GenericProperty<>(key)));
 		} else {
 
+			// Check cache for already initialized executables
+			ExecutableTypeMethodCache methodCache = actionContext.getExecutableTypeMethodCache();
+
+			ProxyExecutable cachedExecutable = methodCache.getExecutable(node, key);
+
+			if (cachedExecutable != null) {
+
+				return cachedExecutable;
+			}
+
+			// Lookup method, if it's not in cache
 			Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class);
 			if (methods.containsKey(key)) {
 				Method method = methods.get(key);
@@ -79,7 +102,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				try (final Tx tx = app.tx()) {
 
 					SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(((AbstractNode) node).getClass().getSimpleName()).getFirst();
-					List<SchemaMethod> schemaMethods = Iterables.toList(schemaNode.getSchemaMethods());
+					List<SchemaMethod> schemaMethods = Iterables.toList(schemaNode.getSchemaMethodsIncludingInheritance());
 
 					boolean nonStaticMethodFound = false;
 
@@ -101,10 +124,10 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 					tx.success();
 				} catch (FrameworkException ex) {
 
-					logger.error("Unexpected exception while trying to retrieve member method of graph object.", ex);
+					throw new RuntimeException(ex);
 				}
 
-				return (ProxyExecutable) arguments -> {
+				final ProxyExecutable executable = arguments -> {
 
 					try {
 
@@ -142,6 +165,11 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 					return null;
 
 				};
+
+				methodCache.cacheExecutable(node, key, executable);
+
+				return executable;
+
 			} else if (key.equals("grant")) {
 
 				// grant() on GraphObject needs special handling
@@ -162,7 +190,11 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 					return new GraphObjectWrapper<>(actionContext, graphObject);
 				} else if (propKey instanceof EnumProperty) {
 
-					return node.getProperty(propKey).toString();
+					Object propValue = node.getProperty(propKey);
+					if (propValue != null && propValue instanceof Enum) {
+						return ((Enum)propValue).toString();
+					}
+					return propValue;
 				} else {
 
 					return PolyglotWrapper.wrap(actionContext, node.getProperty(propKey));
@@ -192,7 +224,13 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 			return ((GraphObjectMap) getOriginalObject()).containsKey(new GenericProperty<>(key));
 		} else {
 
-			return StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class).containsKey(key) || StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key) != null;
+			if (node != null) {
+				
+				return StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class).containsKey(key) || StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key) != null;
+			} else {
+
+				return false;
+			}
 		}
 	}
 
@@ -209,9 +247,14 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 				final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
 
-				if (unwrappedValue != null && !propKey.valueType().isAssignableFrom(unwrappedValue.getClass())) {
+				if (propKey != null && unwrappedValue != null && !propKey.valueType().isAssignableFrom(unwrappedValue.getClass())) {
 
-					unwrappedValue = propKey.inputConverter(actionContext.getSecurityContext()).convert(unwrappedValue);
+					PropertyConverter inputConverter = propKey.inputConverter(actionContext.getSecurityContext());
+
+					if (inputConverter != null) {
+
+						unwrappedValue = inputConverter.convert(unwrappedValue);
+					}
 				}
 				node.setProperty(propKey, unwrappedValue);
 			} catch (FrameworkException ex) {

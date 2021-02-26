@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,7 @@ var _Dashboard = {
 	logLinesKey: 'dashboardNumberOfLines' + port,
 	zipExportPrefixKey: 'zipExportPrefix' + port,
 	zipExportAppendTimestampKey: 'zipExportAppendTimestamp' + port,
+	showScriptingErrorPopupsKey: 'showScriptinErrorPopups' + port,
 
 	init: function() {},
 	unload: function() {
@@ -48,33 +49,34 @@ var _Dashboard = {
 			}
 		}
 	},
-	onload: function(retryCount = 0) {
+	onload: async function(retryCount = 0) {
 
-		_Dashboard.init();
-		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('dashboard'));
+		try {
 
-		let templateConfig = {};
-		let releasesIndexUrl = '';
-		let snapshotsIndexUrl = '';
+			_Dashboard.init();
 
-		fetch(rootUrl + '/_env').then(function(response) {
+			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('dashboard'));
 
-			if (response.ok) {
-				return response.json();
-			} else {
+			let templateConfig = {};
+			let releasesIndexUrl = '';
+			let snapshotsIndexUrl = '';
+
+			let envResponse = await fetch(rootUrl + '/_env');
+
+			if (!envResponse.ok) {
 				throw Error("Unable to read env resource data");
 			}
 
-		}).then(function(data) {
+			let envData = await envResponse.json();
 
-			templateConfig.envInfo = data.result;
+			templateConfig.envInfo = envData.result;
 
-			templateConfig.envInfo.version = (data.result.components['structr'] || data.result.components['structr-ui']).version || '';
-			templateConfig.envInfo.build   = (data.result.components['structr'] || data.result.components['structr-ui']).build   || '';
-			templateConfig.envInfo.date    = (data.result.components['structr'] || data.result.components['structr-ui']).date    || '';
+			templateConfig.envInfo.version = (envData.result.components['structr'] || envData.result.components['structr-ui']).version || '';
+			templateConfig.envInfo.build   = (envData.result.components['structr'] || envData.result.components['structr-ui']).build   || '';
+			templateConfig.envInfo.date    = (envData.result.components['structr'] || envData.result.components['structr-ui']).date    || '';
 
-			releasesIndexUrl  = data.result.availableReleasesUrl;
-			snapshotsIndexUrl = data.result.availableSnapshotsUrl;
+			releasesIndexUrl  = envData.result.availableReleasesUrl;
+			snapshotsIndexUrl = envData.result.availableSnapshotsUrl;
 
 			if (templateConfig.envInfo.startDate) {
 				templateConfig.envInfo.startDate = templateConfig.envInfo.startDate.slice(0, 10);
@@ -86,25 +88,15 @@ var _Dashboard = {
 
 			templateConfig.databaseDriver = Structr.getDatabaseDriverNameForDatabaseServiceName(templateConfig.envInfo.databaseService);
 
-			return fetch(rootUrl + '/me/ui');
+			let meResponse       = await fetch(rootUrl + '/me/ui');
+			let meData           = await meResponse.json();
+			templateConfig.meObj = meData.result;
 
-		}).then(function(response) {
+			let deployResponse = await fetch('/structr/deploy');
 
-			return response.json();
+			templateConfig.deployServletAvailable = (deployResponse.status !== 404);
 
-		}).then(function(data) {
-
-			templateConfig.meObj = data.result;
-
-			return fetch('/structr/deploy');
-
-		}).then((result) => {
-
-			templateConfig.deployServletAvailable = (result.status !== 404);
-
-		}).then(function() {
-
-			templateConfig.zipExportPrefix = LSWrapper.getItem(_Dashboard.zipExportPrefixKey);
+			templateConfig.zipExportPrefix          = LSWrapper.getItem(_Dashboard.zipExportPrefixKey);
 			templateConfig.zipExportAppendTimestamp = LSWrapper.getItem(_Dashboard.zipExportAppendTimestampKey, true);
 
 			Structr.fetchHtmlTemplate('dashboard/dashboard', templateConfig, function(html) {
@@ -216,7 +208,6 @@ var _Dashboard = {
 					Structr.resize();
 				});
 
-
 				let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
 				if (!userConfigMenu) {
 					userConfigMenu = {
@@ -257,9 +248,22 @@ var _Dashboard = {
 					Structr.updateMainMenu(newMenuConfig);
 				});
 
+				let showScriptingErrorPopups = _Dashboard.isShowScriptingErrorPopups();
+
+				let showScriptingErrorPopupsCheckbox = document.querySelector('#dashboard-show-scripting-error-popups');
+				if (showScriptingErrorPopupsCheckbox) {
+					showScriptingErrorPopupsCheckbox.checked = showScriptingErrorPopups;
+
+					showScriptingErrorPopupsCheckbox.addEventListener('change', () => {
+						LSWrapper.setItem(_Dashboard.showScriptingErrorPopupsKey, showScriptingErrorPopupsCheckbox.checked);
+					});
+				}
+
 				Structr.unblockMenu(100);
 			});
-		}).catch((e) => {
+
+		} catch(e) {
+
 			if (retryCount < 3) {
 				setTimeout(() => {
 					_Dashboard.onload(++retryCount);
@@ -267,7 +271,10 @@ var _Dashboard = {
 			} else {
 				console.log(e);
 			}
-		});
+		}
+	},
+	isShowScriptingErrorPopups: function() {
+		return LSWrapper.getItem(_Dashboard.showScriptingErrorPopupsKey, true);
 	},
 	gatherVersionUpdateInfo(currentVersion, releasesIndexUrl, snapshotsIndexUrl) {
 
@@ -394,43 +401,46 @@ var _Dashboard = {
 	},
 	appendGlobalSchemaMethods: function(container) {
 
-		var maintenanceList = $('<div></div>').appendTo(container);
+		let maintenanceList = $('<div></div>').appendTo(container);
 
 		$.get(rootUrl + '/SchemaMethod?schemaNode=&sort=name', function(data) {
 
-			data.result.forEach(function(result) {
+			if (data.result.length === 0) {
+				maintenanceList.append('No global schema methods.')
+			} else {
 
-				var methodRow = $('<div class="global-method" style=""></div>');
-				var methodName = $('<span>' + result.name + '</span>');
+				for (let method of data.result) {
 
-				methodRow.append('<button id="run-' + result.id + '" class="action button">Run now</button>').append(methodName);
-				maintenanceList.append(methodRow);
+					let methodRow = $('<div class="global-method" style=""></div>');
+					let methodName = $('<span>' + method.name + '</span>');
 
-				var cleanedComment = (result.comment && result.comment.trim() !== '') ? result.comment.replaceAll("\n", "<br>") : '';
+					methodRow.append('<button id="run-' + method.id + '" class="action button">Run now</button>').append(methodName);
+					maintenanceList.append(methodRow);
 
-				if (cleanedComment.trim() !== '') {
-					Structr.appendInfoTextToElement({
-						element: methodName,
-						text: cleanedComment,
-						helpElementCss: {
-							"line-height": "initial"
-						}
+					let cleanedComment = (method.comment && method.comment.trim() !== '') ? method.comment.replaceAll("\n", "<br>") : '';
+
+					if (cleanedComment.trim() !== '') {
+						Structr.appendInfoTextToElement({
+							element: methodName,
+							text: cleanedComment,
+							helpElementCss: {
+								"line-height": "initial"
+							}
+						});
+					}
+
+					$('button#run-' + method.id).on('click', function() {
+						_Code.runGlobalSchemaMethod(method);
 					});
 				}
-
-				$('button#run-' + result.id).on('click', function() {
-					_Code.runGlobalSchemaMethod(result);
-				});
-			});
+			}
 		});
 	},
     activateLogBox: function() {
 
-		let feedbackElement = document.querySelector('#dashboard-server-log-feedback');
-
-		let numberOfLines      = LSWrapper.getItem(_Dashboard.logLinesKey, 300);
-		let numberOfLinesInput = document.querySelector('#dashboard-server-log-lines');
-
+		let feedbackElement      = document.querySelector('#dashboard-server-log-feedback');
+		let numberOfLines        = LSWrapper.getItem(_Dashboard.logLinesKey, 300);
+		let numberOfLinesInput   = document.querySelector('#dashboard-server-log-lines');
 		numberOfLinesInput.value = numberOfLines;
 
 		numberOfLinesInput.addEventListener('change', () => {
@@ -440,12 +450,18 @@ var _Dashboard = {
 			blinkGreen($(numberOfLinesInput));
 		});
 
+		let manualRefreshButton       = document.querySelector('#dashboard-server-log-manual-refresh');
+		manualRefreshButton.addEventListener('click', () => updateLog());
+
 		let registerRefreshInterval = (timeInMs) => {
 
 			window.clearInterval(_Dashboard.logInterval);
 
 			if (timeInMs > 0) {
+				manualRefreshButton.classList.add('hidden');
 				_Dashboard.logInterval = window.setInterval(() => updateLog(), timeInMs);
+			} else {
+				manualRefreshButton.classList.remove('hidden');
 			}
 		};
 
@@ -685,23 +701,54 @@ var _Dashboard = {
 
 					let timestamp = new Date(event.absoluteTimestamp).toISOString();
 					let tr        = document.createElement('tr');
-
-					let firstDataCol = ("object" === typeof event.data[0]) ? JSON.stringify(event.data) : event.data[0];
-
-					if (event.type === 'Authentication') {
-						if (event.data[1]) {
-							event.data[1] = '<code style="white-space: pre; text-decoration: underline; text-underline-position: under;">' + event.data[1] + '</code>';
-						}
-					}
+					let data      = event.data;
 
 					_Dashboard.elementWithContent(tr, 'td', timestamp);
 					_Dashboard.elementWithContent(tr, 'td', event.type);
 					_Dashboard.elementWithContent(tr, 'td', event.description);
-					_Dashboard.elementWithContent(tr, 'td', firstDataCol || '');
-					_Dashboard.elementWithContent(tr, 'td', event.data[1] || '');
-					_Dashboard.elementWithContent(tr, 'td', event.data[2] || '');
-					_Dashboard.elementWithContent(tr, 'td', event.data[3] || '');
-					_Dashboard.elementWithContent(tr, 'td', event.data[4] || '');
+
+					if (data) {
+
+						switch (event.type) {
+
+							case 'Authentication':
+								_Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
+								break;
+
+							case 'Scripting':
+								_Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
+								break;
+
+							default:
+								_Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
+								break;
+						}
+
+					} else {
+
+						_Dashboard.elementWithContent(tr, 'td', '');
+					}
+
+					let buttonContainer = _Dashboard.elementWithContent(tr, 'td', '');
+					if (data.id && data.type) {
+
+						let button = _Dashboard.elementWithContent(buttonContainer, 'button', 'Open content in editor');
+						button.addEventListener('click', function() {
+
+							Command.get(data.id, null, function (obj) {
+								_Elements.openEditContentDialog(button, obj, {
+									extraKeys: { "Ctrl-Space": "autocomplete" },
+									gutters: ["CodeMirror-lint-markers"],
+									lint: {
+										getAnnotations: function(text, callback) {
+											_Code.showScriptErrors(obj, text, callback);
+										},
+										async: true
+									}
+								});
+							});
+						});
+					}
 
 					row.appendChild(tr);
 				}
@@ -718,3 +765,6 @@ var _Dashboard = {
 		return element;
 	}
 };
+
+/*
+ */

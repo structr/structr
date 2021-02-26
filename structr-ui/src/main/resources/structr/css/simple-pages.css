@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -40,7 +40,7 @@
 }
 
 #simple-pages-tree .page.node.selected {
-	background: #b5e27f ! important;
+	background: var(--light-structr-green) ! important;
 }
 
 .page-root .preview {
@@ -56,8 +56,8 @@
 }
 
 .dialogText .template-preview:hover {
-	border: 1px solid #81ce25;
-	background-color: #fff;
+	border: 1px solid var(--structr-green);
+	background-color: var(--solid-white);
 }
 
 .dialogText .template-preview .name_ {
@@ -73,9 +73,8 @@
 	height: 280px;
 	display: block;
 	margin: 0 auto;
-	/*background-color: #fff;*/
-	border: 1px solid rgba(0,0,0,.125);
-	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
+	border: 1px solid var(--black-opacity-125);
+	box-shadow: 0px 0px 36px var(--gray-opacity-10);
 	transform: scale(0.75);
 	-ms-zoom: 0.75;
 	-moz-transform: scale(0.75);
@@ -103,15 +102,14 @@
 	display: block;
 	min-height: 12px;
 	padding: 24px;
-	/*margin: 12px;*/
-	border: 1px solid rgba(0,0,0,.125);
-	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
+	border: 1px solid var(--black-opacity-125);
+	box-shadow: 0px 0px 36px var(--gray-opacity-10);
 }
 
 [data-structr-id] > .edit-header {
 	display: none;
-	border-bottom: 1px solid rgba(0,0,0,.125);
-	background-color: rgba(204,204,204,.25);
+	border-bottom: 1px solid var(--black-opacity-125);
+	background-color: var(--gray-opacity-25);
 	font-size: 9pt;
 	position: absolute;
 	z-index: 1;
@@ -122,7 +120,7 @@
 
 [data-structr-id].hover > .edit-header {
 	display: block;
-	font-family: Roboto, Arial, Helvetica, Sans-serif;
+	font-family: var(--font-roboto);
 	font-size: 8pt;
 }
 
@@ -131,8 +129,8 @@
 }
 
 [data-structr-id].hover {
-	border: 1px solid rgba(0,0,0,.25);
-	box-shadow: 0px 0px 36px rgba(127,127,127,.2);
+	border: 1px solid var(--black-opacity-25);
+	box-shadow: 0px 0px 36px var(--gray-opacity-20);
 }
 
 [data-structr-id] .sprite.button {

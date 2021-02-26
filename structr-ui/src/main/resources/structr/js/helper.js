@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -573,9 +573,6 @@ var _Console = new (function() {
 
 	// public methods
 	this.logoutAction = function() {
-		Command.console('clear');
-		Command.console('exit');
-
 		_terminal.reset();
 		_initialized = false;
 		_hideConsole();
@@ -715,16 +712,22 @@ var _Console = new (function() {
 			}
 			var result = data.message;
 
-			// prevent jquery terminal from trying to use format expressions ('[[') and remove newlines so the result is printed
-			result = result.replaceAll('[[', '[&#8203;[').replaceAll('\n', ' ');
-
 			if (result !== undefined) {
-				term.echo(new String(result));
+
+				// prevent the output from being formatted and re-interpreted by term. ('[[1,2,3]]' leads to re-interpretation)
+				let echoConfig = {
+					exec: false,
+					raw: true,
+					finalize: (div) => {
+						div.css('white-space', 'pre-wrap');	// prevent the output from being put on one line but also prevent overflow
+						div.text(result);
+					}
+				};
+
+				term.echo( new String(result), echoConfig);
 			}
 		});
-
 	};
-
 });
 
 /**

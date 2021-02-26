@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -568,12 +568,14 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			if (grant != null) {
 
 				grant.setProperty(ResourceAccess.flags, 4L);
+				grant.setProperty(ResourceAccess.visibleToAuthenticatedUsers, true);
 
 			} else {
 
 				app.create(ResourceAccess.class,
-					new NodeAttribute<>(ResourceAccess.signature, "Image"),
-					new NodeAttribute<>(ResourceAccess.flags,          4L)
+					new NodeAttribute<>(ResourceAccess.signature,                   "Image"),
+					new NodeAttribute<>(ResourceAccess.flags,                       4L),
+					new NodeAttribute<>(ResourceAccess.visibleToAuthenticatedUsers, true)
 				);
 			}
 

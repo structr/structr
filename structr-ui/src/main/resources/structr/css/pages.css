@@ -1,0 +1,34 @@
+/**
+ * Copyright (C) 2010-2021 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#previews {
+	display: flex;
+	flex-direction: column;
+	margin: 4px 25px 0 25px;
+	height: calc(100% - 8px);
+}
+
+#previews.no-preview::before {
+	content: "- no preview selected -";
+	font-style: italic;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	z-index: -1;
+}

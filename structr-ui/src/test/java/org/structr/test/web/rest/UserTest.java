@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,11 +23,8 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.Tx;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
-import static org.testng.AssertJUnit.fail;
 
 /**
  *
@@ -43,17 +40,7 @@ public class UserTest extends StructrUiTest {
 		createEntityAsSuperUser("/User", "{ 'name': 'admin', 'password': 'admin', 'isAdmin': true }");
 		createEntityAsSuperUser("/User", "{ 'name': 'user', 'password': 'password'}");
 
-		try (final Tx tx = app.tx()) {
-
-			grant("User", UiAuthenticator.NON_AUTH_USER_POST | UiAuthenticator.AUTH_USER_POST, true);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
+		grant("User", UiAuthenticator.NON_AUTH_USER_POST | UiAuthenticator.AUTH_USER_POST, true);
 
 		// anonymous user is not allowed to create admin user
 		RestAssured

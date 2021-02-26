@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -107,7 +107,10 @@ public abstract class MailHelper {
 		}
 
 		mail.setSubject(amc.getSubject());
-		mail.setHtmlMsg(amc.getHtmlContent());
+
+		if (StringUtils.isNotBlank(amc.getHtmlContent())) {
+			mail.setHtmlMsg(amc.getHtmlContent());
+		}
 
 		if (StringUtils.isNotBlank(amc.getTextContent())) {
 			mail.setTextMsg(amc.getTextContent());

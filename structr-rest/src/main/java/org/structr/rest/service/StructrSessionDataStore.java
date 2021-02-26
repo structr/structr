@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,9 @@
  */
 package org.structr.rest.service;
 
+import java.util.Date;
+import java.util.Map;
+import java.util.Set;
 import org.eclipse.jetty.server.session.AbstractSessionDataStore;
 import org.eclipse.jetty.server.session.SessionData;
 import org.slf4j.Logger;
@@ -31,8 +34,7 @@ import org.structr.core.entity.SessionDataNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-
-import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
@@ -44,7 +46,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	private static final Logger logger       = LoggerFactory.getLogger(StructrSessionDataStore.class.getName());
 	private static final Services services   = Services.getInstance();
 
-	private static final Map<String, SessionData> anonymousSessionCache = new HashMap<>();
+	private static final Map<String, SessionData> anonymousSessionCache = new ConcurrentHashMap<>();
 
 	@Override
 	public void doStore(final String id, final SessionData data, final long lastSaveTime) throws Exception {
@@ -88,14 +90,17 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	@Override
 	public Set<String> doGetExpired(final Set<String> candidates) {
+
 		final long sessionTimeout = Settings.SessionTimeout.getValue(1800) * 1000;
 		final Date timeoutDate    = new Date(System.currentTimeMillis() - sessionTimeout);
 
 		assertInitialized();
 
 		for (Map.Entry<String,SessionData> entry : anonymousSessionCache.entrySet()) {
+
 			SessionData data = entry.getValue();
 			if ( (new Date().getTime() - data.getLastAccessed()) > sessionTimeout) {
+
 				candidates.add(entry.getKey());
 			}
 		}

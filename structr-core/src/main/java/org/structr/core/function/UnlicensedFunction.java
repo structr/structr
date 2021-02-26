@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -48,7 +48,7 @@ public class UnlicensedFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(final boolean inJavaScriptContext) {
-		return new UnlicensedScriptException(name, module).buildLogMessage();
+		return UnlicensedScriptException.buildLogMessage(name, module);
 	}
 
 	@Override

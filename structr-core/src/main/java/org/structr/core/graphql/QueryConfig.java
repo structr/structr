@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -51,6 +51,7 @@ import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.action.ActionContext;
 
 /**
  */
@@ -58,11 +59,16 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 	private final Map<PropertyKey, SearchAttribute> attributes = new LinkedHashMap<>();
 	private final Set<PropertyKey> propertyKeys                = new LinkedHashSet<>();
+	private ActionContext actionContext                        = null;
 	private String sortKeySource                               = null;
 	private PropertyKey sortKey                                = null;
 	private boolean sortDescending                             = false;
 	private int pageSize                                       = Integer.MAX_VALUE;
 	private int page                                           = 1;
+
+	public QueryConfig(final ActionContext actionContext) {
+		this.actionContext = actionContext;
+	}
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
@@ -154,7 +160,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 		} else if (sortKeySource != null) {
 
-			query.comparator(new PathResolvingComparator(sortKeySource, sortDescending));
+			query.comparator(new PathResolvingComparator(actionContext, sortKeySource, sortDescending));
 		}
 	}
 
@@ -400,7 +406,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 		if (sortKeySource != null) {
 
-			return new PathResolvingComparator(sortKeySource, sortDescending);
+			return new PathResolvingComparator(actionContext, sortKeySource, sortDescending);
 		}
 
 		return null;

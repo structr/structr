@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,18 +32,21 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+import org.structr.schema.action.ActionContext;
 
 /**
  */
 public class GraphQLQuery {
 
 	private static final Set<String> SchemaRequestFieldNames = new HashSet<>(Arrays.asList("__schema", "__directive", "__directiveLocation", "__type", "__field", "__inputvalue", "__enumvalue", "__typekind", "__typename"));
-	private Map<String, QueryConfig> configurations          = new LinkedHashMap<>();
+	private final Map<String, QueryConfig> configurations    = new LinkedHashMap<>();
+	private SecurityContext securityContext                  = null;
 	private String fieldName                                 = null;
 
 	public GraphQLQuery(final SecurityContext securityContex, final Field field) throws FrameworkException {
 
-		this.fieldName = field.getName();
+		this.securityContext = securityContex;
+		this.fieldName       = field.getName();
 
 		final Class type = StructrApp.getConfiguration().getNodeEntityClass(fieldName);
 		if (type != null) {
@@ -124,7 +127,7 @@ public class GraphQLQuery {
 		QueryConfig config = configurations.get(path);
 		if (config == null) {
 
-			config = new QueryConfig();
+			config = new QueryConfig(new ActionContext(securityContext));
 			configurations.put(path, config);
 		}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -119,7 +119,7 @@ public class LDAPService extends Thread implements SingletonService {
 				// decide which method to use for synchronization
 				if (useDistinguishedName) {
 
-					logger.info("Updating LDAPGroup {} ({}) with DN {} on LDAP server {}:{}..", groupName, group.getUuid(), groupDn, host, port);
+					logger.debug("Updating LDAPGroup {} ({}) with DN {} on LDAP server {}:{}..", groupName, group.getUuid(), groupDn, host, port);
 
 					// use dn
 					updateWithGroupDn(group, connection, groupDn, scope);
@@ -127,7 +127,7 @@ public class LDAPService extends Thread implements SingletonService {
 				} else if (useFilterAndScope) {
 
 					// use filter + scope
-					logger.info("Updating LDAPGroup {} ({}) with path {}, filter {} and scope {} on LDAP server {}:{}..", groupName, group.getUuid(), groupPath, groupFilter, groupScope, host, port);
+					logger.debug("Updating LDAPGroup {} ({}) with path {}, filter {} and scope {} on LDAP server {}:{}..", groupName, group.getUuid(), groupPath, groupFilter, groupScope, host, port);
 
 					updateWithFilterAndScope(group, connection, groupPath, groupFilter, groupScope);
 				}
@@ -218,17 +218,17 @@ public class LDAPService extends Thread implements SingletonService {
 			LDAPUser user = app.nodeQuery(LDAPUser.class).and(attributes).getFirst();
 			if (user == null) {
 
-				logger.info("Creating new user for originId {}", originId);
+				logger.debug("Creating new user for originId {}", originId);
 
 				user = app.create(LDAPUser.class, attributes);
 				if (user != null) {
 
-					logger.info("User created: {}", user.getUuid());
+					logger.debug("User created: {}", user.getUuid());
 				}
 
 			} else {
 
-				logger.info("Existing user {} found for originId {}", user.getUuid(), originId);
+				logger.debug("Existing user {} found for originId {}", user.getUuid(), originId);
 			}
 
 			// update user

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,30 +18,30 @@
  */
 package org.structr.core.script;
 
-import org.mozilla.javascript.Script;
-
 /**
  * A small piece of JavaScript code that can either be
  * compiled or run directly.
  */
 public class Snippet {
 
-	private Script compiled = null;
-	private String name     = null;
-	private String source   = null;
+	private String codeSource = null;
+	private String name       = null;
+	private String source     = null;
+	private boolean embed     = true;
+	private int startRow      = 0;
 
 	public Snippet(final String name, final String source) {
 
 		this.source = source;
 		this.name   = name;
+		this.embed = true;
 	}
 
-	public Snippet(final Script compiled) {
-		this.compiled = compiled;
-	}
+	public Snippet(final String name, final String source, final boolean embed) {
 
-	public Script getCompiledScript() {
-		return compiled;
+		this.source = source;
+		this.name = name;
+		this.embed = embed;
 	}
 
 	public String getName() {
@@ -53,6 +53,23 @@ public class Snippet {
 	}
 
 	public boolean embed() {
-		return true;
+		return this.embed;
 	}
+
+	public void setStartRow(final int startRow) {
+		this.startRow = startRow;
+	}
+
+	public int getStartRow() {
+		return this.startRow;
+	}
+
+	public void setCodeSource(final String codeSource) {
+		this.codeSource = codeSource;
+	}
+
+	public String getCodeSource() {
+		return codeSource;
+	}
+
 }

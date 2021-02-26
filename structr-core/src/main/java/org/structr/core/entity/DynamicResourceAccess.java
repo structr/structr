@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,7 +28,7 @@ import org.structr.common.View;
 public class DynamicResourceAccess extends ResourceAccess {
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
-		signature, flags, position, isResourceAccess
+		signature, flags, isResourceAccess
 	);
 
 	public static final View publicView = new View(ResourceAccess.class, PropertyView.Public,

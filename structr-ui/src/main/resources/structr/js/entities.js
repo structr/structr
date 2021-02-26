@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -1711,7 +1711,7 @@ var _Entities = {
 			if (Structr.isModuleActive(_Crud)) {
 
 				var handleGraphObject = function(entity) {
-					if (!entity.owner || initialObj.ownerId !== entity.owner.id) {
+					if ((!entity.owner && initialObj.owner !== null) || initialObj.ownerId !== entity.owner.id) {
 						_Crud.refreshCell(id, "owner", entity.owner, entity.type, initialObj.ownerId);
 					}
 
@@ -1724,6 +1724,8 @@ var _Entities = {
 				} else {
 					Command.get(id, 'id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 				}
+			} else if (Structr.isModuleActive(_Security)) {
+				_ResourceAccessGrants.updateResourcesAccessRow(id, false);
 			}
 		});
 

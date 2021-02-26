@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -2536,6 +2536,55 @@ public class SearchAndSortingTest extends StructrTest {
 
 			fail("Unexpected exception");
 		}
+	}
+
+	@Test
+	public void testSortWithPathResolution() {
+
+		final Class<Group> principalType  = StructrApp.getConfiguration().getNodeEntityClass("Principal");
+		final Class<Group> groupType      = StructrApp.getConfiguration().getNodeEntityClass("Group");
+		final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
+
+		try (final Tx tx = app.tx()) {
+
+			final Principal ownerC = createTestNode(principalType, new NodeAttribute<>(AbstractNode.name, "C"));
+			final Principal ownerD = createTestNode(principalType, new NodeAttribute<>(AbstractNode.name, "D"));
+			final Principal ownerA = createTestNode(principalType, new NodeAttribute<>(AbstractNode.name, "A"));
+			final Principal ownerE = createTestNode(principalType, new NodeAttribute<>(AbstractNode.name, "E"));
+
+			createTestNode(groupType, new NodeAttribute<>(AbstractNode.name, "zzz"));
+			createTestNode(groupType, new NodeAttribute<>(AbstractNode.name, "aaa"), new NodeAttribute<>(AbstractNode.owner, ownerA));
+			createTestNode(groupType, new NodeAttribute<>(AbstractNode.name, "ttt"), new NodeAttribute<>(AbstractNode.owner, ownerE));
+			createTestNode(groupType, new NodeAttribute<>(AbstractNode.name, "xxx"), new NodeAttribute<>(AbstractNode.owner, ownerC));
+			createTestNode(groupType, new NodeAttribute<>(AbstractNode.name, "bbb"), new NodeAttribute<>(AbstractNode.owner, ownerD));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final List<GraphObject> list = (List<GraphObject>)Scripting.evaluate(new ActionContext(securityContext), null, "${sort(find('Group'), 'owner.name')}", "test");
+
+			// the collection must be sorted according to the name of the owner node
+			// with the ownerless node at the end because we're sorting "nulls last"
+
+			assertEquals("Invalid sort() result", "aaa", list.get(0).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "xxx", list.get(1).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "bbb", list.get(2).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "ttt", list.get(3).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "zzz", list.get(4).getProperty(nameKey));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			System.out.println(fex.getMessage());
+			fail("Unexpected exception.");
+		}
+
 	}
 
 	// ----- private methods -----

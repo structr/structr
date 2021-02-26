@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,19 +18,20 @@
  */
 package org.structr.util;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.NetworkInterface;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.CodeSigner;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -54,11 +55,8 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-
-import com.ibm.wsdl.util.IOUtils;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +64,7 @@ import org.structr.api.config.Settings;
 import org.structr.api.service.Feature;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
 
@@ -126,12 +125,13 @@ public class StructrLicenseManager implements LicenseManager {
 	private boolean allModulesLicensed                  = false;
 	private boolean licensePresent                      = false;
 	private String edition                              = "Community";
+	private String moduleString                         = null;
 	private String licensee                             = null;
 	private String numberOfUsersString                  = null;
 	private Date startDate                              = null;
 	private Date endDate                                = null;
 
-	public StructrLicenseManager(final String licenseFileName) {
+	public StructrLicenseManager() {
 
 		logger.info("Host ID is {}", createHash());
 		logger.info("Checking Structr license..");
@@ -140,37 +140,49 @@ public class StructrLicenseManager implements LicenseManager {
 		this.certificate = certFromBase64(Certificate);
 		this.publicKey   = certificate.getPublicKey();
 
-		// check license
-		Map<String, String> properties = readFileToProperties(licenseFileName);
+		initializeLicense();
+	}
 
-		if (!licensePresent) {
+	private void initializeLicense() {
 
-			properties = readLicenseKeyFromConfig();
-		}
+		final boolean licenseWasPresent = licensePresent;
+
+		final String currentBase64LicenseKey = getBase64LicenseKey();
+		final Map<String, String> properties = getLicenseKeyFromString(currentBase64LicenseKey);
 
 		if (licensePresent) {
 
-			// read license file (if present)
+			if (licenseWasPresent) {
+
+				final boolean editionEqual = edition      != null && edition.equals(properties.get(EditionKey));
+				final boolean modulesEqual = moduleString != null && moduleString.equals(properties.get(ModulesKey));
+
+				if (!editionEqual || !modulesEqual) {
+					logger.warn("License Edition or Modules changed - unable to update license info without a restart. Please restart to update license info.");
+					return;
+				}
+			}
+
 			if (isValid(properties)) {
 
-				edition             = properties.get(EditionKey);
-				licensee            = properties.get(NameKey);
-				numberOfUsersString = properties.get(UsersKey);
+				edition                   = properties.get(EditionKey);
+				moduleString              = properties.get(ModulesKey);
+				licensee                  = properties.get(NameKey);
+				numberOfUsersString       = properties.get(UsersKey);
 
 				// init modules
-				final String licensedModules = properties.get(ModulesKey);
-				if (licensedModules != null) {
+				if (moduleString != null) {
 
 					// remove default modules from Community Edition
 					modules.clear();
 
-					if ("*".equals(licensedModules)) {
+					if ("*".equals(moduleString)) {
 
 						allModulesLicensed = true;
 
-					} else if (!"none".equals(licensedModules)) {
+					} else if (!"none".equals(moduleString)) {
 
-						for (final String module : licensedModules.split(",")) {
+						for (final String module : moduleString.split(",")) {
 
 							modules.add(module.trim());
 						}
@@ -178,6 +190,12 @@ public class StructrLicenseManager implements LicenseManager {
 				}
 			}
 		}
+
+		logLicenseInfo();
+	}
+
+	@Override
+	public void logLicenseInfo() {
 
 		logger.info("Running {} Edition with {}.", edition, allModulesLicensed ? "all modules" : "modules " + modules.toString());
 
@@ -198,10 +216,21 @@ public class StructrLicenseManager implements LicenseManager {
 	}
 
 	@Override
-	public void refresh() {
+	public void refresh(boolean readLicense) {
 
-		// verify that the license is valid for the current date
-		if (licenseExpired()) {
+		if (readLicense) {
+
+			if (licensePresent == true) {
+
+				initializeLicense();
+
+			} else {
+
+				logger.warn("Unable to update license info without a restart because no previous license was configured!");
+			}
+		}
+
+		if (licenseExpired(endDate)) {
 
 			final SimpleDateFormat format = new SimpleDateFormat(DatePattern);
 
@@ -263,12 +292,10 @@ public class StructrLicenseManager implements LicenseManager {
 			} catch (Throwable t) {
 				logger.error("Invalid value for number of users in license key: {}: {}", numberOfUsersString, t.getMessage());
 			}
-
 		}
 
 		return -1;
 	}
-
 
 	@Override
 	public boolean isValid(final Feature feature) {
@@ -322,7 +349,6 @@ public class StructrLicenseManager implements LicenseManager {
 			return false;
 		}
 
-
 		final SimpleDateFormat format = new SimpleDateFormat(DatePattern);
 		final String src              = collectLicenseFieldsForSignature(properties);
 		final String name             = properties.get(NameKey);
@@ -344,8 +370,22 @@ public class StructrLicenseManager implements LicenseManager {
 			return false;
 		}
 
-		startDate = parseDate(startDateString);
-		endDate   = parseDate(endDateString);
+		final Date licenseStartDate = parseDate(startDateString);
+		final Date licenseEndDate   = parseDate(endDateString);
+
+		// verify that the license is valid for the current date
+		if (licenseStartDate != null && now.before(licenseStartDate) && !now.equals(licenseStartDate)) {
+
+			logger.error("License found in license file is not yet valid, license period starts {}.", format.format(licenseStartDate.getTime()));
+			return false;
+		}
+
+		// verify that the license is valid for the current date
+		if (licenseExpired(licenseEndDate)) {
+
+			logger.error("License found in license file is not valid any more, license period ended {}.", format.format(licenseEndDate.getTime()));
+			return false;
+		}
 
 		try {
 
@@ -417,6 +457,9 @@ public class StructrLicenseManager implements LicenseManager {
 			return false;
 		}
 
+		startDate = licenseStartDate;
+		endDate   = licenseEndDate;
+
 		if ("*".equals(hostId)) {
 
 			// check volume license against server addresses
@@ -443,65 +486,76 @@ public class StructrLicenseManager implements LicenseManager {
 			}
 		}
 
-		// verify that the license is valid for the current date
-		if (startDate != null && now.before(startDate) && !now.equals(startDate)) {
+		return true;
+	}
 
-			logger.error("License found in license file is not yet valid, license period starts {}.", format.format(startDate.getTime()));
-			return false;
-		}
+	private boolean licenseExpired(final Date licenseEndDate) {
 
-		// verify that the license is valid for the current date
-		if (licenseExpired()) {
+		final Date now = new Date();
 
-			logger.error("License found in license file is not valid any more, license period ended {}.", format.format(endDate.getTime()));
-			return false;
+		if (licenseEndDate != null) {
+
+			final Calendar cal = Calendar.getInstance();
+
+			cal.setTime(licenseEndDate);
+			cal.add(Calendar.DAY_OF_YEAR, 1);
+
+			final Date dayAfterLicenseExpiryDate = cal.getTime();
+
+			return (licenseEndDate != null && now.after(dayAfterLicenseExpiryDate));
 		}
 
 		return true;
 	}
 
-	private boolean licenseExpired() {
-
-		final Date now = new Date();
-
-		return (endDate != null && now.after(endDate) && !now.equals(endDate));
-	}
-
 	private String readFileToString(final String fileName) {
 
-		final Decoder base64Decoder          = java.util.Base64.getMimeDecoder();
-		final Map<String, String> properties = new LinkedHashMap<>();
+		final Path source      = Paths.get(Settings.getBasePath());
+		final Path licenseFile = source.resolve(fileName);
 
-		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(base64Decoder.wrap(new FileInputStream(fileName))))) {
+		if (Files.exists(licenseFile)) {
 
-			return IOUtils.getStringFromReader(reader);
+			try {
 
-		} catch (final IOException ioex) {
-			logger.warn("Error reading license file: {}", ioex.getMessage());
+				return new String(Files.readAllBytes(licenseFile));
+
+			} catch (IOException ioex) {
+
+				logger.warn("Error reading license file: {}", ioex.getMessage());
+			}
 		}
 
 		return null;
 	}
 
-	private Map<String, String> readFileToProperties(final String fileName) {
-		final String licenseKey = readFileToString(fileName);
-		return getLicenseKeyFromString(licenseKey);
-	}
+	private String getBase64LicenseKey() {
 
-	private Map<String, String> readLicenseKeyFromConfig() {
-		final String licenseKey     = Settings.LicenseKey.getValue();
-		final Decoder base64Decoder = java.util.Base64.getMimeDecoder();
-		final String decodedKey = new String(base64Decoder.decode(licenseKey));
-		return getLicenseKeyFromString(decodedKey);
+		final String licenseKeyFromFile = readFileToString("license.key");
+
+		if (licenseKeyFromFile != null) {
+			return licenseKeyFromFile;
+		}
+
+		final String licenseKey = Settings.LicenseKey.getValue();
+
+		if (StringUtils.isNotBlank(licenseKey)) {
+			return licenseKey;
+		}
+
+		return null;
 	}
 
 	private Map<String, String> getLicenseKeyFromString(final String licenseKey) {
 
 		if (StringUtils.isNotBlank(licenseKey)) {
+
+			final Decoder base64Decoder = java.util.Base64.getMimeDecoder();
+			final String decodedKey     = new String(base64Decoder.decode(licenseKey));
+
 			licensePresent = true;
 
 			final Map<String, String> properties = new LinkedHashMap<>();
-			licenseKey.lines().forEach(line -> {
+			decodedKey.lines().forEach(line -> {
 
 				final int pos = line.indexOf("=");
 				if (pos >= 0) {
@@ -758,7 +812,7 @@ public class StructrLicenseManager implements LicenseManager {
 			}
 
 		} catch (Throwable t) {
-			logger.error(ExceptionUtils.getStackTrace(t));
+			logger.error("", t);
 		}
 
 		return false;
@@ -867,6 +921,26 @@ public class StructrLicenseManager implements LicenseManager {
 				StructrLicenseManager.create(name, start, end, edition, modules, hostId, servers, users, keystore, password, outFile);
 				logger.info("Successfully created license file {}.", outFile);
 			}
+		}
+
+		@Override
+		public boolean requiresEnclosingTransaction() {
+			return false;
+		}
+
+		@Override
+		public boolean requiresFlushingOfCaches() {
+			return false;
+		}
+	}
+
+
+	public static class UpdateLicenseCommand extends NodeServiceCommand implements MaintenanceCommand {
+
+		@Override
+		public void execute(final Map<String, Object> attributes) throws FrameworkException {
+
+			Services.getInstance().getLicenseManager().refresh(true);
 		}
 
 		@Override

@@ -1,3 +1,5 @@
+<link rel="stylesheet" type="text/css" media="screen" href="css/dashboard.css">
+
 <div id="dashboard">
 
 	<ul class="tabs-menu">
@@ -131,7 +133,7 @@
 					<option value="5000">5s</option>
 					<option value="2000">2s</option>
 					<option value="1000">1s</option>
-					<option value="-1">off</option>
+					<option value="-1">manual</option>
 				</select>
 
 				<span class="dashboard-spacer"></span>
@@ -141,6 +143,7 @@
 
 				<span class="dashboard-spacer"></span>
 
+				<button id="dashboard-server-log-manual-refresh" class="action">Refresh</button>
 				<button id="dashboard-server-log-copy" class="action">Copy</button>
 
 				<span class="dashboard-spacer"></span>
@@ -157,17 +160,36 @@
 
 		<div class="tab-content" id="dashboard-ui-config">
 
-			<div class="menu-order-container">
-				<div class="menu-order-config-container header">Main Menu</div>
-				<div class="menu-order-config-container header">Sub Menu</div>
-			</div>
+			<div class="flex-row">
 
-			<div class="menu-order-container">
-				<div id="main-menu-entries-config" class="connectedSortable menu-order-config-container"></div>
-				<div id="sub-menu-entries-config" class="connectedSortable menu-order-config-container"></div>
-			</div>
+				<div class="flex-col">
 
-			<button id="save-menu-config" class="action">Save & Apply</button>
+					<div class="menu-order-container">
+						<div class="menu-order-config-container header">Main Menu</div>
+						<div class="menu-order-config-container header">Sub Menu</div>
+					</div>
+
+					<div class="menu-order-container">
+						<div id="main-menu-entries-config" class="connectedSortable menu-order-config-container"></div>
+						<div id="sub-menu-entries-config" class="connectedSortable menu-order-config-container"></div>
+					</div>
+
+					<button id="save-menu-config" class="action">Save & Apply</button>
+
+				</div>
+
+				<div class="flex-col">
+
+					<div class="menu-order-container">
+						<div class="menu-order-config-container header" style="width: 100%">Misc UI Settings</div>
+					</div>
+
+
+					<div>
+						<input id="dashboard-show-scripting-error-popups" type="checkbox"><label for="dashboard-show-scripting-error-popups"> Show popups for scripting errors</label>
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<div class="tab-content" id="dashboard-event-log">
@@ -179,7 +201,7 @@
 					<option value="Authentication">Authentication events</option>
 					<option value="Cron">Cron events</option>
 					<option value="Csv">CSV requests</option>
-					<option value="Javascript">Javascript events</option>
+					<option value="Scripting">Scripting events</option>
 					<option value="Rest">REST requests</option>
 					<option value="ResourceAccess">ResourceAccess events</option>
 					<option value="Transaction">Transactions</option>
@@ -195,12 +217,9 @@
 					<tr>
 						<th style="text-align: left;">Timestamp</th>
 						<th style="text-align: left;">Type</th>
-						<th style="text-align: left;">Action</th>
+						<th style="text-align: left;">Detail</th>
 						<th style="text-align: left;">Data</th>
-						<th></th>
-						<th></th>
-						<th></th>
-						<th></th>
+						<th style="text-align: left;">Actions</th>
 					</tr>
 				</thead>
 				<tbody id="event-log-container"></tbody>
@@ -208,176 +227,4 @@
 		</div>
 
 	</div>
-
-	<style type="text/css">
-
-		div#dashboard {
-			margin: 12px;
-			height: calc(100% - 12px);
-		}
-
-		div#dashboard .tab-content {
-			padding: 12px;
-			height: calc(100% - 34px);
-			overflow: auto;
-		}
-
-		div#dashboard .tab-content.active {
-			display: block;
-		}
-
-		div#dashboard .tabs-contents {
-			height: calc(100% - 18px);
-		}
-
-		#about-structr .props {
-			margin-top: 10px;
-		}
-
-		#about-structr .props i {
-			cursor: default;
-		}
-
-		.heading-narrow {
-			margin: 4px 0;
-		}
-
-		#params {
-			display: inline-block;
-			width: 50%;
-			vertical-align: top;
-		}
-
-		#params i.button.sprite-delete {
-			margin-left: 2px;
-			vertical-align: sub;
-		}
-
-		.global-method {
-			padding: 12px 8px;
-			border: 1px solid #ddd;
-			border-bottom: 0;
-			line-height: 2em;
-		}
-
-		.global-method button.action {
-			margin-left: 1em;
-			margin-right: 1em;
-		}
-
-		.global-method:last-of-type {
-			border-bottom: 1px solid #ddd;
-		}
-
-		.global-method img.icon, .global-method i.icon {
-			vertical-align: bottom;
-			width: 16px;
-			max-height: 16px;
-		}
-
-		#global-method-comment {
-			display: inline-block;
-			width: 47.5%;
-			margin-left: 2.5%;
-			vertical-align: top;
-		}
-
-		#dashboard-deployment table {
-			width: 100%;
-		}
-
-		#dashboard-deployment td {
-			width: 50%;
-			padding: 0 10px;
-			vertical-align: top;
-		}
-
-		#dashboard-deployment .deployment-warning {
-			color: red;
-			margin-bottom: 6px;
-			display: inline-block;
-		}
-
-		#dashboard-deployment input[type=text] {
-			width: calc(100% - 24px);
-			height: 15px;
-			margin: 0 4px 12px 0;
-		}
-
-		#dashboard-deployment label.checkbox-label {
-			display: block;
-			height: 15px;
-			margin: 0 4px 12px 0;
-		}
-
-		#dashboard-deployment td > div {
-			margin-bottom: 36px;
-		}
-
-		#dashboard-deployment h3 {
-			margin-top: 0;
-		}
-
-		#data_export_types_input_chosen {
-			margin: 0 4px 12px 0;
-		}
-
-		#data_export_types_input_chosen .search-field {
-			height: 22px;
-			padding-top: 3px;
-		}
-
-		#data_export_types_input_chosen .chosen-choices {
-			margin-top: -3px;
-		}
-
-		#data_export_types_input_chosen .chosen-choices li.search-choice {
-			padding: 1px 20px 1px 5px;
-			margin: 2px 5px 2px 0;
-		}
-
-		#data_export_types_input_chosen .chosen-choices li.search-choice .search-choice-close {
-			top: 2px;
-		}
-
-		#dashboard-server-log-controls {
-			height: 30px;
-		}
-
-		#dashboard-server-log-lines {
-			width: 64px;
-		}
-
-		#dashboard-server-log textarea {
-			height: calc(100% - 40px);
-			width: 100%;
-			resize: none;
-			font-family: monospace ! important;
-		}
-
-		#dashboard-server-log .dashboard-spacer {
-			display: inline-block;
-			width: 30px;
-		}
-
-		.menu-order-container {
-			display: flex;
-		}
-
-		.menu-order-config-container {
-			padding: 6px;
-			width: 120px;
-		}
-
-		.menu-order-config-container.header {
-			font-weight: bold;
-			text-align: center;
-		}
-
-		.menu-item {
-			border: 1px solid lightgray;
-			margin-bottom: 4px;
-			padding: 4px;
-		}
-	</style>
 </div>

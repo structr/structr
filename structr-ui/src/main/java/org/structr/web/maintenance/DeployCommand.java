@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -55,7 +55,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -94,6 +93,7 @@ import org.structr.schema.export.StructrMethodDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrSchemaDefinition;
 import org.structr.schema.export.StructrTypeDefinition;
+import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.AbstractMapComparator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
@@ -129,6 +129,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private static final Map<String, String> deferredPageLinks = new LinkedHashMap<>();
 	protected static final Set<String> missingPrincipals       = new HashSet<>();
 	protected static final Set<String> missingSchemaFile       = new HashSet<>();
+	protected static final Set<String> deferredLogTexts        = new HashSet<>();
 
 	protected static final AtomicBoolean deploymentActive      = new AtomicBoolean(false);
 
@@ -252,6 +253,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			missingPrincipals.clear();
 			missingSchemaFile.clear();
+			deferredLogTexts.clear();
 
 			final long startTime = System.currentTimeMillis();
 			customHeaders.put("start", new Date(startTime).toString());
@@ -350,7 +352,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						+ "<b>The data will be imported correctly, based on the old format.</b><br><br>"
 						+ "After this import has finished, you should <b>export again to the same location</b> so that the deployment export data will be upgraded to the most recent format.";
 
-				logger.info(title + ": " + text);
+				deferredLogTexts.add(title + ": " + text);
 				publishWarningMessage(title, htmlText);
 			}
 
@@ -364,7 +366,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				logger.info("Reading {}", grantsMetadataFile);
 				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing resource access grants");
 
-				importListData(ResourceAccess.class, readConfigList(grantsMetadataFile));
+				importResourceAccessGrants(readConfigList(grantsMetadataFile));
 			}
 
 			// read schema-methods.json
@@ -747,6 +749,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} finally {
 
+			// log collected warnings at the end so they dont get lost
+			for (final String logText : deferredLogTexts) {
+				logger.info(logText);
+			}
+
 			// restore saved value
 			Settings.ChangelogEnabled.setValue(changeLogEnabled);
 		}
@@ -773,6 +780,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		try {
+
+			deferredLogTexts.clear();
 
 			final long startTime = System.currentTimeMillis();
 			customHeaders.put("start", new Date(startTime).toString());
@@ -872,7 +881,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 
 		} catch (IOException ex) {
+
 			logger.warn("", ex);
+
+		} finally {
+
+			// log collected warnings at the end so they dont get lost
+			for (final String logText : deferredLogTexts) {
+				logger.info(logText);
+			}
 		}
 	}
 
@@ -1171,6 +1188,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final List<Map<String, Object>> grants = new LinkedList<>();
 		final App app                          = StructrApp.getInstance();
 
+		final List<String> unreachableGrants = new LinkedList<>();
+
 		try (final Tx tx = app.tx()) {
 
 			for (final ResourceAccess res : app.nodeQuery(ResourceAccess.class).sort(ResourceAccess.signature).getAsList()) {
@@ -1181,9 +1200,33 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				grant.put("id",        res.getProperty(ResourceAccess.id));
 				grant.put("signature", res.getProperty(ResourceAccess.signature));
 				grant.put("flags",     res.getProperty(ResourceAccess.flags));
+				grant.put("visibleToPublicUsers",        res.isVisibleToPublicUsers());
+				grant.put("visibleToAuthenticatedUsers", res.isVisibleToAuthenticatedUsers());
+
+				exportSecurity(res, grant);
+
+				final List grantees = (List)grant.get("grantees");
+
+				if (res.getProperty(ResourceAccess.flags) > 0 && res.isVisibleToPublicUsers() == false && res.isVisibleToAuthenticatedUsers() == false && grantees.isEmpty()) {
+					unreachableGrants.add(res.getProperty(ResourceAccess.signature));
+				}
 			}
 
 			tx.success();
+		}
+
+		if (!unreachableGrants.isEmpty()) {
+
+			final String text = "Found configured but unreachable grant(s)! The ability to use group/user rights to grants has been added to improve flexibility.\n\n  The following grants are inaccessible for any non-admin users:\n\n"
+					+ unreachableGrants.stream().reduce( "", (acc, signature) -> acc.concat("  - ").concat(signature).concat("\n"))
+					+ "\n  You can edit the visibility in the 'Security' area.\n";
+
+			final String htmlText = "The ability to use group/user rights to grants has been added to improve flexibility. The following grants are inaccessible for any non-admin users:<br><br>"
+					+ unreachableGrants.stream().reduce( "", (acc, signature) -> acc.concat("&nbsp;- ").concat(signature).concat("<br>"))
+					+ "<br>You can edit the visibility in the <a href=\"#security\">Security</a> area.";
+
+			deferredLogTexts.add(text);
+			publishWarningMessage("Found configured but unreachable grant(s)", htmlText);
 		}
 
 		writeSortedCompactJsonToFile(target, grants, null);
@@ -1320,7 +1363,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			writeStringToFile(schemaJson, schema.toString());
 
 		} catch (Throwable t) {
-			logger.error(ExceptionUtils.getStackTrace(t));
+			logger.error("", t);
 		}
 	}
 
@@ -1329,7 +1372,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		putData(config, "id",                          node.getProperty(DOMNode.id));
 		putData(config, "visibleToPublicUsers",        node.isVisibleToPublicUsers());
 		putData(config, "visibleToAuthenticatedUsers", node.isVisibleToAuthenticatedUsers());
-		putData(config, "contentType",                 node.getProperty(StructrApp.key(Content.class, "contentType")));
+
+		if (node instanceof Content) {
+			putData(config, "contentType", node.getProperty(StructrApp.key(Content.class, "contentType")));
+		}
 
 		if (node instanceof Template) {
 
@@ -1458,6 +1504,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		}
 
+		exportSecurity(node, config);
+	}
+
+	protected void exportSecurity(final NodeInterface node, final Map<String, Object> config) {
+
 		// export security grants
 		final List<Map<String, Object>> grantees = new LinkedList<>();
 		for (final Security security : node.getSecurityRelationships()) {
@@ -1574,7 +1625,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 		} catch (Throwable t) {
-			logger.error(ExceptionUtils.getStackTrace(t));
+			logger.error("", t);
 		}
 
 		mailTemplates.sort(new AbstractMapComparator<Object>() {
@@ -1753,7 +1804,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info(message);
 					publishProgressMessage(progressType, message);
 
-					Scripting.evaluate(new ActionContext(ctx), null, confSource, confFile.getFileName().toString());
+					Scripting.evaluate(new ActionContext(ctx), null, confSource, confFile.getFileName().toString(), null);
 
 				} else {
 
@@ -1803,10 +1854,111 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (FrameworkException fex) {
 
-			logger.error("Unable to import {}, aborting with {}", type.getSimpleName(), fex.getMessage());
-			logger.error(ExceptionUtils.getStackTrace(fex));
+			logger.error("Unable to import {}, aborting with {}", type.getSimpleName(), fex.getMessage(), fex);
 
 			throw fex;
+		}
+	}
+
+	private void importResourceAccessGrants(final List<Map<String, Object>> data) throws FrameworkException {
+
+		boolean isOldExport = false;
+		final StringBuilder grantMessagesHtml = new StringBuilder();
+		final StringBuilder grantMessagesText = new StringBuilder();
+
+		final SecurityContext context = SecurityContext.getSuperUserInstance();
+		context.setDoTransactionNotifications(false);
+		final App app                 = StructrApp.getInstance(context);
+
+		try (final Tx tx = app.tx()) {
+
+			tx.disableChangelog();
+
+			for (final ResourceAccess toDelete : app.nodeQuery(ResourceAccess.class).getAsList()) {
+				app.delete(toDelete);
+			}
+
+			for (final Map<String, Object> entry : data) {
+
+				if (!entry.containsKey("grantees") && !entry.containsKey("visibleToPublicUsers") && !entry.containsKey("visibleToAuthenticatedUsers")) {
+
+					isOldExport = true;
+
+					final long flags = ((Number)entry.get("flags")).longValue();
+					if (flags != 0) {
+
+						final String signature = (String)entry.get("signature");
+
+						final boolean hasAnyNonAuthFlags = ((flags & UiAuthenticator.NON_AUTH_USER_GET) == UiAuthenticator.NON_AUTH_USER_GET) ||
+							((flags & UiAuthenticator.NON_AUTH_USER_PUT) == UiAuthenticator.NON_AUTH_USER_PUT) ||
+							((flags & UiAuthenticator.NON_AUTH_USER_POST) == UiAuthenticator.NON_AUTH_USER_POST) ||
+							((flags & UiAuthenticator.NON_AUTH_USER_DELETE) == UiAuthenticator.NON_AUTH_USER_DELETE) ||
+							((flags & UiAuthenticator.NON_AUTH_USER_OPTIONS) == UiAuthenticator.NON_AUTH_USER_OPTIONS) ||
+							((flags & UiAuthenticator.NON_AUTH_USER_HEAD) == UiAuthenticator.NON_AUTH_USER_HEAD) ||
+							((flags & UiAuthenticator.NON_AUTH_USER_PATCH) == UiAuthenticator.NON_AUTH_USER_PATCH);
+
+						final boolean hasAnyAuthFlags = ((flags & UiAuthenticator.AUTH_USER_GET) == UiAuthenticator.AUTH_USER_GET) ||
+							((flags & UiAuthenticator.AUTH_USER_PUT) == UiAuthenticator.AUTH_USER_PUT) ||
+							((flags & UiAuthenticator.AUTH_USER_POST) == UiAuthenticator.AUTH_USER_POST) ||
+							((flags & UiAuthenticator.AUTH_USER_DELETE) == UiAuthenticator.AUTH_USER_DELETE) ||
+							((flags & UiAuthenticator.AUTH_USER_OPTIONS) == UiAuthenticator.AUTH_USER_OPTIONS) ||
+							((flags & UiAuthenticator.AUTH_USER_HEAD) == UiAuthenticator.AUTH_USER_HEAD) ||
+							((flags & UiAuthenticator.AUTH_USER_PATCH) == UiAuthenticator.AUTH_USER_PATCH);
+
+						if (hasAnyNonAuthFlags) {
+							grantMessagesHtml.append("Signature <b>").append(signature).append("</b> was set to <code>visibleToPublicUsers: true</code><br>");
+							grantMessagesText.append("    Signature '").append(signature).append("' was set to 'visibleToPublicUsers: true'\n");
+						}
+
+						if (hasAnyAuthFlags) {
+							grantMessagesHtml.append("Signature <b>").append(signature).append("</b> was set to <code>visibleToAuthenticatedUsers: true</code><br>");
+							grantMessagesText.append("    Signature '").append(signature).append("' was set to 'visibleToAuthenticatedUsers: true'\n");
+						}
+
+						if (hasAnyNonAuthFlags && hasAnyAuthFlags) {
+							grantMessagesHtml.append("Signature <b>").append(signature).append("</b> is probably misconfigured and <b><u>should be split into two grants</u></b>.<br>");
+							grantMessagesText.append("    Signature '").append(signature).append("' is probably misconfigured and **should be split into two grants**.\n");
+						}
+
+						entry.put("visibleToAuthenticatedUsers", hasAnyAuthFlags);
+						entry.put("visibleToPublicUsers",        hasAnyNonAuthFlags);
+					}
+
+				} else {
+					checkOwnerAndSecurity(entry);
+				}
+
+				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, ResourceAccess.class, entry);
+
+				app.create(ResourceAccess.class, map);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.error("Unable to import resouce access grant, aborting with {}", fex.getMessage(), fex);
+
+			throw fex;
+
+		} finally {
+
+			if (isOldExport) {
+
+				final String text = "Found outdated version of grants.json file without visibility and grantees!\n\n"
+						+ "    Configuration was auto-updated using this simple heuristic:\n"
+						+ "     * Grants with public access were set to **visibleToPublicUsers: true**\n"
+						+ "     * Grants with authenticated access were set to **visibleToAuthenticatedUsers: true**\n\n"
+						+ "    Please make any necessary changes in the 'Security' area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
+
+				final String htmlText = "Configuration was auto-updated using this simple heuristic:<br>"
+						+ "&nbsp;- Grants with public access were set to <code>visibleToPublicUsers: true</code><br>"
+						+ "&nbsp;- Grants with authenticated access were set to <code>visibleToAuthenticatedUsers: true</code><br><br>"
+						+ "Please make any necessary changes in the <a href=\"#security\">Security</a> area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
+
+				deferredLogTexts.add(text + "\n\n" + grantMessagesText);
+				publishWarningMessage("Found grants.json file without visibility and grantees", htmlText + "<br><br>" + grantMessagesHtml);
+			}
 		}
 	}
 
@@ -1843,8 +1995,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (FrameworkException fex) {
 
-			logger.error("Unable to import site, aborting with {}", fex.getMessage());
-			logger.error(ExceptionUtils.getStackTrace(fex));
+			logger.error("Unable to import site, aborting with {}", fex.getMessage(), fex);
 
 			throw fex;
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -97,7 +97,7 @@ public interface LDAPGroup extends Group {
 
 			} catch (Throwable t) {
 
-				logger.warn("Unable to sync group {}: {}", thisGroup.getName(), t.getMessage());
+				logger.warn("Unable to sync group " + thisGroup.getName(), t.getMessage());
 			}
 
 		} else {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,22 +20,12 @@ package org.structr.schema.compiler;
 
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
-import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 import org.apache.commons.lang.StringUtils;
@@ -53,6 +43,8 @@ import org.structr.module.JarConfigurationProvider;
 import org.structr.schema.SourceFile;
 import org.structr.schema.SourceLine;
 
+import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
+
 /**
  *
  *
@@ -62,9 +54,10 @@ public class NodeExtender {
 	private static final Logger logger   = LoggerFactory.getLogger(NodeExtender.class.getName());
 
 	private static final JavaCompiler compiler       = ToolProvider.getSystemJavaCompiler();
-	private static final JavaFileManager fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
+	private static final ClassFileManager fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
 	private static final ClassLoader classLoader     = fileManager.getClassLoader(null);
-	private static final Map<String, Class> classes  = new TreeMap<>();
+	private static final Map<String, Class> classes   = new TreeMap<>();
+	private static final Map<String, String> contentsMD5 = new HashMap<>();
 
 	private List<SourceFile> sources     = null;
 	private Set<String> fqcns            = null;
@@ -89,14 +82,22 @@ public class NodeExtender {
 		return classes;
 	}
 
-	public void addClass(final String className, final SourceFile sourceFile) throws ClassNotFoundException {
+	public boolean addClass(final String className, final SourceFile sourceFile) throws ClassNotFoundException {
 
 		if (className != null && sourceFile != null) {
 
-			final String packageName = JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE;
+			final String fqcn = JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE + "." + className;
+			fqcns.add(fqcn);
 
+			// skip if not changed
+			String oldMD5 = contentsMD5.get(fqcn);
+			String newMD5 = md5Hex(sourceFile.getContent());
+			if(newMD5.equals(oldMD5)){
+				return false;
+			}
+
+			contentsMD5.put(fqcn, newMD5);
 			sources.add(sourceFile);
-			fqcns.add(packageName.concat(".".concat(className)));
 
 			if (Settings.LogSchemaOutput.getValue()) {
 
@@ -108,7 +109,11 @@ public class NodeExtender {
 					logger.info(StringUtils.rightPad(++count + ": ", 6) + line);
 				}
 			}
+
+			return true;
 		}
+
+		return false;
 	}
 
 	public synchronized Map<String, Class> compile(final ErrorBuffer errorBuffer) throws ClassNotFoundException {
@@ -156,6 +161,10 @@ public class NodeExtender {
 				for (final Class newType : newClasses) {
 					classes.put(newType.getName(), newType);
 				}
+
+				// remove deleted classes (note: handle inner classes)
+				fileManager.objects.entrySet().removeIf(entry -> !fqcns.contains(entry.getKey().split("\\$")[0]));
+				contentsMD5.entrySet().removeIf(entry -> !fqcns.contains(entry.getKey()));
 
 				logger.info("Successfully compiled {} dynamic entities: {}", new Object[] { sources.size(), sources.stream().map(f -> f.getName().replaceFirst("/", "")).collect(Collectors.joining(", ")) });
 

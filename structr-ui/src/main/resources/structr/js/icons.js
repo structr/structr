@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -379,6 +379,6 @@ var _Icons = {
 	},
 
 	getHtmlForIcon: function (icon) {
-		return '<i class="' + _Icons.getFullSpriteClass(icon) + '" />';
+		return '<i class="' + _Icons.getFullSpriteClass(icon) + '"></i>';
 	}
 };

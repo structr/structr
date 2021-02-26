@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -58,6 +58,9 @@ public interface JsonMethod extends Comparable<JsonMethod> {
 
 	public boolean callSuper();
 	public JsonMethod setCallSuper(final boolean callsSuper);
+
+	public boolean isStatic();
+	public JsonMethod setIsStatic(final boolean callsSuper);
 
 	public List<String> getExceptions();
 	public JsonMethod addException(final String exception);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -1605,7 +1605,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		try {
 
-			result = Scripting.replaceVariables(renderContext, this, value, true);
+			result = Scripting.replaceVariables(renderContext, this, value, true, key.jsonName());
 
 		} catch (Throwable t) {
 

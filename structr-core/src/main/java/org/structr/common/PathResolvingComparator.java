@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,10 +21,12 @@ package org.structr.common;
 import java.util.Comparator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.action.ActionContext;
 
 /**
  * A comparator for structr entities that uses a dot-notation path
@@ -37,18 +39,21 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 
 	private static final Logger logger    = LoggerFactory.getLogger(PathResolvingComparator.class.getName());
 
-	private boolean sortDescending = false;
-	private String sortKey         = null;
+	private ActionContext actionContext = null;
+	private boolean sortDescending      = false;
+	private String sortKey              = null;
 
 	/**
 	 * Creates a new PathResolvingComparator with the given sort key and order.
+	 * @param acionContext
 	 * @param sortKey
 	 * @param sortDescending
 	 */
-	public PathResolvingComparator(final String sortKey, final boolean sortDescending) {
+	public PathResolvingComparator(final ActionContext actionContext, final String sortKey, final boolean sortDescending) {
 
-		this.sortKey        = sortKey;
 		this.sortDescending = sortDescending;
+		this.actionContext  = actionContext;
+		this.sortKey        = sortKey;
 	}
 
 	@Override
@@ -100,8 +105,8 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 
 		for (final String part : parts) {
 
-			final Class type      = current.getEntityType();
-			final PropertyKey key = config.getPropertyKeyForJSONName(type, part, false);
+			final Class type      = current.getClass();
+			final PropertyKey key = config.getPropertyKeyForJSONName(type, part);
 
 			if (key == null) {
 
@@ -109,30 +114,42 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 				return null;
 			}
 
-			final Object value = current.getProperty(key);
-			if (value != null) {
+			try {
+				final Object value = current.evaluate(actionContext, part, null);
+				if (value != null) {
 
-				// last part of path?
-				if (++pos == parts.length) {
+					// last part of path?
+					if (++pos == parts.length) {
 
-					if (value instanceof Comparable) {
+						if (value instanceof Comparable) {
 
-						return (Comparable)value;
+							return (Comparable)value;
+						}
+
+						logger.warn("Path evaluation result of component {} of type {} in {} cannot be used for sorting.", part, value.getClass().getSimpleName(), path);
+						return null;
 					}
 
-					logger.warn("Path evaluation result of component {} of type {} in {} cannot be used for sorting.", part, value.getClass().getSimpleName(), path);
-					return null;
-				}
+					if (value instanceof GraphObject) {
 
-				if (value instanceof GraphObject) {
+						current = (GraphObject)value;
 
-					current = (GraphObject)value;
+					} else {
+
+						logger.warn("Path component {} of type {} in {} cannot be evaluated further.", part, value.getClass().getSimpleName(), path);
+						return null;
+					}
 
 				} else {
 
-					logger.warn("Path component {} of type {} in {} cannot be evaluated further.", part, value.getClass().getSimpleName(), path);
+					// value needs to be sorted as null if getProperty() returns null
 					return null;
 				}
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("Exception while evaluating sort path {}: {}", path, fex.getMessage());
+				return null;
 			}
 		}
 

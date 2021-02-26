@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -193,24 +193,28 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 
 	public static RelationshipWrapper newInstance(final BoltDatabaseService db, final org.neo4j.driver.types.Relationship relationship) {
 
+		RelationshipWrapper wrapper;
+
 		synchronized (relationshipCache) {
 
-			RelationshipWrapper wrapper = relationshipCache.get(relationship.id());
+			wrapper = relationshipCache.get(relationship.id());
 			if (wrapper == null || wrapper.stale) {
 
 				wrapper = new RelationshipWrapper(db, relationship);
 				relationshipCache.put(relationship.id(), wrapper);
 			}
-
-			return wrapper;
 		}
+
+		return wrapper;
 	}
 
 	public static RelationshipWrapper newInstance(final BoltDatabaseService db, final long id) {
 
+		RelationshipWrapper wrapper;
+
 		synchronized (relationshipCache) {
 
-			RelationshipWrapper wrapper = relationshipCache.get(id);
+			wrapper = relationshipCache.get(id);
 			if (wrapper == null || wrapper.stale) {
 
 				final SessionTransaction tx   = db.getCurrentTransaction();
@@ -240,8 +244,8 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 
 				relationshipCache.put(id, wrapper);
 			}
-
-			return wrapper;
 		}
+
+		return wrapper;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -556,14 +556,14 @@ public class Deployment4Test extends DeploymentTestBase {
 			app.create(projectType, "Project1");
 			app.create(projectType, "Project2");
 
-			// allow REST access
-			grant("Project", UiAuthenticator.AUTH_USER_GET, true);
-
 			tx.success();
 
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
 		}
+
+		// allow REST access
+		grant("Project", UiAuthenticator.AUTH_USER_GET, true);
 
 		// test before roundtrip
 		RestAssured
@@ -806,16 +806,16 @@ public class Deployment4Test extends DeploymentTestBase {
 				new NodeAttribute<>(StructrApp.key(User.class, "password"), "password")
 			);
 
-			// allow REST access
-			grant("Public",        UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET,  true); // reset all other grants
-			grant("Authenticated", UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET, false);
-			grant("Both",          UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET, false);
-
 			tx.success();
 
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
 		}
+
+		// allow REST access
+		grant("Public",        UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET,  true); // reset all other grants
+		grant("Authenticated", UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET, false);
+		grant("Both",          UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET, false);
 
 		// test before roundtrip
 		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");

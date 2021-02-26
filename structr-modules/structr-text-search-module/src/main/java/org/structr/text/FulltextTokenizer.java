@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,7 +30,6 @@ import org.apache.tika.language.detect.LanguageDetector;
 import org.apache.tika.language.detect.LanguageResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 
 /**
  *
@@ -42,8 +41,8 @@ public class FulltextTokenizer extends Writer {
 
 	public static final Set<Character> SpecialChars = new LinkedHashSet<>();
 
-	private final int wordMinLength          = Settings.IndexingMinLength.getValue();
-	private final int wordMaxLength          = Settings.IndexingMaxLength.getValue();
+	private Integer wordMinLength            = null;
+	private Integer wordMaxLength            = null;
 	private final StringBuilder rawText      = new StringBuilder();
 	private final StringBuilder wordBuffer   = new StringBuilder();
 	private final List<String> words         = new LinkedList<>();
@@ -68,7 +67,11 @@ public class FulltextTokenizer extends Writer {
 		SpecialChars.add(',');
 	}
 
-	public FulltextTokenizer() {
+	public FulltextTokenizer(final Integer wordMinLength, final Integer wordMaxLength) {
+
+		this.wordMinLength = wordMinLength;
+		this.wordMaxLength = wordMaxLength;
+
 	}
 
 	@Override

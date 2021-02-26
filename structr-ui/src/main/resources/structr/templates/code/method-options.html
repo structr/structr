@@ -9,11 +9,14 @@
 			<label>Name</label>
 			<input type="text" id="method-name-input" data-property="name" size="30" value="${config.method.name}" />
 		</p>
-		<p class="checkbox hidden">
+		<p class="checkbox hidden global-method">
 			<label style="margin: 24px 0 0 10px;" data-comment="Only needs to be set if the method should be callable via REST by public users."><input type="checkbox" data-property="visibleToPublicUsers" ${config.method.visibleToPublicUsers ? 'checked' : ''} /> visibleToPublicUsers</label>
 		</p>
-		<p class="checkbox hidden">
+		<p class="checkbox hidden global-method">
 			<label style="margin: 24px 0 0 10px;" data-comment="Only needs to be set if the method should be callable via REST by authenticated users."><input type="checkbox" data-property="visibleToAuthenticatedUsers" ${config.method.visibleToAuthenticatedUsers ? 'checked' : ''} /> visibleToAuthenticatedUsers</label>
+		</p>
+		<p class="checkbox hidden entity-method">
+			<label style="margin: 24px 0 0 10px;" data-comment="Only needs to be set if the method should be callable statically (without an object context)."><input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''} /> isStatic</label>
 		</p>
 		<p class="input">
 			<button class="hidden" id="dismiss-warnings-button" style="margin: 26px 0 0 40px; width: 200px;" type="button"><i class="sprite sprite-tick"></i> <span>Dismiss scripting warnings</span></button>

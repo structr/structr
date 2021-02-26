@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -79,7 +79,8 @@ public abstract class StreamingWriter {
 	private Value<String> propertyView                    = null;
 	protected boolean indent                              = true;
 	protected boolean compactNestedProperties             = true;
-	protected boolean wrapSingleResultInArray           = false;
+	protected boolean wrapSingleResultInArray             = false;
+	private int skippedDeletedObjects                     = 0;
 
 	public abstract RestWriter getRestWriter(final SecurityContext securityContext, final Writer writer);
 
@@ -189,6 +190,24 @@ public abstract class StreamingWriter {
 					rootWriter.name("result_size").value(actualResultCount);
 					rootWriter.name("hint").value("Use pageSize parameter to avoid automatic response size limit");
 					rootWriter.endObject();
+				}
+
+				// in the future more conditions could be added to show different warnings
+				final boolean hasWarnings = (skippedDeletedObjects > 0);
+
+				if (hasWarnings) {
+
+					rootWriter.name("warnings").beginArray();
+
+					if (skippedDeletedObjects > 0) {
+						rootWriter.beginObject();
+						rootWriter.name("token").value("SKIPPED_OBJECTS");
+						rootWriter.name("message").value("Skipped serializing " + skippedDeletedObjects + " object(s) because they were deleted between the creation and the serialization of the result. The result_count will differ from the number of returned results");
+						rootWriter.name("skipped").value(skippedDeletedObjects);
+						rootWriter.endObject();
+					}
+
+					rootWriter.endArray();
 				}
 
 				// make output available immediately
@@ -388,6 +407,11 @@ public abstract class StreamingWriter {
 
 				hashCode = source.hashCode();
 				visitedObjects.add(hashCode);
+
+				if (source.getPropertyContainer() != null && source.getPropertyContainer().isDeleted()) {
+					skippedDeletedObjects++;
+					return 1;
+				}
 
 				writer.beginObject(source);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,10 +32,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
-import org.mozilla.javascript.NativeObject;
-import org.mozilla.javascript.ScriptRuntime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -88,9 +87,9 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 				if (sources.length >= 3 && sources[2] != null) {
 
-					if (sources[2] instanceof NativeObject) {
+					if (sources[2] instanceof Map) {
 
-						changelogFilter.processJavaScriptConfigurationObject((NativeObject) sources[2]);
+						changelogFilter.processJavaScriptConfigurationObject((Map)sources[2]);
 
 					} else {
 
@@ -355,7 +354,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 			}
 		}
 
-		public void processJavaScriptConfigurationObject(final NativeObject javascriptConfigObject) {
+		public void processJavaScriptConfigurationObject(final Map<String, Object> javascriptConfigObject) {
 
 			assignStringsIfPresent(javascriptConfigObject.get("verb"), _filterVerbs);
 
@@ -377,7 +376,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 		private void assignLongIfPresent (final Object possibleLong, Long targetLongReference) {
 
 			if (possibleLong != null) {
-				targetLongReference = new Double(ScriptRuntime.toNumber(possibleLong)).longValue();
+				targetLongReference = ((Long)possibleLong);
 			}
 		}
 

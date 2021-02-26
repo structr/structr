@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -222,15 +222,15 @@ $(function() {
 		}
 		// Ctrl-Alt-g
 		if (k === 71 && altKey && ctrlKey) {
-		    e.preventDefault();
-		    var uuid = prompt('Enter the UUID for which you want to open the access control dialog');
-		    if (uuid && uuid.length === 32) {
+			e.preventDefault();
+			var uuid = prompt('Enter the UUID for which you want to open the access control dialog');
+			if (uuid && uuid.length === 32) {
 				Command.get(uuid, null, function(obj) {
 					_Entities.showAccessControlDialog(obj);
 				});
 			} else {
 				alert('That does not look like a UUID! length != 32');
-		    }
+			}
 		}
 		// Ctrl-Alt-h
 		if (k === 72 && altKey && ctrlKey) {
@@ -482,11 +482,11 @@ var Structr = {
 			if (!sessionId && location.protocol === 'http:') {
 
 				new MessageBuilder()
-						.title("Unable to retrieve session id cookie")
-						.warning("This is most likely due to a pre-existing secure HttpOnly cookie. Please navigate to the HTTPS version of this page (even if HTTPS is inactive) and delete the JSESSIONID cookie. Then return to this page and reload. This should solve the problem.")
-						.requiresConfirmation()
-						.uniqueClass("http-only-cookie")
-						.show();
+					.title("Unable to retrieve session id cookie")
+					.warning("This is most likely due to a pre-existing secure HttpOnly cookie. Please navigate to the HTTPS version of this page (even if HTTPS is inactive) and delete the JSESSIONID cookie. Then return to this page and reload. This should solve the problem.")
+					.requiresConfirmation()
+					.uniqueClass("http-only-cookie")
+					.show();
 			}
 
 			if (typeof callback === "function") {
@@ -682,7 +682,7 @@ var Structr = {
 		var l = parseInt((w - dw) / 2);
 		var t = parseInt((h - dh) / 2);
 
-		var horizontalOffset = 98;
+		var horizontalOffset = 113;
 
 		// needs to be calculated like this because the elements in the dialogHead (tabs) are floated and thus the .height() method returns 0
 		var headerHeight = (dialogText.position().top + dialogText.scrollParent().scrollTop()) - dialogHead.position().top;
@@ -1102,12 +1102,11 @@ var Structr = {
 
 		var t = $(triggerEl);
 		t.addClass('active');
-		var slideoutWidth = rsw + 12;
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
 		slideoutElement.width(rsw);
 		slideoutElement.animate({right: 0 + 'px'}, 100, function() {
 			if (typeof callback === 'function') {
-				callback({sw: slideoutWidth, isOpenAction: true});
+				callback({isOpenAction: true});
 			}
 		}).zIndex(1);
 		slideoutElement.addClass('open');
@@ -1125,12 +1124,10 @@ var Structr = {
 				});
 				ui.position.top += (ui.helper.width() / 2 - 6);
 				ui.position.left = - t.width() / 2 - 20;
-				var oldRightSlideoutWidth = slideoutWidth;
-				slideoutWidth = w + 12;
 
 				if (typeof callback === 'function') {
 					LSWrapper.setItem(_Pages.rightSlideoutWidthKey, slideoutElement.width());
-					callback({sw: (slideoutWidth - oldRightSlideoutWidth)});
+					callback({isOpenAction: false});
 				}
 			},
 			stop: function(e, ui) {
@@ -1148,20 +1145,18 @@ var Structr = {
 		});
 	},
 	openLeftSlideOut: function(triggerEl, slideoutElement, activeTabKey, callback) {
+
 		var storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.leftSlideoutWidthKey);
 		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (slideoutElement.width() + 12);
 
 		var t = $(triggerEl);
 		t.addClass('active');
-		var slideoutWidth = psw + 12;
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
 		slideoutElement.width(psw);
 		slideoutElement.animate({left: 0 + 'px'}, 100, function() {
 			if (typeof callback === 'function') {
-				callback({sw: slideoutWidth, isOpenAction: true});
+				callback({isOpenAction: true});
 			}
-		}).zIndex(1);
-		slideoutElement.addClass('open');
 
 		t.draggable({
 			axis: 'x',
@@ -1174,14 +1169,12 @@ var Structr = {
 				slideoutElement.css({
 					width: w + 'px'
 				});
-				ui.position.top += (ui.helper.width() / 2 - 6);
+				ui.position.top  += (ui.helper.width() / 2 - 6);
 				ui.position.left -= (ui.helper.width() / 2 - 6);
-				var oldLeftSlideoutWidth = slideoutWidth;
-				slideoutWidth = w + 12;
 
 				if (typeof callback === 'function') {
 					LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
-					callback({sw: (slideoutWidth - oldLeftSlideoutWidth)});
+					callback({isOpenAction: false});
 				}
 			},
 			stop: function(e, ui) {
@@ -1197,10 +1190,13 @@ var Structr = {
 				});
 			}
 		});
+		}).zIndex(1);
+
+		slideoutElement.addClass('open');
+
 	},
 	closeSlideOuts: function(slideouts, activeTabKey, callback) {
 		var wasOpen = false;
-		var rsw = 0;
 
 		slideouts.forEach(function(slideout) {
 			slideout.removeClass('open');
@@ -1209,10 +1205,9 @@ var Structr = {
 
 			if (Math.abs($(window).width() - left) >= 3) {
 				wasOpen = true;
-				rsw = sw;
 				slideout.animate({right: '-=' + sw + 'px'}, 100, function() {
 					if (typeof callback === 'function') {
-						callback(wasOpen, 0, -rsw);
+						callback(wasOpen);
 					}
 				}).zIndex(2);
 				$('.compTab.active', slideout).removeClass('active').draggable('destroy');
@@ -1626,15 +1621,15 @@ var Structr = {
 		createdElements.push(helpElement);
 
 		toggleElement
-				.on("mousemove", function(e) {
-					helpElement.show();
-					helpElement.css({
-						left: Math.min(e.clientX + 20 + offsetX, window.innerWidth - helpElement.width() - 50),
-						top: Math.min(e.clientY + 10 + offsetY, window.innerHeight - helpElement.height() - 10)
-					});
-				}).on("mouseout", function(e) {
-					helpElement.hide();
+			.on("mousemove", function(e) {
+				helpElement.show();
+				helpElement.css({
+					left: Math.min(e.clientX + 20 + offsetX, window.innerWidth - helpElement.width() - 50),
+					top: Math.min(e.clientY + 10 + offsetY, window.innerHeight - helpElement.height() - 10)
 				});
+			}).on("mouseout", function(e) {
+			helpElement.hide();
+		});
 
 		if (insertAfter) {
 			if (!customToggleElement) {
@@ -1666,6 +1661,7 @@ var Structr = {
 	handleGenericMessage: function(data) {
 
 		let showScheduledJobsNotifications = Importer.isShowNotifications();
+		let showScriptingErrorPopups       = _Dashboard.isShowScriptingErrorPopups();
 
 		switch (data.type) {
 
@@ -1693,11 +1689,11 @@ var Structr = {
 
 				if (me.username === data.username) {
 					new MessageBuilder()
-							.title(data.title)
-							.error(data.text)
-							.requiresConfirmation()
-							.allowConfirmAll()
-							.show();
+						.title(data.title)
+						.error(data.text)
+						.requiresConfirmation()
+						.allowConfirmAll()
+						.show();
 				}
 				break;
 
@@ -1730,10 +1726,10 @@ var Structr = {
 				if (showScheduledJobsNotifications && me.username === data.username) {
 
 					var msg = new MessageBuilder()
-							.title(data.jobtype + ' ' + fileImportTitles[data.subtype])
-							.className((data.subtype === 'END') ? 'success' : 'info')
-							.text(fileImportTexts[data.subtype])
-							.uniqueClass(data.jobtype + '-import-status-' + data.filepath);
+						.title(data.jobtype + ' ' + fileImportTitles[data.subtype])
+						.className((data.subtype === 'END') ? 'success' : 'info')
+						.text(fileImportTexts[data.subtype])
+						.uniqueClass(data.jobtype + '-import-status-' + data.filepath);
 
 					if (data.subtype !== 'QUEUED') {
 						msg.updatesText().requiresConfirmation().allowConfirmAll();
@@ -1757,11 +1753,11 @@ var Structr = {
 					}
 
 					new MessageBuilder()
-							.title("Exception while importing " + data.jobtype)
-							.error("File: " + data.filepath + "<br>" + text)
-							.requiresConfirmation()
-							.allowConfirmAll()
-							.show();
+						.title("Exception while importing " + data.jobtype)
+						.error("File: " + data.filepath + "<br>" + text)
+						.requiresConfirmation()
+						.allowConfirmAll()
+						.show();
 				}
 
 				if (Structr.isModuleActive(Importer)) {
@@ -1785,10 +1781,10 @@ var Structr = {
 				if (showScheduledJobsNotifications && me.username === data.username) {
 
 					let msg = new MessageBuilder()
-							.title(scriptJobTitles[data.subtype])
-							.className((data.subtype === 'END') ? 'success' : 'info')
-							.text('<div>' + scriptJobTexts[data.subtype] + '</div>')
-							.uniqueClass(data.jobtype + '-' + data.subtype).appendsText();
+						.title(scriptJobTitles[data.subtype])
+						.className((data.subtype === 'END') ? 'success' : 'info')
+						.text('<div>' + scriptJobTexts[data.subtype] + '</div>')
+						.uniqueClass(data.jobtype + '-' + data.subtype).appendsText();
 
 					if (data.subtype !== 'QUEUED') {
 						msg.requiresConfirmation().allowConfirmAll();
@@ -1816,8 +1812,8 @@ var Structr = {
 				if (data.subtype === 'BEGIN') {
 
 					var text = type + ' started: ' + new Date(data.start) + '<br>'
-							+ 'Importing from: ' + data.source + '<br><br>'
-							+ 'Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>';
+						+ 'Importing from: ' + data.source + '<br><br>'
+						+ 'Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>';
 
 					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info(text).requiresConfirmation().updatesText().show();
 
@@ -1828,8 +1824,8 @@ var Structr = {
 				} else if (data.subtype === 'END') {
 
 					var text = "<br>" + type + " finished: " + new Date(data.end)
-							+ "<br>Total duration: " + data.duration
-							+ "<br><br>Reload the page to see the new data.";
+						+ "<br>Total duration: " + data.duration
+						+ "<br><br>Reload the page to see the new data.";
 
 					new MessageBuilder().title(type + " finished").uniqueClass(messageCssClass).success(text).specialInteractionButton('Reload Page', function() { location.reload(); }, 'Ignore').appendsText().updatesButtons().show();
 
@@ -1850,8 +1846,8 @@ var Structr = {
 				if (data.subtype === 'BEGIN') {
 
 					var text = type + ' started: ' + new Date(data.start) + '<br>'
-							+ 'Exporting to: ' + data.target + '<br><br>'
-							+ 'System performance may be affected during Export.<br><ol class="message-steps"></ol>';
+						+ 'Exporting to: ' + data.target + '<br><br>'
+						+ 'System performance may be affected during Export.<br><ol class="message-steps"></ol>';
 
 					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info(text).requiresConfirmation().updatesText().show();
 
@@ -1862,7 +1858,7 @@ var Structr = {
 				} else if (data.subtype === 'END') {
 
 					var text = '<br>'+ type + ' finished: ' + new Date(data.end)
-							+ '<br>Total duration: ' + data.duration;
+						+ '<br>Total duration: ' + data.duration;
 
 					new MessageBuilder().title(type + ' finished').uniqueClass(messageCssClass).success(text).appendsText().requiresConfirmation().show();
 
@@ -1874,7 +1870,7 @@ var Structr = {
 				if (data.subtype === 'BEGIN') {
 
 					var text = "Schema Analysis started: " + new Date(data.start) + "<br>"
-							+ "Please wait until the import process is finished. This message will be updated during the process.<br><ol class='message-steps'></ol>";
+						+ "Please wait until the import process is finished. This message will be updated during the process.<br><ol class='message-steps'></ol>";
 
 					new MessageBuilder().title("Schema Analysis progress").uniqueClass('schema-analysis').info(text).requiresConfirmation().updatesText().show();
 
@@ -1885,11 +1881,38 @@ var Structr = {
 				} else if (data.subtype === 'END') {
 
 					var text = "<br>Schema Analysis finished: " + new Date(data.end)
-							+ "<br>Total duration: " + data.duration;
+						+ "<br>Total duration: " + data.duration;
 
 					new MessageBuilder().title("Schema Analysis finished").uniqueClass('schema-analysis').success(text).appendsText().requiresConfirmation().show();
 
 				}
+				break;
+
+			case "CERTIFICATE_RETRIEVAL_STATUS":
+
+				if (data.subtype === 'BEGIN') {
+
+					var text = "Process to retrieve a Let's Encrypt certificate via ACME started: " + new Date(data.start) + "<br>"
+						+ "This will take a couple of seconds. This message will be updated during the process.<br><ol class='message-steps'></ol>";
+
+					new MessageBuilder().title("Certificate retrieval progress").uniqueClass('cert-retrieval').info(text).requiresConfirmation().updatesText().show();
+
+				} else if (data.subtype === 'PROGRESS') {
+
+					new MessageBuilder().title("Certificate retrieval progress").uniqueClass('cert-retrieval').info("<li>" + data.message + "</li>").requiresConfirmation().appendsText('.message-steps').show();
+
+				} else if (data.subtype === 'END') {
+
+					var text = "<br>Certificate retrieval process finished: " + new Date(data.end)
+						+ "<br>Total duration: " + data.duration;
+
+					new MessageBuilder().title("Certificate retrieval finished").uniqueClass('cert-retrieval').success(text).appendsText().requiresConfirmation().show();
+
+				} else if (data.subtype === 'WARNING') {
+
+					new MessageBuilder().title("Certificate retrieval progress").warning(data.message).uniqueClass('cert-retrieval').requiresConfirmation().allowConfirmAll().show();
+				}
+
 				break;
 
 			case "MAINTENANCE":
@@ -1910,14 +1933,122 @@ var Structr = {
 				new MessageBuilder().title('Exception in Scheduled Job').warning(data.message).requiresConfirmation().allowConfirmAll().show();
 				break;
 
+			case "RESOURCE_ACCESS":
+				new MessageBuilder().title('REST Access to \'' + data.uri + '\' denied').warning(data.message).requiresConfirmation().allowConfirmAll().show();
+				break;
+
+			case "SCRIPTING_ERROR":
+
+				if (showScriptingErrorPopups) {
+
+					if (data.nodeId && data.nodeType) {
+
+						let uniqueClass = 'n' + data.nodeId + data.nodeType + data.row + data.column;
+
+						Command.get(data.nodeId, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
+
+							let name     = data.name.slice(data.name.indexOf('_html_') === 0 ? 6 : 0);
+							let property = 'Property';
+							let title    = '';
+
+							switch (obj.type) {
+
+								case 'SchemaMethod':
+									if (obj.schemaNode) {
+										title = 'type "' + obj.schemaNode.name + '"';
+										property = 'Method';
+									} else {
+										title = 'global schema method';
+										property = 'Method';
+									}
+									break;
+
+								default:
+									if (obj.ownerDocument) {
+										if (obj.ownerDocument.type === 'ShadowDocument') {
+											title = 'shared component';
+										} else {
+											title = 'page "' + obj.ownerDocument.name  + '"';
+										}
+
+									}
+									break;
+							}
+
+							let location = '<table class="scripting-error-location">'
+								+ '<tr><th>Element:</th><td style="padding-left:8px;">' + data.nodeType + '[' + data.nodeId + ']</td></tr>'
+								+ '<tr><th>' + property + ':</th><td style="padding-left:8px;">' + name + '</td></tr>'
+								+ '<tr><th>Row:</th><td style="padding-left:8px;">' + data.row + '</td></tr>'
+								+ '<tr><th>Column:</th><td style="padding-left:8px;">' + data.column + '</td></tr>'
+								+ '</table>';
+
+							let builder = new MessageBuilder().uniqueClass(uniqueClass).incrementsUniqueCount(true)
+								.title('Scripting error in ' + title)
+								.warning(location + '<br/>' + data.message)
+								.requiresConfirmation();
+
+							if (data.nodeType === 'SchemaMethod') {
+
+								let pathToOpen = '';
+
+								if (obj.schemaNode) {
+
+									pathToOpen = 'custom--' + obj.schemaNode.id + '-methods-' + obj.id;
+
+								} else {
+
+									pathToOpen = 'global--' + obj.id;
+								}
+
+								builder.specialInteractionButton('Go to method', function(btn) {
+									window.location.href = '#code';
+									window.setTimeout(function() {
+										_Code.findAndOpenNode(pathToOpen, false);
+									}, 1000);
+								}, 'Dismiss');
+
+							} else {
+
+								builder.specialInteractionButton('Open in editor', function(btn) {
+									switch (data.nodeType) {
+										case 'Content':
+										case 'Template':
+											_Elements.openEditContentDialog(btn, obj, {
+												extraKeys: { "Ctrl-Space": "autocomplete" },
+												gutters: ["CodeMirror-lint-markers"],
+												lint: {
+													getAnnotations: function(text, callback) {
+														_Code.showScriptErrors(obj, text, callback, data.name);
+													},
+													async: true
+												}
+											});
+											break;
+										default:
+											_Entities.showProperties(obj);
+											break;
+									}
+								}, 'Dismiss');
+							}
+
+							// show message
+							builder.allowConfirmAll().show();
+						});
+
+					} else {
+						new MessageBuilder().title('Server-side Scripting Error').warning(data.message).requiresConfirmation().allowConfirmAll().show();
+					}
+				}
+				break;
+
 			default: {
 
-					var text = "<p>No handler for generic message of type <b>" + data.type + "</b> defined - printing complete message data.</p>";
-					Object.keys(data).forEach(function(key) {
-						text += "<b>" + key + "</b>: " + data[key] + "<br>";
-					});
+				var text = "<p>No handler for generic message of type <b>" + data.type + "</b> defined - printing complete message data.</p>";
+				Object.keys(data).forEach(function(key) {
+					text += "<b>" + key + "</b>: " + data[key] + "<br>";
+				});
 
-					new MessageBuilder().title("GENERIC_MESSAGE").warning(text).requiresConfirmation().show();
+				new MessageBuilder().title("GENERIC_MESSAGE").warning(text).requiresConfirmation().show();
 
 			}
 		}
@@ -2262,8 +2393,8 @@ function MessageBuilder () {
 
 	this.getButtonHtml = function() {
 		return (this.params.requiresConfirmation ? '<button class="confirm">' + this.params.confirmButtonText + '</button>' : '') +
-			   (this.params.requiresConfirmation && this.params.allowConfirmAll ? '<button class="confirmAll">' + this.params.confirmAllButtonText + '</button>' : '') +
-			   (this.params.specialInteractionButton ? '<button class="special">' + this.params.specialInteractionButton.text + '</button>' : '');
+			(this.params.requiresConfirmation && this.params.allowConfirmAll ? '<button class="confirmAll">' + this.params.confirmAllButtonText + '</button>' : '') +
+			(this.params.specialInteractionButton ? '<button class="special">' + this.params.specialInteractionButton.text + '</button>' : '');
 	};
 
 	this.activateButtons = function(originalMsgBuilder, newMsgBuilder) {
@@ -2356,10 +2487,10 @@ function MessageBuilder () {
 
 			$('#info-area').append(
 				'<div class="' + this.params.classNames.join(' ') +  '" id="' + this.params.msgId + '">' +
-					(this.params.title ? '<h3 class="title">' + this.params.title + this.getUniqueCountElement() + '</h3>' : this.getUniqueCountElement()) +
-					'<div class="text">' + this.params.text + '</div>' +
-					(this.params.furtherText ? '<div class="furtherText">' + this.params.furtherText + '</div>' : '') +
-					'<div class="message-buttons">' + this.getButtonHtml() + '</div>' +
+				(this.params.title ? '<h3 class="title">' + this.params.title + this.getUniqueCountElement() + '</h3>' : this.getUniqueCountElement()) +
+				'<div class="text">' + this.params.text + '</div>' +
+				(this.params.furtherText ? '<div class="furtherText">' + this.params.furtherText + '</div>' : '') +
+				'<div class="message-buttons">' + this.getButtonHtml() + '</div>' +
 				'</div>'
 			);
 

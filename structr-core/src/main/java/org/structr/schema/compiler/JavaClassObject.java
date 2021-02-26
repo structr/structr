@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +18,7 @@
  */
 package org.structr.schema.compiler;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URI;
 import javax.tools.SimpleJavaFileObject;
 
@@ -38,6 +36,12 @@ public class JavaClassObject extends SimpleJavaFileObject {
 	protected final ByteArrayOutputStream bos =
 		new ByteArrayOutputStream();
 
+	private final String className;
+
+	public String getClassName() {
+		return className;
+	}
+
 	/**
 	 * Registers the compiled class object under URI containing the class
 	 * full name
@@ -48,6 +52,7 @@ public class JavaClassObject extends SimpleJavaFileObject {
 	public JavaClassObject(String name, Kind kind) {
 		super(URI.create("string:///" + name.replace('.', '/')
 			+ kind.extension), kind);
+		this.className = name;
 	}
 
 	/**
@@ -68,5 +73,10 @@ public class JavaClassObject extends SimpleJavaFileObject {
 	@Override
 	public OutputStream openOutputStream() throws IOException {
 		return bos;
+	}
+
+	@Override
+	public InputStream openInputStream() throws IOException {
+		return new ByteArrayInputStream(getBytes());
 	}
 }

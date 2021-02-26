@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -42,11 +42,9 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrSchemaDefinition;
 import org.structr.schema.export.StructrTypeDefinition;
+import org.structr.schema.openapi.common.OpenAPIOneOf;
 import org.structr.schema.openapi.common.OpenAPIReference;
-import org.structr.schema.openapi.operation.OpenAPILoginOperation;
-import org.structr.schema.openapi.operation.OpenAPILogoutOperation;
-import org.structr.schema.openapi.operation.OpenAPIRegistrationOperation;
-import org.structr.schema.openapi.operation.OpenAPIResetPasswordOperation;
+import org.structr.schema.openapi.operation.*;
 import org.structr.schema.openapi.parameter.OpenAPIQueryParameter;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.result.OpenAPIExampleAnyResult;
@@ -140,8 +138,11 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		final Map<String, Object> info = new LinkedHashMap<>();
 
-		info.put("title",   "Structr REST API");
-		info.put("version", "1.0.0");
+		final String serverDescription = Settings.OpenAPIServerTitle.getValue();
+		final String serverVersion = Settings.OpenAPIServerVersion.getValue();
+
+		info.put("title",   serverDescription);
+		info.put("version", serverVersion);
 
 		return info;
 	}
@@ -152,7 +153,6 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		final Map<String, Object> server        = new LinkedHashMap<>();
 
 		server.put("url",         getStructrUrl(request));
-		server.put("description", "The Structr REST Server");
 
 		// add server to list
 		servers.add(server);
@@ -239,17 +239,24 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		map.put("AbstractNode", new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, PropertyView.Public, 0));
 		map.put("Principal",    new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, PropertyView.Public, 0));
 
-		map.put("StructrErrorToken",  new OpenAPIObjectSchema("An error token used in semantic error messages returned by the REST server.",
+		map.put("ErrorToken",  new OpenAPIObjectSchema("An error token used in semantic error messages returned by the REST server.",
 			new OpenAPIPrimitiveSchema("The type that caused the error.", "type",     "string"),
 			new OpenAPIPrimitiveSchema("The property that caused the error (if applicable).", "property", "string"),
 			new OpenAPIPrimitiveSchema("The error token identifier.", "token",    "string"),
 			new OpenAPIPrimitiveSchema("Optional detail information.", "detail",   "string")
 		));
 
-		map.put("StructrRESTResponse", new OpenAPIObjectSchema("HTTP status code, message and optional error tokens used in semantic error messages returned by the REST server.",
+		map.put("RESTResponse", new OpenAPIObjectSchema("HTTP status code, message and optional error tokens used in semantic error messages returned by the REST server.",
 			new OpenAPIPrimitiveSchema("The error code.",    "code",    "integer"),
 			new OpenAPIPrimitiveSchema("The error message.", "message", "string"),
-			Map.of("errors", new OpenAPIArraySchema("A list of error tokens.", new OpenAPIReference("#/components/schemas/StructrErrorToken")))
+			Map.of("errors", new OpenAPIArraySchema("A list of error tokens.", new OpenAPIReference("#/components/schemas/ErrorToken")))
+		));
+
+		map.put("TokenResponse", new OpenAPIObjectSchema("Contains the bearer token and refresh token that can be used to authenticate further calls to any other resources.",
+			new OpenAPIPrimitiveSchema("The Bearer token.",    "access_token",    "string"),
+			new OpenAPIPrimitiveSchema("The refresh token that can be used to optain more Bearer tokens.",    "refresh_token",    "string"),
+			new OpenAPIPrimitiveSchema("The exiration timestamp of the Bearer token.",    "expiration_date",    "integer"),
+			new OpenAPIPrimitiveSchema("The token type.",    "token_type",    "string")
 		));
 
 		return map;
@@ -262,6 +269,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		paths.putAll(new OpenAPIResetPasswordOperation());
 		paths.putAll(new OpenAPIRegistrationOperation());
 		paths.putAll(new OpenAPILoginOperation());
+		paths.putAll(new OpenAPITokenOperation());
 		paths.putAll(new OpenAPILogoutOperation());
 		paths.putAll(schema.serializeOpenAPIOperations(tag));
 
@@ -288,32 +296,40 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		));
 
 		responses.put("loginError", new OpenAPIRequestResponse("Unauthorized",
-			new OpenAPIReference("#/components/schemas/StructrRESTResponse"),
+			new OpenAPIReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "401", "message", "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!")
 		));
 
+		responses.put("tokenError", new OpenAPIRequestResponse("Unauthorized",
+				new OpenAPIReference("#/components/schemas/RESTResponse"),
+				new OpenAPIOneOf(
+					Map.of("code", "401", "message", "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!"),
+					Map.of("code", "401", "message", "The given access_token or refresh_token is invalid!")
+				)
+		));
+
 		responses.put("grantError", new OpenAPIRequestResponse("Forbidden",
-			new OpenAPIReference("#/components/schemas/StructrRESTResponse"),
+			new OpenAPIReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "401", "message", "Unauthorized", "errors", List.of())
 		));
 
 		responses.put("unauthorized", new OpenAPIRequestResponse("Unauthorized",
-			new OpenAPIReference("#/components/schemas/StructrRESTResponse"),
+			new OpenAPIReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "401", "message", "Unauthorized", "errors", List.of())
 		));
 
 		responses.put("forbidden", new OpenAPIRequestResponse("Forbidden",
-			new OpenAPIReference("#/components/schemas/StructrRESTResponse"),
+			new OpenAPIReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "403", "message", "Forbidden", "errors", List.of())
 		));
 
 		responses.put("notFound", new OpenAPIRequestResponse("Not Found",
-			new OpenAPIReference("#/components/schemas/StructrRESTResponse"),
+			new OpenAPIReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "404", "message", "Not Found", "errors", List.of())
 		));
 
 		responses.put("validationError", new OpenAPIRequestResponse("Validation Error",
-			new OpenAPIReference("#/components/schemas/StructrRESTResponse"),
+			new OpenAPIReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "422", "message", "Unable to commit transaction, validation failed", "errors", List.of(
 				Map.of("type", "Folder", "property", "name", "token", "must_not_be_empty"),
 				Map.of("type", "Folder", "property", "name", "token", "must_match", "detail", "[^\\\\/\\\\x00]+")
