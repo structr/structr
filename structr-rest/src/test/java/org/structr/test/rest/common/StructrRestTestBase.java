@@ -20,7 +20,6 @@ package org.structr.test.rest.common;
 
 
 import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -257,13 +256,6 @@ public abstract class StructrRestTestBase {
 			RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body(buf.toString())
 			.expect().statusCode(201).when().post(resource).getHeader("Location"));
 	}
