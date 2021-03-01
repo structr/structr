@@ -465,36 +465,44 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 			try {
 
-				final Challenge challenge = authorization.getChallenges().get(0);
+				final List<Challenge> challenges = authorization.getChallenges();
 
-				challenge.trigger();
+				for (final Challenge challenge : challenges) {
 
-				int attempts = 10;
+					if (challenge.getType().startsWith(challengeType)) {
 
-				while (org.shredzone.acme4j.Status.VALID != challenge.getStatus() && attempts-- > 0) {
+						challenge.trigger();
 
-					if (challenge.getStatus() == org.shredzone.acme4j.Status.INVALID) {
-						logger.info("Challenge authorization failed due to invalid response, aborting. Error: {}", challenge.getError());
-						throw new FrameworkException(422, "Challenge authorization failed due to invalid response, aborting.");
+						int attempts = 3;
+
+						while (org.shredzone.acme4j.Status.VALID != challenge.getStatus() && attempts-- > 0) {
+
+							if (challenge.getStatus() == org.shredzone.acme4j.Status.INVALID) {
+								logger.info("Challenge authorization failed due to invalid response, aborting. Error: {}", challenge.getError());
+								throw new FrameworkException(422, "Challenge authorization failed due to invalid response, aborting.");
+							}
+
+							Thread.sleep(3000L);
+
+							challenge.update();
+						}
+
+						if (challenge.getStatus() != org.shredzone.acme4j.Status.VALID) {
+
+							clear();
+
+							logger.info("No valid authorization received for challenge " + challenge.getJSON() + ", aborting.");
+							throw new FrameworkException(422, "No valid authorization received for challenge " + challenge.getJSON() + ", aborting.");
+						}
+
+
+						logger.info("Successfully finished challenge, cleaning up...");
+
+						clear();
 					}
 
-					Thread.sleep(3000L);
-
-					challenge.update();
 				}
 
-				if (challenge.getStatus() != org.shredzone.acme4j.Status.VALID) {
-
-					clear();
-
-					logger.info("No valid authorization received for challenge " + challenge.getJSON() + ", aborting.");
-					throw new FrameworkException(422, "No valid authorization received for challenge " + challenge.getJSON() + ", aborting.");
-				}
-
-
-				logger.info("Successfully finished challenge, cleaning up...");
-
-				clear();
 
 			} catch (final Throwable t) {
 
@@ -512,7 +520,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		}
 
 		account    = null;
-		orders     = new ArrayList<>();
+		//orders     = new ArrayList<>();
 		challenges = new HashMap<>();
 	}
 
