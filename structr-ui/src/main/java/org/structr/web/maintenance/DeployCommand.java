@@ -63,6 +63,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.fulltext.Indexable;
 import org.structr.core.StaticValue;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -88,6 +89,7 @@ import org.structr.module.StructrModule;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.JavaScriptSource;
 import org.structr.schema.export.StructrFunctionProperty;
 import org.structr.schema.export.StructrMethodDefinition;
 import org.structr.schema.export.StructrSchema;
@@ -1417,6 +1419,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		putData(config, "visibleToPublicUsers",        abstractFile.isVisibleToPublicUsers());
 		putData(config, "visibleToAuthenticatedUsers", abstractFile.isVisibleToAuthenticatedUsers());
 
+		putData(config, "type",                        abstractFile.getProperty(File.type));
+
 		if (abstractFile instanceof File) {
 
 			final File file = (File)abstractFile;
@@ -1425,10 +1429,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, "dontCache", abstractFile.getProperty(StructrApp.key(File.class, "dontCache")));
 		}
 
-		putData(config, "type",                        abstractFile.getProperty(File.type));
-		putData(config, "contentType",                 abstractFile.getProperty(StructrApp.key(File.class, "contentType")));
-		putData(config, "cacheForSeconds",             abstractFile.getProperty(StructrApp.key(File.class, "cacheForSeconds")));
-		putData(config, "useAsJavascriptLibrary",      abstractFile.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
+		if (abstractFile instanceof Indexable) {
+			putData(config, "contentType",                 abstractFile.getProperty(StructrApp.key(File.class, "contentType")));
+		}
+
+		if (abstractFile instanceof File) {
+			putData(config, "cacheForSeconds",             abstractFile.getProperty(StructrApp.key(File.class, "cacheForSeconds")));
+		}
+
+		if (abstractFile instanceof JavaScriptSource) {
+			putData(config, "useAsJavascriptLibrary",      abstractFile.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
+		}
+
 		putData(config, "includeInFrontendExport",     abstractFile.getProperty(StructrApp.key(File.class, "includeInFrontendExport")));
 
 		if (abstractFile instanceof Linkable) {
