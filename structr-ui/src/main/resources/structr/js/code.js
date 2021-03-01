@@ -1745,7 +1745,7 @@ var _Code = {
 			});
 		}, 'schema');
 	},
-	displaySchemaMethodContent: function(data, lastOpenTab) {
+	displaySchemaMethodContent: function(data, lastOpenTab, cursorInfo) {
 
 		var identifier = _Code.splitIdentifier(data);
 
@@ -1777,6 +1777,15 @@ var _Code = {
 				_Code.setupAutocompletion(sourceEditor, result.id, true);
 
 				_Code.editPropertyContent(result, 'comment', $('#tabView-comment', codeContents));
+
+				if (cursorInfo && cursorInfo.line && cursorInfo.ch) {
+					sourceEditor.setCursor(cursorInfo);
+					sourceEditor.focus();
+				}
+
+				sourceEditor.on('focus', function() {
+					sourceEditor.performLint();
+				});
 
 				if (result.codeType === 'java') {
 
@@ -1873,7 +1882,7 @@ var _Code = {
 
 						let afterSaveCallback = () => {
 							_Code.additionalDirtyChecks = [];
-							_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'));
+							_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'), sourceEditor.getCursor());
 						};
 
 						_Code.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
@@ -1886,7 +1895,7 @@ var _Code = {
 
 					_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
 						_Code.additionalDirtyChecks = [];
-						_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'));
+						_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'), sourceEditor.getCursor());
 
 					});
 
