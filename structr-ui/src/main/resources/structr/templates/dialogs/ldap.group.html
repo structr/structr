@@ -1,20 +1,20 @@
 <div id="ldap-group-config">
 	<h3>Synchronize this group using distinguished name (prioritized if set)</h3>
 	<div class="row">
-		<input type="text" size="80" id="ldap-group-dn" placeholder="Distinguished Name" value="${config.group.distinguishedName || ''}" />
+		<input type="text" size="80" id="ldap-group-dn" placeholder="Distinguished Name" name="distinguishedName" />
 		<i class="nullIcon sprite sprite-cross_small_grey" title="Clear value" id="clear-ldap-group-dn"></i>
 	</div>
 	<h3>Synchronize this group using path, filter and scope (if distinguished name not set above)</h3>
 	<div class="row">
-		<input type="text" size="80" id="ldap-group-path" placeholder="Path" value="${config.group.path || ''}" />
+		<input type="text" size="80" id="ldap-group-path" placeholder="Path" name="path" />
 		<i class="nullIcon sprite sprite-cross_small_grey" title="Clear value" id="clear-ldap-group-path"></i>
 	</div>
 	<div class="row">
-		<input type="text" size="80" id="ldap-group-filter" placeholder="Filter" value="${config.group.filter || ''}" />
+		<input type="text" size="80" id="ldap-group-filter" placeholder="Filter" name="filter" />
 		<i class="nullIcon sprite sprite-cross_small_grey" title="Clear value" id="clear-ldap-group-filter"></i>
 	</div>
 	<div class="row">
-		<input type="text" size="80" id="ldap-group-scope" placeholder="Scope" value="${config.group.scope || ''}" />
+		<input type="text" size="80" id="ldap-group-scope" placeholder="Scope" name="scope" />
 		<i class="nullIcon sprite sprite-cross_small_grey" title="Clear value" id="clear-ldap-group-scope"></i>
 	</div>
 	<div class="row">
