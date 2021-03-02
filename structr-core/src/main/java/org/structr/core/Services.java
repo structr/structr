@@ -152,18 +152,17 @@ public class Services implements StructrServices {
 				logger.warn("Java Runtime Version mismatch; expected GraalVM version {}, found {}.", expectedVersionString, foundVersionString);
 			}
 
-
 			boolean enforceRuntime = Settings.EnforceRuntime.getValue();
 			if (enforceRuntime) {
 
-				logger.error("Strict Java Runtime Version check, aborting due to mismatch.");
-				System.err.println("Strict Java Runtime Version check, aborting due to mismatch.");
+				logger.error("Strict Java Runtime Version check enabled. Aborting due to version mismatch. Please set application.runtime.enforce.recommended = false in structr.conf to enable start despite Java Runtime Version mismatch.");
+				System.err.println("Strict Java Runtime Version check enabled. Aborting due to version mismatch. Please set application.runtime.enforce.recommended = false in structr.conf to enable start despite Java Runtime Version mismatch.");
 				System.exit(1);
 
 			} else {
 
-				logger.warn("Weak Java Runtime Version check, continuing despite mismatch.");
-				System.err.println("Weak Java Runtime Version check, continuing despite mismatch.");
+				logger.warn("Weak Java Runtime Version check enabled. Continuing despite version mismatch. Please set application.runtime.enforce.recommended = true in structr.conf to enable strong Java Runtime Version check.");
+				System.err.println("Weak Java Runtime Version check enabled. Continuing despite version mismatch. Please set application.runtime.enforce.recommended = true in structr.conf to enable strong Java Runtime Version check.");
 			}
 		}
 	}
