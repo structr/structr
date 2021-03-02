@@ -377,7 +377,9 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			} else {
 
 				// Just write out the uuids of the new files
-				response.getWriter().write(uuid);
+				if(uuid != null) {
+					response.getWriter().write(uuid);
+				}
 			}
 
 
