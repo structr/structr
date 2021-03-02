@@ -2226,6 +2226,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Property range constraint validation failure!");
 		}
 	}
@@ -2278,7 +2279,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -2296,6 +2297,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}

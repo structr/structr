@@ -258,6 +258,8 @@ public class SchemaService implements Service {
 										// make the schema compilation fail (otherwise bad things will happen later)
 										errorBuffer.add(new InstantiationErrorToken(newType.getName(), t));
 										logger.error("Unable to instantiate dynamic entity {}", newType.getName(), t);
+
+										t.printStackTrace();
 									}
 								}
 							}
@@ -392,6 +394,8 @@ public class SchemaService implements Service {
 
 					errorBuffer.getErrorTokens().addAll(fex.getErrorBuffer().getErrorTokens());
 
+					fex.printStackTrace();
+
 				} catch (Throwable t) {
 
 					FlushCachesCommand.flushAll();
@@ -400,6 +404,8 @@ public class SchemaService implements Service {
 					logger.error(ExceptionUtils.getStackTrace(t));
 
 					success = false;
+
+					t.printStackTrace();
 				}
 
 				if (!success) {
