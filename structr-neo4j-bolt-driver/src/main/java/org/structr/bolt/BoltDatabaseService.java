@@ -129,6 +129,14 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 						AuthTokens.basic(username, password)
 				);
 
+				// probe connection to database:
+				//   by creating a session, transaction and committing the transaction
+				try (final Session session = driver.session() ) {
+					try (final org.neo4j.driver.Transaction transaction = session.beginTransaction()) {
+						transaction.commit();
+					}
+				}
+
 			} catch (final AuthenticationException auex) {
 
 				if (!isTesting && password != null && !Settings.Neo4jDefaultPassword.getValue().equals(password)) {
