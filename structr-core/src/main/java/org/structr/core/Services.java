@@ -115,6 +115,7 @@ public class Services implements StructrServices {
 
 			singletonInstance = new Services();
 			singletonInstance.initialize();
+
 		}
 
 		if (System.currentTimeMillis() > lastLicenseCheck + licenseCheckInterval) {
@@ -128,6 +129,42 @@ public class Services implements StructrServices {
 		}
 
 		return singletonInstance;
+	}
+
+	private static void checkJavaRuntime() {
+
+		org.graalvm.home.Version expectedVersion = org.graalvm.home.Version.create(20, 3, 0);
+		org.graalvm.home.Version foundVersion    = org.graalvm.home.Version.getCurrent();
+
+		boolean isSnapshot = foundVersion.isSnapshot();
+		boolean correctVersion = (foundVersion.compareTo(expectedVersion) == 0);
+		if (isSnapshot || !correctVersion) {
+
+			String expectedVersionString = expectedVersion.toString();
+			String foundVersionString    = foundVersion.toString();
+
+			if (isSnapshot) {
+
+				logger.warn("Java Runtime Version mismatch; expected GraalVM version {}, found unrecognized version.", expectedVersionString);
+
+			} else {
+
+				logger.warn("Java Runtime Version mismatch; expected GraalVM version {}, found {}.", expectedVersionString, foundVersionString);
+			}
+
+			boolean enforceRuntime = Settings.EnforceRuntime.getValue();
+			if (enforceRuntime) {
+
+				logger.error("Strict Java Runtime Version check enabled. Aborting due to version mismatch. Please set application.runtime.enforce.recommended = false in structr.conf to enable start despite Java Runtime Version mismatch.");
+				System.err.println("Strict Java Runtime Version check enabled. Aborting due to version mismatch. Please set application.runtime.enforce.recommended = false in structr.conf to enable start despite Java Runtime Version mismatch.");
+				System.exit(1);
+
+			} else {
+
+				logger.warn("Weak Java Runtime Version check enabled. Continuing despite version mismatch. Please set application.runtime.enforce.recommended = true in structr.conf to enable strong Java Runtime Version check.");
+				System.err.println("Weak Java Runtime Version check enabled. Continuing despite version mismatch. Please set application.runtime.enforce.recommended = true in structr.conf to enable strong Java Runtime Version check.");
+			}
+		}
 	}
 
 	/**
@@ -264,6 +301,8 @@ public class Services implements StructrServices {
 				logger.warn("Unable to store migrated config: {}", ioex.getMessage());
 			}
 		}
+
+		checkJavaRuntime();
 
 		doInitialize();
 	}

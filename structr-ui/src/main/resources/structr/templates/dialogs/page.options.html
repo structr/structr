@@ -3,36 +3,36 @@
 	<div class="row">
 		<div class="option-tile">
 			<label>Name</label>
-			<input type="text" id="name-input" value="${config.entity.name || ''}" />
+			<input type="text" id="name-input" name="name" />
 		</div>
 		<div class="option-tile">
 			<label>Content Type</label>
-			<input type="text" id="content-type-input" value="${config.entity.contentType || ''}" />
+			<input type="text" id="content-type-input" name="contentType" />
 		</div>
 	</div>
 	<div class="row">
 		<div class="option-tile">
 			<label>Category</label>
-			<input type="text" id="category-input" value="${config.entity.category || ''}" />
+			<input type="text" id="category-input" name="category" />
 		</div>
 		<div class="option-tile">
 			<label>Show on Error Codes</label>
-			<input type="text" id="show-on-error-codes-input" value="${config.entity.showOnErrorCodes || ''}" />
+			<input type="text" id="show-on-error-codes-input" name="showOnErrorCodes" />
 		</div>
 	</div>
 	<div class="row">
 		<div class="option-tile">
 			<label>Position </label>
-			<input type="text" id="position-input" value="${config.entity.position || ''}" />
+			<input type="text" id="position-input" name="position" />
 		</div>
 		<div class="option-tile">
 			<label style="display:block;">Options</label>
 			<div style="padding-top: 2px;">
-				<input type="checkbox" id="dont-cache-checkbox" />
+				<input type="checkbox" name="dontCache" id="dont-cache-checkbox" />
 				<label for="dont-cache-checkbox">Caching disabled</label>
 			</div>
 			<div style="padding-top: 2px;">
-				<input type="checkbox" id="page-creates-raw-data-checkbox" />
+				<input type="checkbox" name="pageCreatesRawData" id="page-creates-raw-data-checkbox" />
 				<label for="page-creates-raw-data-checkbox">Use binary encoding for output</label>
 			</div>
 		</div>

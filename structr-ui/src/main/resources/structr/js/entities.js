@@ -2369,7 +2369,7 @@ var _Entities = {
 	isContentElement: function (entity) {
 		return (entity.type === 'Template' || entity.type === 'Content');
 	},
-	setPropertyWithFeedback: function(entity, key, newVal, input) {
+	setPropertyWithFeedback: function(entity, key, newVal, input, blinkEl) {
 		var oldVal = entity[key];
 		Command.setProperty(entity.id, key, newVal, false, function(result) {
 			var newVal = result[key];
@@ -2379,6 +2379,9 @@ var _Entities = {
 
 			if (newVal !== oldVal) {
 				blinkGreen(input);
+				if (blinkEl) {
+					blinkGreen(blinkEl);
+				}
 				if (newVal && newVal.constructor === Array) {
 					newVal = newVal.join(',');
 				}

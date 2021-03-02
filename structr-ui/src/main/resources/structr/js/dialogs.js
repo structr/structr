@@ -62,7 +62,7 @@ var _Dialogs = {
 			});
 		});
 	},
-	showVisibilityOptions: function(entity, el) {
+	showVisibilityOptions: function(el, entity) {
 
 		let showConditionsContainer = $('.show-hide-conditions-container', el);
 
@@ -72,24 +72,26 @@ var _Dialogs = {
 
 				showConditionsContainer.html(html);
 
-				let showConditionsInput  = $('input#show-conditions');
-				let showConditionsSelect = $('select#show-conditions-templates');
-				let hideConditionsInput  = $('input#hide-conditions');
-				let hideConditionsSelect = $('select#hide-conditions-templates');
+				_Dialogs.popuplatInputFields(showConditionsContainer, entity);
+				_Dialogs.registerSimpleInputChangeHandlers(showConditionsContainer, entity);
 
-				showConditionsInput.on('change', () => { _Entities.setPropertyWithFeedback(entity, 'showConditions', showConditionsInput.val(), showConditionsInput); });
-				hideConditionsInput.on('change', () => { _Entities.setPropertyWithFeedback(entity, 'hideConditions', hideConditionsInput.val(), hideConditionsInput); });
+				let showConditionsInput  = $('input#show-conditions', showConditionsContainer);
+				let showConditionsSelect = $('select#show-conditions-templates', showConditionsContainer);
+				let hideConditionsInput  = $('input#hide-conditions', showConditionsContainer);
+				let hideConditionsSelect = $('select#hide-conditions-templates', showConditionsContainer);
 
 				showConditionsSelect.on('change', () => {
-					showConditionsInput.val(showConditionsSelect.val()).trigger('change');
+					showConditionsInput.val(showConditionsSelect.val());
+					showConditionsInput[0].dispatchEvent(new Event('change'));
 				});
 				hideConditionsSelect.on('change', () => {
-					hideConditionsInput.val(hideConditionsSelect.val()).trigger('change');
+					hideConditionsInput.val(hideConditionsSelect.val());
+					hideConditionsInput[0].dispatchEvent(new Event('change'));
 				});
 			});
 		}
 	},
-	showRepeaterOptions: function(entity, el) {
+	showRepeaterOptions: function(el, entity) {
 
 		let repeaterConfigContainer = $('.repeater-config-container', el);
 
@@ -99,9 +101,8 @@ var _Dialogs = {
 
 				repeaterConfigContainer.html(html);
 
-				[ 'function-query', 'data-key' ].forEach(p => {
-					_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), entity, p.toCamel());
-				});
+				_Dialogs.popuplatInputFields(repeaterConfigContainer, entity);
+				_Dialogs.registerSimpleInputChangeHandlers(repeaterConfigContainer, entity);
 			});
 		}
 	},
@@ -121,12 +122,9 @@ var _Dialogs = {
 				var filterInput = $('input#ldap-group-filter');
 				var scopeInput  = $('input#ldap-group-scope');
 
-				// dialog logic here..
-				dnInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'distinguishedName', dnInput.val(), dnInput); });
-				pathInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'path', pathInput.val(), pathInput); });
-				filterInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'filter', filterInput.val(), filterInput); });
-				scopeInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'scope', scopeInput.val(), scopeInput); });
+				_Dialogs.registerSimpleInputChangeHandlers(el, entity);
 
+				// dialog logic here..
 				$('i#clear-ldap-group-dn').on('click', function() { setNull(entity.id, 'distinguishedName', dnInput); });
 				$('i#clear-ldap-group-path').on('click', function() { setNull(entity.id, 'path', pathInput); });
 				$('i#clear-ldap-group-filter').on('click', function() { setNull(entity.id, 'filter', filterInput); });
@@ -177,7 +175,6 @@ var _Dialogs = {
 							}
 						});
 					});
-
 				});
 			}
 
@@ -187,43 +184,84 @@ var _Dialogs = {
 			$('input#ldap-group-dn').val(el.distinguishedName);
 		}
 	},
-	registerSimpleInputBlurhandler: function(input, entity, key) {
+	getValueFromFormElement: (el) => {
 
-		input.on('blur', function() {
-
-			let oldVal = entity[key];
-			let newVal = input.val();
-
-			let isChange = (oldVal !== newVal) && !((oldVal === null || oldVal === undefined) && newVal === '');
-
-			if (isChange) {
-				_Entities.setPropertyWithFeedback(entity, key, input.val() || null, input);
+		if (el.tagName === 'SELECT' && el.multiple === true) {
+			return [].map.call(el.selectedOptions, (o) => o.value);
+		} else if (el.tagName === 'INPUT' && el.type === 'date') {
+			return new Date(el.value);
+		} else if (el.tagName === 'INPUT' && el.type === 'checkbox') {
+			return el.checked;
+		} else if (el.tagName === 'INPUT' && el.type === 'radio') {
+			if (el.checked === true) {
+				return el.value;
+			} else {
+				return null;
 			}
-		});
+		}
+
+		return el.value;
+	},
+	registerSimpleInputChangeHandlers: function(el, entity) {
+
+		for (let inputEl of el[0].querySelectorAll('input[name]')) {
+
+			inputEl.addEventListener('change', () => {
+
+				let key = inputEl.name;
+
+				let oldVal = entity[key];
+				let newVal = _Dialogs.getValueFromFormElement(inputEl);
+
+				let isChange = (oldVal !== newVal) && !((oldVal === null || oldVal === undefined) && newVal === '');
+
+				if (isChange) {
+					let blinkElement = (inputEl.type === 'checkbox') ? $(inputEl).parent() : null;
+
+					console.log(inputEl, blinkElement);
+
+					_Entities.setPropertyWithFeedback(entity, key, newVal || null, $(inputEl), blinkElement);
+				}
+			});
+		}
+
+	},
+	popuplatInputFields: function (el, entity) {
+
+		for (let inputEl of el[0].querySelectorAll('input[name]')) {
+
+			let val = entity[inputEl.name];
+			if (val) {
+				if (inputEl.type === 'checkbox') {
+					inputEl.checked = val;
+				} else {
+					inputEl.value = val;
+				}
+			}
+		}
 
 	},
 	aDialog: function(el, entity) {
 
 		if (el && entity) {
 
-			Command.get(entity.id, null, function(a) {
+			Command.get(entity.id, null, function(aHtmlProperties) {
 
-				Structr.fetchHtmlTemplate('dialogs/a.options', { entity: entity, a: a, title: _Dialogs.getTitle() }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/a.options', { entity: entity, a: aHtmlProperties, title: _Dialogs.getTitle() }, function (html) {
 
 					el.empty();
 					el.append(html);
 
-					[ 'id', 'class', 'href', 'style' ].forEach(p => {
-						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), a, '_html_' + p);
-					});
+					_Dialogs.popuplatInputFields(el, aHtmlProperties);
+					_Dialogs.registerSimpleInputChangeHandlers(el, aHtmlProperties);
 
 					// focus on first input field
 					$('input#class-input').focus();
 					$('input#class-input').select();
 
 					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showRepeaterOptions(entity, el);
-					_Dialogs.showVisibilityOptions(entity, el);
+					_Dialogs.showRepeaterOptions(el, entity);
+					_Dialogs.showVisibilityOptions(el, entity);
 				});
 
 			}, '_html_');
@@ -234,24 +272,23 @@ var _Dialogs = {
 
 		if (el && entity) {
 
-			Command.get(entity.id, null, function(button) {
+			Command.get(entity.id, null, function(buttonHtmlProperties) {
 
-				Structr.fetchHtmlTemplate('dialogs/button.options', { entity: entity, button: button, title: _Dialogs.getTitle() }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/button.options', { entity: entity, button: buttonHtmlProperties, title: _Dialogs.getTitle() }, function (html) {
 
 					el.empty();
 					el.append(html);
 
-					[ 'id', 'class', 'onclick', 'title', 'type', 'style' ].forEach(p => {
-						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), button, '_html_' + p);
-					});
+					_Dialogs.popuplatInputFields(el, buttonHtmlProperties);
+					_Dialogs.registerSimpleInputChangeHandlers(el, buttonHtmlProperties);
 
 					// focus on first input field
 					$('input#class-input').focus();
 					$('input#class-input').select();
 
 					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showRepeaterOptions(entity, el);
-					_Dialogs.showVisibilityOptions(entity, el);
+					_Dialogs.showRepeaterOptions(el, entity);
+					_Dialogs.showVisibilityOptions(el, entity);
 				});
 
 			}, '_html_');
@@ -261,24 +298,22 @@ var _Dialogs = {
 
 		if (el && entity) {
 
-			Command.get(entity.id, null, function(input) {
+			Command.get(entity.id, null, function(inputHtmlProperties) {
 
-				Structr.fetchHtmlTemplate('dialogs/input.options', { entity: entity, input: input, title: _Dialogs.getTitle() }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/input.options', { entity: entity, input: inputHtmlProperties, title: _Dialogs.getTitle() }, function (html) {
 
 					el.empty();
 					el.append(html);
 
-					[ 'id', 'class', 'title', 'placeholder', 'type', 'style' ].forEach(p => {
-						let input = $('input#' + p + '-input');
-						_Dialogs.registerSimpleInputBlurhandler(input, entity, '_html_' + p);
-					});
+					_Dialogs.popuplatInputFields(el, inputHtmlProperties);
+					_Dialogs.registerSimpleInputChangeHandlers(el, inputHtmlProperties);
 
 					// focus on first input field
 					$('input#class-input').focus();
 					$('input#class-input').select();
 
 					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showVisibilityOptions(entity, el);
+					_Dialogs.showVisibilityOptions(el, entity);
 				});
 
 			}, '_html_');
@@ -288,24 +323,23 @@ var _Dialogs = {
 
 		if (el && entity) {
 
-			Command.get(entity.id, null, function(div) {
+			Command.get(entity.id, null, function(divHtmlProperties) {
 
-				Structr.fetchHtmlTemplate('dialogs/div.options', { entity: entity, div: div, title: _Dialogs.getTitle() }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/div.options', { entity: entity, div: divHtmlProperties, title: _Dialogs.getTitle() }, function (html) {
 
 					el.empty();
 					el.append(html);
 
-					[ 'id', 'class', 'style' ].forEach(p => {
-						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), div, '_html_' + p);
-					});
+					_Dialogs.popuplatInputFields(el, divHtmlProperties);
+					_Dialogs.registerSimpleInputChangeHandlers(el, divHtmlProperties);
 
 					// focus on first input field
 					$('input#class-input').focus();
 					$('input#class-input').select();
 
 					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showRepeaterOptions(entity, el);
-					_Dialogs.showVisibilityOptions(entity, el);
+					_Dialogs.showRepeaterOptions(el, entity);
+					_Dialogs.showVisibilityOptions(el, entity);
 				});
 
 			}, '_html_');
@@ -315,76 +349,45 @@ var _Dialogs = {
 
 		if (el && entity) {
 
-			Command.get(entity.id, null, function(div) {
+			Structr.fetchHtmlTemplate('dialogs/user.options', { entity: entity, user: entity, title: _Dialogs.getTitle() }, function (html) {
 
-				Structr.fetchHtmlTemplate('dialogs/user.options', { entity: entity, user: entity, title: _Dialogs.getTitle() }, function (html) {
+				el.empty();
+				el.append(html);
 
-					el.empty();
-					el.append(html);
+				_Dialogs.popuplatInputFields(el, entity);
+				_Dialogs.registerSimpleInputChangeHandlers(el, entity);
 
-					[ 'name', 'e-mail' ].forEach(p => {
-						let input = $('input#' + p + '-input');
-						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val() || null, input); });
-					});
-
-					[ 'is-admin', 'is-two-factor-user', 'skip-security-relationships' ].forEach(p => {
-						let name  = p.toCamel();
-						let input = $('input#' + p + '-checkbox');
-						input.prop('checked', entity[name]);
-						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, name, input.is(':checked'), input); });
-					});
-
-					$('button#set-password-button').on('click', function(e) {
-						let input = $('input#password-input');
-						_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
-					});
-
-					// focus on first input field
-					$('input#name-input').focus();
-					$('input#name-input').select();
-
-					_Dialogs.showCustomProperties(entity);
+				$('button#set-password-button').on('click', function(e) {
+					let input = $('input#password-input');
+					_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
 				});
 
-			}, '_html_');
+				// focus on first input field
+				$('input#name-input').focus();
+				$('input#name-input').select();
+
+				_Dialogs.showCustomProperties(entity);
+			});
 		}
 	},
 	pageDialog: function(el, entity) {
 
 		if (el && entity) {
 
-			Command.get(entity.id, null, function(page) {
+			Structr.fetchHtmlTemplate('dialogs/page.options', { entity: entity, page: entity, title: _Dialogs.getTitle() }, function (html) {
 
-				Structr.fetchHtmlTemplate('dialogs/page.options', { entity: entity, page: entity, title: _Dialogs.getTitle() }, function (html) {
+				el.empty();
+				el.append(html);
 
-					el.empty();
-					el.append(html);
+				_Dialogs.popuplatInputFields(el, entity);
+				_Dialogs.registerSimpleInputChangeHandlers(el, entity);
 
-					[ 'name', 'content-type', 'category', 'position', 'show-on-error-codes' ].forEach(p => {
-						let input = $('input#' + p + '-input');
-						_Dialogs.registerSimpleInputBlurhandler(input, entity, p.toCamel());
-					});
+				// focus on first input field
+				$('input#name-input').focus();
+				$('input#name-input').select();
 
-					[ 'dont-cache', 'page-creates-raw-data' ].forEach(p => {
-						let name  = p.toCamel();
-						let input = $('input#' + p + '-checkbox');
-						input.prop('checked', entity[name]);
-						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, name, input.is(':checked'), input); });
-					});
-
-					$('button#set-password-button').on('click', function(e) {
-						let input = $('input#password-input');
-						_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
-					});
-
-					// focus on first input field
-					$('input#name-input').focus();
-					$('input#name-input').select();
-
-					_Dialogs.showCustomProperties(entity);
-				});
-
-			}, '_html_');
+				_Dialogs.showCustomProperties(entity);
+			});
 		}
 	}
 };
