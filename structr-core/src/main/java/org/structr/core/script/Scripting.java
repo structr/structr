@@ -622,15 +622,19 @@ public class Scripting {
 		final String message = ex.getMessage();
 		int lineNumber       = 1;
 		int columnNumber     = 1;
+		int endLineNumber    = 1;
+		int endColumnNumber  = 1;
 
 		final SourceSection location = ex.getSourceLocation();
 		if (location != null) {
 
-			lineNumber   = ex.getSourceLocation().getStartLine();
-			columnNumber = ex.getSourceLocation().getStartColumn();
+			lineNumber      = location.getStartLine();
+			columnNumber    = location.getStartColumn();
+			endLineNumber   = location.getEndLine();
+			endColumnNumber = location.getEndColumn();
 		}
 
-		reportError(securityContext, message, lineNumber, columnNumber, snippet, shouldThrow);
+		reportError(securityContext, message, lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet, shouldThrow);
 	}
 
 	private static void reportError(final SecurityContext securityContext, final String message, final int lineNumber, final int columnNumber, final Snippet snippet) throws FrameworkException {
@@ -640,6 +644,12 @@ public class Scripting {
 
 	private static void reportError(final SecurityContext securityContext, final String message, final int lineNumber, final int columnNumber, final Snippet snippet, final boolean shouldThrow) throws FrameworkException {
 
+		reportError(securityContext, message, lineNumber, columnNumber, lineNumber, columnNumber, snippet, shouldThrow);
+
+	}
+
+	private static void reportError(final SecurityContext securityContext, final String message, final int lineNumber, final int columnNumber, final int endLineNumber, final int endColumnNumber, final Snippet snippet, final boolean shouldThrow) throws FrameworkException {
+
 		final String entityName               = snippet.getName();
 		final String entityDescription        = (StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + snippet.getCodeSource();
 		final Map<String, Object> messageData = new LinkedHashMap<>();
@@ -647,8 +657,25 @@ public class Scripting {
 		final StringBuilder exceptionPrefix   = new StringBuilder();
 		final String errorName                = "Scripting Error";
 
-		eventData.putAll(Map.of("errorName", errorName, "row", lineNumber + snippet.getStartRow(), "column", columnNumber, "entity", entityDescription));
-		messageData.putAll(Map.of("type", "SCRIPTING_ERROR", "row", lineNumber + snippet.getStartRow(), "column", columnNumber));
+		eventData.putAll(
+			Map.of(
+				"errorName", errorName,
+				"row", lineNumber + snippet.getStartRow(),
+				"column", columnNumber,
+				"endRow", endLineNumber + snippet.getStartRow(),
+				"endColumn", endColumnNumber,
+				"entity", entityDescription
+			)
+		);
+		messageData.putAll(
+			Map.of(
+				"type", "SCRIPTING_ERROR",
+				"row", lineNumber + snippet.getStartRow(),
+				"column", columnNumber,
+				"endRow", endLineNumber + snippet.getStartRow(),
+				"endColumn", endColumnNumber
+			)
+		);
 
 		putIfNotNull(eventData,   "message", message);
 		putIfNotNull(messageData, "message", message);
@@ -678,6 +705,7 @@ public class Scripting {
 		}
 
 		RuntimeEventLog.scripting(errorName, eventData);
+
 		TransactionCommand.simpleBroadcastGenericMessage(messageData, Predicate.only(securityContext.getSessionId()));
 
 		exceptionPrefix.append(snippet.getName()).append(":").append(lineNumber).append(":").append(columnNumber);
