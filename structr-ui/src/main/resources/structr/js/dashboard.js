@@ -30,6 +30,7 @@ var _Dashboard = {
 	zipExportPrefixKey: 'zipExportPrefix' + port,
 	zipExportAppendTimestampKey: 'zipExportAppendTimestamp' + port,
 	showScriptingErrorPopupsKey: 'showScriptinErrorPopups' + port,
+	showVisibilityFlagsInGrantsTableKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + port,
 
 	init: function() {},
 	unload: function() {
@@ -259,6 +260,17 @@ var _Dashboard = {
 					});
 				}
 
+				let showVisibilityFlagsInGrantsTable = _Dashboard.isShowVisibilityFlagsInGrantsTable();
+
+				let showVisibilityFlagsInGrantsTableCheckbox = document.querySelector('#dashboard-show-visibility-flags-grants');
+				if (showVisibilityFlagsInGrantsTableCheckbox) {
+					showVisibilityFlagsInGrantsTableCheckbox.checked = showVisibilityFlagsInGrantsTable;
+
+					showVisibilityFlagsInGrantsTableCheckbox.addEventListener('change', () => {
+						LSWrapper.setItem(_Dashboard.showVisibilityFlagsInGrantsTableKey, showVisibilityFlagsInGrantsTableCheckbox.checked);
+					});
+				}
+
 				Structr.unblockMenu(100);
 			});
 
@@ -275,6 +287,9 @@ var _Dashboard = {
 	},
 	isShowScriptingErrorPopups: function() {
 		return LSWrapper.getItem(_Dashboard.showScriptingErrorPopupsKey, true);
+	},
+	isShowVisibilityFlagsInGrantsTable: function() {
+		return LSWrapper.getItem(_Dashboard.showVisibilityFlagsInGrantsTableKey, false);
 	},
 	gatherVersionUpdateInfo(currentVersion, releasesIndexUrl, snapshotsIndexUrl) {
 
