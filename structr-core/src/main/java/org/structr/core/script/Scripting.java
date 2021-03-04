@@ -285,7 +285,7 @@ public class Scripting {
 				throw ex;
 			} else {
 
-				throw new FrameworkException(422, "Server-side scripting error", ex);
+				throw ex;
 			}
 
 		} catch (FrameworkException ex) {
@@ -381,7 +381,7 @@ public class Scripting {
 				throw ex;
 			} else {
 
-				throw new FrameworkException(422, "Server-side scripting error", ex);
+				throw ex;
 			}
 
 		} catch (FrameworkException ex) {
