@@ -5146,18 +5146,14 @@ public class ScriptingTest extends StructrTest {
 		// test
 		try (final Tx tx = app.tx()) {
 
-			Scripting.evaluate(ctx, null, "${{ var source = $.find('Test', { test: 'error' }); let test = $.empty(source); $.store('result', test); }}", "test");
+			Scripting.evaluate(ctx, null, "${{ var source = $.find('Test', { test: 'error' });}}", "test");
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
 
-			assertEquals("Wrong error code for exception inside of advanced find() context.",   422, fex.getStatus());
 			assertEquals("Wrong error message for exception inside of advanced find() context", "Cannot parse input error for property test", fex.getMessage());
 		}
-
-		// expected result is boolean "true" since the empty() function call checks the result of the erroneous find()
-		assertEquals("Advanced find() namespace not exited correctly", true, securityContext.getContextStore().retrieve("result"));
 
 	}
 
