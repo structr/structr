@@ -220,7 +220,7 @@ public class Importer {
 			} else {
 
 				// a trailing slash to all void/self-closing tags so the XML parser can parse it correctly
-				code = code.replaceAll("<(area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)([^>]*)>", "<$1$2/>");
+				code = code.replaceAll("<(area|base|br|col(?!group)|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)([^>]*)>", "<$1$2/>");
 			}
 
 			if (fragment) {
