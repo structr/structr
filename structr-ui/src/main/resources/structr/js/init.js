@@ -1997,7 +1997,7 @@ var Structr = {
 
 								} else {
 
-									pathToOpen = 'global--' + obj.id;
+									pathToOpen = 'globals--' + obj.id;
 								}
 
 								builder.specialInteractionButton('Go to method', function(btn) {
