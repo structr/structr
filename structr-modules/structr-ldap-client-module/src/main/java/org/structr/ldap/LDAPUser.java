@@ -32,10 +32,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
-import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.property.PropertyKey;
@@ -67,6 +68,7 @@ public interface LDAPUser extends User {
 		type.addPropertyGetter("distinguishedName", String.class);
 		type.addPropertySetter("distinguishedName", String.class);
 
+		type.overrideMethod("onModification",   true, LDAPUser.class.getName() + ".checkGroupsAndDelete(this, arg0);");
 		type.overrideMethod("onAuthenticate",   true, LDAPUser.class.getName() + ".onAuthenticate(this);");
 		type.overrideMethod("initializeFrom",  false, LDAPUser.class.getName() + ".initializeFrom(this, arg0);");
 		type.overrideMethod("isValidPassword", false, "return " + LDAPUser.class.getName() + ".isValidPassword(this, arg0);");
@@ -77,6 +79,28 @@ public interface LDAPUser extends User {
 
 	void initializeFrom(final Entry entry) throws FrameworkException;
 	void setDistinguishedName(final String distinguishedName) throws FrameworkException;
+
+	static void checkGroupsAndDelete(final LDAPUser thisUser, final SecurityContext securityContext) throws FrameworkException {
+
+		boolean hasLDAPGroups = false;
+
+		for (final Group group : thisUser.getGroups()) {
+
+			if (group instanceof LDAPGroup) {
+
+				hasLDAPGroups = true;
+				break;
+			}
+		}
+
+		if (!hasLDAPGroups) {
+
+			logger.warn("LDAPUser {} with UUID {} is not associated with an LDAPGroup, removing.", thisUser.getName(), thisUser.getUuid());
+
+			final App app = StructrApp.getInstance(securityContext);
+			app.delete(thisUser);
+		}
+	}
 
 	static void initializeFrom(final LDAPUser thisUser, final Entry entry) throws FrameworkException {
 
@@ -121,8 +145,7 @@ public interface LDAPUser extends User {
 			// update user..
 			updateUser(thisUser);
 
-			// delete this user if there is no group association left
-			for (final Group group : Iterables.toList(thisUser.getGroups())) {
+			for (final Group group : thisUser.getGroups()) {
 
 				if (group instanceof LDAPGroup) {
 
