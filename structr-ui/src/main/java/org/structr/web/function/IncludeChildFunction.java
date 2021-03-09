@@ -62,6 +62,11 @@ public class IncludeChildFunction extends IncludeFunction {
 				return null;
 			}
 
+			if (!ctx.isRenderContext()) {
+
+				return null;
+			}
+
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
 			final RenderContext innerCtx             = new RenderContext((RenderContext)ctx);

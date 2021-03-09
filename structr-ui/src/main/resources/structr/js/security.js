@@ -410,7 +410,7 @@ var _ResourceAccessGrants = {
 	refreshResourceAccesses: function() {
 		_Security.resourceAccesses.empty();
 
-		Structr.fetchHtmlTemplate('security/resource-access', {}, function (html) {
+		Structr.fetchHtmlTemplate('security/resource-access', {showVisibilityFlags: _Dashboard.isShowVisibilityFlagsInGrantsTable()}, function (html) {
 
 			_Security.resourceAccesses.append(html);
 
@@ -553,8 +553,15 @@ var _ResourceAccessGrants = {
 			trHtml += '<td class="' + additionalClasses.join(' ') + '"><input type="checkbox" ' + (flagIsSet ? 'checked="checked"' : '') + (isDisabled ? ' disabled' : '') + ' data-flag="' + mask[key] + '" class="resource-access-flag" data-key="' + key +'"></td>';
 		}
 
-		trHtml += '<td><input type="text" class="bitmask" size="4" value="' + flags + '"></td><td>' +
-				'<i class="acl-resource-access button ' + _Icons.getFullSpriteClass(_Icons.key_icon) + '" /> ' +
+		trHtml += '<td><input type="text" class="bitmask" size="4" value="' + flags + '"></td>';
+
+		let showVisibilityFlagsInGrantsTable = _Dashboard.isShowVisibilityFlagsInGrantsTable();
+
+		if (showVisibilityFlagsInGrantsTable) {
+			trHtml += '<td class="bl-1"><input type="checkbox" ' + (resourceAccess.visibleToAuthenticatedUsers ? 'checked="checked"' : '') + ' name="visibleToAuthenticatedUsers" class="resource-access-visibility"></td>';
+			trHtml += '<td class="br-1"><input type="checkbox" ' + (resourceAccess.visibleToPublicUsers ? 'checked="checked"' : '') + ' name="visibleToPublicUsers" class="resource-access-visibility"></td>';
+		}
+		trHtml += '<td><i class="acl-resource-access button ' + _Icons.getFullSpriteClass(_Icons.key_icon) + '" /> ' +
 				'<i title="Delete Resource Access ' + resourceAccess.id + '" class="delete-resource-access button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />' +
 				'</td></tr>';
 
@@ -631,10 +638,20 @@ var _ResourceAccessGrants = {
 
 		$('input[type=checkbox].resource-access-flag', tr).on('change', function() {
 			let newFlags = 0;
-			tr.find('input:checked').each(function(i, input) {
+			tr.find('input.resource-access-flag:checked').each(function(i, input) {
 				newFlags += parseInt($(input).attr('data-flag'));
 			});
 			_ResourceAccessGrants.updateResourceAccessFlags(resourceAccess.id, newFlags);
+		});
+
+		$('input[type=checkbox].resource-access-visibility', tr).on('change', function() {
+
+			let visibilityOptionName  = $(this).attr('name');
+			let visibilityOptionValue = $(this).prop('checked');
+
+			Command.setProperty(resourceAccess.id, visibilityOptionName, visibilityOptionValue, false, function() {
+				_ResourceAccessGrants.updateResourcesAccessRow(resourceAccess.id);
+			});
 		});
 
 		return div;

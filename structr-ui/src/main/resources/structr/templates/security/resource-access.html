@@ -12,7 +12,9 @@
 			<th><div id="resourceAccessesPager"></div></th>
 			<th colspan="7" class="center br-1 bl-1" data-comment="These flags determine the access rights for authenticated users to the <b>resource</b> described by the signature (<b>not the data</b> behind that resource).<br><br>If a user is not able to read the grant, access to the resource (described by the signature) is denied. If the user is able to read mutliple grants for the same signature, the flags for those grants are combined.">Authenticated users</th>
 			<th colspan="7" class="center br-1" data-comment="These flags determine the access rights for public (non-authenticated) users to the <b>resource</b> described by the signature (<b>not the data</b> behind that resource).">Non-authenticated (public) users</th>
-			<th colspan="2"></th>
+			<th></th>
+			<th colspan="2" class="bl-1 br-1 ${config.showVisibilityFlags ? '' : 'hidden'}">Visibility</th>
+			<th></th>
 		</tr>
 		<tr>
 			<th class="title-cell">Signature</th>
@@ -31,6 +33,8 @@
 			<th>HEAD</th>
 			<th class="br-1">PATCH</th>
 			<th>Bitmask</th>
+			<th class="bl-1 ${config.showVisibilityFlags ? '' : 'hidden'}">visibleToAuthenticatedUsers</th>
+			<th class="br-1 ${config.showVisibilityFlags ? '' : 'hidden'}">visibleToPublicUsers</th>
 			<th></th>
 		</tr>
 	</thead>
