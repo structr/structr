@@ -1074,7 +1074,14 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	private DOMNode findPartialByName(final SecurityContext securityContext, final String name) throws FrameworkException {
 
-		return StructrApp.getInstance(securityContext).nodeQuery(DOMNode.class).andName(name).not().and(DOMNode.type, "Page").getFirst();
+		for (final DOMNode potentialPartial : StructrApp.getInstance(securityContext).nodeQuery(DOMNode.class).andName(name).not().and(DOMNode.type, "Page").getAsList()) {
+
+			if (potentialPartial.getOwnerDocumentAsSuperUser() != null) {
+				return potentialPartial;
+			}
+		}
+
+		return null;
 	}
 
 	/**
