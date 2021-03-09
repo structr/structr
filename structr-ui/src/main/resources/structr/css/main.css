@@ -1712,6 +1712,7 @@ button.action.disabled:hover {
 	padding-left: 16px;
 	width: 264px;
 	text-align: left ! important;
+	margin: 0 auto;
 }
 
 #login table, #login tr, #login td {
