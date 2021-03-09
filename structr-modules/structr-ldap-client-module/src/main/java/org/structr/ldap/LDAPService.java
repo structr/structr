@@ -72,6 +72,7 @@ public class LDAPService extends Thread implements SingletonService {
 
 		super("Structr LDAP Service");
 
+		((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(LdapNetworkConnection.class)).setLevel(Level.ERROR);
 		((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(DefaultLdapCodecService.class)).setLevel(Level.WARN);
 		((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(CodecFactoryUtil.class)).setLevel(Level.WARN);
 	}
