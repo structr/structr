@@ -21,10 +21,13 @@ package org.structr.bolt;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
+import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.summary.SummaryCounters;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
@@ -73,32 +76,6 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	public abstract void set(final String statement, final Map<String, Object> map);
 
 	public abstract Iterable<Record> newIterable(final BoltDatabaseService db, final AdvancedCypherQuery query);
-
-	public void logQuery(final String statement) {
-		logQuery(statement, null);
-	}
-
-	public void logQuery(final String statement, final Map<String, Object> map) {
-
-		if (db.logQueries()) {
-
-			if (!isPing || db.logPingQueries()) {
-
-				if (map != null && map.size() > 0) {
-
-					if (statement.contains("extractedContent")) {
-						logger.info("{}: {}\t\t SET on extractedContent - value suppressed", Thread.currentThread().getId(), statement);
-					} else {
-						logger.info("{}: {}\t\t Parameters: {}", Thread.currentThread().getId(), statement, map.toString());
-					}
-
-				} else {
-
-					logger.info("{}: {}", Thread.currentThread().getId(), statement);
-				}
-			}
-		}
-	}
 
 	public void deleted(final NodeWrapper wrapper) {
 		deletedNodes.add(wrapper.getDatabaseId());
@@ -170,5 +147,53 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 		// wrap exception if no other cause could be found
 		throw new UnknownDatabaseException(dex, dex.code(), dex.getMessage());
+	}
+
+	// ----- protected methods -----
+	protected void logQuery(final String statement) {
+		logQuery(statement, null);
+	}
+
+	protected void logQuery(final String statement, final Map<String, Object> map) {
+
+		if (db.logQueries()) {
+
+			if (!isPing || db.logPingQueries()) {
+
+				if (map != null && map.size() > 0) {
+
+					if (statement.contains("extractedContent")) {
+						logger.info("{}: {}\t\t SET on extractedContent - value suppressed", Thread.currentThread().getId(), statement);
+					} else {
+						logger.info("{}: {}\t\t Parameters: {}", Thread.currentThread().getId(), statement, map.toString());
+					}
+
+				} else {
+
+					logger.info("{}: {}", Thread.currentThread().getId(), statement);
+				}
+			}
+		}
+	}
+
+	protected void logSummary(final ResultSummary summary) {
+
+		if (db.logQueries()) {
+
+			final SummaryCounters counters = summary.counters();
+
+			final int nodesDeleted = counters.nodesDeleted();
+			final int nodesCreated = counters.nodesCreated();
+
+			if (nodesDeleted + nodesCreated > 1) {
+
+				final long availableAfter = summary.resultAvailableAfter(TimeUnit.MILLISECONDS);
+				final long consumedAfter  = summary.resultConsumedAfter(TimeUnit.MILLISECONDS);
+
+				logger.info("Query summary: {} nodes created, {} nodes deleted, result available after {} ms, consumed after {} ms, notifications: {}, query: {}",
+					nodesCreated, nodesDeleted, availableAfter, consumedAfter, summary.notifications(), summary.query().text()
+				);
+			}
+		}
 	}
 }

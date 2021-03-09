@@ -106,7 +106,6 @@ public class StructrTest {
 				logger.error("Exception while trying to clean database: {}", t.getMessage());
 			}
 
-
 			try {
 
 				SchemaService.ensureBuiltinTypesExist(app);
@@ -114,7 +113,7 @@ public class StructrTest {
 			} catch (Throwable t) {
 
 				t.printStackTrace();
-				logger.error("Exception while trying to clean database: {}", t.getMessage());
+				logger.error("Exception while trying to create built-in schema: {}", t.getMessage());
 			}
 		}
 

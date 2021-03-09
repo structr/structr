@@ -36,11 +36,10 @@ import org.neo4j.driver.exceptions.DatabaseException;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.neo4j.driver.exceptions.TransientException;
+import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.NetworkException;
 import org.structr.api.NotFoundException;
 import org.structr.api.RetryException;
@@ -52,7 +51,6 @@ import org.structr.api.util.Iterables;
  */
 class AsyncSessionTransaction extends SessionTransaction {
 
-	private static final Logger logger = LoggerFactory.getLogger(AsyncSessionTransaction.class);
 	private AsyncSession session       = null;
 	private AsyncTransaction tx        = null;
 	private boolean closed             = false;
@@ -189,8 +187,11 @@ class AsyncSessionTransaction extends SessionTransaction {
 			logQuery(statement, map);
 
 			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
+			final boolean value       = resolveImmediately(cursor.peekAsync()).get(0).asBoolean();
 
-			return resolveImmediately(cursor.peekAsync()).get(0).asBoolean();
+			resolveImmediately(cursor.consumeAsync());
+
+			return value;
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -236,8 +237,11 @@ class AsyncSessionTransaction extends SessionTransaction {
 			logQuery(statement, map);
 
 			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
+			final long value          = resolveImmediately(cursor.peekAsync()).get(0).asLong();
 
-			return resolveImmediately(cursor.peekAsync()).get(0).asLong();
+			resolveImmediately(cursor.consumeAsync());
+
+			return value;
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -261,8 +265,11 @@ class AsyncSessionTransaction extends SessionTransaction {
 			logQuery(statement, map);
 
 			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
+			final Object object       = resolveImmediately(cursor.peekAsync()).get(0).asObject();
 
-			return resolveImmediately(cursor.peekAsync()).get(0).asObject();
+			resolveImmediately(cursor.consumeAsync());
+
+			return object;
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -286,8 +293,17 @@ class AsyncSessionTransaction extends SessionTransaction {
 			logQuery(statement, map);
 
 			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
+			final CompletionStage<Record> peek = cursor.peekAsync();
+			final Record record                = resolveImmediately(peek);
+			Entity entity                      = null;
 
-			return resolveImmediately(cursor.peekAsync()).get(0).asEntity();
+			if (record != null) {
+				entity = record.get(0).asEntity();
+			}
+
+			logSummary(resolveImmediately(cursor.consumeAsync()));
+
+			return entity;
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -310,9 +326,18 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 			logQuery(statement, map);
 
-			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
+			final ResultCursor cursor          = resolveImmediately(tx.runAsync(statement, map));
+			final CompletionStage<Record> peek = cursor.peekAsync();
+			final Record record                = resolveImmediately(peek);
+			Node node                          = null;
 
-			return resolveImmediately(cursor.peekAsync()).get(0).asNode();
+			if (record != null) {
+				node = record.get(0).asNode();
+			}
+
+			logSummary(resolveImmediately(cursor.consumeAsync()));
+
+			return node;
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -336,8 +361,17 @@ class AsyncSessionTransaction extends SessionTransaction {
 			logQuery(statement, map);
 
 			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
+			final CompletionStage<Record> peek = cursor.peekAsync();
+			final Record record                = resolveImmediately(peek);
+			Relationship relationship          = null;
 
-			return resolveImmediately(cursor.peekAsync()).get(0).asRelationship();
+			if (record != null) {
+				relationship = record.get(0).asRelationship();
+			}
+
+			logSummary(resolveImmediately(cursor.consumeAsync()));
+
+			return relationship;
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -376,9 +410,12 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 			logQuery(statement, map);
 
-			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
+			final ResultCursor cursor    = resolveImmediately(tx.runAsync(statement, map));
+			final List<String> immutable = resolveImmediately(cursor.peekAsync()).get(0).asList(Values.ofString());
 
-			return new LinkedList<>(resolveImmediately(cursor.peekAsync()).get(0).asList(Values.ofString()));
+			logSummary(resolveImmediately(cursor.consumeAsync()));
+
+			return new LinkedList<>(immutable);
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -427,7 +464,10 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 			logQuery(statement, map);
 
-			resolveImmediately(tx.runAsync(statement, map));
+			final ResultCursor cursor   = resolveImmediately(tx.runAsync(statement, map));
+			final ResultSummary summary = resolveImmediately(cursor.consumeAsync());
+
+			logSummary(summary);
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -525,7 +565,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 			if (iterator instanceof Result) {
 
-				((Result)iterator).consume();
+				logSummary(((Result)iterator).consume());
 			}
 		}
 	}

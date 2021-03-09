@@ -20,6 +20,8 @@ package org.structr.bolt;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
@@ -38,6 +40,9 @@ import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
+import org.reactivestreams.Publisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.NetworkException;
 import org.structr.api.NotFoundException;
 import org.structr.api.RetryException;
@@ -47,6 +52,8 @@ import org.structr.api.util.Iterables;
  *
  */
 class ReactiveSessionTransaction extends SessionTransaction {
+
+	private static final Logger logger = LoggerFactory.getLogger(ReactiveSessionTransaction.class);
 
 	private BoltDatabaseService db = null;
 	private RxSession session      = null;
@@ -177,7 +184,15 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		try {
 
 			logQuery(statement, map);
-			return Mono.from(tx.run(statement, map).records()).block().get(0).asBoolean();
+
+			final RxResult result             = tx.run(statement, map);
+			final Publisher<Record> publisher = result.records();
+			final Record record               = Mono.from(publisher).block();
+			final boolean value               = record.get(0).asBoolean();
+
+			logSummary(Mono.from(result.consume()).block());
+
+			return value;
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -221,7 +236,15 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		try {
 
 			logQuery(statement, map);
-			return Mono.from(tx.run(statement, map).records()).block().get(0).asLong();
+
+			final RxResult result             = tx.run(statement, map);
+			final Publisher<Record> publisher = result.records();
+			final Record record               = Mono.from(publisher).block();
+			final long value                  = record.get(0).asLong();
+
+			logSummary(Mono.from(result.consume()).block());
+
+			return value;
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -243,7 +266,15 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		try {
 
 			logQuery(statement, map);
-			return Mono.from(tx.run(statement, map).records()).block().get(0).asObject();
+
+			final RxResult result             = tx.run(statement, map);
+			final Publisher<Record> publisher = result.records();
+			final Record record               = Mono.from(publisher).block();
+			final Object value                = record.get(0).asObject();
+
+			logSummary(Mono.from(result.consume()).block());
+
+			return value;
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -265,7 +296,15 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		try {
 
 			logQuery(statement, map);
-			return Mono.from(tx.run(statement, map).records()).block().get(0).asEntity();
+
+			final RxResult result             = tx.run(statement, map);
+			final Publisher<Record> publisher = result.records();
+			final Record record               = Mono.from(publisher).block();
+			final Entity value                = record.get(0).asEntity();
+
+			logSummary(Mono.from(result.consume()).block());
+
+			return value;
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -288,12 +327,14 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 			logQuery(statement, map);
 
-			final RxResult result = tx.run(statement, map);
-			final Node node       =  Mono.from(result.records()).block().get(0).asNode();
+			final RxResult result             = tx.run(statement, map);
+			final Publisher<Record> publisher = result.records();
+			final Record record               = Mono.from(publisher).block();
+			final Node value                  = record.get(0).asNode();
 
-			Mono.from(result.consume()).block();
+			logSummary(Mono.from(result.consume()).block());
 
-			return node;
+			return value;
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -315,7 +356,15 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		try {
 
 			logQuery(statement, map);
-			return Mono.from(tx.run(statement, map).records()).block().get(0).asRelationship();
+
+			final RxResult result             = tx.run(statement, map);
+			final Publisher<Record> publisher = result.records();
+			final Record record               = Mono.from(publisher).block();
+			final Relationship value          = record.get(0).asRelationship();
+
+			logSummary(Mono.from(result.consume()).block());
+
+			return value;
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -359,7 +408,15 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		try {
 
 			logQuery(statement, map);
-			return new IteratorWrapper<>(Mono.from(tx.run(statement, map).records()).block().get(0).asList(Values.ofString()).iterator());
+
+			final RxResult result             = tx.run(statement, map);
+			final Publisher<Record> publisher = result.records();
+			final Record record               = Mono.from(publisher).block();
+			final List<String> immutable      = record.get(0).asList(Values.ofString());
+
+			logSummary(Mono.from(result.consume()).block());
+
+			return new LinkedList<>(immutable);
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -408,7 +465,10 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		try {
 
 			logQuery(statement, map);
-			Mono.from(tx.run(statement, map).consume()).block();
+
+			final RxResult result = tx.run(statement, map);
+
+			logSummary(Mono.from(result.consume()).block());
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -428,7 +488,6 @@ class ReactiveSessionTransaction extends SessionTransaction {
 	public Iterable<Record> newIterable(final BoltDatabaseService db, final AdvancedCypherQuery query) {
 		return new QueryIterable(db, query);
 	}
-
 
 	// ----- nested classes -----
 	public class IteratorWrapper<T> implements Iterable<T> {
@@ -485,7 +544,7 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 			if (iterator instanceof Result) {
 
-				((Result)iterator).consume();
+				logSummary(((Result)iterator).consume());
 			}
 		}
 	}
