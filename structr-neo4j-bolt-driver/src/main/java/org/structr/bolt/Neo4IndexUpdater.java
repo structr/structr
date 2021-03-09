@@ -234,44 +234,48 @@ public class Neo4IndexUpdater {
 
 					final String indexIdentifier        = typeName + "." + propertyIndexConfig.getKey();
 					final Map<String, Object> neoConfig = existingDbIndexes.get(indexIdentifier);
-					final boolean configuredAsIndexed   = propertyIndexConfig.getValue();
-					final String indexName              = (String)neoConfig.get("name");
-					final boolean indexExists           = (existingDbIndexes.get(indexIdentifier) != null);
-					final String propertyKey            = propertyIndexConfig.getKey();
 
-					if (indexExists && configuredAsIndexed) {
+					if (neoConfig != null) {
 
-						final AtomicBoolean retry = new AtomicBoolean(true);
-						final AtomicInteger retryCount = new AtomicInteger(0);
+						final boolean configuredAsIndexed   = propertyIndexConfig.getValue();
+						final String indexName              = (String)neoConfig.get("name");
+						final boolean indexExists           = (existingDbIndexes.get(indexIdentifier) != null);
+						final String propertyKey            = propertyIndexConfig.getKey();
 
-						while (retry.get()) {
+						if (indexExists && configuredAsIndexed) {
 
-							retry.set(false);
+							final AtomicBoolean retry = new AtomicBoolean(true);
+							final AtomicInteger retryCount = new AtomicInteger(0);
 
-							try {
+							while (retry.get()) {
 
-								executor.submit(() -> {
+								retry.set(false);
 
-									try (final Transaction tx = db.beginTx(timeoutSeconds)) {
+								try {
 
-										// drop index
-										db.consume("DROP INDEX " + indexName + " IF EXISTS");
-										droppedIndexesOfRemovedTypes.incrementAndGet();
+									executor.submit(() -> {
 
-										tx.success();
+										try (final Transaction tx = db.beginTx(timeoutSeconds)) {
 
-									} catch (RetryException rex) {
+											// drop index
+											db.consume("DROP INDEX " + indexName + " IF EXISTS");
+											droppedIndexesOfRemovedTypes.incrementAndGet();
 
-										retry.set(retryCount.incrementAndGet() < 3);
-										logger.info("DROP INDEX: retry {}", retryCount.get());
+											tx.success();
 
-									} catch (Throwable t) {
-										logger.warn("Unable to drop {}{}: {}", typeName, propertyKey, t.getMessage());
-									}
+										} catch (RetryException rex) {
 
-								}).get(timeoutSeconds, TimeUnit.SECONDS);
+											retry.set(retryCount.incrementAndGet() < 3);
+											logger.info("DROP INDEX: retry {}", retryCount.get());
 
-							} catch (Throwable t) {}
+										} catch (Throwable t) {
+											logger.warn("Unable to drop {}{}: {}", typeName, propertyKey, t.getMessage());
+										}
+
+									}).get(timeoutSeconds, TimeUnit.SECONDS);
+
+								} catch (Throwable t) {}
+							}
 						}
 					}
 				}
