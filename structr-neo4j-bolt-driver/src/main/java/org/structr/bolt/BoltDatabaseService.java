@@ -39,6 +39,7 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.exceptions.AuthenticationException;
@@ -1003,16 +1004,28 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 	private void setInitialPassword(final String initialPassword) {
 
-		try (final Session session = driver.session()) {
+		try {
 
-			// this call may fail silently (e.g. if the index does not exist yet)
-			try (final org.neo4j.driver.Transaction tx = session.beginTransaction()) {
+			// Neo4j >= 4.0: Use system database
+			try (final Session systemDBSession = driver.session(SessionConfig.forDatabase("system"))) {
 
-				tx.run("CALL dbms.changePassword('" + initialPassword + "')");
+				systemDBSession.run("ALTER CURRENT USER SET PASSWORD FROM '" + Settings.Neo4jDefaultPassword.getValue() + "' TO '" + initialPassword + "'");
 
 			} catch (Throwable t) {
-				logger.warn("Unable to change password properties file", t);
+
+				// Neo4j < 4.0
+				try (final Session session = driver.session()) {
+
+					try (final org.neo4j.driver.Transaction tx = session.beginTransaction()) {
+
+						tx.run("CALL dbms.changePassword('" + initialPassword + "')");
+
+					}
+				}
 			}
+
+		} catch (Throwable t) {
+			logger.warn("Unable to change password properties file", t);
 		}
 	}
 }
