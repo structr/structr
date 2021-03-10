@@ -53,6 +53,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -125,6 +126,8 @@ public class StructrTest {
 				fxe.printStackTrace();
 				logger.error("Exception while trying to clean database with tenant identifier {}: {}", randomTenantId, fxe.getMessage());
 
+				FlushCachesCommand.flushAll();
+
 				// try to gather more data
 				for (final ErrorToken e : fxe.getErrorBuffer().getErrorTokens()) {
 
@@ -136,18 +139,40 @@ public class StructrTest {
 
 							final NodeInterface ni = app.getNodeById(uuid);
 
-							logger.error("Labels for pre-existing node with uuid {}: {}", uuid, StringUtils.join(ni.getNode().getLabels(), ", "));
+							if (ni != null) {
 
-							for (final AbstractRelationship r : ni.getIncomingRelationships()) {
-								final NodeInterface sn = r.getSourceNode();
-								logger.error("Existing incoming relationship with type '{}' from ({}: {}, {}) with labels: {}", r.getType(), sn.getUuid(), sn.getName(), StringUtils.join(sn.getNode().getLabels(), ", "));
+								if (ni.getNode() != null) {
+									logger.error("Labels for pre-existing node with uuid {}: {}", uuid, StringUtils.join(ni.getNode().getLabels(), ", "));
+								} else {
+									logger.error("Database node for {} is null", uuid);
+								}
+
+								boolean hasIncomingRels = false;
+								for (final AbstractRelationship r : ni.getIncomingRelationships()) {
+									hasIncomingRels = true;
+									final NodeInterface sn = r.getSourceNode();
+									logger.error("Existing incoming relationship with type '{}' from ({}: {}, {}) with labels: {}", r.getType(), sn.getUuid(), sn.getName(), StringUtils.join(sn.getNode().getLabels(), ", "));
+								}
+								if (!hasIncomingRels) {
+									logger.error("Offending Node has no incoming relationships");
+								}
+
+								boolean hasOutgoingRels = false;
+								for (final AbstractRelationship r : ni.getOutgoingRelationships()) {
+									hasOutgoingRels = true;
+									final NodeInterface tn = r.getTargetNode();
+									logger.error("Existing outgoing relationship with type '{}' to ({}: {}, {}) with labels: {}", r.getType(), tn.getType(), tn.getName(), tn.getUuid(), StringUtils.join(tn.getNode().getLabels(), ", "));
+								}
+								if (!hasOutgoingRels) {
+									logger.error("Offending Node has no outgoing relationships");
+								}
+
 							}
 
-							for (final AbstractRelationship r : ni.getOutgoingRelationships()) {
-								final NodeInterface tn = r.getTargetNode();
-								logger.error("Existing outgoing relationship with type '{}' to ({}: {}, {}) with labels: {}", r.getType(), tn.getType(), tn.getName(), tn.getUuid(), StringUtils.join(tn.getNode().getLabels(), ", "));
+							logger.error("Existing other SchemaNodes:");
+							for (final SchemaNode sn : app.nodeQuery(SchemaNode.class).getAsList()) {
+								logger.error("Labels for pre-existing node with uuid {}: {}", sn.getUuid(), StringUtils.join(sn.getNode().getLabels(), ", "));
 							}
-
 
 						} catch (Throwable t) {
 
@@ -418,7 +443,7 @@ public class StructrTest {
 	protected void setupDatabaseConnection() {
 
 		// use database driver from system property, default to MemoryDatabaseService
-		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
+		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
