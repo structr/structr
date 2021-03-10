@@ -302,6 +302,9 @@ let doSearch = (q) => {
 		let visibleTabLinks = document.querySelectorAll('.tabs-menu li.' + hitClass + ' a');
 		if (visibleTabLinks.length > 0) {
 			visibleTabLinks[0].click();
+
+			// in case a password field got auto-focused by the browser
+			document.getElementById('search-box').focus();
 		} else {
 			// nothing to show!
 		}
