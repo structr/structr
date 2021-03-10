@@ -47,6 +47,9 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Supplier;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.common.error.ErrorToken;
+import org.structr.core.entity.AbstractRelationship;
 
 /**
  * Base class for all structr UI tests.
@@ -144,6 +147,43 @@ public abstract class StructrUiTest {
 				FlushCachesCommand.flushAll();
 
 				tx.success();
+
+			} catch (FrameworkException fxe) {
+
+				fxe.printStackTrace();
+				logger.error("Exception while trying to clean database with tenant identifier {}: {}", randomTenantId, fxe.getMessage());
+
+				// try to gather more data
+				for (final ErrorToken e : fxe.getErrorBuffer().getErrorTokens()) {
+
+					if (e.getToken().equals("already_taken")) {
+
+						try (final Tx tx = app.tx()) {
+
+							final String uuid = (String)e.getDetail();
+
+							final NodeInterface ni = app.getNodeById(uuid);
+
+							logger.error("Labels for pre-existing node with uuid {}: {}", uuid, StringUtils.join(ni.getNode().getLabels(), ", "));
+
+							for (final AbstractRelationship r : ni.getIncomingRelationships()) {
+								final NodeInterface sn = r.getSourceNode();
+								logger.error("Existing incoming relationship with type '{}' from ({}: {}, {}) with labels: {}", r.getType(), sn.getUuid(), sn.getName(), StringUtils.join(sn.getNode().getLabels(), ", "));
+							}
+
+							for (final AbstractRelationship r : ni.getOutgoingRelationships()) {
+								final NodeInterface tn = r.getTargetNode();
+								logger.error("Existing outgoing relationship with type '{}' to ({}: {}, {}) with labels: {}", r.getType(), tn.getType(), tn.getName(), tn.getUuid(), StringUtils.join(tn.getNode().getLabels(), ", "));
+							}
+
+
+						} catch (Throwable t) {
+
+							t.printStackTrace();
+							logger.error("Exception getting more infos for already_taken error: {}", t.getMessage());
+						}
+					}
+				}
 
 			} catch (Throwable t) {
 
