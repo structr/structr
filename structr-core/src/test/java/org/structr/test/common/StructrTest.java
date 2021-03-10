@@ -110,6 +110,16 @@ public class StructrTest {
 
 				tx.success();
 
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
+			}
+
+			try {
+
+				SchemaService.ensureBuiltinTypesExist(app);
+
 			} catch (FrameworkException fxe) {
 
 				fxe.printStackTrace();
@@ -146,16 +156,6 @@ public class StructrTest {
 						}
 					}
 				}
-
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-				logger.error("Exception while trying to clean database: {}", t.getMessage());
-			}
-
-			try {
-
-				SchemaService.ensureBuiltinTypesExist(app);
 
 			} catch (Throwable t) {
 
