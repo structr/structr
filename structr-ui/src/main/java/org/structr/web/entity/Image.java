@@ -378,6 +378,7 @@ public interface Image extends File {
 	/** Private Methods **/
 
 	private static void deleteDeprecatedThumbnails(final List<String> thumbnailUuids) {
+
 		final App app = StructrApp.getInstance();
 		final Logger logger = LoggerFactory.getLogger(Image.class);
 
@@ -385,11 +386,17 @@ public interface Image extends File {
 
 			for (final String uuid : thumbnailUuids) {
 
-				Image oldThumbnail = app.nodeQuery(Image.class).uuid(uuid).getFirst();
-				app.delete(oldThumbnail);
+				final Image oldThumbnail = app.nodeQuery(Image.class).uuid(uuid).getFirst();
+
+				if (oldThumbnail != null) {
+
+					app.delete(oldThumbnail);
+
+				}
 			}
 
 			tx.success();
+
 		} catch (FrameworkException ex) {
 
 			logger.error("Unable to delete deprecated thumbnail", ex);
