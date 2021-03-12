@@ -119,6 +119,8 @@ public class StructrTest {
 
 			try {
 
+				Settings.CypherDebugLogging.setValue(true);
+
 				SchemaService.ensureBuiltinTypesExist(app);
 
 			} catch (FrameworkException fxe) {
@@ -186,6 +188,11 @@ public class StructrTest {
 
 				t.printStackTrace();
 				logger.error("Exception while trying to create built-in schema: {}", t.getMessage());
+
+			} finally {
+
+				Settings.CypherDebugLogging.setValue(false);
+
 			}
 		}
 
