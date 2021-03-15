@@ -64,7 +64,7 @@ public class ExportDataConsoleCommand extends AdminConsoleCommand {
 
 	@Override
 	public void detailHelp(final Writable writable) throws IOException {
-		writable.println("exportData <target> <types>  -  Exports data from this application to a path in the file system.");
+		writable.println("export-data <target> <types>  -  Exports data from this application to a path in the file system.");
 		writable.println("");
 		writable.println("  <target> - absolute path to the target directory");
 		writable.println("  <types>  - comma-separated list of types to export");
