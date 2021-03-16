@@ -38,7 +38,7 @@ public class PostRestCommand extends GetRestCommand {
 	public void run(final Console console, final Writable writable) throws FrameworkException, IOException {
 
 		final String requestUrl = getBaseUrl() + getBasePath() + uri;
-		final Response response = request(console).body(body).post(requestUrl);
+		final Response response = request(console).body((body == null) ? "{}" : body).post(requestUrl);
 
 		writable.println("POST ", requestUrl);
 		writable.println(response.getStatusLine());

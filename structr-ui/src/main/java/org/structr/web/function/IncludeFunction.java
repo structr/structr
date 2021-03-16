@@ -120,9 +120,8 @@ public class IncludeFunction extends UiCommunityFunction {
 					} else {
 
 						// ERROR: we have found multiple DOMNodes with the same name
-						// TODO: Do we need to remove the nodes from the nodeList which can be ignored? (references to a shared component)
-						return "Ambiguous node name \"" + ((String)sources[0]) + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")";
-
+						logger.warn("Ambiguous node name \"" + ((String)sources[0]) + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")");
+						return "";
 					}
 				}
 			}

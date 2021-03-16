@@ -38,11 +38,21 @@ public class PutRestCommand extends GetRestCommand {
 	public void run(final Console console, final Writable writable) throws FrameworkException, IOException {
 
 		final String requestUrl = getBaseUrl() + getBasePath() + uri;
-		final Response response = request(console).body(body).put(requestUrl);
 
-		writable.println("PUT ", requestUrl);
-		writable.println(response.getStatusLine());
-		writable.print(response.asString());
+		if (body != null) {
+
+			writable.println("PUT ", requestUrl);
+
+			final Response response = request(console).body(body).put(requestUrl);
+
+			writable.println(response.getStatusLine());
+			writable.print(response.asString());
+
+		} else {
+
+			writable.println("Missing <JSON> parameter - refusing to execute PUT request without payload.");
+
+		}
 	}
 
 	@Override
