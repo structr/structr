@@ -4614,102 +4614,10 @@ input#element-class {
 	margin-top: 12px;
 }
 
-/**
- * Minification
- */
-
-#minify-options td {
-	padding: 6px 8px;
-}
-
-#minify-options td.minification-scrollable-cell {
-    padding: 0;
-    margin: 0;
-}
-
-.scrollable-cell-content {
-    max-height: 120px;
-    overflow-y: auto;
-    padding: 6px 8px;
-}
-
-#minify-options td.head {
-	font-weight: bold;
-	width: 110px;
-}
-
-#minify-options td input {
-	width: 40px;
-}
-
-#minify-options td.action {
-	text-align: right;
-}
-
-#minify-options td.action button {
-	margin-right: 0;
-}
-
-#minification-files {
-	width: 49%;
-	float: left;
-}
-
-#minification-source-search {
-	width: 49%;
-	float: right;
-}
-
-#minification-source-search .searchBox {
-	position: initial;
-	text-align: right;
-	margin-right: 12px;
-}
-
-#minification-source-search .clearSearchIcon {
-	margin-right: 12px;
-}
-
-#minification-source-search .searchResults {
-	height: 300px !important;
-}
-
-#minification-source-search .searchResultsTitle {
-	display: none;
-}
-
-#minify-options button img {
-	padding: 0;
-	margin: 0;
-	vertical-align: middle;
-}
-
-/**
- * find duplicates
- */
-#no-duplicates-found {
-	width: 100%;
-	text-align: center;
-	padding-top: 100px;
-}
-
 .props tr.heading th {
 	background: var(--solid-white);
 	text-align: center;
 	font-size: 1.5em;
-}
-
-.duplicates-table + div#no-duplicates-found {
-	display: none;
-	visibility: hidden;
-}
-
-.duplicates-table th button {
-	float: right;
-}
-
-.duplicate-obj-edit-name input {
-	width: calc(100% - 12px);
 }
 
 #structr-console, #structr-favorites {
