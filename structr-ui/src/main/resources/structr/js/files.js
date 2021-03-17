@@ -934,7 +934,7 @@ var _Files = {
 		if (_Files.isMinificationTarget(d)) {
 			_Files.appendMinificationDialogIcon(div, d);
 		} else {
-			if (d.isImage) {
+			if (d.isImage && d.contentType !== 'text/svg' && !d.contentType.startsWith('image/svg')) {
 				_Files.appendEditImageIcon(div, d);
 			} else {
 				_Files.appendEditFileIcon(div, d);
