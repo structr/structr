@@ -29,6 +29,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -785,6 +786,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			deferredLogTexts.clear();
 
+			Files.createDirectories(target);
+
 			final long startTime = System.currentTimeMillis();
 			customHeaders.put("start", new Date(startTime).toString());
 
@@ -792,8 +795,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			broadcastData.put("start",  startTime);
 			broadcastData.put("target", target.toString());
 			publishBeginMessage(DEPLOYMENT_EXPORT_STATUS, broadcastData);
-
-			Files.createDirectories(target);
 
 			final Path components          = Files.createDirectories(target.resolve("components"));
 			final Path files               = Files.createDirectories(target.resolve("files"));
@@ -881,6 +882,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			broadcastData.put("duration", duration);
 			publishEndMessage(DEPLOYMENT_EXPORT_STATUS, broadcastData);
 
+
+		} catch (FileAlreadyExistsException faee) {
+
+			final String deploymentTargetIsAFileError = "A file already exists at given path - this should be a directory or not exist at all!";
+
+			logger.warn(deploymentTargetIsAFileError + "" + target.toString());
+
+			publishWarningMessage("Fatal Error", deploymentTargetIsAFileError + "<br>" + target.toString());
 
 		} catch (IOException ex) {
 
