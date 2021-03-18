@@ -2554,14 +2554,17 @@ var _Schema = {
 				let methodData = _Schema.methods.methodsData[methodId];
 
 				if (methodData.isNew === false) {
+
 					if (row.hasClass('to-delete')) {
+
 						counts.delete++;
 						methods.push({
 							id: methodId,
 							deleteMethod: true
 						});
+
 					} else if (row.hasClass('has-changes')) {
-						// changed lines
+
 						counts.update++;
 						methods.push({
 							id:       methodId,
@@ -2571,18 +2574,10 @@ var _Schema = {
 							comment:  methodData.comment
 						});
 						allow = _Schema.methods.validateMethodRow(row) && allow;
-					} else {
-						if (entity) {
-
-							// unchanged lines, only transmit id
-							methods.push({
-								id: methodId
-							});
-						}
 					}
 
 				} else {
-					//new lines
+
 					counts.new++;
 					allow = _Schema.methods.validateMethodRow(row) && allow;
 					let method = {
@@ -2592,6 +2587,10 @@ var _Schema = {
 						source:   methodData.source,
 						comment:  methodData.comment
 					};
+
+					if (entity) {
+						method.schemaNode = entity.id;
+					}
 
 					methods.push(method);
 				}
@@ -2615,15 +2614,11 @@ var _Schema = {
 
 					_Schema.showSchemaRecompileMessage();
 
-					let url = rootUrl + ((entity) ? entity.id : 'SchemaMethod');
-					let method = (entity) ? 'PUT' : 'PATCH';
-					let body = (entity) ? { schemaMethods: methods } : methods;
-
-					fetch(url, {
+					fetch(rootUrl + 'SchemaMethod', {
 						dataType: 'json',
 						contentType: 'application/json; charset=utf-8',
-						method: method,
-						body: JSON.stringify(body)
+						method: 'PATCH',
+						body: JSON.stringify(methods)
 					}).then((response) => {
 
 						if (response.ok) {
