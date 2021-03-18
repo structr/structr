@@ -232,6 +232,14 @@ public class AuthHelper {
 		return user;
 	}
 
+	private static boolean validateTokenUser(String tokenId, Principal user) {
+
+		final PropertyKey<String> key = StructrApp.key(Principal.class, "currentAccessToken");
+		final String currentAccessToken    = user.getProperty(key);
+
+		return StringUtils.equals(currentAccessToken, tokenId);
+	}
+
 	private static Principal getPrincipalForTokenClaims(Claims claims, PropertyKey<String> eMailKey) throws FrameworkException {
 
 		final String instanceName = Settings.InstanceName.getValue();
@@ -264,7 +272,17 @@ public class AuthHelper {
 			throw new FrameworkException(404, AuthHelper.TOKEN_ERROR_MSG);
 		}
 
-		return getPrincipalForTokenClaims(jws.getBody(), eMailKey);
+		Principal user = getPrincipalForTokenClaims(jws.getBody(), eMailKey);
+
+		// Check if the access_token is still valid.
+		// If access_token isn't valid anymore, then either it timed out, or the user logged out.
+		String tokenReference = jws.getBody().get("tokenId", String.class);
+		if (validateTokenUser(tokenReference, user)) {
+
+			return user;
+		}
+
+		return null;
 	}
 
 	private static Principal getUserForAccessTokenWithSecret(String token, PropertyKey<String> eMailKey) throws FrameworkException {
@@ -277,7 +295,17 @@ public class AuthHelper {
 			throw new FrameworkException(404, AuthHelper.TOKEN_ERROR_MSG);
 		}
 
-		return getPrincipalForTokenClaims(jws.getBody(), eMailKey);
+		Principal user =  getPrincipalForTokenClaims(jws.getBody(), eMailKey);
+
+		// Check if the access_token is still valid.
+		// If access_token isn't valid anymore, then either it timed out, or the user logged out.
+		String tokenReference = jws.getBody().get("tokenId", String.class);
+		if (validateTokenUser(tokenReference, user)) {
+
+			return user;
+		}
+
+		return null;
 	}
 
 	public static Map<String, String> createTokensForUser(Principal user, Date accessTokenLifetime, Date refreshTokenLifetime) throws FrameworkException {
@@ -362,31 +390,16 @@ public class AuthHelper {
 		return createTokensForUser(user, accessTokenExpirationDate.getTime(), refreshTokenExpirationDate.getTime());
 	}
 
-	public static Map<String, String> createTokens (Principal user, Key key, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName, String jwtIssuer) {
+	public static Map<String, String> createTokens (Principal user, Key key, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName, String jwtIssuer) throws FrameworkException {
 		final  Map<String, String> tokens = new HashMap<>();
 
-		String accessToken = Jwts.builder()
-				.setSubject(user.getName())
-				.setExpiration(accessTokenExpirationDate)
-				.setIssuer(jwtIssuer)
-				.claim("instance", instanceName)
-				.claim("uuid", user.getUuid())
-				.claim("eMail", user.getEMail())
-				.claim("tokenType", "access_token")
-				.signWith(key)
-				.compact();
-
-		tokens.put("access_token", accessToken);
-		tokens.put("expiration_date", Long.toString(accessTokenExpirationDate.getTime()));
+		// create a unique uuid for refresh_token with expiration
+		final String newTokenUUID = NodeServiceCommand.getNextUuid();
+		StringBuilder tokenStringBuilder = new StringBuilder();
+		tokenStringBuilder.append(newTokenUUID).append("_").append(refreshTokenExpirationDate.getTime());
+		final String tokenId = tokenStringBuilder.toString();
 
 		if (refreshTokenExpirationDate != null) {
-
-			final String newTokenUUID = NodeServiceCommand.getNextUuid();
-			StringBuilder tokenStringBuilder = new StringBuilder();
-			tokenStringBuilder.append(newTokenUUID).append("_").append(refreshTokenExpirationDate.getTime());
-
-			final String tokenId = tokenStringBuilder.toString();
-
 			String refreshToken = Jwts.builder()
 					.setSubject(user.getName())
 					.setExpiration(refreshTokenExpirationDate)
@@ -399,6 +412,25 @@ public class AuthHelper {
 			Principal.addRefreshToken(user, tokenId);
 			tokens.put("refresh_token", refreshToken);
 		}
+
+		final String newAccessTokenId = NodeServiceCommand.getNextUuid();
+		String accessToken = Jwts.builder()
+				.setSubject(user.getName())
+				.setExpiration(accessTokenExpirationDate)
+				.setIssuer(jwtIssuer)
+				.claim("instance", instanceName)
+				.claim("uuid", user.getUuid())
+				.claim("eMail", user.getEMail())
+				.claim("tokenType", "access_token")
+				.claim("tokenId", newAccessTokenId)
+				.signWith(key)
+				.compact();
+
+		PropertyKey<String> currentAccessTokenKey = StructrApp.key(Principal.class, "currentAccessToken");
+		user.setProperty(currentAccessTokenKey, newAccessTokenId);
+
+		tokens.put("access_token", accessToken);
+		tokens.put("expiration_date", Long.toString(accessTokenExpirationDate.getTime()));
 
 		return tokens;
 	}
@@ -522,6 +554,9 @@ public class AuthHelper {
 
 		SessionHelper.clearSession(sessionId);
 		SessionHelper.invalidateSession(sessionId);
+
+		// clear all refreshTokens on logout
+		Principal.clearTokens(user);
 
 		RuntimeEventLog.logout("Logout", Map.of("id", user.getUuid(), "name", user.getName()));
 

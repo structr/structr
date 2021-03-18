@@ -42,6 +42,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -64,6 +65,8 @@ public interface Principal extends NodeInterface, AccessControllable {
 		// FIXME: indexedWhenEmpty() is not possible here, but needed?
 		principal.addStringArrayProperty("sessionIds").setIndexed(true);
 		principal.addStringArrayProperty("refreshTokens").setIndexed(true);
+
+		principal.addStringProperty("currentAccessToken").setIndexed(true);
 
 		principal.addStringProperty("sessionData");
 
@@ -118,11 +121,13 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.addStringProperty("customPermissionQueryAccessControl");
 
 		principal.addPropertyGetter("locale", String.class);
+		principal.addPropertyGetter("currentAccessToken", String.class);
 		principal.addPropertyGetter("sessionData", String.class);
 		principal.addPropertyGetter("favorites", Iterable.class);
 		principal.addPropertyGetter("groups", Iterable.class);
 		principal.addPropertyGetter("eMail", String.class);
 
+		principal.addPropertySetter("currentAccessToken", String.class);
 		principal.addPropertySetter("sessionData", String.class);
 		principal.addPropertySetter("favorites", Iterable.class);
 		principal.addPropertySetter("password", String.class);
@@ -339,17 +344,37 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 			if (refreshTokens != null) {
 
-				final Set<String> sessionIds = new HashSet<>(Arrays.asList(refreshTokens));
+				final Set<String> refreshTokenSet = new HashSet<>(Arrays.asList(refreshTokens));
 
-				sessionIds.remove(refreshToken);
+				refreshTokenSet.remove(refreshToken);
 
-				principal.setProperty(key, (String[]) sessionIds.toArray(new String[0]));
+				principal.setProperty(key, (String[]) refreshTokenSet.toArray(new String[0]));
 			}
 
 		} catch (FrameworkException ex) {
 
 			final Logger logger = LoggerFactory.getLogger(Principal.class);
 			logger.error("Could not remove refreshToken " + refreshToken + " from array of refreshTokens", ex);
+		}
+	}
+
+	public static void clearTokens(final Principal principal) {
+
+		try {
+
+			PropertyMap properties = new PropertyMap();
+			final PropertyKey<String[]> refreshTokensKey = StructrApp.key(Principal.class, "refreshTokens");
+			final PropertyKey<String[]> currentAccessTokenKey = StructrApp.key(Principal.class, "currentAccessToken");
+
+			properties.put(refreshTokensKey, new String[0]);
+			properties.put(currentAccessTokenKey, null);
+
+			principal.setProperties(SecurityContext.getSuperUserInstance(), properties);
+
+		} catch (FrameworkException ex) {
+
+			final Logger logger = LoggerFactory.getLogger(Principal.class);
+			logger.error("Could not clear refreshTokens of user {}", principal, ex);
 		}
 	}
 
