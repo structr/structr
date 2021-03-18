@@ -90,25 +90,31 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 	@Override
 	public StringBuilder getCommandLine() {
 
-		final String scriptNameFromConfig = Settings.getOrCreateStringSetting("VideoFile", scriptName).getValue();
-		if (StringUtils.isNotBlank(scriptNameFromConfig)) {
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final StringBuilder commandLine = new StringBuilder(scriptNameFromConfig);
+			final String scriptNameFromConfig = Settings.getOrCreateStringSetting("VideoFile", scriptName).getValue();
+			if (StringUtils.isNotBlank(scriptNameFromConfig)) {
 
-			// build command line from builder options
-			commandLine.append(" ");
-			commandLine.append(inputFile.getDiskFilePath(securityContext));
-			commandLine.append(" ");
-			commandLine.append(outputFileName);
-			commandLine.append(fileExtension);
-			commandLine.append(" ");
-			commandLine.append(timeIndex);
+				final StringBuilder commandLine = new StringBuilder(scriptNameFromConfig);
 
-			return commandLine;
+				// build command line from builder options
+				commandLine.append(" ");
+				commandLine.append(inputFile.getDiskFilePath(securityContext));
+				commandLine.append(" ");
+				commandLine.append(outputFileName);
+				commandLine.append(fileExtension);
+				commandLine.append(" ");
+				commandLine.append(timeIndex);
 
-		} else {
+				return commandLine;
 
-			logger.warn("No VideoFile.{} registered in structr.conf.", scriptName);
+			} else {
+
+				logger.warn("No VideoFile.{} registered in structr.conf.", scriptName);
+			}
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
 		}
 
 		return null;
