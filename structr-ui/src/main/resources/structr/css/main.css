@@ -20,20 +20,11 @@
 
 /** Defaults */
 
-@font-face { font-family: 'Open Sans'; src: url('../fonts/OpenSans-Light.ttf') format('truetype'); font-weight: 300;}
-@font-face { font-family: 'Open Sans'; src: url('../fonts/OpenSans-Regular.ttf') format('truetype'); font-weight: 400;}
-@font-face { font-family: 'Open Sans'; src: url('../fonts/OpenSans-Semibold.ttf') format('truetype'); font-weight: 600;}
-@font-face { font-family: 'Open Sans'; src: url('../fonts/OpenSans-Bold.ttf') format('truetype'); font-weight: 700;}
-
-@font-face { font-family: 'Roboto'; src: url('../fonts/Roboto-Light.ttf') format('truetype'); font-weight: 300;}
-@font-face { font-family: 'Roboto'; src: url('../fonts/Roboto-Regular.ttf') format('truetype'); font-weight: 400;}
-@font-face { font-family: 'Roboto'; src: url('../fonts/Roboto-Medium.ttf') format('truetype'); font-weight: 600;}
-@font-face { font-family: 'Roboto'; src: url('../fonts/Roboto-Bold.ttf') format('truetype'); font-weight: 700;}
+@import url('../fonts/inter.css');
 
 :root {
 
-	--font-roboto: Roboto, Arial, Helvetica, Sans-serif;
-	--font-open-sans: 'Open Sans', Arial, Helvetica, Sans-serif;
+	--font-inter: Inter, Arial, Helvetica, Sans-serif;
 	--font-monospace: "Liberation Mono", "DejaVu Sans Mono", Consolas, Monaco, "Vera Sans Mono", "Lucida Console", "Courier New", Courier, monospace;
 
 	--gray-bg: #e5e5e5;
@@ -101,7 +92,7 @@
 	--image-folder-yellow: #fbf7dc;
 	--link-color-active: #a5a5a5;
 	--input-background: #f0f0f0;
-	--header-bg-dark: #363636;
+	--header-bg-dark: #1f242d;
 	--warning-bg: #feefb3;
 	--input-invalid: #fee;
 
@@ -147,7 +138,7 @@ body {
 	width: 100%;
 	margin: 0;
 	padding: 0;
-	font-family: var(--font-roboto);
+	font-family: var(--font-inter);
 	font-size: 8pt;
 	color: var(--gray-222);
 	background: var(--light-gray-bg-f1);
@@ -179,7 +170,7 @@ textarea {
 }
 
 button, textarea, input, select {
-	font-family: var(--font-roboto) ! important;
+	font-family: var(inter) ! important;
 	font-size: 9pt;
 }
 
@@ -208,6 +199,7 @@ input[type="checkbox"] {
 
 #header .logo {
 	position: absolute;
+	width: 90px;
 	top: 16px;
 	left: 32px;
 }
@@ -288,7 +280,7 @@ input[type="checkbox"] {
 
 #menu {
 	position: absolute;
-	top: 17px;
+	top: 14px;
 	left: 160px;
 }
 
@@ -302,6 +294,7 @@ input[type="checkbox"] {
 	padding: 2px 6px 3px 6px;
 	display: inline-block !important;
 	margin: 0 10px;
+	line-height: 26px;
 }
 
 .menu a {
@@ -315,7 +308,7 @@ input[type="checkbox"] {
 	cursor: default;
 }
 .menu > ul > li.active a {
-	color: var(--gray-333) ! important;
+	color: var(--solid-white) ! important;
 }
 
 .menu > ul > li:hover {
@@ -4345,7 +4338,7 @@ i.fa-trash-o {
 	overflow: hidden;
 	border: 1px solid var(--gray-999) ! important;
 	background: var(--solid-white) ! important;
-	font-family: var(--font-roboto) ! important;
+	font-family: var(--font-inter) ! important;
 	font-size: 9pt;
 }
 
