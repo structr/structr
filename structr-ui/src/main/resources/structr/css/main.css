@@ -540,21 +540,21 @@ img.disabled {
 }
 
 #paletteTab {
-	left: -60px;
-	width: 80px;
-	top: 148px;
+	left: -62px;
+	width: 84px;
+	top: 150px;
 }
 
 #componentsTab {
-	left: -81px;
-	width: 122px;
-	top: 271px;
+    left: -83px;
+    width: 124px;
+    top: 277px;
 }
 
 #elementsTab {
-	left: -74px;
+	left: -75px;
 	width: 108px;
-	top: 406px;
+	top: 416px;
 }
 
 #queriesTab {
