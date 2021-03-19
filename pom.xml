@@ -433,6 +433,7 @@
 						<exclude>src/test/javascript/lib/**</exclude>
 						<exclude>src/test/**/*.html</exclude>
 						<exclude>src/test/**/*.xml</exclude>
+						<exclude>src/test/**/selenium/**/*</exclude>
 						<exclude>src/main/deb/**</exclude>
 						<exclude>src/main/resources/CollapsibleLists.js</exclude>
 						<exclude>src/main/resources/structr/js/flow-editor/**/*</exclude>
