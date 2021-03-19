@@ -23,23 +23,16 @@ import java.lang.reflect.Method;
 import java.util.Date;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorToken;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.FlushCachesCommand;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.schema.SchemaService;
-import static org.structr.test.common.StructrTest.app;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -94,72 +87,14 @@ public class LicensingTest {
 
 		try {
 
+			FlushCachesCommand.flushAll();
+
 			SchemaService.ensureBuiltinTypesExist(app);
-
-		} catch (FrameworkException fxe) {
-
-			fxe.printStackTrace();
-			logger.error("Exception while trying to clean database with tenant identifier {}: {}", randomTenantId, fxe.getMessage());
-
-			// try to gather more data
-			for (final ErrorToken e : fxe.getErrorBuffer().getErrorTokens()) {
-
-				if (e.getToken().equals("already_taken")) {
-
-					try (final Tx tx = app.tx()) {
-
-						final String uuid = (String)e.getDetail();
-
-						final NodeInterface ni = app.getNodeById(uuid);
-
-						if (ni != null) {
-
-							if (ni.getNode() != null) {
-								logger.error("Labels for pre-existing node with uuid {}: {}", uuid, StringUtils.join(ni.getNode().getLabels(), ", "));
-							} else {
-								logger.error("Database node for {} is null", uuid);
-							}
-
-							boolean hasIncomingRels = false;
-							for (final AbstractRelationship r : ni.getIncomingRelationships()) {
-								hasIncomingRels = true;
-								final NodeInterface sn = r.getSourceNode();
-								logger.error("Existing incoming relationship with type '{}' from ({}: {}, {}) with labels: {}", r.getType(), sn.getUuid(), sn.getName(), StringUtils.join(sn.getNode().getLabels(), ", "));
-							}
-							if (!hasIncomingRels) {
-								logger.error("Offending Node has no incoming relationships");
-							}
-
-							boolean hasOutgoingRels = false;
-							for (final AbstractRelationship r : ni.getOutgoingRelationships()) {
-								hasOutgoingRels = true;
-								final NodeInterface tn = r.getTargetNode();
-								logger.error("Existing outgoing relationship with type '{}' to ({}: {}, {}) with labels: {}", r.getType(), tn.getType(), tn.getName(), tn.getUuid(), StringUtils.join(tn.getNode().getLabels(), ", "));
-							}
-							if (!hasOutgoingRels) {
-								logger.error("Offending Node has no outgoing relationships");
-							}
-
-						}
-
-						logger.error("Existing other SchemaNodes:");
-						for (final SchemaNode sn : app.nodeQuery(SchemaNode.class).getAsList()) {
-							logger.error("Labels for pre-existing node with uuid {}: {}", sn.getUuid(), StringUtils.join(sn.getNode().getLabels(), ", "));
-						}
-
-					} catch (Throwable t) {
-
-						t.printStackTrace();
-						logger.error("Exception getting more infos for already_taken error: {}", t.getMessage());
-					}
-				}
-			}
-
 
 		} catch (Throwable t) {
 
 			t.printStackTrace();
-			logger.error("Exception while trying to create built-in schema: {}", t.getMessage());
+			logger.error("Exception while trying to create built-in schema for tenant identifier {}: {}", randomTenantId, t.getMessage());
 		}
 	}
 
