@@ -19,16 +19,26 @@
 
 #usersAndGroups-inner {
    display: flex;
+   max-height: 100%;
 }
 
 #usersAndGroups, #resourceAccess {
    height: calc(100% - 28px);
 }
 
-#usersAndGroups #users, #usersAndGroups #groups {
+#usersAndGroups #users,
+#usersAndGroups #groups {
    padding: 12px;
-   overflow-y: auto;
-   height: calc(100% - 2em);
+   max-height: 100%;
+   display: flex;
+   flex-direction: column;
+}
+
+#users-list,
+#groups-list {
+	flex-grow: 1;
+	overflow-y: auto;
+	margin-top: 8px;
 }
 
 #resourceAccess #resourceAccesses {

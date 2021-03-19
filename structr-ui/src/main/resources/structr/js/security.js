@@ -25,8 +25,10 @@ $(document).ready(function() {
 
 var _Security = {
 	_moduleName: 'security',
-	groups: undefined,
-	users: undefined,
+	userControls: undefined,
+	userList: undefined,
+	groupControls: undefined,
+	groupList: undefined,
 	resourceAccesses: undefined,
 	securityTabKey: 'structrSecurityTab_' + port,
 	init: function() {
@@ -45,8 +47,12 @@ var _Security = {
 
 			main.append(html);
 
-			_Security.groups = $('#groups');
-			_Security.users = $('#users');
+			_Security.userControls     = $('#users-controls');
+			_Security.userList         = $('#users-list');
+
+			_Security.groupControls    = $('#groups-controls');
+			_Security.groupList        = $('#groups-list');
+
 			_Security.resourceAccesses = $('#resourceAccesses');
 
 			var activeTab = LSWrapper.getItem(_Security.securityTabKey) || 'usersAndGroups';
@@ -65,12 +71,16 @@ var _Security = {
 		LSWrapper.setItem(_Security.securityTabKey, tab);
 		$('#securityTabsMenu > li').removeClass('active');
 		$('#' + tab + '_').parent().addClass('active');
+
 		if (tab === 'usersAndGroups') {
+
 			$('#usersAndGroups').show();
 			$('#resourceAccess').hide();
 			_UsersAndGroups.refreshUsers();
 			_UsersAndGroups.refreshGroups();
+
 		} else if (tab === 'resourceAccess') {
+
 			$('#resourceAccess').show();
 			$('#usersAndGroups').hide();
 			_ResourceAccessGrants.refreshResourceAccesses();
@@ -84,16 +94,17 @@ var _UsersAndGroups = {
 
 		Structr.fetchHtmlTemplate('security/button.user.new', {}, function (html) {
 
-			_Security.users.empty();
-			_Security.users.append(html);
+			_Security.userList.empty();
+			_Security.userControls.empty();
+			_Security.userControls.append(html);
 
-			$('.add_user_icon', main).on('click', function(e) {
+			$('.add_user_icon', _Security.userControls).on('click', function(e) {
 				e.stopPropagation();
 				return Command.create({type: $('select#user-type').val()});
 			});
 
 			$('select#user-type').on('change', function() {
-				$('#add-user-button', main).find('span').text('Add ' + $(this).val());
+				$('#add-user-button', _Security.userControls).find('span').text('Add ' + $(this).val());
 			});
 
 			_Schema.getDerivedTypes('org.structr.dynamic.User', [], function(types) {
@@ -103,7 +114,10 @@ var _UsersAndGroups = {
 				});
 			});
 
-			var userPager = _Pager.addPager('users', _Security.users, true, 'User', 'public');
+			var userPager = _Pager.addPager('users', _Security.userControls, true, 'User', 'public');
+			userPager.cleanupFunction = function () {
+				$('.node', _Security.userList).remove();
+			};
 			userPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></th></div>');
 			userPager.activateFilterElements();
 		});
@@ -147,14 +161,14 @@ var _UsersAndGroups = {
 	},
 	appendUserToUserList: function (user) {
 
-		if (!_Security.users || !_Security.users.is(':visible')) {
+		if (!_Security.userList || !_Security.userList.is(':visible')) {
 			return;
 		}
 
 		var userDiv = _UsersAndGroups.createUserElement(user);
 		$('.typeIcon', userDiv).removeClass('typeIcon-nochildren');
 
-		_Security.users.append(userDiv);
+		_Security.userList.append(userDiv);
 
 		_Entities.appendEditPropertiesIcon(userDiv, user);
 		_UsersAndGroups.setMouseOver(userDiv, user.id, '.userid_');
@@ -275,16 +289,17 @@ var _UsersAndGroups = {
 
 		Structr.fetchHtmlTemplate('security/button.group.new', {}, function (html) {
 
-			_Security.groups.empty();
-			_Security.groups.append(html);
+			_Security.groupList.empty();
+			_Security.groupControls.empty();
+			_Security.groupControls.append(html);
 
-			$('.add_group_icon', main).on('click', function(e) {
+			$('.add_group_icon', _Security.groupControls).on('click', function(e) {
 				e.stopPropagation();
 				return Command.create({type: $('select#group-type').val()});
 			});
 
 			$('select#group-type').on('change', function() {
-				$('#add-group-button', main).find('span').text('Add ' + $(this).val());
+				$('#add-group-button', _Security.groupControls).find('span').text('Add ' + $(this).val());
 			});
 
 			// list types that extend User
@@ -295,7 +310,10 @@ var _UsersAndGroups = {
 				});
 			});
 
-			var groupPager = _Pager.addPager('groups', _Security.groups, true, 'Group', 'public');
+			var groupPager = _Pager.addPager('groups', _Security.groupControls, true, 'Group', 'public');
+			groupPager.cleanupFunction = function () {
+				$('.node', _Security.groupList).remove();
+			};
 			groupPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
 			groupPager.activateFilterElements();
 		});
