@@ -170,7 +170,7 @@ textarea {
 }
 
 button, textarea, input, select {
-	font-family: var(inter) ! important;
+	font-family: var(--font-inter) ! important;
 	font-size: 9pt;
 }
 
