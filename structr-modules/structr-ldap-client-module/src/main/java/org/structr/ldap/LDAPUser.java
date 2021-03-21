@@ -48,7 +48,7 @@ import org.structr.web.entity.User;
  */
 public interface LDAPUser extends User {
 
-	static final Logger logger = LoggerFactory.getLogger(LDAPGroup.class);
+	static final Logger logger = LoggerFactory.getLogger(LDAPUser.class);
 
 	static class Impl { static {
 
