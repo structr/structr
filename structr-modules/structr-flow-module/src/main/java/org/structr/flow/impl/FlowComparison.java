@@ -18,6 +18,7 @@
  */
 package org.structr.flow.impl;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +78,10 @@ public class FlowComparison extends FlowCondition implements DataSource, Deploya
 				if (data != null && data.getClass().isEnum()) {
 
 					data = ((Enum)data).name();
+				} else if (data instanceof Number && value instanceof Number) {
+
+					data = ((Number)data).doubleValue();
+					value = ((Number)data).doubleValue();
 				}
 
 				Comparable c = (Comparable) data;
