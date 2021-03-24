@@ -135,7 +135,7 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 				if (diskFile.exists()) {
 
 					Files.move(diskFile.toPath(), dstFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-					FileHelper.updateMetadata(newFile);
+					FileHelper.updateMetadata(newFile, true);
 
 					// create link between the two videos
 					inputFile.setProperty(StructrApp.key(VideoFile.class, "posterImage"), newFile);

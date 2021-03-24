@@ -1688,6 +1688,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				putData(entry, "isWidget",                    widget.getProperty(StructrApp.key(Widget.class, "isWidget")));
 				putData(entry, "treePath",                    widget.getProperty(StructrApp.key(Widget.class, "treePath")));
 				putData(entry, "configuration",               widget.getProperty(StructrApp.key(Widget.class, "configuration")));
+				putData(entry, "isPageTemplate",              widget.getProperty(StructrApp.key(Widget.class, "isPageTemplate")));
+				putData(entry, "selectors",                   widget.getProperty(StructrApp.key(Widget.class, "selectors")));
 			}
 
 			tx.success();
