@@ -50,6 +50,7 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
             assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
             final User user = (User) sources[0];
             int accessTokenTimeout = Settings.JWTExpirationTimeout.getValue();
+            int refreshTokenTimeout = Settings.JWTRefreshTokenExpirationTimeout.getValue();
 
             if (sources.length > 1) {
                 accessTokenTimeout = (int) sources[1];
@@ -58,7 +59,10 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
             Calendar accessTokenExpirationDate = Calendar.getInstance();
             accessTokenExpirationDate.add(Calendar.MINUTE, accessTokenTimeout);
 
-            Map<String, String> tokens = AuthHelper.createTokensForUser(user, accessTokenExpirationDate.getTime(), null);
+            Calendar refreshTokenExpirationDate = Calendar.getInstance();
+            refreshTokenExpirationDate.add(Calendar.MINUTE, refreshTokenTimeout);
+
+            Map<String, String> tokens = AuthHelper.createTokensForUser(user, accessTokenExpirationDate.getTime(), refreshTokenExpirationDate.getTime());
 
             return tokens.get("access_token");
 
