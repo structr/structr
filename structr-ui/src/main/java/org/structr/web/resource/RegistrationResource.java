@@ -65,6 +65,7 @@ public class RegistrationResource extends Resource {
 	private static final Logger logger = LoggerFactory.getLogger(RegistrationResource.class.getName());
 
 	private enum TemplateKey {
+		// outdated, deprecated Template keys. will be supported for some time, but should not be used anymore
 		SENDER_NAME,
 		SENDER_ADDRESS,
 		SUBJECT,
@@ -76,7 +77,21 @@ public class RegistrationResource extends Resource {
 		CONFIRM_REGISTRATION_PAGE,
 		CONFIRM_KEY_KEY,
 		TARGET_PAGE_KEY,
-		ERROR_PAGE_KEY
+		ERROR_PAGE_KEY,
+
+		// unified, new Template keys. these should be the ones to be used
+		CONFIRM_REGISTRATION_SENDER_NAME,
+		CONFIRM_REGISTRATION_SENDER_ADDRESS,
+		CONFIRM_REGISTRATION_SUBJECT,
+		CONFIRM_REGISTRATION_TEXT_BODY,
+		CONFIRM_REGISTRATION_HTML_BODY,
+		CONFIRM_REGISTRATION_BASE_URL,
+		CONFIRM_REGISTRATION_TARGET_PAGE,
+		CONFIRM_REGISTRATION_ERROR_PAGE,
+//		CONFIRM_REGISTRATION_PAGE,				// this key was named correctly and does not need special treatment below
+		CONFIRM_REGISTRATION_CONFIRM_KEY_KEY,
+		CONFIRM_REGISTRATION_TARGET_PAGE_KEY,
+		CONFIRM_REGISTRATION_ERROR_PAGE_KEY
 	}
 
 	@Override
@@ -210,25 +225,25 @@ public class RegistrationResource extends Resource {
 
 		replacementMap.put(toPlaceholder("eMail"), userEmail);
 		replacementMap.put(toPlaceholder("link"),
-			getTemplateText(TemplateKey.BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
+			getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_BASE_URL, TemplateKey.BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
 			      + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE, localeString)
-			+ "?" + getTemplateText(TemplateKey.CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY, localeString) + "=" + confKey
-			+ "&" + getTemplateText(TemplateKey.TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY, localeString) + "=" + getTemplateText(TemplateKey.TARGET_PAGE, "register_thanks", localeString)
-			+ "&" + getTemplateText(TemplateKey.ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY, localeString)   + "=" + getTemplateText(TemplateKey.ERROR_PAGE, "register_error", localeString)
+			+ "?" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_CONFIRM_KEY_KEY, TemplateKey.CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY, localeString) + "=" + confKey
+			+ "&" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_TARGET_PAGE_KEY, TemplateKey.TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY, localeString) + "=" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_TARGET_PAGE, TemplateKey.TARGET_PAGE, "register_thanks", localeString)
+			+ "&" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE_KEY, TemplateKey.ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY, localeString)   + "=" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE, TemplateKey.ERROR_PAGE, "register_error", localeString)
 		);
 
-		String textMailTemplate = getTemplateText(TemplateKey.TEXT_BODY, "Go to ${link} to finalize registration.", localeString);
-		String htmlMailTemplate = getTemplateText(TemplateKey.HTML_BODY, "<div>Click <a href='${link}'>here</a> to finalize registration.</div>", localeString);
+		String textMailTemplate = getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_TEXT_BODY, TemplateKey.TEXT_BODY, "Go to ${link} to finalize registration.", localeString);
+		String htmlMailTemplate = getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_HTML_BODY, TemplateKey.HTML_BODY, "<div>Click <a href='${link}'>here</a> to finalize registration.</div>", localeString);
 		String textMailContent  = MailHelper.replacePlaceHoldersInTemplate(textMailTemplate, replacementMap);
 		String htmlMailContent  = MailHelper.replacePlaceHoldersInTemplate(htmlMailTemplate, replacementMap);
 
 		try {
 
 			MailHelper.sendHtmlMail(
-				getTemplateText(TemplateKey.SENDER_ADDRESS, "structr-mail-daemon@localhost", localeString),
-				getTemplateText(TemplateKey.SENDER_NAME, "Structr Mail Daemon", localeString),
+				getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_SENDER_ADDRESS, TemplateKey.SENDER_ADDRESS, "structr-mail-daemon@localhost", localeString),
+				getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_SENDER_NAME, TemplateKey.SENDER_NAME, "Structr Mail Daemon", localeString),
 				userEmail, "", null, null, null,
-				getTemplateText(TemplateKey.SUBJECT, "Welcome to Structr, please finalize registration", localeString),
+				getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_SUBJECT, TemplateKey.SUBJECT, "Welcome to Structr, please finalize registration", localeString),
 				htmlMailContent, textMailContent);
 
 		} catch (Exception e) {
@@ -260,17 +275,43 @@ public class RegistrationResource extends Resource {
 			} else {
 
 				return defaultValue;
-
 			}
 
 		} catch (FrameworkException ex) {
 
 			LoggerFactory.getLogger(RegistrationResource.class.getName()).warn("Could not get mail template for key " + key, ex);
-
 		}
 
 		return null;
+	}
 
+	private String getTemplateTextWithDeprecatedFallback(final TemplateKey defaultKey, final TemplateKey deprecatedFallbackKey, final String defaultValue, final String localeString) {
+
+		try {
+
+			final Query<MailTemplate> query = StructrApp.getInstance().nodeQuery(MailTemplate.class).andName(defaultKey.name());
+
+			if (localeString != null) {
+				query.and("locale", localeString);
+			}
+
+			MailTemplate template = query.getFirst();
+			if (template != null) {
+
+				final String text = template.getProperty("text");
+				return text != null ? text : getTemplateText(deprecatedFallbackKey, defaultValue, localeString);
+
+			} else {
+
+				return getTemplateText(deprecatedFallbackKey, defaultValue, localeString);
+			}
+
+		} catch (FrameworkException ex) {
+
+			LoggerFactory.getLogger(RegistrationResource.class.getName()).warn("Could not get mail template for key " + defaultKey, ex);
+		}
+
+		return null;
 	}
 
 	private static void populateReplacementMap(final Map<String, String> replacementMap, final Map<String, Object> props) {
@@ -280,13 +321,11 @@ public class RegistrationResource extends Resource {
 			replacementMap.put(toPlaceholder(entry.getKey()), entry.getValue().toString());
 
 		}
-
 	}
 
 	private static String toPlaceholder(final String key) {
 
 		return "${".concat(key).concat("}");
-
 	}
 
 	/**
@@ -304,7 +343,6 @@ public class RegistrationResource extends Resource {
 	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final String confKey) {
 
 		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, confKey);
-
 	}
 
 	/**
@@ -323,7 +361,6 @@ public class RegistrationResource extends Resource {
 	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final String confKey) {
 
 		return createUser(securityContext, credentialKey, credentialValue, propertySet, false, confKey);
-
 	}
 
 	/**
@@ -342,7 +379,6 @@ public class RegistrationResource extends Resource {
 	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final String confKey) {
 
 		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate, confKey);
-
 	}
 
 	/**
@@ -362,7 +398,6 @@ public class RegistrationResource extends Resource {
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final Class userClass, final String confKey) {
 
 		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate, userClass, confKey);
-
 	}
 
 	/**
@@ -382,7 +417,6 @@ public class RegistrationResource extends Resource {
 	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final String confKey) {
 
 		return createUser(securityContext, credentialKey, credentialValue, propertySet, autoCreate, User.class, confKey);
-
 	}
 
 	/**
@@ -464,7 +498,6 @@ public class RegistrationResource extends Resource {
 		}
 
 		return user;
-
 	}
 
 
@@ -474,28 +507,24 @@ public class RegistrationResource extends Resource {
 	public Class getEntityClass() {
 
 		return null;
-
 	}
 
 	@Override
 	public String getUriPart() {
 
 		return "registration";
-
 	}
 
 	@Override
 	public String getResourceSignature() {
 
 		return "_registration";
-
 	}
 
 	@Override
 	public boolean isCollectionResource() {
 
 		return false;
-
 	}
 
 	@Override
