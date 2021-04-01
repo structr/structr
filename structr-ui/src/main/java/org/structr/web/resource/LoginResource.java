@@ -193,6 +193,11 @@ public class LoginResource extends FilterableResource {
 
 	protected RestMethodResult getUserForCredentials(SecurityContext securityContext, String emailOrUsername, String password, String twoFactorToken, String twoFactorCode) throws FrameworkException {
 
+		final String superUserName = Settings.SuperUserName.getValue();
+		if (StringUtils.equals(superUserName, emailOrUsername)) {
+			throw new AuthenticationException("login with superuser not supported.");
+		}
+
 		Principal user = null;
 
 		user = getUserForTwoFactorTokenOrEmailOrUsername(twoFactorToken, emailOrUsername, password);
