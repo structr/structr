@@ -57,7 +57,7 @@ public class StructrBinding implements ProxyObject {
 			case "this":
 				return wrap(actionContext, entity);
 			case "me":
-				if (actionContext.getSecurityContext().isSuperUser()) {
+				if (actionContext.getSecurityContext().isSuperUserSecurityContext()) {
 					logger.warn("Detected usage of the me keyword in a privileged context. This returns the SuperUser object and it is discouraged/impossible to work with this object.");
 				}
 				return wrap(actionContext,actionContext.getSecurityContext().getUser(false));
