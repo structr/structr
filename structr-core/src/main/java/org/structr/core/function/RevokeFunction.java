@@ -27,6 +27,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SuperUser;
 import org.structr.schema.action.ActionContext;
 
 public class RevokeFunction extends AdvancedScriptingFunction {
@@ -51,71 +52,62 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
-			if (sources[0] instanceof Principal) {
+			if (!(sources[0] instanceof Principal)) {
 
-				final Principal principal = (Principal)sources[0];
+				logParameterError(caller, sources, "Expected node of type Principal as first argument!", ctx.isJavaScriptContext());
 
-				if (sources[1] instanceof AbstractNode) {
+			} else if (sources[0] instanceof SuperUser) {
 
-					final AbstractNode node = (AbstractNode)sources[1];
+				logParameterError(caller, sources, "Expected node of type Principal as first argument - unable to revoke rights for the SuperUser!", ctx.isJavaScriptContext());
 
-					if (sources[2] instanceof String) {
+			} else if (!(sources[1] instanceof AbstractNode)) {
 
-						final Set<Permission> permissions = new HashSet();
-						final String[] parts = ((String)sources[2]).split("[,]+");
+				logParameterError(caller, sources, "Expected node as second argument!", ctx.isJavaScriptContext());
 
-						for (final String part : parts) {
+			} else if (!(sources[2] instanceof String)) {
 
-							final String trimmedPart = part.trim();
-							if (trimmedPart.length() > 0) {
-
-								final Permission permission = Permissions.valueOf(trimmedPart);
-								if (permission != null) {
-
-									permissions.add(permission);
-
-								} else {
-
-									logger.warn("Error: unknown permission \"{}\". Parameters: {}", new Object[] { trimmedPart, getParametersAsString(sources) });
-									return "Error: unknown permission " + trimmedPart;
-								}
-							}
-						}
-
-						if (permissions.size() > 0) {
-							node.revoke(permissions, principal, ctx.getSecurityContext());
-						}
-
-						return "";
-
-					} else {
-
-						logger.warn("Error: third argument is not a string. Parameters: {}", getParametersAsString(sources));
-						return "Error: third argument is not a string.";
-					}
-
-				} else {
-
-					logger.warn("Error: second argument is not a node. Parameters: {}", getParametersAsString(sources));
-					return "Error: second argument is not a node.";
-				}
+				logParameterError(caller, sources, "Expected string as third argument!", ctx.isJavaScriptContext());
 
 			} else {
 
-				logger.warn("Error: first argument is not of type Principal. Parameters: {}", getParametersAsString(sources));
-				return "Error: first argument is not of type Principal.";
+				final Principal principal         = (Principal)sources[0];
+				final AbstractNode node           = (AbstractNode)sources[1];
+				final Set<Permission> permissions = new HashSet();
+				final String[] parts              = ((String)sources[2]).split("[,]+");
+
+				for (final String part : parts) {
+
+					final String trimmedPart = part.trim();
+					if (trimmedPart.length() > 0) {
+
+						final Permission permission = Permissions.valueOf(trimmedPart);
+						if (permission != null) {
+
+							permissions.add(permission);
+
+						} else {
+
+							logger.warn("Error: unknown permission \"{}\". Parameters: {}", new Object[] { trimmedPart, getParametersAsString(sources) });
+							return "Error: unknown permission " + trimmedPart;
+						}
+					}
+				}
+
+				if (permissions.size() > 0) {
+					node.revoke(permissions, principal, ctx.getSecurityContext());
+				}
 			}
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
-			return null;
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
 		}
+
+		return "";
 	}
 
 	@Override
