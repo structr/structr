@@ -87,8 +87,8 @@ public class GrantFunction extends AdvancedScriptingFunction {
 
 						} else {
 
-							logger.warn("Error: unknown permission \"{}\". Parameters: {}", new Object[] { trimmedPart, getParametersAsString(sources) });
-							return "Error: unknown permission " + trimmedPart;
+							logParameterError(caller, sources, "Unknown permission \"" + trimmedPart + "\"!", ctx.isJavaScriptContext());
+							return "";
 						}
 					}
 				}
