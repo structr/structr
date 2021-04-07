@@ -935,7 +935,10 @@ var Structr = {
 		}, ms);
 	},
 	requestActivateModule: function(event, name) {
-		if (menuBlocked) return;
+		if (menuBlocked) {
+			return false;
+		}
+
 		event.stopPropagation();
 		if (Structr.getActiveModuleName() !== name || main.children().length === 0) {
 			return Structr.doActivateModule(name);
