@@ -77,13 +77,25 @@ $(function() {
 		Structr.doLogout();
 	});
 
+	let isHashReset = false;
 	window.addEventListener('hashchange', (e) => {
-		var anchor = getAnchorFromUrl(window.location.href);
-		if (anchor === 'logout' || loginBox.is(':visible')) return;
-		let allow = Structr.requestActivateModule(e, anchor);
 
-		if (allow === false) {
-			window.location.href = e.oldURL;
+		if (isHashReset === false) {
+
+			let anchor = getAnchorFromUrl(window.location.href);
+			if (anchor === 'logout' || loginBox.is(':visible')) {
+				return;
+			}
+
+			let allow = (getAnchorFromUrl(e.oldURL) === null) || Structr.requestActivateModule(e, anchor);
+
+			if (allow !== true) {
+				isHashReset = true;
+				window.location.href = e.oldURL;
+			}
+
+		} else {
+			isHashReset = false;
 		}
 	});
 
@@ -926,7 +938,10 @@ var Structr = {
 		}, ms);
 	},
 	requestActivateModule: function(event, name) {
-		if (menuBlocked) return;
+		if (menuBlocked) {
+			return false;
+		}
+
 		event.stopPropagation();
 		if (Structr.getActiveModuleName() !== name || main.children().length === 0) {
 			return Structr.doActivateModule(name);
