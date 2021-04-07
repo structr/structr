@@ -315,9 +315,6 @@ public class ActionContext {
 							return getBaseUrl(securityContext.getRequest());
 
 						case "me":
-							if (securityContext.isSuperUserSecurityContext()) {
-								logger.warn("Detected usage of the me keyword in a privileged context. This returns the SuperUser object and it is discouraged/impossible to work with this object.");
-							}
 							return securityContext.getUser(false);
 
 						case "depth":
