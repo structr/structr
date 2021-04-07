@@ -35,6 +35,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
+import org.structr.schema.action.EvaluationHints;
 
 public interface MessageClient extends NodeInterface {
 
@@ -101,7 +102,7 @@ public interface MessageClient extends NodeInterface {
                         params.put("topic", topic);
                         params.put("message", message);
                         try {
-                            sub.invokeMethod(securityContext, "onMessage", params, false);
+                            sub.invokeMethod(securityContext, "onMessage", params, false, new EvaluationHints());
                         } catch (FrameworkException e) {
 			    final Logger logger = LoggerFactory.getLogger(MessageClient.class);
                             logger.warn("Could not invoke 'onMessage' method on MessageSubscriber: " + e.getMessage());

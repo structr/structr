@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
@@ -35,13 +36,18 @@ public abstract class Expression {
 	protected Expression parent            = null;
 	protected String name                  = null;
 	protected int level                    = 0;
+	protected int row                      = 1;
+	protected int column                   = 1;
 
-	public Expression() {
-		this(null);
+	public Expression(final int row, final int column) {
+		this(null, row, column);
 	}
 
-	public Expression(final String name) {
-		this.name = name;
+	public Expression(final String name, final int row, final int column) {
+
+		this.name   = name;
+		this.row    = row;
+		this.column = column;
 	}
 
 	public String name() {
@@ -100,6 +106,6 @@ public abstract class Expression {
 		return -1;
 	}
 
-	public abstract Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException;
-	public abstract Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException;
+	public abstract Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException;
+	public abstract Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException;
 }

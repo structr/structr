@@ -37,6 +37,7 @@ import org.structr.core.script.Scripting;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 public interface MessageSubscriber extends NodeInterface {
 
@@ -88,7 +89,7 @@ public interface MessageSubscriber extends NodeInterface {
 
 				try {
 
-					client.invokeMethod(securityContext, "subscribeTopic", params, false);
+					client.invokeMethod(securityContext, "subscribeTopic", params, false, new EvaluationHints());
 
 				} catch (FrameworkException e) {
 

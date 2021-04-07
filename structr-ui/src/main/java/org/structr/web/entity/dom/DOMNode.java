@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import javax.servlet.http.HttpServletRequest;
@@ -408,6 +409,20 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	Set<PropertyKey> getDataPropertyKeys();
 
+	// ----- public default methods -----
+	@Override
+	default public void visitForUsage(final Map<String, Object> data) {
+
+		LinkedTreeNode.super.visitForUsage(data);
+
+		final Page page = getOwnerDocument();
+		if (page != null) {
+
+			data.put("page", page.getName());
+		}
+
+		data.put("path", getPagePath());
+	}
 
 	// ----- static methods -----
 	static void onCreation(final DOMNode thisNode, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {

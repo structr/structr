@@ -62,6 +62,7 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.EventContext;
 import org.structr.web.common.HtmlProperty;
@@ -547,7 +548,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		for (final GraphObject target : targets) {
 
 			// try to execute event method
-			return target.invokeMethod(actionContext.getSecurityContext(), action, parameters, false);
+			return target.invokeMethod(actionContext.getSecurityContext(), action, parameters, false, new EvaluationHints());
 		}
 
 		return null;
@@ -1419,7 +1420,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		} else {
 
 			// evaluate single keyword
-			final Object result = thisElement.evaluate(actionContext, dataTarget, null);
+			final Object result = thisElement.evaluate(actionContext, dataTarget, null, new EvaluationHints(), 1, 1);
 			if (result != null) {
 
 				if (result instanceof Iterable) {

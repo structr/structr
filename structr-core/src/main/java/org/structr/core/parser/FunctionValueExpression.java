@@ -22,6 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
@@ -32,7 +33,10 @@ public class FunctionValueExpression extends Expression {
 	final private FunctionExpression functionExpression;
 	final private ValueExpression    valueExpression;
 
-	public FunctionValueExpression(final FunctionExpression functionExpression, final ValueExpression valueExpression) {
+	public FunctionValueExpression(final FunctionExpression functionExpression, final ValueExpression valueExpression, final int row, final int column) {
+
+		super(row, column);
+		
 		this.functionExpression = functionExpression;
 		this.valueExpression    = valueExpression;
 	}
@@ -48,16 +52,16 @@ public class FunctionValueExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
-		Object value = functionExpression.evaluate(ctx, entity);
+		Object value = functionExpression.evaluate(ctx, entity, hints);
 
-		value = valueExpression.transform(ctx, entity, value);
+		value = valueExpression.transform(ctx, entity, value, hints);
 
 		for (final Expression expression : valueExpression.expressions) {
 
 			// evaluate expressions from left to right
-			value = expression.transform(ctx, entity, value);
+			value = expression.transform(ctx, entity, value, hints);
 		}
 
 		return value;
@@ -65,7 +69,7 @@ public class FunctionValueExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(ActionContext ctx, GraphObject entity, Object source) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(ActionContext ctx, GraphObject entity, Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 }

@@ -1029,7 +1029,7 @@ var _Code = {
 					let attrName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
 
 					return {
-						id: identifier.source + '-' + rel.id,
+						id: identifier.source + '-' + rel.id + '-' + attrName,
 						type: rel.type,
 						name: attrName,
 						propertyType: '',
@@ -1492,7 +1492,17 @@ var _Code = {
 	},
 	displaySchemaNodeContent: function(data, identifier) {
 
-		Command.get(identifier.typeId, null, function(result) {
+		fetch(rootUrl + '/' + identifier.typeId + '/schema').then(function(response) {
+
+			if (response.ok) {
+				return response.json();
+			} else {
+				throw Error("Unable to fetch schema node content");
+			}
+
+		}).then(function(json) {
+
+			let result = json.result;
 
 			_Code.updateRecentlyUsed(result, identifier.source, data.updateLocationStack);
 			Structr.fetchHtmlTemplate('code/type', { type: result }, function(html) {
@@ -1742,8 +1752,88 @@ var _Code = {
 						}
 					});
 				});
+
+				// usedIn property
+				if (result.usedIn && result.usedIn.length > 0) {
+
+					let usageTableContainer = document.querySelector('#usage-list');
+					let label               = document.querySelector('#usage-list-label');
+
+					// add help text
+					label.innerHTML = 'This type is used in the following pages, HTML elements and attributes. Please note that this table might not be complete since the information here is collected at runtime, when you browse through the pages of your application.';
+
+					Structr.fetchHtmlTemplate('code/usage-table', {}, function(html) {
+
+						// append table
+						usageTableContainer.innerHTML = html;
+
+						let usageTable = document.querySelector('#usage-table-body');
+						let sorted     = result.usedIn.sort((a, b) => {
+
+							let p1 = a.path || a.page || a.type || a.id;
+							let p2 = b.path || b.page || b.type || b.id;
+
+							return p1 > p2 ? 1 : p1 < p2 ? -1 : 0;
+						});
+
+						console.log(sorted);
+
+						// append rows
+						for (var usage of sorted) {
+
+							Structr.fetchHtmlTemplate('code/usage-row', usage, function(html) {
+
+								let dummyTbody = document.createElement('tbody');
+								dummyTbody.innerHTML = html;
+								let tr = dummyTbody.firstChild;
+								usageTable.appendChild(tr);
+
+								let btn = tr.querySelector('button');
+								btn.addEventListener('click', function(e) {
+
+									let id = e.target.dataset.id;
+
+									Command.get(id, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
+
+										switch (obj.type) {
+
+											case 'Content':
+											case 'Template':
+												_Elements.openEditContentDialog(btn, obj, {
+													extraKeys: { "Ctrl-Space": "autocomplete" },
+													gutters: ["CodeMirror-lint-markers"],
+													lint: {
+														getAnnotations: function(text, callback) {
+															_Code.showScriptErrors(obj, text, callback, data.name);
+														},
+														async: true
+													}
+												});
+												break;
+											default:
+												_Entities.showProperties(obj);
+												break;
+										}
+									});
+
+								});
+
+							});
+						}
+					});
+
+				} else {
+
+					let label = document.querySelector('#usage-list-label');
+					if (label) {
+
+						label.innerHTML = 'Browse through your application to populate the usage list for this type.';
+					}
+				}
 			});
-		}, 'schema');
+		});
+
+		//}, 'schema');
 	},
 	displaySchemaMethodContent: function(data, lastOpenTab, cursorInfo) {
 

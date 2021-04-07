@@ -83,6 +83,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InternalSystemPropertyToken;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
+import org.structr.common.event.RuntimeUsageLog;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
 import org.structr.core.Services;
@@ -100,8 +101,9 @@ import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.StructrScriptException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  * Abstract base class for all node entities in Structr.
@@ -470,6 +472,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		if (key == null || key.dbName() == null) {
 			return null;
 		}
+
+		RuntimeUsageLog.log(this, key);
 
 		return key.getProperty(securityContext, this, applyConverter, predicate);
 	}
@@ -1632,14 +1636,18 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public final Object evaluate(final ActionContext actionContext, final String key, final String defaultValue) throws FrameworkException {
+	public final Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
+
+		hints.reportUsedKey(key, row, column);
 
 		switch (key) {
 
 			case "owner":
+				hints.reportExistingKey(key);
 				return getOwnerNode();
 
 			case "_path":
+				hints.reportExistingKey(key);
 				return getPath(actionContext.getSecurityContext());
 
 			default:
@@ -1648,6 +1656,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				final PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key, false);
 				if (propertyKey != null) {
 
+					hints.reportExistingKey(key);
+
 					final Object value = getProperty(propertyKey, actionContext.getPredicate());
 					if (value != null) {
 
@@ -1655,21 +1665,25 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 					}
 				}
 
-				final Object value = invokeMethod(actionContext.getSecurityContext(), key, Collections.EMPTY_MAP, false);
+				final Object value = invokeMethod(actionContext.getSecurityContext(), key, Collections.EMPTY_MAP, false, hints);
 				if (value != null) {
 
 					return value;
 				}
 
-				return Function.numberOrString(defaultValue);
+				throw new StructrScriptException(422, "No method or property " + key + " in type " + getClass().getSimpleName(), 1, 1);
+
+				//return Function.numberOrString(defaultValue);
 		}
 	}
 
 	@Override
-	public final Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> propertySet, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
+	public final Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> propertySet, final boolean throwExceptionForUnknownMethods, final EvaluationHints hints) throws FrameworkException {
 
 		final Method method = StructrApp.getConfiguration().getExportedMethodsForType(entityType).get(methodName);
 		if (method != null) {
+
+			hints.reportExistingKey(methodName);
 
 			try {
 

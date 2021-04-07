@@ -32,6 +32,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.SourceId;
 import org.structr.core.property.TargetId;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  * A generic relationship entity that will be instantiated when an anonymous
@@ -93,7 +94,7 @@ public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface
 	}
 
 	@Override
-	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
+	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods, final EvaluationHints hints) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
