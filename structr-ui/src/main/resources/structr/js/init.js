@@ -83,8 +83,11 @@ $(function() {
 		if (isHashReset === false) {
 
 			let anchor = getAnchorFromUrl(window.location.href);
-			if (anchor === 'logout' || loginBox.is(':visible')) return;
-			let allow = Structr.requestActivateModule(e, anchor);
+			if (anchor === 'logout' || loginBox.is(':visible')) {
+				return;
+			}
+
+			let allow = (getAnchorFromUrl(e.oldURL) === null) || Structr.requestActivateModule(e, anchor);
 
 			if (allow !== true) {
 				isHashReset = true;
