@@ -28,11 +28,13 @@ import org.structr.core.graph.NodeInterface;
 public class Usage {
 
 	private String uuid = null;
+	private String type = null;
 	private String ctx  = null;
 
-	public Usage(final String uuid, final String ctx) {
+	public Usage(final String uuid, final String type, final String ctx) {
 
 		this.uuid = uuid;
+		this.type = type;
 		this.ctx  = ctx;
 	}
 
@@ -59,19 +61,23 @@ public class Usage {
 
 		final Map<String, Object> result = new LinkedHashMap<>();
 
-		resolve(securityContext, result);
+		result.put("key",  ctx);
+		result.put("type", type);
 
-		result.put("key", ctx);
+		resolve(securityContext, result);
 
 		return result;
 	}
 
 	public void resolve(final SecurityContext securityContext, final Map<String, Object> data) throws FrameworkException {
 
-		final NodeInterface node = StructrApp.getInstance(securityContext).getNodeById(uuid);
-		if (node != null) {
+		if (uuid != null) {
 
-			node.visitForUsage(data);
+			final NodeInterface node = StructrApp.getInstance(securityContext).getNodeById(uuid);
+			if (node != null) {
+
+				node.visitForUsage(data);
+			}
 		}
 	}
 }

@@ -101,9 +101,9 @@ import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
-import org.structr.core.script.StructrScriptException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
+import org.structr.schema.action.Function;
 
 /**
  * Abstract base class for all node entities in Structr.
@@ -1671,9 +1671,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 					return value;
 				}
 
-				throw new StructrScriptException(422, "No method or property " + key + " in type " + getClass().getSimpleName(), 1, 1);
-
-				//return Function.numberOrString(defaultValue);
+				return Function.numberOrString(defaultValue);
 		}
 	}
 

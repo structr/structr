@@ -1756,71 +1756,159 @@ var _Code = {
 				// usedIn property
 				if (result.usedIn && result.usedIn.length > 0) {
 
-					let usageTableContainer = document.querySelector('#usage-list');
-					let label               = document.querySelector('#usage-list-label');
+					let usageTree = document.querySelector('#usage-tree');
+					let label     = document.querySelector('#usage-label');
 
 					// add help text
 					label.innerHTML = 'This type is used in the following pages, HTML elements and attributes. Please note that this table might not be complete since the information here is collected at runtime, when you browse through the pages of your application.';
 
-					Structr.fetchHtmlTemplate('code/usage-table', {}, function(html) {
+					let sorted = result.usedIn.sort((a, b) => {
 
-						// append table
-						usageTableContainer.innerHTML = html;
+						let p1 = a.path || a.page || a.type || a.id;
+						let p2 = b.path || b.page || b.type || b.id;
 
-						let usageTable = document.querySelector('#usage-table-body');
-						let sorted     = result.usedIn.sort((a, b) => {
+						return p1 > p2 ? 1 : p1 < p2 ? -1 : 0;
+					});
 
-							let p1 = a.path || a.page || a.type || a.id;
-							let p2 = b.path || b.page || b.type || b.id;
+					let tree = { name: 'Usage', children: {} };
 
-							return p1 > p2 ? 1 : p1 < p2 ? -1 : 0;
-						});
+					// append rows
+					for (var usage of sorted) {
 
-						console.log(sorted);
+						let path = usage.path;
 
-						// append rows
-						for (var usage of sorted) {
+						if (!path) { path = 'Types'; } else { path = 'Pages/' + path; }
 
-							Structr.fetchHtmlTemplate('code/usage-row', usage, function(html) {
+						let parts   = path.split('/').filter(p => p.length > 0);
+						let current = tree;
 
-								let dummyTbody = document.createElement('tbody');
-								dummyTbody.innerHTML = html;
-								let tr = dummyTbody.firstChild;
-								usageTable.appendChild(tr);
+						for (var part of parts) {
 
-								let btn = tr.querySelector('button');
-								btn.addEventListener('click', function(e) {
+							if (!current.children[part]) {
 
-									let id = e.target.dataset.id;
+								current.children[part] = {
+									name: part,
+									children: {}
+								};
+							}
 
-									Command.get(id, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
+							current = current.children[part];
+						}
 
-										switch (obj.type) {
+						current.data = usage;
+					}
 
-											case 'Content':
-											case 'Template':
-												_Elements.openEditContentDialog(btn, obj, {
-													extraKeys: { "Ctrl-Space": "autocomplete" },
-													gutters: ["CodeMirror-lint-markers"],
-													lint: {
-														getAnnotations: function(text, callback) {
-															_Code.showScriptErrors(obj, text, callback, data.name);
-														},
-														async: true
-													}
-												});
-												break;
-											default:
-												_Entities.showProperties(obj);
-												break;
-										}
-									});
+					let buildTree = function(root, rootElement) {
 
+						let listItem = document.createElement('li');
+						listItem.dataset.jstree = JSON.stringify({ icon: '/structr/icon/folder.png#' });
+						listItem.classList.add('jstree-open');
+						listItem.innerHTML = root.name;
+						rootElement.appendChild(listItem);
+
+						let list = document.createElement('ul');
+						listItem.appendChild(list);
+
+						if (root.data) {
+
+							for (var key of Object.keys(root.data.mapped)) {
+
+								let value = root.data.mapped[key];
+								let item  = document.createElement('li');
+								item.dataset.jstree = JSON.stringify({ icon: 'fa fa-edit' });
+								item.innerHTML = key + ': '+ value;
+
+								list.append(item);
+							}
+						}
+
+						for (var key of Object.keys(root.children)) {
+							let child = root.children[key];
+							buildTree(child, list);
+						}
+
+					};
+
+					buildTree(tree, usageTree);
+
+					$('#usage-tree-container').jstree({
+						plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
+						core: {
+							animation: 0
+						}
+					});
+
+					/*
+
+						let headerRow   = document.createElement('tr');
+						let typeCell    = document.createElement('td');
+						let pathCell    = document.createElement('td');
+
+						typeCell.innerHTML = usage.type || '-';
+						pathCell.innerHTML = usage.path || '-';
+						pathCell.colSpan = 3;
+						headerRow.classList.add('header-row');
+						headerRow.appendChild(typeCell);
+						headerRow.appendChild(pathCell);
+						usageTable.appendChild(headerRow);
+
+						for (var key of Object.keys(usage.mapped)) {
+
+							let dataRow    = document.createElement('tr');
+							let keyCell    = document.createElement('td');
+							let valueCell  = document.createElement('td');
+							let buttonCell = document.createElement('td');
+							let value      = usage.mapped[key];
+
+							let name = key.replaceAll('/_html_', '');
+
+							keyCell.innerHTML   = name;
+							valueCell.innerHTML = value;
+							keyCell.classList.add('key-cell');
+							buttonCell.classList.add('button');
+							dataRow.classList.add('data-row');
+							dataRow.appendChild(document.createElement('td'));
+							dataRow.appendChild(keyCell);
+							dataRow.appendChild(valueCell);
+							dataRow.appendChild(buttonCell);
+							usageTable.appendChild(dataRow);
+
+							let btn = document.createElement('button');
+							btn.innerHTML = 'Edit';
+
+							buttonCell.appendChild(btn);
+
+							btn.addEventListener('click', function(e) {
+
+								let id = e.target.dataset.id;
+
+								Command.get(id, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
+
+									switch (obj.type) {
+
+										case 'Content':
+										case 'Template':
+											_Elements.openEditContentDialog(btn, obj, {
+												extraKeys: { "Ctrl-Space": "autocomplete" },
+												gutters: ["CodeMirror-lint-markers"],
+												lint: {
+													getAnnotations: function(text, callback) {
+														_Code.showScriptErrors(obj, text, callback, data.name);
+													},
+													async: true
+												}
+											});
+											break;
+										default:
+											_Entities.showProperties(obj);
+											break;
+									}
 								});
 
 							});
 						}
-					});
+					 *
+					 */
 
 				} else {
 

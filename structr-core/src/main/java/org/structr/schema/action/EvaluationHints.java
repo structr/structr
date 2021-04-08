@@ -23,7 +23,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import org.structr.core.script.StructrScriptException;
+import org.structr.common.error.FrameworkException;
 
 /**
  */
@@ -41,7 +41,7 @@ public class EvaluationHints {
 		usedKeys.put(key, new CodeLocation(row, column));
 	}
 
-	public void checkForErrorsAndThrowException() throws StructrScriptException {
+	public void checkForErrorsAndThrowException(final ErrorReporter reporter) throws FrameworkException {
 
 		usedKeys.keySet().removeAll(existingKeys);
 
@@ -52,8 +52,7 @@ public class EvaluationHints {
 				final String key            = entry.getKey();
 				final CodeLocation location = entry.getValue();
 
-				// only the first unused key is reported here because StructrScriptException doesn't support multiple error locations yet
-				throw new StructrScriptException(422, "No function or keyword " + key, location.row, location.column);
+				reporter.reportError("No function or keyword " + key, location.row, location.column);
 			}
 		}
 	}

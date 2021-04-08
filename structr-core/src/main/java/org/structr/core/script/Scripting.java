@@ -191,12 +191,12 @@ public class Scripting {
 
 			// temporarily disable notifications for scripted actions
 
-			boolean enableTransactionNotifactions = false;
+			boolean enableTransactionNotifications = false;
 
 			final SecurityContext securityContext = actionContext.getSecurityContext();
 			if (securityContext != null) {
 
-				enableTransactionNotifactions = securityContext.doTransactionNotifications();
+				enableTransactionNotifications = securityContext.doTransactionNotifications();
 
 				securityContext.setDoTransactionNotifications(false);
 			}
@@ -213,7 +213,7 @@ public class Scripting {
 
 				final Object result = evaluateJavascript(actionContext, entity, snippet);
 
-				if (enableTransactionNotifactions && securityContext != null) {
+				if (enableTransactionNotifications && securityContext != null) {
 					securityContext.setDoTransactionNotifications(true);
 				}
 
@@ -232,18 +232,23 @@ public class Scripting {
 						extractedValue = output;
 					}
 
-					if (enableTransactionNotifactions && securityContext != null) {
+					if (enableTransactionNotifications && securityContext != null) {
 						securityContext.setDoTransactionNotifications(true);
 					}
 
-					hints.checkForErrorsAndThrowException();
+					hints.checkForErrorsAndThrowException((message, row, column) -> {
+						// report usage errors (missing keys etc.)
+						reportError(actionContext.getSecurityContext(), message, row, column, snippet, false);
+					});
 
 					return extractedValue;
 
 				} catch (StructrScriptException t) {
 
+					// This block reports syntax errors in StructrScript expressions
 					// StructrScript evaluation should not throw exceptions
-					reportError(actionContext.getSecurityContext(), t.getMessage(), t.getRow(), t.getColumn(), snippet);
+
+					reportError(actionContext.getSecurityContext(), t.getMessage(), t.getRow(), t.getColumn(), snippet, false);
 				}
 
 				return null;
@@ -660,11 +665,6 @@ public class Scripting {
 		reportError(securityContext, message, lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet, shouldThrow);
 	}
 
-	private static void reportError(final SecurityContext securityContext, final String message, final int lineNumber, final int columnNumber, final Snippet snippet) throws FrameworkException {
-
-		reportError(securityContext, message, lineNumber, columnNumber, snippet, true);
-	}
-
 	private static void reportError(final SecurityContext securityContext, final String message, final int lineNumber, final int columnNumber, final Snippet snippet, final boolean shouldThrow) throws FrameworkException {
 
 		reportError(securityContext, message, lineNumber, columnNumber, lineNumber, columnNumber, snippet, shouldThrow);
@@ -734,7 +734,13 @@ public class Scripting {
 		exceptionPrefix.append(snippet.getName()).append(":").append(lineNumber).append(":").append(columnNumber);
 
 		if (shouldThrow) {
+
 			throw new FrameworkException(422, exceptionPrefix.toString() + "\n" + message);
+
+		} else {
+
+			// log error but don't throw exception
+			logger.warn(exceptionPrefix.toString() + ": " + message);
 		}
 	}
 

@@ -34,6 +34,7 @@ import org.structr.core.entity.relationship.SchemaNodeProperty;
 import org.structr.core.entity.relationship.SchemaNodeView;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.TransactionPostProcess;
@@ -204,8 +205,16 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 			viewNames.add(View.INTERNAL_GRAPH_VIEW);
 			viewNames.add(PropertyView.All);
 
-			for (final SchemaView view : StructrApp.getInstance().getNodeById(node.getUuid()).getProperty(schemaViews)) {
-				viewNames.add(view.getProperty(AbstractNode.name));
+			final NodeInterface schemaNode = StructrApp.getInstance().getNodeById(node.getUuid());
+			if (schemaNode != null) {
+
+				final Iterable<SchemaView> views = schemaNode.getProperty(schemaViews);
+				if (views != null) {
+
+					for (final SchemaView view : views) {
+						viewNames.add(view.getProperty(AbstractNode.name));
+					}
+				}
 			}
 			// determine runtime type
 			Class builtinClass = config.getNodeEntityClass(node.getClassName());

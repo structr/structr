@@ -548,4 +548,8 @@ public interface GraphObject extends CodeSource {
 	}
 
 	boolean changelogEnabled();
+
+	default boolean isFrontendNode() {
+		return false;
+	}
 }

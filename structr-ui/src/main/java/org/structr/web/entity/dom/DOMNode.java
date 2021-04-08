@@ -424,6 +424,11 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		data.put("path", getPagePath());
 	}
 
+	@Override
+	default boolean isFrontendNode() {
+		return true;
+	}
+
 	// ----- static methods -----
 	static void onCreation(final DOMNode thisNode, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 

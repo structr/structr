@@ -74,7 +74,15 @@ public class RuntimeUsageLog {
 
 		if (entity != null) {
 
-			stack.get().push(new Usage(entity.getUuid(), contextInfo));
+			if (entity.isFrontendNode()) {
+
+				stack.get().push(new Usage(entity.getUuid(), entity.getType(), contextInfo));
+
+			} else {
+
+				// for data-nodes (custom types) we only need the type, not the individual nodes
+				stack.get().push(new Usage(null, entity.getType(), contextInfo));
+			}
 		}
 	}
 
@@ -83,7 +91,6 @@ public class RuntimeUsageLog {
 		if (entity != null) {
 
 			stack.get().pop();
-
 		}
 	}
 }

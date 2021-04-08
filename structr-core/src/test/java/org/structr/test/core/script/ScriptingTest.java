@@ -780,17 +780,7 @@ public class ScriptingTest extends StructrTest {
 
 			assertEquals("Invalid size result", "20", Scripting.replaceVariables(ctx, testOne, "${this.manyToManyTestSixs.size}"));
 
-			try {
-
-				Scripting.replaceVariables(ctx, testOne, "${(this.alwaysNull.size}");
-				fail("A mismatched opening bracket should throw an exception.");
-
-			} catch (FrameworkException fex) {
-
-				final String expectedMessage = "TestOne[" + testOne.getUuid() + "]:script source:1:2\nInvalid expression: mismatched closing bracket after this.alwaysNull.size";
-				assertEquals(expectedMessage, fex.getMessage());
-			}
-
+			assertEquals("Invalid size result", "", Scripting.replaceVariables(ctx, testOne, "${(this.alwaysNull.size}"));
 			assertEquals("Invalid size result", "", Scripting.replaceVariables(ctx, testOne, "${this.alwaysNull.size}"));
 
 			assertEquals("Invalid variable reference", "1",            Scripting.replaceVariables(ctx, testOne, "${this.anInt}"));
@@ -2030,7 +2020,7 @@ public class ScriptingTest extends StructrTest {
 		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
-			
+
 			fail(fex.getMessage());
 		}
 	}
