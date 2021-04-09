@@ -380,7 +380,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 							} else if (result instanceof File) {
 
-								streamFile(authResult.getSecurityContext(), (File)result, request, response, EditMode.NONE);
+								streamFile(authResult.getSecurityContext(), (File)result, request, response, EditMode.NONE, true);
 								tx.success();
 								return;
 
@@ -418,7 +418,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				if (file != null) {
 
-					streamFile(securityContext, file, request, response, edit);
+					streamFile(securityContext, file, request, response, edit, true);
 					tx.success();
 					return;
 				}
@@ -539,7 +539,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		final Authenticator auth        = getConfig().getAuthenticator();
 		SecurityContext securityContext = null;
-		List<Page> pages                = null;
 		boolean requestUriContainsUuids = false;
 
 		try {
@@ -620,7 +619,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					File file = findFile(securityContext, request, path);
 					if (file != null) {
 
-						//streamFile(securityContext, file, request, response, edit);
+						streamFile(securityContext, file, request, response, edit, false);
 						tx.success();
 						return;
 
@@ -1436,13 +1435,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		return Collections.EMPTY_LIST;
 	}
 
-	//~--- set methods ----------------------------------------------------
 	public static void setNoCacheHeaders(final HttpServletResponse response) {
 
 		response.setHeader("Cache-Control", "private, max-age=0, s-maxage=0, no-cache, no-store, must-revalidate"); // HTTP 1.1.
 		response.setHeader("Pragma", "no-cache, no-store"); // HTTP 1.0.
 		response.setDateHeader("Expires", 0);
-
 	}
 
 	private void setLimitingDataObject(final SecurityContext securityContext, final HttpServletRequest request, final RenderContext renderContext) {
@@ -1534,7 +1531,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		return notModified;
 	}
 
-	private void streamFile(final SecurityContext securityContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit) throws IOException {
+	private void streamFile(final SecurityContext securityContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit, final boolean sendContent) throws IOException {
 
 		if (!securityContext.isVisible(file)) {
 
@@ -1578,8 +1575,15 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			final String downloadAsDataUrl = request.getParameter(DOWNLOAD_AS_DATA_URL_KEY);
 			if (downloadAsDataUrl != null) {
 
-				IOUtils.write(FileHelper.getBase64String(file), out, "utf-8");
+				final String encoded = FileHelper.getBase64String(file);
+
+				response.setContentLength(encoded.length());
 				response.setContentType("text/plain");
+
+				if (sendContent) {
+					IOUtils.write(encoded, out, "utf-8");
+				}
+
 				response.setStatus(HttpServletResponse.SC_OK);
 
 				out.flush();
@@ -1635,14 +1639,22 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
 						callbackMap.put("statusCode", HttpServletResponse.SC_PARTIAL_CONTENT);
 
-						IOUtils.copyLarge(in, out, start, contentLength);
+						if (sendContent) {
+							IOUtils.copyLarge(in, out, start, contentLength);
+						}
 
 					} else {
 
-						final long fileSize = IOUtils.copyLarge(in, out);
-						final int status    = response.getStatus();
+						if (!file.isTemplate()) {
+							response.addHeader("Content-Length", Long.toString(file.getSize()));
+						}
 
-						response.addHeader("Content-Length", Long.toString(fileSize));
+						if (sendContent) {
+							IOUtils.copyLarge(in, out);
+						}
+
+						final int status = response.getStatus();
+
 						response.setStatus(status);
 
 						callbackMap.put("statusCode", status);

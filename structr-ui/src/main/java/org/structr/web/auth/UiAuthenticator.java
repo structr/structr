@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
-import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -242,7 +241,7 @@ public class UiAuthenticator implements Authenticator {
 		if (grantsFound == 0) {
 
 			final String userInfo     = (validUser ? "user '" + user.getName() + "'" : "anonymous users");
-			final String errorMessage = "Found no resource access grant for " + userInfo + " and signature '" + rawResourceSignature + "' (URI: " + securityContext.getCompoundRequestURI() + ").";
+			final String errorMessage = "Found no resource access grant for " + userInfo + " with signature '" + rawResourceSignature + "' and method '" + method + "' (URI: " + securityContext.getCompoundRequestURI() + ").";
 			final Map eventLogMap     = (validUser ? Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser, "userName", user.getName()) : Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser));
 
 			logger.info(errorMessage);
