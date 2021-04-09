@@ -49,7 +49,7 @@ public abstract class PolyglotWrapper {
 		} else if (obj instanceof GraphObject) {
 
 			return new GraphObjectWrapper(actionContext, (GraphObject) obj);
-		} else if (obj.getClass().isArray()) {
+		} else if (obj.getClass().isArray() && !(obj instanceof byte[]) ) {
 
 			return new PolyglotProxyArray(actionContext, (Object[]) obj);
 		} else 	if (obj instanceof List) {
