@@ -1030,9 +1030,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid if(equal()) result", "false",  Scripting.replaceVariables(ctx, testOne, "${if(equal(\"13\", \"00013\"), \"true\", \"false\")}"));
 
 			// disabled: java StreamTokenizer can NOT handle scientific notation
-//			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(23.4462, 2.34462e1)}"));
-//			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(0.00234462, 2.34462e-3)}"));
-//			aFunction.logException(logger, ex, "Error in batch error handler: {}", new Object[]{ex.getMessage()});
+			//assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(23.4462, 2.34462e1)}"));
+			//assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(0.00234462, 2.34462e-3)}"));
 			assertEquals("Invalid if(equal()) result with null value", "false",  Scripting.replaceVariables(ctx, testOne, "${equal(0.00234462, this.alwaysNull)}"));
 			assertEquals("Invalid if(equal()) result with null value", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(this.alwaysNull, this.alwaysNull)}"));
 
@@ -2406,7 +2405,7 @@ public class ScriptingTest extends StructrTest {
 			final StringBuilder func = new StringBuilder();
 
 			func.append("${{\n");
-			func.append("    Structr.batch(function() {\n");
+			func.append("    Structr.doInNewTransaction(function() {\n");
 			func.append("        var toDelete = Structr.find('TestOne').slice(0, 100);\n");
 			func.append("        if (toDelete && toDelete.length) {\n");
 			func.append("            Structr.log('Deleting ' + toDelete.length + ' nodes..');\n");
@@ -4626,8 +4625,8 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("", "", (Scripting.evaluate(ctx, null, "${{ $.batch(function() { $.error('base', 'nope', 'detail'); }, function() { $.store('test-result', 'error_handled'); }); }}", "test")));
-			assertEquals("Error handler in batch function was not called.", "error_handled", ctx.retrieve("test-result"));
+			assertEquals("", "", (Scripting.evaluate(ctx, null, "${{ $.doInNewTransaction(function() { $.error('base', 'nope', 'detail'); }, function() { $.store('test-result', 'error_handled'); }); }}", "test")));
+			assertEquals("Error handler in doInNewTransaction function was not called.", "error_handled", ctx.retrieve("test-result"));
 
 			tx.success();
 
@@ -6026,7 +6025,7 @@ public class ScriptingTest extends StructrTest {
 
 			final Group group = app.create(Group.class, "Group1");
 
-			Scripting.replaceVariables(new ActionContext(securityContext), group, "${{ $.log($.this.name); $.batch(function() { $.log('In batch()'); }); $.log($.this.name); }}");
+			Scripting.replaceVariables(new ActionContext(securityContext), group, "${{ $.log($.this.name); $.doInNewTransaction(function() { $.log('In doInNewTransaction()'); }); $.log($.this.name); }}");
 
 			tx.success();
 

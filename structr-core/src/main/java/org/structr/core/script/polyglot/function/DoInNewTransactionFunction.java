@@ -33,19 +33,20 @@ import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-public class BatchFunction implements ProxyExecutable {
-	private static final Logger logger = LoggerFactory.getLogger(BatchFunction.class.getName());
+public class DoInNewTransactionFunction implements ProxyExecutable {
+
+	private static final Logger logger = LoggerFactory.getLogger(DoInNewTransactionFunction.class.getName());
 	private final ActionContext actionContext;
 	private final GraphObject entity;
 
-	public BatchFunction(final ActionContext actionContext, final GraphObject entity) {
+	public DoInNewTransactionFunction(final ActionContext actionContext, final GraphObject entity) {
 
 		this.actionContext = actionContext;
 		this.entity = entity;
 	}
 
 	@Override
-	public Object execute(Value... arguments) {
+	public Object execute(final Value... arguments) {
 
 		if (arguments != null && arguments.length > 0) {
 			Object[] unwrappedArgs = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
@@ -66,7 +67,7 @@ public class BatchFunction implements ProxyExecutable {
 						try {
 							innerContext = ContextFactory.getContext("js", actionContext, entity);
 						} catch (FrameworkException ex) {
-							logger.error("Could not retrieve context in BatchFunction worker.", ex);
+							logger.error("Could not retrieve context in DoInNewTransactionFunction worker.", ex);
 							return;
 						}
 						innerContext.enter();
@@ -85,7 +86,7 @@ public class BatchFunction implements ProxyExecutable {
 								// Log if no error handler is given
 								if (unwrappedArgs.length < 2 || !(unwrappedArgs[1] instanceof PolyglotWrapper.FunctionWrapper)) {
 
-									Function.logException(logger, ex, "Error in batch function: {}", new Object[]{ex.getMessage()});
+									Function.logException(logger, ex, "Error in transaction function: {}", new Object[]{ex.getMessage()});
 								}
 							}
 
@@ -104,7 +105,7 @@ public class BatchFunction implements ProxyExecutable {
 										actionContext.getErrorBuffer().getErrorTokens().clear();
 									} catch (FrameworkException ex) {
 
-										Function.logException(logger, ex, "Error in batch error handler: {}", new Object[]{ex.getMessage()});
+										Function.logException(logger, ex, "Error in transaction error handler: {}", new Object[]{ex.getMessage()});
 									}
 
 								}
@@ -119,16 +120,18 @@ public class BatchFunction implements ProxyExecutable {
 				});
 
 				workerThread.start();
+
 				try {
+
 					workerThread.join();
-				} catch (Throwable t) {
-					t.printStackTrace();
-				}
+
+				} catch (Throwable t) {}
+
 				context.enter();
 
 			} catch (FrameworkException ex) {
 
-				logger.error("Exception in BatchFunction.", ex);
+				logger.error("Exception in DoInNewTransactionFunction.", ex);
 			}
 		}
 

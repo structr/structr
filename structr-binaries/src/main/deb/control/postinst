@@ -1,0 +1,6 @@
+#!/bin/sh
+#
+# Post installation script for structr [[version]]
+#
+
+systemctl enable structr

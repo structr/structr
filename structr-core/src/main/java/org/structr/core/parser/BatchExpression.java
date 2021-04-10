@@ -36,7 +36,7 @@ public class BatchExpression extends Expression {
 
 	private static final Logger logger = LoggerFactory.getLogger(BatchExpression.class);
 
-	public static final String ERROR_MESSAGE_SLICE = "Usage: ${batch(statement, batchSize)}. Example: ${batch(delete(find('User')), 1000)}";
+	public static final String ERROR_MESSAGE_BATCH = "Usage: ${batch(statement, batchSize)}. Example: ${batch(delete(find('User')), 1000)}";
 
 	private Expression batchExpression = null;
 	private Expression sizeExpression  = null;
@@ -71,7 +71,7 @@ public class BatchExpression extends Expression {
 	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
 		if (batchExpression == null || sizeExpression == null) {
-			return ERROR_MESSAGE_SLICE;
+			return ERROR_MESSAGE_BATCH;
 		}
 
 		final Object value = sizeExpression.evaluate(ctx, entity, hints);
