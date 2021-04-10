@@ -269,7 +269,7 @@ public class AuthHelper {
 		Jws<Claims> jws = validateTokenWithKeystore(token, publicKey);
 
 		if (jws == null) {
-			throw new FrameworkException(404, AuthHelper.TOKEN_ERROR_MSG);
+			return null;
 		}
 
 		Principal user = getPrincipalForTokenClaims(jws.getBody(), eMailKey);
@@ -292,7 +292,7 @@ public class AuthHelper {
 		Jws<Claims> jws = validateTokenWithSecret(token, secret);
 
 		if (jws == null) {
-			throw new FrameworkException(404, AuthHelper.TOKEN_ERROR_MSG);
+			return null;
 		}
 
 		Principal user =  getPrincipalForTokenClaims(jws.getBody(), eMailKey);
@@ -491,13 +491,14 @@ public class AuthHelper {
 		}
 
 		if (claims == null) {
-			throw new FrameworkException(401, AuthHelper.TOKEN_ERROR_MSG);
+			return null;
 		}
 
 		final String tokenId = (String) claims.getBody().get("tokenId");
 		final String tokenType = (String) claims.getBody().get("tokenType");
 		if (tokenId == null || tokenType == null || !StringUtils.equals(tokenType, "refresh_token")) {
-			throw new FrameworkException(401, AuthHelper.TOKEN_ERROR_MSG);
+			return null;
+
 		}
 
 		Principal user = getPrincipalForCredential(StructrApp.key(Principal.class, "refreshTokens"), new String[]{ tokenId }, false);
