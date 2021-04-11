@@ -1756,8 +1756,8 @@ var _Code = {
 				// usedIn property
 				if (result.usedIn && result.usedIn.length > 0) {
 
-					let usageTree = document.querySelector('#usage-tree');
-					let label     = document.querySelector('#usage-label');
+					let usageTreeContainer = document.querySelector('#usage-tree');
+					let label              = document.querySelector('#usage-label');
 
 					// add help text
 					label.innerHTML = 'This type is used in the following pages, HTML elements and attributes. Please note that this table might not be complete since the information here is collected at runtime, when you browse through the pages of your application.';
@@ -1777,7 +1777,9 @@ var _Code = {
 
 						let path = usage.path;
 
-						if (!path) { path = 'Types'; } else { path = 'Pages/' + path; }
+						// The path is split into its parts to form the hierarchy, so if there is no
+						// path, we use the root term "Types" plus the type of the node.
+						if (!path) { path = 'Types/' + usage.type; } else { path = 'Pages/' + path; }
 
 						let parts   = path.split('/').filter(p => p.length > 0);
 						let current = tree;
@@ -1801,8 +1803,8 @@ var _Code = {
 					let buildTree = function(root, rootElement) {
 
 						let listItem = document.createElement('li');
-						listItem.dataset.jstree = JSON.stringify({ icon: '/structr/icon/folder.png#' });
-						listItem.classList.add('jstree-open');
+						listItem.dataset.jstree = JSON.stringify({ icon: '/structr/icon/folder.png' });
+						//listItem.classList.add('jstree-open');
 						listItem.innerHTML = root.name;
 						rootElement.appendChild(listItem);
 
@@ -1816,6 +1818,7 @@ var _Code = {
 								let value = root.data.mapped[key];
 								let item  = document.createElement('li');
 								item.dataset.jstree = JSON.stringify({ icon: 'fa fa-edit' });
+								item.dataset.id = root.data.id;
 								item.innerHTML = key + ': '+ value;
 
 								list.append(item);
@@ -1829,90 +1832,58 @@ var _Code = {
 
 					};
 
-					buildTree(tree, usageTree);
+					buildTree(tree, usageTreeContainer);
 
-					$('#usage-tree-container').jstree({
-						plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
+					let usageTree = $('#usage-tree-container').jstree({
+						plugins: ["themes"],
 						core: {
 							animation: 0
 						}
 					});
 
-					/*
+					console.log(usageTree);
 
-						let headerRow   = document.createElement('tr');
-						let typeCell    = document.createElement('td');
-						let pathCell    = document.createElement('td');
+					usageTree.on('select_node.jstree', function(node, selected, event) {
 
-						typeCell.innerHTML = usage.type || '-';
-						pathCell.innerHTML = usage.path || '-';
-						pathCell.colSpan = 3;
-						headerRow.classList.add('header-row');
-						headerRow.appendChild(typeCell);
-						headerRow.appendChild(pathCell);
-						usageTable.appendChild(headerRow);
+						console.log({ node: node, selected: selected, event:event });
 
-						for (var key of Object.keys(usage.mapped)) {
+						let id = selected.node.data.id;
+						if (id) {
 
-							let dataRow    = document.createElement('tr');
-							let keyCell    = document.createElement('td');
-							let valueCell  = document.createElement('td');
-							let buttonCell = document.createElement('td');
-							let value      = usage.mapped[key];
+							Command.get(id, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
 
-							let name = key.replaceAll('/_html_', '');
+								switch (obj.type) {
 
-							keyCell.innerHTML   = name;
-							valueCell.innerHTML = value;
-							keyCell.classList.add('key-cell');
-							buttonCell.classList.add('button');
-							dataRow.classList.add('data-row');
-							dataRow.appendChild(document.createElement('td'));
-							dataRow.appendChild(keyCell);
-							dataRow.appendChild(valueCell);
-							dataRow.appendChild(buttonCell);
-							usageTable.appendChild(dataRow);
-
-							let btn = document.createElement('button');
-							btn.innerHTML = 'Edit';
-
-							buttonCell.appendChild(btn);
-
-							btn.addEventListener('click', function(e) {
-
-								let id = e.target.dataset.id;
-
-								Command.get(id, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
-
-									switch (obj.type) {
-
-										case 'Content':
-										case 'Template':
-											_Elements.openEditContentDialog(btn, obj, {
-												extraKeys: { "Ctrl-Space": "autocomplete" },
-												gutters: ["CodeMirror-lint-markers"],
-												lint: {
-													getAnnotations: function(text, callback) {
-														_Code.showScriptErrors(obj, text, callback, data.name);
-													},
-													async: true
-												}
-											});
-											break;
-										default:
-											_Entities.showProperties(obj);
-											break;
-									}
-								});
-
+									case 'Content':
+									case 'Template':
+										_Elements.openEditContentDialog(undefined, obj, {
+											extraKeys: { "Ctrl-Space": "autocomplete" },
+											gutters: ["CodeMirror-lint-markers"],
+											lint: {
+												getAnnotations: function(text, callback) {
+													_Code.showScriptErrors(obj, text, callback, data.name);
+												},
+												async: true
+											}
+										});
+										break;
+									default:
+										_Entities.showProperties(obj);
+										break;
+								}
 							});
+
+						} else {
+
+							// not a leaf, toggle "opened" state
+							usageTree.jstree('toggle_node', selected.node);
 						}
-					 *
-					 */
+
+					});
 
 				} else {
 
-					let label = document.querySelector('#usage-list-label');
+					let label = document.querySelector('#usage-label');
 					if (label) {
 
 						label.innerHTML = 'Browse through your application to populate the usage list for this type.';
