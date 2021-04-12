@@ -119,8 +119,6 @@ public class AuthHelper {
 
 		if (superuserName.equals(value) && superUserPwd.equals(password)) {
 
-			// logger.info("############# Authenticated as superadmin! ############");
-
 			principal = new SuperUser();
 
 			RuntimeEventLog.login("Authenticate", Map.of("id", principal.getUuid(), "name", principal.getName()));
@@ -157,31 +155,73 @@ public class AuthHelper {
 					throw new AuthenticationException(STANDARD_ERROR_MSG);
 				}
 
-				// let Principal decide how to check password
-				final boolean passwordValid = principal.isValidPassword(password);
+				try {
 
-				if (!passwordValid) {
+					// let Principal decide how to check password
+					final boolean passwordValid = principal.isValidPassword(password);
 
-					AuthHelper.incrementFailedLoginAttemptsCounter(principal);
-				}
+					if (!passwordValid) {
 
-				AuthHelper.checkTooManyFailedLoginAttempts(principal);
+						AuthHelper.incrementFailedLoginAttemptsCounter(principal);
+					}
 
-				if (!passwordValid) {
+					AuthHelper.checkTooManyFailedLoginAttempts(principal);
 
-					RuntimeEventLog.failedLogin("Wrong password", Map.of("id", principal.getUuid(), "name", principal.getName()));
+					if (!passwordValid) {
 
-					throw new AuthenticationException(STANDARD_ERROR_MSG);
+						RuntimeEventLog.failedLogin("Wrong password", Map.of("id", principal.getUuid(), "name", principal.getName()));
 
-				} else {
+						throw new AuthenticationException(STANDARD_ERROR_MSG);
 
-					AuthHelper.handleForcePasswordChange(principal);
-					AuthHelper.resetFailedLoginAttemptsCounter(principal);
+					} else {
 
-					// allow external users (LDAP etc.) to update group membership
-					principal.onAuthenticate();
+						AuthHelper.handleForcePasswordChange(principal);
+						AuthHelper.resetFailedLoginAttemptsCounter(principal);
 
-					RuntimeEventLog.login("Authenticate", Map.of("id", principal.getUuid(), "name", principal.getName()));
+						// allow external users (LDAP etc.) to update group membership
+						principal.onAuthenticate();
+
+						RuntimeEventLog.login("Authenticate", Map.of("id", principal.getUuid(), "name", principal.getName()));
+					}
+
+				} catch (DeleteInvalidUserException iuex) {
+
+					// we need to delete the user in a separate transaction
+					new Thread(() -> {
+
+						final App app     = StructrApp.getInstance();
+						final String uuid = iuex.getUuid();
+
+						// delete user, return null
+						if (uuid != null) {
+
+							try (final Tx tx = app.tx()) {
+
+								try {
+									final NodeInterface toDelete = app.getNodeById(uuid);
+									if (toDelete != null) {
+
+										app.delete(toDelete);
+									}
+
+								} catch (FrameworkException fex) {
+									fex.printStackTrace();
+								}
+
+								tx.success();
+
+							} catch (FrameworkException fex) {
+								logger.warn("Unable to delete user {}: {}", uuid, fex.getMessage());
+							}
+
+						} else {
+
+							logger.warn("Unable to delete user {}, not found", uuid);
+						}
+
+					}).start();
+
+					return null;
 				}
 			}
 		}
