@@ -5,14 +5,14 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-test-configuration</artifactId>
-		<version>3.6.4-rc1</version>
+		<version>3.6.4-rc2</version>
 		<relativePath>../structr-test-configuration</relativePath>
 	</parent>
 
 	<groupId>org.structr</groupId>
 	<artifactId>structr-rest</artifactId>
 	<packaging>jar</packaging>
-	<version>3.6.4-rc1</version>
+	<version>3.6.4-rc2</version>
 
 	<dependencies>
 		<dependency>
