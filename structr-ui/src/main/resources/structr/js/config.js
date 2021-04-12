@@ -45,7 +45,7 @@ function resetToDefault(key) {
 
 function resize() {
 	$('.tab-content').css({
-		height: $(window).height() - $('#header').height() - $('#configTabs .tabs-menu').height() - 60 + 'px'
+		height: $(window).height() - $('#header').height() - $('#configTabs .tabs-menu').height() - 110
 	});
 }
 

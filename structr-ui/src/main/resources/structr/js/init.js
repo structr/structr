@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var header, main;
+var header, main, functionBar;
 var sessionId, user;
 var lastMenuEntry, menuBlocked;
 var dmp;
@@ -44,6 +44,7 @@ $(function() {
 
 	header = $('#header');
 	main = $('#main');
+	functionBar = $('#function-bar');
 	loginBox = $('#login');
 
 	dialogBox          = $('#dialogBox');
@@ -535,6 +536,7 @@ var Structr = {
 		$.ui.ddmanager.droppables['default'] = newDroppables;
 		$('iframe').contents().remove();
 		fastRemoveAllChildren(main[0]);
+		fastRemoveAllChildren(functionBar[0]);
 		$('#graph-box').hide();
 	},
 	confirmation: function(text, yesCallback, noCallback) {
@@ -691,18 +693,16 @@ var Structr = {
 	},
 	setSize: function(w, h, dw, dh) {
 
-		var l = parseInt((w - dw) / 2);
-		var t = parseInt((h - dh) / 2);
+		let l = parseInt((w - dw) / 2);
+		let t = parseInt((h - dh) / 2);
 
-		var horizontalOffset = 113;
+		let horizontalOffset = 148;
 
 		// needs to be calculated like this because the elements in the dialogHead (tabs) are floated and thus the .height() method returns 0
 		var headerHeight = (dialogText.position().top + dialogText.scrollParent().scrollTop()) - dialogHead.position().top;
 
-		$('#dialogBox .dialogTextWrapper').css({
-			width: (dw - 28) + 'px',
-			height: (dh - horizontalOffset - headerHeight) + 'px'
-		});
+		$('#dialogBox .dialogTextWrapper').css('width', 'calc(' + dw + 'px - 3rem)');
+		$('#dialogBox .dialogTextWrapper').css('height', dh - horizontalOffset - headerHeight);
 
 		$('.blockPage').css({
 			width: dw + 'px',
@@ -715,9 +715,9 @@ var Structr = {
 		if (codeMirror.length) {
 
 			var cmPosition = codeMirror.position();
-			var bottomOffset = 24;
+			var bottomOffset = 0;
 
-			var cmHeight = (dh - horizontalOffset - headerHeight - bottomOffset - cmPosition.top) + 'px';
+			var cmHeight = (dh - headerHeight - horizontalOffset - cmPosition.top) + 'px';
 
 			$('.CodeMirror:not(.cm-schema-methods)').css({
 				height: cmHeight
@@ -930,12 +930,11 @@ var Structr = {
 		$('#menu > ul > li > a').attr('disabled', 'disabled').addClass('disabled');
 	},
 	unblockMenu: function(ms) {
-		var ms = ms || 0;
 		// Wait ms before releasing the main menu
 		window.setTimeout(function() {
 			menuBlocked = false;
 			$('#menu > ul > li > a').removeAttr('disabled', 'disabled').removeClass('disabled');
-		}, ms);
+		}, ms || 0);
 	},
 	requestActivateModule: function(event, name) {
 		if (menuBlocked) {
@@ -1117,94 +1116,95 @@ var Structr = {
 
 		var t = $(triggerEl);
 		t.addClass('active');
-		LSWrapper.setItem(activeTabKey, t.prop('id'));
+		LSWrapper.setItem(activeTabKey, t.prop('id')); console.log(t.prop('id'));
 		slideoutElement.width(rsw);
-		slideoutElement.animate({right: 0 + 'px'}, 100, function() {
+		slideoutElement.animate({right: 0}, 100, function() {
 			if (typeof callback === 'function') {
 				callback({isOpenAction: true});
 			}
 		}).zIndex(1);
 		slideoutElement.addClass('open');
 
-		t.draggable({
-			axis: 'x',
-			start: function(e, ui) {
-				$('.column-resizer-blocker').show();
-				t.addClass('noclick');
-			},
-			drag: function(e, ui) {
-				var w = $(window).width() - ui.offset.left - 20;
-				slideoutElement.css({
-					width: w + 'px'
-				});
-				ui.position.top += (ui.helper.width() / 2 - 6);
-				ui.position.left = - t.width() / 2 - 20;
-
-				if (typeof callback === 'function') {
-					LSWrapper.setItem(_Pages.rightSlideoutWidthKey, slideoutElement.width());
-					callback({isOpenAction: false});
-				}
-			},
-			stop: function(e, ui) {
-				$('.column-resizer-blocker').hide();
-				// remove noclick class after 200ms in case the mouseup event is not triggered while over the element (which leads to noclick remaining)
-				window.setTimeout(function() {
-					t.removeClass('noclick');
-				}, 200);
-				LSWrapper.setItem(_Pages.rightSlideoutWidthKey, slideoutElement.width());
-				t.css({
-					left: "",
-					top: ""
-				});
-			}
-		});
+		// t.draggable({
+		// 	axis: 'x',
+		// 	start: function(e, ui) {
+		// 		$('.column-resizer-blocker').show();
+		// 		t.addClass('noclick');
+		// 	},
+		// 	drag: function(e, ui) {
+		// 		var w = $(window).width() - ui.offset.left - 20;
+		// 		slideoutElement.css({
+		// 			width: w + 'px'
+		// 		});
+		// 		ui.position.top += (ui.helper.width() / 2 - 6);
+		// 		ui.position.left = - t.width() / 2 - 20;
+		//
+		// 		if (typeof callback === 'function') {
+		// 			LSWrapper.setItem(_Pages.rightSlideoutWidthKey, slideoutElement.width());
+		// 			callback({isOpenAction: false});
+		// 		}
+		// 	},
+		// 	stop: function(e, ui) {
+		// 		$('.column-resizer-blocker').hide();
+		// 		// remove noclick class after 200ms in case the mouseup event is not triggered while over the element (which leads to noclick remaining)
+		// 		window.setTimeout(function() {
+		// 			t.removeClass('noclick');
+		// 		}, 200);
+		// 		LSWrapper.setItem(_Pages.rightSlideoutWidthKey, slideoutElement.width());
+		// 		t.css({
+		// 			left: "",
+		// 			top: ""
+		// 		});
+		// 	}
+		// });
 	},
 	openLeftSlideOut: function(triggerEl, slideoutElement, activeTabKey, callback) {
 
 		var storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.leftSlideoutWidthKey);
-		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (slideoutElement.width() + 12);
+		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (slideoutElement.width());
 
 		var t = $(triggerEl);
 		t.addClass('active');
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
 		slideoutElement.width(psw);
-		slideoutElement.animate({left: 0 + 'px'}, 100, function() {
+
+		slideoutElement.animate({left: 0}, 100, function() {
 			if (typeof callback === 'function') {
 				callback({isOpenAction: true});
 			}
 
-		t.draggable({
-			axis: 'x',
-			start: function(e, ui) {
-				$('.column-resizer-blocker').show();
-				$(this).addClass('noclick');
-			},
-			drag: function(e, ui) {
-				var w = ui.position.left - 12;
-				slideoutElement.css({
-					width: w + 'px'
-				});
-				ui.position.top  += (ui.helper.width() / 2 - 6);
-				ui.position.left -= (ui.helper.width() / 2 - 6);
-
-				if (typeof callback === 'function') {
-					LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
-					callback({isOpenAction: false});
-				}
-			},
-			stop: function(e, ui) {
-				$('.column-resizer-blocker').hide();
-				// remove noclick class after 200ms in case the mouseup event is not triggered while over the element (which leads to noclick remaining)
-				window.setTimeout(function() {
-					t.removeClass('noclick');
-				}, 200);
-				LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
-				t.css({
-					left: "",
-					top: ""
-				});
-			}
-		});
+			// t.draggable({
+			// 	axis: 'x',
+			// 	start: function(e, ui) {
+			// 		$('.column-resizer-blocker').show();
+			// 		$(this).addClass('noclick');
+			// 	},
+			// 	drag: function(e, ui) {
+			// 		var w = ui.position.left - 12;
+			// 		slideoutElement.css({
+			// 			width: w + 'px'
+			// 		});
+			// 		ui.position.top  += (ui.helper.width() / 2 - 6);
+			// 		ui.position.left -= (ui.helper.width() / 2 - 6);
+			//
+			// 		if (typeof callback === 'function') {
+			// 			LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
+			// 			callback({isOpenAction: false});
+			// 		}
+			// 	},
+			// 	stop: function(e, ui) {
+			// 		$('.column-resizer-blocker').hide();
+			// 		// remove noclick class after 200ms in case the mouseup event is not triggered while over the element (which leads to noclick remaining)
+			// 		window.setTimeout(function() {
+			// 			t.removeClass('noclick');
+			// 		}, 200);
+			// 		LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
+			// 		t.css({
+			// 			left: "",
+			// 			top: ""
+			// 		});
+			// 	}
+			// });
 		}).zIndex(1);
 
 		slideoutElement.addClass('open');
@@ -1215,17 +1215,18 @@ var Structr = {
 
 		slideouts.forEach(function(slideout) {
 			slideout.removeClass('open');
-			var left = slideout.position().left;
-			var sw = slideout.width() + 12;
+			let left          = slideout.position().left;
+			let slideoutWidth = slideout[0].getBoundingClientRect().width;
 
-			if (Math.abs($(window).width() - left) >= 3) {
+			if (left < $(window).width()) {
+			//if (Math.abs($(window).width() - left) >= 3) {
 				wasOpen = true;
-				slideout.animate({right: '-=' + sw + 'px'}, 100, function() {
+				slideout.animate({ right: -slideoutWidth }, 100, function() {
 					if (typeof callback === 'function') {
 						callback(wasOpen);
 					}
 				}).zIndex(2);
-				$('.compTab.active', slideout).removeClass('active').draggable('destroy');
+				$('.slideout-activator.right.active').removeClass('active');
 
 				var openSlideoutCallback = slideout.data('closeCallback');
 				if (typeof openSlideoutCallback === 'function') {
@@ -1234,30 +1235,30 @@ var Structr = {
 			}
 		});
 
-		LSWrapper.removeItem(activeTabKey);
+		LSWrapper.removeItem(_Pages.activeTabRightKey);
 	},
 	closeLeftSlideOuts: function(slideouts, activeTabKey, callback) {
-		var wasOpen = false;
-		var osw;
+		let wasOpen = false;
+		let oldSlideoutWidth;
 
 		slideouts.forEach(function(slideout) {
 			slideout.removeClass('open');
-			var left = slideout.position().left;
-			var sw = slideout.width() + 12;
+			let left          = slideout.position().left;
+			let slideoutWidth = slideout[0].getBoundingClientRect().width;
 
-			if (Math.abs(left) <= 3) {
+			if (left > -1) {
 				wasOpen = true;
-				osw = sw;
-				slideout.animate({left: - sw -1 + 'px'}, 100, function() {
+				oldSlideoutWidth = slideoutWidth;
+				slideout.animate({ left: -slideoutWidth }, 100, function() {
 					if (typeof callback === 'function') {
-						callback(wasOpen, -osw, 0);
+						callback(wasOpen, -oldSlideoutWidth, 0);
 					}
 				}).zIndex(2);
-				$('.compTab.active', slideout).removeClass('active').draggable('destroy');
+				$('.slideout-activator.left.active').removeClass('active');
 			}
 		});
 
-		LSWrapper.removeItem(activeTabKey);
+		LSWrapper.removeItem(_Pages.activeTabLeftKey);
 	},
 	updateVersionInfo: function(retryCount = 0, isLogin = false) {
 

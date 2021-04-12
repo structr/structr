@@ -74,12 +74,12 @@ var _Schema = {
 		if (reload) {
 			return;
 		}
-		var x = window.scrollX;
-		var y = window.scrollY;
+
 		reload = true;
 		//_Schema.storePositions();	/* CHM: don't store positions on every reload, let automatic positioning do its job.. */
-		schemaContainer.empty();
-		_Schema.init({x: x, y: y}, callback);
+		//schemaContainer.empty();
+		fastRemoveAllChildren(canvas[0]);
+		_Schema.init({x: window.scrollX, y: window.scrollY}, callback);
 		_Schema.resize();
 
 	},
@@ -88,8 +88,8 @@ var _Schema = {
 			var node = $(n);
 			var type = node.text();
 			var obj = node.offset();
-			obj.left = (obj.left - canvas.offset().left) / _Schema.ui.zoomLevel;
-			obj.top  = (obj.top  - canvas.offset().top)  / _Schema.ui.zoomLevel;
+			obj.left = (obj.left) / _Schema.ui.zoomLevel;
+			obj.top  = (obj.top)  / _Schema.ui.zoomLevel;
 			_Schema.nodePositions[type] = obj;
 		});
 
@@ -103,7 +103,7 @@ var _Schema = {
 
 		Structr.fetchHtmlTemplate('schema/schema-container', {}, function(html) {
 
-			schemaContainer[0].innerHTML = html;
+			functionBar[0].innerHTML = html;
 
 			_Schema.schemaLoading = false;
 			_Schema.schemaLoaded = false;
@@ -150,7 +150,8 @@ var _Schema = {
 
 			_Schema.globalLayoutSelector = $('#saved-layout-selector-main');
 			_Schema.updateGroupedLayoutSelector([_Schema.globalLayoutSelector], () => {
-				$('#restore-schema-layout').off('click').on('click', () => {
+				//$('#restore-schema-layout').off('click').on('click', () => {
+				_Schema.globalLayoutSelector.off('change').on('change', () => {
 					_Schema.restoreLayout(_Schema.globalLayoutSelector);
 				});
 			});
@@ -176,7 +177,7 @@ var _Schema = {
 				instance = jsPlumb.getInstance({
 					//Connector: "StateMachine",
 					PaintStyle: {
-						lineWidth: 5,
+						lineWidth: 4,
 						strokeStyle: "#81ce25"
 					},
 					Endpoint: ["Dot", {radius: 6}],
@@ -584,9 +585,16 @@ var _Schema = {
 					};
 
 					var storedPosition = _Schema.nodePositions[entity.name];
+
+					console.log('storedPosition', storedPosition);
+
+
 					if (!storedPosition) {
 
 						var calculatedPosition = calculatePosition();
+
+						console.log('calculatedPosition', calculatedPosition);
+
 						var count = 0; // prevent endless looping
 
 						while (_Schema.overlapsExistingNodes(calculatedPosition) && count++ < 1000) {
@@ -632,6 +640,8 @@ var _Schema = {
 						start: function(ui) {
 							var nodeOffset   = $(ui.el).offset();
 							var canvasOffset = canvas.offset();
+							// var canvasOffset = {top:300,left:0};
+
 							_Schema.ui.nodeDragStartpoint = {
 								top:  (nodeOffset.top  - canvasOffset.top ),
 								left: (nodeOffset.left - canvasOffset.left)
@@ -703,7 +713,7 @@ var _Schema = {
 						[ 'Perimeter', { shape: 'Rectangle' } ]
 					],
 					connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
-					paintStyle: { lineWidth: 5, strokeStyle: "#dddddd", dashstyle: '2 2' },
+					paintStyle: { lineWidth: 4, strokeStyle: "#dddddd", dashstyle: '2 2' },
 					cssClass: "dashed-inheritance-relationship"
 				});
 			}
@@ -783,8 +793,8 @@ var _Schema = {
 						target: nodes[res.targetId + '_top'],
 						deleteEndpointsOnDetach: false,
 						scope: res.id,
-						connector: [_Schema.ui.connectorStyle, {curviness: 200, cornerRadius: 25, stub: [stub, 30], gap: 6, alwaysRespectStubs: true }],
-						paintStyle: { lineWidth: 5, strokeStyle: res.permissionPropagation !== 'None' ? "#ffad25" : "#81ce25" },
+						connector: [_Schema.ui.connectorStyle, {curviness: 200, cornerRadius: 20, stub: [stub, 20], gap: 6, alwaysRespectStubs: true }],
+						paintStyle: { lineWidth: 4, strokeStyle: res.permissionPropagation !== 'None' ? "#ffad25" : "#81ce25" },
 						overlays: [
 							["Label", {
 									cssClass: "label multiplicity",
@@ -1459,7 +1469,7 @@ var _Schema = {
 				_Schema.properties.rowChanged(property, row);
 			};
 
-			var protected = false;
+			let prot = false;
 
 			var propertyTypeOption = $('.property-type option[value="' + property.propertyType + '"]', row);
 			if (propertyTypeOption) {
@@ -1467,7 +1477,7 @@ var _Schema = {
 				if (propertyTypeOption.data('protected')) {
 					propertyTypeOption.prop('disabled', true);
 					propertyTypeOption.closest('select').attr('disabled', true);
-					protected = true;
+					prot = true;
 				} else {
 					propertyTypeOption.prop('disabled', null);
 				}
@@ -1485,17 +1495,17 @@ var _Schema = {
 				$('.content-type', row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', null);
 			}
 
-			$('.property-name',    row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
-			$('.property-dbname',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
-			$('.caching-enabled',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
-			$('.type-hint',        row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
-			$('.property-type',    row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
-			$('.property-format',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
-			$('.not-null',         row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
-			$('.compound',         row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
-			$('.unique',           row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
-			$('.indexed',          row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
-			$('.property-default', row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', protected);
+			$('.property-name',    row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
+			$('.property-dbname',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
+			$('.caching-enabled',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
+			$('.type-hint',        row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
+			$('.property-type',    row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
+			$('.property-format',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
+			$('.not-null',         row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
+			$('.compound',         row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
+			$('.unique',           row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
+			$('.indexed',          row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
+			$('.property-default', row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
 
 			$('.edit-read-function', row).off('click').on('click', function() {
 				let unsavedChanges = _Schema.properties.hasUnsavedChanges(row.closest('table'));
@@ -1508,7 +1518,7 @@ var _Schema = {
 						_Schema.properties.openCodeEditorForFunctionProperty($(this), property.id, 'readFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
 					}
 				}
-			}).prop('disabled', protected);
+			}).prop('disabled', prot);
 
 			$('.edit-write-function', row).off('click').on('click', function() {
 				let unsavedChanges = _Schema.properties.hasUnsavedChanges(row.closest('table'));
@@ -1520,10 +1530,10 @@ var _Schema = {
 						_Schema.properties.openCodeEditorForFunctionProperty($(this), property.id, 'writeFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
 					}
 				}
-			}).prop('disabled', protected);
+			}).prop('disabled', prot);
 
 
-			if (!protected) {
+			if (!prot) {
 
 				$('.remove-action', row).off('click').on('click', function() {
 
@@ -2992,17 +3002,19 @@ var _Schema = {
 
 		if (canvas) {
 
-			var zoom = (instance ? instance.getZoom() : 1);
-			var canvasPosition = canvas.position();
-			var padding = 100;
+			let zoom = (instance ? instance.getZoom() : 1);
+			let canvasPosition = canvas.offset();
+			let padding = 100;
 
-			var canvasSize = {
+			console.log(canvasPosition);
+
+			let canvasSize = {
 				w: ($(window).width() - canvasPosition.left),
 				h: ($(window).height() - canvasPosition.top)
 			};
 
 			$('.node').each(function(i, elem) {
-				var $elem = $(elem);
+				let $elem = $(elem);
 				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left - canvasPosition.left) / zoom + $elem.width()) + padding);
 				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top - canvasPosition.top)  / zoom + $elem.height()) + padding);
 			});
@@ -4412,7 +4424,8 @@ var _Schema = {
 			_Schema.resize();
 		},
 		getSchemaCSSTransform: function() {
-			return 'scale(' + _Schema.ui.zoomLevel + ') translate(' + ((inheritanceSlideout.position().left + inheritanceSlideout.outerWidth()) / _Schema.ui.zoomLevel) + 'px)';
+			//return 'scale(' + _Schema.ui.zoomLevel + ') translate(' + ((inheritanceSlideout.position().left + inheritanceSlideout.outerWidth()) / _Schema.ui.zoomLevel) + 'px)';
+			return 'scale(' + _Schema.ui.zoomLevel + ')';
 		},
 		updateOverlayVisibility: function(show) {
 			LSWrapper.setItem(_Schema.showSchemaOverlaysKey, show);

@@ -32,7 +32,7 @@ var _Widgets = {
 
 	reloadWidgets: function() {
 
-		widgetsSlideout.find(':not(.compTab)').remove();
+		widgetsSlideout.find(':not(.slideout-activator)').remove();
 
 		let templateConfig = {
 			localCollapsed: LSWrapper.getItem(_Widgets.localWidgetsCollapsedKey, false),

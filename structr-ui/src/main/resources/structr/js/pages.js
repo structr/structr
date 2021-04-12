@@ -69,33 +69,40 @@ var _Pages = {
 		if (previews) {
 
 			let leftSlideout  = $('.slideOutLeft.open');
-			let leftTab       = (leftSlideout.length === 0)  ? $('.slideOutRight .compTab') : $('.compTab', leftSlideout);
-			let marginLeft    = (leftSlideout.length > 0 && leftTab.length > 0)   ? leftSlideout[0].getBoundingClientRect().right : 0;
-			marginLeft       += leftTab[0].getBoundingClientRect().width;
+			// let leftTab       = (leftSlideout.length === 0) ? $('.slideOutRight .slideout-activator') : $('.slideout-activator', leftSlideout);
+			let marginLeft    = leftSlideout.length > 0 ? leftSlideout[0].getBoundingClientRect().right : 0;
+			// marginLeft       += leftTab[0].getBoundingClientRect().width;
 
 			let rightSlideout = $('.slideOutRight.open');
-			let rightTab      = (rightSlideout.length === 0) ? $('.slideOutRight .compTab') : $('.compTab', rightSlideout);
-			let marginRight   = (rightSlideout.length > 0) ? (rightSlideout[0].getBoundingClientRect().right - rightSlideout[0].getBoundingClientRect().left) : 0;
-			marginRight      += rightTab[0].getBoundingClientRect().width;
+			//let rightTab      = (rightSlideout.length === 0) ? $('.slideOutRight .slideout-activator') : $('.slideout-activator', rightSlideout);
+			let marginRight   = rightSlideout.length > 0 ? rightSlideout[0].getBoundingClientRect().width : 0;
+			// marginRight      += rightTab[0].getBoundingClientRect().width;
 
-			previews.css('marginLeft', marginLeft);
-			previews.css('marginRight', marginRight);
+			previews.css('marginLeft', 'calc(' + marginLeft + 'px + ' + (marginLeft === 0 ? '4' : '2') + 'rem)');
+			previews.css('marginRight', 'calc(' + marginRight + 'px + ' + (marginRight === 0 ? '4' : '2') + 'rem)');
 
-			let w = windowWidth - marginLeft - marginRight - 15 + 'px';
+			$('.column-resizer-left').css('left', 'calc(' + marginLeft + 'px - 1rem)');
+			$('.column-resizer-right').css('right', 'calc(' + marginRight + 'px + 0rem)');
 
-			previews.css('width', w);
+			//let w = 'calc(' + (windowWidth - marginLeft - marginRight) + 'px - 1rem)';
+			let w = windowWidth - marginLeft - marginRight;
+			let gap = 4 + (marginLeft === 0 ? 2 : 0) + (marginRight === 0 ? 2 : 0);
+			let width = 'calc(' + w + 'px - ' + gap + 'rem)';
 
-			$('.previewBox', previews).css('width', w);
+			previews.css('width', width);
+			$('.previewBox', previews).css('width', width);
 
-			var iframes = $('.previewBox', previews).find('iframe');
-			iframes.css('width', w);
+			let iframes = $('.previewBox', previews).find('iframe');
+			iframes.css('width', width);
 		}
 	},
 	onload: function() {
 
 		Structr.fetchHtmlTemplate('pages/pages', {}, function(html) {
 
-			main[0].innerHTML = html;
+			fastRemoveAllChildren(main[0]);
+
+			main[0].insertAdjacentHTML('afterbegin', html);
 
 			_Pages.init();
 
@@ -105,31 +112,32 @@ var _Pages = {
 			activeTabLeft = LSWrapper.getItem(_Pages.activeTabLeftKey);
 			activeTabRight = LSWrapper.getItem(_Pages.activeTabRightKey);
 
-			pagesSlideout          = $('#pages');
+			pagesSlideout = $('#pages');
 			activeElementsSlideout = $('#activeElements');
-			dataBindingSlideout    = $('#dataBinding');
-			localizationsSlideout  = $('#localizations');
+			dataBindingSlideout = $('#dataBinding');
+			localizationsSlideout = $('#localizations');
 
-			previews               = $('#previews');
+			previews = $('#previews');
 
-			widgetsSlideout    = $('#widgetsSlideout');
-			paletteSlideout    = $('#palette');
+			widgetsSlideout = $('#widgetsSlideout');
+			paletteSlideout = $('#palette');
 			componentsSlideout = $('#components');
-			elementsSlideout   = $('#elements');
+			elementsSlideout = $('#elements');
 			elementsSlideout.data('closeCallback', _Elements.clearUnattachedNodes);
 
-			var pagesTabSlideoutAction = function() {
+			var pagesTabSlideoutAction = function () {
+				//console.log('pagesTabSlideoutAction');
 				_Pages.leftSlideoutTrigger(this, pagesSlideout, [activeElementsSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function (params) {
 					_Pages.resize();
 				}, _Pages.slideoutClosedCallback);
 			};
 			$('#pagesTab').on('click', pagesTabSlideoutAction).droppable({
 				tolerance: 'touch',
-				over: pagesTabSlideoutAction
+				//over: pagesTabSlideoutAction
 			});
 
-			$('#activeElementsTab').on('click', function() {
-				_Pages.leftSlideoutTrigger(this, activeElementsSlideout, [pagesSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function(params) {
+			$('#activeElementsTab').on('click', function () {
+				_Pages.leftSlideoutTrigger(this, activeElementsSlideout, [pagesSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function (params) {
 					if (params.isOpenAction) {
 						_Pages.refreshActiveElements();
 					}
@@ -137,8 +145,8 @@ var _Pages = {
 				}, _Pages.slideoutClosedCallback);
 			});
 
-			$('#dataBindingTab').on('click', function() {
-				_Pages.leftSlideoutTrigger(this, dataBindingSlideout, [pagesSlideout, activeElementsSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function(params) {
+			$('#dataBindingTab').on('click', function () {
+				_Pages.leftSlideoutTrigger(this, dataBindingSlideout, [pagesSlideout, activeElementsSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function (params) {
 					if (params.isOpenAction) {
 						_Pages.reloadDataBindingWizard();
 					}
@@ -146,8 +154,8 @@ var _Pages = {
 				}, _Pages.slideoutClosedCallback);
 			});
 
-			$('#localizationsTab').on('click', function() {
-				_Pages.leftSlideoutTrigger(this, localizationsSlideout, [pagesSlideout, activeElementsSlideout, dataBindingSlideout], _Pages.activeTabLeftKey, function(params) {
+			$('#localizationsTab').on('click', function () {
+				_Pages.leftSlideoutTrigger(this, localizationsSlideout, [pagesSlideout, activeElementsSlideout, dataBindingSlideout], _Pages.activeTabLeftKey, function (params) {
 					_Pages.resize();
 				}, _Pages.slideoutClosedCallback);
 			});
@@ -175,8 +183,8 @@ var _Pages = {
 				offsetX: -50
 			});
 
-			$('#widgetsTab').on('click', function() {
-				_Pages.rightSlideoutClickTrigger(this, widgetsSlideout, [paletteSlideout, componentsSlideout, elementsSlideout], _Pages.activeTabRightKey, function(params) {
+			$('#widgetsTab').on('click', function () {
+				_Pages.rightSlideoutClickTrigger(this, widgetsSlideout, [paletteSlideout, componentsSlideout, elementsSlideout], _Pages.activeTabRightKey, function (params) {
 					if (params.isOpenAction) {
 						_Widgets.reloadWidgets();
 					}
@@ -184,8 +192,8 @@ var _Pages = {
 				}, _Pages.slideoutClosedCallback);
 			});
 
-			$('#paletteTab').on('click', function() {
-				_Pages.rightSlideoutClickTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], _Pages.activeTabRightKey, function(params) {
+			$('#paletteTab').on('click', function () { console.log('paletteTab clicked');
+				_Pages.rightSlideoutClickTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], _Pages.activeTabRightKey, function (params) {
 					if (params.isOpenAction) {
 						_Elements.reloadPalette();
 					}
@@ -193,8 +201,8 @@ var _Pages = {
 				}, _Pages.slideoutClosedCallback);
 			});
 
-			var componentsTabSlideoutAction = function() {
-				_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], _Pages.activeTabRightKey, function(params) {
+			var componentsTabSlideoutAction = function () {
+				_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], _Pages.activeTabRightKey, function (params) {
 					if (params.isOpenAction) {
 						_Elements.reloadComponents();
 					}
@@ -203,15 +211,15 @@ var _Pages = {
 			};
 			$('#componentsTab').on('click', componentsTabSlideoutAction).droppable({
 				tolerance: 'touch',
-				over: function() {
+				over: function () {
 					if (!componentsSlideout.hasClass('open')) {
 						componentsTabSlideoutAction();
 					}
 				}
 			});
 
-			$('#elementsTab').on('click', function() {
-				_Pages.rightSlideoutClickTrigger(this, elementsSlideout, [widgetsSlideout, paletteSlideout, componentsSlideout], _Pages.activeTabRightKey, function(params) {
+			$('#elementsTab').on('click', function () {
+				_Pages.rightSlideoutClickTrigger(this, elementsSlideout, [widgetsSlideout, paletteSlideout, componentsSlideout], _Pages.activeTabRightKey, function (params) {
 					if (params.isOpenAction) {
 						_Elements.reloadUnattachedNodes();
 					}
@@ -234,18 +242,19 @@ var _Pages = {
 
 			// activate first page if local storage is empty
 			if (!LSWrapper.getItem(_Pages.activeTabKey)) {
-				window.setTimeout(function(e) {
+				window.setTimeout(function (e) {
 					_Pages.activateTab($('#previewTabs .page').first());
 				}, 1000);
 			}
 
 			_Pages.resize();
 
-			$(window).off('resize').resize(function() {
+			$(window).off('resize').resize(function () {
 				_Pages.resize();
 			});
 
 			Structr.unblockMenu(500);
+
 		});
 	},
 	clearPreviews: function() {
@@ -256,13 +265,14 @@ var _Pages = {
 	},
 	refresh: function() {
 
-		pagesSlideout.find(':not(.compTab)').remove();
+		pagesSlideout.find(':not(.slideout-activator)').remove();
 		previewTabs.empty();
 
-		pagesSlideout.append('<div id="pagesPager"></div>');
 		pagesSlideout.append('<div id="pagesTree"></div>');
-		let pagesPager = $('#pagesPager', pagesSlideout);
 		pages = $('#pagesTree', pagesSlideout);
+
+		functionBar.append('<div id="pagesPager"></div>');
+		let pagesPager = $('#pagesPager', functionBar);
 
 		var pPager = _Pager.addPager('pages', pagesPager, true, 'Page', null, function(pages) {
 			pages.forEach(function(page) {
@@ -313,11 +323,11 @@ var _Pages = {
 		});
 		*/
 
-		previewTabs.append('<li id="import_page" title="Import Template" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + '" /></li>');
-		previewTabs.append('<li id="add_page" title="Add page" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /></li>');
-		previewTabs.append('<li id="add_template" title="Add Template" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" /></li>');
+		functionBar.append('<a id="import_page" title="Import Template" class="icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" width="24" height="24"><g transform="matrix(1,0,0,1,0,0)"><path d="M11.250 17.250 A6.000 6.000 0 1 0 23.250 17.250 A6.000 6.000 0 1 0 11.250 17.250 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.25 14.25L17.25 20.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 17.25L20.25 17.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25,20.25h-6a1.5,1.5,0,0,1-1.5-1.5V2.25A1.5,1.5,0,0,1,2.25.75H12.879a1.5,1.5,0,0,1,1.06.439l2.872,2.872a1.5,1.5,0,0,1,.439,1.06V8.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></a>');
+		functionBar.append('<a id="add_page" title="Add page" class="icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" width="24" height="24"><g transform="matrix(1,0,0,1,0,0)"><path d="M12 7.5L12 16.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M7.5 12L16.5 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></a>');
+		functionBar.append('<a id="add_template" title="Add Template" class="icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" width="24" height="24"><g transform="matrix(1,0,0,1,0,0)"><path d="M22.151,2.85,20.892,6.289l2.121,2.122a.735.735,0,0,1-.541,1.273l-3.653-.029L17.5,13.018a.785.785,0,0,1-1.485-.1L14.932,9.07,11.08,7.991a.786.786,0,0,1-.1-1.486l3.363-1.323-.029-3.653A.734.734,0,0,1,15.588.986L17.71,3.107,21.151,1.85A.8.8,0,0,1,22.151,2.85Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.932 9.07L0.75 23.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></a>');
 
-		$('#import_page', previewTabs).on('click', function(e) {
+		$('#import_page', functionBar).on('click', function(e) {
 			e.stopPropagation();
 
 			Structr.dialog('Import Template', function() {}, function() {});
@@ -364,12 +374,12 @@ var _Pages = {
 
 		});
 
-		$('#pull_page', previewTabs).on('click', function(e) {
+		$('#pull_page', functionBar).on('click', function(e) {
 			e.stopPropagation();
 			Structr.pullDialog('Page');
 		});
 
-		$('#add_page', previewTabs).on('click', function(e) {
+		$('#add_page', functionBar).on('click', function(e) {
 			e.stopPropagation();
 			Command.createSimplePage();
 		});
@@ -650,12 +660,12 @@ var _Pages = {
 						_Entities.handleActiveElement(activeElement);
 					});
 				} else {
-					activeElementsContainer.append('<br><center>Page does not contain any active elements.</center>');
+					activeElementsContainer.append('<br>Page does not contain any active elements.');
 				}
 			});
 
 		} else {
-			activeElementsContainer.append('<br><center>Unable to show active elements - no preview loaded.<br><br></center>');
+			activeElementsContainer.append('<br>Unable to show active elements - no preview loaded.<br><br');
 		}
 	},
 	/**
@@ -1201,21 +1211,27 @@ var _Pages = {
 	},
 	leftSlideoutTrigger: function (triggerEl, slideoutElement, otherSlideouts, activeTabKey, openCallback, closeCallback) {
 		if (!$(triggerEl).hasClass('noclick')) {
-			if (Math.abs(slideoutElement.position().left + slideoutElement.width() + 12) <= 3) {
+			//if (Math.abs(slideoutElement.position().left + slideoutElement.width() + 12) <= 3) {
+			if (slideoutElement.position().left < -1) {
 				Structr.closeLeftSlideOuts(otherSlideouts, activeTabKey, closeCallback);
 				Structr.openLeftSlideOut(triggerEl, slideoutElement, activeTabKey, openCallback);
+				$('.column-resizer-left').show();
 			} else {
 				Structr.closeLeftSlideOuts([slideoutElement], activeTabKey, closeCallback);
+				$('.column-resizer-left').hide();
 			}
 		}
 	},
 	rightSlideoutClickTrigger: function (triggerEl, slideoutElement, otherSlideouts, activeTabKey, openCallback, closeCallback) {
 		if (!$(triggerEl).hasClass('noclick')) {
-			if (Math.abs(slideoutElement.position().left - $(window).width()) <= 3) {
+			//if (Math.abs(slideoutElement.position().left - $(window).width()) <= 3) {
+			if (slideoutElement.position().left >= $(window).width()) {
 				Structr.closeSlideOuts(otherSlideouts, activeTabKey, closeCallback);
 				Structr.openSlideOut(triggerEl, slideoutElement, activeTabKey, openCallback);
+				$('.column-resizer-right').show();
 			} else {
 				Structr.closeSlideOuts([slideoutElement], activeTabKey, closeCallback);
+				$('.column-resizer-right').hide();
 			}
 		}
 	},
@@ -1334,12 +1350,12 @@ var _Pages = {
 
 				} else {
 
-					localizationsContainer.append("<br><center>No localizations found in page</center>");
+					localizationsContainer.append("<br>No localizations found in page.");
 				}
 			});
 
 		} else {
-			localizationsContainer.append('<br><center>Cannot show localizations - no preview loaded<br><br></center>');
+			localizationsContainer.append('<br>Cannot show localizations - no preview loaded.<br><br>');
 		}
 	},
 	getNodeForLocalization: function (container, entity) {

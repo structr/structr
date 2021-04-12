@@ -30,7 +30,7 @@
 		margin: 1em 0 0 0;
 	}
 	.form-group label {
-		padding-top: 4px;
+		padding-top: 1rem;
 		display: block;
 	}
 	.form-group input[type=text], .form-group textarea {
@@ -50,11 +50,15 @@
 	.form-group label {
 		display: table-cell;
 		padding: 1em 1em 1em 0;
-		min-width: 300px;
+		min-width: 32rem;
 	}
 	.form-group input[type=text], .form-group textarea {
-		min-width: 300px;
+		min-width: 32rem;
 	}
+}
+
+#main {
+	top: 4rem;
 }
 
 body.login {
@@ -62,16 +66,16 @@ body.login {
 }
 
 #configTabs {
-	margin: 12px 24px 0 12px;
-	width: calc(100vw - 24px);
-	min-width: calc(570px + 4em);
-	height: calc(100vh - 106px);
+	margin: 1rem 2rem 0 2rem;
+	/*width: calc(100vw - 2rem);*/
+	min-width: calc(570px + 4rem);
+	height: calc(100vh - 10rem);
 	border: none;
 	background: none;
 }
 
 #configTabs .tab-content {
-	padding-left: 12px;
+	padding-left: 2rem;
 }
 
 .tab-content {
@@ -81,14 +85,14 @@ body.login {
 
 .config-group {
 	padding: 0;
-	min-height: 60px;
+	min-height: 10rem;
 }
 
 form.config-form div.buttons {
 	text-align: right;
 	position: absolute;
-	right: 8px;
-	bottom: 8px;
+	right: 2rem;
+	bottom: 1rem;
 }
 
 form.config-form div.buttons input[type=reset] {
@@ -116,24 +120,24 @@ form.config-form div.buttons input[type=submit]:hover {
 
 .form-group label {
 	font-weight: bold;
-	margin-bottom: 4px;
-	vertical-align: top;
+	/*margin-bottom: 4px;*/
+	/*vertical-align: top;*/
 }
 
 .form-group input[type=text], .form-group textarea {
-	width: calc(100vw - 450px);
+	/*width: calc(100vw - 450px);*/
 }
 
 .form-group input[type=radio] {
-	vertical-align: top;
-	padding: 0;
+	/*vertical-align: top;*/
+	/*padding: 0;*/
 }
 
 .form-group span {
 	display: inline-block;
-	vertical-align: top;
-	margin-top: 4px;
-	margin-right: 2em;
+	/*vertical-align: top;*/
+	/*margin-top: 4px;*/
+	margin: 0 1rem 0 .25rem;
 }
 
 .form-group i {
@@ -142,43 +146,47 @@ form.config-form div.buttons input[type=submit]:hover {
 }
 
 #services-table {
-	margin: 12px;
+	/*margin: 12px;*/
 }
 
 #services-table th {
-	padding: 4px;
+	/*padding: 4px;*/
 	text-align: left;
 	font-size: 10pt;
 }
 
 #services-table td {
-	padding: 4px;
-	min-width: 80px;
+	padding: 1rem 0;
+}
+
+#services-table td:nth-child(1) {
+	min-width: 20rem;
+	font-weight: bold;
 }
 
 #login #loginButton {
-	margin-top: 1em;
+	margin-top: 1rem;
 }
 
 #menu {
-	right: 32px;
+	right: 2rem;
 	left: inherit;
 }
 
 .buttons input[type=submit] {
 	color: #222;
-	padding: 1px 8px 2px 4px;
-	margin: 0 3px 3px 0;
-	vertical-align: middle;
-	border: 1px solid #999;
-	height: 24px;
+	/*padding: 1px 8px 2px 4px;*/
+	/*margin: 0 3px 3px 0;*/
+	/*vertical-align: middle;*/
+	/*border: 1px solid #999;*/
+	/*height: 24px;*/
 }
 
 .buttons input[type=submit]:hover:not(.disabled) {
 	color: #333;
-	padding: 1px 8px 2px 4px;
-	vertical-align: middle;
-	border: 1px solid #bbb;
+	/*padding: .5rem 1rem .5rem 1rem;*/
+	/*vertical-align: middle;*/
+	/*border: 1px solid #bbb;*/
 	cursor: pointer ! important;
 }
 
@@ -209,12 +217,12 @@ button.toggle-option.active::after {
 
 #search-container {
     position: absolute;
-    top: 16px;
-    left: 180px;
+    top: .75rem;
+    right: 10rem;
 }
 
 #search-box {
-    border-radius: 4px;
+    /*border-radius: 4px;*/
 }
 
 li.search-matches.active {
@@ -281,11 +289,11 @@ div.connection {
 	float: left;
 	margin: 1em 2em 2em 0;
 	background-color: #fff;
-	min-width: 300px;
-	min-height: 200px;
+	min-width: 24rem;
+	min-height: 24rem;
 	padding: 1em 1.5em;
 	border-radius: 3px;
-	box-shadow: 0px 0px 12px rgba(127,127,127,.2);
+	/*box-shadow: 0px 0px 12px rgba(127,127,127,.2);*/
 }
 
 div.connection.active {
@@ -306,14 +314,14 @@ div.connection.collapsed {
 	min-width: 0px;
 	min-height: 0px;
 	border: none;
-	background-color: #f6f6f6;
+	/*background-color: #f6f6f6;*/
 	box-shadow: none;
 	border-radius: 0;
 	text-align: center;
 }
 
 div.connection.collapsed::after {
-	content: '+';
+	content: url('data:image/svg+xml; utf8, <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" width="24" height="24"><g transform="matrix(1,0,0,1,0,0)"><path d="M12 7.5L12 16.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M7.5 12L16.5 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg>');
 }
 
 div.connection.collapsed:hover {
@@ -325,11 +333,12 @@ div.connection.collapsed p {
 }
 
 div.connection h4 {
-	font-size: 1.2em;
+	font-size: 1.2rem;
+	margin: 1.6rem 0;
 }
 
 div.connection p {
-	padding: 1em 0 0 0;
+	padding: 1rem 0 0 0;
 }
 
 div.connection input[readonly="readonly"] {
@@ -345,7 +354,7 @@ div.connection select {
 }
 
 div.connection p.buttons {
-	padding: 2em 0 0 0;
+	padding: 2rem 0 0 0;
 	text-align: right;
 }
 

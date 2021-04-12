@@ -1,6 +1,6 @@
 <link rel="stylesheet" type="text/css" media="screen" href="css/dashboard.css">
 
-<div id="dashboard">
+<div class="main-app-box" id="dashboard">
 
 	<ul class="tabs-menu">
 		<li class="active">
@@ -29,8 +29,8 @@
 	<div class="tabs-contents">
 
 		<div class="tab-content active" id="dashboard-about-me">
-			<p>You are currently logged in as <b>${config.meObj.name}</b></p>
 			<table class="props">
+				<tr><td class="key">User Name</td><td>${config.meObj.name}</td></tr>
 				<tr><td class="key">ID</td><td>${config.meObj.id}</td></tr>
 				<tr><td class="key">E-Mail</td><td>${config.meObj.eMail || ''}</td></tr>
 				<tr><td class="key">Working Directory</td><td>${config.meObj.workingDirectory ? config.meObj.workingDirectory.name : ''}</td></tr>
@@ -38,7 +38,6 @@
 				<tr><td class="key">Groups</td><td>${config.meObj.groups.map(function(g) { return g.name; }).join(', ')}</td></tr>
 			</table>
 
-			<button class="action" id="clear-local-storage-on-server">Reset stored UI settings</button>
 		</div>
 
 		<div class="tab-content" id="dashboard-about-structr">
@@ -66,17 +65,10 @@
 				</thead>
 				<tr>
 					<td>
-
 						<h3>Import <u>application</u> from local directory</h3>
 						<div>
 							<input type="text" id="deployment-source-input" placeholder="Local directory path for app import"><br>
 							<button class="action" id="do-app-import">Import from local directory</button>
-						</div>
-
-						<h3>Import <u>data</u> from local directory</h3>
-						<div>
-							<input type="text" id="data-import-source-input" placeholder="Local directory path for data import"><br>
-							<button class="action" id="do-data-import">Import data from local directory</button>
 						</div>
 
 						<h3>Import <u>application</u> from URL</h3>
@@ -86,7 +78,6 @@
 							<input type="text" id="deployment-url-input" placeholder="Download URL of ZIP file for app import" name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}><br>
 							<button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-import-from-url">Import app from ZIP file</button>
 						</div>
-
 					</td>
 					<td>
 						<h3>Export <u>application</u> to local directory</h3>
@@ -94,22 +85,30 @@
 							<input type="text" id="app-export-target-input" placeholder="Local directory path for app export"><br>
 							<button class="action" id="do-app-export">Export app to local directory</button>
 						</div>
-
-						<h3>Export <u>data</u> to local directory</h3>
-						<div>
-							<input type="text" id="data-export-target-input" placeholder="Local directory path for data export"><br>
-							<select id="data-export-types-input" class="property-attrs chosen-sortable" data-placeholder="Please select data type(s) to export" multiple="multiple"></select><br>
-							<button class="action" id="do-data-export">Export data to local directory</button>
-						</div>
-
-						<h3>Export and download <u>application</u> as ZIP file</h3>
+						<h3>Export <u>application</u> and download as ZIP file</h3>
 						${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Export and download as ZIP file is not possible because <code>DeployServlet</code> is not running.</span>')}
 						<div>
 							<input type="text" id="zip-export-prefix" placeholder="ZIP File prefix" ${(config.deployServletAvailable ? '' : 'disabled')} value="${(config.zipExportPrefix || 'webapp')}"><br>
 							<label class="checkbox-label"><input type="checkbox" id="zip-export-append-timestamp" ${(config.deployServletAvailable ? '' : 'disabled')} ${(config.zipExportAppendTimestamp ? 'checked' : '')}> Append timestamp</label>
 							<button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-export-to-zip">Export and download app as ZIP file</button>
 						</div>
-
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<h3>Import <u>data</u> from local directory</h3>
+						<div>
+							<input type="text" id="data-import-source-input" placeholder="Local directory path for data import"><br>
+							<button class="action" id="do-data-import">Import data from local directory</button>
+						</div>
+					</td>
+					<td>
+						<h3>Export <u>data</u> to local directory</h3>
+						<div>
+							<input type="text" id="data-export-target-input" placeholder="Local directory path for data export"><br>
+							<select id="data-export-types-input" class="chosen-sortable" data-placeholder="Please select data type(s) to export" multiple="multiple"></select><br>
+							<button class="action" id="do-data-export">Export data to local directory</button>
+						</div>
 					</td>
 				</tr>
 			</table>
@@ -163,7 +162,7 @@
 
 					<div class="menu-order-container">
 						<div class="menu-order-config-container header">Main Menu</div>
-						<div class="menu-order-config-container header">Sub Menu</div>
+						<div class="menu-order-config-container header">Custom Menu (☰)</div>
 					</div>
 
 					<div class="menu-order-container">
@@ -187,6 +186,10 @@
 
 					<div>
 						<input id="dashboard-show-visibility-flags-grants" type="checkbox"><label for="dashboard-show-visibility-flags-grants"> Show visibility flags in Resource Access Grants table</label>
+					</div>
+
+					<div>
+						<button class="action" id="clear-local-storage-on-server">Reset stored UI settings</button>
 					</div>
 				</div>
 			</div>

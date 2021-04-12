@@ -17,27 +17,26 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-div#dashboard {
-	margin: 12px;
-	height: calc(100% - 12px);
+#dashboard {
+	/*margin: 12px;*/
+	/*height: calc(100% - 12px);*/
 }
 
-div#dashboard .tab-content {
-	padding: 12px;
-	height: calc(100% - 34px);
-	overflow: auto;
+#dashboard .tab-content {
+	/*height: calc(100% - 34px);*/
+	/*overflow: auto;*/
 }
 
-div#dashboard .tab-content.active {
+#dashboard .tab-content.active {
 	display: block;
 }
 
-div#dashboard .tabs-contents {
-	height: calc(100% - 18px);
+#dashboard .tabs-contents {
+	/*height: calc(100% - 18px);*/
 }
 
 #about-structr .props {
-	margin-top: 10px;
+	margin-top: .75rem;
 }
 
 #about-structr .props i {
@@ -60,19 +59,16 @@ div#dashboard .tabs-contents {
 }
 
 .global-method {
-	padding: 12px 8px;
-	border: 1px solid var(--gray-ddd);
-	border-bottom: 0;
-	line-height: 2em;
+	padding: 1rem .5rem;
+}
+
+.global-method .method-name {
+	font-size: 1rem;
 }
 
 .global-method button.action {
-	margin-left: 1em;
-	margin-right: 1em;
-}
-
-.global-method:last-of-type {
-	border-bottom: 1px solid var(--gray-ddd);
+	margin-left: 1rem;
+	margin-right: 1rem;
 }
 
 .global-method img.icon, .global-method i.icon {
@@ -81,11 +77,27 @@ div#dashboard .tabs-contents {
 	max-height: 16px;
 }
 
+#dashboard-deployment .chosen-container .chosen-results {
+	max-height: 240px ! important;
+}
+
 #global-method-comment {
 	display: inline-block;
 	width: 47.5%;
 	margin-left: 2.5%;
 	vertical-align: top;
+}
+
+#dashboard-deployment h2 {
+	color: var(--heading-text);
+	margin-top: .5rem;
+	font-size: 1.5rem;
+}
+
+#dashboard-deployment h3 {
+	color: var(--heading-text);
+	margin-top: .5rem;
+	font-size: 1rem;
 }
 
 #dashboard-deployment table {
@@ -105,15 +117,15 @@ div#dashboard .tabs-contents {
 }
 
 #dashboard-deployment input[type=text] {
-	width: calc(100% - 24px);
-	height: 15px;
-	margin: 0 4px 12px 0;
+	width: calc(100% - 48px);
+	/*height: 15px;*/
+	margin: .5rem 0 1rem 0;
 }
 
 #dashboard-deployment label.checkbox-label {
 	display: block;
-	height: 15px;
-	margin: 0 4px 12px 0;
+	/*height: 15px;*/
+	margin: .5rem 0 1rem 0;
 }
 
 #dashboard-deployment td > div {
@@ -125,29 +137,48 @@ div#dashboard .tabs-contents {
 }
 
 #data_export_types_input_chosen {
-	margin: 0 4px 12px 0;
+	margin: 0 .5rem 1rem 0;
+	cursor: pointer;
+}
+
+#data_export_types_input_chosen .chosen-search-input {
+	line-height: 1rem;
+	height: 1rem;
+	cursor: pointer;
+	margin-top: .3rem ! important;
+	margin-bottom: 0 ! important;
 }
 
 #data_export_types_input_chosen .search-field {
-	height: 22px;
-	padding-top: 3px;
+	height: 1.7rem;
+	/*padding-top: 3px;*/
+	cursor: pointer;
 }
 
 #data_export_types_input_chosen .chosen-choices {
-	margin-top: -3px;
+	/*margin-top: -3px;*/
+	padding: .3rem .5rem;
+	border-radius: 3px;
+	cursor: pointer;
 }
 
 #data_export_types_input_chosen .chosen-choices li.search-choice {
-	padding: 1px 20px 1px 5px;
-	margin: 2px 5px 2px 0;
+	/*padding: 1px 20px 1px 5px;*/
+	/*margin: 2px 5px 2px 0;*/
+
 }
 
 #data_export_types_input_chosen .chosen-choices li.search-choice .search-choice-close {
-	top: 2px;
+	top: .25rem;
 }
 
 #dashboard-server-log-controls {
-	height: 30px;
+	font-size: 1rem;
+	height: 4rem;
+}
+
+#dashboard-server-log-controls button {
+	margin-left: 1rem;
 }
 
 #dashboard-server-log-lines {
@@ -155,10 +186,13 @@ div#dashboard .tabs-contents {
 }
 
 #dashboard-server-log textarea {
-	height: calc(100% - 40px);
+	/*height: calc(100% - 40px);*/
 	width: 100%;
-	resize: none;
+	resize: vertical;
 	font-family: var(--font-monospace) ! important;
+	font-size: .75rem;
+	border: none;
+	padding: 0;
 }
 
 #dashboard-server-log .dashboard-spacer {
@@ -168,12 +202,14 @@ div#dashboard .tabs-contents {
 
 .flex-row {
 	display: flex;
-	column-gap: 30px;
+	/*gap: 2rem; /** not yet supported by Safari, see https://developer.mozilla.org/en-US/docs/Web/CSS/gap */
 }
 
 .flex-col {
 	display: flex;
 	flex-direction: column;
+	margin-left: 2rem;
+	margin-bottom: 1rem;
 }
 
 .menu-order-container {
@@ -181,8 +217,8 @@ div#dashboard .tabs-contents {
 }
 
 .menu-order-config-container {
-	padding: 6px;
-	width: 120px;
+	padding: 1rem;
+	width: 10rem;
 }
 
 .menu-order-config-container.header {
@@ -191,14 +227,40 @@ div#dashboard .tabs-contents {
 }
 
 .menu-item {
-	border: 1px solid var(--light-gray-delete-d3);
-	margin-bottom: 4px;
-	padding: 4px;
+	background-color: var(--solid-white);
+	border: none;
+	margin-bottom: .25rem;
+	padding: .5rem 1rem;
+	text-align: center;
+	background-color: var(--header-bg-dark);
+	color: var(--solid-white);
+}
+
+.menu-item:hover {
+	background-color: var(--structr-green);
+}
+
+#clear-local-storage-on-server {
+	margin-top: 2rem;
 }
 
 /* BEGIN: runtime event log */
+
+#dashboard-event-log {
+	overflow: auto;
+}
+
+#event-log-container {
+	font-size: .875rem;
+	font-family: var(--font-monospace);
+}
+
+#event-log-container tr td:first-child {
+	white-space: nowrap;
+}
+
 #event-log-options {
-	margin-bottom: 4px;
+	margin-bottom: 1rem;
 }
 
 #event-log-options label {
@@ -209,7 +271,7 @@ div#dashboard .tabs-contents {
 }
 
 #event-type-page-size {
-	margin-right: 32px;
+	margin-right: 2rem;
 }
 
 #refresh-event-log {

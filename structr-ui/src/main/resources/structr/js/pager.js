@@ -180,8 +180,8 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 		_Pager.restorePagerData(this.id);
 
 		this.el.append('<div class="pager pager' + this.id + '" style="clear: both"><i class="pageLeft fa fa-angle-left"></i>'
-				+ ' <input class="pageNo" type="text" size="4" value="' + page[this.id] + '"><i class="pageRight fa fa-angle-right"></i>'
-				+ ' of <input readonly="readonly" class="readonly pageCount" type="text" size="4">'
+				+ ' <input class="pageNo" type="text" size="2" value="' + page[this.id] + '"><i class="pageRight fa fa-angle-right"></i>'
+				+ ' of <input readonly="readonly" class="readonly pageCount" type="text" size="2">'
 				+ ' Items: <select class="pageSize">'
 				+ '<option' + (pageSize[this.id] === 5 ? ' selected' : '') + '>5</option>'
 				+ '<option' + (pageSize[this.id] === 10 ? ' selected' : '') + '>10</option>'

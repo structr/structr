@@ -17,6 +17,16 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+.folder-path {
+	font-size: 1.5rem;
+	line-height: 2rem;
+	margin: 2rem .75rem;
+}
+
+#folder-contents {
+	position: relative;
+}
+
 #folder-contents-container select.select-create-type {
 	min-width: 100px;
 }
@@ -129,12 +139,12 @@
 }
 
 #folder-contents .tile .minify_file_icon i {
-	font-size: 16px ! important;
+	/*font-size: 16px ! important;*/
 }
 
 #folder-contents table th, #contents-contents table th, #crawler-list table th {
 	text-align: left;
-	padding-left: 8px;
+	padding-left: 1rem;
 }
 
 #folder-contents .thumbnail,
@@ -144,7 +154,7 @@
 }
 
 #folder-contents .thumbnail i.fa-file-image-o {
-	font-size: 16px;
+	/*font-size: 16px;*/
 }
 
 #folder-contents .thumbnailZoom {
@@ -155,15 +165,19 @@
 	display: none;
 }
 
+#folder-contents tr[id]:hover {
+	background: var(--light-structr-green) ! important;
+}
+
 #folder-contents .nodeActive {
 	background-color: var(--light-gray-bg-f5) ! important;
-	border: 1px solid var(--gray-eee);
+	/*border: 1px solid var(--gray-eee);*/
 }
 
 #folder-contents .nodeHover, .image.nodeHover {
 	color: var(--gray-333) ! important;
 	background: var(--light-structr-green) ! important;
-	border: 1px solid transparent;
+	/*border: 1px solid transparent;*/
 	z-index: 1;
 }
 
@@ -172,46 +186,161 @@
 }
 
 #folder-contents table th:nth-child(1) {
-	width: 24px;
+	width: 3rem;
 }
 
 #folder-contents table th:nth-child(3) {
-	width: 48px;
+	width: 6rem;
 }
 
 #folder-contents table th:nth-child(4) {
-	width: 192px;
+	width: 14rem;
 }
 
 #folder-contents table th:nth-child(5) {
-	width: 120px;
+	width: 10rem;
 }
+
+/*
+ * Files table
+ */
+
+#files-table {
+	margin-bottom: 1rem;
+}
+
+#files-table tbody {
+	/*border-top: 1px solid var(--gray-ccc) !important;*/
+}
+
+#files-table tr:nth-child(even) {
+	background-color: var(--main-background);
+}
+
+#files-table tr:nth-child(odd) {
+	background-color: var(--solid-white);
+}
+
+#files-table th {
+	/*padding: 0 0 2rem 0;*/
+	text-align: left;
+}
+
+#files-table tbody tr td .editable {
+	min-width: 100px;
+	min-height: 14px;
+}
+
+#files-table tbody tr td .editable .placeholder {
+	color: var(--inactive-tab-text);
+}
+
+#files-table tbody tr td .node {
+	min-width: 8rem;
+}
+
+#files-table tbody tr td input {
+	margin-top: .75rem;
+	min-width: 10rem;
+}
+
+#files-table td.file-icon {
+	width: 1rem;
+	cursor: pointer;
+}
+
+#files-table td.file-icon i.fa {
+	width: 1rem;
+	padding: .5rem 0;
+}
+
+#files-table td.file-icon i.fa.fa-plug {
+	font-size: 1rem;
+	left: 1rem;
+}
+
+#files-table td {
+	text-align: left;
+	padding-left: 1rem;
+}
+
+#files-table tr#parent-file-link {
+	cursor: pointer;
+}
+
+#files-table td a {
+	text-decoration: none;
+}
+
+#files-table td a:hover {
+	text-decoration: underline;
+}
+
+#files-table .file, #files-table .folder {
+	margin: 0;
+}
+
+/*
+ * Action buttons
+ */
+/*#files-action-buttons {*/
+/*	position: absolute;*/
+/*	left: 1rem;*/
+/*	top: 1rem;*/
+/*	width: 60rem;*/
+/*}*/
 
 
 /*
-* Search (similar to crud search box but different)
-*/
+ * Display type switches
+ */
+
+#switches {
+	/*width: 20rem;*/
+	position: absolute;
+	top: 1rem;
+	right: .5rem;
+}
+
+#switch-list.active {
+	width: 5rem;
+}
+
+#switch-list.inactive {
+	width: 4rem;
+}
+
+#switch-tiles.active {
+	width: 5rem;
+}
+
+#switch-tiles.inactive {
+	width: 4rem;
+}
+
+/*
+ * Search (similar to crud search box but different)
+ */
 .searchBox {
 	position: absolute;
-	right: 50px;
-	top: 70px;
+	right: 2rem;
+	top: .75rem;
 	z-index: 5;
-	line-height: 1em;
 }
 
 
 .searchBox input.search {
-	border: 1px solid var(--link-color-active);
-	width: 260px;
-	height: 22px;
-	padding: 2px 4px;
+	/*border: 1px solid var(--link-color-active);*/
+	width: 12rem;
+	/*height: 22px;*/
+	/*padding: 2px 4px;*/
 }
 
 i.clearSearchIcon {
 	display: none;
 	position: absolute;
-	top: 9px;
-	right: 8px;
+	top: .75rem;
+	right: .75rem;
 	cursor: pointer;
 }
 
@@ -295,7 +424,7 @@ i.clearSearchIcon {
 }
 .resourceBox {
 	background: var(--solid-white) ! important;
-	font-family: var(--font-open-sans) ! important;
+	/*font-family: var(--font-open-sans) ! important;*/
 	font-size: 9pt;
 	position: relative;
 	box-shadow: 0 0 12px var(--gray-opacity-10);
@@ -305,5 +434,5 @@ i.clearSearchIcon {
 .searchResults h3 {
 	color: var(--gray-333);
 	clear: both;
-	margin: 0 0 12px 0;
+	margin: 0 0 2rem 0;
 }

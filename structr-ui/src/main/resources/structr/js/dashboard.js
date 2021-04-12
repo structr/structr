@@ -32,7 +32,9 @@ var _Dashboard = {
 	showScriptingErrorPopupsKey: 'showScriptinErrorPopups' + port,
 	showVisibilityFlagsInGrantsTableKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + port,
 
-	init: function() {},
+	init: function() {
+		//functionBar.css({display: 'none'});
+	},
 	unload: function() {
 		window.clearInterval(_Dashboard.logInterval);
 	},
@@ -416,7 +418,7 @@ var _Dashboard = {
 	},
 	appendGlobalSchemaMethods: function(container) {
 
-		let maintenanceList = $('<div></div>').appendTo(container);
+		let maintenanceList = $('<table class="props"></table>').appendTo(container);
 
 		$.get(rootUrl + '/SchemaMethod?schemaNode=&sort=name', function(data) {
 
@@ -426,10 +428,10 @@ var _Dashboard = {
 
 				for (let method of data.result) {
 
-					let methodRow = $('<div class="global-method" style=""></div>');
-					let methodName = $('<span>' + method.name + '</span>');
+					let methodRow = $('<tr class="global-method"></tr>');
+					let methodName = $('<td><span class="method-name">' + method.name + '</span></td>');
 
-					methodRow.append('<button id="run-' + method.id + '" class="action button">Run now</button>').append(methodName);
+					methodRow.append(methodName).append('<td><button id="run-' + method.id + '" class="action button">Run now</button></td>');
 					maintenanceList.append(methodRow);
 
 					let cleanedComment = (method.comment && method.comment.trim() !== '') ? method.comment.replaceAll("\n", "<br>") : '';

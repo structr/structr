@@ -251,7 +251,7 @@ var _Elements = {
 	selectedEntity: undefined,
 	reloadPalette: function() {
 
-		paletteSlideout.find(':not(.compTab)').remove();
+		paletteSlideout.find(':not(.slideout-activator)').remove();
 		paletteSlideout.append('<div id="paletteArea"></div>');
 		palette = $('#paletteArea', paletteSlideout);
 
@@ -281,7 +281,7 @@ var _Elements = {
 
 		Command.listComponents(1000, 1, 'name', 'asc', function(result) {
 
-			componentsSlideout.find(':not(.compTab)').remove();
+			componentsSlideout.find(':not(.slideout-activator)').remove();
 
 			componentsSlideout.append('<div class="" id="newComponentDropzone"><div class="new-component-info"><i class="active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /><i class="inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> Drop element here to create new shared component</div></div>');
 			let newComponentDropzone = $('#newComponentDropzone', componentsSlideout);
@@ -331,7 +331,7 @@ var _Elements = {
 
 	},
 	clearUnattachedNodes: function() {
-		elementsSlideout.find(':not(.compTab)').remove();
+		elementsSlideout.find(':not(.slideout-activator)').remove();
 	},
 	reloadUnattachedNodes: function() {
 
