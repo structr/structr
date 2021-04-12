@@ -992,7 +992,6 @@ public class JsonRestServlet extends AbstractDataServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
-			// isolate request authentication in a transaction
 			authenticator = config.getAuthenticator();
 			securityContext = authenticator.initializeAndExamineRequest(request, response);
 

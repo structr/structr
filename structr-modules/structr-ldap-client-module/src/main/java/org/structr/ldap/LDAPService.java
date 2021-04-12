@@ -50,10 +50,12 @@ import org.structr.api.service.ServiceResult;
 import org.structr.api.service.SingletonService;
 import org.structr.api.service.StopServiceForMaintenanceMode;
 import org.structr.api.service.StructrServices;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
 
@@ -144,6 +146,9 @@ public class LDAPService extends Thread implements SingletonService {
 
 			connection.close();
 		}
+
+		// check if we need to delete users
+		checkAndUpdateUsers();
 	}
 
 	public boolean canSuccessfullyBind(final String dn, final String secret) {
@@ -203,6 +208,47 @@ public class LDAPService extends Thread implements SingletonService {
 
 	public boolean getUseSSL() {
 		return Settings.LDAPUseSSL.getValue(false);
+	}
+
+	public void checkAndUpdateUsers() {
+
+		new Thread(() -> {
+
+			// wait for the enclosing transaction to finish
+			try { Thread.sleep(1000); } catch (Throwable t) {}
+
+			final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+			final App app                         = StructrApp.getInstance(securityContext);
+
+			try (final Tx tx = app.tx()) {
+
+				for (final LDAPUser member : app.nodeQuery(LDAPUser.class).getResultStream()) {
+
+					boolean hasLDAPGroups = false;
+
+					for (final Group group : member.getGroups()) {
+
+						if (group instanceof LDAPGroup) {
+
+							hasLDAPGroups = true;
+							break;
+						}
+					}
+
+					if (!hasLDAPGroups) {
+
+						logger.warn("LDAPUser {} with UUID {} is not associated with an LDAPGroup, removing.", member.getName(), member.getUuid());
+						app.delete(member);
+					}
+				}
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				logger.warn("Unable to update LDAP users: {}", fex.getMessage());
+			}
+
+		}).start();
 	}
 
 	// ----- private methods -----

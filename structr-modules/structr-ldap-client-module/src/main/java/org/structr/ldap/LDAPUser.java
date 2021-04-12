@@ -36,8 +36,8 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.auth.exception.DeleteInvalidUserException;
 import org.structr.core.entity.Group;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
@@ -81,25 +81,7 @@ public interface LDAPUser extends User {
 	void setDistinguishedName(final String distinguishedName) throws FrameworkException;
 
 	static void checkGroupsAndDelete(final LDAPUser thisUser, final SecurityContext securityContext) throws FrameworkException {
-
-		boolean hasLDAPGroups = false;
-
-		for (final Group group : thisUser.getGroups()) {
-
-			if (group instanceof LDAPGroup) {
-
-				hasLDAPGroups = true;
-				break;
-			}
-		}
-
-		if (!hasLDAPGroups) {
-
-			logger.warn("LDAPUser {} with UUID {} is not associated with an LDAPGroup, removing.", thisUser.getName(), thisUser.getUuid());
-
-			final App app = StructrApp.getInstance(securityContext);
-			app.delete(thisUser);
-		}
+		// disabled
 	}
 
 	static void initializeFrom(final LDAPUser thisUser, final Entry entry) throws FrameworkException {
@@ -156,8 +138,12 @@ public interface LDAPUser extends User {
 
 			if (!hasLDAPGroups) {
 
-				logger.warn("LDAPUser {} with UUID {} is not associated with an LDAPGroup, authentication denied.", thisUser.getName(), thisUser.getUuid());
-				return false;
+				final String uuid = thisUser.getUuid();
+
+				logger.warn("LDAPUser {} with UUID {} is not associated with an LDAPGroup, removing.", thisUser.getName(), uuid);
+
+				// this user must be deleted immediately
+				throw new DeleteInvalidUserException(uuid);
 			}
 
 			return ldapService.canSuccessfullyBind(thisUser.getDistinguishedName(), password);
