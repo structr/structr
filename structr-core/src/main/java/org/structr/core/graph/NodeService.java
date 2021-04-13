@@ -140,8 +140,8 @@ public class NodeService implements SingletonService {
 			logger.info("Shutting down database service");
 			databaseService.shutdown();
 
-			databaseService       = null;
-			isInitialized = false;
+			databaseService = null;
+			isInitialized   = false;
 		}
 	}
 

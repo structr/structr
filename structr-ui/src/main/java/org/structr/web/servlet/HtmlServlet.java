@@ -1105,7 +1105,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		attributes.put(nameKey, name);
 
 		// Find pages by path or name
-		List<Page> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(Page.class)
+		final List<Page> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(Page.class)
 			.or()
 				.notBlank(pathKey)
 				.and(pathKey, path)
@@ -1124,21 +1124,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			}
 		}
 
-//		// Find pages by name
-//		final String name     = PathHelper.getName(path);
-//		possiblePages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).andName(name).getAsList();
-//
-//		for (final Page page : possiblePages) {
-//
-//			if (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)) {
-//
-//				return page;
-//			}
-//		}
-
 		// Check direct access by UUID
 		if (name.length() == 32) {
-			NodeInterface possiblePage = StructrApp.getInstance(securityContext).get(NodeInterface.class, name);
+
+			final NodeInterface possiblePage = StructrApp.getInstance(securityContext).get(NodeInterface.class, name);
 
 			if (possiblePage != null && possiblePage instanceof Page && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), (Page) possiblePage))) {
 

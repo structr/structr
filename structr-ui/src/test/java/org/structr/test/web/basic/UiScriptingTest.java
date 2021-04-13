@@ -51,6 +51,7 @@ import static org.hamcrest.Matchers.nullValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
@@ -1747,6 +1748,92 @@ public class UiScriptingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
+			fex.printStackTrace();
+		}
+	}
+
+	@Test
+	public void testAssertFunctionCacheProblems() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType project    = schema.addType("Project");
+			final JsonObjectType task       = schema.addType("Task");
+
+			project.relate(task, "TASK", Cardinality.ManyToMany, "project", "tasks");
+
+			project.addBooleanProperty("raiseError");
+
+			// associate all existing tasks with this project, and throw an error if the project has the "raiseError" flag set
+			project.addMethod("doTest", "{ $.log($.this.name); $.this.tasks = $.find('Task'); $.assert(!$.this.raiseError, 422, 'Assertion failed.'); }", "");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class taskType    = StructrApp.getConfiguration().getNodeEntityClass("Task");
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(projectType, "Project 1");
+			app.create(projectType,
+				new NodeAttribute<>(AbstractNode.name, "Project 2"),
+				new NodeAttribute<>(StructrApp.key(projectType, "raiseError"), true)
+			);
+
+			for (int i=0; i<5; i++) {
+				app.create(taskType, "Task " + i);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject project1 = app.nodeQuery(projectType).andName("Project 1").getFirst();
+			project1.invokeMethod(securityContext, "doTest", new LinkedHashMap<>(), false);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject project2 = app.nodeQuery(projectType).andName("Project 2").getFirst();
+			project2.invokeMethod(securityContext, "doTest", new LinkedHashMap<>(), false);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject project2 = app.nodeQuery(projectType).andName("Project 2").getFirst();
+			final List tasks           = Iterables.toList((Iterable)project2.getProperty("tasks"));
+
+			assertEquals("Project should not have tasks after a failed assertion rolls back the transaction", 0, tasks.size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 	}

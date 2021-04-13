@@ -80,6 +80,8 @@ public class StructrBinding implements ProxyObject {
 				return new PolyglotProxyMap(actionContext, actionContext.getRequestStore());
 			case "applicationStore":
 				return new PolyglotProxyMap(actionContext, Services.getInstance().getApplicationStore());
+			case "methodParameters":
+				return new PolyglotProxyMap(actionContext, actionContext.getContextStore().getTemporaryParameters());
 			default:
 				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
 				if (func != null) {
