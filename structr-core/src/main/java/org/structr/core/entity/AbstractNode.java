@@ -78,6 +78,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
+import org.structr.common.error.AssertException;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InternalSystemPropertyToken;
@@ -1684,22 +1685,24 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 				return method.invoke(this, ArrayUtils.add(args, 0, securityContext));
 
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException t) {
+			} catch (InvocationTargetException itex) {
 
-				if (t instanceof FrameworkException) {
+				final Throwable cause = itex.getCause();
 
-					throw (FrameworkException) t;
+				if (cause instanceof AssertException) {
 
-				} else if (t.getCause() instanceof FrameworkException) {
-
-					throw (FrameworkException) t.getCause();
-
-				} else {
-
-					logger.debug("Unable to invoke method {}: {}", new Object[]{methodName, t.getMessage()});
-					logger.warn("", t);
-
+					final AssertException e = (AssertException)cause;
+					throw new FrameworkException(e.getStatusCode(), e.getMessage());
 				}
+
+				if (cause instanceof FrameworkException) {
+
+					throw (FrameworkException)cause;
+				}
+
+			} catch (IllegalAccessException | IllegalArgumentException  t) {
+
+				logger.warn("Unable to invoke method {}: {}", methodName, t.getMessage());
 			}
 		}
 
