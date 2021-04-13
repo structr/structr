@@ -91,9 +91,7 @@ public class ContextStore {
 	// --- store() / retrieve() ---
 	public void setTemporaryParameters(Map<String, Object> parameters) {
 
-		if (parameters != null) {
-			this.tmpParameters.putAll(parameters);
-		}
+		this.tmpParameters = parameters;
 	}
 
 	public Set<String> getTemporaryParameterKeys() {

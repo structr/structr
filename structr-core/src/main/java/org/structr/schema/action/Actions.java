@@ -113,13 +113,10 @@ public class Actions {
 
 	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
 
-		final Map<String, Object> previousParams = new HashMap<>();
 		final ContextStore store = securityContext.getContextStore();
-		for (final String key : store.getTemporaryParameterKeys()) {
-			previousParams.put(key, store.retrieve(key));
-		}
+		final Map<String, Object> previousParams = store.getTemporaryParameters();
 
-		store.clearTemporaryParameters();
+		store.setTemporaryParameters(new HashMap<>());
 
 		final ActionContext context = new ActionContext(securityContext, parameters);
 		final Object result         = Scripting.evaluate(context, entity, source, methodName, codeSource);
