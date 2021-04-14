@@ -82,7 +82,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		type.overrideMethod("updateFromNode",             false, Content.class.getName() + ".updateFromNode(this, arg0);");
 		type.overrideMethod("renderContent",              false, Content.class.getName() + ".renderContent(this, arg0, arg1);");
 		type.overrideMethod("contentEquals",              false, "return " + Content.class.getName() + ".contentEquals(this, arg0);");
-		type.overrideMethod("getContextName",             false, "return \"#text\";");
+		type.overrideMethod("getContextName",             false, "return StringUtils.defaultString(getProperty(AbstractNode.name), \"#text\");");
 		type.overrideMethod("doImport",                   false, "return arg0.createTextNode(getData());");
 		type.overrideMethod("onCreation",                 true,  "if (getContentType() == null) { setContentType(\"text/plain\"); }");
 		type.overrideMethod("onModification",             true,  Content.class.getName() + ".onModification(this, arg0, arg1, arg2);");

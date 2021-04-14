@@ -43,6 +43,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
@@ -332,7 +333,7 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 				properties.put("sender", message.getFrom());
 				properties.put("message", message.getBody());
 
-				client.invokeMethod(SecurityContext.getSuperUserInstance(), callbackName, properties, false);
+				client.invokeMethod(SecurityContext.getSuperUserInstance(), callbackName, properties, false, new EvaluationHints());
 			}
 
 			tx.success();

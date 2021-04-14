@@ -80,8 +80,6 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void test00SimpleProperties() {
 
-		cleanDatabaseAndSchema();
-
 		try {
 
 			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
@@ -206,8 +204,6 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void test01Inheritance() {
 
-		cleanDatabaseAndSchema();
-
 		try {
 
 			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
@@ -238,8 +234,6 @@ public class SchemaTest extends StructrTest {
 
 	@Test
 	public void test02SimpleSymmetricReferences() {
-
-		cleanDatabaseAndSchema();
 
 		try {
 
@@ -288,8 +282,6 @@ public class SchemaTest extends StructrTest {
 
 	@Test
 	public void test03SchemaBuilder() {
-
-		cleanDatabaseAndSchema();
 
 		try {
 
@@ -370,8 +362,6 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void test04ManualSchemaRelatedPropertyNameCreation() {
 
-		cleanDatabaseAndSchema();
-
 		try {
 
 			try (final Tx tx = app.tx()) {
@@ -400,8 +390,6 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void test05SchemaRelatedPropertyNameCreationWithPresets() {
 
-		cleanDatabaseAndSchema();
-
 		try {
 
 			// create test case
@@ -423,8 +411,6 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void test06SchemaRelatedPropertyNameCreationWithoutPresets() {
 
-		cleanDatabaseAndSchema();
-
 		try {
 
 			// create test case
@@ -444,8 +430,6 @@ public class SchemaTest extends StructrTest {
 
 	@Test
 	public void test00DeleteSchemaRelationshipInView() {
-
-		cleanDatabaseAndSchema();
 
 		SchemaRelationshipNode rel = null;
 
@@ -491,8 +475,6 @@ public class SchemaTest extends StructrTest {
 
 	@Test
 	public void testJavaSchemaMethod() {
-
-		cleanDatabaseAndSchema();
 
 		final Class groupType = StructrApp.getConfiguration().getNodeEntityClass("Group");
 
@@ -550,8 +532,6 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void testJavaSchemaMethodWithEmptySource() {
 
-		cleanDatabaseAndSchema();
-
 		try (final Tx tx = app.tx()) {
 
 			final SchemaNode group = app.nodeQuery(SchemaNode.class).andName("Group").getFirst();
@@ -577,8 +557,6 @@ public class SchemaTest extends StructrTest {
 
 	@Test
 	public void testViewInheritedFromInterface() {
-
-		cleanDatabaseAndSchema();
 
 		try (final Tx tx = app.tx()) {
 
@@ -612,8 +590,6 @@ public class SchemaTest extends StructrTest {
 
 	@Test
 	public void testBuiltinTypeFlag() {
-
-		cleanDatabaseAndSchema();
 
 		try (final Tx tx = app.tx()) {
 
@@ -661,8 +637,6 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void testNonGraphPropertyInView() {
 
-		cleanDatabaseAndSchema();
-
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
@@ -700,8 +674,6 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void testInheritedSchemaPropertyResolution() {
 
-		cleanDatabaseAndSchema();
-
 		// create "invalid" schema configuration
 		try (final Tx tx = app.tx()) {
 
@@ -725,8 +697,6 @@ public class SchemaTest extends StructrTest {
 
 	@Test
 	public void testModifiedPropertyValueAccessInScripting() {
-
-		cleanDatabaseAndSchema();
 
 		// schema setup
 		try (final Tx tx = app.tx()) {
@@ -840,8 +810,6 @@ public class SchemaTest extends StructrTest {
 		// don't run tests that depend on Cypher being available in the backend
 		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
-			cleanDatabaseAndSchema();
-
 			Settings.CypherDebugLogging.setValue(true);
 
 			final String tenantId = Services.getInstance().getDatabaseService().getTenantIdentifier();
@@ -920,8 +888,6 @@ public class SchemaTest extends StructrTest {
 
 			Settings.TenantIdentifier.setValue(null);
 
-			cleanDatabaseAndSchema();
-
 			try (final Tx tx = app.tx()) {
 
 				final JsonSchema schema = StructrSchema.createFromDatabase(app);
@@ -991,8 +957,6 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void testRelatedTypeOnNotionProperty() {
 
-		cleanDatabaseAndSchema();
-
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
@@ -1020,7 +984,6 @@ public class SchemaTest extends StructrTest {
 
 		Settings.LogSchemaOutput.setValue(true);
 	}
-
 
 	// ----- private methods -----
 	private void checkSchemaString(final String source) {

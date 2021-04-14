@@ -24,21 +24,26 @@ import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 
 import java.util.function.Supplier;
+import org.structr.schema.action.EvaluationHints;
 
 public class LazyEvaluatedFunctionExpression extends Expression {
+
 	private final Supplier supplier;
 
-	public LazyEvaluatedFunctionExpression(final Supplier supplier) {
+	public LazyEvaluatedFunctionExpression(final Supplier supplier, final int row, final int column) {
+
+		super(row, column);
+		
 		this.supplier = supplier;
 	}
 
 	@Override
-	public Object evaluate(ActionContext ctx, GraphObject entity) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(ActionContext ctx, GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 		return this.supplier.get();
 	}
 
 	@Override
-	public Object transform(ActionContext ctx, GraphObject entity, Object source) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(ActionContext ctx, GraphObject entity, Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 }

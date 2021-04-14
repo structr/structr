@@ -64,6 +64,7 @@ import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
 import org.structr.test.core.entity.TestFour;
@@ -210,29 +211,30 @@ public class ScriptingTest extends StructrTest {
 			}
 
 			final GraphObject sourceNode = app.nodeQuery(sourceType).getFirst();
+			final EvaluationHints hints  = new EvaluationHints();
 
 			// set testEnum property to OPEN via doTest01 function call, check result
-			sourceNode.invokeMethod(securityContext, "doTest01", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod(securityContext, "doTest01", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[0], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to CLOSED via doTest02 function call, check result
-			sourceNode.invokeMethod(securityContext, "doTest02", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod(securityContext, "doTest02", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[1], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to TEST via doTest03 function call, check result
-			sourceNode.invokeMethod(securityContext, "doTest03", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod(securityContext, "doTest03", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to INVALID via doTest03 function call, expect previous value & error
 			try {
-				sourceNode.invokeMethod(securityContext, "doTest04", Collections.EMPTY_MAP, true);
+				sourceNode.invokeMethod(securityContext, "doTest04", Collections.EMPTY_MAP, true, hints);
 				assertEquals("Invalid setProperty result for EnumProperty",    testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
 				fail("Setting EnumProperty to invalid value should result in an Exception!");
 
 			} catch (FrameworkException fx) {}
 
 			// test other property types
-			sourceNode.invokeMethod(securityContext, "doTest05", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod(securityContext, "doTest05", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for BooleanProperty",                         true, sourceNode.getProperty(testBooleanProperty));
 			assertEquals("Invalid setProperty result for IntegerProperty",                          123, sourceNode.getProperty(testIntegerProperty));
 			assertEquals("Invalid setProperty result for StringProperty",                   "testing..", sourceNode.getProperty(testStringProperty));
@@ -311,7 +313,7 @@ public class ScriptingTest extends StructrTest {
 		// grant read access to test user
 		try (final Tx tx = app.tx()) {
 
-			app.nodeQuery(sourceType).getFirst().invokeMethod(securityContext, "doTest01", Collections.EMPTY_MAP, true);
+			app.nodeQuery(sourceType).getFirst().invokeMethod(securityContext, "doTest01", Collections.EMPTY_MAP, true, new EvaluationHints());
 			tx.success();
 
 		} catch(FrameworkException fex) {
@@ -778,17 +780,7 @@ public class ScriptingTest extends StructrTest {
 
 			assertEquals("Invalid size result", "20", Scripting.replaceVariables(ctx, testOne, "${this.manyToManyTestSixs.size}"));
 
-			try {
-
-				Scripting.replaceVariables(ctx, testOne, "${(this.alwaysNull.size}");
-				fail("A mismatched opening bracket should throw an exception.");
-
-			} catch (FrameworkException fex) {
-
-				final String expectedMessage = "TestOne[" + testOne.getUuid() + "]:script source:1:2\nInvalid expression: mismatched closing bracket after this.alwaysNull.size";
-				assertEquals(expectedMessage, fex.getMessage());
-			}
-
+			assertEquals("Invalid size result", "", Scripting.replaceVariables(ctx, testOne, "${(this.alwaysNull.size}"));
 			assertEquals("Invalid size result", "", Scripting.replaceVariables(ctx, testOne, "${this.alwaysNull.size}"));
 
 			assertEquals("Invalid variable reference", "1",            Scripting.replaceVariables(ctx, testOne, "${this.anInt}"));
@@ -2026,7 +2018,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 
 			fail(fex.getMessage());
 		}

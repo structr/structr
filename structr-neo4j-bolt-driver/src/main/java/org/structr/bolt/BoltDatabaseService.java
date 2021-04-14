@@ -757,28 +757,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		return "0.0.0";
 	}
 
-	private void createUUIDConstraint() {
-
-		// add UUID uniqueness constraint
-		try (final Session session = driver.session()) {
-
-			// this call may fail silently (e.g. if the index does not exist yet)
-			try (final org.neo4j.driver.Transaction tx = session.beginTransaction()) {
-
-				tx.run("DROP INDEX ON :NodeInterface(id)");
-				tx.commit();
-
-			} catch (Throwable t) { }
-
-			// this call may NOT fail silently, hence we don't catch any exceptions
-			try (final org.neo4j.driver.Transaction tx = session.beginTransaction()) {
-
-				tx.run("CREATE CONSTRAINT ON (node:NodeInterface) ASSERT node.id IS UNIQUE");
-				tx.commit();
-			}
-		}
-	}
-
 	private Properties getProperties() {
 
 		if (globalGraphProperties == null) {

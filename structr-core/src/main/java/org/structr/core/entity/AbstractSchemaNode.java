@@ -18,7 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 
@@ -35,6 +34,7 @@ import org.structr.core.entity.relationship.SchemaNodeProperty;
 import org.structr.core.entity.relationship.SchemaNodeView;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.TransactionPostProcess;
@@ -43,6 +43,7 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.property.UsageProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.Schema;
 
@@ -60,6 +61,7 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 	public static final Property<Boolean>                  changelogDisabled     = new BooleanProperty("changelogDisabled");
 	public static final Property<String>                   icon                  = new StringProperty("icon");
 	public static final Property<String>                   description           = new StringProperty("description");
+	public static final Property<Object>                   usedIn                = new UsageProperty("usedIn", AbstractSchemaNode.class);
 	public static final Set<String>                        hiddenPropertyNames   = new LinkedHashSet<>();
 
 	public static final View defaultView = new View(AbstractSchemaNode.class, PropertyView.Public,
@@ -71,7 +73,7 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 	);
 
 	public static final View schemaView = new View(AbstractSchemaNode.class, "schema",
-		id, type, name, schemaProperties, schemaViews, schemaMethods, icon, description, changelogDisabled
+		id, type, name, schemaProperties, schemaViews, schemaMethods, icon, description, changelogDisabled, usedIn
 	);
 
 	public static final View exportView = new View(AbstractSchemaNode.class, "export",
@@ -203,8 +205,16 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 			viewNames.add(View.INTERNAL_GRAPH_VIEW);
 			viewNames.add(PropertyView.All);
 
-			for (final SchemaView view : StructrApp.getInstance().getNodeById(node.getUuid()).getProperty(schemaViews)) {
-				viewNames.add(view.getProperty(AbstractNode.name));
+			final NodeInterface schemaNode = StructrApp.getInstance().getNodeById(node.getUuid());
+			if (schemaNode != null) {
+
+				final Iterable<SchemaView> views = schemaNode.getProperty(schemaViews);
+				if (views != null) {
+
+					for (final SchemaView view : views) {
+						viewNames.add(view.getProperty(AbstractNode.name));
+					}
+				}
 			}
 			// determine runtime type
 			Class builtinClass = config.getNodeEntityClass(node.getClassName());

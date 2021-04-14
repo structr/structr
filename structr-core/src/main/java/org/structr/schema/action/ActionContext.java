@@ -130,7 +130,7 @@ public class ActionContext {
 		this.temporaryContextStore.setConstant(name, data);
 	}
 
-	public Object getReferencedProperty(final GraphObject entity, final String initialRefKey, final Object initialData, final int depth) throws FrameworkException {
+	public Object getReferencedProperty(final GraphObject entity, final String initialRefKey, final Object initialData, final int depth, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
 
 		final String DEFAULT_VALUE_SEP = "!";
 
@@ -149,7 +149,7 @@ public class ActionContext {
 		for (int i = 0; i < parts.length; i++) {
 
 			String key = parts[i];
-			_data      = evaluate(entity, key, _data, null, i+depth);
+			_data      = evaluate(entity, key, _data, null, i+depth, hints, row, column);
 
 			// stop evaluation on null
 			if (_data == null) {
@@ -225,10 +225,18 @@ public class ActionContext {
 		return getContextStore().getAdvancedMailContainer();
 	}
 
-	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue, final int depth) throws FrameworkException {
+	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue, final int depth, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
+
+		// report usage for toplevel keys only
+		if (data == null) {
+
+			// report key as used to identify unresolved keys later
+			hints.reportUsedKey(key, row, column);
+		}
 
 		Object value = getContextStore().getConstant(key);
 		if (this.temporaryContextStore.getConstant(key) != null) {
+			hints.reportExistingKey(key);
 			value = this.temporaryContextStore.getConstant(key);
 		}
 
@@ -240,6 +248,7 @@ public class ActionContext {
 				value = ((HttpServletRequest)data).getParameterValues(key);
 				if (value != null) {
 
+					hints.reportExistingKey(key);
 					if (((String[]) value).length == 1) {
 
 						value = ((String[]) value)[0];
@@ -256,6 +265,8 @@ public class ActionContext {
 
 				if (StringUtils.isNotBlank(key)) {
 
+					hints.reportExistingKey(key);
+
 					// use "user." prefix to separate user and system data
 					value = ((HttpSession)data).getAttribute(SESSION_ATTRIBUTE_PREFIX + key);
 				}
@@ -270,7 +281,7 @@ public class ActionContext {
 
 				if (data instanceof GraphObject) {
 
-					value = ((GraphObject)data).evaluate(this, key, defaultValue);
+					value = ((GraphObject)data).evaluate(this, key, defaultValue, hints, row, column);
 
 				} else {
 
@@ -278,12 +289,15 @@ public class ActionContext {
 
 						case "size":
 							if (data instanceof Collection) {
+								hints.reportExistingKey(key);
 								return ((Collection)data).size();
 							}
 							if (data instanceof Iterable) {
+								hints.reportExistingKey(key);
 								return Iterables.count((Iterable)data);
 							}
 							if (data.getClass().isArray()) {
+								hints.reportExistingKey(key);
 								return ((Object[])data).length;
 							}
 							break;
@@ -302,22 +316,27 @@ public class ActionContext {
 					switch (key) {
 
 						case "request":
+							hints.reportExistingKey(key);
 							return securityContext.getRequest();
 
 						case "session":
 							if (securityContext.getRequest() != null) {
+								hints.reportExistingKey(key);
 								return securityContext.getRequest().getSession(false);
 							}
 							break;
 
 						case "baseUrl":
 						case "base_url":
+							hints.reportExistingKey(key);
 							return getBaseUrl(securityContext.getRequest());
 
 						case "me":
+							hints.reportExistingKey(key);
 							return securityContext.getUser(false);
 
 						case "depth":
+							hints.reportExistingKey(key);
 							return securityContext.getSerializationDepth() - 1;
 
 					}
@@ -330,28 +349,35 @@ public class ActionContext {
 						switch (key) {
 
 							case "host":
+								hints.reportExistingKey(key);
 								return request.getServerName();
 
 							case "ip":
+								hints.reportExistingKey(key);
 								return request.getLocalAddr();
 
 							case "port":
+								hints.reportExistingKey(key);
 								return request.getServerPort();
 
 							case "pathInfo":
 							case "path_info":
+								hints.reportExistingKey(key);
 								return request.getPathInfo();
 
 							case "queryString":
 							case "query_string":
+								hints.reportExistingKey(key);
 								return request.getQueryString();
 
 							case "parameterMap":
 							case "parameter_map":
+								hints.reportExistingKey(key);
 								return request.getParameterMap();
 
 							case "remoteAddress":
 							case "remote_address":
+								hints.reportExistingKey(key);
 								return getRemoteAddr(request);
 						}
 					}
@@ -367,6 +393,7 @@ public class ActionContext {
 
 								try {
 									// return output stream of HTTP response for streaming
+									hints.reportExistingKey(key);
 									return response.getOutputStream();
 
 								} catch (IOException ioex) {
@@ -377,6 +404,7 @@ public class ActionContext {
 
 							case "statusCode":
 							case "status_code":
+								hints.reportExistingKey(key);
 								return response.getStatus();
 						}
 					}
@@ -386,20 +414,25 @@ public class ActionContext {
 				switch (key) {
 
 					case "now":
+						hints.reportExistingKey(key);
 						return this.isJavaScriptContext() ? new Date() : DatePropertyParser.format(new Date(), Settings.DefaultDateFormat.getValue());
 
 					case "this":
+						hints.reportExistingKey(key);
 						return entity;
 
 					case "locale":
+						hints.reportExistingKey(key);
 						return locale != null ? locale.toString() : null;
 
 					case "tenantIdentifier":
 					case "tenant_identifier":
+						hints.reportExistingKey(key);
 						return Settings.TenantIdentifier.getValue();
 
 					case "applicationStore":
 					case "application_store":
+						hints.reportExistingKey(key);
 						return Services.getInstance().getApplicationStore();
 				}
 			}
@@ -623,5 +656,11 @@ public class ActionContext {
 	public ExecutableStaticTypeMethodCache getStaticExecutableTypeMethodCache() {
 
 		return this.staticExecutableTypeMethodCache;
+	}
+
+	public void clearExecutableCaches() {
+
+		this.executableTypeMethodCache.clearCache();
+		this.staticExecutableTypeMethodCache.clearCache();
 	}
 }

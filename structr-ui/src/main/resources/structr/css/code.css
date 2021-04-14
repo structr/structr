@@ -211,3 +211,7 @@ table#schema-grants th, table#schema-grants td {
 	text-align: center;
 }
 /* END: schema grants editor */
+
+ul#usage-tree {
+	height: 400px;
+}

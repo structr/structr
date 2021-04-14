@@ -22,12 +22,17 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
  *
  */
 public class RootExpression extends Expression {
+
+	public RootExpression() {
+		super(1, 1);
+	}
 
 	@Override
 	public String toString() {
@@ -45,16 +50,16 @@ public class RootExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
 		if (!expressions.isEmpty()) {
 
-			Object value = expressions.get(0).evaluate(ctx, entity);
+			Object value = expressions.get(0).evaluate(ctx, entity, hints);
 
 			for (final Expression expression : expressions) {
 
 				// evaluate expressions from left to right
-				value = expression.transform(ctx, entity, value);
+				value = expression.transform(ctx, entity, value, hints);
 			}
 
 			return value;
@@ -64,7 +69,7 @@ public class RootExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 }

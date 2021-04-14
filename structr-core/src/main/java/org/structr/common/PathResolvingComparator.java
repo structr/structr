@@ -27,6 +27,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  * A comparator for structr entities that uses a dot-notation path
@@ -45,7 +46,7 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 
 	/**
 	 * Creates a new PathResolvingComparator with the given sort key and order.
-	 * @param acionContext
+	 * @param actionContext
 	 * @param sortKey
 	 * @param sortDescending
 	 */
@@ -115,7 +116,7 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 			}
 
 			try {
-				final Object value = current.evaluate(actionContext, part, null);
+				final Object value = current.evaluate(actionContext, part, null, new EvaluationHints(), 1, 1);
 				if (value != null) {
 
 					// last part of path?

@@ -483,34 +483,6 @@ public class SchemaService implements Service {
 	}
 
 	// ----- private methods -----
-	private static int recursiveGetHierarchyLevel(final Map<String, SchemaNode> map, final Set<String> alreadyCalculated, final SchemaNode schemaNode, final int depth) {
-
-		// stop at level 20
-		if (depth > 20) {
-			return 20;
-		}
-
-		String superclass = schemaNode.getProperty(SchemaNode.extendsClass);
-		if (superclass == null) {
-
-			return 0;
-
-		} else if (superclass.startsWith("org.structr.dynamic.")) {
-
-			// find hierarchy level
-			superclass = superclass.substring(superclass.lastIndexOf(".") + 1);
-
-			// recurse upwards
-			final SchemaNode superSchemaNode = map.get(superclass);
-			if (superSchemaNode != null) {
-
-				return recursiveGetHierarchyLevel(map, alreadyCalculated, superSchemaNode, depth + 1) + 1;
-			}
-		}
-
-		return 0;
-	}
-
 	private static void updateIndexConfiguration(final Map<String, Map<String, PropertyKey>> removedClasses) {
 
 		if (Services.isTesting() && !Services.updateIndexConfiguration()) {

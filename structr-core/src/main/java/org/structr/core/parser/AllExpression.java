@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
@@ -37,8 +38,8 @@ public class AllExpression extends Expression {
 	private Expression listExpression = null;
 	private Expression allExpression  = null;
 
-	public AllExpression() {
-		super("all");
+	public AllExpression(final int row, final int column) {
+		super("all", row, column);
 	}
 
 	@Override
@@ -78,13 +79,13 @@ public class AllExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
 		if (listExpression == null) {
 			return ERROR_MESSAGE_ALL;
 		}
 
-		final Object listSource = listExpression.evaluate(ctx, entity);
+		final Object listSource = listExpression.evaluate(ctx, entity, hints);
 
 		if (listSource != null && listSource instanceof Iterable) {
 
@@ -95,7 +96,7 @@ public class AllExpression extends Expression {
 
 				ctx.setConstant("data", obj);
 
-				final Object resultObject = allExpression.evaluate(ctx, entity);
+				final Object resultObject = allExpression.evaluate(ctx, entity, hints);
 				if (resultObject != null) {
 
 					if (resultObject instanceof Boolean) {
@@ -120,7 +121,7 @@ public class AllExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 }
