@@ -75,6 +75,7 @@ import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.test.web.entity.TestOne;
@@ -1805,7 +1806,7 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final GraphObject project1 = app.nodeQuery(projectType).andName("Project 1").getFirst();
-			project1.invokeMethod(securityContext, "doTest", new LinkedHashMap<>(), false);
+			project1.invokeMethod(securityContext, "doTest", new LinkedHashMap<>(), false, new EvaluationHints());
 
 			tx.success();
 
@@ -1816,7 +1817,7 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final GraphObject project2 = app.nodeQuery(projectType).andName("Project 2").getFirst();
-			project2.invokeMethod(securityContext, "doTest", new LinkedHashMap<>(), false);
+			project2.invokeMethod(securityContext, "doTest", new LinkedHashMap<>(), false, new EvaluationHints());
 
 			tx.success();
 
