@@ -52,7 +52,7 @@ public class EvaluationHints {
 				final String key            = entry.getKey();
 				final CodeLocation location = entry.getValue();
 
-				reporter.reportError("No function or keyword " + key, location.row, location.column);
+				reporter.reportError("No such function or keyword: " + key, location.row, location.column);
 			}
 		}
 	}
