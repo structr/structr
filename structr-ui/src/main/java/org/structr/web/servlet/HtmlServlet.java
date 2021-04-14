@@ -85,6 +85,7 @@ import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.util.Base64;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
@@ -1680,7 +1681,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			// call onDownload callback
 			try {
 
-				file.invokeMethod(securityContext, "onDownload", callbackMap, false);
+				file.invokeMethod(securityContext, "onDownload", callbackMap, false, new EvaluationHints());
 
 			} catch (FrameworkException fex) {
 				logger.warn("", fex);

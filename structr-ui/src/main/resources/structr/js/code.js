@@ -1029,7 +1029,7 @@ var _Code = {
 					let attrName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
 
 					return {
-						id: identifier.source + '-' + rel.id,
+						id: identifier.source + '-' + rel.id + '-' + attrName,
 						type: rel.type,
 						name: attrName,
 						propertyType: '',
@@ -1492,7 +1492,17 @@ var _Code = {
 	},
 	displaySchemaNodeContent: function(data, identifier) {
 
-		Command.get(identifier.typeId, null, function(result) {
+		fetch(rootUrl + '/' + identifier.typeId + '/schema').then(function(response) {
+
+			if (response.ok) {
+				return response.json();
+			} else {
+				throw Error("Unable to fetch schema node content");
+			}
+
+		}).then(function(json) {
+
+			let result = json.result;
 
 			_Code.updateRecentlyUsed(result, identifier.source, data.updateLocationStack);
 			Structr.fetchHtmlTemplate('code/type', { type: result }, function(html) {
@@ -1742,8 +1752,147 @@ var _Code = {
 						}
 					});
 				});
+
+				// usedIn property
+				if (result.usedIn && result.usedIn.length > 0) {
+
+					let usageTreeContainer = document.querySelector('#usage-tree');
+					let label              = document.querySelector('#usage-label');
+
+					// add help text
+					label.innerHTML = 'This type is used in the following pages, HTML elements and attributes. Please note that this table might not be complete since the information here is collected at runtime, when you browse through the pages of your application.';
+
+					let sorted = result.usedIn.sort((a, b) => {
+
+						let p1 = a.path || a.page || a.type || a.id;
+						let p2 = b.path || b.page || b.type || b.id;
+
+						return p1 > p2 ? 1 : p1 < p2 ? -1 : 0;
+					});
+
+					let tree = { name: 'Usage', children: {} };
+
+					// append rows
+					for (var usage of sorted) {
+
+						let path = usage.path;
+
+						// The path is split into its parts to form the hierarchy, so if there is no
+						// path, we use the root term "Types" plus the type of the node.
+						if (!path) { path = 'Types/' + usage.type; } else { path = 'Pages/' + path; }
+
+						let parts   = path.split('/').filter(p => p.length > 0);
+						let current = tree;
+
+						for (var part of parts) {
+
+							if (!current.children[part]) {
+
+								current.children[part] = {
+									name: part,
+									children: {}
+								};
+							}
+
+							current = current.children[part];
+						}
+
+						current.data = usage;
+					}
+
+					let buildTree = function(root, rootElement) {
+
+						let listItem = document.createElement('li');
+						listItem.dataset.jstree = JSON.stringify({ icon: '/structr/icon/folder.png' });
+						//listItem.classList.add('jstree-open');
+						listItem.innerHTML = root.name;
+						rootElement.appendChild(listItem);
+
+						let list = document.createElement('ul');
+						listItem.appendChild(list);
+
+						if (root.data) {
+
+							for (var key of Object.keys(root.data.mapped)) {
+
+								let value = root.data.mapped[key];
+								let item  = document.createElement('li');
+								item.dataset.jstree = JSON.stringify({ icon: 'fa fa-edit' });
+								item.dataset.id = root.data.id;
+								item.innerHTML = key + ': '+ value;
+
+								list.append(item);
+							}
+						}
+
+						for (var key of Object.keys(root.children)) {
+							let child = root.children[key];
+							buildTree(child, list);
+						}
+
+					};
+
+					buildTree(tree, usageTreeContainer);
+
+					let usageTree = $('#usage-tree-container').jstree({
+						plugins: ["themes"],
+						core: {
+							animation: 0
+						}
+					});
+
+					console.log(usageTree);
+
+					usageTree.on('select_node.jstree', function(node, selected, event) {
+
+						console.log({ node: node, selected: selected, event:event });
+
+						let id = selected.node.data.id;
+						if (id) {
+
+							Command.get(id, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
+
+								switch (obj.type) {
+
+									case 'Content':
+									case 'Template':
+										_Elements.openEditContentDialog(undefined, obj, {
+											extraKeys: { "Ctrl-Space": "autocomplete" },
+											gutters: ["CodeMirror-lint-markers"],
+											lint: {
+												getAnnotations: function(text, callback) {
+													_Code.showScriptErrors(obj, text, callback, data.name);
+												},
+												async: true
+											}
+										});
+										break;
+									default:
+										_Entities.showProperties(obj);
+										break;
+								}
+							});
+
+						} else {
+
+							// not a leaf, toggle "opened" state
+							usageTree.jstree('toggle_node', selected.node);
+						}
+
+					});
+
+				} else {
+
+					let label = document.querySelector('#usage-label');
+					if (label) {
+
+						label.innerHTML = 'Browse through your application to populate the usage list for this type.';
+					}
+				}
 			});
-		}, 'schema');
+		});
+
+		//}, 'schema');
 	},
 	displaySchemaMethodContent: function(data, lastOpenTab, cursorInfo) {
 

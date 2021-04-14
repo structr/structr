@@ -26,6 +26,7 @@ import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.StaticValue;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
@@ -42,8 +43,8 @@ public class BatchExpression extends Expression {
 	private boolean background         = false;
 	private int batchSize              = -1;
 
-	public BatchExpression() {
-		super("batch");
+	public BatchExpression(final int row, final int column) {
+		super("batch", row, column);
 	}
 
 	@Override
@@ -67,13 +68,13 @@ public class BatchExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
 		if (batchExpression == null || sizeExpression == null) {
 			return ERROR_MESSAGE_BATCH;
 		}
 
-		final Object value = sizeExpression.evaluate(ctx, entity);
+		final Object value = sizeExpression.evaluate(ctx, entity, hints);
 		if (value != null && value instanceof Number) {
 
 			// store batch size for children to use
@@ -86,7 +87,7 @@ public class BatchExpression extends Expression {
 			final Thread workerThread = new Thread(() -> {
 
 				try {
-					result.set(null, batchExpression.evaluate(ctx, entity));
+					result.set(null, batchExpression.evaluate(ctx, entity, hints));
 
 				} catch (FrameworkException fex) {
 					exception.set(null, fex);
@@ -114,7 +115,7 @@ public class BatchExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 

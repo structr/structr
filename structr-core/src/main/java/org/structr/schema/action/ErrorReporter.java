@@ -16,40 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.parser;
+package org.structr.schema.action;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 /**
- *
- *
  */
-public class NullExpression extends Expression {
-
-	public NullExpression(final int row, final int column) {
-		super(row, column);
-	}
-
-	@Override
-	public String toString() {
-
-		final StringBuilder buf = new StringBuilder();
-
-		buf.append("null");
-
-		return buf.toString();
-	}
-
-	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException {
-		return null;
-	}
-
-	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException {
-		return source;
-	}
+public interface ErrorReporter {
+	void reportError(final String message, final int row, final int column) throws FrameworkException;
 }

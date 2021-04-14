@@ -763,5 +763,63 @@ var _Widgets = {
 		return sortedConfig.map(function(el) {
 			return [el[1], el[2]];
 		});
+	},
+	fetchRemotePageTemplateWidgets: async function() {
+
+		let url = _Widgets.getWidgetServerUrl() || _Widgets.defaultWidgetServerUrl;
+
+		LSWrapper.setItem(_Widgets.widgetServerKey, url);
+
+		if (!url.startsWith(document.location.origin)) {
+
+			try {
+				let response = await fetch(url + '?isPageTemplate=true&sort=name');
+				if (response && response.ok) {
+
+					let json = await response.json();
+					return json.result;
+				}
+
+			} catch (e) {}
+		}
+
+		return [];
+	},
+	fetchLocalPageTemplateWidgets: async function() {
+
+		try {
+			let response = await fetch('/structr/rest/Widget?isPageTemplate=true&sort=name');
+			if (response && response.ok) {
+
+				let json = await response.json();
+				return json.result;
+			}
+
+		} catch (e) {}
+
+		return [];
+	},
+	fetchAllPageTemplateWidgets: async function(callback) {
+
+		let widgets = [];
+
+		let remoteWidgets = await _Widgets.fetchRemotePageTemplateWidgets();
+		let localWidgets  = await _Widgets.fetchLocalPageTemplateWidgets();
+
+		if (remoteWidgets && remoteWidgets.length) {
+
+			for (var w of remoteWidgets) {
+				widgets.push(w);
+			}
+		}
+
+		if (localWidgets && localWidgets.length) {
+
+			for (var w of localWidgets) {
+				widgets.push(w);
+			}
+		}
+
+		callback(widgets);
 	}
 };

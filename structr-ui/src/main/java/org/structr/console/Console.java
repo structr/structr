@@ -39,6 +39,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.util.Writable;
 
 
@@ -256,7 +257,8 @@ public class Console {
 
 		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-			final Object result = Functions.evaluate(actionContext, null, new Snippet("console", line));
+			final EvaluationHints hints = new EvaluationHints();
+			final Object result = Functions.evaluate(actionContext, null, new Snippet("console", line), hints);
 			if (result != null) {
 
 				if (result instanceof Iterable) {

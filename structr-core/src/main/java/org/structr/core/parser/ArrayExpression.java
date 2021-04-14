@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 /**
@@ -35,6 +36,10 @@ import org.structr.schema.action.Function;
  */
 
 public class ArrayExpression extends Expression {
+
+	public ArrayExpression(final int row, final int column) {
+		super(row, column);
+	}
 
 	@Override
 	public String toString() {
@@ -60,7 +65,7 @@ public class ArrayExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
 		switch (expressions.size()) {
 
@@ -68,7 +73,7 @@ public class ArrayExpression extends Expression {
 				throw new FrameworkException(422, "Invalid expression: expected expression, found ].");
 
 			case 1:
-				final Object value  = expressions.get(0).evaluate(ctx, entity);
+				final Object value  = expressions.get(0).evaluate(ctx, entity, hints);
 				final Object parsed = Function.parseInt(value);
 				if (parsed instanceof Number) {
 
@@ -80,13 +85,13 @@ public class ArrayExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object value) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object value, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
 		if (value == null) {
 			return null;
 		}
 
-		final Integer index = (Integer)evaluate(ctx, entity);
+		final Integer index = (Integer)evaluate(ctx, entity, hints);
 		if (index != null) {
 
 			if (value instanceof Collection || value.getClass().isArray()) {
