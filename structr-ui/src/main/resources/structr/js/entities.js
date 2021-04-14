@@ -139,7 +139,7 @@ var _Entities = {
 		if (entity.type === 'Button' || entity.type === 'A') {
 
 			el.append('<h4>You can specify the data fields for create and update using data-Attributes like this:</h4>');
-			el.append('<pre>data-name        = css(input#name-input)\ndata-description = css(input#description-input)\ndata-parent      = json({ id: "5c6214fde6db45d09df027b16a0d6c0e" })</pre>');
+			el.append('<pre>data-name        = css(input#name-input)\ndata-description = css(input#description-input)\ndata-parent      = json({ "id": "5c6214fde6db45d09df027b16a0d6c0e" })</pre>');
 			el.append('<h4>Which will produce the following JSON payload:</h4>');
 			el.append('<pre>{\n    name: "&lt;value from input#name-input&gt;",\n    description: "&lt;value from input#description-input&gt;",\n    parent: {\n        id: "5c6214fde6db45d09df027b16a0d6c0e"\n    }\n}\n</p>');
 		}
