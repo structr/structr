@@ -657,4 +657,10 @@ public class ActionContext {
 
 		return this.staticExecutableTypeMethodCache;
 	}
+
+	public void clearExecutableCaches() {
+
+		this.executableTypeMethodCache.clearCache();
+		this.staticExecutableTypeMethodCache.clearCache();
+	}
 }

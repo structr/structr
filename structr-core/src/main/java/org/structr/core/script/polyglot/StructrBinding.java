@@ -137,6 +137,7 @@ public class StructrBinding implements ProxyObject {
 		keys.add("session");
 		keys.add("cache");
 		keys.add("applicationStore");
+		keys.add("methodParameters");
 		return keys;
 	}
 

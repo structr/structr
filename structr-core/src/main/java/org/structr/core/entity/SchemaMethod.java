@@ -56,8 +56,10 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.ReloadSchema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionEntry;
+import org.structr.schema.action.Actions;
 
 /**
  *
@@ -185,8 +187,16 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 			if (schemaNode != null) {
 
 				schemaNode.clearCachedSchemaMethodsForInstance();
+
+				this.clearMethodCacheOfExtendingNodes();
 			}
 		}
+	}
+
+	@Override
+	public void onNodeDeletion() {
+		super.onNodeDeletion();
+		AbstractSchemaNode.clearCachedSchemaMethods();
 	}
 
 	@Override
@@ -218,6 +228,21 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	}
 
 	// ----- private methods -----
+	private void clearMethodCacheOfExtendingNodes() throws FrameworkException {
+
+		AbstractSchemaNode node = getProperty(schemaNode);
+		if (node != null) {
+			// Find inheriting SchemaNodes and clear their method cache
+			final String fqcn = "org.structr.dynamic" + node.getName();
+			List<SchemaNode> extendingNodes = StructrApp.getInstance().nodeQuery(SchemaNode.class).and(SchemaNode.extendsClass, fqcn).getAsList();
+
+			for (final SchemaNode extendingNode : extendingNodes) {
+
+				extendingNode.clearCachedSchemaMethodsForInstance();
+			}
+		}
+	}
+
 	private void addType(final Queue<String> typeQueue, final AbstractSchemaNode schemaNode) {
 
 		final String _extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);

@@ -79,6 +79,8 @@ public class Console {
 
 	public void run(final String line, final Writable output) throws FrameworkException, IOException {
 
+		actionContext.clearExecutableCaches();
+
 		if (line.startsWith("Console.getMode()")) {
 
 			output.println("Mode is '" + getMode() + "'.");
