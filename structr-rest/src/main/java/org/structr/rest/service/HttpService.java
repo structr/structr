@@ -81,6 +81,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
+import org.structr.api.service.InitializationCallback;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.ServiceDependency;
@@ -121,6 +122,20 @@ public class HttpService implements RunnableService, StatsCallback {
 	private int maxIdleTime                       = 30000;
 	private int requestHeaderSize                 = 8192;
 	private boolean httpsActive                   = false;
+
+	static {
+
+		Services.getInstance().registerInitializationCallback(new InitializationCallback() {
+
+			@Override
+			public void initializationDone() {
+
+				if (Settings.ClearSessionsOnStartup.getValue()) {
+					SessionHelper.clearAllSessions();
+				}
+			}
+		});
+	}
 
 	@Override
 	public void startService() throws Exception {
@@ -326,10 +341,6 @@ public class HttpService implements RunnableService, StatsCallback {
 				sessionCache.getSessionHandler().setHttpOnly(isTest);
 			}
 
-		}
-
-		if (Settings.ClearSessionsOnStartup.getValue()) {
-			SessionHelper.clearAllSessions();
 		}
 
 		final StructrSessionDataStore sessionDataStore = new StructrSessionDataStore();
