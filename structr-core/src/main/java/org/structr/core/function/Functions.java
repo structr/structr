@@ -276,7 +276,17 @@ public class Functions {
 			return "";
 		}
 
-		String normalized = Normalizer.normalize(input.toString(), Normalizer.Form.NFD)
+		String normalized = input.toString()
+			.replaceAll("ü", "ue")
+			.replaceAll("ö", "oe")
+			.replaceAll("ä", "ae")
+			.replaceAll("ß", "ss")
+			.replaceAll("Ü(?=[a-zäöüß ])", "Ue")
+			.replaceAll("Ö(?=[a-zäöüß ])", "Oe")
+			.replaceAll("Ä(?=[a-zäöüß ])", "Ae")
+			.replaceAll("Ü", "UE")
+			.replaceAll("Ö", "OE")
+			.replaceAll("Ä", "AE")
 			.replaceAll("\\<", "")
 			.replaceAll("\\>", "")
 			.replaceAll("\\.", "")
@@ -297,8 +307,10 @@ public class Functions {
 			.replaceAll("!", "")
 			.replaceAll(",", "")
 			.replaceAll("-", " ")
-			.replaceAll("_", " ")
+			.replaceAll("_", " ").replaceAll("_", " ")
 			.replaceAll("`", "-");
+
+		normalized = Normalizer.normalize(normalized, Normalizer.Form.NFD);
 
 		String result = normalized.replaceAll("-", " ");
 		result = StringUtils.normalizeSpace(result.toLowerCase());
