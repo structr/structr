@@ -665,7 +665,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 						((LinkSource)page).setLinkable(linkedPage);
 
-					} catch (FrameworkException ex) {
+					} catch (Throwable t) {
 					}
 
 				});
@@ -2358,6 +2358,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	// ----- public static methods -----
 	public static void addDeferredPagelink (String linkableUUID, String pagePath) {
 		deferredPageLinks.put(linkableUUID, pagePath);
+	}
+
+	public static void updateDeferredPagelink (String initialUUID, String correctUUID) {
+
+		if (deferredPageLinks.containsKey(initialUUID)) {
+			deferredPageLinks.put(correctUUID, deferredPageLinks.get(initialUUID));
+			deferredPageLinks.remove(initialUUID);
+		}
 	}
 
 	public static void addMissingPrincipal (final String principalName) {

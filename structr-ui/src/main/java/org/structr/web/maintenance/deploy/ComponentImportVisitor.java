@@ -261,6 +261,8 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 						if (byId) {
 
+							DeployCommand.updateDeferredPagelink(rootElement.getUuid(), componentName);
+
 							// set UUID
 							rootElement.unlockSystemPropertiesOnce();
 							rootElement.setProperty(GraphObject.id, componentName);
@@ -270,6 +272,8 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 							// the last characters in the name string are the uuid
 							final String uuid = componentName.substring(componentName.length() - 32);
 							final String name = componentName.substring(0, componentName.length() - 33);
+
+							DeployCommand.updateDeferredPagelink(rootElement.getUuid(), uuid);
 
 							rootElement.unlockSystemPropertiesOnce();
 							rootElement.setProperty(GraphObject.id, uuid);
