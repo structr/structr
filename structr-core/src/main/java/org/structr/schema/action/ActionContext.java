@@ -274,6 +274,8 @@ public class ActionContext {
 
 			// special handling of maps..
 			if (data instanceof Map) {
+
+				hints.reportExistingKey(key);
 				value = ((Map)data).get(key);
 			}
 
