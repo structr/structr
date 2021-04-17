@@ -34,7 +34,7 @@ import org.structr.schema.action.ActionContext;
 
 public class JdbcFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE    = "Usage: ${jdbc(url, query[, driver])}. Example: ${jdbc(\"jdbc:mysql://localhost:3306\", \"SELECT * from Test\")}";
+	public static final String ERROR_MESSAGE    = "Usage: ${jdbc(url, query)}. Example: ${jdbc(\"jdbc:mysql://localhost:3306\", \"SELECT * from Test\")}";
 
 	@Override
 	public String getName() {
@@ -43,7 +43,7 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getSignature() {
-		return "jdbcUrl, sqlQuery [, driverClass ]";
+		return "jdbcUrl, sqlQuery";
 	}
 
 	@Override
@@ -57,41 +57,42 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 			final String url                     = (String)sources[0];
 			final String sql                     = (String)sources[1];
 
-			String driverClass = "com.mysql.jdbc.Driver";
-
-			if (sources.length == 3) {
-				driverClass = (String)sources[2];
-			}
-
 			try {
 
-				Class.forName(driverClass).newInstance();
+				try (final Connection connection = DriverManager.getConnection(url)) {
 
-				final Connection connection      = DriverManager.getConnection(url);
-				final Statement statement        = connection.createStatement();
-				final ResultSet resultSet        = statement.executeQuery(sql);
-				final ResultSetMetaData metaData = resultSet.getMetaData();
-				final int count                  = metaData.getColumnCount();
+					final Statement statement = connection.createStatement();
 
-				while (resultSet.next()) {
+					try (final ResultSet resultSet = statement.executeQuery(sql)) {
 
-					final Map<String, Object> row = new LinkedHashMap<>();
+						final ResultSetMetaData metaData = resultSet.getMetaData();
+						final int count                  = metaData.getColumnCount();
 
-					for (int i=1; i<=count; i++) {
+						while (resultSet.next()) {
 
-						final String key   = metaData.getColumnName(i);
-						final Object value = resultSet.getObject(i);
+							final Map<String, Object> row = new LinkedHashMap<>();
 
-						row.put(key, value);
+							for (int i=1; i<=count; i++) {
+
+								final String key   = metaData.getColumnName(i);
+								final Object value = resultSet.getObject(i);
+
+								row.put(key, value);
+							}
+
+							data.add(row);
+						}
 					}
-
-					data.add(row);
 				}
 
 			} catch (Throwable t) {
+
 				if (t instanceof ClassNotFoundException) {
-					logException((ClassNotFoundException) t, "{}: Driver class \"{}\" not found. Make sure the jar containing the class is located in the lib directory.", new Object[] { getReplacement(), driverClass, caller, getParametersAsString(sources) });
+
+					logException((ClassNotFoundException) t, "JDBC driver not found. Make sure the driver's JAR is located in the lib directory.", new Object[] { t.getMessage() });
+
 				} else {
+
 					logException(t, t.getMessage(), sources);
 				}
 			}
