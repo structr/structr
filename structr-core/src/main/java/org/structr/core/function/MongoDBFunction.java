@@ -98,6 +98,6 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Fetches data from a MongoDB source";
+		return "Opens and returns a connection to an external MongoDB instance";
 	}
 }
