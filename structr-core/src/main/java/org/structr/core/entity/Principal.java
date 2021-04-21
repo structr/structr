@@ -66,8 +66,6 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.addStringArrayProperty("sessionIds").setIndexed(true);
 		principal.addStringArrayProperty("refreshTokens").setIndexed(true);
 
-		principal.addStringProperty("currentAccessToken").setIndexed(true);
-
 		principal.addStringProperty("sessionData");
 
 		principal.addStringProperty("eMail")
@@ -121,13 +119,11 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.addStringProperty("customPermissionQueryAccessControl");
 
 		principal.addPropertyGetter("locale", String.class);
-		principal.addPropertyGetter("currentAccessToken", String.class);
 		principal.addPropertyGetter("sessionData", String.class);
 		principal.addPropertyGetter("favorites", Iterable.class);
 		principal.addPropertyGetter("groups", Iterable.class);
 		principal.addPropertyGetter("eMail", String.class);
 
-		principal.addPropertySetter("currentAccessToken", String.class);
 		principal.addPropertySetter("sessionData", String.class);
 		principal.addPropertySetter("favorites", Iterable.class);
 		principal.addPropertySetter("password", String.class);
@@ -364,10 +360,8 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 			PropertyMap properties = new PropertyMap();
 			final PropertyKey<String[]> refreshTokensKey = StructrApp.key(Principal.class, "refreshTokens");
-			final PropertyKey<String[]> currentAccessTokenKey = StructrApp.key(Principal.class, "currentAccessToken");
 
 			properties.put(refreshTokensKey, new String[0]);
-			properties.put(currentAccessTokenKey, null);
 
 			principal.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
