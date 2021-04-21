@@ -60,10 +60,7 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
             Calendar accessTokenExpirationDate = Calendar.getInstance();
             accessTokenExpirationDate.add(Calendar.MINUTE, accessTokenTimeout);
 
-            Calendar refreshTokenExpirationDate = Calendar.getInstance();
-            refreshTokenExpirationDate.add(Calendar.MINUTE, refreshTokenTimeout);
-
-            Map<String, String> tokens = JWTHelper.createTokensForUser(user, accessTokenExpirationDate.getTime(), refreshTokenExpirationDate.getTime());
+            Map<String, String> tokens = JWTHelper.createTokensForUser(user, accessTokenExpirationDate.getTime(), null);
 
             return tokens.get("access_token");
 

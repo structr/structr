@@ -319,13 +319,17 @@ public class JWTHelper {
     private static Map<String, String> createTokens (Principal user, Key key, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName, String jwtIssuer) throws FrameworkException {
         final  Map<String, String> tokens = new HashMap<>();
 
-        // create a unique uuid for refresh_token with expiration
-        final String newTokenUUID = NodeServiceCommand.getNextUuid();
-        StringBuilder tokenStringBuilder = new StringBuilder();
-        tokenStringBuilder.append(newTokenUUID).append("_").append(refreshTokenExpirationDate.getTime());
-        final String tokenId = tokenStringBuilder.toString();
+        String tokenId = null;
 
         if (refreshTokenExpirationDate != null) {
+
+            // create a unique uuid for refresh_token with expiration
+            final String newTokenUUID = NodeServiceCommand.getNextUuid();
+            StringBuilder tokenStringBuilder = new StringBuilder();
+            tokenStringBuilder.append(newTokenUUID).append("_").append(refreshTokenExpirationDate.getTime());
+
+            tokenId = tokenStringBuilder.toString();
+
             String refreshToken = Jwts.builder()
                     .setSubject(user.getName())
                     .setExpiration(refreshTokenExpirationDate)
