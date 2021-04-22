@@ -46,6 +46,7 @@ import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.auth.AuthHelper;
+import org.structr.rest.auth.JWTHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.web.entity.User;
 import org.structr.web.resource.RegistrationResource;
@@ -124,7 +125,7 @@ public class UiAuthenticator implements Authenticator {
 		if (user == null && authorizationToken != null) {
 
 			final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
-			user = AuthHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
+			user = JWTHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
 		}
 
 		if (user == null) {
@@ -631,7 +632,7 @@ public class UiAuthenticator implements Authenticator {
 		} else if (authorizationToken != null) {
 
 			final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
-			user = AuthHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
+			user = JWTHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
 		}
 
 		if (user == null) {
