@@ -24,6 +24,7 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.structr.core.GraphObject;
 import org.structr.core.script.polyglot.wrappers.GraphObjectWrapper;
+import org.structr.core.script.polyglot.wrappers.NonWrappableObject;
 import org.structr.core.script.polyglot.wrappers.PolyglotProxyArray;
 import org.structr.core.script.polyglot.wrappers.PolyglotProxyMap;
 import org.structr.schema.action.ActionContext;
@@ -44,9 +45,9 @@ public abstract class PolyglotWrapper {
 
 			return null;
 
-		} else if (obj instanceof Bson) {
+		} else if (obj instanceof NonWrappableObject) {
 
-			return obj;
+			return ((NonWrappableObject)obj).unwrap();
 
 		} else if (obj instanceof GraphObject) {
 

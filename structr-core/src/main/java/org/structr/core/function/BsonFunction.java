@@ -23,6 +23,7 @@ import java.util.Map;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.script.polyglot.wrappers.NonWrappableObject;
 import org.structr.schema.action.ActionContext;
 
 public class BsonFunction extends AdvancedScriptingFunction {
@@ -46,7 +47,7 @@ public class BsonFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
-			return new BasicDBObject((Map)sources[0]);
+			return NonWrappableObject.from(new BasicDBObject((Map)sources[0]));
 
 
 		} catch (ArgumentNullException pe) {
