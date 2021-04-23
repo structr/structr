@@ -1,6 +1,6 @@
 /var/log/structr.log {
   su root adm
-  create
+  copytruncate
   daily
   rotate 30
   dateext
