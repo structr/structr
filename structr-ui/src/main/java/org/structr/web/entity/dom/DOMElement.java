@@ -1445,7 +1445,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	public static void updateReloadTargets(final DOMElement thisElement) throws FrameworkException {
 
-		final Logger logger                   = LoggerFactory.getLogger(DOMElement.class);
 		final SecurityContext securityContext = thisElement.getSecurityContext();
 
 		try {

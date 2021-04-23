@@ -248,6 +248,31 @@ export class Frontend {
 		}
 	}
 
+	loadPartial(uri, container) {
+
+		fetch(uri, {
+			method: 'GET',
+			credentials: 'same-origin'
+		}).then(response => {
+			if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
+			return response.text();
+		}).then(html => {
+			var content = document.createElement(container.nodeName);
+			if (content) {
+				content.innerHTML = html;
+				if (content && content.children && content.children.length) {
+					container.replaceWith(content.children[0]);
+				} else {
+					container.replaceWith('');
+				}
+			}
+			this.bindEvents();
+
+		}).catch(e => {
+			this.handleError(element, e, {});
+		});
+	}
+
 	/**
 	 * Transforms, merges and encodes parameter sets from different objects. All key-value
 	 * pairs from fromDataset that are prefixed with "request" are un-prefixed and copied into
