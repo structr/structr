@@ -32,6 +32,7 @@ import org.structr.api.service.Service;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,6 +66,8 @@ public class MQTTClientConnection implements MqttCallback {
 			connOpts.setServerURIs(fallBackBrokers);
 		}
 		connOpts.setCleanSession(true);
+
+		connOpts.setAutomaticReconnect(true);
 
 		if (info.getUsername() != null && info.getPassword() != null) {
 			connOpts.setUserName(info.getUsername());
