@@ -31,6 +31,7 @@ import org.structr.schema.action.Actions;
 import org.structr.web.datasource.CypherGraphDataSource;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.datasource.IdRequestParameterGraphDataSource;
+import org.structr.web.datasource.ModelDataSource;
 import org.structr.web.datasource.RestDataSource;
 import org.structr.web.datasource.XPathGraphDataSource;
 import org.structr.web.function.*;
@@ -52,6 +53,7 @@ public class UiModule implements StructrModule {
 		DataSources.put(true, "ui", "cypherDataSource",             new CypherGraphDataSource());
 		DataSources.put(true, "ui", "functionDataSource",           new FunctionDataSource());
 		DataSources.put(true, "ui", "xpathDataSource",              new XPathGraphDataSource());
+		DataSources.put(true, "ui", "modelDataSource",              new ModelDataSource());
 	}
 
 	@Override

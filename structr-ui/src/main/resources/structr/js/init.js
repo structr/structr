@@ -2022,6 +2022,26 @@ var Structr = {
 									}, 1000);
 								}, 'Dismiss');
 
+							} else if (data.nodeType === 'SchemaProperty') {
+
+								let pathToOpen = '';
+
+								if (obj.schemaNode) {
+
+									pathToOpen = 'custom--' + obj.schemaNode.id + '-properties-' + obj.id;
+
+								} else {
+
+									pathToOpen = 'globals--' + obj.id;
+								}
+
+								builder.specialInteractionButton('Go to property', function(btn) {
+									window.location.href = '#code';
+									window.setTimeout(function() {
+										_Code.findAndOpenNode(pathToOpen, false);
+									}, 1000);
+								}, 'Dismiss');
+
 							} else {
 
 								builder.specialInteractionButton('Open in editor', function(btn) {
