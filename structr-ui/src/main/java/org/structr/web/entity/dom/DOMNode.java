@@ -1451,6 +1451,12 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 					out.append(" data-structr-meta-name=\"").append(escapeForHtmlAttributes(name)).append("\"");
 				}
+
+				final Object flow = thisNode.getProperty("flow");
+				if (flow != null) {
+
+					out.append(" data-structr-meta-id=\"").append(thisNode.getUuid()).append("\"");
+				}
 			}
 
 			for (final String p : rawProps) {

@@ -246,50 +246,50 @@ public class CronEntry implements Delayed {
 		int maxTries       = 10000;
 		int numTries       = 0;
 
-		while(modified && numTries++ < maxTries) {
+		while (modified && numTries++ < maxTries) {
 
 			modified = false;
 
-			if(!modified && !seconds.isInside(nowSeconds)) {
-				addAndResetLowerFields(now, Calendar.SECOND, 1);
-				modified = true;
-			}
-
-			if(!modified && !minutes.isInside(nowMinutes)) {
-				addAndResetLowerFields(now, Calendar.MINUTE, 1);
-				modified = true;
-			}
-
-			if(!modified && !hours.isInside(nowHours)) {
-				addAndResetLowerFields(now, Calendar.HOUR_OF_DAY, 1);
+			if (!modified && !months.isInside(nowMonths)) {
+				addAndResetLowerFields(now, Calendar.MONTH, 1);
 				modified = true;
 			}
 
 			// exclude day of week and day from each other (both can match)
-			if(!dow.isIsWildcard() && !days.isIsWildcard()) {
+			if (!dow.isIsWildcard() && !days.isIsWildcard()) {
 
-				if(!modified && !(dow.isInside(nowDow) || days.isInside(nowDays))) {
+				if (!modified && !(dow.isInside(nowDow) || days.isInside(nowDays))) {
 					addAndResetLowerFields(now, Calendar.DAY_OF_MONTH, 1);
 					modified = true;
 				}
 
-			} else if(!dow.isIsWildcard()) {
+			} else if (!dow.isIsWildcard()) {
 
-				if(!modified && !dow.isInside(nowDow)) {
+				if (!modified && !dow.isInside(nowDow)) {
 					addAndResetLowerFields(now, Calendar.DAY_OF_MONTH, 1);
 					modified = true;
 				}
 
-			} else if(!days.isIsWildcard()) {
+			} else if (!days.isIsWildcard()) {
 
-				if(!modified && !days.isInside(nowDays)) {
+				if (!modified && !days.isInside(nowDays)) {
 					addAndResetLowerFields(now, Calendar.DAY_OF_MONTH, 1);
 					modified = true;
 				}
 			}
 
-			if(!modified && !months.isInside(nowMonths)) {
-				addAndResetLowerFields(now, Calendar.MONTH, 1);
+			if (!modified && !hours.isInside(nowHours)) {
+				addAndResetLowerFields(now, Calendar.HOUR_OF_DAY, 1);
+				modified = true;
+			}
+
+			if (!modified && !minutes.isInside(nowMinutes)) {
+				addAndResetLowerFields(now, Calendar.MINUTE, 1);
+				modified = true;
+			}
+
+			if (!modified && !seconds.isInside(nowSeconds)) {
+				addAndResetLowerFields(now, Calendar.SECOND, 1);
 				modified = true;
 			}
 
@@ -301,7 +301,7 @@ public class CronEntry implements Delayed {
 			nowMonths      = now.get(Calendar.MONTH) + 1;		// MONTH starts with 0 (why???)
 		}
 
-		if(numTries == maxTries) {
+		if (numTries >= maxTries) {
 			throw new IllegalArgumentException("Unable to determine next cron date for task " + name + ", aborting.");
 		}
 
