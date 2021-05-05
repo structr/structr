@@ -64,6 +64,7 @@ import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
 import org.structr.test.core.entity.TestFour;
@@ -210,29 +211,30 @@ public class ScriptingTest extends StructrTest {
 			}
 
 			final GraphObject sourceNode = app.nodeQuery(sourceType).getFirst();
+			final EvaluationHints hints  = new EvaluationHints();
 
 			// set testEnum property to OPEN via doTest01 function call, check result
-			sourceNode.invokeMethod(securityContext, "doTest01", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod(securityContext, "doTest01", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[0], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to CLOSED via doTest02 function call, check result
-			sourceNode.invokeMethod(securityContext, "doTest02", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod(securityContext, "doTest02", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[1], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to TEST via doTest03 function call, check result
-			sourceNode.invokeMethod(securityContext, "doTest03", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod(securityContext, "doTest03", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to INVALID via doTest03 function call, expect previous value & error
 			try {
-				sourceNode.invokeMethod(securityContext, "doTest04", Collections.EMPTY_MAP, true);
+				sourceNode.invokeMethod(securityContext, "doTest04", Collections.EMPTY_MAP, true, hints);
 				assertEquals("Invalid setProperty result for EnumProperty",    testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
 				fail("Setting EnumProperty to invalid value should result in an Exception!");
 
 			} catch (FrameworkException fx) {}
 
 			// test other property types
-			sourceNode.invokeMethod(securityContext, "doTest05", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod(securityContext, "doTest05", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for BooleanProperty",                         true, sourceNode.getProperty(testBooleanProperty));
 			assertEquals("Invalid setProperty result for IntegerProperty",                          123, sourceNode.getProperty(testIntegerProperty));
 			assertEquals("Invalid setProperty result for StringProperty",                   "testing..", sourceNode.getProperty(testStringProperty));
@@ -311,7 +313,7 @@ public class ScriptingTest extends StructrTest {
 		// grant read access to test user
 		try (final Tx tx = app.tx()) {
 
-			app.nodeQuery(sourceType).getFirst().invokeMethod(securityContext, "doTest01", Collections.EMPTY_MAP, true);
+			app.nodeQuery(sourceType).getFirst().invokeMethod(securityContext, "doTest01", Collections.EMPTY_MAP, true, new EvaluationHints());
 			tx.success();
 
 		} catch(FrameworkException fex) {
@@ -778,17 +780,7 @@ public class ScriptingTest extends StructrTest {
 
 			assertEquals("Invalid size result", "20", Scripting.replaceVariables(ctx, testOne, "${this.manyToManyTestSixs.size}"));
 
-			try {
-
-				Scripting.replaceVariables(ctx, testOne, "${(this.alwaysNull.size}");
-				fail("A mismatched opening bracket should throw an exception.");
-
-			} catch (FrameworkException fex) {
-
-				final String expectedMessage = "TestOne[" + testOne.getUuid() + "]:script source:1:2\nInvalid expression: mismatched closing bracket after this.alwaysNull.size";
-				assertEquals(expectedMessage, fex.getMessage());
-			}
-
+			assertEquals("Invalid size result", "", Scripting.replaceVariables(ctx, testOne, "${(this.alwaysNull.size}"));
 			assertEquals("Invalid size result", "", Scripting.replaceVariables(ctx, testOne, "${this.alwaysNull.size}"));
 
 			assertEquals("Invalid variable reference", "1",            Scripting.replaceVariables(ctx, testOne, "${this.anInt}"));
@@ -936,9 +928,9 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid length() result", "4", Scripting.replaceVariables(ctx, testOne, "${length('test')}"));
 			assertEquals("Invalid length() result", "", Scripting.replaceVariables(ctx, testOne, "${length(this.alwaysNull)}"));
 
-			// clean
-			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoauabcdefgh", Scripting.replaceVariables(ctx, testOne, "${clean(this.cleanTestString)}"));
-			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoauabcdefgh", Scripting.replaceVariables(ctx, testOne, "${clean(get(this, \"cleanTestString\"))}"));
+			// clean ("a<b>c.d'e?f(g)h{i}j[k]l+m/n–o\\p\\q|r's!t,u-v_w`x-y-zöäüßABCDEFGH")
+			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoeaeuessabcdefgh", Scripting.replaceVariables(ctx, testOne, "${clean(this.cleanTestString)}"));
+			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoeaeuessabcdefgh", Scripting.replaceVariables(ctx, testOne, "${clean(get(this, \"cleanTestString\"))}"));
 			assertEquals("Invalid clean() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${clean(this.alwaysNull)}"));
 
 			// trim
@@ -1038,9 +1030,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid if(equal()) result", "false",  Scripting.replaceVariables(ctx, testOne, "${if(equal(\"13\", \"00013\"), \"true\", \"false\")}"));
 
 			// disabled: java StreamTokenizer can NOT handle scientific notation
-//			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(23.4462, 2.34462e1)}"));
-//			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(0.00234462, 2.34462e-3)}"));
-//			aFunction.logException(logger, ex, "Error in batch error handler: {}", new Object[]{ex.getMessage()});
+			//assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(23.4462, 2.34462e1)}"));
+			//assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(0.00234462, 2.34462e-3)}"));
 			assertEquals("Invalid if(equal()) result with null value", "false",  Scripting.replaceVariables(ctx, testOne, "${equal(0.00234462, this.alwaysNull)}"));
 			assertEquals("Invalid if(equal()) result with null value", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(this.alwaysNull, this.alwaysNull)}"));
 
@@ -2027,7 +2018,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 
 			fail(fex.getMessage());
 		}
@@ -2414,7 +2405,7 @@ public class ScriptingTest extends StructrTest {
 			final StringBuilder func = new StringBuilder();
 
 			func.append("${{\n");
-			func.append("    Structr.batch(function() {\n");
+			func.append("    Structr.doInNewTransaction(function() {\n");
 			func.append("        var toDelete = Structr.find('TestOne').slice(0, 100);\n");
 			func.append("        if (toDelete && toDelete.length) {\n");
 			func.append("            Structr.log('Deleting ' + toDelete.length + ' nodes..');\n");
@@ -4634,8 +4625,8 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("", "", (Scripting.evaluate(ctx, null, "${{ $.batch(function() { $.error('base', 'nope', 'detail'); }, function() { $.store('test-result', 'error_handled'); }); }}", "test")));
-			assertEquals("Error handler in batch function was not called.", "error_handled", ctx.retrieve("test-result"));
+			assertEquals("", "", (Scripting.evaluate(ctx, null, "${{ $.doInNewTransaction(function() { $.error('base', 'nope', 'detail'); }, function() { $.store('test-result', 'error_handled'); }); }}", "test")));
+			assertEquals("Error handler in doInNewTransaction function was not called.", "error_handled", ctx.retrieve("test-result"));
 
 			tx.success();
 
@@ -6034,7 +6025,7 @@ public class ScriptingTest extends StructrTest {
 
 			final Group group = app.create(Group.class, "Group1");
 
-			Scripting.replaceVariables(new ActionContext(securityContext), group, "${{ $.log($.this.name); $.batch(function() { $.log('In batch()'); }); $.log($.this.name); }}");
+			Scripting.replaceVariables(new ActionContext(securityContext), group, "${{ $.log($.this.name); $.doInNewTransaction(function() { $.log('In doInNewTransaction()'); }); $.log($.this.name); }}");
 
 			tx.success();
 

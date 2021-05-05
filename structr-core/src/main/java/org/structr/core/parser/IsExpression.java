@@ -21,15 +21,15 @@ package org.structr.core.parser;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
-import org.structr.core.function.Functions;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 public class IsExpression extends Expression {
 
 	public static final String ERROR_MESSAGE_IS = "Usage: ${is(condition, trueValue)}. Example: ${is(equal(this.name, request.name), 'selected')}";
 
-	public IsExpression() {
-		super("is");
+	public IsExpression(final int row, final int column) {
+		super("is", row, column);
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public class IsExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
 		if (expressions.isEmpty()) {
 			return ERROR_MESSAGE_IS;
@@ -67,12 +67,12 @@ public class IsExpression extends Expression {
 
 		final Expression condition = expressions.get(0);
 
-		if (isTrue(condition.evaluate(ctx, entity))) {
+		if (isTrue(condition.evaluate(ctx, entity, hints))) {
 
 			if (expressions.size() > 1) {
 
 				final Expression trueExpression = expressions.get(1);
-				return trueExpression.evaluate(ctx, entity);
+				return trueExpression.evaluate(ctx, entity, hints);
 
 			} else {
 
@@ -91,7 +91,7 @@ public class IsExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 }

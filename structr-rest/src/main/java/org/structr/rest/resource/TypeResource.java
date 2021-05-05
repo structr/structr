@@ -290,7 +290,7 @@ public class TypeResource extends WrappingResource {
 						}
 					}
 
-					logger.info("Commiting PATCH transaction batch, {} objects processed.", overallCount);
+					logger.info("Committing PATCH transaction batch, {} objects processed.", overallCount);
 
 					tx.success();
 				}

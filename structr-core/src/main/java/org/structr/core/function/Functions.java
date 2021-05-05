@@ -57,6 +57,7 @@ import org.structr.core.parser.ValueExpression;
 import org.structr.core.script.Snippet;
 import org.structr.core.script.StructrScriptException;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 /**
@@ -146,7 +147,7 @@ public class Functions {
 					}
 					final String stringToken = String.valueOf(token.content);
 					tokens.add(stringToken);
-					next = new ConstantExpression(Double.valueOf(token.content));
+					next = new ConstantExpression(Double.valueOf(token.content), token.row, token.column);
 					current.add(next);
 					break;
 
@@ -154,14 +155,14 @@ public class Functions {
 					if (current == null) {
 						throw new StructrScriptException(422, "Invalid expression: mismatched opening bracket before " + token.content, token.row, token.column);
 					}
-					next = checkReservedWords(token.content, level, namespaceMap);
+					next = checkReservedWords(token.content, level, namespaceMap, token.row, token.column);
 					Expression previousExpression = current.getPrevious();
 					if (token.content.startsWith(".") && previousExpression != null && previousExpression instanceof FunctionExpression && next instanceof ValueExpression) {
 
 						final FunctionExpression previousFunctionExpression = (FunctionExpression) previousExpression;
 						final ValueExpression    valueExpression            = (ValueExpression) next;
 
-						current.replacePrevious(new FunctionValueExpression(previousFunctionExpression, valueExpression));
+						current.replacePrevious(new FunctionValueExpression(previousFunctionExpression, valueExpression, token.row, token.column));
 					} else {
 						current.add(next);
 					}
@@ -172,7 +173,7 @@ public class Functions {
 					if (((current == null || current instanceof RootExpression) && next == null) || current == next) {
 
 						// an additional bracket without a new function, this can only be an execution group.
-						next = new GroupExpression();
+						next = new GroupExpression(token.row, token.column);
 						current.add(next);
 					}
 
@@ -206,7 +207,7 @@ public class Functions {
 
 				case "[":
 					// bind directly to the previous expression
-					next = new ArrayExpression();
+					next = new ArrayExpression(token.row, token.column);
 					current.add(next);
 					current = next;
 					tokens.add("[");
@@ -239,7 +240,7 @@ public class Functions {
 					if (current == null) {
 						throw new StructrScriptException(422, "Invalid expression: mismatched opening bracket before " + token.content, token.row, token.column);
 					}
-					final ConstantExpression constantExpression = new ConstantExpression(token.content);
+					final ConstantExpression constantExpression = new ConstantExpression(token.content, token.row, token.column);
 					final String quoteChar                      = token.quote;
 					current.add(constantExpression);
 					constantExpression.setQuoteChar(quoteChar);
@@ -261,11 +262,11 @@ public class Functions {
 		return root;
 	}
 
-	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final Snippet snippet) throws FrameworkException, UnlicensedScriptException {
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final Snippet snippet, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
 		final Expression root = parse(actionContext, entity, snippet, new ParseResult());
 
-		return root.evaluate(actionContext, entity);
+		return root.evaluate(actionContext, entity, hints);
 	}
 
 	public static String cleanString(final Object input) {
@@ -275,7 +276,17 @@ public class Functions {
 			return "";
 		}
 
-		String normalized = Normalizer.normalize(input.toString(), Normalizer.Form.NFD)
+		String normalized = input.toString()
+			.replaceAll("ü", "ue")
+			.replaceAll("ö", "oe")
+			.replaceAll("ä", "ae")
+			.replaceAll("ß", "ss")
+			.replaceAll("Ü(?=[a-zäöüß ])", "Ue")
+			.replaceAll("Ö(?=[a-zäöüß ])", "Oe")
+			.replaceAll("Ä(?=[a-zäöüß ])", "Ae")
+			.replaceAll("Ü", "UE")
+			.replaceAll("Ö", "OE")
+			.replaceAll("Ä", "AE")
 			.replaceAll("\\<", "")
 			.replaceAll("\\>", "")
 			.replaceAll("\\.", "")
@@ -296,8 +307,10 @@ public class Functions {
 			.replaceAll("!", "")
 			.replaceAll(",", "")
 			.replaceAll("-", " ")
-			.replaceAll("_", " ")
+			.replaceAll("_", " ").replaceAll("_", " ")
 			.replaceAll("`", "-");
+
+		normalized = Normalizer.normalize(normalized, Normalizer.Form.NFD);
 
 		String result = normalized.replaceAll("-", " ");
 		result = StringUtils.normalizeSpace(result.toLowerCase());
@@ -308,55 +321,55 @@ public class Functions {
 	}
 
 	// ----- private methods -----
-	private static Expression checkReservedWords(final String word, final int level, final Map<Integer, String> namespace) throws FrameworkException {
+	private static Expression checkReservedWords(final String word, final int level, final Map<Integer, String> namespace, final int row, final int column) throws FrameworkException {
 
 		if (word == null) {
-			return new NullExpression();
+			return new NullExpression(row, column);
 		}
 
 		switch (word) {
 
 			case "cache":
-				return new CacheExpression();
+				return new CacheExpression(row, column);
 
 			case "true":
-				return new ConstantExpression(true);
+				return new ConstantExpression(true, row, column);
 
 			case "false":
-				return new ConstantExpression(false);
+				return new ConstantExpression(false, row, column);
 
 			case "if":
-				return new IfExpression();
+				return new IfExpression(row, column);
 
 			case "is":
-				return new IsExpression();
+				return new IsExpression(row, column);
 
 			case "each":
-				return new EachExpression();
+				return new EachExpression(row, column);
 
 			case "filter":
-				return new FilterExpression();
+				return new FilterExpression(row, column);
 
 			case "slice":
-				return new SliceExpression();
+				return new SliceExpression(row, column);
 
 			case "batch":
-				return new BatchExpression();
+				return new BatchExpression(row, column);
 
 			case "data":
-				return new ValueExpression("data");
+				return new ValueExpression("data", row, column);
 
 			case "any":
-				return new AnyExpression();
+				return new AnyExpression(row, column);
 
 			case "all":
-				return new AllExpression();
+				return new AllExpression(row, column);
 
 			case "none":
-				return new NoneExpression();
+				return new NoneExpression(row, column);
 
 			case "null":
-				return new ConstantExpression(null);
+				return new ConstantExpression(null, row, column);
 
 		}
 
@@ -370,11 +383,11 @@ public class Functions {
 				namespace.put(level, word);
 			}
 
-			return new FunctionExpression(word, function);
+			return new FunctionExpression(word, function, row, column);
 
 		} else {
 
-			return new ValueExpression(word);
+			return new ValueExpression(word, row, column);
 		}
 	}
 

@@ -270,7 +270,12 @@ class ReactiveSessionTransaction extends SessionTransaction {
 			final RxResult result             = tx.run(statement, map);
 			final Publisher<Record> publisher = result.records();
 			final Record record               = Mono.from(publisher).block();
-			final Object value                = record.get(0).asObject();
+			Object value                      = null;
+
+			if (record != null) {
+
+				value = record.get(0).asObject();
+			}
 
 			logSummary(Mono.from(result.consume()).block());
 
@@ -300,7 +305,12 @@ class ReactiveSessionTransaction extends SessionTransaction {
 			final RxResult result             = tx.run(statement, map);
 			final Publisher<Record> publisher = result.records();
 			final Record record               = Mono.from(publisher).block();
-			final Entity value                = record.get(0).asEntity();
+			Entity value                      = null;
+
+			if (record != null) {
+
+				value = record.get(0).asEntity();
+			}
 
 			logSummary(Mono.from(result.consume()).block());
 
@@ -330,7 +340,12 @@ class ReactiveSessionTransaction extends SessionTransaction {
 			final RxResult result             = tx.run(statement, map);
 			final Publisher<Record> publisher = result.records();
 			final Record record               = Mono.from(publisher).block();
-			final Node value                  = record.get(0).asNode();
+			Node value                        = null;
+
+			if (record != null) {
+
+				value = record.get(0).asNode();
+			}
 
 			logSummary(Mono.from(result.consume()).block());
 
@@ -360,7 +375,12 @@ class ReactiveSessionTransaction extends SessionTransaction {
 			final RxResult result             = tx.run(statement, map);
 			final Publisher<Record> publisher = result.records();
 			final Record record               = Mono.from(publisher).block();
-			final Relationship value          = record.get(0).asRelationship();
+			Relationship value                = null;
+
+			if (record != null) {
+
+				value = record.get(0).asRelationship();
+			}
 
 			logSummary(Mono.from(result.consume()).block());
 

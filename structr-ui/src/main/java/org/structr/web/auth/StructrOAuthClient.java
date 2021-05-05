@@ -97,7 +97,6 @@ public abstract class StructrOAuthClient {
 		this.redirectUri           = redirectUri;
 
 		this.tokenResponseClass    = tokenResponseClass;
-
 	}
 
 	@Override
@@ -107,10 +106,9 @@ public abstract class StructrOAuthClient {
 		+ "\nauthorizationLocation: " + authorizationLocation
 		+ "\ntokenLocation: " + tokenLocation
 		+ "\nclientId: " + clientId
-		+ "\nclientSecret: " + clientSecret
+		+ "\nclientSecret: ****** HIDDEN ******"
 		+ "\nredirectUri: " + redirectUri
 		+ "\nstate: " + state;
-
 	}
 
 	/**
@@ -123,11 +121,9 @@ public abstract class StructrOAuthClient {
 	 */
 	public String getEndUserAuthorizationRequestUri(final HttpServletRequest request) {
 
-		OAuthClientRequest oauthClientRequest;
-
 		try {
 
-			oauthClientRequest = OAuthClientRequest
+			final OAuthClientRequest oauthClientRequest = OAuthClientRequest
 				.authorizationLocation(authorizationLocation)
 				.setClientId(clientId)
 				.setRedirectURI(getAbsoluteUrl(request, redirectUri))
@@ -136,7 +132,9 @@ public abstract class StructrOAuthClient {
 				.setState(getState())
 				.buildQueryMessage();
 
-			logger.info("Authorization request location URI: {}", oauthClientRequest.getLocationUri());
+			if (isVerboseLoggingEnabled()) {
+				logger.info("Authorization request location URI: {}", oauthClientRequest.getLocationUri());
+			}
 
 			return oauthClientRequest.getLocationUri();
 
@@ -145,7 +143,6 @@ public abstract class StructrOAuthClient {
 		}
 
 		return null;
-
 	}
 
 	/**
@@ -156,41 +153,41 @@ public abstract class StructrOAuthClient {
 	 */
 	public static StructrOAuthClient getServer(final String name) {
 
-		String configuredOauthServers  = Settings.OAuthServers.getValue();
-		String[] authServers = configuredOauthServers.split(" ");
+		final String configuredOauthServers = Settings.OAuthServers.getValue();
+		final String[] authServers          = configuredOauthServers.split(" ");
 
 		for (String authServer : authServers) {
 
 			if (authServer.equals(name)) {
 
-				String authLocation  = Settings.getOrCreateStringSetting("oauth", authServer, "authorization_location").getValue("");
-				String tokenLocation = Settings.getOrCreateStringSetting("oauth", authServer, "token_location").getValue("");
-				String clientId      = Settings.getOrCreateStringSetting("oauth", authServer, "client_id").getValue("");
-				String clientSecret  = Settings.getOrCreateStringSetting("oauth", authServer, "client_secret").getValue("");
-				String redirectUri   = Settings.getOrCreateStringSetting("oauth", authServer, "redirect_uri").getValue("");
+				final String authLocation  = Settings.getOrCreateStringSetting("oauth", authServer, "authorization_location").getValue("");
+				final String tokenLocation = Settings.getOrCreateStringSetting("oauth", authServer, "token_location").getValue("");
+				final String clientId      = Settings.getOrCreateStringSetting("oauth", authServer, "client_id").getValue("");
+				final String clientSecret  = Settings.getOrCreateStringSetting("oauth", authServer, "client_secret").getValue("");
+				final String redirectUri   = Settings.getOrCreateStringSetting("oauth", authServer, "redirect_uri").getValue("");
 
 				// Minumum required fields
 				if (clientId != null && clientSecret != null && redirectUri != null) {
 
-					Class serverClass		= getServerClassForName(name);
-					Class tokenResponseClass	= getTokenResponseClassForName(name);
+					final Class serverClass		   = getServerClassForName(name);
+					final Class tokenResponseClass = getTokenResponseClassForName(name);
 
 					if (serverClass != null) {
 
-						StructrOAuthClient oauthServer;
 						try {
 
-							oauthServer = (StructrOAuthClient) serverClass.newInstance();
+							final StructrOAuthClient oauthServer = (StructrOAuthClient) serverClass.newInstance();
 							oauthServer.init(authLocation, tokenLocation, clientId, clientSecret, redirectUri, tokenResponseClass);
 
-							logger.info("Using OAuth server {}", oauthServer);
+							if (isVerboseLoggingEnabled()) {
+								logger.info("Using OAuth server {}", oauthServer);
+							}
 
 							return oauthServer;
 
 						} catch (Throwable t) {
 
 							logger.error("Could not instantiate auth server", t);
-
 						}
 
 					} else {
@@ -262,31 +259,31 @@ public abstract class StructrOAuthClient {
 
 	private static String getCode(final HttpServletRequest request) {
 
-		OAuthAuthzResponse oar;
-
 		try {
 
-			logger.info("Trying to get authorization code from request {}", request);
+			if (isVerboseLoggingEnabled()) {
+				logger.info("Trying to get authorization code from request {}", request);
+			}
 
-			oar = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
+			final OAuthAuthzResponse oar = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
+			final String code            = oar.getCode();
 
-			String code = oar.getCode();
+			if (isVerboseLoggingEnabled()) {
+				logger.info("Got code {} from authorization request", code);
+			}
 
-			logger.info("Got code {} from authorization request", code);
-
-			return oar.getCode();
+			return code;
 
 		} catch (OAuthProblemException e) {
 
 			logger.error("Could not read authorization request: {}, {}", new Object[] { e.getError(), e.getDescription() });
-
 		}
 
 		return null;
 	}
 
 	public void initializeUser(final Principal user) throws FrameworkException {
-		// override me
+		// overridden in specific implementations
 	}
 
 	public PropertyKey getCredentialKey() {
@@ -314,12 +311,13 @@ public abstract class StructrOAuthClient {
 			if (userResponse == null) {
 
 				return null;
-
 			}
 
 			final String body = userResponse.getBody();
 
-			logger.info("User response body: {}", body);
+			if (isVerboseLoggingEnabled()) {
+				logger.info("User response body: {}", body);
+			}
 
 			// make full user info available to implementing classes
 			this.userInfo = JSONUtils.parseJSON(body);
@@ -333,24 +331,22 @@ public abstract class StructrOAuthClient {
 		}
 
 		return null;
-
 	}
 
 	public String getAccessToken(final HttpServletRequest request) {
 
-		OAuthAccessTokenResponse resp = getAccessTokenResponse(request);
+		final OAuthAccessTokenResponse resp = getAccessTokenResponse(request);
 
 		if (resp == null) {
 			return null;
 		}
 
 		return resp.getAccessToken();
-
 	}
 
 	public Long getExpiresIn(final HttpServletRequest request) {
 
-		OAuthAccessTokenResponse resp = getAccessTokenResponse(request);
+		final OAuthAccessTokenResponse resp = getAccessTokenResponse(request);
 
 		if (resp == null) {
 			return null;
@@ -387,13 +383,17 @@ public abstract class StructrOAuthClient {
 				.setCode(getCode(request))
 			.buildBodyMessage();
 
-			logger.info("Request body: {}", clientReq.getBody());
+			if (isVerboseLoggingEnabled()) {
+				logger.info("Request body: {}", clientReq.getBody());
+			}
 
-			OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
+			final OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
 
 			tokenResponse = oAuthClient.accessToken(clientReq, tokenResponseClass);
 
-			logger.info("Access token response: {}", tokenResponse.getBody());
+			if (isVerboseLoggingEnabled()) {
+				logger.info("Access token response: {}", tokenResponse.getBody());
+			}
 
 			return tokenResponse;
 
@@ -449,12 +449,17 @@ public abstract class StructrOAuthClient {
 
 				if (clientReq != null) {
 
-					logger.info("User info request: {}", clientReq.getLocationUri());
+					if (isVerboseLoggingEnabled()) {
+						logger.info("User info request: {}", clientReq.getLocationUri());
+					}
 
 					final OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
 
 					userResponse = oAuthClient.resource(clientReq, "GET", OAuthResourceResponse.class);
-					logger.info("User info response: {}", userResponse);
+
+					if (isVerboseLoggingEnabled()) {
+						logger.info("User info response: {}", userResponse);
+					}
 
 				} else {
 
@@ -478,5 +483,9 @@ public abstract class StructrOAuthClient {
 
 	public ResponseFormat getResponseFormat() {
 		return ResponseFormat.json;
+	}
+
+	protected static boolean isVerboseLoggingEnabled() {
+		return (Boolean.TRUE.equals(Settings.OAuthVerboseLogging.getValue()));
 	}
 }

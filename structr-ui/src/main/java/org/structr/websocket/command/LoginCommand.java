@@ -72,11 +72,11 @@ public class LoginCommand extends AbstractCommand {
 
 		try (final Tx tx = app.tx(true, true, true)) {
 
-			String username       = webSocketData.getNodeDataStringValue("username");
+			String username             = webSocketData.getNodeDataStringValue("username");
 			final String password       = webSocketData.getNodeDataStringValue("password");
 			final String twoFactorToken = webSocketData.getNodeDataStringValue("twoFactorToken");
 			final String twoFactorCode  = webSocketData.getNodeDataStringValue("twoFactorCode");
-			Principal user = null;
+			Principal user              = null;
 
 			try {
 
@@ -105,6 +105,8 @@ public class LoginCommand extends AbstractCommand {
 					final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(getWebSocket().getRequest()));
 
 					if (twoFactorAuthenticationSuccessOrNotNecessary) {
+
+						SessionHelper.clearInvalidSessions(user);
 
 						String sessionId = webSocketData.getSessionId();
 						if (sessionId == null) {

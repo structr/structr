@@ -655,12 +655,57 @@ img.disabled {
 /*
  * Pages: Right slideout activators
  */
+#inheritanceTab {
+	right: -72px;
+	width: 100px;
+	top: 60px;
+}
+
+#activeElementsTab {
+	right: -81px;
+	width: 118px;
+	top: 194px;
+}
+
+#dataBindingTab {
+	right: -71px;
+	width: 98px;
+	top: 327px;
+}
+
+#localizationsTab {
+	right: -71px;
+	width: 98px;
+	top: 450px;
+}
+
+#widgetsTab {
+	left: -55px;
+	width: 68px;
+	top: 40px;
+}
+
+#paletteTab {
+	left: -73px;
+	width: 104px;
+	top: 150px;
+}
+
+#componentsTab {
+    left: -93px;
+    width: 144px;
+    top: 298px;
+}
+
 
 #widgetsTab,
 #paletteTab,
 #componentsTab,
 #elementsTab {
 	right: 0;
+	left: -80px;
+	width: 118px;
+	top: 454px;
 }
 
 /*

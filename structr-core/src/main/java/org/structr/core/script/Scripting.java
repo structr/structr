@@ -35,6 +35,7 @@ import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.event.RuntimeUsageLog;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
@@ -45,6 +46,7 @@ import org.structr.core.property.DateProperty;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyParser;
 
 public class Scripting {
@@ -67,72 +69,81 @@ public class Scripting {
 			return null;
 		}
 
-		// don't parse empty values
-		if (StringUtils.isEmpty(rawValue.toString())) {
+		try {
 
-			return "";
-		}
+			RuntimeUsageLog.enter(entity, methodName);
 
-		boolean valueWasNull = true;
-		String value;
+			// don't parse empty values
+			if (StringUtils.isEmpty(rawValue.toString())) {
 
-		if (rawValue instanceof String) {
+				return "";
+			}
 
-			value = (String) rawValue;
+			boolean valueWasNull = true;
+			String value;
 
-			// this is a very important check here, the ActionContext can be set to "raw" mode
-			if (!actionContext.returnRawValue()) {
+			if (rawValue instanceof String) {
 
-				final List<Tuple> replacements = new LinkedList<>();
+				value = (String) rawValue;
 
-				for (final String expression : extractScripts(value)) {
+				// this is a very important check here, the ActionContext can be set to "raw" mode
+				if (!actionContext.returnRawValue()) {
 
-					try {
+					final List<Tuple> replacements = new LinkedList<>();
 
-						final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0, entity != null ? entity.getUuid() : null);
-						String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
+					for (final String expression : extractScripts(value)) {
 
-						// non-null value?
-						valueWasNull &= extractedValue == null;
+						try {
 
-						if (partValue != null) {
+							final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0, entity != null ? entity.getUuid() : null);
+							String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
 
-							replacements.add(new Tuple(expression, partValue));
+							// non-null value?
+							valueWasNull &= extractedValue == null;
 
-						} else {
+							if (partValue != null) {
 
-							if (!value.equals(expression)) {
-								replacements.add(new Tuple(expression, ""));
+								replacements.add(new Tuple(expression, partValue));
+
+							} else {
+
+								if (!value.equals(expression)) {
+									replacements.add(new Tuple(expression, ""));
+								}
 							}
-						}
 
-					} catch (UnlicensedScriptException ex) {
-						ex.log(logger);
+						} catch (UnlicensedScriptException ex) {
+							ex.log(logger);
+						}
+					}
+
+					// apply replacements
+					for (final Tuple tuple : replacements) {
+
+						// only replace a single occurrence at a time!
+						value = StringUtils.replaceOnce(value, tuple.key, tuple.value);
 					}
 				}
 
-				// apply replacements
-				for (final Tuple tuple : replacements) {
+			} else if (rawValue instanceof Boolean) {
 
-					// only replace a single occurrence at a time!
-					value = StringUtils.replaceOnce(value, tuple.key, tuple.value);
-				}
+				value = Boolean.toString((Boolean) rawValue);
+
+			} else {
+
+				value = rawValue.toString();
 			}
 
-		} else if (rawValue instanceof Boolean) {
+			if (returnNullValueForEmptyResult && valueWasNull && StringUtils.isBlank(value)) {
+				return null;
+			}
 
-			value = Boolean.toString((Boolean) rawValue);
+			return value;
 
-		} else {
+		} finally {
 
-			value = rawValue.toString();
+			RuntimeUsageLog.leave(entity);
 		}
-
-		if (returnNullValueForEmptyResult && valueWasNull && StringUtils.isBlank(value)) {
-			return null;
-		}
-
-		return value;
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName) throws FrameworkException, UnlicensedScriptException {
@@ -154,81 +165,98 @@ public class Scripting {
 			return null;
 		}
 
-		boolean isScriptEngine = false;
-		String engine          = "";
+		try {
 
-		if (!isJavascript) {
+			RuntimeUsageLog.enter(entity, methodName);
 
-			final Matcher matcher = ScriptEngineExpression.matcher(expression);
-			if (matcher.matches()) {
+			boolean isScriptEngine = false;
+			String engine          = "";
 
-				engine = matcher.group(1);
-				source = matcher.group(2);
+			if (!isJavascript) {
 
-				logger.debug("Scripting engine {} requested.", engine);
+				final Matcher matcher = ScriptEngineExpression.matcher(expression);
+				if (matcher.matches()) {
 
-				isJavascript   = StringUtils.isBlank(engine) || "JavaScript".equals(engine);
-				isScriptEngine = !isJavascript && StringUtils.isNotBlank(engine);
-			}
-		}
+					engine = matcher.group(1);
+					source = matcher.group(2);
 
-		actionContext.setJavaScriptContext(isJavascript);
+					logger.debug("Scripting engine {} requested.", engine);
 
-		// temporarily disable notifications for scripted actions
-
-		boolean enableTransactionNotifactions = false;
-
-		final SecurityContext securityContext = actionContext.getSecurityContext();
-		if (securityContext != null) {
-
-			enableTransactionNotifactions = securityContext.doTransactionNotifications();
-
-			securityContext.setDoTransactionNotifications(false);
-		}
-
-		final Snippet snippet  = new Snippet(methodName, source);
-		snippet.setCodeSource(codeSource);
-		snippet.setStartRow(startRow);
-
-		if (isScriptEngine) {
-
-			return evaluateScript(actionContext, entity, engine, snippet);
-
-		} else if (isJavascript) {
-
-			final Object result = evaluateJavascript(actionContext, entity, snippet);
-
-			if (enableTransactionNotifactions && securityContext != null) {
-				securityContext.setDoTransactionNotifications(true);
-			}
-
-			return result;
-
-		} else {
-
-			try {
-
-				Object extractedValue = Functions.evaluate(actionContext, entity, snippet);
-				final String value    = extractedValue != null ? extractedValue.toString() : "";
-				final String output   = actionContext.getOutput();
-
-				if (StringUtils.isEmpty(value) && output != null && !output.isEmpty()) {
-					extractedValue = output;
+					isJavascript   = StringUtils.isBlank(engine) || "JavaScript".equals(engine);
+					isScriptEngine = !isJavascript && StringUtils.isNotBlank(engine);
 				}
+			}
 
-				if (enableTransactionNotifactions && securityContext != null) {
+			actionContext.setJavaScriptContext(isJavascript);
+
+			// temporarily disable notifications for scripted actions
+
+			boolean enableTransactionNotifications = false;
+
+			final SecurityContext securityContext = actionContext.getSecurityContext();
+			if (securityContext != null) {
+
+				enableTransactionNotifications = securityContext.doTransactionNotifications();
+
+				securityContext.setDoTransactionNotifications(false);
+			}
+
+			final Snippet snippet  = new Snippet(methodName, source);
+			snippet.setCodeSource(codeSource);
+			snippet.setStartRow(startRow);
+
+			if (isScriptEngine) {
+
+				return evaluateScript(actionContext, entity, engine, snippet);
+
+			} else if (isJavascript) {
+
+				final Object result = evaluateJavascript(actionContext, entity, snippet);
+
+				if (enableTransactionNotifications && securityContext != null) {
 					securityContext.setDoTransactionNotifications(true);
 				}
 
-				return extractedValue;
+				return result;
 
-			} catch (StructrScriptException t) {
+			} else {
 
-				// StructrScript evaluation should not throw exceptions
-				reportError(actionContext.getSecurityContext(), t.getMessage(), t.getRow(), t.getColumn(), snippet);
+				try {
+
+					final EvaluationHints hints = new EvaluationHints();
+					Object extractedValue       = Functions.evaluate(actionContext, entity, snippet, hints);
+					final String value          = extractedValue != null ? extractedValue.toString() : "";
+					final String output         = actionContext.getOutput();
+
+					if (StringUtils.isEmpty(value) && output != null && !output.isEmpty()) {
+						extractedValue = output;
+					}
+
+					if (enableTransactionNotifications && securityContext != null) {
+						securityContext.setDoTransactionNotifications(true);
+					}
+
+					hints.checkForErrorsAndThrowException((message, row, column) -> {
+						// report usage errors (missing keys etc.)
+						reportError(actionContext.getSecurityContext(), message, row, column, snippet, false);
+					});
+
+					return extractedValue;
+
+				} catch (StructrScriptException t) {
+
+					// This block reports syntax errors in StructrScript expressions
+					// StructrScript evaluation should not throw exceptions
+
+					reportError(actionContext.getSecurityContext(), t.getMessage(), t.getRow(), t.getColumn(), snippet, false);
+				}
+
+				return null;
 			}
 
-			return null;
+		} finally {
+
+			RuntimeUsageLog.leave(entity);
 		}
 	}
 
@@ -637,11 +665,6 @@ public class Scripting {
 		reportError(securityContext, message, lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet, shouldThrow);
 	}
 
-	private static void reportError(final SecurityContext securityContext, final String message, final int lineNumber, final int columnNumber, final Snippet snippet) throws FrameworkException {
-
-		reportError(securityContext, message, lineNumber, columnNumber, snippet, true);
-	}
-
 	private static void reportError(final SecurityContext securityContext, final String message, final int lineNumber, final int columnNumber, final Snippet snippet, final boolean shouldThrow) throws FrameworkException {
 
 		reportError(securityContext, message, lineNumber, columnNumber, lineNumber, columnNumber, snippet, shouldThrow);
@@ -711,7 +734,13 @@ public class Scripting {
 		exceptionPrefix.append(snippet.getName()).append(":").append(lineNumber).append(":").append(columnNumber);
 
 		if (shouldThrow) {
+
 			throw new FrameworkException(422, exceptionPrefix.toString() + "\n" + message);
+
+		} else {
+
+			// log error but don't throw exception
+			logger.warn(exceptionPrefix.toString() + ": " + message);
 		}
 	}
 

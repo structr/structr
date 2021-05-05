@@ -80,7 +80,9 @@ public class TwitterAuthClient extends StructrOAuthClient {
 		try {
 			// The following does not work, leads to the following error from Twitter:
 			//String callbackUrl = getAbsoluteUrl(request, redirectUri);
-			//logger.info("Callback URL: {}", callbackUrl);
+			//if (isVerboseLogging()) {
+			//	logger.info("Callback URL: {}", callbackUrl);
+			//}
 			//requestToken = twitter.getOAuthRequestToken(callbackUrl, "read");
 			/*
 			/* 401:Authentication credentials (https://dev.twitter.com/pages/auth) were missing or incorrect. Ensure that you have set valid consumer key/secret, access token/secret, and the system clock is in sync.
@@ -100,8 +102,11 @@ public class TwitterAuthClient extends StructrOAuthClient {
 			request.getSession().setAttribute("requestToken", requestToken);
 
 			// Workaround for requestToken.getAuthorizationURL() ignoring configuration built with ConfigurationBuilder
-			String authorizationUrl = twitter.getConfiguration().getOAuthAuthorizationURL().concat("?oauth_token=").concat(requestToken.getToken());
-			logger.info("Authorization request location URI: {}", authorizationUrl);
+			final String authorizationUrl = twitter.getConfiguration().getOAuthAuthorizationURL().concat("?oauth_token=").concat(requestToken.getToken());
+
+			if (isVerboseLoggingEnabled()) {
+				logger.info("Authorization request location URI: {}", authorizationUrl);
+			}
 
 			return authorizationUrl;
 

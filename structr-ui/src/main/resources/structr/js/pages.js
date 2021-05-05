@@ -385,7 +385,7 @@ var _Pages = {
 		});
 
 		// page template widgets present? Display special create page dialog
-		Command.query('Widget', 10, 1, 'name', 'asc', { isPageTemplate: true }, function(result) {
+		_Widgets.fetchAllPageTemplateWidgets(function(result) {
 
 			if (result && result.length) {
 
@@ -402,6 +402,7 @@ var _Pages = {
 					var container = $('#template-tiles');
 
 					result.forEach(function(widget) {
+
 						var id = 'create-from-' + widget.id;
 						container.append('<div class="app-tile"><h4>' + widget.name + '</h4><p>' + widget.description + '</p><button class="action" id="' + id + '">Create Page</button></div>');
 						$('#' + id).on('click', function() {
@@ -412,7 +413,6 @@ var _Pages = {
 						});
 
 					});
-
 				});
 
 			} else {
@@ -420,7 +420,7 @@ var _Pages = {
 				// remove wizard button if no page templates exist (can be changed later when the dialog includes some hints etc.)
 				$('#add_template').remove();
 			}
-		}, true);
+		});
 
 		Structr.adaptUiToAvailableFeatures();
 

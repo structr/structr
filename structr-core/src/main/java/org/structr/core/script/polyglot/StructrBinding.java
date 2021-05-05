@@ -35,6 +35,7 @@ import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
 import org.structr.core.script.polyglot.function.*;
 import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 public class StructrBinding implements ProxyObject {
@@ -61,7 +62,9 @@ public class StructrBinding implements ProxyObject {
 			case "predicate":
 				return new PredicateBinding(actionContext, entity);
 			case "batch":
-				return new BatchFunction(actionContext, entity);
+				logger.warn("The batch() function has been renamed to doInNewTransaction() to better communicate the sematics. Using batch() is deprecated as it will be removed in future versions.");
+			case "doInNewTransaction":
+				return new DoInNewTransactionFunction(actionContext, entity);
 			case "includeJs":
 				return new IncludeJSFunction(actionContext);
 			case "doPrivileged":
@@ -77,6 +80,8 @@ public class StructrBinding implements ProxyObject {
 				return new PolyglotProxyMap(actionContext, actionContext.getRequestStore());
 			case "applicationStore":
 				return new PolyglotProxyMap(actionContext, Services.getInstance().getApplicationStore());
+			case "methodParameters":
+				return new PolyglotProxyMap(actionContext, actionContext.getContextStore().getTemporaryParameters());
 			default:
 				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
 				if (func != null) {
@@ -92,10 +97,11 @@ public class StructrBinding implements ProxyObject {
 					return wrap(actionContext, actionContext.getRequestStore().get(name));
 				}
 
-				Object structrScriptResult = null;
+				final EvaluationHints hints = new EvaluationHints();
+				Object structrScriptResult  = null;
 				try {
 
-					structrScriptResult = PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0));
+					structrScriptResult = PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0, hints, 1, 1));
 				} catch (FrameworkException ex) {
 
 					logger.error("Unexpected exception while trying to apply get function shortcut on script binding object.", ex);
@@ -124,12 +130,14 @@ public class StructrBinding implements ProxyObject {
 		keys.add("me");
 		keys.add("predicate");
 		keys.add("batch");
+		keys.add("doInNewTransaction");
 		keys.add("includeJs");
 		keys.add("doPrivileged");
 		keys.add("request");
 		keys.add("session");
 		keys.add("cache");
 		keys.add("applicationStore");
+		keys.add("methodParameters");
 		return keys;
 	}
 
@@ -158,7 +166,7 @@ public class StructrBinding implements ProxyObject {
 						return new HttpServletRequestWrapper(actionContext, actionContext.getSecurityContext().getRequest());
 					}
 
-					return PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, args[0].toString(), null, null, 0));
+					return PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, args[0].toString(), null, null, 0, new EvaluationHints(), 1, 1));
 				} else if (args.length > 1) {
 
 					final Function<Object, Object> function = Functions.get("get");

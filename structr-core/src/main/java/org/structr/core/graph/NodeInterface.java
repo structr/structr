@@ -102,4 +102,10 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	List<Security> getSecurityRelationships();
 
 	public Map<String, Object> getTemporaryStorage();
+
+	default public void visitForUsage(final Map<String, Object> data) {
+
+		data.put("id",   getUuid());
+		data.put("type", getClass().getSimpleName());
+	}
 }

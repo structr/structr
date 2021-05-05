@@ -417,6 +417,13 @@ public class Services implements StructrServices {
 			permissionsForOwnerlessNodes.add(Permission.read);
 		}
 
+		logger.info("Started Structr {}", VersionHelper.getFullVersionInfo());
+		logger.info("---------------- Initialization complete ----------------");
+
+		setOverridingSchemaTypesAllowed(false);
+
+		initializationDone = true;
+
 		// only run initialization callbacks if Structr was started with
 		// a configuration file, i.e. when this is NOT this first start.
 		try {
@@ -426,7 +433,6 @@ public class Services implements StructrServices {
 				@Override
 				public void run() {
 
-					// wait a second
 					try { Thread.sleep(100); } catch (Throwable ignore) {}
 
 					// call initialization callbacks from a different thread
@@ -440,13 +446,6 @@ public class Services implements StructrServices {
 		} catch (Throwable t) {
 			logger.warn("Exception while executing post-initialization tasks", t);
 		}
-
-		logger.info("Started Structr {}", VersionHelper.getFullVersionInfo());
-		logger.info("---------------- Initialization complete ----------------");
-
-		setOverridingSchemaTypesAllowed(false);
-
-		initializationDone = true;
 
 		if (licenseManager != null && !Settings.DisableSendSystemInfo.getValue(false)) {
 			new SystemInfoSender().start();

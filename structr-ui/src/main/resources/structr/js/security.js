@@ -465,7 +465,27 @@ var _ResourceAccessGrants = {
 				}
 			}).join(' AND ');
 		}
-		Command.cypher('MATCH (n:ResourceAccess) ' + filterString + ' RETURN DISTINCT n ORDER BY n.' + sortKey[type] + ' ' + sortOrder[type], undefined, callback, pageSize, page);
+
+		let fetchAllGranteesCallback = (result, count) => {
+
+			let fetchPromises = [];
+
+			for (let r of result) {
+
+				fetchPromises.push(new Promise((resolve, reject) => {
+					Command.get(r.id, 'grantees', (grant) => {
+						r.grantees = grant.grantees;
+						resolve();
+					})
+				}));
+			}
+
+			Promise.all(fetchPromises).then(() => {
+				callback(result, count);
+			});
+		}
+
+		Command.cypher('MATCH (n:ResourceAccess) ' + filterString + ' RETURN DISTINCT n ORDER BY n.' + sortKey[type] + ' ' + sortOrder[type], undefined, fetchAllGranteesCallback, pageSize, page);
 	},
 	addResourceGrant: function(e) {
 		e.stopPropagation();
