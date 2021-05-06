@@ -3888,7 +3888,7 @@ input.tree-search-input:focus {
 	height: 100%;
 }
 #code-methods-container #methods-container #methods-content {
-	height: calc(100% - 58px);
+	height: calc(100% - 10px);
 }
 #code-methods-container #methods-container #methods-content .method-tab-content,
 #code-methods-container #methods-container #methods-content .method-tab-content .cm-schema-methods {
@@ -3924,10 +3924,6 @@ input.tree-search-input:focus {
 #dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods #methods-container {
 	height: 100%;
     margin-bottom: 0;
-}
-
-#dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods #methods-container #methods-content {
-	height: calc(100% - 72px);
 }
 
 #dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods #methods-container #methods-content .method-tab-content,

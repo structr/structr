@@ -206,36 +206,36 @@ public class OpenAPIEndpointTest extends StructrRestTestBase {
 			customer.addTags("test", "customer");
 
 			// add lifecycle methods (should NOT appear in the OpenAPI output!)
-			customer.addMethod("onCreate",              "log('Create')",       "").setIncludeInOpenAPI(true).addTags("test", "customer");
-			customer.addMethod("afterCreate",           "log('After Create')", "").setIncludeInOpenAPI(true).addTags("test", "customer");
-			customer.addMethod("onSave",                "log('Save')",         "").setIncludeInOpenAPI(true).addTags("test", "customer");
-			customer.addMethod("onDelete",              "log('Delete')",       "").setIncludeInOpenAPI(true).addTags("test", "customer");
+			customer.addMethod("onCreate",              "log('Create')"      ).setIncludeInOpenAPI(true).addTags("test", "customer");
+			customer.addMethod("afterCreate",           "log('After Create')").setIncludeInOpenAPI(true).addTags("test", "customer");
+			customer.addMethod("onSave",                "log('Save')"        ).setIncludeInOpenAPI(true).addTags("test", "customer");
+			customer.addMethod("onDelete",              "log('Delete')"      ).setIncludeInOpenAPI(true).addTags("test", "customer");
 
 			// simple method
-			customer.addMethod("doTest",                "log('Test')",         "").setIncludeInOpenAPI(true).addTags("test", "customer");
+			customer.addMethod("doTest",                "log('Test')"        ).setIncludeInOpenAPI(true).addTags("test", "customer");
 
 			// method with parameters
-			final JsonMethod doTestParams = customer.addMethod("doTestParams", "log('Test')", "").setIncludeInOpenAPI(true).addTags("test", "customer");
+			final JsonMethod doTestParams = customer.addMethod("doTestParams", "log('Test')").setIncludeInOpenAPI(true).addTags("test", "customer");
 			doTestParams.addParameter("id", "string").setDescription("The ID of the test object.");
 			doTestParams.addParameter("index", "integer").setDescription("The index");
 
 			// method with parameter and return type
-			customer.addMethod("doTestParamsReturn", "log('Test')", "").setIncludeInOpenAPI(true).addTags("test", "customer")
+			customer.addMethod("doTestParamsReturn", "log('Test')").setIncludeInOpenAPI(true).addTags("test", "customer")
 				.setReturnType(returnTypeJson)
 				.addParameter("id", "string").setDescription("The ID of the test object.");
 
 			// static method
-			customer.addMethod("doStatic", "log('Static')", "").setIncludeInOpenAPI(true).addTags("test", "customer")
+			customer.addMethod("doStatic", "log('Static')").setIncludeInOpenAPI(true).addTags("test", "customer")
 				.setIsStatic(true);
 
 			// static method with parameters
-			final JsonMethod doStaticParams = customer.addMethod("doStaticParams", "log('Static')", "").setIncludeInOpenAPI(true).addTags("test", "customer");
+			final JsonMethod doStaticParams = customer.addMethod("doStaticParams", "log('Static')").setIncludeInOpenAPI(true).addTags("test", "customer");
 			doStaticParams.setIsStatic(true);
 			doStaticParams.addParameter("id", "string").setDescription("The ID of the test object.");
 			doStaticParams.addParameter("index", "integer").setDescription("The index");
 
 			// static method with parameter and return type
-			customer.addMethod("doStaticParamsReturn",  "log('Static')",       "").setIncludeInOpenAPI(true).addTags("test", "customer")
+			customer.addMethod("doStaticParamsReturn",  "log('Static')").setIncludeInOpenAPI(true).addTags("test", "customer")
 				.setIsStatic(true)
 				.setReturnType(returnTypeJson)
 				.addParameter("id", "string").setDescription("The ID of the test object.");

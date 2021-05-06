@@ -35,9 +35,6 @@ public interface JsonMethod extends Comparable<JsonMethod> {
 	String getSource();
 	JsonMethod setSource(final String source);
 
-	String getComment();
-	JsonMethod setComment(final String comment);
-
 	String getSummary();
 	JsonMethod setSummary(final String summary);
 

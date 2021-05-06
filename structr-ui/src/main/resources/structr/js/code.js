@@ -1376,7 +1376,6 @@ var _Code = {
 
 				switch (identifier.memberId) {
 
-					case 'custom':
 					case 'searchresults':
 					case 'undefined':
 					case 'null':
@@ -1478,6 +1477,11 @@ var _Code = {
 
 				case 'SchemaGroup':
 					_Code.displaySchemaGroupContent(data, identifier);
+					break;
+
+				case 'SchemaRelationshipNode':
+					console.log(data, identifier);
+//					_Code.displaySchemaGroupContent(data, identifier);
 					break;
 			}
 
@@ -1910,7 +1914,7 @@ var _Code = {
 		var identifier = _Code.splitIdentifier(data);
 
 		// ID of schema method can either be in typeId (for global schema methods) or in memberId (for type methods)
-		Command.get(identifier.memberId || identifier.typeId, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,isStatic,schemaNode,source,comment,returnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', function(result) {
+		Command.get(identifier.memberId || identifier.typeId, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,isStatic,schemaNode,source,returnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', function(result) {
 
 			_Code.updateRecentlyUsed(result, identifier.source, data.updateLocationStack);
 
@@ -1935,8 +1939,6 @@ var _Code = {
 				let sourceEditor = _Code.editPropertyContent(result, 'source', $('#tabView-source', codeContents), sourceEditorConfig);
 				_Code.setCodeMirorUpdateMode(result, sourceEditor);
 				_Code.setupAutocompletion(sourceEditor, result.id, true);
-
-				_Code.editPropertyContent(result, 'comment', $('#tabView-comment', codeContents));
 
 				if (cursorInfo && cursorInfo.line && cursorInfo.ch) {
 					sourceEditor.setCursor(cursorInfo);
@@ -3131,7 +3133,6 @@ var _Code = {
 	},
 	runGlobalSchemaMethod: function(schemaMethod) {
 
-		let cleanedComment = (schemaMethod.comment && schemaMethod.comment.trim() !== '') ? schemaMethod.comment.replaceAll("\n", "<br>") : '';
 		Structr.dialog('Run global schema method ' + schemaMethod.name, function() {}, function() {
 			$('#run-method').remove();
 			$('#clear-log').remove();
@@ -3146,10 +3147,6 @@ var _Code = {
 		var addParamBtn = $('<i title="Add parameter" class="button ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
 		paramsBox.append(addParamBtn);
 		dialog.append(paramsOuterBox);
-
-		if (cleanedComment.trim() !== '') {
-			dialog.append('<div id="global-method-comment"><h3 class="heading-narrow">Comment</h3>' + cleanedComment + '</div>');
-		}
 
 		Structr.appendInfoTextToElement({
 			element: $('#params h3'),

@@ -27,10 +27,11 @@ import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasSize;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
@@ -49,15 +50,14 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
-import org.structr.web.auth.UiAuthenticator;
 import org.structr.test.web.basic.FrontendTest;
 import org.structr.test.web.basic.ResourceAccessTest;
 import static org.structr.test.web.basic.ResourceAccessTest.createResourceAccess;
+import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.User;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 public class AdvancedSchemaTest extends FrontendTest {
 
@@ -1189,7 +1189,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
-			schema.getType("User").addMethod("onCreate", "log('test')", "test");
+			schema.getType("User").addMethod("onCreate", "log('test')");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -1207,7 +1207,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
-			schema.getType("User").addMethod("simpleTest", "log('test')", "test");
+			schema.getType("User").addMethod("simpleTest", "log('test')");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 

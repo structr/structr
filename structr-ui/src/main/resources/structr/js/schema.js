@@ -2499,11 +2499,9 @@ var _Schema = {
 								name: method.name,
 								isStatic: method.isStatic,
 								source: method.source || '',
-								comment: method.comment || '',
 								initialName: method.name,
 								initialisStatic: method.isStatic,
 								initialSource: method.source || '',
-								initialComment: method.comment || ''
 							};
 
 							_Schema.methods.bindRowEvents(fakeRow, entity, method);
@@ -2571,7 +2569,6 @@ var _Schema = {
 							name:     methodData.name,
 							isStatic: methodData.isStatic,
 							source:   methodData.source,
-							comment:  methodData.comment
 						});
 						allow = _Schema.methods.validateMethodRow(row) && allow;
 					}
@@ -2585,7 +2582,6 @@ var _Schema = {
 						name:     methodData.name,
 						isStatic: methodData.isStatic,
 						source:   methodData.source,
-						comment:  methodData.comment
 					};
 
 					if (entity) {
@@ -2717,10 +2713,6 @@ var _Schema = {
 				if (_Schema.methods.cm.source) {
 					_Schema.methods.cm.source.refresh();
 				}
-
-				if (_Schema.methods.cm.comment) {
-					_Schema.methods.cm.comment.refresh();
-				}
 			}
 		},
 		appendEmptyMethod: function(fakeTbody, tplConfig) {
@@ -2737,7 +2729,6 @@ var _Schema = {
 					name: tplConfig.name,
 					isStatic: false,
 					source: '',
-					comment: ''
 				};
 
 				$('.property-name', row).off('keyup').on('keyup', function() {
@@ -2826,7 +2817,6 @@ var _Schema = {
 					methodData.name     = methodData.initialName;
 					methodData.isStatic = methodData.initialisStatic;
 					methodData.source   = methodData.initialSource;
-					methodData.comment  = methodData.initialComment;
 
 					$('.property-name', row).val(methodData.name);
 					$('.property-isStatic', row).prop('checked', methodData.isStatic);
@@ -2853,7 +2843,6 @@ var _Schema = {
 				_Schema.methods.cm = {};
 			} else {
 				_Schema.methods.cm.source.toTextArea();
-				_Schema.methods.cm.comment.toTextArea();
 			}
 
 			let sourceTextarea = $('textarea.property-code', contentDiv);
@@ -2885,28 +2874,6 @@ var _Schema = {
 			});
 
 			_Code.setupAutocompletion(_Schema.methods.cm.source, methodId, true);
-
-			let commentTextarea = $('textarea.property-comment', contentDiv);
-
-			_Schema.methods.cm.comment = CodeMirror.fromTextArea(commentTextarea[0], Structr.getCodeMirrorSettings({
-				lineNumbers: true,
-				lineWrapping: false,
-				indentUnit: 4,
-				tabSize: 4,
-				indentWithTabs: true
-			}));
-			$(_Schema.methods.cm.comment.getWrapperElement()).addClass('cm-schema-methods');
-			_Schema.methods.cm.comment.setValue(methodData.comment);
-			_Schema.methods.cm.comment.refresh();
-			_Schema.methods.cm.comment.clearHistory();
-			_Schema.methods.cm.comment.on('change', function (cm, changeset) {
-				cm.save();
-				$(cm.getTextArea()).trigger('change');
-
-				methodData.comment = cm.getValue();
-
-				_Schema.methods.rowChanged(row, (methodData.comment !== methodData.initialComment));
-			});
 		},
 		senseCodeMirrorMode: function(content) {
 			return (content && content.indexOf('{') === 0) ? 'text/javascript' : 'text';

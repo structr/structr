@@ -27,14 +27,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import org.codehaus.plexus.util.StringUtils;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.api.schema.JsonSchema;
-import org.structr.core.app.StructrApp;
 
 public class StructrGlobalSchemaMethods {
 
@@ -77,7 +77,6 @@ public class StructrGlobalSchemaMethods {
 				globalMethods.add(entry);
 
 				entry.put("name",                        schemaMethod.getProperty(SchemaMethod.name));
-				entry.put("comment",                     schemaMethod.getProperty(SchemaMethod.comment));
 				entry.put("source",                      schemaMethod.getProperty(SchemaMethod.source));
 				entry.put("virtualFileName",             schemaMethod.getProperty(SchemaMethod.virtualFileName));
 				entry.put("visibleToAuthenticatedUsers", schemaMethod.getProperty(SchemaMethod.visibleToAuthenticatedUsers));

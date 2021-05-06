@@ -52,7 +52,7 @@ public interface JsonType extends Comparable<JsonType> {
 	boolean isVisibleForAuthenticatedUsers();
 	JsonType setVisibleForAuthenticatedUsers();
 
-	JsonMethod addMethod(final String name, final String source, final String comment);
+	JsonMethod addMethod(final String name, final String source);
 	JsonMethod addMethod(final String name);
 
 	JsonMethod overrideMethod(final String name, final boolean callSuper, final String implementation);

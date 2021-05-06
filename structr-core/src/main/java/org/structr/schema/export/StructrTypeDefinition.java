@@ -35,20 +35,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.common.util.UrlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.entity.SchemaView;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.property.PropertyMap;
-import org.structr.schema.SchemaService;
 import org.structr.api.schema.JsonBooleanArrayProperty;
 import org.structr.api.schema.JsonBooleanProperty;
 import org.structr.api.schema.JsonDateArrayProperty;
@@ -72,19 +58,33 @@ import org.structr.api.schema.JsonStringArrayProperty;
 import org.structr.api.schema.JsonStringProperty;
 import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.Visitor;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaGrant;
+import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.entity.SchemaView;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.SchemaService;
+import org.structr.schema.openapi.common.OpenAPIReference;
 import org.structr.schema.openapi.operation.OpenAPIDeleteMultipleOperation;
 import org.structr.schema.openapi.operation.OpenAPIDeleteSingleOperation;
 import org.structr.schema.openapi.operation.OpenAPIGetMultipleOperation;
 import org.structr.schema.openapi.operation.OpenAPIGetSingleOperation;
 import org.structr.schema.openapi.operation.OpenAPIPostOperation;
-import org.structr.schema.openapi.parameter.OpenAPIPropertyQueryParameter;
 import org.structr.schema.openapi.operation.OpenAPIPutSingleOperation;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.parameter.OpenAPIPropertyQueryParameter;
 
 /**
  * @param <T>
@@ -246,12 +246,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonMethod addMethod(final String name, final String source, final String comment) {
+	public JsonMethod addMethod(final String name, final String source) {
 
 		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, name);
 
 		newMethod.setSource(source);
-		newMethod.setComment(comment);
 
 		methods.add(newMethod);
 

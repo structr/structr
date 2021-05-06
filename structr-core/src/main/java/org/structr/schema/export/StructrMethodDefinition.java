@@ -79,7 +79,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private String name                                       = null;
 	private String description                                = null;
 	private String summary                                    = null;
-	private String comment                                    = null;
 	private String source                                     = null;
 
 	StructrMethodDefinition(final JsonType parent, final String name) {
@@ -152,17 +151,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	@Override
 	public JsonMethod setSource(final String source) {
 		this.source = source;
-		return this;
-	}
-
-	@Override
-	public String getComment() {
-		return comment;
-	}
-
-	@Override
-	public JsonMethod setComment(String comment) {
-		this.comment = comment;
 		return this;
 	}
 
@@ -330,7 +318,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		getOrCreateProperties.put(SchemaMethod.codeType,              getCodeType());
 		getOrCreateProperties.put(SchemaMethod.returnType,            getReturnType());
 		getOrCreateProperties.put(SchemaMethod.schemaNode,            schemaNode);
-		getOrCreateProperties.put(SchemaMethod.comment,               getComment());
 		getOrCreateProperties.put(SchemaMethod.exceptions,            getExceptions().toArray(new String[0]));
 		getOrCreateProperties.put(SchemaMethod.overridesExisting,     overridesExisting());
 		getOrCreateProperties.put(SchemaMethod.callSuper,             callSuper());
@@ -379,12 +366,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		if (_source != null && _source instanceof String) {
 
 			this.source = (String)_source;
-		}
-
-		final Object _comment = source.get(JsonSchema.KEY_COMMENT);
-		if (_comment != null && _comment instanceof String) {
-
-			this.comment = (String)_comment;
 		}
 
 		final Object _summary = source.get(JsonSchema.KEY_SUMMARY);
@@ -493,7 +474,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		setName(method.getName());
 		setSource(method.getProperty(SchemaMethod.source));
-		setComment(method.getProperty(SchemaMethod.comment));
 		setSummary(method.getProperty(SchemaMethod.summary));
 		setDescription(method.getProperty(SchemaMethod.description));
 		setCodeType(method.getProperty(SchemaMethod.codeType));
@@ -538,7 +518,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		final Map<String, Object> params = new LinkedHashMap<>();
 
 		map.put(JsonSchema.KEY_SOURCE, source);
-		map.put(JsonSchema.KEY_COMMENT, comment);
 		map.put(JsonSchema.KEY_SUMMARY, summary);
 		map.put(JsonSchema.KEY_DESCRIPTION, description);
 		map.put(JsonSchema.KEY_CODE_TYPE, codeType);
