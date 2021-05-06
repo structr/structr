@@ -501,7 +501,7 @@ var _ResourceAccessGrants = {
 
 		let sig = inp.val();
 		if (sig) {
-			Command.create({type: 'ResourceAccess', signature: sig, flags: 0}, function() {
+			_ResourceAccessGrants.createResourceAccessGrant(sig, 0, function() {
 				reEnableInput();
 				inp.val('');
 			});
@@ -511,35 +511,47 @@ var _ResourceAccessGrants = {
 		}
 		window.setTimeout(reEnableInput, 250);
 	},
+	createResourceAccessGrant: function(signature, flags, callback, additionalData) {
+		let grantData = {
+			type: 'ResourceAccess',
+			signature: signature,
+			flags: flags
+		};
+
+		if (additionalData) {
+			grantData = Object.assign(grantData, additionalData);
+		}
+
+		Command.create(grantData, callback);
+	},
 	deleteResourceAccess: function(button, resourceAccess) {
 		_Entities.deleteNode(button, resourceAccess);
 	},
 	getVerbFromKey: function(key = '') {
 		return key.substring(key.lastIndexOf('_')+1, key.length);
 	},
+	mask: {
+		AUTH_USER_GET               : 1,
+		AUTH_USER_PUT               : 2,
+		AUTH_USER_POST              : 4,
+		AUTH_USER_DELETE            : 8,
+		AUTH_USER_OPTIONS           : 256,
+		AUTH_USER_HEAD              : 1024,
+		AUTH_USER_PATCH             : 4096,
+
+		NON_AUTH_USER_GET           : 16,
+		NON_AUTH_USER_PUT           : 32,
+		NON_AUTH_USER_POST          : 64,
+		NON_AUTH_USER_DELETE        : 128,
+		NON_AUTH_USER_OPTIONS       : 512,
+		NON_AUTH_USER_HEAD          : 2048,
+		NON_AUTH_USER_PATCH         : 8192
+	},
 	appendResourceAccessElement: function(resourceAccess, blinkAfterUpdate = true) {
 
 		if (!_Security.resourceAccesses || !_Security.resourceAccesses.is(':visible')) {
 			return;
 		}
-
-		let mask = {
-			AUTH_USER_GET               : 1,
-			AUTH_USER_PUT               : 2,
-			AUTH_USER_POST              : 4,
-			AUTH_USER_DELETE            : 8,
-			AUTH_USER_OPTIONS           : 256,
-			AUTH_USER_HEAD              : 1024,
-			AUTH_USER_PATCH             : 4096,
-
-			NON_AUTH_USER_GET           : 16,
-			NON_AUTH_USER_PUT           : 32,
-			NON_AUTH_USER_POST          : 64,
-			NON_AUTH_USER_DELETE        : 128,
-			NON_AUTH_USER_OPTIONS       : 512,
-			NON_AUTH_USER_HEAD          : 2048,
-			NON_AUTH_USER_PATCH         : 8192
-		};
 
 		let flags = parseInt(resourceAccess.flags);
 
@@ -553,9 +565,9 @@ var _ResourceAccessGrants = {
 		let hasAuthFlag    = false;
 		let hasNonAuthFlag = false;
 
-		for (let key in mask) {
+		for (let key in _ResourceAccessGrants.mask) {
 
-			let flagIsSet = (flags & mask[key]);
+			let flagIsSet = (flags & _ResourceAccessGrants.mask[key]);
 
 			let disabledBecauseNotPublic    = (key.startsWith('NON_AUTH_') && resourceAccess.visibleToPublicUsers === false);
 			let disabledBecausePublic       = (key.startsWith('AUTH_')     && resourceAccess.visibleToPublicUsers === true);
@@ -588,7 +600,7 @@ var _ResourceAccessGrants = {
 			if (key === 'AUTH_USER_PATCH') { additionalClasses.push('br-1'); }
 			if (key === 'NON_AUTH_USER_PATCH') { additionalClasses.push('br-1'); }
 
-			trHtml += '<td class="' + additionalClasses.join(' ') + '"><input type="checkbox" ' + (flagIsSet ? 'checked="checked"' : '') + (isDisabled ? ' disabled' : '') + ' data-flag="' + mask[key] + '" class="resource-access-flag" data-key="' + key +'"></td>';
+			trHtml += '<td class="' + additionalClasses.join(' ') + '"><input type="checkbox" ' + (flagIsSet ? 'checked="checked"' : '') + (isDisabled ? ' disabled' : '') + ' data-flag="' + _ResourceAccessGrants.mask[key] + '" class="resource-access-flag" data-key="' + key +'"></td>';
 		}
 
 		trHtml += '<td><input type="text" class="bitmask" size="4" value="' + flags + '"></td>';

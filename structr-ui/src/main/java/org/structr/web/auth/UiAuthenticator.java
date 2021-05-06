@@ -251,7 +251,10 @@ public class UiAuthenticator implements Authenticator {
 			TransactionCommand.simpleBroadcastGenericMessage(Map.of(
 				"type", "RESOURCE_ACCESS",
 				"message", errorMessage,
-				"uri", securityContext.getCompoundRequestURI()
+				"uri", securityContext.getCompoundRequestURI(),
+				"signature", rawResourceSignature,
+				"method", method,
+				"validUser", validUser
 			));
 
 			throw new UnauthorizedException("Forbidden");
@@ -361,7 +364,10 @@ public class UiAuthenticator implements Authenticator {
 		TransactionCommand.simpleBroadcastGenericMessage(Map.of(
 			"type", "RESOURCE_ACCESS",
 			"message", errorMessage,
-			"uri", securityContext.getCompoundRequestURI()
+			"uri", securityContext.getCompoundRequestURI(),
+			"signature", rawResourceSignature,
+			"method", method,
+			"validUser", validUser
 		));
 
 		throw new UnauthorizedException("Forbidden");
