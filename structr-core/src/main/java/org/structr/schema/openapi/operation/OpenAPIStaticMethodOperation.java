@@ -18,43 +18,38 @@
  */
 package org.structr.schema.openapi.operation;
 
-import java.util.List;
 import java.util.Map;
-import org.structr.schema.export.StructrTypeDefinition;
-import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
+import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.schema.export.StructrMethodDefinition;
 import org.structr.schema.openapi.common.OpenAPIReference;
 
-public class OpenAPIDeleteSingleOperation extends OpenAPIOperation {
+public class OpenAPIStaticMethodOperation extends OpenAPIOperation {
 
-	public OpenAPIDeleteSingleOperation(final StructrTypeDefinition type) {
+	public OpenAPIStaticMethodOperation(final StructrMethodDefinition method) {
 
 		super(
 			// summary
-			"Deletes an object of type " + type.getName(),
+			StringUtils.isBlank(method.getSummary()) ? "Executes the static method " + method.getName() + "()." : method.getSummary(),
 
 			// description
-			"Deletes an object of type " + type.getName() + ". *Caution*: this is a potentially dangerous operation because it is irreversible.",
+			StringUtils.isBlank(method.getDescription()) ? "Executes the static method " + method.getName() + "()." : method.getDescription(),
 
 			// operationId
-			"delete" + type.getName(),
+			"execute" + method.getParent().getName() + "." + method.getName(),
 
 			// tags
-			type.getTagsForOpenAPI(),
+			Set.of(method.getParent().getName()),
 
-			// parameters
-			List.of(
-				new OpenAPIPathParameter("uuid", "The UUID of the existing object", Map.of("type", "string"))
-			),
+			null,
 
 			// request body
-			null,
+			method.getOpenAPIRequestBody(),
 
 			// responses
 			Map.of(
-				"200", new OpenAPIReference("#/components/responses/ok"),
+				"200", method.getOpenAPISuccessResponse(),
 				"401", new OpenAPIReference("#/components/responses/unauthorized"),
-				"403", new OpenAPIReference("#/components/responses/forbidden"),
-				"404", new OpenAPIReference("#/components/responses/notFound"),
 				"422", new OpenAPIReference("#/components/responses/validationError")
 			)
 		);

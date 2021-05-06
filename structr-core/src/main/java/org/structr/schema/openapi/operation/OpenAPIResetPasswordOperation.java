@@ -19,18 +19,20 @@
 package org.structr.schema.openapi.operation;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.request.OpenAPIRequestResponse;
+import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
+import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
 
 public class OpenAPIResetPasswordOperation extends LinkedHashMap<String, Object> {
 
 	public OpenAPIResetPasswordOperation() {
 
 		final Map<String, Object> operations = new LinkedHashMap<>();
-
-		put("/reset-password", operations);
-
-		operations.put("post", new OpenAPIOperation(
+		final Map<String, Object> post       = new OpenAPIOperation(
 
 			// summary
 			"Start reset password process for a given user",
@@ -48,11 +50,37 @@ public class OpenAPIResetPasswordOperation extends LinkedHashMap<String, Object>
 			null,
 
 			// request body
-			null,
+
+			// request body
+			new OpenAPIRequestResponse(
+				"Request body",
+				new OpenAPIObjectSchema(
+					new OpenAPIPrimitiveSchema("E-mail address of user", "eMail", "string")
+				),
+				Map.of("eMail", "existing-user@example.com")
+			),
 
 			// responses
-			null
-		));
+			Map.of(
+				"200", new OpenAPIReference("#/components/responses/ok"),
+				"401", new OpenAPIReference("#/components/responses/unauthorized"),
+				"422", new OpenAPIRequestResponse(
+					"No e-mail address given.",
+					new OpenAPIReference("#/components/schemas/RESTResponse"),
+					Map.of("code", "422", "message", "No e-mail address given.", "errors", List.of())
+				),
+				"503", new OpenAPIRequestResponse(
+					"User self-registration is not configured correctly.\n\nYou need to enable and configure user self-registration according to https://docs.structr.com/docs/handling-user-sessions#user-self-registration.",
+					new OpenAPIReference("#/components/schemas/RESTResponse"),
+					Map.of("code", "503", "message", "User self-registration is not configured correctly.", "errors", List.of())
+				)
+			)
+		);
 
+		// override global security object to indicate that this request does not need authentication
+		post.put("security", Map.of());
+
+		operations.put("post", post);
+		put("/reset-password", operations);
 	}
 }

@@ -77,6 +77,15 @@ public interface JsonType extends Comparable<JsonType> {
 	Set<String> getTags();
 	void addTags(final String... tags);
 
+	public String getSummary();
+	public JsonType setSummary(final String summary);
+
+	public String getDescription();
+	public JsonType setDescription(final String description);
+
+	public boolean includeInOpenAPI();
+	public JsonType setIncludeInOpenAPI(final boolean includeInOpenAPI);
+
 	JsonType addViewProperty(final String viewName, final String propertyName);
 
 	JsonStringProperty addStringProperty(final String name, final String... views);

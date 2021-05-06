@@ -46,10 +46,14 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.property.PropertyMap;
+import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.operation.OpenAPIGlobalSchemaMethodOperation;
 import org.structr.schema.openapi.operation.OpenAPIMethodOperation;
+import org.structr.schema.openapi.operation.OpenAPIStaticMethodOperation;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
+import org.structr.schema.openapi.schema.OpenAPIResultSchema;
 
 /**
  *
@@ -59,10 +63,12 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrMethodDefinition.class.getName());
 
+	private final Set<String> OpenAPIMethodNameBlacklist      = Set.of("onCreate", "onSave", "onDelete", "afterCreate");
 	private final List<StructrParameterDefinition> parameters = new LinkedList<>();
 	private final List<String> exceptions                     = new LinkedList<>();
 	private final Set<String> tags                            = new TreeSet<>();
 	private SchemaMethod schemaMethod                         = null;
+	private boolean includeInOpenAPI                          = false;
 	private boolean overridesExisting                         = false;
 	private boolean doExport                                  = false;
 	private boolean callSuper                                 = false;
@@ -287,8 +293,20 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	@Override
-	public void addTags(final String... tags) {
+	public JsonMethod addTags(final String... tags) {
 		this.tags.addAll(Arrays.asList(tags));
+		return this;
+	}
+
+	@Override
+	public boolean includeInOpenAPI() {
+		return includeInOpenAPI;
+	}
+
+	@Override
+	public JsonMethod setIncludeInOpenAPI(final boolean includeInOpenAPI) {
+		this.includeInOpenAPI = includeInOpenAPI;
+		return this;
 	}
 
 	@Override
@@ -329,6 +347,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		updateProperties.put(SchemaMethod.source,                getSource());
 		updateProperties.put(SchemaMethod.isPartOfBuiltInSchema, true);
 		updateProperties.put(SchemaMethod.isStatic,              isStatic());
+		updateProperties.put(SchemaMethod.includeInOpenAPI,      includeInOpenAPI());
 
 		final Set<String> mergedTags     = new LinkedHashSet<>(this.tags);
 		final String[] existingTagsArray = method.getProperty(SchemaMethod.tags);
@@ -460,6 +479,12 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 				tags.addAll((List<String>)tagsValue);
 			}
 		}
+
+		final Object _includeInOpenAPI = source.get(JsonSchema.KEY_INCLUDE_IN_OPENAPI);
+		if (_includeInOpenAPI != null && _includeInOpenAPI instanceof Boolean) {
+
+			this.includeInOpenAPI = (Boolean)_includeInOpenAPI;
+		}
 	}
 
 	void deserialize(final SchemaMethod method) {
@@ -477,6 +502,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		setIsStatic(method.getProperty(SchemaMethod.isStatic));
 		setOverridesExisting(method.getProperty(SchemaMethod.overridesExisting));
 		setDoExport(method.getProperty(SchemaMethod.doExport));
+		setIncludeInOpenAPI(method.getProperty(SchemaMethod.includeInOpenAPI));
 
 		final String[] exceptionArray = method.getProperty(SchemaMethod.exceptions);
 		if (exceptionArray != null) {
@@ -522,6 +548,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		map.put(JsonSchema.KEY_IS_STATIC, isStatic);
 		map.put(JsonSchema.KEY_OVERRIDES_EXISTING, overridesExisting);
 		map.put(JsonSchema.KEY_DO_EXPORT, doExport);
+		map.put(JsonSchema.KEY_INCLUDE_IN_OPENAPI, includeInOpenAPI);
 
 		for (final StructrParameterDefinition param : parameters) {
 			params.put(param.getName(), param.serialize());
@@ -568,7 +595,24 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		final Map<String, Object> operations = new LinkedHashMap<>();
 
-		operations.put("/" + getParent().getName() + "/{uuid}/" + getName(), Map.of("post", new OpenAPIMethodOperation(this)));
+		if (!OpenAPIMethodNameBlacklist.contains(getName())) {
+
+			if (isStatic) {
+
+				operations.put("/" + getParent().getName() + "/" + getName(), Map.of("post", new OpenAPIStaticMethodOperation(this)));
+
+			} else {
+
+				if (parent != null) {
+
+					operations.put("/" + getParent().getName() + "/{uuid}/" + getName(), Map.of("post", new OpenAPIMethodOperation(this)));
+
+				} else {
+
+					operations.put("/maintenance/globalSchemaMethods/" + getName(), Map.of("post", new OpenAPIGlobalSchemaMethodOperation(this)));
+				}
+			}
+		}
 
 		return operations;
 	}
@@ -620,27 +664,76 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		for (final JsonParameter param : getParameters()) {
 
-			schema.put(param.getName(), param.getExampleValue());
+			String exampleValue = param.getExampleValue();
+			String type         = param.getType();
+			Object typedValue   = null;
+
+			if (type == null || StringUtils.isBlank(type)) {
+				type = "string";
+			}
+
+			switch (type.toLowerCase()) {
+
+				case "int":
+				case "integer":
+				case "number":
+					if (StringUtils.isBlank(exampleValue)) { exampleValue = "1"; }
+					typedValue = Integer.valueOf(exampleValue);
+					break;
+
+				case "float":
+				case "double":
+					if (StringUtils.isBlank(exampleValue)) { exampleValue = "1.0"; }
+					typedValue = Double.valueOf(exampleValue);
+					break;
+
+				case "string":
+					if (StringUtils.isBlank(exampleValue)) { exampleValue = "abc"; }
+					typedValue = exampleValue;
+					break;
+
+				case "boolean":
+					if (StringUtils.isBlank(exampleValue)) { exampleValue = "true"; }
+					typedValue = Boolean.valueOf(exampleValue);
+					break;
+			}
+
+			schema.put(param.getName(), typedValue);
 		}
 
 		return schema;
 	}
 
 	public Map<String, Object> getOpenAPIRequestBody() {
-		return new OpenAPIRequestResponse("Parameters", getOpenAPIRequestSchema(), getOpenAPIRequestBodyExample(), null);
+
+		if (!getParameters().isEmpty()) {
+			return new OpenAPIRequestResponse("Parameters", getOpenAPIRequestSchema(), getOpenAPIRequestBodyExample(), null);
+		}
+
+		return null;
 	}
 
 	public Map<String, Object> getOpenAPISuccessResponse() {
 
 		final Map<String, Object> schemaFromJsonString = new LinkedHashMap<>();
+		final String returnType                        = getReturnType();
 
-		try {
+		if (returnType != null) {
 
-			schemaFromJsonString.putAll(new GsonBuilder().create().fromJson(getReturnType(), Map.class));
+			try {
 
-		} catch (Throwable ignore) {}
+				schemaFromJsonString.putAll(new GsonBuilder().create().fromJson(getReturnType(), Map.class));
 
-		return new OpenAPIRequestResponse("Parameter object", schemaFromJsonString, null, null);
+			} catch (Throwable ignore) {}
+
+			return new OpenAPIRequestResponse("The request was executed successfully.",
+				new OpenAPIResultSchema(schemaFromJsonString, true)
+			);
+
+		} else {
+
+			return new OpenAPIReference("#/components/responses/ok");
+		}
 	}
 
 	// ----- static methods -----

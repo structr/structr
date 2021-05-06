@@ -1,17 +1,22 @@
 <div id="openapi-options">
+
 	<p class="input">
-		<label>Tags</label>
+		<label style="display: block;">Enabled</label>
+		<label class="checkbox"><input type="checkbox" data-property="includeInOpenAPI" ${config.element.includeInOpenAPI ? "checked" : ""} /> Include in OpenAPI output</label>
+	</p>
+
+	<p class="input">
+		<label data-comment="Use tags to combine types and methods into an API. Each tag is available under its own OpenAPI endpoint (/structr/openapi/tag.json).">Tags</label>
 		<select id="tags-select" data-property="tags" multiple="multiple">
 			${ ((config.availableTags) ? config.availableTags.map((t) => { let selected = (config.element.tags && config.element.tags.includes(t)); return '<option' + (selected ? ' selected' : '') + '>' + t + '</option>'}).join() : '')}
 		</select>
 	</p>
-
 	<p class="input">
 		<label>Summary</label>
 		<input data-property="summary" value="${config.element.summary || ''}" type="text">
 	</p>
 
-	<p class="input">
+	<p class="input ${config.element.type === 'SchemaNode' ? 'hidden' : ''}">
 		<label>Description</label>
 		<input data-property="description" value="${config.element.description || ''}" type="text">
 	</p>
@@ -64,7 +69,7 @@
 		<div style="clear: both;"></div>
 
 		<div class="input">
-			<p><label>ReturnType</label></p>
+			<p><label data-comment="Write an OpenAPI schema for your return type here.">ReturnType</label></p>
 			<div class="editor-wrapper">
 				<div class="editor" data-property="returnType"></div>
 			</div>

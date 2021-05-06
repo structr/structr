@@ -150,11 +150,16 @@ var _Code = {
 	},
 	addAvailableTagsForEntities: function(entities) {
 
+		// don't show internal tags (core, ui, html)
+		let tagBlacklist = ['core', 'ui', 'html'];
+
 		for (let entity of entities) {
 
 			if (entity.tags) {
+
 				for (let tag of entity.tags) {
-					if (!_Code.availableTags.includes(tag)) {
+
+					if (!_Code.availableTags.includes(tag) && !tagBlacklist.includes(tag)) {
 						_Code.availableTags.push(tag);
 					}
 				}
@@ -1545,9 +1550,15 @@ var _Code = {
 						_Code.updateDirtyFlag(result);
 					});
 
+					$('input[type=checkbox]', apiTab).on('change', function() {
+						_Code.updateDirtyFlag(result);
+					});
+
 					$('input[type=text]', apiTab).on('keyup', function() {
 						_Code.updateDirtyFlag(result);
 					});
+
+					Structr.activateCommentsInElement(apiTab);
 				});
 
 				// manage working sets
@@ -1899,7 +1910,7 @@ var _Code = {
 		var identifier = _Code.splitIdentifier(data);
 
 		// ID of schema method can either be in typeId (for global schema methods) or in memberId (for type methods)
-		Command.get(identifier.memberId || identifier.typeId, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,isStatic,schemaNode,source,comment,returnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters', function(result) {
+		Command.get(identifier.memberId || identifier.typeId, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,isStatic,schemaNode,source,comment,returnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', function(result) {
 
 			_Code.updateRecentlyUsed(result, identifier.source, data.updateLocationStack);
 
@@ -1936,7 +1947,9 @@ var _Code = {
 					sourceEditor.performLint();
 				});
 
-				if (result.codeType === 'java') {
+				let nameBlacklist = ['onCreate', 'onSave', 'onDelete', 'afterCreate'];
+
+				if (result.codeType === 'java' || nameBlacklist.includes(result.name)) {
 
 					$('li[data-name=api]').hide();
 
@@ -2010,11 +2023,17 @@ var _Code = {
 							_Code.updateDirtyFlag(result);
 						});
 
+						$('input[type=checkbox]', apiTab).on('change', function() {
+							_Code.updateDirtyFlag(result);
+						});
+
 						$('input[type=text]', apiTab).on('keyup', function() {
 							_Code.updateDirtyFlag(result);
 						});
 
 						_Code.editPropertyContent(result, 'returnType', $('.editor-wrapper', apiTab), {mode: "application/json", lint: true, gutters: ["CodeMirror-lint-markers"]});
+
+						Structr.activateCommentsInElement(apiTab);
 					});
 				}
 

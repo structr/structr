@@ -149,7 +149,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 		mode = (String) attributes.get(MODE_PARAM_KEY);
 		if (StringUtils.isEmpty(mode)) {
-			mode = WAIT_PARAM_KEY;
+			mode = WAIT_MODE_KEY;
 		}
 
 		final Boolean reload        = Boolean.TRUE.equals(attributes.get("reload"));

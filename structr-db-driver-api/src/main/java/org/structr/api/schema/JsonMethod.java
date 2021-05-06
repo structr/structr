@@ -26,48 +26,51 @@ import java.util.Set;
  */
 public interface JsonMethod extends Comparable<JsonMethod> {
 
-	public URI getId();
-	public JsonType getParent();
+	URI getId();
+	JsonType getParent();
 
-	public String getName();
-	public JsonMethod setName(final String name);
+	String getName();
+	JsonMethod setName(final String name);
 
-	public String getSource();
-	public JsonMethod setSource(final String source);
+	String getSource();
+	JsonMethod setSource(final String source);
 
-	public String getComment();
-	public JsonMethod setComment(final String comment);
+	String getComment();
+	JsonMethod setComment(final String comment);
 
-	public String getSummary();
-	public JsonMethod setSummary(final String summary);
+	String getSummary();
+	JsonMethod setSummary(final String summary);
 
-	public String getDescription();
-	public JsonMethod setDescription(final String description);
+	String getDescription();
+	JsonMethod setDescription(final String description);
 
-	public List<JsonParameter> getParameters();
-	public JsonMethod addParameter(final String name, final String type);
+	List<JsonParameter> getParameters();
+	JsonMethod addParameter(final String name, final String type);
 
-	public String getReturnType();
-	public JsonMethod setReturnType(final String returnType);
+	String getReturnType();
+	JsonMethod setReturnType(final String returnType);
 
-	public boolean overridesExisting();
-	public JsonMethod setOverridesExisting(final boolean overridesExisting);
+	boolean overridesExisting();
+	JsonMethod setOverridesExisting(final boolean overridesExisting);
 
-	public boolean doExport();
-	public JsonMethod setDoExport(final boolean doExport);
+	boolean doExport();
+	JsonMethod setDoExport(final boolean doExport);
 
-	public boolean callSuper();
-	public JsonMethod setCallSuper(final boolean callsSuper);
+	boolean callSuper();
+	JsonMethod setCallSuper(final boolean callsSuper);
 
-	public boolean isStatic();
-	public JsonMethod setIsStatic(final boolean callsSuper);
+	boolean isStatic();
+	JsonMethod setIsStatic(final boolean callsSuper);
 
-	public List<String> getExceptions();
-	public JsonMethod addException(final String exception);
+	List<String> getExceptions();
+	JsonMethod addException(final String exception);
 
-	public String getCodeType();
-	public JsonMethod setCodeType(final String codeType);
+	String getCodeType();
+	JsonMethod setCodeType(final String codeType);
 
 	Set<String> getTags();
-	void addTags(final String... tags);
+	JsonMethod addTags(final String... tags);
+
+	boolean includeInOpenAPI();
+	JsonMethod setIncludeInOpenAPI(final boolean includeInOpenAPI);
 }

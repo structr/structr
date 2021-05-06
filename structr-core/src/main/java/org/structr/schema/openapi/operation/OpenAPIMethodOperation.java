@@ -54,7 +54,37 @@ public class OpenAPIMethodOperation extends OpenAPIOperation {
 			// responses
 			Map.of(
 				"200", method.getOpenAPISuccessResponse(),
-				"403", new OpenAPIReference("#/components/responses/forbidden"),
+				"401", new OpenAPIReference("#/components/responses/unauthorized"),
+				"422", new OpenAPIReference("#/components/responses/validationError")
+			)
+		);
+	}
+
+	// The boolean parameter is not used in the code, it is only there to create a second constructor to differentiate between non-static and static methods.
+	public OpenAPIMethodOperation(final StructrMethodDefinition method, final boolean isStatic) {
+
+		super(
+			// summary
+			StringUtils.isBlank(method.getSummary()) ? "Executes the static method " + method.getName() + "()." : method.getSummary(),
+
+			// description
+			StringUtils.isBlank(method.getDescription()) ? "Executes the static method " + method.getName() + "()." : method.getDescription(),
+
+			// operationId
+			"execute" + method.getParent().getName() + "." + method.getName(),
+
+			// tags
+			Set.of(method.getParent().getName()),
+
+			null,
+
+			// request body
+			method.getOpenAPIRequestBody(),
+
+			// responses
+			Map.of(
+				"200", method.getOpenAPISuccessResponse(),
+				"401", new OpenAPIReference("#/components/responses/unauthorized"),
 				"422", new OpenAPIReference("#/components/responses/validationError")
 			)
 		);

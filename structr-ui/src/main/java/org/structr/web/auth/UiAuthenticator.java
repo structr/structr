@@ -254,7 +254,7 @@ public class UiAuthenticator implements Authenticator {
 				"uri", securityContext.getCompoundRequestURI()
 			));
 
-			throw new UnauthorizedException("Forbidden");
+			throw new UnauthorizedException("Access denied");
 
 		} else if (method != null) {
 
@@ -364,7 +364,7 @@ public class UiAuthenticator implements Authenticator {
 			"uri", securityContext.getCompoundRequestURI()
 		));
 
-		throw new UnauthorizedException("Forbidden");
+		throw new UnauthorizedException("Access denied");
 	}
 
 	@Override

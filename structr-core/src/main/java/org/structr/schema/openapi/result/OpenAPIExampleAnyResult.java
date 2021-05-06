@@ -22,10 +22,14 @@ import java.util.LinkedHashMap;
 
 public class OpenAPIExampleAnyResult extends LinkedHashMap<String, Object> {
 
-	public OpenAPIExampleAnyResult(final Object result) {
+	public OpenAPIExampleAnyResult(final Object result, final boolean includeQueryTime) {
 
 		put("result",             result);
-		put("query_time",         "0.001659655");
+
+		if (includeQueryTime) {
+			put("query_time",         "0.001659655");
+		}
+
 		put("result_count",       1);
 		put("page_count",         1);
 		put("result_count_time",  "0.000195496");

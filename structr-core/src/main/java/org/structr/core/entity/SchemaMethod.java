@@ -56,10 +56,8 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
-import org.structr.schema.ReloadSchema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionEntry;
-import org.structr.schema.action.Actions;
 
 /**
  *
@@ -82,6 +80,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<Boolean>            doExport                = new BooleanProperty("doExport").indexed();
 	public static final Property<String>             codeType                = new StringProperty("codeType").indexed();
 	public static final Property<Boolean>            isPartOfBuiltInSchema   = new BooleanProperty("isPartOfBuiltInSchema").indexed();
+	public static final Property<Boolean>            includeInOpenAPI        = new BooleanProperty("includeInOpenAPI").indexed();
 	public static final Property<String[]>           tags                    = new ArrayProperty("tags", String.class).indexed();
 	public static final Property<String>             summary                 = new StringProperty("summary");
 	public static final Property<String>             description             = new StringProperty("description");
@@ -99,11 +98,11 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	);
 
 	public static final View uiView = new View(SchemaMethod.class, PropertyView.Ui,
-		name, schemaNode, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic
+		name, schemaNode, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
-		id, type, schemaNode, name, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic
+		id, type, schemaNode, name, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI
 	);
 
 	public ActionEntry getActionEntry(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode schemaEntity) throws FrameworkException {

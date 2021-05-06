@@ -58,7 +58,8 @@ public class OpenAPIPutSingleOperation extends OpenAPIOperation {
 
 			// responses
 			Map.of(
-				"200", new OpenAPIRequestResponse("Ok", null),
+				"200", new OpenAPIReference("#/components/responses/ok"),
+				"401", new OpenAPIReference("#/components/responses/unauthorized"),
 				"403", new OpenAPIReference("#/components/responses/forbidden"),
 				"404", new OpenAPIReference("#/components/responses/notFound"),
 				"422", new OpenAPIReference("#/components/responses/validationError")
