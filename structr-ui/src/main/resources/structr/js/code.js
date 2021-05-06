@@ -777,6 +777,27 @@ var _Code = {
 					});
 					break;
 
+				case 'SchemaRelationshipNode': {
+
+					let name = entity.name || '[unnamed]';
+					let listItemAttributes = {};
+
+					list.push({
+						id: treeId,
+						text:  name,
+						children: false,
+						icon: 'fa fa-' + icon,
+						li_attr: listItemAttributes,
+						data: {
+							type: entity.type,
+							name: entity.name,
+							entity: entity
+						}
+					});
+
+					break;
+				}
+
 				default:
 
 					var name = entity.name || '[unnamed]';
@@ -1034,7 +1055,7 @@ var _Code = {
 					let attrName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
 
 					return {
-						id: identifier.source + '-' + rel.id + '-' + attrName,
+						id: rel.id,
 						type: rel.type,
 						name: attrName,
 						propertyType: '',
@@ -1345,7 +1366,8 @@ var _Code = {
 
 			var selection = {
 				id: data.node.id,
-				updateLocationStack: true
+				updateLocationStack: true,
+				nodeData: data.node.data
 			};
 
 			if (data.node.data) {
@@ -1480,8 +1502,7 @@ var _Code = {
 					break;
 
 				case 'SchemaRelationshipNode':
-					console.log(data, identifier);
-//					_Code.displaySchemaGroupContent(data, identifier);
+					_Code.displaySchemaRelationshipNodeContent(data, identifier);
 					break;
 			}
 
@@ -1908,6 +1929,26 @@ var _Code = {
 		});
 
 		//}, 'schema');
+	},
+	displaySchemaRelationshipNodeContent: function (data, identifier) {
+
+		Command.get(identifier.obj.nodeData.entity.id, null, function(entity) {
+
+			Command.get(entity.sourceId, null, function(sourceNode) {
+
+				Command.get(entity.targetId, null, function(targetNode) {
+
+					Structr.fetchHtmlTemplate('code/property.remote', { identifier: identifier }, function(html) {
+
+						codeContents.empty();
+						codeContents.append(html);
+
+						_Schema.loadRelationship(entity, $('#headEl', codeContents), $('#contentEl', codeContents), sourceNode, targetNode, _Code.refreshTree);
+					});
+				});
+			});
+		});
+
 	},
 	displaySchemaMethodContent: function(data, lastOpenTab, cursorInfo) {
 

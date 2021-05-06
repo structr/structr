@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var canvas, instance, res, nodes = {}, rels = {}, localStorageSuffix = '_schema_' + port, undefinedRelType = 'UNDEFINED_RELATIONSHIP_TYPE', initialRelType = undefinedRelType;
+var canvas, instance, res, nodes = {}, rels = {}, localStorageSuffix = '_schema_' + port;
 var reload = false;
 var schemaContainer;
 var inheritanceTree, inheritanceSlideout;
@@ -48,6 +48,8 @@ $(document).ready(function() {
 
 var _Schema = {
 	_moduleName: 'schema',
+	undefinedRelType: 'UNDEFINED_RELATIONSHIP_TYPE',
+	initialRelType: 'UNDEFINED_RELATIONSHIP_TYPE',
 	schemaLoading: false,
 	schemaLoaded: false,
 	nodePositions: undefined,
@@ -720,13 +722,7 @@ var _Schema = {
 
 		Command.get(id, null, function(entity) {
 
-			var title = 'Edit schema node';
-			var method = _Schema.loadNode;
-
-			if (entity.type === "SchemaRelationshipNode") {
-				title = 'Edit schema relationship';
-				method = _Schema.loadRelationship;
-			}
+			let title = (entity.type === "SchemaRelationshipNode") ? 'Edit schema relationship' : 'Edit schema node';
 
 			Structr.dialog(title, function() {
 				dialogMeta.show();
@@ -740,7 +736,11 @@ var _Schema = {
 				instance.repaintEverything();
 			}, ['schema-edit-dialog']);
 
-			method(entity, dialogHead, dialogText, targetView);
+			if (entity.type === "SchemaRelationshipNode") {
+				_Schema.loadRelationship(entity, dialogHead, dialogText, nodes[entity.sourceId], nodes[entity.targetId]);
+			} else {
+				_Schema.loadNode(entity, dialogHead, dialogText, targetView);
+			}
 
 			_Schema.ui.clearSelection();
 		});
@@ -795,7 +795,7 @@ var _Schema = {
 							],
 							["Label", {
 									cssClass: "label rel-type",
-									label: '<div id="rel_' + res.id + '">' + (res.relationshipType === initialRelType ? '<span>&nbsp;</span>' : res.relationshipType)
+									label: '<div id="rel_' + res.id + '">' + (res.relationshipType === _Schema.initialRelType ? '<span>&nbsp;</span>' : res.relationshipType)
 											+ ' <i title="Edit schema relationship" class="edit icon ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '"></i>'
 											+ ' <i title="Remove schema relationship" class="remove icon ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '"></i></div>',
 									location: .5,
@@ -812,7 +812,7 @@ var _Schema = {
 						]
 					});
 
-					if (res.relationshipType === initialRelType) {
+					if (res.relationshipType === _Schema.initialRelType) {
 						var relTypeOverlay = $('#rel_' + res.id);
 						relTypeOverlay.css({
 							width: "80px"
@@ -1100,7 +1100,7 @@ var _Schema = {
 		};
 
 	},
-	loadRelationship: function(entity, headEl, contentEl) {
+	loadRelationship: function(entity, headEl, contentEl, sourceNode, targetNode, saveSuccessFunction) {
 
 		Structr.fetchHtmlTemplate('schema/dialog.relationship', {}, function (html) {
 			headEl.append(html);
@@ -1127,13 +1127,13 @@ var _Schema = {
 			}, null, _Schema.methods.refreshEditors);
 
 			let selectRelationshipOptions = function(rel) {
-				$('#source-type-name').text(nodes[rel.sourceId].name).data('objectId', rel.sourceId);
+				$('#source-type-name').text(sourceNode.name).data('objectId', rel.sourceId);
 				$('#source-json-name').val(rel.sourceJsonName || rel.oldSourceJsonName);
 				$('#target-json-name').val(rel.targetJsonName || rel.oldTargetJsonName);
 				$('#source-multiplicity-selector').val(rel.sourceMultiplicity || '*');
-				$('#relationship-type-name').val(rel.relationshipType === initialRelType ? '' : rel.relationshipType);
+				$('#relationship-type-name').val(rel.relationshipType === _Schema.initialRelType ? '' : rel.relationshipType);
 				$('#target-multiplicity-selector').val(rel.targetMultiplicity || '*');
-				$('#target-type-name').text(nodes[rel.targetId].name).data('objectId', rel.targetId);
+				$('#target-type-name').text(targetNode.name).data('objectId', rel.targetId);
 				$('#cascading-delete-selector').val(rel.cascadingDeleteFlag || 0);
 				$('#autocreate-selector').val(rel.autocreationFlag || 0);
 				$('#propagation-selector').val(rel.permissionPropagation || 'None');
@@ -1144,14 +1144,19 @@ var _Schema = {
 				$('#masked-properties').val(rel.propertyMask);
 			};
 
-			$('.edit-schema-object', headEl).off('click').on('click', function(e) {
-				e.stopPropagation();
+			if (!saveSuccessFunction) {
 
-				// todo: only navigate if no changes
+				$('.edit-schema-object', headEl).off('click').on('click', function(e) {
+					e.stopPropagation();
 
-				_Schema.openEditDialog($(this).data('objectId'));
-				return false;
-			});
+					// todo: only navigate if no changes
+
+					_Schema.openEditDialog($(this).data('objectId'));
+					return false;
+				});
+			} else {
+				$('.edit-schema-object', headEl).off('click').removeClass('edit-schema-object');
+			}
 
 			selectRelationshipOptions(entity);
 
@@ -1243,6 +1248,12 @@ var _Schema = {
 							blinkGreen($('#relationship-options [data-attr-name=' + attribute + ']'));
 							entity[attribute] = newData[attribute];
 						});
+
+						if (saveSuccessFunction) {
+							saveSuccessFunction();
+						} else {
+							_Schema.reload();
+						}
 
 					}, function(data) {
 
@@ -1974,7 +1985,7 @@ var _Schema = {
 		},
 		appendRemoteProperty: function(el, rel, out, editSchemaObjectLinkHandler) {
 
-			let relType = (rel.relationshipType === undefinedRelType) ? '' : rel.relationshipType;
+			let relType = (rel.relationshipType === _Schema.undefinedRelType) ? '' : rel.relationshipType;
 			let relatedNodeId = (out ? rel.targetId : rel.sourceId);
 			let attributeName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
 
@@ -3239,11 +3250,10 @@ var _Schema = {
 							data: JSON.stringify(newData),
 							statusCode: {
 								200: function() {
+									_Schema.hideSchemaRecompileMessage();
 									if (onSuccess) {
 										onSuccess();
 									}
-									_Schema.hideSchemaRecompileMessage();
-									_Schema.reload();
 								},
 								422: function(data) {
 									_Schema.hideSchemaRecompileMessage();
