@@ -2128,20 +2128,27 @@ var Structr = {
 
 		$('[data-comment]', elem).each(function(idx, el) {
 
-			let config = {
-				text: $(el).data("comment"),
-				element: $(el),
-				css: {
-					"margin": "0 4px",
-					"vertical-align": "top"
-				}
-			};
+			let $el = $(el);
 
-			let elCommentConfig = $(el).data('commentConfig') || {};
+			if (!$el.data('commentApplied')) {
 
-			// base config is overridden by the defaults parameter which is overriden by the element config
-			let infoConfig = Object.assign(config, defaults, elCommentConfig);
-			Structr.appendInfoTextToElement(infoConfig);
+				$el.data('commentApplied', true);
+
+				let config = {
+					text: $el.data("comment"),
+					element: $el,
+					css: {
+						"margin": "0 4px",
+						"vertical-align": "top"
+					}
+				};
+
+				let elCommentConfig = $el.data('commentConfig') || {};
+
+				// base config is overridden by the defaults parameter which is overriden by the element config
+				let infoConfig = Object.assign(config, defaults, elCommentConfig);
+				Structr.appendInfoTextToElement(infoConfig);
+			}
 		});
 
 	},
