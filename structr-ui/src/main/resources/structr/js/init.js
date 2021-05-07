@@ -1116,7 +1116,7 @@ var Structr = {
 
 		var t = $(triggerEl);
 		t.addClass('active');
-		LSWrapper.setItem(activeTabKey, t.prop('id')); console.log(t.prop('id'));
+		LSWrapper.setItem(activeTabKey, t.prop('id'));
 		slideoutElement.width(rsw);
 		slideoutElement.animate({right: 0}, 100, function() {
 			if (typeof callback === 'function') {

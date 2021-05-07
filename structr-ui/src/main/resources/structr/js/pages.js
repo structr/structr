@@ -1224,8 +1224,8 @@ var _Pages = {
 	},
 	rightSlideoutClickTrigger: function (triggerEl, slideoutElement, otherSlideouts, activeTabKey, openCallback, closeCallback) {
 		if (!$(triggerEl).hasClass('noclick')) {
-			//if (Math.abs(slideoutElement.position().left - $(window).width()) <= 3) {
-			if (slideoutElement.position().left >= $(window).width()) {
+			if (Math.abs(slideoutElement.position().left - $(window).width()) <= 3) {
+			//if (slideoutElement.position().left >= $(window).width()) {
 				Structr.closeSlideOuts(otherSlideouts, activeTabKey, closeCallback);
 				Structr.openSlideOut(triggerEl, slideoutElement, activeTabKey, openCallback);
 				$('.column-resizer-right').show();

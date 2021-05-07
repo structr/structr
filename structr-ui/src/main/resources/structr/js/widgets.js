@@ -89,7 +89,7 @@ var _Widgets = {
 				}
 			});
 
-			_Pager.initPager('local-widgets', 'Widget', 1, 25, 'treePath', 'asc');
+			_Pager.initPager('local-widgets', 'Widget', 1, 100, 'treePath', 'asc');
 			var _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl, true, 'Widget', 'public', function(entities) {
 				entities.forEach(function (entity) {
 					StructrModel.create(entity, null, false);
@@ -111,7 +111,7 @@ var _Widgets = {
 				_Widgets.repaintRemoteWidgets();
 			});
 
-			document.querySelector('button#edit-widget-servers').addEventListener('click', _Widgets.showWidgetServersDialog);
+			document.querySelector('#edit-widget-servers').addEventListener('click', _Widgets.showWidgetServersDialog);
 
 			_Widgets.updateWidgetServerSelector(function() {
 				_Widgets.refreshRemoteWidgets();
@@ -773,7 +773,7 @@ var _Widgets = {
 		if (!url.startsWith(document.location.origin)) {
 
 			try {
-				let response = await fetch(url + '?isPageTemplate=true&sort=name');
+				let response = await fetch(url + '?sort=name');
 				if (response && response.ok) {
 
 					let json = await response.json();

@@ -20,7 +20,7 @@
 #pagesTree {
 	/*height: calc(100% - 3.5rem);*/
 	overflow: auto;
-	margin-top: -1rem;
+	/*margin-top: -1rem;*/
 	padding-top: 1rem;
 }
 
@@ -97,4 +97,8 @@
 
 #add_template {
 	right: 9rem;
+}
+
+#delete-all-unattached-nodes {
+	margin: 1rem;
 }

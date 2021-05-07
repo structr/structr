@@ -508,36 +508,33 @@ img.disabled {
 }
 
 #widgetsSlideout #widgets, #widgetsSlideout #remoteWidgets {
-	min-height: 48px;
-	margin-right: 26px;
+	min-height: 4rem;
+	margin-right: 1rem;
 }
 
-#widgetsSlideout {
-	padding: 0 0 0 2rem;
+.add_widgets_icon {
+	position: absolute;
+	right: 1rem;
+	top: 1rem;
+	cursor: pointer;
+}
+
+#edit-widget-servers {
+	vertical-align: middle;
+	margin-left: .25rem;
+}
+
+#remoteWidgetsFilter {
+	margin-left: 2rem;
+	margin-bottom: 1rem;
+}
+
+#widgets, #remoteWidgets {
+	margin-left: -1rem;
 }
 
 #remoteWidgets input:first-of-type  {
 	margin-top: -6px;
-}
-
-#widgetsSlideout .inner {
-	height: 100%;
-	overflow: auto;
-}
-
-#widgetsSlideout #widget-server-selector {
-	width: calc(100% - 65px);
-	margin-left: 1px;
-}
-
-#widgetsSlideout button.add_widgets_icon {
-	position: absolute;
-	right: 12px;
-	top: 8px;
-}
-
-#add-widget-server {
-	width: 50%;
 }
 
 #add-widget-server td:first-of-type {
@@ -655,57 +652,12 @@ img.disabled {
 /*
  * Pages: Right slideout activators
  */
-#inheritanceTab {
-	right: -72px;
-	width: 100px;
-	top: 60px;
-}
-
-#activeElementsTab {
-	right: -81px;
-	width: 118px;
-	top: 194px;
-}
-
-#dataBindingTab {
-	right: -71px;
-	width: 98px;
-	top: 327px;
-}
-
-#localizationsTab {
-	right: -71px;
-	width: 98px;
-	top: 450px;
-}
-
-#widgetsTab {
-	left: -55px;
-	width: 68px;
-	top: 40px;
-}
-
-#paletteTab {
-	left: -73px;
-	width: 104px;
-	top: 150px;
-}
-
-#componentsTab {
-    left: -93px;
-    width: 144px;
-    top: 298px;
-}
-
 
 #widgetsTab,
 #paletteTab,
 #componentsTab,
 #elementsTab {
 	right: 0;
-	left: -80px;
-	width: 118px;
-	top: 454px;
 }
 
 /*
@@ -733,7 +685,7 @@ img.disabled {
 }
 
 .slideOut {
-	height: calc(100% - 1rem);
+	height: calc(100%);
 	/*margin: 0;*/
 	/*border-top: 1px solid var(--black-opacity-125) ! important;*/
 	/*border-bottom: 1px solid var(--black-opacity-125) ! important;*/
@@ -747,6 +699,13 @@ img.disabled {
 .slideOut.open {
 	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
 	/*clip-path: polygon(-20% -20%, 120% -20%, 120% 100%, -20% 100%);*/
+}
+
+.slideOut .inner {
+	position: relative;
+	height: 100%;
+	overflow: auto;
+	padding: 0 0 0 1rem;
 }
 
 #inheritance-tree.slideOut {
@@ -791,18 +750,21 @@ img.disabled {
 	width: calc(100% - 5px);
 }
 
+#widgets .pagerlocal-widgets {
+	display: none;
+}
+
 .slideOutRight {
 	width: 400px;
 	right: calc(-413px - 3rem);
 	padding-right: 4rem;
-	padding-top: 1rem;
 	/*border-left: 1px solid var(--black-opacity-125) ! important;*/
 }
 
 .slideOutLeft {
 	left: calc(-414px - 3rem);
 	padding-left: 4rem;
-	padding-top: 1rem;
+	/*padding-top: 1rem;*/
 	/*border-right: 1px solid var(--black-opacity-125) ! important;*/
 	/*margin-left: 4rem;*/
 }
@@ -810,6 +772,7 @@ img.disabled {
 #paletteArea {
 	height: 100%;
 	overflow: auto;
+	padding-left: 1rem;
 }
 
 #palette .elementGroup {
@@ -818,28 +781,18 @@ img.disabled {
 	margin-bottom: 6px;
 }
 
-#palette h2 {
-	font-size: 10pt;
-	padding: 0;
-	margin: 0;
-	color: var(--gray-333);
+#palette a h3, #widgetsSlideout a h3 {
+	color: var(--body-text);
 }
 
-#palette h3, #widgetsSlideout h3 {
-	font-size: 11pt;
-	color: var(--gray-333);
-	padding: 3px 0 2px 0;
-	margin: 0 0 0 2px;
-}
-
-.draggable {
+#paletteArea .draggable {
 	font-size: .875rem;
 	padding: .5rem 1rem;
 	/*color: var(--gray-333);*/
 	display: inline-block;
 	/*border: 1px solid transparent;*/
 	border-radius: 3px;
-	margin: .5rem;
+	margin: 0 .5rem .5rem 0;
 	background-color: var(--input-background);
 }
 
@@ -1498,21 +1451,25 @@ i.button {
 	overflow: auto;
 }
 
-#elements #delete-all-unattached-nodes {
+#delete-all-unattached-nodes {
 	min-height: 24px;
 }
 
-#componentsArea > .node, #elementsArea > .node {
-	margin-left: 0;
-	margin-right: 20px;
+#delete-all-unattached-nodes svg {
+	vertical-align: top;
 }
+
+/*#componentsArea > .node, #elementsArea > .node {*/
+/*	margin-left: 0;*/
+/*	margin-right: 20px;*/
+/*}*/
 
 #newComponentDropzone {
 	border: .15rem dashed lightgray;
 	border-radius: .25rem;
 	padding: 1rem 0;
 	color: lightgray;
-	margin: 0 1rem 1rem 1rem;
+	margin: 1rem;
 }
 
 #newComponentDropzone.allow-drop {
@@ -1540,12 +1497,6 @@ i.button {
 #newComponentDropzone.allow-drop .new-component-info .active {
 	visibility: visible;
 	display: inline-block;
-}
-
-
-.slideOut .node.widget {
-	margin-left: 0;
-	padding-left: 0;
 }
 
 .node.nodeSelectedFromContextMenu {
