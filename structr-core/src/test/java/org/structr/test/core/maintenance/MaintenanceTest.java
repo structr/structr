@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.testng.annotations.Test;
@@ -44,9 +45,11 @@ import org.structr.test.core.entity.TestTwo;
 import org.structr.core.graph.BulkCreateLabelsCommand;
 import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.BulkSetNodePropertiesCommand;
+import org.structr.core.graph.BulkSetUuidCommand;
 import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
@@ -258,6 +261,64 @@ public class MaintenanceTest extends StructrTest {
 		} catch (Exception ex) {
 
 			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testBulkAddUUIDsCommand() {
+
+		try {
+
+			final DatabaseService graphDb    = app.getDatabaseService();
+			final Set<String> expectedLabels = new LinkedHashSet<>();
+
+			expectedLabels.add("Principal");
+			expectedLabels.add("Group");
+			expectedLabels.add("AccessControllable");
+			expectedLabels.add("AbstractNode");
+			expectedLabels.add("NodeInterface");
+			expectedLabels.add("CMISInfo");
+			expectedLabels.add("CMISItemInfo");
+
+			if (graphDb.getTenantIdentifier() != null) {
+				expectedLabels.add(graphDb.getTenantIdentifier());
+			}
+
+			// intentionally create raw Neo4j transaction and create nodes in there
+			try (Transaction tx = graphDb.beginTx()) {
+
+				for (int i=0; i<100; i++) {
+
+					// Create nodes with one label and the type Group, and no properties
+					graphDb.createNode("Group", Set.of("Group"), Map.of());
+				}
+
+				tx.success();
+			}
+
+			// test set UUIDs command
+			app.command(BulkSetUuidCommand.class).execute(Map.of("type", "Group"));
+
+			// nodes should now be visible to Structr
+			try (final Tx tx = app.tx()) {
+
+				// check nodes, we should find 100 Groups here
+				assertEquals(100, app.nodeQuery(Group.class).getAsList().size());
+
+				// check nodes
+				for (final Group group : app.nodeQuery(Group.class).getResultStream()) {
+
+					final Set<String> labels = Iterables.toSet(group.getNode().getLabels());
+					assertNotNull("No UUID was set by BulkSetUUIDCommand", group.getUuid());
+				}
+
+				tx.success();
+			}
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}

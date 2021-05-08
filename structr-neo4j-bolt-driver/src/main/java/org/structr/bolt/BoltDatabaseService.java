@@ -28,6 +28,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -258,11 +259,12 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	}
 
 	@Override
-	public Node createNode(final String type, final Set<String> labels, final Map<String, Object> properties) {
+	public Node createNode(final String type, final Set<String> labels, final Map<String, Object> input) {
 
-		final StringBuilder buf       = new StringBuilder("CREATE (n");
-		final Map<String, Object> map = new HashMap<>();
-		final String tenantId         = getTenantIdentifier();
+		final Map<String, Object> properties = new LinkedHashMap<>(input);
+		final StringBuilder buf              = new StringBuilder("CREATE (n");
+		final Map<String, Object> map        = new HashMap<>();
+		final String tenantId                = getTenantIdentifier();
 
 		if (tenantId != null) {
 
@@ -281,6 +283,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		// make properties available to Cypher statement
 		map.put("properties", properties);
 
+		// set type
+		properties.put("type", type);
+
 		final NodeWrapper newNode = NodeWrapper.newInstance(this, getCurrentTransaction().getNode(buf.toString(), map));
 
 		newNode.setModified();
@@ -289,11 +294,12 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	}
 
 	@Override
-	public NodeWithOwnerResult createNodeWithOwner(final Identity userId, final String type, final Set<String> labels, final Map<String, Object> nodeProperties, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties) {
+	public NodeWithOwnerResult createNodeWithOwner(final Identity userId, final String type, final Set<String> labels, final Map<String, Object> input, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties) {
 
-		final Map<String, Object> parameters = new HashMap<>();
-		final StringBuilder buf              = new StringBuilder();
-		final String tenantId         = getTenantIdentifier();
+		final Map<String, Object> nodeProperties = new LinkedHashMap<>(input);
+		final Map<String, Object> parameters     = new HashMap<>();
+		final StringBuilder buf                  = new StringBuilder();
+		final String tenantId                    = getTenantIdentifier();
 
 		buf.append("MATCH (u:NodeInterface:Principal");
 
@@ -326,6 +332,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		parameters.put("ownsProperties",     ownsProperties);
 		parameters.put("securityProperties", securityProperties);
 		parameters.put("nodeProperties",     nodeProperties);
+
+		// set type
+		nodeProperties.put("type", type);
 
 		try {
 
