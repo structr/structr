@@ -776,6 +776,10 @@ public class SchemaNode extends AbstractSchemaNode {
 				throw new FrameworkException(422, "Type '" + typeName + "' already exists. To prevent unwanted/unexpected behavior this is forbidden.");
 			}
 
+			if (StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(typeName).getAsList().size() > 1) {
+				throw new FrameworkException(422, "Type '" + typeName + "' already exists. To prevent unwanted/unexpected behavior this is forbidden.");
+			}
+
 			/*
 			// add type names to list of forbidden entity names
 			if (StructrApp.getConfiguration().getNodeEntities().containsKey(typeName)) {

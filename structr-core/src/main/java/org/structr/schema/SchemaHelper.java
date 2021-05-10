@@ -368,9 +368,9 @@ public class SchemaHelper {
 		return type;
 	}
 
-	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId) {
+	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId, final boolean forceFullReload) {
 
-		final ServiceResult res = SchemaService.reloadSchema(errorBuffer, initiatedBySessionId);
+		final ServiceResult res = SchemaService.reloadSchema(errorBuffer, initiatedBySessionId, forceFullReload);
 
 		if (!errorBuffer.hasError()) {
 
@@ -1458,6 +1458,10 @@ public class SchemaHelper {
 					}
 
 					final SourceLine line = src.begin(codeSource, "public ");
+
+					if (action.isStatic()) {
+						line.append("static ");
+					}
 
 					line.append(returnType);
 					line.append(" ");

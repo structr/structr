@@ -141,6 +141,11 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 			entry.setDoExport(true);
 		}
 
+		// check for overridden methods and determine method signature etc. from superclass(es)
+		if (getProperty(isStatic)) {
+			entry.setIsStatic(true);
+		}
+
 		return entry;
 	}
 

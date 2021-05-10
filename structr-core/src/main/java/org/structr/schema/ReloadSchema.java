@@ -29,8 +29,14 @@ import org.structr.core.graph.TransactionPostProcess;
  */
 public class ReloadSchema implements TransactionPostProcess {
 
+	private boolean forceFullReload = false;
+
+	public ReloadSchema(final boolean forceFullReload) {
+		this.forceFullReload = forceFullReload;
+	}
+
 	@Override
 	public boolean execute(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		return SchemaHelper.reloadSchema(errorBuffer, securityContext.getSessionId()).isSuccess();
+		return SchemaHelper.reloadSchema(errorBuffer, securityContext.getSessionId(), forceFullReload).isSuccess();
 	}
 }
