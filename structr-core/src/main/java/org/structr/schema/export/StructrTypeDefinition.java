@@ -97,6 +97,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	private static final Logger logger = LoggerFactory.getLogger(StructrTypeDefinition.class);
 
 	private final Set<String> filterPropertyBlacklist             = new LinkedHashSet<>(Arrays.asList("id", "type", "hidden"));
+	private String unresolvedSuperclassName                       = null;
 	protected final Set<StructrPropertyDefinition> properties     = new TreeSet<>();
 	protected final Map<String, Set<String>> views                = new TreeMap<>();
 	protected final Map<String, String> viewOrder                 = new TreeMap<>();
@@ -1042,13 +1043,14 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 
 		// $extends
-		final String extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
+		final SchemaNode extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
 		if (extendsClass != null) {
 
-			final String typeName = resolveParameterizedType(extendsClass);
+			// we need to find out if the base type exists in the schema, or in the Structr base schema because the URLs differ
+			final String typeName = extendsClass.getName();
 
-			if (extendsClass.startsWith("org.structr.dynamic.")) {
-
+			if (schemaNodes.containsKey(typeName)) {
+			
 				this.baseTypeReference = root.getId().resolve("definitions/" + typeName);
 
 			} else {
@@ -1205,10 +1207,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 			if (def != null && def instanceof JsonType) {
 
-				final JsonType jsonType     = (JsonType)def;
-				final String superclassName = "org.structr.dynamic." + jsonType.getName();
+				final JsonType jsonType = (JsonType)def;
 
-				nodeProperties.put(SchemaNode.extendsClass, superclassName);
+				unresolvedSuperclassName = jsonType.getName();
 
 			} else {
 
@@ -1221,7 +1222,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 					} else {
 
-						nodeProperties.put(SchemaNode.extendsClass, superclass.getName());
+						// must be resolved later, when all SchemaNodes are created
+						unresolvedSuperclassName = superclass.getName();
 					}
 
 				} else if ("https://structr.org/v1.1/definitions/FileBase".equals(baseTypeReference.toString())) {
@@ -1242,7 +1244,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 						final Class internal  = StructrApp.getConfiguration().getNodeEntityClass(typeName);
 						if (internal != null) {
 
-							nodeProperties.put(SchemaNode.extendsClass, getParameterizedType(internal, parameters));
+							nodeProperties.put(SchemaNode.extendsClassInternal, getParameterizedType(internal, parameters));
 						}
 					}
 				}
@@ -1274,7 +1276,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 					} else {
 
-						nodeProperties.put(SchemaNode.extendsClass, superclassName);
+						unresolvedSuperclassName = superclassName;
 					}
 
 				} else {
@@ -1928,6 +1930,14 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 
 		return null;
+	}
+
+	void resolveInheritanceRelationships(final Map<String, SchemaNode> schemaNodes) throws FrameworkException {
+
+		if (unresolvedSuperclassName != null && this.schemaNode != null) {
+
+			this.schemaNode.setProperty(SchemaNode.extendsClass, schemaNodes.get(unresolvedSuperclassName));
+		}
 	}
 
 	private boolean intersects(final Set<String> set1, final Set<String> set2) {

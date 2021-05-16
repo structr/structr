@@ -1055,7 +1055,8 @@ var _Code = {
 					let attrName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
 
 					return {
-						id: rel.id,
+						//id: rel.id,
+						id: identifier.source + '-' + rel.id + '-' + attrName,
 						type: rel.type,
 						name: attrName,
 						propertyType: '',

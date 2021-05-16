@@ -35,7 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -48,6 +48,7 @@ import org.structr.core.Export;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaGrantSchemaNodeRelationship;
+import org.structr.core.entity.relationship.SchemaNodeExtendsSchemaNode;
 import org.structr.core.entity.relationship.SchemaRelationshipSourceNode;
 import org.structr.core.entity.relationship.SchemaRelationshipTargetNode;
 import org.structr.core.graph.ModificationQueue;
@@ -84,7 +85,9 @@ public class SchemaNode extends AbstractSchemaNode {
 	public static final Property<Iterable<SchemaRelationshipNode>> relatedTo              = new EndNodes<>("relatedTo", SchemaRelationshipSourceNode.class);
 	public static final Property<Iterable<SchemaRelationshipNode>> relatedFrom            = new StartNodes<>("relatedFrom", SchemaRelationshipTargetNode.class);
 	public static final Property<Iterable<SchemaGrant>>            schemaGrants           = new StartNodes<>("schemaGrants", SchemaGrantSchemaNodeRelationship.class);
-	public static final Property<String>                           extendsClass           = new StringProperty("extendsClass").indexed();
+	public static final Property<SchemaNode>                       extendsClass           = new EndNode<>("extendsClass", SchemaNodeExtendsSchemaNode.class);
+	public static final Property<Iterable<SchemaNode>>             extendedByClasses      = new StartNodes<>("extendedByClasses", SchemaNodeExtendsSchemaNode.class);
+	public static final Property<String>                           extendsClassInternal   = new StringProperty("extendsClassInternal").indexed();
 	public static final Property<String>                           implementsInterfaces   = new StringProperty("implementsInterfaces").indexed();
 	public static final Property<String>                           defaultSortKey         = new StringProperty("defaultSortKey");
 	public static final Property<String>                           defaultSortOrder       = new StringProperty("defaultSortOrder");
@@ -174,16 +177,11 @@ public class SchemaNode extends AbstractSchemaNode {
 
 		if (multiplicity == null) {
 
-			final String parentClass = getProperty(SchemaNode.extendsClass);
-			if (parentClass != null) {
+			// check if property is defined in parent class
+			final SchemaNode parentSchemaNode = getProperty(SchemaNode.extendsClass);
+			if (parentSchemaNode != null) {
 
-				// check if property is defined in parent class
-				final SchemaNode parentSchemaNode = schemaNodes.get(StringUtils.substringAfterLast(parentClass, "."));
-				if (parentSchemaNode != null) {
-
-					multiplicity = getMultiplicity(parentSchemaNode, propertyNameToCheck);
-
-				}
+				multiplicity = getMultiplicity(parentSchemaNode, propertyNameToCheck);
 			}
 		}
 
@@ -242,16 +240,12 @@ public class SchemaNode extends AbstractSchemaNode {
 		String relatedType = getRelatedType(this, propertyNameToCheck);
 		if (relatedType == null) {
 
-			final String parentClass = getProperty(SchemaNode.extendsClass);
-			if (parentClass != null) {
+			// check if property is defined in parent class
+			final SchemaNode parentSchemaNode = getProperty(SchemaNode.extendsClass);
+			if (parentSchemaNode != null) {
 
-				// check if property is defined in parent class
-				final SchemaNode parentSchemaNode = schemaNodes.get(StringUtils.substringAfterLast(parentClass, "."));
-				if (parentSchemaNode != null) {
+				relatedType = getRelatedType(parentSchemaNode, propertyNameToCheck);
 
-					relatedType = getRelatedType(parentSchemaNode, propertyNameToCheck);
-
-				}
 			}
 		}
 
@@ -280,6 +274,7 @@ public class SchemaNode extends AbstractSchemaNode {
 		//  - class extends FileBase => make it extend AbstractNode and implement File
 		//  - class extends built-in type => make it extend AbstractNode and implement dynamic interface
 
+		/*
 		final String tmp = getProperty(extendsClass);
 		if (tmp != null) {
 
@@ -437,7 +432,7 @@ public class SchemaNode extends AbstractSchemaNode {
 				}
 			}
 		}
-
+		*/
 	}
 
 	public void initializeGraphQL(final Map<String, SchemaNode> schemaNodes, final Map<String, GraphQLType> graphQLTypes, final Set<String> blacklist) throws FrameworkException {
@@ -461,7 +456,7 @@ public class SchemaNode extends AbstractSchemaNode {
 
 		// variables
 		final Map<String, GraphQLFieldDefinition> fields = new LinkedHashMap<>();
-		final SchemaNode parentSchemaNode                = getParentSchemaNode(schemaNodes);
+		final SchemaNode parentSchemaNode                = getProperty(SchemaNode.extendsClass);
 		final String className                           = getClassName();
 
 		// add inherited fields from superclass
@@ -720,18 +715,6 @@ public class SchemaNode extends AbstractSchemaNode {
 		return null;
 	}
 
-	public SchemaNode getParentSchemaNode(final Map<String, SchemaNode> schemaNodes) throws FrameworkException {
-
-		final String parentClass = getProperty(SchemaNode.extendsClass);
-		if (parentClass != null) {
-
-			// check if property is defined in parent class
-			return schemaNodes.get(StringUtils.substringAfterLast(parentClass, "."));
-		}
-
-		return null;
-	}
-
 	private List<SchemaNode> getInterfaceSchemaNodes(final Map<String, SchemaNode> schemaNodes) throws FrameworkException {
 
 		final List<SchemaNode> interfaces = new LinkedList<>();
@@ -773,10 +756,6 @@ public class SchemaNode extends AbstractSchemaNode {
 
 			// add type names to list of forbidden entity names
 			if (EntityNameBlacklist.contains(typeName)) {
-				throw new FrameworkException(422, "Type '" + typeName + "' already exists. To prevent unwanted/unexpected behavior this is forbidden.");
-			}
-
-			if (StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(typeName).getAsList().size() > 1) {
 				throw new FrameworkException(422, "Type '" + typeName + "' already exists. To prevent unwanted/unexpected behavior this is forbidden.");
 			}
 

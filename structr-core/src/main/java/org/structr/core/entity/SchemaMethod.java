@@ -232,13 +232,10 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	// ----- private methods -----
 	private void clearMethodCacheOfExtendingNodes() throws FrameworkException {
 
-		AbstractSchemaNode node = getProperty(schemaNode);
+		final AbstractSchemaNode node = getProperty(schemaNode);
 		if (node != null) {
-			// Find inheriting SchemaNodes and clear their method cache
-			final String fqcn = "org.structr.dynamic" + node.getName();
-			List<SchemaNode> extendingNodes = StructrApp.getInstance().nodeQuery(SchemaNode.class).and(SchemaNode.extendsClass, fqcn).getAsList();
 
-			for (final SchemaNode extendingNode : extendingNodes) {
+			for (final SchemaNode extendingNode : node.getProperty(SchemaNode.extendedByClasses)) {
 
 				extendingNode.clearCachedSchemaMethodsForInstance();
 			}
@@ -247,10 +244,10 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	private void addType(final Queue<String> typeQueue, final AbstractSchemaNode schemaNode) {
 
-		final String _extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
+		final SchemaNode _extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
 		if (_extendsClass != null) {
 
-			typeQueue.add(StringUtils.substringBefore(_extendsClass, "<"));
+			typeQueue.add(_extendsClass.getName());
 		}
 
 		final String _interfaces = schemaNode.getProperty(SchemaNode.implementsInterfaces);
