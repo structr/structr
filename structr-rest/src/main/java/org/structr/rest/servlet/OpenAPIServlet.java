@@ -42,9 +42,24 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrSchemaDefinition;
 import org.structr.schema.export.StructrTypeDefinition;
-import org.structr.schema.openapi.common.OpenAPIOneOf;
 import org.structr.schema.openapi.common.OpenAPIReference;
 import org.structr.schema.openapi.operation.*;
+import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationChangeNodePropertyKey;
+import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationClearDatabase;
+import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationCopyRelationshipProperties;
+import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationCreateLabels;
+import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationDeploy;
+import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationDeployData;
+import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationDirectFileImport;
+import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationFixNodeProperties;
+import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationFlushCaches;
+import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationLetsencrypt;
+import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationRebuildIndex;
+import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationSetNodeProperties;
+import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationSetRelationshipProperties;
+import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationSetUuid;
+import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationSnapshot;
+import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationSync;
 import org.structr.schema.openapi.parameter.OpenAPIQueryParameter;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.result.OpenAPIExampleAnyResult;
@@ -174,9 +189,19 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 	private Map<String, Object> createSecuritySchemesObject() {
 
-		final Map<String, Object> schemes = new LinkedHashMap<>();
+		final Map<String, Object> schemes    = new LinkedHashMap<>();
+		final Map<String, Object> xUserAuth  = new LinkedHashMap<>();
+		final Map<String, Object> xPassAuth  = new LinkedHashMap<>();
 		final Map<String, Object> cookieAuth = new LinkedHashMap<>();
 		final Map<String, Object> bearerAuth = new LinkedHashMap<>();
+
+		xUserAuth.put("type", "apiKey");
+		xUserAuth.put("in",   "header");
+		xUserAuth.put("name", "X-User");
+
+		xPassAuth.put("type", "apiKey");
+		xPassAuth.put("in",   "header");
+		xPassAuth.put("name", "X-Password");
 
 		cookieAuth.put("type", "apiKey");
 		cookieAuth.put("in",   "cookie");
@@ -188,6 +213,8 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		schemes.put("CookieAuth", cookieAuth);
 		schemes.put("BearerAuth", bearerAuth);
+		schemes.put("XUserAuth",  xUserAuth);
+		schemes.put("XPassAuth",  xPassAuth);
 
 		return schemes;
 	}
@@ -195,13 +222,12 @@ public class OpenAPIServlet extends AbstractDataServlet {
 	private List<Map<String, Object>> createGlobalSecurityObject() {
 
 		final List<Map<String, Object>> security = new LinkedList<>();
-		final Map<String, Object> securitySchemes = new LinkedHashMap<>();
-		final Map<String, Object> auth    = new LinkedHashMap<>();
 
-		securitySchemes.put("CookieAuth", List.of());
-		securitySchemes.put("BearerAuth", List.of());
+		security.add(Map.of("CookieAuth", List.of()));
+		security.add(Map.of("BearerAuth", List.of()));
 
-		security.add(securitySchemes);
+		// must be used together
+		security.add(Map.of("XUserAuth", List.of(), "XPassAuth", List.of()));
 
 		return security;
 	}
@@ -214,7 +240,13 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 			if (type.isSelected(tag)) {
 
-				tags.add(createTagObject(type.getName(), "Operations for type " + type.getName()));
+				String summary = type.getSummary();
+				if (StringUtils.isBlank(summary)) {
+
+					summary = "Operations for type " + type.getName();
+				}
+
+				tags.add(createTagObject(type.getName(), summary));
 			}
 		}
 
@@ -237,7 +269,13 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		// base classes
 		map.put("AbstractNode", new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, PropertyView.Public, 0));
-		map.put("Principal",    new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, PropertyView.Public, 0));
+		map.put("User", new OpenAPIObjectSchema(
+			"A user",
+			new OpenAPIPrimitiveSchema("UUID",         "id",     "string",  null, "bccfae68ecab45cab9e6c061077cea73"),
+			new OpenAPIPrimitiveSchema("Type",         "type",   "string",  null, "User"),
+			new OpenAPIPrimitiveSchema("IsUser flag",  "isUser", "boolean", null, true),
+			new OpenAPIPrimitiveSchema("Name",         "name",   "string",  null, "admin")
+		));
 
 		map.put("ErrorToken",  new OpenAPIObjectSchema("An error token used in semantic error messages returned by the REST server.",
 			new OpenAPIPrimitiveSchema("The type that caused the error.", "type",     "string"),
@@ -253,10 +291,10 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		));
 
 		map.put("TokenResponse", new OpenAPIObjectSchema("Contains the bearer token and refresh token that can be used to authenticate further calls to any other resources.",
-			new OpenAPIPrimitiveSchema("The Bearer token.",    "access_token",    "string"),
-			new OpenAPIPrimitiveSchema("The refresh token that can be used to optain more Bearer tokens.",    "refresh_token",    "string"),
-			new OpenAPIPrimitiveSchema("The exiration timestamp of the Bearer token.",    "expiration_date",    "integer"),
-			new OpenAPIPrimitiveSchema("The token type.",    "token_type",    "string")
+			new OpenAPIPrimitiveSchema("The Bearer token.",                                                "access_token",    "string"),
+			new OpenAPIPrimitiveSchema("The refresh token that can be used to optain more Bearer tokens.", "refresh_token",   "string"),
+			new OpenAPIPrimitiveSchema("The exiration timestamp of the Bearer token.",                     "expiration_date", "integer"),
+			new OpenAPIPrimitiveSchema("The token type.",                                                  "token_type",      "string")
 		));
 
 		return map;
@@ -264,13 +302,46 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 	private Map<String, Object> createPathsObject(final StructrSchemaDefinition schema, final String tag) {
 
-		final Map<String, Object> paths = new LinkedHashMap<>();
+		final Map<String, Object> paths = new TreeMap<>();
 
-		paths.putAll(new OpenAPIResetPasswordOperation());
-		paths.putAll(new OpenAPIRegistrationOperation());
-		paths.putAll(new OpenAPILoginOperation());
-		paths.putAll(new OpenAPITokenOperation());
-		paths.putAll(new OpenAPILogoutOperation());
+		// maintenance endpoints are only visible when there is no tag set
+		if (StringUtils.isBlank(tag)) {
+
+			// maintenance endpoints
+			// Note: if you change / add something here, please also update the docs online!
+
+			paths.putAll(new OpenAPIMaintenanceOperationChangeNodePropertyKey());
+			paths.putAll(new OpenAPIMaintenanceOperationClearDatabase());
+			paths.putAll(new OpenAPIMaintenanceOperationCopyRelationshipProperties());
+			paths.putAll(new OpenAPIMaintenanceOperationCreateLabels());
+			paths.putAll(new OpenAPIMaintenanceOperationDeploy());
+			paths.putAll(new OpenAPIMaintenanceOperationDeployData());
+			paths.putAll(new OpenAPIMaintenanceOperationDirectFileImport());
+			paths.putAll(new OpenAPIMaintenanceOperationFixNodeProperties());
+			paths.putAll(new OpenAPIMaintenanceOperationFlushCaches());
+			paths.putAll(new OpenAPIMaintenanceOperationLetsencrypt());
+			paths.putAll(new OpenAPIMaintenanceOperationRebuildIndex());
+			paths.putAll(new OpenAPIMaintenanceOperationSetNodeProperties());
+			paths.putAll(new OpenAPIMaintenanceOperationSetRelationshipProperties());
+			paths.putAll(new OpenAPIMaintenanceOperationSetUuid());
+			paths.putAll(new OpenAPIMaintenanceOperationSnapshot());
+			paths.putAll(new OpenAPIMaintenanceOperationSync());
+
+			// Note: if you change / add something here, please also update the docs online!
+		}
+
+		// session endpoints are only visible when there is no tag set
+		if (StringUtils.isBlank(tag)) {
+
+			// session handling and user management
+			paths.putAll(new OpenAPIResetPasswordOperation());
+			paths.putAll(new OpenAPIRegistrationOperation());
+			paths.putAll(new OpenAPILoginOperation());
+			paths.putAll(new OpenAPITokenOperation());
+			paths.putAll(new OpenAPILogoutOperation());
+		}
+
+		// add all other endpoints filtered by tag
 		paths.putAll(schema.serializeOpenAPIOperations(tag));
 
 		return paths;
@@ -290,45 +361,56 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		final Map<String, Object> responses = new LinkedHashMap<>();
 
-		responses.put("created", new OpenAPIRequestResponse("Created",
-			new OpenAPIResultSchema(new OpenAPIArraySchema("The UUID(s) of the created object(s).", Map.of("type", "string", "example", NodeServiceCommand.getNextUuid())), false),
-			new OpenAPIExampleAnyResult(Arrays.asList("cf8b18f28b7c4dada3085656e78d9bd2"))
+		// 200 OK
+		responses.put("ok", new OpenAPIRequestResponse("The request was executed successfully.",
+			new OpenAPIResultSchema(new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, "public", 0), true),
+			new OpenAPIExampleAnyResult(List.of(), false)
 		));
 
-		responses.put("loginError", new OpenAPIRequestResponse("Unauthorized",
+		// 201 Created
+		responses.put("created", new OpenAPIRequestResponse("Created",
+			new OpenAPIResultSchema(new OpenAPIArraySchema("The UUID(s) of the created object(s).", Map.of("type", "string", "example", NodeServiceCommand.getNextUuid())), false),
+			new OpenAPIExampleAnyResult(Arrays.asList(NodeServiceCommand.getNextUuid()), true)
+		));
+
+		// 400 Bad Request
+		responses.put("badRequest", new OpenAPIRequestResponse("The request was not valid and should not be repeated without modifications.",
+			new OpenAPIReference("#/components/schemas/RESTResponse"),
+			Map.of("code", "400", "message", "Please specify sync file", "errors", List.of())
+		));
+
+		// 401 Unauthorized
+		responses.put("unauthorized", new OpenAPIRequestResponse(
+			"Access denied or wrong password.\n\nIf the error message is \"Access denied\", you need to configure a resource access grant for this endpoint."
+			+ " otherwise the error message is \"Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!\".",
+			new OpenAPIReference("#/components/schemas/RESTResponse"),
+			Map.of("code", "401", "message", "Access denied", "errors", List.of())
+		));
+
+		responses.put("loginError", new OpenAPIRequestResponse("Wrong username or password, or user is blocked.",
 			new OpenAPIReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "401", "message", "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!")
 		));
 
-		responses.put("tokenError", new OpenAPIRequestResponse("Unauthorized",
-				new OpenAPIReference("#/components/schemas/RESTResponse"),
-				new OpenAPIOneOf(
-					Map.of("code", "401", "message", "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!"),
-					Map.of("code", "401", "message", "The given access_token or refresh_token is invalid!")
-				)
-		));
-
-		responses.put("grantError", new OpenAPIRequestResponse("Forbidden",
+		responses.put("tokenError", new OpenAPIRequestResponse("The given access token or refresh token is invalid.",
 			new OpenAPIReference("#/components/schemas/RESTResponse"),
-			Map.of("code", "401", "message", "Unauthorized", "errors", List.of())
+			Map.of("code", "401", "message", "The given access_token or refresh_token is invalid!")
 		));
 
-		responses.put("unauthorized", new OpenAPIRequestResponse("Unauthorized",
-			new OpenAPIReference("#/components/schemas/RESTResponse"),
-			Map.of("code", "401", "message", "Unauthorized", "errors", List.of())
-		));
-
-		responses.put("forbidden", new OpenAPIRequestResponse("Forbidden",
+		// 403 Forbidden
+		responses.put("forbidden", new OpenAPIRequestResponse("The request was denied due to insufficient access rights to the object.",
 			new OpenAPIReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "403", "message", "Forbidden", "errors", List.of())
 		));
 
-		responses.put("notFound", new OpenAPIRequestResponse("Not Found",
+		// 404 Not Found
+		responses.put("notFound", new OpenAPIRequestResponse("The desired object was not found.",
 			new OpenAPIReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "404", "message", "Not Found", "errors", List.of())
 		));
 
-		responses.put("validationError", new OpenAPIRequestResponse("Validation Error",
+		// 422 Unprocessable Entity
+		responses.put("validationError", new OpenAPIRequestResponse("The request entity was not valid, or validation failed.",
 			new OpenAPIReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "422", "message", "Unable to commit transaction, validation failed", "errors", List.of(
 				Map.of("type", "Folder", "property", "name", "token", "must_not_be_empty"),

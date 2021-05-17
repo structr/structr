@@ -29,7 +29,7 @@ public class OpenAPIRequestResponse extends TreeMap<String, Object> {
 	}
 
 	public OpenAPIRequestResponse(final String description, final Map<String, Object> schema, final Map<String, Object> example) {
-		this(description, schema, null, null);
+		this(description, schema, example, null);
 	}
 
 	public OpenAPIRequestResponse(final String description, final Map<String, Object> schema, final Map<String, Object> example, final Map<String, Object> headers) {

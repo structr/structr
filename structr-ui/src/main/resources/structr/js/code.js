@@ -150,11 +150,16 @@ var _Code = {
 	},
 	addAvailableTagsForEntities: function(entities) {
 
+		// don't show internal tags (core, ui, html)
+		let tagBlacklist = ['core', 'ui', 'html'];
+
 		for (let entity of entities) {
 
 			if (entity.tags) {
+
 				for (let tag of entity.tags) {
-					if (!_Code.availableTags.includes(tag)) {
+
+					if (!_Code.availableTags.includes(tag) && !tagBlacklist.includes(tag)) {
 						_Code.availableTags.push(tag);
 					}
 				}
@@ -772,6 +777,27 @@ var _Code = {
 					});
 					break;
 
+				case 'SchemaRelationshipNode': {
+
+					let name = entity.name || '[unnamed]';
+					let listItemAttributes = {};
+
+					list.push({
+						id: treeId,
+						text:  name,
+						children: false,
+						icon: 'fa fa-' + icon,
+						li_attr: listItemAttributes,
+						data: {
+							type: entity.type,
+							name: entity.name,
+							entity: entity
+						}
+					});
+
+					break;
+				}
+
 				default:
 
 					var name = entity.name || '[unnamed]';
@@ -1029,7 +1055,7 @@ var _Code = {
 					let attrName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
 
 					return {
-						id: identifier.source + '-' + rel.id + '-' + attrName,
+						id: rel.id,
 						type: rel.type,
 						name: attrName,
 						propertyType: '',
@@ -1340,7 +1366,8 @@ var _Code = {
 
 			var selection = {
 				id: data.node.id,
-				updateLocationStack: true
+				updateLocationStack: true,
+				nodeData: data.node.data
 			};
 
 			if (data.node.data) {
@@ -1371,7 +1398,6 @@ var _Code = {
 
 				switch (identifier.memberId) {
 
-					case 'custom':
 					case 'searchresults':
 					case 'undefined':
 					case 'null':
@@ -1474,6 +1500,10 @@ var _Code = {
 				case 'SchemaGroup':
 					_Code.displaySchemaGroupContent(data, identifier);
 					break;
+
+				case 'SchemaRelationshipNode':
+					_Code.displaySchemaRelationshipNodeContent(data, identifier);
+					break;
 			}
 
 		} else {
@@ -1545,9 +1575,15 @@ var _Code = {
 						_Code.updateDirtyFlag(result);
 					});
 
+					$('input[type=checkbox]', apiTab).on('change', function() {
+						_Code.updateDirtyFlag(result);
+					});
+
 					$('input[type=text]', apiTab).on('keyup', function() {
 						_Code.updateDirtyFlag(result);
 					});
+
+					Structr.activateCommentsInElement(apiTab);
 				});
 
 				// manage working sets
@@ -1894,12 +1930,32 @@ var _Code = {
 
 		//}, 'schema');
 	},
+	displaySchemaRelationshipNodeContent: function (data, identifier) {
+
+		Command.get(identifier.obj.nodeData.entity.id, null, function(entity) {
+
+			Command.get(entity.sourceId, null, function(sourceNode) {
+
+				Command.get(entity.targetId, null, function(targetNode) {
+
+					Structr.fetchHtmlTemplate('code/property.remote', { identifier: identifier }, function(html) {
+
+						codeContents.empty();
+						codeContents.append(html);
+
+						_Schema.loadRelationship(entity, $('#headEl', codeContents), $('#contentEl', codeContents), sourceNode, targetNode, _Code.refreshTree);
+					});
+				});
+			});
+		});
+
+	},
 	displaySchemaMethodContent: function(data, lastOpenTab, cursorInfo) {
 
 		var identifier = _Code.splitIdentifier(data);
 
 		// ID of schema method can either be in typeId (for global schema methods) or in memberId (for type methods)
-		Command.get(identifier.memberId || identifier.typeId, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,isStatic,schemaNode,source,comment,returnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters', function(result) {
+		Command.get(identifier.memberId || identifier.typeId, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,isStatic,schemaNode,source,returnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', function(result) {
 
 			_Code.updateRecentlyUsed(result, identifier.source, data.updateLocationStack);
 
@@ -1925,8 +1981,6 @@ var _Code = {
 				_Code.setCodeMirorUpdateMode(result, sourceEditor);
 				_Code.setupAutocompletion(sourceEditor, result.id, true);
 
-				_Code.editPropertyContent(result, 'comment', $('#tabView-comment', codeContents));
-
 				if (cursorInfo && cursorInfo.line && cursorInfo.ch) {
 					sourceEditor.setCursor(cursorInfo);
 					sourceEditor.focus();
@@ -1936,7 +1990,9 @@ var _Code = {
 					sourceEditor.performLint();
 				});
 
-				if (result.codeType === 'java') {
+				let nameBlacklist = ['onCreate', 'onSave', 'onDelete', 'afterCreate'];
+
+				if (result.codeType === 'java' || nameBlacklist.includes(result.name)) {
 
 					$('li[data-name=api]').hide();
 
@@ -2010,11 +2066,17 @@ var _Code = {
 							_Code.updateDirtyFlag(result);
 						});
 
+						$('input[type=checkbox]', apiTab).on('change', function() {
+							_Code.updateDirtyFlag(result);
+						});
+
 						$('input[type=text]', apiTab).on('keyup', function() {
 							_Code.updateDirtyFlag(result);
 						});
 
 						_Code.editPropertyContent(result, 'returnType', $('.editor-wrapper', apiTab), {mode: "application/json", lint: true, gutters: ["CodeMirror-lint-markers"]});
+
+						Structr.activateCommentsInElement(apiTab);
 					});
 				}
 
@@ -3112,7 +3174,6 @@ var _Code = {
 	},
 	runGlobalSchemaMethod: function(schemaMethod) {
 
-		let cleanedComment = (schemaMethod.comment && schemaMethod.comment.trim() !== '') ? schemaMethod.comment.replaceAll("\n", "<br>") : '';
 		Structr.dialog('Run global schema method ' + schemaMethod.name, function() {}, function() {
 			$('#run-method').remove();
 			$('#clear-log').remove();
@@ -3127,10 +3188,6 @@ var _Code = {
 		var addParamBtn = $('<i title="Add parameter" class="button ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
 		paramsBox.append(addParamBtn);
 		dialog.append(paramsOuterBox);
-
-		if (cleanedComment.trim() !== '') {
-			dialog.append('<div id="global-method-comment"><h3 class="heading-narrow">Comment</h3>' + cleanedComment + '</div>');
-		}
 
 		Structr.appendInfoTextToElement({
 			element: $('#params h3'),

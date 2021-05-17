@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
@@ -44,7 +43,6 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
-import org.structr.test.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -62,12 +60,14 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
+import org.structr.test.common.StructrTest;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 /**
  *
@@ -338,7 +338,7 @@ public class SchemaTest extends StructrTest {
 			project.addDateProperty("startDate", "public", "ui");
 
 			// methods
-			project.addMethod("onCreate", "set(this, 'name', 'wurst')", "comment for wurst");
+			project.addMethod("onCreate", "set(this, 'name', 'wurst')");
 
 
 
@@ -718,8 +718,8 @@ public class SchemaTest extends StructrTest {
 					+ " self.nameAfter  = mod.after.name;"
 					+ " self.descBefore = mod.before.desc;"
 					+ " self.descAfter  = mod.after.desc;"
-				+ " }",
-			"");
+				+ " }"
+			);
 
 			// add new type
 			StructrSchema.extendDatabaseSchema(app, schema);

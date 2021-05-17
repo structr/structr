@@ -1950,7 +1950,55 @@ var Structr = {
 				break;
 
 			case "RESOURCE_ACCESS":
-				new MessageBuilder().title('REST Access to \'' + data.uri + '\' denied').warning(data.message).requiresConfirmation().allowConfirmAll().show();
+
+				let builder = new MessageBuilder().title('REST Access to \'' + data.uri + '\' denied').warning(data.message).requiresConfirmation().allowConfirmAll();
+
+				builder.specialInteractionButton('Go to Security and create Grant', function (btn) {
+
+					let maskIndex = (data.validUser ? 'AUTH_USER_' : 'NON_AUTH_USER_') + data.method.toUpperCase();
+					let flags     = _ResourceAccessGrants.mask[maskIndex] || 0;
+
+					let additionalData = {};
+
+					if (data.validUser === true) {
+						additionalData.visibleToAuthenticatedUsers = true;
+					} else {
+						additionalData.visibleToPublicUsers = true;
+					}
+
+					_ResourceAccessGrants.createResourceAccessGrant(data.signature, flags, null, additionalData);
+
+					let grantPagerConfig = LSWrapper.getItem(pagerDataKey + 'resource-access');
+					if (!grantPagerConfig) {
+						grantPagerConfig = {
+							id: 'resource-access',
+							type: 'resource-access',
+							page: 1,
+							pageSize: 25,
+							sort: "signature",
+							order: "asc"
+						};
+					} else {
+						grantPagerConfig = JSON.parse(grantPagerConfig);
+					}
+					grantPagerConfig.filters = {
+						flags: false,
+						signature: data.signature
+					};
+					LSWrapper.setItem(pagerDataKey + 'resource-access', JSON.stringify(grantPagerConfig));
+
+					let resourceAccessTab = 'resourceAccess';
+
+					if (Structr.getActiveModule()._moduleName === _Security._moduleName) {
+						_Security.selectTab(resourceAccessTab);
+					} else {
+						LSWrapper.setItem(_Security.securityTabKey, resourceAccessTab);
+						window.location.href = '#security';
+					}
+				}, 'Dismiss');
+
+				builder.show();
+
 				break;
 
 			case "SCRIPTING_ERROR":
@@ -2081,20 +2129,27 @@ var Structr = {
 
 		$('[data-comment]', elem).each(function(idx, el) {
 
-			let config = {
-				text: $(el).data("comment"),
-				element: $(el),
-				css: {
-					"margin": "0 4px",
-					"vertical-align": "top"
-				}
-			};
+			let $el = $(el);
 
-			let elCommentConfig = $(el).data('commentConfig') || {};
+			if (!$el.data('commentApplied')) {
 
-			// base config is overridden by the defaults parameter which is overriden by the element config
-			let infoConfig = Object.assign(config, defaults, elCommentConfig);
-			Structr.appendInfoTextToElement(infoConfig);
+				$el.data('commentApplied', true);
+
+				let config = {
+					text: $el.data("comment"),
+					element: $el,
+					css: {
+						"margin": "0 4px",
+						"vertical-align": "top"
+					}
+				};
+
+				let elCommentConfig = $el.data('commentConfig') || {};
+
+				// base config is overridden by the defaults parameter which is overriden by the element config
+				let infoConfig = Object.assign(config, defaults, elCommentConfig);
+				Structr.appendInfoTextToElement(infoConfig);
+			}
 		});
 
 	},

@@ -44,6 +44,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
@@ -663,6 +664,10 @@ public abstract class Function<S, T> extends Hint {
 
 					res.add(Function.wrapNumberInGraphObjectMap((Number)o));
 
+				} else if (o instanceof Boolean) {
+
+					res.add(Function.wrapBooleanInGraphObjectMap((Boolean)o));
+
 				} else if (o instanceof Iterable) {
 
 					res.add(Function.recursivelyWrapIterableInMap((Iterable)o, outputDepth));
@@ -698,6 +703,10 @@ public abstract class Function<S, T> extends Hint {
 		} else if (sourceObject instanceof Number) {
 
 			return Function.wrapNumberInGraphObjectMap((Number)sourceObject);
+
+		} else if (sourceObject instanceof Boolean) {
+
+			return Function.wrapBooleanInGraphObjectMap((Boolean)sourceObject);
 		}
 
 		return null;
@@ -709,7 +718,6 @@ public abstract class Function<S, T> extends Hint {
 		final GraphObjectMap stringWrapperObject = new GraphObjectMap();
 		stringWrapperObject.put(new StringProperty("value"), str);
 		return stringWrapperObject;
-
 	}
 
 	public static GraphObjectMap wrapNumberInGraphObjectMap (final Number num) {
@@ -727,7 +735,15 @@ public abstract class Function<S, T> extends Hint {
 		}
 
 		return numberWrapperObject;
+	}
 
+	public static GraphObjectMap wrapBooleanInGraphObjectMap (final Boolean bool) {
+
+		final GraphObjectMap wrapperObject = new GraphObjectMap();
+
+		wrapperObject.put(new BooleanProperty("value"), bool);
+
+		return wrapperObject;
 	}
 
 	public static Object numberOrString(final String value) {

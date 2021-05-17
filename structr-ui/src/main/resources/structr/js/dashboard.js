@@ -442,18 +442,6 @@ var _Dashboard = {
 					methodRow.append(methodName).append('<td><button id="run-' + method.id + '" class="action button">Run now</button></td>');
 					maintenanceList.append(methodRow);
 
-					let cleanedComment = (method.comment && method.comment.trim() !== '') ? method.comment.replaceAll("\n", "<br>") : '';
-
-					if (cleanedComment.trim() !== '') {
-						Structr.appendInfoTextToElement({
-							element: methodName,
-							text: cleanedComment,
-							helpElementCss: {
-								"line-height": "initial"
-							}
-						});
-					}
-
 					$('button#run-' + method.id).on('click', function() {
 						_Code.runGlobalSchemaMethod(method);
 					});

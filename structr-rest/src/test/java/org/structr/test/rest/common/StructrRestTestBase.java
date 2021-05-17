@@ -95,11 +95,13 @@ public abstract class StructrRestTestBase {
 		Settings.ApplicationHost.setValue(host);
 		Settings.HttpPort.setValue(httpPort);
 
-		Settings.Servlets.setValue("JsonRestServlet");
+		Settings.Servlets.setValue("JsonRestServlet OpenAPIServlet");
 		Settings.RestAuthenticator.setValue(SuperUserAuthenticator.class.getName());
 		Settings.RestResourceProvider.setValue(DefaultResourceProvider.class.getName());
 		Settings.RestServletPath.setValue(restUrl);
 		Settings.RestUserClass.setValue("");
+		Settings.OpenAPIAuthenticator.setValue(SuperUserAuthenticator.class.getName());
+		Settings.OpenAPIResourceProvider.setValue(DefaultResourceProvider.class.getName());
 
 		final Services services = Services.getInstance();
 

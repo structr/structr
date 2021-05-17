@@ -45,7 +45,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 		buf.append("MATCH (n");
 
 		// Only add :NodeInterface label when query has predicates, single label queries are much faster.
-		if (hasPredicates) {
+		if (hasPredicates && typeLabel != null) {
 			buf.append(":NodeInterface");
 		}
 

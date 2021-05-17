@@ -19,12 +19,7 @@
 package org.structr.messaging.implementation.mqtt;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +31,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MQTTClientConnection implements MqttCallback {
+public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended {
 	private MemoryPersistence persistence = new MemoryPersistence();
 	private MqttConnectOptions connOpts;
 	private MqttClient client;
@@ -51,6 +46,7 @@ public class MQTTClientConnection implements MqttCallback {
 		client = new MqttClient(info.getMainBrokerURL(), info.getUuid(), persistence);
 		client.setCallback(this);
 		connOpts = new MqttConnectOptions();
+
 		if (info.getFallbackBrokerURLs() != null) {
 			String[] fallBackBrokers;
 			if (info.getMainBrokerURL() != null) {
@@ -63,8 +59,10 @@ public class MQTTClientConnection implements MqttCallback {
 
 				fallBackBrokers = info.getFallbackBrokerURLs();
 			}
+
 			connOpts.setServerURIs(fallBackBrokers);
 		}
+
 		connOpts.setCleanSession(true);
 
 		connOpts.setAutomaticReconnect(true);
@@ -172,27 +170,16 @@ public class MQTTClientConnection implements MqttCallback {
 
 	@Override
 	public void connectionLost(Throwable cause) {
-		try{
-
-			info.connectionStatusCallback(false);
-			connect();
-			MQTTContext.subscribeAllTopics(info);
-		} catch (FrameworkException ex) {
-
-			try {
-
-				logger.warn("Removing faulty connection from MQTTContext.");
-				MQTTContext.disconnect(info);
-			} catch (FrameworkException ex1) {
-
-				logger.error("Could not remove connection from MQTTContext.");
-			}
-			logger.error("Could not reconnect to MQTT broker.");
-		}
+		info.connectionStatusCallback(false);
 	}
 
 	@Override
 	public void deliveryComplete(IMqttDeliveryToken token) {
+	}
+
+	@Override
+	public void connectComplete(boolean b, String s) {
+		info.connectionStatusCallback(b);
 	}
 
 	private class CallbackWorker implements Runnable {

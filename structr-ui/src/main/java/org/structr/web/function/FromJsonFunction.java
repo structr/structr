@@ -83,39 +83,53 @@ public class FromJsonFunction extends UiCommunityFunction {
 		final Gson gson = new GsonBuilder().create();
 		List<Map<String, Object>> objects = new LinkedList<>();
 
-		if (StringUtils.startsWith(source, "[")) {
+		try {
 
-			final List<Map<String, Object>> list = gson.fromJson(source, new TypeToken<List<Map<String, Object>>>() {
-			}.getType());
-			final List<GraphObjectMap> elements = new LinkedList<>();
+			if (StringUtils.startsWith(source, "[")) {
 
-			if (list != null) {
+				final List<Map<String, Object>> list = gson.fromJson(source, new TypeToken<List<Map<String, Object>>>() {
+				}.getType());
+				final List<GraphObjectMap> elements = new LinkedList<>();
 
-				objects.addAll(list);
-			}
+				if (list != null) {
 
-			for (final Map<String, Object> src : objects) {
+					objects.addAll(list);
+				}
 
+				for (final Map<String, Object> src : objects) {
+
+					final GraphObjectMap destination = new GraphObjectMap();
+					elements.add(destination);
+
+					recursivelyConvertMapToGraphObjectMap(destination, src, 0);
+				}
+
+				return elements;
+
+			} else if (StringUtils.startsWith(source, "{")) {
+
+				final Map<String, Object> value = gson.fromJson(source, new TypeToken<Map<String, Object>>() {
+				}.getType());
 				final GraphObjectMap destination = new GraphObjectMap();
-				elements.add(destination);
 
-				recursivelyConvertMapToGraphObjectMap(destination, src, 0);
+				if (value != null) {
+
+					recursivelyConvertMapToGraphObjectMap(destination, value, 0);
+				}
+
+				return destination;
 			}
 
-			return elements;
+		} catch (JsonSyntaxException jse) {
+			// Exception while parsing as Map - try default as object next
+		}
 
-		} else if (StringUtils.startsWith(source, "{")) {
+		// Fallback on default behavior (works for primitives and arrays of primitives or mixed content)
+		final Object value = gson.fromJson(source, Object.class);
 
-			final Map<String, Object> value = gson.fromJson(source, new TypeToken<Map<String, Object>>() {
-			}.getType());
-			final GraphObjectMap destination = new GraphObjectMap();
+		if (value != null) {
 
-			if (value != null) {
-
-				recursivelyConvertMapToGraphObjectMap(destination, value, 0);
-			}
-
-			return destination;
+			return UiFunction.toGraphObject(value, 3);
 		}
 
 		return null;

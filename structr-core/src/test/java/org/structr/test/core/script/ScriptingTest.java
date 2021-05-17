@@ -2581,8 +2581,8 @@ public class ScriptingTest extends StructrTest {
 			final JsonType dummyType = schema.addType("DummyType");
 			final JsonType newType   = schema.addType("MyDynamicType");
 
-			newType.addMethod("onCreation",    "is(eq(this.name, 'forbiddenName'), error('myError', '" + expectedErrorToken + "', 'creating this object is not allowed'))", "");
-			newType.addMethod("afterCreation", "create('DummyType', 'name', 'this should not be possible!')", "");
+			newType.addMethod("onCreation",    "is(eq(this.name, 'forbiddenName'), error('myError', '" + expectedErrorToken + "', 'creating this object is not allowed'))");
+			newType.addMethod("afterCreation", "create('DummyType', 'name', 'this should not be possible!')");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
@@ -2830,9 +2830,9 @@ public class ScriptingTest extends StructrTest {
 
 			customer.relate(project, "project", Cardinality.OneToOne, "customer", "project");
 
-			customer.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.this.log = JSON.stringify(mods); }", "");
-			project.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.this.log = JSON.stringify(mods); }", "");
-			task.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.this.log = JSON.stringify(mods); }", "");
+			customer.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.this.log = JSON.stringify(mods); }");
+			project.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.this.log = JSON.stringify(mods); }");
+			task.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.this.log = JSON.stringify(mods); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -2981,10 +2981,10 @@ public class ScriptingTest extends StructrTest {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
-			createTestType(schema, "Test1", " 	 set(this, 'c', 'passed')  ",   "   \n 	set(this, 's', 'passed')\n	\n    \n  ", "StructrScript with newlines");
-			createTestType(schema, "Test2", "set(this, 'c', 'passed')",             "set(this, 's', 'passed')",                  "StructrScript without newlines");
-			createTestType(schema, "Test3", "   { Structr.this.c = 'passed'; }   ", " 	 \n	  { Structr.this.s = 'passed'; }\n\n	\n    \n "  ,    "JavaScript with newlines");
-			createTestType(schema, "Test4", "{ Structr.this.c = 'passed'; }",       "{ Structr.this.s = 'passed'; }",            "JavaScript without newlines");
+			createTestType(schema, "Test1", " 	 set(this, 'c', 'passed')  ",   "   \n 	set(this, 's', 'passed')\n	\n    \n  ");                 // "StructrScript with newlines"
+			createTestType(schema, "Test2", "set(this, 'c', 'passed')",             "set(this, 's', 'passed')");                                  // "StructrScript without newlines"
+			createTestType(schema, "Test3", "   { Structr.this.c = 'passed'; }   ", " 	 \n	  { Structr.this.s = 'passed'; }\n\n	\n    \n ");  // "JavaScript with newlines"
+			createTestType(schema, "Test4", "{ Structr.this.c = 'passed'; }",       "{ Structr.this.s = 'passed'; }");                            // "JavaScript without newlines"
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -3094,10 +3094,10 @@ public class ScriptingTest extends StructrTest {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
-			createTestType(schema, "Test1", " 	 set(this, 'c', 'passed')  ",   "    	set(this, 's', 'passed')	", "StructrScript with whitespace");
-			createTestType(schema, "Test2", "set(this, 'c', 'passed')",             "set(this, 's', 'passed')",                "StructrScript without whitespace");
-			createTestType(schema, "Test3", "   { Structr.this.c = 'passed'; }   ", "   { Structr.this.s = 'passed'; }   ",    "JavaScript with whitespace");
-			createTestType(schema, "Test4", "{ Structr.this.c = 'passed'; }",       "{ Structr.this.s = 'passed'; }",          "JavaScript without whitespace");
+			createTestType(schema, "Test1", " 	 set(this, 'c', 'passed')  ", "    	set(this, 's', 'passed')	");          // "StructrScript with whitespace"
+			createTestType(schema, "Test2", "set(this, 'c', 'passed')", "set(this, 's', 'passed')");                         // "StructrScript without whitespace"
+			createTestType(schema, "Test3", "   { Structr.this.c = 'passed'; }   ", "   { Structr.this.s = 'passed'; }   "); // "JavaScript with whitespace"
+			createTestType(schema, "Test4", "{ Structr.this.c = 'passed'; }", "{ Structr.this.s = 'passed'; }");             // "JavaScript without whitespace"
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -4418,7 +4418,7 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType test  = schema.addType("Test");
 
-			test.addMethod("doTest", "{ let arr = []; arr.push({ name: 'test1' }); arr.push({ name: 'test2' }); arr.push({ name: 'test2' }); return arr; }", "");
+			test.addMethod("doTest", "{ let arr = []; arr.push({ name: 'test1' }); arr.push({ name: 'test2' }); arr.push({ name: 'test2' }); return arr; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -5708,7 +5708,7 @@ public class ScriptingTest extends StructrTest {
 			p1.setWriteFunction("{$.this.doTest($.get('value'));}");
 			p2.setWriteFunction("{$.this.doTest($.get('value'));}");
 
-			project.addMethod("doTest", "{ $.this.result =  $.retrieve('key1') + $.retrieve('key2'); }", "");
+			project.addMethod("doTest", "{ $.this.result =  $.retrieve('key1') + $.retrieve('key2'); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -5772,11 +5772,11 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType project  = schema.addType("StaticMethodTest");
 
-			JsonMethod staticCallTestMethod  = project.addMethod("doStaticTest", "{}", "");
-			JsonMethod dynamicCallTestMethod = project.addMethod("doDynamicTest", "{}", "");
+			JsonMethod staticCallTestMethod  = project.addMethod("doStaticTest", "{}");
+			JsonMethod dynamicCallTestMethod = project.addMethod("doDynamicTest", "{}");
 
-			JsonMethod staticThisTestMethod  = project.addMethod("doStaticTestWithThis", "{ return $.this.type; }", "");
-			JsonMethod dynamicThisTestMethod = project.addMethod("doDynamicTestWithThis", "{ return $.this.type; }", "");
+			JsonMethod staticThisTestMethod  = project.addMethod("doStaticTestWithThis", "{ return $.this.type; }");
+			JsonMethod dynamicThisTestMethod = project.addMethod("doDynamicTestWithThis", "{ return $.this.type; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6037,15 +6037,15 @@ public class ScriptingTest extends StructrTest {
 
 
 	// ----- private methods ----
-	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource, final String comment) {
+	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 
 		final JsonType test1    = schema.addType(name);
 
 		test1.addStringProperty("c");
 		test1.addStringProperty("s");
 
-		test1.addMethod("onCreation",     createSource, comment);
-		test1.addMethod("onModification", saveSource, comment);
+		test1.addMethod("onCreation",     createSource);
+		test1.addMethod("onModification", saveSource);
 
 	}
 

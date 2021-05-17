@@ -125,7 +125,7 @@ public class RegistrationResource extends Resource {
 			final String emailString             = (String) propertySet.get("eMail");
 
 			if (StringUtils.isEmpty(emailString)) {
-				return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
+				throw new FrameworkException(422, "No e-mail address given.");
 			}
 
 			final String localeString = (String) propertySet.get("locale");
@@ -167,8 +167,7 @@ public class RegistrationResource extends Resource {
 
 				if (!mailSuccess) {
 
-					// return 400 Bad request
-					return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
+					throw new FrameworkException(503, "Unable to send confirmation e-mail.");
 
 				}
 
@@ -188,15 +187,13 @@ public class RegistrationResource extends Resource {
 
 			} else {
 
-				// return 400 Bad request
-				return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
+				throw new FrameworkException(503, "Unable to create new user.");
 
 			}
 
 		} else {
 
-			// return 400 Bad request
-			return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
+			throw new FrameworkException(422, "No e-mail address given.");
 		}
 	}
 
@@ -279,7 +276,7 @@ public class RegistrationResource extends Resource {
 
 		} catch (FrameworkException ex) {
 
-			LoggerFactory.getLogger(RegistrationResource.class.getName()).warn("Could not get mail template for key " + key, ex);
+			logger.warn("Could not get mail template for key " + key, ex);
 		}
 
 		return null;
@@ -308,7 +305,7 @@ public class RegistrationResource extends Resource {
 
 		} catch (FrameworkException ex) {
 
-			LoggerFactory.getLogger(RegistrationResource.class.getName()).warn("Could not get mail template for key " + defaultKey, ex);
+			logger.warn("Could not get mail template for key " + defaultKey, ex);
 		}
 
 		return null;
@@ -340,7 +337,7 @@ public class RegistrationResource extends Resource {
 	 * @param confKey
 	 * @return user
 	 */
-	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final String confKey) {
+	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final String confKey) throws FrameworkException {
 
 		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, confKey);
 	}
@@ -358,7 +355,7 @@ public class RegistrationResource extends Resource {
 	 * @param confKey
 	 * @return user
 	 */
-	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final String confKey) {
+	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final String confKey) throws FrameworkException {
 
 		return createUser(securityContext, credentialKey, credentialValue, propertySet, false, confKey);
 	}
@@ -376,7 +373,7 @@ public class RegistrationResource extends Resource {
 	 * @param confKey
 	 * @return user
 	 */
-	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final String confKey) {
+	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final String confKey) throws FrameworkException {
 
 		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate, confKey);
 	}
@@ -395,7 +392,7 @@ public class RegistrationResource extends Resource {
 	 * @param confKey
 	 * @return user
 	 */
-	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final Class userClass, final String confKey) {
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final Class userClass, final String confKey) throws FrameworkException {
 
 		return createUser(securityContext, credentialKey, credentialValue, Collections.EMPTY_MAP, autoCreate, userClass, confKey);
 	}
@@ -414,7 +411,7 @@ public class RegistrationResource extends Resource {
 	 * @param confKey
 	 * @return user
 	 */
-	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final String confKey) {
+	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final String confKey) throws FrameworkException {
 
 		return createUser(securityContext, credentialKey, credentialValue, propertySet, autoCreate, User.class, confKey);
 	}
@@ -434,96 +431,82 @@ public class RegistrationResource extends Resource {
 	 * @param confKey
 	 * @return user
 	 */
-	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Class userClass, final String confKey) {
+	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Class userClass, final String confKey) throws FrameworkException {
 
 		final PropertyKey<String> confirmationKeyKey = StructrApp.key(User.class, "confirmationKey");
 		Principal user = null;
 
-		try {
-			// First, search for a person with that e-mail address
-			user = AuthHelper.getPrincipalForCredential(credentialKey, credentialValue);
+		// First, search for a person with that e-mail address
+		user = AuthHelper.getPrincipalForCredential(credentialKey, credentialValue);
 
-			if (user != null) {
+		if (user != null) {
 
-				user = new NodeFactory<Principal>(securityContext).instantiate(user.getNode());
+			user = new NodeFactory<Principal>(securityContext).instantiate(user.getNode());
 
-				// convert to user
-				user.unlockSystemPropertiesOnce();
+			// convert to user
+			user.unlockSystemPropertiesOnce();
 
-				final PropertyMap changedProperties = new PropertyMap();
-				changedProperties.put(AbstractNode.type, User.class.getSimpleName());
-				changedProperties.put(confirmationKeyKey, confKey);
-				user.setProperties(securityContext, changedProperties);
+			final PropertyMap changedProperties = new PropertyMap();
+			changedProperties.put(AbstractNode.type, User.class.getSimpleName());
+			changedProperties.put(confirmationKeyKey, confKey);
+			user.setProperties(securityContext, changedProperties);
 
-			} else if (autoCreate) {
+		} else if (autoCreate) {
 
-				final App app = StructrApp.getInstance(securityContext);
+			final App app = StructrApp.getInstance(securityContext);
 
-				// Clear properties set by us from the user-defined props
-				propertySet.remove(credentialKey.jsonName());
-				propertySet.remove("confirmationKey");
+			// Clear properties set by us from the user-defined props
+			propertySet.remove(credentialKey.jsonName());
+			propertySet.remove("confirmationKey");
 
-				PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, StructrApp.getConfiguration().getNodeEntityClass("Principal"), propertySet);
+			PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, StructrApp.getConfiguration().getNodeEntityClass("Principal"), propertySet);
 
-				// Remove any property which is not included in configuration
-				// eMail is mandatory and necessary
-				final String customAttributesString = "eMail" + "," + Settings.RegistrationCustomAttributes.getValue();
-				final List<String> customAttributes = Arrays.asList(customAttributesString.split("[ ,]+"));
+			// Remove any property which is not included in configuration
+			// eMail is mandatory and necessary
+			final String customAttributesString = "eMail" + "," + Settings.RegistrationCustomAttributes.getValue();
+			final List<String> customAttributes = Arrays.asList(customAttributesString.split("[ ,]+"));
 
-				final Set<PropertyKey> propsToRemove = new HashSet<>();
-				for (final PropertyKey key : props.keySet()) {
-					if (!customAttributes.contains(key.jsonName())) {
-						propsToRemove.add(key);
-					}
+			final Set<PropertyKey> propsToRemove = new HashSet<>();
+			for (final PropertyKey key : props.keySet()) {
+				if (!customAttributes.contains(key.jsonName())) {
+					propsToRemove.add(key);
 				}
-
-				for (final PropertyKey propToRemove : propsToRemove) {
-					props.remove(propToRemove);
-				}
-
-				props.put(credentialKey, credentialValue);
-				props.put(confirmationKeyKey, confKey);
-
-				user = (Principal) app.create(userClass, props);
-
-			} else {
-
-				logger.info("User self-registration is not configured yet, cannot create new user.");
 			}
 
-		} catch (FrameworkException ex) {
+			for (final PropertyKey propToRemove : propsToRemove) {
+				props.remove(propToRemove);
+			}
 
-			logger.error("", ex);
+			props.put(credentialKey, credentialValue);
+			props.put(confirmationKeyKey, confKey);
 
+			user = (Principal) app.create(userClass, props);
+
+		} else {
+
+			throw new FrameworkException(503, "User self-registration is not configured correctly.");
 		}
 
 		return user;
 	}
 
-
-	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public Class getEntityClass() {
-
 		return null;
 	}
 
 	@Override
 	public String getUriPart() {
-
 		return "registration";
 	}
 
 	@Override
 	public String getResourceSignature() {
-
 		return "_registration";
 	}
 
 	@Override
 	public boolean isCollectionResource() {
-
 		return false;
 	}
 
