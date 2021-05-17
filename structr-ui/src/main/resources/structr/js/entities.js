@@ -1853,7 +1853,7 @@ var _Entities = {
 		var editIcon = $('.edit_props_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			editIcon = $('<i title="Edit Properties" class="edit_props_icon button ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" />');
+			editIcon = $('<svg class="node-menu-icon" viewBox="0 0 16 16" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(0.6666666666666666,0,0,0.6666666666666666,0,0)"><path d="M8.750 3.250 A3.250 3.250 0 1 0 15.250 3.250 A3.250 3.250 0 1 0 8.750 3.250 Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8.750 12.000 A3.250 3.250 0 1 0 15.250 12.000 A3.250 3.250 0 1 0 8.750 12.000 Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8.750 20.750 A3.250 3.250 0 1 0 15.250 20.750 A3.250 3.250 0 1 0 8.750 20.750 Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round"></path></g></svg>');
 			parent.append(editIcon);
 		}
 		editIcon.on('click', function(e) {
@@ -1886,14 +1886,16 @@ var _Entities = {
 
 			$(el).on('click', function(e) {
 				e.stopPropagation();
-				_Entities.toggleElement(this);
+				//_Entities.toggleElement(this);
+				// TODO: Highlight element and mark as active
+				_Entities.selectElement($(this).closest('.node'));
 			});
 
 			button = $(el.children('.expand_icon').first());
 
 			if (button) {
 
-				button.on('click', function(e) {
+				button.on('click', function(e) { console.log('clicked on button to expand');
 					e.stopPropagation();
 					_Entities.toggleElement($(this).parent('.node'));
 				});
@@ -2098,7 +2100,7 @@ var _Entities = {
 			}, true);
 		});
 	},
-	deselectAllElements: function () {
+	deselectAllElements: function() {
 		$('.nodeSelected').removeClass('nodeSelected');
 	},
 	highlightElement:function(el) {
@@ -2121,7 +2123,24 @@ var _Entities = {
 			});
 		}
 	},
-	toggleElement: function(element, expanded) {
+	selectElement: function(element, expanded) {
+
+		var el = $(element);
+		var id = Structr.getId(el) || Structr.getComponentId(el) || Structr.getGroupId(el);
+
+		var b = el.children('.expand_icon').first();
+		var displayName = getElementDisplayName(Structr.entity(id));
+
+		console.log('selectElement', el, id, displayName);
+
+		//_Entities.deselectAllElements();
+		$('.node-selector').removeClass('active');
+		// el.closest('.node').addClass('nodeSelected');
+		el.closest('.node').children('.node-selector').addClass('active');
+		_Pages.activateTab($('#show_' + id));
+
+	},
+	toggleElement: function(element, expanded) { console.log('toggleElement')
 
 		var el = $(element);
 		var id = Structr.getId(el) || Structr.getComponentId(el) || Structr.getGroupId(el);

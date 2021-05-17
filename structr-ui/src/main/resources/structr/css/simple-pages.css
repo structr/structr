@@ -40,7 +40,7 @@
 }
 
 #simple-pages-tree .page.node.selected {
-	background: var(--light-structr-green) ! important;
+	background: var(--structr-light-green) ! important;
 }
 
 .page-root .preview {

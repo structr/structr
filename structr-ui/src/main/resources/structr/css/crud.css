@@ -19,27 +19,27 @@
 @charset "UTF-8";
 
 #crud-main {
-	height: calc(100% - 24px);
-	margin: 12px;
+	height: calc(100% - 2rem);
+	margin: 2rem;
 }
 
 #crud-top {
-	display: flex;
-	height: 36px;
+	display: inline-block;
+	/*height: 36px;*/
 }
 
 #crud-top .select2-container--default .select2-results>.select2-results__options {
-	max-height: 400px;
+	/*max-height: 400px;*/
 }
 
 #crud-top #crud-refresh-list {
-	height: 28px;
-	padding: 0 3px;
-	margin-left: 5px;
+	/*height: 28px;*/
+	/*padding: 0 3px;*/
+	/*margin-left: 5px;*/
 }
 
 #crud-top #crud-refresh-list i {
-	margin: 5px;
+	/*margin: 5px;*/
 }
 
 .resourceBox h2 {
@@ -47,20 +47,21 @@
 }
 
 #crud-type-detail {
-	padding: 6px;
-	vertical-align: top;
+	/*padding: 6px;*/
+	/*vertical-align: top;*/
 	overflow: auto;
-	height: calc(100% - 36px);
-	width: calc(100% - 12px);
+	height: calc(100% - 2rem);
+	width: calc(100% - 1rem);
 }
 
 .resourceBox {
 	background: var(--solid-white) ! important;
-	font-family: var(--font-open-sans) ! important;
-	font-size: 9pt;
+	/*font-size: 9pt;*/
 	position: relative;
-	box-shadow: 0 0 12px var(--gray-opacity-10);
-	border: 1px solid var(--black-opacity-125);
+	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
+
+	/*box-shadow: 0 0 12px var(--gray-opacity-10);*/
+	/*border: 1px solid var(--black-opacity-125);*/
 }
 
 #crud-type-detail .crud-message {
@@ -185,14 +186,15 @@ input.readonly {
 }
 
 #crud-buttons {
-	margin-bottom: 5px;
+	/*margin-bottom: 5px;*/
+	display: inline-block;
 }
 
 #crud-buttons .exact-type-checkbox {
-	vertical-align: initial;
+	/*vertical-align: initial;*/
 }
 #crud-buttons .exact-type-checkbox-label {
-	font-size: 8pt;
+	/*font-size: 8pt;*/
 }
 
 #query-info {
@@ -290,21 +292,21 @@ input.readonly {
 */
 .searchBox {
 	position: absolute;
-	right: 50px;
-	top: 70px;
+	right: 2rem;
+	top: 1rem;
 	z-index: 5;
 	line-height: 1em;
 }
 
 .searchBoxDialog {
-	 top: 1px;
+	 /*top: 1px;*/
 }
 
 .searchBox input.search {
-	border: 1px solid var(--link-color-active);
-	width: 260px;
-	height: 22px;
-	padding: 2px 4px;
+	/*border: 1px solid var(--link-color-active);*/
+	width: 20rem;
+	/*height: 22px;*/
+	/*padding: 2px 4px;*/
 }
 
 .searchResults {

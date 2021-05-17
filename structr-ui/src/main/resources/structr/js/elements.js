@@ -437,7 +437,7 @@ var _Elements = {
 
 		var id = entity.id;
 
-		var html = '<div id="id_' + id + '" class="' + elementClasses.join(' ') + '"></div>';
+		var html = '<div id="id_' + id + '" class="' + elementClasses.join(' ') + '"><div class="node-selector"></div></div>';
 
 		if (refNode && !refNodeIsParent) {
 			refNode.before(html);
@@ -459,35 +459,38 @@ var _Elements = {
 			+ '<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b><span class="id">' + entity.id + '</span>'
 			+ _Elements.classIdString(entity._html_id, entity._html_class));
 
-		div.append('<i title="Clone ' + displayName + ' element ' + entity.id + '\" class="clone_icon button ' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" />');
-		$('.clone_icon', div).on('click', function(e) {
-			e.stopPropagation();
-			Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
-		});
+		// TODO: Add 'Clone element' to menu
+		// div.append('<i title="Clone ' + displayName + ' element ' + entity.id + '\" class="clone_icon button ' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" />');
+		// $('.clone_icon', div).on('click', function(e) {
+		// 	e.stopPropagation();
+		// 	Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
+		// });
 
 		_Elements.enableContextMenuOnElement(div, entity);
 
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 
-		_Entities.appendAccessControlIcon(div, entity);
-		div.append('<i title="Delete ' + displayName + ' element ' + entity.id + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
-		$('.delete_icon', div).on('click', function(e) {
-			e.stopPropagation();
-			_Entities.deleteNode(this, entity, true, function() {
-				var synced = entity.syncedNodesIds;
-				if (synced && synced.length) {
-					synced.forEach(function(id) {
-						var el = Structr.node(id);
-						if (el && el.children && el.children.length) {
-							var newSpriteClass = _Icons.getSpriteClassOnly(_Icons.brick_icon);
-							el.children('i.typeIcon').each(function (i, el) {
-								_Icons.updateSpriteClassTo(el, newSpriteClass);
-							});
-						}
-					});
-				}
-			});
-		});
+		//_Entities.appendAccessControlIcon(div, entity);
+
+		// TODO: Add 'Delete element' to menu
+		// div.append('<i title="Delete ' + displayName + ' element ' + entity.id + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
+		// $('.delete_icon', div).on('click', function(e) {
+		// 	e.stopPropagation();
+		// 	_Entities.deleteNode(this, entity, true, function() {
+		// 		var synced = entity.syncedNodesIds;
+		// 		if (synced && synced.length) {
+		// 			synced.forEach(function(id) {
+		// 				var el = Structr.node(id);
+		// 				if (el && el.children && el.children.length) {
+		// 					var newSpriteClass = _Icons.getSpriteClassOnly(_Icons.brick_icon);
+		// 					el.children('i.typeIcon').each(function (i, el) {
+		// 						_Icons.updateSpriteClassTo(el, newSpriteClass);
+		// 					});
+		// 				}
+		// 			});
+		// 		}
+		// 	});
+		// });
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds&&entity.syncedNodesIds.length)?entity.syncedNodesIds:[entity.sharedComponentId]));
 
@@ -622,6 +625,9 @@ var _Elements = {
 				}
 			});
 		}
+
+		// div.append('<div class="node-selector"></div>');
+
 		return div;
 	},
 	getElementIcon:function(element) {
@@ -1385,7 +1391,7 @@ var _Elements = {
 		var displayName = getElementDisplayName(entity);
 
 		var icon = _Elements.getContentIcon(entity);
-		var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '') + '">'
+		var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '') + '"><div class="node-selector"></div>'
 				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + ' typeIcon-nochildren" />'
 				+ (name ? ('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b>') : ('<div class="content_ abbr-ellipsis abbr-75pc">' + escapeTags(entity.content) + '</div>'))
 				+ '<span class="id">' + entity.id + '</span>'
@@ -1411,29 +1417,31 @@ var _Elements = {
 			div.addClass('is-hidden');
 		}
 
-		_Entities.appendAccessControlIcon(div, entity);
+		//_Entities.appendAccessControlIcon(div, entity);
 
-		div.append('<i title="Clone content node ' + entity.id + '" class="clone_icon button ' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" />');
-		$('.clone_icon', div).on('click', function(e) {
-			e.stopPropagation();
-			Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
-		});
+		// TODO: Add 'Clone content node' to menu
+		// div.append('<i title="Clone content node ' + entity.id + '" class="clone_icon button ' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" />');
+		// $('.clone_icon', div).on('click', function(e) {
+		// 	e.stopPropagation();
+		// 	Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
+		// });
 
 		_Elements.enableContextMenuOnElement(div, entity);
 
-		div.append('<i title="Delete content \'' + (entity.name ? entity.name : entity.id) + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_content_icon) + '" />');
-		$('.delete_icon', div).on('click', function(e) {
-			e.stopPropagation();
-			_Entities.deleteNode(this, entity);
-		});
+		// TODO: Add 'Delete content node' to menu
+		// div.append('<i title="Delete content \'' + (entity.name ? entity.name : entity.id) + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_content_icon) + '" />');
+		// $('.delete_icon', div).on('click', function(e) {
+		// 	e.stopPropagation();
+		// 	_Entities.deleteNode(this, entity);
+		// });
 
-		_Elements.appendEditContentIcon(div, entity);
-
-		$('.content_', div).on('click', function(e) {
-			e.stopPropagation();
-			_Elements.openEditContentDialog(this, entity);
-			return false;
-		});
+		// TODO: Add 'Edit content' to menu
+		// _Elements.appendEditContentIcon(div, entity);
+		// $('.content_', div).on('click', function(e) {
+		// 	e.stopPropagation();
+		// 	_Elements.openEditContentDialog(this, entity);
+		// 	return false;
+		// });
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 

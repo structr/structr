@@ -107,8 +107,9 @@
 	--input-invalid: #fee;
 
 	--structr-green: #84ba39;
-	--light-structr-green: #b5e27f;
-	--light-structr-green-2: #c5ff69;
+	--structr-light-green: #b5e27f;
+	--structr-light-green-2: #c5ff69;
+	--structr-light-green-transparent: rgba(114,177,26,.15);
 	--very-light-structr-green: #a5e25a;
 	--very-light-structr-green-2: #eff8e3;
 	--success-green: #4f8a10;
@@ -352,9 +353,9 @@ input[type="checkbox"] {
 
 #main {
 	position: absolute;
-	top: 8rem;
+	top: 6rem;
 	width: 100%;
-	height: calc(100% - 10rem);
+	height: calc(100% - 8rem);
 	background-color: var(--main-background);
 }
 
@@ -685,13 +686,13 @@ img.disabled {
 }
 
 .slideOut {
-	height: calc(100%);
+	height: calc(100% - 2rem);
 	/*margin: 0;*/
 	/*border-top: 1px solid var(--black-opacity-125) ! important;*/
 	/*border-bottom: 1px solid var(--black-opacity-125) ! important;*/
 	position: absolute;
 	z-index: 2;
-	top: 0;
+	top: 2rem;
 	background-color: var(--solid-white) ! important;
 	font-size: .875rem;
 }
@@ -949,12 +950,6 @@ img.disabled {
 	text-align: right;
 }
 
-ul#previewTabs {
-	margin: 0;
-	padding: 0;
-	border: none;
-}
-
 .data-tabs, .data-tabs ul, #tabs, #tabs ul, .files-tabs ul, .code-tabs ul, .favs-tabs ul, .dialogHeaderWrapper ul, .dialogText .schema-details ul {
 	background: none;
 	border: none;
@@ -971,8 +966,8 @@ ul#previewTabs {
 	/*background-color: var(--light-gray-bg-f6);*/
 	cursor: pointer ! important;
 	list-style-type: none;
-	display: inline;
-	float: left;
+	display: inline-block;
+	/*float: left;*/
 	/*border-bottom: none ! important;*/
 	/*border-bottom-left-radius: 0 ! important;*/
 	/*border-bottom-right-radius: 0 ! important;*/
@@ -986,9 +981,10 @@ ul#previewTabs {
 }
 #previewTabs > li.active, #tabs > ul > li.active, .data-tabs > ul > li.active, .files-tabs > ul > li.active, .code-tabs > ul > li.active, .favs-tabs > ul > li.active, .dialogHeaderWrapper > ul > li.active, .tabs-menu > li.active {
 	/*box-shadow: 0 -3px 3px -3px var(--gray-opacity-10), 3px 0px 3px -3px var(--gray-opacity-10), -3px 0px 3px -3px var(--gray-opacity-10), 0 1px 0px var(--solid-white);*/
-	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
-	clip-path: polygon(-20% -20%, 120% -20%, 120% 100%, -20% 100%);
+	/*box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);*/
+	/*clip-path: polygon(-20% -20%, 120% -20%, 120% 100%, -20% 100%);*/
 	font-weight: 600;
+	border-bottom: .15rem solid var(--structr-green);
 }
 
 #previewTabs > li .fill-pixel, #tabs > ul > li .fill-pixel, .data-tabs > ul > li .fill-pixel, .files-tabs > ul > li .fill-pixel, .code-tabs > ul > li .fill-pixel, .favs-tabs > ul > li .fill-pixel, .dialogHeaderWrapper > ul > li .fill-pixel, .tabs-menu > li .fill-pixel {
@@ -1279,10 +1275,8 @@ span.id {
 }
 
 .typeIcon, .expand_icon {
-	float: left ! important;
 	border: none;
 	background: none;
-	margin-right: 4px ! important;
 	cursor: pointer ! important;
 }
 
@@ -1301,7 +1295,7 @@ span.id {
 .typeIcon {
 	width: 16px;
 	height: 16px;
-	margin-top: 1px;
+	margin: .1rem .5rem 0 1.5rem;
 }
 
 .typeIcon-nochildren {
@@ -1309,11 +1303,12 @@ span.id {
 }
 
 .expand_icon {
+	position: absolute;
+	z-index: 2;
 	width: 8px;
 	height: 8px;
-	margin-top: 5px;
-	margin-left: 4px ! important;
-	margin-right: 4px ! important;
+	top: .5rem;
+	left: .5rem;
 }
 
 .edit_ui_properties_icon, .edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .minify_file_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon, .push_icon, .show_active_icon, .collapse_children_icon, .add_child_icon, .remove_favorite_icon, .import_icon
@@ -1355,6 +1350,32 @@ i.link_icon {
 
 .import_icon {
 	right: 84px;
+}
+
+.node-menu-icon {
+	display: none;
+	cursor: pointer;
+	position: absolute;
+	right: .5rem;
+	top: .25rem;
+	vertical-align: top;
+	color: var(--icon-stroke);
+}
+
+.nodeHover > .node-menu-icon {
+	display: inline-block;
+	/*color: var(--icon-stroke-hover);*/
+}
+
+.node-selector:hover, .node-selector.active {
+	background-color: var(--structr-light-green-transparent);
+	position: absolute;
+	height: 1.6rem;
+	width: 100%;
+	z-index: 0;
+	top: 0;
+	left: 0;
+	border: none;
 }
 
 .edit_icon, .edit_file_icon, .collapse_children_icon, .minify_file_icon {
@@ -1432,7 +1453,7 @@ i.button {
 
 .nodeHover, .nodeActive, #graph-canvas .node {
 	color: var(--gray-333) ! important;
-	background-color: var(--light-gray-bg-f5) ! important;
+	background-color: var(--light-gray-bg-f5);
 	/*border: 1px solid var(--black-opacity-125) ! important;*/
 }
 
@@ -3115,11 +3136,11 @@ table.push {
 	background: none;
 	display: inline-block;
 	padding: 0;
-	margin: 0 0 -.25rem 0;
+	margin: 0;
 }
 
 .tabs-menu > li {
-	height: 2.25rem;
+	height: 2.6rem;
 	margin: 0 8px 0 0;
 	padding: .1875rem 1rem 0 1rem;
 	line-height: 2em;
@@ -3132,10 +3153,10 @@ table.push {
 .tab-content {
 	display: none;
 	/*font-size: 9pt;*/
-	padding: 16px;
+	padding: 2rem;
 	background: var(--solid-white) ! important;
 	box-shadow: 0 4px 10px 0 rgba(0,0,0,0.1);
-	margin-top: -3px;
+	/*margin-top: -3px;*/
 }
 
 th.center {
@@ -4079,7 +4100,7 @@ table.dataTable thead th, table.dataTable thead td {
 }
 
 .jstree-default .jstree-wholerow-hovered {
-	background: var(--light-structr-green) ! important;
+	background: var(--structr-light-green) ! important;
 }
 
 i.fa {
@@ -4167,7 +4188,7 @@ i.fa-trash-o {
 }
 
 .search-result .highlight {
-	background-color: var(--light-structr-green-2);
+	background-color: var(--structr-light-green-2);
 	color: var(--solid-black);
 }
 
@@ -5369,14 +5390,14 @@ table.props td.key {
 .resourceBox div.node,
 #relatedNodesList .node,
 .props .node {
-	color: var(--gray-333);
-	line-height: 1.7em;
+	/*color: var(--gray-333);*/
+	/*line-height: 1.7em;*/
 	border: 1px solid transparent;
-	padding: 2px 4px 2px 6px;
-	margin: 2px 2px 3px 1px;
-	background-color: var(--gray-eee);
-	border-radius: 12px;
-	min-width: 60px;
+	padding: .5rem 1rem .25rem 1rem;
+	/*margin: 2px 2px 3px 1px;*/
+	background-color: var(--input-background);
+	border-radius: 1rem;
+	min-width: 3rem;
 }
 
 .resourceBox div.node:hover,

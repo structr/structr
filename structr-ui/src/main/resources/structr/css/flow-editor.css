@@ -78,7 +78,7 @@
 	background-color: var(--structr-green);
 }
 .node-editor .node .startNode:hover {
-    background-color: var(--light-structr-green);
+    background-color: var(--structr-light-green);
 }
 .node-editor .node .title {
 	text-align: center;

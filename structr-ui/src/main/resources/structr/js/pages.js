@@ -41,6 +41,8 @@ var _Pages = {
 	autoRefreshDisabledKey: 'structrAutoRefreshDisabled_' + port,
 	detailsObjectIdKey: 'structrDetailsObjectId_' + port,
 	requestParametersKey: 'structrRequestParameters_' + port,
+	pagesResizerLeftKey: 'structrPagesResizerLeftKey_' + port,
+	pagesResizerRightKey: 'structrPagesResizerRightKey_' + port,
 	init: function() {
 
 		_Pager.initPager('pages',   'Page', 1, 25, 'name', 'asc');
@@ -56,7 +58,7 @@ var _Pages = {
 		Structr.getShadowPage();
 
 	},
-	resize: function() {
+	resize: function(left, right) {
 
 		Structr.resize();
 
@@ -70,19 +72,21 @@ var _Pages = {
 
 			let leftSlideout  = $('.slideOutLeft.open');
 			// let leftTab       = (leftSlideout.length === 0) ? $('.slideOutRight .slideout-activator') : $('.slideout-activator', leftSlideout);
-			let marginLeft    = leftSlideout.length > 0 ? leftSlideout[0].getBoundingClientRect().right : 0;
+			let marginLeft    = left || leftSlideout.length > 0 ? leftSlideout[0].getBoundingClientRect().right : 0;
 			// marginLeft       += leftTab[0].getBoundingClientRect().width;
 
 			let rightSlideout = $('.slideOutRight.open');
 			//let rightTab      = (rightSlideout.length === 0) ? $('.slideOutRight .slideout-activator') : $('.slideout-activator', rightSlideout);
-			let marginRight   = rightSlideout.length > 0 ? rightSlideout[0].getBoundingClientRect().width : 0;
+			let marginRight   = right || rightSlideout.length > 0 ? rightSlideout[0].getBoundingClientRect().width : 0;
 			// marginRight      += rightTab[0].getBoundingClientRect().width;
 
 			previews.css('marginLeft', 'calc(' + marginLeft + 'px + ' + (marginLeft === 0 ? '4' : '2') + 'rem)');
 			previews.css('marginRight', 'calc(' + marginRight + 'px + ' + (marginRight === 0 ? '4' : '2') + 'rem)');
 
 			$('.column-resizer-left').css('left', 'calc(' + marginLeft + 'px - 1rem)');
-			$('.column-resizer-right').css('right', 'calc(' + marginRight + 'px + 0rem)');
+			$('.column-resizer-right').css('right', 'calc(' + marginRight + 'px + .25rem)');
+			//document.querySelector('.column-resizer-right').style.left = 'calc(' + window.innerWidth - marginRight + 'px - 2rem)';
+			document.querySelector('.column-resizer-right').style.left = 'calc(' + (window.innerWidth - marginRight) + 'px - 3rem)';
 
 			//let w = 'calc(' + (windowWidth - marginLeft - marginRight) + 'px - 1rem)';
 			let w = windowWidth - marginLeft - marginRight;
@@ -95,6 +99,7 @@ var _Pages = {
 			let iframes = $('.previewBox', previews).find('iframe');
 			iframes.css('width', width);
 		}
+
 	},
 	onload: function() {
 
@@ -253,8 +258,51 @@ var _Pages = {
 				_Pages.resize();
 			});
 
+			Structr.initVerticalSlider($('.column-resizer-left', main), _Pages.pagesResizerLeftKey, 300, _Pages.moveLeftResizer);
+			Structr.initVerticalSlider($('.column-resizer-right', main), _Pages.pagesResizerRightKey, 240, _Pages.moveRightResizer, true);
+
 			Structr.unblockMenu(500);
 
+			_Pages.updatedResizers(LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 300, LSWrapper.getItem(_Pages.pagesResizerRightKey) || 240);
+		});
+	},
+	moveLeftResizer: function(left) {
+		// throttle
+		requestAnimationFrame(() => {
+			//left = left || LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 300;
+			_Pages.updatedResizers(left, null);
+		});
+	},
+	moveRightResizer: function(right) {
+		// throttle
+		requestAnimationFrame(() => {
+			//left = left || LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 300;
+			_Pages.updatedResizers(null, right);
+		});
+	},
+	updatedResizers: function(left, right) {
+
+		let leftPos  = left || LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 300;
+		let rightPos = right || LSWrapper.getItem(_Pages.pagesResizerRightKey) || 240;
+
+		let middleWidth = 'calc(' + window.innerWidth - leftPos - rightPos + 'px - 1.75rem)'
+
+		if (left) {
+			document.querySelector('.column-resizer-left').style.left = leftPos + 'px';
+			document.querySelector('.slideOutLeft.open').style.width = 'calc(' + leftPos + 'px - 3rem)';
+			document.querySelector('#previews').style.marginLeft      = 'calc(' + leftPos + 'px + 3rem)';
+		}
+
+		if (right) {
+			document.querySelector('.column-resizer-right').style.left = window.innerWidth - rightPos + 'px';
+			document.querySelector('.slideOutRight.open').style.width = 'calc(' + rightPos + 'px - 7rem)';
+			document.querySelector('#previews').style.marginRight     = 'calc(' + rightPos + 'px - 1rem)';
+		}
+
+		document.querySelector('#previews').style.width = middleWidth;
+		document.querySelectorAll('.previewBox').forEach((box) => {
+			box.style.width = middleWidth;
+			box.querySelector('iframe').style.width = middleWidth;
 		});
 	},
 	clearPreviews: function() {
@@ -798,7 +846,7 @@ var _Pages = {
 			return;
 		}
 
-		pages.append('<div id="id_' + entity.id + '" class="node page"></div>');
+		pages.append('<div id="id_' + entity.id + '" class="node page"><div class="node-selector"></div></div>');
 		var div = Structr.node(entity.id);
 
 		_Dragndrop.makeSortable(div);
@@ -812,22 +860,28 @@ var _Pages = {
 		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.page_icon) + '" />'
 				+ '<b title="' + escapeForHtmlAttributes(entity.name) + '" class="name_ abbr-ellipsis abbr-75pc">' + pageName + '</b> <span class="id">' + entity.id + '</span>' + (entity.position ? ' <span class="position">' + entity.position + '</span>' : ''));
 
-		_Entities.appendExpandIcon(div, entity, hasChildren);
-		_Entities.appendAccessControlIcon(div, entity);
+		// div.append('<div class="node-selector"></div>')
 
-		div.append('<i title="Delete page \'' + entity.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
-		$('.delete_icon', div).on('click', function(e) {
-			e.stopPropagation();
-			_Entities.deleteNode(this, entity);
-		});
+
+
+		_Entities.appendExpandIcon(div, entity, hasChildren);
+		//_Entities.appendAccessControlIcon(div, entity);
+
+		// TODO: Add 'Delete page' to menu
+		// div.append('<i title="Delete page \'' + entity.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
+		// $('.delete_icon', div).on('click', function(e) {
+		// 	e.stopPropagation();
+		// 	_Entities.deleteNode(this, entity);
+		// });
 
 		_Entities.appendEditPropertiesIcon(div, entity);
 
-		div.append('<i title="Clone page \'' + entity.name + '\'" class="clone_icon button ' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" />');
-		$('.clone_icon', div).on('click', function(e) {
-			e.stopPropagation();
-			Command.clonePage(entity.id);
-		});
+		// TODO: Add 'Clone page' to menu
+		// div.append('<i title="Clone page \'' + entity.name + '\'" class="clone_icon button ' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" />');
+		// $('.clone_icon', div).on('click', function(e) {
+		// 	e.stopPropagation();
+		// 	Command.clonePage(entity.id);
+		// });
 
 		_Elements.enableContextMenuOnElement(div, entity);
 		_Entities.setMouseOver(div);

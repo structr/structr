@@ -167,6 +167,10 @@ var _Crud = {
 	pageSize: {},
 	init: function() {
 
+		Structr.fetchHtmlTemplate('crud/menu', {}, function(html) {
+			functionBar.append(html);
+		});
+
 		Structr.fetchHtmlTemplate('crud/main', {}, function(html) {
 
 			main.append(html);
@@ -345,7 +349,7 @@ var _Crud = {
 
 			crudRight.data('url', '/' + type);
 
-			crudRight.append('<div id="crud-buttons">'
+			functionBar.append('<div id="crud-buttons">'
 					+ '<button class="action" id="create' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Create new ' + type + '</button>'
 					+ '<button id="export' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_table_icon) + '" /> Export as CSV</button>'
 					+ '<button id="import' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_add_icon) + '" /> Import CSV</button>'
@@ -361,19 +365,19 @@ var _Crud = {
 
 			crudRight.append('<div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
 
-			$('#create' + type, crudRight).on('click', function() {
+			$('#create' + type).on('click', function() {
 				_Crud.crudCreate(type);
 			});
 
-			$('#export' + type, crudRight).on('click', function() {
+			$('#export' + type).on('click', function() {
 				_Crud.crudExport(type);
 			});
 
-			$('#import' + type, crudRight).on('click', function() {
+			$('#import' + type).on('click', function() {
 				_Crud.crudImport(type);
 			});
 
-			$('#delete' + type, crudRight).on('click', function() {
+			$('#delete' + type).on('click', function() {
 
 				Structr.confirmation('<h3>WARNING: Really delete all objects of type \'' + type + '\'?</h3><p>This will delete all objects of the type (and of all inheriting types!).</p><p>Depending on the amount of objects this can take a while.</p>', function() {
 					$.unblockUI({
@@ -384,7 +388,7 @@ var _Crud = {
 				});
 			});
 
-			let exactTypeCheckbox = $('#exact_type_' + type, crudRight);
+			let exactTypeCheckbox = $('#exact_type_' + type);
 			if (_Crud.exact[type] === true) {
 				exactTypeCheckbox.prop('checked', true);
 			}

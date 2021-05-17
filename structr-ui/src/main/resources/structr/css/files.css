@@ -166,7 +166,7 @@
 }
 
 #folder-contents tr[id]:hover {
-	background: var(--light-structr-green) ! important;
+	background: var(--structr-light-green) ! important;
 }
 
 #folder-contents .nodeActive {
@@ -176,7 +176,7 @@
 
 #folder-contents .nodeHover, .image.nodeHover {
 	color: var(--gray-333) ! important;
-	background: var(--light-structr-green) ! important;
+	background: var(--structr-light-green) ! important;
 	/*border: 1px solid transparent;*/
 	z-index: 1;
 }
