@@ -528,7 +528,11 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 		String result;
 
-		if (value instanceof String[]) {
+		if (value == null) {
+
+			result = "";
+
+		} else if (value instanceof String[]) {
 
 			final ArrayList<String> quotedStrings = new ArrayList();
 			for (final String str : Arrays.asList((String[])value)) {
@@ -635,10 +639,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 				Object value = obj.getProperty(key);
 
-				row.append("\"").append((value != null
-					? escapeForCsv(value)
-					: "")).append("\"").append(DEFAULT_FIELD_SEPARATOR);
-
+				row.append("\"").append(escapeForCsv(value)).append("\"").append(DEFAULT_FIELD_SEPARATOR);
 			}
 
 			// remove last ;
