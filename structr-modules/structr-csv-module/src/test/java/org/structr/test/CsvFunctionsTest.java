@@ -18,6 +18,7 @@
  */
 package org.structr.test;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import org.apache.commons.lang3.StringUtils;
@@ -25,8 +26,10 @@ import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Localization;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
@@ -35,6 +38,8 @@ import org.structr.test.entity.CsvTestOne;
 import org.structr.test.entity.CsvTestTwo;
 import org.structr.schema.action.ActionContext;
 import org.structr.test.web.StructrUiTest;
+import org.structr.test.web.entity.TestFive;
+import org.structr.test.web.entity.TestTwo;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
@@ -91,6 +96,8 @@ public class CsvFunctionsTest extends StructrUiTest {
 					// set string array on test four
 					csvTestOne.setProperty(CsvTestOne.stringArrayProperty, new String[] { "one", "two", "three", "four" } );
 				}
+
+				csvTestOne.setProperty(CsvTestOne.intArrayProperty, new Integer[] { index, index+1, index+2, index+3 } );
 
 				if (index == 2) {
 					// set string array on test four
@@ -195,6 +202,13 @@ public class CsvFunctionsTest extends StructrUiTest {
 			final String expectedCsvForObjectsWithNewlineCharacters = "\"multi\"\n"
 					+ "\"Multi\\nLine\\nTest\"\n";
 
+			final String expectedCsvForIndexAndNameAndIntArray = "\"name\";\"index\";\"intArrayProperty\"\n"
+					+ "\"CSV Test Node 0001\";\"1\";\"[\\\"0\\\", \\\"1\\\", \\\"2\\\", \\\"3\\\"]\"\n"
+					+ "\"CSV Test Node 0002\";\"2\";\"[\\\"1\\\", \\\"2\\\", \\\"3\\\", \\\"4\\\"]\"\n"
+					+ "\"CSV Test Node 0003\";\"3\";\"[\\\"2\\\", \\\"3\\\", \\\"4\\\", \\\"5\\\"]\"\n"
+					+ "\"CSV Test Node 0004\";\"4\";\"[\\\"3\\\", \\\"4\\\", \\\"5\\\", \\\"6\\\"]\"\n"
+					+ "\"CSV Test Node 0005\";\"5\";\"[\\\"4\\\", \\\"5\\\", \\\"6\\\", \\\"7\\\"]\"\n";
+
 			/**
 			 * First everything in StructrScript
 			 */
@@ -269,6 +283,12 @@ public class CsvFunctionsTest extends StructrUiTest {
 					"Invalid result of to_csv() call with only index,name, singleQuoted and CRLF as recordSeparator and localized header (with domain) (StructrScript)",
 					expectedCsvWithIndexAndNameAndSingleQuoteAndCRLFWithLocalizedHeaderWithDomain,
 					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne', sort('name')), merge('index', 'name'), ';', \"'\", '\\r\\n', true, true, 'CSV TEST Domain')}")
+			);
+
+			assertEquals(
+					"Invalid result of to_csv() call with only name,index,intArrayProperty (StructrScript)",
+					expectedCsvForIndexAndNameAndIntArray,
+					Scripting.replaceVariables(ctx, csvTestTwo, "${to_csv(find('CsvTestOne', sort('name')), merge('name', 'index', 'intArrayProperty'))}")
 			);
 
 			/**
@@ -357,6 +377,42 @@ public class CsvFunctionsTest extends StructrUiTest {
 					"Invalid result of Structr.to_csv() call for source objects with newlines (JavaScript)",
 					expectedCsvForObjectsWithNewlineCharacters,
 					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv([{multi:'Multi\\nLine\\nTest'}], ['multi']))}}")
+			);
+
+			assertEquals(
+					"Invalid result of to_csv() call with only name,index,intArrayProperty (JavaScript)",
+					expectedCsvForIndexAndNameAndIntArray,
+					Scripting.replaceVariables(ctx, csvTestTwo, "${{ $.print($.to_csv($.find('CsvTestOne', $.predicate.sort('name')), ['name', 'index', 'intArrayProperty'])) }}")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+
+			fail(fex.getMessage());
+		}
+
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext, null);
+
+			final TestTwo testTwo    = createTestNode(TestTwo.class);
+			final TestFive testFive1 = createTestNode(TestFive.class);
+			final TestFive testFive2 = createTestNode(TestFive.class);
+
+			Scripting.replaceVariables(ctx, csvTestTwo, "${{ $.find('TestTwo', '" + testTwo.getUuid() + "').testFives.push($.find('TestFive', '" + testFive1.getUuid() + "')); }}");
+			Scripting.replaceVariables(ctx, csvTestTwo, "${{ $.find('TestTwo', '" + testTwo.getUuid() + "').testFives.push($.find('TestFive', '" + testFive2.getUuid() + "')); }}");
+
+			final String expectedIdAndTestFives = "\"id\";\"testFives\"\n"
+					+ "\"" + testTwo.getUuid() + "\";\"[\\\"" + testFive1.getUuid() + "\\\", \\\"" + testFive2.getUuid() + "\\\"]\"\n";
+
+			assertEquals(
+					"Invalid result of to_csv() call with only id and remote property testFives (JavaScript)",
+					expectedIdAndTestFives,
+					Scripting.replaceVariables(ctx, csvTestTwo, "${{ $.print($.to_csv($.find('TestTwo'), ['id', 'testFives'])) }}")
 			);
 
 			tx.success();
