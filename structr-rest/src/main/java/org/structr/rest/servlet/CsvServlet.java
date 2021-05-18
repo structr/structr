@@ -514,25 +514,55 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 	private static String escapeForCsv(final Object value) {
 
+		final String escaped = escapeForCsv(value, '"');
+
+		// post-process escaped string
+		if (!removeLineBreaks) {
+			return StringUtils.replace(StringUtils.replace(escaped, "\r\n", "\n"), "\r", "\n");
+		}
+
+		return StringUtils.replace(StringUtils.replace(escaped, "\r\n", ""), "\r", "");
+	}
+
+	public static String escapeForCsv(final Object value, final char quoteChar) {
+
 		String result;
 
 		if (value instanceof String[]) {
 
-			// Special handling for StringArrays
-			ArrayList<String> quotedStrings = new ArrayList();
+			final ArrayList<String> quotedStrings = new ArrayList();
 			for (final String str : Arrays.asList((String[])value)) {
 				// The strings can contain quotes - these need to be escaped with 3 slashes in the output
-				quotedStrings.add("\\\"" + StringUtils.replace(str, "\"", "\\\\\\\"") + "\\\"");
+				quotedStrings.add("\\" + quoteChar + StringUtils.replace(str, ""+quoteChar, "\\\\\\" + quoteChar) + "\\" + quoteChar);
 			}
 
 			result = quotedStrings.toString();
 
-		} else if (value instanceof Collection) {
+		} else if (value instanceof Date[]) {
+
+			final ArrayList<String> dateStrings = new ArrayList();
+			for (final Date d : Arrays.asList((Date[])value)) {
+				dateStrings.add("\\" + quoteChar + DatePropertyParser.format(d, DateProperty.getDefaultFormat()) + "\\" + quoteChar);
+			}
+
+			result = dateStrings.toString();
+
+		} else if (value instanceof Object[]) {
+
+			final ArrayList<String> quotedStrings = new ArrayList();
+			for (final Object o : Arrays.asList((Object[])value)) {
+				// The strings can contain quotes - these need to be escaped with 3 slashes in the output
+				quotedStrings.add("\\" + quoteChar + StringUtils.replace(o.toString(), ""+quoteChar, "\\\\\\" + quoteChar) + "\\" + quoteChar);
+			}
+
+			result = quotedStrings.toString();
+
+		} else if (value instanceof Iterable) {
 
 			// Special handling for collections of nodes
 			ArrayList<String> quotedStrings = new ArrayList();
-			for (final Object obj : (Collection)value) {
-				quotedStrings.add("\\\"" + obj.toString() + "\\\"");
+			for (final Object obj : (Iterable)value) {
+				quotedStrings.add("\\" + quoteChar + obj.toString() + "\\" + quoteChar);
 			}
 
 			result = quotedStrings.toString();
@@ -543,16 +573,10 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 		} else {
 
-			result = StringUtils.replace(value.toString(), "\"", "\\\"");
-
+			result = StringUtils.replace(value.toString(), ""+quoteChar, "\\" + quoteChar);
 		}
 
-		if (!removeLineBreaks) {
-			return StringUtils.replace(StringUtils.replace(result, "\r\n", "\n"), "\r", "\n");
-		}
-
-		return StringUtils.replace(StringUtils.replace(result, "\r\n", ""), "\r", "");
-
+		return result;
 	}
 
 	private void writeUtf8Bom(Writer out) {
