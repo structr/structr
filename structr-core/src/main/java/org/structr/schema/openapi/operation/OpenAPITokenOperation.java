@@ -26,68 +26,73 @@ import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
 import org.structr.schema.openapi.schema.OpenAPIResultSchema;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class OpenAPITokenOperation extends LinkedHashMap<String, Object> {
-    public OpenAPITokenOperation() {
 
-        final Map<String, Object> operations = new LinkedHashMap<>();
+	public OpenAPITokenOperation() {
 
-        put("/token", operations);
+		final Map<String, Object> operations = new LinkedHashMap<>();
+		final Map<String, Object> post	   = new OpenAPIOperation(
 
-        operations.put("post", new OpenAPIOperation(
+			// summary
+			"Token",
 
-                // summary
-                "Token",
+			// description
+			"Creates a new Bearer token and refresh token for username and password credentials. Instead of username and password the resource also accepts a previously created refresh token as credentials.",
 
-                // description
-                "Creates a new Bearer token and refresh token for username and password credentials. Instead of username and password the resource also accepts a previously created refresh token as credentials.",
+			// operation ID
+			"token",
 
-                // operation ID
-                "token",
+			// tags
+			Set.of("Session handling and user management"),
 
-                // tags
-                Set.of("Session handling and user management"),
+			// parameters
+			null,
 
-                // parameters
-                null,
+			// request body
+			new OpenAPIRequestResponse(
+				"Request body",
+				new OpenAPIOneOf(
+					new OpenAPIObjectSchema(
+						new OpenAPIPrimitiveSchema("Username of user to log in.", "name",	 "string"),
+						new OpenAPIPrimitiveSchema("Password of the user.",	   "password", "string")
+					),
+					new OpenAPIObjectSchema(
+						new OpenAPIPrimitiveSchema("A refresh token from a previous call to the resource.", "refresh_token",	"string")
+					)
+				),
+				Map.of(
+					"name",	 "admin",
+					"password", "admin"
+				)
+			),
 
-                // request body
-                new OpenAPIRequestResponse(
-                        "Request body",
-                        new OpenAPIOneOf(
-                                new OpenAPIObjectSchema(
-                                        new OpenAPIPrimitiveSchema("Username of user to log in.", "name",     "string"),
-                                        new OpenAPIPrimitiveSchema("Password of the user.",       "password", "string")
-                                ),
-                                new OpenAPIObjectSchema(
-                                        new OpenAPIPrimitiveSchema("A refresh token from a previous call to the resource.", "refresh_token",    "string")
-                                )
-                        ),
-                        new OpenAPIOneOf(
-                            Map.of(
-                                    "name",     "admin",
-                                    "password", "admin"
-                            ),
-                            Map.of(
-                                    "refresh_token",     "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTYxMzIxOTM4MywiaXNzIjoic3RydWN0ciIsInRva2VuSWQiOiJkNDdiNjE2ZWNkYTM0MTI2OWM0MDNhNzY2MzIwOWQzOF8xNjEzMjE5MzgzMDUxIiwidG9rZW5UeXBlIjoicmVmcmVzaF90b2tlbiJ9.Qu_y9aqTBQqgj1nqH-Syjoka3zc3iRHzO96GLOndP0mGZbZmvjY2PmBpirOWtAVOIHlRKnNF_icV0voDMZFBhg"
-                            )
-                        )
-                ),
+			// responses
+			Map.of(
+				"200", new OpenAPIRequestResponse(
+					"The request was executed successfully.",
+					new OpenAPIResultSchema(
+						new OpenAPIReference("#/components/schemas/TokenResponse"), false),
+						null,
+						null
+					),
+				"401", new OpenAPIRequestResponse(
+					"Access denied or wrong password.\n\nIf the error message is \"Access denied\", you need to configure a resource access grant for the `_token` endpoint."
+					+ " otherwise the error message is \"Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!\".",
+					new OpenAPIReference("#/components/schemas/RESTResponse"),
+					Map.of("code", "401", "message", "Access denied", "errors", List.of())
+				)
+			)
+		);
 
-                // responses
-                Map.of(
-                        "200", new OpenAPIRequestResponse(
-                            "Success response",
-                           new OpenAPIResultSchema(new OpenAPIReference("#/components/schemas/TokenResponse"), false),
-                           null,
-                           null
-                        ),
-                        "401", new OpenAPIReference("#/components/responses/tokenError"),
-                        "403", new OpenAPIReference("#/components/responses/forbidden")
-                )
-        ));
+		// override global security object to indicate that this request does not need authentication
+		post.put("security", Map.of());
 
-    }
+		operations.put("post", post);
+		put("/token", operations);
+
+	}
 }

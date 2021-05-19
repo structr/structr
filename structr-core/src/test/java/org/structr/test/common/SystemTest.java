@@ -957,7 +957,7 @@ public class SystemTest extends StructrTest {
 			app.create(Group.class, "group");
 
 			JsonSchema schema = StructrSchema.createFromDatabase(app);
-			schema.addType("GrantTest").addMethod("onCreation", "grant(first(find('Group')), this, 'read')", "");
+			schema.addType("GrantTest").addMethod("onCreation", "grant(first(find('Group')), this, 'read')");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
@@ -1080,7 +1080,7 @@ public class SystemTest extends StructrTest {
 			final JsonType contact        = sourceSchema.addType("Contact");
 
 			contact.setExtends(sourceSchema.getType("Principal"));
-			contact.addMethod("onModification", "log(baseUrl)", "");
+			contact.addMethod("onModification", "log(baseUrl)");
 
 			StructrSchema.extendDatabaseSchema(app, sourceSchema);
 
@@ -1146,7 +1146,7 @@ public class SystemTest extends StructrTest {
 			final JsonType test1          = sourceSchema.addType("Test1");
 			final JsonType test2          = sourceSchema.addType("Test2");
 
-			test1.addMethod("onCreation", "call_privileged('globalTestMethod')", "");
+			test1.addMethod("onCreation", "call_privileged('globalTestMethod')");
 
 			StructrSchema.extendDatabaseSchema(app, sourceSchema);
 

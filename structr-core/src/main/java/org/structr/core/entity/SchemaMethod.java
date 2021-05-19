@@ -46,7 +46,6 @@ import org.structr.core.entity.relationship.SchemaMethodParameters;
 import org.structr.core.entity.relationship.SchemaNodeMethod;
 import org.structr.core.graph.ModificationQueue;
 import static org.structr.core.graph.NodeInterface.name;
-
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.ArrayProperty;
@@ -56,10 +55,8 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
-import org.structr.schema.ReloadSchema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionEntry;
-import org.structr.schema.action.Actions;
 
 /**
  *
@@ -75,13 +72,13 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed();
 	public static final Property<String>             returnType              = new StringProperty("returnType").indexed();
 	public static final Property<String>             source                  = new StringProperty("source");
-	public static final Property<String>             comment                 = new StringProperty("comment").indexed();
 	public static final Property<String[]>           exceptions              = new ArrayProperty("exceptions", String.class).indexed();
 	public static final Property<Boolean>            callSuper               = new BooleanProperty("callSuper").indexed();
 	public static final Property<Boolean>            overridesExisting       = new BooleanProperty("overridesExisting").indexed();
 	public static final Property<Boolean>            doExport                = new BooleanProperty("doExport").indexed();
 	public static final Property<String>             codeType                = new StringProperty("codeType").indexed();
 	public static final Property<Boolean>            isPartOfBuiltInSchema   = new BooleanProperty("isPartOfBuiltInSchema").indexed();
+	public static final Property<Boolean>            includeInOpenAPI        = new BooleanProperty("includeInOpenAPI").indexed();
 	public static final Property<String[]>           tags                    = new ArrayProperty("tags", String.class).indexed();
 	public static final Property<String>             summary                 = new StringProperty("summary");
 	public static final Property<String>             description             = new StringProperty("description");
@@ -95,15 +92,15 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	));
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
-		name, schemaNode, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic
+		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic
 	);
 
 	public static final View uiView = new View(SchemaMethod.class, PropertyView.Ui,
-		name, schemaNode, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic
+		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
-		id, type, schemaNode, name, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic
+		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI
 	);
 
 	public ActionEntry getActionEntry(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode schemaEntity) throws FrameworkException {
@@ -142,6 +139,11 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		// check for overridden methods and determine method signature etc. from superclass(es)
 		if (getProperty(doExport)) {
 			entry.setDoExport(true);
+		}
+
+		// check for overridden methods and determine method signature etc. from superclass(es)
+		if (getProperty(isStatic)) {
+			entry.setIsStatic(true);
 		}
 
 		return entry;
@@ -230,13 +232,10 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	// ----- private methods -----
 	private void clearMethodCacheOfExtendingNodes() throws FrameworkException {
 
-		AbstractSchemaNode node = getProperty(schemaNode);
+		final AbstractSchemaNode node = getProperty(schemaNode);
 		if (node != null) {
-			// Find inheriting SchemaNodes and clear their method cache
-			final String fqcn = "org.structr.dynamic" + node.getName();
-			List<SchemaNode> extendingNodes = StructrApp.getInstance().nodeQuery(SchemaNode.class).and(SchemaNode.extendsClass, fqcn).getAsList();
 
-			for (final SchemaNode extendingNode : extendingNodes) {
+			for (final SchemaNode extendingNode : node.getProperty(SchemaNode.extendedByClasses)) {
 
 				extendingNode.clearCachedSchemaMethodsForInstance();
 			}
@@ -245,10 +244,10 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	private void addType(final Queue<String> typeQueue, final AbstractSchemaNode schemaNode) {
 
-		final String _extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
+		final SchemaNode _extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
 		if (_extendsClass != null) {
 
-			typeQueue.add(StringUtils.substringBefore(_extendsClass, "<"));
+			typeQueue.add(_extendsClass.getName());
 		}
 
 		final String _interfaces = schemaNode.getProperty(SchemaNode.implementsInterfaces);

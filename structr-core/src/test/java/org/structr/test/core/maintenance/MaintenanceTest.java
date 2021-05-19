@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.testng.annotations.Test;
@@ -33,20 +34,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.Transaction;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Node;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.test.common.StructrTest;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.SchemaNode;
 import org.structr.test.core.entity.TestEleven;
 import org.structr.test.core.entity.TestOne;
 import org.structr.test.core.entity.TestTwo;
 import org.structr.core.graph.BulkCreateLabelsCommand;
 import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.BulkSetNodePropertiesCommand;
+import org.structr.core.graph.BulkSetUuidCommand;
+import org.structr.core.graph.ClearDatabase;
 import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
+import org.structr.schema.export.StructrSchema;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
@@ -263,6 +273,64 @@ public class MaintenanceTest extends StructrTest {
 	}
 
 	@Test
+	public void testBulkAddUUIDsCommand() {
+
+		try {
+
+			final DatabaseService graphDb    = app.getDatabaseService();
+			final Set<String> expectedLabels = new LinkedHashSet<>();
+
+			expectedLabels.add("Principal");
+			expectedLabels.add("Group");
+			expectedLabels.add("AccessControllable");
+			expectedLabels.add("AbstractNode");
+			expectedLabels.add("NodeInterface");
+			expectedLabels.add("CMISInfo");
+			expectedLabels.add("CMISItemInfo");
+
+			if (graphDb.getTenantIdentifier() != null) {
+				expectedLabels.add(graphDb.getTenantIdentifier());
+			}
+
+			// intentionally create raw Neo4j transaction and create nodes in there
+			try (Transaction tx = graphDb.beginTx()) {
+
+				for (int i=0; i<100; i++) {
+
+					// Create nodes with one label and the type Group, and no properties
+					graphDb.createNode("Group", Set.of("Group"), Map.of());
+				}
+
+				tx.success();
+			}
+
+			// test set UUIDs command
+			app.command(BulkSetUuidCommand.class).execute(Map.of("type", "Group"));
+
+			// nodes should now be visible to Structr
+			try (final Tx tx = app.tx()) {
+
+				// check nodes, we should find 100 Groups here
+				assertEquals(100, app.nodeQuery(Group.class).getAsList().size());
+
+				// check nodes
+				for (final Group group : app.nodeQuery(Group.class).getResultStream()) {
+
+					final Set<String> labels = Iterables.toSet(group.getNode().getLabels());
+					assertNotNull("No UUID was set by BulkSetUUIDCommand", group.getUuid());
+				}
+
+				tx.success();
+			}
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
 	public void testBulkCreateLabelsCommand() {
 
 		try {
@@ -418,6 +486,8 @@ public class MaintenanceTest extends StructrTest {
 				// check nodes, we should find 100 TestTwos here, and none TestOnes
 				assertEquals(  0, app.nodeQuery(TestOne.class).getAsList().size());
 				assertEquals(100, app.nodeQuery(TestTwo.class).getAsList().size());
+
+				tx.success();
 			}
 
 		} catch (FrameworkException fex) {
@@ -425,5 +495,81 @@ public class MaintenanceTest extends StructrTest {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void testClearDatabaseCommand() {
+
+		// setup 1: create test types
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			schema.addType("Test123");
+			schema.addType("OneTwoThreeFour");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class test1 = StructrApp.getConfiguration().getNodeEntityClass("Test123");
+		final Class test2 = StructrApp.getConfiguration().getNodeEntityClass("OneTwoThreeFour");
+
+		// setup 2: create test nodes
+		try (final Tx tx = app.tx()) {
+
+			createTestNodes(test1, 100);
+			createTestNodes(test2, 100);
+
+			app.create(Group.class, "Group1");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test 1: clear database
+		try (final Tx tx = app.tx()) {
+
+			Settings.CypherDebugLogging.setValue(true);
+
+			app.command(ClearDatabase.class).execute();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+
+		} finally {
+
+			Settings.CypherDebugLogging.setValue(false);
+		}
+
+		// test 2: verify that nothing except the initial schema is there..
+		try (final Tx tx = app.tx()) {
+
+			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(SchemaNode.class).andName("Test123").getFirst());
+			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(SchemaNode.class).andName("OneTwoTreeFour").getFirst());
+
+			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(test1).getFirst());
+			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(test2).getFirst());
+			assertNull("Database was not cleaned correctly by ClearDatabase command", app.nodeQuery(Group.class).getFirst());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
 	}
 }

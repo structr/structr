@@ -44,7 +44,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 
 	private JsonMethod parent   = null;
 	private String description  = null;
-	private Object exampleValue = null;
+	private String exampleValue = null;
 	private String name         = null;
 	private String type         = null;
 	private int index           = 0;
@@ -135,12 +135,12 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 	}
 
 	@Override
-	public Object getExampleValue() {
+	public String getExampleValue() {
 		return exampleValue;
 	}
 
 	@Override
-	public JsonParameter setExampleValue(final Object exampleValue) {
+	public JsonParameter setExampleValue(final String exampleValue) {
 		this.exampleValue = exampleValue;
 		return this;
 	}
@@ -214,7 +214,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 			this.description = (String)_description;
 		}
 
-		this.exampleValue = source.get(JsonSchema.KEY_EXAMPLE_VALUE);
+		this.exampleValue = (String)source.get(JsonSchema.KEY_EXAMPLE_VALUE);
 	}
 
 	void deserialize(final SchemaMethodParameter method) {

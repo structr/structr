@@ -39,6 +39,6 @@ public interface JsonParameter extends Comparable<JsonParameter> {
 	public String getDescription();
 	public JsonParameter setDescription(final String descString);
 
-	public Object getExampleValue();
-	public JsonParameter setExampleValue(final Object exampleValue);
+	public String getExampleValue();
+	public JsonParameter setExampleValue(final String exampleValue);
 }

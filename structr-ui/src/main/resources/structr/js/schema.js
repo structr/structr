@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var canvas, instance, res, nodes = {}, rels = {}, localStorageSuffix = '_schema_' + port, undefinedRelType = 'UNDEFINED_RELATIONSHIP_TYPE', initialRelType = undefinedRelType;
+var canvas, instance, res, nodes = {}, rels = {}, localStorageSuffix = '_schema_' + port;
 var reload = false;
 var schemaContainer;
 var inheritanceTree, inheritanceSlideout;
@@ -48,6 +48,8 @@ $(document).ready(function() {
 
 var _Schema = {
 	_moduleName: 'schema',
+	undefinedRelType: 'UNDEFINED_RELATIONSHIP_TYPE',
+	initialRelType: 'UNDEFINED_RELATIONSHIP_TYPE',
 	schemaLoading: false,
 	schemaLoaded: false,
 	nodePositions: undefined,
@@ -510,17 +512,14 @@ var _Schema = {
 				if (!hierarchy[level]) { hierarchy[level] = []; }
 				hierarchy[level].push(entity);
 
-				entities['org.structr.dynamic.' + entity.name] = entity.id;
+				entities[entity.id] = entity.id;
 			});
 
 			data.result.forEach(function(entity) {
 
-				if (entity.extendsClass && entity.extendsClass !== 'org.structr.core.entity.AbstractNode') {
-
-					if (entities[entity.extendsClass]) {
-						var target = entities[entity.extendsClass];
-						inheritancePairs[entity.id] = target;
-					}
+				if (entity.extendsClass && entity.extendsClass.id && entities[entity.extendsClass.id]) {
+					var target = entities[entity.extendsClass.id];
+					inheritancePairs[entity.id] = target;
 				}
 			});
 
@@ -720,13 +719,7 @@ var _Schema = {
 
 		Command.get(id, null, function(entity) {
 
-			var title = 'Edit schema node';
-			var method = _Schema.loadNode;
-
-			if (entity.type === "SchemaRelationshipNode") {
-				title = 'Edit schema relationship';
-				method = _Schema.loadRelationship;
-			}
+			let title = (entity.type === "SchemaRelationshipNode") ? 'Edit schema relationship' : 'Edit schema node';
 
 			Structr.dialog(title, function() {
 				dialogMeta.show();
@@ -740,7 +733,11 @@ var _Schema = {
 				instance.repaintEverything();
 			}, ['schema-edit-dialog']);
 
-			method(entity, dialogHead, dialogText, targetView);
+			if (entity.type === "SchemaRelationshipNode") {
+				_Schema.loadRelationship(entity, dialogHead, dialogText, nodes[entity.sourceId], nodes[entity.targetId]);
+			} else {
+				_Schema.loadNode(entity, dialogHead, dialogText, targetView);
+			}
 
 			_Schema.ui.clearSelection();
 		});
@@ -795,7 +792,7 @@ var _Schema = {
 							],
 							["Label", {
 									cssClass: "label rel-type",
-									label: '<div id="rel_' + res.id + '">' + (res.relationshipType === initialRelType ? '<span>&nbsp;</span>' : res.relationshipType)
+									label: '<div id="rel_' + res.id + '">' + (res.relationshipType === _Schema.initialRelType ? '<span>&nbsp;</span>' : res.relationshipType)
 											+ ' <i title="Edit schema relationship" class="edit icon ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '"></i>'
 											+ ' <i title="Remove schema relationship" class="remove icon ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '"></i></div>',
 									location: .5,
@@ -812,7 +809,7 @@ var _Schema = {
 						]
 					});
 
-					if (res.relationshipType === initialRelType) {
+					if (res.relationshipType === _Schema.initialRelType) {
 						var relTypeOverlay = $('#rel_' + res.id);
 						relTypeOverlay.css({
 							width: "80px"
@@ -863,7 +860,8 @@ var _Schema = {
 
 		headContentDiv.append('<b>' + entity.name + '</b>');
 
-		if (!entity.isBuiltinType && (!entity.extendsClass || entity.extendsClass.slice(-1) !== '>') ) {
+		//if (!entity.isBuiltinType && (!entity.extendsClass || entity.extendsClass.slice(-1) !== '>') ) {
+		if (!entity.isBuiltinType || entity.extendsClass) {
 			headContentDiv.append(' extends <select class="extends-class-select"></select>');
 			headContentDiv.append(' <i id="edit-parent-class" class="icon edit ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" title="Edit parent class" />');
 
@@ -897,7 +895,8 @@ var _Schema = {
 				}
 			});
 
-			if (entity.extendsClass && entity.extendsClass.indexOf('org.structr.dynamic.') === 0) {
+			//if (entity.extendsClass && entity.extendsClass.indexOf('org.structr.dynamic.') === 0) {
+			if (entity.extendsClass) {
 				$("#edit-parent-class").removeClass('disabled');
 			} else {
 				$("#edit-parent-class").addClass('disabled');
@@ -941,23 +940,47 @@ var _Schema = {
 		}
 
 		var classSelect = $('.extends-class-select', headEl);
-		$.get(rootUrl + '_schema', function(data) {
-			var result = data.result;
-			var classNames = [];
-			$.each(result, function(t, cls) {
-				var type = cls.type;
-				var fqcn = cls.className;
-				if ( cls.isRel || !type || type.startsWith('_') || fqcn.startsWith('org.structr.web.entity.html') || fqcn.endsWith('.' + entity.name) ) {
-					return;
+		classSelect.append('<optgroup label="Default Type"><option value="">AbstractNode - Structr default base type</option></optgroup>');
+		$.get(rootUrl + 'SchemaNode/ui?sort=name', function(data) {
+
+			var customTypes  = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isBuiltinType));
+			var builtinTypes = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && cls.isBuiltinType));
+			var max          = 60; // max. number of chars of summary to display in select box
+
+			var appendOptions = function(optgroup, list) {
+
+				for (var cls of list) {
+
+					var name     = cls.name;
+					var selected = '';
+
+					if (entity.extendsClass && entity.extendsClass.name && entity.extendsClass.id === cls.id) {
+						selected = 'selected="selected"';
+					}
+
+					if (cls.summary && cls.summary.length) {
+
+						name += ' - ' + cls.summary.substr(0, Math.min(cls.summary.length, max));
+						if (cls.summary.length > max) {
+							name += '..';
+						}
+					}
+
+					optgroup.append(`<option ${selected} value="${cls.id}">${name}</option>`);
 				}
-				classNames.push(fqcn);
-			});
+			}
 
-			classNames.sort();
+			if (customTypes.length) {
 
-			classNames.forEach( function(classname) {
-				classSelect.append('<option ' + (entity.extendsClass === classname ? 'selected="selected"' : '') + ' value="' + classname + '">' + classname + '</option>');
-			});
+				classSelect.append('<optgroup id="for-custom-types" label="Custom Types"></optgroup>');
+				appendOptions($('#for-custom-types'), customTypes);
+			}
+
+			if (builtinTypes.length) {
+
+				classSelect.append('<optgroup id="for-builtin-types" label="Built-in Types"></optgroup>');
+				appendOptions($('#for-builtin-types'), builtinTypes);
+			}
 
 			classSelect.chosen({ search_contains: true, width: '500px' });
 		});
@@ -1018,6 +1041,11 @@ var _Schema = {
 
 				let currentSourceSuggestion = _Schema.createRemotePropertyNameSuggestion(sourceTypeName, $('#source-multiplicity-selector').val());
 				let currentTargetSuggestion = _Schema.createRemotePropertyNameSuggestion(targetTypeName, $('#target-multiplicity-selector').val());
+
+				if (currentSourceSuggestion === currentTargetSuggestion) {
+					currentSourceSuggestion += '_source';
+					currentTargetSuggestion += '_target';
+				}
 
 				if (previousSourceSuggestion === $('#source-json-name').val()) {
 					$('#source-json-name').val(currentSourceSuggestion);
@@ -1100,7 +1128,7 @@ var _Schema = {
 		};
 
 	},
-	loadRelationship: function(entity, headEl, contentEl) {
+	loadRelationship: function(entity, headEl, contentEl, sourceNode, targetNode, saveSuccessFunction) {
 
 		Structr.fetchHtmlTemplate('schema/dialog.relationship', {}, function (html) {
 			headEl.append(html);
@@ -1127,13 +1155,13 @@ var _Schema = {
 			}, null, _Schema.methods.refreshEditors);
 
 			let selectRelationshipOptions = function(rel) {
-				$('#source-type-name').text(nodes[rel.sourceId].name).data('objectId', rel.sourceId);
+				$('#source-type-name').text(sourceNode.name).data('objectId', rel.sourceId);
 				$('#source-json-name').val(rel.sourceJsonName || rel.oldSourceJsonName);
 				$('#target-json-name').val(rel.targetJsonName || rel.oldTargetJsonName);
 				$('#source-multiplicity-selector').val(rel.sourceMultiplicity || '*');
-				$('#relationship-type-name').val(rel.relationshipType === initialRelType ? '' : rel.relationshipType);
+				$('#relationship-type-name').val(rel.relationshipType === _Schema.initialRelType ? '' : rel.relationshipType);
 				$('#target-multiplicity-selector').val(rel.targetMultiplicity || '*');
-				$('#target-type-name').text(nodes[rel.targetId].name).data('objectId', rel.targetId);
+				$('#target-type-name').text(targetNode.name).data('objectId', rel.targetId);
 				$('#cascading-delete-selector').val(rel.cascadingDeleteFlag || 0);
 				$('#autocreate-selector').val(rel.autocreationFlag || 0);
 				$('#propagation-selector').val(rel.permissionPropagation || 'None');
@@ -1144,14 +1172,19 @@ var _Schema = {
 				$('#masked-properties').val(rel.propertyMask);
 			};
 
-			$('.edit-schema-object', headEl).off('click').on('click', function(e) {
-				e.stopPropagation();
+			if (!saveSuccessFunction) {
 
-				// todo: only navigate if no changes
+				$('.edit-schema-object', headEl).off('click').on('click', function(e) {
+					e.stopPropagation();
 
-				_Schema.openEditDialog($(this).data('objectId'));
-				return false;
-			});
+					// todo: only navigate if no changes
+
+					_Schema.openEditDialog($(this).data('objectId'));
+					return false;
+				});
+			} else {
+				$('.edit-schema-object', headEl).off('click').removeClass('edit-schema-object');
+			}
 
 			selectRelationshipOptions(entity);
 
@@ -1243,6 +1276,12 @@ var _Schema = {
 							blinkGreen($('#relationship-options [data-attr-name=' + attribute + ']'));
 							entity[attribute] = newData[attribute];
 						});
+
+						if (saveSuccessFunction) {
+							saveSuccessFunction();
+						} else {
+							_Schema.reload();
+						}
 
 					}, function(data) {
 
@@ -1974,7 +2013,7 @@ var _Schema = {
 		},
 		appendRemoteProperty: function(el, rel, out, editSchemaObjectLinkHandler) {
 
-			let relType = (rel.relationshipType === undefinedRelType) ? '' : rel.relationshipType;
+			let relType = (rel.relationshipType === _Schema.undefinedRelType) ? '' : rel.relationshipType;
 			let relatedNodeId = (out ? rel.targetId : rel.sourceId);
 			let attributeName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
 
@@ -2499,11 +2538,9 @@ var _Schema = {
 								name: method.name,
 								isStatic: method.isStatic,
 								source: method.source || '',
-								comment: method.comment || '',
 								initialName: method.name,
 								initialisStatic: method.isStatic,
 								initialSource: method.source || '',
-								initialComment: method.comment || ''
 							};
 
 							_Schema.methods.bindRowEvents(fakeRow, entity, method);
@@ -2571,7 +2608,6 @@ var _Schema = {
 							name:     methodData.name,
 							isStatic: methodData.isStatic,
 							source:   methodData.source,
-							comment:  methodData.comment
 						});
 						allow = _Schema.methods.validateMethodRow(row) && allow;
 					}
@@ -2585,7 +2621,6 @@ var _Schema = {
 						name:     methodData.name,
 						isStatic: methodData.isStatic,
 						source:   methodData.source,
-						comment:  methodData.comment
 					};
 
 					if (entity) {
@@ -2717,10 +2752,6 @@ var _Schema = {
 				if (_Schema.methods.cm.source) {
 					_Schema.methods.cm.source.refresh();
 				}
-
-				if (_Schema.methods.cm.comment) {
-					_Schema.methods.cm.comment.refresh();
-				}
 			}
 		},
 		appendEmptyMethod: function(fakeTbody, tplConfig) {
@@ -2737,7 +2768,6 @@ var _Schema = {
 					name: tplConfig.name,
 					isStatic: false,
 					source: '',
-					comment: ''
 				};
 
 				$('.property-name', row).off('keyup').on('keyup', function() {
@@ -2826,7 +2856,6 @@ var _Schema = {
 					methodData.name     = methodData.initialName;
 					methodData.isStatic = methodData.initialisStatic;
 					methodData.source   = methodData.initialSource;
-					methodData.comment  = methodData.initialComment;
 
 					$('.property-name', row).val(methodData.name);
 					$('.property-isStatic', row).prop('checked', methodData.isStatic);
@@ -2853,7 +2882,6 @@ var _Schema = {
 				_Schema.methods.cm = {};
 			} else {
 				_Schema.methods.cm.source.toTextArea();
-				_Schema.methods.cm.comment.toTextArea();
 			}
 
 			let sourceTextarea = $('textarea.property-code', contentDiv);
@@ -2885,28 +2913,6 @@ var _Schema = {
 			});
 
 			_Code.setupAutocompletion(_Schema.methods.cm.source, methodId, true);
-
-			let commentTextarea = $('textarea.property-comment', contentDiv);
-
-			_Schema.methods.cm.comment = CodeMirror.fromTextArea(commentTextarea[0], Structr.getCodeMirrorSettings({
-				lineNumbers: true,
-				lineWrapping: false,
-				indentUnit: 4,
-				tabSize: 4,
-				indentWithTabs: true
-			}));
-			$(_Schema.methods.cm.comment.getWrapperElement()).addClass('cm-schema-methods');
-			_Schema.methods.cm.comment.setValue(methodData.comment);
-			_Schema.methods.cm.comment.refresh();
-			_Schema.methods.cm.comment.clearHistory();
-			_Schema.methods.cm.comment.on('change', function (cm, changeset) {
-				cm.save();
-				$(cm.getTextArea()).trigger('change');
-
-				methodData.comment = cm.getValue();
-
-				_Schema.methods.rowChanged(row, (methodData.comment !== methodData.initialComment));
-			});
 		},
 		senseCodeMirrorMode: function(content) {
 			return (content && content.indexOf('{') === 0) ? 'text/javascript' : 'text';
@@ -3272,11 +3278,10 @@ var _Schema = {
 							data: JSON.stringify(newData),
 							statusCode: {
 								200: function() {
+									_Schema.hideSchemaRecompileMessage();
 									if (onSuccess) {
 										onSuccess();
 									}
-									_Schema.hideSchemaRecompileMessage();
-									_Schema.reload();
 								},
 								422: function(data) {
 									_Schema.hideSchemaRecompileMessage();
@@ -4135,7 +4140,7 @@ var _Schema = {
 
 			var classObj = {
 				name: schemaNode.name,
-				parent: (schemaNode.extendsClass === null ? 'AbstractNode' : getParentClassName(schemaNode.extendsClass))
+				parent: schemaNode.extendsClass ? schemaNode.extendsClass.name : ''
 			};
 
 			classnameToId[classObj.name] = schemaNode.id;
@@ -4234,8 +4239,10 @@ var _Schema = {
 	},
 	getDerivedTypes: function(baseType, blacklist, callback) {
 
-		Command.getByType('SchemaNode', 10000, 1, 'name', 'asc', 'name,extendsClass,isAbstract', false, function(result) {
+		// baseType is FQCN
+		$.get(rootUrl + '_schema', function(data) {
 
+			var result    = data.result;
 			var fileTypes = [];
 			var depth     = 5;
 			var types     = {};
@@ -4251,6 +4258,8 @@ var _Schema = {
 						if (!n.isAbstract && !blacklist.includes(n.name)) {
 							types[n.name] = 1;
 						}
+					} else {
+						console.log({ ext: n.extendsClass, type: type });
 					}
 				});
 			};

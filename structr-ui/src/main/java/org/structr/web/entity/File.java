@@ -197,16 +197,17 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		type.addMethod("getFileOnDisk")
 			.setReturnType(java.io.File.class.getName())
-			.addParameter("doCreate", "boolean")
-			.setSource("return " + File.class.getName() + ".getFileOnDisk(this, doCreate);");
+			.setSource("return " + File.class.getName() + ".getFileOnDisk(this, doCreate);")
+			.addParameter("doCreate", "boolean");
 
 		type.addMethod("doCSVImport")
+			.setReturnType(java.lang.Long.class.getName())
 			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setReturnType(java.lang.Long.class.getName())
 			.setSource("return " + File.class.getName() + ".doCSVImport(this, parameters, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
+
 
 		type.addMethod("doXMLImport")
 			.addParameter("ctx", SecurityContext.class.getName())

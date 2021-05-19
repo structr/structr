@@ -968,10 +968,10 @@ public class UiScriptingTest extends StructrUiTest {
 			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Test");
 
-			type.addMethod("testBoolean1", "{ return true; }", "");
-			type.addMethod("testBoolean2", "{ return false; }", "");
-			type.addMethod("testBoolean3", "{ return true; }", "");
-			type.addMethod("testBoolean4", "{ return false; }", "");
+			type.addMethod("testBoolean1", "{ return true; }");
+			type.addMethod("testBoolean2", "{ return false; }");
+			type.addMethod("testBoolean3", "{ return true; }");
+			type.addMethod("testBoolean4", "{ return false; }");
 
 			type.addStringProperty("log");
 
@@ -1042,7 +1042,7 @@ public class UiScriptingTest extends StructrUiTest {
 			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Test");
 
-			type.addMethod("test", null, "");
+			type.addMethod("test", null);
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
@@ -1768,7 +1768,7 @@ public class UiScriptingTest extends StructrUiTest {
 			project.addBooleanProperty("raiseError");
 
 			// associate all existing tasks with this project, and throw an error if the project has the "raiseError" flag set
-			project.addMethod("doTest", "{ $.log($.this.name); $.this.tasks = $.find('Task'); $.assert(!$.this.raiseError, 422, 'Assertion failed.'); }", "");
+			project.addMethod("doTest", "{ $.log($.this.name); $.this.tasks = $.find('Task'); $.assert(!$.this.raiseError, 422, 'Assertion failed.'); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 

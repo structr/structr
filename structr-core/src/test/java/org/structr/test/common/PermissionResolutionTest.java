@@ -357,8 +357,8 @@ public class PermissionResolutionTest extends StructrTest {
 			final SchemaNode moo  = app.create(SchemaNode.class, "Moo");
 			final SchemaNode test = app.create(SchemaNode.class, "Test");
 
-			moo.setProperty(SchemaNode.extendsClass, "org.structr.dynamic.Project");
-			test.setProperty(SchemaNode.extendsClass, "org.structr.dynamic.Project");
+			moo.setProperty(SchemaNode.extendsClass, type);
+			test.setProperty(SchemaNode.extendsClass, type);
 
 			app.create(Principal.class, "tester");
 

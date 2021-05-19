@@ -32,7 +32,7 @@ public class OpenAPIGetMultipleOperation extends OpenAPIOperation {
 
 	public OpenAPIGetMultipleOperation(final StructrTypeDefinition type, final String view) {
 
-		super(// summary
+		super(	// summary
 			"Lists all objects of type " + type.getName(),
 
 			// description
@@ -51,7 +51,7 @@ public class OpenAPIGetMultipleOperation extends OpenAPIOperation {
 			null,
 
 			// responses
-				Map.of("200", new OpenAPIRequestResponse("Ok",
+				Map.of("200", new OpenAPIRequestResponse("The request was executed successfully.",
 					new OpenAPIResultSchema(
 						new OpenAPIArraySchema(
 							"List of objects of type " + type.getName() + " and subtypes.",
@@ -62,7 +62,8 @@ public class OpenAPIGetMultipleOperation extends OpenAPIOperation {
 						true
 					)
 				),
-				"403", new OpenAPIReference("#/components/responses/forbidden")
+				"401", new OpenAPIReference("#/components/responses/unauthorized"),
+				"404", new OpenAPIReference("#/components/responses/notFound")
 			)
 		);
 	}

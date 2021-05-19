@@ -368,9 +368,9 @@ public class SchemaHelper {
 		return type;
 	}
 
-	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId) {
+	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId, final boolean forceFullReload) {
 
-		final ServiceResult res = SchemaService.reloadSchema(errorBuffer, initiatedBySessionId);
+		final ServiceResult res = SchemaService.reloadSchema(errorBuffer, initiatedBySessionId, forceFullReload);
 
 		if (!errorBuffer.hasError()) {
 
@@ -655,10 +655,28 @@ public class SchemaHelper {
 		final Set<String> enums                                = new LinkedHashSet<>();
 		final Class baseType                                   = AbstractNode.class;
 		final String _className                                = schemaNode.getProperty(SchemaNode.name);
-		final String _extendsClass                             = schemaNode.getProperty(SchemaNode.extendsClass);
-		final String superClass                                = _extendsClass != null ? _extendsClass : baseType.getSimpleName();
-		final boolean extendsAbstractNode                      = _extendsClass == null;
+		final SchemaNode _extendsClass                         = schemaNode.getProperty(SchemaNode.extendsClass);
+		final String _extendsClassInternal                     = schemaNode.getProperty(SchemaNode.extendsClassInternal);
+		String superClass                                      = baseType.getSimpleName();
+		boolean extendsAbstractNode                            = true;
 
+		// Since we cannot have relationships between dynamic types (which exist as nodes in the database) and
+		// static types (which only exist as Java classes on disk), we now need to support extendsClass and
+		// extendsClassInternal, which contains the resolved FQCN (including generics) for our core types.
+
+
+		if (_extendsClass != null) {
+
+			superClass = _extendsClass.getName();
+			extendsAbstractNode = false;
+
+		} else if (_extendsClassInternal != null) {
+
+			superClass = _extendsClassInternal;
+			extendsAbstractNode = false;
+		}
+
+		/*
 		// check superclass
 		if (!extendsAbstractNode && !superClass.startsWith("org.structr.dynamic.") && !SchemaHelper.hasType(superClass)) {
 
@@ -668,6 +686,7 @@ public class SchemaHelper {
 			logger.warn("Dynamic type {} cannot be used, superclass {} not defined.", schemaNode.getName(), superClass);
 			throw new FrameworkException(500, "Dynamic type " + schemaNode.getName() + " cannot be used, superclass " + superClass + " not defined.");
 		}
+		*/
 
 		// import mixins, check that all types exist and return null otherwise (causing this class to be ignored)
 		SchemaHelper.collectInterfaces(schemaNode, implementedInterfaces);
@@ -825,8 +844,8 @@ public class SchemaHelper {
 
 	public static Set<String> getUnlicensedTypes(final SchemaNode schemaNode) throws FrameworkException {
 
-		final String _extendsClass              = schemaNode.getProperty(SchemaNode.extendsClass);
-		final String superClass                 = _extendsClass != null ? _extendsClass : AbstractNode.class.getSimpleName();
+		final SchemaNode _extendsClass          = schemaNode.getProperty(SchemaNode.extendsClass);
+		final String superClass                 = _extendsClass != null ? _extendsClass.getName() : AbstractNode.class.getSimpleName();
 		final Set<String> implementedInterfaces = new LinkedHashSet<>();
 
 		// import mixins, check that all types exist and return null otherwise (causing this class to be ignored)
@@ -1459,6 +1478,10 @@ public class SchemaHelper {
 
 					final SourceLine line = src.begin(codeSource, "public ");
 
+					if (action.isStatic()) {
+						line.append("static ");
+					}
+
 					line.append(returnType);
 					line.append(" ");
 					line.append(action.getName());
@@ -1949,7 +1972,7 @@ public class SchemaHelper {
 		if (schemaNode != null) {
 
 			// register parent type arguments as well!
-			final SchemaNode parentSchemaNode = schemaNode.getParentSchemaNode(schemaNodes);
+			final SchemaNode parentSchemaNode = schemaNode.getProperty(SchemaNode.extendsClass);
 			if (parentSchemaNode != null && !parentSchemaNode.equals(schemaNode)) {
 
 				arguments.addAll(getGraphQLQueryArgumentsForType(schemaNodes, selectionTypes, queryTypeNames, parentSchemaNode.getName()));
@@ -2047,7 +2070,7 @@ public class SchemaHelper {
 		final Map<String, GraphQLInputObjectField> fields = new LinkedHashMap<>();
 
 		// register parent type arguments as well!
-		final SchemaNode parentSchemaNode = schemaNode.getParentSchemaNode(schemaNodes);
+		final SchemaNode parentSchemaNode = schemaNode.getProperty(SchemaNode.extendsClass);
 		if (parentSchemaNode != null && !parentSchemaNode.equals(schemaNode)) {
 
 			for (final GraphQLInputObjectField field : getGraphQLInputFieldsForType(schemaNodes, selectionTypes, parentSchemaNode)) {
@@ -2220,13 +2243,10 @@ public class SchemaHelper {
 					} else {
 
 						// add superclass AND interfaces
-						String localTypeName = schemaNode.getProperty(SchemaNode.extendsClass);
-						if (localTypeName != null) {
+						final SchemaNode localParentType = schemaNode.getProperty(SchemaNode.extendsClass);
+						if (localParentType != null) {
 
-							localTypeName = cleanTypeName(localTypeName);
-							localTypeName = localTypeName.substring(localTypeName.lastIndexOf(".") + 1);
-
-							types.add(localTypeName);
+							types.add(localParentType.getName());
 						}
 
 						final String interfaces = schemaNode.getProperty(SchemaNode.implementsInterfaces);

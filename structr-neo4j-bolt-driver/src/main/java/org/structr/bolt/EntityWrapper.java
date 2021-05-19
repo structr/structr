@@ -317,8 +317,14 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 			try {
 
-				// update data
-				update(tx.getEntity(getQueryPrefix() + " WHERE ID(n) = $id RETURN n", map).asMap());
+				final Entity entity = tx.getEntity(getQueryPrefix() + " WHERE ID(n) = $id RETURN n", map);
+				if (entity != null) {
+
+					final Map<String, Object> data = entity.asMap();
+
+					// update data
+					update(data);
+				}
 
 			} catch (NoSuchRecordException nex) {
 				throw new NotFoundException(nex);

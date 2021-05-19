@@ -113,7 +113,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		final DatabaseService graphDb = Services.getInstance().getDatabaseService();
 		final String mode             = (String)attributes.get("mode");
 		final String fileName         = (String)attributes.get("file");
-		final String validate         = (String)attributes.get("validate");
+		final Boolean validate        = toStringOrBoolean(attributes.get("validate"));
 		final String query            = (String)attributes.get("query");
 		final Long batchSize          = (Long)attributes.get("batchSize");
 		boolean doValidation          = true;
@@ -121,14 +121,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		// should we validate imported nodes?
 		if (validate != null) {
 
-			try {
-
-				doValidation = Boolean.valueOf(validate);
-
-			} catch (Throwable t) {
-
-				logger.warn("Unable to parse value for validation flag: {}", t.getMessage());
-			}
+			doValidation = validate;
 		}
 
 		if (fileName == null) {
@@ -162,6 +155,16 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	@Override
 	public boolean requiresFlushingOfCaches() {
 		return false;
+	}
+
+	// ----- private methods -----
+	private Boolean toStringOrBoolean(final Object value) {
+
+		if (value != null) {
+			return Boolean.valueOf(value.toString());
+		}
+
+		return null;
 	}
 
 	// ----- static methods -----
@@ -787,7 +790,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		// build schema
 		try (final Tx tx = app.tx()) {
 
-			SchemaHelper.reloadSchema(new ErrorBuffer(), securityContext.getSessionId());
+			SchemaHelper.reloadSchema(new ErrorBuffer(), securityContext.getSessionId(), true);
 			tx.success();
 
 		} catch (FrameworkException fex) {

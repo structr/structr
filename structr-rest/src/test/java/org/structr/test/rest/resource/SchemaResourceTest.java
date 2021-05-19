@@ -928,8 +928,8 @@ public class SchemaResourceTest extends StructrRestTestBase {
 	@Test
 	public void testInheritedSchemaMethodExecution() {
 
-		createEntity("/SchemaNode", "{ name: TestBase, ___test: \"find('Test')\" }");
-		createEntity("/SchemaNode", "{ name: Test, __public: \"name, type\", extendsClass: \"org.structr.dynamic.TestBase\" }");
+		final String uuid = createEntity("/SchemaNode", "{ name: TestBase, ___test: \"find('Test')\" }");
+		createEntity("/SchemaNode", "{ name: Test, __public: \"name, type\", extendsClass: \"" + uuid + "\" }");
 		createEntity("Test", "{ name: Test }");
 
 		// default setting for "force arrays" is false..

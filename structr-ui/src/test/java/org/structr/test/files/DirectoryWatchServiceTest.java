@@ -33,10 +33,11 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import org.apache.cxf.helpers.IOUtils;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -44,8 +45,6 @@ import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -57,6 +56,7 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 
 /**
@@ -582,7 +582,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			// add onCreate method that sets the parent of an uploaded image
 			final JsonSchema schema  = StructrSchema.createFromDatabase(app);
 			final JsonType imageType = schema.getType("Image");
-			imageType.addMethod("onCreation", "set(this, 'parent', first(find('Folder', 'name', 'mounted')))", "");
+			imageType.addMethod("onCreation", "set(this, 'parent', first(find('Folder', 'name', 'mounted')))");
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();

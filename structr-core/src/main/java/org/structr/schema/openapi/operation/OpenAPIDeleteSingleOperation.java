@@ -23,7 +23,6 @@ import java.util.Map;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
 import org.structr.schema.openapi.common.OpenAPIReference;
-import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 
 public class OpenAPIDeleteSingleOperation extends OpenAPIOperation {
 
@@ -52,7 +51,8 @@ public class OpenAPIDeleteSingleOperation extends OpenAPIOperation {
 
 			// responses
 			Map.of(
-				"200", new OpenAPIRequestResponse("Ok", null),
+				"200", new OpenAPIReference("#/components/responses/ok"),
+				"401", new OpenAPIReference("#/components/responses/unauthorized"),
 				"403", new OpenAPIReference("#/components/responses/forbidden"),
 				"404", new OpenAPIReference("#/components/responses/notFound"),
 				"422", new OpenAPIReference("#/components/responses/validationError")

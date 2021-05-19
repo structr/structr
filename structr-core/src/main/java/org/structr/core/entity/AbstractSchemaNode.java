@@ -21,7 +21,6 @@ package org.structr.core.entity;
 import java.util.*;
 import java.util.List;
 
-import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -133,30 +132,17 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 		}
 
 		List<SchemaMethod> methods = Iterables.toList(getProperty(AbstractSchemaNode.schemaMethods));
+		SchemaNode parentNode      = getProperty(SchemaNode.extendsClass);
 
-		try {
-			String extendsClassFQCN = getProperty(SchemaNode.extendsClass);
-			if (extendsClassFQCN != null && extendsClassFQCN.length() > 0) {
+		if (parentNode != null) {
 
-				String[] fqcnParts = extendsClassFQCN.split("\\.");
-				String simpleClassName = fqcnParts[fqcnParts.length - 1];
+			for (SchemaMethod m : parentNode.getSchemaMethodsIncludingInheritance()) {
 
-				SchemaNode parentNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(simpleClassName).getFirst();
+				if (!methods.contains(m)) {
 
-				if (parentNode != null) {
-					for (SchemaMethod m : parentNode.getSchemaMethodsIncludingInheritance()) {
-
-						if (!methods.contains(m)) {
-
-							methods.add(m);
-						}
-					}
+					methods.add(m);
 				}
 			}
-
-		} catch (FrameworkException ex) {
-
-			LoggerFactory.getLogger(AbstractSchemaNode.class).error("Exception while trying to look up schema methods in inherited class.", ex);
 		}
 
 		cachedSchemaMethods.put(getUuid(), methods);

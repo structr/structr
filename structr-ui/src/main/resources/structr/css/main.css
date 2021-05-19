@@ -516,45 +516,45 @@ img.disabled {
 }
 
 #activeElementsTab {
-	right: -71px;
-	width: 98px;
-	top: 184px;
+	right: -81px;
+	width: 118px;
+	top: 194px;
 }
 
 #dataBindingTab {
-	right: -61px;
-	width: 78px;
-	top: 297px;
+	right: -71px;
+	width: 98px;
+	top: 327px;
 }
 
 #localizationsTab {
-	right: -61px;
-	width: 78px;
-	top: 400px;
+	right: -71px;
+	width: 98px;
+	top: 450px;
 }
 
 #widgetsTab {
-	left: -44px;
-	width: 48px;
-	top: 60px;
+	left: -55px;
+	width: 68px;
+	top: 40px;
 }
 
 #paletteTab {
-	left: -62px;
-	width: 84px;
+	left: -73px;
+	width: 104px;
 	top: 150px;
 }
 
 #componentsTab {
-    left: -83px;
-    width: 124px;
-    top: 277px;
+    left: -93px;
+    width: 144px;
+    top: 298px;
 }
 
 #elementsTab {
-	left: -75px;
-	width: 108px;
-	top: 416px;
+	left: -80px;
+	width: 118px;
+	top: 454px;
 }
 
 #queriesTab {
@@ -3888,7 +3888,7 @@ input.tree-search-input:focus {
 	height: 100%;
 }
 #code-methods-container #methods-container #methods-content {
-	height: calc(100% - 58px);
+	height: calc(100% - 10px);
 }
 #code-methods-container #methods-container #methods-content .method-tab-content,
 #code-methods-container #methods-container #methods-content .method-tab-content .cm-schema-methods {
@@ -3924,10 +3924,6 @@ input.tree-search-input:focus {
 #dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods #methods-container {
 	height: 100%;
     margin-bottom: 0;
-}
-
-#dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods #methods-container #methods-content {
-	height: calc(100% - 72px);
 }
 
 #dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods #methods-container #methods-content .method-tab-content,

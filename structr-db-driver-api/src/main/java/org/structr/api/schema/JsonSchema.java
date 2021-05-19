@@ -87,7 +87,6 @@ public interface JsonSchema {
 	public static final String KEY_PARAMETERS               = "parameters";
 	public static final String KEY_PARAMETER_TYPE           = "parameterType";
 	public static final String KEY_PARAMETER_INDEX          = "parameterIndex";
-	public static final String KEY_COMMENT                  = "comment";
 	public static final String KEY_SUMMARY                  = "summary";
 	public static final String KEY_CONTENT_TYPE             = "contentType";
 	public static final String KEY_RELATIONSHIP             = "rel";
@@ -114,6 +113,7 @@ public interface JsonSchema {
 	public static final String KEY_IS_CACHING_ENABLED       = "cachingEnabled";
 	public static final String KEY_EXAMPLE_VALUE            = "exampleValue";
 	public static final String KEY_TAGS                     = "tags";
+	public static final String KEY_INCLUDE_IN_OPENAPI       = "includeInOpenAPI";
 
 	public static final String KEY_GRANT_READ               = "read";
 	public static final String KEY_GRANT_WRITE              = "write";

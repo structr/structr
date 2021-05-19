@@ -20,7 +20,6 @@ package org.structr.test.web.advanced;
 
 import com.jayway.restassured.RestAssured;
 import java.nio.charset.Charset;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonSchema;
@@ -37,6 +36,7 @@ import org.structr.web.entity.User;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 /**
  *
@@ -298,7 +298,7 @@ public class UploadServletTest extends StructrUiTest {
 			JsonSchema schema   = StructrSchema.createFromDatabase(app);
 			final JsonType type = schema.getType("File");
 
-			type.addMethod("onCreate", "error('something', 'forbidden', 'nope')", "");
+			type.addMethod("onCreate", "error('something', 'forbidden', 'nope')");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
