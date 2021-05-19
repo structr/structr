@@ -572,8 +572,8 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 		// when a user wants to create a more specific type using the
 		// base type resource URL.
 
-		createEntity("/SchemaNode", "{ name: BaseType }");
-		createEntity("/SchemaNode", "{ name: DerivedType, extendsClass: 'org.structr.dynamic.BaseType' }");
+		final String uuid = createEntity("/SchemaNode", "{ name: BaseType }");
+		createEntity("/SchemaNode", "{ name: DerivedType, extendsClass: \"" + uuid + "\" }");
 
 		createEntity("/BaseType", "{ name: BaseType }");
 		createEntity("/BaseType", "{ name: DerivedType, type: DerivedType }");

@@ -18,14 +18,11 @@
  */
 package org.structr.core.graph;
 
-import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 
 /**
@@ -33,60 +30,42 @@ import org.structr.core.app.StructrApp;
  *
  * This command takes no parameters.
  */
-public class ClearDatabase extends NodeServiceCommand {
+public class ClearDatabase extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ClearDatabase.class.getName());
 
 	public void execute() throws FrameworkException {
+		execute(Map.of());
+	}
+
+	@Override
+	public void execute(final Map<String, Object> attributes) throws FrameworkException {
+
+		FlushCachesCommand.flushAll();
 
 		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
-
 		if (graphDb != null) {
 
-			List<NodeInterface> nodes = null;
-			final App app = StructrApp.getInstance();
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			try (final Tx tx = app.tx()) {
+				graphDb.cleanDatabase();
 
-				nodes = app.nodeQuery(NodeInterface.class).getAsList();
 				tx.success();
-
-			} catch (FrameworkException fex) {
-				logger.warn("Exception while creating all nodes iterator.", fex);
 			}
 
-			final long deletedNodes = bulkGraphOperation(securityContext, nodes, 1000, "ClearDatabase", new BulkGraphOperation<NodeInterface>() {
+		} else {
 
-				@Override
-				public boolean handleGraphObject(SecurityContext securityContext, NodeInterface node) {
-
-					// Delete only "our" nodes
-					if (node.getProperty(GraphObject.id) != null) {
-
-						try {
-							app.delete(node);
-
-						} catch (FrameworkException fex) {
-							logger.warn("Unable to delete node {}: {}", new Object[] { node.getUuid(), fex.getMessage() } );
-						}
-					}
-
-					return true;
-				}
-
-				@Override
-				public void handleThrowable(SecurityContext securityContext, Throwable t, NodeInterface node) {
-					logger.warn("Unable to delete node {}: {}", new Object[] { node.getUuid(), t.getMessage() } );
-				}
-
-				@Override
-				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-					logger.warn("Unable to clear database: {}", t.getMessage() );
-				}
-			});
-
-			logger.info("Finished deleting {} nodes", deletedNodes);
-
+			logger.error("Unable to clear database: no database service found.");
 		}
+	}
+
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return true;
+	}
+
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return true;
 	}
 }

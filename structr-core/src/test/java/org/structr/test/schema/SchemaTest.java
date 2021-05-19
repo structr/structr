@@ -28,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,9 +45,11 @@ import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedTypeException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
@@ -983,6 +986,234 @@ public class SchemaTest extends StructrTest {
 		}
 
 		Settings.LogSchemaOutput.setValue(true);
+	}
+
+	/*
+	@Test
+	public void testPreventCreationOfExistingTypes() {
+
+		// setup 1: create types
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base  = schema.addType("Location");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+			fail("Creating a type that already exists should fail.");
+
+		} catch (FrameworkException fex) {
+		}
+	}
+	*/
+
+	@Test
+	public void testSchemaRenameInheritedBaseType() {
+
+		// setup 1: create types
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
+			final JsonObjectType rel   = schema.addType("RelatedType");
+			final JsonObjectType base  = schema.addType("BaseType");
+			final JsonObjectType ext1  = schema.addType("Extended1");
+			final JsonObjectType ext11 = schema.addType("Extended11");
+			final JsonObjectType ext2  = schema.addType("Extended2");
+
+			ext1.setExtends(base);
+			ext2.setExtends(base);
+
+			// two levels
+			ext11.setExtends(ext1);
+
+			// relationship
+			base.relate(rel);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		Settings.LogSchemaOutput.setValue(true);
+
+		// setup 2: delete base type
+		try (final Tx tx = app.tx()) {
+
+			System.out.println(StructrSchema.createFromDatabase(app).toString());
+
+			logger.info("Renaming base type..");
+
+			final SchemaNode base = app.nodeQuery(SchemaNode.class).andName("BaseType").getFirst();
+
+			assertNotNull("Base type schema node not found", base);
+
+			base.setProperty(AbstractNode.name, "ModifiedBaseType");
+
+			app.delete(base);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		Settings.LogSchemaOutput.setValue(false);
+
+		// test 1: add method to one of the types that doesn't have a base type any more
+		try (final Tx tx = app.tx()) {
+
+			logger.info("Adding method..");
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType ext1     = schema.getType("Extended");
+
+			ext1.addMethod("doTest", "log('test')");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// test 2: create objects for each type
+		try (final Tx tx = app.tx()) {
+
+			logger.info("Creating node instances..");
+
+			final Class ext1  = StructrApp.getConfiguration().getNodeEntityClass("Extended1");
+			final Class ext11 = StructrApp.getConfiguration().getNodeEntityClass("Extended11");
+			final Class ext2  = StructrApp.getConfiguration().getNodeEntityClass("Extended2");
+
+			app.create(ext1,  "ext1");
+			app.create(ext11, "ext11");
+			app.create(ext2,  "ext2");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+	}
+
+	@Test
+	public void testSchemaDeleteInheritedBaseType() {
+
+		// setup 1: create types
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
+			final JsonObjectType rel   = schema.addType("RelatedType");
+			final JsonObjectType base  = schema.addType("BaseType");
+			final JsonObjectType ext1  = schema.addType("Extended1");
+			final JsonObjectType ext11 = schema.addType("Extended11");
+			final JsonObjectType ext2  = schema.addType("Extended2");
+
+			ext1.setExtends(base);
+			ext2.setExtends(base);
+
+			// two levels
+			ext11.setExtends(ext1);
+
+			// relationship
+			base.relate(rel);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		Settings.LogSchemaOutput.setValue(true);
+
+		// setup 2: delete base type
+		try (final Tx tx = app.tx()) {
+
+			System.out.println(StructrSchema.createFromDatabase(app).toString());
+
+			logger.info("Deleting base type..");
+
+			final SchemaNode base = app.nodeQuery(SchemaNode.class).andName("BaseType").getFirst();
+
+			try {
+
+				//System.out.println(app.nodeQuery(SchemaNode.class).andName("BaseType").getFirst().getGeneratedSourceCode(securityContext));
+				System.out.println(app.nodeQuery(SchemaNode.class).andName("Extended1").getFirst().getGeneratedSourceCode(securityContext));
+
+			} catch (UnlicensedTypeException ex) {
+				java.util.logging.Logger.getLogger(SchemaTest.class.getName()).log(Level.SEVERE, null, ex);
+			}
+
+			assertNotNull("Base type schema node not found", base);
+
+			app.delete(base);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		Settings.LogSchemaOutput.setValue(false);
+
+		// test 1: add method to one of the types that doesn't have a base type any more
+		try (final Tx tx = app.tx()) {
+
+			logger.info("Adding method..");
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType ext1     = schema.getType("Extended");
+
+			ext1.addMethod("doTest", "log('test')");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// test 2: create objects for each type
+		try (final Tx tx = app.tx()) {
+
+			logger.info("Creating node instances..");
+
+			final Class ext1  = StructrApp.getConfiguration().getNodeEntityClass("Extended1");
+			final Class ext11 = StructrApp.getConfiguration().getNodeEntityClass("Extended11");
+			final Class ext2  = StructrApp.getConfiguration().getNodeEntityClass("Extended2");
+
+			app.create(ext1,  "ext1");
+			app.create(ext11, "ext11");
+			app.create(ext2,  "ext2");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
 	}
 
 	// ----- private methods -----
