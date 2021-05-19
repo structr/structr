@@ -940,24 +940,47 @@ var _Schema = {
 		}
 
 		var classSelect = $('.extends-class-select', headEl);
-		classSelect.append('<option value="">AbstractNode - Structr default base type</option>');
+		classSelect.append('<optgroup label="Default Type"><option value="">AbstractNode - Structr default base type</option></optgroup>');
 		$.get(rootUrl + 'SchemaNode/ui?sort=name', function(data) {
-			var classes = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isBuiltinType));
-			classes.forEach( function(cls) {
-				let selected = '';
-				if (entity.extendsClass && entity.extendsClass.name && entity.extendsClass.id === cls.id) {
-					selected = 'selected="selected"';
-				}
-				let name = cls.name;
-				let max  = 60;
-				if (cls.summary && cls.summary.length) {
-					name += ' - ' + cls.summary.substr(0, Math.min(cls.summary.length, max));
-					if (cls.summary.length > max) {
-						name += '..';
+
+			var customTypes  = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isBuiltinType));
+			var builtinTypes = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && cls.isBuiltinType));
+			var max          = 60; // max. number of chars of summary to display in select box
+
+			var appendOptions = function(optgroup, list) {
+
+				for (var cls of list) {
+
+					var name     = cls.name;
+					var selected = '';
+
+					if (entity.extendsClass && entity.extendsClass.name && entity.extendsClass.id === cls.id) {
+						selected = 'selected="selected"';
 					}
+
+					if (cls.summary && cls.summary.length) {
+
+						name += ' - ' + cls.summary.substr(0, Math.min(cls.summary.length, max));
+						if (cls.summary.length > max) {
+							name += '..';
+						}
+					}
+
+					optgroup.append(`<option ${selected} value="${cls.id}">${name}</option>`);
 				}
-				classSelect.append(`<option ${selected} value="${cls.id}">${name}</option>`);
-			});
+			}
+
+			if (customTypes.length) {
+
+				classSelect.append('<optgroup id="for-custom-types" label="Custom Types"></optgroup>');
+				appendOptions($('#for-custom-types'), customTypes);
+			}
+
+			if (builtinTypes.length) {
+
+				classSelect.append('<optgroup id="for-builtin-types" label="Built-in Types"></optgroup>');
+				appendOptions($('#for-builtin-types'), builtinTypes);
+			}
 
 			classSelect.chosen({ search_contains: true, width: '500px' });
 		});
