@@ -4140,7 +4140,7 @@ var _Schema = {
 
 			var classObj = {
 				name: schemaNode.name,
-				parent: schemaNode.extendsClass ? schemaNode.extendsClass.name : ''
+				parent: schemaNode.extendsClass ? schemaNode.extendsClass.name : 'AbstractNode'
 			};
 
 			classnameToId[classObj.name] = schemaNode.id;
