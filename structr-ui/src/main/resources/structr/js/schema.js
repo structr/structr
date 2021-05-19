@@ -1042,6 +1042,11 @@ var _Schema = {
 				let currentSourceSuggestion = _Schema.createRemotePropertyNameSuggestion(sourceTypeName, $('#source-multiplicity-selector').val());
 				let currentTargetSuggestion = _Schema.createRemotePropertyNameSuggestion(targetTypeName, $('#target-multiplicity-selector').val());
 
+				if (currentSourceSuggestion === currentTargetSuggestion) {
+					currentSourceSuggestion += '_source';
+					currentTargetSuggestion += '_target';
+				}
+
 				if (previousSourceSuggestion === $('#source-json-name').val()) {
 					$('#source-json-name').val(currentSourceSuggestion);
 					previousSourceSuggestion = currentSourceSuggestion;
