@@ -939,34 +939,37 @@ var _Schema = {
 			});
 		}
 
-		var classSelect = $('.extends-class-select', headEl);
+		let classSelect = $('.extends-class-select', headEl);
 		classSelect.append('<optgroup label="Default Type"><option value="">AbstractNode - Structr default base type</option></optgroup>');
 		$.get(rootUrl + 'SchemaNode/ui?sort=name', function(data) {
 
-			var customTypes  = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isBuiltinType));
-			var builtinTypes = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && cls.isBuiltinType));
-			var max          = 60; // max. number of chars of summary to display in select box
+			let customTypes  = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isBuiltinType));
+			let builtinTypes = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && cls.isBuiltinType));
+			let max          = 60; // max. number of chars of summary to display in select box
 
-			var appendOptions = function(optgroup, list) {
+			let appendOptions = function(optgroup, list) {
 
-				for (var cls of list) {
+				for (let cls of list) {
 
-					var name     = cls.name;
-					var selected = '';
+					if (cls.id !== entity.id) {
 
-					if (entity.extendsClass && entity.extendsClass.name && entity.extendsClass.id === cls.id) {
-						selected = 'selected="selected"';
-					}
+						let name     = cls.name;
+						let selected = '';
 
-					if (cls.summary && cls.summary.length) {
-
-						name += ' - ' + cls.summary.substr(0, Math.min(cls.summary.length, max));
-						if (cls.summary.length > max) {
-							name += '..';
+						if (entity.extendsClass && entity.extendsClass.name && entity.extendsClass.id === cls.id) {
+							selected = 'selected="selected"';
 						}
-					}
 
-					optgroup.append(`<option ${selected} value="${cls.id}">${name}</option>`);
+						if (cls.summary && cls.summary.length) {
+
+							name += ' - ' + cls.summary.substr(0, Math.min(cls.summary.length, max));
+							if (cls.summary.length > max) {
+								name += '..';
+							}
+						}
+
+						optgroup.append(`<option ${selected} value="${cls.id}">${name}</option>`);
+					}
 				}
 			}
 
@@ -986,7 +989,7 @@ var _Schema = {
 		});
 
 		classSelect.off('change').on('change', function() {
-			var obj = {extendsClass: $(this).val()};
+			let obj = {extendsClass: $(this).val()};
 			_Schema.storeSchemaEntity('schema_properties', entity, JSON.stringify(obj), function() {
 
 				_Schema.openEditDialog(entity.id);
