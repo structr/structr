@@ -513,17 +513,14 @@ var _Schema = {
 				if (!hierarchy[level]) { hierarchy[level] = []; }
 				hierarchy[level].push(entity);
 
-				entities['org.structr.dynamic.' + entity.name] = entity.id;
+				entities[entity.id] = entity.id;
 			});
 
 			data.result.forEach(function(entity) {
 
-				if (entity.extendsClass && entity.extendsClass !== 'org.structr.core.entity.AbstractNode') {
-
-					if (entities[entity.extendsClass]) {
-						var target = entities[entity.extendsClass];
-						inheritancePairs[entity.id] = target;
-					}
+				if (entity.extendsClass && entity.extendsClass.id && entities[entity.extendsClass.id]) {
+					var target = entities[entity.extendsClass.id];
+					inheritancePairs[entity.id] = target;
 				}
 			});
 
@@ -873,7 +870,8 @@ var _Schema = {
 
 		headContentDiv.append('<b>' + entity.name + '</b>');
 
-		if (!entity.isBuiltinType && (!entity.extendsClass || entity.extendsClass.slice(-1) !== '>') ) {
+		//if (!entity.isBuiltinType && (!entity.extendsClass || entity.extendsClass.slice(-1) !== '>') ) {
+		if (!entity.isBuiltinType || entity.extendsClass) {
 			headContentDiv.append(' extends <select class="extends-class-select"></select>');
 			headContentDiv.append(' <i id="edit-parent-class" class="icon edit ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" title="Edit parent class" />');
 
@@ -907,7 +905,8 @@ var _Schema = {
 				}
 			});
 
-			if (entity.extendsClass && entity.extendsClass.indexOf('org.structr.dynamic.') === 0) {
+			//if (entity.extendsClass && entity.extendsClass.indexOf('org.structr.dynamic.') === 0) {
+			if (entity.extendsClass) {
 				$("#edit-parent-class").removeClass('disabled');
 			} else {
 				$("#edit-parent-class").addClass('disabled');
@@ -951,23 +950,47 @@ var _Schema = {
 		}
 
 		var classSelect = $('.extends-class-select', headEl);
-		$.get(rootUrl + '_schema', function(data) {
-			var result = data.result;
-			var classNames = [];
-			$.each(result, function(t, cls) {
-				var type = cls.type;
-				var fqcn = cls.className;
-				if ( cls.isRel || !type || type.startsWith('_') || fqcn.startsWith('org.structr.web.entity.html') || fqcn.endsWith('.' + entity.name) ) {
-					return;
+		classSelect.append('<optgroup label="Default Type"><option value="">AbstractNode - Structr default base type</option></optgroup>');
+		$.get(rootUrl + 'SchemaNode/ui?sort=name', function(data) {
+
+			var customTypes  = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isBuiltinType));
+			var builtinTypes = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && cls.isBuiltinType));
+			var max          = 60; // max. number of chars of summary to display in select box
+
+			var appendOptions = function(optgroup, list) {
+
+				for (var cls of list) {
+
+					var name     = cls.name;
+					var selected = '';
+
+					if (entity.extendsClass && entity.extendsClass.name && entity.extendsClass.id === cls.id) {
+						selected = 'selected="selected"';
+					}
+
+					if (cls.summary && cls.summary.length) {
+
+						name += ' - ' + cls.summary.substr(0, Math.min(cls.summary.length, max));
+						if (cls.summary.length > max) {
+							name += '..';
+						}
+					}
+
+					optgroup.append(`<option ${selected} value="${cls.id}">${name}</option>`);
 				}
-				classNames.push(fqcn);
-			});
+			}
 
-			classNames.sort();
+			if (customTypes.length) {
 
-			classNames.forEach( function(classname) {
-				classSelect.append('<option ' + (entity.extendsClass === classname ? 'selected="selected"' : '') + ' value="' + classname + '">' + classname + '</option>');
-			});
+				classSelect.append('<optgroup id="for-custom-types" label="Custom Types"></optgroup>');
+				appendOptions($('#for-custom-types'), customTypes);
+			}
+
+			if (builtinTypes.length) {
+
+				classSelect.append('<optgroup id="for-builtin-types" label="Built-in Types"></optgroup>');
+				appendOptions($('#for-builtin-types'), builtinTypes);
+			}
 
 			classSelect.chosen({ search_contains: true, width: '500px' });
 		});
@@ -1028,6 +1051,11 @@ var _Schema = {
 
 				let currentSourceSuggestion = _Schema.createRemotePropertyNameSuggestion(sourceTypeName, $('#source-multiplicity-selector').val());
 				let currentTargetSuggestion = _Schema.createRemotePropertyNameSuggestion(targetTypeName, $('#target-multiplicity-selector').val());
+
+				if (currentSourceSuggestion === currentTargetSuggestion) {
+					currentSourceSuggestion += '_source';
+					currentTargetSuggestion += '_target';
+				}
 
 				if (previousSourceSuggestion === $('#source-json-name').val()) {
 					$('#source-json-name').val(currentSourceSuggestion);
@@ -4124,7 +4152,7 @@ var _Schema = {
 
 			var classObj = {
 				name: schemaNode.name,
-				parent: (schemaNode.extendsClass === null ? 'AbstractNode' : getParentClassName(schemaNode.extendsClass))
+				parent: schemaNode.extendsClass ? schemaNode.extendsClass.name : 'AbstractNode'
 			};
 
 			classnameToId[classObj.name] = schemaNode.id;
@@ -4223,8 +4251,10 @@ var _Schema = {
 	},
 	getDerivedTypes: function(baseType, blacklist, callback) {
 
-		Command.getByType('SchemaNode', 10000, 1, 'name', 'asc', 'name,extendsClass,isAbstract', false, function(result) {
+		// baseType is FQCN
+		$.get(rootUrl + '_schema', function(data) {
 
+			var result    = data.result;
 			var fileTypes = [];
 			var depth     = 5;
 			var types     = {};
@@ -4240,6 +4270,8 @@ var _Schema = {
 						if (!n.isAbstract && !blacklist.includes(n.name)) {
 							types[n.name] = 1;
 						}
+					} else {
+						console.log({ ext: n.extendsClass, type: type });
 					}
 				});
 			};

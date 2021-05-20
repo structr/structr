@@ -782,6 +782,8 @@ var _Code = {
 					let name = entity.name || '[unnamed]';
 					let listItemAttributes = {};
 
+					treeId = identifier.source + '-' + entity.id + '-' + name;
+
 					list.push({
 						id: treeId,
 						text:  name,

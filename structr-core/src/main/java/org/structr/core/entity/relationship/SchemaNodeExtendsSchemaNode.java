@@ -16,27 +16,44 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.schema;
+package org.structr.core.entity.relationship;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.TransactionPostProcess;
+import org.structr.core.entity.ManyToOne;
+import org.structr.core.entity.SchemaNode;
 
 /**
  *
  *
  */
-public class ReloadSchema implements TransactionPostProcess {
+public class SchemaNodeExtendsSchemaNode extends ManyToOne<SchemaNode, SchemaNode>  {
 
-	private boolean forceFullReload = false;
-
-	public ReloadSchema(final boolean forceFullReload) {
-		this.forceFullReload = forceFullReload;
+	@Override
+	public Class<SchemaNode> getSourceType() {
+		return SchemaNode.class;
 	}
 
 	@Override
-	public boolean execute(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		return SchemaHelper.reloadSchema(errorBuffer, securityContext.getSessionId(), forceFullReload).isSuccess();
+	public Class<SchemaNode> getTargetType() {
+		return SchemaNode.class;
+	}
+
+	@Override
+	public String name() {
+		return "EXTENDS";
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return 0;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return true;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return 0;
 	}
 }

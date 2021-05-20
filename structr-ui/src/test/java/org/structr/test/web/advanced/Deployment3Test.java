@@ -454,7 +454,7 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			app.create(SchemaNode.class,
 				new NodeAttribute<>(SchemaNode.name, "ExtendedFile"),
-				new NodeAttribute<>(SchemaNode.extendsClass, "org.structr.dynamic.File"),
+				new NodeAttribute<>(SchemaNode.extendsClass, app.nodeQuery(SchemaNode.class).andName("File").getFirst()),
 				new NodeAttribute<>(new StringProperty("_test"), "String")
 			);
 

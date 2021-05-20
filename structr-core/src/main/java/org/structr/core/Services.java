@@ -205,7 +205,7 @@ public class Services implements StructrServices {
 					if (serviceClass.equals(NodeService.class)) {
 
 						logger.debug("(Re-)Started NodeService, (re-)compiling dynamic schema");
-						SchemaService.reloadSchema(new ErrorBuffer(), null);
+						SchemaService.reloadSchema(new ErrorBuffer(), null, true);
 					}
 
 				}
@@ -1073,7 +1073,7 @@ public class Services implements StructrServices {
 			if (result.isSuccess()) {
 
 				// reload schema..
-				SchemaService.reloadSchema(new ErrorBuffer(), null);
+				SchemaService.reloadSchema(new ErrorBuffer(), null, true);
 			}
 
 			return result;

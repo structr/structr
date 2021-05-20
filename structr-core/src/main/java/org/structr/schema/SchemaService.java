@@ -112,7 +112,7 @@ public class SchemaService implements Service {
 
 	@Override
 	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-		return SchemaHelper.reloadSchema(new ErrorBuffer(), null);
+		return SchemaHelper.reloadSchema(new ErrorBuffer(), null, true);
 	}
 
 	public static JsonSchema getDynamicSchema() {
@@ -123,7 +123,7 @@ public class SchemaService implements Service {
 		return graphQLSchema;
 	}
 
-	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId) {
+	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId, final boolean fullReload) {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final App app                      = StructrApp.getInstance();
@@ -166,7 +166,7 @@ public class SchemaService implements Service {
 						final Map<String, Map<String, PropertyKey>> removedClasses = new HashMap<>(config.getTypeAndPropertyMapping());
 						final Map<String, GraphQLType> graphQLTypes                = new LinkedHashMap<>();
 						final Map<String, SchemaNode> schemaNodes                  = new LinkedHashMap<>();
-						final NodeExtender nodeExtender                            = new NodeExtender(initiatedBySessionId);
+						final NodeExtender nodeExtender                            = new NodeExtender(initiatedBySessionId, fullReload);
 						final Set<String> dynamicViews                             = new LinkedHashSet<>();
 
 						// collect auto-generated schema nodes

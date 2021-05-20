@@ -318,13 +318,13 @@ public class Deployment2Test extends DeploymentTestBase {
 			// create extended folder class
 			app.create(SchemaNode.class,
 				new NodeAttribute<>(SchemaNode.name, "ExtendedFolder"),
-				new NodeAttribute<>(SchemaNode.extendsClass, "org.structr.dynamic.Folder")
+				new NodeAttribute<>(SchemaNode.extendsClass, app.nodeQuery(SchemaNode.class).andName("Folder").getFirst())
 			);
 
 			// create extended file class
 			app.create(SchemaNode.class,
 				new NodeAttribute<>(SchemaNode.name, "ExtendedFile"),
-				new NodeAttribute<>(SchemaNode.extendsClass, "org.structr.dynamic.File")
+				new NodeAttribute<>(SchemaNode.extendsClass, app.nodeQuery(SchemaNode.class).andName("File").getFirst())
 			);
 
 			tx.success();

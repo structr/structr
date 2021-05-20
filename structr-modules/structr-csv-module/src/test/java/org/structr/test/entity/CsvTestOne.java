@@ -24,6 +24,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.DateArrayProperty;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.EnumProperty;
@@ -48,6 +49,7 @@ public class CsvTestOne extends AbstractNode {
 	public static final Property<String>        stringProperty      = new StringProperty("stringProperty").indexed();
 	public static final Property<CsvTestEnum>   enumProperty        = new EnumProperty("enumProperty", CsvTestEnum.class).indexed();
 	public static final Property<Integer>       index               = new IntProperty("index");
+	public static final Property<Integer[]>     intArrayProperty    = new ArrayProperty<>("intArrayProperty", Integer.class).indexed();
 
 
 	public static final View protectedView = new View(CsvTestOne.class, "csv",

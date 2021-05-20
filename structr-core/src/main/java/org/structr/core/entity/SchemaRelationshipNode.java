@@ -197,7 +197,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		setProperties(securityContext, map);
 
 		// register transaction post processing that recreates the schema information
-		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+		TransactionCommand.postProcess("reloadSchema", new ReloadSchema(false));
 	}
 
 	@Override
@@ -218,7 +218,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		setProperties(securityContext, map);
 
 		// register transaction post processing that recreates the schema information
-		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+		TransactionCommand.postProcess("reloadSchema", new ReloadSchema(false));
 	}
 
 	@Override
@@ -242,7 +242,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		super.onDeletion(securityContext, errorBuffer, properties);
 
 		// register transaction post processing that recreates the schema information
-		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+		TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
 	}
 
 	public SchemaNode getSourceNode() {

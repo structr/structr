@@ -201,7 +201,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final PropertyMap subFileProperties = new PropertyMap();
 			subFileProperties.put(SchemaNode.name, "SubFile");
-			subFileProperties.put(SchemaNode.extendsClass, "org.structr.dynamic.File");
+			subFileProperties.put(SchemaNode.extendsClass, app.nodeQuery(SchemaNode.class).andName("File").getFirst());
 			subFile.setProperties(subFile.getSecurityContext(), subFileProperties);
 
 
@@ -293,7 +293,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final PropertyMap subFileProperties = new PropertyMap();
 			subFileProperties.put(SchemaNode.name, "SubFile");
-			subFileProperties.put(SchemaNode.extendsClass, "org.structr.dynamic.Image");
+			subFileProperties.put(SchemaNode.extendsClass, app.nodeQuery(SchemaNode.class).andName("Image").getFirst());
 			subFile.setProperties(subFile.getSecurityContext(), subFileProperties);
 
 
@@ -839,7 +839,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			final SchemaNode testBase = app.create(SchemaNode.class, "TestBase");
 			final SchemaNode test     = app.create(SchemaNode.class,
 				new NodeAttribute<>(SchemaNode.name, "Test"),
-				new NodeAttribute<>(SchemaNode.extendsClass, "org.structr.dynamic.TestBase")
+				new NodeAttribute<>(SchemaNode.extendsClass, testBase)
 			);
 
 			// create view with sort order
