@@ -66,40 +66,7 @@ var _Pages = {
 			position: 'fixed'
 		});
 
-		let windowWidth = $(window).width();
-
-		if (previews) {
-
-			let leftSlideout  = $('.slideOutLeft.open');
-			// let leftTab       = (leftSlideout.length === 0) ? $('.slideOutRight .slideout-activator') : $('.slideout-activator', leftSlideout);
-			let marginLeft    = left || leftSlideout.length > 0 ? leftSlideout[0].getBoundingClientRect().right : 0;
-			// marginLeft       += leftTab[0].getBoundingClientRect().width;
-
-			let rightSlideout = $('.slideOutRight.open');
-			//let rightTab      = (rightSlideout.length === 0) ? $('.slideOutRight .slideout-activator') : $('.slideout-activator', rightSlideout);
-			let marginRight   = right || rightSlideout.length > 0 ? rightSlideout[0].getBoundingClientRect().width : 0;
-			// marginRight      += rightTab[0].getBoundingClientRect().width;
-
-			previews.css('marginLeft', 'calc(' + marginLeft + 'px + ' + (marginLeft === 0 ? '4' : '2') + 'rem)');
-			previews.css('marginRight', 'calc(' + marginRight + 'px + ' + (marginRight === 0 ? '4' : '2') + 'rem)');
-
-			$('.column-resizer-left').css('left', 'calc(' + marginLeft + 'px - 1rem)');
-			$('.column-resizer-right').css('right', 'calc(' + marginRight + 'px + .25rem)');
-			//document.querySelector('.column-resizer-right').style.left = 'calc(' + window.innerWidth - marginRight + 'px - 2rem)';
-			document.querySelector('.column-resizer-right').style.left = 'calc(' + (window.innerWidth - marginRight) + 'px - 3rem)';
-
-			//let w = 'calc(' + (windowWidth - marginLeft - marginRight) + 'px - 1rem)';
-			let w = windowWidth - marginLeft - marginRight;
-			let gap = 4 + (marginLeft === 0 ? 2 : 0) + (marginRight === 0 ? 2 : 0);
-			let width = 'calc(' + w + 'px - ' + gap + 'rem)';
-
-			previews.css('width', width);
-			$('.previewBox', previews).css('width', width);
-
-			let iframes = $('.previewBox', previews).find('iframe');
-			iframes.css('width', width);
-		}
-
+		_Pages.resizeColumns();
 	},
 	onload: function() {
 
@@ -197,7 +164,7 @@ var _Pages = {
 				}, _Pages.slideoutClosedCallback);
 			});
 
-			$('#paletteTab').on('click', function () { console.log('paletteTab clicked');
+			$('#paletteTab').on('click', function () {
 				_Pages.rightSlideoutClickTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], _Pages.activeTabRightKey, function (params) {
 					if (params.isOpenAction) {
 						_Elements.reloadPalette();
@@ -263,47 +230,63 @@ var _Pages = {
 
 			Structr.unblockMenu(500);
 
-			_Pages.updatedResizers(LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 300, LSWrapper.getItem(_Pages.pagesResizerRightKey) || 240);
+			_Pages.resizeColumns(LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 300, LSWrapper.getItem(_Pages.pagesResizerRightKey) || 240);
 		});
 	},
 	moveLeftResizer: function(left) {
 		// throttle
 		requestAnimationFrame(() => {
 			//left = left || LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 300;
-			_Pages.updatedResizers(left, null);
+			_Pages.resizeColumns(left, null);
 		});
 	},
 	moveRightResizer: function(right) {
 		// throttle
 		requestAnimationFrame(() => {
 			//left = left || LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 300;
-			_Pages.updatedResizers(null, right);
+			_Pages.resizeColumns(null, right);
 		});
 	},
-	updatedResizers: function(left, right) {
+	resizeColumns: function(left, right) {
 
-		let leftPos  = left || LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 300;
-		let rightPos = right || LSWrapper.getItem(_Pages.pagesResizerRightKey) || 240;
+		let openLeftSlideout = document.querySelector('.slideOutLeft.open');
+		let openRightSlideout = document.querySelector('.slideOutRight.open');
 
-		let middleWidth = 'calc(' + window.innerWidth - leftPos - rightPos + 'px - 1.75rem)'
+		let leftPos  = left  ? left  : (openLeftSlideout  ? openLeftSlideout.getBoundingClientRect().right  : 0);
+		let rightPos = right ? right : (openRightSlideout ? openRightSlideout.getBoundingClientRect().width : 0);
 
 		if (left) {
-			document.querySelector('.column-resizer-left').style.left = leftPos + 'px';
-			document.querySelector('.slideOutLeft.open').style.width = 'calc(' + leftPos + 'px - 3rem)';
-			document.querySelector('#previews').style.marginLeft      = 'calc(' + leftPos + 'px + 3rem)';
+			let columnResizerLeft = 'calc(' + leftPos + 'px + 0rem)';
+			document.querySelector('.column-resizer-left').style.left = columnResizerLeft;
+			if (openLeftSlideout) openLeftSlideout.style.width = 'calc(' + leftPos + 'px - 3rem)';
+			document.querySelector('#previews').style.marginLeft  = 'calc(' + leftPos + 'px + 3rem)';
+		} else {
+			if (leftPos === 0) {
+				let columnResizerLeft = '4rem';
+				document.querySelector('.column-resizer-left').style.left = columnResizerLeft;
+				document.querySelector('#previews').style.marginLeft  = columnResizerLeft;
+			} else {
+				document.querySelector('.column-resizer-left').style.left = 'calc(' + leftPos + 'px - 1rem)';
+				document.querySelector('#previews').style.marginLeft  = 'calc(' + leftPos + 'px + 2rem)';
+			}
 		}
 
 		if (right) {
-			document.querySelector('.column-resizer-right').style.left = window.innerWidth - rightPos + 'px';
-			document.querySelector('.slideOutRight.open').style.width = 'calc(' + rightPos + 'px - 7rem)';
-			document.querySelector('#previews').style.marginRight     = 'calc(' + rightPos + 'px - 1rem)';
+			let columnResizerRight = 'calc(' + (window.innerWidth - rightPos) + 'px + 0rem)';
+			document.querySelector('.column-resizer-right').style.left = columnResizerRight;
+			if (openRightSlideout) openRightSlideout.style.width = 'calc(' + rightPos + 'px - 7rem)';
+			document.querySelector('#previews').style.marginRight  = 'calc(' + rightPos + 'px - 1rem)';
+		} else {
+			if (rightPos === 0) {
+				let columnResizerRight = '4rem';
+				document.querySelector('.column-resizer-right').style.left = columnResizerRight;
+				document.querySelector('#previews').style.marginRight  = columnResizerRight;
+			} else {
+				document.querySelector('.column-resizer-right').style.left = 'calc(' + (window.innerWidth - rightPos) + 'px - 3rem)';
+				document.querySelector('#previews').style.marginRight  = 'calc(' + (rightPos) + 'px + 2rem)';
+			}
 		}
 
-		document.querySelector('#previews').style.width = middleWidth;
-		document.querySelectorAll('.previewBox').forEach((box) => {
-			box.style.width = middleWidth;
-			box.querySelector('iframe').style.width = middleWidth;
-		});
 	},
 	clearPreviews: function() {
 

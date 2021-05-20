@@ -2131,8 +2131,6 @@ var _Entities = {
 		var b = el.children('.expand_icon').first();
 		var displayName = getElementDisplayName(Structr.entity(id));
 
-		console.log('selectElement', el, id, displayName);
-
 		//_Entities.deselectAllElements();
 		$('.node-selector').removeClass('active');
 		// el.closest('.node').addClass('nodeSelected');

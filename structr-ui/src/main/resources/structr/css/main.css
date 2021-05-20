@@ -4629,6 +4629,7 @@ input#element-class {
  * Column resizer
  */
 .column-resizer {
+	/*display: none;*/
 	z-index: 3;
 	width: 1.7rem;
 	/*height: calc(100vh - 9rem);*/

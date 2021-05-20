@@ -696,7 +696,7 @@ var _Elements = {
 			}
 		});
 	},
-	handleLinkableElement: function (div, entityToLinkTo, linkableObject) {
+	handleLinkableElement: function(div, entityToLinkTo, linkableObject) {
 
 		if (isIn(entityToLinkTo.id, linkableObject.linkingElementsIds)) {
 			div.addClass('nodeActive');
@@ -737,7 +737,7 @@ var _Elements = {
 			$(this).removeClass('nodeHover');
 		});
 	},
-	enableContextMenuOnElement: function (div, entity) {
+	enableContextMenuOnElement: function(div, entity) {
 
 		_Elements.disableBrowserContextMenuOnElement(div);
 
