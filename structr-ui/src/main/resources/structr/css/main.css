@@ -1597,8 +1597,9 @@ button.action.disabled:hover {
 }
 
 .dialogText textarea {
-	width: 98%;
+	width: 100%;
 	margin-top: 0;
+	box-sizing: border-box;
 }
 
 .dialogText .node {

@@ -328,7 +328,7 @@ public abstract class Function<S, T> extends Hint {
 		return source;
 	}
 
-	protected boolean valueEquals(final Object obj1, final Object obj2) {
+	public boolean valueEquals(final Object obj1, final Object obj2) {
 
 		if (obj1 instanceof Enum || obj2 instanceof Enum) {
 

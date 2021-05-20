@@ -50,7 +50,7 @@ public class UiModule implements StructrModule {
 		DataSources.put(true, "ui", "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
 		DataSources.put(true, "ui", "restDataSource",               new RestDataSource());
 		DataSources.put(true, "ui", "cypherDataSource",             new CypherGraphDataSource());
-		DataSources.put(true, "ui", "functionDataSource",           new FunctionDataSource());
+		DataSources.put(true, "ui", "functionDataSource",           new FunctionDataSource("functionQuery"));
 		DataSources.put(true, "ui", "xpathDataSource",              new XPathGraphDataSource());
 	}
 

@@ -1,4 +1,4 @@
-<div id="default-dom-options" class="quick-access-options">
+<div id="div-options" class="quick-access-options">
 	<h3>${config.title}</h3>
 	<div class="row">
 		<div class="option-tile">
@@ -18,7 +18,26 @@
 	</div>
 
 	<div class="row repeater-config-container"></div>
-	<div class="row show-hide-conditions-container"></div>
+
+	<div class="row">
+
+		<div class="option-tile">
+			<label>Selected</label>
+			<input type="text" id="selected-input" name="_html_selected" />
+		</div>
+		<div class="option-tile">
+			<label>Selected Values Expression</label>
+			<input type="text" id="selected-values-input" name="selectedValues" />
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="option-tile">
+			<label>Value</label>
+			<input type="text" id="value-input" name="_html_value" />
+		</div>
+	</div>
+
 	<div class="row show-text-content-container"></div>
 
 	<div id="custom-properties-parent" class="hidden">

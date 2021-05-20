@@ -1603,7 +1603,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public final String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
+	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
 
 		final Object value = getProperty(key);
 		String result      = null;
@@ -1637,7 +1637,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public final Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
+	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
 
 		hints.reportUsedKey(key, row, column);
 
