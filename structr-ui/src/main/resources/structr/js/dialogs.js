@@ -34,7 +34,7 @@ var _Dialogs = {
 
 			if (callbackObject.condition === undefined || (typeof callbackObject.condition === 'function' && callbackObject.condition())) {
 
-				// call method with the same callback object for intial callback and show callback
+				// call method with the same callback object for initial callback and show callback
 				_Entities.appendPropTab(entity, mainTabs, contentEl, id, title, true, callback, undefined, callback);
 
 				return true;
@@ -76,7 +76,7 @@ var _Dialogs = {
 
 				showConditionsContainer.html(html);
 
-				_Dialogs.popuplatInputFields(showConditionsContainer, entity);
+				_Dialogs.popuplateInputFields(showConditionsContainer, entity);
 				_Dialogs.registerSimpleInputChangeHandlers(showConditionsContainer, entity);
 
 				let showConditionsInput  = $('input#show-conditions', showConditionsContainer);
@@ -95,6 +95,25 @@ var _Dialogs = {
 			});
 		}
 	},
+	showChildContentEditor:function(el, entity) {
+
+		if (entity && entity.children && entity.children.length === 1 && entity.children[0].type === 'Content') {
+
+			let textContentContainer = $('.show-text-content-container', el);
+			if (textContentContainer.length) {
+
+				Structr.fetchHtmlTemplate('dialogs/content-partial', { entity: entity }, function (html) {
+
+					textContentContainer.html(html);
+
+					let child = entity.children[0];
+
+					_Dialogs.popuplateInputFields(textContentContainer, child);
+					_Dialogs.registerSimpleInputChangeHandlers(textContentContainer, child, true);
+				});
+			}
+		}
+	},
 	showRepeaterOptions: function(el, entity) {
 
 		let repeaterConfigContainer = $('.repeater-config-container', el);
@@ -105,7 +124,7 @@ var _Dialogs = {
 
 				repeaterConfigContainer.html(html);
 
-				_Dialogs.popuplatInputFields(repeaterConfigContainer, entity);
+				_Dialogs.popuplateInputFields(repeaterConfigContainer, entity);
 				_Dialogs.registerSimpleInputChangeHandlers(repeaterConfigContainer, entity);
 			});
 		}
@@ -185,7 +204,7 @@ var _Dialogs = {
 					});
 				}
 
-				_Dialogs.popuplatInputFields(el, entity);
+				_Dialogs.popuplateInputFields(el, entity);
 				_Dialogs.registerSimpleInputChangeHandlers(el, entity);
 				Structr.activateCommentsInElement(el);
 
@@ -202,7 +221,7 @@ var _Dialogs = {
 				el.empty();
 				el.append(html);
 
-				_Dialogs.popuplatInputFields(el, entity);
+				_Dialogs.popuplateInputFields(el, entity);
 				_Dialogs.registerSimpleInputChangeHandlers(el, entity);
 				Structr.activateCommentsInElement(el);
 
@@ -227,9 +246,9 @@ var _Dialogs = {
 
 		return el.value;
 	},
-	registerSimpleInputChangeHandlers: function(el, entity) {
+	registerSimpleInputChangeHandlers: function(el, entity, emptyStringInsteadOfNull) {
 
-		for (let inputEl of el[0].querySelectorAll('input[name]')) {
+		for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
 
 			inputEl.addEventListener('change', () => {
 
@@ -239,21 +258,19 @@ var _Dialogs = {
 				let newVal = _Dialogs.getValueFromFormElement(inputEl);
 
 				let isChange = (oldVal !== newVal) && !((oldVal === null || oldVal === undefined) && newVal === '');
-
 				if (isChange) {
+
 					let blinkElement = (inputEl.type === 'checkbox') ? $(inputEl).parent() : null;
 
-					console.log(inputEl, blinkElement);
-
-					_Entities.setPropertyWithFeedback(entity, key, newVal || null, $(inputEl), blinkElement);
+					_Entities.setPropertyWithFeedback(entity, key, newVal || (emptyStringInsteadOfNull ? '' : null), $(inputEl), blinkElement);
 				}
 			});
 		}
 
 	},
-	popuplatInputFields: function (el, entity) {
+	popuplateInputFields: function (el, entity) {
 
-		for (let inputEl of el[0].querySelectorAll('input[name]')) {
+		for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
 
 			let val = entity[inputEl.name];
 			if (val) {
@@ -277,7 +294,7 @@ var _Dialogs = {
 					el.empty();
 					el.append(html);
 
-					_Dialogs.popuplatInputFields(el, aHtmlProperties);
+					_Dialogs.popuplateInputFields(el, aHtmlProperties);
 					_Dialogs.registerSimpleInputChangeHandlers(el, aHtmlProperties);
 
 					_Dialogs.focusInput(el);
@@ -285,6 +302,9 @@ var _Dialogs = {
 					_Dialogs.showCustomProperties(entity);
 					_Dialogs.showRepeaterOptions(el, entity);
 					_Dialogs.showShowHideConditionOptions(el, entity);
+
+					// child content
+					_Dialogs.showChildContentEditor(el, entity);
 				});
 
 			}, '_html_');
@@ -302,7 +322,7 @@ var _Dialogs = {
 					el.empty();
 					el.append(html);
 
-					_Dialogs.popuplatInputFields(el, buttonHtmlProperties);
+					_Dialogs.popuplateInputFields(el, buttonHtmlProperties);
 					_Dialogs.registerSimpleInputChangeHandlers(el, buttonHtmlProperties);
 
 					_Dialogs.focusInput(el);
@@ -310,6 +330,9 @@ var _Dialogs = {
 					_Dialogs.showCustomProperties(entity);
 					_Dialogs.showRepeaterOptions(el, entity);
 					_Dialogs.showShowHideConditionOptions(el, entity);
+
+					// child content
+					_Dialogs.showChildContentEditor(el, entity);
 				});
 
 			}, '_html_');
@@ -326,7 +349,7 @@ var _Dialogs = {
 					el.empty();
 					el.append(html);
 
-					_Dialogs.popuplatInputFields(el, inputHtmlProperties);
+					_Dialogs.popuplateInputFields(el, inputHtmlProperties);
 					_Dialogs.registerSimpleInputChangeHandlers(el, inputHtmlProperties);
 
 					_Dialogs.focusInput(el);
@@ -349,7 +372,7 @@ var _Dialogs = {
 					el.empty();
 					el.append(html);
 
-					_Dialogs.popuplatInputFields(el, divHtmlProperties);
+					_Dialogs.popuplateInputFields(el, divHtmlProperties);
 					_Dialogs.registerSimpleInputChangeHandlers(el, divHtmlProperties);
 
 					_Dialogs.focusInput(el);
@@ -371,7 +394,7 @@ var _Dialogs = {
 				el.empty();
 				el.append(html);
 
-				_Dialogs.popuplatInputFields(el, entity);
+				_Dialogs.popuplateInputFields(el, entity);
 				_Dialogs.registerSimpleInputChangeHandlers(el, entity);
 
 				$('button#set-password-button').on('click', function(e) {
@@ -394,7 +417,7 @@ var _Dialogs = {
 				el.empty();
 				el.append(html);
 
-				_Dialogs.popuplatInputFields(el, entity);
+				_Dialogs.popuplateInputFields(el, entity);
 				_Dialogs.registerSimpleInputChangeHandlers(el, entity);
 
 				_Dialogs.focusInput(el);
@@ -414,7 +437,7 @@ var _Dialogs = {
 					el.empty();
 					el.append(html);
 
-					_Dialogs.popuplatInputFields(el, htmlProperties);
+					_Dialogs.popuplateInputFields(el, htmlProperties);
 					_Dialogs.registerSimpleInputChangeHandlers(el, htmlProperties);
 
 					_Dialogs.focusInput(el);
@@ -422,6 +445,9 @@ var _Dialogs = {
 					_Dialogs.showCustomProperties(entity);
 					_Dialogs.showRepeaterOptions(el, entity);
 					_Dialogs.showShowHideConditionOptions(el, entity);
+
+					// child content (optional)
+					_Dialogs.showChildContentEditor(el, entity);
 				});
 
 			}, '_html_');
@@ -438,7 +464,7 @@ var _Dialogs = {
 					el.empty();
 					el.append(html);
 
-					_Dialogs.popuplatInputFields(el, htmlProperties);
+					_Dialogs.popuplateInputFields(el, htmlProperties);
 					_Dialogs.registerSimpleInputChangeHandlers(el, htmlProperties);
 
 					_Dialogs.focusInput(el);
@@ -446,6 +472,35 @@ var _Dialogs = {
 					_Dialogs.showCustomProperties(entity);
 					_Dialogs.showRepeaterOptions(el, entity);
 					_Dialogs.showShowHideConditionOptions(el, entity);
+				});
+
+			}, '_html_');
+		}
+	},
+	optionDialog: function(el, entity) {
+
+		if (el && entity) {
+
+			Command.get(entity.id, null, function(divHtmlProperties) {
+
+				Structr.fetchHtmlTemplate('dialogs/option.options', { entity: entity, title: _Dialogs.getTitle() }, function (html) {
+
+					el.empty();
+					el.append(html);
+
+					let data = Object.assign({}, divHtmlProperties, entity);
+
+					_Dialogs.popuplateInputFields(el, data);
+					_Dialogs.registerSimpleInputChangeHandlers(el, data);
+
+					_Dialogs.focusInput(el);
+
+					_Dialogs.showCustomProperties(entity);
+					_Dialogs.showRepeaterOptions(el, entity);
+					_Dialogs.showShowHideConditionOptions(el, entity);
+
+					// child content
+					_Dialogs.showChildContentEditor(el, entity);
 				});
 
 			}, '_html_');
@@ -463,19 +518,20 @@ var _Dialogs = {
 };
 
 var registeredDialogs = {
-	'DEFAULT_DOM_NODE': { id: 'default-dom', title : 'General', callback: _Dialogs.defaultDomDialog },
-	'A': { id: 'a', title : 'General', callback: _Dialogs.aDialog },
-	'Button': { id: 'button', title : 'General', callback: _Dialogs.buttonDialog },
-	'Content': { id: 'content', title : 'General', callback: _Dialogs.contentDialog },
-	'Div': { id: 'div', title : 'General', callback: _Dialogs.divDialog },
-	'File':  { id: 'file', title: 'General', callback: _Dialogs.fileDialog },
-	'Folder':  { id: 'folder', title: 'General', callback: _Dialogs.folderDialog },
-	'Image':  { id: 'file', title: 'Advanced', callback: _Dialogs.fileDialog },
-	'Input':  { id: 'input', title: 'General', callback: _Dialogs.inputDialog },
-	'LDAPGroup':  { id: 'ldapgroup', title: 'LDAP configuration', callback: _Dialogs.ldapGroupDialog, condition: function() { return Structr.isModulePresent('ldap-client'); } },
-	'Page': { id: 'page', title : 'General', callback: _Dialogs.pageDialog },
-	'Template': { id: 'template', title : 'General', callback: _Dialogs.contentDialog },
-	'User': { id: 'user', title : 'General', callback: _Dialogs.userDialog }
+	'DEFAULT_DOM_NODE': { id: 'general', title : 'General', callback: _Dialogs.defaultDomDialog },
+	'A': { id: 'general', title : 'General', callback: _Dialogs.aDialog },
+	'Button': { id: 'general', title : 'General', callback: _Dialogs.buttonDialog },
+	'Content': { id: 'general', title : 'General', callback: _Dialogs.contentDialog },
+	'Div': { id: 'general', title : 'General', callback: _Dialogs.divDialog },
+	'File':  { id: 'general', title: 'General', callback: _Dialogs.fileDialog },
+	'Folder':  { id: 'general', title: 'General', callback: _Dialogs.folderDialog },
+	'Image':  { id: 'general', title: 'Advanced', callback: _Dialogs.fileDialog },
+	'Input':  { id: 'general', title: 'General', callback: _Dialogs.inputDialog },
+	'LDAPGroup':  { id: 'general', title: 'LDAP configuration', callback: _Dialogs.ldapGroupDialog, condition: function() { return Structr.isModulePresent('ldap-client'); } },
+	'Option':  { id: 'general', title: 'General', callback: _Dialogs.optionDialog },
+	'Page': { id: 'general', title : 'General', callback: _Dialogs.pageDialog },
+	'Template': { id: 'general', title : 'General', callback: _Dialogs.contentDialog },
+	'User': { id: 'general', title : 'General', callback: _Dialogs.userDialog }
 };
 
 function setNull(id, key, input) {

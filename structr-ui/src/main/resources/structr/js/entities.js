@@ -603,7 +603,7 @@ var _Entities = {
 						if (entity.isDOMNode && !entity.isContent) {
 							views.unshift('_html_');
 							if (Structr.isModuleActive(_Pages)) {
-								activeView = '_html_';
+								activeView = 'general';
 							}
 						}
 

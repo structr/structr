@@ -84,7 +84,6 @@ import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Renderable;
-import org.structr.web.entity.model.ListModel;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.web.property.MethodProperty;
 import org.structr.websocket.command.CreateComponentCommand;
@@ -103,7 +102,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		final JsonSchema schema    = SchemaService.getDynamicSchema();
 		final JsonObjectType page  = (JsonObjectType)schema.getType("Page");
-		final JsonObjectType model = (JsonObjectType)schema.getType("ListModel");
 		final JsonObjectType type  = schema.addType("DOMNode");
 
 		type.setIsAbstract();
@@ -144,7 +142,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		type.addPropertyGetter("parent", DOMNode.class);
 		type.addPropertyGetter("children", Iterable.class);
-		type.addPropertyGetter("listModel", ListModel.class);
 		type.addPropertyGetter("nextSibling", DOMNode.class);
 		type.addPropertyGetter("previousSibling", DOMNode.class);
 		type.addPropertyGetter("syncedNodes", Iterable.class);
@@ -268,10 +265,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		final JsonReferenceType synced    = type.relate(type,                                                   "SYNC",                  Cardinality.OneToMany, "sharedComponent",  "syncedNodes");
 		final JsonReferenceType owner     = type.relate(page,                                                   "PAGE",                  Cardinality.ManyToOne, "elements",         "ownerDocument");
 
-		// test
-		type.relate(model, "LIST_MODEL", Cardinality.ManyToOne, "elements", "listModel");
-		type.addViewProperty(PropertyView.Ui, "listModel");
-
 		type.addIdReferenceProperty("parentId",          parent.getSourceProperty()).setCategory(PAGE_CATEGORY);
 		type.addIdReferenceProperty("childrenIds",       parent.getTargetProperty()).setCategory(PAGE_CATEGORY);
 		type.addIdReferenceProperty("pageId",            owner.getTargetProperty()).setCategory(PAGE_CATEGORY);
@@ -362,6 +355,9 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		return null;
 	}
 
+	default void renderManagedAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
+	}
+
 	String getCypherQuery();
 	String getRestQuery();
 	String getXpathQuery();
@@ -415,8 +411,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	void doRemoveChild(final DOMNode node) throws FrameworkException;
 
 	Set<PropertyKey> getDataPropertyKeys();
-
-	ListModel getListModel();
 
 	// ----- public default methods -----
 	@Override

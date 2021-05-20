@@ -158,8 +158,8 @@ public class SchemaTest extends StructrTest {
 			mapPathValue(map, "definitions.Customer.properties.street.type",                        "string");
 			mapPathValue(map, "definitions.Customer.properties.status.type",                        "string");
 			mapPathValue(map, "definitions.Customer.properties.status.enum.0",                      "active");
-			mapPathValue(map, "definitions.Customer.properties.status.enum.1",                      "none");
-			mapPathValue(map, "definitions.Customer.properties.status.enum.2",                      "retired");
+			mapPathValue(map, "definitions.Customer.properties.status.enum.1",                      "retired");
+			mapPathValue(map, "definitions.Customer.properties.status.enum.2",                      "none");
 			mapPathValue(map, "definitions.Customer.properties.stringArray.type",                   "array");
 			mapPathValue(map, "definitions.Customer.properties.stringArray.items.type",             "string");
 			mapPathValue(map, "definitions.Customer.views.public.0",                                "birthday");
@@ -196,9 +196,9 @@ public class SchemaTest extends StructrTest {
 			// advanced: test schema roundtrip
 			compareSchemaRoundtrip(sourceSchema);
 
-		} catch (Throwable t) {
+		} catch (FrameworkException | InvalidSchemaException | URISyntaxException e) {
 
-			t.printStackTrace();
+			e.printStackTrace();
 			fail("Unexpected exception.");
 		}
 

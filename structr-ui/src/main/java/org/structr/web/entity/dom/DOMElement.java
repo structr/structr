@@ -868,6 +868,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		// non-final variables
 		boolean anyChildNodeCreatesNewLine = false;
 
+		// TODO: remove this..
 		thisElement.renderStructrAppLib(out, securityContext, renderContext, depth);
 
 		if (depth > 0 && !thisElement.avoidWhitespace()) {
@@ -1026,6 +1027,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			final Class type = thisElement.getEntityType();
 
 			final List<PropertyKey> htmlAttributes = new ArrayList<>();
+
+
 			thisElement.getNode().getPropertyKeys().forEach((key) -> {
 				if (key.startsWith(PropertyView.Html)) {
 					htmlAttributes.add(config.getPropertyKeyForJSONName(type, key));
@@ -1066,6 +1069,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			// include arbitrary data-* attributes
 			thisElement.renderSharedComponentConfiguration(out, editMode);
 			thisElement.renderCustomAttributes(out, renderContext.getSecurityContext(), renderContext);
+
+			// new: managed attributes (like selected
+			thisElement.renderManagedAttributes(out, renderContext.getSecurityContext(), renderContext);
 
 			// include special mode attributes
 			switch (editMode) {

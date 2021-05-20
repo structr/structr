@@ -1510,8 +1510,6 @@ var _Schema = {
 				} else {
 					propertyTypeOption.prop('disabled', null);
 				}
-			} else {
-				console.log(property.propertyType, property);
 			}
 
 			var typeField = $('.property-type', row);
@@ -4258,8 +4256,6 @@ var _Schema = {
 						if (!n.isAbstract && !blacklist.includes(n.name)) {
 							types[n.name] = 1;
 						}
-					} else {
-						console.log({ ext: n.extendsClass, type: type });
 					}
 				});
 			};
