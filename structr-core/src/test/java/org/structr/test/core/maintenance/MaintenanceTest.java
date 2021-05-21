@@ -298,7 +298,7 @@ public class MaintenanceTest extends StructrTest {
 				for (int i=0; i<100; i++) {
 
 					// Create nodes with one label and the type Group, and no properties
-					graphDb.createNode("Group", Set.of("Group"), Map.of());
+					graphDb.createNode("Group", Set.of("Group", "NodeInterface"), Map.of());
 				}
 
 				tx.success();
