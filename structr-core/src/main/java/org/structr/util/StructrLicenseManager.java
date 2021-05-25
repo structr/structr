@@ -56,6 +56,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
 import com.ibm.wsdl.util.IOUtils;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -176,6 +177,19 @@ public class StructrLicenseManager implements LicenseManager {
 						}
 					}
 				}
+
+			} else {
+
+				// check license validation setting
+				if (!Settings.LicenseAllowFallback.getValue(false)) {
+
+					logger.info("No valid license found and {} has a value of false, exiting.", Settings.LicenseAllowFallback.getKey());
+					System.exit(2);
+
+				} else {
+
+					logger.info("No valid license found, but {} has a value of true, continuing.", Settings.LicenseAllowFallback.getKey());
+				}
 			}
 		}
 
@@ -213,6 +227,17 @@ public class StructrLicenseManager implements LicenseManager {
 			allModulesLicensed = false;
 
 			edition = "Community";
+
+			// check license validation setting
+			if (!Settings.LicenseAllowFallback.getValue(false)) {
+
+				logger.info("No valid license found and {} has a value of false, exiting.", Settings.LicenseAllowFallback.getKey());
+				System.exit(2);
+
+			} else {
+
+				logger.info("No valid license found, but {} has a value of true, continuing.", Settings.LicenseAllowFallback.getKey());
+			}
 		}
 	}
 
@@ -786,30 +811,43 @@ public class StructrLicenseManager implements LicenseManager {
 
 	private byte[] sendAndReceive(final String address, final byte[] key, final byte[] ivspec, final byte[] data) {
 
-		final byte[] result = new byte[256];
+		final int timeoutMilliseconds = Long.valueOf(TimeUnit.SECONDS.toMillis(Settings.LicenseValidationTimeout.getValue(10))).intValue();
+		final int retries             = 3;
 
-		try(final Socket socket = new java.net.Socket(address, ServerPort)) {
+		// try to connect to the license server 3 times..
+		for (int i=0; i<retries; i++) {
 
-			socket.getOutputStream().write(key);
-			socket.getOutputStream().flush();
+			final byte[] result = new byte[256];
 
-			socket.getOutputStream().write(ivspec);
-			socket.getOutputStream().flush();
+			try(final Socket socket = new java.net.Socket(address, ServerPort)) {
 
-			socket.getOutputStream().write(data);
-			socket.getOutputStream().flush();
+				socket.getOutputStream().write(key);
+				socket.getOutputStream().flush();
 
-			// don't waste much time to wait for an answer
-			socket.setSoTimeout(2000);
+				socket.getOutputStream().write(ivspec);
+				socket.getOutputStream().flush();
 
-			// read exactly 256 bytes (size of expected signature response)
-			socket.getInputStream().read(result, 0, 256);
+				socket.getOutputStream().write(data);
+				socket.getOutputStream().flush();
 
-		} catch (Throwable  t) {
-			logger.warn("Unable to verify volume license: {}", t.getMessage());
+				socket.setSoTimeout(timeoutMilliseconds);
+
+				// read exactly 256 bytes (size of expected signature response)
+				socket.getInputStream().read(result, 0, 256);
+
+				return result;
+
+			} catch (Throwable  t) {
+
+				logger.warn("Unable to verify volume license: {}, attempt {} of {}", t.getMessage(), (i+1), retries);
+
+				if ((i+1) == retries) {
+					throw new RuntimeException("No connection to license server");
+				}
+			}
 		}
 
-		return result;
+		return null;
 	}
 
 	private boolean verify(final byte[] data, final byte[] signatureData) {

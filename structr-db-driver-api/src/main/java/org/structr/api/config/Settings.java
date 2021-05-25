@@ -29,6 +29,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
@@ -43,8 +44,8 @@ public class Settings {
 
 	public static final String MAINTENANCE_PREFIX             = "maintenance";
 
-	private static final Map<String, Setting> settings        = new LinkedHashMap<>();
-	private static final Map<String, SettingsGroup> groups    = new LinkedHashMap<>();
+	private static final Map<String, Setting> settings        = new TreeMap<>();
+	private static final Map<String, SettingsGroup> groups    = new TreeMap<>();
 
 	public static final SettingsGroup generalGroup            = new SettingsGroup("general",     "General Settings");
 	public static final SettingsGroup serverGroup             = new SettingsGroup("server",      "Server Settings");
@@ -529,7 +530,9 @@ public class Settings {
 	public static final Setting<String> PaymentStripeApiKey    = new StringSetting(miscGroup,  "Payment Options", "stripe.apikey",       "");
 
 	// licence settings
-	public static final Setting<String> LicenseKey      = new StringSetting(licensingGroup,  "Licensing", "license.key",         "", "Base64-encoded string that contains the complete license data, typically saved as 'license.key' in the main directory.");
+	public static final Setting<String> LicenseKey                = new StringSetting(licensingGroup,   "Licensing", "license.key",                   "", "Base64-encoded string that contains the complete license data, typically saved as 'license.key' in the main directory.");
+	public static final Setting<Integer> LicenseValidationTimeout = new IntegerSetting(licensingGroup,  "Licensing", "license.validation.timeout",    10, "Timeout in seconds for license validation requests.");
+	public static final Setting<Boolean> LicenseAllowFallback     = new BooleanSetting(licensingGroup,  "Licensing", "license.allow.fallback",      true, "Allow Structr to fall back to the Community License if no valid license exists (or license cannot be validated). Set this to false in production environments to prevent Structr from starting without a license.");
 
 	public static Collection<SettingsGroup> getGroups() {
 		return groups.values();
