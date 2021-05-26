@@ -91,6 +91,17 @@ public class VersionHelper {
 		return classPath;
 	}
 
+	public static String getVersion() {
+
+		final Map<String, String> structrModule = components.get("structr");
+		if (structrModule != null) {
+
+			return structrModule.get("version");
+		}
+
+		return "unknown version";
+	}
+
 	public static String getInstanceName() {
 		return Settings.InstanceName.getValue();
 	}

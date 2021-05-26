@@ -452,20 +452,6 @@ public class Services implements StructrServices {
 		}
 	}
 
-	@Override
-	public void registerInitializationCallback(final InitializationCallback callback) {
-
-		callbacks.add(callback);
-
-		// callbacks need to be sorted by priority
-		Collections.sort(callbacks, (o1, o2) -> { return Integer.valueOf(o1.priority()).compareTo(o2.priority()); });
-	}
-
-	@Override
-	public LicenseManager getLicenseManager() {
-		return licenseManager;
-	}
-
 	public boolean isShutdownDone() {
 		return shutdownDone;
 	}
@@ -828,38 +814,6 @@ public class Services implements StructrServices {
 		return new LinkedList<>(registeredServiceClasses.values());
 	}
 
-	@Override
-	public <T extends Service> T getService(final Class<T> type, final String name) {
-
-		final T service = getServices(type).get(name);
-		if (service == null) {
-
-			try {
-
-				// try to start service
-				startService(type, name, false);
-
-			} catch (FrameworkException ex) {
-				logger.warn("Service {} failed to start: {}", type.getSimpleName(), ex.getMessage());
-			}
-		}
-
-		return service;
-	}
-
-	@Override
-	public <T extends Service> Map<String, T> getServices(final Class<T> type) {
-
-		Map<String, Service> serviceMap = serviceCache.get(type);
-		if (serviceMap == null) {
-
-			serviceMap = new ConcurrentHashMap<>();
-			serviceCache.put(type, serviceMap);
-		}
-
-		return (Map)serviceMap;
-	}
-
 	public <T extends Service> T getServiceImplementation(final Class<T> type) {
 
 		for (final Map<String, Service> serviceList : serviceCache.values()) {
@@ -991,6 +945,63 @@ public class Services implements StructrServices {
 		});
 
 		return classes;
+	}
+
+	// ----- interface StructrServices -----
+	@Override
+	public void registerInitializationCallback(final InitializationCallback callback) {
+
+		callbacks.add(callback);
+
+		// callbacks need to be sorted by priority
+		Collections.sort(callbacks, (o1, o2) -> { return Integer.valueOf(o1.priority()).compareTo(o2.priority()); });
+	}
+
+	@Override
+	public <T extends Service> T getService(final Class<T> type, final String name) {
+
+		final T service = getServices(type).get(name);
+		if (service == null) {
+
+			try {
+
+				// try to start service
+				startService(type, name, false);
+
+			} catch (FrameworkException ex) {
+				logger.warn("Service {} failed to start: {}", type.getSimpleName(), ex.getMessage());
+			}
+		}
+
+		return service;
+	}
+
+	@Override
+	public <T extends Service> Map<String, T> getServices(final Class<T> type) {
+
+		Map<String, Service> serviceMap = serviceCache.get(type);
+		if (serviceMap == null) {
+
+			serviceMap = new ConcurrentHashMap<>();
+			serviceCache.put(type, serviceMap);
+		}
+
+		return (Map)serviceMap;
+	}
+
+	@Override
+	public LicenseManager getLicenseManager() {
+		return licenseManager;
+	}
+
+	@Override
+	public String getInstanceName() {
+		return VersionHelper.getInstanceName();
+	}
+
+	@Override
+	public String getVersion() {
+		return VersionHelper.getVersion();
 	}
 
 	// ----- static methods -----

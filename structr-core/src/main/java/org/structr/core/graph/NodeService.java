@@ -72,7 +72,7 @@ public class NodeService implements SingletonService {
 		databaseService = (DatabaseService)Class.forName(databaseDriver).newInstance();
 		if (databaseService != null) {
 
-			if (databaseService.initialize(serviceName)) {
+			if (databaseService.initialize(serviceName, services.getVersion(), services.getInstanceName())) {
 
 				filesPath = Settings.FilesPath.getValue();
 
