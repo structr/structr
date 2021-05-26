@@ -45,6 +45,7 @@ import org.structr.schema.action.ActionContext;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -94,38 +95,8 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 			// Lookup method, if it's not in cache
 			Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class);
-			if (methods.containsKey(key)) {
+			if (methods.containsKey(key) && !Modifier.isStatic(methods.get(key).getModifiers())) {
 				Method method = methods.get(key);
-
-				App app = StructrApp.getInstance();
-
-				try (final Tx tx = app.tx()) {
-
-					SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(((AbstractNode) node).getClass().getSimpleName()).getFirst();
-					List<SchemaMethod> schemaMethods = Iterables.toList(schemaNode.getSchemaMethodsIncludingInheritance());
-
-					boolean nonStaticMethodFound = false;
-
-					for (SchemaMethod schemaMethod : schemaMethods) {
-
-						if (schemaMethod.getName().equals(key) && !schemaMethod.isStaticMethod()) {
-
-							nonStaticMethodFound = true;
-							break;
-						}
-					}
-
-					if (!nonStaticMethodFound) {
-
-						logger.warn("Tried calling a static type method in a non-static way on a type instance.");
-						return null;
-					}
-
-					tx.success();
-				} catch (FrameworkException ex) {
-
-					throw new RuntimeException(ex);
-				}
 
 				final ProxyExecutable executable = arguments -> {
 
@@ -170,6 +141,11 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 				return executable;
 
+			} else if (methods.containsKey(key)) {
+
+				// At this point method is guaranteed to be static since earlier isStatic check was true
+				logger.warn("Tried calling a static type method in a non-static way on a type instance.");
+				return null;
 			} else if (key.equals("grant")) {
 
 				// grant() on GraphObject needs special handling

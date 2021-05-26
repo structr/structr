@@ -1541,17 +1541,16 @@ public class SchemaHelper {
 	}
 
 	public static void formatActiveAction(final SourceFile src, final CodeSource codeSource, final ActionEntry action) {
-
 		src.line(codeSource, "@Export");
-
-		final SourceLine line = src.begin(codeSource, "public java.lang.Object ");
+		final SourceLine line = src.begin(codeSource, "public ");
+		if (action.isStatic()) {
+			line.append("static ");
+		}
+		line.append("java.lang.Object ");
 		line.append(action.getName());
 		line.append("(final SecurityContext arg0, final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {");
-
 		src.line(codeSource, "return");
-
-		action.getSource(src, "this", true, false);
-
+		action.getSource(src, action.isStatic() ? "null" :"this", true, false);
 		src.end();
 	}
 
