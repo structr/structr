@@ -18,7 +18,9 @@
  */
 package org.structr.core.parser;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
+import org.structr.common.ContextStore;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
@@ -63,7 +65,32 @@ public class ValueExpression extends Expression {
 	@Override
 	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
-		Object value = ctx.getReferencedProperty(entity, keyword, null, 0, hints, row, column);
+		Object value = null;
+
+		if (this.expressions.isEmpty()) {
+
+			// no nested expressions, this is not a function call
+			value = ctx.getReferencedProperty(entity, keyword, null, 0, hints, row, column);
+
+		} else {
+
+			// nested expressions detected, handle this as a function call
+			final ContextStore contextStore  = ctx.getContextStore();
+			final Map<String, Object> tmp    = contextStore.getTemporaryParameters();
+			final Map<String, Object> params = new LinkedHashMap<>();
+
+			// evaluate child expressions to get parameters
+			handleParameters(ctx, entity, hints, params);
+
+			// install new parameters for possible method call
+			contextStore.setTemporaryParameters(params);
+
+			// evaluate
+			value = ctx.getReferencedProperty(entity, keyword, null, 0, hints, row, column);
+
+			// restore previous parameters
+			contextStore.setTemporaryParameters(tmp);
+		}
 
 		for (final Expression expression : expressions) {
 
@@ -95,5 +122,39 @@ public class ValueExpression extends Expression {
 		}
 
 		return value;
+	}
+
+	// ----- private methods -----
+	private void handleParameters(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints, final Map<String, Object> dest) throws FrameworkException {
+
+		Object key   = null;
+		Object value = null;
+
+		for (final Expression param : this.expressions) {
+
+			if (key == null) {
+
+				key = param.evaluate(ctx, entity, hints);
+
+				if (key instanceof Map) {
+
+					dest.putAll((Map)key);
+
+					// reset params, allows map mixed with key-value pairs
+					key = null;
+
+				}
+
+			} else if (value == null) {
+
+				value = param.evaluate(ctx, entity, hints);
+
+				dest.put(key.toString(), value);
+
+				// reset params for the next key-value pair
+				key   = null;
+				value = null;
+			}
+		}
 	}
 }

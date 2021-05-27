@@ -19,6 +19,8 @@
 package org.structr.schema.action;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -42,10 +44,12 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.polyglot.cache.ExecutableStaticTypeMethodCache;
@@ -285,6 +289,21 @@ public class ActionContext {
 
 					value = ((GraphObject)data).evaluate(this, key, defaultValue, hints, row, column);
 
+				} else if (data instanceof Class) {
+
+					// static method?
+					Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods((Class)data, Export.class);
+					if (methods.containsKey(key) && Modifier.isStatic(methods.get(key).getModifiers())) {
+
+						hints.reportExistingKey(key);
+
+						final ContextStore contextStore      = getContextStore();
+						final Map<String, Object> parameters = contextStore.getTemporaryParameters();
+						final Method method                  = methods.get(key);
+
+						return AbstractNode.invokeMethod(securityContext, method, null, parameters, hints);
+					}
+
 				} else {
 
 					switch (key) {
@@ -436,6 +455,15 @@ public class ActionContext {
 					case "application_store":
 						hints.reportExistingKey(key);
 						return Services.getInstance().getApplicationStore();
+
+					default:
+						final Class type = StructrApp.getConfiguration().getNodeEntityClass(key);
+						if (type != null) {
+
+							hints.reportExistingKey(key);
+							return type;
+						}
+						break;
 				}
 			}
 		}
