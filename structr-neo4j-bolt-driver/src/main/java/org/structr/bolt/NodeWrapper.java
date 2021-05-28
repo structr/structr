@@ -237,7 +237,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		assertNotStale();
 
-		final RelationshipResult cache = getRelationshipCache(null, null);
+		final RelationshipResult cache = getRelationshipCache(null, null, null);
 		final String tenantIdentifier  = getTenantIdentifer(db);
 
 		return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r]-()"), "RETURN r ORDER BY r.internalTimestamp");
@@ -248,7 +248,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		assertNotStale();
 
-		final RelationshipResult cache = getRelationshipCache(direction, null);
+		final RelationshipResult cache = getRelationshipCache(direction, null, null);
 		final String tenantIdentifier  = getTenantIdentifer(db);
 
 		switch (direction) {
@@ -268,23 +268,29 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 	@Override
 	public Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType) {
+		return getRelationships(direction, relationshipType, null);
+	}
+
+	@Override
+	public Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType, final String otherType) {
 
 		assertNotStale();
 
-		final RelationshipResult cache = getRelationshipCache(direction, relationshipType);
+		final RelationshipResult cache = getRelationshipCache(direction, relationshipType, otherType);
 		final String tenantIdentifier  = getTenantIdentifer(db);
 		final String rel               = relationshipType.name();
+		final String typeLabel         = tenantIdentifier + (otherType != null ? (":" + otherType) : "");
 
 		switch (direction) {
 
 			case BOTH:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]-()"), "RETURN r ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]-(", typeLabel, ")"), "RETURN r ORDER BY r.internalTimestamp");
 
 			case OUTGOING:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->()"), "RETURN r ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(", typeLabel, ")"), "RETURN r ORDER BY r.internalTimestamp");
 
 			case INCOMING:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-()"), "RETURN r ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-(", typeLabel, ")"), "RETURN r ORDER BY r.internalTimestamp");
 		}
 
 		return null;
@@ -325,7 +331,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 			final Direction direction   = rel.getDirectionForNode(this);
 			final RelationshipType type = rel.getType();
-			RelationshipResult list = getRelationshipCache(direction, type);
+			RelationshipResult list = getRelationshipCache(direction, type, null);
 
 			list.add(rel);
 		}
@@ -355,11 +361,11 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 		}
 	}
 
-	private RelationshipResult getRelationshipCache(final Direction direction, final RelationshipType relType) {
+	private RelationshipResult getRelationshipCache(final Direction direction, final RelationshipType relType, final String otherType) {
 
 		synchronized (relationshipCache) {
 
-			final String relTypeKey                     = relType != null ? relType.name() : "*";
+			final String relTypeKey                     = (relType != null ? relType.name() : "*") + (otherType != null ? (":" + otherType) : "");
 			final Map<String, RelationshipResult> cache = getCache(direction);
 
 			RelationshipResult count = cache.get(relTypeKey);

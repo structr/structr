@@ -24,19 +24,13 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Converter;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.cache.ExecutableTypeMethodCache;
@@ -48,7 +42,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
@@ -68,7 +61,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 	@Override
 	public Object getMember(String key) {
-		
+
 		if (node instanceof AbstractNode) {
 			switch (key) {
 				case "owner":
@@ -201,7 +194,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 		} else {
 
 			if (node != null) {
-				
+
 				return StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class).containsKey(key) || StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key) != null;
 			} else {
 

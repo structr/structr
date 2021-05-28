@@ -687,7 +687,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	@Override
 	public final <R extends AbstractRelationship> Iterable<R> getOutgoingRelationships() {
-		return new IterableAdapter<>(dbNode.getRelationships(Direction.OUTGOING), new RelationshipFactory<R>(securityContext));
+		return new IterableAdapter<>(dbNode.getRelationships(Direction.OUTGOING), new RelationshipFactory<>(securityContext));
 	}
 
 	@Override
