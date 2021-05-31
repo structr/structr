@@ -23,13 +23,13 @@
 }
 
 #usersAndGroups, #resourceAccess {
-   height: calc(100% - 28px);
+   /*height: calc(100% - 28px);*/
 }
 
 #usersAndGroups #users,
 #usersAndGroups #groups {
-   padding: 12px;
-   max-height: 100%;
+   padding: 0;
+   /*max-height: 100%;*/
    display: flex;
    flex-direction: column;
 }
@@ -38,21 +38,25 @@
 #groups-list {
 	flex-grow: 1;
 	overflow-y: auto;
-	margin-top: 8px;
+	margin-top: 1rem;
 }
 
-#resourceAccess #resourceAccesses {
-   padding: 1em;
-   height: calc(100% - 2em);
+#filter-resource-access-grants {
+   display: inline-block;
 }
+
+/*#resourceAccess #resourceAccesses {*/
+/*   padding: 1em;*/
+/*   height: calc(100% - 2em);*/
+/*}*/
 
 #resourceAccessesTable {
    display: block;
    overflow: auto;
-   height: calc(100% - 5em);
+   height: calc(100% - 2rem);
    border-collapse: collapse;
    background: var(--solid-white);
-   margin: 6px 0;
+   margin: 1rem 0;
    width: 100%;
 }
 
@@ -65,18 +69,18 @@
 }
 
 #resourceAccessesTable td, #resourceAccessesTable th {
-   padding: 3px;
+   padding: .5rem 1rem;
    text-align: center;
    vertical-align: middle;
-   height: 1em;
+   height: 1rem;
 }
 
 #resourceAccessesTable th.br-1, #resourceAccessesTable td.br-1 {
-   border-right: 1px solid var(--gray-ccc);
+   /*border-right: 1px solid var(--gray-ccc);*/
 }
 
 #resourceAccessesTable th.bl-1, #resourceAccessesTable td.bl-1 {
-   border-left: 1px solid var(--gray-ccc);
+   /*border-left: 1px solid var(--gray-ccc);*/
 }
 
 #resourceAccessesTable .title-cell {
@@ -84,7 +88,7 @@
 }
 
 #resourceAccessesTable thead th input {
-   width: calc(100% - 14px);
+   width: calc(100% - 2rem);
 }
 
 #resourceAccessesTable thead th .pager input {
@@ -107,7 +111,7 @@
    background: var(--input-background);
    color: var(--gray-333);
    vertical-align: top;
-   min-width: 60px;
+   min-width: 2rem;
 }
 
 #resourceAccessesPager {
@@ -115,21 +119,21 @@
 }
 
 #securityTabs {
-   margin: 12px;
-   height: calc(100% - 12px);
+   margin: 2rem;
+   height: calc(100% - 2rem);
    border: none;
    background: none;
 }
 
 input.bitmask {
 	text-align: right;
-	width: calc(100% - 14px);
+	width: calc(100% - 2rem);
 }
 
 #add-resource-access-grant {
-	margin-bottom: 6px;
+	margin-bottom: 1rem;
 }
 
 .acl-resource-access {
-	margin-right: 4px;
+	margin-right: 1rem;
 }

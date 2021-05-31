@@ -1053,3 +1053,32 @@ var AsyncObjectCache = function(fetchFunction) {
 		}
 	};
 };
+
+
+// live binding helper with CSS selector
+function live(selector, event, callback, context) {
+	addEvent(context || document, event, function(e) {
+		var qs = (context || document).querySelectorAll(selector);
+		if (qs) {
+			var el = e.target || e.srcElement, index = -1;
+			while (el && ((index = Array.prototype.indexOf.call(qs, el)) === -1)) el = el.parentElement;
+			if (index > -1) callback.call(el, e);
+		}
+	});
+}
+// helper for enabling IE 8 event bindings
+function addEvent(el, type, handler) {
+	if (el.attachEvent) el.attachEvent('on'+type, handler); else el.addEventListener(type, handler);
+}
+// matches polyfill
+this.Element && function(ElementPrototype) {
+	ElementPrototype.matches = ElementPrototype.matches ||
+		ElementPrototype.matchesSelector ||
+		ElementPrototype.webkitMatchesSelector ||
+		ElementPrototype.msMatchesSelector ||
+		function(selector) {
+			var node = this, nodes = (node.parentNode || node.document).querySelectorAll(selector), i = -1;
+			while (nodes[++i] && nodes[i] != node);
+			return !!nodes[i];
+		}
+}(Element.prototype);

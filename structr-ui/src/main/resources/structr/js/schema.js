@@ -44,9 +44,36 @@ $(document).ready(function() {
 			);
 		}
 	});
+
+	live('.edge-style', 'click', (e) => {
+		e.stopPropagation();
+		e.preventDefault();
+		const el = e.target;
+		const newStyle = el.innerText.trim();
+		_Schema.ui.connectorStyle = newStyle;
+		LSWrapper.setItem(_Schema.schemaConnectorStyleKey, newStyle);
+		_Schema.reload();
+		return false;
+	});
+
+	live('#schema-show-overlays', 'change', (e) => {
+		_Schema.ui.updateOverlayVisibility(e.target.checked);
+		// _Schema.reload(); // necessary to refresh menu
+	});
+
+	live('#schema-show-inheritance', 'change', (e) => {
+		console.log(e.target.checked);
+		_Schema.ui.updateInheritanceVisibility(e.target.checked);
+		// _Schema.reload(); // necessary to refresh menu
+	});
+
+	Command.getApplicationConfigurationDataNodesGroupedByUser('layout', function(grouped) {
+		_Schema.storedLayouts = grouped;
+	});
 });
 
 var _Schema = {
+	storedLayouts: [{'foo':'bar'}],
 	_moduleName: 'schema',
 	undefinedRelType: 'UNDEFINED_RELATIONSHIP_TYPE',
 	initialRelType: 'UNDEFINED_RELATIONSHIP_TYPE',
@@ -98,7 +125,7 @@ var _Schema = {
 		LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
 	},
 	clearPositions: function() {
-		LSWrapper.removeItem(_Schema.schemaPositionsKey);
+		 LSWrapper.removeItem(_Schema.schemaPositionsKey);
 		_Schema.reload();
 	},
 	init: function(scrollPosition, callback) {
@@ -117,13 +144,13 @@ var _Schema = {
 			_Schema.ui.showInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceKey, true) || true;
 			_Schema.showJavaMethods    = LSWrapper.getItem(_Schema.showJavaMethodsKey, false) || false;
 
-			$('#connector-style').val(_Schema.ui.connectorStyle);
-			$('#connector-style').off('change').on('change', function() {
-				var newStyle = $(this).val();
-				_Schema.ui.connectorStyle = newStyle;
-				LSWrapper.setItem(_Schema.schemaConnectorStyleKey, newStyle);
-				_Schema.reload();
-			});
+			// $('#connector-style').val(_Schema.ui.connectorStyle);
+			// $('#connector-style').off('change').on('change', function() {
+			// 	var newStyle = $(this).val();
+			// 	_Schema.ui.connectorStyle = newStyle;
+			// 	LSWrapper.setItem(_Schema.schemaConnectorStyleKey, newStyle);
+			// 	_Schema.reload();
+			// });
 
 			$('#zoom-slider').slider({
 				min:0.25,
@@ -141,12 +168,6 @@ var _Schema = {
 				}
 			});
 
-			$('#schema-show-overlays').off('change').on('change', function() {
-				_Schema.ui.updateOverlayVisibility($(this).prop('checked'));
-			});
-			$('#schema-show-inheritance').off('change').on('change', function() {
-				_Schema.ui.updateInheritanceVisibility($(this).prop('checked'));
-			});
 			$('#schema-tools').off('click').on('click', _Schema.openSchemaToolsDialog);
 			$('#global-schema-methods').off('click').on('click', _Schema.methods.showGlobalSchemaMethods);
 
@@ -281,7 +302,6 @@ var _Schema = {
 			_Schema.resize();
 
 			Structr.adaptUiToAvailableFeatures();
-
 		});
 	},
 	showSchemaRecompileMessage: function() {
@@ -567,10 +587,10 @@ var _Schema = {
 					});
 
 					var getX = function() {
-						return (x * 300) + ((y % 2) * 150) + 40;
+						return (x * 300) + ((y % 2) * 150) + 140;
 					};
 					var getY = function() {
-						return (y * 150) + 50;
+						return (y * 150) + 150;
 					};
 					var calculatePosition = function() {
 						var calculatedX = getX();
@@ -585,14 +605,14 @@ var _Schema = {
 
 					var storedPosition = _Schema.nodePositions[entity.name];
 
-					console.log('storedPosition', storedPosition);
+					// console.log('storedPosition', storedPosition);
 
 
 					if (!storedPosition) {
 
 						var calculatedPosition = calculatePosition();
 
-						console.log('calculatedPosition', calculatedPosition);
+						// console.log('calculatedPosition', calculatedPosition);
 
 						var count = 0; // prevent endless looping
 
@@ -3012,7 +3032,6 @@ var _Schema = {
 			let canvasPosition = canvas.offset();
 			let padding = 100;
 
-			console.log(canvasPosition);
 
 			let canvasSize = {
 				w: ($(window).width() - canvasPosition.left),
@@ -3766,7 +3785,7 @@ var _Schema = {
 			}
 		});
 	},
-	restoreLayout: function (layoutSelector) {
+	restoreLayout: function(layoutSelector) {
 
 		let selectedLayout = layoutSelector.val();
 
@@ -3777,7 +3796,7 @@ var _Schema = {
 			});
 		}
 	},
-	applySavedLayoutConfiguration: function (layoutJSON) {
+	applySavedLayoutConfiguration: function(layoutJSON) {
 
 		try {
 
@@ -3854,7 +3873,7 @@ var _Schema = {
 		}
 
 	},
-	applyNodePositions:function(positions) {
+	applyNodePositions: function(positions) {
 		$('#schema-graph .node').each(function(i, n) {
 			var node = $(n);
 			var type = node.text();
@@ -4271,7 +4290,7 @@ var _Schema = {
 							types[n.name] = 1;
 						}
 					} else {
-						console.log({ ext: n.extendsClass, type: type });
+						// console.log({ ext: n.extendsClass, type: type });
 					}
 				});
 			};
@@ -4293,6 +4312,7 @@ var _Schema = {
 	},
 	ui: {
 		showInheritance: true,
+		showSchemaOverlays: true,
 		connectorStyle: undefined,
 		zoomLevel: undefined,
 		selectedRel: undefined,
@@ -4433,10 +4453,11 @@ var _Schema = {
 			_Schema.resize();
 		},
 		getSchemaCSSTransform: function() {
-			//return 'scale(' + _Schema.ui.zoomLevel + ') translate(' + ((inheritanceSlideout.position().left + inheritanceSlideout.outerWidth()) / _Schema.ui.zoomLevel) + 'px)';
+			// return 'scale(' + _Schema.ui.zoomLevel + ') translate(' + ((inheritanceSlideout.position().left + inheritanceSlideout.outerWidth()) / _Schema.ui.zoomLevel) + 'px)';
 			return 'scale(' + _Schema.ui.zoomLevel + ')';
 		},
 		updateOverlayVisibility: function(show) {
+			_Schema.ui.showSchemaOverlays = show;
 			LSWrapper.setItem(_Schema.showSchemaOverlaysKey, show);
 			$('#schema-show-overlays').prop('checked', show);
 			if (show) {
@@ -4446,6 +4467,7 @@ var _Schema = {
 			}
 		},
 		updateInheritanceVisibility: function(show) {
+			_Schema.ui.showInheritance = show;
 			LSWrapper.setItem(_Schema.showSchemaInheritanceKey, show);
 			$('#schema-show-inheritance').prop('checked', show);
 			if (show) {

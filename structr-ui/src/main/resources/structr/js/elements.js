@@ -1443,6 +1443,12 @@ var _Elements = {
 		// 	return false;
 		// });
 
+		div.on('click', (e) => {
+			e.stopPropagation();
+			_Elements.displayCentralEditor(this, entity);
+			return false;
+		});
+
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 
 		_Entities.appendEditPropertiesIcon(div, entity);
@@ -1486,6 +1492,29 @@ var _Elements = {
 			_Elements.editContent(this, entity, data.content, dialogText, configOverride);
 		});
 	},
+	displayCentralEditor: function(btn, entity, configOverride) {
+		// _Pages.hideAllPreviews();
+
+		let previewsContainer = document.querySelector('#previews');
+		let contentEditorContainer = document.querySelector('#previews .content-editor-container');
+
+		if (contentEditorContainer) {
+			previewsContainer.removeChild(contentEditorContainer);
+		}
+
+		Structr.fetchHtmlTemplate('pages/content-editor', {}, (html) => {
+
+			previewsContainer.insertAdjacentHTML('beforeend', html);
+
+			contentEditorContainer = document.querySelector('#previews .content-editor-container');
+
+			Command.get(entity.id, 'content,contentType', function(data) {
+				currentEntity = entity;
+				entity.contentType = data.contentType;
+				_Elements.editContent(this, entity, data.content, contentEditorContainer, configOverride);
+			});
+		});
+	},
 	activateEditorMode: function(contentType) {
 		let modeObj = CodeMirror.findModeByMIME(contentType);
 		let mode = contentType; // default
@@ -1506,7 +1535,7 @@ var _Elements = {
 			return;
 		}
 
-		element.append('<div class="editor"></div>');
+		$(element).append('<div class="editor"></div>');
 		var contentBox = $('.editor', element);
 		contentType = entity.contentType || 'text/plain';
 

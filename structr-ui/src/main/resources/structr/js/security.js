@@ -43,27 +43,32 @@ var _Security = {
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('security'));
 
-		Structr.fetchHtmlTemplate('security/main', {}, function (html) {
+		Structr.fetchHtmlTemplate('security/security.menu', {}, function (html) {
 
-			main.append(html);
+			functionBar.append(html);
 
-			_Security.userControls     = $('#users-controls');
-			_Security.userList         = $('#users-list');
+			Structr.fetchHtmlTemplate('security/main', {}, function (html) {
 
-			_Security.groupControls    = $('#groups-controls');
-			_Security.groupList        = $('#groups-list');
+				main.append(html);
 
-			_Security.resourceAccesses = $('#resourceAccesses');
+				_Security.userControls     = $('#users-controls');
+				_Security.userList         = $('#users-list');
 
-			var activeTab = LSWrapper.getItem(_Security.securityTabKey) || 'usersAndGroups';
-			_Security.selectTab(activeTab);
+				_Security.groupControls    = $('#groups-controls');
+				_Security.groupList        = $('#groups-list');
 
-			$('#securityTabsMenu > li > a').on('click', function() {
-				activeTab = $(this).attr('id').slice(0, -1);
+				_Security.resourceAccesses = $('#resourceAccesses');
+
+				var activeTab = LSWrapper.getItem(_Security.securityTabKey) || 'usersAndGroups';
 				_Security.selectTab(activeTab);
-			});
 
-			Structr.unblockMenu(100);
+				$('#securityTabsMenu > li > a').on('click', function() {
+					activeTab = $(this).attr('id').slice(0, -1);
+					_Security.selectTab(activeTab);
+				});
+
+				Structr.unblockMenu(100);
+			});
 		});
 	},
 	selectTab: function(tab) {

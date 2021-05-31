@@ -199,6 +199,19 @@ var _Pages = {
 				}, _Pages.slideoutClosedCallback);
 			});
 
+			live('#function-bar-switch', 'click', (e) => {
+				let icon = e.target.closest('.icon');
+				let pagesPager = document.getElementById('pagesPager');
+				console.log(icon, pagesPager);
+				if (pagesPager.classList.contains('hidden')) {
+					pagesPager.classList.remove('hidden');
+					icon.innerHTML = '<svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M.748,12.25a6,6,0,0,0,6,6h10.5a6,6,0,0,0,0-12H6.748A6,6,0,0,0,.748,12.25Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.248 9.25L17.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.248 9.25L14.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg>';
+				} else {
+					pagesPager.classList.add('hidden');
+					icon.innerHTML = '<svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M23.248,12a6,6,0,0,1-6,6H6.748a6,6,0,0,1,0-12h10.5A6,6,0,0,1,23.248,12Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.748 9L6.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.748 9L9.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg>';
+				}
+			})
+
 			previewTabs = $('<ul id="previewTabs"></ul>');
 			previews.append(previewTabs);
 
@@ -225,12 +238,12 @@ var _Pages = {
 				_Pages.resize();
 			});
 
-			Structr.initVerticalSlider($('.column-resizer-left', main), _Pages.pagesResizerLeftKey, 300, _Pages.moveLeftResizer);
-			Structr.initVerticalSlider($('.column-resizer-right', main), _Pages.pagesResizerRightKey, 240, _Pages.moveRightResizer, true);
+			Structr.initVerticalSlider($('.column-resizer-left', main), _Pages.pagesResizerLeftKey, 200, _Pages.moveLeftResizer);
+			Structr.initVerticalSlider($('.column-resizer-right', main), _Pages.pagesResizerRightKey, 200, _Pages.moveRightResizer, true);
 
 			Structr.unblockMenu(500);
 
-			_Pages.resizeColumns(LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 300, LSWrapper.getItem(_Pages.pagesResizerRightKey) || 240);
+			_Pages.resizeColumns(LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 200, LSWrapper.getItem(_Pages.pagesResizerRightKey) || 200);
 		});
 	},
 	moveLeftResizer: function(left) {
@@ -302,6 +315,8 @@ var _Pages = {
 		pagesSlideout.append('<div id="pagesTree"></div>');
 		pages = $('#pagesTree', pagesSlideout);
 
+		functionBar.append('<div id="function-bar-switch" class="icon"><svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M.748,12.25a6,6,0,0,0,6,6h10.5a6,6,0,0,0,0-12H6.748A6,6,0,0,0,.748,12.25Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.248 9.25L17.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.248 9.25L14.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></div>')
+
 		functionBar.append('<div id="pagesPager"></div>');
 		let pagesPager = $('#pagesPager', functionBar);
 
@@ -332,11 +347,10 @@ var _Pages = {
 				});
 				categories.sort();
 
-				var helpText = 'Here you can filter the pages list by page category.';
+				let helpText = 'Filter pages by page category.';
 				if (categories.length > 0) {
-					helpText += 'Available categories are: \n\n' + categories.join('\n');
+					helpText += 'Available categories: \n\n' + categories.join('\n');
 				}
-				helpText += '\n\nPro Tip: If category names have identical substrings you can filter for multiple categories at once.';
 
 				categoryFilter.attr('title', helpText);
 			}
@@ -465,7 +479,8 @@ var _Pages = {
 		tab.append('<i title="Edit page settings of ' + entity.name + '" class="edit_ui_properties_icon button ' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" />');
 		tab.append('<i title="View ' + entity.name + ' in new window" class="view_icon button ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" />');
 
-		$('.view_icon', tab).on('click', function(e) {
+		//$('.view_icon', tab).on('click', function(e) {
+		$('.node.page').on('dblclick', (e) => {
 			e.stopPropagation();
 			var self = $(this);
 			var link = $.trim(self.parent().children('b.name_').attr('title'));
@@ -1253,9 +1268,11 @@ var _Pages = {
 				Structr.closeLeftSlideOuts(otherSlideouts, activeTabKey, closeCallback);
 				Structr.openLeftSlideOut(triggerEl, slideoutElement, activeTabKey, openCallback);
 				$('.column-resizer-left').show();
+				_Pages.showPagesPager();
 			} else {
 				Structr.closeLeftSlideOuts([slideoutElement], activeTabKey, closeCallback);
 				$('.column-resizer-left').hide();
+				_Pages.hidePagesPager();
 			}
 		}
 	},
@@ -1276,6 +1293,15 @@ var _Pages = {
 		if (wasOpen) {
 			_Pages.resize();
 		}
+	},
+	hidePagesPager: () => {
+		document.getElementById('pagesPager').style.display = 'none';
+		document.getElementById('function-bar-switch').style.display = 'none';
+
+	},
+	showPagesPager: () => {
+		document.getElementById('pagesPager').style.display = '';
+		document.getElementById('function-bar-switch').style.display = '';
 	},
 	refreshLocalizations: function() {
 

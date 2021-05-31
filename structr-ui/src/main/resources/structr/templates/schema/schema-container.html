@@ -3,24 +3,29 @@
 		<input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="action btn"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add</button>
 	</div>
 
-	<select id="connector-style">
-		<option value="Flowchart">Flowchart</option>
-		<option value="Bezier">Bezier</option>
-		<option value="StateMachine">StateMachine</option>
-		<option value="Straight">Straight</option>
-	</select>
+<!--	<select id="connector-style">-->
+<!--		<option value="Flowchart">Flowchart</option>-->
+<!--		<option value="Bezier">Bezier</option>-->
+<!--		<option value="StateMachine">StateMachine</option>-->
+<!--		<option value="Straight">Straight</option>-->
+<!--	</select>-->
 
-	<div id="zoom-slider"></div>
 
-	<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays"><label for="schema-show-overlays"> Show relationship labels</label>
-
-	<input type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"><label for="schema-show-inheritance"> Show inheritance</label>
 
 	<button class="btn" id="schema-tools"><i class="${_Icons.getFullSpriteClass(_Icons.wrench_icon)}"></i> Tools</button>
 
 	<!--button class="btn" id="global-schema-methods"><i class="${_Icons.getFullSpriteClass(_Icons.book_icon)}"></i> Global schema methods</button-->
 
-	<div class="select-and-button">
-		<select id="saved-layout-selector-main"></select><!--button class="btn schema-tool-button action" id="restore-schema-layout"><i class="${_Icons.getFullSpriteClass(_Icons.wand_icon)}"></i> Apply Layout</button-->
+	<div class="dropdown-menu dropdown-menu-large" data-template="schema/display-settings" data-config="{}">
+		<button class="btn dropdown-select"><svg viewBox="0 0 16 16" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(0.6666666666666666,0,0,0.6666666666666666,0,0)"><path d="M0.751 0.750 L23.251 0.750 L23.251 23.250 L0.751 23.250 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12.751 15.75L18.751 15.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M5.251 15.75L8.251 15.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12.751,15.75A2.25,2.25,0,1,1,10.5,13.5,2.25,2.25,0,0,1,12.751,15.75Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.251 8.25L5.251 8.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M18.751,8.25A2.25,2.25,0,1,0,16.5,10.5,2.251,2.251,0,0,0,18.751,8.25Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg> Display Settings</button>
+		<div class="dropdown-menu-container"></div>
+<!--		<select id="saved-layout-selector-main"></select>&lt;!&ndash;button class="btn schema-tool-button action" id="restore-schema-layout"><i class="${_Icons.getFullSpriteClass(_Icons.wand_icon)}"></i> Apply Layout</button&ndash;&gt;-->
 	</div>
+
+	<div class="dropdown-menu dropdown-menu-large" data-template="schema/layout-tools" data-config="${escapeForHtmlAttributes(JSON.stringify(_Schema.storedLayouts))}">
+		<button class="btn dropdown-select"><svg viewBox="0 0 16 16" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(0.6666666666666666,0,0,0.6666666666666666,0,0)"><path d="M0.750 15.748 L8.250 15.748 L8.250 23.248 L0.750 23.248 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.250 0.748 L15.750 0.748 L15.750 8.248 L8.250 8.248 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.750 15.748 L23.250 15.748 L23.250 23.248 L15.750 23.248 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M4.5,15.748v-1.5a1.5,1.5,0,0,1,1.5-1.5H18a1.5,1.5,0,0,1,1.5,1.5v1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12 8.248L12 12.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg> Layout</button>
+		<div class="dropdown-menu-container"></div>
+		<!--		<select id="saved-layout-selector-main"></select>&lt;!&ndash;button class="btn schema-tool-button action" id="restore-schema-layout"><i class="${_Icons.getFullSpriteClass(_Icons.wand_icon)}"></i> Apply Layout</button&ndash;&gt;-->
+	</div>
+
 </div>
