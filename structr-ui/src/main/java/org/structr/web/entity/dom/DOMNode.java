@@ -100,9 +100,9 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	static class Impl { static {
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType page = (JsonObjectType)schema.getType("Page");
-		final JsonObjectType type = schema.addType("DOMNode");
+		final JsonSchema schema    = SchemaService.getDynamicSchema();
+		final JsonObjectType page  = (JsonObjectType)schema.getType("Page");
+		final JsonObjectType type  = schema.addType("DOMNode");
 
 		type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMNode"));
@@ -260,10 +260,10 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			.addException(FrameworkException.class.getName())
 			.addParameter("sharedComponent", "org.structr.web.entity.dom.DOMNode");
 
-		final JsonReferenceType sibling  = type.relate(type,                                                   "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling",  "nextSibling");
-		final JsonReferenceType parent   = type.relate(type,                                                   "CONTAINS",              Cardinality.OneToMany, "parent",           "children");
-		final JsonReferenceType synced   = type.relate(type,                                                   "SYNC",                  Cardinality.OneToMany, "sharedComponent",  "syncedNodes");
-		final JsonReferenceType owner    = type.relate(page,                                                   "PAGE",                  Cardinality.ManyToOne, "elements",         "ownerDocument");
+		final JsonReferenceType sibling   = type.relate(type,                                                   "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling",  "nextSibling");
+		final JsonReferenceType parent    = type.relate(type,                                                   "CONTAINS",              Cardinality.OneToMany, "parent",           "children");
+		final JsonReferenceType synced    = type.relate(type,                                                   "SYNC",                  Cardinality.OneToMany, "sharedComponent",  "syncedNodes");
+		final JsonReferenceType owner     = type.relate(page,                                                   "PAGE",                  Cardinality.ManyToOne, "elements",         "ownerDocument");
 
 		type.addIdReferenceProperty("parentId",          parent.getSourceProperty()).setCategory(PAGE_CATEGORY);
 		type.addIdReferenceProperty("childrenIds",       parent.getTargetProperty()).setCategory(PAGE_CATEGORY);
@@ -353,6 +353,9 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	default String getCssClass() {
 		return null;
+	}
+
+	default void renderManagedAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
 	}
 
 	String getCypherQuery();

@@ -31,4 +31,6 @@ public interface StructrServices {
 	<T extends Service> Map<String, T> getServices(final Class<T> serviceClass);
 	DatabaseService getDatabaseService();
 	LicenseManager getLicenseManager();
+	String getInstanceName();
+	String getVersion();
 }

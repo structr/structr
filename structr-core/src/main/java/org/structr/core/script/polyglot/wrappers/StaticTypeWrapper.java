@@ -18,6 +18,7 @@
  */
 package org.structr.core.script.polyglot.wrappers;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
@@ -25,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
@@ -35,6 +37,10 @@ import org.structr.core.script.polyglot.cache.ExecutableStaticTypeMethodCache;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -64,51 +70,53 @@ public class StaticTypeWrapper implements ProxyObject {
 			return cachedStaticExecutable;
 		}
 
-		// Ensure that  method is static
-		try (final Tx tx = app.tx()) {
+		Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods(referencedClass, Export.class);
+		if (methods.containsKey(key) && Modifier.isStatic(methods.get(key).getModifiers())) {
 
-			SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(referencedClass.getSimpleName()).getFirst();
-			if (schemaNode != null) {
+			Method method = methods.get(key);
 
-				for (SchemaMethod m : Iterables.toList(schemaNode.getSchemaMethodsIncludingInheritance())) {
+			final ProxyExecutable executable = arguments -> {
 
-					if (m.getName().equals(key) && m.isStaticMethod()) {
+				try {
 
-						ProxyExecutable executable = arguments -> {
+					int paramCount = method.getParameterCount();
 
-							try {
-								Map<String, Object> parameters = new HashMap<>();
+					if (paramCount == 0) {
 
-								if (arguments.length == 1) {
+						return PolyglotWrapper.wrap(actionContext, method.invoke(null));
+					} else if (paramCount == 1) {
 
-									Object parameter = PolyglotWrapper.unwrap(actionContext, arguments[0]);
-									if (parameter instanceof Map) {
+						return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext()));
+					} else if (paramCount == 2 && arguments.length == 0) {
 
-										parameters = (Map<String, Object>)parameter;
-									}
-								}
+						return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext(), new HashMap<String, Object>()));
+					} else if (arguments.length == 0) {
 
-								return PolyglotWrapper.wrap(actionContext, Actions.execute(actionContext.getSecurityContext(), null, SchemaMethod.getCachedSourceCode(m.getUuid()), parameters, referencedClass.getSimpleName() + "." + key, m.getUuid()));
-								
-							} catch (FrameworkException ex) {
+						return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext()));
+					} else {
 
-								throw new RuntimeException(ex);
-							}
-
-						};
-
-						staticMethodCache.cacheExecutable(referencedClass.getSimpleName(), key, executable);
-
-						return executable;
+						return PolyglotWrapper.wrap(actionContext, method.invoke(null, ArrayUtils.add(Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray(), 0, actionContext.getSecurityContext())));
 					}
+
+				} catch (IllegalAccessException ex) {
+
+					logger.error("Unexpected exception while trying to get GraphObject member.", ex);
+				} catch (InvocationTargetException ex) {
+
+					if (ex.getTargetException() instanceof FrameworkException) {
+
+						throw new RuntimeException(ex.getTargetException());
+					}
+					logger.error("Unexpected exception while trying to get GraphObject member.", ex);
 				}
 
-			}
+				return null;
 
-		} catch (FrameworkException ex) {
+			};
 
-			logger.warn("Unexpected exception while trying to look up schema method.", ex);
-			return null;
+			staticMethodCache.cacheExecutable(referencedClass.getSimpleName(), key, executable);
+
+			return executable;
 		}
 
 		return null;

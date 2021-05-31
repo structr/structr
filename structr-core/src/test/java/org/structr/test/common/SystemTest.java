@@ -55,6 +55,7 @@ import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -1813,6 +1814,86 @@ public class SystemTest extends StructrTest {
 			Settings.CypherDebugLogging.setValue(false);
 		}
 	}
+
+	@Test
+	public void testIdenticalRelationshipTypeFilterPerformance() {
+
+		logger.info("Schema setup..");
+
+		// setup 1: create schema
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema     = StructrSchema.createFromDatabase(app);
+			final JsonObjectType left   = schema.addType("Left");
+			final JsonObjectType middle = schema.addType("Middle");
+			final JsonObjectType right  = schema.addType("Right");
+
+			left.relate(middle, "TEST", Cardinality.ManyToOne, "lefts", "middle");
+			right.relate(middle, "TEST", Cardinality.ManyToOne, "rights", "middle");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final Class left   = StructrApp.getConfiguration().getNodeEntityClass("Left");
+		final Class middle = StructrApp.getConfiguration().getNodeEntityClass("Middle");
+		final Class right  = StructrApp.getConfiguration().getNodeEntityClass("Right");
+
+		final PropertyKey leftToMiddle  = StructrApp.key(left,   "middle");
+		final PropertyKey rightToMiddle = StructrApp.key(right,  "middle");
+		final PropertyKey middleToLeft  = StructrApp.key(middle, "lefts");
+
+		logger.info("Creating data..");
+
+		// setup 2: create data
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface middle1 = app.create(middle, "Middle");
+
+			for (int i=0; i<2000; i++) {
+
+				app.create(right, new NodeAttribute<>(rightToMiddle, middle1));
+			}
+
+			app.create(left, new NodeAttribute<>(leftToMiddle, middle1));
+			app.create(left, new NodeAttribute<>(leftToMiddle, middle1));
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		logger.info("Testing..");
+
+		FlushCachesCommand.flushAll();
+
+		// test: check performance
+		try (final Tx tx = app.tx()) {
+
+			final GraphObject m = app.nodeQuery(middle).getFirst();
+			final long t0       = System.currentTimeMillis();
+			final List list     = Iterables.toList((Iterable)m.getProperty(middleToLeft));
+			final long t1       = System.currentTimeMillis();
+			final long dt       = t1 - t0;
+
+			assertEquals("Related nodes are not filtered correctly", 2, list.size());
+			assertTrue("Related nodes are not filtered by target label, performance is too low", dt < 100);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
 
 	// ----- nested classes -----
 	private static class TestRunner implements Runnable {

@@ -29,7 +29,6 @@ import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
 import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
 import org.structr.core.script.polyglot.function.*;
@@ -99,9 +98,11 @@ public class StructrBinding implements ProxyObject {
 
 				final EvaluationHints hints = new EvaluationHints();
 				Object structrScriptResult  = null;
+
 				try {
 
 					structrScriptResult = PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0, hints, 1, 1));
+
 				} catch (FrameworkException ex) {
 
 					logger.error("Unexpected exception while trying to apply get function shortcut on script binding object.", ex);
@@ -109,14 +110,18 @@ public class StructrBinding implements ProxyObject {
 
 				if (structrScriptResult != null) {
 
+					if (structrScriptResult instanceof Class) {
+
+						// Try to do a static class lookup as last resort
+						final Class clazz = (Class)structrScriptResult;
+						if (clazz != null) {
+
+							return new StaticTypeWrapper(actionContext, clazz);
+						}
+
+					}
+
 					return structrScriptResult;
-				}
-
-				// Try to do a static class lookup as last resort
-				final Class clazz = StructrApp.getConfiguration().getNodeEntityClass(name);
-				if (clazz != null) {
-
-					return new StaticTypeWrapper(actionContext, clazz);
 				}
 
 				return null;

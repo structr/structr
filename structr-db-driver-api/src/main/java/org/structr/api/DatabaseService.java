@@ -42,7 +42,7 @@ public interface DatabaseService {
 	 *
 	 * @return whether the service was initialized successfully
 	 */
-	boolean initialize(final String serviceName);
+	boolean initialize(final String serviceName, final String version, final String instanceName);
 	void shutdown();
 	void clearCaches();
 	void cleanDatabase();

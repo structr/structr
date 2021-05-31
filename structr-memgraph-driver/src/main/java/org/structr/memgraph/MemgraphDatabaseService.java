@@ -94,7 +94,7 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 	private boolean supportsANY                                       = false;
 
 	@Override
-	public boolean initialize(final String name) {
+	public boolean initialize(final String name, final String version, final String instance) {
 
 		String serviceName = null;
 

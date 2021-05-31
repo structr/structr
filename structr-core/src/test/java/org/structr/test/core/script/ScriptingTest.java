@@ -19,6 +19,7 @@
 package org.structr.test.core.script;
 
 import com.google.gson.GsonBuilder;
+import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -148,7 +149,7 @@ public class ScriptingTest extends StructrTest {
 			tx.success();
 
 
-		} catch(Throwable t) {
+		} catch(FrameworkException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -185,7 +186,7 @@ public class ScriptingTest extends StructrTest {
 			tx.success();
 
 
-		} catch(Throwable t) {
+		} catch(FrameworkException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -2588,7 +2589,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			logger.error("", t);
 			fail("Unexpected exception during test setup.");
 		}
@@ -2611,7 +2612,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -2627,7 +2628,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -2641,7 +2642,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -2682,7 +2683,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -2785,7 +2786,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException | InvalidSchemaException | URISyntaxException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -2838,7 +2839,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -2990,7 +2991,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3011,7 +3012,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3103,7 +3104,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3124,7 +3125,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3353,7 +3354,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3373,7 +3374,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3389,7 +3390,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3419,7 +3420,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3446,7 +3447,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3475,7 +3476,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3524,7 +3525,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3615,7 +3616,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3670,7 +3671,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3775,7 +3776,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception");
@@ -3892,7 +3893,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception");
@@ -3989,7 +3990,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4044,7 +4045,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4162,7 +4163,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4196,7 +4197,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4290,7 +4291,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4312,7 +4313,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4383,7 +4384,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4424,7 +4425,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4445,7 +4446,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4489,7 +4490,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4526,7 +4527,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4548,7 +4549,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4571,7 +4572,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4590,7 +4591,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4611,7 +4612,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail(fex.getMessage());
@@ -4699,7 +4700,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException | InvalidSchemaException | URISyntaxException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -4795,7 +4796,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException | InvalidSchemaException | URISyntaxException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -4929,7 +4930,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -5128,7 +5129,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -5714,7 +5715,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -5737,7 +5738,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -5750,7 +5751,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals(1, (int)node.getProperty("result"));
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -5770,31 +5771,19 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-			final JsonType project  = schema.addType("StaticMethodTest");
+			final JsonType type     = schema.addType("StaticMethodTest");
 
-			JsonMethod staticCallTestMethod  = project.addMethod("doStaticTest", "{}");
-			JsonMethod dynamicCallTestMethod = project.addMethod("doDynamicTest", "{}");
+			type.addMethod("doStaticTest", "{}").setIsStatic(true);
+			type.addMethod("doDynamicTest", "{}");
 
-			JsonMethod staticThisTestMethod  = project.addMethod("doStaticTestWithThis", "{ return $.this.type; }");
-			JsonMethod dynamicThisTestMethod = project.addMethod("doDynamicTestWithThis", "{ return $.this.type; }");
+			type.addMethod("doStaticTestWithThis", "{ return $.this.type; }").setIsStatic(true);
+			type.addMethod("doDynamicTestWithThis", "{ return $.this.type; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
-			// make methods static
-			SchemaNode schemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName("StaticMethodTest").getFirst();
-			List<SchemaMethod> schemaMethods = Iterables.toList(schemaNode.getSchemaMethods());
-
-			for(SchemaMethod method : schemaMethods) {
-
-				if(method.getName().equals("doStaticTest") || method.getName().equals("doStaticTestWithThis")) {
-					method.setProperty(SchemaMethod.isStatic, true);
-				}
-
-			}
-
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -5821,10 +5810,10 @@ public class ScriptingTest extends StructrTest {
 
 			final Object result = Scripting.evaluate(ctx, null, "${{ $.StaticMethodTest.doStaticTest(); }}", "doStaticTest");
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
-
+			fail("Unexpected exception");
 		}
 
 		// call static method from dynamic context
@@ -5836,7 +5825,7 @@ public class ScriptingTest extends StructrTest {
 
 			fail("Calling static method from dynamic context should result in an Exception!");
 
-		} catch (Throwable fex) {}
+		} catch (FrameworkException fex) {}
 
 		// call dynamic method from static context
 		try (final Tx tx = app.tx()) {
@@ -5844,7 +5833,7 @@ public class ScriptingTest extends StructrTest {
 			final Object result = Scripting.evaluate(ctx, null, "${{ $.StaticMethodTest.doDynamicTest(); }}", "doDynamicTest");
 			fail("Calling dynamic method from static context should result in an Exception!");
 
-		} catch (Throwable fex) {}
+		} catch (FrameworkException fex) {}
 
 		// call dynamic method from dynamic context
 		try (final Tx tx = app.tx()) {
@@ -5853,9 +5842,10 @@ public class ScriptingTest extends StructrTest {
 
 			final Object result = Scripting.evaluate(ctx, null, "${{ const test = $.find('StaticMethodTest')[0]; test.doDynamicTest(); }}", "doDynamicTest");
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
+			fail("Unexpected exception");
 
 		}
 
@@ -5875,7 +5865,7 @@ public class ScriptingTest extends StructrTest {
 			final Object result = Scripting.evaluate(ctx, null, "${{ $.StaticMethodTest.doStaticTestWithThis(); }}", "doStaticTestWithThis");
 			fail("Referencing $.this from a static method should result in an Exception!");
 
-		} catch (Throwable fex) {}
+		} catch (FrameworkException fex) {}
 
 		// reference $.this from dynamic method
 		try (final Tx tx = app.tx()) {
@@ -5884,7 +5874,7 @@ public class ScriptingTest extends StructrTest {
 
 			final Object result = Scripting.evaluate(ctx, null, "${{ const test = $.find('StaticMethodTest')[0]; test.doDynamicTestWithThis(); }}", "doDynamicTestWithThis");
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 
@@ -5903,7 +5893,7 @@ public class ScriptingTest extends StructrTest {
 			final Object result = Scripting.evaluate(ctx, null, "${{ $.StaticMethodTest.doStaticTest(); }}", "doStaticTest");
 			fail("Local variable or constant should overwrite the Class constant!");
 
-		} catch (Throwable fex) {}
+		} catch (FrameworkException fex) {}
 
 	}
 
@@ -6035,6 +6025,53 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testStructrScriptFunctionWithParameters() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("createMap", "{ return { param1: 'Test', param2: 123 }; }");
+			type.addMethod("test",      "concat('success',    this.name, retrieve('param1'))");
+			type.addMethod("testOne",   "concat('successOne', this.name, retrieve('param1'), retrieve('param2'))");
+			type.addMethod("test123",   "concat('success123', this.name, retrieve('param1'), retrieve('param2'), retrieve('param3'))");
+			type.addMethod("test333",   "concat('success333', 'static', retrieve('param1'), retrieve('param2'), retrieve('param3'))").setIsStatic(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Class type         = StructrApp.getConfiguration().getNodeEntityClass("Test");
+			final NodeInterface test = app.create(type, "test1");
+
+			assertEquals("successtest1abc",              Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.test('param1', 'abc')}"));
+			assertEquals("successOnetest1abc123.0",      Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.testOne('param1', 'abc', 'param2', 123)}"));
+			assertEquals("success123test1abc123.0true",  Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.test123('param1', 'abc', 'param2', 123, 'param3', true)}"));
+			assertEquals("success333staticabc123.0true", Scripting.replaceVariables(new ActionContext(securityContext), test, "${Test.test333('param1', 'abc', 'param2', 123, 'param3', true)}"));
+
+			// test mixed parameters and nested calls
+			assertEquals("successtest1" + test.getUuid(), Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.test('param1', first(find('Test')))}"));
+			assertEquals("success123test1Test123",        Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.test123(this.createMap())}"));
+			assertEquals("success123test1Test123false",   Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.test123(this.createMap(), 'param3', false)}"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
 
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {

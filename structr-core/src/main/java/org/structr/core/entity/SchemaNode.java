@@ -267,172 +267,25 @@ public class SchemaNode extends AbstractSchemaNode {
 		return null;
 	}
 
-	public void handleMigration() throws FrameworkException {
+	public void handleMigration(final Map<String, SchemaNode> schemaNodes) throws FrameworkException {
 
-		// we need to consider the following cases:
-		//  - class extends other dynamic class => no change
-		//  - class extends FileBase => make it extend AbstractNode and implement File
-		//  - class extends built-in type => make it extend AbstractNode and implement dynamic interface
+		final String previousExtendsClassValue = (String)this.getNode().getProperty("extendsClass");
+		if (previousExtendsClassValue != null) {
 
-		/*
-		final String tmp = getProperty(extendsClass);
-		if (tmp != null) {
+			final String extendsClass = StringUtils.substringBefore(previousExtendsClassValue, "<"); // remove optional generic parts from class name
+			final String className    = StringUtils.substringAfterLast(extendsClass, ".");
 
-			final String interfaces = getProperty(implementsInterfaces);
-			String _extendsClass = StringUtils.substringBefore(tmp, "<"); // remove optional generic parts from class name
+			final SchemaNode baseType = schemaNodes.get(className);
+			if (baseType != null) {
 
-			// migrate FileBase
-			if (_extendsClass.equals("org.structr.web.entity.FileBase")) {
+				setProperty(SchemaNode.extendsClass, baseType);
+				this.getNode().setProperty("extendsClass", null);
 
-				removeProperty(extendsClass);
-				setProperty(implementsInterfaces, addToList(interfaces, "org.structr.web.entity.File"));
-				return;
-			}
+			} else {
 
-			// migrate Image
-			if (_extendsClass.equals("org.structr.web.entity.Image")) {
-
-				setProperty(extendsClass, "org.structr.dynamic.Image");
-				return;
-			}
-
-			// migrate RemoteDocument
-			if (_extendsClass.equals("org.structr.web.entity.RemoteDocument")) {
-
-				setProperty(extendsClass, "org.structr.feed.entity.RemoteDocument");
-				return;
-			}
-
-			// migrate Person
-			if (_extendsClass.equals("org.structr.core.entity.Person")) {
-
-				setProperty(extendsClass, "org.structr.dynamic.Person");
-				return;
-			}
-
-			// migrate XMPPClient
-			if (_extendsClass.equals("org.structr.xmpp.XMPPClient")) {
-
-				setProperty(implementsInterfaces, addToList(interfaces, "org.structr.xmpp.XMPPClient"));
-				removeProperty(extendsClass);
-				return;
-			}
-
-			// migrate ContentContainer
-			if (_extendsClass.equals("org.structr.web.entity.ContentContainer")) {
-
-				setProperty(extendsClass, "org.structr.dynamic.ContentContainer");
-				return;
-			}
-
-			// we need to migrate the feed package
-			if (_extendsClass.startsWith("org.structr.web.entity.feed.")) {
-
-				_extendsClass = _extendsClass.replace("org.structr.web.entity.feed.", "org.structr.feed.entity.");
-				setProperty(extendsClass, _extendsClass);
-			}
-
-			// migrate Messaging
-			if (_extendsClass.startsWith("org.structr.messaging.engine.entities.")) {
-
-				removeProperty(extendsClass);
-				setProperty(implementsInterfaces, addToList(interfaces, _extendsClass));
-				return;
-			}
-
-			// move most of the extendsClass to implementsInterfaces
-			if (
-				_extendsClass.startsWith("org.structr.knowledge.")
-				||
-				(
-					!_extendsClass.endsWith("Impl") &&
-					_extendsClass.contains(".entity.") &&
-					_extendsClass.startsWith("org.structr.") &&
-					!_extendsClass.startsWith("org.structr.dynamic.") &&
-					!AbstractNode.class.getName().equals(_extendsClass)
-				)
-			) {
-
-				setProperty(implementsInterfaces, addToList(interfaces, _extendsClass));
-				removeProperty(extendsClass);
-			}
-
-			// migrate LDAPUser
-			if ("LDAPUser".equals(getName())) {
-
-				// remove method printDebug()
-				for (final SchemaMethod m : getProperty(SchemaNode.schemaMethods)) {
-
-					if ("printDebug".equals(m.getName())) {
-
-						StructrApp.getInstance().delete(m);
-					}
-				}
-			}
-
-			// migrate Page
-			if ("Page".equals(getName())) {
-
-				// remove method getSite()
-				for (final SchemaMethod m : getProperty(SchemaNode.schemaMethods)) {
-
-					if ("getSite".equals(m.getName())) {
-
-						StructrApp.getInstance().delete(m);
-					}
-				}
+				setProperty(SchemaNode.extendsClassInternal, previousExtendsClassValue);
 			}
 		}
-
-		// migrate Mail and Mailbox
-		// change name and implemented class
-		if ("Mail".equals(getName())) {
-
-			String interfaceStrings = getProperty(implementsInterfaces);
-
-			if (interfaceStrings != null && Arrays.stream(interfaceStrings.split(",")).anyMatch("org.structr.mail.entity.Mail"::equals)) {
-
-				String[] splitInterfaces = interfaceStrings.split(",");
-
-				setProperty(name, "EMailMessage");
-
-				for (int i = 0; i < splitInterfaces.length; i++) {
-					if (splitInterfaces[i].equals("org.structr.mail.entity.Mail")) {
-						splitInterfaces[i] = "org.structr.mail.entity.EMailMessage";
-					}
-				}
-
-				setProperty(implementsInterfaces, String.join(",", splitInterfaces));
-			}
-		}
-
-		if("Mailbox".equals(getName())) {
-
-			String interfaceStrings = getProperty(implementsInterfaces);
-
-			if (interfaceStrings != null && Arrays.stream(interfaceStrings.split(",")).anyMatch("org.structr.mail.entity.Mailbox"::equals)) {
-
-				for (final SchemaProperty p : getProperty(SchemaNode.schemaProperties)) {
-
-					if ("mails".equals(p.getName())) {
-
-						StructrApp.getInstance().delete(p);
-					}
-				}
-			}
-		}
-
-		if("LDAPUser".equals(getName())) {
-
-			for (final SchemaMethod method : getProperty(SchemaNode.schemaMethods)) {
-
-				if ("onModification".equals(method.getName())) {
-
-					StructrApp.getInstance().delete(method);
-				}
-			}
-		}
-		*/
 	}
 
 	public void initializeGraphQL(final Map<String, SchemaNode> schemaNodes, final Map<String, GraphQLType> graphQLTypes, final Set<String> blacklist) throws FrameworkException {

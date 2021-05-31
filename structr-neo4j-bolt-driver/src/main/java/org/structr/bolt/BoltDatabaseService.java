@@ -34,7 +34,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Record;
@@ -89,7 +91,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	private Driver driver                                         = null;
 
 	@Override
-	public boolean initialize(final String name) {
+	public boolean initialize(final String name, final String version, final String instance) {
 
 		String serviceName = null;
 
@@ -123,12 +125,17 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 		try {
 
-			final boolean isTesting = Settings.ConnectionUrl.getValue().equals(Settings.TestingConnectionUrl.getValue());
+			final String versionName  = StringUtils.defaultIfBlank(name, "unknown version");
+			final String instanceName = StringUtils.defaultIfBlank(instance, "unknown instance");
+			final String userAgent    = "structr/" + versionName  + "-" + instanceName;
+			final boolean isTesting   = Settings.ConnectionUrl.getValue().equals(Settings.TestingConnectionUrl.getValue());
+			final Config config       = Config.builder().withUserAgent(userAgent).build();
 
 			try {
 
 				driver = GraphDatabase.driver(databaseDriverUrl,
-						AuthTokens.basic(username, password)
+						AuthTokens.basic(username, password),
+						config
 				);
 
 				// probe connection to database:
@@ -147,7 +154,8 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 					try {
 						driver = GraphDatabase.driver(databaseDriverUrl,
-								AuthTokens.basic(Settings.Neo4jDefaultUsername.getValue(), Settings.Neo4jDefaultPassword.getValue())
+								AuthTokens.basic(Settings.Neo4jDefaultUsername.getValue(), Settings.Neo4jDefaultPassword.getValue()),
+								config
 						);
 
 						logger.info("Successfully logged in with default credentials.");
@@ -157,7 +165,8 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 						logger.info("Initial database password set to value from config file.");
 
 						driver = GraphDatabase.driver(databaseDriverUrl,
-								AuthTokens.basic(username, password)
+								AuthTokens.basic(username, password),
+								config
 						);
 
 						logger.info("Successfully logged in with configured credentials.");

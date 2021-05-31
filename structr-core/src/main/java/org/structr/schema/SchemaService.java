@@ -189,7 +189,7 @@ public class SchemaService implements Service {
 								continue;
 							}
 
-							schemaInfo.handleMigration();
+							schemaInfo.handleMigration(schemaNodes);
 
 							final String className      = schemaInfo.getClassName();
 							final SourceFile sourceFile = new SourceFile(className);
