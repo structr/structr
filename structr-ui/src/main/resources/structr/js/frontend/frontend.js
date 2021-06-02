@@ -151,7 +151,7 @@ export class Frontend {
 
 			} else if (reloadTarget === 'event') {
 
-				element.dispatchEvent(new Event('structr-success', { detail: parameters }));
+				element.dispatchEvent(new CustomEvent('structr-success', { detail: { result: parameters, status: status } }));
 
 			} else if (reloadTarget === 'none') {
 
