@@ -130,37 +130,41 @@ export class Frontend {
 
 		if (element.dataset.structrReloadTarget) {
 
-			let reloadTarget = element.dataset.structrReloadTarget;
-			if (reloadTarget.indexOf('url:') === 0) {
+			let reloadTargets = element.dataset.structrReloadTarget;
 
-				let url     = reloadTarget.substring(4).replaceAll('{', '${');
-				let replace = new Function('result', 'return `' + url + '`;');
-				let value   = replace(parameters);
+			for (let reloadTarget of reloadTargets.split(',').map(t => t.trim()).filter(t => t.length > 0)) {
 
-				window.location.href = value;
+				if (reloadTarget.indexOf('url:') === 0) {
 
-			} else if (reloadTarget.indexOf('css:') === 0) {
+					let url     = reloadTarget.substring(4).replaceAll('{', '${');
+					let replace = new Function('result', 'return `' + url + '`;');
+					let value   = replace(parameters);
 
-				let css = reloadTarget.substring(4);
+					window.location.href = value;
 
-				element.classList.add(css);
+				} else if (reloadTarget.indexOf('css:') === 0) {
 
-				window.setTimeout(() => {
-					element.classList.remove(css);
-				}, 1000);
+					let css = reloadTarget.substring(4);
 
-			} else if (reloadTarget === 'event') {
+					element.classList.add(css);
 
-				element.dispatchEvent(new CustomEvent('structr-success', { detail: { result: parameters, status: status } }));
+					window.setTimeout(() => {
+						element.classList.remove(css);
+					}, 1000);
 
-			} else if (reloadTarget === 'none') {
+				} else if (reloadTarget === 'event') {
 
-				// do nothing
-				return;
+					element.dispatchEvent(new CustomEvent('structr-success', { detail: { result: parameters, status: status } }));
 
-			} else {
+				} else if (reloadTarget === 'none') {
 
-				this.reloadPartial(reloadTarget, parameters, element);
+					// do nothing
+					return;
+
+				} else {
+
+					this.reloadPartial(reloadTarget, parameters, element);
+				}
 			}
 
 		} else {
