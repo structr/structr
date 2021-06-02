@@ -46,6 +46,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.graalvm.home.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -133,36 +134,34 @@ public class Services implements StructrServices {
 
 	private static void checkJavaRuntime() {
 
-		org.graalvm.home.Version expectedVersion = org.graalvm.home.Version.create(20, 3, 0);
-		org.graalvm.home.Version foundVersion    = org.graalvm.home.Version.getCurrent();
+		final int expectedMajorVersion = 20;
+		final int expectedMinorVersion = 3;
 
-		boolean isSnapshot = foundVersion.isSnapshot();
-		boolean correctVersion = (foundVersion.compareTo(expectedVersion) == 0);
-		if (isSnapshot || !correctVersion) {
+		final Version expectedVersion  = org.graalvm.home.Version.create(expectedMajorVersion, expectedMinorVersion);
+		final Version foundVersion     = org.graalvm.home.Version.getCurrent();
+		boolean isSnapshot             = foundVersion.isSnapshot();
+		boolean allowedVersion         = foundVersion.toString().startsWith(expectedVersion.toString());
 
-			String expectedVersionString = expectedVersion.toString();
-			String foundVersionString    = foundVersion.toString();
+		if (isSnapshot || !allowedVersion) {
 
 			if (isSnapshot) {
 
-				logger.warn("Java Runtime Version mismatch; expected GraalVM version {}, found unrecognized version.", expectedVersionString);
+				logger.warn("Java Runtime Version mismatch; expected GraalVM version {}, found unrecognized version", expectedVersion);
 
 			} else {
 
-				logger.warn("Java Runtime Version mismatch; expected GraalVM version {}, found {}.", expectedVersionString, foundVersionString);
+				logger.warn("Java Runtime Version mismatch; expected GraalVM version {}, found {}", expectedVersion, foundVersion);
 			}
 
 			boolean enforceRuntime = Settings.EnforceRuntime.getValue();
 			if (enforceRuntime) {
 
-				logger.error("Strict Java Runtime Version check enabled. Aborting due to version mismatch. Please set application.runtime.enforce.recommended = false in structr.conf to enable start despite Java Runtime Version mismatch.");
-				System.err.println("Strict Java Runtime Version check enabled. Aborting due to version mismatch. Please set application.runtime.enforce.recommended = false in structr.conf to enable start despite Java Runtime Version mismatch.");
+				logger.error("Strict Java Runtime Version check enabled. Aborting due to version mismatch. Please set application.runtime.enforce.recommended = false in structr.conf to enable start despite Java Runtime Version mismatch");
 				System.exit(1);
 
 			} else {
 
-				logger.warn("Weak Java Runtime Version check enabled. Continuing despite version mismatch. Please set application.runtime.enforce.recommended = true in structr.conf to enable strong Java Runtime Version check.");
-				System.err.println("Weak Java Runtime Version check enabled. Continuing despite version mismatch. Please set application.runtime.enforce.recommended = true in structr.conf to enable strong Java Runtime Version check.");
+				logger.warn("Weak Java Runtime Version check enabled. Continuing despite version mismatch. To enable strong Java Runtime Version check set application.runtime.enforce.recommended = true in structr.conf");
 			}
 		}
 	}
