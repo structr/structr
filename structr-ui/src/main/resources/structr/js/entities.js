@@ -127,51 +127,64 @@ var _Entities = {
 	},
 	dataBindingDialog: function(entity, el, typeInfo) {
 
-		el.append('<h3>Simple Interactive Elements</h3>');
-		el.append('<table class="props" id="new-data-binding-properties"></table>');
-		var tNew = $('#new-data-binding-properties', el);
+		Structr.fetchHtmlTemplate('entities/simple-interactive-elements', { entity: entity }, function (html) {
 
-		_Entities.appendRowWithInputField(entity, tNew, 'eventMapping',                    'Event mapping',     typeInfo);
-		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-target',             'Event target',      typeInfo);
-		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-reload-target',      'Reload target',     typeInfo);
-		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-tree-children',      'Tree children key', typeInfo);
+			el.append(html);
 
-		if (entity.type === 'Button' || entity.type === 'A') {
+			// set placeholder via script to avoid string interpolation
+			$('.event-target-input', el).attr('placeholder', 'Example: ${current.id}');
+			$('.reload-target-input', el).attr('placeholder', 'Example: #list-container');
 
-			el.append('<h4>You can specify the data fields for create and update using data-Attributes like this:</h4>');
-			el.append('<pre>data-name        = css(input#name-input)\ndata-description = css(input#description-input)\ndata-parent      = json({ "id": "5c6214fde6db45d09df027b16a0d6c0e" })</pre>');
-			el.append('<h4>Which will produce the following JSON payload:</h4>');
-			el.append('<pre>{\n    name: "&lt;value from input#name-input&gt;",\n    description: "&lt;value from input#description-input&gt;",\n    parent: {\n        id: "5c6214fde6db45d09df027b16a0d6c0e"\n    }\n}\n</p>');
-		}
+			$('select#event-mapping-select', el).select2({
+				placeholder: 'Event',
+				style: 'text-align:left;',
+				width: '300px',
+				dropdownParent: $('.blockPage')
+			}).on('select2:select', function (e) {
 
-		el.append('<h3>Deprecated Edit Mode Binding</h3>');
-		el.append('<table class="props" id="deprecated-data-binding-properties"></table>');
-		var tOld = $('#deprecated-data-binding-properties', el);
+				$('div.event-options', el).addClass('hidden');
+				$('#' + this.value).removeClass('hidden');
+				$('#options-reload-target').removeClass('hidden');
 
-		// General
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-id',                   'Element ID', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-attr',                 'Attribute Key', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-type',                 'Data type', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-placeholder',          'Placeholder text', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-custom-options-query', 'Custom REST query', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-options-key',          'Options attribute key', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-raw-value',            'Raw value', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-hide',                 'Hide mode(s)', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-edit-class',           'Edit mode CSS class', typeInfo);
+				/*
+				let data = e.params.data;
+				*/
 
-		if (entity.type === 'Button' || entity.type === 'A') {
+				/*
+					let blinkElement = (inputEl.type === 'checkbox') ? $(inputEl).parent() : null;
 
-			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-action',           'Action', typeInfo);
-			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-attributes',       'Attributes', typeInfo);
-			_Entities.appendRowWithBooleanSwitch(entity, tOld, 'data-structr-reload',        'Reload', '', typeInfo);
-			_Entities.appendRowWithBooleanSwitch(entity, tOld, 'data-structr-confirm',       'Confirm action?', '', typeInfo);
-			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-return',           'Return URI', typeInfo);
-			_Entities.appendRowWithBooleanSwitch(entity, tOld, 'data-structr-append-id',     'Append ID on create', '', typeInfo);
+					_Entities.setPropertyWithFeedback(entity, key, newVal || (emptyStringInsteadOfNull ? '' : null), $(inputEl), blinkElement);
+				*/
+			});
 
-		} else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
-			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-name',             'Field name', typeInfo);
-			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-format',           'Custom Format', typeInfo);
-		}
+			$('select.target-type-select', el).select2({
+				width: '300px'
+			});
+
+			$('select#reload-target-select', el).select2({
+				placeholder: 'Reload target',
+				style: 'text-align:left;',
+				width: '300px',
+				dropdownParent: $('.blockPage')
+			}).on('select2:select', function (e) {
+
+				$('div.reload-options', el).addClass('hidden');
+				$('#' + this.value).removeClass('hidden');
+
+				/*
+				let data = e.params.data;
+				*/
+
+				/*
+					let blinkElement = (inputEl.type === 'checkbox') ? $(inputEl).parent() : null;
+
+					_Entities.setPropertyWithFeedback(entity, key, newVal || (emptyStringInsteadOfNull ? '' : null), $(inputEl), blinkElement);
+				*/
+			});
+
+
+			Structr.activateCommentsInElement(el);
+		});
 	},
 	appendRowWithInputField: function(entity, el, key, label, typeInfo) {
 		el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + (entity[key] ? escapeForHtmlAttributes(entity[key]) : '') + '"></td><td><i id="null_' + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');

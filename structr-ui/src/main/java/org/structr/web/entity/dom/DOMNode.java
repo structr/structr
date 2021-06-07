@@ -98,6 +98,8 @@ import org.w3c.dom.Text;
  */
 public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, DOMImportable, LinkedTreeNode<DOMNode>, ContextAwareEntity {
 
+	static final Set<String> DataAttributeOutputBlacklist = Set.of("data-structr-manual-reload-target");
+
 	static class Impl { static {
 
 		final JsonSchema schema    = SchemaService.getDynamicSchema();
@@ -1408,7 +1410,12 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			dataAttributes = new LinkedHashSet<>(sortedAttributes);
 		}
 
-		for (PropertyKey key : dataAttributes) {
+		for (final PropertyKey key : dataAttributes) {
+
+			// do not render attributes that are on the blacklist
+			if (DataAttributeOutputBlacklist.contains(key.jsonName())) {
+				continue;
+			}
 
 			String value = "";
 

@@ -1,0 +1,70 @@
+<h3>Simple Interactive Elements</h3>
+<div>
+	<div style="margin-bottom: 1.5em;">
+		<label style="display: block;" data-comment="Configures the mapping between Javascript events and backend actions.">Select action for this element</label>
+		<select class="select2" id="event-mapping-select">
+			<option value="options-none">No action</option>
+			<option value="options-create">Create a node when this element is clicked</option>
+			<option value="options-delete">Delete a node when this element is clicked</option>
+			<option value="options-method">Execute a method when this button is clicked</option>
+			<option value="options-method">Execute a method when the value of this element is changed</option>
+			<option value="options-update">Update a node when the value of this element is changed</option>
+		</select>
+	</div>
+</div>
+<div class="hidden event-options" id="options-create">
+	<div style="margin-bottom: 1.5em;">
+		<label style="display: block;" data-comment="Configures the type of object that will be created with the create action.">Select type of object to create</label>
+		<select class="select2 target-type-select">
+			<option>Project</option>
+			<option>Task</option>
+		</select>
+	</div>
+</div>
+<div style="" class="hidden event-options" id="options-delete">
+	<div style="margin-bottom: 1.5em;">
+		<label style="display: block;">UUID of object to delete</label>
+		<input type="text" class="event-target-input" style="width: 290px;" />
+	</div>
+</div>
+<div style="" class="hidden event-options" id="options-method">
+	<div style="margin-bottom: 1.5em;">
+		<label style="display: block;">Name of method to execute</label>
+		<input type="text" class="method-name-input" style="width: 290px;" />
+	</div>
+</div>
+<div style="" class="hidden event-options" id="options-update">
+	<div style="margin-bottom: 1.5em;">
+		<label style="display: block;">UUID of object to update</label>
+		<input type="text" class="event-target-input" style="width: 290px;" />
+	</div>
+</div>
+<div style="" class="hidden event-options" id="options-reload-target">
+	<div style="margin-bottom: 1.5em;">
+		<label style="display: block;">Select reload behaviour</label>
+		<select class="select2" id="reload-target-select">
+			<option value="reload-none">No reload</option>
+			<option value="reload-page">Reload the whole page (no partial reload)</option>
+			<option value="reload-selector">Use CSS selector to identify reload targets</option>
+			<option value="reload-url">Go to new URL</option>
+			<option value="reload-event">Fire an event</option>
+			<option value="reload-manual">Configure reload target manually (advanced)</option>
+		</select>
+	</div>
+	<div style="margin-bottom: 1.5em;" class="reload-options hidden" id="reload-selector">
+		<label style="display: block;">CSS selector</label>
+		<input type="text" class="reload-target-input" style="width: 290px;" />
+	</div>
+	<div style="margin-bottom: 1.5em;" class="reload-options hidden" id="reload-url">
+		<label style="display: block;">URL target</label>
+		<input type="text" class="reload-target-input" style="width: 290px;" />
+	</div>
+	<div style="margin-bottom: 1.5em;" class="reload-options hidden" id="reload-event">
+		<label style="display: block;">Event to fire</label>
+		<input type="text" class="reload-target-input" style="width: 290px;" />
+	</div>
+	<div style="margin-bottom: 1.5em;" class="reload-options hidden" id="reload-manual">
+		<label style="display: block;">Reload target</label>
+		<input type="text" class="reload-target-input" style="width: 290px;" />
+	</div>
+</div>

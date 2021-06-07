@@ -117,7 +117,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	public static final String TARGET_PAGE_KEY           = "target";
 	public static final String ERROR_PAGE_KEY            = "onerror";
 
-	public static final String OBJECT_RESOLUTION_PROPERTIES = "HtmlServlet.resolveProperties";
+	public static final String OBJECT_RESOLUTION_PROPERTIES        = "HtmlServlet.resolveProperties";
+	public static final String ENCODED_RENDER_STATE_PARAMETER_NAME = "structr-encoded-render-state";
 
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
 	private static final ExecutorService threadPool                = Executors.newCachedThreadPool();
@@ -463,6 +464,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						out.close();
 
 					} else {
+
+						// partial rendering?
+						if (request.getParameter(ENCODED_RENDER_STATE_PARAMETER_NAME) != null) {
+
+							final String encodedRenderState = request.getParameter(ENCODED_RENDER_STATE_PARAMETER_NAME);
+							renderContext.initializeFromEncodedRenderState(encodedRenderState);
+						}
 
 						// prepare response
 						response.setCharacterEncoding("UTF-8");
