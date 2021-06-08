@@ -19,9 +19,11 @@
 var buttonClicked;
 
 var _Entities = {
+	selectedObject: {},
 	activeElements: {},
 	activeQueryTabPrefix: 'structrActiveQueryTab_' + port,
 	activeEditTabPrefix: 'structrActiveEditTab_' + port,
+	selectedObjectIdKey: 'structrSelectedObjectId_' + port,
 	numberAttrs: ['position', 'size'],
 	readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'createdBy', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
 	pencilEditBlacklist: ['html', 'body', 'head', 'title', 'script',  'input', 'label', 'button', 'textarea', 'link', 'meta', 'noscript', 'tbody', 'thead', 'tr', 'td', 'caption', 'colgroup', 'tfoot', 'col', 'style'],
@@ -223,17 +225,17 @@ var _Entities = {
 			queryTypes.unshift({ title: 'Flow', propertyName: 'flow' });
 		}
 
-		var queryTypeButtonsContainer = $('<div class="query-type-buttons"></div>');
-		el.append('<h3>Repeater Configuration</h3>').append(queryTypeButtonsContainer);
+		let queryTypeButtonsContainer = $(document.querySelector('.query-type-buttons'));
+		// el.append(queryTypeButtonsContainer);
 
-		var queryHeading = $('<h4 class="query-type-heading"></h4>').appendTo(el);
+		let queryHeading = $(document.querySelector('.query-type-heading'));
 
 		var textArea = $('<textarea class="hidden query-text"></textarea>').appendTo(el);
 		var flowSelector = $('#flow-selector');
 
 		var initRepeaterInputs = function() {
 
-			var saveBtn = $('<button class="action">Save</button>');
+			var saveBtn = $('<button class="btn">Save</button>');
 			el.append('<br>').append(saveBtn);
 
 			queryTypes.forEach(function(queryType) {
@@ -301,7 +303,7 @@ var _Entities = {
 			saveBtn.on('click', function() {
 
 				if ($('button.active', queryTypeButtonsContainer).length > 1) {
-					return new MessageBuilder().error('Please select only one query type!').show();
+					return new MessageBuilder().error('Please select only one query type.').show();
 				}
 
 				var data = {};
@@ -322,14 +324,20 @@ var _Entities = {
 				});
 
 				Command.setProperties(entity.id, data, function(obj) {
-					blinkGreen(saveBtn);
-
+					if (flowSelector.is(':visible')) {
+						blinkGreen(flowSelector);
+					} else if (textArea.is(':visible')) {
+						blinkGreen(textArea);
+					} else {
+						blinkGreen(saveBtn);
+					}
 					_Pages.reloadPreviews();
 				});
 			});
 
-			_Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'The data key is either a word to reference result objects, or it can be the name of a collection property of the result object.<br>' +
-				'You can access result objects or the objects of the collection using ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
+			_Entities.appendInput(el, entity, 'dataKey', 'Repeater Keyword',
+				'The repeater keyword or data key is either a word to reference result objects, or it can be the name of a collection property of the result object.<br><br>' +
+				'You can access result objects or the objects of the collection using template expressions, e.g. <i>${project.name}</i>.');
 
 			_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-rest');
 		};
@@ -566,7 +574,7 @@ var _Entities = {
 			}
 		});
 	},
-	showProperties: function(obj, activeViewOverride) {
+	showProperties: function(obj, activeViewOverride, parent) {
 
 		let handleGraphObject;
 
@@ -617,11 +625,18 @@ var _Entities = {
 
 					}
 
-					Structr.dialog(dialogTitle, function() { return true; }, function() { return true; });
 
-					var tabsdiv = dialogHead.append('<div id="tabs"></div>');
-					var mainTabs = tabsdiv.append('<ul></ul>');
-					var contentEl = dialog.append('<div></div>');
+					let tabsdiv, mainTabs, contentEl;
+					if (!parent) {
+						Structr.dialog(dialogTitle, function() { return true; }, function() { return true; });
+
+						tabsdiv   = dialogHead.append('<div id="tabs"></div>');
+						mainTabs  = tabsdiv.append('<ul></ul>');
+						contentEl = dialog.append('<div></div>');
+
+					} else {
+						contentEl = parent;
+					}
 
 					// custom dialog tab?
 					var hasCustomDialog = _Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
@@ -1559,7 +1574,7 @@ var _Entities = {
 			let allowRecursive = (entity.type === 'Template' || entity.isFolder || (Structr.isModuleActive(_Pages) && !(entity.isContent)));
 
 			if (allowRecursive) {
-				el.append('<div>Apply visibility switches recursively? <input id="recursive" type="checkbox" name="recursive"></div><br>');
+				el.append('<div><input id="recursive" type="checkbox" name="recursive"><label for="recursive">Apply visibility switches recursively</label></div><br>');
 			}
 
 			_Entities.appendBooleanSwitch(el, entity, 'visibleToPublicUsers', ['Visible to public users', 'Not visible to public users'], 'Click to toggle visibility for users not logged-in', '#recursive');
@@ -1644,7 +1659,7 @@ var _Entities = {
 					placeholder: 'Owner',
 					width: '300px',
 					style: 'text-align:left;',
-					dropdownParent: $('.blockPage'),
+					// dropdownParent: $('.blockPage'),
 					templateResult: (state) => {
 						return templateOption(state, false);
 					},
@@ -1670,7 +1685,7 @@ var _Entities = {
 				granteeSelect.select2({
 					placeholder: 'Select Group/User',
 					width: '100%',
-					dropdownParent: $('.blockPage'),
+					// dropdownParent: $('.blockPage'),
 					templateResult: (state) => {
 						return templateOption(state, false);
 					}
@@ -1806,11 +1821,12 @@ var _Entities = {
 		if (!el || !entity) {
 			return false;
 		}
-		el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><div class="input-and-button"><input type="text" class="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button class="action save_' + key + '">Save</button></div></div>');
-		var btn = $('.save_' + key, el);
+		el.append('<div class="input-section"><h3>' + label + '</h3><p>' + desc + '</p><div class="input-and-button"><input type="text" class="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button class="save_' + key + '">Save</button></div></div>');
+		let btn = $('.save_' + key, el);
+		let inp = $('.' + key + '_', el);
 		btn.on('click', function() {
 			Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
-				blinkGreen(btn);
+				blinkGreen(inp);
 				_Pages.reloadPreviews();
 			});
 		});
@@ -1892,16 +1908,20 @@ var _Entities = {
 
 			$(el).on('click', function(e) {
 				e.stopPropagation();
+
+				_Entities.selectedObject = entity;
+
 				//_Entities.toggleElement(this);
-				// TODO: Highlight element and mark as active
 				_Entities.selectElement($(this).closest('.node'));
+				_Pages.refreshCenterPane(true);
+
 			});
 
 			button = $(el.children('.expand_icon').first());
 
 			if (button) {
 
-				button.on('click', function(e) { console.log('clicked on button to expand');
+				button.on('click', function(e) {
 					e.stopPropagation();
 					_Entities.toggleElement($(this).parent('.node'));
 				});
@@ -1955,10 +1975,10 @@ var _Entities = {
 			});
 		}
 
-		node.children('b.name_').off('click').on('click', function(e) {
-			e.stopPropagation();
-			_Entities.makeNameEditable(node);
-		});
+		// node.children('b.name_').off('click').on('click', function(e) {
+		// 	e.stopPropagation();
+		// 	_Entities.makeNameEditable(node);
+		// });
 
 		var nodeId = Structr.getId(el), isComponent;
 		if (nodeId === undefined) {
@@ -2131,17 +2151,20 @@ var _Entities = {
 	},
 	selectElement: function(element, expanded) {
 
-		var el = $(element);
-		var id = Structr.getId(el) || Structr.getComponentId(el) || Structr.getGroupId(el);
+		let el = $(element);
+		let id = Structr.getId(el) || Structr.getComponentId(el) || Structr.getGroupId(el);
 
-		var b = el.children('.expand_icon').first();
-		var displayName = getElementDisplayName(Structr.entity(id));
+		let b = el.children('.expand_icon').first();
+		let displayName = getElementDisplayName(Structr.entity(id));
 
 		//_Entities.deselectAllElements();
 		$('.node-selector').removeClass('active');
 		// el.closest('.node').addClass('nodeSelected');
 		el.closest('.node').children('.node-selector').addClass('active');
-		_Pages.activateTab($('#show_' + id));
+
+		LSWrapper.setItem(_Entities.selectedObjectIdKey, id);
+
+		// _Pages.activatePage($('#show_' + id));
 
 	},
 	toggleElement: function(element, expanded) { console.log('toggleElement')
@@ -2238,10 +2261,10 @@ var _Entities = {
 			}
 		});
 	},
-	makeNameEditable: function(element, callback) {
-		let id = Structr.getId(element);
-		_Entities.makeAttributeEditable(element, id, 'b.name_', 'name', callback);
-	},
+	// makeNameEditable: function(element, callback) {
+	// 	let id = Structr.getId(element);
+	// 	_Entities.makeAttributeEditable(element, id, 'b.name_', 'name', callback);
+	// },
 	setNewName: function(element, newName, callback) {
 		let id = Structr.getId(element);
 		_Entities.setNewAttributeValue(element, id, 'name', newName, callback);

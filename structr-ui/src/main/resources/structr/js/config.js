@@ -72,16 +72,6 @@ function appendInfoTextToElement (text, el, css) {
 	return el.append(toggleElement).append(helpElement);
 }
 
-function getAnchorFromUrl(url) {
-	if (url) {
-		var pos = url.lastIndexOf('#');
-		if (pos > 0) {
-			return url.substring(pos + 1, url.length);
-		}
-	}
-	return null;
-}
-
 $(function () {
 
 	$('#new-entry-button').on('click', createNewEntry);
@@ -111,7 +101,7 @@ $(function () {
 		});
 	});
 
-	let anchor = getAnchorFromUrl(window.location.href) || 'general';
+	let anchor = (new URL(window.location.href)).hash.substring(1) || 'general';
 	$('a[href$=' + anchor + ']').click();
 
 	$("button.toggle-option").on('click', function() {

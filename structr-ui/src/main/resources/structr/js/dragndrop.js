@@ -25,8 +25,8 @@ var sortParent;
 
 var _Dragndrop = {
 	makeDroppable: function(element, previewId) {
-		var el = $(element);
-		var tag, iframe = previewId ? $('#preview_' + previewId) : undefined;
+		let el = $(element);
+		let tag, iframe = previewId ? $('#preview_' + previewId) : undefined;
 
 		el.droppable({
 			iframeFix: true,

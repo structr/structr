@@ -35,6 +35,10 @@
 	margin-left: 1rem;
 }
 
+#pages .node.page:hover {
+	cursor: pointer;
+}
+
 ul#previewTabs {
 	display: none;
 	margin: 0;
@@ -48,9 +52,13 @@ ul#previewTabs {
 	/*background: var(--solid-white);*/
 	/*margin: .5rem 3rem 0 3rem;*/
 	margin-top: 2rem;
-	height: calc(50vh - 7rem);
+	height: calc(100vh - 10rem);
 	/*box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);*/
 	border: none;
+}
+
+#previews.half-height {
+	height: calc(50vh - 7rem);
 }
 
 #previews.no-preview::before {
@@ -63,6 +71,7 @@ ul#previewTabs {
 }
 
 .previewBox {
+	display: none;
 	/*float: left;*/
 	background: var(--solid-white);
 	padding: 0;
@@ -74,6 +83,10 @@ ul#previewTabs {
 	width: 100%;
 	height: 100%;
 	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
+}
+
+.previewBox.active {
+	display: block;
 }
 
 .previewBox iframe {
@@ -88,6 +101,7 @@ ul#previewTabs {
 }
 
 #function-bar-switch {
+	background-color: var(--solid-white);
 	display: inline-block;
 	margin-left: -.75rem ! important;
 }
@@ -96,11 +110,18 @@ ul#previewTabs {
 }
 
 #pagesPager {
+	transition: margin-left .1s ease-in-out;
 	/*display: inline-block;*/
-	margin-left: 4rem	;
+	/*margin-left: 4rem;*/
+	padding-left: 3rem;
 	/*position: absolute;*/
 	/*left: 0;*/
 	/*background-color: var(--solid-white);*/
+}
+
+#pagesPager.hidden {
+	display: inline-block;
+	margin-left: -60rem;
 }
 
 #add_page {
@@ -128,17 +149,79 @@ ul#previewTabs {
 	/*background-color: var(--structr-light-green-3);*/
 }
 
-/*
- * Central content editor
+/**
+ * Central content container
  */
-.content-editor-container {
+.content-container {
 	margin-top: 2rem;
 	background-color: var(--solid-white);
-	height: calc(50vh - 5rem);
 	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
+	overflow: auto;
+	height: calc(100vh - 10rem);
+	position: relative;
 }
 
 .content-editor-container .CodeMirror {
+	height: calc(100vh - 10rem);
+}
+
+.content-container.half-height {
+	height: calc(50vh - 5rem);
+}
+
+.content-editor-container.half-height .CodeMirror {
 	height: calc(50vh - 7rem);
 }
 
+.properties-container h2,
+.properties-container h3,
+.properties-container h4 {
+	padding-left: 1rem;
+}
+
+.content-container .inline-info-icon {
+	position: absolute;
+	top: 1rem;
+	right: 1rem;
+	color: var(--icon-stroke);
+}
+
+.content-container .inline-info-icon:hover {
+	cursor: help;
+	color: var(--icon-stroke-hover);
+}
+
+.content-container .inline-info .inline-info-text {
+	display: none;
+}
+
+.content-container .inline-info:hover .inline-info-text {
+	display: block;
+	width: 20rem;
+	position: absolute;
+	padding: 1rem;
+	top: 2rem;
+	right: 2rem;
+	background-color: var(--solid-white);
+	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
+	transition: all	.1s ease-in-out;
+}
+
+/**
+ * Submenu
+ */
+#function-bar .tabs-menu {
+	/*margin-left: 44rem;*/
+	transition: all	.1s ease-in-out;
+}
+
+/**
+ * Repeater config
+ */
+.repeater-container, .visibility-container {
+	padding: 0 1rem;
+}
+
+.repeater-container .input-section {
+	margin-top: 2rem;
+}

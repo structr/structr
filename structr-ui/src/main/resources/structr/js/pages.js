@@ -33,6 +33,7 @@ var _Pages = {
 	_moduleName: 'pages',
 	autoRefresh: [],
 	activeTabKey: 'structrActiveTab_' + port,
+	urlHashKey: 'structrUrlHashKey_' + port,
 	leftSlideoutWidthKey: 'structrLeftSlideoutWidthKey_' + port,
 	rightSlideoutWidthKey: 'structrRightSlideoutWidthKey_' + port,
 	activeTabRightKey: 'structrActiveTabRight_' + port,
@@ -43,6 +44,7 @@ var _Pages = {
 	requestParametersKey: 'structrRequestParameters_' + port,
 	pagesResizerLeftKey: 'structrPagesResizerLeftKey_' + port,
 	pagesResizerRightKey: 'structrPagesResizerRightKey_' + port,
+	functionBarSwitchKey: 'structrFunctionBarSwitchKey_' + port,
 	init: function() {
 
 		_Pager.initPager('pages',   'Page', 1, 25, 'name', 'asc');
@@ -69,6 +71,12 @@ var _Pages = {
 		_Pages.resizeColumns();
 	},
 	onload: function() {
+
+		let urlHash = LSWrapper.getItem(_Pages.urlHashKey);
+		if (urlHash) {
+			menuBlocked = false;
+			window.location.hash = urlHash;
+		}
 
 		Structr.fetchHtmlTemplate('pages/pages', {}, function(html) {
 
@@ -202,15 +210,24 @@ var _Pages = {
 			live('#function-bar-switch', 'click', (e) => {
 				let icon = e.target.closest('.icon');
 				let pagesPager = document.getElementById('pagesPager');
-				console.log(icon, pagesPager);
+				let subMenu = document.querySelector('#function-bar .tabs-menu');
+
 				if (pagesPager.classList.contains('hidden')) {
+					if (subMenu) subMenu.style.display = 'none';
 					pagesPager.classList.remove('hidden');
 					icon.innerHTML = '<svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M.748,12.25a6,6,0,0,0,6,6h10.5a6,6,0,0,0,0-12H6.748A6,6,0,0,0,.748,12.25Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.248 9.25L17.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.248 9.25L14.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg>';
+					LSWrapper.setItem(_Pages.functionBarSwitchKey, 'visible');
 				} else {
 					pagesPager.classList.add('hidden');
 					icon.innerHTML = '<svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M23.248,12a6,6,0,0,1-6,6H6.748a6,6,0,0,1,0-12h10.5A6,6,0,0,1,23.248,12Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.748 9L6.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.748 9L9.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg>';
+					LSWrapper.setItem(_Pages.functionBarSwitchKey, 'hidden');
+					if (subMenu) subMenu.style.display = 'inline-block';
 				}
-			})
+			});
+
+			live('#function-bar .tabs-menu li a', 'click', (e) => {
+				_Pages.activateCenterPane(e);
+			});
 
 			previewTabs = $('<ul id="previewTabs"></ul>');
 			previews.append(previewTabs);
@@ -225,12 +242,12 @@ var _Pages = {
 				$('#' + activeTabRight).addClass('active').click();
 			}
 
-			// activate first page if local storage is empty
-			if (!LSWrapper.getItem(_Pages.activeTabKey)) {
-				window.setTimeout(function (e) {
-					_Pages.activateTab($('#previewTabs .page').first());
-				}, 1000);
-			}
+			// // activate first page if local storage is empty
+			// if (!LSWrapper.getItem(_Pages.activeTabKey)) {
+			// 	window.setTimeout(function (e) {
+			// 		_Pages.activatePage($('#previewTabs .page').first());
+			// 	}, 1000);
+			// }
 
 			_Pages.resize();
 
@@ -272,15 +289,15 @@ var _Pages = {
 			let columnResizerLeft = 'calc(' + leftPos + 'px + 0rem)';
 			document.querySelector('.column-resizer-left').style.left = columnResizerLeft;
 			if (openLeftSlideout) openLeftSlideout.style.width = 'calc(' + leftPos + 'px - 3rem)';
-			document.querySelector('#previews').style.marginLeft  = 'calc(' + leftPos + 'px + 3rem)';
+			document.querySelector('#previews').style.marginLeft = 'calc(' + leftPos + 'px + 3rem)';
 		} else {
 			if (leftPos === 0) {
 				let columnResizerLeft = '4rem';
 				document.querySelector('.column-resizer-left').style.left = columnResizerLeft;
-				document.querySelector('#previews').style.marginLeft  = columnResizerLeft;
+				document.querySelector('#previews').style.marginLeft = columnResizerLeft;
 			} else {
 				document.querySelector('.column-resizer-left').style.left = 'calc(' + leftPos + 'px - 1rem)';
-				document.querySelector('#previews').style.marginLeft  = 'calc(' + leftPos + 'px + 2rem)';
+				document.querySelector('#previews').style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
 			}
 		}
 
@@ -288,17 +305,20 @@ var _Pages = {
 			let columnResizerRight = 'calc(' + (window.innerWidth - rightPos) + 'px + 0rem)';
 			document.querySelector('.column-resizer-right').style.left = columnResizerRight;
 			if (openRightSlideout) openRightSlideout.style.width = 'calc(' + rightPos + 'px - 7rem)';
-			document.querySelector('#previews').style.marginRight  = 'calc(' + rightPos + 'px - 1rem)';
+			document.querySelector('#previews').style.marginRight = 'calc(' + rightPos + 'px - 1rem)';
 		} else {
 			if (rightPos === 0) {
 				let columnResizerRight = '4rem';
 				document.querySelector('.column-resizer-right').style.left = columnResizerRight;
-				document.querySelector('#previews').style.marginRight  = columnResizerRight;
+				document.querySelector('#previews').style.marginRight = columnResizerRight;
 			} else {
 				document.querySelector('.column-resizer-right').style.left = 'calc(' + (window.innerWidth - rightPos) + 'px - 3rem)';
-				document.querySelector('#previews').style.marginRight  = 'calc(' + (rightPos) + 'px + 2rem)';
+				document.querySelector('#previews').style.marginRight = 'calc(' + (rightPos) + 'px + 2rem)';
 			}
 		}
+
+		let tabsMenu = document.querySelector('#function-bar .tabs-menu');
+		if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 22rem)';
 
 	},
 	clearPreviews: function() {
@@ -315,159 +335,187 @@ var _Pages = {
 		pagesSlideout.append('<div id="pagesTree"></div>');
 		pages = $('#pagesTree', pagesSlideout);
 
-		functionBar.append('<div id="function-bar-switch" class="icon"><svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M.748,12.25a6,6,0,0,0,6,6h10.5a6,6,0,0,0,0-12H6.748A6,6,0,0,0,.748,12.25Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.248 9.25L17.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.248 9.25L14.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></div>')
+		let functionBarSwitchActive = (LSWrapper.getItem(_Pages.functionBarSwitchKey) || 'active') === 'active';
+		if (functionBarSwitchActive) {
+			functionBar.append('<div id="function-bar-switch" class="icon"><svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M.748,12.25a6,6,0,0,0,6,6h10.5a6,6,0,0,0,0-12H6.748A6,6,0,0,0,.748,12.25Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.248 9.25L17.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.248 9.25L14.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></div>')
+		} else {
+			functionBar.append('<div id="function-bar-switch" class="icon"><svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M23.248,12a6,6,0,0,1-6,6H6.748a6,6,0,0,1,0-12h10.5A6,6,0,0,1,23.248,12Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.748 9L6.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.748 9L9.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></div>')
+		}
 
 		functionBar.append('<div id="pagesPager"></div>');
 		let pagesPager = $('#pagesPager', functionBar);
+		if (!functionBarSwitchActive) {
+			pagesPager[0].classList.add('hidden');
+		}
 
-		var pPager = _Pager.addPager('pages', pagesPager, true, 'Page', null, function(pages) {
-			pages.forEach(function(page) {
-				StructrModel.create(page);
-			});
-			_Pages.hideAllPreviews();
-		});
-		pPager.cleanupFunction = function () {
-			_Pages.clearPreviews();
-			$('.node', pages).remove();
-		};
-		let pagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name"/></span>');
-		pPager.pager.append(pagerFilters);
-		var categoryFilter = $('<input type="text" class="filter page-label" data-attribute="category" placeholder="Category" />');
-		pagerFilters.append(categoryFilter);
-		pPager.activateFilterElements();
+		Structr.fetchHtmlTemplate('pages/submenu', {}, (html) => {
+			functionBar.append(html);
 
-		$.ajax({
-			url: '/structr/rest/Page/category',
-			success: function(data) {
-				var categories = [];
-				data.result.forEach(function(page) {
-					if (page.category !== null && categories.indexOf(page.category) === -1) {
-						categories.push(page.category);
-					}
+			var pPager = _Pager.addPager('pages', pagesPager, true, 'Page', null, function(pages) {
+				pages.forEach(function(page) {
+					StructrModel.create(page);
 				});
-				categories.sort();
+				_Pages.hideAllPreviews();
+			});
+			pPager.cleanupFunction = function () {
+				_Pages.clearPreviews();
+				$('.node', pages).remove();
+			};
+			let pagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name"/></span>');
+			pPager.pager.append(pagerFilters);
+			var categoryFilter = $('<input type="text" class="filter page-label" data-attribute="category" placeholder="Category" />');
+			pagerFilters.append(categoryFilter);
+			pPager.activateFilterElements();
 
-				let helpText = 'Filter pages by page category.';
-				if (categories.length > 0) {
-					helpText += 'Available categories: \n\n' + categories.join('\n');
+			$.ajax({
+				url: '/structr/rest/Page/category',
+				success: function(data) {
+					var categories = [];
+					data.result.forEach(function(page) {
+						if (page.category !== null && categories.indexOf(page.category) === -1) {
+							categories.push(page.category);
+						}
+					});
+					categories.sort();
+
+					let helpText = 'Filter pages by page category.';
+					if (categories.length > 0) {
+						helpText += 'Available categories: \n\n' + categories.join('\n');
+					}
+
+					categoryFilter.attr('title', helpText);
 				}
-
-				categoryFilter.attr('title', helpText);
-			}
-		});
-
-		/*
-		var bulkEditingHelper = $(
-			'<button type="button" title="Open Bulk Editing Helper (Ctrl-Alt-E)" class="icon-button">'
-			+ '<i class="icon ' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" />'
-			+ '</button>');
-		pPager.pager.append(bulkEditingHelper);
-		bulkEditingHelper.on('click', e => {
-			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
-			new RefactoringHelper(dialog).show();
-		});
-		*/
-
-		functionBar.append('<a id="import_page" title="Import Template" class="icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" width="24" height="24"><g transform="matrix(1,0,0,1,0,0)"><path d="M11.250 17.250 A6.000 6.000 0 1 0 23.250 17.250 A6.000 6.000 0 1 0 11.250 17.250 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.25 14.25L17.25 20.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 17.25L20.25 17.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25,20.25h-6a1.5,1.5,0,0,1-1.5-1.5V2.25A1.5,1.5,0,0,1,2.25.75H12.879a1.5,1.5,0,0,1,1.06.439l2.872,2.872a1.5,1.5,0,0,1,.439,1.06V8.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></a>');
-		functionBar.append('<a id="add_page" title="Add page" class="icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" width="24" height="24"><g transform="matrix(1,0,0,1,0,0)"><path d="M12 7.5L12 16.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M7.5 12L16.5 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></a>');
-		functionBar.append('<a id="add_template" title="Add Template" class="icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" width="24" height="24"><g transform="matrix(1,0,0,1,0,0)"><path d="M22.151,2.85,20.892,6.289l2.121,2.122a.735.735,0,0,1-.541,1.273l-3.653-.029L17.5,13.018a.785.785,0,0,1-1.485-.1L14.932,9.07,11.08,7.991a.786.786,0,0,1-.1-1.486l3.363-1.323-.029-3.653A.734.734,0,0,1,15.588.986L17.71,3.107,21.151,1.85A.8.8,0,0,1,22.151,2.85Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.932 9.07L0.75 23.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></a>');
-
-		$('#import_page', functionBar).on('click', function(e) {
-			e.stopPropagation();
-
-			Structr.dialog('Import Template', function() {}, function() {});
-
-			dialog.empty();
-			dialogMsg.empty();
-
-			dialog.append('<h3>Create page from source code ...</h3>'
-					+ '<textarea id="_code" name="code" cols="40" rows="10" placeholder="Paste HTML code here"></textarea>');
-
-			dialog.append('<h3>... or fetch page from URL: <input id="_address" name="address" size="40" value="http://"></h3><table class="props">'
-					+ '<tr><td><label for="name">Name of new page:</label></td><td><input id="_name" name="name" size="20"></td></tr>'
-					+ '<tr><td><label for="publicVisibilty">Visible to public</label></td><td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>'
-					+ '<tr><td><label for="authVisibilty">Visible to authenticated users</label></td><td><input type="checkbox" id="_authVisible" name="authVisibilty"></td></tr>'
-					+ '<tr><td><label for="includeInExport">Include imported files in deployment export</label></td><td><input type="checkbox" id="_includeInExport" name="includeInExport" checked="checked"></td></tr>'
-					+ '<tr><td><label for="processDeploymentInfo">Process deployment annotations</label></td><td><input type="checkbox" id="_processDeploymentInfo" name="processDeploymentInfo"></td></tr>'
-					+ '</table>');
-
-			$('#_address', dialog).on('blur', function() {
-				var addr = $(this).val().replace(/\/+$/, "");
-				$('#_name', dialog).val(addr.substring(addr.lastIndexOf("/") + 1));
 			});
 
-			dialog.append('<button class="action" id="startImport">Start Import</button>');
+			/*
+			var bulkEditingHelper = $(
+				'<button type="button" title="Open Bulk Editing Helper (Ctrl-Alt-E)" class="icon-button">'
+				+ '<i class="icon ' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" />'
+				+ '</button>');
+			pPager.pager.append(bulkEditingHelper);
+			bulkEditingHelper.on('click', e => {
+				Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
+				new RefactoringHelper(dialog).show();
+			});
+			*/
 
-			$('#startImport').on('click', function(e) {
+			functionBar.append('<a id="import_page" title="Import Template" class="icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" width="24" height="24"><g transform="matrix(1,0,0,1,0,0)"><path d="M11.250 17.250 A6.000 6.000 0 1 0 23.250 17.250 A6.000 6.000 0 1 0 11.250 17.250 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.25 14.25L17.25 20.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 17.25L20.25 17.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25,20.25h-6a1.5,1.5,0,0,1-1.5-1.5V2.25A1.5,1.5,0,0,1,2.25.75H12.879a1.5,1.5,0,0,1,1.06.439l2.872,2.872a1.5,1.5,0,0,1,.439,1.06V8.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></a>');
+			functionBar.append('<a id="add_page" title="Add page" class="icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" width="24" height="24"><g transform="matrix(1,0,0,1,0,0)"><path d="M12 7.5L12 16.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M7.5 12L16.5 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></a>');
+			functionBar.append('<a id="add_template" title="Add Template" class="icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" width="24" height="24"><g transform="matrix(1,0,0,1,0,0)"><path d="M22.151,2.85,20.892,6.289l2.121,2.122a.735.735,0,0,1-.541,1.273l-3.653-.029L17.5,13.018a.785.785,0,0,1-1.485-.1L14.932,9.07,11.08,7.991a.786.786,0,0,1-.1-1.486l3.363-1.323-.029-3.653A.734.734,0,0,1,15.588.986L17.71,3.107,21.151,1.85A.8.8,0,0,1,22.151,2.85Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.932 9.07L0.75 23.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></a>');
+
+			$('#import_page', functionBar).on('click', function(e) {
 				e.stopPropagation();
 
-				var code = $('#_code', dialog).val();
-				var address = $('#_address', dialog).val();
+				Structr.dialog('Import Template', function() {}, function() {});
 
-				if (code.length > 0) {
-					address = null;
-				}
+				dialog.empty();
+				dialogMsg.empty();
 
-				var name = $('#_name', dialog).val();
-				var publicVisible = $('#_publicVisible', dialog).prop('checked');
-				var authVisible = $('#_authVisible', dialog).prop('checked');
-				var includeInExport = $('#_includeInExport', dialog).prop('checked');
-				var processDeploymentInfo = $('#_processDeploymentInfo', dialog).prop('checked');
+				dialog.append('<h3>Create page from source code ...</h3>'
+						+ '<textarea id="_code" name="code" cols="40" rows="10" placeholder="Paste HTML code here"></textarea>');
 
-				return Command.importPage(code, address, name, publicVisible, authVisible, includeInExport, processDeploymentInfo);
-			});
+				dialog.append('<h3>... or fetch page from URL: <input id="_address" name="address" size="40" value="http://"></h3><table class="props">'
+						+ '<tr><td><label for="name">Name of new page:</label></td><td><input id="_name" name="name" size="20"></td></tr>'
+						+ '<tr><td><label for="publicVisibilty">Visible to public</label></td><td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>'
+						+ '<tr><td><label for="authVisibilty">Visible to authenticated users</label></td><td><input type="checkbox" id="_authVisible" name="authVisibilty"></td></tr>'
+						+ '<tr><td><label for="includeInExport">Include imported files in deployment export</label></td><td><input type="checkbox" id="_includeInExport" name="includeInExport" checked="checked"></td></tr>'
+						+ '<tr><td><label for="processDeploymentInfo">Process deployment annotations</label></td><td><input type="checkbox" id="_processDeploymentInfo" name="processDeploymentInfo"></td></tr>'
+						+ '</table>');
 
-		});
-
-		$('#pull_page', functionBar).on('click', function(e) {
-			e.stopPropagation();
-			Structr.pullDialog('Page');
-		});
-
-		$('#add_page', functionBar).on('click', function(e) {
-			e.stopPropagation();
-			Command.createSimplePage();
-		});
-
-		// page template widgets present? Display special create page dialog
-		_Widgets.fetchAllPageTemplateWidgets(function(result) {
-
-			if (result && result.length) {
-
-				$('#add_template').on('click', function(e) {
-
-					e.stopPropagation();
-
-					Structr.dialog('Select Template to Create New Page', function() {}, function() {});
-
-					dialog.empty();
-					dialogMsg.empty();
-					dialog.append('<div id="template-tiles"></div>');
-
-					var container = $('#template-tiles');
-
-					result.forEach(function(widget) {
-
-						var id = 'create-from-' + widget.id;
-						container.append('<div class="app-tile"><h4>' + widget.name + '</h4><p>' + widget.description + '</p><button class="action" id="' + id + '">Create Page</button></div>');
-						$('#' + id).on('click', function() {
-							Command.create({ type: 'Page' }, function(page) {
-								Structr.removeExpandedNode(page.id);
-								Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
-							});
-						});
-
-					});
+				$('#_address', dialog).on('blur', function() {
+					var addr = $(this).val().replace(/\/+$/, "");
+					$('#_name', dialog).val(addr.substring(addr.lastIndexOf("/") + 1));
 				});
 
-			} else {
+				dialog.append('<button class="action" id="startImport">Start Import</button>');
 
-				// remove wizard button if no page templates exist (can be changed later when the dialog includes some hints etc.)
-				$('#add_template').remove();
+				$('#startImport').on('click', function(e) {
+					e.stopPropagation();
+
+					var code = $('#_code', dialog).val();
+					var address = $('#_address', dialog).val();
+
+					if (code.length > 0) {
+						address = null;
+					}
+
+					var name = $('#_name', dialog).val();
+					var publicVisible = $('#_publicVisible', dialog).prop('checked');
+					var authVisible = $('#_authVisible', dialog).prop('checked');
+					var includeInExport = $('#_includeInExport', dialog).prop('checked');
+					var processDeploymentInfo = $('#_processDeploymentInfo', dialog).prop('checked');
+
+					return Command.importPage(code, address, name, publicVisible, authVisible, includeInExport, processDeploymentInfo);
+				});
+
+			});
+
+			$('#pull_page', functionBar).on('click', function(e) {
+				e.stopPropagation();
+				Structr.pullDialog('Page');
+			});
+
+			$('#add_page', functionBar).on('click', function(e) {
+				e.stopPropagation();
+				Command.createSimplePage();
+			});
+
+			// page template widgets present? Display special create page dialog
+			_Widgets.fetchAllPageTemplateWidgets(function(result) {
+
+				if (result && result.length) {
+
+					$('#add_template').on('click', function(e) {
+
+						e.stopPropagation();
+
+						Structr.dialog('Select Template to Create New Page', function() {}, function() {});
+
+						dialog.empty();
+						dialogMsg.empty();
+						dialog.append('<div id="template-tiles"></div>');
+
+						var container = $('#template-tiles');
+
+						result.forEach(function(widget) {
+
+							var id = 'create-from-' + widget.id;
+							container.append('<div class="app-tile"><h4>' + widget.name + '</h4><p>' + widget.description + '</p><button class="action" id="' + id + '">Create Page</button></div>');
+							$('#' + id).on('click', function() {
+								Command.create({ type: 'Page' }, function(page) {
+									Structr.removeExpandedNode(page.id);
+									Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
+								});
+							});
+
+						});
+					});
+
+				} else {
+
+					// remove wizard button if no page templates exist (can be changed later when the dialog includes some hints etc.)
+					$('#add_template').remove();
+				}
+			});
+
+			Structr.adaptUiToAvailableFeatures();
+
+			let selectedObjectId = LSWrapper.getItem(_Entities.selectedObjectIdKey);
+			if (selectedObjectId) {
+				Command.get(selectedObjectId, null, (obj) => {
+					// Wait for the tree element to become visible
+					const observer = new MutationObserver((mutations, obs) => {
+						let el = Structr.node(selectedObjectId);
+						if (el) {
+							el.click();
+							obs.disconnect();
+							return;
+						}
+					});
+					observer.observe(document, {	childList: true, subtree: true });
+				});
 			}
 		});
-
-		Structr.adaptUiToAvailableFeatures();
 
 	},
 	addTab: function(entity) {
@@ -616,7 +664,7 @@ var _Pages = {
 		var tab = $('#show_' + id);
 
 		if (id === activeTab) {
-			_Pages.activateTab(tab.prev());
+			_Pages.activatePage(tab.prev());
 		}
 
 		tab.remove();
@@ -649,43 +697,246 @@ var _Pages = {
 				if (self.hasClass('active')) {
 					_Pages.makeTabEditable(self);
 				} else {
-					_Pages.activateTab(self);
+					_Pages.activatePage(self);
 				}
 			}
 		});
 
 		if (element.prop('id').substring(5) === activeTab) {
-			_Pages.activateTab(element);
+			_Pages.activatePage(element);
 		}
 	},
-	activateTab: function(element) {
-
-		previewTabs.children('li').each(function() {
-			$(this).removeClass('active');
+	deactivateAllSubmenuLinks: () => {
+		document.querySelectorAll('#function-bar .tabs-menu li').forEach((otherTab) => {
+			otherTab.classList.remove('active');
 		});
+	},
+	activateSubmenuLink: (selector) => {
+		let submenuLink = document.querySelector('#function-bar .tabs-menu li a[href="' + selector + '"]');
+		if (submenuLink) {
+			let tab = submenuLink.closest('li');
+			if (!tab.classList.contains('active')) {
+				tab.classList.add('active');
+			};
+		}
+	},
+	activateCenterPane: (e) => {
+		let el  = e.target;
+		let tab = el.closest('li');
+		let active = tab.classList.contains('active');
 
-		if (!element.hasClass('page')) {
+		_Pages.deactivateAllSubmenuLinks();
+
+		if (!active) {
+			tab.classList.add('active');
+		}
+
+		let obj = _Entities.selectedObject;
+		if (!obj || !obj.type) return;
+
+		active = tab.classList.contains('active');
+		console.log('_Pages.refreshCenterPane(obj, active)', obj, active);
+		_Pages.refreshCenterPane(active);
+	},
+	refreshCenterPane: (active) => {
+
+		 _Entities.deselectAllElements();
+
+		let previewsContainer = document.querySelector('#previews');
+
+		let contentEditorContainer = document.querySelector('#previews .content-editor-container');
+		if (contentEditorContainer) {
+			previewsContainer.removeChild(contentEditorContainer);
+		}
+
+		let propertiesContainer = document.querySelector('#previews .properties-container');
+		if (propertiesContainer) {
+			previewsContainer.removeChild(propertiesContainer);
+		}
+
+		let repeaterContainer = document.querySelector('#previews .repeater-container');
+		if (repeaterContainer) {
+			previewsContainer.removeChild(repeaterContainer);
+		}
+
+		let visibilityContainer = document.querySelector('#previews .visibility-container');
+		if (visibilityContainer) {
+			previewsContainer.removeChild(visibilityContainer);
+		}
+
+		let obj = _Entities.selectedObject; // || _Entities.selectedObjects.element || _Entities.selectedObjects.contentNode;
+
+		let activeLink = document.querySelector('#function-bar .tabs-menu li.active a');
+		let urlHash;
+		if (activeLink) {
+			urlHash = new URL(activeLink.href).hash;
+			LSWrapper.setItem(_Pages.urlHashKey, urlHash);
+		} else {
+			urlHash = LSWrapper.getItem(_Pages.urlHashKey);
+			if (!urlHash) {
+				urlHash = new URL(window.location.href).hash;
+			}
+			// Activate submenu link
+			activeLink = document.querySelector('#function-bar .tabs-menu li a[href="' + urlHash + '"]');
+			activeLink?.closest('li').classList.add('active');
+		}
+
+		switch (urlHash) {
+			case '#pages:basic':
+			case '#pages:advanced':
+
+				let view = urlHash.split(':')[1] === 'basic' ? 'general' : 'public';
+				console.log(subModule, view);
+
+				_Pages.hideAllPreviews();
+
+				propertiesContainer = document.querySelector('#previews .properties-container');
+
+				if (active) {
+
+					Structr.fetchHtmlTemplate('pages/properties', {}, (html) => {
+
+						previewsContainer.insertAdjacentHTML('beforeend', html);
+						propertiesContainer = document.querySelector('#previews .properties-container');
+
+						_Schema.getTypeInfo(obj.type, function(typeInfo) {
+
+							_Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
+
+							_Entities.listProperties(obj, view, $(propertiesContainer), typeInfo, function(properties) {
+
+								// make container visible when custom properties exist
+								if (Object.keys(properties).length > 0) {
+									$('div#custom-properties-parent').removeClass("hidden");
+								}
+
+								$('input.dateField', $(propertiesContainer)).each(function(i, input) {
+									_Entities.activateDatePicker($(input));
+								});
+							});
+						});
+
+					});
+				}
+
+				break;
+			case '#pages:preview':
+
+				if (!obj) return;
+
+				if (obj.type === 'Page') {
+					active ? _Pages.activatePage($('#show_' + obj.id, previews)) : _Pages.hideAllPreviews();
+				} else if (obj.isDOMNode) {
+
+					let isPagePreviewHidden = document.querySelector('#preview_' + obj.pageId)?.closest('.previewBox')?.style.display === 'none';
+					console.log(activeTab, isPagePreviewHidden);
+
+					let iframe = document.querySelector('#preview_' + obj.pageId);
+
+					_Entities.highlightElement(Structr.node(obj.id));
+
+					let activatePreviewElementContainer = () => {
+						let doc       = iframe.contentDocument || iframe.contentWindow.document;
+						let previewEl = doc.querySelector('[data-structr-id="' + obj.id + '"]');
+						doc.querySelectorAll('.structr-element-container-selected').forEach((el) => {
+							el.classList.remove('structr-element-container-selected');
+						});
+						previewEl?.classList.add('structr-element-container-selected');
+					};
+
+					if (isPagePreviewHidden) {
+						active ? _Pages.activatePage($('#show_' + obj.pageId, previews)) : _Pages.hideAllPreviews();
+						iframe.onload = () => activatePreviewElementContainer();
+					} else {
+						activatePreviewElementContainer();
+					}
+
+				}
+				break;
+			case '#pages:editor':
+
+				_Pages.hideAllPreviews();
+
+				if (obj.isContent) {
+					_Elements.displayCentralEditor(obj);
+				} else {
+					_Pages.deactivateAllSubmenuLinks();
+					_Pages.activateSubmenuLink('#pages:properties');
+					_Pages.refreshCenterPane(active);
+				}
+				break;
+
+			case '#pages:repeater':
+				_Pages.hideAllPreviews();
+				Structr.fetchHtmlTemplate('pages/repeater', {}, (html) => {
+					previewsContainer.insertAdjacentHTML('beforeend', html);
+					repeaterContainer = document.querySelector('#previews .repeater-container');
+					_Schema.getTypeInfo(obj.type, function(typeInfo) {
+						_Entities.queryDialog(obj, $(repeaterContainer), typeInfo);
+					});
+				});
+				break;
+
+			case '#pages:event-binding':
+				break;
+			case '#pages:visibility':
+				Structr.fetchHtmlTemplate('pages/visibility', {}, (html) => {
+					previewsContainer.insertAdjacentHTML('beforeend', html);
+					visibilityContainer = document.querySelector('#previews .visibility-container');
+					_Schema.getTypeInfo(obj.type, function(typeInfo) {
+						_Entities.accessControlDialog(obj, $(visibilityContainer), typeInfo);
+					});
+				});
+				break;
+			default:
+				console.log('do something else');
+		}
+
+	},
+	activatePage: function(element) { console.log('activatePage', element)
+
+		// previewTabs.children('li').each(function() {
+		// 	this.classList.remove('active');
+		// });
+
+		if (!element || !element.hasClass('page')) {
 			return false;
 		}
 
-		var id = element.prop('id').substring(5);
-		activeTab = id;
+		let activeLink = document.querySelector('#function-bar .tabs-menu li.active a');
 
-		_Pages.loadIframe(id);
-
-		element.addClass('active');
-		previews.removeClass('no-preview');
-
-		LSWrapper.setItem(_Pages.activeTabKey, activeTab);
-
-		if (LSWrapper.getItem(_Pages.activeTabLeftKey) === $('#activeElementsTab').prop('id')) {
-			_Pages.refreshActiveElements();
+		if (!activeLink) {
+			activeLink = document.querySelector('#function-bar .tabs-menu li a[href="#pages:preview"]');
+			activeLink?.closest('li').classList.add('active');
 		}
+
+		if (activeLink?.getAttribute('href') === '#pages:preview') {
+
+			const id = element.prop('id').substring(5);
+			activeTab = id;
+
+			_Pages.loadIframe(id);
+
+			element.addClass('active');
+			previews.removeClass('no-preview');
+
+			LSWrapper.setItem(_Pages.activeTabKey, activeTab);
+
+			if (LSWrapper.getItem(_Pages.activeTabLeftKey) === $('#activeElementsTab').prop('id')) {
+				_Pages.refreshActiveElements();
+			}
+
+		} else {
+
+		}
+
 
 	},
 	hideAllPreviews: function () {
 
 		$('.previewBox', previews).each(function() {
+			let el = this;
+			el.classList.remove('active');
 			$(this).hide();
 		});
 
@@ -718,7 +969,7 @@ var _Pages = {
 	 * Load and display the preview iframe with the given id.
 	 */
 	loadIframe: function(id) {
-		if (!id || !_Pages.isPageTabPresent(id)) {
+		if (!id) {
 			return false;
 		}
 		_Pages.unloadIframes();
@@ -744,7 +995,7 @@ var _Pages = {
 	 * Reload preview iframe with given id
 	 */
 	reloadIframe: function(id) {
-		if (lastMenuEntry === _Pages._moduleName && (!id || id !== activeTab || !_Pages.isPageTabPresent(id))) {
+		if (lastMenuEntry === _Pages._moduleName && (!id || id !== activeTab || !_Pages.isPageTabPresent(id))) {
 
 			if ($('.previewBox iframe').length === 0) {
 				previews.addClass('no-preview');
@@ -763,7 +1014,8 @@ var _Pages = {
 	 * simply checks if the preview tab for that id is visible. if it is not, the preview can not be shown
 	 */
 	isPageTabPresent: function(id) {
-		return ($('#show_' + id, previewTabs).length > 0);
+		// return ($('#show_' + id, previewTabs).length > 0);
+		return ($('#preview_' + id, previewTabs).length > 0);
 	},
 	unloadIframes: function() {
 		_Pages.clearIframeDroppables();
@@ -836,7 +1088,7 @@ var _Pages = {
 
 		entity = StructrModel.ensureObject(entity);
 
-		var hasChildren = entity.children && entity.children.length;
+		let hasChildren = entity.children && entity.children.length;
 
 		if (!pages) return;
 
@@ -845,7 +1097,7 @@ var _Pages = {
 		}
 
 		pages.append('<div id="id_' + entity.id + '" class="node page"><div class="node-selector"></div></div>');
-		var div = Structr.node(entity.id);
+		let div = Structr.node(entity.id);
 
 		_Dragndrop.makeSortable(div);
 
@@ -893,7 +1145,7 @@ var _Pages = {
 			previews.append('<div class="previewBox"><iframe id="preview_' + entity.id + '"></iframe></div><div style="clear: both"></div>');
 		}
 
-		_Pages.resetTab(tab, entity.name);
+		// _Pages.resetTab(tab, entity.name);
 
 		$('#preview_' + entity.id).hover(function() {
 			try {
@@ -986,6 +1238,7 @@ var _Pages = {
 										_Entities.highlightElement(treeEl);
 									}
 								}
+								LSWrapper.setItem(_Entities.selectedObjectIdKey, structrId);
 								return false;
 							},
 							mouseover: function(e) {
@@ -1297,7 +1550,6 @@ var _Pages = {
 	hidePagesPager: () => {
 		document.getElementById('pagesPager').style.display = 'none';
 		document.getElementById('function-bar-switch').style.display = 'none';
-
 	},
 	showPagesPager: () => {
 		document.getElementById('pagesPager').style.display = '';

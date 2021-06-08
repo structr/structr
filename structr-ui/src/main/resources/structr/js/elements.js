@@ -1443,9 +1443,11 @@ var _Elements = {
 		// 	return false;
 		// });
 
-		div.on('click', (e) => {
+		div.on('click', (e) => { console.log('click on content', entity);
 			e.stopPropagation();
-			_Elements.displayCentralEditor(this, entity);
+			_Entities.selectedObject = entity;
+			_Entities.selectElement(div.closest('.node'));
+			_Pages.refreshCenterPane(entity, true);
 			return false;
 		});
 
@@ -1492,8 +1494,7 @@ var _Elements = {
 			_Elements.editContent(this, entity, data.content, dialogText, configOverride);
 		});
 	},
-	displayCentralEditor: function(btn, entity, configOverride) {
-		// _Pages.hideAllPreviews();
+	displayCentralEditor: function(entity, configOverride) {
 
 		let previewsContainer = document.querySelector('#previews');
 		let contentEditorContainer = document.querySelector('#previews .content-editor-container');

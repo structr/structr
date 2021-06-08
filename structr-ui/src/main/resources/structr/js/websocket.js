@@ -456,7 +456,7 @@ function wsConnect() {
 						if (entity.createdBy === userId) {
 							setTimeout(function () {
 								var tab = $('#show_' + entity.id);
-								_Pages.activateTab(tab);
+								_Pages.activatePage(tab);
 							}, 1000);
 						}
 					} else if (entity.pageId) {
@@ -561,14 +561,4 @@ function send(text) {
 
 	var obj = JSON.parse(text);
 	return sendObj(obj);
-}
-
-function getAnchorFromUrl(url) {
-	if (url) {
-		var pos = url.lastIndexOf('#');
-		if (pos > 0) {
-			return url.substring(pos + 1, url.length);
-		}
-	}
-	return null;
 }

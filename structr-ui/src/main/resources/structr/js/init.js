@@ -18,7 +18,7 @@
  */
 var header, main, functionBar;
 var sessionId, user;
-var lastMenuEntry, menuBlocked;
+var lastMenuEntry, menuBlocked, mainModule, subModule, navView;
 var dmp;
 var editorCursor, ignoreKeyUp;
 var dialog, isMax = false;
@@ -83,12 +83,16 @@ $(function() {
 
 		if (isHashReset === false) {
 
-			let anchor = getAnchorFromUrl(window.location.href);
+			let anchor = new URL(window.location.href).hash.substring(1);
 			if (anchor === 'logout' || loginBox.is(':visible')) {
 				return;
 			}
 
-			let allow = (getAnchorFromUrl(e.oldURL) === null) || Structr.requestActivateModule(e, anchor);
+			if (anchor.indexOf(':') > -1) {
+				return true;
+			}
+
+			let allow = (new URL(e.oldURL).hash === '') || Structr.requestActivateModule(e, anchor);
 
 			if (allow !== true) {
 				isHashReset = true;
@@ -553,9 +557,17 @@ var Structr = {
 
 			Structr.expanded = JSON.parse(LSWrapper.getItem(expandedIdsKey));
 
-			var browserUrl = window.location.href;
-			var anchor = getAnchorFromUrl(browserUrl);
-			lastMenuEntry = ((!isLogin && anchor && anchor !== 'logout') ? anchor : Structr.getActiveModuleName());
+			const browserUrl = new URL(window.location.href);
+			const anchor = browserUrl.hash.substring(1);
+
+			const navState  = anchor.split(':');
+			const navPath   = navState[0].split('/');
+
+			navView   = navState.length > 1 ? navState[1] : null;
+			mainModule = navPath[0];
+			subModule  = navPath.length > 1 ? navPath[1] : null;
+
+			lastMenuEntry = ((!isLogin && mainModule && mainModule !== 'logout') ? mainModule : Structr.getActiveModuleName());
 			if (!lastMenuEntry) {
 				lastMenuEntry = Structr.getActiveModuleName() || 'dashboard';
 			}
@@ -977,12 +989,13 @@ var Structr = {
 		}, ms || 0);
 	},
 	requestActivateModule: function(event, name) {
-		if (menuBlocked) {
+		if (menuBlocked) { console.log('menu blocked')
 			return false;
 		}
 
 		event.stopPropagation();
 		if (Structr.getActiveModuleName() !== name || main.children().length === 0) {
+			console.log('b')
 			return Structr.doActivateModule(name);
 		}
 
@@ -1025,6 +1038,7 @@ var Structr = {
 		$('.menu li').removeClass('active');
 		li.addClass('active');
 		$('#title').text('Structr ' + menuEntry.text());
+		console.log('activateMenuEntry');
 		window.location.hash = lastMenuEntry;
 		if (lastMenuEntry && lastMenuEntry !== 'logout') {
 			LSWrapper.setItem(lastMenuEntryKey, lastMenuEntry);

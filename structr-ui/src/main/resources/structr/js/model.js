@@ -324,7 +324,7 @@ var StructrModel = {
 
 					attrElement.text(newValue);
 
-					if (Structr.isModuleActive(_Pages)) {
+					if (Structr.isModuleActive(_Pages) && _Pages.isPageTabPresent(obj.pageId)) {
 						_Pages.reloadIframe(obj.pageId);
 					}
 				}
