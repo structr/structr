@@ -1038,7 +1038,6 @@ var Structr = {
 		$('.menu li').removeClass('active');
 		li.addClass('active');
 		$('#title').text('Structr ' + menuEntry.text());
-		console.log('activateMenuEntry');
 		window.location.hash = lastMenuEntry;
 		if (lastMenuEntry && lastMenuEntry !== 'logout') {
 			LSWrapper.setItem(lastMenuEntryKey, lastMenuEntry);

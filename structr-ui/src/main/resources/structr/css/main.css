@@ -3465,11 +3465,6 @@ input.tree-search-input:focus {
 	/*height: calc(100% - 4rem);*/
 }
 
-#flows-canvas {
-	height: calc(100% - 34px);
-	padding: 0;
-}
-
 #code-tree-container, #simple-pages-tree-container {
 	height: 100%;
 	border: none;

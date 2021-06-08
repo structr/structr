@@ -22,7 +22,7 @@ import { FlowEditor }          from "./flow-editor/src/js/editor/FlowEditor.js";
 import { LayoutModal }         from "./flow-editor/src/js/editor/utility/LayoutModal.js";
 import {Rest} from "./lib/structr/rest/Rest.js";
 
-let main, flowsMain, flowsTree, flowsCanvas;
+let main, flowsMain, flowsTree, flowsCanvas, nodeEditor;
 let flowEditor, flowId;
 const methodPageSize = 10000, methodPage = 1;
 
@@ -38,6 +38,7 @@ var _Flows = {
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
 
+		window.onresize = () => _Flows.resize();
 	},
 	resize: function() {
 		_Flows.moveResizer();
@@ -47,101 +48,92 @@ var _Flows = {
 		left = left || LSWrapper.getItem(_Flows.flowsResizerLeftKey) || 300;
 		flowsMain.querySelector('.column-resizer').style.left = left + 'px';
 
-		main.querySelector('#flows-tree').style.width = left - 14 + 'px';
+		flowsTree.style.width   = left - 14 + 'px';
+		if (nodeEditor) nodeEditor.style.width = '100%';
+
 	},
 	onload: function() {
 
-		Structr.fetchHtmlTemplate('flows/flows', {}, function(html) {
+		async function getOrCreateFlowPackage(packageArray) {
 
-			main = document.querySelector('#main');
+			if (packageArray !== null && packageArray.length > 0) {
 
-			main.innerHTML = html;
+				let currentPackage = packageArray[packageArray.length-1];
+				packageArray.pop();
 
-			_Flows.init();
+				let result = await persistence.getNodesByName(currentPackage, {type:"FlowContainerPackage"});
 
-			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('flows'));
+				if (result != null && result.length > 0 && result[0].effectiveName === (packageArray.join('.') + '.' + currentPackage)) {
 
-			flowsMain = document.querySelector('#flows-main');
+					result = result[0];
+				} else {
 
-			let rest = new Rest();
-			let persistence = new Persistence();
-
-			async function getOrCreateFlowPackage(packageArray) {
-
-				if (packageArray !== null && packageArray.length > 0) {
-
-					let currentPackage = packageArray[packageArray.length-1];
-					packageArray.pop();
-
-					let result = await persistence.getNodesByName(currentPackage, {type:"FlowContainerPackage"});
-
-					if (result != null && result.length > 0 && result[0].effectiveName === (packageArray.join('.') + '.' + currentPackage)) {
-
-						result = result[0];
-					} else {
-
-						result = await persistence.createNode({type: "FlowContainerPackage", name: currentPackage});
-					}
-
-					if (packageArray.length > 0) {
-						result.parent = await getOrCreateFlowPackage(packageArray);
-					}
-
-					return result;
+					result = await persistence.createNode({type: "FlowContainerPackage", name: currentPackage});
 				}
 
-				return null;
-			}
-
-			async function createFlow(inputElement) {
-				let name = inputElement.value;
-				inputElement.value = "";
-
-				let parentPackage = null;
-
-				if (name.indexOf(".") !== -1) {
-					let nameElements = name.split(".");
-					name = nameElements[nameElements.length -1];
-					nameElements.pop();
-
-					parentPackage = await getOrCreateFlowPackage(nameElements);
+				if (packageArray.length > 0) {
+					result.parent = await getOrCreateFlowPackage(packageArray);
 				}
 
-				let flowObject = {
-					type: "FlowContainer",
-					name: name
-				};
+				return result;
+			}
 
-				if (parentPackage !== null) {
-					flowObject.flowPackage = parentPackage.id;
+			return null;
+		}
+
+		async function createFlow(inputElement) {
+			let name = inputElement.value;
+			inputElement.value = "";
+
+			let parentPackage = null;
+
+			if (name.indexOf(".") !== -1) {
+				let nameElements = name.split(".");
+				name = nameElements[nameElements.length -1];
+				nameElements.pop();
+
+				parentPackage = await getOrCreateFlowPackage(nameElements);
+			}
+
+			let flowObject = {
+				type: "FlowContainer",
+				name: name
+			};
+
+			if (parentPackage !== null) {
+				flowObject.flowPackage = parentPackage.id;
+			}
+
+			persistence.createNode(flowObject).then( (r) => {
+				if (r !== null && r !== undefined && r.id !== null && r.id !== undefined) {
+					_Flows.refreshTree(() => {
+						$(flowsTree).jstree("deselect_all");
+						$(flowsTree).jstree(true).select_node('li[id=\"' + r.id + '\"]');
+					});
 				}
+			});
+		}
 
-				persistence.createNode(flowObject).then( (r) => {
-				   if (r !== null && r !== undefined && r.id !== null && r.id !== undefined) {
-						_Flows.refreshTree(() => {
-							$(flowsTree).jstree("deselect_all");
-							$(flowsTree).jstree(true).select_node('li[id=\"' + r.id + '\"]');
-						});
-				   }
-				});
-			}
-
-			function deleteFlow(id) {
-				if (!document.querySelector(".delete_flow_icon").getAttribute('class').includes('disabled')) {
-					if (confirm('Really delete flow ' + id + '?')) {
-						persistence.deleteNode({type:"FlowContainer", id: flowId}).then(() => {
-							_Flows.refreshTree();
-						});
-					}
+		function deleteFlow(id) {
+			if (!document.querySelector(".delete_flow_icon").getAttribute('class').includes('disabled')) {
+				if (confirm('Really delete flow ' + id + '?')) {
+					persistence.deleteNode({type:"FlowContainer", id: flowId}).then(() => {
+						_Flows.refreshTree();
+					});
 				}
 			}
+		}
 
-			async function getPackageByEffectiveName(name) {
-				let nameComponents = name.split("/");
-				nameComponents = nameComponents.slice(1, nameComponents.length);
-				let packages = await rest.get('/structr/rest/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join(".")));
-				return packages.result.length > 0 ? packages.result[0] : null;
-			}
+		async function getPackageByEffectiveName(name) {
+			let nameComponents = name.split("/");
+			nameComponents = nameComponents.slice(1, nameComponents.length);
+			let packages = await rest.get('/structr/rest/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join(".")));
+			return packages.result.length > 0 ? packages.result[0] : null;
+		}
+
+		Structr.fetchHtmlTemplate('flows/buttons', {}, function(html) {
+
+			functionBar[0].innerHTML = html;
 
 			document.querySelector('#name-input').onkeydown = ((event) => {
 				if (event.key === "Enter") {
@@ -181,7 +173,24 @@ var _Flows = {
 				}
 			});
 
-			flowsTree = document.querySelector('#flows-tree');
+		});
+
+		Structr.fetchHtmlTemplate('flows/flows', {}, function(html) {
+
+			main = document.querySelector('#main');
+
+			main.innerHTML = html;
+
+			_Flows.init();
+
+			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('flows'));
+
+			flowsMain = document.querySelector('#flows-main');
+
+			let rest = new Rest();
+			let persistence = new Persistence();
+
+			flowsTree   = document.querySelector('#flows-tree');
 			flowsCanvas = document.querySelector('#flows-canvas');
 
 			_Flows.moveResizer();
@@ -675,6 +684,7 @@ var _Flows = {
 
 		// display flow canvas
 		flowsCanvas.innerHTML = '<div id="nodeEditor" class="node-editor"></div>';
+		nodeEditor = document.querySelector('#nodeEditor');
 
 		flowId = id;
 		let rest = new Rest();

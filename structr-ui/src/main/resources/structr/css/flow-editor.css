@@ -18,29 +18,36 @@
  */
 @charset "UTF-8";
 
+#flows-canvas {
+	/*height: calc(100% - 34px);*/
+	padding: 0;
+}
+
 #flows-canvas-container {
-	min-width: 600px;
+	/*height: calc(100vh - 8rem);*/
+	height: 100%;
+	width: 100%;
 }
 
-#flows-canvas-container button.run_flow_icon {
-	position: absolute;
-	right: 29px;
-}
+/*#flows-canvas-container button.run_flow_icon {*/
+/*	position: absolute;*/
+/*	right: 29px;*/
+/*}*/
 
-#flows-canvas-container button.reset_view_icon {
-	position: absolute;
-	right: 124px;
-}
+/*#flows-canvas-container button.reset_view_icon {*/
+/*	position: absolute;*/
+/*	right: 124px;*/
+/*}*/
 
-#flows-canvas-container button.layout_icon {
-	position: absolute;
-	right: 220px;
-}
+/*#flows-canvas-container button.layout_icon {*/
+/*	position: absolute;*/
+/*	right: 220px;*/
+/*}*/
 
 /*****************************************************************************/
 
 #nodeEditor {
-	height: 100%;
+	width: 100%;
 }
 .node-editor {
 	background-color: transparent;
@@ -51,17 +58,17 @@
 	box-sizing: border-box;
 }
 .node-editor .node {
-	border-radius: 10px;
+	border-radius: 1rem;
 	cursor: pointer;
 	display: inline-block;
 	height: auto;
-	padding-bottom: 6px;
+	padding-bottom: 1rem;
 	box-sizing: content-box;
 	position: absolute;
-	min-width: 300px;
+	min-width: 10rem;
 	color: var(--gray-555);
 	background-color: var(--light-gray-bg-f1);
-	box-shadow: 0 0 12px var(--gray-opacity-10);
+	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
     margin: 0 ! important;
     opacity: .9;
 	border: 1px solid var(--black-opacity-125);
@@ -82,15 +89,15 @@
 }
 .node-editor .node .title {
 	text-align: center;
-	font-size: 18px;
-	padding: 8px;
+	/*font-size: 18px;*/
+	padding: .5rem;
 	overflow: hidden;
 	border: none;
 	font-family: inherit;
-	color: var(--gray-555);
+	color: var(--body-text);
 	font-weight: normal;
-	border-top-left-radius: 8px;
-	border-top-right-radius: 8px;
+	border-top-left-radius: .5rem;
+	border-top-right-radius: .5rem;
 }
 .node-editor .node content {
 	display: table;
@@ -314,33 +321,33 @@
 }
 .node-editor .node .control-title {
 	vertical-align: middle;
-	display: inline-block;
-	font-size: 14px;
-	line-height: 16px;
-	margin-left: 25px;
-    color: var(--gray-222);
-    font-family: inherit;
+	/*display: inline-block;*/
+	/*font-size: 14px;*/
+	/*line-height: 16px;*/
+	margin-left: 1rem;
+    /*color: var(--gray-222);*/
+    /*font-family: inherit;*/
 }
 .node-editor .node .control-textarea {
-	vertical-align: middle;
-	font-family: sans-serif;
-	font-size: 14px;
-	line-height: 16px;
-	min-height: 50px;
-	overflow: hidden;
-	color: var(--gray-222);
-	background-color: var(--light-gray-bg-f5);
-	cursor: pointer;
+	/*vertical-align: middle;*/
+	/*font-family: sans-serif;*/
+	/*font-size: 14px;*/
+	/*line-height: 16px;*/
+	/*min-height: 50px;*/
+	/*overflow: hidden;*/
+	/*color: var(--gray-222);*/
+	/*background-color: var(--light-gray-bg-f5);*/
+	/*cursor: pointer;*/
 }
 .node-editor .node .control-select {
-	vertical-align: middle;
-	font-size: 14px;
-	line-height: 16px;
-	width: 100%;
-	color: var(--gray-222);
-	background-color: var(--solid-white);
-	font-family: inherit;
-	border: 1px solid var(--black-opacity-125);
+	/*vertical-align: middle;*/
+	/*font-size: 14px;*/
+	/*line-height: 16px;*/
+	/*width: 100%;*/
+	/*color: var(--gray-222);*/
+	/*background-color: var(--solid-white);*/
+	/*font-family: inherit;*/
+	/*border: 1px solid var(--black-opacity-125);*/
 }
 .node-editor .node .control-text {
 	width: 100%;
@@ -482,15 +489,15 @@
 .node-editor .connections .connection.output-result.input-condition_basenode {
 	stroke: orange; }
 
-.node-editor select, .node-editor input {
-	width: 60px;
-	padding: 3px 6px;
-	font-size: 14px;
-	border-radius: 0;
-	color: var(--gray-222);
-	background-color: var(--solid-white);
-	font-family: inherit;
-	border: 1px solid var(--black-opacity-125);
+.node-editor select, .node-editor input, .node-editor select, .node-editor select {
+	font-family: var(--font-inter) ! important;
+	/*font-size: 1rem;*/
+	color: var(--body-text);
+	border: 1px solid var(--input-field-border);
+	padding: .5rem .75rem;
+	border-radius: .25rem;
+	margin: 0;
+	line-height: 1.25rem;
 }
 .context-menu {
 	left: 0;
