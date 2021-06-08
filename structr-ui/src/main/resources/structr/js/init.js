@@ -995,7 +995,6 @@ var Structr = {
 
 		event.stopPropagation();
 		if (Structr.getActiveModuleName() !== name || main.children().length === 0) {
-			console.log('b')
 			return Structr.doActivateModule(name);
 		}
 

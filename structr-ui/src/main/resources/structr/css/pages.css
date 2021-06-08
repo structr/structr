@@ -216,7 +216,7 @@ ul#previewTabs {
 }
 
 /**
- * Repeater config
+ * Repeater config and Visibility
  */
 .repeater-container, .visibility-container {
 	padding: 0 1rem;
@@ -224,4 +224,8 @@ ul#previewTabs {
 
 .repeater-container .input-section {
 	margin-top: 2rem;
+}
+
+.visibility-container button.switch {
+	min-width: 14rem;
 }

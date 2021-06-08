@@ -285,17 +285,22 @@ var _Pages = {
 		let leftPos  = left  ? left  : (openLeftSlideout  ? openLeftSlideout.getBoundingClientRect().right  : 0);
 		let rightPos = right ? right : (openRightSlideout ? openRightSlideout.getBoundingClientRect().width : 0);
 
+		let tabsMenu = document.querySelector('#function-bar .tabs-menu');
+
 		if (left) {
 			let columnResizerLeft = 'calc(' + leftPos + 'px + 0rem)';
 			document.querySelector('.column-resizer-left').style.left = columnResizerLeft;
 			if (openLeftSlideout) openLeftSlideout.style.width = 'calc(' + leftPos + 'px - 3rem)';
 			document.querySelector('#previews').style.marginLeft = 'calc(' + leftPos + 'px + 3rem)';
+			if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 22rem)';
 		} else {
 			if (leftPos === 0) {
+				if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
 				let columnResizerLeft = '4rem';
 				document.querySelector('.column-resizer-left').style.left = columnResizerLeft;
 				document.querySelector('#previews').style.marginLeft = columnResizerLeft;
 			} else {
+				if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 21rem)';
 				document.querySelector('.column-resizer-left').style.left = 'calc(' + leftPos + 'px - 1rem)';
 				document.querySelector('#previews').style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
 			}
@@ -316,9 +321,6 @@ var _Pages = {
 				document.querySelector('#previews').style.marginRight = 'calc(' + (rightPos) + 'px + 2rem)';
 			}
 		}
-
-		let tabsMenu = document.querySelector('#function-bar .tabs-menu');
-		if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 22rem)';
 
 	},
 	clearPreviews: function() {

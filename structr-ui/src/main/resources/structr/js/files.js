@@ -82,14 +82,12 @@ var _Files = {
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
 
+		window.addEventListener('resize', _Files.resize);
 	},
 	resize: function() {
-
 		_Files.moveResizer();
 		Structr.resize();
-
 		$('div.xml-mapping').css({ height: dialogBox.height()- 118 });
-
 	},
 	moveResizer: function(left) {
 
@@ -292,6 +290,7 @@ var _Files = {
 
 	},
 	unload: function() {
+		window.removeEventListener('resize', _Files.resize);
 		fastRemoveAllChildren($('.searchBox', functionBar)[0]);
 		fastRemoveAllChildren($('#files-main', main)[0]);
 		fastRemoveAllChildren(functionBar[0]);
