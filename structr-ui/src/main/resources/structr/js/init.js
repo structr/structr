@@ -87,9 +87,9 @@ $(function() {
 			if (anchor === 'logout' || loginBox.is(':visible')) {
 				return;
 			}
-
+console.log(anchor, mainModule, subModule);
 			if (anchor.indexOf(':') > -1) {
-				return true;
+				return;
 			}
 
 			let allow = (new URL(e.oldURL).hash === '') || Structr.requestActivateModule(e, anchor);
@@ -557,15 +557,7 @@ var Structr = {
 
 			Structr.expanded = JSON.parse(LSWrapper.getItem(expandedIdsKey));
 
-			const browserUrl = new URL(window.location.href);
-			const anchor = browserUrl.hash.substring(1);
-
-			const navState  = anchor.split(':');
-			const navPath   = navState[0].split('/');
-
-			navView   = navState.length > 1 ? navState[1] : null;
-			mainModule = navPath[0];
-			subModule  = navPath.length > 1 ? navPath[1] : null;
+			Structr.determineModule();
 
 			lastMenuEntry = ((!isLogin && mainModule && mainModule !== 'logout') ? mainModule : Structr.getActiveModuleName());
 			if (!lastMenuEntry) {
@@ -576,6 +568,15 @@ var Structr = {
 
 			callback();
 		});
+	},
+	determineModule: () => {
+		const browserUrl = new URL(window.location.href);
+		const anchor = browserUrl.hash.substring(1);
+		const navState  = anchor.split(':');
+		mainModule = navState[0];
+		subModule  = navState.length > 1 ? navState[1] : null;
+
+		// console.log(window.location.href, anchor, navState, mainModule, subModule);
 	},
 	clearMain: function() {
 		var newDroppables = new Array();
@@ -989,7 +990,7 @@ var Structr = {
 		}, ms || 0);
 	},
 	requestActivateModule: function(event, name) {
-		if (menuBlocked) { console.log('menu blocked')
+		if (menuBlocked) {
 			return false;
 		}
 
@@ -1001,6 +1002,8 @@ var Structr = {
 		return true;
 	},
 	doActivateModule: function(name) {
+		Structr.determineModule();
+		// console.log('doActivateModule', name, mainModule, subModule);
 		if (Structr.modules[name]) {
 			var activeModule = Structr.getActiveModule();
 
@@ -2020,11 +2023,13 @@ var Structr = {
 
 					_ResourceAccessGrants.createResourceAccessGrant(data.signature, flags, null, additionalData);
 
-					let grantPagerConfig = LSWrapper.getItem(pagerDataKey + 'resource-access');
+					let resourceAccessKey = 'resource-access';
+
+					let grantPagerConfig = LSWrapper.getItem(pagerDataKey + resourceAccessKey);
 					if (!grantPagerConfig) {
 						grantPagerConfig = {
-							id: 'resource-access',
-							type: 'resource-access',
+							id: resourceAccessKey,
+							type: resourceAccessKey,
 							page: 1,
 							pageSize: 25,
 							sort: "signature",
@@ -2037,14 +2042,13 @@ var Structr = {
 						flags: false,
 						signature: data.signature
 					};
-					LSWrapper.setItem(pagerDataKey + 'resource-access', JSON.stringify(grantPagerConfig));
 
-					let resourceAccessTab = 'resourceAccess';
+					LSWrapper.setItem(pagerDataKey + resourceAccessKey, JSON.stringify(grantPagerConfig));
 
 					if (Structr.getActiveModule()._moduleName === _Security._moduleName) {
-						_Security.selectTab(resourceAccessTab);
+						_Security.selectTab(resourceAccessKey);
 					} else {
-						LSWrapper.setItem(_Security.securityTabKey, resourceAccessTab);
+						LSWrapper.setItem(_Security.securityTabKey, resourceAccessKey);
 						window.location.href = '#security';
 					}
 				}, 'Dismiss');

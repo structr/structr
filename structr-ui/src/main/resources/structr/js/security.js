@@ -32,7 +32,7 @@ var _Security = {
 	resourceAccesses: undefined,
 	securityTabKey: 'structrSecurityTab_' + port,
 	init: function() {
-
+		if (!subModule) subModule = LSWrapper.getItem(_Security.securityTabKey);
 		_Pager.initPager('users',           'User', 1, 25, 'name', 'asc');
 		_Pager.initPager('groups',          'Group', 1, 25, 'name', 'asc');
 		_Pager.initPager('resource-access', 'ResourceAccess', 1, 25, 'signature', 'asc');
@@ -59,32 +59,54 @@ var _Security = {
 
 				_Security.resourceAccesses = $('#resourceAccesses');
 
-				var activeTab = LSWrapper.getItem(_Security.securityTabKey) || 'usersAndGroups';
-				_Security.selectTab(activeTab);
+				// var activeTab = LSWrapper.getItem(_Security.securityTabKey) || 'usersAndGroups';
+				// _Security.selectTab(activeTab);
 
-				$('#securityTabsMenu > li > a').on('click', function() {
-					activeTab = $(this).attr('id').slice(0, -1);
-					_Security.selectTab(activeTab);
+				document.querySelectorAll('#function-bar .tabs-menu li a').forEach(function(tabLink) {
+					tabLink.addEventListener('click', function(e) {
+						e.preventDefault();
+
+						let urlHash = e.target.closest('a').getAttribute('href');
+
+						subModule = urlHash.split(':')[1];
+						let targetId = '#dashboard-' + subModule;
+						window.location.hash = urlHash;
+
+						_Security.selectTab(subModule);
+
+					});
+
+					if (tabLink.closest('a').getAttribute('href') === '#' + mainModule + ':' + subModule) {
+						// tabLink.closest('li').classList.add('active');
+						tabLink.click();
+					}
+
 				});
+
 
 				Structr.unblockMenu(100);
 			});
 		});
 	},
-	selectTab: function(tab) {
+	selectTab: function(subModule) {
 
-		LSWrapper.setItem(_Security.securityTabKey, tab);
-		$('#securityTabsMenu > li').removeClass('active');
-		$('#' + tab + '_').parent().addClass('active');
+		LSWrapper.setItem(_Security.securityTabKey, subModule);
 
-		if (tab === 'usersAndGroups') {
+		document.querySelectorAll('#function-bar .tabs-menu li').forEach((tab) => {
+			tab.classList.remove('active');
+		});
+
+		let tabLink = document.querySelector('#function-bar .tabs-menu li a[href="#security:' + subModule + '"]');
+		if (tabLink) tabLink.closest('li').classList.add('active');
+
+		if (subModule === 'users-and-groups') {
 
 			$('#usersAndGroups').show();
 			$('#resourceAccess').hide();
 			_UsersAndGroups.refreshUsers();
 			_UsersAndGroups.refreshGroups();
 
-		} else if (tab === 'resourceAccess') {
+		} else if (subModule === 'resource-access') {
 
 			$('#resourceAccess').show();
 			$('#usersAndGroups').hide();

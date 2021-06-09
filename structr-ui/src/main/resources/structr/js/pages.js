@@ -225,9 +225,6 @@ var _Pages = {
 				}
 			});
 
-			live('#function-bar .tabs-menu li a', 'click', (e) => {
-				_Pages.activateCenterPane(e);
-			});
 
 			previewTabs = $('<ul id="previewTabs"></ul>');
 			previews.append(previewTabs);
@@ -351,7 +348,12 @@ var _Pages = {
 		}
 
 		Structr.fetchHtmlTemplate('pages/submenu', {}, (html) => {
+
 			functionBar.append(html);
+
+			document.querySelectorAll('#function-bar .tabs-menu li a').forEach((menuLink) => {
+				menuLink.onclick = (e) => { _Pages.activateCenterPane(e); };
+			});
 
 			var pPager = _Pager.addPager('pages', pagesPager, true, 'Page', null, function(pages) {
 				pages.forEach(function(page) {
@@ -737,7 +739,7 @@ var _Pages = {
 		if (!obj || !obj.type) return;
 
 		active = tab.classList.contains('active');
-		console.log('_Pages.refreshCenterPane(obj, active)', obj, active);
+		console.log('_Pages.activateCenterPane(active)', active);
 		_Pages.refreshCenterPane(active);
 	},
 	refreshCenterPane: (active) => {
@@ -772,7 +774,7 @@ var _Pages = {
 		let urlHash;
 		if (activeLink) {
 			urlHash = new URL(activeLink.href).hash;
-			LSWrapper.setItem(_Pages.urlHashKey, urlHash);
+			LSWrapper.setItem(_Pages.urlHashKey, urlHash); console.log('set urlHash', urlHash);
 		} else {
 			urlHash = LSWrapper.getItem(_Pages.urlHashKey);
 			if (!urlHash) {
@@ -803,7 +805,7 @@ var _Pages = {
 
 						_Schema.getTypeInfo(obj.type, function(typeInfo) {
 
-							_Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
+							// TODO: _Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
 
 							_Entities.listProperties(obj, view, $(propertiesContainer), typeInfo, function(properties) {
 

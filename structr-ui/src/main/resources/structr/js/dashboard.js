@@ -33,7 +33,7 @@ var _Dashboard = {
 	showVisibilityFlagsInGrantsTableKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + port,
 
 	init: function() {
-		//functionBar.css({display: 'none'});
+		if (!subModule) subModule = LSWrapper.getItem(_Dashboard.activeTabPrefixKey);
 	},
 	unload: function() {
 		window.clearInterval(_Dashboard.logInterval);
@@ -42,15 +42,6 @@ var _Dashboard = {
 		nodelist.forEach(function(el) {
 			el.classList.remove('active');
 		});
-	},
-	activateLastActiveTab: function() {
-		let tabId = LSWrapper.getItem(_Dashboard.activeTabPrefixKey);
-		if (tabId) {
-			let tab = document.querySelector('#dashboard .tabs-menu li a[href="' + tabId + '"]');
-			if (tab) {
-				tab.click();
-			}
-		}
 	},
 	onload: async function(retryCount = 0) {
 
@@ -117,25 +108,32 @@ var _Dashboard = {
 					_Dashboard.gatherVersionUpdateInfo(templateConfig.envInfo.version, releasesIndexUrl, snapshotsIndexUrl);
 
 					document.querySelectorAll('#function-bar .tabs-menu li a').forEach(function(tabLink) {
+
+						// console.log(tabLink, tabLink.getAttribute('href'), '#' + mainModule + ':' + subModule);
+
 						tabLink.addEventListener('click', function(e) {
 							e.preventDefault();
 
-							let activeLink = document.querySelector('#function-bar .tabs-menu li.active a');
-							if (activeLink) {
-								$(activeLink.getAttribute('href')).trigger('hide');
-							}
+							let urlHash = e.target.closest('a').getAttribute('href');
 
-							let targetId = e.target.getAttribute('href');
+							subModule = urlHash.split(':')[1];
+							let targetId = '#dashboard-' + subModule;
+							window.location.hash = urlHash;
 
 							_Dashboard.removeActiveClass(document.querySelectorAll('#dashboard .tabs-contents .tab-content'));
 							_Dashboard.removeActiveClass(document.querySelectorAll('#function-bar .tabs-menu li'));
 
 							e.target.closest('li').classList.add('active');
 							document.querySelector(targetId).classList.add('active');
-							LSWrapper.setItem(_Dashboard.activeTabPrefixKey, targetId);
+							LSWrapper.setItem(_Dashboard.activeTabPrefixKey, subModule);
 
 							$(targetId).trigger('show');
 						});
+
+						if (tabLink.closest('a').getAttribute('href') === '#' + mainModule + ':' + subModule) {
+							// tabLink.closest('li').classList.add('active');
+							tabLink.click();
+						}
 					});
 
 					document.querySelector('#clear-local-storage-on-server').addEventListener('click', function() {
@@ -207,7 +205,6 @@ var _Dashboard = {
 					});
 
 					_Dashboard.activateLogBox();
-					_Dashboard.activateLastActiveTab();
 					_Dashboard.appendGlobalSchemaMethods($('#dashboard-global-schema-methods'));
 
 					$(window).off('resize');
