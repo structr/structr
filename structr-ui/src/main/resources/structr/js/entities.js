@@ -131,59 +131,332 @@ var _Entities = {
 
 			el.append(html);
 
-			// set placeholder via script to avoid string interpolation
-			$('.event-target-input', el).attr('placeholder', 'Example: ${current.id}');
-			$('.reload-target-input', el).attr('placeholder', 'Example: #list-container');
+			let width = '400px';
+			let style = 'text-align: left;';
+			let parent = $('.blockPage');
 
-			$('select#event-mapping-select', el).select2({
+			let eventMappingSelect  = $('select#event-mapping-select', el);
+			let targetTypeSelect    = $('select#target-type-select', el);
+			let deleteTargetInput   = $('#delete-target-input', el);
+			let methodNameInput     = $('#method-name-input', el);
+			let methodTargetInput   = $('#method-target-input', el);
+			let updateTargetInput   = $('#update-target-input', el);
+			let updatePropertyInput = $('#update-property-input', el);
+			let reloadOptionSelect  = $('select#reload-option-select', el);
+			let reloadSelectorInput = $('#reload-selector-input', el);
+			let reloadUrlInput      = $('#reload-url-input', el);
+			let reloadEventInput    = $('#reload-event-input', el);
+
+			// event mapping selector
+			eventMappingSelect.select2({
 				placeholder: 'Event',
-				style: 'text-align:left;',
-				width: '300px',
-				dropdownParent: $('.blockPage')
+				style: style,
+				width: width,
+				dropdownParent: parent,
 			}).on('select2:select', function (e) {
-
+				let data = e.params.data;
 				$('div.event-options', el).addClass('hidden');
-				$('#' + this.value).removeClass('hidden');
-				$('#options-reload-target').removeClass('hidden');
+				if (this.value && this.value.length > 0) {
+					$('.' + this.value).removeClass('hidden');
+				}
+				if (data.id !== 'options-none') {
+					$('.options-reload-target').removeClass('hidden');
+				}
 
-				/*
-				let data = e.params.data;
-				*/
-
-				/*
-					let blinkElement = (inputEl.type === 'checkbox') ? $(inputEl).parent() : null;
-
-					_Entities.setPropertyWithFeedback(entity, key, newVal || (emptyStringInsteadOfNull ? '' : null), $(inputEl), blinkElement);
-				*/
+				// name comes from _html_name, always fill this field
+				Command.getProperty(entity.id, '_html_name', function(result) {
+					updatePropertyInput.val(result);
+				});
 			});
 
-			$('select.target-type-select', el).select2({
-				width: '300px'
+			// target type selector
+			targetTypeSelect.select2({
+				allowClear: true,
+				placeholder: 'Select type..',
+				style: style,
+				width: width,
+				dropdownParent: parent,
+				ajax: {
+					url: '/structr/rest/SchemaNode',
+					processResults: function (data) {
+						return {
+							results: data.result.map(n => ({ id: n.name, text: n.name }))
+						};
+					},
+					data: function (params) {
+						return { name: params.term, sort: 'name', loose: 1 }
+					}
+				}
+			}).on('select2:select', function(e) {
+				$('.select2-selection', targetTypeSelect.parent()).removeClass('required');
 			});
 
-			$('select#reload-target-select', el).select2({
+			// reload target selector
+			reloadOptionSelect.select2({
 				placeholder: 'Reload target',
-				style: 'text-align:left;',
-				width: '300px',
-				dropdownParent: $('.blockPage')
+				style: style,
+				width: width,
+				dropdownParent: parent,
 			}).on('select2:select', function (e) {
-
 				$('div.reload-options', el).addClass('hidden');
-				$('#' + this.value).removeClass('hidden');
-
-				/*
-				let data = e.params.data;
-				*/
-
-				/*
-					let blinkElement = (inputEl.type === 'checkbox') ? $(inputEl).parent() : null;
-
-					_Entities.setPropertyWithFeedback(entity, key, newVal || (emptyStringInsteadOfNull ? '' : null), $(inputEl), blinkElement);
-				*/
+				if (this.value && this.value.length > 0) {
+					$('#' + this.value).removeClass('hidden');
+				}
 			});
 
+			deleteTargetInput.on('change', function(e) { deleteTargetInput.removeClass('required'); });
+			methodTargetInput.on('change', function(e) { methodTargetInput.removeClass('required'); });
+			methodNameInput.on('change', function(e) { methodNameInput.removeClass('required'); });
+			updateTargetInput.on('change', function(e) { updateTargetInput.removeClass('required'); });
+			updatePropertyInput.on('change', function(e) { updatePropertyInput.removeClass('required'); });
+			reloadSelectorInput.on('change', function(e) { reloadSelectorInput.removeClass('required'); });
+			reloadUrlInput.on('change', function(e) { reloadUrlInput.removeClass('required'); });
+			reloadEventInput.on('change', function(e) { reloadEventInput.removeClass('required'); });
 
 			Structr.activateCommentsInElement(el);
+
+			// initialize fields from values in the object
+			let eventMapping = JSON.parse(entity.eventMapping);
+			if (eventMapping) {
+
+				let click        = eventMapping.click;
+				let change       = eventMapping.change;
+				let id           = '';
+
+				if (click) {
+
+					switch (click) {
+
+						case 'create':
+							id = 'options-create-click';
+							break;
+
+						case 'delete':
+							id = 'options-delete-click';
+							break;
+
+						default:
+							id = 'options-method-click';
+							methodNameInput.val(click);
+							break;
+					}
+				}
+
+				if (change) {
+
+					switch (change) {
+
+						case 'update':
+							id = 'options-update-change';
+							break;
+
+						case 'create':
+							id = 'options-create-change';
+							break;
+
+						default:
+							id = 'options-method-change';
+							methodNameInput.val(change);
+							break;
+					}
+				}
+
+				eventMappingSelect.val(id);
+				eventMappingSelect.trigger('change');
+				eventMappingSelect.trigger({ type: 'select2:select', params: { data: { id: id }}});
+
+				// set selected option in targetTypeSelect
+				let selectedType = entity['data-structr-target'];
+				if (selectedType) {
+
+					var option = new Option(selectedType, selectedType, true, true);
+					targetTypeSelect.append(option).trigger('change');
+
+					targetTypeSelect.trigger({
+						type: 'select2:select',
+						params: { data: { id: selectedType } }
+					});
+				}
+
+				deleteTargetInput.val(entity['data-structr-target']);
+				methodTargetInput.val(entity['data-structr-target']);
+				updateTargetInput.val(entity['data-structr-target']);
+
+				let reloadTargetValue = entity['data-structr-reload-target'];
+				if (reloadTargetValue) {
+
+					let reloadOption = 'reload-manual';
+
+					if (reloadTargetValue === 'none') {
+
+						reloadOption = 'reload-none';
+
+					} else if (reloadTargetValue.indexOf('url:') === 0) {
+
+						reloadOption = 'reload-url';
+						reloadUrlInput.val(reloadTargetValue.substring(4));
+
+					} else if (reloadTargetValue.indexOf('event:') === 0) {
+
+						reloadOption = 'reload-event';
+						reloadEventInput.val(reloadTargetValue.substring(6));
+
+					} else {
+
+						reloadOption = 'reload-selector';
+						reloadSelectorInput.val(reloadTargetValue);
+					}
+
+					reloadOptionSelect.val(reloadOption);
+					reloadOptionSelect.trigger('change');
+					reloadOptionSelect.trigger({ type: 'select2:select', params: { data: { id: reloadOption }}});
+
+				} else {
+
+					// reload option default is "page" for empty values
+					reloadOptionSelect.val('reload-page');
+					reloadOptionSelect.trigger('change');
+					reloadOptionSelect.trigger({ type: 'select2:select', params: { data: { id: 'reload-page' }}});
+				}
+			}
+
+			// name comes from _html_name, always fill this field
+			Command.getProperty(entity.id, '_html_name', function(result) {
+				updatePropertyInput.val(result);
+			});
+
+			let saveButton = $('#save-event-mapping-button');
+			if (saveButton) {
+
+				saveButton.on('click', function() {
+
+					// collect values
+					let eventType      = eventMappingSelect.val();
+					let targetType     = targetTypeSelect.val();
+					let methodName     = methodNameInput.val();
+					let methodTarget   = methodTargetInput.val();
+					let updateTarget   = updateTargetInput.val();
+					let updateProperty = updatePropertyInput.val();
+					let deleteTarget   = deleteTargetInput.val();
+					let reloadOption   = reloadOptionSelect.val();
+					let reloadTarget   = null;
+					let inputEl        = $(eventType);
+
+					// build reload target according to reloadOption
+					switch (reloadOption) {
+						case 'reload-none':
+							reloadTarget = 'none';
+							break;
+						case 'reload-page':
+							// this is the default, so nothing to do
+							break;
+						case 'reload-selector':
+							reloadTarget = reloadSelectorInput.val();
+							break;
+						case 'reload-url':
+							reloadTarget = 'url:' + reloadUrlInput.val();
+							break;
+						case 'reload-event':
+							reloadTarget = 'event:' + reloadEventInput.val();
+							break;
+					}
+
+					switch (eventType) {
+
+						case 'options-none':
+							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target', null, $(inputEl), null);
+							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',        null, $(inputEl), null);
+							_Entities.setPropertyWithFeedback(entity, 'eventMapping',               null, $(inputEl), null);
+							break;
+
+						case 'options-create-click':
+							if (targetType) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "create" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  targetType, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								Structr.showAndHideInfoBoxMessage('Please select the type of object to create.', 'warning', 2000, 200);
+								$('.select2-selection', targetTypeSelect.parent()).addClass('required');
+							}
+							break;
+
+						case 'options-create-change':
+							if (targetType) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "change": "create" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  targetType, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								Structr.showAndHideInfoBoxMessage('Please select the type of object to create.', 'warning', 2000, 200);
+								$('.select2-selection', targetTypeSelect.parent()).addClass('required');
+							}
+							break;
+
+						case 'options-delete-click':
+							if (deleteTarget) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "delete" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  deleteTarget, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to delete.', 'warning', 2000, 200);
+								deleteTargetInput.addClass('required');
+							}
+							break;
+
+						case 'options-method-click':
+							if (methodTarget && methodName) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "' + methodName + '" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  methodTarget, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								if (!methodTarget) {
+									Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to call.', 'warning', 2000, 200);
+									methodTargetInput.addClass('required');
+								}
+								if (!methodName) {
+									Structr.showAndHideInfoBoxMessage('Please provide the name of the method to execute.', 'warning', 2000, 200);
+									methodNameInput.addClass('required');
+								}
+							}
+							break;
+
+						case 'options-method-change':
+							if (methodTarget && methodName) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "change": "' + methodName + '" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  methodTarget, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								if (!methodTarget) {
+									Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to call.', 'warning', 2000, 200);
+									methodTargetInput.addClass('required');
+								}
+								if (!methodName) {
+									Structr.showAndHideInfoBoxMessage('Please provide the name of the method to execute.', 'warning', 2000, 200);
+									methodNameInput.addClass('required');
+								}
+							}
+							break;
+
+						case 'options-update-change':
+							if (updateTarget && updateProperty) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "change": "update" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  updateTarget, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, '_html_name',  updateProperty, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								if (!updateTarget) {
+
+									updateTargetInput.addClass('required');
+									Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to update.', 'warning', 2000, 200);
+								}
+								if (!updateProperty) {
+									updatePropertyInput.addClass('required');
+									Structr.showAndHideInfoBoxMessage('Please provide the name of the property to update.', 'warning', 2000, 200);
+								}
+							}
+							break;
+					}
+				});
+			}
 		});
 	},
 	appendRowWithInputField: function(entity, el, key, label, typeInfo) {
