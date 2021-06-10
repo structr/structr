@@ -36,6 +36,7 @@ export class Frontend {
 		this.boundHandleDrag         = this.handleDrag.bind(this);
 
 		// variables
+		this.eventListeners          = {};
 		this.currentlyFocusedElement = '';
 		this.timeout                 = -1;
 
@@ -127,6 +128,8 @@ export class Frontend {
 	}
 
 	handleResult(element, parameters, status) {
+
+		this.fireEvent('result', { target: element, data: parameters });
 
 		if (element.dataset.structrReloadTarget) {
 
@@ -308,6 +311,11 @@ export class Frontend {
 					params[name] = fromDataset[key];
 				}
 			}
+		}
+
+		// include render state to reconstruct state of repeaters and dynamic elements
+		if (fromDataset.structrRenderState && fromDataset.structrRenderState.length > 0) {
+			params['structr-encoded-render-state'] = fromDataset.structrRenderState;
 		}
 
 		if (override) {
@@ -575,6 +583,41 @@ export class Frontend {
 				elem.addEventListener('blur', this.boundHandleBlur);
 			}
 		});
+	}
+
+	addEventListener(name, listener) {
+
+		if (!this.eventListeners[name]) {
+			this.eventListeners[name] = [];
+		}
+
+		this.eventListeners[name].push(listener);
+	}
+
+	removeEventListener(name, listener) {
+
+		if (this.eventListeners[name]) {
+
+			let listeners = this.eventListeners[name];
+
+			if (listeners && listeners.length > 0) {
+
+				listener.splice(listeners.indexOf(listener), 1);
+			}
+		}
+	}
+
+	fireEvent(name, data) {
+
+		if (this.eventListeners[name]) {
+
+			let listeners = this.eventListeners[name];
+
+			for (let listener of listeners) {
+
+				listener.apply(null, [data]);
+			}
+		}
 	}
 }
 

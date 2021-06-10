@@ -18,16 +18,30 @@
  */
 package org.structr.web.common;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Stack;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.codec.binary.Base64InputStream;
+import org.apache.commons.codec.binary.Base64OutputStream;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
@@ -329,6 +343,10 @@ public class RenderContext extends ActionContext {
 		return appLibRendered;
 	}
 
+	public Map<String, GraphObject> getDataObjectsMap() {
+		return dataObjects;
+	}
+
 	public GraphObject getDataNode(String key) {
 		return dataObjects.get(key);
 	}
@@ -516,6 +534,62 @@ public class RenderContext extends ActionContext {
 		} else {
 
 			super.print(objects, null);
+		}
+	}
+
+	public String getEncodedRenderState() {
+
+		final Map<String, Object> renderState = new LinkedHashMap<>();
+
+		for (final String dataKey : dataObjects.keySet()) {
+
+			final GraphObject value = dataObjects.get(dataKey);
+			if (value != null) {
+
+				renderState.put(dataKey, value.getUuid());
+			}
+		}
+
+		if (!renderState.isEmpty()) {
+
+			final ByteArrayOutputStream output = new ByteArrayOutputStream();
+			final Gson gson                    = new GsonBuilder().create();
+
+			try (final OutputStreamWriter writer = new OutputStreamWriter(new Base64OutputStream(output, true, -1, null))) {
+
+				gson.toJson(renderState, writer);
+
+			} catch (IOException ioex) {
+				ioex.printStackTrace();
+			}
+
+			return output.toString(Charset.forName("utf-8")).trim();
+		}
+
+		return null;
+	}
+
+	public void initializeFromEncodedRenderState(final String encoded) {
+
+		final ByteArrayInputStream input = new ByteArrayInputStream(encoded.getBytes(Charset.forName("utf-8")));
+		final App app                    = StructrApp.getInstance(securityContext);
+		final Gson gson                  = new GsonBuilder().create();
+
+		try (final JsonReader reader = new JsonReader(new InputStreamReader(new Base64InputStream(input, false)))) {
+
+			final Map<String, Object> state = gson.fromJson(reader, Map.class);
+
+			for (final Entry<String, Object> entry : state.entrySet()) {
+
+				final Object value = entry.getValue();
+				if (value != null) {
+
+					dataObjects.put(entry.getKey(), app.getNodeById(value.toString()));
+				}
+			}
+
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 	}
 

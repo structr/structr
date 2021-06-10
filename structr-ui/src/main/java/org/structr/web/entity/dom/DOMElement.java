@@ -72,6 +72,7 @@ import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
 import org.structr.web.function.InsertHtmlFunction;
 import org.structr.web.function.RemoveDOMChildFunction;
 import org.structr.web.function.ReplaceDOMChildFunction;
+import org.structr.web.servlet.HtmlServlet;
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
@@ -80,6 +81,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
+
+	static final Set<String> RequestParameterBlacklist = Set.of(HtmlServlet.ENCODED_RENDER_STATE_PARAMETER_NAME);
 
 	static final String GET_HTML_ATTRIBUTES_CALL = "return (Property[]) org.apache.commons.lang3.ArrayUtils.addAll(super.getHtmlAttributes(), _html_View.properties());";
 	static final String STRUCTR_ACTION_PROPERTY  = "data-structr-action";
@@ -1191,16 +1194,23 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						if (request != null) {
 
 							final Map<String, String[]> parameters = request.getParameterMap();
+
 							for (final Entry<String, String[]> entry : parameters.entrySet()) {
 
 								final String key      = entry.getKey();
 								final String[] values = entry.getValue();
 
-								if (values.length > 0) {
+								if (values.length > 0 && !RequestParameterBlacklist.contains(key)) {
 
 									out.append(" data-request-").append(DOMElement.toHtmlAttributeName(key)).append("=\"").append(values[0]).append("\"");
 								}
 							}
+						}
+
+						final String encodedRenderState = renderContext.getEncodedRenderState();
+						if (encodedRenderState != null) {
+
+							out.append(" data-structr-render-state=\"").append(encodedRenderState).append("\"");
 						}
 					}
 
@@ -1451,8 +1461,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	public static void updateReloadTargets(final DOMElement thisElement) throws FrameworkException {
 
-		final SecurityContext securityContext = thisElement.getSecurityContext();
-
 		try {
 
 			final PropertyKey<Iterable<DOMElement>> reloadSourcesKey     = StructrApp.key(DOMElement.class, "reloadSources");
@@ -1461,7 +1469,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			final List<DOMElement> actualReloadSources                   = new LinkedList<>();
 			final List<DOMElement> actualReloadTargets                   = new LinkedList<>();
 			final org.jsoup.nodes.Element matchElement                   = thisElement.getMatchElement();
-			final String reloadTargets                                   = thisElement.getPropertyWithVariableReplacement(new ActionContext(securityContext), reloadTargetKey);
+			final String reloadTargets                                   = thisElement.getProperty(reloadTargetKey);
 			final Page page                                              = thisElement.getOwnerDocument();
 
 			if (page != null) {
@@ -1472,7 +1480,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 						final DOMElement possibleTarget       = (DOMElement)possibleReloadTargetNode;
 						final org.jsoup.nodes.Element element = possibleTarget.getMatchElement();
-						final String otherReloadTarget        = possibleTarget.getPropertyWithVariableReplacement(new ActionContext(securityContext), reloadTargetKey);
+						final String otherReloadTarget        = possibleTarget.getProperty(reloadTargetKey);
 
 						if (reloadTargets != null && element != null) {
 
@@ -1487,9 +1495,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 										actualReloadTargets.add(possibleTarget);
 									}
 
-								} catch (Throwable t) {
-									//logger.warn("Unable to match element with selector {}: {}", targetSelector, t);
-								}
+								} catch (Throwable t) {}
 							}
 						}
 
@@ -1506,9 +1512,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 										actualReloadSources.add(possibleTarget);
 									}
 
-								} catch (Throwable t) {
-									//logger.warn("Unable to match element with selector {}: {}", targetSelector, t);
-								}
+								} catch (Throwable t) {}
 							}
 						}
 					}
