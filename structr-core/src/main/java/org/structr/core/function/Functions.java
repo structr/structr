@@ -49,6 +49,7 @@ import org.structr.core.parser.FunctionValueExpression;
 import org.structr.core.parser.GroupExpression;
 import org.structr.core.parser.IfExpression;
 import org.structr.core.parser.IsExpression;
+import org.structr.core.parser.MapExpression;
 import org.structr.core.parser.NoneExpression;
 import org.structr.core.parser.NullExpression;
 import org.structr.core.parser.RootExpression;
@@ -349,6 +350,9 @@ public class Functions {
 
 			case "filter":
 				return new FilterExpression(row, column);
+
+			case "map":
+				return new MapExpression(row, column);
 
 			case "slice":
 				return new SliceExpression(row, column);

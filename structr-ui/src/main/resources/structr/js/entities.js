@@ -129,6 +129,7 @@ var _Entities = {
 
 		Structr.fetchHtmlTemplate('entities/simple-interactive-elements', { entity: entity }, function (html) {
 
+			el.empty();
 			el.append(html);
 
 			let width = '400px';
@@ -922,6 +923,8 @@ var _Entities = {
 						if (entity.isContent !== true) {
 
 							_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Edit Mode Binding', false, function(c) {
+								_Entities.dataBindingDialog(entity, c, typeInfo);
+							}, function(c) {}, function(c) {
 								_Entities.dataBindingDialog(entity, c, typeInfo);
 							});
 
