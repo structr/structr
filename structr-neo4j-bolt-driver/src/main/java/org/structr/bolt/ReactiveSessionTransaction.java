@@ -98,8 +98,13 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 		if (!success) {
 
-			Mono.from(tx.rollback()).block();
+			try {
 
+				Mono.from(tx.rollback()).block();
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
 			for (final EntityWrapper entity : accessedEntities) {
 
 				entity.rollback(transactionKey);
@@ -112,7 +117,13 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 		} else {
 
-			Mono.from(tx.commit()).block();
+			try {
+
+				Mono.from(tx.commit()).block();
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
 
 			RelationshipWrapper.expunge(deletedRels);
 			NodeWrapper.expunge(deletedNodes);
