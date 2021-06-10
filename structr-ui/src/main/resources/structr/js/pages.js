@@ -739,7 +739,7 @@ var _Pages = {
 		if (!obj || !obj.type) return;
 
 		active = tab.classList.contains('active');
-		console.log('_Pages.activateCenterPane(active)', active);
+		// console.log('_Pages.activateCenterPane(active)', active);
 		_Pages.refreshCenterPane(active);
 	},
 	refreshCenterPane: (active) => {

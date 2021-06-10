@@ -2711,7 +2711,7 @@ table.push {
 }
 
 .editor-info {
-	margin-left: 1em;
+	margin-left: 1rem;
 }
 
 .editor-info span {
@@ -2723,11 +2723,13 @@ table.push {
  */
 .speechToText {
 	opacity: 1.0;
-	position: absolute;
-	left: 12px;
-	top: 12px;
+	/*position: absolute;*/
+	/*left: 12px;*/
+	/*top: 12px;*/
 	width: 28px;
 	height: 28px;
+	margin: 0;
+	padding: 0;
 }
 
 .speechToText i {

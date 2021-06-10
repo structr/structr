@@ -161,8 +161,23 @@ ul#previewTabs {
 	position: relative;
 }
 
+.content-editor-container .editor-button-container {
+	padding: 0 0 1rem 2rem;
+}
+
+.content-editor-container .editor-info-container {
+	padding: 1rem 0 1rem 2rem;
+	width: calc(100% - 3rem);
+	overflow: hidden;
+}
+
+.content-editor-container .speechToText {
+	position: absolute;
+	right: 2rem;
+	bottom: 2rem;
+}
 .content-editor-container .CodeMirror {
-	height: calc(100vh - 10rem);
+	height: calc(100vh - 18rem);
 }
 
 .content-container.half-height {

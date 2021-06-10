@@ -1880,7 +1880,8 @@ var _Entities = {
 		}
 		editIcon.on('click', function(e) {
 			e.stopPropagation();
-			_Entities.showProperties(entity);
+			// _Entities.showProperties(entity);
+			_Elements.activateContextMenu(e, parent, entity);
 		});
 		if (visible) {
 			editIcon.css({

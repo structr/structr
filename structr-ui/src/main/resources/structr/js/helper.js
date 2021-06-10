@@ -241,14 +241,14 @@ function getTypeFromResourceSignature(signature) {
 }
 
 function blinkGreen(element) {
-	blink(element, '#6db813', '#81ce25');
+	blink($(element), '#6db813', '#81ce25');
 }
 
 function blinkRed(element) {
-	blink(element, '#a00', '#faa');
+	blink($(element), '#a00', '#faa');
 }
 
-function blink (element, color, bgColor) {
+function blink(element, color, bgColor) {
 
 	if (!element || !element.length) {
 		return;

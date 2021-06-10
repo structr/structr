@@ -1505,7 +1505,7 @@ var _Elements = {
 
 		Structr.fetchHtmlTemplate('pages/content-editor', {}, (html) => {
 
-			previewsContainer.insertAdjacentHTML('beforeend', html);
+			previewsContainer.insertAdjacentHTML('afterbegin', html);
 
 			contentEditorContainer = document.querySelector('#previews .content-editor-container');
 
@@ -1532,12 +1532,15 @@ var _Elements = {
 	},
 	editContent: function(button, entity, text, element, configOverride = {}) {
 
+		let buttonArea = element.querySelector('.editor-button-container') || dialogBtn;
+		let infoArea   = element.querySelector('.editor-info-container')   || dialogMeta;
+
 		if (Structr.isButtonDisabled(button)) {
 			return;
 		}
 
-		$(element).append('<div class="editor"></div>');
-		var contentBox = $('.editor', element);
+		element.insertAdjacentHTML('afterbegin', '<div class="editor"></div>');
+		let contentBox = element.querySelector('.editor');
 		contentType = entity.contentType || 'text/plain';
 
 		_Elements.activateEditorMode(contentType);
@@ -1550,7 +1553,7 @@ var _Elements = {
 			lineNumbers: true,
 			lineWrapping: false,
 			extraKeys: {
-				"Ctrl-Space": "autocomplete"
+				'Ctrl-Space': 'autocomplete'
 			},
 			indentUnit: 4,
 			tabSize: 4,
@@ -1560,21 +1563,26 @@ var _Elements = {
 		cmConfig = Object.assign(cmConfig, configOverride);
 
 		// Intitialize editor
-		CodeMirror.defineMIME("text/html", "htmlmixed-structr");
-		editor = CodeMirror(contentBox.get(0), cmConfig);
+		CodeMirror.defineMIME('text/html', 'htmlmixed-structr');
+		editor = CodeMirror(contentBox, cmConfig);
 
 		_Code.setupAutocompletion(editor, entity.id);
 
 		Structr.resize();
 
-		dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
-		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+		buttonArea.insertAdjacentHTML('beforeend', '<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
+
+		// Append "Save and close" button only when dialog window is open
+		if (dialogBox.is(':visible')) {
+			buttonArea.insertAdjacentHTML('beforeend', '<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+		}
 
 		if (entity.isFavoritable) {
-			dialogMeta.append('<i title="Add to favorites" class="add-to-favorites ' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" >');
-			$('.add-to-favorites', dialogMeta).on('click', function() {
-				Command.favorites('add', entity.id, function() {
-					blinkGreen($('.add-to-favorites', dialogMeta));
+			buttonArea.insertAdjacentHTML('beforeend', '<i title="Add to favorites" class="add-to-favorites ' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" >');
+			let addToFavs = buttonArea.querySelector('.add-to-favorites');
+			addToFavs.addEventListener('click', () => {
+				Command.favorites('add', entity.id, () => {
+					blinkGreen(addToFavs);
 				});
 			});
 		}
@@ -1582,20 +1590,20 @@ var _Elements = {
 		// Experimental speech recognition, works only in Chrome 25+
 		if (typeof(webkitSpeechRecognition) === 'function') {
 
-			dialogBox.append('<button class="speechToText"><i class="' + _Icons.getFullSpriteClass(_Icons.microphone_icon) + '" /></button>');
-			var speechBtn = $('.speechToText', dialogBox);
-
+			buttonArea.insertAdjacentHTML('beforeend', '<button class="speechToText"><i class="' + _Icons.getFullSpriteClass(_Icons.microphone_icon) + '" /></button>');
+			let speechToTextButton = buttonArea.querySelector('.speechToText');
+			let speechBtn = $(speechToTextButton);
 			_Speech.init(speechBtn, function(interim, finalResult) {
 
 				if (_Speech.isCommand('save', interim)) {
 					dialogSaveButton.click();
 				} else if (_Speech.isCommand('saveAndClose', interim)) {
 					_Speech.toggleStartStop(speechBtn, function() {
-						$('#saveAndClose', dialogBtn).click();
+						buttonArea.querySelector('#saveAndClose').click();
 					});
 				} else if (_Speech.isCommand('close', interim)) {
 					_Speech.toggleStartStop(speechBtn, function() {
-						dialogCancelButton.click();
+						buttonArea.querySelector('.closeButton').click();
 					});
 				} else if (_Speech.isCommand('stop', interim)) {
 					_Speech.toggleStartStop(speechBtn, function() {
@@ -1645,48 +1653,63 @@ var _Elements = {
 			});
 		}
 
-		dialogSaveButton = $('#editorSave', dialogBtn);
-		saveAndClose = $('#saveAndClose', dialogBtn);
+		dialogSaveButton = $('#editorSave');
+		saveAndClose = $('#saveAndClose');
 
-		saveAndClose.on('click', function(e) {
-			e.stopPropagation();
-			dialogSaveButton.click();
-			setTimeout(function() {
-				dialogSaveButton = $('#editorSave', dialogBtn);
-				saveAndClose = $('#saveAndClose', dialogBtn);
-				dialogSaveButton.remove();
-				saveAndClose.remove();
-				dialogCancelButton.click();
-			}, 500);
-		});
+		let saveButton = buttonArea.querySelector('.save-button') || document.querySelector('#editorSave');
+
+		let saveAndCloseButton;
+		if (dialogBox.is(':visible')) {
+
+			saveAndCloseButton = buttonArea.querySelector('.save-and-close-button') || document.querySelector('#saveAndClose');
+			saveAndCloseButton.addEventListener('click', (e) => {
+				e.stopPropagation();
+				saveButton.click();
+				// setTimeout(function() {
+				// 	dialogSaveButton = $('#editorSave');
+				// 	saveAndClose = $('#saveAndClose');
+				// 	dialogSaveButton.remove();
+				// 	saveAndClose.remove();
+				// 	dialogCancelButton.click();
+				// }, 500);
+			});
+		}
 
 		editor.on('change', function(cm, change) {
 
 			let editorText = editor.getValue();
 
 			if (text === editorText) {
-				dialogSaveButton.prop("disabled", true).addClass('disabled');
-				saveAndClose.prop("disabled", true).addClass('disabled');
+				saveButton.setAttribute('disabled', 'disabled');
+				saveButton.classList.add('disabled');
+				if (saveAndCloseButton) {
+					saveAndCloseButton.setAttribute('disabled', 'disabled');
+					saveAndCloseButton.classList.add('disabled');
+				}
 			} else {
-				dialogSaveButton.prop("disabled", false).removeClass('disabled');
-				saveAndClose.prop("disabled", false).removeClass('disabled');
+				saveButton.removeAttribute('disabled');
+				saveButton.classList.remove('disabled');
+				if (saveAndCloseButton) {
+					saveAndCloseButton.removeAttribute('disabled');
+					saveAndCloseButton.classList.remove('disabled');
+				}
 			}
 
 			$('#chars').text(editorText.length);
 			$('#words').text((editorText.match(/\S+/g) || []).length);
 		});
 
-		var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
+		let scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
 		if (scrollInfo) {
 			editor.scrollTo(scrollInfo.left, scrollInfo.top);
 		}
 
 		editor.on('scroll', function() {
-			var scrollInfo = editor.getScrollInfo();
+			let scrollInfo = editor.getScrollInfo();
 			LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
 		});
 
-		dialogSaveButton.on('click', function(e) {
+		saveButton.addEventListener('click', (e) => {
 			e.stopPropagation();
 
 			text1 = text;
@@ -1715,15 +1738,15 @@ var _Elements = {
 
 		});
 
-		var values = ['text/plain', 'text/html', 'text/xml', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence', 'text/asciidoc'];
+		const values = ['text/plain', 'text/html', 'text/xml', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence', 'text/asciidoc'];
 
-		dialogMeta.append('<label for="contentTypeSelect">Content-Type:</label> <select class="contentType_" id="contentTypeSelect"></select>');
-		var select = $('#contentTypeSelect', dialogMeta);
-		$.each(values, function(i, type) {
-			select.append('<option ' + (type === entity.contentType ? 'selected' : '') + ' value="' + type + '">' + type + '</option>');
+		infoArea.insertAdjacentHTML('beforeend', '<label for="contentTypeSelect">Content-Type:</label> <select class="contentType_" id="contentTypeSelect"></select>');
+		let select = infoArea.querySelector('#contentTypeSelect');
+		values.forEach((type) => {
+			select.insertAdjacentHTML('beforeend', '<option ' + (type === entity.contentType ? 'selected' : '') + ' value="' + type + '">' + type + '</option>');
 		});
-		select.on('change', function() {
-			contentType = select.val();
+		select.addEventListener('change', () => {
+			contentType = select.value;
 			_Elements.activateEditorMode(contentType);
 			editor.setOption('mode', contentType);
 
@@ -1733,19 +1756,21 @@ var _Elements = {
 			});
 		});
 
-		dialogMeta.append('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span>');
-		$('#lineWrapping').off('change').on('change', function() {
-			var inp = $(this);
-			Structr.updateCodeMirrorOptionGlobally('lineWrapping', inp.is(':checked'));
-			blinkGreen(inp.parent());
+		infoArea.insertAdjacentHTML('beforeend', '<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span>');
+		let lineWrappingHandler = (e) => {
+			Structr.updateCodeMirrorOptionGlobally('lineWrapping', e.target.checked);
+			blinkGreen(this.parentNode);
 			editor.refresh();
-		});
+		};
 
-		dialogMeta.append('<span class="editor-info">Characters: <span id="chars">' + editor.getValue().length + '</span></span>');
-		dialogMeta.append('<span class="editor-info">Words: <span id="words">' + (editor.getValue().match(/\S+/g) !== null ? editor.getValue().match(/\S+/g).length : 0) + '</span></span>');
+		let lineWrapping = document.querySelector('#lineWrapping');
+		lineWrapping.removeEventListener('change', lineWrappingHandler);
+		lineWrapping.addEventListener('change', lineWrappingHandler);
+
+		infoArea.insertAdjacentHTML('beforeend', '<span class="editor-info">Characters: <span id="chars">' + editor.getValue().length + '</span></span>');
+		infoArea.insertAdjacentHTML('beforeend', '<span class="editor-info">Words: <span id="words">' + (editor.getValue().match(/\S+/g) !== null ? editor.getValue().match(/\S+/g).length : 0) + '</span></span>');
 
 		editor.id = entity.id;
-
 		editor.focus();
 
 		window.setTimeout(function() { editor.performLint(); }, 300);
