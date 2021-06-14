@@ -18,13 +18,8 @@
  */
 package org.structr.core.entity;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -397,7 +392,25 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	// ----- interface GraphObject -----
 	@Override
 	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
-		return StructrApp.getConfiguration().getPropertySet(this.getClass(), propertyView);
+
+		// check for custom view in content-type field
+		if (securityContext != null && securityContext.hasCustomView()) {
+
+			final Set<PropertyKey> keys = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All));
+			final Set<String> customView = securityContext.getCustomView();
+
+			for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
+				if (!customView.contains(it.next().jsonName())) {
+
+					it.remove();
+				}
+			}
+
+			return keys;
+		}
+
+		// this is the default if no application/json; properties=[...] content-type header is present on the request
+		return StructrApp.getConfiguration().getPropertySet(entityType, propertyView);
 	}
 
 	public final Map<String, Long> getRelationshipInfo(Direction direction) {
