@@ -45,6 +45,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.DateProperty;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
@@ -707,10 +708,21 @@ public abstract class Function<S, T> extends Hint {
 		} else if (sourceObject instanceof Boolean) {
 
 			return Function.wrapBooleanInGraphObjectMap((Boolean)sourceObject);
+
+		} else if (sourceObject instanceof Date) {
+
+			return Function.wrapDateInGraphObjectMap((Date)sourceObject);
 		}
 
 		return null;
 
+	}
+
+	public static GraphObjectMap wrapDateInGraphObjectMap (final Date date) {
+
+		final GraphObjectMap dateWrapperObject = new GraphObjectMap();
+		dateWrapperObject.put(new DateProperty("value"), date);
+		return dateWrapperObject;
 	}
 
 	public static GraphObjectMap wrapStringInGraphObjectMap (final String str) {

@@ -883,53 +883,34 @@ var _Schema = {
 			targetView = 'local';
 		}
 
-		var id = '___' + entity.id;
+		let id = '___' + entity.id;
 		headEl.append('<div id="' + id + '_head" class="schema-details"></div>');
-		var headContentDiv = $('#' + id + '_head');
+		let headContentDiv = $('#' + id + '_head');
 
 		headContentDiv.append('<b>' + entity.name + '</b>');
 
-		//if (!entity.isBuiltinType && (!entity.extendsClass || entity.extendsClass.slice(-1) !== '>') ) {
 		if (!entity.isBuiltinType || entity.extendsClass) {
+
 			headContentDiv.append(' extends <select class="extends-class-select"></select>');
-			headContentDiv.append(' <i id="edit-parent-class" class="icon edit ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" title="Edit parent class" />');
+
+			if (entity.extendsClass) {
+				headContentDiv.append(' <i id="edit-parent-class" class="icon edit ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" title="Edit parent class" />');
+			}
 
 			$("#edit-parent-class", headContentDiv).click(function() {
 
 				if (!$(this).hasClass('disabled')) {
 
-					var typeName = $('.extends-class-select', headContentDiv).val().split('.').pop();
+					_Schema.openEditDialog(entity.extendsClass.id, undefined, function() {
 
-					Command.search(typeName, 'SchemaNode', true, function(results) {
-						if (results.length === 1) {
+						window.setTimeout(function() {
 
-							_Schema.openEditDialog(results[0].id, undefined, function() {
+							_Schema.openEditDialog(entity.id);
 
-								window.setTimeout(function() {
-
-									_Schema.openEditDialog(entity.id);
-
-								}, 250);
-							});
-
-						} else if (results.length === 0) {
-
-							new MessageBuilder().warning("Can not open entity edit dialog for class '" + typeName + "' - <b>no corresponding</b> schema node found").show();
-
-						} else {
-
-							new MessageBuilder().warning("Can not open entity edit dialog for class '" + typeName + "' - <b>multiple corresponding</b> schema node found").show();
-						}
+						}, 250);
 					});
 				}
 			});
-
-			//if (entity.extendsClass && entity.extendsClass.indexOf('org.structr.dynamic.') === 0) {
-			if (entity.extendsClass) {
-				$("#edit-parent-class").removeClass('disabled');
-			} else {
-				$("#edit-parent-class").addClass('disabled');
-			}
 		}
 
 		headContentDiv.append('<div id="tabs" style="margin-top:20px;"><ul></ul></div>');
@@ -1000,7 +981,7 @@ var _Schema = {
 						optgroup.append(`<option ${selected} value="${cls.id}">${name}</option>`);
 					}
 				}
-			}
+			};
 
 			if (customTypes.length) {
 

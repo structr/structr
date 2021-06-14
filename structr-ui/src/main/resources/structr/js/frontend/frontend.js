@@ -36,6 +36,7 @@ export class Frontend {
 		this.boundHandleDrag         = this.handleDrag.bind(this);
 
 		// variables
+		this.eventListeners          = {};
 		this.currentlyFocusedElement = '';
 		this.timeout                 = -1;
 
@@ -128,39 +129,45 @@ export class Frontend {
 
 	handleResult(element, parameters, status) {
 
+		this.fireEvent('result', { target: element, data: parameters });
+
 		if (element.dataset.structrReloadTarget) {
 
-			let reloadTarget = element.dataset.structrReloadTarget;
-			if (reloadTarget.indexOf('url:') === 0) {
+			let reloadTargets = element.dataset.structrReloadTarget;
 
-				let url     = reloadTarget.substring(4).replaceAll('{', '${');
-				let replace = new Function('result', 'return `' + url + '`;');
-				let value   = replace(parameters);
+			for (let reloadTarget of reloadTargets.split(',').map(t => t.trim()).filter(t => t.length > 0)) {
 
-				window.location.href = value;
+				if (reloadTarget.indexOf('url:') === 0) {
 
-			} else if (reloadTarget.indexOf('css:') === 0) {
+					let url     = reloadTarget.substring(4).replaceAll('{', '${');
+					let replace = new Function('result', 'return `' + url + '`;');
+					let value   = replace(parameters);
 
-				let css = reloadTarget.substring(4);
+					window.location.href = value;
 
-				element.classList.add(css);
+				} else if (reloadTarget.indexOf('css:') === 0) {
 
-				window.setTimeout(() => {
-					element.classList.remove(css);
-				}, 1000);
+					let css = reloadTarget.substring(4);
 
-			} else if (reloadTarget === 'event') {
+					element.classList.add(css);
 
-				element.dispatchEvent(new Event('structr-success', { detail: parameters }));
+					window.setTimeout(() => {
+						element.classList.remove(css);
+					}, 1000);
 
-			} else if (reloadTarget === 'none') {
+				} else if (reloadTarget === 'event') {
 
-				// do nothing
-				return;
+					element.dispatchEvent(new CustomEvent('structr-success', { detail: { result: parameters, status: status } }));
 
-			} else {
+				} else if (reloadTarget === 'none') {
 
-				this.reloadPartial(reloadTarget, parameters, element);
+					// do nothing
+					return;
+
+				} else {
+
+					this.reloadPartial(reloadTarget, parameters, element);
+				}
 			}
 
 		} else {
@@ -304,6 +311,11 @@ export class Frontend {
 					params[name] = fromDataset[key];
 				}
 			}
+		}
+
+		// include render state to reconstruct state of repeaters and dynamic elements
+		if (fromDataset.structrRenderState && fromDataset.structrRenderState.length > 0) {
+			params['structr-encoded-render-state'] = fromDataset.structrRenderState;
 		}
 
 		if (override) {
@@ -571,6 +583,41 @@ export class Frontend {
 				elem.addEventListener('blur', this.boundHandleBlur);
 			}
 		});
+	}
+
+	addEventListener(name, listener) {
+
+		if (!this.eventListeners[name]) {
+			this.eventListeners[name] = [];
+		}
+
+		this.eventListeners[name].push(listener);
+	}
+
+	removeEventListener(name, listener) {
+
+		if (this.eventListeners[name]) {
+
+			let listeners = this.eventListeners[name];
+
+			if (listeners && listeners.length > 0) {
+
+				listener.splice(listeners.indexOf(listener), 1);
+			}
+		}
+	}
+
+	fireEvent(name, data) {
+
+		if (this.eventListeners[name]) {
+
+			let listeners = this.eventListeners[name];
+
+			for (let listener of listeners) {
+
+				listener.apply(null, [data]);
+			}
+		}
 	}
 }
 

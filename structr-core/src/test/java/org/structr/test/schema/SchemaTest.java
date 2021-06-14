@@ -61,6 +61,8 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.script.Scripting;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
@@ -1213,8 +1215,73 @@ public class SchemaTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
-
 	}
+
+	@Test
+	public void testMethodInheritance() {
+
+		// setup 1: create types
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base  = schema.addType("BaseType");
+			final JsonObjectType ext1  = schema.addType("Extended1");
+			final JsonObjectType ext11 = schema.addType("Extended11");
+			final JsonObjectType ext2  = schema.addType("Extended2");
+
+			ext1.setExtends(base);
+			ext2.setExtends(base);
+
+			// two levels
+			ext11.setExtends(ext1);
+
+			// methods
+			base.addMethod("doTest", "'BaseType'");
+			ext1.addMethod("doTest", "'Extended1'");
+			ext11.addMethod("doTest", "'Extended11'");
+			ext2.addMethod("doTest", "'Extended2'");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// setup 2: create objects for each type
+		try (final Tx tx = app.tx()) {
+
+			logger.info("Creating node instances..");
+
+			final Class baseType  = StructrApp.getConfiguration().getNodeEntityClass("BaseType");
+			final Class ext1Type  = StructrApp.getConfiguration().getNodeEntityClass("Extended1");
+			final Class ext11Type = StructrApp.getConfiguration().getNodeEntityClass("Extended11");
+			final Class ext2Type  = StructrApp.getConfiguration().getNodeEntityClass("Extended2");
+
+			final GraphObject base  = app.create(baseType,  "base");
+			final GraphObject ext1  = app.create(ext1Type,  "ext1");
+			final GraphObject ext11 = app.create(ext11Type, "ext11");
+			final GraphObject ext2  = app.create(ext2Type,  "ext2");
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			assertEquals("Invalid inheritance result, overriding method is not called", "BaseType",   (Scripting.evaluate(ctx, base,  "${{ return $.this.doTest(); }}", "test1")));
+			assertEquals("Invalid inheritance result, overriding method is not called", "Extended1",  (Scripting.evaluate(ctx, ext1,  "${{ return $.this.doTest(); }}", "test2")));
+			assertEquals("Invalid inheritance result, overriding method is not called", "Extended11", (Scripting.evaluate(ctx, ext11, "${{ return $.this.doTest(); }}", "test3")));
+			assertEquals("Invalid inheritance result, overriding method is not called", "Extended2",  (Scripting.evaluate(ctx, ext2,  "${{ return $.this.doTest(); }}", "test4")));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
 
 	// ----- private methods -----
 	private void checkSchemaString(final String source) {

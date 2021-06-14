@@ -98,6 +98,8 @@ import org.w3c.dom.Text;
  */
 public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, DOMImportable, LinkedTreeNode<DOMNode>, ContextAwareEntity {
 
+	static final Set<String> DataAttributeOutputBlacklist = Set.of("data-structr-manual-reload-target");
+
 	static class Impl { static {
 
 		final JsonSchema schema    = SchemaService.getDynamicSchema();
@@ -323,7 +325,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	}));
 
 	public static final String[] rawProps = new String[] {
-		"dataKey", "restQuery", "cypherQuery", "xpathQuery", "functionQuery", "flow", "hideOnIndex", "hideOnDetail", "showForLocales", "hideForLocales", "showConditions", "hideConditions"
+		"dataKey", "restQuery", "cypherQuery", "xpathQuery", "functionQuery", "selectedValues", "flow", "hideOnIndex", "hideOnDetail", "showForLocales", "hideForLocales", "showConditions", "hideConditions"
 	};
 
 	boolean isSynced();
@@ -1408,7 +1410,12 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			dataAttributes = new LinkedHashSet<>(sortedAttributes);
 		}
 
-		for (PropertyKey key : dataAttributes) {
+		for (final PropertyKey key : dataAttributes) {
+
+			// do not render attributes that are on the blacklist
+			if (DataAttributeOutputBlacklist.contains(key.jsonName())) {
+				continue;
+			}
 
 			String value = "";
 
@@ -1455,7 +1462,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 					out.append(" data-structr-meta-name=\"").append(escapeForHtmlAttributes(name)).append("\"");
 				}
 
-				final Object flow = thisNode.getProperty("flow");
+				final Object flow = thisNode.getProperty(StructrApp.key(DOMNode.class, "flow", false));
 				if (flow != null) {
 
 					out.append(" data-structr-meta-id=\"").append(thisNode.getUuid()).append("\"");

@@ -31,3 +31,8 @@ div.custom-dialog {
 div.custom-dialog div.row label {
 	min-width: 120px !important;
 }
+
+.select2-selection.required,
+input.required {
+	border: 1px solid red !important;
+}

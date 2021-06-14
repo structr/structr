@@ -44,7 +44,6 @@ import org.structr.core.property.PropertyKey;
 public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	private static final Logger logger       = LoggerFactory.getLogger(StructrSessionDataStore.class.getName());
-	private static final Services services   = Services.getInstance();
 
 	private static final Map<String, SessionData> anonymousSessionCache = new ConcurrentHashMap<>();
 
@@ -60,7 +59,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "sessionIds");
 			final String[] value            = new String[] { id };
-			final Principal user            = StructrApp.getInstance().nodeQuery(Principal.class).and(key, value).disableSorting().getFirst();
+			final Principal user            = app.nodeQuery(Principal.class).and(key, value).disableSorting().getFirst();
 
 			if (user != null) {
 
@@ -76,11 +75,12 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 					node.setProperties(ctx, properties);
 				}
 
-				tx.success();
-
 			} else {
+
 				anonymousSessionCache.put(id, data);
 			}
+
+			tx.success();
 
 		} catch (FrameworkException ex) {
 
@@ -230,6 +230,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	// ----- private methods -----
 	private void assertInitialized() {
 
+		final Services services = Services.getInstance();
 		if (!services.isShuttingDown() && !services.isShutdownDone()) {
 
 			// wait for service layer to be initialized

@@ -1801,9 +1801,20 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				tx.disableChangelog();
 
-				final String confSource = new String(Files.readAllBytes(confFile), Charset.forName("utf-8")).trim();
+				String confSource = new String(Files.readAllBytes(confFile), Charset.forName("utf-8")).trim();
 
 				if (confSource.length() > 0) {
+
+					if (confSource.startsWith("$")) {
+
+						final String warnText = "Deployment config script '" + confFile + "' is using old syntax. This is now an auto-script environment, opening '${' and closing '}' are not necessary anymore. This is currently supported, but support for this old syntax will be removed in an upcoming version!";
+						logger.warn(warnText);
+						publishWarningMessage("Deprecation warning for " + confFile, warnText);
+
+					} else {
+
+						confSource = "${" + confSource + "}";
+					}
 
 					final String message = "Applying configuration from '" + confFile + "'";
 					logger.info(message);
