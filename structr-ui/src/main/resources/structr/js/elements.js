@@ -1020,6 +1020,14 @@ var _Elements = {
 			appendSeparator();
 
 			elements.push({
+				name: 'Remove Node',
+				clickHandler: function() {
+					Command.removeChild(entity.id);
+					return false;
+				}
+			});
+
+			elements.push({
 				name: 'Clone Node',
 				clickHandler: function() {
 					Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
