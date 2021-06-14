@@ -87,7 +87,7 @@ $(function() {
 			if (anchor === 'logout' || loginBox.is(':visible')) {
 				return;
 			}
-console.log(anchor, mainModule, subModule);
+
 			if (anchor.indexOf(':') > -1) {
 				return;
 			}
@@ -300,7 +300,7 @@ console.log(anchor, mainModule, subModule);
 		e.preventDefault();
 		let menu = e.target.closest('.dropdown-menu');
 		let template = menu.dataset['template'];
-		let configString = menu.dataset['config'] || '{}'; console.log(configString);
+		let configString = menu.dataset['config'] || '{}';
 		let config = JSON.parse(menu.dataset['config'] || '{}');
 		Structr.fetchHtmlTemplate(template, config, function(html) {
 			let container = e.target.closest('.dropdown-menu').querySelector('.dropdown-menu-container');
@@ -455,6 +455,7 @@ var Structr = {
 		if (!loginBox.is(':visible')) {
 
 			fastRemoveAllChildren(main[0]);
+			fastRemoveAllChildren(functionBar[0]);
 
 			$.blockUI({
 				fadeIn: 25,
@@ -1345,7 +1346,7 @@ var Structr = {
 					Structr.appendInMemoryInfoToElement($('span', dbInfoEl), $('span i', dbInfoEl));
 
 					if (isLogin) {
-						new MessageBuilder().warning(Structr.inMemorWarningText).requiresConfirmation().show();
+						new MessageBuilder().warning(Structr.inMemoryWarningText).requiresConfirmation().show();
 					}
 				}
 			}
@@ -1451,12 +1452,12 @@ var Structr = {
 		});
 
 	},
-	inMemorWarningText:"Please note that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration tool to configure a database connection.",
+	inMemoryWarningText:"Please note that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration tool to configure a database connection.",
 	appendInMemoryInfoToElement: function(el, optionalToggleElement) {
 
 		let config = {
 			element: el,
-			text: Structr.inMemorWarningText,
+			text: Structr.inMemoryWarningText,
 			customToggleIcon: _Icons.database_error_icon,
 			helpElementCss: {
 				'border': '2px solid red',

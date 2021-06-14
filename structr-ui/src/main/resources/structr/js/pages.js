@@ -532,17 +532,28 @@ var _Pages = {
 		tab.append('<i title="View ' + entity.name + ' in new window" class="view_icon button ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" />');
 
 		//$('.view_icon', tab).on('click', function(e) {
-		$('.node.page').on('dblclick', (e) => {
+		let dblclickHandler = (e) => {
 			e.stopPropagation();
-			var self = $(this);
-			var link = $.trim(self.parent().children('b.name_').attr('title'));
-			let pagePath = entity.path ? entity.path.replace(/^\//, '') : link;
+			let self = e.target;
 
-			let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
-			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '?' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
+			// only on page nodes and if not clicked on expand/collapse icon
+			if (!self.classList.contains('expand_icon') && self.closest('.node').classList.contains('page')) {
+				let link = self.closest('.page').querySelector('b.name_').getAttribute('title');
+				console.log(self, link);
 
-			var url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + pagePath + detailsObject + requestParameters;
-			window.open(url);
+				let pagePath = entity.path ? entity.path.replace(/^\//, '') : link;
+
+				let detailsObject = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
+				let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '?' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
+
+				let url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + pagePath + detailsObject + requestParameters;
+				window.open(url);
+			}
+		};
+
+		document.querySelectorAll('.node.page').forEach((pageNode) => {
+			pageNode.removeEventListener('dblclick', dblclickHandler);
+			pageNode.addEventListener('dblclick', dblclickHandler);
 		});
 
 		var editUiPropertiesIcon = $('.edit_ui_properties_icon', tab);
@@ -866,7 +877,7 @@ var _Pages = {
 				} else {
 					_Pages.deactivateAllSubmenuLinks();
 					_Pages.activateSubmenuLink('#pages:properties');
-					_Pages.refreshCenterPane(active);
+					//_Pages.refreshCenterPane(active);
 				}
 				break;
 
@@ -1116,26 +1127,10 @@ var _Pages = {
 
 		// div.append('<div class="node-selector"></div>')
 
-
-
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 		//_Entities.appendAccessControlIcon(div, entity);
 
-		// TODO: Add 'Delete page' to menu
-		// div.append('<i title="Delete page \'' + entity.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
-		// $('.delete_icon', div).on('click', function(e) {
-		// 	e.stopPropagation();
-		// 	_Entities.deleteNode(this, entity);
-		// });
-
 		_Entities.appendEditPropertiesIcon(div, entity);
-
-		// TODO: Add 'Clone page' to menu
-		// div.append('<i title="Clone page \'' + entity.name + '\'" class="clone_icon button ' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" />');
-		// $('.clone_icon', div).on('click', function(e) {
-		// 	e.stopPropagation();
-		// 	Command.clonePage(entity.id);
-		// });
 
 		_Elements.enableContextMenuOnElement(div, entity);
 		_Entities.setMouseOver(div);

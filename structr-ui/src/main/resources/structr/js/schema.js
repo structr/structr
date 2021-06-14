@@ -62,7 +62,6 @@ $(document).ready(function() {
 	});
 
 	live('#schema-show-inheritance', 'change', (e) => {
-		console.log(e.target.checked);
 		_Schema.ui.updateInheritanceVisibility(e.target.checked);
 		// _Schema.reload(); // necessary to refresh menu
 	});

@@ -104,7 +104,7 @@ var Command = {
 	 *
 	 * Providing a nodeId is strongly recommended.
 	 */
-	getRelationship: function(id, nodeId, properties, callback) {
+	getRelationship: function(id, nodeId, properties, callback, view) {
 
 		if (!nodeId) {
 			console.warn('getRelationship called without nodeId');
@@ -118,7 +118,10 @@ var Command = {
 			}
 		};
 		if (properties !== null) {
-			obj.data.properties = properties;
+			obj.relData = { 'properties': properties };
+		}
+		if (view) {
+			obj.view = view;
 		}
 		return sendObj(obj, callback);
 	},

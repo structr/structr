@@ -462,10 +462,10 @@ var StructrModel = {
 						});
 
 						element.children('.name_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b>');
-						element.children('b.name_').off('click').on('click', function(e) {
-							e.stopPropagation();
-							_Entities.makeNameEditable(element);
-						});
+						// element.children('b.name_').off('click').on('click', function(e) {
+						// 	e.stopPropagation();
+						// 	_Entities.makeNameEditable(element);
+						// });
 					} else {
 						element.children('.name_').html(escapeTags(obj.content));
 					}

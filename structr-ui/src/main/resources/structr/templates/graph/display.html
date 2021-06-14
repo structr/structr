@@ -1,0 +1,28 @@
+  <div class="heading-row"><h3>Display Options</h3></div>
+  <div class="row"><input ${!nodeLabelsHidden ? 'checked' : ''} type="checkbox" id="toggleNodeLabels" name="toggleNodeLabels"> <label for="toggleNodeLabels">Node labels</label></div>
+  <div class="row"><input ${!edgeLabelsHidden ? 'checked' : ''} type="checkbox" id="toggleEdgeLabels" name="toggleEdgeLabels"> <label for="toggleEdgeLabels">Edge labels</label></div>
+
+  <div class="heading-row"><h3>Set Layout</h3></div>
+  <div class="row"><a id="fruchterman-controlElement">Fruchterman</a></div>
+  <div class="row"><a id="dagre-controlElement">Dagre</a></div>
+
+  <div class="heading-row"><h3>Dynamic Layouting On/Off</h3></div>
+  <div class="row"><a id="forceAtlas-controlElement" class="${animating ? 'active' : ''}">ForceAtlas2</a></div>
+
+<!--  <div class="heading-row"><h3>Selection Tools</h3></div>-->
+<!--  <button id="newSelectionGroup">New Selection</button>-->
+<!--  <button id="selectionLasso">Lasso</button>-->
+<!--  <div id="selectionToolsTableContainer">-->
+<!--    <table id="selectionToolsTable" class="graphtable responsive">-->
+<!--      <thead id="selectionToolsTableHead">-->
+<!--      <tr>-->
+<!--        <th>Group</th>-->
+<!--        <th>Fixed</th>-->
+<!--        <th>Hidden</th>-->
+<!--        <th>Remove</th>-->
+<!--      </tr>-->
+<!--      </thead>-->
+<!--      <tbody id="selectiontools-selectionTable-groupSelectionItems">-->
+<!--      <tbody>-->
+<!--    </table>-->
+<!--  </div>-->

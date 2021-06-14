@@ -22,12 +22,12 @@ var contents, editor, contentType, currentEntity;
 $(function() {
 
 	// disable default contextmenu on our contextmenu *once*, so it doesnt fire/register once per element
-	$(document).on("contextmenu", '#menu-area', function(e) {
+	$(document).on('contextmenu', '#menu-area', function(e) {
 		e.stopPropagation();
 		e.preventDefault();
 	});
 
-	$(document).on("click", '#add-child-dialog #inherit-visibility-flags' , function (e) {
+	$(document).on('click', '#add-child-dialog #inherit-visibility-flags' , function (e) {
 		e.preventDefault();
 		e.stopPropagation();
 	});
@@ -459,38 +459,11 @@ var _Elements = {
 			+ '<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b><span class="id">' + entity.id + '</span>'
 			+ _Elements.classIdString(entity._html_id, entity._html_class));
 
-		// TODO: Add 'Clone element' to menu
-		// div.append('<i title="Clone ' + displayName + ' element ' + entity.id + '\" class="clone_icon button ' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" />');
-		// $('.clone_icon', div).on('click', function(e) {
-		// 	e.stopPropagation();
-		// 	Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
-		// });
-
 		_Elements.enableContextMenuOnElement(div, entity);
 
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 
 		//_Entities.appendAccessControlIcon(div, entity);
-
-		// TODO: Add 'Delete element' to menu
-		// div.append('<i title="Delete ' + displayName + ' element ' + entity.id + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
-		// $('.delete_icon', div).on('click', function(e) {
-		// 	e.stopPropagation();
-		// 	_Entities.deleteNode(this, entity, true, function() {
-		// 		var synced = entity.syncedNodesIds;
-		// 		if (synced && synced.length) {
-		// 			synced.forEach(function(id) {
-		// 				var el = Structr.node(id);
-		// 				if (el && el.children && el.children.length) {
-		// 					var newSpriteClass = _Icons.getSpriteClassOnly(_Icons.brick_icon);
-		// 					el.children('i.typeIcon').each(function (i, el) {
-		// 						_Icons.updateSpriteClassTo(el, newSpriteClass);
-		// 					});
-		// 				}
-		// 			});
-		// 		}
-		// 	});
-		// });
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds&&entity.syncedNodesIds.length)?entity.syncedNodesIds:[entity.sharedComponentId]));
 
@@ -1044,6 +1017,18 @@ var _Elements = {
 				]
 			});
 
+			appendSeparator();
+
+			elements.push({
+				name: 'Clone Node',
+				clickHandler: function() {
+					Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
+					return false;
+				}
+			});
+
+			appendSeparator();
+
 			elements.push({
 				name: 'Wrap element in...',
 				elements: [
@@ -1068,6 +1053,15 @@ var _Elements = {
 			});
 		}
 
+		if (isPage) {
+			elements.push({
+				name: 'Clone Page',
+				clickHandler: function () {
+					Command.clonePage(entity.id);
+					return false;
+				}
+			});
+		}
 
 		if (!isPage) {
 
@@ -1342,6 +1336,34 @@ var _Elements = {
 
 		appendSeparator();
 
+		elements.push({
+			name: 'Delete',
+			clickHandler: () => {
+
+				if (isContent) {
+					_Entities.deleteNode(this, entity);
+				} else {
+					_Entities.deleteNode(this, entity, true, function () {
+						var synced = entity.syncedNodesIds;
+						if (synced && synced.length) {
+							synced.forEach(function (id) {
+								var el = Structr.node(id);
+								if (el && el.children && el.children.length) {
+									var newSpriteClass = _Icons.getSpriteClassOnly(_Icons.brick_icon);
+									el.children('i.typeIcon').each(function (i, el) {
+										_Icons.updateSpriteClassTo(el, newSpriteClass);
+									});
+								}
+							});
+						}
+					});
+				}
+				return false;
+			}
+		});
+
+		appendSeparator();
+
 		return elements;
 	},
 	selectEntity: function (entity) {
@@ -1419,29 +1441,7 @@ var _Elements = {
 
 		//_Entities.appendAccessControlIcon(div, entity);
 
-		// TODO: Add 'Clone content node' to menu
-		// div.append('<i title="Clone content node ' + entity.id + '" class="clone_icon button ' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" />');
-		// $('.clone_icon', div).on('click', function(e) {
-		// 	e.stopPropagation();
-		// 	Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
-		// });
-
 		_Elements.enableContextMenuOnElement(div, entity);
-
-		// TODO: Add 'Delete content node' to menu
-		// div.append('<i title="Delete content \'' + (entity.name ? entity.name : entity.id) + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_content_icon) + '" />');
-		// $('.delete_icon', div).on('click', function(e) {
-		// 	e.stopPropagation();
-		// 	_Entities.deleteNode(this, entity);
-		// });
-
-		// TODO: Add 'Edit content' to menu
-		// _Elements.appendEditContentIcon(div, entity);
-		// $('.content_', div).on('click', function(e) {
-		// 	e.stopPropagation();
-		// 	_Elements.openEditContentDialog(this, entity);
-		// 	return false;
-		// });
 
 		div.on('click', (e) => { console.log('click on content', entity);
 			e.stopPropagation();
@@ -1709,34 +1709,38 @@ var _Elements = {
 			LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
 		});
 
-		saveButton.addEventListener('click', (e) => {
-			e.stopPropagation();
+		if (saveButton) {
+			saveButton.addEventListener('click', (e) => {
+				e.stopPropagation();
 
-			text1 = text;
-			text2 = editor.getValue();
+				text1 = text;
+				text2 = editor.getValue();
 
-			if (!text1)
-				text1 = '';
-			if (!text2)
-				text2 = '';
+				if (!text1)
+					text1 = '';
+				if (!text2)
+					text2 = '';
 
-			if (text1 === text2) {
-				return;
-			}
+				if (text1 === text2) {
+					return;
+				}
 
-			Command.patch(entity.id, text1, text2, function() {
-				Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
-				_Pages.reloadPreviews();
-				dialogSaveButton.prop('disabled', true).addClass('disabled');
-				saveAndClose.prop('disabled', true).addClass('disabled');
-				Command.getProperty(entity.id, 'content', function(newText) {
-					text = newText;
+				Command.patch(entity.id, text1, text2, function () {
+					Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
+					_Pages.reloadPreviews();
+					dialogSaveButton.prop('disabled', true).addClass('disabled');
+					saveAndClose.prop('disabled', true).addClass('disabled');
+					Command.getProperty(entity.id, 'content', function (newText) {
+						text = newText;
+					});
+
+					window.setTimeout(function () {
+						editor.performLint();
+					}, 300);
 				});
 
-				window.setTimeout(function() { editor.performLint(); }, 300);
 			});
-
-		});
+		}
 
 		const values = ['text/plain', 'text/html', 'text/xml', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence', 'text/asciidoc'];
 
@@ -1764,8 +1768,10 @@ var _Elements = {
 		};
 
 		let lineWrapping = document.querySelector('#lineWrapping');
-		lineWrapping.removeEventListener('change', lineWrappingHandler);
-		lineWrapping.addEventListener('change', lineWrappingHandler);
+		if (lineWrapping) {
+			lineWrapping.removeEventListener('change', lineWrappingHandler);
+			lineWrapping.addEventListener('change', lineWrappingHandler);
+		}
 
 		infoArea.insertAdjacentHTML('beforeend', '<span class="editor-info">Characters: <span id="chars">' + editor.getValue().length + '</span></span>');
 		infoArea.insertAdjacentHTML('beforeend', '<span class="editor-info">Words: <span id="words">' + (editor.getValue().match(/\S+/g) !== null ? editor.getValue().match(/\S+/g).length : 0) + '</span></span>');

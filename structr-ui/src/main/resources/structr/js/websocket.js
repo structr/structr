@@ -93,7 +93,8 @@ function wsConnect() {
 			// Delay reconnect dialog to prevent it popping up before page reload
 			window.setTimeout(function () {
 
-				main.empty();
+				fastRemoveAllChildren(main[0]);
+				fastRemoveAllChildren(functionBar[0]);
 
 				var restoreDialogText = '';
 				var dialogData = JSON.parse(LSWrapper.getItem(dialogDataKey));

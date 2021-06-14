@@ -174,6 +174,9 @@ var _Flows = {
 
 		});
 
+		let rest = new Rest();
+		let persistence = new Persistence();
+
 		Structr.fetchHtmlTemplate('flows/flows', {}, function(html) {
 
 			main = document.querySelector('#main');
@@ -186,8 +189,6 @@ var _Flows = {
 
 			flowsMain = document.querySelector('#flows-main');
 
-			let rest = new Rest();
-			let persistence = new Persistence();
 
 			flowsTree   = document.querySelector('#flows-tree');
 			flowsCanvas = document.querySelector('#flows-canvas');

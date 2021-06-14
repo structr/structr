@@ -79,7 +79,7 @@ var _Entities = {
 	deleteNode: function(button, entity, recursive, callback) {
 		buttonClicked = button;
 		if ( !Structr.isButtonDisabled(button) ) {
-			Structr.confirmation('<p>Delete ' + entity.type + ' \'' + entity.name + '\' [' + entity.id + ']' + (recursive ? ' recursively' : '') + '?</p>',
+			Structr.confirmation('<p>Delete ' + entity.type + ' ' + (entity.name || '') + ' ' + entity.id + '' + (recursive ? ' recursively' : '') + '?</p>',
 				function() {
 					Command.deleteNode(entity.id, recursive);
 					$.unblockUI({
@@ -597,12 +597,13 @@ var _Entities = {
 
 				_Schema.getTypeInfo(entity.type, function(typeInfo) {
 
-
 					var dialogTitle;
 
 					if (entity.hasOwnProperty('relType')) {
 
-						tabTexts.ui = 'Relationship Properties';
+						views = ['all'];
+
+						tabTexts.all = 'Relationship Properties';
 						tabTexts.sourceNode = 'Source Node Properties';
 						tabTexts.targetNode = 'Target Node Properties';
 
@@ -678,7 +679,7 @@ var _Entities = {
 			};
 
 			if (obj.relType) {
-				Command.getRelationship(obj.id, obj.target, null, function(entity) { handleGraphObject(entity); });
+				Command.getRelationship(obj.id, obj.target, null, function(entity) { handleGraphObject(entity); }, 'ui');
 			} else {
 				Command.get(obj.id, null, function(entity) { handleGraphObject(entity); }, 'ui');
 			}
@@ -1494,10 +1495,10 @@ var _Entities = {
 						cell.find('[name="' + key + '"]').each(function(i, el) {
 							_Entities.activateInput(el, id, pageId, typeInfo);
 						});
-						valueMsg = newVal ? 'value [' + newVal.join(',\n') + ']': 'empty value';
+						valueMsg = (newVal !== undefined || newValue !== null) ? 'value [' + newVal.join(',\n') + ']': 'empty value';
 					} else {
 						input.val(newVal);
-						valueMsg = newVal ? 'value "' + newVal + '"': 'empty value';
+						valueMsg = (newVal !== undefined || newValue !== null) ? 'value "' + newVal + '"': 'empty value';
 					}
 					Structr.showAndHideInfoBoxMessage('Updated property "' + key + '"' + (!isPassword ? ' with ' + valueMsg + '' : ''), 'success', 2000, 200);
 
@@ -1525,7 +1526,7 @@ var _Entities = {
 				cell.find('[name="' + key + '"]').each(function(i, el) {
 					_Entities.activateInput(el, id, pageId, typeInfo);
 				});
-				valueMsg = newVal ? 'value [' + newVal.join(',\n') + ']': 'empty value';
+				valueMsg = (newVal !== undefined || newValue !== null) ? 'value [' + newVal.join(',\n') + ']': 'empty value';
 				Structr.showAndHideInfoBoxMessage('Updated property "' + key + '" with ' + valueMsg + '.', 'success', 2000, 200);
 
 				if (onUpdateCallback) {
@@ -1864,7 +1865,7 @@ var _Entities = {
 			// 	e.stopPropagation();
 			// 	_Entities.editSource(entity);
 			// });
-			parent.on('click', function(e) { console.log('appendEditSourceIcon');
+			parent.on('click', function(e) {
 				e.stopPropagation();
 				_Entities.editSource(entity);
 			});
@@ -2168,7 +2169,7 @@ var _Entities = {
 		// _Pages.activatePage($('#show_' + id));
 
 	},
-	toggleElement: function(element, expanded) { console.log('toggleElement')
+	toggleElement: function(element, expanded) {
 
 		var el = $(element);
 		var id = Structr.getId(el) || Structr.getComponentId(el) || Structr.getGroupId(el);
@@ -2433,18 +2434,18 @@ var _Entities = {
 					newVal = newVal.join(',');
 				}
 				input.val(newVal);
-				let valueMsg = newVal ? 'value "' + newVal : 'empty value';
+				let valueMsg = (newVal !== undefined || newValue !== null) ? 'value "' + newVal : 'empty value';
 				Structr.showAndHideInfoBoxMessage('Updated property "' + key + '" with ' + valueMsg, 'success', 2000, 200);
 			} else {
 				input.val(oldVal);
 			}
 		});
 	}
-};
+}
 
 function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 
-	if (!obj) {
+	if (obj === undefined || obj === null) {
 
 		return formatRegularValueField(key, '', isMultiline, isReadOnly, isPassword);
 
@@ -2461,7 +2462,7 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 
 		return formatRegularValueField(key, escapeForHtmlAttributes(obj), isMultiline, isReadOnly, isPassword);
 	}
-};
+}
 
 function formatArrayValueField(key, values, isMultiline, isReadOnly, isPassword) {
 
@@ -2490,7 +2491,7 @@ function formatArrayValueField(key, values, isMultiline, isReadOnly, isPassword)
 
 	return html;
 
-};
+}
 
 function formatRegularValueField(key, value, isMultiline, isReadOnly, isPassword) {
 
@@ -2502,4 +2503,4 @@ function formatRegularValueField(key, value, isMultiline, isReadOnly, isPassword
 
 		return '<input name="' + key + '" type="' + (isPassword ? 'password" autocomplete="new-password' : 'text') + '" value="' + value + '"' + (isReadOnly ? 'readonly class="readonly"' : '') + '>';
 	}
-};
+}

@@ -18,10 +18,7 @@
  */
 var graphBrowser, mode, colors = [], c = 0;
 var nodeIds = [], relIds = [], removedRel;
-var activeTabRightGraphKey = 'structrActiveTabRightGraph_' + port;
-var activeTabLeftGraphKey = 'structrActiveTabLeftGraph_' + port;
-var activeTabLeftGraph, activeTabRightGraph;
-var queriesSlideout, displaySlideout, filtersSlideout, graph;
+var graph;
 var savedQueriesKey = 'structrSavedQueries_' + port;
 var relTypes = {}, nodeTypes = {}, color = {}, relColors = {}, hasDragged, hasDoubleClicked, clickTimeout, doubleClickTime = 250, refreshTimeout;
 var filteredNodeTypes = [], hiddenNodeTypes = [], hiddenRelTypes = [];
@@ -101,8 +98,8 @@ var _Graph = {
 
 		_Graph.updateNodeTypes();
 
-		var canvasWidth = $('#graph-canvas').width();
-		var canvasHeight = canvasWidth / (16 / 9);
+		var canvasWidth = 1000; //$('#graph-canvas').width();
+		var canvasHeight = 1000; //canvasWidth / (16 / 9);
 
 		var editDistance = Math.sqrt(Math.pow(canvasWidth, 2) + Math.pow(canvasHeight, 2)) * 0.2;
 		var graphBrowserSettings = {
@@ -131,7 +128,7 @@ var _Graph = {
 				},
 				'selectionTools': {'container': 'graph-canvas'},
 				'relationshipEditor' : {
-					incommingRelationsKey: 'shift',
+					incomingRelationsKey: 'shift',
 					outgoingRelationsKey: 'ctrl',
 					deleteEvent: 'doubleClickEdge',
 					onDeleteRelation: undefined,
@@ -194,21 +191,38 @@ var _Graph = {
 
 	onload: function() {
 
-		Structr.fetchHtmlTemplate('graph/graph', {}, function(html) {
+		live('#toggleNodeLabels', 'change', (e) => {
+			nodeLabelsHidden = !nodeLabelsHidden;
+			graphBrowser.changeSigmaSetting('drawLabels', !nodeLabelsHidden);
+		});
 
-			main[0].innerHTML = html;
+		live('#toggleEdgeLabels', 'change', (e) => {
+			edgeLabelsHidden = !edgeLabelsHidden;
+			graphBrowser.changeSigmaSetting('drawEdgeLabels', !edgeLabelsHidden);
+		});
 
-			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('graph'));
+		live('#fruchterman-controlElement', 'click', () => {
+			graphBrowser.doLayout('fruchtermanReingold');
+		});
 
-			activeTabLeftGraph = LSWrapper.getItem(activeTabRightGraphKey);
-			activeTabRightGraph = LSWrapper.getItem(activeTabLeftGraphKey);
+		live('#dagre-controlElement', 'click', () => {
+			graphBrowser.doLayout('dagre');
+		});
 
+		live('#forceAtlas-controlElement', 'click', (e) => {
+			let el = e.target.closest('a#forceAtlas-controlElement');
+			el.classList.toggle('active');
+			graphBrowser.startForceAtlas2();
+		});
 
-			queriesSlideout = $('#queries');
-			displaySlideout = $('#display');
-			filtersSlideout = $('#filters');
+		Structr.fetchHtmlTemplate('graph/submenu', {}, function(html) {
+			functionBar[0].innerHTML = html;
 
-			var savedTypeVisibility = LSWrapper.getItem(_Graph.displayTypeConfigKey) || {};
+			$('#clear-graph').on('click', function() {
+				_Graph.clearGraph();
+			});
+
+			let savedTypeVisibility = LSWrapper.getItem(_Graph.displayTypeConfigKey) || {};
 			$('#graphTypeToggleRels').prop('checked', (savedTypeVisibility.rels === undefined ? true : savedTypeVisibility.rels));
 			$('#graphTypeToggleCustom').prop('checked', (savedTypeVisibility.custom === undefined ? true : savedTypeVisibility.custom));
 			$('#graphTypeToggleCore').prop('checked', (savedTypeVisibility.core === undefined ? true : savedTypeVisibility.core));
@@ -217,33 +231,7 @@ var _Graph = {
 			$('#graphTypeToggleLog').prop('checked', (savedTypeVisibility.log === undefined ? true : savedTypeVisibility.log));
 			$('#graphTypeToggleOther').prop('checked', (savedTypeVisibility.other === undefined ? true : savedTypeVisibility.other));
 
-			$('#fruchterman-controlElement').on('click', function() {
-				graphBrowser.doLayout('fruchtermanReingold');
-			});
 
-			$('#dagre-controlElement').on('click', function() {
-				graphBrowser.doLayout('dagre');
-			});
-
-			$('#start-forceAtlas-controlElement').on('click', function() {
-				graphBrowser.startForceAtlas2();
-			});
-
-			$('#stop-forceAtlas-controlElement').on('click', function() {
-				graphBrowser.stopForceAtlas2();
-			});
-
-			$('#toggleNodeLabels').on('click', function() {
-				nodeLabelsHidden = !nodeLabelsHidden;
-				$(this).text( (nodeLabelsHidden ? 'Show' : 'Hide') + ' node labels');
-				graphBrowser.changeSigmaSetting('drawLabels', !nodeLabelsHidden);
-			});
-
-			$('#toggleEdgeLabels').on('click', function() {
-				edgeLabelsHidden = !edgeLabelsHidden;
-				$(this).text((edgeLabelsHidden ? 'Show' : 'Hide') + ' edge labels');
-				graphBrowser.changeSigmaSetting('drawEdgeLabels', !edgeLabelsHidden);
-			});
 
 			$('#selectionLasso').on('click', function() {
 				if (!graphBrowser.selectionToolsActive) {
@@ -297,109 +285,6 @@ var _Graph = {
 				graphBrowser.fixateSelectionGroup(val[1], self.is(':checked'));
 			});
 
-			$(document).on('click', '.closeTooltipBtn', function(){
-				graphBrowser.closeTooltip();
-			});
-
-			$(document).on('click', '#tooltipBtnProps', function(){
-				var id = $(this).attr("value");
-				_Entities.showProperties({id: id});
-				graphBrowser.closeTooltip();
-			});
-
-			$(document).on('click', '#tooltipBtnHide', function() {
-				var id = $(this).attr("value");
-				graphBrowser.closeTooltip();
-				graphBrowser.hideNode(id, true);
-			});
-
-			$(document).on('click', '#tooltipBtnDrop', function() {
-				var id = $(this).attr("value");
-				graphBrowser.closeTooltip();
-				graphBrowser.dropNode(id);
-				graphBrowser.dataChanged();
-				_Graph.updateRelationshipTypes();
-			});
-
-			$(document).on('click', '#tooltipBtnDel', function() {
-				var self = $(this);
-				var id = self.attr("value");
-				Command.get(id, 'id,type,name,sourceId,targetId', function (entity) {
-					if (graphBrowser.getNode(entity.id)) {
-						_Entities.deleteNode(self, entity, false, function (entity) {
-							graphBrowser.dropNode(entity);
-							graphBrowser.dataChanged();
-							_Graph.updateRelationshipTypes();
-						});
-					} else {
-						_Entities.deleteEdge(self, entity, false, function (entity) {
-							if(graphBrowser.getEdge(entity)) {
-								graphBrowser.dropEdge(entity);
-							}
-							graphBrowser.dataChanged();
-							_Graph.updateRelationshipTypes();
-						});
-					}
-				});
-				graphBrowser.closeTooltip();
-			});
-
-			graph = $('#graph-canvas');
-
-			graph.droppable({
-				accept: '.node-type',
-				drop: function(e, ui) {
-					var nodeType = ui.helper.attr('data-node-type');
-					Command.create({
-						type: nodeType
-					}, function(obj) {
-						if(obj != null) {
-							Command.get(obj.id, 'id,type,name,color,tag', function(node) {
-								_Graph.drawNode(node);
-							});
-						}
-					});
-				}
-			});
-
-			_Graph.init();
-
-			$('.slideOut').on('mouseover', function() {
-				running = false;
-				return true;
-			});
-
-			$('.slideOut').on('mouseout', function() {
-				running = true;
-				return true;
-			});
-
-			$('#queriesTab').on('click', function() {
-				_Pages.leftSlideoutTrigger(this, queriesSlideout, [displaySlideout, filtersSlideout], activeTabLeftGraphKey);
-			});
-
-			$('#displayTab').on('click', function() {
-				_Pages.leftSlideoutTrigger(this, displaySlideout, [queriesSlideout, filtersSlideout], activeTabLeftGraphKey);
-			});
-
-			$('#filtersTab').on('click', function() {
-				_Pages.leftSlideoutTrigger(this, filtersSlideout, [queriesSlideout, displaySlideout], activeTabLeftGraphKey);
-			});
-
-			if (activeTabLeftGraph) {
-				$('#' + activeTabLeftGraph).addClass('active').click();
-			}
-
-			if (activeTabRightGraph) {
-				$('#' + activeTabRightGraph).addClass('active').click();
-			}
-
-			_Graph.appendCypherParameter($('#cypher-params'));
-
-			$('#clear-graph').on('click', function() {
-				_Graph.clearGraph();
-			});
-
 			$('.clearSearchIcon').on('click', function() {
 				var self = $(this);
 				self.hide();
@@ -432,49 +317,135 @@ var _Graph = {
 				}
 			});
 
-			$('#add-cypher-parameter').on('click', function() {
-				_Graph.appendCypherParameter($('#cypher-params'));
-			});
 
-			$(document).on('click', '.remove-cypher-parameter', function() {
-				$(this).parent().remove();
-			});
+			Structr.fetchHtmlTemplate('graph/graph', {}, function(html) {
 
-			_Graph.clearSearch('rest');
-			_Graph.clearSearch('cypher');
-			_Graph.listSavedQueries();
+				main[0].innerHTML = html;
 
-			_Graph.searchField = $('.search', queriesSlideout);
-			_Graph.searchField.focus();
-			_Graph.searchField.keyup(function(e) {
-				var self = $(this);
-				var searchString = self.val();
-				var type = self.attr('name');
+				Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('graph'));
 
-				if (searchString && searchString.length) {
-					_Graph.showClearSearchIcon(type);
-				} else {
-					_Graph.clearSearch(type);
-				}
+				$(document).on('click', '.closeTooltipBtn', function(){
+					graphBrowser.closeTooltip();
+				});
 
-				if (searchString && searchString.length && e.which === 13) {
-					if (!shiftKey) {
-						_Graph.execQuery(searchString, type);
-						return false;
+				$(document).on('click', '#tooltipBtnProps', function(){
+					var id = $(this).attr("value");
+					_Entities.showProperties({id: id});
+					graphBrowser.closeTooltip();
+				});
+
+				$(document).on('click', '#tooltipBtnHide', function() {
+					var id = $(this).attr("value");
+					graphBrowser.closeTooltip();
+					graphBrowser.hideNode(id, true);
+				});
+
+				$(document).on('click', '#tooltipBtnDrop', function() {
+					var id = $(this).attr("value");
+					graphBrowser.closeTooltip();
+					graphBrowser.dropNode(id);
+					graphBrowser.dataChanged();
+					_Graph.updateRelationshipTypes();
+				});
+
+				$(document).on('click', '#tooltipBtnDel', function() {
+					var self = $(this);
+					var id = self.attr("value");
+					Command.get(id, 'id,type,name,sourceId,targetId', function (entity) {
+						if (graphBrowser.getNode(entity.id)) {
+							_Entities.deleteNode(self, entity, false, function (entity) {
+								graphBrowser.dropNode(entity);
+								graphBrowser.dataChanged();
+								_Graph.updateRelationshipTypes();
+							});
+						} else {
+							_Entities.deleteEdge(self, entity, false, function (entity) {
+								if(graphBrowser.getEdge(entity)) {
+									graphBrowser.dropEdge(entity);
+								}
+								graphBrowser.dataChanged();
+								_Graph.updateRelationshipTypes();
+							});
+						}
+					});
+					graphBrowser.closeTooltip();
+				});
+
+				graph = $('#graph-canvas');
+
+				graph.droppable({
+					accept: '.node-type',
+					drop: function(e, ui) {
+						var nodeType = ui.helper.attr('data-node-type');
+						Command.create({
+							type: nodeType
+						}, function(obj) {
+							if(obj != null) {
+								Command.get(obj.id, 'id,type,name,color,tag', function(node) {
+									_Graph.drawNode(node);
+								});
+							}
+						});
 					}
-				} else if (e.which === 27) {
-					_Graph.clearSearch(type);
-				}
-			});
+				});
 
-			$(window).off('resize').resize(function() {
-				_Graph.resize();
-			});
+				_Graph.init();
+				_Graph.appendCypherParameter($('#cypher-params'));
 
-			$('#newSelectionGroup').trigger('click');
-			Structr.unblockMenu(100);
+				$('#add-cypher-parameter').on('click', function() {
+					_Graph.appendCypherParameter($('#cypher-params'));
+				});
+
+				$(document).on('click', '.remove-cypher-parameter', function() {
+					$(this).parent().remove();
+				});
+
+				_Graph.clearSearch('rest');
+				_Graph.clearSearch('cypher');
+				_Graph.listSavedQueries();
+
+				_Graph.searchField = $('.query-box .search');
+				_Graph.searchField.focus();
+				_Graph.searchField.keyup(function(e) {
+					var self = $(this);
+					var searchString = self.val();
+					var type = self.attr('name');
+
+					if (searchString && searchString.length) {
+						_Graph.showClearSearchIcon(type);
+					} else {
+						_Graph.clearSearch(type);
+					}
+
+					if (searchString && searchString.length && e.which === 13) {
+						if (!shiftKey) {
+
+							if (type === 'rest') {
+								e.stopPropagation();
+								e.preventDefault();
+							} else {
+								_Graph.searchField.attr('rows', searchString.split('\n').length);
+							}
+
+							_Graph.execQuery(searchString, type);
+							return false;
+						}
+					} else if (e.which === 27) {
+						_Graph.clearSearch(type);
+					}
+				});
+
+				$(window).off('resize').resize(function() {
+					_Graph.resize();
+				});
+
+				$('#newSelectionGroup').trigger('click');
+				Structr.unblockMenu(100);
+
+			});
 
 		});
+
 	},
 	execQuery: function(query, type, params) {
 		if (query && query.length) {
@@ -680,33 +651,33 @@ var _Graph = {
 	resize: function() {
 		Structr.resize();
 
-		var windowHeight = $(window).height();
-		var windowWidth = $(window).width();
+		// var windowHeight = $(window).height();
+		// var windowWidth = $(window).width();
 
-		var ch = windowHeight - graph.offset().top;
+		// var ch = windowHeight - graph.offset().top;
 
-		graph.css({
-			height: ch,
-			width: windowWidth
-		});
+		// graph.css({
+		// 	height: ch,
+		// 	width: windowWidth
+		// });
+		//
+		// $('canvas', graph).css({
+		// 	height: ch,
+		// 	width: windowWidth
+		// });
 
-		$('canvas', graph).css({
-			height: ch,
-			width: windowWidth
-		});
-
-		nodeTypes = $('#node-types');
-		var distance = nodeTypes.position().top - 60;
-		var boxHeight = (ch - (3 * distance)) / 2;
-
-		nodeTypes.css({
-			height: boxHeight
-		});
-
-		$('#relationship-types').css({
-			top: nodeTypes.position().top + boxHeight + distance,
-			height: boxHeight
-		});
+		// nodeTypes = $('#node-types');
+		// var distance = nodeTypes.position().top - 60;
+		// var boxHeight = (ch - (3 * distance)) / 2;
+		//
+		// nodeTypes.css({
+		// 	height: boxHeight
+		// });
+		//
+		// $('#relationship-types').css({
+		// 	top: nodeTypes.position().top + boxHeight + distance,
+		// 	height: boxHeight
+		// });
 	},
 
 	loadTypeDefinition: function(type, callback) {
@@ -781,8 +752,8 @@ var _Graph = {
 				var isLogType     = node.className.startsWith('org.structr.rest.logging.entity');
 				var isOtherType   = !(isRelType || isDynamicType || isCoreType || isHtmlType || isUiType || isLogType);
 
-				var hide =	(!typeVisibility.rels && isRelType) || (!typeVisibility.custom && isDynamicType) || (!typeVisibility.core && isCoreType) || (!typeVisibility.html && isHtmlType) ||
-							(!typeVisibility.ui && isUiType) || (!typeVisibility.log && isLogType) || (!typeVisibility.other && isOtherType);
+				let hide = false; //(!typeVisibility.rels && isRelType) || (!typeVisibility.custom && isDynamicType) || (!typeVisibility.core && isCoreType) || (!typeVisibility.html && isHtmlType) ||
+							//(!typeVisibility.ui && isUiType) || (!typeVisibility.log && isLogType) || (!typeVisibility.other && isOtherType);
 
 				if (hide) {
 					filteredNodeTypes.push(node.type);
@@ -845,11 +816,11 @@ var _Graph = {
 	},
 
 	filterNodeTypes: function(types) {
-			graphBrowser.clearFilterNodeTypes();
+		graphBrowser.clearFilterNodeTypes();
 		types.forEach(function(type) {
 			graphBrowser.addNodeTypeToFilter(type);
 		});
-			graphBrowser.filterGraph();
+		graphBrowser.filterGraph();
 	},
 
 	setNodeColor: function(node) {
@@ -913,6 +884,10 @@ var _Graph = {
 
 	handleClickStageEvent: function(){
 		graphBrowser.hideExpandButtons();
+		document.querySelectorAll('.dropdown-menu-container').forEach((container) => {
+			container.style.opacity = '0';
+			fastRemoveAllChildren(container);
+		});
 	},
 
 	handleDragNodeEvent: function(){
@@ -953,7 +928,6 @@ var _Graph = {
 	},
 
 	handleClickEdgeEvent: function(clickedEdge){
-		var edge = clickedEdge.data.edge;
 
 		if (hasDragged) {
 			hasDragged = false;
@@ -961,7 +935,9 @@ var _Graph = {
 		}
 
 		hasDoubleClicked = false;
-		_Entities.showProperties(edge);
+
+		_Entities.showProperties(clickedEdge.data.edge);
+
 	},
 
 	renderNodeExpanderInfoButton: function(colorKey, label){
