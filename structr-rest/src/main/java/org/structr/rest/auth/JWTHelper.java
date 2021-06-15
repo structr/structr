@@ -18,11 +18,14 @@
  */
 package org.structr.rest.auth;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.WeakKeyException;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.impl.NullClaim;
+import com.auth0.jwt.interfaces.Claim;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +37,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.property.PropertyKey;
 
-import javax.crypto.SecretKey;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -80,7 +82,7 @@ public class JWTHelper {
     public static Principal getPrincipalForRefreshToken(final String refreshToken) throws FrameworkException {
 
         final String jwtSecretType = Settings.JWTSecretType.getValue();
-        Jws<Claims> claims = null;
+        Map<String, Claim> claims = null;
 
         switch (jwtSecretType) {
             default:
@@ -93,7 +95,12 @@ public class JWTHelper {
             case "keypair":
 
                 final Key publicKey = getPublicKeyForToken();
-                claims = validateTokenWithKeystore(refreshToken, publicKey);
+                if (publicKey == null) {
+
+                    break;
+                }
+                final Algorithm algorithm = Algorithm.HMAC256(publicKey.getEncoded());
+                claims = validateTokenWithKeystore(refreshToken, algorithm);
                 break;
 
             case "jwks":
@@ -106,8 +113,8 @@ public class JWTHelper {
             return null;
         }
 
-        final String tokenId = (String) claims.getBody().get("tokenId");
-        final String tokenType = (String) claims.getBody().get("tokenType");
+        final String tokenId = claims.get("tokenId").asString();
+        final String tokenType = claims.get("tokenType").asString();
         if (tokenId == null || tokenType == null || !StringUtils.equals(tokenType, "refresh_token")) {
             return null;
 
@@ -178,14 +185,14 @@ public class JWTHelper {
         return Arrays.asList(refreshTokens).contains(tokenId);
     }
 
-    private static Principal getPrincipalForTokenClaims(Claims claims, PropertyKey<String> eMailKey) throws FrameworkException {
+    private static Principal getPrincipalForTokenClaims(Map<String, Claim> claims, PropertyKey<String> eMailKey) throws FrameworkException {
 
         final String instanceName = Settings.InstanceName.getValue();
         Principal user = null;
 
-        String instance = claims.get("instance", String.class);
-        String uuid = claims.get("uuid", String.class);
-        String eMail = claims.get("eMail", String.class);
+        String instance = claims.getOrDefault("instance", new NullClaim()).asString();
+        String uuid = claims.getOrDefault("uuid", new NullClaim()).asString();
+        String eMail = claims.getOrDefault("eMail", new NullClaim()).asString();
 
         // if the instance is the same that issued the token, we can lookup the user with uuid claim
         if (StringUtils.equals(instance, instanceName)) {
@@ -204,17 +211,18 @@ public class JWTHelper {
     private static Principal getPrincipalForAccessTokenWithKeystore(String token, PropertyKey<String> eMailKey) throws FrameworkException  {
 
         Key publicKey = getPublicKeyForToken();
-        Jws<Claims> jws = validateTokenWithKeystore(token, publicKey);
+        final Algorithm alg = Algorithm.HMAC256(publicKey.getEncoded());
+        Map<String, Claim> claims = validateTokenWithKeystore(token, alg);
 
-        if (jws == null) {
+        if (claims == null) {
             return null;
         }
 
-        Principal user = getPrincipalForTokenClaims(jws.getBody(), eMailKey);
+        Principal user = getPrincipalForTokenClaims(claims, eMailKey);
 
         // Check if the access_token is still valid.
         // If access_token isn't valid anymore, then either it timed out, or the user logged out.
-        String tokenReference = jws.getBody().get("tokenId", String.class);
+        String tokenReference = claims.getOrDefault("tokenId", new NullClaim()).asString();
         if (validateTokenForUser(tokenReference, user)) {
 
             return user;
@@ -227,17 +235,17 @@ public class JWTHelper {
 
         final String secret = Settings.JWTSecret.getValue();
 
-        Jws<Claims> jws = validateTokenWithSecret(token, secret);
+        Map<String, Claim> claims = validateTokenWithSecret(token, secret);
 
-        if (jws == null) {
+        if (claims == null) {
             return null;
         }
 
-        Principal user =  getPrincipalForTokenClaims(jws.getBody(), eMailKey);
+        Principal user =  getPrincipalForTokenClaims(claims, eMailKey);
 
         // Check if the access_token is still valid.
         // If access_token isn't valid anymore, then either it timed out, or the user logged out.
-        String tokenReference = jws.getBody().get("tokenId", String.class);
+        String tokenReference = claims.getOrDefault("tokenId", new NullClaim()).asString();
         if (validateTokenForUser(tokenReference, user)) {
 
             return user;
@@ -293,10 +301,10 @@ public class JWTHelper {
 
         try {
 
-            SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-            return createTokens(user, key, accessTokenExpirationDate, refreshTokenExpirationDate, instanceName, jwtIssuer);
+            final Algorithm alg = Algorithm.HMAC256(secret.getBytes(StandardCharsets.UTF_8));
+            return createTokens(user, alg, accessTokenExpirationDate, refreshTokenExpirationDate, instanceName, jwtIssuer);
 
-        } catch (WeakKeyException ex) {
+        } catch (JWTCreationException ex) {
 
             throw new FrameworkException(500, "The configured secret is too weak (must be at least 32 characters)");
         }
@@ -313,10 +321,12 @@ public class JWTHelper {
 
         final String jwtIssuer = Settings.JWTIssuer.getValue();
 
-        return createTokens(user, privateKey, accessTokenExpirationDate, refreshTokenExpirationDate, instanceName, jwtIssuer);
+        final Algorithm alg = Algorithm.HMAC256(privateKey.getEncoded());
+
+        return createTokens(user, alg, accessTokenExpirationDate, refreshTokenExpirationDate, instanceName, jwtIssuer);
     }
 
-    private static Map<String, String> createTokens (Principal user, Key key, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName, String jwtIssuer) throws FrameworkException {
+    private static Map<String, String> createTokens (Principal user, Algorithm alg, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName, String jwtIssuer) throws FrameworkException {
         final  Map<String, String> tokens = new HashMap<>();
 
         String tokenId = null;
@@ -330,30 +340,29 @@ public class JWTHelper {
 
             tokenId = tokenStringBuilder.toString();
 
-            String refreshToken = Jwts.builder()
-                    .setSubject(user.getName())
-                    .setExpiration(refreshTokenExpirationDate)
-                    .setIssuer(jwtIssuer)
-                    .claim("tokenId", tokenId)
-                    .claim("tokenType", "refresh_token")
-                    .signWith(key)
-                    .compact();
+            String refreshToken = JWT.create()
+                    .withSubject(user.getName())
+                    .withExpiresAt(refreshTokenExpirationDate)
+                    .withIssuer(jwtIssuer)
+                    .withClaim("tokenId", tokenId)
+                    .withClaim("tokenType", "refresh_token")
+                    .sign(alg);
+
 
             Principal.addRefreshToken(user, tokenId);
             tokens.put("refresh_token", refreshToken);
         }
 
-        String accessToken = Jwts.builder()
-                .setSubject(user.getName())
-                .setExpiration(accessTokenExpirationDate)
-                .setIssuer(jwtIssuer)
-                .claim("instance", instanceName)
-                .claim("uuid", user.getUuid())
-                .claim("eMail", user.getEMail())
-                .claim("tokenType", "access_token")
-                .claim("tokenId", tokenId)
-                .signWith(key)
-                .compact();
+        String accessToken = JWT.create()
+                .withSubject(user.getName())
+                .withExpiresAt(accessTokenExpirationDate)
+                .withIssuer(jwtIssuer)
+                .withClaim("instance", instanceName)
+                .withClaim("uuid", user.getUuid())
+                .withClaim("eMail", user.getEMail())
+                .withClaim("tokenType", "access_token")
+                .withClaim("tokenId", tokenId)
+                .sign(alg);
 
         tokens.put("access_token", accessToken);
         tokens.put("expiration_date", Long.toString(accessTokenExpirationDate.getTime()));
@@ -417,32 +426,32 @@ public class JWTHelper {
         return null;
     }
 
-    private static Jws<Claims> validateTokenWithSecret(String token, String secret) {
+    private static Map<String, Claim> validateTokenWithSecret(String token, String secret) {
         try {
 
-            SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+            Algorithm alg = Algorithm.HMAC256(secret.getBytes(StandardCharsets.UTF_8));
 
-            return Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token);
+            JWTVerifier verifier = JWT.require(alg).build();
 
-        } catch (Exception e) {
+            DecodedJWT decodedJWT = verifier.verify(token);
+            return decodedJWT.getClaims();
+
+        } catch (JWTVerificationException e) {
             logger.debug("Invalid token", e);
         }
 
         return null;
     }
 
-    private static Jws<Claims> validateTokenWithKeystore(String token, Key key) {
+    private static Map<String, Claim> validateTokenWithKeystore(String token, Algorithm alg) {
         try {
 
-            return Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token);
+            JWTVerifier verifier = JWT.require(alg).build();
 
-        } catch (Exception e) {
+            DecodedJWT decodedJWT = verifier.verify(token);
+            return decodedJWT.getClaims();
+
+        } catch (JWTVerificationException  e) {
             logger.debug("Invalid token", e);
         }
 
