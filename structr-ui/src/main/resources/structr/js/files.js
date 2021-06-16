@@ -555,7 +555,7 @@ var _Files = {
 			let pagerId = 'filesystem-files';
 			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			let filesPager = _Pager.addPager(pagerId, folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers');
+			let filesPager = _Pager.addPager(pagerId, folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,isFavoritable,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers');
 
 			filesPager.cleanupFunction = function () {
 				var toRemove = $('.node.file', filesPager.el).closest( (_Files.isViewModeActive('list') ? 'tr' : '.tile') );
@@ -573,7 +573,7 @@ var _Files = {
 			_Files.insertBreadCrumbNavigation(parents, nodePath);
 
 			if (_Files.isViewModeActive('list')) {
-				folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
+				folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
 					+ '<tbody id="files-table-body">'
 					+ (!isRootFolder ? '<tr><td class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td></tr>' : '')
 					+ '</tbody></table>');
@@ -658,7 +658,7 @@ var _Files = {
 
 		StructrModel.createFromData(d, null, false);
 
-		let size = d.isFolder ? (d.foldersCount + d.filesCount) : (d.size ? d.size : '-');
+		let size = d.isFolder ? (d.foldersCount + d.filesCount) : d.size;
 		let icon = d.isFolder ? 'fa-folder' : _Icons.getFileIconClass(d);
 		let name = d.name ? d.name : '[unnamed]';
 
@@ -682,8 +682,15 @@ var _Files = {
 				+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + d.size + '</span></div></div></div><span class="id">' + d.id + '</span></div></td>');
 			}
 
-			row.append('<td class="size">' + size + '</td>');
-			row.append('<td>' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
+			row.append('<td class="abbr-ellipsis abbr-75pc id">' + d.id + '</td>');
+
+			if (d.isFolder) {
+				row.append('<td class="size">' + size + '</td>');
+			} else {
+				row.append('<td class="size">' + formatBytes(size,0) + '</td>');
+			}
+
+			row.append('<td class="abbr-ellipsis abbr-75pc">' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
 			row.append('<td>' + (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '') + '</td>');
 
 		} else if (_Files.isViewModeActive('tiles')) {
@@ -736,11 +743,16 @@ var _Files = {
 
 		_Entities.setMouseOver(div, true);
 
+		div.children('b.name_').off('click').on('click', function(e) {
+			e.stopPropagation();
+			_Entities.makeNameEditable(div);
+		});
+
 		div.on('remove', function() {
 			div.closest('tr').remove();
 		});
 
-		_Entities.appendAccessControlIcon(div, d);
+		// _Entities.appendAccessControlIcon(div, d);
 
 		if (d.isFolder) {
 			_Files.handleFolder(div, d);
@@ -779,6 +791,8 @@ var _Files = {
 
 		_Entities.appendEditPropertiesIcon(div, d);
 		_Entities.makeSelectable(div);
+
+		_Elements.enableContextMenuOnElement(div, d);
 	},
 	handleFolder: function(div, d) {
 
@@ -790,38 +804,38 @@ var _Files = {
 			});
 		}
 
-		var delIcon = $('.delete_icon', div);
-		var newDelIcon = $('<i title="Delete folder \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
-
-		if (delIcon && delIcon.length) {
-			delIcon.replaceWith(newDelIcon);
-		} else {
-			div.append(newDelIcon);
-		}
-		newDelIcon.on('click', function(e) {
-			e.stopPropagation();
-
-			selectedElements = $('.node.selected');
-			var selectedCount = selectedElements.length;
-
-			if (selectedCount > 1 && div.hasClass('selected')) {
-
-				var files = [];
-
-				$.each(selectedElements, function(i, el) {
-					files.push(Structr.entityFromElement(el));
-				});
-
-				_Entities.deleteNodes(this, files, true, function() {
-					_Files.refreshTree();
-				});
-
-			} else {
-				_Entities.deleteNode(this, d, true, function() {
-					_Files.refreshTree();
-				});
-			}
-		});
+		// var delIcon = $('.delete_icon', div);
+		// var newDelIcon = $('<i title="Delete folder \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
+		//
+		// if (delIcon && delIcon.length) {
+		// 	delIcon.replaceWith(newDelIcon);
+		// } else {
+		// 	div.append(newDelIcon);
+		// }
+		// newDelIcon.on('click', function(e) {
+		// 	e.stopPropagation();
+		//
+		// 	selectedElements = $('.node.selected');
+		// 	var selectedCount = selectedElements.length;
+		//
+		// 	if (selectedCount > 1 && div.hasClass('selected')) {
+		//
+		// 		var files = [];
+		//
+		// 		$.each(selectedElements, function(i, el) {
+		// 			files.push(Structr.entityFromElement(el));
+		// 		});
+		//
+		// 		_Entities.deleteNodes(this, files, true, function() {
+		// 			_Files.refreshTree();
+		// 		});
+		//
+		// 	} else {
+		// 		_Entities.deleteNode(this, d, true, function() {
+		// 			_Files.refreshTree();
+		// 		});
+		// 	}
+		// });
 
 		div.droppable({
 			accept: '.folder, .file, .image',
@@ -873,87 +887,52 @@ var _Files = {
 			});
 		}
 
-		if (_Files.isArchive(d)) {
-			div.append('<i class="unarchive_icon button ' + _Icons.getFullSpriteClass(_Icons.compress_icon) + '" />');
-			$('.unarchive_icon', div).on('click', function() {
-
-				$('#tempInfoBox .infoHeading, #tempInfoBox .infoMsg').empty();
-				$('#tempInfoBox .closeButton').hide();
-				Structr.loaderIcon($('#tempInfoBox .infoMsg'), { marginBottom: '-6px' });
-				$('#tempInfoBox .infoMsg').append(' Unpacking Archive - please stand by...');
-				$('#tempInfoBox .infoMsg').append('<p>Extraction will run in the background.<br>You can safely close this popup and work during this operation.<br>You will be notified when the extraction has finished.</p>');
-
-				$.blockUI({
-					message: $('#tempInfoBox'),
-					css: Structr.defaultBlockUICss
-				});
-
-				var closed = false;
-				window.setTimeout(function() {
-					$('#tempInfoBox .closeButton').show().on('click', function () {
-						closed = true;
-						$.unblockUI({
-							fadeOut: 25
-						});
-					});
-				}, 500);
-
-				Command.unarchive(d.id, currentWorkingDir ? currentWorkingDir.id : undefined, function (data) {
-					if (data.success === true) {
-						_Files.refreshTree();
-						var message = "Extraction of '" + data.filename + "' finished successfully. ";
-						if (closed) {
-							new MessageBuilder().success(message).requiresConfirmation("Close").show();
-						} else {
-							$('#tempInfoBox .infoMsg').html('<i class="' + _Icons.getFullSpriteClass(_Icons.accept_icon) + '" /> ' + message);
-						}
-
-					} else {
-						$('#tempInfoBox .infoMsg').html('<i class="' + _Icons.getFullSpriteClass(_Icons.error_icon) + '" /> Extraction failed');
-					}
-				});
-			});
-		}
+		// if (_Files.isArchive(d)) {
+		// 	div.append('<i class="unarchive_icon button ' + _Icons.getFullSpriteClass(_Icons.compress_icon) + '" />');
+		// 	$('.unarchive_icon', div).on('click', function() {
+		// 		_Files.unpackArchive(d);
+		// 	});
+		// }
 
 		if (displayingFavorites === true) {
 
-			_Files.appendRemoveFavoriteIcon(div, d);
+			// _Files.appendRemoveFavoriteIcon(div, d);
 
 		} else {
 
-			div.append('<i title="Delete file \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
-			$('.delete_icon', div).on('click', function(e) {
-				e.stopPropagation();
-
-				selectedElements = $('.node.selected');
-				var selectedCount = selectedElements.length;
-
-				if (selectedCount > 1 && div.hasClass('selected')) {
-
-					var files = [];
-
-					$.each(selectedElements, function(i, el) {
-						files.push(Structr.entityFromElement(el));
-					});
-
-					_Entities.deleteNodes(this, files, true, function() {
-						_Files.refreshTree();
-					});
-
-				} else {
-					_Entities.deleteNode(this, d);
-				}
-			});
+			// div.append('<i title="Delete file \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
+			// $('.delete_icon', div).on('click', function(e) {
+			// 	e.stopPropagation();
+			//
+			// 	selectedElements = $('.node.selected');
+			// 	var selectedCount = selectedElements.length;
+			//
+			// 	if (selectedCount > 1 && div.hasClass('selected')) {
+			//
+			// 		var files = [];
+			//
+			// 		$.each(selectedElements, function(i, el) {
+			// 			files.push(Structr.entityFromElement(el));
+			// 		});
+			//
+			// 		_Entities.deleteNodes(this, files, true, function() {
+			// 			_Files.refreshTree();
+			// 		});
+			//
+			// 	} else {
+			// 		_Entities.deleteNode(this, d);
+			// 	}
+			// });
 		}
 
 		if (_Files.isMinificationTarget(d)) {
 			_Files.appendMinificationDialogIcon(div, d);
 		} else {
-			if (d.isImage && d.contentType !== 'text/svg' && !d.contentType.startsWith('image/svg')) {
-				_Files.appendEditImageIcon(div, d);
-			} else {
-				_Files.appendEditFileIcon(div, d);
-			}
+			// if (d.isImage && d.contentType !== 'text/svg' && !d.contentType.startsWith('image/svg')) {
+			// 	_Files.appendEditImageIcon(div, d);
+			// } else {
+			// 	_Files.appendEditFileIcon(div, d);
+			// }
 		}
 
 		Structr.performModuleDependendAction(function() {
@@ -965,6 +944,44 @@ var _Files = {
 		Structr.performModuleDependendAction(function() {
 			if (Structr.isModulePresent('xml') && (d.contentType === 'text/xml' || d.contentType === 'application/xml')) {
 				_Files.appendXMLImportDialogIcon(div, d);
+			}
+		});
+	},
+	unpackArchive: (d) => {
+
+		$('#tempInfoBox .infoHeading, #tempInfoBox .infoMsg').empty();
+		$('#tempInfoBox .closeButton').hide();
+		Structr.loaderIcon($('#tempInfoBox .infoMsg'), { marginBottom: '-6px' });
+		$('#tempInfoBox .infoMsg').append(' Unpacking Archive - please stand by...');
+		$('#tempInfoBox .infoMsg').append('<p>Extraction will run in the background.<br>You can safely close this popup and work during this operation.<br>You will be notified when the extraction has finished.</p>');
+
+		$.blockUI({
+			message: $('#tempInfoBox'),
+			css: Structr.defaultBlockUICss
+		});
+
+		var closed = false;
+		window.setTimeout(function() {
+			$('#tempInfoBox .closeButton').show().on('click', function () {
+				closed = true;
+				$.unblockUI({
+					fadeOut: 25
+				});
+			});
+		}, 500);
+
+		Command.unarchive(d.id, currentWorkingDir ? currentWorkingDir.id : undefined, function (data) {
+			if (data.success === true) {
+				_Files.refreshTree();
+				var message = "Extraction of '" + data.filename + "' finished successfully. ";
+				if (closed) {
+					new MessageBuilder().success(message).requiresConfirmation("Close").show();
+				} else {
+					$('#tempInfoBox .infoMsg').html('<i class="' + _Icons.getFullSpriteClass(_Icons.accept_icon) + '" /> ' + message);
+				}
+
+			} else {
+				$('#tempInfoBox .infoMsg').html('<i class="' + _Icons.getFullSpriteClass(_Icons.error_icon) + '" /> Extraction failed');
 			}
 		});
 	},
@@ -980,11 +997,15 @@ var _Files = {
 
 		viewIcon.on('click', function(e) {
 			e.stopPropagation();
-			Structr.dialog('' + image.name, function() {
-			}, function() {
-			});
-			_Files.viewImage(image, $('#dialogBox .dialogText'));
+			_Files.editImage(image);
 		});
+	},
+	editImage: (image) => {
+		let parent = Structr.node(image.id);
+		Structr.dialog('' + image.name, function() {
+		}, function() {
+		});
+		_Files.viewImage(image, $('#dialogBox .dialogText'));
 	},
 	viewImage: function(image, el) {
 		dialogMeta.hide();
@@ -1046,60 +1067,65 @@ var _Files = {
 
 		$(parent.children('.edit_file_icon')).on('click', function(e) {
 			e.stopPropagation();
+			_Files.editFile(file);
+		});
+	},
+	editFile: (file) => {
 
-			fileContents = {};
-			editor = undefined;
+		let parent = Structr.node(file.id);
 
-			selectedElements = $('.node.selected');
-			if (selectedElements.length > 1 && parent.hasClass('selected')) {
-				selectedElements.removeClass('selected');
-			} else {
-				selectedElements = parent;
+		fileContents = {};
+		editor = undefined;
+
+		selectedElements = $('.node.selected');
+		if (selectedElements.length > 1 && parent.hasClass('selected')) {
+			selectedElements.removeClass('selected');
+		} else {
+			selectedElements = parent;
+		}
+
+		Structr.dialog('Edit files', function() {
+		}, function() {
+		});
+
+		dialogText.append('<div id="files-tabs" class="files-tabs"><ul></ul></div>');
+
+		var selectedCount = selectedElements.length;
+		$.each(selectedElements, function(i, el) {
+			if (_Files.isMinificationTarget(StructrModel.obj(Structr.getId(el)))) {
+				selectedCount--;
 			}
+		});
 
-			Structr.dialog('Edit files', function() {
-			}, function() {
-			});
+		$.each(selectedElements, function(i, el) {
 
-			dialogText.append('<div id="files-tabs" class="files-tabs"><ul></ul></div>');
+			if (!_Files.isMinificationTarget(StructrModel.obj(Structr.getId(el)))) {
 
-			var selectedCount = selectedElements.length;
-			$.each(selectedElements, function(i, el) {
-				if (_Files.isMinificationTarget(StructrModel.obj(Structr.getId(el)))) {
-					selectedCount--;
-				}
-			});
+				Command.get(Structr.getId(el), 'id,name,contentType,isTemplate', function(entity) {
+					$('#files-tabs ul').append('<li id="tab-' + entity.id + '">' + entity.name + '</li>');
+					$('#files-tabs').append('<div id="content-tab-' + entity.id + '"></div>');
 
-			$.each(selectedElements, function(i, el) {
+					$('#tab-' + entity.id).on('click', function(e) {
 
-				if (!_Files.isMinificationTarget(StructrModel.obj(Structr.getId(el)))) {
+						e.stopPropagation();
 
-					Command.get(Structr.getId(el), 'id,name,contentType,isTemplate', function(entity) {
-						$('#files-tabs ul').append('<li id="tab-' + entity.id + '">' + entity.name + '</li>');
-						$('#files-tabs').append('<div id="content-tab-' + entity.id + '"></div>');
-
-						$('#tab-' + entity.id).on('click', function(e) {
-
-							e.stopPropagation();
-
-							// Store current editor text
-							if (editor) {
-								fileContents[activeFileId] = editor.getValue();
-							}
-
-							activeFileId = Structr.getIdFromPrefixIdString($(this).prop('id'), 'tab-');
-							$('#content-tab-' + activeFileId).empty();
-							_Files.editContent(null, entity, $('#content-tab-' + activeFileId));
-
-							return false;
-						});
-
-						if (i+1 === selectedCount) {
-							_Entities.activateTabs(file.id, '#files-tabs', '#content-tab-' + file.id, activeFileTabPrefix);
+						// Store current editor text
+						if (editor) {
+							fileContents[activeFileId] = editor.getValue();
 						}
+
+						activeFileId = Structr.getIdFromPrefixIdString($(this).prop('id'), 'tab-');
+						$('#content-tab-' + activeFileId).empty();
+						_Files.editContent(null, entity, $('#content-tab-' + activeFileId));
+
+						return false;
 					});
-				}
-			});
+
+					if (i+1 === selectedCount) {
+						_Entities.activateTabs(file.id, '#files-tabs', '#content-tab-' + file.id, activeFileTabPrefix);
+					}
+				});
+			}
 		});
 	},
 	appendMinificationDialogIcon: function(parent, file) {

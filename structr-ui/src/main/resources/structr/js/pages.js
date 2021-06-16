@@ -53,10 +53,6 @@ var _Pages = {
 		_Pager.initPager('folders', 'Folder', 1, 25, 'name', 'asc');
 		_Pager.initPager('images',  'Image', 1, 25, 'name', 'asc');
 
-		$(window.document).on('mouseup', function() {
-			_Elements.removeContextMenu();
-		});
-
 		Structr.getShadowPage();
 
 	},
@@ -785,7 +781,7 @@ var _Pages = {
 		let urlHash;
 		if (activeLink) {
 			urlHash = new URL(activeLink.href).hash;
-			LSWrapper.setItem(_Pages.urlHashKey, urlHash); console.log('set urlHash', urlHash);
+			LSWrapper.setItem(_Pages.urlHashKey, urlHash);
 		} else {
 			urlHash = LSWrapper.getItem(_Pages.urlHashKey);
 			if (!urlHash) {

@@ -2552,10 +2552,10 @@ var _Entities = {
 			}
 		});
 	},
-	// makeNameEditable: function(element, callback) {
-	// 	let id = Structr.getId(element);
-	// 	_Entities.makeAttributeEditable(element, id, 'b.name_', 'name', callback);
-	// },
+	makeNameEditable: function(element, callback) {
+		let id = Structr.getId(element);
+		_Entities.makeAttributeEditable(element, id, 'b.name_', 'name', callback);
+	},
 	setNewName: function(element, newName, callback) {
 		let id = Structr.getId(element);
 		_Entities.setNewAttributeValue(element, id, 'name', newName, callback);

@@ -456,6 +456,7 @@ var Structr = {
 
 			fastRemoveAllChildren(main[0]);
 			fastRemoveAllChildren(functionBar[0]);
+			_Elements.removeContextMenu();
 
 			$.blockUI({
 				fadeIn: 25,
@@ -591,6 +592,7 @@ var Structr = {
 		$('iframe').contents().remove();
 		fastRemoveAllChildren(main[0]);
 		fastRemoveAllChildren(functionBar[0]);
+		_Elements.removeContextMenu();
 		$('#graph-box').hide();
 	},
 	confirmation: function(text, yesCallback, noCallback) {

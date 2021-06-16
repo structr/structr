@@ -91,7 +91,7 @@ ul#previewTabs {
 
 .previewBox iframe {
 	width: 100%;
-	height: 100%;
+	height: calc(100% + 1px);
 	border: 0;
 	padding: 0;
 	margin: 0;
@@ -243,4 +243,152 @@ ul#previewTabs {
 
 .visibility-container button.switch {
 	min-width: 14rem;
+}
+
+.query-type-buttons button.active {
+	/*border: 1px solid var(--black-opacity-125);*/
+	/*background: var(--solid-white);*/
+	margin-bottom: 1rem;
+}
+
+
+
+/*.query-type-heading {*/
+/*    margin-top: 6px;*/
+/*    margin-bottom: 5px;*/
+/*}*/
+
+
+/**
+ * Active Elements slideout
+ */
+#activeElements .inner {
+	margin-left: 12px;
+	height: 100%;
+	overflow: auto;
+}
+
+#activeElements h3 {
+	/*font-size: 11pt;*/
+	margin-bottom: 0px;
+}
+
+#activeElements textarea {
+	/*font-size: 8pt;*/
+	width: 90%;
+}
+
+#activeElements input {
+	/*font-size: 8pt;*/
+	width: 90%;
+}
+
+#activeElements div.inner p {
+	margin: 0px;
+}
+
+/**
+ * Data Binding Wizard slideout
+ */
+#dataBinding .inner {
+	margin-top: 16px;
+	margin-left: 28px;
+	height: calc(100% - 16px);
+}
+
+#dataBinding #type-selector {
+	/*width: 100%;*/
+}
+
+#data-wizard-attributes {
+	height: calc(100% - 26px);
+}
+
+#data-wizard-attributes .properties {
+	max-height: calc(100% - 168px);
+	overflow: auto;
+}
+
+#dataBinding #flow-selector {
+	width: 100%;
+}
+
+.data-binding-type {
+	padding: 12px;
+	margin-top: 12px;
+	float: none ! important;
+	width: 160px;
+	text-align: center;
+}
+
+input.dataKey_ {
+	border: 1px solid var(--gray-ccc);
+}
+
+.save_dataKey {
+	margin-left: 6px;
+}
+
+.query-text {
+	width: calc(100% - 2rem);
+	height: 4rem;
+	margin-bottom: 1rem;
+	/*border: 1px solid var(--gray-ccc);*/
+	/*padding: 2px 4px;*/
+	/*font-size: 14px;*/
+}
+
+#data-binding-tabs {
+	width: 96%;
+}
+
+#data-binding-inputs {
+	margin-top: 48px ! important;
+}
+
+/**
+ * Localizations slideout
+ */
+#localizations .inner {
+	margin: 1rem 0 0 1rem;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+#localizations .results {
+	overflow: auto;
+}
+
+#localizations .inner input.locale {
+	/*margin-left: 14px;*/
+	margin-right: 1rem;
+}
+
+.localization-element .edit_props_icon {
+	right: .5rem ! important;
+	top: 0;
+}
+
+.localization-element .edit_icon {
+	right: 2rem ! important;
+	top: 0;
+}
+
+.localization-element table {
+	width: calc(100% - 22px);
+	margin-left: 22px;
+}
+
+.localization-element table th {
+	text-align: left;
+}
+
+.localization-element table td.input {
+	width: 40%;
+}
+
+.localization-element table td.input input {
+	width: calc(100% - 28px);
+	margin-right: 2px;
 }

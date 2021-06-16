@@ -32,6 +32,10 @@ $(function() {
 		e.stopPropagation();
 	});
 
+	$(document).on('mouseup', function() {
+		_Elements.removeContextMenu();
+	});
+
 });
 
 var _Elements = {
@@ -903,9 +907,11 @@ var _Elements = {
 	},
 	getContextMenuElements: function (div, entity) {
 
-		var isPage      = (entity.type === 'Page');
-		var isContent   = (entity.type === 'Content');
-		var hasChildren = (entity.children && entity.children.length > 0);
+		const isPage      = (entity.type === 'Page');
+		const isContent   = (entity.type === 'Content');
+		const isFile      = entity.isFile;
+		const isFolder    = entity.isFolder;
+		const hasChildren = (entity.children && entity.children.length > 0);
 
 		var handleInsertHTMLAction = function (itemText) {
 			var pageId = isPage ? entity.id : entity.pageId;
@@ -937,254 +943,302 @@ var _Elements = {
 			}
 		};
 
-		if (!isContent) {
+		if (!isFile && !isFolder) {
 
-			elements.push({
-				name: 'Insert HTML element',
-				elements: !isPage ? _Elements.sortedElementGroups : ['html'],
-				forcedClickHandler: handleInsertHTMLAction
-			});
-			elements.push({
-				name: 'Insert content element',
-				elements: !isPage ? ['content', 'template'] : ['template'],
-				forcedClickHandler: handleInsertHTMLAction
-			});
+			if (!isContent) {
 
-			if (_Elements.suggestedElements[entity.tag]) {
 				elements.push({
-					name: 'Suggested HTML element',
-					elements: _Elements.suggestedElements[entity.tag],
+					name: 'Insert HTML element',
+					elements: !isPage ? _Elements.sortedElementGroups : ['html'],
 					forcedClickHandler: handleInsertHTMLAction
 				});
-			}
-		}
 
-		if (!isPage && !isContent) {
-			elements.push({
-				name: 'Insert div element',
-				clickHandler: function() {
-					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', _Dragndrop.getAdditionalDataForElementCreation('div'), _Elements.isInheritVisibililtyFlagsChecked());
-					return false;
-				}
-			});
-		}
-
-		appendSeparator();
-
-		if (!isPage && entity.parent !== null && entity.parent.type !== 'Page') {
-
-			elements.push({
-				name: 'Insert before...',
-				elements: [
-					{
-						name: '... HTML element',
-						elements: _Elements.sortedElementGroups,
-						forcedClickHandler: handleInsertBeforeAction
-					},
-					{
-						name: '... Content element',
-						elements: ['content', 'template'],
-						forcedClickHandler: handleInsertBeforeAction
-					},
-					{
-						name: '... div element',
-						clickHandler: function () {
-							handleInsertBeforeAction('div');
-						}
-					}
-				]
-			});
-
-			elements.push({
-				name: 'Insert after...',
-				elements: [
-					{
-						name: '... HTML element',
-						elements: _Elements.sortedElementGroups,
-						forcedClickHandler: handleInsertAfterAction
-					},
-					{
-						name: '... Content element',
-						elements: ['content', 'template'],
-						forcedClickHandler: handleInsertAfterAction
-					},
-					{
-						name: '... div element',
-						clickHandler: function () {
-							handleInsertAfterAction('div');
-						}
-					}
-				]
-			});
-
-			appendSeparator();
-
-			elements.push({
-				name: 'Remove Node',
-				clickHandler: function() {
-					Command.removeChild(entity.id);
-					return false;
-				}
-			});
-
-			elements.push({
-				name: 'Clone Node',
-				clickHandler: function() {
-					Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
-					return false;
-				}
-			});
-
-			appendSeparator();
-
-			elements.push({
-				name: 'Wrap element in...',
-				elements: [
-					{
-						name: '... HTML element',
-						elements: _Elements.sortedElementGroups,
-						forcedClickHandler: handleWrapInHTMLAction
-					},
-					{
-						name: '... Template element',
-						clickHandler: function () {
-							handleWrapInHTMLAction('template');
-						}
-					},
-					{
-						name: '... div element',
-						clickHandler: function () {
-							handleWrapInHTMLAction('div');
-						}
-					}
-				]
-			});
-		}
-
-		if (isPage) {
-			elements.push({
-				name: 'Clone Page',
-				clickHandler: function () {
-					Command.clonePage(entity.id);
-					return false;
-				}
-			});
-		}
-
-		if (!isPage) {
-
-			appendSeparator();
-
-			if (_Elements.selectedEntity && _Elements.selectedEntity.id === entity.id) {
 				elements.push({
-					name: 'Deselect element',
-					clickHandler: function() {
-						_Elements.unselectEntity();
-						return false;
-					}
+					name: 'Insert content element',
+					elements: !isPage ? ['content', 'template'] : ['template'],
+					forcedClickHandler: handleInsertHTMLAction
 				});
-			} else {
+
+				if (_Elements.suggestedElements[entity.tag]) {
+					elements.push({
+						name: 'Suggested HTML element',
+						elements: _Elements.suggestedElements[entity.tag],
+						forcedClickHandler: handleInsertHTMLAction
+					});
+				}
+			}
+
+			if (!isPage && !isContent) {
 				elements.push({
-					name: 'Select element',
-					clickHandler: function() {
-						_Elements.selectEntity(entity);
+					name: 'Insert div element',
+					clickHandler: function () {
+						Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', _Dragndrop.getAdditionalDataForElementCreation('div'), _Elements.isInheritVisibililtyFlagsChecked());
 						return false;
 					}
 				});
 			}
 
-			var isEntitySharedComponent = entity.sharedComponent || entity.pageId === shadowPage.id;
-			if (!isEntitySharedComponent) {
+			appendSeparator();
+
+			if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page')) {
+
+				elements.push({
+					name: 'Insert before...',
+					elements: [
+						{
+							name: '... HTML element',
+							elements: _Elements.sortedElementGroups,
+							forcedClickHandler: handleInsertBeforeAction
+						},
+						{
+							name: '... Content element',
+							elements: ['content', 'template'],
+							forcedClickHandler: handleInsertBeforeAction
+						},
+						{
+							name: '... div element',
+							clickHandler: function () {
+								handleInsertBeforeAction('div');
+							}
+						}
+					]
+				});
+
+				elements.push({
+					name: 'Insert after...',
+					elements: [
+						{
+							name: '... HTML element',
+							elements: _Elements.sortedElementGroups,
+							forcedClickHandler: handleInsertAfterAction
+						},
+						{
+							name: '... Content element',
+							elements: ['content', 'template'],
+							forcedClickHandler: handleInsertAfterAction
+						},
+						{
+							name: '... div element',
+							clickHandler: function () {
+								handleInsertAfterAction('div');
+							}
+						}
+					]
+				});
+
 				appendSeparator();
 
 				elements.push({
-					name: 'Convert to Shared Component',
-					clickHandler: function() {
-						Command.createComponent(entity.id);
+					name: 'Remove Node',
+					clickHandler: function () {
+						Command.removeChild(entity.id);
 						return false;
 					}
 				});
+
+				elements.push({
+					name: 'Clone Node',
+					clickHandler: function () {
+						Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
+						return false;
+					}
+				});
+
+				appendSeparator();
+
+				elements.push({
+					name: 'Wrap element in...',
+					elements: [
+						{
+							name: '... HTML element',
+							elements: _Elements.sortedElementGroups,
+							forcedClickHandler: handleWrapInHTMLAction
+						},
+						{
+							name: '... Template element',
+							clickHandler: function () {
+								handleWrapInHTMLAction('template');
+							}
+						},
+						{
+							name: '... div element',
+							clickHandler: function () {
+								handleWrapInHTMLAction('div');
+							}
+						}
+					]
+				});
+			}
+
+			if (isPage) {
+				elements.push({
+					name: 'Clone Page',
+					clickHandler: function () {
+						Command.clonePage(entity.id);
+						return false;
+					}
+				});
+			}
+
+			if (!isPage) {
+
+				appendSeparator();
+
+				if (_Elements.selectedEntity && _Elements.selectedEntity.id === entity.id) {
+					elements.push({
+						name: 'Deselect element',
+						clickHandler: function () {
+							_Elements.unselectEntity();
+							return false;
+						}
+					});
+				} else {
+					elements.push({
+						name: 'Select element',
+						clickHandler: function () {
+							_Elements.selectEntity(entity);
+							return false;
+						}
+					});
+				}
+
+				let isEntitySharedComponent = entity.sharedComponent || (entity.isPage && entity.pageId === shadowPage.id);
+				if (!isEntitySharedComponent) {
+					appendSeparator();
+
+					elements.push({
+						name: 'Convert to Shared Component',
+						clickHandler: function () {
+							Command.createComponent(entity.id);
+							return false;
+						}
+					});
+				}
+			}
+
+			if (!isContent && _Elements.selectedEntity && _Elements.selectedEntity.id !== entity.id) {
+
+				var isSamePage = _Elements.selectedEntity.pageId === entity.pageId;
+				var isThisEntityDirectParentOfSelectedEntity = (_Elements.selectedEntity.parent && _Elements.selectedEntity.parent.id === entity.id);
+				var isSelectedEntityInShadowPage = _Elements.selectedEntity.pageId === shadowPage.id;
+				var isSelectedEntitySharedComponent = isSelectedEntityInShadowPage && !_Elements.selectedEntity.parent;
+
+				var isDescendantOfSelectedEntity = function (possibleDescendant) {
+					if (possibleDescendant.parent) {
+						if (possibleDescendant.parent.id === _Elements.selectedEntity.id) {
+							return true;
+						}
+						return isDescendantOfSelectedEntity(StructrModel.obj(possibleDescendant.parent.id));
+					}
+					return false;
+				};
+
+				if (isSelectedEntitySharedComponent) {
+					elements.push({
+						name: 'Link shared component here',
+						clickHandler: function () {
+							Command.cloneComponent(_Elements.selectedEntity.id, entity.id);
+							_Elements.unselectEntity();
+							return false;
+						}
+					});
+
+				}
+
+				if (!isPage || (isPage && !hasChildren && (_Elements.selectedEntity.tag === 'html' || _Elements.selectedEntity.type === 'Template'))) {
+					elements.push({
+						name: 'Clone selected element here',
+						clickHandler: function () {
+							Command.cloneNode(_Elements.selectedEntity.id, entity.id, true);
+							_Elements.unselectEntity();
+							return false;
+						}
+					});
+				}
+
+				if (isSamePage && !isThisEntityDirectParentOfSelectedEntity && !isSelectedEntityInShadowPage && !isDescendantOfSelectedEntity(entity)) {
+					elements.push({
+						name: 'Move selected element here',
+						clickHandler: function () {
+							Command.appendChild(_Elements.selectedEntity.id, entity.id, entity.pageId);
+							_Elements.unselectEntity();
+							return false;
+						}
+					});
+				}
+			}
+
+			appendSeparator();
+
+			if (!isPage) {
+
+				elements.push({
+					name: 'Query and Data Binding',
+					clickHandler: function () {
+						_Entities.showProperties(entity, 'query');
+						return false;
+					}
+				});
+				elements.push({
+					name: 'Edit Mode Binding',
+					clickHandler: function () {
+						_Entities.showProperties(entity, 'editBinding');
+						return false;
+					}
+				});
+				elements.push({
+					name: 'HTML Attributes',
+					clickHandler: function () {
+						_Entities.showProperties(entity, '_html_');
+						return false;
+					}
+				});
+
 			}
 		}
 
-		if (!isContent && _Elements.selectedEntity && _Elements.selectedEntity.id !== entity.id) {
-
-			var isSamePage = _Elements.selectedEntity.pageId === entity.pageId;
-			var isThisEntityDirectParentOfSelectedEntity = (_Elements.selectedEntity.parent && _Elements.selectedEntity.parent.id === entity.id);
-			var isSelectedEntityInShadowPage = _Elements.selectedEntity.pageId === shadowPage.id;
-			var isSelectedEntitySharedComponent = isSelectedEntityInShadowPage && !_Elements.selectedEntity.parent;
-
-			var isDescendantOfSelectedEntity = function (possibleDescendant) {
-				if (possibleDescendant.parent) {
-					if (possibleDescendant.parent.id === _Elements.selectedEntity.id) {
-						return true;
-					}
-					return isDescendantOfSelectedEntity(StructrModel.obj(possibleDescendant.parent.id));
+		if (isFile && entity.isImage && entity.contentType !== 'text/svg' && !entity.contentType.startsWith('image/svg')) {
+			elements.push({
+				name: 'Edit Image',
+				clickHandler: function () {
+					_Files.editImage(entity);
+					return false;
 				}
-				return false;
-			};
-
-			if (isSelectedEntitySharedComponent) {
-				elements.push({
-					name: 'Link shared component here',
-					clickHandler: function() {
-						Command.cloneComponent(_Elements.selectedEntity.id, entity.id);
-						_Elements.unselectEntity();
-						return false;
-					}
-				});
-
-			}
-
-			if ( !isPage || (isPage && !hasChildren && (_Elements.selectedEntity.tag === 'html' || _Elements.selectedEntity.type === 'Template')) ) {
-				elements.push({
-					name: 'Clone selected element here',
-					clickHandler: function() {
-						Command.cloneNode(_Elements.selectedEntity.id, entity.id, true);
-						_Elements.unselectEntity();
-						return false;
-					}
-				});
-			}
-
-			if (isSamePage && !isThisEntityDirectParentOfSelectedEntity && !isSelectedEntityInShadowPage && !isDescendantOfSelectedEntity(entity)) {
-				elements.push({
-					name: 'Move selected element here',
-					clickHandler: function() {
-						Command.appendChild(_Elements.selectedEntity.id, entity.id, entity.pageId);
-						_Elements.unselectEntity();
-						return false;
-					}
-				});
-			}
+			});
+		} else if (isFile) {
+			elements.push({
+				name: 'Edit File',
+				clickHandler: function () {
+					_Files.editFile(entity);
+					return false;
+				}
+			});
 		}
 
-		appendSeparator();
-
-		if (!isPage) {
-
-			elements.push({
-				name: 'Query and Data Binding',
-				clickHandler: function() {
-					_Entities.showProperties(entity, 'query');
-					return false;
-				}
-			});
-			elements.push({
-				name: 'Edit Mode Binding',
-				clickHandler: function() {
-					_Entities.showProperties(entity, 'editBinding');
-					return false;
-				}
-			});
-			elements.push({
-				name: 'HTML Attributes',
-				clickHandler: function() {
-					_Entities.showProperties(entity, '_html_');
-					return false;
+		if (isFile) {
+			Structr.performModuleDependendAction(function () {
+				if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && entity.contentType === 'text/csv') {
+					elements.push({
+						name: 'Import CSV',
+						clickHandler: function () {
+							Importer.importCSVDialog(entity, false);
+							return false;
+						}
+					});
 				}
 			});
 
+			Structr.performModuleDependendAction(function () {
+				if (Structr.isModulePresent('xml') && (entity.contentType === 'text/xml' || entity.contentType === 'application/xml')) {
+					elements.push({
+						name: 'Import XML',
+						clickHandler: function () {
+							Importer.importXMLDialog(entity, false);
+							return false;
+						}
+					});
+				}
+			});
 		}
 
 		elements.push({
@@ -1194,6 +1248,41 @@ var _Elements = {
 				return false;
 			}
 		});
+
+		if (isFile) {
+
+			if (displayingFavorites) {
+				elements.push({
+					name: 'Remove from Favorites',
+					clickHandler: function () {
+						Command.favorites('remove', entity.id, () => {
+							Structr.node(entity.id).remove();
+						});
+						return false;
+					}
+				});
+
+			} else if (entity.isFavoritable) {
+				elements.push({
+					name: 'Add to Favorites',
+					clickHandler: function () {
+						Command.favorites('add', entity.id, () => {});
+						return false;
+					}
+				});
+			}
+
+			if (_Files.isArchive(entity)) {
+				elements.push({
+					name: 'Unpack archive',
+					clickHandler: function () {
+						_Files.unpackArchive(entity);
+						return false;
+					}
+				});
+			}
+
+		}
 
 		appendSeparator();
 
@@ -1219,7 +1308,7 @@ var _Elements = {
 							}
 						},
 						{
-							name: 'Make Element invisible',
+							name: 'Make element invisible',
 							clickHandler: function() {
 								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false);
 								return false;
@@ -1327,7 +1416,7 @@ var _Elements = {
 
 		appendSeparator();
 
-		if (!isContent) {
+		if (!isFile && !isFolder && !isContent) {
 
 			elements.push({
 				name: '<input type="checkbox" id="inherit-visibility-flags">Inherit Visibility Flags',
@@ -1451,7 +1540,7 @@ var _Elements = {
 
 		_Elements.enableContextMenuOnElement(div, entity);
 
-		div.on('click', (e) => { console.log('click on content', entity);
+		div.on('click', (e) => {
 			e.stopPropagation();
 			_Entities.selectedObject = entity;
 			_Entities.selectElement(div.closest('.node'));
@@ -1809,15 +1898,17 @@ var _Elements = {
 			var tag     = entity.tag;
 
 			Command.getSuggestions(htmlId, entity.name, tag, classes, function(result) {
-				var data = [];
-				result.forEach(function(r) {
-					data.push({
-						id: r.id,
-						name: r.name,
-						source: r.source,
-						clickHandler: clickHandler
+				let data = [];
+				if (result && result.length) {
+					result.forEach(function (r) {
+						data.push({
+							id: r.id,
+							name: r.name,
+							source: r.source,
+							clickHandler: clickHandler
+						});
 					});
-				});
+				}
 				callback(data);
 			});
 		}

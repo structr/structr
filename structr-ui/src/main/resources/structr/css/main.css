@@ -452,8 +452,8 @@ ul#submenu.visible {
 	background-color: var(--header-bg-dark);
 }
 
-#submenu li:not(.active):hover {
-	background-color: var(--gray-444);
+#submenu li:not(.active):hover a {
+	color: var(--structr-green);
 }
 
 #submenu li a {
@@ -816,7 +816,7 @@ img.disabled {
 }
 
 .props td, .props th {
-	padding: 1rem;
+	padding: .5rem 1rem;
 	line-height: 1.5rem;
 	height: 1rem;
 }
@@ -1077,12 +1077,12 @@ img.disabled {
 .name_.abbr-ellipsis {
 	display: inline-block;
 	vertical-align: top;
-	line-height: 1.5rem;
+	line-height: 2rem;
 	/*margin: .5rem 0 -.05rem 0;*/
 }
 
 .abbr-ellipsis {
-	display: inline-block;
+	/*display: inline-block;*/
 	/*vertical-align: middle;*/
 	text-overflow: ellipsis;
 	overflow: hidden;
@@ -1336,7 +1336,7 @@ i.link_icon {
 	cursor: pointer;
 	position: absolute;
 	right: .5rem;
-	top: .25rem;
+	top: .375rem;
 	vertical-align: top;
 	color: var(--icon-stroke);
 }
@@ -1583,7 +1583,7 @@ button.action.disabled:hover {
 }
 
 #dialogBox {
-	padding-bottom: 2rem;
+	padding-bottom: 4rem;
 	position: relative;
 }
 
@@ -1596,8 +1596,8 @@ button.action.disabled:hover {
 .dialogBtn {
 	/*width: 300px;*/
 	position: absolute;
-	right: 12px;
-	bottom: 12px;
+	/*right: 12px;*/
+	bottom: 1rem;
 	text-align: left;
 	/*height: 36px;*/
 	padding: 0;
@@ -1899,11 +1899,12 @@ button.action.disabled:hover {
 	min-width: 240px;
 	min-height: 12px;
 	text-align: left;
-	padding: 6px 4px 6px 28px;
+	padding: .5rem .5rem .5rem 2rem;
 	font-size: 10pt;
 	clear: both;
 	overflow: auto;
-	bottom: 10px;
+	right: 2rem;
+	bottom: 1rem;
 }
 
 .warning {
@@ -1981,16 +1982,6 @@ button.enabled, button.active {
 	font-weight: bold;
 	background-color: var(--solid-white);
 }
-
-.query-type-buttons button.active {
-	border: 1px solid var(--black-opacity-125);
-	background: var(--solid-white);
-}
-
-/*.query-type-heading {*/
-/*    margin-top: 6px;*/
-/*    margin-bottom: 5px;*/
-/*}*/
 
 .node ._html_id_,
 .node ._html_class_,
@@ -2396,139 +2387,6 @@ input.property-name:disabled {
 	color: var(--solid-black);
 }
 
-/**
- * Active Elements slideout
- */
-#activeElements .inner {
-	margin-left: 12px;
-	height: 100%;
-	overflow: auto;
-}
-
-#activeElements h3 {
-	/*font-size: 11pt;*/
-	margin-bottom: 0px;
-}
-
-#activeElements textarea {
-	/*font-size: 8pt;*/
-	width: 90%;
-}
-
-#activeElements input {
-	/*font-size: 8pt;*/
-	width: 90%;
-}
-
-#activeElements div.inner p {
-	margin: 0px;
-}
-
-/**
- * Data Binding Wizard slideout
- */
-#dataBinding .inner {
-	margin-top: 16px;
-	margin-left: 28px;
-	height: calc(100% - 16px);
-}
-
-#dataBinding #type-selector {
-	/*width: 100%;*/
-}
-
-#data-wizard-attributes {
-	height: calc(100% - 26px);
-}
-
-#data-wizard-attributes .properties {
-	max-height: calc(100% - 168px);
-	overflow: auto;
-}
-
-#dataBinding #flow-selector {
-	width: 100%;
-}
-
-.data-binding-type {
-	padding: 12px;
-	margin-top: 12px;
-	float: none ! important;
-	width: 160px;
-	text-align: center;
-}
-
-input.dataKey_ {
-	border: 1px solid var(--gray-ccc);
-}
-
-.save_dataKey {
-	margin-left: 6px;
-}
-
-.query-text {
-	width: calc(100% - 2rem);
-	height: 4rem;
-	/*border: 1px solid var(--gray-ccc);*/
-	/*padding: 2px 4px;*/
-	/*font-size: 14px;*/
-}
-
-#data-binding-tabs {
-	width: 96%;
-}
-
-#data-binding-inputs {
-	margin-top: 48px ! important;
-}
-
-/**
- * Localizations slideout
- */
-#localizations .inner {
-	margin: 1rem 0 0 1rem;
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-}
-
-#localizations .results {
-	overflow: auto;
-}
-
-#localizations .inner input.locale {
-	/*margin-left: 14px;*/
-	margin-right: 1rem;
-}
-
-.localization-element .edit_props_icon {
-	right: .5rem ! important;
-	top: 0;
-}
-
-.localization-element .edit_icon {
-	right: 2rem ! important;
-	top: 0;
-}
-
-.localization-element table {
-	width: calc(100% - 22px);
-	margin-left: 22px;
-}
-
-.localization-element table th {
-	text-align: left;
-}
-
-.localization-element table td.input {
-	width: 40%;
-}
-
-.localization-element table td.input input {
-	width: calc(100% - 28px);
-	margin-right: 2px;
-}
-
 /* Special highlighting for data-structr-hash attribute in internal editor */
 .editor .data-structr-hash {
 	color: var(--gray-ccc) ! important;
@@ -2927,7 +2785,7 @@ table#relationship-options {
 
 #relationship-options #basic-options {
 	text-align: center;
-	padding: 4px 0px 20px 0px;
+	padding: 1rem 0 0 0px;
 	/*font-size: 20px;*/
 }
 
@@ -2940,7 +2798,7 @@ table#relationship-options {
 }
 
 #relationship-options #basic-options select, #basic-options input {
-	margin: 2px 2px 7px;
+	margin: -.5rem 1rem .25rem;
 }
 
 #relationship-options #basic-options input[disabled] {
@@ -2956,20 +2814,20 @@ table#relationship-options {
 
 td#cascading-options, td#propagation-options {
 	vertical-align: top;
-	padding: 0px 36px 12px 0;
+	padding: 0 2rem 0 0;
 }
 
 #relationship-options p {
-	/*margin: 0px;*/
+	margin: .5rem 0;
 }
 
 #relationship-options h3 {
-	margin: 12px 0 0 0;
+	margin: .5rem 0;
 }
 
-#relationship-options h3:first-child {
-	margin: 0;
-}
+/*#relationship-options h3:first-child {*/
+/*	margin: 0;*/
+/*}*/
 
 #relationship-options h4 {
 	margin: 0;
@@ -3341,7 +3199,7 @@ input.tree-search-input:focus {
 }
 
 #folder-contents td.file-icon, #code-contents td.code-type, #contents-contents td.file-icon, #crawler-list td.file-icon {
-	width: 24px;
+	/*width: 24px;*/
 }
 
 /* BEGIN: Fake table styles for schema METHODS editor (used in schema and code) */

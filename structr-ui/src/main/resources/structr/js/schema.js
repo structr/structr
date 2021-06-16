@@ -1185,6 +1185,10 @@ var _Schema = {
 				$('#masked-properties').val(rel.propertyMask);
 			};
 
+			dialogBtn.prepend('<button id="edit-rel-options-button"><i class="edit icon ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /> Edit relationship options</button>\n' +
+				'<button id="save-rel-options-button"><i class="save icon ' + _Icons.getFullSpriteClass(_Icons.tick_icon) +'" /> Save</button>\n' +
+				'<button id="cancel-rel-options-button"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) +'" /> Discard</button>\n');
+
 			if (!saveSuccessFunction) {
 
 				$('.edit-schema-object', headEl).off('click').on('click', function(e) {
