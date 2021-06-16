@@ -41,6 +41,12 @@
 	margin-top: 1rem;
 }
 
+#users-list .node,
+#groups-list .node {
+   line-height: 2rem;
+}
+
+
 #filter-resource-access-grants {
    display: inline-block;
 }
@@ -65,7 +71,7 @@
 }
 
 #resourceAccessesTable tbody tr:hover {
-   background-color: var(--very-light-structr-green) ! important;
+   background-color: var(--structr-light-green-transparent) ! important;
 }
 
 #resourceAccessesTable td, #resourceAccessesTable th {
@@ -136,4 +142,13 @@ input.bitmask {
 
 .acl-resource-access {
 	margin-right: 1rem;
+}
+
+#users-controls {
+   padding-right: 6rem;
+}
+
+#users-controls .select-and-button,
+#groups-controls .select-and-button {
+   padding-bottom: 2rem;
 }

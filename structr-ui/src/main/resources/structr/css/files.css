@@ -458,3 +458,213 @@ i.clearSearchIcon {
 	clear: both;
 	margin: 0 0 2rem 0;
 }
+
+/**
+ * CSV and XML importer
+ */
+
+#csv-import #commit-interval {
+	width: 50px;
+}
+
+pre.csv-preview {
+	overflow: auto;
+	background-color: var(--solid-white);
+	border: 1px solid var(--gray-ddd);
+	height: 100px;
+}
+
+.row-container tr:nth-child(odd) {
+	background-color: var(--solid-white);
+}
+
+.row-container tr:nth-child(even) {
+	background-color: var(--light-gray-bg-f7);
+}
+
+#row-container tr:nth-child(odd) {
+	background-color: var(--solid-white);
+}
+
+#row-container tr:nth-child(even) {
+	background-color: var(--light-gray-bg-f7);
+}
+
+div.attr-mapping table {
+	width: 99%;
+}
+
+.attr-mapping th {
+	padding-bottom: 2px;
+}
+
+div.attr-mapping td {
+	border: 1px solid var(--gray-ddd);
+}
+
+div.attr-mapping td.key {
+	padding: 0 8px 0 8px;
+}
+
+div.attr-mapping td.transform {
+	padding: 1px;
+}
+
+div.attr-mapping td.transform input {
+	width: calc(100% - 10px);
+}
+
+div.attr-mapping select.attr-mapping {
+	width: 100%;
+}
+
+div#xml-import {
+	height: calc(100% - 3rem);
+}
+
+table#csv-import,
+table#csv-import {
+	width: 100%;
+}
+
+table#csv-import td {
+	padding: 0 0 12px 0;
+}
+
+table#csv-import label {
+	display: inline-block;
+	min-width: 120px !important;
+}
+
+div#types-container div.type-mapping {
+	width: 100px;
+	float: left;
+}
+
+/*div#xml-import h2, div#xml-import h3 {*/
+/*	margin-bottom: 0;*/
+/*}*/
+
+div.xml-mapping, div#config {
+	padding: .5rem 1rem;
+	height: 100%;
+	overflow: auto;
+}
+
+div.xml-mapping {
+	background-color: var(--solid-white);
+	border: 1px solid var(--gray-ddd);
+}
+
+div.xml-mapping table {
+	width: 100%;
+}
+
+div.xml-mapping td {
+	cursor: pointer;
+}
+
+div.xml-mapping td:hover, div.xml-mapping td.selected {
+	background-color: var(--structr-green);
+}
+
+div#left {
+	float: left;
+	width: 45%;
+	height: calc(100% - 3rem);
+}
+
+div#right {
+	float: right;
+	width: 55%;
+	height: calc(100% - 3rem);}
+
+div#xml-config {
+	margin: 0 6px 0 24px;
+}
+
+div#xml-config label {
+	font-weight: bold;
+}
+
+div#xml-config select.xml-config-select {
+	width: 45%;
+}
+
+button#start-import, button#run-method {
+	background-color: var(--structr-green);
+}
+
+button#run-method {
+	margin-left: 24px;
+}
+
+/*button#start-import,*/
+/*button#prev-element {*/
+/*	margin-left: 36px;*/
+/*}*/
+
+div#xml-config p.hint {
+	padding: 48px;
+}
+
+div#xml-config label {
+	width: 55%;
+}
+
+div#csv-configurations,
+div#xml-configurations {
+	padding: 0;
+	margin: 0;
+	/*position: absolute;*/
+	left: 12px;
+	bottom: 12px;
+	text-align: left;
+}
+
+div#csv-configurations input,
+div#xml-configurations input {
+	/*padding: 3px 2px 2px 4px;*/
+	/*width: 100px;*/
+	/*vertical-align: bottom;*/
+	margin-left: 2rem;
+}
+
+/*div#csv-configurations select,*/
+/*div#xml-configurations select {*/
+/*	width: 100px;*/
+/*	vertical-align: bottom;*/
+/*	line-height: 1.3em;*/
+/*	height: 24px;*/
+/*	background-color: var(--gray-bg);*/
+/*	border: 1px solid var(--gray-ddd);*/
+/*}*/
+
+div#csv-configurations button,
+div#xml-configurations button {
+	padding-left: 8px;
+	margin: 0 0 0 12px;
+}
+
+/**
+ * Dynamic files
+ */
+
+#template-preview {
+	display: none;
+	position: absolute;
+	margin-left: 12px;
+	top: 26px;
+	right: 0;
+	left: 50%;
+	bottom: 0;
+}
+
+#template-preview textarea {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	border: none;
+	border-radius: 0;
+	line-height: 1.0;
+}

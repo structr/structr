@@ -935,17 +935,17 @@ var _Files = {
 			// }
 		}
 
-		Structr.performModuleDependendAction(function() {
-			if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && d.contentType === 'text/csv') {
-				_Files.appendCSVImportDialogIcon(div, d);
-			}
-		});
-
-		Structr.performModuleDependendAction(function() {
-			if (Structr.isModulePresent('xml') && (d.contentType === 'text/xml' || d.contentType === 'application/xml')) {
-				_Files.appendXMLImportDialogIcon(div, d);
-			}
-		});
+		// Structr.performModuleDependendAction(function() {
+		// 	if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && d.contentType === 'text/csv') {
+		// 		_Files.appendCSVImportDialogIcon(div, d);
+		// 	}
+		// });
+		//
+		// Structr.performModuleDependendAction(function() {
+		// 	if (Structr.isModulePresent('xml') && (d.contentType === 'text/xml' || d.contentType === 'application/xml')) {
+		// 		_Files.appendXMLImportDialogIcon(div, d);
+		// 	}
+		// });
 	},
 	unpackArchive: (d) => {
 
@@ -1137,22 +1137,22 @@ var _Files = {
 			_Minification.showMinificationDialog(file);
 		});
 	},
-	appendCSVImportDialogIcon: function(parent, file) {
-
-		parent.append(' <i class="import_icon button ' + _Icons.getFullSpriteClass(_Icons.import_icon) + '" title="Import this CSV file" />');
-		$('.import_icon', parent).on('click', function() {
-			Importer.importCSVDialog(file, false);
-			return false;
-		});
-	},
-	appendXMLImportDialogIcon: function(parent, file) {
-
-		parent.append(' <i class="import_icon button ' + _Icons.getFullSpriteClass(_Icons.import_icon) + '" title="Import this XML file" />');
-		$('.import_icon', parent).on('click', function() {
-			Importer.importXMLDialog(file, false);
-			return false;
-		});
-	},
+	// appendCSVImportDialogIcon: function(parent, file) {
+	//
+	// 	parent.append(' <i class="import_icon button ' + _Icons.getFullSpriteClass(_Icons.import_icon) + '" title="Import this CSV file" />');
+	// 	$('.import_icon', parent).on('click', function() {
+	// 		Importer.importCSVDialog(file, false);
+	// 		return false;
+	// 	});
+	// },
+	// appendXMLImportDialogIcon: function(parent, file) {
+	//
+	// 	parent.append(' <i class="import_icon button ' + _Icons.getFullSpriteClass(_Icons.import_icon) + '" title="Import this XML file" />');
+	// 	$('.import_icon', parent).on('click', function() {
+	// 		Importer.importXMLDialog(file, false);
+	// 		return false;
+	// 	});
+	// },
 	appendRemoveFavoriteIcon: function (parent, file) {
 
 		parent.append('<i title="Remove from favorites" class="remove_favorite_icon button ' + _Icons.getFullSpriteClass(_Icons.star_delete_icon) + '" />');

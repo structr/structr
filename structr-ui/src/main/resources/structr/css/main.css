@@ -1145,7 +1145,7 @@ img.disabled {
 	color: var(--gray-999);
 	vertical-align: top;
 	display: inline-block;
-	line-height: 1.5rem;
+	line-height: 2rem;
 }
 
 .image .icons {
@@ -1177,9 +1177,9 @@ span.id {
 .node {
 	/*color: var(--gray-333);*/
 	/*line-height: 1.25em;*/
-	border: 1px solid transparent;
+	/*border: 1px solid transparent;*/
 	/*padding: 2px 2px 2px 4px;*/
-	margin: 0 0 0 2rem;
+	/*margin: 0 0 0 1rem;*/
 	position: relative;
 	white-space: nowrap;
 }
@@ -1199,7 +1199,7 @@ span.id {
 }
 
 .group .node, .folder .file, .folder .folder, .container .item {
-	margin: 4px 0 4px 11px;
+	margin: 0 0 0 2rem;
 }
 
 #images .image {
@@ -1274,7 +1274,7 @@ span.id {
 .typeIcon {
 	width: 16px;
 	height: 16px;
-	margin: .15rem .5rem 0 1.5rem;
+	margin: .35rem .5rem 0 1.5rem;
 }
 
 .typeIcon-nochildren {
@@ -1286,7 +1286,7 @@ span.id {
 	z-index: 2;
 	width: 8px;
 	height: 8px;
-	top: .5rem;
+	top: .7rem;
 	left: .5rem;
 }
 
@@ -1350,7 +1350,7 @@ i.link_icon {
 	background-color: var(--structr-light-green-transparent);
 	position: absolute;
 	/*padding: .1rem 0 .1rem .1rem;*/
-	height: 1.6rem;
+	height: 2rem;
 	width: 100%;
 	z-index: 0;
 	top: 0;
@@ -1468,7 +1468,7 @@ i.button {
 #newComponentDropzone {
 	border: .15rem dashed lightgray;
 	border-radius: .25rem;
-	padding: 1rem 0;
+	padding: 1rem .5rem;
 	color: lightgray;
 	margin: 1rem;
 }
@@ -1508,8 +1508,8 @@ i.button {
 
 .contextMenuActive {
 	color: var(--gray-333) ! important;
-	background-color: var(--light-gray-bg-f5) ! important;
-	border: 1px solid var(--input-field-border);
+	background-color: var(--structr-light-green-transparent) ! important;
+	/*border: 1px solid var(--input-field-border);*/
 }
 
 .nodeSelected {
@@ -1620,8 +1620,8 @@ button.action.disabled:hover {
 }
 
 .dialogMeta {
-	height: 4rem;
-	padding: 0;
+	/*height: 4rem;*/
+	padding: 1rem 0 0 0;
 }
 
 .dialogTextWrapper {
@@ -1733,7 +1733,8 @@ button.action.disabled:hover {
 #confirmationText, #infoText, #dialogBox .dialogText {
 	/*margin-bottom: 12px;*/
 	vertical-align: top;
-	height: 100%;
+	/*height: 100%;*/
+
 }
 
 #login {
@@ -2456,7 +2457,7 @@ table.push {
 	margin: 0 4px 4px 0;
 }
 
-.editor-info {
+.editor-info-container .editor-info {
 	margin-left: 1rem;
 }
 
@@ -4184,211 +4185,6 @@ span.context-help-text {
 
 input.newKey {
 	width: calc(100% - 8px);
-}
-
-#csv-import #commit-interval {
-	width: 50px;
-}
-
-pre.csv-preview {
-	overflow: auto;
-	background-color: var(--solid-white);
-	border: 1px solid var(--gray-ddd);
-	height: 100px;
-}
-
-.row-container tr:nth-child(odd) {
-	background-color: var(--solid-white);
-}
-
-.row-container tr:nth-child(even) {
-	background-color: var(--light-gray-bg-f7);
-}
-
-#row-container tr:nth-child(odd) {
-	background-color: var(--solid-white);
-}
-
-#row-container tr:nth-child(even) {
-	background-color: var(--light-gray-bg-f7);
-}
-
-div.attr-mapping table {
-	width: 99%;
-}
-
-.attr-mapping th {
-	padding-bottom: 2px;
-}
-
-div.attr-mapping td {
-	border: 1px solid var(--gray-ddd);
-}
-
-div.attr-mapping td.key {
-	padding: 0 8px 0 8px;
-}
-
-div.attr-mapping td.transform {
-	padding: 1px;
-}
-
-div.attr-mapping td.transform input {
-	width: calc(100% - 10px);
-}
-
-div.attr-mapping select.attr-mapping {
-	width: 100%;
-}
-
-div#xml-import {
-	padding-left: 12px;
-}
-
-table#csv-import,
-table#csv-import {
-	width: 100%;
-}
-
-table#csv-import td {
-	padding: 0 0 12px 0;
-}
-
-table#csv-import label {
-	display: inline-block;
-	min-width: 120px !important;
-}
-
-div#types-container div.type-mapping {
-	width: 100px;
-	float: left;
-}
-
-div#xml-import h2, div#xml-import h3 {
-	margin-bottom: 0;
-}
-
-div.xml-mapping, div#config {
-	padding: 2px 6px;
-	height: 440px;
-	overflow: auto;
-}
-
-div.xml-mapping {
-	background-color: var(--solid-white);
-	border: 1px solid var(--gray-ddd);
-}
-
-div.xml-mapping table {
-	width: 100%;
-}
-
-div.xml-mapping td {
-	cursor: pointer;
-}
-
-div.xml-mapping td:hover, div.xml-mapping td.selected {
-	background-color: var(--structr-green);
-}
-
-div#left {
-	float: left;
-	width: 45%;
-}
-
-div#right {
-	float: right;
-	width: 55%;
-}
-
-div#xml-config {
-	margin: 0 6px 0 24px;
-}
-
-div#xml-config label {
-	font-weight: bold;
-}
-
-div#xml-config select.xml-config-select {
-	width: 45%;
-}
-
-button#start-import, button#run-method {
-	background-color: var(--structr-green);
-}
-
-button#run-method {
-	margin-left: 24px;
-}
-
-button#start-import,
-button#prev-element {
-	margin-left: 36px;
-}
-
-div#xml-config p.hint {
-	padding: 48px;
-}
-
-div#xml-config label {
-	width: 55%;
-}
-
-div#csv-configurations,
-div#xml-configurations {
-	padding: 0;
-	margin: 0;
-	position: absolute;
-	left: 12px;
-	bottom: 12px;
-	text-align: left;
-}
-
-div#csv-configurations input,
-div#xml-configurations input {
-	padding: 3px 2px 2px 4px;
-	width: 100px;
-	vertical-align: bottom;
-	margin-left: 36px;
-}
-
-div#csv-configurations select,
-div#xml-configurations select {
-	width: 100px;
-	vertical-align: bottom;
-	line-height: 1.3em;
-	height: 24px;
-	background-color: var(--gray-bg);
-	border: 1px solid var(--gray-ddd);
-}
-
-div#csv-configurations button,
-div#xml-configurations button {
-	padding-left: 8px;
-	margin: 0 0 0 12px;
-}
-
-/**
- * Dynamic files
- */
-
-#template-preview {
-	display: none;
-    position: absolute;
-	margin-left: 12px;
-    top: 26px;
-    right: 0;
-    left: 50%;
-    bottom: 0;
-}
-
-#template-preview textarea {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    border: none;
-    border-radius: 0;
-	line-height: 1.0;
 }
 
 /**

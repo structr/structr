@@ -161,26 +161,26 @@ var _UsersAndGroups = {
 		);
 		userElement.data('userId', user.id);
 
-		if (group) {
-
-			userElement.append('<i title="Remove user \'' + userName + '\' from group \'' + group.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.user_delete_icon) + '" />');
-
-			$('.delete_icon', userElement).on('click', function(e) {
-				e.stopPropagation();
-				Command.removeFromCollection(group.id, 'members', user.id, function () {
-					_UsersAndGroups.deactivateNodeHover(user.id, '.userid_');
-				});
-			});
-
-		} else {
-
-			userElement.append('<i title="Delete user \'' + userName + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
-
-			$('.delete_icon', userElement).on('click', function(e) {
-				e.stopPropagation();
-				_UsersAndGroups.deleteUser(this, user);
-			});
-		}
+		// if (group) {
+		//
+		// 	userElement.append('<i title="Remove user \'' + userName + '\' from group \'' + group.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.user_delete_icon) + '" />');
+		//
+		// 	$('.delete_icon', userElement).on('click', function(e) {
+		// 		e.stopPropagation();
+		// 		Command.removeFromCollection(group.id, 'members', user.id, function () {
+		// 			_UsersAndGroups.deactivateNodeHover(user.id, '.userid_');
+		// 		});
+		// 	});
+		//
+		// } else {
+		//
+		// 	userElement.append('<i title="Delete user \'' + userName + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
+		//
+		// 	$('.delete_icon', userElement).on('click', function(e) {
+		// 		e.stopPropagation();
+		// 		_UsersAndGroups.deleteUser(this, user);
+		// 	});
+		// }
 
 		_UsersAndGroups.makeDraggable(userElement);
 
@@ -198,6 +198,7 @@ var _UsersAndGroups = {
 		_Security.userList.append(userDiv);
 
 		_Entities.appendEditPropertiesIcon(userDiv, user);
+		_Elements.enableContextMenuOnElement(userDiv, user);
 		_UsersAndGroups.setMouseOver(userDiv, user.id, '.userid_');
 	},
 	appendMembersToGroup: function(members, group, groupDiv) {
@@ -254,6 +255,7 @@ var _UsersAndGroups = {
 					userDiv.removeClass('disabled');
 
 					_Entities.appendEditPropertiesIcon(userDiv, member);
+					_Elements.enableContextMenuOnElement(userDiv, member);
 					_UsersAndGroups.setMouseOver(userDiv, member.id, prefix);
 				}
 			});
@@ -269,14 +271,14 @@ var _UsersAndGroups = {
 
 				$('.delete_icon', groupDiv).remove();
 
-				groupDiv.append('<i title="Remove \'' + member.name + '\' from group \'' + group.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.user_delete_icon) + '" />');
-
-				$('.delete_icon', groupDiv).on('click', function(e) {
-					e.stopPropagation();
-					Command.removeFromCollection(group.id, 'members', member.id, function () {
-						_UsersAndGroups.deactivateNodeHover(member.id, prefix);
-					});
-				});
+				// groupDiv.append('<i title="Remove \'' + member.name + '\' from group \'' + group.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.user_delete_icon) + '" />');
+				//
+				// $('.delete_icon', groupDiv).on('click', function(e) {
+				// 	e.stopPropagation();
+				// 	Command.removeFromCollection(group.id, 'members', member.id, function () {
+				// 		_UsersAndGroups.deactivateNodeHover(member.id, prefix);
+				// 	});
+				// });
 
 				groupEl.append(groupDiv.css({
 					top: 0,
@@ -286,6 +288,7 @@ var _UsersAndGroups = {
 				groupDiv.removeClass('disabled');
 
 				_Entities.appendEditPropertiesIcon(groupDiv, member);
+				_Elements.enableContextMenuOnElement(groupDiv, member);
 				_UsersAndGroups.setMouseOver(groupDiv, member.id, prefix);
 
 				if (member.members === null) {
@@ -351,7 +354,7 @@ var _UsersAndGroups = {
 		var groupElement = $('<div class="node group groupid_' + group.id + '">'
 				+ '<i class="typeIcon ' + groupIcon + ' typeIcon-nochildren" />'
 				+ ' <b title="' + group.name + '" class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
-				+ '<i title="Delete Group ' + group.id + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'
+				// + '<i title="Delete Group ' + group.id + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'
 				+ '</div>'
 		);
 		groupElement.data('groupId', group.id);
@@ -398,6 +401,7 @@ var _UsersAndGroups = {
 
 		_Entities.appendExpandIcon(groupDiv, group, hasChildren, Structr.isExpanded(group.id));
 		_Entities.appendEditPropertiesIcon(groupDiv, group);
+		_Elements.enableContextMenuOnElement(groupDiv, group);
 		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.groupid_');
 
 		if (hasChildren) {

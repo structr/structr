@@ -287,7 +287,7 @@ var _Elements = {
 
 			componentsSlideout.find(':not(.slideout-activator)').remove();
 
-			componentsSlideout.append('<div class="" id="newComponentDropzone"><div class="new-component-info"><i class="active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /><i class="inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> Drop element here to create new shared component</div></div>');
+			componentsSlideout.append('<div class="" id="newComponentDropzone"><div class="new-component-info"><i class="active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /><i class="inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> Drop element here to create<br>a new shared component</div></div>');
 			let newComponentDropzone = $('#newComponentDropzone', componentsSlideout);
 
 			componentsSlideout.append('<div id="componentsArea"></div>');
@@ -911,6 +911,8 @@ var _Elements = {
 		const isContent   = (entity.type === 'Content');
 		const isFile      = entity.isFile;
 		const isFolder    = entity.isFolder;
+		const isUser      = entity.isUser;
+		const isGroup     = entity.isGroup;
 		const hasChildren = (entity.children && entity.children.length > 0);
 
 		var handleInsertHTMLAction = function (itemText) {
@@ -943,7 +945,7 @@ var _Elements = {
 			}
 		};
 
-		if (!isFile && !isFolder) {
+		if (!isFile && !isFolder && !isUser && !isGroup) {
 
 			if (!isContent) {
 
@@ -1197,57 +1199,25 @@ var _Elements = {
 			}
 		}
 
-		if (isFile && entity.isImage && entity.contentType !== 'text/svg' && !entity.contentType.startsWith('image/svg')) {
-			elements.push({
-				name: 'Edit Image',
-				clickHandler: function () {
-					_Files.editImage(entity);
-					return false;
-				}
-			});
-		} else if (isFile) {
-			elements.push({
-				name: 'Edit File',
-				clickHandler: function () {
-					_Files.editFile(entity);
-					return false;
-				}
-			});
-		}
+		if (isUser || isGroup) {
 
-		if (isFile) {
-			Structr.performModuleDependendAction(function () {
-				if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && entity.contentType === 'text/csv') {
-					elements.push({
-						name: 'Import CSV',
-						clickHandler: function () {
-							Importer.importCSVDialog(entity, false);
-							return false;
-						}
-					});
-				}
-			});
-
-			Structr.performModuleDependendAction(function () {
-				if (Structr.isModulePresent('xml') && (entity.contentType === 'text/xml' || entity.contentType === 'application/xml')) {
-					elements.push({
-						name: 'Import XML',
-						clickHandler: function () {
-							Importer.importXMLDialog(entity, false);
-							return false;
-						}
-					});
-				}
-			});
-		}
-
-		elements.push({
-			name: 'Node Properties',
-			clickHandler: function() {
-				_Entities.showProperties(entity, 'ui');
-				return false;
+			let userOrGroupEl = div.closest('.node');
+			let parentGroupEl = userOrGroupEl.parent().closest('.group');
+			if (parentGroupEl.length) {
+				let parentGroupId = Structr.getGroupId(parentGroupEl);
+				elements.push({
+					name: 'Remove ' + entity.name + ' from ' + $('.name_', parentGroupEl).attr('title'),
+					clickHandler: function () {
+						Command.removeFromCollection(parentGroupId, 'members', entity.id, function () {
+							_UsersAndGroups.refreshGroups();
+						});
+						return false;
+					}
+				});
 			}
-		});
+
+			appendSeparator();
+		}
 
 		if (isFile) {
 
@@ -1282,7 +1252,58 @@ var _Elements = {
 				});
 			}
 
+			appendSeparator();
+
+			if (isFile && entity.isImage && entity.contentType !== 'text/svg' && !entity.contentType.startsWith('image/svg')) {
+				elements.push({
+					name: 'Edit Image',
+					clickHandler: function () {
+						_Files.editImage(entity);
+						return false;
+					}
+				});
+			} else if (isFile) {
+				elements.push({
+					name: 'Edit File',
+					clickHandler: function () {
+						_Files.editFile(entity);
+						return false;
+					}
+				});
+			}
+
+			Structr.performModuleDependendAction(function () {
+				if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && entity.contentType === 'text/csv') {
+					elements.push({
+						name: 'Import CSV',
+						clickHandler: function () {
+							Importer.importCSVDialog(entity, false);
+							return false;
+						}
+					});
+				}
+			});
+
+			Structr.performModuleDependendAction(function () {
+				if (Structr.isModulePresent('xml') && (entity.contentType === 'text/xml' || entity.contentType === 'application/xml')) {
+					elements.push({
+						name: 'Import XML',
+						clickHandler: function () {
+							Importer.importXMLDialog(entity, false);
+							return false;
+						}
+					});
+				}
+			});
 		}
+
+		elements.push({
+			name: 'Properties',
+			clickHandler: function() {
+				_Entities.showProperties(entity, 'ui');
+				return false;
+			}
+		});
 
 		appendSeparator();
 
@@ -1416,7 +1437,7 @@ var _Elements = {
 
 		appendSeparator();
 
-		if (!isFile && !isFolder && !isContent) {
+		if (!isFile && !isFolder && !isContent && !isUser && !isGroup) {
 
 			elements.push({
 				name: '<input type="checkbox" id="inherit-visibility-flags">Inherit Visibility Flags',
@@ -1434,11 +1455,13 @@ var _Elements = {
 		appendSeparator();
 
 		elements.push({
-			name: 'Delete',
+			name: 'Delete ' + entity.type,
 			clickHandler: () => {
 
-				if (isContent) {
+				if (isContent || isFile || isUser || isGroup) {
 					_Entities.deleteNode(this, entity);
+				} else if (isFolder) {
+					_Entities.deleteNode(this, entity, true);
 				} else {
 					_Entities.deleteNode(this, entity, true, function () {
 						var synced = entity.syncedNodesIds;

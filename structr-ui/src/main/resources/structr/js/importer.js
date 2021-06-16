@@ -346,7 +346,7 @@ var Importer = {
 
 		Structr.fetchHtmlTemplate('importer/dialog.configurations', {type: 'csv'}, function(html) {
 
-			dialogBox.append(html);
+			dialogMeta.append(html);
 
 			var importConfigSelector = $('#load-csv-config-selector');
 			importConfigSelector.on('change', function () {
@@ -859,7 +859,7 @@ var Importer = {
 
 		Structr.fetchHtmlTemplate('importer/dialog.configurations', {type: 'xml'}, function(html) {
 
-			dialogBox.append(html);
+			dialogMeta.append(html);
 
 			var importConfigSelector = $('#load-xml-config-selector');
 			importConfigSelector.on('change', function () {
