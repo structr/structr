@@ -346,6 +346,7 @@ var _Crud = {
 			clearTimeout(_Crud.messageTimeout);
 
 			fastRemoveAllChildren(crudRight[0]);
+			$('#crud-buttons').remove();
 
 			crudRight.data('url', '/' + type);
 
@@ -593,7 +594,7 @@ var _Crud = {
 			insertAfter: true
 		});
 
-		el.append('<div class="resource-link"><a target="_blank" href="' + rootUrl + type + '">/' + type + '</a></div>');
+		el.append('<div class="resource-link">Endpoint URL (opens in new window): <a target="_blank" href="' + rootUrl + type + '">/' + type + '</a></div>');
 
 		return $('.pager', el);
 	},
@@ -714,7 +715,7 @@ var _Crud = {
 				th.empty();
 				var sortKey = key;
 				th.append(
-					'<i title="Hide this column" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /><a href="' + _Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + key + '</a>');
+					'<a class="' + ((_Crud.sort[type] === key) ? 'column-sorted-active' : '') + '" href="' + _Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + key + '</a> <i title="Hide column ' + key + '" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />&nbsp;');
 
 				if (_Crud.isCollection(key, type)) {
 					_Crud.appendPerCollectionPager(th, type, key);

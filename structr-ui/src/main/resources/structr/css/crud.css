@@ -33,9 +33,9 @@
 }
 
 #crud-top #crud-refresh-list {
-	/*height: 28px;*/
-	/*padding: 0 3px;*/
-	/*margin-left: 5px;*/
+	/*height: 2rem;*/
+	/*padding: 0 1rem;*/
+	margin-left: 1rem;
 }
 
 #crud-top #crud-refresh-list i {
@@ -49,8 +49,9 @@
 #crud-type-detail {
 	/*padding: 6px;*/
 	/*vertical-align: top;*/
+	margin-top: 1rem;
 	overflow: auto;
-	height: calc(100% - 2rem);
+	height: 100%;
 	width: calc(100% - 1rem);
 }
 
@@ -133,7 +134,7 @@
 	position: -o-sticky;
 	position: sticky;
 	top: 0;
-	z-index: 2;
+	z-index: 1;
 	white-space: nowrap;
 	vertical-align: middle;
 }
@@ -157,6 +158,10 @@
 .crud-table tr td .array-attr i.remove {
 	vertical-align: middle;
     margin: 7px 0 6px 2px;
+}
+
+.column-sorted-active {
+	color: var(--body-text) ! important;
 }
 
 .resourceBox th i {
@@ -292,10 +297,10 @@ input.readonly {
 */
 .searchBox {
 	position: absolute;
-	right: 2rem;
-	top: 1rem;
+	right: 3rem;
+	/*top: 1rem;*/
 	z-index: 5;
-	line-height: 1em;
+	/*line-height: 1em;*/
 }
 
 .searchBoxDialog {
@@ -392,17 +397,17 @@ img.loader {
 }
 
 .resourceBox .pager {
-	float: left;
-	margin-top: -2px;
-	margin-bottom: 8px;
+	/*float: left;*/
+	/*margin-top: -2px;*/
+	/*margin-bottom: 8px;*/
+	margin: 1rem;
 }
 
 .resource-link {
-	height: 24px;
-	top: 7px;
+	top: 1.75rem;
 	display: block;
 	position: absolute;
-	right: 10px;
+	right: 2rem;
 }
 
 .soft-limit-warning {

@@ -244,7 +244,7 @@ input[type="text"]:disabled, input.disabled, textarea:disabled, textarea.disable
 }
 
 input[type="checkbox"] {
-	/*vertical-align: middle;*/
+	vertical-align: middle;
 	margin-right: .5rem;
 }
 
