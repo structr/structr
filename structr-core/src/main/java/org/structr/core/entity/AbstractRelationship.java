@@ -64,6 +64,7 @@ import org.structr.core.property.TargetId;
 import org.structr.core.property.TargetNodeProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 
@@ -628,7 +629,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public final Object evaluate(final ActionContext actionContext, final String key, final String defaultValue) throws FrameworkException {
+	public final Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, EvaluationHints hints, final int row, final int column) throws FrameworkException {
 
 		switch (key) {
 
@@ -651,7 +652,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwException) throws FrameworkException {
+	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwException, final EvaluationHints hints) throws FrameworkException {
 		throw new UnsupportedOperationException("Invoking a method on a relationship is not supported at the moment.");
 	}
 

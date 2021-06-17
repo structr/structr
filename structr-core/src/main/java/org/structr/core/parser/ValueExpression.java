@@ -18,11 +18,14 @@
  */
 package org.structr.core.parser;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
+import org.structr.common.ContextStore;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
@@ -32,7 +35,10 @@ public class ValueExpression extends Expression {
 
 	private String keyword = null;
 
-	public ValueExpression(final String keyword) {
+	public ValueExpression(final String keyword, final int row, final int column) {
+
+		super(row, column);
+
 		this.keyword = keyword;
 	}
 
@@ -57,21 +63,46 @@ public class ValueExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
-		Object value = ctx.getReferencedProperty(entity, keyword, null, 0);
+		Object value = null;
+
+		if (this.expressions.isEmpty()) {
+
+			// no nested expressions, this is not a function call
+			value = ctx.getReferencedProperty(entity, keyword, null, 0, hints, row, column);
+
+		} else {
+
+			// nested expressions detected, handle this as a function call
+			final ContextStore contextStore  = ctx.getContextStore();
+			final Map<String, Object> tmp    = contextStore.getTemporaryParameters();
+			final Map<String, Object> params = new LinkedHashMap<>();
+
+			// evaluate child expressions to get parameters
+			handleParameters(ctx, entity, hints, params);
+
+			// install new parameters for possible method call
+			contextStore.setTemporaryParameters(params);
+
+			// evaluate
+			value = ctx.getReferencedProperty(entity, keyword, null, 0, hints, row, column);
+
+			// restore previous parameters
+			contextStore.setTemporaryParameters(tmp);
+		}
 
 		for (final Expression expression : expressions) {
 
 			// evaluate expressions from left to right
-			value = expression.transform(ctx, entity, value);
+			value = expression.transform(ctx, entity, value, hints);
 		}
 
 		return value;
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object value) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object value, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
 		// evaluate dot syntax
 		if (keyword.startsWith(".")) {
@@ -82,7 +113,7 @@ public class ValueExpression extends Expression {
 
 				// use evaluation depth > 0 so that any data key that is registered in the
 				// context can NOT be used
-				return ctx.getReferencedProperty(entity, key, value, 1);
+				return ctx.getReferencedProperty(entity, key, value, 1, hints, row, column);
 
 			} else if (value instanceof Map) {
 
@@ -91,5 +122,39 @@ public class ValueExpression extends Expression {
 		}
 
 		return value;
+	}
+
+	// ----- private methods -----
+	private void handleParameters(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints, final Map<String, Object> dest) throws FrameworkException {
+
+		Object key   = null;
+		Object value = null;
+
+		for (final Expression param : this.expressions) {
+
+			if (key == null) {
+
+				key = param.evaluate(ctx, entity, hints);
+
+				if (key instanceof Map) {
+
+					dest.putAll((Map)key);
+
+					// reset params, allows map mixed with key-value pairs
+					key = null;
+
+				}
+
+			} else if (value == null) {
+
+				value = param.evaluate(ctx, entity, hints);
+
+				dest.put(key.toString(), value);
+
+				// reset params for the next key-value pair
+				key   = null;
+				value = null;
+			}
+		}
 	}
 }

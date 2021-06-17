@@ -57,7 +57,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	private MemoryNodeIndex nodeIndex                                   = null;
 
 	@Override
-	public boolean initialize(final String serviceName) {
+	public boolean initialize(final String serviceName, final String version, final String instance) {
 		return true;
 	}
 

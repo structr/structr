@@ -38,3 +38,8 @@ license.key
 # IntelliJ specific ignores
 .idea
 *.iml
+
+# Neo4j files
+neo4j
+neo4j*/
+

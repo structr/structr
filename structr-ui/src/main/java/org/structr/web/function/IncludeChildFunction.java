@@ -62,6 +62,11 @@ public class IncludeChildFunction extends IncludeFunction {
 				return null;
 			}
 
+			if (!ctx.isRenderContext()) {
+
+				return null;
+			}
+
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
 			final RenderContext innerCtx             = new RenderContext((RenderContext)ctx);
@@ -101,7 +106,8 @@ public class IncludeChildFunction extends IncludeFunction {
 				} else if (children.size() > 1) {
 
 					// More than one child node found => error
-					return "Error: Found more than one child node with name \"" + ((String) sources[0]) + "\" (total child nodes found by this name: " + StringUtils.join(children, ", ") + ")";
+					logger.warn("Error: Found more than one child node with name \"" + ((String) sources[0]) + "\" (total child nodes found by this name: " + StringUtils.join(children, ", ") + ")");
+					return "";
 				}
 			}
 

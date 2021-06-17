@@ -18,441 +18,64 @@
  */
 package org.structr.bolt;
 
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Transaction;
-import org.neo4j.driver.v1.TransactionConfig;
-import org.neo4j.driver.v1.Value;
-import org.neo4j.driver.v1.Values;
-import org.neo4j.driver.v1.exceptions.ClientException;
-import org.neo4j.driver.v1.exceptions.DatabaseException;
-import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
-import org.neo4j.driver.v1.exceptions.ServiceUnavailableException;
-import org.neo4j.driver.v1.exceptions.TransientException;
-import org.neo4j.driver.v1.types.Entity;
-import org.neo4j.driver.v1.types.Node;
-import org.neo4j.driver.v1.types.Relationship;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.exceptions.ClientException;
+import org.neo4j.driver.exceptions.DatabaseException;
+import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.summary.SummaryCounters;
+import org.neo4j.driver.types.Entity;
+import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Relationship;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.ConstraintViolationException;
 import org.structr.api.DataFormatException;
-import org.structr.api.NetworkException;
-import org.structr.api.NotFoundException;
-import org.structr.api.RetryException;
 import org.structr.api.UnknownClientException;
 import org.structr.api.UnknownDatabaseException;
-import org.structr.api.util.Iterables;
 
 /**
  *
  */
-class SessionTransaction implements org.structr.api.Transaction {
+abstract class SessionTransaction implements org.structr.api.Transaction {
 
 	private static final Logger logger                = LoggerFactory.getLogger(SessionTransaction.class);
-	private static final AtomicLong ID_SOURCE         = new AtomicLong();
-	private final Set<EntityWrapper> accessedEntities = new HashSet<>();
-	private final Set<EntityWrapper> modifiedEntities = new HashSet<>();
-	private final Set<Long> deletedNodes              = new HashSet<>();
-	private final Set<Long> deletedRels               = new HashSet<>();
-	private final Object transactionKey               = new Object();
-	private BoltDatabaseService db                    = null;
-	private Session session                           = null;
-	private Transaction tx                            = null;
-	private long transactionId                        = 0L;
-	private boolean closed                            = false;
-	private boolean success                           = false;
-	private boolean isPing                            = false;
+	protected static final AtomicLong ID_SOURCE       = new AtomicLong();
+	protected final Set<EntityWrapper> accessedEntities = new HashSet<>();
+	protected final Set<EntityWrapper> modifiedEntities = new HashSet<>();
+	protected final Set<Long> deletedNodes              = new HashSet<>();
+	protected final Set<Long> deletedRels               = new HashSet<>();
+	protected final Object transactionKey               = new Object();
+	protected BoltDatabaseService db                    = null;
+	protected long transactionId                        = 0L;
+	protected boolean success                           = false;
+	protected boolean isPing                            = false;
 
-	public SessionTransaction(final BoltDatabaseService db, final Session session) {
+	public SessionTransaction(final BoltDatabaseService db) {
 
 		this.transactionId = ID_SOURCE.getAndIncrement();
-		this.session       = session;
-		this.tx            = session.beginTransaction(db.getTransactionConfig(transactionId));
 		this.db            = db;
 	}
 
-	public SessionTransaction(final BoltDatabaseService db, final Session session, final int timeoutInSeconds) {
-
-		final TransactionConfig config = db.getTransactionConfigForTimeout(timeoutInSeconds, transactionId);
-
-		this.transactionId = ID_SOURCE.getAndIncrement();
-		this.session       = session;
-		this.tx            = session.beginTransaction(config);
-		this.db            = db;
-	}
-
-	@Override
-	public void failure() {
-		tx.failure();
-	}
-
-	@Override
-	public void success() {
-
-		tx.success();
-
-		// transaction must be marked successfull explicitly
-		success = true;
-	}
-
-	@Override
-	public void close() {
-
-		if (!success) {
-
-			for (final EntityWrapper entity : accessedEntities) {
-
-				entity.rollback(transactionKey);
-				entity.removeFromCache();
-			}
-
-			for (final EntityWrapper entity : modifiedEntities) {
-				entity.stale();
-			}
-
-		} else {
-
-			RelationshipWrapper.expunge(deletedRels);
-			NodeWrapper.expunge(deletedNodes);
-
-			for (final EntityWrapper entity : accessedEntities) {
-				entity.commit(transactionKey);
-			}
-
-			for (final EntityWrapper entity : modifiedEntities) {
-				entity.clearCaches();
-			}
-		}
-
-		// mark this transaction as closed BEFORE trying to actually close it
-		// so that it is closed in case of a failure
-		closed = true;
-
-		try {
-
-			tx.close();
-			session.close();
-
-		} catch (TransientException tex) {
-
-			// transient exceptions can be retried
-			throw new RetryException(tex);
-
-		} finally {
-
-			// Notify all nodes that are modified in this transaction
-			// so that the relationship caches are rebuilt.
-			for (final EntityWrapper entity : modifiedEntities) {
-				entity.onClose();
-			}
-
-			// make sure that the resources are freed
-			if (session.isOpen()) {
-				session.close();
-			}
-		}
-	}
-
-	public boolean isClosed() {
-		return closed;
-	}
-
-	public void setClosed(final boolean closed) {
-		this.closed = closed;
-	}
-
-	public boolean getBoolean(final String statement) {
-
-		try {
-
-			logQuery(statement);
-			return getBoolean(statement, Collections.EMPTY_MAP);
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
-		}
-	}
-
-	public boolean getBoolean(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
-			return tx.run(statement, map).next().get(0).asBoolean();
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
-		}
-	}
-
-	public long getLong(final String statement) {
-
-		try {
-
-			logQuery(statement);
-			return getLong(statement, Collections.EMPTY_MAP);
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
-		}
-	}
-
-	public long getLong(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
-			return tx.run(statement, map).next().get(0).asLong();
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
-		}
-	}
-
-	public Object getObject(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
-			final StatementResult result = tx.run(statement, map);
-			if (result.hasNext()) {
-
-				return result.next().get(0).asObject();
-			}
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
-		}
-
-		return null;
-	}
-
-	public Entity getEntity(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
-			return tx.run(statement, map).next().get(0).asEntity();
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
-		}
-	}
-
-	public Node getNode(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
-
-			final StatementResult result = tx.run(statement, map);
-			final Record single          = result.single();
-
-			return single.get(0).asNode();
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
-		}
-	}
-
-	public Relationship getRelationship(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
-
-			final StatementResult result = tx.run(statement, map);
-			final Record single          = result.single();
-
-			return single.get(0).asRelationship();
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
-		}
-	}
-
-	public void collectRecords(final String statement, final Map<String, Object> map, final IterableQueueingRecordConsumer consumer) {
-
-		logQuery(statement, map);
-
-		tx.runAsync(statement, map)
-			.thenCompose(cursor -> consumer.start(cursor))
-			.thenCompose(cursor -> cursor.forEachAsync(consumer::accept))
-			.thenAccept(summary -> consumer.finish())
-			.exceptionally(t -> consumer.exception(t));
-	}
-
-	public Iterable<String> getStrings(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
-			final StatementResult result = tx.run(statement, map);
-			final Record record          = result.next();
-			final Value value            = record.get(0);
-
-			return new IteratorWrapper<>(value.asList(Values.ofString()).iterator());
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
-		}
-	}
-
-	public Iterable<Map<String, Object>> run(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
-			return Iterables.map(new RecordMapMapper(db), new IteratorWrapper<>(tx.run(statement, map)));
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
-		}
-	}
-
-	public void set(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
-			tx.run(statement, map).consume();
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw SessionTransaction.translateClientException(cex);
-		}
-	}
-
-	public void logQuery(final String statement) {
-		logQuery(statement, null);
-	}
-
-	public void logQuery(final String statement, final Map<String, Object> map) {
-
-		if (db.logQueries()) {
-
-			if (!isPing || db.logPingQueries()) {
-
-				if (map != null && map.size() > 0) {
-
-					if (statement.contains("extractedContent")) {
-						logger.info("{}: {}\t\t SET on extractedContent - value suppressed", Thread.currentThread().getId(), statement);
-					} else {
-						logger.info("{}: {}\t\t Parameters: {}", Thread.currentThread().getId(), statement, map.toString());
-					}
-
-				} else {
-
-					logger.info("{}: {}", Thread.currentThread().getId(), statement);
-				}
-			}
-		}
-	}
+	public abstract boolean isClosed();
+	public abstract boolean getBoolean(final String statement);
+	public abstract boolean getBoolean(final String statement, final Map<String, Object> map);
+	public abstract long getLong(final String statement);
+	public abstract long getLong(final String statement, final Map<String, Object> map);
+	public abstract Object getObject(final String statement, final Map<String, Object> map);
+	public abstract Entity getEntity(final String statement, final Map<String, Object> map);
+	public abstract Node getNode(final String statement, final Map<String, Object> map);
+	public abstract Relationship getRelationship(final String statement, final Map<String, Object> map);
+	public abstract Object collectRecords(final String statement, final Map<String, Object> map, final Object consumer);
+	public abstract Iterable<String> getStrings(final String statement, final Map<String, Object> map);
+	public abstract Iterable<Map<String, Object>> run(final String statement, final Map<String, Object> map);
+	public abstract void set(final String statement, final Map<String, Object> map);
+
+	public abstract Iterable<Record> newIterable(final BoltDatabaseService db, final AdvancedCypherQuery query);
 
 	public void deleted(final NodeWrapper wrapper) {
 		deletedNodes.add(wrapper.getDatabaseId());
@@ -526,62 +149,50 @@ class SessionTransaction implements org.structr.api.Transaction {
 		throw new UnknownDatabaseException(dex, dex.code(), dex.getMessage());
 	}
 
-	// ----- nested classes -----
-	public class IteratorWrapper<T> implements Iterable<T> {
+	// ----- protected methods -----
+	protected void logQuery(final String statement) {
+		logQuery(statement, null);
+	}
 
-		private Iterator<T> iterator = null;
+	protected void logQuery(final String statement, final Map<String, Object> map) {
 
-		public IteratorWrapper(final Iterator<T> iterator) {
-			this.iterator = iterator;
-		}
+		if (db.logQueries()) {
 
-		@Override
-		public Iterator<T> iterator() {
-			return new CloseableIterator<>(iterator);
+			if (!isPing || db.logPingQueries()) {
+
+				if (map != null && map.size() > 0) {
+
+					if (statement.contains("extractedContent")) {
+						logger.info("{}: {}\t\t SET on extractedContent - value suppressed", Thread.currentThread().getId(), statement);
+					} else {
+						logger.info("{}: {}\t\t Parameters: {}", Thread.currentThread().getId(), statement, map.toString());
+					}
+
+				} else {
+
+					logger.info("{}: {}", Thread.currentThread().getId(), statement);
+				}
+			}
 		}
 	}
 
-	public class CloseableIterator<T> implements Iterator<T>, AutoCloseable {
+	protected void logSummary(final ResultSummary summary) {
 
-		private Iterator<T> iterator = null;
+		if (db.logQueries()) {
 
-		public CloseableIterator(final Iterator<T> iterator) {
-			this.iterator = iterator;
-		}
+			final SummaryCounters counters = summary.counters();
 
-		@Override
-		public boolean hasNext() {
+			final int nodesDeleted = counters.nodesDeleted();
+			final int nodesCreated = counters.nodesCreated();
 
-			try {
-				return iterator.hasNext();
+			if (nodesDeleted + nodesCreated > 1) {
 
-			} catch (ClientException dex) {
-				throw SessionTransaction.translateClientException(dex);
-			} catch (DatabaseException dex) {
-				throw SessionTransaction.translateDatabaseException(dex);
-			}
-		}
+				final long availableAfter = summary.resultAvailableAfter(TimeUnit.MILLISECONDS);
+				final long consumedAfter  = summary.resultConsumedAfter(TimeUnit.MILLISECONDS);
 
-		@Override
-		public T next() {
-
-			try {
-
-				return iterator.next();
-
-			} catch (ClientException dex) {
-				throw SessionTransaction.translateClientException(dex);
-			} catch (DatabaseException dex) {
-				throw SessionTransaction.translateDatabaseException(dex);
-			}
-		}
-
-		@Override
-		public void close() throws Exception {
-
-			if (iterator instanceof StatementResult) {
-
-				((StatementResult)iterator).consume();
+				logger.info("Query summary: {} nodes created, {} nodes deleted, result available after {} ms, consumed after {} ms, notifications: {}, query: {}",
+					nodesCreated, nodesDeleted, availableAfter, consumedAfter, summary.notifications(), summary.query().text()
+				);
 			}
 		}
 	}

@@ -75,7 +75,7 @@ public class PolyglotProxyArray implements ProxyArray {
 
 			return null;
 		}
-		
+
 		return PolyglotWrapper.wrap(actionContext, list.get((int)index));
 	}
 
@@ -131,6 +131,7 @@ public class PolyglotProxyArray implements ProxyArray {
 	}
 
 	private void updateListFromSource() {
+
 		if (this.node != null && propKey != null) {
 
 			list.clear();
@@ -170,7 +171,7 @@ public class PolyglotProxyArray implements ProxyArray {
 				node.setProperty(propKey, propKey.inputConverter(actionContext.getSecurityContext()).convert(list));
 			} catch (FrameworkException ex) {
 
-				logger.error("Unexpected exception while trying to update collection attribute on GraphObject.", ex);
+				throw new RuntimeException(ex);
 			}
 		}
 	}

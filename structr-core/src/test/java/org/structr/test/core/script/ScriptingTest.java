@@ -19,11 +19,11 @@
 package org.structr.test.core.script;
 
 import com.google.gson.GsonBuilder;
+import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,12 +60,12 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
 import org.structr.test.core.entity.TestFour;
@@ -75,9 +75,8 @@ import org.structr.test.core.entity.TestSix;
 import org.structr.test.core.entity.TestThree;
 import org.structr.test.core.entity.TestTwo;
 import org.testng.Assert;
-import org.testng.annotations.Test;
-
 import static org.testng.AssertJUnit.*;
+import org.testng.annotations.Test;
 
 
 /**
@@ -150,7 +149,7 @@ public class ScriptingTest extends StructrTest {
 			tx.success();
 
 
-		} catch(Throwable t) {
+		} catch(FrameworkException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -187,7 +186,7 @@ public class ScriptingTest extends StructrTest {
 			tx.success();
 
 
-		} catch(Throwable t) {
+		} catch(FrameworkException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -213,29 +212,30 @@ public class ScriptingTest extends StructrTest {
 			}
 
 			final GraphObject sourceNode = app.nodeQuery(sourceType).getFirst();
+			final EvaluationHints hints  = new EvaluationHints();
 
 			// set testEnum property to OPEN via doTest01 function call, check result
-			sourceNode.invokeMethod(securityContext, "doTest01", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod(securityContext, "doTest01", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[0], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to CLOSED via doTest02 function call, check result
-			sourceNode.invokeMethod(securityContext, "doTest02", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod(securityContext, "doTest02", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[1], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to TEST via doTest03 function call, check result
-			sourceNode.invokeMethod(securityContext, "doTest03", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod(securityContext, "doTest03", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to INVALID via doTest03 function call, expect previous value & error
 			try {
-				sourceNode.invokeMethod(securityContext, "doTest04", Collections.EMPTY_MAP, true);
+				sourceNode.invokeMethod(securityContext, "doTest04", Collections.EMPTY_MAP, true, hints);
 				assertEquals("Invalid setProperty result for EnumProperty",    testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
 				fail("Setting EnumProperty to invalid value should result in an Exception!");
 
 			} catch (FrameworkException fx) {}
 
 			// test other property types
-			sourceNode.invokeMethod(securityContext, "doTest05", Collections.EMPTY_MAP, true);
+			sourceNode.invokeMethod(securityContext, "doTest05", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for BooleanProperty",                         true, sourceNode.getProperty(testBooleanProperty));
 			assertEquals("Invalid setProperty result for IntegerProperty",                          123, sourceNode.getProperty(testIntegerProperty));
 			assertEquals("Invalid setProperty result for StringProperty",                   "testing..", sourceNode.getProperty(testStringProperty));
@@ -314,7 +314,7 @@ public class ScriptingTest extends StructrTest {
 		// grant read access to test user
 		try (final Tx tx = app.tx()) {
 
-			app.nodeQuery(sourceType).getFirst().invokeMethod(securityContext, "doTest01", Collections.EMPTY_MAP, true);
+			app.nodeQuery(sourceType).getFirst().invokeMethod(securityContext, "doTest01", Collections.EMPTY_MAP, true, new EvaluationHints());
 			tx.success();
 
 		} catch(FrameworkException fex) {
@@ -781,17 +781,7 @@ public class ScriptingTest extends StructrTest {
 
 			assertEquals("Invalid size result", "20", Scripting.replaceVariables(ctx, testOne, "${this.manyToManyTestSixs.size}"));
 
-			try {
-
-				Scripting.replaceVariables(ctx, testOne, "${(this.alwaysNull.size}");
-				fail("A mismatched opening bracket should throw an exception.");
-
-			} catch (FrameworkException fex) {
-
-				final String expectedMessage = "TestOne[" + testOne.getUuid() + "]:script source:1:2\nInvalid expression: mismatched closing bracket after this.alwaysNull.size";
-				assertEquals(expectedMessage, fex.getMessage());
-			}
-
+			assertEquals("Invalid size result", "", Scripting.replaceVariables(ctx, testOne, "${(this.alwaysNull.size}"));
 			assertEquals("Invalid size result", "", Scripting.replaceVariables(ctx, testOne, "${this.alwaysNull.size}"));
 
 			assertEquals("Invalid variable reference", "1",            Scripting.replaceVariables(ctx, testOne, "${this.anInt}"));
@@ -939,9 +929,9 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid length() result", "4", Scripting.replaceVariables(ctx, testOne, "${length('test')}"));
 			assertEquals("Invalid length() result", "", Scripting.replaceVariables(ctx, testOne, "${length(this.alwaysNull)}"));
 
-			// clean
-			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoauabcdefgh", Scripting.replaceVariables(ctx, testOne, "${clean(this.cleanTestString)}"));
-			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoauabcdefgh", Scripting.replaceVariables(ctx, testOne, "${clean(get(this, \"cleanTestString\"))}"));
+			// clean ("a<b>c.d'e?f(g)h{i}j[k]l+m/n–o\\p\\q|r's!t,u-v_w`x-y-zöäüßABCDEFGH")
+			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoeaeuessabcdefgh", Scripting.replaceVariables(ctx, testOne, "${clean(this.cleanTestString)}"));
+			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoeaeuessabcdefgh", Scripting.replaceVariables(ctx, testOne, "${clean(get(this, \"cleanTestString\"))}"));
 			assertEquals("Invalid clean() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${clean(this.alwaysNull)}"));
 
 			// trim
@@ -1041,9 +1031,8 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid if(equal()) result", "false",  Scripting.replaceVariables(ctx, testOne, "${if(equal(\"13\", \"00013\"), \"true\", \"false\")}"));
 
 			// disabled: java StreamTokenizer can NOT handle scientific notation
-//			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(23.4462, 2.34462e1)}"));
-//			assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(0.00234462, 2.34462e-3)}"));
-//			aFunction.logException(logger, ex, "Error in batch error handler: {}", new Object[]{ex.getMessage()});
+			//assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(23.4462, 2.34462e1)}"));
+			//assertEquals("Invalid if(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(0.00234462, 2.34462e-3)}"));
 			assertEquals("Invalid if(equal()) result with null value", "false",  Scripting.replaceVariables(ctx, testOne, "${equal(0.00234462, this.alwaysNull)}"));
 			assertEquals("Invalid if(equal()) result with null value", "true",  Scripting.replaceVariables(ctx, testOne, "${equal(this.alwaysNull, this.alwaysNull)}"));
 
@@ -2030,7 +2019,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 
 			fail(fex.getMessage());
 		}
@@ -2179,14 +2168,14 @@ public class ScriptingTest extends StructrTest {
 		final ActionContext ctx = new ActionContext(securityContext, null);
 
 		TestOne testNode = null;
-                String uuid ="";
+		String uuid ="";
 
 		try (final Tx tx = app.tx()) {
 
 			testNode = createTestNode(TestOne.class);
 			testNode.setProperty(TestOne.aString, "InitialString");
 			testNode.setProperty(TestOne.anInt, 42);
-                        uuid = testNode.getProperty(new StringProperty("id"));
+			uuid = testNode.getProperty(AbstractNode.id);
 
 			tx.success();
 
@@ -2199,21 +2188,19 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-                        assertEquals("JavaScript: Trying to find entity with type,key,value!", "InitialString", Scripting.replaceVariables(ctx, testNode, "${{ var t1 = Structr.first(Structr.find_privileged('TestOne','anInt','42')); Structr.print(t1.aString); }}"));
+			assertEquals("JavaScript: Trying to find entity with type,key,value!", "InitialString", Scripting.replaceVariables(ctx, testNode, "${{ var t1 = Structr.first(Structr.find_privileged('TestOne','anInt','42')); Structr.print(t1.aString); }}"));
 
-                        assertEquals("JavaScript: Trying to find entity with type,id!", "InitialString", Scripting.replaceVariables(ctx, testNode, "${{ var t1 = Structr.find_privileged('TestOne','"+uuid+"'); Structr.print(t1.aString); }}"));
+			assertEquals("JavaScript: Trying to find entity with type,id!", "InitialString", Scripting.replaceVariables(ctx, testNode, "${{ var t1 = Structr.find_privileged('TestOne','"+uuid+"'); Structr.print(t1.aString); }}"));
 
-                        assertEquals("JavaScript: Trying to find entity with type,key,value,key,value!", "InitialString", Scripting.replaceVariables(ctx, testNode, "${{ var t1 = Structr.first(Structr.find_privileged('TestOne','anInt','42','aString','InitialString')); Structr.print(t1.aString); }}"));
+			assertEquals("JavaScript: Trying to find entity with type,key,value,key,value!", "InitialString", Scripting.replaceVariables(ctx, testNode, "${{ var t1 = Structr.first(Structr.find_privileged('TestOne','anInt','42','aString','InitialString')); Structr.print(t1.aString); }}"));
 
 			tx.success();
 
 		} catch (FrameworkException ex) {
 
-                        logger.warn("", ex);
-                        fail("Unexpected exception");
-
-                }
-
+			logger.warn("", ex);
+			fail("Unexpected exception");
+		}
 	}
 
 	@Test
@@ -2287,16 +2274,13 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("${print(this.aDate)} should yield ISO 8601 date format", expectedDateOutput, dateOutput2);
 			assertEquals("${Structr.print(Structr.this.aDate)} should yield ISO 8601 date format", expectedDateOutput, dateOutput3);
 
-
 			tx.success();
 
 		} catch (FrameworkException fex) {
 
 			logger.warn("", fex);
-
 			fail(fex.getMessage());
 		}
-
 	}
 
 	@Test
@@ -2331,7 +2315,6 @@ public class ScriptingTest extends StructrTest {
 
 			fail(fex.getMessage());
 		}
-
 	}
 
 	@Test
@@ -2423,7 +2406,7 @@ public class ScriptingTest extends StructrTest {
 			final StringBuilder func = new StringBuilder();
 
 			func.append("${{\n");
-			func.append("    Structr.batch(function() {\n");
+			func.append("    Structr.doInNewTransaction(function() {\n");
 			func.append("        var toDelete = Structr.find('TestOne').slice(0, 100);\n");
 			func.append("        if (toDelete && toDelete.length) {\n");
 			func.append("            Structr.log('Deleting ' + toDelete.length + ' nodes..');\n");
@@ -2599,14 +2582,14 @@ public class ScriptingTest extends StructrTest {
 			final JsonType dummyType = schema.addType("DummyType");
 			final JsonType newType   = schema.addType("MyDynamicType");
 
-			newType.addMethod("onCreation",    "is(eq(this.name, 'forbiddenName'), error('myError', '" + expectedErrorToken + "', 'creating this object is not allowed'))", "");
-			newType.addMethod("afterCreation", "create('DummyType', 'name', 'this should not be possible!')", "");
+			newType.addMethod("onCreation",    "is(eq(this.name, 'forbiddenName'), error('myError', '" + expectedErrorToken + "', 'creating this object is not allowed'))");
+			newType.addMethod("afterCreation", "create('DummyType', 'name', 'this should not be possible!')");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			logger.error("", t);
 			fail("Unexpected exception during test setup.");
 		}
@@ -2629,7 +2612,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -2645,7 +2628,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -2659,7 +2642,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -2700,7 +2683,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
@@ -2803,7 +2786,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException | InvalidSchemaException | URISyntaxException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -2848,15 +2831,15 @@ public class ScriptingTest extends StructrTest {
 
 			customer.relate(project, "project", Cardinality.OneToOne, "customer", "project");
 
-			customer.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.this.log = JSON.stringify(mods); }", "");
-			project.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.this.log = JSON.stringify(mods); }", "");
-			task.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.this.log = JSON.stringify(mods); }", "");
+			customer.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.this.log = JSON.stringify(mods); }");
+			project.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.this.log = JSON.stringify(mods); }");
+			task.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); Structr.this.log = JSON.stringify(mods); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -2999,16 +2982,16 @@ public class ScriptingTest extends StructrTest {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
-			createTestType(schema, "Test1", " 	 set(this, 'c', 'passed')  ",   "   \n 	set(this, 's', 'passed')\n	\n    \n  ", "StructrScript with newlines");
-			createTestType(schema, "Test2", "set(this, 'c', 'passed')",             "set(this, 's', 'passed')",                  "StructrScript without newlines");
-			createTestType(schema, "Test3", "   { Structr.this.c = 'passed'; }   ", " 	 \n	  { Structr.this.s = 'passed'; }\n\n	\n    \n "  ,    "JavaScript with newlines");
-			createTestType(schema, "Test4", "{ Structr.this.c = 'passed'; }",       "{ Structr.this.s = 'passed'; }",            "JavaScript without newlines");
+			createTestType(schema, "Test1", " 	 set(this, 'c', 'passed')  ",   "   \n 	set(this, 's', 'passed')\n	\n    \n  ");                 // "StructrScript with newlines"
+			createTestType(schema, "Test2", "set(this, 'c', 'passed')",             "set(this, 's', 'passed')");                                  // "StructrScript without newlines"
+			createTestType(schema, "Test3", "   { Structr.this.c = 'passed'; }   ", " 	 \n	  { Structr.this.s = 'passed'; }\n\n	\n    \n ");  // "JavaScript with newlines"
+			createTestType(schema, "Test4", "{ Structr.this.c = 'passed'; }",       "{ Structr.this.s = 'passed'; }");                            // "JavaScript without newlines"
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3029,7 +3012,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3112,16 +3095,16 @@ public class ScriptingTest extends StructrTest {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
-			createTestType(schema, "Test1", " 	 set(this, 'c', 'passed')  ",   "    	set(this, 's', 'passed')	", "StructrScript with whitespace");
-			createTestType(schema, "Test2", "set(this, 'c', 'passed')",             "set(this, 's', 'passed')",                "StructrScript without whitespace");
-			createTestType(schema, "Test3", "   { Structr.this.c = 'passed'; }   ", "   { Structr.this.s = 'passed'; }   ",    "JavaScript with whitespace");
-			createTestType(schema, "Test4", "{ Structr.this.c = 'passed'; }",       "{ Structr.this.s = 'passed'; }",          "JavaScript without whitespace");
+			createTestType(schema, "Test1", " 	 set(this, 'c', 'passed')  ", "    	set(this, 's', 'passed')	");          // "StructrScript with whitespace"
+			createTestType(schema, "Test2", "set(this, 'c', 'passed')", "set(this, 's', 'passed')");                         // "StructrScript without whitespace"
+			createTestType(schema, "Test3", "   { Structr.this.c = 'passed'; }   ", "   { Structr.this.s = 'passed'; }   "); // "JavaScript with whitespace"
+			createTestType(schema, "Test4", "{ Structr.this.c = 'passed'; }", "{ Structr.this.s = 'passed'; }");             // "JavaScript without whitespace"
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3142,7 +3125,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3222,8 +3205,7 @@ public class ScriptingTest extends StructrTest {
 
 		final String storeKey        = "my-store-key";
 		final String userValue       = "USER-value";
-		final String privilegedValue = "PRVILIGED-value";
-
+		final String privilegedValue = "PRIVILEGED-value";
 
 		try (final Tx tx = app.tx()) {
 
@@ -3372,7 +3354,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3392,7 +3374,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3408,7 +3390,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3438,7 +3420,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3465,7 +3447,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3494,7 +3476,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3543,7 +3525,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3634,7 +3616,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3689,7 +3671,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -3794,7 +3776,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception");
@@ -3911,7 +3893,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception");
@@ -4008,7 +3990,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4019,10 +4001,10 @@ public class ScriptingTest extends StructrTest {
 		final Class testType    = StructrApp.getConfiguration().getNodeEntityClass("Test");
 		final Class type        = StructrApp.getConfiguration().getNodeEntityClass("Project");
 		final PropertyKey name1 = StructrApp.key(type, "name1");
-                final PropertyKey name2 = StructrApp.key(type, "name2");
-                final PropertyKey name3 = StructrApp.key(type, "name3");
-                final PropertyKey age   = StructrApp.key(type, "age");
-                final PropertyKey count = StructrApp.key(type, "count");
+		final PropertyKey name2 = StructrApp.key(type, "name2");
+		final PropertyKey name3 = StructrApp.key(type, "name3");
+		final PropertyKey age   = StructrApp.key(type, "age");
+		final PropertyKey count = StructrApp.key(type, "count");
 
 		String group1 = null;
 		String group2 = null;
@@ -4063,7 +4045,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4165,6 +4147,270 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
+	public void testAdvancedFindRangeQueryLeak() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			schema.addType("Test");
+
+			final JsonType testType  = schema.addType("TestType");
+
+			testType.addIntegerProperty("count").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		final ActionContext ctx                = new ActionContext(securityContext);
+		final Class type                       = StructrApp.getConfiguration().getNodeEntityClass("TestType");
+		final PropertyKey count                = StructrApp.key(type, "count");
+		final PropertyKey visibleToPublicUsers = StructrApp.key(type, "visibleToPublicUsers");
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			int cnt = 0;
+
+			while (cnt < 10) {
+
+				app.create(type,
+					new NodeAttribute<>(visibleToPublicUsers, true),
+					new NodeAttribute<>(count, cnt)
+				);
+
+				app.create(type,
+					new NodeAttribute<>(visibleToPublicUsers, false),
+					new NodeAttribute<>(count, cnt + 10)
+				);
+
+				cnt++;
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			// AND: works
+			final String testRangeFunctionInANDGroup = "${{\n" +
+			"    let nodes = $.find('TestType', {\n" +
+			"            $and: {\n" +
+			"                'visibleToPublicUsers': true,\n" +
+			"                'count': $.predicate.range(5, 14)\n" +
+			"            }\n" +
+			"        }\n" +
+			"    );\n" +
+			"    return nodes;\n" +
+			"}}";
+
+			final List<NodeInterface> res1 = (List)Scripting.evaluate(ctx, null, testRangeFunctionInANDGroup, "testAdvancedFindRangeQueryLeak");
+			assertEquals("Advanced find range predicate does not filter correctly for surrounding AND", 5, res1.size());
+
+
+			// OR with workaround AND around range: works
+			final String testRangeFunctionORWrapRangeInAND = "${{\n" +
+			"    let nodes = $.find('TestType', {\n" +
+			"            $or: {\n" +
+			"                'visibleToPublicUsers': true,\n" +
+			"                $and: {\n" +
+			"                    'count': $.predicate.range(5, 14)\n" +
+			"                }\n" +
+			"            }\n" +
+			"        }\n" +
+			"    );\n" +
+			"    return nodes;\n" +
+			"}}";
+
+			final List<NodeInterface> res2 = (List)Scripting.evaluate(ctx, null, testRangeFunctionORWrapRangeInAND, "testAdvancedFindRangeQueryLeak");
+			assertEquals("Advanced find range predicate does not filter correctly for surrounding OR (even when wrapped in and() itself)", 15, res2.size());
+
+
+			// Plain OR with structrscript syntax: does not work
+			final String testRangeFunctionInORGroupStructrScriptSyntax = "${{\n" +
+			"    let nodes = $.find('TestType', \n" +
+			"            $.predicate.or(\n" +
+			"                $.predicate.equals('visibleToPublicUsers', true),\n" +
+			"                $.predicate.equals('count', $.predicate.range(5, 14))\n" +
+			"            )\n" +
+			"    );\n" +
+			"    return nodes;\n" +
+			"}}";
+
+			final List<NodeInterface> res3 = (List)Scripting.evaluate(ctx, null, testRangeFunctionInORGroupStructrScriptSyntax, "testAdvancedFindRangeQueryLeak");
+			assertEquals("Advanced find range predicate does not filter correctly for surrounding OR (range() leaks outward and turns OR into AND) [StructrScript Syntax]", 15, res3.size());
+
+
+			// Plain OR with JavaScript syntax: does not work
+			final String testRangeFunctionInORGroupOtherSyntax = "${{\n" +
+			"    let nodes = $.find('TestType', {\n" +
+			"            $or: {\n" +
+			"                'visibleToPublicUsers': true,\n" +
+			"                'count': $.predicate.range(5, 14)\n" +
+			"            }\n" +
+			"        }\n" +
+			"    );\n" +
+			"    return nodes;\n" +
+			"}}";
+
+			final List<NodeInterface> res4 = (List)Scripting.evaluate(ctx, null, testRangeFunctionInORGroupOtherSyntax, "testAdvancedFindRangeQueryLeak");
+			assertEquals("Advanced find range predicate does not filter correctly for surrounding OR (range() leaks outward and turns OR into AND) [JavaScript Syntax]", 15, res4.size());
+
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testAdvancedFindWithMultipleLevelsOfEmptyPredicates() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			schema.addType("TestType");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		final Class testType                   = StructrApp.getConfiguration().getNodeEntityClass("TestType");
+		final PropertyKey visibleToPublicUsers = StructrApp.key(testType, "visibleToPublicUsers");
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			app.create(testType, new NodeAttribute<>(visibleToPublicUsers, true));
+			app.create(testType, new NodeAttribute<>(visibleToPublicUsers, true));
+			app.create(testType, new NodeAttribute<>(visibleToPublicUsers, true));
+			app.create(testType, new NodeAttribute<>(visibleToPublicUsers, true));
+			app.create(testType, new NodeAttribute<>(visibleToPublicUsers, true));
+			app.create(testType, new NodeAttribute<>(visibleToPublicUsers, true));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		final ActionContext ctx                = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final int testNodeCount = StructrApp.getInstance().nodeQuery(StructrApp.getConfiguration().getNodeEntityClass("TestType")).getAsList().size();
+
+			final String errorMessage = "all test nodes should be returned - no cypher exception should be triggered by empty clauses!";
+
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType').length; }}", ""));
+
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and()).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or()).length; }}", ""));
+
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and(), $.predicate.and()).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and(), $.predicate.or ()).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or (), $.predicate.and()).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or (), $.predicate.or ()).length; }}", ""));
+
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and($.predicate.and()), $.predicate.and($.predicate.and())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or ($.predicate.and()), $.predicate.and($.predicate.and())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and($.predicate.and()), $.predicate.and($.predicate.or ())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or ($.predicate.and()), $.predicate.and($.predicate.or ())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and($.predicate.or ()), $.predicate.and($.predicate.and())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or ($.predicate.or ()), $.predicate.and($.predicate.and())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and($.predicate.or ()), $.predicate.and($.predicate.or ())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or ($.predicate.or ()), $.predicate.and($.predicate.or ())).length; }}", ""));
+
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or (), $.predicate.or (), $.predicate.or ()).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and(), $.predicate.and(), $.predicate.and()).length; }}", ""));
+
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and($.predicate.or (), $.predicate.or (), $.predicate.or ())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or ($.predicate.or (), $.predicate.or (), $.predicate.or ())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and($.predicate.and(), $.predicate.and(), $.predicate.and())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or ($.predicate.and(), $.predicate.and(), $.predicate.and())).length; }}", ""));
+
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or ($.predicate.or (), $.predicate.and(), $.predicate.or ())).length; }}", ""));
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.or ($.predicate.and(), $.predicate.or (), $.predicate.and())).length; }}", ""));
+
+			assertEquals(errorMessage, testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('TestType', $.predicate.and($.predicate.or($.predicate.or(), $.predicate.and($.predicate.or($.predicate.or()), $.predicate.or())), $.predicate.or())).length; }}", ""));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testAdvancedFindWithContainsPredicate() {
+
+		try (final Tx tx = app.tx()) {
+
+			int cnt = 0;
+
+			while (cnt < 10) {
+
+				app.create(Group.class, new NodeAttribute<>(Group.name, "node" + cnt));
+				cnt++;
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final ActionContext ctx                = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final int testNodeCount = StructrApp.getInstance().nodeQuery(Group.class).getAsList().size();
+
+			assertEquals("All groups should be returned", testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('Group').length; }}", ""));
+			assertEquals("All groups should be returned with 'node' in their name", testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('Group', $.predicate.contains('name', 'node')).length; }}", ""));
+			assertEquals("All groups should be returned because the empty string is always contained in any string", testNodeCount, Scripting.evaluate(ctx, null, "${{ return $.find('Group', $.predicate.contains('name', '')).length; }}", ""));
+			assertEquals("No groups should be found!", 0, Scripting.evaluate(ctx, null, "${{ return $.find('Group', $.predicate.contains('name', 'notinthere')).length; }}", ""));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
 	public void testJavascriptArrayWrapping() {
 
 		// setup
@@ -4173,13 +4419,13 @@ public class ScriptingTest extends StructrTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType test  = schema.addType("Test");
 
-			test.addMethod("doTest", "{ let arr = []; arr.push({ name: 'test1' }); arr.push({ name: 'test2' }); arr.push({ name: 'test2' }); return arr; }", "");
+			test.addMethod("doTest", "{ let arr = []; arr.push({ name: 'test1' }); arr.push({ name: 'test2' }); arr.push({ name: 'test2' }); return arr; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4200,7 +4446,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4244,7 +4490,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4281,7 +4527,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4303,7 +4549,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4326,7 +4572,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4345,7 +4591,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -4366,7 +4612,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail(fex.getMessage());
@@ -4380,8 +4626,8 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("", "", (Scripting.evaluate(ctx, null, "${{ $.batch(function() { $.error('base', 'nope', 'detail'); }, function() { $.store('test-result', 'error_handled'); }); }}", "test")));
-			assertEquals("Error handler in batch function was not called.", "error_handled", ctx.retrieve("test-result"));
+			assertEquals("", "", (Scripting.evaluate(ctx, null, "${{ $.doInNewTransaction(function() { $.error('base', 'nope', 'detail'); }, function() { $.store('test-result', 'error_handled'); }); }}", "test")));
+			assertEquals("Error handler in doInNewTransaction function was not called.", "error_handled", ctx.retrieve("test-result"));
 
 			tx.success();
 
@@ -4454,7 +4700,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException | InvalidSchemaException | URISyntaxException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -4550,7 +4796,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException | InvalidSchemaException | URISyntaxException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -4684,7 +4930,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -4883,7 +5129,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 
 			t.printStackTrace();
 			fail("Unexpected exception.");
@@ -4892,18 +5138,14 @@ public class ScriptingTest extends StructrTest {
 		// test
 		try (final Tx tx = app.tx()) {
 
-			Scripting.evaluate(ctx, null, "${{ var source = $.find('Test', { test: 'error' }); let test = $.empty(source); $.store('result', test); }}", "test");
+			Scripting.evaluate(ctx, null, "${{ var source = $.find('Test', { test: 'error' });}}", "test");
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
 
-			assertEquals("Wrong error code for exception inside of advanced find() context.",   422, fex.getStatus());
 			assertEquals("Wrong error message for exception inside of advanced find() context", "Cannot parse input error for property test", fex.getMessage());
 		}
-
-		// expected result is boolean "true" since the empty() function call checks the result of the erroneous find()
-		assertEquals("Advanced find() namespace not exited correctly", true, securityContext.getContextStore().retrieve("result"));
 
 	}
 
@@ -5467,13 +5709,13 @@ public class ScriptingTest extends StructrTest {
 			p1.setWriteFunction("{$.this.doTest($.get('value'));}");
 			p2.setWriteFunction("{$.this.doTest($.get('value'));}");
 
-			project.addMethod("doTest", "{ $.this.result =  $.retrieve('key1') + $.retrieve('key2'); }", "");
+			project.addMethod("doTest", "{ $.this.result =  $.retrieve('key1') + $.retrieve('key2'); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -5496,7 +5738,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -5509,7 +5751,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals(1, (int)node.getProperty("result"));
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -5529,31 +5771,19 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-			final JsonType project  = schema.addType("StaticMethodTest");
+			final JsonType type     = schema.addType("StaticMethodTest");
 
-			JsonMethod staticCallTestMethod  = project.addMethod("doStaticTest", "{}", "");
-			JsonMethod dynamicCallTestMethod = project.addMethod("doDynamicTest", "{}", "");
+			type.addMethod("doStaticTest", "{}").setIsStatic(true);
+			type.addMethod("doDynamicTest", "{}");
 
-			JsonMethod staticThisTestMethod  = project.addMethod("doStaticTestWithThis", "{ return $.this.type; }", "");
-			JsonMethod dynamicThisTestMethod = project.addMethod("doDynamicTestWithThis", "{ return $.this.type; }", "");
+			type.addMethod("doStaticTestWithThis", "{ return $.this.type; }").setIsStatic(true);
+			type.addMethod("doDynamicTestWithThis", "{ return $.this.type; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
-			// make methods static
-			SchemaNode schemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName("StaticMethodTest").getFirst();
-			List<SchemaMethod> schemaMethods = Iterables.toList(schemaNode.getSchemaMethods());
-
-			for(SchemaMethod method : schemaMethods) {
-
-				if(method.getName().equals("doStaticTest") || method.getName().equals("doStaticTestWithThis")) {
-					method.setProperty(SchemaMethod.isStatic, true);
-				}
-
-			}
-
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
@@ -5580,10 +5810,10 @@ public class ScriptingTest extends StructrTest {
 
 			final Object result = Scripting.evaluate(ctx, null, "${{ $.StaticMethodTest.doStaticTest(); }}", "doStaticTest");
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
-
+			fail("Unexpected exception");
 		}
 
 		// call static method from dynamic context
@@ -5595,7 +5825,7 @@ public class ScriptingTest extends StructrTest {
 
 			fail("Calling static method from dynamic context should result in an Exception!");
 
-		} catch (Throwable fex) {}
+		} catch (FrameworkException fex) {}
 
 		// call dynamic method from static context
 		try (final Tx tx = app.tx()) {
@@ -5603,7 +5833,7 @@ public class ScriptingTest extends StructrTest {
 			final Object result = Scripting.evaluate(ctx, null, "${{ $.StaticMethodTest.doDynamicTest(); }}", "doDynamicTest");
 			fail("Calling dynamic method from static context should result in an Exception!");
 
-		} catch (Throwable fex) {}
+		} catch (FrameworkException fex) {}
 
 		// call dynamic method from dynamic context
 		try (final Tx tx = app.tx()) {
@@ -5612,9 +5842,10 @@ public class ScriptingTest extends StructrTest {
 
 			final Object result = Scripting.evaluate(ctx, null, "${{ const test = $.find('StaticMethodTest')[0]; test.doDynamicTest(); }}", "doDynamicTest");
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
+			fail("Unexpected exception");
 
 		}
 
@@ -5634,7 +5865,7 @@ public class ScriptingTest extends StructrTest {
 			final Object result = Scripting.evaluate(ctx, null, "${{ $.StaticMethodTest.doStaticTestWithThis(); }}", "doStaticTestWithThis");
 			fail("Referencing $.this from a static method should result in an Exception!");
 
-		} catch (Throwable fex) {}
+		} catch (FrameworkException fex) {}
 
 		// reference $.this from dynamic method
 		try (final Tx tx = app.tx()) {
@@ -5643,7 +5874,7 @@ public class ScriptingTest extends StructrTest {
 
 			final Object result = Scripting.evaluate(ctx, null, "${{ const test = $.find('StaticMethodTest')[0]; test.doDynamicTestWithThis(); }}", "doDynamicTestWithThis");
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
 
@@ -5662,7 +5893,7 @@ public class ScriptingTest extends StructrTest {
 			final Object result = Scripting.evaluate(ctx, null, "${{ $.StaticMethodTest.doStaticTest(); }}", "doStaticTest");
 			fail("Local variable or constant should overwrite the Class constant!");
 
-		} catch (Throwable fex) {}
+		} catch (FrameworkException fex) {}
 
 	}
 
@@ -5729,27 +5960,6 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
-	public void testClearKeywordFunction () {
-
-		final ActionContext ctx = new ActionContext(securityContext);
-
-		// test
-		try (final Tx tx = app.tx()) {
-
-			final Object result = ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testClearKeywordFunction.js"));
-
-			assertEquals("", result);
-
-			tx.success();
-
-		} catch (FrameworkException ex) {
-
-			fail("Unexpected exception");
-		}
-
-	}
-
-	@Test
 	public void testMultilineStructrScriptExpression() {
 
 		try (final Tx tx = app.tx()) {
@@ -5798,17 +6008,81 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testThisKeywordAfterBatch() {
+
+		try (final Tx tx = app.tx()) {
+
+			final Group group = app.create(Group.class, "Group1");
+
+			Scripting.replaceVariables(new ActionContext(securityContext), group, "${{ $.log($.this.name); $.doInNewTransaction(function() { $.log('In doInNewTransaction()'); }); $.log($.this.name); }}");
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testStructrScriptFunctionWithParameters() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("createMap", "{ return { param1: 'Test', param2: 123 }; }");
+			type.addMethod("test",      "concat('success',    this.name, retrieve('param1'))");
+			type.addMethod("testOne",   "concat('successOne', this.name, retrieve('param1'), retrieve('param2'))");
+			type.addMethod("test123",   "concat('success123', this.name, retrieve('param1'), retrieve('param2'), retrieve('param3'))");
+			type.addMethod("test333",   "concat('success333', 'static', retrieve('param1'), retrieve('param2'), retrieve('param3'))").setIsStatic(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Class type         = StructrApp.getConfiguration().getNodeEntityClass("Test");
+			final NodeInterface test = app.create(type, "test1");
+
+			assertEquals("successtest1abc",              Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.test('param1', 'abc')}"));
+			assertEquals("successOnetest1abc123.0",      Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.testOne('param1', 'abc', 'param2', 123)}"));
+			assertEquals("success123test1abc123.0true",  Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.test123('param1', 'abc', 'param2', 123, 'param3', true)}"));
+			assertEquals("success333staticabc123.0true", Scripting.replaceVariables(new ActionContext(securityContext), test, "${Test.test333('param1', 'abc', 'param2', 123, 'param3', true)}"));
+
+			// test mixed parameters and nested calls
+			assertEquals("successtest1" + test.getUuid(), Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.test('param1', first(find('Test')))}"));
+			assertEquals("success123test1Test123",        Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.test123(this.createMap())}"));
+			assertEquals("success123test1Test123false",   Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.test123(this.createMap(), 'param3', false)}"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
 
 	// ----- private methods ----
-	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource, final String comment) {
+	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 
 		final JsonType test1    = schema.addType(name);
 
 		test1.addStringProperty("c");
 		test1.addStringProperty("s");
 
-		test1.addMethod("onCreation",     createSource, comment);
-		test1.addMethod("onModification", saveSource, comment);
+		test1.addMethod("onCreation",     createSource);
+		test1.addMethod("onModification", saveSource);
 
 	}
 

@@ -68,13 +68,15 @@ public class LoginCommand extends AbstractCommand {
 			ctx.disableInnerCallbacks();
 		}
 
+		boolean sendSuccess = false;
+
 		try (final Tx tx = app.tx(true, true, true)) {
 
-			String username       = webSocketData.getNodeDataStringValue("username");
+			String username             = webSocketData.getNodeDataStringValue("username");
 			final String password       = webSocketData.getNodeDataStringValue("password");
 			final String twoFactorToken = webSocketData.getNodeDataStringValue("twoFactorToken");
 			final String twoFactorCode  = webSocketData.getNodeDataStringValue("twoFactorCode");
-			Principal user = null;
+			Principal user              = null;
 
 			try {
 
@@ -103,6 +105,8 @@ public class LoginCommand extends AbstractCommand {
 					final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(getWebSocket().getRequest()));
 
 					if (twoFactorAuthenticationSuccessOrNotNecessary) {
+
+						SessionHelper.clearInvalidSessions(user);
 
 						String sessionId = webSocketData.getSessionId();
 						if (sessionId == null) {
@@ -136,9 +140,8 @@ public class LoginCommand extends AbstractCommand {
 
 								tx.setSecurityContext(getWebSocket().getSecurityContext());
 
-								// send data..
-								getWebSocket().send(webSocketData, false);
-
+								// send success message later (to first commit transaction)
+								sendSuccess = true;
 							}
 						}
 					}
@@ -193,6 +196,10 @@ public class LoginCommand extends AbstractCommand {
 			}
 
 			tx.success();
+		}
+
+		if (sendSuccess) {
+			getWebSocket().send(webSocketData, false);
 		}
 	}
 

@@ -132,19 +132,24 @@
 		<dependency>
 			<groupId>org.graalvm.sdk</groupId>
 			<artifactId>graal-sdk</artifactId>
-			<version>20.3.0</version>
+			<version>20.3.1.2</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.oracle.truffle/truffle-api -->
 		<dependency>
 			<groupId>org.graalvm.truffle</groupId>
 			<artifactId>truffle-api</artifactId>
-			<version>20.3.0</version>
+			<version>20.3.1.2</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.graalvm.js/js -->
 		<dependency>
 			<groupId>org.graalvm.js</groupId>
 			<artifactId>js</artifactId>
-			<version>20.3.0</version>
+			<version>20.3.1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongodb-driver-sync</artifactId>
+			<version>4.2.3</version>
 		</dependency>
 	</dependencies>
 

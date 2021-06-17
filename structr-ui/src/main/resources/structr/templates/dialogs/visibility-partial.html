@@ -2,10 +2,10 @@
 		<div class="row">
 			<div class="option-tile">
 				<label>Show Conditions</label>
-				<input id="show-conditions" type="text" value="${config.entity.showConditions || ''}">
+				<input id="show-conditions" type="text" name="showConditions" />
 			</div>
 			<div class="option-tile">
-				<label>Templates</label>
+				<label>Show Condition Templates</label>
 				<select id="show-conditions-templates">
 					<option value="" disabled selected>Select...</option>
 					<option value="">(none)</option>
@@ -24,10 +24,10 @@
 		<div class="row">
 			<div class="option-tile">
 				<label>Hide Conditions</label>
-				<input id="hide-conditions" type="text" value="${config.entity.hideConditions || ''}">
+				<input id="hide-conditions" type="text" name="hideConditions" />
 			</div>
 			<div class="option-tile">
-				<label>Templates</label>
+				<label>Hide Condition Templates</label>
 				<select id="hide-conditions-templates">
 					<option value="" disabled selected>Select...</option>
 					<option value="">(none)</option>

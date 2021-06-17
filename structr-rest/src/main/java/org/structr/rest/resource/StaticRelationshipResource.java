@@ -65,6 +65,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
@@ -346,21 +347,22 @@ public class StaticRelationshipResource extends WrappingResource {
 			 */
 			this.isCollectionResource = false;
 
-			final Class entityType  = typedIdResource.getTypeResource().getEntityClass();
-			final String methodName = typeResource.getRawType();
+			final GraphObject entity = typedIdResource.getEntity();
+			final Class entityType   = entity != null ? entity.getClass() : typedIdResource.getTypeResource().getEntityClass();
+			final String methodName  = typeResource.getRawType();
 
 			try {
 				final SchemaMethod method = SchemaMethodResource.findMethod(entityType, methodName);
 				final String source       = method.getProperty(SchemaMethod.source);
 
-				result = SchemaMethodResource.invoke(securityContext, typedIdResource.getEntity(), source, propertySet, methodName, method.getUuid());
+				result = SchemaMethodResource.invoke(securityContext, entity, source, propertySet, methodName, method.getUuid());
 
 			} catch (IllegalPathException ex) {
 
 				// try direct invocation of the schema method on the node type
 				try {
 
-					result = SchemaMethodResource.wrapInResult(typedIdResource.getEntity().invokeMethod(securityContext, methodName, propertySet, true));
+					result = SchemaMethodResource.wrapInResult(entity.invokeMethod(securityContext, methodName, propertySet, true, new EvaluationHints()));
 
 				} catch (Throwable t) {
 					logger.warn("Unable to execute {}.{}: {}", entityType.getSimpleName(), methodName, t.getMessage());

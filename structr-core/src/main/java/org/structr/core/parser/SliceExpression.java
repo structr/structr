@@ -32,6 +32,7 @@ import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.function.QueryFunction;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
@@ -48,8 +49,8 @@ public class SliceExpression extends Expression {
 	private Expression startExpression = null;
 	private Expression endExpression   = null;
 
-	public SliceExpression() {
-		super("slice");
+	public SliceExpression(final int row, final int column) {
+		super("slice", row, column);
 	}
 
 	@Override
@@ -78,7 +79,7 @@ public class SliceExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
 		if (listExpression == null || startExpression == null || endExpression == null) {
 			return ERROR_MESSAGE_SLICE;
@@ -89,8 +90,8 @@ public class SliceExpression extends Expression {
 		final ContextStore contextStore       = securityContext.getContextStore();
 
 		// evaluate start and end bounds
-		final Object startObject = startExpression.evaluate(ctx, entity);
-		final Object endObject   = endExpression.evaluate(ctx, entity);
+		final Object startObject = startExpression.evaluate(ctx, entity, hints);
+		final Object endObject   = endExpression.evaluate(ctx, entity, hints);
 
 		if (startObject == null) {
 			throw new FrameworkException(422, "Error in slice(): invalid start of range: null");
@@ -121,11 +122,11 @@ public class SliceExpression extends Expression {
 				contextStore.setRangeStart(start);
 				contextStore.setRangeEnd(end);
 
-				return listExpression.evaluate(ctx, entity);
+				return listExpression.evaluate(ctx, entity, hints);
 
 			} else {
 
-				final Object src = listExpression.evaluate(ctx, entity);
+				final Object src = listExpression.evaluate(ctx, entity, hints);
 				List list       = null;
 
 				if (src instanceof Iterable) {
@@ -167,7 +168,7 @@ public class SliceExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 

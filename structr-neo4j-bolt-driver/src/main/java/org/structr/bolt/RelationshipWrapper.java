@@ -30,7 +30,7 @@ import org.structr.api.util.FixedSizeCache;
 /**
  *
  */
-class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relationship> implements Relationship {
+class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relationship> implements Relationship {
 
 	protected static FixedSizeCache<Long, RelationshipWrapper> relationshipCache = null;
 
@@ -43,7 +43,7 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relati
 		super();
 	}
 
-	private RelationshipWrapper(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Relationship relationship) {
+	private RelationshipWrapper(final BoltDatabaseService db, final org.neo4j.driver.types.Relationship relationship) {
 
 		super(db, relationship);
 
@@ -191,26 +191,30 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relati
 		relationshipCache.clear();
 	}
 
-	public static RelationshipWrapper newInstance(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Relationship relationship) {
+	public static RelationshipWrapper newInstance(final BoltDatabaseService db, final org.neo4j.driver.types.Relationship relationship) {
+
+		RelationshipWrapper wrapper;
 
 		synchronized (relationshipCache) {
 
-			RelationshipWrapper wrapper = relationshipCache.get(relationship.id());
+			wrapper = relationshipCache.get(relationship.id());
 			if (wrapper == null || wrapper.stale) {
 
 				wrapper = new RelationshipWrapper(db, relationship);
 				relationshipCache.put(relationship.id(), wrapper);
 			}
-
-			return wrapper;
 		}
+
+		return wrapper;
 	}
 
 	public static RelationshipWrapper newInstance(final BoltDatabaseService db, final long id) {
 
+		RelationshipWrapper wrapper;
+
 		synchronized (relationshipCache) {
 
-			RelationshipWrapper wrapper = relationshipCache.get(id);
+			wrapper = relationshipCache.get(id);
 			if (wrapper == null || wrapper.stale) {
 
 				final SessionTransaction tx   = db.getCurrentTransaction();
@@ -240,8 +244,8 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relati
 
 				relationshipCache.put(id, wrapper);
 			}
-
-			return wrapper;
 		}
+
+		return wrapper;
 	}
 }

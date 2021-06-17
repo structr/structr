@@ -144,6 +144,7 @@ public abstract class MQTTContext {
 
 							MQTTContext.connect(client);
 							MQTTContext.subscribeAllTopics(client);
+							client.connectionStatusCallback(true);
 						} catch (FrameworkException ex) {
 
 							client.setProperty(StructrApp.key(MQTTClient.class, "isEnabled"), false);

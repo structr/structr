@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import javax.servlet.http.HttpServletRequest;
@@ -84,6 +85,7 @@ import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Renderable;
 import org.structr.web.property.CustomHtmlAttributeProperty;
+import org.structr.web.property.MethodProperty;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -96,11 +98,13 @@ import org.w3c.dom.Text;
  */
 public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, DOMImportable, LinkedTreeNode<DOMNode>, ContextAwareEntity {
 
+	static final Set<String> DataAttributeOutputBlacklist = Set.of("data-structr-manual-reload-target");
+
 	static class Impl { static {
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType page = (JsonObjectType)schema.getType("Page");
-		final JsonObjectType type = schema.addType("DOMNode");
+		final JsonSchema schema    = SchemaService.getDynamicSchema();
+		final JsonObjectType page  = (JsonObjectType)schema.getType("Page");
+		final JsonObjectType type  = schema.addType("DOMNode");
 
 		type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMNode"));
@@ -146,6 +150,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.addPropertyGetter("ownerDocument", Page.class);
 		type.addPropertyGetter("sharedComponent", DOMNode.class);
 		type.addPropertyGetter("sharedComponentConfiguration", String.class);
+
+		type.addCustomProperty("sortedChildren", MethodProperty.class.getName()).setTypeHint("DOMNode[]").setFormat(DOMNode.class.getName() + ", getChildNodes");
 
 		type.overrideMethod("onCreation",                  true,  DOMNode.class.getName() + ".onCreation(this, arg0, arg1);");
 		type.overrideMethod("onModification",              true,  DOMNode.class.getName() + ".onModification(this, arg0, arg1, arg2);");
@@ -256,10 +262,10 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			.addException(FrameworkException.class.getName())
 			.addParameter("sharedComponent", "org.structr.web.entity.dom.DOMNode");
 
-		final JsonReferenceType sibling  = type.relate(type,                                                   "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling",  "nextSibling");
-		final JsonReferenceType parent   = type.relate(type,                                                   "CONTAINS",              Cardinality.OneToMany, "parent",           "children");
-		final JsonReferenceType synced   = type.relate(type,                                                   "SYNC",                  Cardinality.OneToMany, "sharedComponent",  "syncedNodes");
-		final JsonReferenceType owner    = type.relate(page,                                                   "PAGE",                  Cardinality.ManyToOne, "elements",         "ownerDocument");
+		final JsonReferenceType sibling   = type.relate(type,                                                   "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling",  "nextSibling");
+		final JsonReferenceType parent    = type.relate(type,                                                   "CONTAINS",              Cardinality.OneToMany, "parent",           "children");
+		final JsonReferenceType synced    = type.relate(type,                                                   "SYNC",                  Cardinality.OneToMany, "sharedComponent",  "syncedNodes");
+		final JsonReferenceType owner     = type.relate(page,                                                   "PAGE",                  Cardinality.ManyToOne, "elements",         "ownerDocument");
 
 		type.addIdReferenceProperty("parentId",          parent.getSourceProperty()).setCategory(PAGE_CATEGORY);
 		type.addIdReferenceProperty("childrenIds",       parent.getTargetProperty()).setCategory(PAGE_CATEGORY);
@@ -319,7 +325,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	}));
 
 	public static final String[] rawProps = new String[] {
-		"dataKey", "restQuery", "cypherQuery", "xpathQuery", "functionQuery", "flow", "hideOnIndex", "hideOnDetail", "showForLocales", "hideForLocales", "showConditions", "hideConditions"
+		"dataKey", "restQuery", "cypherQuery", "xpathQuery", "functionQuery", "selectedValues", "flow", "hideOnIndex", "hideOnDetail", "showForLocales", "hideForLocales", "showConditions", "hideConditions"
 	};
 
 	boolean isSynced();
@@ -346,6 +352,13 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	String getDataHash();
 	String getDataKey();
 	String getPositionPath();
+
+	default String getCssClass() {
+		return null;
+	}
+
+	default void renderManagedAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
+	}
 
 	String getCypherQuery();
 	String getRestQuery();
@@ -401,6 +414,25 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	Set<PropertyKey> getDataPropertyKeys();
 
+	// ----- public default methods -----
+	@Override
+	default public void visitForUsage(final Map<String, Object> data) {
+
+		LinkedTreeNode.super.visitForUsage(data);
+
+		final Page page = getOwnerDocument();
+		if (page != null) {
+
+			data.put("page", page.getName());
+		}
+
+		data.put("path", getPagePath());
+	}
+
+	@Override
+	default boolean isFrontendNode() {
+		return true;
+	}
 
 	// ----- static methods -----
 	static void onCreation(final DOMNode thisNode, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -1378,7 +1410,12 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			dataAttributes = new LinkedHashSet<>(sortedAttributes);
 		}
 
-		for (PropertyKey key : dataAttributes) {
+		for (final PropertyKey key : dataAttributes) {
+
+			// do not render attributes that are on the blacklist
+			if (DataAttributeOutputBlacklist.contains(key.jsonName())) {
+				continue;
+			}
 
 			String value = "";
 
@@ -1423,6 +1460,12 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 				if (name != null) {
 
 					out.append(" data-structr-meta-name=\"").append(escapeForHtmlAttributes(name)).append("\"");
+				}
+
+				final Object flow = thisNode.getProperty(StructrApp.key(DOMNode.class, "flow", false));
+				if (flow != null) {
+
+					out.append(" data-structr-meta-id=\"").append(thisNode.getUuid()).append("\"");
 				}
 			}
 

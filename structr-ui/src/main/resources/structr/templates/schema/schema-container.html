@@ -1,0 +1,27 @@
+<div class="schema-input-container">
+	<div class="input-and-button">
+		<input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="action btn"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add</button>
+	</div>
+
+	<select id="connector-style">
+		<option value="Flowchart">Flowchart</option>
+		<option value="Bezier">Bezier</option>
+		<option value="StateMachine">StateMachine</option>
+		<option value="Straight">Straight</option>
+	</select>
+
+	<div id="zoom-slider"></div>
+
+	<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays"><label for="schema-show-overlays"> Show relationship labels</label>
+
+	<input type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"><label for="schema-show-inheritance"> Show inheritance</label>
+
+	<button class="btn" id="schema-tools"><i class="${_Icons.getFullSpriteClass(_Icons.wrench_icon)}"></i> Tools</button>
+
+	<button class="btn" id="global-schema-methods"><i class="${_Icons.getFullSpriteClass(_Icons.book_icon)}"></i> Global schema methods</button>
+
+	<select id="saved-layout-selector-main"></select><button class="btn schema-tool-button action" id="restore-schema-layout"><i class="${_Icons.getFullSpriteClass(_Icons.wand_icon)}"></i> Apply Layout</button>
+
+</div>
+
+<div class="canvas" id="schema-graph"></div>

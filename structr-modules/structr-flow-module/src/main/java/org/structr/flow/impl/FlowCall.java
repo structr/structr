@@ -81,6 +81,11 @@ public class FlowCall extends FlowActionNode implements DataSource, DeployableEn
 
 					// Save result
 					context.setData(getUuid(), result.getResult());
+
+					if (result.getError() != null) {
+
+						throw new FrameworkException(422, "FlowCall encountered an unexpected exception during execution." + result.getError().getMessage());
+					}
 				} catch (FrameworkException ex) {
 
 					throw new FlowException(ex, this);

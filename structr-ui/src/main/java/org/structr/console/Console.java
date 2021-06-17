@@ -39,6 +39,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.util.Writable;
 
 
@@ -77,6 +78,8 @@ public class Console {
 	}
 
 	public void run(final String line, final Writable output) throws FrameworkException, IOException {
+
+		actionContext.clearExecutableCaches();
 
 		if (line.startsWith("Console.getMode()")) {
 
@@ -206,7 +209,7 @@ public class Console {
 	}
 
 	public Map<String, Object> getVariables() {
-		return actionContext.getAllVariables();
+		return actionContext.getRequestStore();
 	}
 
 	public void store(final String key, final Object value) {
@@ -256,7 +259,8 @@ public class Console {
 
 		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-			final Object result = Functions.evaluate(actionContext, null, new Snippet("console", line));
+			final EvaluationHints hints = new EvaluationHints();
+			final Object result = Functions.evaluate(actionContext, null, new Snippet("console", line), hints);
 			if (result != null) {
 
 				if (result instanceof Iterable) {

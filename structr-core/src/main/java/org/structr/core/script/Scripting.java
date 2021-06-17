@@ -31,9 +31,11 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.event.RuntimeUsageLog;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
@@ -44,6 +46,7 @@ import org.structr.core.property.DateProperty;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyParser;
 
 public class Scripting {
@@ -66,72 +69,81 @@ public class Scripting {
 			return null;
 		}
 
-		// don't parse empty values
-		if (StringUtils.isEmpty(rawValue.toString())) {
+		try {
 
-			return "";
-		}
+			RuntimeUsageLog.enter(entity, methodName);
 
-		boolean valueWasNull = true;
-		String value;
+			// don't parse empty values
+			if (StringUtils.isEmpty(rawValue.toString())) {
 
-		if (rawValue instanceof String) {
+				return "";
+			}
 
-			value = (String) rawValue;
+			boolean valueWasNull = true;
+			String value;
 
-			// this is a very important check here, the ActionContext can be set to "raw" mode
-			if (!actionContext.returnRawValue()) {
+			if (rawValue instanceof String) {
 
-				final List<Tuple> replacements = new LinkedList<>();
+				value = (String) rawValue;
 
-				for (final String expression : extractScripts(value)) {
+				// this is a very important check here, the ActionContext can be set to "raw" mode
+				if (!actionContext.returnRawValue()) {
 
-					try {
+					final List<Tuple> replacements = new LinkedList<>();
 
-						final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0, entity != null ? entity.getUuid() : null);
-						String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
+					for (final String expression : extractScripts(value)) {
 
-						// non-null value?
-						valueWasNull &= extractedValue == null;
+						try {
 
-						if (partValue != null) {
+							final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0, entity != null ? entity.getUuid() : null);
+							String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
 
-							replacements.add(new Tuple(expression, partValue));
+							// non-null value?
+							valueWasNull &= extractedValue == null;
 
-						} else {
+							if (partValue != null) {
 
-							if (!value.equals(expression)) {
-								replacements.add(new Tuple(expression, ""));
+								replacements.add(new Tuple(expression, partValue));
+
+							} else {
+
+								if (!value.equals(expression)) {
+									replacements.add(new Tuple(expression, ""));
+								}
 							}
-						}
 
-					} catch (UnlicensedScriptException ex) {
-						ex.log(logger);
+						} catch (UnlicensedScriptException ex) {
+							ex.log(logger);
+						}
+					}
+
+					// apply replacements
+					for (final Tuple tuple : replacements) {
+
+						// only replace a single occurrence at a time!
+						value = StringUtils.replaceOnce(value, tuple.key, tuple.value);
 					}
 				}
 
-				// apply replacements
-				for (final Tuple tuple : replacements) {
+			} else if (rawValue instanceof Boolean) {
 
-					// only replace a single occurrence at a time!
-					value = StringUtils.replaceOnce(value, tuple.key, tuple.value);
-				}
+				value = Boolean.toString((Boolean) rawValue);
+
+			} else {
+
+				value = rawValue.toString();
 			}
 
-		} else if (rawValue instanceof Boolean) {
+			if (returnNullValueForEmptyResult && valueWasNull && StringUtils.isBlank(value)) {
+				return null;
+			}
 
-			value = Boolean.toString((Boolean) rawValue);
+			return value;
 
-		} else {
+		} finally {
 
-			value = rawValue.toString();
+			RuntimeUsageLog.leave(entity);
 		}
-
-		if (returnNullValueForEmptyResult && valueWasNull && StringUtils.isBlank(value)) {
-			return null;
-		}
-
-		return value;
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName) throws FrameworkException, UnlicensedScriptException {
@@ -153,81 +165,98 @@ public class Scripting {
 			return null;
 		}
 
-		boolean isScriptEngine = false;
-		String engine          = "";
+		try {
 
-		if (!isJavascript) {
+			RuntimeUsageLog.enter(entity, methodName);
 
-			final Matcher matcher = ScriptEngineExpression.matcher(expression);
-			if (matcher.matches()) {
+			boolean isScriptEngine = false;
+			String engine          = "";
 
-				engine = matcher.group(1);
-				source = matcher.group(2);
+			if (!isJavascript) {
 
-				logger.debug("Scripting engine {} requested.", engine);
+				final Matcher matcher = ScriptEngineExpression.matcher(expression);
+				if (matcher.matches()) {
 
-				isJavascript   = StringUtils.isBlank(engine) || "JavaScript".equals(engine);
-				isScriptEngine = !isJavascript && StringUtils.isNotBlank(engine);
-			}
-		}
+					engine = matcher.group(1);
+					source = matcher.group(2);
 
-		actionContext.setJavaScriptContext(isJavascript);
+					logger.debug("Scripting engine {} requested.", engine);
 
-		// temporarily disable notifications for scripted actions
-
-		boolean enableTransactionNotifactions = false;
-
-		final SecurityContext securityContext = actionContext.getSecurityContext();
-		if (securityContext != null) {
-
-			enableTransactionNotifactions = securityContext.doTransactionNotifications();
-
-			securityContext.setDoTransactionNotifications(false);
-		}
-
-		final Snippet snippet  = new Snippet(methodName, source);
-		snippet.setCodeSource(codeSource);
-		snippet.setStartRow(startRow);
-
-		if (isScriptEngine) {
-
-			return evaluateScript(actionContext, entity, engine, snippet);
-
-		} else if (isJavascript) {
-
-			final Object result = evaluateJavascript(actionContext, entity, snippet);
-
-			if (enableTransactionNotifactions && securityContext != null) {
-				securityContext.setDoTransactionNotifications(true);
-			}
-
-			return result;
-
-		} else {
-
-			try {
-
-				Object extractedValue = Functions.evaluate(actionContext, entity, snippet);
-				final String value    = extractedValue != null ? extractedValue.toString() : "";
-				final String output   = actionContext.getOutput();
-
-				if (StringUtils.isEmpty(value) && output != null && !output.isEmpty()) {
-					extractedValue = output;
+					isJavascript   = StringUtils.isBlank(engine) || "JavaScript".equals(engine);
+					isScriptEngine = !isJavascript && StringUtils.isNotBlank(engine);
 				}
+			}
 
-				if (enableTransactionNotifactions && securityContext != null) {
+			actionContext.setJavaScriptContext(isJavascript);
+
+			// temporarily disable notifications for scripted actions
+
+			boolean enableTransactionNotifications = false;
+
+			final SecurityContext securityContext = actionContext.getSecurityContext();
+			if (securityContext != null) {
+
+				enableTransactionNotifications = securityContext.doTransactionNotifications();
+
+				securityContext.setDoTransactionNotifications(false);
+			}
+
+			final Snippet snippet  = new Snippet(methodName, source);
+			snippet.setCodeSource(codeSource);
+			snippet.setStartRow(startRow);
+
+			if (isScriptEngine) {
+
+				return evaluateScript(actionContext, entity, engine, snippet);
+
+			} else if (isJavascript) {
+
+				final Object result = evaluateJavascript(actionContext, entity, snippet);
+
+				if (enableTransactionNotifications && securityContext != null) {
 					securityContext.setDoTransactionNotifications(true);
 				}
 
-				return extractedValue;
+				return result;
 
-			} catch (StructrScriptException t) {
+			} else {
 
-				// StructrScript evaluation should not throw exceptions
-				reportError(actionContext.getSecurityContext(), t.getMessage(), t.getRow(), t.getColumn(), snippet);
+				try {
+
+					final EvaluationHints hints = new EvaluationHints();
+					Object extractedValue       = Functions.evaluate(actionContext, entity, snippet, hints);
+					final String value          = extractedValue != null ? extractedValue.toString() : "";
+					final String output         = actionContext.getOutput();
+
+					if (StringUtils.isEmpty(value) && output != null && !output.isEmpty()) {
+						extractedValue = output;
+					}
+
+					if (enableTransactionNotifications && securityContext != null) {
+						securityContext.setDoTransactionNotifications(true);
+					}
+
+					hints.checkForErrorsAndThrowException((message, row, column) -> {
+						// report usage errors (missing keys etc.)
+						reportError(actionContext.getSecurityContext(), message, row, column, snippet, false);
+					});
+
+					return extractedValue;
+
+				} catch (StructrScriptException t) {
+
+					// This block reports syntax errors in StructrScript expressions
+					// StructrScript evaluation should not throw exceptions
+
+					reportError(actionContext.getSecurityContext(), t.getMessage(), t.getRow(), t.getColumn(), snippet, false);
+				}
+
+				return null;
 			}
 
-			return null;
+		} finally {
+
+			RuntimeUsageLog.leave(entity);
 		}
 	}
 
@@ -257,17 +286,14 @@ public class Scripting {
 
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
 
+					reportError(actionContext.getSecurityContext(), ex, snippet, false);
 					throw ex.asHostException();
 				}
 
 				reportError(actionContext.getSecurityContext(), ex, snippet);
 			}
 
-			if (actionContext.hasError()) {
-
-				throw new FrameworkException(422, "Server-side scripting error", actionContext.getErrorBuffer());
-			}
-
+			// Prefer explicitly printed output over actual result
 			final String outputBuffer = actionContext.getOutput();
 			if (outputBuffer != null && !outputBuffer.isEmpty()) {
 
@@ -282,9 +308,12 @@ public class Scripting {
 
 				throw (FrameworkException) ex.getCause();
 
+			} else if (ex instanceof AssertException) {
+
+				throw ex;
 			} else {
 
-				throw new FrameworkException(422, "Server-side scripting error", ex);
+				throw ex;
 			}
 
 		} catch (FrameworkException ex) {
@@ -347,6 +376,7 @@ public class Scripting {
 
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
 
+					reportError(actionContext.getSecurityContext(), ex, snippet, false);
 					throw ex.asHostException();
 				}
 
@@ -374,10 +404,12 @@ public class Scripting {
 			if (ex.getCause() instanceof FrameworkException) {
 
 				throw (FrameworkException) ex.getCause();
+			} else if (ex instanceof AssertException) {
 
+				throw ex;
 			} else {
 
-				throw new FrameworkException(422, "Server-side scripting error", ex);
+				throw ex;
 			}
 
 		} catch (FrameworkException ex) {
@@ -610,21 +642,36 @@ public class Scripting {
 
 	private static void reportError(final SecurityContext securityContext, final PolyglotException ex, final Snippet snippet) throws FrameworkException {
 
+		reportError(securityContext, ex, snippet, true);
+	}
+
+	private static void reportError(final SecurityContext securityContext, final PolyglotException ex, final Snippet snippet, final boolean shouldThrow) throws FrameworkException {
+
 		final String message = ex.getMessage();
 		int lineNumber       = 1;
 		int columnNumber     = 1;
+		int endLineNumber    = 1;
+		int endColumnNumber  = 1;
 
 		final SourceSection location = ex.getSourceLocation();
 		if (location != null) {
 
-			lineNumber   = ex.getSourceLocation().getStartLine();
-			columnNumber = ex.getSourceLocation().getStartColumn();
+			lineNumber      = location.getStartLine();
+			columnNumber    = location.getStartColumn();
+			endLineNumber   = location.getEndLine();
+			endColumnNumber = location.getEndColumn();
 		}
 
-		reportError(securityContext, message, lineNumber, columnNumber, snippet);
+		reportError(securityContext, message, lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet, shouldThrow);
 	}
 
-	private static void reportError(final SecurityContext securityContext, final String message, final int lineNumber, final int columnNumber, final Snippet snippet) throws FrameworkException {
+	private static void reportError(final SecurityContext securityContext, final String message, final int lineNumber, final int columnNumber, final Snippet snippet, final boolean shouldThrow) throws FrameworkException {
+
+		reportError(securityContext, message, lineNumber, columnNumber, lineNumber, columnNumber, snippet, shouldThrow);
+
+	}
+
+	private static void reportError(final SecurityContext securityContext, final String message, final int lineNumber, final int columnNumber, final int endLineNumber, final int endColumnNumber, final Snippet snippet, final boolean shouldThrow) throws FrameworkException {
 
 		final String entityName               = snippet.getName();
 		final String entityDescription        = (StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + snippet.getCodeSource();
@@ -633,8 +680,25 @@ public class Scripting {
 		final StringBuilder exceptionPrefix   = new StringBuilder();
 		final String errorName                = "Scripting Error";
 
-		eventData.putAll(Map.of("errorName", errorName, "row", lineNumber + snippet.getStartRow(), "column", columnNumber, "entity", entityDescription));
-		messageData.putAll(Map.of("type", "SCRIPTING_ERROR", "row", lineNumber + snippet.getStartRow(), "column", columnNumber));
+		eventData.putAll(
+			Map.of(
+				"errorName", errorName,
+				"row", lineNumber + snippet.getStartRow(),
+				"column", columnNumber,
+				"endRow", endLineNumber + snippet.getStartRow(),
+				"endColumn", endColumnNumber,
+				"entity", entityDescription
+			)
+		);
+		messageData.putAll(
+			Map.of(
+				"type", "SCRIPTING_ERROR",
+				"row", lineNumber + snippet.getStartRow(),
+				"column", columnNumber,
+				"endRow", endLineNumber + snippet.getStartRow(),
+				"endColumn", endColumnNumber
+			)
+		);
 
 		putIfNotNull(eventData,   "message", message);
 		putIfNotNull(messageData, "message", message);
@@ -664,11 +728,20 @@ public class Scripting {
 		}
 
 		RuntimeEventLog.scripting(errorName, eventData);
+
 		TransactionCommand.simpleBroadcastGenericMessage(messageData, Predicate.only(securityContext.getSessionId()));
 
 		exceptionPrefix.append(snippet.getName()).append(":").append(lineNumber).append(":").append(columnNumber);
 
-		throw new FrameworkException(422, exceptionPrefix.toString() + "\n" + message);
+		if (shouldThrow) {
+
+			throw new FrameworkException(422, exceptionPrefix.toString() + "\n" + message);
+
+		} else {
+
+			// log error but don't throw exception
+			logger.warn(exceptionPrefix.toString() + ": " + message);
+		}
 	}
 
 	private static void putIfNotNull(final Map<String, Object> map, final String key, final Object value) {

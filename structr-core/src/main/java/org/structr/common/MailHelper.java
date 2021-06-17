@@ -107,7 +107,10 @@ public abstract class MailHelper {
 		}
 
 		mail.setSubject(amc.getSubject());
-		mail.setHtmlMsg(amc.getHtmlContent());
+
+		if (StringUtils.isNotBlank(amc.getHtmlContent())) {
+			mail.setHtmlMsg(amc.getHtmlContent());
+		}
 
 		if (StringUtils.isNotBlank(amc.getTextContent())) {
 			mail.setTextMsg(amc.getTextContent());

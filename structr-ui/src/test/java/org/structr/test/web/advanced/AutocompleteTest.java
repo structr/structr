@@ -200,7 +200,7 @@ public class AutocompleteTest extends StructrUiTest {
 			final JsonObjectType type = schema.addType("Test");
 
 			type.addStringProperty("description");
-			type.addMethod("testMethod", "{ return true; }", "");
+			type.addMethod("testMethod", "{ return true; }");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 

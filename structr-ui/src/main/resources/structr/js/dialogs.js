@@ -20,7 +20,12 @@ var _Dialogs = {
 
 	findAndAppendCustomTypeDialog: function(entity, mainTabs, contentEl) {
 
-		var callbackObject = registeredDialogs[entity.type];
+		let callbackObject = registeredDialogs[entity.type];
+
+		if (!callbackObject && entity.isDOMNode) {
+			callbackObject = registeredDialogs['DEFAULT_DOM_NODE'];
+		}
+
 		if (callbackObject) {
 
 			var callback     = callbackObject.callback;
@@ -29,7 +34,7 @@ var _Dialogs = {
 
 			if (callbackObject.condition === undefined || (typeof callbackObject.condition === 'function' && callbackObject.condition())) {
 
-				// call method with the same callback object for intial callback and show callback
+				// call method with the same callback object for initial callback and show callback
 				_Entities.appendPropTab(entity, mainTabs, contentEl, id, title, true, callback, undefined, callback);
 
 				return true;
@@ -38,7 +43,6 @@ var _Dialogs = {
 
 		return false;
 	},
-
 	getTitle: function() {
 		return "Main Properties";
 	},
@@ -62,7 +66,7 @@ var _Dialogs = {
 			});
 		});
 	},
-	showVisibilityOptions: function(entity, el) {
+	showShowHideConditionOptions: function(el, entity) {
 
 		let showConditionsContainer = $('.show-hide-conditions-container', el);
 
@@ -72,24 +76,45 @@ var _Dialogs = {
 
 				showConditionsContainer.html(html);
 
-				let showConditionsInput  = $('input#show-conditions');
-				let showConditionsSelect = $('select#show-conditions-templates');
-				let hideConditionsInput  = $('input#hide-conditions');
-				let hideConditionsSelect = $('select#hide-conditions-templates');
+				_Dialogs.popuplateInputFields(showConditionsContainer, entity);
+				_Dialogs.registerSimpleInputChangeHandlers(showConditionsContainer, entity);
 
-				showConditionsInput.on('change', () => { _Entities.setPropertyWithFeedback(entity, 'showConditions', showConditionsInput.val(), showConditionsInput); });
-				hideConditionsInput.on('change', () => { _Entities.setPropertyWithFeedback(entity, 'hideConditions', hideConditionsInput.val(), hideConditionsInput); });
+				let showConditionsInput  = $('input#show-conditions', showConditionsContainer);
+				let showConditionsSelect = $('select#show-conditions-templates', showConditionsContainer);
+				let hideConditionsInput  = $('input#hide-conditions', showConditionsContainer);
+				let hideConditionsSelect = $('select#hide-conditions-templates', showConditionsContainer);
 
 				showConditionsSelect.on('change', () => {
-					showConditionsInput.val(showConditionsSelect.val()).trigger('change');
+					showConditionsInput.val(showConditionsSelect.val());
+					showConditionsInput[0].dispatchEvent(new Event('change'));
 				});
 				hideConditionsSelect.on('change', () => {
-					hideConditionsInput.val(hideConditionsSelect.val()).trigger('change');
+					hideConditionsInput.val(hideConditionsSelect.val());
+					hideConditionsInput[0].dispatchEvent(new Event('change'));
 				});
 			});
 		}
 	},
-	showRepeaterOptions: function(entity, el) {
+	showChildContentEditor:function(el, entity) {
+
+		if (entity && entity.children && entity.children.length === 1 && entity.children[0].type === 'Content') {
+
+			let textContentContainer = $('.show-text-content-container', el);
+			if (textContentContainer.length) {
+
+				Structr.fetchHtmlTemplate('dialogs/content-partial', { entity: entity }, function (html) {
+
+					textContentContainer.html(html);
+
+					let child = entity.children[0];
+
+					_Dialogs.popuplateInputFields(textContentContainer, child);
+					_Dialogs.registerSimpleInputChangeHandlers(textContentContainer, child, true);
+				});
+			}
+		}
+	},
+	showRepeaterOptions: function(el, entity) {
 
 		let repeaterConfigContainer = $('.repeater-config-container', el);
 
@@ -99,9 +124,8 @@ var _Dialogs = {
 
 				repeaterConfigContainer.html(html);
 
-				[ 'function-query', 'data-key' ].forEach(p => {
-					_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), entity, p.toCamel());
-				});
+				_Dialogs.popuplateInputFields(repeaterConfigContainer, entity);
+				_Dialogs.registerSimpleInputChangeHandlers(repeaterConfigContainer, entity);
 			});
 		}
 	},
@@ -121,12 +145,9 @@ var _Dialogs = {
 				var filterInput = $('input#ldap-group-filter');
 				var scopeInput  = $('input#ldap-group-scope');
 
-				// dialog logic here..
-				dnInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'distinguishedName', dnInput.val(), dnInput); });
-				pathInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'path', pathInput.val(), pathInput); });
-				filterInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'filter', filterInput.val(), filterInput); });
-				scopeInput.on('blur', function() { _Entities.setPropertyWithFeedback(entity, 'scope', scopeInput.val(), scopeInput); });
+				_Dialogs.registerSimpleInputChangeHandlers(el, entity);
 
+				// dialog logic here..
 				$('i#clear-ldap-group-dn').on('click', function() { setNull(entity.id, 'distinguishedName', dnInput); });
 				$('i#clear-ldap-group-path').on('click', function() { setNull(entity.id, 'path', pathInput); });
 				$('i#clear-ldap-group-filter').on('click', function() { setNull(entity.id, 'filter', filterInput); });
@@ -144,6 +165,8 @@ var _Dialogs = {
 						}
 					});
 				});
+
+				_Dialogs.focusInput(el);
 			});
 
 		} else if (el) {
@@ -156,12 +179,14 @@ var _Dialogs = {
 
 		if (el && entity) {
 
-			if (Structr.isModulePresent('text-search')) {
+			Structr.fetchHtmlTemplate('dialogs/file.options', { file: entity, title: _Dialogs.getTitle() }, function (html) {
 
-				Structr.fetchHtmlTemplate('dialogs/file.options', { file: entity }, function (html) {
+				el.empty();
+				el.append(html);
 
-					el.empty();
-					el.append(html);
+				if (Structr.isModulePresent('text-search')) {
+
+					$('#content-extraction').removeClass('hidden');
 
 					$('button#extract-structure-button').on('click', function() {
 
@@ -177,53 +202,109 @@ var _Dialogs = {
 							}
 						});
 					});
+				}
 
-				});
-			}
+				_Dialogs.popuplateInputFields(el, entity);
+				_Dialogs.registerSimpleInputChangeHandlers(el, entity);
+				Structr.activateCommentsInElement(el);
 
-		} else if (el) {
-
-			// update call
-			$('input#ldap-group-dn').val(el.distinguishedName);
+				_Dialogs.focusInput(el);
+			});
 		}
 	},
-	registerSimpleInputBlurhandler: function(input, entity, key) {
+	folderDialog: function(el, entity) {
 
-		input.on('blur', function() {
+		if (el && entity) {
 
-			let oldVal = entity[key];
-			let newVal = input.val();
+			Structr.fetchHtmlTemplate('dialogs/folder.options', { file: entity, title: _Dialogs.getTitle() }, function (html) {
 
-			let isChange = (oldVal !== newVal) && !((oldVal === null || oldVal === undefined) && newVal === '');
+				el.empty();
+				el.append(html);
 
-			if (isChange) {
-				_Entities.setPropertyWithFeedback(entity, key, input.val() || null, input);
+				_Dialogs.popuplateInputFields(el, entity);
+				_Dialogs.registerSimpleInputChangeHandlers(el, entity);
+				Structr.activateCommentsInElement(el);
+
+			});
+		}
+	},
+	getValueFromFormElement: (el) => {
+
+		if (el.tagName === 'SELECT' && el.multiple === true) {
+			return [].map.call(el.selectedOptions, (o) => o.value);
+		} else if (el.tagName === 'INPUT' && el.type === 'date') {
+			return new Date(el.value);
+		} else if (el.tagName === 'INPUT' && el.type === 'checkbox') {
+			return el.checked;
+		} else if (el.tagName === 'INPUT' && el.type === 'radio') {
+			if (el.checked === true) {
+				return el.value;
+			} else {
+				return null;
 			}
-		});
+		}
+
+		return el.value;
+	},
+	registerSimpleInputChangeHandlers: function(el, entity, emptyStringInsteadOfNull) {
+
+		for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
+
+			inputEl.addEventListener('change', () => {
+
+				let key = inputEl.name;
+
+				let oldVal = entity[key];
+				let newVal = _Dialogs.getValueFromFormElement(inputEl);
+
+				let isChange = (oldVal !== newVal) && !((oldVal === null || oldVal === undefined) && newVal === '');
+				if (isChange) {
+
+					let blinkElement = (inputEl.type === 'checkbox') ? $(inputEl).parent() : null;
+
+					_Entities.setPropertyWithFeedback(entity, key, newVal || (emptyStringInsteadOfNull ? '' : null), $(inputEl), blinkElement);
+				}
+			});
+		}
+
+	},
+	popuplateInputFields: function (el, entity) {
+
+		for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
+
+			let val = entity[inputEl.name];
+			if (val) {
+				if (inputEl.type === 'checkbox') {
+					inputEl.checked = val;
+				} else {
+					inputEl.value = val;
+				}
+			}
+		}
 
 	},
 	aDialog: function(el, entity) {
 
 		if (el && entity) {
 
-			Command.get(entity.id, null, function(a) {
+			Command.get(entity.id, null, function(aHtmlProperties) {
 
-				Structr.fetchHtmlTemplate('dialogs/a.options', { entity: entity, a: a, title: _Dialogs.getTitle() }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/a.options', { entity: entity, a: aHtmlProperties, title: _Dialogs.getTitle() }, function (html) {
 
 					el.empty();
 					el.append(html);
 
-					[ 'id', 'class', 'href', 'style' ].forEach(p => {
-						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), a, '_html_' + p);
-					});
+					_Dialogs.popuplateInputFields(el, aHtmlProperties);
+					_Dialogs.registerSimpleInputChangeHandlers(el, aHtmlProperties);
 
-					// focus on first input field
-					$('input#class-input').focus();
-					$('input#class-input').select();
+					_Dialogs.focusInput(el);
 
 					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showRepeaterOptions(entity, el);
-					_Dialogs.showVisibilityOptions(entity, el);
+					_Dialogs.showRepeaterOptions(el, entity);
+					_Dialogs.showShowHideConditionOptions(el, entity);
+
+					// child content
+					_Dialogs.showChildContentEditor(el, entity);
 				});
 
 			}, '_html_');
@@ -234,24 +315,24 @@ var _Dialogs = {
 
 		if (el && entity) {
 
-			Command.get(entity.id, null, function(button) {
+			Command.get(entity.id, null, function(buttonHtmlProperties) {
 
-				Structr.fetchHtmlTemplate('dialogs/button.options', { entity: entity, button: button, title: _Dialogs.getTitle() }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/button.options', { entity: entity, button: buttonHtmlProperties, title: _Dialogs.getTitle() }, function (html) {
 
 					el.empty();
 					el.append(html);
 
-					[ 'id', 'class', 'onclick', 'title', 'type', 'style' ].forEach(p => {
-						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), button, '_html_' + p);
-					});
+					_Dialogs.popuplateInputFields(el, buttonHtmlProperties);
+					_Dialogs.registerSimpleInputChangeHandlers(el, buttonHtmlProperties);
 
-					// focus on first input field
-					$('input#class-input').focus();
-					$('input#class-input').select();
+					_Dialogs.focusInput(el);
 
 					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showRepeaterOptions(entity, el);
-					_Dialogs.showVisibilityOptions(entity, el);
+					_Dialogs.showRepeaterOptions(el, entity);
+					_Dialogs.showShowHideConditionOptions(el, entity);
+
+					// child content
+					_Dialogs.showChildContentEditor(el, entity);
 				});
 
 			}, '_html_');
@@ -261,24 +342,20 @@ var _Dialogs = {
 
 		if (el && entity) {
 
-			Command.get(entity.id, null, function(input) {
+			Command.get(entity.id, null, function(inputHtmlProperties) {
 
-				Structr.fetchHtmlTemplate('dialogs/input.options', { entity: entity, input: input, title: _Dialogs.getTitle() }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/input.options', { entity: entity, input: inputHtmlProperties, title: _Dialogs.getTitle() }, function (html) {
 
 					el.empty();
 					el.append(html);
 
-					[ 'id', 'class', 'title', 'placeholder', 'type', 'style' ].forEach(p => {
-						let input = $('input#' + p + '-input');
-						_Dialogs.registerSimpleInputBlurhandler(input, entity, '_html_' + p);
-					});
+					_Dialogs.popuplateInputFields(el, inputHtmlProperties);
+					_Dialogs.registerSimpleInputChangeHandlers(el, inputHtmlProperties);
 
-					// focus on first input field
-					$('input#class-input').focus();
-					$('input#class-input').select();
+					_Dialogs.focusInput(el);
 
 					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showVisibilityOptions(entity, el);
+					_Dialogs.showShowHideConditionOptions(el, entity);
 				});
 
 			}, '_html_');
@@ -288,24 +365,21 @@ var _Dialogs = {
 
 		if (el && entity) {
 
-			Command.get(entity.id, null, function(div) {
+			Command.get(entity.id, null, function(divHtmlProperties) {
 
-				Structr.fetchHtmlTemplate('dialogs/div.options', { entity: entity, div: div, title: _Dialogs.getTitle() }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/div.options', { entity: entity, title: _Dialogs.getTitle() }, function (html) {
 
 					el.empty();
 					el.append(html);
 
-					[ 'id', 'class', 'style' ].forEach(p => {
-						_Dialogs.registerSimpleInputBlurhandler($('input#' + p + '-input'), div, '_html_' + p);
-					});
+					_Dialogs.popuplateInputFields(el, divHtmlProperties);
+					_Dialogs.registerSimpleInputChangeHandlers(el, divHtmlProperties);
 
-					// focus on first input field
-					$('input#class-input').focus();
-					$('input#class-input').select();
+					_Dialogs.focusInput(el);
 
 					_Dialogs.showCustomProperties(entity);
-					_Dialogs.showRepeaterOptions(entity, el);
-					_Dialogs.showVisibilityOptions(entity, el);
+					_Dialogs.showRepeaterOptions(el, entity);
+					_Dialogs.showShowHideConditionOptions(el, entity);
 				});
 
 			}, '_html_');
@@ -315,90 +389,149 @@ var _Dialogs = {
 
 		if (el && entity) {
 
-			Command.get(entity.id, null, function(div) {
+			Structr.fetchHtmlTemplate('dialogs/user.options', { entity: entity, user: entity, title: _Dialogs.getTitle() }, function (html) {
 
-				Structr.fetchHtmlTemplate('dialogs/user.options', { entity: entity, user: entity, title: _Dialogs.getTitle() }, function (html) {
+				el.empty();
+				el.append(html);
 
-					el.empty();
-					el.append(html);
+				_Dialogs.popuplateInputFields(el, entity);
+				_Dialogs.registerSimpleInputChangeHandlers(el, entity);
 
-					[ 'name', 'e-mail' ].forEach(p => {
-						let input = $('input#' + p + '-input');
-						input.on('blur', function() { _Entities.setPropertyWithFeedback(entity, p.toCamel(), input.val() || null, input); });
-					});
-
-					[ 'is-admin', 'is-two-factor-user', 'skip-security-relationships' ].forEach(p => {
-						let name  = p.toCamel();
-						let input = $('input#' + p + '-checkbox');
-						input.prop('checked', entity[name]);
-						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, name, input.is(':checked'), input); });
-					});
-
-					$('button#set-password-button').on('click', function(e) {
-						let input = $('input#password-input');
-						_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
-					});
-
-					// focus on first input field
-					$('input#name-input').focus();
-					$('input#name-input').select();
-
-					_Dialogs.showCustomProperties(entity);
+				$('button#set-password-button').on('click', function(e) {
+					let input = $('input#password-input');
+					_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
 				});
 
-			}, '_html_');
+				_Dialogs.focusInput(el);
+
+				_Dialogs.showCustomProperties(entity);
+			});
 		}
 	},
 	pageDialog: function(el, entity) {
 
 		if (el && entity) {
 
-			Command.get(entity.id, null, function(page) {
+			Structr.fetchHtmlTemplate('dialogs/page.options', { entity: entity, page: entity, title: _Dialogs.getTitle() }, function (html) {
 
-				Structr.fetchHtmlTemplate('dialogs/page.options', { entity: entity, page: entity, title: _Dialogs.getTitle() }, function (html) {
+				el.empty();
+				el.append(html);
+
+				_Dialogs.popuplateInputFields(el, entity);
+				_Dialogs.registerSimpleInputChangeHandlers(el, entity);
+
+				_Dialogs.focusInput(el);
+
+				_Dialogs.showCustomProperties(entity);
+			});
+		}
+	},
+	defaultDomDialog: function(el, entity) {
+
+		if (el && entity) {
+
+			Command.get(entity.id, null, function(htmlProperties) {
+
+				Structr.fetchHtmlTemplate('dialogs/default_dom.options', { entity: entity, title: _Dialogs.getTitle() }, function (html) {
 
 					el.empty();
 					el.append(html);
 
-					[ 'name', 'content-type', 'category', 'position', 'show-on-error-codes' ].forEach(p => {
-						let input = $('input#' + p + '-input');
-						_Dialogs.registerSimpleInputBlurhandler(input, entity, p.toCamel());
-					});
+					_Dialogs.popuplateInputFields(el, htmlProperties);
+					_Dialogs.registerSimpleInputChangeHandlers(el, htmlProperties);
 
-					[ 'dont-cache', 'page-creates-raw-data' ].forEach(p => {
-						let name  = p.toCamel();
-						let input = $('input#' + p + '-checkbox');
-						input.prop('checked', entity[name]);
-						input.on('change', function() { _Entities.setPropertyWithFeedback(entity, name, input.is(':checked'), input); });
-					});
-
-					$('button#set-password-button').on('click', function(e) {
-						let input = $('input#password-input');
-						_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
-					});
-
-					// focus on first input field
-					$('input#name-input').focus();
-					$('input#name-input').select();
+					_Dialogs.focusInput(el);
 
 					_Dialogs.showCustomProperties(entity);
+					_Dialogs.showRepeaterOptions(el, entity);
+					_Dialogs.showShowHideConditionOptions(el, entity);
+
+					// child content (optional)
+					_Dialogs.showChildContentEditor(el, entity);
 				});
 
 			}, '_html_');
+		}
+	},
+	contentDialog: function(el, entity) {
+
+		if (el && entity) {
+
+			Command.get(entity.id, null, function(htmlProperties) {
+
+				Structr.fetchHtmlTemplate('dialogs/content.options', { entity: entity, title: _Dialogs.getTitle() }, function (html) {
+
+					el.empty();
+					el.append(html);
+
+					_Dialogs.popuplateInputFields(el, htmlProperties);
+					_Dialogs.registerSimpleInputChangeHandlers(el, htmlProperties);
+
+					_Dialogs.focusInput(el);
+
+					_Dialogs.showCustomProperties(entity);
+					_Dialogs.showRepeaterOptions(el, entity);
+					_Dialogs.showShowHideConditionOptions(el, entity);
+				});
+
+			}, '_html_');
+		}
+	},
+	optionDialog: function(el, entity) {
+
+		if (el && entity) {
+
+			Command.get(entity.id, null, function(divHtmlProperties) {
+
+				Structr.fetchHtmlTemplate('dialogs/option.options', { entity: entity, title: _Dialogs.getTitle() }, function (html) {
+
+					el.empty();
+					el.append(html);
+
+					let data = Object.assign({}, divHtmlProperties, entity);
+
+					_Dialogs.popuplateInputFields(el, data);
+					_Dialogs.registerSimpleInputChangeHandlers(el, data);
+
+					_Dialogs.focusInput(el);
+
+					_Dialogs.showCustomProperties(entity);
+					_Dialogs.showRepeaterOptions(el, entity);
+					_Dialogs.showShowHideConditionOptions(el, entity);
+
+					// child content
+					_Dialogs.showChildContentEditor(el, entity);
+				});
+
+			}, '_html_');
+		}
+	},
+
+	focusInput: function(el, selector) {
+
+		if (selector) {
+			$(selector, el).focus().select();
+		} else {
+			$('input:first', el).focus().select();
 		}
 	}
 };
 
 var registeredDialogs = {
-	'A': { id: 'a', title : 'General', callback: _Dialogs.aDialog },
-	'Button': { id: 'button', title : 'General', callback: _Dialogs.buttonDialog },
-	'Div': { id: 'div', title : 'General', callback: _Dialogs.divDialog },
-	'File':  { id: 'file', title: 'Advanced', callback: _Dialogs.fileDialog, condition: function() { return Structr.isModulePresent('text-search'); } },
-	'Image':  { id: 'file', title: 'Advanced', callback: _Dialogs.fileDialog },
-	'Input':  { id: 'input', title: 'General', callback: _Dialogs.inputDialog },
-	'LDAPGroup':  { id: 'ldapgroup', title: 'LDAP configuration', callback: _Dialogs.ldapGroupDialog, condition: function() { return Structr.isModulePresent('ldap-client'); } },
-	'Page': { id: 'page', title : 'General', callback: _Dialogs.pageDialog },
-	'User': { id: 'user', title : 'General', callback: _Dialogs.userDialog }
+	'DEFAULT_DOM_NODE': { id: 'general', title : 'General', callback: _Dialogs.defaultDomDialog },
+	'A': { id: 'general', title : 'General', callback: _Dialogs.aDialog },
+	'Button': { id: 'general', title : 'General', callback: _Dialogs.buttonDialog },
+	'Content': { id: 'general', title : 'General', callback: _Dialogs.contentDialog },
+	'Div': { id: 'general', title : 'General', callback: _Dialogs.divDialog },
+	'File':  { id: 'general', title: 'General', callback: _Dialogs.fileDialog },
+	'Folder':  { id: 'general', title: 'General', callback: _Dialogs.folderDialog },
+	'Image':  { id: 'general', title: 'Advanced', callback: _Dialogs.fileDialog },
+	'Input':  { id: 'general', title: 'General', callback: _Dialogs.inputDialog },
+	'LDAPGroup':  { id: 'general', title: 'LDAP configuration', callback: _Dialogs.ldapGroupDialog, condition: function() { return Structr.isModulePresent('ldap-client'); } },
+	'Option':  { id: 'general', title: 'General', callback: _Dialogs.optionDialog },
+	'Page': { id: 'general', title : 'General', callback: _Dialogs.pageDialog },
+	'Template': { id: 'general', title : 'General', callback: _Dialogs.contentDialog },
+	'User': { id: 'general', title : 'General', callback: _Dialogs.userDialog }
 };
 
 function setNull(id, key, input) {

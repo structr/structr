@@ -85,6 +85,10 @@ public class FixedSizeCache<K, V> {
 		return cache.isEmpty();
 	}
 
+	public synchronized boolean containsKey(final K key) {
+		return cache.containsKey(key);
+	}
+
 	// ----- private methods -----
 	private MemoryPoolMXBean getOldGenerationMXBean() {
 

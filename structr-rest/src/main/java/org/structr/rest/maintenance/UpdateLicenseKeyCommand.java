@@ -77,7 +77,7 @@ public class UpdateLicenseKeyCommand extends Command implements MaintenanceComma
 
 		if (restart) {
 			logger.info("Refreshing license manager now...");
-			Services.getInstance().getLicenseManager().refresh();
+			Services.getInstance().getLicenseManager().refresh(true);
 			logger.info("License manager refreshed.");
 		}
 

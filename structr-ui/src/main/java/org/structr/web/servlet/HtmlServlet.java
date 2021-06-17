@@ -85,6 +85,7 @@ import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.util.Base64;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
@@ -116,7 +117,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	public static final String TARGET_PAGE_KEY           = "target";
 	public static final String ERROR_PAGE_KEY            = "onerror";
 
-	public static final String OBJECT_RESOLUTION_PROPERTIES = "HtmlServlet.resolveProperties";
+	public static final String OBJECT_RESOLUTION_PROPERTIES        = "HtmlServlet.resolveProperties";
+	public static final String ENCODED_RENDER_STATE_PARAMETER_NAME = "structr-encoded-render-state";
 
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
 	private static final ExecutorService threadPool                = Executors.newCachedThreadPool();
@@ -380,7 +382,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 							} else if (result instanceof File) {
 
-								streamFile(authResult.getSecurityContext(), (File)result, request, response, EditMode.NONE);
+								streamFile(authResult.getSecurityContext(), (File)result, request, response, EditMode.NONE, true);
 								tx.success();
 								return;
 
@@ -418,7 +420,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				if (file != null) {
 
-					streamFile(securityContext, file, request, response, edit);
+					streamFile(securityContext, file, request, response, edit, true);
 					tx.success();
 					return;
 				}
@@ -462,6 +464,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						out.close();
 
 					} else {
+
+						// partial rendering?
+						if (request.getParameter(ENCODED_RENDER_STATE_PARAMETER_NAME) != null) {
+
+							final String encodedRenderState = request.getParameter(ENCODED_RENDER_STATE_PARAMETER_NAME);
+							renderContext.initializeFromEncodedRenderState(encodedRenderState);
+						}
 
 						// prepare response
 						response.setCharacterEncoding("UTF-8");
@@ -539,7 +548,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		final Authenticator auth        = getConfig().getAuthenticator();
 		SecurityContext securityContext = null;
-		List<Page> pages                = null;
 		boolean requestUriContainsUuids = false;
 
 		try {
@@ -620,7 +628,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					File file = findFile(securityContext, request, path);
 					if (file != null) {
 
-						//streamFile(securityContext, file, request, response, edit);
+						streamFile(securityContext, file, request, response, edit, false);
 						tx.success();
 						return;
 
@@ -916,6 +924,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			@Override
 			public void onError(Throwable t) {
+
+				// prevent async from running into default timeout of 30s
+				async.complete();
+
 				if (t instanceof QuietException) {
 					// ignore exceptions which (by jettys standards) should be handled less verbosely
 				} else {
@@ -1070,7 +1082,14 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	private DOMNode findPartialByName(final SecurityContext securityContext, final String name) throws FrameworkException {
 
-		return StructrApp.getInstance(securityContext).nodeQuery(DOMNode.class).andName(name).not().and(DOMNode.type, "Page").getFirst();
+		for (final DOMNode potentialPartial : StructrApp.getInstance(securityContext).nodeQuery(DOMNode.class).andName(name).not().and(DOMNode.type, "Page").getAsList()) {
+
+			if (potentialPartial.getOwnerDocumentAsSuperUser() != null) {
+				return potentialPartial;
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -1094,7 +1113,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		attributes.put(nameKey, name);
 
 		// Find pages by path or name
-		List<Page> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(Page.class)
+		final List<Page> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(Page.class)
 			.or()
 				.notBlank(pathKey)
 				.and(pathKey, path)
@@ -1113,21 +1132,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			}
 		}
 
-//		// Find pages by name
-//		final String name     = PathHelper.getName(path);
-//		possiblePages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).andName(name).getAsList();
-//
-//		for (final Page page : possiblePages) {
-//
-//			if (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)) {
-//
-//				return page;
-//			}
-//		}
-
 		// Check direct access by UUID
 		if (name.length() == 32) {
-			NodeInterface possiblePage = StructrApp.getInstance(securityContext).get(NodeInterface.class, name);
+
+			final NodeInterface possiblePage = StructrApp.getInstance(securityContext).get(NodeInterface.class, name);
 
 			if (possiblePage != null && possiblePage instanceof Page && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), (Page) possiblePage))) {
 
@@ -1151,7 +1159,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		final PropertyKey<Integer> positionKey = StructrApp.key(Page.class, "position");
 
-		List<Page> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).notBlank(positionKey).getAsList();
+		List<Page> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).notBlank(positionKey).sort(positionKey).getAsList();
 
 		for (Page page : possiblePages) {
 
@@ -1425,13 +1433,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		return Collections.EMPTY_LIST;
 	}
 
-	//~--- set methods ----------------------------------------------------
 	public static void setNoCacheHeaders(final HttpServletResponse response) {
 
 		response.setHeader("Cache-Control", "private, max-age=0, s-maxage=0, no-cache, no-store, must-revalidate"); // HTTP 1.1.
 		response.setHeader("Pragma", "no-cache, no-store"); // HTTP 1.0.
 		response.setDateHeader("Expires", 0);
-
 	}
 
 	private void setLimitingDataObject(final SecurityContext securityContext, final HttpServletRequest request, final RenderContext renderContext) {
@@ -1523,7 +1529,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		return notModified;
 	}
 
-	private void streamFile(final SecurityContext securityContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit) throws IOException {
+	private void streamFile(final SecurityContext securityContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit, final boolean sendContent) throws IOException {
 
 		if (!securityContext.isVisible(file)) {
 
@@ -1567,8 +1573,15 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			final String downloadAsDataUrl = request.getParameter(DOWNLOAD_AS_DATA_URL_KEY);
 			if (downloadAsDataUrl != null) {
 
-				IOUtils.write(FileHelper.getBase64String(file), out, "utf-8");
+				final String encoded = FileHelper.getBase64String(file);
+
+				response.setContentLength(encoded.length());
 				response.setContentType("text/plain");
+
+				if (sendContent) {
+					IOUtils.write(encoded, out, "utf-8");
+				}
+
 				response.setStatus(HttpServletResponse.SC_OK);
 
 				out.flush();
@@ -1624,14 +1637,22 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
 						callbackMap.put("statusCode", HttpServletResponse.SC_PARTIAL_CONTENT);
 
-						IOUtils.copyLarge(in, out, start, contentLength);
+						if (sendContent) {
+							IOUtils.copyLarge(in, out, start, contentLength);
+						}
 
 					} else {
 
-						final long fileSize = IOUtils.copyLarge(in, out);
-						final int status    = response.getStatus();
+						if (!file.isTemplate()) {
+							response.addHeader("Content-Length", Long.toString(file.getSize()));
+						}
 
-						response.addHeader("Content-Length", Long.toString(fileSize));
+						if (sendContent) {
+							IOUtils.copyLarge(in, out);
+						}
+
+						final int status = response.getStatus();
+
 						response.setStatus(status);
 
 						callbackMap.put("statusCode", status);
@@ -1668,7 +1689,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			// call onDownload callback
 			try {
 
-				file.invokeMethod(securityContext, "onDownload", callbackMap, false);
+				file.invokeMethod(securityContext, "onDownload", callbackMap, false, new EvaluationHints());
 
 			} catch (FrameworkException fex) {
 				logger.warn("", fex);

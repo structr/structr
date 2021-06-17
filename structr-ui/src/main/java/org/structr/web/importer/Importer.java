@@ -220,7 +220,7 @@ public class Importer {
 			} else {
 
 				// a trailing slash to all void/self-closing tags so the XML parser can parse it correctly
-				code = code.replaceAll("<(area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)([^>]*)>", "<$1$2/>");
+				code = code.replaceAll("<(area|base|br|col(?!group)|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)([^>]*)>", "<$1$2/>");
 			}
 
 			if (fragment) {
@@ -339,14 +339,14 @@ public class Importer {
 		return createChildNodes(parsedDocument.body(), parent, page);
 	}
 
-	public void createChildNodes(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
+	public DOMNode createChildNodes(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
 
-		createChildNodes(parsedDocument.body(), parent, page, removeHashAttribute, 0);
+		return createChildNodes(parsedDocument.body(), parent, page, removeHashAttribute, 0);
 	}
 
-	public void createChildNodesWithHtml(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
+	public DOMNode createChildNodesWithHtml(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
 
-		createChildNodes(parsedDocument, parent, page, removeHashAttribute, 0);
+		return createChildNodes(parsedDocument, parent, page, removeHashAttribute, 0);
 	}
 
 	public void setIsDeployment(final boolean isDeployment) {

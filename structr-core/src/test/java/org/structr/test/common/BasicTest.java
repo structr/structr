@@ -463,6 +463,8 @@ public class BasicTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
+			fex.printStackTrace();
+
 			logger.warn("Unexpected exception {}", fex.getMessage());
 			fail("Unexpected exception.");
 		}

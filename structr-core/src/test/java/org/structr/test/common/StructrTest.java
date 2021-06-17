@@ -27,7 +27,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -109,12 +108,15 @@ public class StructrTest {
 
 			try {
 
+				FlushCachesCommand.flushAll();
+
 				SchemaService.ensureBuiltinTypesExist(app);
 
 			} catch (Throwable t) {
 
 				t.printStackTrace();
-				logger.error("Exception while trying to clean database: {}", t.getMessage());
+				logger.error("Exception while trying to create built-in schema for tenant identifier {}: {}", randomTenantId, t.getMessage());
+
 			}
 		}
 
@@ -372,7 +374,7 @@ public class StructrTest {
 	protected void setupDatabaseConnection() {
 
 		// use database driver from system property, default to MemoryDatabaseService
-		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
+		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());

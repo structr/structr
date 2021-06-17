@@ -150,11 +150,16 @@ var _Code = {
 	},
 	addAvailableTagsForEntities: function(entities) {
 
+		// don't show internal tags (core, ui, html)
+		let tagBlacklist = ['core', 'ui', 'html'];
+
 		for (let entity of entities) {
 
 			if (entity.tags) {
+
 				for (let tag of entity.tags) {
-					if (!_Code.availableTags.includes(tag)) {
+
+					if (!_Code.availableTags.includes(tag) && !tagBlacklist.includes(tag)) {
 						_Code.availableTags.push(tag);
 					}
 				}
@@ -746,7 +751,7 @@ var _Code = {
 						children.push({
 							id: treeId + '-methods',
 							text: 'Methods',
-							children: entity.schemaMethods.length > 0,
+							children: _Schema.filterJavaMethods(entity.schemaMethods).length > 0,
 							icon: 'fa fa-code gray',
 							data: data
 						});
@@ -771,6 +776,29 @@ var _Code = {
 						}
 					});
 					break;
+
+				case 'SchemaRelationshipNode': {
+
+					let name = entity.name || '[unnamed]';
+					let listItemAttributes = {};
+
+					treeId = identifier.source + '-' + entity.id + '-' + name;
+
+					list.push({
+						id: treeId,
+						text:  name,
+						children: false,
+						icon: 'fa fa-' + icon,
+						li_attr: listItemAttributes,
+						data: {
+							type: entity.type,
+							name: entity.name,
+							entity: entity
+						}
+					});
+
+					break;
+				}
 
 				default:
 
@@ -905,7 +933,7 @@ var _Code = {
 
 					let matchingMethods = [];
 
-					for (let method of schemaNode.schemaMethods) {
+					for (let method of _Schema.filterJavaMethods(schemaNode.schemaMethods)) {
 						if (method.name.indexOf(parts[1]) === 0) {
 
 							// populate backRef to schemaNode because it only contains id by default
@@ -1029,7 +1057,7 @@ var _Code = {
 					let attrName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
 
 					return {
-						id: identifier.source + '-' + rel.id,
+						id: rel.id,
 						type: rel.type,
 						name: attrName,
 						propertyType: '',
@@ -1052,7 +1080,7 @@ var _Code = {
 	loadMethods: function(identifier) {
 
 		Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.typeId }, function(result) {
-			_Code.displayFunction(result, identifier);
+			_Code.displayFunction(_Schema.filterJavaMethods(result), identifier);
 		}, true, 'ui');
 	},
 	loadInheritedProperties: function(identifier) {
@@ -1323,7 +1351,7 @@ var _Code = {
 
 		if (entity.schemaMethods) {
 
-			entity.schemaMethods.forEach(function(m) {
+			_Schema.filterJavaMethods(entity.schemaMethods).forEach(function(m) {
 
 				if (id === 'custom' || !m.isPartOfBuiltInSchema) {
 
@@ -1340,7 +1368,8 @@ var _Code = {
 
 			var selection = {
 				id: data.node.id,
-				updateLocationStack: true
+				updateLocationStack: true,
+				nodeData: data.node.data
 			};
 
 			if (data.node.data) {
@@ -1371,7 +1400,6 @@ var _Code = {
 
 				switch (identifier.memberId) {
 
-					case 'custom':
 					case 'searchresults':
 					case 'undefined':
 					case 'null':
@@ -1474,6 +1502,10 @@ var _Code = {
 				case 'SchemaGroup':
 					_Code.displaySchemaGroupContent(data, identifier);
 					break;
+
+				case 'SchemaRelationshipNode':
+					_Code.displaySchemaRelationshipNodeContent(data, identifier);
+					break;
 			}
 
 		} else {
@@ -1492,7 +1524,17 @@ var _Code = {
 	},
 	displaySchemaNodeContent: function(data, identifier) {
 
-		Command.get(identifier.typeId, null, function(result) {
+		fetch(rootUrl + '/' + identifier.typeId + '/schema').then(function(response) {
+
+			if (response.ok) {
+				return response.json();
+			} else {
+				throw Error("Unable to fetch schema node content");
+			}
+
+		}).then(function(json) {
+
+			let result = json.result;
 
 			_Code.updateRecentlyUsed(result, identifier.source, data.updateLocationStack);
 			Structr.fetchHtmlTemplate('code/type', { type: result }, function(html) {
@@ -1535,9 +1577,15 @@ var _Code = {
 						_Code.updateDirtyFlag(result);
 					});
 
+					$('input[type=checkbox]', apiTab).on('change', function() {
+						_Code.updateDirtyFlag(result);
+					});
+
 					$('input[type=text]', apiTab).on('keyup', function() {
 						_Code.updateDirtyFlag(result);
 					});
+
+					Structr.activateCommentsInElement(apiTab);
 				});
 
 				// manage working sets
@@ -1742,15 +1790,174 @@ var _Code = {
 						}
 					});
 				});
+
+				// usedIn property
+				if (result.usedIn && result.usedIn.length > 0) {
+
+					let usageTreeContainer = document.querySelector('#usage-tree');
+					let label              = document.querySelector('#usage-label');
+
+					// add help text
+					label.innerHTML = 'This type is used in the following pages, HTML elements and attributes. Please note that this table might not be complete since the information here is collected at runtime, when you browse through the pages of your application.';
+
+					let sorted = result.usedIn.sort((a, b) => {
+
+						let p1 = a.path || a.page || a.type || a.id;
+						let p2 = b.path || b.page || b.type || b.id;
+
+						return p1 > p2 ? 1 : p1 < p2 ? -1 : 0;
+					});
+
+					let tree = { name: 'Usage', children: {} };
+
+					// append rows
+					for (var usage of sorted) {
+
+						let path = usage.path;
+
+						// The path is split into its parts to form the hierarchy, so if there is no
+						// path, we use the root term "Types" plus the type of the node.
+						if (!path) { path = 'Types/' + usage.type; } else { path = 'Pages/' + path; }
+
+						let parts   = path.split('/').filter(p => p.length > 0);
+						let current = tree;
+
+						for (var part of parts) {
+
+							if (!current.children[part]) {
+
+								current.children[part] = {
+									name: part,
+									children: {}
+								};
+							}
+
+							current = current.children[part];
+						}
+
+						current.data = usage;
+					}
+
+					let buildTree = function(root, rootElement) {
+
+						let listItem = document.createElement('li');
+						listItem.dataset.jstree = JSON.stringify({ icon: '/structr/icon/folder.png' });
+						//listItem.classList.add('jstree-open');
+						listItem.innerHTML = root.name;
+						rootElement.appendChild(listItem);
+
+						let list = document.createElement('ul');
+						listItem.appendChild(list);
+
+						if (root.data) {
+
+							for (var key of Object.keys(root.data.mapped)) {
+
+								let value = root.data.mapped[key];
+								let item  = document.createElement('li');
+								item.dataset.jstree = JSON.stringify({ icon: 'fa fa-edit' });
+								item.dataset.id = root.data.id;
+								item.innerHTML = key + ': '+ value;
+
+								list.append(item);
+							}
+						}
+
+						for (var key of Object.keys(root.children)) {
+							let child = root.children[key];
+							buildTree(child, list);
+						}
+
+					};
+
+					buildTree(tree, usageTreeContainer);
+
+					let usageTree = $('#usage-tree-container').jstree({
+						plugins: ["themes"],
+						core: {
+							animation: 0
+						}
+					});
+
+					console.log(usageTree);
+
+					usageTree.on('select_node.jstree', function(node, selected, event) {
+
+						console.log({ node: node, selected: selected, event:event });
+
+						let id = selected.node.data.id;
+						if (id) {
+
+							Command.get(id, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
+
+								switch (obj.type) {
+
+									case 'Content':
+									case 'Template':
+										_Elements.openEditContentDialog(undefined, obj, {
+											extraKeys: { "Ctrl-Space": "autocomplete" },
+											gutters: ["CodeMirror-lint-markers"],
+											lint: {
+												getAnnotations: function(text, callback) {
+													_Code.showScriptErrors(obj, text, callback, data.name);
+												},
+												async: true
+											}
+										});
+										break;
+									default:
+										_Entities.showProperties(obj);
+										break;
+								}
+							});
+
+						} else {
+
+							// not a leaf, toggle "opened" state
+							usageTree.jstree('toggle_node', selected.node);
+						}
+
+					});
+
+				} else {
+
+					let label = document.querySelector('#usage-label');
+					if (label) {
+
+						label.innerHTML = 'Browse through your application to populate the usage list for this type.';
+					}
+				}
 			});
-		}, 'schema');
+		});
+
+		//}, 'schema');
 	},
-	displaySchemaMethodContent: function(data, lastOpenTab) {
+	displaySchemaRelationshipNodeContent: function (data, identifier) {
+
+		Command.get(identifier.obj.nodeData.entity.id, null, function(entity) {
+
+			Command.get(entity.sourceId, null, function(sourceNode) {
+
+				Command.get(entity.targetId, null, function(targetNode) {
+
+					Structr.fetchHtmlTemplate('code/property.remote', { identifier: identifier }, function(html) {
+
+						codeContents.empty();
+						codeContents.append(html);
+
+						_Schema.loadRelationship(entity, $('#headEl', codeContents), $('#contentEl', codeContents), sourceNode, targetNode, _Code.refreshTree);
+					});
+				});
+			});
+		});
+
+	},
+	displaySchemaMethodContent: function(data, lastOpenTab, cursorInfo) {
 
 		var identifier = _Code.splitIdentifier(data);
 
 		// ID of schema method can either be in typeId (for global schema methods) or in memberId (for type methods)
-		Command.get(identifier.memberId || identifier.typeId, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,schemaNode,source,comment,returnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters', function(result) {
+		Command.get(identifier.memberId || identifier.typeId, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,isStatic,schemaNode,source,returnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', function(result) {
 
 			_Code.updateRecentlyUsed(result, identifier.source, data.updateLocationStack);
 
@@ -1776,13 +1983,18 @@ var _Code = {
 				_Code.setCodeMirorUpdateMode(result, sourceEditor);
 				_Code.setupAutocompletion(sourceEditor, result.id, true);
 
-				_Code.editPropertyContent(result, 'comment', $('#tabView-comment', codeContents));
+				if (cursorInfo && cursorInfo.line && cursorInfo.ch) {
+					sourceEditor.setCursor(cursorInfo);
+					sourceEditor.focus();
+				}
 
 				sourceEditor.on('focus', function() {
 					sourceEditor.performLint();
 				});
 
-				if (result.codeType === 'java') {
+				let nameBlacklist = ['onCreate', 'onSave', 'onDelete', 'afterCreate'];
+
+				if (result.codeType === 'java' || nameBlacklist.includes(result.name)) {
 
 					$('li[data-name=api]').hide();
 
@@ -1856,11 +2068,17 @@ var _Code = {
 							_Code.updateDirtyFlag(result);
 						});
 
+						$('input[type=checkbox]', apiTab).on('change', function() {
+							_Code.updateDirtyFlag(result);
+						});
+
 						$('input[type=text]', apiTab).on('keyup', function() {
 							_Code.updateDirtyFlag(result);
 						});
 
 						_Code.editPropertyContent(result, 'returnType', $('.editor-wrapper', apiTab), {mode: "application/json", lint: true, gutters: ["CodeMirror-lint-markers"]});
+
+						Structr.activateCommentsInElement(apiTab);
 					});
 				}
 
@@ -1877,7 +2095,7 @@ var _Code = {
 
 						let afterSaveCallback = () => {
 							_Code.additionalDirtyChecks = [];
-							_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'));
+							_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'), sourceEditor.getCursor());
 						};
 
 						_Code.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
@@ -1890,7 +2108,7 @@ var _Code = {
 
 					_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
 						_Code.additionalDirtyChecks = [];
-						_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'));
+						_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'), sourceEditor.getCursor());
 
 					});
 
@@ -1899,13 +2117,18 @@ var _Code = {
 						_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', identifier);
 					});
 
-					// run button
+					// run button and global schema method flags
 					if (!result.schemaNode && !result.isPartOfBuiltInSchema) {
 						_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.exec_blue_icon), 'run', 'Run method', function() {
 							_Code.runGlobalSchemaMethod(result);
 						});
 
-						$('.checkbox.hidden', buttons).removeClass('hidden');
+						$('.checkbox.global-method.hidden', buttons).removeClass('hidden');
+						Structr.activateCommentsInElement(buttons);
+
+					} else if (result.schemaNode) {
+
+						$('.checkbox.entity-method.hidden', buttons).removeClass('hidden');
 						Structr.activateCommentsInElement(buttons);
 					}
 
@@ -2338,7 +2561,7 @@ var _Code = {
 
 			Command.get(selection.typeId, null, (entity) => {
 
-				_Schema.methods.appendMethods($('.content-container', codeContents), entity, entity.schemaMethods, function() {
+				_Schema.methods.appendMethods($('.content-container', codeContents), entity, _Schema.filterJavaMethods(entity.schemaMethods), function() {
 					if (selection && selection.extended) {
 						_TreeHelper.refreshNode('#code-tree', 'workingsets-' + selection.extended);
 					} else {
@@ -2953,7 +3176,6 @@ var _Code = {
 	},
 	runGlobalSchemaMethod: function(schemaMethod) {
 
-		let cleanedComment = (schemaMethod.comment && schemaMethod.comment.trim() !== '') ? schemaMethod.comment.replaceAll("\n", "<br>") : '';
 		Structr.dialog('Run global schema method ' + schemaMethod.name, function() {}, function() {
 			$('#run-method').remove();
 			$('#clear-log').remove();
@@ -2968,10 +3190,6 @@ var _Code = {
 		var addParamBtn = $('<i title="Add parameter" class="button ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
 		paramsBox.append(addParamBtn);
 		dialog.append(paramsOuterBox);
-
-		if (cleanedComment.trim() !== '') {
-			dialog.append('<div id="global-method-comment"><h3 class="heading-narrow">Comment</h3>' + cleanedComment + '</div>');
-		}
 
 		Structr.appendInfoTextToElement({
 			element: $('#params h3'),

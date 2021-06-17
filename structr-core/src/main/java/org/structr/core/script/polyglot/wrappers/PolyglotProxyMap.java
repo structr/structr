@@ -26,10 +26,12 @@ import org.structr.schema.action.ActionContext;
 import java.util.Map;
 
 public class PolyglotProxyMap implements ProxyObject {
-	final private Map<String, Object> map;
-	final private ActionContext actionContext;
+
+	private final ActionContext actionContext;
+	private final Map<String, Object> map;
 
 	public PolyglotProxyMap(final ActionContext actionContext, final Map<String, Object> map) {
+
 		this.actionContext = actionContext;
 		this.map = map;
 	}
@@ -55,6 +57,18 @@ public class PolyglotProxyMap implements ProxyObject {
 
 	@Override
 	public void putMember(String key, Value value) {
-		map.put(key, PolyglotWrapper.unwrap(actionContext, value));
+
+		if (key != null) {
+
+			final Object unwrappedValue = PolyglotWrapper.unwrap(actionContext, value);
+			if (unwrappedValue == null) {
+
+				map.remove(key);
+
+			} else {
+
+				map.put(key, unwrappedValue);
+			}
+		}
 	}
 }

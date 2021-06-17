@@ -23,6 +23,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SuperUser;
 import org.structr.schema.action.ActionContext;
 
 public class AddToGroupFunction extends AdvancedScriptingFunction {
@@ -49,20 +50,23 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 
 			if (!(sources[0] instanceof Group)) {
 
-				logger.warn("Error: first argument is not a Group. Parameters: {}", getParametersAsString(sources));
-				return "Error: first argument is not a Group.";
+				logParameterError(caller, sources, "Expected node of type Group as first argument!", ctx.isJavaScriptContext());
+
+			} else if (!(sources[1] instanceof Principal)) {
+
+				logParameterError(caller, sources, "Expected node of type Principal as second argument!", ctx.isJavaScriptContext());
+
+			} else if ((sources[1] instanceof SuperUser)) {
+
+				logParameterError(caller, sources, "Expected node of type Principal as second argument - SuperUser can not be member of a group!", ctx.isJavaScriptContext());
+
+			} else {
+
+				final Group group    = (Group)sources[0];
+				final Principal user = (Principal)sources[1];
+
+				group.addMember(ctx.getSecurityContext(), user);
 			}
-
-			if (!(sources[1] instanceof Principal)) {
-
-				logger.warn("Error: second argument is not a Principal. Parameters: {}", getParametersAsString(sources));
-				return "Error: second argument is not a Principal.";
-			}
-
-			final Group group    = (Group)sources[0];
-			final Principal user = (Principal)sources[1];
-
-			group.addMember(ctx.getSecurityContext(), user);
 
 		} catch (ArgumentNullException pe) {
 
@@ -71,7 +75,6 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
 		}
 
 		return "";

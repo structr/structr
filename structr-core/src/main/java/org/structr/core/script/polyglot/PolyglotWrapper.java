@@ -22,21 +22,19 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
-import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.core.script.polyglot.wrappers.GraphObjectWrapper;
+import org.structr.core.script.polyglot.wrappers.NonWrappableObject;
 import org.structr.core.script.polyglot.wrappers.PolyglotProxyArray;
 import org.structr.core.script.polyglot.wrappers.PolyglotProxyMap;
 import org.structr.schema.action.ActionContext;
 
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import org.bson.conversions.Bson;
 
 public abstract class PolyglotWrapper {
 
@@ -46,21 +44,31 @@ public abstract class PolyglotWrapper {
 		if (obj == null) {
 
 			return null;
+
+		} else if (obj instanceof NonWrappableObject) {
+
+			return ((NonWrappableObject)obj).unwrap();
+
 		} else if (obj instanceof GraphObject) {
 
 			return new GraphObjectWrapper(actionContext, (GraphObject) obj);
-		} else if (obj.getClass().isArray()) {
+
+		} else if (obj.getClass().isArray() && !(obj instanceof byte[]) ) {
 
 			return new PolyglotProxyArray(actionContext, (Object[]) obj);
+
 		} else 	if (obj instanceof List) {
 
 			return new PolyglotProxyArray(actionContext, (List)obj);
+
 		} else 	if (obj instanceof Iterable) {
 
 			return new PolyglotProxyArray(actionContext, (List)StreamSupport.stream(((Iterable)obj).spliterator(), false).collect(Collectors.toList()));
+
 		} else if (obj instanceof Map) {
 
 			return new PolyglotProxyMap(actionContext, (Map<String, Object>)obj);
+
 		} else if (obj instanceof Enumeration) {
 
 			Enumeration enumeration = (Enumeration)obj;
@@ -71,11 +79,14 @@ public abstract class PolyglotWrapper {
 			}
 
 			return new PolyglotProxyArray(actionContext, enumList.toArray());
+
 		} else if (obj instanceof Date) {
-			
+
 			return Date.from(((Date)obj).toInstant());
+
 		} else if (obj instanceof Value && !((Value)obj).getContext().equals(Context.getCurrent())) {
-			// Try tu rewrap objects from foreign contexts
+
+			// Try to rewrap objects from foreign contexts
 			return wrap(actionContext, unwrap(actionContext, obj));
 		}
 
@@ -86,23 +97,28 @@ public abstract class PolyglotWrapper {
 	public static Object unwrap(final ActionContext actionContext, final Object obj) {
 
 		if (obj instanceof Value) {
+
 			Value value = (Value) obj;
 
 			// Deal with wrapped primitives
 			if (value.isString()) {
 
 				return value.asString();
+
 			} else if (value.isBoolean()) {
 
 				return value.asBoolean();
+
 			} else if (value.isNumber()) {
 
 				if (value.fitsInInt()) {
 
 					return value.asInt();
+
 				} else if (value.fitsInLong()) {
 
 					return value.asLong();
+
 				} else if (value.fitsInFloat()) {
 
 					Float f = value.asFloat();
@@ -110,7 +126,9 @@ public abstract class PolyglotWrapper {
 
 						return f;
 					}
+
 					return null;
+
 				} else if (value.fitsInDouble()) {
 
 					Double d = value.asDouble();
@@ -118,6 +136,7 @@ public abstract class PolyglotWrapper {
 
 						return d;
 					}
+
 					return null;
 				}
 			}
@@ -126,49 +145,68 @@ public abstract class PolyglotWrapper {
 			if (value.canExecute()) {
 
 				return new FunctionWrapper(actionContext, value);
+
 			} else if (value.isHostObject()) {
 
 				return unwrap(actionContext, value.asHostObject());
+
 			} else if (value.isDate()) {
 
 				if (value.isTime()) {
 
 					return Date.from(value.asDate().atTime(value.asTime()).atZone(ZoneId.systemDefault()).toInstant());
+
 				} else {
 
 					return Date.from(value.asDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
 				}
+
 			} else if (value.isProxyObject() && value.hasMembers()) {
+
 				ProxyObject proxy = value.asProxyObject();
 
 				if (proxy instanceof GraphObjectWrapper) {
+
 					return ((GraphObjectWrapper)proxy).getOriginalObject();
+
 				} else if (proxy instanceof PolyglotProxyMap) {
 
 					return ((PolyglotProxyMap)proxy).getOriginalObject();
+
 				} else {
 
 					return proxy;
 				}
+
 			} else if (value.hasArrayElements()) {
 
 				return convertValueToList(actionContext, value);
+
 			} else if (value.hasMembers()) {
 
 				return convertValueToMap(actionContext, value);
+
+			} else if (value.isNull()) {
+
+				return null;
+
 			} else {
 
 				return unwrap(actionContext, value.as(Object.class));
 			}
+
 		} else if (obj instanceof GraphObjectWrapper) {
 
 			return ((GraphObjectWrapper)obj).getOriginalObject();
+
 		} else if (obj instanceof Iterable) {
 
 			return unwrapIterable(actionContext, (Iterable) obj);
+
 		} else if(obj instanceof Map) {
 
 			return unwrapMap(actionContext, (Map<String, Object>) obj);
+
 		} else {
 
 			return obj;
@@ -183,6 +221,7 @@ public abstract class PolyglotWrapper {
 
 			unwrappedList.add(unwrap(actionContext, o));
 		}
+
 		return unwrappedList;
 	}
 
@@ -194,6 +233,7 @@ public abstract class PolyglotWrapper {
 
 			unwrappedMap.put(entry.getKey(), unwrap(actionContext, entry.getValue()));
 		}
+
 		return unwrappedMap;
 	}
 

@@ -16,23 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.script.polyglot.function;
+package org.structr.schema.action;
 
-import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyExecutable;
-import org.structr.schema.action.ActionContext;
+import org.structr.common.error.FrameworkException;
 
-public class ClearFunction implements ProxyExecutable {
-	private ActionContext actionContext;
-
-	public ClearFunction(final ActionContext actionContext) {
-
-		this.actionContext = actionContext;
-	}
-
-	@Override
-	public Object execute(Value... arguments) {
-		actionContext.clear();
-		return null;
-	}
+/**
+ */
+public interface ErrorReporter {
+	void reportError(final String message, final int row, final int column) throws FrameworkException;
 }

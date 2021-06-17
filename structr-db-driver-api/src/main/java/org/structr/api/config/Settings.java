@@ -29,6 +29,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
@@ -43,8 +44,8 @@ public class Settings {
 
 	public static final String MAINTENANCE_PREFIX             = "maintenance";
 
-	private static final Map<String, Setting> settings        = new LinkedHashMap<>();
-	private static final Map<String, SettingsGroup> groups    = new LinkedHashMap<>();
+	private static final Map<String, Setting> settings        = new TreeMap<>();
+	private static final Map<String, SettingsGroup> groups    = new TreeMap<>();
 
 	public static final SettingsGroup generalGroup            = new SettingsGroup("general",     "General Settings");
 	public static final SettingsGroup serverGroup             = new SettingsGroup("server",      "Server Settings");
@@ -68,6 +69,7 @@ public class Settings {
 	public static final Setting<String> InstanceStage            = new StringSetting(generalGroup,             "Application", "application.instance.stage",            "", "The stage of the Structr instance (displayed in the top right corner of structr-ui)");
 	public static final Setting<String> MenuEntries              = new StringSetting(generalGroup,             "Application", "application.menu.main",                 "Dashboard,Pages,Files,Security,Schema,Data", "Comma-separated list of main menu entries in structr-ui. Everything not in this list will be moved into a sub-menu.");
 	public static final Setting<Integer> CypherConsoleMaxResults = new IntegerSetting(generalGroup,            "Application", "application.console.cypher.maxresults", 10, "The maximum number of results returned by a cypher query in the admin console. If a query yields more results, an error message is shown.");
+	public static final Setting<Boolean> EnforceRuntime          = new BooleanSetting(generalGroup,            "Application", "application.runtime.enforce.recommended",       true, "Enforces version check for Java runtime.");
 	public static final Setting<Boolean> DisableSendSystemInfo   = new BooleanSetting(generalGroup,            "Application", "application.systeminfo.disabled",       false, "Disables transmission of telemetry information. This information is used to improve the software and to better adapt to different hardware configurations.");
 	public static final Setting<String> BasePath                 = new StringSetting(generalGroup,             "Paths",       "base.path",                             ".", "Path of the Structr working directory. All files will be located relative to this directory.");
 	public static final Setting<String> TmpPath                  = new StringSetting(generalGroup,             "Paths",       "tmp.path",                              System.getProperty("java.io.tmpdir"), "Path to the temporary directory. Uses <code>java.io.tmpdir</code> by default");
@@ -96,7 +98,7 @@ public class Settings {
 	public static final Setting<Integer> NodeServiceStartRetries = new IntegerSetting(generalGroup,  "Services",    "nodeservice.start.retries",     3);
 
 	// server settings
-	public static final Setting<String> ApplicationHost       = new StringSetting(serverGroup,  "Interfaces", "application.host",              "0.0.0.0", "The listen address of the Structr server");
+	public static final Setting<String> ApplicationHost       = new StringSetting(serverGroup,  "Interfaces", "application.host",              "0.0.0.0", "The listen address of the Structr server. You can set this to your domain name if that name resolves to the IP of the server the instance is running on.");
 	public static final Setting<Integer> HttpPort             = new IntegerSetting(serverGroup, "Interfaces", "application.http.port",         8082, "HTTP port the Structr server will listen on");
 	public static final Setting<Integer> HttpsPort            = new IntegerSetting(serverGroup, "Interfaces", "application.https.port",        8083, "HTTPS port the Structr server will listen on (if SSL is enabled)");
 	public static final Setting<Integer> SshPort              = new IntegerSetting(serverGroup, "Interfaces", "application.ssh.port",          8022, "SSH port the Structr server will listen on (if SSHService is enabled)");
@@ -165,7 +167,6 @@ public class Settings {
 	public static final Setting<Boolean> ForceResultStreaming        = new BooleanSetting(databaseGroup, "Result Streaming",        "database.result.lazy",             false, "Forces Structr to use lazy evaluation for relationship queries");
 	public static final Setting<Boolean> CypherDebugLogging          = new BooleanSetting(databaseGroup, "Debugging",               "log.cypher.debug",                 false, "Turns on debug logging for the generated Cypher queries");
 	public static final Setting<Boolean> CypherDebugLoggingPing      = new BooleanSetting(databaseGroup, "Debugging",               "log.cypher.debug.ping",            false, "Turns on debug logging for the generated Cypher queries of the websocket PING command. Can only be used in conjunction with log.cypher.debug");
-	public static final Setting<Boolean> SyncDebugging               = new BooleanSetting(databaseGroup, "Sync debugging",          "sync.debug",                       false);
 	public static final Setting<Integer> ResultCountSoftLimit        = new IntegerSetting(databaseGroup, "Soft result count limit", "database.result.softlimit",        10_000, "Soft result count limit for a single query (can be overridden by pageSize)");
 	public static final Setting<Integer> FetchSize                   = new IntegerSetting(databaseGroup, "Result fetch size",       "database.result.fetchsize",        100_000, "Number of database records to fetch per batch when fetching large results");
 
@@ -179,7 +180,7 @@ public class Settings {
 	public static final Setting<Boolean> FilesystemEnabled           = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.enabled",                  false, "If enabled, Structr will create a separate home directory for each user. See Filesystem for more information.");
 	public static final Setting<Boolean> UniquePaths                 = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.unique.paths",             true,  "If enabled, Structr will not allow files/folders of the same name in the same folder and automatically rename the file.");
 	public static final Setting<String> UniquePathsInsertionPosition = new ChoiceSetting(applicationGroup, "Filesystem",    "application.filesystem.unique.insertionposition", "beforeextension", Settings.getStringsAsSet("start", "beforeextension", "end"), "Defines the insertion position of the uniqueness criterion (currently a timestamp).<dl><dt>start</dt><dd>prefixes the name with a timestamp</dd><dt>beforeextension</dt><dd>puts the timestamp before the last dot (or at the end if the name does not contain a dot)</dd><dt>end</dt><dd>appends the timestamp after the complete name</dd></dl>");
-	public static final Setting<String> DefaultChecksums             = new StringSetting(applicationGroup,  "Filesystem",   "application.filesystem.checksums.default",        "",    "List of checksums to be calculated on file creation by default.");
+	public static final Setting<String> DefaultChecksums             = new StringSetting(applicationGroup,  "Filesystem",   "application.filesystem.checksums.default",        "",    "List of additional checksums to be calculated on file creation by default. (<code>File.checksum</code> is always popuplated with an xxHash)<dl><dt>crc32</dt><dd>Cyclic Redundancy Check - long value</dd><dt>md5</dt><dd>md5 algorithm - 32 character hex string</dd><dt>sha1</dt><dd>SHA-1 algorithm - 40 character hex string</dd><dt>sha512</dt><dd>SHA-512 algorithm - 128 character hex string</dd></dl>");
 	public static final Setting<Boolean> IndexingEnabled             = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.enabled",         true,  "Whether indexing is enabled globally (can be controlled separately for each file)");
 	public static final Setting<Integer> IndexingMaxFileSize         = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.maxsize",         10,    "Maximum size (MB) of a file to be indexed");
 	public static final Setting<Integer> IndexingLimit               = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.limit",           50000, "Maximum number of words to be indexed per file.");
@@ -213,6 +214,7 @@ public class Settings {
 	public static final Setting<Integer> HttpConnectionRequestTimeout = new IntegerSetting(applicationGroup, "Outgoing Connection Timeouts",   "application.httphelper.timeouts.connectionrequest",   60,    "Applies when making outgoing connections. Returns the timeout in <b>seconds</b> used when requesting a connection from the connection manager. A timeout value of zero is interpreted as an infinite timeout.");
 	public static final Setting<Integer> HttpConnectTimeout           = new IntegerSetting(applicationGroup, "Outgoing Connection Timeouts",   "application.httphelper.timeouts.connect",             60,    "Applies when making outgoing connections. Determines the timeout in <b>seconds</b> until a connection is established. A timeout value of zero is interpreted as an infinite timeout.");
 	public static final Setting<Integer> HttpSocketTimeout            = new IntegerSetting(applicationGroup, "Outgoing Connection Timeouts",   "application.httphelper.timeouts.socket",             600,    "Applies when making outgoing connections. Defines the socket timeout in <b>seconds</b>, which is the timeout for waiting for data or, put differently, a maximum period inactivity between two consecutive data packets. A timeout value of zero is interpreted as an infinite timeout.");
+	public static final Setting<String>  HttpUserAgent                = new StringSetting(applicationGroup,  "Outgoing Connection User Agent", "application.httphelper.useragent",         "curl/7.35.0",    "Used as user agent when making outgoing connections");
 
 	public static final Setting<Boolean> SchemaAutoMigration      = new BooleanSetting(applicationGroup, "Schema",       "application.schema.automigration",            false, "Enable automatic migration of schema information between versions (if possible -- may delete schema nodes)");
 	public static final Setting<Boolean> AllowUnknownPropertyKeys = new BooleanSetting(applicationGroup, "Schema",       "application.schema.allowunknownkeys",         false, "Enables get() and set() built-in functions to use property keys that are not defined in the schema.");
@@ -263,7 +265,7 @@ public class Settings {
 	public static final Setting<String> RestUserClass         = new StringSetting(servletsGroup,            "JsonRestServlet", "jsonrestservlet.user.class",                   "org.structr.dynamic.User", "User class that is instantiated when new users are created via the servlet");
 	public static final Setting<Boolean> RestUserAutologin    = new BooleanSetting(servletsGroup,           "JsonRestServlet", "jsonrestservlet.user.autologin",               false, "Only works in conjunction with the jsonrestservlet.user.autocreate key. Will log in user after self registration.");
 	public static final Setting<Boolean> RestUserAutocreate   = new BooleanSetting(servletsGroup,           "JsonRestServlet", "jsonrestservlet.user.autocreate",              false, "Enable this to support user self registration");
-	public static final Setting<String> InputValidationMode   = new StringMultiChoiceSetting(servletsGroup, "JsonRestServlet", "jsonrestservlet.unknowninput.validation.mode", "ignore", new LinkedHashSet<>(Arrays.asList("accept", "warn", "ignore", "reject")), "Controls how Structr reacts to unknown keys in JSON input.");
+	public static final Setting<String> InputValidationMode   = new ChoiceSetting(servletsGroup,            "JsonRestServlet", "jsonrestservlet.unknowninput.validation.mode", "accept_warn", new LinkedHashSet<>(Arrays.asList("accept", "accept_warn", "ignore", "ignore_warn", "reject", "reject_warn")), "Controls how Structr reacts to unknown keys in JSON input. <code>accept</code> allows the unknown key to be written. <code>ignore</code> removes the key. <code>reject</code> rejects the complete request. The <code>warn</code> options behave identical but also log a warning.");
 
 	public static final Setting<String> FlowServletPath       = new StringSetting(servletsGroup,  "hidden", "flowservlet.path",             "/structr/flow/*", "The URI under which requests are accepted by the servlet. Needs to include a wildcard at the end.");
 	public static final Setting<String> FlowServletClass      = new StringSetting(servletsGroup,  "hidden", "flowservlet.class",            "org.structr.flow.servlet.FlowServlet");
@@ -399,6 +401,10 @@ public class Settings {
 	public static final Setting<String> OpenAPIDefaultView       = new StringSetting(servletsGroup,  "hidden", "openapiservlet.defaultview",           "public");
 	public static final Setting<Integer> OpenAPIOutputDepth      = new IntegerSetting(servletsGroup, "hidden", "openapiservlet.outputdepth",           1);
 	public static final Setting<String> OpenAPIAllowOrigin       = new StringSetting(servletsGroup,  "OpenAPIServlet", "openapiservlet.allow.origin",          "", "Value that will be set in the Access-Control-Allow-Origin response header of the OpenAPI Servlet");
+	public static final Setting<String> OpenAPIServerTitle       = new StringSetting(servletsGroup,  "OpenAPIServerTitle", "openapiservlet.server.title", "Structr REST Server", "The main title of the OpenAPI server definition.");
+	public static final Setting<String> OpenAPIServerVersion     = new StringSetting(servletsGroup,  "OpenAPIServerVersion", "openapiservlet.server.version", "1.0.1", "The version number of the OpenAPI definition");
+
+
 
 	// cron settings
 	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations");
@@ -462,6 +468,8 @@ public class Settings {
 
 	// oauth settings
 	public static final Setting<String> OAuthServers = new StringSetting(oauthGroup, "General", "oauth.servers", "github twitter linkedin google facebook auth0", "Space-seperated List of available oauth services. Defaults to \"github twitter linkedin google facebook auth0\"");
+	public static final Setting<Boolean> OAuthDelayedRedirect = new BooleanSetting(oauthGroup, "General", "oauth.delayedredirect", false, "Enables delayed redirect after oauth login");
+	public static final Setting<Boolean> OAuthVerboseLogging  = new BooleanSetting(oauthGroup, "General", "oauth.logging.verbose", false, "Enables verbose logging for oauth login");
 
 	public static final Setting<String> OAuthGithubAuthLocation   = new StringSetting(oauthGroup, "GitHub", "oauth.github.authorization_location", "https://github.com/login/oauth/authorize", "URL of the authorization endpoint.");
 	public static final Setting<String> OAuthGithubTokenLocation  = new StringSetting(oauthGroup, "GitHub", "oauth.github.token_location", "https://github.com/login/oauth/access_token", "URL of the token endpoint.");
@@ -551,7 +559,9 @@ public class Settings {
 	public static final Setting<String> PaymentStripeApiKey    = new StringSetting(miscGroup,  "Payment Options", "stripe.apikey",       "");
 
 	// licence settings
-	public static final Setting<String> LicenseKey      = new StringSetting(licensingGroup,  "Licensing", "license.key",         "", "Base64-encoded string that contains the complete license data, typically saved as 'license.key' in the main directory.");
+	public static final Setting<String> LicenseKey                = new StringSetting(licensingGroup,   "Licensing", "license.key",                   "", "Base64-encoded string that contains the complete license data, typically saved as 'license.key' in the main directory.");
+	public static final Setting<Integer> LicenseValidationTimeout = new IntegerSetting(licensingGroup,  "Licensing", "license.validation.timeout",    10, "Timeout in seconds for license validation requests.");
+	public static final Setting<Boolean> LicenseAllowFallback     = new BooleanSetting(licensingGroup,  "Licensing", "license.allow.fallback",      true, "Allow Structr to fall back to the Community License if no valid license exists (or license cannot be validated). Set this to false in production environments to prevent Structr from starting without a license.");
 
 	public static Collection<SettingsGroup> getGroups() {
 		return groups.values();

@@ -20,7 +20,6 @@ package org.structr.test.rest.common;
 
 
 import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -35,6 +34,8 @@ import org.hamcrest.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -48,8 +49,6 @@ import org.structr.core.graph.Tx;
 import org.structr.rest.DefaultResourceProvider;
 import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -96,11 +95,13 @@ public abstract class StructrRestTestBase {
 		Settings.ApplicationHost.setValue(host);
 		Settings.HttpPort.setValue(httpPort);
 
-		Settings.Servlets.setValue("JsonRestServlet");
+		Settings.Servlets.setValue("JsonRestServlet OpenAPIServlet");
 		Settings.RestAuthenticator.setValue(SuperUserAuthenticator.class.getName());
 		Settings.RestResourceProvider.setValue(DefaultResourceProvider.class.getName());
 		Settings.RestServletPath.setValue(restUrl);
 		Settings.RestUserClass.setValue("");
+		Settings.OpenAPIAuthenticator.setValue(SuperUserAuthenticator.class.getName());
+		Settings.OpenAPIResourceProvider.setValue(DefaultResourceProvider.class.getName());
 
 		final Services services = Services.getInstance();
 
@@ -156,15 +157,11 @@ public abstract class StructrRestTestBase {
 		if (!first) {
 
 			try (final Tx tx = app.tx()) {
-			// delete everything
-			Services.getInstance().getDatabaseService().cleanDatabase();
 
 				// delete everything
 				Services.getInstance().getDatabaseService().cleanDatabase();
 
 				FlushCachesCommand.flushAll();
-
-				SchemaService.ensureBuiltinTypesExist(app);
 
 				tx.success();
 
@@ -172,6 +169,20 @@ public abstract class StructrRestTestBase {
 
 				t.printStackTrace();
 				logger.error("Exception while trying to clean database: {}", t.getMessage());
+			}
+
+
+			try {
+
+				FlushCachesCommand.flushAll();
+
+				SchemaService.ensureBuiltinTypesExist(app);
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to create built-in schema for tenant identifier {}: {}", randomTenantId, t.getMessage());
+
 			}
 		}
 
@@ -250,13 +261,6 @@ public abstract class StructrRestTestBase {
 			RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body(buf.toString())
 			.expect().statusCode(201).when().post(resource).getHeader("Location"));
 	}

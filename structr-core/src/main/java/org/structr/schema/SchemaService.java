@@ -112,7 +112,7 @@ public class SchemaService implements Service {
 
 	@Override
 	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-		return SchemaHelper.reloadSchema(new ErrorBuffer(), null);
+		return SchemaHelper.reloadSchema(new ErrorBuffer(), null, true);
 	}
 
 	public static JsonSchema getDynamicSchema() {
@@ -123,7 +123,7 @@ public class SchemaService implements Service {
 		return graphQLSchema;
 	}
 
-	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId) {
+	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId, final boolean fullReload) {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final App app                      = StructrApp.getInstance();
@@ -166,7 +166,7 @@ public class SchemaService implements Service {
 						final Map<String, Map<String, PropertyKey>> removedClasses = new HashMap<>(config.getTypeAndPropertyMapping());
 						final Map<String, GraphQLType> graphQLTypes                = new LinkedHashMap<>();
 						final Map<String, SchemaNode> schemaNodes                  = new LinkedHashMap<>();
-						final NodeExtender nodeExtender                            = new NodeExtender(initiatedBySessionId);
+						final NodeExtender nodeExtender                            = new NodeExtender(initiatedBySessionId, fullReload);
 						final Set<String> dynamicViews                             = new LinkedHashSet<>();
 
 						// collect auto-generated schema nodes
@@ -189,7 +189,7 @@ public class SchemaService implements Service {
 								continue;
 							}
 
-							schemaInfo.handleMigration();
+							schemaInfo.handleMigration(schemaNodes);
 
 							final String className      = schemaInfo.getClassName();
 							final SourceFile sourceFile = new SourceFile(className);
@@ -198,7 +198,10 @@ public class SchemaService implements Service {
 							SchemaHelper.getSource(sourceFile, schemaInfo, schemaNodes, blacklist, errorBuffer);
 
 							// only load dynamic node if there were no errors while generating the source code (missing modules etc.)
-							nodeExtender.addClass(className, sourceFile);
+							// if addClass returns true, the class needs to be recompiled and cached methods must be cleared
+							if (nodeExtender.addClass(className, sourceFile)) {
+								schemaInfo.clearCachedSchemaMethodsForInstance();
+							}
 							dynamicViews.addAll(schemaInfo.getDynamicViews());
 
 							// initialize GraphQL engine as well
@@ -255,6 +258,8 @@ public class SchemaService implements Service {
 										// make the schema compilation fail (otherwise bad things will happen later)
 										errorBuffer.add(new InstantiationErrorToken(newType.getName(), t));
 										logger.error("Unable to instantiate dynamic entity {}", newType.getName(), t);
+
+										t.printStackTrace();
 									}
 								}
 							}
@@ -327,7 +332,6 @@ public class SchemaService implements Service {
 
 							tx.success();
 
-
 							final GraphQLObjectType.Builder queryTypeBuilder         = GraphQLObjectType.newObject();
 							final Map<String, GraphQLInputObjectType> selectionTypes = new LinkedHashMap<>();
 							final Set<String> existingQueryTypeNames                 = new LinkedHashSet<>();
@@ -356,6 +360,7 @@ public class SchemaService implements Service {
 									);
 
 								} catch (Throwable t) {
+									t.printStackTrace();
 									logger.warn("Unable to add GraphQL type {}: {}", className, t.getMessage());
 								}
 							}
@@ -389,6 +394,8 @@ public class SchemaService implements Service {
 
 					errorBuffer.getErrorTokens().addAll(fex.getErrorBuffer().getErrorTokens());
 
+					fex.printStackTrace();
+
 				} catch (Throwable t) {
 
 					FlushCachesCommand.flushAll();
@@ -397,6 +404,8 @@ public class SchemaService implements Service {
 					logger.error(ExceptionUtils.getStackTrace(t));
 
 					success = false;
+
+					t.printStackTrace();
 				}
 
 				if (!success) {
@@ -474,34 +483,6 @@ public class SchemaService implements Service {
 	}
 
 	// ----- private methods -----
-	private static int recursiveGetHierarchyLevel(final Map<String, SchemaNode> map, final Set<String> alreadyCalculated, final SchemaNode schemaNode, final int depth) {
-
-		// stop at level 20
-		if (depth > 20) {
-			return 20;
-		}
-
-		String superclass = schemaNode.getProperty(SchemaNode.extendsClass);
-		if (superclass == null) {
-
-			return 0;
-
-		} else if (superclass.startsWith("org.structr.dynamic.")) {
-
-			// find hierarchy level
-			superclass = superclass.substring(superclass.lastIndexOf(".") + 1);
-
-			// recurse upwards
-			final SchemaNode superSchemaNode = map.get(superclass);
-			if (superSchemaNode != null) {
-
-				return recursiveGetHierarchyLevel(map, alreadyCalculated, superSchemaNode, depth + 1) + 1;
-			}
-		}
-
-		return 0;
-	}
-
 	private static void updateIndexConfiguration(final Map<String, Map<String, PropertyKey>> removedClasses) {
 
 		if (Services.isTesting() && !Services.updateIndexConfiguration()) {

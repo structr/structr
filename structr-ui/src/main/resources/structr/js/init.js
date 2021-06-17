@@ -77,13 +77,25 @@ $(function() {
 		Structr.doLogout();
 	});
 
+	let isHashReset = false;
 	window.addEventListener('hashchange', (e) => {
-		var anchor = getAnchorFromUrl(window.location.href);
-		if (anchor === 'logout' || loginBox.is(':visible')) return;
-		let allow = Structr.requestActivateModule(e, anchor);
 
-		if (allow === false) {
-			window.location.href = e.oldURL;
+		if (isHashReset === false) {
+
+			let anchor = getAnchorFromUrl(window.location.href);
+			if (anchor === 'logout' || loginBox.is(':visible')) {
+				return;
+			}
+
+			let allow = (getAnchorFromUrl(e.oldURL) === null) || Structr.requestActivateModule(e, anchor);
+
+			if (allow !== true) {
+				isHashReset = true;
+				window.location.href = e.oldURL;
+			}
+
+		} else {
+			isHashReset = false;
 		}
 	});
 
@@ -682,7 +694,7 @@ var Structr = {
 		var l = parseInt((w - dw) / 2);
 		var t = parseInt((h - dh) / 2);
 
-		var horizontalOffset = 98;
+		var horizontalOffset = 113;
 
 		// needs to be calculated like this because the elements in the dialogHead (tabs) are floated and thus the .height() method returns 0
 		var headerHeight = (dialogText.position().top + dialogText.scrollParent().scrollTop()) - dialogHead.position().top;
@@ -926,7 +938,10 @@ var Structr = {
 		}, ms);
 	},
 	requestActivateModule: function(event, name) {
-		if (menuBlocked) return;
+		if (menuBlocked) {
+			return false;
+		}
+
 		event.stopPropagation();
 		if (Structr.getActiveModuleName() !== name || main.children().length === 0) {
 			return Structr.doActivateModule(name);
@@ -1102,12 +1117,11 @@ var Structr = {
 
 		var t = $(triggerEl);
 		t.addClass('active');
-		var slideoutWidth = rsw + 12;
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
 		slideoutElement.width(rsw);
 		slideoutElement.animate({right: 0 + 'px'}, 100, function() {
 			if (typeof callback === 'function') {
-				callback({sw: slideoutWidth, isOpenAction: true});
+				callback({isOpenAction: true});
 			}
 		}).zIndex(1);
 		slideoutElement.addClass('open');
@@ -1125,12 +1139,10 @@ var Structr = {
 				});
 				ui.position.top += (ui.helper.width() / 2 - 6);
 				ui.position.left = - t.width() / 2 - 20;
-				var oldRightSlideoutWidth = slideoutWidth;
-				slideoutWidth = w + 12;
 
 				if (typeof callback === 'function') {
 					LSWrapper.setItem(_Pages.rightSlideoutWidthKey, slideoutElement.width());
-					callback({sw: (slideoutWidth - oldRightSlideoutWidth)});
+					callback({isOpenAction: false});
 				}
 			},
 			stop: function(e, ui) {
@@ -1148,20 +1160,18 @@ var Structr = {
 		});
 	},
 	openLeftSlideOut: function(triggerEl, slideoutElement, activeTabKey, callback) {
+
 		var storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.leftSlideoutWidthKey);
 		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (slideoutElement.width() + 12);
 
 		var t = $(triggerEl);
 		t.addClass('active');
-		var slideoutWidth = psw + 12;
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
 		slideoutElement.width(psw);
 		slideoutElement.animate({left: 0 + 'px'}, 100, function() {
 			if (typeof callback === 'function') {
-				callback({sw: slideoutWidth, isOpenAction: true});
+				callback({isOpenAction: true});
 			}
-		}).zIndex(1);
-		slideoutElement.addClass('open');
 
 		t.draggable({
 			axis: 'x',
@@ -1174,14 +1184,12 @@ var Structr = {
 				slideoutElement.css({
 					width: w + 'px'
 				});
-				ui.position.top += (ui.helper.width() / 2 - 6);
+				ui.position.top  += (ui.helper.width() / 2 - 6);
 				ui.position.left -= (ui.helper.width() / 2 - 6);
-				var oldLeftSlideoutWidth = slideoutWidth;
-				slideoutWidth = w + 12;
 
 				if (typeof callback === 'function') {
 					LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
-					callback({sw: (slideoutWidth - oldLeftSlideoutWidth)});
+					callback({isOpenAction: false});
 				}
 			},
 			stop: function(e, ui) {
@@ -1197,10 +1205,13 @@ var Structr = {
 				});
 			}
 		});
+		}).zIndex(1);
+
+		slideoutElement.addClass('open');
+
 	},
 	closeSlideOuts: function(slideouts, activeTabKey, callback) {
 		var wasOpen = false;
-		var rsw = 0;
 
 		slideouts.forEach(function(slideout) {
 			slideout.removeClass('open');
@@ -1209,10 +1220,9 @@ var Structr = {
 
 			if (Math.abs($(window).width() - left) >= 3) {
 				wasOpen = true;
-				rsw = sw;
 				slideout.animate({right: '-=' + sw + 'px'}, 100, function() {
 					if (typeof callback === 'function') {
-						callback(wasOpen, 0, -rsw);
+						callback(wasOpen);
 					}
 				}).zIndex(2);
 				$('.compTab.active', slideout).removeClass('active').draggable('destroy');
@@ -1939,12 +1949,65 @@ var Structr = {
 				break;
 
 			case "RESOURCE_ACCESS":
-				new MessageBuilder().title('REST Access to \'' + data.uri + '\' denied').warning(data.message).requiresConfirmation().allowConfirmAll().show();
+
+				let builder = new MessageBuilder().title('REST Access to \'' + data.uri + '\' denied').warning(data.message).requiresConfirmation().allowConfirmAll();
+
+				builder.specialInteractionButton('Go to Security and create Grant', function (btn) {
+
+					let maskIndex = (data.validUser ? 'AUTH_USER_' : 'NON_AUTH_USER_') + data.method.toUpperCase();
+					let flags     = _ResourceAccessGrants.mask[maskIndex] || 0;
+
+					let additionalData = {};
+
+					if (data.validUser === true) {
+						additionalData.visibleToAuthenticatedUsers = true;
+					} else {
+						additionalData.visibleToPublicUsers = true;
+					}
+
+					_ResourceAccessGrants.createResourceAccessGrant(data.signature, flags, null, additionalData);
+
+					let grantPagerConfig = LSWrapper.getItem(pagerDataKey + 'resource-access');
+					if (!grantPagerConfig) {
+						grantPagerConfig = {
+							id: 'resource-access',
+							type: 'resource-access',
+							page: 1,
+							pageSize: 25,
+							sort: "signature",
+							order: "asc"
+						};
+					} else {
+						grantPagerConfig = JSON.parse(grantPagerConfig);
+					}
+					grantPagerConfig.filters = {
+						flags: false,
+						signature: data.signature
+					};
+					LSWrapper.setItem(pagerDataKey + 'resource-access', JSON.stringify(grantPagerConfig));
+
+					let resourceAccessTab = 'resourceAccess';
+
+					if (Structr.getActiveModule()._moduleName === _Security._moduleName) {
+						_Security.selectTab(resourceAccessTab);
+					} else {
+						LSWrapper.setItem(_Security.securityTabKey, resourceAccessTab);
+						window.location.href = '#security';
+					}
+				}, 'Dismiss');
+
+				builder.show();
+
 				break;
 
 			case "SCRIPTING_ERROR":
+
 				if (showScriptingErrorPopups) {
+
 					if (data.nodeId && data.nodeType) {
+
+						let uniqueClass = 'n' + data.nodeId + data.nodeType + data.row + data.column;
+
 						Command.get(data.nodeId, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
 
 							let name     = data.name.slice(data.name.indexOf('_html_') === 0 ? 6 : 0);
@@ -1982,7 +2045,7 @@ var Structr = {
 								+ '<tr><th>Column:</th><td style="padding-left:8px;">' + data.column + '</td></tr>'
 								+ '</table>';
 
-							let builder = new MessageBuilder()
+							let builder = new MessageBuilder().uniqueClass(uniqueClass).incrementsUniqueCount(true)
 								.title('Scripting error in ' + title)
 								.warning(location + '<br/>' + data.message)
 								.requiresConfirmation();
@@ -1997,10 +2060,30 @@ var Structr = {
 
 								} else {
 
-									pathToOpen = 'global--' + obj.id;
+									pathToOpen = 'globals--' + obj.id;
 								}
 
 								builder.specialInteractionButton('Go to method', function(btn) {
+									window.location.href = '#code';
+									window.setTimeout(function() {
+										_Code.findAndOpenNode(pathToOpen, false);
+									}, 1000);
+								}, 'Dismiss');
+
+							} else if (data.nodeType === 'SchemaProperty') {
+
+								let pathToOpen = '';
+
+								if (obj.schemaNode) {
+
+									pathToOpen = 'custom--' + obj.schemaNode.id + '-properties-' + obj.id;
+
+								} else {
+
+									pathToOpen = 'globals--' + obj.id;
+								}
+
+								builder.specialInteractionButton('Go to property', function(btn) {
 									window.location.href = '#code';
 									window.setTimeout(function() {
 										_Code.findAndOpenNode(pathToOpen, false);
@@ -2065,20 +2148,27 @@ var Structr = {
 
 		$('[data-comment]', elem).each(function(idx, el) {
 
-			let config = {
-				text: $(el).data("comment"),
-				element: $(el),
-				css: {
-					"margin": "0 4px",
-					"vertical-align": "top"
-				}
-			};
+			let $el = $(el);
 
-			let elCommentConfig = $(el).data('commentConfig') || {};
+			if (!$el.data('commentApplied')) {
 
-			// base config is overridden by the defaults parameter which is overriden by the element config
-			let infoConfig = Object.assign(config, defaults, elCommentConfig);
-			Structr.appendInfoTextToElement(infoConfig);
+				$el.data('commentApplied', true);
+
+				let config = {
+					text: $el.data("comment"),
+					element: $el,
+					css: {
+						"margin": "0 4px",
+						"vertical-align": "top"
+					}
+				};
+
+				let elCommentConfig = $el.data('commentConfig') || {};
+
+				// base config is overridden by the defaults parameter which is overriden by the element config
+				let infoConfig = Object.assign(config, defaults, elCommentConfig);
+				Structr.appendInfoTextToElement(infoConfig);
+			}
 		});
 
 	},

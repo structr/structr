@@ -46,7 +46,8 @@ public interface Template extends Content {
 		type.addStringProperty("contentType", PropertyView.Public).setIndexed(true);
 		type.addStringProperty("content",     PropertyView.Public).setIndexed(true);
 
-		type.overrideMethod("renderContent", false, Template.class.getName() + ".renderContent(this, arg0, arg1);");
+		type.overrideMethod("renderContent",  false, Template.class.getName() + ".renderContent(this, arg0, arg1);");
+		type.overrideMethod("getContextName", false, "return StringUtils.defaultString(getProperty(AbstractNode.name), \"template\");");
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "children");

@@ -18,16 +18,17 @@
  */
 package org.structr.flow.engine;
 
-/**
- *
- */
 public class FlowError {
 
-	private String message = null;
+	private final String message;
+	private final Throwable cause;
 
-	public FlowError(final String message) {
+	public FlowError(final String message, final Throwable cause) {
 		this.message = message;
+		this.cause = cause;
 	}
+
+	public Throwable getCause() { return cause; }
 
 	public String getMessage() {
 		return message;

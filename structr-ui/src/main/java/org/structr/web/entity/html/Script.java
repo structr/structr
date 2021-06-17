@@ -75,7 +75,7 @@ public interface Script extends LinkSource {
 			try {
 				final String scriptType = thisScript.getProperty(StructrApp.key(Script.class, "_html_type"));
 
-				if (StringUtils.isNotBlank(scriptType)) {
+				if (StringUtils.isNotBlank(scriptType) && StringUtils.isBlank(((Content)newChild).getContentType())) {
 
 					((Content)newChild).setContentType(scriptType);
 

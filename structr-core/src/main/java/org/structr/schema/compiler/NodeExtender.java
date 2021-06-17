@@ -62,10 +62,12 @@ public class NodeExtender {
 	private List<SourceFile> sources     = null;
 	private Set<String> fqcns            = null;
 	private String initiatedBySessionId  = null;
+	private boolean fullReload           = false;
 
-	public NodeExtender(final String initiatedBySessionId) {
+	public NodeExtender(final String initiatedBySessionId, final boolean fullReload) {
 
 		this.initiatedBySessionId = initiatedBySessionId;
+		this.fullReload           = fullReload;
 		this.sources              = new ArrayList<>();
 		this.fqcns                = new LinkedHashSet<>();
 	}
@@ -82,7 +84,7 @@ public class NodeExtender {
 		return classes;
 	}
 
-	public void addClass(final String className, final SourceFile sourceFile) throws ClassNotFoundException {
+	public boolean addClass(final String className, final SourceFile sourceFile) throws ClassNotFoundException {
 
 		if (className != null && sourceFile != null) {
 
@@ -92,8 +94,9 @@ public class NodeExtender {
 			// skip if not changed
 			String oldMD5 = contentsMD5.get(fqcn);
 			String newMD5 = md5Hex(sourceFile.getContent());
-			if(newMD5.equals(oldMD5)){
-				return;
+
+			if(!fullReload && newMD5.equals(oldMD5)){
+				return false;
 			}
 
 			contentsMD5.put(fqcn, newMD5);
@@ -109,7 +112,11 @@ public class NodeExtender {
 					logger.info(StringUtils.rightPad(++count + ": ", 6) + line);
 				}
 			}
+
+			return true;
 		}
+
+		return false;
 	}
 
 	public synchronized Map<String, Class> compile(final ErrorBuffer errorBuffer) throws ClassNotFoundException {

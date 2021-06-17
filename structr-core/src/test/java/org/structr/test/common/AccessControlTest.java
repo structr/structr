@@ -1551,7 +1551,7 @@ public class AccessControlTest extends StructrTest {
 			final JsonType type     = schema.getType("Principal");
 
 			type.addStringProperty("test");
-			type.addMethod("onModification", "set_privileged(this, 'test', now)", "");
+			type.addMethod("onModification", "set_privileged(this, 'test', now)");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 

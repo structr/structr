@@ -36,6 +36,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +60,6 @@ import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.resource.Resource;
-import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
 
 /**
  * Implements the structr REST API.
@@ -263,12 +263,6 @@ public class JsonRestServlet extends AbstractDataServlet {
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		final SecurityContext securityContext;
-		final Authenticator authenticator;
-		final Resource resource;
-
-		RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
-
 		setCustomResponseHeaders(response);
 
 		try {
@@ -280,70 +274,44 @@ public class JsonRestServlet extends AbstractDataServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
-			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-				authenticator = config.getAuthenticator();
-				securityContext = authenticator.initializeAndExamineRequest(request, response);
-				tx.success();
+			// check if this is a CORS preflight request
+			final String origin      = request.getHeader("Origin");
+			final String corsHeaders = request.getHeader("Access-Control-Request-Headers");
+			final String corsMethod  = request.getHeader("Access-Control-Request-Method");
+			int statusCode           = HttpServletResponse.SC_OK;
+
+			if (origin != null && corsHeaders != null && corsMethod != null) {
+
+				// check origin
+				// ...
+
+				// allow origin
+				response.addHeader("Access-Control-Allow-Origin", origin);
+
+				// check headers
+				// ...
+
+				// allow headers
+				response.addHeader("Access-Control-Allow-Headers", corsHeaders);
+
+				// check method
+				// ...
+
+				// allow method
+				response.addHeader("Access-Control-Allow-Methods", corsMethod);
+
+				// we send 200 OK
+				statusCode = HttpServletResponse.SC_OK;
+
+			} else {
+
+				// OPTIONS is not allowed for non-CORS requests
+				statusCode = HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 			}
 
-			final App app = StructrApp.getInstance(securityContext);
-
-			// isolate resource authentication
-			try (final Tx tx = app.tx()) {
-
-				resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
-				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
-
-				RuntimeEventLog.rest("Options", resource.getResourceSignature(), securityContext.getUser(false));
-
-				tx.success();
-			}
-
-			// isolate doOptions
-			boolean retry = true;
-			while (retry) {
-
-				try (final Tx tx = app.tx()) {
-
-					result = resource.doOptions();
-					tx.success();
-					retry = false;
-
-				} catch (RetryException ddex) {
-					retry = true;
-				}
-			}
-
-			// isolate write output
-			try (final Tx tx = app.tx()) {
-
-				commitResponse(securityContext, request, response, result, resource.isCollectionResource());
-				tx.success();
-			}
-
-		} catch (FrameworkException frameworkException) {
-
-			writeException(response, frameworkException);
-
-		} catch (JsonSyntaxException jsex) {
-
-			logger.warn("JsonSyntaxException in OPTIONS", jsex);
-
-			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonSyntaxException in OPTIONS: " + jsex.getMessage());
-
-		} catch (JsonParseException jpex) {
-
-			logger.warn("JsonParseException in OPTIONS", jpex);
-
-			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonParseException in OPTIONS: " + jpex.getMessage());
-
-		} catch (AssertException aex) {
-
-			logger.warn("Assertion error in OPTIONS", aex.getMessage());
-			logger.warn(" => Error thrown: ", aex);
-
-			writeJsonError(response, aex.getStatusCode(), "Assertion error in OPTIONS: " + aex.getMessage());
+			resetResponseBuffer(response, statusCode);
+			response.setContentLength(0);
+			response.setStatus(statusCode);
 
 		} catch (Throwable t) {
 
@@ -361,7 +329,6 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				logger.warn("Unable to flush and close response: {}", t.getMessage());
 			}
-
 		}
 	}
 
@@ -921,7 +888,6 @@ public class JsonRestServlet extends AbstractDataServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
-			// isolate request authentication in a transaction
 			authenticator = config.getAuthenticator();
 			securityContext = authenticator.initializeAndExamineRequest(request, response);
 

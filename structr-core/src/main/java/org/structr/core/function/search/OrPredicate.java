@@ -31,6 +31,8 @@ public class OrPredicate extends AbstractPredicate {
 	@Override
 	public void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey propertyKey, final Query query, final boolean exact) throws FrameworkException {
 
+		query.or();
+
 		for (final SearchParameter p : parameters) {
 
 			final PropertyKey key = StructrApp.key(type, p.getKey(), true);
@@ -50,7 +52,7 @@ public class OrPredicate extends AbstractPredicate {
 						query.or();
 						query.blank(key);
 						query.parent();
-						
+
 					} else {
 
 						query.or(key, value, p.isExact());
@@ -65,5 +67,7 @@ public class OrPredicate extends AbstractPredicate {
 			p.configureQuery(securityContext, type, propertyKey, query, exact);
 			query.parent();
 		}
+
+		query.parent();
 	}
 }

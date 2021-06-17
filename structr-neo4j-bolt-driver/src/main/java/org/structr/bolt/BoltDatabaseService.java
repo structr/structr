@@ -28,29 +28,27 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.neo4j.driver.v1.AuthTokens;
-import org.neo4j.driver.v1.Config;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.GraphDatabase;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.TransactionConfig;
-import org.neo4j.driver.v1.exceptions.AuthenticationException;
-import org.neo4j.driver.v1.exceptions.ClientException;
-import org.neo4j.driver.v1.exceptions.DatabaseException;
-import org.neo4j.driver.v1.exceptions.ServiceUnavailableException;
+import org.apache.commons.lang3.StringUtils;
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Config;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.TransactionConfig;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.exceptions.AuthenticationException;
+import org.neo4j.driver.exceptions.ClientException;
+import org.neo4j.driver.exceptions.DatabaseException;
+import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.AbstractDatabaseService;
@@ -58,7 +56,6 @@ import org.structr.api.DatabaseFeature;
 import org.structr.api.NativeQuery;
 import org.structr.api.NetworkException;
 import org.structr.api.NotInTransactionException;
-import org.structr.api.RetryException;
 import org.structr.api.Transaction;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.GraphProperties;
@@ -80,19 +77,21 @@ import org.structr.api.util.NodeWithOwnerResult;
  */
 public class BoltDatabaseService extends AbstractDatabaseService implements GraphProperties {
 
-	private static final Logger logger                                = LoggerFactory.getLogger(BoltDatabaseService.class.getName());
-	private static final ThreadLocal<SessionTransaction> sessions     = new ThreadLocal<>();
-	private final Set<String> supportedQueryLanguages                 = new LinkedHashSet<>();
-	private Properties globalGraphProperties                          = null;
-	private CypherRelationshipIndex relationshipIndex                 = null;
-	private CypherNodeIndex nodeIndex                                 = null;
-	private String errorMessage                                       = null;
-	private String databaseUrl                                        = null;
-	private String databasePath                                       = null;
-	private Driver driver                                             = null;
+	private static final Logger logger                            = LoggerFactory.getLogger(BoltDatabaseService.class.getName());
+	private static final ThreadLocal<SessionTransaction> sessions = new ThreadLocal<>();
+	private final Set<String> supportedQueryLanguages             = new LinkedHashSet<>();
+	private Properties globalGraphProperties                      = null;
+	private CypherRelationshipIndex relationshipIndex             = null;
+	private CypherNodeIndex nodeIndex                             = null;
+	private boolean supportsIdempotentIndexCreation               = false;
+	private boolean supportsReactive                              = false;
+	private String errorMessage                                   = null;
+	private String databaseUrl                                    = null;
+	private String databasePath                                   = null;
+	private Driver driver                                         = null;
 
 	@Override
-	public boolean initialize(final String name) {
+	public boolean initialize(final String name, final String version, final String instance) {
 
 		String serviceName = null;
 
@@ -126,14 +125,26 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 		try {
 
-			final boolean isTesting = Settings.ConnectionUrl.getValue().equals(Settings.TestingConnectionUrl.getValue());
+			final String versionName  = StringUtils.defaultIfBlank(name, "unknown version");
+			final String instanceName = StringUtils.defaultIfBlank(instance, "unknown instance");
+			final String userAgent    = "structr/" + versionName  + "-" + instanceName;
+			final boolean isTesting   = Settings.ConnectionUrl.getValue().equals(Settings.TestingConnectionUrl.getValue());
+			final Config config       = Config.builder().withUserAgent(userAgent).build();
 
 			try {
 
 				driver = GraphDatabase.driver(databaseDriverUrl,
 						AuthTokens.basic(username, password),
-						Config.build().withEncryption().toConfig()
+						config
 				);
+
+				// probe connection to database:
+				//   by creating a session, transaction and committing the transaction
+				try (final Session session = driver.session() ) {
+					try (final org.neo4j.driver.Transaction transaction = session.beginTransaction()) {
+						transaction.commit();
+					}
+				}
 
 			} catch (final AuthenticationException auex) {
 
@@ -144,7 +155,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 					try {
 						driver = GraphDatabase.driver(databaseDriverUrl,
 								AuthTokens.basic(Settings.Neo4jDefaultUsername.getValue(), Settings.Neo4jDefaultPassword.getValue()),
-								Config.build().withEncryption().toConfig()
+								config
 						);
 
 						logger.info("Successfully logged in with default credentials.");
@@ -155,7 +166,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 						driver = GraphDatabase.driver(databaseDriverUrl,
 								AuthTokens.basic(username, password),
-								Config.build().withEncryption().toConfig()
+								config
 						);
 
 						logger.info("Successfully logged in with configured credentials.");
@@ -166,6 +177,8 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 				}
 			}
+
+			configureVersionDependentFeatures();
 
 			final int relCacheSize  = Settings.RelationshipCacheSize.getPrefixedValue(serviceName);
 			final int nodeCacheSize = Settings.NodeCacheSize.getPrefixedValue(serviceName);
@@ -203,7 +216,16 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		if (session == null || session.isClosed()) {
 
 			try {
-				session = new SessionTransaction(this, driver.session());
+
+				if (supportsReactive) {
+
+					session = new ReactiveSessionTransaction(this, driver.rxSession());
+
+				} else {
+
+					session = new AsyncSessionTransaction(this, driver.asyncSession());
+				}
+
 				sessions.set(session);
 
 			} catch (ServiceUnavailableException ex) {
@@ -223,7 +245,16 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		if (session == null || session.isClosed()) {
 
 			try {
-				session = new SessionTransaction(this, driver.session(), timeoutInSeconds);
+
+				if (supportsReactive) {
+
+					session = new ReactiveSessionTransaction(this, driver.rxSession(), timeoutInSeconds);
+
+				} else {
+
+					session = new AsyncSessionTransaction(this, driver.asyncSession(), timeoutInSeconds);
+				}
+
 				sessions.set(session);
 
 			} catch (ServiceUnavailableException ex) {
@@ -237,11 +268,12 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	}
 
 	@Override
-	public Node createNode(final String type, final Set<String> labels, final Map<String, Object> properties) {
+	public Node createNode(final String type, final Set<String> labels, final Map<String, Object> input) {
 
-		final StringBuilder buf       = new StringBuilder("CREATE (n");
-		final Map<String, Object> map = new HashMap<>();
-		final String tenantId         = getTenantIdentifier();
+		final Map<String, Object> properties = new LinkedHashMap<>(input);
+		final StringBuilder buf              = new StringBuilder("CREATE (n");
+		final Map<String, Object> map        = new HashMap<>();
+		final String tenantId                = getTenantIdentifier();
 
 		if (tenantId != null) {
 
@@ -260,6 +292,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		// make properties available to Cypher statement
 		map.put("properties", properties);
 
+		// set type
+		properties.put("type", type);
+
 		final NodeWrapper newNode = NodeWrapper.newInstance(this, getCurrentTransaction().getNode(buf.toString(), map));
 
 		newNode.setModified();
@@ -268,11 +303,12 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	}
 
 	@Override
-	public NodeWithOwnerResult createNodeWithOwner(final Identity userId, final String type, final Set<String> labels, final Map<String, Object> nodeProperties, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties) {
+	public NodeWithOwnerResult createNodeWithOwner(final Identity userId, final String type, final Set<String> labels, final Map<String, Object> input, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties) {
 
-		final Map<String, Object> parameters = new HashMap<>();
-		final StringBuilder buf              = new StringBuilder();
-		final String tenantId         = getTenantIdentifier();
+		final Map<String, Object> nodeProperties = new LinkedHashMap<>(input);
+		final Map<String, Object> parameters     = new HashMap<>();
+		final StringBuilder buf                  = new StringBuilder();
+		final String tenantId                    = getTenantIdentifier();
 
 		buf.append("MATCH (u:NodeInterface:Principal");
 
@@ -306,6 +342,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		parameters.put("securityProperties", securityProperties);
 		parameters.put("nodeProperties",     nodeProperties);
 
+		// set type
+		nodeProperties.put("type", type);
+
 		try {
 
 			for (final Map<String, Object> data : execute(buf.toString(), parameters)) {
@@ -328,9 +367,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			}
 
 		} catch (ClientException dex) {
-			throw SessionTransaction.translateClientException(dex);
+			throw AsyncSessionTransaction.translateClientException(dex);
 		} catch (DatabaseException dex) {
-			throw SessionTransaction.translateDatabaseException(dex);
+			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		}
 
 		return null;
@@ -401,7 +440,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		buf.append(label);
 		buf.append(") DETACH DELETE n");
 
-		execute(buf.toString());
+		consume(buf.toString());
 	}
 
 	@Override
@@ -456,223 +495,15 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfigSource, final Map<String, Map<String, Boolean>> removedClassesSource, final boolean createOnly) {
 
-		final ExecutorService executor              = Executors.newCachedThreadPool();
-		final Map<String, String> existingDbIndexes = new HashMap<>();
-		final int timeoutSeconds                    = 10;
+		if (supportsIdempotentIndexCreation) {
 
-		try {
+			// idempotent index update, no need to check for existance first
+			new Neo4IndexUpdater(this).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
 
-			executor.submit(() -> {
+		} else {
 
-				try (final Transaction tx = beginTx(timeoutSeconds)) {
-
-					for (final Map<String, Object> row : execute("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state} ORDER BY description")) {
-
-						for (final Object value : row.values()) {
-
-							final Map<String, String> valueMap = (Map<String, String>)value;
-
-							existingDbIndexes.put(valueMap.get("description"), valueMap.get("state"));
-						}
-					}
-
-					tx.success();
-				}
-
-			}).get(timeoutSeconds, TimeUnit.SECONDS);
-
-		} catch (Throwable t) {
-			logger.error(ExceptionUtils.getStackTrace(t));
-		}
-
-		logger.debug("Found {} existing indexes", existingDbIndexes.size());
-
-		final AtomicInteger createdIndexes = new AtomicInteger(0);
-		final AtomicInteger droppedIndexes = new AtomicInteger(0);
-
-		// create indices for properties of existing classes
-		for (final Map.Entry<String, Map<String, Boolean>> entry : schemaIndexConfigSource.entrySet()) {
-
-			final String typeName = entry.getKey();
-
-			for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
-
-				final String indexDescriptionForLookup = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
-				final String indexDescription          = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
-				final String currentState              = existingDbIndexes.get(indexDescriptionForLookup);
-				final boolean indexAlreadyOnline       = Boolean.TRUE.equals("ONLINE".equals(currentState));
-				final boolean configuredAsIndexed      = propertyIndexConfig.getValue();
-
-				if ("FAILED".equals(currentState)) {
-
-					logger.warn("Index is in FAILED state - dropping the index before handling it further. {}. If this error is recurring, please verify that the data in the concerned property is indexable by Neo4j", indexDescription);
-
-					final AtomicBoolean retry = new AtomicBoolean(true);
-					final AtomicInteger retryCount = new AtomicInteger(0);
-
-					while (retry.get()) {
-
-						retry.set(false);
-
-						try {
-
-							executor.submit(() -> {
-
-								try (final Transaction tx = beginTx(timeoutSeconds)) {
-
-									execute("DROP " + indexDescription);
-
-									tx.success();
-
-								} catch (RetryException rex) {
-
-									retry.set(retryCount.incrementAndGet() < 3);
-									logger.info("DROP INDEX: retry {}", retryCount.get());
-
-								} catch (Throwable t) {
-									logger.warn("Unable to drop failed index: {}", t.getMessage());
-								}
-
-								return null;
-
-							}).get(timeoutSeconds, TimeUnit.SECONDS);
-
-						} catch (Throwable t) {
-							logger.error(ExceptionUtils.getStackTrace(t));
-						}
-					}
-				}
-
-				final AtomicBoolean retry = new AtomicBoolean(true);
-				final AtomicInteger retryCount = new AtomicInteger(0);
-
-				while (retry.get()) {
-
-					retry.set(false);
-
-					try {
-
-						executor.submit(() -> {
-
-							try (final Transaction tx = beginTx(timeoutSeconds)) {
-
-								if (configuredAsIndexed) {
-
-									if (!indexAlreadyOnline) {
-
-										try {
-
-											execute("CREATE " + indexDescription);
-											createdIndexes.incrementAndGet();
-
-										} catch (Throwable t) {
-											logger.warn("Unable to create {}: {}", indexDescription, t.getMessage());
-										}
-									}
-
-								} else if (indexAlreadyOnline && !createOnly) {
-
-									try {
-
-										execute("DROP " + indexDescription);
-										droppedIndexes.incrementAndGet();
-
-									} catch (Throwable t) {
-										logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
-									}
-								}
-
-								tx.success();
-
-							} catch (RetryException rex) {
-
-								retry.set(retryCount.incrementAndGet() < 3);
-								logger.info("INDEX update: retry {}", retryCount.get());
-
-							} catch (IllegalStateException i) {
-
-								// if the driver instance is already closed, there is nothing we can do => exit
-								return;
-
-							} catch (Throwable t) {
-
-								logger.warn("Unable to update index configuration: {}", t.getMessage());
-							}
-
-						}).get(timeoutSeconds, TimeUnit.SECONDS);
-
-					} catch (Throwable t) {}
-				}
-			}
-		}
-
-		if (createdIndexes.get() > 0) {
-			logger.debug("Created {} indexes", createdIndexes.get());
-		}
-
-		if (droppedIndexes.get() > 0) {
-			logger.debug("Dropped {} indexes", droppedIndexes.get());
-		}
-
-		if (!createOnly) {
-
-			final AtomicInteger droppedIndexesOfRemovedTypes = new AtomicInteger(0);
-			final List removedTypes = new LinkedList();
-
-			// drop indices for all indexed properties of removed classes
-			for (final Map.Entry<String, Map<String, Boolean>> entry : removedClassesSource.entrySet()) {
-
-				final String typeName = entry.getKey();
-				removedTypes.add(typeName);
-
-				for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
-
-					final String indexDescriptionForLookup = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
-					final String indexDescription          = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
-					final boolean indexExists              = (existingDbIndexes.get(indexDescriptionForLookup) != null);
-					final boolean configuredAsIndexed      = propertyIndexConfig.getValue();
-
-					if (indexExists && configuredAsIndexed) {
-
-						final AtomicBoolean retry = new AtomicBoolean(true);
-						final AtomicInteger retryCount = new AtomicInteger(0);
-
-						while (retry.get()) {
-
-							retry.set(false);
-
-							try {
-
-								executor.submit(() -> {
-
-									try (final Transaction tx = beginTx(timeoutSeconds)) {
-
-										// drop index
-										execute("DROP " + indexDescription);
-										droppedIndexesOfRemovedTypes.incrementAndGet();
-
-										tx.success();
-
-									} catch (RetryException rex) {
-
-										retry.set(retryCount.incrementAndGet() < 3);
-										logger.info("DROP INDEX: retry {}", retryCount.get());
-
-									} catch (Throwable t) {
-										logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
-									}
-
-								}).get(timeoutSeconds, TimeUnit.SECONDS);
-
-							} catch (Throwable t) {}
-						}
-					}
-				}
-			}
-
-			if (droppedIndexesOfRemovedTypes.get() > 0) {
-				logger.debug("Dropped {} indexes of deleted types ({})", droppedIndexesOfRemovedTypes.get(), StringUtils.join(removedTypes, ", "));
-			}
+			// non-idempotent index update, need to check for existance first
+			new Neo3IndexUpdater(this).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
 		}
 	}
 
@@ -715,11 +546,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		final String tenantId = getTenantIdentifier();
 		if (tenantId != null) {
 
-			execute("MATCH (n:" + tenantId + ") DETACH DELETE n", Collections.emptyMap());
+			consume("MATCH (n:" + tenantId + ") DETACH DELETE n", Collections.emptyMap());
 
 		} else {
 
-			execute("MATCH (n) DETACH DELETE n", Collections.emptyMap());
+			consume("MATCH (n) DETACH DELETE n", Collections.emptyMap());
 		}
 	}
 
@@ -762,6 +593,14 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 	Relationship getRelationshipById(final long id) {
 		return RelationshipWrapper.newInstance(this, id);
+	}
+
+	void consume(final String nativeQuery) {
+		consume(nativeQuery, Collections.EMPTY_MAP);
+	}
+
+	void consume(final String nativeQuery, final Map<String, Object> parameters) {
+		getCurrentTransaction().set(nativeQuery, parameters);
 	}
 
 	Iterable<Map<String, Object>> execute(final String nativeQuery) {
@@ -906,26 +745,34 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	}
 
 	// ----- private methods -----
-	private void createUUIDConstraint() {
+	private String getNeo4jVersion() {
 
-		// add UUID uniqueness constraint
-		try (final Session session = driver.session()) {
+		try {
 
-			// this call may fail silently (e.g. if the index does not exist yet)
-			try (final org.neo4j.driver.v1.Transaction tx = session.beginTransaction()) {
+			try (final Session session = driver.session()) {
 
-				tx.run("DROP INDEX ON :NodeInterface(id)");
-				tx.success();
+				try (final org.neo4j.driver.Transaction tx = session.beginTransaction()) {
 
-			} catch (Throwable t) { }
+					final Result result     = tx.run("CALL dbms.components() YIELD versions UNWIND versions AS version RETURN version");
+					final List<Record> list = result.list();
 
-			// this call may NOT fail silently, hence we don't catch any exceptions
-			try (final org.neo4j.driver.v1.Transaction tx = session.beginTransaction()) {
+					for (final Record record : list) {
 
-				tx.run("CREATE CONSTRAINT ON (node:NodeInterface) ASSERT node.id IS UNIQUE");
-				tx.success();
+						final Value version = record.get("version");
+						if (!version.isNull() && !version.isEmpty()) {
+
+							return version.asString();
+						}
+					}
+
+				}
 			}
+
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
+
+		return "0.0.0";
 	}
 
 	private Properties getProperties() {
@@ -961,6 +808,17 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		return 0;
+	}
+
+	private void configureVersionDependentFeatures() {
+
+		final String versionString  = getNeo4jVersion();
+		final long versionNumber    = parseVersionString(versionString);
+
+		logger.info("Neo4j version is {}", versionString);
+
+		this.supportsIdempotentIndexCreation = versionNumber >= parseVersionString("4.1.3");
+		this.supportsReactive                = versionNumber >= parseVersionString("4.0.0");
 	}
 
 	// ----- nested classes -----
@@ -1108,20 +966,62 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		return null;
 	}
 
-	private void setInitialPassword(final String initialPassword) {
+	/**
+	 * Splits version strings into individual elements and creates comparable numbers.
+	 * This implementation supports version strings with up to 4 components
+	 * and minor versions up to 9999. If you need more, please  adapt the "num"
+	 * and "size values below.
 
-		try (final Session session = driver.session()) {
+	 * @param version
+	 * @return a numerical representation of the version string
+	 */
+	private long parseVersionString(final String version) {
 
-			// this call may fail silently (e.g. if the index does not exist yet)
-			try (final org.neo4j.driver.v1.Transaction tx = session.beginTransaction()) {
+		final String[] parts = version.split("\\.");
+		final int num        = 4; // 4 components
+		final int size       = 4; // 0 - 9999
+		long versionNumber   = 0L;
+		int exponent         = num * size;
 
-				tx.run("CALL dbms.changePassword('" + initialPassword + "')");
-				tx.success();
+		for (final String part : parts) {
 
-			} catch (Throwable t) {
-				logger.warn("Unable to change password properties file", t);
-			}
+			try {
+
+				final int value = Integer.valueOf(part.trim());
+				versionNumber += value * Math.pow(10, exponent);
+
+			} catch (Throwable t) {}
+
+			exponent -= size;
 		}
+
+		return versionNumber;
 	}
 
+	private void setInitialPassword(final String initialPassword) {
+
+		try {
+
+			// Neo4j >= 4.0: Use system database
+			try (final Session systemDBSession = driver.session(SessionConfig.forDatabase("system"))) {
+
+				systemDBSession.run("ALTER CURRENT USER SET PASSWORD FROM '" + Settings.Neo4jDefaultPassword.getValue() + "' TO '" + initialPassword + "'");
+
+			} catch (Throwable t) {
+
+				// Neo4j < 4.0
+				try (final Session session = driver.session()) {
+
+					try (final org.neo4j.driver.Transaction tx = session.beginTransaction()) {
+
+						tx.run("CALL dbms.changePassword('" + initialPassword + "')");
+
+					}
+				}
+			}
+
+		} catch (Throwable t) {
+			logger.warn("Unable to change password properties file", t);
+		}
+	}
 }

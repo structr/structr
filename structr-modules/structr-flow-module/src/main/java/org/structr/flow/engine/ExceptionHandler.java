@@ -27,8 +27,6 @@ public class ExceptionHandler implements FlowHandler<Exception> {
 	@Override
 	public FlowElement handle(Context context, Exception flowElement) {
 
-		flowElement.handleException(context);
-
 		return flowElement.next();
 
 	}

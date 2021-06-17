@@ -95,7 +95,7 @@ public class ResetPasswordResource extends Resource {
 			String emailString  = (String) propertySet.get("eMail");
 
 			if (StringUtils.isEmpty(emailString)) {
-				return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
+				throw new FrameworkException(422, "No e-mail address given.");
 			}
 
 			// cleanup user input
@@ -114,9 +114,7 @@ public class ResetPasswordResource extends Resource {
 
 				if (!sendResetPasswordLink(user, propertySet, localeString, confKey)) {
 
-					// return 400 Bad request
-					return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
-
+					throw new FrameworkException(503, "Unable to send confirmation e-mail.");
 				}
 
 				// return 200 OK
@@ -131,8 +129,7 @@ public class ResetPasswordResource extends Resource {
 
 		} else {
 
-			// return 400 Bad request
-			return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
+			throw new FrameworkException(422, "No e-mail address given.");
 		}
 	}
 

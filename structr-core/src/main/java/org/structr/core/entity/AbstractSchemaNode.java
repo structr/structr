@@ -18,14 +18,9 @@
  */
 package org.structr.core.entity;
 
-import java.awt.*;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
-import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -38,6 +33,7 @@ import org.structr.core.entity.relationship.SchemaNodeProperty;
 import org.structr.core.entity.relationship.SchemaNodeView;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.TransactionPostProcess;
@@ -46,6 +42,7 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.property.UsageProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.Schema;
 
@@ -55,13 +52,16 @@ import org.structr.schema.Schema;
  */
 public abstract class AbstractSchemaNode extends SchemaReloadingNode implements Schema {
 
-	public static final Property<Iterable<SchemaProperty>> schemaProperties     = new EndNodes<>("schemaProperties", SchemaNodeProperty.class);
-	public static final Property<Iterable<SchemaMethod>>   schemaMethods        = new EndNodes<>("schemaMethods", SchemaNodeMethod.class);
-	public static final Property<Iterable<SchemaView>>     schemaViews          = new EndNodes<>("schemaViews", SchemaNodeView.class);
-	public static final Property<Boolean>                  changelogDisabled    = new BooleanProperty("changelogDisabled");
-	public static final Property<String>                   icon                 = new StringProperty("icon");
-	public static final Property<String>                   description          = new StringProperty("description");
-	public static final Set<String>                        hiddenPropertyNames  = new LinkedHashSet<>();
+	private static final Map<String, Iterable<SchemaMethod>> cachedSchemaMethods = new HashMap<>();
+
+	public static final Property<Iterable<SchemaProperty>> schemaProperties      = new EndNodes<>("schemaProperties", SchemaNodeProperty.class);
+	public static final Property<Iterable<SchemaMethod>>   schemaMethods         = new EndNodes<>("schemaMethods", SchemaNodeMethod.class);
+	public static final Property<Iterable<SchemaView>>     schemaViews           = new EndNodes<>("schemaViews", SchemaNodeView.class);
+	public static final Property<Boolean>                  changelogDisabled     = new BooleanProperty("changelogDisabled");
+	public static final Property<String>                   icon                  = new StringProperty("icon");
+	public static final Property<String>                   description           = new StringProperty("description");
+	public static final Property<Object>                   usedIn                = new UsageProperty("usedIn", AbstractSchemaNode.class);
+	public static final Set<String>                        hiddenPropertyNames   = new LinkedHashSet<>();
 
 	public static final View defaultView = new View(AbstractSchemaNode.class, PropertyView.Public,
 		name, icon, changelogDisabled
@@ -72,7 +72,7 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 	);
 
 	public static final View schemaView = new View(AbstractSchemaNode.class, "schema",
-		id, type, name, schemaProperties, schemaViews, schemaMethods, icon, description, changelogDisabled
+		id, type, name, schemaProperties, schemaViews, schemaMethods, icon, description, changelogDisabled, usedIn
 	);
 
 	public static final View exportView = new View(AbstractSchemaNode.class, "export",
@@ -126,32 +126,26 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
     @Override
 	public Iterable<SchemaMethod> getSchemaMethodsIncludingInheritance() {
 
+		if (cachedSchemaMethods.containsKey(getUuid())) {
+
+			return cachedSchemaMethods.get(getUuid());
+		}
+
 		List<SchemaMethod> methods = Iterables.toList(getProperty(AbstractSchemaNode.schemaMethods));
+		SchemaNode parentNode      = getProperty(SchemaNode.extendsClass);
 
-		try {
-			String extendsClassFQCN = getProperty(SchemaNode.extendsClass);
-			if (extendsClassFQCN != null && extendsClassFQCN.length() > 0) {
+		if (parentNode != null) {
 
-				String[] fqcnParts = extendsClassFQCN.split("\\.");
-				String simpleClassName = fqcnParts[fqcnParts.length - 1];
+			for (SchemaMethod m : parentNode.getSchemaMethodsIncludingInheritance()) {
 
-				SchemaNode parentNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(simpleClassName).getFirst();
+				if (!methods.contains(m)) {
 
-				if (parentNode != null) {
-					for (SchemaMethod m : parentNode.getSchemaMethodsIncludingInheritance()) {
-
-						if (!methods.contains(m)) {
-
-							methods.add(m);
-						}
-					}
+					methods.add(m);
 				}
 			}
-
-		} catch (FrameworkException ex) {
-
-			LoggerFactory.getLogger(AbstractSchemaNode.class).error("Exception while trying to look up schema methods in inherited class.", ex);
 		}
+
+		cachedSchemaMethods.put(getUuid(), methods);
 
 		return methods;
 	}
@@ -166,6 +160,17 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 
 	public Set<String> getDynamicViews() {
 		return dynamicViews;
+	}
+
+	public void clearCachedSchemaMethodsForInstance() {
+
+		cachedSchemaMethods.remove(getUuid());
+	}
+
+
+	public static void clearCachedSchemaMethods() {
+
+		cachedSchemaMethods.clear();
 	}
 
 	private static class CreateBuiltInSchemaEntities implements TransactionPostProcess {
@@ -186,8 +191,16 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 			viewNames.add(View.INTERNAL_GRAPH_VIEW);
 			viewNames.add(PropertyView.All);
 
-			for (final SchemaView view : StructrApp.getInstance().getNodeById(node.getUuid()).getProperty(schemaViews)) {
-				viewNames.add(view.getProperty(AbstractNode.name));
+			final NodeInterface schemaNode = StructrApp.getInstance().getNodeById(node.getUuid());
+			if (schemaNode != null) {
+
+				final Iterable<SchemaView> views = schemaNode.getProperty(schemaViews);
+				if (views != null) {
+
+					for (final SchemaView view : views) {
+						viewNames.add(view.getProperty(AbstractNode.name));
+					}
+				}
 			}
 			// determine runtime type
 			Class builtinClass = config.getNodeEntityClass(node.getClassName());

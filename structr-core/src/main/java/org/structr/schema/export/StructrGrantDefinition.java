@@ -152,7 +152,7 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 		if (principals.isEmpty()) {
 
 			// log error
-			logger.warn("No node of type Principal found for schema grant {}, ignoring.", principalName);
+			logger.warn("No node of type Principal found for schema grant '{}', ignoring.", principalName);
 			return null;
 		}
 

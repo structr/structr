@@ -18,6 +18,7 @@
  */
 package org.structr.core.script.polyglot.wrappers;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
@@ -25,15 +26,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
+import org.structr.core.script.polyglot.cache.ExecutableStaticTypeMethodCache;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,49 +61,62 @@ public class StaticTypeWrapper implements ProxyObject {
 	@Override
 	public Object getMember(String key) {
 
-		// Ensure that  method is static
-		try (final Tx tx = app.tx()) {
+		// Try to lookup cached executable before initializing a new one
+		ExecutableStaticTypeMethodCache staticMethodCache = actionContext.getStaticExecutableTypeMethodCache();
 
-			SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(referencedClass.getSimpleName()).getFirst();
-			if (schemaNode != null) {
+		ProxyExecutable cachedStaticExecutable = staticMethodCache.getExecutable(referencedClass.getSimpleName(), key);
+		if (cachedStaticExecutable != null) {
 
-				for (SchemaMethod m : Iterables.toList(schemaNode.getSchemaMethodsIncludingInheritance())) {
+			return cachedStaticExecutable;
+		}
 
-					if (m.getName().equals(key) && m.isStaticMethod()) {
+		Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods(referencedClass, Export.class);
+		if (methods.containsKey(key) && Modifier.isStatic(methods.get(key).getModifiers())) {
 
-						return (ProxyExecutable) arguments -> {
+			Method method = methods.get(key);
 
-							try {
-								Map<String, Object> parameters = new HashMap<>();
+			final ProxyExecutable executable = arguments -> {
 
-								if (arguments.length == 1) {
+				try {
 
-									Object parameter = PolyglotWrapper.unwrap(actionContext, arguments[0]);
-									if (parameter instanceof Map) {
+					int paramCount = method.getParameterCount();
 
-										parameters = (Map<String, Object>)parameter;
-									}
-								}
+					if (paramCount == 0) {
 
-								return PolyglotWrapper.wrap(actionContext, Actions.execute(actionContext.getSecurityContext(), null, SchemaMethod.getCachedSourceCode(m.getUuid()), parameters, referencedClass.getSimpleName() + "." + key, m.getUuid()));
-								
-							} catch (FrameworkException ex) {
+						return PolyglotWrapper.wrap(actionContext, method.invoke(null));
+					} else if (paramCount == 1) {
 
-								logger.error("Unexpected exception while trying to call static schema type method.", ex);
-							}
+						return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext()));
+					} else if (paramCount == 2 && arguments.length == 0) {
 
-							return null;
-						};
+						return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext(), new HashMap<String, Object>()));
+					} else if (arguments.length == 0) {
+
+						return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext()));
+					} else {
+
+						return PolyglotWrapper.wrap(actionContext, method.invoke(null, ArrayUtils.add(Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray(), 0, actionContext.getSecurityContext())));
 					}
+
+				} catch (IllegalAccessException ex) {
+
+					logger.error("Unexpected exception while trying to get GraphObject member.", ex);
+				} catch (InvocationTargetException ex) {
+
+					if (ex.getTargetException() instanceof FrameworkException) {
+
+						throw new RuntimeException(ex.getTargetException());
+					}
+					logger.error("Unexpected exception while trying to get GraphObject member.", ex);
 				}
 
-			}
+				return null;
 
-			tx.success();
-		} catch (FrameworkException ex) {
+			};
 
-			logger.warn("Unexpected exception while trying to look up schema method.", ex);
-			return null;
+			staticMethodCache.cacheExecutable(referencedClass.getSimpleName(), key, executable);
+
+			return executable;
 		}
 
 		return null;
@@ -109,11 +129,10 @@ public class StaticTypeWrapper implements ProxyObject {
 
 	@Override
 	public boolean hasMember(String key) {
-		return getMember(key) != null;
+		return true;
 	}
 
 	@Override
 	public void putMember(String key, Value value) {
-
 	}
 }

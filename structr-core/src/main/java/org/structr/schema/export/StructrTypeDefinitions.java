@@ -121,6 +121,12 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			}
 		}
 
+		// resolve inheritance relationships
+		for (final StructrTypeDefinition type : typeDefinitions) {
+			type.resolveInheritanceRelationships(schemaNodes);
+		}
+
+		// resolve schema relationships
 		for (final StructrRelationshipTypeDefinition rel : relationships) {
 			rel.resolveEndpointTypesForDatabaseSchemaCreation(schemaNodes, app);
 		}

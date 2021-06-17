@@ -20,6 +20,7 @@ package org.structr.web.auth;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -45,6 +46,7 @@ import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.auth.AuthHelper;
+import org.structr.rest.auth.JWTHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.web.entity.User;
 import org.structr.web.resource.RegistrationResource;
@@ -123,7 +125,7 @@ public class UiAuthenticator implements Authenticator {
 		if (user == null && authorizationToken != null) {
 
 			final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
-			user = AuthHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
+			user = JWTHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
 		}
 
 		if (user == null) {
@@ -207,10 +209,9 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public void checkResourceAccess(final SecurityContext securityContext, final HttpServletRequest request, final String rawResourceSignature, final String propertyView)
-		throws FrameworkException {
+	public void checkResourceAccess(final SecurityContext securityContext, final HttpServletRequest request, final String rawResourceSignature, final String propertyView) throws FrameworkException {
 
-		final ResourceAccess resourceAccess = ResourceAccess.findGrant(securityContext, rawResourceSignature);
+		final List<ResourceAccess> grants   = ResourceAccess.findGrants(securityContext, rawResourceSignature);
 		final Method method                 = methods.get(request.getMethod());
 		final Principal user                = securityContext.getUser(false);
 		final boolean validUser             = (user != null);
@@ -220,20 +221,43 @@ public class UiAuthenticator implements Authenticator {
 			return;
 		}
 
+		// flatten grants
+		long combinedFlags = 0;
+		int grantsFound    = 0;
+
+		if (grants != null) {
+
+			// combine allowed flags for grants user is allowed to see
+			for (final ResourceAccess grant : grants) {
+
+				if (securityContext.isReadable(grant, false, false)) {
+
+					grantsFound++;
+					combinedFlags = combinedFlags | grant.getFlags();
+				}
+			}
+		}
+
 		// no grants => no access rights
-		if (resourceAccess == null) {
+		if (grantsFound == 0) {
 
-			logger.info("No resource access grant found for signature '{}' (URI: {})", new Object[] { rawResourceSignature, securityContext.getCompoundRequestURI() } );
+			final String userInfo     = (validUser ? "user '" + user.getName() + "'" : "anonymous users");
+			final String errorMessage = "Found no resource access grant for " + userInfo + " with signature '" + rawResourceSignature + "' and method '" + method + "' (URI: " + securityContext.getCompoundRequestURI() + ").";
+			final Map eventLogMap     = (validUser ? Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser, "userName", user.getName()) : Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser));
 
-			RuntimeEventLog.resourceAccess("No grant", Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser));
+			logger.info(errorMessage);
+			RuntimeEventLog.resourceAccess("No grant", eventLogMap);
 
 			TransactionCommand.simpleBroadcastGenericMessage(Map.of(
 				"type", "RESOURCE_ACCESS",
-				"message", "No resource access grant found for signature '" + rawResourceSignature + "' (URI: " + securityContext.getCompoundRequestURI() + ")",
-				"uri", securityContext.getCompoundRequestURI()
+				"message", errorMessage,
+				"uri", securityContext.getCompoundRequestURI(),
+				"signature", rawResourceSignature,
+				"method", method,
+				"validUser", validUser
 			));
 
-			throw new UnauthorizedException("Forbidden");
+			throw new UnauthorizedException("Access denied");
 
 		} else if (method != null) {
 
@@ -241,13 +265,11 @@ public class UiAuthenticator implements Authenticator {
 
 				case GET :
 
-					if (!validUser && resourceAccess.hasFlag(NON_AUTH_USER_GET)) {
-
+					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_GET, combinedFlags)) {
 						return;
 					}
 
-					if (validUser && resourceAccess.hasFlag(AUTH_USER_GET)) {
-
+					if (validUser && ResourceAccess.hasFlag(AUTH_USER_GET, combinedFlags)) {
 						return;
 					}
 
@@ -255,13 +277,11 @@ public class UiAuthenticator implements Authenticator {
 
 				case PUT :
 
-					if (!validUser && resourceAccess.hasFlag(NON_AUTH_USER_PUT)) {
-
+					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_PUT, combinedFlags)) {
 						return;
 					}
 
-					if (validUser && resourceAccess.hasFlag(AUTH_USER_PUT)) {
-
+					if (validUser && ResourceAccess.hasFlag(AUTH_USER_PUT, combinedFlags)) {
 						return;
 					}
 
@@ -269,13 +289,11 @@ public class UiAuthenticator implements Authenticator {
 
 				case POST :
 
-					if (!validUser && resourceAccess.hasFlag(NON_AUTH_USER_POST)) {
-
+					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_POST, combinedFlags)) {
 						return;
 					}
 
-					if (validUser && resourceAccess.hasFlag(AUTH_USER_POST)) {
-
+					if (validUser && ResourceAccess.hasFlag(AUTH_USER_POST, combinedFlags)) {
 						return;
 					}
 
@@ -283,13 +301,11 @@ public class UiAuthenticator implements Authenticator {
 
 				case DELETE :
 
-					if (!validUser && resourceAccess.hasFlag(NON_AUTH_USER_DELETE)) {
-
+					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_DELETE, combinedFlags)) {
 						return;
 					}
 
-					if (validUser && resourceAccess.hasFlag(AUTH_USER_DELETE)) {
-
+					if (validUser && ResourceAccess.hasFlag(AUTH_USER_DELETE, combinedFlags)) {
 						return;
 					}
 
@@ -297,13 +313,11 @@ public class UiAuthenticator implements Authenticator {
 
 				case OPTIONS :
 
-					if (!validUser && resourceAccess.hasFlag(NON_AUTH_USER_OPTIONS)) {
-
+					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_OPTIONS, combinedFlags)) {
 						return;
 					}
 
-					if (validUser && resourceAccess.hasFlag(AUTH_USER_OPTIONS)) {
-
+					if (validUser && ResourceAccess.hasFlag(AUTH_USER_OPTIONS, combinedFlags)) {
 						return;
 					}
 
@@ -311,13 +325,11 @@ public class UiAuthenticator implements Authenticator {
 
 				case HEAD :
 
-					if (!validUser && resourceAccess.hasFlag(NON_AUTH_USER_HEAD)) {
-
+					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_HEAD, combinedFlags)) {
 						return;
 					}
 
-					if (validUser && resourceAccess.hasFlag(AUTH_USER_HEAD)) {
-
+					if (validUser && ResourceAccess.hasFlag(AUTH_USER_HEAD, combinedFlags)) {
 						return;
 					}
 
@@ -325,13 +337,11 @@ public class UiAuthenticator implements Authenticator {
 
 				case PATCH :
 
-					if (!validUser && resourceAccess.hasFlag(NON_AUTH_USER_PATCH)) {
-
+					if (!validUser && ResourceAccess.hasFlag(NON_AUTH_USER_PATCH, combinedFlags)) {
 						return;
 					}
 
-					if (validUser && resourceAccess.hasFlag(AUTH_USER_PATCH)) {
-
+					if (validUser && ResourceAccess.hasFlag(AUTH_USER_PATCH, combinedFlags)) {
 						return;
 					}
 
@@ -343,18 +353,24 @@ public class UiAuthenticator implements Authenticator {
 			logger.warn("Unknown method {}, cannot determine resource access.", request.getMethod());
 		}
 
-		logger.info("Resource access grant found for signature '{}', but method '{}' not allowed for {} users.", rawResourceSignature, method, (validUser ? "authenticated" : "public"));
+		final String userInfo     = (validUser ? "user '" + user.getName() + "'" : "anonymous users");
+		final Map eventLogMap     = (validUser ? Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser, "userName", user.getName()) : Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser));
+		final String errorMessage = "Found " + grantsFound + " resource access grant" + (grantsFound > 1 ? "s" : "") + " for " + userInfo + " and signature '" + rawResourceSignature + "' (URI: " + securityContext.getCompoundRequestURI() + "), but method '" + method + "' not allowed in any of them.";
 
-		RuntimeEventLog.resourceAccess("Method not allowed", Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser));
+		logger.info(errorMessage);
+
+		RuntimeEventLog.resourceAccess("Method not allowed", eventLogMap);
 
 		TransactionCommand.simpleBroadcastGenericMessage(Map.of(
 			"type", "RESOURCE_ACCESS",
-			"message", "Resource access grant found for signature '" + rawResourceSignature + "', but method '" + method + "' not allowed for " + (validUser ? "authenticated" : "public") + " users.",
-			"uri", securityContext.getCompoundRequestURI()
+			"message", errorMessage,
+			"uri", securityContext.getCompoundRequestURI(),
+			"signature", rawResourceSignature,
+			"method", method,
+			"validUser", validUser
 		));
 
-		throw new UnauthorizedException("Forbidden");
-
+		throw new UnauthorizedException("Access denied");
 	}
 
 	@Override
@@ -369,11 +385,10 @@ public class UiAuthenticator implements Authenticator {
 			final boolean allowLoginBeforeConfirmation = Settings.RegistrationAllowLoginBeforeConfirmation.getValue();
 			if (user.getProperty(confKey) != null && !allowLoginBeforeConfirmation) {
 
-				logger.warn("Login as {} not allowed before confirmation.", user.getName());
+				logger.warn("Login as '{}' not allowed before confirmation.", user.getName());
 				RuntimeEventLog.failedLogin("Login attempt before confirmation", Map.of("id", user.getUuid(), "name", user.getName()));
 				throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
 			}
-
 		}
 
 		return user;
@@ -431,7 +446,6 @@ public class UiAuthenticator implements Authenticator {
 		} else {
 
 			return null;
-
 		}
 	}
 
@@ -537,16 +551,25 @@ public class UiAuthenticator implements Authenticator {
 						AuthHelper.doLogin(request, user);
 						HtmlServlet.setNoCacheHeaders(response);
 
-						try {
+						logger.debug("Response status: {}", response.getStatus());
 
-							logger.debug("Response status: {}", response.getStatus());
+						if (Settings.OAuthDelayedRedirect.getValue(false)) {
 
-							response.sendRedirect(oauthServer.getReturnUri());
+							// delayed redirect might be necessary in some environments
+							response.setStatus(HttpServletResponse.SC_FOUND);
+							response.setHeader("Location", oauthServer.getReturnUri());
 
-						} catch (IOException ex) {
+						} else {
 
-							logger.error("Could not redirect to {}: {}", new Object[]{oauthServer.getReturnUri(), ex});
+							try {
 
+								// send redirect immediately
+								response.sendRedirect(oauthServer.getReturnUri());
+
+							} catch (IOException ex) {
+
+								logger.error("Could not redirect to {}: {}", new Object[]{oauthServer.getReturnUri(), ex});
+							}
 						}
 
 						return user;
@@ -575,7 +598,6 @@ public class UiAuthenticator implements Authenticator {
 
 		response.setHeader("WWW-Authenticate", "BASIC realm=\"Restricted Access\"");
 		response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-
 	}
 
 	public static void writeNotFound(final HttpServletResponse response) throws IOException {
@@ -616,7 +638,7 @@ public class UiAuthenticator implements Authenticator {
 		} else if (authorizationToken != null) {
 
 			final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
-			user = AuthHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
+			user = JWTHelper.getPrincipalForAccessToken(authorizationToken, eMailKey);
 		}
 
 		if (user == null) {

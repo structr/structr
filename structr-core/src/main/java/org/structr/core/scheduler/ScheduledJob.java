@@ -71,7 +71,7 @@ public abstract class ScheduledJob {
 
 		this.user          = user;
 		this.jobName       = jobName;
-		this.username      = user.getName();
+		this.username      = (user != null) ? user.getName() : "no user - anonymous context";
 		this.configuration = configuration;
 		this.ctxStore      = new ContextStore(ctxStore);
 

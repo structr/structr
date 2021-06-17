@@ -89,12 +89,12 @@ var _Elements = {
 		},
 		{
 			elements: ['input', 'textarea'],
-			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'style', 'rows', 'cols'],
+			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'style', 'rows', 'cols', 'required'],
 			focus: 'type'
 		},
 		{
 			elements: ['button'],
-			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'onclick', 'style', 'title']
+			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'onclick', 'style', 'title', 'form', 'formaction', 'formmethod']
 		},
 		{
 			elements: ['select', 'option'],
@@ -115,7 +115,7 @@ var _Elements = {
 			focus: 'src'
 		},
 		{
-			elements: ['script', 'img', 'object'],
+			elements: ['script', 'object'],
 			attrs: ['type', 'rel', 'href', 'media', 'src', 'style'],
 			focus: 'src'
 		},
@@ -278,38 +278,39 @@ var _Elements = {
 	reloadComponents: function() {
 
 		if (!componentsSlideout) return;
-		componentsSlideout.find(':not(.compTab)').remove();
-
-		componentsSlideout.append('<div class="" id="newComponentDropzone"><div class="new-component-info"><i class="active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /><i class="inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> Drop element here to create new shared component</div></div>');
-		let newComponentDropzone = $('#newComponentDropzone', componentsSlideout);
-
-		componentsSlideout.append('<div id="componentsArea"></div>');
-		components = $('#componentsArea', componentsSlideout);
-
-		newComponentDropzone.droppable({
-			drop: function(e, ui) {
-				e.preventDefault();
-				e.stopPropagation();
-
-				if (ui.draggable.hasClass('widget')) {
-					// special treatment for widgets dragged to the shared components area
-
-				} else {
-					if (!shadowPage) {
-						// Create shadow page if not existing
-						Structr.getShadowPage(() => {
-							_Elements.createComponent(ui);
-						});
-					} else {
-						_Elements.createComponent(ui);
-					}
-				}
-			}
-		});
-
-		_Dragndrop.makeSortable(components);
 
 		Command.listComponents(1000, 1, 'name', 'asc', function(result) {
+
+			componentsSlideout.find(':not(.compTab)').remove();
+
+			componentsSlideout.append('<div class="" id="newComponentDropzone"><div class="new-component-info"><i class="active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /><i class="inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> Drop element here to create new shared component</div></div>');
+			let newComponentDropzone = $('#newComponentDropzone', componentsSlideout);
+
+			componentsSlideout.append('<div id="componentsArea"></div>');
+			components = $('#componentsArea', componentsSlideout);
+
+			newComponentDropzone.droppable({
+				drop: function(e, ui) {
+					e.preventDefault();
+					e.stopPropagation();
+
+					if (ui.draggable.hasClass('widget')) {
+						// special treatment for widgets dragged to the shared components area
+
+					} else {
+						if (!shadowPage) {
+							// Create shadow page if not existing
+							Structr.getShadowPage(() => {
+								_Elements.createComponent(ui);
+							});
+						} else {
+							_Elements.createComponent(ui);
+						}
+					}
+				}
+			});
+
+			_Dragndrop.makeSortable(components);
 
 			_Elements.appendEntitiesToDOMElement(result, components);
 			Structr.refreshPositionsForCurrentlyActiveSortable();

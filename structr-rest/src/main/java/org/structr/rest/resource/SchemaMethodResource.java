@@ -155,11 +155,6 @@ public class SchemaMethodResource extends WrappingResource {
 
 					if (methodName.equals(method.getName()) && !method.isJava()) {
 
-						if (!method.isStaticMethod()) {
-
-							logger.warn("Deprecation warning: Calling non-static method " + methodName + " of type " + type.getSimpleName() + " in a static context. This will be prevented in future versions.");
-						}
-
 						return method;
 					}
 				}

@@ -210,7 +210,15 @@ public class AdvancedCypherQuery implements CypherQuery {
 	}
 
 	public void endGroup() {
-		buffer.append(")");
+
+		if ('(' == buffer.charAt(buffer.length() - 1)) {
+
+			buffer.deleteCharAt(buffer.length() - 1);
+
+		} else {
+
+			buffer.append(")");
+		}
 	}
 
 	@Override

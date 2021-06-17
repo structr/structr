@@ -46,6 +46,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.graalvm.home.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -86,11 +87,11 @@ public class Services implements StructrServices {
 	// singleton instance
 	private static String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
 	private static final long licenseCheckInterval     = TimeUnit.HOURS.toMillis(2);
+	private static long lastLicenseCheck               = System.currentTimeMillis();
 	private static Services singletonInstance          = null;
 	private static boolean testingModeDisabled         = false;
 	private static boolean updateIndexConfiguration    = false;
 	private static Boolean cachedTestingFlag           = null;
-	private static long lastLicenseCheck               = 0L;
 
 	// non-static members
 	private final Map<Class, Map<String, Service>> serviceCache = new ConcurrentHashMap<>(10, 0.9f, 8);
@@ -115,6 +116,7 @@ public class Services implements StructrServices {
 
 			singletonInstance = new Services();
 			singletonInstance.initialize();
+
 		}
 
 		if (System.currentTimeMillis() > lastLicenseCheck + licenseCheckInterval) {
@@ -128,6 +130,40 @@ public class Services implements StructrServices {
 		}
 
 		return singletonInstance;
+	}
+
+	private static void checkJavaRuntime() {
+
+		final int expectedMajorVersion = 20;
+		final int expectedMinorVersion = 3;
+
+		final Version expectedVersion  = org.graalvm.home.Version.create(expectedMajorVersion, expectedMinorVersion);
+		final Version foundVersion     = org.graalvm.home.Version.getCurrent();
+		boolean isSnapshot             = foundVersion.isSnapshot();
+		boolean allowedVersion         = foundVersion.toString().startsWith(expectedVersion.toString());
+
+		if (isSnapshot || !allowedVersion) {
+
+			if (isSnapshot) {
+
+				logger.warn("Java Runtime Version mismatch; expected GraalVM version {}, found unrecognized version", expectedVersion);
+
+			} else {
+
+				logger.warn("Java Runtime Version mismatch; expected GraalVM version {}, found {}", expectedVersion, foundVersion);
+			}
+
+			boolean enforceRuntime = Settings.EnforceRuntime.getValue();
+			if (enforceRuntime) {
+
+				logger.error("Strict Java Runtime Version check enabled. Aborting due to version mismatch. Please set application.runtime.enforce.recommended = false in structr.conf to enable start despite Java Runtime Version mismatch");
+				System.exit(1);
+
+			} else {
+
+				logger.warn("Weak Java Runtime Version check enabled. Continuing despite version mismatch. To enable strong Java Runtime Version check set application.runtime.enforce.recommended = true in structr.conf");
+			}
+		}
 	}
 
 	/**
@@ -168,7 +204,7 @@ public class Services implements StructrServices {
 					if (serviceClass.equals(NodeService.class)) {
 
 						logger.debug("(Re-)Started NodeService, (re-)compiling dynamic schema");
-						SchemaService.reloadSchema(new ErrorBuffer(), null);
+						SchemaService.reloadSchema(new ErrorBuffer(), null, true);
 					}
 
 				}
@@ -265,6 +301,8 @@ public class Services implements StructrServices {
 			}
 		}
 
+		checkJavaRuntime();
+
 		doInitialize();
 	}
 
@@ -273,7 +311,7 @@ public class Services implements StructrServices {
 		if (!isTesting()) {
 
 			// read license
-			licenseManager = new StructrLicenseManager(Settings.getBasePath() + "license.key");
+			licenseManager = new StructrLicenseManager();
 		}
 
 		// if configuration is not yet established, instantiate it
@@ -378,6 +416,13 @@ public class Services implements StructrServices {
 			permissionsForOwnerlessNodes.add(Permission.read);
 		}
 
+		logger.info("Started Structr {}", VersionHelper.getFullVersionInfo());
+		logger.info("---------------- Initialization complete ----------------");
+
+		setOverridingSchemaTypesAllowed(false);
+
+		initializationDone = true;
+
 		// only run initialization callbacks if Structr was started with
 		// a configuration file, i.e. when this is NOT this first start.
 		try {
@@ -387,7 +432,6 @@ public class Services implements StructrServices {
 				@Override
 				public void run() {
 
-					// wait a second
 					try { Thread.sleep(100); } catch (Throwable ignore) {}
 
 					// call initialization callbacks from a different thread
@@ -402,30 +446,9 @@ public class Services implements StructrServices {
 			logger.warn("Exception while executing post-initialization tasks", t);
 		}
 
-		logger.info("Started Structr {}", VersionHelper.getFullVersionInfo());
-		logger.info("---------------- Initialization complete ----------------");
-
-		setOverridingSchemaTypesAllowed(false);
-
-		initializationDone = true;
-
 		if (licenseManager != null && !Settings.DisableSendSystemInfo.getValue(false)) {
 			new SystemInfoSender().start();
 		}
-	}
-
-	@Override
-	public void registerInitializationCallback(final InitializationCallback callback) {
-
-		callbacks.add(callback);
-
-		// callbacks need to be sorted by priority
-		Collections.sort(callbacks, (o1, o2) -> { return Integer.valueOf(o1.priority()).compareTo(o2.priority()); });
-	}
-
-	@Override
-	public LicenseManager getLicenseManager() {
-		return licenseManager;
 	}
 
 	public boolean isShutdownDone() {
@@ -790,38 +813,6 @@ public class Services implements StructrServices {
 		return new LinkedList<>(registeredServiceClasses.values());
 	}
 
-	@Override
-	public <T extends Service> T getService(final Class<T> type, final String name) {
-
-		final T service = getServices(type).get(name);
-		if (service == null) {
-
-			try {
-
-				// try to start service
-				startService(type, name, false);
-
-			} catch (FrameworkException ex) {
-				logger.warn("Service {} failed to start: {}", type.getSimpleName(), ex.getMessage());
-			}
-		}
-
-		return service;
-	}
-
-	@Override
-	public <T extends Service> Map<String, T> getServices(final Class<T> type) {
-
-		Map<String, Service> serviceMap = serviceCache.get(type);
-		if (serviceMap == null) {
-
-			serviceMap = new ConcurrentHashMap<>();
-			serviceCache.put(type, serviceMap);
-		}
-
-		return (Map)serviceMap;
-	}
-
 	public <T extends Service> T getServiceImplementation(final Class<T> type) {
 
 		for (final Map<String, Service> serviceList : serviceCache.values()) {
@@ -955,6 +946,63 @@ public class Services implements StructrServices {
 		return classes;
 	}
 
+	// ----- interface StructrServices -----
+	@Override
+	public void registerInitializationCallback(final InitializationCallback callback) {
+
+		callbacks.add(callback);
+
+		// callbacks need to be sorted by priority
+		Collections.sort(callbacks, (o1, o2) -> { return Integer.valueOf(o1.priority()).compareTo(o2.priority()); });
+	}
+
+	@Override
+	public <T extends Service> T getService(final Class<T> type, final String name) {
+
+		final T service = getServices(type).get(name);
+		if (service == null) {
+
+			try {
+
+				// try to start service
+				startService(type, name, false);
+
+			} catch (FrameworkException ex) {
+				logger.warn("Service {} failed to start: {}", type.getSimpleName(), ex.getMessage());
+			}
+		}
+
+		return service;
+	}
+
+	@Override
+	public <T extends Service> Map<String, T> getServices(final Class<T> type) {
+
+		Map<String, Service> serviceMap = serviceCache.get(type);
+		if (serviceMap == null) {
+
+			serviceMap = new ConcurrentHashMap<>();
+			serviceCache.put(type, serviceMap);
+		}
+
+		return (Map)serviceMap;
+	}
+
+	@Override
+	public LicenseManager getLicenseManager() {
+		return licenseManager;
+	}
+
+	@Override
+	public String getInstanceName() {
+		return VersionHelper.getInstanceName();
+	}
+
+	@Override
+	public String getVersion() {
+		return VersionHelper.getVersion();
+	}
+
 	// ----- static methods -----
 	/**
 	 * Tries to parse the given String to an int value, returning
@@ -1035,7 +1083,7 @@ public class Services implements StructrServices {
 			if (result.isSuccess()) {
 
 				// reload schema..
-				SchemaService.reloadSchema(new ErrorBuffer(), null);
+				SchemaService.reloadSchema(new ErrorBuffer(), null, true);
 			}
 
 			return result;
@@ -1170,10 +1218,16 @@ public class Services implements StructrServices {
 		getServices(type).put(name, service);
 	}
 
+	public void updateLicense() {
+		if (licenseManager != null) {
+			licenseManager.refresh(true);
+		}
+	}
+
 	private void checkLicense() {
 
 		if (licenseManager != null) {
-			licenseManager.refresh();
+			licenseManager.refresh(false);
 		}
 	}
 

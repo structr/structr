@@ -18,6 +18,9 @@
  */
 package org.structr.test.web.advanced;
 
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.RequestLoggingFilter;
+import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
@@ -36,10 +39,14 @@ import org.structr.schema.export.StructrSchema;
 import org.structr.api.schema.JsonProperty;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
+import org.structr.core.app.StructrApp;
 import org.structr.test.web.StructrUiTest;
 import org.structr.test.web.entity.TestFive;
 import org.structr.test.web.entity.TestTwo;
+import org.structr.web.entity.User;
+import org.structr.web.entity.dom.Page;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
 
 /**
  */
@@ -200,5 +207,75 @@ public class CacheTest extends StructrUiTest {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
+	}
+
+	@Test
+	public void testDeletedNodesAndCache() {
+
+		String uuid = null;
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			Page.createSimplePage(securityContext, "test");
+
+			final User user1 = app.create(User.class, "user1");
+
+			app.create(User.class,
+				new NodeAttribute<>(User.name,                              "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),     true)
+			);
+
+			uuid = user1.getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		// test success
+		RestAssured
+			.given()
+			.header("X-User",     "admin")
+			.header("X-Password", "admin")
+			.filter(RequestLoggingFilter.logRequestTo(System.out))
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.expect()
+			.statusCode(200)
+			.when()
+			.get("/test/" + uuid);
+
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// delete user node
+			app.delete(app.getNodeById(uuid));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		// test success
+		RestAssured
+			.given()
+			.header("X-User",     "admin")
+			.header("X-Password", "admin")
+			.filter(RequestLoggingFilter.logRequestTo(System.out))
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.expect()
+			.statusCode(200)
+			.when()
+			.get("/test/" + uuid);
+
+
 	}
 }

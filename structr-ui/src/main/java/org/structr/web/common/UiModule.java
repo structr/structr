@@ -50,7 +50,7 @@ public class UiModule implements StructrModule {
 		DataSources.put(true, "ui", "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
 		DataSources.put(true, "ui", "restDataSource",               new RestDataSource());
 		DataSources.put(true, "ui", "cypherDataSource",             new CypherGraphDataSource());
-		DataSources.put(true, "ui", "functionDataSource",           new FunctionDataSource());
+		DataSources.put(true, "ui", "functionDataSource",           new FunctionDataSource("functionQuery"));
 		DataSources.put(true, "ui", "xpathDataSource",              new XPathGraphDataSource());
 	}
 
@@ -69,7 +69,13 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new RenderFunction());
 		Functions.put(licenseManager, new SetDetailsObjectFunction());
 		Functions.put(licenseManager, new ConfirmationKeyFunction());
+		Functions.put(licenseManager, new ImportHtmlFunction());
 		Functions.put(licenseManager, new ImportCssFunction());
+		Functions.put(licenseManager, new RemoveDOMChildFunction());
+		Functions.put(licenseManager, new ReplaceDOMChildFunction());
+		Functions.put(licenseManager, new InsertHtmlFunction());
+		Functions.put(licenseManager, new GetSourceFunction());
+		Functions.put(licenseManager, new HasCssClassFunction());
 
 		Functions.put(licenseManager, new SendHtmlMailFunction());
 		Functions.put(licenseManager, new SendPlaintextMailFunction());

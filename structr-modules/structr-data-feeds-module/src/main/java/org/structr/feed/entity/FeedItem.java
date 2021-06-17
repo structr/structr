@@ -57,6 +57,7 @@ public interface FeedItem extends NodeInterface, Indexable {
 		type.addStringProperty("comments",         PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("description",      PropertyView.Public, PropertyView.Ui);
 		type.addDateProperty("pubDate",            PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addDateProperty("updatedDate",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addLongProperty("checksum",           PropertyView.Ui).setIndexed(true).setReadOnly(true);
 		type.addIntegerProperty("cacheForSeconds", PropertyView.Ui);
 		type.addIntegerProperty("version",         PropertyView.Ui).setIndexed(true).setReadOnly(true);

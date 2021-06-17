@@ -87,12 +87,14 @@ public class LicensingTest {
 
 		try {
 
+			FlushCachesCommand.flushAll();
+
 			SchemaService.ensureBuiltinTypesExist(app);
 
 		} catch (Throwable t) {
 
 			t.printStackTrace();
-			logger.error("Exception while trying to clean database: {}", t.getMessage());
+			logger.error("Exception while trying to create built-in schema for tenant identifier {}: {}", randomTenantId, t.getMessage());
 		}
 	}
 

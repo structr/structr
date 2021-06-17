@@ -127,51 +127,338 @@ var _Entities = {
 	},
 	dataBindingDialog: function(entity, el, typeInfo) {
 
-		el.append('<h3>Simple Interactive Elements</h3>');
-		el.append('<table class="props" id="new-data-binding-properties"></table>');
-		var tNew = $('#new-data-binding-properties', el);
+		Structr.fetchHtmlTemplate('entities/simple-interactive-elements', { entity: entity }, function (html) {
 
-		_Entities.appendRowWithInputField(entity, tNew, 'eventMapping',                    'Event mapping',     typeInfo);
-		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-target',             'Event target',      typeInfo);
-		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-reload-target',      'Reload target',     typeInfo);
-		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-tree-children',      'Tree children key', typeInfo);
+			el.empty();
+			el.append(html);
 
-		if (entity.type === 'Button' || entity.type === 'A') {
+			let width = '400px';
+			let style = 'text-align: left;';
+			let parent = $('.blockPage');
 
-			el.append('<h4>You can specify the data fields for create and update using data-Attributes like this:</h4>');
-			el.append('<pre>data-name        = css(input#name-input)\ndata-description = css(input#description-input)\ndata-parent      = json({ id: "5c6214fde6db45d09df027b16a0d6c0e" })</pre>');
-			el.append('<h4>Which will produce the following JSON payload:</h4>');
-			el.append('<pre>{\n    name: "&lt;value from input#name-input&gt;",\n    description: "&lt;value from input#description-input&gt;",\n    parent: {\n        id: "5c6214fde6db45d09df027b16a0d6c0e"\n    }\n}\n</p>');
-		}
+			let eventMappingSelect  = $('select#event-mapping-select', el);
+			let targetTypeSelect    = $('select#target-type-select', el);
+			let deleteTargetInput   = $('#delete-target-input', el);
+			let methodNameInput     = $('#method-name-input', el);
+			let methodTargetInput   = $('#method-target-input', el);
+			let updateTargetInput   = $('#update-target-input', el);
+			let updatePropertyInput = $('#update-property-input', el);
+			let reloadOptionSelect  = $('select#reload-option-select', el);
+			let reloadSelectorInput = $('#reload-selector-input', el);
+			let reloadUrlInput      = $('#reload-url-input', el);
+			let reloadEventInput    = $('#reload-event-input', el);
 
-		el.append('<h3>Deprecated Edit Mode Binding</h3>');
-		el.append('<table class="props" id="deprecated-data-binding-properties"></table>');
-		var tOld = $('#deprecated-data-binding-properties', el);
+			// event mapping selector
+			eventMappingSelect.select2({
+				placeholder: 'Event',
+				style: style,
+				width: width,
+				dropdownParent: parent,
+			}).on('select2:select', function (e) {
+				let data = e.params.data;
+				$('div.event-options', el).addClass('hidden');
+				if (this.value && this.value.length > 0) {
+					$('.' + this.value).removeClass('hidden');
+				}
+				if (data.id !== 'options-none') {
+					$('.options-reload-target').removeClass('hidden');
+				}
 
-		// General
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-id',                   'Element ID', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-attr',                 'Attribute Key', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-type',                 'Data type', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-placeholder',          'Placeholder text', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-custom-options-query', 'Custom REST query', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-options-key',          'Options attribute key', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-raw-value',            'Raw value', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-hide',                 'Hide mode(s)', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-edit-class',           'Edit mode CSS class', typeInfo);
+				// name comes from _html_name, always fill this field
+				Command.getProperty(entity.id, '_html_name', function(result) {
+					updatePropertyInput.val(result);
+				});
+			});
 
-		if (entity.type === 'Button' || entity.type === 'A') {
+			// target type selector
+			targetTypeSelect.select2({
+				allowClear: true,
+				placeholder: 'Select type..',
+				style: style,
+				width: width,
+				dropdownParent: parent,
+				ajax: {
+					url: '/structr/rest/SchemaNode',
+					processResults: function (data) {
+						return {
+							results: data.result.map(n => ({ id: n.name, text: n.name }))
+						};
+					},
+					data: function (params) {
+						return { name: params.term, sort: 'name', loose: 1 }
+					}
+				}
+			}).on('select2:select', function(e) {
+				$('.select2-selection', targetTypeSelect.parent()).removeClass('required');
+			});
 
-			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-action',           'Action', typeInfo);
-			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-attributes',       'Attributes', typeInfo);
-			_Entities.appendRowWithBooleanSwitch(entity, tOld, 'data-structr-reload',        'Reload', '', typeInfo);
-			_Entities.appendRowWithBooleanSwitch(entity, tOld, 'data-structr-confirm',       'Confirm action?', '', typeInfo);
-			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-return',           'Return URI', typeInfo);
-			_Entities.appendRowWithBooleanSwitch(entity, tOld, 'data-structr-append-id',     'Append ID on create', '', typeInfo);
+			// reload target selector
+			reloadOptionSelect.select2({
+				placeholder: 'Reload target',
+				style: style,
+				width: width,
+				dropdownParent: parent,
+			}).on('select2:select', function (e) {
+				$('div.reload-options', el).addClass('hidden');
+				if (this.value && this.value.length > 0) {
+					$('#' + this.value).removeClass('hidden');
+				}
+			});
 
-		} else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
-			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-name',             'Field name', typeInfo);
-			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-format',           'Custom Format', typeInfo);
-		}
+			deleteTargetInput.on('change', function(e) { deleteTargetInput.removeClass('required'); });
+			methodTargetInput.on('change', function(e) { methodTargetInput.removeClass('required'); });
+			methodNameInput.on('change', function(e) { methodNameInput.removeClass('required'); });
+			updateTargetInput.on('change', function(e) { updateTargetInput.removeClass('required'); });
+			updatePropertyInput.on('change', function(e) { updatePropertyInput.removeClass('required'); });
+			reloadSelectorInput.on('change', function(e) { reloadSelectorInput.removeClass('required'); });
+			reloadUrlInput.on('change', function(e) { reloadUrlInput.removeClass('required'); });
+			reloadEventInput.on('change', function(e) { reloadEventInput.removeClass('required'); });
+
+			Structr.activateCommentsInElement(el);
+
+			// initialize fields from values in the object
+			let eventMapping = JSON.parse(entity.eventMapping);
+			if (eventMapping) {
+
+				let click        = eventMapping.click;
+				let change       = eventMapping.change;
+				let id           = '';
+
+				if (click) {
+
+					switch (click) {
+
+						case 'create':
+							id = 'options-create-click';
+							break;
+
+						case 'delete':
+							id = 'options-delete-click';
+							break;
+
+						default:
+							id = 'options-method-click';
+							methodNameInput.val(click);
+							break;
+					}
+				}
+
+				if (change) {
+
+					switch (change) {
+
+						case 'update':
+							id = 'options-update-change';
+							break;
+
+						case 'create':
+							id = 'options-create-change';
+							break;
+
+						default:
+							id = 'options-method-change';
+							methodNameInput.val(change);
+							break;
+					}
+				}
+
+				eventMappingSelect.val(id);
+				eventMappingSelect.trigger('change');
+				eventMappingSelect.trigger({ type: 'select2:select', params: { data: { id: id }}});
+
+				// set selected option in targetTypeSelect
+				let selectedType = entity['data-structr-target'];
+				if (selectedType) {
+
+					var option = new Option(selectedType, selectedType, true, true);
+					targetTypeSelect.append(option).trigger('change');
+
+					targetTypeSelect.trigger({
+						type: 'select2:select',
+						params: { data: { id: selectedType } }
+					});
+				}
+
+				deleteTargetInput.val(entity['data-structr-target']);
+				methodTargetInput.val(entity['data-structr-target']);
+				updateTargetInput.val(entity['data-structr-target']);
+
+				let reloadTargetValue = entity['data-structr-reload-target'];
+				if (reloadTargetValue) {
+
+					let reloadOption = 'reload-manual';
+
+					if (reloadTargetValue === 'none') {
+
+						reloadOption = 'reload-none';
+
+					} else if (reloadTargetValue.indexOf('url:') === 0) {
+
+						reloadOption = 'reload-url';
+						reloadUrlInput.val(reloadTargetValue.substring(4));
+
+					} else if (reloadTargetValue.indexOf('event:') === 0) {
+
+						reloadOption = 'reload-event';
+						reloadEventInput.val(reloadTargetValue.substring(6));
+
+					} else {
+
+						reloadOption = 'reload-selector';
+						reloadSelectorInput.val(reloadTargetValue);
+					}
+
+					reloadOptionSelect.val(reloadOption);
+					reloadOptionSelect.trigger('change');
+					reloadOptionSelect.trigger({ type: 'select2:select', params: { data: { id: reloadOption }}});
+
+				} else {
+
+					// reload option default is "page" for empty values
+					reloadOptionSelect.val('reload-page');
+					reloadOptionSelect.trigger('change');
+					reloadOptionSelect.trigger({ type: 'select2:select', params: { data: { id: 'reload-page' }}});
+				}
+			}
+
+			// name comes from _html_name, always fill this field
+			Command.getProperty(entity.id, '_html_name', function(result) {
+				updatePropertyInput.val(result);
+			});
+
+			let saveButton = $('#save-event-mapping-button');
+			if (saveButton) {
+
+				saveButton.on('click', function() {
+
+					// collect values
+					let eventType      = eventMappingSelect.val();
+					let targetType     = targetTypeSelect.val();
+					let methodName     = methodNameInput.val();
+					let methodTarget   = methodTargetInput.val();
+					let updateTarget   = updateTargetInput.val();
+					let updateProperty = updatePropertyInput.val();
+					let deleteTarget   = deleteTargetInput.val();
+					let reloadOption   = reloadOptionSelect.val();
+					let reloadTarget   = null;
+					let inputEl        = $(eventType);
+
+					// build reload target according to reloadOption
+					switch (reloadOption) {
+						case 'reload-none':
+							reloadTarget = 'none';
+							break;
+						case 'reload-page':
+							// this is the default, so nothing to do
+							break;
+						case 'reload-selector':
+							reloadTarget = reloadSelectorInput.val();
+							break;
+						case 'reload-url':
+							reloadTarget = 'url:' + reloadUrlInput.val();
+							break;
+						case 'reload-event':
+							reloadTarget = 'event:' + reloadEventInput.val();
+							break;
+					}
+
+					switch (eventType) {
+
+						case 'options-none':
+							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target', null, $(inputEl), null);
+							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',        null, $(inputEl), null);
+							_Entities.setPropertyWithFeedback(entity, 'eventMapping',               null, $(inputEl), null);
+							break;
+
+						case 'options-create-click':
+							if (targetType) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "create" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  targetType, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								Structr.showAndHideInfoBoxMessage('Please select the type of object to create.', 'warning', 2000, 200);
+								$('.select2-selection', targetTypeSelect.parent()).addClass('required');
+							}
+							break;
+
+						case 'options-create-change':
+							if (targetType) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "change": "create" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  targetType, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								Structr.showAndHideInfoBoxMessage('Please select the type of object to create.', 'warning', 2000, 200);
+								$('.select2-selection', targetTypeSelect.parent()).addClass('required');
+							}
+							break;
+
+						case 'options-delete-click':
+							if (deleteTarget) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "delete" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  deleteTarget, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to delete.', 'warning', 2000, 200);
+								deleteTargetInput.addClass('required');
+							}
+							break;
+
+						case 'options-method-click':
+							if (methodTarget && methodName) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "' + methodName + '" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  methodTarget, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								if (!methodTarget) {
+									Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to call.', 'warning', 2000, 200);
+									methodTargetInput.addClass('required');
+								}
+								if (!methodName) {
+									Structr.showAndHideInfoBoxMessage('Please provide the name of the method to execute.', 'warning', 2000, 200);
+									methodNameInput.addClass('required');
+								}
+							}
+							break;
+
+						case 'options-method-change':
+							if (methodTarget && methodName) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "change": "' + methodName + '" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  methodTarget, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								if (!methodTarget) {
+									Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to call.', 'warning', 2000, 200);
+									methodTargetInput.addClass('required');
+								}
+								if (!methodName) {
+									Structr.showAndHideInfoBoxMessage('Please provide the name of the method to execute.', 'warning', 2000, 200);
+									methodNameInput.addClass('required');
+								}
+							}
+							break;
+
+						case 'options-update-change':
+							if (updateTarget && updateProperty) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "change": "update" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  updateTarget, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, '_html_name',  updateProperty, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								if (!updateTarget) {
+
+									updateTargetInput.addClass('required');
+									Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to update.', 'warning', 2000, 200);
+								}
+								if (!updateProperty) {
+									updatePropertyInput.addClass('required');
+									Structr.showAndHideInfoBoxMessage('Please provide the name of the property to update.', 'warning', 2000, 200);
+								}
+							}
+							break;
+					}
+				});
+			}
+		});
 	},
 	appendRowWithInputField: function(entity, el, key, label, typeInfo) {
 		el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + (entity[key] ? escapeForHtmlAttributes(entity[key]) : '') + '"></td><td><i id="null_' + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
@@ -603,7 +890,7 @@ var _Entities = {
 						if (entity.isDOMNode && !entity.isContent) {
 							views.unshift('_html_');
 							if (Structr.isModuleActive(_Pages)) {
-								activeView = '_html_';
+								activeView = 'general';
 							}
 						}
 
@@ -636,6 +923,8 @@ var _Entities = {
 						if (entity.isContent !== true) {
 
 							_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Edit Mode Binding', false, function(c) {
+								_Entities.dataBindingDialog(entity, c, typeInfo);
+							}, function(c) {}, function(c) {
 								_Entities.dataBindingDialog(entity, c, typeInfo);
 							});
 
@@ -1711,7 +2000,7 @@ var _Entities = {
 			if (Structr.isModuleActive(_Crud)) {
 
 				var handleGraphObject = function(entity) {
-					if (!entity.owner || initialObj.ownerId !== entity.owner.id) {
+					if ((!entity.owner && initialObj.owner !== null) || initialObj.ownerId !== entity.owner.id) {
 						_Crud.refreshCell(id, "owner", entity.owner, entity.type, initialObj.ownerId);
 					}
 
@@ -1724,6 +2013,8 @@ var _Entities = {
 				} else {
 					Command.get(id, 'id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 				}
+			} else if (Structr.isModuleActive(_Security)) {
+				_ResourceAccessGrants.updateResourcesAccessRow(id, false);
 			}
 		});
 
@@ -2367,7 +2658,7 @@ var _Entities = {
 	isContentElement: function (entity) {
 		return (entity.type === 'Template' || entity.type === 'Content');
 	},
-	setPropertyWithFeedback: function(entity, key, newVal, input) {
+	setPropertyWithFeedback: function(entity, key, newVal, input, blinkEl) {
 		var oldVal = entity[key];
 		Command.setProperty(entity.id, key, newVal, false, function(result) {
 			var newVal = result[key];
@@ -2377,6 +2668,9 @@ var _Entities = {
 
 			if (newVal !== oldVal) {
 				blinkGreen(input);
+				if (blinkEl) {
+					blinkGreen(blinkEl);
+				}
 				if (newVal && newVal.constructor === Array) {
 					newVal = newVal.join(',');
 				}

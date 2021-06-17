@@ -70,7 +70,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 			final Set<String> wl = getWhitelistAddresses();
 			if (!wl.contains(remoteAddress)) {
 
-				logger.warn("Access to health check endpoint denied for remote address {}: not in whitelist. If you want to allow access, add {} to healthcheckservlet.whitelist in structr.conf.");
+				logger.warn("Access to health check endpoint denied for remote address {}: not in whitelist. If you want to allow access, add {} to healthcheckservlet.whitelist in structr.conf.", remoteAddress, remoteAddress);
 
 				response.sendError(HttpServletResponse.SC_FORBIDDEN);
 

@@ -67,6 +67,8 @@ public class CsvHelper {
 
 		final String[] propertyNames = reader.readNext();
 
+		CsvHelper.checkPropertyNames(securityContext, propertyNames);
+
 		return new Iterable<JsonInput>() {
 
 			@Override
@@ -101,6 +103,8 @@ public class CsvHelper {
 
 		final String[] propertyNames = reader.readNext();
 
+		CsvHelper.checkPropertyNames(securityContext, propertyNames);
+
 		return new Iterable<JsonInput>() {
 
 			@Override
@@ -118,6 +122,36 @@ public class CsvHelper {
 				}
 			}
 		};
+	}
+
+	private static void checkPropertyNames(final SecurityContext securityContext, final String[] propertyNames) throws FrameworkException {
+
+		try {
+
+			final int len = propertyNames.length;
+
+			for (int i=0; i<len; i++) {
+
+				final String key = propertyNames[i];
+
+				if (key == null || key.trim().equals("")) {
+					throw new FrameworkException(422, "Property name in header is empty  - maybe a problem with the field quoting?");
+				}
+			}
+
+		} catch (FrameworkException fxe) {
+
+			final Map<String, Object> data = new LinkedHashMap();
+
+			data.put("type",     "CSV_IMPORT_ERROR");
+			data.put("title",    "CSV Import Error");
+			data.put("text",     fxe.getMessage());
+			data.put("username", securityContext.getUser(false).getName());
+
+			TransactionCommand.simpleBroadcastGenericMessage(data);
+
+			throw fxe;
+		}
 	}
 
 	// ----- private methods -----
@@ -229,15 +263,16 @@ public class CsvHelper {
 
 			} catch (Throwable t) {
 
-				final String first100Characters = Arrays.toString(fields).substring(0, 100);
-				logger.warn("Exception in CSV line: {}", first100Characters);
+				final String lineInfo                 = Arrays.toString(fields);
+				final String atMostFirst100Characters = lineInfo.substring(0, Math.min(100, lineInfo.length()));
+				logger.warn("Exception in CSV line: {}", atMostFirst100Characters);
 				logger.warn("", t);
 
 				final Map<String, Object> data = new LinkedHashMap();
 
 				data.put("type",     "CSV_IMPORT_ERROR");
 				data.put("title",    "CSV Import Error");
-				data.put("text",     "Error occured with dataset: " + first100Characters);
+				data.put("text",     "Error occured with dataset: " + atMostFirst100Characters);
 				data.put("username", userName);
 
 				TransactionCommand.simpleBroadcastGenericMessage(data);

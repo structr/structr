@@ -51,6 +51,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -61,12 +62,17 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.EventContext;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
+import org.structr.web.function.InsertHtmlFunction;
+import org.structr.web.function.RemoveDOMChildFunction;
+import org.structr.web.function.ReplaceDOMChildFunction;
+import org.structr.web.servlet.HtmlServlet;
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
@@ -75,6 +81,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
+
+	static final Set<String> RequestParameterBlacklist = Set.of(HtmlServlet.ENCODED_RENDER_STATE_PARAMETER_NAME);
 
 	static final String GET_HTML_ATTRIBUTES_CALL = "return (Property[]) org.apache.commons.lang3.ArrayUtils.addAll(super.getHtmlAttributes(), _html_View.properties());";
 	static final String STRUCTR_ACTION_PROPERTY  = "data-structr-action";
@@ -172,11 +180,12 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addBooleanProperty("data-structr-from-widget",         PropertyView.Ui);
 
 		// simple interactive elements
-		type.addStringProperty("data-structr-target",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Event target, usually something like ${dataKey.id} for custom, update and delete events, or the entity type for create events.");
-		type.addStringProperty("data-structr-options",              PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Configuration options for simple interactive elements, reserved for future use.");
-		type.addStringProperty("data-structr-reload-target",        PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("CSS selector that specifies which partials to reload.");
-		type.addStringProperty("data-structr-tree-children",        PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.");
-		type.addStringProperty("eventMapping",                      PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
+		type.addStringProperty("data-structr-target",                PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Event target, usually something like ${dataKey.id} for custom, update and delete events, or the entity type for create events.");
+		type.addStringProperty("data-structr-options",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Configuration options for simple interactive elements, reserved for future use.");
+		type.addStringProperty("data-structr-reload-target",         PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("CSS selector that specifies which partials to reload.");
+		type.addStringProperty("data-structr-tree-children",         PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.");
+		type.addBooleanProperty("data-structr-manual-reload-target", PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Identifies this element as a manual reload target, this is necessary when using repeaters as reload targets.");
+		type.addStringProperty("eventMapping",                       PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
 		type.addPropertyGetter("eventMapping", String.class);
 		type.relate(type, "RELOADS",   Cardinality.ManyToMany, "reloadSources",     "reloadTargets");
 		type.addViewProperty("_html_name", PropertyView.Ui);
@@ -226,6 +235,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.overrideMethod("getNodeValue",           false, "return null;");
 		type.overrideMethod("getNodeType",            false, "return ELEMENT_NODE;");
 		type.overrideMethod("getPropertyKeys",        false, "final Set<PropertyKey> allProperties = new LinkedHashSet<>(); final Set<PropertyKey> htmlAttrs = super.getPropertyKeys(arg0); for (final PropertyKey attr : htmlAttrs) { allProperties.add(attr); } allProperties.addAll(getDataPropertyKeys()); return allProperties;");
+		type.overrideMethod("getCssClass",            false, "return getProperty(_html_classProperty);");
 
 		type.overrideMethod("openingTag",             false, DOMElement.class.getName() + ".openingTag(this, arg0, arg1, arg2, arg3, arg4);");
 		type.overrideMethod("renderContent",          false, DOMElement.class.getName() + ".renderContent(this, arg0, arg1);");
@@ -369,6 +379,20 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			case "delete":
 				handleDeleteAction(actionContext, parameters, eventContext);
 				break;
+
+			case "append-child":
+				handleAppendChildAction(actionContext, parameters, eventContext);
+				break;
+
+			case "remove-child":
+				handleRemoveChildAction(actionContext, parameters, eventContext);
+				break;
+
+			case "insert-html":
+				return handleInsertHtmlAction(actionContext, parameters, eventContext);
+
+			case "replace-html":
+				return handleReplaceHtmlAction(actionContext, parameters, eventContext);
 
 			case "open-tree-item":
 			case "close-tree-item":
@@ -527,7 +551,219 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		for (final GraphObject target : targets) {
 
 			// try to execute event method
-			return target.invokeMethod(actionContext.getSecurityContext(), action, parameters, false);
+			return target.invokeMethod(actionContext.getSecurityContext(), action, parameters, false, new EvaluationHints());
+		}
+
+		return null;
+	}
+
+	private Object handleAppendChildAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		final SecurityContext securityContext = actionContext.getSecurityContext();
+		final String dataTarget               = (String)parameters.get("structrTarget");
+
+		if (dataTarget == null) {
+
+			throw new FrameworkException(422, "Cannot execute append-child action without target UUID (data-structr-target attribute).");
+		}
+
+		// fetch child ID
+		final String childId = (String)parameters.get("childId");
+		if (childId == null) {
+
+			throw new FrameworkException(422, "Cannot execute append-child action without child UUID (data-child-id attribute).");
+		}
+
+		// load child node
+		final DOMNode child = StructrApp.getInstance(securityContext).get(DOMNode.class, childId);
+		if (child == null) {
+
+			throw new FrameworkException(422, "Cannot execute append-child action without child (object with ID not found or not a DOMNode).");
+		}
+
+		// remove internal keys
+		parameters.remove("structrTarget");
+		parameters.remove("htmlEvent");
+
+		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
+
+			if (target instanceof DOMElement) {
+
+				final DOMElement domTarget = (DOMElement)target;
+
+				domTarget.appendChild(child);
+
+			} else {
+
+				throw new FrameworkException(422, "Cannot execute append-child action on " + target.getClass().getSimpleName() + " (must be a DOMElement).");
+			}
+		}
+
+		return null;
+	}
+
+	private Object handleRemoveChildAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		final SecurityContext securityContext = actionContext.getSecurityContext();
+		final String dataTarget               = (String)parameters.get("structrTarget");
+
+		if (dataTarget == null) {
+
+			throw new FrameworkException(422, "Cannot execute remove-child action without target UUID (data-structr-target attribute).");
+		}
+
+		// fetch child ID
+		final String childId = (String)parameters.get("childId");
+		if (childId == null) {
+
+			throw new FrameworkException(422, "Cannot execute remove-child action without child UUID (data-child-id attribute).");
+		}
+
+		// load child node
+		final DOMNode child = StructrApp.getInstance(securityContext).get(DOMNode.class, childId);
+		if (child == null) {
+
+			throw new FrameworkException(422, "Cannot execute remove-child action without child (object with ID not found or not a DOMNode).");
+		}
+
+		// remove internal keys
+		parameters.remove("structrTarget");
+		parameters.remove("htmlEvent");
+
+		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
+
+			if (target instanceof DOMElement) {
+
+				final DOMElement parent = (DOMElement)target;
+
+				RemoveDOMChildFunction.apply(actionContext.getSecurityContext(), parent, child);
+
+			} else {
+
+				throw new FrameworkException(422, "Cannot execute remove-child action on " + target.getClass().getSimpleName() + " (must be a DOMElement).");
+			}
+		}
+
+		return null;
+	}
+
+	private Object handleInsertHtmlAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		final SecurityContext securityContext = actionContext.getSecurityContext();
+		final String dataTarget               = (String)parameters.get("structrTarget");
+		if (dataTarget == null) {
+
+			throw new FrameworkException(422, "Cannot execute insert-html action without target UUID (data-structr-target attribute).");
+		}
+
+		final String sourceObjectId = (String)parameters.get("sourceObject");
+		if (sourceObjectId == null) {
+
+			throw new FrameworkException(422, "Cannot execute insert-html action without html source object UUID (data-source-object).");
+		}
+
+		final String sourceProperty = (String)parameters.get("sourceProperty");
+		if (sourceProperty == null) {
+
+			throw new FrameworkException(422, "Cannot execute insert-html action without html source property name (data-source-property).");
+		}
+
+		final GraphObject sourceObject = StructrApp.getInstance(securityContext).get(NodeInterface.class, sourceObjectId);
+		if (sourceObject == null) {
+
+			throw new FrameworkException(422, "Cannot execute insert-html action without html source property name (data-source-property).");
+		}
+
+		final String htmlSource = sourceObject.getProperty(sourceProperty);
+		if (StringUtils.isBlank(htmlSource)) {
+
+			throw new FrameworkException(422, "Cannot execute insert-html action without empty html source.");
+		}
+
+		// remove internal keys
+		parameters.remove("structrTarget");
+		parameters.remove("htmlEvent");
+
+		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
+
+			if (target instanceof DOMElement) {
+
+				final DOMElement parent = (DOMElement) target;
+
+				return InsertHtmlFunction.apply(securityContext, parent, htmlSource);
+
+			} else {
+
+				throw new FrameworkException(422, "Cannot execute insert-html action on " + target.getClass().getSimpleName() + " (must be a DOMElement).");
+			}
+		}
+
+		return null;
+	}
+
+	private Object handleReplaceHtmlAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		final SecurityContext securityContext = actionContext.getSecurityContext();
+		final String dataTarget               = (String)parameters.get("structrTarget");
+		if (dataTarget == null) {
+
+			throw new FrameworkException(422, "Cannot execute replace-html action without target UUID (data-structr-target attribute).");
+		}
+
+		// fetch child ID
+		final String childId = (String)parameters.get("childId");
+		if (childId == null) {
+
+			throw new FrameworkException(422, "Cannot execute replace-html action without child UUID (data-child-id attribute).");
+		}
+
+		// load child node
+		final DOMNode child = StructrApp.getInstance(securityContext).get(DOMNode.class, childId);
+		if (child == null) {
+
+			throw new FrameworkException(422, "Cannot execute replace-html action without child (object with ID not found or not a DOMNode).");
+		}
+
+		final String sourceObjectId = (String)parameters.get("sourceObject");
+		if (sourceObjectId == null) {
+
+			throw new FrameworkException(422, "Cannot execute replace-html action without html source object UUID (data-source-object).");
+		}
+
+		final String sourceProperty = (String)parameters.get("sourceProperty");
+		if (sourceProperty == null) {
+
+			throw new FrameworkException(422, "Cannot execute replace-html action without html source property name (data-source-property).");
+		}
+
+		final GraphObject sourceObject = StructrApp.getInstance(securityContext).get(NodeInterface.class, sourceObjectId);
+		if (sourceObject == null) {
+
+			throw new FrameworkException(422, "Cannot execute replace-html action without html source property name (data-source-property).");
+		}
+
+		final String htmlSource = sourceObject.getProperty(sourceProperty);
+		if (StringUtils.isBlank(htmlSource)) {
+
+			throw new FrameworkException(422, "Cannot execute replace-html action without empty html source.");
+		}
+
+		// remove internal keys
+		parameters.remove("structrTarget");
+		parameters.remove("htmlEvent");
+
+		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
+
+			if (target instanceof DOMElement) {
+
+				final DOMElement parent = (DOMElement)target;
+
+				return ReplaceDOMChildFunction.apply(securityContext, parent, child, htmlSource);
+
+			} else {
+
+				throw new FrameworkException(422, "Cannot execute replace-html action on " + target.getClass().getSimpleName() + " (must be a DOMElement).");
+			}
 		}
 
 		return null;
@@ -543,8 +779,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		return null;
 	}
-
-
 
 
 
@@ -637,6 +871,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		// non-final variables
 		boolean anyChildNodeCreatesNewLine = false;
 
+		// TODO: remove this..
 		thisElement.renderStructrAppLib(out, securityContext, renderContext, depth);
 
 		if (depth > 0 && !thisElement.avoidWhitespace()) {
@@ -795,6 +1030,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			final Class type = thisElement.getEntityType();
 
 			final List<PropertyKey> htmlAttributes = new ArrayList<>();
+
+
 			thisElement.getNode().getPropertyKeys().forEach((key) -> {
 				if (key.startsWith(PropertyView.Html)) {
 					htmlAttributes.add(config.getPropertyKeyForJSONName(type, key));
@@ -835,6 +1072,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			// include arbitrary data-* attributes
 			thisElement.renderSharedComponentConfiguration(out, editMode);
 			thisElement.renderCustomAttributes(out, renderContext.getSecurityContext(), renderContext);
+
+			// new: managed attributes (like selected
+			thisElement.renderManagedAttributes(out, renderContext.getSecurityContext(), renderContext);
 
 			// include special mode attributes
 			switch (editMode) {
@@ -954,16 +1194,23 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						if (request != null) {
 
 							final Map<String, String[]> parameters = request.getParameterMap();
+
 							for (final Entry<String, String[]> entry : parameters.entrySet()) {
 
 								final String key      = entry.getKey();
 								final String[] values = entry.getValue();
 
-								if (values.length > 0) {
+								if (values.length > 0 && !RequestParameterBlacklist.contains(key)) {
 
 									out.append(" data-request-").append(DOMElement.toHtmlAttributeName(key)).append("=\"").append(values[0]).append("\"");
 								}
 							}
+						}
+
+						final String encodedRenderState = renderContext.getEncodedRenderState();
+						if (encodedRenderState != null) {
+
+							out.append(" data-structr-render-state=\"").append(encodedRenderState).append("\"");
 						}
 					}
 
@@ -1189,7 +1436,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		} else {
 
 			// evaluate single keyword
-			final Object result = thisElement.evaluate(actionContext, dataTarget, null);
+			final Object result = thisElement.evaluate(actionContext, dataTarget, null, new EvaluationHints(), 1, 1);
 			if (result != null) {
 
 				if (result instanceof Iterable) {
@@ -1213,8 +1460,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	}
 
 	public static void updateReloadTargets(final DOMElement thisElement) throws FrameworkException {
-
-		final Logger logger = LoggerFactory.getLogger(DOMElement.class);
 
 		try {
 
@@ -1250,9 +1495,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 										actualReloadTargets.add(possibleTarget);
 									}
 
-								} catch (Throwable t) {
-									//logger.warn("Unable to match element with selector {}: {}", targetSelector, t);
-								}
+								} catch (Throwable t) {}
 							}
 						}
 
@@ -1269,9 +1512,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 										actualReloadSources.add(possibleTarget);
 									}
 
-								} catch (Throwable t) {
-									//logger.warn("Unable to match element with selector {}: {}", targetSelector, t);
-								}
+								} catch (Throwable t) {}
 							}
 						}
 					}
@@ -1279,8 +1520,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			}
 
 			// update reload targets with list from above
-			thisElement.setProperty(reloadSourcesKey,     actualReloadSources);
-			thisElement.setProperty(reloadTargetsKey,     actualReloadTargets);
+			thisElement.setProperty(reloadSourcesKey, actualReloadSources);
+			thisElement.setProperty(reloadTargetsKey, actualReloadTargets);
 
 		} catch (Throwable t) {
 
@@ -1329,10 +1570,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	public static boolean isReloadTarget(final DOMElement thisElement) {
 
+		final PropertyKey<Boolean> isManualReloadTargetKey       = StructrApp.key(DOMElement.class, "data-structr-manual-reload-target");
 		final PropertyKey<Iterable<DOMElement>> reloadSourcesKey = StructrApp.key(DOMElement.class, "reloadSources");
 		final List<DOMElement> reloadSources                     = Iterables.toList(thisElement.getProperty(reloadSourcesKey));
 
-		return !reloadSources.isEmpty();
+		return thisElement.getProperty(isManualReloadTargetKey) || !reloadSources.isEmpty();
 	}
 
 	private static int intOrOne(final String source) {

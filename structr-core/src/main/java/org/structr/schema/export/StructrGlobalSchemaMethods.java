@@ -26,15 +26,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import org.codehaus.plexus.util.StringUtils;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.api.schema.JsonSchema;
-import org.structr.schema.openapi.operation.OpenAPIOperation;
-import org.structr.schema.openapi.common.OpenAPIReference;
 
 public class StructrGlobalSchemaMethods {
 
@@ -42,43 +42,29 @@ public class StructrGlobalSchemaMethods {
 
 	public Map<String, Object> serializeOpenAPIOperations(final String tag) {
 
-		final Map<String, Object> operations = new TreeMap<>();
+		final App app                     = StructrApp.getInstance();
+		final Map<String, Object> methods = new TreeMap<>();
 
-		for (final Map<String, Object> method : globalMethods) {
+		try (final Tx tx = app.tx()) {
 
-			if (isSelected(getTags(method), tag)) {
+			for (final SchemaMethod schemaMethod : app.nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, null).sort(SchemaMethod.name).getAsList()) {
 
-				operations.put("/globalSchemaMethods/" + method.get("name"), Map.of("post", new OpenAPIOperation(
+				final StructrMethodDefinition def = StructrMethodDefinition.deserialize(null, schemaMethod);
 
-					// summary
-					"TODO: use summary field of method?",
+				// filter by tag
+				if (StringUtils.isBlank(tag) || def.getTags().contains(tag)) {
 
-					// description
-					"TODO: use comment field of method?",
-
-					// operationId
-					"operationId",
-
-					// tags
-					Set.of("Global Schema Methods"),
-
-					// parameters
-					null, // TODO
-
-					// requestBody
-					null, // TODO
-
-					// responses
-					Map.of(
-						"200", new OpenAPIReference("#/components/responses/ok"),
-						"401", new OpenAPIReference("#/components/responses/forbidden"),
-						"422", new OpenAPIReference("#/components/responses/validationError")
-					)
-				)));
+					methods.putAll(def.serializeOpenAPI());
+				}
 			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
 		}
 
-		return operations;
+		return methods;
 	}
 
 	void deserialize(final App app) throws FrameworkException {
@@ -91,12 +77,14 @@ public class StructrGlobalSchemaMethods {
 				globalMethods.add(entry);
 
 				entry.put("name",                        schemaMethod.getProperty(SchemaMethod.name));
-				entry.put("comment",                     schemaMethod.getProperty(SchemaMethod.comment));
 				entry.put("source",                      schemaMethod.getProperty(SchemaMethod.source));
 				entry.put("virtualFileName",             schemaMethod.getProperty(SchemaMethod.virtualFileName));
 				entry.put("visibleToAuthenticatedUsers", schemaMethod.getProperty(SchemaMethod.visibleToAuthenticatedUsers));
 				entry.put("visibleToPublicUsers",        schemaMethod.getProperty(SchemaMethod.visibleToPublicUsers));
 				entry.put("tags",                        schemaMethod.getProperty(SchemaMethod.tags));
+				entry.put("includeInOpenAPI",            schemaMethod.getProperty(SchemaMethod.includeInOpenAPI));
+				entry.put("summary",                     schemaMethod.getProperty(SchemaMethod.summary));
+				entry.put("description",                 schemaMethod.getProperty(SchemaMethod.description));
 			}
 
 			tx.success();

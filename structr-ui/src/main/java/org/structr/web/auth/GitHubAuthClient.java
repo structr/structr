@@ -69,7 +69,10 @@ public class GitHubAuthClient extends StructrOAuthClient {
 		}
 
 		final String body = userResponse.getBody();
-		logger.debug("User response body: {}", body);
+
+		if (isVerboseLoggingEnabled()) {
+			logger.info("User response body: {}", body);
+		}
 
 		final JsonParser parser = new JsonParser();
 		final JsonElement result = parser.parse(body);
@@ -84,7 +87,9 @@ public class GitHubAuthClient extends StructrOAuthClient {
 				final JsonElement el = iterator.next();
 				final String address = el.getAsJsonObject().get("email").getAsString();
 
-				logger.info("Got 'email' credential from GitHub: {}", address);
+				if (isVerboseLoggingEnabled()) {
+					logger.info("Got 'email' credential from GitHub: {}", address);
+				}
 
 				return address;
 			}

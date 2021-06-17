@@ -19,6 +19,8 @@
 package org.structr.schema.action;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -42,12 +44,16 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.cache.ExecutableStaticTypeMethodCache;
+import org.structr.core.script.polyglot.cache.ExecutableTypeMethodCache;
 import org.structr.schema.parser.DatePropertyParser;
 
 /**
@@ -59,17 +65,22 @@ public class ActionContext {
 	private static final Logger logger = LoggerFactory.getLogger(ActionContext.class.getName());
 	public static final String SESSION_ATTRIBUTE_PREFIX = "user.";
 
+	// Caches
 	// cache is not static => library cache is per request
-	private final Map<String, Context> scriptingContexts = new HashMap<>();
-	private final Map<String, String> libraryCache       = new HashMap<>();
-	protected SecurityContext securityContext            = null;
-	protected Predicate predicate                        = null;
-	protected ErrorBuffer errorBuffer                    = new ErrorBuffer();
-	protected StringBuilder outputBuffer                 = new StringBuilder();
-	protected Locale locale                              = Locale.getDefault();
-	private boolean javaScriptContext                    = false;
-	private ContextStore temporaryContextStore           = new ContextStore();
-	private boolean disableVerboseExceptionLogging       = false;
+	private final Map<String, Context> scriptingContexts                           = new HashMap<>();
+	private final Map<String, String> libraryCache                                 = new HashMap<>();
+	private final ExecutableTypeMethodCache executableTypeMethodCache              = new ExecutableTypeMethodCache();
+	private final ExecutableStaticTypeMethodCache staticExecutableTypeMethodCache  = new ExecutableStaticTypeMethodCache();
+
+	// Regular members
+	protected SecurityContext securityContext                                      = null;
+	protected Predicate predicate                                                  = null;
+	protected ErrorBuffer errorBuffer                                              = new ErrorBuffer();
+	protected StringBuilder outputBuffer                                           = new StringBuilder();
+	protected Locale locale                                                        = Locale.getDefault();
+	private boolean javaScriptContext                                              = false;
+	private ContextStore temporaryContextStore                                     = new ContextStore();
+	private boolean disableVerboseExceptionLogging                                 = false;
 
 	public ActionContext(final SecurityContext securityContext) {
 		this(securityContext, null);
@@ -123,7 +134,7 @@ public class ActionContext {
 		this.temporaryContextStore.setConstant(name, data);
 	}
 
-	public Object getReferencedProperty(final GraphObject entity, final String initialRefKey, final Object initialData, final int depth) throws FrameworkException {
+	public Object getReferencedProperty(final GraphObject entity, final String initialRefKey, final Object initialData, final int depth, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
 
 		final String DEFAULT_VALUE_SEP = "!";
 
@@ -142,7 +153,7 @@ public class ActionContext {
 		for (int i = 0; i < parts.length; i++) {
 
 			String key = parts[i];
-			_data      = evaluate(entity, key, _data, null, i+depth);
+			_data      = evaluate(entity, key, _data, null, i+depth, hints, row, column);
 
 			// stop evaluation on null
 			if (_data == null) {
@@ -190,8 +201,8 @@ public class ActionContext {
 		return getContextStore().retrieve(key);
 	}
 
-	public Map<String, Object> getAllVariables () {
-		return getContextStore().getAllVariables();
+	public Map<String, Object> getRequestStore() {
+		return getContextStore().getRequestStore();
 	}
 
 	public void addTimer(final String key) {
@@ -218,10 +229,18 @@ public class ActionContext {
 		return getContextStore().getAdvancedMailContainer();
 	}
 
-	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue, final int depth) throws FrameworkException {
+	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue, final int depth, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
+
+		// report usage for toplevel keys only
+		if (data == null) {
+
+			// report key as used to identify unresolved keys later
+			hints.reportUsedKey(key, row, column);
+		}
 
 		Object value = getContextStore().getConstant(key);
 		if (this.temporaryContextStore.getConstant(key) != null) {
+			hints.reportExistingKey(key);
 			value = this.temporaryContextStore.getConstant(key);
 		}
 
@@ -233,6 +252,7 @@ public class ActionContext {
 				value = ((HttpServletRequest)data).getParameterValues(key);
 				if (value != null) {
 
+					hints.reportExistingKey(key);
 					if (((String[]) value).length == 1) {
 
 						value = ((String[]) value)[0];
@@ -249,6 +269,8 @@ public class ActionContext {
 
 				if (StringUtils.isNotBlank(key)) {
 
+					hints.reportExistingKey(key);
+
 					// use "user." prefix to separate user and system data
 					value = ((HttpSession)data).getAttribute(SESSION_ATTRIBUTE_PREFIX + key);
 				}
@@ -256,6 +278,8 @@ public class ActionContext {
 
 			// special handling of maps..
 			if (data instanceof Map) {
+
+				hints.reportExistingKey(key);
 				value = ((Map)data).get(key);
 			}
 
@@ -263,7 +287,22 @@ public class ActionContext {
 
 				if (data instanceof GraphObject) {
 
-					value = ((GraphObject)data).evaluate(this, key, defaultValue);
+					value = ((GraphObject)data).evaluate(this, key, defaultValue, hints, row, column);
+
+				} else if (data instanceof Class) {
+
+					// static method?
+					Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods((Class)data, Export.class);
+					if (methods.containsKey(key) && Modifier.isStatic(methods.get(key).getModifiers())) {
+
+						hints.reportExistingKey(key);
+
+						final ContextStore contextStore      = getContextStore();
+						final Map<String, Object> parameters = contextStore.getTemporaryParameters();
+						final Method method                  = methods.get(key);
+
+						return AbstractNode.invokeMethod(securityContext, method, null, parameters, hints);
+					}
 
 				} else {
 
@@ -271,12 +310,15 @@ public class ActionContext {
 
 						case "size":
 							if (data instanceof Collection) {
+								hints.reportExistingKey(key);
 								return ((Collection)data).size();
 							}
 							if (data instanceof Iterable) {
+								hints.reportExistingKey(key);
 								return Iterables.count((Iterable)data);
 							}
 							if (data.getClass().isArray()) {
+								hints.reportExistingKey(key);
 								return ((Object[])data).length;
 							}
 							break;
@@ -295,22 +337,27 @@ public class ActionContext {
 					switch (key) {
 
 						case "request":
+							hints.reportExistingKey(key);
 							return securityContext.getRequest();
 
 						case "session":
 							if (securityContext.getRequest() != null) {
+								hints.reportExistingKey(key);
 								return securityContext.getRequest().getSession(false);
 							}
 							break;
 
 						case "baseUrl":
 						case "base_url":
+							hints.reportExistingKey(key);
 							return getBaseUrl(securityContext.getRequest());
 
 						case "me":
+							hints.reportExistingKey(key);
 							return securityContext.getUser(false);
 
 						case "depth":
+							hints.reportExistingKey(key);
 							return securityContext.getSerializationDepth() - 1;
 
 					}
@@ -323,28 +370,35 @@ public class ActionContext {
 						switch (key) {
 
 							case "host":
+								hints.reportExistingKey(key);
 								return request.getServerName();
 
 							case "ip":
+								hints.reportExistingKey(key);
 								return request.getLocalAddr();
 
 							case "port":
+								hints.reportExistingKey(key);
 								return request.getServerPort();
 
 							case "pathInfo":
 							case "path_info":
+								hints.reportExistingKey(key);
 								return request.getPathInfo();
 
 							case "queryString":
 							case "query_string":
+								hints.reportExistingKey(key);
 								return request.getQueryString();
 
 							case "parameterMap":
 							case "parameter_map":
+								hints.reportExistingKey(key);
 								return request.getParameterMap();
 
 							case "remoteAddress":
 							case "remote_address":
+								hints.reportExistingKey(key);
 								return getRemoteAddr(request);
 						}
 					}
@@ -360,6 +414,7 @@ public class ActionContext {
 
 								try {
 									// return output stream of HTTP response for streaming
+									hints.reportExistingKey(key);
 									return response.getOutputStream();
 
 								} catch (IOException ioex) {
@@ -370,6 +425,7 @@ public class ActionContext {
 
 							case "statusCode":
 							case "status_code":
+								hints.reportExistingKey(key);
 								return response.getStatus();
 						}
 					}
@@ -379,21 +435,35 @@ public class ActionContext {
 				switch (key) {
 
 					case "now":
+						hints.reportExistingKey(key);
 						return this.isJavaScriptContext() ? new Date() : DatePropertyParser.format(new Date(), Settings.DefaultDateFormat.getValue());
 
 					case "this":
+						hints.reportExistingKey(key);
 						return entity;
 
 					case "locale":
+						hints.reportExistingKey(key);
 						return locale != null ? locale.toString() : null;
 
 					case "tenantIdentifier":
 					case "tenant_identifier":
+						hints.reportExistingKey(key);
 						return Settings.TenantIdentifier.getValue();
 
 					case "applicationStore":
 					case "application_store":
+						hints.reportExistingKey(key);
 						return Services.getInstance().getApplicationStore();
+
+					default:
+						final Class type = StructrApp.getConfiguration().getNodeEntityClass(key);
+						if (type != null) {
+
+							hints.reportExistingKey(key);
+							return type;
+						}
+						break;
 				}
 			}
 		}
@@ -415,7 +485,7 @@ public class ActionContext {
 			sb.append(request.getPathInfo());
 
 			final String qs = request.getQueryString();
-			final Map pm    = getAllVariables();
+			final Map pm    = getRequestStore();
 
 			if (qs != null) {
 
@@ -479,7 +549,7 @@ public class ActionContext {
 		return remoteAddress;
 	}
 
-	public void print(final Object... objects) {
+	public void print(final Object[] objects, final Object caller) {
 
 		for (final Object obj : objects) {
 
@@ -606,5 +676,21 @@ public class ActionContext {
 	public boolean isRenderContext() {
 		return false;
 
+	}
+
+	public ExecutableTypeMethodCache getExecutableTypeMethodCache() {
+
+		return this.executableTypeMethodCache;
+	}
+
+	public ExecutableStaticTypeMethodCache getStaticExecutableTypeMethodCache() {
+
+		return this.staticExecutableTypeMethodCache;
+	}
+
+	public void clearExecutableCaches() {
+
+		this.executableTypeMethodCache.clearCache();
+		this.staticExecutableTypeMethodCache.clearCache();
 	}
 }

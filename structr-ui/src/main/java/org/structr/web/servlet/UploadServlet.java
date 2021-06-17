@@ -67,9 +67,8 @@ import org.structr.schema.SchemaHelper;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.Folder;
 import org.structr.web.entity.File;
-import org.structr.web.entity.Image;
+import org.structr.web.entity.Folder;
 
 /**
  * Simple upload servlet.
@@ -277,7 +276,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 						if (isImage) {
 
-							cls = Image.class;
+							cls = SchemaHelper.getEntityClassForRawType("Image");
 
 						} else if (isVideo) {
 
@@ -289,7 +288,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 						} else {
 
-							cls = File.class;
+							cls = SchemaHelper.getEntityClassForRawType("File");
 						}
 					}
 
@@ -377,7 +376,9 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			} else {
 
 				// Just write out the uuids of the new files
-				response.getWriter().write(uuid);
+				if(uuid != null) {
+					response.getWriter().write(uuid);
+				}
 			}
 
 
