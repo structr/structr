@@ -503,6 +503,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 				}
 
+
 			} catch (final Throwable t) {
 
 				clear();
