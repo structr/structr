@@ -222,6 +222,10 @@ ul#previewTabs {
 	transition: all	.1s ease-in-out;
 }
 
+.basic-container {
+	padding: 0 1rem;
+}
+
 /**
  * Submenu
  */

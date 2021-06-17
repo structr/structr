@@ -3520,7 +3520,7 @@ i.fa-trash-o {
 
 .class-id-attrs {
 	vertical-align: top;
-	line-height: 1.5rem;
+	line-height: 2rem;
 	pointer-events: none;
 }
 
@@ -4414,29 +4414,40 @@ div.row {
 
 div.option-tile {
 	float: left;
-	width: calc(50% - 10px);
-	padding-bottom: 10px;
+	width: calc(50% - 1rem);
+	padding-bottom: 2rem;
+	position: relative;
 }
 
 div.option-tile:nth-child(even) {
-	margin-left: 20px;
+	margin-left: 2rem;
 }
 
 div.option-tile.double {
 	width: calc(100%);
 }
 
-div.quick-access-options h3 {
-	margin-bottom: 0;
+#show-conditions-templates, #hide-conditions-templates {
+	position: absolute;
+	width: 25%;
+	right: 0%;
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
 }
 
-div.quick-access-options p {
-	margin: 0;
-}
+/*div.quick-access-options h3 {*/
+/*	margin-bottom: 0;*/
+/*}*/
 
-div.option-tile select, div.option-tile input[type="text"], div.option-tile select, div.option-tile input[type="password"] {
+/*div.quick-access-options p {*/
+/*	margin: 0;*/
+/*}*/
+
+div.option-tile select, div.option-tile input[type="text"], div.option-tile select, div.option-tile input[type="password"],
+div.option-tile textarea {
 	width: 100%;
 	box-sizing: border-box;
+	margin-top: .5rem;
 }
 
 div.option-tile h4 {
@@ -4444,8 +4455,13 @@ div.option-tile h4 {
 }
 
 div.option-tile label {
-	color: var(--solid-black);
+	/*color: var(--solid-black);*/
 	/*font-size: 8pt;*/
+	/*margin-bottom: .5rem;*/
+}
+
+textarea#content-input {
+	display: block;
 }
 
 button.icon-button {

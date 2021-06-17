@@ -76,7 +76,7 @@ var _Dialogs = {
 
 				showConditionsContainer.html(html);
 
-				_Dialogs.popuplateInputFields(showConditionsContainer, entity);
+				_Dialogs.populateInputFields(showConditionsContainer, entity);
 				_Dialogs.registerSimpleInputChangeHandlers(showConditionsContainer, entity);
 
 				let showConditionsInput  = $('input#show-conditions', showConditionsContainer);
@@ -108,7 +108,7 @@ var _Dialogs = {
 
 					let child = entity.children[0];
 
-					_Dialogs.popuplateInputFields(textContentContainer, child);
+					_Dialogs.populateInputFields(textContentContainer, child);
 					_Dialogs.registerSimpleInputChangeHandlers(textContentContainer, child, true);
 				});
 			}
@@ -124,7 +124,7 @@ var _Dialogs = {
 
 				repeaterConfigContainer.html(html);
 
-				_Dialogs.popuplateInputFields(repeaterConfigContainer, entity);
+				_Dialogs.populateInputFields(repeaterConfigContainer, entity);
 				_Dialogs.registerSimpleInputChangeHandlers(repeaterConfigContainer, entity);
 			});
 		}
@@ -204,7 +204,7 @@ var _Dialogs = {
 					});
 				}
 
-				_Dialogs.popuplateInputFields(el, entity);
+				_Dialogs.populateInputFields(el, entity);
 				_Dialogs.registerSimpleInputChangeHandlers(el, entity);
 				Structr.activateCommentsInElement(el);
 
@@ -221,7 +221,7 @@ var _Dialogs = {
 				el.empty();
 				el.append(html);
 
-				_Dialogs.popuplateInputFields(el, entity);
+				_Dialogs.populateInputFields(el, entity);
 				_Dialogs.registerSimpleInputChangeHandlers(el, entity);
 				Structr.activateCommentsInElement(el);
 
@@ -268,7 +268,7 @@ var _Dialogs = {
 		}
 
 	},
-	popuplateInputFields: function (el, entity) {
+	populateInputFields: function (el, entity) {
 
 		for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
 
@@ -294,7 +294,7 @@ var _Dialogs = {
 					el.empty();
 					el.append(html);
 
-					_Dialogs.popuplateInputFields(el, aHtmlProperties);
+					_Dialogs.populateInputFields(el, aHtmlProperties);
 					_Dialogs.registerSimpleInputChangeHandlers(el, aHtmlProperties);
 
 					_Dialogs.focusInput(el);
@@ -322,7 +322,7 @@ var _Dialogs = {
 					el.empty();
 					el.append(html);
 
-					_Dialogs.popuplateInputFields(el, buttonHtmlProperties);
+					_Dialogs.populateInputFields(el, buttonHtmlProperties);
 					_Dialogs.registerSimpleInputChangeHandlers(el, buttonHtmlProperties);
 
 					_Dialogs.focusInput(el);
@@ -349,7 +349,7 @@ var _Dialogs = {
 					el.empty();
 					el.append(html);
 
-					_Dialogs.popuplateInputFields(el, inputHtmlProperties);
+					_Dialogs.populateInputFields(el, inputHtmlProperties);
 					_Dialogs.registerSimpleInputChangeHandlers(el, inputHtmlProperties);
 
 					_Dialogs.focusInput(el);
@@ -372,7 +372,7 @@ var _Dialogs = {
 					el.empty();
 					el.append(html);
 
-					_Dialogs.popuplateInputFields(el, divHtmlProperties);
+					_Dialogs.populateInputFields(el, divHtmlProperties);
 					_Dialogs.registerSimpleInputChangeHandlers(el, divHtmlProperties);
 
 					_Dialogs.focusInput(el);
@@ -394,7 +394,7 @@ var _Dialogs = {
 				el.empty();
 				el.append(html);
 
-				_Dialogs.popuplateInputFields(el, entity);
+				_Dialogs.populateInputFields(el, entity);
 				_Dialogs.registerSimpleInputChangeHandlers(el, entity);
 
 				$('button#set-password-button').on('click', function(e) {
@@ -417,7 +417,7 @@ var _Dialogs = {
 				el.empty();
 				el.append(html);
 
-				_Dialogs.popuplateInputFields(el, entity);
+				_Dialogs.populateInputFields(el, entity);
 				_Dialogs.registerSimpleInputChangeHandlers(el, entity);
 
 				_Dialogs.focusInput(el);
@@ -437,7 +437,7 @@ var _Dialogs = {
 					el.empty();
 					el.append(html);
 
-					_Dialogs.popuplateInputFields(el, htmlProperties);
+					_Dialogs.populateInputFields(el, htmlProperties);
 					_Dialogs.registerSimpleInputChangeHandlers(el, htmlProperties);
 
 					_Dialogs.focusInput(el);
@@ -464,7 +464,7 @@ var _Dialogs = {
 					el.empty();
 					el.append(html);
 
-					_Dialogs.popuplateInputFields(el, htmlProperties);
+					_Dialogs.populateInputFields(el, htmlProperties);
 					_Dialogs.registerSimpleInputChangeHandlers(el, htmlProperties);
 
 					_Dialogs.focusInput(el);
@@ -490,7 +490,7 @@ var _Dialogs = {
 
 					let data = Object.assign({}, divHtmlProperties, entity);
 
-					_Dialogs.popuplateInputFields(el, data);
+					_Dialogs.populateInputFields(el, data);
 					_Dialogs.registerSimpleInputChangeHandlers(el, data);
 
 					_Dialogs.focusInput(el);

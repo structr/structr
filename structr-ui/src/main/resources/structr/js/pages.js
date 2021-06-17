@@ -755,24 +755,9 @@ var _Pages = {
 
 		let previewsContainer = document.querySelector('#previews');
 
-		let contentEditorContainer = document.querySelector('#previews .content-editor-container');
-		if (contentEditorContainer) {
-			previewsContainer.removeChild(contentEditorContainer);
-		}
-
-		let propertiesContainer = document.querySelector('#previews .properties-container');
-		if (propertiesContainer) {
-			previewsContainer.removeChild(propertiesContainer);
-		}
-
-		let repeaterContainer = document.querySelector('#previews .repeater-container');
-		if (repeaterContainer) {
-			previewsContainer.removeChild(repeaterContainer);
-		}
-
-		let visibilityContainer = document.querySelector('#previews .visibility-container');
-		if (visibilityContainer) {
-			previewsContainer.removeChild(visibilityContainer);
+		let contentContainer = document.querySelector('#previews .content-container');
+		if (contentContainer) {
+			previewsContainer.removeChild(contentContainer);
 		}
 
 		let obj = _Entities.selectedObject; // || _Entities.selectedObjects.element || _Entities.selectedObjects.contentNode;
@@ -794,14 +779,34 @@ var _Pages = {
 
 		switch (urlHash) {
 			case '#pages:basic':
+
+				let callbackObject = registeredDialogs[obj.type];
+
+				if (!callbackObject && obj.isDOMNode) {
+					callbackObject = registeredDialogs['DEFAULT_DOM_NODE'];
+				}
+
+				Structr.fetchHtmlTemplate('pages/basic', {}, (html) => {
+
+					previewsContainer.insertAdjacentHTML('beforeend', html);
+					propertiesContainer = document.querySelector('#previews .basic-container');
+
+					if (callbackObject) {
+						callbackObject.callback($(propertiesContainer), obj);
+					}
+
+				});
+
+
+				break;
+
 			case '#pages:advanced':
 
 				let view = urlHash.split(':')[1] === 'basic' ? 'general' : 'public';
-				console.log(subModule, view);
 
 				_Pages.hideAllPreviews();
 
-				propertiesContainer = document.querySelector('#previews .properties-container');
+				//propertiesContainer = document.querySelector('#previews .properties-container');
 
 				if (active) {
 
@@ -811,8 +816,6 @@ var _Pages = {
 						propertiesContainer = document.querySelector('#previews .properties-container');
 
 						_Schema.getTypeInfo(obj.type, function(typeInfo) {
-
-							// TODO: _Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
 
 							_Entities.listProperties(obj, view, $(propertiesContainer), typeInfo, function(properties) {
 
