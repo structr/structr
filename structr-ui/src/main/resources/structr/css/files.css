@@ -166,7 +166,7 @@
 }
 
 #folder-contents tr[id]:hover {
-	background: var(--structr-light-green) ! important;
+	background-color: var(--light-gray-bg-f5) ! important;
 }
 
 #folder-contents .nodeActive {
@@ -176,7 +176,7 @@
 
 #folder-contents .nodeHover, .image.nodeHover {
 	color: var(--gray-333) ! important;
-	background: var(--structr-light-green) ! important;
+	/*background: var(--structr-light-green) ! important;*/
 	/*border: 1px solid transparent;*/
 	z-index: 1;
 }
@@ -252,9 +252,9 @@
 	color: var(--gray-ddd);
 }
 
-#files-table tbody tr:hover td.id {
-	color: var(--solid-white);
-}
+/*#files-table tbody tr:hover td.id {*/
+/*	color: var(--solid-white);*/
+/*}*/
 
 #files-table tbody tr td .node {
 	min-width: 6rem;
@@ -565,7 +565,7 @@ div.xml-mapping td {
 }
 
 div.xml-mapping td:hover, div.xml-mapping td.selected {
-	background-color: var(--structr-green);
+	background-color: var(--structr-light-green-transparent);
 }
 
 div#left {

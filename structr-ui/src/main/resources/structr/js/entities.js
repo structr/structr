@@ -2087,7 +2087,7 @@ var _Entities = {
 
 		if (allowRecursive) {
 
-			row.append('<td><button class="action apply-to-child-nodes">Apply to child nodes</button></td>');
+			row.append('<td><button class="apply-to-child-nodes">Apply to child nodes</button></td>');
 
 			let button = row[0].querySelector('button.apply-to-child-nodes');
 

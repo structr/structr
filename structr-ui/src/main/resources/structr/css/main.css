@@ -1806,8 +1806,8 @@ button.action.disabled:hover {
 #code-main .selected, #code-main .selected:hover,
 #files-main .selected, #files-main .selected:hover {
 	color: var(--gray-333) ! important;
-	border: 1px solid transparent ! important;
-	background: var(--structr-green) ! important;
+	/*border: 1px solid transparent ! important;*/
+	background: var(--structr-light-green-transparent) ! important;
 }
 
 .node-helper {

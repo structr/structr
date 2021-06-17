@@ -46,9 +46,12 @@
    line-height: 2rem;
 }
 
-
 #filter-resource-access-grants {
    display: inline-block;
+}
+
+#filter-resource-access-grants input[type=checkbox] {
+   margin-left: 1rem;
 }
 
 /*#resourceAccess #resourceAccesses {*/
