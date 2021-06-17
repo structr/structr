@@ -1460,10 +1460,33 @@ var _Elements = {
 
 				if (isContent || isFile || isUser || isGroup) {
 					_Entities.deleteNode(this, entity);
+				} else if (isFile) {
+					_Entities.deleteNode(this, entity);
 				} else if (isFolder) {
-					_Entities.deleteNode(this, entity, true);
+
+					let selectedElements = document.querySelectorAll('.node.selected');
+					let selectedCount = selectedElements.length;
+					let el = Structr.node(entity.id)[0].closest('.folder');
+					if (selectedCount > 1 && el.classList.contains('selected')) {
+
+						let files = [];
+
+						selectedElements.forEach((el) => {
+							files.push(Structr.entityFromElement(el));
+						});
+
+						_Entities.deleteNodes(this, files, true, () => {
+							_Files.refreshTree();
+						});
+
+					} else {
+						_Entities.deleteNode(this, entity, true, () => {
+							_Files.refreshTree();
+						});
+					}
+
 				} else {
-					_Entities.deleteNode(this, entity, true, function () {
+					_Entities.deleteNode(this, entity, true, () => {
 						var synced = entity.syncedNodesIds;
 						if (synced && synced.length) {
 							synced.forEach(function (id) {
