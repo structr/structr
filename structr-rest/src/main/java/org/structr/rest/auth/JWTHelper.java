@@ -18,6 +18,10 @@
  */
 package org.structr.rest.auth;
 
+import com.auth0.jwk.Jwk;
+import com.auth0.jwk.JwkException;
+import com.auth0.jwk.JwkProvider;
+import com.auth0.jwk.UrlJwkProvider;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -41,12 +45,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
-import java.security.KeyStore;
-import java.security.PublicKey;
-import java.security.UnrecoverableKeyException;
+import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 
 public class JWTHelper {
@@ -73,6 +76,33 @@ public class JWTHelper {
 
                 final String provider = Settings.JWTSProvider.getValue();
 
+                if (provider != null) {
+
+                    try {
+                        DecodedJWT jwt = JWT.decode(token);
+
+                        final String kid = jwt.getKeyId();
+                        if (kid != null) {
+                            JwkProvider jwkProvider = new UrlJwkProvider(provider);
+                            Jwk jwk = jwkProvider.get(kid);
+
+                            Algorithm algorithm = Algorithm.RSA256((RSAPublicKey) jwk.getPublicKey(), null);
+
+                            JWTVerifier verifier = JWT.require(algorithm)
+                                    .withIssuer(provider)
+                                    .build();
+
+                            jwt = verifier.verify(token);
+
+                            user = getPrincipalForTokenClaims(jwt.getClaims(), eMailKey);
+                        }
+
+                    } catch (JwkException ex) {
+
+                        throw new FrameworkException(422, "Error while trying to process JWKS. ", ex);
+                    }
+                }
+
                 break;
         }
 
@@ -94,13 +124,15 @@ public class JWTHelper {
 
             case "keypair":
 
-                final Key publicKey = getPublicKeyForToken();
-                if (publicKey == null) {
+                final RSAPublicKey publicKey = getPublicKeyForToken();
+                final RSAPrivateKey privateKey = getPrivateKeyForToken();
+
+                if (publicKey == null || privateKey == null) {
 
                     break;
                 }
-                final Algorithm algorithm = Algorithm.HMAC256(publicKey.getEncoded());
-                claims = validateTokenWithKeystore(refreshToken, algorithm);
+
+                claims = validateTokenWithKeystore(refreshToken, Algorithm.RSA256(publicKey, privateKey));
                 break;
 
             case "jwks":
@@ -209,9 +241,9 @@ public class JWTHelper {
     }
 
     private static Principal getPrincipalForAccessTokenWithKeystore(String token, PropertyKey<String> eMailKey) throws FrameworkException  {
-
         Key publicKey = getPublicKeyForToken();
-        final Algorithm alg = Algorithm.HMAC256(publicKey.getEncoded());
+
+        final Algorithm alg = parseAlgorithm(publicKey.getAlgorithm());
         Map<String, Claim> claims = validateTokenWithKeystore(token, alg);
 
         if (claims == null) {
@@ -312,7 +344,8 @@ public class JWTHelper {
 
     private static Map<String, String> createTokensForUserWithKeystore(Principal user, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName) throws FrameworkException {
 
-        Key privateKey = getPrivateKeyForToken();
+        RSAPrivateKey privateKey = getPrivateKeyForToken();
+        RSAPublicKey publicKey = getPublicKeyForToken();
 
         if (privateKey == null) {
 
@@ -321,7 +354,8 @@ public class JWTHelper {
 
         final String jwtIssuer = Settings.JWTIssuer.getValue();
 
-        final Algorithm alg = Algorithm.HMAC256(privateKey.getEncoded());
+
+        final Algorithm alg = Algorithm.RSA256(publicKey, privateKey);
 
         return createTokens(user, alg, accessTokenExpirationDate, refreshTokenExpirationDate, instanceName, jwtIssuer);
     }
@@ -370,7 +404,7 @@ public class JWTHelper {
         return tokens;
     }
 
-    private static Key getPrivateKeyForToken() {
+    private static RSAPrivateKey getPrivateKeyForToken() {
 
         final String keyStorePath = Settings.JWTKeyStore.getValue();
         final String keyStorePassword = Settings.JWTKeyStorePassword.getValue();
@@ -382,7 +416,7 @@ public class JWTHelper {
             KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
             keystore.load(new FileInputStream(keyStoreFile), keyStorePassword.toCharArray());
 
-            Key privateKey = keystore.getKey(keyAlias, keyStorePassword.toCharArray());
+            final RSAPrivateKey privateKey = (RSAPrivateKey)keystore.getKey(keyAlias, keyStorePassword.toCharArray());
 
             return privateKey;
         } catch (IOException e) {
@@ -403,7 +437,7 @@ public class JWTHelper {
         return null;
     }
 
-    private static Key getPublicKeyForToken() {
+    private static RSAPublicKey getPublicKeyForToken() {
 
         final String keyStorePath = Settings.JWTKeyStore.getValue();
         final String keyStorePassword = Settings.JWTKeyStorePassword.getValue();
@@ -415,7 +449,7 @@ public class JWTHelper {
             keystore.load(new FileInputStream(keyStoreFile), keyStorePassword.toCharArray());
 
             Certificate cert = keystore.getCertificate(keyAlias);
-            PublicKey publicKey = cert.getPublicKey();
+            RSAPublicKey publicKey = (RSAPublicKey)cert.getPublicKey();
 
             return publicKey;
 
@@ -458,4 +492,14 @@ public class JWTHelper {
         return null;
     }
 
+
+    private static Algorithm parseAlgorithm(final String algString) {
+
+        switch (algString) {
+            case "RSA":
+                return Algorithm.RSA256(getPublicKeyForToken(), getPrivateKeyForToken());
+        }
+
+        return null;
+    }
 }
