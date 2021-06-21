@@ -298,10 +298,13 @@ $(function() {
 	live('.dropdown-select', 'click', (e) => {
 		e.stopPropagation();
 		e.preventDefault();
+
 		let menu = e.target.closest('.dropdown-menu');
-		let template = menu.dataset['template'];
-		let configString = menu.dataset['config'] || '{}';
-		let config = JSON.parse(menu.dataset['config'] || '{}');
+
+		let template       = menu.dataset['template'];
+		let config         = JSON.parse(menu.dataset['config'] || '{}');
+		let callbackString = menu.dataset['callback'];
+
 		Structr.fetchHtmlTemplate(template, config, function(html) {
 			let container = e.target.closest('.dropdown-menu').querySelector('.dropdown-menu-container');
 			if (container) {
@@ -312,6 +315,10 @@ $(function() {
 					container.style.opacity = '0';
 					fastRemoveAllChildren(container);
 				}
+			}
+
+			if (callbackString && callbackString.length) {
+				Structr.getActiveModule()[callbackString]();
 			}
 		});
 		return false;
@@ -1635,31 +1642,38 @@ var Structr = {
 			axis: 'x',
 			start: function(e, ui) {
 				$('.column-resizer-blocker').show();
-				let left = Math.min(window.innerWidth - minWidth, Math.max(minWidth, ui.position.left));
 			},
 			drag: function(e, ui) {
-
-				let left = Math.min(window.innerWidth - minWidth, Math.max(minWidth, ui.position.left));
-
-				// If there are two resizer elements, distance between resizers
-				// must always be larger than minWidth.
-				if ($(this).hasClass('column-resizer-left') && $('.column-resizer-right').length > 0) {
-					left = Math.min(left, $('.column-resizer-right').position().left - minWidth);
-				} else if ($(this).hasClass('column-resizer-right') && $('.column-resizer-left').length > 0) {
-					left = Math.max(left, $('.column-resizer-left').position().left + minWidth);
-				}
-
-				ui.position.left = left;
-				let val = (isRight === true) ? window.innerWidth - ui.position.left : ui.position.left;
-				dragCallback(val);
+				dragCallback(Structr.getSliderValueForDragCallback(ui.position.left, minWidth, isRight));
 			},
 			stop: function(e, ui) {
 				$('.column-resizer-blocker').hide();
-				let val = (isRight === true) ? window.innerWidth - ui.position.left : ui.position.left;
-				LSWrapper.setItem(localstorageKey, val);
+				LSWrapper.setItem(localstorageKey, Structr.getSliderValueForDragCallback(ui.position.left, minWidth, isRight));
 			}
 		});
 
+	},
+	getSliderValueForDragCallback: (leftPos, minWidth, isRight) => {
+		let val = (isRight === true) ? Math.max(minWidth, window.innerWidth - leftPos) : Math.max(minWidth, leftPos);
+
+		// If there are two resizer elements, distance between resizers must always be larger than minWidth.
+		let leftResizer = document.querySelector('.column-resizer-left');
+		let rightResizer = document.querySelector('.column-resizer-right');
+		if (isRight && !leftResizer.classList.contains('hidden')) {
+			let leftResizerLeft = leftResizer.getBoundingClientRect().left;
+			val = Math.min(val, window.innerWidth - leftResizerLeft - minWidth + leftResizer.getBoundingClientRect().width + 3);
+		} else if (!isRight && rightResizer && !rightResizer.classList.contains('hidden')) {
+			let rightResizerLeft = rightResizer.getBoundingClientRect().left;
+			val = Math.min(val, rightResizerLeft - minWidth);
+		} else if (isRight && leftResizer.classList.contains('hidden')) {
+			let rightResizerLeft = rightResizer.getBoundingClientRect().left;
+			val = Math.min(val, window.innerWidth - minWidth);
+		} else if (!isRight && rightResizer && rightResizer.classList.contains('hidden')) {
+			val = Math.min(val, window.innerWidth - minWidth);
+		}
+
+		// console.log(isRight, leftResizer.classList.contains('hidden'), rightResizer.classList.contains('hidden'), val);
+		return val;
 	},
 	appendInfoTextToElement: function(config) {
 

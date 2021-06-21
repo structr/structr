@@ -913,7 +913,7 @@ var _Schema = {
 			});
 		}
 
-		headContentDiv.append('<div id="tabs" style="margin-top:20px;"><ul></ul></div>');
+		headContentDiv.append('<div id="tabs"><ul></ul></div>');
 		let mainTabs = $('#tabs', headContentDiv);
 
 		let contentDiv = $('<div class="schema-details"></div>');
@@ -1042,6 +1042,10 @@ var _Schema = {
 
 			$('#source-type-name').text(sourceTypeName);
 			$('#target-type-name').text(targetTypeName);
+
+			dialogBtn.prepend('<button id="edit-rel-options-button"><i class="edit icon ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /> Edit relationship options</button>\n' +
+				'<button id="save-rel-options-button"><i class="save icon ' + _Icons.getFullSpriteClass(_Icons.tick_icon) +'" /> Save</button>\n' +
+				'<button id="cancel-rel-options-button"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) +'" /> Discard</button>\n');
 
 			$('#edit-rel-options-button').hide();
 			let saveButton = $('#save-rel-options-button');
@@ -3398,96 +3402,98 @@ var _Schema = {
 	appendSnapshotsDialogToContainer: function(container) {
 
 		Structr.fetchHtmlTemplate('schema/snapshots', {}, function (html) {
-
 			container.append(html);
+			_Schema.activateSnapshotsDialog();
+		});
+	},
+	activateSnapshotsDialog: () => {
 
-			var table = $('#snapshots');
+		var table = $('#snapshots');
 
-			var refresh = function() {
+		var refresh = function() {
 
-				table.empty();
+			table.empty();
 
-				Command.snapshots('list', '', null, function(result) {
+			Command.snapshots('list', '', null, function(result) {
 
-					result.forEach(function(data) {
+				result.forEach(function(data) {
 
-						var snapshots = data.snapshots;
+					var snapshots = data.snapshots;
 
-						snapshots.forEach(function(snapshot, i) {
-							table.append('<tr><td class="snapshot-link name-' + i + '"><a href="#">' + snapshot + '</td><td style="text-align:right;"><button id="restore-' + i + '">Restore</button><button id="add-' + i + '">Add</button><button id="delete-' + i + '">Delete</button></td></tr>');
+					snapshots.forEach(function(snapshot, i) {
+						table.append('<tr><td class="snapshot-link name-' + i + '"><a href="#">' + snapshot + '</td><td style="text-align:right;"><button id="restore-' + i + '">Restore</button><button id="add-' + i + '">Add</button><button id="delete-' + i + '">Delete</button></td></tr>');
 
-							$('.name-' + i + ' a').off('click').on('click', function() {
-								Command.snapshots("get", snapshot, null, function(data) {
+						$('.name-' + i + ' a').off('click').on('click', function() {
+							Command.snapshots("get", snapshot, null, function(data) {
 
-									var element = document.createElement('a');
-									element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.schemaJson));
-									element.setAttribute('download', snapshot);
+								var element = document.createElement('a');
+								element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.schemaJson));
+								element.setAttribute('download', snapshot);
 
-									element.style.display = 'none';
-									document.body.appendChild(element);
+								element.style.display = 'none';
+								document.body.appendChild(element);
 
-									element.click();
-									document.body.removeChild(element);
-								});
+								element.click();
+								document.body.removeChild(element);
 							});
+						});
 
-							$('#restore-' + i).off('click').on('click', function() {
-								_Schema.performSnapshotAction('restore', snapshot);
-							});
-							$('#add-' + i).off('click').on('click', function() {
-								_Schema.performSnapshotAction('add', snapshot);
-							});
-							$('#delete-' + i).off('click').on('click', function() {
-								Command.snapshots('delete', snapshot, null, refresh);
-							});
+						$('#restore-' + i).off('click').on('click', function() {
+							_Schema.performSnapshotAction('restore', snapshot);
+						});
+						$('#add-' + i).off('click').on('click', function() {
+							_Schema.performSnapshotAction('add', snapshot);
+						});
+						$('#delete-' + i).off('click').on('click', function() {
+							Command.snapshots('delete', snapshot, null, refresh);
 						});
 					});
 				});
-			};
+			});
+		};
 
-			$('#create-snapshot').off('click').on('click', function() {
+		$('#create-snapshot').off('click').on('click', function() {
 
-				var suffix = $('#snapshot-suffix').val();
+			var suffix = $('#snapshot-suffix').val();
 
-				var types = [];
-				if (_Schema.ui.selectedNodes && _Schema.ui.selectedNodes.length) {
-					_Schema.ui.selectedNodes.forEach(function(selectedNode) {
-						types.push(selectedNode.name);
-					});
+			var types = [];
+			if (_Schema.ui.selectedNodes && _Schema.ui.selectedNodes.length) {
+				_Schema.ui.selectedNodes.forEach(function(selectedNode) {
+					types.push(selectedNode.name);
+				});
 
-					$('.label.rel-type', canvas).each(function(idx, el) {
-						var $el = $(el);
+				$('.label.rel-type', canvas).each(function(idx, el) {
+					var $el = $(el);
 
-						var sourceType = $el.children('div').attr('data-source-type');
-						var targetType = $el.children('div').attr('data-target-type');
+					var sourceType = $el.children('div').attr('data-source-type');
+					var targetType = $el.children('div').attr('data-target-type');
 
-						// include schema relationship if both source and target type are selected
-						if (types.indexOf(sourceType) !== -1 && types.indexOf(targetType) !== -1) {
-							types.push($el.children('div').attr('data-name'));
-						}
-					});
+					// include schema relationship if both source and target type are selected
+					if (types.indexOf(sourceType) !== -1 && types.indexOf(targetType) !== -1) {
+						types.push($el.children('div').attr('data-name'));
+					}
+				});
+			}
+
+			Command.snapshots('export', suffix, types, function(data) {
+
+				var status = data[0].status;
+				if (dialogBox.is(':visible')) {
+
+					if (status === 'success') {
+						Structr.showAndHideInfoBoxMessage('Snapshot successfully created', 'success', 2000, 200);
+					} else {
+						Structr.showAndHideInfoBoxMessage('Snapshot creation failed', 'error', 2000, 200);
+					}
 				}
 
-				Command.snapshots('export', suffix, types, function(data) {
-
-					var status = data[0].status;
-					if (dialogBox.is(':visible')) {
-
-						if (status === 'success') {
-							Structr.showAndHideInfoBoxMessage('Snapshot successfully created', 'success', 2000, 200);
-						} else {
-							Structr.showAndHideInfoBoxMessage('Snapshot creation failed', 'error', 2000, 200);
-						}
-					}
-
-					refresh();
-				});
+				refresh();
 			});
-
-			$('#refresh-snapshots').off('click').on('click', refresh);
-			refresh();
-
 		});
+
+		$('#refresh-snapshots').off('click').on('click', refresh);
+		refresh();
+
 	},
 	performSnapshotAction: function (action, snapshot) {
 
@@ -3508,192 +3514,226 @@ var _Schema = {
 	appendAdminToolsToContainer: function(container) {
 
 		Structr.fetchHtmlTemplate('schema/admin-tools', {}, function(html) {
-
 			container.append(html);
-
-			var registerSchemaToolButtonAction = function (btn, target, connectedSelectElement, getPayloadFunction) {
-
-				btn.off('click').on('click', function(e) {
-					e.preventDefault();
-					var oldHtml = btn.html();
-
-					var transportAction = function (target, payload) {
-
-						Structr.updateButtonWithAjaxLoaderAndText(btn, oldHtml);
-						$.ajax({
-							url: rootUrl + 'maintenance/' + target,
-							type: 'POST',
-							data: JSON.stringify(payload),
-							contentType: 'application/json',
-							statusCode: {
-								200: function() {
-									Structr.updateButtonWithSuccessIcon(btn, oldHtml);
-								}
-							}
-						});
-					};
-
-					if (!connectedSelectElement) {
-						transportAction(target, {});
-
-					} else {
-						var type = connectedSelectElement.val();
-						if (!type) {
-							blinkRed(connectedSelectElement);
-						} else {
-							transportAction(target, ((typeof getPayloadFunction === "function") ? getPayloadFunction(type) : {}));
-						}
-					}
-				});
-			};
-
-			registerSchemaToolButtonAction($('#rebuild-index'), 'rebuildIndex');
-			registerSchemaToolButtonAction($('#flush-caches'), 'flushCaches');
-
-			$('#clear-schema').off('click').on('click', function(e) {
-				Structr.confirmation('<h3>Delete schema?</h3><p>This will remove all dynamic schema information, but not your other data.</p><p>&nbsp;</p>', function() {
-					$.unblockUI({
-						fadeOut: 25
-					});
-
-					_Schema.showSchemaRecompileMessage();
-					Command.snapshots("purge", undefined, undefined, function () {
-						_Schema.reload();
-						_Schema.hideSchemaRecompileMessage();
-					});
-				});
-			});
-
-			var nodeTypeSelector = $('#node-type-selector');
-			Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name', function(nodes) {
-				nodes.forEach(function(node) {
-					nodeTypeSelector.append('<option>' + node.name + '</option>');
-				});
-			});
-
-			registerSchemaToolButtonAction($('#reindex-nodes'), 'rebuildIndex', nodeTypeSelector, function (type) {
-				return (type === 'allNodes') ? {'mode': 'nodesOnly'} : {'mode': 'nodesOnly', 'type': type};
-			});
-
-			registerSchemaToolButtonAction($('#add-node-uuids'), 'setUuid', nodeTypeSelector, function (type) {
-				return (type === 'allNodes') ? {'allNodes': true} : {'type': type};
-			});
-
-			registerSchemaToolButtonAction($('#create-labels'), 'createLabels', nodeTypeSelector, function (type) {
-				return (type === 'allNodes') ? {} : {'type': type};
-			});
-
-			var relTypeSelector = $('#rel-type-selector');
-			Command.list('SchemaRelationshipNode', true, 1000, 1, 'relationshipType', 'asc', 'id,relationshipType', function(rels) {
-				rels.forEach(function(rel) {
-					relTypeSelector.append('<option>' + rel.relationshipType + '</option>');
-				});
-			});
-
-			registerSchemaToolButtonAction($('#reindex-rels'), 'rebuildIndex', relTypeSelector, function (type) {
-				return (type === 'allRels') ? {'mode': 'relsOnly'} : {'mode': 'relsOnly', 'type': type};
-			});
-
-			registerSchemaToolButtonAction($('#add-rel-uuids'), 'setUuid', relTypeSelector, function (type) {
-				return (type === 'allRels') ? {'allRels': true} : {'relType': type};
-			});
-
-			let showJavaMethodsCheckbox = $('#show-java-methods-in-schema-checkbox');
-			if (showJavaMethodsCheckbox) {
-				showJavaMethodsCheckbox.prop("checked", _Schema.showJavaMethods);
-				showJavaMethodsCheckbox.on('click', function() {
-					_Schema.showJavaMethods = showJavaMethodsCheckbox.prop('checked');
-					LSWrapper.setItem(_Schema.showJavaMethodsKey, _Schema.showJavaMethods);
-					blinkGreen(showJavaMethodsCheckbox.parent());
-				});
-			}
+			_Schema.activateAdminTools();
 		});
 	},
-	appendLayoutToolsToContainer: function(container) {
+	activateAdminTools: () => {
 
-		Structr.fetchHtmlTemplate('schema/layout-tools', {}, function(html) {
+		var registerSchemaToolButtonAction = function (btn, target, connectedSelectElement, getPayloadFunction) {
 
-			container.append(html);
+			btn.off('click').on('click', function(e) {
+				e.preventDefault();
+				var oldHtml = btn.html();
 
-			$('#reset-schema-positions', container).off('click').on('click', _Schema.clearPositions);
-			var layoutSelector        = $('#saved-layout-selector', container);
-			var layoutNameInput       = $('#layout-name', container);
-			var createNewLayoutButton = $('#create-new-layout', container);
-			var updateLayoutButton    = $('#update-layout', container);
-			var restoreLayoutButton   = $('#restore-layout', container);
-			var downloadLayoutButton  = $('#download-layout', container);
-			var deleteLayoutButton    = $('#delete-layout', container);
+				var transportAction = function (target, payload) {
 
-			var layoutSelectorChangeHandler = function () {
-
-				let selectedOption = $(':selected:not(:disabled)', layoutSelector);
-
-				if (selectedOption.length === 0) {
-
-					Structr.disableButton(updateLayoutButton);
-					Structr.disableButton(restoreLayoutButton);
-					Structr.disableButton(downloadLayoutButton);
-					Structr.disableButton(deleteLayoutButton);
-
-				} else {
-
-					Structr.enableButton(restoreLayoutButton);
-					Structr.enableButton(downloadLayoutButton);
-
-					let optGroup    = selectedOption.closest('optgroup');
-					let username    = optGroup.prop('label');
-					let isOwnerless = optGroup.data('ownerless') === true;
-
-					if (isOwnerless || username === me.username) {
-						Structr.enableButton(updateLayoutButton);
-						Structr.enableButton(deleteLayoutButton);
-					} else {
-						Structr.disableButton(updateLayoutButton);
-						Structr.disableButton(deleteLayoutButton);
-					}
-				}
-			};
-			layoutSelectorChangeHandler();
-
-			layoutSelector.on('change', layoutSelectorChangeHandler);
-
-			createNewLayoutButton.click(function() {
-
-				var layoutName = layoutNameInput.val();
-
-				if (layoutName && layoutName.length) {
-
-					Command.createApplicationConfigurationDataNode('layout', layoutName, JSON.stringify(_Schema.getSchemaLayoutConfiguration()), function(data) {
-
-						if (!data.error) {
-
-							new MessageBuilder().success("Layout saved").show();
-
-							_Schema.updateGroupedLayoutSelector([layoutSelector, _Schema.globalLayoutSelector], layoutSelectorChangeHandler);
-							layoutNameInput.val('');
-
-							blinkGreen(layoutSelector);
-
-						} else {
-
-							new MessageBuilder().error().title(data.error).text(data.message).show();
+					Structr.updateButtonWithAjaxLoaderAndText(btn, oldHtml);
+					$.ajax({
+						url: rootUrl + 'maintenance/' + target,
+						type: 'POST',
+						data: JSON.stringify(payload),
+						contentType: 'application/json',
+						statusCode: {
+							200: function() {
+								Structr.updateButtonWithSuccessIcon(btn, oldHtml);
+							}
 						}
 					});
+				};
+
+				if (!connectedSelectElement) {
+					transportAction(target, {});
 
 				} else {
-					Structr.error('Schema layout name is required.');
+					var type = connectedSelectElement.val();
+					if (!type) {
+						blinkRed(connectedSelectElement);
+					} else {
+						transportAction(target, ((typeof getPayloadFunction === "function") ? getPayloadFunction(type) : {}));
+					}
 				}
 			});
+		};
 
-			updateLayoutButton.click(function() {
+		registerSchemaToolButtonAction($('#rebuild-index'), 'rebuildIndex');
+		registerSchemaToolButtonAction($('#flush-caches'), 'flushCaches');
 
-				var selectedLayout = layoutSelector.val();
+		$('#clear-schema').off('click').on('click', function(e) {
+			Structr.confirmation('<h3>Delete schema?</h3><p>This will remove all dynamic schema information, but not your other data.</p><p>&nbsp;</p>', function() {
+				$.unblockUI({
+					fadeOut: 25
+				});
 
-				Command.setProperty(selectedLayout, 'content', JSON.stringify(_Schema.getSchemaLayoutConfiguration()), false, function(data) {
+				_Schema.showSchemaRecompileMessage();
+				Command.snapshots("purge", undefined, undefined, function () {
+					_Schema.reload();
+					_Schema.hideSchemaRecompileMessage();
+				});
+			});
+		});
+
+		var nodeTypeSelector = $('#node-type-selector');
+		Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name', function(nodes) {
+			nodes.forEach(function(node) {
+				nodeTypeSelector.append('<option>' + node.name + '</option>');
+			});
+		});
+
+		registerSchemaToolButtonAction($('#reindex-nodes'), 'rebuildIndex', nodeTypeSelector, function (type) {
+			return (type === 'allNodes') ? {'mode': 'nodesOnly'} : {'mode': 'nodesOnly', 'type': type};
+		});
+
+		registerSchemaToolButtonAction($('#add-node-uuids'), 'setUuid', nodeTypeSelector, function (type) {
+			return (type === 'allNodes') ? {'allNodes': true} : {'type': type};
+		});
+
+		registerSchemaToolButtonAction($('#create-labels'), 'createLabels', nodeTypeSelector, function (type) {
+			return (type === 'allNodes') ? {} : {'type': type};
+		});
+
+		var relTypeSelector = $('#rel-type-selector');
+		Command.list('SchemaRelationshipNode', true, 1000, 1, 'relationshipType', 'asc', 'id,relationshipType', function(rels) {
+			rels.forEach(function(rel) {
+				relTypeSelector.append('<option>' + rel.relationshipType + '</option>');
+			});
+		});
+
+		registerSchemaToolButtonAction($('#reindex-rels'), 'rebuildIndex', relTypeSelector, function (type) {
+			return (type === 'allRels') ? {'mode': 'relsOnly'} : {'mode': 'relsOnly', 'type': type};
+		});
+
+		registerSchemaToolButtonAction($('#add-rel-uuids'), 'setUuid', relTypeSelector, function (type) {
+			return (type === 'allRels') ? {'allRels': true} : {'relType': type};
+		});
+
+		let showJavaMethodsCheckbox = $('#show-java-methods-in-schema-checkbox');
+		if (showJavaMethodsCheckbox) {
+			showJavaMethodsCheckbox.prop("checked", _Schema.showJavaMethods);
+			showJavaMethodsCheckbox.on('click', function() {
+				_Schema.showJavaMethods = showJavaMethodsCheckbox.prop('checked');
+				LSWrapper.setItem(_Schema.showJavaMethodsKey, _Schema.showJavaMethods);
+				blinkGreen(showJavaMethodsCheckbox.parent());
+			});
+		}
+	},
+	appendLayoutToolsToContainer: function(container) {
+		Structr.fetchHtmlTemplate('schema/layout-tools', {}, function(html) {
+			container.append(html);
+			_Schema.activateLayoutTools();
+		});
+	},
+	activateLayoutTools: () => {
+
+		console.log('activateLayoutTools');
+
+		$('#reset-schema-positions').off('click').on('click', _Schema.clearPositions);
+		var layoutSelector        = $('#saved-layout-selector');
+		var layoutNameInput       = $('#layout-name');
+		var createNewLayoutButton = $('#create-new-layout');
+		var updateLayoutButton    = $('#update-layout');
+		var restoreLayoutButton   = $('#restore-layout');
+		var downloadLayoutButton  = $('#download-layout');
+		var deleteLayoutButton    = $('#delete-layout');
+
+		var layoutSelectorChangeHandler = function () {
+
+			let selectedOption = $(':selected:not(:disabled)', layoutSelector);
+
+			if (selectedOption.length === 0) {
+
+				Structr.disableButton(updateLayoutButton);
+				Structr.disableButton(restoreLayoutButton);
+				Structr.disableButton(downloadLayoutButton);
+				Structr.disableButton(deleteLayoutButton);
+
+			} else {
+
+				Structr.enableButton(restoreLayoutButton);
+				Structr.enableButton(downloadLayoutButton);
+
+				let optGroup    = selectedOption.closest('optgroup');
+				let username    = optGroup.prop('label');
+				let isOwnerless = optGroup.data('ownerless') === true;
+
+				if (isOwnerless || username === me.username) {
+					Structr.enableButton(updateLayoutButton);
+					Structr.enableButton(deleteLayoutButton);
+				} else {
+					Structr.disableButton(updateLayoutButton);
+					Structr.disableButton(deleteLayoutButton);
+				}
+			}
+		};
+		layoutSelectorChangeHandler();
+
+		layoutSelector.on('change', layoutSelectorChangeHandler);
+
+		updateLayoutButton.click(function() {
+
+			var selectedLayout = layoutSelector.val();
+
+			Command.setProperty(selectedLayout, 'content', JSON.stringify(_Schema.getSchemaLayoutConfiguration()), false, function(data) {
+
+				if (!data.error) {
+
+					new MessageBuilder().success("Layout saved").show();
+
+					blinkGreen(layoutSelector);
+
+				} else {
+
+					new MessageBuilder().error().title(data.error).text(data.message).show();
+				}
+			});
+		});
+
+		restoreLayoutButton.click(function() {
+			_Schema.restoreLayout(layoutSelector);
+		});
+
+		downloadLayoutButton.click(function() {
+
+			var selectedLayout = layoutSelector.val();
+
+			Command.getApplicationConfigurationDataNode(selectedLayout, function(data) {
+
+				var element = document.createElement('a');
+				element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify({name:data.name, content: JSON.parse(data.content)})));
+				element.setAttribute('download', selectedLayout + '.json');
+
+				element.style.display = 'none';
+				document.body.appendChild(element);
+
+				element.click();
+				document.body.removeChild(element);
+			});
+		});
+
+		deleteLayoutButton.click(function() {
+
+			var selectedLayout = layoutSelector.val();
+
+			Command.deleteNode(selectedLayout, false, function() {
+				_Schema.updateGroupedLayoutSelector([layoutSelector, _Schema.globalLayoutSelector], layoutSelectorChangeHandler);
+				blinkGreen(layoutSelector);
+			});
+		});
+
+		createNewLayoutButton.on('click', () => {
+
+			var layoutName = layoutNameInput.val();
+
+			if (layoutName && layoutName.length) {
+
+				Command.createApplicationConfigurationDataNode('layout', layoutName, JSON.stringify(_Schema.getSchemaLayoutConfiguration()), function(data) {
 
 					if (!data.error) {
 
 						new MessageBuilder().success("Layout saved").show();
+
+						_Schema.updateGroupedLayoutSelector([layoutSelector, _Schema.globalLayoutSelector], layoutSelectorChangeHandler);
+						layoutNameInput.val('');
 
 						blinkGreen(layoutSelector);
 
@@ -3702,42 +3742,14 @@ var _Schema = {
 						new MessageBuilder().error().title(data.error).text(data.message).show();
 					}
 				});
-			});
 
-			restoreLayoutButton.click(function() {
-				_Schema.restoreLayout(layoutSelector);
-			});
+			} else {
+				Structr.error('Schema layout name is required.');
+			}
 
-			downloadLayoutButton.click(function() {
-
-				var selectedLayout = layoutSelector.val();
-
-				Command.getApplicationConfigurationDataNode(selectedLayout, function(data) {
-
-					var element = document.createElement('a');
-					element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify({name:data.name, content: JSON.parse(data.content)})));
-					element.setAttribute('download', selectedLayout + '.json');
-
-					element.style.display = 'none';
-					document.body.appendChild(element);
-
-					element.click();
-					document.body.removeChild(element);
-				});
-			});
-
-			deleteLayoutButton.click(function() {
-
-				var selectedLayout = layoutSelector.val();
-
-				Command.deleteNode(selectedLayout, false, function() {
-					_Schema.updateGroupedLayoutSelector([layoutSelector, _Schema.globalLayoutSelector], layoutSelectorChangeHandler);
-					blinkGreen(layoutSelector);
-				});
-			});
-
-			_Schema.updateGroupedLayoutSelector([layoutSelector, _Schema.globalLayoutSelector], layoutSelectorChangeHandler);
 		});
+
+		_Schema.updateGroupedLayoutSelector([layoutSelector, _Schema.globalLayoutSelector], layoutSelectorChangeHandler);
 	},
 	updateGroupedLayoutSelector: function(layoutSelectors, callback) {
 
@@ -3880,20 +3892,20 @@ var _Schema = {
 		};
 	},
 	openSchemaToolsDialog: function() {
-		Structr.dialog('Schema Tools', function() {}, function() {});
+		Structr.dialog('', function() {}, function() {});
 
 		var id = "schema-tools";
-		dialogHead.append('<div id="' + id + '_head"><div id="tabs" style="margin-top:20px;"><ul id="schema-tools-tabs"></ul></div></div>');
+		dialogHead.append('<div id="' + id + '_head"><div id="tabs"><ul id="schema-tools-tabs"></ul></div></div>');
 		dialogText.append('<div id="' + id + '_content"></div>');
 
 		var mainTabs = $('#tabs', dialogHead);
 		var contentDiv = $('#' + id + '_content', dialogText);
 
 		var ul = mainTabs.children('ul');
-		ul.append('<li data-name="admin">Admin</li>');
-		ul.append('<li data-name="layout">Layouts</li>');
-		ul.append('<li data-name="visibility">Visibility</li>');
-		ul.append('<li data-name="snapshots">Snapshots</li>');
+		// ul.append('<li data-name="admin">Admin</li>');
+		// ul.append('<li data-name="layout">Layouts</li>');
+		// ul.append('<li data-name="visibility">Visibility</li>');
+		// ul.append('<li data-name="snapshots">Snapshots</li>');
 
 		var activateTab = function(tabName) {
 			$('.tools-tab-content', contentDiv).hide();
@@ -3911,14 +3923,14 @@ var _Schema = {
 		contentDiv.append('<div class="tab tools-tab-content" id="tabView-admin"></div>');
 		_Schema.appendAdminToolsToContainer($('#tabView-admin', contentDiv));
 
-		contentDiv.append('<div class="tab tools-tab-content" id="tabView-layout"></div>');
-		_Schema.appendLayoutToolsToContainer($('#tabView-layout', contentDiv));
+		// contentDiv.append('<div class="tab tools-tab-content" id="tabView-layout"></div>');
+		// _Schema.appendLayoutToolsToContainer($('#tabView-layout', contentDiv));
 
 		contentDiv.append('<div class="tab tools-tab-content" id="tabView-visibility"></div>');
 		_Schema.appendTypeVisibilityOptionsToContainer($('#tabView-visibility', contentDiv));
 
-		contentDiv.append('<div class="tab tools-tab-content" id="tabView-snapshots"></div>');
-		_Schema.appendSnapshotsDialogToContainer($('#tabView-snapshots', contentDiv));
+		// contentDiv.append('<div class="tab tools-tab-content" id="tabView-snapshots"></div>');
+		// _Schema.appendSnapshotsDialogToContainer($('#tabView-snapshots', contentDiv));
 
 		var activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedTabLevel1Key) || 'admin';
 		activateTab(activeTab);

@@ -98,17 +98,22 @@
 }
 
 .resourceBox th {
-	padding: 4px;
+	padding: .25rem 1rem;
 	text-align: left;
 	vertical-align: top;
 	height: 1em;
+	background-color: var(--input-background);
+	/*color: var(--gray-333);*/
+	/*vertical-align: top;*/
+	min-width: 10rem;
 }
 
 .resourceBox td {
-	padding: 4px;
-	text-align: left;
-	vertical-align: top;
-	height: 1em;
+	padding: .5rem 1rem;
+	/*text-align: left;*/
+	/*vertical-align: top;*/
+	/*height: 1em;*/
+	position: relative;
 }
 
 .resourceBox tr:nth-child(odd) {
@@ -119,32 +124,26 @@
 	background: var(--solid-white) ! important;
 }
 
-.resourceBox th {
-	background: var(--input-background);
-	color: var(--gray-333);
-	vertical-align: top;
-	min-width: 60px;
-}
-
 /* allows table headers to be sticky */
 .crud-table thead th {
-	position: -webkit-sticky;
-	position: -moz-sticky;
-	position: -ms-sticky;
-	position: -o-sticky;
 	position: sticky;
 	top: 0;
 	z-index: 1;
 	white-space: nowrap;
 	vertical-align: middle;
+	font-weight: 600;
 }
 
-/* adds an outline to the table head elements because when using position:sticky the regular border is not rendered */
-.crud-table th {
-	outline-offset: -1px;
-	border-top: none;
-	border-bottom: none;
+.column-sorted-active {
+	color: var(--body-text) ! important;
 }
+
+/*!* adds an outline to the table head elements because when using position:sticky the regular border is not rendered *!*/
+/*.crud-table th {*/
+/*	outline-offset: -1px;*/
+/*	border-top: none;*/
+/*	border-bottom: none;*/
+/*}*/
 
 .crud-table tbody tr:first-child td {
 	border-top: none;
@@ -160,15 +159,11 @@
     margin: 7px 0 6px 2px;
 }
 
-.column-sorted-active {
-	color: var(--body-text) ! important;
-}
-
 .resourceBox th i {
 	cursor: pointer;
 	display: inline-block;
 	vertical-align: middle;
-	margin-right: 4px;
+	margin-right: .5rem;
 	opacity: .6;
 }
 
@@ -250,8 +245,22 @@ input.readonly {
 
 .resourceBox td .node .remove {
 	position: absolute;
-	right: 3px;
+	right: .5rem;
 }
+
+.crud-clear-value {
+	/*float: right;*/
+	/*margin-left: 4px;*/
+	opacity: .6;
+	position: absolute;
+	right: .5rem;
+}
+
+.crud-clear-value:hover {
+	cursor: pointer;
+	opacity: .8;
+}
+
 
 .resourceBox td .thumbnailZoom,
 #relatedNodesList .node .thumbnailZoom {
@@ -352,17 +361,6 @@ i.clearSearchIcon {
 img.loader {
 	vertical-align: middle;
 	margin-right: 12px;
-}
-
-.crud-clear-value {
-	float: right;
-	margin-left: 4px;
-	opacity: .6;
-}
-
-.crud-clear-value:hover {
-	cursor: pointer;
-	opacity: .8;
 }
 
 /*

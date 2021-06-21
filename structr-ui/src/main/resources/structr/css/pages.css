@@ -102,8 +102,12 @@ ul#previewTabs {
 
 #function-bar-switch {
 	background-color: var(--solid-white);
-	display: inline-block;
+	/*display: inline-block;*/
 	margin-left: -.75rem ! important;
+}
+
+#function-bar-switch.hidden {
+	display: none;
 }
 
 #function-bar-switch:hover {
@@ -111,16 +115,16 @@ ul#previewTabs {
 
 #pagesPager {
 	transition: margin-left .1s ease-in-out;
-	/*display: inline-block;*/
+	display: inline-block;
 	/*margin-left: 4rem;*/
-	padding-left: 3rem;
-	/*position: absolute;*/
-	/*left: 0;*/
+	/*padding-left: 3rem;*/
+	position: absolute;
+	left: 4rem;
 	/*background-color: var(--solid-white);*/
 }
 
 #pagesPager.hidden {
-	display: inline-block;
+	/*display: inline-block;*/
 	margin-left: -60rem;
 }
 
@@ -234,10 +238,14 @@ ul#previewTabs {
 	transition: all	.1s ease-in-out;
 }
 
+#function-bar .tabs-menu.hidden, #function-bar .tabs-menu li.hidden {
+	display: none;
+}
+
 /**
- * Repeater config and Visibility
+ * Repeater config and security
  */
-.repeater-container, .visibility-container {
+.repeater-container, .security-container {
 	padding: 0 1rem;
 }
 
@@ -245,7 +253,7 @@ ul#previewTabs {
 	margin-top: 2rem;
 }
 
-.visibility-container button.switch {
+.security-container button.switch {
 	min-width: 14rem;
 }
 

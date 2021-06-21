@@ -337,7 +337,7 @@ input[type="checkbox"] {
 	color: var(--icon-stroke);
 	position: absolute;
 	top: 1rem;
-	display: inline-block;
+	/*display: inline-block;*/
 	float: right;
 	margin: .25rem 1rem 0 1rem;
 }
@@ -2147,7 +2147,7 @@ button.disabled, i.disabled {
 	background-position: calc(100% - .5rem) calc(100% - .6rem);
 	background-color: var(--solid-white);
 	padding-right: 2rem;
-	width: 12rem;
+	/*width: 12rem;*/
 }
 
 .dropdown-menu-large .dropdown-menu-container {
@@ -2174,10 +2174,12 @@ button.disabled, i.disabled {
 }
 
 .dropdown-menu-container > .heading-row {
-	border-top: .1rem solid var(--input-field-border);
+	margin-top: .5rem;
+	/*border-top: .1rem solid var(--input-field-border);*/
 }
 
 .dropdown-menu-container > .separator {
+	margin-top: .5rem;
 	border-top: .1rem solid var(--input-field-border);
 }
 
@@ -2200,7 +2202,7 @@ button.disabled, i.disabled {
 	font-weight: 600;
 	color: var(--body-text);
 	padding: 0;
-	margin: 0;
+	margin: 	0;
 }
 
 
@@ -3650,22 +3652,22 @@ i.fa-trash-o {
 	/*font-size: 9pt;*/
 }
 
-.result-box .node {
-	color: var(--gray-333);
-	line-height: 1.7em;
-	border: 1px solid var(--link-color-active);
-	padding: 2px 5px;
-	margin: 2px 2px 3px 1px;
-	background-color: var(--gray-eee);
-	float: left;
-}
+/*.result-box .node {*/
+/*	color: var(--gray-333);*/
+/*	line-height: 1.7em;*/
+/*	border: 1px solid var(--link-color-active);*/
+/*	padding: 2px 5px;*/
+/*	margin: 2px 2px 3px 1px;*/
+/*	background-color: var(--gray-eee);*/
+/*	float: left;*/
+/*}*/
 
-.result-box .node:hover {
-	color: var(--gray-555);
-	border: 1px solid var(--gray-bbb);
-	background-color: var(--light-gray-bg-f5);
-	cursor: pointer;
-}
+/*.result-box .node:hover {*/
+/*	color: var(--gray-555);*/
+/*	border: 1px solid var(--gray-bbb);*/
+/*	background-color: var(--light-gray-bg-f5);*/
+/*	cursor: pointer;*/
+/*}*/
 
 
 /**
@@ -3942,7 +3944,6 @@ input#element-class {
  * Column resizer
  */
 .column-resizer {
-	/*display: none;*/
 	z-index: 3;
 	width: 1.7rem;
 	/*height: calc(100vh - 9rem);*/
@@ -3953,6 +3954,10 @@ input#element-class {
 	cursor: ew-resize;
 	border: 1px solid transparent;
 	margin-left: 1rem;
+}
+
+.column-resizer.hidden {
+	display: none;
 }
 
 .column-resizer::after {
@@ -4510,25 +4515,27 @@ table.props td.key {
 	width: 20%;
 }
 
-.resourceBox div.node,
+.resourceBox .node,
 #relatedNodesList .node,
-.props .node {
+.props .node,
+.result-box .node {
 	/*color: var(--gray-333);*/
 	/*line-height: 1.7em;*/
 	border: 1px solid transparent;
 	padding: .5rem 1rem .25rem 1rem;
-	/*margin: 2px 2px 3px 1px;*/
-	background-color: var(--input-background);
-	border-radius: 1rem;
+	margin-bottom: .25rem;
+	background-color: var(--gray-bg);
+	border-radius: .5rem;
 	min-width: 3rem;
 }
 
-.resourceBox div.node:hover,
+.resourceBox .node:hover,
 #relatedNodesList .node:hover,
-.props .node:hover {
+.props .node:hover,
+.result-box .node:hover {
 	color: var(--gray-555);
 	border: 1px solid transparent;
-	background-color: var(--light-gray-bg-f5);
+	background-color: var(--light-gray-bg-f1);
 	cursor: pointer;
 }
 

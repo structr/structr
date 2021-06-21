@@ -105,6 +105,8 @@ var _Pages = {
 				//console.log('pagesTabSlideoutAction');
 				_Pages.leftSlideoutTrigger(this, pagesSlideout, [activeElementsSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function (params) {
 					_Pages.resize();
+					_Pages.showPagesPager();
+					_Pages.showTabsMenu();
 				}, _Pages.slideoutClosedCallback);
 			};
 			$('#pagesTab').on('click', pagesTabSlideoutAction).droppable({
@@ -235,12 +237,12 @@ var _Pages = {
 				$('#' + activeTabRight).addClass('active').click();
 			}
 
-			// // activate first page if local storage is empty
-			// if (!LSWrapper.getItem(_Pages.activeTabKey)) {
-			// 	window.setTimeout(function (e) {
-			// 		_Pages.activatePage($('#previewTabs .page').first());
-			// 	}, 1000);
-			// }
+			// activate first page if local storage is empty
+			if (!LSWrapper.getItem(_Pages.activeTabKey)) {
+				window.setTimeout(function (e) {
+					$('#pagesTree .node.page').first().click();
+				}, 1000);
+			}
 
 			_Pages.resize();
 
@@ -248,8 +250,8 @@ var _Pages = {
 				_Pages.resize();
 			});
 
-			Structr.initVerticalSlider($('.column-resizer-left', main), _Pages.pagesResizerLeftKey, 200, _Pages.moveLeftResizer);
-			Structr.initVerticalSlider($('.column-resizer-right', main), _Pages.pagesResizerRightKey, 200, _Pages.moveRightResizer, true);
+			Structr.initVerticalSlider($('.column-resizer-left', main), _Pages.pagesResizerLeftKey, 300, _Pages.moveLeftResizer);
+			Structr.initVerticalSlider($('.column-resizer-right', main), _Pages.pagesResizerRightKey, 400, _Pages.moveRightResizer, true);
 
 			Structr.unblockMenu(500);
 
@@ -285,7 +287,7 @@ var _Pages = {
 			document.querySelector('.column-resizer-left').style.left = columnResizerLeft;
 			if (openLeftSlideout) openLeftSlideout.style.width = 'calc(' + leftPos + 'px - 3rem)';
 			document.querySelector('#previews').style.marginLeft = 'calc(' + leftPos + 'px + 3rem)';
-			if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 22rem)';
+			if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
 		} else {
 			if (leftPos === 0) {
 				if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
@@ -293,7 +295,7 @@ var _Pages = {
 				document.querySelector('.column-resizer-left').style.left = columnResizerLeft;
 				document.querySelector('#previews').style.marginLeft = columnResizerLeft;
 			} else {
-				if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 21rem)';
+				if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 0rem)';
 				document.querySelector('.column-resizer-left').style.left = 'calc(' + leftPos + 'px - 1rem)';
 				document.querySelector('#previews').style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
 			}
@@ -330,18 +332,15 @@ var _Pages = {
 		pagesSlideout.append('<div id="pagesTree"></div>');
 		pages = $('#pagesTree', pagesSlideout);
 
-		let functionBarSwitchActive = (LSWrapper.getItem(_Pages.functionBarSwitchKey) || 'active') === 'active';
+		let functionBarSwitchActive = (LSWrapper.getItem(_Pages.functionBarSwitchKey) === 'active');
 		if (functionBarSwitchActive) {
-			functionBar.append('<div id="function-bar-switch" class="icon"><svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M.748,12.25a6,6,0,0,0,6,6h10.5a6,6,0,0,0,0-12H6.748A6,6,0,0,0,.748,12.25Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.248 9.25L17.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.248 9.25L14.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></div>')
+			functionBar.append('<div id="function-bar-switch" class="icon"><svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M.748,12.25a6,6,0,0,0,6,6h10.5a6,6,0,0,0,0-12H6.748A6,6,0,0,0,.748,12.25Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.248 9.25L17.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.248 9.25L14.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></div>');
 		} else {
-			functionBar.append('<div id="function-bar-switch" class="icon"><svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M23.248,12a6,6,0,0,1-6,6H6.748a6,6,0,0,1,0-12h10.5A6,6,0,0,1,23.248,12Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.748 9L6.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.748 9L9.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></div>')
+			functionBar.append('<div id="function-bar-switch" class="icon hidden"><svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M23.248,12a6,6,0,0,1-6,6H6.748a6,6,0,0,1,0-12h10.5A6,6,0,0,1,23.248,12Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.748 9L6.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.748 9L9.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></div>');
 		}
 
-		functionBar.append('<div id="pagesPager"></div>');
+		functionBar.append('<div class="hidden" id="pagesPager"></div>');
 		let pagesPager = $('#pagesPager', functionBar);
-		if (!functionBarSwitchActive) {
-			pagesPager[0].classList.add('hidden');
-		}
 
 		Structr.fetchHtmlTemplate('pages/submenu', {}, (html) => {
 
@@ -722,6 +721,23 @@ var _Pages = {
 			otherTab.classList.remove('active');
 		});
 	},
+	adaptSubmenu: (obj) => {
+		switch (obj.type) {
+			case 'Page':
+				document.querySelector('a[href="#pages:editor"]').closest('li').classList.add('hidden');
+				document.querySelector('a[href="#pages:repeater"]').closest('li').classList.add('hidden');
+				document.querySelector('a[href="#pages:events"]').closest('li').classList.add('hidden');
+				break;
+			default:
+				if (obj.isContent) {
+					document.querySelector('a[href="#pages:editor"]').closest('li').classList.remove('hidden');
+				} else {
+					document.querySelector('a[href="#pages:editor"]').closest('li').classList.add('hidden');
+					document.querySelector('a[href="#pages:repeater"]').closest('li').classList.remove('hidden');
+					document.querySelector('a[href="#pages:events"]').closest('li').classList.remove('hidden');
+				}
+		}
+	},
 	activateSubmenuLink: (selector) => {
 		let submenuLink = document.querySelector('#function-bar .tabs-menu li a[href="' + selector + '"]');
 		if (submenuLink) {
@@ -752,13 +768,13 @@ var _Pages = {
 	refreshCenterPane: (active) => {
 
 		 _Entities.deselectAllElements();
+		_Pages.hideAllPreviews();
 
 		let previewsContainer = document.querySelector('#previews');
-
-		let contentContainer = document.querySelector('#previews .content-container');
-		if (contentContainer) {
+		let contentContainers = document.querySelectorAll('#previews .content-container');
+		contentContainers.forEach((contentContainer) => {
 			previewsContainer.removeChild(contentContainer);
-		}
+		});
 
 		let obj = _Entities.selectedObject; // || _Entities.selectedObjects.element || _Entities.selectedObjects.contentNode;
 
@@ -775,6 +791,20 @@ var _Pages = {
 			// Activate submenu link
 			activeLink = document.querySelector('#function-bar .tabs-menu li a[href="' + urlHash + '"]');
 			activeLink?.closest('li').classList.add('active');
+		}
+
+		// Set default views based on object type
+		if (urlHash === '#pages') {
+			switch (obj.type) {
+				case 'Page':
+					urlHash = '#pages:preview';
+					break;
+				case 'Template':
+				case 'Content':
+					urlHash = '#pages:editor';
+				default:
+					urlHash = '#pages:basic';
+			}
 		}
 
 		switch (urlHash) {
@@ -797,16 +827,11 @@ var _Pages = {
 
 				});
 
-
 				break;
 
 			case '#pages:advanced':
 
 				let view = urlHash.split(':')[1] === 'basic' ? 'general' : 'public';
-
-				_Pages.hideAllPreviews();
-
-				//propertiesContainer = document.querySelector('#previews .properties-container');
 
 				if (active) {
 
@@ -843,8 +868,6 @@ var _Pages = {
 				} else if (obj.isDOMNode) {
 
 					let isPagePreviewHidden = document.querySelector('#preview_' + obj.pageId)?.closest('.previewBox')?.style.display === 'none';
-					console.log(activeTab, isPagePreviewHidden);
-
 					let iframe = document.querySelector('#preview_' + obj.pageId);
 
 					_Entities.highlightElement(Structr.node(obj.id));
@@ -869,8 +892,6 @@ var _Pages = {
 				break;
 			case '#pages:editor':
 
-				_Pages.hideAllPreviews();
-
 				if (obj.isContent) {
 					_Elements.displayCentralEditor(obj);
 				} else {
@@ -881,7 +902,6 @@ var _Pages = {
 				break;
 
 			case '#pages:repeater':
-				_Pages.hideAllPreviews();
 				Structr.fetchHtmlTemplate('pages/repeater', {}, (html) => {
 					previewsContainer.insertAdjacentHTML('beforeend', html);
 					repeaterContainer = document.querySelector('#previews .repeater-container');
@@ -893,21 +913,23 @@ var _Pages = {
 
 			case '#pages:event-binding':
 				break;
-			case '#pages:visibility':
-				Structr.fetchHtmlTemplate('pages/visibility', {}, (html) => {
+			case '#pages:security':
+				Structr.fetchHtmlTemplate('pages/security', {}, (html) => {
 					previewsContainer.insertAdjacentHTML('beforeend', html);
-					visibilityContainer = document.querySelector('#previews .visibility-container');
+					securityContainer = document.querySelector('#previews .security-container');
 					_Schema.getTypeInfo(obj.type, function(typeInfo) {
-						_Entities.accessControlDialog(obj, $(visibilityContainer), typeInfo);
+						_Entities.accessControlDialog(obj, $(securityContainer), typeInfo);
 					});
 				});
 				break;
 			default:
-				console.log('do something else');
+				console.log('do something else, urlHash:', urlHash);
 		}
 
+		_Pages.adaptSubmenu(obj);
+
 	},
-	activatePage: function(element) { console.log('activatePage', element)
+	activatePage: function(element) {
 
 		// previewTabs.children('li').each(function() {
 		// 	this.classList.remove('active');
@@ -1518,12 +1540,10 @@ var _Pages = {
 			if (slideoutElement.position().left < -1) {
 				Structr.closeLeftSlideOuts(otherSlideouts, activeTabKey, closeCallback);
 				Structr.openLeftSlideOut(triggerEl, slideoutElement, activeTabKey, openCallback);
-				$('.column-resizer-left').show();
-				_Pages.showPagesPager();
+				document.querySelector('.column-resizer-left').classList.remove('hidden');
 			} else {
 				Structr.closeLeftSlideOuts([slideoutElement], activeTabKey, closeCallback);
-				$('.column-resizer-left').hide();
-				_Pages.hidePagesPager();
+				document.querySelector('.column-resizer-left').classList.add('hidden');
 			}
 		}
 	},
@@ -1533,10 +1553,10 @@ var _Pages = {
 			//if (slideoutElement.position().left >= $(window).width()) {
 				Structr.closeSlideOuts(otherSlideouts, activeTabKey, closeCallback);
 				Structr.openSlideOut(triggerEl, slideoutElement, activeTabKey, openCallback);
-				$('.column-resizer-right').show();
+				document.querySelector('.column-resizer-right').classList.remove('hidden');
 			} else {
 				Structr.closeSlideOuts([slideoutElement], activeTabKey, closeCallback);
-				$('.column-resizer-right').hide();
+				document.querySelector('.column-resizer-right').classList.add('hidden');
 			}
 		}
 	},
@@ -1546,12 +1566,16 @@ var _Pages = {
 		}
 	},
 	hidePagesPager: () => {
-		document.getElementById('pagesPager').style.display = 'none';
-		document.getElementById('function-bar-switch').style.display = 'none';
+		// document.getElementById('pagesPager').classList.add('hidden');
+		document.getElementById('function-bar-switch').classList.add('hidden');
 	},
 	showPagesPager: () => {
-		document.getElementById('pagesPager').style.display = '';
-		document.getElementById('function-bar-switch').style.display = '';
+		// document.getElementById('pagesPager').classList.remove('hidden');
+		document.getElementById('function-bar-switch').classList.remove('hidden');
+	},
+	showTabsMenu: () => {
+		let tabsMenu = document.querySelector('#function-bar .tabs-menu');
+		if (tabsMenu) tabsMenu.classList.remove('hidden');
 	},
 	refreshLocalizations: function() {
 
