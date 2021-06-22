@@ -21,7 +21,88 @@
 #crud-main {
 	height: calc(100% - 2rem);
 	margin: 2rem;
+	display: flex;
 }
+
+
+#crud-left {
+	margin-right: 2rem;
+	display: flex;
+	flex-direction: column;
+}
+
+#crud-types, #crud-recent-types {
+	height: 50%;
+	display:flex;
+	flex-direction: column;
+	padding: 1rem 0;
+}
+
+#crud-types-list, #crud-recent-types-list {
+	overflow-y: scroll;
+}
+
+#crud-recent-types .crud-type .remove-recent-type {
+	display: none;
+}
+
+#crud-recent-types .crud-type:hover .remove-recent-type {
+	position: absolute;
+	right: 4px;
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	margin: 2px;
+}
+
+#crudTypesFilterToggle:hover,
+#crudTypesFilterToggle.active,
+#crud-recent-types li .remove-recent-type:hover {
+	filter: alpha(opacity=60);
+	-khtml-opacity: 0.6;
+	-moz-opacity: 0.6;
+	opacity: 0.6;
+}
+
+#crud-types-list, #crud-recent-types-list {
+	padding: 1px 0 0 0;
+	margin: 0;
+	overflow-wrap: break-word;
+	height: calc(100% - 70px);
+	overflow: auto;
+}
+
+#crud-left .crud-type {
+	position: relative;
+	border-bottom: 1px solid #f6f6f6;
+	border-top: 1px solid #f6f6f6;
+	margin-top: -1px;
+	list-style: none;
+	padding: 6px 5px 6px 10px;
+	cursor: pointer;
+	height: 18px;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+#crud-left .crud-type.active {
+	background-color: #81ce25;
+	border-bottom: 1px solid #f6f6f6;
+	border-top: 1px solid #f6f6f6;
+}
+
+#crud-left .crud-type:hover {
+	background-color: #81ce25;
+	border-bottom: 1px solid #f6f6f6;
+	border-top: 1px solid #f6f6f6;
+	z-index: 1000;
+}
+
+
+
+
+
 
 #crud-top {
 	display: inline-block;
@@ -49,7 +130,7 @@
 #crud-type-detail {
 	/*padding: 6px;*/
 	/*vertical-align: top;*/
-	margin-top: 1rem;
+	/*margin-top: 1rem;*/
 	overflow: auto;
 	height: 100%;
 	width: calc(100% - 1rem);

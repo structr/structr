@@ -34,6 +34,36 @@ if (browser) {
 		main = $('#main');
 
 		Structr.registerModule(_Crud);
+
+		$(document).on('click', '#crud-left .crud-type', function() {
+			_Crud.typeSelected($(this).data('type'));
+		});
+
+		$(document).on('click', '#crud-recent-types .remove-recent-type', function (e) {
+			e.stopPropagation();
+			_Crud.removeRecentType($(this).closest('div').data('type'));
+		});
+
+		$(document).on('click', '#crudTypesFilterToggle', function (e) {
+			e.preventDefault();
+			$('#crudTypeFilterSettings').toggleClass('hidden');
+			return false;
+		});
+
+		$(document).on('click', '#crudTypeFilterSettings', function(e) {
+			e.stopPropagation();
+		});
+
+		$(document).on('change', '#crudTypeFilterSettings input', function(e) {
+			_Crud.updateTypeList();
+			LSWrapper.setItem(_Crud.displayTypeConfigKey, _Crud.getTypeVisibilityConfig());
+		});
+
+		$(document).on('click', function() {
+			if ($('#crudTypeFilterSettings').is(':visible')) {
+				_Crud.hideTypeVisibilityConfig();
+			}
+		});
 	});
 
 } else {
@@ -42,12 +72,14 @@ if (browser) {
 
 var _Crud = {
 	_moduleName: 'crud',
+	displayTypeConfigKey: 'structrCrudDisplayTypes_' + port,
 	defaultCollectionPageSize: 10,
 	resultCountSoftLimit: 10000,
 	crudPagerDataKey: 'structrCrudPagerData_' + port + '_',
 	crudTypeKey: 'structrCrudType_' + port,
 	crudHiddenColumnsKey: 'structrCrudHiddenColumns_' + port,
 	crudRecentTypesKey: 'structrCrudRecentTypes_' + port,
+	crudResizerLeftKey: 'structrCrudResizerLeft_' + port,
 	crudExactTypeKey: 'structrCrudExactType_' + port,
 	searchField: undefined,
 	types: {},
@@ -165,6 +197,16 @@ var _Crud = {
 	page: {},
 	exact: {},
 	pageSize: {},
+	moveResizer: function(left) {
+
+		requestAnimationFrame(() => {
+			left = left || LSWrapper.getItem(_Crud.crudResizerLeftKey) || 210;
+			$('.column-resizer', main).css({ left: left });
+
+			$('#crud-types').css({width: left - 12 + 'px'});
+			$('#crud-recent-types').css({width: left - 12 + 'px'});
+		});
+	},
 	init: function() {
 
 		Structr.fetchHtmlTemplate('crud/menu', {}, function(html) {
@@ -175,6 +217,40 @@ var _Crud = {
 
 			main.append(html);
 
+			_Crud.moveResizer();
+			Structr.initVerticalSlider($('.column-resizer', main), _Crud.crudResizerLeftKey, 204, _Crud.moveResizer);
+
+			var savedTypeVisibility = LSWrapper.getItem(_Crud.displayTypeConfigKey) || {};
+			$('#crudTypeToggleRels').prop('checked', (savedTypeVisibility.rels === undefined ? true : savedTypeVisibility.rels));
+			$('#crudTypeToggleCustom').prop('checked', (savedTypeVisibility.custom === undefined ? true : savedTypeVisibility.custom));
+			$('#crudTypeToggleCore').prop('checked', (savedTypeVisibility.core === undefined ? true : savedTypeVisibility.core));
+			$('#crudTypeToggleHtml').prop('checked', (savedTypeVisibility.html === undefined ? true : savedTypeVisibility.html));
+			$('#crudTypeToggleUi').prop('checked', (savedTypeVisibility.ui === undefined ? true : savedTypeVisibility.ui));
+			$('#crudTypeToggleLog').prop('checked', (savedTypeVisibility.log === undefined ? true : savedTypeVisibility.log));
+			$('#crudTypeToggleOther').prop('checked', (savedTypeVisibility.other === undefined ? true : savedTypeVisibility.other));
+
+			$('#crudTypesSearch').keyup(function (e) {
+
+				if (e.keyCode === 27) {
+
+					$(this).val('');
+
+				} else if (e.keyCode === 13) {
+
+					var filterVal = $(this).val().toLowerCase();
+					var matchingTypes = Object.keys(_Crud.types).filter(function(type) {
+						return type.toLowerCase() === filterVal;
+					});
+
+					if (matchingTypes.length === 1) {
+						_Crud.typeSelected(matchingTypes[0]);
+					}
+
+				}
+
+				_Crud.filterTypes($(this).val().toLowerCase());
+			});
+
 			_Crud.exact = LSWrapper.getItem(_Crud.crudExactTypeKey) || {};
 
 			_Crud.schemaLoading = false;
@@ -184,62 +260,70 @@ var _Crud = {
 			_Crud.loadSchema(function() {
 
 				if (browser) {
-
-					let typeSelect = document.getElementById('crud-types-select');
-					let optGroupAll = document.getElementById('crud-types-select-all');
-					let optGroupRecent = document.getElementById('crud-types-select-recent');
-
-					let allTypes    = Object.keys(_Crud.types).sort();
-					let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey, []);
-
-					for (let recentTypeName of recentTypes) {
-
-						// only add to list if it exists!
-						if (allTypes.includes(recentTypeName)) {
-
-							let option = document.createElement('option');
-							option.id = recentTypeName;
-							option.textContent = recentTypeName;
-							option.selected = (recentTypeName === _Crud.type);
-
-							optGroupRecent.appendChild(option);
-						}
-					}
-
-					allTypes.map((typeName) => {
-						let option = document.createElement('option');
-						option.id = typeName;
-						option.textContent = typeName;
-
-						if (typeName !== _Crud.type && !recentTypes.includes(typeName)) {
-							optGroupAll.appendChild(option);
-						}
-					});
-
-					let select2 = $(typeSelect).select2({
-						dropdownParent: $('#crud-top')
-					});
-					select2.on('select2:select', (e) => {
-
-						let typeName = e.params.data.text;
-						let element  = e.params.data.element;
-
-						optGroupRecent.insertBefore(element, optGroupRecent.firstChild);
-
-						select2 = $(typeSelect).select2({
-							dropdownParent: $('#crud-top')
-						});
-
-						_Crud.typeSelected(typeName);
-					});
-
-					let refreshButton = document.querySelector('#crud-refresh-list');
-					refreshButton.addEventListener('click', () => {
-						_Crud.typeSelected(_Crud.type);
-					});
-
+					_Crud.updateTypeList();
 					_Crud.typeSelected(_Crud.type);
+					_Crud.updateRecentTypeList(_Crud.type);
 				}
+				_Crud.resize();
+				Structr.unblockMenu();
+
+//				if (browser) {
+//
+//					let typeSelect = document.getElementById('crud-types-select');
+//					let optGroupAll = document.getElementById('crud-types-select-all');
+//					let optGroupRecent = document.getElementById('crud-types-select-recent');
+//
+//					let allTypes    = Object.keys(_Crud.types).sort();
+//					let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey, []);
+//
+//					for (let recentTypeName of recentTypes) {
+//
+//						// only add to list if it exists!
+//						if (allTypes.includes(recentTypeName)) {
+//
+//							let option = document.createElement('option');
+//							option.id = recentTypeName;
+//							option.textContent = recentTypeName;
+//							option.selected = (recentTypeName === _Crud.type);
+//
+//							optGroupRecent.appendChild(option);
+//						}
+//					}
+//
+//					allTypes.map((typeName) => {
+//						let option = document.createElement('option');
+//						option.id = typeName;
+//						option.textContent = typeName;
+//
+//						if (typeName !== _Crud.type && !recentTypes.includes(typeName)) {
+//							optGroupAll.appendChild(option);
+//						}
+//					});
+//
+//					let select2 = $(typeSelect).select2({
+//						dropdownParent: $('#crud-top')
+//					});
+//					select2.on('select2:select', (e) => {
+//
+//						let typeName = e.params.data.text;
+//						let element  = e.params.data.element;
+//
+//						optGroupRecent.insertBefore(element, optGroupRecent.firstChild);
+//
+//						select2 = $(typeSelect).select2({
+//							dropdownParent: $('#crud-top')
+//						});
+//
+//						_Crud.typeSelected(typeName);
+//					});
+//
+//					let refreshButton = document.querySelector('#crud-refresh-list');
+//					refreshButton.addEventListener('click', () => {
+//						_Crud.typeSelected(_Crud.type);
+//					});
+//
+//					_Crud.typeSelected(_Crud.type);
+//				}
 				_Crud.resize();
 				Structr.unblockMenu();
 			});
@@ -336,6 +420,7 @@ var _Crud = {
 	typeSelected: function (type) {
 
 		_Crud.updateRecentTypeList(type);
+		_Crud.highlightCurrentType(type);
 
 		var crudRight = $('#crud-type-detail');
 		fastRemoveAllChildren(crudRight[0]);
@@ -405,26 +490,6 @@ var _Crud = {
 			_Crud.updateUrl(type);
 		});
 	},
-	updateRecentTypeList: function (selectedType) {
-
-		let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
-
-		if (recentTypes && selectedType) {
-
-			recentTypes = recentTypes.filter(function(type) {
-				return (type !== selectedType);
-			});
-			recentTypes.unshift(selectedType);
-
-		} else if (selectedType) {
-
-			recentTypes = [selectedType];
-
-		}
-
-		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
-
-	},
 	getCurrentProperties: function(type) {
 		let properties = _Crud.availableViews[type].all;
 
@@ -449,6 +514,122 @@ var _Crud = {
 			tableHeaderRow.append('<th class="' + _Crud.cssClassForKey(key) + '">' + key + '</th>');
 		});
 		tableHeaderRow.append('<th class="___action_header">Actions</th>');
+	},
+	updateTypeList: function () {
+
+		var $typesList = $('#crud-types-list');
+		$typesList.empty();
+
+		var typeVisibility = _Crud.getTypeVisibilityConfig();
+
+		Object.keys(_Crud.types).sort().forEach(function(typeName) {
+
+			var type = _Crud.types[typeName];
+
+			var isRelType     = type.isRel;
+			var isDynamicType = !isRelType && type.className.startsWith('org.structr.dynamic');
+			var isCoreType    = !isRelType && type.className.startsWith('org.structr.core.entity');
+			var isHtmlType    = !isRelType && type.className.startsWith('org.structr.web.entity.html');
+			var isUiType      = !isRelType && type.className.startsWith('org.structr.web.entity') && !type.className.startsWith('org.structr.web.entity.html');
+			var isLogType     = !isRelType && type.className.startsWith('org.structr.rest.logging.entity');
+			var isOtherType   = !(isRelType || isDynamicType || isCoreType || isHtmlType || isUiType || isLogType);
+
+			var hide =	(!typeVisibility.rels && isRelType) || (!typeVisibility.custom && isDynamicType) || (!typeVisibility.core && isCoreType) || (!typeVisibility.html && isHtmlType) ||
+						(!typeVisibility.ui && isUiType) || (!typeVisibility.log && isLogType) || (!typeVisibility.other && isOtherType);
+
+			if (!hide) {
+				$typesList.append('<div class="crud-type" data-type="' + typeName + '">' + typeName + '</div>');
+			}
+		});
+
+		_Crud.highlightCurrentType(_Crud.type);
+		_Crud.filterTypes($('#crudTypesSearch').val().toLowerCase());
+		_Crud.resize();
+	},
+	getTypeVisibilityConfig: function () {
+
+		return {
+			rels:   $('#crudTypeToggleRels').prop('checked'),
+			custom: $('#crudTypeToggleCustom').prop('checked'),
+			core:   $('#crudTypeToggleCore').prop('checked'),
+			html:   $('#crudTypeToggleHtml').prop('checked'),
+			ui:     $('#crudTypeToggleUi').prop('checked'),
+			log:    $('#crudTypeToggleLog').prop('checked'),
+			other:  $('#crudTypeToggleOther').prop('checked')
+		};
+
+	},
+	hideTypeVisibilityConfig: function () {
+		$('#crudTypeFilterSettings').addClass('hidden');
+	},
+	highlightCurrentType: function (selectedType) {
+
+		$('#crud-left .crud-type').removeClass('active');
+		$('#crud-left .crud-type[data-type="' + selectedType + '"]').addClass('active');
+
+		var $crudTypesList = $('#crud-types-list');
+		var $selectedElementInTypeList = $('.crud-type[data-type="' + selectedType + '"]', $crudTypesList);
+
+		if ($selectedElementInTypeList && $selectedElementInTypeList.length > 0) {
+			var positionOfList = $crudTypesList.position().top;
+			var scrollTopOfList = $crudTypesList.scrollTop();
+			var positionOfElement = $selectedElementInTypeList.position().top;
+			$crudTypesList.animate({scrollTop: positionOfElement + scrollTopOfList - positionOfList });
+		} else {
+			$crudTypesList.animate({scrollTop: 0});
+		}
+
+	},
+	filterTypes: function (filterVal) {
+		$('#crud-types-list .crud-type').each(function (i, el) {
+			var $el = $(el);
+			($el.data('type').toLowerCase().indexOf(filterVal) === -1) ? $el.hide() : $el.show();
+		});
+	},
+	updateRecentTypeList: function (selectedType) {
+
+		var recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
+
+		if (recentTypes && selectedType) {
+
+			var recentTypes = recentTypes.filter(function(type) {
+				return (type !== selectedType);
+			});
+			recentTypes.unshift(selectedType);
+
+		} else if (selectedType) {
+
+			recentTypes = [selectedType];
+		}
+
+		recentTypes = recentTypes.slice(0, 12);
+
+		if (recentTypes) {
+			var $recentTypesList = $('#crud-recent-types-list');
+
+			$('.crud-type', $recentTypesList).remove();
+
+			recentTypes.forEach(function (type) {
+				$recentTypesList.append('<div class="crud-type' + (selectedType === type ? ' active' : '') + '" data-type="' + type + '">' + type + '<i class="remove-recent-type ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
+			});
+		}
+
+		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
+
+	},
+	removeRecentType: function (typeToRemove) {
+
+		var recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
+
+		if (recentTypes) {
+			recentTypes = recentTypes.filter(function(type) {
+				return (type !== typeToRemove);
+			});
+		}
+
+		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
+
+		_Crud.updateRecentTypeList();
 	},
 	updateUrl: function(type) {
 
