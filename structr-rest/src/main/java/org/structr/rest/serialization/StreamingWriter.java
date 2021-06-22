@@ -485,8 +485,6 @@ public abstract class StreamingWriter {
 			final Object secondValue              = iterator.hasNext() ? iterator.next() : null;
 			long actualResultCount                = 0;
 
-			System.out.println(value.getClass().getName());
-
 			if (!wrapSingleResultInArray && depth == 0 && firstValue != null && secondValue == null && !(value instanceof Collection) && !Settings.ForceArrays.getValue()) {
 
 				// prevent endless recursion by pruning at depth n
