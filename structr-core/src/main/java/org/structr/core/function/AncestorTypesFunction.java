@@ -52,10 +52,17 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
 			Class type = SchemaHelper.getEntityClassForRawType(typeName);
 
-			while (type != null && !type.equals(Object.class)) {
+			if (type != null) {
 
-				ancestorTypes.add(type.getSimpleName());
-				type = type.getSuperclass();
+				while (type != null && !type.equals(Object.class)) {
+
+					ancestorTypes.add(type.getSimpleName());
+					type = type.getSuperclass();
+				}
+
+			} else {
+
+				logger.warn("{}(): Type not found: {}" + (caller != null ? " (source of call: " + caller.toString() + ")" : ""), getName(), sources[0]);
 			}
 
 			final List<String> blackList = (sources.length == 2) ? (List)sources[1] : Arrays.asList("AbstractNode");

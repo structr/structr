@@ -47,14 +47,21 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-			final String typeName = sources[0].toString();
-			final Class type = SchemaHelper.getEntityClassForRawType(typeName);
+			final String typeName       = sources[0].toString();
+			final Class type            = SchemaHelper.getEntityClassForRawType(typeName);
 			final ArrayList inheritants = new ArrayList();
 
-			inheritants.addAll(SearchCommand.getAllSubtypesAsStringSet(type.getSimpleName()));
+			if (type != null) {
 
-			if (sources.length == 2) {
-				inheritants.removeAll((List)sources[1]);
+				inheritants.addAll(SearchCommand.getAllSubtypesAsStringSet(type.getSimpleName()));
+
+				if (sources.length == 2) {
+					inheritants.removeAll((List)sources[1]);
+				}
+
+			} else {
+
+				logger.warn("{}(): Type not found: {}" + (caller != null ? " (source of call: " + caller.toString() + ")" : ""), getName(), sources[0]);
 			}
 
 			return inheritants;
