@@ -1074,16 +1074,10 @@ img.disabled {
 	margin-top: 0;
 }
 
-.name_.abbr-ellipsis {
+.abbr-ellipsis {
 	display: inline-block;
 	vertical-align: top;
 	line-height: 2rem;
-	/*margin: .5rem 0 -.05rem 0;*/
-}
-
-.abbr-ellipsis {
-	/*display: inline-block;*/
-	/*vertical-align: middle;*/
 	text-overflow: ellipsis;
 	overflow: hidden;
 	white-space: nowrap;
@@ -1163,7 +1157,6 @@ img.disabled {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	white-space: nowrap;
-	line-height: 1.1em;
 }
 
 .content .content_:hover {
@@ -4440,6 +4433,10 @@ div.option-tile.double {
 	border-bottom-left-radius: 0;
 }
 
+.quick-access-options {
+	padding-top: 1rem;
+}
+
 /*div.quick-access-options h3 {*/
 /*	margin-bottom: 0;*/
 /*}*/
@@ -4527,6 +4524,7 @@ table.props td.key {
 	background-color: var(--gray-bg);
 	border-radius: .5rem;
 	min-width: 3rem;
+	display: inline-block;
 }
 
 .resourceBox .node:hover,

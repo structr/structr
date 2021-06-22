@@ -36,3 +36,7 @@ div.custom-dialog div.row label {
 input.required {
 	border: 1px solid red !important;
 }
+
+#password-input {
+	margin-bottom: .5rem;
+}

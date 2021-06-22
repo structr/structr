@@ -546,10 +546,11 @@ var _Pages = {
 			}
 		};
 
-		document.querySelectorAll('.node.page').forEach((pageNode) => {
+		let pageNode = Structr.node(entity.id)[0];
+		if (pageNode) {
 			pageNode.removeEventListener('dblclick', dblclickHandler);
 			pageNode.addEventListener('dblclick', dblclickHandler);
-		});
+		}
 
 		var editUiPropertiesIcon = $('.edit_ui_properties_icon', tab);
 		editUiPropertiesIcon.hide();
@@ -766,7 +767,6 @@ var _Pages = {
 		_Pages.refreshCenterPane(active);
 	},
 	refreshCenterPane: (active) => {
-
 		 _Entities.deselectAllElements();
 		_Pages.hideAllPreviews();
 
@@ -896,8 +896,7 @@ var _Pages = {
 					_Elements.displayCentralEditor(obj);
 				} else {
 					_Pages.deactivateAllSubmenuLinks();
-					_Pages.activateSubmenuLink('#pages:properties');
-					//_Pages.refreshCenterPane(active);
+					document.querySelector('[href="#pages:advanced"]').click();
 				}
 				break;
 

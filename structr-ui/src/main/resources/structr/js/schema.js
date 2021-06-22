@@ -991,7 +991,7 @@ var _Schema = {
 
 			if (builtinTypes.length) {
 
-				classSelect.append('<optgroup id="for-builtin-types" label="Built-in Types"></optgroup>');
+				classSelect.append('<optgroup id="for-builtin-types" label="System Types"></optgroup>');
 				appendOptions($('#for-builtin-types'), builtinTypes);
 			}
 

@@ -906,7 +906,7 @@ var _Entities = {
 						}
 
 						tabTexts._html_ = 'HTML Attributes';
-						tabTexts.ui = 'Built-in Properties';
+						tabTexts.ui = 'System Properties';
 						tabTexts.custom = 'Custom Properties';
 
 						dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' node ' + (entity.name ? entity.name : entity.id);
@@ -2197,17 +2197,6 @@ var _Entities = {
 
 			typeIcon.removeClass('typeIcon-nochildren').before('<i title="Expand ' + displayName + '" class="expand_icon ' + _Icons.getFullSpriteClass(icon) + '" />');
 
-			$(el).on('click', function(e) {
-				e.stopPropagation();
-
-				_Entities.selectedObject = entity;
-
-				//_Entities.toggleElement(this);
-				_Entities.selectElement($(this).closest('.node'));
-				_Pages.refreshCenterPane(true);
-
-			});
-
 			button = $(el.children('.expand_icon').first());
 
 			if (button) {
@@ -2230,6 +2219,14 @@ var _Entities = {
 		} else {
 			el.children('.typeIcon').addClass('typeIcon-nochildren');
 		}
+
+		$(el).on('click', function(e) {
+			e.stopPropagation();
+			_Entities.selectedObject = entity;
+			_Entities.selectElement($(this).closest('.node'));
+			_Pages.refreshCenterPane(true);
+		});
+
 
 	},
 	removeExpandIcon: function(el) {

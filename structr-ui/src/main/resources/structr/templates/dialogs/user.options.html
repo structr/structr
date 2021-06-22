@@ -1,33 +1,32 @@
 <div id="div-options" class="quick-access-options">
-	<h3>${config.title}</h3>
 	<div class="row">
 		<div class="option-tile">
 			<label for="name-input">Name</label>
-			<input type="text" id="name-input" autocomplete="off" name="name" />
+			<input type="text" id="name-input" autocomplete="off" name="name">
 		</div>
 		<div class="option-tile">
 			<label for="e-mail-input">eMail</label>
-			<input type="text" id="e-mail-input" autocomplete="off" name="eMail" />
+			<input type="text" id="e-mail-input" autocomplete="off" name="eMail">
 		</div>
 	</div>
 	<div class="row">
 		<div class="option-tile">
-			<label style="display: block;">Password</label>
-			<input type="password" id="password-input" value="" style="width: 315px;"/>
-			<button class="action" type="button" id="set-password-button" style="width: 95px; margin-right: 0;">Set Password</button>
+			<label for="password-input">Password</label>
+			<input type="password" id="password-input" autocomplete="new-password" value="">
+			<button class="action" type="button" id="set-password-button">Set Password</button>
 		</div>
 		<div class="option-tile">
-			<label style="display:block;">Options</label>
-			<div style="padding-top: 2px;">
-				<input type="checkbox" name="isAdmin" id="isAdmin" />
+			<label>Options</label>
+			<div>
+				<input type="checkbox" name="isAdmin" id="isAdmin">
 				<label for="isAdmin">Is Admin User</label>
 			</div>
-			<div style="padding-top: 2px;">
-				<input type="checkbox" name="skipSecurityRelationships" id="skipSecurityRelationships" />
+			<div>
+				<input type="checkbox" name="skipSecurityRelationships" id="skipSecurityRelationships">
 				<label for="skipSecurityRelationships">Skip Security Relationships</label>
 			</div>
-			<div style="padding-top: 2px;">
-				<input type="checkbox" name="isTwoFactorUser" id="isTwoFactorUser" />
+			<div>
+				<input type="checkbox" name="isTwoFactorUser" id="isTwoFactorUser">
 				<label for="isTwoFactorUser">Enable Two-Factor Authentication for this User</label>
 			</div>
 		</div>
