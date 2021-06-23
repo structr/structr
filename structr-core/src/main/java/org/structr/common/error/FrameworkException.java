@@ -35,7 +35,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  *
  */
-public class FrameworkException extends Exception {
+public class FrameworkException extends Exception implements JsonException {
 
 	private ErrorBuffer errorBuffer  = new ErrorBuffer();
 	private Map<String, String> data = null;
@@ -98,6 +98,7 @@ public class FrameworkException extends Exception {
 
 	}
 
+	@Override
 	public JsonElement toJSON() {
 
 		JsonObject container = new JsonObject();
@@ -144,6 +145,7 @@ public class FrameworkException extends Exception {
 		return errorBuffer;
 	}
 
+	@Override
 	public int getStatus() {
 		return status;
 	}

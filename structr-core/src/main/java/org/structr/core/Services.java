@@ -496,11 +496,7 @@ public class Services implements StructrServices {
 				shutdownServices(serviceClass);
 			}
 
-			if (!serviceCache.isEmpty()) {
-
-				logger.info("Not all services were removed: " + serviceCache);
-				serviceCache.clear();
-			}
+			serviceCache.clear();
 
 			// shut down configuration provider
 			configuration.shutdown();

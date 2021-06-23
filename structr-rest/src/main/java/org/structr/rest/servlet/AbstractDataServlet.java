@@ -44,6 +44,7 @@ import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.JsonException;
 import org.structr.core.IJsonInput;
 import org.structr.core.Services;
 import org.structr.core.Value;
@@ -266,7 +267,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 		}
 	}
 
-	protected void writeException(final HttpServletResponse response, final FrameworkException fex) throws IOException {
+	protected void writeException(final HttpServletResponse response, final JsonException fex) throws IOException {
 
 		resetResponseBuffer(response, fex.getStatus());
 
