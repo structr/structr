@@ -370,20 +370,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				importResourceAccessGrants(readConfigList(grantsMetadataFile));
 			}
 
-			// read schema-methods.json
-			final Path schemaMethodsMetadataFile = source.resolve("schema-methods.json");
-			if (Files.exists(schemaMethodsMetadataFile)) {
-
-				logger.info("Reading {}", schemaMethodsMetadataFile);
-				final String title = "Deprecation warning";
-				final String text = "Found file 'schema-methods.json'. Newer versions store global schema methods in the schema snapshot file. Recreate the export with the current version to avoid compatibility issues. Support for importing this file will be dropped in future versions.";
-
-				logger.info(title + ": " + text);
-				publishWarningMessage(title, text);
-
-				importListData(SchemaMethod.class, readConfigList(schemaMethodsMetadataFile));
-			}
-
 			// read mail-templates.json
 			final Path mailTemplatesMetadataFile = source.resolve("mail-templates.json");
 			if (Files.exists(mailTemplatesMetadataFile)) {
