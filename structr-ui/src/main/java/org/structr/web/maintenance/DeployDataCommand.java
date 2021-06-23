@@ -324,7 +324,7 @@ public class DeployDataCommand extends DeployCommand {
 		}
 
 		// apply pre-deploy.conf
-		applyConfigurationFile(context, source.resolve("pre-data-deploy.conf"), DEPLOYMENT_DATA_IMPORT_STATUS);
+		applyConfigurationFileIfExists(context, source.resolve("pre-data-deploy.conf"), DEPLOYMENT_DATA_IMPORT_STATUS);
 
 		// do the actual import
 		final Path nodesDir = source.resolve(DEPLOYMENT_DATA_IMPORT_NODE_DIRECTORY);
@@ -392,7 +392,7 @@ public class DeployDataCommand extends DeployCommand {
 		}
 
 		// apply post-deploy.conf
-		applyConfigurationFile(context, source.resolve("post-data-deploy.conf"), DEPLOYMENT_DATA_IMPORT_STATUS);
+		applyConfigurationFileIfExists(context, source.resolve("post-data-deploy.conf"), DEPLOYMENT_DATA_IMPORT_STATUS);
 
 		if (!missingPrincipals.isEmpty()) {
 
