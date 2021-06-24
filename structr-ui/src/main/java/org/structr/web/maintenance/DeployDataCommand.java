@@ -38,6 +38,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.Vector;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +73,7 @@ public class DeployDataCommand extends DeployCommand {
 	private HashSet<String> missingTypeNamesForExport;
 
 	private Set<String> missingTypesForImport;
-	private Map<String, Integer> failedRelationshipImports;
+	private Map<String, Map<String, Integer>> failedRelationshipImports;
 
 	private final static String DEPLOYMENT_DATA_IMPORT_NODE_DIRECTORY   = "nodes";
 	private final static String DEPLOYMENT_DATA_IMPORT_RELS_DIRECTORY   = "relationships";
@@ -426,11 +427,27 @@ public class DeployDataCommand extends DeployCommand {
 
 		if (!failedRelationshipImports.isEmpty()) {
 
-			final String infos = failedRelationshipImports.keySet().stream().reduce("", (tmp, typeName) -> { return tmp + typeName + ": " + failedRelationshipImports.get(typeName) + "<br>"; });
+			final String infos = "<ul>" + failedRelationshipImports.keySet().stream().reduce("", (tmp, typeName) -> {
+
+				final Map<String, Integer> relInfo = failedRelationshipImports.get(typeName);
+
+				return tmp + "<li>" + typeName + "<ul>" + relInfo.keySet().stream().reduce("", (innerTmp, missingNodeType) -> {
+
+					final int value = relInfo.get(missingNodeType);
+
+					if (value > 0) {
+						return innerTmp + "<li>" + value + "x " + missingNodeType + " node missing</li>";
+					}
+
+					return innerTmp;
+
+				}) + "</ul></li>";
+
+			}) + "</ul>";
 
 			final String title = "Failed Relationship(s) for Type(s)";
 			final String text = "The following list shows the number of failed relationship imports per type.<br>"
-					+ "Make sure you are importing the data to the correct schema and that both ends of the relationship(s) are in the database/export! (See the log for more details)<br><br>"
+					+ "Make sure you are importing the data to the correct schema and that the <strong>source node</strong> and <strong>target node</strong> of the relationship(s) are in the database/export! (See the log for more details)<br>"
 					+ infos;
 
 			publishWarningMessage(title, text);
@@ -658,7 +675,8 @@ public class DeployDataCommand extends DeployCommand {
 
 	private <T extends NodeInterface> void importRelationshipListData(final SecurityContext context, final Class type, final List<Map<String, Object>> data) {
 
-		final App app = StructrApp.getInstance(context);
+		final App app         = StructrApp.getInstance(context);
+		final String typeName = type.getSimpleName();
 
 		try (final Tx tx = app.tx(true, doOuterCallbacks)) {
 
@@ -674,23 +692,17 @@ public class DeployDataCommand extends DeployCommand {
 
 				if (sourceNode == null) {
 
-					logger.error("Unable to import relationship of type {}. Source node not found! {}", type.getSimpleName(), sourceId);
+					logger.error("Unable to import relationship of type {} with id {}. Source node not found! {}", typeName, entry.get("id"), sourceId);
+					incrementFailedRelationshipsCounterForType(typeName, "source");
+				}
 
-					if (!failedRelationshipImports.containsKey(type.getSimpleName())) {
-						failedRelationshipImports.put(type.getSimpleName(), 0);
-					}
-					failedRelationshipImports.put(type.getSimpleName(), failedRelationshipImports.get(type.getSimpleName()) + 1);
+				if (targetNode == null) {
 
-				} else if (targetNode == null) {
+					logger.error("Unable to import relationship of type {} with id {}. Target node not found! {}", typeName, entry.get("id"), targetId);
+					incrementFailedRelationshipsCounterForType(typeName, "target");
+				}
 
-					logger.error("Unable to import relationship of type {}. Target node not found! {}", type.getSimpleName(), targetId);
-
-					if (!failedRelationshipImports.containsKey(type.getSimpleName())) {
-						failedRelationshipImports.put(type.getSimpleName(), 0);
-					}
-					failedRelationshipImports.put(type.getSimpleName(), failedRelationshipImports.get(type.getSimpleName()) + 1);
-
-				} else {
+				if (sourceNode != null && targetNode != null) {
 
 					final RelationshipInterface r = app.create(sourceNode, targetNode, type);
 
@@ -707,6 +719,19 @@ public class DeployDataCommand extends DeployCommand {
 
 			logger.error("Unable to import relationships for type {}. Cause: {}", type.getSimpleName(), fex.getMessage());
 		}
+	}
+
+	private void incrementFailedRelationshipsCounterForType (final String typeName, final String missingType) {
+
+		if (!failedRelationshipImports.containsKey(typeName)) {
+
+			failedRelationshipImports.put(typeName, new HashMap<String, Integer>() {{
+				put("source", 0);
+				put("target", 0);
+			}});
+		}
+
+		failedRelationshipImports.get(typeName).put(missingType, failedRelationshipImports.get(typeName).get(missingType) + 1);
 	}
 
 	private <T extends NodeInterface> void importExtensibleNodeListData(final SecurityContext context, final String defaultTypeName, final List<Map<String, Object>> data) {
