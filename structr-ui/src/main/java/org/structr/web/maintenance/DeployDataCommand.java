@@ -373,7 +373,7 @@ public class DeployDataCommand extends DeployCommand {
 						if (type == null) {
 
 							logger.warn("Not importing data. Relationship type cannot be found: {}!", typeName);
-							publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Type can not be found! NOT Importing relationships for type " + typeName);
+							publishWarningMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Type can not be found! NOT Importing relationships for type " + typeName);
 
 						} else {
 
