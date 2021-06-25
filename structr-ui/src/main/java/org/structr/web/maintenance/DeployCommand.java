@@ -542,6 +542,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path deploymentConfFile = target.resolve("deployment.conf");
 			final Path applicationConfigurationData = target.resolve("application-configuration-data.json");
 
+			final Path preDeployConf            = target.resolve("pre-deploy.conf");
+			final Path postDeployConf           = target.resolve("post-deploy.conf");
+
+			if (!Files.exists(preDeployConf)) {
+
+				writeStringToFile(preDeployConf, "{\n\t// automatically created " + preDeployConf.getFileName() + ". This file is interpreted as a script and run before the application deployment process. To learn more about this, please have a look at the documentation.\n}");
+			}
+
+			if (!Files.exists(postDeployConf)) {
+
+				writeStringToFile(postDeployConf, "{\n\t// automatically created " + postDeployConf.getFileName() + ". This file is interpreted as a script and run after the application deployment process. To learn more about this, please have a look at the documentation.\n}");
+			}
+
 			writeDeploymentConfigurationFile(deploymentConfFile);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Files");
@@ -2275,7 +2288,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		Files.delete(path);
 	}
 
-	private void writeStringToFile(final Path path, final String string) {
+	protected void writeStringToFile(final Path path, final String string) {
 
 		try (final Writer writer = new FileWriter(path.toFile())) {
 

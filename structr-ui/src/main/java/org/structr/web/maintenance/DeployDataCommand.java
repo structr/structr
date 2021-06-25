@@ -133,6 +133,19 @@ public class DeployDataCommand extends DeployCommand {
 
 			Files.createDirectories(target);
 
+			final Path preDataDeployConf            = target.resolve("pre-data-deploy.conf");
+			final Path postDataDeployConf           = target.resolve("post-data-deploy.conf");
+
+			if (!Files.exists(preDataDeployConf)) {
+
+				writeStringToFile(preDataDeployConf, "{\n\t// automatically created " + preDataDeployConf.getFileName() + ". This file is interpreted as a script and run before the data deployment process. To learn more about this, please have a look at the documentation.\n}");
+			}
+
+			if (!Files.exists(postDataDeployConf)) {
+
+				writeStringToFile(postDataDeployConf, "{\n\t// automatically created " + postDataDeployConf.getFileName() + ". This file is interpreted as a script and run after the data deployment process. To learn more about this, please have a look at the documentation.\n}");
+			}
+
 			final Path nodesDir = Files.createDirectories(target.resolve(DEPLOYMENT_DATA_IMPORT_NODE_DIRECTORY));
 			final Path relsDir  = Files.createDirectories(target.resolve(DEPLOYMENT_DATA_IMPORT_RELS_DIRECTORY));
 
