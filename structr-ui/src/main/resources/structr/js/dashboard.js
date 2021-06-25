@@ -63,7 +63,7 @@ var _Dashboard = {
 			let snapshotsIndexUrl = '';
 
 			let envResponse = await fetch(rootUrl + '/_env');
-			
+
 			if (!envResponse.ok) {
 				throw Error("Unable to read env resource data");
 			}
@@ -75,12 +75,12 @@ var _Dashboard = {
 			    templateConfig.envInfo = templateConfig.envInfo[0];
 			}
 
-			templateConfig.envInfo.version = (envData.result.components['structr'] || envData.result.components['structr-ui']).version || '';
-			templateConfig.envInfo.build   = (envData.result.components['structr'] || envData.result.components['structr-ui']).build   || '';
-			templateConfig.envInfo.date    = (envData.result.components['structr'] || envData.result.components['structr-ui']).date    || '';
+			templateConfig.envInfo.version = (templateConfig.envInfo.components['structr'] || templateConfig.envInfo.components['structr-ui']).version || '';
+			templateConfig.envInfo.build   = (templateConfig.envInfo.components['structr'] || templateConfig.envInfo.components['structr-ui']).build   || '';
+			templateConfig.envInfo.date    = (templateConfig.envInfo.components['structr'] || templateConfig.envInfo.components['structr-ui']).date    || '';
 
-			releasesIndexUrl  = envData.result.availableReleasesUrl;
-			snapshotsIndexUrl = envData.result.availableSnapshotsUrl;
+			releasesIndexUrl  = templateConfig.envInfo.availableReleasesUrl;
+			snapshotsIndexUrl = templateConfig.envInfo.availableSnapshotsUrl;
 
 			if (templateConfig.envInfo.startDate) {
 				templateConfig.envInfo.startDate = templateConfig.envInfo.startDate.slice(0, 10);
@@ -94,8 +94,11 @@ var _Dashboard = {
 
 			let meResponse       = await fetch(rootUrl + '/me/ui');
 			let meData           = await meResponse.json();
-			templateConfig.meObj = meData.result;
 
+			if (Array.isArray(meData.result)) {
+			    meData.result = meData.result[0];
+			}
+			templateConfig.meObj = meData.result;
 			let deployResponse = await fetch('/structr/deploy');
 
 			templateConfig.deployServletAvailable = (deployResponse.status !== 404);
