@@ -63,7 +63,7 @@ var _Dashboard = {
 			let snapshotsIndexUrl = '';
 
 			let envResponse = await fetch(rootUrl + '/_env');
-
+			
 			if (!envResponse.ok) {
 				throw Error("Unable to read env resource data");
 			}
@@ -71,6 +71,9 @@ var _Dashboard = {
 			let envData = await envResponse.json();
 
 			templateConfig.envInfo = envData.result;
+			if (Array.isArray(templateConfig.envInfo)) {
+			    templateConfig.envInfo = templateConfig.envInfo[0];
+			}
 
 			templateConfig.envInfo.version = (envData.result.components['structr'] || envData.result.components['structr-ui']).version || '';
 			templateConfig.envInfo.build   = (envData.result.components['structr'] || envData.result.components['structr-ui']).build   || '';
