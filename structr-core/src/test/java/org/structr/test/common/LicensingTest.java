@@ -69,6 +69,8 @@ public class LicensingTest {
 	@AfterMethod
 	public void cleanDatabaseAndSchema() {
 
+		Services.disableIndexConfiguration();
+
 		try (final Tx tx = app.tx()) {
 
 			// delete everything
@@ -102,6 +104,7 @@ public class LicensingTest {
 	public void startSystem() {
 
 		Services.disableTestingMode();
+		Services.disableIndexConfiguration();
 
 		final Date now          = new Date();
 		final long timestamp    = now.getTime();

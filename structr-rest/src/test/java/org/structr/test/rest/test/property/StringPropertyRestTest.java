@@ -60,8 +60,6 @@ public class StringPropertyRestTest extends IndexingTest {
 		.when()
 			.get("/test_threes");
 
-
-
 	}
 
 	@Test

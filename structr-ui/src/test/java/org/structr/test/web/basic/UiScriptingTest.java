@@ -50,7 +50,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -1240,8 +1239,6 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			final List<AbstractNode> result1 = (List)ScriptTestHelper.testExternalScript(ctx, UiScriptingTest.class.getResourceAsStream("/test/scripting/testJavaScriptFindWithPredicateList.js"));
 
 			assertEquals("Wrong result for predicate list,", "[string01, string03, string13]", result1.stream().map(r -> r.getProperty(TestOne.aString)).collect(Collectors.toList()).toString());
@@ -1253,10 +1250,6 @@ public class UiScriptingTest extends StructrUiTest {
 			fex.printStackTrace();
 
 			fail("Unexpected exception");
-
-		} finally {
-
-			Settings.CypherDebugLogging.setValue(false);
 		}
 	}
 

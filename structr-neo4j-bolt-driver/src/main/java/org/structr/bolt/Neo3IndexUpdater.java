@@ -33,17 +33,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
 import org.structr.api.Transaction;
+import org.structr.api.index.IndexConfig;
 
 public class Neo3IndexUpdater {
 
-	private static final Logger logger = LoggerFactory.getLogger(Neo4IndexUpdater.class);
-	private BoltDatabaseService db     = null;
+	private static final Logger logger          = LoggerFactory.getLogger(Neo3IndexUpdater.class);
+	private boolean supportsRelationshipIndexes = false;
+	private BoltDatabaseService db              = null;
 
-	public Neo3IndexUpdater(final BoltDatabaseService db) {
-		this.db = db;
+	public Neo3IndexUpdater(final BoltDatabaseService db, final boolean supportsRelationshipIndexes) {
+
+		this.supportsRelationshipIndexes = supportsRelationshipIndexes;
+		this.db                          = db;
 	}
 
-	public void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfigSource, final Map<String, Map<String, Boolean>> removedClassesSource, final boolean createOnly) {
+	public void updateIndexConfiguration(final Map<String, Map<String, IndexConfig>> schemaIndexConfigSource, final Map<String, Map<String, IndexConfig>> removedClassesSource, final boolean createOnly) {
 
 		final ExecutorService executor              = Executors.newCachedThreadPool();
 		final Map<String, String> existingDbIndexes = new HashMap<>();
@@ -80,17 +84,22 @@ public class Neo3IndexUpdater {
 		final AtomicInteger droppedIndexes = new AtomicInteger(0);
 
 		// create indices for properties of existing classes
-		for (final Map.Entry<String, Map<String, Boolean>> entry : schemaIndexConfigSource.entrySet()) {
+		for (final Map.Entry<String, Map<String, IndexConfig>> entry : schemaIndexConfigSource.entrySet()) {
 
 			final String typeName = entry.getKey();
 
-			for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
+			for (final Map.Entry<String, IndexConfig> propertyIndexConfig : entry.getValue().entrySet()) {
 
 				final String indexDescriptionForLookup = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
 				final String indexDescription          = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
 				final String currentState              = existingDbIndexes.get(indexDescriptionForLookup);
 				final boolean indexAlreadyOnline       = Boolean.TRUE.equals("ONLINE".equals(currentState));
-				final boolean configuredAsIndexed      = propertyIndexConfig.getValue();
+				final IndexConfig indexConfig          = propertyIndexConfig.getValue();
+
+				// skip relationship indexes if not supported
+				if (!indexConfig.isNodeIndex() && !supportsRelationshipIndexes) {
+					continue;
+				}
 
 				if ("FAILED".equals(currentState)) {
 
@@ -145,7 +154,7 @@ public class Neo3IndexUpdater {
 
 							try (final Transaction tx = db.beginTx(timeoutSeconds)) {
 
-								if (configuredAsIndexed) {
+								if (indexConfig.createOrDropIndex()) {
 
 									if (!indexAlreadyOnline) {
 
@@ -209,19 +218,24 @@ public class Neo3IndexUpdater {
 			final List removedTypes = new LinkedList();
 
 			// drop indices for all indexed properties of removed classes
-			for (final Map.Entry<String, Map<String, Boolean>> entry : removedClassesSource.entrySet()) {
+			for (final Map.Entry<String, Map<String, IndexConfig>> entry : removedClassesSource.entrySet()) {
 
 				final String typeName = entry.getKey();
 				removedTypes.add(typeName);
 
-				for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
+				for (final Map.Entry<String, IndexConfig> propertyIndexConfig : entry.getValue().entrySet()) {
 
 					final String indexDescriptionForLookup = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
 					final String indexDescription          = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
 					final boolean indexExists              = (existingDbIndexes.get(indexDescriptionForLookup) != null);
-					final boolean configuredAsIndexed      = propertyIndexConfig.getValue();
+					final IndexConfig indexConfig          = propertyIndexConfig.getValue();
 
-					if (indexExists && configuredAsIndexed) {
+					// skip relationship indexes if not supported
+					if (!indexConfig.isNodeIndex() && !supportsRelationshipIndexes) {
+						continue;
+					}
+
+					if (indexExists && indexConfig.createOrDropIndex()) {
 
 						final AtomicBoolean retry = new AtomicBoolean(true);
 						final AtomicInteger retryCount = new AtomicInteger(0);

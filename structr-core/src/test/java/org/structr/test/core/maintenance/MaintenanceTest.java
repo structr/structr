@@ -34,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.Transaction;
-import org.structr.api.config.Settings;
 import org.structr.api.graph.Node;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
@@ -538,8 +537,6 @@ public class MaintenanceTest extends StructrTest {
 		// test 1: clear database
 		try (final Tx tx = app.tx()) {
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			app.command(ClearDatabase.class).execute();
 
 			tx.success();
@@ -548,10 +545,6 @@ public class MaintenanceTest extends StructrTest {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
-
-		} finally {
-
-			Settings.CypherDebugLogging.setValue(false);
 		}
 
 		// test 2: verify that nothing except the initial schema is there..

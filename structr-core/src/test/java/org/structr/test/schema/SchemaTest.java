@@ -24,6 +24,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
-import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.InvalidSchemaException;
 import org.structr.api.schema.JsonObjectType;
@@ -815,8 +815,6 @@ public class SchemaTest extends StructrTest {
 		// don't run tests that depend on Cypher being available in the backend
 		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			final String tenantId = Services.getInstance().getDatabaseService().getTenantIdentifier();
 
 			try (final Tx tx = app.tx()) {
@@ -975,8 +973,6 @@ public class SchemaTest extends StructrTest {
 
 			task.addReferenceProperty("projectBlah", ref).setProperties("blah", "true");
 
-			Settings.LogSchemaOutput.setValue(true);
-
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
@@ -986,8 +982,6 @@ public class SchemaTest extends StructrTest {
 			t.printStackTrace();
 			fail("NotionProperty setup failed.");
 		}
-
-		Settings.LogSchemaOutput.setValue(true);
 	}
 
 	/*
@@ -1043,8 +1037,6 @@ public class SchemaTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 
-		Settings.LogSchemaOutput.setValue(true);
-
 		// setup 2: delete base type
 		try (final Tx tx = app.tx()) {
 
@@ -1067,8 +1059,6 @@ public class SchemaTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
-
-		Settings.LogSchemaOutput.setValue(false);
 
 		// test 1: add method to one of the types that doesn't have a base type any more
 		try (final Tx tx = app.tx()) {
@@ -1143,8 +1133,6 @@ public class SchemaTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 
-		Settings.LogSchemaOutput.setValue(true);
-
 		// setup 2: delete base type
 		try (final Tx tx = app.tx()) {
 
@@ -1174,8 +1162,6 @@ public class SchemaTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
-
-		Settings.LogSchemaOutput.setValue(false);
 
 		// test 1: add method to one of the types that doesn't have a base type any more
 		try (final Tx tx = app.tx()) {
@@ -1279,6 +1265,137 @@ public class SchemaTest extends StructrTest {
 
 			fex.printStackTrace();
 			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testOverwrittenPropertyRemoval() {
+
+		// setup 1: add type
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+			final JsonType customer       = sourceSchema.addType("Customer");
+
+			// apply schema changes
+			StructrSchema.extendDatabaseSchema(app, sourceSchema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// test: check that no uniqueness is configured
+		try (final Tx tx = app.tx()) {
+
+			final Class type = StructrApp.getConfiguration().getNodeEntityClass("Customer");
+
+			app.create(type, "test");
+			app.create(type, "test");
+
+			tx.success();
+
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Uniqueness validation should not be active any more");
+		}
+
+		// setup: remove all nodes
+		try (final Tx tx = app.tx()) {
+
+			final Class type = StructrApp.getConfiguration().getNodeEntityClass("Customer");
+
+			app.deleteAllNodesOfType(type);
+
+			tx.success();
+
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Uniqueness validation should not be active any more");
+		}
+
+		// setup 2: overwrite name property
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+			final JsonType customer       = sourceSchema.addType("Customer");
+
+			customer.addStringProperty("name").setIndexed(true).setRequired(true).setUnique(true);
+
+			// apply schema changes
+			StructrSchema.extendDatabaseSchema(app, sourceSchema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+
+		// test 1: check that uniqueness is correctly configured
+		try (final Tx tx = app.tx()) {
+
+			final Class type = StructrApp.getConfiguration().getNodeEntityClass("Customer");
+
+			app.create(type, "test");
+
+			// second attempt should fail
+			app.create(type, "test");
+
+			tx.success();
+
+			fail("Uniqueness validation is not active");
+
+		} catch (FrameworkException fex) {
+		}
+
+		// setup 2: remove overwritten property
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+			final JsonType customer       = sourceSchema.getType("Customer");
+
+			for (Iterator<JsonProperty> it = customer.getProperties().iterator(); it.hasNext();) {
+
+				final JsonProperty prop = it.next();
+				if ("name".equals(prop.getName())) {
+
+					System.out.println("Removing name property");
+					it.remove();
+				}
+			}
+
+			// apply schema changes
+			StructrSchema.replaceDatabaseSchema(app, sourceSchema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// test: check that no uniqueness is configured
+		try (final Tx tx = app.tx()) {
+
+			final Class type = StructrApp.getConfiguration().getNodeEntityClass("Customer");
+
+			app.create(type, "test");
+			app.create(type, "test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Uniqueness validation should not be active any more");
 		}
 	}
 

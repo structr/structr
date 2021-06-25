@@ -923,9 +923,7 @@ public class SearchAndSortingTest extends StructrTest {
 				int pageSize        = 10;
 				int page            = 2;
 
-				Settings.CypherDebugLogging.setValue(true);
 				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
-				Settings.CypherDebugLogging.setValue(false);
 
 				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
 				assertTrue(result.size() == Math.min(number, pageSize));
@@ -1887,8 +1885,6 @@ public class SearchAndSortingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			// search for a group with empty list of parents
 			final List<Group> result1 = app.nodeQuery(Group.class).and(groupsKey, new LinkedList<>()).getAsList();
 			assertEquals("Invalid search result", 1, result1.size());
@@ -1901,15 +1897,11 @@ public class SearchAndSortingTest extends StructrTest {
 			final List<Group> result3 = app.nodeQuery(Group.class).andName("Group3").and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
 			assertEquals("Invalid search result", 1, result3.size());
 
-			Settings.CypherDebugLogging.setValue(false);
-
 			tx.success();
 
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
 		}
-
-		Settings.CypherDebugLogging.setValue(false);
 	}
 
 	@Test
@@ -2281,8 +2273,6 @@ public class SearchAndSortingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			final List<NodeInterface> result1 = app.nodeQuery(centerType)
 				.and(types1Key, Arrays.asList(type11))
 				.getAsList();
@@ -2353,8 +2343,6 @@ public class SearchAndSortingTest extends StructrTest {
 				.and(types4Key, Arrays.asList(type42))
 				.and(types5Key, Arrays.asList(type51))
 				.getAsList().size());
-
-			Settings.CypherDebugLogging.setValue(false);
 
 			tx.success();
 
@@ -2521,8 +2509,6 @@ public class SearchAndSortingTest extends StructrTest {
 
 		// test
 		try (final Tx tx = app.tx()) {
-
-			Settings.CypherDebugLogging.setValue(true);
 
 			final List<AbstractNode> result1 = (List)ScriptTestHelper.testExternalScript(ctx, SearchAndSortingTest.class.getResourceAsStream("/test/scripting/testFindQueryWithOrPredicate.js"));
 

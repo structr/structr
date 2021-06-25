@@ -38,8 +38,6 @@ public abstract class IndexingTest extends StructrRestTestBase {
 	@Override
 	public void setup() {
 
-		Services.enableUpdateIndexConfiguration();
-
 		final long timestamp = System.nanoTime();
 
 		basePath = "/tmp/structr-test-" + timestamp;
@@ -67,7 +65,7 @@ public abstract class IndexingTest extends StructrRestTestBase {
 
 		final Services services = Services.getInstance();
 
-		Services.enableUpdateIndexConfiguration();
+		Services.enableIndexConfiguration();
 
 		System.out.println("############################################ INDEXING ENABLED");
 
@@ -87,8 +85,6 @@ public abstract class IndexingTest extends StructrRestTestBase {
 		RestAssured.basePath = "/structr/rest";
 		RestAssured.baseURI  = "http://" + host + ":" + httpPort;
 		RestAssured.port     = httpPort;
-
-		Services.disableUpdateIndexConfiguration();
 	}
 
 }

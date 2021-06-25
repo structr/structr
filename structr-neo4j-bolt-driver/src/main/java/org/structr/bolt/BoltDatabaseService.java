@@ -63,6 +63,7 @@ import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
+import org.structr.api.index.IndexConfig;
 import org.structr.api.search.ExactQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryContext;
@@ -83,6 +84,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	private Properties globalGraphProperties                      = null;
 	private CypherRelationshipIndex relationshipIndex             = null;
 	private CypherNodeIndex nodeIndex                             = null;
+	private boolean supportsRelationshipIndexes                   = false;
 	private boolean supportsIdempotentIndexCreation               = false;
 	private boolean supportsReactive                              = false;
 	private String errorMessage                                   = null;
@@ -493,17 +495,17 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	}
 
 	@Override
-	public void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfigSource, final Map<String, Map<String, Boolean>> removedClassesSource, final boolean createOnly) {
+	public void updateIndexConfiguration(final Map<String, Map<String, IndexConfig>> schemaIndexConfigSource, final Map<String, Map<String, IndexConfig>> removedClassesSource, final boolean createOnly) {
 
 		if (supportsIdempotentIndexCreation) {
 
 			// idempotent index update, no need to check for existance first
-			new Neo4IndexUpdater(this).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
+			new Neo4IndexUpdater(this, supportsRelationshipIndexes).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
 
 		} else {
 
 			// non-idempotent index update, need to check for existance first
-			new Neo3IndexUpdater(this).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
+			new Neo3IndexUpdater(this, supportsRelationshipIndexes).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
 		}
 	}
 
@@ -726,6 +728,14 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 			case AuthenticationRequired:
 				return true;
+
+			case RelationshipIndexes:
+				return supportsRelationshipIndexes;
+
+			case NewDBIndexesFormat:
+				// New db.indexes() format can be used for Neo4j versions >= 4,
+				// which is identical to the version for the reactive flag.
+				return supportsReactive;
 		}
 
 		return false;
@@ -817,6 +827,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 		logger.info("Neo4j version is {}", versionString);
 
+		this.supportsRelationshipIndexes     = versionNumber >= parseVersionString("4.3.0");
 		this.supportsIdempotentIndexCreation = versionNumber >= parseVersionString("4.1.3");
 		this.supportsReactive                = versionNumber >= parseVersionString("4.0.0");
 	}

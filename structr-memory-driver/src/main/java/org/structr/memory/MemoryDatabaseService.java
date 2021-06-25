@@ -34,6 +34,7 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.Index;
+import org.structr.api.index.IndexConfig;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
@@ -235,7 +236,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	}
 
 	@Override
-	public void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfig, final Map<String, Map<String, Boolean>> removedClasses, final boolean createOnly) {
+	public void updateIndexConfiguration(final Map<String, Map<String, IndexConfig>> schemaIndexConfig, final Map<String, Map<String, IndexConfig>> removedClasses, final boolean createOnly) {
 	}
 
 	@Override

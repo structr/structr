@@ -90,7 +90,8 @@ public class Services implements StructrServices {
 	private static long lastLicenseCheck               = System.currentTimeMillis();
 	private static Services singletonInstance          = null;
 	private static boolean testingModeDisabled         = false;
-	private static boolean updateIndexConfiguration    = false;
+	private static boolean overrideIndexManagement     = false;
+	private static boolean skipIndexConfiguration      = false;
 	private static Boolean cachedTestingFlag           = null;
 
 	// non-static members
@@ -1094,21 +1095,26 @@ public class Services implements StructrServices {
 		return Settings.getOrCreateStringSetting(type.getSimpleName(), "active").getValue("default");
 	}
 
-	public static void enableUpdateIndexConfiguration() {
-		updateIndexConfiguration = true;
+	public static void enableIndexConfiguration() {
+		overrideIndexManagement = true;
+		skipIndexConfiguration = false;
 	}
 
-	public static void disableUpdateIndexConfiguration() {
-		updateIndexConfiguration = false;
+	public static void disableIndexConfiguration() {
+		overrideIndexManagement = true;
+		skipIndexConfiguration = true;
 	}
 
 	public static void disableTestingMode() {
-		testingModeDisabled      = true;
-		updateIndexConfiguration = true;
+		testingModeDisabled = true;
 	}
 
-	public static boolean updateIndexConfiguration() {
-		return updateIndexConfiguration;
+	public static boolean skipIndexConfiguration() {
+		return skipIndexConfiguration;
+	}
+
+	public static boolean overrideIndexManagement() {
+		return overrideIndexManagement;
 	}
 
 	public static boolean isTesting() {
