@@ -415,7 +415,12 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 			if (copy == null) {
 
-				copy = new ChangeAwareMap(entityData);
+				synchronized (this) {
+
+					// synchronize access to entityData
+					copy = new ChangeAwareMap(entityData);
+				}
+
 				txData.put(transactionId, copy);
 
 				if (write) {
