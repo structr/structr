@@ -55,6 +55,10 @@ var Importer = {
 	onload: function() {
 		Importer.init();
 
+		Structr.fetchHtmlTemplate('importer/functions', { refreshIcon: _Icons.getHtmlForIcon(_Icons.refresh_icon) }, function(html) {
+			functionBar.append(html);
+		});
+
 		Structr.fetchHtmlTemplate('importer/main', { refreshIcon: _Icons.getHtmlForIcon(_Icons.refresh_icon) }, function(html) {
 
 			main.append(html);

@@ -24,7 +24,6 @@
 	display: flex;
 }
 
-
 #crud-left {
 	margin-right: 2rem;
 	display: flex;
@@ -53,6 +52,10 @@
 	width: 14px;
 	height: 14px;
 	margin: 2px;
+}
+
+#crudTypesSearch {
+	margin: 0 1rem .75rem .5rem;
 }
 
 #crudTypesFilterToggle:hover,
@@ -98,11 +101,6 @@
 	border-top: 1px solid #f6f6f6;
 	z-index: 1000;
 }
-
-
-
-
-
 
 #crud-top {
 	display: inline-block;
@@ -166,7 +164,7 @@
 }
 
 .crud-table {
-	height: calc(100% - 86px);
+	height: calc(100% - 7rem);
 }
 
 .resourceBox table {
@@ -174,7 +172,7 @@
 	overflow: auto;
 	border-collapse: collapse;
 	background: var(--solid-white);
-	margin: 6px 0;
+	/*margin: 6px 0;*/
 	width: 100%;
 }
 
@@ -183,10 +181,10 @@
 	text-align: left;
 	vertical-align: top;
 	height: 1em;
-	background-color: var(--input-background);
+	background-color: var(--main-background);
 	/*color: var(--gray-333);*/
 	/*vertical-align: top;*/
-	min-width: 10rem;
+	/*min-width: 10rem;*/
 }
 
 .resourceBox td {
@@ -280,8 +278,8 @@ input.readonly {
 
 #query-info {
 	position: absolute;
-	bottom: 4px;
-	right: 10px;
+	bottom: .75rem;
+	right: 1rem;
 	text-align: right;
 	color: var(--gray-666);
 }

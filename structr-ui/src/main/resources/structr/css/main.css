@@ -2095,9 +2095,9 @@ button.enabled, button.active {
 }
 
 .pager i {
-	/*font-size: 8pt;*/
-	padding: 2px 4px;
+	margin: 0 0 .25rem .5rem;
 	cursor: pointer;
+	vertical-align: middle;
 }
 
 .pager input.filter {
@@ -3694,8 +3694,8 @@ i.fa-trash-o {
 .full-height-box {
 	display: inline-block;
 	vertical-align: top;
-	padding: 10px;
-	height: calc(100% - 34px);
+	padding-top: 1rem;
+	height: calc(100% - 3rem);
 	overflow: auto;
 }
 
@@ -4076,21 +4076,6 @@ input.newKey {
 	width: calc(100% - 8px);
 }
 
-/**
- * Importer
- */
-
-#importer-main {
-	width: calc(100vw - 64px);
-	margin: 12px;
-}
-
-#log-output {
-	background-color: var(--solid-white);
-	border: 1px solid var(--gray-ddd);
-	padding: 2px;
-	overflow: auto;
-}
 
 /**
  * Refactoring Helper
@@ -4414,7 +4399,7 @@ table.props td.key {
 	margin-bottom: .25rem;
 	background-color: var(--gray-bg);
 	border-radius: .5rem;
-	min-width: 3rem;
+	min-width: 6rem;
 	display: inline-block;
 }
 

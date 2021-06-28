@@ -1,0 +1,20 @@
+/**
+ * Importer
+ */
+
+#importer-main {
+    width: calc(100% - 4rem);
+    margin: 2rem 0 0 2rem;
+}
+
+#log-output {
+    background-color: var(--solid-white);
+    border: 1px solid var(--gray-ddd);
+    padding: 2px;
+    overflow: auto;
+}
+
+#importer-jobs-table {
+    display: table;
+    width: 100%;
+}
