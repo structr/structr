@@ -84,9 +84,9 @@ var _Contents = {
 
 			Structr.fetchHtmlTemplate('contents/buttons.new', {}, function(html) {
 
-				$('#contents-contents-container').prepend(html);
+				functionBar[0].insertAdjacentHTML('beforeend', html);
 
-				$('.add_item_icon', main).on('click', function(e) {
+				$('.add_item_icon', functionBar).on('click', function(e) {
 					var containers = (currentContentContainer ? [ { id : currentContentContainer.id } ] : null);
 					Command.create({ type: $('select#content-item-type').val(), size: 0, containers: containers }, function(f) {
 						_Contents.appendItemOrContainerRow(f);
@@ -95,7 +95,7 @@ var _Contents = {
 				});
 
 
-				$('.add_container_icon', main).on('click', function(e) {
+				$('.add_container_icon', functionBar).on('click', function(e) {
 					Command.create({ type: $('select#content-container-type').val(), parent: currentContentContainer ? currentContentContainer.id : null }, function(f) {
 						_Contents.appendItemOrContainerRow(f);
 						_Contents.refreshTree();
@@ -149,6 +149,10 @@ var _Contents = {
 						});
 					}
 				});
+			});
+
+			Structr.fetchHtmlTemplate('contents/search', {}, function(html) {
+				functionBar[0].insertAdjacentHTML('beforeend', html);
 			});
 
 			$.jstree.defaults.core.themes.dots      = false;

@@ -16,27 +16,42 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+@charset "UTF-8";
 
-/*
-* Search (similar to crud search box but different)
-*/
-.searchBox {
-	position: absolute;
-	right: 2rem;
-	top: .75rem;
+
+#virtual-types-main {
+    display: flex;
+    height: calc(100% - 3rem);
+    margin: 2rem;
 }
 
-/*.searchBox input.search {*/
-/*	border: 1px solid var(--link-color-active);*/
-/*	width: 260px;*/
-/*	height: 22px;*/
-/*	padding: 2px 4px;*/
-/*}*/
+#virtual-types-list {
+    vertical-align: top;
+    height: 100%;
+    padding: 6px;
+    margin-right: 9px;
+}
 
-i.clearSearchIcon {
-	display: none;
-	position: absolute;
-	top: 9px;
-	right: 8px;
-	cursor: pointer;
+#virtual-types-list td.allow-break {
+    word-break: break-all;
+}
+
+#virtual-type-detail {
+    padding: 6px;
+    vertical-align: top;
+    overflow: auto;
+    height: 100%;
+}
+
+#virtual-types-list-th-actions {
+    width: 50px;
+    min-width: initial;
+}
+
+#virtual-types-table {
+    display: table;
+}
+
+#virtual-types-pager {
+    display: inline-block;
 }

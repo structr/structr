@@ -659,7 +659,6 @@ var _Flows = {
             return false;
         });
 
-
         cmEditor.on('change', function(cm, change) {
             if (element.value === cmEditor.getValue()) {
                 dialogSaveButton.prop("disabled", true).addClass('disabled');

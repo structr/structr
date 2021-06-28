@@ -167,7 +167,7 @@ var _Schema = {
 				}
 			});
 
-			$('#schema-tools').off('click').on('click', _Schema.openSchemaToolsDialog);
+			$('#schema-tools').off('click').on('click', _Schema.openTypeVisibilityDialog);
 			$('#global-schema-methods').off('click').on('click', _Schema.methods.showGlobalSchemaMethods);
 
 			_Schema.globalLayoutSelector = $('#saved-layout-selector-main');
@@ -3625,8 +3625,6 @@ var _Schema = {
 	},
 	activateLayoutTools: () => {
 
-		console.log('activateLayoutTools');
-
 		$('#reset-schema-positions').off('click').on('click', _Schema.clearPositions);
 		var layoutSelector        = $('#saved-layout-selector');
 		var layoutNameInput       = $('#layout-name');
@@ -3891,11 +3889,11 @@ var _Schema = {
 			showRelLabels: $('#schema-show-overlays').prop('checked')
 		};
 	},
-	openSchemaToolsDialog: function() {
+	openTypeVisibilityDialog: function() {
 		Structr.dialog('', function() {}, function() {});
 
 		var id = "schema-tools";
-		dialogHead.append('<div id="' + id + '_head"><div id="tabs"><ul id="schema-tools-tabs"></ul></div></div>');
+		// dialogHead.append('<div id="' + id + '_head"><div id="tabs"><ul id="schema-tools-tabs"></ul></div></div>');
 		dialogText.append('<div id="' + id + '_content"></div>');
 
 		var mainTabs = $('#tabs', dialogHead);
@@ -3904,36 +3902,36 @@ var _Schema = {
 		var ul = mainTabs.children('ul');
 		// ul.append('<li data-name="admin">Admin</li>');
 		// ul.append('<li data-name="layout">Layouts</li>');
-		// ul.append('<li data-name="visibility">Visibility</li>');
+		ul.append('<li data-name="visibility active">Visibility</li>');
 		// ul.append('<li data-name="snapshots">Snapshots</li>');
 
 		var activateTab = function(tabName) {
 			$('.tools-tab-content', contentDiv).hide();
 			$('li', ul).removeClass('active');
 			$('#tabView-' + tabName, contentDiv).show();
-			$('li[data-name="' + tabName + '"]', ul).addClass('active');
+			// $('li[data-name="' + tabName + '"]', ul).addClass('active');
 			LSWrapper.setItem(_Schema.activeSchemaToolsSelectedTabLevel1Key, tabName);
 		};
+		//
+		// $('#schema-tools-tabs > li', mainTabs).off('click').on('click', function(e) {
+		// 	e.stopPropagation();
+		// 	activateTab($(this).data('name'));
+		// });
 
-		$('#schema-tools-tabs > li', mainTabs).off('click').on('click', function(e) {
-			e.stopPropagation();
-			activateTab($(this).data('name'));
-		});
-
-		contentDiv.append('<div class="tab tools-tab-content" id="tabView-admin"></div>');
-		_Schema.appendAdminToolsToContainer($('#tabView-admin', contentDiv));
+		// contentDiv.append('<div class="tab tools-tab-content" id="tabView-admin"></div>');
+		// _Schema.appendAdminToolsToContainer($('#tabView-admin', contentDiv));
 
 		// contentDiv.append('<div class="tab tools-tab-content" id="tabView-layout"></div>');
 		// _Schema.appendLayoutToolsToContainer($('#tabView-layout', contentDiv));
 
-		contentDiv.append('<div class="tab tools-tab-content" id="tabView-visibility"></div>');
+		contentDiv.append('<div class="tab tools-tab-content" id="tabView-visibility"></div>').show();
 		_Schema.appendTypeVisibilityOptionsToContainer($('#tabView-visibility', contentDiv));
 
 		// contentDiv.append('<div class="tab tools-tab-content" id="tabView-snapshots"></div>');
 		// _Schema.appendSnapshotsDialogToContainer($('#tabView-snapshots', contentDiv));
 
-		var activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedTabLevel1Key) || 'admin';
-		activateTab(activeTab);
+		// var activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedTabLevel1Key) || 'admin';
+		activateTab('visibility');
 	},
 	appendTypeVisibilityOptionsToContainer: function(container) {
 
@@ -3988,7 +3986,7 @@ var _Schema = {
 				contentEl.append(tab);
 
 				var schemaVisibilityTable = $('<table class="props schema-visibility-table"></table>');
-				schemaVisibilityTable.append('<tr><th class="" colspan=2>' + visType.caption + '</th></tr>');
+				// schemaVisibilityTable.append('<tr><th class="" colspan=2>' + visType.caption + '</th></tr>');
 				schemaVisibilityTable.append('<tr><th class="toggle-column-header"><input type="checkbox" title="Toggle all" class="toggle-all-types"><i class="invert-all-types invert-icon ' + _Icons.getFullSpriteClass(_Icons.toggle_icon) + '" title="Invert all"></i> Visible</th><th>Type</th></tr>');
 				tab.append(schemaVisibilityTable);
 

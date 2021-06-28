@@ -933,14 +933,14 @@ var _Entities = {
 
 						if (entity.isContent !== true || entity.type === 'Template') {
 
-							_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', !hasCustomDialog, function(c) {
+							_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Repeater', !hasCustomDialog, function(c) {
 								_Entities.queryDialog(entity, c, typeInfo);
 							}, function() { }, function() { });
 						}
 
 						if (entity.isContent !== true) {
 
-							_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Edit Mode Binding', false, function(c) {
+							_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Events', false, function(c) {
 								_Entities.dataBindingDialog(entity, c, typeInfo);
 							}, function(c) {}, function(c) {
 								_Entities.dataBindingDialog(entity, c, typeInfo);
@@ -953,7 +953,7 @@ var _Entities = {
 					_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
 
 					if (!entity.hasOwnProperty('relType')) {
-						_Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Access Control and Visibility', false, function(c) {
+						_Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Security', false, function(c) {
 							_Entities.accessControlDialog(entity, c, typeInfo);
 						});
 					}

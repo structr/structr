@@ -627,24 +627,24 @@
 .modal#layoutModal .modal-content .layout-controls .input-group:hover {
 	background-color: var(--solid-white);
 }
-.modal#layoutModal .modal-content .layout-controls select, .modal#layoutModal .modal-content .layout-controls button {
-	vertical-align: middle;
-	line-height: 16px;
-    background-color: var(--light-gray-bg-f1) ! important;
-    color: var(--gray-222) ! important;
-    font-family: inherit ! important;
-    font-size: inherit ! important;
-    line-height: 16px;
-    border: 1px solid var(--black-opacity-125) ! important;
-    padding: 2px 4px ! important;
-}
-.modal#layoutModal .modal-content .layout-controls select:focus, .modal#layoutModal .modal-content .layout-controls button:focus {
-	outline: none;
-	background-color: var(--solid-white);
-}
-.modal#layoutModal .modal-content .layout-controls select:hover, .modal#layoutModal .modal-content .layout-controls button:hover {
-	background-color: var(--solid-white);
-}
+/*.modal#layoutModal .modal-content .layout-controls select, .modal#layoutModal .modal-content .layout-controls button {*/
+/*	vertical-align: middle;*/
+/*	line-height: 16px;*/
+/*    background-color: var(--light-gray-bg-f1) ! important;*/
+/*    color: var(--gray-222) ! important;*/
+/*    font-family: inherit ! important;*/
+/*    font-size: inherit ! important;*/
+/*    line-height: 16px;*/
+/*    border: 1px solid var(--black-opacity-125) ! important;*/
+/*    padding: 2px 4px ! important;*/
+/*}*/
+/*.modal#layoutModal .modal-content .layout-controls select:focus, .modal#layoutModal .modal-content .layout-controls button:focus {*/
+/*	outline: none;*/
+/*	background-color: var(--solid-white);*/
+/*}*/
+/*.modal#layoutModal .modal-content .layout-controls select:hover, .modal#layoutModal .modal-content .layout-controls button:hover {*/
+/*	background-color: var(--solid-white);*/
+/*}*/
 span.close {
 	color: white;
 	float: right;

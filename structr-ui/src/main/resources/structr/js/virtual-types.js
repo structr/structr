@@ -38,9 +38,9 @@ var _VirtualTypes = {
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('virtual-types'));
 
-		Structr.fetchHtmlTemplate('virtual-types/main', {}, function (html) {
+		Structr.fetchHtmlTemplate('virtual-types/functions', {}, function (html) {
 
-			main.append(html);
+			functionBar.append(html);
 
 			$('#create-virtual-type').on('click', function() {
 				_VirtualTypes.clearVirtualTypeDetails();
@@ -48,16 +48,22 @@ var _VirtualTypes = {
 				_VirtualTypes.enableCreateMode();
 				_VirtualTypes.virtualTypeDetail.show();
 			});
+		});
+
+		Structr.fetchHtmlTemplate('virtual-types/main', {}, function (html) {
+
+			main.append(html);
+
 
 			_VirtualTypes.virtualTypesList = $('#virtual-types-table tbody');
 			_VirtualTypes.listVirtualTypes();
 
-			_VirtualTypes.virtualTypeDetail = $('#virtual-type-detail').hide();
+			_VirtualTypes.virtualTypeDetail = $('#virtual-type-detail'); //.hide();
 			_VirtualTypes.resourceLink = $('.resource-link a', _VirtualTypes.virtualTypeDetail);
 			_VirtualTypes.virtualTypeDetailTableRow = $('#virtual-type-detail-table tbody tr');
 			_VirtualTypes.virtualPropertiesTableBody = $('#virtual-properties-table tbody');
 
-			$('<button class="create"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> New Virtual Property</button>').on('click', function() {
+			$('<button class="create"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '"></i> New Virtual Property</button>').on('click', function() {
 				_VirtualTypes.appendVirtualProperty();
 			}).appendTo($('#virtual-properties', _VirtualTypes.virtualTypeDetail));
 
@@ -65,7 +71,7 @@ var _VirtualTypes = {
 
 			var actionsCol = $('.actions', _VirtualTypes.virtualTypeDetail);
 
-			$('<i class="button ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />').on('click', function() {
+			$('<i class="button ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '"></i>').on('click', function() {
 
 				var data = _VirtualTypes.getVirtualObjectDataFromRow(_VirtualTypes.virtualTypeDetailTableRow);
 
@@ -80,10 +86,10 @@ var _VirtualTypes = {
 
 			}).appendTo(actionsCol);
 
-			$('<i class="button ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />').on('click', function () {
+			$('<i class="button ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '">').on('click', function () {
 				_VirtualTypes.clearVirtualTypeDetails();
 
-				_VirtualTypes.virtualTypeDetail.hide();
+				// _VirtualTypes.virtualTypeDetail.hide();
 			}).appendTo(actionsCol);
 
 			Structr.appendInfoTextToElement({
@@ -168,7 +174,7 @@ var _VirtualTypes = {
 		_VirtualTypes.virtualTypesPager.cleanupFunction = function () {
 			fastRemoveAllChildren(_VirtualTypes.virtualTypesList[0]);
 		};
-		_VirtualTypes.virtualTypesPager.pager.append('<br>Filters: <input type="text" class="filter w100 virtual-type-name" data-attribute="name" placeholder="Name" />');
+		_VirtualTypes.virtualTypesPager.pager.append('Filters: <input type="text" class="filter w100 virtual-type-name" data-attribute="name" placeholder="Name" />');
 		_VirtualTypes.virtualTypesPager.pager.append('<input type="text" class="filter w100 virtual-type-sourceType" data-attribute="sourceType" placeholder="Source Type" />');
 		_VirtualTypes.virtualTypesPager.activateFilterElements();
 
@@ -194,7 +200,7 @@ var _VirtualTypes = {
 
 			var actionsCol = $('.actions', row);
 
-			$('<a title="Edit Properties" class="properties"><i class=" button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /></a>').on('click', function () {
+			$('<a title="Edit Properties" class="properties"><i class=" button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '"></i></a>').on('click', function () {
 				_VirtualTypes.showVirtualTypeDetails(virtualType.id);
 			}).appendTo(actionsCol);
 
@@ -210,7 +216,7 @@ var _VirtualTypes = {
 
 					if (virtualType.id === _VirtualTypes.virtualTypeDetailTableRow.data('virtual-type-id')) {
 						_VirtualTypes.clearVirtualTypeDetails();
-						_VirtualTypes.virtualTypeDetail.hide();
+						// _VirtualTypes.virtualTypeDetail.hide();
 					}
 
 					row.remove();

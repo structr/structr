@@ -725,14 +725,17 @@ var _Pages = {
 	adaptSubmenu: (obj) => {
 		switch (obj.type) {
 			case 'Page':
+				document.querySelector('a[href="#pages:html"]').closest('li').classList.add('hidden');
 				document.querySelector('a[href="#pages:editor"]').closest('li').classList.add('hidden');
 				document.querySelector('a[href="#pages:repeater"]').closest('li').classList.add('hidden');
 				document.querySelector('a[href="#pages:events"]').closest('li').classList.add('hidden');
 				break;
 			default:
 				if (obj.isContent) {
+					document.querySelector('a[href="#pages:html"]').closest('li').classList.remove('hidden');
 					document.querySelector('a[href="#pages:editor"]').closest('li').classList.remove('hidden');
 				} else {
+					document.querySelector('a[href="#pages:html"]').closest('li').classList.remove('hidden');
 					document.querySelector('a[href="#pages:editor"]').closest('li').classList.add('hidden');
 					document.querySelector('a[href="#pages:repeater"]').closest('li').classList.remove('hidden');
 					document.querySelector('a[href="#pages:events"]').closest('li').classList.remove('hidden');
@@ -829,9 +832,7 @@ var _Pages = {
 
 				break;
 
-			case '#pages:advanced':
-
-				let view = urlHash.split(':')[1] === 'basic' ? 'general' : 'public';
+			case '#pages:html':
 
 				if (active) {
 
@@ -842,7 +843,7 @@ var _Pages = {
 
 						_Schema.getTypeInfo(obj.type, function(typeInfo) {
 
-							_Entities.listProperties(obj, view, $(propertiesContainer), typeInfo, function(properties) {
+							_Entities.listProperties(obj, '_html_', $(propertiesContainer), typeInfo, function(properties) {
 
 								// make container visible when custom properties exist
 								if (Object.keys(properties).length > 0) {
@@ -859,6 +860,36 @@ var _Pages = {
 				}
 
 				break;
+
+			case '#pages:advanced':
+
+				if (active) {
+
+					Structr.fetchHtmlTemplate('pages/properties', {}, (html) => {
+
+						previewsContainer.insertAdjacentHTML('beforeend', html);
+						propertiesContainer = document.querySelector('#previews .properties-container');
+
+						_Schema.getTypeInfo(obj.type, function(typeInfo) {
+
+							_Entities.listProperties(obj, 'ui', $(propertiesContainer), typeInfo, function(properties) {
+
+								// make container visible when custom properties exist
+								if (Object.keys(properties).length > 0) {
+									$('div#custom-properties-parent').removeClass("hidden");
+								}
+
+								$('input.dateField', $(propertiesContainer)).each(function(i, input) {
+									_Entities.activateDatePicker($(input));
+								});
+							});
+						});
+
+					});
+				}
+
+				break;
+
 			case '#pages:preview':
 
 				if (!obj) return;
@@ -1534,15 +1565,20 @@ var _Pages = {
 		}
 	},
 	leftSlideoutTrigger: function (triggerEl, slideoutElement, otherSlideouts, activeTabKey, openCallback, closeCallback) {
+		let leftResizer = document.querySelector('.column-resizer-left');
 		if (!$(triggerEl).hasClass('noclick')) {
 			//if (Math.abs(slideoutElement.position().left + slideoutElement.width() + 12) <= 3) {
 			if (slideoutElement.position().left < -1) {
 				Structr.closeLeftSlideOuts(otherSlideouts, activeTabKey, closeCallback);
 				Structr.openLeftSlideOut(triggerEl, slideoutElement, activeTabKey, openCallback);
-				document.querySelector('.column-resizer-left').classList.remove('hidden');
+				if (leftResizer) {
+					leftResizer.classList.remove('hidden');
+				}
 			} else {
 				Structr.closeLeftSlideOuts([slideoutElement], activeTabKey, closeCallback);
-				document.querySelector('.column-resizer-left').classList.add('hidden');
+				if (leftResizer) {
+					leftResizer.classList.add('hidden');
+				}
 			}
 		}
 	},

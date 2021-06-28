@@ -44,7 +44,7 @@ var _Dialogs = {
 		return false;
 	},
 	getTitle: function() {
-		return "Main Properties";
+		return 'Basic';
 	},
 	showCustomProperties: function(entity) {
 
@@ -518,20 +518,20 @@ var _Dialogs = {
 };
 
 var registeredDialogs = {
-	'DEFAULT_DOM_NODE': { id: 'general', title : 'General', callback: _Dialogs.defaultDomDialog },
-	'A': { id: 'general', title : 'General', callback: _Dialogs.aDialog },
-	'Button': { id: 'general', title : 'General', callback: _Dialogs.buttonDialog },
-	'Content': { id: 'general', title : 'General', callback: _Dialogs.contentDialog },
-	'Div': { id: 'general', title : 'General', callback: _Dialogs.divDialog },
-	'File':  { id: 'general', title: 'General', callback: _Dialogs.fileDialog },
-	'Folder':  { id: 'general', title: 'General', callback: _Dialogs.folderDialog },
+	'DEFAULT_DOM_NODE': { id: 'general', title : 'Basic', callback: _Dialogs.defaultDomDialog },
+	'A': { id: 'general', title : 'Basic', callback: _Dialogs.aDialog },
+	'Button': { id: 'general', title : 'Basic', callback: _Dialogs.buttonDialog },
+	'Content': { id: 'general', title : 'Basic', callback: _Dialogs.contentDialog },
+	'Div': { id: 'general', title : 'Basic', callback: _Dialogs.divDialog },
+	'File':  { id: 'general', title: 'Basic', callback: _Dialogs.fileDialog },
+	'Folder':  { id: 'general', title: 'Basic', callback: _Dialogs.folderDialog },
 	'Image':  { id: 'general', title: 'Advanced', callback: _Dialogs.fileDialog },
-	'Input':  { id: 'general', title: 'General', callback: _Dialogs.inputDialog },
+	'Input':  { id: 'general', title: 'Basic', callback: _Dialogs.inputDialog },
 	'LDAPGroup':  { id: 'general', title: 'LDAP configuration', callback: _Dialogs.ldapGroupDialog, condition: function() { return Structr.isModulePresent('ldap-client'); } },
-	'Option':  { id: 'general', title: 'General', callback: _Dialogs.optionDialog },
-	'Page': { id: 'general', title : 'General', callback: _Dialogs.pageDialog },
-	'Template': { id: 'general', title : 'General', callback: _Dialogs.contentDialog },
-	'User': { id: 'general', title : 'General', callback: _Dialogs.userDialog }
+	'Option':  { id: 'general', title: 'Basic', callback: _Dialogs.optionDialog },
+	'Page': { id: 'general', title : 'Basic', callback: _Dialogs.pageDialog },
+	'Template': { id: 'general', title : 'Basic', callback: _Dialogs.contentDialog },
+	'User': { id: 'general', title : 'Basic', callback: _Dialogs.userDialog }
 };
 
 function setNull(id, key, input) {

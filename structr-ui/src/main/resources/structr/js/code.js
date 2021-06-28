@@ -94,12 +94,28 @@ var _Code = {
 		Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', null, _Code.addAvailableTagsForEntities, false, null, 'tags');
 		Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', null, _Code.addAvailableTagsForEntities, false, null, 'tags');
 
+		Structr.fetchHtmlTemplate('code/search', {}, function(html) {
+			functionBar.append(html);
+			$('#tree-search-input').on('input', _Code.debounce(_Code.doSearch, 300));
+			$('#tree-forward-button').on('click', _Code.pathLocationForward);
+			$('#tree-back-button').on('click', _Code.pathLocationBackward);
+			$('#cancel-search-button').on('click', _Code.cancelSearch);
+
+			$(window).on('keydown.search', function(e) {
+				if (_Code.searchIsActive()) {
+					if (e.key === 'Escape') {
+						_Code.cancelSearch();
+					}
+				};
+			});
+		});
+
 		Structr.fetchHtmlTemplate('code/main', {}, function(html) {
 
 			main.append(html);
 
 			// preload action button
-			Structr.fetchHtmlTemplate('code/action-button', { }, function(html) {
+			Structr.fetchHtmlTemplate('code/action-button', {}, function(html) {
 
 				_Code.init();
 
@@ -132,18 +148,6 @@ var _Code = {
 				_Code.resize();
 				Structr.adaptUiToAvailableFeatures();
 
-				$('#tree-search-input').on('input', _Code.debounce(_Code.doSearch, 300));
-				$('#tree-forward-button').on('click', _Code.pathLocationForward);
-				$('#tree-back-button').on('click', _Code.pathLocationBackward);
-				$('#cancel-search-button').on('click', _Code.cancelSearch);
-
-				$(window).on('keydown.search', function(e) {
-					if (_Code.searchIsActive()) {
-						if (e.key === 'Escape') {
-							_Code.cancelSearch();
-						}
-					};
-				});
 			});
 		});
 

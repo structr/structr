@@ -301,26 +301,33 @@ $(function() {
 
 		let menu = e.target.closest('.dropdown-menu');
 
-		let template       = menu.dataset['template'];
-		let config         = JSON.parse(menu.dataset['config'] || '{}');
-		let callbackString = menu.dataset['callback'];
+		if (menu) {
+			let template = menu.dataset['template'];
+			let config = JSON.parse(menu.dataset['config'] || '{}');
+			let callbackString = menu.dataset['callback'];
 
-		Structr.fetchHtmlTemplate(template, config, function(html) {
-			let container = e.target.closest('.dropdown-menu').querySelector('.dropdown-menu-container');
-			if (container) {
-				if (!container.hasChildNodes()) {
-					container.insertAdjacentHTML('beforeend', html);
-					container.style.opacity = '1';
-				} else {
-					container.style.opacity = '0';
-					fastRemoveAllChildren(container);
+			Structr.fetchHtmlTemplate(template, config, function (html) {
+				let container = e.target.closest('.dropdown-menu').querySelector('.dropdown-menu-container');
+				if (container) {
+					if (!container.hasChildNodes()) {
+						container.insertAdjacentHTML('beforeend', html);
+						container.style.opacity = '1';
+					} else {
+						container.style.opacity = '0';
+						fastRemoveAllChildren(container);
+					}
 				}
-			}
 
-			if (callbackString && callbackString.length) {
-				Structr.getActiveModule()[callbackString]();
-			}
-		});
+				if (callbackString && callbackString.length) {
+					Structr.getActiveModule()[callbackString]();
+				}
+			});
+		}
+		return false;
+	});
+
+	live('#closeDialog', 'click', (e) => { console.log('test')
+		document.querySelector('#dialogBox .closeButton').click();
 		return false;
 	});
 
@@ -1644,7 +1651,7 @@ var Structr = {
 				$('.column-resizer-blocker').show();
 			},
 			drag: function(e, ui) {
-				dragCallback(Structr.getSliderValueForDragCallback(ui.position.left, minWidth, isRight));
+				return dragCallback(Structr.getSliderValueForDragCallback(ui.position.left, minWidth, isRight));
 			},
 			stop: function(e, ui) {
 				$('.column-resizer-blocker').hide();

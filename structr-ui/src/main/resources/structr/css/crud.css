@@ -33,7 +33,7 @@
 
 #crud-types, #crud-recent-types {
 	height: 50%;
-	display:flex;
+	display: flex;
 	flex-direction: column;
 	padding: 1rem 0;
 }
@@ -124,7 +124,7 @@
 }
 
 .resourceBox h2 {
-	margin: 2px 0 12px 0;
+	margin: .25rem 0 1rem .5rem;
 }
 
 #crud-type-detail {
@@ -198,11 +198,11 @@
 }
 
 .resourceBox tr:nth-child(odd) {
-	background: var(--light-gray-bg-f7) ! important;
+	background: var(--light-gray-bg-f7);
 }
 
 .resourceBox tr:nth-child(even) {
-	background: var(--solid-white) ! important;
+	background: var(--solid-white);
 }
 
 /* allows table headers to be sticky */
@@ -216,7 +216,7 @@
 }
 
 .column-sorted-active {
-	color: var(--body-text) ! important;
+	color: var(--active-link) ! important;
 }
 
 /*!* adds an outline to the table head elements because when using position:sticky the regular border is not rendered *!*/
@@ -374,11 +374,11 @@ input.readonly {
 
 .actions a {
 	display: inline-block;
-	margin: 2px
+	margin: .25rem;
+	vertical-align: middle;
 }
 
 .actions a:hover {
-	opacity: .6;
 	cursor: pointer;
 }
 

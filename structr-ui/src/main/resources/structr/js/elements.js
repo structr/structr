@@ -907,12 +907,14 @@ var _Elements = {
 	},
 	getContextMenuElements: function (div, entity) {
 
-		const isPage      = (entity.type === 'Page');
-		const isContent   = (entity.type === 'Content');
-		const isFile      = entity.isFile;
-		const isFolder    = entity.isFolder;
-		const isUser      = entity.isUser;
-		const isGroup     = entity.isGroup;
+		const isPage         = (entity.type === 'Page');
+		const isContent      = (entity.type === 'Content');
+		const isFile         = entity.isFile;
+		const isFolder       = entity.isFolder;
+		const isUser         = entity.isUser;
+		const isGroup        = entity.isGroup;
+		const isMailTemplate = (entity.type === 'MailTemplate');
+		const isLocalization = (entity.type === 'Localization');
 		const hasChildren = (entity.children && entity.children.length > 0);
 
 		var handleInsertHTMLAction = function (itemText) {
@@ -945,7 +947,7 @@ var _Elements = {
 			}
 		};
 
-		if (!isFile && !isFolder && !isUser && !isGroup) {
+		if (!isFile && !isFolder && !isUser && !isGroup && !isMailTemplate && !isLocalization) {
 
 			if (!isContent) {
 
@@ -1175,14 +1177,14 @@ var _Elements = {
 			if (!isPage) {
 
 				elements.push({
-					name: 'Query and Data Binding',
+					name: 'Repeater',
 					clickHandler: function () {
 						_Entities.showProperties(entity, 'query');
 						return false;
 					}
 				});
 				elements.push({
-					name: 'Edit Mode Binding',
+					name: 'Events',
 					clickHandler: function () {
 						_Entities.showProperties(entity, 'editBinding');
 						return false;
@@ -1437,7 +1439,7 @@ var _Elements = {
 
 		appendSeparator();
 
-		if (!isFile && !isFolder && !isContent && !isUser && !isGroup) {
+		if (!isFile && !isFolder && !isContent && !isUser && !isGroup && !isMailTemplate && !isLocalization) {
 
 			elements.push({
 				name: '<input type="checkbox" id="inherit-visibility-flags">Inherit Visibility Flags',
@@ -1483,6 +1485,26 @@ var _Elements = {
 						_Entities.deleteNode(this, entity, true, () => {
 							_Files.refreshTree();
 						});
+					}
+				} else if (isMailTemplate) {
+
+					_Entities.deleteNode(this, entity, false, () => {
+						if (LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey) && LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey) === entity.id) {
+							LSWrapper.removeItem(_MailTemplates.mailTemplateSelectedElementKey);
+						}
+						let row = Structr.node(entity.id, '#mail-template-');
+						if (row) {
+							row.remove();
+							// _MailTemplates.clearMailTemplateDetails();
+							_MailTemplates.checkMainVisibility();
+						}
+
+					});
+
+				} else if (isLocalization) {
+					let keyAndDomainObject = entity;
+					if (true === confirm('Do you really want to delete the complete localizations for "' + keyAndDomainObject.name + '"' + (keyAndDomainObject.domain ? ' in domain "' + keyAndDomainObject.domain + '"' : ' with empty domain') + ' ?')) {
+						_Localization.deleteCompleteLocalization((keyAndDomainObject.name ? keyAndDomainObject.name : null), (keyAndDomainObject.domain ? keyAndDomainObject.domain : null), this);
 					}
 
 				} else {

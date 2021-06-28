@@ -36,6 +36,8 @@
 	--body-text: #1f242d;
 	--icon-stroke: #5e6c88;
 	--icon-stroke-hover: #1f242d;
+	--active-link: #1f242d;
+	--inactive-link: #5e6c88;
 
 	--gray-bg: #e5e5e5;
 	--light-gray-bg-f1: #f1f1f1;
@@ -171,11 +173,11 @@ tt, tt *, pre, pre *, code, code *, .terminal, .cmd {
 }
 
 a, a:link, a:visited {
-	color: var(--inactive-tab-text);
+	color: var(--inactive-link);
 }
 
 a:hover, a:active {
-	color: var(--active-tab-text);
+	color: var(--active-link);
 }
 
 li.active a, li.active a:link, li.active a:visited {
@@ -812,7 +814,8 @@ img.disabled {
 }
 
 .props th {
-	background: var(--input-background);
+	color: var(--body-text);
+	background: var(--main-background);
 }
 
 .props td, .props th {
@@ -838,22 +841,22 @@ img.disabled {
 }
 
 .props tr td.value {
-	padding: 4px 6px;
-	margin: 0 2px;
+	/*padding: 4px 6px;*/
+	/*margin: 0 2px;*/
 }
 
 .props tr td.value input, .props tr td.value textarea {
-	margin: -3px;
-	background: var(--solid-white);
-	border: 1px solid var(--gray-eee);
-	width: 99%;
+	/*margin: -3px;*/
+	/*background: var(--solid-white);*/
+	/*border: 1px solid var(--gray-eee);*/
+	width: calc(100% - 1rem);
 }
 
 .props textarea {
-	margin: -3px;
-	border: 1px solid transparent;
+	/*margin: -3px;*/
+	/*border: 1px solid transparent;*/
 	/*font-size: 8pt;*/
-	width: 360px;
+	/*width: 360px;*/
 }
 
 .props tr td.value input.readonly {
@@ -1329,7 +1332,7 @@ i.link_icon {
 	cursor: pointer;
 	position: absolute;
 	right: .5rem;
-	top: .375rem;
+	top: .4rem;
 	vertical-align: top;
 	color: var(--icon-stroke);
 }
@@ -1499,7 +1502,7 @@ i.button {
     border: 1px dashed var(--gray-777);
 }
 
-.contextMenuActive {
+.node.contextMenuActive {
 	color: var(--gray-333) ! important;
 	background-color: var(--structr-light-green-transparent) ! important;
 	/*border: 1px solid var(--input-field-border);*/
@@ -1532,27 +1535,36 @@ button.action.disabled:hover {
 	/*font-size: 11pt;*/
 	padding: 1rem;
 	/*border: 1px solid var(--gray-999);*/
-	background-color: var(--gray-eee);
+	background-color: var(--solid-white);
 }
 
-#dialogBox #minimizeDialog {
+#minimizeDialog {
 	display: none;
 }
 
-#dialogBox .minmax {
+#dialogBox .window-icon {
 	position: absolute;
-	right: 1em;
-	top: 1em;
+	color: var(--icon-stroke);
+}
+
+#dialogBox .minmax {
+	top: .5rem;
+	left: .5rem;
 	width: 16px;
 	height: 16px;
 }
 
-#dialogBox .minmax:hover {
+#dialogBox .close {
+	background-color: var(--solid-white);
+	top: .35rem;
+	right: .25rem;
+	width: 24px;
+	height: 24px;
+}
+
+#dialogBox .window-icon:hover {
 	cursor: pointer;
-	filter: alpha(opacity=60);
-	-khtml-opacity: 0.6;
-	-moz-opacity: 0.6;
-	opacity: 0.6;
+	color: var(--icon-stroke-hover);
 }
 
 .CodeMirror-gutter {
@@ -1581,6 +1593,7 @@ button.action.disabled:hover {
 }
 
 .dialogTitle {
+	display: none;
 	font-size: 11pt;
 	text-align: center;
 	color: var(--gray-333);
@@ -3037,42 +3050,42 @@ td#cascading-options, td#propagation-options {
 	padding: 0 0 4px 0;
 }
 
-.tree-search-container button {
-	/*font-size: 8pt;*/
-	width: 25px;
-	height: 25px;
-	box-sizing: border-box;
-	text-align: center;
-	color: var(--structr-green);
-	background-color: var(--solid-white);
-}
+/*.tree-search-container button {*/
+/*	!*font-size: 8pt;*!*/
+/*	width: 25px;*/
+/*	height: 25px;*/
+/*	box-sizing: border-box;*/
+/*	text-align: center;*/
+/*	color: var(--structr-green);*/
+/*	background-color: var(--solid-white);*/
+/*}*/
 
-.tree-search-container button:disabled {
-	color: var(--gray-999);
-}
+/*.tree-search-container button:disabled {*/
+/*	color: var(--gray-999);*/
+/*}*/
 
 .tree-search-container button:hover {
 	/*border: 1px solid var(--gray-ccc);*/
 }
 
-button.tree-forward-button {
-	position: absolute;
-	right: 0;
-	padding: 0 !important;
-	margin-right: 0;
-}
+/*button.tree-forward-button {*/
+/*	position: absolute;*/
+/*	right: 0;*/
+/*	padding: 0 !important;*/
+/*	margin-right: 0;*/
+/*}*/
 
-input.tree-search-input {
-	margin: 0 4px 0 0;
-	/*font-size: 8pt;*/
-	width: calc(100% - 63px);
-	height: 25px;
-	box-sizing: border-box;
-}
+/*input.tree-search-input {*/
+/*	margin: 0 4px 0 0;*/
+/*	!*font-size: 8pt;*!*/
+/*	width: calc(100% - 63px);*/
+/*	height: 25px;*/
+/*	box-sizing: border-box;*/
+/*}*/
 
-input.tree-search-input:focus {
-	border: 1px solid var(--gray-ccc);
-}
+/*input.tree-search-input:focus {*/
+/*	border: 1px solid var(--gray-ccc);*/
+/*}*/
 
 .tree i.jstree-icon.gray {
 	color: var(--gray-666);
@@ -3163,9 +3176,10 @@ input.tree-search-input:focus {
 }
 
 #code-tree, #simple-pages-tree {
-	border: 1px solid var(--black-opacity-125);
-	box-shadow: 0px 0px 36px var(--gray-opacity-10);
-	height: calc(100% - 34px);
+	/*border: 1px solid var(--black-opacity-125);*/
+	/*box-shadow: 0px 0px 36px var(--gray-opacity-10);*/
+	/*height: calc(100% - 34px);*/
+	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
 }
 
 #crawler-list {
@@ -3677,19 +3691,6 @@ i.fa-trash-o {
 	/*font-size: 9pt;*/
 }
 
-#localizations-table {
-	display: table;
-}
-
-#localizations-table a {
-	text-decoration: underline;
-}
-
-#localization-list-th-actions {
-	width: 50px;
-	min-width: initial;
-}
-
 .full-height-box {
 	display: inline-block;
 	vertical-align: top;
@@ -3698,129 +3699,11 @@ i.fa-trash-o {
 	overflow: auto;
 }
 
-#localization-detail {
-	padding: 12px;
-	vertical-align: top;
-}
-
-#localization-detail input.invalid {
-	border: 1px solid red;
-	background-color: var(--input-invalid);
-}
-
-#localizations-table th {
-	text-align: left;
-}
-
-#localization-detail .edit:hover, #localization-detail .save:hover, #localization-detail .discard:hover, #localization-detail .discard:hover {
-	cursor: pointer;
-	opacity: 0.6;
-}
-
-#localization-detail-table .___locale {
-	width: 50px;
-}
-
 .placeholderText {
 	color: grey;
 	font-style: italic;
 	white-space: nowrap;
 	text-align: center;
-}
-
-#simple-pages-main {
-	display: flex;
-}
-
-#simple-pages-contents-container {
-	margin-right: 9px;
-	margin-left: 2px;
-}
-
-#mail-templates-main, #virtual-types-main, #localization-main {
-	display: flex;
-	height: calc(100% - 24px);
-	margin: 12px;
-}
-
-#virtual-types-list, #mail-templates-list, #localizations-list {
-	vertical-align: top;
-	height: 100%;
-	padding: 6px;
-	margin-right: 9px;
-}
-
-#virtual-types-list td.allow-break, #mail-templates-list td.allow-break, #localizations-list td.allow-break {
-	word-break: break-all;
-}
-
-#localizations div.allow-break {
-	word-break: break-all;
-	white-space: normal;
-	display: -webkit-box;
-	-webkit-line-clamp: 3;
-	overflow: hidden;
-	-webkit-box-orient: vertical;
-	text-overflow: ellipsis;
-}
-
-#localizations .node.nodeHover tr:not(.has-value) .delete,
-#localizations .node:not(.nodeHover) .delete {
-	display:none;
-}
-
-#localizations .node.nodeHover .has-value .delete {
-	display:inline;
-}
-
-#virtual-type-detail, #mail-template-detail, #localization-detail {
-	padding: 6px;
-	vertical-align: top;
-	overflow: auto;
-	height: 100%;
-}
-
-#mail-template-detail-inner {
-	height: 50vh;
-}
-
-#mail-templates-table, #virtual-types-table {
-	display: table;
-}
-
-#mail-templates-list-th-actions, #virtual-types-list-th-actions {
-	width: 50px;
-	min-width: initial;
-}
-
-#mail-template-detail-wrapper {
-	display: inline-block;
-	position: relative;
-	width: 100%;
-}
-
-#mail-template-detail-table th {
-	width: 200px;
-}
-
-#mail-template-detail-wrapper input[type="text"] {
-	width: calc(100% - 10px);
-}
-
-#mail-template-detail-wrapper textarea {
-	width: calc(100% - 10px);
-	height: 300px;
-	resize: vertical;
-}
-
-#mail-template-detail .actions {
-	position: absolute;
-	right: 4px;
-}
-
-#mail-template-preview {
-	width: 100%;
-	height: 100%;
 }
 
 /**
@@ -4175,6 +4058,14 @@ span.context-help-text {
 	font-weight: normal;
 	text-align: left;
 	z-index: 1012;
+}
+
+button.show-all {
+	margin: 1rem 0 1rem 1rem;
+}
+
+.add-custom-attribute {
+	margin: 0 1rem;
 }
 
 .show-all tr.hidden {
@@ -4588,4 +4479,27 @@ table.props td.__value {
 
 #dialogBox .dialogText {
 	position: relative;
+}
+
+/**
+ * Forms
+ */
+
+.form-row {
+	display: flex;
+	padding: .5rem 0;
+}
+
+.form-col {
+	display: inline-flex;
+	flex-direction: column;
+	flex: 2;
+	padding-right: 1rem;
+	width: calc(50% - 2rem);
+}
+
+.form-row input[type=text] {
+	display: block;
+	font-size: .875rem;
+	margin-top: .5rem;
 }
