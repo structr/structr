@@ -225,8 +225,8 @@ button {
 	white-space: nowrap;
 }
 
-button:hover:not(.disabled) {
-	color: var(--gray-222);
+button:hover:not(.disabled), button:focus:not(.disabled) {
+	color: var(--body-text);
 	/*padding: 1px 8px 2px 4px;*/
 	/*vertical-align: middle;*/
 	/*border: 1px solid var(--black-opacity-25);*/

@@ -243,12 +243,13 @@ var _Localization = {
 		_Localization.unlockKeyAndDomain();
 		_Localization.setLocalizationKeyAndDomainEditMode(true);
 	},
-	saveButtonAction: function () {
+	saveButtonAction: (e) => {
+		let saveButton = e.target.closest('.btn');
 		var oldKey = _Localization.localizationDetailKey.data('oldValue');
 		var curKey = _Localization.localizationDetailKey.val().trim();
 		var oldDomain = _Localization.localizationDetailDomain.data('oldValue');
 		var curDomain = _Localization.localizationDetailDomain.val().trim();
-		if (curDomain === "") {
+		if (curDomain === '') {
 			curDomain = null;
 		}
 		if ((oldKey !== curKey) || (oldDomain !== curDomain)) {
@@ -282,6 +283,7 @@ var _Localization = {
 											// _Localization.solidifyKeyAndDomain(curKey, curDomain);
 											_Localization.keyAndDomainPager.refresh();
 										}
+										blinkGreen(saveButton);
 									},
 									error: function () {
 										blinkRed($('#loc_' + loc.id + ' td'));
@@ -294,23 +296,9 @@ var _Localization = {
 			} else {
 				_Localization.keyFieldErrorAction();
 			}
-		} else {
-			_Localization.lockKeyAndDomain();
-			_Localization.setLocalizationKeyAndDomainEditMode(false);
 		}
 	},
-	solidifyKeyAndDomain: function (key, domain) {
-		_Localization.localizationDetailKey.val(key).data('oldValue', key);
-		_Localization.localizationDetailDomain.val(domain).data('oldValue', domain);
-
-		_Localization.lockKeyAndDomain();
-		_Localization.setLocalizationKeyAndDomainEditMode(false);
-
-	},
 	discardButtonAction: function () {
-		_Localization.lockKeyAndDomain();
-		_Localization.setLocalizationKeyAndDomainEditMode(false);
-
 		_Localization.localizationDetailKey.val(_Localization.localizationDetailKey.data('oldValue'));
 		_Localization.determineKeyFieldValidity();
 		_Localization.localizationDetailDomain.val(_Localization.localizationDetailDomain.data('oldValue'));
@@ -328,14 +316,6 @@ var _Localization = {
 			_Localization.localizationDetailSaveButton.hide();
 			_Localization.localizationDetailDiscardButton.hide();
 		}
-	},
-	lockKeyAndDomain: function () {
-		_Localization.localizationDetailKey.addClass('disabled').attr('disabled', 'disabled');
-		_Localization.localizationDetailDomain.addClass('disabled').attr('disabled', 'disabled');
-	},
-	unlockKeyAndDomain: function () {
-		_Localization.localizationDetailKey.removeClass('disabled').attr('disabled', null);
-		_Localization.localizationDetailDomain.removeClass('disabled').attr('disabled', null);
 	},
 	determineKeyFieldValidity: function () {
 		_Localization.reactToFieldValidity(_Localization.localizationDetailKey, _Localization.isFieldNonEmpty(_Localization.localizationDetailKey));
@@ -516,21 +496,17 @@ var _Localization = {
 			let el = Structr.node(id, '#localization-');
 			if (el) {
 				el.click();
+				window.setTimeout(() => {
+					let localizationKey = document.getElementById('localization-key');
+					localizationKey.focus();
+					localizationKey.select();
+				}, 500);
 				obs.disconnect();
 				return;
 			}
 		});
 		observer.observe(document, {	childList: true, subtree: true });
 
-
-
-		//
-		// window.setTimeout(() => {
-		// 	let el = Structr.node(id, '#localization-');
-		// 	if (el) {
-		// 		el.click();
-		// 	}
-		// }, 100);
 
 	},
 	createNewLocalizationEntry: () => {
@@ -574,7 +550,7 @@ var _Localization = {
 						data: JSON.stringify(newData),
 						contentType: 'application/json; charset=utf-8',
 						success: function(data) {
-							_Localization.solidifyKeyAndDomain(newData.name, newData.domain);
+							// _Localization.solidifyKeyAndDomain(newData.name, newData.domain);
 
 							newData.id = data.result[0];
 							_Localization.fillLocalizationRow($tr, newData);

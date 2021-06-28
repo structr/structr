@@ -156,12 +156,6 @@ var _MailTemplates = {
 			_MailTemplates.mailTemplatesPager.setSortKey($(this).data('sort'));
 		});
 
-		if (!LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey)) {
-			let rows = document.querySelectorAll('.mail-template-row');
-			if (rows && rows.length !== 0) {
-				rows[0].click();
-			}
-		}
 	},
 	processPagerData: function(pagerData) {
 		if (pagerData && pagerData.length) {
@@ -191,6 +185,13 @@ var _MailTemplates = {
 
 			if (LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey) && LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey) === mailTemplate.id) {
 				row.click();
+			}
+
+			if (!LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey)) {
+				let rows = document.querySelectorAll('.mail-template-row');console.log(rows);
+				if (rows && rows.length !== 0) {
+					rows[0].click();
+				}
 			}
 		});
 	},
