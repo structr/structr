@@ -907,15 +907,17 @@ var _Elements = {
 	},
 	getContextMenuElements: function (div, entity) {
 
-		const isPage         = (entity.type === 'Page');
-		const isContent      = (entity.type === 'Content');
-		const isFile         = entity.isFile;
-		const isFolder       = entity.isFolder;
-		const isUser         = entity.isUser;
-		const isGroup        = entity.isGroup;
-		const isMailTemplate = (entity.type === 'MailTemplate');
-		const isLocalization = (entity.type === 'Localization');
-		const hasChildren = (entity.children && entity.children.length > 0);
+		const isPage             = (entity.type === 'Page');
+		const isContent          = (entity.type === 'Content');
+		const isFile             = entity.isFile;
+		const isFolder           = entity.isFolder;
+		const isUser             = entity.isUser;
+		const isGroup            = entity.isGroup;
+		const isContentContainer = entity.isContentContainer;
+		const isContentItem      = entity.isContentItem;
+		const isMailTemplate     = (entity.type === 'MailTemplate');
+		const isLocalization     = (entity.type === 'Localization');
+		const hasChildren        = (entity.children && entity.children.length > 0);
 
 		var handleInsertHTMLAction = function (itemText) {
 			var pageId = isPage ? entity.id : entity.pageId;
@@ -947,7 +949,7 @@ var _Elements = {
 			}
 		};
 
-		if (!isFile && !isFolder && !isUser && !isGroup && !isMailTemplate && !isLocalization) {
+		if (!isFile && !isFolder && !isUser && !isGroup && !isMailTemplate && !isLocalization && !isContentContainer && !isContentItem) {
 
 			if (!isContent) {
 
@@ -1439,7 +1441,7 @@ var _Elements = {
 
 		appendSeparator();
 
-		if (!isFile && !isFolder && !isContent && !isUser && !isGroup && !isMailTemplate && !isLocalization) {
+		if (!isFile && !isFolder && !isContent && !isUser && !isGroup && !isMailTemplate && !isLocalization && !isContentContainer && !isContentItem) {
 
 			elements.push({
 				name: '<input type="checkbox" id="inherit-visibility-flags">Inherit Visibility Flags',
@@ -1506,7 +1508,12 @@ var _Elements = {
 					if (true === confirm('Do you really want to delete the complete localizations for "' + keyAndDomainObject.name + '"' + (keyAndDomainObject.domain ? ' in domain "' + keyAndDomainObject.domain + '"' : ' with empty domain') + ' ?')) {
 						_Localization.deleteCompleteLocalization((keyAndDomainObject.name ? keyAndDomainObject.name : null), (keyAndDomainObject.domain ? keyAndDomainObject.domain : null), this);
 					}
-
+				} else if (isContentContainer) {
+					_Entities.deleteNode(this, entity, true, function() {
+						_Contents.refreshTree();
+					});
+				} else if (isContentItem) {
+					_Entities.deleteNode(this, entity);
 				} else {
 					_Entities.deleteNode(this, entity, true, () => {
 						var synced = entity.syncedNodesIds;

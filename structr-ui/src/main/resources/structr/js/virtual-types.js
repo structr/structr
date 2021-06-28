@@ -115,10 +115,23 @@ var _VirtualTypes = {
 		Structr.resize();
 	},
 	moveResizer: function(left) {
-		left = left || LSWrapper.getItem(_VirtualTypes.virtualTypesResizerLeftKey) || 300;
-		$('.column-resizer', main).css({ left: left });
 
-		$('#virtual-types-list').css({width: left - 25 + 'px'});
+		requestAnimationFrame(() => {
+
+			left = left || LSWrapper.getItem(_VirtualTypes.virtualTypesResizerLeftKey) || 340;
+			left = Math.max(340, Math.min(left, window.innerWidth - 340));
+
+			document.querySelector('.column-resizer').style.left = left + 'px';
+
+			let listContainer = document.getElementById('virtual-types-list-container');
+			listContainer.style.width = 'calc(' + left + 'px - 1rem)';
+
+			let detailContainer = document.getElementById('virtual-type-detail');
+			detailContainer.style.width = 'calc(100% - ' + left + 'px - 3rem)';
+
+			return true;
+		});
+
 	},
 	activateInfoTextsInColumnHeaders: function() {
 		$('th[data-info-text]').each(function(i, el) {

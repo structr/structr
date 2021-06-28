@@ -1592,11 +1592,11 @@ button.action.disabled:hover {
 	position: relative;
 }
 
+/* Make dialog title invisible */
 .dialogTitle {
-	display: none;
-	font-size: 11pt;
+	font-size: .5rem;
 	text-align: center;
-	color: var(--gray-333);
+	color: transparent;
 }
 
 .dialogBtn {
@@ -2095,6 +2095,12 @@ button.enabled, button.active {
 }
 
 .pager i {
+	margin: 0 .25rem .25rem .25rem;
+	cursor: pointer;
+	vertical-align: middle;
+}
+
+.pager i.sprite {
 	margin: 0 0 .25rem .5rem;
 	cursor: pointer;
 	vertical-align: middle;
@@ -3068,12 +3074,9 @@ td#cascading-options, td#propagation-options {
 	/*border: 1px solid var(--gray-ccc);*/
 }
 
-/*button.tree-forward-button {*/
-/*	position: absolute;*/
-/*	right: 0;*/
-/*	padding: 0 !important;*/
-/*	margin-right: 0;*/
-/*}*/
+button.tree-forward-button {
+
+}
 
 /*input.tree-search-input {*/
 /*	margin: 0 4px 0 0;*/
@@ -3421,7 +3424,7 @@ table.dataTable thead th, table.dataTable thead td {
 }
 
 i.fa {
-	/*font-size: 16px;*/
+	font-size: 16px;
 }
 
 i.fa-file-archive-o {

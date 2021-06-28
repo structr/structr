@@ -18,13 +18,17 @@
  */
 
 #code-contents-container {
-	margin-left: 2px;
-	margin-right: 9px;
+	/*margin-left: 2px;*/
+	/*margin-right: 9px;*/
+}
+
+#code-context-container {
+	margin-left: 2rem;
 }
 
 #code-contents h2 {
-	margin: 0 0 12px 0;
-	border-bottom: 1px solid var(--gray-ccc);
+	margin: 0 0 1rem 0;
+	/*border-bottom: 1px solid var(--gray-ccc);*/
 }
 
 #code-contents h3 {
@@ -49,11 +53,11 @@
 #code-contents .action-button {
 	position: relative;
 	background-color: var(--solid-white);
-	width: 90px;
+	/*width: 90px;*/
 	color: var(--gray-444);
 	float: left;
 	margin: 0 12px 12px 0;
-	padding: 16px 8px;
+	/*padding: 16px 8px;*/
 	border: 1px solid var(--gray-ddd);
 	height: inherit;
 	box-sizing: content-box;
@@ -69,17 +73,22 @@
 
 #code-contents .property-options-group span,
 #code-contents .property-options-group i {
-	vertical-align: middle;
+	/*vertical-align: middle;*/
+	margin: .5rem;
 }
 
 #code-context .code-favorite {
 	display: flex;
-	gap: 4px;
-	margin: 4px;
-	padding: 4px;
+	gap: .5rem;
+	margin: .5rem;
+	padding: .5rem;
 	border: 1px solid var(--gray-eee);
 	cursor: pointer;
-	box-shadow: 0px 0px 6px var(--gray-opacity-10);
+	/*box-shadow: 0px 0px 6px var(--gray-opacity-10);*/
+}
+
+#code-context .code-favorite:hover {
+	background-color: var(--main-background);
 }
 
 #code-context .code-favorite span {

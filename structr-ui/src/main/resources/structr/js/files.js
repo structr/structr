@@ -575,7 +575,7 @@ var _Files = {
 			if (_Files.isViewModeActive('list')) {
 				folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
 					+ '<tbody id="files-table-body">'
-					+ (!isRootFolder ? '<tr><td class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td></tr>' : '')
+					+ (!isRootFolder ? '<tr><td class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td></tr>' : '')
 					+ '</tbody></table>');
 
 			} else if (_Files.isViewModeActive('tiles')) {
@@ -1170,7 +1170,7 @@ var _Files = {
 		$('#search-results').remove();
 		content.append('<div id="search-results"></div>');
 
-		var searchString = $('.search', main).val();
+		var searchString = $('.search', functionBar).val();
 		var container = $('#search-results');
 		content.on('scroll', function() {
 			window.history.pushState('', '', '#filesystem');

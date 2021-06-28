@@ -230,9 +230,8 @@
 }
 
 #files-table th {
-	padding: 0 0 1rem 0;
+	padding: 0 0 1rem .5rem;
 	text-align: left;
-	padding-left: .5rem;
 }
 
 #files-table th:nth-child(2) {
@@ -284,6 +283,7 @@
 #files-table td {
 	text-align: left;
 	padding-left: 1rem;
+	height: 2rem;
 }
 
 #files-table tr#parent-file-link {
@@ -300,6 +300,10 @@
 
 #files-table .file, #files-table .folder {
 	margin: 0;
+}
+
+#files-table .folder-up {
+	padding-left: .5rem;
 }
 
 /*

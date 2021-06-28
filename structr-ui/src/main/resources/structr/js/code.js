@@ -66,12 +66,16 @@ var _Code = {
 
 	},
 	moveLeftResizer: function(left) {
-		left = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || 300;
-		_Code.updatedResizers(left, null);
+		requestAnimationFrame(() => {
+			left = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || 300;
+			_Code.updatedResizers(left, null);
+		});
 	},
 	moveRightResizer: function(left) {
-		left = left || LSWrapper.getItem(_Code.codeResizerRightKey) || 240;
-		_Code.updatedResizers(null, left);
+		requestAnimationFrame(() => {
+			left = left || LSWrapper.getItem(_Code.codeResizerRightKey) || 240;
+			_Code.updatedResizers(null, left);
+		});
 	},
 	updatedResizers: function(left, right) {
 		left = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || 300;
@@ -80,14 +84,10 @@ var _Code = {
 		$('.column-resizer-left', codeMain).css({ left: left + 'px'});
 		$('.column-resizer-right', codeMain).css({left: window.innerWidth - right + 'px'});
 
-		let leftWidth = left - 14;
-		let rightWidth = right - 24;
-		let middleWidth = window.innerWidth - leftWidth - rightWidth - 74;
+		document.getElementById('code-tree').style.width = 'calc(' + left + 'px - 1rem)';
+		document.getElementById('code-context-container').style.width = 'calc(' + right + 'px - 3rem)';
 
-		$('#code-tree').css({ width: leftWidth + 'px' });
-		$('#code-context-container').css({ width: rightWidth + 'px' });
-
-		$('#code-contents').css({width: middleWidth + 'px'});
+		document.getElementById('code-contents').style.width = 'calc(' + (window.innerWidth - left - right) + 'px - 4rem)';
 	},
 	onload: function() {
 
@@ -681,8 +681,8 @@ var _Code = {
 		let allow = _Code.testAllowNavigation();
 		if (allow) {
 
-			fastRemoveAllChildren($('.searchBox', main));
-			fastRemoveAllChildren($('#code-main', main));
+			fastRemoveAllChildren($('.searchBox'));
+			fastRemoveAllChildren($('#code-main'));
 		}
 
 		return allow;
@@ -1883,11 +1883,11 @@ var _Code = {
 						}
 					});
 
-					console.log(usageTree);
+					// console.log(usageTree);
 
 					usageTree.on('select_node.jstree', function(node, selected, event) {
 
-						console.log({ node: node, selected: selected, event:event });
+						// console.log({ node: node, selected: selected, event:event });
 
 						let id = selected.node.data.id;
 						if (id) {

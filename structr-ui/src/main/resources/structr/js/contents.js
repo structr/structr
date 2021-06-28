@@ -31,26 +31,6 @@ var _Contents = {
 	_moduleName: 'contents',
 	searchField: undefined,
 	init: function() {
-
-		_Contents.searchField = $('.search', main);
-		_Contents.searchField.focus();
-
-		_Contents.searchField.keyup(function(e) {
-
-			var searchString = $(this).val();
-			if (searchString && searchString.length && e.keyCode === 13) {
-
-				$('.clearSearchIcon').show().on('click', function() {
-					_Contents.clearSearch();
-				});
-
-				_Contents.fulltextSearch(searchString);
-
-			} else if (e.keyCode === 27 || searchString === '') {
-				_Contents.clearSearch();
-			}
-		});
-
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
 	},
@@ -151,9 +131,27 @@ var _Contents = {
 				});
 			});
 
-			Structr.fetchHtmlTemplate('contents/search', {}, function(html) {
-				functionBar[0].insertAdjacentHTML('beforeend', html);
-			});
+			// Structr.fetchHtmlTemplate('contents/search', {}, function(html) {
+			// 	functionBar[0].insertAdjacentHTML('beforeend', html);
+			// 	_Contents.searchField = $('.search', functionBar);
+			// 	_Contents.searchField.focus();
+			//
+			// 	_Contents.searchField.keyup(function(e) {
+			//
+			// 		var searchString = $(this).val();
+			// 		if (searchString && searchString.length && e.keyCode === 13) {
+			//
+			// 			$('.clearSearchIcon').show().on('click', function() {
+			// 				_Contents.clearSearch();
+			// 			});
+			//
+			// 			_Contents.fulltextSearch(searchString);
+			//
+			// 		} else if (e.keyCode === 27 || searchString === '') {
+			// 			_Contents.clearSearch();
+			// 		}
+			// 	});
+			// });
 
 			$.jstree.defaults.core.themes.dots      = false;
 			$.jstree.defaults.dnd.inside_pos        = 'last';
@@ -246,7 +244,7 @@ var _Contents = {
 				url = url + '&name=' + str;
 			});
 		} else {
-			url = rootUrl + 'ContentItem/ui?name=' + searchString;
+			url = rootUrl + 'ContentItem/ui?loose=1&name=' + searchString;
 		}
 
 		_Contents.displaySearchResultsForURL(url);
@@ -311,7 +309,7 @@ var _Contents = {
 			var pathNames = nodePath.split('/');
 			pathNames[0] = '/';
 			path = parents.map(function(parent, idx) {
-				return '<a class="breadcrumb-entry" data-folder-id="' + parent + '"><i class="fa fa-caret-right"></i> ' + pathNames[idx] + '</span></a>';
+				return '<a class="breadcrumb-entry" data-folder-id="' + parent + '"><i class="fa fa-caret-right"></i> ' + pathNames[idx] + '</a>';
 			}).join(' ');
 			path += ' <i class="fa fa-caret-right"></i> ' + pathNames.pop();
 		}
@@ -348,9 +346,9 @@ var _Contents = {
 
 		contentsContents.append(
 				'<h2>' + path + '</h2>'
-				+ '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th>><th>Modified</th></tr></thead>'
+				+ '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th><th>Modified</th></tr></thead>'
 				+ '<tbody id="files-table-body">'
-				+ ((id !== 'root') ? '<tr id="parent-file-link"><td class="file-icon"><i class="fa fa-folder-o"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td><td></td></tr>' : '')
+				+ ((id !== 'root') ? '<tr id="parent-file-link"><td class="file-icon"><i class="fa fa-folder-o"></i></td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td><td></td></tr>' : '')
 				+ '</tbody></table>'
 		);
 
@@ -443,28 +441,33 @@ var _Contents = {
 		if (!div || !div.length)
 			return;
 
+		div.children('b.name_').off('click').on('click', function(e) {
+			e.stopPropagation();
+			_Entities.makeNameEditable(div);
+		});
+
 		div.on('remove', function() {
 			div.closest('tr').remove();
 		});
 
-		_Entities.appendAccessControlIcon(div, d);
+		// _Entities.appendAccessControlIcon(div, d);
 		var delIcon = div.children('.delete_icon');
 		if (d.isContentContainer) {
 
 			// ********** Containers **********
 
-			var newDelIcon = '<i title="Delete container \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
-			if (delIcon && delIcon.length) {
-				delIcon.replaceWith(newDelIcon);
-			} else {
-				div.append(newDelIcon);
-			}
-			div.children('.delete_icon').on('click', function(e) {
-				e.stopPropagation();
-				_Entities.deleteNode(this, d, true, function() {
-					_Contents.refreshTree();
-				});
-			});
+			// var newDelIcon = '<i title="Delete container \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
+			// if (delIcon && delIcon.length) {
+			// 	delIcon.replaceWith(newDelIcon);
+			// } else {
+			// 	div.append(newDelIcon);
+			// }
+			// div.children('.delete_icon').on('click', function(e) {
+			// 	e.stopPropagation();
+			// 	_Entities.deleteNode(this, d, true, function() {
+			// 		_Contents.refreshTree();
+			// 	});
+			// });
 
 			div.droppable({
 				accept: '.container, .item',
@@ -497,22 +500,26 @@ var _Contents = {
 
 			// ********** Items **********
 
-			div.children('.typeIcon').on('click', function(e) {
-				e.stopPropagation();
-				window.open(file.path, 'Download ' + file.name);
-			});
-			var newDelIcon = '<i title="Delete item ' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
-			if (delIcon && delIcon.length) {
-				delIcon.replaceWith(newDelIcon);
-			} else {
-				div.append(newDelIcon);
-			}
-			div.children('.delete_icon').on('click', function(e) {
-				e.stopPropagation();
-				_Entities.deleteNode(this, d);
-			});
+			// div.children('.typeIcon').on('click', function(e) {
+			// 	e.stopPropagation();
+			// 	window.open(file.path, 'Download ' + file.name);
+			// });
+			// var newDelIcon = '<i title="Delete item ' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
+			// if (delIcon && delIcon.length) {
+			// 	delIcon.replaceWith(newDelIcon);
+			// } else {
+			// 	div.append(newDelIcon);
+			// }
+			// div.children('.delete_icon').on('click', function(e) {
+			// 	e.stopPropagation();
+			// 	_Entities.deleteNode(this, d);
+			// });
 
-			_Contents.appendEditFileIcon(div, d);
+			// _Contents.appendEditFileIcon(div, d);
+			div.on('click', (e) => {
+				e.stopPropagation();
+				_Contents.editItem(d);
+			});
 
 		}
 
@@ -549,6 +556,7 @@ var _Contents = {
 		_Entities.appendEditPropertiesIcon(div, d);
 		_Entities.setMouseOver(div);
 		_Entities.makeSelectable(div);
+		_Elements.enableContextMenuOnElement(div, d);
 
 	},
 	checkValueHasChanged: function(oldVal, newVal, buttons) {
@@ -911,7 +919,7 @@ var _Contents = {
 		$('#search-results').remove();
 		contentsContents.append('<div id="search-results"></div>');
 
-		var searchString = $('.search', main).val();
+		var searchString = $('.search', functionBar).val();
 		var container = $('#search-results');
 		contentsContents.on('scroll', function() {
 			window.history.pushState('', '', '#contents');
@@ -931,69 +939,69 @@ var _Contents = {
 						});
 						return;
 					} else {
-						container.append('<h1>' + data.result.length + ' search results:</h1><table class="props"><thead><th class="_type">Type</th><th>Name</th><th>Size</th></thead><tbody></tbody></table>');
+						container.append('<h1>' + data.result.length + ' search results:</h1><table class="props"><thead><th class="_type">Type</th><th>Name</th><!--th>Size</th--></thead><tbody></tbody></table>');
 						data.result.forEach(function(d) {
 							var icon = _Contents.getIcon(d);
-							$('tbody', container).append('<tr><td><i class="fa ' + icon + '"></i> ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td><a href="#results' + d.id + '">' + d.name + '</a></td><td>' + d.size + '</td></tr>');
+							$('tbody', container).append('<tr><td><i class="fa ' + icon + '"></i> ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td><a href="#results' + d.id + '">' + d.name + '</a></td><!--td>' + d.size + '</td--></tr>');
 
 						});
 					}
 
-					data.result.forEach(function(d) {
-
-						$.ajax({
-							url: rootUrl + 'files/' + d.id + '/getSearchContext',
-							contentType: 'application/json',
-							method: 'POST',
-							data: JSON.stringify({searchString: searchString, contextLength: 30}),
-							statusCode: {
-								200: function(data) {
-
-									if (!data.result) return;
-
-									//console.log(data.result);
-
-									container.append('<div class="search-result collapsed" id="results' + d.id + '"></div>');
-
-									var div = $('#results' + d.id);
-									var icon = _Contents.getIcon(d);
-									div.append('<h2><i class="fa ' + icon + '"></i> ' + d.name + '<i id="preview' + d.id + '" class="' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
-									div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
-
-									$('.toggle-height', div).on('click', function() {
-										var icon = $(this);
-										div.toggleClass('collapsed');
-										if (icon.hasClass('fa-expand')) {
-											icon.removeClass('fa-expand');
-											icon.addClass('fa-compress');
-										} else {
-											icon.removeClass('fa-compress');
-											icon.addClass('fa-expand');
-										}
-
-									});
-
-									$('.go-to-top', div).on('click', function() {
-										content.scrollTop(0);
-										window.history.pushState('', '', '#contents');
-									});
-
-									$.each(data.result.context, function(i, contextString) {
-
-										searchString.split(/[\s,;]/).forEach(function(str) {
-											contextString = contextString.replace(new RegExp('(' + str + ')', 'gi'), '<span class="highlight">$1</span>');
-										});
-
-										div.append('<div class="part">' + contextString + '</div>');
-
-									});
-
-									div.append('<div style="clear: both;"></div>');
-								}
-							}
-						});
-
-					});
+					// data.result.forEach(function(d) {
+					//
+					// 	$.ajax({
+					// 		url: rootUrl + 'contents/' + d.id + '/getSearchContext',
+					// 		contentType: 'application/json',
+					// 		method: 'POST',
+					// 		data: JSON.stringify({searchString: searchString, contextLength: 30}),
+					// 		statusCode: {
+					// 			200: function(data) {
+					//
+					// 				if (!data.result) return;
+					//
+					// 				//console.log(data.result);
+					//
+					// 				container.append('<div class="search-result collapsed" id="results' + d.id + '"></div>');
+					//
+					// 				var div = $('#results' + d.id);
+					// 				var icon = _Contents.getIcon(d);
+					// 				div.append('<h2><i class="fa ' + icon + '"></i> ' + d.name + '<i id="preview' + d.id + '" class="' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
+					// 				div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
+					//
+					// 				$('.toggle-height', div).on('click', function() {
+					// 					var icon = $(this);
+					// 					div.toggleClass('collapsed');
+					// 					if (icon.hasClass('fa-expand')) {
+					// 						icon.removeClass('fa-expand');
+					// 						icon.addClass('fa-compress');
+					// 					} else {
+					// 						icon.removeClass('fa-compress');
+					// 						icon.addClass('fa-expand');
+					// 					}
+					//
+					// 				});
+					//
+					// 				$('.go-to-top', div).on('click', function() {
+					// 					content.scrollTop(0);
+					// 					window.history.pushState('', '', '#contents');
+					// 				});
+					//
+					// 				$.each(data.result.context, function(i, contextString) {
+					//
+					// 					searchString.split(/[\s,;]/).forEach(function(str) {
+					// 						contextString = contextString.replace(new RegExp('(' + str + ')', 'gi'), '<span class="highlight">$1</span>');
+					// 					});
+					//
+					// 					div.append('<div class="part">' + contextString + '</div>');
+					//
+					// 				});
+					//
+					// 				div.append('<div style="clear: both;"></div>');
+					// 			}
+					// 		}
+					// 	});
+					//
+					// });
 				}
 			}
 

@@ -40,3 +40,12 @@ i.clearSearchIcon {
 	right: 8px;
 	cursor: pointer;
 }
+
+#contents-contents tr[id]:hover {
+	background-color: var(--light-gray-bg-f5) ! important;
+}
+
+#contents-contents .nodeActive {
+	background-color: var(--light-gray-bg-f5) ! important;
+	/*border: 1px solid var(--gray-eee);*/
+}
