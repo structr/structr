@@ -29,7 +29,6 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasSize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
@@ -68,8 +67,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 	@Test
 	public void test01InheritanceOfFileAttributesToImage() {
-
-		Settings.LogSchemaOutput.setValue(true);
 
 		try (final Tx tx = app.tx()) {
 

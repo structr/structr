@@ -1559,7 +1559,6 @@ public class SystemTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		Settings.CypherDebugLogging.setValue(true);
 		Settings.FetchSize.setValue(num);
 
 		// test: load all groups
@@ -1582,7 +1581,6 @@ public class SystemTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		Settings.CypherDebugLogging.setValue(false);
 		Settings.FetchSize.setValue(Settings.FetchSize.getDefaultValue());
 	}
 
@@ -1593,148 +1591,14 @@ public class SystemTest extends StructrTest {
 		final List<String> msgs   = new LinkedList<>();
 		int num                   = 0;
 
-		try {
-
-			for (int i=0; i<2; i++) {
-
-				// setup: create groups
-				try (final Tx tx = app.tx()) {
-
-					for (int j=0; j<2; j++) {
-
-						app.create(Group.class, "Group" + StringUtils.leftPad(String.valueOf(num++), 5));
-					}
-
-					tx.success();
-
-				} catch (FrameworkException fex) {
-					fex.printStackTrace();
-					fail("Unexpected exception.");
-				}
-			}
-
-			//Settings.CypherDebugLogging.setValue(true);
-
-			// start a worker thread that deletes groups in batches of 500
-			final Thread deleter = new Thread(() -> {
-
-				boolean run = true;
-
-				while (run) {
-
-					int count = 0;
-					run = false;
-
-					synchronized (System.out) {
-						System.out.println("Deleter: fetching objects...");
-					}
-
-					try (final Tx tx = app.tx()) {
-
-						for (final Group group : app.nodeQuery(Group.class).pageSize(2).getAsList()) {
-
-							app.delete(group);
-							run = true;
-							count++;
-						}
-
-						tx.success();
-
-					} catch (FrameworkException fex) {
-						fex.printStackTrace();
-						fail("Unexpected exception.");
-					}
-
-					synchronized (System.out) {
-						System.out.println("Deleter: deleted " + count + " objects");
-					}
-				}
-
-			}, "Deleter");
-
-			// start a worker thread that counts all groups until there are no more groups (or timeout occurs)
-			final Thread reader = new Thread(() -> {
-
-				try {
-
-					final long start = System.currentTimeMillis();
-					boolean run      = true;
-
-					// run for 10 seconds max
-					while (run && System.currentTimeMillis() < start + 100000) {
-
-						int count = 0;
-						run = false;
-
-						synchronized (System.out) {
-							System.out.println("Reader:  fetching objects...");
-						}
-
-						try (final Tx tx = app.tx()) {
-
-							for (final Group group : app.nodeQuery(Group.class).getResultStream()) {
-
-								run = true;
-								count++;
-							}
-
-							tx.success();
-
-						} catch (FrameworkException fex) {
-							fex.printStackTrace();
-						}
-
-						synchronized (System.out) {
-							System.out.println("Reader:  found " + count + " objects");
-						}
-					}
-
-				} catch (Throwable t) {
-
-					t.printStackTrace();
-
-					msgs.add(t.getMessage());
-					error.set(true);
-				}
-
-			}, "Reader");
-
-			reader.start();
-			deleter.start();
-
-			try {
-
-				reader.join();
-				deleter.join();
-
-			} catch (InterruptedException t) {
-				t.printStackTrace();
-			}
-
-			if (error.get()) {
-
-				System.out.println(msgs);
-			}
-
-			assertFalse("Reading and deleting nodes simultaneously causes an error", error.get());
-
-		} finally {
-
-			Settings.CypherDebugLogging.setValue(false);
-		}
-	}
-
-	@Test
-	public void testFetchWaitDelete() {
-
-		try {
+		for (int i=0; i<2; i++) {
 
 			// setup: create groups
 			try (final Tx tx = app.tx()) {
 
-				for (int i=0; i<100; i++) {
+				for (int j=0; j<2; j++) {
 
-					app.create(Group.class, "Group" + StringUtils.leftPad(String.valueOf(i), 5));
+					app.create(Group.class, "Group" + StringUtils.leftPad(String.valueOf(num++), 5));
 				}
 
 				tx.success();
@@ -1743,75 +1607,193 @@ public class SystemTest extends StructrTest {
 				fex.printStackTrace();
 				fail("Unexpected exception.");
 			}
+		}
 
-			final Thread reader = new Thread(() -> {
+		// start a worker thread that deletes groups in batches of 500
+		final Thread deleter = new Thread(() -> {
+
+			boolean run = true;
+
+			while (run) {
+
+				int count = 0;
+				run = false;
+
+				synchronized (System.out) {
+					System.out.println("Deleter: fetching objects...");
+				}
 
 				try (final Tx tx = app.tx()) {
 
-					System.out.println(Thread.currentThread().getName() + ": fetching groups");
+					for (final Group group : app.nodeQuery(Group.class).pageSize(2).getAsList()) {
 
-					final List<Group> groups = app.nodeQuery(Group.class).getAsList();
-
-					for (int i=0; i<10; i++) {
-
-						System.out.println(Thread.currentThread().getName() + ": waiting: " + i);
-						Thread.sleep(1000);
-					}
-
-					for (final Group g : groups) {
-						System.out.println(Thread.currentThread().getName() + ": " + g.getName());
+						app.delete(group);
+						run = true;
+						count++;
 					}
 
 					tx.success();
 
-				} catch (Throwable t) {
-					t.printStackTrace();
+				} catch (FrameworkException fex) {
+					fex.printStackTrace();
+					fail("Unexpected exception.");
 				}
 
-				System.out.println(Thread.currentThread().getName() + ": transaction closed");
-
-			}, "Reader");
-
-			reader.start();
-
-			try { Thread.sleep(1000); } catch (Throwable t) {}
-
-			for (int i=0; i<10; i++) {
-
-				try (final Tx tx = app.tx()) {
-
-					System.out.println(Thread.currentThread().getName() + ": fetching single group");
-
-					final Group group = app.nodeQuery(Group.class).getFirst();
-
-					System.out.println(Thread.currentThread().getName() + ": deleting group");
-
-					app.delete(group);
-
-					System.out.println(Thread.currentThread().getName() + ": group deleted");
-
-					tx.success();
-
-				} catch (Throwable t) {
-					t.printStackTrace();
+				synchronized (System.out) {
+					System.out.println("Deleter: deleted " + count + " objects");
 				}
+			}
+
+		}, "Deleter");
+
+		// start a worker thread that counts all groups until there are no more groups (or timeout occurs)
+		final Thread reader = new Thread(() -> {
+
+			try {
+
+				final long start = System.currentTimeMillis();
+				boolean run      = true;
+
+				// run for 10 seconds max
+				while (run && System.currentTimeMillis() < start + 100000) {
+
+					int count = 0;
+					run = false;
+
+					synchronized (System.out) {
+						System.out.println("Reader:  fetching objects...");
+					}
+
+					try (final Tx tx = app.tx()) {
+
+						for (final Group group : app.nodeQuery(Group.class).getResultStream()) {
+
+							run = true;
+							count++;
+						}
+
+						tx.success();
+
+					} catch (FrameworkException fex) {
+						fex.printStackTrace();
+					}
+
+					synchronized (System.out) {
+						System.out.println("Reader:  found " + count + " objects");
+					}
+				}
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+
+				msgs.add(t.getMessage());
+				error.set(true);
+			}
+
+		}, "Reader");
+
+		reader.start();
+		deleter.start();
+
+		try {
+
+			reader.join();
+			deleter.join();
+
+		} catch (InterruptedException t) {
+			t.printStackTrace();
+		}
+
+		if (error.get()) {
+
+			System.out.println(msgs);
+		}
+
+		assertFalse("Reading and deleting nodes simultaneously causes an error", error.get());
+	}
+
+	@Test
+	public void testFetchWaitDelete() {
+
+		// setup: create groups
+		try (final Tx tx = app.tx()) {
+
+			for (int i=0; i<100; i++) {
+
+				app.create(Group.class, "Group" + StringUtils.leftPad(String.valueOf(i), 5));
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Thread reader = new Thread(() -> {
+
+			try (final Tx tx = app.tx()) {
+
+				System.out.println(Thread.currentThread().getName() + ": fetching groups");
+
+				final List<Group> groups = app.nodeQuery(Group.class).getAsList();
+
+				for (int i=0; i<10; i++) {
+
+					System.out.println(Thread.currentThread().getName() + ": waiting: " + i);
+					Thread.sleep(1000);
+				}
+
+				for (final Group g : groups) {
+					System.out.println(Thread.currentThread().getName() + ": " + g.getName());
+				}
+
+				tx.success();
+
+			} catch (Throwable t) {
+				t.printStackTrace();
 			}
 
 			System.out.println(Thread.currentThread().getName() + ": transaction closed");
 
-			try {
+		}, "Reader");
 
-				System.out.println(Thread.currentThread().getName() + ": waiting for reader");
+		reader.start();
 
-				reader.join();
+		try { Thread.sleep(1000); } catch (Throwable t) {}
 
-			} catch (InterruptedException t) {
+		for (int i=0; i<10; i++) {
+
+			try (final Tx tx = app.tx()) {
+
+				System.out.println(Thread.currentThread().getName() + ": fetching single group");
+
+				final Group group = app.nodeQuery(Group.class).getFirst();
+
+				System.out.println(Thread.currentThread().getName() + ": deleting group");
+
+				app.delete(group);
+
+				System.out.println(Thread.currentThread().getName() + ": group deleted");
+
+				tx.success();
+
+			} catch (Throwable t) {
 				t.printStackTrace();
 			}
+		}
 
-		} finally {
+		System.out.println(Thread.currentThread().getName() + ": transaction closed");
 
-			Settings.CypherDebugLogging.setValue(false);
+		try {
+
+			System.out.println(Thread.currentThread().getName() + ": waiting for reader");
+
+			reader.join();
+
+		} catch (InterruptedException t) {
+			t.printStackTrace();
 		}
 	}
 

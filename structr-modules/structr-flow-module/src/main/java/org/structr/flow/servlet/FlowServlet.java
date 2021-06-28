@@ -256,7 +256,7 @@ public class FlowServlet extends JsonRestServlet {
 			int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			if (t instanceof AssertException) {
-				statusCode = ((AssertException)t).getStatusCode();
+				statusCode = ((AssertException)t).getStatus();
 			}
 
 			writeJsonError(response, statusCode, t.getClass().getSimpleName() + " in POST: " + t.getMessage());

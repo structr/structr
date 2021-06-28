@@ -16,18 +16,37 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.api.index;
 
 /**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
+ * Combines entity type and create / drop flag for database index configurations.
  */
-public enum DatabaseFeature {
+public abstract class IndexConfig {
 
-	QueryLanguage,
-	LargeStringIndexing,
-	SpatialQueries,
-	AuthenticationRequired,
-	RelationshipIndexes,
-	NewDBIndexesFormat
+	protected boolean createOrDropIndex = false;
+	protected boolean isNodeIndex       = false;
+
+	protected IndexConfig(final boolean createOrDropIndex, final boolean isNodeIndex) {
+
+		this.createOrDropIndex = createOrDropIndex;
+		this.isNodeIndex       = isNodeIndex;
+	}
+
+	public boolean createOrDropIndex() {
+		return this.createOrDropIndex;
+	}
+
+	public boolean isNodeIndex() {
+		return this.isNodeIndex;
+	}
+
+	public String getIndexDescriptionForStatement(final String typeName) {
+
+		if (this.isNodeIndex) {
+
+			return "(n:" + typeName + ")";
+		}
+
+		return "()-[n:" + typeName + "]-()";
+	}
 }

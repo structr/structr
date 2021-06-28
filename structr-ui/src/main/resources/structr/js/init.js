@@ -1345,6 +1345,9 @@ var Structr = {
 		}).then(function(data) {
 
 			let envInfo = data.result;
+			if (Array.isArray(envInfo)) {
+			    envInfo = envInfo[0];
+			}
 
 			let dbInfoEl = $('#header .structr-instance-db');
 
@@ -1373,6 +1376,7 @@ var Structr = {
 			if (true == envInfo.maintenanceModeActive) {
 				$('#header .structr-instance-maintenance').text("MAINTENANCE");
 			}
+
 
 			let ui = envInfo.components['structr-ui'];
 			if (ui) {

@@ -16,18 +16,19 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.api.index;
 
 /**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
+ *
  */
-public enum DatabaseFeature {
+public class RelationshipIndexConfig extends IndexConfig {
 
-	QueryLanguage,
-	LargeStringIndexing,
-	SpatialQueries,
-	AuthenticationRequired,
-	RelationshipIndexes,
-	NewDBIndexesFormat
+	public RelationshipIndexConfig(final boolean createOrDrop) {
+		super(createOrDrop, false);
+	}
+
+	@Override
+	public String toString() {
+		return "RelationshipIndexConfig(" + createOrDropIndex + ")";
+	}
 }

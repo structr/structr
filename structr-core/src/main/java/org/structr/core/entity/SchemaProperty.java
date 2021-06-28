@@ -355,17 +355,6 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 				}
 			}
 		}
-
-		final AbstractSchemaNode parent = getProperty(SchemaProperty.schemaNode);
-
-		if (parent != null) {
-			final ConfigurationProvider conf = StructrApp.getConfiguration();
-			final Class type = conf.getNodeEntityClass(parent.getName());
-
-			if (type != null) {
-				conf.unregisterProperty(type, conf.getPropertyKeyForJSONName(type, getPropertyName()));
-			}
-		}
 	}
 
 	public String getContentHash() {

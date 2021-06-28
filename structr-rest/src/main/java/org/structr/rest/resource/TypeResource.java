@@ -200,7 +200,7 @@ public class TypeResource extends WrappingResource {
 				}
 
 				if (errorBuffer.hasError()) {
-					throw new FrameworkException(422, "Source node ID and target node ID of relationsips must be set", errorBuffer);
+					throw new FrameworkException(422, "Source node ID and target node ID of relationship must be set", errorBuffer);
 				}
 
 				template.ensureCardinality(securityContext, sourceNode, targetNode);

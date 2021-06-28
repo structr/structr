@@ -16,18 +16,16 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.common.error;
+
+import com.google.gson.JsonElement;
 
 /**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
+ * Common base class for FrameworkException and AssertException to be able
+ * to handle them with the same code.
  */
-public enum DatabaseFeature {
+public interface JsonException {
 
-	QueryLanguage,
-	LargeStringIndexing,
-	SpatialQueries,
-	AuthenticationRequired,
-	RelationshipIndexes,
-	NewDBIndexesFormat
+	JsonElement toJSON();
+	int getStatus();
 }

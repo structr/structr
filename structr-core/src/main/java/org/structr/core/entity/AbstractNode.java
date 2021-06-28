@@ -2092,7 +2092,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			if (cause instanceof AssertException) {
 
 				final AssertException e = (AssertException)cause;
-				throw new FrameworkException(e.getStatusCode(), e.getMessage());
+				throw new FrameworkException(e.getStatus(), e.getMessage());
 			}
 
 			if (cause instanceof FrameworkException) {

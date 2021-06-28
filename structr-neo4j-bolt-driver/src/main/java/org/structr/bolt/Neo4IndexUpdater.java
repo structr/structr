@@ -33,21 +33,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
 import org.structr.api.Transaction;
+import org.structr.api.config.Settings;
+import org.structr.api.index.IndexConfig;
 
 public class Neo4IndexUpdater {
 
-	private static final Logger logger = LoggerFactory.getLogger(Neo4IndexUpdater.class);
-	private BoltDatabaseService db     = null;
+	private static final Logger logger          = LoggerFactory.getLogger(Neo4IndexUpdater.class);
+	private boolean supportsRelationshipIndexes = false;
+	private BoltDatabaseService db              = null;
 
-	public Neo4IndexUpdater(final BoltDatabaseService db) {
-		this.db = db;
+	public Neo4IndexUpdater(final BoltDatabaseService db, final boolean supportsRelationshipIndexes) {
+
+		this.supportsRelationshipIndexes = supportsRelationshipIndexes;
+		this.db                          = db;
 	}
 
-	public void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfigSource, final Map<String, Map<String, Boolean>> removedClassesSource, final boolean createOnly) {
+	public void updateIndexConfiguration(final Map<String, Map<String, IndexConfig>> schemaIndexConfigSource, final Map<String, Map<String, IndexConfig>> removedClassesSource, final boolean createOnly) {
 
 		final ExecutorService executor                           = Executors.newCachedThreadPool();
 		final Map<String, Map<String, Object>> existingDbIndexes = new HashMap<>();
-		final int timeoutSeconds                                 = 10;
+		final int timeoutSeconds                                 = 1000;
 
 		try {
 
@@ -84,11 +89,11 @@ public class Neo4IndexUpdater {
 		final AtomicInteger droppedIndexes = new AtomicInteger(0);
 
 		// create indices for properties of existing classes
-		for (final Map.Entry<String, Map<String, Boolean>> entry : schemaIndexConfigSource.entrySet()) {
+		for (final Map.Entry<String, Map<String, IndexConfig>> entry : schemaIndexConfigSource.entrySet()) {
 
 			final String typeName = entry.getKey();
 
-			for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
+			for (final Map.Entry<String, IndexConfig> propertyIndexConfig : entry.getValue().entrySet()) {
 
 				final String indexIdentifier        = typeName + "." + propertyIndexConfig.getKey();
 				final Map<String, Object> neoConfig = existingDbIndexes.get(indexIdentifier);
@@ -103,10 +108,16 @@ public class Neo4IndexUpdater {
 					indexName          = (String)neoConfig.get("name");
 
 				}
-				final boolean configuredAsIndexed     = propertyIndexConfig.getValue();
+
+				final IndexConfig indexConfig         = propertyIndexConfig.getValue();
 				final String propertyKey              = propertyIndexConfig.getKey();
 				final boolean finalIndexAlreadyOnline = indexAlreadyOnline;
 				final String finalIndexName           = indexName;
+
+				// skip relationship indexes if not supported
+				if (!indexConfig.isNodeIndex() && !supportsRelationshipIndexes) {
+					continue;
+				}
 
 				if ("FAILED".equals(currentState)) {
 
@@ -132,7 +143,7 @@ public class Neo4IndexUpdater {
 								} catch (RetryException rex) {
 
 									retry.set(retryCount.incrementAndGet() < 3);
-									logger.info("DROP INDEX: retry {}", retryCount.get());
+									logger.debug("DROP INDEX: retry {}", retryCount.get());
 
 								} catch (Throwable t) {
 									logger.warn("Unable to drop failed index: {}", t.getMessage());
@@ -161,13 +172,15 @@ public class Neo4IndexUpdater {
 
 							try (final Transaction tx = db.beginTx(timeoutSeconds)) {
 
-								if (configuredAsIndexed) {
+								if (indexConfig.createOrDropIndex()) {
 
 									if (!finalIndexAlreadyOnline) {
 
 										try {
 
-											db.consume("CREATE INDEX IF NOT EXISTS FOR (n:" + typeName + ") ON (n.`" + propertyKey + "`)");
+											final String indexDescription = indexConfig.getIndexDescriptionForStatement(typeName);
+
+											db.consume("CREATE INDEX IF NOT EXISTS FOR " + indexDescription + " ON (n.`" + propertyKey + "`)");
 											createdIndexes.incrementAndGet();
 
 										} catch (Throwable t) {
@@ -192,7 +205,7 @@ public class Neo4IndexUpdater {
 							} catch (RetryException rex) {
 
 								retry.set(retryCount.incrementAndGet() < 3);
-								logger.info("INDEX update: retry {}", retryCount.get());
+								logger.debug("INDEX update: retry {}", retryCount.get());
 
 							} catch (IllegalStateException i) {
 
@@ -225,24 +238,29 @@ public class Neo4IndexUpdater {
 			final List removedTypes = new LinkedList();
 
 			// drop indices for all indexed properties of removed classes
-			for (final Map.Entry<String, Map<String, Boolean>> entry : removedClassesSource.entrySet()) {
+			for (final Map.Entry<String, Map<String, IndexConfig>> entry : removedClassesSource.entrySet()) {
 
 				final String typeName = entry.getKey();
 				removedTypes.add(typeName);
 
-				for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
+				for (final Map.Entry<String, IndexConfig> propertyIndexConfig : entry.getValue().entrySet()) {
 
 					final String indexIdentifier        = typeName + "." + propertyIndexConfig.getKey();
 					final Map<String, Object> neoConfig = existingDbIndexes.get(indexIdentifier);
 
 					if (neoConfig != null) {
 
-						final boolean configuredAsIndexed   = propertyIndexConfig.getValue();
-						final String indexName              = (String)neoConfig.get("name");
-						final boolean indexExists           = (existingDbIndexes.get(indexIdentifier) != null);
-						final String propertyKey            = propertyIndexConfig.getKey();
+						final IndexConfig indexConfig = propertyIndexConfig.getValue();
+						final String indexName        = (String)neoConfig.get("name");
+						final boolean indexExists     = (existingDbIndexes.get(indexIdentifier) != null);
+						final String propertyKey      = propertyIndexConfig.getKey();
 
-						if (indexExists && configuredAsIndexed) {
+						// skip relationship indexes if not supported
+						if (!indexConfig.isNodeIndex() && !supportsRelationshipIndexes) {
+							continue;
+						}
+
+						if (indexExists && indexConfig.createOrDropIndex()) {
 
 							final AtomicBoolean retry = new AtomicBoolean(true);
 							final AtomicInteger retryCount = new AtomicInteger(0);
@@ -266,7 +284,7 @@ public class Neo4IndexUpdater {
 										} catch (RetryException rex) {
 
 											retry.set(retryCount.incrementAndGet() < 3);
-											logger.info("DROP INDEX: retry {}", retryCount.get());
+											logger.debug("DROP INDEX: retry {}", retryCount.get());
 
 										} catch (Throwable t) {
 											logger.warn("Unable to drop {}{}: {}", typeName, propertyKey, t.getMessage());
@@ -285,5 +303,7 @@ public class Neo4IndexUpdater {
 				logger.debug("Dropped {} indexes of deleted types ({})", droppedIndexesOfRemovedTypes.get(), StringUtils.join(removedTypes, ", "));
 			}
 		}
+
+		Settings.CypherDebugLogging.setValue(false);
 	}
 }

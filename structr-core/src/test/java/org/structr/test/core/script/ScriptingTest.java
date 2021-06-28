@@ -27,7 +27,6 @@ import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.*;
 import org.structr.api.util.Iterables;
@@ -3951,8 +3950,6 @@ public class ScriptingTest extends StructrTest {
 
 			final String errorMessage = "Advanced find() should understand $.empty predicate for remote properties";
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			assertEquals(errorMessage, 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.empty('parent')); }}", "testFindNewSyntax1")).size());
 			assertEquals(errorMessage, 3, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Project', $.predicate.empty('children')); }}", "testFindNewSyntax2")).size());
 			assertEquals(errorMessage, 2, ((List)Scripting.evaluate(ctx, null, "${{ return $.find('Task', $.predicate.empty('project')); }}", "testFindNewSyntax3")).size());
@@ -3961,10 +3958,6 @@ public class ScriptingTest extends StructrTest {
 
 			t.printStackTrace();
 			fail("Unexpected exception");
-
-		} finally {
-
-			Settings.CypherDebugLogging.setValue(false);
 		}
 	}
 
@@ -4733,15 +4726,11 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			final String query1               = "${find('Contact', not(empty('name')), sort('name'))}";
 			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, query1, "test1");
 
 			final String query2               = "${find('Contact', not(empty('num')), sort('num'))}";
 			final List<NodeInterface> result2 = (List)Scripting.evaluate(ctx, null, query2, "test2");
-
-			Settings.CypherDebugLogging.setValue(false);
 
 			// expected: 1, 2, 3, 5, 6, 8, 9, 11, 12
 			assertEquals("Invalid result for advanced find with graph predicate", "contact01", result1.get(0).getProperty(AbstractNode.name));
@@ -4843,12 +4832,8 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			final String query1               = "${find('Contact', and(not(empty('num')), not(equals('contactType', first(find('ContactType', 'name', 'type1'))))), sort('num', true), page(1, 20))}";
 			final List<NodeInterface> result1 = (List)Scripting.evaluate(ctx, null, query1, "test1");
-
-			Settings.CypherDebugLogging.setValue(false);
 
 			// expected: 19, 18, 16, 15, 13, 12, 8, 7, 3, 2
 			assertEquals("Invalid result for advanced find with graph predicate", 19, result1.get(0).getProperty(numKey));

@@ -4,30 +4,28 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as
+ * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.web.maintenance.deploy;
 
-/**
- * Typesafe enumeration of possible database features that the database
- * service can be queried for support.
- */
-public enum DatabaseFeature {
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 
-	QueryLanguage,
-	LargeStringIndexing,
-	SpatialQueries,
-	AuthenticationRequired,
-	RelationshipIndexes,
-	NewDBIndexesFormat
+public class ImportPreconditionFailedException extends RuntimeException {
+
+	public ImportPreconditionFailedException(final String message) {
+
+		super(message);
+	}
+
 }

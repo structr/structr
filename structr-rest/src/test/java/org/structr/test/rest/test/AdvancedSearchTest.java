@@ -28,7 +28,6 @@ import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
-import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
@@ -429,32 +428,23 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			.when()
 				.get(concat("/test_sevens?sort=name&testSixs=", test01, ",", test06));
 
-		try {
+		// test simple related search with two objects, AND,
+		// expected result is exactly one element
+		RestAssured
 
-			Settings.CypherDebugLogging.setValue(true);
+			.given()
+				.contentType("application/json; charset=UTF-8")
 
-			// test simple related search with two objects, AND,
-			// expected result is exactly one element
-			RestAssured
+			.expect()
+				.statusCode(200)
 
-				.given()
-					.contentType("application/json; charset=UTF-8")
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 
-				.expect()
-					.statusCode(200)
+				.body("result[0].id", equalTo(test09))
 
-					.body("result",	      hasSize(1))
-					.body("result_count", equalTo(1))
-
-					.body("result[0].id", equalTo(test09))
-
-				.when()
-					.get(concat("/test_sevens?sort=name&testSixs=", test01, ",", test02));
-
-		} finally {
-
-			Settings.CypherDebugLogging.setValue(false);
-		}
+			.when()
+				.get(concat("/test_sevens?sort=name&testSixs=", test01, ",", test02));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of two elements:
@@ -1475,8 +1465,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		String test22 = createEntity("/test_sixs", "{ name: test22, aString: string22, anInt: 22 }");
 
 		String test23 = createEntity("/test_eights", "{ name: test23, testSixIds: [", test21, ",", test22, "], aString: string23, anInt: 23 }");
-
-		Settings.CypherDebugLogging.setValue(true);
 
 		// test simple related search with one object,
 		// expected result is a list of two elements:

@@ -185,9 +185,9 @@ public class JsonRestServlet extends AbstractDataServlet {
 				tx.success();
 			}
 
-		} catch (FrameworkException frameworkException) {
+		} catch (FrameworkException | AssertException jsonException) {
 
-			writeException(response, frameworkException);
+			writeException(response, jsonException);
 
 		} catch (JsonSyntaxException jsex) {
 
@@ -200,13 +200,6 @@ public class JsonRestServlet extends AbstractDataServlet {
 			logger.warn("JsonParseException in DELETE", jpex);
 
 			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonParseException in DELETE: " + jpex.getMessage());
-
-		} catch (AssertException aex) {
-
-			logger.warn("Assertion error in DELETE", aex.getMessage());
-			logger.warn(" => Error thrown: ", aex);
-
-			writeJsonError(response, aex.getStatusCode(), "Assertion error in DELETE: " + aex.getMessage());
 
 		} catch (Throwable t) {
 
@@ -475,9 +468,9 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			}
 
-		} catch (FrameworkException frameworkException) {
+		} catch (FrameworkException | AssertException jsonException) {
 
-			writeException(response, frameworkException);
+			writeException(response, jsonException);
 
 		} catch (JsonSyntaxException jsex) {
 
@@ -497,13 +490,6 @@ public class JsonRestServlet extends AbstractDataServlet {
 			logger.warn(" => Error thrown: ", uoe);
 
 			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "Unsupported operation in POST: " + uoe.getMessage());
-
-		} catch (AssertException aex) {
-
-			logger.warn("Assertion error in POST", aex.getMessage());
-			logger.warn(" => Error thrown: ", aex);
-
-			writeJsonError(response, aex.getStatusCode(), "Assertion error in POST: " + aex.getMessage());
 
 		} catch (Throwable t) {
 
@@ -606,9 +592,9 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			}
 
-		} catch (FrameworkException frameworkException) {
+		} catch (FrameworkException | AssertException jsonException) {
 
-			writeException(response, frameworkException);
+			writeException(response, jsonException);
 
 		} catch (JsonSyntaxException jsex) {
 
@@ -621,13 +607,6 @@ public class JsonRestServlet extends AbstractDataServlet {
 			logger.warn("PUT: Unable to parse JSON string", jpex.getMessage());
 
 			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonParseException in PUT: " + jpex.getMessage());
-
-		} catch (AssertException aex) {
-
-			logger.warn("Assertion error in PUT", aex.getMessage());
-			logger.warn(" => Error thrown: ", aex);
-
-			writeJsonError(response, aex.getStatusCode(), "Assertion error in PUT: " + aex.getMessage());
 
 		} catch (Throwable t) {
 
@@ -775,9 +754,9 @@ public class JsonRestServlet extends AbstractDataServlet {
 				}
 			}
 
-		} catch (FrameworkException frameworkException) {
+		} catch (FrameworkException | AssertException jsonException) {
 
-			writeException(response, frameworkException);
+			writeException(response, jsonException);
 
 		} catch (JsonSyntaxException jsex) {
 
@@ -797,13 +776,6 @@ public class JsonRestServlet extends AbstractDataServlet {
 			logger.warn(" => Error thrown: ", uoe);
 
 			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "Unsupported operation in PATCH: " + uoe.getMessage());
-
-		} catch (AssertException aex) {
-
-			logger.warn("Assertion error in PATCH", aex.getMessage());
-			logger.warn(" => Error thrown: ", aex);
-
-			writeJsonError(response, aex.getStatusCode(), "Assertion error in PATCH: " + aex.getMessage());
 
 		} catch (Throwable t) {
 
@@ -936,16 +908,9 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			response.setStatus(HttpServletResponse.SC_OK);
 
-		} catch (FrameworkException frameworkException) {
+		} catch (FrameworkException | AssertException jsonException) {
 
-			writeException(response, frameworkException);
-
-		} catch (AssertException aex) {
-
-			logger.warn("Assertion error in GET", aex.getMessage());
-			logger.warn(" => Error thrown: ", aex);
-
-			writeJsonError(response, aex.getStatusCode(), "Assertion error in GET: " + aex.getMessage());
+			writeException(response, jsonException);
 
 		} catch (Throwable t) {
 
