@@ -147,7 +147,7 @@
     background-color: var(--solid-white);
     width: 100%;
     border-collapse: collapse;
-    border: 1px solid var(--black-opacity-125);
+    /*border: 1px solid var(--black-opacity-125);*/
 }
 
 #methods-container {
@@ -313,7 +313,7 @@
 .schema-details .localization-locale:hover,
 .schema-details .localization-name:hover {
     cursor: text;
-    box-shadow: 2px 0 var(--solid-black);
+    /*box-shadow: 2px 0 var(--solid-black);*/
     color: var(--gray-222);
     background-color: var(--very-very-light-yellow);
     -webkit-box-shadow: 0 0 5px yellow;

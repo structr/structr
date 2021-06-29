@@ -955,7 +955,7 @@ img.disabled {
 	/*border-bottom-left-radius: 0 ! important;*/
 	/*border-bottom-right-radius: 0 ! important;*/
 	/*margin: 0 .25rem 0 0 ! important;*/
-	padding: .5rem 0 0 0 ! important;
+	padding: .5rem 1rem 0 1rem ! important;
 	/*font-size: 1.5em;*/
 	font-weight: 500;
 	height: 2rem;
