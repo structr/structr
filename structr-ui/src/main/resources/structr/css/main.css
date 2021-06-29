@@ -2539,6 +2539,13 @@ table.push {
 	padding: 0 1rem;
 }
 
+#tabs > ul li span {
+	display: block;
+	height: 100%;
+	width: 100%;
+	padding: 0 1rem;
+}
+
 .tab-content {
 	display: none;
 	/*font-size: 9pt;*/
