@@ -1074,6 +1074,11 @@ var _Pages = {
 	 * Reload preview iframe with given id
 	 */
 	reloadIframe: function(id) {
+
+	    // if the preview is not shown return gracefully
+        const activeTab = document.querySelector('#function-bar .tabs-menu li.active');
+        if (activeTab.id !== 'tabs-menu-preview') return;
+
 		if (lastMenuEntry === _Pages._moduleName && (!id || id !== activeTab || !_Pages.isPageTabPresent(id))) {
 
 			if ($('.previewBox iframe').length === 0) {
