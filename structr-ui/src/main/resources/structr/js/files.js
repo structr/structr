@@ -693,6 +693,8 @@ var _Files = {
 			row.append('<td class="abbr-ellipsis abbr-75pc">' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
 			row.append('<td>' + (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '') + '</td>');
 
+			_Elements.enableContextMenuOnElement(row, d);
+
 		} else if (_Files.isViewModeActive('tiles')) {
 
 			let tileId = 'tile' + d.id;
@@ -714,6 +716,8 @@ var _Files = {
 					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + size + '</span></div></div></div><span class="id">' + d.id + '</span></div>');
 			}
 
+			_Elements.enableContextMenuOnElement(tile, d);
+
 		} else if (_Files.isViewModeActive('img')) {
 
 			let tileId = 'tile' + d.id;
@@ -734,6 +738,8 @@ var _Files = {
 					+ '<b title="' + escapeForHtmlAttributes(name) + '" class="name_  abbr-ellipsis abbr-75pc">' + name + '</b>'
 					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + size + '</span></div></div></div><span class="id">' + d.id + '</span></div>');
 			}
+
+			_Elements.enableContextMenuOnElement(tile, d);
 		}
 
 		let div = Structr.node(d.id);
@@ -792,7 +798,6 @@ var _Files = {
 		_Entities.appendEditPropertiesIcon(div, d);
 		_Entities.makeSelectable(div);
 
-		_Elements.enableContextMenuOnElement(div, d);
 	},
 	handleFolder: function(div, d) {
 
