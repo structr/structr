@@ -2223,10 +2223,12 @@ var _Entities = {
 		}
 
 		$(el).on('click', function(e) {
-			e.stopPropagation();
-			_Entities.selectedObject = entity;
-			_Entities.selectElement($(this).closest('.node'));
-			_Pages.refreshCenterPane(true);
+			if (!e.isPropagationStopped()) {
+				e.stopPropagation();
+				_Entities.selectedObject = entity;
+				_Entities.selectElement($(this).closest('.node'));
+				_Pages.refreshCenterPane(true);
+			}
 		});
 
 

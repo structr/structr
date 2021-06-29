@@ -1616,11 +1616,13 @@ var _Elements = {
 		_Elements.enableContextMenuOnElement(div, entity);
 
 		div.on('click', (e) => {
-			e.stopPropagation();
-			_Entities.selectedObject = entity;
-			_Entities.selectElement(div.closest('.node'));
-			_Pages.refreshCenterPane(entity, true);
-			return false;
+			if (!e.isPropagationStopped()) {
+				e.stopPropagation();
+				_Entities.selectedObject = entity;
+				_Entities.selectElement(div.closest('.node'));
+				_Pages.refreshCenterPane(entity, true);
+				return false;
+			}
 		});
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));

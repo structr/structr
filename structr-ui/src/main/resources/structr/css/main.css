@@ -650,7 +650,8 @@ img.disabled {
 
 #localizationsTab,
 #elementsTab {
-	top: 22rem;
+	/*top: 22rem;*/
+	top: 10rem;
 }
 
 
