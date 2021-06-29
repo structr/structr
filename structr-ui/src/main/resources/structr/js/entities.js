@@ -138,6 +138,10 @@ var _Entities = {
 			let style = 'text-align: left;';
 			let parent = $('.blockPage');
 
+			if (parent.length === 0) {
+			    parent = $(document.body);
+			}
+
 			let eventMappingSelect  = $('select#event-mapping-select', el);
 			let targetTypeSelect    = $('select#target-type-select', el);
 			let deleteTargetInput   = $('#delete-target-input', el);
@@ -1232,13 +1236,13 @@ var _Entities = {
 			}
 		});
 	},
-	createPropertyTable: function(heading, keys, res, entity, view, tabView, typeInfo, tempNodeCache) {
+	createPropertyTable: function(heading, keys, res, entity, view, container, typeInfo, tempNodeCache) {
 
 		if (heading) {
-			tabView.append('<h2>' + heading + '</h2>');
+			container.append('<h2>' + heading + '</h2>');
 		}
-		tabView.append('<table class="props ' + view + ' ' + res['id'] + '_"></table>');
-		var propsTable = $('table:last', tabView);
+		container.append('<table class="props ' + view + ' ' + res['id'] + '_"></table>');
+		var propsTable = $('table:last', container);
 		var focusAttr = 'class';
 		var id = entity.id;
 
@@ -1383,11 +1387,9 @@ var _Entities = {
 								_Entities.displaySearch(id, key, typeInfo[key].type, dialogText, isCollection);
 							});
 
-
 						} else {
 							cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
 						}
-
 					}
 				}
 
@@ -1398,11 +1400,13 @@ var _Entities = {
 
 			_Entities.appendSchemaHint($('.key:last', propsTable), key, typeInfo);
 
-			var nullIcon = $('#' + _Entities.null_prefix + key);
+			var nullIcon = $('#' + _Entities.null_prefix + key, container);
 			nullIcon.on('click', function() {
+
 				var key = $(this).prop('id').substring(_Entities.null_prefix.length);
 				var input    = $('.' + key + '_').find('input');
 				var textarea = $('.' + key + '_').find('textarea');
+
 				_Entities.setProperty(id, key, null, false, function(newVal) {
 					if (!newVal) {
 						if (key.indexOf('_custom_html_') === -1) {
@@ -1437,15 +1441,15 @@ var _Entities = {
 			});
 		});
 
-		$('.props tr td.value input',    dialog).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, typeInfo); });
-		$('.props tr td.value textarea', dialog).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId, typeInfo); });
+		$('.props tr td.value input',    container).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, typeInfo); });
+		$('.props tr td.value textarea', container).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId, typeInfo); });
 
 
 		if (view === '_html_') {
 			$('input[name="_html_' + focusAttr + '"]', propsTable).focus();
 
-			tabView.append('<button class="show-all">Show all attributes</button>');
-			$('.show-all', tabView).on('click', function() {
+			container.append('<button class="show-all">Show all attributes</button>');
+			$('.show-all', container).on('click', function() {
 
 				propsTable.addClass('show-all');
 
@@ -1455,7 +1459,7 @@ var _Entities = {
 			});
 
 			let addCustomAttributeButton = $('<button class="add-custom-attribute">Add custom attribute</button>');
-			tabView.append(addCustomAttributeButton);
+			container.append(addCustomAttributeButton);
 
 			Structr.appendInfoTextToElement({
 				element: addCustomAttributeButton,

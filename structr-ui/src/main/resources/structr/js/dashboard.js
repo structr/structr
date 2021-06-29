@@ -20,15 +20,11 @@ $(document).ready(function() {
 	Structr.registerModule(_Dashboard);
 });
 
-var _Dashboard = {
+let _Dashboard = {
 	_moduleName: 'dashboard',
 	dashboard: undefined,
-	logInterval: undefined,
 	activeTabPrefixKey: 'activeDashboardTabPrefix' + port,
-	logRefreshTimeIntervalKey: 'dashboardLogRefreshTimeInterval' + port,
-	logLinesKey: 'dashboardNumberOfLines' + port,
-	zipExportPrefixKey: 'zipExportPrefix' + port,
-	zipExportAppendTimestampKey: 'zipExportAppendTimestamp' + port,
+
 	showScriptingErrorPopupsKey: 'showScriptinErrorPopups' + port,
 	showVisibilityFlagsInGrantsTableKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + port,
 
@@ -36,7 +32,7 @@ var _Dashboard = {
 		if (!subModule) subModule = LSWrapper.getItem(_Dashboard.activeTabPrefixKey);
 	},
 	unload: function() {
-		window.clearInterval(_Dashboard.logInterval);
+		window.clearInterval(_Dashboard.serverlog.interval);
 	},
 	removeActiveClass: function(nodelist) {
 		nodelist.forEach(function(el) {
@@ -96,8 +92,8 @@ var _Dashboard = {
 
 			templateConfig.deployServletAvailable = (deployResponse.status !== 404);
 
-			templateConfig.zipExportPrefix          = LSWrapper.getItem(_Dashboard.zipExportPrefixKey);
-			templateConfig.zipExportAppendTimestamp = LSWrapper.getItem(_Dashboard.zipExportAppendTimestampKey, true);
+			templateConfig.zipExportPrefix          = LSWrapper.getItem(_Dashboard.deployment.zipExportPrefixKey);
+			templateConfig.zipExportAppendTimestamp = LSWrapper.getItem(_Dashboard.deployment.zipExportAppendTimestampKey, true);
 
 			Structr.fetchHtmlTemplate('dashboard/dashboard', templateConfig, function(html) {
 
@@ -106,10 +102,12 @@ var _Dashboard = {
 				Structr.fetchHtmlTemplate('dashboard/dashboard.menu', templateConfig, function(html) {
 					functionBar.append(html);
 
-
 					if (templateConfig.envInfo.databaseService === 'MemoryDatabaseService') {
 						Structr.appendInMemoryInfoToElement($('#dashboard-about-structr .db-driver'));
 					}
+
+					_Dashboard.eventlog.initializeRuntimeEventLog();
+					_Dashboard.serverlog.init();
 
 					_Dashboard.gatherVersionUpdateInfo(templateConfig.envInfo.version, releasesIndexUrl, snapshotsIndexUrl);
 
@@ -148,69 +146,8 @@ var _Dashboard = {
 
 					_Dashboard.checkLicenseEnd(templateConfig.envInfo, $('#dashboard-about-structr .end-date'));
 
-					$('button#do-app-import').on('click', function() {
-						_Dashboard.deploy('import', $('#deployment-source-input').val());
-					});
+                    _Dashboard.deployment.init();
 
-					$('button#do-app-export').on('click', function() {
-						_Dashboard.deploy('export', $('#app-export-target-input').val());
-					});
-
-					$('button#do-app-import-from-url').on('click', function() {
-						_Dashboard.deployFromURL($('#redirect-url').val(), $('#deployment-url-input').val());
-					});
-
-					$('button#do-data-import').on('click', function() {
-						_Dashboard.deployData('import', $('#data-import-source-input').val());
-					});
-
-					$('button#do-data-export').on('click', function() {
-						_Dashboard.deployData('export', $('#data-export-target-input').val(), $('#data-export-types-input').val());
-					});
-
-					$('button#do-app-export-to-zip').on('click', function() {
-						_Dashboard.exportAsZip();
-					});
-
-					_Dashboard.initializeRuntimeEventLog();
-
-					let typesSelectElem = $('#data-export-types-input');
-
-					Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isBuiltinType', function(nodes) {
-
-						let builtinTypes = [];
-						let customTypes = [];
-
-						for (let n of nodes) {
-							if (n.isBuiltinType) {
-								builtinTypes.push(n);
-							} else {
-								customTypes.push(n);
-							}
-						}
-
-						if (customTypes.length > 0) {
-
-							typesSelectElem.append(customTypes.reduce(function(html, node) {
-								return html + '<option>' + node.name + '</option>';
-							}, '<optgroup label="Custom Types">') + '</optgroup>');
-						}
-
-						typesSelectElem.append(builtinTypes.reduce(function(html, node) {
-							return html + '<option>' + node.name + '</option>';
-						}, '<optgroup label="Builtin Types">') + '</optgroup>');
-
-
-						typesSelectElem.chosen({
-							search_contains: true,
-							width: 'calc(100% - 14px)',
-							display_selected_options: false,
-							hide_results_on_select: false,
-							display_disabled_options: false
-						}).chosenSortable();
-					});
-
-					_Dashboard.activateLogBox();
 					_Dashboard.appendGlobalSchemaMethods($('#dashboard-global-schema-methods'));
 
 					$(window).off('resize');
@@ -282,10 +219,7 @@ var _Dashboard = {
 
 					Structr.unblockMenu(100);
 				});
-
 			});
-
-
 
 			} catch(e) {
 
@@ -389,9 +323,6 @@ var _Dashboard = {
 			LSWrapper.clear();
 		});
 	},
-	checkNewVersions: function() {
-
-	},
 	checkLicenseEnd: function(envInfo, element, cfg) {
 
 		if (envInfo && envInfo.endDate && element) {
@@ -452,325 +383,8 @@ var _Dashboard = {
 			}
 		});
 	},
-    activateLogBox: function() {
 
-		let feedbackElement      = document.querySelector('#dashboard-server-log-feedback');
-		let numberOfLines        = LSWrapper.getItem(_Dashboard.logLinesKey, 300);
-		let numberOfLinesInput   = document.querySelector('#dashboard-server-log-lines');
-		numberOfLinesInput.value = numberOfLines;
 
-		numberOfLinesInput.addEventListener('change', () => {
-			numberOfLines = numberOfLinesInput.value;
-			LSWrapper.setItem(_Dashboard.logLinesKey, numberOfLines);
-
-			blinkGreen($(numberOfLinesInput));
-		});
-
-		let manualRefreshButton       = document.querySelector('#dashboard-server-log-manual-refresh');
-		manualRefreshButton.addEventListener('click', () => updateLog());
-
-		let registerRefreshInterval = (timeInMs) => {
-
-			window.clearInterval(_Dashboard.logInterval);
-
-			if (timeInMs > 0) {
-				manualRefreshButton.classList.add('hidden');
-				_Dashboard.logInterval = window.setInterval(() => updateLog(), timeInMs);
-			} else {
-				manualRefreshButton.classList.remove('hidden');
-			}
-		};
-
-		let logRefreshTimeInterval    = LSWrapper.getItem(_Dashboard.logRefreshTimeIntervalKey, 1000);
-		let refreshTimeIntervalSelect = document.querySelector('#dashboard-server-log-refresh-interval');
-
-		refreshTimeIntervalSelect.value = logRefreshTimeInterval;
-
-		refreshTimeIntervalSelect.addEventListener('change', () => {
-			logRefreshTimeInterval = refreshTimeIntervalSelect.value;
-			LSWrapper.setItem(_Dashboard.logRefreshTimeIntervalKey, logRefreshTimeInterval);
-
-			registerRefreshInterval(logRefreshTimeInterval);
-			blinkGreen($(refreshTimeIntervalSelect));
-		});
-
-		let logBoxContentBox = $('#dashboard-server-log textarea');
-
-		let scrollEnabled = true;
-		let textAreaHasFocus = false;
-
-		logBoxContentBox.on('focus', () => {
-			textAreaHasFocus = true;
-			feedbackElement.textContent = 'Text area has focus, refresh disabled until focus lost.';
-		});
-
-		logBoxContentBox.on('blur', () => {
-			textAreaHasFocus = false;
-			feedbackElement.textContent = '';
-		});
-
-        let updateLog = function() {
-
-			if (!textAreaHasFocus) {
-
-				feedbackElement.textContent = 'Refreshing server log...';
-
-				Command.getServerLogSnapshot(numberOfLines, (a) => {
-					logBoxContentBox.text(a[0].result);
-					if (scrollEnabled) {
-						logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
-					}
-
-					window.setTimeout(() => {
-						feedbackElement.textContent = '';
-					}, 250);
-				});
-			}
-		};
-
-		logBoxContentBox.bind('scroll', (event) => {
-			let textarea = event.target;
-
-			let maxScroll = textarea.scrollHeight - 4;
-			let currentScroll = (textarea.scrollTop + $(textarea).height());
-
-			if (currentScroll >= maxScroll) {
-				scrollEnabled = true;
-			} else {
-				scrollEnabled = false;
-			}
-		});
-
-		new Clipboard('#dashboard-server-log-copy', {
-			target: function () {
-				return logBoxContentBox[0];
-			}
-		});
-
-		let container = $('#dashboard-server-log');
-		if (container) {
-
-			container.on('show', function() {
-				updateLog();
-				registerRefreshInterval(logRefreshTimeInterval);
-			});
-
-			container.on('hide', function() {
-				window.clearInterval(_Dashboard.logInterval);
-			});
-		}
-    },
-	deploy: function(mode, location) {
-
-		if (!(location && location.length)) {
-			new MessageBuilder().title('Unable to start data ' + mode + '').warning('Please enter a local directory path for data export.').requiresConfirmation().show();
-			return;
-		}
-
-		var data = {
-			mode: mode
-		};
-
-		if (mode === 'import') {
-			data['source'] = location;
-		} else if (mode === 'export') {
-			data['target'] = location;
-		}
-
-		$.ajax({
-			url: rootUrl + '/maintenance/deploy',
-			data: JSON.stringify(data),
-			method: 'POST',
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
-			statusCode: {
-				422: function(data) {
-					//new MessageBuilder().title('Unable to start app ' + mode + '').warning(data.responseJSON.message).requiresConfirmation().show();
-				}
-			}
-		});
-	},
-	exportAsZip: function() {
-
-		let prefix = document.getElementById('zip-export-prefix').value;
-
-		let cleaned = prefix.replaceAll(/[^a-zA-Z0-9 _-]/g, '').trim();
-		if (cleaned !== prefix) {
-			new MessageBuilder().title('Cleaned prefix').info('The given filename prefix was changed to "' + cleaned + '".').requiresConfirmation().show();
-			prefix = cleaned;
-		}
-		LSWrapper.setItem(_Dashboard.zipExportPrefixKey, prefix);
-
-		let appendTimestamp = document.getElementById('zip-export-append-timestamp').checked;
-		LSWrapper.setItem(_Dashboard.zipExportAppendTimestampKey, appendTimestamp);
-
-		if (appendTimestamp) {
-
-			let zeroPad = (v) => {
-				return ((v < 10) ? '0' : '') + v;
-			};
-
-			let date = new Date();
-
-			prefix += '_' + date.getFullYear() + zeroPad(date.getMonth()+1) + zeroPad(date.getDate()) + '_' + zeroPad(date.getHours()) + zeroPad(date.getMinutes()) + zeroPad(date.getSeconds());
-		}
-
-		window.location = '/structr/deploy?name=' + prefix;
-	},
-	deployFromURL: function(redirectUrl, downloadUrl) {
-
-		if (!(downloadUrl && downloadUrl.length)) {
-			new MessageBuilder().title('Unable to start app import from URL').warning('Please enter the URL of the ZIP file containing the app data.').requiresConfirmation().show();
-			return;
-		}
-
-		let data = new FormData();
-		data.append('redirectUrl', redirectUrl);
-		data.append('downloadUrl', downloadUrl);
-
-		$.ajax({
-			url: '/structr/deploy',
-			method: 'POST',
-			processData: false,
-			contentType: false,
-			data: data,
-			statusCode: {
-				400: function(data) {
-					new MessageBuilder().title('Unable to import app from URL').warning(data.responseText).requiresConfirmation().show();
-				}
-			}
-		});
-	},
-	deployData: function(mode, location, types) {
-
-		if (!(location && location.length)) {
-			new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please enter a directory path for data ' + mode + '.').requiresConfirmation().show();
-			return;
-		}
-
-		var data = {
-			mode: mode
-		};
-
-		if (mode === 'import') {
-			data['source'] = location;
-		} else if (mode === 'export') {
-			data['target'] = location;
-			if (types && types.length) {
-				data['types'] = types.join(',');
-			} else {
-				new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please select at least one data type.').requiresConfirmation().show();
-				return;
-			}
-
-		}
-
-		let url = rootUrl + '/maintenance/deployData';
-
-		$.ajax({
-			url: url,
-			data: JSON.stringify(data),
-			method: 'POST',
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
-			statusCode: {
-				422: function(data) {
-					new MessageBuilder().warning(data.responseJSON.message).requiresConfirmation().show();
-				}
-			}
-		});
-
-	},
-	initializeRuntimeEventLog: function() {
-
-		let container = $('#dashboard-event-log');
-		if (container) {
-
-			container.on('show', function() {
-				_Dashboard.loadRuntimeEventLog();
-			});
-
-			$('#refresh-event-log').off('click').on('click', _Dashboard.loadRuntimeEventLog);
-			$('#event-type-filter').off('change').on('change', _Dashboard.loadRuntimeEventLog);
-		}
-	},
-
-	loadRuntimeEventLog: function() {
-
-		let row    = document.querySelector('#event-log-container');
-		let num    = document.querySelector('#event-type-page-size');
-		let filter = document.querySelector('#event-type-filter');
-		let url    = rootUrl + '/_runtimeEventLog?order=absoluteTimestamp&sort=desc&pageSize=' + num.value;
-		let type   = filter.value;
-
-		row.innerHTML = '';
-
-		if ( type &&type.length) {
-			url += '&type=' + type;
-		}
-
-		fetch(url)
-			.then(response => response.json())
-			.then(result => {
-
-				for (let event of result.result) {
-
-					let timestamp = new Date(event.absoluteTimestamp).toISOString();
-					let tr        = document.createElement('tr');
-					let data      = event.data;
-
-					_Dashboard.elementWithContent(tr, 'td', timestamp);
-					_Dashboard.elementWithContent(tr, 'td', event.type);
-					_Dashboard.elementWithContent(tr, 'td', event.description);
-
-					if (data) {
-
-						switch (event.type) {
-
-							case 'Authentication':
-								_Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
-								break;
-
-							case 'Scripting':
-								_Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
-								break;
-
-							default:
-								_Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
-								break;
-						}
-
-					} else {
-
-						_Dashboard.elementWithContent(tr, 'td', '');
-					}
-
-					let buttonContainer = _Dashboard.elementWithContent(tr, 'td', '');
-					if (data.id && data.type) {
-
-						let button = _Dashboard.elementWithContent(buttonContainer, 'button', 'Open content in editor');
-						button.addEventListener('click', function() {
-
-							Command.get(data.id, null, function (obj) {
-								_Elements.openEditContentDialog(button, obj, {
-									extraKeys: { "Ctrl-Space": "autocomplete" },
-									gutters: ["CodeMirror-lint-markers"],
-									lint: {
-										getAnnotations: function(text, callback) {
-											_Code.showScriptErrors(obj, text, callback);
-										},
-										async: true
-									}
-								});
-							});
-						});
-					}
-
-					row.appendChild(tr);
-				}
-			}
-		);
-	},
 	elementWithContent: function(parent, tag, content) {
 
 		let element = document.createElement(tag);
@@ -779,6 +393,405 @@ var _Dashboard = {
 		parent.appendChild(element);
 
 		return element;
+	},
+
+	deployment: {
+    	zipExportPrefixKey: 'zipExportPrefix' + port,
+        zipExportAppendTimestampKey: 'zipExportAppendTimestamp' + port,
+
+        init: () => {
+            $('button#do-app-import').on('click', function() {
+                _Dashboard.deployment.deploy('import', $('#deployment-source-input').val());
+            });
+
+            $('button#do-app-export').on('click', function() {
+                _Dashboard.deployment.deploy('export', $('#app-export-target-input').val());
+            });
+
+            $('button#do-app-import-from-url').on('click', function() {
+                _Dashboard.deployment.deployFromURL($('#redirect-url').val(), $('#deployment-url-input').val());
+            });
+
+            $('button#do-data-import').on('click', function() {
+                _Dashboard.deployment.deployData('import', $('#data-import-source-input').val());
+            });
+
+            $('button#do-data-export').on('click', function() {
+                _Dashboard.deployment.deployData('export', $('#data-export-target-input').val(), $('#data-export-types-input').val());
+            });
+
+            $('button#do-app-export-to-zip').on('click', function() {
+                _Dashboard.deployment.exportAsZip();
+            });
+
+            let typesSelectElem = $('#data-export-types-input');
+
+            Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isBuiltinType', function(nodes) {
+
+                let builtinTypes = [];
+                let customTypes = [];
+
+                for (let n of nodes) {
+                    if (n.isBuiltinType) {
+                        builtinTypes.push(n);
+                    } else {
+                        customTypes.push(n);
+                    }
+                }
+
+                if (customTypes.length > 0) {
+
+                    typesSelectElem.append(customTypes.reduce(function(html, node) {
+                        return html + '<option>' + node.name + '</option>';
+                    }, '<optgroup label="Custom Types">') + '</optgroup>');
+                }
+
+                typesSelectElem.append(builtinTypes.reduce(function(html, node) {
+                    return html + '<option>' + node.name + '</option>';
+                }, '<optgroup label="Builtin Types">') + '</optgroup>');
+
+
+                typesSelectElem.chosen({
+                    search_contains: true,
+                    width: 'calc(100% - 14px)',
+                    display_selected_options: false,
+                    hide_results_on_select: false,
+                    display_disabled_options: false
+                }).chosenSortable();
+            });
+
+        },
+
+        deploy: function(mode, location) {
+
+            if (!(location && location.length)) {
+                new MessageBuilder().title('Unable to start data ' + mode + '').warning('Please enter a local directory path for data export.').requiresConfirmation().show();
+                return;
+            }
+
+            var data = {
+                mode: mode
+            };
+
+            if (mode === 'import') {
+                data['source'] = location;
+            } else if (mode === 'export') {
+                data['target'] = location;
+            }
+
+            $.ajax({
+                url: rootUrl + '/maintenance/deploy',
+                data: JSON.stringify(data),
+                method: 'POST',
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                statusCode: {
+                    422: function(data) {
+                        //new MessageBuilder().title('Unable to start app ' + mode + '').warning(data.responseJSON.message).requiresConfirmation().show();
+                    }
+                }
+            });
+        },
+        exportAsZip: function() {
+
+            let prefix = document.getElementById('zip-export-prefix').value;
+
+            let cleaned = prefix.replaceAll(/[^a-zA-Z0-9 _-]/g, '').trim();
+            if (cleaned !== prefix) {
+                new MessageBuilder().title('Cleaned prefix').info('The given filename prefix was changed to "' + cleaned + '".').requiresConfirmation().show();
+                prefix = cleaned;
+            }
+            LSWrapper.setItem(_Dashboard.deployment.zipExportPrefixKey, prefix);
+
+            let appendTimestamp = document.getElementById('zip-export-append-timestamp').checked;
+            LSWrapper.setItem(_Dashboard.deployment.zipExportAppendTimestampKey, appendTimestamp);
+
+            if (appendTimestamp) {
+
+                let zeroPad = (v) => {
+                    return ((v < 10) ? '0' : '') + v;
+                };
+
+                let date = new Date();
+
+                prefix += '_' + date.getFullYear() + zeroPad(date.getMonth()+1) + zeroPad(date.getDate()) + '_' + zeroPad(date.getHours()) + zeroPad(date.getMinutes()) + zeroPad(date.getSeconds());
+            }
+
+            window.location = '/structr/deploy?name=' + prefix;
+        },
+        deployFromURL: function(redirectUrl, downloadUrl) {
+
+            if (!(downloadUrl && downloadUrl.length)) {
+                new MessageBuilder().title('Unable to start app import from URL').warning('Please enter the URL of the ZIP file containing the app data.').requiresConfirmation().show();
+                return;
+            }
+
+            let data = new FormData();
+            data.append('redirectUrl', redirectUrl);
+            data.append('downloadUrl', downloadUrl);
+
+            $.ajax({
+                url: '/structr/deploy',
+                method: 'POST',
+                processData: false,
+                contentType: false,
+                data: data,
+                statusCode: {
+                    400: function(data) {
+                        new MessageBuilder().title('Unable to import app from URL').warning(data.responseText).requiresConfirmation().show();
+                    }
+                }
+            });
+        },
+        deployData: function(mode, location, types) {
+
+            if (!(location && location.length)) {
+                new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please enter a directory path for data ' + mode + '.').requiresConfirmation().show();
+                return;
+            }
+
+            var data = {
+                mode: mode
+            };
+
+            if (mode === 'import') {
+                data['source'] = location;
+            } else if (mode === 'export') {
+                data['target'] = location;
+                if (types && types.length) {
+                    data['types'] = types.join(',');
+                } else {
+                    new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please select at least one data type.').requiresConfirmation().show();
+                    return;
+                }
+
+            }
+
+            let url = rootUrl + '/maintenance/deployData';
+
+            $.ajax({
+                url: url,
+                data: JSON.stringify(data),
+                method: 'POST',
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                statusCode: {
+                    422: function(data) {
+                        new MessageBuilder().warning(data.responseJSON.message).requiresConfirmation().show();
+                    }
+                }
+            });
+
+        },
+	},
+
+	serverlog: {
+        interval: undefined,
+        refreshTimeIntervalKey: 'dashboardLogRefreshTimeInterval' + port,
+        numberOfLinesKey: 'dashboardNumberOfLines' + port,
+
+        init: function() {
+
+            let feedbackElement      = document.querySelector('#dashboard-server-log-feedback');
+            let numberOfLines        = LSWrapper.getItem(_Dashboard.serverlog.numberOfLinesKey, 300);
+            let numberOfLinesInput   = document.querySelector('#dashboard-server-log-lines');
+            numberOfLinesInput.value = numberOfLines;
+
+            numberOfLinesInput.addEventListener('change', () => {
+                numberOfLines = numberOfLinesInput.value;
+                LSWrapper.setItem(_Dashboard.serverlog.numberOfLinesKey, numberOfLines);
+
+                blinkGreen($(numberOfLinesInput));
+            });
+
+            let manualRefreshButton       = document.querySelector('#dashboard-server-log-manual-refresh');
+            manualRefreshButton.addEventListener('click', () => updateLog());
+
+            let registerRefreshInterval = (timeInMs) => {
+
+                window.clearInterval(_Dashboard.serverlog.interval);
+
+                if (timeInMs > 0) {
+                    manualRefreshButton.classList.add('hidden');
+                    _Dashboard.serverlog.interval = window.setInterval(() => updateLog(), timeInMs);
+                } else {
+                    manualRefreshButton.classList.remove('hidden');
+                }
+            };
+
+            let logRefreshTimeInterval    = LSWrapper.getItem(_Dashboard.serverlog.refreshTimeIntervalKey, 1000);
+            let refreshTimeIntervalSelect = document.querySelector('#dashboard-server-log-refresh-interval');
+
+            refreshTimeIntervalSelect.value = logRefreshTimeInterval;
+
+            refreshTimeIntervalSelect.addEventListener('change', () => {
+                logRefreshTimeInterval = refreshTimeIntervalSelect.value;
+                LSWrapper.setItem(_Dashboard.serverlog.refreshTimeIntervalKey, logRefreshTimeInterval);
+
+                registerRefreshInterval(logRefreshTimeInterval);
+                blinkGreen($(refreshTimeIntervalSelect));
+            });
+
+            let logBoxContentBox = $('#dashboard-server-log textarea');
+
+            let scrollEnabled = true;
+            let textAreaHasFocus = false;
+
+            logBoxContentBox.on('focus', () => {
+                textAreaHasFocus = true;
+                feedbackElement.textContent = 'Text area has focus, refresh disabled until focus lost.';
+            });
+
+            logBoxContentBox.on('blur', () => {
+                textAreaHasFocus = false;
+                feedbackElement.textContent = '';
+            });
+
+            let updateLog = function() {
+
+                if (!textAreaHasFocus) {
+
+                    feedbackElement.textContent = 'Refreshing server log...';
+
+                    Command.getServerLogSnapshot(numberOfLines, (a) => {
+                        logBoxContentBox.text(a[0].result);
+                        if (scrollEnabled) {
+                            logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
+                        }
+
+                        window.setTimeout(() => {
+                            feedbackElement.textContent = '';
+                        }, 250);
+                    });
+                }
+            };
+
+            logBoxContentBox.bind('scroll', (event) => {
+                let textarea = event.target;
+
+                let maxScroll = textarea.scrollHeight - 4;
+                let currentScroll = (textarea.scrollTop + $(textarea).height());
+
+                if (currentScroll >= maxScroll) {
+                    scrollEnabled = true;
+                } else {
+                    scrollEnabled = false;
+                }
+            });
+
+            new Clipboard('#dashboard-server-log-copy', {
+                target: function () {
+                    return logBoxContentBox[0];
+                }
+            });
+
+            let container = $('#dashboard-server-log');
+            if (container) {
+
+                container.on('show', function() {
+                    updateLog();
+                    registerRefreshInterval(logRefreshTimeInterval);
+                });
+
+                container.on('hide', function() {
+                    window.clearInterval(_Dashboard.serverlog.interval);
+                });
+            }
+        },
+
+	},
+
+	eventlog: {
+        initializeRuntimeEventLog: function() {
+
+            let container = $('#dashboard-event-log');
+            if (container) {
+
+                container.on('show', function() {
+                    _Dashboard.eventlog.loadRuntimeEventLog();
+                });
+
+                $('#refresh-event-log').off('click').on('click', _Dashboard.eventlog.loadRuntimeEventLog);
+                $('#event-type-filter').off('change').on('change', _Dashboard.eventlog.loadRuntimeEventLog);
+            }
+        },
+
+        loadRuntimeEventLog: function() {
+
+            let row    = document.querySelector('#event-log-container');
+            let num    = document.querySelector('#event-type-page-size');
+            let filter = document.querySelector('#event-type-filter');
+            let url    = rootUrl + '/_runtimeEventLog?order=absoluteTimestamp&sort=desc&pageSize=' + num.value;
+            let type   = filter.value;
+
+            row.innerHTML = '';
+
+            if ( type &&type.length) {
+                url += '&type=' + type;
+            }
+
+            fetch(url)
+                .then(response => response.json())
+                .then(result => {
+
+                    for (let event of result.result) {
+
+                        let timestamp = new Date(event.absoluteTimestamp).toISOString();
+                        let tr        = document.createElement('tr');
+                        let data      = event.data;
+
+                        _Dashboard.elementWithContent(tr, 'td', timestamp);
+                        _Dashboard.elementWithContent(tr, 'td', event.type);
+                        _Dashboard.elementWithContent(tr, 'td', event.description);
+
+                        if (data) {
+
+                            switch (event.type) {
+
+                                case 'Authentication':
+                                    _Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
+                                    break;
+
+                                case 'Scripting':
+                                    _Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
+                                    break;
+
+                                default:
+                                    _Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
+                                    break;
+                            }
+
+                        } else {
+
+                            _Dashboard.elementWithContent(tr, 'td', '');
+                        }
+
+                        let buttonContainer = _Dashboard.elementWithContent(tr, 'td', '');
+                        if (data.id && data.type) {
+
+                            let button = _Dashboard.elementWithContent(buttonContainer, 'button', 'Open content in editor');
+                            button.addEventListener('click', function() {
+
+                                Command.get(data.id, null, function (obj) {
+                                    _Elements.openEditContentDialog(button, obj, {
+                                        extraKeys: { "Ctrl-Space": "autocomplete" },
+                                        gutters: ["CodeMirror-lint-markers"],
+                                        lint: {
+                                            getAnnotations: function(text, callback) {
+                                                _Code.showScriptErrors(obj, text, callback);
+                                            },
+                                            async: true
+                                        }
+                                    });
+                                });
+                            });
+                        }
+
+                        row.appendChild(tr);
+                    }
+                }
+            );
+        },
 	}
 };
 
