@@ -245,7 +245,7 @@ ul#previewTabs {
 /**
  * Repeater config and security
  */
-.repeater-container, .security-container {
+.repeater-container, .security-container, .events-container {
 	padding: 0 1rem;
 }
 

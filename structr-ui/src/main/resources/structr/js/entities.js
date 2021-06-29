@@ -138,6 +138,10 @@ var _Entities = {
 			let style = 'text-align: left;';
 			let parent = $('.blockPage');
 
+			if (parent.length === 0) {
+			    parent = $(document.body);
+			}
+
 			let eventMappingSelect  = $('select#event-mapping-select', el);
 			let targetTypeSelect    = $('select#target-type-select', el);
 			let deleteTargetInput   = $('#delete-target-input', el);

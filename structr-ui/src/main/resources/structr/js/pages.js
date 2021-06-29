@@ -522,147 +522,147 @@ var _Pages = {
 
 		var tab = $('#show_' + entity.id, previews);
 
-		tab.append('<div class="fill-pixel"></div><b title="' + escapeForHtmlAttributes(entity.name) + '" class="name_ abbr-ellipsis abbr-200">' + entity.name + '</b>');
-		tab.append('<i title="Edit page settings of ' + entity.name + '" class="edit_ui_properties_icon button ' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" />');
-		tab.append('<i title="View ' + entity.name + ' in new window" class="view_icon button ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" />');
-
-		//$('.view_icon', tab).on('click', function(e) {
-		let dblclickHandler = (e) => {
-			e.stopPropagation();
-			let self = e.target;
-
-			// only on page nodes and if not clicked on expand/collapse icon
-			if (!self.classList.contains('expand_icon') && self.closest('.node').classList.contains('page')) {
-				let link = self.closest('.page').querySelector('b.name_').getAttribute('title');
-				console.log(self, link);
-
-				let pagePath = entity.path ? entity.path.replace(/^\//, '') : link;
-
-				let detailsObject = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
-				let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '?' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
-
-				let url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + pagePath + detailsObject + requestParameters;
-				window.open(url);
-			}
-		};
-
-		let pageNode = Structr.node(entity.id)[0];
-		if (pageNode) {
-			pageNode.removeEventListener('dblclick', dblclickHandler);
-			pageNode.addEventListener('dblclick', dblclickHandler);
-		}
-
-		var editUiPropertiesIcon = $('.edit_ui_properties_icon', tab);
-		editUiPropertiesIcon.hide();
-		editUiPropertiesIcon.on('click', function(e) {
-			e.stopPropagation();
-
-			Structr.dialog('Edit Preview Settings of ' + entity.name, function() {
-				return true;
-			}, function() {
-				return true;
-			});
-
-			dialog.empty();
-			dialogMsg.empty();
-
-			dialog.append('<p>With these settings you can influence the behaviour of the page previews only. They are not persisted on the Page object but only stored in the UI settings.</p>');
-
-			dialog.append('<table class="props">'
-					+ '<tr><td><label for="_details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" value="' + (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '') + '" style="width:90%;"> <i id="clear-details-object-id" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
-					+ '<tr><td><label for="_request-parameters">Request parameters to append to preview URL</label></td><td><code style="font-size: 10pt;">?</code><input id="_request-parameters" value="' + (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '') + '" style="width:90%;"> <i id="clear-request-parameters" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
-					+ '<tr><td><label for="_auto-refresh">Automatic refresh</label></td><td><input id="_auto-refresh" title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(_Pages.autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '></td></tr>'
-					+ '<tr><td><label for="_page-category">Category</label></td><td><input id="_page-category" type="text" value="' + (entity.category || '') + '" style="width:90%;"> <i id="clear-page-category" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
-					+ '</table>');
-
-			var detailsObjectIdInput   = $('#_details-object-id');
-			var requestParametersInput = $('#_request-parameters');
-
-			window.setTimeout(function() {
-				detailsObjectIdInput.select().focus();
-			}, 200);
-
-			$('#clear-details-object-id').on('click', function() {
-				detailsObjectIdInput.val('');
-				var oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
-				if (oldVal) {
-					blinkGreen(detailsObjectIdInput);
-					LSWrapper.removeItem(_Pages.detailsObjectIdKey + entity.id);
-					detailsObjectIdInput.focus();
-
-					_Pages.reloadIframe(entity.id);
-				}
-			});
-
-			detailsObjectIdInput.on('blur', function() {
-				var inp = $(this);
-				var oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
-				var newVal = inp.val() || null;
-				if (newVal !== oldVal) {
-					LSWrapper.setItem(_Pages.detailsObjectIdKey + entity.id, newVal);
-					blinkGreen(detailsObjectIdInput);
-
-					_Pages.reloadIframe(entity.id);
-				}
-			});
-
-			$('#clear-request-parameters').on('click', function() {
-				requestParametersInput.val('');
-				var oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
-				if (oldVal) {
-					blinkGreen(requestParametersInput);
-					LSWrapper.removeItem(_Pages.requestParametersKey + entity.id);
-					requestParametersInput.focus();
-
-					_Pages.reloadIframe(entity.id);
-				}
-			});
-
-			requestParametersInput.on('blur', function() {
-				var inp = $(this);
-				var oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
-				var newVal = inp.val() || null;
-				if (newVal !== oldVal) {
-					LSWrapper.setItem(_Pages.requestParametersKey + entity.id, newVal);
-					blinkGreen(requestParametersInput);
-
-					_Pages.reloadIframe(entity.id);
-				}
-			});
-
-			$('.auto-refresh', dialog).on('click', function(e) {
-				e.stopPropagation();
-				var key = _Pages.autoRefreshDisabledKey + entity.id;
-				var autoRefreshDisabled = (LSWrapper.getItem(key) === '1');
-				if (autoRefreshDisabled) {
-					LSWrapper.removeItem(key);
-				} else {
-					LSWrapper.setItem(key, '1');
-				}
-				blinkGreen($('.auto-refresh', dialog).parent());
-			});
-
-			var pageCategoryInput = $('#_page-category');
-			pageCategoryInput.on('blur', function() {
-				var oldVal = entity.category;
-				var newVal = pageCategoryInput.val() || null;
-				if (newVal !== oldVal) {
-					Command.setProperty(entity.id, "category", newVal, false, function () {
-						blinkGreen(pageCategoryInput);
-						entity.category = newVal;
-					});
-				}
-			});
-
-			$('#clear-page-category').on('click', function () {
-				Command.setProperty(entity.id, "category", null, false, function () {
-					blinkGreen(pageCategoryInput);
-					entity.category = null;
-					pageCategoryInput.val("");
-				});
-			});
-
-		});
+//		tab.append('<div class="fill-pixel"></div><b title="' + escapeForHtmlAttributes(entity.name) + '" class="name_ abbr-ellipsis abbr-200">' + entity.name + '</b>');
+//		tab.append('<i title="Edit page settings of ' + entity.name + '" class="edit_ui_properties_icon button ' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" />');
+//		tab.append('<i title="View ' + entity.name + ' in new window" class="view_icon button ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" />');
+//
+//		//$('.view_icon', tab).on('click', function(e) {
+//		let dblclickHandler = (e) => {
+//			e.stopPropagation();
+//			let self = e.target;
+//
+//			// only on page nodes and if not clicked on expand/collapse icon
+//			if (!self.classList.contains('expand_icon') && self.closest('.node').classList.contains('page')) {
+//				let link = self.closest('.page').querySelector('b.name_').getAttribute('title');
+//				console.log(self, link);
+//
+//				let pagePath = entity.path ? entity.path.replace(/^\//, '') : link;
+//
+//				let detailsObject = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
+//				let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '?' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
+//
+//				let url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + pagePath + detailsObject + requestParameters;
+//				window.open(url);
+//			}
+//		};
+//
+//		let pageNode = Structr.node(entity.id)[0];
+//		if (pageNode) {
+//			pageNode.removeEventListener('dblclick', dblclickHandler);
+//			pageNode.addEventListener('dblclick', dblclickHandler);
+//		}
+//
+//		var editUiPropertiesIcon = $('.edit_ui_properties_icon', tab);
+//		editUiPropertiesIcon.hide();
+//		editUiPropertiesIcon.on('click', function(e) {
+//			e.stopPropagation();
+//
+//			Structr.dialog('Edit Preview Settings of ' + entity.name, function() {
+//				return true;
+//			}, function() {
+//				return true;
+//			});
+//
+//			dialog.empty();
+//			dialogMsg.empty();
+//
+//			dialog.append('<p>With these settings you can influence the behaviour of the page previews only. They are not persisted on the Page object but only stored in the UI settings.</p>');
+//
+//			dialog.append('<table class="props">'
+//					+ '<tr><td><label for="_details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" value="' + (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '') + '" style="width:90%;"> <i id="clear-details-object-id" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
+//					+ '<tr><td><label for="_request-parameters">Request parameters to append to preview URL</label></td><td><code style="font-size: 10pt;">?</code><input id="_request-parameters" value="' + (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '') + '" style="width:90%;"> <i id="clear-request-parameters" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
+//					+ '<tr><td><label for="_auto-refresh">Automatic refresh</label></td><td><input id="_auto-refresh" title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(_Pages.autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '></td></tr>'
+//					+ '<tr><td><label for="_page-category">Category</label></td><td><input id="_page-category" type="text" value="' + (entity.category || '') + '" style="width:90%;"> <i id="clear-page-category" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
+//					+ '</table>');
+//
+//			var detailsObjectIdInput   = $('#_details-object-id');
+//			var requestParametersInput = $('#_request-parameters');
+//
+//			window.setTimeout(function() {
+//				detailsObjectIdInput.select().focus();
+//			}, 200);
+//
+//			$('#clear-details-object-id').on('click', function() {
+//				detailsObjectIdInput.val('');
+//				var oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
+//				if (oldVal) {
+//					blinkGreen(detailsObjectIdInput);
+//					LSWrapper.removeItem(_Pages.detailsObjectIdKey + entity.id);
+//					detailsObjectIdInput.focus();
+//
+//					_Pages.reloadIframe(entity.id);
+//				}
+//			});
+//
+//			detailsObjectIdInput.on('blur', function() {
+//				var inp = $(this);
+//				var oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
+//				var newVal = inp.val() || null;
+//				if (newVal !== oldVal) {
+//					LSWrapper.setItem(_Pages.detailsObjectIdKey + entity.id, newVal);
+//					blinkGreen(detailsObjectIdInput);
+//
+//					_Pages.reloadIframe(entity.id);
+//				}
+//			});
+//
+//			$('#clear-request-parameters').on('click', function() {
+//				requestParametersInput.val('');
+//				var oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
+//				if (oldVal) {
+//					blinkGreen(requestParametersInput);
+//					LSWrapper.removeItem(_Pages.requestParametersKey + entity.id);
+//					requestParametersInput.focus();
+//
+//					_Pages.reloadIframe(entity.id);
+//				}
+//			});
+//
+//			requestParametersInput.on('blur', function() {
+//				var inp = $(this);
+//				var oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
+//				var newVal = inp.val() || null;
+//				if (newVal !== oldVal) {
+//					LSWrapper.setItem(_Pages.requestParametersKey + entity.id, newVal);
+//					blinkGreen(requestParametersInput);
+//
+//					_Pages.reloadIframe(entity.id);
+//				}
+//			});
+//
+//			$('.auto-refresh', dialog).on('click', function(e) {
+//				e.stopPropagation();
+//				var key = _Pages.autoRefreshDisabledKey + entity.id;
+//				var autoRefreshDisabled = (LSWrapper.getItem(key) === '1');
+//				if (autoRefreshDisabled) {
+//					LSWrapper.removeItem(key);
+//				} else {
+//					LSWrapper.setItem(key, '1');
+//				}
+//				blinkGreen($('.auto-refresh', dialog).parent());
+//			});
+//
+//			var pageCategoryInput = $('#_page-category');
+//			pageCategoryInput.on('blur', function() {
+//				var oldVal = entity.category;
+//				var newVal = pageCategoryInput.val() || null;
+//				if (newVal !== oldVal) {
+//					Command.setProperty(entity.id, "category", newVal, false, function () {
+//						blinkGreen(pageCategoryInput);
+//						entity.category = newVal;
+//					});
+//				}
+//			});
+//
+//			$('#clear-page-category').on('click', function () {
+//				Command.setProperty(entity.id, "category", null, false, function () {
+//					blinkGreen(pageCategoryInput);
+//					entity.category = null;
+//					pageCategoryInput.val("");
+//				});
+//			});
+//
+//		});
 
 		return tab;
 	},
@@ -941,8 +941,20 @@ var _Pages = {
 				});
 				break;
 
+			case '#pages:events':
 			case '#pages:event-binding':
+
+				Structr.fetchHtmlTemplate('pages/events', {}, (html) => {
+					previewsContainer.insertAdjacentHTML('beforeend', html);
+					repeaterContainer = document.querySelector('#previews .events-container');
+
+					_Schema.getTypeInfo(obj.type, function(typeInfo) {
+						_Entities.dataBindingDialog(obj, $(repeaterContainer), typeInfo);
+					});
+				});
+
 				break;
+
 			case '#pages:security':
 				Structr.fetchHtmlTemplate('pages/security', {}, (html) => {
 					previewsContainer.insertAdjacentHTML('beforeend', html);
@@ -952,6 +964,7 @@ var _Pages = {
 					});
 				});
 				break;
+
 			default:
 				console.log('do something else, urlHash:', urlHash);
 		}
