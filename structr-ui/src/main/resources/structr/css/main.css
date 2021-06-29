@@ -953,7 +953,7 @@ img.disabled {
 	/*border-bottom-left-radius: 0 ! important;*/
 	/*border-bottom-right-radius: 0 ! important;*/
 	/*margin: 0 .25rem 0 0 ! important;*/
-	padding: .5rem 1rem 0 1rem ! important;
+	padding: .5rem 0 0 0 ! important;
 	/*font-size: 1.5em;*/
 	font-weight: 500;
 	height: 2rem;
@@ -2533,6 +2533,10 @@ table.push {
 
 .tabs-menu > li a {
 	text-decoration: none;
+	display: block;
+	height: 100%;
+	width: 100%;
+	padding: 0 1rem;
 }
 
 .tab-content {
