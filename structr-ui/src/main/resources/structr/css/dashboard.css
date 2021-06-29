@@ -18,13 +18,12 @@
  */
 
 #dashboard {
-	/*margin: 12px;*/
-	/*height: calc(100% - 12px);*/
+	height: 100%;
 }
 
 #dashboard .tab-content {
-	/*height: calc(100% - 34px);*/
-	/*overflow: auto;*/
+	height: calc(100% - 4rem);
+	overflow: auto;
 }
 
 #dashboard .tab-content.active {
@@ -32,7 +31,7 @@
 }
 
 #dashboard .tabs-contents {
-	/*height: calc(100% - 18px);*/
+	height: calc(100% - 2rem);
 }
 
 #about-structr .props {
@@ -186,7 +185,7 @@
 }
 
 #dashboard-server-log textarea {
-	/*height: calc(100% - 40px);*/
+	height: calc(100% - 5rem);
 	width: 100%;
 	resize: vertical;
 	font-family: var(--font-monospace) ! important;
