@@ -1081,7 +1081,7 @@ var _Pages = {
 	 */
 	isPageTabPresent: function(id) {
 		// return ($('#show_' + id, previewTabs).length > 0);
-		return ($('#preview_' + id, previewTabs).length > 0);
+		return document.getElementById('preview_' + id) !== null;
 	},
 	unloadIframes: function() {
 		_Pages.clearIframeDroppables();
@@ -1616,6 +1616,9 @@ var _Pages = {
 
 		let id = activeTab;
 
+		let localizationsContainer = $('#localizations div.inner div.results');
+        localizationsContainer.empty().attr('id', 'id_' + id);
+
 		if (_Pages.isPageTabPresent(id)) {
 
 			let localeInput = $('#localizations input.locale');
@@ -1633,12 +1636,8 @@ var _Pages = {
 
 				$('#localizations .page').prop('id', 'id_' + id);
 
-				let localizationsContainer = $('#localizations div.inner div.results');
-				localizationsContainer.empty().attr('id', 'id_' + id);
-
 				let localizationIdKey = 'localizationId';
 				let previousValueKey  = 'previousValue';
-
 
 				if (result.length > 0) {
 
