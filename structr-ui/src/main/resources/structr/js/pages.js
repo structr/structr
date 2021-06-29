@@ -794,9 +794,7 @@ var _Pages = {
 		}
 
 	},
-	activatePage: function (pageId) {
-
-console.log(pageId);
+	activatePage: (pageId) => {
 
 		let activeLink = document.querySelector('#function-bar .tabs-menu li.active a');
 
@@ -818,10 +816,7 @@ console.log(pageId);
 				_Pages.refreshActiveElements();
 			}
 
-		} else {
-
 		}
-
 
 	},
 	refreshActiveElements: function() {
@@ -959,6 +954,30 @@ console.log(pageId);
 //		iframe.on('load', function () {
 //			_Pages.previews.previewIframeLoaded(iframe, entity);
 //		});
+
+		let dblclickHandler = (e) => {
+			e.stopPropagation();
+			let self = e.target;
+
+			// only on page nodes and if not clicked on expand/collapse icon
+			if (!self.classList.contains('expand_icon') && self.closest('.node').classList.contains('page')) {
+				let link = self.closest('.page').querySelector('b.name_').getAttribute('title');
+
+				let pagePath = entity.path ? entity.path.replace(/^\//, '') : link;
+
+				let detailsObject = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
+				let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '?' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
+
+				let url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + pagePath + detailsObject + requestParameters;
+				window.open(url);
+			}
+		};
+
+		let pageNode = Structr.node(entity.id)[0];
+		if (pageNode) {
+			pageNode.removeEventListener('dblclick', dblclickHandler);
+			pageNode.addEventListener('dblclick', dblclickHandler);
+		}
 
 		_Dragndrop.makeDroppable(div);
 
