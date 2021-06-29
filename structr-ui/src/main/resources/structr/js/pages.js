@@ -346,9 +346,9 @@ var _Pages = {
 
 			functionBar.append(html);
 
-			document.querySelectorAll('#function-bar .tabs-menu li a').forEach((menuLink) => {
-				menuLink.onclick = (e) => { _Pages.activateCenterPane(e); };
-			});
+            for (const menuLink of document.querySelectorAll('#function-bar .tabs-menu li a')) {
+                menuLink.onclick = (event) => _Pages.activateCenterPane(event);
+            }
 
 			var pPager = _Pager.addPager('pages', pagesPager, true, 'Page', null, function(pages) {
 				pages.forEach(function(page) {
@@ -718,9 +718,9 @@ var _Pages = {
 		}
 	},
 	deactivateAllSubmenuLinks: () => {
-		document.querySelectorAll('#function-bar .tabs-menu li').forEach((otherTab) => {
-			otherTab.classList.remove('active');
-		});
+	    for (const otherTab of document.querySelectorAll('#function-bar .tabs-menu li')) {
+	        otherTab.classList.remove('active');
+	    }
 	},
 	adaptSubmenu: (obj) => {
 		switch (obj.type) {
@@ -756,11 +756,11 @@ var _Pages = {
 		let tab = el.closest('li');
 		let active = tab.classList.contains('active');
 
-		_Pages.deactivateAllSubmenuLinks();
+        // return if clicked tab already is active
+		if (active) return;
 
-		if (!active) {
-			tab.classList.add('active');
-		}
+		_Pages.deactivateAllSubmenuLinks();
+		tab.classList.add('active');
 
 		let obj = _Entities.selectedObject;
 		if (!obj || !obj.type) return;
@@ -775,9 +775,9 @@ var _Pages = {
 
 		let previewsContainer = document.querySelector('#previews');
 		let contentContainers = document.querySelectorAll('#previews .content-container');
-		contentContainers.forEach((contentContainer) => {
-			previewsContainer.removeChild(contentContainer);
-		});
+		for (const contentContainer of contentContainers) {
+		    previewsContainer.removeChild(contentContainer);
+		}
 
 		let obj = _Entities.selectedObject; // || _Entities.selectedObjects.element || _Entities.selectedObjects.contentNode;
 
