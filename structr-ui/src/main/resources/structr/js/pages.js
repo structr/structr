@@ -17,7 +17,7 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var pages, shadowPage;
-var previews, previewTabs, controls, activeTab, activeTabLeft, activeTabRight, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout, activeElementsSlideout, dataBindingSlideout;
+var controls, activeTab, activeTabLeft, activeTabRight, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout, activeElementsSlideout, dataBindingSlideout;
 var components, elements;
 var selStart, selEnd;
 var sel;
@@ -45,6 +45,9 @@ var _Pages = {
 	pagesResizerLeftKey: 'structrPagesResizerLeftKey_' + port,
 	pagesResizerRightKey: 'structrPagesResizerRightKey_' + port,
 	functionBarSwitchKey: 'structrFunctionBarSwitchKey_' + port,
+
+	centerPane: undefined,
+
 	init: function() {
 
 		_Pager.initPager('pages',   'Page', 1, 25, 'name', 'asc');
@@ -93,7 +96,9 @@ var _Pages = {
 			dataBindingSlideout = $('#dataBinding');
 			localizationsSlideout = $('#localizations');
 
-			previews = $('#previews');
+			_Pages.centerPane = document.querySelector('#center-pane');
+			_Pages.previews.previewElement = document.querySelector('#previews');
+
 
 			widgetsSlideout = $('#widgetsSlideout');
 			paletteSlideout = $('#palette');
@@ -223,10 +228,6 @@ var _Pages = {
 				}
 			});
 
-
-			previewTabs = $('<ul id="previewTabs"></ul>');
-			previews.append(previewTabs);
-
 			_Pages.refresh();
 
 			if (activeTabLeft) {
@@ -286,18 +287,18 @@ var _Pages = {
 			let columnResizerLeft = 'calc(' + leftPos + 'px + 0rem)';
 			document.querySelector('.column-resizer-left').style.left = columnResizerLeft;
 			if (openLeftSlideout) openLeftSlideout.style.width = 'calc(' + leftPos + 'px - 3rem)';
-			document.querySelector('#previews').style.marginLeft = 'calc(' + leftPos + 'px + 3rem)';
+			_Pages.centerPane.style.marginLeft = 'calc(' + leftPos + 'px + 3rem)';
 			if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
 		} else {
 			if (leftPos === 0) {
 				if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
 				let columnResizerLeft = '4rem';
 				document.querySelector('.column-resizer-left').style.left = columnResizerLeft;
-				document.querySelector('#previews').style.marginLeft = columnResizerLeft;
+				_Pages.centerPane.style.marginLeft = columnResizerLeft;
 			} else {
 				if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 0rem)';
 				document.querySelector('.column-resizer-left').style.left = 'calc(' + leftPos + 'px - 1rem)';
-				document.querySelector('#previews').style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
+				_Pages.centerPane.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
 			}
 		}
 
@@ -305,29 +306,22 @@ var _Pages = {
 			let columnResizerRight = 'calc(' + (window.innerWidth - rightPos) + 'px + 0rem)';
 			document.querySelector('.column-resizer-right').style.left = columnResizerRight;
 			if (openRightSlideout) openRightSlideout.style.width = 'calc(' + rightPos + 'px - 7rem)';
-			document.querySelector('#previews').style.marginRight = 'calc(' + rightPos + 'px - 1rem)';
+			_Pages.centerPane.style.marginRight = 'calc(' + rightPos + 'px - 1rem)';
 		} else {
 			if (rightPos === 0) {
 				let columnResizerRight = '4rem';
 				document.querySelector('.column-resizer-right').style.left = columnResizerRight;
-				document.querySelector('#previews').style.marginRight = columnResizerRight;
+				_Pages.centerPane.style.marginRight = columnResizerRight;
 			} else {
 				document.querySelector('.column-resizer-right').style.left = 'calc(' + (window.innerWidth - rightPos) + 'px - 3rem)';
-				document.querySelector('#previews').style.marginRight = 'calc(' + (rightPos) + 'px + 2rem)';
+				_Pages.centerPane.style.marginRight = 'calc(' + (rightPos) + 'px + 2rem)';
 			}
 		}
 
 	},
-	clearPreviews: function() {
-
-		if (previewTabs && previewTabs.length) {
-			previewTabs.children('.page').remove();
-		}
-	},
 	refresh: function() {
 
 		pagesSlideout.find(':not(.slideout-activator)').remove();
-		previewTabs.empty();
 
 		pagesSlideout.append('<div id="pagesTree"></div>');
 		pages = $('#pagesTree', pagesSlideout);
@@ -346,18 +340,17 @@ var _Pages = {
 
 			functionBar.append(html);
 
-            for (const menuLink of document.querySelectorAll('#function-bar .tabs-menu li a')) {
-                menuLink.onclick = (event) => _Pages.activateCenterPane(event);
-            }
+			for (const menuLink of document.querySelectorAll('#function-bar .tabs-menu li a')) {
+				menuLink.onclick = (event) => _Pages.activateCenterPane(event);
+			}
 
 			var pPager = _Pager.addPager('pages', pagesPager, true, 'Page', null, function(pages) {
 				pages.forEach(function(page) {
 					StructrModel.create(page);
 				});
-				_Pages.hideAllPreviews();
 			});
+
 			pPager.cleanupFunction = function () {
-				_Pages.clearPreviews();
 				$('.node', pages).remove();
 			};
 			let pagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name"/></span>');
@@ -511,216 +504,21 @@ var _Pages = {
 							return;
 						}
 					});
-					observer.observe(document, {	childList: true, subtree: true });
+					observer.observe(document, { childList: true, subtree: true });
 				});
 			}
 		});
 
 	},
-	addTab: function(entity) {
-		previewTabs.append('<li id="show_' + entity.id + '" class="page ' + entity.id + '_"></li>');
-
-		var tab = $('#show_' + entity.id, previews);
-
-//		tab.append('<div class="fill-pixel"></div><b title="' + escapeForHtmlAttributes(entity.name) + '" class="name_ abbr-ellipsis abbr-200">' + entity.name + '</b>');
-//		tab.append('<i title="Edit page settings of ' + entity.name + '" class="edit_ui_properties_icon button ' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" />');
-//		tab.append('<i title="View ' + entity.name + ' in new window" class="view_icon button ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" />');
-//
-//		//$('.view_icon', tab).on('click', function(e) {
-//		let dblclickHandler = (e) => {
-//			e.stopPropagation();
-//			let self = e.target;
-//
-//			// only on page nodes and if not clicked on expand/collapse icon
-//			if (!self.classList.contains('expand_icon') && self.closest('.node').classList.contains('page')) {
-//				let link = self.closest('.page').querySelector('b.name_').getAttribute('title');
-//				console.log(self, link);
-//
-//				let pagePath = entity.path ? entity.path.replace(/^\//, '') : link;
-//
-//				let detailsObject = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
-//				let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '?' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
-//
-//				let url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + pagePath + detailsObject + requestParameters;
-//				window.open(url);
-//			}
-//		};
-//
-//		let pageNode = Structr.node(entity.id)[0];
-//		if (pageNode) {
-//			pageNode.removeEventListener('dblclick', dblclickHandler);
-//			pageNode.addEventListener('dblclick', dblclickHandler);
-//		}
-//
-//		var editUiPropertiesIcon = $('.edit_ui_properties_icon', tab);
-//		editUiPropertiesIcon.hide();
-//		editUiPropertiesIcon.on('click', function(e) {
-//			e.stopPropagation();
-//
-//			Structr.dialog('Edit Preview Settings of ' + entity.name, function() {
-//				return true;
-//			}, function() {
-//				return true;
-//			});
-//
-//			dialog.empty();
-//			dialogMsg.empty();
-//
-//			dialog.append('<p>With these settings you can influence the behaviour of the page previews only. They are not persisted on the Page object but only stored in the UI settings.</p>');
-//
-//			dialog.append('<table class="props">'
-//					+ '<tr><td><label for="_details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" value="' + (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '') + '" style="width:90%;"> <i id="clear-details-object-id" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
-//					+ '<tr><td><label for="_request-parameters">Request parameters to append to preview URL</label></td><td><code style="font-size: 10pt;">?</code><input id="_request-parameters" value="' + (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '') + '" style="width:90%;"> <i id="clear-request-parameters" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
-//					+ '<tr><td><label for="_auto-refresh">Automatic refresh</label></td><td><input id="_auto-refresh" title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(_Pages.autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '></td></tr>'
-//					+ '<tr><td><label for="_page-category">Category</label></td><td><input id="_page-category" type="text" value="' + (entity.category || '') + '" style="width:90%;"> <i id="clear-page-category" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
-//					+ '</table>');
-//
-//			var detailsObjectIdInput   = $('#_details-object-id');
-//			var requestParametersInput = $('#_request-parameters');
-//
-//			window.setTimeout(function() {
-//				detailsObjectIdInput.select().focus();
-//			}, 200);
-//
-//			$('#clear-details-object-id').on('click', function() {
-//				detailsObjectIdInput.val('');
-//				var oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
-//				if (oldVal) {
-//					blinkGreen(detailsObjectIdInput);
-//					LSWrapper.removeItem(_Pages.detailsObjectIdKey + entity.id);
-//					detailsObjectIdInput.focus();
-//
-//					_Pages.reloadIframe(entity.id);
-//				}
-//			});
-//
-//			detailsObjectIdInput.on('blur', function() {
-//				var inp = $(this);
-//				var oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
-//				var newVal = inp.val() || null;
-//				if (newVal !== oldVal) {
-//					LSWrapper.setItem(_Pages.detailsObjectIdKey + entity.id, newVal);
-//					blinkGreen(detailsObjectIdInput);
-//
-//					_Pages.reloadIframe(entity.id);
-//				}
-//			});
-//
-//			$('#clear-request-parameters').on('click', function() {
-//				requestParametersInput.val('');
-//				var oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
-//				if (oldVal) {
-//					blinkGreen(requestParametersInput);
-//					LSWrapper.removeItem(_Pages.requestParametersKey + entity.id);
-//					requestParametersInput.focus();
-//
-//					_Pages.reloadIframe(entity.id);
-//				}
-//			});
-//
-//			requestParametersInput.on('blur', function() {
-//				var inp = $(this);
-//				var oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
-//				var newVal = inp.val() || null;
-//				if (newVal !== oldVal) {
-//					LSWrapper.setItem(_Pages.requestParametersKey + entity.id, newVal);
-//					blinkGreen(requestParametersInput);
-//
-//					_Pages.reloadIframe(entity.id);
-//				}
-//			});
-//
-//			$('.auto-refresh', dialog).on('click', function(e) {
-//				e.stopPropagation();
-//				var key = _Pages.autoRefreshDisabledKey + entity.id;
-//				var autoRefreshDisabled = (LSWrapper.getItem(key) === '1');
-//				if (autoRefreshDisabled) {
-//					LSWrapper.removeItem(key);
-//				} else {
-//					LSWrapper.setItem(key, '1');
-//				}
-//				blinkGreen($('.auto-refresh', dialog).parent());
-//			});
-//
-//			var pageCategoryInput = $('#_page-category');
-//			pageCategoryInput.on('blur', function() {
-//				var oldVal = entity.category;
-//				var newVal = pageCategoryInput.val() || null;
-//				if (newVal !== oldVal) {
-//					Command.setProperty(entity.id, "category", newVal, false, function () {
-//						blinkGreen(pageCategoryInput);
-//						entity.category = newVal;
-//					});
-//				}
-//			});
-//
-//			$('#clear-page-category').on('click', function () {
-//				Command.setProperty(entity.id, "category", null, false, function () {
-//					blinkGreen(pageCategoryInput);
-//					entity.category = null;
-//					pageCategoryInput.val("");
-//				});
-//			});
-//
-//		});
-
-		return tab;
-	},
 	removePage:function(page) {
 
-		var id = page.id;
+		Structr.removeExpandedNode(page.id);
 
-		Structr.removeExpandedNode(id);
-		var iframe = $('#preview_' + id);
-		var tab = $('#show_' + id);
-
-		if (id === activeTab) {
-			_Pages.activatePage(tab.prev());
-		}
-
-		tab.remove();
-		iframe.remove();
-
-		_Pages.reloadPreviews();
-
-	},
-	resetTab: function(element) {
-
-		element.children('input').hide();
-		element.children('.name_').show();
-
-		var icons = $('.button', element);
-		var autoRefreshSelector = $('.auto-refresh', element);
-
-		element.hover(function(e) {
-			icons.showInlineBlock();
-			autoRefreshSelector.showInlineBlock();
-		}, function(e) {
-			icons.hide();
-			autoRefreshSelector.hide();
-		});
-
-		element.on('click', function(e) {
-			e.stopPropagation();
-			var self = $(this);
-			var clicks = e.originalEvent.detail;
-			if (clicks === 1) {
-				if (self.hasClass('active')) {
-					_Pages.makeTabEditable(self);
-				} else {
-					_Pages.activatePage(self);
-				}
-			}
-		});
-
-		if (element.prop('id').substring(5) === activeTab) {
-			_Pages.activatePage(element);
-		}
 	},
 	deactivateAllSubmenuLinks: () => {
-	    for (const otherTab of document.querySelectorAll('#function-bar .tabs-menu li')) {
-	        otherTab.classList.remove('active');
-	    }
+		for (const otherTab of document.querySelectorAll('#function-bar .tabs-menu li')) {
+			otherTab.classList.remove('active');
+		}
 	},
 	adaptSubmenu: (obj) => {
 		switch (obj.type) {
@@ -730,10 +528,13 @@ var _Pages = {
 				document.querySelector('a[href="#pages:repeater"]').closest('li').classList.add('hidden');
 				document.querySelector('a[href="#pages:events"]').closest('li').classList.add('hidden');
 				break;
+
 			default:
+
 				if (obj.isContent) {
-					document.querySelector('a[href="#pages:html"]').closest('li').classList.remove('hidden');
+					document.querySelector('a[href="#pages:html"]').closest('li').classList.add('hidden');
 					document.querySelector('a[href="#pages:editor"]').closest('li').classList.remove('hidden');
+					document.querySelector('a[href="#pages:events"]').closest('li').classList.add('hidden');
 				} else {
 					document.querySelector('a[href="#pages:html"]').closest('li').classList.remove('hidden');
 					document.querySelector('a[href="#pages:editor"]').closest('li').classList.add('hidden');
@@ -756,7 +557,7 @@ var _Pages = {
 		let tab = el.closest('li');
 		let active = tab.classList.contains('active');
 
-        // return if clicked tab already is active
+		// return if clicked tab already is active
 		if (active) return;
 
 		_Pages.deactivateAllSubmenuLinks();
@@ -766,34 +567,66 @@ var _Pages = {
 		if (!obj || !obj.type) return;
 
 		active = tab.classList.contains('active');
-		// console.log('_Pages.activateCenterPane(active)', active);
+
 		_Pages.refreshCenterPane(active);
 	},
 	refreshCenterPane: (active) => {
-		 _Entities.deselectAllElements();
-		_Pages.hideAllPreviews();
 
-		let previewsContainer = document.querySelector('#previews');
-		let contentContainers = document.querySelectorAll('#previews .content-container');
+		 _Entities.deselectAllElements();
+
+		let contentContainers = _Pages.centerPane.querySelectorAll('.content-container');
+
 		for (const contentContainer of contentContainers) {
-		    previewsContainer.removeChild(contentContainer);
+			_Pages.centerPane.removeChild(contentContainer);
 		}
 
 		let obj = _Entities.selectedObject; // || _Entities.selectedObjects.element || _Entities.selectedObjects.contentNode;
 
 		let activeLink = document.querySelector('#function-bar .tabs-menu li.active a');
 		let urlHash;
+
+		_Pages.adaptSubmenu(obj);
+
+//		let targetLink = document.querySelector('#function-bar .tabs-menu li a[href="' + location.hash + '"]');
+//		if (!activeLink.closest('li').classList.contains('hidden')) {
+//			urlHash = '#pages:basic';
+//		}
+
+		console.log(activeLink);
+
 		if (activeLink) {
+
+			if (activeLink.closest('li').classList.contains('hidden')) {
+				_Entities.deselectAllElements();
+				activeLink = document.querySelector('#function-bar .tabs-menu li a');
+				activeLink.closest('li').classList.add('active');
+			}
+
 			urlHash = new URL(activeLink.href).hash;
 			LSWrapper.setItem(_Pages.urlHashKey, urlHash);
+
 		} else {
+
 			urlHash = LSWrapper.getItem(_Pages.urlHashKey);
 			if (!urlHash) {
 				urlHash = new URL(window.location.href).hash;
 			}
 			// Activate submenu link
 			activeLink = document.querySelector('#function-bar .tabs-menu li a[href="' + urlHash + '"]');
-			activeLink?.closest('li').classList.add('active');
+
+			if (activeLink) {
+				if (activeLink.closest('li').classList.contains('hidden')) {
+					activeLink = document.querySelector('#function-bar .tabs-menu li a');
+				}
+
+			} else {
+				// activate first link
+			}
+
+			urlHash = new URL(activeLink.href).hash;
+
+			_Entities.deselectAllElements();
+			activeLink.closest('li').classList.add('active');
 		}
 
 		// Set default views based on object type
@@ -811,6 +644,7 @@ var _Pages = {
 		}
 
 		switch (urlHash) {
+
 			case '#pages:basic':
 
 				let callbackObject = registeredDialogs[obj.type];
@@ -821,8 +655,8 @@ var _Pages = {
 
 				Structr.fetchHtmlTemplate('pages/basic', {}, (html) => {
 
-					previewsContainer.insertAdjacentHTML('beforeend', html);
-					propertiesContainer = document.querySelector('#previews .basic-container');
+					_Pages.centerPane.insertAdjacentHTML('beforeend', html);
+					propertiesContainer = document.querySelector('#center-pane .basic-container');
 
 					if (callbackObject) {
 						callbackObject.callback($(propertiesContainer), obj);
@@ -838,8 +672,8 @@ var _Pages = {
 
 					Structr.fetchHtmlTemplate('pages/properties', {}, (html) => {
 
-						previewsContainer.insertAdjacentHTML('beforeend', html);
-						propertiesContainer = document.querySelector('#previews .properties-container');
+						_Pages.centerPane.insertAdjacentHTML('beforeend', html);
+						propertiesContainer = document.querySelector('#center-pane .properties-container');
 
 						_Schema.getTypeInfo(obj.type, function(typeInfo) {
 
@@ -867,8 +701,8 @@ var _Pages = {
 
 					Structr.fetchHtmlTemplate('pages/properties', {}, (html) => {
 
-						previewsContainer.insertAdjacentHTML('beforeend', html);
-						propertiesContainer = document.querySelector('#previews .properties-container');
+						_Pages.centerPane.insertAdjacentHTML('beforeend', html);
+						propertiesContainer = document.querySelector('#center-pane .properties-container');
 
 						_Schema.getTypeInfo(obj.type, function(typeInfo) {
 
@@ -892,35 +726,23 @@ var _Pages = {
 
 			case '#pages:preview':
 
-				if (!obj) return;
+				let pageId = null;
 
 				if (obj.type === 'Page') {
-					active ? _Pages.activatePage($('#show_' + obj.id, previews)) : _Pages.hideAllPreviews();
-				} else if (obj.isDOMNode) {
 
-					let isPagePreviewHidden = document.querySelector('#preview_' + obj.pageId)?.closest('.previewBox')?.style.display === 'none';
-					let iframe = document.querySelector('#preview_' + obj.pageId);
-
-					_Entities.highlightElement(Structr.node(obj.id));
-
-					let activatePreviewElementContainer = () => {
-						let doc       = iframe.contentDocument || iframe.contentWindow.document;
-						let previewEl = doc.querySelector('[data-structr-id="' + obj.id + '"]');
-						doc.querySelectorAll('.structr-element-container-selected').forEach((el) => {
-							el.classList.remove('structr-element-container-selected');
-						});
-						previewEl?.classList.add('structr-element-container-selected');
-					};
-
-					if (isPagePreviewHidden) {
-						active ? _Pages.activatePage($('#show_' + obj.pageId, previews)) : _Pages.hideAllPreviews();
-						iframe.onload = () => activatePreviewElementContainer();
-					} else {
-						activatePreviewElementContainer();
+					if (active) {
+						pageId = obj.id;
 					}
 
+				} else if (obj.isDOMNode) {
+
+					pageId = obj.pageId;
 				}
+
+				_Pages.previews.showPreviewInIframe(pageId, obj.id);
+
 				break;
+
 			case '#pages:editor':
 
 				if (obj.isContent) {
@@ -933,8 +755,8 @@ var _Pages = {
 
 			case '#pages:repeater':
 				Structr.fetchHtmlTemplate('pages/repeater', {}, (html) => {
-					previewsContainer.insertAdjacentHTML('beforeend', html);
-					repeaterContainer = document.querySelector('#previews .repeater-container');
+					_Pages.centerPane.insertAdjacentHTML('beforeend', html);
+					repeaterContainer = document.querySelector('#center-pane .repeater-container');
 					_Schema.getTypeInfo(obj.type, function(typeInfo) {
 						_Entities.queryDialog(obj, $(repeaterContainer), typeInfo);
 					});
@@ -945,8 +767,8 @@ var _Pages = {
 			case '#pages:event-binding':
 
 				Structr.fetchHtmlTemplate('pages/events', {}, (html) => {
-					previewsContainer.insertAdjacentHTML('beforeend', html);
-					repeaterContainer = document.querySelector('#previews .events-container');
+					_Pages.centerPane.insertAdjacentHTML('beforeend', html);
+					repeaterContainer = document.querySelector('#center-pane .events-container');
 
 					_Schema.getTypeInfo(obj.type, function(typeInfo) {
 						_Entities.dataBindingDialog(obj, $(repeaterContainer), typeInfo);
@@ -956,12 +778,15 @@ var _Pages = {
 				break;
 
 			case '#pages:security':
+
 				Structr.fetchHtmlTemplate('pages/security', {}, (html) => {
-					previewsContainer.insertAdjacentHTML('beforeend', html);
-					securityContainer = document.querySelector('#previews .security-container');
+
+					_Pages.centerPane.insertAdjacentHTML('beforeend', html);
+					securityContainer = document.querySelector('#center-pane .security-container');
 					_Schema.getTypeInfo(obj.type, function(typeInfo) {
 						_Entities.accessControlDialog(obj, $(securityContainer), typeInfo);
 					});
+
 				});
 				break;
 
@@ -969,18 +794,10 @@ var _Pages = {
 				console.log('do something else, urlHash:', urlHash);
 		}
 
-		_Pages.adaptSubmenu(obj);
-
 	},
-	activatePage: function(element) {
+	activatePage: function (pageId) {
 
-		// previewTabs.children('li').each(function() {
-		// 	this.classList.remove('active');
-		// });
-
-		if (!element || !element.hasClass('page')) {
-			return false;
-		}
+console.log(pageId);
 
 		let activeLink = document.querySelector('#function-bar .tabs-menu li.active a');
 
@@ -991,13 +808,10 @@ var _Pages = {
 
 		if (activeLink?.getAttribute('href') === '#pages:preview') {
 
-			const id = element.prop('id').substring(5);
-			activeTab = id;
+			activeTab = pageId;
 
-			_Pages.loadIframe(id);
+			_Pages.previews.loadIframe(pageId);
 
-			element.addClass('active');
-			previews.removeClass('no-preview');
 
 			LSWrapper.setItem(_Pages.activeTabKey, activeTab);
 
@@ -1009,15 +823,6 @@ var _Pages = {
 
 		}
 
-
-	},
-	hideAllPreviews: function () {
-
-		$('.previewBox', previews).each(function() {
-			let el = this;
-			el.classList.remove('active');
-			$(this).hide();
-		});
 
 	},
 	refreshActiveElements: function() {
@@ -1045,129 +850,49 @@ var _Pages = {
 		}
 	},
 	/**
-	 * Load and display the preview iframe with the given id.
-	 */
-	loadIframe: function(id) {
-		if (!id) {
-			return false;
-		}
-		_Pages.unloadIframes();
-
-		window.clearTimeout(_Pages.loadIframeTimer);
-
-		_Pages.loadIframeTimer = window.setTimeout(function() {
-
-			var iframe = $('#preview_' + id);
-			Command.get(id, 'id,name', function(obj) {
-				let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + id) : '');
-				let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + id) : '');
-				var url = viewRootUrl + obj.name + detailsObject + '?edit=2' + requestParameters;
-				iframe.prop('src', url);
-
-				_Pages.hideAllPreviews();
-				iframe.parent().show();
-				_Pages.resize();
-			});
-		}, 100);
-	},
-	/**
-	 * Reload preview iframe with given id
-	 */
-	reloadIframe: function(id) {
-
-	    // if the preview is not shown return gracefully
-        const activeTab = document.querySelector('#function-bar .tabs-menu li.active');
-        if (activeTab.id !== 'tabs-menu-preview') return;
-
-		if (lastMenuEntry === _Pages._moduleName && (!id || id !== activeTab || !_Pages.isPageTabPresent(id))) {
-
-			if ($('.previewBox iframe').length === 0) {
-				previews.addClass('no-preview');
-				_Pages.hideAllPreviews();
-			}
-
-			return false;
-		}
-		var autoRefreshDisabled = LSWrapper.getItem(_Pages.autoRefreshDisabledKey + id);
-
-		if (!autoRefreshDisabled && id) {
-			_Pages.loadIframe(id);
-		}
-	},
-	/**
 	 * simply checks if the preview tab for that id is visible. if it is not, the preview can not be shown
 	 */
 	isPageTabPresent: function(id) {
-		// return ($('#show_' + id, previewTabs).length > 0);
 		return document.getElementById('preview_' + id) !== null;
 	},
-	unloadIframes: function() {
-		_Pages.clearIframeDroppables();
-		$('iframe', previews).each(function() {
-			var pageId = $(this).prop('id').substring('preview_'.length);
-			var iframe = $('#preview_' + pageId);
-			try {
-				iframe.contents().empty();
-			} catch (e) {}
-		});
-	},
-	/**
-	 * Reload "all" previews. This means, reload only the active preview iframe.
-	 */
-	reloadPreviews: function() {
-		_Pages.reloadIframe(activeTab);
-	},
-	clearIframeDroppables: function() {
-		var droppablesArray = [];
-		var d = $.ui.ddmanager.droppables['default'];
-		if (!d) {
-			return;
-		}
-		d.forEach(function(d) {
-			if (!d.options.iframe) {
-				droppablesArray.push(d);
-			}
-		});
-		$.ui.ddmanager.droppables['default'] = droppablesArray;
-	},
-	makeTabEditable: function(element) {
-
-		let id = element.prop('id').substring(5);
-
-		element.off('hover');
-		let oldName = $.trim(element.children('b.name_').attr('title'));
-		element.children('b').hide();
-		element.find('.button').hide();
-		let input = $('input.new-name', element);
-
-		if (!input.length) {
-			element.append('<input type="text" size="' + (oldName.length + 4) + '" class="new-name" value="' + oldName + '">');
-			input = $('input', element);
-		}
-
-		input.show().focus().select();
-
-		let saveFn = (self) => {
-			let newName = self.val();
-			Command.setProperty(id, "name", newName);
-			_Pages.resetTab(element, newName);
-		};
-
-		input.off('blur').on('blur', function() {
-			input.off('blur');
-			saveFn($(this));
-		});
-
-		input.off('keypress').on('keypress', function(e) {
-			if (e.keyCode === 13 || e.keyCode === 9) {
-				e.stopPropagation();
-				input.off('blur');
-				saveFn($(this));
-			}
-		});
-
-		element.off('click');
-	},
+//	makeTabEditable: function(element) {
+//
+//		let id = element.prop('id').substring(5);
+//
+//		element.off('hover');
+//		let oldName = $.trim(element.children('b.name_').attr('title'));
+//		element.children('b').hide();
+//		element.find('.button').hide();
+//		let input = $('input.new-name', element);
+//
+//		if (!input.length) {
+//			element.append('<input type="text" size="' + (oldName.length + 4) + '" class="new-name" value="' + oldName + '">');
+//			input = $('input', element);
+//		}
+//
+//		input.show().focus().select();
+//
+//		let saveFn = (self) => {
+//			let newName = self.val();
+//			Command.setProperty(id, "name", newName);
+//			_Pages.resetTab(element, newName);
+//		};
+//
+//		input.off('blur').on('blur', function() {
+//			input.off('blur');
+//			saveFn($(this));
+//		});
+//
+//		input.off('keypress').on('keypress', function(e) {
+//			if (e.keyCode === 13 || e.keyCode === 9) {
+//				e.stopPropagation();
+//				input.off('blur');
+//				saveFn($(this));
+//			}
+//		});
+//
+//		element.off('click');
+//	},
 	appendPageElement: function(entity) {
 
 		entity = StructrModel.ensureObject(entity);
@@ -1204,210 +929,43 @@ var _Pages = {
 		_Elements.enableContextMenuOnElement(div, entity);
 		_Entities.setMouseOver(div);
 
-		var tab = _Pages.addTab(entity);
+//		var tab = _Pages.addTab(entity);
 
-		var existingIframe = $('#preview_' + entity.id);
-		if (existingIframe && existingIframe.length) {
-			existingIframe.replaceWith('<iframe id="preview_' + entity.id + '"></iframe>');
-		} else {
-			previews.append('<div class="previewBox"><iframe id="preview_' + entity.id + '"></iframe></div><div style="clear: both"></div>');
-		}
+//		var existingIframe = $('#preview_' + entity.id);
+//		if (existingIframe && existingIframe.length) {
+//			existingIframe.replaceWith('<iframe id="preview_' + entity.id + '"></iframe>');
+//		} else {
+//			previews.append('<div class="previewBox"><iframe id="preview_' + entity.id + '"></iframe></div><div style="clear: both"></div>');
+//		}
 
 		// _Pages.resetTab(tab, entity.name);
 
-		$('#preview_' + entity.id).hover(function() {
-			try {
-				var self = $(this);
-				var elementContainer = self.contents().find('.structr-element-container');
-				elementContainer.addClass('structr-element-container-active');
-				elementContainer.removeClass('structr-element-container');
-			} catch (e) {}
-		}, function() {
-			try {
-				var self = $(this);
-				var elementContainer = self.contents().find('.structr-element-container-active');
-				elementContainer.addClass('structr-element-container');
-				elementContainer.removeClass('structr-element-container-active');
-			} catch (e) {}
-		});
+//		$('#preview_' + entity.id).hover(function() {
+//			try {
+//				var self = $(this);
+//				var elementContainer = self.contents().find('.structr-element-container');
+//				elementContainer.addClass('structr-element-container-active');
+//				elementContainer.removeClass('structr-element-container');
+//			} catch (e) {}
+//		}, function() {
+//			try {
+//				var self = $(this);
+//				var elementContainer = self.contents().find('.structr-element-container-active');
+//				elementContainer.addClass('structr-element-container');
+//				elementContainer.removeClass('structr-element-container-active');
+//			} catch (e) {}
+//		});
 
-		$('#preview_' + entity.id).on('load', function() {
-			try {
-				var doc = $(this).contents();
-				var head = $(doc).find('head');
-				if (head) {
-					head.append('<style media="screen" type="text/css">'
-							+ '* { z-index: 0}\n'
-							+ '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
-							+ '.structr-content-container { min-height: .25em; min-width: .25em; }\n'
-							+ '.structr-element-container-active:hover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
-							+ '.structr-element-container-selected { -moz-box-shadow: 0 0 8px #860; -webkit-box-shadow: 0 0 8px #860; box-shadow: 0 0 8px #860; }\n'
-							+ '.structr-element-container-selected:hover { -moz-box-shadow: 0 0 10px #750; -webkit-box-shadow: 0 0 10px #750; box-shadow: 0 0 10px #750; }\n'
-							+ '.structr-editable-area { background-color: #ffe; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
-							+ '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; }\n'
-							+ '.link-hover { border: 1px solid #00c; }\n'
-							+ '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
-							/**
-							 * Fix for bug in Chrome preventing the modal dialog background
-							 * from being displayed if a page is shown in the preview which has the
-							 * transform3d rule activated.
-							 */
-							+ '.navbar-fixed-top { -webkit-transform: none ! important; }'
-							+ '</style>');
-				}
-				_Pages.findDroppablesInIframe(doc, entity.id).each(function(i, element) {
-					var el = $(element);
-
-//					_Dragndrop.makeDroppable(el, entity.id);
-
-					var structrId = el.attr('data-structr-id');
-					if (structrId) {
-//
-//						$('.move_icon', el).on('mousedown', function(e) {
-//							e.stopPropagation();
-//							var self = $(this);
-//							var element = self.closest('[data-structr-id]');
-//							var entity = Structr.entity(structrId, element.prop('data-structr-id'));
-//							entity.type = element.prop('data-structr_type');
-//							entity.name = element.prop('data-structr_name');
-//							self.parent().children('.structr-node').show();
-//						});
-//
-//						$('.delete_icon', el).on('click', function(e) {
-//							e.stopPropagation();
-//							var self = $(this);
-//							var element = self.closest('[data-structr-id]');
-//							var entity = Structr.entity(structrId, element.prop('data-structr-id'));
-//							entity.type = element.prop('data-structr_type');
-//							entity.name = element.prop('data-structr_name');
-//							var parentId = element.prop('data-structr-id');
-//
-//							Command.removeSourceFromTarget(entity.id, parentId);
-//							_Entities.deleteNode(this, entity);
-//						});
-						var offsetTop = -30;
-						var offsetLeft = 0;
-						el.on({
-							click: function(e) {
-								e.stopPropagation();
-								var self = $(this);
-								var selected = self.hasClass('structr-element-container-selected');
-								self.closest('body').find('.structr-element-container-selected').removeClass('structr-element-container-selected');
-								if (!selected) {
-									self.toggleClass('structr-element-container-selected');
-								}
-								_Entities.deselectAllElements();
-								_Pages.displayDataBinding(structrId);
-								if (!Structr.node(structrId)) {
-									_Pages.expandTreeNode(structrId);
-								} else {
-									var treeEl = Structr.node(structrId);
-									if (treeEl && !selected) {
-										_Entities.highlightElement(treeEl);
-									}
-								}
-								LSWrapper.setItem(_Entities.selectedObjectIdKey, structrId);
-								return false;
-							},
-							mouseover: function(e) {
-								e.stopPropagation();
-								var self = $(this);
-								self.addClass('structr-element-container-active');
-								_Pages.highlight(structrId);
-								var pos = self.position();
-								var header = self.children('.structr-element-container-header');
-								header.css({
-									position: "absolute",
-									top: pos.top + offsetTop + 'px',
-									left: pos.left + offsetLeft + 'px',
-									cursor: 'pointer'
-								}).show();
-							},
-							mouseout: function(e) {
-								e.stopPropagation();
-								var self = $(this);
-								self.removeClass('.structr-element-container');
-								var header = self.children('.structr-element-container-header');
-								header.remove();
-								_Pages.unhighlight(structrId);
-							}
-						});
-					}
-				});
-
-			} catch (e) {}
-
-			_Pages.activateComments(doc);
-		});
+//		let iframe = $('#preview_' + entity.id);
+//		iframe.on('load', function () {
+//			_Pages.previews.previewIframeLoaded(iframe, entity);
+//		});
 
 		_Dragndrop.makeDroppable(div);
 
 		return div;
 	},
-	activateComments: function(doc, callback) {
 
-		doc.find('*').each(function(i, element) {
-
-			getComments(element).forEach(function(c) {
-
-				var inner = $(getNonCommentSiblings(c.node));
-				let newDiv = $('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
-
-				newDiv.append(inner);
-				$(c.node).replaceWith(newDiv);
-
-				$(newDiv).on({
-					mouseover: function(e) {
-						e.stopPropagation();
-						var self = $(this);
-						self.addClass('structr-editable-area');
-						_Pages.highlight(self.attr('data-structr-id'));
-					},
-					mouseout: function(e) {
-						e.stopPropagation();
-						var self = $(this);
-						self.removeClass('structr-editable-area');
-						_Pages.unhighlight(self.attr('data-structr-id'));
-					},
-					click: function(e) {
-						e.stopPropagation();
-						e.preventDefault();
-						var self = $(this);
-
-						if (contentSourceId) {
-							// click on same element again?
-							if (self.attr('data-structr-id') === contentSourceId) {
-								return;
-							}
-						}
-						contentSourceId = self.attr('data-structr-id');
-
-						if (self.hasClass('structr-editable-area-active')) {
-							return false;
-						}
-						self.removeClass('structr-editable-area').addClass('structr-editable-area-active').prop('contenteditable', true).focus();
-
-						// Store old text in global var and attribute
-						textBeforeEditing = self.text();
-
-						var srcText = expandNewline(self.attr('data-structr-raw-content'));
-
-						// Replace only if it differs (e.g. for variables)
-						if (srcText !== textBeforeEditing) {
-							self.html(srcText);
-							textBeforeEditing = srcText;
-						}
-						_Pages.expandTreeNode(contentSourceId);
-						return false;
-					},
-					blur: function(e) {
-						e.stopPropagation();
-						_Pages.saveInlineElement(this, callback);
-					}
-				});
-			});
-		});
-	},
 	saveInlineElement: function(el, callback) {
 		var self = $(el);
 		contentSourceId = self.attr('data-structr-id');
@@ -1422,17 +980,7 @@ var _Pages = {
 				contentSourceId = null;
 			}
 		});
-		_Pages.loadIframe(activeTab);
-	},
-	findDroppablesInIframe: function(iframeDocument, id) {
-		var droppables = iframeDocument.find('[data-structr-id]');
-		if (droppables.length === 0) {
-			var html = iframeDocument.find('html');
-			html.attr('data-structr-id', id);
-			html.addClass('structr-element-container');
-		}
-		droppables = iframeDocument.find('[data-structr-id]');
-		return droppables;
+		_Pages.previews.loadIframe(activeTab);
 	},
 	appendElementElement: function(entity, refNode, refNodeIsParent) {
 		entity = StructrModel.ensureObject(entity);
@@ -1635,7 +1183,7 @@ var _Pages = {
 		let id = activeTab;
 
 		let localizationsContainer = $('#localizations div.inner div.results');
-        localizationsContainer.empty().attr('id', 'id_' + id);
+		localizationsContainer.empty().attr('id', 'id_' + id);
 
 		if (_Pages.isPageTabPresent(id)) {
 
@@ -1792,5 +1340,487 @@ var _Pages = {
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId] ));
 
 		return div;
+	},
+
+	previews: {
+		previewElement: undefined,
+		loadIframeTimer: undefined,
+		activePreviewPage: null,
+		activePreviewHighlightElement: null,
+
+		findDroppablesInIframe: function (iframeDocument, id) {
+			var droppables = iframeDocument.find('[data-structr-id]');
+			if (droppables.length === 0) {
+				var html = iframeDocument.find('html');
+				html.attr('data-structr-id', id);
+				html.addClass('structr-element-container');
+			}
+			droppables = iframeDocument.find('[data-structr-id]');
+			return droppables;
+		},
+
+		previewIframeLoaded: function (iframe, highlightElementId) {
+
+			try {
+				var doc = $(iframe.contentDocument || iframe.contentWindow.document);
+				var head = doc.find('head');
+				if (head) {
+					head.append('<style media="screen" type="text/css">'
+							+ '* { z-index: 0}\n'
+							+ '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
+							+ '.structr-content-container { min-height: .25em; min-width: .25em; }\n'
+							+ '.structr-element-container-active:hover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
+							+ '.structr-element-container-selected { -moz-box-shadow: 0 0 8px #860; -webkit-box-shadow: 0 0 8px #860; box-shadow: 0 0 8px #860; }\n'
+							+ '.structr-element-container-selected:hover { -moz-box-shadow: 0 0 10px #750; -webkit-box-shadow: 0 0 10px #750; box-shadow: 0 0 10px #750; }\n'
+							+ '.structr-editable-area { background-color: #ffe; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
+							+ '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; }\n'
+							+ '.link-hover { border: 1px solid #00c; }\n'
+							+ '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
+							/**
+							 * Fix for bug in Chrome preventing the modal dialog background
+							 * from being displayed if a page is shown in the preview which has the
+							 * transform3d rule activated.
+							 */
+							+ '.navbar-fixed-top { -webkit-transform: none ! important; }'
+							+ '</style>');
+				}
+
+				_Pages.previews.findDroppablesInIframe(doc, highlightElementId).each(function(i, element) {
+
+					var el = $(element);
+
+	//				_Dragndrop.makeDroppable(el, highlightElementId);
+
+					var structrId = el.attr('data-structr-id');
+					if (structrId) {
+
+						var offsetTop = -30;
+						var offsetLeft = 0;
+						el.on({
+							click: function(e) {
+								e.stopPropagation();
+								var self = $(this);
+								var selected = self.hasClass('structr-element-container-selected');
+								self.closest('body').find('.structr-element-container-selected').removeClass('structr-element-container-selected');
+								if (!selected) {
+									self.toggleClass('structr-element-container-selected');
+								}
+								_Entities.deselectAllElements();
+								_Pages.displayDataBinding(structrId);
+								if (!Structr.node(structrId)) {
+									_Pages.expandTreeNode(structrId);
+								} else {
+									var treeEl = Structr.node(structrId);
+									if (treeEl && !selected) {
+										_Entities.highlightElement(treeEl);
+									}
+								}
+								LSWrapper.setItem(_Entities.selectedObjectIdKey, structrId);
+								return false;
+							},
+							mouseover: function(e) {
+								e.stopPropagation();
+								var self = $(this);
+								self.addClass('structr-element-container-active');
+								_Pages.highlight(structrId);
+								var pos = self.position();
+								var header = self.children('.structr-element-container-header');
+								header.css({
+									position: "absolute",
+									top: pos.top + offsetTop + 'px',
+									left: pos.left + offsetLeft + 'px',
+									cursor: 'pointer'
+								}).show();
+							},
+							mouseout: function(e) {
+								e.stopPropagation();
+								var self = $(this);
+								self.removeClass('.structr-element-container');
+								var header = self.children('.structr-element-container-header');
+								header.remove();
+								_Pages.unhighlight(structrId);
+							}
+						});
+					}
+				});
+
+			} catch (e) {}
+
+			_Pages.previews.activateComments(doc);
+		},
+
+		activateComments: function(doc, callback) {
+
+			doc.find('*').each(function(i, element) {
+
+				getComments(element).forEach(function(c) {
+
+					var inner = $(getNonCommentSiblings(c.node));
+					let newDiv = $('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
+
+					newDiv.append(inner);
+					$(c.node).replaceWith(newDiv);
+
+					$(newDiv).on({
+						mouseover: function(e) {
+							e.stopPropagation();
+							var self = $(this);
+							self.addClass('structr-editable-area');
+							_Pages.highlight(self.attr('data-structr-id'));
+						},
+						mouseout: function(e) {
+							e.stopPropagation();
+							var self = $(this);
+							self.removeClass('structr-editable-area');
+							_Pages.unhighlight(self.attr('data-structr-id'));
+						},
+						click: function(e) {
+							e.stopPropagation();
+							e.preventDefault();
+							var self = $(this);
+
+							if (contentSourceId) {
+								// click on same element again?
+								if (self.attr('data-structr-id') === contentSourceId) {
+									return;
+								}
+							}
+							contentSourceId = self.attr('data-structr-id');
+
+							if (self.hasClass('structr-editable-area-active')) {
+								return false;
+							}
+							self.removeClass('structr-editable-area').addClass('structr-editable-area-active').prop('contenteditable', true).focus();
+
+							// Store old text in global var and attribute
+							textBeforeEditing = self.text();
+
+							var srcText = expandNewline(self.attr('data-structr-raw-content'));
+
+							// Replace only if it differs (e.g. for variables)
+							if (srcText !== textBeforeEditing) {
+								self.html(srcText);
+								textBeforeEditing = srcText;
+							}
+							_Pages.expandTreeNode(contentSourceId);
+							return false;
+						},
+						blur: function(e) {
+							e.stopPropagation();
+							_Pages.saveInlineElement(this, callback);
+						}
+					});
+				});
+			});
+		},
+
+		showPreviewInIframe: (pageId, highlightElementId) => {
+
+			if (pageId) {
+
+				_Pages.previews.activePreviewPage = pageId;
+				if (highlightElementId) {
+					_Pages.previews.activePreviewHighlightElement = highlightElementId;
+				}
+
+				Command.get(pageId, 'id,name', function (pageObj) {
+
+					let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + pageId) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + pageId) : '');
+					let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + pageId) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + pageId) : '');
+					let previewUrl        = viewRootUrl + pageObj.name + detailsObject + '?edit=2' + requestParameters;
+
+					Structr.fetchHtmlTemplate('pages/preview', {}, (html) => {
+
+						_Pages.centerPane.insertAdjacentHTML('beforeend', html);
+
+						let iframe = _Pages.centerPane.querySelector('iframe');
+
+						_Entities.highlightElement(Structr.node(highlightElementId));
+
+						iframe.onload = () => {
+
+							_Pages.previews.previewIframeLoaded(iframe, highlightElementId);
+
+							let activatePreviewElementContainer = () => {
+
+								let doc       = iframe.contentDocument || iframe.contentWindow.document;
+								let previewEl = doc.querySelector('[data-structr-id="' + highlightElementId + '"]');
+
+								doc.querySelectorAll('.structr-element-container-selected').forEach((el) => {
+									el.classList.remove('structr-element-container-selected');
+								});
+
+								previewEl?.classList.add('structr-element-container-selected');
+							};
+
+							activatePreviewElementContainer();
+						}
+
+						iframe.src = previewUrl;
+					});
+
+					_Pages.resize();
+				});
+			}
+		},
+
+		updatePreviewInIframe: () => {
+
+		},
+
+		reloadPreviewInIframe: function() {
+			_Pages.previews.showPreviewInIframe(_Pages.previews.activePreviewPage, _Pages.previews.activePreviewHighlightElement);
+		},
+
+		modelForPageUpdated: (pageId) => {
+            if (_Pages.previews.activePreviewPage === pageId) {
+                _Pages.previews.reloadPreviewInIframe();
+            }
+        },
+
+
+		loadIframe: function(id) {
+			if (!id) {
+				return false;
+			}
+			_Pages.previews.unloadIframes();
+
+			window.clearTimeout(_Pages.previews.loadIframeTimer);
+
+			_Pages.previews.loadIframeTimer = window.setTimeout(function() {
+
+				var iframe = $('#preview_' + id);
+				Command.get(id, 'id,name', function(obj) {
+					let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + id) : '');
+					let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + id) : '');
+					var url = viewRootUrl + obj.name + detailsObject + '?edit=2' + requestParameters;
+					iframe.prop('src', url);
+
+					iframe.parent().show();
+					_Pages.resize();
+				});
+			}, 100);
+		},
+
+		reloadIframe: function(id) {
+
+			// if the preview is not shown return gracefully
+			const activeTab = document.querySelector('#function-bar .tabs-menu li.active');
+			if (activeTab.id !== 'tabs-menu-preview') return;
+
+			if (lastMenuEntry === _Pages._moduleName && (!id || id !== activeTab || !_Pages.isPageTabPresent(id))) {
+
+				if ($('.previewBox iframe').length === 0) {
+					previews.addClass('no-preview');
+				}
+
+				return false;
+			}
+			var autoRefreshDisabled = LSWrapper.getItem(_Pages.autoRefreshDisabledKey + id);
+
+			if (!autoRefreshDisabled && id) {
+				_Pages.previews.loadIframe(id);
+			}
+		},
+
+		unloadIframes: function() {
+			_Pages.previews.clearIframeDroppables();
+		},
+
+		clearIframeDroppables: function() {
+
+			let droppables = $.ui.ddmanager.droppables['default'];
+
+			if (!droppables) {
+				return;
+			}
+
+			$.ui.ddmanager.droppables['default'] = droppables.filter((d) => {
+                return (!d.options.iframe);
+            });
+		},
+
+  	    addTab: function(entity) {
+//  		_Pages.previews.previewTabs.append('<li id="show_' + entity.id + '" class="page ' + entity.id + '_"></li>');
+//
+//  		var tab = $('#show_' + entity.id, previews);
+//
+//  		tab.append('<div class="fill-pixel"></div><b title="' + escapeForHtmlAttributes(entity.name) + '" class="name_ abbr-ellipsis abbr-200">' + entity.name + '</b>');
+//  		tab.append('<i title="Edit page settings of ' + entity.name + '" class="edit_ui_properties_icon button ' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" />');
+//  		tab.append('<i title="View ' + entity.name + ' in new window" class="view_icon button ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" />');
+//
+//  		//$('.view_icon', tab).on('click', function(e) {
+//  		let dblclickHandler = (e) => {
+//  			e.stopPropagation();
+//  			let self = e.target;
+//
+//  			// only on page nodes and if not clicked on expand/collapse icon
+//  			if (!self.classList.contains('expand_icon') && self.closest('.node').classList.contains('page')) {
+//  				let link = self.closest('.page').querySelector('b.name_').getAttribute('title');
+//  				console.log(self, link);
+//
+//  				let pagePath = entity.path ? entity.path.replace(/^\//, '') : link;
+//
+//  				let detailsObject = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
+//  				let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '?' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
+//
+//  				let url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + pagePath + detailsObject + requestParameters;
+//  				window.open(url);
+//  			}
+//  		};
+//
+//  		let pageNode = Structr.node(entity.id)[0];
+//  		if (pageNode) {
+//  			pageNode.removeEventListener('dblclick', dblclickHandler);
+//  			pageNode.addEventListener('dblclick', dblclickHandler);
+//  		}
+//
+//  		var editUiPropertiesIcon = $('.edit_ui_properties_icon', tab);
+//  		editUiPropertiesIcon.hide();
+//  		editUiPropertiesIcon.on('click', function(e) {
+//  			e.stopPropagation();
+//
+//  			Structr.dialog('Edit Preview Settings of ' + entity.name, function() {
+//  				return true;
+//  			}, function() {
+//  				return true;
+//  			});
+//
+//  			dialog.empty();
+//  			dialogMsg.empty();
+//
+//  			dialog.append('<p>With these settings you can influence the behaviour of the page previews only. They are not persisted on the Page object but only stored in the UI settings.</p>');
+//
+//  			dialog.append('<table class="props">'
+//  					+ '<tr><td><label for="_details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" value="' + (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '') + '" style="width:90%;"> <i id="clear-details-object-id" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
+//  					+ '<tr><td><label for="_request-parameters">Request parameters to append to preview URL</label></td><td><code style="font-size: 10pt;">?</code><input id="_request-parameters" value="' + (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '') + '" style="width:90%;"> <i id="clear-request-parameters" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
+//  					+ '<tr><td><label for="_auto-refresh">Automatic refresh</label></td><td><input id="_auto-refresh" title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(_Pages.autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '></td></tr>'
+//  					+ '<tr><td><label for="_page-category">Category</label></td><td><input id="_page-category" type="text" value="' + (entity.category || '') + '" style="width:90%;"> <i id="clear-page-category" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
+//  					+ '</table>');
+//
+//  			var detailsObjectIdInput   = $('#_details-object-id');
+//  			var requestParametersInput = $('#_request-parameters');
+//
+//  			window.setTimeout(function() {
+//  				detailsObjectIdInput.select().focus();
+//  			}, 200);
+//
+//  			$('#clear-details-object-id').on('click', function() {
+//  				detailsObjectIdInput.val('');
+//  				var oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
+//  				if (oldVal) {
+//  					blinkGreen(detailsObjectIdInput);
+//  					LSWrapper.removeItem(_Pages.detailsObjectIdKey + entity.id);
+//  					detailsObjectIdInput.focus();
+//
+//  					_Pages.previews.reloadIframe(entity.id);
+//  				}
+//  			});
+//
+//  			detailsObjectIdInput.on('blur', function() {
+//  				var inp = $(this);
+//  				var oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
+//  				var newVal = inp.val() || null;
+//  				if (newVal !== oldVal) {
+//  					LSWrapper.setItem(_Pages.detailsObjectIdKey + entity.id, newVal);
+//  					blinkGreen(detailsObjectIdInput);
+//
+//  					_Pages.previews.reloadIframe(entity.id);
+//  				}
+//  			});
+//
+//  			$('#clear-request-parameters').on('click', function() {
+//  				requestParametersInput.val('');
+//  				var oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
+//  				if (oldVal) {
+//  					blinkGreen(requestParametersInput);
+//  					LSWrapper.removeItem(_Pages.requestParametersKey + entity.id);
+//  					requestParametersInput.focus();
+//
+//  					_Pages.previews.reloadIframe(entity.id);
+//  				}
+//  			});
+//
+//  			requestParametersInput.on('blur', function() {
+//  				var inp = $(this);
+//  				var oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
+//  				var newVal = inp.val() || null;
+//  				if (newVal !== oldVal) {
+//  					LSWrapper.setItem(_Pages.requestParametersKey + entity.id, newVal);
+//  					blinkGreen(requestParametersInput);
+//
+//  					_Pages.previews.reloadIframe(entity.id);
+//  				}
+//  			});
+//
+//  			$('.auto-refresh', dialog).on('click', function(e) {
+//  				e.stopPropagation();
+//  				var key = _Pages.autoRefreshDisabledKey + entity.id;
+//  				var autoRefreshDisabled = (LSWrapper.getItem(key) === '1');
+//  				if (autoRefreshDisabled) {
+//  					LSWrapper.removeItem(key);
+//  				} else {
+//  					LSWrapper.setItem(key, '1');
+//  				}
+//  				blinkGreen($('.auto-refresh', dialog).parent());
+//  			});
+//
+//  			var pageCategoryInput = $('#_page-category');
+//  			pageCategoryInput.on('blur', function() {
+//  				var oldVal = entity.category;
+//  				var newVal = pageCategoryInput.val() || null;
+//  				if (newVal !== oldVal) {
+//  					Command.setProperty(entity.id, "category", newVal, false, function () {
+//  						blinkGreen(pageCategoryInput);
+//  						entity.category = newVal;
+//  					});
+//  				}
+//  			});
+//
+//  			$('#clear-page-category').on('click', function () {
+//  				Command.setProperty(entity.id, "category", null, false, function () {
+//  					blinkGreen(pageCategoryInput);
+//  					entity.category = null;
+//  					pageCategoryInput.val("");
+//  				});
+//  			});
+//
+//  		});
+//
+//  		return tab;
+		},
+		resetTab: function(element) {
+//
+//  		element.children('input').hide();
+//  		element.children('.name_').show();
+//
+//  		var icons = $('.button', element);
+//  		var autoRefreshSelector = $('.auto-refresh', element);
+//
+//  		element.hover(function(e) {
+//  			icons.showInlineBlock();
+//  			autoRefreshSelector.showInlineBlock();
+//  		}, function(e) {
+//  			icons.hide();
+//  			autoRefreshSelector.hide();
+//  		});
+//
+//  		element.on('click', function(e) {
+//  			e.stopPropagation();
+//  			var self = $(this);
+//  			var clicks = e.originalEvent.detail;
+//  			if (clicks === 1) {
+//  				if (self.hasClass('active')) {
+//  					_Pages.makeTabEditable(self);
+//  				} else {
+//  					_Pages.activatePage(self);
+//  				}
+//  			}
+//  		});
+//
+//  		if (element.prop('id').substring(5) === activeTab) {
+//  			_Pages.activatePage(element);
+//  		}
+  	    },
 	}
 };

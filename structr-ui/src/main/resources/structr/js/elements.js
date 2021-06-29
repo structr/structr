@@ -1668,8 +1668,8 @@ var _Elements = {
 	},
 	displayCentralEditor: function(entity, configOverride) {
 
-		let previewsContainer = document.querySelector('#previews');
-		let contentEditorContainer = document.querySelector('#previews .content-editor-container');
+		let previewsContainer = document.querySelector('#center-pane');
+		let contentEditorContainer = document.querySelector('#center-pane .content-editor-container');
 
 		if (contentEditorContainer) {
 			previewsContainer.removeChild(contentEditorContainer);
@@ -1679,7 +1679,7 @@ var _Elements = {
 
 			previewsContainer.insertAdjacentHTML('afterbegin', html);
 
-			contentEditorContainer = document.querySelector('#previews .content-editor-container');
+			contentEditorContainer = document.querySelector('#center-pane .content-editor-container');
 
 			Command.get(entity.id, 'content,contentType', function(data) {
 				currentEntity = entity;

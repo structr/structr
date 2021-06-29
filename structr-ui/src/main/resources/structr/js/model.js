@@ -325,7 +325,7 @@ var StructrModel = {
 					attrElement.text(newValue);
 
 					if (Structr.isModuleActive(_Pages) && _Pages.isPageTabPresent(obj.pageId)) {
-						_Pages.reloadIframe(obj.pageId);
+						_Pages.previews.modelForPageUpdated(obj.pageId);
 					}
 				}
 			}
@@ -343,7 +343,7 @@ var StructrModel = {
 
 					tabNameElement.attr('title', newValue).html(newValue);
 
-					_Pages.reloadIframe(id);
+					_Pages.previews.modelForPageUpdated(obj.id);
 				}
 
 			} else if (Structr.getClass(element) === 'folder') {
@@ -861,6 +861,9 @@ StructrElement.prototype.remove = function() {
 			// If element is removed from page tree, reload elements area
 			if (element.closest('#pages').length) {
 				_Elements.reloadUnattachedNodes();
+			} else {
+				let pageId = Structr.getIdFromPrefixIdString(element.closest('.page').id, 'id_');
+				_Pages.previews.modelForPageUpdated(pageId);
 			}
 			element.remove();
 		}
@@ -868,8 +871,6 @@ StructrElement.prototype.remove = function() {
 		if (element && parent && !Structr.containsNodes(parent)) {
 			_Entities.removeExpandIcon(parent);
 		}
-
-		_Pages.reloadPreviews();
 	}
 };
 
@@ -953,6 +954,9 @@ StructrContent.prototype.remove = function() {
 			// If element is removed from page tree, reload elements area
 			if (element.closest('#pages').length) {
 				_Elements.reloadUnattachedNodes();
+			} else {
+				let pageId = Structr.getIdFromPrefixIdString(element.closest('.page').id, 'id_');
+				_Pages.previews.modelForPageUpdated(pageId);
 			}
 			element.remove();
 		}
@@ -960,7 +964,6 @@ StructrContent.prototype.remove = function() {
 		if (parent && !Structr.containsNodes(parent)) {
 			_Entities.removeExpandIcon(parent);
 		}
-		_Pages.reloadPreviews();
 	}
 };
 

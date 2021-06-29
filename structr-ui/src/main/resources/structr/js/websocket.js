@@ -454,14 +454,16 @@ function wsConnect() {
 					}
 
 					if (command === 'CREATE' && entity.isPage && lastMenuEntry === _Pages._moduleName) {
+
 						if (entity.createdBy === userId) {
 							setTimeout(function () {
-								var tab = $('#show_' + entity.id);
-								_Pages.activatePage(tab);
+								_Pages.previews.showPreviewInIframe(entity.id);
 							}, 1000);
 						}
+
 					} else if (entity.pageId) {
-						_Pages.reloadIframe(entity.pageId);
+
+						_Pages.previews.showPreviewInIframe(entity.pageId, entity.id);
 					}
 
 					StructrModel.callCallback(data.callback, entity);

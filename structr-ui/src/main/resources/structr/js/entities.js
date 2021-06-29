@@ -683,8 +683,6 @@ var _Entities = {
 		// }, function () {
 		// });
 
-		_Pages.hideAllPreviews();
-
 		// Get content in widget mode
 		var url = viewRootUrl + entity.id + '?edit=3', contentType = 'text/html';
 
