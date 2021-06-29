@@ -895,8 +895,8 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.statusCode(200)
 
 				.body("result_count", equalTo(1))
-				.body("result.type", equalTo("Test"))
-				.body("result.name", equalTo("Test"))
+				.body("result[0].type", equalTo("Test"))
+				.body("result[0].name", equalTo("Test"))
 
 			.when()
 				.post("/Test/test");
@@ -918,8 +918,8 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.statusCode(200)
 
 				.body("result_count", equalTo(1))
-				.body("result[0].type", equalTo("Test"))
-				.body("result[0].name", equalTo("Test"))
+				.body("result[0][0].type", equalTo("Test"))
+				.body("result[0][0].name", equalTo("Test"))
 
 			.when()
 				.post("/Test/test");
@@ -950,8 +950,8 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.statusCode(200)
 
 				.body("result_count", equalTo(1))
-				.body("result.type", equalTo("Test"))
-				.body("result.name", equalTo("Test"))
+				.body("result[0].type", equalTo("Test"))
+				.body("result[0].name", equalTo("Test"))
 
 			.when()
 				.post("/Test/test");
@@ -973,8 +973,8 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.statusCode(200)
 
 				.body("result_count", equalTo(1))
-				.body("result[0].type", equalTo("Test"))
-				.body("result[0].name", equalTo("Test"))
+				.body("result[0][0].type", equalTo("Test"))
+				.body("result[0][0].name", equalTo("Test"))
 
 			.when()
 				.post("/Test/test");

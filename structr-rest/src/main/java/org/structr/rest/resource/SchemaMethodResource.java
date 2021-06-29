@@ -18,11 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Collection;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.lang3.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
@@ -40,6 +35,9 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.schema.action.Actions;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
 
 /**
  *
@@ -133,7 +131,7 @@ public class SchemaMethodResource extends WrappingResource {
 			result = new RestMethodResult(200);
 
 			// unwrap nested object(s)
-			SchemaMethodResource.unwrapTo(obj, result);
+			result.addContent(obj);
 		}
 
 		return result;
@@ -187,57 +185,4 @@ public class SchemaMethodResource extends WrappingResource {
 		throw new IllegalPathException("Type and method name do not match the given path.");
 	}
 
-	public static boolean unwrapTo(final Object source, final RestMethodResult result) {
-
-		if (source != null) {
-
-			if (ClassUtils.isPrimitiveOrWrapper(source.getClass())) {
-				result.setNonGraphObjectResult(source);
-				return false;
-			}
-
-			final Object unwrapped = source;
-			if (unwrapped.getClass().isArray()) {
-
-				for (final Object element : (Object[])unwrapped) {
-
-					// check if collection contains GraphObjects and
-					// return literal object if not
-					if (!unwrapTo(element, result)) {
-
-						result.setNonGraphObjectResult(unwrapped);
-						return false;
-					}
-				}
-
-			} else if (unwrapped instanceof Collection) {
-
-				for (final Object element : (Collection)unwrapped) {
-
-					// check if collection contains GraphObjects and
-					// return literal object if not
-					if (!unwrapTo(element, result)) {
-
-						result.setNonGraphObjectResult(unwrapped);
-						return false;
-					}
-				}
-
-			} else if (unwrapped instanceof GraphObject) {
-
-				result.addContent((GraphObject)unwrapped);
-
-				return true;
-
-			} else {
-
-				// cannot unwrap, pass literal
-				result.setNonGraphObjectResult(unwrapped);
-
-				return false;
-			}
-		}
-
-		return false;
-	}
 }
