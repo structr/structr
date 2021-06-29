@@ -146,7 +146,7 @@ html {
 	width: 100%;
 	height: 100%;
 	background-color: var(--main-background);
-	font-size: 11pt;
+	font-size: 10pt;
 }
 
 body {
@@ -256,7 +256,7 @@ input[type="checkbox"] {
 
 #header {
 	height: 4rem;
-	font-size: 1.25em;
+	/*font-size: 1.25em;*/
 	background: var(--header-bg-dark);
 }
 
@@ -403,9 +403,9 @@ input[type="checkbox"] {
 }
 
 .menu a {
-	font-size: 1rem;
 	text-decoration: none;
 	color: var(--solid-white);
+	font-size: 1.15rem;
 }
 
 .menu > ul > li.active, .menu > ul > li.active:hover {
@@ -674,7 +674,7 @@ img.disabled {
 	z-index: 2;
 	top: 2rem;
 	background-color: var(--solid-white) ! important;
-	font-size: .875rem;
+	/*font-size: .875rem;*/
 }
 
 .slideOut.open {
@@ -767,7 +767,7 @@ img.disabled {
 }
 
 #paletteArea .draggable {
-	font-size: .875rem;
+	/*font-size: .875rem;*/
 	padding: .5rem 1rem;
 	/*color: var(--gray-333);*/
 	display: inline-block;
@@ -877,9 +877,9 @@ img.disabled {
 }
 
 .props tr td.value input.active {
-	margin: -3px;
-	border: 1px solid var(--gray-ccc);
-	background-color: var(--solid-white);
+	/*margin: -3px;*/
+	/*border: 1px solid var(--gray-ccc);*/
+	/*background-color: var(--solid-white);*/
 }
 
 .props tr td.value .tick {
@@ -1907,7 +1907,7 @@ button.action.disabled:hover {
 	min-height: 12px;
 	text-align: left;
 	padding: .5rem .5rem .5rem 2rem;
-	font-size: 10pt;
+	font-size: .875rem;
 	clear: both;
 	overflow: auto;
 	right: 2rem;
@@ -2210,7 +2210,7 @@ button.disabled, i.disabled {
 }
 
 .dropdown-menu-container > .heading-row > h3 {
-	font-size: 1rem;
+	/*font-size: 1rem;*/
 	font-weight: 600;
 	color: var(--body-text);
 	padding: 0;
