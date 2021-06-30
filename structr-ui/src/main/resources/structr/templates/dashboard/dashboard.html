@@ -33,35 +33,34 @@
         <div class="tab-content" id="dashboard-deployment">
 
             <table>
-                <thead>
                 <tr>
-                    <td><h2>Import</h2></td>
-                    <td><h2>Export</h2></td>
+                    <td><h2>Application Import</h2></td>
+                    <td><h2>Application Export</h2></td>
                 </tr>
-                </thead>
                 <tr>
                     <td>
-                        <h3>Import <u>application</u> from local directory</h3>
+                        <h3>Import application from local directory</h3>
                         <div>
                             <input type="text" id="deployment-source-input" placeholder="Local directory path for app import"><br>
                             <button class="action" id="do-app-import">Import from local directory</button>
                         </div>
 
-                        <h3>Import <u>application</u> from URL</h3>
+                        <h3>Import application from URL or upload a ZIP file</h3>
                         ${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Deployment via URL is not possible because <code>DeployServlet</code> is not running.</span>')}
                         <div>
                             <input type="hidden" id="redirect-url" value="${window.location.href}">
-                            <input type="text" id="deployment-url-input" placeholder="Download URL of ZIP file for app import" name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}><br>
-                            <button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-import-from-url">Import app from ZIP file</button>
+                            <input type="text" id="deployment-url-input" placeholder="Download URL of ZIP file for app import" name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}>
+                            <input type="file" id="deployment-file-input" placeholder="Upload ZIP file" ${(config.deployServletAvailable ? '' : 'disabled')}><br>
+                            <button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-import-from-zip">Import app from ZIP file</button>
                         </div>
                     </td>
                     <td>
-                        <h3>Export <u>application</u> to local directory</h3>
+                        <h3>Export application> to local directory</h3>
                         <div>
                             <input type="text" id="app-export-target-input" placeholder="Local directory path for app export"><br>
                             <button class="action" id="do-app-export">Export app to local directory</button>
                         </div>
-                        <h3>Export <u>application</u> and download as ZIP file</h3>
+                        <h3>Export application and download as ZIP file</h3>
                         ${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Export and download as ZIP file is not possible because <code>DeployServlet</code> is not running.</span>')}
                         <div>
                             <input type="text" id="zip-export-prefix" placeholder="ZIP File prefix" ${(config.deployServletAvailable ? '' : 'disabled')} value="${(config.zipExportPrefix || 'webapp')}"><br>
@@ -71,15 +70,23 @@
                     </td>
                 </tr>
                 <tr>
+                    <td colspan="2"><hr></td>
+                </tr>
+
+                <tr>
+                    <td><h2>Data Import</h2></td>
+                    <td><h2>Data Export</h2></td>
+                </tr>
+                <tr>
                     <td>
-                        <h3>Import <u>data</u> from local directory</h3>
+                        <h3>Import data from local directory</h3>
                         <div>
                             <input type="text" id="data-import-source-input" placeholder="Local directory path for data import"><br>
                             <button class="action" id="do-data-import">Import data from local directory</button>
                         </div>
                     </td>
                     <td>
-                        <h3>Export <u>data</u> to local directory</h3>
+                        <h3>Export data to local directory</h3>
                         <div>
                             <input type="text" id="data-export-target-input" placeholder="Local directory path for data export"><br>
                             <select id="data-export-types-input" class="chosen-sortable" data-placeholder="Please select data type(s) to export" multiple="multiple"></select><br>

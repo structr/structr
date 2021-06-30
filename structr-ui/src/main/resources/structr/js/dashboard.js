@@ -100,6 +100,14 @@ let _Dashboard = {
 
 				main.append(html);
 
+				document.getElementById('deployment-file-input').addEventListener('input', () => {
+					document.getElementById('deployment-url-input').value = '';
+				});
+
+				document.getElementById('deployment-url-input').addEventListener('input', () => {
+					document.getElementById('deployment-file-input').value = '';
+				});
+
 				Structr.fetchHtmlTemplate('dashboard/dashboard.menu', templateConfig, function(html) {
 					functionBar.append(html);
 
@@ -243,6 +251,7 @@ let _Dashboard = {
 				console.log(e);
 			}
 		}
+
 	},
 	isShowScriptingErrorPopups: function() {
 		return LSWrapper.getItem(_Dashboard.showScriptingErrorPopupsKey, true);
@@ -423,8 +432,13 @@ let _Dashboard = {
                 _Dashboard.deployment.deploy('export', $('#app-export-target-input').val());
             });
 
-            $('button#do-app-import-from-url').on('click', function() {
-                _Dashboard.deployment.deployFromURL($('#redirect-url').val(), $('#deployment-url-input').val());
+            $('button#do-app-import-from-zip').on('click', function() {
+            	let filesSelectField = document.getElementById('deployment-file-input');
+            	if (filesSelectField && filesSelectField.files.length > 0) {
+					_Dashboard.deployment.deployFromZIPUpload($('#redirect-url').val(), filesSelectField);
+				} else {
+					_Dashboard.deployment.deployFromZIPURL($('#redirect-url').val(), $('#deployment-url-input').val());
+				}
             });
 
             $('button#do-data-import').on('click', function() {
@@ -534,10 +548,10 @@ let _Dashboard = {
 
             window.location = '/structr/deploy?name=' + prefix;
         },
-        deployFromURL: function(redirectUrl, downloadUrl) {
+        deployFromZIPURL: function(redirectUrl, downloadUrl) {
 
             if (!(downloadUrl && downloadUrl.length)) {
-                new MessageBuilder().title('Unable to start app import from URL').warning('Please enter the URL of the ZIP file containing the app data.').requiresConfirmation().show();
+                new MessageBuilder().title('Unable to start app import from URL').warning('Please enter a URL or upload a ZIP file containing the app data.').requiresConfirmation().show();
                 return;
             }
 
@@ -558,6 +572,30 @@ let _Dashboard = {
                 }
             });
         },
+		deployFromZIPUpload: function(redirectUrl, filesSelectField) {
+
+			if (!(filesSelectField && filesSelectField.files.length)) {
+				new MessageBuilder().title('Unable to start app import from ZIP file').warning('Please select a ZIP file containing the app data for upload.').requiresConfirmation().show();
+				return;
+			}
+
+			let data = new FormData();
+			data.append('redirectUrl', redirectUrl);
+			data.append('file', filesSelectField.files[0]);
+
+			$.ajax({
+				url: '/structr/deploy',
+				method: 'POST',
+				processData: false,
+				contentType: false,
+				data: data,
+				statusCode: {
+					400: function(data) {
+						new MessageBuilder().title('Unable to import app from URL').warning(data.responseText).requiresConfirmation().show();
+					}
+				}
+			});
+		},
         deployData: function(mode, location, types) {
 
             if (!(location && location.length)) {

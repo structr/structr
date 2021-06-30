@@ -33,6 +33,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.lingala.zip4j.ZipFile;
+import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -66,6 +67,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 	private static final String DOWNLOAD_URL_PARAMETER = "downloadUrl";
 	private static final String REDIRECT_URL_PARAMETER = "redirectUrl";
+	private static final String FILE_PARAMETER         = "file";
 	private static final String NAME_PARAMETER         = "name";
 	private static final int MEGABYTE = 1024 * 1024;
 	private static final int MEMORY_THRESHOLD = 10 * MEGABYTE;  // above 10 MB, files are stored on disk
@@ -306,6 +308,14 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 						redirectUrl = fieldValue;
 						params.put(fieldName, fieldValue);
+
+					} else if (FILE_PARAMETER.equals(fieldName)) {
+
+						try (final InputStream is = item.openStream()) {
+
+							Files.write(file.toPath(), IOUtils.toByteArray(is));
+							fileName = item.getName();
+						}
 					}
 
 				} else {
@@ -335,30 +345,38 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 					return;
 				}
 
-			} else {
+				if (!(file.exists() && file.length() > 0L)) {
 
-				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.getOutputStream().write("ERROR (400): No download URL given\n".getBytes("UTF-8"));
+					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+					response.getOutputStream().write("ERROR: Unable to process downloaded file.\n".getBytes("UTF-8"));
 
-				return;
+					return;
+				}
+
 			}
 
 			if (file.exists() && file.length() > 0L) {
 
-				unzip(file, directoryPath);
+				try {
 
-				DeployCommand deployCommand = StructrApp.getInstance(securityContext).command(DeployCommand.class);
+					deployFile(file, fileName, directoryPath, securityContext);
 
-				final Map<String, Object> attributes = new HashMap<>();
+				} catch (final Throwable t) {
 
-				attributes.put("mode", "import");
-				attributes.put("source", directoryPath  + "/" + StringUtils.substringBeforeLast(fileName, "."));
+					final String message = "ERROR (400): Unable to deploy file.\n" + t.getMessage() + "\n";
 
-				deployCommand.execute(attributes);
+					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+					response.getOutputStream().write(message.getBytes("UTF-8"));
 
-				file.delete();
-				File dir = new File(directoryPath);
-				dir.delete();
+					return;
+				}
+
+			} else {
+
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				response.getOutputStream().write("ERROR: Unable to process uploaded file.\n".getBytes("UTF-8"));
+
+				return;
 			}
 
 			// send redirect to allow form-based file upload without JavaScript..
@@ -385,6 +403,33 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				UiAuthenticator.writeInternalServerError(response);
 			}
 		}
+	}
+
+	/**
+	 *
+	 * @param file
+	 * @param fileName
+	 * @param directoryPath
+	 * @param securityContext
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	private void deployFile(final File file, final String fileName, final String directoryPath, final SecurityContext securityContext) throws FrameworkException, IOException {
+
+		unzip(file, directoryPath);
+
+		final DeployCommand deployCommand = StructrApp.getInstance(securityContext).command(DeployCommand.class);
+
+		final Map<String, Object> attributes = new HashMap<>();
+
+		attributes.put("mode", "import");
+		attributes.put("source", directoryPath  + "/" + StringUtils.substringBeforeLast(fileName, "."));
+
+		deployCommand.execute(attributes);
+
+		file.delete();
+		final File dir = new File(directoryPath);
+		dir.delete();
 	}
 
 	/**
