@@ -1429,7 +1429,7 @@ var _Pages = {
 		},
 		isPreviewForActiveForPage: (pageId) => {
 
-			return (_Pages.previews.activePreviewPageId === pageId);
+			return (_Pages.previews.activePreviewPageId === pageId && _Pages.previews.isPreviewActive());
 		},
 		modelForPageUpdated: (pageId) => {
 
