@@ -237,15 +237,11 @@ var _Crud = {
 
 				} else if (e.keyCode === 13) {
 
-					var filterVal = $(this).val().toLowerCase();
-					var matchingTypes = Object.keys(_Crud.types).filter(function(type) {
-						return type.toLowerCase() === filterVal;
-					});
+					let visibleTypes = $('#crud-types-list .crud-type:not(.hidden)');
 
-					if (matchingTypes.length === 1) {
-						_Crud.typeSelected(matchingTypes[0]);
+					if (visibleTypes.length === 1) {
+						_Crud.typeSelected(visibleTypes.data('type'));
 					}
-
 				}
 
 				_Crud.filterTypes($(this).val().toLowerCase());
@@ -264,66 +260,6 @@ var _Crud = {
 					_Crud.typeSelected(_Crud.type);
 					_Crud.updateRecentTypeList(_Crud.type);
 				}
-				_Crud.resize();
-				Structr.unblockMenu();
-
-//				if (browser) {
-//
-//					let typeSelect = document.getElementById('crud-types-select');
-//					let optGroupAll = document.getElementById('crud-types-select-all');
-//					let optGroupRecent = document.getElementById('crud-types-select-recent');
-//
-//					let allTypes    = Object.keys(_Crud.types).sort();
-//					let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey, []);
-//
-//					for (let recentTypeName of recentTypes) {
-//
-//						// only add to list if it exists!
-//						if (allTypes.includes(recentTypeName)) {
-//
-//							let option = document.createElement('option');
-//							option.id = recentTypeName;
-//							option.textContent = recentTypeName;
-//							option.selected = (recentTypeName === _Crud.type);
-//
-//							optGroupRecent.appendChild(option);
-//						}
-//					}
-//
-//					allTypes.map((typeName) => {
-//						let option = document.createElement('option');
-//						option.id = typeName;
-//						option.textContent = typeName;
-//
-//						if (typeName !== _Crud.type && !recentTypes.includes(typeName)) {
-//							optGroupAll.appendChild(option);
-//						}
-//					});
-//
-//					let select2 = $(typeSelect).select2({
-//						dropdownParent: $('#crud-top')
-//					});
-//					select2.on('select2:select', (e) => {
-//
-//						let typeName = e.params.data.text;
-//						let element  = e.params.data.element;
-//
-//						optGroupRecent.insertBefore(element, optGroupRecent.firstChild);
-//
-//						select2 = $(typeSelect).select2({
-//							dropdownParent: $('#crud-top')
-//						});
-//
-//						_Crud.typeSelected(typeName);
-//					});
-//
-//					let refreshButton = document.querySelector('#crud-refresh-list');
-//					refreshButton.addEventListener('click', () => {
-//						_Crud.typeSelected(_Crud.type);
-//					});
-//
-//					_Crud.typeSelected(_Crud.type);
-//				}
 				_Crud.resize();
 				Structr.unblockMenu();
 			});
@@ -583,7 +519,11 @@ var _Crud = {
 	filterTypes: function (filterVal) {
 		$('#crud-types-list .crud-type').each(function (i, el) {
 			var $el = $(el);
-			($el.data('type').toLowerCase().indexOf(filterVal) === -1) ? $el.hide() : $el.show();
+			if ($el.data('type').toLowerCase().indexOf(filterVal) === -1) {
+				$el.addClass('hidden');
+			} else {
+				$el.removeClass('hidden');
+			}
 		});
 	},
 	updateRecentTypeList: function (selectedType) {
