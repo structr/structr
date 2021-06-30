@@ -260,64 +260,81 @@ var _Pages = {
 		});
 	},
 	moveLeftResizer: function(left) {
-		// throttle
 		requestAnimationFrame(() => {
-			//left = left || LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 300;
 			_Pages.resizeColumns(left, null);
 		});
 	},
 	moveRightResizer: function(right) {
-		// throttle
 		requestAnimationFrame(() => {
-			//left = left || LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 300;
 			_Pages.resizeColumns(null, right);
 		});
 	},
-	resizeColumns: function(left, right) {
+	resizeColumns: function(pxLeft, pxRight) {
 
-		let openLeftSlideout = document.querySelector('.slideOutLeft.open');
+		let triggeredByLeftResizer  = (pxLeft != null);
+		let triggeredByRightResizer = (pxRight != null);
+
+		let openLeftSlideout  = document.querySelector('.slideOutLeft.open');
 		let openRightSlideout = document.querySelector('.slideOutRight.open');
+		let leftResizer       = document.querySelector('.column-resizer-left');
+		let rightResizer      = document.querySelector('.column-resizer-right');
 
-		let leftPos  = left  ? left  : (openLeftSlideout  ? openLeftSlideout.getBoundingClientRect().right  : 0);
-		let rightPos = right ? right : (openRightSlideout ? openRightSlideout.getBoundingClientRect().width : 0);
+		let leftPos  = pxLeft  ? pxLeft  : (openLeftSlideout  ? openLeftSlideout.getBoundingClientRect().right  : 0);
+		let rightPos = pxRight ? pxRight : (openRightSlideout ? openRightSlideout.getBoundingClientRect().width : 0);
 
 		let tabsMenu = document.querySelector('#function-bar .tabs-menu');
 
-		if (left) {
-			let columnResizerLeft = 'calc(' + leftPos + 'px + 0rem)';
-			document.querySelector('.column-resizer-left').style.left = columnResizerLeft;
+		if (triggeredByLeftResizer) {
+
+			leftResizer.style.left = 'calc(' + leftPos + 'px + 0rem)';
+
 			if (openLeftSlideout) openLeftSlideout.style.width = 'calc(' + leftPos + 'px - 3rem)';
+
 			_Pages.centerPane.style.marginLeft = 'calc(' + leftPos + 'px + 3rem)';
+
 			if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
+
 		} else {
+
 			if (leftPos === 0) {
+
 				if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
+
 				let columnResizerLeft = '4rem';
-				document.querySelector('.column-resizer-left').style.left = columnResizerLeft;
+				leftResizer.style.left = columnResizerLeft;
 				_Pages.centerPane.style.marginLeft = columnResizerLeft;
+
 			} else {
+
 				if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 0rem)';
-				document.querySelector('.column-resizer-left').style.left = 'calc(' + leftPos + 'px - 1rem)';
+
+				leftResizer.style.left = 'calc(' + leftPos + 'px - 1rem)';
 				_Pages.centerPane.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
 			}
 		}
 
-		if (right) {
-			let columnResizerRight = 'calc(' + (window.innerWidth - rightPos) + 'px + 0rem)';
-			document.querySelector('.column-resizer-right').style.left = columnResizerRight;
+		if (triggeredByRightResizer) {
+
+			rightResizer.style.left = 'calc(' + (window.innerWidth - rightPos) + 'px + 0rem)';
+
 			if (openRightSlideout) openRightSlideout.style.width = 'calc(' + rightPos + 'px - 7rem)';
+
 			_Pages.centerPane.style.marginRight = 'calc(' + rightPos + 'px - 1rem)';
+
 		} else {
+
 			if (rightPos === 0) {
+
 				let columnResizerRight = '4rem';
-				document.querySelector('.column-resizer-right').style.left = columnResizerRight;
+				rightResizer.style.left = columnResizerRight;
 				_Pages.centerPane.style.marginRight = columnResizerRight;
+
 			} else {
-				document.querySelector('.column-resizer-right').style.left = 'calc(' + (window.innerWidth - rightPos) + 'px - 3rem)';
+
+				rightResizer.style.left = 'calc(' + (window.innerWidth - rightPos) + 'px - 3rem)';
 				_Pages.centerPane.style.marginRight = 'calc(' + (rightPos) + 'px + 2rem)';
 			}
 		}
-
 	},
 	refresh: function() {
 

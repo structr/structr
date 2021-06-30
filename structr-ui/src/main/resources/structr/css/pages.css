@@ -205,7 +205,7 @@ ul#previewTabs {
  */
 #function-bar .tabs-menu {
 	/*margin-left: 44rem;*/
-	transition: all	.1s ease-in-out;
+	/*transition: all	.1s ease-in-out;*/
 }
 
 #function-bar .tabs-menu.hidden, #function-bar .tabs-menu li.hidden {
