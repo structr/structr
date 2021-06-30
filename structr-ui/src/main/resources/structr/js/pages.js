@@ -358,7 +358,7 @@ var _Pages = {
 			functionBar.append(html);
 
 			for (const menuLink of document.querySelectorAll('#function-bar .tabs-menu li a')) {
-				menuLink.onclick = (event) => _Pages.activateCenterPane(event);
+				menuLink.onclick = (event) => _Pages.activateCenterPane(menuLink);
 			}
 
 			var pPager = _Pager.addPager('pages', pagesPager, true, 'Page', null, function(pages) {
@@ -571,9 +571,8 @@ var _Pages = {
 			_Pages.activateSubmenuTabElement(tab);
 		}
 	},
-	activateCenterPane: (e) => {
-		let el  = e.target;
-		let tab = el.closest('li');
+	activateCenterPane: (link) => {
+		let tab    = link.closest('li');
 		let active = tab.classList.contains('active');
 
 		// return if clicked tab already is active
@@ -586,11 +585,18 @@ var _Pages = {
 
 		active = tab.classList.contains('active');
 
-		_Pages.refreshCenterPane(active);
+		_Pages.refreshCenterPane(obj, new URL(link.href).hash);
 	},
-	refreshCenterPane: (active) => {
+	refreshCenterPane: (obj, urlHash) => {
 
-		 _Entities.deselectAllElements();
+		_Entities.deselectAllElements();
+
+		if (_Dashboard.isFavorEditorForContentElements() && (!urlHash && obj.isContent)) {
+			/*
+				if urlHash is given, user has manually selected a tab. if it is not given, user has selected a node
+			*/
+			urlHash = '#pages:editor';
+		}
 
 		let contentContainers = _Pages.centerPane.querySelectorAll('.content-container');
 
@@ -598,17 +604,12 @@ var _Pages = {
 			_Pages.centerPane.removeChild(contentContainer);
 		}
 
-		let obj = _Entities.selectedObject; // || _Entities.selectedObjects.element || _Entities.selectedObjects.contentNode;
-
-		let activeLink = document.querySelector('#function-bar .tabs-menu li.active a');
-		let urlHash;
-
 		_Pages.adaptSubmenu(obj);
 
-//		let targetLink = document.querySelector('#function-bar .tabs-menu li a[href="' + location.hash + '"]');
-//		if (!activeLink.closest('li').classList.contains('hidden')) {
-//			urlHash = '#pages:basic';
-//		}
+		if (!urlHash) {
+			urlHash = new URL(location.href).hash;
+		}
+		let activeLink = document.querySelector('#function-bar .tabs-menu li a[href="' + urlHash + '"]');
 
 
 		if (activeLink) {
@@ -642,9 +643,9 @@ var _Pages = {
 			}
 
 			urlHash = new URL(activeLink.href).hash;
-
-			_Pages.activateSubmenuTabElement(activeLink.closest('li'));
 		}
+
+		_Pages.activateSubmenuTabElement(activeLink.closest('li'));
 
 		// Set default views based on object type
 		if (urlHash === '#pages') {
@@ -685,60 +686,50 @@ var _Pages = {
 
 			case '#pages:html':
 
-				if (active) {
+				Structr.fetchHtmlTemplate('pages/properties', {}, (html) => {
 
-					Structr.fetchHtmlTemplate('pages/properties', {}, (html) => {
+					_Pages.centerPane.insertAdjacentHTML('beforeend', html);
+					propertiesContainer = document.querySelector('#center-pane .properties-container');
 
-						_Pages.centerPane.insertAdjacentHTML('beforeend', html);
-						propertiesContainer = document.querySelector('#center-pane .properties-container');
+					_Schema.getTypeInfo(obj.type, function(typeInfo) {
 
-						_Schema.getTypeInfo(obj.type, function(typeInfo) {
+						_Entities.listProperties(obj, '_html_', $(propertiesContainer), typeInfo, function(properties) {
 
-							_Entities.listProperties(obj, '_html_', $(propertiesContainer), typeInfo, function(properties) {
+							// make container visible when custom properties exist
+							if (Object.keys(properties).length > 0) {
+								$('div#custom-properties-parent').removeClass("hidden");
+							}
 
-								// make container visible when custom properties exist
-								if (Object.keys(properties).length > 0) {
-									$('div#custom-properties-parent').removeClass("hidden");
-								}
-
-								$('input.dateField', $(propertiesContainer)).each(function(i, input) {
-									_Entities.activateDatePicker($(input));
-								});
+							$('input.dateField', $(propertiesContainer)).each(function(i, input) {
+								_Entities.activateDatePicker($(input));
 							});
 						});
-
 					});
-				}
-
+				});
 				break;
 
 			case '#pages:advanced':
 
-				if (active) {
+				Structr.fetchHtmlTemplate('pages/properties', {}, (html) => {
 
-					Structr.fetchHtmlTemplate('pages/properties', {}, (html) => {
+					_Pages.centerPane.insertAdjacentHTML('beforeend', html);
+					propertiesContainer = document.querySelector('#center-pane .properties-container');
 
-						_Pages.centerPane.insertAdjacentHTML('beforeend', html);
-						propertiesContainer = document.querySelector('#center-pane .properties-container');
+					_Schema.getTypeInfo(obj.type, function(typeInfo) {
 
-						_Schema.getTypeInfo(obj.type, function(typeInfo) {
+						_Entities.listProperties(obj, 'ui', $(propertiesContainer), typeInfo, function(properties) {
 
-							_Entities.listProperties(obj, 'ui', $(propertiesContainer), typeInfo, function(properties) {
+							// make container visible when custom properties exist
+							if (Object.keys(properties).length > 0) {
+								$('div#custom-properties-parent').removeClass("hidden");
+							}
 
-								// make container visible when custom properties exist
-								if (Object.keys(properties).length > 0) {
-									$('div#custom-properties-parent').removeClass("hidden");
-								}
-
-								$('input.dateField', $(propertiesContainer)).each(function(i, input) {
-									_Entities.activateDatePicker($(input));
-								});
+							$('input.dateField', $(propertiesContainer)).each(function(i, input) {
+								_Entities.activateDatePicker($(input));
 							});
 						});
-
 					});
-				}
-
+				});
 				break;
 
 			case '#pages:preview':
@@ -801,7 +792,6 @@ var _Pages = {
 					_Schema.getTypeInfo(obj.type, function(typeInfo) {
 						_Entities.accessControlDialog(obj, $(securityContainer), typeInfo);
 					});
-
 				});
 				break;
 

@@ -1639,7 +1639,7 @@ var _Elements = {
 				e.stopPropagation();
 				_Entities.selectedObject = entity;
 				_Entities.selectElement(div.closest('.node'));
-				_Pages.refreshCenterPane(entity, true);
+				_Pages.refreshCenterPane(entity);
 				return false;
 			}
 		});

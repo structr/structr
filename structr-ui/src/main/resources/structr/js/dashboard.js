@@ -27,6 +27,7 @@ let _Dashboard = {
 
 	showScriptingErrorPopupsKey: 'showScriptinErrorPopups' + port,
 	showVisibilityFlagsInGrantsTableKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + port,
+	favorEditorForContentElementsKey: 'favorEditorForContentElements' + port,
 
 	init: function() {
 		if (!subModule) subModule = LSWrapper.getItem(_Dashboard.activeTabPrefixKey);
@@ -217,6 +218,17 @@ let _Dashboard = {
 						});
 					}
 
+					let favorEditorForContentElements = _Dashboard.isFavorEditorForContentElements();
+
+					let favorEditorForContentElementsCheckbox = document.querySelector('#dashboard-favor-editors-for-content-elements');
+					if (favorEditorForContentElementsCheckbox) {
+						favorEditorForContentElementsCheckbox.checked = favorEditorForContentElements;
+
+						favorEditorForContentElementsCheckbox.addEventListener('change', () => {
+							LSWrapper.setItem(_Dashboard.favorEditorForContentElementsKey, favorEditorForContentElementsCheckbox.checked);
+						});
+					}
+
 					Structr.unblockMenu(100);
 				});
 			});
@@ -237,6 +249,9 @@ let _Dashboard = {
 	},
 	isShowVisibilityFlagsInGrantsTable: function() {
 		return LSWrapper.getItem(_Dashboard.showVisibilityFlagsInGrantsTableKey, false);
+	},
+	isFavorEditorForContentElements: () => {
+		return LSWrapper.getItem(_Dashboard.favorEditorForContentElementsKey, true);
 	},
 	gatherVersionUpdateInfo(currentVersion, releasesIndexUrl, snapshotsIndexUrl) {
 

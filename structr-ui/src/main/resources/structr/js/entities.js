@@ -2238,10 +2238,10 @@ var _Entities = {
 				e.stopPropagation();
 				_Entities.selectedObject = entity;
 				_Entities.selectElement($(this).closest('.node'));
-				_Pages.refreshCenterPane(true);
+				_Pages.refreshCenterPane(entity);
+				return false;
 			}
 		});
-
 
 	},
 	removeExpandIcon: function(el) {
