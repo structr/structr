@@ -992,7 +992,7 @@ var _Pages = {
 			}
 		}
 	},
-	rightSlideoutClickTrigger: function (triggerEl, slideoutElement, otherSlideouts, activeTabKey, openCallback, closeCallback) {
+	rightSlideoutClickTrigger: function (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) {
 		if (!$(triggerEl).hasClass('noclick')) {
 			if (Math.abs(slideoutElement.position().left - $(window).width()) <= 3) {
 				Structr.closeSlideOuts(otherSlideouts, closeCallback);
