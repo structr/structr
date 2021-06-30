@@ -1742,11 +1742,6 @@ var _Entities = {
 
 			input.off('change').on('change', function() {
 				input.data('changed', true);
-
-				if (pageId && pageId === activeTab) {
-//					_Pages.reloadPreviews();
-					console.log('reload preview?')
-				}
 			});
 
 			input.off('focusout').on('focusout', function() {

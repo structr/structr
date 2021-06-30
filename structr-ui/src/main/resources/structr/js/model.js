@@ -323,10 +323,6 @@ var StructrModel = {
 				if (key === 'content') {
 
 					attrElement.text(newValue);
-
-					if (Structr.isModuleActive(_Pages) && _Pages.previews.isPreviewForActiveForPage(obj.pageId)) {
-						_Pages.previews.modelForPageUpdated(obj.pageId);
-					}
 				}
 			}
 		}
@@ -342,8 +338,6 @@ var StructrModel = {
 					blinkGreen(tabNameElement);
 
 					tabNameElement.attr('title', newValue).html(newValue);
-
-					_Pages.previews.modelForPageUpdated(obj.id);
 				}
 
 			} else if (Structr.getClass(element) === 'folder') {
@@ -378,6 +372,10 @@ var StructrModel = {
 			$.each(Object.keys(obj), function(i, key) {
 				StructrModel.refreshKey(id, key);
 			});
+
+			if (Structr.isModuleActive(_Pages) && _Pages.previews.isPreviewForActiveForPage(obj.pageId)) {
+				_Pages.previews.modelForPageUpdated(obj.pageId);
+			}
 
 			// update HTML 'class' and 'id' attributes
 			if (isIn('_html_id', Object.keys(obj)) || isIn('_html_class', Object.keys(obj))) {

@@ -1181,14 +1181,14 @@ var Structr = {
 
 		});
 	},
-	openSlideOut: function(triggerEl, slideoutElement, activeTabKey, callback) {
+	openSlideOut: function(triggerEl, slideoutElement, callback) {
 
 		var storedRightSlideoutWidth = LSWrapper.getItem(_Pages.rightSlideoutWidthKey);
-		var rsw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideoutElement.width() + 12);
+		var rsw                      = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideoutElement.width() + 12);
 
 		var t = $(triggerEl);
 		t.addClass('active');
-		LSWrapper.setItem(activeTabKey, t.prop('id'));
+		LSWrapper.setItem(_Pages.activeTabRightKey, t.prop('id'));
 		slideoutElement.width(rsw);
 		slideoutElement.animate({right: 0}, 100, function() {
 			if (typeof callback === 'function') {
@@ -1196,93 +1196,27 @@ var Structr = {
 			}
 		}).zIndex(1);
 		slideoutElement.addClass('open');
-
-		// t.draggable({
-		// 	axis: 'x',
-		// 	start: function(e, ui) {
-		// 		$('.column-resizer-blocker').show();
-		// 		t.addClass('noclick');
-		// 	},
-		// 	drag: function(e, ui) {
-		// 		var w = $(window).width() - ui.offset.left - 20;
-		// 		slideoutElement.css({
-		// 			width: w + 'px'
-		// 		});
-		// 		ui.position.top += (ui.helper.width() / 2 - 6);
-		// 		ui.position.left = - t.width() / 2 - 20;
-		//
-		// 		if (typeof callback === 'function') {
-		// 			LSWrapper.setItem(_Pages.rightSlideoutWidthKey, slideoutElement.width());
-		// 			callback({isOpenAction: false});
-		// 		}
-		// 	},
-		// 	stop: function(e, ui) {
-		// 		$('.column-resizer-blocker').hide();
-		// 		// remove noclick class after 200ms in case the mouseup event is not triggered while over the element (which leads to noclick remaining)
-		// 		window.setTimeout(function() {
-		// 			t.removeClass('noclick');
-		// 		}, 200);
-		// 		LSWrapper.setItem(_Pages.rightSlideoutWidthKey, slideoutElement.width());
-		// 		t.css({
-		// 			left: "",
-		// 			top: ""
-		// 		});
-		// 	}
-		// });
 	},
-	openLeftSlideOut: function(triggerEl, slideoutElement, activeTabKey, callback) {
+	openLeftSlideOut: function(triggerEl, slideoutElement, callback) {
 
 		var storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.leftSlideoutWidthKey);
-		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (slideoutElement.width());
+		var psw                     = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (slideoutElement.width());
 
 		var t = $(triggerEl);
 		t.addClass('active');
-		LSWrapper.setItem(activeTabKey, t.prop('id'));
+		LSWrapper.setItem(_Pages.activeTabLeftKey, t.prop('id'));
 		slideoutElement.width(psw);
 
 		slideoutElement.animate({left: 0}, 100, function() {
 			if (typeof callback === 'function') {
 				callback({isOpenAction: true});
 			}
-
-			// t.draggable({
-			// 	axis: 'x',
-			// 	start: function(e, ui) {
-			// 		$('.column-resizer-blocker').show();
-			// 		$(this).addClass('noclick');
-			// 	},
-			// 	drag: function(e, ui) {
-			// 		var w = ui.position.left - 12;
-			// 		slideoutElement.css({
-			// 			width: w + 'px'
-			// 		});
-			// 		ui.position.top  += (ui.helper.width() / 2 - 6);
-			// 		ui.position.left -= (ui.helper.width() / 2 - 6);
-			//
-			// 		if (typeof callback === 'function') {
-			// 			LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
-			// 			callback({isOpenAction: false});
-			// 		}
-			// 	},
-			// 	stop: function(e, ui) {
-			// 		$('.column-resizer-blocker').hide();
-			// 		// remove noclick class after 200ms in case the mouseup event is not triggered while over the element (which leads to noclick remaining)
-			// 		window.setTimeout(function() {
-			// 			t.removeClass('noclick');
-			// 		}, 200);
-			// 		LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
-			// 		t.css({
-			// 			left: "",
-			// 			top: ""
-			// 		});
-			// 	}
-			// });
 		}).zIndex(1);
 
 		slideoutElement.addClass('open');
 
 	},
-	closeSlideOuts: function(slideouts, activeTabKey, callback) {
+	closeSlideOuts: function(slideouts, callback) {
 		var wasOpen = false;
 
 		slideouts.forEach(function(slideout) {
@@ -1309,7 +1243,7 @@ var Structr = {
 
 		LSWrapper.removeItem(_Pages.activeTabRightKey);
 	},
-	closeLeftSlideOuts: function(slideouts, activeTabKey, callback) {
+	closeLeftSlideOuts: function(slideouts, callback) {
 		let wasOpen = false;
 		let oldSlideoutWidth;
 

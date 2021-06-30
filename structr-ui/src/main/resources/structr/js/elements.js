@@ -1741,7 +1741,7 @@ var _Elements = {
 		var text1, text2;
 
 		let cmConfig = Structr.getCodeMirrorSettings({
-			value: text,
+			value: text || '',
 			mode: mode || contentType,
 			lineNumbers: true,
 			lineWrapping: false,
