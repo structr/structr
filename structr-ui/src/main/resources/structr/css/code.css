@@ -68,13 +68,13 @@
 }
 
 #code-contents .property-options-group {
-	margin: 0 0 12px 0;
+	margin: 0 0 1rem 0;
 }
 
 #code-contents .property-options-group span,
 #code-contents .property-options-group i {
-	/*vertical-align: middle;*/
-	margin: .5rem;
+	vertical-align: middle;
+	/*margin: .5rem;*/
 }
 
 #code-context .code-favorite {
