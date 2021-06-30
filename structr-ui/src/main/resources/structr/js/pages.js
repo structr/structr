@@ -131,7 +131,7 @@ var _Pages = {
 //			$('#dataBindingTab').on('click', function () {
 //				_Pages.leftSlideoutTrigger(this, dataBindingSlideout, [pagesSlideout, activeElementsSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function (params) {
 //					if (params.isOpenAction) {
-//						_Pages.reloadDataBindingWizard();
+//						_Pages.databinding.reloadDataBindingWizard();
 //					}
 //					_Pages.resize();
 //				}, _Pages.slideoutClosedCallback);
@@ -753,12 +753,11 @@ var _Pages = {
 				break;
 
 			case '#pages:repeater':
+
 				Structr.fetchHtmlTemplate('pages/repeater', {}, (html) => {
 					_Pages.centerPane.insertAdjacentHTML('beforeend', html);
 					repeaterContainer = document.querySelector('#center-pane .repeater-container');
-					_Schema.getTypeInfo(obj.type, function(typeInfo) {
-						_Entities.queryDialog(obj, $(repeaterContainer), typeInfo);
-					});
+					_Entities.repeaterConfig(obj, $(repeaterContainer));
 				});
 				break;
 
@@ -791,31 +790,6 @@ var _Pages = {
 
 			default:
 				console.log('do something else, urlHash:', urlHash);
-		}
-
-	},
-	activatePage: (pageId) => {
-
-		let activeLink = document.querySelector('#function-bar .tabs-menu li.active a');
-
-		if (!activeLink) {
-			activeLink = document.querySelector('#function-bar .tabs-menu li a[href="#pages:preview"]');
-			activeLink?.closest('li').classList.add('active');
-		}
-
-		if (activeLink?.getAttribute('href') === '#pages:preview') {
-
-			activeTab = pageId;
-
-			_Pages.previews.loadIframe(pageId);
-
-
-			LSWrapper.setItem(_Pages.activeTabKey, activeTab);
-
-			if (LSWrapper.getItem(_Pages.activeTabLeftKey) === $('#activeElementsTab').prop('id')) {
-				_Pages.refreshActiveElements();
-			}
-
 		}
 
 	},
@@ -923,38 +897,6 @@ var _Pages = {
 		_Elements.enableContextMenuOnElement(div, entity);
 		_Entities.setMouseOver(div);
 
-//		var tab = _Pages.addTab(entity);
-
-//		var existingIframe = $('#preview_' + entity.id);
-//		if (existingIframe && existingIframe.length) {
-//			existingIframe.replaceWith('<iframe id="preview_' + entity.id + '"></iframe>');
-//		} else {
-//			previews.append('<div class="previewBox"><iframe id="preview_' + entity.id + '"></iframe></div><div style="clear: both"></div>');
-//		}
-
-		// _Pages.resetTab(tab, entity.name);
-
-//		$('#preview_' + entity.id).hover(function() {
-//			try {
-//				var self = $(this);
-//				var elementContainer = self.contents().find('.structr-element-container');
-//				elementContainer.addClass('structr-element-container-active');
-//				elementContainer.removeClass('structr-element-container');
-//			} catch (e) {}
-//		}, function() {
-//			try {
-//				var self = $(this);
-//				var elementContainer = self.contents().find('.structr-element-container-active');
-//				elementContainer.addClass('structr-element-container');
-//				elementContainer.removeClass('structr-element-container-active');
-//			} catch (e) {}
-//		});
-
-//		let iframe = $('#preview_' + entity.id);
-//		iframe.on('load', function () {
-//			_Pages.previews.previewIframeLoaded(iframe, entity);
-//		});
-
 		let dblclickHandler = (e) => {
 			e.stopPropagation();
 			let self = e.target;
@@ -998,7 +940,6 @@ var _Pages = {
 				contentSourceId = null;
 			}
 		});
-		_Pages.previews.loadIframe(activeTab);
 	},
 	appendElementElement: function(entity, refNode, refNodeIsParent) {
 		entity = StructrModel.ensureObject(entity);
@@ -1024,51 +965,6 @@ var _Pages = {
 		_Dragndrop.makeSortable(div);
 
 		return div;
-	},
-	displayDataBinding: function(id) {
-		dataBindingSlideout.children('#data-binding-inputs').remove();
-		dataBindingSlideout.append('<div class="inner" id="data-binding-inputs"></div>');
-
-		var el = $('#data-binding-inputs');
-		var entity = StructrModel.obj(id);
-
-		if (entity) {
-			_Entities.repeaterConfig(entity, el);
-		}
-
-	},
-	reloadDataBindingWizard: function() {
-		dataBindingSlideout.children('#wizard').remove();
-		dataBindingSlideout.prepend('<div class="inner" id="wizard"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');
-
-		let lastSelectedType = LSWrapper.getItem(_Pages.selectedTypeKey);
-
-		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', 'id,name', function(typeNodes) {
-
-			let lastSelectedTypeExists = false;
-
-			typeNodes.forEach(function(typeNode) {
-
-				let selected = '';
-				if (typeNode.id === lastSelectedType) {
-					lastSelectedTypeExists = true;
-					selected = 'selected';
-				}
-
-				$('#type-selector').append('<option ' + selected + ' value="' + typeNode.id + '">' + typeNode.name + '</option>');
-			});
-
-			$('#data-wizard-attributes').empty();
-			if (lastSelectedType && lastSelectedTypeExists) {
-				_Pages.showTypeData(lastSelectedType);
-			}
-		});
-
-		$('#type-selector').on('change', function() {
-			$('#data-wizard-attributes').empty();
-			let id = $(this).children(':selected').attr('value');
-			_Pages.showTypeData(id);
-		});
 	},
 	showTypeData: function(id) {
 		if (!id) {
@@ -1362,7 +1258,6 @@ var _Pages = {
 
 	previews: {
 		previewElement: undefined,
-		loadIframeTimer: undefined,
 		activePreviewPage: null,
 		activePreviewHighlightElement: null,
 
@@ -1424,7 +1319,7 @@ var _Pages = {
 									self.toggleClass('structr-element-container-selected');
 								}
 								_Entities.deselectAllElements();
-								_Pages.displayDataBinding(structrId);
+//								_Pages.databinding.displayDataBinding(structrId);
 								if (!Structr.node(structrId)) {
 									_Pages.expandTreeNode(structrId);
 								} else {
@@ -1591,254 +1486,170 @@ var _Pages = {
 		},
 
 		modelForPageUpdated: (pageId) => {
-            if (_Pages.previews.activePreviewPage === pageId) {
-                _Pages.previews.reloadPreviewInIframe();
-            }
-        },
-
-
-		loadIframe: function(id) {
-			if (!id) {
-				return false;
+			if (_Pages.previews.activePreviewPage === pageId) {
+				_Pages.previews.reloadPreviewInIframe();
 			}
-			_Pages.previews.unloadIframes();
+		},
 
-			window.clearTimeout(_Pages.previews.loadIframeTimer);
+//		clearIframeDroppables: function() {
+//
+//			let droppables = $.ui.ddmanager.droppables['default'];
+//
+//			if (!droppables) {
+//				return;
+//			}
+//
+//			$.ui.ddmanager.droppables['default'] = droppables.filter((d) => {
+//				return (!d.options.iframe);
+//			});
+//		},
 
-			_Pages.previews.loadIframeTimer = window.setTimeout(function() {
+		configurePreview: (entity) => {
 
-				var iframe = $('#preview_' + id);
-				Command.get(id, 'id,name', function(obj) {
-					let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + id) : '');
-					let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + id) : '');
-					var url = viewRootUrl + obj.name + detailsObject + '?edit=2' + requestParameters;
-					iframe.prop('src', url);
+			Structr.dialog('Edit Preview Settings of ' + entity.name, function() { return true; }, function() { return true; });
 
-					iframe.parent().show();
-					_Pages.resize();
+			dialog.empty();
+			dialogMsg.empty();
+
+			Structr.fetchHtmlTemplate('pages/previewconfig', { entity: entity }, (html) => {
+
+				dialog.append(html);
+
+				var detailsObjectIdInput   = $('#_details-object-id');
+				var requestParametersInput = $('#_request-parameters');
+
+				window.setTimeout(function() {
+					detailsObjectIdInput.select().focus();
+				}, 200);
+
+				$('#clear-details-object-id').on('click', function() {
+					detailsObjectIdInput.val('');
+					var oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
+					if (oldVal) {
+						blinkGreen(detailsObjectIdInput);
+						LSWrapper.removeItem(_Pages.detailsObjectIdKey + entity.id);
+						detailsObjectIdInput.focus();
+
+						_Pages.previews.modelForPageUpdated(entity.id);
+					}
 				});
-			}, 100);
+
+				detailsObjectIdInput.on('blur', function() {
+					var inp = $(this);
+					var oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
+					var newVal = inp.val() || null;
+					if (newVal !== oldVal) {
+						LSWrapper.setItem(_Pages.detailsObjectIdKey + entity.id, newVal);
+						blinkGreen(detailsObjectIdInput);
+
+						_Pages.previews.modelForPageUpdated(entity.id);
+					}
+				});
+
+				$('#clear-request-parameters').on('click', function() {
+					requestParametersInput.val('');
+					var oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
+					if (oldVal) {
+						blinkGreen(requestParametersInput);
+						LSWrapper.removeItem(_Pages.requestParametersKey + entity.id);
+						requestParametersInput.focus();
+
+						_Pages.previews.modelForPageUpdated(entity.id);
+					}
+				});
+
+				requestParametersInput.on('blur', function() {
+					var inp = $(this);
+					var oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
+					var newVal = inp.val() || null;
+					if (newVal !== oldVal) {
+						LSWrapper.setItem(_Pages.requestParametersKey + entity.id, newVal);
+						blinkGreen(requestParametersInput);
+
+						_Pages.previews.modelForPageUpdated(entity.id);
+					}
+				});
+
+				$('.auto-refresh', dialog).on('click', function(e) {
+					e.stopPropagation();
+					var key = _Pages.autoRefreshDisabledKey + entity.id;
+					var autoRefreshDisabled = (LSWrapper.getItem(key) === '1');
+					if (autoRefreshDisabled) {
+						LSWrapper.removeItem(key);
+					} else {
+						LSWrapper.setItem(key, '1');
+					}
+					blinkGreen($('.auto-refresh', dialog).parent());
+				});
+
+				var pageCategoryInput = $('#_page-category');
+				pageCategoryInput.on('blur', function() {
+					var oldVal = entity.category;
+					var newVal = pageCategoryInput.val() || null;
+					if (newVal !== oldVal) {
+						Command.setProperty(entity.id, "category", newVal, false, function () {
+							blinkGreen(pageCategoryInput);
+							entity.category = newVal;
+						});
+					}
+				});
+
+				$('#clear-page-category').on('click', function () {
+					Command.setProperty(entity.id, "category", null, false, function () {
+						blinkGreen(pageCategoryInput);
+						entity.category = null;
+						pageCategoryInput.val("");
+					});
+				});
+			});
+
 		},
+	},
+	databinding: {
+		displayDataBinding: function(id) {
+			dataBindingSlideout.children('#data-binding-inputs').remove();
+			dataBindingSlideout.append('<div class="inner" id="data-binding-inputs"></div>');
 
-		reloadIframe: function(id) {
+			var el = $('#data-binding-inputs');
+			var entity = StructrModel.obj(id);
 
-			// if the preview is not shown return gracefully
-			const activeTab = document.querySelector('#function-bar .tabs-menu li.active');
-			if (activeTab.id !== 'tabs-menu-preview') return;
+			if (entity) {
+				_Entities.repeaterConfig(entity, el);
+			}
 
-			if (lastMenuEntry === _Pages._moduleName && (!id || id !== activeTab || !_Pages.isPageTabPresent(id))) {
+			},
+		reloadDataBindingWizard: function() {
+			dataBindingSlideout.children('#wizard').remove();
+			dataBindingSlideout.prepend('<div class="inner" id="wizard"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');
 
-				if ($('.previewBox iframe').length === 0) {
-					previews.addClass('no-preview');
+			let lastSelectedType = LSWrapper.getItem(_Pages.selectedTypeKey);
+
+			Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', 'id,name', function(typeNodes) {
+
+				let lastSelectedTypeExists = false;
+
+				typeNodes.forEach(function(typeNode) {
+
+					let selected = '';
+					if (typeNode.id === lastSelectedType) {
+						lastSelectedTypeExists = true;
+						selected = 'selected';
+					}
+
+					$('#type-selector').append('<option ' + selected + ' value="' + typeNode.id + '">' + typeNode.name + '</option>');
+				});
+
+				$('#data-wizard-attributes').empty();
+				if (lastSelectedType && lastSelectedTypeExists) {
+					_Pages.showTypeData(lastSelectedType);
 				}
+			});
 
-				return false;
-			}
-			var autoRefreshDisabled = LSWrapper.getItem(_Pages.autoRefreshDisabledKey + id);
-
-			if (!autoRefreshDisabled && id) {
-				_Pages.previews.loadIframe(id);
-			}
+			$('#type-selector').on('change', function() {
+				$('#data-wizard-attributes').empty();
+				let id = $(this).children(':selected').attr('value');
+				_Pages.showTypeData(id);
+			});
 		},
-
-		unloadIframes: function() {
-			_Pages.previews.clearIframeDroppables();
-		},
-
-		clearIframeDroppables: function() {
-
-			let droppables = $.ui.ddmanager.droppables['default'];
-
-			if (!droppables) {
-				return;
-			}
-
-			$.ui.ddmanager.droppables['default'] = droppables.filter((d) => {
-                return (!d.options.iframe);
-            });
-		},
-
-  	    addTab: function(entity) {
-//  		_Pages.previews.previewTabs.append('<li id="show_' + entity.id + '" class="page ' + entity.id + '_"></li>');
-//
-//  		var tab = $('#show_' + entity.id, previews);
-//
-//  		tab.append('<div class="fill-pixel"></div><b title="' + escapeForHtmlAttributes(entity.name) + '" class="name_ abbr-ellipsis abbr-200">' + entity.name + '</b>');
-//  		tab.append('<i title="Edit page settings of ' + entity.name + '" class="edit_ui_properties_icon button ' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" />');
-//  		tab.append('<i title="View ' + entity.name + ' in new window" class="view_icon button ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" />');
-//
-//  		//$('.view_icon', tab).on('click', function(e) {
-//  		let dblclickHandler = (e) => {
-//  			e.stopPropagation();
-//  			let self = e.target;
-//
-//  			// only on page nodes and if not clicked on expand/collapse icon
-//  			if (!self.classList.contains('expand_icon') && self.closest('.node').classList.contains('page')) {
-//  				let link = self.closest('.page').querySelector('b.name_').getAttribute('title');
-//  				console.log(self, link);
-//
-//  				let pagePath = entity.path ? entity.path.replace(/^\//, '') : link;
-//
-//  				let detailsObject = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
-//  				let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '?' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
-//
-//  				let url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + pagePath + detailsObject + requestParameters;
-//  				window.open(url);
-//  			}
-//  		};
-//
-//  		let pageNode = Structr.node(entity.id)[0];
-//  		if (pageNode) {
-//  			pageNode.removeEventListener('dblclick', dblclickHandler);
-//  			pageNode.addEventListener('dblclick', dblclickHandler);
-//  		}
-//
-//  		var editUiPropertiesIcon = $('.edit_ui_properties_icon', tab);
-//  		editUiPropertiesIcon.hide();
-//  		editUiPropertiesIcon.on('click', function(e) {
-//  			e.stopPropagation();
-//
-//  			Structr.dialog('Edit Preview Settings of ' + entity.name, function() {
-//  				return true;
-//  			}, function() {
-//  				return true;
-//  			});
-//
-//  			dialog.empty();
-//  			dialogMsg.empty();
-//
-//  			dialog.append('<p>With these settings you can influence the behaviour of the page previews only. They are not persisted on the Page object but only stored in the UI settings.</p>');
-//
-//  			dialog.append('<table class="props">'
-//  					+ '<tr><td><label for="_details-object-id">UUID of details object to append to preview URL</label></td><td><input id="_details-object-id" value="' + (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '') + '" style="width:90%;"> <i id="clear-details-object-id" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
-//  					+ '<tr><td><label for="_request-parameters">Request parameters to append to preview URL</label></td><td><code style="font-size: 10pt;">?</code><input id="_request-parameters" value="' + (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '') + '" style="width:90%;"> <i id="clear-request-parameters" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
-//  					+ '<tr><td><label for="_auto-refresh">Automatic refresh</label></td><td><input id="_auto-refresh" title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox"' + (LSWrapper.getItem(_Pages.autoRefreshDisabledKey + entity.id) ? '' : ' checked="checked"') + '></td></tr>'
-//  					+ '<tr><td><label for="_page-category">Category</label></td><td><input id="_page-category" type="text" value="' + (entity.category || '') + '" style="width:90%;"> <i id="clear-page-category" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>'
-//  					+ '</table>');
-//
-//  			var detailsObjectIdInput   = $('#_details-object-id');
-//  			var requestParametersInput = $('#_request-parameters');
-//
-//  			window.setTimeout(function() {
-//  				detailsObjectIdInput.select().focus();
-//  			}, 200);
-//
-//  			$('#clear-details-object-id').on('click', function() {
-//  				detailsObjectIdInput.val('');
-//  				var oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
-//  				if (oldVal) {
-//  					blinkGreen(detailsObjectIdInput);
-//  					LSWrapper.removeItem(_Pages.detailsObjectIdKey + entity.id);
-//  					detailsObjectIdInput.focus();
-//
-//  					_Pages.previews.reloadIframe(entity.id);
-//  				}
-//  			});
-//
-//  			detailsObjectIdInput.on('blur', function() {
-//  				var inp = $(this);
-//  				var oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
-//  				var newVal = inp.val() || null;
-//  				if (newVal !== oldVal) {
-//  					LSWrapper.setItem(_Pages.detailsObjectIdKey + entity.id, newVal);
-//  					blinkGreen(detailsObjectIdInput);
-//
-//  					_Pages.previews.reloadIframe(entity.id);
-//  				}
-//  			});
-//
-//  			$('#clear-request-parameters').on('click', function() {
-//  				requestParametersInput.val('');
-//  				var oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
-//  				if (oldVal) {
-//  					blinkGreen(requestParametersInput);
-//  					LSWrapper.removeItem(_Pages.requestParametersKey + entity.id);
-//  					requestParametersInput.focus();
-//
-//  					_Pages.previews.reloadIframe(entity.id);
-//  				}
-//  			});
-//
-//  			requestParametersInput.on('blur', function() {
-//  				var inp = $(this);
-//  				var oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
-//  				var newVal = inp.val() || null;
-//  				if (newVal !== oldVal) {
-//  					LSWrapper.setItem(_Pages.requestParametersKey + entity.id, newVal);
-//  					blinkGreen(requestParametersInput);
-//
-//  					_Pages.previews.reloadIframe(entity.id);
-//  				}
-//  			});
-//
-//  			$('.auto-refresh', dialog).on('click', function(e) {
-//  				e.stopPropagation();
-//  				var key = _Pages.autoRefreshDisabledKey + entity.id;
-//  				var autoRefreshDisabled = (LSWrapper.getItem(key) === '1');
-//  				if (autoRefreshDisabled) {
-//  					LSWrapper.removeItem(key);
-//  				} else {
-//  					LSWrapper.setItem(key, '1');
-//  				}
-//  				blinkGreen($('.auto-refresh', dialog).parent());
-//  			});
-//
-//  			var pageCategoryInput = $('#_page-category');
-//  			pageCategoryInput.on('blur', function() {
-//  				var oldVal = entity.category;
-//  				var newVal = pageCategoryInput.val() || null;
-//  				if (newVal !== oldVal) {
-//  					Command.setProperty(entity.id, "category", newVal, false, function () {
-//  						blinkGreen(pageCategoryInput);
-//  						entity.category = newVal;
-//  					});
-//  				}
-//  			});
-//
-//  			$('#clear-page-category').on('click', function () {
-//  				Command.setProperty(entity.id, "category", null, false, function () {
-//  					blinkGreen(pageCategoryInput);
-//  					entity.category = null;
-//  					pageCategoryInput.val("");
-//  				});
-//  			});
-//
-//  		});
-//
-//  		return tab;
-		},
-		resetTab: function(element) {
-//
-//  		element.children('input').hide();
-//  		element.children('.name_').show();
-//
-//  		var icons = $('.button', element);
-//  		var autoRefreshSelector = $('.auto-refresh', element);
-//
-//  		element.hover(function(e) {
-//  			icons.showInlineBlock();
-//  			autoRefreshSelector.showInlineBlock();
-//  		}, function(e) {
-//  			icons.hide();
-//  			autoRefreshSelector.hide();
-//  		});
-//
-//  		element.on('click', function(e) {
-//  			e.stopPropagation();
-//  			var self = $(this);
-//  			var clicks = e.originalEvent.detail;
-//  			if (clicks === 1) {
-//  				if (self.hasClass('active')) {
-//  					_Pages.makeTabEditable(self);
-//  				} else {
-//  					_Pages.activatePage(self);
-//  				}
-//  			}
-//  		});
-//
-//  		if (element.prop('id').substring(5) === activeTab) {
-//  			_Pages.activatePage(element);
-//  		}
-  	    },
 	}
 };

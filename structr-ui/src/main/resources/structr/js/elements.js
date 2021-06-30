@@ -703,7 +703,6 @@ var _Elements = {
 			_Entities.reloadChildren(entityToLinkTo.parent.id);
 
 			$('#dialogBox .dialogText').empty();
-			_Pages.reloadPreviews();
 
 			$.unblockUI({
 				fadeOut: 25
@@ -1033,6 +1032,10 @@ var _Elements = {
 				});
 
 				appendSeparator();
+			}
+
+			// allow "Remove Node" on first level children of page
+			if (!isPage && entity.parent !== null) {
 
 				elements.push({
 					name: 'Remove Node',
@@ -1041,6 +1044,9 @@ var _Elements = {
 						return false;
 					}
 				});
+			}
+
+			if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page')) {
 
 				elements.push({
 					name: 'Clone Node',
@@ -1458,81 +1464,93 @@ var _Elements = {
 
 		appendSeparator();
 
-		elements.push({
-			name: 'Delete ' + entity.type,
-			clickHandler: () => {
+		if (!Structr.isModuleActive(_Pages) || (Structr.isModuleActive(_Pages) && isPage)) {
+			elements.push({
+				name: 'Delete ' + entity.type,
+				clickHandler: () => {
 
-				if (isContent || isFile || isUser || isGroup) {
-					_Entities.deleteNode(this, entity);
-				} else if (isFile) {
-					_Entities.deleteNode(this, entity);
-				} else if (isFolder) {
+					if (isContent || isFile || isUser || isGroup) {
+						_Entities.deleteNode(this, entity);
+					} else if (isFile) {
+						_Entities.deleteNode(this, entity);
+					} else if (isFolder) {
 
-					let selectedElements = document.querySelectorAll('.node.selected');
-					let selectedCount = selectedElements.length;
-					let el = Structr.node(entity.id)[0].closest('.folder');
-					if (selectedCount > 1 && el.classList.contains('selected')) {
+						let selectedElements = document.querySelectorAll('.node.selected');
+						let selectedCount = selectedElements.length;
+						let el = Structr.node(entity.id)[0].closest('.folder');
+						if (selectedCount > 1 && el.classList.contains('selected')) {
 
-						let files = [];
+							let files = [];
 
-						selectedElements.forEach((el) => {
-							files.push(Structr.entityFromElement(el));
-						});
+							selectedElements.forEach((el) => {
+								files.push(Structr.entityFromElement(el));
+							});
 
-						_Entities.deleteNodes(this, files, true, () => {
-							_Files.refreshTree();
-						});
+							_Entities.deleteNodes(this, files, true, () => {
+								_Files.refreshTree();
+							});
 
-					} else {
-						_Entities.deleteNode(this, entity, true, () => {
-							_Files.refreshTree();
-						});
-					}
-				} else if (isMailTemplate) {
-
-					_Entities.deleteNode(this, entity, false, () => {
-						if (LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey) && LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey) === entity.id) {
-							LSWrapper.removeItem(_MailTemplates.mailTemplateSelectedElementKey);
-						}
-						let row = Structr.node(entity.id, '#mail-template-');
-						if (row) {
-							row.remove();
-							// _MailTemplates.clearMailTemplateDetails();
-							_MailTemplates.checkMainVisibility();
-						}
-
-					});
-
-				} else if (isLocalization) {
-					let keyAndDomainObject = entity;
-					if (true === confirm('Do you really want to delete the complete localizations for "' + keyAndDomainObject.name + '"' + (keyAndDomainObject.domain ? ' in domain "' + keyAndDomainObject.domain + '"' : ' with empty domain') + ' ?')) {
-						_Localization.deleteCompleteLocalization((keyAndDomainObject.name ? keyAndDomainObject.name : null), (keyAndDomainObject.domain ? keyAndDomainObject.domain : null), this);
-					}
-				} else if (isContentContainer) {
-					_Entities.deleteNode(this, entity, true, function() {
-						_Contents.refreshTree();
-					});
-				} else if (isContentItem) {
-					_Entities.deleteNode(this, entity);
-				} else {
-					_Entities.deleteNode(this, entity, true, () => {
-						var synced = entity.syncedNodesIds;
-						if (synced && synced.length) {
-							synced.forEach(function (id) {
-								var el = Structr.node(id);
-								if (el && el.children && el.children.length) {
-									var newSpriteClass = _Icons.getSpriteClassOnly(_Icons.brick_icon);
-									el.children('i.typeIcon').each(function (i, el) {
-										_Icons.updateSpriteClassTo(el, newSpriteClass);
-									});
-								}
+						} else {
+							_Entities.deleteNode(this, entity, true, () => {
+								_Files.refreshTree();
 							});
 						}
-					});
+					} else if (isMailTemplate) {
+
+						_Entities.deleteNode(this, entity, false, () => {
+							if (LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey) && LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey) === entity.id) {
+								LSWrapper.removeItem(_MailTemplates.mailTemplateSelectedElementKey);
+							}
+							let row = Structr.node(entity.id, '#mail-template-');
+							if (row) {
+								row.remove();
+								// _MailTemplates.clearMailTemplateDetails();
+								_MailTemplates.checkMainVisibility();
+							}
+
+						});
+
+					} else if (isLocalization) {
+						let keyAndDomainObject = entity;
+						if (true === confirm('Do you really want to delete the complete localizations for "' + keyAndDomainObject.name + '"' + (keyAndDomainObject.domain ? ' in domain "' + keyAndDomainObject.domain + '"' : ' with empty domain') + ' ?')) {
+							_Localization.deleteCompleteLocalization((keyAndDomainObject.name ? keyAndDomainObject.name : null), (keyAndDomainObject.domain ? keyAndDomainObject.domain : null), this);
+						}
+					} else if (isContentContainer) {
+						_Entities.deleteNode(this, entity, true, function() {
+							_Contents.refreshTree();
+						});
+					} else if (isContentItem) {
+						_Entities.deleteNode(this, entity);
+					} else {
+						_Entities.deleteNode(this, entity, true, () => {
+							var synced = entity.syncedNodesIds;
+							if (synced && synced.length) {
+								synced.forEach(function (id) {
+									var el = Structr.node(id);
+									if (el && el.children && el.children.length) {
+										var newSpriteClass = _Icons.getSpriteClassOnly(_Icons.brick_icon);
+										el.children('i.typeIcon').each(function (i, el) {
+											_Icons.updateSpriteClassTo(el, newSpriteClass);
+										});
+									}
+								});
+							}
+						});
+					}
+					return false;
 				}
-				return false;
-			}
-		});
+			});
+		}
+
+		if (isPage) {
+			elements.push({
+				name: 'Configure Page Preview',
+				clickHandler: function () {
+					_Pages.previews.configurePreview(entity);
+					return false;
+				}
+			});
+		}
 
 		appendSeparator();
 
@@ -1901,7 +1919,6 @@ var _Elements = {
 
 				Command.patch(entity.id, text1, text2, function () {
 					Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
-					_Pages.reloadPreviews();
 					dialogSaveButton.prop('disabled', true).addClass('disabled');
 					saveAndClose.prop('disabled', true).addClass('disabled');
 					Command.getProperty(entity.id, 'content', function (newText) {
@@ -1930,7 +1947,6 @@ var _Elements = {
 
 			entity.setProperty('contentType', contentType, false, function() {
 				blinkGreen(select);
-				_Pages.reloadPreviews();
 			});
 		});
 

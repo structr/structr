@@ -326,7 +326,7 @@ $(function() {
 		return false;
 	});
 
-	live('#closeDialog', 'click', (e) => { console.log('test')
+	live('#closeDialog', 'click', (e) => {
 		document.querySelector('#dialogBox .closeButton').click();
 		return false;
 	});

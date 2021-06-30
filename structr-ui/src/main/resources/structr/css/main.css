@@ -256,7 +256,7 @@ input[type="checkbox"] {
 
 #header {
 	height: 4rem;
-	/*font-size: 1.25em;*/
+	font-size: 1.25em;
 	background: var(--header-bg-dark);
 }
 
@@ -940,7 +940,7 @@ img.disabled {
 	margin: 0;
 }
 
-#previewTabs > li, #tabs > ul > li, .data-tabs > ul > li, .files-tabs > ul > li, .code-tabs > ul > li, .favs-tabs > ul > li, .dialogHeaderWrapper > ul > li, .tabs-menu > li  {
+#previewTabs > li, #tabs > ul > li, .data-tabs > ul > li, .files-tabs > ul > li, .code-tabs > ul > li, .favs-tabs > ul > li, .dialogHeaderWrapper > ul > li  {
 	/*vertical-align: middle;*/
 	line-height: 2rem;
 	/*border-top: 1px solid var(--black-opacity-125);*/
@@ -962,6 +962,19 @@ img.disabled {
 	position: relative;
 	z-index: 1;
 }
+
+.tabs-menu > li  {
+	line-height: 2rem;
+	cursor: pointer ! important;
+	list-style-type: none;
+	display: inline-block;
+	padding: .5rem 0 0 0 ! important;
+	font-weight: 500;
+	height: 2rem;
+	position: relative;
+	z-index: 1;
+}
+
 #previewTabs > li.active, #tabs > ul > li.active, .data-tabs > ul > li.active, .files-tabs > ul > li.active, .code-tabs > ul > li.active, .favs-tabs > ul > li.active, .dialogHeaderWrapper > ul > li.active, .tabs-menu > li.active {
 	/*box-shadow: 0 -3px 3px -3px var(--gray-opacity-10), 3px 0px 3px -3px var(--gray-opacity-10), -3px 0px 3px -3px var(--gray-opacity-10), 0 1px 0px var(--solid-white);*/
 	/*box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);*/
@@ -2535,13 +2548,6 @@ table.push {
 
 .tabs-menu > li a {
 	text-decoration: none;
-	display: block;
-	height: 100%;
-	width: 100%;
-	padding: 0 1rem;
-}
-
-#tabs > ul li span {
 	display: block;
 	height: 100%;
 	width: 100%;
@@ -4411,11 +4417,11 @@ table.props td.key {
 	/*color: var(--gray-333);*/
 	/*line-height: 1.7em;*/
 	border: 1px solid transparent;
-	padding: .5rem 1rem .25rem 1rem;
-	margin-bottom: .25rem;
+	padding: .25rem 1rem;
+	margin: .25rem;
 	background-color: var(--gray-bg);
 	border-radius: .5rem;
-	min-width: 6rem;
+	min-width: 7rem;
 	display: inline-block;
 }
 
@@ -4451,8 +4457,9 @@ table.props td.key {
 
 .props td i.remove,
 .resourceBox td i.remove {
-	margin: 4px 0 0px 4px;
-	vertical-align: top;
+	position: absolute;
+	right: .75rem;
+	top: .75rem;
 }
 
 .resourceBox div.node i.add:hover, .resourceBox td i.add:hover, .props td i.add:hover,
