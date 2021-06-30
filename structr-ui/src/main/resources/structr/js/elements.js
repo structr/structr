@@ -1464,7 +1464,8 @@ var _Elements = {
 
 		appendSeparator();
 
-		if (!Structr.isModuleActive(_Pages) || (Structr.isModuleActive(_Pages) && isPage)) {
+		if (!Structr.isModuleActive(_Pages) || (Structr.isModuleActive(_Pages) && (isPage || !entity.parent))) {
+
 			elements.push({
 				name: 'Delete ' + entity.type,
 				clickHandler: () => {
