@@ -122,7 +122,7 @@ var _Pages = {
 //			$('#activeElementsTab').on('click', function () {
 //				_Pages.leftSlideoutTrigger(this, activeElementsSlideout, [pagesSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function (params) {
 //					if (params.isOpenAction) {
-//						_Pages.refreshActiveElements();
+//						_Pages.activeelements.refreshActiveElements();
 //					}
 //					_Pages.resize();
 //				}, _Pages.slideoutClosedCallback);
@@ -793,74 +793,6 @@ var _Pages = {
 		}
 
 	},
-	refreshActiveElements: function() {
-		var id = activeTab;
-
-		_Entities.activeElements = {};
-
-		var activeElementsContainer = $('#activeElements div.inner');
-		activeElementsContainer.empty().attr('id', 'id_' + id);
-
-		if (_Pages.isPageTabPresent(id)) {
-
-			Command.listActiveElements(id, function(result) {
-				if (result.length > 0) {
-					result.forEach(function(activeElement) {
-						_Entities.handleActiveElement(activeElement);
-					});
-				} else {
-					activeElementsContainer.append('<br>Page does not contain any active elements.');
-				}
-			});
-
-		} else {
-			activeElementsContainer.append('<br>Unable to show active elements - no preview loaded.<br><br');
-		}
-	},
-	/**
-	 * simply checks if the preview tab for that id is visible. if it is not, the preview can not be shown
-	 */
-	isPageTabPresent: function(id) {
-		return document.getElementById('preview_' + id) !== null;
-	},
-//	makeTabEditable: function(element) {
-//
-//		let id = element.prop('id').substring(5);
-//
-//		element.off('hover');
-//		let oldName = $.trim(element.children('b.name_').attr('title'));
-//		element.children('b').hide();
-//		element.find('.button').hide();
-//		let input = $('input.new-name', element);
-//
-//		if (!input.length) {
-//			element.append('<input type="text" size="' + (oldName.length + 4) + '" class="new-name" value="' + oldName + '">');
-//			input = $('input', element);
-//		}
-//
-//		input.show().focus().select();
-//
-//		let saveFn = (self) => {
-//			let newName = self.val();
-//			Command.setProperty(id, "name", newName);
-//			_Pages.resetTab(element, newName);
-//		};
-//
-//		input.off('blur').on('blur', function() {
-//			input.off('blur');
-//			saveFn($(this));
-//		});
-//
-//		input.off('keypress').on('keypress', function(e) {
-//			if (e.keyCode === 13 || e.keyCode === 9) {
-//				e.stopPropagation();
-//				input.off('blur');
-//				saveFn($(this));
-//			}
-//		});
-//
-//		element.off('click');
-//	},
 	appendPageElement: function(entity) {
 
 		entity = StructrModel.ensureObject(entity);
@@ -1099,7 +1031,7 @@ var _Pages = {
 		let localizationsContainer = $('#localizations div.inner div.results');
 		localizationsContainer.empty().attr('id', 'id_' + id);
 
-		if (_Pages.isPageTabPresent(id)) {
+		if (_Pages.previews.isPreviewForActiveForPage(id)) {
 
 			let localeInput = $('#localizations input.locale');
 			let locale      = localeInput.val();
@@ -1112,7 +1044,7 @@ var _Pages = {
 			let detailObjectId = LSWrapper.getItem(_Pages.detailsObjectIdKey + id);
 			let queryString    = LSWrapper.getItem(_Pages.requestParametersKey + id);
 
-			Command.listLocalizations(id, locale, detailObjectId, queryString, function(result) {
+			Command.listLocalizations(id, locale, detailObjectId, queryString, function (result) {
 
 				$('#localizations .page').prop('id', 'id_' + id);
 
@@ -1485,8 +1417,14 @@ var _Pages = {
 			_Pages.previews.showPreviewInIframe(_Pages.previews.activePreviewPage, _Pages.previews.activePreviewHighlightElement);
 		},
 
+		isPreviewForActiveForPage: (pageId) => {
+
+			return (_Pages.previews.activePreviewPage === pageId);
+		},
+
 		modelForPageUpdated: (pageId) => {
-			if (_Pages.previews.activePreviewPage === pageId) {
+
+			if (_Pages.previews.isPreviewForActiveForPage(pageId)) {
 				_Pages.previews.reloadPreviewInIframe();
 			}
 		},
@@ -1602,8 +1540,8 @@ var _Pages = {
 					});
 				});
 			});
-
 		},
+
 	},
 	databinding: {
 		displayDataBinding: function(id) {
@@ -1650,6 +1588,32 @@ var _Pages = {
 				let id = $(this).children(':selected').attr('value');
 				_Pages.showTypeData(id);
 			});
+		},
+	},
+	activeelements: {
+		refreshActiveElements: function() {
+//			var id = activeTab;
+//
+//			_Entities.activeElements = {};
+//
+//			var activeElementsContainer = $('#activeElements div.inner');
+//			activeElementsContainer.empty().attr('id', 'id_' + id);
+//
+//			if (_Pages.previews.isPreviewForActiveForPage(id)) {
+//
+//				Command.listActiveElements(id, function(result) {
+//					if (result.length > 0) {
+//						result.forEach(function(activeElement) {
+//							_Entities.handleActiveElement(activeElement);
+//						});
+//					} else {
+//						activeElementsContainer.append('<br>Page does not contain any active elements.');
+//					}
+//				});
+//
+//			} else {
+//				activeElementsContainer.append('<br>Unable to show active elements - no preview loaded.<br><br');
+//			}
 		},
 	}
 };

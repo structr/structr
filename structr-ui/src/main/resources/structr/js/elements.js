@@ -1902,6 +1902,7 @@ var _Elements = {
 		});
 
 		if (saveButton) {
+
 			saveButton.addEventListener('click', (e) => {
 				e.stopPropagation();
 
