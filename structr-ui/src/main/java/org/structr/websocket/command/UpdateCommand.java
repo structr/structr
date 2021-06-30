@@ -23,6 +23,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Relationship;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -94,7 +95,6 @@ public class UpdateCommand extends AbstractCommand {
 
 						tx.success();
 						return;
-
 					}
 				}
 
@@ -121,28 +121,36 @@ public class UpdateCommand extends AbstractCommand {
 
 					while (iterator.hasNext() && count++ < 100) {
 
-						final GraphObject nodeOrRelationship = app.get(obj.getEntityType(), iterator.next());
-						nodeOrRelationship.setProperties(nodeOrRelationship.getSecurityContext(), properties);
+						final String uuid = iterator.next();
 
-						if (nodeOrRelationship.isNode()) {
-							TransactionCommand.registerNodeCallback((NodeInterface) obj, callback);
-						} else if (nodeOrRelationship.isRelationship()) {
-							TransactionCommand.registerRelCallback((RelationshipInterface) nodeOrRelationship, callback);
+						final NodeInterface nodeObj = app.getNodeById(uuid);
+						if (nodeObj != null) {
+
+							nodeObj.setProperties(nodeObj.getSecurityContext(), properties);
+
+							TransactionCommand.registerNodeCallback(nodeObj, callback);
+
+						} else {
+
+							final RelationshipInterface relObj = app.getRelationshipById(uuid);
+
+							if (relObj != null) {
+
+								relObj.setProperties(relObj.getSecurityContext(), properties);
+								TransactionCommand.registerRelCallback((RelationshipInterface) relObj, callback);
+							}
 						}
-
 					}
 
-					// commit and close transaction
 					tx.success();
 				}
-
 			}
 
 		} catch (FrameworkException ex) {
+
 			logger.warn("Exception occured", ex);
 			getWebSocket().send(MessageBuilder.status().code(ex.getStatus()).message(ex.getMessage()).build(), true);
 		}
-
 	}
 
 	@Override
@@ -154,7 +162,6 @@ public class UpdateCommand extends AbstractCommand {
 	public String getCommand() {
 
 		return "UPDATE";
-
 	}
 
 	private void collectEntities(final Set<String> entities, final GraphObject obj, final PropertyMap properties, final boolean rec) throws FrameworkException {
@@ -171,5 +178,4 @@ public class UpdateCommand extends AbstractCommand {
 			}
 		}
 	}
-
 }
