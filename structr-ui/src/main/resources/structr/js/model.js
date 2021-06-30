@@ -324,7 +324,7 @@ var StructrModel = {
 
 					attrElement.text(newValue);
 
-					if (Structr.isModuleActive(_Pages) && _Pages.isPageTabPresent(obj.pageId)) {
+					if (Structr.isModuleActive(_Pages) && _Pages.previews.isPreviewForActiveForPage(obj.pageId)) {
 						_Pages.previews.modelForPageUpdated(obj.pageId);
 					}
 				}
