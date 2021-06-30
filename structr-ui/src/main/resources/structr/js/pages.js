@@ -1354,6 +1354,18 @@ var _Pages = {
 			});
 		},
 
+		isPreviewActive: () => {
+
+			// only reload if the iframe is already present!
+			let iframe = _Pages.centerPane.querySelector('iframe');
+
+			if (iframe) {
+				return true;
+			}
+
+			return false;
+		},
+
 		showPreviewInIframe: (pageId, highlightElementId) => {
 
 			if (pageId) {
@@ -1403,29 +1415,28 @@ var _Pages = {
 				});
 			}
 		},
+		showPreviewInIframeIfVisible: (pageId, highlightElementId) => {
 
+			if (_Pages.previews.isPreviewActive()) {
+				_Pages.previews.showPreviewInIframe(pageId, highlightElementId);
+			}
+		},
 		reloadPreviewInIframe: function() {
 
-			// only reload if the iframe is already present!
-			let iframe = _Pages.centerPane.querySelector('iframe');
-
-			if (iframe) {
+			if (_Pages.previews.isPreviewActive()) {
 				_Pages.previews.showPreviewInIframe(_Pages.previews.activePreviewPageId, _Pages.previews.activePreviewHighlightElementId);
 			}
 		},
-
 		isPreviewForActiveForPage: (pageId) => {
 
 			return (_Pages.previews.activePreviewPageId === pageId);
 		},
-
 		modelForPageUpdated: (pageId) => {
 
 			if (_Pages.previews.isPreviewForActiveForPage(pageId)) {
 				_Pages.previews.reloadPreviewInIframe();
 			}
 		},
-
 //		clearIframeDroppables: function() {
 //
 //			let droppables = $.ui.ddmanager.droppables['default'];

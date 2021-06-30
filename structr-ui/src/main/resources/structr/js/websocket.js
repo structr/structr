@@ -457,13 +457,13 @@ function wsConnect() {
 
 						if (entity.createdBy === userId) {
 							setTimeout(function () {
-								_Pages.previews.showPreviewInIframe(entity.id);
+								_Pages.previews.showPreviewInIframeIfVisible(entity.id);
 							}, 1000);
 						}
 
 					} else if (entity.pageId) {
 
-						_Pages.previews.showPreviewInIframe(entity.pageId, entity.id);
+						_Pages.previews.showPreviewInIframeIfVisible(entity.pageId, entity.id);
 					}
 
 					StructrModel.callCallback(data.callback, entity);
