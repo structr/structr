@@ -516,13 +516,13 @@ var _Entities = {
 			queryTypes.unshift({ title: 'Flow', propertyName: 'flow' });
 		}
 
-		let queryTypeButtonsContainer = $(document.querySelector('.query-type-buttons'));
-		// el.append(queryTypeButtonsContainer);
+		let queryTypeButtonsContainer = $('.query-type-buttons', el);
+		//el.append(queryTypeButtonsContainer);
 
 		let queryHeading = $(document.querySelector('.query-type-heading'));
 
 		var textArea = $('<textarea class="hidden query-text"></textarea>').appendTo(el);
-		var flowSelector = $('#flow-selector');
+		var flowSelector = $('#flow-selector', el);
 
 		var initRepeaterInputs = function() {
 
@@ -562,7 +562,8 @@ var _Entities = {
 				}
 			});
 
-			var allButtons = $('.query-type-buttons button');
+			var allButtons = $('.query-type-buttons button', el);
+
 			allButtons.on('click', function () {
 				allButtons.removeClass('active');
 				var btn = $(this);
@@ -585,7 +586,6 @@ var _Entities = {
 			if ($('button.active', queryTypeButtonsContainer).length === 0) {
 				$('.query-type-buttons button:first', el).click();
 			}
-
 
 			flowSelector.on('change', function() {
 				saveBtn.click();
@@ -622,7 +622,6 @@ var _Entities = {
 					} else {
 						blinkGreen(saveBtn);
 					}
-					_Pages.reloadPreviews();
 				});
 			});
 
@@ -935,8 +934,19 @@ var _Entities = {
 
 						if (entity.isContent !== true || entity.type === 'Template') {
 
-							_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Repeater', !hasCustomDialog, function(c) {
-								_Entities.queryDialog(entity, c, typeInfo);
+							_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Repeater', !hasCustomDialog, function(element) {
+
+								Structr.fetchHtmlTemplate('pages/repeater', {}, (html) => {
+									element.append(html);
+
+									$('.inline-info', element).remove();
+
+									repeaterContainer = $('.repeater-container', element);
+									repeaterContainer.removeClass('content-container');
+
+									_Entities.repeaterConfig(obj, $(repeaterContainer));
+								});
+
 							}, function() { }, function() { });
 						}
 
@@ -1734,8 +1744,8 @@ var _Entities = {
 				input.data('changed', true);
 
 				if (pageId && pageId === activeTab) {
-					//console.log('reloading previews')
-					_Pages.reloadPreviews();
+//					_Pages.reloadPreviews();
+					console.log('reload preview?')
 				}
 			});
 
@@ -2119,7 +2129,8 @@ var _Entities = {
 		btn.on('click', function() {
 			Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
 				blinkGreen(inp);
-				_Pages.reloadPreviews();
+//				_Pages.reloadPreviews();
+				console.log('reload preview?')
 			});
 		});
 	},
@@ -2455,9 +2466,6 @@ var _Entities = {
 		el.closest('.node').children('.node-selector').addClass('active');
 
 		LSWrapper.setItem(_Entities.selectedObjectIdKey, id);
-
-		// _Pages.activatePage($('#show_' + id));
-
 	},
 	toggleElement: function(element, expanded) {
 
@@ -2571,7 +2579,8 @@ var _Entities = {
 
 				if (Structr.isModuleActive(_Pages)) {
 
-					_Pages.reloadPreviews();
+//					_Pages.reloadPreviews();
+					console.log('reload preview?');
 
 				} else if (Structr.isModuleActive(_Contents)) {
 

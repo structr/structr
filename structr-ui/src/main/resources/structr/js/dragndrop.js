@@ -294,7 +294,8 @@ var _Dragndrop = {
 				var type = tag.substring(1);
 				Command.setProperty(target.id, 'restQuery', type);
 				Command.setProperty(target.id, 'dataKey', type.toLowerCase(), false, function() {
-					_Pages.reloadPreviews();
+//					_Pages.reloadPreviews();
+					console.log('reload preview?');
 				});
 			} else {
 				return _Dragndrop.htmlElementFromPaletteDropped(tag, target, pageId);

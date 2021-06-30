@@ -703,7 +703,6 @@ var _Elements = {
 			_Entities.reloadChildren(entityToLinkTo.parent.id);
 
 			$('#dialogBox .dialogText').empty();
-			_Pages.reloadPreviews();
 
 			$.unblockUI({
 				fadeOut: 25
@@ -1033,6 +1032,10 @@ var _Elements = {
 				});
 
 				appendSeparator();
+			}
+
+			// allow "Remove Node" on first level children of page
+			if (!isPage && entity.parent !== null) {
 
 				elements.push({
 					name: 'Remove Node',
@@ -1041,6 +1044,9 @@ var _Elements = {
 						return false;
 					}
 				});
+			}
+
+			if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page')) {
 
 				elements.push({
 					name: 'Clone Node',
@@ -1536,6 +1542,16 @@ var _Elements = {
 			});
 		}
 
+		if (isPage) {
+			elements.push({
+				name: 'Configure Page Preview',
+				clickHandler: function () {
+					_Pages.previews.configurePreview(entity);
+					return false;
+				}
+			});
+		}
+
 		appendSeparator();
 
 		return elements;
@@ -1903,7 +1919,6 @@ var _Elements = {
 
 				Command.patch(entity.id, text1, text2, function () {
 					Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
-					_Pages.reloadPreviews();
 					dialogSaveButton.prop('disabled', true).addClass('disabled');
 					saveAndClose.prop('disabled', true).addClass('disabled');
 					Command.getProperty(entity.id, 'content', function (newText) {
@@ -1932,7 +1947,6 @@ var _Elements = {
 
 			entity.setProperty('contentType', contentType, false, function() {
 				blinkGreen(select);
-				_Pages.reloadPreviews();
 			});
 		});
 
