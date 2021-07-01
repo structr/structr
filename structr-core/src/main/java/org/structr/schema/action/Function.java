@@ -813,11 +813,11 @@ public abstract class Function<S, T> extends Hint {
 
 			} else if (o1 instanceof Boolean && o2 instanceof String) {
 
-				return compareBooleanString((Boolean)o1, (String)o2) == 0;
+				return compareBooleanStringEqual((Boolean)o1, (String)o2);
 
 			} else if (o1 instanceof String && o2 instanceof Boolean) {
 
-				return compareStringBoolean((String)o1, (Boolean)o2) == 0;
+				return compareBooleanStringEqual((String)o1, (Boolean)o2);
 
 			} else if (o1 instanceof Number && o2 instanceof String) {
 
@@ -894,6 +894,14 @@ public abstract class Function<S, T> extends Hint {
 
 	private int compareStringBoolean(final String o1, final Boolean o2) {
 		return Boolean.valueOf(o1).compareTo(o2);
+	}
+
+	private boolean compareBooleanStringEqual(final Boolean o1, final String o2) {
+		return o2.equals(o1.toString());
+	}
+
+	private boolean compareBooleanStringEqual(final String o1, final Boolean o2) {
+		return o1.equals(o2.toString());
 	}
 
 	private int compareNumberString(final Number o1, final String o2) {

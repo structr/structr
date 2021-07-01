@@ -1065,6 +1065,21 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid eq() result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(this.anEnum, 'One')}"));
 			assertEquals("Invalid eq() result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq('', '')}"));
 
+			// tests for eq(string, boolean) - only exact string matches for "true" and "false" should yield "is equal"
+			assertEquals("Invalid eq() result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(true, \"true\")}"));
+			assertEquals("Invalid eq() result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(\"true\", true)}"));
+			assertEquals("Invalid eq() result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(false, \"false\")}"));
+			assertEquals("Invalid eq() result", "true",  Scripting.replaceVariables(ctx, testOne, "${eq(\"false\", false)}"));
+			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(false, \"false \")}"));        // notice the space at the end - input strings are not trimmed!
+			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(true, \"true \")}"));          // notice the space at the end - input strings are not trimmed!
+			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(\"false \", false)}"));        // notice the space at the end - input strings are not trimmed!
+			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(\"true \", true)}"));          // notice the space at the end - input strings are not trimmed!
+			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(true, \"this is not true\")}"));
+			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(true, \"anything\")}"));
+			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(false, \"true\")}"));
+			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(true, \"false\")}"));
+			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(false, \"anything\")}"));
+
 			// eq with empty string and number
 			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq(3, '')}"));
 			assertEquals("Invalid eq() result", "false",  Scripting.replaceVariables(ctx, testOne, "${eq('', 12.3456)}"));
