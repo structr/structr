@@ -1089,49 +1089,51 @@ var _Files = {
 			selectedElements = parent;
 		}
 
-		Structr.dialog('Edit files', function() {
-		}, function() {
-		});
+		Structr.dialog('Edit files', function() {}, function() {});
 
 		dialogText.append('<div id="files-tabs" class="files-tabs"><ul></ul></div>');
 
-		var selectedCount = selectedElements.length;
-		$.each(selectedElements, function(i, el) {
-			if (_Files.isMinificationTarget(StructrModel.obj(Structr.getId(el)))) {
-				selectedCount--;
+		let filteredElements = [];
+		for (let el of selectedElements) {
+			let modelObj = StructrModel.obj(Structr.getId(el));
+			if (modelObj && !_Files.isMinificationTarget(modelObj) && modelObj.isFolder !== true) {
+				filteredElements.push(el);
 			}
-		});
+		}
 
-		$.each(selectedElements, function(i, el) {
+		let loadedEditors = 0;
 
-			if (!_Files.isMinificationTarget(StructrModel.obj(Structr.getId(el)))) {
+		for (let el of filteredElements) {
 
-				Command.get(Structr.getId(el), 'id,name,contentType,isTemplate', function(entity) {
-					$('#files-tabs ul').append('<li id="tab-' + entity.id + '">' + entity.name + '</li>');
-					$('#files-tabs').append('<div id="content-tab-' + entity.id + '"></div>');
+			let elId = Structr.getId(el);
 
-					$('#tab-' + entity.id).on('click', function(e) {
+			Command.get(elId, 'id,name,contentType,isTemplate', function (entity) {
 
-						e.stopPropagation();
+				loadedEditors++;
 
-						// Store current editor text
-						if (editor) {
-							fileContents[activeFileId] = editor.getValue();
-						}
+				$('#files-tabs ul').append('<li id="tab-' + entity.id + '">' + entity.name + '</li>');
+				$('#files-tabs').append('<div id="content-tab-' + entity.id + '"></div>');
 
-						activeFileId = Structr.getIdFromPrefixIdString($(this).prop('id'), 'tab-');
-						$('#content-tab-' + activeFileId).empty();
-						_Files.editContent(null, entity, $('#content-tab-' + activeFileId));
+				$('#tab-' + entity.id).on('click', function(e) {
+					e.stopPropagation();
 
-						return false;
-					});
-
-					if (i+1 === selectedCount) {
-						_Entities.activateTabs(file.id, '#files-tabs', '#content-tab-' + file.id, activeFileTabPrefix);
+					// Store current editor text
+					if (editor) {
+						fileContents[activeFileId] = editor.getValue();
 					}
+
+					activeFileId = entity.id;
+					$('#content-tab-' + activeFileId).empty();
+					_Files.editContent(null, entity, $('#content-tab-' + activeFileId));
+
+					return false;
 				});
-			}
-		});
+
+				if (loadedEditors === filteredElements.length) {
+					_Entities.activateTabs(file.id, '#files-tabs', '#content-tab-' + file.id, activeFileTabPrefix);
+				}
+			});
+		}
 	},
 	appendMinificationDialogIcon: function(parent, file) {
 
