@@ -834,14 +834,8 @@ var _Pages = {
 
 			// only on page nodes and if not clicked on expand/collapse icon
 			if (!self.classList.contains('expand_icon') && self.closest('.node').classList.contains('page')) {
-				let link = self.closest('.page').querySelector('b.name_').getAttribute('title');
 
-				let pagePath = entity.path ? entity.path.replace(/^\//, '') : link;
-
-				let detailsObject = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
-				let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '?' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
-
-				let url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + pagePath + detailsObject + requestParameters;
+				let url = _Pages.previews.getUrlForPage(entity);
 				window.open(url);
 			}
 		};
@@ -1366,6 +1360,27 @@ var _Pages = {
 			return false;
 		},
 
+		getUrlForPage: (entity) => {
+
+			let pagePath = entity.path ? entity.path.replace(/^\//, '') : entity.name;
+
+			let detailsObject = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
+			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '?' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
+
+			let url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + pagePath + detailsObject + requestParameters;
+
+			return url;
+		},
+
+		getUrlForPreview: (entity) => {
+			let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
+			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
+
+			let previewUrl        = viewRootUrl + entity.name + detailsObject + '?edit=2' + requestParameters;
+
+			return previewUrl;
+		},
+
 		showPreviewInIframe: (pageId, highlightElementId) => {
 
 			if (pageId) {
@@ -1376,10 +1391,6 @@ var _Pages = {
 				}
 
 				Command.get(pageId, 'id,name', function (pageObj) {
-
-					let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + pageId) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + pageId) : '');
-					let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + pageId) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + pageId) : '');
-					let previewUrl        = viewRootUrl + pageObj.name + detailsObject + '?edit=2' + requestParameters;
 
 					Structr.fetchHtmlTemplate('pages/preview', {}, (html) => {
 
@@ -1393,22 +1404,17 @@ var _Pages = {
 
 							_Pages.previews.previewIframeLoaded(iframe, highlightElementId);
 
-							let activatePreviewElementContainer = () => {
+							let doc       = iframe.contentDocument || iframe.contentWindow.document;
+							let previewEl = doc.querySelector('[data-structr-id="' + highlightElementId + '"]');
 
-								let doc       = iframe.contentDocument || iframe.contentWindow.document;
-								let previewEl = doc.querySelector('[data-structr-id="' + highlightElementId + '"]');
+							doc.querySelectorAll('.structr-element-container-selected').forEach((el) => {
+								el.classList.remove('structr-element-container-selected');
+							});
 
-								doc.querySelectorAll('.structr-element-container-selected').forEach((el) => {
-									el.classList.remove('structr-element-container-selected');
-								});
-
-								previewEl?.classList.add('structr-element-container-selected');
-							};
-
-							activatePreviewElementContainer();
+							previewEl?.classList.add('structr-element-container-selected');
 						}
 
-						iframe.src = previewUrl;
+						iframe.src = _Pages.previews.getUrlForPreview(pageObj);
 					});
 
 					_Pages.resize();

@@ -1034,18 +1034,6 @@ var _Elements = {
 				appendSeparator();
 			}
 
-			// allow "Remove Node" on first level children of page
-			if (!isPage && entity.parent !== null) {
-
-				elements.push({
-					name: 'Remove Node',
-					clickHandler: function () {
-						Command.removeChild(entity.id);
-						return false;
-					}
-				});
-			}
-
 			if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page')) {
 
 				elements.push({
@@ -1464,6 +1452,39 @@ var _Elements = {
 
 		appendSeparator();
 
+		if (isPage) {
+			elements.push({
+				name: 'Configure Page Preview',
+				clickHandler: function () {
+					_Pages.previews.configurePreview(entity);
+					return false;
+				}
+			});
+
+			elements.push({
+				name: 'Open Page in new tab',
+				clickHandler: function () {
+					let url = _Pages.previews.getUrlForPage(entity);
+					window.open(url);
+					return false;
+				}
+			});
+		}
+
+		// DELETE AREA - ALWAYS AT THE BOTTOM
+		// allow "Remove Node" on first level children of page
+		if (Structr.isModuleActive(_Pages) && !isPage && entity.parent !== null) {
+
+			elements.push({
+				name: 'Remove Node',
+				clickHandler: function () {
+					Command.removeChild(entity.id);
+					return false;
+				}
+			});
+		}
+
+		// "Delete <type>" should be visible everywhere... except in Pages: There it should only be visible for type===Page
 		if (!Structr.isModuleActive(_Pages) || (Structr.isModuleActive(_Pages) && (isPage || !entity.parent))) {
 
 			elements.push({
@@ -1538,16 +1559,6 @@ var _Elements = {
 							}
 						});
 					}
-					return false;
-				}
-			});
-		}
-
-		if (isPage) {
-			elements.push({
-				name: 'Configure Page Preview',
-				clickHandler: function () {
-					_Pages.previews.configurePreview(entity);
 					return false;
 				}
 			});
