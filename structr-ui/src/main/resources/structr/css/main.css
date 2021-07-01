@@ -3635,6 +3635,26 @@ i.fa-trash-o {
 	z-index: 99999;
 }
 
+.menu-entry-container {
+	display: flex;
+}
+
+.menu-entry-container > svg {
+	margin-right: 0.5rem;
+}
+
+.menu-entry-text {
+	flex-grow: 1;
+}
+
+#add-child-dialog .menu-bolder {
+	font-weight: 500;
+}
+
+#add-child-dialog .danger:hover {
+	background: var(--medium-red);
+}
+
 #add-child-dialog ul ul {
 	position: absolute;
 	list-style-type: none;

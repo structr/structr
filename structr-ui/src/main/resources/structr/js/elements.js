@@ -688,7 +688,17 @@ var _Elements = {
 					return;
 				}
 
-				var menuEntry = $('<li class="element-group-switch">' + element.name + '</li>');
+				let menuEntry        = $('<li class="element-group-switch"></li>');
+				let menuEntryContent = $('<span class="menu-entry-container">' + (element.icon || '') + '</span>');
+				let menuEntryText    = $('<span class="menu-entry-text">' + element.name + '</span>');
+
+				for (let cls of (element.classes || [])) {
+					menuEntry.addClass(cls);
+				}
+
+				menuEntryContent.append(menuEntryText);
+				menuEntry.append(menuEntryContent);
+
 				registerContextMenuItemClickHandler(menuEntry, element);
 				if (prepend) {
 					ul.prepend(menuEntry);
@@ -697,7 +707,7 @@ var _Elements = {
 				}
 
 				if (element.elements) {
-					menuEntry.append('<i class="fa fa-caret-right pull-right"></i>');
+					menuEntryContent.append('<i class="fa fa-caret-right pull-right"></i>');
 
 					var subListElement = $('<ul class="element-group ' + cssPositionClasses + '"></ul>');
 					menuEntry.append(subListElement);
@@ -1174,6 +1184,7 @@ var _Elements = {
 		appendSeparator();
 
 		elements.push({
+			icon: _Icons.svg.security,
 			name: 'Security',
 			elements: [
 				{
@@ -1322,6 +1333,7 @@ var _Elements = {
 
 		if (isPage) {
 			elements.push({
+				icon: _Icons.svg.page_settings,
 				name: 'Configure Page Preview',
 				clickHandler: function () {
 					_Pages.previews.configurePreview(entity);
@@ -1330,6 +1342,7 @@ var _Elements = {
 			});
 
 			elements.push({
+				icon: _Icons.svg.page_open,
 				name: 'Open Page in new tab',
 				clickHandler: function () {
 					let url = _Pages.previews.getUrlForPage(entity);
@@ -1344,7 +1357,8 @@ var _Elements = {
 		if (Structr.isModuleActive(_Pages) && !isPage && entity.parent !== null) {
 
 			elements.push({
-				//name: _Icons.svg.trashcan + ' <b>Remove Node</b>',
+				icon: _Icons.svg.trashcan,
+				classes: ['menu-bolder', 'danger'],
 				name: 'Remove Node',
 				clickHandler: function () {
 					Command.removeChild(entity.id, () => {
@@ -1359,6 +1373,8 @@ var _Elements = {
 		if (!Structr.isModuleActive(_Pages) || (Structr.isModuleActive(_Pages) && (isPage || !entity.parent))) {
 
 			elements.push({
+				icon: _Icons.svg.trashcan,
+				classes: ['menu-bolder', 'danger'],
 				name: 'Delete ' + entity.type,
 				clickHandler: () => {
 
