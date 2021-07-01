@@ -240,7 +240,20 @@ var _Crud = {
 					let visibleTypes = $('#crud-types-list .crud-type:not(.hidden)');
 
 					if (visibleTypes.length === 1) {
+
 						_Crud.typeSelected(visibleTypes.data('type'));
+
+					} else {
+
+						let filterVal = $(this).val().toLowerCase();
+
+						let matchingTypes = Object.keys(_Crud.types).filter(function(type) {
+							return type.toLowerCase() === filterVal;
+						});
+
+						if (matchingTypes.length === 1) {
+							_Crud.typeSelected(matchingTypes[0]);
+						}
 					}
 				}
 
