@@ -2228,16 +2228,7 @@ var _Entities = {
 			el.children('.typeIcon').addClass('typeIcon-nochildren');
 		}
 
-		$(el).on('click', function(e) {
-			if (!e.isPropagationStopped()) {
-				e.stopPropagation();
-				_Entities.selectedObject = entity;
-				_Entities.selectElement($(this).closest('.node'));
-				_Pages.refreshCenterPane(entity);
-				return false;
-			}
-		});
-
+		_Pages.registerDetailClickHandler($(el), entity);
 	},
 	removeExpandIcon: function(el) {
 		if (!el)

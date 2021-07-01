@@ -985,18 +985,18 @@ StructrContent.prototype.append = function(refId) {
 
 		StructrModel.expand(div, this);
 
-		if (parent) {
-
-			$('.button', div).on('mousedown', function(e) {
-				e.stopPropagation();
-			});
-
-			$('.delete_icon', div).replaceWith('<i title="Remove content element from parent ' + parentId + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_content_icon) + '" />');
-			$('.delete_icon', div).on('click', function(e) {
-				e.stopPropagation();
-				Command.removeChild(id);
-			});
-		}
+//		if (parent) {
+//
+//			$('.button', div).on('mousedown', function(e) {
+//				e.stopPropagation();
+//			});
+//
+//			$('.delete_icon', div).replaceWith('<i title="Remove content element from parent ' + parentId + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_content_icon) + '" />');
+//			$('.delete_icon', div).on('click', function(e) {
+//				e.stopPropagation();
+//				Command.removeChild(id);
+//			});
+//		}
 
 		_Entities.setMouseOver(div);
 	}

@@ -84,7 +84,6 @@ var _Dragndrop = {
 						if (obj.isFile) {
 
 							Command.favorites('add', sourceId, function() {
-
 								blinkGreen(Structr.node(sourceId));
 							});
 
@@ -124,7 +123,7 @@ var _Dragndrop = {
 				}
 
 				if (!target) {
-					// synthetize target with id only
+					// synthesize target with id only
 					target = {id: targetId};
 				}
 

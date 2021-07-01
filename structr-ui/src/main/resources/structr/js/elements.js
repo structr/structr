@@ -473,8 +473,6 @@ var _Elements = {
 			});
 		}
 
-		// div.append('<div class="node-selector"></div>');
-
 		return div;
 	},
 	getElementIcon:function(element) {
@@ -1518,15 +1516,7 @@ var _Elements = {
 
 		_Elements.enableContextMenuOnElement(div, entity);
 
-		div.on('click', (e) => {
-			if (!e.isPropagationStopped()) {
-				e.stopPropagation();
-				_Entities.selectedObject = entity;
-				_Entities.selectElement(div.closest('.node'));
-				_Pages.refreshCenterPane(entity);
-				return false;
-			}
-		});
+		_Pages.registerDetailClickHandler(div, entity);
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 

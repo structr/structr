@@ -818,8 +818,6 @@ var _Pages = {
 		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.page_icon) + '" />'
 				+ '<b title="' + escapeForHtmlAttributes(entity.name) + '" class="name_ abbr-ellipsis abbr-75pc">' + pageName + '</b> <span class="id">' + entity.id + '</span>' + (entity.position ? ' <span class="position">' + entity.position + '</span>' : ''));
 
-		// div.append('<div class="node-selector"></div>')
-
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 		//_Entities.appendAccessControlIcon(div, entity);
 
@@ -851,6 +849,22 @@ var _Pages = {
 		return div;
 	},
 
+	registerDetailClickHandler: (element, entity) => {
+
+		if (element.data('clickhandlerSet') !== true) {
+
+			element.data('clickhandlerSet', true);
+
+			element.on('click', function(e) {
+				console.log('node clicked');
+
+				_Entities.selectedObject = entity;
+				_Entities.selectElement(element.closest('.node'));
+				_Pages.refreshCenterPane(entity);
+			});
+		}
+	},
+
 	saveInlineElement: function(el, callback) {
 		var self = $(el);
 		contentSourceId = self.attr('data-structr-id');
@@ -874,17 +888,17 @@ var _Pages = {
 			return false;
 		}
 
-		var parentId = entity.parent && entity.parent.id;
-		if (parentId) {
-			$('.delete_icon', div).replaceWith('<i title="Remove" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_brick_icon) + '" />');
-			$('.button', div).on('mousedown', function(e) {
-				e.stopPropagation();
-			});
-			$('.delete_icon', div).on('click', function(e) {
-				e.stopPropagation();
-				Command.removeChild(entity.id);
-			});
-		}
+//		var parentId = entity.parent && entity.parent.id;
+//		if (parentId) {
+//			$('.delete_icon', div).replaceWith('<i title="Remove" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_brick_icon) + '" />');
+//			$('.button', div).on('mousedown', function(e) {
+//				e.stopPropagation();
+//			});
+//			$('.delete_icon', div).on('click', function(e) {
+//				e.stopPropagation();
+//				Command.removeChild(entity.id);
+//			});
+//		}
 
 		_Dragndrop.makeDroppable(div);
 		_Dragndrop.makeSortable(div);
@@ -1209,7 +1223,7 @@ var _Pages = {
 							+ '.structr-editable-area { background-color: #ffe; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
 							+ '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; }\n'
 							+ '.link-hover { border: 1px solid #00c; }\n'
-							+ '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
+							//+ '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
 							/**
 							 * Fix for bug in Chrome preventing the modal dialog background
 							 * from being displayed if a page is shown in the preview which has the
@@ -1223,7 +1237,7 @@ var _Pages = {
 
 					var el = $(element);
 
-	//				_Dragndrop.makeDroppable(el, highlightElementId);
+//					_Dragndrop.makeDroppable(el, highlightElementId);
 
 					var structrId = el.attr('data-structr-id');
 					if (structrId) {
@@ -1239,8 +1253,10 @@ var _Pages = {
 								if (!selected) {
 									self.toggleClass('structr-element-container-selected');
 								}
+
 								_Entities.deselectAllElements();
 //								_Pages.databinding.displayDataBinding(structrId);
+
 								if (!Structr.node(structrId)) {
 									_Pages.expandTreeNode(structrId);
 								} else {
@@ -1249,6 +1265,7 @@ var _Pages = {
 										_Entities.highlightElement(treeEl);
 									}
 								}
+
 								LSWrapper.setItem(_Entities.selectedObjectIdKey, structrId);
 								return false;
 							},
