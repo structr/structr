@@ -1358,6 +1358,7 @@ i.link_icon {
 }
 
 .node-selector:hover, .node-selector.active {
+	pointer-events: none;
 	background-color: var(--structr-light-green-transparent);
 	position: absolute;
 	/*padding: .1rem 0 .1rem .1rem;*/
