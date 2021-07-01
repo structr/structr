@@ -858,7 +858,7 @@ StructrElement.prototype.remove = function() {
 		if (element) {
 			// If element is removed from page tree, reload elements area
 			if (element.closest('#pages').length) {
-				_Elements.reloadUnattachedNodes();
+				_Pages.unattachedNodes.reload();
 			} else {
 				let pageId = Structr.getIdFromPrefixIdString(element.closest('.page').id, 'id_');
 				_Pages.previews.modelForPageUpdated(pageId);
@@ -951,7 +951,7 @@ StructrContent.prototype.remove = function() {
 		if (element) {
 			// If element is removed from page tree, reload elements area
 			if (element.closest('#pages').length) {
-				_Elements.reloadUnattachedNodes();
+				_Pages.unattachedNodes.reload();
 			} else {
 				let pageId = Structr.getIdFromPrefixIdString(element.closest('.page').id, 'id_');
 				_Pages.previews.modelForPageUpdated(pageId);

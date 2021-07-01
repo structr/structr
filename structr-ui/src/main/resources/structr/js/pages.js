@@ -102,7 +102,7 @@ var _Pages = {
 			paletteSlideout = $('#palette');
 			componentsSlideout = $('#components');
 			elementsSlideout = $('#elements');
-			elementsSlideout.data('closeCallback', _Elements.clearUnattachedNodes);
+			elementsSlideout.data('closeCallback', _Pages.unattachedNodes.removeElementsFromUI);
 
 			var pagesTabSlideoutAction = function () {
 				_Pages.leftSlideoutTrigger(this, pagesSlideout, [/*activeElementsSlideout, dataBindingSlideout*/, localizationsSlideout], function (params) {
@@ -175,16 +175,16 @@ var _Pages = {
 			$('#paletteTab').on('click', function () {
 				_Pages.rightSlideoutClickTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], function (params) {
 					if (params.isOpenAction) {
-						_Elements.reloadPalette();
+						_Pages.palette.reload();
 					}
 					_Pages.resize();
 				}, _Pages.slideoutClosedCallback);
 			});
 
-			var componentsTabSlideoutAction = function () {
+			let componentsTabSlideoutAction = function () {
 				_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], function (params) {
 					if (params.isOpenAction) {
-						_Elements.reloadComponents();
+						_Pages.sharedComponents.reload();
 					}
 					_Pages.resize();
 				}, _Pages.slideoutClosedCallback);
@@ -201,7 +201,7 @@ var _Pages = {
 			$('#elementsTab').on('click', function () {
 				_Pages.rightSlideoutClickTrigger(this, elementsSlideout, [widgetsSlideout, paletteSlideout, componentsSlideout], function (params) {
 					if (params.isOpenAction) {
-						_Elements.reloadUnattachedNodes();
+						_Pages.unattachedNodes.reload();
 					}
 					_Pages.resize();
 				}, _Pages.slideoutClosedCallback);
@@ -1629,5 +1629,155 @@ var _Pages = {
 //				activeElementsContainer.append('<br>Unable to show active elements - no preview loaded.<br><br');
 //			}
 		},
+	},
+
+	palette: {
+		reload: () => {
+
+			paletteSlideout.find(':not(.slideout-activator)').remove();
+			paletteSlideout.append('<div id="paletteArea"></div>');
+			palette = $('#paletteArea', paletteSlideout);
+
+			if (!$('.draggable', palette).length) {
+
+				$(_Elements.elementGroups).each(function(i, group) {
+					palette.append('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
+					$(group.elements).each(function(j, elem) {
+						var div = $('#group_' + group.name);
+						div.append('<div class="draggable element" id="add_' + elem + '">' + elem + '</div>');
+						$('#add_' + elem, div).draggable({
+							iframeFix: true,
+							revert: 'invalid',
+							containment: 'body',
+							helper: 'clone',
+							appendTo: '#main',
+							stack: '.node',
+							zIndex: 99
+						});
+					});
+				});
+			}
+		},
+	},
+
+	sharedComponents: {
+		reload: () => {
+
+			if (!componentsSlideout) return;
+
+			Command.listComponents(1000, 1, 'name', 'asc', function(result) {
+
+				componentsSlideout.find(':not(.slideout-activator)').remove();
+
+				componentsSlideout.append('<div class="" id="newComponentDropzone"><div class="new-component-info"><i class="active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /><i class="inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> Drop element here to create<br>a new shared component</div></div>');
+				let newComponentDropzone = $('#newComponentDropzone', componentsSlideout);
+
+				componentsSlideout.append('<div id="componentsArea"></div>');
+				components = $('#componentsArea', componentsSlideout);
+
+				newComponentDropzone.droppable({
+					drop: function(e, ui) {
+						e.preventDefault();
+						e.stopPropagation();
+
+						if (ui.draggable.hasClass('widget')) {
+							// special treatment for widgets dragged to the shared components area
+
+						} else {
+							if (!shadowPage) {
+								// Create shadow page if not existing
+								Structr.getShadowPage(() => {
+									_Pages.sharedComponents.createNew(ui);
+								});
+							} else {
+								_Pages.sharedComponents.createNew(ui);
+							}
+						}
+					}
+				});
+
+				_Dragndrop.makeSortable(components);
+
+				_Elements.appendEntitiesToDOMElement(result, components);
+
+				Structr.refreshPositionsForCurrentlyActiveSortable();
+			});
+		},
+		createNew: function(el) {
+
+			dropBlocked = true;
+
+			let sourceEl = $(el.draggable);
+			let sourceId = Structr.getId(sourceEl);
+
+			if (!sourceId) {
+				return false;
+			}
+
+			let obj = StructrModel.obj(sourceId);
+
+			if (obj && obj.syncedNodesIds && obj.syncedNodesIds.length || sourceEl.parent().attr('id') === 'componentsArea') {
+				return false;
+			}
+
+			Command.createComponent(sourceId);
+
+			dropBlocked = false;
+		},
+	},
+
+	unattachedNodes: {
+		reload: () => {
+
+			if (elementsSlideout.hasClass('open')) {
+
+				_Pages.unattachedNodes.removeElementsFromUI();
+
+				elementsSlideout.append('<div id="elementsArea"></div>');
+				elements = $('#elementsArea', elementsSlideout);
+
+				elements.append('<button class="btn disabled" id="delete-all-unattached-nodes" disabled> Loading </button>');
+
+				let btn = $('#delete-all-unattached-nodes');
+				Structr.loaderIcon(btn, {
+					"max-height": "100%",
+					"height": "initial",
+					"width": "initial"
+				});
+
+				btn.on('click', function() {
+					Structr.confirmation('<p>Delete all DOM elements without parent?</p>',
+							function() {
+								Command.deleteUnattachedNodes();
+								$.unblockUI({
+									fadeOut: 25
+								});
+								Structr.closeSlideOuts([elementsSlideout], _Pages.slideoutClosedCallback);
+							});
+				});
+
+				_Dragndrop.makeSortable(elements);
+
+				Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(result) {
+
+					let count = result.length;
+					if (count > 0) {
+						btn.html(_Icons.svg.trashcan + ' Delete all (' + count + ')');
+						btn.removeClass('disabled');
+						btn.prop('disabled', false);
+					} else {
+						btn.text('No unused elements');
+					}
+
+					_Elements.appendEntitiesToDOMElement(result, elements);
+				});
+			}
+		},
+		removeElementsFromUI: () => {
+			elementsSlideout.find(':not(.slideout-activator)').remove();
+		},
+		blinkUI: () => {
+			blinkGreen('#elementsTab');
+		}
 	}
 };

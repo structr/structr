@@ -123,6 +123,9 @@ var _Icons = {
 	clock_icon: 'icon/clock.png',
 	folder_star_icon: 'icon/folder_star.png',
 
+	svg: {
+		trashcan: '<svg viewBox="0 0 16 16" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(0.6666666666666666,0,0,0.6666666666666666,0,0)"><path d="M1.5 4.5L22.5 4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25,1.5H9.75A1.5,1.5,0,0,0,8.25,3V4.5h7.5V3A1.5,1.5,0,0,0,14.25,1.5Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.75 17.25L9.75 9.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 17.25L14.25 9.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M18.865,21.124A1.5,1.5,0,0,1,17.37,22.5H6.631a1.5,1.5,0,0,1-1.495-1.376L3.75,4.5h16.5Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg>'
+	},
 
 	getFullSpriteClass: function (key) {
 

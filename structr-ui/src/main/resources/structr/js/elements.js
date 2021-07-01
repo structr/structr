@@ -253,136 +253,6 @@ var _Elements = {
 		audio    : [ 'source' ]
 	},
 	selectedEntity: undefined,
-	reloadPalette: function() {
-
-		paletteSlideout.find(':not(.slideout-activator)').remove();
-		paletteSlideout.append('<div id="paletteArea"></div>');
-		palette = $('#paletteArea', paletteSlideout);
-
-		if (!$('.draggable', palette).length) {
-
-			$(_Elements.elementGroups).each(function(i, group) {
-				palette.append('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
-				$(group.elements).each(function(j, elem) {
-					var div = $('#group_' + group.name);
-					div.append('<div class="draggable element" id="add_' + elem + '">' + elem + '</div>');
-					$('#add_' + elem, div).draggable({
-						iframeFix: true,
-						revert: 'invalid',
-						containment: 'body',
-						helper: 'clone',
-						appendTo: '#main',
-						stack: '.node',
-						zIndex: 99
-					});
-				});
-			});
-		}
-	},
-	reloadComponents: function() {
-
-		if (!componentsSlideout) return;
-
-		Command.listComponents(1000, 1, 'name', 'asc', function(result) {
-
-			componentsSlideout.find(':not(.slideout-activator)').remove();
-
-			componentsSlideout.append('<div class="" id="newComponentDropzone"><div class="new-component-info"><i class="active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /><i class="inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> Drop element here to create<br>a new shared component</div></div>');
-			let newComponentDropzone = $('#newComponentDropzone', componentsSlideout);
-
-			componentsSlideout.append('<div id="componentsArea"></div>');
-			components = $('#componentsArea', componentsSlideout);
-
-			newComponentDropzone.droppable({
-				drop: function(e, ui) {
-					e.preventDefault();
-					e.stopPropagation();
-
-					if (ui.draggable.hasClass('widget')) {
-						// special treatment for widgets dragged to the shared components area
-
-					} else {
-						if (!shadowPage) {
-							// Create shadow page if not existing
-							Structr.getShadowPage(() => {
-								_Elements.createComponent(ui);
-							});
-						} else {
-							_Elements.createComponent(ui);
-						}
-					}
-				}
-			});
-
-			_Dragndrop.makeSortable(components);
-
-			_Elements.appendEntitiesToDOMElement(result, components);
-			Structr.refreshPositionsForCurrentlyActiveSortable();
-		});
-	},
-	createComponent: function(el) {
-
-		dropBlocked = true;
-		var sourceEl = $(el.draggable);
-		var sourceId = Structr.getId(sourceEl);
-		if (!sourceId) return false;
-		var obj = StructrModel.obj(sourceId);
-		if (obj && obj.syncedNodesIds && obj.syncedNodesIds.length || sourceEl.parent().attr('id') === 'componentsArea') {
-			return false;
-		}
-		Command.createComponent(sourceId);
-		dropBlocked = false;
-
-	},
-	clearUnattachedNodes: function() {
-		elementsSlideout.find(':not(.slideout-activator)').remove();
-	},
-	reloadUnattachedNodes: function() {
-
-		if (elementsSlideout.hasClass('open')) {
-
-			_Elements.clearUnattachedNodes();
-
-			elementsSlideout.append('<div id="elementsArea"></div>');
-			elements = $('#elementsArea', elementsSlideout);
-
-			elements.append('<button class="btn disabled" id="delete-all-unattached-nodes" disabled> Loading </button>');
-
-			var btn = $('#delete-all-unattached-nodes');
-			Structr.loaderIcon(btn, {
-				"max-height": "100%",
-				"height": "initial",
-				"width": "initial"
-			});
-			btn.on('click', function() {
-				Structr.confirmation('<p>Delete all DOM elements without parent?</p>',
-						function() {
-							Command.deleteUnattachedNodes();
-							$.unblockUI({
-								fadeOut: 25
-							});
-							Structr.closeSlideOuts([elementsSlideout], _Pages.activeTabRightKey, _Pages.slideoutClosedCallback);
-						});
-			});
-
-			_Dragndrop.makeSortable(elements);
-
-			Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(result) {
-
-				var count = result.length;
-				if (count > 0) {
-					btn.html('<svg viewBox="0 0 16 16" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(0.6666666666666666,0,0,0.6666666666666666,0,0)"><path d="M1.5 4.5L22.5 4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25,1.5H9.75A1.5,1.5,0,0,0,8.25,3V4.5h7.5V3A1.5,1.5,0,0,0,14.25,1.5Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.75 17.25L9.75 9.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 17.25L14.25 9.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M18.865,21.124A1.5,1.5,0,0,1,17.37,22.5H6.631a1.5,1.5,0,0,1-1.495-1.376L3.75,4.5h16.5Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg> Delete all (' + count + ')');
-					btn.removeClass('disabled');
-					btn.prop('disabled', false);
-				} else {
-					btn.text('No unused elements');
-				}
-
-				_Elements.appendEntitiesToDOMElement(result, elements);
-			});
-		}
-
-	},
 	appendEntitiesToDOMElement: function (entities, domElement) {
 
 		entities.forEach(function(entity) {
@@ -1476,9 +1346,12 @@ var _Elements = {
 		if (Structr.isModuleActive(_Pages) && !isPage && entity.parent !== null) {
 
 			elements.push({
+				//name: _Icons.svg.trashcan + ' <b>Remove Node</b>',
 				name: 'Remove Node',
 				clickHandler: function () {
-					Command.removeChild(entity.id);
+					Command.removeChild(entity.id, () => {
+						_Pages.unattachedNodes.blinkUI();
+					});
 					return false;
 				}
 			});
