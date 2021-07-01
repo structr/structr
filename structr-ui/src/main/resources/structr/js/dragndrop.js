@@ -161,7 +161,7 @@ var _Dragndrop = {
 			helper: function (event, helperEl) {
 				pages.append('<div id="collapse-offset"></div>');
 				$('#collapse-offset', pages).css('height', helperEl.height() - 17);
-				helperEl.css({height: '17px'});
+				helperEl.css({height: '2rem'});
 				var hlp = helperEl.clone();
 				hlp.find('.node').remove();
 				hlp.find('.expand_icon').removeClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon)).addClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon));
