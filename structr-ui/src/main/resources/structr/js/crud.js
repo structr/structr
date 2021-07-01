@@ -459,10 +459,11 @@ var _Crud = {
 		var tableHeaderRow = $('#crud-type-detail table thead tr');
 		fastRemoveAllChildren(tableHeaderRow[0]);
 
+		tableHeaderRow.append('<th class="___action_header">Actions</th>');
+
 		_Crud.filterKeys(type, Object.keys(properties)).forEach(function(key) {
 			tableHeaderRow.append('<th class="' + _Crud.cssClassForKey(key) + '">' + key + '</th>');
 		});
-		tableHeaderRow.append('<th class="___action_header">Actions</th>');
 	},
 	updateTypeList: function () {
 
@@ -1851,6 +1852,7 @@ var _Crud = {
 		var row = _Crud.row(id);
 		row.empty();
 		if (properties) {
+			row.append('<td class="actions"><a title="Edit" class="edit"><i class="' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /></a><a title="Delete" class="delete"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /></a><a title="Access Control" class="security"><i class="' + _Icons.getFullSpriteClass(_Icons.key_icon) + '" /></a></td>');
 			_Crud.filterKeys(type, Object.keys(properties)).forEach(function(key) {
 				row.append('<td class="value ' + _Crud.cssClassForKey(key) + '"></td>');
 				var cells = _Crud.cells(id, key);
@@ -1858,7 +1860,6 @@ var _Crud = {
 					_Crud.populateCell(id, key, type, item[key], cell);
 				});
 			});
-			row.append('<td class="actions"><a title="Edit" class="edit"><i class="' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /></a><a title="Delete" class="delete"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /></a><a title="Access Control" class="security"><i class="' + _Icons.getFullSpriteClass(_Icons.key_icon) + '" /></a></td>');
 			_Crud.resize();
 
 			$('.actions .edit', row).on('click', function(event) {
