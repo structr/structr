@@ -207,6 +207,9 @@ var _Crud = {
 			$('#crud-recent-types').css({width: left - 12 + 'px'});
 		});
 	},
+	reloadList: () => {
+		_Crud.typeSelected(_Crud.type);
+	},
 	init: function() {
 
 		Structr.fetchHtmlTemplate('crud/menu', {}, function(html) {
@@ -784,9 +787,7 @@ var _Crud = {
 				th.append('Actions <i title="Configure columns" style="margin-left: 4px" class="' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" />');
 				$('i', th).on('click', function(event) {
 
-					_Crud.dialog('<h3>Configure columns for type ' + type + '</h3>', function() {
-					}, function() {
-					});
+					_Crud.dialog('<h3>Configure columns for type ' + type + '</h3>', function() { }, function() { });
 
 					$('div.dialogText').append('<table class="props" id="configure-' + type + '-columns"></table>');
 
@@ -834,15 +835,14 @@ var _Crud = {
 										});
 									});
 
-									dialogCloseButton = $('.closeButton', $('#dialogBox'));
+									let dialogCloseButton = $('.closeButton', $('#dialogBox'));
 									dialogCloseButton.on('click', function() {
-										location.reload();
+										_Crud.reloadList();
 									});
 								}
 							}
 						}
 					});
-
 				});
 
 			} else if (key !== 'Actions') {
@@ -1184,7 +1184,6 @@ var _Crud = {
 			clipboard.destroy();
 			$('#copyToClipboard', dialogBtn).remove();
 		});
-
 
 		var hiddenKeys             = _Crud.getHiddenKeys(type);
 		var acceptHeaderProperties = Object.keys(_Crud.keys[type]).filter(function(key) { return !hiddenKeys.includes(key); }).join(',');
