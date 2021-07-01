@@ -856,7 +856,6 @@ var _Pages = {
 			element.data('clickhandlerSet', true);
 
 			element.on('click', function(e) {
-				console.log('node clicked');
 
 				_Entities.selectedObject = entity;
 				_Entities.selectElement(element.closest('.node'));

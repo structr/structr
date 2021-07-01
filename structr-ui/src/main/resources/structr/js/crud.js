@@ -1495,16 +1495,15 @@ var _Crud = {
 			});
 
 			window.setTimeout(function() {
-				$.each(resp.errors, function(i, error) {
+				for (let error of resp.errors) {
 
-					var key = error.property;
-					var errorMsg = error.token;
+					let key      = error.property;
+					let errorMsg = error.token;
 
-					var input = $('td [name="' + key + '"]', dialogText);
+					let input = $('td [name="' + key + '"]', dialogText);
 					if (input.length) {
 
-						var errorText = '';
-						errorText += '"' + key + '" ' + errorMsg.replace(/_/gi, ' ');
+						let errorText = '"' + key + '" ' + errorMsg.replace(/_/gi, ' ');
 
 						if (error.detail) {
 							errorText += ' ' + error.detail;
@@ -1517,7 +1516,7 @@ var _Crud = {
 							borderColor: '#933'
 						});
 					}
-				});
+				}
 			}, 100);
 		}
 	},
@@ -1757,51 +1756,52 @@ var _Crud = {
 			}
 		});
 	},
-	populateForm: function(form, node) {
-		var fields = $('input', form);
-		form.attr('data-id', node.id);
-		$.each(fields, function(f, field) {
-			var value = formatValue(node[field.name]);
-			$('input[name="' + field.name + '"]').val(value);
-		});
-	},
+//	populateForm: function(form, node) {
+//		var fields = $('input', form);
+//		form.attr('data-id', node.id);
+//		console.log(fields);
+//		$.each(fields, function(f, field) {
+//			var value = formatValue(node[field.name]);
+//			$('input[name="' + field.name + '"]').val(value);
+//		});
+//	},
 	cells: function(id, key) {
 		var row = _Crud.row(id);
-		var cellInMainTable = $('.' + _Crud.cssClassForKey(key), row);
 
-		var cellInDetailsTable;
-		var table = $('#details_' + id);
-		if (table) {
-			cellInDetailsTable = $('.' + _Crud.cssClassForKey(key), table);
+		var cellInMainTable    = $('.' + _Crud.cssClassForKey(key), row);
+		var cellInDetailsTable = $('.' + _Crud.cssClassForKey(key), $('#details_' + id));
+
+		let result = [];
+
+		if (cellInMainTable && cellInMainTable.length > 0) {
+			result.push(cellInMainTable);
 		}
 
-		if (cellInMainTable && cellInMainTable.length && !(cellInDetailsTable && cellInDetailsTable.length)) {
-			return [cellInMainTable];
+		if (cellInDetailsTable && cellInDetailsTable.length > 0) {
+			result.push(cellInDetailsTable);
 		}
 
-		if (cellInDetailsTable && cellInDetailsTable.length && !(cellInMainTable && cellInMainTable.length)) {
-			return [cellInDetailsTable];
-		}
-
-		return [cellInMainTable, cellInDetailsTable];
+		return result;
 	},
 	resetCell: function(id, key, oldValue) {
-		var cells = _Crud.cells(id, key);
+		let cells = _Crud.cells(id, key);
 
-		$.each(cells, function(i, cell) {
+		for (let cell of cells) {
 			cell.empty();
 			_Crud.populateCell(id, key, _Crud.type, oldValue, cell);
-		});
+		}
 	},
 	refreshCell: function(id, key, newValue, type, oldValue) {
-		var cells = _Crud.cells(id, key);
-		$.each(cells, function(i, cell) {
+
+		let cells = _Crud.cells(id, key);
+
+		for (let cell of cells) {
 			cell.empty();
 			_Crud.populateCell(id, key, type, newValue, cell);
 			if (newValue !== oldValue && !(!newValue && oldValue === '')) {
 				blinkGreen(cell);
 			}
-		});
+		}
 	},
 	refreshRow: function(id, item, type) {
 		var row = _Crud.row(id);
@@ -1853,13 +1853,19 @@ var _Crud = {
 		row.empty();
 		if (properties) {
 			row.append('<td class="actions"><a title="Edit" class="edit"><i class="' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /></a><a title="Delete" class="delete"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /></a><a title="Access Control" class="security"><i class="' + _Icons.getFullSpriteClass(_Icons.key_icon) + '" /></a></td>');
-			_Crud.filterKeys(type, Object.keys(properties)).forEach(function(key) {
+
+			let filterKeys = _Crud.filterKeys(type, Object.keys(properties));
+
+			for (let key of filterKeys) {
+
 				row.append('<td class="value ' + _Crud.cssClassForKey(key) + '"></td>');
-				var cells = _Crud.cells(id, key);
-				$.each(cells, function(i, cell) {
+				let cells = _Crud.cells(id, key);
+
+				for (let cell of cells) {
 					_Crud.populateCell(id, key, type, item[key], cell);
-				});
-			});
+				}
+
+			}
 			_Crud.resize();
 
 			$('.actions .edit', row).on('click', function(event) {
@@ -2307,11 +2313,11 @@ var _Crud = {
 						if (result) {
 							if (Array.isArray(result)) {
 								if (result.length) {
-									$.each(result, function(i, node) {
+									for (let node of result) {
 										if (!blacklistedIds.includes(node.id)) {
 											_Crud.searchResult(searchResults, type, node, onClickCallback);
 										}
-									});
+									}
 								} else {
 									_Crud.noResults(searchResults, type);
 								}
@@ -2686,9 +2692,9 @@ var _Crud = {
 
 				dialogText.html('<table class="props" id="details_' + node.id + '"><tr><th>Name</th><th>Value</th>');
 
-				var table = $('table', dialogText);
+				let table = $('table', dialogText);
 
-				var keys;
+				let keys;
 				if (_Crud.keys[type]) {
 					keys = Object.keys(_Crud.keys[type]);
 				}
@@ -2697,9 +2703,13 @@ var _Crud = {
 					keys = Object.keys(node);
 				}
 
-				$.each(keys, function(i, key) {
-					table.append('<tr><td class="key"><label for="' + key + '">' + key + '</label></td><td class="__value ' + _Crud.cssClassForKey(key) + '"></td>');
-					var cell = $('.' + _Crud.cssClassForKey(key), table);
+				for (let key of keys) {
+
+					let cssClassForKey = _Crud.cssClassForKey(key);
+
+					table.append('<tr><td class="key"><label for="' + key + '">' + key + '</label></td><td class="__value ' + cssClassForKey + '"></td>');
+					let cell = $('.' + cssClassForKey, table);
+
 					if (_Crud.isCollection(key, type)) {
 						_Crud.appendPerCollectionPager(cell.prev('td'), type, key, function() {
 							_Crud.showDetails(n, typeParam);
@@ -2711,7 +2721,7 @@ var _Crud = {
 					} else {
 						_Crud.populateCell(null, key, type, null, cell);
 					}
-				});
+				}
 
 				if (node && node.isImage) {
 					dialogText.prepend('<div class="img"><div class="wrap"><img class="thumbnailZoom" src="/' + node.id + '"></div></div>');
