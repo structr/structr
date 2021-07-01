@@ -1292,6 +1292,17 @@ span.id {
 	margin-left: 16px ! important;
 }*/
 
+.expand_icon_svg {
+	position: absolute;
+	cursor: pointer;
+	z-index: 2;
+	width: 1.2rem;
+	height: 1.2rem;
+	transform: scale(0.75);
+	top: 0.4rem;
+	left: 0.1rem;
+}
+
 .expand_icon {
 	position: absolute;
 	z-index: 2;
@@ -4220,6 +4231,13 @@ dl.help-definitions dd {
 }
 .tab-group i.expanded {
 	display: inline-block;
+}
+
+i.svg-collapsed {
+	background-image: url('../icon/streamline-icon-arrow-button-right-2@16x16.svg');
+}
+i.svg-expanded {
+	background-image: url('../icon/streamline-icon-arrow-button-down-2@16x16.svg');
 }
 
 .tab-group.collapsed i.collapsed {

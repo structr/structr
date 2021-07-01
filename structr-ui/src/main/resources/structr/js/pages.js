@@ -831,7 +831,7 @@ var _Pages = {
 			let self = e.target;
 
 			// only on page nodes and if not clicked on expand/collapse icon
-			if (!self.classList.contains('expand_icon') && self.closest('.node').classList.contains('page')) {
+			if (!self.classList.contains('expand_icon_svg') && self.closest('.node').classList.contains('page')) {
 
 				let url = _Pages.previews.getUrlForPage(entity);
 				window.open(url);

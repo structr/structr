@@ -772,7 +772,7 @@ var _Entities = {
 								Structr.showAndHideInfoBoxMessage('Node source saved and DOM tree rebuilt.', 'success', 2000, 200);
 
 								if (_Entities.isExpanded(Structr.node(entity.id))) {
-									$('.expand_icon', Structr.node(entity.id)).click().click();
+									$('.expand_icon_svg', Structr.node(entity.id)).click().click();
 								}
 							}
 						});
@@ -2191,7 +2191,7 @@ var _Entities = {
 	},
 	appendExpandIcon: function(el, entity, hasChildren, expanded) {
 
-		var button = $(el.children('.expand_icon').first());
+		var button = $(el.children('.expand_icon_svg').first());
 		if (button && button.length) {
 			return;
 		}
@@ -2199,13 +2199,13 @@ var _Entities = {
 		if (hasChildren) {
 
 			var typeIcon = $(el.children('.typeIcon').first());
-			var icon = expanded ? _Icons.expanded_icon : _Icons.collapsed_icon;
+			var icon = expanded ? _Icons.expandedClass : _Icons.collapsedClass;
 
 			var displayName = getElementDisplayName(entity);
 
-			typeIcon.removeClass('typeIcon-nochildren').before('<i title="Expand ' + displayName + '" class="expand_icon ' + _Icons.getFullSpriteClass(icon) + '" />');
+			typeIcon.removeClass('typeIcon-nochildren').before('<i title="Expand ' + displayName + '" class="expand_icon_svg ' + icon + '" />');
 
-			button = $(el.children('.expand_icon').first());
+			button = $(el.children('.expand_icon_svg').first());
 
 			if (button) {
 
@@ -2233,7 +2233,7 @@ var _Entities = {
 	removeExpandIcon: function(el) {
 		if (!el)
 			return;
-		var button = $(el.children('.expand_icon').first());
+		var button = $(el.children('.expand_icon_svg').first());
 
 		// unregister click handlers
 		$(el).off('click');
@@ -2335,11 +2335,11 @@ var _Entities = {
 		}
 	},
 	isExpanded: function(element) {
-		var b = $(element).children('.expand_icon').first();
+		var b = $(element).children('.expand_icon_svg').first();
 		if (!b) {
 			return false;
 		}
-		return b.hasClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon));
+		return b.hasClass(_Icons.expandedClass);
 	},
 	ensureExpanded: function(element, callback, force = false) {
 		if (!element) {
@@ -2360,9 +2360,9 @@ var _Entities = {
 			Command.children(id, callback);
 			var displayName = getElementDisplayName(Structr.entity(id));
 
-			el.children('.expand_icon').first()
-				.removeClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon))
-				.addClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon))
+			el.children('.expand_icon_svg').first()
+				.removeClass(_Icons.collapsedClass)
+				.addClass(_Icons.expandedClass)
 				.prop('title', 'Collapse ' + displayName);
 		}
 	},
@@ -2443,7 +2443,7 @@ var _Entities = {
 		let el = $(element);
 		let id = Structr.getId(el) || Structr.getComponentId(el) || Structr.getGroupId(el);
 
-		let b = el.children('.expand_icon').first();
+		let b = el.children('.expand_icon_svg').first();
 		let displayName = getElementDisplayName(Structr.entity(id));
 
 		//_Entities.deselectAllElements();
@@ -2458,15 +2458,15 @@ var _Entities = {
 		var el = $(element);
 		var id = Structr.getId(el) || Structr.getComponentId(el) || Structr.getGroupId(el);
 
-		var b = el.children('.expand_icon').first();
+		var b = el.children('.expand_icon_svg').first();
 		var displayName = getElementDisplayName(Structr.entity(id));
 
 		if (_Entities.isExpanded(element)) {
 
 			el.children('.node').remove();
 
-			b.removeClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon))
-				.addClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon))
+			b.removeClass(_Icons.expandedClass)
+				.addClass(_Icons.collapsedClass)
 				.prop('title', 'Expand ' + displayName);
 
 			Structr.removeExpandedNode(id);
@@ -2477,8 +2477,8 @@ var _Entities = {
 				Command.children(id);
 			}
 
-			b.removeClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon))
-				.addClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon))
+			b.removeClass(_Icons.collapsedClass)
+				.addClass(_Icons.expandedClass)
 				.prop('title', 'Collapse ' + displayName);
 
 			Structr.addExpandedNode(id);
@@ -2694,7 +2694,7 @@ var _Entities = {
 				if (!expand) {
 					typeIcon.addClass('typeIcon-nochildren');
 				} else {
-					typeIcon.removeClass('typeIcon-nochildren').after('<i title="Expand ' + displayName + '" class="expand_icon ' + _Icons.getFullSpriteClass(_Icons.expanded_icon) + '" />');
+					typeIcon.removeClass('typeIcon-nochildren').after('<i title="Expand ' + displayName + '" class="expand_icon_svg ' + _Icons.expandedClass + '" />');
 				}
 			}
 		}
