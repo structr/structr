@@ -351,7 +351,8 @@ var _Widgets = {
 		var expanded = Structr.isExpanded(id);
 
 		parent.append('<div id="' + id + '_folder" class="widget node">'
-			+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" /><b title="' + escapeForHtmlAttributes(name) + '" class="name abbr-ellipsis abbr-66pc">' + name + '</b>'
+			+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '"></i>'
+			+ '<b title="' + escapeForHtmlAttributes(name) + '" class="name abbr-ellipsis abbr-66pc">' + name + '</b>'
 			+ '<div id="' + id + '" class="node' + (expanded ? ' hidden' : '') + '"></div>'
 			+ '</div>');
 
@@ -568,11 +569,11 @@ var _Widgets = {
 		if (hasChildren) {
 
 			var typeIcon = $(el.children('.typeIcon').first());
-			var icon = $(el).children('.node').hasClass('hidden') ? _Icons.collapsed_icon : _Icons.expanded_icon;
+			var icon = $(el).children('.node').hasClass('hidden') ? _Icons.collapsedClass : _Icons.expandedClass;
 
 			typeIcon.css({
 				paddingRight: 0 + 'px'
-			}).after('<i title="Expand \'' + name + '\'" class="expand_icon ' + _Icons.getFullSpriteClass(icon) + '" />');
+			}).after('<i title="Expand ' + name + '" class="expand_icon_svg ' + icon + '" />');
 
 			var expandIcon = el.children('.expand_icon').first();
 
@@ -583,10 +584,10 @@ var _Widgets = {
 				var collapsed = body.hasClass('hidden');
 				if (collapsed) {
 					Structr.addExpandedNode(id);
-					expandIcon.removeClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon)).addClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon));
+					expandIcon.removeClass(_Icons.expandedClass).addClass(_Icons.collapsedClass);
 				} else {
 					Structr.removeExpandedNode(id);
-					expandIcon.removeClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon)).addClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon));
+					expandIcon.removeClass(_Icons.collapsedClass).addClass(_Icons.expandedClass);
 				}
 			};
 

@@ -766,6 +766,8 @@ img.disabled {
 
 #palette a h3, #widgetsSlideout a h3 {
 	color: var(--body-text);
+	padding-left: 1.5rem;
+	position: relative;
 }
 
 #paletteArea .draggable {
@@ -4233,6 +4235,8 @@ dl.help-definitions dd {
 }
 .tab-group i.expanded {
 	display: inline-block;
+	top: 0rem;
+	left: 0rem;
 }
 
 i.svg-collapsed {
@@ -4244,6 +4248,8 @@ i.svg-expanded {
 
 .tab-group.collapsed i.collapsed {
 	display: inline-block;
+	top: 0rem;
+	left: 0rem;
 }
 .tab-group.collapsed i.expanded {
 	display: none;
