@@ -192,7 +192,6 @@ var StructrModel = {
 	 * activate the tab to the left before removing it.
 	 */
 	del: function(id) {
-
 		if (!id) {
 			return;
 		}
@@ -202,7 +201,8 @@ var StructrModel = {
 			node.remove();
 		}
 
-		// Since users/groups are not displayed as '#id_'-elements anymore, Structr.node() does not find (all of) them.
+		// Let element handle its own removal from the UI
+		// Especially (but not only) important for users/groups. Those are not displayed as '#id_'-elements anymore, Structr.node() does not find (all of) them.
 		// therefor we let the object itself handle its removal in this case.
 		var obj = StructrModel.obj(id);
 		if (obj && obj.remove) {
@@ -943,6 +943,7 @@ StructrContent.prototype.save = function() {
 StructrContent.prototype.remove = function() {
 
 	if (Structr.isModuleActive(_Pages)) {
+
 		var element = Structr.node(this.id);
 		if (this.parent) {
 			var parent = Structr.node(this.parent.id);
@@ -957,6 +958,10 @@ StructrContent.prototype.remove = function() {
 				_Pages.previews.modelForPageUpdated(pageId);
 			}
 			element.remove();
+		}
+
+		if (_Entities?.selectedObject?.id === this.id) {
+			_Pages.selectedObjectWasDeleted();
 		}
 
 		if (parent && !Structr.containsNodes(parent)) {

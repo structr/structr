@@ -17,7 +17,7 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var pages, shadowPage;
-var controls, activeTabLeft, activeTabRight, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout, activeElementsSlideout, dataBindingSlideout;
+var controls, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout, activeElementsSlideout, dataBindingSlideout;
 var components, elements;
 var selStart, selEnd;
 var sel;
@@ -44,6 +44,9 @@ var _Pages = {
 	pagesResizerLeftKey: 'structrPagesResizerLeftKey_' + port,
 	pagesResizerRightKey: 'structrPagesResizerRightKey_' + port,
 	functionBarSwitchKey: 'structrFunctionBarSwitchKey_' + port,
+
+	activeTabLeft: undefined,
+	activeTabRight: undefined,
 
 	centerPane: undefined,
 
@@ -86,8 +89,8 @@ var _Pages = {
 
 			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('pages'));
 
-			activeTabLeft = LSWrapper.getItem(_Pages.activeTabLeftKey);
-			activeTabRight = LSWrapper.getItem(_Pages.activeTabRightKey);
+			_Pages.activeTabLeft = LSWrapper.getItem(_Pages.activeTabLeftKey);
+			_Pages.activeTabRight = LSWrapper.getItem(_Pages.activeTabRightKey);
 
 			pagesSlideout = $('#pages');
 //			activeElementsSlideout = $('#activeElements');
@@ -107,7 +110,7 @@ var _Pages = {
 			var pagesTabSlideoutAction = function () {
 				_Pages.leftSlideoutTrigger(this, pagesSlideout, [/*activeElementsSlideout, dataBindingSlideout*/, localizationsSlideout], function (params) {
 					_Pages.resize();
-					_Pages.showPagesPager();
+					_Pages.showPagesPagerToggle();
 					_Pages.showTabsMenu();
 				}, _Pages.slideoutClosedCallback);
 			};
@@ -213,27 +216,25 @@ var _Pages = {
 				let subMenu = document.querySelector('#function-bar .tabs-menu');
 
 				if (pagesPager.classList.contains('hidden')) {
-					if (subMenu) subMenu.style.display = 'none';
-					pagesPager.classList.remove('hidden');
+
+					_Pages.showPagesPager();
+					_Pages.hideTabsMenu();
+
 					icon.innerHTML = '<svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M.748,12.25a6,6,0,0,0,6,6h10.5a6,6,0,0,0,0-12H6.748A6,6,0,0,0,.748,12.25Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.248 9.25L17.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.248 9.25L14.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg>';
 					LSWrapper.setItem(_Pages.functionBarSwitchKey, 'visible');
+
 				} else {
-					pagesPager.classList.add('hidden');
+
+					_Pages.hidePagesPager();
+
 					icon.innerHTML = '<svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M23.248,12a6,6,0,0,1-6,6H6.748a6,6,0,0,1,0-12h10.5A6,6,0,0,1,23.248,12Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.748 9L6.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.748 9L9.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg>';
 					LSWrapper.setItem(_Pages.functionBarSwitchKey, 'hidden');
-					if (subMenu) subMenu.style.display = 'inline-block';
+
+					_Pages.showTabsMenu();
 				}
 			});
 
 			_Pages.refresh();
-
-			if (activeTabLeft) {
-				$('#' + activeTabLeft).addClass('active').click();
-			}
-
-			if (activeTabRight) {
-				$('#' + activeTabRight).addClass('active').click();
-			}
 
 			_Pages.resize();
 
@@ -350,6 +351,16 @@ var _Pages = {
 		Structr.fetchHtmlTemplate('pages/submenu', {}, (html) => {
 
 			functionBar.append(html);
+
+			if (_Pages.activeTabLeft) {
+				$('#' + _Pages.activeTabLeft).addClass('active').click();
+			}
+
+			if (_Pages.activeTabRight) {
+				$('#' + _Pages.activeTabRight).addClass('active').click();
+			}
+
+			_Pages.adaptSubmenu();
 
 			for (const menuLink of document.querySelectorAll('#function-bar .tabs-menu li a')) {
 				menuLink.onclick = (event) => _Pages.activateCenterPane(menuLink);
@@ -531,26 +542,42 @@ var _Pages = {
 		}
 	},
 	adaptSubmenu: (obj) => {
-		switch (obj.type) {
-			case 'Page':
-				document.querySelector('a[href="#pages:html"]').closest('li').classList.add('hidden');
-				document.querySelector('a[href="#pages:editor"]').closest('li').classList.add('hidden');
-				document.querySelector('a[href="#pages:repeater"]').closest('li').classList.add('hidden');
-				document.querySelector('a[href="#pages:events"]').closest('li').classList.add('hidden');
-				break;
 
-			default:
+		if (!obj) {
 
-				if (obj.isContent) {
+			// hide all - no obj selected
+			for (let li of document.querySelectorAll('.tabs-menu li')) {
+				li.classList.add('hidden');
+			}
+
+		} else {
+
+			// first show everything - later hide some
+			for (let li of document.querySelectorAll('.tabs-menu li')) {
+				li.classList.remove('hidden');
+			}
+
+			switch (obj.type) {
+				case 'Page':
 					document.querySelector('a[href="#pages:html"]').closest('li').classList.add('hidden');
-					document.querySelector('a[href="#pages:editor"]').closest('li').classList.remove('hidden');
-					document.querySelector('a[href="#pages:events"]').closest('li').classList.add('hidden');
-				} else {
-					document.querySelector('a[href="#pages:html"]').closest('li').classList.remove('hidden');
 					document.querySelector('a[href="#pages:editor"]').closest('li').classList.add('hidden');
-					document.querySelector('a[href="#pages:repeater"]').closest('li').classList.remove('hidden');
-					document.querySelector('a[href="#pages:events"]').closest('li').classList.remove('hidden');
-				}
+					document.querySelector('a[href="#pages:repeater"]').closest('li').classList.add('hidden');
+					document.querySelector('a[href="#pages:events"]').closest('li').classList.add('hidden');
+					break;
+
+				default:
+
+					if (obj.isContent) {
+						document.querySelector('a[href="#pages:html"]').closest('li').classList.add('hidden');
+						document.querySelector('a[href="#pages:editor"]').closest('li').classList.remove('hidden');
+						document.querySelector('a[href="#pages:events"]').closest('li').classList.add('hidden');
+					} else {
+						document.querySelector('a[href="#pages:html"]').closest('li').classList.remove('hidden');
+						document.querySelector('a[href="#pages:editor"]').closest('li').classList.add('hidden');
+						document.querySelector('a[href="#pages:repeater"]').closest('li').classList.remove('hidden');
+						document.querySelector('a[href="#pages:events"]').closest('li').classList.remove('hidden');
+					}
+			}
 		}
 	},
 	activateSubmenuTabElement: (tab) => {
@@ -580,6 +607,9 @@ var _Pages = {
 		active = tab.classList.contains('active');
 
 		_Pages.refreshCenterPane(obj, new URL(link.href).hash);
+	},
+	emptyCenterPane: () => {
+		fastRemoveAllChildren(_Pages.centerPane);
 	},
 	refreshCenterPane: (obj, urlHash) => {
 
@@ -1016,15 +1046,37 @@ var _Pages = {
 			_Pages.resize();
 		}
 	},
-	hidePagesPager: () => {
-		document.getElementById('function-bar-switch').classList.add('hidden');
+	selectedObjectWasDeleted: () => {
+		_Pages.adaptSubmenu();
+		_Pages.emptyCenterPane();
+		_Pages.hideTabsMenu();
 	},
 	showPagesPager: () => {
+		let pagesPager = document.getElementById('pagesPager');
+		pagesPager.classList.remove('hidden');
+	},
+	hidePagesPager: () => {
+		let pagesPager = document.getElementById('pagesPager');
+		pagesPager.classList.add('hidden');
+	},
+	showPagesPagerToggle: () => {
 		document.getElementById('function-bar-switch').classList.remove('hidden');
 	},
+	hidePagesPagerToggle: () => {
+		document.getElementById('function-bar-switch').classList.add('hidden');
+	},
 	showTabsMenu: () => {
+
 		let tabsMenu = document.querySelector('#function-bar .tabs-menu');
-		if (tabsMenu) tabsMenu.classList.remove('hidden');
+		if (tabsMenu) {
+			tabsMenu.style.display = 'inline-block';
+		}
+	},
+	hideTabsMenu: () => {
+		let tabsMenu = document.querySelector('#function-bar .tabs-menu');
+		if (tabsMenu) {
+			tabsMenu.style.display = 'none';
+		}
 	},
 	refreshLocalizations: function() {
 
