@@ -12,7 +12,22 @@
 					<option value="options-method-click">Execute a method when this element is clicked</option>
 					<option value="options-method-change">Execute a method when the value of this element is changed</option>
 					<option value="options-update-change">Update a node when the value of this element is changed</option>
+					<option value="options-custom">Custom configuration</option>
 				</select>
+			</div>
+		</div>
+		<div class="hidden event-options options-custom">
+			<div style="margin-bottom: 1.5em;">
+				<label style="display: block;" data-comment="Configures the Javascript event that triggers the action.">Javascript event</label>
+				<input type="text" id="custom-event-input" style="width: 390px;" />
+			</div>
+			<div style="margin-bottom: 1.5em;">
+				<label style="display: block;" data-comment="Configures the Javascript event that triggers the action.">Backend action</label>
+				<input type="text" id="custom-action-input" style="width: 390px;" />
+			</div>
+			<div style="margin-bottom: 1.5em;">
+				<label style="display: block;">UUID of action target object</label>
+				<input type="text" id="custom-target-input" style="width: 390px;" />
 			</div>
 		</div>
 		<div class="hidden event-options options-create-click options-create-change">
