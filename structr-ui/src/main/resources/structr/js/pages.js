@@ -235,19 +235,6 @@ var _Pages = {
 			});
 
 			_Pages.refresh();
-
-			_Pages.resize();
-
-			$(window).off('resize').resize(function () {
-				_Pages.resize();
-			});
-
-			Structr.initVerticalSlider($('.column-resizer-left', main), _Pages.pagesResizerLeftKey, 300, _Pages.moveLeftResizer);
-			Structr.initVerticalSlider($('.column-resizer-right', main), _Pages.pagesResizerRightKey, 400, _Pages.moveRightResizer, true);
-
-			Structr.unblockMenu(500);
-
-			_Pages.resizeColumns(LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 200, LSWrapper.getItem(_Pages.pagesResizerRightKey) || 200);
 		});
 	},
 	moveLeftResizer: function(left) {
@@ -359,6 +346,19 @@ var _Pages = {
 			if (_Pages.activeTabRight) {
 				$('#' + _Pages.activeTabRight).addClass('active').click();
 			}
+
+			_Pages.resize();
+
+			$(window).off('resize').resize(function () {
+				_Pages.resize();
+			});
+
+			Structr.initVerticalSlider($('.column-resizer-left', main), _Pages.pagesResizerLeftKey, 300, _Pages.moveLeftResizer);
+			Structr.initVerticalSlider($('.column-resizer-right', main), _Pages.pagesResizerRightKey, 400, _Pages.moveRightResizer, true);
+
+			Structr.unblockMenu(500);
+
+			_Pages.resizeColumns(LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 200, LSWrapper.getItem(_Pages.pagesResizerRightKey) || 200);
 
 			_Pages.adaptSubmenu();
 
