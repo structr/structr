@@ -463,7 +463,12 @@ function wsConnect() {
 
 					} else if (entity.pageId) {
 
-						_Pages.previews.showPreviewInIframeIfVisible(entity.pageId, entity.id);
+						if (entity.id) {
+							_Pages.previews.showPreviewInIframeIfVisible(entity.pageId, entity.id);
+						} else {
+							_Pages.previews.showPreviewInIframeIfVisible(entity.pageId);
+						}
+
 					}
 
 					StructrModel.callCallback(data.callback, entity);

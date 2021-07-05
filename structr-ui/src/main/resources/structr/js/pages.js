@@ -1243,6 +1243,7 @@ var _Pages = {
 	},
 
 	previews: {
+		loadPreviewTimer : undefined,
 		previewElement: undefined,
 		activePreviewPageId: null,
 		activePreviewHighlightElementId: null,
@@ -1453,40 +1454,52 @@ var _Pages = {
 
 			if (pageId) {
 
-				_Pages.previews.activePreviewPageId = pageId;
-				if (highlightElementId) {
-					_Pages.previews.activePreviewHighlightElementId = highlightElementId;
-				}
+				let innerFn = () => {
 
-				Command.get(pageId, 'id,name', function (pageObj) {
+					_Pages.previews.activePreviewPageId = pageId;
+					if (highlightElementId) {
+						_Pages.previews.activePreviewHighlightElementId = highlightElementId;
+					}
 
-					Structr.fetchHtmlTemplate('pages/preview', {}, (html) => {
+					Command.get(pageId, 'id,name', function (pageObj) {
 
-						_Pages.centerPane.insertAdjacentHTML('beforeend', html);
+						Structr.fetchHtmlTemplate('pages/preview', {}, (html) => {
 
-						let iframe = _Pages.centerPane.querySelector('iframe');
+							_Pages.centerPane.insertAdjacentHTML('beforeend', html);
 
-						_Entities.highlightElement(Structr.node(highlightElementId));
+							let iframe = _Pages.centerPane.querySelector('iframe');
 
-						iframe.onload = () => {
+							if (highlightElementId) {
+								_Entities.highlightElement(Structr.node(highlightElementId));
+							}
 
-							_Pages.previews.previewIframeLoaded(iframe, highlightElementId);
+							iframe.onload = () => {
 
-							let doc       = iframe.contentDocument || iframe.contentWindow.document;
-							let previewEl = doc.querySelector('[data-structr-id="' + highlightElementId + '"]');
+								_Pages.previews.previewIframeLoaded(iframe, highlightElementId);
 
-							doc.querySelectorAll('.structr-element-container-selected').forEach((el) => {
-								el.classList.remove('structr-element-container-selected');
-							});
+								let doc       = iframe.contentDocument || iframe.contentWindow.document;
+								let previewEl = doc.querySelector('[data-structr-id="' + highlightElementId + '"]');
 
-							previewEl?.classList.add('structr-element-container-selected');
-						}
+								doc.querySelectorAll('.structr-element-container-selected').forEach((el) => {
+									el.classList.remove('structr-element-container-selected');
+								});
 
-						iframe.src = _Pages.previews.getUrlForPreview(pageObj);
+								previewEl?.classList.add('structr-element-container-selected');
+							}
+
+							iframe.src = _Pages.previews.getUrlForPreview(pageObj);
+						});
+
+						_Pages.resize();
 					});
 
-					_Pages.resize();
-				});
+				};
+
+				if (_Pages.previews.loadPreviewTimer) {
+					window.clearTimeout(_Pages.previews.loadPreviewTimer);
+				}
+
+				_Pages.previews.loadPreviewTimer = window.setTimeout(innerFn, 100);
 			}
 		},
 		showPreviewInIframeIfVisible: (pageId, highlightElementId) => {

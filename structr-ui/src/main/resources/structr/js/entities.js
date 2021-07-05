@@ -2450,25 +2450,42 @@ var _Entities = {
 	deselectAllElements: function() {
 		$('.nodeSelected').removeClass('nodeSelected');
 	},
+	scrollTimer: undefined,
 	highlightElement:function(el) {
+
 		el.addClass('nodeSelected');
 
-		if (el.offset().top + el.height() + pages.scrollTop() > pages.prop('clientHeight')) {
-			// element is *below* the currently visible portion of the pages tree
+		// inner debounced function
+		let scrollFn = () => {
+			let elOffsetTop = el.offset().top;
+			let elHeight    = el.height();
+			let pagesScrollTop = pages.scrollTop();
+			let pagesOffsetTop = pages.offset().top
 
-			// scroll to lower boundary of the element
-			pages.animate({
-				scrollTop: el.offset().top + el.height() + pages.scrollTop() - pages.prop('clientHeight')
-			});
+			let topPositionOfElementInTree    = elOffsetTop - pagesOffsetTop;
+			let bottomPositionOfElementInTree = elOffsetTop + elHeight - pagesOffsetTop;
 
-		} else if (el.offset().top - pages.offset().top < pages.scrollTop()) {
-			// element is *above* the currently visible portion of the pages tree
+			if (topPositionOfElementInTree < 0) {
+				// element is *above* the currently visible portion of the pages tree
 
-			// scroll to upper boundary of element
-			pages.animate({
-				scrollTop: el.offset().top - pages.offset().top + pages.scrollTop()
-			});
+				pages.animate({
+					scrollTop: elOffsetTop - pagesOffsetTop + pagesScrollTop
+				});
+
+			} else if (bottomPositionOfElementInTree > pages.height()) {
+				// element is *below* the currently visible portion of the pages tree
+
+				pages.animate({
+					scrollTop: elOffsetTop + elHeight + pagesScrollTop - pages.prop('clientHeight')
+				});
+			}
+		};
+
+		if (_Entities.scrollTimer) {
+			window.clearTimeout(_Entities.scrollTimer);
 		}
+
+		_Entities.scrollTimer = window.setTimeout(scrollFn, 100);
 	},
 	selectElement: function(element, expanded) {
 

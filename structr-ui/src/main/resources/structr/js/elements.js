@@ -607,20 +607,15 @@ var _Elements = {
 
 		let menuElements = _Elements.getContextMenuElements(div, entity);
 
-		let menuHeight = 24 * menuElements.length;
-
 		let leftOrRight = 'left';
 		let topOrBottom = 'top';
 		let x = (e.clientX - 8);
-		let y = div.offset().top;
-		let windowWidth = $(window).width();
+		let y = (e.clientY - 8);
+		let windowWidth  = $(window).width();
+		let windowHeight = $(window).height();
 
 		if (e.pageX > (windowWidth / 2)) {
 			leftOrRight = 'right';
-		}
-
-		if (e.pageY > ($(window).height() - menuHeight)) {
-			y -= 20 + menuHeight - ($(window).height() - e.pageY);
 		}
 
 		let cssPositionClasses = leftOrRight + ' ' + topOrBottom;
@@ -770,13 +765,21 @@ var _Elements = {
 		updateMenuGroupVisibility();
 
 		let repositionMenu = function() {
+
 			let menuWidth = menu.width();
+			let menuHeight = menu.height();
 
 			if (windowWidth < (x + menuWidth)) {
 				menu.css({
 					left: (x - menuWidth) + 'px'
 				});
             }
+
+			if (windowHeight < y + menuHeight) {
+				menu.css({
+					top: (windowHeight - menuHeight - 20) + 'px'
+				});
+			}
 		};
 
 		repositionMenu();
