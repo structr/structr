@@ -18,7 +18,7 @@
  */
 
 #pagesTree {
-	/*height: calc(100% - 3.5rem);*/
+	height: 100%
 	overflow: auto;
 	/*margin-top: -1rem;*/
 	padding-top: 1rem;
