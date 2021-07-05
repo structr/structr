@@ -710,9 +710,7 @@ var _Entities = {
 	},
 	editSource: function(entity) {
 
-		// Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function () {
-		// }, function () {
-		// });
+		Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function () {}, function () {});
 
 		// Get content in widget mode
 		var url = viewRootUrl + entity.id + '?edit=3', contentType = 'text/html';
@@ -989,9 +987,7 @@ var _Entities = {
 							}, function(c) {}, function(c) {
 								_Entities.dataBindingDialog(entity, c, typeInfo);
 							});
-
 						}
-
 					}
 
 					_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
@@ -1006,9 +1002,7 @@ var _Entities = {
 					$('#tab-' + activeView).click();
 
 					Structr.resize();
-
 				});
-
 			};
 
 			if (obj.relType) {
@@ -1016,9 +1010,7 @@ var _Entities = {
 			} else {
 				Command.get(obj.id, null, function(entity) { handleGraphObject(entity); }, 'ui');
 			}
-
 		});
-
 	},
 	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback, initCallback, showCallback) {
 
@@ -2179,26 +2171,6 @@ var _Entities = {
 				return true;
 			});
 		});
-	},
-	appendEditSourceIcon: function(parent, entity) {
-
-		if (_Entities.pencilEditBlacklist.indexOf(entity.tag) === -1) {
-
-			// var editIcon = $('.edit_icon', parent);
-			//
-			// if (!(editIcon && editIcon.length)) {
-			// 	parent.append('<i title="Edit source code" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-			// 	editIcon = $('.edit_icon', parent);
-			// }
-			// editIcon.on('click', function(e) {
-			// 	e.stopPropagation();
-			// 	_Entities.editSource(entity);
-			// });
-			parent.on('click', function(e) {
-				e.stopPropagation();
-				_Entities.editSource(entity);
-			});
-		}
 	},
 	appendEditPropertiesIcon: function(parent, entity, visible) {
 

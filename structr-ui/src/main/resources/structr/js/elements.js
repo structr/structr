@@ -341,11 +341,7 @@ var _Elements = {
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds&&entity.syncedNodesIds.length)?entity.syncedNodesIds:[entity.sharedComponentId]));
 
-		if (!hasChildren && !entity.sharedComponentId) {
-			_Entities.appendEditSourceIcon(div, entity);
-		}
-
-		_Entities.appendEditPropertiesIcon(div, entity);
+		//_Entities.appendEditPropertiesIcon(div, entity);
 
 		if (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object') {
 
@@ -926,6 +922,18 @@ var _Elements = {
 				});
 
 				appendSeparator();
+			}
+
+			if (entity.type === 'Div' && entity.children.length === 0) {
+
+				elements.push({
+					icon: _Icons.svg.pencil_edit,
+					name: 'Edit',
+					clickHandler: function () {
+						_Entities.editSource(entity);
+						return false;
+					}
+				});
 			}
 
 			if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page')) {
@@ -1552,7 +1560,7 @@ var _Elements = {
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 
-		_Entities.appendEditPropertiesIcon(div, entity);
+		//_Entities.appendEditPropertiesIcon(div, entity);
 
 		return div;
 	},
