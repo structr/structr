@@ -924,13 +924,19 @@ var _Elements = {
 				appendSeparator();
 			}
 
-			if (entity.type === 'Div' && entity.children.length === 0) {
+			if (entity.isWidget || (entity.type === 'Div' && entity.children.length === 0)) {
 
 				elements.push({
 					icon: _Icons.svg.pencil_edit,
 					name: 'Edit',
 					clickHandler: function () {
-						_Entities.editSource(entity);
+						if (entity.isWidget) {
+							Command.get(entity.id, 'id,type,name,source,configuration,description', function(entity) {
+								_Widgets.editWidget(entity, true);
+							});
+						} else {
+							_Entities.editSource(entity);
+						}
 						return false;
 					}
 				});
@@ -1378,7 +1384,7 @@ var _Elements = {
 
 		// DELETE AREA - ALWAYS AT THE BOTTOM
 		// allow "Remove Node" on first level children of page
-		if (Structr.isModuleActive(_Pages) && !isPage && entity.parent !== null) {
+		if (Structr.isModuleActive(_Pages) && !isPage && entity.parent !== null && !entity.isWidget) {
 
 			elements.push({
 				icon: _Icons.svg.trashcan,
