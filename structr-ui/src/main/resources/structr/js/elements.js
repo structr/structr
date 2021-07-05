@@ -605,16 +605,17 @@ var _Elements = {
 	},
 	activateContextMenu:function(e, div, entity) {
 
-		var menuElements = _Elements.getContextMenuElements(div, entity);
+		let menuElements = _Elements.getContextMenuElements(div, entity);
 
-		var menuHeight = 24 * menuElements.length;
+		let menuHeight = 24 * menuElements.length;
 
-		var leftOrRight = 'left';
-		var topOrBottom = 'top';
-		var x = (e.clientX - 8);
-		var y = div.offset().top;
+		let leftOrRight = 'left';
+		let topOrBottom = 'top';
+		let x = (e.clientX - 8);
+		let y = div.offset().top;
+		let windowWidth = $(window).width();
 
-		if (e.pageX > ($(window).width() / 2)) {
+		if (e.pageX > (windowWidth / 2)) {
 			leftOrRight = 'right';
 		}
 
@@ -622,23 +623,25 @@ var _Elements = {
 			y -= 20 + menuHeight - ($(window).height() - e.pageY);
 		}
 
-		var cssPositionClasses = leftOrRight + ' ' + topOrBottom;
+		let cssPositionClasses = leftOrRight + ' ' + topOrBottom;
 
 		_Elements.removeContextMenu();
+
 		div.addClass('contextMenuActive');
 		$('#menu-area').append('<div id="add-child-dialog"></div>');
 
-		$('#add-child-dialog').css({
+		let menu = $('#add-child-dialog');
+		menu.css({
 			left: x + 'px',
 			top: y + 'px'
 		});
 
-		var registerContextMenuItemClickHandler = function (el, contextMenuItem) {
+		let registerContextMenuItemClickHandler = function (el, contextMenuItem) {
 
 			el.on('mouseup', function(e) {
 				e.stopPropagation();
 
-				var preventClose = true;
+				let preventClose = true;
 
 				if (contextMenuItem.clickHandler && (typeof contextMenuItem.clickHandler === 'function')) {
 					preventClose = contextMenuItem.clickHandler($(this), contextMenuItem);
@@ -648,10 +651,9 @@ var _Elements = {
 					_Elements.removeContextMenu();
 				}
 			});
-
 		};
 
-		var registerPlaintextContextMenuItemHandler = function (el, itemText, forcedClickHandler) {
+		let registerPlaintextContextMenuItemHandler = function (el, itemText, forcedClickHandler) {
 
 			el.on('mouseup', function (e) {
 				e.stopPropagation();
@@ -659,18 +661,17 @@ var _Elements = {
 				if (forcedClickHandler && (typeof forcedClickHandler === 'function')) {
 					forcedClickHandler(itemText);
 				} else {
-					var pageId = (entity.type === 'Page') ? entity.id : entity.pageId;
-					var tagName = (itemText === 'content') ? null : itemText;
+					let pageId = (entity.type === 'Page') ? entity.id : entity.pageId;
+					let tagName = (itemText === 'content') ? null : itemText;
 
 					Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName), _Elements.isInheritVisibililtyFlagsChecked());
 				}
 
 				_Elements.removeContextMenu();
 			});
-
 		};
 
-		var addContextMenuElements = function (ul, element, hidden, forcedClickHandler, prepend) {
+		let addContextMenuElements = function (ul, element, hidden, forcedClickHandler, prepend) {
 
 			if (hidden) {
 				ul.addClass('hidden');
@@ -740,7 +741,7 @@ var _Elements = {
 			}
 		};
 
-		var updateMenuGroupVisibility = function() {
+		let updateMenuGroupVisibility = function() {
 
 			$('.element-group-switch').hover(function() {
 				$(this).children('.element-group').removeClass('hidden');
@@ -749,7 +750,7 @@ var _Elements = {
 			});
 		};
 
-		var mainMenuList = $('<ul class="element-group ' + cssPositionClasses + '"></ul>');
+		let mainMenuList = $('<ul class="element-group ' + cssPositionClasses + '"></ul>');
 		$('#add-child-dialog').append(mainMenuList);
 		menuElements.forEach(function (mainEl) {
 			addContextMenuElements(mainMenuList, mainEl, false);
@@ -767,9 +768,21 @@ var _Elements = {
 
 		_Elements.updateVisibilityInheritanceCheckbox();
 		updateMenuGroupVisibility();
+
+		let repositionMenu = function() {
+			let menuWidth = menu.width();
+
+			if (windowWidth < (x + menuWidth)) {
+				menu.css({
+					left: (x - menuWidth) + 'px'
+				});
+            }
+		};
+
+		repositionMenu();
 	},
 	updateVisibilityInheritanceCheckbox: function() {
-		var checked = LSWrapper.getItem(_Elements.inheritVisibilityFlagsKey) || false;
+		let checked = LSWrapper.getItem(_Elements.inheritVisibilityFlagsKey) || false;
 
 		if (checked === true) {
 			$('#add-child-dialog #inherit-visibility-flags').prop('checked', checked);
