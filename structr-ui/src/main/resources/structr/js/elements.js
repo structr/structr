@@ -341,7 +341,7 @@ var _Elements = {
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds&&entity.syncedNodesIds.length)?entity.syncedNodesIds:[entity.sharedComponentId]));
 
-		//_Entities.appendEditPropertiesIcon(div, entity);
+		_Entities.appendEditPropertiesIcon(div, entity);
 
 		if (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object') {
 
@@ -1557,7 +1557,7 @@ var _Elements = {
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 
-		//_Entities.appendEditPropertiesIcon(div, entity);
+		_Entities.appendEditPropertiesIcon(div, entity);
 
 		return div;
 	},
