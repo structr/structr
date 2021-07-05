@@ -1408,32 +1408,23 @@ var _Elements = {
 				name: 'Delete ' + entity.type,
 				clickHandler: () => {
 
-					if (isContent || isFile || isUser || isGroup) {
+					if (isContent || isUser || isGroup) {
+
 						_Entities.deleteNode(this, entity);
-					} else if (isFile) {
-						_Entities.deleteNode(this, entity);
-					} else if (isFolder) {
+
+					} else if (isFolder || isFile) {
 
 						let selectedElements = document.querySelectorAll('.node.selected');
-						let selectedCount = selectedElements.length;
-						let el = Structr.node(entity.id)[0].closest('.folder');
-						if (selectedCount > 1 && el.classList.contains('selected')) {
+						let files = [];
 
-							let files = [];
+						selectedElements.forEach((el) => {
+							files.push(Structr.entityFromElement(el));
+						});
 
-							selectedElements.forEach((el) => {
-								files.push(Structr.entityFromElement(el));
-							});
+						_Entities.deleteNodes(this, files, true, () => {
+							_Files.refreshTree();
+						});
 
-							_Entities.deleteNodes(this, files, true, () => {
-								_Files.refreshTree();
-							});
-
-						} else {
-							_Entities.deleteNode(this, entity, true, () => {
-								_Files.refreshTree();
-							});
-						}
 					} else if (isMailTemplate) {
 
 						_Entities.deleteNode(this, entity, false, () => {
