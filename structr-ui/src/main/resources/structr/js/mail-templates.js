@@ -299,7 +299,6 @@ var _MailTemplates = {
 				blinkRed($('td', element));
 			}
 		});
-
 	},
 	updateObject: function(type, id, newData, $el, $blinkTarget, successCallback) {
 

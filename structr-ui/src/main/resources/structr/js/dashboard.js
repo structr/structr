@@ -386,7 +386,7 @@ let _Dashboard = {
 
 		let maintenanceList = $('<table class="props"></table>').appendTo(container);
 
-		$.get(rootUrl + '/SchemaMethod?schemaNode=&sort=name', function(data) {
+		$.get(rootUrl + '/SchemaMethod?schemaNode=&' + Structr.getRequestParameterName('sort') + '=name', function(data) {
 
 			if (data.result.length === 0) {
 				maintenanceList.append('No global schema methods.')
@@ -774,7 +774,7 @@ let _Dashboard = {
             let row    = document.querySelector('#event-log-container');
             let num    = document.querySelector('#event-type-page-size');
             let filter = document.querySelector('#event-type-filter');
-            let url    = rootUrl + '/_runtimeEventLog?order=absoluteTimestamp&sort=desc&pageSize=' + num.value;
+            let url    = rootUrl + '/_runtimeEventLog?' + Structr.getRequestParameterName('order') + '=absoluteTimestamp&' + Structr.getRequestParameterName('sort') + '=desc&' + Structr.getRequestParameterName('pageSize') + '=' + num.value;
             let type   = filter.value;
 
             row.innerHTML = '';

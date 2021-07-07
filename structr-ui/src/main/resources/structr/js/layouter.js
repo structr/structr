@@ -389,7 +389,6 @@ class VISLayouter {
 				selectConnectedEdges: true,
 				tooltipDelay: 300,
 				zoomView: true
-
 			}
 		});
 	}

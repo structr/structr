@@ -361,6 +361,15 @@ var Structr = {
 	currentlyActiveSortable: undefined,
 	loadingSpinnerTimeout: undefined,
 	keyCodeMirrorSettings: 'structrCodeMirrorSettings_' + port,
+	legacyRequestParameters: false,
+	getRequestParameterName: (key) => {
+
+		if (Structr.legacyRequestParameters === true) {
+			return '_' + key;
+		} else {
+			return key;
+		}
+	},
 	defaultBlockUICss: {
 		cursor: 'default',
 		border: 'none',
@@ -861,6 +870,7 @@ var Structr = {
 		message.show();
 	},
 	errorFromResponse: function(response, url, additionalParameters) {
+
 		var errorText = '';
 
 		if (response.errors && response.errors.length) {
@@ -884,7 +894,6 @@ var Structr = {
 				}
 
 				errorLines.push(errorMsg);
-
 			});
 
 			errorText = errorLines.join('<br>');
@@ -958,9 +967,13 @@ var Structr = {
 		}, 1000);
 	},
 	tempInfo: function(text, autoclose) {
+
 		window.clearTimeout(dialogId);
-		if (text)
+
+		if (text) {
 			$('#tempInfoBox .infoHeading').html('<i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '" /> ' + text);
+		}
+
 		if (autoclose) {
 			dialogId = window.setTimeout(function() {
 				$.unblockUI({
@@ -968,6 +981,7 @@ var Structr = {
 				});
 			}, 3000);
 		}
+
 		$('#tempInfoBox .closeButton').on('click', function(e) {
 			e.stopPropagation();
 			window.clearTimeout(dialogId);
@@ -1307,6 +1321,8 @@ var Structr = {
 			$('#header .structr-instance-name').text(envInfo.instanceName);
 			$('#header .structr-instance-stage').text(envInfo.instanceStage);
 
+			Structr.legacyRequestParameters = envInfo.legacyRequestParameters;
+
 			if (true == envInfo.maintenanceModeActive) {
 				$('#header .structr-instance-maintenance').text("MAINTENANCE");
 			}
@@ -1376,6 +1392,7 @@ var Structr = {
 			registeredCallbacks.forEach((cb) => {
 				cb();
 			});
+
 		}).catch((e) => {
 			if (retryCount < 3) {
 				setTimeout(() => {
@@ -1404,7 +1421,6 @@ var Structr = {
 		menuConfig.sub.forEach(function(entry) {
 			$('#submenu li').last().after($('li[data-name="' + entry + '"]', menu));
 		});
-
 	},
 	inMemoryWarningText:"Please note that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration tool to configure a database connection.",
 	appendInMemoryInfoToElement: function(el, optionalToggleElement) {

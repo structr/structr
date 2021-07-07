@@ -74,7 +74,6 @@ var _Contents = {
 					});
 				});
 
-
 				$('.add_container_icon', functionBar).on('click', function(e) {
 					Command.create({ type: $('select#content-container-type').val(), parent: currentContentContainer ? currentContentContainer.id : null }, function(f) {
 						_Contents.appendItemOrContainerRow(f);
@@ -183,20 +182,17 @@ var _Contents = {
 			Structr.unblockMenu(100);
 
 			_Contents.resize();
-
 		});
 	},
 	deepOpen: function(d, dirs) {
 
 		_TreeHelper.deepOpen(contentTree, d, dirs, 'parent', (currentContentContainer ? currentContentContainer.id : 'root'));
-
 	},
 	refreshTree: function() {
 
 		_TreeHelper.refreshTree(contentTree, function() {
 			_TreeHelper.makeTreeElementDroppable(contentTree, 'root');
 		});
-
 	},
 	treeInitFunction: function(obj, callback) {
 
@@ -228,7 +224,6 @@ var _Contents = {
 				_Contents.load(obj.id, callback);
 				break;
 		}
-
 	},
 	unload: function() {
 		fastRemoveAllChildren($('.searchBox', main));
@@ -239,12 +234,12 @@ var _Contents = {
 
 		var url;
 		if (searchString.contains(' ')) {
-			url = rootUrl + 'ContentItem/ui?loose=1';
+			url = rootUrl + 'ContentItem/ui?' + Structr.getRequestParameterName('loose') + '=1';
 			searchString.split(' ').forEach(function(str, i) {
 				url = url + '&name=' + str;
 			});
 		} else {
-			url = rootUrl + 'ContentItem/ui?loose=1&name=' + searchString;
+			url = rootUrl + 'ContentItem/ui?' + Structr.getRequestParameterName('loose') + '=1&name=' + searchString;
 		}
 
 		_Contents.displaySearchResultsForURL(url);
@@ -911,7 +906,6 @@ var _Contents = {
 			e.stopPropagation();
 
 			_Contents.editItem(item);
-
 		});
 	},
 	displaySearchResultsForURL: function(url) {
@@ -923,7 +917,6 @@ var _Contents = {
 		var container = $('#search-results');
 		contentsContents.on('scroll', function() {
 			window.history.pushState('', '', '#contents');
-
 		});
 
 		$.ajax({
@@ -1004,7 +997,6 @@ var _Contents = {
 					// });
 				}
 			}
-
 		});
 	},
 	getIcon: function(file) {

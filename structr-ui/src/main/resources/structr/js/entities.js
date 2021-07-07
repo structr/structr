@@ -194,7 +194,15 @@ var _Entities = {
 						};
 					},
 					data: function (params) {
-						return { name: params.term, sort: 'name', loose: 1 }
+
+						let config = {
+							name: params.term
+						};
+
+						config[Structr.getRequestParameterName('sort')] = 'name';
+						config[Structr.getRequestParameterName('loose')] = 1;
+
+						return config;
 					}
 				}
 			}).on('select2:select', function(e) {
@@ -673,7 +681,7 @@ var _Entities = {
 			flowSelector = $('<select class="hidden" id="flow-selector"></select>').insertBefore(textArea);
 
 			flowSelector.append('<option>--- Select Flow ---</option>');
-			// (type, pageSize, page, sort, order, properties, includeHidden, callback)
+
 			Command.getByType('FlowContainer', 1000, 1, 'effectiveName', 'asc', null, false, function(flows) {
 
 				flows.forEach(function(flow) {
@@ -713,7 +721,7 @@ var _Entities = {
 		Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function () {}, function () {});
 
 		// Get content in widget mode
-		var url = viewRootUrl + entity.id + '?edit=3', contentType = 'text/html';
+		var url = viewRootUrl + entity.id + '?' + Structr.getRequestParameterName('edit') + '=3', contentType = 'text/html';
 
 		$.ajax({
 			url: url,
@@ -806,10 +814,7 @@ var _Entities = {
 								}
 							}
 						});
-
-
 					});
-
 				});
 
 				saveAndClose.on('click', function(e) {
@@ -1106,7 +1111,7 @@ var _Entities = {
 			});
 
 			$.ajax({
-				url: rootUrl + entity.type + '/' + entity.id + '/all?edit=2',
+				url: rootUrl + entity.type + '/' + entity.id + '/all?' + Structr.getRequestParameterName('edit') + '=2',
 				dataType: 'json',
 				headers: {
 					Accept: 'application/json; charset=utf-8; properties=' + filteredProperties.join(',')
@@ -1185,7 +1190,7 @@ var _Entities = {
 		cell.css('height', '60px');
 
 		$.ajax({
-			url: rootUrl + entity.type + '/' + entity.id + '/' + key + '?pageSize=' + pageSize + '&page=' + page,
+			url: rootUrl + entity.type + '/' + entity.id + '/' + key + '?' + Structr.getRequestParameterName('pageSize') + '=' + pageSize + '&' + Structr.getRequestParameterName('page') + '=' + page,
 			dataType: 'json',
 			headers: {
 				Accept: 'application/json; charset=utf-8; properties=id,name'

@@ -36,7 +36,6 @@ var _Crawler = {
 
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
-
 	},
 	resize: function() {
 		_Crawler.moveResizer();
@@ -90,7 +89,6 @@ var _Crawler = {
 			}
 		});
 
-
 		$.jstree.defaults.core.themes.dots      = false;
 		$.jstree.defaults.dnd.inside_pos        = 'last';
 		$.jstree.defaults.dnd.large_drop_target = true;
@@ -121,7 +119,6 @@ var _Crawler = {
 				_Crawler.setWorkingDirectory(data.node.parent);
 				_Crawler.displayPatterns(data.node.id);
 			}
-
 		});
 
 		_TreeHelper.initTree(crawlerTree, _Crawler.treeInitFunction, 'structr-ui-crawler');
@@ -133,17 +130,14 @@ var _Crawler = {
 		_Crawler.resize();
 
 		Structr.unblockMenu(100);
-
 	},
 	deepOpen: function(d, pages) {
 
 		_TreeHelper.deepOpen(crawlerTree, d, pages, 'site', (currentSite ? currentSite.id : 'root'));
-
 	},
 	refreshTree: function() {
 
 		_TreeHelper.refreshTree(crawlerTree);
-
 	},
 	treeInitFunction: function(obj, callback) {
 
@@ -164,9 +158,7 @@ var _Crawler = {
 								children: d.pages && d.pages.length > 0,
 								icon: 'fa fa-sitemap'
 							});
-
 						}
-
 					});
 
 					callback(list);
@@ -181,7 +173,6 @@ var _Crawler = {
 				_Crawler.load(obj.id, callback);
 				break;
 		}
-
 	},
 	unload: function() {
 		fastRemoveAllChildren($('.searchBox', main));
@@ -191,7 +182,6 @@ var _Crawler = {
 
 		currentSite = LSWrapper.getItem(currentSiteKey);
 		callback();
-
 	},
 	load: function(id, callback) {
 
@@ -394,7 +384,6 @@ var _Crawler = {
 		_Entities.appendEditPropertiesIcon(div, sourcePage);
 		_Entities.setMouseOver(div);
 		_Entities.makeSelectable(div);
-
 	},
 	displayPatterns: function(pageId) {
 
@@ -542,10 +531,7 @@ var _Crawler = {
 			}
 
 			_Crawler.resize();
-
 		});
-
-
 	},
 	refreshPatterns: function(sourcePage) {
 
@@ -590,7 +576,6 @@ var _Crawler = {
 						_Crawler.addSubpattern(selector, fullselector, parentPatternId, false, function() {
 							_Crawler.refreshPatterns(sourcePage);
 						});
-
 					});
 				});
 
@@ -644,7 +629,6 @@ var _Crawler = {
 					}
 				});
 
-
 				_Crawler.resize();
 			}
 		});
@@ -660,7 +644,6 @@ var _Crawler = {
 			e.preventDefault();
 
 			$('#' + $(this).data('folderId') + '_anchor').click();
-
 		});
 
 		$('#parent-file-link').on('click', function(e) {
@@ -743,7 +726,6 @@ var _Crawler = {
 							}
 						});
 					}
-
 				});
 			}
 
@@ -754,7 +736,6 @@ var _Crawler = {
 				_Entities.setProperty(subPattern.id, 'mappedAttribute', newAttr, false, function() {
 					blinkGreen(row);
 				});
-
 			});
 
 			row.find('.mappedAttributeFunction_').on('click', function(e) {
@@ -783,7 +764,6 @@ var _Crawler = {
 
 			_Entities.setMouseOver(div);
 			_Entities.makeSelectable(div);
-
 		});
 
 		var row = $('#' + rowId);
@@ -866,7 +846,6 @@ var _Crawler = {
 				blinkGreen(row);
 				updatePropertySelector(newType);
 			});
-
 		});
 
 		propertySelector.on('change', function() {
@@ -874,7 +853,6 @@ var _Crawler = {
 			_Entities.setProperty(d.id, 'mappedAttribute', newAttr, false, function() {
 				blinkGreen(row);
 			});
-
 		});
 
 		row.find('.inputValue_').on('click', function(e) {
@@ -904,13 +882,13 @@ var _Crawler = {
 			div.append(newDelIcon);
 			delIcon = div.children('.delete_icon');
 		}
+
 		div.children('.delete_icon').on('click', function(e) {
 			e.stopPropagation();
 			_Entities.deleteNode(this, d, false, function() {
 				_Crawler.refreshPatterns(d.sourcePage);
 			});
 		});
-
 
 		$('.extract', row).on('click', function(e) {
 			var btn = $(this);
@@ -963,7 +941,6 @@ var _Crawler = {
 		_Entities.appendEditPropertiesIcon(div, d);
 		_Entities.setMouseOver(div);
 		_Entities.makeSelectable(div);
-
 	},
 	initPageFrame: function(pageUrl) {
 
@@ -1027,7 +1004,6 @@ var _Crawler = {
 				_Crawler.highlight(el, color);
 
 				return false;
-
 			});
 
 			elements.on('mouseout', function(e) {
@@ -1074,7 +1050,6 @@ var _Crawler = {
 				return false;
 			});
 		});
-
 
 		$('.add-page').on('click', function() {
 
@@ -1220,7 +1195,7 @@ var _Crawler = {
 		});
 
 		if (url) {
-				link.val(url);
+			link.val(url);
 		} else {
 			path.val(selector ? selector : el.getSelector());
 			elid.val(el.attr('id'));
@@ -1286,4 +1261,3 @@ var _Crawler = {
 		return selector;
 	};
 })(jQuery);
-

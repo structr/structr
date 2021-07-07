@@ -285,7 +285,7 @@ var _VirtualTypes = {
 		});
 	},
 	updateResourceLink: function (virtualType) {
-		_VirtualTypes.resourceLink.attr('href' , '/structr/rest/' + virtualType.name + '?pageSize=1');
+		_VirtualTypes.resourceLink.attr('href' , '/structr/rest/' + virtualType.name + '?' + Structr.getRequestParameterName('pageSize') + '=1');
 		_VirtualTypes.resourceLink.text('/' + virtualType.name);
 	},
 	clearVirtualTypeDetails: function() {

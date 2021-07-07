@@ -417,6 +417,7 @@ var _Widgets = {
 //			});
 
 			_Entities.appendEditPropertiesIcon(div, widget);
+			_Elements.enableContextMenuOnElement(div, widget);
 		}
 
 		return div;
@@ -551,12 +552,8 @@ var _Widgets = {
 	appendWidgetSelectorEditor: function (container, entity, allowEdit) {
 
 		Structr.fetchHtmlTemplate('widgets/edit-selectors', {}, function(html) {
-
 			container.append(html);
-
-
 		});
-
 	},
 	appendWidgetHelpText: function(container) {
 

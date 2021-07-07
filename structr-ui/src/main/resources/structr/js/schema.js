@@ -436,7 +436,7 @@ var _Schema = {
 
 			} else {
 
-				return fetch(rootUrl + 'SchemaNode/ui?sort=hierarchyLevel&order=asc').then(function(response) {
+				return fetch(rootUrl + 'SchemaNode/ui?' + Structr.getRequestParameterName('sort') + '=hierarchyLevel&' + Structr.getRequestParameterName('order') + '=asc').then(function(response) {
 
 					if (response.ok) {
 						return response.json();
@@ -959,7 +959,7 @@ var _Schema = {
 
 		let classSelect = $('.extends-class-select', headEl);
 		classSelect.append('<optgroup label="Default Type"><option value="">AbstractNode - Structr default base type</option></optgroup>');
-		$.get(rootUrl + 'SchemaNode/ui?sort=name', function(data) {
+		$.get(rootUrl + 'SchemaNode/ui?' + Structr.getRequestParameterName('sort') + '=name', function(data) {
 
 			let customTypes  = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isBuiltinType));
 			let builtinTypes = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && cls.isBuiltinType));
@@ -3066,7 +3066,6 @@ var _Schema = {
 		$('body').css({
 			position: 'relative'
 		});
-
 	},
 	removeSchemaEntity: function(entity, onSuccess, onError) {
 
@@ -3103,7 +3102,6 @@ var _Schema = {
 
 		if (entity && entity.id) {
 
-			// store existing property
 			$.ajax({
 				url: rootUrl + entity.id,
 				type: 'GET',

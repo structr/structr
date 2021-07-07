@@ -1445,7 +1445,7 @@ var _Pages = {
 			let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
 			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
 
-			let previewUrl        = viewRootUrl + entity.name + detailsObject + '?edit=2' + requestParameters;
+			let previewUrl        = viewRootUrl + entity.name + detailsObject + '?' + Structr.getRequestParameterName('edit') + '=2' + requestParameters;
 
 			return previewUrl;
 		},

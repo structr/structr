@@ -3277,7 +3277,7 @@ var _Code = {
 		}
 
 		$.ajax({
-			url: '/structr/rest/_runtimeEventLog?type=Scripting&seen=false&pageSize=100',
+			url: '/structr/rest/_runtimeEventLog?type=Scripting&seen=false&' + Structr.getRequestParameterName('pageSize') + '=100',
 			method: 'get',
 			statusCode: {
 				200: function(eventLog) {

@@ -807,6 +807,7 @@ var _Elements = {
 		const isMailTemplate     = (entity.type === 'MailTemplate');
 		const isLocalization     = (entity.type === 'Localization');
 		const hasChildren        = (entity.children && entity.children.length > 0);
+		const isWidget           = entity.isWidget;
 
 		var handleInsertHTMLAction = function (itemText) {
 			var pageId = isPage ? entity.id : entity.pageId;
@@ -840,7 +841,7 @@ var _Elements = {
 
 		if (!isFile && !isFolder && !isUser && !isGroup && !isMailTemplate && !isLocalization && !isContentContainer && !isContentItem) {
 
-			if (!isContent) {
+			if (!isContent && !isWidget) {
 
 				elements.push({
 					name: 'Insert HTML element',
@@ -863,7 +864,7 @@ var _Elements = {
 				}
 			}
 
-			if (!isPage && !isContent) {
+			if (!isPage && !isContent && !isWidget) {
 				elements.push({
 					name: 'Insert div element',
 					clickHandler: function () {
@@ -875,7 +876,7 @@ var _Elements = {
 
 			appendSeparator();
 
-			if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page')) {
+			if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page') && !isWidget) {
 
 				elements.push({
 					name: 'Insert before...',
@@ -924,13 +925,14 @@ var _Elements = {
 				appendSeparator();
 			}
 
-			if (entity.isWidget || (entity.type === 'Div' && entity.children.length === 0)) {
+			if (isWidget || (entity.type === 'Div' && !hasChildren)) {
 
 				elements.push({
 					icon: _Icons.svg.pencil_edit,
 					name: 'Edit',
 					clickHandler: function () {
-						if (entity.isWidget) {
+
+						if (isWidget) {
 							Command.get(entity.id, 'id,type,name,source,configuration,description', function(entity) {
 								_Widgets.editWidget(entity, true);
 							});
@@ -942,7 +944,7 @@ var _Elements = {
 				});
 			}
 
-			if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page')) {
+			if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page') && !isWidget) {
 
 				elements.push({
 					name: 'Clone Node',
@@ -988,7 +990,7 @@ var _Elements = {
 				});
 			}
 
-			if (!isPage) {
+			if (!isPage && !isWidget) {
 
 				appendSeparator();
 
@@ -1053,7 +1055,7 @@ var _Elements = {
 
 				}
 
-				if (!isPage || (isPage && !hasChildren && (_Elements.selectedEntity.tag === 'html' || _Elements.selectedEntity.type === 'Template'))) {
+				if (!isPage || (isPage && !hasChildren && (_Elements.selectedEntity.tag === 'html' || _Elements.selectedEntity.type === 'Template')) || !isWidget) {
 					elements.push({
 						name: 'Clone selected element here',
 						clickHandler: function () {
@@ -1064,7 +1066,7 @@ var _Elements = {
 					});
 				}
 
-				if (isSamePage && !isThisEntityDirectParentOfSelectedEntity && !isSelectedEntityInShadowPage && !isDescendantOfSelectedEntity(entity)) {
+				if (isSamePage && !isThisEntityDirectParentOfSelectedEntity && !isSelectedEntityInShadowPage && !isDescendantOfSelectedEntity(entity) && !isWidget) {
 					elements.push({
 						name: 'Move selected element here',
 						clickHandler: function () {
@@ -1078,7 +1080,7 @@ var _Elements = {
 
 			appendSeparator();
 
-			if (!isPage) {
+			if (!isPage && !isWidget) {
 
 				elements.push({
 					name: 'Repeater',
@@ -1127,6 +1129,24 @@ var _Elements = {
 
 		if (isFile) {
 
+			if (isFile && entity.isImage && entity.contentType !== 'text/svg' && !entity.contentType.startsWith('image/svg')) {
+				elements.push({
+					name: 'Edit Image',
+					clickHandler: function () {
+						_Files.editImage(entity);
+						return false;
+					}
+				});
+			} else if (isFile) {
+				elements.push({
+					name: 'Edit File',
+					clickHandler: function () {
+						_Files.editFile(entity);
+						return false;
+					}
+				});
+			}
+
 			if (displayingFavorites) {
 				elements.push({
 					name: 'Remove from Favorites',
@@ -1153,26 +1173,6 @@ var _Elements = {
 					name: 'Unpack archive',
 					clickHandler: function () {
 						_Files.unpackArchive(entity);
-						return false;
-					}
-				});
-			}
-
-			appendSeparator();
-
-			if (isFile && entity.isImage && entity.contentType !== 'text/svg' && !entity.contentType.startsWith('image/svg')) {
-				elements.push({
-					name: 'Edit Image',
-					clickHandler: function () {
-						_Files.editImage(entity);
-						return false;
-					}
-				});
-			} else if (isFile) {
-				elements.push({
-					name: 'Edit File',
-					clickHandler: function () {
-						_Files.editFile(entity);
 						return false;
 					}
 				});
@@ -1213,88 +1213,90 @@ var _Elements = {
 
 		appendSeparator();
 
-		elements.push({
-			icon: _Icons.svg.security,
-			name: 'Security',
-			elements: [
-				{
-					name: 'Access Control and Visibility',
-					clickHandler: function() {
-						_Entities.showAccessControlDialog(entity);
-						return false;
+		if (!isWidget) {
+			elements.push({
+				icon: _Icons.svg.security,
+				name: 'Security',
+				elements: [
+					{
+						name: 'Access Control and Visibility',
+						clickHandler: function() {
+							_Entities.showAccessControlDialog(entity);
+							return false;
+						}
+					},
+					'|',
+					{
+						name: 'Authenticated Users',
+						elements: [
+							{
+								name: 'Make element visible',
+								clickHandler: function() {
+									Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, false);
+									return false;
+								}
+							},
+							{
+								name: 'Make element invisible',
+								clickHandler: function() {
+									Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false);
+									return false;
+								}
+							},
+							'|',
+							{
+								name: 'Make subtree visible',
+								clickHandler: function() {
+									Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, true);
+									return false;
+								}
+							},
+							{
+								name: 'Make subtree invisible',
+								clickHandler: function() {
+									Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, true);
+									return false;
+								}
+							}
+						]
+					},
+					{
+						name: 'Public Users',
+						elements: [
+							{
+								name: 'Make element visible',
+								clickHandler: function() {
+									Command.setProperty(entity.id, 'visibleToPublicUsers', true, false);
+									return false;
+								}
+							},
+							{
+								name: 'Make element invisible',
+								clickHandler: function() {
+									Command.setProperty(entity.id, 'visibleToPublicUsers', false, false);
+									return false;
+								}
+							},
+							'|',
+							{
+								name: 'Make subtree visible',
+								clickHandler: function() {
+									Command.setProperty(entity.id, 'visibleToPublicUsers', true, true);
+									return false;
+								}
+							},
+							{
+								name: 'Make subtree invisible',
+								clickHandler: function() {
+									Command.setProperty(entity.id, 'visibleToPublicUsers', false, true);
+									return false;
+								}
+							}
+						]
 					}
-				},
-				'|',
-				{
-					name: 'Authenticated Users',
-					elements: [
-						{
-							name: 'Make element visible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, false);
-								return false;
-							}
-						},
-						{
-							name: 'Make element invisible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false);
-								return false;
-							}
-						},
-						'|',
-						{
-							name: 'Make subtree visible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, true);
-								return false;
-							}
-						},
-						{
-							name: 'Make subtree invisible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, true);
-								return false;
-							}
-						}
-					]
-				},
-				{
-					name: 'Public Users',
-					elements: [
-						{
-							name: 'Make element visible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToPublicUsers', true, false);
-								return false;
-							}
-						},
-						{
-							name: 'Make element invisible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToPublicUsers', false, false);
-								return false;
-							}
-						},
-						'|',
-						{
-							name: 'Make subtree visible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToPublicUsers', true, true);
-								return false;
-							}
-						},
-						{
-							name: 'Make subtree invisible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToPublicUsers', false, true);
-								return false;
-							}
-						}
-					]
-				}
-			]
-		});
+				]
+			});
+		}
 
 		appendSeparator();
 
@@ -1344,7 +1346,7 @@ var _Elements = {
 
 		appendSeparator();
 
-		if (!isFile && !isFolder && !isContent && !isUser && !isGroup && !isMailTemplate && !isLocalization && !isContentContainer && !isContentItem) {
+		if (!isFile && !isFolder && !isContent && !isUser && !isGroup && !isMailTemplate && !isLocalization && !isContentContainer && !isContentItem && !isWidget) {
 
 			elements.push({
 				name: '<input type="checkbox" id="inherit-visibility-flags">Inherit Visibility Flags',

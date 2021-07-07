@@ -903,7 +903,7 @@ var _Crud = {
 	},
 	updateCellPager: function(el, id, type, key, page, pageSize) {
 		$.ajax({
-			url: rootUrl + type + '/' + id + '/' + key + '/public?page=' + page + '&pageSize=' + pageSize,
+			url: rootUrl + type + '/' + id + '/' + key + '/public?' + Structr.getRequestParameterName('page') + '=' + page + '&' + Structr.getRequestParameterName('pageSize') + '=' + pageSize,
 			contentType: 'application/json; charset=UTF-8',
 			dataType: 'json',
 			statusCode: {
@@ -952,7 +952,7 @@ var _Crud = {
 
 		// use public view for cell pager - we should not need more information than this!
 		$.ajax({
-			url: rootUrl + type + '/' + id + '/' + key + '/public?pageSize=' + pageSize,
+			url: rootUrl + type + '/' + id + '/' + key + '/public' + _Crud.sortAndPagingParameters(null, null, null, pageSize, null),
 			contentType: 'application/json; charset=UTF-8',
 			dataType: 'json',
 			statusCode: {
@@ -1039,16 +1039,16 @@ var _Crud = {
 		let paramsArray = [];
 
 		if (s) {
-			paramsArray.push('sort=' + s);
+			paramsArray.push(Structr.getRequestParameterName('sort') + '=' + s);
 		}
 		if (o) {
-			paramsArray.push('order=' + o);
+			paramsArray.push(Structr.getRequestParameterName('order') + '=' + o);
 		}
 		if (ps) {
-			paramsArray.push('pageSize=' + ps);
+			paramsArray.push(Structr.getRequestParameterName('pageSize') + '=' + ps);
 		}
 		if (p) {
-			paramsArray.push('page=' + p);
+			paramsArray.push(Structr.getRequestParameterName('page') + '=' + p);
 		}
 		if (exact === true) {
 			paramsArray.push('type=' + t);
@@ -2290,7 +2290,7 @@ var _Crud = {
 			if (attr === 'uuid') {
 				url = rootUrl + type + '/' + searchString;
 			} else {
-				searchPart = searchString === '*' || searchString === '' ? '' : '&' + attr + '=' + encodeURIComponent(searchString) + '&loose=1';
+				searchPart = searchString === '*' || searchString === '' ? '' : '&' + attr + '=' + encodeURIComponent(searchString) + '&' + Structr.getRequestParameterName('loose') + '=1';
 				url = rootUrl + type + '/public' + _Crud.sortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1) + searchPart;
 			}
 
