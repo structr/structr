@@ -341,10 +341,6 @@ var _Elements = {
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds&&entity.syncedNodesIds.length)?entity.syncedNodesIds:[entity.sharedComponentId]));
 
-		if (!hasChildren && !entity.sharedComponentId) {
-			_Entities.appendEditSourceIcon(div, entity);
-		}
-
 		_Entities.appendEditPropertiesIcon(div, entity);
 
 		if (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object') {
@@ -811,6 +807,7 @@ var _Elements = {
 		const isMailTemplate     = (entity.type === 'MailTemplate');
 		const isLocalization     = (entity.type === 'Localization');
 		const hasChildren        = (entity.children && entity.children.length > 0);
+		const isWidget           = entity.isWidget;
 
 		var handleInsertHTMLAction = function (itemText) {
 			var pageId = isPage ? entity.id : entity.pageId;
@@ -844,7 +841,7 @@ var _Elements = {
 
 		if (!isFile && !isFolder && !isUser && !isGroup && !isMailTemplate && !isLocalization && !isContentContainer && !isContentItem) {
 
-			if (!isContent) {
+			if (!isContent && !isWidget) {
 
 				elements.push({
 					name: 'Insert HTML element',
@@ -867,7 +864,7 @@ var _Elements = {
 				}
 			}
 
-			if (!isPage && !isContent) {
+			if (!isPage && !isContent && !isWidget) {
 				elements.push({
 					name: 'Insert div element',
 					clickHandler: function () {
@@ -879,7 +876,7 @@ var _Elements = {
 
 			appendSeparator();
 
-			if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page')) {
+			if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page') && !isWidget) {
 
 				elements.push({
 					name: 'Insert before...',
@@ -928,7 +925,26 @@ var _Elements = {
 				appendSeparator();
 			}
 
-			if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page')) {
+			if (isWidget || (entity.type === 'Div' && !hasChildren)) {
+
+				elements.push({
+					icon: _Icons.svg.pencil_edit,
+					name: 'Edit',
+					clickHandler: function () {
+
+						if (isWidget) {
+							Command.get(entity.id, 'id,type,name,source,configuration,description', function(entity) {
+								_Widgets.editWidget(entity, true);
+							});
+						} else {
+							_Entities.editSource(entity);
+						}
+						return false;
+					}
+				});
+			}
+
+			if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page') && !isWidget) {
 
 				elements.push({
 					name: 'Clone Node',
@@ -974,7 +990,7 @@ var _Elements = {
 				});
 			}
 
-			if (!isPage) {
+			if (!isPage && !isWidget) {
 
 				appendSeparator();
 
@@ -1039,7 +1055,7 @@ var _Elements = {
 
 				}
 
-				if (!isPage || (isPage && !hasChildren && (_Elements.selectedEntity.tag === 'html' || _Elements.selectedEntity.type === 'Template'))) {
+				if (!isPage || (isPage && !hasChildren && (_Elements.selectedEntity.tag === 'html' || _Elements.selectedEntity.type === 'Template')) || !isWidget) {
 					elements.push({
 						name: 'Clone selected element here',
 						clickHandler: function () {
@@ -1050,7 +1066,7 @@ var _Elements = {
 					});
 				}
 
-				if (isSamePage && !isThisEntityDirectParentOfSelectedEntity && !isSelectedEntityInShadowPage && !isDescendantOfSelectedEntity(entity)) {
+				if (isSamePage && !isThisEntityDirectParentOfSelectedEntity && !isSelectedEntityInShadowPage && !isDescendantOfSelectedEntity(entity) && !isWidget) {
 					elements.push({
 						name: 'Move selected element here',
 						clickHandler: function () {
@@ -1064,7 +1080,7 @@ var _Elements = {
 
 			appendSeparator();
 
-			if (!isPage) {
+			if (!isPage && !isWidget) {
 
 				elements.push({
 					name: 'Repeater',
@@ -1197,88 +1213,90 @@ var _Elements = {
 
 		appendSeparator();
 
-		elements.push({
-			icon: _Icons.svg.security,
-			name: 'Security',
-			elements: [
-				{
-					name: 'Access Control and Visibility',
-					clickHandler: function() {
-						_Entities.showAccessControlDialog(entity);
-						return false;
+		if (!isWidget) {
+			elements.push({
+				icon: _Icons.svg.security,
+				name: 'Security',
+				elements: [
+					{
+						name: 'Access Control and Visibility',
+						clickHandler: function() {
+							_Entities.showAccessControlDialog(entity);
+							return false;
+						}
+					},
+					'|',
+					{
+						name: 'Authenticated Users',
+						elements: [
+							{
+								name: 'Make element visible',
+								clickHandler: function() {
+									Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, false);
+									return false;
+								}
+							},
+							{
+								name: 'Make element invisible',
+								clickHandler: function() {
+									Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false);
+									return false;
+								}
+							},
+							'|',
+							{
+								name: 'Make subtree visible',
+								clickHandler: function() {
+									Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, true);
+									return false;
+								}
+							},
+							{
+								name: 'Make subtree invisible',
+								clickHandler: function() {
+									Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, true);
+									return false;
+								}
+							}
+						]
+					},
+					{
+						name: 'Public Users',
+						elements: [
+							{
+								name: 'Make element visible',
+								clickHandler: function() {
+									Command.setProperty(entity.id, 'visibleToPublicUsers', true, false);
+									return false;
+								}
+							},
+							{
+								name: 'Make element invisible',
+								clickHandler: function() {
+									Command.setProperty(entity.id, 'visibleToPublicUsers', false, false);
+									return false;
+								}
+							},
+							'|',
+							{
+								name: 'Make subtree visible',
+								clickHandler: function() {
+									Command.setProperty(entity.id, 'visibleToPublicUsers', true, true);
+									return false;
+								}
+							},
+							{
+								name: 'Make subtree invisible',
+								clickHandler: function() {
+									Command.setProperty(entity.id, 'visibleToPublicUsers', false, true);
+									return false;
+								}
+							}
+						]
 					}
-				},
-				'|',
-				{
-					name: 'Authenticated Users',
-					elements: [
-						{
-							name: 'Make element visible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, false);
-								return false;
-							}
-						},
-						{
-							name: 'Make element invisible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false);
-								return false;
-							}
-						},
-						'|',
-						{
-							name: 'Make subtree visible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, true);
-								return false;
-							}
-						},
-						{
-							name: 'Make subtree invisible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, true);
-								return false;
-							}
-						}
-					]
-				},
-				{
-					name: 'Public Users',
-					elements: [
-						{
-							name: 'Make element visible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToPublicUsers', true, false);
-								return false;
-							}
-						},
-						{
-							name: 'Make element invisible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToPublicUsers', false, false);
-								return false;
-							}
-						},
-						'|',
-						{
-							name: 'Make subtree visible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToPublicUsers', true, true);
-								return false;
-							}
-						},
-						{
-							name: 'Make subtree invisible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToPublicUsers', false, true);
-								return false;
-							}
-						}
-					]
-				}
-			]
-		});
+				]
+			});
+		}
 
 		appendSeparator();
 
@@ -1328,7 +1346,7 @@ var _Elements = {
 
 		appendSeparator();
 
-		if (!isFile && !isFolder && !isContent && !isUser && !isGroup && !isMailTemplate && !isLocalization && !isContentContainer && !isContentItem) {
+		if (!isFile && !isFolder && !isContent && !isUser && !isGroup && !isMailTemplate && !isLocalization && !isContentContainer && !isContentItem && !isWidget) {
 
 			elements.push({
 				name: '<input type="checkbox" id="inherit-visibility-flags">Inherit Visibility Flags',
@@ -1368,7 +1386,7 @@ var _Elements = {
 
 		// DELETE AREA - ALWAYS AT THE BOTTOM
 		// allow "Remove Node" on first level children of page
-		if (Structr.isModuleActive(_Pages) && !isPage && entity.parent !== null) {
+		if (Structr.isModuleActive(_Pages) && !isPage && entity.parent !== null && !entity.isWidget) {
 
 			elements.push({
 				icon: _Icons.svg.trashcan,
@@ -1392,32 +1410,23 @@ var _Elements = {
 				name: 'Delete ' + entity.type,
 				clickHandler: () => {
 
-					if (isContent || isFile || isUser || isGroup) {
+					if (isContent || isUser || isGroup) {
+
 						_Entities.deleteNode(this, entity);
-					} else if (isFile) {
-						_Entities.deleteNode(this, entity);
-					} else if (isFolder) {
+
+					} else if (isFolder || isFile) {
 
 						let selectedElements = document.querySelectorAll('.node.selected');
-						let selectedCount = selectedElements.length;
-						let el = Structr.node(entity.id)[0].closest('.folder');
-						if (selectedCount > 1 && el.classList.contains('selected')) {
+						let files = [];
 
-							let files = [];
+						selectedElements.forEach((el) => {
+							files.push(Structr.entityFromElement(el));
+						});
 
-							selectedElements.forEach((el) => {
-								files.push(Structr.entityFromElement(el));
-							});
+						_Entities.deleteNodes(this, files, true, () => {
+							_Files.refreshTree();
+						});
 
-							_Entities.deleteNodes(this, files, true, () => {
-								_Files.refreshTree();
-							});
-
-						} else {
-							_Entities.deleteNode(this, entity, true, () => {
-								_Files.refreshTree();
-							});
-						}
 					} else if (isMailTemplate) {
 
 						_Entities.deleteNode(this, entity, false, () => {

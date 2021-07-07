@@ -399,24 +399,25 @@ var _Widgets = {
 
 		} else {
 
-			_Entities.appendAccessControlIcon(div, widget);
+			//_Entities.appendAccessControlIcon(div, widget);
 
-			div.append('<i title="Delete widget ' + widget.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
-			div.children('.delete_icon').on('click', function(e) {
-				e.stopPropagation();
-				_Entities.deleteNode(this, widget);
-			});
-
-			div.append('<i title="Edit widget ' + widget.name + '" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-			$('.edit_icon', div).on('click', function(e) {
-				e.stopPropagation();
-
-				Command.get(widget.id, 'id,type,name,source,configuration,description', function(entity) {
-					_Widgets.editWidget(entity, true);
-				});
-			});
+//			div.append('<i title="Delete widget ' + widget.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
+//			div.children('.delete_icon').on('click', function(e) {
+//				e.stopPropagation();
+//				_Entities.deleteNode(this, widget);
+//			});
+//
+//			div.append('<i title="Edit widget ' + widget.name + '" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
+//			$('.edit_icon', div).on('click', function(e) {
+//				e.stopPropagation();
+//
+//				Command.get(widget.id, 'id,type,name,source,configuration,description', function(entity) {
+//					_Widgets.editWidget(entity, true);
+//				});
+//			});
 
 			_Entities.appendEditPropertiesIcon(div, widget);
+			_Elements.enableContextMenuOnElement(div, widget);
 		}
 
 		return div;

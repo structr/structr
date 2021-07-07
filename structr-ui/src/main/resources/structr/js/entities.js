@@ -153,6 +153,9 @@ var _Entities = {
 			let reloadSelectorInput = $('#reload-selector-input', el);
 			let reloadUrlInput      = $('#reload-url-input', el);
 			let reloadEventInput    = $('#reload-event-input', el);
+			let customEventInput    = $('#custom-event-input', el);
+			let customActionInput   = $('#custom-action-input', el);
+			let customTargetInput   = $('#custom-target-input', el);
 
 			// event mapping selector
 			eventMappingSelect.select2({
@@ -219,6 +222,9 @@ var _Entities = {
 			reloadSelectorInput.on('change', function(e) { reloadSelectorInput.removeClass('required'); });
 			reloadUrlInput.on('change', function(e) { reloadUrlInput.removeClass('required'); });
 			reloadEventInput.on('change', function(e) { reloadEventInput.removeClass('required'); });
+			customEventInput.on('change', function(e) { customEventInput.removeClass('required'); });
+			customActionInput.on('change', function(e) { customActionInput.removeClass('required'); });
+			customTargetInput.on('change', function(e) { customTargetInput.removeClass('required'); });
 
 			Structr.activateCommentsInElement(el);
 
@@ -228,7 +234,7 @@ var _Entities = {
 
 				let click        = eventMapping.click;
 				let change       = eventMapping.change;
-				let id           = '';
+				let id           = 'options-custom';
 
 				if (click) {
 
@@ -247,9 +253,8 @@ var _Entities = {
 							methodNameInput.val(click);
 							break;
 					}
-				}
 
-				if (change) {
+				} else if (change) {
 
 					switch (change) {
 
@@ -265,6 +270,14 @@ var _Entities = {
 							id = 'options-method-change';
 							methodNameInput.val(change);
 							break;
+					}
+
+				} else {
+
+					for (var key of Object.keys(eventMapping)) {
+
+						customEventInput.val(key);
+						customActionInput.val(eventMapping[key]);
 					}
 				}
 
@@ -288,6 +301,7 @@ var _Entities = {
 				deleteTargetInput.val(entity['data-structr-target']);
 				methodTargetInput.val(entity['data-structr-target']);
 				updateTargetInput.val(entity['data-structr-target']);
+				customTargetInput.val(entity['data-structr-target']);
 
 				let reloadTargetValue = entity['data-structr-reload-target'];
 				if (reloadTargetValue) {
@@ -346,6 +360,9 @@ var _Entities = {
 					let updateProperty = updatePropertyInput.val();
 					let deleteTarget   = deleteTargetInput.val();
 					let reloadOption   = reloadOptionSelect.val();
+					let customEvent    = customEventInput.val();
+					let customAction   = customActionInput.val();
+					let customTarget   = customTargetInput.val();
 					let reloadTarget   = null;
 					let inputEl        = $(eventType);
 
@@ -374,6 +391,21 @@ var _Entities = {
 							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target', null, $(inputEl), null);
 							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',        null, $(inputEl), null);
 							_Entities.setPropertyWithFeedback(entity, 'eventMapping',               null, $(inputEl), null);
+							break;
+
+						case 'options-custom':
+							if (customEvent && customAction && customTarget) {
+								let customMapping = {};
+								customMapping[customEvent] = customAction;
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', JSON.stringify(customMapping), $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  customTarget, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								Structr.showAndHideInfoBoxMessage('Please enter event and action.', 'warning', 2000, 200);
+								customEventInput.addClass('required');
+								customActionInput.addClass('required');
+								customTargetInput.addClass('required');
+							}
 							break;
 
 						case 'options-create-click':
@@ -678,9 +710,7 @@ var _Entities = {
 	},
 	editSource: function(entity) {
 
-		// Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function () {
-		// }, function () {
-		// });
+		Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function () {}, function () {});
 
 		// Get content in widget mode
 		var url = viewRootUrl + entity.id + '?edit=3', contentType = 'text/html';
@@ -957,9 +987,7 @@ var _Entities = {
 							}, function(c) {}, function(c) {
 								_Entities.dataBindingDialog(entity, c, typeInfo);
 							});
-
 						}
-
 					}
 
 					_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
@@ -974,9 +1002,7 @@ var _Entities = {
 					$('#tab-' + activeView).click();
 
 					Structr.resize();
-
 				});
-
 			};
 
 			if (obj.relType) {
@@ -984,9 +1010,7 @@ var _Entities = {
 			} else {
 				Command.get(obj.id, null, function(entity) { handleGraphObject(entity); }, 'ui');
 			}
-
 		});
-
 	},
 	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback, initCallback, showCallback) {
 
@@ -2147,26 +2171,6 @@ var _Entities = {
 				return true;
 			});
 		});
-	},
-	appendEditSourceIcon: function(parent, entity) {
-
-		if (_Entities.pencilEditBlacklist.indexOf(entity.tag) === -1) {
-
-			// var editIcon = $('.edit_icon', parent);
-			//
-			// if (!(editIcon && editIcon.length)) {
-			// 	parent.append('<i title="Edit source code" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-			// 	editIcon = $('.edit_icon', parent);
-			// }
-			// editIcon.on('click', function(e) {
-			// 	e.stopPropagation();
-			// 	_Entities.editSource(entity);
-			// });
-			parent.on('click', function(e) {
-				e.stopPropagation();
-				_Entities.editSource(entity);
-			});
-		}
 	},
 	appendEditPropertiesIcon: function(parent, entity, visible) {
 

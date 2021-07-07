@@ -32,7 +32,6 @@ var _Security = {
 	resourceAccesses: undefined,
 	securityTabKey: 'structrSecurityTab_' + port,
 	init: function() {
-		if (!subModule) subModule = LSWrapper.getItem(_Security.securityTabKey);
 		_Pager.initPager('users',           'User', 1, 25, 'name', 'asc');
 		_Pager.initPager('groups',          'Group', 1, 25, 'name', 'asc');
 		_Pager.initPager('resource-access', 'ResourceAccess', 1, 25, 'signature', 'asc');
@@ -59,30 +58,25 @@ var _Security = {
 
 				_Security.resourceAccesses = $('#resourceAccesses');
 
-				// var activeTab = LSWrapper.getItem(_Security.securityTabKey) || 'usersAndGroups';
-				// _Security.selectTab(activeTab);
+				let subModule = LSWrapper.getItem(_Security.securityTabKey) || 'users-and-groups';
 
 				document.querySelectorAll('#function-bar .tabs-menu li a').forEach(function(tabLink) {
+
 					tabLink.addEventListener('click', function(e) {
 						e.preventDefault();
 
 						let urlHash = e.target.closest('a').getAttribute('href');
-
-						subModule = urlHash.split(':')[1];
+						let subModule = urlHash.split(':')[1];
 						let targetId = '#dashboard-' + subModule;
 						window.location.hash = urlHash;
 
 						_Security.selectTab(subModule);
-
 					});
 
 					if (tabLink.closest('a').getAttribute('href') === '#' + mainModule + ':' + subModule) {
-						// tabLink.closest('li').classList.add('active');
 						tabLink.click();
 					}
-
 				});
-
 
 				Structr.unblockMenu(100);
 			});

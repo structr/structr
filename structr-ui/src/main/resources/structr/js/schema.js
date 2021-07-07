@@ -325,7 +325,7 @@ var _Schema = {
 			};
 
 			$('#inheritanceTab').off('click').on('click', function() {
-				_Pages.leftSlideoutTrigger(this, inheritanceSlideout, [], _Schema.schemaActiveTabLeftKey, function() { inheritanceTree.show(); updateCanvasTranslation(); }, function() { updateCanvasTranslation(); inheritanceTree.hide(); });
+				_Pages.leftSlideoutTrigger(this, inheritanceSlideout, [], function() { inheritanceTree.show(); updateCanvasTranslation(); }, function() { updateCanvasTranslation(); inheritanceTree.hide(); });
 			});
 
 			_Schema.init();
@@ -445,6 +445,7 @@ var _Schema = {
 					}
 
 				}).then(handleSchemaNodeData).then(function(data) {
+
 					if (typeof callback === 'function') {
 						callback();
 					}
@@ -602,29 +603,36 @@ var _Schema = {
 						return { left: calculatedX, top: calculatedY };
 					};
 
-					var storedPosition = _Schema.nodePositions[entity.name];
+					let nodePosition = _Schema.nodePositions[entity.name];
 
-					// console.log('storedPosition', storedPosition);
+					if (!nodePosition || (nodePosition && nodePosition.left === 0 && nodePosition.top === 0)) {
 
-
-					if (!storedPosition) {
-
-						var calculatedPosition = calculatePosition();
+						nodePosition = calculatePosition();
 
 						// console.log('calculatedPosition', calculatedPosition);
 
-						var count = 0; // prevent endless looping
+						let count = 0; // prevent endless looping
 
-						while (_Schema.overlapsExistingNodes(calculatedPosition) && count++ < 1000) {
+						while (_Schema.overlapsExistingNodes(nodePosition) && count++ < 1000) {
 							x++;
-							calculatedPosition = calculatePosition();
+							nodePosition = calculatePosition();
 						}
 					}
 
-					node.offset({
-						left: storedPosition ? storedPosition.left : calculatedPosition.left,
-						top: storedPosition ? storedPosition.top : calculatedPosition.top
-					});
+					let canvasOffsetTop = canvas.offset().top;
+
+					if (nodePosition.top < canvasOffsetTop) {
+						nodePosition.top = canvasOffsetTop;
+
+						let count = 0; // prevent endless looping
+
+						while (_Schema.overlapsExistingNodes(nodePosition) && count++ < 1000) {
+							x++;
+							nodePosition = calculatePosition();
+						}
+					}
+
+					node.offset(nodePosition);
 
 					$('.edit', node).off('click').on('click', function(e) {
 
@@ -3029,8 +3037,8 @@ var _Schema = {
 
 			$('.node').each(function(i, elem) {
 				let $elem = $(elem);
-				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left - canvasPosition.left) / zoom + $elem.width()) + padding);
-				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top - canvasPosition.top)  / zoom + $elem.height()) + padding);
+				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left + $elem.width() - canvasPosition.left) / zoom + $elem.width()) + padding);
+				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top + $elem.height() - canvasPosition.top)  / zoom + $elem.height()) + padding);
 			});
 
 			if (canvasSize.w * zoom < $(window).width() - canvasPosition.left) {
@@ -3792,7 +3800,7 @@ var _Schema = {
 		}
 	},
 	applySavedLayoutConfiguration: function(layoutJSON) {
-
+console.warn(layoutJSON)
 		try {
 
 			var loadedConfig = JSON.parse(layoutJSON);
