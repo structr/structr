@@ -99,6 +99,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		//type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMElement"));
 		type.setExtends(URI.create("#/definitions/DOMNode"));
+		type.setCategory("html");
 
 		type.addStringProperty("tag",              PropertyView.Public, PropertyView.Ui).setIndexed(true).setCategory(PAGE_CATEGORY);
 		type.addStringProperty("path",             PropertyView.Public, PropertyView.Ui).setIndexed(true);

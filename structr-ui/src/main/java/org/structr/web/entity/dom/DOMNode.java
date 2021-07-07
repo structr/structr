@@ -109,6 +109,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMNode"));
 		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNodeImpl?typeParameters=org.structr.web.entity.dom.DOMNode"));
+		type.setCategory("html");
 
 		type.addStringProperty("dataKey").setIndexed(true).setCategory(QUERY_CATEGORY);
 		type.addStringProperty("cypherQuery").setCategory(QUERY_CATEGORY);
