@@ -591,6 +591,13 @@ img.disabled {
 	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
 }
 
+.slideout-activator.active.left {
+	border-right: .25rem solid var(--structr-green);
+}
+.slideout-activator.active.right {
+	border-left: .25rem solid var(--structr-green);
+}
+
 .slideout-activator:hover {
 	color: var(--icon-stroke-hover);
 	/*background-color: var(--solid-white);*/
