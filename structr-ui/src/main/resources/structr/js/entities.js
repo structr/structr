@@ -194,7 +194,15 @@ var _Entities = {
 						};
 					},
 					data: function (params) {
-						return { name: params.term, sort: 'name', loose: 1 }
+
+						let config = {
+							name: params.term
+						};
+
+						config[Structr.getRequestParameterName('sort')] = 'name';
+						config[Structr.getRequestParameterName('loose')] = 1;
+
+						return config;
 					}
 				}
 			}).on('select2:select', function(e) {
