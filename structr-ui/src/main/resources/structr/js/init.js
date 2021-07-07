@@ -364,7 +364,7 @@ var Structr = {
 	legacyRequestParameters: false,
 	getRequestParameterName: (key) => {
 
-		if (Structr.legacyRequestParameters === true) {
+		if (Structr.legacyRequestParameters === false) {
 			return '_' + key;
 		} else {
 			return key;
