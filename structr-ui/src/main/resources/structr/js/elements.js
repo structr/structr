@@ -1113,6 +1113,24 @@ var _Elements = {
 
 		if (isFile) {
 
+			if (isFile && entity.isImage && entity.contentType !== 'text/svg' && !entity.contentType.startsWith('image/svg')) {
+				elements.push({
+					name: 'Edit Image',
+					clickHandler: function () {
+						_Files.editImage(entity);
+						return false;
+					}
+				});
+			} else if (isFile) {
+				elements.push({
+					name: 'Edit File',
+					clickHandler: function () {
+						_Files.editFile(entity);
+						return false;
+					}
+				});
+			}
+
 			if (displayingFavorites) {
 				elements.push({
 					name: 'Remove from Favorites',
@@ -1139,26 +1157,6 @@ var _Elements = {
 					name: 'Unpack archive',
 					clickHandler: function () {
 						_Files.unpackArchive(entity);
-						return false;
-					}
-				});
-			}
-
-			appendSeparator();
-
-			if (isFile && entity.isImage && entity.contentType !== 'text/svg' && !entity.contentType.startsWith('image/svg')) {
-				elements.push({
-					name: 'Edit Image',
-					clickHandler: function () {
-						_Files.editImage(entity);
-						return false;
-					}
-				});
-			} else if (isFile) {
-				elements.push({
-					name: 'Edit File',
-					clickHandler: function () {
-						_Files.editFile(entity);
 						return false;
 					}
 				});
