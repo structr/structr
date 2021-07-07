@@ -547,7 +547,7 @@ var Importer = {
 
 		if (!Importer.schemaTypeCachePopulated) {
 
-			$.get(rootUrl + 'AbstractSchemaNode?sort=name', function(data) {
+			$.get(rootUrl + 'AbstractSchemaNode?' + Structr.getRequestParameterName('sort') + '=name', function(data) {
 
 				if (data && data.result) {
 
@@ -1125,7 +1125,7 @@ var Importer = {
 		var propertySelector = $('#property-select');
 		var typeConfig       = configuration[path];
 
-		$.get(rootUrl + 'SchemaNode?sort=name', function(data) {
+		$.get(rootUrl + 'SchemaNode?' + Structr.getRequestParameterName('sort') + '=name', function(data) {
 
 			if (data && data.result) {
 

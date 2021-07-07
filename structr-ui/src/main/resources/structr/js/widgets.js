@@ -552,12 +552,8 @@ var _Widgets = {
 	appendWidgetSelectorEditor: function (container, entity, allowEdit) {
 
 		Structr.fetchHtmlTemplate('widgets/edit-selectors', {}, function(html) {
-
 			container.append(html);
-
-
 		});
-
 	},
 	appendWidgetHelpText: function(container) {
 

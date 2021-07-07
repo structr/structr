@@ -609,7 +609,6 @@ function StructrApp(baseUrl, locale) {
 				}
 			}
 		});
-
 	},
 	this.logoutAction = function(btn, id, attrs, reload, returnUrl) {
 		disableButton(btn, s.labels[s.lang].processing);

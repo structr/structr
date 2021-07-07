@@ -119,7 +119,7 @@ var _Minification = {
 		var maxPos = -1;
 
 		$.ajax({
-			url: '/structr/rest/AbstractMinifiedFile/' + file.id + '/out/all?relType=MINIFICATION&sort=position&order=asc',
+			url: '/structr/rest/AbstractMinifiedFile/' + file.id + '/out/all?relType=MINIFICATION&' + Structr.getRequestParameterName('sort') + '=position&' + Structr.getRequestParameterName('order') + '=asc',
 			success: function (data) {
 				var files = {};
 				file.minificationSources.forEach(function (f) {

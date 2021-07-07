@@ -40,7 +40,6 @@ function resetToDefault(key) {
 	var currentTab = $('#active_section').val();
 
 	window.location.href = '/structr/config?reset=' + key + currentTab;
-
 }
 
 function resize() {

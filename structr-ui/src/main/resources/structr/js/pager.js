@@ -205,7 +205,6 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 			pagerObj.transportFunction();
 		});
 
-
 		let limitPager = function(inputEl) {
 			let val = $(inputEl).val();
 			if (val < 1 || val > pageCount[pagerObj.id]) {

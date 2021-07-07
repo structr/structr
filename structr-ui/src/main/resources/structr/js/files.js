@@ -388,12 +388,12 @@ var _Files = {
 
 		var url;
 		if (searchString.contains(' ')) {
-			url = rootUrl + 'files/ui?loose=1';
+			url = rootUrl + 'files/ui?' + Structr.getRequestParameterName('loose') + '=1';
 			searchString.split(' ').forEach(function(str, i) {
 				url = url + '&indexedWords=' + str;
 			});
 		} else {
-			url = rootUrl + 'files/ui?loose=1&indexedWords=' + searchString;
+			url = rootUrl + 'files/ui?' + Structr.getRequestParameterName('loose') + '=1&indexedWords=' + searchString;
 		}
 
 		_Files.displaySearchResultsForURL(url);
@@ -1278,7 +1278,8 @@ var _Files = {
 		}
 	},
 	editContent: function(button, file, element) {
-		var url = viewRootUrl + file.id + '?edit=1';
+
+		var url = viewRootUrl + file.id + '?' + Structr.getRequestParameterName('edit') + '=1';
 
 		var text = '';
 
