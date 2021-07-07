@@ -798,6 +798,7 @@ var _Elements = {
 
 		const isPage             = (entity.type === 'Page');
 		const isContent          = (entity.type === 'Content');
+		const isTemplate         = (entity.type === 'Template');
 		const isFile             = entity.isFile;
 		const isFolder           = entity.isFolder;
 		const isUser             = entity.isUser;
@@ -1089,13 +1090,17 @@ var _Elements = {
 						return false;
 					}
 				});
-				elements.push({
-					name: 'Events',
-					clickHandler: function () {
-						_Entities.showProperties(entity, 'editBinding');
-						return false;
-					}
-				});
+
+				if (!isContent && !isTemplate) {
+					elements.push({
+						name: 'Events',
+						clickHandler: function () {
+							_Entities.showProperties(entity, 'editBinding');
+							return false;
+						}
+					});
+				}
+
 				elements.push({
 					name: 'HTML Attributes',
 					clickHandler: function () {
