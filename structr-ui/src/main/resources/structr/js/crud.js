@@ -44,10 +44,6 @@ if (browser) {
 			_Crud.removeRecentType($(this).closest('div').data('type'));
 		});
 
-		$(document).on('click', '#crudTypeFilterSettings', function(e) {
-			e.stopPropagation();
-		});
-
 		$(document).on('change', '#crudTypeFilterSettings input', function(e) {
 			LSWrapper.setItem(_Crud.displayTypeConfigKey, _Crud.getTypeVisibilityConfig());
 			_Crud.updateTypeList();
@@ -71,6 +67,7 @@ var _Crud = {
 	crudExactTypeKey: 'structrCrudExactType_' + port,
 	searchField: undefined,
 	types: {},
+	abstractSchemaNodes: {},
 	availableViews: {},
 	relInfo: {},
 	keys: {},
@@ -211,14 +208,7 @@ var _Crud = {
 			_Crud.moveResizer();
 			Structr.initVerticalSlider($('.column-resizer', main), _Crud.crudResizerLeftKey, 204, _Crud.moveResizer);
 
-			var savedTypeVisibility = LSWrapper.getItem(_Crud.displayTypeConfigKey) || {};
-			$('#crudTypeToggleRels').prop('checked', (savedTypeVisibility.rels === undefined ? true : savedTypeVisibility.rels));
-			$('#crudTypeToggleCustom').prop('checked', (savedTypeVisibility.custom === undefined ? true : savedTypeVisibility.custom));
-			$('#crudTypeToggleCore').prop('checked', (savedTypeVisibility.core === undefined ? true : savedTypeVisibility.core));
-			$('#crudTypeToggleHtml').prop('checked', (savedTypeVisibility.html === undefined ? true : savedTypeVisibility.html));
-			$('#crudTypeToggleUi').prop('checked', (savedTypeVisibility.ui === undefined ? true : savedTypeVisibility.ui));
-			$('#crudTypeToggleLog').prop('checked', (savedTypeVisibility.log === undefined ? true : savedTypeVisibility.log));
-			$('#crudTypeToggleOther').prop('checked', (savedTypeVisibility.other === undefined ? true : savedTypeVisibility.other));
+			let savedTypeVisibility = _Crud.getStoredTypeVisibilityConfig();
 
 			$('#crudTypesSearch').keyup(function (e) {
 
@@ -254,18 +244,26 @@ var _Crud = {
 			_Crud.exact = LSWrapper.getItem(_Crud.crudExactTypeKey) || {};
 
 			_Crud.schemaLoading = false;
-			_Crud.schemaLoaded = false;
+			_Crud.schemaLoaded  = false;
 			_Crud.keys = {};
 
 			_Crud.loadSchema(function() {
 
-				if (browser) {
-					_Crud.updateTypeList();
-					_Crud.typeSelected(_Crud.type);
-					_Crud.updateRecentTypeList(_Crud.type);
-				}
-				_Crud.resize();
-				Structr.unblockMenu();
+				Command.query('AbstractSchemaNode', 2000, 1, 'name', 'asc', {}, function(abstractSchemaNodes) {
+
+					for (let asn of abstractSchemaNodes) {
+						_Crud.abstractSchemaNodes[asn.name] = asn;
+					}
+
+					if (browser) {
+						_Crud.updateTypeList();
+						_Crud.typeSelected(_Crud.type);
+						_Crud.updateRecentTypeList(_Crud.type);
+					}
+					_Crud.resize();
+					Structr.unblockMenu();
+
+				});
 			});
 
 			_Crud.searchField = $('.search', main);
@@ -458,30 +456,33 @@ var _Crud = {
 	},
 	updateTypeList: function () {
 
-		var $typesList = $('#crud-types-list');
+		let $typesList = $('#crud-types-list');
 		$typesList.empty();
 
-		var typeVisibility = _Crud.getStoredTypeVisibilityConfig();
+		let typeVisibility = _Crud.getStoredTypeVisibilityConfig();
 
-		Object.keys(_Crud.types).sort().forEach(function(typeName) {
+		let typeNames = Object.keys(_Crud.types).sort();
 
-			var type = _Crud.types[typeName];
+		for (let typeName of typeNames) {
 
-			var isRelType     = type.isRel;
-			var isDynamicType = !isRelType && type.className.startsWith('org.structr.dynamic');
-			var isCoreType    = !isRelType && type.className.startsWith('org.structr.core.entity');
-			var isHtmlType    = !isRelType && type.className.startsWith('org.structr.web.entity.html');
-			var isUiType      = !isRelType && type.className.startsWith('org.structr.web.entity') && !type.className.startsWith('org.structr.web.entity.html');
-			var isLogType     = !isRelType && type.className.startsWith('org.structr.rest.logging.entity');
-			var isOtherType   = !(isRelType || isDynamicType || isCoreType || isHtmlType || isUiType || isLogType);
+			let schemaNode    = _Crud.abstractSchemaNodes[typeName];
+			let type          = _Crud.types[typeName];
 
-			var hide =	(!typeVisibility.rels && isRelType) || (!typeVisibility.custom && isDynamicType) || (!typeVisibility.core && isCoreType) || (!typeVisibility.html && isHtmlType) ||
+			let isRelType     = type.isRel;
+			let isDynamicType = !isRelType && (schemaNode && schemaNode.isBuiltinType === false);
+			let isCoreType    = !isRelType && (schemaNode && schemaNode.isBuiltinType === true && schemaNode.category === 'core');
+			let isHtmlType    = !isRelType && (schemaNode && schemaNode.isBuiltinType === true && schemaNode.category === 'html');
+			let isUiType      = !isRelType && (schemaNode && schemaNode.isBuiltinType === true && schemaNode.category === 'ui');
+			let isLogType     = !isRelType && type.className.startsWith('org.structr.rest.logging.entity');
+			let isOtherType   = !(isRelType || isDynamicType || isCoreType || isHtmlType || isUiType || isLogType);
+
+			let hide =	(!typeVisibility.rels && isRelType) || (!typeVisibility.custom && isDynamicType) || (!typeVisibility.core && isCoreType) || (!typeVisibility.html && isHtmlType) ||
 						(!typeVisibility.ui && isUiType) || (!typeVisibility.log && isLogType) || (!typeVisibility.other && isOtherType);
 
 			if (!hide) {
 				$typesList.append('<div class="crud-type" data-type="' + typeName + '">' + typeName + '</div>');
 			}
-		});
+		}
 
 		_Crud.highlightCurrentType(_Crud.type);
 		_Crud.filterTypes($('#crudTypesSearch').val().toLowerCase());
@@ -498,8 +499,9 @@ var _Crud = {
 			log:    true,
 			other:  true
 		});
-
+console.warn(singleKey)
 		if (singleKey) {
+
 			return config[singleKey];
 		}
 
@@ -516,9 +518,6 @@ var _Crud = {
 			log:    $('#crudTypeToggleLog').prop('checked'),
 			other:  $('#crudTypeToggleOther').prop('checked')
 		};
-	},
-	hideTypeVisibilityConfig: function () {
-		$('#crudTypeFilterSettings').addClass('hidden');
 	},
 	highlightCurrentType: function (selectedType) {
 

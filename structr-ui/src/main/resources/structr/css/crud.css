@@ -99,7 +99,7 @@
 	background-color: #81ce25;
 	border-bottom: 1px solid #f6f6f6;
 	border-top: 1px solid #f6f6f6;
-	z-index: 1000;
+	z-index: 99;
 }
 
 #crud-top {
