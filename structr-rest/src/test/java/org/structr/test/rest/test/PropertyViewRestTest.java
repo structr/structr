@@ -244,7 +244,7 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 				.body("result[1].parents[0].depth",                         equalTo(1))
 				.body("result[1].parents[0].name",                          equalTo("ScriptTest1"))
 
-			.when().get(resource + "?sort=name");
+			.when().get(resource + "?_sort=name");
 
 		RestAssured
 

@@ -244,7 +244,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].tasks[0].subtasks[1].name",        equalTo("Subtask1.2"))
 			.body("result[0].tasks[0].subtasks[1].worker.name", equalTo("Worker2"))
 			.when()
-			.get("/projects/test?name=Project1&sort=name");
+			.get("/projects/test?name=Project1&_sort=name");
 
 		// post document
 		RestAssured
@@ -276,7 +276,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].tasks[0].subtasks[1].name",        equalTo("Subtask2.2"))
 			.body("result[0].tasks[0].subtasks[1].worker.name", equalTo("Worker3"))
 			.when()
-			.get("/projects/test?name=Project2&sort=name");
+			.get("/projects/test?name=Project2&_sort=name");
 
 		// check workers
 		RestAssured
@@ -295,7 +295,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].tasks[1].name",                    equalTo("Subtask2.1"))
 			.body("result[0].tasks[2].name",                    equalTo("Task2"))
 			.when()
-			.get("/workers/test?name=Worker2&sort=name");
+			.get("/workers/test?name=Worker2&_sort=name");
 	}
 
 	@Test
@@ -570,7 +570,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].tasks[4].worker.name",                                 equalTo("Worker5"))
 
 			.when()
-			.get("/projects/test?name=Project1&sort=name");
+			.get("/projects/test?name=Project1&_sort=name");
 
 		// check Task1
 		RestAssured
@@ -601,7 +601,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].subtasks[3].worker.company.name",             equalTo("Company2"))
 
 			.when()
-			.get("/tasks/test?name=Task1&sort=name");
+			.get("/tasks/test?name=Task1&_sort=name");
 
 		// check Task2
 		RestAssured
@@ -619,7 +619,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].worker.company.name",                         equalTo("Company1"))
 
 			.when()
-			.get("/tasks/test?name=Task2&sort=name");
+			.get("/tasks/test?name=Task2&_sort=name");
 
 
 		// check Task3
@@ -638,7 +638,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].worker.company.name",                         equalTo("Company2"))
 
 			.when()
-			.get("/tasks/test?name=Task3&sort=name");
+			.get("/tasks/test?name=Task3&_sort=name");
 
 
 		// check Task4
@@ -670,7 +670,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].subtasks[3].worker.company.name",             equalTo("Company3"))
 
 			.when()
-			.get("/tasks/test?name=Task4&sort=name");
+			.get("/tasks/test?name=Task4&_sort=name");
 
 
 		// check Task5
@@ -704,7 +704,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].subtasks[1].subtasks[1].worker.name",         equalTo("Worker4"))
 
 			.when()
-			.get("/tasks/test?name=Task5&sort=name");
+			.get("/tasks/test?name=Task5&_sort=name");
 
 
 		// check Subtask5.1
@@ -730,7 +730,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].subtasks[1].worker.company.name",             equalTo("Company3"))
 
 			.when()
-			.get("/tasks/test?name=Subtask5.1&sort=name");
+			.get("/tasks/test?name=Subtask5.1&_sort=name");
 
 
 		// check Subtask5.2
@@ -756,7 +756,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].subtasks[1].worker.company.name",             equalTo("Company3"))
 
 			.when()
-			.get("/tasks/test?name=Subtask5.2&sort=name");
+			.get("/tasks/test?name=Subtask5.2&_sort=name");
 
 
 		// check companies
@@ -775,7 +775,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[2].name", equalTo("Company3"))
 
 			.when()
-			.get("/companies/test?sort=name");
+			.get("/companies/test?_sort=name");
 
 		// check workers
 		RestAssured
@@ -800,7 +800,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[4].company.name", equalTo("Company3"))
 
 			.when()
-			.get("/workers/test?sort=name");
+			.get("/workers/test?_sort=name");
 
 	}
 
@@ -1175,7 +1175,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].tasks[3].worker.description",                          equalTo("new workerDescription4"))
 
 			.when()
-			.get("/projects/test?name=Project1&sort=name");
+			.get("/projects/test?name=Project1&_sort=name");
 
 		// check Task1
 		RestAssured
@@ -1221,7 +1221,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].subtasks[3].worker.company.description",      equalTo("new companyDescription2"))
 
 			.when()
-			.get("/tasks/test?name=Task1&sort=name");
+			.get("/tasks/test?name=Task1&_sort=name");
 
 		// check Task2
 		RestAssured
@@ -1242,7 +1242,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].worker.company.description",                  equalTo("new companyDescription1"))
 
 			.when()
-			.get("/tasks/test?name=Task2&sort=name");
+			.get("/tasks/test?name=Task2&_sort=name");
 
 
 		// check Task3
@@ -1264,7 +1264,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].worker.company.description",                  equalTo("new companyDescription2"))
 
 			.when()
-			.get("/tasks/test?name=Task3&sort=name");
+			.get("/tasks/test?name=Task3&_sort=name");
 
 
 		// check Task4
@@ -1311,7 +1311,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].subtasks[3].worker.company.description",      equalTo("new companyDescription3"))
 
 			.when()
-			.get("/tasks/test?name=Task4&sort=name");
+			.get("/tasks/test?name=Task4&_sort=name");
 
 		// check companies
 		RestAssured
@@ -1332,7 +1332,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[2].description", equalTo("new companyDescription3"))
 
 			.when()
-			.get("/companies/test?sort=name");
+			.get("/companies/test?_sort=name");
 
 		// check workers
 		RestAssured
@@ -1367,7 +1367,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[4].company.description", equalTo("new companyDescription3"))
 
 			.when()
-			.get("/workers/test?sort=name");
+			.get("/workers/test?_sort=name");
 
 	}
 
@@ -1419,7 +1419,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].worker[1].name",   equalTo("Worker2"))
 
 			.when()
-			.get("/Task/custom?sort=name");
+			.get("/Task/custom?_sort=name");
 	}
 
 	@Test
@@ -1465,7 +1465,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].tasks[0].workers", hasSize(0))
 
 			.when()
-			.get("/Project/test?sort=name");
+			.get("/Project/test?_sort=name");
 
 		// add a single worker using nested PUT
 		RestAssured.given().contentType("application/json; charset=UTF-8")
@@ -1492,7 +1492,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].tasks[0].workers[0].name", equalTo("Worker1"))
 
 			.when()
-			.get("/Project/test?sort=name");
+			.get("/Project/test?_sort=name");
 
 		// add a second worker
 		RestAssured.given().contentType("application/json; charset=UTF-8")
@@ -1520,7 +1520,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].tasks[0].workers[1].name", equalTo("Worker2"))
 
 			.when()
-			.get("/Project/test?sort=name");
+			.get("/Project/test?_sort=name");
 
 		// replace workers with worker3
 		RestAssured.given().contentType("application/json; charset=UTF-8")
@@ -1547,7 +1547,7 @@ public class DocumentTest extends StructrRestTestBase {
 			.body("result[0].tasks[0].workers[0].name", equalTo("Worker3"))
 
 			.when()
-			.get("/Project/test?sort=name");
+			.get("/Project/test?_sort=name");
 
 	}
 

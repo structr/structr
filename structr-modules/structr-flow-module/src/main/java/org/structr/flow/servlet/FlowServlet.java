@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
+import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
@@ -62,7 +63,7 @@ public class FlowServlet extends JsonRestServlet {
 
 			final Map<String, Object> flowParameters = new HashMap<>();
 			final Iterable<Object> flowResult;
-			final int depth = Services.parseInt(request.getParameter(REQUEST_PARAMTER_OUTPUT_DEPTH), config.getOutputNestingDepth());
+			final int depth = Services.parseInt(request.getParameter(RequestKeywords.OutputDepth.keyword()), config.getOutputNestingDepth());
 
 			// set default value for property view
 			propertyView.set(securityContext, config.getDefaultPropertyView());
@@ -192,7 +193,7 @@ public class FlowServlet extends JsonRestServlet {
 		try {
 
 			final Iterable<Object> flowResult;
-			final int depth = Services.parseInt(request.getParameter(REQUEST_PARAMTER_OUTPUT_DEPTH), config.getOutputNestingDepth());
+			final int depth = Services.parseInt(request.getParameter(RequestKeywords.OutputDepth.keyword()), config.getOutputNestingDepth());
 
 			// set default value for property view
 			propertyView.set(securityContext, config.getDefaultPropertyView());

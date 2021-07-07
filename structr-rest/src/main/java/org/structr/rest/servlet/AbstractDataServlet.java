@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
+import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.JsonException;
@@ -59,7 +60,6 @@ import org.structr.rest.serialization.StreamingHtmlWriter;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
-import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMTER_OUTPUT_DEPTH;
 
 /**
  *
@@ -101,7 +101,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 	// ----- protected methods -----
 	protected void commitResponse(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final RestMethodResult result, final boolean wrapSingleResultInArray) {
 
-		final String outputDepthSrc       = request.getParameter(REQUEST_PARAMTER_OUTPUT_DEPTH);
+		final String outputDepthSrc       = request.getParameter(RequestKeywords.OutputDepth.keyword());
 		final int outputDepth             = Services.parseInt(outputDepthSrc, config.getOutputNestingDepth());
 		final String baseUrl              = request.getRequestURI();
 		final Map<String, String> headers = result.getHeaders();

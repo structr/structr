@@ -86,7 +86,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 		for (int page=1; page<5; page++) {
 
-			String url = resource + "?sort=name&pageSize=2&page=" + page;
+			String url = resource + "?_sort=name&_pageSize=2&_page=" + page;
 
 			System.out.println("Testing page " + page + " with URL " + url);
 
@@ -147,7 +147,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 		for (int page=1; page<5; page++) {
 
-			String url = resource + "?sort=name&pageSize=2&page=" + page;
+			String url = resource + "?_sort=name&_pageSize=2&_page=" + page;
 
 			RestAssured
 
@@ -347,7 +347,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result[0].name", equalTo(notConnectedNodeName))
 				.body("result[0].id",   equalTo(t3_not_connected.getUuid()))
 			.when()
-				.get("/test_threes?oneToOneTestFive=null&pageSize=1");
+				.get("/test_threes?oneToOneTestFive=null&_pageSize=1");
 
 	}
 
@@ -417,7 +417,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result.size()",  is(100))
 				.body("result_count",   equalTo(num))
 			.when()
-				.get("/Nested?pageSize=100");
+				.get("/Nested?_pageSize=100");
 
 
 		RestAssured
@@ -429,7 +429,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result.size()",  is(1000))
 				.body("result_count",   equalTo(num))
 			.when()
-				.get("/Nested?pageSize=1000");
+				.get("/Nested?_pageSize=1000");
 
 		RestAssured
 			.given()
@@ -440,7 +440,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result.size()",  is(num))
 				.body("result_count",   equalTo(num))
 			.when()
-				.get("/Nested?pageSize=2000");
+				.get("/Nested?_pageSize=2000");
 
 		Settings.ResultCountSoftLimit.setValue(num);
 
@@ -454,7 +454,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result.size()",  is(num))
 				.body("result_count",   equalTo(num))
 			.when()
-				.get("/Nested?pageSize=1234");
+				.get("/Nested?_pageSize=1234");
 
 		RestAssured
 			.given()
@@ -466,7 +466,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result.size()",  is(num))
 				.body("result_count",   equalTo(num))
 			.when()
-				.get("/Nested?pageSize=1235");
+				.get("/Nested?_pageSize=1235");
 
 	}
 

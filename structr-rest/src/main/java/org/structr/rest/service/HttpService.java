@@ -486,53 +486,59 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			if (httpsPort > -1 && keyStorePath != null && !keyStorePath.isEmpty() && keyStorePassword != null) {
 
-				httpsActive = true;
+				try {
 
-				httpsConfig = new HttpConfiguration(httpConfig);
-				httpsConfig.addCustomizer(new SecureRequestCustomizer());
+					httpsActive = true;
 
-				sslServer = new SslContextFactory.Server();
-				sslServer.setKeyStorePath(keyStorePath);
-				sslServer.setKeyStorePassword(keyStorePassword);
+					httpsConfig = new HttpConfiguration(httpConfig);
+					httpsConfig.addCustomizer(new SecureRequestCustomizer());
 
-				String excludedProtocols = Settings.excludedProtocols.getValue();
-				String includedProtocols = Settings.includedProtocols.getValue();
-				String disabledCiphers = Settings.disabledCipherSuites.getValue();
+					sslServer = new SslContextFactory.Server();
+					sslServer.setKeyStorePath(keyStorePath);
+					sslServer.setKeyStorePassword(keyStorePassword);
 
-				if (disabledCiphers.length() > 0) {
-					disabledCiphers = disabledCiphers.replaceAll("\\s+", "");
-					sslServer.setExcludeCipherSuites(disabledCiphers.split(","));
+					String excludedProtocols = Settings.excludedProtocols.getValue();
+					String includedProtocols = Settings.includedProtocols.getValue();
+					String disabledCiphers = Settings.disabledCipherSuites.getValue();
+
+					if (disabledCiphers.length() > 0) {
+						disabledCiphers = disabledCiphers.replaceAll("\\s+", "");
+						sslServer.setExcludeCipherSuites(disabledCiphers.split(","));
+					}
+
+					if (excludedProtocols.length() > 0) {
+						excludedProtocols = excludedProtocols.replaceAll("\\s+", "");
+						sslServer.setExcludeProtocols(excludedProtocols.split(","));
+					}
+
+					if (includedProtocols.length() > 0) {
+						includedProtocols = includedProtocols.replaceAll("\\s+", "");
+						sslServer.setIncludeProtocols(includedProtocols.split(","));
+					}
+
+					final ServerConnector httpsConnector = new ServerConnector(server,
+						new SslConnectionFactory(sslServer, "http/1.1"),
+						new HttpConnectionFactory(httpsConfig));
+
+					if (forceHttps) {
+						sessionCache.getSessionHandler().setSecureRequestOnly(true);
+					}
+
+					httpsConnector.setPort(httpsPort);
+					httpsConnector.setIdleTimeout(500000);
+
+					httpsConnector.setHost(host);
+					httpsConnector.setPort(httpsPort);
+
+					if (Settings.dumpJettyStartupConfig.getValue()) {
+						logger.info(httpsConnector.dump());
+					}
+
+					connectors.add(httpsConnector);
+
+				} catch (Throwable t) {
+					logger.warn("Unable to start SSL connector: {}", t.getMessage());
 				}
-
-				if (excludedProtocols.length() > 0) {
-					excludedProtocols = excludedProtocols.replaceAll("\\s+", "");
-					sslServer.setExcludeProtocols(excludedProtocols.split(","));
-				}
-
-				if (includedProtocols.length() > 0) {
-					includedProtocols = includedProtocols.replaceAll("\\s+", "");
-					sslServer.setIncludeProtocols(includedProtocols.split(","));
-				}
-
-				final ServerConnector httpsConnector = new ServerConnector(server,
-					new SslConnectionFactory(sslServer, "http/1.1"),
-					new HttpConnectionFactory(httpsConfig));
-
-				if (forceHttps) {
-					sessionCache.getSessionHandler().setSecureRequestOnly(true);
-				}
-
-				httpsConnector.setPort(httpsPort);
-				httpsConnector.setIdleTimeout(500000);
-
-				httpsConnector.setHost(host);
-				httpsConnector.setPort(httpsPort);
-
-				if (Settings.dumpJettyStartupConfig.getValue()) {
-					logger.info(httpsConnector.dump());
-				}
-
-				connectors.add(httpsConnector);
 
 			} else {
 

@@ -92,7 +92,7 @@ public class RenderDataTest extends DOMTest {
 			final Element p1 = doc.createElement("p");
 
 			final PropertyMap p1Properties = new PropertyMap();
-			p1Properties.put(StructrApp.key(DOMElement.class, "restQuery"), "users?sort=name");
+			p1Properties.put(StructrApp.key(DOMElement.class, "restQuery"), "users?_sort=name");
 			p1Properties.put(StructrApp.key(DOMElement.class, "dataKey"), "user");
 			((DOMElement) p1).setProperties(((DOMElement) p1).getSecurityContext(), p1Properties);
 
@@ -104,7 +104,7 @@ public class RenderDataTest extends DOMTest {
 			final Element p2 = doc.createElement("p");
 
 			final PropertyMap p2Properties = new PropertyMap();
-			p2Properties.put(StructrApp.key(DOMElement.class, "restQuery"), "files?sort=name");
+			p2Properties.put(StructrApp.key(DOMElement.class, "restQuery"), "files?_sort=name");
 			p2Properties.put(StructrApp.key(DOMElement.class, "dataKey"), "file");
 			((DOMElement) p2).setProperties(((DOMElement) p2).getSecurityContext(), p2Properties);
 

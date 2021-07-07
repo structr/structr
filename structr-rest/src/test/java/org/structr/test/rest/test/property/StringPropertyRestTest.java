@@ -111,7 +111,7 @@ public class StringPropertyRestTest extends IndexingTest {
 			.statusCode(200)
 			.body("result_count", equalTo(3))
 		.when()
-			.get("/test_threes?stringProperty=test&loose=1");
+			.get("/test_threes?stringProperty=test&_loose=1");
 
 
 		// test range query

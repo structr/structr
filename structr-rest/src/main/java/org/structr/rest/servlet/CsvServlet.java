@@ -18,6 +18,7 @@
  */
 package org.structr.rest.servlet;
 
+import static com.caucho.quercus.lib.JavaModule.java;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
@@ -28,7 +29,6 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
+import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -143,10 +144,10 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				authenticator.checkResourceAccess(securityContext, request, resourceSignature, propertyView.get(securityContext));
 
 				// add sorting & paging
-				final String pageSizeParameter          = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
-				final String pageParameter              = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
-				final String[] sortOrders               = request.getParameterValues(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
-				final String[] sortKeyNames             = request.getParameterValues(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
+				final String pageSizeParameter          = request.getParameter(RequestKeywords.PageSize.keyword());
+				final String pageParameter              = request.getParameter(RequestKeywords.PageNumber.keyword());
+				final String[] sortOrders               = request.getParameterValues(RequestKeywords.SortOrder.keyword());
+				final String[] sortKeyNames             = request.getParameterValues(RequestKeywords.SortKey.keyword());
 				final int pageSize                      = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 				final int page                          = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
 				final Class<? extends GraphObject> type = resource.getEntityClassOrDefault();

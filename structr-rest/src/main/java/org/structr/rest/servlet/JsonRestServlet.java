@@ -18,6 +18,7 @@
  */
 package org.structr.rest.servlet;
 
+import static com.caucho.quercus.lib.JavaModule.java;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
@@ -26,12 +27,10 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -57,8 +56,8 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.DefaultSortOrder;
-import org.structr.core.graph.search.SearchCommand;
 import org.structr.rest.RestMethodResult;
+import org.structr.common.RequestKeywords;
 import org.structr.rest.resource.Resource;
 
 /**
@@ -66,57 +65,22 @@ import org.structr.rest.resource.Resource;
  */
 public class JsonRestServlet extends AbstractDataServlet {
 
-	public static final int DEFAULT_VALUE_PAGE_SIZE                     = 20;
-	public static final String DEFAULT_VALUE_SORT_ORDER                 = "asc";
-	public static final String REQUEST_PARAMETER_LOOSE_SEARCH           = "loose";
-	public static final String REQUEST_PARAMETER_PAGE_NUMBER            = "page";
-	public static final String REQUEST_PARAMETER_PAGE_SIZE              = "pageSize";
-	public static final String REQUEST_PARAMETER_SORT_KEY               = "sort";
-	public static final String REQUEST_PARAMETER_SORT_ORDER             = "order";
-	public static final String REQUEST_PARAMTER_OUTPUT_DEPTH            = "outputNestingDepth";
-	public static final Set<String> commonRequestParameters             = new LinkedHashSet<>();
-	private static final Logger logger                                  = LoggerFactory.getLogger(JsonRestServlet.class.getName());
-
-	static {
-
-		commonRequestParameters.add(REQUEST_PARAMETER_LOOSE_SEARCH);
-		commonRequestParameters.add(REQUEST_PARAMETER_PAGE_NUMBER);
-		commonRequestParameters.add(REQUEST_PARAMETER_PAGE_SIZE);
-		commonRequestParameters.add(REQUEST_PARAMETER_SORT_KEY);
-		commonRequestParameters.add(REQUEST_PARAMETER_SORT_ORDER);
-		commonRequestParameters.add(REQUEST_PARAMTER_OUTPUT_DEPTH);
-		commonRequestParameters.add("debugLoggingEnabled");
-		commonRequestParameters.add("forceResultCount");
-		commonRequestParameters.add("disableSoftLimit");
-
-		// cross reference here, but these need to be added as well..
-		commonRequestParameters.add(SearchCommand.DISTANCE_SEARCH_KEYWORD);
-		commonRequestParameters.add(SearchCommand.LAT_LON_SEARCH_KEYWORD);
-		commonRequestParameters.add(SearchCommand.LOCATION_SEARCH_KEYWORD);
-		commonRequestParameters.add(SearchCommand.STREET_SEARCH_KEYWORD);
-		commonRequestParameters.add(SearchCommand.HOUSE_SEARCH_KEYWORD);
-		commonRequestParameters.add(SearchCommand.POSTAL_CODE_SEARCH_KEYWORD);
-		commonRequestParameters.add(SearchCommand.CITY_SEARCH_KEYWORD);
-		commonRequestParameters.add(SearchCommand.STATE_SEARCH_KEYWORD);
-		commonRequestParameters.add(SearchCommand.COUNTRY_SEARCH_KEYWORD);
-
-		// misc
-		commonRequestParameters.add(SecurityContext.JSON_PARALLELIZATION_REQUEST_PARAMETER_NAME);
-	}
+	private static final Logger logger                  = LoggerFactory.getLogger(JsonRestServlet.class.getName());
+	public static final int DEFAULT_VALUE_PAGE_SIZE     = 20;
+	public static final String DEFAULT_VALUE_SORT_ORDER = "asc";
 
 	// ----- protected methods -----
 	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	protected void service(HttpServletRequest request, HttpServletResponse resp) throws ServletException, IOException {
 
-		final String method = req.getMethod();
-
+		final String method = request.getMethod();
 	        if ("PATCH".equals(method)) {
 
-			doPatch(req, resp);
+			doPatch(request, resp);
 			return;
 		}
 
-		super.service(req, resp);
+		super.service(request, resp);
 	}
 
 	// ----- interface Feature -----
@@ -873,14 +837,14 @@ public class JsonRestServlet extends AbstractDataServlet {
 			RuntimeEventLog.rest(returnContent ? "Get" : "Head", resource.getResourceSignature(), securityContext.getUser(false));
 
 			// add sorting && pagination
-			final String pageSizeParameter          = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
-			final String pageParameter              = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
-			final String outputDepth                = request.getParameter(REQUEST_PARAMTER_OUTPUT_DEPTH);
+			final String pageSizeParameter          = request.getParameter(RequestKeywords.PageSize.keyword());
+			final String pageParameter              = request.getParameter(RequestKeywords.PageNumber.keyword());
+			final String outputDepth                = request.getParameter(RequestKeywords.OutputDepth.keyword());
 			final int pageSize                      = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 			final int page                          = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
 			final int depth                         = Services.parseInt(outputDepth, config.getOutputNestingDepth());
-			final String[] sortKeyNames             = request.getParameterValues(REQUEST_PARAMETER_SORT_KEY);
-			final String[] sortOrders               = request.getParameterValues(REQUEST_PARAMETER_SORT_ORDER);
+			final String[] sortKeyNames             = request.getParameterValues(RequestKeywords.SortKey.keyword());
+			final String[] sortOrders               = request.getParameterValues(RequestKeywords.SortOrder.keyword());
 			final Class<? extends GraphObject> type = resource.getEntityClassOrDefault();
 
 			// evaluate constraints and measure query time

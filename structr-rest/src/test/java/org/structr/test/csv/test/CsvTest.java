@@ -162,7 +162,7 @@ public class CsvTest extends StructrCsvTest {
 			.expect()
 				.statusCode(200)
 			.when()
-				.get(csvUrl + testOneResource + "?sort=name");
+				.get(csvUrl + testOneResource + "?_sort=name");
 
 		System.out.println("result: " + ((RestAssuredResponseImpl) result).prettyPrint());
 
@@ -195,7 +195,7 @@ public class CsvTest extends StructrCsvTest {
 			.expect()
 				.statusCode(200)
 			.when()
-				.get(csvUrl + testOneResource + "?sort=name&pageSize=2&page=1");
+				.get(csvUrl + testOneResource + "?_sort=name&_pageSize=2&_page=1");
 
 		System.out.println("result: " + ((RestAssuredResponseImpl) result).prettyPrint());
 
@@ -223,7 +223,7 @@ public class CsvTest extends StructrCsvTest {
 			.expect()
 				.statusCode(200)
 			.when()
-				.get(csvUrl + testOneResource + "?sort=name&pageSize=2&page=2");
+				.get(csvUrl + testOneResource + "?_sort=name&_pageSize=2&_page=2");
 
 		System.out.println("result: " + ((RestAssuredResponseImpl) result).prettyPrint());
 
@@ -506,7 +506,7 @@ public class CsvTest extends StructrCsvTest {
 			.expect()
 				.statusCode(200)
 			.when()
-				.get(csvUrl + testOneResource + "?sort=name");
+				.get(csvUrl + testOneResource + "?_sort=name");
 
 		final String resultString = ((RestAssuredResponseImpl) result).asString();
 
@@ -537,7 +537,7 @@ public class CsvTest extends StructrCsvTest {
 			.expect()
 				.statusCode(200)
 			.when()
-				.get(csvUrl + testOneResource + "?sort=name");
+				.get(csvUrl + testOneResource + "?_sort=name");
 
 		final String resultString = ((RestAssuredResponseImpl) result).asString();
 
@@ -569,7 +569,7 @@ public class CsvTest extends StructrCsvTest {
 			.expect()
 				.statusCode(200)
 			.when()
-				.get(csvUrl + testOneResource + "?sort=name");
+				.get(csvUrl + testOneResource + "?_sort=name");
 
 		final String resultString = ((RestAssuredResponseImpl) result).asString();
 
