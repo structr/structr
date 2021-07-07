@@ -2213,6 +2213,7 @@ button.disabled, i.disabled {
 	margin: 2.5rem 0 0 -13rem;
 	padding: 0;
 	transition: all .1s ease-in-out;
+	z-index: 100;
 }
 
 .dropdown-select svg, .dropdown-menu-container svg {
@@ -4565,4 +4566,15 @@ table.props td.__value {
 	display: block;
 	font-size: .875rem;
 	margin-top: .5rem;
+}
+
+
+/**
+ * Tailwind classes
+ */
+.flex {
+	display: flex;
+}
+.flex-grow {
+	flex-grow: 1;
 }

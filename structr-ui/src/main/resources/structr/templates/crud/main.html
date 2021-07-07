@@ -7,17 +7,19 @@
 	<div id="crud-left" class="resourceBox">
 
 		<div id="crud-types">
-			<h2>All Types <button id="crudTypesFilterToggle"><i title="Auto-filter types" class="${_Icons.getFullSpriteClass(_Icons.wrench_icon)}"></i></button></h2>
 
-			<div id="crudTypeFilterSettings" class="hidden">
-				<div><input type="checkbox" id="crudTypeToggleRels"><label for="crudTypeToggleRels"> Relationship Types</label></div>
-				<div><input type="checkbox" id="crudTypeToggleCustom"><label for="crudTypeToggleCustom"> Custom Types</label></div>
-				<div><input type="checkbox" id="crudTypeToggleCore"><label for="crudTypeToggleCore"> Core Types</label></div>
-				<div><input type="checkbox" id="crudTypeToggleHtml"><label for="crudTypeToggleHtml"> HTML Types</label></div>
-				<div><input type="checkbox" id="crudTypeToggleUi"><label for="crudTypeToggleUi"> UI Types</label></div>
-				<div><input type="checkbox" id="crudTypeToggleLog"><label for="crudTypeToggleLog"> Log Types</label></div>
-				<div><input type="checkbox" id="crudTypeToggleOther"><label for="crudTypeToggleOther"> Other Types</label></div>
+			<div class="flex">
+				<h2 class="flex-grow">All Types</h2>
+
+				<div class="dropdown-menu dropdown-menu-large" data-template="crud/filter-types">
+
+					<button class="btn dropdown-select" id="crudTypesFilterToggle">
+						<i title="Auto-filter types" class="${_Icons.getFullSpriteClass(_Icons.wrench_icon)}"></i>
+					</button>
+					<div class="dropdown-menu-container"></div>
+				</div>
 			</div>
+
 			<input placeholder="Filter types..." id="crudTypesSearch">
 
 			<div id="crud-types-list">

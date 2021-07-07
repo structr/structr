@@ -44,25 +44,13 @@ if (browser) {
 			_Crud.removeRecentType($(this).closest('div').data('type'));
 		});
 
-		$(document).on('click', '#crudTypesFilterToggle', function (e) {
-			e.preventDefault();
-			$('#crudTypeFilterSettings').toggleClass('hidden');
-			return false;
-		});
-
 		$(document).on('click', '#crudTypeFilterSettings', function(e) {
 			e.stopPropagation();
 		});
 
 		$(document).on('change', '#crudTypeFilterSettings input', function(e) {
-			_Crud.updateTypeList();
 			LSWrapper.setItem(_Crud.displayTypeConfigKey, _Crud.getTypeVisibilityConfig());
-		});
-
-		$(document).on('click', function() {
-			if ($('#crudTypeFilterSettings').is(':visible')) {
-				_Crud.hideTypeVisibilityConfig();
-			}
+			_Crud.updateTypeList();
 		});
 	});
 
@@ -473,7 +461,7 @@ var _Crud = {
 		var $typesList = $('#crud-types-list');
 		$typesList.empty();
 
-		var typeVisibility = _Crud.getTypeVisibilityConfig();
+		var typeVisibility = _Crud.getStoredTypeVisibilityConfig();
 
 		Object.keys(_Crud.types).sort().forEach(function(typeName) {
 
@@ -499,6 +487,24 @@ var _Crud = {
 		_Crud.filterTypes($('#crudTypesSearch').val().toLowerCase());
 		_Crud.resize();
 	},
+	getStoredTypeVisibilityConfig: function(singleKey) {
+
+		let config = LSWrapper.getItem(_Crud.displayTypeConfigKey, {
+			rels:   true,
+			custom: true,
+			core:   true,
+			html:   true,
+			ui:     true,
+			log:    true,
+			other:  true
+		});
+
+		if (singleKey) {
+			return config[singleKey];
+		}
+
+		return config;
+	},
 	getTypeVisibilityConfig: function () {
 
 		return {
@@ -510,7 +516,6 @@ var _Crud = {
 			log:    $('#crudTypeToggleLog').prop('checked'),
 			other:  $('#crudTypeToggleOther').prop('checked')
 		};
-
 	},
 	hideTypeVisibilityConfig: function () {
 		$('#crudTypeFilterSettings').addClass('hidden');
