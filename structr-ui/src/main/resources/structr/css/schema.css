@@ -490,3 +490,11 @@
     content: '✓ ';
     color: var(--structr-green);
 }
+
+.inheritance-search {
+	margin-left: 1rem;
+}
+
+div#inheritance-tree-container {
+	margin-left: 0.5rem;
+}
