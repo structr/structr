@@ -364,7 +364,8 @@ var Structr = {
 	legacyRequestParameters: false,
 	getRequestParameterName: (key) => {
 
-		if (Structr.legacyRequestParameters === false) {
+		// TODO: remove exception for keyword "edit" when it is supported
+		if (Structr.legacyRequestParameters === false && key !== 'edit') {
 			return '_' + key;
 		} else {
 			return key;
