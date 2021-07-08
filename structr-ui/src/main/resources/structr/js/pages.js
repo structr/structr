@@ -33,8 +33,6 @@ var _Pages = {
 	_moduleName: 'pages',
 	autoRefresh: [],
 	urlHashKey: 'structrUrlHashKey_' + port,
-	leftSlideoutWidthKey: 'structrLeftSlideoutWidthKey_' + port,
-	rightSlideoutWidthKey: 'structrRightSlideoutWidthKey_' + port,
 	activeTabRightKey: 'structrActiveTabRight_' + port,
 	activeTabLeftKey: 'structrActiveTabLeft_' + port,
 	selectedTypeKey: 'structrSelectedType_' + port,
@@ -44,9 +42,6 @@ var _Pages = {
 	pagesResizerLeftKey: 'structrPagesResizerLeftKey_' + port,
 	pagesResizerRightKey: 'structrPagesResizerRightKey_' + port,
 	functionBarSwitchKey: 'structrFunctionBarSwitchKey_' + port,
-
-	activeTabLeft: undefined,
-	activeTabRight: undefined,
 
 	centerPane: undefined,
 
@@ -59,7 +54,6 @@ var _Pages = {
 		_Pager.initPager('images',  'Image', 1, 25, 'name', 'asc');
 
 		Structr.getShadowPage();
-
 	},
 	resize: function(left, right) {
 
@@ -89,9 +83,6 @@ var _Pages = {
 
 			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('pages'));
 
-			_Pages.activeTabLeft = LSWrapper.getItem(_Pages.activeTabLeftKey);
-			_Pages.activeTabRight = LSWrapper.getItem(_Pages.activeTabRightKey);
-
 			pagesSlideout = $('#pages');
 //			activeElementsSlideout = $('#activeElements');
 //			dataBindingSlideout = $('#dataBinding');
@@ -100,7 +91,6 @@ var _Pages = {
 			_Pages.centerPane = document.querySelector('#center-pane');
 			_Pages.previews.previewElement = document.querySelector('#previews');
 
-
 			widgetsSlideout = $('#widgetsSlideout');
 			paletteSlideout = $('#palette');
 			componentsSlideout = $('#components');
@@ -108,11 +98,12 @@ var _Pages = {
 			elementsSlideout.data('closeCallback', _Pages.unattachedNodes.removeElementsFromUI);
 
 			var pagesTabSlideoutAction = function () {
-				_Pages.leftSlideoutTrigger(this, pagesSlideout, [/*activeElementsSlideout, dataBindingSlideout*/, localizationsSlideout], function (params) {
+				_Pages.leftSlideoutTrigger(this, pagesSlideout, [/*activeElementsSlideout, dataBindingSlideout*/, localizationsSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
 					_Pages.resize();
 					_Pages.showPagesPagerToggle();
 					_Pages.showTabsMenu();
-				}, _Pages.slideoutClosedCallback);
+				}, _Pages.leftSlideoutClosedCallback);
 			};
 			$('#pagesTab').on('click', pagesTabSlideoutAction).droppable({
 				tolerance: 'touch',
@@ -120,27 +111,30 @@ var _Pages = {
 			});
 
 //			$('#activeElementsTab').on('click', function () {
-//				_Pages.leftSlideoutTrigger(this, activeElementsSlideout, [pagesSlideout, dataBindingSlideout, localizationsSlideout], function (params) {
+//				_Pages.leftSlideoutTrigger(this, activeElementsSlideout, [pagesSlideout, dataBindingSlideout, localizationsSlideout], (params) => {
+//                  LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
 //					if (params.isOpenAction) {
 //						_Pages.activeelements.refreshActiveElements();
 //					}
 //					_Pages.resize();
-//				}, _Pages.slideoutClosedCallback);
+//				}, _Pages.leftSlideoutClosedCallback);
 //			});
 //
 //			$('#dataBindingTab').on('click', function () {
-//				_Pages.leftSlideoutTrigger(this, dataBindingSlideout, [pagesSlideout, activeElementsSlideout, localizationsSlideout], function (params) {
+//				_Pages.leftSlideoutTrigger(this, dataBindingSlideout, [pagesSlideout, activeElementsSlideout, localizationsSlideout], (params) => {
+//                  LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
 //					if (params.isOpenAction) {
 //						_Pages.databinding.reloadDataBindingWizard();
 //					}
 //					_Pages.resize();
-//				}, _Pages.slideoutClosedCallback);
+//				}, _Pages.leftSlideoutClosedCallback);
 //			});
 
 			$('#localizationsTab').on('click', function () {
-				_Pages.leftSlideoutTrigger(this, localizationsSlideout, [pagesSlideout, /*activeElementsSlideout, dataBindingSlideout*/], function (params) {
+				_Pages.leftSlideoutTrigger(this, localizationsSlideout, [pagesSlideout, /*activeElementsSlideout, dataBindingSlideout*/], (params) => {
+					LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
 					_Pages.resize();
-				}, _Pages.slideoutClosedCallback);
+				}, _Pages.leftSlideoutClosedCallback);
 			});
 
 			$('#localizations input.locale').on('keydown', function (e) {
@@ -156,41 +150,39 @@ var _Pages = {
 				element: $('#localizations button.refresh'),
 				text: "On this tab you can load the localizations requested for the given locale on the currently previewed page (including the UUID of the details object and the query parameters which are also used for the preview).<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
 				insertAfter: true,
-				css: {
-					right: "2px",
-					top: "2px"
-				},
-				helpElementCss: {
-					width: "200px"
-				},
+				css: { right: "2px", top: "2px" },
+				helpElementCss: { width: "200px" },
 				offsetX: -50
 			});
 
 			$('#widgetsTab').on('click', function () {
-				_Pages.rightSlideoutClickTrigger(this, widgetsSlideout, [paletteSlideout, componentsSlideout, elementsSlideout], function (params) {
+				_Pages.rightSlideoutClickTrigger(this, widgetsSlideout, [paletteSlideout, componentsSlideout, elementsSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, $(this).prop('id'));
 					if (params.isOpenAction) {
 						_Widgets.reloadWidgets();
 					}
 					_Pages.resize();
-				}, _Pages.slideoutClosedCallback);
+				}, _Pages.rightSlideoutClosedCallback);
 			});
 
 			$('#paletteTab').on('click', function () {
-				_Pages.rightSlideoutClickTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], function (params) {
+				_Pages.rightSlideoutClickTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, $(this).prop('id'));
 					if (params.isOpenAction) {
 						_Pages.palette.reload();
 					}
 					_Pages.resize();
-				}, _Pages.slideoutClosedCallback);
+				}, _Pages.rightSlideoutClosedCallback);
 			});
 
 			let componentsTabSlideoutAction = function () {
-				_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], function (params) {
+				_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, $(this).prop('id'));
 					if (params.isOpenAction) {
 						_Pages.sharedComponents.reload();
 					}
 					_Pages.resize();
-				}, _Pages.slideoutClosedCallback);
+				}, _Pages.rightSlideoutClosedCallback);
 			};
 			$('#componentsTab').on('click', componentsTabSlideoutAction).droppable({
 				tolerance: 'touch',
@@ -202,12 +194,13 @@ var _Pages = {
 			});
 
 			$('#elementsTab').on('click', function () {
-				_Pages.rightSlideoutClickTrigger(this, elementsSlideout, [widgetsSlideout, paletteSlideout, componentsSlideout], function (params) {
+				_Pages.rightSlideoutClickTrigger(this, elementsSlideout, [widgetsSlideout, paletteSlideout, componentsSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, $(this).prop('id'));
 					if (params.isOpenAction) {
 						_Pages.unattachedNodes.reload();
 					}
 					_Pages.resize();
-				}, _Pages.slideoutClosedCallback);
+				}, _Pages.rightSlideoutClosedCallback);
 			});
 
 			live('#function-bar-switch', 'click', (e) => {
@@ -339,14 +332,6 @@ var _Pages = {
 
 			functionBar.append(html);
 
-			if (_Pages.activeTabLeft) {
-				$('#' + _Pages.activeTabLeft).addClass('active').click();
-			}
-
-			if (_Pages.activeTabRight) {
-				$('#' + _Pages.activeTabRight).addClass('active').click();
-			}
-
 			_Pages.resize();
 
 			$(window).off('resize').resize(function () {
@@ -359,6 +344,15 @@ var _Pages = {
 			Structr.unblockMenu(500);
 
 			_Pages.resizeColumns(LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 200, LSWrapper.getItem(_Pages.pagesResizerRightKey) || 200);
+
+			if (_Pages.getActiveTabLeft()) {
+				$('#' + _Pages.getActiveTabLeft()).click();
+			}
+
+			if (_Pages.getActiveTabRight()) {
+				$('#' + _Pages.getActiveTabRight()).click();
+			}
+
 
 			_Pages.adaptSubmenu();
 
@@ -664,6 +658,9 @@ var _Pages = {
 
 			} else {
 				// activate first link
+				activeLink = document.querySelector('#function-bar .tabs-menu li a');
+
+				// TODO: or maybe better default tab for element? Page--> Preview, Content --> Editor
 			}
 
 			urlHash = new URL(activeLink.href).hash;
@@ -1012,8 +1009,16 @@ var _Pages = {
 			activeNode.removeClass('nodeHover');
 		}
 	},
+	getActiveTabLeft: () => {
+		return LSWrapper.getItem(_Pages.activeTabLeftKey);
+	},
+	getActiveTabRight: () => {
+		return LSWrapper.getItem(_Pages.activeTabRightKey);
+	},
 	leftSlideoutTrigger: function (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) {
+
 		let leftResizer = document.querySelector('.column-resizer-left');
+
 		if (!$(triggerEl).hasClass('noclick')) {
 			if (slideoutElement.position().left < -1) {
 				Structr.closeLeftSlideOuts(otherSlideouts, closeCallback);
@@ -1041,8 +1046,17 @@ var _Pages = {
 			}
 		}
 	},
-	slideoutClosedCallback: function(wasOpen) {
+	leftSlideoutClosedCallback: function(wasOpen) {
 		if (wasOpen) {
+			LSWrapper.removeItem(_Pages.activeTabLeftKey);
+
+			_Pages.resize();
+		}
+	},
+	rightSlideoutClosedCallback: function(wasOpen) {
+		if (wasOpen) {
+			LSWrapper.removeItem(_Pages.activeTabRightKey);
+
 			_Pages.resize();
 		}
 	},
@@ -1833,7 +1847,7 @@ var _Pages = {
 								$.unblockUI({
 									fadeOut: 25
 								});
-								Structr.closeSlideOuts([elementsSlideout], _Pages.slideoutClosedCallback);
+								Structr.closeSlideOuts([elementsSlideout], _Pages.rightSlideoutClosedCallback);
 							});
 				});
 

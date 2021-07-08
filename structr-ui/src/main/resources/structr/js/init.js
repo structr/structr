@@ -364,10 +364,11 @@ var Structr = {
 	legacyRequestParameters: false,
 	getRequestParameterName: (key) => {
 
-		if (Structr.legacyRequestParameters === false) {
-			return '_' + key;
-		} else {
+		if (Structr.legacyRequestParameters === true) {
+			// return key itself for legacy usage
 			return key;
+		} else {
+			return '_' + key;
 		}
 	},
 	defaultBlockUICss: {
@@ -1197,28 +1198,28 @@ var Structr = {
 	},
 	openSlideOut: function(triggerEl, slideoutElement, callback) {
 
-		var storedRightSlideoutWidth = LSWrapper.getItem(_Pages.rightSlideoutWidthKey);
-		var rsw                      = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideoutElement.width() + 12);
+		let storedRightSlideoutWidth = LSWrapper.getItem(_Pages.pagesResizerRigthKey);
+		let rsw                      = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideoutElement.width() + 12);
 
-		var t = $(triggerEl);
+		let t = $(triggerEl);
 		t.addClass('active');
-		LSWrapper.setItem(_Pages.activeTabRightKey, t.prop('id'));
 		slideoutElement.width(rsw);
 		slideoutElement.animate({right: 0}, 100, function() {
 			if (typeof callback === 'function') {
 				callback({isOpenAction: true});
 			}
 		}).zIndex(1);
+
 		slideoutElement.addClass('open');
 	},
 	openLeftSlideOut: function(triggerEl, slideoutElement, callback) {
 
-		var storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.leftSlideoutWidthKey);
-		var psw                     = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (slideoutElement.width());
+		let storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.pagesResizerLeftKey);
+		let psw                     = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (slideoutElement.width());
 
-		var t = $(triggerEl);
+		let t = $(triggerEl);
 		t.addClass('active');
-		LSWrapper.setItem(_Pages.activeTabLeftKey, t.prop('id'));
+
 		slideoutElement.width(psw);
 
 		slideoutElement.animate({left: 0}, 100, function() {
@@ -1228,7 +1229,6 @@ var Structr = {
 		}).zIndex(1);
 
 		slideoutElement.addClass('open');
-
 	},
 	closeSlideOuts: function(slideouts, callback) {
 		var wasOpen = false;
@@ -1277,8 +1277,6 @@ var Structr = {
 				$('.slideout-activator.left.active').removeClass('active');
 			}
 		});
-
-		LSWrapper.removeItem(_Pages.activeTabLeftKey);
 	},
 	updateVersionInfo: function(retryCount = 0, isLogin = false) {
 

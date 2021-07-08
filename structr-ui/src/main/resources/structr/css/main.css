@@ -839,11 +839,12 @@ img.disabled {
 	position: relative;
 	width: 50%;
 	/*font-size: 1rem;*/
-	-webkit-user-select: none;
+/*	-webkit-user-select: none;
 	-moz-user-select: none;
 	-ms-user-select: none;
 	-o-user-select: none;
-	user-select: none;
+	user-select: none;*/
+	cursor: default;
 }
 
 .props td.key .hint {
@@ -1309,9 +1310,18 @@ span.id {
 	height: 1.5rem;
 	top: 0.25rem;
 	left: 0.25rem;
-	background-position: 0.25rem 0.5rem;
-	background-repeat: no-repeat;
-	background-size: 0.6rem;
+}
+
+i.svg-collapsed {
+	background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%21f242d'><polygon points='0,0 0,100 50,50'/></svg>") no-repeat;
+	background-size: 0.8rem;
+	background-position: 0.35rem 0.35rem;
+}
+
+i.svg-expanded {
+	background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%21f242d'><polygon points='0,0 100,0 50,50'/></svg>") no-repeat;
+	background-size: 0.8rem;
+	background-position: 0.15rem 0.55rem;
 }
 
 .expand_icon {
@@ -1484,6 +1494,7 @@ i.button {
 
 #componentsArea, #elementsArea {
 	overflow: auto;
+	flex-grow: 1;
 }
 
 #delete-all-unattached-nodes {
@@ -4244,13 +4255,6 @@ dl.help-definitions dd {
 	display: inline-block;
 	top: 0rem;
 	left: 0rem;
-}
-
-i.svg-collapsed {
-	background-image: url('../icon/streamline-icon-arrow-button-right-2@16x16.svg');
-}
-i.svg-expanded {
-	background-image: url('../icon/streamline-icon-arrow-button-down-2@16x16.svg');
 }
 
 .tab-group.collapsed i.collapsed {

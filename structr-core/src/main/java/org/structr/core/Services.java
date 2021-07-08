@@ -140,19 +140,11 @@ public class Services implements StructrServices {
 
 		final Version expectedVersion  = org.graalvm.home.Version.create(expectedMajorVersion, expectedMinorVersion);
 		final Version foundVersion     = org.graalvm.home.Version.getCurrent();
-		boolean isSnapshot             = foundVersion.isSnapshot();
 		boolean allowedVersion         = foundVersion.toString().startsWith(expectedVersion.toString());
 
-		if (isSnapshot || !allowedVersion) {
-
-			if (isSnapshot) {
-
-				logger.warn("Java Runtime Version mismatch; expected GraalVM version {}, found unrecognized version", expectedVersion);
-
-			} else {
-
-				logger.warn("Java Runtime Version mismatch; expected GraalVM version {}, found {}", expectedVersion, foundVersion);
-			}
+		if (!allowedVersion) {
+			
+			logger.warn("Java Runtime Version mismatch; expected GraalVM version {}, found {}", expectedVersion, foundVersion);
 
 			boolean enforceRuntime = Settings.EnforceRuntime.getValue();
 			if (enforceRuntime) {

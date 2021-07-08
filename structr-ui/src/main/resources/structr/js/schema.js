@@ -325,8 +325,20 @@ var _Schema = {
 			};
 
 			$('#inheritanceTab').off('click').on('click', function() {
-				_Pages.leftSlideoutTrigger(this, inheritanceSlideout, [], function() { inheritanceTree.show(); updateCanvasTranslation(); }, function() { updateCanvasTranslation(); inheritanceTree.hide(); });
+				_Pages.leftSlideoutTrigger(this, inheritanceSlideout, [], (params) => {
+					LSWrapper.setItem(_Schema.schemaActiveTabLeftKey, $(this).prop('id'));
+					inheritanceTree.show();
+					updateCanvasTranslation();
+				}, function() {
+					LSWrapper.removeItem(_Schema.schemaActiveTabLeftKey);
+					updateCanvasTranslation();
+					inheritanceTree.hide();
+				});
 			});
+
+			if (LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)) {
+				$('#' + LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)).click();
+			}
 
 			_Schema.init();
 			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('schema'));
