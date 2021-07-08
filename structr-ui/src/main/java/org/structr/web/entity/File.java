@@ -57,6 +57,7 @@ import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.ContextStore;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
+import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -465,7 +466,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				boolean editModeActive = false;
 				if (securityContext.getRequest() != null) {
 
-					final String editParameter = securityContext.getRequest().getParameter("edit");
+					final String editParameter = securityContext.getRequest().getParameter(RequestKeywords.EditMode.keyword());
 					if (editParameter != null) {
 
 						editModeActive = !RenderContext.EditMode.NONE.equals(RenderContext.getValidatedEditMode(securityContext.getUser(false), editParameter));

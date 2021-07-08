@@ -18,7 +18,6 @@
  */
 package org.structr.common;
 
-import static com.caucho.quercus.lib.JavaModule.java;
 import java.util.Set;
 import java.util.TreeSet;
 import org.structr.api.config.Settings;
@@ -54,12 +53,15 @@ public enum RequestKeywords {
 	ForceResultCount("forceResultCount"),
 	DisableSoftLimit("disableSoftLimit"),
 	ParallelizeJsonOutput("parallelizeJsonOutput"),
-	BatchSize("batchSize")
+	BatchSize("batchSize"),
+
+	// edit mode
+	EditMode("edit")
 
 	;
 
 	private String keyword = null;
-	
+
 	RequestKeywords(final String keyword) {
 		this.keyword = keyword;
 	}
@@ -74,7 +76,7 @@ public enum RequestKeywords {
 		if (Settings.RequestParameterLegacyMode.getValue(false)) {
 			return keyword;
 		}
-		
+
 		return "_" + keyword;
 	}
 
