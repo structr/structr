@@ -364,11 +364,11 @@ var Structr = {
 	legacyRequestParameters: false,
 	getRequestParameterName: (key) => {
 
-		// TODO: remove exception for keyword "edit" when it is supported
-		if (Structr.legacyRequestParameters === false && key !== 'edit') {
-			return '_' + key;
-		} else {
+		if (Structr.legacyRequestParameters === true) {
+			// return key itself for legacy usage
 			return key;
+		} else {
+			return '_' + key;
 		}
 	},
 	defaultBlockUICss: {
