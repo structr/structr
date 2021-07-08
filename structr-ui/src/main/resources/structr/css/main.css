@@ -1493,6 +1493,7 @@ i.button {
 
 #componentsArea, #elementsArea {
 	overflow: auto;
+	flex-grow: 1;
 }
 
 #delete-all-unattached-nodes {
