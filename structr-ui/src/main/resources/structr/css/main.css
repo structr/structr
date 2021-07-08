@@ -839,11 +839,12 @@ img.disabled {
 	position: relative;
 	width: 50%;
 	/*font-size: 1rem;*/
-	-webkit-user-select: none;
+/*	-webkit-user-select: none;
 	-moz-user-select: none;
 	-ms-user-select: none;
 	-o-user-select: none;
-	user-select: none;
+	user-select: none;*/
+	cursor: default;
 }
 
 .props td.key .hint {
