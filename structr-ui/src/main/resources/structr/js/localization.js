@@ -209,7 +209,7 @@ var _Localization = {
 	showLocalizationsForKeyAndDomain: (key, domain) => {
 
 		$.ajax({
-			url: rootUrl + 'Localizations/all?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&sort=locale',
+			url: rootUrl + 'Localizations/all?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale',
 			success: function(data) {
 
 				_Localization.localizationDetailKey.val(key).removeData('oldValue').data('oldValue', key);
@@ -261,7 +261,7 @@ var _Localization = {
 				};
 
 				$.ajax({
-					url: rootUrl + 'Localizations/ui?' + (oldKey ? 'name=' + oldKey : '') + (oldDomain ? '&domain=' + oldDomain : '') + '&sort=locale',
+					url: rootUrl + 'Localizations/ui?' + (oldKey ? 'name=' + oldKey : '') + (oldDomain ? '&domain=' + oldDomain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale',
 					success: function(data) {
 						var totalCounter = 0;
 						var finishedCounter = 0;
@@ -587,7 +587,7 @@ var _Localization = {
 		}
 
 		$.ajax({
-			url: rootUrl + 'Localizations/ui?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&sort=locale',
+			url: rootUrl + 'Localizations/ui?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale',
 			success: function(data) {
 				var totalCounter = 0;
 				var finishedCounter = 0;
