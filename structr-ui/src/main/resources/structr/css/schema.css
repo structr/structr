@@ -25,6 +25,7 @@
     background-color: var(--main-background);
     position: relative;
     top: 2rem;
+    height: calc(100vh - 8rem);
 }
 
 #schema-graph .light {

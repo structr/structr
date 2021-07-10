@@ -3061,23 +3061,23 @@ var _Schema = {
 				canvasSize.h = ($(window).height()) / zoom  - canvasPosition.top + padding;
 			}
 
-			canvas.css({
-				width: canvasSize.w + 'px',
-				height: (canvasSize.h - 1) + 'px'
-			});
-
-			$('body').css({
-				position: 'relative'
-			});
-
-			$('html').css({
-				background: '#fff'
-			});
+			// canvas.css({
+			// 	width: canvasSize.w + 'px',
+			// 	height: (canvasSize.h - 1) + 'px'
+			// });
+			//
+			// $('body').css({
+			// 	position: 'relative'
+			// });
+			//
+			// $('html').css({
+			// 	background: '#fff'
+			// });
 		}
 
-		$('body').css({
-			position: 'relative'
-		});
+		// $('body').css({
+		// 	position: 'relative'
+		// });
 	},
 	removeSchemaEntity: function(entity, onSuccess, onError) {
 
