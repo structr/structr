@@ -1151,6 +1151,16 @@ var _Elements = {
 					}
 				});
 			}
+		}
+
+		elements.push({
+			name: 'Properties',
+			clickHandler: function() {
+				_Entities.showProperties(entity, 'ui');
+				return false;
+			}
+		});
+		if (isFile) {
 
 			if (displayingFavorites) {
 				elements.push({
@@ -1207,14 +1217,6 @@ var _Elements = {
 				}
 			});
 		}
-
-		elements.push({
-			name: 'Properties',
-			clickHandler: function() {
-				_Entities.showProperties(entity, 'ui');
-				return false;
-			}
-		});
 
 		appendSeparator();
 
