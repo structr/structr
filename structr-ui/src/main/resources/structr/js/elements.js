@@ -1108,7 +1108,6 @@ var _Elements = {
 						return false;
 					}
 				});
-
 			}
 		}
 
@@ -1160,6 +1159,7 @@ var _Elements = {
 				return false;
 			}
 		});
+
 		if (isFile) {
 
 			if (displayingFavorites) {
@@ -1182,6 +1182,21 @@ var _Elements = {
 					}
 				});
 			}
+
+			elements.push({
+				name: 'Copy Download URL',
+				clickHandler: function () {
+					// do not make the click handler async because it would return a promise instead of the boolean
+
+					(async () => {
+						// fake the a element so we do not need to look up the server
+						let a = document.createElement('a');
+						a.href = entity.path;
+						await navigator.clipboard.writeText(a.href);
+					})();
+					return false;
+				}
+			});
 
 			if (_Files.isArchive(entity)) {
 				elements.push({
