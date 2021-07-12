@@ -732,11 +732,10 @@ let _Dashboard = {
                 }
             });
 
-            new Clipboard('#dashboard-server-log-copy', {
-                target: function () {
-                    return logBoxContentBox[0];
-                }
-            });
+			document.getElementById('dashboard-server-log-copy').addEventListener('click', async () => {
+				let text = logBoxContentBox[0].textContent;
+				await navigator.clipboard.writeText(text);
+			});
 
             let container = $('#dashboard-server-log');
             if (container) {

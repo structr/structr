@@ -1177,11 +1177,11 @@ console.warn(singleKey)
 
 		dialogBtn.append('<button id="copyToClipboard">Copy to Clipboard</button>');
 
-		var clipboard = new Clipboard('#copyToClipboard', {
-			target: function () {
-				new MessageBuilder().success('Copied to clipboard').show();
-				return $('.exportArea', dialogText)[0];
-			}
+		document.getElementById('copyToClipboard').addEventListener('click', async () => {
+			let text = $('.exportArea', dialogText)[0].textContent;
+			await navigator.clipboard.writeText(text);
+
+			new MessageBuilder().success('Copied to clipboard').show();
 		});
 
 		$('.closeButton', $('#dialogBox')).on('click', function() {
