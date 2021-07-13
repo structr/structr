@@ -499,7 +499,7 @@ var _Crud = {
 			log:    true,
 			other:  true
 		});
-console.warn(singleKey)
+
 		if (singleKey) {
 
 			return config[singleKey];

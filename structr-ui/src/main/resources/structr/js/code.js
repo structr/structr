@@ -298,7 +298,7 @@ var _Code = {
 
 				let compareSource = entity[key];
 
-				if (key === 'tags') {
+				if (key === 'tags' && compareSource) {
 					// remove blacklisted tags from source for comparison
 					compareSource = compareSource.filter((tag) => { return !_Code.tagBlacklist.includes(tag); });
 				}
