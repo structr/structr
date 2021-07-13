@@ -41,6 +41,7 @@ var _Code = {
 	layouter: null,
 	seed: 42,
 	availableTags: [],
+	tagBlacklist: ['core', 'ui', 'html'],       // don't show internal tags (core, ui, html)
 	codeRecentElementsKey: 'structrCodeRecentElements_' + port,
 	codeLastOpenMethodKey: 'structrCodeLastOpenMethod_' + port,
 	codeResizerLeftKey: 'structrCodeResizerLeftKey_' + port,
@@ -154,16 +155,13 @@ var _Code = {
 	},
 	addAvailableTagsForEntities: function(entities) {
 
-		// don't show internal tags (core, ui, html)
-		let tagBlacklist = ['core', 'ui', 'html'];
-
 		for (let entity of entities) {
 
 			if (entity.tags) {
 
 				for (let tag of entity.tags) {
 
-					if (!_Code.availableTags.includes(tag) && !tagBlacklist.includes(tag)) {
+					if (!_Code.availableTags.includes(tag) && !_Code.tagBlacklist.includes(tag)) {
 						_Code.availableTags.push(tag);
 					}
 				}
@@ -297,12 +295,20 @@ var _Code = {
 			}
 
 			if (Array.isArray(formContent[key])) {
-				if (formContent[key].length === 0 && (!entity[key] || entity[key].length === 0)) {
+
+				let compareSource = entity[key];
+
+				if (key === 'tags') {
+					// remove blacklisted tags from source for comparison
+					compareSource = compareSource.filter((tag) => { return !_Code.tagBlacklist.includes(tag); });
+				}
+
+				if (formContent[key].length === 0 && (!compareSource || compareSource.length === 0)) {
 					delete formContent[key];
-				} else if (entity[key] && entity[key].length === formContent[key].length) {
+				} else if (compareSource && compareSource.length === formContent[key].length) {
 					// check if same
 					let diff = formContent[key].filter((v) => {
-						return !entity[key].includes(v);
+						return !compareSource.includes(v);
 					});
 					if (diff.length === 0) {
 						delete formContent[key];
