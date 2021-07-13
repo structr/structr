@@ -3272,10 +3272,6 @@ button.tree-forward-button {
 }
 
 /* BEGIN: Fake table styles for schema METHODS editor (used in schema and code) */
-.fake-tbody .fake-tr {
-	height: 34px;
-}
-
 .fake-th {
 	text-align: center;
 	font-weight: 700;

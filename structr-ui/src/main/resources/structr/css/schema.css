@@ -175,10 +175,6 @@
     width: 40px;
 }
 
-.actions.schema-props .name-col {
-    vertical-align: top;
-}
-
 .actions.schema-props .fake-tr.editing {
     background: var(--very-light-structr-green);
 }
