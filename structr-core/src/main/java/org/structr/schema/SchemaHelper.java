@@ -481,7 +481,12 @@ public class SchemaHelper {
 
 						} else if (parts.size() > 1) {
 
-							final String lastPart = parts.remove(parts.size() - 1);
+							String lastPart = parts.remove(parts.size() - 1);
+
+							if (lastPart.startsWith("_")) {
+								// strip view to support views on methods
+								lastPart = parts.remove(parts.size() - 1);
+							}
 
 							// the first (n - 1) must be underscore-prefixed or types
 							for (final String sigPart : parts) {

@@ -370,7 +370,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// visibility check
 			if (!relativeVisibility) {
 
-				final String title = "Important Information";
+				final String title = "Deprecation Notice";
 				final String text = "The deployment export data currently being imported has been created with an older version of Structr "
 						+ "in which the visibility flags of DOM elements were exported depending on the flags of the containing page.\n\n"
 						+ "***The data will be imported correctly, based on the old format.***\n\n"
@@ -1954,7 +1954,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					FlushCachesCommand.flushAll();
 				}
-
 
 			} catch (IOException ioex) {
 				logger.warn("Exception while importing shared components", ioex);
