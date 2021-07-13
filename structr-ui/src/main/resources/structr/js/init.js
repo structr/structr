@@ -65,6 +65,7 @@ $(function() {
 		Structr.doLogin(username, password);
 		return false;
 	});
+
 	$('#loginButtonTFA').on('click', function(e) {
 		e.stopPropagation();
 		var tfaToken = $('#twoFactorTokenField').val();
@@ -346,7 +347,6 @@ $(function() {
 		}
 		return false;
 	});
-
 });
 
 var Structr = {
@@ -378,7 +378,15 @@ var Structr = {
 	},
 	templateCache: new AsyncObjectCache(function(templateName) {
 
-		Promise.resolve($.ajax('templates/' + templateName + '.html?t=' + (new Date().getTime()))).then(function(templateHtml) {
+		Promise.resolve(
+			fetch('templates/' + templateName + '.html?t=' + (new Date().getTime()))
+		).then(function(response) {
+			if (response.ok) {
+				return response.text();
+			} else {
+				throw new Error('unable to fetch template ' + templateName);
+			}
+		}).then(function(templateHtml) {
 			Structr.templateCache.addObject(templateHtml, templateName);
 		}).catch(function(e) {
 			console.log(e.statusText, templateName, e);
