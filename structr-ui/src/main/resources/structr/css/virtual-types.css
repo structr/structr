@@ -63,6 +63,10 @@
     white-space: nowrap;
 }
 
+#virtual-type-detail th * {
+    white-space: initial;
+}
+
 #virtual-types-list-th-actions {
     min-width: initial;
 }
