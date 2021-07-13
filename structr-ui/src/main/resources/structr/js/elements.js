@@ -796,6 +796,13 @@ var _Elements = {
 	},
 	getContextMenuElements: function (div, entity) {
 
+		let activeModule = Structr.getActiveModule();
+		if (activeModule) {
+			if (activeModule.getContextMenuElements && typeof activeModule.getContextMenuElements === 'function') {
+				return activeModule.getContextMenuElements(div, entity);
+			}
+		}
+
 		const isPage             = (entity.type === 'Page');
 		const isContent          = (entity.type === 'Content');
 		const isTemplate         = (entity.type === 'Template');
@@ -834,12 +841,6 @@ var _Elements = {
 
 		var elements = [];
 
-		var appendSeparator = function () {
-			if (elements[elements.length - 1] !== '|') {
-				elements.push('|');
-			}
-		};
-
 		if (!isFile && !isFolder && !isUser && !isGroup && !isMailTemplate && !isLocalization && !isContentContainer && !isContentItem) {
 
 			if (!isContent && !isWidget) {
@@ -875,7 +876,7 @@ var _Elements = {
 				});
 			}
 
-			appendSeparator();
+			_Elements.appendContextMenuSeparator(elements);
 
 			if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page') && !isWidget) {
 
@@ -923,7 +924,7 @@ var _Elements = {
 					]
 				});
 
-				appendSeparator();
+				_Elements.appendContextMenuSeparator(elements);
 			}
 
 			if (isWidget || (entity.type === 'Div' && !hasChildren)) {
@@ -955,7 +956,7 @@ var _Elements = {
 					}
 				});
 
-				appendSeparator();
+				_Elements.appendContextMenuSeparator(elements);
 
 				elements.push({
 					name: 'Wrap element in...',
@@ -993,7 +994,7 @@ var _Elements = {
 
 			if (!isPage && !isWidget) {
 
-				appendSeparator();
+				_Elements.appendContextMenuSeparator(elements);
 
 				if (_Elements.selectedEntity && _Elements.selectedEntity.id === entity.id) {
 					elements.push({
@@ -1015,7 +1016,7 @@ var _Elements = {
 
 				let isEntitySharedComponent = entity.sharedComponent || (entity.isPage && entity.pageId === shadowPage.id);
 				if (!isEntitySharedComponent) {
-					appendSeparator();
+					_Elements.appendContextMenuSeparator(elements);
 
 					elements.push({
 						name: 'Convert to Shared Component',
@@ -1079,7 +1080,7 @@ var _Elements = {
 				}
 			}
 
-			appendSeparator();
+			_Elements.appendContextMenuSeparator(elements);
 
 			if (!isPage && !isWidget) {
 
@@ -1128,7 +1129,7 @@ var _Elements = {
 				});
 			}
 
-			appendSeparator();
+			_Elements.appendContextMenuSeparator(elements);
 		}
 
 		if (isFile) {
@@ -1233,7 +1234,7 @@ var _Elements = {
 			});
 		}
 
-		appendSeparator();
+		_Elements.appendContextMenuSeparator(elements);
 
 		if (!isWidget) {
 			elements.push({
@@ -1320,7 +1321,7 @@ var _Elements = {
 			});
 		}
 
-		appendSeparator();
+		_Elements.appendContextMenuSeparator(elements);
 
 		if (!isContent && hasChildren) {
 
@@ -1366,7 +1367,7 @@ var _Elements = {
 			});
 		}
 
-		appendSeparator();
+		_Elements.appendContextMenuSeparator(elements);
 
 		if (!isFile && !isFolder && !isContent && !isUser && !isGroup && !isMailTemplate && !isLocalization && !isContentContainer && !isContentItem && !isWidget) {
 
@@ -1383,7 +1384,7 @@ var _Elements = {
 			});
 		}
 
-		appendSeparator();
+		_Elements.appendContextMenuSeparator(elements);
 
 		if (isPage) {
 			elements.push({
@@ -1496,9 +1497,14 @@ var _Elements = {
 			});
 		}
 
-		appendSeparator();
+		_Elements.appendContextMenuSeparator(elements);
 
 		return elements;
+	},
+	appendContextMenuSeparator: function (elements) {
+		if (elements[elements.length - 1] !== '|') {
+			elements.push('|');
+		}
 	},
 	selectEntity: function (entity) {
 
