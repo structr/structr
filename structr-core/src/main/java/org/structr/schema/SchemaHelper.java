@@ -483,7 +483,7 @@ public class SchemaHelper {
 
 							String lastPart = parts.remove(parts.size() - 1);
 
-							if (lastPart.startsWith("_")) {
+							if (lastPart.startsWith("_") && parts.size() > 1) {
 								// strip view to support views on methods
 								lastPart = parts.remove(parts.size() - 1);
 							}
