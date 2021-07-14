@@ -521,7 +521,7 @@ var _Pages = {
 
 		_Elements.appendContextMenuSeparator(elements);
 
-		_Elements.appendSecurityContextMenuItems(elements, entity);
+		_Elements.appendSecurityContextMenuItems(elements, entity, hasChildren);
 
 		_Elements.appendContextMenuSeparator(elements);
 
