@@ -276,8 +276,12 @@ input[type="checkbox"] {
 #header .structr-instance {
 	height: 1.75rem;
 	margin-top: .75rem;
-	font-size: .5rem;
+	/*font-size: .5rem;*/
 	text-align: right;
+}
+
+#header .structr-instance-db span {
+	vertical-align: middle;
 }
 
 #header .structr-instance-stage:not(:empty) {
