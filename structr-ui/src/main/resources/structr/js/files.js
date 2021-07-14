@@ -108,7 +108,6 @@ var _Files = {
 			Structr.fetchHtmlTemplate('files/search', {}, function(html) {
 				functionBar[0].innerHTML = html;
 
-
 				_Files.init();
 
 				Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('files'));
@@ -630,6 +629,30 @@ var _Files = {
 
 		});
 	},
+	updateFunctionBarStatus: (displayingFavorites) => {
+
+		let addFolderButton   = document.getElementById('add-folder-button');
+		let addFileButton     = document.getElementById('add-file-button');
+		let mountDialogButton = document.getElementById('mount-folder-dialog-button');
+
+		addFolderButton?.setAttribute('disabled', displayingFavorites);
+		addFileButton?.setAttribute('disabled', displayingFavorites);
+		mountDialogButton?.setAttribute('disabled', displayingFavorites);
+
+
+		if (displayingFavorites) {
+
+			addFolderButton?.classList.add('disabled');
+			addFileButton?.classList.add('disabled');
+			mountDialogButton?.classList.add('disabled');
+
+		} else {
+
+			addFolderButton?.classList.remove('disabled');
+			addFileButton?.classList.remove('disabled');
+			mountDialogButton?.classList.remove('disabled');
+		}
+	},
 	displayFolderContents: function(id, parentId, nodePath, parents) {
 
 		fastRemoveAllChildren(folderContents[0]);
@@ -640,6 +663,7 @@ var _Files = {
 		let isRootFolder = (id === 'root');
 		let parentIsRoot = (parentId === '#');
 
+		_Files.updateFunctionBarStatus(displayingFavorites);
 		_Files.insertLayoutSwitches(id, parentId, nodePath, parents);
 
 		// store current folder id so we can filter slow requests
