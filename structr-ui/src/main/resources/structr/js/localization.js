@@ -111,7 +111,6 @@ var _Localization = {
 
 			return true;
 		});
-
 	},
 	listKeysAndDomains: function () {
 
@@ -290,6 +289,8 @@ var _Localization = {
 					let localizationKey = document.getElementById('localization-key');
 					localizationKey.focus();
 					localizationKey.select();
+
+					_Localization.keyAndDomainPager.refresh();
 				}
 			}
 		});
