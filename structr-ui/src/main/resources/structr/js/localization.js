@@ -34,8 +34,10 @@ var _Localization = {
 	localizationDetailList: undefined,
 
 	localizationSelectedElementKey: 'structrLocalizationSelectedElementKey_' + port,
+	localizationPreselectNameKey  : 'structrLocalizationPreselectNameKey_' + port,
+	localizationPreselectDomainKey: 'structrLocalizationPreselectDomainKey_' + port,
 	localizationPreselectLocaleKey: 'structrLocalizationPreselectLocaleKey_' + port,
-	localizationResizerLeftKey: 'structrLocalizationResizerLeftKey_' + port,
+	localizationResizerLeftKey    : 'structrLocalizationResizerLeftKey_' + port,
 
 	init: function() {
 		main = $('#main');
@@ -61,12 +63,54 @@ var _Localization = {
 			Structr.fetchHtmlTemplate('localization/functions', {}, function (html) {
 				functionBar.append(html);
 
+				let keyPreselect    = document.getElementById('localization-key-preselect');
+				let domainPreselect = document.getElementById('localization-domain-preselect');
 				let localePreselect = document.getElementById('localization-locale-preselect');
+
+				keyPreselect.addEventListener('keyup', (e) => {
+
+					if (e.keyCode === 27) {
+						keyPreselect.value = '';
+						LSWrapper.setItem(_Localization.localizationPreselectNameKey, '');
+					}
+					return false;
+				});
+
+				domainPreselect.addEventListener('keyup', (e) => {
+
+					if (e.keyCode === 27) {
+						domainPreselect.value = '';
+						LSWrapper.setItem(_Localization.localizationPreselectDomainKey, '');
+					}
+					return false;
+				});
+
+				keyPreselect.value    = LSWrapper.getItem(_Localization.localizationPreselectNameKey) || '';
+				domainPreselect.value = LSWrapper.getItem(_Localization.localizationPreselectDomainKey) || '';
 				localePreselect.value = LSWrapper.getItem(_Localization.localizationPreselectLocaleKey) || 'en';
 
-				document.getElementById('create-localization-key').addEventListener('click', () => {
+				document.getElementById('create-localization-form').addEventListener('submit', (e) => {
+					e.preventDefault();
+
 					_Localization.showMain();
-					_Localization.createNewLocalizationKey({ name: 'localization-key-' + Math.floor(Math.random() * 999999) + 1 });
+
+					let preselectData = {
+						name: keyPreselect.value,
+					};
+
+					if (domainPreselect.value.length > 0) {
+						preselectData.domain = domainPreselect.value;
+					}
+
+					let preselectLocalesString = localePreselect.value.trim();
+
+					LSWrapper.setItem(_Localization.localizationPreselectNameKey,   preselectData.name);
+					LSWrapper.setItem(_Localization.localizationPreselectDomainKey, preselectData.domain);
+					LSWrapper.setItem(_Localization.localizationPreselectLocaleKey, preselectLocalesString);
+
+					let preselectLocales = preselectLocalesString.split(',').map((l) => l.trim());
+
+					_Localization.createNewLocalizationKey(preselectData, preselectLocales);
 				});
 
 				_Localization.keysAndDomainsList = $('#localization-table tbody');
@@ -91,9 +135,7 @@ var _Localization = {
 			});
 		});
 	},
-	unload: function() {
-
-	},
+	unload: function() { },
 	moveResizer: function(left) {
 
 		requestAnimationFrame(() => {
@@ -525,12 +567,7 @@ var _Localization = {
 			}
 		});
 	},
-	createNewLocalizationKey: (newData) => {
-
-		let presetLocalesString = document.getElementById('localization-locale-preselect').value;
-		LSWrapper.setItem(_Localization.localizationPreselectLocaleKey, presetLocalesString);
-
-		let preselectLocales = presetLocalesString.split(',').map((l) => l.trim());
+	createNewLocalizationKey: (newData, preselectLocales) => {
 
 		Promise.all(
 			preselectLocales.map((locale) => {
