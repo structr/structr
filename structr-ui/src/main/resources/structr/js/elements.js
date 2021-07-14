@@ -796,6 +796,12 @@ var _Elements = {
 	},
 	getContextMenuElements: function (div, entity) {
 
+		// 1. dedicated context menu for type
+		if (entity.type === 'Widget') {
+			return _Widgets.getContextMenuElements(div, entity);
+		}
+
+		// 2. dedicated context menu for module
 		let activeModule = Structr.getActiveModule();
 		if (activeModule) {
 			if (activeModule.getContextMenuElements && typeof activeModule.getContextMenuElements === 'function') {
@@ -803,708 +809,98 @@ var _Elements = {
 			}
 		}
 
-		const isPage             = (entity.type === 'Page');
-		const isContent          = (entity.type === 'Content');
-		const isTemplate         = (entity.type === 'Template');
-		const isFile             = entity.isFile;
-		const isFolder           = entity.isFolder;
-		const isUser             = entity.isUser;
-		const isGroup            = entity.isGroup;
-		const isContentContainer = entity.isContentContainer;
-		const isContentItem      = entity.isContentItem;
-		const isMailTemplate     = (entity.type === 'MailTemplate');
-		const isLocalization     = (entity.type === 'Localization');
-		const hasChildren        = (entity.children && entity.children.length > 0);
-		const isWidget           = entity.isWidget;
-
-		var handleInsertHTMLAction = function (itemText) {
-			var pageId = isPage ? entity.id : entity.pageId;
-			var tagName = (itemText === 'content') ? null : itemText;
-
-			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), _Elements.isInheritVisibililtyFlagsChecked());
-		};
-
-		var handleInsertBeforeAction = function (itemText) {
-
-			Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'Before', _Elements.isInheritVisibililtyFlagsChecked());
-		};
-
-		var handleInsertAfterAction = function (itemText) {
-
-			Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'After', _Elements.isInheritVisibililtyFlagsChecked());
-		};
-
-		var handleWrapInHTMLAction = function (itemText) {
-
-			Command.wrapDOMNodeInNewDOMNode(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibililtyFlagsChecked());
-		};
-
-		var elements = [];
-
-		if (!isFile && !isFolder && !isUser && !isGroup && !isMailTemplate && !isLocalization && !isContentContainer && !isContentItem) {
-
-			if (!isContent && !isWidget) {
-
-				elements.push({
-					name: 'Insert HTML element',
-					elements: !isPage ? _Elements.sortedElementGroups : ['html'],
-					forcedClickHandler: handleInsertHTMLAction
-				});
-
-				elements.push({
-					name: 'Insert content element',
-					elements: !isPage ? ['content', 'template'] : ['template'],
-					forcedClickHandler: handleInsertHTMLAction
-				});
-
-				if (_Elements.suggestedElements[entity.tag]) {
-					elements.push({
-						name: 'Suggested HTML element',
-						elements: _Elements.suggestedElements[entity.tag],
-						forcedClickHandler: handleInsertHTMLAction
-					});
-				}
-			}
-
-			if (!isPage && !isContent && !isWidget) {
-				elements.push({
-					name: 'Insert div element',
-					clickHandler: function () {
-						Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', _Dragndrop.getAdditionalDataForElementCreation('div'), _Elements.isInheritVisibililtyFlagsChecked());
-						return false;
-					}
-				});
-			}
-
-			_Elements.appendContextMenuSeparator(elements);
-
-			if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page') && !isWidget) {
-
-				elements.push({
-					name: 'Insert before...',
-					elements: [
-						{
-							name: '... HTML element',
-							elements: _Elements.sortedElementGroups,
-							forcedClickHandler: handleInsertBeforeAction
-						},
-						{
-							name: '... Content element',
-							elements: ['content', 'template'],
-							forcedClickHandler: handleInsertBeforeAction
-						},
-						{
-							name: '... div element',
-							clickHandler: function () {
-								handleInsertBeforeAction('div');
-							}
-						}
-					]
-				});
-
-				elements.push({
-					name: 'Insert after...',
-					elements: [
-						{
-							name: '... HTML element',
-							elements: _Elements.sortedElementGroups,
-							forcedClickHandler: handleInsertAfterAction
-						},
-						{
-							name: '... Content element',
-							elements: ['content', 'template'],
-							forcedClickHandler: handleInsertAfterAction
-						},
-						{
-							name: '... div element',
-							clickHandler: function () {
-								handleInsertAfterAction('div');
-							}
-						}
-					]
-				});
-
-				_Elements.appendContextMenuSeparator(elements);
-			}
-
-			if (isWidget || (entity.type === 'Div' && !hasChildren)) {
-
-				elements.push({
-					icon: _Icons.svg.pencil_edit,
-					name: 'Edit',
-					clickHandler: function () {
-
-						if (isWidget) {
-							Command.get(entity.id, 'id,type,name,source,configuration,description', function(entity) {
-								_Widgets.editWidget(entity, true);
-							});
-						} else {
-							_Entities.editSource(entity);
-						}
-						return false;
-					}
-				});
-			}
-
-			if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page') && !isWidget) {
-
-				elements.push({
-					name: 'Clone Node',
-					clickHandler: function () {
-						Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
-						return false;
-					}
-				});
-
-				_Elements.appendContextMenuSeparator(elements);
-
-				elements.push({
-					name: 'Wrap element in...',
-					elements: [
-						{
-							name: '... HTML element',
-							elements: _Elements.sortedElementGroups,
-							forcedClickHandler: handleWrapInHTMLAction
-						},
-						{
-							name: '... Template element',
-							clickHandler: function () {
-								handleWrapInHTMLAction('template');
-							}
-						},
-						{
-							name: '... div element',
-							clickHandler: function () {
-								handleWrapInHTMLAction('div');
-							}
-						}
-					]
-				});
-			}
-
-			if (isPage) {
-				elements.push({
-					name: 'Clone Page',
-					clickHandler: function () {
-						Command.clonePage(entity.id);
-						return false;
-					}
-				});
-			}
-
-			if (!isPage && !isWidget) {
-
-				_Elements.appendContextMenuSeparator(elements);
-
-				if (_Elements.selectedEntity && _Elements.selectedEntity.id === entity.id) {
-					elements.push({
-						name: 'Deselect element',
-						clickHandler: function () {
-							_Elements.unselectEntity();
-							return false;
-						}
-					});
-				} else {
-					elements.push({
-						name: 'Select element',
-						clickHandler: function () {
-							_Elements.selectEntity(entity);
-							return false;
-						}
-					});
-				}
-
-				let isEntitySharedComponent = entity.sharedComponent || (entity.isPage && entity.pageId === shadowPage.id);
-				if (!isEntitySharedComponent) {
-					_Elements.appendContextMenuSeparator(elements);
-
-					elements.push({
-						name: 'Convert to Shared Component',
-						clickHandler: function () {
-							Command.createComponent(entity.id);
-							return false;
-						}
-					});
-				}
-			}
-
-			if (!isContent && _Elements.selectedEntity && _Elements.selectedEntity.id !== entity.id) {
-
-				var isSamePage = _Elements.selectedEntity.pageId === entity.pageId;
-				var isThisEntityDirectParentOfSelectedEntity = (_Elements.selectedEntity.parent && _Elements.selectedEntity.parent.id === entity.id);
-				var isSelectedEntityInShadowPage = _Elements.selectedEntity.pageId === shadowPage.id;
-				var isSelectedEntitySharedComponent = isSelectedEntityInShadowPage && !_Elements.selectedEntity.parent;
-
-				var isDescendantOfSelectedEntity = function (possibleDescendant) {
-					if (possibleDescendant.parent) {
-						if (possibleDescendant.parent.id === _Elements.selectedEntity.id) {
-							return true;
-						}
-						return isDescendantOfSelectedEntity(StructrModel.obj(possibleDescendant.parent.id));
-					}
-					return false;
-				};
-
-				if (isSelectedEntitySharedComponent) {
-					elements.push({
-						name: 'Link shared component here',
-						clickHandler: function () {
-							Command.cloneComponent(_Elements.selectedEntity.id, entity.id);
-							_Elements.unselectEntity();
-							return false;
-						}
-					});
-
-				}
-
-				if (!isPage || (isPage && !hasChildren && (_Elements.selectedEntity.tag === 'html' || _Elements.selectedEntity.type === 'Template')) || !isWidget) {
-					elements.push({
-						name: 'Clone selected element here',
-						clickHandler: function () {
-							Command.cloneNode(_Elements.selectedEntity.id, entity.id, true);
-							_Elements.unselectEntity();
-							return false;
-						}
-					});
-				}
-
-				if (isSamePage && !isThisEntityDirectParentOfSelectedEntity && !isSelectedEntityInShadowPage && !isDescendantOfSelectedEntity(entity) && !isWidget) {
-					elements.push({
-						name: 'Move selected element here',
-						clickHandler: function () {
-							Command.appendChild(_Elements.selectedEntity.id, entity.id, entity.pageId);
-							_Elements.unselectEntity();
-							return false;
-						}
-					});
-				}
-			}
-
-			_Elements.appendContextMenuSeparator(elements);
-
-			if (!isPage && !isWidget) {
-
-				elements.push({
-					name: 'Repeater',
-					clickHandler: function () {
-						_Entities.showProperties(entity, 'query');
-						return false;
-					}
-				});
-
-				if (!isContent && !isTemplate) {
-					elements.push({
-						name: 'Events',
-						clickHandler: function () {
-							_Entities.showProperties(entity, 'editBinding');
-							return false;
-						}
-					});
-				}
-
-				elements.push({
-					name: 'HTML Attributes',
-					clickHandler: function () {
-						_Entities.showProperties(entity, '_html_');
-						return false;
-					}
-				});
-			}
-		}
-
-		if (isUser || isGroup) {
-
-			let userOrGroupEl = div.closest('.node');
-			let parentGroupEl = userOrGroupEl.parent().closest('.group');
-			if (parentGroupEl.length) {
-				let parentGroupId = Structr.getGroupId(parentGroupEl);
-				elements.push({
-					name: 'Remove ' + entity.name + ' from ' + $('.name_', parentGroupEl).attr('title'),
-					clickHandler: function () {
-						Command.removeFromCollection(parentGroupId, 'members', entity.id, function () {
-							_UsersAndGroups.refreshGroups();
-						});
-						return false;
-					}
-				});
-			}
-
-			_Elements.appendContextMenuSeparator(elements);
-		}
-
-		if (isFile) {
-
-			if (isFile && entity.isImage && entity.contentType !== 'text/svg' && !entity.contentType.startsWith('image/svg')) {
-				elements.push({
-					name: 'Edit Image',
-					clickHandler: function () {
-						_Files.editImage(entity);
-						return false;
-					}
-				});
-			} else if (isFile) {
-				elements.push({
-					name: 'Edit File',
-					clickHandler: function () {
-						_Files.editFile(entity);
-						return false;
-					}
-				});
-			}
-		}
-
-		elements.push({
-			name: 'Properties',
-			clickHandler: function() {
-				_Entities.showProperties(entity, 'ui');
-				return false;
-			}
-		});
-
-		if (isFile) {
-
-			if (displayingFavorites) {
-				elements.push({
-					name: 'Remove from Favorites',
-					clickHandler: function () {
-						Command.favorites('remove', entity.id, () => {
-							Structr.node(entity.id).remove();
-						});
-						return false;
-					}
-				});
-
-			} else if (entity.isFavoritable) {
-				elements.push({
-					name: 'Add to Favorites',
-					clickHandler: function () {
-						Command.favorites('add', entity.id, () => {});
-						return false;
-					}
-				});
-			}
-
-			elements.push({
-				name: 'Copy Download URL',
-				clickHandler: function () {
-					// do not make the click handler async because it would return a promise instead of the boolean
-
-					(async () => {
-						// fake the a element so we do not need to look up the server
-						let a = document.createElement('a');
-						a.href = entity.path;
-						await navigator.clipboard.writeText(a.href);
-					})();
-					return false;
-				}
-			});
-
-			if (_Files.isArchive(entity)) {
-				elements.push({
-					name: 'Unpack archive',
-					clickHandler: function () {
-						_Files.unpackArchive(entity);
-						return false;
-					}
-				});
-			}
-
-			Structr.performModuleDependendAction(function () {
-				if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && entity.contentType === 'text/csv') {
-					elements.push({
-						name: 'Import CSV',
-						clickHandler: function () {
-							Importer.importCSVDialog(entity, false);
-							return false;
-						}
-					});
-				}
-			});
-
-			Structr.performModuleDependendAction(function () {
-				if (Structr.isModulePresent('xml') && (entity.contentType === 'text/xml' || entity.contentType === 'application/xml')) {
-					elements.push({
-						name: 'Import XML',
-						clickHandler: function () {
-							Importer.importXMLDialog(entity, false);
-							return false;
-						}
-					});
-				}
-			});
-		}
-
-		_Elements.appendContextMenuSeparator(elements);
-
-		if (!isWidget) {
-			elements.push({
-				icon: _Icons.svg.security,
-				name: 'Security',
-				elements: [
-					{
-						name: 'Access Control and Visibility',
-						clickHandler: function() {
-							_Entities.showAccessControlDialog(entity);
-							return false;
-						}
-					},
-					'|',
-					{
-						name: 'Authenticated Users',
-						elements: [
-							{
-								name: 'Make element visible',
-								clickHandler: function() {
-									Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, false);
-									return false;
-								}
-							},
-							{
-								name: 'Make element invisible',
-								clickHandler: function() {
-									Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false);
-									return false;
-								}
-							},
-							'|',
-							{
-								name: 'Make subtree visible',
-								clickHandler: function() {
-									Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, true);
-									return false;
-								}
-							},
-							{
-								name: 'Make subtree invisible',
-								clickHandler: function() {
-									Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, true);
-									return false;
-								}
-							}
-						]
-					},
-					{
-						name: 'Public Users',
-						elements: [
-							{
-								name: 'Make element visible',
-								clickHandler: function() {
-									Command.setProperty(entity.id, 'visibleToPublicUsers', true, false);
-									return false;
-								}
-							},
-							{
-								name: 'Make element invisible',
-								clickHandler: function() {
-									Command.setProperty(entity.id, 'visibleToPublicUsers', false, false);
-									return false;
-								}
-							},
-							'|',
-							{
-								name: 'Make subtree visible',
-								clickHandler: function() {
-									Command.setProperty(entity.id, 'visibleToPublicUsers', true, true);
-									return false;
-								}
-							},
-							{
-								name: 'Make subtree invisible',
-								clickHandler: function() {
-									Command.setProperty(entity.id, 'visibleToPublicUsers', false, true);
-									return false;
-								}
-							}
-						]
-					}
-				]
-			});
-		}
-
-		_Elements.appendContextMenuSeparator(elements);
-
-		if (!isContent && hasChildren) {
-
-			elements.push({
-				name: 'Expand / Collapse',
-				elements: [
-					{
-						name: 'Expand subtree',
-						clickHandler: function() {
-							$(div).find('.node').each(function(i, el) {
-								if (!_Entities.isExpanded(el)) {
-									_Entities.toggleElement(el);
-								}
-							});
-							if (!_Entities.isExpanded(div)) {
-								_Entities.toggleElement(div);
-							}
-							return false;
-						}
-					},
-					{
-						name: 'Expand subtree recursively',
-						clickHandler: function() {
-							_Entities.expandRecursively([entity.id]);
-							return false;
-						}
-					},
-					{
-						name: 'Collapse subtree',
-						clickHandler: function() {
-							$(div).find('.node').each(function(i, el) {
-								if (_Entities.isExpanded(el)) {
-									_Entities.toggleElement(el);
-								}
-							});
-							if (_Entities.isExpanded(div)) {
-								_Entities.toggleElement(div);
-							}
-							return false;
-						}
-					}
-				]
-			});
-		}
-
-		_Elements.appendContextMenuSeparator(elements);
-
-		if (!isFile && !isFolder && !isContent && !isUser && !isGroup && !isMailTemplate && !isLocalization && !isContentContainer && !isContentItem && !isWidget) {
-
-			elements.push({
-				name: '<input type="checkbox" id="inherit-visibility-flags">Inherit Visibility Flags',
-				stayOpen: true,
-				clickHandler: function(el) {
-					var checkbox = el.find('input');
-					var wasChecked = checkbox.prop('checked');
-					checkbox.prop('checked', !wasChecked);
-					LSWrapper.setItem(_Elements.inheritVisibilityFlagsKey, !wasChecked);
-					return true;
-				}
-			});
-		}
-
-		_Elements.appendContextMenuSeparator(elements);
-
-		if (isPage) {
-			elements.push({
-				icon: _Icons.svg.page_settings,
-				name: 'Configure Page Preview',
-				clickHandler: function () {
-					_Pages.previews.configurePreview(entity);
-					return false;
-				}
-			});
-
-			elements.push({
-				icon: _Icons.svg.page_open,
-				name: 'Open Page in new tab',
-				clickHandler: function () {
-					let url = _Pages.previews.getUrlForPage(entity);
-					window.open(url);
-					return false;
-				}
-			});
-		}
-
-		// DELETE AREA - ALWAYS AT THE BOTTOM
-		// allow "Remove Node" on first level children of page
-		if (Structr.isModuleActive(_Pages) && !isPage && entity.parent !== null && !entity.isWidget) {
-
-			elements.push({
-				icon: _Icons.svg.trashcan,
-				classes: ['menu-bolder', 'danger'],
-				name: 'Remove Node',
-				clickHandler: function () {
-					Command.removeChild(entity.id, () => {
-						_Pages.unattachedNodes.blinkUI();
-					});
-					return false;
-				}
-			});
-		}
-
-		// "Delete <type>" should be visible everywhere... except in Pages: There it should only be visible for type===Page
-		if (!Structr.isModuleActive(_Pages) || (Structr.isModuleActive(_Pages) && (isPage || !entity.parent))) {
-
-			elements.push({
-				icon: _Icons.svg.trashcan,
-				classes: ['menu-bolder', 'danger'],
-				name: 'Delete ' + entity.type,
-				clickHandler: () => {
-
-					if (isContent || isUser || isGroup) {
-
-						_Entities.deleteNode(this, entity);
-
-					} else if (isFolder || isFile) {
-
-						let selectedElements = document.querySelectorAll('.node.selected');
-						let files = [];
-
-						selectedElements.forEach((el) => {
-							files.push(Structr.entityFromElement(el));
-						});
-
-						_Entities.deleteNodes(this, files, true, () => {
-							_Files.refreshTree();
-						});
-
-					} else if (isMailTemplate) {
-
-						_Entities.deleteNode(this, entity, false, () => {
-							if (LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey) && LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey) === entity.id) {
-								LSWrapper.removeItem(_MailTemplates.mailTemplateSelectedElementKey);
-							}
-							let row = Structr.node(entity.id, '#mail-template-');
-							if (row) {
-								row.remove();
-								// _MailTemplates.clearMailTemplateDetails();
-								_MailTemplates.checkMainVisibility();
-							}
-
-						});
-
-					} else if (isLocalization) {
-						let keyAndDomainObject = entity;
-						if (true === confirm('Do you really want to delete the complete localizations for "' + keyAndDomainObject.name + '"' + (keyAndDomainObject.domain ? ' in domain "' + keyAndDomainObject.domain + '"' : ' with empty domain') + ' ?')) {
-							_Localization.deleteCompleteLocalization((keyAndDomainObject.name ? keyAndDomainObject.name : null), (keyAndDomainObject.domain ? keyAndDomainObject.domain : null), this);
-						}
-					} else if (isContentContainer) {
-						_Entities.deleteNode(this, entity, true, function() {
-							_Contents.refreshTree();
-						});
-					} else if (isContentItem) {
-						_Entities.deleteNode(this, entity);
-					} else {
-						_Entities.deleteNode(this, entity, true, () => {
-							var synced = entity.syncedNodesIds;
-							if (synced && synced.length) {
-								synced.forEach(function (id) {
-									var el = Structr.node(id);
-									if (el && el.children && el.children.length) {
-										var newSpriteClass = _Icons.getSpriteClassOnly(_Icons.brick_icon);
-										el.children('i.typeIcon').each(function (i, el) {
-											_Icons.updateSpriteClassTo(el, newSpriteClass);
-										});
-									}
-								});
-							}
-						});
-					}
-					return false;
-				}
-			});
-		}
-
-		_Elements.appendContextMenuSeparator(elements);
-
-		return elements;
+		// no context menu found
+		return [];
 	},
 	appendContextMenuSeparator: function (elements) {
 		if (elements[elements.length - 1] !== '|') {
 			elements.push('|');
 		}
+	},
+	appendSecurityContextMenuItems: (elements, entity) => {
+
+		elements.push({
+			icon: _Icons.svg.security,
+			name: 'Security',
+			elements: [
+				{
+					name: 'Access Control and Visibility',
+					clickHandler: function() {
+						_Entities.showAccessControlDialog(entity);
+						return false;
+					}
+				},
+				'|',
+				{
+					name: 'Authenticated Users',
+					elements: [
+						{
+							name: 'Make element visible',
+							clickHandler: function() {
+								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, false);
+								return false;
+							}
+						},
+						{
+							name: 'Make element invisible',
+							clickHandler: function() {
+								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false);
+								return false;
+							}
+						},
+						'|',
+						{
+							name: 'Make subtree visible',
+							clickHandler: function() {
+								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, true);
+								return false;
+							}
+						},
+						{
+							name: 'Make subtree invisible',
+							clickHandler: function() {
+								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, true);
+								return false;
+							}
+						}
+					]
+				},
+				{
+					name: 'Public Users',
+					elements: [
+						{
+							name: 'Make element visible',
+							clickHandler: function() {
+								Command.setProperty(entity.id, 'visibleToPublicUsers', true, false);
+								return false;
+							}
+						},
+						{
+							name: 'Make element invisible',
+							clickHandler: function() {
+								Command.setProperty(entity.id, 'visibleToPublicUsers', false, false);
+								return false;
+							}
+						},
+						'|',
+						{
+							name: 'Make subtree visible',
+							clickHandler: function() {
+								Command.setProperty(entity.id, 'visibleToPublicUsers', true, true);
+								return false;
+							}
+						},
+						{
+							name: 'Make subtree invisible',
+							clickHandler: function() {
+								Command.setProperty(entity.id, 'visibleToPublicUsers', false, true);
+								return false;
+							}
+						}
+					]
+				}
+			]
+		});
 	},
 	selectEntity: function (entity) {
 

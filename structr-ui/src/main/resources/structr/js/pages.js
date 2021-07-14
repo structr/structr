@@ -230,6 +230,437 @@ var _Pages = {
 			_Pages.refresh();
 		});
 	},
+	getContextMenuElements: function (div, entity) {
+
+		const isPage             = (entity.type === 'Page');
+		const isContent          = (entity.type === 'Content');
+		const isTemplate         = (entity.type === 'Template');
+		const hasChildren        = (entity.children && entity.children.length > 0);
+
+		let handleInsertHTMLAction = function (itemText) {
+			let pageId = isPage ? entity.id : entity.pageId;
+			let tagName = (itemText === 'content') ? null : itemText;
+
+			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), _Elements.isInheritVisibililtyFlagsChecked());
+		};
+
+		let handleInsertBeforeAction = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'Before', _Elements.isInheritVisibililtyFlagsChecked()); };
+		let handleInsertAfterAction  = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'After', _Elements.isInheritVisibililtyFlagsChecked()); };
+		let handleWrapInHTMLAction   = (itemText)  => { Command.wrapDOMNodeInNewDOMNode(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibililtyFlagsChecked()); };
+
+		var elements = [];
+
+		if (!isContent) {
+
+			elements.push({
+				name: 'Insert HTML element',
+				elements: !isPage ? _Elements.sortedElementGroups : ['html'],
+				forcedClickHandler: handleInsertHTMLAction
+			});
+
+			elements.push({
+				name: 'Insert content element',
+				elements: !isPage ? ['content', 'template'] : ['template'],
+				forcedClickHandler: handleInsertHTMLAction
+			});
+
+			if (_Elements.suggestedElements[entity.tag]) {
+				elements.push({
+					name: 'Suggested HTML element',
+					elements: _Elements.suggestedElements[entity.tag],
+					forcedClickHandler: handleInsertHTMLAction
+				});
+			}
+		}
+
+		if (!isPage && !isContent) {
+			elements.push({
+				name: 'Insert div element',
+				clickHandler: function () {
+					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', _Dragndrop.getAdditionalDataForElementCreation('div'), _Elements.isInheritVisibililtyFlagsChecked());
+					return false;
+				}
+			});
+		}
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page')) {
+
+			elements.push({
+				name: 'Insert before...',
+				elements: [
+					{
+						name: '... HTML element',
+						elements: _Elements.sortedElementGroups,
+						forcedClickHandler: handleInsertBeforeAction
+					},
+					{
+						name: '... Content element',
+						elements: ['content', 'template'],
+						forcedClickHandler: handleInsertBeforeAction
+					},
+					{
+						name: '... div element',
+						clickHandler: function () {
+							handleInsertBeforeAction('div');
+						}
+					}
+				]
+			});
+
+			elements.push({
+				name: 'Insert after...',
+				elements: [
+					{
+						name: '... HTML element',
+						elements: _Elements.sortedElementGroups,
+						forcedClickHandler: handleInsertAfterAction
+					},
+					{
+						name: '... Content element',
+						elements: ['content', 'template'],
+						forcedClickHandler: handleInsertAfterAction
+					},
+					{
+						name: '... div element',
+						clickHandler: function () {
+							handleInsertAfterAction('div');
+						}
+					}
+				]
+			});
+
+			_Elements.appendContextMenuSeparator(elements);
+		}
+
+		if (entity.type === 'Div' && !hasChildren) {
+
+			elements.push({
+				icon: _Icons.svg.pencil_edit,
+				name: 'Edit',
+				clickHandler: function () {
+					_Entities.editSource(entity);
+					return false;
+				}
+			});
+		}
+
+		if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page')) {
+
+			elements.push({
+				name: 'Clone Node',
+				clickHandler: function () {
+					Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
+					return false;
+				}
+			});
+
+			_Elements.appendContextMenuSeparator(elements);
+
+			elements.push({
+				name: 'Wrap element in...',
+				elements: [
+					{
+						name: '... HTML element',
+						elements: _Elements.sortedElementGroups,
+						forcedClickHandler: handleWrapInHTMLAction
+					},
+					{
+						name: '... Template element',
+						clickHandler: function () {
+							handleWrapInHTMLAction('template');
+						}
+					},
+					{
+						name: '... div element',
+						clickHandler: function () {
+							handleWrapInHTMLAction('div');
+						}
+					}
+				]
+			});
+		}
+
+		if (isPage) {
+			elements.push({
+				name: 'Clone Page',
+				clickHandler: function () {
+					Command.clonePage(entity.id);
+					return false;
+				}
+			});
+		}
+
+		if (!isPage) {
+
+			_Elements.appendContextMenuSeparator(elements);
+
+			if (_Elements.selectedEntity && _Elements.selectedEntity.id === entity.id) {
+				elements.push({
+					name: 'Deselect element',
+					clickHandler: function () {
+						_Elements.unselectEntity();
+						return false;
+					}
+				});
+			} else {
+				elements.push({
+					name: 'Select element',
+					clickHandler: function () {
+						_Elements.selectEntity(entity);
+						return false;
+					}
+				});
+			}
+
+			let isEntitySharedComponent = entity.sharedComponent || (entity.isPage && entity.pageId === shadowPage.id);
+			if (!isEntitySharedComponent) {
+				_Elements.appendContextMenuSeparator(elements);
+
+				elements.push({
+					name: 'Convert to Shared Component',
+					clickHandler: function () {
+						Command.createComponent(entity.id);
+						return false;
+					}
+				});
+			}
+		}
+
+		if (!isContent && _Elements.selectedEntity && _Elements.selectedEntity.id !== entity.id) {
+
+			var isSamePage = _Elements.selectedEntity.pageId === entity.pageId;
+			var isThisEntityDirectParentOfSelectedEntity = (_Elements.selectedEntity.parent && _Elements.selectedEntity.parent.id === entity.id);
+			var isSelectedEntityInShadowPage = _Elements.selectedEntity.pageId === shadowPage.id;
+			var isSelectedEntitySharedComponent = isSelectedEntityInShadowPage && !_Elements.selectedEntity.parent;
+
+			var isDescendantOfSelectedEntity = function (possibleDescendant) {
+				if (possibleDescendant.parent) {
+					if (possibleDescendant.parent.id === _Elements.selectedEntity.id) {
+						return true;
+					}
+					return isDescendantOfSelectedEntity(StructrModel.obj(possibleDescendant.parent.id));
+				}
+				return false;
+			};
+
+			if (isSelectedEntitySharedComponent) {
+				elements.push({
+					name: 'Link shared component here',
+					clickHandler: function () {
+						Command.cloneComponent(_Elements.selectedEntity.id, entity.id);
+						_Elements.unselectEntity();
+						return false;
+					}
+				});
+
+			}
+
+			if (!isPage || (isPage && !hasChildren && (_Elements.selectedEntity.tag === 'html' || _Elements.selectedEntity.type === 'Template'))) {
+				elements.push({
+					name: 'Clone selected element here',
+					clickHandler: function () {
+						Command.cloneNode(_Elements.selectedEntity.id, entity.id, true);
+						_Elements.unselectEntity();
+						return false;
+					}
+				});
+			}
+
+			if (isSamePage && !isThisEntityDirectParentOfSelectedEntity && !isSelectedEntityInShadowPage && !isDescendantOfSelectedEntity(entity)) {
+				elements.push({
+					name: 'Move selected element here',
+					clickHandler: function () {
+						Command.appendChild(_Elements.selectedEntity.id, entity.id, entity.pageId);
+						_Elements.unselectEntity();
+						return false;
+					}
+				});
+			}
+		}
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		if (!isPage) {
+
+			elements.push({
+				name: 'Repeater',
+				clickHandler: function () {
+					_Entities.showProperties(entity, 'query');
+					return false;
+				}
+			});
+
+			if (!isContent && !isTemplate) {
+				elements.push({
+					name: 'Events',
+					clickHandler: function () {
+						_Entities.showProperties(entity, 'editBinding');
+						return false;
+					}
+				});
+			}
+
+			elements.push({
+				name: 'HTML Attributes',
+				clickHandler: function () {
+					_Entities.showProperties(entity, '_html_');
+					return false;
+				}
+			});
+		}
+
+		elements.push({
+			name: 'Properties',
+			clickHandler: function() {
+				_Entities.showProperties(entity, 'ui');
+				return false;
+			}
+		});
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		_Elements.appendSecurityContextMenuItems(elements, entity);
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		if (!isContent && hasChildren) {
+
+			elements.push({
+				name: 'Expand / Collapse',
+				elements: [
+					{
+						name: 'Expand subtree',
+						clickHandler: function() {
+							$(div).find('.node').each(function(i, el) {
+								if (!_Entities.isExpanded(el)) {
+									_Entities.toggleElement(el);
+								}
+							});
+							if (!_Entities.isExpanded(div)) {
+								_Entities.toggleElement(div);
+							}
+							return false;
+						}
+					},
+					{
+						name: 'Expand subtree recursively',
+						clickHandler: function() {
+							_Entities.expandRecursively([entity.id]);
+							return false;
+						}
+					},
+					{
+						name: 'Collapse subtree',
+						clickHandler: function() {
+							$(div).find('.node').each(function(i, el) {
+								if (_Entities.isExpanded(el)) {
+									_Entities.toggleElement(el);
+								}
+							});
+							if (_Entities.isExpanded(div)) {
+								_Entities.toggleElement(div);
+							}
+							return false;
+						}
+					}
+				]
+			});
+		}
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		elements.push({
+			name: '<input type="checkbox" id="inherit-visibility-flags">Inherit Visibility Flags',
+			stayOpen: true,
+			clickHandler: function(el) {
+				var checkbox = el.find('input');
+				var wasChecked = checkbox.prop('checked');
+				checkbox.prop('checked', !wasChecked);
+				LSWrapper.setItem(_Elements.inheritVisibilityFlagsKey, !wasChecked);
+				return true;
+			}
+		});
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		if (isPage) {
+			elements.push({
+				icon: _Icons.svg.page_settings,
+				name: 'Configure Page Preview',
+				clickHandler: function () {
+					_Pages.previews.configurePreview(entity);
+					return false;
+				}
+			});
+
+			elements.push({
+				icon: _Icons.svg.page_open,
+				name: 'Open Page in new tab',
+				clickHandler: function () {
+					let url = _Pages.previews.getUrlForPage(entity);
+					window.open(url);
+					return false;
+				}
+			});
+		}
+
+		// DELETE AREA - ALWAYS AT THE BOTTOM
+		// allow "Remove Node" on first level children of page
+		if (!isPage && entity.parent !== null) {
+
+			elements.push({
+				icon: _Icons.svg.trashcan,
+				classes: ['menu-bolder', 'danger'],
+				name: 'Remove Node',
+				clickHandler: function () {
+					Command.removeChild(entity.id, () => {
+						_Pages.unattachedNodes.blinkUI();
+					});
+					return false;
+				}
+			});
+		}
+
+		// should only be visible for type===Page
+		if (isPage || !entity.parent) {
+
+			elements.push({
+				icon: _Icons.svg.trashcan,
+				classes: ['menu-bolder', 'danger'],
+				name: 'Delete ' + entity.type,
+				clickHandler: () => {
+
+					if (isContent) {
+
+						_Entities.deleteNode(this, entity);
+
+					} else {
+						_Entities.deleteNode(this, entity, true, () => {
+							var synced = entity.syncedNodesIds;
+							if (synced && synced.length) {
+								synced.forEach(function (id) {
+									var el = Structr.node(id);
+									if (el && el.children && el.children.length) {
+										var newSpriteClass = _Icons.getSpriteClassOnly(_Icons.brick_icon);
+										el.children('i.typeIcon').each(function (i, el) {
+											_Icons.updateSpriteClassTo(el, newSpriteClass);
+										});
+									}
+								});
+							}
+						});
+					}
+					return false;
+				}
+			});
+		}
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		return elements;
+	},
 	moveLeftResizer: function(left) {
 		requestAnimationFrame(() => {
 			_Pages.resizeColumns(left, null);

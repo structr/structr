@@ -87,6 +87,50 @@ var _MailTemplates = {
 
 		});
 	},
+	getContextMenuElements: function (div, entity) {
+
+		let elements = [];
+
+		elements.push({
+			name: 'Properties',
+			clickHandler: function() {
+				_Entities.showProperties(entity, 'ui');
+				return false;
+			}
+		});
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		_Elements.appendSecurityContextMenuItems(elements, entity);
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		elements.push({
+			icon: _Icons.svg.trashcan,
+			classes: ['menu-bolder', 'danger'],
+			name: 'Delete Mail Template',
+			clickHandler: () => {
+
+				_Entities.deleteNode(this, entity, false, () => {
+					if (LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey) && LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey) === entity.id) {
+						LSWrapper.removeItem(_MailTemplates.mailTemplateSelectedElementKey);
+					}
+					let row = Structr.node(entity.id, '#mail-template-');
+					if (row) {
+						row.remove();
+						// _MailTemplates.clearMailTemplateDetails();
+						_MailTemplates.checkMainVisibility();
+					}
+
+				});
+				return false;
+			}
+		});
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		return elements;
+	},
 	showMain: () => {
 		document.getElementById('mail-templates-main').style.display = 'flex';
 		_MailTemplates.moveResizer();

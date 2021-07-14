@@ -226,6 +226,153 @@ var _Files = {
 
 		});
 	},
+	getContextMenuElements: function (div, entity) {
+
+		const isFile             = entity.isFile;
+		const isFolder           = entity.isFolder;
+		let selectedElements     = document.querySelectorAll('.node.selected');
+		let isMultiSelect        = selectedElements.length > 1;
+
+		let elements = [];
+
+		if (isFile) {
+
+			if (isFile && entity.isImage && entity.contentType !== 'text/svg' && !entity.contentType.startsWith('image/svg')) {
+				elements.push({
+					icon: _Icons.svg.pencil_edit,
+					name: 'Edit Image',
+					clickHandler: function () {
+						_Files.editImage(entity);
+						return false;
+					}
+				});
+			} else if (isFile) {
+				elements.push({
+					icon: _Icons.svg.pencil_edit,
+					name: 'Edit File' + (isMultiSelect ? 's' : ''),
+					clickHandler: function () {
+						_Files.editFile(entity);
+						return false;
+					}
+				});
+			}
+		}
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		elements.push({
+			name: 'Properties',
+			clickHandler: function() {
+				_Entities.showProperties(entity, 'ui');
+				return false;
+			}
+		});
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		if (isFile) {
+
+			if (displayingFavorites) {
+				elements.push({
+					name: 'Remove from Favorites',
+					clickHandler: function () {
+						Command.favorites('remove', entity.id, () => {
+							Structr.node(entity.id).remove();
+						});
+						return false;
+					}
+				});
+
+			} else if (entity.isFavoritable) {
+				elements.push({
+					name: 'Add to Favorites',
+					clickHandler: function () {
+						Command.favorites('add', entity.id, () => {});
+						return false;
+					}
+				});
+			}
+
+			elements.push({
+				name: 'Copy Download URL',
+				clickHandler: function () {
+					// do not make the click handler async because it would return a promise instead of the boolean
+
+					(async () => {
+						// fake the a element so we do not need to look up the server
+						let a = document.createElement('a');
+						a.href = entity.path;
+						await navigator.clipboard.writeText(a.href);
+					})();
+					return false;
+				}
+			});
+
+			if (_Files.isArchive(entity)) {
+				elements.push({
+					name: 'Unpack archive',
+					clickHandler: function () {
+						_Files.unpackArchive(entity);
+						return false;
+					}
+				});
+			}
+
+			Structr.performModuleDependendAction(function () {
+				if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && entity.contentType === 'text/csv') {
+					elements.push({
+						name: 'Import CSV',
+						clickHandler: function () {
+							Importer.importCSVDialog(entity, false);
+							return false;
+						}
+					});
+				}
+			});
+
+			Structr.performModuleDependendAction(function () {
+				if (Structr.isModulePresent('xml') && (entity.contentType === 'text/xml' || entity.contentType === 'application/xml')) {
+					elements.push({
+						name: 'Import XML',
+						clickHandler: function () {
+							Importer.importXMLDialog(entity, false);
+							return false;
+						}
+					});
+				}
+			});
+		}
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		_Elements.appendSecurityContextMenuItems(elements, entity);
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		elements.push({
+			icon: _Icons.svg.trashcan,
+			classes: ['menu-bolder', 'danger'],
+			name: 'Delete ' + (isMultiSelect ? 'selected data objects' : entity.type),
+			clickHandler: () => {
+
+				let files = [];
+
+				selectedElements.forEach((el) => {
+					files.push(Structr.entityFromElement(el));
+				});
+
+				_Entities.deleteNodes(this, files, true, () => {
+					_Files.refreshTree();
+				});
+
+				return false;
+			}
+		});
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		return elements;
+	},
 	deepOpen: function(d, dirs) {
 
 		_TreeHelper.deepOpen(fileTree, d, dirs, 'parent', (currentWorkingDir ? currentWorkingDir.id : 'root'));

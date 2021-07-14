@@ -82,6 +82,63 @@ var _Security = {
 			});
 		});
 	},
+	getContextMenuElements: function (div, entity) {
+
+		const isUser             = entity.isUser;
+		const isGroup            = entity.isGroup;
+
+		let elements = [];
+
+		if (isUser || isGroup) {
+
+			let userOrGroupEl = div.closest('.node');
+			let parentGroupEl = userOrGroupEl.parent().closest('.group');
+			if (parentGroupEl.length) {
+				let parentGroupId = Structr.getGroupId(parentGroupEl);
+				elements.push({
+					name: 'Remove ' + entity.name + ' from ' + $('.name_', parentGroupEl).attr('title'),
+					clickHandler: function () {
+						Command.removeFromCollection(parentGroupId, 'members', entity.id, function () {
+							_UsersAndGroups.refreshGroups();
+						});
+						return false;
+					}
+				});
+			}
+
+			_Elements.appendContextMenuSeparator(elements);
+		}
+
+		elements.push({
+			name: 'Properties',
+			clickHandler: function() {
+				_Entities.showProperties(entity, 'ui');
+				return false;
+			}
+		});
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		_Elements.appendSecurityContextMenuItems(elements, entity);
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		elements.push({
+			icon: _Icons.svg.trashcan,
+			classes: ['menu-bolder', 'danger'],
+			name: 'Delete ' + entity.type,
+			clickHandler: () => {
+
+				_Entities.deleteNode(this, entity);
+
+				return false;
+			}
+		});
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		return elements;
+	},
 	selectTab: function(subModule) {
 
 		LSWrapper.setItem(_Security.securityTabKey, subModule);

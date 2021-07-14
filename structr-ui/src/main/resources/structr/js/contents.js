@@ -184,6 +184,51 @@ var _Contents = {
 			_Contents.resize();
 		});
 	},
+	getContextMenuElements: function (div, entity) {
+
+		const isContentContainer = entity.isContentContainer;
+		const isContentItem      = entity.isContentItem;
+
+		let elements = [];
+
+		elements.push({
+			name: 'Properties',
+			clickHandler: function() {
+				_Entities.showProperties(entity, 'ui');
+				return false;
+			}
+		});
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		_Elements.appendSecurityContextMenuItems(elements, entity);
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		elements.push({
+			icon: _Icons.svg.trashcan,
+			classes: ['menu-bolder', 'danger'],
+			name: 'Delete ' + entity.type,
+			clickHandler: () => {
+
+				if (isContentContainer) {
+
+                    _Entities.deleteNode(this, entity, true, function() {
+                        _Contents.refreshTree();
+                    });
+
+                } else if (isContentItem) {
+
+                    _Entities.deleteNode(this, entity);
+                }
+				return false;
+			}
+		});
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		return elements;
+	},
 	deepOpen: function(d, dirs) {
 
 		_TreeHelper.deepOpen(contentTree, d, dirs, 'parent', (currentContentContainer ? currentContentContainer.id : 'root'));
