@@ -1930,7 +1930,7 @@ var _Entities = {
 						let principalId = result.principalId;
 						if (principalId) {
 							Command.get(principalId, 'id,name,isGroup', function(p) {
-								_Entities.addPrincipal(entity, p, permissions, allowRecursive);
+								_Entities.addPrincipal(entity, p, permissions, allowRecursive, el);
 							});
 						}
 					}
@@ -2023,7 +2023,7 @@ var _Entities = {
 					Command.setPermission(entity.id, pId, 'grant', 'read', rec);
 
 					Command.get(pId, 'id,name,isGroup', function(p) {
-						_Entities.addPrincipal(entity, p, {read: true}, allowRecursive);
+						_Entities.addPrincipal(entity, p, {read: true}, allowRecursive, el);
 					});
 				});
 
@@ -2075,17 +2075,17 @@ var _Entities = {
 		_Entities.accessControlDialog(entity, dialogText);
 
 	},
-	addPrincipal: function (entity, principal, permissions, allowRecursive) {
+	addPrincipal: function (entity, principal, permissions, allowRecursive, container) {
 
-		$('#newPrincipal option[value="' + principal.id + '"]').remove();
-		$('#newPrincipal').trigger('chosen:updated');
+		$('#newPrincipal option[value="' + principal.id + '"]', container).remove();
+		$('#newPrincipal', container).trigger('chosen:updated');
 
-		if ($('#principals ._' + principal.id, dialogText).length > 0) {
+		if ($('#principals ._' + principal.id, container).length > 0) {
 			return;
 		}
 
 		let row = $('<tr class="_' + principal.id + '"><td><i class="typeIcon ' + _Icons.getFullSpriteClass((principal.isGroup ? _Icons.group_icon : _Icons.user_icon)) + '"></i> <span class="name">' + principal.name + '</span></td></tr>');
-		$('#new').after(row);
+		$('#new', container).after(row);
 
 		['read', 'write', 'delete', 'accessControl'].forEach(function(perm) {
 
@@ -2103,14 +2103,15 @@ var _Entities = {
 
 				if (!$('input:checked', row).length) {
 
-					$('#newPrincipal').append('<option value="' + principal.id + '">' + principal.name + '</option>');
-					$('#newPrincipal').trigger('chosen:updated');
+					$('#newPrincipal', container).append('<option value="' + principal.id + '">' + principal.name + '</option>');
+					$('#newPrincipal', container).trigger('chosen:updated');
 
 					row.remove();
 				}
-				let recursive = $('#recursive', dialogText).is(':checked');
+				let recursive = $('#recursive', container).is(':checked');
 
 				Command.setPermission(entity.id, principal.id, permissions[perm] ? 'revoke' : 'grant', perm, recursive, function() {
+
 					permissions[perm] = !permissions[perm];
 					checkbox.prop('checked', permissions[perm]);
 
