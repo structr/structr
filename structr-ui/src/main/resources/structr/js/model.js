@@ -415,7 +415,7 @@ var StructrModel = {
 				if (Structr.isModuleActive(_Files)) {
 					let row = element.closest('tr');
 					if (row.length) {
-						$('td.size', row).text(obj.size);
+						$('td.size', row).text(formatBytes(obj.size,0));
 					}
 				}
 
