@@ -726,16 +726,25 @@ var _Elements = {
 					} else {
 						ul.append(listElement);
 					}
-
 				}
-
 			}
 		};
 
 		let updateMenuGroupVisibility = function() {
 
 			$('.element-group-switch').hover(function() {
-				$(this).children('.element-group').removeClass('hidden');
+				let childrenMenu = $(this).children('.element-group');
+				if (childrenMenu.length > 0) {
+					childrenMenu.removeClass('hidden');
+
+					let bottomOfMenu = childrenMenu.offset().top + childrenMenu.height();
+					if (bottomOfMenu > windowHeight) {
+						$(this).children('.element-group').css({
+							top: (-1 - (bottomOfMenu - windowHeight) - 12) + 'px'
+						});
+					}
+				}
+
 			}, function() {
 				$(this).children('.element-group').addClass('hidden');
 			});
