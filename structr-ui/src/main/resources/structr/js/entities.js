@@ -1985,7 +1985,7 @@ var _Entities = {
 					placeholder: 'Owner',
 					width: '300px',
 					style: 'text-align:left;',
-					// dropdownParent: $('.blockPage'),
+					dropdownParent: el,
 					templateResult: (state) => {
 						return templateOption(state, false);
 					},
@@ -2011,7 +2011,7 @@ var _Entities = {
 				granteeSelect.select2({
 					placeholder: 'Select Group/User',
 					width: '100%',
-					// dropdownParent: $('.blockPage'),
+					dropdownParent: el,
 					templateResult: (state) => {
 						return templateOption(state, false);
 					}
