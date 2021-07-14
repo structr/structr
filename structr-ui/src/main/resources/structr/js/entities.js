@@ -129,12 +129,12 @@ var _Entities = {
 	},
 	dataBindingDialog: function(entity, el, typeInfo) {
 
-		Structr.fetchHtmlTemplate('entities/simple-interactive-elements', { entity: entity }, function (html) {
+		Structr.fetchHtmlTemplate('entities/events', { entity: entity }, function (html) {
 
 			el.empty();
 			el.append(html);
 
-			let width = '400px';
+			let width = 'calc(100% - 1rem)';
 			let style = 'text-align: left;';
 			let parent = $('.blockPage');
 

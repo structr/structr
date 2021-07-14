@@ -1126,10 +1126,10 @@ var _Pages = {
 				Structr.fetchHtmlTemplate('pages/basic', {}, (html) => {
 
 					_Pages.centerPane.insertAdjacentHTML('beforeend', html);
-					propertiesContainer = document.querySelector('#center-pane .basic-container');
+					let basicContainer = document.querySelector('#center-pane .basic-container');
 
 					if (callbackObject) {
-						callbackObject.callback($(propertiesContainer), obj);
+						callbackObject.callback($(basicContainer), obj);
 					}
 
 				});
@@ -1141,7 +1141,7 @@ var _Pages = {
 				Structr.fetchHtmlTemplate('pages/properties', {}, (html) => {
 
 					_Pages.centerPane.insertAdjacentHTML('beforeend', html);
-					propertiesContainer = document.querySelector('#center-pane .properties-container');
+					let propertiesContainer = document.querySelector('#center-pane .properties-container');
 
 					_Schema.getTypeInfo(obj.type, function(typeInfo) {
 
@@ -1165,7 +1165,7 @@ var _Pages = {
 				Structr.fetchHtmlTemplate('pages/properties', {}, (html) => {
 
 					_Pages.centerPane.insertAdjacentHTML('beforeend', html);
-					propertiesContainer = document.querySelector('#center-pane .properties-container');
+					let propertiesContainer = document.querySelector('#center-pane .properties-container');
 
 					_Schema.getTypeInfo(obj.type, function(typeInfo) {
 
@@ -1214,20 +1214,19 @@ var _Pages = {
 
 				Structr.fetchHtmlTemplate('pages/repeater', {}, (html) => {
 					_Pages.centerPane.insertAdjacentHTML('beforeend', html);
-					repeaterContainer = document.querySelector('#center-pane .repeater-container');
+					let repeaterContainer = document.querySelector('#center-pane .repeater-container');
 					_Entities.repeaterConfig(obj, $(repeaterContainer));
 				});
 				break;
 
 			case '#pages:events':
-			case '#pages:event-binding':
 
 				Structr.fetchHtmlTemplate('pages/events', {}, (html) => {
 					_Pages.centerPane.insertAdjacentHTML('beforeend', html);
-					repeaterContainer = document.querySelector('#center-pane .events-container');
+					let eventsContainer = document.querySelector('#center-pane .events-container');
 
 					_Schema.getTypeInfo(obj.type, function(typeInfo) {
-						_Entities.dataBindingDialog(obj, $(repeaterContainer), typeInfo);
+						_Entities.dataBindingDialog(obj, $(eventsContainer), typeInfo);
 					});
 				});
 
@@ -1238,7 +1237,7 @@ var _Pages = {
 				Structr.fetchHtmlTemplate('pages/security', {}, (html) => {
 
 					_Pages.centerPane.insertAdjacentHTML('beforeend', html);
-					securityContainer = document.querySelector('#center-pane .security-container');
+					let securityContainer = document.querySelector('#center-pane .security-container');
 					_Schema.getTypeInfo(obj.type, function(typeInfo) {
 						_Entities.accessControlDialog(obj, $(securityContainer), typeInfo);
 					});

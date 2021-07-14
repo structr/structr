@@ -4398,9 +4398,10 @@ div.option-tile.double {
 
 div.option-tile select, div.option-tile input[type="text"], div.option-tile select, div.option-tile input[type="password"],
 div.option-tile textarea {
-	width: 100%;
+	width: calc(100% - 1rem);
 	box-sizing: border-box;
 	margin-top: .5rem;
+	display: block;
 }
 
 div.option-tile h4 {
@@ -4408,9 +4409,8 @@ div.option-tile h4 {
 }
 
 div.option-tile label {
-	/*color: var(--solid-black);*/
-	/*font-size: 8pt;*/
-	/*margin-bottom: .5rem;*/
+	display: block;
+	margin-bottom: .5rem;
 }
 
 textarea#content-input {
