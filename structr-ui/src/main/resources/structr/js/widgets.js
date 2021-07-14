@@ -30,6 +30,50 @@ var _Widgets = {
 	localWidgetsCollapsedKey: 'structrWidgetLocalCollapsedKey_' + port,
 	remoteWidgetsCollapsedKey: 'structrWidgetRemoteCollapsedKey_' + port,
 
+	getContextMenuElements: function (div, entity) {
+
+		let elements = [];
+
+		elements.push({
+			icon: _Icons.svg.pencil_edit,
+			name: 'Edit',
+			clickHandler: function () {
+
+				Command.get(entity.id, 'id,type,name,source,configuration,description', function(entity) {
+					_Widgets.editWidget(entity, true);
+				});
+				return false;
+			}
+		});
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		elements.push({
+			name: 'Properties',
+			clickHandler: function() {
+				_Entities.showProperties(entity, 'ui');
+				return false;
+			}
+		});
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		elements.push({
+			icon: _Icons.svg.trashcan,
+			classes: ['menu-bolder', 'danger'],
+			name: 'Delete Widget',
+			clickHandler: () => {
+
+				_Entities.deleteNode(this, entity);
+				return false;
+			}
+		});
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		return elements;
+	},
+
 	reloadWidgets: function() {
 
 		widgetsSlideout.find(':not(.slideout-activator)').remove();
@@ -252,13 +296,7 @@ var _Widgets = {
 			_Widgets.remoteWidgetsEl.empty();
 			_Widgets.remoteWidgetData = [];
 
-			fetch(url + '?sort=treePath').then(function(response) {
-
-				return response.json().then((json) => {
-					return json.result;
-				});
-
-			}).then(function(data) {
+			_Widgets.fetchRemoteWidgets(url + '?sort=treePath', url + '?_sort=treePath').then(function(data) {
 
 				data.forEach(function(entity) {
 					var obj = StructrModel.create(entity, null, false);
@@ -770,15 +808,8 @@ var _Widgets = {
 
 		if (!url.startsWith(document.location.origin)) {
 
-			try {
-				let response = await fetch(url + '?sort=name');
-				if (response && response.ok) {
-
-					let json = await response.json();
-					return json.result;
-				}
-
-			} catch (e) {}
+			let widgets = await _Widgets.fetchRemoteWidgets(url + '?isPageTemplate=true&sort=name', url + '?isPageTemplate=true&_sort=name');
+			return widgets;
 		}
 
 		return [];
@@ -786,7 +817,7 @@ var _Widgets = {
 	fetchLocalPageTemplateWidgets: async function() {
 
 		try {
-			let response = await fetch('/structr/rest/Widget?isPageTemplate=true&sort=name');
+			let response = await fetch('/structr/rest/Widget?isPageTemplate=true&' + Structr.getRequestParameterName('sort') + '=name');
 			if (response && response.ok) {
 
 				let json = await response.json();
@@ -801,23 +832,34 @@ var _Widgets = {
 
 		let widgets = [];
 
-		let remoteWidgets = await _Widgets.fetchRemotePageTemplateWidgets();
-		let localWidgets  = await _Widgets.fetchLocalPageTemplateWidgets();
+		let remotePageWidgets = await _Widgets.fetchRemotePageTemplateWidgets();
+		let localPageWidgets  = await _Widgets.fetchLocalPageTemplateWidgets();
 
-		if (remoteWidgets && remoteWidgets.length) {
+		callback(widgets.concat(remotePageWidgets).concat(localPageWidgets));
+	},
+	fetchRemoteWidgets: async (url, fallbackUrl) => {
 
-			for (var w of remoteWidgets) {
-				widgets.push(w);
+		try {
+			// stick with legacy sort parameter for widget instance - if a newer widget instance is used, retry with _sort
+			let response = await fetch(url);
+
+			if (response && response.ok) {
+
+				let json = await response.json();
+				return json.result;
+
+			} else {
+
+				let response = await fetch(fallbackUrl);
+				if (response && response.ok) {
+
+					let json = await response.json();
+					return json.result;
+				}
 			}
-		}
 
-		if (localWidgets && localWidgets.length) {
+		} catch (e) {}
 
-			for (var w of localWidgets) {
-				widgets.push(w);
-			}
-		}
-
-		callback(widgets);
+		return [];
 	}
 };
