@@ -1414,7 +1414,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		for (final PropertyKey key : dataAttributes) {
 
 			// do not render attributes that are on the blacklist
-			if (DataAttributeOutputBlacklist.contains(key.jsonName())) {
+			if (DataAttributeOutputBlacklist.contains(key.jsonName()) && !EditMode.DEPLOYMENT.equals(editMode)) {
 				continue;
 			}
 
