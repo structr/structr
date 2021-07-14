@@ -122,3 +122,13 @@
 #localization .node.nodeHover .has-value .delete {
     display: inline;
 }
+
+.localization td {
+	padding: 0.5rem 1.5rem;
+}
+.localization input {
+	width: 100%;
+}
+.localization textarea {
+	width: 100%;
+}

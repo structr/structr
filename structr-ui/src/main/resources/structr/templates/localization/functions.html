@@ -1,7 +1,11 @@
 <link rel="stylesheet" type="text/css" media="screen" href="css/crud.css">
 <link rel="stylesheet" type="text/css" media="screen" href="css/localization.css">
 
-<label for="localization-locale-preselect">Locales:</label> <input title="Enter a comma-separated list of locales (f.e. en,de,fr) to create translations for" id="localization-locale-preselect" type="text" size="10">
-<button id="create-localization-key" class="btn"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Create new localization key</button>
+<form id="create-localization-form" style="display: inline;">
+	<input title="Enter a key to create translations for" id="localization-key-preselect" type="text" size="10" placeholder="Key" value="${config.key}" required>
+	<input title="Enter a domain to create translations for" id="localization-domain-preselect" type="text" size="10" placeholder="Domain" value="${config.domain}">
+	<input title="Enter a comma-separated list of locales (f.e. en,de,fr) to create translations for" id="localization-locale-preselect" type="text" size="10" placeholder="Locale(s)" value="${config.locales}">
 
+	<button type="submit" form="create-localization-form" class="action btn"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Create new localization key</button>
+</form>
 <div id="localization-pager"></div>

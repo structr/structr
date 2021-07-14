@@ -521,7 +521,7 @@ var _Pages = {
 
 		_Elements.appendContextMenuSeparator(elements);
 
-		_Elements.appendSecurityContextMenuItems(elements, entity);
+		_Elements.appendSecurityContextMenuItems(elements, entity, hasChildren);
 
 		_Elements.appendContextMenuSeparator(elements);
 
@@ -941,17 +941,23 @@ var _Pages = {
 
 			let selectedObjectId = LSWrapper.getItem(_Entities.selectedObjectIdKey);
 			if (selectedObjectId) {
-				Command.get(selectedObjectId, null, (obj) => {
-					// Wait for the tree element to become visible
-					const observer = new MutationObserver((mutations, obs) => {
-						let el = Structr.node(selectedObjectId);
-						if (el) {
-							el.click();
-							obs.disconnect();
-							return;
-						}
-					});
-					observer.observe(document, { childList: true, subtree: true });
+
+				fetch(rootUrl + selectedObjectId).then(response => {
+					if (response.ok) {
+						// Wait for the tree element to become visible
+						const observer = new MutationObserver((mutations, obs) => {
+							let el = Structr.node(selectedObjectId);
+							if (el) {
+								el.click();
+								obs.disconnect();
+								return;
+							}
+						});
+						observer.observe(document, { childList: true, subtree: true });
+					} else {
+						// looks like element was deleted
+						LSWrapper.removeItem(_Entities.selectedObjectIdKey);
+					}
 				});
 			}
 		});

@@ -726,16 +726,25 @@ var _Elements = {
 					} else {
 						ul.append(listElement);
 					}
-
 				}
-
 			}
 		};
 
 		let updateMenuGroupVisibility = function() {
 
 			$('.element-group-switch').hover(function() {
-				$(this).children('.element-group').removeClass('hidden');
+				let childrenMenu = $(this).children('.element-group');
+				if (childrenMenu.length > 0) {
+					childrenMenu.removeClass('hidden');
+
+					let bottomOfMenu = childrenMenu.offset().top + childrenMenu.height();
+					if (bottomOfMenu > windowHeight) {
+						$(this).children('.element-group').css({
+							top: (-1 - (bottomOfMenu - windowHeight) - 12) + 'px'
+						});
+					}
+				}
+
 			}, function() {
 				$(this).children('.element-group').addClass('hidden');
 			});
@@ -817,9 +826,9 @@ var _Elements = {
 			elements.push('|');
 		}
 	},
-	appendSecurityContextMenuItems: (elements, entity) => {
+	appendSecurityContextMenuItems: (elements, entity, supportsSubtree) => {
 
-		elements.push({
+		let securityMenu = {
 			icon: _Icons.svg.security,
 			name: 'Security',
 			elements: [
@@ -830,77 +839,97 @@ var _Elements = {
 						return false;
 					}
 				},
-				'|',
+				'|'
+			]
+		};
+
+		let authUsers = {
+			name: 'Authenticated Users',
+			elements: [
 				{
-					name: 'Authenticated Users',
-					elements: [
-						{
-							name: 'Make element visible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, false);
-								return false;
-							}
-						},
-						{
-							name: 'Make element invisible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false);
-								return false;
-							}
-						},
-						'|',
-						{
-							name: 'Make subtree visible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, true);
-								return false;
-							}
-						},
-						{
-							name: 'Make subtree invisible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, true);
-								return false;
-							}
-						}
-					]
+					name: 'Make element visible',
+					clickHandler: function() {
+						Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, false);
+						return false;
+					}
 				},
 				{
-					name: 'Public Users',
-					elements: [
-						{
-							name: 'Make element visible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToPublicUsers', true, false);
-								return false;
-							}
-						},
-						{
-							name: 'Make element invisible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToPublicUsers', false, false);
-								return false;
-							}
-						},
-						'|',
-						{
-							name: 'Make subtree visible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToPublicUsers', true, true);
-								return false;
-							}
-						},
-						{
-							name: 'Make subtree invisible',
-							clickHandler: function() {
-								Command.setProperty(entity.id, 'visibleToPublicUsers', false, true);
-								return false;
-							}
-						}
-					]
+					name: 'Make element invisible',
+					clickHandler: function() {
+						Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false);
+						return false;
+					}
 				}
 			]
-		});
+		};
+
+		if (supportsSubtree === true) {
+			let authUsersSubtreeMenu = [
+				'|',
+				{
+					name: 'Make subtree visible',
+					clickHandler: function() {
+						Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, true);
+						return false;
+					}
+				},
+				{
+					name: 'Make subtree invisible',
+					clickHandler: function() {
+						Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, true);
+						return false;
+					}
+				}
+			];
+
+			authUsers.elements = authUsers.elements.concat(authUsersSubtreeMenu);
+		}
+
+		let publicUsers = {
+			name: 'Public Users',
+			elements: [
+				{
+					name: 'Make element visible',
+					clickHandler: function() {
+						Command.setProperty(entity.id, 'visibleToPublicUsers', true, false);
+						return false;
+					}
+				},
+				{
+					name: 'Make element invisible',
+					clickHandler: function() {
+						Command.setProperty(entity.id, 'visibleToPublicUsers', false, false);
+						return false;
+					}
+				}
+			]
+		};
+
+		if (supportsSubtree === true) {
+
+			let publicUsersSubtreeMenu = [
+				'|',
+				{
+					name: 'Make subtree visible',
+					clickHandler: function() {
+						Command.setProperty(entity.id, 'visibleToPublicUsers', true, true);
+						return false;
+					}
+				},
+				{
+					name: 'Make subtree invisible',
+					clickHandler: function() {
+						Command.setProperty(entity.id, 'visibleToPublicUsers', false, true);
+						return false;
+					}
+				}
+			];
+			publicUsers.elements = publicUsers.elements.concat(publicUsersSubtreeMenu);
+		}
+
+		securityMenu.elements = securityMenu.elements.concat(authUsers).concat(publicUsers);
+
+		elements.push(securityMenu);
 	},
 	selectEntity: function (entity) {
 
