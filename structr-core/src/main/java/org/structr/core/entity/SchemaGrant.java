@@ -60,7 +60,7 @@ public class SchemaGrant extends SchemaReloadingNode {
 	);
 
 	public static final View schemaView = new View(SchemaNode.class, "schema",
-		principal, schemaNode, allowRead, allowWrite, allowDelete, allowAccessControl
+		id, principal, schemaNode, allowRead, allowWrite, allowDelete, allowAccessControl
 	);
 
 	public static final View exportView = new View(SchemaNode.class, "export",
