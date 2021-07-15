@@ -1122,6 +1122,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				.blank(pathKey)
 				.and(nameKey, name)
 				.parent()
+			.sort(pathKey)
 			.getAsList();
 
 		for (final Page page : possiblePages) {
