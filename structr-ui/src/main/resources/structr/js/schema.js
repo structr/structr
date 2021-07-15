@@ -3043,14 +3043,15 @@ var _Schema = {
 
 
 			let canvasSize = {
-				w: ($(window).width() - canvasPosition.left),
-				h: ($(window).height() - canvasPosition.top)
+				w: ($(window).width() - canvasPosition.left) / zoom,
+				h: ($(window).height() - canvasPosition.top) / zoom
 			};
 
 			$('.node').each(function(i, elem) {
 				let $elem = $(elem);
 				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left + $elem.width() - canvasPosition.left) / zoom + $elem.width()) + padding);
 				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top + $elem.height() - canvasPosition.top)  / zoom + $elem.height()) + padding);
+
 			});
 
 			if (canvasSize.w * zoom < $(window).width() - canvasPosition.left) {
@@ -3061,18 +3062,18 @@ var _Schema = {
 				canvasSize.h = ($(window).height()) / zoom  - canvasPosition.top + padding;
 			}
 
-			// canvas.css({
-			// 	width: canvasSize.w + 'px',
-			// 	height: (canvasSize.h - 1) + 'px'
-			// });
-			//
-			// $('body').css({
-			// 	position: 'relative'
-			// });
-			//
-			// $('html').css({
-			// 	background: '#fff'
-			// });
+			canvas.css({
+				width: canvasSize.w + 'px',
+				height: (canvasSize.h - 1) + 'px'
+			});
+
+			$('body').css({
+				position: 'relative'
+			});
+
+			$('html').css({
+				background: '#fff'
+			});
 		}
 
 		// $('body').css({
