@@ -541,11 +541,10 @@ var _Entities = {
 	},
 	queryDialog: function(entity, el) {
 		return _Entities.repeaterConfig(entity, el);
-
 	},
 	repeaterConfig: function(entity, el) {
 
-		var queryTypes = [
+		let queryTypes = [
 			{ title: 'REST Query',     propertyName: 'restQuery' },
 			{ title: 'Cypher Query',   propertyName: 'cypherQuery' },
 //			{ title: 'XPath Query',    propertyName: 'xpathQuery' },
@@ -559,67 +558,92 @@ var _Entities = {
 		let queryTypeButtonsContainer = $('.query-type-buttons', el);
 		//el.append(queryTypeButtonsContainer);
 
-		let queryHeading = $(document.querySelector('.query-type-heading'));
+		let textAreaWrapper = $('<div class="hidden"></div>').appendTo(el);
+		let textArea = $('<textarea class="query-text"></textarea>').appendTo(textAreaWrapper);
+		let flowSelector = $('#flow-selector', el);
 
-		var textArea = $('<textarea class="hidden query-text"></textarea>').appendTo(el);
-		var flowSelector = $('#flow-selector', el);
+		let repeaterConfigEditor;
+		let activateEditor = (queryType) => {
+			if (!repeaterConfigEditor) {
+				repeaterConfigEditor = CodeMirror.fromTextArea(textArea[0], Structr.getCodeMirrorSettings({
+					lineNumbers: true,
+					lineWrapping: false,
+					indentUnit: 4,
+					tabSize: 4,
+					indentWithTabs: true
+				}));
 
-		var initRepeaterInputs = function() {
+				repeaterConfigEditor.on('change', function() {
+					let type = _Code.getEditorModeForContent(repeaterConfigEditor.getValue());
+					let prev = repeaterConfigEditor.getOption('mode');
+					if (prev !== type) {
+						repeaterConfigEditor.setOption('mode', type);
+					}
+				});
+			}
 
-			var saveBtn = $('<button class="btn">Save</button>');
+			// toggle auto completion
+			if (queryType === 'functionQuery') {
+				_Code.setupAutocompletion(repeaterConfigEditor, entity.id, true);
+			} else {
+				delete(CodeMirror.hint.ajax);
+			}
+		};
+
+		let initRepeaterInputs = function() {
+
+			let saveBtn = $('<button class="btn">Save</button>');
 			el.append('<br>').append(saveBtn);
 
 			queryTypes.forEach(function(queryType) {
 
-				var btn = $('<button data-query-type="' + queryType.propertyName + '">' + queryType.title + '</button>');
-				btn.addClass(queryType.propertyName);
-				queryTypeButtonsContainer.append(btn);
+				let btn = $('<button data-query-type="' + queryType.propertyName + '" class="' + queryType.propertyName + '">' + queryType.title + '</button>').appendTo(queryTypeButtonsContainer);
 
 				if (queryType.propertyName === 'flow' && entity[queryType.propertyName]) {
+
 					btn.addClass('active');
 					btn.click();
-					var flow = entity[queryType.propertyName];
 					saveBtn.hide();
-					textArea.hide();
+					textAreaWrapper.hide();
 					flowSelector.show();
+					let flow = entity[queryType.propertyName];
 					if (flow) {
-						//var flowName = flow.effectiveName;
-						//$('option', flowSelector).filter(function () { console.log($(this).text()); return $(this).text() === flowName; }).attr('selected', 'selected');
 						flowSelector.val(flow.id);
 					}
 
-				} else {
+				} else if (entity[queryType.propertyName] && entity[queryType.propertyName].trim() !== "") {
 
-					if (entity[queryType.propertyName] && entity[queryType.propertyName].trim() !== "") {
-						btn.addClass('active');
-						saveBtn.show();
-						textArea.show();
-						flowSelector.hide();
-						$('button.flow').removeClass('active');
-						textArea.text(textArea.text() + entity[queryType.propertyName]);
-						queryHeading.text(btn.text());
-					}
+					btn.addClass('active');
+					saveBtn.show();
+					textAreaWrapper.show();
+					flowSelector.hide();
+
+					$('button.flow', el).removeClass('active');
+					textArea.text(textArea.text() + entity[queryType.propertyName]);
+					activateEditor();
 				}
 			});
 
-			var allButtons = $('.query-type-buttons button', el);
+			let allButtons = $('.query-type-buttons button', el);
 
 			allButtons.on('click', function () {
 				allButtons.removeClass('active');
 				var btn = $(this);
 				btn.addClass('active');
 				var queryType = btn.data('query-type');
-				queryHeading.text(btn.text());
 
 				if (queryType === 'flow') {
+
 					saveBtn.hide();
-					textArea.hide();
+					textAreaWrapper.hide();
 					flowSelector.show();
 
 				} else {
+
 					saveBtn.show();
-					textArea.show();
+					textAreaWrapper.show();
 					flowSelector.hide();
+					activateEditor(queryType);
 				}
 			});
 
@@ -640,13 +664,15 @@ var _Entities = {
 				var data = {};
 				queryTypes.forEach(function(queryType) {
 					var val = null;
+
 					if ($('.' + queryType.propertyName, queryTypeButtonsContainer).hasClass('active')) {
+
 						if (queryType.propertyName === 'flow') {
 
 							val = flowSelector.val();
 
 						} else {
-							val = textArea.val();
+							val = repeaterConfigEditor.getValue();
 							data.flow = null;
 							flowSelector.val('--- Select Flow ---');
 						}
@@ -657,8 +683,8 @@ var _Entities = {
 				Command.setProperties(entity.id, data, function(obj) {
 					if (flowSelector.is(':visible')) {
 						blinkGreen(flowSelector);
-					} else if (textArea.is(':visible')) {
-						blinkGreen(textArea);
+					} else if (textAreaWrapper.is(':visible')) {
+						blinkGreen(textAreaWrapper);
 					} else {
 						blinkGreen(saveBtn);
 					}
@@ -678,7 +704,7 @@ var _Entities = {
 				flowSelector.remove();
 			}
 
-			flowSelector = $('<select class="hidden" id="flow-selector"></select>').insertBefore(textArea);
+			flowSelector = $('<select class="hidden" id="flow-selector"></select>').insertBefore(textAreaWrapper);
 
 			flowSelector.append('<option>--- Select Flow ---</option>');
 
