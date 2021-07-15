@@ -702,40 +702,6 @@ img.disabled {
 	padding: 0 0 0 1rem;
 }
 
-#inheritance-tree.slideOut {
-	display: flex;
-	flex-direction: column;
-}
-
-#inheritance-tree .icon {
-	display: none;
-}
-
-#inheritance-tree a.jstree-hovered .icon {
-	display: inline-block;
-	margin-top: 3px;
-}
-
-#inheritance-tree .jstree-anchor {
-	width: calc(100% - 30px);
-}
-
-#inheritance-tree .edit_icon, #inheritance-tree .delete_icon {
-	position: absolute;
-}
-
-#inheritance-tree .edit_icon {
-	right: 24px;
-}
-
-#inheritance-tree .delete_icon {
-	right: 4px;
-}
-
-#inheritance-tree-container {
-	overflow: auto;
-}
-
 .ver-scrollable > .node {
 	width: calc(100% - 20px);
 }

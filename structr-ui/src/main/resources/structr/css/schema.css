@@ -490,6 +490,45 @@
 
 .inheritance-search {
 	margin-left: 1rem;
+	margin-top: 0.5rem;
+	margin-bottom: 0.5rem;
+}
+
+#inheritance-tree.slideOut {
+	display: flex;
+	flex-direction: column;
+}
+
+#inheritance-tree .icon {
+	display: none;
+}
+
+#inheritance-tree  .jstree-default .jstree-node {
+	position: relative;
+}
+
+#inheritance-tree a.jstree-hovered .icon {
+	display: inline-block;
+}
+
+#inheritance-tree .jstree-anchor {
+	width: calc(100% - 30px);
+}
+
+#inheritance-tree .edit_icon, #inheritance-tree .delete_icon {
+	position: absolute;
+}
+
+#inheritance-tree .edit_icon {
+	right: 24px;
+}
+
+#inheritance-tree .delete_icon {
+	right: 4px;
+}
+
+#inheritance-tree-container {
+	overflow: auto;
 }
 
 div#inheritance-tree-container {

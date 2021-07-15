@@ -4219,7 +4219,7 @@ console.warn(layoutJSON)
 			},
 			plugins: ["search"]
 		}).on('changed.jstree', function(e, data) {
-			var $node = $('#id_' + data.node.data.id);
+			let $node = $('#id_' + data.node.data.id);
 			if ($node.length > 0) {
 				$('.selected').removeClass('selected');
 				$node.addClass('selected');
@@ -4227,18 +4227,19 @@ console.warn(layoutJSON)
 			}
 		});
 
-		var searchTimeout;
+		let searchTimeout;
 		$('#search-classes').keyup(function(e) {
 			if (e.which === 27) {
 				$('#search-classes').val('');
 				inheritanceTree.jstree(true).clear_search();
+
 			} else {
 				if (searchTimeout) {
 					clearTimeout(searchTimeout);
 				}
 
 				searchTimeout = setTimeout(function () {
-					var query = $('#search-classes').val();
+					let query = $('#search-classes').val();
 					inheritanceTree.jstree(true).search(query, true, true);
 				}, 250);
 			}
