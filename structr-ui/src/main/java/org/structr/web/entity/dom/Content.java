@@ -740,36 +740,56 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		@Override
 		public void handleScript(final String script, final int row, final int column) throws FrameworkException, IOException {
 
-			if (renderContext.returnRawValue()) {
+			try {
 
-				if (StringUtils.isNotBlank(script)) {
+				if (renderContext.returnRawValue()) {
 
-					renderContext.getBuffer().append(transform(script));
-					isEmpty = false;
-				}
+					if (StringUtils.isNotBlank(script)) {
 
-			} else {
-
-				final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid());
-				if (value != null) {
-
-					String content = null;
-
-					// Convert binary data to String with charset from response
-					if (value instanceof byte[]) {
-						//StringUtils.toEncodedString((byte[]) value, renderContext.getPage().getProperty(StructrApp.key(Page.class, "contentType")));
-						content = StringUtils.toEncodedString((byte[]) value, Charset.forName(renderContext.getResponse().getCharacterEncoding()));
-					} else {
-						content = value.toString();
-					}
-
-					if (StringUtils.isNotBlank(content)) {
-
-						renderContext.getBuffer().append(transform(content));
+						renderContext.getBuffer().append(transform(script));
 						isEmpty = false;
 					}
+
+				} else {
+
+					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid());
+					if (value != null) {
+
+						String content = null;
+
+						// Convert binary data to String with charset from response
+						if (value instanceof byte[]) {
+							//StringUtils.toEncodedString((byte[]) value, renderContext.getPage().getProperty(StructrApp.key(Page.class, "contentType")));
+							content = StringUtils.toEncodedString((byte[]) value, Charset.forName(renderContext.getResponse().getCharacterEncoding()));
+						} else {
+							content = value.toString();
+						}
+
+						if (StringUtils.isNotBlank(content)) {
+
+							renderContext.getBuffer().append(transform(content));
+							isEmpty = false;
+						}
+					}
+				}
+
+			} catch (Throwable t) {
+
+				final Logger logger = LoggerFactory.getLogger(Content.class);
+				final boolean isShadowPage = DOMNode.isSharedComponent(node);
+
+				// catch exception to prevent status 500 error pages in frontend.
+				if (!isShadowPage) {
+
+					final DOMNode ownerDocument = node.getOwnerDocumentAsSuperUser();
+					DOMNode.logScriptingError(logger, t, "Error while evaluating script in page {}[{}], Content[{}]", ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), node.getUuid());
+
+				} else {
+
+					DOMNode.logScriptingError(logger, t, "Error while evaluating script in shared component, Content[{}]", node.getUuid());
 				}
 			}
+
 		}
 
 		@Override

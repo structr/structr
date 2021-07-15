@@ -21,7 +21,11 @@ package org.structr.web.entity.html;
 import java.net.URI;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
+import org.structr.common.error.UnlicensedScriptException;
+import org.structr.core.entity.AbstractNode;
 import org.structr.schema.SchemaService;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -35,7 +39,9 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.script.Scripting;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
 
 public interface Option extends DOMElement {
 
@@ -66,71 +72,79 @@ public interface Option extends DOMElement {
 	@Override
 	default void renderManagedAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
 
-		// make sure we are inside a repeater
-		final String dataKey = getDataKey();
-		if (dataKey != null) {
+		try {
 
-			// make sure the unmanaged "selected" attribute is not set
-			final String originalSelected = getProperty("_html_selected");
-			if (StringUtils.isEmpty(originalSelected)) {
+			// make sure we are inside a repeater
+			final String dataKey = getDataKey();
+			if (dataKey != null) {
 
-				// fetch selectedValues expression
-				final String selectedValuesExpression = getSelectedValues();
-				if (selectedValuesExpression != null) {
+				// make sure the unmanaged "selected" attribute is not set
+				final String originalSelected = getProperty("_html_selected");
+				if (StringUtils.isEmpty(originalSelected)) {
 
-					// evaluate selectedValues expression
-					final java.lang.Object selectedValues = Scripting.evaluate(renderContext, this, "${" + selectedValuesExpression.trim() + "}", selectedValuesExpression, this.getUuid());
-					if (selectedValues != null) {
+					// fetch selectedValues expression
+					final String selectedValuesExpression = getSelectedValues();
+					if (selectedValuesExpression != null) {
 
-						// fetch value of current data key
-						final GraphObject currentValue = renderContext.getDataNode(dataKey);
-						boolean found                  = false;
+						// evaluate selectedValues expression
+						final java.lang.Object selectedValues = Scripting.evaluate(renderContext, this, "${" + selectedValuesExpression.trim() + "}", selectedValuesExpression, this.getUuid());
+						if (selectedValues != null) {
 
-						if (selectedValues instanceof Iterable) {
+							// fetch value of current data key
+							final GraphObject currentValue = renderContext.getDataNode(dataKey);
+							boolean found                  = false;
 
-							// Iterable, Collection, List etc.
-							final List list = Iterables.toList((Iterable)selectedValues);
-							found = list.contains(currentValue);
+							if (selectedValues instanceof Iterable) {
 
-						} else if (selectedValues.getClass().isArray()) {
+								// Iterable, Collection, List etc.
+								final List list = Iterables.toList((Iterable)selectedValues);
+								found = list.contains(currentValue);
 
-							// Array
-							final Object[] array = (Object[])selectedValues;
-							for (final Object o : array) {
+							} else if (selectedValues.getClass().isArray()) {
 
-								if (o.equals(currentValue)) {
+								// Array
+								final Object[] array = (Object[])selectedValues;
+								for (final Object o : array) {
 
-									found = true;
-									break;
-								}
-							}
+									if (o.equals(currentValue)) {
 
-						} else {
-
-							if (currentValue instanceof GraphObjectMap) {
-
-								final GraphObjectMap map = (GraphObjectMap)currentValue;
-								if (map.size() == 1 && map.containsKey(valueKey)) {
-
-									final java.lang.Object value = map.get(valueKey);
-
-									found = EqualFunction.valueEquals(selectedValues, value);
+										found = true;
+										break;
+									}
 								}
 
 							} else {
 
-								// single object, compare directly
-								found = EqualFunction.valueEquals(selectedValues, currentValue);
+								if (currentValue instanceof GraphObjectMap) {
+
+									final GraphObjectMap map = (GraphObjectMap)currentValue;
+									if (map.size() == 1 && map.containsKey(valueKey)) {
+
+										final java.lang.Object value = map.get(valueKey);
+
+										found = EqualFunction.valueEquals(selectedValues, value);
+									}
+
+								} else {
+
+									// single object, compare directly
+									found = EqualFunction.valueEquals(selectedValues, currentValue);
+								}
 							}
-						}
 
-						if (found) {
+							if (found) {
 
-							out.append(" selected");
+								out.append(" selected");
+							}
 						}
 					}
 				}
 			}
+		} catch (final Throwable t) {
+
+			final Logger logger = LoggerFactory.getLogger(Content.class);
+			DOMNode.logScriptingError(logger, t, "Error while evaluating script in Option[{}]", this.getUuid());
 		}
 	}
+
 }
