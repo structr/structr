@@ -182,6 +182,7 @@ ul#previewTabs {
 
 .content-container .inline-info .inline-info-text {
 	display: none;
+	z-index: 1001;
 }
 
 .content-container .inline-info:hover .inline-info-text {
