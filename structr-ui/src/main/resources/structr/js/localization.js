@@ -25,7 +25,7 @@ var _Localization = {
 
 	keysAndDomainsList: undefined,
 	keyAndDomainPager: undefined,
-	localizationDetails: undefined,
+	localizationDetailContainer: undefined,
 	localizationDetailKey: undefined,
 	localizationDetailDomain: undefined,
 	localizationDetailEditButton: undefined,
@@ -116,8 +116,7 @@ var _Localization = {
 				_Localization.keysAndDomainsList = $('#localization-table tbody');
 				_Localization.listKeysAndDomains();
 
-				_Localization.localizationDetails = $('#localization-detail');
-				// _Localization.localizationDetails.hide();
+				_Localization.localizationDetailContainer = document.getElementById('localization-detail-container');
 				_Localization.localizationDetailKey = $('#localization-key');
 				_Localization.localizationDetailKey.on('keyup', _Localization.determineKeyFieldValidity);
 				_Localization.localizationDetailDomain = $('#localization-domain');
@@ -248,6 +247,8 @@ var _Localization = {
 
 				if (true === confirm('Do you really want to delete the complete localizations for "' + keyAndDomainObject.name + '"' + (keyAndDomainObject.domain ? ' in domain "' + keyAndDomainObject.domain + '"' : ' with empty domain') + ' ?')) {
 					_Localization.deleteCompleteLocalization((keyAndDomainObject.name ? keyAndDomainObject.name : null), (keyAndDomainObject.domain ? keyAndDomainObject.domain : null), this);
+
+					_Localization.localizationDetailContainer.style.display = 'none';
 				}
 
 				return false;
@@ -314,25 +315,29 @@ var _Localization = {
 			url: rootUrl + 'Localizations/all?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale',
 			success: function(data) {
 
-				_Localization.localizationDetailKey.val(key).removeData('oldValue').data('oldValue', key);
-				_Localization.determineKeyFieldValidity();
-				_Localization.localizationDetailDomain.val(domain).removeData('oldValue').data('oldValue', domain);
-				_Localization.setLocalizationKeyAndDomainEditMode(true);
-				_Localization.clearLocalizationDetailsList();
-				_Localization.localizationDetails.show();
+				if (data.result.length > 0) {
 
-				for (let loc of data.result) {
-					if (key === loc.name && domain === loc.domain) {
-						_Localization.appendLocalizationDetailListRow(loc);
+					_Localization.localizationDetailContainer.style.display = null;
+
+					_Localization.localizationDetailKey.val(key).removeData('oldValue').data('oldValue', key);
+					_Localization.determineKeyFieldValidity();
+					_Localization.localizationDetailDomain.val(domain).removeData('oldValue').data('oldValue', domain);
+					_Localization.setLocalizationKeyAndDomainEditMode(true);
+					_Localization.clearLocalizationDetailsList();
+
+					for (let loc of data.result) {
+						if (key === loc.name && domain === loc.domain) {
+							_Localization.appendLocalizationDetailListRow(loc);
+						}
 					}
-				}
 
-				if (isCreate === true) {
-					let localizationKey = document.getElementById('localization-key');
-					localizationKey.focus();
-					localizationKey.select();
+					if (isCreate === true) {
+						let localizationKey = document.getElementById('localization-key');
+						localizationKey.focus();
+						localizationKey.select();
 
-					_Localization.keyAndDomainPager.refresh();
+						_Localization.keyAndDomainPager.refresh();
+					}
 				}
 			}
 		});
@@ -445,18 +450,6 @@ var _Localization = {
 			$field.removeClass('invalid');
 		}
 	},
-	showEmptyCreateLocalizationDialog: function () {
-		_Localization.clearLocalizationDetailsList();
-		_Localization.localizationDetails.show();
-
-		_Localization.localizationDetailEditButton.hide();
-
-		_Localization.localizationDetailKey.val("").removeData('oldValue');
-		_Localization.determineKeyFieldValidity();
-		_Localization.localizationDetailDomain.val("").removeData('oldValue');
-
-		_Localization.unlockKeyAndDomain();
-	},
 	appendEmptyLocalizationRow: function (rowHtml) {
 		_Localization.localizationsDetailList.append(rowHtml);
 		var $row = $('tr:last', _Localization.localizationsDetailList);
@@ -505,22 +498,31 @@ var _Localization = {
 
 		$('.___visibleToAuthenticatedUsers', $row)
 			.prop('checked', (localization.visibleToAuthenticatedUsers === true))
-			.attr('disabled', null).data('oldValue', localization.visibleToAuthenticatedUsers)
+			.attr('disabled', null)
+			.data('oldValue', localization.visibleToAuthenticatedUsers)
 			.on('change', function (event) {
 				_Localization.checkboxChangeAction($(event.target), localization.id, 'visibleToAuthenticatedUsers');
 			});
 
-		$('td.actions', $row).html('<a title="Delete" class="delete"><svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M17.25,21H6.75a1.5,1.5,0,0,1-1.5-1.5V6h13.5V19.5A1.5,1.5,0,0,1,17.25,21Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.75 16.5L9.75 10.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 16.5L14.25 10.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 6L21.75 6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25,3H9.75a1.5,1.5,0,0,0-1.5,1.5V6h7.5V4.5A1.5,1.5,0,0,0,14.25,3Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></a>');
+		$('td.actions', $row).html('<a title="Delete" class="delete">' + _Icons.svg.trashcan + '</a>');
 
-		$('#loc_' + localization.id + ' td.actions .delete').on('click', function(event) {
-			event.preventDefault();
+		// make svg customizable... better somewhere else
+		let svg = $row[0].querySelector('.delete').querySelector('svg');
+		svg.setAttribute('width', 24);
+		svg.setAttribute('height', 24);
 
-			if (true === confirm('Really delete localization "' + (localization.localizedName || localization.id) + '" ?')) {
+
+		$row[0].querySelector('.delete').addEventListener('click', async (e) => {
+			e.preventDefault();
+
+			let confirmed = confirm('Really delete localization "' + (localization.localizedName || localization.id) + '" ?');
+			if (true === confirmed) {
 				_Localization.deleteSingleLocalization(localization.id, function () {
-					$('#loc_' + localization.id, _Localization.localizationsDetailList).remove();
+					$row.remove();
 
 					if ($('tr', _Localization.localizationsDetailList).length === 0) {
 						_Localization.keyAndDomainPager.refresh();
+						_Localization.localizationDetailContainer.style.display = 'none';
 					}
 				});
 			}
@@ -654,7 +656,6 @@ var _Localization = {
 	deleteCompleteLocalization: function (key, domain) {
 		if (_Localization.localizationDetailKey.val() === key && (_Localization.localizationDetailDomain.val() === domain || (_Localization.localizationDetailDomain.val() === "" && domain === null))) {
 			_Localization.clearLocalizationDetailsList();
-			// _Localization.localizationDetails.hide();
 		}
 
 		$.ajax({
