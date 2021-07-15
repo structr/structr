@@ -4383,7 +4383,7 @@ div.option-tile.double {
 #show-conditions-templates, #hide-conditions-templates {
 	position: absolute;
 	width: 25%;
-	right: 0%;
+	right: 0;
 	border-top-left-radius: 0;
 	border-bottom-left-radius: 0;
 }
@@ -4402,10 +4402,9 @@ div.option-tile.double {
 
 div.option-tile select, div.option-tile input[type="text"], div.option-tile select, div.option-tile input[type="password"],
 div.option-tile textarea {
-	width: calc(100% - 1rem);
+	width: 100%;
 	box-sizing: border-box;
 	margin-top: .5rem;
-	display: block;
 }
 
 div.option-tile h4 {

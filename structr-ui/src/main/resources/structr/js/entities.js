@@ -134,7 +134,7 @@ var _Entities = {
 			el.empty();
 			el.append(html);
 
-			let width = 'calc(100% - 1rem)';
+			let width = '100%';
 			let style = 'text-align: left;';
 			let parent = $('.blockPage');
 
