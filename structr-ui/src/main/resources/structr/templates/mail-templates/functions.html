@@ -1,4 +1,10 @@
 <link rel="stylesheet" type="text/css" media="screen" href="css/crud.css">
 <link rel="stylesheet" type="text/css" media="screen" href="css/mail-templates.css">
 
-<button id="create-mail-template"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> New Mail Template</button><div id="mail-templates-pager"></div>
+<form id="create-mail-template-form" style="display: inline;">
+	<input title="Enter a name to create a mail template" id="mail-template-name-preselect" type="text" size="10" placeholder="Name" required>
+
+	<button type="submit" form="create-mail-template-form" class="action btn" id="create-mail-template"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> New Mail Template</button>
+</form>
+
+<div id="mail-templates-pager"></div>
