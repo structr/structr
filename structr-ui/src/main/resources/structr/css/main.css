@@ -4413,7 +4413,7 @@ div.option-tile h4 {
 }
 
 div.option-tile label {
-	display: block;
+	display: inline-block;
 	margin-bottom: .5rem;
 }
 
