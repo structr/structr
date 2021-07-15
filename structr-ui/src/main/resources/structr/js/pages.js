@@ -1879,25 +1879,22 @@ var _Pages = {
 			return false;
 		},
 
-		getUrlForPage: (entity) => {
-
+		getBaseUrlForPage: (entity) => {
 			let pagePath = entity.path ? entity.path.replace(/^\//, '') : entity.name;
+			let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
+			let previewUrl        = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + pagePath + detailsObject;
 
-			let detailsObject = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
-			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '?' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
+			return previewUrl;
+		},
 
-			let url = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + pagePath + detailsObject + requestParameters;
-
-			return url;
+		getUrlForPage: (entity) => {
+			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
+			return _Pages.previews.getBaseUrlForPage(entity) + requestParameters;
 		},
 
 		getUrlForPreview: (entity) => {
-			let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
 			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
-
-			let previewUrl        = viewRootUrl + entity.name + detailsObject + '?' + Structr.getRequestParameterName('edit') + '=2' + requestParameters;
-
-			return previewUrl;
+			return _Pages.previews.getBaseUrlForPage(entity) + '?' + Structr.getRequestParameterName('edit') + '=2' + requestParameters;
 		},
 
 		showPreviewInIframe: (pageId, highlightElementId) => {
@@ -1911,7 +1908,7 @@ var _Pages = {
 						_Pages.previews.activePreviewHighlightElementId = highlightElementId;
 					}
 
-					Command.get(pageId, 'id,name', function (pageObj) {
+					Command.get(pageId, 'id,name,path,site', function (pageObj) {
 
 						Structr.fetchHtmlTemplate('pages/preview', {}, (html) => {
 
