@@ -196,7 +196,8 @@
 	width: 100%;
 	resize: vertical;
 	font-family: var(--font-monospace) ! important;
-	font-size: .75rem;
+	font-size: .9rem;
+	line-height: 1rem;
 	border: none;
 	padding: 0;
 }
