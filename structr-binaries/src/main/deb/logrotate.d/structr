@@ -1,6 +1,10 @@
 /var/log/structr.log {
-  weekly
-  rotate 3
+  su root adm
+  copytruncate
+  daily
+  rotate 30
+  dateext
+  dateformat .%Y-%m-%d
   size 10M
   compress
   delaycompress

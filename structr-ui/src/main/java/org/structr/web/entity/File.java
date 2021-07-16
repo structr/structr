@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -57,6 +57,7 @@ import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.ContextStore;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
+import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -197,16 +198,17 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		type.addMethod("getFileOnDisk")
 			.setReturnType(java.io.File.class.getName())
-			.addParameter("doCreate", "boolean")
-			.setSource("return " + File.class.getName() + ".getFileOnDisk(this, doCreate);");
+			.setSource("return " + File.class.getName() + ".getFileOnDisk(this, doCreate);")
+			.addParameter("doCreate", "boolean");
 
 		type.addMethod("doCSVImport")
+			.setReturnType(java.lang.Long.class.getName())
 			.addParameter("ctx", SecurityContext.class.getName())
 			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setReturnType(java.lang.Long.class.getName())
 			.setSource("return " + File.class.getName() + ".doCSVImport(this, parameters, ctx);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
+
 
 		type.addMethod("doXMLImport")
 			.addParameter("ctx", SecurityContext.class.getName())
@@ -464,7 +466,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				boolean editModeActive = false;
 				if (securityContext.getRequest() != null) {
 
-					final String editParameter = securityContext.getRequest().getParameter("edit");
+					final String editParameter = securityContext.getRequest().getParameter(RequestKeywords.EditMode.keyword());
 					if (editParameter != null) {
 
 						editModeActive = !RenderContext.EditMode.NONE.equals(RenderContext.getValidatedEditMode(securityContext.getUser(false), editParameter));
@@ -480,7 +482,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 					try {
 
-						final String result = Scripting.replaceVariables(new ActionContext(securityContext), thisFile, content);
+						final String result = Scripting.replaceVariables(new ActionContext(securityContext), thisFile, content, "getInputStream");
 
 						String encoding = "UTF-8";
 

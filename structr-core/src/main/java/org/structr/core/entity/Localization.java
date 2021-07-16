@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.core.entity;
 
 import java.net.URI;
+import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -26,7 +27,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.api.schema.JsonType;
 
 public interface Localization extends NodeInterface {
 
@@ -45,6 +45,7 @@ public interface Localization extends NodeInterface {
 
 		type.overrideMethod("onCreation",     true, "org.structr.core.entity.Localization.onCreation(this, arg0, arg1);");
 		type.overrideMethod("onModification", true, "org.structr.core.function.LocalizeFunction.invalidateCache();");
+		type.overrideMethod("onDeletion",     true, "org.structr.core.function.LocalizeFunction.invalidateCache();");
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "name");

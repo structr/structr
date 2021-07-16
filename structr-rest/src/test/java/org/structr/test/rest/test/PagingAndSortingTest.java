@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,12 +18,14 @@
  */
 package org.structr.test.rest.test;
 
+import static com.caucho.quercus.lib.JavaModule.java;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.text.SimpleDateFormat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.lessThan;
+import org.structr.api.config.Settings;
 import org.testng.annotations.Test;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
@@ -151,7 +153,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.body("result[3].aDate",    equalTo(aDate4))
 
 			.when()
-				.get(resource + "?sort=name&pageSize=10&page=1");
+				.get(resource + "?_sort=name&_pageSize=10&_page=1");
 
 
 		// sort by date, descending
@@ -180,7 +182,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.body("result[3].aDate",    equalTo(aDate2))
 
 			.when()
-				.get(resource + "?sort=aDate&order=desc&pageSize=10&page=1");
+				.get(resource + "?_sort=aDate&_order=desc&_pageSize=10&_page=1");
 
 		// sort by int
 		RestAssured
@@ -204,7 +206,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.body("result[3].aLong",    equalTo(40))
 
 			.when()
-				.get(resource + "?sort=anInt&pageSize=10&page=1");
+				.get(resource + "?_sort=anInt&_pageSize=10&_page=1");
 
 	}
 
@@ -252,7 +254,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.body("result[0].type",     equalTo("PrincipalOwnsNode"))
 				.body("result[1].type",     equalTo("Security"))
 			.when()
-				.get("/TestOne/in?pageSize=2");
+				.get("/TestOne/in?_pageSize=2");
 
 
 	}
@@ -301,7 +303,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.body("result[0].type",     equalTo("PrincipalOwnsNode"))
 				.body("result[1].type",     equalTo("Security"))
 			.when()
-				.get("/TestUser/" + tester.getUuid() + "/out?pageSize=2");
+				.get("/TestUser/" + tester.getUuid() + "/out?_pageSize=2");
 
 
 	}
@@ -338,7 +340,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 			.body("result[6].name",    equalTo("name3"))
 			.body("result[7].name",    equalTo("name5"))
 			.body("result[8].name",    equalTo("name7"))
-			.when().get("/TestOne?sort=aLong&sort=name");
+			.when().get("/TestOne?_sort=aLong&_sort=name");
 
 
 		//final List<TestOne> result2 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong', true), sort('name'))}", "test2");
@@ -352,7 +354,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 			.body("result[6].name",    equalTo("name6"))
 			.body("result[7].name",    equalTo("name8"))
 			.body("result[8].name",    equalTo("name9"))
-			.when().get("/TestOne?sort=aLong&sort=name&order=desc&order=asc");
+			.when().get("/TestOne?_sort=aLong&_sort=name&_order=desc&_order=asc");
 
 		//final List<TestOne> result3 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('name', true))}", "test3");
 		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
@@ -365,7 +367,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 			.body("result[6].name",    equalTo("name3"))
 			.body("result[7].name",    equalTo("name2"))
 			.body("result[8].name",    equalTo("name1"))
-			.when().get("/TestOne?sort=aLong&sort=name&order=asc&order=desc");
+			.when().get("/TestOne?_sort=aLong&_sort=name&_order=asc&_order=desc");
 
 		//final List<TestOne> result4 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('anInt'), sort('name'))}", "test4");
 		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
@@ -378,7 +380,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 			.body("result[6].name",    equalTo("name5"))
 			.body("result[7].name",    equalTo("name1"))
 			.body("result[8].name",    equalTo("name7"))
-			.when().get("/TestOne?sort=aLong&sort=anInt&sort=name");
+			.when().get("/TestOne?_sort=aLong&_sort=anInt&_sort=name");
 
 		//final List<TestOne> result5 = (List)Scripting.evaluate(ctx, null, "${find('TestOne', sort('aLong'), sort('anInt', true), sort('name'))}", "test5");
 		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
@@ -391,6 +393,121 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 			.body("result[6].name",    equalTo("name3"))
 			.body("result[7].name",    equalTo("name5"))
 			.body("result[8].name",    equalTo("name2"))
-			.when().get("/TestOne?sort=aLong&sort=anInt&sort=name&order=asc&order=desc&order=asc");
+			.when().get("/TestOne?_sort=aLong&_sort=anInt&_sort=name&_order=asc&_order=desc&_order=asc");
+	}
+
+	@Test
+	public void testLegacyModeRequestParameterNames() {
+
+		try {
+
+			// enable "legacy mode" for request parameter names
+			Settings.RequestParameterLegacyMode.setValue(true);
+
+			// create some objects
+
+			String resource = "/test_one";
+
+			RestAssured.given().contentType("application/json; charset=UTF-8")
+				.body(" { 'name' : 'TestOne-3', 'anInt' : 3, 'aLong' : 30, 'aDate' : '" + aDate3 + "' } ")
+				.expect().statusCode(201).when().post(resource).getHeader("Location");
+
+			RestAssured.given().contentType("application/json; charset=UTF-8")
+				.body(" { 'name' : 'TestOne-1', 'anInt' : 2, 'aLong' : 10, 'aDate' : '" + aDate2 + "' } ")
+				.expect().statusCode(201).when().post(resource).getHeader("Location");
+
+			RestAssured.given().contentType("application/json; charset=UTF-8")
+				.body(" { 'name' : 'TestOne-4', 'anInt' : 4, 'aLong' : 40, 'aDate' : '" + aDate4 + "' } ")
+				.expect().statusCode(201).when().post(resource).getHeader("Location");
+
+			RestAssured.given().contentType("application/json; charset=UTF-8")
+				.body(" { 'name' : 'TestOne-2', 'anInt' : 1, 'aLong' : 20, 'aDate' : '" + aDate1 + "' } ")
+				.expect().statusCode(201).when().post(resource).getHeader("Location");
+
+			// sort by name
+			RestAssured
+
+				.given()
+					.contentType("application/json; charset=UTF-8")
+				.expect()
+					.statusCode(200)
+					.body("result_count",       equalTo(4))
+
+					.body("result[0]",          isEntity(TestOne.class))
+					.body("result[0].aLong",    equalTo(10))
+					.body("result[0].aDate",    equalTo(aDate2))
+
+					.body("result[1]",          isEntity(TestOne.class))
+					.body("result[1].aLong",    equalTo(20))
+					.body("result[1].aDate",    equalTo(aDate1))
+
+					.body("result[2]",          isEntity(TestOne.class))
+					.body("result[2].aLong",    equalTo(30))
+					.body("result[2].aDate",    equalTo(aDate3))
+
+					.body("result[3]",          isEntity(TestOne.class))
+					.body("result[3].aLong",    equalTo(40))
+					.body("result[3].aDate",    equalTo(aDate4))
+
+				.when()
+					.get(resource + "?sort=name&pageSize=10&page=1");
+
+
+			// sort by date, descending
+			RestAssured
+
+				.given()
+					.contentType("application/json; charset=UTF-8")
+				.expect()
+					.statusCode(200)
+					.body("result_count",       equalTo(4))
+
+					.body("result[0]",          isEntity(TestOne.class))
+					.body("result[0].aLong",    equalTo(40))
+					.body("result[0].aDate",    equalTo(aDate4))
+
+					.body("result[1]",          isEntity(TestOne.class))
+					.body("result[1].aLong",    equalTo(30))
+					.body("result[1].aDate",    equalTo(aDate3))
+
+					.body("result[2]",          isEntity(TestOne.class))
+					.body("result[2].aLong",    equalTo(20))
+					.body("result[2].aDate",    equalTo(aDate1))
+
+					.body("result[3]",          isEntity(TestOne.class))
+					.body("result[3].aLong",    equalTo(10))
+					.body("result[3].aDate",    equalTo(aDate2))
+
+				.when()
+					.get(resource + "?sort=aDate&order=desc&pageSize=10&page=1");
+
+			// sort by int
+			RestAssured
+
+				.given()
+					.contentType("application/json; charset=UTF-8")
+				.expect()
+					.statusCode(200)
+					.body("result_count",       equalTo(4))
+
+					.body("result[0]",          isEntity(TestOne.class))
+					.body("result[0].aLong",    equalTo(20))
+
+					.body("result[1]",          isEntity(TestOne.class))
+					.body("result[1].aLong",    equalTo(10))
+
+					.body("result[2]",          isEntity(TestOne.class))
+					.body("result[2].aLong",    equalTo(30))
+
+					.body("result[3]",          isEntity(TestOne.class))
+					.body("result[3].aLong",    equalTo(40))
+
+				.when()
+					.get(resource + "?sort=anInt&pageSize=10&page=1");
+
+		} finally {
+			
+			Settings.RequestParameterLegacyMode.setValue(false);
+		}
 	}
 }

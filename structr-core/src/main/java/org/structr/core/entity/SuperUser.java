@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,6 +44,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  * The SuperUser entity. Please note that this class is not persitent but will
@@ -395,12 +396,12 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue) throws FrameworkException {
+	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, EvaluationHints hints, final int row, final int column) throws FrameworkException {
 		return null;
 	}
 
 	@Override
-	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
+	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods, final EvaluationHints hints) throws FrameworkException {
 		return null;
 	}
 

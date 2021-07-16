@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -74,16 +74,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private static final Set<PropertyKey> indexedWarningDisabled    = new LinkedHashSet<>(Arrays.asList(SchemaMethod.source, SchemaProperty.readFunction, SchemaProperty.writeFunction));
 	private static final Map<String, Set<String>> subtypeMapForType = new LinkedHashMap<>();
 	private static final Set<String> baseTypes                      = new LinkedHashSet<>();
-
-	public static final String LAT_LON_SEARCH_KEYWORD     = "latlon";
-	public static final String LOCATION_SEARCH_KEYWORD    = "location";
-	public static final String STATE_SEARCH_KEYWORD       = "state";
-	public static final String HOUSE_SEARCH_KEYWORD       = "house";
-	public static final String COUNTRY_SEARCH_KEYWORD     = "country";
-	public static final String POSTAL_CODE_SEARCH_KEYWORD = "postalCode";
-	public static final String DISTANCE_SEARCH_KEYWORD    = "distance";
-	public static final String CITY_SEARCH_KEYWORD        = "city";
-	public static final String STREET_SEARCH_KEYWORD      = "street";
 
 	static {
 
@@ -659,6 +649,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
+	public <P> org.structr.core.app.Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd) {
+
+		return andRange(key, rangeStart, rangeEnd, true, true);
+	}
+
+	@Override
 	public <P> org.structr.core.app.Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd) {
 
 		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, Occurrence.REQUIRED, includeStart, includeEnd));
@@ -669,19 +665,15 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
-	public <P> org.structr.core.app.Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd) {
+	public <P> org.structr.core.app.Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd) {
 
-		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, Occurrence.REQUIRED, true, true));
-
-		assertPropertyIsIndexed(key);
-
-		return this;
+		return orRange(key, rangeStart, rangeEnd, true, true);
 	}
 
 	@Override
-	public <P> org.structr.core.app.Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd) {
+	public <P> org.structr.core.app.Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd) {
 
-		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, Occurrence.OPTIONAL, true, true));
+		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, Occurrence.OPTIONAL, includeStart, includeEnd));
 
 		assertPropertyIsIndexed(key);
 
@@ -738,6 +730,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public SearchAttributeGroup getRootAttributeGroup() {
 		return rootGroup;
+	}
+
+	@Override
+	public Occurrence getCurrentOccurrence() {
+		return currentGroup.getOccurrence();
 	}
 
 	// ----- static methods -----

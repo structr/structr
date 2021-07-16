@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,24 +18,43 @@
  */
 package org.structr.web.common;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Stack;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.codec.binary.Base64InputStream;
+import org.apache.commons.codec.binary.Base64OutputStream;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
+import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.script.Scripting;
 import org.structr.rest.ResourceProvider;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.Template;
 
 /**
  * Holds information about the context in which a resource is rendered, like
@@ -128,7 +147,7 @@ public class RenderContext extends ActionContext {
 
 	public static RenderContext getInstance(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response) {
 
-		final String editString = StringUtils.defaultString(request.getParameter("edit"));
+		final String editString = StringUtils.defaultString(request.getParameter(RequestKeywords.EditMode.keyword()));
 
 		return new RenderContext(securityContext, request, response, editMode(editString));
 
@@ -325,6 +344,10 @@ public class RenderContext extends ActionContext {
 		return appLibRendered;
 	}
 
+	public Map<String, GraphObject> getDataObjectsMap() {
+		return dataObjects;
+	}
+
 	public GraphObject getDataNode(String key) {
 		return dataObjects.get(key);
 	}
@@ -385,15 +408,24 @@ public class RenderContext extends ActionContext {
 	}
 
 	@Override
-	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue, final int depth) throws FrameworkException {
+	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue, final int depth, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
+
+		// report usage for toplevel keys only
+		if (data == null) {
+
+			// report key as used to identify unresolved keys later
+			hints.reportUsedKey(key, row, column);
+		}
 
 		// data key can only be used as the very first token
 		if (depth == 0 && hasDataForKey(key)) {
+
+			hints.reportExistingKey(key);
 			return getDataNode(key);
 		}
 
 		// evaluate non-ui specific context
-		final Object value = super.evaluate(entity, key, data, defaultValue, depth);
+		final Object value = super.evaluate(entity, key, data, defaultValue, depth, hints, row, column);
 		if (value == null) {
 
 			if (data != null) {
@@ -405,6 +437,7 @@ public class RenderContext extends ActionContext {
 
 						if (data instanceof LinkSource) {
 
+							hints.reportExistingKey(key);
 							final LinkSource linkSource = (LinkSource)data;
 							return linkSource.getLinkable();
 						}
@@ -418,6 +451,7 @@ public class RenderContext extends ActionContext {
 
 					case "id":
 
+						hints.reportExistingKey(key);
 						GraphObject detailsObject = this.getDetailsDataObject();
 						if (detailsObject != null) {
 
@@ -430,21 +464,25 @@ public class RenderContext extends ActionContext {
 						break;
 
 					case "current":
+						hints.reportExistingKey(key);
 						return getDetailsDataObject();
 
 					case "template":
 
 						if (entity instanceof DOMNode) {
+							hints.reportExistingKey(key);
 							return ((DOMNode) entity).getClosestTemplate(getPage());
 						}
 						break;
 
 					case "page":
+						hints.reportExistingKey(key);
 						return getPage();
 
 					case "parent":
 
 						if (entity instanceof DOMNode) {
+							hints.reportExistingKey(key);
 							return ((DOMNode) entity).getParentNode();
 						}
 						break;
@@ -453,6 +491,7 @@ public class RenderContext extends ActionContext {
 
 						if (entity instanceof DOMNode) {
 
+							hints.reportExistingKey(key);
 							return ((DOMNode) entity).getChildNodes();
 
 						}
@@ -463,20 +502,96 @@ public class RenderContext extends ActionContext {
 
 						if (entity instanceof LinkSource) {
 
+							hints.reportExistingKey(key);
 							final LinkSource linkSource = (LinkSource)entity;
 							return linkSource.getLinkable();
 						}
 						break;
 				}
 			}
-
 		}
 
 		return value;
 	}
 
+	@Override
 	public boolean isRenderContext() {
 		return true;
+	}
+
+	@Override
+	public void print(final Object[] objects, final Object caller) {
+
+		if ((caller instanceof Template) || (caller instanceof Content)) {
+
+			for (final Object obj : objects) {
+
+				if (obj != null) {
+
+					this.buffer.append(Scripting.formatToDefaultDateOrString(obj));
+				}
+			}
+
+		} else {
+
+			super.print(objects, null);
+		}
+	}
+
+	public String getEncodedRenderState() {
+
+		final Map<String, Object> renderState = new LinkedHashMap<>();
+
+		for (final String dataKey : dataObjects.keySet()) {
+
+			final GraphObject value = dataObjects.get(dataKey);
+			if (value != null) {
+
+				renderState.put(dataKey, value.getUuid());
+			}
+		}
+
+		if (!renderState.isEmpty()) {
+
+			final ByteArrayOutputStream output = new ByteArrayOutputStream();
+			final Gson gson                    = new GsonBuilder().create();
+
+			try (final OutputStreamWriter writer = new OutputStreamWriter(new Base64OutputStream(output, true, -1, null))) {
+
+				gson.toJson(renderState, writer);
+
+			} catch (IOException ioex) {
+				ioex.printStackTrace();
+			}
+
+			return output.toString(Charset.forName("utf-8")).trim();
+		}
+
+		return null;
+	}
+
+	public void initializeFromEncodedRenderState(final String encoded) {
+
+		final ByteArrayInputStream input = new ByteArrayInputStream(encoded.getBytes(Charset.forName("utf-8")));
+		final App app                    = StructrApp.getInstance(securityContext);
+		final Gson gson                  = new GsonBuilder().create();
+
+		try (final JsonReader reader = new JsonReader(new InputStreamReader(new Base64InputStream(input, false)))) {
+
+			final Map<String, Object> state = gson.fromJson(reader, Map.class);
+
+			for (final Entry<String, Object> entry : state.entrySet()) {
+
+				final Object value = entry.getValue();
+				if (value != null) {
+
+					dataObjects.put(entry.getKey(), app.getNodeById(value.toString()));
+				}
+			}
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 	}
 
 	// ----- private methods -----

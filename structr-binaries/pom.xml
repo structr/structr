@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.structr</groupId>
 	<artifactId>structr-binaries</artifactId>
-	<version>3.6.5</version>
+	<version>4.0-rc1</version>
 
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>3.6.5</version>
+		<version>4.0-rc1</version>
 	</parent>
 
 	<build>
@@ -133,6 +133,16 @@
 									</mapper>
 								</data>
 
+								<data>
+									<src>${basedir}/src/main/deb/logrotate.d</src>
+									<type>directory</type>
+									<mapper>
+										<type>perm</type>
+										<prefix>/etc/logrotate.d</prefix>
+										<filemode>644</filemode>
+									</mapper>
+								</data>
+
 							</dataSet>
 						</configuration>
 					</execution>
@@ -170,7 +180,7 @@
 							<goal>push</goal>
 						</goals>
 					</execution>
-					<execution>
+					<!--execution DISABLED for RC1!>
 						<id>tag-latest</id>
 						<phase>install</phase>
 						<goals>
@@ -181,7 +191,7 @@
 						<configuration>
 							<tag>latest</tag>
 						</configuration>
-					</execution>
+					</execution-->
 				</executions>
 				<configuration>
 					<repository>structr/structr</repository>

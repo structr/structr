@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,7 +25,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
@@ -37,6 +36,7 @@ import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
 import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 /**
  *
@@ -59,7 +59,7 @@ public class EndpointTest extends StructrRestTestBase {
 			final JsonObjectType project = schema.addType("Project");
 			final JsonObjectType task    = schema.addType("Task");
 
-			project.addMethod("onSave", "error('nope', 'nope', 'nope')", "");
+			project.addMethod("onSave", "error('nope', 'nope', 'nope')");
 
 			project.relate(task, "HAS", Cardinality.ManyToMany, "projects", "tasks");
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.FrameworkException;
 import org.structr.rest.auth.AuthHelper;
+import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
 
@@ -66,7 +67,7 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
             Calendar refreshTokenExpirationDate = Calendar.getInstance();
             refreshTokenExpirationDate.add(Calendar.MINUTE, refreshTokenTimeout);
 
-            Map<String, String> tokens = AuthHelper.createTokensForUser(user, accessTokenExpirationDate.getTime(), refreshTokenExpirationDate.getTime());
+            Map<String, String> tokens = JWTHelper.createTokensForUser(user, accessTokenExpirationDate.getTime(), refreshTokenExpirationDate.getTime());
 
             return UiFunction.toGraphObject(tokens, 1);
 

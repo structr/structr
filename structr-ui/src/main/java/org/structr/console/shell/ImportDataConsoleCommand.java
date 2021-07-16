@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -49,7 +49,8 @@ public class ImportDataConsoleCommand extends AdminConsoleCommand {
 					"mode",              "import",
 					"source",            getParameter(parameters, 1),
 					"doInnerCallbacks",  getParameter(parameters, 2),
-					"doCascadingDelete", getParameter(parameters, 3)
+					"doOuterCallbacks",  getParameter(parameters, 3),
+					"doCascadingDelete", getParameter(parameters, 4)
 			));
 
 		} else {
@@ -65,10 +66,11 @@ public class ImportDataConsoleCommand extends AdminConsoleCommand {
 
 	@Override
 	public void detailHelp(final Writable writable) throws IOException {
-		writable.println("importData <source> <doInnerCallbacks> <doCascadingDelete>  -  Imports data for an application from a path in the file system.");
+		writable.println("import-data <source> <doInnerCallbacks> <doOuterCallbacks> <doCascadingDelete>  -  Imports data for an application from a path in the file system.");
 		writable.println("");
 		writable.println("  <source>            - absolute path to the source directory");
 		writable.println("  <doInnerCallbacks>  - (optional) decides if onCreate/onSave methods are run and function properties are evaluated during data deployment. Often this leads to errors because onSave contains validation code which will fail during data deployment. (default = false. Only set to true if you know what you're doing!)");
+		writable.println("  <doOuterCallbacks>  - (optional) decides if afterCreate method is run during data deployment. Often this is undesirable during data deployment. (default = false. Only set to true if you know what you're doing!)");
 		writable.println("  <doCascadingDelete> - (optional) decides if cascadingDelete is enabled during data deployment. This leads to errors because cascading delete triggers onSave methods on remote nodes which will fail during data deployment. (default = false. Only set to true if you know what you're doing!)");
 	}
 

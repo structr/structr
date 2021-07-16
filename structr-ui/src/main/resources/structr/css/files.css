@@ -1,0 +1,674 @@
+/**
+ * Copyright (C) 2010-2021 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+.folder-path {
+	font-size: 1.5rem;
+	line-height: 2rem;
+	margin: 2rem .75rem;
+}
+
+#folder-contents {
+	position: relative;
+}
+
+#folder-contents-container select.select-create-type {
+	min-width: 100px;
+}
+
+#folder-contents .tile {
+	display: inline-block;
+	text-align: center;
+	position: relative;
+}
+
+#folder-contents .tile .node {
+	width: 100px;
+	height: 100px;
+}
+
+#folder-contents .img-tile .node {
+	width: 300px;
+	height: 300px;
+}
+
+#folder-contents .tile .file-icon {
+	margin-top: 6px;
+	margin-bottom: 2px;
+	height: 48px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+}
+
+#folder-contents .img-tile .file-icon {
+	margin-top: 6px;
+	margin-bottom: 2px;
+	height: 296px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+}
+
+#folder-contents .file-icon img.thumbnail {
+	max-height: 48px;
+	max-width: 48px;
+	margin: auto;
+}
+
+#folder-contents .tile i.fa {
+	font-size: 48px;
+}
+
+#folder-contents .tile i.fa.fa-plug {
+	font-size: 18px;
+	left: 26px;
+	top: 8px;
+}
+
+#folder-contents .tile i.button,
+#folder-contents .tile .minify_file_icon {
+	position: absolute;
+	bottom: 4px;
+}
+
+#folder-contents .tile .push_icon {
+	left: 24px;
+}
+
+#folder-contents .tile i.edit_file_icon,
+#folder-contents .tile i.view_icon,
+#folder-contents .tile .minify_file_icon {
+	left: 44px;
+}
+
+#folder-contents .tile i.edit_props_icon {
+	left: 64px;
+}
+
+#folder-contents .img-tile i.edit_props_icon {
+	left: 260px;
+}
+
+#folder-contents .tile i.edit_icon {
+	left: 44px;
+}
+
+#folder-contents .img-tile i.edit_icon {
+	left: 240px;
+}
+
+#folder-contents .tile img.tn {
+	max-width: 64px;
+	max-height: 48px;
+}
+
+#folder-contents .img-tile img.tn {
+	max-width: 296px;
+	max-height: 296px;
+}
+
+#folder-contents .tile i.delete_icon, #folder-contents .tile i.remove_favorite_icon {
+	top: 4px;
+	right: 4px;
+}
+
+#folder-contents .tile i.key_icon {
+	left: 84px;
+}
+
+#folder-contents .img-tile i.key_icon {
+	left: 280px;
+}
+
+#folder-contents .tile .minify_file_icon i {
+	/*font-size: 16px ! important;*/
+}
+
+#folder-contents table th, #contents-contents table th, #crawler-list table th {
+	text-align: left;
+	padding-left: 1rem;
+}
+
+#folder-contents .thumbnail,
+#folder-contents .thumbnail .file,
+#folder-contents .thumbnail i.fa-file-image-o {
+	color: var(--gray-aaa);
+}
+
+#folder-contents .thumbnail i.fa-file-image-o {
+	/*font-size: 16px;*/
+}
+
+#folder-contents .thumbnailZoom {
+	max-width: 300px;
+	max-height: 300px;
+	position: absolute;
+	z-index: 4;
+	display: none;
+}
+
+#folder-contents tr[id]:hover {
+	background-color: var(--light-gray-bg-f5) ! important;
+}
+
+#folder-contents .nodeActive {
+	background-color: var(--light-gray-bg-f5) ! important;
+	/*border: 1px solid var(--gray-eee);*/
+}
+
+#folder-contents .nodeHover, .image.nodeHover {
+	color: var(--gray-333) ! important;
+	/*background: var(--structr-light-green) ! important;*/
+	/*border: 1px solid transparent;*/
+	z-index: 1;
+}
+
+#folder-contents table {
+	table-layout: fixed;
+}
+
+#folder-contents table th:nth-child(1) {
+	width: 3%;
+}
+
+#folder-contents table th:nth-child(2) {
+	width: 40%;
+}
+
+#folder-contents table th:nth-child(3) {
+	width: 10%;
+}
+
+#folder-contents table th:nth-child(4) {
+	width: 10%;
+}
+
+#folder-contents table th:nth-child(5) {
+	width: 17%;
+}
+
+#folder-contents table th:nth-child(6) {
+	width: 20%;
+}
+
+/*
+ * Files table
+ */
+
+#files-table {
+	margin-bottom: 1rem;
+}
+
+#files-table tbody {
+	/*border-top: 1px solid var(--gray-ccc) !important;*/
+}
+
+#files-table tr:nth-child(even) {
+	background-color: var(--main-background);
+}
+
+#files-table tr:nth-child(odd) {
+	background-color: var(--solid-white);
+}
+
+#files-table th {
+	padding: 0 0 1rem .5rem;
+	text-align: left;
+}
+
+#files-table th:nth-child(2) {
+	padding-left: 1.5rem;
+}
+
+#files-table tbody tr td .editable {
+	min-width: 100px;
+	min-height: 14px;
+}
+
+#files-table tbody tr td .editable .placeholder {
+	color: var(--inactive-tab-text);
+}
+
+#files-table tbody tr td.id {
+	color: var(--gray-ddd);
+}
+
+/*#files-table tbody tr:hover td.id {*/
+/*	color: var(--solid-white);*/
+/*}*/
+
+#files-table tbody tr td .node {
+	min-width: 6rem;
+	padding-left: .5rem;
+}
+
+#files-table tbody tr td input {
+	/*margin-top: .75rem;*/
+	/*min-width: 10rem;*/
+}
+
+#files-table td.file-icon {
+	/*width: 1rem;*/
+	cursor: pointer;
+}
+
+#files-table td.file-icon i.fa {
+	/*width: 1rem;*/
+	/*padding: .5rem 0;*/
+}
+
+#files-table td.file-icon i.fa.fa-plug {
+	font-size: 1rem;
+	left: 1rem;
+}
+
+#files-table td {
+	text-align: left;
+	padding-left: 1rem;
+	height: 2rem;
+}
+
+#files-table tr#parent-file-link {
+	cursor: pointer;
+}
+
+#files-table td a {
+	text-decoration: none;
+}
+
+#files-table td a:hover {
+	text-decoration: underline;
+}
+
+#files-table .file, #files-table .folder {
+	margin: 0;
+}
+
+#files-table .folder-up {
+	padding-left: .5rem;
+}
+
+/*
+ * Action buttons
+ */
+/*#files-action-buttons {*/
+/*	position: absolute;*/
+/*	left: 1rem;*/
+/*	top: 1rem;*/
+/*	width: 60rem;*/
+/*}*/
+
+
+/*
+ * Display type switches
+ */
+
+#switches {
+	/*width: 20rem;*/
+	position: absolute;
+	top: 1rem;
+	right: .5rem;
+}
+
+#switch-list.active {
+	width: 5rem;
+}
+
+#switch-list.inactive {
+	width: 4rem;
+}
+
+#switch-tiles.active {
+	width: 5rem;
+}
+
+#switch-tiles.inactive {
+	width: 4rem;
+}
+
+/*
+ * Search (similar to crud search box but different)
+ */
+.searchBox {
+	position: absolute;
+	right: 2rem;
+	top: .75rem;
+	z-index: 5;
+}
+
+
+.searchBox input.search {
+	/*border: 1px solid var(--link-color-active);*/
+	width: 12rem;
+	/*height: 22px;*/
+	/*padding: 2px 4px;*/
+}
+
+i.clearSearchIcon {
+	display: none;
+	position: absolute;
+	top: .75rem;
+	right: .75rem;
+	cursor: pointer;
+}
+
+/**
+ * Minification
+ */
+#minify-options td {
+	padding: 6px 8px;
+}
+
+#minify-options td.minification-scrollable-cell {
+    padding: 0;
+    margin: 0;
+}
+
+.scrollable-cell-content {
+    max-height: 120px;
+    overflow-y: auto;
+    padding: 6px 8px;
+}
+
+#minify-options td.head {
+	font-weight: bold;
+	width: 110px;
+}
+
+#minify-options td input {
+	width: 40px;
+}
+
+#minify-options td.action {
+	text-align: right;
+}
+
+#minify-options td.action button {
+	margin-right: 0;
+}
+
+#minification-files {
+	width: 49%;
+	float: left;
+}
+
+#minification-source-search {
+	width: 49%;
+	float: right;
+}
+
+#minification-source-search .searchBox {
+	position: initial;
+	text-align: right;
+	margin-right: 12px;
+}
+
+#minification-source-search .clearSearchIcon {
+	margin-right: 12px;
+}
+
+#minification-source-search .searchResults {
+	height: 300px !important;
+}
+
+#minification-source-search .searchResultsTitle {
+	display: none;
+}
+
+#minify-options button img {
+	padding: 0;
+	margin: 0;
+	vertical-align: middle;
+}
+
+/**
+ * Minification file search
+ */
+.searchResultGroup {
+	margin: 12px;
+	padding: 8px 12px;
+	clear: both;
+	overflow: hidden;
+}
+.resourceBox {
+	background: var(--solid-white) ! important;
+	/*font-family: var(--font-open-sans) ! important;*/
+	font-size: 9pt;
+	position: relative;
+	box-shadow: 0 0 12px var(--gray-opacity-10);
+	border: 1px solid var(--black-opacity-125);
+}
+
+.searchResults h3 {
+	color: var(--gray-333);
+	clear: both;
+	margin: 0 0 2rem 0;
+}
+
+/**
+ * CSV and XML importer
+ */
+
+#csv-import #commit-interval {
+	width: 50px;
+}
+
+pre.csv-preview {
+	overflow: auto;
+	background-color: var(--solid-white);
+	border: 1px solid var(--gray-ddd);
+	height: 100px;
+}
+
+.row-container tr:nth-child(odd) {
+	background-color: var(--solid-white);
+}
+
+.row-container tr:nth-child(even) {
+	background-color: var(--light-gray-bg-f7);
+}
+
+#row-container tr:nth-child(odd) {
+	background-color: var(--solid-white);
+}
+
+#row-container tr:nth-child(even) {
+	background-color: var(--light-gray-bg-f7);
+}
+
+div.attr-mapping table {
+	width: 99%;
+}
+
+.attr-mapping th {
+	padding-bottom: 2px;
+}
+
+div.attr-mapping td {
+	border: 1px solid var(--gray-ddd);
+}
+
+div.attr-mapping td.key {
+	padding: 0 8px 0 8px;
+}
+
+div.attr-mapping td.transform {
+	padding: 1px;
+}
+
+div.attr-mapping td.transform input {
+	width: calc(100% - 10px);
+}
+
+div.attr-mapping select.attr-mapping {
+	width: 100%;
+}
+
+div#xml-import {
+	height: calc(100% - 3rem);
+}
+
+table#csv-import,
+table#csv-import {
+	width: 100%;
+}
+
+table#csv-import td {
+	padding: 0 0 12px 0;
+}
+
+table#csv-import label {
+	display: inline-block;
+	min-width: 120px !important;
+}
+
+div#types-container div.type-mapping {
+	width: 100px;
+	float: left;
+}
+
+/*div#xml-import h2, div#xml-import h3 {*/
+/*	margin-bottom: 0;*/
+/*}*/
+
+div.xml-mapping, div#config {
+	padding: .5rem 1rem;
+	height: 100%;
+	overflow: auto;
+}
+
+div.xml-mapping {
+	background-color: var(--solid-white);
+	border: 1px solid var(--gray-ddd);
+}
+
+div.xml-mapping table {
+	width: 100%;
+}
+
+div.xml-mapping td {
+	cursor: pointer;
+}
+
+div.xml-mapping td:hover, div.xml-mapping td.selected {
+	background-color: var(--structr-light-green-transparent);
+}
+
+div#left {
+	float: left;
+	width: 45%;
+	height: calc(100% - 3rem);
+}
+
+div#right {
+	float: right;
+	width: 55%;
+	height: calc(100% - 3rem);}
+
+div#xml-config {
+	margin: 0 6px 0 24px;
+}
+
+div#xml-config label {
+	font-weight: bold;
+}
+
+div#xml-config select.xml-config-select {
+	width: 45%;
+}
+
+button#start-import, button#run-method {
+	background-color: var(--structr-green);
+}
+
+button#run-method {
+	margin-left: 24px;
+}
+
+/*button#start-import,*/
+/*button#prev-element {*/
+/*	margin-left: 36px;*/
+/*}*/
+
+div#xml-config p.hint {
+	padding: 48px;
+}
+
+div#xml-config label {
+	width: 55%;
+}
+
+div#csv-configurations,
+div#xml-configurations {
+	padding: 0;
+	margin: 0;
+	/*position: absolute;*/
+	left: 12px;
+	bottom: 12px;
+	text-align: left;
+}
+
+div#csv-configurations input,
+div#xml-configurations input {
+	/*padding: 3px 2px 2px 4px;*/
+	/*width: 100px;*/
+	/*vertical-align: bottom;*/
+	margin-left: 2rem;
+}
+
+/*div#csv-configurations select,*/
+/*div#xml-configurations select {*/
+/*	width: 100px;*/
+/*	vertical-align: bottom;*/
+/*	line-height: 1.3em;*/
+/*	height: 24px;*/
+/*	background-color: var(--gray-bg);*/
+/*	border: 1px solid var(--gray-ddd);*/
+/*}*/
+
+div#csv-configurations button,
+div#xml-configurations button {
+	padding-left: 8px;
+	margin: 0 0 0 12px;
+}
+
+/**
+ * Dynamic files
+ */
+
+#template-preview {
+	display: none;
+	position: absolute;
+	margin-left: 12px;
+	top: 26px;
+	right: 0;
+	left: 50%;
+	bottom: 0;
+}
+
+#template-preview textarea {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	border: none;
+	border-radius: 0;
+	line-height: 1.0;
+}

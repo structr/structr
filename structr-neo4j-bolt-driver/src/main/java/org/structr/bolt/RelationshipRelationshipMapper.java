@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,7 +24,7 @@ import org.structr.api.graph.Relationship;
 /**
  *
  */
-class RelationshipRelationshipMapper implements Function<org.neo4j.driver.v1.types.Relationship, Relationship> {
+class RelationshipRelationshipMapper implements Function<org.neo4j.driver.types.Relationship, Relationship> {
 
 	private BoltDatabaseService db = null;
 
@@ -33,7 +33,7 @@ class RelationshipRelationshipMapper implements Function<org.neo4j.driver.v1.typ
 	}
 
 	@Override
-	public Relationship apply(final org.neo4j.driver.v1.types.Relationship t) {
+	public Relationship apply(final org.neo4j.driver.types.Relationship t) {
 		return RelationshipWrapper.newInstance(db, t);
 	}
 }

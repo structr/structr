@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -220,8 +220,8 @@ public class UiTest extends StructrUiTest {
 							immutableImage.getProperty(StructrApp.key(testImageType, "thumbnail")) != null
 					),
 					()->fail("Exceeded timeout while waiting for thumbnail creation."),
-					30000,
-					1000
+					60000,
+					5000
 			);
 			final Image tnSmall  = subclassTestImage.getProperty(StructrApp.key(testImageType, "tnSmall"));
 			final Image tnMid    = subclassTestImage.getProperty(StructrApp.key(testImageType, "tnMid"));

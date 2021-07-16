@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,9 +16,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var header, main;
+var header, main, functionBar;
 var sessionId, user;
-var lastMenuEntry, menuBlocked;
+var lastMenuEntry, menuBlocked, mainModule, subModule, navView;
 var dmp;
 var editorCursor, ignoreKeyUp;
 var dialog, isMax = false;
@@ -44,6 +44,7 @@ $(function() {
 
 	header = $('#header');
 	main = $('#main');
+	functionBar = $('#function-bar');
 	loginBox = $('#login');
 
 	dialogBox          = $('#dialogBox');
@@ -64,6 +65,7 @@ $(function() {
 		Structr.doLogin(username, password);
 		return false;
 	});
+
 	$('#loginButtonTFA').on('click', function(e) {
 		e.stopPropagation();
 		var tfaToken = $('#twoFactorTokenField').val();
@@ -77,13 +79,29 @@ $(function() {
 		Structr.doLogout();
 	});
 
+	let isHashReset = false;
 	window.addEventListener('hashchange', (e) => {
-		var anchor = getAnchorFromUrl(window.location.href);
-		if (anchor === 'logout' || loginBox.is(':visible')) return;
-		let allow = Structr.requestActivateModule(e, anchor);
 
-		if (allow === false) {
-			window.location.href = e.oldURL;
+		if (isHashReset === false) {
+
+			let anchor = new URL(window.location.href).hash.substring(1);
+			if (anchor === 'logout' || loginBox.is(':visible')) {
+				return;
+			}
+
+			if (anchor.indexOf(':') > -1) {
+				return;
+			}
+
+			let allow = (new URL(e.oldURL).hash === '') || Structr.requestActivateModule(e, anchor);
+
+			if (allow !== true) {
+				isHashReset = true;
+				window.location.href = e.oldURL;
+			}
+
+		} else {
+			isHashReset = false;
 		}
 	});
 
@@ -222,15 +240,15 @@ $(function() {
 		}
 		// Ctrl-Alt-g
 		if (k === 71 && altKey && ctrlKey) {
-		    e.preventDefault();
-		    var uuid = prompt('Enter the UUID for which you want to open the access control dialog');
-		    if (uuid && uuid.length === 32) {
+			e.preventDefault();
+			var uuid = prompt('Enter the UUID for which you want to open the access control dialog');
+			if (uuid && uuid.length === 32) {
 				Command.get(uuid, null, function(obj) {
 					_Entities.showAccessControlDialog(obj);
 				});
 			} else {
 				alert('That does not look like a UUID! length != 32');
-		    }
+			}
 		}
 		// Ctrl-Alt-h
 		if (k === 72 && altKey && ctrlKey) {
@@ -276,6 +294,59 @@ $(function() {
 	$(window).on('resize', resizeFunction);
 
 	dmp = new diff_match_patch();
+
+
+	live('.dropdown-select', 'click', (e) => {
+		e.stopPropagation();
+		e.preventDefault();
+
+		let menu = e.target.closest('.dropdown-menu');
+
+		if (menu) {
+			let template = menu.dataset['template'];
+			let config = JSON.parse(menu.dataset['config'] || '{}');
+			let callbackString = menu.dataset['callback'];
+
+			Structr.fetchHtmlTemplate(template, config, function (html) {
+				let container = e.target.closest('.dropdown-menu').querySelector('.dropdown-menu-container');
+				if (container) {
+					if (!container.hasChildNodes()) {
+						container.insertAdjacentHTML('beforeend', html);
+						container.style.opacity = '1';
+					} else {
+						container.style.opacity = '0';
+						fastRemoveAllChildren(container);
+					}
+				}
+
+				if (callbackString && callbackString.length) {
+					Structr.getActiveModule()[callbackString]();
+				}
+			});
+		}
+		return false;
+	});
+
+	live('#closeDialog', 'click', (e) => {
+		document.querySelector('#dialogBox .closeButton').click();
+		return false;
+	});
+
+	window.addEventListener('click', (e) => {
+		e.stopPropagation();
+		const el = e.target;
+		const isButton = el.classList.contains('dropdown-select');
+		if (isButton) return false;
+		const menu           = el.closest('.dropdown-menu');
+		const menuContainer  = menu && menu.querySelector('.dropdown-menu-container');
+		if (!menuContainer) {
+			document.querySelectorAll('.dropdown-menu-container').forEach((container) => {
+				container.style.opacity = '0';
+				fastRemoveAllChildren(container);
+			});
+		}
+		return false;
+	});
 });
 
 var Structr = {
@@ -290,6 +361,16 @@ var Structr = {
 	currentlyActiveSortable: undefined,
 	loadingSpinnerTimeout: undefined,
 	keyCodeMirrorSettings: 'structrCodeMirrorSettings_' + port,
+	legacyRequestParameters: false,
+	getRequestParameterName: (key) => {
+
+		if (Structr.legacyRequestParameters === true) {
+			// return key itself for legacy usage
+			return key;
+		} else {
+			return '_' + key;
+		}
+	},
 	defaultBlockUICss: {
 		cursor: 'default',
 		border: 'none',
@@ -297,7 +378,15 @@ var Structr = {
 	},
 	templateCache: new AsyncObjectCache(function(templateName) {
 
-		Promise.resolve($.ajax('templates/' + templateName + '.html?t=' + (new Date().getTime()))).then(function(templateHtml) {
+		Promise.resolve(
+			fetch('templates/' + templateName + '.html?t=' + (new Date().getTime()))
+		).then(function(response) {
+			if (response.ok) {
+				return response.text();
+			} else {
+				throw new Error('unable to fetch template ' + templateName);
+			}
+		}).then(function(templateHtml) {
 			Structr.templateCache.addObject(templateHtml, templateName);
 		}).catch(function(e) {
 			console.log(e.statusText, templateName, e);
@@ -398,6 +487,8 @@ var Structr = {
 		if (!loginBox.is(':visible')) {
 
 			fastRemoveAllChildren(main[0]);
+			fastRemoveAllChildren(functionBar[0]);
+			_Elements.removeContextMenu();
 
 			$.blockUI({
 				fadeIn: 25,
@@ -482,11 +573,11 @@ var Structr = {
 			if (!sessionId && location.protocol === 'http:') {
 
 				new MessageBuilder()
-						.title("Unable to retrieve session id cookie")
-						.warning("This is most likely due to a pre-existing secure HttpOnly cookie. Please navigate to the HTTPS version of this page (even if HTTPS is inactive) and delete the JSESSIONID cookie. Then return to this page and reload. This should solve the problem.")
-						.requiresConfirmation()
-						.uniqueClass("http-only-cookie")
-						.show();
+					.title("Unable to retrieve session id cookie")
+					.warning("This is most likely due to a pre-existing secure HttpOnly cookie. Please navigate to the HTTPS version of this page (even if HTTPS is inactive) and delete the JSESSIONID cookie. Then return to this page and reload. This should solve the problem.")
+					.requiresConfirmation()
+					.uniqueClass("http-only-cookie")
+					.show();
 			}
 
 			if (typeof callback === "function") {
@@ -500,9 +591,9 @@ var Structr = {
 
 			Structr.expanded = JSON.parse(LSWrapper.getItem(expandedIdsKey));
 
-			var browserUrl = window.location.href;
-			var anchor = getAnchorFromUrl(browserUrl);
-			lastMenuEntry = ((!isLogin && anchor && anchor !== 'logout') ? anchor : Structr.getActiveModuleName());
+			Structr.determineModule();
+
+			lastMenuEntry = ((!isLogin && mainModule && mainModule !== 'logout') ? mainModule : Structr.getActiveModuleName());
 			if (!lastMenuEntry) {
 				lastMenuEntry = Structr.getActiveModuleName() || 'dashboard';
 			}
@@ -511,6 +602,15 @@ var Structr = {
 
 			callback();
 		});
+	},
+	determineModule: () => {
+		const browserUrl = new URL(window.location.href);
+		const anchor = browserUrl.hash.substring(1);
+		const navState  = anchor.split(':');
+		mainModule = navState[0];
+		subModule  = navState.length > 1 ? navState[1] : null;
+
+		// console.log(window.location.href, anchor, navState, mainModule, subModule);
 	},
 	clearMain: function() {
 		var newDroppables = new Array();
@@ -523,6 +623,8 @@ var Structr = {
 		$.ui.ddmanager.droppables['default'] = newDroppables;
 		$('iframe').contents().remove();
 		fastRemoveAllChildren(main[0]);
+		fastRemoveAllChildren(functionBar[0]);
+		_Elements.removeContextMenu();
 		$('#graph-box').hide();
 	},
 	confirmation: function(text, yesCallback, noCallback) {
@@ -679,18 +781,16 @@ var Structr = {
 	},
 	setSize: function(w, h, dw, dh) {
 
-		var l = parseInt((w - dw) / 2);
-		var t = parseInt((h - dh) / 2);
+		let l = parseInt((w - dw) / 2);
+		let t = parseInt((h - dh) / 2);
 
-		var horizontalOffset = 98;
+		let horizontalOffset = 148;
 
 		// needs to be calculated like this because the elements in the dialogHead (tabs) are floated and thus the .height() method returns 0
 		var headerHeight = (dialogText.position().top + dialogText.scrollParent().scrollTop()) - dialogHead.position().top;
 
-		$('#dialogBox .dialogTextWrapper').css({
-			width: (dw - 28) + 'px',
-			height: (dh - horizontalOffset - headerHeight) + 'px'
-		});
+		$('#dialogBox .dialogTextWrapper').css('width', 'calc(' + dw + 'px - 3rem)');
+		$('#dialogBox .dialogTextWrapper').css('height', dh - horizontalOffset - headerHeight);
 
 		$('.blockPage').css({
 			width: dw + 'px',
@@ -703,9 +803,9 @@ var Structr = {
 		if (codeMirror.length) {
 
 			var cmPosition = codeMirror.position();
-			var bottomOffset = 24;
+			var bottomOffset = 0;
 
-			var cmHeight = (dh - horizontalOffset - headerHeight - bottomOffset - cmPosition.top) + 'px';
+			var cmHeight = (dh - headerHeight - horizontalOffset - cmPosition.top) + 'px';
 
 			$('.CodeMirror:not(.cm-schema-methods)').css({
 				height: cmHeight
@@ -779,6 +879,7 @@ var Structr = {
 		message.show();
 	},
 	errorFromResponse: function(response, url, additionalParameters) {
+
 		var errorText = '';
 
 		if (response.errors && response.errors.length) {
@@ -802,7 +903,6 @@ var Structr = {
 				}
 
 				errorLines.push(errorMsg);
-
 			});
 
 			errorText = errorLines.join('<br>');
@@ -876,9 +976,13 @@ var Structr = {
 		}, 1000);
 	},
 	tempInfo: function(text, autoclose) {
+
 		window.clearTimeout(dialogId);
-		if (text)
+
+		if (text) {
 			$('#tempInfoBox .infoHeading').html('<i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '" /> ' + text);
+		}
+
 		if (autoclose) {
 			dialogId = window.setTimeout(function() {
 				$.unblockUI({
@@ -886,6 +990,7 @@ var Structr = {
 				});
 			}, 3000);
 		}
+
 		$('#tempInfoBox .closeButton').on('click', function(e) {
 			e.stopPropagation();
 			window.clearTimeout(dialogId);
@@ -918,15 +1023,17 @@ var Structr = {
 		$('#menu > ul > li > a').attr('disabled', 'disabled').addClass('disabled');
 	},
 	unblockMenu: function(ms) {
-		var ms = ms || 0;
 		// Wait ms before releasing the main menu
 		window.setTimeout(function() {
 			menuBlocked = false;
 			$('#menu > ul > li > a').removeAttr('disabled', 'disabled').removeClass('disabled');
-		}, ms);
+		}, ms || 0);
 	},
 	requestActivateModule: function(event, name) {
-		if (menuBlocked) return;
+		if (menuBlocked) {
+			return false;
+		}
+
 		event.stopPropagation();
 		if (Structr.getActiveModuleName() !== name || main.children().length === 0) {
 			return Structr.doActivateModule(name);
@@ -935,6 +1042,8 @@ var Structr = {
 		return true;
 	},
 	doActivateModule: function(name) {
+		Structr.determineModule();
+		// console.log('doActivateModule', name, mainModule, subModule);
 		if (Structr.modules[name]) {
 			var activeModule = Structr.getActiveModule();
 
@@ -1095,127 +1204,57 @@ var Structr = {
 
 		});
 	},
-	openSlideOut: function(triggerEl, slideoutElement, activeTabKey, callback) {
+	openSlideOut: function(triggerEl, slideoutElement, callback) {
 
-		var storedRightSlideoutWidth = LSWrapper.getItem(_Pages.rightSlideoutWidthKey);
-		var rsw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideoutElement.width() + 12);
+		let storedRightSlideoutWidth = LSWrapper.getItem(_Pages.pagesResizerRigthKey);
+		let rsw                      = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideoutElement.width() + 12);
 
-		var t = $(triggerEl);
+		let t = $(triggerEl);
 		t.addClass('active');
-		var slideoutWidth = rsw + 12;
-		LSWrapper.setItem(activeTabKey, t.prop('id'));
 		slideoutElement.width(rsw);
-		slideoutElement.animate({right: 0 + 'px'}, 100, function() {
+		slideoutElement.animate({right: 0}, 100, function() {
 			if (typeof callback === 'function') {
-				callback({sw: slideoutWidth, isOpenAction: true});
+				callback({isOpenAction: true});
 			}
 		}).zIndex(1);
+
 		slideoutElement.addClass('open');
-
-		t.draggable({
-			axis: 'x',
-			start: function(e, ui) {
-				$('.column-resizer-blocker').show();
-				t.addClass('noclick');
-			},
-			drag: function(e, ui) {
-				var w = $(window).width() - ui.offset.left - 20;
-				slideoutElement.css({
-					width: w + 'px'
-				});
-				ui.position.top += (ui.helper.width() / 2 - 6);
-				ui.position.left = - t.width() / 2 - 20;
-				var oldRightSlideoutWidth = slideoutWidth;
-				slideoutWidth = w + 12;
-
-				if (typeof callback === 'function') {
-					LSWrapper.setItem(_Pages.rightSlideoutWidthKey, slideoutElement.width());
-					callback({sw: (slideoutWidth - oldRightSlideoutWidth)});
-				}
-			},
-			stop: function(e, ui) {
-				$('.column-resizer-blocker').hide();
-				// remove noclick class after 200ms in case the mouseup event is not triggered while over the element (which leads to noclick remaining)
-				window.setTimeout(function() {
-					t.removeClass('noclick');
-				}, 200);
-				LSWrapper.setItem(_Pages.rightSlideoutWidthKey, slideoutElement.width());
-				t.css({
-					left: "",
-					top: ""
-				});
-			}
-		});
 	},
-	openLeftSlideOut: function(triggerEl, slideoutElement, activeTabKey, callback) {
-		var storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.leftSlideoutWidthKey);
-		var psw = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (slideoutElement.width() + 12);
+	openLeftSlideOut: function(triggerEl, slideoutElement, callback) {
 
-		var t = $(triggerEl);
+		let storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.pagesResizerLeftKey);
+		let psw                     = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (slideoutElement.width());
+
+		let t = $(triggerEl);
 		t.addClass('active');
-		var slideoutWidth = psw + 12;
-		LSWrapper.setItem(activeTabKey, t.prop('id'));
+
 		slideoutElement.width(psw);
-		slideoutElement.animate({left: 0 + 'px'}, 100, function() {
+
+		slideoutElement.animate({left: 0}, 100, function() {
 			if (typeof callback === 'function') {
-				callback({sw: slideoutWidth, isOpenAction: true});
+				callback({isOpenAction: true});
 			}
 		}).zIndex(1);
+
 		slideoutElement.addClass('open');
-
-		t.draggable({
-			axis: 'x',
-			start: function(e, ui) {
-				$('.column-resizer-blocker').show();
-				$(this).addClass('noclick');
-			},
-			drag: function(e, ui) {
-				var w = ui.position.left - 12;
-				slideoutElement.css({
-					width: w + 'px'
-				});
-				ui.position.top += (ui.helper.width() / 2 - 6);
-				ui.position.left -= (ui.helper.width() / 2 - 6);
-				var oldLeftSlideoutWidth = slideoutWidth;
-				slideoutWidth = w + 12;
-
-				if (typeof callback === 'function') {
-					LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
-					callback({sw: (slideoutWidth - oldLeftSlideoutWidth)});
-				}
-			},
-			stop: function(e, ui) {
-				$('.column-resizer-blocker').hide();
-				// remove noclick class after 200ms in case the mouseup event is not triggered while over the element (which leads to noclick remaining)
-				window.setTimeout(function() {
-					t.removeClass('noclick');
-				}, 200);
-				LSWrapper.setItem(_Pages.leftSlideoutWidthKey, slideoutElement.width());
-				t.css({
-					left: "",
-					top: ""
-				});
-			}
-		});
 	},
-	closeSlideOuts: function(slideouts, activeTabKey, callback) {
+	closeSlideOuts: function(slideouts, callback) {
 		var wasOpen = false;
-		var rsw = 0;
 
 		slideouts.forEach(function(slideout) {
 			slideout.removeClass('open');
-			var left = slideout.position().left;
-			var sw = slideout.width() + 12;
+			let left          = slideout.position().left;
+			let slideoutWidth = slideout[0].getBoundingClientRect().width;
 
-			if (Math.abs($(window).width() - left) >= 3) {
+			if (left < $(window).width()) {
+			//if (Math.abs($(window).width() - left) >= 3) {
 				wasOpen = true;
-				rsw = sw;
-				slideout.animate({right: '-=' + sw + 'px'}, 100, function() {
+				slideout.animate({ right: -slideoutWidth }, 100, function() {
 					if (typeof callback === 'function') {
-						callback(wasOpen, 0, -rsw);
+						callback(wasOpen);
 					}
 				}).zIndex(2);
-				$('.compTab.active', slideout).removeClass('active').draggable('destroy');
+				$('.slideout-activator.right.active').removeClass('active');
 
 				var openSlideoutCallback = slideout.data('closeCallback');
 				if (typeof openSlideoutCallback === 'function') {
@@ -1224,30 +1263,28 @@ var Structr = {
 			}
 		});
 
-		LSWrapper.removeItem(activeTabKey);
+		LSWrapper.removeItem(_Pages.activeTabRightKey);
 	},
-	closeLeftSlideOuts: function(slideouts, activeTabKey, callback) {
-		var wasOpen = false;
-		var osw;
+	closeLeftSlideOuts: function(slideouts, callback) {
+		let wasOpen = false;
+		let oldSlideoutWidth;
 
 		slideouts.forEach(function(slideout) {
 			slideout.removeClass('open');
-			var left = slideout.position().left;
-			var sw = slideout.width() + 12;
+			let left          = slideout.position().left;
+			let slideoutWidth = slideout[0].getBoundingClientRect().width;
 
-			if (Math.abs(left) <= 3) {
+			if (left > -1) {
 				wasOpen = true;
-				osw = sw;
-				slideout.animate({left: - sw -1 + 'px'}, 100, function() {
+				oldSlideoutWidth = slideoutWidth;
+				slideout.animate({ left: -slideoutWidth }, 100, function() {
 					if (typeof callback === 'function') {
-						callback(wasOpen, -osw, 0);
+						callback(wasOpen, -oldSlideoutWidth, 0);
 					}
 				}).zIndex(2);
-				$('.compTab.active', slideout).removeClass('active').draggable('destroy');
+				$('.slideout-activator.left.active').removeClass('active');
 			}
 		});
-
-		LSWrapper.removeItem(activeTabKey);
 	},
 	updateVersionInfo: function(retryCount = 0, isLogin = false) {
 
@@ -1262,6 +1299,9 @@ var Structr = {
 		}).then(function(data) {
 
 			let envInfo = data.result;
+			if (Array.isArray(envInfo)) {
+			    envInfo = envInfo[0];
+			}
 
 			let dbInfoEl = $('#header .structr-instance-db');
 
@@ -1279,7 +1319,7 @@ var Structr = {
 					Structr.appendInMemoryInfoToElement($('span', dbInfoEl), $('span i', dbInfoEl));
 
 					if (isLogin) {
-						new MessageBuilder().warning(Structr.inMemorWarningText).requiresConfirmation().show();
+						new MessageBuilder().warning(Structr.inMemoryWarningText).requiresConfirmation().show();
 					}
 				}
 			}
@@ -1287,9 +1327,12 @@ var Structr = {
 			$('#header .structr-instance-name').text(envInfo.instanceName);
 			$('#header .structr-instance-stage').text(envInfo.instanceStage);
 
+			Structr.legacyRequestParameters = envInfo.legacyRequestParameters;
+
 			if (true == envInfo.maintenanceModeActive) {
 				$('#header .structr-instance-maintenance').text("MAINTENANCE");
 			}
+
 
 			let ui = envInfo.components['structr-ui'];
 			if (ui) {
@@ -1355,6 +1398,7 @@ var Structr = {
 			registeredCallbacks.forEach((cb) => {
 				cb();
 			});
+
 		}).catch((e) => {
 			if (retryCount < 3) {
 				setTimeout(() => {
@@ -1383,14 +1427,13 @@ var Structr = {
 		menuConfig.sub.forEach(function(entry) {
 			$('#submenu li').last().after($('li[data-name="' + entry + '"]', menu));
 		});
-
 	},
-	inMemorWarningText:"Please note that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration tool to configure a database connection.",
+	inMemoryWarningText:"Please note that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration tool to configure a database connection.",
 	appendInMemoryInfoToElement: function(el, optionalToggleElement) {
 
 		let config = {
 			element: el,
-			text: Structr.inMemorWarningText,
+			text: Structr.inMemoryWarningText,
 			customToggleIcon: _Icons.database_error_icon,
 			helpElementCss: {
 				'border': '2px solid red',
@@ -1566,31 +1609,38 @@ var Structr = {
 			axis: 'x',
 			start: function(e, ui) {
 				$('.column-resizer-blocker').show();
-				let left = Math.min(window.innerWidth - minWidth, Math.max(minWidth, ui.position.left));
 			},
 			drag: function(e, ui) {
-
-				let left = Math.min(window.innerWidth - minWidth, Math.max(minWidth, ui.position.left));
-
-				// If there are two resizer elements, distance between resizers
-				// must always be larger than minWidth.
-				if ($(this).hasClass('column-resizer-left') && $('.column-resizer-right').length > 0) {
-					left = Math.min(left, $('.column-resizer-right').position().left - minWidth);
-				} else if ($(this).hasClass('column-resizer-right') && $('.column-resizer-left').length > 0) {
-					left = Math.max(left, $('.column-resizer-left').position().left + minWidth);
-				}
-
-				ui.position.left = left;
-				let val = (isRight === true) ? window.innerWidth - ui.position.left : ui.position.left;
-				dragCallback(val);
+				return dragCallback(Structr.getSliderValueForDragCallback(ui.position.left, minWidth, isRight));
 			},
 			stop: function(e, ui) {
 				$('.column-resizer-blocker').hide();
-				let val = (isRight === true) ? window.innerWidth - ui.position.left : ui.position.left;
-				LSWrapper.setItem(localstorageKey, val);
+				LSWrapper.setItem(localstorageKey, Structr.getSliderValueForDragCallback(ui.position.left, minWidth, isRight));
 			}
 		});
 
+	},
+	getSliderValueForDragCallback: (leftPos, minWidth, isRight) => {
+		let val = (isRight === true) ? Math.max(minWidth, window.innerWidth - leftPos) : Math.max(minWidth, leftPos);
+
+		// If there are two resizer elements, distance between resizers must always be larger than minWidth.
+		let leftResizer = document.querySelector('.column-resizer-left');
+		let rightResizer = document.querySelector('.column-resizer-right');
+		if (isRight && !leftResizer.classList.contains('hidden')) {
+			let leftResizerLeft = leftResizer.getBoundingClientRect().left;
+			val = Math.min(val, window.innerWidth - leftResizerLeft - minWidth + leftResizer.getBoundingClientRect().width + 3);
+		} else if (!isRight && rightResizer && !rightResizer.classList.contains('hidden')) {
+			let rightResizerLeft = rightResizer.getBoundingClientRect().left;
+			val = Math.min(val, rightResizerLeft - minWidth);
+		} else if (isRight && leftResizer.classList.contains('hidden')) {
+			let rightResizerLeft = rightResizer.getBoundingClientRect().left;
+			val = Math.min(val, window.innerWidth - minWidth);
+		} else if (!isRight && rightResizer && rightResizer.classList.contains('hidden')) {
+			val = Math.min(val, window.innerWidth - minWidth);
+		}
+
+		// console.log(isRight, leftResizer.classList.contains('hidden'), rightResizer.classList.contains('hidden'), val);
+		return val;
 	},
 	appendInfoTextToElement: function(config) {
 
@@ -1626,15 +1676,15 @@ var Structr = {
 		createdElements.push(helpElement);
 
 		toggleElement
-				.on("mousemove", function(e) {
-					helpElement.show();
-					helpElement.css({
-						left: Math.min(e.clientX + 20 + offsetX, window.innerWidth - helpElement.width() - 50),
-						top: Math.min(e.clientY + 10 + offsetY, window.innerHeight - helpElement.height() - 10)
-					});
-				}).on("mouseout", function(e) {
-					helpElement.hide();
+			.on("mousemove", function(e) {
+				helpElement.show();
+				helpElement.css({
+					left: Math.min(e.clientX + 20 + offsetX, window.innerWidth - helpElement.width() - 50),
+					top: Math.min(e.clientY + 10 + offsetY, window.innerHeight - helpElement.height() - 10)
 				});
+			}).on("mouseout", function(e) {
+			helpElement.hide();
+		});
 
 		if (insertAfter) {
 			if (!customToggleElement) {
@@ -1666,6 +1716,7 @@ var Structr = {
 	handleGenericMessage: function(data) {
 
 		let showScheduledJobsNotifications = Importer.isShowNotifications();
+		let showScriptingErrorPopups       = _Dashboard.isShowScriptingErrorPopups();
 
 		switch (data.type) {
 
@@ -1693,11 +1744,11 @@ var Structr = {
 
 				if (me.username === data.username) {
 					new MessageBuilder()
-							.title(data.title)
-							.error(data.text)
-							.requiresConfirmation()
-							.allowConfirmAll()
-							.show();
+						.title(data.title)
+						.error(data.text)
+						.requiresConfirmation()
+						.allowConfirmAll()
+						.show();
 				}
 				break;
 
@@ -1730,10 +1781,10 @@ var Structr = {
 				if (showScheduledJobsNotifications && me.username === data.username) {
 
 					var msg = new MessageBuilder()
-							.title(data.jobtype + ' ' + fileImportTitles[data.subtype])
-							.className((data.subtype === 'END') ? 'success' : 'info')
-							.text(fileImportTexts[data.subtype])
-							.uniqueClass(data.jobtype + '-import-status-' + data.filepath);
+						.title(data.jobtype + ' ' + fileImportTitles[data.subtype])
+						.className((data.subtype === 'END') ? 'success' : 'info')
+						.text(fileImportTexts[data.subtype])
+						.uniqueClass(data.jobtype + '-import-status-' + data.filepath);
 
 					if (data.subtype !== 'QUEUED') {
 						msg.updatesText().requiresConfirmation().allowConfirmAll();
@@ -1757,11 +1808,11 @@ var Structr = {
 					}
 
 					new MessageBuilder()
-							.title("Exception while importing " + data.jobtype)
-							.error("File: " + data.filepath + "<br>" + text)
-							.requiresConfirmation()
-							.allowConfirmAll()
-							.show();
+						.title("Exception while importing " + data.jobtype)
+						.error("File: " + data.filepath + "<br>" + text)
+						.requiresConfirmation()
+						.allowConfirmAll()
+						.show();
 				}
 
 				if (Structr.isModuleActive(Importer)) {
@@ -1785,10 +1836,10 @@ var Structr = {
 				if (showScheduledJobsNotifications && me.username === data.username) {
 
 					let msg = new MessageBuilder()
-							.title(scriptJobTitles[data.subtype])
-							.className((data.subtype === 'END') ? 'success' : 'info')
-							.text('<div>' + scriptJobTexts[data.subtype] + '</div>')
-							.uniqueClass(data.jobtype + '-' + data.subtype).appendsText();
+						.title(scriptJobTitles[data.subtype])
+						.className((data.subtype === 'END') ? 'success' : 'info')
+						.text('<div>' + scriptJobTexts[data.subtype] + '</div>')
+						.uniqueClass(data.jobtype + '-' + data.subtype).appendsText();
 
 					if (data.subtype !== 'QUEUED') {
 						msg.requiresConfirmation().allowConfirmAll();
@@ -1816,8 +1867,8 @@ var Structr = {
 				if (data.subtype === 'BEGIN') {
 
 					var text = type + ' started: ' + new Date(data.start) + '<br>'
-							+ 'Importing from: ' + data.source + '<br><br>'
-							+ 'Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>';
+						+ 'Importing from: ' + data.source + '<br><br>'
+						+ 'Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>';
 
 					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info(text).requiresConfirmation().updatesText().show();
 
@@ -1828,8 +1879,8 @@ var Structr = {
 				} else if (data.subtype === 'END') {
 
 					var text = "<br>" + type + " finished: " + new Date(data.end)
-							+ "<br>Total duration: " + data.duration
-							+ "<br><br>Reload the page to see the new data.";
+						+ "<br>Total duration: " + data.duration
+						+ "<br><br>Reload the page to see the new data.";
 
 					new MessageBuilder().title(type + " finished").uniqueClass(messageCssClass).success(text).specialInteractionButton('Reload Page', function() { location.reload(); }, 'Ignore').appendsText().updatesButtons().show();
 
@@ -1850,8 +1901,8 @@ var Structr = {
 				if (data.subtype === 'BEGIN') {
 
 					var text = type + ' started: ' + new Date(data.start) + '<br>'
-							+ 'Exporting to: ' + data.target + '<br><br>'
-							+ 'System performance may be affected during Export.<br><ol class="message-steps"></ol>';
+						+ 'Exporting to: ' + data.target + '<br><br>'
+						+ 'System performance may be affected during Export.<br><ol class="message-steps"></ol>';
 
 					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info(text).requiresConfirmation().updatesText().show();
 
@@ -1862,7 +1913,7 @@ var Structr = {
 				} else if (data.subtype === 'END') {
 
 					var text = '<br>'+ type + ' finished: ' + new Date(data.end)
-							+ '<br>Total duration: ' + data.duration;
+						+ '<br>Total duration: ' + data.duration;
 
 					new MessageBuilder().title(type + ' finished').uniqueClass(messageCssClass).success(text).appendsText().requiresConfirmation().show();
 
@@ -1874,7 +1925,7 @@ var Structr = {
 				if (data.subtype === 'BEGIN') {
 
 					var text = "Schema Analysis started: " + new Date(data.start) + "<br>"
-							+ "Please wait until the import process is finished. This message will be updated during the process.<br><ol class='message-steps'></ol>";
+						+ "Please wait until the import process is finished. This message will be updated during the process.<br><ol class='message-steps'></ol>";
 
 					new MessageBuilder().title("Schema Analysis progress").uniqueClass('schema-analysis').info(text).requiresConfirmation().updatesText().show();
 
@@ -1885,11 +1936,38 @@ var Structr = {
 				} else if (data.subtype === 'END') {
 
 					var text = "<br>Schema Analysis finished: " + new Date(data.end)
-							+ "<br>Total duration: " + data.duration;
+						+ "<br>Total duration: " + data.duration;
 
 					new MessageBuilder().title("Schema Analysis finished").uniqueClass('schema-analysis').success(text).appendsText().requiresConfirmation().show();
 
 				}
+				break;
+
+			case "CERTIFICATE_RETRIEVAL_STATUS":
+
+				if (data.subtype === 'BEGIN') {
+
+					var text = "Process to retrieve a Let's Encrypt certificate via ACME started: " + new Date(data.start) + "<br>"
+						+ "This will take a couple of seconds. This message will be updated during the process.<br><ol class='message-steps'></ol>";
+
+					new MessageBuilder().title("Certificate retrieval progress").uniqueClass('cert-retrieval').info(text).requiresConfirmation().updatesText().show();
+
+				} else if (data.subtype === 'PROGRESS') {
+
+					new MessageBuilder().title("Certificate retrieval progress").uniqueClass('cert-retrieval').info("<li>" + data.message + "</li>").requiresConfirmation().appendsText('.message-steps').show();
+
+				} else if (data.subtype === 'END') {
+
+					var text = "<br>Certificate retrieval process finished: " + new Date(data.end)
+						+ "<br>Total duration: " + data.duration;
+
+					new MessageBuilder().title("Certificate retrieval finished").uniqueClass('cert-retrieval').success(text).appendsText().requiresConfirmation().show();
+
+				} else if (data.subtype === 'WARNING') {
+
+					new MessageBuilder().title("Certificate retrieval progress").warning(data.message).uniqueClass('cert-retrieval').requiresConfirmation().allowConfirmAll().show();
+				}
+
 				break;
 
 			case "MAINTENANCE":
@@ -1910,14 +1988,191 @@ var Structr = {
 				new MessageBuilder().title('Exception in Scheduled Job').warning(data.message).requiresConfirmation().allowConfirmAll().show();
 				break;
 
+			case "RESOURCE_ACCESS":
+
+				let builder = new MessageBuilder().title('REST Access to \'' + data.uri + '\' denied').warning(data.message).requiresConfirmation().allowConfirmAll();
+
+				builder.specialInteractionButton('Go to Security and create Grant', function (btn) {
+
+					let maskIndex = (data.validUser ? 'AUTH_USER_' : 'NON_AUTH_USER_') + data.method.toUpperCase();
+					let flags     = _ResourceAccessGrants.mask[maskIndex] || 0;
+
+					let additionalData = {};
+
+					if (data.validUser === true) {
+						additionalData.visibleToAuthenticatedUsers = true;
+					} else {
+						additionalData.visibleToPublicUsers = true;
+					}
+
+					_ResourceAccessGrants.createResourceAccessGrant(data.signature, flags, null, additionalData);
+
+					let resourceAccessKey = 'resource-access';
+
+					let grantPagerConfig = LSWrapper.getItem(pagerDataKey + resourceAccessKey);
+					if (!grantPagerConfig) {
+						grantPagerConfig = {
+							id: resourceAccessKey,
+							type: resourceAccessKey,
+							page: 1,
+							pageSize: 25,
+							sort: "signature",
+							order: "asc"
+						};
+					} else {
+						grantPagerConfig = JSON.parse(grantPagerConfig);
+					}
+					grantPagerConfig.filters = {
+						flags: false,
+						signature: data.signature
+					};
+
+					LSWrapper.setItem(pagerDataKey + resourceAccessKey, JSON.stringify(grantPagerConfig));
+
+					if (Structr.getActiveModule()._moduleName === _Security._moduleName) {
+						_Security.selectTab(resourceAccessKey);
+					} else {
+						LSWrapper.setItem(_Security.securityTabKey, resourceAccessKey);
+						window.location.href = '#security';
+					}
+				}, 'Dismiss');
+
+				builder.show();
+
+				break;
+
+			case "SCRIPTING_ERROR":
+
+				if (showScriptingErrorPopups) {
+
+					if (data.nodeId && data.nodeType) {
+
+						let uniqueClass = 'n' + data.nodeId + data.nodeType + data.row + data.column;
+
+						Command.get(data.nodeId, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
+
+							let name     = data.name.slice(data.name.indexOf('_html_') === 0 ? 6 : 0);
+							let property = 'Property';
+							let title    = '';
+
+							switch (obj.type) {
+
+								case 'SchemaMethod':
+									if (obj.schemaNode) {
+										title = 'type "' + obj.schemaNode.name + '"';
+										property = 'Method';
+									} else {
+										title = 'global schema method';
+										property = 'Method';
+									}
+									break;
+
+								default:
+									if (obj.ownerDocument) {
+										if (obj.ownerDocument.type === 'ShadowDocument') {
+											title = 'shared component';
+										} else {
+											title = 'page "' + obj.ownerDocument.name  + '"';
+										}
+
+									}
+									break;
+							}
+
+							let location = '<table class="scripting-error-location">'
+								+ '<tr><th>Element:</th><td style="padding-left:8px;">' + data.nodeType + '[' + data.nodeId + ']</td></tr>'
+								+ '<tr><th>' + property + ':</th><td style="padding-left:8px;">' + name + '</td></tr>'
+								+ '<tr><th>Row:</th><td style="padding-left:8px;">' + data.row + '</td></tr>'
+								+ '<tr><th>Column:</th><td style="padding-left:8px;">' + data.column + '</td></tr>'
+								+ '</table>';
+
+							let builder = new MessageBuilder().uniqueClass(uniqueClass).incrementsUniqueCount(true)
+								.title('Scripting error in ' + title)
+								.warning(location + '<br/>' + data.message)
+								.requiresConfirmation();
+
+							if (data.nodeType === 'SchemaMethod') {
+
+								let pathToOpen = '';
+
+								if (obj.schemaNode) {
+
+									pathToOpen = 'custom--' + obj.schemaNode.id + '-methods-' + obj.id;
+
+								} else {
+
+									pathToOpen = 'globals--' + obj.id;
+								}
+
+								builder.specialInteractionButton('Go to method', function(btn) {
+									window.location.href = '#code';
+									window.setTimeout(function() {
+										_Code.findAndOpenNode(pathToOpen, false);
+									}, 1000);
+								}, 'Dismiss');
+
+							} else if (data.nodeType === 'SchemaProperty') {
+
+								let pathToOpen = '';
+
+								if (obj.schemaNode) {
+
+									pathToOpen = 'custom--' + obj.schemaNode.id + '-properties-' + obj.id;
+
+								} else {
+
+									pathToOpen = 'globals--' + obj.id;
+								}
+
+								builder.specialInteractionButton('Go to property', function(btn) {
+									window.location.href = '#code';
+									window.setTimeout(function() {
+										_Code.findAndOpenNode(pathToOpen, false);
+									}, 1000);
+								}, 'Dismiss');
+
+							} else {
+
+								builder.specialInteractionButton('Open in editor', function(btn) {
+									switch (data.nodeType) {
+										case 'Content':
+										case 'Template':
+											_Elements.openEditContentDialog(btn, obj, {
+												extraKeys: { "Ctrl-Space": "autocomplete" },
+												gutters: ["CodeMirror-lint-markers"],
+												lint: {
+													getAnnotations: function(text, callback) {
+														_Code.showScriptErrors(obj, text, callback, data.name);
+													},
+													async: true
+												}
+											});
+											break;
+										default:
+											_Entities.showProperties(obj);
+											break;
+									}
+								}, 'Dismiss');
+							}
+
+							// show message
+							builder.allowConfirmAll().show();
+						});
+
+					} else {
+						new MessageBuilder().title('Server-side Scripting Error').warning(data.message).requiresConfirmation().allowConfirmAll().show();
+					}
+				}
+				break;
+
 			default: {
 
-					var text = "<p>No handler for generic message of type <b>" + data.type + "</b> defined - printing complete message data.</p>";
-					Object.keys(data).forEach(function(key) {
-						text += "<b>" + key + "</b>: " + data[key] + "<br>";
-					});
+				var text = "<p>No handler for generic message of type <b>" + data.type + "</b> defined - printing complete message data.</p>";
+				Object.keys(data).forEach(function(key) {
+					text += "<b>" + key + "</b>: " + data[key] + "<br>";
+				});
 
-					new MessageBuilder().title("GENERIC_MESSAGE").warning(text).requiresConfirmation().show();
+				new MessageBuilder().title("GENERIC_MESSAGE").warning(text).requiresConfirmation().show();
 
 			}
 		}
@@ -1934,20 +2189,27 @@ var Structr = {
 
 		$('[data-comment]', elem).each(function(idx, el) {
 
-			let config = {
-				text: $(el).data("comment"),
-				element: $(el),
-				css: {
-					"margin": "0 4px",
-					"vertical-align": "top"
-				}
-			};
+			let $el = $(el);
 
-			let elCommentConfig = $(el).data('commentConfig') || {};
+			if (!$el.data('commentApplied')) {
 
-			// base config is overridden by the defaults parameter which is overriden by the element config
-			let infoConfig = Object.assign(config, defaults, elCommentConfig);
-			Structr.appendInfoTextToElement(infoConfig);
+				$el.data('commentApplied', true);
+
+				let config = {
+					text: $el.data("comment"),
+					element: $el,
+					css: {
+						"margin": "0 4px",
+						"vertical-align": "top"
+					}
+				};
+
+				let elCommentConfig = $el.data('commentConfig') || {};
+
+				// base config is overridden by the defaults parameter which is overriden by the element config
+				let infoConfig = Object.assign(config, defaults, elCommentConfig);
+				Structr.appendInfoTextToElement(infoConfig);
+			}
 		});
 
 	},
@@ -2262,8 +2524,8 @@ function MessageBuilder () {
 
 	this.getButtonHtml = function() {
 		return (this.params.requiresConfirmation ? '<button class="confirm">' + this.params.confirmButtonText + '</button>' : '') +
-			   (this.params.requiresConfirmation && this.params.allowConfirmAll ? '<button class="confirmAll">' + this.params.confirmAllButtonText + '</button>' : '') +
-			   (this.params.specialInteractionButton ? '<button class="special">' + this.params.specialInteractionButton.text + '</button>' : '');
+			(this.params.requiresConfirmation && this.params.allowConfirmAll ? '<button class="confirmAll">' + this.params.confirmAllButtonText + '</button>' : '') +
+			(this.params.specialInteractionButton ? '<button class="special">' + this.params.specialInteractionButton.text + '</button>' : '');
 	};
 
 	this.activateButtons = function(originalMsgBuilder, newMsgBuilder) {
@@ -2356,10 +2618,10 @@ function MessageBuilder () {
 
 			$('#info-area').append(
 				'<div class="' + this.params.classNames.join(' ') +  '" id="' + this.params.msgId + '">' +
-					(this.params.title ? '<h3 class="title">' + this.params.title + this.getUniqueCountElement() + '</h3>' : this.getUniqueCountElement()) +
-					'<div class="text">' + this.params.text + '</div>' +
-					(this.params.furtherText ? '<div class="furtherText">' + this.params.furtherText + '</div>' : '') +
-					'<div class="message-buttons">' + this.getButtonHtml() + '</div>' +
+				(this.params.title ? '<h3 class="title">' + this.params.title + this.getUniqueCountElement() + '</h3>' : this.getUniqueCountElement()) +
+				'<div class="text">' + this.params.text + '</div>' +
+				(this.params.furtherText ? '<div class="furtherText">' + this.params.furtherText + '</div>' : '') +
+				'<div class="message-buttons">' + this.getButtonHtml() + '</div>' +
 				'</div>'
 			);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,7 @@ package org.structr.feed.entity;
 import java.io.InputStream;
 import java.net.URI;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
@@ -73,5 +74,25 @@ public interface RemoteDocument extends NodeInterface, Indexable {
 		}
 
 		return null;
+	}
+
+	@Override
+	default boolean indexingEnabled() {
+		return Settings.RemoteDocumentIndexingEnabled.getValue();
+	}
+
+	@Override
+	default Integer maximumIndexedWords() {
+		return Settings.RemoteDocumentIndexingLimit.getValue();
+	}
+
+	@Override
+	default Integer indexedWordMinLength() {
+		return Settings.RemoteDocumentIndexingMinLength.getValue();
+	}
+
+	@Override
+	default Integer indexedWordMaxLength() {
+		return Settings.RemoteDocumentIndexingMaxLength.getValue();
 	}
 }

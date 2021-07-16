@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
-import org.mozilla.javascript.NativeObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
@@ -102,11 +101,7 @@ public class CSVFileImportJob extends FileImportJob {
 			final boolean ignoreInvalid              = getOrDefault(configuration.get("ignoreInvalid"), false);
 			final Integer commitInterval             = parseInt(configuration.get("commitInterval"), 1000);
 
-			if (configuration instanceof NativeObject) {
-				logger.info("Importing CSV from {} ({}) to {} using {}", filePath, fileUuid, targetType, Function.toGraphObjectMap(configuration));
-			} else {
-				logger.info("Importing CSV from {} ({}) to {} using {}", filePath, fileUuid, targetType, configuration);
-			}
+			logger.info("Importing CSV from {} ({}) to {} using {}", filePath, fileUuid, targetType, configuration);
 
 			final APIBuilder builder       = (APIBuilder) StructrApp.getConfiguration().getModules().get("api-builder");
 			final SimpleDateFormat df      = new SimpleDateFormat("yyyyMMddHHMM");

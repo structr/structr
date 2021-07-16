@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -89,6 +89,17 @@ public class VersionHelper {
 
 	public static String getClassPath() {
 		return classPath;
+	}
+
+	public static String getVersion() {
+
+		final Map<String, String> structrModule = components.get("structr");
+		if (structrModule != null) {
+
+			return structrModule.get("version");
+		}
+
+		return "unknown version";
 	}
 
 	public static String getInstanceName() {

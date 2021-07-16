@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -107,12 +108,15 @@ public class StructrTest {
 
 			try {
 
+				FlushCachesCommand.flushAll();
+
 				SchemaService.ensureBuiltinTypesExist(app);
 
 			} catch (Throwable t) {
 
 				t.printStackTrace();
-				logger.error("Exception while trying to clean database: {}", t.getMessage());
+				logger.error("Exception while trying to create built-in schema for tenant identifier {}: {}", randomTenantId, t.getMessage());
+
 			}
 		}
 
@@ -370,10 +374,50 @@ public class StructrTest {
 	protected void setupDatabaseConnection() {
 
 		// use database driver from system property, default to MemoryDatabaseService
-		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
+		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 		Settings.TenantIdentifier.setValue(randomTenantId);
+	}
+
+	protected void tryWithTimeout(final Supplier<Boolean> workload, final Runnable onTimeout, final int timeoutInMS) {
+
+		if (workload != null && timeoutInMS >= 0) {
+			final long startTime = System.currentTimeMillis();
+
+			do {
+				if (workload.get()) {
+					return;
+				}
+			} while ((startTime + timeoutInMS) >= System.currentTimeMillis());
+		}
+
+		if (onTimeout != null) {
+			onTimeout.run();
+		}
+	}
+
+	protected void tryWithTimeout(final Supplier<Boolean> workload, final Runnable onTimeout, final int timeoutInMS, final int retryDelayInMS) {
+
+		final long startTime = System.currentTimeMillis();
+
+		if (workload != null && onTimeout != null && timeoutInMS >= 0 && retryDelayInMS > 0) {
+			do {
+				if (workload.get()) {
+					return;
+				}
+
+				try {
+
+					Thread.sleep(retryDelayInMS);
+				} catch (InterruptedException ex) {
+
+					return;
+				}
+			} while ((startTime + timeoutInMS) >= System.currentTimeMillis());
+
+			onTimeout.run();
+		}
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.web.function;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,51 +53,19 @@ public class FromJsonFunction extends UiCommunityFunction {
 				return "";
 			}
 
+			final String source = sources[0].toString();
+
 			try {
 
-				final String source = sources[0].toString();
-				final Gson gson = new GsonBuilder().create();
-				List<Map<String, Object>> objects = new LinkedList<>();
+				final Object parsed = parseJson(source);
 
-				if (StringUtils.startsWith(source, "[")) {
-
-					final List<Map<String, Object>> list = gson.fromJson(source, new TypeToken<List<Map<String, Object>>>() {
-					}.getType());
-					final List<GraphObjectMap> elements = new LinkedList<>();
-
-					if (list != null) {
-
-						objects.addAll(list);
-					}
-
-					for (final Map<String, Object> src : objects) {
-
-						final GraphObjectMap destination = new GraphObjectMap();
-						elements.add(destination);
-
-						recursivelyConvertMapToGraphObjectMap(destination, src, 0);
-					}
-
-					return elements;
-
-				} else if (StringUtils.startsWith(source, "{")) {
-
-					final Map<String, Object> value = gson.fromJson(source, new TypeToken<Map<String, Object>>() {
-					}.getType());
-					final GraphObjectMap destination = new GraphObjectMap();
-
-					if (value != null) {
-
-						recursivelyConvertMapToGraphObjectMap(destination, value, 0);
-					}
-
-					return destination;
+				if (parsed != null) {
+					return parsed;
 				}
 
 			} catch (Throwable t) {
 
 				logException(caller, t, sources);
-
 			}
 
 			return "";
@@ -104,10 +73,66 @@ public class FromJsonFunction extends UiCommunityFunction {
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
 		}
 
 		return usage(ctx.isJavaScriptContext());
+	}
+
+	public static Object parseJson(final String source) throws JsonSyntaxException {
+
+		final Gson gson = new GsonBuilder().create();
+		List<Map<String, Object>> objects = new LinkedList<>();
+
+		try {
+
+			if (StringUtils.startsWith(source, "[")) {
+
+				final List<Map<String, Object>> list = gson.fromJson(source, new TypeToken<List<Map<String, Object>>>() {
+				}.getType());
+				final List<GraphObjectMap> elements = new LinkedList<>();
+
+				if (list != null) {
+
+					objects.addAll(list);
+				}
+
+				for (final Map<String, Object> src : objects) {
+
+					final GraphObjectMap destination = new GraphObjectMap();
+					elements.add(destination);
+
+					recursivelyConvertMapToGraphObjectMap(destination, src, 0);
+				}
+
+				return elements;
+
+			} else if (StringUtils.startsWith(source, "{")) {
+
+				final Map<String, Object> value = gson.fromJson(source, new TypeToken<Map<String, Object>>() {
+				}.getType());
+				final GraphObjectMap destination = new GraphObjectMap();
+
+				if (value != null) {
+
+					recursivelyConvertMapToGraphObjectMap(destination, value, 0);
+				}
+
+				return destination;
+			}
+
+		} catch (JsonSyntaxException jse) {
+			// Exception while parsing as Map - try default as object next
+		}
+
+		// Fallback on default behavior (works for primitives and arrays of primitives or mixed content)
+		final Object value = gson.fromJson(source, Object.class);
+
+		if (value != null) {
+
+			return UiFunction.toGraphObject(value, 3);
+		}
+
+		return null;
 	}
 
 	@Override

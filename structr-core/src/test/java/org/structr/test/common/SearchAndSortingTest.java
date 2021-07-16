@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -923,9 +923,7 @@ public class SearchAndSortingTest extends StructrTest {
 				int pageSize        = 10;
 				int page            = 2;
 
-				Settings.CypherDebugLogging.setValue(true);
 				result = app.nodeQuery(type).sort(sortKey, sortDesc).page(page).pageSize(pageSize).getAsList();
-				Settings.CypherDebugLogging.setValue(false);
 
 				logger.info("Result size: {}, expected: {}", new Object[] { result.size(), pageSize });
 				assertTrue(result.size() == Math.min(number, pageSize));
@@ -1888,8 +1886,6 @@ public class SearchAndSortingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			// search for a group with empty list of parents
 			final List<Group> result1 = app.nodeQuery(Group.class).and(groupsKey, new LinkedList<>()).getAsList();
 			assertEquals("Invalid search result", 1, result1.size());
@@ -1902,15 +1898,11 @@ public class SearchAndSortingTest extends StructrTest {
 			final List<Group> result3 = app.nodeQuery(Group.class).andName("Group3").and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
 			assertEquals("Invalid search result", 1, result3.size());
 
-			Settings.CypherDebugLogging.setValue(false);
-
 			tx.success();
 
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
 		}
-
-		Settings.CypherDebugLogging.setValue(false);
 	}
 
 	@Test
@@ -2282,8 +2274,6 @@ public class SearchAndSortingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			final List<NodeInterface> result1 = app.nodeQuery(centerType)
 				.and(types1Key, Arrays.asList(type11))
 				.getAsList();
@@ -2354,8 +2344,6 @@ public class SearchAndSortingTest extends StructrTest {
 				.and(types4Key, Arrays.asList(type42))
 				.and(types5Key, Arrays.asList(type51))
 				.getAsList().size());
-
-			Settings.CypherDebugLogging.setValue(false);
 
 			tx.success();
 
@@ -2523,8 +2511,6 @@ public class SearchAndSortingTest extends StructrTest {
 		// test
 		try (final Tx tx = app.tx()) {
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			final List<AbstractNode> result1 = (List)ScriptTestHelper.testExternalScript(ctx, SearchAndSortingTest.class.getResourceAsStream("/test/scripting/testFindQueryWithOrPredicate.js"));
 
 			assertEquals("Wrong result for predicate list,", "[Project0, Project1, Project3]", result1.stream().map(r -> r.getProperty(AbstractNode.name)).collect(Collectors.toList()).toString());
@@ -2537,6 +2523,55 @@ public class SearchAndSortingTest extends StructrTest {
 
 			fail("Unexpected exception");
 		}
+	}
+
+	@Test
+	public void testSortWithPathResolution() {
+
+		final Class<Group> principalType  = StructrApp.getConfiguration().getNodeEntityClass("Principal");
+		final Class<Group> groupType      = StructrApp.getConfiguration().getNodeEntityClass("Group");
+		final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
+
+		try (final Tx tx = app.tx()) {
+
+			final Principal ownerC = createTestNode(principalType, new NodeAttribute<>(AbstractNode.name, "C"));
+			final Principal ownerD = createTestNode(principalType, new NodeAttribute<>(AbstractNode.name, "D"));
+			final Principal ownerA = createTestNode(principalType, new NodeAttribute<>(AbstractNode.name, "A"));
+			final Principal ownerE = createTestNode(principalType, new NodeAttribute<>(AbstractNode.name, "E"));
+
+			createTestNode(groupType, new NodeAttribute<>(AbstractNode.name, "zzz"));
+			createTestNode(groupType, new NodeAttribute<>(AbstractNode.name, "aaa"), new NodeAttribute<>(AbstractNode.owner, ownerA));
+			createTestNode(groupType, new NodeAttribute<>(AbstractNode.name, "ttt"), new NodeAttribute<>(AbstractNode.owner, ownerE));
+			createTestNode(groupType, new NodeAttribute<>(AbstractNode.name, "xxx"), new NodeAttribute<>(AbstractNode.owner, ownerC));
+			createTestNode(groupType, new NodeAttribute<>(AbstractNode.name, "bbb"), new NodeAttribute<>(AbstractNode.owner, ownerD));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final List<GraphObject> list = (List<GraphObject>)Scripting.evaluate(new ActionContext(securityContext), null, "${sort(find('Group'), 'owner.name')}", "test");
+
+			// the collection must be sorted according to the name of the owner node
+			// with the ownerless node at the end because we're sorting "nulls last"
+
+			assertEquals("Invalid sort() result", "aaa", list.get(0).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "xxx", list.get(1).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "bbb", list.get(2).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "ttt", list.get(3).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "zzz", list.get(4).getProperty(nameKey));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			System.out.println(fex.getMessage());
+			fail("Unexpected exception.");
+		}
+
 	}
 
 	// ----- private methods -----

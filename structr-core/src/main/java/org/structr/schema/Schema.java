@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -47,5 +47,6 @@ public interface Schema {
 	public Iterable<SchemaProperty> getSchemaProperties();
 	public Iterable<SchemaView> getSchemaViews();
 	public Iterable<SchemaMethod> getSchemaMethods();
+	public Iterable<SchemaMethod> getSchemaMethodsIncludingInheritance();
 	public Iterable<SchemaGrant> getSchemaGrants();
 }

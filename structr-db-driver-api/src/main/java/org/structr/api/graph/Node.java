@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,4 +39,5 @@ public interface Node extends PropertyContainer {
 	Iterable<Relationship> getRelationships();
 	Iterable<Relationship> getRelationships(final Direction direction);
 	Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType);
+	Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType, final String otherType);
 }

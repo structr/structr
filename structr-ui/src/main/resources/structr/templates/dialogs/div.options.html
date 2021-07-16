@@ -1,19 +1,18 @@
 <div id="div-options" class="quick-access-options">
-	<h3>${config.title}</h3>
 	<div class="row">
 		<div class="option-tile">
-			<label>CSS Class</label>
-			<input type="text" id="class-input" value="${config.entity._html_class || ''}" />
+			<label for="class-input">CSS Class</label>
+			<input type="text" id="class-input" name="_html_class"/>
 		</div>
 		<div class="option-tile">
-			<label>HTML ID</label>
-			<input type="text" id="id-input" value="${config.entity._html_id || ''}" />
+			<label for="id-input">HTML ID</label>
+			<input type="text" id="id-input" name="_html_id" />
 		</div>
 	</div>
 	<div class="row">
 		<div class="option-tile double">
-			<label>Style</label>
-			<input type="text" id="style-input" value="${config.div._html_style || ''}" />
+			<label for="style-input">Style</label>
+			<input type="text" id="style-input" name="_html_style" />
 		</div>
 	</div>
 

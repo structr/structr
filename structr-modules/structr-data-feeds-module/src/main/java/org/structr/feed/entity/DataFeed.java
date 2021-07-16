@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,12 +39,14 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonSchema.Cascade;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -62,7 +64,7 @@ public interface DataFeed extends NodeInterface {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DataFeed"));
 
-		type.addStringProperty("url",          PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("url",          PropertyView.Public, PropertyView.Ui).setIndexed(true).setRequired(true);
 		type.addStringProperty("feedType",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("description",  PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
@@ -103,7 +105,7 @@ public interface DataFeed extends NodeInterface {
 			.setSource(DataFeed.class.getName() + ".updateIfDue(this, ctx);")
 			.setDoExport(true);
 
-		type.relate(item, "HAS_FEED_ITEMS", Cardinality.OneToMany, "feed", "items");
+		type.relate(item, "HAS_FEED_ITEMS", Cardinality.OneToMany, "feed", "items").setCascadingDelete(Cascade.sourceToTarget);
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "items");
@@ -184,85 +186,116 @@ public interface DataFeed extends NodeInterface {
 
 			try {
 
-				final PropertyKey<Date> dateKey  = StructrApp.key(FeedItem.class, "pubDate");
-				final PropertyKey<String> urlKey = StructrApp.key(FeedItem.class, "url");
-				final URL remote                 = new URL(remoteUrl);
-				final SyndFeedInput input        = new SyndFeedInput();
+				final URL remote                       = new URL(remoteUrl);
+				final SyndFeedInput input              = new SyndFeedInput();
 
 				try (final Reader reader = new XmlReader(remote)) {
 
-					final SyndFeed      feed      = input.build(reader);
+					final SyndFeed        feed    = input.build(reader);
 					final List<SyndEntry> entries = feed.getEntries();
 
-					thisFeed.setProperty(StructrApp.key(DataFeed.class, "feedType"),    feed.getFeedType());
-					thisFeed.setProperty(StructrApp.key(DataFeed.class, "description"), feed.getDescription());
+					final PropertyKey feedItemUrlKey             = StructrApp.key(FeedItem.class, "url");
+					final PropertyKey feedItemPubDateKey         = StructrApp.key(FeedItem.class, "pubDate");
+					final PropertyKey feedItemUpdatedDateKey     = StructrApp.key(FeedItem.class, "updatedDate");
+					final PropertyKey feedItemNameKey            = StructrApp.key(FeedItem.class, "name");
+					final PropertyKey feedItemAuthorKey          = StructrApp.key(FeedItem.class, "author");
+					final PropertyKey feedItemCommentsKey        = StructrApp.key(FeedItem.class, "comments");
+					final PropertyKey feedItemDescriptionKey     = StructrApp.key(FeedItem.class, "description");
+					final PropertyKey feedItemContentsKey        = StructrApp.key(FeedItem.class, "contents");
+					final PropertyKey feedItemEnclosuresKey      = StructrApp.key(FeedItem.class, "enclosures");
+					final PropertyKey feedItemContentModeKey     = StructrApp.key(FeedItemContent.class, "mode");
+					final PropertyKey feedItemContentItemTypeKey = StructrApp.key(FeedItemContent.class, "itemType");
+					final PropertyKey feedItemContentValueKey    = StructrApp.key(FeedItemContent.class, "value");
+					final PropertyKey feedItemEnclosureUrlKey    = StructrApp.key(FeedItemEnclosure.class, "url");
+					final PropertyKey feedItemEnclosureLengthKey = StructrApp.key(FeedItemEnclosure.class, "enclosureLength");
+					final PropertyKey feedItemEnclosureTypeKey   = StructrApp.key(FeedItemEnclosure.class, "enclosureType");
 
 					final List<FeedItem> newItems = Iterables.toList(thisFeed.getItems());
 
 					for (final SyndEntry entry : entries) {
 
-						final PropertyMap props = new PropertyMap();
-
 						final String link = entry.getLink();
 
-						// Check if item with this link already exists
-						if (app.nodeQuery(FeedItem.class).and(urlKey, link).getFirst() == null) {
+						// Check if item with this link is already attached to this feed
+						if (!newItems.stream().anyMatch(existingFeedItem -> existingFeedItem.getProperty(feedItemUrlKey).equals(link))) {
 
-							props.put(urlKey,                                        entry.getLink());
-							props.put(StructrApp.key(FeedItem.class, "name"),        entry.getTitle());
-							props.put(StructrApp.key(FeedItem.class, "author"),      entry.getAuthor());
-							props.put(StructrApp.key(FeedItem.class, "comments"),    entry.getComments());
+							final PropertyMap props = new PropertyMap();
 
-							if(entry.getDescription() != null) {
-								props.put(StructrApp.key(FeedItem.class, "description"), entry.getDescription().getValue());
+							props.put(feedItemUrlKey,         entry.getLink());
+							props.put(feedItemNameKey,        entry.getTitle());
+							props.put(feedItemAuthorKey,      entry.getAuthor());
+							props.put(feedItemCommentsKey,    entry.getComments());
+							props.put(feedItemPubDateKey,     entry.getPublishedDate());
+							props.put(feedItemUpdatedDateKey, entry.getUpdatedDate());
+
+							if (entry.getDescription() != null) {
+								props.put(feedItemDescriptionKey, entry.getDescription().getValue());
 							}
 
-							final FeedItem item = app.create(FeedItem.class, props);
-							item.setProperty(dateKey, entry.getPublishedDate());
-
-							final List<FeedItemContent> itemContents = new LinkedList<>();
+							final List<FeedItemContent> itemContents     = new LinkedList<>();
 							final List<FeedItemEnclosure> itemEnclosures = new LinkedList<>();
 
-							//Get and add all contents
+							// Get and add all contents
 							final List<SyndContent> contents = entry.getContents();
 							for (final SyndContent content : contents) {
 
-								final FeedItemContent itemContent = app.create(FeedItemContent.class);
-								itemContent.setValue(content.getValue());
+								final FeedItemContent itemContent = app.create(FeedItemContent.class,
+									new NodeAttribute(feedItemContentValueKey,    content.getValue()),
+									new NodeAttribute(feedItemContentModeKey,     content.getMode()),
+									new NodeAttribute(feedItemContentItemTypeKey, content.getType())
+								);
 
 								itemContents.add(itemContent);
 							}
 
-							//Get and add all enclosures
+							// Get and add all enclosures
 							final List<SyndEnclosure> enclosures = entry.getEnclosures();
-							for (final SyndEnclosure enclosure : enclosures){
+							for (final SyndEnclosure enclosure : enclosures) {
 
-								final FeedItemEnclosure itemEnclosure = app.create(FeedItemEnclosure.class);
-
-								itemEnclosure.setProperty(StructrApp.key(FeedItemEnclosure.class, "url"),             enclosure.getUrl());
-								itemEnclosure.setProperty(StructrApp.key(FeedItemEnclosure.class, "enclosureLength"), enclosure.getLength());
-								itemEnclosure.setProperty(StructrApp.key(FeedItemEnclosure.class, "enclosureType"),   enclosure.getType());
+								final FeedItemEnclosure itemEnclosure = app.create(FeedItemEnclosure.class,
+									new NodeAttribute(feedItemEnclosureUrlKey,    enclosure.getUrl()),
+									new NodeAttribute(feedItemEnclosureTypeKey,   enclosure.getType()),
+									new NodeAttribute(feedItemEnclosureLengthKey, enclosure.getLength())
+								);
 
 								itemEnclosures.add(itemEnclosure);
 							}
 
-							item.setProperty(StructrApp.key(FeedItem.class, "contents"),   itemContents);
-							item.setProperty(StructrApp.key(FeedItem.class, "enclosures"), itemEnclosures);
+							props.put(feedItemContentsKey,   itemContents);
+							props.put(feedItemEnclosuresKey, itemEnclosures);
+
+							final FeedItem item = app.create(FeedItem.class, props);
 
 							newItems.add(item);
 
 							final Logger logger = LoggerFactory.getLogger(DataFeed.class);
-							logger.debug("Created new item: {} ({}) ", item.getProperty(FeedItem.name), item.getProperty(dateKey));
+							logger.debug("Created new item: {} ({}) ", entry.getTitle(), entry.getPublishedDate());
 						}
 					}
 
-					thisFeed.setProperty(StructrApp.key(DataFeed.class, "items"),       newItems);
-					thisFeed.setProperty(StructrApp.key(DataFeed.class, "lastUpdated"), new Date());
+					final PropertyMap feedProps = new PropertyMap();
+
+					if (StringUtils.isEmpty(thisFeed.getProperty(DataFeed.name))) {
+						feedProps.put(DataFeed.name, feed.getTitle());
+					}
+
+					feedProps.put(StructrApp.key(DataFeed.class, "feedType"),    feed.getFeedType());
+					feedProps.put(StructrApp.key(DataFeed.class, "description"), feed.getDescription());
+					feedProps.put(StructrApp.key(DataFeed.class, "items"),       newItems);
+					feedProps.put(StructrApp.key(DataFeed.class, "lastUpdated"), new Date());
+
+					thisFeed.setProperties(ctx, feedProps);
 				}
 
-			} catch (IllegalArgumentException | IOException | FeedException | FrameworkException ex) {
+			} catch (IOException | FeedException | IllegalArgumentException ex) {
+
 				final Logger logger = LoggerFactory.getLogger(DataFeed.class);
-				logger.error("Error while updating feed", ex);
+				logger.error("Error while trying to read feed '{}' ({}). {}: {}", remoteUrl, thisFeed.getUuid(), ex.getClass().getSimpleName(), ex.getMessage());
+
+			} catch (FrameworkException ex) {
+
+				final Logger logger = LoggerFactory.getLogger(DataFeed.class);
+				logger.error("Error while trying to read feed at '{}' ({})", remoteUrl, thisFeed.getUuid(), ex);
 			}
 		}
 

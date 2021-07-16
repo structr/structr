@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.function.BatchableFunction;
 import org.structr.core.graph.Tx;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.schema.action.Hint;
 
@@ -58,20 +59,20 @@ public class FunctionExpression extends Expression {
 		return buf.toString();
 	}
 
-	public FunctionExpression(final String name, final Function<Object, Object> function) {
+	public FunctionExpression(final String name, final Function<Object, Object> function, final int row, final int column) {
 
-		super(name);
+		super(name, row, column);
 
 		this.function = function;
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
 		final ArrayList<Object> results = new ArrayList<>();
 		for (Expression expr : expressions) {
 
-			final Object result = expr.evaluate(ctx, entity);
+			final Object result = expr.evaluate(ctx, entity, hints);
 			results.add(result);
 		}
 
@@ -109,7 +110,7 @@ public class FunctionExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 

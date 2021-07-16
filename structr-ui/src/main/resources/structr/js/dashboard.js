@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,61 +20,57 @@ $(document).ready(function() {
 	Structr.registerModule(_Dashboard);
 });
 
-var _Dashboard = {
+let _Dashboard = {
 	_moduleName: 'dashboard',
 	dashboard: undefined,
-	logInterval: undefined,
 	activeTabPrefixKey: 'activeDashboardTabPrefix' + port,
-	logRefreshTimeIntervalKey: 'dashboardLogRefreshTimeInterval' + port,
-	logLinesKey: 'dashboardNumberOfLines' + port,
-	zipExportPrefixKey: 'zipExportPrefix' + port,
-	zipExportAppendTimestampKey: 'zipExportAppendTimestamp' + port,
 
-	init: function() {},
+	showScriptingErrorPopupsKey: 'showScriptinErrorPopups' + port,
+	showVisibilityFlagsInGrantsTableKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + port,
+	favorEditorForContentElementsKey: 'favorEditorForContentElements' + port,
+
+	init: function() {
+		if (!subModule) subModule = LSWrapper.getItem(_Dashboard.activeTabPrefixKey);
+	},
 	unload: function() {
-		window.clearInterval(_Dashboard.logInterval);
+		window.clearInterval(_Dashboard.serverlog.interval);
 	},
 	removeActiveClass: function(nodelist) {
 		nodelist.forEach(function(el) {
 			el.classList.remove('active');
 		});
 	},
-	activateLastActiveTab: function() {
-		let tabId = LSWrapper.getItem(_Dashboard.activeTabPrefixKey);
-		if (tabId) {
-			let tab = document.querySelector('#dashboard .tabs-menu li a[href="' + tabId + '"]');
-			if (tab) {
-				tab.click();
-			}
-		}
-	},
-	onload: function(retryCount = 0) {
+	onload: async function(retryCount = 0) {
 
-		_Dashboard.init();
-		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('dashboard'));
+		try {
 
-		let templateConfig = {};
-		let releasesIndexUrl = '';
-		let snapshotsIndexUrl = '';
+			_Dashboard.init();
 
-		fetch(rootUrl + '/_env').then(function(response) {
+			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('dashboard'));
 
-			if (response.ok) {
-				return response.json();
-			} else {
+			let templateConfig = {};
+			let releasesIndexUrl = '';
+			let snapshotsIndexUrl = '';
+
+			let envResponse = await fetch(rootUrl + '/_env');
+
+			if (!envResponse.ok) {
 				throw Error("Unable to read env resource data");
 			}
 
-		}).then(function(data) {
+			let envData = await envResponse.json();
 
-			templateConfig.envInfo = data.result;
+			templateConfig.envInfo = envData.result;
+			if (Array.isArray(templateConfig.envInfo)) {
+			    templateConfig.envInfo = templateConfig.envInfo[0];
+			}
 
-			templateConfig.envInfo.version = (data.result.components['structr'] || data.result.components['structr-ui']).version || '';
-			templateConfig.envInfo.build   = (data.result.components['structr'] || data.result.components['structr-ui']).build   || '';
-			templateConfig.envInfo.date    = (data.result.components['structr'] || data.result.components['structr-ui']).date    || '';
+			templateConfig.envInfo.version = (templateConfig.envInfo.components['structr'] || templateConfig.envInfo.components['structr-ui']).version || '';
+			templateConfig.envInfo.build   = (templateConfig.envInfo.components['structr'] || templateConfig.envInfo.components['structr-ui']).build   || '';
+			templateConfig.envInfo.date    = (templateConfig.envInfo.components['structr'] || templateConfig.envInfo.components['structr-ui']).date    || '';
 
-			releasesIndexUrl  = data.result.availableReleasesUrl;
-			snapshotsIndexUrl = data.result.availableSnapshotsUrl;
+			releasesIndexUrl  = templateConfig.envInfo.availableReleasesUrl;
+			snapshotsIndexUrl = templateConfig.envInfo.availableSnapshotsUrl;
 
 			if (templateConfig.envInfo.startDate) {
 				templateConfig.envInfo.startDate = templateConfig.envInfo.startDate.slice(0, 10);
@@ -86,180 +82,167 @@ var _Dashboard = {
 
 			templateConfig.databaseDriver = Structr.getDatabaseDriverNameForDatabaseServiceName(templateConfig.envInfo.databaseService);
 
-			return fetch(rootUrl + '/me/ui');
+			let meResponse       = await fetch(rootUrl + '/me/ui');
+			let meData           = await meResponse.json();
 
-		}).then(function(response) {
+			if (Array.isArray(meData.result)) {
+			    meData.result = meData.result[0];
+			}
+			templateConfig.meObj = meData.result;
+			let deployResponse = await fetch('/structr/deploy');
 
-			return response.json();
+			templateConfig.deployServletAvailable = (deployResponse.status !== 404);
 
-		}).then(function(data) {
-
-			templateConfig.meObj = data.result;
-
-			return fetch('/structr/deploy');
-
-		}).then((result) => {
-
-			templateConfig.deployServletAvailable = (result.status !== 404);
-
-		}).then(function() {
-
-			templateConfig.zipExportPrefix = LSWrapper.getItem(_Dashboard.zipExportPrefixKey);
-			templateConfig.zipExportAppendTimestamp = LSWrapper.getItem(_Dashboard.zipExportAppendTimestampKey, true);
+			templateConfig.zipExportPrefix          = LSWrapper.getItem(_Dashboard.deployment.zipExportPrefixKey);
+			templateConfig.zipExportAppendTimestamp = LSWrapper.getItem(_Dashboard.deployment.zipExportAppendTimestampKey, true);
 
 			Structr.fetchHtmlTemplate('dashboard/dashboard', templateConfig, function(html) {
 
 				main.append(html);
 
-				if (templateConfig.envInfo.databaseService === 'MemoryDatabaseService') {
-					Structr.appendInMemoryInfoToElement($('#dashboard-about-structr .db-driver'));
-				}
+				document.getElementById('deployment-file-input').addEventListener('input', () => {
+					document.getElementById('deployment-url-input').value = '';
+				});
 
-				_Dashboard.gatherVersionUpdateInfo(templateConfig.envInfo.version, releasesIndexUrl, snapshotsIndexUrl);
+				document.getElementById('deployment-url-input').addEventListener('input', () => {
+					document.getElementById('deployment-file-input').value = '';
+				});
 
-				document.querySelectorAll('#dashboard .tabs-menu li a').forEach(function(tabLink) {
-					tabLink.addEventListener('click', function(e) {
-						e.preventDefault();
+				Structr.fetchHtmlTemplate('dashboard/dashboard.menu', templateConfig, function(html) {
+					functionBar.append(html);
 
-						let activeLink = document.querySelector('#dashboard .tabs-menu li.active a');
-						if (activeLink) {
-							$(activeLink.getAttribute('href')).trigger('hide');
+					if (templateConfig.envInfo.databaseService === 'MemoryDatabaseService') {
+						Structr.appendInMemoryInfoToElement($('#dashboard-about-structr .db-driver'));
+					}
+
+					_Dashboard.eventlog.initializeRuntimeEventLog();
+					_Dashboard.serverlog.init();
+
+					_Dashboard.gatherVersionUpdateInfo(templateConfig.envInfo.version, releasesIndexUrl, snapshotsIndexUrl);
+
+					document.querySelectorAll('#function-bar .tabs-menu li a').forEach(function(tabLink) {
+
+						// console.log(tabLink, tabLink.getAttribute('href'), '#' + mainModule + ':' + subModule);
+
+						tabLink.addEventListener('click', function(e) {
+							e.preventDefault();
+
+							let urlHash = e.target.closest('a').getAttribute('href');
+
+							subModule = urlHash.split(':')[1];
+							let targetId = '#dashboard-' + subModule;
+							window.location.hash = urlHash;
+
+							_Dashboard.removeActiveClass(document.querySelectorAll('#dashboard .tabs-contents .tab-content'));
+							_Dashboard.removeActiveClass(document.querySelectorAll('#function-bar .tabs-menu li'));
+
+							e.target.closest('li').classList.add('active');
+							document.querySelector(targetId).classList.add('active');
+							LSWrapper.setItem(_Dashboard.activeTabPrefixKey, subModule);
+
+							$(targetId).trigger('show');
+						});
+
+						if (tabLink.closest('a').getAttribute('href') === '#' + mainModule + ':' + subModule) {
+							// tabLink.closest('li').classList.add('active');
+							tabLink.click();
 						}
-
-						let targetId = e.target.getAttribute('href');
-
-						_Dashboard.removeActiveClass(document.querySelectorAll('#dashboard .tabs-contents .tab-content'));
-						_Dashboard.removeActiveClass(document.querySelectorAll('#dashboard .tabs-menu li'));
-
-						e.target.closest('li').classList.add('active');
-						document.querySelector(targetId).classList.add('active');
-						LSWrapper.setItem(_Dashboard.activeTabPrefixKey, targetId);
-
-						$(targetId).trigger('show');
 					});
-				});
 
-				document.querySelector('#clear-local-storage-on-server').addEventListener('click', function() {
-					_Dashboard.clearLocalStorageOnServer(templateConfig.meObj.id);
-				});
+					document.querySelector('#clear-local-storage-on-server').addEventListener('click', function() {
+						_Dashboard.clearLocalStorageOnServer(templateConfig.meObj.id);
+					});
 
-				_Dashboard.checkLicenseEnd(templateConfig.envInfo, $('#dashboard-about-structr .end-date'));
+					_Dashboard.checkLicenseEnd(templateConfig.envInfo, $('#dashboard-about-structr .end-date'));
 
-				$('button#do-app-import').on('click', function() {
-					_Dashboard.deploy('import', $('#deployment-source-input').val());
-				});
+                    _Dashboard.deployment.init();
 
-				$('button#do-app-export').on('click', function() {
-					_Dashboard.deploy('export', $('#app-export-target-input').val());
-				});
+					_Dashboard.appendGlobalSchemaMethods($('#dashboard-global-schema-methods'));
 
-				$('button#do-app-import-from-url').on('click', function() {
-					_Dashboard.deployFromURL($('#redirect-url').val(), $('#deployment-url-input').val());
-				});
+					$(window).off('resize');
+					$(window).on('resize', function() {
+						Structr.resize();
+					});
 
-				$('button#do-data-import').on('click', function() {
-					_Dashboard.deployData('import', $('#data-import-source-input').val());
-				});
+					let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
+					if (!userConfigMenu) {
+						userConfigMenu = {
+							main: templateConfig.envInfo.mainMenu,
+							sub: []
+						};
+					}
 
-				$('button#do-data-export').on('click', function() {
-					_Dashboard.deployData('export', $('#data-export-target-input').val(), $('#data-export-types-input').val());
-				});
+					let mainMenuConfigContainer = document.querySelector('#main-menu-entries-config');
+					let subMenuConfigContainer = document.querySelector('#sub-menu-entries-config');
 
-				$('button#do-app-export-to-zip').on('click', function() {
-					_Dashboard.exportAsZip();
-				});
+					for (let menuitem of document.querySelectorAll('#menu li[data-name]')) {
 
-				_Dashboard.initializeRuntimeEventLog();
-
-				let typesSelectElem = $('#data-export-types-input');
-
-				Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isBuiltinType', function(nodes) {
-
-					let builtinTypes = [];
-					let customTypes = [];
-
-					for (let n of nodes) {
-						if (n.isBuiltinType) {
-							builtinTypes.push(n);
-						} else {
-							customTypes.push(n);
+						// account for missing modules because of license
+						if (menuitem.style.display !== 'none') {
+							let n = document.createElement('div');
+							n.classList.add('menu-item');
+							n.textContent = menuitem.dataset.name;
+							n.dataset.name = menuitem.dataset.name;
+							subMenuConfigContainer.appendChild(n);
 						}
 					}
 
-					if (customTypes.length > 0) {
-
-						typesSelectElem.append(customTypes.reduce(function(html, node) {
-							return html + '<option>' + node.name + '</option>';
-						}, '<optgroup label="Custom Types">') + '</optgroup>');
+					for (let mainMenuItem of userConfigMenu.main) {
+						mainMenuConfigContainer.appendChild(subMenuConfigContainer.querySelector('div[data-name="' + mainMenuItem + '"]'));
 					}
 
-					typesSelectElem.append(builtinTypes.reduce(function(html, node) {
-							return html + '<option>' + node.name + '</option>';
-						}, '<optgroup label="Builtin Types">') + '</optgroup>');
+					$('#main-menu-entries-config, #sub-menu-entries-config').sortable({
+						connectWith: ".connectedSortable"
+					}).disableSelection();
 
+					document.querySelector('#save-menu-config').addEventListener('click', () => {
+						let newMenuConfig = {
+							main: [].map.call(mainMenuConfigContainer.querySelectorAll('div.menu-item'), (el) => { return el.dataset.name; }),
+							sub: [].map.call(subMenuConfigContainer.querySelectorAll('div.menu-item'), (el) => { return el.dataset.name; })
+						};
 
-					typesSelectElem.chosen({
-						search_contains: true,
-						width: 'calc(100% - 14px)',
-						display_selected_options: false,
-						hide_results_on_select: false,
-						display_disabled_options: false
-					}).chosenSortable();
-				});
+						Structr.updateMainMenu(newMenuConfig);
+					});
 
-				_Dashboard.activateLogBox();
-				_Dashboard.activateLastActiveTab();
-				_Dashboard.appendGlobalSchemaMethods($('#dashboard-global-schema-methods'));
+					let showScriptingErrorPopups = _Dashboard.isShowScriptingErrorPopups();
 
-				$(window).off('resize');
-				$(window).on('resize', function() {
-					Structr.resize();
-				});
+					let showScriptingErrorPopupsCheckbox = document.querySelector('#dashboard-show-scripting-error-popups');
+					if (showScriptingErrorPopupsCheckbox) {
+						showScriptingErrorPopupsCheckbox.checked = showScriptingErrorPopups;
 
-
-				let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
-				if (!userConfigMenu) {
-					userConfigMenu = {
-						main: templateConfig.envInfo.mainMenu,
-						sub: []
-					};
-				}
-
-				let mainMenuConfigContainer = document.querySelector('#main-menu-entries-config');
-				let subMenuConfigContainer = document.querySelector('#sub-menu-entries-config');
-
-				for (let menuitem of document.querySelectorAll('#menu li[data-name]')) {
-
-					// account for missing modules because of license
-					if (menuitem.style.display !== 'none') {
-						let n = document.createElement('div');
-						n.classList.add('menu-item');
-						n.textContent = menuitem.dataset.name;
-						n.dataset.name = menuitem.dataset.name;
-						subMenuConfigContainer.appendChild(n);
+						showScriptingErrorPopupsCheckbox.addEventListener('change', () => {
+							LSWrapper.setItem(_Dashboard.showScriptingErrorPopupsKey, showScriptingErrorPopupsCheckbox.checked);
+						});
 					}
-				}
 
-				for (let mainMenuItem of userConfigMenu.main) {
-					mainMenuConfigContainer.appendChild(subMenuConfigContainer.querySelector('div[data-name="' + mainMenuItem + '"]'));
-				}
+					let showVisibilityFlagsInGrantsTable = _Dashboard.isShowVisibilityFlagsInGrantsTable();
 
-				$('#main-menu-entries-config, #sub-menu-entries-config').sortable({
-					connectWith: ".connectedSortable"
-				}).disableSelection();
+					let showVisibilityFlagsInGrantsTableCheckbox = document.querySelector('#dashboard-show-visibility-flags-grants');
+					if (showVisibilityFlagsInGrantsTableCheckbox) {
+						showVisibilityFlagsInGrantsTableCheckbox.checked = showVisibilityFlagsInGrantsTable;
 
-				document.querySelector('#save-menu-config').addEventListener('click', () => {
-					let newMenuConfig = {
-						main: [].map.call(mainMenuConfigContainer.querySelectorAll('div.menu-item'), (el) => { return el.dataset.name; }),
-						sub: [].map.call(subMenuConfigContainer.querySelectorAll('div.menu-item'), (el) => { return el.dataset.name; })
-					};
+						showVisibilityFlagsInGrantsTableCheckbox.addEventListener('change', () => {
+							LSWrapper.setItem(_Dashboard.showVisibilityFlagsInGrantsTableKey, showVisibilityFlagsInGrantsTableCheckbox.checked);
+						});
+					}
 
-					Structr.updateMainMenu(newMenuConfig);
+					let favorEditorForContentElements = _Dashboard.isFavorEditorForContentElements();
+
+					let favorEditorForContentElementsCheckbox = document.querySelector('#dashboard-favor-editors-for-content-elements');
+					if (favorEditorForContentElementsCheckbox) {
+						favorEditorForContentElementsCheckbox.checked = favorEditorForContentElements;
+
+						favorEditorForContentElementsCheckbox.addEventListener('change', () => {
+							LSWrapper.setItem(_Dashboard.favorEditorForContentElementsKey, favorEditorForContentElementsCheckbox.checked);
+						});
+					}
+
+					Structr.unblockMenu(100);
 				});
-
-				Structr.unblockMenu(100);
 			});
-		}).catch((e) => {
+
+			} catch(e) {
+
 			if (retryCount < 3) {
 				setTimeout(() => {
 					_Dashboard.onload(++retryCount);
@@ -267,7 +250,17 @@ var _Dashboard = {
 			} else {
 				console.log(e);
 			}
-		});
+		}
+
+	},
+	isShowScriptingErrorPopups: function() {
+		return LSWrapper.getItem(_Dashboard.showScriptingErrorPopupsKey, true);
+	},
+	isShowVisibilityFlagsInGrantsTable: function() {
+		return LSWrapper.getItem(_Dashboard.showVisibilityFlagsInGrantsTableKey, false);
+	},
+	isFavorEditorForContentElements: () => {
+		return LSWrapper.getItem(_Dashboard.favorEditorForContentElementsKey, true);
 	},
 	gatherVersionUpdateInfo(currentVersion, releasesIndexUrl, snapshotsIndexUrl) {
 
@@ -354,9 +347,6 @@ var _Dashboard = {
 			LSWrapper.clear();
 		});
 	},
-	checkNewVersions: function() {
-
-	},
 	checkLicenseEnd: function(envInfo, element, cfg) {
 
 		if (envInfo && envInfo.endDate && element) {
@@ -394,320 +384,31 @@ var _Dashboard = {
 	},
 	appendGlobalSchemaMethods: function(container) {
 
-		var maintenanceList = $('<div></div>').appendTo(container);
+		let maintenanceList = $('<table class="props"></table>').appendTo(container);
 
-		$.get(rootUrl + '/SchemaMethod?schemaNode=&sort=name', function(data) {
+		$.get(rootUrl + '/SchemaMethod?schemaNode=&' + Structr.getRequestParameterName('sort') + '=name', function(data) {
 
-			data.result.forEach(function(result) {
+			if (data.result.length === 0) {
+				maintenanceList.append('No global schema methods.')
+			} else {
 
-				var methodRow = $('<div class="global-method" style=""></div>');
-				var methodName = $('<span>' + result.name + '</span>');
+				for (let method of data.result) {
 
-				methodRow.append('<button id="run-' + result.id + '" class="action button">Run now</button>').append(methodName);
-				maintenanceList.append(methodRow);
+					let methodRow = $('<tr class="global-method"></tr>');
+					let methodName = $('<td><span class="method-name">' + method.name + '</span></td>');
 
-				var cleanedComment = (result.comment && result.comment.trim() !== '') ? result.comment.replaceAll("\n", "<br>") : '';
+					methodRow.append(methodName).append('<td><button id="run-' + method.id + '" class="action button">Run now</button></td>');
+					maintenanceList.append(methodRow);
 
-				if (cleanedComment.trim() !== '') {
-					Structr.appendInfoTextToElement({
-						element: methodName,
-						text: cleanedComment,
-						helpElementCss: {
-							"line-height": "initial"
-						}
+					$('button#run-' + method.id).on('click', function() {
+						_Code.runGlobalSchemaMethod(method);
 					});
 				}
-
-				$('button#run-' + result.id).on('click', function() {
-					_Code.runGlobalSchemaMethod(result);
-				});
-			});
-		});
-	},
-    activateLogBox: function() {
-
-		let feedbackElement = document.querySelector('#dashboard-server-log-feedback');
-
-		let numberOfLines      = LSWrapper.getItem(_Dashboard.logLinesKey, 300);
-		let numberOfLinesInput = document.querySelector('#dashboard-server-log-lines');
-
-		numberOfLinesInput.value = numberOfLines;
-
-		numberOfLinesInput.addEventListener('change', () => {
-			numberOfLines = numberOfLinesInput.value;
-			LSWrapper.setItem(_Dashboard.logLinesKey, numberOfLines);
-
-			blinkGreen($(numberOfLinesInput));
-		});
-
-		let registerRefreshInterval = (timeInMs) => {
-
-			window.clearInterval(_Dashboard.logInterval);
-
-			if (timeInMs > 0) {
-				_Dashboard.logInterval = window.setInterval(() => updateLog(), timeInMs);
-			}
-		};
-
-		let logRefreshTimeInterval    = LSWrapper.getItem(_Dashboard.logRefreshTimeIntervalKey, 1000);
-		let refreshTimeIntervalSelect = document.querySelector('#dashboard-server-log-refresh-interval');
-
-		refreshTimeIntervalSelect.value = logRefreshTimeInterval;
-
-		refreshTimeIntervalSelect.addEventListener('change', () => {
-			logRefreshTimeInterval = refreshTimeIntervalSelect.value;
-			LSWrapper.setItem(_Dashboard.logRefreshTimeIntervalKey, logRefreshTimeInterval);
-
-			registerRefreshInterval(logRefreshTimeInterval);
-			blinkGreen($(refreshTimeIntervalSelect));
-		});
-
-		let logBoxContentBox = $('#dashboard-server-log textarea');
-
-		let scrollEnabled = true;
-		let textAreaHasFocus = false;
-
-		logBoxContentBox.on('focus', () => {
-			textAreaHasFocus = true;
-			feedbackElement.textContent = 'Text area has focus, refresh disabled until focus lost.';
-		});
-
-		logBoxContentBox.on('blur', () => {
-			textAreaHasFocus = false;
-			feedbackElement.textContent = '';
-		});
-
-        let updateLog = function() {
-
-			if (!textAreaHasFocus) {
-
-				feedbackElement.textContent = 'Refreshing server log...';
-
-				Command.getServerLogSnapshot(numberOfLines, (a) => {
-					logBoxContentBox.text(a[0].result);
-					if (scrollEnabled) {
-						logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
-					}
-
-					window.setTimeout(() => {
-						feedbackElement.textContent = '';
-					}, 250);
-				});
-			}
-		};
-
-		logBoxContentBox.bind('scroll', (event) => {
-			let textarea = event.target;
-
-			let maxScroll = textarea.scrollHeight - 4;
-			let currentScroll = (textarea.scrollTop + $(textarea).height());
-
-			if (currentScroll >= maxScroll) {
-				scrollEnabled = true;
-			} else {
-				scrollEnabled = false;
-			}
-		});
-
-		new Clipboard('#dashboard-server-log-copy', {
-			target: function () {
-				return logBoxContentBox[0];
-			}
-		});
-
-		let container = $('#dashboard-server-log');
-		if (container) {
-
-			container.on('show', function() {
-				updateLog();
-				registerRefreshInterval(logRefreshTimeInterval);
-			});
-
-			container.on('hide', function() {
-				window.clearInterval(_Dashboard.logInterval);
-			});
-		}
-    },
-	deploy: function(mode, location) {
-
-		if (!(location && location.length)) {
-			new MessageBuilder().title('Unable to start data ' + mode + '').warning('Please enter a local directory path for data export.').requiresConfirmation().show();
-			return;
-		}
-
-		var data = {
-			mode: mode
-		};
-
-		if (mode === 'import') {
-			data['source'] = location;
-		} else if (mode === 'export') {
-			data['target'] = location;
-		}
-
-		$.ajax({
-			url: rootUrl + '/maintenance/deploy',
-			data: JSON.stringify(data),
-			method: 'POST',
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
-			statusCode: {
-				422: function(data) {
-					//new MessageBuilder().title('Unable to start app ' + mode + '').warning(data.responseJSON.message).requiresConfirmation().show();
-				}
 			}
 		});
 	},
-	exportAsZip: function() {
 
-		let prefix = document.getElementById('zip-export-prefix').value;
 
-		let cleaned = prefix.replaceAll(/[^a-zA-Z0-9 _-]/g, '').trim();
-		if (cleaned !== prefix) {
-			new MessageBuilder().title('Cleaned prefix').info('The given filename prefix was changed to "' + cleaned + '".').requiresConfirmation().show();
-			prefix = cleaned;
-		}
-		LSWrapper.setItem(_Dashboard.zipExportPrefixKey, prefix);
-
-		let appendTimestamp = document.getElementById('zip-export-append-timestamp').checked;
-		LSWrapper.setItem(_Dashboard.zipExportAppendTimestampKey, appendTimestamp);
-
-		if (appendTimestamp) {
-
-			let zeroPad = (v) => {
-				return ((v < 10) ? '0' : '') + v;
-			};
-
-			let date = new Date();
-
-			prefix += '_' + date.getFullYear() + zeroPad(date.getMonth()+1) + zeroPad(date.getDate()) + '_' + zeroPad(date.getHours()) + zeroPad(date.getMinutes()) + zeroPad(date.getSeconds());
-		}
-
-		window.location = '/structr/deploy?name=' + prefix;
-	},
-	deployFromURL: function(redirectUrl, downloadUrl) {
-
-		if (!(downloadUrl && downloadUrl.length)) {
-			new MessageBuilder().title('Unable to start app import from URL').warning('Please enter the URL of the ZIP file containing the app data.').requiresConfirmation().show();
-			return;
-		}
-
-		let data = new FormData();
-		data.append('redirectUrl', redirectUrl);
-		data.append('downloadUrl', downloadUrl);
-
-		$.ajax({
-			url: '/structr/deploy',
-			method: 'POST',
-			processData: false,
-			contentType: false,
-			data: data,
-			statusCode: {
-				400: function(data) {
-					new MessageBuilder().title('Unable to import app from URL').warning(data.responseText).requiresConfirmation().show();
-				}
-			}
-		});
-	},
-	deployData: function(mode, location, types) {
-
-		if (!(location && location.length)) {
-			new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please enter a directory path for data ' + mode + '.').requiresConfirmation().show();
-			return;
-		}
-
-		var data = {
-			mode: mode
-		};
-
-		if (mode === 'import') {
-			data['source'] = location;
-		} else if (mode === 'export') {
-			data['target'] = location;
-			if (types && types.length) {
-				data['types'] = types.join(',');
-			} else {
-				new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please select at least one data type.').requiresConfirmation().show();
-				return;
-			}
-
-		}
-
-		let url = rootUrl + '/maintenance/deployData';
-
-		$.ajax({
-			url: url,
-			data: JSON.stringify(data),
-			method: 'POST',
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
-			statusCode: {
-				422: function(data) {
-					new MessageBuilder().warning(data.responseJSON.message).requiresConfirmation().show();
-				}
-			}
-		});
-
-	},
-	initializeRuntimeEventLog: function() {
-
-		let container = $('#dashboard-event-log');
-		if (container) {
-
-			container.on('show', function() {
-				_Dashboard.loadRuntimeEventLog();
-			});
-
-			$('#refresh-event-log').off('click').on('click', _Dashboard.loadRuntimeEventLog);
-			$('#event-type-filter').off('change').on('change', _Dashboard.loadRuntimeEventLog);
-		}
-	},
-
-	loadRuntimeEventLog: function() {
-
-		let row    = document.querySelector('#event-log-container');
-		let num    = document.querySelector('#event-type-page-size');
-		let filter = document.querySelector('#event-type-filter');
-		let url    = rootUrl + '/_runtimeEventLog?order=absoluteTimestamp&sort=desc&pageSize=' + num.value;
-		let type   = filter.value;
-
-		row.innerHTML = '';
-
-		if ( type &&type.length) {
-			url += '&type=' + type;
-		}
-
-		fetch(url)
-			.then(response => response.json())
-			.then(result => {
-
-				for (let event of result.result) {
-
-					let timestamp = new Date(event.absoluteTimestamp).toISOString();
-					let tr        = document.createElement('tr');
-
-					let firstDataCol = ("object" === typeof event.data[0]) ? JSON.stringify(event.data) : event.data[0];
-
-					if (event.type === 'Authentication') {
-						if (event.data[1]) {
-							event.data[1] = '<code style="white-space: pre; text-decoration: underline; text-underline-position: under;">' + event.data[1] + '</code>';
-						}
-					}
-
-					_Dashboard.elementWithContent(tr, 'td', timestamp);
-					_Dashboard.elementWithContent(tr, 'td', event.type);
-					_Dashboard.elementWithContent(tr, 'td', event.description);
-					_Dashboard.elementWithContent(tr, 'td', firstDataCol || '');
-					_Dashboard.elementWithContent(tr, 'td', event.data[1] || '');
-					_Dashboard.elementWithContent(tr, 'td', event.data[2] || '');
-					_Dashboard.elementWithContent(tr, 'td', event.data[3] || '');
-					_Dashboard.elementWithContent(tr, 'td', event.data[4] || '');
-
-					row.appendChild(tr);
-				}
-			}
-		);
-	},
 	elementWithContent: function(parent, tag, content) {
 
 		let element = document.createElement(tag);
@@ -716,5 +417,438 @@ var _Dashboard = {
 		parent.appendChild(element);
 
 		return element;
+	},
+
+	deployment: {
+    	zipExportPrefixKey: 'zipExportPrefix' + port,
+        zipExportAppendTimestampKey: 'zipExportAppendTimestamp' + port,
+
+        init: () => {
+            $('button#do-app-import').on('click', function() {
+                _Dashboard.deployment.deploy('import', $('#deployment-source-input').val());
+            });
+
+            $('button#do-app-export').on('click', function() {
+                _Dashboard.deployment.deploy('export', $('#app-export-target-input').val());
+            });
+
+            $('button#do-app-import-from-zip').on('click', function() {
+            	let filesSelectField = document.getElementById('deployment-file-input');
+            	if (filesSelectField && filesSelectField.files.length > 0) {
+					_Dashboard.deployment.deployFromZIPUpload($('#redirect-url').val(), filesSelectField);
+				} else {
+					_Dashboard.deployment.deployFromZIPURL($('#redirect-url').val(), $('#deployment-url-input').val());
+				}
+            });
+
+            $('button#do-data-import').on('click', function() {
+                _Dashboard.deployment.deployData('import', $('#data-import-source-input').val());
+            });
+
+            $('button#do-data-export').on('click', function() {
+                _Dashboard.deployment.deployData('export', $('#data-export-target-input').val(), $('#data-export-types-input').val());
+            });
+
+            $('button#do-app-export-to-zip').on('click', function() {
+                _Dashboard.deployment.exportAsZip();
+            });
+
+            let typesSelectElem = $('#data-export-types-input');
+
+            Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isBuiltinType', function(nodes) {
+
+                let builtinTypes = [];
+                let customTypes = [];
+
+                for (let n of nodes) {
+                    if (n.isBuiltinType) {
+                        builtinTypes.push(n);
+                    } else {
+                        customTypes.push(n);
+                    }
+                }
+
+                if (customTypes.length > 0) {
+
+                    typesSelectElem.append(customTypes.reduce(function(html, node) {
+                        return html + '<option>' + node.name + '</option>';
+                    }, '<optgroup label="Custom Types">') + '</optgroup>');
+                }
+
+                typesSelectElem.append(builtinTypes.reduce(function(html, node) {
+                    return html + '<option>' + node.name + '</option>';
+                }, '<optgroup label="Builtin Types">') + '</optgroup>');
+
+
+                typesSelectElem.chosen({
+                    search_contains: true,
+                    width: 'calc(100% - 14px)',
+                    display_selected_options: false,
+                    hide_results_on_select: false,
+                    display_disabled_options: false
+                }).chosenSortable();
+            });
+
+        },
+
+        deploy: function(mode, location) {
+
+            if (!(location && location.length)) {
+                new MessageBuilder().title('Unable to start data ' + mode + '').warning('Please enter a local directory path for data export.').requiresConfirmation().show();
+                return;
+            }
+
+            var data = {
+                mode: mode
+            };
+
+            if (mode === 'import') {
+                data['source'] = location;
+            } else if (mode === 'export') {
+                data['target'] = location;
+            }
+
+            $.ajax({
+                url: rootUrl + '/maintenance/deploy',
+                data: JSON.stringify(data),
+                method: 'POST',
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                statusCode: {
+                    422: function(data) {
+                        //new MessageBuilder().title('Unable to start app ' + mode + '').warning(data.responseJSON.message).requiresConfirmation().show();
+                    }
+                }
+            });
+        },
+        exportAsZip: function() {
+
+            let prefix = document.getElementById('zip-export-prefix').value;
+
+            let cleaned = prefix.replaceAll(/[^a-zA-Z0-9 _-]/g, '').trim();
+            if (cleaned !== prefix) {
+                new MessageBuilder().title('Cleaned prefix').info('The given filename prefix was changed to "' + cleaned + '".').requiresConfirmation().show();
+                prefix = cleaned;
+            }
+            LSWrapper.setItem(_Dashboard.deployment.zipExportPrefixKey, prefix);
+
+            let appendTimestamp = document.getElementById('zip-export-append-timestamp').checked;
+            LSWrapper.setItem(_Dashboard.deployment.zipExportAppendTimestampKey, appendTimestamp);
+
+            if (appendTimestamp) {
+
+                let zeroPad = (v) => {
+                    return ((v < 10) ? '0' : '') + v;
+                };
+
+                let date = new Date();
+
+                prefix += '_' + date.getFullYear() + zeroPad(date.getMonth()+1) + zeroPad(date.getDate()) + '_' + zeroPad(date.getHours()) + zeroPad(date.getMinutes()) + zeroPad(date.getSeconds());
+            }
+
+            window.location = '/structr/deploy?name=' + prefix;
+        },
+        deployFromZIPURL: function(redirectUrl, downloadUrl) {
+
+            if (!(downloadUrl && downloadUrl.length)) {
+                new MessageBuilder().title('Unable to start app import from URL').warning('Please enter a URL or upload a ZIP file containing the app data.').requiresConfirmation().show();
+                return;
+            }
+
+            let data = new FormData();
+            data.append('redirectUrl', redirectUrl);
+            data.append('downloadUrl', downloadUrl);
+
+            $.ajax({
+                url: '/structr/deploy',
+                method: 'POST',
+                processData: false,
+                contentType: false,
+                data: data,
+                statusCode: {
+                    400: function(data) {
+                        new MessageBuilder().title('Unable to import app from URL').warning(data.responseText).requiresConfirmation().show();
+                    }
+                }
+            });
+        },
+		deployFromZIPUpload: function(redirectUrl, filesSelectField) {
+
+			if (!(filesSelectField && filesSelectField.files.length)) {
+				new MessageBuilder().title('Unable to start app import from ZIP file').warning('Please select a ZIP file containing the app data for upload.').requiresConfirmation().show();
+				return;
+			}
+
+			let data = new FormData();
+			data.append('redirectUrl', redirectUrl);
+			data.append('file', filesSelectField.files[0]);
+
+			$.ajax({
+				url: '/structr/deploy',
+				method: 'POST',
+				processData: false,
+				contentType: false,
+				data: data,
+				statusCode: {
+					400: function(data) {
+						new MessageBuilder().title('Unable to import app from URL').warning(data.responseText).requiresConfirmation().show();
+					}
+				}
+			});
+		},
+        deployData: function(mode, location, types) {
+
+            if (!(location && location.length)) {
+                new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please enter a directory path for data ' + mode + '.').requiresConfirmation().show();
+                return;
+            }
+
+            var data = {
+                mode: mode
+            };
+
+            if (mode === 'import') {
+                data['source'] = location;
+            } else if (mode === 'export') {
+                data['target'] = location;
+                if (types && types.length) {
+                    data['types'] = types.join(',');
+                } else {
+                    new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please select at least one data type.').requiresConfirmation().show();
+                    return;
+                }
+
+            }
+
+            let url = rootUrl + '/maintenance/deployData';
+
+            $.ajax({
+                url: url,
+                data: JSON.stringify(data),
+                method: 'POST',
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                statusCode: {
+                    422: function(data) {
+                        new MessageBuilder().warning(data.responseJSON.message).requiresConfirmation().show();
+                    }
+                }
+            });
+
+        },
+	},
+
+	serverlog: {
+        interval: undefined,
+        refreshTimeIntervalKey: 'dashboardLogRefreshTimeInterval' + port,
+        numberOfLinesKey: 'dashboardNumberOfLines' + port,
+
+        init: function() {
+
+            let feedbackElement      = document.querySelector('#dashboard-server-log-feedback');
+            let numberOfLines        = LSWrapper.getItem(_Dashboard.serverlog.numberOfLinesKey, 300);
+            let numberOfLinesInput   = document.querySelector('#dashboard-server-log-lines');
+            numberOfLinesInput.value = numberOfLines;
+
+            numberOfLinesInput.addEventListener('change', () => {
+                numberOfLines = numberOfLinesInput.value;
+                LSWrapper.setItem(_Dashboard.serverlog.numberOfLinesKey, numberOfLines);
+
+                blinkGreen($(numberOfLinesInput));
+            });
+
+            let manualRefreshButton       = document.querySelector('#dashboard-server-log-manual-refresh');
+            manualRefreshButton.addEventListener('click', () => updateLog());
+
+            let registerRefreshInterval = (timeInMs) => {
+
+                window.clearInterval(_Dashboard.serverlog.interval);
+
+                if (timeInMs > 0) {
+                    manualRefreshButton.classList.add('hidden');
+                    _Dashboard.serverlog.interval = window.setInterval(() => updateLog(), timeInMs);
+                } else {
+                    manualRefreshButton.classList.remove('hidden');
+                }
+            };
+
+            let logRefreshTimeInterval    = LSWrapper.getItem(_Dashboard.serverlog.refreshTimeIntervalKey, 1000);
+            let refreshTimeIntervalSelect = document.querySelector('#dashboard-server-log-refresh-interval');
+
+            refreshTimeIntervalSelect.value = logRefreshTimeInterval;
+
+            refreshTimeIntervalSelect.addEventListener('change', () => {
+                logRefreshTimeInterval = refreshTimeIntervalSelect.value;
+                LSWrapper.setItem(_Dashboard.serverlog.refreshTimeIntervalKey, logRefreshTimeInterval);
+
+                registerRefreshInterval(logRefreshTimeInterval);
+                blinkGreen($(refreshTimeIntervalSelect));
+            });
+
+            let logBoxContentBox = $('#dashboard-server-log textarea');
+
+            let scrollEnabled = true;
+            let textAreaHasFocus = false;
+
+            logBoxContentBox.on('focus', () => {
+                textAreaHasFocus = true;
+                feedbackElement.textContent = 'Text area has focus, refresh disabled until focus lost.';
+            });
+
+            logBoxContentBox.on('blur', () => {
+                textAreaHasFocus = false;
+                feedbackElement.textContent = '';
+            });
+
+            let updateLog = function() {
+
+                if (!textAreaHasFocus) {
+
+                    feedbackElement.textContent = 'Refreshing server log...';
+
+                    Command.getServerLogSnapshot(numberOfLines, (a) => {
+                        logBoxContentBox.text(a[0].result);
+                        if (scrollEnabled) {
+                            logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
+                        }
+
+                        window.setTimeout(() => {
+                            feedbackElement.textContent = '';
+                        }, 250);
+                    });
+                }
+            };
+
+            logBoxContentBox.bind('scroll', (event) => {
+                let textarea = event.target;
+
+                let maxScroll = textarea.scrollHeight - 4;
+                let currentScroll = (textarea.scrollTop + $(textarea).height());
+
+                if (currentScroll >= maxScroll) {
+                    scrollEnabled = true;
+                } else {
+                    scrollEnabled = false;
+                }
+            });
+
+			document.getElementById('dashboard-server-log-copy').addEventListener('click', async () => {
+				let text = logBoxContentBox[0].textContent;
+				await navigator.clipboard.writeText(text);
+			});
+
+            let container = $('#dashboard-server-log');
+            if (container) {
+
+                container.on('show', function() {
+                    updateLog();
+                    registerRefreshInterval(logRefreshTimeInterval);
+                });
+
+                container.on('hide', function() {
+                    window.clearInterval(_Dashboard.serverlog.interval);
+                });
+            }
+        },
+
+	},
+
+	eventlog: {
+        initializeRuntimeEventLog: function() {
+
+            let container = $('#dashboard-event-log');
+            if (container) {
+
+                container.on('show', function() {
+                    _Dashboard.eventlog.loadRuntimeEventLog();
+                });
+
+                $('#refresh-event-log').off('click').on('click', _Dashboard.eventlog.loadRuntimeEventLog);
+                $('#event-type-filter').off('change').on('change', _Dashboard.eventlog.loadRuntimeEventLog);
+            }
+        },
+
+        loadRuntimeEventLog: function() {
+
+            let row    = document.querySelector('#event-log-container');
+            let num    = document.querySelector('#event-type-page-size');
+            let filter = document.querySelector('#event-type-filter');
+            let url    = rootUrl + '/_runtimeEventLog?' + Structr.getRequestParameterName('order') + '=absoluteTimestamp&' + Structr.getRequestParameterName('sort') + '=desc&' + Structr.getRequestParameterName('pageSize') + '=' + num.value;
+            let type   = filter.value;
+
+            row.innerHTML = '';
+
+            if ( type &&type.length) {
+                url += '&type=' + type;
+            }
+
+            fetch(url)
+                .then(response => response.json())
+                .then(result => {
+
+                    for (let event of result.result) {
+
+                        let timestamp = new Date(event.absoluteTimestamp).toISOString();
+                        let tr        = document.createElement('tr');
+                        let data      = event.data;
+
+                        _Dashboard.elementWithContent(tr, 'td', timestamp);
+                        _Dashboard.elementWithContent(tr, 'td', event.type);
+                        _Dashboard.elementWithContent(tr, 'td', event.description);
+
+                        if (data) {
+
+                            switch (event.type) {
+
+                                case 'Authentication':
+                                    _Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
+                                    break;
+
+                                case 'Scripting':
+                                    _Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
+                                    break;
+
+                                default:
+                                    _Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
+                                    break;
+                            }
+
+                        } else {
+
+                            _Dashboard.elementWithContent(tr, 'td', '');
+                        }
+
+                        let buttonContainer = _Dashboard.elementWithContent(tr, 'td', '');
+                        if (data.id && data.type) {
+
+                            let button = _Dashboard.elementWithContent(buttonContainer, 'button', 'Open content in editor');
+                            button.addEventListener('click', function() {
+
+                                Command.get(data.id, null, function (obj) {
+                                    _Elements.openEditContentDialog(button, obj, {
+                                        extraKeys: { "Ctrl-Space": "autocomplete" },
+                                        gutters: ["CodeMirror-lint-markers"],
+                                        lint: {
+                                            getAnnotations: function(text, callback) {
+                                                _Code.showScriptErrors(obj, text, callback);
+                                            },
+                                            async: true
+                                        }
+                                    });
+                                });
+                            });
+                        }
+
+                        row.appendChild(tr);
+                    }
+                }
+            );
+        },
 	}
 };
+<<<<<<< HEAD
+=======
+
+/*
+ */
+>>>>>>> master

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -82,11 +82,11 @@ public interface JsonSchema {
 	public static final String KEY_RETURN_TYPE              = "returnType";
 	public static final String KEY_EXCEPTIONS               = "exceptions";
 	public static final String KEY_CALL_SUPER               = "callSuper";
+	public static final String KEY_IS_STATIC                = "isStatic";
 	public static final String KEY_DO_EXPORT                = "doExport";
 	public static final String KEY_PARAMETERS               = "parameters";
 	public static final String KEY_PARAMETER_TYPE           = "parameterType";
 	public static final String KEY_PARAMETER_INDEX          = "parameterIndex";
-	public static final String KEY_COMMENT                  = "comment";
 	public static final String KEY_SUMMARY                  = "summary";
 	public static final String KEY_CONTENT_TYPE             = "contentType";
 	public static final String KEY_RELATIONSHIP             = "rel";
@@ -113,6 +113,7 @@ public interface JsonSchema {
 	public static final String KEY_IS_CACHING_ENABLED       = "cachingEnabled";
 	public static final String KEY_EXAMPLE_VALUE            = "exampleValue";
 	public static final String KEY_TAGS                     = "tags";
+	public static final String KEY_INCLUDE_IN_OPENAPI       = "includeInOpenAPI";
 
 	public static final String KEY_GRANT_READ               = "read";
 	public static final String KEY_GRANT_WRITE              = "write";

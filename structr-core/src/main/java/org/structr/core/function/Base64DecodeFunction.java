@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -81,7 +81,7 @@ public class Base64DecodeFunction extends CoreFunction {
 
 			} catch (UnsupportedCharsetException uce) {
 
-					logger.warn("base64decode: Unsupported charset {}", sources[2].toString(), uce);
+				logger.warn("base64decode: Unsupported charset {}", sources[2].toString(), uce);
 
 			} catch  (IllegalArgumentException iae) {
 

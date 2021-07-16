@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -40,6 +40,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  * A dummy graph object that uses a map as its data store.
@@ -255,11 +256,11 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public String getPropertyWithVariableReplacement(ActionContext renderContext, PropertyKey<String> key) throws FrameworkException {
-		return Scripting.replaceVariables(renderContext, this, getProperty(key));
+		return Scripting.replaceVariables(renderContext, this, getProperty(key), key.jsonName());
 	}
 
 	@Override
-	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue) throws FrameworkException {
+	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, EvaluationHints hints, final int row, final int column) throws FrameworkException {
 
 		for (final PropertyKey propertyKey : properties.keySet()) {
 
@@ -273,7 +274,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException {
+	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods, final EvaluationHints hints) throws FrameworkException {
 		throw new UnsupportedOperationException("Invoking a method is not supported as this is a property map.");
 	}
 

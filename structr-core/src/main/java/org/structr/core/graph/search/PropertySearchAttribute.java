@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -109,6 +109,12 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> implements Ex
 	private int compare(T nodeValue, T searchValue) {
 
 		if (nodeValue instanceof Comparable && searchValue instanceof Comparable) {
+
+			if (nodeValue instanceof Enum && searchValue instanceof String) {
+				return nodeValue.toString().compareTo((String)searchValue);
+			} else if (searchValue instanceof Enum && nodeValue instanceof String) {
+				return ((Comparable)nodeValue).compareTo(searchValue.toString());
+			}
 
 			Comparable n = (Comparable)nodeValue;
 			Comparable s = (Comparable)searchValue;

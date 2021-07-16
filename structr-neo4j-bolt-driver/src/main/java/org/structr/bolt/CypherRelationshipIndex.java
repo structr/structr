@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,6 @@
 package org.structr.bolt;
 
 import org.structr.api.graph.Relationship;
-import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
 import org.structr.api.util.Iterables;
@@ -107,15 +106,6 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 
 	@Override
 	public Iterable<Relationship> getResult(final AdvancedCypherQuery query) {
-
-		final IterableQueueingRecordConsumer consumer = new IterableQueueingRecordConsumer(db, query);
-		final QueryContext context                    = query.getQueryContext();
-
-		if (context != null && !context.isDeferred()) {
-			consumer.start();
-		}
-
-		// return mapped result
-		return Iterables.map(new RelationshipRelationshipMapper(db), Iterables.map(new RecordRelationshipMapper(db), consumer));
+		return Iterables.map(new RelationshipRelationshipMapper(db), Iterables.map(new RecordRelationshipMapper(db), new LazyRecordIterable(db, query)));
 	}
 }

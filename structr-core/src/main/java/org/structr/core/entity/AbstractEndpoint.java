@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -57,7 +57,7 @@ public abstract class AbstractEndpoint {
 	}
 
 	public Iterable<Relationship> getMultiple(final SecurityContext securityContext, final Node dbNode, final RelationshipType relationshipType, final Direction direction, final Class otherNodeType, final Predicate<GraphObject> predicate) {
-		return Iterables.filter(new OtherNodeTypeFilter(securityContext, dbNode, otherNodeType, predicate), dbNode.getRelationships(direction, relationshipType));
+		return Iterables.filter(new OtherNodeTypeFilter(securityContext, dbNode, otherNodeType, predicate), dbNode.getRelationships(direction, relationshipType, otherNodeType.getSimpleName()));
 	}
 
 	// ----- protected methods -----

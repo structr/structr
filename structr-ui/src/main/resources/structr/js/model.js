@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -192,7 +192,6 @@ var StructrModel = {
 	 * activate the tab to the left before removing it.
 	 */
 	del: function(id) {
-
 		if (!id) {
 			return;
 		}
@@ -202,7 +201,8 @@ var StructrModel = {
 			node.remove();
 		}
 
-		// Since users/groups are not displayed as '#id_'-elements anymore, Structr.node() does not find (all of) them.
+		// Let element handle its own removal from the UI
+		// Especially (but not only) important for users/groups. Those are not displayed as '#id_'-elements anymore, Structr.node() does not find (all of) them.
 		// therefor we let the object itself handle its removal in this case.
 		var obj = StructrModel.obj(id);
 		if (obj && obj.remove) {
@@ -323,10 +323,6 @@ var StructrModel = {
 				if (key === 'content') {
 
 					attrElement.text(newValue);
-
-					if (Structr.isModuleActive(_Pages)) {
-						_Pages.reloadIframe(obj.pageId);
-					}
 				}
 			}
 		}
@@ -342,8 +338,6 @@ var StructrModel = {
 					blinkGreen(tabNameElement);
 
 					tabNameElement.attr('title', newValue).html(newValue);
-
-					_Pages.reloadIframe(id);
 				}
 
 			} else if (Structr.getClass(element) === 'folder') {
@@ -378,6 +372,10 @@ var StructrModel = {
 			$.each(Object.keys(obj), function(i, key) {
 				StructrModel.refreshKey(id, key);
 			});
+
+			if (Structr.isModuleActive(_Pages) && _Pages.previews.isPreviewForActiveForPage(obj.pageId)) {
+				_Pages.previews.modelForPageUpdated(obj.pageId);
+			}
 
 			// update HTML 'class' and 'id' attributes
 			if (isIn('_html_id', Object.keys(obj)) || isIn('_html_class', Object.keys(obj))) {
@@ -417,7 +415,7 @@ var StructrModel = {
 				if (Structr.isModuleActive(_Files)) {
 					let row = element.closest('tr');
 					if (row.length) {
-						$('td.size', row).text(obj.size);
+						$('td.size', row).text(formatBytes(obj.size,0));
 					}
 				}
 
@@ -462,10 +460,10 @@ var StructrModel = {
 						});
 
 						element.children('.name_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b>');
-						element.children('b.name_').off('click').on('click', function(e) {
-							e.stopPropagation();
-							_Entities.makeNameEditable(element);
-						});
+						// element.children('b.name_').off('click').on('click', function(e) {
+						// 	e.stopPropagation();
+						// 	_Entities.makeNameEditable(element);
+						// });
 					} else {
 						element.children('.name_').html(escapeTags(obj.content));
 					}
@@ -671,7 +669,7 @@ StructrUser.prototype.remove = function(groupId) {
 StructrUser.prototype.append = function(groupId) {
 	if (Structr.isModuleActive(_Security)) {
 		if (groupId) {
-			var grpContainer = $('.groupid_' + groupId, _Security.groups);
+			var grpContainer = $('.groupid_' + groupId, _Security.groupList);
 			//$('.userid_' + this.id, grpContainer).remove();
 			_UsersAndGroups.appendMemberToGroup(this, StructrModel.obj(groupId), grpContainer);
 		} else {
@@ -698,7 +696,7 @@ StructrGroup.prototype.setProperty = function(key, value, recursive, callback) {
 
 StructrGroup.prototype.append = function(groupId) {
 	if (Structr.isModuleActive(_Security)) {
-		var container = _Security.groups;
+		var container = _Security.groupList;
 		if (groupId) {
 			var grpContainer = $('.groupid_' + groupId, container);
 			if (grpContainer.length) {
@@ -860,7 +858,10 @@ StructrElement.prototype.remove = function() {
 		if (element) {
 			// If element is removed from page tree, reload elements area
 			if (element.closest('#pages').length) {
-				_Elements.reloadUnattachedNodes();
+				_Pages.unattachedNodes.reload();
+			} else {
+				let pageId = Structr.getIdFromPrefixIdString(element.closest('.page').id, 'id_');
+				_Pages.previews.modelForPageUpdated(pageId);
 			}
 			element.remove();
 		}
@@ -868,8 +869,6 @@ StructrElement.prototype.remove = function() {
 		if (element && parent && !Structr.containsNodes(parent)) {
 			_Entities.removeExpandIcon(parent);
 		}
-
-		_Pages.reloadPreviews();
 	}
 };
 
@@ -944,6 +943,7 @@ StructrContent.prototype.save = function() {
 StructrContent.prototype.remove = function() {
 
 	if (Structr.isModuleActive(_Pages)) {
+
 		var element = Structr.node(this.id);
 		if (this.parent) {
 			var parent = Structr.node(this.parent.id);
@@ -952,15 +952,21 @@ StructrContent.prototype.remove = function() {
 		if (element) {
 			// If element is removed from page tree, reload elements area
 			if (element.closest('#pages').length) {
-				_Elements.reloadUnattachedNodes();
+				_Pages.unattachedNodes.reload();
+			} else {
+				let pageId = Structr.getIdFromPrefixIdString(element.closest('.page').id, 'id_');
+				_Pages.previews.modelForPageUpdated(pageId);
 			}
 			element.remove();
+		}
+
+		if (_Entities?.selectedObject?.id === this.id) {
+			_Pages.selectedObjectWasDeleted();
 		}
 
 		if (parent && !Structr.containsNodes(parent)) {
 			_Entities.removeExpandIcon(parent);
 		}
-		_Pages.reloadPreviews();
 	}
 };
 
@@ -984,18 +990,18 @@ StructrContent.prototype.append = function(refId) {
 
 		StructrModel.expand(div, this);
 
-		if (parent) {
-
-			$('.button', div).on('mousedown', function(e) {
-				e.stopPropagation();
-			});
-
-			$('.delete_icon', div).replaceWith('<i title="Remove content element from parent ' + parentId + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_content_icon) + '" />');
-			$('.delete_icon', div).on('click', function(e) {
-				e.stopPropagation();
-				Command.removeChild(id);
-			});
-		}
+//		if (parent) {
+//
+//			$('.button', div).on('mousedown', function(e) {
+//				e.stopPropagation();
+//			});
+//
+//			$('.delete_icon', div).replaceWith('<i title="Remove content element from parent ' + parentId + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_content_icon) + '" />');
+//			$('.delete_icon', div).on('click', function(e) {
+//				e.stopPropagation();
+//				Command.removeChild(id);
+//			});
+//		}
 
 		_Entities.setMouseOver(div);
 	}

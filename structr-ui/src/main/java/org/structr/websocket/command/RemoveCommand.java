@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -71,10 +71,10 @@ public class RemoveCommand extends AbstractCommand {
 						domNode.getParentNode().removeChild(domNode);
 
 						// remove pageId from node and all children ("move to trash")
-						recursivelyRemoveNodesFromPage(domNode, securityContext);
+						RemoveCommand.recursivelyRemoveNodesFromPage(domNode, securityContext);
 
 						TransactionCommand.registerNodeCallback(node, callback);
-						
+
 					} catch (DOMException | FrameworkException ex) {
 
 						logger.error("Could not remove node from page " + domNode, ex);
@@ -99,7 +99,7 @@ public class RemoveCommand extends AbstractCommand {
 								app.delete(rel);
 							}
 						}
-						
+
 						TransactionCommand.registerNodeCallback(node, callback);
 
 					} catch (Throwable t) {
@@ -126,12 +126,10 @@ public class RemoveCommand extends AbstractCommand {
 	public String getCommand() {
 
 		return "REMOVE";
-
 	}
 
-
 	// ----- private methods -----
-	private void recursivelyRemoveNodesFromPage(final DOMNode parent, final SecurityContext securityContext) throws FrameworkException {
+	public static void recursivelyRemoveNodesFromPage(final DOMNode parent, final SecurityContext securityContext) throws FrameworkException {
 
 		// Remove node from page
 		final PropertyMap changedProperties = new PropertyMap();

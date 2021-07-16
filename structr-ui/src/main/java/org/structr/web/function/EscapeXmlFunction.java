@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,8 +26,8 @@ import org.structr.schema.action.ActionContext;
 
 public class EscapeXmlFunction extends UiCommunityFunction {
 
-	public static final String ERROR_MESSAGE_ESCAPE_XML    = "Usage: ${escape_xml(text)}. Example: ${escape_xml(\"test & test\")}";
-	public static final String ERROR_MESSAGE_ESCAPE_XML_JS = "Usage: ${{Structr.escape_xml(text)}}. Example: ${{Structr.escape_xml(\"test & test\")}}";
+	public static final String ERROR_MESSAGE_ESCAPE_XML    = "Usage: ${escape_xml(string)}. Example: ${escape_xml(\"test & test\")}";
+	public static final String ERROR_MESSAGE_ESCAPE_XML_JS = "Usage: ${{Structr.escape_xml(string)}}. Example: ${{Structr.escape_xml(\"test & test\")}}";
 
 	@Override
 	public String getName() {
@@ -36,7 +36,7 @@ public class EscapeXmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getSignature() {
-		return "text";
+		return "string";
 	}
 
 	@Override
@@ -48,14 +48,14 @@ public class EscapeXmlFunction extends UiCommunityFunction {
 
 			return StringEscapeUtils.escapeXml(sources[0].toString());
 
-		} catch (ArgumentNullException pe) {
+		} catch (ArgumentNullException ane) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
+			// silently ignore null strings
+			return null;
 
-		} catch (ArgumentCountException pe) {
+		} catch (ArgumentCountException ace) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ace.getMessage(), ctx.isJavaScriptContext());
 			return null;
 		}
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,8 +20,11 @@ package org.structr.schema.openapi.schema;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class OpenAPIPrimitiveSchema extends LinkedHashMap<String, Object> {
+
+	private final Map<String, Object> schema = new TreeMap<>();
 
 	public OpenAPIPrimitiveSchema(final String description, final String name, final String type) {
 		this(description, name, type, null);
@@ -32,8 +35,10 @@ public class OpenAPIPrimitiveSchema extends LinkedHashMap<String, Object> {
 	}
 
 	public OpenAPIPrimitiveSchema(final String description, final String name, final String type, final Object defaultValue, final Object exampleValue) {
+		this(description, name, type, defaultValue, exampleValue, null);
+	}
 
-		final Map<String, Object> schema = new LinkedHashMap<>();
+	public OpenAPIPrimitiveSchema(final String description, final String name, final String type, final Object defaultValue, final Object exampleValue, final Map<Integer, String> enumValues) {
 
 		put(name, schema);
 
@@ -50,5 +55,19 @@ public class OpenAPIPrimitiveSchema extends LinkedHashMap<String, Object> {
 		if (exampleValue != null) {
 			schema.put("example", exampleValue);
 		}
+
+		if (enumValues != null) {
+			schema.put("enum", enumValues);
+		}
+	}
+
+	public OpenAPIPrimitiveSchema required() {
+		schema.put("required", true);
+		return this;
+	}
+
+	public OpenAPIPrimitiveSchema add(final String key, final Object value) {
+		schema.put(key, value);
+		return this;
 	}
 }

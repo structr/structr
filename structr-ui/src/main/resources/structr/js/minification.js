@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -119,7 +119,7 @@ var _Minification = {
 		var maxPos = -1;
 
 		$.ajax({
-			url: '/structr/rest/AbstractMinifiedFile/' + file.id + '/out/all?relType=MINIFICATION&sort=position&order=asc',
+			url: '/structr/rest/AbstractMinifiedFile/' + file.id + '/out/all?relType=MINIFICATION&' + Structr.getRequestParameterName('sort') + '=position&' + Structr.getRequestParameterName('order') + '=asc',
 			success: function (data) {
 				var files = {};
 				file.minificationSources.forEach(function (f) {
@@ -132,8 +132,10 @@ var _Minification = {
 
 				data.result.forEach(function (rel) {
 					var f = files[rel.targetId];
-					maxPos = Math.max(maxPos, rel.position);
-					$minificationTable.append('<tr data-position=' + rel.position + '><td>' + rel.position + '</td><td>' + f.name + '</td><td>' + f.size + '</td><td><i title="Remove" data-rel-id="' + rel.id + '" class="remove-minification-source ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /></td></tr>');
+					if (rel.relType === 'MINIFICATION') {
+						maxPos = Math.max(maxPos, rel.position);
+						$minificationTable.append('<tr data-position=' + rel.position + '><td>' + rel.position + '</td><td>' + f.name + '</td><td>' + f.size + '</td><td><i title="Remove" data-rel-id="' + rel.id + '" class="remove-minification-source ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /></td></tr>');
+					}
 				});
 
 				$('.remove-minification-source', $minificationTable).on('click', function () {

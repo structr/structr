@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -67,6 +67,7 @@ import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
+import org.structr.api.index.IndexConfig;
 import org.structr.api.search.ExactQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryContext;
@@ -94,7 +95,7 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 	private boolean supportsANY                                       = false;
 
 	@Override
-	public boolean initialize(final String name) {
+	public boolean initialize(final String name, final String version, final String instance) {
 
 		String serviceName = null;
 
@@ -456,7 +457,7 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 	}
 
 	@Override
-	public void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfigSource, final Map<String, Map<String, Boolean>> removedClassesSource, final boolean createOnly) {
+	public void updateIndexConfiguration(final Map<String, Map<String, IndexConfig>> schemaIndexConfigSource, final Map<String, Map<String, IndexConfig>> removedClassesSource, final boolean createOnly) {
 
 		final ExecutorService executor              = Executors.newCachedThreadPool();
 		final Map<String, String> existingDbIndexes = new HashMap<>();
@@ -491,16 +492,16 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 		final AtomicInteger droppedIndexes = new AtomicInteger(0);
 
 		// create indices for properties of existing classes
-		for (final Map.Entry<String, Map<String, Boolean>> entry : schemaIndexConfigSource.entrySet()) {
+		for (final Map.Entry<String, Map<String, IndexConfig>> entry : schemaIndexConfigSource.entrySet()) {
 
 			final String typeName = entry.getKey();
 
-			for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
+			for (final Map.Entry<String, IndexConfig> propertyIndexConfig : entry.getValue().entrySet()) {
 
 				final String indexDescription = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
 				final String state            = existingDbIndexes.get(indexDescription);
 				final boolean alreadySet      = "ONLINE".equals(state);
-				final boolean createIndex     = propertyIndexConfig.getValue();
+				final IndexConfig indexConfig = propertyIndexConfig.getValue();
 
 				if ("FAILED".equals(state)) {
 
@@ -553,7 +554,7 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 
 							try (Session session = driver.session()) {
 
-								if (createIndex) {
+								if (indexConfig.createOrDropIndex()) {
 
 									if (!alreadySet) {
 
@@ -615,18 +616,18 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 			final List removedTypes = new LinkedList();
 
 			// drop indices for all indexed properties of removed classes
-			for (final Map.Entry<String, Map<String, Boolean>> entry : removedClassesSource.entrySet()) {
+			for (final Map.Entry<String, Map<String, IndexConfig>> entry : removedClassesSource.entrySet()) {
 
 				final String typeName = entry.getKey();
 				removedTypes.add(typeName);
 
-				for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
+				for (final Map.Entry<String, IndexConfig> propertyIndexConfig : entry.getValue().entrySet()) {
 
 					final String indexDescription = "INDEX ON :" + typeName + "(`" + propertyIndexConfig.getKey() + "`)";
 					final boolean indexExists     = (existingDbIndexes.get(indexDescription) != null);
-					final boolean dropIndex       = propertyIndexConfig.getValue();
+					final IndexConfig indexConfig = propertyIndexConfig.getValue();
 
-					if (indexExists && dropIndex) {
+					if (indexExists && indexConfig.createOrDropIndex()) {
 
 						final AtomicBoolean retry = new AtomicBoolean(true);
 						final AtomicInteger retryCount = new AtomicInteger(0);

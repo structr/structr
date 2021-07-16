@@ -502,8 +502,10 @@ export class FlowEditor {
 				'ForEach' : self._getNodeCreationFunction("FlowForEach"),
 				'Aggregate' : self._getNodeCreationFunction("FlowAggregate"),
 				'Filter' : self._getNodeCreationFunction("FlowFilter"),
+				/* TEMPORARILY DISABLED
 				'Fork': self._getNodeCreationFunction("FlowFork"),
 				'ForkJoin': self._getNodeCreationFunction("FlowForkJoin"),
+				*/
 				'ExceptionHandler': self._getNodeCreationFunction("FlowExceptionHandler"),
 				'Log' : self._getNodeCreationFunction("FlowLog"),
 				'Return' : self._getNodeCreationFunction("FlowReturn")
@@ -554,10 +556,10 @@ export class FlowEditor {
 
 		let rest = new Rest();
 
-		rest.post('/structr/rest/FlowContainer/' + this._flowContainer.id + '/evaluate', {}, true).then((res) => {
-			new ResultPanel(res, this);
-		});
-
+        rest.post('/structr/flow/' + this._flowContainer.effectiveName, {}, true).then((res) => {
+            new ResultPanel(res, this);
+        });
+      
 	}
 
 	async saveLayout(visibleForPublic, saveAsNewLayout) {

@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-test-configuration</artifactId>
-		<version>3.6.5</version>
+		<version>4.0-rc1</version>
 		<relativePath>../structr-test-configuration</relativePath>
 	</parent>
 
@@ -17,7 +17,7 @@
 	<properties>
 		<netbeans.hint.license>structr-agpl30</netbeans.hint.license>
 	</properties>
-	<version>3.6.5</version>
+	<version>4.0-rc1</version>
 
 	<dependencies>
 		<dependency>
@@ -309,7 +309,7 @@
 			<name>GNU Affero General Public License, Version 3</name>
 			<url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
 			<comments>
-				Copyright (C) 2010-2020 Structr GmbH
+				Copyright (C) 2010-2021 Structr GmbH
 
 				This file is part of Structr &lt;http://structr.org&gt;.
 

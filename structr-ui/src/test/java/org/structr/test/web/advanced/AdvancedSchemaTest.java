@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,10 +27,10 @@ import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasSize;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
@@ -49,15 +49,14 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
-import org.structr.web.auth.UiAuthenticator;
 import org.structr.test.web.basic.FrontendTest;
 import org.structr.test.web.basic.ResourceAccessTest;
 import static org.structr.test.web.basic.ResourceAccessTest.createResourceAccess;
+import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.User;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 public class AdvancedSchemaTest extends FrontendTest {
 
@@ -68,8 +67,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 	@Test
 	public void test01InheritanceOfFileAttributesToImage() {
-
-		Settings.LogSchemaOutput.setValue(true);
 
 		try (final Tx tx = app.tx()) {
 
@@ -201,7 +198,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final PropertyMap subFileProperties = new PropertyMap();
 			subFileProperties.put(SchemaNode.name, "SubFile");
-			subFileProperties.put(SchemaNode.extendsClass, "org.structr.dynamic.File");
+			subFileProperties.put(SchemaNode.extendsClass, app.nodeQuery(SchemaNode.class).andName("File").getFirst());
 			subFile.setProperties(subFile.getSecurityContext(), subFileProperties);
 
 
@@ -293,7 +290,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final PropertyMap subFileProperties = new PropertyMap();
 			subFileProperties.put(SchemaNode.name, "SubFile");
-			subFileProperties.put(SchemaNode.extendsClass, "org.structr.dynamic.Image");
+			subFileProperties.put(SchemaNode.extendsClass, app.nodeQuery(SchemaNode.class).andName("Image").getFirst());
 			subFile.setProperties(subFile.getSecurityContext(), subFileProperties);
 
 
@@ -839,7 +836,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			final SchemaNode testBase = app.create(SchemaNode.class, "TestBase");
 			final SchemaNode test     = app.create(SchemaNode.class,
 				new NodeAttribute<>(SchemaNode.name, "Test"),
-				new NodeAttribute<>(SchemaNode.extendsClass, "org.structr.dynamic.TestBase")
+				new NodeAttribute<>(SchemaNode.extendsClass, testBase)
 			);
 
 			// create view with sort order
@@ -1189,7 +1186,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
-			schema.getType("User").addMethod("onCreate", "log('test')", "test");
+			schema.getType("User").addMethod("onCreate", "log('test')");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -1207,7 +1204,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
-			schema.getType("User").addMethod("simpleTest", "log('test')", "test");
+			schema.getType("User").addMethod("simpleTest", "log('test')");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 

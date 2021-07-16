@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SuperUser;
 import org.structr.schema.action.ActionContext;
 
 public class IsInGroupFunction extends AdvancedScriptingFunction {
@@ -53,34 +54,37 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 			if (!(sources[0] instanceof Group)) {
 
-				logger.warn("Error: first argument is not a Group. Parameters: {}", getParametersAsString(sources));
-				return "Error: first argument is not a Group.";
+				logParameterError(caller, sources, "Expected node of type Group as first argument!", ctx.isJavaScriptContext());
+
+			} else if (!(sources[1] instanceof Principal)) {
+
+				logParameterError(caller, sources, "Expected node of type Principal as second argument!", ctx.isJavaScriptContext());
+
+			} else if ((sources[1] instanceof SuperUser)) {
+
+				logParameterError(caller, sources, "Expected node of type Principal as second argument - SuperUser can not be member of a group!", ctx.isJavaScriptContext());
+
+			} else {
+
+				boolean checkHierarchy = (sources.length > 2 && sources[2] instanceof Boolean) ? (boolean) sources[2] : false;
+
+				final RelationshipType type = StructrApp.getInstance().getDatabaseService().forName(RelationshipType.class, "CONTAINS");
+				final Group group           = (Group)sources[0];
+				final Principal principal   = (Principal)sources[1];
+
+				return principalInGroup(new HashSet<>(), group, principal, type, checkHierarchy);
 			}
-
-			if (!(sources[1] instanceof Principal)) {
-
-				logger.warn("Error: second argument is not a Principal. Parameters: {}", getParametersAsString(sources));
-				return "Error: second argument is not a Principal.";
-			}
-
-			boolean checkHierarchy = (sources.length > 2 && sources[2] instanceof Boolean) ? (boolean) sources[2] : false;
-
-			final RelationshipType type = StructrApp.getInstance().getDatabaseService().forName(RelationshipType.class, "CONTAINS");
-			final Group group           = (Group)sources[0];
-			final Principal principal   = (Principal)sources[1];
-
-			return principalInGroup(new HashSet<String>(), group, principal, type, checkHierarchy);
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
-			return "";
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
 		}
+
+		return false;
 	}
 
 	private boolean principalInGroup (final Set<String> seenGroups, final Group group, final Principal principal, final RelationshipType relType, final boolean checkHierarchy) {

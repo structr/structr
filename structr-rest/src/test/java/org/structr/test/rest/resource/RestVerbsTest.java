@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -102,11 +102,11 @@ public class RestVerbsTest extends StructrRestTestBase {
 		expectOk(200).body("result_count", Matchers.equalTo(99)).when().get("/TestOne");
 
 		// delete 11 elements
-		expectOk(200).when().delete("/TestOne?name=02&loose=1");
+		expectOk(200).when().delete("/TestOne?name=02&_loose=1");
 		expectOk(200).body("result_count", Matchers.equalTo(88)).when().get("/TestOne");
 
 		// delete 18 elements
-		expectOk(200).when().delete("/TestOne?name=7&loose=1");
+		expectOk(200).when().delete("/TestOne?name=7&_loose=1");
 		expectNotOk(200).body("result_count", Matchers.equalTo(70)).when().get("/TestOne");
 
 		// delete 18 elements
@@ -161,7 +161,7 @@ public class RestVerbsTest extends StructrRestTestBase {
 
 			.when()
 
-				.get("/TestOne?sort=name");
+				.get("/TestOne?_sort=name");
 	}
 
 	@Test
@@ -186,7 +186,7 @@ public class RestVerbsTest extends StructrRestTestBase {
 
 			.when()
 
-				.patch("/TestOne?batchSize=3");
+				.patch("/TestOne?_batchSize=3");
 
 
 		// check result
@@ -211,7 +211,7 @@ public class RestVerbsTest extends StructrRestTestBase {
 
 			.when()
 
-				.get("/TestOne?sort=name");
+				.get("/TestOne?_sort=name");
 	}
 
 	@Test
@@ -291,7 +291,7 @@ public class RestVerbsTest extends StructrRestTestBase {
 
 			.when()
 
-				.get("/TestOne?sort=anInt");
+				.get("/TestOne?_sort=anInt");
 	}
 
 	@Test

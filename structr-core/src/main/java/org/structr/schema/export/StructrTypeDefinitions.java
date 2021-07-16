@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -121,6 +121,12 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			}
 		}
 
+		// resolve inheritance relationships
+		for (final StructrTypeDefinition type : typeDefinitions) {
+			type.resolveInheritanceRelationships(schemaNodes);
+		}
+
+		// resolve schema relationships
 		for (final StructrRelationshipTypeDefinition rel : relationships) {
 			rel.resolveEndpointTypesForDatabaseSchemaCreation(schemaNodes, app);
 		}

@@ -1,0 +1,285 @@
+/**
+ * Copyright (C) 2010-2021 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#dashboard {
+	height: 100%;
+}
+
+#dashboard hr {
+	border-top: none;
+	border-bottom: 1px solid var(--input-field-border);
+	margin: 1rem 0 2rem 0;
+}
+
+#dashboard .tab-content {
+	height: calc(100% - 4rem);
+	overflow: auto;
+}
+
+#dashboard .tab-content.active {
+	display: block;
+}
+
+#dashboard .tabs-contents {
+	height: calc(100% - 2rem);
+}
+
+#about-structr .props {
+	margin-top: .75rem;
+}
+
+#about-structr .props i {
+	cursor: default;
+}
+
+.heading-narrow {
+	margin: 4px 0;
+}
+
+#params {
+	display: inline-block;
+	width: 50%;
+	vertical-align: top;
+}
+
+#params i.button.sprite-delete {
+	margin-left: 2px;
+	vertical-align: sub;
+}
+
+.global-method {
+	padding: 1rem .5rem;
+}
+
+.global-method .method-name {
+	font-size: 1rem;
+}
+
+.global-method button.action {
+	margin-left: 1rem;
+	margin-right: 1rem;
+}
+
+.global-method img.icon, .global-method i.icon {
+	vertical-align: bottom;
+	width: 16px;
+	max-height: 16px;
+}
+
+#dashboard-deployment .chosen-container .chosen-results {
+	max-height: 240px ! important;
+}
+
+#global-method-comment {
+	display: inline-block;
+	width: 47.5%;
+	margin-left: 2.5%;
+	vertical-align: top;
+}
+
+#dashboard-deployment h2 {
+	color: var(--heading-text);
+	margin-top: .5rem;
+	font-size: 1.5rem;
+}
+
+#dashboard-deployment h3 {
+	color: var(--heading-text);
+	margin-top: .5rem;
+	font-size: 1rem;
+}
+
+#dashboard-deployment table {
+	width: 100%;
+}
+
+#dashboard-deployment td {
+	width: 50%;
+	padding: 0 10px;
+	vertical-align: top;
+}
+
+#dashboard-deployment .deployment-warning {
+	color: red;
+	margin-bottom: 6px;
+	display: inline-block;
+}
+
+#dashboard-deployment input[type=text],
+#dashboard-deployment input[type=file] {
+	width: calc(100% - 48px);
+	/*height: 15px;*/
+	margin: .5rem 0 1rem 0;
+}
+
+#dashboard-deployment label.checkbox-label {
+	display: block;
+	/*height: 15px;*/
+	margin: .5rem 0 1rem 0;
+}
+
+#dashboard-deployment td > div {
+	margin-bottom: 36px;
+}
+
+#dashboard-deployment h3 {
+	margin-top: 0;
+}
+
+#data_export_types_input_chosen {
+	margin: 0 .5rem 1rem 0;
+	cursor: pointer;
+}
+
+#data_export_types_input_chosen .chosen-search-input {
+	line-height: 1rem;
+	height: 1rem;
+	cursor: pointer;
+	margin-top: .3rem ! important;
+	margin-bottom: 0 ! important;
+}
+
+#data_export_types_input_chosen .search-field {
+	height: 1.7rem;
+	/*padding-top: 3px;*/
+	cursor: pointer;
+}
+
+#data_export_types_input_chosen .chosen-choices {
+	/*margin-top: -3px;*/
+	padding: .3rem .5rem;
+	border-radius: 3px;
+	cursor: pointer;
+}
+
+#data_export_types_input_chosen .chosen-choices li.search-choice {
+	/*padding: 1px 20px 1px 5px;*/
+	/*margin: 2px 5px 2px 0;*/
+
+}
+
+#data_export_types_input_chosen .chosen-choices li.search-choice .search-choice-close {
+	top: .25rem;
+}
+
+#dashboard-server-log-controls {
+	font-size: 1rem;
+	height: 4rem;
+}
+
+#dashboard-server-log-controls button {
+	margin-left: 1rem;
+}
+
+#dashboard-server-log-lines {
+	width: 64px;
+}
+
+#dashboard-server-log textarea {
+	height: calc(100% - 5rem);
+	width: 100%;
+	resize: vertical;
+	font-family: var(--font-monospace) ! important;
+	font-size: .75rem;
+	border: none;
+	padding: 0;
+}
+
+#dashboard-server-log .dashboard-spacer {
+	display: inline-block;
+	width: 10px;
+}
+
+.flex-row {
+	display: flex;
+	/*gap: 2rem; /** not yet supported by Safari, see https://developer.mozilla.org/en-US/docs/Web/CSS/gap */
+}
+
+.flex-col {
+	display: flex;
+	flex-direction: column;
+	margin-left: 2rem;
+	margin-bottom: 1rem;
+}
+
+.menu-order-container {
+	display: flex;
+}
+
+.menu-order-config-container {
+	padding: 1rem;
+	width: 10rem;
+}
+
+.menu-order-config-container.header {
+	font-weight: bold;
+	text-align: center;
+}
+
+.menu-item {
+	background-color: var(--solid-white);
+	border: none;
+	margin-bottom: .25rem;
+	padding: .5rem 1rem;
+	text-align: center;
+	background-color: var(--header-bg-dark);
+	color: var(--solid-white);
+}
+
+.menu-item:hover {
+	background-color: var(--structr-green);
+}
+
+#clear-local-storage-on-server {
+	margin-top: 2rem;
+}
+
+/* BEGIN: runtime event log */
+
+#dashboard-event-log {
+	overflow: auto;
+}
+
+#event-log-container {
+	font-size: .875rem;
+	font-family: var(--font-monospace);
+}
+
+#event-log-container tr td:first-child {
+	white-space: nowrap;
+}
+
+#event-log-options {
+	margin-bottom: 1rem;
+}
+
+#event-log-options label {
+}
+
+#event-type-filter {
+	margin-right: 16px;
+}
+
+#event-type-page-size {
+	margin-right: 2rem;
+}
+
+#refresh-event-log {
+}
+/* END: runtime event log */

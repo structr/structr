@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -118,7 +118,7 @@ public class ODFTest extends StructrUiTest {
 			.body("result[0].name",  equalTo("template"))
 			.body("result[1].name",  equalTo("test.ods_template"))
 			.when()
-			.get("/File?sort=name");
+			.get("/File?_sort=name");
 
 		// use RestAssured to call exported methods on file
 		RestAssured
@@ -136,6 +136,6 @@ public class ODFTest extends StructrUiTest {
 			.body("result[0].resultDocument.name",   equalTo("test.ods_template"))
 			.body("result[0].resultDocument.path",   equalTo("/test.ods_template"))
 			.when()
-			.get("/ODFExporter?sort=name");
+			.get("/ODFExporter?_sort=name");
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,8 +19,11 @@
 package org.structr.websocket.command;
 
 import java.util.Arrays;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
@@ -48,9 +51,15 @@ public class GetRelationshipCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
+		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
+
 		final String nodeId            = webSocketData.getNodeDataStringValue("nodeId");
 		final AbstractRelationship rel = getRelationship(webSocketData.getId(), nodeId);
+		final String properties        = webSocketData.getRelDataStringValue("properties");
 
+		if (properties != null) {
+			securityContext.setCustomView(StringUtils.split(properties, ","));
+		}
 
 		if (rel != null) {
 

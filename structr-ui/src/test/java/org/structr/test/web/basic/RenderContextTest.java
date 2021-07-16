@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -217,8 +217,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
-
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
@@ -563,9 +562,9 @@ public class RenderContextTest extends StructrUiTest {
 			final String sessionId       = HttpCookie.parse(sessionIdCookie).get(0).getValue();
 
 			// test authenticated GET request using session ID cookie
-			assertEquals("Invalid authenticated GET result", "admin",   Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/users?sort=name')).result[0].name}"));
-			assertEquals("Invalid authenticated GET result", "tester1", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/users?sort=name')).result[1].name}"));
-			assertEquals("Invalid authenticated GET result", "tester2", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/users?sort=name')).result[2].name}"));
+			assertEquals("Invalid authenticated GET result", "admin",   Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/users?_sort=name')).result[0].name}"));
+			assertEquals("Invalid authenticated GET result", "tester1", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/users?_sort=name')).result[1].name}"));
+			assertEquals("Invalid authenticated GET result", "tester2", Scripting.replaceVariables(ctx, page, "${add_header('Cookie', 'JSESSIONID=" + sessionId + ";Path=/')}${from_json(GET('http://localhost:" + httpPort + "/structr/rest/users?_sort=name')).result[2].name}"));
 
 			// locale
 			final String localeString = ctx.getLocale().toString();

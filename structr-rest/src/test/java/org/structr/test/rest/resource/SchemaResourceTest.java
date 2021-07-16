@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -895,8 +895,8 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.statusCode(200)
 
 				.body("result_count", equalTo(1))
-				.body("result.type", equalTo("Test"))
-				.body("result.name", equalTo("Test"))
+				.body("result[0].type", equalTo("Test"))
+				.body("result[0].name", equalTo("Test"))
 
 			.when()
 				.post("/Test/test");
@@ -918,8 +918,8 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.statusCode(200)
 
 				.body("result_count", equalTo(1))
-				.body("result[0].type", equalTo("Test"))
-				.body("result[0].name", equalTo("Test"))
+				.body("result[0][0].type", equalTo("Test"))
+				.body("result[0][0].name", equalTo("Test"))
 
 			.when()
 				.post("/Test/test");
@@ -928,8 +928,8 @@ public class SchemaResourceTest extends StructrRestTestBase {
 	@Test
 	public void testInheritedSchemaMethodExecution() {
 
-		createEntity("/SchemaNode", "{ name: TestBase, ___test: \"find('Test')\" }");
-		createEntity("/SchemaNode", "{ name: Test, __public: \"name, type\", extendsClass: \"org.structr.dynamic.TestBase\" }");
+		final String uuid = createEntity("/SchemaNode", "{ name: TestBase, ___test: \"find('Test')\" }");
+		createEntity("/SchemaNode", "{ name: Test, __public: \"name, type\", extendsClass: \"" + uuid + "\" }");
 		createEntity("Test", "{ name: Test }");
 
 		// default setting for "force arrays" is false..
@@ -950,8 +950,8 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.statusCode(200)
 
 				.body("result_count", equalTo(1))
-				.body("result.type", equalTo("Test"))
-				.body("result.name", equalTo("Test"))
+				.body("result[0].type", equalTo("Test"))
+				.body("result[0].name", equalTo("Test"))
 
 			.when()
 				.post("/Test/test");
@@ -973,8 +973,8 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.statusCode(200)
 
 				.body("result_count", equalTo(1))
-				.body("result[0].type", equalTo("Test"))
-				.body("result[0].name", equalTo("Test"))
+				.body("result[0][0].type", equalTo("Test"))
+				.body("result[0][0].name", equalTo("Test"))
 
 			.when()
 				.post("/Test/test");

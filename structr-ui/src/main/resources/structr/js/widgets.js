@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,9 +30,53 @@ var _Widgets = {
 	localWidgetsCollapsedKey: 'structrWidgetLocalCollapsedKey_' + port,
 	remoteWidgetsCollapsedKey: 'structrWidgetRemoteCollapsedKey_' + port,
 
+	getContextMenuElements: function (div, entity) {
+
+		let elements = [];
+
+		elements.push({
+			icon: _Icons.svg.pencil_edit,
+			name: 'Edit',
+			clickHandler: function () {
+
+				Command.get(entity.id, 'id,type,name,source,configuration,description', function(entity) {
+					_Widgets.editWidget(entity, true);
+				});
+				return false;
+			}
+		});
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		elements.push({
+			name: 'Properties',
+			clickHandler: function() {
+				_Entities.showProperties(entity, 'ui');
+				return false;
+			}
+		});
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		elements.push({
+			icon: _Icons.svg.trashcan,
+			classes: ['menu-bolder', 'danger'],
+			name: 'Delete Widget',
+			clickHandler: () => {
+
+				_Entities.deleteNode(this, entity);
+				return false;
+			}
+		});
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		return elements;
+	},
+
 	reloadWidgets: function() {
 
-		widgetsSlideout.find(':not(.compTab)').remove();
+		widgetsSlideout.find(':not(.slideout-activator)').remove();
 
 		let templateConfig = {
 			localCollapsed: LSWrapper.getItem(_Widgets.localWidgetsCollapsedKey, false),
@@ -89,7 +133,7 @@ var _Widgets = {
 				}
 			});
 
-			_Pager.initPager('local-widgets', 'Widget', 1, 25, 'treePath', 'asc');
+			_Pager.initPager('local-widgets', 'Widget', 1, 100, 'treePath', 'asc');
 			var _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl, true, 'Widget', 'public', function(entities) {
 				entities.forEach(function (entity) {
 					StructrModel.create(entity, null, false);
@@ -111,7 +155,7 @@ var _Widgets = {
 				_Widgets.repaintRemoteWidgets();
 			});
 
-			document.querySelector('button#edit-widget-servers').addEventListener('click', _Widgets.showWidgetServersDialog);
+			document.querySelector('#edit-widget-servers').addEventListener('click', _Widgets.showWidgetServersDialog);
 
 			_Widgets.updateWidgetServerSelector(function() {
 				_Widgets.refreshRemoteWidgets();
@@ -252,13 +296,7 @@ var _Widgets = {
 			_Widgets.remoteWidgetsEl.empty();
 			_Widgets.remoteWidgetData = [];
 
-			fetch(url + '?sort=treePath').then(function(response) {
-
-				return response.json().then((json) => {
-					return json.result;
-				});
-
-			}).then(function(data) {
+			_Widgets.fetchRemoteWidgets(url + '?sort=treePath', url + '?_sort=treePath').then(function(data) {
 
 				data.forEach(function(entity) {
 					var obj = StructrModel.create(entity, null, false);
@@ -351,7 +389,8 @@ var _Widgets = {
 		var expanded = Structr.isExpanded(id);
 
 		parent.append('<div id="' + id + '_folder" class="widget node">'
-			+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" /><b title="' + escapeForHtmlAttributes(name) + '" class="name abbr-ellipsis abbr-66pc">' + name + '</b>'
+			+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '"></i>'
+			+ '<b title="' + escapeForHtmlAttributes(name) + '" class="name abbr-ellipsis abbr-66pc">' + name + '</b>'
 			+ '<div id="' + id + '" class="node' + (expanded ? ' hidden' : '') + '"></div>'
 			+ '</div>');
 
@@ -398,24 +437,25 @@ var _Widgets = {
 
 		} else {
 
-			_Entities.appendAccessControlIcon(div, widget);
+			//_Entities.appendAccessControlIcon(div, widget);
 
-			div.append('<i title="Delete widget ' + widget.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
-			div.children('.delete_icon').on('click', function(e) {
-				e.stopPropagation();
-				_Entities.deleteNode(this, widget);
-			});
-
-			div.append('<i title="Edit widget ' + widget.name + '" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-			$('.edit_icon', div).on('click', function(e) {
-				e.stopPropagation();
-
-				Command.get(widget.id, 'id,type,name,source,configuration,description', function(entity) {
-					_Widgets.editWidget(entity, true);
-				});
-			});
+//			div.append('<i title="Delete widget ' + widget.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
+//			div.children('.delete_icon').on('click', function(e) {
+//				e.stopPropagation();
+//				_Entities.deleteNode(this, widget);
+//			});
+//
+//			div.append('<i title="Edit widget ' + widget.name + '" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
+//			$('.edit_icon', div).on('click', function(e) {
+//				e.stopPropagation();
+//
+//				Command.get(widget.id, 'id,type,name,source,configuration,description', function(entity) {
+//					_Widgets.editWidget(entity, true);
+//				});
+//			});
 
 			_Entities.appendEditPropertiesIcon(div, widget);
+			_Elements.enableContextMenuOnElement(div, widget);
 		}
 
 		return div;
@@ -536,7 +576,7 @@ var _Widgets = {
 	},
 	appendWidgetPropertyEditor: function (container, value, mode, allowEdit) {
 
-		CodeMirror.defineMIME("text/html", "htmlmixed-structr");
+		CodeMirror.defineMIME('text/html', 'htmlmixed-structr');
 		return CodeMirror(container.get(0), Structr.getCodeMirrorSettings({
 			value: value,
 			mode: mode,
@@ -550,12 +590,8 @@ var _Widgets = {
 	appendWidgetSelectorEditor: function (container, entity, allowEdit) {
 
 		Structr.fetchHtmlTemplate('widgets/edit-selectors', {}, function(html) {
-
 			container.append(html);
-
-
 		});
-
 	},
 	appendWidgetHelpText: function(container) {
 
@@ -568,11 +604,11 @@ var _Widgets = {
 		if (hasChildren) {
 
 			var typeIcon = $(el.children('.typeIcon').first());
-			var icon = $(el).children('.node').hasClass('hidden') ? _Icons.collapsed_icon : _Icons.expanded_icon;
+			var icon = $(el).children('.node').hasClass('hidden') ? _Icons.collapsedClass : _Icons.expandedClass;
 
 			typeIcon.css({
 				paddingRight: 0 + 'px'
-			}).after('<i title="Expand \'' + name + '\'" class="expand_icon ' + _Icons.getFullSpriteClass(icon) + '" />');
+			}).after('<i title="Expand ' + name + '" class="expand_icon_svg ' + icon + '" />');
 
 			var expandIcon = el.children('.expand_icon').first();
 
@@ -583,10 +619,10 @@ var _Widgets = {
 				var collapsed = body.hasClass('hidden');
 				if (collapsed) {
 					Structr.addExpandedNode(id);
-					expandIcon.removeClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon)).addClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon));
+					expandIcon.removeClass(_Icons.expandedClass).addClass(_Icons.collapsedClass);
 				} else {
 					Structr.removeExpandedNode(id);
-					expandIcon.removeClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon)).addClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon));
+					expandIcon.removeClass(_Icons.collapsedClass).addClass(_Icons.expandedClass);
 				}
 			};
 
@@ -763,5 +799,67 @@ var _Widgets = {
 		return sortedConfig.map(function(el) {
 			return [el[1], el[2]];
 		});
+	},
+	fetchRemotePageTemplateWidgets: async function() {
+
+		let url = _Widgets.getWidgetServerUrl() || _Widgets.defaultWidgetServerUrl;
+
+		LSWrapper.setItem(_Widgets.widgetServerKey, url);
+
+		if (!url.startsWith(document.location.origin)) {
+
+			let widgets = await _Widgets.fetchRemoteWidgets(url + '?isPageTemplate=true&sort=name', url + '?isPageTemplate=true&_sort=name');
+			return widgets;
+		}
+
+		return [];
+	},
+	fetchLocalPageTemplateWidgets: async function() {
+
+		try {
+			let response = await fetch('/structr/rest/Widget?isPageTemplate=true&' + Structr.getRequestParameterName('sort') + '=name');
+			if (response && response.ok) {
+
+				let json = await response.json();
+				return json.result;
+			}
+
+		} catch (e) {}
+
+		return [];
+	},
+	fetchAllPageTemplateWidgets: async function(callback) {
+
+		let widgets = [];
+
+		let remotePageWidgets = await _Widgets.fetchRemotePageTemplateWidgets();
+		let localPageWidgets  = await _Widgets.fetchLocalPageTemplateWidgets();
+
+		callback(widgets.concat(remotePageWidgets).concat(localPageWidgets));
+	},
+	fetchRemoteWidgets: async (url, fallbackUrl) => {
+
+		try {
+			// stick with legacy sort parameter for widget instance - if a newer widget instance is used, retry with _sort
+			let response = await fetch(url);
+
+			if (response && response.ok) {
+
+				let json = await response.json();
+				return json.result;
+
+			} else {
+
+				let response = await fetch(fallbackUrl);
+				if (response && response.ok) {
+
+					let json = await response.json();
+					return json.result;
+				}
+			}
+
+		} catch (e) {}
+
+		return [];
 	}
 };

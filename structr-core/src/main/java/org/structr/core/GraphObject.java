@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -59,6 +59,7 @@ import org.structr.core.property.TypeProperty;
 import org.structr.core.property.UuidProperty;
 import org.structr.schema.CodeSource;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 
 /**
@@ -509,8 +510,8 @@ public interface GraphObject extends CodeSource {
 	public void propagatedModification(final SecurityContext securityContext);
 
 	public String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException;
-	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue) throws FrameworkException;
-	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException;
+	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException;
+	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods, final EvaluationHints hints) throws FrameworkException;
 
 	Class getEntityType();
 
@@ -547,4 +548,8 @@ public interface GraphObject extends CodeSource {
 	}
 
 	boolean changelogEnabled();
+
+	default boolean isFrontendNode() {
+		return false;
+	}
 }

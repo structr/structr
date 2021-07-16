@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,7 @@ package org.structr.core.parser;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
@@ -31,8 +32,8 @@ public class ConstantExpression extends Expression {
 	private String quoteChar = null;
 	private Object value     = null;
 
-	public ConstantExpression(final Object value) {
-		super(null);
+	public ConstantExpression(final Object value, final int row, final int column) {
+		super(null, row, column);
 
 		this.value = value;
 	}
@@ -52,12 +53,12 @@ public class ConstantExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException {
 		return value;
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException {
 		return source;
 	}
 

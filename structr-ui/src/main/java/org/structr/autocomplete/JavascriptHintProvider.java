@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,8 +26,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
-import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Hint;
 
 /**
@@ -39,7 +39,7 @@ public class JavascriptHintProvider extends AbstractHintProvider {
 	private static final Logger logger = LoggerFactory.getLogger(JavascriptHintProvider.class);
 
 	@Override
-	protected List<Hint> getAllHints(final SecurityContext securityContext, final GraphObject currentNode, final String editorText, final ParseResult result) {
+	protected List<Hint> getAllHints(final ActionContext actionContext, final GraphObject currentNode, final String editorText, final ParseResult result) {
 
 		final List<String> tokens = result.getTokens();
 		final String[] lines      = editorText.split("\n");
@@ -116,7 +116,7 @@ public class JavascriptHintProvider extends AbstractHintProvider {
 
 			result.setExpression(expression);
 
-			handleJSExpression(securityContext, currentNode, expression, hints, result);
+			handleJSExpression(actionContext, currentNode, expression, hints, result);
 		}
 
 		return hints;

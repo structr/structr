@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,7 +25,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
-
 import org.apache.oltu.oauth2.client.OAuthClient;
 import org.apache.oltu.oauth2.client.URLConnectionClient;
 import org.apache.oltu.oauth2.client.request.OAuthBearerClientRequest;
@@ -99,8 +98,11 @@ public class LinkedInAuthClient extends StructrOAuthClient {
 			return null;
 		}
 
-		String body = userResponse.getBody();
-		logger.debug("User response body: {}", body);
+		final String body = userResponse.getBody();
+
+		if (isVerboseLoggingEnabled()) {
+			logger.info("User response body: {}", body);
+		}
 
 		final JsonParser parser = new JsonParser();
 		final JsonElement result = parser.parse(body);
@@ -118,7 +120,10 @@ public class LinkedInAuthClient extends StructrOAuthClient {
 				if (el.getAsJsonObject().get("handle~") != null) {
 
 					final String address = el.getAsJsonObject().get("handle~").getAsJsonObject().get("emailAddress").getAsString();
-					logger.info("Got 'email' credential from GitHub: {}", address);
+
+					if (isVerboseLoggingEnabled()) {
+						logger.info("Got 'email' credential from GitHub: {}", address);
+					}
 
 					return address;
 				}
@@ -165,12 +170,17 @@ public class LinkedInAuthClient extends StructrOAuthClient {
 					.setAccessToken(accessToken)
 					.buildQueryMessage();
 
-				logger.info("User profile request: {}", clientReq.getLocationUri());
+				if (isVerboseLoggingEnabled()) {
+					logger.info("User profile request: {}", clientReq.getLocationUri());
+				}
 
 				OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
 
 				OAuthResourceResponse userProfileResponse = oAuthClient.resource(clientReq, "GET", OAuthResourceResponse.class);
-				logger.info("User profile response: {}", userProfileResponse);
+
+				if (isVerboseLoggingEnabled()) {
+					logger.info("User profile response: {}", userProfileResponse);
+				}
 
 				return userProfileResponse;
 			}

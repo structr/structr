@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -60,8 +60,6 @@ public class StringPropertyRestTest extends IndexingTest {
 		.when()
 			.get("/test_threes");
 
-
-
 	}
 
 	@Test
@@ -113,7 +111,7 @@ public class StringPropertyRestTest extends IndexingTest {
 			.statusCode(200)
 			.body("result_count", equalTo(3))
 		.when()
-			.get("/test_threes?stringProperty=test&loose=1");
+			.get("/test_threes?stringProperty=test&_loose=1");
 
 
 		// test range query

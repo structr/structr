@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
@@ -37,8 +38,8 @@ public class AnyExpression extends Expression {
 	private Expression listExpression = null;
 	private Expression anyExpression  = null;
 
-	public AnyExpression() {
-		super("any");
+	public AnyExpression(final int row, final int column) {
+		super("any", row, column);
 	}
 
 	@Override
@@ -78,13 +79,13 @@ public class AnyExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
 		if (listExpression == null) {
 			return ERROR_MESSAGE_ANY;
 		}
 
-		final Object listSource = listExpression.evaluate(ctx, entity);
+		final Object listSource = listExpression.evaluate(ctx, entity, hints);
 
 		if (listSource != null && listSource instanceof Iterable) {
 
@@ -95,7 +96,7 @@ public class AnyExpression extends Expression {
 
 				ctx.setConstant("data", obj);
 
-				final Object resultObject = anyExpression.evaluate(ctx, entity);
+				final Object resultObject = anyExpression.evaluate(ctx, entity, hints);
 				if (resultObject != null) {
 
 					if (resultObject instanceof Boolean) {
@@ -120,7 +121,7 @@ public class AnyExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 }

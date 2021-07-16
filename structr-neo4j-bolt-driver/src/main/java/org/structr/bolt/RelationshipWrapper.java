@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,7 +30,7 @@ import org.structr.api.util.FixedSizeCache;
 /**
  *
  */
-class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relationship> implements Relationship {
+class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relationship> implements Relationship {
 
 	protected static FixedSizeCache<Long, RelationshipWrapper> relationshipCache = null;
 
@@ -43,7 +43,7 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relati
 		super();
 	}
 
-	private RelationshipWrapper(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Relationship relationship) {
+	private RelationshipWrapper(final BoltDatabaseService db, final org.neo4j.driver.types.Relationship relationship) {
 
 		super(db, relationship);
 
@@ -191,7 +191,7 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Relati
 		relationshipCache.clear();
 	}
 
-	public static RelationshipWrapper newInstance(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Relationship relationship) {
+	public static RelationshipWrapper newInstance(final BoltDatabaseService db, final org.neo4j.driver.types.Relationship relationship) {
 
 		RelationshipWrapper wrapper;
 

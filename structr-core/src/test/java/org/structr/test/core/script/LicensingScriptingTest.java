@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,7 +44,7 @@ public class LicensingScriptingTest extends LicensingTest {
 			final String expected   = expression;
 
 			// expect the expression that uses an unlicensed built-in function to return the script source instead of an evaluation result
-			assertEquals("Invalid result for quoted template expression", expected, Scripting.replaceVariables(ctx, null, expression));
+			assertEquals("Invalid result for quoted template expression", expected, Scripting.replaceVariables(ctx, null, expression, "testUnlicensedFunctions"));
 
 			tx.success();
 

@@ -12,7 +12,7 @@
 	<groupId>org.structr</groupId>
 	<artifactId>structr</artifactId>
 	<packaging>pom</packaging>
-	<version>3.6.5</version>
+	<version>4.0-rc1</version>
 
 	<url>https://structr.com</url>
 
@@ -53,7 +53,7 @@
 		<maven.compiler.target>11</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-		<test.neo4j.version>neo4j:3.5-enterprise</test.neo4j.version>
+		<test.neo4j.version>neo4j:4.3</test.neo4j.version>
 		<structr.lib.directory>${structr.root.directory}/structr-ui/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 		<maven.plugin.jar.version>3.2.0</maven.plugin.jar.version>
@@ -242,7 +242,13 @@
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-core</artifactId>
-				<version>2.8.8</version>
+				<version>2.11.3</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>2.11.3</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -308,18 +314,18 @@
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-access</artifactId>
-				<version>1.1.7</version>
+				<version>1.2.0</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-classic</artifactId>
-				<version>1.1.7</version>
+				<version>1.2.0</version>
 			</dependency>
 			<dependency>
 				<groupId>commons-io</groupId>
 				<artifactId>commons-io</artifactId>
-				<version>2.5</version>
+				<version>2.7</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -330,7 +336,7 @@
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>httpclient</artifactId>
-				<version>4.5.3</version>
+				<version>4.5.13</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -433,13 +439,14 @@
 						<exclude>src/test/javascript/lib/**</exclude>
 						<exclude>src/test/**/*.html</exclude>
 						<exclude>src/test/**/*.xml</exclude>
+						<exclude>src/test/**/selenium/**/*</exclude>
 						<exclude>src/main/deb/**</exclude>
 						<exclude>src/main/resources/CollapsibleLists.js</exclude>
 						<exclude>src/main/resources/structr/js/flow-editor/**/*</exclude>
 						<exclude>src/test/resources/**/*</exclude>
 					</excludes>
 					<properties>
-						<year>2020</year>
+						<year>2021</year>
 						<owner>Structr GmbH</owner>
 					</properties>
 				</configuration>
@@ -597,7 +604,7 @@
 			<name>GNU General Public License, Version 3</name>
 			<url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
 			<comments>
-				Copyright (C) 2010-2020 Structr GmbH
+				Copyright (C) 2010-2021 Structr GmbH
 
 				This file is part of Structr &lt;http://structr.org&gt;.
 
@@ -619,7 +626,7 @@
 			<name>GNU Affero General Public License, Version 3</name>
 			<url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
 			<comments>
-				Copyright (C) 2010-2020 Structr GmbH
+				Copyright (C) 2010-2021 Structr GmbH
 
 				This file is part of Structr &lt;http://structr.org&gt;.
 

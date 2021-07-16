@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,9 +21,10 @@ package org.structr.test.web.basic;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.equalTo;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
@@ -34,12 +35,11 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.web.entity.File;
 import org.structr.web.entity.User;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
 
 
@@ -450,7 +450,7 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			final ActionContext ctx = new ActionContext(securityContext, null);
 
-			assertEquals("Calling group.addMember(user) should be possible from JavaScript!", 1.0, Scripting.evaluate(ctx, null, addMemberScript, "test"));
+			assertEquals("Calling group.addMember(user) should be possible from JavaScript!", 1, Scripting.evaluate(ctx, null, addMemberScript, "test"));
 
 			tx.success();
 
@@ -496,7 +496,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("Test");
 
-			type.addMethod("sendError", "error('test', 'test_error', 'errorrr')", "");
+			type.addMethod("sendError", "error('test', 'test_error', 'errorrr')");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 

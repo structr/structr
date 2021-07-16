@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,6 +38,7 @@ public interface Cdata extends Content, CDATASection, NonIndexed {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Cdata"));
 		type.setExtends(URI.create("#/definitions/Content"));
+		type.setCategory("html");
 
 		type.overrideMethod("render", false,
 			"arg0.getBuffer().append((\"<!CDATA[\"));\n" +

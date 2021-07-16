@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,8 +20,6 @@ package org.structr.web.common;
 
 import java.net.URL;
 import java.util.Set;
-
-import org.python.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.datasources.DataSources;
 import org.structr.core.entity.AbstractSchemaNode;
@@ -30,7 +28,6 @@ import org.structr.files.url.StructrURLStreamHandlerFactory;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
-import org.structr.schema.action.Function;
 import org.structr.web.datasource.CypherGraphDataSource;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.datasource.IdRequestParameterGraphDataSource;
@@ -53,7 +50,7 @@ public class UiModule implements StructrModule {
 		DataSources.put(true, "ui", "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
 		DataSources.put(true, "ui", "restDataSource",               new RestDataSource());
 		DataSources.put(true, "ui", "cypherDataSource",             new CypherGraphDataSource());
-		DataSources.put(true, "ui", "functionDataSource",           new FunctionDataSource());
+		DataSources.put(true, "ui", "functionDataSource",           new FunctionDataSource("functionQuery"));
 		DataSources.put(true, "ui", "xpathDataSource",              new XPathGraphDataSource());
 	}
 
@@ -72,7 +69,13 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new RenderFunction());
 		Functions.put(licenseManager, new SetDetailsObjectFunction());
 		Functions.put(licenseManager, new ConfirmationKeyFunction());
+		Functions.put(licenseManager, new ImportHtmlFunction());
 		Functions.put(licenseManager, new ImportCssFunction());
+		Functions.put(licenseManager, new RemoveDOMChildFunction());
+		Functions.put(licenseManager, new ReplaceDOMChildFunction());
+		Functions.put(licenseManager, new InsertHtmlFunction());
+		Functions.put(licenseManager, new GetSourceFunction());
+		Functions.put(licenseManager, new HasCssClassFunction());
 
 		Functions.put(licenseManager, new SendHtmlMailFunction());
 		Functions.put(licenseManager, new SendPlaintextMailFunction());
@@ -111,9 +114,16 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new CreateAccessTokenFunction());
 		Functions.put(licenseManager, new CreateAccessAndRefreshTokenFunction());
 
+		Functions.put(licenseManager, new ApplicationStorePutFunction());
+		Functions.put(licenseManager, new ApplicationStoreDeleteFunction());
+		Functions.put(licenseManager, new ApplicationStoreGetFunction());
+		Functions.put(licenseManager, new ApplicationStoreGetKeysFunction());
+		Functions.put(licenseManager, new ApplicationStoreHasFunction());
 
 		Functions.put(licenseManager, new SendEventFunction());
 		Functions.put(licenseManager, new BroadcastEventFunction());
+
+		Functions.put(licenseManager, new GraphQLFunction());
 	}
 
 	@Override

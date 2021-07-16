@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -53,8 +53,7 @@ import org.structr.schema.SchemaHelper;
  */
 public class SecurityContext {
 
-	public static final String JSON_PARALLELIZATION_REQUEST_PARAMETER_NAME = "parallelizeJsonOutput";
-	public static final String LOCALE_KEY                                  = "locale";
+	public static final String LOCALE_KEY = "locale";
 
 	public enum MergeMode {
 		Add, Remove, Toggle, Replace
@@ -150,15 +149,15 @@ public class SecurityContext {
 				this.forceMergeOfNestedProperties = true;
 			}
 
-			if (request.getParameter("forceResultCount") != null) {
+			if (request.getParameter(RequestKeywords.ForceResultCount.keyword()) != null) {
 				this.forceResultCount = true;
 			}
 
-			if (request.getParameter("disableSoftLimit") != null) {
+			if (request.getParameter(RequestKeywords.DisableSoftLimit.keyword()) != null) {
 				this.disableSoftLimit = true;
 			}
 
-			if (request.getParameter(SecurityContext.JSON_PARALLELIZATION_REQUEST_PARAMETER_NAME) != null) {
+			if (request.getParameter(RequestKeywords.ParallelizeJsonOutput.keyword()) != null) {
 				this.doMultiThreadedJsonOutput = true;
 			}
 		}
@@ -771,7 +770,7 @@ public class SecurityContext {
 			}
 
 			// Priority 1: URL parameter locale
-			String requestedLocaleString = request.getParameter(LOCALE_KEY);
+			String requestedLocaleString = request.getParameter("_" + LOCALE_KEY);
 			if (StringUtils.isNotBlank(requestedLocaleString)) {
 				try {
 					locale = LocaleUtils.toLocale(requestedLocaleString);

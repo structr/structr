@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -77,6 +77,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.service.HttpServiceServlet;
@@ -84,6 +85,7 @@ import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.util.Base64;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
@@ -115,7 +117,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	public static final String TARGET_PAGE_KEY           = "target";
 	public static final String ERROR_PAGE_KEY            = "onerror";
 
-	public static final String OBJECT_RESOLUTION_PROPERTIES = "HtmlServlet.resolveProperties";
+	public static final String OBJECT_RESOLUTION_PROPERTIES        = "HtmlServlet.resolveProperties";
+	public static final String ENCODED_RENDER_STATE_PARAMETER_NAME = "structr-encoded-render-state";
 
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
 	private static final ExecutorService threadPool                = Executors.newCachedThreadPool();
@@ -157,7 +160,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		final long t0                   = System.currentTimeMillis();
 		final Authenticator auth        = getConfig().getAuthenticator();
-		List<Page> pages                = null;
 		boolean requestUriContainsUuids = false;
 
 		SecurityContext securityContext;
@@ -247,13 +249,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					logger.debug("No path supplied, trying to find index page");
 
 					// find a visible page
-					rootElement = findIndexPage(securityContext, pages, edit);
+					rootElement = findIndexPage(securityContext, edit);
 
 				} else {
 
 					if (rootElement == null) {
 
-						rootElement = findPage(securityContext, pages, path, edit);
+						rootElement = findPage(securityContext, path, edit);
 
 					} else {
 
@@ -297,7 +299,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 							if (!requestUriContainsUuids) {
 
 								// Try to find a page by path
-								rootElement = findPage(securityContext, pages, path, edit);
+								rootElement = findPage(securityContext, path, edit);
 
 								if (rootElement == null) {
 
@@ -318,7 +320,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 							final String pagePart = StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP);
 
-							rootElement = findPage(securityContext, pages, pagePart, edit);
+							rootElement = findPage(securityContext, pagePart, edit);
 
 							if (rootElement == null) {
 
@@ -363,7 +365,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				}
 
 				// Disable Basic auth for any EditMode other than NONE
-				if (EditMode.NONE.equals(edit)) {
+				if (Settings.HttpBasicAuthEnabled.getValue() && EditMode.NONE.equals(edit)) {
 
 					final HttpBasicAuthResult authResult = checkHttpBasicAuth(securityContext, request, response, ((file != null) ? file.getPath() : (dataNode == null) ? path : StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP)));
 
@@ -380,7 +382,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 							} else if (result instanceof File) {
 
-								streamFile(authResult.getSecurityContext(), (File)result, request, response, EditMode.NONE);
+								streamFile(authResult.getSecurityContext(), (File)result, request, response, EditMode.NONE, true);
 								tx.success();
 								return;
 
@@ -418,7 +420,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				if (file != null) {
 
-					streamFile(securityContext, file, request, response, edit);
+					streamFile(securityContext, file, request, response, edit, true);
 					tx.success();
 					return;
 				}
@@ -462,6 +464,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						out.close();
 
 					} else {
+
+						// partial rendering?
+						if (request.getParameter(ENCODED_RENDER_STATE_PARAMETER_NAME) != null) {
+
+							final String encodedRenderState = request.getParameter(ENCODED_RENDER_STATE_PARAMETER_NAME);
+							renderContext.initializeFromEncodedRenderState(encodedRenderState);
+						}
 
 						// prepare response
 						response.setCharacterEncoding("UTF-8");
@@ -539,7 +548,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		final Authenticator auth        = getConfig().getAuthenticator();
 		SecurityContext securityContext = null;
-		List<Page> pages                = null;
 		boolean requestUriContainsUuids = false;
 
 		try {
@@ -599,7 +607,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				if ((uriParts == null) || (uriParts.length == 0)) {
 
 					// find a visible page
-					rootElement = findIndexPage(securityContext, pages, edit);
+					rootElement = findIndexPage(securityContext, edit);
 
 					logger.debug("No path supplied, trying to find index page");
 
@@ -607,7 +615,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					if (rootElement == null) {
 
-						rootElement = findPage(securityContext, pages, path, edit);
+						rootElement = findPage(securityContext, path, edit);
 
 					} else {
 						dontCache = true;
@@ -620,7 +628,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					File file = findFile(securityContext, request, path);
 					if (file != null) {
 
-						//streamFile(securityContext, file, request, response, edit);
+						streamFile(securityContext, file, request, response, edit, false);
 						tx.success();
 						return;
 
@@ -660,7 +668,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						// clear possible entry points
 						request.removeAttribute(POSSIBLE_ENTRY_POINTS_KEY);
 
-						rootElement = findPage(securityContext, pages, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP), edit);
+						rootElement = findPage(securityContext, StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP), edit);
 
 						renderContext.setDetailsDataObject(dataNode);
 
@@ -675,8 +683,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				}
 
-				// look for pages with HTTP Basic Authentication (must be done as superuser)
-				if (rootElement == null) {
+				// look for pages with HTTP Basic Authentication (must be done as superuser), only if HTTP Basic Auth is enabled
+				if (rootElement == null && Settings.HttpBasicAuthEnabled.getValue()) {
 
 					final HttpBasicAuthResult authResult = checkHttpBasicAuth(securityContext, request, response, path);
 
@@ -916,6 +924,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			@Override
 			public void onError(Throwable t) {
+
+				// prevent async from running into default timeout of 30s
+				async.complete();
+
 				if (t instanceof QuietException) {
 					// ignore exceptions which (by jettys standards) should be handled less verbosely
 				} else {
@@ -1070,7 +1082,14 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	private DOMNode findPartialByName(final SecurityContext securityContext, final String name) throws FrameworkException {
 
-		return StructrApp.getInstance(securityContext).nodeQuery(DOMNode.class).andName(name).not().and(DOMNode.type, "Page").getFirst();
+		for (final DOMNode potentialPartial : StructrApp.getInstance(securityContext).nodeQuery(DOMNode.class).andName(name).not().and(DOMNode.type, "Page").getAsList()) {
+
+			if (potentialPartial.getOwnerDocumentAsSuperUser() != null) {
+				return potentialPartial;
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -1079,46 +1098,49 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 * To be compatible with older versions, fallback to name-only lookup.
 	 *
 	 * @param securityContext
-	 * @param pages
 	 * @param path
 	 * @param edit
 	 * @return page
 	 * @throws FrameworkException
 	 */
-	private Page findPage(final SecurityContext securityContext, List<Page> pages, final String path, final EditMode edit) throws FrameworkException {
+	private Page findPage(final SecurityContext securityContext, final String path, final EditMode edit) throws FrameworkException {
 
-		if (pages == null) {
+		final PropertyKey<String> pathKey = StructrApp.key(Page.class, "path");
+		final PropertyKey<String> nameKey = StructrApp.key(Page.class, "name");
 
-			pages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).getAsList();
-			Collections.sort(pages, StructrApp.key(Page.class, "position").sorted(false));
-		}
+		final PropertyMap attributes = new PropertyMap(pathKey, path);
+		final String name = PathHelper.getName(path);
+		attributes.put(nameKey, name);
 
-		for (final Page page : pages) {
+		// Find pages by path or name
+		final List<Page> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(Page.class)
+			.or()
+				.notBlank(pathKey)
+				.and(pathKey, path)
+				.parent()
+			.or()
+				.blank(pathKey)
+				.and(nameKey, name)
+				.parent()
+			.sort(pathKey)
+			.getAsList();
 
-			final String pagePath = page.getPath();
-			if (pagePath != null && pagePath.equals(path) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
+		for (final Page page : possiblePages) {
+
+			if (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)) {
 
 				return page;
 			}
 		}
 
-		final String name     = PathHelper.getName(path);
+		// Check direct access by UUID
+		if (name.length() == 32) {
 
-		for (final Page page : pages) {
+			final NodeInterface possiblePage = StructrApp.getInstance(securityContext).get(NodeInterface.class, name);
 
-			final String pageName = page.getName();
-			if (pageName != null && pageName.equals(name) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
+			if (possiblePage != null && possiblePage instanceof Page && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), (Page) possiblePage))) {
 
-				return page;
-			}
-		}
-
-		for (final Page page : pages) {
-
-			final String pageUuid = page.getUuid();
-			if (pageUuid != null && pageUuid.equals(name) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
-
-				return page;
+				return (Page) possiblePage;
 			}
 		}
 
@@ -1130,24 +1152,19 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 * current security context and for the given site.
 	 *
 	 * @param securityContext
-	 * @param pages
 	 * @param edit
 	 * @return page
 	 * @throws FrameworkException
 	 */
-	private Page findIndexPage(final SecurityContext securityContext, List<Page> pages, final EditMode edit) throws FrameworkException {
+	private Page findIndexPage(final SecurityContext securityContext, final EditMode edit) throws FrameworkException {
 
 		final PropertyKey<Integer> positionKey = StructrApp.key(Page.class, "position");
 
-		if (pages == null) {
+		List<Page> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).notBlank(positionKey).sort(positionKey).getAsList();
 
-			pages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).getAsList();
-			Collections.sort(pages, positionKey.sorted(false));
-		}
+		for (Page page : possiblePages) {
 
-		for (Page page : pages) {
-
-			if (securityContext.isVisible(page) && page.getProperty(positionKey) != null && ((EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)) || (page.getEnableBasicAuth() && page.isVisibleToAuthenticatedUsers()))) {
+			if (securityContext.isVisible(page) && ((EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)) || (page.getEnableBasicAuth() && page.isVisibleToAuthenticatedUsers()))) {
 
 				return page;
 			}
@@ -1417,13 +1434,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		return Collections.EMPTY_LIST;
 	}
 
-	//~--- set methods ----------------------------------------------------
 	public static void setNoCacheHeaders(final HttpServletResponse response) {
 
 		response.setHeader("Cache-Control", "private, max-age=0, s-maxage=0, no-cache, no-store, must-revalidate"); // HTTP 1.1.
 		response.setHeader("Pragma", "no-cache, no-store"); // HTTP 1.0.
 		response.setDateHeader("Expires", 0);
-
 	}
 
 	private void setLimitingDataObject(final SecurityContext securityContext, final HttpServletRequest request, final RenderContext renderContext) {
@@ -1515,7 +1530,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		return notModified;
 	}
 
-	private void streamFile(final SecurityContext securityContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit) throws IOException {
+	private void streamFile(final SecurityContext securityContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit, final boolean sendContent) throws IOException {
 
 		if (!securityContext.isVisible(file)) {
 
@@ -1559,8 +1574,15 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			final String downloadAsDataUrl = request.getParameter(DOWNLOAD_AS_DATA_URL_KEY);
 			if (downloadAsDataUrl != null) {
 
-				IOUtils.write(FileHelper.getBase64String(file), out, "utf-8");
+				final String encoded = FileHelper.getBase64String(file);
+
+				response.setContentLength(encoded.length());
 				response.setContentType("text/plain");
+
+				if (sendContent) {
+					IOUtils.write(encoded, out, "utf-8");
+				}
+
 				response.setStatus(HttpServletResponse.SC_OK);
 
 				out.flush();
@@ -1616,14 +1638,22 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
 						callbackMap.put("statusCode", HttpServletResponse.SC_PARTIAL_CONTENT);
 
-						IOUtils.copyLarge(in, out, start, contentLength);
+						if (sendContent) {
+							IOUtils.copyLarge(in, out, start, contentLength);
+						}
 
 					} else {
 
-						final long fileSize = IOUtils.copyLarge(in, out);
-						final int status    = response.getStatus();
+						if (!file.isTemplate()) {
+							response.addHeader("Content-Length", Long.toString(file.getSize()));
+						}
 
-						response.addHeader("Content-Length", Long.toString(fileSize));
+						if (sendContent) {
+							IOUtils.copyLarge(in, out);
+						}
+
+						final int status = response.getStatus();
+
 						response.setStatus(status);
 
 						callbackMap.put("statusCode", status);
@@ -1660,7 +1690,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			// call onDownload callback
 			try {
 
-				file.invokeMethod(securityContext, "onDownload", callbackMap, false);
+				file.invokeMethod(securityContext, "onDownload", callbackMap, false, new EvaluationHints());
 
 			} catch (FrameworkException fex) {
 				logger.warn("", fex);
@@ -1799,7 +1829,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				realm = possiblePage.getName();
 			} else {
-				realm = (String)Scripting.replaceVariables(new ActionContext(outerSecurityContext), possiblePage, realm, false);
+				realm = (String)Scripting.replaceVariables(new ActionContext(outerSecurityContext), possiblePage, realm, false, "realm");
 			}
 
 			// check Http Basic Authentication headers

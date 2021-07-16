@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,6 +38,7 @@ public class ActionEntry implements Comparable<ActionEntry> {
 	private final Map<String, String> parameters = new LinkedHashMap<>();
 	private final List<String> exceptions        = new LinkedList<>();
 	private Actions.Type type                    = null;
+	private boolean isStatic                     = false;
 	private boolean doExport                     = false;
 	private boolean overrides                    = false;
 	private boolean callSuper                    = false;
@@ -185,6 +186,14 @@ public class ActionEntry implements Comparable<ActionEntry> {
 		return doExport;
 	}
 
+	public void setIsStatic(final boolean isStatic) {
+		this.isStatic = isStatic;
+	}
+
+	public boolean isStatic() {
+		return isStatic;
+	}
+
 	public void getSource(final SourceFile sourceFile, final String objVariable, final String securityContextVariable, final boolean includeModifications) {
 		getSource(sourceFile, objVariable, securityContextVariable, false, includeModifications);
 	}
@@ -235,7 +244,9 @@ public class ActionEntry implements Comparable<ActionEntry> {
 				line.append(", arg2");
 			}
 
-			line.append(");");
+			line.append(", \"");
+			line.append(codeSource.getUuid());
+			line.append("\");");
 		}
 	}
 
@@ -265,6 +276,7 @@ public class ActionEntry implements Comparable<ActionEntry> {
 		this.name       = template.name;
 		this.type       = template.type;
 		this.returnType = template.returnType;
+		this.isStatic   = template.isStatic;
 
 		// copy parameters
 		for (final Entry<String, String> entry : template.getParameters().entrySet()) {

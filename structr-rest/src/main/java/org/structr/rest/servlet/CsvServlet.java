@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.rest.servlet;
 
+import static com.caucho.quercus.lib.JavaModule.java;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
@@ -28,7 +29,6 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
+import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -143,10 +144,10 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				authenticator.checkResourceAccess(securityContext, request, resourceSignature, propertyView.get(securityContext));
 
 				// add sorting & paging
-				final String pageSizeParameter          = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
-				final String pageParameter              = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
-				final String[] sortOrders               = request.getParameterValues(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
-				final String[] sortKeyNames             = request.getParameterValues(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
+				final String pageSizeParameter          = request.getParameter(RequestKeywords.PageSize.keyword());
+				final String pageParameter              = request.getParameter(RequestKeywords.PageNumber.keyword());
+				final String[] sortOrders               = request.getParameterValues(RequestKeywords.SortOrder.keyword());
+				final String[] sortKeyNames             = request.getParameterValues(RequestKeywords.SortKey.keyword());
 				final int pageSize                      = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 				final int page                          = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
 				final Class<? extends GraphObject> type = resource.getEntityClassOrDefault();
@@ -451,37 +452,25 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 			logger.warn("POST: Invalid JSON syntax", jsex.getMessage());
 
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in POST: " + jsex.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonSyntaxException in POST: " + jsex.getMessage());
 
 		} catch (JsonParseException jpex) {
 
 			logger.warn("Unable to parse JSON string", jpex.getMessage());
 
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonParseException in POST: " + jpex.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonParseException in POST: " + jpex.getMessage());
 
 		} catch (UnsupportedOperationException uoe) {
 
 			logger.warn("POST not supported");
 
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "POST not supported: " + uoe.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "POST not supported: " + uoe.getMessage());
 
 		} catch (Throwable t) {
 
 			logger.warn("Exception in POST", t);
 
-			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in POST: " + t.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in POST: " + t.getMessage());
 
 		} finally {
 
@@ -526,25 +515,59 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 	private static String escapeForCsv(final Object value) {
 
+		final String escaped = escapeForCsv(value, '"');
+
+		// post-process escaped string
+		if (!removeLineBreaks) {
+			return StringUtils.replace(StringUtils.replace(escaped, "\r\n", "\n"), "\r", "\n");
+		}
+
+		return StringUtils.replace(StringUtils.replace(escaped, "\r\n", ""), "\r", "");
+	}
+
+	public static String escapeForCsv(final Object value, final char quoteChar) {
+
 		String result;
 
-		if (value instanceof String[]) {
+		if (value == null) {
 
-			// Special handling for StringArrays
-			ArrayList<String> quotedStrings = new ArrayList();
+			result = "";
+
+		} else if (value instanceof String[]) {
+
+			final ArrayList<String> quotedStrings = new ArrayList();
 			for (final String str : Arrays.asList((String[])value)) {
 				// The strings can contain quotes - these need to be escaped with 3 slashes in the output
-				quotedStrings.add("\\\"" + StringUtils.replace(str, "\"", "\\\\\\\"") + "\\\"");
+				quotedStrings.add("\\" + quoteChar + StringUtils.replace(str, ""+quoteChar, "\\\\\\" + quoteChar) + "\\" + quoteChar);
 			}
 
 			result = quotedStrings.toString();
 
-		} else if (value instanceof Collection) {
+		} else if (value instanceof Date[]) {
+
+			final ArrayList<String> dateStrings = new ArrayList();
+			for (final Date d : Arrays.asList((Date[])value)) {
+				dateStrings.add("\\" + quoteChar + DatePropertyParser.format(d, DateProperty.getDefaultFormat()) + "\\" + quoteChar);
+			}
+
+			result = dateStrings.toString();
+
+		} else if (value instanceof Object[]) {
+
+			final ArrayList<String> quotedStrings = new ArrayList();
+			for (final Object o : Arrays.asList((Object[])value)) {
+				// The strings can contain quotes - these need to be escaped with 3 slashes in the output
+				quotedStrings.add("\\" + quoteChar + StringUtils.replace(o.toString(), ""+quoteChar, "\\\\\\" + quoteChar) + "\\" + quoteChar);
+			}
+
+			result = quotedStrings.toString();
+
+		} else if (value instanceof Iterable) {
 
 			// Special handling for collections of nodes
 			ArrayList<String> quotedStrings = new ArrayList();
-			for (final Object obj : (Collection)value) {
-				quotedStrings.add("\\\"" + obj.toString() + "\\\"");
+			for (final Object obj : (Iterable)value) {
+				quotedStrings.add("\\" + quoteChar + obj.toString() + "\\" + quoteChar);
 			}
 
 			result = quotedStrings.toString();
@@ -555,16 +578,10 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 		} else {
 
-			result = StringUtils.replace(value.toString(), "\"", "\\\"");
-
+			result = StringUtils.replace(value.toString(), ""+quoteChar, "\\" + quoteChar);
 		}
 
-		if (!removeLineBreaks) {
-			return StringUtils.replace(StringUtils.replace(result, "\r\n", "\n"), "\r", "\n");
-		}
-
-		return StringUtils.replace(StringUtils.replace(result, "\r\n", ""), "\r", "");
-
+		return result;
 	}
 
 	private void writeUtf8Bom(Writer out) {
@@ -623,10 +640,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 				Object value = obj.getProperty(key);
 
-				row.append("\"").append((value != null
-					? escapeForCsv(value)
-					: "")).append("\"").append(DEFAULT_FIELD_SEPARATOR);
-
+				row.append("\"").append(escapeForCsv(value)).append("\"").append(DEFAULT_FIELD_SEPARATOR);
 			}
 
 			// remove last ;

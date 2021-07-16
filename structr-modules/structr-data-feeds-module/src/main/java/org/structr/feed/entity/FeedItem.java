@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +18,11 @@
  */
 package org.structr.feed.entity;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -55,6 +57,7 @@ public interface FeedItem extends NodeInterface, Indexable {
 		type.addStringProperty("comments",         PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("description",      PropertyView.Public, PropertyView.Ui);
 		type.addDateProperty("pubDate",            PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addDateProperty("updatedDate",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addLongProperty("checksum",           PropertyView.Ui).setIndexed(true).setReadOnly(true);
 		type.addIntegerProperty("cacheForSeconds", PropertyView.Ui);
 		type.addIntegerProperty("version",         PropertyView.Ui).setIndexed(true).setReadOnly(true);
@@ -104,12 +107,39 @@ public interface FeedItem extends NodeInterface, Indexable {
 
 	static InputStream getInputStream(final FeedItem thisItem) {
 
-		final String remoteUrl = thisItem.getUrl();
-		if (StringUtils.isNotBlank(remoteUrl)) {
+		final boolean indexRemoteDocument = Settings.FeedItemIndexRemoteDocument.getValue();
 
-			return HttpHelper.getAsStream(remoteUrl);
+		if (indexRemoteDocument) {
+
+			final String remoteUrl = thisItem.getUrl();
+			if (StringUtils.isNotBlank(remoteUrl)) {
+
+				return HttpHelper.getAsStream(remoteUrl);
+
+			}
 		}
 
-		return null;
+		final String description = thisItem.getProperty(StructrApp.key(FeedItem.class, "description"));
+		return new ByteArrayInputStream(description.getBytes());
+	}
+
+	@Override
+	default boolean indexingEnabled() {
+		return Settings.FeedItemIndexingEnabled.getValue();
+	}
+
+	@Override
+	default Integer maximumIndexedWords() {
+		return Settings.FeedItemIndexingLimit.getValue();
+	}
+
+	@Override
+	default Integer indexedWordMinLength() {
+		return Settings.FeedItemIndexingMinLength.getValue();
+	}
+
+	@Override
+	default Integer indexedWordMaxLength() {
+		return Settings.FeedItemIndexingMaxLength.getValue();
 	}
 }

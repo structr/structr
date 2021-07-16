@@ -2,37 +2,46 @@
 
 	<div class="column-resizer column-resizer-left"></div>
 
-	<div id="localizations-list-container">
-		<div id="localizations-list" class="resourceBox">
-			<div id="localizations-pager"></div>
-			<button class="create"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Prepare new Localization</button>
-			<table id="localizations-table">
-				<thead><tr>
-					<th><a class="sort" data-sort="key">Key</a></th>
-					<th><a class="sort" data-sort="domain">Domain</a></th>
-					<th id="localization-list-th-actions" class="narrow">Actions</th>
-				</tr></thead>
+	<div id="localization-list-container">
+		<div id="localization-list" class="resourceBox">
+			<table id="localization-table">
+<!--				<thead><tr>-->
+<!--					<th><a class="sort" data-sort="key">Key</a></th>-->
+<!--					<th><a class="sort" data-sort="domain">Domain</a></th>-->
+<!--					<th id="localization-list-th-actions" class="narrow">Actions</th>-->
+<!--				</tr></thead>-->
 				<tbody></tbody>
 			</table>
 		</div>
 	</div>
 
-	<div id="localization-detail" class="resourceBox">
-		<strong>Key:</strong> <input id="localization-key" class="disabled" disabled /> <strong>Domain:</strong> <input id="localization-domain" class="disabled" disabled />
-		<a title="Edit" class="edit" id="localization-fields-edit"><i class="${_Icons.getFullSpriteClass(_Icons.edit_icon)}"></i></a>
-		<a title="Save" class="save" id="localization-fields-save"><i class="${_Icons.getFullSpriteClass(_Icons.tick_icon)}"></i></a>
-		<a title="Discard" class="discard" id="localization-fields-discard"><i class="${_Icons.getFullSpriteClass(_Icons.cross_icon)}"></i></a>
-		<p><button class="create"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> New Localization</button></p>
-		<table id="localization-detail-table">
+	<div id="localization-detail-container" style="display: none;">
+
+		<form id="localization-detail-form">
+
+			<div class="form-row">
+				<div class="form-col">
+					<label for="localization-key">Key</label>
+					<input id="localization-key" type="text">
+				</div>
+				<div class="form-col">
+					<label for="localization-domain">Domain</label>
+					<input id="localization-domain" type="text">
+				</div>
+			</div>
+		</form>
+		<button title="Save" class="btn save" id="localization-fields-save"><i class="${_Icons.getFullSpriteClass(_Icons.tick_icon)}"></i> Save</button>
+
+		<button id="add-new-translation" class="create"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add translation</button>
+		<table id="localization-detail-table" class="props">
 			<thead><tr>
-				<th>ID</th>
+<!--				<th>ID</th>-->
 				<th>Locale</th>
-				<th>Localized Value</th>
+				<th>Translation</th>
 				<th>Description</th>
-				<th>visibleToPublicUsers</th>
-				<th>visibleToAuthenticatedUsers</th>
-				<th>Imported</th>
-				<th>Actions</th>
+				<th>Public</th>
+				<th>Auth. Vis.</th>
+				<th></th>
 			</tr></thead>
 			<tbody></tbody>
 		</table>

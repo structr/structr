@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -163,7 +163,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[2].booleanArrayProperty[2]", equalTo(true))
 
 		.when()
-			.get("/test_threes?sort=name&booleanArrayProperty=true");
+			.get("/test_threes?_sort=name&booleanArrayProperty=true");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -180,7 +180,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].booleanArrayProperty[0]", equalTo(false))
 			.body("result[1].booleanArrayProperty[1]", equalTo(false))
 		.when()
-			.get("/test_threes?sort=name&booleanArrayProperty=false");
+			.get("/test_threes?_sort=name&booleanArrayProperty=false");
 	}
 
 
@@ -198,7 +198,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?sort=name")
+			.post("/test_threes?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -219,7 +219,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[2].booleanArrayProperty[1]", equalTo(false))
 
 		.when()
-			.get("/test_threes?sort=name&booleanArrayProperty=true;false");
+			.get("/test_threes?_sort=name&booleanArrayProperty=true;false");
 
 	}
 
@@ -238,7 +238,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?sort=name")
+			.post("/test_threes?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -257,6 +257,6 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].booleanArrayProperty[2]", equalTo(true))
 
 		.when()
-			.get("/test_threes?sort=name&booleanArrayProperty=true,false");
+			.get("/test_threes?_sort=name&booleanArrayProperty=true,false");
 	}
 }

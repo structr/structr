@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -146,7 +146,7 @@ public class DoubleArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?sort=name")
+			.post("/test_threes?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -178,7 +178,7 @@ public class DoubleArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[4].doubleArrayProperty[4]", equalTo(5.0f))
 
 		.when()
-			.get("/test_threes?sort=name&doubleArrayProperty=1");
+			.get("/test_threes?_sort=name&doubleArrayProperty=1");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -206,7 +206,7 @@ public class DoubleArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[3].doubleArrayProperty[3]", equalTo(4.0f))
 			.body("result[3].doubleArrayProperty[4]", equalTo(5.0f))
 		.when()
-			.get("/test_threes?sort=name&doubleArrayProperty=2");
+			.get("/test_threes?_sort=name&doubleArrayProperty=2");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -231,7 +231,7 @@ public class DoubleArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[2].doubleArrayProperty[3]", equalTo(4.0f))
 			.body("result[2].doubleArrayProperty[4]", equalTo(5.0f))
 		.when()
-			.get("/test_threes?sort=name&doubleArrayProperty=3");
+			.get("/test_threes?_sort=name&doubleArrayProperty=3");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -252,7 +252,7 @@ public class DoubleArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].doubleArrayProperty[3]", equalTo(4.0f))
 			.body("result[1].doubleArrayProperty[4]", equalTo(5.0f))
 		.when()
-			.get("/test_threes?sort=name&doubleArrayProperty=4");
+			.get("/test_threes?_sort=name&doubleArrayProperty=4");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -268,7 +268,7 @@ public class DoubleArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].doubleArrayProperty[3]", equalTo(4.0f))
 			.body("result[0].doubleArrayProperty[4]", equalTo(5.0f))
 		.when()
-			.get("/test_threes?sort=name&doubleArrayProperty=5");
+			.get("/test_threes?_sort=name&doubleArrayProperty=5");
 	}
 
 
@@ -286,7 +286,7 @@ public class DoubleArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?sort=name")
+			.post("/test_threes?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -302,7 +302,7 @@ public class DoubleArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].doubleArrayProperty[0]", equalTo(2.0f))
 
 		.when()
-			.get("/test_threes?sort=name&doubleArrayProperty=1;2");
+			.get("/test_threes?_sort=name&doubleArrayProperty=1;2");
 
 	}
 
@@ -321,7 +321,7 @@ public class DoubleArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?sort=name")
+			.post("/test_threes?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -340,7 +340,7 @@ public class DoubleArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].doubleArrayProperty[2]", equalTo(3.0f))
 
 		.when()
-			.get("/test_threes?sort=name&doubleArrayProperty=1,2");
+			.get("/test_threes?_sort=name&doubleArrayProperty=1,2");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -355,6 +355,6 @@ public class DoubleArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].doubleArrayProperty[2]", equalTo(3.0f))
 
 		.when()
-			.get("/test_threes?sort=name&doubleArrayProperty=1,2,3");
+			.get("/test_threes?_sort=name&doubleArrayProperty=1,2,3");
 	}
 }

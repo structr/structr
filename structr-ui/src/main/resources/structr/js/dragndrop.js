@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,8 +25,8 @@ var sortParent;
 
 var _Dragndrop = {
 	makeDroppable: function(element, previewId) {
-		var el = $(element);
-		var tag, iframe = previewId ? $('#preview_' + previewId) : undefined;
+		let el = $(element);
+		let tag, iframe = previewId ? $('#preview_' + previewId) : undefined;
 
 		el.droppable({
 			iframeFix: true,
@@ -84,7 +84,6 @@ var _Dragndrop = {
 						if (obj.isFile) {
 
 							Command.favorites('add', sourceId, function() {
-
 								blinkGreen(Structr.node(sourceId));
 							});
 
@@ -124,7 +123,7 @@ var _Dragndrop = {
 				}
 
 				if (!target) {
-					// synthetize target with id only
+					// synthesize target with id only
 					target = {id: targetId};
 				}
 
@@ -157,11 +156,11 @@ var _Dragndrop = {
 			forcePlaceholderSize: true,
 			placeholder: 'pages-sortable-placeholder',
 			distance: 5,
-			cancel: 'i, img, b, .content_, .id',
+			items: '> .node',
 			helper: function (event, helperEl) {
 				pages.append('<div id="collapse-offset"></div>');
 				$('#collapse-offset', pages).css('height', helperEl.height() - 17);
-				helperEl.css({height: '17px'});
+				helperEl.css({height: '2rem'});
 				var hlp = helperEl.clone();
 				hlp.find('.node').remove();
 				hlp.find('.expand_icon').removeClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon)).addClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon));
@@ -294,7 +293,8 @@ var _Dragndrop = {
 				var type = tag.substring(1);
 				Command.setProperty(target.id, 'restQuery', type);
 				Command.setProperty(target.id, 'dataKey', type.toLowerCase(), false, function() {
-					_Pages.reloadPreviews();
+//					_Pages.reloadPreviews();
+					console.log('reload preview?');
 				});
 			} else {
 				return _Dragndrop.htmlElementFromPaletteDropped(tag, target, pageId);

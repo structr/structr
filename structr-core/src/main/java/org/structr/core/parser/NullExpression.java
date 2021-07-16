@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,12 +21,17 @@ package org.structr.core.parser;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
  *
  */
 public class NullExpression extends Expression {
+
+	public NullExpression(final int row, final int column) {
+		super(row, column);
+	}
 
 	@Override
 	public String toString() {
@@ -39,12 +44,12 @@ public class NullExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException {
 		return null;
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException {
 		return source;
 	}
 }

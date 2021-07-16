@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -75,7 +75,7 @@ public interface Script extends LinkSource {
 			try {
 				final String scriptType = thisScript.getProperty(StructrApp.key(Script.class, "_html_type"));
 
-				if (StringUtils.isNotBlank(scriptType)) {
+				if (StringUtils.isNotBlank(scriptType) && StringUtils.isBlank(((Content)newChild).getContentType())) {
 
 					((Content)newChild).setContentType(scriptType);
 

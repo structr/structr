@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,12 @@ package org.structr.test.web;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.util.*;
+import java.util.function.Supplier;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -41,13 +47,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.util.*;
-import java.util.function.Supplier;
-
 /**
  * Base class for all structr UI tests.
  */
@@ -67,6 +66,7 @@ public abstract class StructrUiTest {
 	protected final String htmlUrl     = "/structr/html";
 	protected final String wsUrl       = "/structr/ws";
 	protected String baseUri           = null;
+	protected boolean first            = true;
 
 	@BeforeClass(alwaysRun = true)
 	public void setup() {
@@ -130,25 +130,42 @@ public abstract class StructrUiTest {
 		System.out.println("######################################################################################");
 	}
 
-	@AfterMethod()
+	@BeforeMethod()
 	public void cleanDatabase() {
 
-		try (final Tx tx = app.tx()) {
+		if (!first) {
 
-			// delete everything
-			Services.getInstance().getDatabaseService().cleanDatabase();
+			try (final Tx tx = app.tx()) {
 
-			FlushCachesCommand.flushAll();
+				// delete everything
+				Services.getInstance().getDatabaseService().cleanDatabase();
 
-			SchemaService.ensureBuiltinTypesExist(app);
+				FlushCachesCommand.flushAll();
 
-			tx.success();
+				tx.success();
 
-		} catch (Throwable t) {
+			} catch (Throwable t) {
 
-			t.printStackTrace();
-			logger.error("Exception while trying to clean database: {}", t.getMessage());
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
+			}
+
+
+			try {
+
+				FlushCachesCommand.flushAll();
+
+				SchemaService.ensureBuiltinTypesExist(app);
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to create built-in schema for tenant identifier {}: {}", randomTenantId, t.getMessage());
+
+			}
 		}
+
+		first = false;
 	}
 
 	@AfterClass(alwaysRun = true)

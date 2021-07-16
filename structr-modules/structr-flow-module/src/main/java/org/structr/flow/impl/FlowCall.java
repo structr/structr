@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,12 +22,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNodes;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.FlowResult;
+import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
 import org.structr.flow.engine.FlowException;
@@ -41,7 +43,7 @@ import java.util.List;
 import java.util.Map;
 import org.structr.api.util.Iterables;
 
-public class FlowCall extends FlowActionNode implements DataSource, DeployableEntity {
+public class FlowCall extends FlowActionNode implements DataSource, DeployableEntity, ThrowingElement {
 
 	private static final Logger logger 									= LoggerFactory.getLogger(FlowCall.class);
 
@@ -74,9 +76,21 @@ public class FlowCall extends FlowActionNode implements DataSource, DeployableEn
 					}
 				}
 
-				final FlowResult result = engine.execute(functionContext, startNode);
-				// Save result
-				context.setData(getUuid(), result.getResult());
+				try {
+					final FlowResult result = engine.execute(functionContext, startNode);
+
+					// Save result
+					context.setData(getUuid(), result.getResult());
+
+					if (result.getError() != null) {
+
+						throw new FrameworkException(422, "FlowCall encountered an unexpected exception during execution." + result.getError().getMessage());
+					}
+				} catch (FrameworkException ex) {
+
+					throw new FlowException(ex, this);
+				}
+
 			} else {
 
 				logger.warn("Unable to evaluate FlowCall {}, flow container doesn't specify a start node.", getUuid());
@@ -109,5 +123,10 @@ public class FlowCall extends FlowActionNode implements DataSource, DeployableEn
 		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
 
 		return result;
+	}
+
+	@Override
+	public FlowExceptionHandler getExceptionHandler(Context context) {
+		return null;
 	}
 }

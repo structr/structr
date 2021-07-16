@@ -5,14 +5,14 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-test-configuration</artifactId>
-		<version>3.6.5</version>
+		<version>4.0-rc1</version>
 		<relativePath>../structr-test-configuration</relativePath>
 	</parent>
 
 	<groupId>org.structr</groupId>
 	<artifactId>structr-rest</artifactId>
 	<packaging>jar</packaging>
-	<version>3.6.5</version>
+	<version>4.0-rc1</version>
 
 	<dependencies>
 		<dependency>
@@ -48,17 +48,17 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			<version>9.4.18.v20190429</version>
+			<version>9.4.42.v20210604</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlets</artifactId>
-			<version>9.4.18.v20190429</version>
+			<version>9.4.42.v20210604</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-runner</artifactId>
-			<version>9.4.18.v20190429</version>
+			<version>9.4.42.v20210604</version>
 		</dependency>
 		<dependency>
 			<groupId>org.tuckey</groupId>
@@ -74,21 +74,20 @@
 			<artifactId>hamcrest-all</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-api</artifactId>
-			<version>0.11.2</version>
+			<groupId>com.auth0</groupId>
+			<artifactId>java-jwt</artifactId>
+			<version>3.16.0</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>jackson-databind</artifactId>
+					<groupId>com.fasterxml.jackson.core</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-impl</artifactId>
-			<version>0.11.2</version>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-jackson</artifactId> <!-- or jjwt-gson if Gson is preferred -->
-			<version>0.11.2</version>
-			<scope>runtime</scope>
+			<groupId>com.auth0</groupId>
+			<artifactId>jwks-rsa</artifactId>
+			<version>0.18.0</version>
 		</dependency>
     </dependencies>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -50,7 +50,7 @@ public class SendEventFunction extends UiAdvancedFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {
-			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 3);
+			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
 			final String name             = sources[0].toString();
 			final String message          = sources[1].toString();
@@ -63,7 +63,7 @@ public class SendEventFunction extends UiAdvancedFunction {
 
 				return EventSourceServlet.sendEvent(name, message, (Group)sources[2]);
 
-			} else if(sources[2] instanceof Iterable) {
+			} else if (sources[2] instanceof Iterable) {
 
 				final Set<Principal> targets = new HashSet<>();
 

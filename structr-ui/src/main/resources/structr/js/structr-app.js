@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -609,7 +609,6 @@ function StructrApp(baseUrl, locale) {
 				}
 			}
 		});
-
 	},
 	this.logoutAction = function(btn, id, attrs, reload, returnUrl) {
 		disableButton(btn, s.labels[s.lang].processing);

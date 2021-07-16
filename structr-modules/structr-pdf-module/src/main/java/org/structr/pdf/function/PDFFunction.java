@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,6 +27,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.servlet.http.HttpSession;
+import org.eclipse.jetty.server.session.Session;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
@@ -97,12 +99,16 @@ public class PDFFunction extends Function<Object, Object> {
 		List<Param> parameterList = new ArrayList<Param>();
 
 		if (currentUser instanceof SuperUser) {
+
 			parameterList.add(new Param("--custom-header X-User superadmin --custom-header X-Password " + Settings.SuperUserPassword.getValue()));
 			parameterList.add(new Param("--custom-header-propagation"));
 
 		} else {
-			parameterList.add(new Param("--cookie JSESSIONID " + ctx.getSecurityContext().getSessionId()));
 
+			final HttpSession session = ctx.getSecurityContext().getSession();
+			final String sessionId    = (session instanceof Session) ? ((Session) session).getExtendedId() : session.getId();
+
+			parameterList.add(new Param("--cookie JSESSIONID " + sessionId));
 		}
 
 		if (userParamter != null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,127 +20,172 @@ $(document).ready(function() {
 	Structr.registerModule(_MailTemplates);
 });
 
-var _MailTemplates = {
+let _MailTemplates = {
 	_moduleName: 'mail-templates',
 
 	mailTemplatesPager: undefined,
 	mailTemplatesList: undefined,
 	mailTemplateDetail: undefined,
-	mailTemplateDetailTable: undefined,
+	mailTemplateDetailForm: undefined,
 	previewElement: undefined,
+	editor: undefined,
 
 	mailTemplatesResizerLeftKey: 'structrMailTemplatesResizerLeftKey_' + port,
-
-	modes: {
-		edit: 'edit',
-		create: 'create',
-		preview: 'preview'
-	},
+	mailTemplateSelectedElementKey: 'structrMailTemplatesSelectedElementKey_' + port,
 
 	init: function() {},
 	unload: function() {},
 	onload: function() {
+
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('mail-templates'));
 
 		Structr.fetchHtmlTemplate('mail-templates/main', {}, function(html) {
 			main.append(html);
 
-			$('#create-mail-template').on('click', function() {
-				_MailTemplates.clearMailTemplateDetails();
+			Structr.fetchHtmlTemplate('mail-templates/functions', {}, function (html) {
+				functionBar.append(html);
 
-				_MailTemplates.switchMode(_MailTemplates.modes.create);
-				_MailTemplates.mailTemplateDetail.show();
-			});
+				let namePreselect = document.getElementById('mail-template-name-preselect');
 
-			_MailTemplates.mailTemplatesList = $('#mail-templates-table tbody');
-			_MailTemplates.listMailTemplates();
+				document.getElementById('create-mail-template-form').addEventListener('submit', (e) => {
+					e.preventDefault();
 
-			_MailTemplates.mailTemplateDetail = $('#mail-template-detail').hide();
-			_MailTemplates.mailTemplateDetailTable = $('#mail-template-detail-table');
-			_MailTemplates.previewElement = document.getElementById('mail-template-preview');
-
-			_MailTemplates.registerChangeListeners();
-
-			$('button.save', _MailTemplates.mailTemplateDetail).on('click', function() {
-
-				var data = _MailTemplates.getObjectDataFromElement(_MailTemplates.mailTemplateDetailTable);
-
-				_MailTemplates.saveObject('MailTemplate', data, _MailTemplates.mailTemplateDetailTable, function (data) {
-					var createdId = data.result[0];
-					_MailTemplates.mailTemplateDetailTable.data('mail-template-id', createdId);
-
-					_MailTemplates.switchMode(_MailTemplates.modes.edit);
-					_MailTemplates.mailTemplatesPager.refresh();
+					_MailTemplates.showMain();
+					_MailTemplates.createObject('MailTemplate', { name: namePreselect.value }, this, (data) => {
+						let id = data.result[0];
+						_MailTemplates.showMailTemplateDetails(id, true);
+					});
 				});
+
+				_MailTemplates.mailTemplatesList = $('#mail-templates-table tbody');
+				_MailTemplates.listMailTemplates();
+
+				_MailTemplates.mailTemplateDetail = $('#mail-template-detail');
+				_MailTemplates.mailTemplateDetailForm = $('#mail-template-detail-form');
+				_MailTemplates.previewElement = document.getElementById('mail-template-preview');
+
+				document.querySelector('#mail-templates-detail-container button.save').addEventListener('click', function() {
+
+					let data = _MailTemplates.getObjectDataFromElement(_MailTemplates.mailTemplateDetailForm);
+					let id   = _MailTemplates.mailTemplateDetailForm.data('mail-template-id');
+
+					_MailTemplates.updateObject('MailTemplate', id, data, this, null, function() {
+
+						let rowInList = $('#mail-template-' + id, _MailTemplates.mailTemplatesList);
+						_MailTemplates.populateMailTemplatePagerRow(rowInList, data);
+						_MailTemplates.updatePreview();
+					});
+				});
+
+				Structr.unblockMenu(100);
+
+				Structr.initVerticalSlider($('.column-resizer', main), _MailTemplates.mailTemplatesResizerLeftKey, 300, _MailTemplates.moveResizer);
+
+				_MailTemplates.moveResizer(LSWrapper.getItem(_MailTemplates.mailTemplatesResizerLeftKey));
 			});
-
-			$('button.cancel', _MailTemplates.mailTemplateDetail).on('click', function () {
-				_MailTemplates.clearMailTemplateDetails();
-				_MailTemplates.mailTemplateDetail.hide();
-			});
-
-			$('button.preview', _MailTemplates.mailTemplateDetail).on('click', function () {
-
-				_MailTemplates.previewElement.contentDocument.open();
-				_MailTemplates.previewElement.contentDocument.write($('textarea', _MailTemplates.mailTemplateDetail).val());
-				_MailTemplates.previewElement.contentDocument.close();
-				_MailTemplates.switchMode(_MailTemplates.modes.preview);
-			});
-
-			$('button.exit-preview', _MailTemplates.mailTemplateDetail).on('click', function () {
-				_MailTemplates.switchMode(_MailTemplates.modes.edit);
-			});
-
-			Structr.unblockMenu(100);
-
-			_MailTemplates.moveResizer();
-			Structr.initVerticalSlider($('.column-resizer', main), _MailTemplates.mailTemplatesResizerLeftKey, 300, _MailTemplates.moveResizer);
-
-			_MailTemplates.resize();
 		});
 	},
+	getContextMenuElements: function (div, entity) {
+
+		let elements = [];
+
+		elements.push({
+			name: 'Properties',
+			clickHandler: function() {
+				_Entities.showProperties(entity, 'ui');
+				return false;
+			}
+		});
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		_Elements.appendSecurityContextMenuItems(elements, entity);
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		elements.push({
+			icon: _Icons.svg.trashcan,
+			classes: ['menu-bolder', 'danger'],
+			name: 'Delete Mail Template',
+			clickHandler: () => {
+
+				_Entities.deleteNode(this, entity, false, () => {
+
+					let lastSelectedMailTemplateId = LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey);
+					if (lastSelectedMailTemplateId === entity.id) {
+						LSWrapper.removeItem(_MailTemplates.mailTemplateSelectedElementKey);
+						document.getElementById('mail-templates-detail-container').style.display = 'none';
+					}
+
+					_MailTemplates.mailTemplatesPager.refresh();
+
+					let row = Structr.node(entity.id, '#mail-template-');
+					if (row) {
+						row.remove();
+						_MailTemplates.checkMainVisibility();
+					}
+				});
+				return false;
+			}
+		});
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		return elements;
+	},
+	showMain: () => {
+		document.getElementById('mail-templates-main').style.display = 'flex';
+		_MailTemplates.moveResizer();
+	},
+	hideMain: () => {
+		document.getElementById('mail-templates-main').style.display = 'none';
+	},
+	checkMainVisibility: () => {
+
+		let rows = document.querySelectorAll('.mail-template-row');
+		let selectedRowExists = false;
+		rows.forEach((row) => {
+			selectedRowExists |= row.classList.contains('selected');
+		});
+
+		if (!rows || rows.length === 0) {
+			_MailTemplates.hideMain();
+		} else if (!selectedRowExists) {
+			document.getElementById('mail-templates-detail-container').style.display = 'none';
+		}
+	},
 	resize: function() {
+
 		_MailTemplates.moveResizer();
 		Structr.resize();
 	},
 	moveResizer: function(left) {
-		left = left || LSWrapper.getItem(_MailTemplates.mailTemplatesResizerLeftKey) || 300;
-		$('.column-resizer', main).css({ left: left });
 
-		$('#mail-templates-list').css({width: left - 25 + 'px'});
-	},
-	switchMode: function(mode) {
+		requestAnimationFrame(() => {
 
-		$('.show-in-modes', _MailTemplates.mailTemplateDetail).hide();
+			left = left || LSWrapper.getItem(_MailTemplates.mailTemplatesResizerLeftKey) || 300;
+			left = Math.max(300, Math.min(left, window.innerWidth - 300));
 
-		if (mode) {
-			$('.show-in-modes', _MailTemplates.mailTemplateDetail).each(function(i, el) {
-				var self = $(this);
-				if (self.data('modes').split('|').indexOf(mode) !== -1) {
-					self.show();
-					if (self[0].tagName === 'TABLE') {
-						self.css('display', 'table');
-					}
-				}
-			});
-		}
-	},
-	registerChangeListeners: function() {
+			document.querySelector('.column-resizer').style.left = left + 'px';
 
-		$(_MailTemplates.mailTemplateDetailTable).on('change', '.property', function() {
-			var el = $(this);
-			var table = el.closest('table');
-			var objId = table.data('mail-template-id');
-			if (objId) {
-				var data = _MailTemplates.getObjectDataFromElement(table);
-				_MailTemplates.updateObject('MailTemplate', objId, data, el, el.closest('td'), function() {
-					var rowInList = $('#mail-template-' + objId, _MailTemplates.mailTemplatesList);
-					_MailTemplates.populateMailTemplatePagerRow(rowInList, data);
-				});
-			}
+			let listContainer = document.getElementById('mail-templates-list-container');
+			listContainer.style.width = 'calc(' + left + 'px - 1rem)';
+
+			let detailContainer = document.getElementById('mail-templates-detail-container');
+			detailContainer.style.width = 'calc(100% - ' + left + 'px - 3rem)';
+
+			return true;
 		});
 	},
-	listMailTemplates: function () {
+	updatePreview: () => {
+
+		//_MailTemplates.previewElement.contentDocument.open();
+		let value = _MailTemplates.editor ? _MailTemplates.editor.getValue() : document.getElementById('mail-template-text').value;
+		//_MailTemplates.previewElement.contentDocument.write(value);
+		_MailTemplates.previewElement.contentDocument.documentElement.innerHTML = value;
+		//_MailTemplates.previewElement.contentDocument.close();
+	},
+	listMailTemplates: () => {
 
 		let pagerEl = $('#mail-templates-pager');
 
@@ -151,65 +196,67 @@ var _MailTemplates = {
 		_MailTemplates.mailTemplatesPager.cleanupFunction = function () {
 			fastRemoveAllChildren(_MailTemplates.mailTemplatesList[0]);
 		};
-		_MailTemplates.mailTemplatesPager.pager.append('<br>Filters: <input type="text" class="filter w100 mail-template-name" data-attribute="name" placeholder="Name" />');
+		_MailTemplates.mailTemplatesPager.pager.append('Filters: <input type="text" class="filter w100 mail-template-name" data-attribute="name" placeholder="Name" />');
 		_MailTemplates.mailTemplatesPager.pager.append('<input type="text" class="filter w100 mail-template-locale" data-attribute="locale" placeholder="Locale" />');
 		_MailTemplates.mailTemplatesPager.activateFilterElements();
 
 		pagerEl.append('<div style="clear:both;"></div>');
-
-		$('#mail-templates-table .sort').on('click', function () {
-			_MailTemplates.mailTemplatesPager.setSortKey($(this).data('sort'));
-		});
-
 	},
-	processPagerData: function (pagerData) {
+	processPagerData: (pagerData) => {
 		if (pagerData && pagerData.length) {
 			pagerData.forEach(_MailTemplates.appendMailTemplate);
 		}
 	},
-	appendMailTemplate: function (mailTemplate) {
+	appendMailTemplate: (mailTemplate) => {
 
-		Structr.fetchHtmlTemplate('mail-templates/row.type', {mailTemplate: mailTemplate}, function(html) {
+		_MailTemplates.showMain();
 
-			var row = $(html);
+		Structr.fetchHtmlTemplate('mail-templates/row.type', { mailTemplate: mailTemplate }, function(html) {
+
+			let row = $(html);
 
 			_MailTemplates.populateMailTemplatePagerRow(row, mailTemplate);
 			_MailTemplates.mailTemplatesList.append(row);
 
-			var actionsCol = $('.actions', row);
+			let actionsCol = $('.actions', row);
 
-			$('<a title="Edit Properties" class="properties"><i class=" button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /></a>').on('click', function () {
+			row.on('click', function () {
+				_MailTemplates.selectRow(mailTemplate.id);
 				_MailTemplates.showMailTemplateDetails(mailTemplate.id);
-			}).appendTo(actionsCol);
-
-			_MailTemplates.appendDeleteIcon(actionsCol, 'Do you really want to delete the mail template "' + mailTemplate.name + '"?', function() {
-
-				Command.deleteNode(mailTemplate.id);
-
-				if (mailTemplate.id === _MailTemplates.mailTemplateDetailTable.data('mail-template-id')) {
-					_MailTemplates.clearMailTemplateDetails();
-					_MailTemplates.mailTemplateDetail.hide();
-				}
-
-				row.remove();
 			});
+
+			_Elements.enableContextMenuOnElement(row, mailTemplate);
+			_Entities.appendEditPropertiesIcon(actionsCol, mailTemplate, true);
+
+			let lastSelectedMailTemplateId = LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey);
+			if (lastSelectedMailTemplateId === mailTemplate.id) {
+				row.click();
+			}
 		});
 	},
-	populateMailTemplatePagerRow:function(row, mailTemplate) {
+	selectRow: (id) => {
+
+		document.querySelectorAll('.mail-template-row').forEach((row) => {
+			row.classList.remove('selected');
+		});
+
+		document.getElementById('mail-template-' + id).classList.add('selected');
+	},
+	populateMailTemplatePagerRow: (row, mailTemplate) => {
+
 		$('.property', row).each(function(i, el) {
 			var self = $(this);
 			var val = mailTemplate[self.attr('data-property')];
 			self.text(val !== null ? val : "");
 		});
-	},
-	deleteVirtualType: function(id) {
-
-		console.log('DELETE id: ' + id + ' + all properties!');
-		console.log('If this ID is currently active, remove it!');
 
 	},
 	getObjectDataFromElement: function(element) {
 		var data = {};
+
+		if (_MailTemplates.editor) {
+			_MailTemplates.editor.toTextArea();
+		}
 
 		$('.property', element).each(function(idx, el) {
 			var el = $(el);
@@ -225,15 +272,25 @@ var _MailTemplates = {
 			}
 		});
 
+		_MailTemplates.activateEditor();
+
 		return data;
 	},
-	showMailTemplateDetails:function(mailTemplateId) {
+	showMailTemplateDetails: function(mailTemplateId, isCreate) {
 
 		Command.get(mailTemplateId, '', function(mt) {
 
-			_MailTemplates.mailTemplateDetailTable.data('mail-template-id', mailTemplateId);
+			document.getElementById('mail-templates-detail-container').style.display = null;
 
-			$('.property', _MailTemplates.mailTemplateDetailTable).each(function(idx, el) {
+			_MailTemplates.mailTemplateDetailForm.data('mail-template-id', mailTemplateId);
+
+			LSWrapper.setItem(_MailTemplates.mailTemplateSelectedElementKey, mailTemplateId);
+
+			if (_MailTemplates.editor) {
+				_MailTemplates.editor.toTextArea();
+			}
+
+			$('.property', _MailTemplates.mailTemplateDetailForm).each(function(idx, el) {
 				var el = $(el);
 				var val = mt[el.data('property')];
 
@@ -244,72 +301,63 @@ var _MailTemplates = {
 				}
 			});
 
-			_MailTemplates.switchMode(_MailTemplates.modes.edit);
-			_MailTemplates.mailTemplateDetail.show();
-		});
-	},
-	clearMailTemplateDetails: function() {
+			_MailTemplates.activateEditor();
+			_MailTemplates.updatePreview();
 
-		_MailTemplates.mailTemplateDetailTable.removeData('mail-template-id');
-
-		$('.property', _MailTemplates.mailTemplateDetailTable).each(function(idx, el) {
-			var el = $(el);
-
-			if (el.attr('type') === 'checkbox') {
-				el.prop('checked', true);
-			} else {
-				el.val("");
+			if (isCreate === true) {
+				_MailTemplates.mailTemplatesPager.refresh();
 			}
 		});
 	},
-	appendDeleteIcon: function(insertPoint, confirmText, deletionActionCallback) {
+	activateEditor: () => {
 
-		$('<a title="Delete" class="delete"><i class=" button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /></a>').on('click', function() {
-
-			if (true === confirm(confirmText)) {
-				deletionActionCallback();
-			}
-
-		}).appendTo(insertPoint);
+		let templateContentTextarea = document.getElementById('mail-template-text');
+		_MailTemplates.editor = CodeMirror.fromTextArea(templateContentTextarea, Structr.getCodeMirrorSettings({
+			lineNumbers: true,
+			lineWrapping: false,
+			indentUnit: 4,
+			tabSize: 4,
+			indentWithTabs: false
+		}));
 	},
-	saveObject:function (type, data, element, successCallback) {
+	createObject: async (type, data, element, successCallback) => {
 
-		$.ajax({
-			url: rootUrl + type,
-			type: 'POST',
-			dataType: 'json',
-			data: JSON.stringify(data),
-			contentType: 'application/json; charset=utf-8',
-			success: function(data) {
-				blinkGreen($('td', element));
-
-				if (typeof(successCallback) === "function") {
-					successCallback(data);
-				}
-			},
-			error: function () {
-				blinkRed($('td', element));
-			}
+		let response = await fetch(rootUrl + type, {
+			method: 'POST',
+			body: JSON.stringify(data)
 		});
 
-	},
-	updateObject:function (type, id, newData, $el, $blinkTarget, successCallback) {
+		if (response.ok) {
 
-		$.ajax({
-			url: rootUrl + type + '/' + id,
-			type: 'PUT',
-			dataType: 'json',
-			data: JSON.stringify(newData),
-			contentType: 'application/json; charset=utf-8',
-			success: function() {
-				blinkGreen(($blinkTarget ? $blinkTarget : $el));
-				if (typeof(successCallback) === "function") {
-					successCallback();
-				}
-			},
-			error: function () {
-				blinkRed(($blinkTarget ? $blinkTarget : $el));
+			let data = await response.json();
+
+			blinkGreen($('td', element));
+
+			if (typeof successCallback === "function") {
+				successCallback(data);
 			}
+
+		} else {
+			blinkRed($('td', element));
+		}
+	},
+	updateObject: async (type, id, newData, $el, $blinkTarget, successCallback) => {
+
+		let response = await fetch(rootUrl + type + '/' + id, {
+			method: 'PUT',
+			body: JSON.stringify(newData)
 		});
+
+		if (response.ok) {
+
+			blinkGreen(($blinkTarget ? $blinkTarget : $el));
+
+			if (typeof successCallback === "function") {
+				successCallback();
+			}
+
+		} else {
+			blinkRed(($blinkTarget ? $blinkTarget : $el));
+		}
 	}
 };

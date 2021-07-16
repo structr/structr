@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
@@ -45,8 +46,8 @@ public class EachExpression extends Expression {
 	private Expression listExpression = null;
 	private Expression eachExpression = null;
 
-	public EachExpression() {
-		super("each");
+	public EachExpression(final int row, final int column) {
+		super("each", row, column);
 	}
 
 	@Override
@@ -86,13 +87,13 @@ public class EachExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
 		if (listExpression == null) {
 			return ERROR_MESSAGE_EACH;
 		}
 
-		Object listSource = listExpression.evaluate(ctx, entity);
+		Object listSource = listExpression.evaluate(ctx, entity, hints);
 
 		if (listSource != null && listSource.getClass().isArray()) {
 			listSource = Arrays.asList((Object[]) listSource);
@@ -116,7 +117,7 @@ public class EachExpression extends Expression {
 						while (iterator.hasNext()) {
 
 							ctx.setConstant("data", iterator.next());
-							eachExpression.evaluate(ctx, entity);
+							eachExpression.evaluate(ctx, entity, hints);
 
 							if ((++count % getBatchSize()) == 0) {
 								break;
@@ -142,7 +143,7 @@ public class EachExpression extends Expression {
 				for (Object obj : source) {
 
 					ctx.setConstant("data", obj);
-					eachExpression.evaluate(ctx, entity);
+					eachExpression.evaluate(ctx, entity, hints);
 				}
 			}
 
@@ -154,7 +155,7 @@ public class EachExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 }

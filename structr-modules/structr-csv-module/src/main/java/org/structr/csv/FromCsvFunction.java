@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,12 +27,13 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
+import org.structr.rest.common.CsvHelper;
 import org.structr.schema.action.ActionContext;
 
 public class FromCsvFunction extends CsvFunction {
 
-	public static final String ERROR_MESSAGE_FROM_CSV    = "Usage: ${from_csv(source[, delimiterChar[, quoteChar[, recordSeparator[, header]]]])}. Example: ${from_csv('COL1;COL2;COL3\none;two;three')}";
-	public static final String ERROR_MESSAGE_FROM_CSV_JS = "Usage: ${{Structr.from_csv(source[, delimiterChar[, quoteChar[, recordSeparator[, header]]]])}}. Example: ${{Structr.from_csv('COL1;COL2;COL3\none;two;three')}}";
+	public static final String ERROR_MESSAGE_FROM_CSV    = "Usage: ${from_csv(source[, delimiterChar[, quoteChar[, recordSeparator[, header[, escapeChar]]]]])}. Example: ${from_csv('COL1;COL2;COL3\none;two;three')}";
+	public static final String ERROR_MESSAGE_FROM_CSV_JS = "Usage: ${{Structr.from_csv(source[, delimiterChar[, quoteChar[, recordSeparator[, header[, escapeChar]]]]])}}. Example: ${{Structr.from_csv('COL1;COL2;COL3\none;two;three')}}";
 
 	@Override
 	public String getName() {
@@ -41,7 +42,7 @@ public class FromCsvFunction extends CsvFunction {
 
 	@Override
 	public String getSignature() {
-		return "source [, d, qc, rs, h ]";
+		return "source [, delimiterChar[, quoteChar[, recordSeparator[, header[, escapeChar]]]]]";
 	}
 
 	@Override
@@ -58,10 +59,12 @@ public class FromCsvFunction extends CsvFunction {
 				String delimiter                        = ";";
 				String quoteChar                        = "\"";
 				String recordSeparator                  = "\n";
+				String escape                           = "\\";
 				boolean customColumnNamesSupplied       = false;
 
 				switch (sources.length) {
 
+					case 6: escape = (String)sources[5];
 					case 5: customColumnNamesSupplied = (sources[4] instanceof Collection);
 					case 4: recordSeparator = (String)sources[3];
 					case 3: quoteChar = (String)sources[2];
@@ -82,6 +85,7 @@ public class FromCsvFunction extends CsvFunction {
 				format = format.withIgnoreEmptyLines(true);
 				format = format.withIgnoreSurroundingSpaces(true);
 				format = format.withQuoteMode(QuoteMode.ALL);
+				format = format.withEscape(escape.charAt(0));
 
 				CSVParser parser = new CSVParser(new StringReader(source), format);
 				for (final CSVRecord record : parser.getRecords()) {

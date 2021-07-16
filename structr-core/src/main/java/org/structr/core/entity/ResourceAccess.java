@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,10 +18,12 @@
  */
 package org.structr.core.entity;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -68,16 +70,15 @@ import org.structr.core.property.StringProperty;
  */
 public class ResourceAccess extends AbstractNode {
 
-	private static final Map<String, ResourceAccess> grantCache = new ConcurrentHashMap<>();
-	private static final Logger logger                          = LoggerFactory.getLogger(ResourceAccess.class.getName());
+	private static final Map<String, List<ResourceAccess>> grantCache = new ConcurrentHashMap<>();
+	private static final Logger logger                                = LoggerFactory.getLogger(ResourceAccess.class.getName());
 
-	public static final Property<String>               signature          = new StringProperty("signature").cmis().unique().indexed();
+	public static final Property<String>               signature          = new StringProperty("signature").cmis().indexed();
 	public static final Property<Long>                 flags              = new LongProperty("flags").cmis().indexed();
-	public static final Property<Integer>              position           = new IntProperty("position").cmis().indexed();
 	public static final Property<Boolean>              isResourceAccess   = new ConstantBooleanProperty("isResourceAccess", true);
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,
-		signature, flags, position, isResourceAccess
+		signature, flags, isResourceAccess
 	);
 
 	public static final View publicView = new View(ResourceAccess.class, PropertyView.Public,
@@ -87,10 +88,13 @@ public class ResourceAccess extends AbstractNode {
 	// non-static members
 	private String cachedResourceSignature = null;
 	private Long cachedFlags               = null;
-	private Integer cachedPosition         = null;
 
 	public boolean hasFlag(long flag) {
 		return (getFlags() & flag) == flag;
+	}
+
+	public static boolean hasFlag(long flag, long flags) {
+		return (flags & flag) == flag;
 	}
 
 	public void setFlag(final long flag) throws FrameworkException {
@@ -129,19 +133,6 @@ public class ResourceAccess extends AbstractNode {
 		return cachedResourceSignature;
 	}
 
-	public int getPosition() {
-
-		if (cachedPosition == null) {
-			cachedPosition = getProperty(ResourceAccess.position);
-		}
-
-		if (cachedPosition != null) {
-			return cachedPosition;
-		}
-
-		return 0;
-	}
-
 	@Override
 	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) {
 		grantCache.clear();
@@ -152,7 +143,6 @@ public class ResourceAccess extends AbstractNode {
 
 		boolean valid = super.isValid(errorBuffer);
 
-		valid &= ValidationHelper.isValidUniqueProperty(this, ResourceAccess.signature, errorBuffer);
 		valid &= ValidationHelper.isValidStringNotBlank(this,  ResourceAccess.signature, errorBuffer);
 		valid &= ValidationHelper.isValidPropertyNotNull(this, ResourceAccess.flags, errorBuffer);
 
@@ -169,25 +159,20 @@ public class ResourceAccess extends AbstractNode {
 		grantCache.clear();
 	}
 
-	public static ResourceAccess findGrant(final SecurityContext securityContext, final String signature) throws FrameworkException {
+	public static List<ResourceAccess> findGrants(final SecurityContext securityContext, final String signature) throws FrameworkException {
 
-		ResourceAccess grant = grantCache.get(signature);
-		if (grant == null) {
+		List<ResourceAccess> grants = grantCache.get(signature);
+		if (grants == null) {
 
-			//grant = StructrApp.getInstance(securityContext).nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
-			// ignore security context for now, so ResourceAccess objects don't have to be visible
-			grant = StructrApp.getInstance().nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getFirst();
-			if (grant != null) {
+			// Ignore securityContext here (so we can cache all grants for a signature independent of a user)
+			grants = StructrApp.getInstance().nodeQuery(ResourceAccess.class).and(ResourceAccess.signature, signature).getAsList();
+			if (!grants.isEmpty()) {
 
-				grantCache.put(signature, grant);
-
-			} else {
-
-				logger.debug("No resource access object found for {}", signature);
+				grantCache.put(signature, grants);
 			}
 		}
 
-		return grant;
+		return grants;
 	}
 
 	public static void clearCache() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,8 +25,8 @@ if (browser) {
 
 		defaultType = 'Page';
 		defaultView = 'all';
-		defaultSort = '';
-		defaultOrder = '';
+		defaultSort = 'createdDate';
+		defaultOrder = 'desc';
 
 		defaultPage = 1;
 		defaultPageSize = 10;
@@ -34,6 +34,20 @@ if (browser) {
 		main = $('#main');
 
 		Structr.registerModule(_Crud);
+
+		$(document).on('click', '#crud-left .crud-type', function() {
+			_Crud.typeSelected($(this).data('type'));
+		});
+
+		$(document).on('click', '#crud-recent-types .remove-recent-type', function (e) {
+			e.stopPropagation();
+			_Crud.removeRecentType($(this).closest('div').data('type'));
+		});
+
+		$(document).on('change', '#crudTypeFilterSettings input', function(e) {
+			LSWrapper.setItem(_Crud.displayTypeConfigKey, _Crud.getTypeVisibilityConfig());
+			_Crud.updateTypeList();
+		});
 	});
 
 } else {
@@ -42,15 +56,18 @@ if (browser) {
 
 var _Crud = {
 	_moduleName: 'crud',
+	displayTypeConfigKey: 'structrCrudDisplayTypes_' + port,
 	defaultCollectionPageSize: 10,
 	resultCountSoftLimit: 10000,
 	crudPagerDataKey: 'structrCrudPagerData_' + port + '_',
 	crudTypeKey: 'structrCrudType_' + port,
 	crudHiddenColumnsKey: 'structrCrudHiddenColumns_' + port,
 	crudRecentTypesKey: 'structrCrudRecentTypes_' + port,
+	crudResizerLeftKey: 'structrCrudResizerLeft_' + port,
 	crudExactTypeKey: 'structrCrudExactType_' + port,
 	searchField: undefined,
 	types: {},
+	abstractSchemaNodes: {},
 	availableViews: {},
 	relInfo: {},
 	keys: {},
@@ -165,115 +182,131 @@ var _Crud = {
 	page: {},
 	exact: {},
 	pageSize: {},
+	moveResizer: function(left) {
+
+		requestAnimationFrame(() => {
+			left = left || LSWrapper.getItem(_Crud.crudResizerLeftKey) || 210;
+			$('.column-resizer', main).css({ left: left });
+
+			$('#crud-types').css({width: left - 12 + 'px'});
+			$('#crud-recent-types').css({width: left - 12 + 'px'});
+		});
+	},
+	reloadList: () => {
+		_Crud.typeSelected(_Crud.type);
+	},
 	init: function() {
 
-		main.append('<div class="searchBox"><input class="search" name="crud-search" placeholder="Search"><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
-		main.append('<div id="crud-main"><div id="crud-top"><select id="crud-types-select"><optgroup label="Recent Types" id="crud-types-select-recent"></optgroup><optgroup label="All Types" id="crud-types-select-all"></optgroup></select></div><div id="crud-type-detail" class="resourceBox"></div></div>');
+		Structr.fetchHtmlTemplate('crud/menu', {}, function(html) {
+			functionBar.append(html);
+		});
 
-		_Crud.exact = LSWrapper.getItem(_Crud.crudExactTypeKey) || {};
+		Structr.fetchHtmlTemplate('crud/main', {}, function(html) {
 
-		_Crud.schemaLoading = false;
-		_Crud.schemaLoaded = false;
-		_Crud.keys = {};
+			main.append(html);
 
-		_Crud.loadSchema(function() {
+			_Crud.moveResizer();
+			Structr.initVerticalSlider($('.column-resizer', main), _Crud.crudResizerLeftKey, 204, _Crud.moveResizer);
 
-			if (browser) {
+			let savedTypeVisibility = _Crud.getStoredTypeVisibilityConfig();
 
-				let typeSelect = document.getElementById('crud-types-select');
-				let optGroupAll = document.getElementById('crud-types-select-all');
-				let optGroupRecent = document.getElementById('crud-types-select-recent');
+			$('#crudTypesSearch').keyup(function (e) {
 
-				let allTypes    = Object.keys(_Crud.types).sort();
-				let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey, []);
+				if (e.keyCode === 27) {
 
-				for (let recentTypeName of recentTypes) {
+					$(this).val('');
 
-					// only add to list if it exists!
-					if (allTypes.includes(recentTypeName)) {
+				} else if (e.keyCode === 13) {
 
-						let option = document.createElement('option');
-						option.id = recentTypeName;
-						option.textContent = recentTypeName;
-						option.selected = (recentTypeName === _Crud.type);
+					let visibleTypes = $('#crud-types-list .crud-type:not(.hidden)');
 
-						optGroupRecent.appendChild(option);
+					if (visibleTypes.length === 1) {
+
+						_Crud.typeSelected(visibleTypes.data('type'));
+
+					} else {
+
+						let filterVal = $(this).val().toLowerCase();
+
+						let matchingTypes = Object.keys(_Crud.types).filter(function(type) {
+							return type.toLowerCase() === filterVal;
+						});
+
+						if (matchingTypes.length === 1) {
+							_Crud.typeSelected(matchingTypes[0]);
+						}
 					}
 				}
 
-				allTypes.map((typeName) => {
-					let option = document.createElement('option');
-					option.id = typeName;
-					option.textContent = typeName;
+				_Crud.filterTypes($(this).val().toLowerCase());
+			});
 
-					if (typeName !== _Crud.type && !recentTypes.includes(typeName)) {
-						optGroupAll.appendChild(option);
+			_Crud.exact = LSWrapper.getItem(_Crud.crudExactTypeKey) || {};
+
+			_Crud.schemaLoading = false;
+			_Crud.schemaLoaded  = false;
+			_Crud.keys = {};
+
+			_Crud.loadSchema(function() {
+
+				Command.query('AbstractSchemaNode', 2000, 1, 'name', 'asc', {}, function(abstractSchemaNodes) {
+
+					for (let asn of abstractSchemaNodes) {
+						_Crud.abstractSchemaNodes[asn.name] = asn;
 					}
+
+					if (browser) {
+						_Crud.updateTypeList();
+						_Crud.typeSelected(_Crud.type);
+						_Crud.updateRecentTypeList(_Crud.type);
+					}
+					_Crud.resize();
+					Structr.unblockMenu();
+
 				});
+			});
 
-				let select2 = $(typeSelect).select2({
-					dropdownParent: $('#crud-top')
-				});
-				select2.on('select2:select', (e) => {
+			_Crud.searchField = $('.search', main);
+			_Crud.searchField.focus();
 
-					let typeName = e.params.data.text;
-					let element  = e.params.data.element;
+			Structr.appendInfoTextToElement({
+				element: _Crud.searchField,
+				text: 'By default a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search like so:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
+				insertAfter: true,
+				css: {
+					left: '-18px',
+					position: 'absolute'
+				},
+				helpElementCss: {
+					fontSize: '12px',
+					lineHeight: '1.1em'
+				}
+			});
 
-					optGroupRecent.insertBefore(element, optGroupRecent.firstChild);
+			let crudMain = $('#crud-main');
 
-					select2 = $(typeSelect).select2({
-						dropdownParent: $('#crud-top')
+			_Crud.searchField.keyup(function(e) {
+				var searchString = $(this).val();
+				if (searchString && searchString.length && e.keyCode === 13) {
+
+					$('.clearSearchIcon').show().on('click', function() {
+						_Crud.clearSearch(crudMain);
 					});
 
-					_Crud.typeSelected(typeName);
-				});
+					_Crud.search(searchString, crudMain, null, function(e, node) {
+						e.preventDefault();
+						_Crud.showDetails(node, false, node.type);
+						return false;
+					});
 
-				_Crud.typeSelected(_Crud.type);
-			}
-			_Crud.resize();
-			Structr.unblockMenu();
-		});
+					$('#crud-top').hide();
+					$('#crud-type-detail').hide();
 
-		_Crud.searchField = $('.search', main);
-		_Crud.searchField.focus();
+				} else if (e.keyCode === 27 || searchString === '') {
 
-		Structr.appendInfoTextToElement({
-			element: _Crud.searchField,
-			text: 'By default a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search like so:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
-			insertAfter: true,
-			css: {
-				left: '-18px',
-				position: 'absolute'
-			},
-			helpElementCss: {
-				fontSize: '12px',
-				lineHeight: '1.1em'
-			}
-		});
-
-		let crudMain = $('#crud-main');
-
-		_Crud.searchField.keyup(function(e) {
-			var searchString = $(this).val();
-			if (searchString && searchString.length && e.keyCode === 13) {
-
-				$('.clearSearchIcon').show().on('click', function() {
 					_Crud.clearSearch(crudMain);
-				});
-
-				_Crud.search(searchString, crudMain, null, function(e, node) {
-					e.preventDefault();
-					_Crud.showDetails(node, false, node.type);
-					return false;
-				});
-
-				$('#crud-top').hide();
-				$('#crud-type-detail').hide();
-
-			} else if (e.keyCode === 27 || searchString === '') {
-
-				_Crud.clearSearch(crudMain);
-			}
+				}
+			});
 		});
 	},
 	onload: function() {
@@ -325,6 +358,7 @@ var _Crud = {
 	typeSelected: function (type) {
 
 		_Crud.updateRecentTypeList(type);
+		_Crud.highlightCurrentType(type);
 
 		var crudRight = $('#crud-type-detail');
 		fastRemoveAllChildren(crudRight[0]);
@@ -335,10 +369,11 @@ var _Crud = {
 			clearTimeout(_Crud.messageTimeout);
 
 			fastRemoveAllChildren(crudRight[0]);
+			$('#crud-buttons').remove();
 
 			crudRight.data('url', '/' + type);
 
-			crudRight.append('<div id="crud-buttons">'
+			functionBar.append('<div id="crud-buttons">'
 					+ '<button class="action" id="create' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Create new ' + type + '</button>'
 					+ '<button id="export' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_table_icon) + '" /> Export as CSV</button>'
 					+ '<button id="import' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_add_icon) + '" /> Import CSV</button>'
@@ -354,19 +389,19 @@ var _Crud = {
 
 			crudRight.append('<div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
 
-			$('#create' + type, crudRight).on('click', function() {
+			$('#create' + type).on('click', function() {
 				_Crud.crudCreate(type);
 			});
 
-			$('#export' + type, crudRight).on('click', function() {
+			$('#export' + type).on('click', function() {
 				_Crud.crudExport(type);
 			});
 
-			$('#import' + type, crudRight).on('click', function() {
+			$('#import' + type).on('click', function() {
 				_Crud.crudImport(type);
 			});
 
-			$('#delete' + type, crudRight).on('click', function() {
+			$('#delete' + type).on('click', function() {
 
 				Structr.confirmation('<h3>WARNING: Really delete all objects of type \'' + type + '\'?</h3><p>This will delete all objects of the type (and of all inheriting types!).</p><p>Depending on the amount of objects this can take a while.</p>', function() {
 					$.unblockUI({
@@ -377,7 +412,7 @@ var _Crud = {
 				});
 			});
 
-			let exactTypeCheckbox = $('#exact_type_' + type, crudRight);
+			let exactTypeCheckbox = $('#exact_type_' + type);
 			if (_Crud.exact[type] === true) {
 				exactTypeCheckbox.prop('checked', true);
 			}
@@ -392,26 +427,6 @@ var _Crud = {
 			_Crud.activatePagerElements(type, pagerNode);
 			_Crud.updateUrl(type);
 		});
-	},
-	updateRecentTypeList: function (selectedType) {
-
-		let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
-
-		if (recentTypes && selectedType) {
-
-			recentTypes = recentTypes.filter(function(type) {
-				return (type !== selectedType);
-			});
-			recentTypes.unshift(selectedType);
-
-		} else if (selectedType) {
-
-			recentTypes = [selectedType];
-
-		}
-
-		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
-
 	},
 	getCurrentProperties: function(type) {
 		let properties = _Crud.availableViews[type].all;
@@ -433,10 +448,149 @@ var _Crud = {
 		var tableHeaderRow = $('#crud-type-detail table thead tr');
 		fastRemoveAllChildren(tableHeaderRow[0]);
 
+		tableHeaderRow.append('<th class="___action_header">Actions</th>');
+
 		_Crud.filterKeys(type, Object.keys(properties)).forEach(function(key) {
 			tableHeaderRow.append('<th class="' + _Crud.cssClassForKey(key) + '">' + key + '</th>');
 		});
-		tableHeaderRow.append('<th class="___action_header">Actions</th>');
+	},
+	updateTypeList: function () {
+
+		let $typesList = $('#crud-types-list');
+		$typesList.empty();
+
+		let typeVisibility = _Crud.getStoredTypeVisibilityConfig();
+
+		let typeNames = Object.keys(_Crud.types).sort();
+
+		for (let typeName of typeNames) {
+
+			let schemaNode    = _Crud.abstractSchemaNodes[typeName];
+			let type          = _Crud.types[typeName];
+
+			let isRelType     = type.isRel;
+			let isDynamicType = !isRelType && (schemaNode && schemaNode.isBuiltinType === false);
+			let isCoreType    = !isRelType && (schemaNode && schemaNode.isBuiltinType === true && schemaNode.category === 'core');
+			let isHtmlType    = !isRelType && (schemaNode && schemaNode.isBuiltinType === true && schemaNode.category === 'html');
+			let isUiType      = !isRelType && (schemaNode && schemaNode.isBuiltinType === true && schemaNode.category === 'ui');
+			let isLogType     = !isRelType && type.className.startsWith('org.structr.rest.logging.entity');
+			let isOtherType   = !(isRelType || isDynamicType || isCoreType || isHtmlType || isUiType || isLogType);
+
+			let hide =	(!typeVisibility.rels && isRelType) || (!typeVisibility.custom && isDynamicType) || (!typeVisibility.core && isCoreType) || (!typeVisibility.html && isHtmlType) ||
+						(!typeVisibility.ui && isUiType) || (!typeVisibility.log && isLogType) || (!typeVisibility.other && isOtherType);
+
+			if (!hide) {
+				$typesList.append('<div class="crud-type" data-type="' + typeName + '">' + typeName + '</div>');
+			}
+		}
+
+		_Crud.highlightCurrentType(_Crud.type);
+		_Crud.filterTypes($('#crudTypesSearch').val().toLowerCase());
+		_Crud.resize();
+	},
+	getStoredTypeVisibilityConfig: function(singleKey) {
+
+		let config = LSWrapper.getItem(_Crud.displayTypeConfigKey, {
+			rels:   true,
+			custom: true,
+			core:   true,
+			html:   true,
+			ui:     true,
+			log:    true,
+			other:  true
+		});
+
+		if (singleKey) {
+
+			return config[singleKey];
+		}
+
+		return config;
+	},
+	getTypeVisibilityConfig: function () {
+
+		return {
+			rels:   $('#crudTypeToggleRels').prop('checked'),
+			custom: $('#crudTypeToggleCustom').prop('checked'),
+			core:   $('#crudTypeToggleCore').prop('checked'),
+			html:   $('#crudTypeToggleHtml').prop('checked'),
+			ui:     $('#crudTypeToggleUi').prop('checked'),
+			log:    $('#crudTypeToggleLog').prop('checked'),
+			other:  $('#crudTypeToggleOther').prop('checked')
+		};
+	},
+	highlightCurrentType: function (selectedType) {
+
+		$('#crud-left .crud-type').removeClass('active');
+		$('#crud-left .crud-type[data-type="' + selectedType + '"]').addClass('active');
+
+		var $crudTypesList = $('#crud-types-list');
+		var $selectedElementInTypeList = $('.crud-type[data-type="' + selectedType + '"]', $crudTypesList);
+
+		if ($selectedElementInTypeList && $selectedElementInTypeList.length > 0) {
+			var positionOfList = $crudTypesList.position().top;
+			var scrollTopOfList = $crudTypesList.scrollTop();
+			var positionOfElement = $selectedElementInTypeList.position().top;
+			$crudTypesList.animate({scrollTop: positionOfElement + scrollTopOfList - positionOfList });
+		} else {
+			$crudTypesList.animate({scrollTop: 0});
+		}
+
+	},
+	filterTypes: function (filterVal) {
+		$('#crud-types-list .crud-type').each(function (i, el) {
+			var $el = $(el);
+			if ($el.data('type').toLowerCase().indexOf(filterVal) === -1) {
+				$el.addClass('hidden');
+			} else {
+				$el.removeClass('hidden');
+			}
+		});
+	},
+	updateRecentTypeList: function (selectedType) {
+
+		var recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
+
+		if (recentTypes && selectedType) {
+
+			var recentTypes = recentTypes.filter(function(type) {
+				return (type !== selectedType);
+			});
+			recentTypes.unshift(selectedType);
+
+		} else if (selectedType) {
+
+			recentTypes = [selectedType];
+		}
+
+		recentTypes = recentTypes.slice(0, 12);
+
+		if (recentTypes) {
+			var $recentTypesList = $('#crud-recent-types-list');
+
+			$('.crud-type', $recentTypesList).remove();
+
+			recentTypes.forEach(function (type) {
+				$recentTypesList.append('<div class="crud-type' + (selectedType === type ? ' active' : '') + '" data-type="' + type + '">' + type + '<i class="remove-recent-type ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
+			});
+		}
+
+		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
+
+	},
+	removeRecentType: function (typeToRemove) {
+
+		var recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
+
+		if (recentTypes) {
+			recentTypes = recentTypes.filter(function(type) {
+				return (type !== typeToRemove);
+			});
+		}
+
+		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
+
+		_Crud.updateRecentTypeList();
 	},
 	updateUrl: function(type) {
 
@@ -582,7 +736,7 @@ var _Crud = {
 			insertAfter: true
 		});
 
-		el.append('<div class="resource-link"><a target="_blank" href="' + rootUrl + type + '">/' + type + '</a></div>');
+		el.append('<div class="resource-link">Endpoint URL (opens in new window): <a target="_blank" href="' + rootUrl + type + '">/' + type + '</a></div>');
 
 		return $('.pager', el);
 	},
@@ -637,9 +791,7 @@ var _Crud = {
 				th.append('Actions <i title="Configure columns" style="margin-left: 4px" class="' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" />');
 				$('i', th).on('click', function(event) {
 
-					_Crud.dialog('<h3>Configure columns for type ' + type + '</h3>', function() {
-					}, function() {
-					});
+					_Crud.dialog('<h3>Configure columns for type ' + type + '</h3>', function() { }, function() { });
 
 					$('div.dialogText').append('<table class="props" id="configure-' + type + '-columns"></table>');
 
@@ -687,15 +839,14 @@ var _Crud = {
 										});
 									});
 
-									dialogCloseButton = $('.closeButton', $('#dialogBox'));
+									let dialogCloseButton = $('.closeButton', $('#dialogBox'));
 									dialogCloseButton.on('click', function() {
-										location.reload();
+										_Crud.reloadList();
 									});
 								}
 							}
 						}
 					});
-
 				});
 
 			} else if (key !== 'Actions') {
@@ -703,7 +854,7 @@ var _Crud = {
 				th.empty();
 				var sortKey = key;
 				th.append(
-					'<i title="Hide this column" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /><a href="' + _Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + key + '</a>');
+					'<a class="' + ((_Crud.sort[type] === key) ? 'column-sorted-active' : '') + '" href="' + _Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + key + '</a> <i title="Hide column ' + key + '" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />&nbsp;');
 
 				if (_Crud.isCollection(key, type)) {
 					_Crud.appendPerCollectionPager(th, type, key);
@@ -756,7 +907,7 @@ var _Crud = {
 	},
 	updateCellPager: function(el, id, type, key, page, pageSize) {
 		$.ajax({
-			url: rootUrl + type + '/' + id + '/' + key + '/public?page=' + page + '&pageSize=' + pageSize,
+			url: rootUrl + type + '/' + id + '/' + key + '/public?' + Structr.getRequestParameterName('page') + '=' + page + '&' + Structr.getRequestParameterName('pageSize') + '=' + pageSize,
 			contentType: 'application/json; charset=UTF-8',
 			dataType: 'json',
 			statusCode: {
@@ -805,7 +956,7 @@ var _Crud = {
 
 		// use public view for cell pager - we should not need more information than this!
 		$.ajax({
-			url: rootUrl + type + '/' + id + '/' + key + '/public?pageSize=' + pageSize,
+			url: rootUrl + type + '/' + id + '/' + key + '/public' + _Crud.sortAndPagingParameters(null, null, null, pageSize, null),
 			contentType: 'application/json; charset=UTF-8',
 			dataType: 'json',
 			statusCode: {
@@ -892,16 +1043,16 @@ var _Crud = {
 		let paramsArray = [];
 
 		if (s) {
-			paramsArray.push('sort=' + s);
+			paramsArray.push(Structr.getRequestParameterName('sort') + '=' + s);
 		}
 		if (o) {
-			paramsArray.push('order=' + o);
+			paramsArray.push(Structr.getRequestParameterName('order') + '=' + o);
 		}
 		if (ps) {
-			paramsArray.push('pageSize=' + ps);
+			paramsArray.push(Structr.getRequestParameterName('pageSize') + '=' + ps);
 		}
 		if (p) {
-			paramsArray.push('page=' + p);
+			paramsArray.push(Structr.getRequestParameterName('page') + '=' + p);
 		}
 		if (exact === true) {
 			paramsArray.push('type=' + t);
@@ -1026,18 +1177,17 @@ var _Crud = {
 
 		dialogBtn.append('<button id="copyToClipboard">Copy to Clipboard</button>');
 
-		var clipboard = new Clipboard('#copyToClipboard', {
-			target: function () {
-				new MessageBuilder().success('Copied to clipboard').show();
-				return $('.exportArea', dialogText)[0];
-			}
+		document.getElementById('copyToClipboard').addEventListener('click', async () => {
+			let text = $('.exportArea', dialogText)[0].textContent;
+			await navigator.clipboard.writeText(text);
+
+			new MessageBuilder().success('Copied to clipboard').show();
 		});
 
 		$('.closeButton', $('#dialogBox')).on('click', function() {
 			clipboard.destroy();
 			$('#copyToClipboard', dialogBtn).remove();
 		});
-
 
 		var hiddenKeys             = _Crud.getHiddenKeys(type);
 		var acceptHeaderProperties = Object.keys(_Crud.keys[type]).filter(function(key) { return !hiddenKeys.includes(key); }).join(',');
@@ -1348,16 +1498,15 @@ var _Crud = {
 			});
 
 			window.setTimeout(function() {
-				$.each(resp.errors, function(i, error) {
+				for (let error of resp.errors) {
 
-					var key = error.property;
-					var errorMsg = error.token;
+					let key      = error.property;
+					let errorMsg = error.token;
 
-					var input = $('td [name="' + key + '"]', dialogText);
+					let input = $('td [name="' + key + '"]', dialogText);
 					if (input.length) {
 
-						var errorText = '';
-						errorText += '"' + key + '" ' + errorMsg.replace(/_/gi, ' ');
+						let errorText = '"' + key + '" ' + errorMsg.replace(/_/gi, ' ');
 
 						if (error.detail) {
 							errorText += ' ' + error.detail;
@@ -1370,7 +1519,7 @@ var _Crud = {
 							borderColor: '#933'
 						});
 					}
-				});
+				}
 			}, 100);
 		}
 	},
@@ -1610,51 +1759,52 @@ var _Crud = {
 			}
 		});
 	},
-	populateForm: function(form, node) {
-		var fields = $('input', form);
-		form.attr('data-id', node.id);
-		$.each(fields, function(f, field) {
-			var value = formatValue(node[field.name]);
-			$('input[name="' + field.name + '"]').val(value);
-		});
-	},
+//	populateForm: function(form, node) {
+//		var fields = $('input', form);
+//		form.attr('data-id', node.id);
+//		console.log(fields);
+//		$.each(fields, function(f, field) {
+//			var value = formatValue(node[field.name]);
+//			$('input[name="' + field.name + '"]').val(value);
+//		});
+//	},
 	cells: function(id, key) {
 		var row = _Crud.row(id);
-		var cellInMainTable = $('.' + _Crud.cssClassForKey(key), row);
 
-		var cellInDetailsTable;
-		var table = $('#details_' + id);
-		if (table) {
-			cellInDetailsTable = $('.' + _Crud.cssClassForKey(key), table);
+		var cellInMainTable    = $('.' + _Crud.cssClassForKey(key), row);
+		var cellInDetailsTable = $('.' + _Crud.cssClassForKey(key), $('#details_' + id));
+
+		let result = [];
+
+		if (cellInMainTable && cellInMainTable.length > 0) {
+			result.push(cellInMainTable);
 		}
 
-		if (cellInMainTable && cellInMainTable.length && !(cellInDetailsTable && cellInDetailsTable.length)) {
-			return [cellInMainTable];
+		if (cellInDetailsTable && cellInDetailsTable.length > 0) {
+			result.push(cellInDetailsTable);
 		}
 
-		if (cellInDetailsTable && cellInDetailsTable.length && !(cellInMainTable && cellInMainTable.length)) {
-			return [cellInDetailsTable];
-		}
-
-		return [cellInMainTable, cellInDetailsTable];
+		return result;
 	},
 	resetCell: function(id, key, oldValue) {
-		var cells = _Crud.cells(id, key);
+		let cells = _Crud.cells(id, key);
 
-		$.each(cells, function(i, cell) {
+		for (let cell of cells) {
 			cell.empty();
 			_Crud.populateCell(id, key, _Crud.type, oldValue, cell);
-		});
+		}
 	},
 	refreshCell: function(id, key, newValue, type, oldValue) {
-		var cells = _Crud.cells(id, key);
-		$.each(cells, function(i, cell) {
+
+		let cells = _Crud.cells(id, key);
+
+		for (let cell of cells) {
 			cell.empty();
 			_Crud.populateCell(id, key, type, newValue, cell);
 			if (newValue !== oldValue && !(!newValue && oldValue === '')) {
 				blinkGreen(cell);
 			}
-		});
+		}
 	},
 	refreshRow: function(id, item, type) {
 		var row = _Crud.row(id);
@@ -1705,14 +1855,20 @@ var _Crud = {
 		var row = _Crud.row(id);
 		row.empty();
 		if (properties) {
-			_Crud.filterKeys(type, Object.keys(properties)).forEach(function(key) {
-				row.append('<td class="value ' + _Crud.cssClassForKey(key) + '"></td>');
-				var cells = _Crud.cells(id, key);
-				$.each(cells, function(i, cell) {
-					_Crud.populateCell(id, key, type, item[key], cell);
-				});
-			});
 			row.append('<td class="actions"><a title="Edit" class="edit"><i class="' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /></a><a title="Delete" class="delete"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /></a><a title="Access Control" class="security"><i class="' + _Icons.getFullSpriteClass(_Icons.key_icon) + '" /></a></td>');
+
+			let filterKeys = _Crud.filterKeys(type, Object.keys(properties));
+
+			for (let key of filterKeys) {
+
+				row.append('<td class="value ' + _Crud.cssClassForKey(key) + '"></td>');
+				let cells = _Crud.cells(id, key);
+
+				for (let cell of cells) {
+					_Crud.populateCell(id, key, type, item[key], cell);
+				}
+
+			}
 			_Crud.resize();
 
 			$('.actions .edit', row).on('click', function(event) {
@@ -1942,7 +2098,7 @@ var _Crud = {
 		}
 
 		if (!isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean') {
-			cell.prepend('<i title="Clear value" class="crud-clear-value ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /><br>');
+			cell.prepend('<i title="Clear value" class="crud-clear-value ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />');
 			$('.crud-clear-value', cell).on('click', function(e) {
 				e.preventDefault();
 				_Crud.crudRemoveProperty(id, key);
@@ -2138,7 +2294,7 @@ var _Crud = {
 			if (attr === 'uuid') {
 				url = rootUrl + type + '/' + searchString;
 			} else {
-				searchPart = searchString === '*' || searchString === '' ? '' : '&' + attr + '=' + encodeURIComponent(searchString) + '&loose=1';
+				searchPart = searchString === '*' || searchString === '' ? '' : '&' + attr + '=' + encodeURIComponent(searchString) + '&' + Structr.getRequestParameterName('loose') + '=1';
 				url = rootUrl + type + '/public' + _Crud.sortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1) + searchPart;
 			}
 
@@ -2160,11 +2316,11 @@ var _Crud = {
 						if (result) {
 							if (Array.isArray(result)) {
 								if (result.length) {
-									$.each(result, function(i, node) {
+									for (let node of result) {
 										if (!blacklistedIds.includes(node.id)) {
 											_Crud.searchResult(searchResults, type, node, onClickCallback);
 										}
-									});
+									}
 								} else {
 									_Crud.noResults(searchResults, type);
 								}
@@ -2539,9 +2695,9 @@ var _Crud = {
 
 				dialogText.html('<table class="props" id="details_' + node.id + '"><tr><th>Name</th><th>Value</th>');
 
-				var table = $('table', dialogText);
+				let table = $('table', dialogText);
 
-				var keys;
+				let keys;
 				if (_Crud.keys[type]) {
 					keys = Object.keys(_Crud.keys[type]);
 				}
@@ -2550,9 +2706,13 @@ var _Crud = {
 					keys = Object.keys(node);
 				}
 
-				$.each(keys, function(i, key) {
-					table.append('<tr><td class="key"><label for="' + key + '">' + key + '</label></td><td class="__value ' + _Crud.cssClassForKey(key) + '"></td>');
-					var cell = $('.' + _Crud.cssClassForKey(key), table);
+				for (let key of keys) {
+
+					let cssClassForKey = _Crud.cssClassForKey(key);
+
+					table.append('<tr><td class="key"><label for="' + key + '">' + key + '</label></td><td class="__value ' + cssClassForKey + '"></td>');
+					let cell = $('.' + cssClassForKey, table);
+
 					if (_Crud.isCollection(key, type)) {
 						_Crud.appendPerCollectionPager(cell.prev('td'), type, key, function() {
 							_Crud.showDetails(n, typeParam);
@@ -2564,7 +2724,7 @@ var _Crud = {
 					} else {
 						_Crud.populateCell(null, key, type, null, cell);
 					}
-				});
+				}
 
 				if (node && node.isImage) {
 					dialogText.prepend('<div class="img"><div class="wrap"><img class="thumbnailZoom" src="/' + node.id + '"></div></div>');

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.schema.openapi.operation;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.structr.schema.openapi.common.OpenAPIOneOf;
@@ -33,10 +34,7 @@ public class OpenAPILoginOperation extends LinkedHashMap<String, Object> {
 	public OpenAPILoginOperation() {
 
 		final Map<String, Object> operations = new LinkedHashMap<>();
-
-		put("/login", operations);
-
-		operations.put("post", new OpenAPIOperation(
+		final Map<String, Object> post       = new OpenAPIOperation(
 
 			// summary
 			"Login",
@@ -75,15 +73,25 @@ public class OpenAPILoginOperation extends LinkedHashMap<String, Object> {
 			// responses
 			Map.of(
 				"200", new OpenAPIRequestResponse(
-					"Success response",
-					new OpenAPIResultSchema(new OpenAPIReference("#/components/schemas/Principal"), false),
+					"Login successful.",
+					new OpenAPIResultSchema(new OpenAPIReference("#/components/schemas/User"), false),
 					null,
 					new OpenAPIPrimitiveSchema("Sets the JSESSIONID cookie.", "Set-Cookie", "string", null, "JSESSIONID=0d47152b8e7b6c85a07994d2687250f5114rzrrnhat2wn80ump8x8iqp0.0d47152b8e7b6c85a07994d2687250f5;Path=/")
 				),
-				"401", new OpenAPIReference("#/components/responses/loginError"),
-				"403", new OpenAPIReference("#/components/responses/forbidden")
+				"401", new OpenAPIRequestResponse(
+					"Access denied or wrong password.\n\nIf the error message is \"Access denied\", you need to configure a resource access grant for the `_login` endpoint."
+					+ " otherwise the error message is \"Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!\".",
+					new OpenAPIReference("#/components/schemas/RESTResponse"),
+					Map.of("code", "401", "message", "Access denied", "errors", List.of())
+				)
 			)
-		));
+		);
 
+
+		// override global security object to indicate that this request does not need authentication
+		post.put("security", Map.of());
+
+		operations.put("post", post);
+		put("/login", operations);
 	}
 }

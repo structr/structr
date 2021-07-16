@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,7 +24,7 @@ import org.structr.api.graph.Node;
 /**
  *
  */
-class NodeNodeMapper implements Function<org.neo4j.driver.v1.types.Node, Node> {
+class NodeNodeMapper implements Function<org.neo4j.driver.types.Node, Node> {
 
 	private BoltDatabaseService db = null;
 
@@ -33,7 +33,7 @@ class NodeNodeMapper implements Function<org.neo4j.driver.v1.types.Node, Node> {
 	}
 
 	@Override
-	public Node apply(final org.neo4j.driver.v1.types.Node t) {
+	public Node apply(final org.neo4j.driver.types.Node t) {
 		return NodeWrapper.newInstance(db, t);
 	}
 }

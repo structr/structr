@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -44,6 +46,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
+import org.structr.api.index.IndexConfig;
+import org.structr.api.index.NodeIndexConfig;
+import org.structr.api.index.RelationshipIndexConfig;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.service.Command;
 import org.structr.api.service.Service;
@@ -61,6 +66,7 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.FlushCachesCommand;
@@ -90,8 +96,8 @@ public class SchemaService implements Service {
 	private static final Logger logger                            = LoggerFactory.getLogger(SchemaService.class.getName());
 	private static final List<MigrationHandler> migrationHandlers = new LinkedList<>();
 	private static final JsonSchema dynamicSchema                 = StructrSchema.newInstance(DynamicSchemaRootURI);
+	private static final Semaphore IndexUpdateSemaphore           = new Semaphore(1, true);
 	private static final AtomicBoolean compiling                  = new AtomicBoolean(false);
-	private static final AtomicBoolean updating                   = new AtomicBoolean(false);
 	private static final Set<String> blacklist                    = new LinkedHashSet<>();
 	private static GraphQLSchema graphQLSchema                    = null;
 
@@ -112,7 +118,7 @@ public class SchemaService implements Service {
 
 	@Override
 	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-		return SchemaHelper.reloadSchema(new ErrorBuffer(), null);
+		return SchemaHelper.reloadSchema(new ErrorBuffer(), null, true);
 	}
 
 	public static JsonSchema getDynamicSchema() {
@@ -123,7 +129,7 @@ public class SchemaService implements Service {
 		return graphQLSchema;
 	}
 
-	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId) {
+	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId, final boolean fullReload) {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final App app                      = StructrApp.getInstance();
@@ -163,10 +169,10 @@ public class SchemaService implements Service {
 
 					while (retryCount-- > 0) {
 
-						final Map<String, Map<String, PropertyKey>> removedClasses = new HashMap<>(config.getTypeAndPropertyMapping());
+						final Map<String, Map<String, PropertyKey>> removedClasses = translateRelationshipClassesToRelTypes(config.getTypeAndPropertyMapping());
 						final Map<String, GraphQLType> graphQLTypes                = new LinkedHashMap<>();
 						final Map<String, SchemaNode> schemaNodes                  = new LinkedHashMap<>();
-						final NodeExtender nodeExtender                            = new NodeExtender(initiatedBySessionId);
+						final NodeExtender nodeExtender                            = new NodeExtender(initiatedBySessionId, fullReload);
 						final Set<String> dynamicViews                             = new LinkedHashSet<>();
 
 						// collect auto-generated schema nodes
@@ -189,7 +195,7 @@ public class SchemaService implements Service {
 								continue;
 							}
 
-							schemaInfo.handleMigration();
+							schemaInfo.handleMigration(schemaNodes);
 
 							final String className      = schemaInfo.getClassName();
 							final SourceFile sourceFile = new SourceFile(className);
@@ -198,7 +204,10 @@ public class SchemaService implements Service {
 							SchemaHelper.getSource(sourceFile, schemaInfo, schemaNodes, blacklist, errorBuffer);
 
 							// only load dynamic node if there were no errors while generating the source code (missing modules etc.)
-							nodeExtender.addClass(className, sourceFile);
+							// if addClass returns true, the class needs to be recompiled and cached methods must be cleared
+							if (nodeExtender.addClass(className, sourceFile)) {
+								schemaInfo.clearCachedSchemaMethodsForInstance();
+							}
 							dynamicViews.addAll(schemaInfo.getDynamicViews());
 
 							// initialize GraphQL engine as well
@@ -255,12 +264,14 @@ public class SchemaService implements Service {
 										// make the schema compilation fail (otherwise bad things will happen later)
 										errorBuffer.add(new InstantiationErrorToken(newType.getName(), t));
 										logger.error("Unable to instantiate dynamic entity {}", newType.getName(), t);
+
+										t.printStackTrace();
 									}
 								}
 							}
 
 							// calculate difference between previous and new classes
-							removedClasses.keySet().removeAll(StructrApp.getConfiguration().getTypeAndPropertyMapping().keySet());
+							removedClasses.keySet().removeAll(translateRelationshipClassesToRelTypes(StructrApp.getConfiguration().getTypeAndPropertyMapping()).keySet());
 
 							if (errorBuffer.hasError()) {
 
@@ -327,7 +338,6 @@ public class SchemaService implements Service {
 
 							tx.success();
 
-
 							final GraphQLObjectType.Builder queryTypeBuilder         = GraphQLObjectType.newObject();
 							final Map<String, GraphQLInputObjectType> selectionTypes = new LinkedHashMap<>();
 							final Set<String> existingQueryTypeNames                 = new LinkedHashSet<>();
@@ -356,6 +366,7 @@ public class SchemaService implements Service {
 									);
 
 								} catch (Throwable t) {
+									t.printStackTrace();
 									logger.warn("Unable to add GraphQL type {}: {}", className, t.getMessage());
 								}
 							}
@@ -389,6 +400,8 @@ public class SchemaService implements Service {
 
 					errorBuffer.getErrorTokens().addAll(fex.getErrorBuffer().getErrorTokens());
 
+					fex.printStackTrace();
+
 				} catch (Throwable t) {
 
 					FlushCachesCommand.flushAll();
@@ -397,6 +410,8 @@ public class SchemaService implements Service {
 					logger.error(ExceptionUtils.getStackTrace(t));
 
 					success = false;
+
+					t.printStackTrace();
 				}
 
 				if (!success) {
@@ -474,40 +489,23 @@ public class SchemaService implements Service {
 	}
 
 	// ----- private methods -----
-	private static int recursiveGetHierarchyLevel(final Map<String, SchemaNode> map, final Set<String> alreadyCalculated, final SchemaNode schemaNode, final int depth) {
-
-		// stop at level 20
-		if (depth > 20) {
-			return 20;
-		}
-
-		String superclass = schemaNode.getProperty(SchemaNode.extendsClass);
-		if (superclass == null) {
-
-			return 0;
-
-		} else if (superclass.startsWith("org.structr.dynamic.")) {
-
-			// find hierarchy level
-			superclass = superclass.substring(superclass.lastIndexOf(".") + 1);
-
-			// recurse upwards
-			final SchemaNode superSchemaNode = map.get(superclass);
-			if (superSchemaNode != null) {
-
-				return recursiveGetHierarchyLevel(map, alreadyCalculated, superSchemaNode, depth + 1) + 1;
-			}
-		}
-
-		return 0;
-	}
-
 	private static void updateIndexConfiguration(final Map<String, Map<String, PropertyKey>> removedClasses) {
 
-		if (Services.isTesting() && !Services.updateIndexConfiguration()) {
+		if (Services.overrideIndexManagement()) {
 
-			logger.info("Skipping index creation in test mode.");
-			return;
+			if (Services.skipIndexConfiguration()) {
+
+				logger.info("Skipping index creation because of manual override.");
+				return;
+			}
+
+		} else {
+
+			if (Services.isTesting()) {
+
+				logger.info("Skipping index creation in test mode.");
+				return;
+			}
 		}
 
 		final Thread indexUpdater = new Thread(new Runnable() {
@@ -515,67 +513,101 @@ public class SchemaService implements Service {
 			@Override
 			public void run() {
 
-				// critical section, only one thread should update the index at a time
-				if (updating.compareAndSet(false, true)) {
+				try {
 
-					try {
+					if (!IndexUpdateSemaphore.tryAcquire(3, TimeUnit.MINUTES)) {
 
-						final Set<Class> whitelist    = new LinkedHashSet<>(Arrays.asList(GraphObject.class, NodeInterface.class));
-						final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
+						logger.error("Unable to start index updater, waited for 3 minutes. Giving up.");
+						return;
+					}
 
-						final Map<String, Map<String, Boolean>> schemaIndexConfig    = new HashMap();
-						final Map<String, Map<String, Boolean>> removedClassesConfig = new HashMap();
+					final Set<Class> whitelist    = new LinkedHashSet<>(Arrays.asList(GraphObject.class, NodeInterface.class));
+					final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
 
-						for (final Entry<String, Map<String, PropertyKey>> entry : StructrApp.getConfiguration().getTypeAndPropertyMapping().entrySet()) {
+					final Map<String, Map<String, IndexConfig>> schemaIndexConfig    = new HashMap();
+					final Map<String, Map<String, IndexConfig>> removedClassesConfig = new HashMap();
 
-							final Class type = getType(entry.getKey());
-							if (type != null) {
+					for (final Entry<String, Map<String, PropertyKey>> entry : StructrApp.getConfiguration().getTypeAndPropertyMapping().entrySet()) {
 
-								final String typeName           = getIndexingTypeName(type.getSimpleName());
-								Map<String, Boolean> typeConfig = schemaIndexConfig.get(typeName);
+						final Class type = getType(entry.getKey());
+						if (type != null) {
 
-								if (typeConfig == null) {
+							final String typeName               = getIndexingTypeName(type);
+							Map<String, IndexConfig> typeConfig = schemaIndexConfig.get(typeName);
+							final boolean isRelationship        = Relation.class.isAssignableFrom(type);
 
-									typeConfig = new LinkedHashMap<>();
-									schemaIndexConfig.put(typeName, typeConfig);
-								}
+							if (typeConfig == null) {
 
-								for (final PropertyKey key : entry.getValue().values()) {
+								typeConfig = new LinkedHashMap<>();
+								schemaIndexConfig.put(typeName, typeConfig);
+							}
 
-									boolean createIndex        = key.isIndexed() || key.isIndexedWhenEmpty();
-									final Class declaringClass = key.getDeclaringClass();
+
+							for (final PropertyKey key : entry.getValue().values()) {
+
+								boolean createIndex        = key.isIndexed() || key.isIndexedWhenEmpty();
+								final Class declaringClass = key.getDeclaringClass();
+
+								if (isRelationship) {
+
+									typeConfig.put(key.dbName(), new RelationshipIndexConfig(createIndex));
+
+								} else {
 
 									createIndex &= (declaringClass == null || whitelist.contains(type) || type.equals(declaringClass));
 									createIndex &= (!NonIndexed.class.isAssignableFrom(type));
 
-									typeConfig.put(key.dbName(), createIndex);
+									typeConfig.put(key.dbName(), new NodeIndexConfig(createIndex));
 								}
 							}
 						}
+					}
 
-						for (final Entry<String, Map<String, PropertyKey>> entry : removedClasses.entrySet()) {
+					for (final Entry<String, Map<String, PropertyKey>> entry : removedClasses.entrySet()) {
 
-							final String typeName = StringUtils.substringAfterLast(entry.getKey(), ".");
+						final String key       = entry.getKey();
+						boolean isRelationship = true;
+						String typeName        = key;
 
-							final Map<String, Boolean> typeConfig = new HashMap();
-							removedClassesConfig.put(typeName, typeConfig);
+						// remove fqcn parts if present (relationships dont have it)
+						if (key.contains(".")) {
 
-							for (final PropertyKey key : entry.getValue().values()) {
-
-								final boolean wasIndexed = key.isIndexed() || key.isIndexedWhenEmpty();
-								final boolean wasIdIndex = GraphObject.id.equals(key);
-								final boolean dropIndex  = wasIndexed && !wasIdIndex;
-
-								typeConfig.put(key.dbName(), dropIndex);
-							}
+							typeName = StringUtils.substringAfterLast(entry.getKey(), ".");
+							isRelationship = false;
 						}
 
-						graphDb.updateIndexConfiguration(schemaIndexConfig, removedClassesConfig, Services.isTesting());
+						final Map<String, IndexConfig> typeConfig = new HashMap();
+						removedClassesConfig.put(typeName, typeConfig);
 
-					} finally {
+						for (final PropertyKey propertyKey : entry.getValue().values()) {
 
-						updating.set(false);
+							final boolean wasIndexed = propertyKey.isIndexed() || propertyKey.isIndexedWhenEmpty();
+
+							if (isRelationship) {
+
+								final boolean dropIndex = wasIndexed;
+
+								typeConfig.put(propertyKey.dbName(), new RelationshipIndexConfig(dropIndex));
+
+							} else {
+
+								final boolean wasIdIndex = GraphObject.id.equals(propertyKey);
+								final boolean dropIndex  = wasIndexed && !wasIdIndex;
+
+								typeConfig.put(propertyKey.dbName(), new NodeIndexConfig(dropIndex));
+							}
+						}
 					}
+
+					graphDb.updateIndexConfiguration(schemaIndexConfig, removedClassesConfig, false);
+
+				} catch (InterruptedException iex) {
+
+					iex.printStackTrace();
+
+				} finally {
+
+					IndexUpdateSemaphore.release();
 				}
 			}
 		});
@@ -589,8 +621,51 @@ public class SchemaService implements Service {
 
 		try { return Class.forName(name); } catch (ClassNotFoundException ignore) {}
 
-		// fallback: use dynamic class from simple name
-		return StructrApp.getConfiguration().getNodeEntityClass(StringUtils.substringAfterLast(name, "."));
+		final Class nodeClass = StructrApp.getConfiguration().getNodeEntityClass(StringUtils.substringAfterLast(name, "."));
+		if (nodeClass != null) {
+
+			return nodeClass;
+		}
+
+		final Class relClass = StructrApp.getConfiguration().getRelationshipEntityClass(StringUtils.substringAfterLast(name, "."));
+		if (relClass != null) {
+
+			return relClass;
+		}
+
+		return null;
+	}
+
+	private static Map<String, Map<String, PropertyKey>> translateRelationshipClassesToRelTypes(final Map<String, Map<String, PropertyKey>> source) {
+
+		// we need to replace all relationship type classes with their respective relationship type
+		// (e.g. DOMNodeCONTAINSDOMNode => CONTAINS)
+
+		final Map<String, Map<String, PropertyKey>> translated = new LinkedHashMap<>();
+
+		for (final String key : source.keySet()) {
+
+			final Class type = getType(key);
+			if (type != null) {
+
+				if (Relation.class.isAssignableFrom(type)) {
+
+					final String typeName = getIndexingTypeName(type);
+					if (typeName != null) {
+
+						// create a deep copy
+						translated.put(typeName, new LinkedHashMap<>(source.get(key)));
+					}
+
+				} else {
+
+					// create a deep copy
+					translated.put(key, new LinkedHashMap<>(source.get(key)));
+				}
+			}
+		}
+
+		return translated;
 	}
 
 	private static void handleAutomaticMigration(final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -605,10 +680,22 @@ public class SchemaService implements Service {
 
 	}
 
-	private static String getIndexingTypeName(final String typeName) {
+	private static String getIndexingTypeName(final Class type) {
+
+		final String typeName = type.getSimpleName();
 
 		if ("GraphObject".equals(typeName)) {
 			return "NodeInterface";
+		}
+
+		// new: return relationship type for rels
+		if (Relation.class.isAssignableFrom(type)) {
+
+			final Relation rel = AbstractNode.getRelationshipForType(type);
+			if (rel != null) {
+
+				return rel.name();
+			}
 		}
 
 		return typeName;

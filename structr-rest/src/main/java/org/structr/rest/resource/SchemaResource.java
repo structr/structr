@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.rest.resource;
 
+import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -66,6 +67,8 @@ public class SchemaResource extends Resource {
 	private static final StringProperty classNameProperty                = new StringProperty("className");
 	private static final StringProperty extendsClassNameProperty         = new StringProperty("extendsClass");
 	private static final BooleanProperty isRelProperty                   = new BooleanProperty("isRel");
+	private static final BooleanProperty isAbstractProperty              = new BooleanProperty("isAbstract");
+	private static final BooleanProperty isInterfaceProperty             = new BooleanProperty("isInterface");
 	private static final LongProperty flagsProperty                      = new LongProperty("flags");
 	private static final GenericProperty relatedToProperty               = new GenericProperty("relatedTo");
 	private static final GenericProperty relatedFromProperty             = new GenericProperty("relatedFrom");
@@ -171,6 +174,7 @@ public class SchemaResource extends Resource {
 				String url = "/".concat(rawType);
 
 				final boolean isRel = AbstractRelationship.class.isAssignableFrom(type);
+				final int modifiers = type.getModifiers();
 
 				schema.setProperty(urlProperty, url);
 				schema.setProperty(typeProperty, type.getSimpleName());
@@ -178,6 +182,8 @@ public class SchemaResource extends Resource {
 				schema.setProperty(classNameProperty, type.getName());
 				schema.setProperty(extendsClassNameProperty, type.getSuperclass().getName());
 				schema.setProperty(isRelProperty, isRel);
+				schema.setProperty(isAbstractProperty, Modifier.isAbstract(modifiers));
+				schema.setProperty(isInterfaceProperty, Modifier.isInterface(modifiers));
 				schema.setProperty(flagsProperty, SecurityContext.getResourceFlags(rawType));
 
 				if (!isRel) {

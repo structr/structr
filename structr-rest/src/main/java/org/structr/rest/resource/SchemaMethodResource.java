@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,13 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Collection;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.lang3.ClassUtils;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.ScriptRuntime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
@@ -43,22 +36,25 @@ import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.schema.action.Actions;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
+
 /**
  *
  */
 public class SchemaMethodResource extends WrappingResource {
 
-	private static final Logger logger   = LoggerFactory.getLogger(SchemaMethodResource.class);
+	private static final Logger logger  = LoggerFactory.getLogger(SchemaMethodResource.class);
 	private TypeResource typeResource   = null;
 	private TypeResource methodResource = null;
-	private String source               = null;
+	private SchemaMethod method         = null;
 
 	public SchemaMethodResource(final SecurityContext securityContext, final TypeResource typeResource, final TypeResource methodResource) throws IllegalPathException {
 
 		this.typeResource    = typeResource;
 		this.methodResource  = methodResource;
 		this.securityContext = securityContext;
-		this.source          = findMethodSource(typeResource.getEntityClass(), methodResource.getRawType());
+		this.method          = findMethod(typeResource.getEntityClass(), methodResource.getRawType());
 	}
 
 	@Override
@@ -84,11 +80,14 @@ public class SchemaMethodResource extends WrappingResource {
 		final App app           = StructrApp.getInstance(securityContext);
 		RestMethodResult result = null;
 
-		if (source != null) {
+		if (method != null) {
 
 			try (final Tx tx = app.tx()) {
 
-				result = SchemaMethodResource.invoke(securityContext, null, source, propertySet, methodResource.getUriPart());
+				final String source = method.getProperty(SchemaMethod.source);
+
+				result = SchemaMethodResource.invoke(securityContext, null, source, propertySet, methodResource.getUriPart(), method.getUuid());
+
 				tx.success();
 			}
 		}
@@ -106,11 +105,11 @@ public class SchemaMethodResource extends WrappingResource {
 	}
 
 	// ----- private methods -----
-	public static RestMethodResult invoke(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> propertySet, final String methodName) throws FrameworkException {
+	public static RestMethodResult invoke(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> propertySet, final String methodName, final String codeSource) throws FrameworkException {
 
 		try {
 
-			return SchemaMethodResource.wrapInResult(Actions.execute(securityContext, entity, "${" + source.trim() + "}", propertySet, methodName));
+			return SchemaMethodResource.wrapInResult(Actions.execute(securityContext, entity, "${" + source.trim() + "}", propertySet, methodName, codeSource));
 
 		} catch (UnlicensedScriptException ex) {
 			ex.log(logger);
@@ -132,14 +131,14 @@ public class SchemaMethodResource extends WrappingResource {
 			result = new RestMethodResult(200);
 
 			// unwrap nested object(s)
-			SchemaMethodResource.unwrapTo(obj, result);
+			result.addContent(obj);
 		}
 
 		return result;
 
 	}
 
-	public static String findMethodSource(final Class type, final String methodName) throws IllegalPathException {
+	public static SchemaMethod findMethod(final Class type, final String methodName) throws IllegalPathException {
 
 		try {
 			final App app         = StructrApp.getInstance();
@@ -154,7 +153,7 @@ public class SchemaMethodResource extends WrappingResource {
 
 					if (methodName.equals(method.getName()) && !method.isJava()) {
 
-						return method.getProperty(SchemaMethod.source);
+						return method;
 					}
 				}
 
@@ -186,57 +185,4 @@ public class SchemaMethodResource extends WrappingResource {
 		throw new IllegalPathException("Type and method name do not match the given path.");
 	}
 
-	public static boolean unwrapTo(final Object source, final RestMethodResult result) {
-
-		if (source != null) {
-
-			if (ClassUtils.isPrimitiveOrWrapper(source.getClass())) {
-				result.setNonGraphObjectResult(source);
-				return false;
-			}
-
-			final Object unwrapped = Context.jsToJava(source, ScriptRuntime.ObjectClass);
-			if (unwrapped.getClass().isArray()) {
-
-				for (final Object element : (Object[])unwrapped) {
-
-					// check if collection contains GraphObjects and
-					// return literal object if not
-					if (!unwrapTo(element, result)) {
-
-						result.setNonGraphObjectResult(unwrapped);
-						return false;
-					}
-				}
-
-			} else if (unwrapped instanceof Collection) {
-
-				for (final Object element : (Collection)unwrapped) {
-
-					// check if collection contains GraphObjects and
-					// return literal object if not
-					if (!unwrapTo(element, result)) {
-
-						result.setNonGraphObjectResult(unwrapped);
-						return false;
-					}
-				}
-
-			} else if (unwrapped instanceof GraphObject) {
-
-				result.addContent((GraphObject)unwrapped);
-
-				return true;
-
-			} else {
-
-				// cannot unwrap, pass literal
-				result.setNonGraphObjectResult(unwrapped);
-
-				return false;
-			}
-		}
-
-		return false;
-	}
 }

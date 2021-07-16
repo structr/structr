@@ -1,0 +1,42 @@
+<p>With these settings you can influence the behaviour of the page previews only. They are not persisted on the Page object but only stored in the UI settings.</p>
+
+<table class="props">
+	<tr>
+		<td><label for="_details-object-id">UUID of details object to append to preview URL</label></td>
+		<td>
+			<div style="display: flex; align-items: baseline">
+				<input style="flex-grow: 1;" id="_details-object-id" value="${(LSWrapper.getItem(_Pages.detailsObjectIdKey + config.entity.id) ? LSWrapper.getItem(_Pages.detailsObjectIdKey + config.entity.id) : '')}">
+			</div>
+		</td>
+		<td><i id="clear-details-object-id" class="${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i></td>
+	</tr>
+
+	<tr>
+		<td><label for="_request-parameters">Request parameters to append to preview URL</label></td>
+		<td>
+			<div style="display: flex; align-items: baseline">
+				<code style="font-size: 10pt;">?</code>
+				<input style="flex-grow: 1;" id="_request-parameters" value="${(LSWrapper.getItem(_Pages.requestParametersKey + config.entity.id) ? LSWrapper.getItem(_Pages.requestParametersKey + config.entity.id) : '')}">
+			</div>
+		</td>
+		<td><i id="clear-request-parameters" class="${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i></td>
+	</tr>
+
+	<tr>
+		<td><label for="_auto-refresh">Automatic refresh</label></td>
+		<td>
+			<input id="_auto-refresh" title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox" ${(LSWrapper.getItem(_Pages.autoRefreshDisabledKey + config.entity.id) ? '' : ' checked="checked"')}>
+		</td>
+		<td></td>
+	</tr>
+
+	<tr>
+		<td><label for="_page-category">Category</label></td>
+		<td>
+			<div style="display: flex; align-items: baseline">
+				<input style="flex-grow: 1;" id="_page-category" type="text" value="${(config.entity.category || '')}">
+			</div>
+		</td>
+		<td><i id="clear-request-parameters" class="${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i></td>
+	</tr>
+</table>

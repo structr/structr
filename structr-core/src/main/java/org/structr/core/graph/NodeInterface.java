@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -102,4 +102,10 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	List<Security> getSecurityRelationships();
 
 	public Map<String, Object> getTemporaryStorage();
+
+	default public void visitForUsage(final Map<String, Object> data) {
+
+		data.put("id",   getUuid());
+		data.put("type", getClass().getSimpleName());
+	}
 }

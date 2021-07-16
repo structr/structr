@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -62,14 +62,17 @@ public class Settings {
 	public static final SettingsGroup licensingGroup          = new SettingsGroup("licensing",   "Licensing");
 
 	// general settings
-	public static final Setting<String> ReleasesIndexUrl         = new StringSetting(generalGroup,             "Application", "application.releases.index.url",        "https://structr.com/repositories/releases/org/structr/structr/index", "URL with release index (list of version strings for Structr releases)");
-	public static final Setting<String> SnapshotsIndexUrl        = new StringSetting(generalGroup,             "Application", "application.snapshots.index.url",       "https://structr.com/repositories/snapshots/org/structr/structr/index", "URL with snapshot index (list of version strings for Structr unstable builds)");
-	public static final Setting<String> ApplicationTitle         = new StringSetting(generalGroup,             "Application", "application.title",                     "Structr", "The title of the application as shown in the log file. This entry exists for historical reasons and has no functional impact other than appearing in the log file.");
-	public static final Setting<String> InstanceName             = new StringSetting(generalGroup,             "Application", "application.instance.name",             "", "The name of the Structr instance (displayed in the top right corner of structr-ui)");
-	public static final Setting<String> InstanceStage            = new StringSetting(generalGroup,             "Application", "application.instance.stage",            "", "The stage of the Structr instance (displayed in the top right corner of structr-ui)");
-	public static final Setting<String> MenuEntries              = new StringSetting(generalGroup,             "Application", "application.menu.main",                 "Dashboard,Pages,Files,Security,Schema,Data", "Comma-separated list of main menu entries in structr-ui. Everything not in this list will be moved into a sub-menu.");
-	public static final Setting<Integer> CypherConsoleMaxResults = new IntegerSetting(generalGroup,            "Application", "application.console.cypher.maxresults", 10, "The maximum number of results returned by a cypher query in the admin console. If a query yields more results, an error message is shown.");
-	public static final Setting<Boolean> DisableSendSystemInfo   = new BooleanSetting(generalGroup,            "Application", "application.systeminfo.disabled",       false, "Disables transmission of telemetry information. This information is used to improve the software and to better adapt to different hardware configurations.");
+	public static final Setting<String> ReleasesIndexUrl            = new StringSetting(generalGroup,          "Application", "application.releases.index.url",               "https://structr.com/repositories/releases/org/structr/structr/index", "URL with release index (list of version strings for Structr releases)");
+	public static final Setting<String> SnapshotsIndexUrl           = new StringSetting(generalGroup,          "Application", "application.snapshots.index.url",              "https://structr.com/repositories/snapshots/org/structr/structr/index", "URL with snapshot index (list of version strings for Structr unstable builds)");
+	public static final Setting<String> ApplicationTitle            = new StringSetting(generalGroup,          "Application", "application.title",                            "Structr", "The title of the application as shown in the log file. This entry exists for historical reasons and has no functional impact other than appearing in the log file.");
+	public static final Setting<String> InstanceName                = new StringSetting(generalGroup,          "Application", "application.instance.name",                    "", "The name of the Structr instance (displayed in the top right corner of structr-ui)");
+	public static final Setting<String> InstanceStage               = new StringSetting(generalGroup,          "Application", "application.instance.stage",                   "", "The stage of the Structr instance (displayed in the top right corner of structr-ui)");
+	public static final Setting<String> MenuEntries                 = new StringSetting(generalGroup,          "Application", "application.menu.main",                        "Dashboard,Pages,Files,Security,Schema,Data", "Comma-separated list of main menu entries in structr-ui. Everything not in this list will be moved into a sub-menu.");
+	public static final Setting<Integer> CypherConsoleMaxResults    = new IntegerSetting(generalGroup,         "Application", "application.console.cypher.maxresults",        10, "The maximum number of results returned by a cypher query in the admin console. If a query yields more results, an error message is shown.");
+	public static final Setting<Boolean> EnforceRuntime             = new BooleanSetting(generalGroup,         "Application", "application.runtime.enforce.recommended",      true, "Enforces version check for Java runtime.");
+	public static final Setting<Boolean> DisableSendSystemInfo      = new BooleanSetting(generalGroup,         "Application", "application.systeminfo.disabled",              false, "Disables transmission of telemetry information. This information is used to improve the software and to better adapt to different hardware configurations.");
+	public static final Setting<Boolean> RequestParameterLegacyMode = new BooleanSetting(generalGroup,         "Application", "application.legacy.requestparameters.enabled", false, "Enables pre-4.0 request parameter names (sort, page, pageSize, etc. instead of _sort, _page, _pageSize, ...)");
+
 	public static final Setting<String> BasePath                 = new StringSetting(generalGroup,             "Paths",       "base.path",                             ".", "Path of the Structr working directory. All files will be located relative to this directory.");
 	public static final Setting<String> TmpPath                  = new StringSetting(generalGroup,             "Paths",       "tmp.path",                              System.getProperty("java.io.tmpdir"), "Path to the temporary directory. Uses <code>java.io.tmpdir</code> by default");
 	public static final Setting<String> DatabasePath             = new StringSetting(generalGroup,             "Paths",       "database.path",                         "db", "Path of the Neo4j db/ directory");
@@ -83,7 +86,7 @@ public class Settings {
 	public static final Setting<Integer> QueryTimeLoggingThreshold = new IntegerSetting(generalGroup,          "Logging",     "log.querytime.threshold",               3000, "Milliseconds after which a long-running query will be logged");
 	public static final Setting<Boolean> RequestLogging          = new BooleanSetting(generalGroup,            "Logging",     "log.requests",                          false);
 	public static final Setting<Boolean> DebugLogging            = new BooleanSetting(generalGroup,            "Logging",     "log.debug",                             false, "Controls the behaviour of the debug() function. If disabled, the debug() function behaves like a NOP. If enabled, it behaves exactly like the log() function.");
-	public static final Setting<Boolean> LogFunctionsStackTrace  = new BooleanSetting(generalGroup,            "Logging",     "log.functions.stacktrace",              false, "If true, the full stacktrace is logged for exceptions in built-in functions.");
+	public static final Setting<Boolean> LogFunctionsStackTrace  = new BooleanSetting(generalGroup,            "Logging",     "log.functions.stacktrace",              false, "If true, the full stacktrace is logged for exceptions in system functions.");
 	public static final Setting<String> LogPrefix                = new StringSetting(generalGroup,             "Logging",     "log.prefix",                            "structr");
 	public static final Setting<Boolean> LogJSExcpetionRequest   = new BooleanSetting(generalGroup,            "Logging",     "log.javascript.exception.request",      false, "Adds path, queryString and parameterMap to JavaScript exceptions (if available)");
 	public static final Setting<Boolean> LogDirectoryWatchServiceQuiet = new BooleanSetting(generalGroup,      "Logging",     "log.directorywatchservice.scanquietly", false, "Prevents logging of each scan process for every folder processed by the directory watch service");
@@ -97,7 +100,7 @@ public class Settings {
 	public static final Setting<Integer> NodeServiceStartRetries = new IntegerSetting(generalGroup,  "Services",    "nodeservice.start.retries",     3);
 
 	// server settings
-	public static final Setting<String> ApplicationHost       = new StringSetting(serverGroup,  "Interfaces", "application.host",              "0.0.0.0", "The listen address of the Structr server");
+	public static final Setting<String> ApplicationHost       = new StringSetting(serverGroup,  "Interfaces", "application.host",              "0.0.0.0", "The listen address of the Structr server. You can set this to your domain name if that name resolves to the IP of the server the instance is running on.");
 	public static final Setting<Integer> HttpPort             = new IntegerSetting(serverGroup, "Interfaces", "application.http.port",         8082, "HTTP port the Structr server will listen on");
 	public static final Setting<Integer> HttpsPort            = new IntegerSetting(serverGroup, "Interfaces", "application.https.port",        8083, "HTTPS port the Structr server will listen on (if SSL is enabled)");
 	public static final Setting<Integer> SshPort              = new IntegerSetting(serverGroup, "Interfaces", "application.ssh.port",          8022, "SSH port the Structr server will listen on (if SSHService is enabled)");
@@ -121,6 +124,7 @@ public class Settings {
 	public static final Setting<String> LifecycleListeners       = new StringSetting(serverGroup,  "hidden",        "httpservice.lifecycle.listeners",      "");
 	public static final Setting<Boolean> GzipCompression         = new BooleanSetting(serverGroup, "HTTP Settings", "httpservice.gzip.enabled",             true,  "Use GZIP compression for HTTP transfers");
 	public static final Setting<Boolean> Async                   = new BooleanSetting(serverGroup, "HTTP Settings", "httpservice.async",                    true,  "Whether the HttpServices uses asynchronous request handling. Disable this option if you encounter problems with HTTP responses.");
+	public static final Setting<Boolean> HttpBasicAuthEnabled    = new BooleanSetting(serverGroup, "HTTP Settings", "httpservice.httpbasicauth.enabled",    false, "Enables HTTP Basic Auth support for pages and files");
 	public static final Setting<Boolean> JsonIndentation         = new BooleanSetting(serverGroup, "HTTP Settings", "json.indentation",                     true,  "Whether JSON output should be indented (beautified) or compacted");
 	public static final Setting<Boolean> HtmlIndentation         = new BooleanSetting(serverGroup, "HTTP Settings", "html.indentation",                     true,  "Whether the page source should be indented (beautified) or compacted. Note: Does not work for template/content nodes which contain raw HTML");
 	public static final Setting<Boolean> WsIndentation           = new BooleanSetting(serverGroup, "HTTP Settings", "ws.indentation",                       false, "Prettyprints websocket responses if set to true.");
@@ -165,9 +169,12 @@ public class Settings {
 	public static final Setting<Boolean> ForceResultStreaming        = new BooleanSetting(databaseGroup, "Result Streaming",        "database.result.lazy",             false, "Forces Structr to use lazy evaluation for relationship queries");
 	public static final Setting<Boolean> CypherDebugLogging          = new BooleanSetting(databaseGroup, "Debugging",               "log.cypher.debug",                 false, "Turns on debug logging for the generated Cypher queries");
 	public static final Setting<Boolean> CypherDebugLoggingPing      = new BooleanSetting(databaseGroup, "Debugging",               "log.cypher.debug.ping",            false, "Turns on debug logging for the generated Cypher queries of the websocket PING command. Can only be used in conjunction with log.cypher.debug");
-	public static final Setting<Boolean> SyncDebugging               = new BooleanSetting(databaseGroup, "Sync debugging",          "sync.debug",                       false);
 	public static final Setting<Integer> ResultCountSoftLimit        = new IntegerSetting(databaseGroup, "Soft result count limit", "database.result.softlimit",        10_000, "Soft result count limit for a single query (can be overridden by pageSize)");
 	public static final Setting<Integer> FetchSize                   = new IntegerSetting(databaseGroup, "Result fetch size",       "database.result.fetchsize",        100_000, "Number of database records to fetch per batch when fetching large results");
+
+	// Neo4j specific settings
+	public static final Setting<String> Neo4jDefaultUsername         = new StringSetting(databaseGroup,  "hidden",                  "database.neo4j.default.username",   "neo4j");
+	public static final Setting<String> Neo4jDefaultPassword         = new StringSetting(databaseGroup,  "hidden",                  "database.neo4j.default.password",   "neo4j");
 
 	// application settings
 	public static final Setting<Boolean> ChangelogEnabled            = new BooleanSetting(applicationGroup, "Changelog",    "application.changelog.enabled",                   false, "Turns on logging of changes to nodes and relationships");
@@ -175,7 +182,7 @@ public class Settings {
 	public static final Setting<Boolean> FilesystemEnabled           = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.enabled",                  false, "If enabled, Structr will create a separate home directory for each user. See Filesystem for more information.");
 	public static final Setting<Boolean> UniquePaths                 = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.unique.paths",             true,  "If enabled, Structr will not allow files/folders of the same name in the same folder and automatically rename the file.");
 	public static final Setting<String> UniquePathsInsertionPosition = new ChoiceSetting(applicationGroup, "Filesystem",    "application.filesystem.unique.insertionposition", "beforeextension", Settings.getStringsAsSet("start", "beforeextension", "end"), "Defines the insertion position of the uniqueness criterion (currently a timestamp).<dl><dt>start</dt><dd>prefixes the name with a timestamp</dd><dt>beforeextension</dt><dd>puts the timestamp before the last dot (or at the end if the name does not contain a dot)</dd><dt>end</dt><dd>appends the timestamp after the complete name</dd></dl>");
-	public static final Setting<String> DefaultChecksums             = new StringSetting(applicationGroup,  "Filesystem",   "application.filesystem.checksums.default",        "",    "List of checksums to be calculated on file creation by default.");
+	public static final Setting<String> DefaultChecksums             = new StringSetting(applicationGroup,  "Filesystem",   "application.filesystem.checksums.default",        "",    "List of additional checksums to be calculated on file creation by default. (<code>File.checksum</code> is always popuplated with an xxHash)<dl><dt>crc32</dt><dd>Cyclic Redundancy Check - long value</dd><dt>md5</dt><dd>md5 algorithm - 32 character hex string</dd><dt>sha1</dt><dd>SHA-1 algorithm - 40 character hex string</dd><dt>sha512</dt><dd>SHA-512 algorithm - 128 character hex string</dd></dl>");
 	public static final Setting<Boolean> IndexingEnabled             = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.enabled",         true,  "Whether indexing is enabled globally (can be controlled separately for each file)");
 	public static final Setting<Integer> IndexingMaxFileSize         = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.maxsize",         10,    "Maximum size (MB) of a file to be indexed");
 	public static final Setting<Integer> IndexingLimit               = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.limit",           50000, "Maximum number of words to be indexed per file.");
@@ -184,6 +191,24 @@ public class Settings {
 	public static final Setting<Boolean> FollowSymlinks              = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.mount.followsymlinks",     true);
 	public static final Setting<String> DefaultUploadFolder          = new StringSetting(applicationGroup,  "Filesystem",   "application.uploads.folder",                      "", "The default path for files uploaded via the UploadServlet (available from Structr 2.1+)");
 
+	public static final Setting<Boolean> FeedItemIndexingEnabled            = new BooleanSetting(applicationGroup, "Indexing",   "application.feeditem.indexing.enabled",            true,  "Whether indexing is enabled for type FeedItem");
+	public static final Setting<Boolean> FeedItemIndexRemoteDocument        = new BooleanSetting(applicationGroup, "Indexing",   "application.feeditem.indexing.remote",             true,  "Whether indexing for type FeedItem will index the target URL of the FeedItem or the description");
+	public static final Setting<Integer> FeedItemIndexingLimit              = new IntegerSetting(applicationGroup, "Indexing",   "application.feeditem.indexing.limit",              50000, "Maximum number of words to be indexed per FeedItem.");
+	public static final Setting<Integer> FeedItemIndexingMinLength          = new IntegerSetting(applicationGroup, "Indexing",   "application.feeditem.indexing.minlength",          3,     "Minimum length of words to be indexed for FeedItem");
+	public static final Setting<Integer> FeedItemIndexingMaxLength          = new IntegerSetting(applicationGroup, "Indexing",   "application.feeditem.indexing.maxlength",          30,    "Maximum length of words to be indexed for FeedItem");
+	public static final Setting<Boolean> FeedItemContentIndexingEnabled     = new BooleanSetting(applicationGroup, "Indexing",   "application.feeditemcontent.indexing.enabled",     true,  "Whether indexing is enabled for type FeedItemContent");
+	public static final Setting<Integer> FeedItemContentIndexingLimit       = new IntegerSetting(applicationGroup, "Indexing",   "application.feeditemcontent.indexing.limit",       50000, "Maximum number of words to be indexed per FeedItemContent.");
+	public static final Setting<Integer> FeedItemContentIndexingMinLength   = new IntegerSetting(applicationGroup, "Indexing",   "application.feeditemcontent.indexing.minlength",   3,     "Minimum length of words to be indexed for FeedItemContent");
+	public static final Setting<Integer> FeedItemContentIndexingMaxLength   = new IntegerSetting(applicationGroup, "Indexing",   "application.feeditemcontent.indexing.maxlength",   30,    "Maximum length of words to be indexed for FeedItemContent");
+	public static final Setting<Boolean> FeedItemEnclosureIndexingEnabled   = new BooleanSetting(applicationGroup, "Indexing",   "application.feeditemenclosure.indexing.enabled",   true,  "Whether indexing is enabled for type FeedItemEnclosure");
+	public static final Setting<Integer> FeedItemEnclosureIndexingLimit     = new IntegerSetting(applicationGroup, "Indexing",   "application.feeditemenclosure.indexing.limit",     50000, "Maximum number of words to be indexed per FeedItemEnclosure.");
+	public static final Setting<Integer> FeedItemEnclosureIndexingMinLength = new IntegerSetting(applicationGroup, "Indexing",   "application.feeditemenclosure.indexing.minlength", 3,     "Minimum length of words to be indexed for FeedItemEnclosure");
+	public static final Setting<Integer> FeedItemEnclosureIndexingMaxLength = new IntegerSetting(applicationGroup, "Indexing",   "application.feeditemenclosure.indexing.maxlength", 30,    "Maximum length of words to be indexed for FeedItemEnclosure");
+	public static final Setting<Boolean> RemoteDocumentIndexingEnabled      = new BooleanSetting(applicationGroup, "Indexing",   "application.remotedocument.indexing.enabled",      true,  "Whether indexing is enabled for type RemoteDocument");
+	public static final Setting<Integer> RemoteDocumentIndexingLimit        = new IntegerSetting(applicationGroup, "Indexing",   "application.remotedocument.indexing.limit",        50000, "Maximum number of words to be indexed per RemoteDocument.");
+	public static final Setting<Integer> RemoteDocumentIndexingMinLength    = new IntegerSetting(applicationGroup, "Indexing",   "application.remotedocument.indexing.minlength",    3,     "Minimum length of words to be indexed for RemoteDocument");
+	public static final Setting<Integer> RemoteDocumentIndexingMaxLength    = new IntegerSetting(applicationGroup, "Indexing",   "application.remotedocument.indexing.maxlength",    30,    "Maximum length of words to be indexed for RemoteDocument");
+
 	public static final Setting<String> HttpProxyUrl              = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.url",                  "");
 	public static final Setting<String> HttpProxyUser             = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.username",             "");
 	public static final Setting<String> HttpProxyPassword         = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.password",             "");
@@ -191,11 +216,14 @@ public class Settings {
 	public static final Setting<Integer> HttpConnectionRequestTimeout = new IntegerSetting(applicationGroup, "Outgoing Connection Timeouts",   "application.httphelper.timeouts.connectionrequest",   60,    "Applies when making outgoing connections. Returns the timeout in <b>seconds</b> used when requesting a connection from the connection manager. A timeout value of zero is interpreted as an infinite timeout.");
 	public static final Setting<Integer> HttpConnectTimeout           = new IntegerSetting(applicationGroup, "Outgoing Connection Timeouts",   "application.httphelper.timeouts.connect",             60,    "Applies when making outgoing connections. Determines the timeout in <b>seconds</b> until a connection is established. A timeout value of zero is interpreted as an infinite timeout.");
 	public static final Setting<Integer> HttpSocketTimeout            = new IntegerSetting(applicationGroup, "Outgoing Connection Timeouts",   "application.httphelper.timeouts.socket",             600,    "Applies when making outgoing connections. Defines the socket timeout in <b>seconds</b>, which is the timeout for waiting for data or, put differently, a maximum period inactivity between two consecutive data packets. A timeout value of zero is interpreted as an infinite timeout.");
+	public static final Setting<String>  HttpUserAgent                = new StringSetting(applicationGroup,  "Outgoing Connection User Agent", "application.httphelper.useragent",         "curl/7.35.0",    "Used as user agent when making outgoing connections");
 
-	public static final Setting<Boolean> SchemaAutoMigration      = new BooleanSetting(applicationGroup, "Schema",       "application.schema.automigration",            false, "Enable automatic migration of schema information between versions (if possible -- may delete schema nodes)");
-	public static final Setting<Boolean> AllowUnknownPropertyKeys = new BooleanSetting(applicationGroup, "Schema",       "application.schema.allowunknownkeys",         false, "Enables get() and set() built-in functions to use property keys that are not defined in the schema.");
-	public static final Setting<Boolean> logMissingLocalizations  = new BooleanSetting(applicationGroup, "Localization", "application.localization.logmissing",         false, "Turns on logging for requested but non-existing localizations.");
+	public static final Setting<Boolean> SchemaAutoMigration      = new BooleanSetting(applicationGroup, "Schema",       "application.schema.automigration",            false,  "Enable automatic migration of schema information between versions (if possible -- may delete schema nodes)");
+	public static final Setting<Boolean> AllowUnknownPropertyKeys = new BooleanSetting(applicationGroup, "Schema",       "application.schema.allowunknownkeys",         false,  "Enables get() and set() built-in functions to use property keys that are not defined in the schema.");
+	public static final Setting<Boolean> logMissingLocalizations  = new BooleanSetting(applicationGroup, "Localization", "application.localization.logmissing",         false,  "Turns on logging for requested but non-existing localizations.");
 	public static final Setting<String> SchemaDeploymentFormat    = new ChoiceSetting(applicationGroup,  "Deployment",   "deployment.schema.format",                    "tree", Settings.getStringsAsSet("file", "tree"), "Configures how the schema is exported in a deployment export. <code>file</code> exports the schema as a single file. <code>tree</code> exports the schema as a tree where methods/function properties are written to single files in a tree structure.");
+	public static final Setting<Integer> DeploymentNodeBatchSize  = new IntegerSetting(applicationGroup, "Deployment",   "deployment.data.nodes.batchsize",             1000,   "Sets the batch size for data deployment when importing nodes.");
+	public static final Setting<Integer> DeploymentRelBatchSize   = new IntegerSetting(applicationGroup, "Deployment",   "deployment.data.relationships.batchsize",     1000,   "Sets the batch size for data deployment when importing relationships.");
 	public static final Setting<String> GlobalSecret              = new StringSetting(applicationGroup,  "Encryption",   "application.encryption.secret",               null,   "Sets the global secret for encrypted string properties. Using this configuration setting is one of several possible ways to set the secret, and it is not recommended for production environments because the key can easily be read by an attacker with scripting access.");
 
 	public static final Setting<Boolean> CallbacksOnLogout      = new BooleanSetting(applicationGroup, "Login/Logout behavior",   "callbacks.logout.onsave",       false, "Setting this to true enables the execution of the User.onSave method when a user logs out. Disabled by default because the global login handler onStructrLogout would be the right place for such functionality.");
@@ -226,7 +254,7 @@ public class Settings {
 
 	// servlets
 	public static final StringMultiChoiceSetting Servlets     = new StringMultiChoiceSetting(servletsGroup, "General", "httpservice.servlets",
-		"JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet LoginServlet LogoutServlet TokenServlet HealthCheckServlet HistogramServlet OpenAPIServlet",
+		"JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet LoginServlet LogoutServlet TokenServlet HealthCheckServlet HistogramServlet OpenAPIServlet FlowServlet",
 		Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet", "TokenServlet", "EventSourceServlet", "HealthCheckServlet", "HistogramServlet", "OpenAPIServlet"),
 		"Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
 
@@ -241,7 +269,7 @@ public class Settings {
 	public static final Setting<String> RestUserClass         = new StringSetting(servletsGroup,            "JsonRestServlet", "jsonrestservlet.user.class",                   "org.structr.dynamic.User", "User class that is instantiated when new users are created via the servlet");
 	public static final Setting<Boolean> RestUserAutologin    = new BooleanSetting(servletsGroup,           "JsonRestServlet", "jsonrestservlet.user.autologin",               false, "Only works in conjunction with the jsonrestservlet.user.autocreate key. Will log in user after self registration.");
 	public static final Setting<Boolean> RestUserAutocreate   = new BooleanSetting(servletsGroup,           "JsonRestServlet", "jsonrestservlet.user.autocreate",              false, "Enable this to support user self registration");
-	public static final Setting<String> InputValidationMode   = new StringMultiChoiceSetting(servletsGroup, "JsonRestServlet", "jsonrestservlet.unknowninput.validation.mode", "ignore", new LinkedHashSet<>(Arrays.asList("accept", "warn", "ignore", "reject")), "Controls how Structr reacts to unknown keys in JSON input.");
+	public static final Setting<String> InputValidationMode   = new ChoiceSetting(servletsGroup,            "JsonRestServlet", "jsonrestservlet.unknowninput.validation.mode", "accept_warn", new LinkedHashSet<>(Arrays.asList("accept", "accept_warn", "ignore", "ignore_warn", "reject", "reject_warn")), "Controls how Structr reacts to unknown keys in JSON input. <code>accept</code> allows the unknown key to be written. <code>ignore</code> removes the key. <code>reject</code> rejects the complete request. The <code>warn</code> options behave identical but also log a warning.");
 
 	public static final Setting<String> FlowServletPath       = new StringSetting(servletsGroup,  "hidden", "flowservlet.path",             "/structr/flow/*", "The URI under which requests are accepted by the servlet. Needs to include a wildcard at the end.");
 	public static final Setting<String> FlowServletClass      = new StringSetting(servletsGroup,  "hidden", "flowservlet.class",            "org.structr.flow.servlet.FlowServlet");
@@ -377,10 +405,14 @@ public class Settings {
 	public static final Setting<String> OpenAPIDefaultView       = new StringSetting(servletsGroup,  "hidden", "openapiservlet.defaultview",           "public");
 	public static final Setting<Integer> OpenAPIOutputDepth      = new IntegerSetting(servletsGroup, "hidden", "openapiservlet.outputdepth",           1);
 	public static final Setting<String> OpenAPIAllowOrigin       = new StringSetting(servletsGroup,  "OpenAPIServlet", "openapiservlet.allow.origin",          "", "Value that will be set in the Access-Control-Allow-Origin response header of the OpenAPI Servlet");
+	public static final Setting<String> OpenAPIServerTitle       = new StringSetting(servletsGroup,  "OpenAPIServerTitle", "openapiservlet.server.title", "Structr REST Server", "The main title of the OpenAPI server definition.");
+	public static final Setting<String> OpenAPIServerVersion     = new StringSetting(servletsGroup,  "OpenAPIServerVersion", "openapiservlet.server.version", "1.0.1", "The version number of the OpenAPI definition");
+
+
 
 	// cron settings
 	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations");
-	public static final Setting<Boolean> CronAllowParallelExecution = new BooleanSetting(cronGroup,  "", "CronService.allowparallelexecution", false, "Enables the parallel execution of *the same* cron job. This can happen if the method runs longer than the defined cron interval. As thisand could possibly create problems the default is false.");
+	public static final Setting<Boolean> CronAllowParallelExecution = new BooleanSetting(cronGroup,  "", "CronService.allowparallelexecution", false, "Enables the parallel execution of *the same* cron job. This can happen if the method runs longer than the defined cron interval. Since this could lead to problems, the default is false.");
 
 	//security settings
 	public static final Setting<String> SuperUserName                  = new StringSetting(securityGroup,     "Superuser",            "superuser.username",                    "superadmin", "Name of the superuser");
@@ -406,7 +438,7 @@ public class Settings {
 	public static final Setting<String> JWTKeyStore                       = new StringSetting(securityGroup, "JWT Auth",  "security.jwt.keystore", "", "Used if 'security.jwt.secrettype'=keypair. A valid keystore file containing a private/public keypair that can be used to sign and verify JWTs");
 	public static final Setting<String> JWTKeyStorePassword               = new StringSetting(securityGroup, "JWT Auth",  "security.jwt.keystore.password", "","The password for the given 'security.jwt.keystore'");
 	public static final Setting<String> JWTKeyAlias                       = new StringSetting(securityGroup, "JWT Auth",  "security.jwt.key.alias", "","The alias of the private key of the given 'security.jwt.keystore'");
-	public static final Setting<String> JWTSProvider                      = new StringSetting(securityGroup, "JWT Auth",  "security.jwks.provider", "","");
+	public static final Setting<String> JWTSProvider                      = new StringSetting(securityGroup, "JWT Auth",  "security.jwks.provider", "","URL of the JWKS provider");
 
 	public static final Setting<Boolean> PasswordForceChange                 = new BooleanSetting(securityGroup, "Password Policy", "security.passwordpolicy.forcechange",                         false, "Indicates if a forced password change is active");
 	public static final Setting<Boolean> PasswordClearSessionsOnChange       = new BooleanSetting(securityGroup, "Password Policy", "security.passwordpolicy.onchange.clearsessions",              false, "Clear all sessions of a user on password change.");
@@ -441,6 +473,7 @@ public class Settings {
 	// oauth settings
 	public static final Setting<String> OAuthServers = new StringSetting(oauthGroup, "General", "oauth.servers", "github twitter linkedin google facebook auth0", "Space-seperated List of available oauth services. Defaults to \"github twitter linkedin google facebook auth0\"");
 	public static final Setting<Boolean> OAuthDelayedRedirect = new BooleanSetting(oauthGroup, "General", "oauth.delayedredirect", false, "Enables delayed redirect after oauth login");
+	public static final Setting<Boolean> OAuthVerboseLogging  = new BooleanSetting(oauthGroup, "General", "oauth.logging.verbose", false, "Enables verbose logging for oauth login");
 
 	public static final Setting<String> OAuthGithubAuthLocation   = new StringSetting(oauthGroup, "GitHub", "oauth.github.authorization_location", "https://github.com/login/oauth/authorize", "URL of the authorization endpoint.");
 	public static final Setting<String> OAuthGithubTokenLocation  = new StringSetting(oauthGroup, "GitHub", "oauth.github.token_location", "https://github.com/login/oauth/access_token", "URL of the token endpoint.");

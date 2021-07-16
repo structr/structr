@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,9 +19,9 @@
 package org.structr.bolt;
 
 import java.util.function.Function;
-import org.neo4j.driver.v1.types.Node;
-import org.neo4j.driver.v1.types.Path;
-import org.neo4j.driver.v1.types.Relationship;
+import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Path;
+import org.neo4j.driver.types.Relationship;
 
 /**
  *

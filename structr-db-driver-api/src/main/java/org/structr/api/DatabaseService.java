@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,7 @@ import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
+import org.structr.api.index.IndexConfig;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.NodeWithOwnerResult;
 
@@ -42,7 +43,7 @@ public interface DatabaseService {
 	 *
 	 * @return whether the service was initialized successfully
 	 */
-	boolean initialize(final String serviceName);
+	boolean initialize(final String serviceName, final String version, final String instanceName);
 	void shutdown();
 	void clearCaches();
 	void cleanDatabase();
@@ -86,7 +87,7 @@ public interface DatabaseService {
 	// ----- index -----
 	Index<Node> nodeIndex();
 	Index<Relationship> relationshipIndex();
-	void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfig, final Map<String, Map<String, Boolean>> removedClasses, final boolean createOnly);
+	void updateIndexConfiguration(final Map<String, Map<String, IndexConfig>> schemaIndexConfig, final Map<String, Map<String, IndexConfig>> removedClasses, final boolean createOnly);
 	boolean isIndexUpdateFinished();
 
 	// utils

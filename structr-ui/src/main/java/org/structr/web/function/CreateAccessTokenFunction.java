@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.FrameworkException;
 import org.structr.rest.auth.AuthHelper;
+import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
 
@@ -50,6 +51,7 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
             assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
             final User user = (User) sources[0];
             int accessTokenTimeout = Settings.JWTExpirationTimeout.getValue();
+            int refreshTokenTimeout = Settings.JWTRefreshTokenExpirationTimeout.getValue();
 
             if (sources.length > 1) {
                 accessTokenTimeout = (int) sources[1];
@@ -58,7 +60,7 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
             Calendar accessTokenExpirationDate = Calendar.getInstance();
             accessTokenExpirationDate.add(Calendar.MINUTE, accessTokenTimeout);
 
-            Map<String, String> tokens = AuthHelper.createTokensForUser(user, accessTokenExpirationDate.getTime(), null);
+            Map<String, String> tokens = JWTHelper.createTokensForUser(user, accessTokenExpirationDate.getTime(), null);
 
             return tokens.get("access_token");
 

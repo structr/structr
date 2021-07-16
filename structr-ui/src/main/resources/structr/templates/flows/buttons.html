@@ -1,0 +1,35 @@
+<link rel="stylesheet" type="text/css" media="screen" href="css/flow-editor.css">
+
+<div class="input-and-button">
+  <input id="name-input" type="text" placeholder="Enter flow name">
+  <button id="create-new-flow" class="action btn">
+    <i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add
+  </button>
+</div>
+
+<button class="delete_flow_icon button disabled">
+  <i title="Delete" class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i> Delete flow
+</button>
+
+<label>
+  Highlight:
+  <select id="flow-focus-select">
+    <option value="none">-</option>
+    <option value="action">Execution Flow</option>
+    <option value="data">Data Flow</option>
+    <option value="logic">Logic Flow</option>
+    <option value="exception">Exception Handling</option>
+  </select>
+</label>
+
+<button class="run_flow_icon button disabled">
+  <i title="Run" class="${_Icons.getFullSpriteClass(_Icons.exec_icon)}"></i> Run
+</button>
+
+<button class="reset_view_icon button">
+  <i title="Reset view" class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)}"></i> Reset view
+</button>
+
+<button class="layout_icon button disabled">
+  <i title="Layout" class="${_Icons.getFullSpriteClass(_Icons.wand_icon)}"></i> Layout
+</button>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
+import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -180,10 +181,10 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		}
 
 		// add sorting & paging
-		final String pageSizeParameter = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
-		final String pageParameter     = wrappedRequest.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
-		final String[] sortKeyNames    = wrappedRequest.getParameterValues(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
-		final String[] sortOrders      = wrappedRequest.getParameterValues(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
+		final String pageSizeParameter = wrappedRequest.getParameter(RequestKeywords.PageSize.keyword());
+		final String pageParameter     = wrappedRequest.getParameter(RequestKeywords.PageNumber.keyword());
+		final String[] sortKeyNames    = wrappedRequest.getParameterValues(RequestKeywords.SortKey.keyword());
+		final String[] sortOrders      = wrappedRequest.getParameterValues(RequestKeywords.SortOrder.keyword());
 		final Class type               = resource.getEntityClassOrDefault();
 		final DefaultSortOrder order   = new DefaultSortOrder(type, sortKeyNames, sortOrders);
 		final int pageSize             = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);

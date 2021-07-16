@@ -20,12 +20,7 @@
 		<link rel="stylesheet" type="text/css" media="screen" href="trumbowyg/ui/trumbowyg.min.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="css/main.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="css/sprites.css">
-		<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="css/dialogs.css">
-		<link rel="stylesheet" type="text/css" media="screen" href="css/graph_editor.css">
-		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/cropper.min.css">
-		<link rel="stylesheet" type="text/css" media="screen" href="css/flow-editor.css">
-		<link rel="stylesheet" type="text/css" media="screen" href="css/simple-pages.css">
 		<link rel="icon" href="favicon.ico" type="image/x-icon">
 		<script src="js/lib/jquery-3.3.1.min.js"></script>
 		<script src="js/lib/jquery-ui-1.11.0.custom.min.js"></script>
@@ -50,7 +45,6 @@
 		<script src="js/lib/linkurious/sigma.min.js"></script>
 		<script src="js/lib/linkurious/plugins.min.js"></script>
 		<script src="js/lib/graphbrowser/graph-browser.js"></script>
-		<script src="js/lib/clipboard.min.js"></script>
 		<script src="js/lib/vis.min.js"></script>
 
 		<script src="js/lib/jsonlint.js"></script>
@@ -112,7 +106,7 @@
 	<body>
 		<div id="info-area" class="blockMsg"></div>
 		<div id="header">
-			<i class="logo sprite sprite-structr-logo"></i>
+			<img class="logo" src="img/structr-logo-white.svg">
 			<div id="menu" class="menu">
 				<ul>
 					<li class="submenu-trigger" data-toggle="popup" data-target="#submenu">
@@ -155,6 +149,8 @@
 		<div class="hidden" id="structr-console"></div>
 		<div class="hidden" id="structr-favorites"></div>
 
+		<div id="function-bar"></div>
+
 		<div id="main">
 			<!--<div id="ajaxLoader"><img src="img/ajax-loader.gif"></div>-->
 		</div>
@@ -164,8 +160,8 @@
 
 			<form action="javascript:void(0)">
 				<table class="username-password">
-					<tr><td><label for="usernameField">Username:</label></td><td><input id="usernameField" type="text" name="username" autofocus required></td></tr>
-					<tr><td><label for="passwordField">Password:</label></td><td><input id="passwordField" type="password" name="password" required></td></tr>
+					<tr><td><label for="usernameField">Username:</label></td><td><input id="usernameField" type="text" name="username" autofocus autocomplete="username" required></td></tr>
+					<tr><td><label for="passwordField">Password:</label></td><td><input id="passwordField" type="password" name="password" autocomplete="current-password" required></td></tr>
 					<tr><td colspan="2" class="btn"><span id="errorText"></span></td></tr>
 					<tr class="username-pw"><td colspan="2" class="btn"><button id="loginButton" name="login"><i class="sprite sprite-key"></i> Login</button></td></tr>
 				</table>
@@ -223,8 +219,9 @@
 		</div>
 
 		<div id="dialogBox" class="dialog">
-			<i id="maximizeDialog" class="minmax sprite sprite-arrow_out"></i>
-			<i id="minimizeDialog" class="minmax sprite sprite-arrow_in"></i>
+			<i title="Fullscreen Mode" id="maximizeDialog" class="window-icon minmax"><svg viewBox="0 0 16 16" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(0.6666666666666666,0,0,0.6666666666666666,0,0)"><path d="M6 17.998L0.75 23.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M23.25 6.748L23.25 0.748 17.25 0.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.75 17.248L0.75 23.248 6.75 23.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M23.25 0.748L18 5.998" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M18 17.998L23.25 23.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.75 6.748L0.75 0.748 6.75 0.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M23.25 17.248L23.25 23.248 17.25 23.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.75 0.748L6 5.998" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.250 8.248 L15.750 8.248 L15.750 15.748 L8.250 15.748 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></i>
+			<i title="Window Mode" id="minimizeDialog" class="window-icon minmax"><svg viewBox="0 0 16 16" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(0.6666666666666666,0,0,0.6666666666666666,0,0)"><path d="M23.25 0.748L17.25 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75 23.248L6.75 17.248 0.75 17.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.25 0.748L17.25 6.748 23.25 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75 17.248L0.75 23.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.75 0.748L6.75 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.25 23.248L17.25 17.248 23.25 17.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75 0.748L6.75 6.748 0.75 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.25 17.248L23.25 23.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.250 8.248 L15.750 8.248 L15.750 15.748 L8.250 15.748 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></i>
+			<i title="Close" id="closeDialog" class="window-icon close"><svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.3,14.121,15.182,12,17.3,9.878a1.5,1.5,0,0,0,0-2.121L16.243,6.7a1.5,1.5,0,0,0-2.122,0L12,8.818,9.879,6.7a1.5,1.5,0,0,0-2.122,0L6.7,7.757a1.5,1.5,0,0,0,0,2.121L8.818,12,6.7,14.121a1.5,1.5,0,0,0,0,2.121L7.757,17.3a1.5,1.5,0,0,0,2.122,0L12,15.182,14.121,17.3a1.5,1.5,0,0,0,2.122,0l1.06-1.061A1.5,1.5,0,0,0,17.3,14.121Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></i>
 			<h2 class="dialogTitle"></h2>
 			<div class="dialogHeaderWrapper"></div>
 			<div class="dialogTextWrapper">

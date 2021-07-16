@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.WeakHashMap;
-import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
-import org.neo4j.driver.v1.types.Entity;
+import org.neo4j.driver.exceptions.NoSuchRecordException;
+import org.neo4j.driver.types.Entity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
@@ -317,8 +317,14 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 			try {
 
-				// update data
-				update(tx.getEntity(getQueryPrefix() + " WHERE ID(n) = $id RETURN n", map).asMap());
+				final Entity entity = tx.getEntity(getQueryPrefix() + " WHERE ID(n) = $id RETURN n", map);
+				if (entity != null) {
+
+					final Map<String, Object> data = entity.asMap();
+
+					// update data
+					update(data);
+				}
 
 			} catch (NoSuchRecordException nex) {
 				throw new NotFoundException(nex);
@@ -409,7 +415,12 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 			if (copy == null) {
 
-				copy = new ChangeAwareMap(entityData);
+				synchronized (this) {
+
+					// synchronize access to entityData
+					copy = new ChangeAwareMap(entityData);
+				}
+
 				txData.put(transactionId, copy);
 
 				if (write) {

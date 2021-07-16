@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,10 +18,10 @@
  */
 package org.structr.schema.export;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -40,7 +40,7 @@ import org.structr.api.schema.JsonSchema;
  */
 public class StructrEnumProperty extends StructrStringProperty implements JsonEnumProperty {
 
-	protected Set<String> enums = new TreeSet<>();
+	protected Set<String> enums = new LinkedHashSet<>();
 	protected String fqcn       = null;
 
 	public StructrEnumProperty(final StructrTypeDefinition parent, final String name) {

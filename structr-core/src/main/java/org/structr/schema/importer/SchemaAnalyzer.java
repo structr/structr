@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -41,6 +41,7 @@ import org.structr.api.config.Settings;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.error.FrameworkException;
@@ -401,17 +402,30 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 					// set node type which is in "name" property
 					propertyMap.put(AbstractNode.name, type);
 
-					// check if there is an existing Structr entity with the same type
-					// and make the dynamic class extend the existing class if yes.
+					// check if there is an existing Structr entity with the same type and make the dynamic class extend the existing class if yes.
 					final Class existingType = configuration.getNodeEntityClass(type);
 					if (existingType != null && !existingType.getName().equals("org.structr.dynamic." + type)) {
 
-						propertyMap.put(SchemaNode.extendsClass, existingType.getName());
+						final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
+						if (schemaNode != null) {
+
+							propertyMap.put(SchemaNode.extendsClass, schemaNode);
+						}
 
 					} else if (!typeInfo.getOtherTypes().isEmpty()) {
 
+						final String superclassName = typeInfo.getSuperclass(reducedTypeInfoMap);
+						final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(superclassName).getFirst();
+
+						if (schemaNode != null) {
+
+							propertyMap.put(SchemaNode.extendsClass, schemaNode);
+						}
+
+						/*
 						// only the first supertype is supported
 						propertyMap.put(SchemaNode.extendsClass, typeInfo.getSuperclass(reducedTypeInfoMap));
+						*/
 					}
 
 					final SchemaNode existingNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
@@ -498,7 +512,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 			for (final String source : sources) {
 
 				// be very tolerant here, just execute everything
-				app.query(source, Collections.emptyMap());
+				Iterables.count(app.query(source, Collections.emptyMap()));
 			}
 
 			tx.success();

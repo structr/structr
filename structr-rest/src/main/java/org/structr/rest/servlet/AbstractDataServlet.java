@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -42,8 +42,10 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
+import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.JsonException;
 import org.structr.core.IJsonInput;
 import org.structr.core.Services;
 import org.structr.core.Value;
@@ -58,7 +60,6 @@ import org.structr.rest.serialization.StreamingHtmlWriter;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
-import static org.structr.rest.servlet.JsonRestServlet.REQUEST_PARAMTER_OUTPUT_DEPTH;
 
 /**
  *
@@ -100,7 +101,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 	// ----- protected methods -----
 	protected void commitResponse(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final RestMethodResult result, final boolean wrapSingleResultInArray) {
 
-		final String outputDepthSrc       = request.getParameter(REQUEST_PARAMTER_OUTPUT_DEPTH);
+		final String outputDepthSrc       = request.getParameter(RequestKeywords.OutputDepth.keyword());
 		final int outputDepth             = Services.parseInt(outputDepthSrc, config.getOutputNestingDepth());
 		final String baseUrl              = request.getRequestURI();
 		final Map<String, String> headers = result.getHeaders();
@@ -176,19 +177,13 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 			logger.warn("JsonSyntaxException in GET", jsex);
 
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Json syntax exception in GET: " + jsex.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonSyntaxException in GET: " + jsex.getMessage());
 
 		} catch (JsonParseException jpex) {
 
 			logger.warn("JsonParseException in GET", jpex);
 
-			int code = HttpServletResponse.SC_BAD_REQUEST;
-
-			response.setStatus(code);
-			response.getWriter().append(RestMethodResult.jsonError(code, "Parser exception in GET: " + jpex.getMessage()));
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonParseException in GET: " + jpex.getMessage());
 
 		} catch (Throwable t) {
 
@@ -203,10 +198,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 					logger.warn(" => Error thrown: ", t);
 				}
 
-				int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-
-				response.setStatus(code);
-				response.getWriter().append(RestMethodResult.jsonError(code, "Exception in GET: " + t.getMessage()));
+				writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in GET: " + t.getMessage());
 
 				// if sending the error creates an error, we can probably ignore that one
 			} catch (Throwable ignore) { }
@@ -256,7 +248,28 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 		writer.flush();
 	}
 
-	protected void writeException(final HttpServletResponse response, final FrameworkException fex) throws IOException {
+	protected void resetResponseBuffer(final HttpServletResponse response, final int statusCode) {
+
+		if (response.isCommitted()) {
+
+			logger.warn("Unable to reset response buffer. The response has already been committed due to streaming. Status code and response can not be changed. Status code was {} but should change to {}.", response.getStatus(), statusCode);
+
+		} else {
+
+			try {
+
+				response.resetBuffer();
+
+			} catch (IllegalStateException ise) {
+
+				logger.warn("Unable to reset response buffer", ise);
+			}
+		}
+	}
+
+	protected void writeException(final HttpServletResponse response, final JsonException fex) throws IOException {
+
+		resetResponseBuffer(response, fex.getStatus());
 
 		final PrintWriter writer = response.getWriter();
 		final Gson gson          = getGson();
@@ -265,6 +278,14 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 		response.setStatus(fex.getStatus());
 		gson.toJson(fex.toJSON(), writer);
 		writer.println();
+	}
+
+	protected void writeJsonError(final HttpServletResponse response, final int statusCode, final String errorString) throws IOException {
+
+		resetResponseBuffer(response, statusCode);
+
+		response.setStatus(statusCode);
+		response.getWriter().append(RestMethodResult.jsonError(statusCode, errorString));
 	}
 
 	protected void writeStatus(final HttpServletResponse response, final int statusCode, final String message) throws IOException {

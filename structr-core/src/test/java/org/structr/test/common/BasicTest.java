@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -462,6 +462,8 @@ public class BasicTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
 
 			logger.warn("Unexpected exception {}", fex.getMessage());
 			fail("Unexpected exception.");

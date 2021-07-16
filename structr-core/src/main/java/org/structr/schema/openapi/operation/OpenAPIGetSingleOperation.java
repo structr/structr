@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -52,10 +52,10 @@ public class OpenAPIGetSingleOperation extends OpenAPIOperation {
 			null,
 
 			// responses
-				Map.of("200", new OpenAPIRequestResponse("Ok",
+				Map.of("200", new OpenAPIRequestResponse("The request was executed successfully.",
 					new OpenAPIResultSchema(new OpenAPIStructrTypeSchemaOutput(type, view, 0), true)
 				),
-				"403", new OpenAPIReference("#/components/responses/forbidden"),
+				"401", new OpenAPIReference("#/components/responses/unauthorized"),
 				"404", new OpenAPIReference("#/components/responses/notFound")
 			)
 		);

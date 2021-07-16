@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,8 +35,8 @@ import org.structr.core.property.Property;
  */
 public class TestTwo extends AbstractNode {
 
-	public static final Property<Integer>       anInt    = new IntProperty("anInt").indexed();
-	public static final Property<Long>          aLong    = new LongProperty("aLong").indexed();
+	public static final Property<Integer>       anInt    = new IntProperty("anInt").indexed().indexedWhenEmpty();
+	public static final Property<Long>          aLong    = new LongProperty("aLong").indexed().indexedWhenEmpty();
 	public static final Property<Date>          aDate    = new ISO8601DateProperty("aDate").indexed();
 
 	public static final Property<Iterable<TestOne>> testOnes = new EndNodes<>("test_ones", TwoOneOneToMany.class);

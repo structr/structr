@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.rest.resource;
 
+import static com.caucho.quercus.lib.JavaModule.java;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -46,14 +47,13 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
+import org.structr.common.RequestKeywords;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.servlet.JsonRestServlet;
 
 /**
  * Base class for all resource constraints. Constraints can be combined with succeeding constraints to avoid unneccesary evaluation.
@@ -281,11 +281,11 @@ public abstract class Resource {
 
 		if (request != null) {
 
-			final String distance = request.getParameter(SearchCommand.DISTANCE_SEARCH_KEYWORD);
+			final String distance = request.getParameter(RequestKeywords.Distance.keyword());
 
 			if (!request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
 
-				final String latlon   = request.getParameter(SearchCommand.LAT_LON_SEARCH_KEYWORD);
+				final String latlon   = request.getParameter(RequestKeywords.LatLon.keyword());
 				if (latlon != null) {
 
 					final String[] parts = latlon.split("[,]+");
@@ -306,14 +306,14 @@ public abstract class Resource {
 				} else {
 
 					final double dist     = Double.parseDouble(distance);
-					final String location = request.getParameter(SearchCommand.LOCATION_SEARCH_KEYWORD);
+					final String location = request.getParameter(RequestKeywords.Location.keyword());
 
-					String street     = request.getParameter(SearchCommand.STREET_SEARCH_KEYWORD);
-					String house      = request.getParameter(SearchCommand.HOUSE_SEARCH_KEYWORD);
-					String postalCode = request.getParameter(SearchCommand.POSTAL_CODE_SEARCH_KEYWORD);
-					String city       = request.getParameter(SearchCommand.CITY_SEARCH_KEYWORD);
-					String state      = request.getParameter(SearchCommand.STATE_SEARCH_KEYWORD);
-					String country    = request.getParameter(SearchCommand.COUNTRY_SEARCH_KEYWORD);
+					String street     = request.getParameter(RequestKeywords.Street.keyword());
+					String house      = request.getParameter(RequestKeywords.House.keyword());
+					String postalCode = request.getParameter(RequestKeywords.PostalCode.keyword());
+					String city       = request.getParameter(RequestKeywords.City.keyword());
+					String state      = request.getParameter(RequestKeywords.State.keyword());
+					String country    = request.getParameter(RequestKeywords.Country.keyword());
 
 					// if location, use city and street, else use all fields that are there!
 					if (location != null) {
@@ -346,7 +346,7 @@ public abstract class Resource {
 
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
-			final boolean exactSearch          = !(parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1);
+			final boolean exactSearch          = !(parseInteger(request.getParameter(RequestKeywords.Inexact.keyword())) == 1);
 			final List<PropertyKey> searchKeys = new LinkedList<>();
 
 			for (final String name : request.getParameterMap().keySet()) {
@@ -357,7 +357,7 @@ public abstract class Resource {
 					// add to list of searchable keys
 					searchKeys.add(key);
 
-				} else if (!JsonRestServlet.commonRequestParameters.contains(name)) {
+				} else if (!RequestKeywords.keywords().contains(name)) {
 
 					// exclude common request parameters here (should not throw exception)
 					throw new FrameworkException(400, "Unknown search key " + name);

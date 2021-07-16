@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,9 +19,11 @@
 var buttonClicked;
 
 var _Entities = {
+	selectedObject: {},
 	activeElements: {},
 	activeQueryTabPrefix: 'structrActiveQueryTab_' + port,
 	activeEditTabPrefix: 'structrActiveEditTab_' + port,
+	selectedObjectIdKey: 'structrSelectedObjectId_' + port,
 	numberAttrs: ['position', 'size'],
 	readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'createdBy', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
 	pencilEditBlacklist: ['html', 'body', 'head', 'title', 'script',  'input', 'label', 'button', 'textarea', 'link', 'meta', 'noscript', 'tbody', 'thead', 'tr', 'td', 'caption', 'colgroup', 'tfoot', 'col', 'style'],
@@ -77,7 +79,7 @@ var _Entities = {
 	deleteNode: function(button, entity, recursive, callback) {
 		buttonClicked = button;
 		if ( !Structr.isButtonDisabled(button) ) {
-			Structr.confirmation('<p>Delete ' + entity.type + ' \'' + entity.name + '\' [' + entity.id + ']' + (recursive ? ' recursively' : '') + '?</p>',
+			Structr.confirmation('<p>Delete ' + entity.type + ' ' + (entity.name || '') + ' ' + entity.id + '' + (recursive ? ' recursively' : '') + '?</p>',
 				function() {
 					Command.deleteNode(entity.id, recursive);
 					$.unblockUI({
@@ -127,51 +129,382 @@ var _Entities = {
 	},
 	dataBindingDialog: function(entity, el, typeInfo) {
 
-		el.append('<h3>Simple Interactive Elements</h3>');
-		el.append('<table class="props" id="new-data-binding-properties"></table>');
-		var tNew = $('#new-data-binding-properties', el);
+		Structr.fetchHtmlTemplate('entities/events', { entity: entity }, function (html) {
 
-		_Entities.appendRowWithInputField(entity, tNew, 'eventMapping',                    'Event mapping',     typeInfo);
-		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-target',             'Event target',      typeInfo);
-		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-reload-target',      'Reload target',     typeInfo);
-		_Entities.appendRowWithInputField(entity, tNew, 'data-structr-tree-children',      'Tree children key', typeInfo);
+			el.empty();
+			el.append(html);
 
-		if (entity.type === 'Button' || entity.type === 'A') {
+			let width = '100%';
+			let style = 'text-align: left;';
+			let parent = $('.blockPage');
 
-			el.append('<h4>You can specify the data fields for create and update using data-Attributes like this:</h4>');
-			el.append('<pre>data-name        = css(input#name-input)\ndata-description = css(input#description-input)\ndata-parent      = json({ id: "5c6214fde6db45d09df027b16a0d6c0e" })</pre>');
-			el.append('<h4>Which will produce the following JSON payload:</h4>');
-			el.append('<pre>{\n    name: "&lt;value from input#name-input&gt;",\n    description: "&lt;value from input#description-input&gt;",\n    parent: {\n        id: "5c6214fde6db45d09df027b16a0d6c0e"\n    }\n}\n</p>');
-		}
+			if (parent.length === 0) {
+			    parent = $(document.body);
+			}
 
-		el.append('<h3>Deprecated Edit Mode Binding</h3>');
-		el.append('<table class="props" id="deprecated-data-binding-properties"></table>');
-		var tOld = $('#deprecated-data-binding-properties', el);
+			let eventMappingSelect  = $('select#event-mapping-select', el);
+			let targetTypeSelect    = $('select#target-type-select', el);
+			let deleteTargetInput   = $('#delete-target-input', el);
+			let methodNameInput     = $('#method-name-input', el);
+			let methodTargetInput   = $('#method-target-input', el);
+			let updateTargetInput   = $('#update-target-input', el);
+			let updatePropertyInput = $('#update-property-input', el);
+			let reloadOptionSelect  = $('select#reload-option-select', el);
+			let reloadSelectorInput = $('#reload-selector-input', el);
+			let reloadUrlInput      = $('#reload-url-input', el);
+			let reloadEventInput    = $('#reload-event-input', el);
+			let customEventInput    = $('#custom-event-input', el);
+			let customActionInput   = $('#custom-action-input', el);
+			let customTargetInput   = $('#custom-target-input', el);
 
-		// General
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-id',                   'Element ID', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-attr',                 'Attribute Key', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-type',                 'Data type', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-placeholder',          'Placeholder text', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-custom-options-query', 'Custom REST query', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-options-key',          'Options attribute key', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-raw-value',            'Raw value', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-hide',                 'Hide mode(s)', typeInfo);
-		_Entities.appendRowWithInputField(entity, tOld, 'data-structr-edit-class',           'Edit mode CSS class', typeInfo);
+			// event mapping selector
+			eventMappingSelect.select2({
+				placeholder: 'Event',
+				style: style,
+				width: width,
+				dropdownParent: parent,
+			}).on('select2:select', function (e) {
+				let data = e.params.data;
+				$('div.event-options', el).addClass('hidden');
+				if (this.value && this.value.length > 0) {
+					$('.' + this.value).removeClass('hidden');
+				}
+				if (data.id !== 'options-none') {
+					$('.options-reload-target').removeClass('hidden');
+				}
 
-		if (entity.type === 'Button' || entity.type === 'A') {
+				// name comes from _html_name, always fill this field
+				Command.getProperty(entity.id, '_html_name', function(result) {
+					updatePropertyInput.val(result);
+				});
+			});
 
-			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-action',           'Action', typeInfo);
-			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-attributes',       'Attributes', typeInfo);
-			_Entities.appendRowWithBooleanSwitch(entity, tOld, 'data-structr-reload',        'Reload', '', typeInfo);
-			_Entities.appendRowWithBooleanSwitch(entity, tOld, 'data-structr-confirm',       'Confirm action?', '', typeInfo);
-			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-return',           'Return URI', typeInfo);
-			_Entities.appendRowWithBooleanSwitch(entity, tOld, 'data-structr-append-id',     'Append ID on create', '', typeInfo);
+			// target type selector
+			targetTypeSelect.select2({
+				allowClear: true,
+				placeholder: 'Select type..',
+				style: style,
+				width: width,
+				dropdownParent: parent,
+				ajax: {
+					url: '/structr/rest/SchemaNode',
+					processResults: function (data) {
+						return {
+							results: data.result.map(n => ({ id: n.name, text: n.name }))
+						};
+					},
+					data: function (params) {
 
-		} else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
-			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-name',             'Field name', typeInfo);
-			_Entities.appendRowWithInputField(entity, tOld, 'data-structr-format',           'Custom Format', typeInfo);
-		}
+						let config = {
+							name: params.term
+						};
+
+						config[Structr.getRequestParameterName('sort')] = 'name';
+						config[Structr.getRequestParameterName('loose')] = 1;
+
+						return config;
+					}
+				}
+			}).on('select2:select', function(e) {
+				$('.select2-selection', targetTypeSelect.parent()).removeClass('required');
+			});
+
+			// reload target selector
+			reloadOptionSelect.select2({
+				placeholder: 'Reload target',
+				style: style,
+				width: width,
+				dropdownParent: parent,
+			}).on('select2:select', function (e) {
+				$('div.reload-options', el).addClass('hidden');
+				if (this.value && this.value.length > 0) {
+					$('#' + this.value).removeClass('hidden');
+				}
+			});
+
+			deleteTargetInput.on('change', function(e) { deleteTargetInput.removeClass('required'); });
+			methodTargetInput.on('change', function(e) { methodTargetInput.removeClass('required'); });
+			methodNameInput.on('change', function(e) { methodNameInput.removeClass('required'); });
+			updateTargetInput.on('change', function(e) { updateTargetInput.removeClass('required'); });
+			updatePropertyInput.on('change', function(e) { updatePropertyInput.removeClass('required'); });
+			reloadSelectorInput.on('change', function(e) { reloadSelectorInput.removeClass('required'); });
+			reloadUrlInput.on('change', function(e) { reloadUrlInput.removeClass('required'); });
+			reloadEventInput.on('change', function(e) { reloadEventInput.removeClass('required'); });
+			customEventInput.on('change', function(e) { customEventInput.removeClass('required'); });
+			customActionInput.on('change', function(e) { customActionInput.removeClass('required'); });
+			customTargetInput.on('change', function(e) { customTargetInput.removeClass('required'); });
+
+			Structr.activateCommentsInElement(el);
+
+			// initialize fields from values in the object
+			let eventMapping = JSON.parse(entity.eventMapping);
+			if (eventMapping) {
+
+				let click        = eventMapping.click;
+				let change       = eventMapping.change;
+				let id           = 'options-custom';
+
+				if (click) {
+
+					switch (click) {
+
+						case 'create':
+							id = 'options-create-click';
+							break;
+
+						case 'delete':
+							id = 'options-delete-click';
+							break;
+
+						default:
+							id = 'options-method-click';
+							methodNameInput.val(click);
+							break;
+					}
+
+				} else if (change) {
+
+					switch (change) {
+
+						case 'update':
+							id = 'options-update-change';
+							break;
+
+						case 'create':
+							id = 'options-create-change';
+							break;
+
+						default:
+							id = 'options-method-change';
+							methodNameInput.val(change);
+							break;
+					}
+
+				} else {
+
+					for (var key of Object.keys(eventMapping)) {
+
+						customEventInput.val(key);
+						customActionInput.val(eventMapping[key]);
+					}
+				}
+
+				eventMappingSelect.val(id);
+				eventMappingSelect.trigger('change');
+				eventMappingSelect.trigger({ type: 'select2:select', params: { data: { id: id }}});
+
+				// set selected option in targetTypeSelect
+				let selectedType = entity['data-structr-target'];
+				if (selectedType) {
+
+					var option = new Option(selectedType, selectedType, true, true);
+					targetTypeSelect.append(option).trigger('change');
+
+					targetTypeSelect.trigger({
+						type: 'select2:select',
+						params: { data: { id: selectedType } }
+					});
+				}
+
+				deleteTargetInput.val(entity['data-structr-target']);
+				methodTargetInput.val(entity['data-structr-target']);
+				updateTargetInput.val(entity['data-structr-target']);
+				customTargetInput.val(entity['data-structr-target']);
+
+				let reloadTargetValue = entity['data-structr-reload-target'];
+				if (reloadTargetValue) {
+
+					let reloadOption = 'reload-manual';
+
+					if (reloadTargetValue === 'none') {
+
+						reloadOption = 'reload-none';
+
+					} else if (reloadTargetValue.indexOf('url:') === 0) {
+
+						reloadOption = 'reload-url';
+						reloadUrlInput.val(reloadTargetValue.substring(4));
+
+					} else if (reloadTargetValue.indexOf('event:') === 0) {
+
+						reloadOption = 'reload-event';
+						reloadEventInput.val(reloadTargetValue.substring(6));
+
+					} else {
+
+						reloadOption = 'reload-selector';
+						reloadSelectorInput.val(reloadTargetValue);
+					}
+
+					reloadOptionSelect.val(reloadOption);
+					reloadOptionSelect.trigger('change');
+					reloadOptionSelect.trigger({ type: 'select2:select', params: { data: { id: reloadOption }}});
+
+				} else {
+
+					// reload option default is "page" for empty values
+					reloadOptionSelect.val('reload-page');
+					reloadOptionSelect.trigger('change');
+					reloadOptionSelect.trigger({ type: 'select2:select', params: { data: { id: 'reload-page' }}});
+				}
+			}
+
+			// name comes from _html_name, always fill this field
+			Command.getProperty(entity.id, '_html_name', function(result) {
+				updatePropertyInput.val(result);
+			});
+
+			let saveButton = $('#save-event-mapping-button');
+			if (saveButton) {
+
+				saveButton.on('click', function() {
+
+					// collect values
+					let eventType      = eventMappingSelect.val();
+					let targetType     = targetTypeSelect.val();
+					let methodName     = methodNameInput.val();
+					let methodTarget   = methodTargetInput.val();
+					let updateTarget   = updateTargetInput.val();
+					let updateProperty = updatePropertyInput.val();
+					let deleteTarget   = deleteTargetInput.val();
+					let reloadOption   = reloadOptionSelect.val();
+					let customEvent    = customEventInput.val();
+					let customAction   = customActionInput.val();
+					let customTarget   = customTargetInput.val();
+					let reloadTarget   = null;
+					let inputEl        = $(eventType);
+
+					// build reload target according to reloadOption
+					switch (reloadOption) {
+						case 'reload-none':
+							reloadTarget = 'none';
+							break;
+						case 'reload-page':
+							// this is the default, so nothing to do
+							break;
+						case 'reload-selector':
+							reloadTarget = reloadSelectorInput.val();
+							break;
+						case 'reload-url':
+							reloadTarget = 'url:' + reloadUrlInput.val();
+							break;
+						case 'reload-event':
+							reloadTarget = 'event:' + reloadEventInput.val();
+							break;
+					}
+
+					switch (eventType) {
+
+						case 'options-none':
+							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target', null, $(inputEl), null);
+							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',        null, $(inputEl), null);
+							_Entities.setPropertyWithFeedback(entity, 'eventMapping',               null, $(inputEl), null);
+							break;
+
+						case 'options-custom':
+							if (customEvent && customAction && customTarget) {
+								let customMapping = {};
+								customMapping[customEvent] = customAction;
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', JSON.stringify(customMapping), $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  customTarget, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								Structr.showAndHideInfoBoxMessage('Please enter event and action.', 'warning', 2000, 200);
+								customEventInput.addClass('required');
+								customActionInput.addClass('required');
+								customTargetInput.addClass('required');
+							}
+							break;
+
+						case 'options-create-click':
+							if (targetType) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "create" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  targetType, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								Structr.showAndHideInfoBoxMessage('Please select the type of object to create.', 'warning', 2000, 200);
+								$('.select2-selection', targetTypeSelect.parent()).addClass('required');
+							}
+							break;
+
+						case 'options-create-change':
+							if (targetType) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "change": "create" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  targetType, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								Structr.showAndHideInfoBoxMessage('Please select the type of object to create.', 'warning', 2000, 200);
+								$('.select2-selection', targetTypeSelect.parent()).addClass('required');
+							}
+							break;
+
+						case 'options-delete-click':
+							if (deleteTarget) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "delete" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  deleteTarget, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to delete.', 'warning', 2000, 200);
+								deleteTargetInput.addClass('required');
+							}
+							break;
+
+						case 'options-method-click':
+							if (methodTarget && methodName) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "' + methodName + '" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  methodTarget, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								if (!methodTarget) {
+									Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to call.', 'warning', 2000, 200);
+									methodTargetInput.addClass('required');
+								}
+								if (!methodName) {
+									Structr.showAndHideInfoBoxMessage('Please provide the name of the method to execute.', 'warning', 2000, 200);
+									methodNameInput.addClass('required');
+								}
+							}
+							break;
+
+						case 'options-method-change':
+							if (methodTarget && methodName) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "change": "' + methodName + '" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  methodTarget, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								if (!methodTarget) {
+									Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to call.', 'warning', 2000, 200);
+									methodTargetInput.addClass('required');
+								}
+								if (!methodName) {
+									Structr.showAndHideInfoBoxMessage('Please provide the name of the method to execute.', 'warning', 2000, 200);
+									methodNameInput.addClass('required');
+								}
+							}
+							break;
+
+						case 'options-update-change':
+							if (updateTarget && updateProperty) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "change": "update" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  updateTarget, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, '_html_name',  updateProperty, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								if (!updateTarget) {
+
+									updateTargetInput.addClass('required');
+									Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to update.', 'warning', 2000, 200);
+								}
+								if (!updateProperty) {
+									updatePropertyInput.addClass('required');
+									Structr.showAndHideInfoBoxMessage('Please provide the name of the property to update.', 'warning', 2000, 200);
+								}
+							}
+							break;
+					}
+				});
+			}
+		});
 	},
 	appendRowWithInputField: function(entity, el, key, label, typeInfo) {
 		el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + (entity[key] ? escapeForHtmlAttributes(entity[key]) : '') + '"></td><td><i id="null_' + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
@@ -208,11 +541,10 @@ var _Entities = {
 	},
 	queryDialog: function(entity, el) {
 		return _Entities.repeaterConfig(entity, el);
-
 	},
 	repeaterConfig: function(entity, el) {
 
-		var queryTypes = [
+		let queryTypes = [
 			{ title: 'REST Query',     propertyName: 'restQuery' },
 			{ title: 'Cypher Query',   propertyName: 'cypherQuery' },
 //			{ title: 'XPath Query',    propertyName: 'xpathQuery' },
@@ -223,76 +555,101 @@ var _Entities = {
 			queryTypes.unshift({ title: 'Flow', propertyName: 'flow' });
 		}
 
-		var queryTypeButtonsContainer = $('<div class="query-type-buttons"></div>');
-		el.append('<h3>Repeater Configuration</h3>').append(queryTypeButtonsContainer);
+		let queryTypeButtonsContainer = $('.query-type-buttons', el);
+		//el.append(queryTypeButtonsContainer);
 
-		var queryHeading = $('<h4 class="query-type-heading"></h4>').appendTo(el);
+		let textAreaWrapper = $('<div class="hidden"></div>').appendTo(el);
+		let textArea = $('<textarea class="query-text"></textarea>').appendTo(textAreaWrapper);
+		let flowSelector = $('#flow-selector', el);
 
-		var textArea = $('<textarea class="hidden query-text"></textarea>').appendTo(el);
-		var flowSelector = $('#flow-selector');
+		let repeaterConfigEditor;
+		let activateEditor = (queryType) => {
+			if (!repeaterConfigEditor) {
+				repeaterConfigEditor = CodeMirror.fromTextArea(textArea[0], Structr.getCodeMirrorSettings({
+					lineNumbers: true,
+					lineWrapping: false,
+					indentUnit: 4,
+					tabSize: 4,
+					indentWithTabs: true
+				}));
 
-		var initRepeaterInputs = function() {
+				repeaterConfigEditor.on('change', function() {
+					let type = _Code.getEditorModeForContent(repeaterConfigEditor.getValue());
+					let prev = repeaterConfigEditor.getOption('mode');
+					if (prev !== type) {
+						repeaterConfigEditor.setOption('mode', type);
+					}
+				});
+			}
 
-			var saveBtn = $('<button class="action">Save</button>');
+			// toggle auto completion
+			if (queryType === 'functionQuery') {
+				_Code.setupAutocompletion(repeaterConfigEditor, entity.id, true);
+			} else {
+				delete(CodeMirror.hint.ajax);
+			}
+		};
+
+		let initRepeaterInputs = function() {
+
+			let saveBtn = $('<button class="btn">Save</button>');
 			el.append('<br>').append(saveBtn);
 
 			queryTypes.forEach(function(queryType) {
 
-				var btn = $('<button data-query-type="' + queryType.propertyName + '">' + queryType.title + '</button>');
-				btn.addClass(queryType.propertyName);
-				queryTypeButtonsContainer.append(btn);
+				let btn = $('<button data-query-type="' + queryType.propertyName + '" class="' + queryType.propertyName + '">' + queryType.title + '</button>').appendTo(queryTypeButtonsContainer);
 
 				if (queryType.propertyName === 'flow' && entity[queryType.propertyName]) {
+
 					btn.addClass('active');
 					btn.click();
-					var flow = entity[queryType.propertyName];
 					saveBtn.hide();
-					textArea.hide();
+					textAreaWrapper.hide();
 					flowSelector.show();
+					let flow = entity[queryType.propertyName];
 					if (flow) {
-						//var flowName = flow.effectiveName;
-						//$('option', flowSelector).filter(function () { console.log($(this).text()); return $(this).text() === flowName; }).attr('selected', 'selected');
 						flowSelector.val(flow.id);
 					}
 
-				} else {
+				} else if (entity[queryType.propertyName] && entity[queryType.propertyName].trim() !== "") {
 
-					if (entity[queryType.propertyName] && entity[queryType.propertyName].trim() !== "") {
-						btn.addClass('active');
-						saveBtn.show();
-						textArea.show();
-						flowSelector.hide();
-						$('button.flow').removeClass('active');
-						textArea.text(textArea.text() + entity[queryType.propertyName]);
-						queryHeading.text(btn.text());
-					}
+					btn.addClass('active');
+					saveBtn.show();
+					textAreaWrapper.show();
+					flowSelector.hide();
+
+					$('button.flow', el).removeClass('active');
+					textArea.text(textArea.text() + entity[queryType.propertyName]);
+					activateEditor();
 				}
 			});
 
-			var allButtons = $('.query-type-buttons button');
+			let allButtons = $('.query-type-buttons button', el);
+
 			allButtons.on('click', function () {
 				allButtons.removeClass('active');
 				var btn = $(this);
 				btn.addClass('active');
 				var queryType = btn.data('query-type');
-				queryHeading.text(btn.text());
 
 				if (queryType === 'flow') {
+
 					saveBtn.hide();
-					textArea.hide();
+					textAreaWrapper.hide();
 					flowSelector.show();
 
 				} else {
+
 					saveBtn.show();
-					textArea.show();
+					textAreaWrapper.show();
 					flowSelector.hide();
+					activateEditor(queryType);
 				}
 			});
 
 			if ($('button.active', queryTypeButtonsContainer).length === 0) {
 				$('.query-type-buttons button:first', el).click();
 			}
-
 
 			flowSelector.on('change', function() {
 				saveBtn.click();
@@ -301,19 +658,21 @@ var _Entities = {
 			saveBtn.on('click', function() {
 
 				if ($('button.active', queryTypeButtonsContainer).length > 1) {
-					return new MessageBuilder().error('Please select only one query type!').show();
+					return new MessageBuilder().error('Please select only one query type.').show();
 				}
 
 				var data = {};
 				queryTypes.forEach(function(queryType) {
 					var val = null;
+
 					if ($('.' + queryType.propertyName, queryTypeButtonsContainer).hasClass('active')) {
+
 						if (queryType.propertyName === 'flow') {
 
 							val = flowSelector.val();
 
 						} else {
-							val = textArea.val();
+							val = repeaterConfigEditor.getValue();
 							data.flow = null;
 							flowSelector.val('--- Select Flow ---');
 						}
@@ -322,14 +681,19 @@ var _Entities = {
 				});
 
 				Command.setProperties(entity.id, data, function(obj) {
-					blinkGreen(saveBtn);
-
-					_Pages.reloadPreviews();
+					if (flowSelector.is(':visible')) {
+						blinkGreen(flowSelector);
+					} else if (textAreaWrapper.is(':visible')) {
+						blinkGreen(textAreaWrapper);
+					} else {
+						blinkGreen(saveBtn);
+					}
 				});
 			});
 
-			_Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'The data key is either a word to reference result objects, or it can be the name of a collection property of the result object.<br>' +
-				'You can access result objects or the objects of the collection using ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
+			_Entities.appendInput(el, entity, 'dataKey', 'Repeater Keyword',
+				'The repeater keyword or data key is either a word to reference result objects, or it can be the name of a collection property of the result object.<br><br>' +
+				'You can access result objects or the objects of the collection using template expressions, e.g. <i>${project.name}</i>.');
 
 			_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-rest');
 		};
@@ -340,10 +704,10 @@ var _Entities = {
 				flowSelector.remove();
 			}
 
-			flowSelector = $('<select class="hidden" id="flow-selector"></select>').insertBefore(textArea);
+			flowSelector = $('<select class="hidden" id="flow-selector"></select>').insertBefore(textAreaWrapper);
 
 			flowSelector.append('<option>--- Select Flow ---</option>');
-			// (type, pageSize, page, sort, order, properties, includeHidden, callback)
+
 			Command.getByType('FlowContainer', 1000, 1, 'effectiveName', 'asc', null, false, function(flows) {
 
 				flows.forEach(function(flow) {
@@ -380,12 +744,10 @@ var _Entities = {
 	},
 	editSource: function(entity) {
 
-		Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function () {
-		}, function () {
-		});
+		Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function () {}, function () {});
 
 		// Get content in widget mode
-		var url = viewRootUrl + entity.id + '?edit=3', contentType = 'text/html';
+		var url = viewRootUrl + entity.id + '?' + Structr.getRequestParameterName('edit') + '=3', contentType = 'text/html';
 
 		$.ajax({
 			url: url,
@@ -474,14 +836,11 @@ var _Entities = {
 								Structr.showAndHideInfoBoxMessage('Node source saved and DOM tree rebuilt.', 'success', 2000, 200);
 
 								if (_Entities.isExpanded(Structr.node(entity.id))) {
-									$('.expand_icon', Structr.node(entity.id)).click().click();
+									$('.expand_icon_svg', Structr.node(entity.id)).click().click();
 								}
 							}
 						});
-
-
 					});
-
 				});
 
 				saveAndClose.on('click', function(e) {
@@ -564,7 +923,7 @@ var _Entities = {
 			}
 		});
 	},
-	showProperties: function(obj, activeViewOverride) {
+	showProperties: function(obj, activeViewOverride, parent) {
 
 		let handleGraphObject;
 
@@ -587,12 +946,13 @@ var _Entities = {
 
 				_Schema.getTypeInfo(entity.type, function(typeInfo) {
 
-
 					var dialogTitle;
 
 					if (entity.hasOwnProperty('relType')) {
 
-						tabTexts.ui = 'Relationship Properties';
+						views = ['all'];
+
+						tabTexts.all = 'Relationship Properties';
 						tabTexts.sourceNode = 'Source Node Properties';
 						tabTexts.targetNode = 'Target Node Properties';
 
@@ -603,23 +963,30 @@ var _Entities = {
 						if (entity.isDOMNode && !entity.isContent) {
 							views.unshift('_html_');
 							if (Structr.isModuleActive(_Pages)) {
-								activeView = '_html_';
+								activeView = 'general';
 							}
 						}
 
 						tabTexts._html_ = 'HTML Attributes';
-						tabTexts.ui = 'Built-in Properties';
+						tabTexts.ui = 'System Properties';
 						tabTexts.custom = 'Custom Properties';
 
 						dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' node ' + (entity.name ? entity.name : entity.id);
 
 					}
 
-					Structr.dialog(dialogTitle, function() { return true; }, function() { return true; });
 
-					var tabsdiv = dialogHead.append('<div id="tabs"></div>');
-					var mainTabs = tabsdiv.append('<ul></ul>');
-					var contentEl = dialog.append('<div></div>');
+					let tabsdiv, mainTabs, contentEl;
+					if (!parent) {
+						Structr.dialog(dialogTitle, function() { return true; }, function() { return true; });
+
+						tabsdiv   = dialogHead.append('<div id="tabs"></div>');
+						mainTabs  = tabsdiv.append('<ul></ul>');
+						contentEl = dialog.append('<div></div>');
+
+					} else {
+						contentEl = parent;
+					}
 
 					// custom dialog tab?
 					var hasCustomDialog = _Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
@@ -628,25 +995,36 @@ var _Entities = {
 
 						if (entity.isContent !== true || entity.type === 'Template') {
 
-							_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', !hasCustomDialog, function(c) {
-								_Entities.queryDialog(entity, c, typeInfo);
+							_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Repeater', !hasCustomDialog, function(element) {
+
+								Structr.fetchHtmlTemplate('pages/repeater', {}, (html) => {
+									element.append(html);
+
+									$('.inline-info', element).remove();
+
+									repeaterContainer = $('.repeater-container', element);
+									repeaterContainer.removeClass('content-container');
+
+									_Entities.repeaterConfig(obj, $(repeaterContainer));
+								});
+
 							}, function() { }, function() { });
 						}
 
 						if (entity.isContent !== true) {
 
-							_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Edit Mode Binding', false, function(c) {
+							_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Events', false, function(c) {
+								_Entities.dataBindingDialog(entity, c, typeInfo);
+							}, function(c) {}, function(c) {
 								_Entities.dataBindingDialog(entity, c, typeInfo);
 							});
-
 						}
-
 					}
 
 					_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
 
 					if (!entity.hasOwnProperty('relType')) {
-						_Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Access Control and Visibility', false, function(c) {
+						_Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Security', false, function(c) {
 							_Entities.accessControlDialog(entity, c, typeInfo);
 						});
 					}
@@ -655,19 +1033,15 @@ var _Entities = {
 					$('#tab-' + activeView).click();
 
 					Structr.resize();
-
 				});
-
 			};
 
 			if (obj.relType) {
-				Command.getRelationship(obj.id, obj.target, null, function(entity) { handleGraphObject(entity); });
+				Command.getRelationship(obj.id, obj.target, null, function(entity) { handleGraphObject(entity); }, 'ui');
 			} else {
 				Command.get(obj.id, null, function(entity) { handleGraphObject(entity); }, 'ui');
 			}
-
 		});
-
 	},
 	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback, initCallback, showCallback) {
 
@@ -763,7 +1137,7 @@ var _Entities = {
 			});
 
 			$.ajax({
-				url: rootUrl + entity.type + '/' + entity.id + '/all?edit=2',
+				url: rootUrl + entity.type + '/' + entity.id + '/all?' + Structr.getRequestParameterName('edit') + '=2',
 				dataType: 'json',
 				headers: {
 					Accept: 'application/json; charset=utf-8; properties=' + filteredProperties.join(',')
@@ -842,7 +1216,7 @@ var _Entities = {
 		cell.css('height', '60px');
 
 		$.ajax({
-			url: rootUrl + entity.type + '/' + entity.id + '/' + key + '?pageSize=' + pageSize + '&page=' + page,
+			url: rootUrl + entity.type + '/' + entity.id + '/' + key + '?' + Structr.getRequestParameterName('pageSize') + '=' + pageSize + '&' + Structr.getRequestParameterName('page') + '=' + page,
 			dataType: 'json',
 			headers: {
 				Accept: 'application/json; charset=utf-8; properties=id,name'
@@ -925,13 +1299,13 @@ var _Entities = {
 			}
 		});
 	},
-	createPropertyTable: function(heading, keys, res, entity, view, tabView, typeInfo, tempNodeCache) {
+	createPropertyTable: function(heading, keys, res, entity, view, container, typeInfo, tempNodeCache) {
 
 		if (heading) {
-			tabView.append('<h2>' + heading + '</h2>');
+			container.append('<h2>' + heading + '</h2>');
 		}
-		tabView.append('<table class="props ' + view + ' ' + res['id'] + '_"></table>');
-		var propsTable = $('table:last', tabView);
+		container.append('<table class="props ' + view + ' ' + res['id'] + '_"></table>');
+		var propsTable = $('table:last', container);
 		var focusAttr = 'class';
 		var id = entity.id;
 
@@ -1076,11 +1450,9 @@ var _Entities = {
 								_Entities.displaySearch(id, key, typeInfo[key].type, dialogText, isCollection);
 							});
 
-
 						} else {
 							cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
 						}
-
 					}
 				}
 
@@ -1091,11 +1463,13 @@ var _Entities = {
 
 			_Entities.appendSchemaHint($('.key:last', propsTable), key, typeInfo);
 
-			var nullIcon = $('#' + _Entities.null_prefix + key);
+			var nullIcon = $('#' + _Entities.null_prefix + key, container);
 			nullIcon.on('click', function() {
+
 				var key = $(this).prop('id').substring(_Entities.null_prefix.length);
 				var input    = $('.' + key + '_').find('input');
 				var textarea = $('.' + key + '_').find('textarea');
+
 				_Entities.setProperty(id, key, null, false, function(newVal) {
 					if (!newVal) {
 						if (key.indexOf('_custom_html_') === -1) {
@@ -1130,15 +1504,15 @@ var _Entities = {
 			});
 		});
 
-		$('.props tr td.value input',    dialog).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, typeInfo); });
-		$('.props tr td.value textarea', dialog).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId, typeInfo); });
+		$('.props tr td.value input',    container).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, typeInfo); });
+		$('.props tr td.value textarea', container).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId, typeInfo); });
 
 
 		if (view === '_html_') {
 			$('input[name="_html_' + focusAttr + '"]', propsTable).focus();
 
-			tabView.append('<button class="show-all">Show all attributes</button>');
-			$('.show-all', tabView).on('click', function() {
+			container.append('<button class="show-all">Show all attributes</button>');
+			$('.show-all', container).on('click', function() {
 
 				propsTable.addClass('show-all');
 
@@ -1148,7 +1522,7 @@ var _Entities = {
 			});
 
 			let addCustomAttributeButton = $('<button class="add-custom-attribute">Add custom attribute</button>');
-			tabView.append(addCustomAttributeButton);
+			container.append(addCustomAttributeButton);
 
 			Structr.appendInfoTextToElement({
 				element: addCustomAttributeButton,
@@ -1423,11 +1797,6 @@ var _Entities = {
 
 			input.off('change').on('change', function() {
 				input.data('changed', true);
-
-				if (pageId && pageId === activeTab) {
-					//console.log('reloading previews')
-					_Pages.reloadPreviews();
-				}
 			});
 
 			input.off('focusout').on('focusout', function() {
@@ -1477,10 +1846,10 @@ var _Entities = {
 						cell.find('[name="' + key + '"]').each(function(i, el) {
 							_Entities.activateInput(el, id, pageId, typeInfo);
 						});
-						valueMsg = newVal ? 'value [' + newVal.join(',\n') + ']': 'empty value';
+						valueMsg = (newVal !== undefined || newValue !== null) ? 'value [' + newVal.join(',\n') + ']': 'empty value';
 					} else {
 						input.val(newVal);
-						valueMsg = newVal ? 'value "' + newVal + '"': 'empty value';
+						valueMsg = (newVal !== undefined || newValue !== null) ? 'value "' + newVal + '"': 'empty value';
 					}
 					Structr.showAndHideInfoBoxMessage('Updated property "' + key + '"' + (!isPassword ? ' with ' + valueMsg + '' : ''), 'success', 2000, 200);
 
@@ -1508,7 +1877,7 @@ var _Entities = {
 				cell.find('[name="' + key + '"]').each(function(i, el) {
 					_Entities.activateInput(el, id, pageId, typeInfo);
 				});
-				valueMsg = newVal ? 'value [' + newVal.join(',\n') + ']': 'empty value';
+				valueMsg = (newVal !== undefined || newValue !== null) ? 'value [' + newVal.join(',\n') + ']': 'empty value';
 				Structr.showAndHideInfoBoxMessage('Updated property "' + key + '" with ' + valueMsg + '.', 'success', 2000, 200);
 
 				if (onUpdateCallback) {
@@ -1557,7 +1926,7 @@ var _Entities = {
 			let allowRecursive = (entity.type === 'Template' || entity.isFolder || (Structr.isModuleActive(_Pages) && !(entity.isContent)));
 
 			if (allowRecursive) {
-				el.append('<div>Apply visibility switches recursively? <input id="recursive" type="checkbox" name="recursive"></div><br>');
+				el.append('<div><input id="recursive" type="checkbox" name="recursive"><label for="recursive">Apply visibility switches recursively</label></div><br>');
 			}
 
 			_Entities.appendBooleanSwitch(el, entity, 'visibleToPublicUsers', ['Visible to public users', 'Not visible to public users'], 'Click to toggle visibility for users not logged-in', '#recursive');
@@ -1587,7 +1956,7 @@ var _Entities = {
 						let principalId = result.principalId;
 						if (principalId) {
 							Command.get(principalId, 'id,name,isGroup', function(p) {
-								_Entities.addPrincipal(entity, p, permissions, allowRecursive);
+								_Entities.addPrincipal(entity, p, permissions, allowRecursive, el);
 							});
 						}
 					}
@@ -1642,7 +2011,7 @@ var _Entities = {
 					placeholder: 'Owner',
 					width: '300px',
 					style: 'text-align:left;',
-					dropdownParent: $('.blockPage'),
+					dropdownParent: el,
 					templateResult: (state) => {
 						return templateOption(state, false);
 					},
@@ -1668,7 +2037,7 @@ var _Entities = {
 				granteeSelect.select2({
 					placeholder: 'Select Group/User',
 					width: '100%',
-					dropdownParent: $('.blockPage'),
+					dropdownParent: el,
 					templateResult: (state) => {
 						return templateOption(state, false);
 					}
@@ -1680,7 +2049,7 @@ var _Entities = {
 					Command.setPermission(entity.id, pId, 'grant', 'read', rec);
 
 					Command.get(pId, 'id,name,isGroup', function(p) {
-						_Entities.addPrincipal(entity, p, {read: true}, allowRecursive);
+						_Entities.addPrincipal(entity, p, {read: true}, allowRecursive, el);
 					});
 				});
 
@@ -1711,7 +2080,7 @@ var _Entities = {
 			if (Structr.isModuleActive(_Crud)) {
 
 				var handleGraphObject = function(entity) {
-					if (!entity.owner || initialObj.ownerId !== entity.owner.id) {
+					if ((!entity.owner && initialObj.owner !== null) || initialObj.ownerId !== entity.owner.id) {
 						_Crud.refreshCell(id, "owner", entity.owner, entity.type, initialObj.ownerId);
 					}
 
@@ -1724,23 +2093,25 @@ var _Entities = {
 				} else {
 					Command.get(id, 'id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 				}
+			} else if (Structr.isModuleActive(_Security)) {
+				_ResourceAccessGrants.updateResourcesAccessRow(id, false);
 			}
 		});
 
 		_Entities.accessControlDialog(entity, dialogText);
 
 	},
-	addPrincipal: function (entity, principal, permissions, allowRecursive) {
+	addPrincipal: function (entity, principal, permissions, allowRecursive, container) {
 
-		$('#newPrincipal option[value="' + principal.id + '"]').remove();
-		$('#newPrincipal').trigger('chosen:updated');
+		$('#newPrincipal option[value="' + principal.id + '"]', container).remove();
+		$('#newPrincipal', container).trigger('chosen:updated');
 
-		if ($('#principals ._' + principal.id, dialogText).length > 0) {
+		if ($('#principals ._' + principal.id, container).length > 0) {
 			return;
 		}
 
 		let row = $('<tr class="_' + principal.id + '"><td><i class="typeIcon ' + _Icons.getFullSpriteClass((principal.isGroup ? _Icons.group_icon : _Icons.user_icon)) + '"></i> <span class="name">' + principal.name + '</span></td></tr>');
-		$('#new').after(row);
+		$('#new', container).after(row);
 
 		['read', 'write', 'delete', 'accessControl'].forEach(function(perm) {
 
@@ -1758,14 +2129,15 @@ var _Entities = {
 
 				if (!$('input:checked', row).length) {
 
-					$('#newPrincipal').append('<option value="' + principal.id + '">' + principal.name + '</option>');
-					$('#newPrincipal').trigger('chosen:updated');
+					$('#newPrincipal', container).append('<option value="' + principal.id + '">' + principal.name + '</option>');
+					$('#newPrincipal', container).trigger('chosen:updated');
 
 					row.remove();
 				}
-				let recursive = $('#recursive', dialogText).is(':checked');
+				let recursive = $('#recursive', container).is(':checked');
 
 				Command.setPermission(entity.id, principal.id, permissions[perm] ? 'revoke' : 'grant', perm, recursive, function() {
+
 					permissions[perm] = !permissions[perm];
 					checkbox.prop('checked', permissions[perm]);
 
@@ -1778,7 +2150,7 @@ var _Entities = {
 
 		if (allowRecursive) {
 
-			row.append('<td><button class="action apply-to-child-nodes">Apply to child nodes</button></td>');
+			row.append('<td><button class="apply-to-child-nodes">Apply to child nodes</button></td>');
 
 			let button = row[0].querySelector('button.apply-to-child-nodes');
 
@@ -1802,12 +2174,14 @@ var _Entities = {
 		if (!el || !entity) {
 			return false;
 		}
-		el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><div class="input-and-button"><input type="text" class="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button class="action save_' + key + '">Save</button></div></div>');
-		var btn = $('.save_' + key, el);
+		el.append('<div class="input-section"><h3>' + label + '</h3><p>' + desc + '</p><div class="input-and-button"><input type="text" class="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button class="save_' + key + '">Save</button></div></div>');
+		let btn = $('.save_' + key, el);
+		let inp = $('.' + key + '_', el);
 		btn.on('click', function() {
 			Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
-				blinkGreen(btn);
-				_Pages.reloadPreviews();
+				blinkGreen(inp);
+//				_Pages.reloadPreviews();
+				console.log('reload preview?')
 			});
 		});
 	},
@@ -1830,33 +2204,18 @@ var _Entities = {
 			});
 		});
 	},
-	appendEditSourceIcon: function(parent, entity) {
-
-		if (_Entities.pencilEditBlacklist.indexOf(entity.tag) === -1) {
-
-			var editIcon = $('.edit_icon', parent);
-
-			if (!(editIcon && editIcon.length)) {
-				parent.append('<i title="Edit source code" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-				editIcon = $('.edit_icon', parent);
-			}
-			editIcon.on('click', function(e) {
-				e.stopPropagation();
-				_Entities.editSource(entity);
-			});
-		}
-	},
 	appendEditPropertiesIcon: function(parent, entity, visible) {
 
 		var editIcon = $('.edit_props_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			editIcon = $('<i title="Edit Properties" class="edit_props_icon button ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" />');
+			editIcon = $('<svg class="node-menu-icon" viewBox="0 0 16 16" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(0.6666666666666666,0,0,0.6666666666666666,0,0)"><path d="M8.750 3.250 A3.250 3.250 0 1 0 15.250 3.250 A3.250 3.250 0 1 0 8.750 3.250 Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8.750 12.000 A3.250 3.250 0 1 0 15.250 12.000 A3.250 3.250 0 1 0 8.750 12.000 Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8.750 20.750 A3.250 3.250 0 1 0 15.250 20.750 A3.250 3.250 0 1 0 8.750 20.750 Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round"></path></g></svg>');
 			parent.append(editIcon);
 		}
 		editIcon.on('click', function(e) {
 			e.stopPropagation();
-			_Entities.showProperties(entity);
+			// _Entities.showProperties(entity);
+			_Elements.activateContextMenu(e, parent, entity);
 		});
 		if (visible) {
 			editIcon.css({
@@ -1868,7 +2227,7 @@ var _Entities = {
 	},
 	appendExpandIcon: function(el, entity, hasChildren, expanded) {
 
-		var button = $(el.children('.expand_icon').first());
+		var button = $(el.children('.expand_icon_svg').first());
 		if (button && button.length) {
 			return;
 		}
@@ -1876,18 +2235,13 @@ var _Entities = {
 		if (hasChildren) {
 
 			var typeIcon = $(el.children('.typeIcon').first());
-			var icon = expanded ? _Icons.expanded_icon : _Icons.collapsed_icon;
+			var icon = expanded ? _Icons.expandedClass : _Icons.collapsedClass;
 
 			var displayName = getElementDisplayName(entity);
 
-			typeIcon.removeClass('typeIcon-nochildren').before('<i title="Expand ' + displayName + '" class="expand_icon ' + _Icons.getFullSpriteClass(icon) + '" />');
+			typeIcon.removeClass('typeIcon-nochildren').before('<i title="Expand ' + displayName + '" class="expand_icon_svg ' + icon + '" />');
 
-			$(el).on('click', function(e) {
-				e.stopPropagation();
-				_Entities.toggleElement(this);
-			});
-
-			button = $(el.children('.expand_icon').first());
+			button = $(el.children('.expand_icon_svg').first());
 
 			if (button) {
 
@@ -1910,11 +2264,12 @@ var _Entities = {
 			el.children('.typeIcon').addClass('typeIcon-nochildren');
 		}
 
+		_Pages.registerDetailClickHandler($(el), entity);
 	},
 	removeExpandIcon: function(el) {
 		if (!el)
 			return;
-		var button = $(el.children('.expand_icon').first());
+		var button = $(el.children('.expand_icon_svg').first());
 
 		// unregister click handlers
 		$(el).off('click');
@@ -1945,10 +2300,10 @@ var _Entities = {
 			});
 		}
 
-		node.children('b.name_').off('click').on('click', function(e) {
-			e.stopPropagation();
-			_Entities.makeNameEditable(node);
-		});
+		// node.children('b.name_').off('click').on('click', function(e) {
+		// 	e.stopPropagation();
+		// 	_Entities.makeNameEditable(node);
+		// });
 
 		var nodeId = Structr.getId(el), isComponent;
 		if (nodeId === undefined) {
@@ -2016,11 +2371,11 @@ var _Entities = {
 		}
 	},
 	isExpanded: function(element) {
-		var b = $(element).children('.expand_icon').first();
+		var b = $(element).children('.expand_icon_svg').first();
 		if (!b) {
 			return false;
 		}
-		return b.hasClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon));
+		return b.hasClass(_Icons.expandedClass);
 	},
 	ensureExpanded: function(element, callback, force = false) {
 		if (!element) {
@@ -2041,9 +2396,9 @@ var _Entities = {
 			Command.children(id, callback);
 			var displayName = getElementDisplayName(Structr.entity(id));
 
-			el.children('.expand_icon').first()
-				.removeClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon))
-				.addClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon))
+			el.children('.expand_icon_svg').first()
+				.removeClass(_Icons.collapsedClass)
+				.addClass(_Icons.expandedClass)
 				.prop('title', 'Collapse ' + displayName);
 		}
 	},
@@ -2096,43 +2451,75 @@ var _Entities = {
 			}, true);
 		});
 	},
-	deselectAllElements: function () {
+	deselectAllElements: function() {
 		$('.nodeSelected').removeClass('nodeSelected');
 	},
+	scrollTimer: undefined,
 	highlightElement:function(el) {
+
 		el.addClass('nodeSelected');
 
-		if (el.offset().top + el.height() + pages.scrollTop() > pages.prop('clientHeight')) {
-			// element is *below* the currently visible portion of the pages tree
+		// inner debounced function
+		let scrollFn = () => {
+			let elOffsetTop = el.offset().top;
+			let elHeight    = el.height();
+			let pagesScrollTop = pages.scrollTop();
+			let pagesOffsetTop = pages.offset().top
 
-			// scroll to lower boundary of the element
-			pages.animate({
-				scrollTop: el.offset().top + el.height() + pages.scrollTop() - pages.prop('clientHeight')
-			});
+			let topPositionOfElementInTree    = elOffsetTop - pagesOffsetTop;
+			let bottomPositionOfElementInTree = elOffsetTop + elHeight - pagesOffsetTop;
 
-		} else if (el.offset().top - pages.offset().top < pages.scrollTop()) {
-			// element is *above* the currently visible portion of the pages tree
+			if (topPositionOfElementInTree < 0) {
+				// element is *above* the currently visible portion of the pages tree
 
-			// scroll to upper boundary of element
-			pages.animate({
-				scrollTop: el.offset().top - pages.offset().top + pages.scrollTop()
-			});
+				pages.animate({
+					scrollTop: elOffsetTop - pagesOffsetTop + pagesScrollTop
+				});
+
+			} else if (bottomPositionOfElementInTree > pages.height()) {
+				// element is *below* the currently visible portion of the pages tree
+
+				pages.animate({
+					scrollTop: elOffsetTop + elHeight + pagesScrollTop - pages.prop('clientHeight')
+				});
+			}
+		};
+
+		if (_Entities.scrollTimer) {
+			window.clearTimeout(_Entities.scrollTimer);
 		}
+
+		_Entities.scrollTimer = window.setTimeout(scrollFn, 100);
+	},
+	selectElement: function(element, expanded) {
+
+		let el = $(element);
+		let id = Structr.getId(el) || Structr.getComponentId(el) || Structr.getGroupId(el);
+
+		let b = el.children('.expand_icon_svg').first();
+		let displayName = getElementDisplayName(Structr.entity(id));
+
+		//_Entities.deselectAllElements();
+		$('.node-selector').removeClass('active');
+		// el.closest('.node').addClass('nodeSelected');
+		el.closest('.node').children('.node-selector').addClass('active');
+
+		LSWrapper.setItem(_Entities.selectedObjectIdKey, id);
 	},
 	toggleElement: function(element, expanded) {
 
 		var el = $(element);
 		var id = Structr.getId(el) || Structr.getComponentId(el) || Structr.getGroupId(el);
 
-		var b = el.children('.expand_icon').first();
+		var b = el.children('.expand_icon_svg').first();
 		var displayName = getElementDisplayName(Structr.entity(id));
 
 		if (_Entities.isExpanded(element)) {
 
 			el.children('.node').remove();
 
-			b.removeClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon))
-				.addClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon))
+			b.removeClass(_Icons.expandedClass)
+				.addClass(_Icons.collapsedClass)
 				.prop('title', 'Expand ' + displayName);
 
 			Structr.removeExpandedNode(id);
@@ -2143,8 +2530,8 @@ var _Entities = {
 				Command.children(id);
 			}
 
-			b.removeClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon))
-				.addClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon))
+			b.removeClass(_Icons.collapsedClass)
+				.addClass(_Icons.expandedClass)
 				.prop('title', 'Collapse ' + displayName);
 
 			Structr.addExpandedNode(id);
@@ -2231,7 +2618,8 @@ var _Entities = {
 
 				if (Structr.isModuleActive(_Pages)) {
 
-					_Pages.reloadPreviews();
+//					_Pages.reloadPreviews();
+					console.log('reload preview?');
 
 				} else if (Structr.isModuleActive(_Contents)) {
 
@@ -2359,7 +2747,7 @@ var _Entities = {
 				if (!expand) {
 					typeIcon.addClass('typeIcon-nochildren');
 				} else {
-					typeIcon.removeClass('typeIcon-nochildren').after('<i title="Expand ' + displayName + '" class="expand_icon ' + _Icons.getFullSpriteClass(_Icons.expanded_icon) + '" />');
+					typeIcon.removeClass('typeIcon-nochildren').after('<i title="Expand ' + displayName + '" class="expand_icon_svg ' + _Icons.expandedClass + '" />');
 				}
 			}
 		}
@@ -2367,7 +2755,7 @@ var _Entities = {
 	isContentElement: function (entity) {
 		return (entity.type === 'Template' || entity.type === 'Content');
 	},
-	setPropertyWithFeedback: function(entity, key, newVal, input) {
+	setPropertyWithFeedback: function(entity, key, newVal, input, blinkEl) {
 		var oldVal = entity[key];
 		Command.setProperty(entity.id, key, newVal, false, function(result) {
 			var newVal = result[key];
@@ -2377,22 +2765,25 @@ var _Entities = {
 
 			if (newVal !== oldVal) {
 				blinkGreen(input);
+				if (blinkEl) {
+					blinkGreen(blinkEl);
+				}
 				if (newVal && newVal.constructor === Array) {
 					newVal = newVal.join(',');
 				}
 				input.val(newVal);
-				let valueMsg = newVal ? 'value "' + newVal : 'empty value';
+				let valueMsg = (newVal !== undefined || newValue !== null) ? 'value "' + newVal : 'empty value';
 				Structr.showAndHideInfoBoxMessage('Updated property "' + key + '" with ' + valueMsg, 'success', 2000, 200);
 			} else {
 				input.val(oldVal);
 			}
 		});
 	}
-};
+}
 
 function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 
-	if (!obj) {
+	if (obj === undefined || obj === null) {
 
 		return formatRegularValueField(key, '', isMultiline, isReadOnly, isPassword);
 
@@ -2409,7 +2800,7 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 
 		return formatRegularValueField(key, escapeForHtmlAttributes(obj), isMultiline, isReadOnly, isPassword);
 	}
-};
+}
 
 function formatArrayValueField(key, values, isMultiline, isReadOnly, isPassword) {
 
@@ -2438,7 +2829,7 @@ function formatArrayValueField(key, values, isMultiline, isReadOnly, isPassword)
 
 	return html;
 
-};
+}
 
 function formatRegularValueField(key, value, isMultiline, isReadOnly, isPassword) {
 
@@ -2450,4 +2841,4 @@ function formatRegularValueField(key, value, isMultiline, isReadOnly, isPassword
 
 		return '<input name="' + key + '" type="' + (isPassword ? 'password" autocomplete="new-password' : 'text') + '" value="' + value + '"' + (isReadOnly ? 'readonly class="readonly"' : '') + '>';
 	}
-};
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -123,6 +123,15 @@ var _Icons = {
 	clock_icon: 'icon/clock.png',
 	folder_star_icon: 'icon/folder_star.png',
 
+	collapsedClass: 'svg-collapsed',
+	expandedClass: 'svg-expanded',
+	svg: {
+		trashcan: '<svg viewBox="0 0 24 24" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g><path d="M1.5 4.5L22.5 4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25,1.5H9.75A1.5,1.5,0,0,0,8.25,3V4.5h7.5V3A1.5,1.5,0,0,0,14.25,1.5Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.75 17.25L9.75 9.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 17.25L14.25 9.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M18.865,21.124A1.5,1.5,0,0,1,17.37,22.5H6.631a1.5,1.5,0,0,1-1.495-1.376L3.75,4.5h16.5Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg>',
+		security: '<svg viewBox="0 0 24 24" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g><path d="M3.750 9.750 L20.250 9.750 L20.250 23.250 L3.750 23.250 Z" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75,9.75V6a5.25,5.25,0,0,1,10.5,0V9.75" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12,15.75a.375.375,0,1,0,.375.375A.374.374,0,0,0,12,15.75h0" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg>',
+		page_settings: '<svg viewBox="0 0 24 24" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g><path d="M15.750 16.511 A1.500 1.500 0 1 0 18.750 16.511 A1.500 1.500 0 1 0 15.750 16.511 Z" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M18.524,10.708l.442,1.453a.994.994,0,0,0,1.174.681l1.472-.341a1.339,1.339,0,0,1,1.275,2.218L21.856,15.83a1,1,0,0,0,0,1.362L22.887,18.3a1.339,1.339,0,0,1-1.275,2.218L20.14,20.18a.994.994,0,0,0-1.174.681l-.442,1.453a1.33,1.33,0,0,1-2.548,0l-.442-1.453a.994.994,0,0,0-1.174-.681l-1.472.341A1.339,1.339,0,0,1,11.613,18.3l1.031-1.111a1,1,0,0,0,0-1.362l-1.031-1.111A1.339,1.339,0,0,1,12.888,12.5l1.472.341a.994.994,0,0,0,1.174-.681l.442-1.453A1.33,1.33,0,0,1,18.524,10.708Z" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M5.25 10.511L9.75 10.511" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M5.25 14.261L7.5 14.261" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M5.25 18.011L7.5 18.011" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.75,23.261H2.25a1.5,1.5,0,0,1-1.5-1.5V6.011a1.5,1.5,0,0,1,1.5-1.5H6a3.75,3.75,0,0,1,7.5,0h3.75a1.5,1.5,0,0,1,1.5,1.5v.75" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.75,3.761a.375.375,0,1,1-.375.375.375.375,0,0,1,.375-.375" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg>',
+		page_open: '<svg viewBox="0 0 24 24" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g><path d="M1.510 2.253 L22.510 2.253 L22.510 21.753 L1.510 21.753 Z" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M1.51 6.753L22.51 6.753" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.858,13.807a.732.732,0,0,1,0,.894C17.1,15.7,15.015,18,12.01,18S6.92,15.7,6.162,14.7a.734.734,0,0,1,0-.894c.759-.994,2.843-3.3,5.848-3.3S17.1,12.812,17.858,13.807Z" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12.01,13.878a.375.375,0,1,1-.375.375.375.375,0,0,1,.375-.375" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg>',
+		pencil_edit: '<svg viewBox="0 0 24 24" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g><path d="M22.19,1.81a3.638,3.638,0,0,0-5.169.035l-14.5,14.5L.75,23.25l6.905-1.771,14.5-14.5A3.638,3.638,0,0,0,22.19,1.81Z" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M16.606 2.26L21.74 7.394" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.512 4.354L19.646 9.488" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.521 16.345L7.66 21.474" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg>'
+	},
 
 	getFullSpriteClass: function (key) {
 
@@ -379,6 +388,6 @@ var _Icons = {
 	},
 
 	getHtmlForIcon: function (icon) {
-		return '<i class="' + _Icons.getFullSpriteClass(icon) + '" />';
+		return '<i class="' + _Icons.getFullSpriteClass(icon) + '"></i>';
 	}
 };

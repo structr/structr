@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,6 +44,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.DateProperty;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
@@ -327,7 +329,7 @@ public abstract class Function<S, T> extends Hint {
 		return source;
 	}
 
-	protected boolean valueEquals(final Object obj1, final Object obj2) {
+	public boolean valueEquals(final Object obj1, final Object obj2) {
 
 		if (obj1 instanceof Enum || obj2 instanceof Enum) {
 
@@ -663,6 +665,10 @@ public abstract class Function<S, T> extends Hint {
 
 					res.add(Function.wrapNumberInGraphObjectMap((Number)o));
 
+				} else if (o instanceof Boolean) {
+
+					res.add(Function.wrapBooleanInGraphObjectMap((Boolean)o));
+
 				} else if (o instanceof Iterable) {
 
 					res.add(Function.recursivelyWrapIterableInMap((Iterable)o, outputDepth));
@@ -698,10 +704,25 @@ public abstract class Function<S, T> extends Hint {
 		} else if (sourceObject instanceof Number) {
 
 			return Function.wrapNumberInGraphObjectMap((Number)sourceObject);
+
+		} else if (sourceObject instanceof Boolean) {
+
+			return Function.wrapBooleanInGraphObjectMap((Boolean)sourceObject);
+
+		} else if (sourceObject instanceof Date) {
+
+			return Function.wrapDateInGraphObjectMap((Date)sourceObject);
 		}
 
 		return null;
 
+	}
+
+	public static GraphObjectMap wrapDateInGraphObjectMap (final Date date) {
+
+		final GraphObjectMap dateWrapperObject = new GraphObjectMap();
+		dateWrapperObject.put(new DateProperty("value"), date);
+		return dateWrapperObject;
 	}
 
 	public static GraphObjectMap wrapStringInGraphObjectMap (final String str) {
@@ -709,7 +730,6 @@ public abstract class Function<S, T> extends Hint {
 		final GraphObjectMap stringWrapperObject = new GraphObjectMap();
 		stringWrapperObject.put(new StringProperty("value"), str);
 		return stringWrapperObject;
-
 	}
 
 	public static GraphObjectMap wrapNumberInGraphObjectMap (final Number num) {
@@ -727,7 +747,15 @@ public abstract class Function<S, T> extends Hint {
 		}
 
 		return numberWrapperObject;
+	}
 
+	public static GraphObjectMap wrapBooleanInGraphObjectMap (final Boolean bool) {
+
+		final GraphObjectMap wrapperObject = new GraphObjectMap();
+
+		wrapperObject.put(new BooleanProperty("value"), bool);
+
+		return wrapperObject;
 	}
 
 	public static Object numberOrString(final String value) {
@@ -785,11 +813,11 @@ public abstract class Function<S, T> extends Hint {
 
 			} else if (o1 instanceof Boolean && o2 instanceof String) {
 
-				return compareBooleanString((Boolean)o1, (String)o2) == 0;
+				return compareBooleanStringEqual((Boolean)o1, (String)o2);
 
 			} else if (o1 instanceof String && o2 instanceof Boolean) {
 
-				return compareStringBoolean((String)o1, (Boolean)o2) == 0;
+				return compareBooleanStringEqual((String)o1, (Boolean)o2);
 
 			} else if (o1 instanceof Number && o2 instanceof String) {
 
@@ -866,6 +894,14 @@ public abstract class Function<S, T> extends Hint {
 
 	private int compareStringBoolean(final String o1, final Boolean o2) {
 		return Boolean.valueOf(o1).compareTo(o2);
+	}
+
+	private boolean compareBooleanStringEqual(final Boolean o1, final String o2) {
+		return o2.equals(o1.toString());
+	}
+
+	private boolean compareBooleanStringEqual(final String o1, final Boolean o2) {
+		return o1.equals(o2.toString());
 	}
 
 	private int compareNumberString(final Number o1, final String o2) {

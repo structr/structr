@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -48,6 +48,7 @@ public class GetCacheValueFunction extends CoreFunction {
 
 			final String cacheKey = sources[0].toString();
 
+			logger.warn("get_cache_value() is deprecated and will be removed in a future version.");
 			return CacheExpression.getCachedValue(cacheKey);
 
 		} catch (ArgumentNullException | ArgumentCountException pe) {

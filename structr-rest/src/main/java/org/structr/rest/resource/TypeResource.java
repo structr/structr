@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
+import org.structr.common.RequestKeywords;
 import org.structr.common.ResultTransformer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
@@ -200,7 +201,7 @@ public class TypeResource extends WrappingResource {
 				}
 
 				if (errorBuffer.hasError()) {
-					throw new FrameworkException(422, "Source node ID and target node ID of relationsips must be set", errorBuffer);
+					throw new FrameworkException(422, "Source node ID and target node ID of relationship must be set", errorBuffer);
 				}
 
 				template.ensureCardinality(securityContext, sourceNode, targetNode);
@@ -236,7 +237,7 @@ public class TypeResource extends WrappingResource {
 			final RestMethodResult result                = new RestMethodResult(HttpServletResponse.SC_OK);
 			final App app                                = StructrApp.getInstance(securityContext);
 			final Iterator<Map<String, Object>> iterator = propertySets.iterator();
-			final int batchSize                          = intOrDefault(request.getParameter("batchSize"), 1000);
+			final int batchSize                          = intOrDefault(RequestKeywords.BatchSize.keyword(), 1000);
 			int overallCount                             = 0;
 
 			while (iterator.hasNext()) {
@@ -290,7 +291,7 @@ public class TypeResource extends WrappingResource {
 						}
 					}
 
-					logger.info("Commiting PATCH transaction batch, {} objects processed.", overallCount);
+					logger.info("Committing PATCH transaction batch, {} objects processed.", overallCount);
 
 					tx.success();
 				}

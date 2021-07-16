@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -93,7 +93,8 @@ function wsConnect() {
 			// Delay reconnect dialog to prevent it popping up before page reload
 			window.setTimeout(function () {
 
-				main.empty();
+				fastRemoveAllChildren(main[0]);
+				fastRemoveAllChildren(functionBar[0]);
 
 				var restoreDialogText = '';
 				var dialogData = JSON.parse(LSWrapper.getItem(dialogDataKey));
@@ -453,14 +454,21 @@ function wsConnect() {
 					}
 
 					if (command === 'CREATE' && entity.isPage && lastMenuEntry === _Pages._moduleName) {
+
 						if (entity.createdBy === userId) {
 							setTimeout(function () {
-								var tab = $('#show_' + entity.id);
-								_Pages.activateTab(tab);
+								_Pages.previews.showPreviewInIframeIfVisible(entity.id);
 							}, 1000);
 						}
+
 					} else if (entity.pageId) {
-						_Pages.reloadIframe(entity.pageId);
+
+						if (entity.id) {
+							_Pages.previews.showPreviewInIframeIfVisible(entity.pageId, entity.id);
+						} else {
+							_Pages.previews.showPreviewInIframeIfVisible(entity.pageId);
+						}
+
 					}
 
 					StructrModel.callCallback(data.callback, entity);
@@ -561,14 +569,4 @@ function send(text) {
 
 	var obj = JSON.parse(text);
 	return sendObj(obj);
-}
-
-function getAnchorFromUrl(url) {
-	if (url) {
-		var pos = url.lastIndexOf('#');
-		if (pos > 0) {
-			return url.substring(pos + 1, url.length);
-		}
-	}
-	return null;
 }

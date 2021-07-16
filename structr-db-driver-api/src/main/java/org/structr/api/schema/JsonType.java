@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -52,7 +52,7 @@ public interface JsonType extends Comparable<JsonType> {
 	boolean isVisibleForAuthenticatedUsers();
 	JsonType setVisibleForAuthenticatedUsers();
 
-	JsonMethod addMethod(final String name, final String source, final String comment);
+	JsonMethod addMethod(final String name, final String source);
 	JsonMethod addMethod(final String name);
 
 	JsonMethod overrideMethod(final String name, final boolean callSuper, final String implementation);
@@ -76,6 +76,15 @@ public interface JsonType extends Comparable<JsonType> {
 
 	Set<String> getTags();
 	void addTags(final String... tags);
+
+	public String getSummary();
+	public JsonType setSummary(final String summary);
+
+	public String getDescription();
+	public JsonType setDescription(final String description);
+
+	public boolean includeInOpenAPI();
+	public JsonType setIncludeInOpenAPI(final boolean includeInOpenAPI);
 
 	JsonType addViewProperty(final String viewName, final String propertyName);
 

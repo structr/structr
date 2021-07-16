@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,8 +19,9 @@
 package org.structr.core.function;
 
 import java.util.Collection;
+import java.util.Set;
 import org.apache.commons.lang3.ArrayUtils;
-import org.python.google.common.collect.Iterables;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -56,8 +57,10 @@ public class ContainsFunction extends CoreFunction {
 
 			} else if (sources[0] instanceof Iterable) {
 
-				final Iterable collection = (Iterable)sources[0];
-				return Iterables.contains(collection, sources[1]);
+				final Iterable iterable   = (Iterable)sources[0];
+				final Set set             = Iterables.toSet(iterable);
+
+				return set.contains(sources[1]);
 
 			} else if (sources[0] instanceof Collection) {
 

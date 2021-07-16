@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,6 @@ package org.structr.test.common;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Relationship;
 import org.structr.api.schema.JsonSchema;
@@ -880,8 +879,6 @@ public class AccessControlTest extends StructrTest {
 	@Test
 	public void testGroupHierarchyMembershipVisibility() {
 
-		Settings.CypherDebugLogging.setValue(true);
-
 		String user1Id = null;
 		String user2Id = null;
 		String group1Id = null;
@@ -1056,8 +1053,6 @@ public class AccessControlTest extends StructrTest {
 			fail("Unexpected exception.");
 
 		}
-
-		Settings.CypherDebugLogging.setValue(false);
 	}
 
 	@Test
@@ -1551,7 +1546,7 @@ public class AccessControlTest extends StructrTest {
 			final JsonType type     = schema.getType("Principal");
 
 			type.addStringProperty("test");
-			type.addMethod("onModification", "set_privileged(this, 'test', now)", "");
+			type.addMethod("onModification", "set_privileged(this, 'test', now)");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 

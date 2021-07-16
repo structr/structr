@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,6 +38,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.rest.servlet.CsvServlet;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyParser;
 
@@ -295,43 +296,9 @@ public class ToCsvFunction extends CsvFunction {
 
 	private static String escapeForCsv(final Object value, final char quoteChar) {
 
-		String result;
+		final String result = CsvServlet.escapeForCsv(value, quoteChar);
 
-		if (value == null) {
-
-			result = "";
-
-		} else if (value instanceof String[]) {
-
-			// Special handling for StringArrays
-			ArrayList<String> quotedStrings = new ArrayList();
-			for (final String str : Arrays.asList((String[])value)) {
-				// The strings can contain quotes - these need to be escaped with 3 slashes in the output
-				quotedStrings.add("\\" + quoteChar + StringUtils.replace(str, ""+quoteChar, "\\\\\\" + quoteChar) + "\\" + quoteChar);
-			}
-
-			result = quotedStrings.toString();
-
-		} else if (value instanceof Collection) {
-
-			// Special handling for collections of nodes
-			ArrayList<String> quotedStrings = new ArrayList();
-			for (final Object obj : (Collection)value) {
-				quotedStrings.add("\\" + quoteChar + obj.toString() + "\\" + quoteChar);
-			}
-
-			result = quotedStrings.toString();
-
-		} else if (value instanceof Date) {
-
-			result = DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
-
-		} else {
-
-			result = StringUtils.replace(value.toString(), ""+quoteChar, "\\" + quoteChar);
-
-		}
-
+		// post-process escaped string
 		return "".concat(""+quoteChar).concat(StringUtils.replace(StringUtils.replace(result, "\r\n", "\\n"), "\r", "\\n")).concat(""+quoteChar);
 	}
 

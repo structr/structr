@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -47,7 +47,7 @@ public abstract class SchemaReloadingNode extends AbstractNode {
 		if (reloadSchemaOnCreate()) {
 
 			// register transaction post processing that recreates the schema information
-			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+			TransactionCommand.postProcess("reloadSchema", new ReloadSchema(false));
 		}
 	}
 
@@ -61,7 +61,7 @@ public abstract class SchemaReloadingNode extends AbstractNode {
 		if (reloadSchemaOnModify(modificationQueue)) {
 
 			// register transaction post processing that recreates the schema information
-			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+			TransactionCommand.postProcess("reloadSchema", new ReloadSchema(false));
 		}
 	}
 
@@ -75,7 +75,7 @@ public abstract class SchemaReloadingNode extends AbstractNode {
 		if (reloadSchemaOnDelete()) {
 
 			// register transaction post processing that recreates the schema information
-			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
+			TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
 		}
 	}
 
@@ -89,12 +89,12 @@ public abstract class SchemaReloadingNode extends AbstractNode {
 
 	public String getSuperclassName() {
 
-		final String superclassName = getProperty(SchemaNode.extendsClass);
-		if (superclassName == null) {
+		final SchemaNode superclass = getProperty(SchemaNode.extendsClass);
+		if (superclass != null) {
 
-			return AbstractNode.class.getSimpleName();
+			return superclass.getName();
 		}
 
-		return superclassName.substring(superclassName.lastIndexOf(".")+1);
+		return AbstractNode.class.getSimpleName();
 	}
 }

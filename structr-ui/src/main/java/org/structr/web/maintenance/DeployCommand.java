@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -55,7 +56,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -64,6 +64,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.fulltext.Indexable;
 import org.structr.core.StaticValue;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -89,11 +90,13 @@ import org.structr.module.StructrModule;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.JavaScriptSource;
 import org.structr.schema.export.StructrFunctionProperty;
 import org.structr.schema.export.StructrMethodDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrSchemaDefinition;
 import org.structr.schema.export.StructrTypeDefinition;
+import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.AbstractMapComparator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
@@ -117,6 +120,7 @@ import org.structr.web.entity.dom.Template;
 import org.structr.web.maintenance.deploy.ComponentImportVisitor;
 import org.structr.web.maintenance.deploy.FileImportVisitor;
 import org.structr.web.maintenance.deploy.ImportFailureException;
+import org.structr.web.maintenance.deploy.ImportPreconditionFailedException;
 import org.structr.web.maintenance.deploy.PageImportVisitor;
 import org.structr.web.maintenance.deploy.TemplateImportVisitor;
 import org.structr.websocket.command.CreateComponentCommand;
@@ -129,6 +133,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private static final Map<String, String> deferredPageLinks = new LinkedHashMap<>();
 	protected static final Set<String> missingPrincipals       = new HashSet<>();
 	protected static final Set<String> missingSchemaFile       = new HashSet<>();
+	protected static final Set<String> deferredLogTexts        = new HashSet<>();
 
 	protected static final AtomicBoolean deploymentActive      = new AtomicBoolean(false);
 
@@ -146,8 +151,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String DEPLOYMENT_SCHEMA_READ_FUNCTION_SUFFIX   = ".readFunction";
 	private final static String DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX  = ".writeFunction";
 	private final static String DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY   = "source";
-	private final static String DEPLOYMENT_SCHEMA_COMMENT_ATTRIBUTE_KEY  = "comment";
-	private final static String DEPLOYMENT_SCHEMA_COMMENT_SUFFIX         = ".comment";
 
 	static {
 
@@ -179,8 +182,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				}
 
 			} finally {
+
 				deploymentActive.set(false);
 			}
+
 		} else {
 
 			logger.warn("Prevented deployment '{}' while another deployment is active.", mode);
@@ -252,6 +257,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			missingPrincipals.clear();
 			missingSchemaFile.clear();
+			deferredLogTexts.clear();
 
 			final long startTime = System.currentTimeMillis();
 			customHeaders.put("start", new Date(startTime).toString());
@@ -266,42 +272,66 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			ctx.disableModificationOfAccessTime();
 			ctx.setDoIndexing(false);
 
-			final Map<String, Object> componentsMetadata = new HashMap<>();
-			final Map<String, Object> templatesMetadata  = new HashMap<>();
-			final Map<String, Object> pagesMetadata      = new HashMap<>();
-			final Map<String, Object> filesMetadata      = new HashMap<>();
-
 			if (StringUtils.isBlank(path)) {
 
-				throw new FrameworkException(422, "Please provide 'source' attribute for deployment source directory path.");
+				throw new ImportPreconditionFailedException("Please provide 'source' attribute for deployment source directory path.");
 			}
 
 			final Path source = Paths.get(path);
 			if (!Files.exists(source)) {
 
-				publishWarningMessage("Import not started", "Source path " + path + " does not exist.");
-
-				throw new FrameworkException(422, "Source path " + path + " does not exist.");
+				throw new ImportPreconditionFailedException("Source path " + path + " does not exist.");
 			}
 
 			if (!Files.isDirectory(source)) {
 
-				publishWarningMessage("Import not started", "Source path '" + path + "' is not a directory.");
-
-				throw new FrameworkException(422, "Source path " + path + " is not a directory.");
+				throw new ImportPreconditionFailedException("Source path " + path + " is not a directory.");
 			}
 
 			if (source.isAbsolute() != true) {
 
-				publishWarningMessage("Import not started", "Source path '" + path + "' is not an absolute path - relative paths are not allowed.");
+				throw new ImportPreconditionFailedException("Source path '" + path + "' is not an absolute path - relative paths are not allowed.");
+			}
 
-				throw new FrameworkException(422, "Source path '" + path + "' is not an absolute path - relative paths are not allowed.");
+			// Define all files/folders beforehand
+			final Path deploymentConfFile                       = source.resolve("deployment.conf");
+			final Path preDeployConfFile                        = source.resolve("pre-deploy.conf");
+			final Path postDeployConfFile                       = source.resolve("post-deploy.conf");
+			final Path grantsMetadataFile                       = source.resolve("security/grants.json");
+			final Path mailTemplatesMetadataFile                = source.resolve("mail-templates.json");
+			final Path widgetsMetadataFile                      = source.resolve("widgets.json");
+			final Path localizationsMetadataFile                = source.resolve("localizations.json");
+			final Path applicationConfigurationDataMetadataFile = source.resolve("application-configuration-data.json");
+			final Path filesMetadataFile                        = source.resolve("files.json");
+			final Path pagesMetadataFile                        = source.resolve("pages.json");
+			final Path componentsMetadataFile                   = source.resolve("components.json");
+			final Path templatesMetadataFile                    = source.resolve("templates.json");
+			final Path sitesConfFile                            = source.resolve("sites.json");
+			final Path schemaFolder                             = source.resolve("schema");
+
+			if (
+					!Files.exists(deploymentConfFile) &&
+					!Files.exists(preDeployConfFile) &&
+					!Files.exists(postDeployConfFile) &&
+					!Files.exists(grantsMetadataFile) &&
+					!Files.exists(mailTemplatesMetadataFile) &&
+					!Files.exists(widgetsMetadataFile) &&
+					!Files.exists(localizationsMetadataFile) &&
+					!Files.exists(applicationConfigurationDataMetadataFile) &&
+					!Files.exists(filesMetadataFile) &&
+					!Files.exists(pagesMetadataFile) &&
+					!Files.exists(componentsMetadataFile) &&
+					!Files.exists(templatesMetadataFile) &&
+					!Files.exists(sitesConfFile) &&
+					!Files.exists(schemaFolder)
+			) {
+
+				throw new ImportPreconditionFailedException("Source path '" + path + "' does not contain any of the files for a structr deployment.");
 			}
 
 			logger.info("Importing from '{}'", path);
 
 			// read deployment.conf (file containing information about deployment export)
-			final Path deploymentConfFile            = source.resolve("deployment.conf");
 			final Map<String, String> deploymentConf = readDeploymentConfigurationFile(deploymentConfFile);
 			final boolean relativeVisibility         = isDOMNodeVisibilityRelativeToParent(deploymentConf);
 
@@ -340,7 +370,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// visibility check
 			if (!relativeVisibility) {
 
-				final String title = "Important Information";
+				final String title = "Deprecation Notice";
 				final String text = "The deployment export data currently being imported has been created with an older version of Structr "
 						+ "in which the visibility flags of DOM elements were exported depending on the flags of the containing page.\n\n"
 						+ "***The data will be imported correctly, based on the old format.***\n\n"
@@ -350,342 +380,38 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						+ "<b>The data will be imported correctly, based on the old format.</b><br><br>"
 						+ "After this import has finished, you should <b>export again to the same location</b> so that the deployment export data will be upgraded to the most recent format.";
 
-				logger.info(title + ": " + text);
+				deferredLogTexts.add(title + ": " + text);
 				publishWarningMessage(title, htmlText);
 			}
 
 			// apply pre-deploy.conf
-			applyConfigurationFile(ctx, source.resolve("pre-deploy.conf"), DEPLOYMENT_IMPORT_STATUS);
+			applyConfigurationFileIfExists(ctx, preDeployConfFile, DEPLOYMENT_IMPORT_STATUS);
 
-			// read grants.json
-			final Path grantsMetadataFile = source.resolve("security/grants.json");
-			if (Files.exists(grantsMetadataFile)) {
+			importResourceAccessGrants(grantsMetadataFile);
 
-				logger.info("Reading {}", grantsMetadataFile);
-				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing resource access grants");
+			importMailTemplates(mailTemplatesMetadataFile, source);
 
-				importListData(ResourceAccess.class, readConfigList(grantsMetadataFile));
-			}
+			importWidgets(widgetsMetadataFile);
 
-			// read schema-methods.json
-			final Path schemaMethodsMetadataFile = source.resolve("schema-methods.json");
-			if (Files.exists(schemaMethodsMetadataFile)) {
+			importLocalizations(localizationsMetadataFile);
 
-				logger.info("Reading {}", schemaMethodsMetadataFile);
-				final String title = "Deprecation warning";
-				final String text = "Found file 'schema-methods.json'. Newer versions store global schema methods in the schema snapshot file. Recreate the export with the current version to avoid compatibility issues. Support for importing this file will be dropped in future versions.";
+			importApplicationConfigurationNodes(applicationConfigurationDataMetadataFile);
 
-				logger.info(title + ": " + text);
-				publishWarningMessage(title, text);
+			importSchema(schemaFolder, extendExistingApp);
 
-				importListData(SchemaMethod.class, readConfigList(schemaMethodsMetadataFile));
-			}
+			importFiles(filesMetadataFile, source, ctx);
 
-			// read mail-templates.json
-			final Path mailTemplatesMetadataFile = source.resolve("mail-templates.json");
-			if (Files.exists(mailTemplatesMetadataFile)) {
+			importModuleData(source);
 
-				logger.info("Reading {}", mailTemplatesMetadataFile);
-				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing mail templates");
+			importHTMLContent(app, source, pagesMetadataFile, componentsMetadataFile, templatesMetadataFile, sitesConfFile, extendExistingApp, relativeVisibility);
 
-				List<Map<String, Object>> mailTemplatesConf = readConfigList(mailTemplatesMetadataFile);
+			linkDeferredPages(app);
 
-				final Path mailTemplatesFolder = source.resolve("mail-templates");
-
-				if (Files.exists(mailTemplatesFolder)) {
-
-					for (Map<String, Object> mailTpl : mailTemplatesConf) {
-
-						final String filename = (String)mailTpl.remove("filename");
-						final Path tplFile    = mailTemplatesFolder.resolve(filename);
-
-						try {
-							mailTpl.put("text", (Files.exists(tplFile)) ? new String(Files.readAllBytes(tplFile)) : null);
-						} catch (IOException ioe) {
-							logger.warn("Failed reading mail-tempalte file '{}'", filename);
-						}
-					}
-				}
-
-				importListData(MailTemplate.class, mailTemplatesConf);
-			}
-
-			// read widgets.json
-			final Path widgetsMetadataFile = source.resolve("widgets.json");
-			if (Files.exists(widgetsMetadataFile)) {
-
-				logger.info("Reading {}", widgetsMetadataFile);
-				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing widgets");
-
-				importListData(Widget.class, readConfigList(widgetsMetadataFile));
-			}
-
-			// read localizations.json
-			final Path localizationsMetadataFile = source.resolve("localizations.json");
-			if (Files.exists(localizationsMetadataFile)) {
-
-				final PropertyMap additionalData = new PropertyMap();
-
-				// Question: shouldn't this be true? No, 'imported' is a flag for legacy-localization which
-				// have been imported from a legacy-system which was replaced by structr.
-				// it is a way to differentiate between new and old localization strings
-				additionalData.put(StructrApp.key(Localization.class, "imported"), false);
-
-				logger.info("Reading {}", localizationsMetadataFile);
-				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing localizations");
-
-				importListData(Localization.class, readConfigList(localizationsMetadataFile), additionalData);
-			}
-
-			// read application-configuration-data.json
-			final Path applicationConfigurationDataMetadataFile = source.resolve("application-configuration-data.json");
-			if (Files.exists(applicationConfigurationDataMetadataFile)) {
-
-				logger.info("Reading {}", applicationConfigurationDataMetadataFile);
-				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing application configuration data");
-
-				importListData(ApplicationConfigurationDataNode.class, readConfigList(applicationConfigurationDataMetadataFile));
-			}
-
-			// read files.json
-			final Path filesMetadataFile = source.resolve("files.json");
-			if (Files.exists(filesMetadataFile)) {
-
-				logger.info("Reading {}", filesMetadataFile);
-				filesMetadata.putAll(readMetadataFileIntoMap(filesMetadataFile));
-			}
-
-			// read pages.json
-			final Path pagesMetadataFile = source.resolve("pages.json");
-			if (Files.exists(pagesMetadataFile)) {
-
-				logger.info("Reading {}", pagesMetadataFile);
-				pagesMetadata.putAll(readMetadataFileIntoMap(pagesMetadataFile));
-			}
-
-			// read components.json
-			final Path componentsMetadataFile = source.resolve("components.json");
-			if (Files.exists(componentsMetadataFile)) {
-
-				logger.info("Reading {}", componentsMetadataFile);
-				componentsMetadata.putAll(readMetadataFileIntoMap(componentsMetadataFile));
-			}
-
-			// read templates.json
-			final Path templatesMetadataFile = source.resolve("templates.json");
-			if (Files.exists(templatesMetadataFile)) {
-
-				logger.info("Reading {}", templatesMetadataFile);
-				templatesMetadata.putAll(readMetadataFileIntoMap(templatesMetadataFile));
-			}
-
-			// import schema
-			final Path schemaFolder = source.resolve("schema");
-			if (Files.exists(schemaFolder)) {
-
-				try {
-
-					logger.info("Importing data from schema/ directory");
-					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing schema");
-
-					importSchema(schemaFolder, extendExistingApp);
-
-				} catch (ImportFailureException fex) {
-
-					logger.warn("Unable to import schema: {}", fex.getMessage());
-					throw new FrameworkException(422, fex.getMessage(), fex.getErrorBuffer());
-
-				} catch (Throwable t) {
-					logger.warn("Unable to import schema: {}", t.getMessage());
-				}
-			}
-
-			// import files
-			final Path files = source.resolve("files");
-			if (Files.exists(files)) {
-
-				try {
-
-					logger.info("Importing files (unchanged files will be skipped)");
-					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing files");
-
-					FileImportVisitor fiv = new FileImportVisitor(ctx, files, filesMetadata);
-					Files.walkFileTree(files, fiv);
-					fiv.handleDeferredFiles();
-
-				} catch (IOException ioex) {
-					logger.warn("Exception while importing files", ioex);
-				}
-			}
-
-
-			for (StructrModule module : StructrApp.getConfiguration().getModules().values()) {
-
-				if (module.hasDeploymentData()) {
-
-					final Path moduleFolder = source.resolve("modules/" + module.getName() + "/");
-
-					if (Files.exists(moduleFolder)) {
-
-						logger.info("Importing deployment data for module {}", module.getName());
-						publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing deployment data for module " + module.getName());
-
-						module.importDeploymentData(moduleFolder, getGson());
-					}
-				}
-			}
-
-
-			// construct paths
-			final Path templates  = source.resolve("templates");
-			final Path components = source.resolve("components");
-			final Path pages      = source.resolve("pages");
-			final Path sitesConfFile = source.resolve("sites.json");
-
-			// remove all DOMNodes from the database (clean webapp for import, but only
-			// if the actual import directories exist, don't delete web components if
-			// an empty directory was specified accidentially).
-			if (!extendExistingApp && Files.exists(templates) && Files.exists(components) && Files.exists(pages)) {
-
-				try (final Tx tx = app.tx()) {
-
-					tx.disableChangelog();
-
-					logger.info("Removing pages, templates and components");
-					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing pages, templates and components");
-
-					app.deleteAllNodesOfType(DOMNode.class);
-
-					if (Files.exists(sitesConfFile)) {
-
-						logger.info("Removing sites");
-						publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing sites");
-
-						app.deleteAllNodesOfType(Site.class);
-					}
-
-					FlushCachesCommand.flushAll();
-
-					tx.success();
-				}
-
-			} else {
-
-				logger.info("Import directory does not seem to contain pages, templates or components, NOT removing any data.");
-			}
-
-			// import templates, must be done before pages so the templates exist
-			if (Files.exists(templates)) {
-
-				try {
-
-					logger.info("Importing templates");
-					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing templates");
-
-					Files.walkFileTree(templates, new TemplateImportVisitor(templatesMetadata));
-
-				} catch (IOException ioex) {
-					logger.warn("Exception while importing templates", ioex);
-				}
-			}
-
-			// make sure shadow document is created in any case
-			CreateComponentCommand.getOrCreateHiddenDocument();
-
-			// import components, must be done before pages so the shared components exist
-			if (Files.exists(components)) {
-
-				try {
-
-					logger.info("Importing shared components");
-					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing shared components");
-
-					final ComponentImportVisitor visitor = new ComponentImportVisitor(componentsMetadata, relativeVisibility);
-
-					Files.walkFileTree(components, visitor);
-
-					final List<Path> deferredPaths = visitor.getDeferredPaths();
-					if (!deferredPaths.isEmpty()) {
-
-						logger.info("Attempting to import deferred components..");
-
-						for (final Path deferred : deferredPaths) {
-
-							visitor.visitFile(deferred, Files.readAttributes(deferred, BasicFileAttributes.class));
-						}
-
-						FlushCachesCommand.flushAll();
-					}
-
-
-				} catch (IOException ioex) {
-					logger.warn("Exception while importing shared components", ioex);
-				}
-			}
-
-			// import pages
-			if (Files.exists(pages)) {
-
-				try {
-
-					logger.info("Importing pages");
-					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing pages");
-
-					Files.walkFileTree(pages, new PageImportVisitor(pages, pagesMetadata, relativeVisibility));
-
-				} catch (IOException ioex) {
-					logger.warn("Exception while importing pages", ioex);
-				}
-			}
-
-			// import sites
-			if (Files.exists(sitesConfFile)) {
-
-				logger.info("Importing sites");
-				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing sites");
-
-				importSites(readConfigList(sitesConfFile));
-			}
-
-			// link pages
-			try (final Tx tx = app.tx()) {
-
-				tx.disableChangelog();
-
-				deferredPageLinks.forEach((String linkableUUID, String pagePath) -> {
-
-					try {
-						final DOMNode page        = StructrApp.getInstance().get(DOMNode.class, linkableUUID);
-						final Linkable linkedPage = StructrApp.getInstance().nodeQuery(Linkable.class).and(StructrApp.key(Page.class, "path"), pagePath).or(Page.name, pagePath).getFirst();
-
-						((LinkSource)page).setLinkable(linkedPage);
-
-					} catch (FrameworkException ex) {
-					}
-
-				});
-
-				deferredPageLinks.clear();
-
-				tx.success();
-			}
-
-
-			// import application data
-			final Path dataDir = source.resolve("data");
-			if (Files.exists(dataDir) && Files.isDirectory(dataDir)) {
-
-				logger.info("Importing application data");
-				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing application data");
-
-				final DeployDataCommand cmd = StructrApp.getInstance(securityContext).command(DeployDataCommand.class);
-
-				cmd.doImportFromDirectory(dataDir);
-			}
+			importEmbeddedApplicationData(source);
 
 
 			// apply post-deploy.conf
-			applyConfigurationFile(ctx, source.resolve("post-deploy.conf"), DEPLOYMENT_IMPORT_STATUS);
+			applyConfigurationFileIfExists(ctx, postDeployConfFile, DEPLOYMENT_IMPORT_STATUS);
 
 			if (!missingPrincipals.isEmpty()) {
 
@@ -739,6 +465,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			broadcastData.put("duration", duration);
 			publishEndMessage(DEPLOYMENT_IMPORT_STATUS, broadcastData);
 
+		} catch (ImportPreconditionFailedException ipfe) {
+
+			logger.warn("Deployment Import not started: {}", ipfe.getMessage());
+			publishWarningMessage("Deployment Import not started", ipfe.getMessage());
+
 		} catch (Throwable t) {
 
 			publishWarningMessage("Fatal Error", "Something went wrong - the deployment import has stopped. Please see the log for more information");
@@ -746,6 +477,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			throw t;
 
 		} finally {
+
+			// log collected warnings at the end so they dont get lost
+			for (final String logText : deferredLogTexts) {
+				logger.info(logText);
+			}
 
 			// restore saved value
 			Settings.ChangelogEnabled.setValue(changeLogEnabled);
@@ -774,6 +510,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try {
 
+			deferredLogTexts.clear();
+
+			Files.createDirectories(target);
+
 			final long startTime = System.currentTimeMillis();
 			customHeaders.put("start", new Date(startTime).toString());
 
@@ -781,8 +521,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			broadcastData.put("start",  startTime);
 			broadcastData.put("target", target.toString());
 			publishBeginMessage(DEPLOYMENT_EXPORT_STATUS, broadcastData);
-
-			Files.createDirectories(target);
 
 			final Path components          = Files.createDirectories(target.resolve("components"));
 			final Path files               = Files.createDirectories(target.resolve("files"));
@@ -803,6 +541,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path widgetsConf         = target.resolve("widgets.json");
 			final Path deploymentConfFile = target.resolve("deployment.conf");
 			final Path applicationConfigurationData = target.resolve("application-configuration-data.json");
+
+			final Path preDeployConf            = target.resolve("pre-deploy.conf");
+			final Path postDeployConf           = target.resolve("post-deploy.conf");
+
+			if (!Files.exists(preDeployConf)) {
+
+				writeStringToFile(preDeployConf, "{\n\t// automatically created " + preDeployConf.getFileName() + ". This file is interpreted as a script and run before the application deployment process. To learn more about this, please have a look at the documentation.\n}");
+			}
+
+			if (!Files.exists(postDeployConf)) {
+
+				writeStringToFile(postDeployConf, "{\n\t// automatically created " + postDeployConf.getFileName() + ". This file is interpreted as a script and run after the application deployment process. To learn more about this, please have a look at the documentation.\n}");
+			}
 
 			writeDeploymentConfigurationFile(deploymentConfFile);
 
@@ -871,8 +622,24 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			publishEndMessage(DEPLOYMENT_EXPORT_STATUS, broadcastData);
 
 
+		} catch (FileAlreadyExistsException faee) {
+
+			final String deploymentTargetIsAFileError = "A file already exists at given path - this should be a directory or not exist at all!";
+
+			logger.warn(deploymentTargetIsAFileError + "" + target.toString());
+
+			publishWarningMessage("Fatal Error", deploymentTargetIsAFileError + "<br>" + target.toString());
+
 		} catch (IOException ex) {
+
 			logger.warn("", ex);
+
+		} finally {
+
+			// log collected warnings at the end so they dont get lost
+			for (final String logText : deferredLogTexts) {
+				logger.info(logText);
+			}
 		}
 	}
 
@@ -1171,6 +938,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final List<Map<String, Object>> grants = new LinkedList<>();
 		final App app                          = StructrApp.getInstance();
 
+		final List<String> unreachableGrants = new LinkedList<>();
+
 		try (final Tx tx = app.tx()) {
 
 			for (final ResourceAccess res : app.nodeQuery(ResourceAccess.class).sort(ResourceAccess.signature).getAsList()) {
@@ -1181,9 +950,33 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				grant.put("id",        res.getProperty(ResourceAccess.id));
 				grant.put("signature", res.getProperty(ResourceAccess.signature));
 				grant.put("flags",     res.getProperty(ResourceAccess.flags));
+				grant.put("visibleToPublicUsers",        res.isVisibleToPublicUsers());
+				grant.put("visibleToAuthenticatedUsers", res.isVisibleToAuthenticatedUsers());
+
+				exportSecurity(res, grant);
+
+				final List grantees = (List)grant.get("grantees");
+
+				if (res.getProperty(ResourceAccess.flags) > 0 && res.isVisibleToPublicUsers() == false && res.isVisibleToAuthenticatedUsers() == false && grantees.isEmpty()) {
+					unreachableGrants.add(res.getProperty(ResourceAccess.signature));
+				}
 			}
 
 			tx.success();
+		}
+
+		if (!unreachableGrants.isEmpty()) {
+
+			final String text = "Found configured but unreachable grant(s)! The ability to use group/user rights to grants has been added to improve flexibility.\n\n  The following grants are inaccessible for any non-admin users:\n\n"
+					+ unreachableGrants.stream().reduce( "", (acc, signature) -> acc.concat("  - ").concat(signature).concat("\n"))
+					+ "\n  You can edit the visibility in the 'Security' area.\n";
+
+			final String htmlText = "The ability to use group/user rights to grants has been added to improve flexibility. The following grants are inaccessible for any non-admin users:<br><br>"
+					+ unreachableGrants.stream().reduce( "", (acc, signature) -> acc.concat("&nbsp;- ").concat(signature).concat("<br>"))
+					+ "<br>You can edit the visibility in the <a href=\"#security\">Security</a> area.";
+
+			deferredLogTexts.add(text);
+			publishWarningMessage("Found configured but unreachable grant(s)", htmlText);
 		}
 
 		writeSortedCompactJsonToFile(target, grants, null);
@@ -1216,27 +1009,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						final String methodSource          = (String) schemaMethod.get(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY);
 						final Path globalMethodSourceFile  = globalMethodsFolder.resolve(methodName);
 
-						final String methodComment         = (String) schemaMethod.get(DEPLOYMENT_SCHEMA_COMMENT_ATTRIBUTE_KEY);
-						final Path globalMethodCommentFile = globalMethodsFolder.resolve(methodName + DEPLOYMENT_SCHEMA_COMMENT_SUFFIX);
-
 						final String relativeSourceFilePath  = "./" + targetFolder.relativize(globalMethodSourceFile).toString();
-						final String relativeCommentFilePath = "./" + targetFolder.relativize(globalMethodCommentFile).toString();
 
 						schemaMethod.put(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY, relativeSourceFilePath);
-						schemaMethod.put(DEPLOYMENT_SCHEMA_COMMENT_ATTRIBUTE_KEY, relativeCommentFilePath);
 
 						if (Files.exists(globalMethodSourceFile)) {
 							logger.warn("File '{}' already exists - this can happen if there is a non-unique global method definition. This is not supported in tree-based schema export and will causes errors!", relativeSourceFilePath);
 						}
-						if (Files.exists(globalMethodCommentFile)) {
-							logger.warn("File '{}' already exists - this can happen if there is a non-unique global method definition. This is not supported in tree-based schema export and will causes errors!", relativeCommentFilePath);
-						}
 
 						if (methodSource != null) {
 							writeStringToFile(globalMethodSourceFile, methodSource);
-						}
-						if (methodComment != null) {
-							writeStringToFile(globalMethodCommentFile, methodComment);
 						}
 					}
 				}
@@ -1295,19 +1077,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 								final String methodName              = method.getName();
 								final String methodSource            = method.getSource();
-								final String methodComment           = method.getComment();
 
 								final Path methodSourceFile  = methodsFolder.resolve(methodName);
-								final Path methodCommentFile = methodsFolder.resolve(methodName + DEPLOYMENT_SCHEMA_COMMENT_SUFFIX);
 
 								if (methodSource != null) {
 									writeStringToFile(methodSourceFile, methodSource);
 									method.setSource("./" + targetFolder.relativize(methodSourceFile).toString());
-								}
-
-								if (methodComment != null) {
-									writeStringToFile(methodCommentFile, methodComment);
-									method.setComment("./" + targetFolder.relativize(methodCommentFile).toString());
 								}
 							}
 						}
@@ -1320,7 +1095,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			writeStringToFile(schemaJson, schema.toString());
 
 		} catch (Throwable t) {
-			logger.error(ExceptionUtils.getStackTrace(t));
+			logger.error("", t);
 		}
 	}
 
@@ -1329,7 +1104,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		putData(config, "id",                          node.getProperty(DOMNode.id));
 		putData(config, "visibleToPublicUsers",        node.isVisibleToPublicUsers());
 		putData(config, "visibleToAuthenticatedUsers", node.isVisibleToAuthenticatedUsers());
-		putData(config, "contentType",                 node.getProperty(StructrApp.key(Content.class, "contentType")));
+
+		if (node instanceof Content) {
+			putData(config, "contentType", node.getProperty(StructrApp.key(Content.class, "contentType")));
+		}
 
 		if (node instanceof Template) {
 
@@ -1371,6 +1149,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		putData(config, "visibleToPublicUsers",        abstractFile.isVisibleToPublicUsers());
 		putData(config, "visibleToAuthenticatedUsers", abstractFile.isVisibleToAuthenticatedUsers());
 
+		putData(config, "type",                        abstractFile.getProperty(File.type));
+
 		if (abstractFile instanceof File) {
 
 			final File file = (File)abstractFile;
@@ -1379,13 +1159,24 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, "dontCache", abstractFile.getProperty(StructrApp.key(File.class, "dontCache")));
 		}
 
-		putData(config, "type",                        abstractFile.getProperty(File.type));
-		putData(config, "contentType",                 abstractFile.getProperty(StructrApp.key(File.class, "contentType")));
-		putData(config, "cacheForSeconds",             abstractFile.getProperty(StructrApp.key(File.class, "cacheForSeconds")));
-		putData(config, "useAsJavascriptLibrary",      abstractFile.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
+		if (abstractFile instanceof Indexable) {
+			putData(config, "contentType",                 abstractFile.getProperty(StructrApp.key(File.class, "contentType")));
+		}
+
+		if (abstractFile instanceof File) {
+			putData(config, "cacheForSeconds",             abstractFile.getProperty(StructrApp.key(File.class, "cacheForSeconds")));
+		}
+
+		if (abstractFile instanceof JavaScriptSource) {
+			putData(config, "useAsJavascriptLibrary",      abstractFile.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
+		}
+
 		putData(config, "includeInFrontendExport",     abstractFile.getProperty(StructrApp.key(File.class, "includeInFrontendExport")));
-		putData(config, "basicAuthRealm",              abstractFile.getProperty(StructrApp.key(File.class, "basicAuthRealm")));
-		putData(config, "enableBasicAuth",             abstractFile.getProperty(StructrApp.key(File.class, "enableBasicAuth")));
+
+		if (abstractFile instanceof Linkable) {
+			putData(config, "basicAuthRealm",              abstractFile.getProperty(StructrApp.key(File.class, "basicAuthRealm")));
+			putData(config, "enableBasicAuth",             abstractFile.getProperty(StructrApp.key(File.class, "enableBasicAuth")));
+		}
 
 		if (abstractFile instanceof Image) {
 
@@ -1457,6 +1248,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			config.put("owner", null);
 
 		}
+
+		exportSecurity(node, config);
+	}
+
+	protected void exportSecurity(final NodeInterface node, final Map<String, Object> config) {
 
 		// export security grants
 		final List<Map<String, Object>> grantees = new LinkedList<>();
@@ -1574,7 +1370,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 		} catch (Throwable t) {
-			logger.error(ExceptionUtils.getStackTrace(t));
+			logger.error("", t);
 		}
 
 		mailTemplates.sort(new AbstractMapComparator<Object>() {
@@ -1612,8 +1408,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				putData(entry, "description",                 widget.getProperty(StructrApp.key(Widget.class, "description")));
 				putData(entry, "isWidget",                    widget.getProperty(StructrApp.key(Widget.class, "isWidget")));
 				putData(entry, "treePath",                    widget.getProperty(StructrApp.key(Widget.class, "treePath")));
-				putData(entry, "pictures",                    widget.getProperty(StructrApp.key(Widget.class, "pictures")));
 				putData(entry, "configuration",               widget.getProperty(StructrApp.key(Widget.class, "configuration")));
+				putData(entry, "isPageTemplate",              widget.getProperty(StructrApp.key(Widget.class, "isPageTemplate")));
+				putData(entry, "selectors",                   widget.getProperty(StructrApp.key(Widget.class, "selectors")));
 			}
 
 			tx.success();
@@ -1735,7 +1532,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		return Collections.emptyList();
 	}
 
-	protected void applyConfigurationFile(final SecurityContext ctx, final Path confFile, final String progressType) {
+	protected void applyConfigurationFileIfExists(final SecurityContext ctx, final Path confFile, final String progressType) {
 
 		if (Files.exists(confFile)) {
 
@@ -1745,15 +1542,26 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				tx.disableChangelog();
 
-				final String confSource = new String(Files.readAllBytes(confFile), Charset.forName("utf-8")).trim();
+				String confSource = new String(Files.readAllBytes(confFile), Charset.forName("utf-8")).trim();
 
 				if (confSource.length() > 0) {
+
+					if (confSource.startsWith("$")) {
+
+						final String warnText = "Deployment config script '" + confFile + "' is using old syntax. This is now an auto-script environment, opening '${' and closing '}' are not necessary anymore. This is currently supported, but support for this old syntax will be removed in an upcoming version!";
+						logger.warn(warnText);
+						publishWarningMessage("Deprecation warning for " + confFile, warnText);
+
+					} else {
+
+						confSource = "${" + confSource + "}";
+					}
 
 					final String message = "Applying configuration from '" + confFile + "'";
 					logger.info(message);
 					publishProgressMessage(progressType, message);
 
-					Scripting.evaluate(new ActionContext(ctx), null, confSource, confFile.getFileName().toString());
+					Scripting.evaluate(new ActionContext(ctx), null, confSource, confFile.getFileName().toString(), null);
 
 				} else {
 
@@ -1803,10 +1611,376 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (FrameworkException fex) {
 
-			logger.error("Unable to import {}, aborting with {}", type.getSimpleName(), fex.getMessage());
-			logger.error(ExceptionUtils.getStackTrace(fex));
+			logger.error("Unable to import {}, aborting with {}", type.getSimpleName(), fex.getMessage(), fex);
 
 			throw fex;
+		}
+	}
+
+	private void importResourceAccessGrants(final Path grantsMetadataFile) throws FrameworkException {
+
+		if (Files.exists(grantsMetadataFile)) {
+
+			logger.info("Reading {}", grantsMetadataFile);
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing resource access grants");
+
+			importResourceAccessGrants(readConfigList(grantsMetadataFile));
+		}
+	}
+
+	private void importResourceAccessGrants(final List<Map<String, Object>> data) throws FrameworkException {
+
+		boolean isOldExport = false;
+		final StringBuilder grantMessagesHtml = new StringBuilder();
+		final StringBuilder grantMessagesText = new StringBuilder();
+
+		final SecurityContext context = SecurityContext.getSuperUserInstance();
+		context.setDoTransactionNotifications(false);
+		final App app                 = StructrApp.getInstance(context);
+
+		try (final Tx tx = app.tx()) {
+
+			tx.disableChangelog();
+
+			for (final ResourceAccess toDelete : app.nodeQuery(ResourceAccess.class).getAsList()) {
+				app.delete(toDelete);
+			}
+
+			for (final Map<String, Object> entry : data) {
+
+				if (!entry.containsKey("grantees") && !entry.containsKey("visibleToPublicUsers") && !entry.containsKey("visibleToAuthenticatedUsers")) {
+
+					isOldExport = true;
+
+					final long flags = ((Number)entry.get("flags")).longValue();
+					if (flags != 0) {
+
+						final String signature = (String)entry.get("signature");
+
+						final boolean hasAnyNonAuthFlags = ((flags & UiAuthenticator.NON_AUTH_USER_GET) == UiAuthenticator.NON_AUTH_USER_GET) ||
+							((flags & UiAuthenticator.NON_AUTH_USER_PUT) == UiAuthenticator.NON_AUTH_USER_PUT) ||
+							((flags & UiAuthenticator.NON_AUTH_USER_POST) == UiAuthenticator.NON_AUTH_USER_POST) ||
+							((flags & UiAuthenticator.NON_AUTH_USER_DELETE) == UiAuthenticator.NON_AUTH_USER_DELETE) ||
+							((flags & UiAuthenticator.NON_AUTH_USER_OPTIONS) == UiAuthenticator.NON_AUTH_USER_OPTIONS) ||
+							((flags & UiAuthenticator.NON_AUTH_USER_HEAD) == UiAuthenticator.NON_AUTH_USER_HEAD) ||
+							((flags & UiAuthenticator.NON_AUTH_USER_PATCH) == UiAuthenticator.NON_AUTH_USER_PATCH);
+
+						final boolean hasAnyAuthFlags = ((flags & UiAuthenticator.AUTH_USER_GET) == UiAuthenticator.AUTH_USER_GET) ||
+							((flags & UiAuthenticator.AUTH_USER_PUT) == UiAuthenticator.AUTH_USER_PUT) ||
+							((flags & UiAuthenticator.AUTH_USER_POST) == UiAuthenticator.AUTH_USER_POST) ||
+							((flags & UiAuthenticator.AUTH_USER_DELETE) == UiAuthenticator.AUTH_USER_DELETE) ||
+							((flags & UiAuthenticator.AUTH_USER_OPTIONS) == UiAuthenticator.AUTH_USER_OPTIONS) ||
+							((flags & UiAuthenticator.AUTH_USER_HEAD) == UiAuthenticator.AUTH_USER_HEAD) ||
+							((flags & UiAuthenticator.AUTH_USER_PATCH) == UiAuthenticator.AUTH_USER_PATCH);
+
+						if (hasAnyNonAuthFlags) {
+							grantMessagesHtml.append("Signature <b>").append(signature).append("</b> was set to <code>visibleToPublicUsers: true</code><br>");
+							grantMessagesText.append("    Signature '").append(signature).append("' was set to 'visibleToPublicUsers: true'\n");
+						}
+
+						if (hasAnyAuthFlags) {
+							grantMessagesHtml.append("Signature <b>").append(signature).append("</b> was set to <code>visibleToAuthenticatedUsers: true</code><br>");
+							grantMessagesText.append("    Signature '").append(signature).append("' was set to 'visibleToAuthenticatedUsers: true'\n");
+						}
+
+						if (hasAnyNonAuthFlags && hasAnyAuthFlags) {
+							grantMessagesHtml.append("Signature <b>").append(signature).append("</b> is probably misconfigured and <b><u>should be split into two grants</u></b>.<br>");
+							grantMessagesText.append("    Signature '").append(signature).append("' is probably misconfigured and **should be split into two grants**.\n");
+						}
+
+						entry.put("visibleToAuthenticatedUsers", hasAnyAuthFlags);
+						entry.put("visibleToPublicUsers",        hasAnyNonAuthFlags);
+					}
+
+				} else {
+					checkOwnerAndSecurity(entry);
+				}
+
+				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, ResourceAccess.class, entry);
+
+				app.create(ResourceAccess.class, map);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.error("Unable to import resouce access grant, aborting with {}", fex.getMessage(), fex);
+
+			throw fex;
+
+		} finally {
+
+			if (isOldExport) {
+
+				final String text = "Found outdated version of grants.json file without visibility and grantees!\n\n"
+						+ "    Configuration was auto-updated using this simple heuristic:\n"
+						+ "     * Grants with public access were set to **visibleToPublicUsers: true**\n"
+						+ "     * Grants with authenticated access were set to **visibleToAuthenticatedUsers: true**\n\n"
+						+ "    Please make any necessary changes in the 'Security' area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
+
+				final String htmlText = "Configuration was auto-updated using this simple heuristic:<br>"
+						+ "&nbsp;- Grants with public access were set to <code>visibleToPublicUsers: true</code><br>"
+						+ "&nbsp;- Grants with authenticated access were set to <code>visibleToAuthenticatedUsers: true</code><br><br>"
+						+ "Please make any necessary changes in the <a href=\"#security\">Security</a> area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
+
+				deferredLogTexts.add(text + "\n\n" + grantMessagesText);
+				publishWarningMessage("Found grants.json file without visibility and grantees", htmlText + "<br><br>" + grantMessagesHtml);
+			}
+		}
+	}
+
+	private void importMailTemplates(final Path mailTemplatesMetadataFile, final Path source) throws FrameworkException {
+
+		if (Files.exists(mailTemplatesMetadataFile)) {
+
+			logger.info("Reading {}", mailTemplatesMetadataFile);
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing mail templates");
+
+			final List<Map<String, Object>> mailTemplatesConf = readConfigList(mailTemplatesMetadataFile);
+
+			final Path mailTemplatesFolder = source.resolve("mail-templates");
+
+			if (Files.exists(mailTemplatesFolder)) {
+
+				for (Map<String, Object> mailTpl : mailTemplatesConf) {
+
+					final String filename = (String)mailTpl.remove("filename");
+					final Path tplFile    = mailTemplatesFolder.resolve(filename);
+
+					try {
+						mailTpl.put("text", (Files.exists(tplFile)) ? new String(Files.readAllBytes(tplFile)) : null);
+					} catch (IOException ioe) {
+						logger.warn("Failed reading mail-tempalte file '{}'", filename);
+					}
+				}
+			}
+
+			importListData(MailTemplate.class, mailTemplatesConf);
+		}
+	}
+
+	private void importWidgets(final Path widgetsMetadataFile) throws FrameworkException {
+
+		if (Files.exists(widgetsMetadataFile)) {
+
+			logger.info("Reading {}", widgetsMetadataFile);
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing widgets");
+
+			importListData(Widget.class, readConfigList(widgetsMetadataFile));
+		}
+	}
+
+	private void importLocalizations(final Path localizationsMetadataFile) throws FrameworkException {
+
+		if (Files.exists(localizationsMetadataFile)) {
+
+			final PropertyMap additionalData = new PropertyMap();
+
+			// Question: shouldn't this be true? No, 'imported' is a flag for legacy-localization which
+			// have been imported from a legacy-system which was replaced by structr.
+			// it is a way to differentiate between new and old localization strings
+			additionalData.put(StructrApp.key(Localization.class, "imported"), false);
+
+			logger.info("Reading {}", localizationsMetadataFile);
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing localizations");
+
+			importListData(Localization.class, readConfigList(localizationsMetadataFile), additionalData);
+		}
+	}
+
+	private void importApplicationConfigurationNodes(final Path applicationConfigurationDataMetadataFile) throws FrameworkException {
+
+		if (Files.exists(applicationConfigurationDataMetadataFile)) {
+
+			logger.info("Reading {}", applicationConfigurationDataMetadataFile);
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing application configuration data");
+
+			importListData(ApplicationConfigurationDataNode.class, readConfigList(applicationConfigurationDataMetadataFile));
+		}
+	}
+
+	private void importFiles (final Path filesMetadataFile, final Path source, final SecurityContext ctx) throws FrameworkException {
+
+		if (Files.exists(filesMetadataFile)) {
+
+			final Map<String, Object> filesMetadata      = new HashMap<>();
+
+			logger.info("Reading {}", filesMetadataFile);
+			filesMetadata.putAll(readMetadataFileIntoMap(filesMetadataFile));
+
+			final Path files = source.resolve("files");
+			if (Files.exists(files)) {
+
+				try {
+
+					logger.info("Importing files (unchanged files will be skipped)");
+					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing files");
+
+					FileImportVisitor fiv = new FileImportVisitor(ctx, files, filesMetadata);
+					Files.walkFileTree(files, fiv);
+					fiv.handleDeferredFiles();
+
+				} catch (IOException ioex) {
+					logger.warn("Exception while importing files", ioex);
+				}
+			}
+		}
+	}
+
+
+	private void importModuleData(final Path source) throws FrameworkException {
+
+		for (StructrModule module : StructrApp.getConfiguration().getModules().values()) {
+
+			if (module.hasDeploymentData()) {
+
+				final Path moduleFolder = source.resolve("modules/" + module.getName() + "/");
+
+				if (Files.exists(moduleFolder)) {
+
+					logger.info("Importing deployment data for module {}", module.getName());
+					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing deployment data for module " + module.getName());
+
+					module.importDeploymentData(moduleFolder, getGson());
+				}
+			}
+		}
+	}
+
+	private void importHTMLContent(final App app, final Path source, final Path pagesMetadataFile, final Path componentsMetadataFile, final Path templatesMetadataFile, final Path sitesConfFile, final boolean extendExistingApp, final boolean relativeVisibility) throws FrameworkException {
+
+		final Map<String, Object> componentsMetadata = new HashMap<>();
+		final Map<String, Object> templatesMetadata  = new HashMap<>();
+		final Map<String, Object> pagesMetadata      = new HashMap<>();
+
+		// read pages.json
+		if (Files.exists(pagesMetadataFile)) {
+
+			logger.info("Reading {}", pagesMetadataFile);
+			pagesMetadata.putAll(readMetadataFileIntoMap(pagesMetadataFile));
+		}
+
+		// read components.json
+		if (Files.exists(componentsMetadataFile)) {
+
+			logger.info("Reading {}", componentsMetadataFile);
+			componentsMetadata.putAll(readMetadataFileIntoMap(componentsMetadataFile));
+		}
+
+		// read templates.json
+		if (Files.exists(templatesMetadataFile)) {
+
+			logger.info("Reading {}", templatesMetadataFile);
+			templatesMetadata.putAll(readMetadataFileIntoMap(templatesMetadataFile));
+		}
+
+		// construct paths
+		final Path templates  = source.resolve("templates");
+		final Path components = source.resolve("components");
+		final Path pages      = source.resolve("pages");
+
+		// remove all DOMNodes from the database (clean webapp for import, but only
+		// if the actual import directories exist, don't delete web components if
+		// an empty directory was specified accidentially).
+		if (!extendExistingApp && Files.exists(templates) && Files.exists(components) && Files.exists(pages)) {
+
+			try (final Tx tx = app.tx()) {
+
+				tx.disableChangelog();
+
+				logger.info("Removing pages, templates and components");
+				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing pages, templates and components");
+
+				app.deleteAllNodesOfType(DOMNode.class);
+
+				if (Files.exists(sitesConfFile)) {
+
+					logger.info("Removing sites");
+					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing sites");
+
+					app.deleteAllNodesOfType(Site.class);
+				}
+
+				FlushCachesCommand.flushAll();
+
+				tx.success();
+			}
+
+		} else {
+
+			logger.info("Import directory does not seem to contain pages, templates or components, NOT removing any data.");
+		}
+
+		// import templates, must be done before pages so the templates exist
+		if (Files.exists(templates)) {
+
+			try {
+
+				logger.info("Importing templates");
+				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing templates");
+
+				Files.walkFileTree(templates, new TemplateImportVisitor(templatesMetadata));
+
+			} catch (IOException ioex) {
+				logger.warn("Exception while importing templates", ioex);
+			}
+		}
+
+		// make sure shadow document is created in any case
+		CreateComponentCommand.getOrCreateHiddenDocument();
+
+		// import components, must be done before pages so the shared components exist
+		if (Files.exists(components)) {
+
+			try {
+
+				logger.info("Importing shared components");
+				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing shared components");
+
+				final ComponentImportVisitor visitor = new ComponentImportVisitor(componentsMetadata, relativeVisibility);
+
+				Files.walkFileTree(components, visitor);
+
+				final List<Path> deferredPaths = visitor.getDeferredPaths();
+				if (!deferredPaths.isEmpty()) {
+
+					logger.info("Attempting to import deferred components..");
+
+					for (final Path deferred : deferredPaths) {
+
+						visitor.visitFile(deferred, Files.readAttributes(deferred, BasicFileAttributes.class));
+					}
+
+					FlushCachesCommand.flushAll();
+				}
+
+			} catch (IOException ioex) {
+				logger.warn("Exception while importing shared components", ioex);
+			}
+		}
+
+		// import pages
+		if (Files.exists(pages)) {
+
+			try {
+
+				logger.info("Importing pages");
+				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing pages");
+
+				Files.walkFileTree(pages, new PageImportVisitor(pages, pagesMetadata, relativeVisibility));
+
+			} catch (IOException ioex) {
+				logger.warn("Exception while importing pages", ioex);
+			}
+		}
+
+		if (Files.exists(sitesConfFile)) {
+
+			logger.info("Importing sites");
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing sites");
+
+			importSites(readConfigList(sitesConfFile));
 		}
 	}
 
@@ -1843,157 +2017,186 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (FrameworkException fex) {
 
-			logger.error("Unable to import site, aborting with {}", fex.getMessage());
-			logger.error(ExceptionUtils.getStackTrace(fex));
+			logger.error("Unable to import site, aborting with {}", fex.getMessage(), fex);
 
 			throw fex;
 		}
 	}
 
-	private void importSchema(final Path schemaFolder, final boolean extendExistingSchema) {
+	private void linkDeferredPages(final App app) throws FrameworkException {
 
-		final Path schemaJsonFile = schemaFolder.resolve("schema.json");
+		try (final Tx tx = app.tx()) {
 
-		if (!Files.exists(schemaJsonFile)) {
+			tx.disableChangelog();
 
-			logger.info("Deployment does not contain schema/schema.json - continuing without schema import");
+			deferredPageLinks.forEach((String linkableUUID, String pagePath) -> {
 
-		} else {
+				try {
+					final DOMNode page        = StructrApp.getInstance().get(DOMNode.class, linkableUUID);
+					final Linkable linkedPage = StructrApp.getInstance().nodeQuery(Linkable.class).and(StructrApp.key(Page.class, "path"), pagePath).or(Page.name, pagePath).getFirst();
 
-			final SecurityContext ctx = SecurityContext.getSuperUserInstance();
-			ctx.setDoTransactionNotifications(false);
+					((LinkSource)page).setLinkable(linkedPage);
 
-			final App app = StructrApp.getInstance(ctx);
-
-			try (final FileReader reader = new FileReader(schemaJsonFile.toFile())) {
-
-				// detect tree-based export (absence of folder "File")
-				final boolean isTreeBasedExport = Files.exists(schemaFolder.resolve("File"));
-
-				final StructrSchemaDefinition schema = (StructrSchemaDefinition)StructrSchema.createFromSource(reader);
-
-				if (isTreeBasedExport) {
-
-					final Path globalMethodsFolder = schemaFolder.resolve(DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER);
-
-					if (Files.exists(globalMethodsFolder)) {
-
-						for (Map<String, Object> schemaMethod : schema.getGlobalMethods()) {
-
-							final String methodName = (String) schemaMethod.get("name");
-
-							final Path globalMethodSourceFile = globalMethodsFolder.resolve(methodName);
-							schemaMethod.put(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY, (Files.exists(globalMethodSourceFile)) ? new String(Files.readAllBytes(globalMethodSourceFile)) : null);
-
-							if (schemaMethod.containsKey(DEPLOYMENT_SCHEMA_COMMENT_ATTRIBUTE_KEY)) {
-
-								final String methodComment = (String) schemaMethod.get(DEPLOYMENT_SCHEMA_COMMENT_ATTRIBUTE_KEY);
-
-								if (methodComment != null) {
-
-									final Path globalMethodCommentFile = globalMethodsFolder.resolve(methodName + DEPLOYMENT_SCHEMA_COMMENT_SUFFIX);
-
-									if (methodComment.equals("./" + schemaFolder.relativize(globalMethodCommentFile).toString())) {
-										// only overwrite if comment is path
-										schemaMethod.put(DEPLOYMENT_SCHEMA_COMMENT_ATTRIBUTE_KEY, (Files.exists(globalMethodCommentFile)) ? new String(Files.readAllBytes(globalMethodCommentFile)) : null);
-									}
-								}
-							}
-						}
-					}
-
-					for (final StructrTypeDefinition typeDef : schema.getTypeDefinitions()) {
-
-						final Path typeFolder = schemaFolder.resolve(typeDef.getName());
-
-						if (Files.exists(typeFolder)) {
-
-							final Path functionsFolder = typeFolder.resolve(DEPLOYMENT_SCHEMA_FUNCTIONS_FOLDER);
-
-							if (Files.exists(functionsFolder)) {
-
-								for (final Object propDef : typeDef.getProperties()) {
-
-									if (propDef instanceof StructrFunctionProperty) {
-
-										final StructrFunctionProperty fp = (StructrFunctionProperty)propDef;
-
-										if (fp.getReadFunction() != null) {
-
-											final Path readFunctionSourceFile = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_READ_FUNCTION_SUFFIX);
-
-											if (Files.exists(readFunctionSourceFile)) {
-												fp.setReadFunction(new String(Files.readAllBytes(readFunctionSourceFile)));
-											} else {
-												fp.setReadFunction(null);
-												DeployCommand.addMissingSchemaFile(schemaFolder.relativize(readFunctionSourceFile).toString());
-											}
-										}
-
-										if (fp.getWriteFunction() != null) {
-
-											final Path writeFunctionSourceFile = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX);
-
-											if (Files.exists(writeFunctionSourceFile)) {
-												fp.setWriteFunction(new String(Files.readAllBytes(writeFunctionSourceFile)));
-											} else {
-												fp.setWriteFunction(null);
-												DeployCommand.addMissingSchemaFile(schemaFolder.relativize(writeFunctionSourceFile).toString());
-											}
-										}
-									}
-								}
-							}
-
-							final Path methodsFolder = typeFolder.resolve(DEPLOYMENT_SCHEMA_METHODS_FOLDER);
-
-							if (Files.exists(methodsFolder)) {
-
-								for (final Object m : typeDef.getMethods()) {
-
-									final StructrMethodDefinition method = (StructrMethodDefinition)m;
-									final String methodName              = method.getName();
-
-									if (method.getSource() != null) {
-
-										final Path methodSourceFile = methodsFolder.resolve(methodName);
-
-										if (Files.exists(methodSourceFile)) {
-											method.setSource(new String(Files.readAllBytes(methodSourceFile)));
-										} else {
-											method.setSource(null);
-											DeployCommand.addMissingSchemaFile(schemaFolder.relativize(methodSourceFile).toString());
-										}
-									}
-
-									final String methodComment = method.getComment();
-									if (methodComment != null) {
-
-										final Path methodCommentFile = methodsFolder.resolve(methodName + DEPLOYMENT_SCHEMA_COMMENT_SUFFIX);
-
-										if (methodComment.equals("./" + schemaFolder.relativize(methodCommentFile).toString())) {
-
-											method.setComment((Files.exists(methodCommentFile)) ? new String(Files.readAllBytes(methodCommentFile)) : null);
-										}
-									}
-								}
-							}
-						}
-					}
+				} catch (Throwable t) {
 				}
 
-				if (extendExistingSchema) {
+			});
 
-					StructrSchema.extendDatabaseSchema(app, schema);
+			deferredPageLinks.clear();
+
+			tx.success();
+		}
+	}
+
+	private void importEmbeddedApplicationData(final Path source) {
+
+		final Path dataDir = source.resolve("data");
+		if (Files.exists(dataDir) && Files.isDirectory(dataDir)) {
+
+			logger.info("Importing application data");
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing application data");
+
+			final DeployDataCommand cmd = StructrApp.getInstance(securityContext).command(DeployDataCommand.class);
+
+			cmd.doImportFromDirectory(dataDir);
+		}
+	}
+
+	private void importSchema(final Path schemaFolder, final boolean extendExistingSchema) throws FrameworkException {
+
+		if (Files.exists(schemaFolder)) {
+
+			try {
+
+				logger.info("Importing data from schema/ directory");
+				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing schema");
+
+				final Path schemaJsonFile = schemaFolder.resolve("schema.json");
+
+				if (!Files.exists(schemaJsonFile)) {
+
+					logger.info("Deployment does not contain schema/schema.json - continuing without schema import");
 
 				} else {
 
-					StructrSchema.replaceDatabaseSchema(app, schema);
+					final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+					ctx.setDoTransactionNotifications(false);
+
+					final App app = StructrApp.getInstance(ctx);
+
+					try (final FileReader reader = new FileReader(schemaJsonFile.toFile())) {
+
+						// detect tree-based export (absence of folder "File")
+						final boolean isTreeBasedExport = Files.exists(schemaFolder.resolve("File"));
+
+						final StructrSchemaDefinition schema = (StructrSchemaDefinition)StructrSchema.createFromSource(reader);
+
+						if (isTreeBasedExport) {
+
+							final Path globalMethodsFolder = schemaFolder.resolve(DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER);
+
+							if (Files.exists(globalMethodsFolder)) {
+
+								for (Map<String, Object> schemaMethod : schema.getGlobalMethods()) {
+
+									final String methodName = (String) schemaMethod.get("name");
+
+									final Path globalMethodSourceFile = globalMethodsFolder.resolve(methodName);
+									schemaMethod.put(DEPLOYMENT_SCHEMA_SOURCE_ATTRIBUTE_KEY, (Files.exists(globalMethodSourceFile)) ? new String(Files.readAllBytes(globalMethodSourceFile)) : null);
+								}
+							}
+
+							for (final StructrTypeDefinition typeDef : schema.getTypeDefinitions()) {
+
+								final Path typeFolder = schemaFolder.resolve(typeDef.getName());
+
+								if (Files.exists(typeFolder)) {
+
+									final Path functionsFolder = typeFolder.resolve(DEPLOYMENT_SCHEMA_FUNCTIONS_FOLDER);
+
+									if (Files.exists(functionsFolder)) {
+
+										for (final Object propDef : typeDef.getProperties()) {
+
+											if (propDef instanceof StructrFunctionProperty) {
+
+												final StructrFunctionProperty fp = (StructrFunctionProperty)propDef;
+
+												if (fp.getReadFunction() != null) {
+
+													final Path readFunctionSourceFile = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_READ_FUNCTION_SUFFIX);
+
+													if (Files.exists(readFunctionSourceFile)) {
+														fp.setReadFunction(new String(Files.readAllBytes(readFunctionSourceFile)));
+													} else {
+														fp.setReadFunction(null);
+														DeployCommand.addMissingSchemaFile(schemaFolder.relativize(readFunctionSourceFile).toString());
+													}
+												}
+
+												if (fp.getWriteFunction() != null) {
+
+													final Path writeFunctionSourceFile = functionsFolder.resolve(fp.getName() + DEPLOYMENT_SCHEMA_WRITE_FUNCTION_SUFFIX);
+
+													if (Files.exists(writeFunctionSourceFile)) {
+														fp.setWriteFunction(new String(Files.readAllBytes(writeFunctionSourceFile)));
+													} else {
+														fp.setWriteFunction(null);
+														DeployCommand.addMissingSchemaFile(schemaFolder.relativize(writeFunctionSourceFile).toString());
+													}
+												}
+											}
+										}
+									}
+
+									final Path methodsFolder = typeFolder.resolve(DEPLOYMENT_SCHEMA_METHODS_FOLDER);
+
+									if (Files.exists(methodsFolder)) {
+
+										for (final Object m : typeDef.getMethods()) {
+
+											final StructrMethodDefinition method = (StructrMethodDefinition)m;
+											final String methodName              = method.getName();
+
+											if (method.getSource() != null) {
+
+												final Path methodSourceFile = methodsFolder.resolve(methodName);
+
+												if (Files.exists(methodSourceFile)) {
+													method.setSource(new String(Files.readAllBytes(methodSourceFile)));
+												} else {
+													method.setSource(null);
+													DeployCommand.addMissingSchemaFile(schemaFolder.relativize(methodSourceFile).toString());
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+
+						if (extendExistingSchema) {
+
+							StructrSchema.extendDatabaseSchema(app, schema);
+
+						} else {
+
+							StructrSchema.replaceDatabaseSchema(app, schema);
+						}
+
+					} catch (Throwable t) {
+
+						throw new ImportFailureException(t.getMessage(), t);
+					}
 				}
 
-			} catch (Throwable t) {
+			} catch (ImportFailureException fex) {
 
-				throw new ImportFailureException(t.getMessage(), t);
+				logger.warn("Unable to import schema: {}", fex.getMessage());
+				throw new FrameworkException(422, fex.getMessage(), fex.getErrorBuffer());
+
+			} catch (Throwable t) {
+				logger.warn("Unable to import schema: {}", t.getMessage());
 			}
 		}
 	}
@@ -2084,7 +2287,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		Files.delete(path);
 	}
 
-	private void writeStringToFile(final Path path, final String string) {
+	protected void writeStringToFile(final Path path, final String string) {
 
 		try (final Writer writer = new FileWriter(path.toFile())) {
 
@@ -2182,6 +2385,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	// ----- public static methods -----
 	public static void addDeferredPagelink (String linkableUUID, String pagePath) {
 		deferredPageLinks.put(linkableUUID, pagePath);
+	}
+
+	public static void updateDeferredPagelink (String initialUUID, String correctUUID) {
+
+		if (deferredPageLinks.containsKey(initialUUID)) {
+			deferredPageLinks.put(correctUUID, deferredPageLinks.get(initialUUID));
+			deferredPageLinks.remove(initialUUID);
+		}
 	}
 
 	public static void addMissingPrincipal (final String principalName) {

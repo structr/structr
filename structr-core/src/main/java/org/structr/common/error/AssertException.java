@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,10 +18,16 @@
  */
 package org.structr.common.error;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+
 /**
  * Exception to be thrown when an unlicensed scripting function is encountered.
  */
-public class AssertException extends RuntimeException {
+public class AssertException extends RuntimeException implements JsonException {
 
 	private int statusCode = 422;
 
@@ -32,7 +38,21 @@ public class AssertException extends RuntimeException {
 		this.statusCode = statusCode;
 	}
 
-	public int getStatusCode() {
+	@Override
+	public int getStatus() {
 		return statusCode;
+	}
+
+	@Override
+	public JsonElement toJSON() {
+
+		JsonObject container = new JsonObject();
+		JsonArray errors     = new JsonArray();
+
+		container.add("code", new JsonPrimitive(statusCode));
+		container.add("message", (getMessage() != null) ? new JsonPrimitive(getMessage()) : JsonNull.INSTANCE);
+
+
+		return container;
 	}
 }

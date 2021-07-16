@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -69,6 +69,8 @@ public class LicensingTest {
 	@AfterMethod
 	public void cleanDatabaseAndSchema() {
 
+		Services.disableIndexConfiguration();
+
 		try (final Tx tx = app.tx()) {
 
 			// delete everything
@@ -87,12 +89,14 @@ public class LicensingTest {
 
 		try {
 
+			FlushCachesCommand.flushAll();
+
 			SchemaService.ensureBuiltinTypesExist(app);
 
 		} catch (Throwable t) {
 
 			t.printStackTrace();
-			logger.error("Exception while trying to clean database: {}", t.getMessage());
+			logger.error("Exception while trying to create built-in schema for tenant identifier {}: {}", randomTenantId, t.getMessage());
 		}
 	}
 
@@ -100,6 +104,7 @@ public class LicensingTest {
 	public void startSystem() {
 
 		Services.disableTestingMode();
+		Services.disableIndexConfiguration();
 
 		final Date now          = new Date();
 		final long timestamp    = now.getTime();

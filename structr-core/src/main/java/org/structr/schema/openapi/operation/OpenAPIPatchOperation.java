@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -54,7 +54,8 @@ public class OpenAPIPatchOperation extends OpenAPIOperation {
 
 			// responses
 			Map.of(
-				"200", new OpenAPIRequestResponse("Ok", null),
+				"200", new OpenAPIReference("#/components/responses/ok"),
+				"401", new OpenAPIReference("#/components/responses/unauthorized"),
 				"403", new OpenAPIReference("#/components/responses/forbidden"),
 				"404", new OpenAPIReference("#/components/responses/notFound"),
 				"422", new OpenAPIReference("#/components/responses/validationError")

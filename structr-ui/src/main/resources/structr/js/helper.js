@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -233,6 +233,8 @@ function formatValue(value) {
 	}
 }
 
+function formatBytes(a,b=2){if(0===a)return"0 Bytes";const c=0>b?0:b,d=Math.floor(Math.log(a)/Math.log(1024));return parseFloat((a/Math.pow(1024,d)).toFixed(c))+" "+["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"][d]}
+
 function getTypeFromResourceSignature(signature) {
 	var i = signature.indexOf('/');
 	if (i === -1)
@@ -241,14 +243,14 @@ function getTypeFromResourceSignature(signature) {
 }
 
 function blinkGreen(element) {
-	blink(element, '#6db813', '#81ce25');
+	blink($(element), '#6db813', '#81ce25');
 }
 
 function blinkRed(element) {
-	blink(element, '#a00', '#faa');
+	blink($(element), '#a00', '#faa');
 }
 
-function blink (element, color, bgColor) {
+function blink(element, color, bgColor) {
 
 	if (!element || !element.length) {
 		return;
@@ -573,9 +575,6 @@ var _Console = new (function() {
 
 	// public methods
 	this.logoutAction = function() {
-		Command.console('clear');
-		Command.console('exit');
-
 		_terminal.reset();
 		_initialized = false;
 		_hideConsole();
@@ -1056,3 +1055,32 @@ var AsyncObjectCache = function(fetchFunction) {
 		}
 	};
 };
+
+
+// live binding helper with CSS selector
+function live(selector, event, callback, context) {
+	addEvent(context || document, event, function(e) {
+		var qs = (context || document).querySelectorAll(selector);
+		if (qs) {
+			var el = e.target || e.srcElement, index = -1;
+			while (el && ((index = Array.prototype.indexOf.call(qs, el)) === -1)) el = el.parentElement;
+			if (index > -1) callback.call(el, e);
+		}
+	});
+}
+// helper for enabling IE 8 event bindings
+function addEvent(el, type, handler) {
+	if (el.attachEvent) el.attachEvent('on'+type, handler); else el.addEventListener(type, handler);
+}
+// matches polyfill
+this.Element && function(ElementPrototype) {
+	ElementPrototype.matches = ElementPrototype.matches ||
+		ElementPrototype.matchesSelector ||
+		ElementPrototype.webkitMatchesSelector ||
+		ElementPrototype.msMatchesSelector ||
+		function(selector) {
+			var node = this, nodes = (node.parentNode || node.document).querySelectorAll(selector), i = -1;
+			while (nodes[++i] && nodes[i] != node);
+			return !!nodes[i];
+		}
+}(Element.prototype);

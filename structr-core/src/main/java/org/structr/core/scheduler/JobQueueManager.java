@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -165,11 +165,7 @@ public class JobQueueManager {
 		if (!hasRunningJobs()) {
 			startNextJobInQueue();
 		}
-
 	}
-
-
-	//~--- private methods ----------------------------------------------------
 
 	private void appendToQueueInternal (final ScheduledJob job) {
 		jobIdQueue.add(job.jobId());
@@ -185,20 +181,6 @@ public class JobQueueManager {
 
 		// if any job is RUNNING or PAUSED, dont auto-start new tasks
 		return (!activeJobs.isEmpty());
-
-//		// if any job is RUNNING, dont auto-start new tasks
-//		// this effectively means that if a user PAUSES a job, the queue is stopped BUT
-//		// if another job is queued or the last running job finishes, then the next queued job is started
-//		boolean hasRunningJob = false;
-//
-//		for (ImportJob job : activeJobs.values()) {
-//			if (job.getCurrentStatus().equals(ImportJob.JobStatus.RUNNING)) {
-//				hasRunningJob = true;
-//			}
-//		}
-//
-//		return hasRunningJob;
-
 	}
 
 	private void startNextJobInQueue() {

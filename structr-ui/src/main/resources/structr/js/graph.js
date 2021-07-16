@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,10 +18,7 @@
  */
 var graphBrowser, mode, colors = [], c = 0;
 var nodeIds = [], relIds = [], removedRel;
-var activeTabRightGraphKey = 'structrActiveTabRightGraph_' + port;
-var activeTabLeftGraphKey = 'structrActiveTabLeftGraph_' + port;
-var activeTabLeftGraph, activeTabRightGraph;
-var queriesSlideout, displaySlideout, filtersSlideout, graph;
+var graph;
 var savedQueriesKey = 'structrSavedQueries_' + port;
 var relTypes = {}, nodeTypes = {}, color = {}, relColors = {}, hasDragged, hasDoubleClicked, clickTimeout, doubleClickTime = 250, refreshTimeout;
 var filteredNodeTypes = [], hiddenNodeTypes = [], hiddenRelTypes = [];
@@ -68,7 +65,6 @@ $(document).ready(function() {
 	$(document).on('click', '.remove-cypher-parameter', function() {
 		$(this).parent().remove();
 	});
-
 });
 
 var _Graph = {
@@ -102,8 +98,8 @@ var _Graph = {
 
 		_Graph.updateNodeTypes();
 
-		var canvasWidth = $('#graph-canvas').width();
-		var canvasHeight = canvasWidth / (16 / 9);
+		var canvasWidth = 1000; //$('#graph-canvas').width();
+		var canvasHeight = 1000; //canvasWidth / (16 / 9);
 
 		var editDistance = Math.sqrt(Math.pow(canvasWidth, 2) + Math.pow(canvasHeight, 2)) * 0.2;
 		var graphBrowserSettings = {
@@ -132,7 +128,7 @@ var _Graph = {
 				},
 				'selectionTools': {'container': 'graph-canvas'},
 				'relationshipEditor' : {
-					incommingRelationsKey: 'shift',
+					incomingRelationsKey: 'shift',
 					outgoingRelationsKey: 'ctrl',
 					deleteEvent: 'doubleClickEdge',
 					onDeleteRelation: undefined,
@@ -195,349 +191,262 @@ var _Graph = {
 
 	onload: function() {
 
-		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('graph'));
-
-		activeTabLeftGraph = LSWrapper.getItem(activeTabRightGraphKey);
-		activeTabRightGraph = LSWrapper.getItem(activeTabLeftGraphKey);
-
-		main.prepend(
-			'<div id="graph-box" class="graphNoSelect"><div id="graph-info"></div><div id="queries" class="slideOut slideOutLeft"><div class="compTab" id="queriesTab">Queries</div><div><button id="clear-graph">Clear Graph</button></div></div>'
-			+ '<div id="display" class="slideOut slideOutLeft"><div class="compTab" id="displayTab">Control Options</div></div>'
-			+ '<div id="filters" class="slideOut slideOutLeft"><div class="compTab" id="filtersTab">Filters</div><div id="nodeFilters"><h3>Node Filters</h3></div><div id="relFilters"><h3>Relationship Filters</h3></div></div>'
-			+ '<div class="canvas" id="graph-canvas"></div>'
-			+ '<div id="node-types" class="graph-object-types"></div>'
-			+ '<div id="relationship-types" class="graph-object-types"></div>'
-			+ '</div>'
-		);
-
-		queriesSlideout = $('#queries');
-		displaySlideout = $('#display');
-		filtersSlideout = $('#filters');
-
-		var nodeFilters = $('#nodeFilters', filtersSlideout);
-
-		nodeFilters.append(
-			'<div><input type="checkbox" id="graphTypeToggleCore"><label for="graphTypeToggleCore"> Core Types</label></div>' +
-			'<div><input type="checkbox" id="graphTypeToggleUi"><label for="graphTypeToggleUi"> UI Types</label></div>' +
-			'<div><input type="checkbox" id="graphTypeToggleCustom"><label for="graphTypeToggleCustom"> Custom Types</label></div>' +
-			'<div><input type="checkbox" id="graphTypeToggleHtml"><label for="graphTypeToggleHtml"> HTML Types</label></div>' +
-			'<div><input type="checkbox" id="graphTypeToggleLog"><label for="graphTypeToggleLog"> Log Types</label></div>' +
-			'<div><input type="checkbox" id="graphTypeToggleOther"><label for="graphTypeToggleOther"> Other Types</label></div>'
-		);
-
-		var savedTypeVisibility = LSWrapper.getItem(_Graph.displayTypeConfigKey) || {};
-		$('#graphTypeToggleRels').prop('checked', (savedTypeVisibility.rels === undefined ? true : savedTypeVisibility.rels));
-		$('#graphTypeToggleCustom').prop('checked', (savedTypeVisibility.custom === undefined ? true : savedTypeVisibility.custom));
-		$('#graphTypeToggleCore').prop('checked', (savedTypeVisibility.core === undefined ? true : savedTypeVisibility.core));
-		$('#graphTypeToggleHtml').prop('checked', (savedTypeVisibility.html === undefined ? true : savedTypeVisibility.html));
-		$('#graphTypeToggleUi').prop('checked', (savedTypeVisibility.ui === undefined ? true : savedTypeVisibility.ui));
-		$('#graphTypeToggleLog').prop('checked', (savedTypeVisibility.log === undefined ? true : savedTypeVisibility.log));
-		$('#graphTypeToggleOther').prop('checked', (savedTypeVisibility.other === undefined ? true : savedTypeVisibility.other));
-
-
-		$('#display').append(
-			'<div id="graphDisplayTab">' +
-				'<div id="displayOptions">' +
-					'<h3>Display Options</h3>' +
-					'<button id="toggleNodeLabels">Hide node labels</button>' +
-					'<button id="toggleEdgeLabels">Hide edge labels</button>' +
-				'</div>' +
-				'<div id="graphLayouts">' +
-					'<h3>Layouts</h3>' +
-					'<button id="fruchterman-controlElement">Fruchterman Layout</button>' +
-                                        '<button id="dagre-controlElement">Dagre Layout</button>' +
-                                        '<h4 style="margin-bottom: -8px;">Force Atlas 2<h4/>' +
-                                        '<button id="start-forceAtlas-controlElement">Start ForceAtlas2</button>' +
-                                        '<button id="stop-forceAtlas-controlElement">Stop ForceAtlas2</button>' +
-				'</div>' +
-				'<div id="graphSelectionTools">' +
-					'<h3>Selection Tools</h3>' +
-					'<button id="newSelectionGroup">New Selection</button>' +
-					'<button id="selectionLasso">Lasso</button>' +
-					'<div id="selectionToolsTableContainer">' +
-						'<table id="selectionToolsTable" class="graphtable responsive">' +
-							'<thead id="selectionToolsTableHead"><tr>' +
-								'<th>Group</th>' +
-								'<th>Fixed</th>' +
-								'<th>Hidden</th>' +
-								'<th>Remove</th>' +
-							'</tr></thead>' +
-							'<tbody id="selectiontools-selectionTable-groupSelectionItems">' +
-							'<tbody>' +
-						'</table>' +
-					'</div>' +
-				'</div>' +
-			'</div>'
-		);
-
-		$('#fruchterman-controlElement').on('click', function() {
-			graphBrowser.doLayout('fruchtermanReingold');
-		});
-
-                $('#dagre-controlElement').on('click', function() {
-			graphBrowser.doLayout('dagre');
-		});
-
-                $('#start-forceAtlas-controlElement').on('click', function() {
-			graphBrowser.startForceAtlas2();
-		});
-
-                $('#stop-forceAtlas-controlElement').on('click', function() {
-			graphBrowser.stopForceAtlas2();
-		});
-
-		$('#toggleNodeLabels').on('click', function() {
+		live('#toggleNodeLabels', 'change', (e) => {
 			nodeLabelsHidden = !nodeLabelsHidden;
-			$(this).text( (nodeLabelsHidden ? 'Show' : 'Hide') + ' node labels');
 			graphBrowser.changeSigmaSetting('drawLabels', !nodeLabelsHidden);
 		});
 
-		$('#toggleEdgeLabels').on('click', function() {
+		live('#toggleEdgeLabels', 'change', (e) => {
 			edgeLabelsHidden = !edgeLabelsHidden;
-			$(this).text((edgeLabelsHidden ? 'Show' : 'Hide') + ' edge labels');
 			graphBrowser.changeSigmaSetting('drawEdgeLabels', !edgeLabelsHidden);
 		});
 
-		$('#selectionLasso').on('click', function() {
-			if (!graphBrowser.selectionToolsActive) {
-				graphBrowser.activateSelectionLasso(true);
-			}
+		live('#fruchterman-controlElement', 'click', () => {
+			graphBrowser.doLayout('fruchtermanReingold');
 		});
 
-		$('#newSelectionGroup').on('click', function() {
-			var newId = graphBrowser.createSelectionGroup();
-			$('#selectiontools-selectionTable-groupSelectionItems').append(
-				'<tr>' +
-					'<td><input type="checkbox" name="selectedGroup[]" value="selected.' + newId + '">' + newId + '</td>' +
-					'<td style="text-align: center;"><input type="checkbox" name="Fixed[]" value="fixed.' + newId + '"></td>' +
-					'<td style="text-align: center;"><input type="checkbox" name="Hidden[]" value="hidden.' + newId + '"></td>' +
-					'<td style="text-align: center;"><button class="selectionTableRemoveBtn" value="' + newId + '">Remove</button></td>' +
-				'</tr>'
-			);
-			$("input[name='selectedGroup[]']").trigger('click');
-			$("input[value='selected." + newId + "']").prop('checked', true);
+		live('#dagre-controlElement', 'click', () => {
+			graphBrowser.doLayout('dagre');
 		});
 
-		$(document).on('click', ".selectionTableRemoveBtn", function() {
-			var val = $(this).val();
-			graphBrowser.dropSelection(val);
+		live('#forceAtlas-controlElement', 'click', (e) => {
+			let el = e.target.closest('a#forceAtlas-controlElement');
+			el.classList.toggle('active');
+			graphBrowser.startForceAtlas2();
 		});
 
-		$(document).on('click', "input[name='selectedGroup[]']",  function() {
-			var self = $(this);
+		Structr.fetchHtmlTemplate('graph/submenu', {}, function(html) {
+			functionBar[0].innerHTML = html;
 
-			if (self.is(':checked')) {
-				$("input[name='selectedGroup[]']").prop("checked", false);
-				self.prop("checked", true);
-				var val = self.val().split('.');
-				graphBrowser.activateSelectionTools();
-				graphBrowser.activateSelectionGroup(val[1]);
-			} else {
-				graphBrowser.deactivateSelectionTools();
-				self.prop("checked", false);
-			}
-		});
+			$('#clear-graph').on('click', function() {
+				_Graph.clearGraph();
+			});
 
-		$(document).on('click', "input[name='Hidden[]']",  function() {
-			var self = $(this);
-			var val = self.val().split('.');
+			let savedTypeVisibility = LSWrapper.getItem(_Graph.displayTypeConfigKey) || {};
+			$('#graphTypeToggleRels').prop('checked', (savedTypeVisibility.rels === undefined ? true : savedTypeVisibility.rels));
+			$('#graphTypeToggleCustom').prop('checked', (savedTypeVisibility.custom === undefined ? true : savedTypeVisibility.custom));
+			$('#graphTypeToggleCore').prop('checked', (savedTypeVisibility.core === undefined ? true : savedTypeVisibility.core));
+			$('#graphTypeToggleHtml').prop('checked', (savedTypeVisibility.html === undefined ? true : savedTypeVisibility.html));
+			$('#graphTypeToggleUi').prop('checked', (savedTypeVisibility.ui === undefined ? true : savedTypeVisibility.ui));
+			$('#graphTypeToggleLog').prop('checked', (savedTypeVisibility.log === undefined ? true : savedTypeVisibility.log));
+			$('#graphTypeToggleOther').prop('checked', (savedTypeVisibility.other === undefined ? true : savedTypeVisibility.other));
 
-			graphBrowser.hideSelectionGroup(val[1], self.is(':checked'));
-		});
 
-		$(document).on('click', "input[name='Fixed[]']",  function() {
-			var self = $(this);
-			var val = self.val().split('.');
 
-			graphBrowser.fixateSelectionGroup(val[1], self.is(':checked'));
-		});
-
-		$(document).on('click', '.closeTooltipBtn', function(){
-			graphBrowser.closeTooltip();
-		});
-
-		$(document).on('click', '#tooltipBtnProps', function(){
-			var id = $(this).attr("value");
-			_Entities.showProperties({id: id});
-			graphBrowser.closeTooltip();
-		});
-
-		$(document).on('click', '#tooltipBtnHide', function() {
-			var id = $(this).attr("value");
-			graphBrowser.closeTooltip();
-			graphBrowser.hideNode(id, true);
-		});
-
-		$(document).on('click', '#tooltipBtnDrop', function() {
-			var id = $(this).attr("value");
-			graphBrowser.closeTooltip();
-			graphBrowser.dropNode(id);
-			graphBrowser.dataChanged();
-			_Graph.updateRelationshipTypes();
-		});
-
-		$(document).on('click', '#tooltipBtnDel', function() {
-			var self = $(this);
-			var id = self.attr("value");
-			Command.get(id, 'id,type,name,sourceId,targetId', function (entity) {
-				if (graphBrowser.getNode(entity.id)) {
-					_Entities.deleteNode(self, entity, false, function (entity) {
-						graphBrowser.dropNode(entity);
-						graphBrowser.dataChanged();
-						_Graph.updateRelationshipTypes();
-					});
-				} else {
-					_Entities.deleteEdge(self, entity, false, function (entity) {
-						if(graphBrowser.getEdge(entity)) {
-							graphBrowser.dropEdge(entity);
-						}
-						graphBrowser.dataChanged();
-						_Graph.updateRelationshipTypes();
-					});
+			$('#selectionLasso').on('click', function() {
+				if (!graphBrowser.selectionToolsActive) {
+					graphBrowser.activateSelectionLasso(true);
 				}
 			});
-			graphBrowser.closeTooltip();
-		});
 
-		graph = $('#graph-canvas');
+			$('#newSelectionGroup').on('click', function() {
 
-		graph.droppable({
-			accept: '.node-type',
-			drop: function(e, ui) {
-				var nodeType = ui.helper.attr('data-node-type');
-				Command.create({
-					type: nodeType
-				}, function(obj) {
-                                    if(obj != null) {
-					Command.get(obj.id, 'id,type,name,color,tag', function(node) {
-						_Graph.drawNode(node);
-					});
-                                    }
+				let newId = graphBrowser.createSelectionGroup();
+
+				Structr.fetchHtmlTemplate('graph/new_selection_group', {newId: newId}, function(html) {
+
+					$('#selectiontools-selectionTable-groupSelectionItems').append(html);
+					$("input[name='selectedGroup[]']").trigger('click');
+					$("input[value='selected." + newId + "']").prop('checked', true);
 				});
-			}
-		});
-
-		_Graph.init();
-
-		$('.slideOut').on('mouseover', function() {
-			running = false;
-			return true;
-		});
-
-		$('.slideOut').on('mouseout', function() {
-			running = true;
-			return true;
-		});
-
-		$('#queriesTab').on('click', function() {
-			_Pages.leftSlideoutTrigger(this, queriesSlideout, [displaySlideout, filtersSlideout], activeTabLeftGraphKey);
-		});
-
-		$('#displayTab').on('click', function() {
-			_Pages.leftSlideoutTrigger(this, displaySlideout, [queriesSlideout, filtersSlideout], activeTabLeftGraphKey);
-		});
-
-		$('#filtersTab').on('click', function() {
-			_Pages.leftSlideoutTrigger(this, filtersSlideout, [queriesSlideout, displaySlideout], activeTabLeftGraphKey);
-		});
-
-		if (activeTabLeftGraph) {
-			$('#' + activeTabLeftGraph).addClass('active').click();
-		}
-
-		if (activeTabRightGraph) {
-			$('#' + activeTabRightGraph).addClass('active').click();
-		}
-
-		queriesSlideout.append('<div class="query-box"><textarea class="search" name="rest" cols="39" rows="4" placeholder="Enter a REST query here"></textarea><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" id="clear-rest" data-type="rest" />'
-			+ '<button id="exec-rest">Execute REST query</button></div>');
-
-		queriesSlideout.append('<div class="query-box"><textarea class="search" name="cypher" cols="39" rows="4" placeholder="Enter a Cypher query here"></textarea><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" id="clear-cypher" data-type="cypher" />'
-			+ '<button id="exec-cypher">Execute Cypher query</button></div>');
-
-		queriesSlideout.append('<div id="cypher-params"><h3>Cypher Parameters</h3><i id="add-cypher-parameter" class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
-		_Graph.appendCypherParameter($('#cypher-params'));
-
-		$('#clear-graph').on('click', function() {
-			_Graph.clearGraph();
-		});
-
-		$('.clearSearchIcon').on('click', function() {
-			var self = $(this);
-			self.hide();
-			$('.search[name=' + self.data('type') + ']').val('').focus();
-		});
-
-		$('#exec-rest').on('click', function() {
-			var query = $('.search[name=rest]').val();
-			if (query && query.length) {
-				_Graph.execQuery(query, 'rest');
-			}
-		});
-
-		$('#exec-cypher').on('click', function() {
-			var query = $('.search[name=cypher]').val();
-			var params = {};
-			var names = $.map($('[name="cyphername[]"]'), function(n) {
-				return $(n).val();
-			});
-			var values = $.map($('[name="cyphervalue[]"]'), function(v) {
-				return $(v).val();
 			});
 
-			for (var i = 0; i < names.length; i++) {
-				params[names[i]] = values[i];
-			}
+			$(document).on('click', ".selectionTableRemoveBtn", function() {
+				var val = $(this).val();
+				graphBrowser.dropSelection(val);
+			});
 
-			if (query && query.length) {
-				_Graph.execQuery(query, 'cypher', JSON.stringify(params));
-			}
-		});
+			$(document).on('click', "input[name='selectedGroup[]']",  function() {
+				var self = $(this);
 
-		$('#add-cypher-parameter').on('click', function() {
-			_Graph.appendCypherParameter($('#cypher-params'));
-		});
-
-		$(document).on('click', '.remove-cypher-parameter', function() {
-			$(this).parent().remove();
-		});
-
-		_Graph.clearSearch('rest');
-		_Graph.clearSearch('cypher');
-		queriesSlideout.append('<div><h3>Saved Queries</h3></div>');
-		_Graph.listSavedQueries();
-
-		_Graph.searchField = $('.search', queriesSlideout);
-		_Graph.searchField.focus();
-		_Graph.searchField.keyup(function(e) {
-			var self = $(this);
-			var searchString = self.val();
-			var type = self.attr('name');
-
-			if (searchString && searchString.length) {
-				_Graph.showClearSearchIcon(type);
-			} else {
-				_Graph.clearSearch(type);
-			}
-
-			if (searchString && searchString.length && e.which === 13) {
-				if (!shiftKey) {
-					_Graph.execQuery(searchString, type);
-					return false;
+				if (self.is(':checked')) {
+					$("input[name='selectedGroup[]']").prop("checked", false);
+					self.prop("checked", true);
+					var val = self.val().split('.');
+					graphBrowser.activateSelectionTools();
+					graphBrowser.activateSelectionGroup(val[1]);
+				} else {
+					graphBrowser.deactivateSelectionTools();
+					self.prop("checked", false);
 				}
-			} else if (e.which === 27) {
-				_Graph.clearSearch(type);
-			}
+			});
+
+			$(document).on('click', "input[name='Hidden[]']",  function() {
+				var self = $(this);
+				var val = self.val().split('.');
+
+				graphBrowser.hideSelectionGroup(val[1], self.is(':checked'));
+			});
+
+			$(document).on('click', "input[name='Fixed[]']",  function() {
+				var self = $(this);
+				var val = self.val().split('.');
+
+				graphBrowser.fixateSelectionGroup(val[1], self.is(':checked'));
+			});
+
+			$('.clearSearchIcon').on('click', function() {
+				var self = $(this);
+				self.hide();
+				$('.search[name=' + self.data('type') + ']').val('').focus();
+			});
+
+			$('#exec-rest').on('click', function() {
+				var query = $('.search[name=rest]').val();
+				if (query && query.length) {
+					_Graph.execQuery(query, 'rest');
+				}
+			});
+
+			$('#exec-cypher').on('click', function() {
+				var query = $('.search[name=cypher]').val();
+				var params = {};
+				var names = $.map($('[name="cyphername[]"]'), function(n) {
+					return $(n).val();
+				});
+				var values = $.map($('[name="cyphervalue[]"]'), function(v) {
+					return $(v).val();
+				});
+
+				for (var i = 0; i < names.length; i++) {
+					params[names[i]] = values[i];
+				}
+
+				if (query && query.length) {
+					_Graph.execQuery(query, 'cypher', JSON.stringify(params));
+				}
+			});
+
+
+			Structr.fetchHtmlTemplate('graph/graph', {}, function(html) {
+
+				main[0].innerHTML = html;
+
+				Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('graph'));
+
+				$(document).on('click', '.closeTooltipBtn', function(){
+					graphBrowser.closeTooltip();
+				});
+
+				$(document).on('click', '#tooltipBtnProps', function(){
+					var id = $(this).attr("value");
+					_Entities.showProperties({id: id});
+					graphBrowser.closeTooltip();
+				});
+
+				$(document).on('click', '#tooltipBtnHide', function() {
+					var id = $(this).attr("value");
+					graphBrowser.closeTooltip();
+					graphBrowser.hideNode(id, true);
+				});
+
+				$(document).on('click', '#tooltipBtnDrop', function() {
+					var id = $(this).attr("value");
+					graphBrowser.closeTooltip();
+					graphBrowser.dropNode(id);
+					graphBrowser.dataChanged();
+					_Graph.updateRelationshipTypes();
+				});
+
+				$(document).on('click', '#tooltipBtnDel', function() {
+					var self = $(this);
+					var id = self.attr("value");
+					Command.get(id, 'id,type,name,sourceId,targetId', function (entity) {
+						if (graphBrowser.getNode(entity.id)) {
+							_Entities.deleteNode(self, entity, false, function (entity) {
+								graphBrowser.dropNode(entity);
+								graphBrowser.dataChanged();
+								_Graph.updateRelationshipTypes();
+							});
+						} else {
+							_Entities.deleteEdge(self, entity, false, function (entity) {
+								if(graphBrowser.getEdge(entity)) {
+									graphBrowser.dropEdge(entity);
+								}
+								graphBrowser.dataChanged();
+								_Graph.updateRelationshipTypes();
+							});
+						}
+					});
+					graphBrowser.closeTooltip();
+				});
+
+				graph = $('#graph-canvas');
+
+				graph.droppable({
+					accept: '.node-type',
+					drop: function(e, ui) {
+						var nodeType = ui.helper.attr('data-node-type');
+						Command.create({
+							type: nodeType
+						}, function(obj) {
+							if(obj != null) {
+								Command.get(obj.id, 'id,type,name,color,tag', function(node) {
+									_Graph.drawNode(node);
+								});
+							}
+						});
+					}
+				});
+
+				_Graph.init();
+				_Graph.appendCypherParameter($('#cypher-params'));
+
+				$('#add-cypher-parameter').on('click', function() {
+					_Graph.appendCypherParameter($('#cypher-params'));
+				});
+
+				$(document).on('click', '.remove-cypher-parameter', function() {
+					$(this).parent().remove();
+				});
+
+				_Graph.clearSearch('rest');
+				_Graph.clearSearch('cypher');
+				_Graph.listSavedQueries();
+
+				_Graph.searchField = $('.query-box .search');
+				_Graph.searchField.focus();
+				_Graph.searchField.keyup(function(e) {
+					var self = $(this);
+					var searchString = self.val();
+					var type = self.attr('name');
+
+					if (searchString && searchString.length) {
+						_Graph.showClearSearchIcon(type);
+					} else {
+						_Graph.clearSearch(type);
+					}
+
+					if (searchString && searchString.length && e.which === 13) {
+						if (!shiftKey) {
+
+							if (type === 'rest') {
+								e.stopPropagation();
+								e.preventDefault();
+							} else {
+								_Graph.searchField.attr('rows', searchString.split('\n').length);
+							}
+
+							_Graph.execQuery(searchString, type);
+							return false;
+						}
+					} else if (e.which === 27) {
+						_Graph.clearSearch(type);
+					}
+				});
+
+				$(window).off('resize').resize(function() {
+					_Graph.resize();
+				});
+
+				$('#newSelectionGroup').trigger('click');
+				Structr.unblockMenu(100);
+
+			});
+
 		});
 
-		$(window).off('resize').resize(function() {
-			_Graph.resize();
-		});
-
-		$('#newSelectionGroup').trigger('click');
-		Structr.unblockMenu(100);
 	},
-
 	execQuery: function(query, type, params) {
 		if (query && query.length) {
 			if (type === 'cypher') {
@@ -614,7 +523,7 @@ var _Graph = {
 	},
 	listSavedQueries: function() {
 		$('#saved-queries').empty();
-		queriesSlideout.append('<div id="saved-queries"></div>');
+
 		var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
 		$.each(savedQueries, function(q, query) {
 			if (query.type === 'cypher') {
@@ -742,38 +651,33 @@ var _Graph = {
 	resize: function() {
 		Structr.resize();
 
-		var windowHeight = $(window).height();
-		var windowWidth = $(window).width();
-		var offsetHeight = 360;
+		// var windowHeight = $(window).height();
+		// var windowWidth = $(window).width();
 
-		$('#saved-queries').css({
-			height: windowHeight - offsetHeight + 'px'
-		});
+		// var ch = windowHeight - graph.offset().top;
 
-		var ch = windowHeight - 64;
+		// graph.css({
+		// 	height: ch,
+		// 	width: windowWidth
+		// });
+		//
+		// $('canvas', graph).css({
+		// 	height: ch,
+		// 	width: windowWidth
+		// });
 
-		graph.css({
-			height: ch,
-			width: windowWidth
-		});
-
-		$('canvas', graph).css({
-			height: ch,
-			width: windowWidth
-		});
-
-		nodeTypes = $('#node-types');
-		var distance = nodeTypes.position().top - 60;
-		var boxHeight = (ch - (3 * distance)) / 2;
-
-		nodeTypes.css({
-			height: boxHeight
-		});
-
-		$('#relationship-types').css({
-			top: nodeTypes.position().top + boxHeight + distance,
-			height: boxHeight
-		});
+		// nodeTypes = $('#node-types');
+		// var distance = nodeTypes.position().top - 60;
+		// var boxHeight = (ch - (3 * distance)) / 2;
+		//
+		// nodeTypes.css({
+		// 	height: boxHeight
+		// });
+		//
+		// $('#relationship-types').css({
+		// 	top: nodeTypes.position().top + boxHeight + distance,
+		// 	height: boxHeight
+		// });
 	},
 
 	loadTypeDefinition: function(type, callback) {
@@ -848,8 +752,8 @@ var _Graph = {
 				var isLogType     = node.className.startsWith('org.structr.rest.logging.entity');
 				var isOtherType   = !(isRelType || isDynamicType || isCoreType || isHtmlType || isUiType || isLogType);
 
-				var hide =	(!typeVisibility.rels && isRelType) || (!typeVisibility.custom && isDynamicType) || (!typeVisibility.core && isCoreType) || (!typeVisibility.html && isHtmlType) ||
-							(!typeVisibility.ui && isUiType) || (!typeVisibility.log && isLogType) || (!typeVisibility.other && isOtherType);
+				let hide = false; //(!typeVisibility.rels && isRelType) || (!typeVisibility.custom && isDynamicType) || (!typeVisibility.core && isCoreType) || (!typeVisibility.html && isHtmlType) ||
+							//(!typeVisibility.ui && isUiType) || (!typeVisibility.log && isLogType) || (!typeVisibility.other && isOtherType);
 
 				if (hide) {
 					filteredNodeTypes.push(node.type);
@@ -912,11 +816,11 @@ var _Graph = {
 	},
 
 	filterNodeTypes: function(types) {
-			graphBrowser.clearFilterNodeTypes();
+		graphBrowser.clearFilterNodeTypes();
 		types.forEach(function(type) {
 			graphBrowser.addNodeTypeToFilter(type);
 		});
-			graphBrowser.filterGraph();
+		graphBrowser.filterGraph();
 	},
 
 	setNodeColor: function(node) {
@@ -980,6 +884,10 @@ var _Graph = {
 
 	handleClickStageEvent: function(){
 		graphBrowser.hideExpandButtons();
+		document.querySelectorAll('.dropdown-menu-container').forEach((container) => {
+			container.style.opacity = '0';
+			fastRemoveAllChildren(container);
+		});
 	},
 
 	handleDragNodeEvent: function(){
@@ -1020,7 +928,6 @@ var _Graph = {
 	},
 
 	handleClickEdgeEvent: function(clickedEdge){
-		var edge = clickedEdge.data.edge;
 
 		if (hasDragged) {
 			hasDragged = false;
@@ -1028,7 +935,9 @@ var _Graph = {
 		}
 
 		hasDoubleClicked = false;
-		_Entities.showProperties(edge);
+
+		_Entities.showProperties(clickedEdge.data.edge);
+
 	},
 
 	renderNodeExpanderInfoButton: function(colorKey, label){

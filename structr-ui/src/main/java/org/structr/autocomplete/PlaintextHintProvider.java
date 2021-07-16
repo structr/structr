@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,9 +23,7 @@ import java.util.Collections;
 import org.structr.core.function.ParseResult;
 import java.util.LinkedList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.SecurityContext;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
@@ -34,6 +32,7 @@ import org.structr.core.parser.Expression;
 import org.structr.core.parser.FunctionExpression;
 import org.structr.core.parser.RootExpression;
 import org.structr.core.parser.ValueExpression;
+import org.structr.core.script.Snippet;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Hint;
 
@@ -43,10 +42,8 @@ import org.structr.schema.action.Hint;
  */
 public class PlaintextHintProvider extends AbstractHintProvider {
 
-	private static final Logger logger = LoggerFactory.getLogger(PlaintextHintProvider.class);
-
 	@Override
-	protected List<Hint> getAllHints(final SecurityContext securityContext, final GraphObject currentNode, final String editorText, final ParseResult result) {
+	protected List<Hint> getAllHints(final ActionContext securityContext, final GraphObject currentNode, final String editorText, final ParseResult result) {
 
 		// don't interpret invalid strings
 		if (editorText != null && (editorText.endsWith("''") || editorText.endsWith("\"\""))) {
@@ -59,7 +56,7 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 		try {
 
 			// parse function but ignore exceptions, we're only interested in the expression structure
-			Functions.parse(ctx, currentNode, editorText, result);
+			Functions.parse(ctx, currentNode, new Snippet("hint", editorText), result);
 
 		} catch (FrameworkException ignore) { }
 
@@ -120,7 +117,7 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 	}
 
 	// ----- private methods -----
-	private void handleValueExpression(final SecurityContext securityContext, final ValueExpression expression, final GraphObject currentNode, final List<Hint> hints, final ParseResult result) {
+	private void handleValueExpression(final ActionContext actionContext, final ValueExpression expression, final GraphObject currentNode, final List<Hint> hints, final ParseResult result) {
 
 		final String keyword = expression.getKeyword();
 
@@ -131,12 +128,16 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 
 		if (length > 1) {
 
+			final String joined       = StringUtils.join(result.getTokens(), "");
+			final String[] split      = StringUtils.splitPreserveAllTokens(joined, ".");
+			final List<String> tokens = Arrays.asList(split);
+
 			// replace tokens in result (must be split by ".")
 			result.getTokens().clear();
 			result.getTokens().addAll(Arrays.asList(parts));
 
 			// evaluate first part only for now..
-			handleToken(securityContext, parts[0], currentNode, hints, result);
+			handleTokens(actionContext, tokens, currentNode, hints, result);
 
 		} else {
 

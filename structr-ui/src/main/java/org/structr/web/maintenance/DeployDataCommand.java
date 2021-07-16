@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,6 +38,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.Vector;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +73,7 @@ public class DeployDataCommand extends DeployCommand {
 	private HashSet<String> missingTypeNamesForExport;
 
 	private Set<String> missingTypesForImport;
-	private Map<String, Integer> failedRelationshipImports;
+	private Map<String, Map<String, Integer>> failedRelationshipImports;
 
 	private final static String DEPLOYMENT_DATA_IMPORT_NODE_DIRECTORY   = "nodes";
 	private final static String DEPLOYMENT_DATA_IMPORT_RELS_DIRECTORY   = "relationships";
@@ -131,6 +132,19 @@ public class DeployDataCommand extends DeployCommand {
 			relationshipToFileTypeExists = false;
 
 			Files.createDirectories(target);
+
+			final Path preDataDeployConf            = target.resolve("pre-data-deploy.conf");
+			final Path postDataDeployConf           = target.resolve("post-data-deploy.conf");
+
+			if (!Files.exists(preDataDeployConf)) {
+
+				writeStringToFile(preDataDeployConf, "{\n\t// automatically created " + preDataDeployConf.getFileName() + ". This file is interpreted as a script and run before the data deployment process. To learn more about this, please have a look at the documentation.\n}");
+			}
+
+			if (!Files.exists(postDataDeployConf)) {
+
+				writeStringToFile(postDataDeployConf, "{\n\t// automatically created " + postDataDeployConf.getFileName() + ". This file is interpreted as a script and run after the data deployment process. To learn more about this, please have a look at the documentation.\n}");
+			}
 
 			final Path nodesDir = Files.createDirectories(target.resolve(DEPLOYMENT_DATA_IMPORT_NODE_DIRECTORY));
 			final Path relsDir  = Files.createDirectories(target.resolve(DEPLOYMENT_DATA_IMPORT_RELS_DIRECTORY));
@@ -324,7 +338,7 @@ public class DeployDataCommand extends DeployCommand {
 		}
 
 		// apply pre-deploy.conf
-		applyConfigurationFile(context, source.resolve("pre-data-deploy.conf"), DEPLOYMENT_DATA_IMPORT_STATUS);
+		applyConfigurationFileIfExists(context, source.resolve("pre-data-deploy.conf"), DEPLOYMENT_DATA_IMPORT_STATUS);
 
 		// do the actual import
 		final Path nodesDir = source.resolve(DEPLOYMENT_DATA_IMPORT_NODE_DIRECTORY);
@@ -340,9 +354,6 @@ public class DeployDataCommand extends DeployCommand {
 					if (f.isFile() && f.getName().endsWith(".json")) {
 
 						final String typeName = StringUtils.substringBeforeLast(f.getName(), ".json");
-
-						logger.info("Importing nodes for type {}", typeName);
-						publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Importing nodes for type " + typeName);
 
 						importExtensibleNodeListData(context, typeName, readConfigList(p));
 					}
@@ -373,12 +384,9 @@ public class DeployDataCommand extends DeployCommand {
 						if (type == null) {
 
 							logger.warn("Not importing data. Relationship type cannot be found: {}!", typeName);
-							publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Type can not be found! NOT Importing relationships for type " + typeName);
+							publishWarningMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Type can not be found! NOT Importing relationships for type " + typeName);
 
 						} else {
-
-							logger.info("Importing relationships for type {}", typeName);
-							publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Importing relationships for type " + typeName);
 
 							importRelationshipListData(context, type, readConfigList(p));
 						}
@@ -392,7 +400,7 @@ public class DeployDataCommand extends DeployCommand {
 		}
 
 		// apply post-deploy.conf
-		applyConfigurationFile(context, source.resolve("post-data-deploy.conf"), DEPLOYMENT_DATA_IMPORT_STATUS);
+		applyConfigurationFileIfExists(context, source.resolve("post-data-deploy.conf"), DEPLOYMENT_DATA_IMPORT_STATUS);
 
 		if (!missingPrincipals.isEmpty()) {
 
@@ -426,11 +434,27 @@ public class DeployDataCommand extends DeployCommand {
 
 		if (!failedRelationshipImports.isEmpty()) {
 
-			final String infos = failedRelationshipImports.keySet().stream().reduce("", (tmp, typeName) -> { return tmp + typeName + ": " + failedRelationshipImports.get(typeName) + "<br>"; });
+			final String infos = "<ul>" + failedRelationshipImports.keySet().stream().reduce("", (tmp, typeName) -> {
+
+				final Map<String, Integer> relInfo = failedRelationshipImports.get(typeName);
+
+				return tmp + "<li>" + typeName + "<ul>" + relInfo.keySet().stream().reduce("", (innerTmp, missingNodeType) -> {
+
+					final int value = relInfo.get(missingNodeType);
+
+					if (value > 0) {
+						return innerTmp + "<li>" + value + "x " + missingNodeType + " node missing</li>";
+					}
+
+					return innerTmp;
+
+				}) + "</ul></li>";
+
+			}) + "</ul>";
 
 			final String title = "Failed Relationship(s) for Type(s)";
 			final String text = "The following list shows the number of failed relationship imports per type.<br>"
-					+ "Make sure you are importing the data to the correct schema and that both ends of the relationship(s) are in the database/export! (See the log for more details)<br><br>"
+					+ "Make sure you are importing the data to the correct schema and that the <strong>source node</strong> and <strong>target node</strong> of the relationship(s) are in the database/export! (See the log for more details)<br>"
 					+ infos;
 
 			publishWarningMessage(title, text);
@@ -657,55 +681,87 @@ public class DeployDataCommand extends DeployCommand {
 
 	private <T extends NodeInterface> void importRelationshipListData(final SecurityContext context, final Class type, final List<Map<String, Object>> data) {
 
-		final App app = StructrApp.getInstance(context);
+		final App app         = StructrApp.getInstance(context);
+		final String typeName = type.getSimpleName();
 
-		try (final Tx tx = app.tx(true, doOuterCallbacks)) {
+		logger.info("Importing relationships for type {}", typeName);
+		publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Importing relationships for type " + typeName);
 
-			tx.disableChangelog();
+		final int chunkSize = Settings.DeploymentRelBatchSize.getValue();
+		int chunkCount      = 0;
+		int relCount        = 0;
+		final int maxSize   = data.size();
 
-			for (final Map<String, Object> entry : data) {
+		while (data.size() >= (chunkCount * chunkSize)) {
 
-				final String sourceId = (String) entry.get("sourceId");
-				final String targetId = (String) entry.get("targetId");
+			int endIndex = ((chunkCount + 1) * chunkSize);
 
-				final NodeInterface sourceNode = app.getNodeById(sourceId);
-				final NodeInterface targetNode = app.getNodeById(targetId);
-
-				if (sourceNode == null) {
-
-					logger.error("Unable to import relationship of type {}. Source node not found! {}", type.getSimpleName(), sourceId);
-
-					if (!failedRelationshipImports.containsKey(type.getSimpleName())) {
-						failedRelationshipImports.put(type.getSimpleName(), 0);
-					}
-					failedRelationshipImports.put(type.getSimpleName(), failedRelationshipImports.get(type.getSimpleName()) + 1);
-
-				} else if (targetNode == null) {
-
-					logger.error("Unable to import relationship of type {}. Target node not found! {}", type.getSimpleName(), targetId);
-
-					if (!failedRelationshipImports.containsKey(type.getSimpleName())) {
-						failedRelationshipImports.put(type.getSimpleName(), 0);
-					}
-					failedRelationshipImports.put(type.getSimpleName(), failedRelationshipImports.get(type.getSimpleName()) + 1);
-
-				} else {
-
-					final RelationshipInterface r = app.create(sourceNode, targetNode, type);
-
-					correctNumberFormats(context, entry, type);
-
-					final PropertyContainer pc = r.getPropertyContainer();
-					pc.setProperties(entry);
-				}
+			if (endIndex > maxSize) {
+				endIndex = maxSize;
 			}
 
-			tx.success();
+			final List<Map<String, Object>> sublist = data.subList((chunkCount * chunkSize), endIndex);
 
-		} catch (FrameworkException fex) {
+			chunkCount++;
 
-			logger.error("Unable to import relationships for type {}. Cause: {}", type.getSimpleName(), fex.getMessage());
+			try (final Tx tx = app.tx(true, doOuterCallbacks)) {
+
+				tx.disableChangelog();
+
+				for (final Map<String, Object> entry : sublist) {
+
+					final String sourceId = (String) entry.get("sourceId");
+					final String targetId = (String) entry.get("targetId");
+
+					final NodeInterface sourceNode = app.getNodeById(sourceId);
+					final NodeInterface targetNode = app.getNodeById(targetId);
+
+					if (sourceNode == null) {
+
+						logger.error("Unable to import relationship of type {} with id {}. Source node not found! {}", typeName, entry.get("id"), sourceId);
+						incrementFailedRelationshipsCounterForType(typeName, "source");
+					}
+
+					if (targetNode == null) {
+
+						logger.error("Unable to import relationship of type {} with id {}. Target node not found! {}", typeName, entry.get("id"), targetId);
+						incrementFailedRelationshipsCounterForType(typeName, "target");
+					}
+
+					if (sourceNode != null && targetNode != null) {
+
+						final RelationshipInterface r = app.create(sourceNode, targetNode, type);
+
+						correctNumberFormats(context, entry, type);
+
+						final PropertyContainer pc = r.getPropertyContainer();
+						pc.setProperties(entry);
+					}
+				}
+
+				tx.success();
+
+				relCount += sublist.size();
+				logger.info(" ... imported {} / {} relationships", relCount, maxSize);
+
+			} catch (FrameworkException fex) {
+
+				logger.error("Unable to import relationships for type {}. Cause: {}", type.getSimpleName(), fex.getMessage());
+			}
 		}
+	}
+
+	private void incrementFailedRelationshipsCounterForType (final String typeName, final String missingType) {
+
+		if (!failedRelationshipImports.containsKey(typeName)) {
+
+			failedRelationshipImports.put(typeName, new HashMap<String, Integer>() {{
+				put("source", 0);
+				put("target", 0);
+			}});
+		}
+
+		failedRelationshipImports.get(typeName).put(missingType, failedRelationshipImports.get(typeName).get(missingType) + 1);
 	}
 
 	private <T extends NodeInterface> void importExtensibleNodeListData(final SecurityContext context, final String defaultTypeName, final List<Map<String, Object>> data) {
@@ -720,59 +776,83 @@ public class DeployDataCommand extends DeployCommand {
 
 		} else {
 
+			logger.info("Importing nodes for type {}", defaultTypeName);
+			publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Importing nodes for type " + defaultTypeName);
+
 			final App app = StructrApp.getInstance(context);
 
-			try (final Tx tx = app.tx(true, doOuterCallbacks)) {
+			final int chunkSize = Settings.DeploymentNodeBatchSize.getValue();
+			int chunkCount      = 0;
+			int nodeCount       = 0;
+			final int maxSize   = data.size();
 
-				tx.disableChangelog();
+			while (data.size() >= (chunkCount * chunkSize)) {
 
-				for (final Map<String, Object> entry : data) {
+				int endIndex = ((chunkCount + 1) * chunkSize);
 
-					final String id = (String)entry.get("id");
-
-					if (id != null) {
-
-						final NodeInterface existingNode = app.getNodeById(id);
-
-						if (existingNode != null) {
-
-							app.delete(existingNode);
-						}
-					}
-
-					checkOwnerAndSecurity(entry);
-
-					final String typeName = (String) entry.get("type");
-					final Class type      = ((typeName == null || defaultTypeName.equals(typeName)) ? defaultType : SchemaHelper.getEntityClassForRawType(typeName));
-
-					if (type == null) {
-						logger.warn("Skipping node {}. Type cannot be found: {}!", id, typeName);
-
-						missingTypesForImport.add(typeName);
-					}
-
-					final Map<String, Object> basicPropertiesMap = new HashMap();
-					basicPropertiesMap.put("id", id);
-					basicPropertiesMap.put("type", typeName);
-					basicPropertiesMap.put("owner", entry.get("owner"));
-					basicPropertiesMap.put("grantees", entry.get("grantees"));
-
-					entry.remove("owner");
-					entry.remove("grantees");
-
-					final NodeInterface basicNode = app.create(type, PropertyMap.inputTypeToJavaType(context, type, basicPropertiesMap));
-
-					correctNumberFormats(context, entry, type);
-
-					final PropertyContainer pc = basicNode.getPropertyContainer();
-					pc.setProperties(entry);
+				if (endIndex > maxSize) {
+					endIndex = maxSize;
 				}
 
-				tx.success();
+				final List<Map<String, Object>> sublist = data.subList((chunkCount * chunkSize), endIndex);
 
-			} catch (FrameworkException fex) {
+				chunkCount++;
 
-				logger.error("Unable to import nodes for type {}. Cause: {}", defaultType.getSimpleName(), fex.getMessage());
+				try (final Tx tx = app.tx(true, doOuterCallbacks)) {
+
+					tx.disableChangelog();
+
+					for (final Map<String, Object> entry : sublist) {
+
+						final String id = (String)entry.get("id");
+
+						if (id != null) {
+
+							final NodeInterface existingNode = app.getNodeById(id);
+
+							if (existingNode != null) {
+
+								app.delete(existingNode);
+							}
+						}
+
+						checkOwnerAndSecurity(entry);
+
+						final String typeName = (String) entry.get("type");
+						final Class type      = ((typeName == null || defaultTypeName.equals(typeName)) ? defaultType : SchemaHelper.getEntityClassForRawType(typeName));
+
+						if (type == null) {
+							logger.warn("Skipping node {}. Type cannot be found: {}!", id, typeName);
+
+							missingTypesForImport.add(typeName);
+						}
+
+						final Map<String, Object> basicPropertiesMap = new HashMap();
+						basicPropertiesMap.put("id", id);
+						basicPropertiesMap.put("type", typeName);
+						basicPropertiesMap.put("owner", entry.get("owner"));
+						basicPropertiesMap.put("grantees", entry.get("grantees"));
+
+						entry.remove("owner");
+						entry.remove("grantees");
+
+						final NodeInterface basicNode = app.create(type, PropertyMap.inputTypeToJavaType(context, type, basicPropertiesMap));
+
+						correctNumberFormats(context, entry, type);
+
+						final PropertyContainer pc = basicNode.getPropertyContainer();
+						pc.setProperties(entry);
+					}
+
+					tx.success();
+
+					nodeCount += sublist.size();
+					logger.info(" ... imported {} / {} nodes", nodeCount, maxSize);
+
+				} catch (FrameworkException fex) {
+
+					logger.error("Unable to import nodes for type {}. Cause: {}", defaultType.getSimpleName(), fex.getMessage());
+				}
 			}
 		}
 	}
@@ -830,7 +910,7 @@ public class DeployDataCommand extends DeployCommand {
 
 				} catch (ClassCastException cex) {
 
-					logger.warn("Wrong data type for key {}, expected {}, got {}, ignoring.", entry.getKey(), propertyType.name(), value.getClass().getSimpleName());
+					logger.warn("Wrong data type for key '{}', expected {}, got {}, ignoring this property for {}", entry.getKey(), propertyType.name(), value.getClass().getSimpleName(), map.get("id"));
 				}
 			}
 		}

@@ -1,13 +1,8 @@
-function test() {
+$.store('testStore', {
+	'01': 'valueAtZeroOne',
+	'2' : 'valueAtTwo'
+});
 
-	$.store('testStore', {
-		'01': 'valueAtZeroOne',
-		'2' : 'valueAtTwo'
-	});
+let x = $.retrieve('testStore');
 
-	let x = $.retrieve('testStore');
-
-	return (x['2'] === 'valueAtTwo');
-}
-
-let _structrMainResult = test();
+return (x['2'] === 'valueAtTwo');

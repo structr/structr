@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,6 +39,6 @@ public interface JsonParameter extends Comparable<JsonParameter> {
 	public String getDescription();
 	public JsonParameter setDescription(final String descString);
 
-	public Object getExampleValue();
-	public JsonParameter setExampleValue(final Object exampleValue);
+	public String getExampleValue();
+	public JsonParameter setExampleValue(final String exampleValue);
 }

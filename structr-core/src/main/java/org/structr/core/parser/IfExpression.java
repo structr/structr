@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
@@ -32,8 +33,8 @@ public class IfExpression extends Expression {
 
 	public static final String ERROR_MESSAGE_IF = "Usage: ${if(condition, trueValue, falseValue)}. Example: ${if(empty(this.name), this.nickName, this.name)}";
 
-	public IfExpression() {
-		super("if");
+	public IfExpression(final int row, final int column) {
+		super("if", row, column);
 	}
 
 	@Override
@@ -63,7 +64,7 @@ public class IfExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
 		if (expressions.isEmpty()) {
 			return ERROR_MESSAGE_IF;
@@ -71,12 +72,12 @@ public class IfExpression extends Expression {
 
 		final Expression condition = expressions.get(0);
 
-		if (isTrue(condition.evaluate(ctx, entity))) {
+		if (isTrue(condition.evaluate(ctx, entity, hints))) {
 
 			if (expressions.size() > 1) {
 
 				final Expression trueExpression = expressions.get(1);
-				return trueExpression.evaluate(ctx, entity);
+				return trueExpression.evaluate(ctx, entity, hints);
 
 			} else {
 
@@ -88,7 +89,7 @@ public class IfExpression extends Expression {
 			if (expressions.size() > 2) {
 
 				final Expression falseExpression = expressions.get(2);
-				return falseExpression.evaluate(ctx, entity);
+				return falseExpression.evaluate(ctx, entity, hints);
 
 			} else {
 
@@ -102,7 +103,7 @@ public class IfExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 }

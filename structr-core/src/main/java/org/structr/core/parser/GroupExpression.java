@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
@@ -29,6 +30,10 @@ import org.structr.schema.action.ActionContext;
  */
 
 public class GroupExpression extends Expression {
+
+	public GroupExpression(final int row, final int column) {
+		super(row, column);
+	}
 
 	@Override
 	public String toString() {
@@ -46,12 +51,12 @@ public class GroupExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
 		final StringBuilder buf = new StringBuilder();
 		for (Expression expr : expressions) {
 
-			final Object result = expr.evaluate(ctx, entity);
+			final Object result = expr.evaluate(ctx, entity, hints);
 			if (result != null) {
 
 				buf.append(result);
@@ -62,7 +67,7 @@ public class GroupExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 }

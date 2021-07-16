@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,20 +35,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.common.util.UrlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.entity.SchemaView;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.property.PropertyMap;
-import org.structr.schema.SchemaService;
 import org.structr.api.schema.JsonBooleanArrayProperty;
 import org.structr.api.schema.JsonBooleanProperty;
 import org.structr.api.schema.JsonDateArrayProperty;
@@ -72,19 +58,33 @@ import org.structr.api.schema.JsonStringArrayProperty;
 import org.structr.api.schema.JsonStringProperty;
 import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.View;
 import org.structr.common.Visitor;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaGrant;
+import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.entity.SchemaView;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.SchemaService;
+import org.structr.schema.openapi.common.OpenAPIReference;
 import org.structr.schema.openapi.operation.OpenAPIDeleteMultipleOperation;
 import org.structr.schema.openapi.operation.OpenAPIDeleteSingleOperation;
 import org.structr.schema.openapi.operation.OpenAPIGetMultipleOperation;
 import org.structr.schema.openapi.operation.OpenAPIGetSingleOperation;
 import org.structr.schema.openapi.operation.OpenAPIPostOperation;
-import org.structr.schema.openapi.parameter.OpenAPIPropertyQueryParameter;
 import org.structr.schema.openapi.operation.OpenAPIPutSingleOperation;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.parameter.OpenAPIPropertyQueryParameter;
 
 /**
  * @param <T>
@@ -97,6 +97,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	private static final Logger logger = LoggerFactory.getLogger(StructrTypeDefinition.class);
 
 	private final Set<String> filterPropertyBlacklist             = new LinkedHashSet<>(Arrays.asList("id", "type", "hidden"));
+	private String unresolvedSuperclassName                       = null;
 	protected final Set<StructrPropertyDefinition> properties     = new TreeSet<>();
 	protected final Map<String, Set<String>> views                = new TreeMap<>();
 	protected final Map<String, String> viewOrder                 = new TreeMap<>();
@@ -106,13 +107,16 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	protected final Set<String> tags                              = new TreeSet<>();
 	protected boolean visibleToAuthenticatedUsers                 = false;
 	protected boolean visibleToPublicUsers                        = false;
+	protected boolean includeInOpenAPI                            = false;
 	protected boolean isInterface                                 = false;
 	protected boolean isAbstract                                  = false;
 	protected boolean isBuiltinType                               = false;
 	protected boolean changelogDisabled                           = false;
 	protected StructrSchemaDefinition root                        = null;
 	protected URI baseTypeReference                               = null;
+	protected String description                                  = null;
 	protected String category                                     = null;
+	protected String summary                                      = null;
 	protected String name                                         = null;
 	protected T schemaNode                                        = null;
 
@@ -243,12 +247,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonMethod addMethod(final String name, final String source, final String comment) {
+	public JsonMethod addMethod(final String name, final String source) {
 
 		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, name);
 
 		newMethod.setSource(source);
-		newMethod.setComment(comment);
 
 		methods.add(newMethod);
 
@@ -391,6 +394,38 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		this.tags.addAll(Arrays.asList(tags));
 	}
 
+	@Override
+	public String getSummary() {
+		return this.summary;
+	}
+
+	@Override
+	public JsonType setSummary(final String summary) {
+		this.summary = summary;
+		return this;
+	}
+
+	@Override
+	public String getDescription() {
+		return this.description;
+	}
+
+	@Override
+	public JsonType setDescription(final String description) {
+		this.description = description;
+		return this;
+	}
+
+	@Override
+	public boolean includeInOpenAPI() {
+		return includeInOpenAPI;
+	}
+
+	@Override
+	public JsonType setIncludeInOpenAPI(final boolean includeInOpenAPI) {
+		this.includeInOpenAPI = includeInOpenAPI;
+		return this;
+	}
 	@Override
 	public Set<String> getViewNames() {
 		return views.keySet();
@@ -779,6 +814,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		serializedForm.put(JsonSchema.KEY_TYPE, "object");
 		serializedForm.put(JsonSchema.KEY_IS_ABSTRACT, isAbstract);
 		serializedForm.put(JsonSchema.KEY_IS_INTERFACE, isInterface);
+		serializedForm.put(JsonSchema.KEY_INCLUDE_IN_OPENAPI, includeInOpenAPI);
 
 		if (changelogDisabled) {
 			serializedForm.put(JsonSchema.KEY_CHANGELOG_DISABLED, true);
@@ -845,6 +881,14 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		if (StringUtils.isNotBlank(category)) {
 			serializedForm.put(JsonSchema.KEY_CATEGORY, category);
+		}
+
+		if (StringUtils.isNotBlank(summary)) {
+			serializedForm.put(JsonSchema.KEY_SUMMARY, summary);
+		}
+
+		if (StringUtils.isNotBlank(description)) {
+			serializedForm.put(JsonSchema.KEY_DESCRIPTION, description);
 		}
 
 		if (!tags.isEmpty()) {
@@ -921,6 +965,20 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				tags.addAll((List<String>)tagsValue);
 			}
 		}
+
+		if (source.containsKey(JsonSchema.KEY_SUMMARY)) {
+			this.summary = (String)source.get(JsonSchema.KEY_SUMMARY);
+		}
+
+		if (source.containsKey(JsonSchema.KEY_DESCRIPTION)) {
+			this.description = (String)source.get(JsonSchema.KEY_DESCRIPTION);
+		}
+
+		final Object _includeInOpenAPI = source.get(JsonSchema.KEY_INCLUDE_IN_OPENAPI);
+		if (_includeInOpenAPI != null && _includeInOpenAPI instanceof Boolean) {
+
+			this.includeInOpenAPI = (Boolean)_includeInOpenAPI;
+		}
 	}
 
 	void deserialize(final Map<String, SchemaNode> schemaNodes, final T schemaNode) {
@@ -985,13 +1043,14 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 
 		// $extends
-		final String extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
+		final SchemaNode extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
 		if (extendsClass != null) {
 
-			final String typeName = resolveParameterizedType(extendsClass);
+			// we need to find out if the base type exists in the schema, or in the Structr base schema because the URLs differ
+			final String typeName = extendsClass.getName();
 
-			if (extendsClass.startsWith("org.structr.dynamic.")) {
-
+			if (schemaNodes.containsKey(typeName)) {
+			
 				this.baseTypeReference = root.getId().resolve("definitions/" + typeName);
 
 			} else {
@@ -1028,6 +1087,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		this.changelogDisabled           = schemaNode.getProperty(SchemaNode.changelogDisabled);
 		this.visibleToPublicUsers        = schemaNode.getProperty(SchemaNode.defaultVisibleToPublic);
 		this.visibleToAuthenticatedUsers = schemaNode.getProperty(SchemaNode.defaultVisibleToAuth);
+		this.includeInOpenAPI            = schemaNode.getProperty(SchemaNode.includeInOpenAPI);
+		this.summary                     = schemaNode.getProperty(SchemaNode.summary);
+		this.description                 = schemaNode.getProperty(SchemaNode.description);
 		this.category                    = schemaNode.getProperty(SchemaNode.category);
 		this.schemaNode                  = schemaNode;
 
@@ -1145,10 +1207,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 			if (def != null && def instanceof JsonType) {
 
-				final JsonType jsonType     = (JsonType)def;
-				final String superclassName = "org.structr.dynamic." + jsonType.getName();
+				final JsonType jsonType = (JsonType)def;
 
-				nodeProperties.put(SchemaNode.extendsClass, superclassName);
+				unresolvedSuperclassName = jsonType.getName();
 
 			} else {
 
@@ -1161,7 +1222,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 					} else {
 
-						nodeProperties.put(SchemaNode.extendsClass, superclass.getName());
+						// must be resolved later, when all SchemaNodes are created
+						unresolvedSuperclassName = superclass.getName();
 					}
 
 				} else if ("https://structr.org/v1.1/definitions/FileBase".equals(baseTypeReference.toString())) {
@@ -1182,7 +1244,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 						final Class internal  = StructrApp.getConfiguration().getNodeEntityClass(typeName);
 						if (internal != null) {
 
-							nodeProperties.put(SchemaNode.extendsClass, getParameterizedType(internal, parameters));
+							nodeProperties.put(SchemaNode.extendsClassInternal, getParameterizedType(internal, parameters));
 						}
 					}
 				}
@@ -1214,7 +1276,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 					} else {
 
-						nodeProperties.put(SchemaNode.extendsClass, superclassName);
+						unresolvedSuperclassName = superclassName;
 					}
 
 				} else {
@@ -1247,7 +1309,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 
 		// merge tags, don't overwrite
-		nodeProperties.put(SchemaNode.tags, mergedTags.toArray(new String[0]));
+		nodeProperties.put(SchemaNode.tags,              mergedTags.toArray(new String[0]));
+		nodeProperties.put(SchemaNode.includeInOpenAPI,  includeInOpenAPI());
+		nodeProperties.put(SchemaNode.summary,           getSummary());
+		nodeProperties.put(SchemaNode.description,       getDescription());
 
 		schemaNode.setProperties(SecurityContext.getSuperUserInstance(), nodeProperties);
 
@@ -1783,7 +1848,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		// don't show types without tags
 		if (tags.isEmpty()) {
 			return false;
-		}
+	}
 
 		// skip blacklisted tags
 		if (intersects(TagBlacklist, tags)) {
@@ -1865,6 +1930,14 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 
 		return null;
+	}
+
+	void resolveInheritanceRelationships(final Map<String, SchemaNode> schemaNodes) throws FrameworkException {
+
+		if (unresolvedSuperclassName != null && this.schemaNode != null) {
+
+			this.schemaNode.setProperty(SchemaNode.extendsClass, schemaNodes.get(unresolvedSuperclassName));
+		}
 	}
 
 	private boolean intersects(final Set<String> set1, final Set<String> set2) {

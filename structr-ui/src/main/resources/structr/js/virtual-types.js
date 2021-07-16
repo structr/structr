@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,9 +38,9 @@ var _VirtualTypes = {
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('virtual-types'));
 
-		Structr.fetchHtmlTemplate('virtual-types/main', {}, function (html) {
+		Structr.fetchHtmlTemplate('virtual-types/functions', {}, function (html) {
 
-			main.append(html);
+			functionBar.append(html);
 
 			$('#create-virtual-type').on('click', function() {
 				_VirtualTypes.clearVirtualTypeDetails();
@@ -48,16 +48,22 @@ var _VirtualTypes = {
 				_VirtualTypes.enableCreateMode();
 				_VirtualTypes.virtualTypeDetail.show();
 			});
+		});
+
+		Structr.fetchHtmlTemplate('virtual-types/main', {}, function (html) {
+
+			main.append(html);
+
 
 			_VirtualTypes.virtualTypesList = $('#virtual-types-table tbody');
 			_VirtualTypes.listVirtualTypes();
 
-			_VirtualTypes.virtualTypeDetail = $('#virtual-type-detail').hide();
+			_VirtualTypes.virtualTypeDetail = $('#virtual-type-detail'); //.hide();
 			_VirtualTypes.resourceLink = $('.resource-link a', _VirtualTypes.virtualTypeDetail);
 			_VirtualTypes.virtualTypeDetailTableRow = $('#virtual-type-detail-table tbody tr');
 			_VirtualTypes.virtualPropertiesTableBody = $('#virtual-properties-table tbody');
 
-			$('<button class="create"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> New Virtual Property</button>').on('click', function() {
+			$('<button class="create"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '"></i> New Virtual Property</button>').on('click', function() {
 				_VirtualTypes.appendVirtualProperty();
 			}).appendTo($('#virtual-properties', _VirtualTypes.virtualTypeDetail));
 
@@ -65,7 +71,7 @@ var _VirtualTypes = {
 
 			var actionsCol = $('.actions', _VirtualTypes.virtualTypeDetail);
 
-			$('<i class="button ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />').on('click', function() {
+			$('<i class="button ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '"></i>').on('click', function() {
 
 				var data = _VirtualTypes.getVirtualObjectDataFromRow(_VirtualTypes.virtualTypeDetailTableRow);
 
@@ -80,10 +86,10 @@ var _VirtualTypes = {
 
 			}).appendTo(actionsCol);
 
-			$('<i class="button ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />').on('click', function () {
+			$('<i class="button ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '">').on('click', function () {
 				_VirtualTypes.clearVirtualTypeDetails();
 
-				_VirtualTypes.virtualTypeDetail.hide();
+				// _VirtualTypes.virtualTypeDetail.hide();
 			}).appendTo(actionsCol);
 
 			Structr.appendInfoTextToElement({
@@ -109,10 +115,23 @@ var _VirtualTypes = {
 		Structr.resize();
 	},
 	moveResizer: function(left) {
-		left = left || LSWrapper.getItem(_VirtualTypes.virtualTypesResizerLeftKey) || 300;
-		$('.column-resizer', main).css({ left: left });
 
-		$('#virtual-types-list').css({width: left - 25 + 'px'});
+		requestAnimationFrame(() => {
+
+			left = left || LSWrapper.getItem(_VirtualTypes.virtualTypesResizerLeftKey) || 340;
+			left = Math.max(340, Math.min(left, window.innerWidth - 340));
+
+			document.querySelector('.column-resizer').style.left = left + 'px';
+
+			let listContainer = document.getElementById('virtual-types-list-container');
+			listContainer.style.width = 'calc(' + left + 'px - 1rem)';
+
+			let detailContainer = document.getElementById('virtual-type-detail');
+			detailContainer.style.width = 'calc(100% - ' + left + 'px - 3rem)';
+
+			return true;
+		});
+
 	},
 	activateInfoTextsInColumnHeaders: function() {
 		$('th[data-info-text]').each(function(i, el) {
@@ -168,7 +187,7 @@ var _VirtualTypes = {
 		_VirtualTypes.virtualTypesPager.cleanupFunction = function () {
 			fastRemoveAllChildren(_VirtualTypes.virtualTypesList[0]);
 		};
-		_VirtualTypes.virtualTypesPager.pager.append('<br>Filters: <input type="text" class="filter w100 virtual-type-name" data-attribute="name" placeholder="Name" />');
+		_VirtualTypes.virtualTypesPager.pager.append('Filters: <input type="text" class="filter w100 virtual-type-name" data-attribute="name" placeholder="Name" />');
 		_VirtualTypes.virtualTypesPager.pager.append('<input type="text" class="filter w100 virtual-type-sourceType" data-attribute="sourceType" placeholder="Source Type" />');
 		_VirtualTypes.virtualTypesPager.activateFilterElements();
 
@@ -194,7 +213,7 @@ var _VirtualTypes = {
 
 			var actionsCol = $('.actions', row);
 
-			$('<a title="Edit Properties" class="properties"><i class=" button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /></a>').on('click', function () {
+			$('<a title="Edit Properties" class="properties"><i class=" button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '"></i></a>').on('click', function () {
 				_VirtualTypes.showVirtualTypeDetails(virtualType.id);
 			}).appendTo(actionsCol);
 
@@ -210,7 +229,7 @@ var _VirtualTypes = {
 
 					if (virtualType.id === _VirtualTypes.virtualTypeDetailTableRow.data('virtual-type-id')) {
 						_VirtualTypes.clearVirtualTypeDetails();
-						_VirtualTypes.virtualTypeDetail.hide();
+						// _VirtualTypes.virtualTypeDetail.hide();
 					}
 
 					row.remove();
@@ -266,7 +285,7 @@ var _VirtualTypes = {
 		});
 	},
 	updateResourceLink: function (virtualType) {
-		_VirtualTypes.resourceLink.attr('href' , '/structr/rest/' + virtualType.name + '?pageSize=1');
+		_VirtualTypes.resourceLink.attr('href' , '/structr/rest/' + virtualType.name + '?' + Structr.getRequestParameterName('pageSize') + '=1');
 		_VirtualTypes.resourceLink.text('/' + virtualType.name);
 	},
 	clearVirtualTypeDetails: function() {

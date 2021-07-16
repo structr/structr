@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,6 @@
 package org.structr.core.function;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
@@ -27,7 +26,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -53,11 +51,10 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 3);
 
-			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final String typeName = sources[0].toString();
+			final String typeName         = sources[0].toString();
 			final String enumPropertyName = sources[1].toString();
-			final boolean rawList = (sources.length == 3) ? Boolean.parseBoolean(sources[2].toString()) : false;
-			final Class type = SchemaHelper.getEntityClassForRawType(typeName);
+			final boolean rawList         = (sources.length == 3) ? Boolean.parseBoolean(sources[2].toString()) : false;
+			final Class type              = SchemaHelper.getEntityClassForRawType(typeName);
 
 			if (type != null) {
 
@@ -65,9 +62,15 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 				if (key != null) {
 
 					if (key instanceof EnumProperty) {
-						final String formatString = SchemaHelper.getPropertyInfo(ctx.getSecurityContext(), key).get("format").toString();
 
-						final List<String> valueList = Arrays.asList(formatString.replace(" ", "").split(","));
+						final EnumProperty enumProperty = (EnumProperty)key;
+						final Class enumType            = enumProperty.getEnumType();
+						final Object[] enumConstants    = enumType.getEnumConstants();
+						final List<String> valueList    = new ArrayList<>();
+
+						for (final Object constant : enumConstants) {
+							valueList.add(constant.toString());
+						}
 
 						if (rawList) {
 

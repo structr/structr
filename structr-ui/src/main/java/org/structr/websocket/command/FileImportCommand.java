@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,8 +20,6 @@ package org.structr.websocket.command;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -37,19 +35,12 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class FileImportCommand extends AbstractCommand {
 
-	private static final Logger logger = LoggerFactory.getLogger(FileImportCommand.class.getName());
-
 	private static final Property<List> importJobsProperty = new GenericProperty<>("imports");
-
-	//~--- static initializers --------------------------------------------
 
 	static {
 
 		StructrWebSocket.addCommand(FileImportCommand.class);
-
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) throws FrameworkException {
@@ -102,11 +93,8 @@ public class FileImportCommand extends AbstractCommand {
 		getWebSocket().send(webSocketData, true);
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getCommand() {
 		return "FILE_IMPORT";
 	}
-
 }

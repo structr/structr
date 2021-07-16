@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -145,9 +145,20 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 			try {
 
-				DeployCommand.checkOwnerAndSecurity((Map<String, Object>)data);
+				final Map dataMap = ((Map<String, Object>)data);
 
-				return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), Template.class, (Map<String, Object>)data);
+				final Object sharedValue = dataMap.remove(internalSharedTemplateKey.jsonName());
+				boolean isShared = ("true".equals(sharedValue));
+
+				DeployCommand.checkOwnerAndSecurity(dataMap);
+
+				final PropertyMap propMap = PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), Template.class, dataMap);
+
+				if (isShared) {
+					propMap.put(internalSharedTemplateKey, "true");
+				}
+
+				return propMap;
 
 			} catch (FrameworkException ex) {
 				logger.warn("Unable to resolve properties for template: {}", ex.getMessage());
@@ -174,6 +185,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 			if (properties == null) {
 
 				logger.info("Ignoring {} (not in templates.json)", fileName);
+
 			} else {
 
 				final String src = new String(Files.readAllBytes(file), Charset.forName("UTF-8"));
@@ -227,15 +239,11 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 				properties.put(StructrApp.key(Template.class, "content"), src);
 
 				// insert "shared" templates into ShadowDocument
-				final Object value = properties.get(internalSharedTemplateKey);
-				if (value != null) {
+				final Object value = properties.remove(internalSharedTemplateKey);
 
-					if ("true".equals(value)) {
+				if ("true".equals(value)) {
 
-						template.setOwnerDocument(CreateComponentCommand.getOrCreateHiddenDocument());
-					}
-
-					properties.remove(internalSharedTemplateKey);
+					template.setOwnerDocument(CreateComponentCommand.getOrCreateHiddenDocument());
 				}
 
 				// store properties from templates.json if present

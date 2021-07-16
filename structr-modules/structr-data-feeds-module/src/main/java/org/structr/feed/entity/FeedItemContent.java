@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
@@ -76,8 +77,12 @@ public interface FeedItemContent extends NodeInterface, Indexable {
 	static void updateIndex(final Indexable thisIndexable, final SecurityContext securityContext) {
 
 		try {
-			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
-			indexer.addToFulltextIndex(thisIndexable);
+
+			if (thisIndexable.indexingEnabled()) {
+
+				final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
+				indexer.addToFulltextIndex(thisIndexable);
+			}
 
 		} catch (FrameworkException fex) {
 
@@ -100,5 +105,25 @@ public interface FeedItemContent extends NodeInterface, Indexable {
 
 	static InputStream getInputStream(final FeedItemContent thisContent) {
 		return IOUtils.toInputStream(thisContent.getValue(), Charset.forName("utf-8"));
+	}
+
+	@Override
+	default boolean indexingEnabled() {
+		return Settings.FeedItemContentIndexingEnabled.getValue();
+	}
+
+	@Override
+	default Integer maximumIndexedWords() {
+		return Settings.FeedItemContentIndexingLimit.getValue();
+	}
+
+	@Override
+	default Integer indexedWordMinLength() {
+		return Settings.FeedItemContentIndexingMinLength.getValue();
+	}
+
+	@Override
+	default Integer indexedWordMaxLength() {
+		return Settings.FeedItemContentIndexingMaxLength.getValue();
 	}
 }

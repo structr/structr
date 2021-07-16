@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,9 @@
 package org.structr.common;
 
 import java.util.*;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.Localization;
@@ -29,9 +32,12 @@ import org.structr.core.property.GenericProperty;
  */
 public class ContextStore {
 
+	private final static Logger logger = LoggerFactory.getLogger(ContextStore.class);
+
 	protected Map<String, String> headers               = new HashMap<>();
 	protected Map<String, Object> constants             = new HashMap<>();
-	protected Map<String, Object> tmpStore              = new HashMap<>();
+	protected Map<String, Object> requestStore          = new HashMap<>();
+	protected Map<String, Object> tmpParameters         = new HashMap<>();
 	protected Map<String, Date> timerStore              = new HashMap<>();
 	protected Map<Integer, Integer> counters            = new HashMap<>();
 	protected AdvancedMailContainer amc                 = new AdvancedMailContainer();
@@ -49,7 +55,7 @@ public class ContextStore {
 
 		this.headers     = other.headers;
 		this.constants   = other.constants;
-		this.tmpStore    = other.tmpStore;
+		this.requestStore = other.requestStore;
 		this.timerStore  = other.timerStore;
 		this.counters    = other.counters;
 		this.amc         = other.amc;
@@ -83,25 +89,45 @@ public class ContextStore {
 	}
 
 	// --- store() / retrieve() ---
-	public void setParameters(Map<String, Object> parameters) {
+	public void setTemporaryParameters(Map<String, Object> parameters) {
 
-		if (parameters != null) {
-			this.tmpStore.putAll(parameters);
-		}
+		this.tmpParameters = parameters;
+	}
+
+	public Set<String> getTemporaryParameterKeys() {
+		return this.tmpParameters.keySet();
+	}
+
+	public Map<String, Object> getTemporaryParameters() {
+		return this.tmpParameters;
+	}
+
+	public void clearTemporaryParameters() {
+		this.tmpParameters.clear();
 	}
 
 	public void store(final String key, final Object value) {
-		tmpStore.put(key, value);
+
+		if (tmpParameters.containsKey(key)) {
+			
+			logger.info("Function store() was called for key \"" + key + "\", which is already used in the current context by a method parameter and won't be accessible.");
+		}
+
+		requestStore.put(key, value);
 	}
 
 	public Object retrieve(final String key) {
-		return tmpStore.get(key);
+
+		if (tmpParameters.containsKey(key)) {
+			return tmpParameters.get(key);
+		}
+		return requestStore.get(key);
 	}
 
-	public void remove(final String key) { tmpStore.remove(key);}
+	public void remove(final String key) { requestStore.remove(key);}
 
-	public Map<String, Object> getAllVariables () {
-		return tmpStore;
+	public Map<String, Object> getRequestStore() {
+		return requestStore;
 	}
 
 	// --- Function Properties ---

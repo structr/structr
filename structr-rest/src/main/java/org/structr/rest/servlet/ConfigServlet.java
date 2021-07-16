@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -53,6 +53,7 @@ import org.structr.core.Services;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.ManageDatabasesCommand;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.schema.action.ActionContext;
 
 /**
  *
@@ -245,7 +246,7 @@ public class ConfigServlet extends AbstractServletBase {
 					}
 				}).start();
 
-				final String baseUrl = getBaseUrl(request);
+				final String baseUrl = ActionContext.getBaseUrl(request);
 
 				final Map<String, Object> msgData = new HashMap();
 				msgData.put(MaintenanceCommand.COMMAND_TYPE_KEY, "MAINTENANCE");
@@ -692,29 +693,6 @@ public class ConfigServlet extends AbstractServletBase {
 		}
 
 		return false;
-	}
-
-	private String getBaseUrl(final HttpServletRequest request) {
-
-		final StringBuilder sb = new StringBuilder("http");
-
-		final Boolean httpsEnabled       = Settings.HttpsEnabled.getValue();
-		final String name                = (request != null) ? request.getServerName() : Settings.ApplicationHost.getValue();
-		final Integer port               = ((httpsEnabled) ? Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getValue() : Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
-
-		if (httpsEnabled) {
-			sb.append("s");
-		}
-
-		sb.append("://");
-		sb.append(name);
-
-		// we need to specify the port if (protocol = HTTPS and port != 443 OR protocol = HTTP and port != 80)
-		if ( (httpsEnabled && port != 443) || (!httpsEnabled && port != 80) ) {
-			sb.append(":").append(port);
-		}
-
-		return sb.toString();
 	}
 
 	private void welcomeTab(final Tag menu, final Tag tabs) {

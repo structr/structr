@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,7 +22,6 @@ import java.util.Map;
 import org.structr.common.PropertyView;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPIReference;
-import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 
 public class OpenAPIDeleteMultipleOperation extends OpenAPIOperation {
 
@@ -49,7 +48,8 @@ public class OpenAPIDeleteMultipleOperation extends OpenAPIOperation {
 
 			// responses
 			Map.of(
-				"200", new OpenAPIRequestResponse("Ok", null),
+				"200", new OpenAPIReference("#/components/responses/ok"),
+				"401", new OpenAPIReference("#/components/responses/unauthorized"),
 				"403", new OpenAPIReference("#/components/responses/forbidden"),
 				"422", new OpenAPIReference("#/components/responses/validationError")
 			)

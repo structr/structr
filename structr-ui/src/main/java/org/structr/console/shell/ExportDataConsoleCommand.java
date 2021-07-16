@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -64,7 +64,7 @@ public class ExportDataConsoleCommand extends AdminConsoleCommand {
 
 	@Override
 	public void detailHelp(final Writable writable) throws IOException {
-		writable.println("exportData <target> <types>  -  Exports data from this application to a path in the file system.");
+		writable.println("export-data <target> <types>  -  Exports data from this application to a path in the file system.");
 		writable.println("");
 		writable.println("  <target> - absolute path to the target directory");
 		writable.println("  <types>  - comma-separated list of types to export");

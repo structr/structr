@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,7 +30,6 @@ var _SimplePages = {
 	components: {},
 	objectCache: {},
 
-
 	onload: function() {
 
 		Structr.fetchHtmlTemplate('simple-pages/main', {}, function(html) {
@@ -55,9 +54,7 @@ var _SimplePages = {
 			Structr.unblockMenu(500);
 
 			_SimplePages.init();
-
 		});
-
 	},
 	init: function() {
 		_SimplePages.refreshPageList();
@@ -336,8 +333,9 @@ var _SimplePages = {
 							}
 						});
 
-					} catch (e) { console.log(e); };
-
+					} catch (e) {
+						console.log(e);
+					};
 				});
 			});
 		});
@@ -531,10 +529,8 @@ var _SimplePages = {
 				Structr.fetchHtmlTemplate('simple-pages/widget-list-node', { widget: widget }, function(html) {
 
 					_SimplePages.components.context.insertAdjacentHTML('beforeEnd', html);
-
 				});
 			});
-
 		});
 	},
 };

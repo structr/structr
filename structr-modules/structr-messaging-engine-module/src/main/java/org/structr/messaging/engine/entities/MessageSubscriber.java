@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,6 +37,7 @@ import org.structr.core.script.Scripting;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 public interface MessageSubscriber extends NodeInterface {
 
@@ -88,7 +89,7 @@ public interface MessageSubscriber extends NodeInterface {
 
 				try {
 
-					client.invokeMethod(securityContext, "subscribeTopic", params, false);
+					client.invokeMethod(securityContext, "subscribeTopic", params, false, new EvaluationHints());
 
 				} catch (FrameworkException e) {
 
@@ -128,7 +129,9 @@ public interface MessageSubscriber extends NodeInterface {
 			ActionContext ac = new ActionContext(securityContext, params);
 			ac.setConstant("topic", topic);
 			ac.setConstant("message", message);
-			Scripting.evaluate(ac, thisSubscriber, script, "onMessage_Callback");
+
+			// FIXME: the code source in this call should be the schema method that this subscriber was compiled from.
+			Scripting.evaluate(ac, thisSubscriber, script, "onMessage", null);
 		}
 
 		return new RestMethodResult(200);

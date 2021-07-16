@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -55,7 +55,7 @@ var _Apps = {
 	loadData: function() {
 
 		$.ajax({
-			url: 'https://structr.com/structr/rest/StructrApplicationCategory?sort=position',
+			url: 'https://structr.com/structr/rest/StructrApplicationCategory?' + Structr.getRequestParameterName('sort') + '=position',
 			statusCode: {
 				200: function(result) {
 					result.result.forEach(function(category) {
@@ -81,7 +81,6 @@ var _Apps = {
 			category.apps.forEach(function(app) {
 
 				_Apps.appendTile(container, app);
-
 			});
 		});
 	},

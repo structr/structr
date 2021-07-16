@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,15 +18,17 @@
  */
 package org.structr.schema.compiler;
 
+import org.structr.module.JarConfigurationProvider;
+
 import java.io.IOException;
 import java.security.SecureClassLoader;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import javax.tools.FileObject;
-import javax.tools.ForwardingJavaFileManager;
-import javax.tools.JavaFileObject;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.tools.*;
 import javax.tools.JavaFileObject.Kind;
-import javax.tools.StandardJavaFileManager;
 
 /**
  *
@@ -38,7 +40,7 @@ public class ClassFileManager extends ForwardingJavaFileManager {
 	 * Instance of JavaClassObject that will store the compiled byte code of
 	 * our class
 	 */
-	private final Map<String, JavaClassObject> objects = new LinkedHashMap<>();
+	public final Map<String, JavaClassObject> objects = new LinkedHashMap<>();
 
 	/**
 	 * Will initialize the manager with the specified standard java file
@@ -60,19 +62,19 @@ public class ClassFileManager extends ForwardingJavaFileManager {
 	 */
 	@Override
 	public ClassLoader getClassLoader(final Location location) {
-		
+
 		return new SecureClassLoader() {
-			
+
 			@Override
 			protected Class<?> findClass(String name) throws ClassNotFoundException {
-				
+
 				final JavaClassObject obj = objects.get(name);
 				if (obj != null) {
-					
+
 					byte[] b = obj.getBytes();
 					return super.defineClass(name, obj.getBytes(), 0, b.length);
 				}
-				
+
 				throw new ClassNotFoundException(name);
 			}
 		};
@@ -90,11 +92,28 @@ public class ClassFileManager extends ForwardingJavaFileManager {
 	 */
 	@Override
 	public JavaFileObject getJavaFileForOutput(final Location location, final String className, final Kind kind, final FileObject sibling) throws IOException {
-		
+
 		JavaClassObject obj = new JavaClassObject(className, kind);
-		
+
 		objects.put(className, obj);
-		
+
 		return obj;
+	}
+
+	@Override
+	public Iterable<JavaFileObject> list(Location location, String packageName, Set set, boolean recurse) throws IOException {
+		if (location == StandardLocation.CLASS_PATH
+				&& (packageName.equals(JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE))) {
+			return new ArrayList<>(objects.values());
+		}
+		return super.list(location, packageName, set, recurse);
+	}
+
+	@Override
+	public String inferBinaryName(Location location, JavaFileObject file) {
+		if (file instanceof JavaClassObject) {
+			return ((JavaClassObject)file).getClassName();
+		}
+		return super.inferBinaryName(location, file);
 	}
 }

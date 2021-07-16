@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,13 +18,8 @@
  */
 package org.structr.core.entity;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +59,7 @@ import org.structr.core.property.TargetId;
 import org.structr.core.property.TargetNodeProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 
@@ -396,7 +392,25 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	// ----- interface GraphObject -----
 	@Override
 	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
-		return StructrApp.getConfiguration().getPropertySet(this.getClass(), propertyView);
+
+		// check for custom view in content-type field
+		if (securityContext != null && securityContext.hasCustomView()) {
+
+			final Set<PropertyKey> keys = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All));
+			final Set<String> customView = securityContext.getCustomView();
+
+			for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
+				if (!customView.contains(it.next().jsonName())) {
+
+					it.remove();
+				}
+			}
+
+			return keys;
+		}
+
+		// this is the default if no application/json; properties=[...] content-type header is present on the request
+		return StructrApp.getConfiguration().getPropertySet(entityType, propertyView);
 	}
 
 	public final Map<String, Long> getRelationshipInfo(Direction direction) {
@@ -624,11 +638,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public final String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException {
-		return Scripting.replaceVariables(renderContext, this, getProperty(key));
+		return Scripting.replaceVariables(renderContext, this, getProperty(key), key.jsonName());
 	}
 
 	@Override
-	public final Object evaluate(final ActionContext actionContext, final String key, final String defaultValue) throws FrameworkException {
+	public final Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, EvaluationHints hints, final int row, final int column) throws FrameworkException {
 
 		switch (key) {
 
@@ -651,7 +665,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwException) throws FrameworkException {
+	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwException, final EvaluationHints hints) throws FrameworkException {
 		throw new UnsupportedOperationException("Invoking a method on a relationship is not supported at the moment.");
 	}
 

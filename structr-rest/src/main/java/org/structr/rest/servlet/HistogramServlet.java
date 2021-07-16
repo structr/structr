@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -48,7 +48,7 @@ public class HistogramServlet extends HealthCheckServlet {
 			final Set<String> wl = getWhitelistAddresses();
 			if (!wl.contains(remoteAddress)) {
 
-				logger.warn("Access to histogram endpoint denied for remote address {}: not in whitelist. If you want to allow access, add {} to histogramservlet.whitelist in structr.conf.");
+				logger.warn("Access to histogram endpoint denied for remote address {}: not in whitelist. If you want to allow access, add {} to histogramservlet.whitelist in structr.conf.", remoteAddress, remoteAddress);
 
 				response.sendError(HttpServletResponse.SC_FORBIDDEN);
 

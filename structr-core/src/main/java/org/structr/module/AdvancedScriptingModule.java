@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,7 @@ import org.structr.core.function.AddToGroupFunction;
 import org.structr.core.function.AncestorTypesFunction;
 import org.structr.core.function.AppendFunction;
 import org.structr.core.function.AssertFunction;
+import org.structr.core.function.BsonFunction;
 import org.structr.core.function.CallFunction;
 import org.structr.core.function.CallPrivilegedFunction;
 import org.structr.core.function.ChangelogFunction;
@@ -52,6 +53,7 @@ import org.structr.core.function.IsAllowedFunction;
 import org.structr.core.function.IsInGroupFunction;
 import org.structr.core.function.JdbcFunction;
 import org.structr.core.function.LocalizeFunction;
+import org.structr.core.function.MongoDBFunction;
 import org.structr.core.function.PrivilegedFindFunction;
 import org.structr.core.function.PropertyInfoFunction;
 import org.structr.core.function.RInterpreterFunction;
@@ -146,6 +148,8 @@ public class AdvancedScriptingModule implements StructrModule {
 
 		Functions.put(licenseManager, new TemplateFunction());
 		Functions.put(licenseManager, new JdbcFunction());
+		Functions.put(licenseManager, new MongoDBFunction());
+		Functions.put(licenseManager, new BsonFunction());
 
 		Functions.put(licenseManager, new GetRelationshipTypesFunction());
 

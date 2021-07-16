@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -103,6 +103,11 @@ public class MemoryNode extends MemoryEntity implements Node {
 
 	@Override
 	public Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType) {
+		return db.getRelationships(this, direction, relationshipType);
+	}
+
+	@Override
+	public Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType, final String otherType) {
 		return db.getRelationships(this, direction, relationshipType);
 	}
 

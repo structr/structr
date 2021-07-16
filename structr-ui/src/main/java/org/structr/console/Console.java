@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,16 +19,9 @@
 package org.structr.console;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.ScriptableObject;
-import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
@@ -36,21 +29,17 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.console.rest.RestCommand;
 import org.structr.console.shell.AdminConsoleCommand;
-import org.structr.console.tabcompletion.AdminTabCompletionProvider;
-import org.structr.console.tabcompletion.CypherTabCompletionProvider;
-import org.structr.console.tabcompletion.JavaScriptTabCompletionProvider;
-import org.structr.console.tabcompletion.RestTabCompletionProvider;
-import org.structr.console.tabcompletion.StructrScriptTabCompletionProvider;
-import org.structr.console.tabcompletion.TabCompletionProvider;
-import org.structr.console.tabcompletion.TabCompletionResult;
+import org.structr.console.tabcompletion.*;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.Tx;
-import org.structr.core.script.StructrScriptable;
+import org.structr.core.script.Scripting;
+import org.structr.core.script.Snippet;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.util.Writable;
 
 
@@ -62,9 +51,7 @@ public class Console {
 
 	private final Map<ConsoleMode, TabCompletionProvider> tabCompletionProviders = new HashMap<>();
 	private ConsoleMode mode                                                     = null;
-	private StructrScriptable scriptable                                         = null;
 	private ActionContext actionContext                                          = null;
-	private ScriptableObject scope                                               = null;
 	private String username                                                      = null;
 	private String password                                                      = null;
 
@@ -91,6 +78,8 @@ public class Console {
 	}
 
 	public void run(final String line, final Writable output) throws FrameworkException, IOException {
+
+		actionContext.clearExecutableCaches();
 
 		if (line.startsWith("Console.getMode()")) {
 
@@ -220,7 +209,7 @@ public class Console {
 	}
 
 	public Map<String, Object> getVariables() {
-		return actionContext.getAllVariables();
+		return actionContext.getRequestStore();
 	}
 
 	public void store(final String key, final Object value) {
@@ -270,7 +259,8 @@ public class Console {
 
 		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-			final Object result = Functions.evaluate(actionContext, null, line);
+			final EvaluationHints hints = new EvaluationHints();
+			final Object result = Functions.evaluate(actionContext, null, new Snippet("console", line), hints);
 			if (result != null) {
 
 				if (result instanceof Iterable) {
@@ -286,37 +276,26 @@ public class Console {
 			tx.success();
 
 		} catch (UnlicensedScriptException ex) {
-			ex.log(LoggerFactory.getLogger(Console.class));
+
+			throw new FrameworkException(422, "Unlicensed function called", ex);
+
 		} catch (Throwable t) {
+
 			throw new FrameworkException(422, t.getMessage());
 		}
 	}
 
 	private void runJavascript(final String line, final Writable writable) throws FrameworkException {
 
-		final Context scriptingContext = Context.enter();
-
-		init(scriptingContext);
-
 		actionContext.setJavaScriptContext(true);
 
 		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-			Object extractedValue = scriptingContext.evaluateString(scope, line, "interactive script, line ", 1, null);
+			Snippet script = new Snippet("interactive script, line ", line, false);
+			Object extractedValue = Scripting.evaluateJavascript(actionContext, null, script);
 
-			if (scriptable.hasException()) {
-				final FrameworkException ex = scriptable.getException();
-				scriptable.clearException();
-				throw ex;
-			}
+			if (!extractedValue.toString().isEmpty()) {
 
-			// prioritize written output over result returned from method
-			final String output = actionContext.getOutput();
-			if (output != null && !output.isEmpty()) {
-				extractedValue = output;
-			}
-
-			if (extractedValue != null) {
 				writable.println(extractedValue.toString());
 			}
 
@@ -331,9 +310,6 @@ public class Console {
 
 			throw new FrameworkException(422, t.getMessage());
 
-		} finally {
-
-			Context.exit();
 		}
 	}
 
@@ -369,37 +345,6 @@ public class Console {
 
 			writable.println("Syntax error.");
 		}
-	}
-
-	private void init(final Context scriptingContext) {
-
-		scriptingContext.setLanguageVersion(Context.VERSION_ES6);
-		scriptingContext.setInstructionObserverThreshold(0);
-		scriptingContext.setGenerateObserverCount(false);
-		scriptingContext.setGeneratingDebug(true);
-
-		// Initialize the standard objects (Object, Function, etc.)
-		// This must be done before scripts can be executed.
-		if (this.scope == null) {
-			this.scope = scriptingContext.initStandardObjects();
-		}
-
-		// set optimization level to interpreter mode to avoid
-		// class loading / PermGen space bug in Rhino
-		//scriptingContext.setOptimizationLevel(-1);
-
-		if (this.scriptable == null) {
-
-			this.scriptable = new StructrScriptable(actionContext, null, scriptingContext);
-			this.scriptable.setParentScope(scope);
-
-			// register Structr scriptable
-			scope.put("Structr", scope, scriptable);
-			scope.put("$",       scope, scriptable);
-		}
-
-		// clear output buffer
-		actionContext.clear();
 	}
 
 	private List<String> splitAndClean(final String src) {

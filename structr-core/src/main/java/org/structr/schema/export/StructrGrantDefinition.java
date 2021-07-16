@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -152,7 +152,7 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 		if (principals.isEmpty()) {
 
 			// log error
-			logger.warn("No node of type Principal found for schema grant {}, ignoring.", principalName);
+			logger.warn("No node of type Principal found for schema grant '{}', ignoring.", principalName);
 			return null;
 		}
 

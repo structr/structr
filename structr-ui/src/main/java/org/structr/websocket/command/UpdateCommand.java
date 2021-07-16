@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,6 +31,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
@@ -93,7 +94,6 @@ public class UpdateCommand extends AbstractCommand {
 
 						tx.success();
 						return;
-
 					}
 				}
 
@@ -120,20 +120,36 @@ public class UpdateCommand extends AbstractCommand {
 
 					while (iterator.hasNext() && count++ < 100) {
 
-						setProperties(app, iterator.next(), properties, true);
+						final String uuid = iterator.next();
+
+						final NodeInterface nodeObj = app.getNodeById(uuid);
+						if (nodeObj != null) {
+
+							nodeObj.setProperties(nodeObj.getSecurityContext(), properties);
+
+							TransactionCommand.registerNodeCallback(nodeObj, callback);
+
+						} else {
+
+							final RelationshipInterface relObj = app.getRelationshipById(uuid);
+
+							if (relObj != null) {
+
+								relObj.setProperties(relObj.getSecurityContext(), properties);
+								TransactionCommand.registerRelCallback((RelationshipInterface) relObj, callback);
+							}
+						}
 					}
 
-					// commit and close transaction
 					tx.success();
 				}
-
 			}
 
 		} catch (FrameworkException ex) {
+
 			logger.warn("Exception occured", ex);
 			getWebSocket().send(MessageBuilder.status().code(ex.getStatus()).message(ex.getMessage()).build(), true);
 		}
-
 	}
 
 	@Override
@@ -145,16 +161,6 @@ public class UpdateCommand extends AbstractCommand {
 	public String getCommand() {
 
 		return "UPDATE";
-
-	}
-
-	private void setProperties(final App app, final String uuid, final PropertyMap properties, final boolean rec) throws FrameworkException {
-
-		final NodeInterface obj = app.getNodeById(uuid);
-
-		obj.setProperties(obj.getSecurityContext(), properties);
-
-		TransactionCommand.registerNodeCallback((NodeInterface) obj, callback);
 	}
 
 	private void collectEntities(final Set<String> entities, final GraphObject obj, final PropertyMap properties, final boolean rec) throws FrameworkException {
@@ -171,5 +177,4 @@ public class UpdateCommand extends AbstractCommand {
 			}
 		}
 	}
-
 }

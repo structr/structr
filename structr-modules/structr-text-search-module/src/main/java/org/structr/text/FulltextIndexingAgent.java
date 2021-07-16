@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -160,7 +160,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 					final Metadata metadata = new Metadata();
 
-					try (final FulltextTokenizer tokenizer = new FulltextTokenizer()) {
+					try (final FulltextTokenizer tokenizer = new FulltextTokenizer(indexable.indexedWordMinLength(), indexable.indexedWordMaxLength())) {
 
 						try (final InputStream is = inputStream) {
 
@@ -218,7 +218,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 								}
 							}
 
-							final List<String> topWords       = getFrequencySortedTopWords(indexedWords);
+							final List<String> topWords       = getFrequencySortedTopWords(indexedWords, indexable.maximumIndexedWords());
 							final List<IndexedWord> wordNodes = new LinkedList<>();
 
 							try {
@@ -278,7 +278,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 		}
 	}
 
-	private List<String> getFrequencySortedTopWords(final Map<String, Integer> frequency) {
+	private List<String> getFrequencySortedTopWords(final Map<String, Integer> frequency, final Integer maxEntries) {
 
 		final Map<Integer, Set<String>> words = new TreeMap<>(Collections.reverseOrder());
 		final ArrayList<String> resultList    = new ArrayList<>();
@@ -303,6 +303,14 @@ public class FulltextIndexingAgent extends Agent<String> {
 			for (final String word : set) {
 
 				resultList.add(word);
+
+				if (resultList.size() >= maxEntries) {
+					break;
+				}
+			}
+
+			if (resultList.size() >= maxEntries) {
+				break;
 			}
 		}
 

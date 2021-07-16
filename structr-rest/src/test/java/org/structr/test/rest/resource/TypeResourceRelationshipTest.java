@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -572,8 +572,8 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 		// when a user wants to create a more specific type using the
 		// base type resource URL.
 
-		createEntity("/SchemaNode", "{ name: BaseType }");
-		createEntity("/SchemaNode", "{ name: DerivedType, extendsClass: 'org.structr.dynamic.BaseType' }");
+		final String uuid = createEntity("/SchemaNode", "{ name: BaseType }");
+		createEntity("/SchemaNode", "{ name: DerivedType, extendsClass: \"" + uuid + "\" }");
 
 		createEntity("/BaseType", "{ name: BaseType }");
 		createEntity("/BaseType", "{ name: DerivedType, type: DerivedType }");
@@ -596,6 +596,6 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 				.body("result[0].type",     equalTo("BaseType"))
 				.body("result[1].type",     equalTo("DerivedType"))
 			.when()
-				.get("/BaseType?sort=name");
+				.get("/BaseType?_sort=name");
 	}
 }

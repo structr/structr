@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,8 +19,8 @@
 package org.structr.bolt;
 
 import java.util.List;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.types.Path;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.types.Path;
 
 /**
  * A mapper that converts a stream of Records to a stream of Nodes,

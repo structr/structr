@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
@@ -37,8 +38,8 @@ public class FilterExpression extends Expression {
 	private Expression listExpression   = null;
 	private Expression filterExpression = null;
 
-	public FilterExpression() {
-		super("filter");
+	public FilterExpression(final int row, final int column) {
+		super("filter", row, column);
 	}
 
 	@Override
@@ -63,13 +64,13 @@ public class FilterExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
 		if (listExpression == null || filterExpression == null) {
 			return ERROR_MESSAGE_FILTER;
 		}
 
-		final Object listSource = listExpression.evaluate(ctx, entity);
+		final Object listSource = listExpression.evaluate(ctx, entity, hints);
 		final List target       = new LinkedList<>();
 
 		if (listSource != null && listSource instanceof Iterable) {
@@ -80,7 +81,7 @@ public class FilterExpression extends Expression {
 			for (Object obj : source) {
 
 				ctx.setConstant("data", obj);
-				final Object result = filterExpression.evaluate(ctx, entity);
+				final Object result = filterExpression.evaluate(ctx, entity, hints);
 				if (result instanceof Boolean) {
 
 					if ((Boolean)result) {
@@ -97,7 +98,7 @@ public class FilterExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 }

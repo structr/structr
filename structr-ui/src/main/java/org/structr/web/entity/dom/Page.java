@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -49,6 +49,8 @@ import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Site;
 import org.structr.web.entity.html.Html;
+import org.structr.web.importer.Importer;
+import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.DOMException;
@@ -165,6 +167,13 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 
 		type.overrideMethod("increaseVersion",             false, Page.class.getName() + ".increaseVersion(this);");
 
+		type.addMethod("setContent")
+			.addParameter("ctx", SecurityContext.class.getName())
+			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+			.setSource(Page.class.getName() + ".setContent(this, parameters, ctx);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
 		final JsonMethod createElement1 = type.addMethod("createElement");
 		createElement1.setReturnType("org.w3c.dom.Element");
 		createElement1.addParameter("tag", "String");
@@ -206,6 +215,30 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 	void setVersion(int version) throws FrameworkException;
 	void increaseVersion() throws FrameworkException;
 	int getVersion();
+
+	public static void setContent(final Page thisPage, final Map<String, Object> parameters, final SecurityContext ctx) throws FrameworkException {
+
+		final String content = (String)parameters.get("content");
+		if (content == null) {
+
+			throw new FrameworkException(422, "Cannot set content of page " + thisPage.getName() + ", no content provided");
+		}
+
+		final Importer importer = new Importer(thisPage.getSecurityContext(), content, null, null, false, false, false, false);
+		final App app           = StructrApp.getInstance(ctx);
+
+		importer.setIsDeployment(true);
+		importer.setCommentHandler(new DeploymentCommentHandler());
+
+		if (importer.parse(false)) {
+
+			for (final DOMNode node : thisPage.getAllChildNodes()) {
+				app.delete(node);
+			}
+
+			importer.createChildNodesWithHtml(thisPage, thisPage, true);
+		}
+	}
 
 	/**
 	 * Creates a new Page entity with the given name in the database.

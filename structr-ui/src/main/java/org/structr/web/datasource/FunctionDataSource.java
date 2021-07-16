@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,13 +27,14 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.function.UiFunction;
 
 /**
@@ -41,12 +42,19 @@ import org.structr.web.function.UiFunction;
  */
 public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
+	private String propertyName = null;
+
+	public FunctionDataSource(final String propertyName) {
+		this.propertyName = propertyName;
+	}
+
 	@Override
 	public Iterable<GraphObject> getData(final ActionContext actionContext, final NodeInterface referenceNode) throws FrameworkException {
 
 		final RenderContext renderContext = (RenderContext) actionContext;
+		final PropertyKey<String> key     = StructrApp.key(referenceNode.getClass(), propertyName);
 
-		final String functionQuery = ((DOMNode) referenceNode).getFunctionQuery();
+		final String functionQuery = referenceNode.getProperty(key);
 		if (StringUtils.isBlank(functionQuery)) {
 
 			return null;
@@ -54,7 +62,7 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 
 		try {
 
-			final Object result = Scripting.evaluate(renderContext, referenceNode, "${" + functionQuery.trim() + "}", "function query");
+			final Object result = Scripting.evaluate(renderContext, referenceNode, "${" + functionQuery.trim() + "}", propertyName, referenceNode.getUuid());
 			if (result instanceof Iterable) {
 
 				return FunctionDataSource.map((Iterable)result);
@@ -74,6 +82,7 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 			}
 
 		} catch (UnlicensedScriptException ex) {
+
 			ex.log(LoggerFactory.getLogger(FunctionDataSource.class));
 		}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -54,6 +54,10 @@ var Importer = {
 	},
 	onload: function() {
 		Importer.init();
+
+		Structr.fetchHtmlTemplate('importer/functions', { refreshIcon: _Icons.getHtmlForIcon(_Icons.refresh_icon) }, function(html) {
+			functionBar.append(html);
+		});
 
 		Structr.fetchHtmlTemplate('importer/main', { refreshIcon: _Icons.getHtmlForIcon(_Icons.refresh_icon) }, function(html) {
 
@@ -346,7 +350,7 @@ var Importer = {
 
 		Structr.fetchHtmlTemplate('importer/dialog.configurations', {type: 'csv'}, function(html) {
 
-			dialogBox.append(html);
+			dialogMeta.append(html);
 
 			var importConfigSelector = $('#load-csv-config-selector');
 			importConfigSelector.on('change', function () {
@@ -543,7 +547,7 @@ var Importer = {
 
 		if (!Importer.schemaTypeCachePopulated) {
 
-			$.get(rootUrl + 'AbstractSchemaNode?sort=name', function(data) {
+			$.get(rootUrl + 'AbstractSchemaNode?' + Structr.getRequestParameterName('sort') + '=name', function(data) {
 
 				if (data && data.result) {
 
@@ -859,7 +863,7 @@ var Importer = {
 
 		Structr.fetchHtmlTemplate('importer/dialog.configurations', {type: 'xml'}, function(html) {
 
-			dialogBox.append(html);
+			dialogMeta.append(html);
 
 			var importConfigSelector = $('#load-xml-config-selector');
 			importConfigSelector.on('change', function () {
@@ -1121,7 +1125,7 @@ var Importer = {
 		var propertySelector = $('#property-select');
 		var typeConfig       = configuration[path];
 
-		$.get(rootUrl + 'SchemaNode?sort=name', function(data) {
+		$.get(rootUrl + 'SchemaNode?' + Structr.getRequestParameterName('sort') + '=name', function(data) {
 
 			if (data && data.result) {
 

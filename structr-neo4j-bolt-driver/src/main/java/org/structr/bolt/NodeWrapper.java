@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,7 +37,7 @@ import org.structr.api.util.Iterables;
 /**
  *
  */
-class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implements Node {
+class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements Node {
 
 	protected static FixedSizeCache<Long, NodeWrapper> nodeCache                 = null;
 
@@ -49,7 +49,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 		super();
 	}
 
-	private NodeWrapper(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Node node) {
+	private NodeWrapper(final BoltDatabaseService db, final org.neo4j.driver.types.Node node) {
 		super(db, node);
 	}
 
@@ -121,7 +121,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 		buf.append("]->(m)");
 		buf.append(" SET r += $relProperties RETURN r");
 
-		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship(buf.toString(), map);
+		final org.neo4j.driver.types.Relationship rel = tx.getRelationship(buf.toString(), map);
 
 		setModified();
 		otherNode.setModified();
@@ -237,7 +237,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 
 		assertNotStale();
 
-		final RelationshipResult cache = getRelationshipCache(null, null);
+		final RelationshipResult cache = getRelationshipCache(null, null, null);
 		final String tenantIdentifier  = getTenantIdentifer(db);
 
 		return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r]-()"), "RETURN r ORDER BY r.internalTimestamp");
@@ -248,7 +248,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 
 		assertNotStale();
 
-		final RelationshipResult cache = getRelationshipCache(direction, null);
+		final RelationshipResult cache = getRelationshipCache(direction, null, null);
 		final String tenantIdentifier  = getTenantIdentifer(db);
 
 		switch (direction) {
@@ -268,23 +268,29 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 
 	@Override
 	public Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType) {
+		return getRelationships(direction, relationshipType, null);
+	}
+
+	@Override
+	public Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType, final String otherType) {
 
 		assertNotStale();
 
-		final RelationshipResult cache = getRelationshipCache(direction, relationshipType);
+		final RelationshipResult cache = getRelationshipCache(direction, relationshipType, otherType);
 		final String tenantIdentifier  = getTenantIdentifer(db);
 		final String rel               = relationshipType.name();
+		final String typeLabel         = tenantIdentifier + (otherType != null ? (":" + otherType) : "");
 
 		switch (direction) {
 
 			case BOTH:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]-()"), "RETURN r ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]-(", typeLabel, ")"), "RETURN r ORDER BY r.internalTimestamp");
 
 			case OUTGOING:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->()"), "RETURN r ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(", typeLabel, ")"), "RETURN r ORDER BY r.internalTimestamp");
 
 			case INCOMING:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-()"), "RETURN r ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-(", typeLabel, ")"), "RETURN r ORDER BY r.internalTimestamp");
 		}
 
 		return null;
@@ -325,7 +331,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 
 			final Direction direction   = rel.getDirectionForNode(this);
 			final RelationshipType type = rel.getType();
-			RelationshipResult list = getRelationshipCache(direction, type);
+			RelationshipResult list = getRelationshipCache(direction, type, null);
 
 			list.add(rel);
 		}
@@ -355,11 +361,11 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 		}
 	}
 
-	private RelationshipResult getRelationshipCache(final Direction direction, final RelationshipType relType) {
+	private RelationshipResult getRelationshipCache(final Direction direction, final RelationshipType relType, final String otherType) {
 
 		synchronized (relationshipCache) {
 
-			final String relTypeKey                     = relType != null ? relType.name() : "*";
+			final String relTypeKey                     = (relType != null ? relType.name() : "*") + (otherType != null ? (":" + otherType) : "");
 			final Map<String, RelationshipResult> cache = getCache(direction);
 
 			RelationshipResult count = cache.get(relTypeKey);
@@ -375,7 +381,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 	}
 
 	// ----- public static methods -----
-	public static NodeWrapper newInstance(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Node node) {
+	public static NodeWrapper newInstance(final BoltDatabaseService db, final org.neo4j.driver.types.Node node) {
 
 		NodeWrapper wrapper;
 
@@ -407,7 +413,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implemen
 
 				map.put("id", id);
 
-				final org.neo4j.driver.v1.types.Node node = tx.getNode(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id RETURN DISTINCT n"), map);
+				final org.neo4j.driver.types.Node node = tx.getNode(concat("MATCH (n", tenantIdentifier, ") WHERE ID(n) = $id RETURN DISTINCT n"), map);
 				if (node != null) {
 
 					wrapper = NodeWrapper.newInstance(db, node);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,4 +31,6 @@ public interface StructrServices {
 	<T extends Service> Map<String, T> getServices(final Class<T> serviceClass);
 	DatabaseService getDatabaseService();
 	LicenseManager getLicenseManager();
+	String getInstanceName();
+	String getVersion();
 }

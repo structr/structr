@@ -1,4 +1,4 @@
-<div id="csv-import">
+<div>
 	<div id="sample">
 		<h3>Data Sample</h3>
 		<pre class="csv-preview">${config.data.result.lines}</pre>
@@ -8,7 +8,7 @@
 		<tbody>
 			<tr id="options-row1">
 				<td>
-					<label>Delimiter:</label>
+					<label for="delimiter">Delimiter:</label>
 					<select id="delimiter" class="import-option">
 						<option ${(config.delim === ',' ? 'selected' : '')}>,</option>
 						<option ${(config.delim === ';' ? 'selected' : '')}>;</option>
@@ -16,7 +16,7 @@
 					</select>
 				</td>
 				<td>
-					<label>Quote character:</label>
+					<label for="quote-char">Quote character:</label>
 					<select id="quote-char" class="import-option">
 						<option ${(config.qc === '' ? 'selected' : '')}></option>
 						<option ${(config.qc === '"' ? 'selected' : '')}>&quot;</option>
@@ -24,7 +24,7 @@
 					</select>
 				</td>
 				<td>
-					<label>Record separator:</label>
+					<label for="record-separator">Record separator:</label>
 					<select id="record-separator" class="import-option">
 						<option ${(config.data.result.separator ===    'LF' ? 'selected' : '')}>LF</option>
 						<option ${(config.data.result.separator ===    'CR' ? 'selected' : '')}>CR</option>
@@ -34,27 +34,25 @@
 			</tr>
 			<tr id="options-row2">
 				<td>
-					<label>Commit interval:</label>
+					<label for="commit-interval">Commit interval:</label>
 					<input type="number" id="commit-interval" value="1000" placeholder="1000" title="Enter 0 to disable periodic commit.">
 				</td>
 				<td>
-					<label>Strict Quotes:</label>
-					<input type="checkbox" id="strict-quotes" /><br>
-					<label>Ignore invalid lines:</label>
-					<input type="checkbox" id="ignore-invalid" />
+					<input type="checkbox" id="strict-quotes" /><label for="strict-quotes">Strict Quotes</label><br>
+					<input type="checkbox" id="ignore-invalid" /><label for="ignore-invalid">Ignore invalid lines</label>
 				</td>
 				<td>
-					<label>Line range:</label>
+					<label for="range">Line range:</label>
 					<input type="text" id="range" title="Enter range (0-100)." placeholder="e.g. 1-100 or 1,2,3-10" />
 				</td>
 			</tr>
 			<tr id="options-row3">
 				<td>
-					<label>Import type:</label><input type="radio" name="import-type" value="node" ${(config.importType === 'node' ? 'checked' : '')}> Node<br>
+					<label for="import-type">Import type:</label><input type="radio" id="import-type" name="import-type" value="node" ${(config.importType === 'node' ? 'checked' : '')}> Node<br>
 					<label></label><input type="radio" name="import-type" value="rel" ${(config.importType === 'rel' ? 'checked' : '')}> Relationship
 				</td>
 				<td>
-					<label>Skip duplicates:</label>
+					<label for="distinct">Skip duplicates:</label>
 					<input type="checkbox" id="distinct" /><br>
 				</td>
 				<td>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -72,7 +72,7 @@ public class NodeService implements SingletonService {
 		databaseService = (DatabaseService)Class.forName(databaseDriver).newInstance();
 		if (databaseService != null) {
 
-			if (databaseService.initialize(serviceName)) {
+			if (databaseService.initialize(serviceName, services.getVersion(), services.getInstanceName())) {
 
 				filesPath = Settings.FilesPath.getValue();
 
@@ -97,6 +97,8 @@ public class NodeService implements SingletonService {
 					isInitialized = true;
 
 					logger.info("Indexes successfully initialized.");
+
+
 
 				} catch (Throwable t) {
 
@@ -138,8 +140,8 @@ public class NodeService implements SingletonService {
 			logger.info("Shutting down database service");
 			databaseService.shutdown();
 
-			databaseService       = null;
-			isInitialized = false;
+			databaseService = null;
+			isInitialized   = false;
 		}
 	}
 

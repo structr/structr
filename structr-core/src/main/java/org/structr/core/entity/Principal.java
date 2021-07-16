@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -42,6 +42,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -376,17 +377,35 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 			if (refreshTokens != null) {
 
-				final Set<String> sessionIds = new HashSet<>(Arrays.asList(refreshTokens));
+				final Set<String> refreshTokenSet = new HashSet<>(Arrays.asList(refreshTokens));
 
-				sessionIds.remove(refreshToken);
+				refreshTokenSet.remove(refreshToken);
 
-				principal.setProperty(key, (String[]) sessionIds.toArray(new String[0]));
+				principal.setProperty(key, (String[]) refreshTokenSet.toArray(new String[0]));
 			}
 
 		} catch (FrameworkException ex) {
 
 			final Logger logger = LoggerFactory.getLogger(Principal.class);
 			logger.error("Could not remove refreshToken " + refreshToken + " from array of refreshTokens", ex);
+		}
+	}
+
+	public static void clearTokens(final Principal principal) {
+
+		try {
+
+			PropertyMap properties = new PropertyMap();
+			final PropertyKey<String[]> refreshTokensKey = StructrApp.key(Principal.class, "refreshTokens");
+
+			properties.put(refreshTokensKey, new String[0]);
+
+			principal.setProperties(SecurityContext.getSuperUserInstance(), properties);
+
+		} catch (FrameworkException ex) {
+
+			final Logger logger = LoggerFactory.getLogger(Principal.class);
+			logger.error("Could not clear refreshTokens of user {}", principal, ex);
 		}
 	}
 

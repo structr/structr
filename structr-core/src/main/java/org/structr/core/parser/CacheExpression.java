@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,13 +18,13 @@
  */
 package org.structr.core.parser;
 
-import java.util.Random;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
@@ -39,8 +39,8 @@ public class CacheExpression extends Expression {
 	private Expression timeoutExpression = null;
 	private Expression valueExpression   = null;
 
-	public CacheExpression() {
-		super("cache");
+	public CacheExpression(final int row, final int column) {
+		super("cache", row, column);
 	}
 
 	@Override
@@ -69,13 +69,13 @@ public class CacheExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
 		if (keyExpression == null) {
 			return "Error: cache(): key expression may not be empty.";
 		}
 
-		final Object keyObject = keyExpression.evaluate(ctx, entity);
+		final Object keyObject = keyExpression.evaluate(ctx, entity, hints);
 		if (keyObject == null) {
 
 			return "Error: cache(): key may not be empty.";
@@ -91,7 +91,7 @@ public class CacheExpression extends Expression {
 			return "Error: cache(): timeout expression may not be empty.";
 		}
 
-		final Object timeoutValue = timeoutExpression.evaluate(ctx, entity);
+		final Object timeoutValue = timeoutExpression.evaluate(ctx, entity, hints);
 		if (timeoutValue == null || !(timeoutValue instanceof Number)) {
 
 			return "Error: cache(): timeout must be non-empty and a number.";
@@ -105,11 +105,11 @@ public class CacheExpression extends Expression {
 
 		// get or create new cached value
 		final Services services = Services.getInstance();
-		CachedValue cachedValue = (CachedValue)services.getAttribute(key);
+		CachedValue cachedValue = (CachedValue)services.getCachedValue(key);
 		if (cachedValue == null) {
 
 			cachedValue = new CachedValue(timeout);
-			services.setAttribute(key, cachedValue);
+			services.cacheValue(key, cachedValue);
 
 		} else {
 
@@ -118,7 +118,7 @@ public class CacheExpression extends Expression {
 
 		// refresh value from value expression (this is the only place the value expression is evaluated)
 		if (cachedValue.isExpired()) {
-			cachedValue.refresh(valueExpression.evaluate(ctx, entity));
+			cachedValue.refresh(valueExpression.evaluate(ctx, entity, hints));
 		}
 
 		return cachedValue.getValue();
@@ -126,7 +126,7 @@ public class CacheExpression extends Expression {
 
 	public static boolean hasCachedValue(final String key) {
 
-		final CachedValue cachedValue = (CachedValue)Services.getInstance().getAttribute(key);
+		final CachedValue cachedValue = (CachedValue)Services.getInstance().getCachedValue(key);
 
 		if (cachedValue == null) {
 
@@ -140,7 +140,7 @@ public class CacheExpression extends Expression {
 
 	public static Object getCachedValue(final String key) {
 
-		final CachedValue cachedValue = (CachedValue)Services.getInstance().getAttribute(key);
+		final CachedValue cachedValue = (CachedValue)Services.getInstance().getCachedValue(key);
 
 		if (cachedValue == null || cachedValue.isExpired()) {
 
@@ -152,12 +152,11 @@ public class CacheExpression extends Expression {
 
 	public static void deleteCachedValue(final String key) {
 
-		Services.getInstance().removeAttribute(key);
+		Services.getInstance().invalidateCachedValue(key);
 	}
 
 	private static final class CachedValue {
 
-		private Random random       = new Random(System.currentTimeMillis());
 		private Object value        = null;
 		private long timeoutSeconds = 0L;
 		private long timeout        = 0L;
@@ -180,13 +179,13 @@ public class CacheExpression extends Expression {
 
 		public final void refresh(final Object value) {
 
-			this.timeout = System.currentTimeMillis() + ((timeoutSeconds + random.nextInt(10)) * 1000);
+			this.timeout = System.currentTimeMillis() + (timeoutSeconds * 1000);
 			this.value   = value;
 		}
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException {
 		return source;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -146,7 +146,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?sort=name")
+			.post("/test_threes?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -178,7 +178,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[4].stringArrayProperty[4]", equalTo("five"))
 
 		.when()
-			.get("/test_threes?sort=name&stringArrayProperty=one");
+			.get("/test_threes?_sort=name&stringArrayProperty=one");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -206,7 +206,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[3].stringArrayProperty[3]", equalTo("four"))
 			.body("result[3].stringArrayProperty[4]", equalTo("five"))
 		.when()
-			.get("/test_threes?sort=name&stringArrayProperty=two");
+			.get("/test_threes?_sort=name&stringArrayProperty=two");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -231,7 +231,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[2].stringArrayProperty[3]", equalTo("four"))
 			.body("result[2].stringArrayProperty[4]", equalTo("five"))
 		.when()
-			.get("/test_threes?sort=name&stringArrayProperty=three");
+			.get("/test_threes?_sort=name&stringArrayProperty=three");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -252,7 +252,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].stringArrayProperty[3]", equalTo("four"))
 			.body("result[1].stringArrayProperty[4]", equalTo("five"))
 		.when()
-			.get("/test_threes?sort=name&stringArrayProperty=four");
+			.get("/test_threes?_sort=name&stringArrayProperty=four");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -268,7 +268,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].stringArrayProperty[3]", equalTo("four"))
 			.body("result[0].stringArrayProperty[4]", equalTo("five"))
 		.when()
-			.get("/test_threes?sort=name&stringArrayProperty=five");
+			.get("/test_threes?_sort=name&stringArrayProperty=five");
 	}
 
 
@@ -286,7 +286,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?sort=name")
+			.post("/test_threes?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -302,7 +302,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].stringArrayProperty[0]", equalTo("two"))
 
 		.when()
-			.get("/test_threes?sort=name&stringArrayProperty=one;two");
+			.get("/test_threes?_sort=name&stringArrayProperty=one;two");
 
 	}
 
@@ -321,7 +321,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?sort=name")
+			.post("/test_threes?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -340,7 +340,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].stringArrayProperty[2]", equalTo("three"))
 
 		.when()
-			.get("/test_threes?sort=name&stringArrayProperty=one,two");
+			.get("/test_threes?_sort=name&stringArrayProperty=one,two");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -355,6 +355,6 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].stringArrayProperty[2]", equalTo("three"))
 
 		.when()
-			.get("/test_threes?sort=name&stringArrayProperty=one,two,three");
+			.get("/test_threes?_sort=name&stringArrayProperty=one,two,three");
 	}
 }

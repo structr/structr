@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,12 +33,8 @@ import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * Websocket command to return the children of the given node
- *
- *
+ * Websocket command to return the children of the given node.
  */
 public class ChildrenCommand extends AbstractCommand {
 
@@ -98,13 +94,8 @@ public class ChildrenCommand extends AbstractCommand {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getCommand() {
-
 		return "CHILDREN";
-
 	}
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -311,7 +311,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 		try (final Tx tx = app.tx()) {
 
-			final String path = getStoragePath("/outgoing");
+			final String path = getStoragePath("/outgoing", new Date());
 
 			org.structr.web.entity.Folder fileFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), path);
 
@@ -334,15 +334,20 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 	//////////////////////////////////////////////////////////////// Private Methods
 
-	private String getStoragePath (final String lastPathPart) {
+	private String getStoragePath (final String lastPathPart, final Date receivedDate) {
 
 		final Calendar cal = Calendar.getInstance();
 
-		return (attachmentBasePath.getValue() + "/" + Integer.toString(cal.get(Calendar.YEAR)) + "/" + Integer.toString(cal.get(Calendar.MONTH)) + "/" + Integer.toString(cal.get(Calendar.DAY_OF_MONTH)) + "/" + lastPathPart);
+		if (receivedDate != null) {
+
+			cal.setTime(receivedDate);
+		}
+
+		return (attachmentBasePath.getValue() + "/" + Integer.toString(cal.get(Calendar.YEAR)) + "/" + Integer.toString(cal.get(Calendar.MONTH) + 1) + "/" + Integer.toString(cal.get(Calendar.DAY_OF_MONTH)) + "/" + lastPathPart);
 	}
 
 	// Returns attachment UUID to append to the mail to be created
-	private File extractFileAttachment(final Mailbox mb, final Part p) {
+	private File extractFileAttachment(final Mailbox mb, final Message m, final Part p) {
 
 		File file = null;
 
@@ -354,7 +359,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 			try (final Tx tx = app.tx()) {
 
-				org.structr.web.entity.Folder fileFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), getStoragePath(mb.getUuid()));
+				org.structr.web.entity.Folder fileFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), getStoragePath(mb.getUuid(), m.getReceivedDate()));
 
 				try {
 
@@ -394,7 +399,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 		return file;
 	}
 
-	private Map<String,String> handleMultipart(final Mailbox mb, final String subject, Multipart p, List<File> attachments) {
+	private Map<String,String> handleMultipart(final Mailbox mb, final Message message, Multipart p, List<File> attachments) {
 
 		final Map<String,String> result = new HashMap<>();
 
@@ -408,7 +413,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 				BodyPart part = (BodyPart) p.getBodyPart(i);
 				if (part.getContent() instanceof Multipart) {
 
-					final Map<String,String> subResult = handleMultipart(mb, subject, (Multipart)part.getContent(), attachments);
+					final Map<String,String> subResult = handleMultipart(mb, message, (Multipart)part.getContent(), attachments);
 
 					if (subResult.get("content") != null) {
 						result.put("content", content.concat(subResult.get("content")));
@@ -421,7 +426,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 				} else if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()) || (part.getContentType().toLowerCase().contains("image/") && Part.INLINE.equalsIgnoreCase(part.getDisposition())) || part.getContentType().toLowerCase().contains("application/pdf")) {
 
-					final File file = extractFileAttachment(mb, part);
+					final File file = extractFileAttachment(mb, message, part);
 
 					if (file != null) {
 
@@ -440,7 +445,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 					} else if (!part.isMimeType("message/delivery-status")){
 
-						logger.warn("Cannot handle content type given by email part. Given metadata is either faulty or specific implementation is missing. Type: {}, Mailbox: {}, Content: {}, Subject; {}", part.getContentType(), mb.getUuid(), part.getContent().toString(), subject);
+						logger.warn("Cannot handle content type given by email part. Given metadata is either faulty or specific implementation is missing. Type: {}, Mailbox: {}, Content: {}, Subject; {}", part.getContentType(), mb.getUuid(), part.getContent().toString(), message.getSubject());
 					}
 				}
 			}
@@ -733,11 +738,11 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 								String htmlContent = null;
 								final Object contentObj = message.getContent();
 
-								List<File> attachments = new ArrayList<>();
+								final List<File> attachments = new ArrayList<>();
 
 								if (message.getContentType().contains("multipart")) {
 
-									final Map<String, String> result = handleMultipart(mailbox, message.getSubject(), (Multipart)contentObj, attachments);
+									final Map<String, String> result = handleMultipart(mailbox, message, (Multipart)contentObj, attachments);
 									content = result.get("content");
 									htmlContent = result.get("htmlContent");
 

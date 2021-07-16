@@ -1,0 +1,42 @@
+<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css">
+
+<div id="crud-main">
+
+	<div class="column-resizer"></div>
+
+	<div id="crud-left" class="resourceBox">
+
+		<div id="crud-types">
+
+			<div class="flex">
+				<h2 class="flex-grow">All Types</h2>
+
+				<div id="crudTypeFilterSettings" class="dropdown-menu dropdown-menu-large" data-template="crud/filter-types">
+
+					<button class="btn dropdown-select" id="crudTypesFilterToggle">
+						<i title="Auto-filter types" class="${_Icons.getFullSpriteClass(_Icons.wrench_icon)}"></i>
+					</button>
+					<div class="dropdown-menu-container"></div>
+				</div>
+			</div>
+
+			<input placeholder="Filter types..." id="crudTypesSearch">
+
+			<div id="crud-types-list">
+
+			</div>
+		</div>
+
+		<div id="crud-recent-types">
+			<h2>Recent</h2>
+
+			<div id="crud-recent-types-list">
+
+			</div>
+		</div>
+
+	</div>
+
+	<div id="crud-type-detail" class="resourceBox"></div>
+
+</div>

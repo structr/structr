@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.Property;
+import org.structr.schema.action.ActionContext;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -66,7 +67,7 @@ public class AutocompleteCommand extends AbstractCommand {
 
 			try {
 
-				final List<GraphObject> hints = AbstractHintProvider.getHints(securityContext, isAutoscriptEnv, StructrApp.getInstance().get(AbstractNode.class, id), before, after, line, cursorPosition);
+				final List<GraphObject> hints = AbstractHintProvider.getHints(new ActionContext(securityContext), isAutoscriptEnv, StructrApp.getInstance().get(AbstractNode.class, id), before, after, line, cursorPosition);
 				result.addAll(hints);
 
 			} catch(FrameworkException fex) {

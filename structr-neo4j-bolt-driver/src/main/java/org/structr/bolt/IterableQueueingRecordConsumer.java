@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,8 +26,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.StatementResultCursor;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.async.ResultCursor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.QueryTimer;
@@ -46,7 +46,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 	private final AtomicBoolean started       = new AtomicBoolean(false);
 	private QueryTimer queryTimer             = null;
 	private BoltDatabaseService db            = null;
-	private StatementResultCursor cursor      = null;
+	private ResultCursor cursor               = null;
 	private AdvancedCypherQuery query         = null;
 	private Throwable throwable               = null;
 	private boolean isClosed                  = false;
@@ -67,6 +67,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 		}
 
 		final SessionTransaction tx = db.getCurrentTransaction();
+
 		tx.setIsPing(query.getQueryContext().isPing());
 		tx.collectRecords(statement, query.getParameters(), this);
 
@@ -215,7 +216,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 		elementCount.incrementAndGet();
 	}
 
-	public CompletionStage<StatementResultCursor> start(final StatementResultCursor cursor) {
+	public CompletionStage<ResultCursor> start(final ResultCursor cursor) {
 		this.cursor = cursor;
 		return CompletableFuture.completedFuture(cursor);
 	}

@@ -1,0 +1,114 @@
+<link rel="stylesheet" type="text/css" media="screen" href="css/pages.css">
+
+<div class="column-resizer-blocker"></div>
+<div class="column-resizer column-resizer-left hidden"></div>
+<div class="column-resizer column-resizer-right hidden"></div>
+
+<div class="slideout-activator left" id="pagesTab">
+	<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 28 28" width="24" height="24">
+		<g transform="matrix(1,0,0,1,0,0)">
+			<path d="M9.750 18.748 L23.250 18.748 L23.250 23.248 L9.750 23.248 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.750 11.248 L23.250 11.248 L23.250 15.748 L9.750 15.748 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 0.748 L14.250 0.748 L14.250 5.248 L0.750 5.248 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75,5.248v1.5a1.5,1.5,0,0,0,1.5,1.5h4.5a1.5,1.5,0,0,1,1.5,1.5v1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.25 15.748L17.25 18.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+		</g>
+	</svg>
+	<br>
+	Page Tree
+</div>
+
+<div id="pages" class="slideOut slideOutLeft"></div>
+
+<!--div class="slideout-activator left" id="activeElementsTab">
+	<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 28 28" width="24" height="24">
+		<g transform="matrix(1,0,0,1,0,0)">
+			<path d="M12,11.625a.375.375,0,1,0,.375.375A.375.375,0,0,0,12,11.625h0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M10.313,9.078,7.874,4.855A8.246,8.246,0,0,0,3.75,12H8.625A3.371,3.371,0,0,1,10.313,9.078Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M10.313,14.923,7.874,19.146a8.246,8.246,0,0,0,8.251,0l-2.438-4.222A3.372,3.372,0,0,1,10.313,14.923Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.375,12h4.876a8.246,8.246,0,0,0-4.126-7.144L13.687,9.077A3.376,3.376,0,0,1,15.375,12Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+		</g>
+	</svg>
+	<br>
+	Active Elements
+</div>
+
+<div id="activeElements" class="slideOut slideOutLeft">
+	<div class="page inner"></div>
+</div>
+
+<div class="slideout-activator left" id="dataBindingTab">
+	<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24" width="24" height="24">
+		<g transform="matrix(1,0,0,1,0,0)">
+			<path d="M0.750 12.751 L12.750 12.751 L12.750 20.251 L0.750 20.251 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75 20.251L6.75 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M3.75 23.251L9.75 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.250 2.251 A4.5 1.5 0 1 0 23.250 2.251 A4.5 1.5 0 1 0 14.250 2.251 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M23.25,2.251v4.5c0,.828-2.015,1.5-4.5,1.5s-4.5-.672-4.5-1.5v-4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M23.25,6.751v4.5c0,.828-2.015,1.5-4.5,1.5s-4.5-.672-4.5-1.5v-4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6,6.751,3.75,9V6.751a3,3,0,0,1,3-3h4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M1.5 6.751L3.75 9.001" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9 1.501L11.25 3.751 9 6.001" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+		</g>
+	</svg>
+	<br>
+	Data Binding
+</div>
+
+<div id="dataBinding" class="slideOut slideOutLeft"></div-->
+
+<div class="slideout-activator left" id="localizationsTab">
+	<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 28 28" width="24" height="24">
+		<g transform="matrix(1,0,0,1,0,0)">
+			<path d="M19.652 0.748L15.902 2.998 18.152 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M23.25,8.187A6.749,6.749,0,0,0,16.366,3.77" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M4.348 23.248L8.098 20.998 5.848 17.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M.75,15.808a6.749,6.749,0,0,0,6.884,4.417" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 0.748 L12.750 0.748 L12.750 12.748 L0.750 12.748 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.75,11.248h6a1.5,1.5,0,0,1,1.5,1.5v9a1.5,1.5,0,0,1-1.5,1.5h-9a1.5,1.5,0,0,1-1.5-1.5v-6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.75,20.248v-4.5a1.5,1.5,0,0,1,3,0v4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.75 18.748L18.75 18.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75 3.748L6.75 5.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M3.75 5.248L9.75 5.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25,5.248s-1.5,4.5-4.5,4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.749,8.014a3.933,3.933,0,0,0,3,1.734" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+		</g>
+	</svg>
+	<br>
+	Trans-<br>lations
+</div>
+
+<div id="localizations" class="slideOut slideOutLeft">
+	<div class="page inner">
+		<div class="localizations-inputs">
+			<input class="locale" placeholder="Locale">
+			<button class="refresh action button">${_Icons.getHtmlForIcon(_Icons.refresh_icon)} Refresh</button>
+		</div>
+
+		<div class="results"></div>
+	</div>
+</div>
+
+<div id="center-pane"></div>
+
+<div class="slideout-activator right" id="widgetsTab">
+	<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
+		<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
+			<path d="M16.5,23.248H21a.75.75,0,0,0,.75-.75V17.559a.75.75,0,0,0-.219-.53l-1.06-1.061a.749.749,0,0,0-.53-.22H16.5a.75.75,0,0,0-.75.75v6A.75.75,0,0,0,16.5,23.248Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M16.5,9.748H21A.75.75,0,0,0,21.75,9V4.059a.75.75,0,0,0-.219-.53l-1.06-1.061a.749.749,0,0,0-.53-.22H16.5a.75.75,0,0,0-.75.75V9A.75.75,0,0,0,16.5,9.748Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 0.748L2.25 2.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 5.248L2.25 8.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 11.248L2.25 14.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25,17.248v1.5a1.5,1.5,0,0,0,1.5,1.5h1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25 20.248L11.25 20.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 20.248L15.75 20.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 6.748L5.25 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25 6.748L11.25 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 6.748L15.75 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+		</g>
+	</svg>
+	<br>
+	Widgets
+</div>
+<div id="widgetsSlideout" class="slideOut slideOutRight">
+</div>
+
+<div class="slideout-activator right" id="paletteTab">
+	<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
+		<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
+			<path d="M19.629,19.224l-6.89,3.759a1.5,1.5,0,0,1-1.437,0l-6.89-3.759a1.5,1.5,0,0,1-.762-1.07L1.061,2.621A1.5,1.5,0,0,1,2.541.875H21.5a1.5,1.5,0,0,1,1.479,1.746L20.39,18.154A1.494,1.494,0,0,1,19.629,19.224Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.27 5.375L6.77 5.375 7.52 9.875 16.52 9.875 15.77 15.875 12.02 18.125 8.27 15.875" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+		</g>
+	</svg>
+	<br>HTML Palette</div>
+<div id="palette" class="slideOut slideOutRight">
+</div>
+
+<div class="slideout-activator right" id="componentsTab">
+	<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
+		<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
+			<path d="M6.750 3.001 A5.25 2.25 0 1 0 17.250 3.001 A5.25 2.25 0 1 0 6.750 3.001 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75,3V6c0,1.242,2.351,2.25,5.25,2.25S17.25,7.243,17.25,6V3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75,6V9c0,1.242,2.351,2.25,5.25,2.25S17.25,10.243,17.25,9V6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 14.251 L9.750 14.251 L9.750 20.251 L0.750 20.251 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M5.25 20.251L5.25 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M3 23.251L7.5 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.250 14.251 L23.250 14.251 L23.250 20.251 L14.250 20.251 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M18.75 20.251L18.75 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M16.5 23.251L21 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.251,11.251v-1.5a1.5,1.5,0,0,1,1.5-1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M21.751,11.251v-1.5a1.5,1.5,0,0,0-1.5-1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+		</g>
+	</svg>
+	<br>
+	Shared Comp.
+</div>
+
+<div id="components" class="slideOut slideOutRight">
+	<div class="inner"></div>
+</div>
+
+<div class="slideout-activator right" id="elementsTab">
+	<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
+		<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
+			<path d="M22.9,1.3A1.5,1.5,0,0,0,21.75.764H2.25A1.5,1.5,0,0,0,.772,2.521l3.387,19.5a1.5,1.5,0,0,0,1.478,1.243H18.363a1.5,1.5,0,0,0,1.478-1.243l3.387-19.5A1.5,1.5,0,0,0,22.9,1.3Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M10.125 13.514L6.375 13.514 6.375 17.264" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.792,14.247a5.572,5.572,0,0,1-10.74-.733" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.625 10.514L18.375 10.514 18.375 6.764" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.958,9.781a5.572,5.572,0,0,1,10.74.733" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+		</g>
+	</svg>
+	<br>
+	Unused Elements
+</div>
+
+<div id="elements" class="slideOut slideOutRight"></div>

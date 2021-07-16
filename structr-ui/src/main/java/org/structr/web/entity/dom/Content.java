@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -82,7 +82,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		type.overrideMethod("updateFromNode",             false, Content.class.getName() + ".updateFromNode(this, arg0);");
 		type.overrideMethod("renderContent",              false, Content.class.getName() + ".renderContent(this, arg0, arg1);");
 		type.overrideMethod("contentEquals",              false, "return " + Content.class.getName() + ".contentEquals(this, arg0);");
-		type.overrideMethod("getContextName",             false, "return \"#text\";");
+		type.overrideMethod("getContextName",             false, "return StringUtils.defaultString(getProperty(AbstractNode.name), \"#text\");");
 		type.overrideMethod("doImport",                   false, "return arg0.createTextNode(getData());");
 		type.overrideMethod("onCreation",                 true,  "if (getContentType() == null) { setContentType(\"text/plain\"); }");
 		type.overrideMethod("onModification",             true,  Content.class.getName() + ".onModification(this, arg0, arg1, arg2);");
@@ -248,7 +248,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 			final String _sharedComponentConfiguration = thisNode.getSharedComponentConfiguration();
 			if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
 
-				Scripting.evaluate(renderContext, thisNode, "${" + _sharedComponentConfiguration.trim() + "}", "shared component configuration");
+				Scripting.evaluate(renderContext, thisNode, "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", 0, thisNode.getUuid());
 			}
 
 			// determine some postprocessing flags
@@ -318,11 +318,11 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 			if (!isShadowPage) {
 
 				final DOMNode ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
-				logger.error("Error while evaluating script in page {}[{}], Content[{}]", ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode, t);
+				DOMNode.logScriptingError(logger, t, "Error while evaluating script in page {}[{}], Content[{}]", ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), thisNode.getUuid());
 
 			} else {
 
-				logger.error("Error while evaluating script in shared component, Content[{}]", thisNode, t);
+				DOMNode.logScriptingError(logger, t, "Error while evaluating script in shared component, Content[{}]", thisNode.getUuid());
 			}
 		}
 	}
@@ -542,6 +542,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 			boolean hasSlash                 = false;
 			boolean hasBackslash             = false;
 			boolean hasDollar                = false;
+			int startRow                     = 0;
 			int level                        = 0;
 			int row                          = 0;
 			int column                       = 0;
@@ -583,6 +584,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 					case '{':
 						if (!inTemplate && hasDollar && !inComment) {
 
+							startRow   = row;
 							inTemplate = true;
 
 							// extract and handle content from non-script buffer
@@ -619,7 +621,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 							scriptBuffer.append("}");
 
 							// call handler
-							handler.handleScript(scriptBuffer.toString());
+							handler.handleScript(scriptBuffer.toString(), startRow, column);
 
 							// switch to other buffer
 							scriptBuffer.setLength(0);
@@ -694,7 +696,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 	static interface ContentHandler {
 
-		void handleScript(final String script) throws FrameworkException, IOException;
+		void handleScript(final String script, final int row, final int column) throws FrameworkException, IOException;
 		void handleIncompleteScript(final String script) throws FrameworkException, IOException;
 		void handleText(final String text) throws FrameworkException;
 		void possibleStartOfScript(final int row, final int column);
@@ -736,38 +738,58 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		}
 
 		@Override
-		public void handleScript(final String script) throws FrameworkException, IOException {
+		public void handleScript(final String script, final int row, final int column) throws FrameworkException, IOException {
 
-			if (renderContext.returnRawValue()) {
+			try {
 
-				if (StringUtils.isNotBlank(script)) {
+				if (renderContext.returnRawValue()) {
 
-					renderContext.getBuffer().append(transform(script));
-					isEmpty = false;
-				}
+					if (StringUtils.isNotBlank(script)) {
 
-			} else {
-
-				final Object value = Scripting.evaluate(renderContext, node, script, "script source");
-				if (value != null) {
-
-					String content = null;
-
-					// Convert binary data to String with charset from response
-					if (value instanceof byte[]) {
-						//StringUtils.toEncodedString((byte[]) value, renderContext.getPage().getProperty(StructrApp.key(Page.class, "contentType")));
-						content = StringUtils.toEncodedString((byte[]) value, Charset.forName(renderContext.getResponse().getCharacterEncoding()));
-					} else {
-						content = value.toString();
-					}
-
-					if (StringUtils.isNotBlank(content)) {
-
-						renderContext.getBuffer().append(transform(content));
+						renderContext.getBuffer().append(transform(script));
 						isEmpty = false;
 					}
+
+				} else {
+
+					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid());
+					if (value != null) {
+
+						String content = null;
+
+						// Convert binary data to String with charset from response
+						if (value instanceof byte[]) {
+							//StringUtils.toEncodedString((byte[]) value, renderContext.getPage().getProperty(StructrApp.key(Page.class, "contentType")));
+							content = StringUtils.toEncodedString((byte[]) value, Charset.forName(renderContext.getResponse().getCharacterEncoding()));
+						} else {
+							content = value.toString();
+						}
+
+						if (StringUtils.isNotBlank(content)) {
+
+							renderContext.getBuffer().append(transform(content));
+							isEmpty = false;
+						}
+					}
+				}
+
+			} catch (Throwable t) {
+
+				final Logger logger = LoggerFactory.getLogger(Content.class);
+				final boolean isShadowPage = DOMNode.isSharedComponent(node);
+
+				// catch exception to prevent status 500 error pages in frontend.
+				if (!isShadowPage) {
+
+					final DOMNode ownerDocument = node.getOwnerDocumentAsSuperUser();
+					DOMNode.logScriptingError(logger, t, "Error while evaluating script in page {}[{}], Content[{}]", ownerDocument.getProperty(AbstractNode.name), ownerDocument.getProperty(AbstractNode.id), node.getUuid());
+
+				} else {
+
+					DOMNode.logScriptingError(logger, t, "Error while evaluating script in shared component, Content[{}]", node.getUuid());
 				}
 			}
+
 		}
 
 		@Override

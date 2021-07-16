@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -55,7 +55,7 @@ public class OpenAPIPostOperation extends OpenAPIOperation {
 			// responses
 			Map.of(
 				"201", new OpenAPIReference("#/components/responses/created"),
-				"403", new OpenAPIReference("#/components/responses/forbidden"),
+				"401", new OpenAPIReference("#/components/responses/unauthorized"),
 				"422", new OpenAPIReference("#/components/responses/validationError")
 			)
 		);

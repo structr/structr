@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -58,7 +58,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 			type.addStringArrayProperty("fallbackBrokerURLs",   PropertyView.Public, PropertyView.Ui);
 			type.addIntegerProperty("qos",                      PropertyView.Public, PropertyView.Ui).setDefaultValue("0");
 			type.addBooleanProperty("isEnabled",                PropertyView.Public, PropertyView.Ui);
-			type.addBooleanProperty("isConnected",              PropertyView.Public, PropertyView.Ui);
+			type.addBooleanProperty("isConnected",              PropertyView.Public, PropertyView.Ui).setReadOnly(true);
 			type.addStringProperty("username",                  PropertyView.Public, PropertyView.Ui);
 			type.addStringProperty("password",                  PropertyView.Public, PropertyView.Ui);
 
@@ -175,6 +175,11 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 
 		final App app = StructrApp.getInstance();
 		try(final Tx tx = app.tx()) {
+
+			if (!thisClient.getIsConnected() && connected) {
+
+				MQTTContext.subscribeAllTopics(thisClient);
+			}
 
 			thisClient.setIsConnected(connected);
 			tx.success();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,8 +26,6 @@ public class ExceptionHandler implements FlowHandler<Exception> {
 
 	@Override
 	public FlowElement handle(Context context, Exception flowElement) {
-
-		flowElement.handleException(context);
 
 		return flowElement.next();
 

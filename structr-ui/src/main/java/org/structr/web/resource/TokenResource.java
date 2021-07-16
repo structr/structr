@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,12 +26,11 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.entity.Principal;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.auth.AuthHelper;
+import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import javax.swing.text.html.HTML;
-import java.net.HttpCookie;
 import java.util.Map;
 
 public class TokenResource extends LoginResource {
@@ -39,7 +38,7 @@ public class TokenResource extends LoginResource {
 
     @Override
     public String getErrorMessage() {
-        return AuthHelper.TOKEN_ERROR_MSG;
+        return JWTHelper.TOKEN_ERROR_MSG;
     }
 
     @Override
@@ -65,7 +64,7 @@ public class TokenResource extends LoginResource {
 
             if (refreshToken != null) {
 
-                user = AuthHelper.getPrincipalForRefreshToken(refreshToken);
+                user = JWTHelper.getPrincipalForRefreshToken(refreshToken);
                 sendLoginNotification = false;
 
             }
@@ -91,11 +90,11 @@ public class TokenResource extends LoginResource {
 
     @Override
     protected RestMethodResult doLogin(SecurityContext securityContext, Principal user) throws FrameworkException {
-        Map<String, String> tokenMap = AuthHelper.createTokens(securityContext.getRequest(), user);
+        Map<String, String> tokenMap = JWTHelper.createTokensForUser(user);
 
         logger.info("Token creation successful: {}", user);
 
-        RuntimeEventLog.token("Token creation successful", user.getUuid(), user.getName());
+        RuntimeEventLog.token("Token creation successful", Map.of("id", user.getUuid(), "name", user.getName()));
 
         user.setSecurityContext(securityContext);
 

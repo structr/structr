@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,7 +25,9 @@ import java.util.Date;
  */
 public interface LicenseManager {
 
-	void refresh();
+	void logLicenseInfo();
+
+	void refresh(boolean readLicense);
 
 	String getEdition();
 

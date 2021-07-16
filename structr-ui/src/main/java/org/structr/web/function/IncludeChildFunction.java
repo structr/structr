@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -47,7 +47,7 @@ public class IncludeChildFunction extends IncludeFunction {
 
 	@Override
 	public String getSignature() {
-		return "name";
+		return "name [, collection, dataKey]";
 	}
 
 	@Override
@@ -58,6 +58,11 @@ public class IncludeChildFunction extends IncludeFunction {
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
 			if (!(sources[0] instanceof String)) {
+
+				return null;
+			}
+
+			if (!ctx.isRenderContext()) {
 
 				return null;
 			}
@@ -101,7 +106,8 @@ public class IncludeChildFunction extends IncludeFunction {
 				} else if (children.size() > 1) {
 
 					// More than one child node found => error
-					return "Error: Found more than one child node with name \"" + ((String) sources[0]) + "\" (total child nodes found by this name: " + StringUtils.join(children, ", ") + ")";
+					logger.warn("Error: Found more than one child node with name \"" + ((String) sources[0]) + "\" (total child nodes found by this name: " + StringUtils.join(children, ", ") + ")");
+					return "";
 				}
 			}
 
@@ -126,7 +132,7 @@ public class IncludeChildFunction extends IncludeFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Includes the content of the node with the given name";
+		return "Includes the content of the node with the given name (optionally as a repeater element)";
 	}
 
 }

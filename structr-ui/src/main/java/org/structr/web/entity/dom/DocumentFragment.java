@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -43,6 +43,7 @@ public interface DocumentFragment extends DOMNode, org.w3c.dom.DocumentFragment,
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DocumentFragment"));
 		type.setExtends(URI.create("#/definitions/DOMNode"));
+		type.setCategory("html");
 
 		// ----- interface org.w3c.dom.Node -----
 		type.overrideMethod("getNodeName",   false, "return \"#document-fragment\";");

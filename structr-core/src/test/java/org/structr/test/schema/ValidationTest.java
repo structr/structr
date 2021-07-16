@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -405,8 +405,8 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(SchemaNode.class,
-				new NodeAttribute(SchemaNode.name, "Item"),
-				new NodeAttribute(new StringProperty("_name"), "+String!")
+				new NodeAttribute<>(SchemaNode.name, "Item"),
+				new NodeAttribute<>(new StringProperty("_name"), "+String!")
 			);
 
 			tx.success();
@@ -491,14 +491,14 @@ public class ValidationTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(SchemaNode.class,
-				new NodeAttribute(SchemaNode.name, "Item"),
-				new NodeAttribute(new StringProperty("_name"), "+String!")
+			final SchemaNode item = app.create(SchemaNode.class,
+				new NodeAttribute<>(SchemaNode.name, "Item"),
+				new NodeAttribute<>(new StringProperty("_name"), "+String!")
 			);
 
 			app.create(SchemaNode.class,
-				new NodeAttribute(SchemaNode.name, "ItemDerived"),
-				new NodeAttribute(SchemaNode.extendsClass, "org.structr.dynamic.Item")
+				new NodeAttribute<>(SchemaNode.name, "ItemDerived"),
+				new NodeAttribute<>(SchemaNode.extendsClass, item)
 			);
 
 			tx.success();
@@ -592,8 +592,8 @@ public class ValidationTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(SchemaNode.class,
-				new NodeAttribute(SchemaNode.name, "Item"),
-				new NodeAttribute(new StringProperty("_testXYZ"), "+String!")
+				new NodeAttribute<>(SchemaNode.name, "Item"),
+				new NodeAttribute<>(new StringProperty("_testXYZ"), "+String!")
 			);
 
 			tx.success();
@@ -622,7 +622,7 @@ public class ValidationTest extends StructrTest {
 					// testing must be done in an isolated transaction
 					try (final Tx tx = app.tx()) {
 
-						app.create(type, new NodeAttribute(testXYZ, "Item" + i));
+						app.create(type, new NodeAttribute<>(testXYZ, "Item" + i));
 
 						tx.success();
 
@@ -885,7 +885,7 @@ public class ValidationTest extends StructrTest {
 
 			app.create(SchemaNode.class,
 				new NodeAttribute<>(AbstractNode.name, "TestDerived"),
-				new NodeAttribute<>(SchemaNode.extendsClass, "org.structr.dynamic.Test")
+				new NodeAttribute<>(SchemaNode.extendsClass, testType)
 			);
 
 			tx.success();
@@ -2226,6 +2226,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Property range constraint validation failure!");
 		}
 	}
@@ -2278,7 +2279,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -2296,6 +2297,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -55,11 +55,7 @@ var _Files = {
 
 		_Files.setViewMode(LSWrapper.getItem(filesViewModeKey) || 'list');
 
-		main = $('#main');
-
-		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
-
-		_Files.searchField = $('.search', main);
+		_Files.searchField = $('.search', functionBar);
 
 		if (_Files.searchField && _Files.searchField.length > 0) {
 
@@ -86,14 +82,12 @@ var _Files = {
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
 
+		window.addEventListener('resize', _Files.resize);
 	},
 	resize: function() {
-
 		_Files.moveResizer();
 		Structr.resize();
-
 		$('div.xml-mapping').css({ height: dialogBox.height()- 118 });
-
 	},
 	moveResizer: function(left) {
 
@@ -107,110 +101,276 @@ var _Files = {
 	},
 	onload: function() {
 
-		_Files.init();
+		Structr.fetchHtmlTemplate('files/files', {}, function(html) {
 
-		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('files'));
+			main[0].innerHTML = html;
 
-		main.append('<div class="tree-main" id="files-main"><div class="column-resizer"></div><div class="tree-container" id="file-tree-container"><div class="tree" id="file-tree"></div></div><div class="tree-contents-container" id="folder-contents-container"><div class="tree-contents tree-contents-with-top-buttons" id="folder-contents"></div></div>');
-		filesMain = $('#files-main');
+			Structr.fetchHtmlTemplate('files/search', {}, function(html) {
+				functionBar[0].innerHTML = html;
 
-		fileTree = $('#file-tree');
-		folderContents = $('#folder-contents');
+				_Files.init();
 
-		_Files.moveResizer();
-		Structr.initVerticalSlider($('.column-resizer', filesMain), filesResizerLeftKey, 204, _Files.moveResizer);
+				Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('files'));
 
-		Structr.fetchHtmlTemplate('files/button.file.new', {}, function(html) {
+				filesMain = $('#files-main');
 
-			$('#folder-contents-container').prepend(html);
+				fileTree = $('#file-tree');
+				folderContents = $('#folder-contents');
 
-			$('.add_file_icon', main).on('click', function(e) {
-				Command.create({ type: $('select#file-type').val(), size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null });
-			});
+				_Files.moveResizer();
+				Structr.initVerticalSlider($('.column-resizer', filesMain), filesResizerLeftKey, 204, _Files.moveResizer);
 
-			$('.mount_folder', main).on('click', _Files.openMountDialog);
+				Structr.fetchHtmlTemplate('files/button.file.new', {}, function (html) {
 
-			$('.add_folder_icon', main).on('click', function(e) {
-				Command.create({ type: $('select#folder-type').val(), parentId: currentWorkingDir ? currentWorkingDir.id : null });
-			});
+					functionBar.prepend(html);
 
-			$('select#file-type').on('change', function() {
-				$('#add-file-button', main).find('span').text('Add ' + $(this).val());
-			});
+					$('.add_file_icon', functionBar).on('click', function (e) {
+						Command.create({
+							type: $('select#file-type').val(),
+							size: 0,
+							parentId: currentWorkingDir ? currentWorkingDir.id : null
+						});
+					});
 
-			$('select#folder-type').on('change', function() {
-				$('#add-folder-button', main).find('span').text('Add ' + $(this).val());
-			});
+					$('.mount_folder', functionBar).on('click', _Files.openMountDialog);
 
-			// list types that extend File
-			_Schema.getDerivedTypes('org.structr.dynamic.File', ['CsvFile'], function(types) {
-				var elem = $('select#file-type');
-				types.forEach(function(type) {
-					elem.append('<option value="' + type + '">' + type + '</option>');
+					$('.add_folder_icon', functionBar).on('click', function (e) {
+						Command.create({
+							type: $('select#folder-type').val(),
+							parentId: currentWorkingDir ? currentWorkingDir.id : null
+						});
+					});
+
+					$('select#file-type').on('change', function () {
+						// $('#add-file-button', functionBar).find('span').text('Add' + $(this).val());
+						$('#add-file-button', functionBar).find('span').text('Add');
+					});
+
+					$('select#folder-type').on('change', function () {
+						// $('#add-folder-button', functionBar).find('span').text('Add ' + $(this).val());
+						$('#add-folder-button', functionBar).find('span').text('Add');
+					});
+
+					// list types that extend File
+					_Schema.getDerivedTypes('org.structr.dynamic.File', ['CsvFile'], function (types) {
+						var elem = $('select#file-type');
+						types.forEach(function (type) {
+							elem.append('<option value="' + type + '">' + type + '</option>');
+						});
+					});
+
+					// list types that extend folder
+					_Schema.getDerivedTypes('org.structr.dynamic.Folder', ['Trash'], function (types) {
+						var elem = $('select#folder-type');
+						types.forEach(function (type) {
+							elem.append('<option value="' + type + '">' + type + '</option>');
+						});
+					});
 				});
-			});
 
-			// list types that extend folder
-			_Schema.getDerivedTypes('org.structr.dynamic.Folder', ['Trash'], function(types) {
-				var elem = $('select#folder-type');
-				types.forEach(function(type) {
-					elem.append('<option value="' + type + '">' + type + '</option>');
+				$.jstree.defaults.core.themes.dots = false;
+				$.jstree.defaults.dnd.inside_pos = 'last';
+				$.jstree.defaults.dnd.large_drop_target = true;
+
+				fileTree.on('ready.jstree', function () {
+					_TreeHelper.makeTreeElementDroppable(fileTree, 'root');
+					_TreeHelper.makeTreeElementDroppable(fileTree, 'favorites');
+
+					_Files.loadAndSetWorkingDir(function () {
+
+						var lastOpenFolder = LSWrapper.getItem(filesLastOpenFolderKey);
+
+						if (lastOpenFolder === 'favorites') {
+
+							$('#favorites_anchor').click();
+
+						} else if (currentWorkingDir) {
+
+							_Files.deepOpen(currentWorkingDir);
+
+						} else {
+
+							$('#root_anchor').click();
+						}
+					});
 				});
+
+				fileTree.on('select_node.jstree', function (evt, data) {
+
+					if (data.node.id === 'favorites') {
+
+						_Files.displayFolderContents('favorites');
+
+					} else {
+
+						_Files.setWorkingDirectory(data.node.id);
+						_Files.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
+					}
+				});
+
+				_TreeHelper.initTree(fileTree, _Files.treeInitFunction, 'structr-ui-filesystem');
+
+				_Files.activateUpload();
+
+				$(window).off('resize').resize(function () {
+					_Files.resize();
+				});
+
+				Structr.unblockMenu(100);
+
+				_Files.resize();
+				Structr.adaptUiToAvailableFeatures();
+
 			});
+
 		});
+	},
+	getContextMenuElements: function (div, entity) {
 
-		$.jstree.defaults.core.themes.dots      = false;
-		$.jstree.defaults.dnd.inside_pos        = 'last';
-		$.jstree.defaults.dnd.large_drop_target = true;
+		const isFile             = entity.isFile;
+		const isFolder           = entity.isFolder;
+		let selectedElements     = document.querySelectorAll('.node.selected');
+		let isMultiSelect        = selectedElements.length > 1;
 
-		fileTree.on('ready.jstree', function() {
-			_TreeHelper.makeTreeElementDroppable(fileTree, 'root');
-			_TreeHelper.makeTreeElementDroppable(fileTree, 'favorites');
+		let elements = [];
 
-			_Files.loadAndSetWorkingDir(function() {
+		if (isFile) {
 
-				var lastOpenFolder = LSWrapper.getItem(filesLastOpenFolderKey);
+			if (isFile && entity.isImage && entity.contentType !== 'text/svg' && !entity.contentType.startsWith('image/svg')) {
+				elements.push({
+					icon: _Icons.svg.pencil_edit,
+					name: 'Edit Image',
+					clickHandler: function () {
+						_Files.editImage(entity);
+						return false;
+					}
+				});
+			} else if (isFile) {
+				elements.push({
+					icon: _Icons.svg.pencil_edit,
+					name: 'Edit File' + (isMultiSelect ? 's' : ''),
+					clickHandler: function () {
+						_Files.editFile(entity);
+						return false;
+					}
+				});
+			}
+		}
 
-				if (lastOpenFolder === 'favorites') {
+		_Elements.appendContextMenuSeparator(elements);
 
-					$('#favorites_anchor').click();
-
-				} else if (currentWorkingDir) {
-
-					_Files.deepOpen(currentWorkingDir);
-
-				} else {
-
-					$('#root_anchor').click();
-				}
-			});
-		});
-
-		fileTree.on('select_node.jstree', function(evt, data) {
-
-			if (data.node.id === 'favorites') {
-
-				_Files.displayFolderContents('favorites');
-
-			} else {
-
-				_Files.setWorkingDirectory(data.node.id);
-				_Files.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
+		elements.push({
+			name: 'Properties',
+			clickHandler: function() {
+				_Entities.showProperties(entity, 'ui');
+				return false;
 			}
 		});
 
-		_TreeHelper.initTree(fileTree, _Files.treeInitFunction, 'structr-ui-filesystem');
+		_Elements.appendContextMenuSeparator(elements);
 
-		_Files.activateUpload();
+		if (isFile) {
 
-		$(window).off('resize').resize(function() {
-			_Files.resize();
+			if (displayingFavorites) {
+				elements.push({
+					name: 'Remove from Favorites',
+					clickHandler: function () {
+						Command.favorites('remove', entity.id, () => {
+							Structr.node(entity.id).remove();
+						});
+						return false;
+					}
+				});
+
+			} else if (entity.isFavoritable) {
+				elements.push({
+					name: 'Add to Favorites',
+					clickHandler: function () {
+						Command.favorites('add', entity.id, () => {});
+						return false;
+					}
+				});
+			}
+
+			elements.push({
+				name: 'Copy Download URL',
+				clickHandler: function () {
+					// do not make the click handler async because it would return a promise instead of the boolean
+
+					(async () => {
+						// fake the a element so we do not need to look up the server
+						let a = document.createElement('a');
+						a.href = entity.path;
+						await navigator.clipboard.writeText(a.href);
+					})();
+					return false;
+				}
+			});
+
+			if (_Files.isArchive(entity)) {
+				elements.push({
+					name: 'Unpack archive',
+					clickHandler: function () {
+						_Files.unpackArchive(entity);
+						return false;
+					}
+				});
+			}
+
+			Structr.performModuleDependendAction(function () {
+				if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && entity.contentType === 'text/csv') {
+					elements.push({
+						name: 'Import CSV',
+						clickHandler: function () {
+							Importer.importCSVDialog(entity, false);
+							return false;
+						}
+					});
+				}
+			});
+
+			Structr.performModuleDependendAction(function () {
+				if (Structr.isModulePresent('xml') && (entity.contentType === 'text/xml' || entity.contentType === 'application/xml')) {
+					elements.push({
+						name: 'Import XML',
+						clickHandler: function () {
+							Importer.importXMLDialog(entity, false);
+							return false;
+						}
+					});
+				}
+			});
+		}
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		_Elements.appendSecurityContextMenuItems(elements, entity);
+
+		_Elements.appendContextMenuSeparator(elements);
+
+		elements.push({
+			icon: _Icons.svg.trashcan,
+			classes: ['menu-bolder', 'danger'],
+			name: 'Delete ' + (isMultiSelect ? 'selected data objects' : entity.type),
+			clickHandler: () => {
+
+				let files = [];
+
+				selectedElements.forEach((el) => {
+					files.push(Structr.entityFromElement(el));
+				});
+
+				_Entities.deleteNodes(this, files, true, () => {
+					_Files.refreshTree();
+				});
+
+				return false;
+			}
 		});
 
-		Structr.unblockMenu(100);
+		_Elements.appendContextMenuSeparator(elements);
 
-		_Files.resize();
-		Structr.adaptUiToAvailableFeatures();
+		return elements;
 	},
 	deepOpen: function(d, dirs) {
 
@@ -276,8 +436,10 @@ var _Files = {
 
 	},
 	unload: function() {
-		fastRemoveAllChildren($('.searchBox', main));
-		fastRemoveAllChildren($('#files-main', main));
+		window.removeEventListener('resize', _Files.resize);
+		fastRemoveAllChildren($('.searchBox', functionBar)[0]);
+		fastRemoveAllChildren($('#files-main', main)[0]);
+		fastRemoveAllChildren(functionBar[0]);
 	},
 	activateUpload: function() {
 
@@ -372,12 +534,12 @@ var _Files = {
 
 		var url;
 		if (searchString.contains(' ')) {
-			url = rootUrl + 'files/ui?loose=1';
+			url = rootUrl + 'files/ui?' + Structr.getRequestParameterName('loose') + '=1';
 			searchString.split(' ').forEach(function(str, i) {
 				url = url + '&indexedWords=' + str;
 			});
 		} else {
-			url = rootUrl + 'files/ui?loose=1&indexedWords=' + searchString;
+			url = rootUrl + 'files/ui?' + Structr.getRequestParameterName('loose') + '=1&indexedWords=' + searchString;
 		}
 
 		_Files.displaySearchResultsForURL(url);
@@ -467,6 +629,30 @@ var _Files = {
 
 		});
 	},
+	updateFunctionBarStatus: (displayingFavorites) => {
+
+		let addFolderButton   = document.getElementById('add-folder-button');
+		let addFileButton     = document.getElementById('add-file-button');
+		let mountDialogButton = document.getElementById('mount-folder-dialog-button');
+
+		addFolderButton?.setAttribute('disabled', displayingFavorites);
+		addFileButton?.setAttribute('disabled', displayingFavorites);
+		mountDialogButton?.setAttribute('disabled', displayingFavorites);
+
+
+		if (displayingFavorites) {
+
+			addFolderButton?.classList.add('disabled');
+			addFileButton?.classList.add('disabled');
+			mountDialogButton?.classList.add('disabled');
+
+		} else {
+
+			addFolderButton?.classList.remove('disabled');
+			addFileButton?.classList.remove('disabled');
+			mountDialogButton?.classList.remove('disabled');
+		}
+	},
 	displayFolderContents: function(id, parentId, nodePath, parents) {
 
 		fastRemoveAllChildren(folderContents[0]);
@@ -474,9 +660,10 @@ var _Files = {
 		LSWrapper.setItem(filesLastOpenFolderKey, id);
 
 		displayingFavorites = (id === 'favorites');
-		var isRootFolder = (id === 'root');
-		var parentIsRoot = (parentId === '#');
+		let isRootFolder = (id === 'root');
+		let parentIsRoot = (parentId === '#');
 
+		_Files.updateFunctionBarStatus(displayingFavorites);
 		_Files.insertLayoutSwitches(id, parentId, nodePath, parents);
 
 		// store current folder id so we can filter slow requests
@@ -501,11 +688,11 @@ var _Files = {
 
 			$('#folder-contents-container > button').addClass('disabled').attr('disabled', 'disabled');
 
-			folderContents.append('<h2><i class="' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" /> Favorite Files</h2>');
+			folderContents.append('<div class="folder-path"><i class="' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" /> Favorite Files</div>');
 
 			if (_Files.isViewModeActive('list')) {
 
-				folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
+				folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
 					+ '<tbody id="files-table-body"></tbody></table>');
 			}
 
@@ -539,7 +726,7 @@ var _Files = {
 			let pagerId = 'filesystem-files';
 			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			let filesPager = _Pager.addPager(pagerId, folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers');
+			let filesPager = _Pager.addPager(pagerId, folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,isFavoritable,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers');
 
 			filesPager.cleanupFunction = function () {
 				var toRemove = $('.node.file', filesPager.el).closest( (_Files.isViewModeActive('list') ? 'tr' : '.tile') );
@@ -557,9 +744,9 @@ var _Files = {
 			_Files.insertBreadCrumbNavigation(parents, nodePath);
 
 			if (_Files.isViewModeActive('list')) {
-				folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
+				folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
 					+ '<tbody id="files-table-body">'
-					+ (!isRootFolder ? '<tr><td class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td></tr>' : '')
+					+ (!isRootFolder ? '<tr><td class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td></tr>' : '')
 					+ '</tbody></table>');
 
 			} else if (_Files.isViewModeActive('tiles')) {
@@ -590,7 +777,7 @@ var _Files = {
 
 			path += ' <i class="fa fa-caret-right"></i> ' + pathNames.pop();
 
-			folderContents.append('<h2>' + path + '</h2>');
+			folderContents.append('<div class="folder-path">' + path + '</div>');
 
 			$('.breadcrumb-entry').click(function (e) {
 				e.preventDefault();
@@ -642,7 +829,7 @@ var _Files = {
 
 		StructrModel.createFromData(d, null, false);
 
-		let size = d.isFolder ? (d.foldersCount + d.filesCount) : (d.size ? d.size : '-');
+		let size = d.isFolder ? (d.foldersCount + d.filesCount) : d.size;
 		let icon = d.isFolder ? 'fa-folder' : _Icons.getFileIconClass(d);
 		let name = d.name ? d.name : '[unnamed]';
 
@@ -666,9 +853,18 @@ var _Files = {
 				+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + d.size + '</span></div></div></div><span class="id">' + d.id + '</span></div></td>');
 			}
 
-			row.append('<td class="size">' + size + '</td>');
-			row.append('<td>' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
+			row.append('<td class="abbr-ellipsis abbr-75pc id">' + d.id + '</td>');
+
+			if (d.isFolder) {
+				row.append('<td class="size">' + size + '</td>');
+			} else {
+				row.append('<td class="size">' + formatBytes(size,0) + '</td>');
+			}
+
+			row.append('<td class="abbr-ellipsis abbr-75pc">' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
 			row.append('<td>' + (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '') + '</td>');
+
+			_Elements.enableContextMenuOnElement(row, d);
 
 		} else if (_Files.isViewModeActive('tiles')) {
 
@@ -691,6 +887,8 @@ var _Files = {
 					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + size + '</span></div></div></div><span class="id">' + d.id + '</span></div>');
 			}
 
+			_Elements.enableContextMenuOnElement(tile, d);
+
 		} else if (_Files.isViewModeActive('img')) {
 
 			let tileId = 'tile' + d.id;
@@ -711,6 +909,8 @@ var _Files = {
 					+ '<b title="' + escapeForHtmlAttributes(name) + '" class="name_  abbr-ellipsis abbr-75pc">' + name + '</b>'
 					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + size + '</span></div></div></div><span class="id">' + d.id + '</span></div>');
 			}
+
+			_Elements.enableContextMenuOnElement(tile, d);
 		}
 
 		let div = Structr.node(d.id);
@@ -720,11 +920,16 @@ var _Files = {
 
 		_Entities.setMouseOver(div, true);
 
+		div.children('b.name_').off('click').on('click', function(e) {
+			e.stopPropagation();
+			_Entities.makeNameEditable(div);
+		});
+
 		div.on('remove', function() {
 			div.closest('tr').remove();
 		});
 
-		_Entities.appendAccessControlIcon(div, d);
+		// _Entities.appendAccessControlIcon(div, d);
 
 		if (d.isFolder) {
 			_Files.handleFolder(div, d);
@@ -763,6 +968,7 @@ var _Files = {
 
 		_Entities.appendEditPropertiesIcon(div, d);
 		_Entities.makeSelectable(div);
+
 	},
 	handleFolder: function(div, d) {
 
@@ -774,38 +980,38 @@ var _Files = {
 			});
 		}
 
-		var delIcon = $('.delete_icon', div);
-		var newDelIcon = $('<i title="Delete folder \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
-
-		if (delIcon && delIcon.length) {
-			delIcon.replaceWith(newDelIcon);
-		} else {
-			div.append(newDelIcon);
-		}
-		newDelIcon.on('click', function(e) {
-			e.stopPropagation();
-
-			selectedElements = $('.node.selected');
-			var selectedCount = selectedElements.length;
-
-			if (selectedCount > 1 && div.hasClass('selected')) {
-
-				var files = [];
-
-				$.each(selectedElements, function(i, el) {
-					files.push(Structr.entityFromElement(el));
-				});
-
-				_Entities.deleteNodes(this, files, true, function() {
-					_Files.refreshTree();
-				});
-
-			} else {
-				_Entities.deleteNode(this, d, true, function() {
-					_Files.refreshTree();
-				});
-			}
-		});
+		// var delIcon = $('.delete_icon', div);
+		// var newDelIcon = $('<i title="Delete folder \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
+		//
+		// if (delIcon && delIcon.length) {
+		// 	delIcon.replaceWith(newDelIcon);
+		// } else {
+		// 	div.append(newDelIcon);
+		// }
+		// newDelIcon.on('click', function(e) {
+		// 	e.stopPropagation();
+		//
+		// 	selectedElements = $('.node.selected');
+		// 	var selectedCount = selectedElements.length;
+		//
+		// 	if (selectedCount > 1 && div.hasClass('selected')) {
+		//
+		// 		var files = [];
+		//
+		// 		$.each(selectedElements, function(i, el) {
+		// 			files.push(Structr.entityFromElement(el));
+		// 		});
+		//
+		// 		_Entities.deleteNodes(this, files, true, function() {
+		// 			_Files.refreshTree();
+		// 		});
+		//
+		// 	} else {
+		// 		_Entities.deleteNode(this, d, true, function() {
+		// 			_Files.refreshTree();
+		// 		});
+		// 	}
+		// });
 
 		div.droppable({
 			accept: '.folder, .file, .image',
@@ -857,98 +1063,101 @@ var _Files = {
 			});
 		}
 
-		if (_Files.isArchive(d)) {
-			div.append('<i class="unarchive_icon button ' + _Icons.getFullSpriteClass(_Icons.compress_icon) + '" />');
-			$('.unarchive_icon', div).on('click', function() {
-
-				$('#tempInfoBox .infoHeading, #tempInfoBox .infoMsg').empty();
-				$('#tempInfoBox .closeButton').hide();
-				Structr.loaderIcon($('#tempInfoBox .infoMsg'), { marginBottom: '-6px' });
-				$('#tempInfoBox .infoMsg').append(' Unpacking Archive - please stand by...');
-				$('#tempInfoBox .infoMsg').append('<p>Extraction will run in the background.<br>You can safely close this popup and work during this operation.<br>You will be notified when the extraction has finished.</p>');
-
-				$.blockUI({
-					message: $('#tempInfoBox'),
-					css: Structr.defaultBlockUICss
-				});
-
-				var closed = false;
-				window.setTimeout(function() {
-					$('#tempInfoBox .closeButton').show().on('click', function () {
-						closed = true;
-						$.unblockUI({
-							fadeOut: 25
-						});
-					});
-				}, 500);
-
-				Command.unarchive(d.id, currentWorkingDir ? currentWorkingDir.id : undefined, function (data) {
-					if (data.success === true) {
-						_Files.refreshTree();
-						var message = "Extraction of '" + data.filename + "' finished successfully. ";
-						if (closed) {
-							new MessageBuilder().success(message).requiresConfirmation("Close").show();
-						} else {
-							$('#tempInfoBox .infoMsg').html('<i class="' + _Icons.getFullSpriteClass(_Icons.accept_icon) + '" /> ' + message);
-						}
-
-					} else {
-						$('#tempInfoBox .infoMsg').html('<i class="' + _Icons.getFullSpriteClass(_Icons.error_icon) + '" /> Extraction failed');
-					}
-				});
-			});
-		}
+		// if (_Files.isArchive(d)) {
+		// 	div.append('<i class="unarchive_icon button ' + _Icons.getFullSpriteClass(_Icons.compress_icon) + '" />');
+		// 	$('.unarchive_icon', div).on('click', function() {
+		// 		_Files.unpackArchive(d);
+		// 	});
+		// }
 
 		if (displayingFavorites === true) {
 
-			_Files.appendRemoveFavoriteIcon(div, d);
+			// _Files.appendRemoveFavoriteIcon(div, d);
 
 		} else {
 
-			div.append('<i title="Delete file \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
-			$('.delete_icon', div).on('click', function(e) {
-				e.stopPropagation();
-
-				selectedElements = $('.node.selected');
-				var selectedCount = selectedElements.length;
-
-				if (selectedCount > 1 && div.hasClass('selected')) {
-
-					var files = [];
-
-					$.each(selectedElements, function(i, el) {
-						files.push(Structr.entityFromElement(el));
-					});
-
-					_Entities.deleteNodes(this, files, true, function() {
-						_Files.refreshTree();
-					});
-
-				} else {
-					_Entities.deleteNode(this, d);
-				}
-			});
+			// div.append('<i title="Delete file \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
+			// $('.delete_icon', div).on('click', function(e) {
+			// 	e.stopPropagation();
+			//
+			// 	selectedElements = $('.node.selected');
+			// 	var selectedCount = selectedElements.length;
+			//
+			// 	if (selectedCount > 1 && div.hasClass('selected')) {
+			//
+			// 		var files = [];
+			//
+			// 		$.each(selectedElements, function(i, el) {
+			// 			files.push(Structr.entityFromElement(el));
+			// 		});
+			//
+			// 		_Entities.deleteNodes(this, files, true, function() {
+			// 			_Files.refreshTree();
+			// 		});
+			//
+			// 	} else {
+			// 		_Entities.deleteNode(this, d);
+			// 	}
+			// });
 		}
 
 		if (_Files.isMinificationTarget(d)) {
 			_Files.appendMinificationDialogIcon(div, d);
 		} else {
-			if (d.isImage) {
-				_Files.appendEditImageIcon(div, d);
-			} else {
-				_Files.appendEditFileIcon(div, d);
-			}
+			// if (d.isImage && d.contentType !== 'text/svg' && !d.contentType.startsWith('image/svg')) {
+			// 	_Files.appendEditImageIcon(div, d);
+			// } else {
+			// 	_Files.appendEditFileIcon(div, d);
+			// }
 		}
 
-		Structr.performModuleDependendAction(function() {
-			if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && d.contentType === 'text/csv') {
-				_Files.appendCSVImportDialogIcon(div, d);
-			}
+		// Structr.performModuleDependendAction(function() {
+		// 	if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && d.contentType === 'text/csv') {
+		// 		_Files.appendCSVImportDialogIcon(div, d);
+		// 	}
+		// });
+		//
+		// Structr.performModuleDependendAction(function() {
+		// 	if (Structr.isModulePresent('xml') && (d.contentType === 'text/xml' || d.contentType === 'application/xml')) {
+		// 		_Files.appendXMLImportDialogIcon(div, d);
+		// 	}
+		// });
+	},
+	unpackArchive: (d) => {
+
+		$('#tempInfoBox .infoHeading, #tempInfoBox .infoMsg').empty();
+		$('#tempInfoBox .closeButton').hide();
+		Structr.loaderIcon($('#tempInfoBox .infoMsg'), { marginBottom: '-6px' });
+		$('#tempInfoBox .infoMsg').append(' Unpacking Archive - please stand by...');
+		$('#tempInfoBox .infoMsg').append('<p>Extraction will run in the background.<br>You can safely close this popup and work during this operation.<br>You will be notified when the extraction has finished.</p>');
+
+		$.blockUI({
+			message: $('#tempInfoBox'),
+			css: Structr.defaultBlockUICss
 		});
 
-		Structr.performModuleDependendAction(function() {
-			if (Structr.isModulePresent('xml') && (d.contentType === 'text/xml' || d.contentType === 'application/xml')) {
-				_Files.appendXMLImportDialogIcon(div, d);
+		var closed = false;
+		window.setTimeout(function() {
+			$('#tempInfoBox .closeButton').show().on('click', function () {
+				closed = true;
+				$.unblockUI({
+					fadeOut: 25
+				});
+			});
+		}, 500);
+
+		Command.unarchive(d.id, currentWorkingDir ? currentWorkingDir.id : undefined, function (data) {
+			if (data.success === true) {
+				_Files.refreshTree();
+				var message = "Extraction of '" + data.filename + "' finished successfully. ";
+				if (closed) {
+					new MessageBuilder().success(message).requiresConfirmation("Close").show();
+				} else {
+					$('#tempInfoBox .infoMsg').html('<i class="' + _Icons.getFullSpriteClass(_Icons.accept_icon) + '" /> ' + message);
+				}
+
+			} else {
+				$('#tempInfoBox .infoMsg').html('<i class="' + _Icons.getFullSpriteClass(_Icons.error_icon) + '" /> Extraction failed');
 			}
 		});
 	},
@@ -964,11 +1173,15 @@ var _Files = {
 
 		viewIcon.on('click', function(e) {
 			e.stopPropagation();
-			Structr.dialog('' + image.name, function() {
-			}, function() {
-			});
-			_Files.viewImage(image, $('#dialogBox .dialogText'));
+			_Files.editImage(image);
 		});
+	},
+	editImage: (image) => {
+		let parent = Structr.node(image.id);
+		Structr.dialog('' + image.name, function() {
+		}, function() {
+		});
+		_Files.viewImage(image, $('#dialogBox .dialogText'));
 	},
 	viewImage: function(image, el) {
 		dialogMeta.hide();
@@ -1030,61 +1243,68 @@ var _Files = {
 
 		$(parent.children('.edit_file_icon')).on('click', function(e) {
 			e.stopPropagation();
-
-			fileContents = {};
-			editor = undefined;
-
-			selectedElements = $('.node.selected');
-			if (selectedElements.length > 1 && parent.hasClass('selected')) {
-				selectedElements.removeClass('selected');
-			} else {
-				selectedElements = parent;
-			}
-
-			Structr.dialog('Edit files', function() {
-			}, function() {
-			});
-
-			dialogText.append('<div id="files-tabs" class="files-tabs"><ul></ul></div>');
-
-			var selectedCount = selectedElements.length;
-			$.each(selectedElements, function(i, el) {
-				if (_Files.isMinificationTarget(StructrModel.obj(Structr.getId(el)))) {
-					selectedCount--;
-				}
-			});
-
-			$.each(selectedElements, function(i, el) {
-
-				if (!_Files.isMinificationTarget(StructrModel.obj(Structr.getId(el)))) {
-
-					Command.get(Structr.getId(el), 'id,name,contentType,isTemplate', function(entity) {
-						$('#files-tabs ul').append('<li id="tab-' + entity.id + '">' + entity.name + '</li>');
-						$('#files-tabs').append('<div id="content-tab-' + entity.id + '"></div>');
-
-						$('#tab-' + entity.id).on('click', function(e) {
-
-							e.stopPropagation();
-
-							// Store current editor text
-							if (editor) {
-								fileContents[activeFileId] = editor.getValue();
-							}
-
-							activeFileId = Structr.getIdFromPrefixIdString($(this).prop('id'), 'tab-');
-							$('#content-tab-' + activeFileId).empty();
-							_Files.editContent(null, entity, $('#content-tab-' + activeFileId));
-
-							return false;
-						});
-
-						if (i+1 === selectedCount) {
-							_Entities.activateTabs(file.id, '#files-tabs', '#content-tab-' + file.id, activeFileTabPrefix);
-						}
-					});
-				}
-			});
+			_Files.editFile(file);
 		});
+	},
+	editFile: (file) => {
+
+		let parent = Structr.node(file.id);
+
+		fileContents = {};
+		editor = undefined;
+
+		selectedElements = $('.node.selected');
+		if (selectedElements.length > 1 && parent.hasClass('selected')) {
+			selectedElements.removeClass('selected');
+		} else {
+			selectedElements = parent;
+		}
+
+		Structr.dialog('Edit files', function() {}, function() {});
+
+		dialogText.append('<div id="files-tabs" class="files-tabs"><ul></ul></div>');
+
+		let filteredElements = [];
+		for (let el of selectedElements) {
+			let modelObj = StructrModel.obj(Structr.getId(el));
+			if (modelObj && !_Files.isMinificationTarget(modelObj) && modelObj.isFolder !== true) {
+				filteredElements.push(el);
+			}
+		}
+
+		let loadedEditors = 0;
+
+		for (let el of filteredElements) {
+
+			let elId = Structr.getId(el);
+
+			Command.get(elId, 'id,name,contentType,isTemplate', function (entity) {
+
+				loadedEditors++;
+
+				$('#files-tabs ul').append('<li id="tab-' + entity.id + '">' + entity.name + '</li>');
+				$('#files-tabs').append('<div id="content-tab-' + entity.id + '"></div>');
+
+				$('#tab-' + entity.id).on('click', function(e) {
+					e.stopPropagation();
+
+					// Store current editor text
+					if (editor) {
+						fileContents[activeFileId] = editor.getValue();
+					}
+
+					activeFileId = entity.id;
+					$('#content-tab-' + activeFileId).empty();
+					_Files.editContent(null, entity, $('#content-tab-' + activeFileId));
+
+					return false;
+				});
+
+				if (loadedEditors === filteredElements.length) {
+					_Entities.activateTabs(file.id, '#files-tabs', '#content-tab-' + file.id, activeFileTabPrefix);
+				}
+			});
+		}
 	},
 	appendMinificationDialogIcon: function(parent, file) {
 
@@ -1095,22 +1315,22 @@ var _Files = {
 			_Minification.showMinificationDialog(file);
 		});
 	},
-	appendCSVImportDialogIcon: function(parent, file) {
-
-		parent.append(' <i class="import_icon button ' + _Icons.getFullSpriteClass(_Icons.import_icon) + '" title="Import this CSV file" />');
-		$('.import_icon', parent).on('click', function() {
-			Importer.importCSVDialog(file, false);
-			return false;
-		});
-	},
-	appendXMLImportDialogIcon: function(parent, file) {
-
-		parent.append(' <i class="import_icon button ' + _Icons.getFullSpriteClass(_Icons.import_icon) + '" title="Import this XML file" />');
-		$('.import_icon', parent).on('click', function() {
-			Importer.importXMLDialog(file, false);
-			return false;
-		});
-	},
+	// appendCSVImportDialogIcon: function(parent, file) {
+	//
+	// 	parent.append(' <i class="import_icon button ' + _Icons.getFullSpriteClass(_Icons.import_icon) + '" title="Import this CSV file" />');
+	// 	$('.import_icon', parent).on('click', function() {
+	// 		Importer.importCSVDialog(file, false);
+	// 		return false;
+	// 	});
+	// },
+	// appendXMLImportDialogIcon: function(parent, file) {
+	//
+	// 	parent.append(' <i class="import_icon button ' + _Icons.getFullSpriteClass(_Icons.import_icon) + '" title="Import this XML file" />');
+	// 	$('.import_icon', parent).on('click', function() {
+	// 		Importer.importXMLDialog(file, false);
+	// 		return false;
+	// 	});
+	// },
 	appendRemoveFavoriteIcon: function (parent, file) {
 
 		parent.append('<i title="Remove from favorites" class="remove_favorite_icon button ' + _Icons.getFullSpriteClass(_Icons.star_delete_icon) + '" />');
@@ -1128,7 +1348,7 @@ var _Files = {
 		$('#search-results').remove();
 		content.append('<div id="search-results"></div>');
 
-		var searchString = $('.search', main).val();
+		var searchString = $('.search', functionBar).val();
 		var container = $('#search-results');
 		content.on('scroll', function() {
 			window.history.pushState('', '', '#filesystem');
@@ -1229,7 +1449,8 @@ var _Files = {
 		}
 	},
 	editContent: function(button, file, element) {
-		var url = viewRootUrl + file.id + '?edit=1';
+
+		var url = viewRootUrl + file.id + '?' + Structr.getRequestParameterName('edit') + '=1';
 
 		var text = '';
 

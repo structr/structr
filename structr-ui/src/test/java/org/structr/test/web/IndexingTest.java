@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Structr GmbH
+ * Copyright (C) 2010-2021 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,8 +38,6 @@ public abstract class IndexingTest extends StructrUiTest {
 	@Override
 	public void setup() {
 
-		Services.enableUpdateIndexConfiguration();
-
 		final long timestamp = System.nanoTime();
 
 		basePath = "/tmp/structr-test-" + timestamp;
@@ -67,7 +65,7 @@ public abstract class IndexingTest extends StructrUiTest {
 
 		final Services services = Services.getInstance();
 
-		Services.enableUpdateIndexConfiguration();
+		Services.enableIndexConfiguration();
 
 		// wait for service layer to be initialized
 		do {
