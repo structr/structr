@@ -230,13 +230,25 @@ var _Files = {
 		const isFile             = entity.isFile;
 		const isFolder           = entity.isFolder;
 		let selectedElements     = document.querySelectorAll('.node.selected');
-		let isMultiSelect        = selectedElements.length > 1;
 
-		let elements = [];
+		let fileNode = $('.node', div);
+
+		if (!fileNode.hasClass('selected')) {
+			for (let selNode of document.querySelectorAll('.node.selected')) {
+				selNode.classList.remove('selected');
+			}
+			fileNode.addClass('selected');
+
+			selectedElements = document.querySelectorAll('.node.selected');
+		}
+
+		let fileCount     = document.querySelectorAll('.node.file.selected').length;
+		let isMultiSelect = selectedElements.length > 1;
+		let elements      = [];
 
 		if (isFile) {
 
-			if (isFile && entity.isImage && entity.contentType !== 'text/svg' && !entity.contentType.startsWith('image/svg')) {
+			if (entity.isImage && entity.contentType !== 'text/svg' && !entity.contentType.startsWith('image/svg')) {
 				elements.push({
 					icon: _Icons.svg.pencil_edit,
 					name: 'Edit Image',
@@ -245,19 +257,19 @@ var _Files = {
 						return false;
 					}
 				});
-			} else if (isFile) {
+			} else {
 				elements.push({
 					icon: _Icons.svg.pencil_edit,
-					name: 'Edit File' + (isMultiSelect ? 's' : ''),
+					name: 'Edit File' + ((fileCount > 1) ? 's' : ''),
 					clickHandler: function () {
 						_Files.editFile(entity);
 						return false;
 					}
 				});
 			}
-		}
 
-		_Elements.appendContextMenuSeparator(elements);
+			_Elements.appendContextMenuSeparator(elements);
+		}
 
 		elements.push({
 			name: 'Properties',
@@ -275,9 +287,14 @@ var _Files = {
 				elements.push({
 					name: 'Remove from Favorites',
 					clickHandler: function () {
-						Command.favorites('remove', entity.id, () => {
-							Structr.node(entity.id).remove();
-						});
+
+						for (let el of selectedElements) {
+							let entityFromEl = Structr.entityFromElement(el);
+
+							Command.favorites('remove', entityFromEl.id, () => {
+                                Structr.node(entityFromEl.id).remove();
+                            });
+						}
 						return false;
 					}
 				});
@@ -286,28 +303,39 @@ var _Files = {
 				elements.push({
 					name: 'Add to Favorites',
 					clickHandler: function () {
-						Command.favorites('add', entity.id, () => {});
+
+						for (let el of selectedElements) {
+							let entityFromEl = Structr.entityFromElement(el);
+							let obj          = StructrModel.obj(entityFromEl.id);
+
+							if (obj.isFavoritable) {
+								Command.favorites('add', obj.id, () => {});
+							}
+						}
+
 						return false;
 					}
 				});
 			}
 
-			elements.push({
-				name: 'Copy Download URL',
-				clickHandler: function () {
-					// do not make the click handler async because it would return a promise instead of the boolean
+			if (fileCount === 1) {
+				elements.push({
+					name: 'Copy Download URL',
+					clickHandler: function () {
+						// do not make the click handler async because it would return a promise instead of the boolean
 
-					(async () => {
-						// fake the a element so we do not need to look up the server
-						let a = document.createElement('a');
-						a.href = entity.path;
-						await navigator.clipboard.writeText(a.href);
-					})();
-					return false;
-				}
-			});
+						(async () => {
+							// fake the a element so we do not need to look up the server
+							let a = document.createElement('a');
+							a.href = entity.path;
+							await navigator.clipboard.writeText(a.href);
+						})();
+						return false;
+					}
+				});
+			}
 
-			if (_Files.isArchive(entity)) {
+			if (fileCount === 1 && _Files.isArchive(entity)) {
 				elements.push({
 					name: 'Unpack archive',
 					clickHandler: function () {
@@ -318,7 +346,7 @@ var _Files = {
 			}
 
 			Structr.performModuleDependendAction(function () {
-				if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && entity.contentType === 'text/csv') {
+				if (fileCount === 1 && Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && entity.contentType === 'text/csv') {
 					elements.push({
 						name: 'Import CSV',
 						clickHandler: function () {
@@ -330,7 +358,7 @@ var _Files = {
 			});
 
 			Structr.performModuleDependendAction(function () {
-				if (Structr.isModulePresent('xml') && (entity.contentType === 'text/xml' || entity.contentType === 'application/xml')) {
+				if (fileCount === 1 && Structr.isModulePresent('xml') && (entity.contentType === 'text/xml' || entity.contentType === 'application/xml')) {
 					elements.push({
 						name: 'Import XML',
 						clickHandler: function () {
@@ -342,23 +370,26 @@ var _Files = {
 			});
 		}
 
-		_Elements.appendContextMenuSeparator(elements);
+		if (!isMultiSelect) {
 
-		_Elements.appendSecurityContextMenuItems(elements, entity);
+			_Elements.appendContextMenuSeparator(elements);
+
+			_Elements.appendSecurityContextMenuItems(elements, entity, entity.isFolder);
+		}
 
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
 			icon: _Icons.svg.trashcan,
 			classes: ['menu-bolder', 'danger'],
-			name: 'Delete ' + (isMultiSelect ? 'selected data objects' : entity.type),
+			name: 'Delete ' + (isMultiSelect ? 'selected' : entity.type),
 			clickHandler: () => {
 
 				let files = [];
 
-				selectedElements.forEach((el) => {
+				for (let el of selectedElements) {
 					files.push(Structr.entityFromElement(el));
-				});
+				}
 
 				_Entities.deleteNodes(this, files, true, () => {
 					_Files.refreshTree();
