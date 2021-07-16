@@ -1942,8 +1942,6 @@ var _Code = {
 
 		//}, 'schema');
 	},
-<<<<<<< HEAD
-=======
 	displaySchemaRelationshipNodeContent: function (data, identifier) {
 
 		Command.get(identifier.obj.nodeData.entity.id, null, function(entity) {
@@ -1964,7 +1962,6 @@ var _Code = {
 		});
 
 	},
->>>>>>> master
 	displaySchemaMethodContent: function(data, lastOpenTab, cursorInfo) {
 
 		var identifier = _Code.splitIdentifier(data);
@@ -2005,7 +2002,6 @@ var _Code = {
 					sourceEditor.performLint();
 				});
 
-<<<<<<< HEAD
 				if (cursorInfo && cursorInfo.line && cursorInfo.ch) {
 					sourceEditor.setCursor(cursorInfo);
 					sourceEditor.focus();
@@ -2016,11 +2012,6 @@ var _Code = {
 				});
 
 				if (result.codeType === 'java') {
-=======
-				let nameBlacklist = ['onCreate', 'onSave', 'onDelete', 'afterCreate'];
-
-				if (result.codeType === 'java' || nameBlacklist.includes(result.name)) {
->>>>>>> master
 
 					$('li[data-name=api]').hide();
 
