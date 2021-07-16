@@ -635,22 +635,25 @@ var _Files = {
 		let addFileButton     = document.getElementById('add-file-button');
 		let mountDialogButton = document.getElementById('mount-folder-dialog-button');
 
-		addFolderButton?.setAttribute('disabled', displayingFavorites);
-		addFileButton?.setAttribute('disabled', displayingFavorites);
-		mountDialogButton?.setAttribute('disabled', displayingFavorites);
-
-
 		if (displayingFavorites) {
 
 			addFolderButton?.classList.add('disabled');
 			addFileButton?.classList.add('disabled');
 			mountDialogButton?.classList.add('disabled');
 
+			addFolderButton?.setAttribute('disabled', true);
+			addFileButton?.setAttribute('disabled', true);
+			mountDialogButton?.setAttribute('disabled', true);
+
 		} else {
 
 			addFolderButton?.classList.remove('disabled');
 			addFileButton?.classList.remove('disabled');
 			mountDialogButton?.classList.remove('disabled');
+
+			addFolderButton?.removeAttribute('disabled');
+			addFileButton?.removeAttribute('disabled');
+			mountDialogButton?.removeAttribute('disabled');
 		}
 	},
 	displayFolderContents: function(id, parentId, nodePath, parents) {
