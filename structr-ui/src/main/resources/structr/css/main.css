@@ -3547,6 +3547,7 @@ i.fa-trash-o {
 
 .breadcrumb-entry {
 	cursor: pointer;
+	color: var(--inactive-tab-text);
 }
 
 .class-id-attrs {

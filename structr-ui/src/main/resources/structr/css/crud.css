@@ -405,6 +405,7 @@ input.readonly {
 .searchResults {
 	height: 100%;
 	overflow-y: auto;
+	flex-grow: 1;
 }
 
 .searchResults h3 {

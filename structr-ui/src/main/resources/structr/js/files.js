@@ -41,6 +41,7 @@ var _Files = {
 	_viewMode: LSWrapper.getItem(filesViewModeKey) || 'list',
 	defaultFolderAttributes: 'id,name,type,owner,isFolder,path,visibleToPublicUsers,visibleToAuthenticatedUsers,ownerId,isMounted,parentId,foldersCount,filesCount',
 	searchField: undefined,
+	searchFieldClearIcon: undefined,
 	getViewMode: function () {
 		return _Files._viewMode || 'list';
 	},
@@ -55,27 +56,29 @@ var _Files = {
 
 		_Files.setViewMode(LSWrapper.getItem(filesViewModeKey) || 'list');
 
-		_Files.searchField = $('.search', functionBar);
+		_Files.searchField = document.getElementById('files-search-box');
+		if (_Files.searchField) {
 
-		if (_Files.searchField && _Files.searchField.length > 0) {
+			_Files.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
+			_Files.searchFieldClearIcon.addEventListener('click', (e) => {
+                _Files.clearSearch();
+            });
 
 			_Files.searchField.focus();
 
-			_Files.searchField.keyup(function(e) {
+			_Files.searchField.addEventListener('keyup', (e) => {
 
-				var searchString = $(this).val();
+				let searchString = _Files.searchField.value;
+
 				if (searchString && searchString.length && e.keyCode === 13) {
 
-					$('.clearSearchIcon').show().on('click', function() {
-						_Files.clearSearch();
-					});
+					_Files.searchFieldClearIcon.style.display = 'block';
 
 					_Files.fulltextSearch(searchString);
 
 				} else if (e.keyCode === 27 || searchString === '') {
 					_Files.clearSearch();
 				}
-
 			});
 		}
 
@@ -559,23 +562,21 @@ var _Files = {
 		});
 	},
 	fulltextSearch: function(searchString) {
-		var content = $('#folder-contents');
+
+		let content = $('#folder-contents');
 		content.children().hide();
 
-		var url;
-		if (searchString.contains(' ')) {
-			url = rootUrl + 'files/ui?' + Structr.getRequestParameterName('loose') + '=1';
-			searchString.split(' ').forEach(function(str, i) {
-				url = url + '&indexedWords=' + str;
-			});
-		} else {
-			url = rootUrl + 'files/ui?' + Structr.getRequestParameterName('loose') + '=1&indexedWords=' + searchString;
+		let url = rootUrl + 'files/ui?' + Structr.getRequestParameterName('loose') + '=1';
+
+		for (let str of searchString.split(' ')) {
+			url = url + '&indexedWords=' + str;
 		}
 
-		_Files.displaySearchResultsForURL(url);
+		_Files.displaySearchResultsForURL(url, searchString);
 	},
 	clearSearch: function() {
-		$('.search', main).val('');
+		_Files.searchField.value = '';
+		_Files.searchFieldClearIcon.style.display = 'block';
 		$('#search-results').remove();
 		$('#folder-contents').children().show();
 	},
@@ -800,15 +801,15 @@ var _Files = {
 			let path = '';
 
 			parents = [].concat(parents).reverse().slice(1);
-			let pathNames = ['/'];
+			let pathNames = [''];
 			if (nodePath !== '/') {
 				pathNames = pathNames.concat(nodePath.slice(1).split('/'));
 			}
 			path = parents.map(function(parent, idx) {
-				return '<a class="breadcrumb-entry" data-folder-id="' + parent + '"><i class="fa fa-caret-right"></i> ' + pathNames[idx] + '</a>';
-			}).join(' ');
+				return '<a class="breadcrumb-entry" data-folder-id="' + parent + '">' + pathNames[idx] + '/</a>';
+			}).join('');
 
-			path += ' <i class="fa fa-caret-right"></i> ' + pathNames.pop();
+			path += pathNames.pop();
 
 			folderContents.append('<div class="folder-path">' + path + '</div>');
 
@@ -1383,98 +1384,87 @@ var _Files = {
 			});
 		});
 	},
-	displaySearchResultsForURL: function(url) {
+	displaySearchResultsForURL: async (url, searchString) => {
 
-		var content = $('#folder-contents');
+		let content = $('#folder-contents');
 		$('#search-results').remove();
 		content.append('<div id="search-results"></div>');
 
-		var searchString = $('.search', functionBar).val();
-		var container = $('#search-results');
-		content.on('scroll', function() {
-			window.history.pushState('', '', '#filesystem');
-		});
+		let container = $('#search-results');
 
-		$.ajax({
-			url: url,
-			statusCode: {
-				200: function(data) {
+		let response = await fetch(url);
 
-					if (!data.result || data.result.length === 0) {
+		if (response.ok) {
+			let data = await response.json();
 
-						container.append('<h1>No results for "' + searchString + '"</h1>');
-						container.append('<h2>Press ESC or click <a href="#filesystem" class="clear-results">here to clear</a> empty result list.</h2>');
-						$('.clear-results', container).on('click', function() {
-							_Files.clearSearch();
-						});
+			if (!data.result || data.result.length === 0) {
 
-						return;
+				container.append('<h1>No results for "' + searchString + '"</h1>');
+				container.append('<h2>Press ESC or click <a href="#filesystem" class="clear-results">here to clear</a> empty result list.</h2>');
 
-					} else {
+				$('.clear-results', container).on('click', function() {
+					_Files.clearSearch();
+				});
 
-						container.append('<h1>' + data.result.length + ' result' + (data.result.length > 1 ? 's' : '') + ':</h1><table class="props"><thead><th class="_type">Type</th><th>Name</th><th>Size</th></thead><tbody></tbody></table>');
-						data.result.forEach(function(d) {
+			} else {
 
-							$('tbody', container).append('<tr><td><i class="fa ' + _Icons.getFileIconClass(d) + '"></i> ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td><a href="#results' + d.id + '">' + d.name + '</a></td><td>' + d.size + '</td></tr>');
+				container.append('<h1>' + data.result.length + ' result' + (data.result.length > 1 ? 's' : '') + ':</h1><table class="props"><thead><th class="_type">Type</th><th>Name</th><th>Size</th></thead><tbody></tbody></table>');
+				container.append('<div id="search-results-details"></div>')
 
-						});
-					}
+				let tbody = $('tbody', container);
+				let detailsContainer = $('#search-results-details', container);
 
-					data.result.forEach(function(d) {
+				for (let d of data.result) {
 
-						$.ajax({
-							url: rootUrl + 'files/' + d.id + '/getSearchContext',
-							contentType: 'application/json',
-							method: 'POST',
-							data: JSON.stringify({searchString: searchString, contextLength: 30}),
-							statusCode: {
-								200: function(data) {
+					tbody.append('<tr><td><i class="fa ' + _Icons.getFileIconClass(d) + '"></i> ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td>' + d.name + '</td><td>' + d.size + '</td></tr>');
 
-									if (!data.result) {
-										return;
-									}
-
-									container.append('<div class="search-result collapsed" id="results' + d.id + '"></div>');
-
-									var div = $('#results' + d.id);
-
-									div.append('<h2><i class="fa ' + _Icons.getFileIconClass(d) + '"></i> ' + d.name + '<i id="preview' + d.id + '" class="' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
-									div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
-
-									$('.toggle-height', div).on('click', function() {
-										var icon = $(this);
-										div.toggleClass('collapsed');
-										if (icon.hasClass('fa-expand')) {
-											icon.removeClass('fa-expand');
-											icon.addClass('fa-compress');
-										} else {
-											icon.removeClass('fa-compress');
-											icon.addClass('fa-expand');
-										}
-									});
-
-									$('.go-to-top', div).on('click', function() {
-										content.scrollTop(0);
-										window.history.pushState('', '', '#filesystem');
-									});
-
-									$.each(data.result.context, function(i, contextString) {
-
-										searchString.split(/[\s,;]/).forEach(function(str) {
-											contextString = contextString.replace(new RegExp('(' + str + ')', 'gi'), '<span class="highlight">$1</span>');
-										});
-
-										div.append('<div class="part">' + contextString + '</div>');
-									});
-
-									div.append('<div style="clear: both;"></div>');
-								}
-							}
-						});
+					let contextResponse = await fetch(rootUrl + 'files/' + d.id + '/getSearchContext', {
+						method: 'POST',
+						body: JSON.stringify({
+							searchString: searchString,
+							contextLength: 30
+						})
 					});
+
+					if (contextResponse.ok) {
+
+						let data = await contextResponse.json();
+
+						if (data.result) {
+
+							detailsContainer.append('<div class="search-result collapsed" id="results' + d.id + '"></div>');
+
+							let div = $('#results' + d.id);
+
+							div.append('<h2><i class="fa ' + _Icons.getFileIconClass(d) + '"></i> ' + d.name + '</h2>');
+							div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
+
+							$('.toggle-height', div).on('click', function() {
+								let icon = $(this);
+								div.toggleClass('collapsed');
+								icon.toggleClass('fa-expand');
+								icon.toggleClass('fa-compress');
+							});
+
+							$('.go-to-top', div).on('click', function() {
+								content.scrollTop(0);
+							});
+
+							for (let contextString of data.result.context) {
+
+								for (let str of searchString.split(/[\s,;]/)) {
+									contextString = contextString.replace(new RegExp('(' + str + ')', 'gi'), '<span class="highlight">$1</span>');
+								}
+
+								div.append('<div class="part">' + contextString + '</div>');
+							}
+
+							div.append('<div style="clear: both;"></div>');
+						}
+					}
 				}
 			}
-		});
+		}
 	},
 	updateTextFile: function(file, text, callback) {
 		if (text === "") {

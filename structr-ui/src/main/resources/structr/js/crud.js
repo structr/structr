@@ -66,6 +66,7 @@ var _Crud = {
 	crudResizerLeftKey: 'structrCrudResizerLeft_' + port,
 	crudExactTypeKey: 'structrCrudExactType_' + port,
 	searchField: undefined,
+	searchFieldClearIcon: undefined,
 	types: {},
 	abstractSchemaNodes: {},
 	availableViews: {},
@@ -197,115 +198,119 @@ var _Crud = {
 	},
 	init: function() {
 
-		Structr.fetchHtmlTemplate('crud/menu', {}, function(html) {
-			functionBar.append(html);
-		});
-
 		Structr.fetchHtmlTemplate('crud/main', {}, function(html) {
 
 			main.append(html);
 
-			_Crud.moveResizer();
-			Structr.initVerticalSlider($('.column-resizer', main), _Crud.crudResizerLeftKey, 204, _Crud.moveResizer);
+			Structr.fetchHtmlTemplate('crud/menu', {}, function(html) {
+				functionBar.append(html);
 
-			let savedTypeVisibility = _Crud.getStoredTypeVisibilityConfig();
+				_Crud.moveResizer();
+				Structr.initVerticalSlider($('.column-resizer', main), _Crud.crudResizerLeftKey, 204, _Crud.moveResizer);
 
-			$('#crudTypesSearch').keyup(function (e) {
+				let savedTypeVisibility = _Crud.getStoredTypeVisibilityConfig();
 
-				if (e.keyCode === 27) {
+				$('#crudTypesSearch').keyup(function (e) {
 
-					$(this).val('');
+					if (e.keyCode === 27) {
 
-				} else if (e.keyCode === 13) {
+						$(this).val('');
 
-					let visibleTypes = $('#crud-types-list .crud-type:not(.hidden)');
+					} else if (e.keyCode === 13) {
 
-					if (visibleTypes.length === 1) {
+						let visibleTypes = $('#crud-types-list .crud-type:not(.hidden)');
 
-						_Crud.typeSelected(visibleTypes.data('type'));
+						if (visibleTypes.length === 1) {
 
-					} else {
+							_Crud.typeSelected(visibleTypes.data('type'));
 
-						let filterVal = $(this).val().toLowerCase();
+						} else {
 
-						let matchingTypes = Object.keys(_Crud.types).filter(function(type) {
-							return type.toLowerCase() === filterVal;
-						});
+							let filterVal = $(this).val().toLowerCase();
 
-						if (matchingTypes.length === 1) {
-							_Crud.typeSelected(matchingTypes[0]);
+							let matchingTypes = Object.keys(_Crud.types).filter(function(type) {
+								return type.toLowerCase() === filterVal;
+							});
+
+							if (matchingTypes.length === 1) {
+								_Crud.typeSelected(matchingTypes[0]);
+							}
 						}
 					}
-				}
 
-				_Crud.filterTypes($(this).val().toLowerCase());
-			});
-
-			_Crud.exact = LSWrapper.getItem(_Crud.crudExactTypeKey) || {};
-
-			_Crud.schemaLoading = false;
-			_Crud.schemaLoaded  = false;
-			_Crud.keys = {};
-
-			_Crud.loadSchema(function() {
-
-				Command.query('AbstractSchemaNode', 2000, 1, 'name', 'asc', {}, function(abstractSchemaNodes) {
-
-					for (let asn of abstractSchemaNodes) {
-						_Crud.abstractSchemaNodes[asn.name] = asn;
-					}
-
-					if (browser) {
-						_Crud.updateTypeList();
-						_Crud.typeSelected(_Crud.type);
-						_Crud.updateRecentTypeList(_Crud.type);
-					}
-					_Crud.resize();
-					Structr.unblockMenu();
-
+					_Crud.filterTypes($(this).val().toLowerCase());
 				});
-			});
 
-			_Crud.searchField = $('.search', main);
-			_Crud.searchField.focus();
+				_Crud.exact = LSWrapper.getItem(_Crud.crudExactTypeKey) || {};
 
-			Structr.appendInfoTextToElement({
-				element: _Crud.searchField,
-				text: 'By default a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search like so:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
-				insertAfter: true,
-				css: {
-					left: '-18px',
-					position: 'absolute'
-				},
-				helpElementCss: {
-					fontSize: '12px',
-					lineHeight: '1.1em'
-				}
-			});
+				_Crud.schemaLoading = false;
+				_Crud.schemaLoaded  = false;
+				_Crud.keys = {};
 
-			let crudMain = $('#crud-main');
+				_Crud.loadSchema(function() {
 
-			_Crud.searchField.keyup(function(e) {
-				var searchString = $(this).val();
-				if (searchString && searchString.length && e.keyCode === 13) {
+					Command.query('AbstractSchemaNode', 2000, 1, 'name', 'asc', {}, function(abstractSchemaNodes) {
 
-					$('.clearSearchIcon').show().on('click', function() {
+						for (let asn of abstractSchemaNodes) {
+							_Crud.abstractSchemaNodes[asn.name] = asn;
+						}
+
+						if (browser) {
+							_Crud.updateTypeList();
+							_Crud.typeSelected(_Crud.type);
+							_Crud.updateRecentTypeList(_Crud.type);
+						}
+						_Crud.resize();
+						Structr.unblockMenu();
+
+					});
+				});
+
+				let crudMain = $('#crud-main');
+				_Crud.searchField          = document.getElementById('crud-search-box');
+				_Crud.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
+				_Crud.searchField.focus();
+
+				Structr.appendInfoTextToElement({
+					element: $(_Crud.searchField),
+					text: 'By default a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search like so:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
+					insertAfter: true,
+					css: {
+						left: '-18px',
+						position: 'absolute'
+					},
+					helpElementCss: {
+						fontSize: '12px',
+						lineHeight: '1.1em'
+					}
+				});
+
+				_Crud.searchFieldClearIcon.addEventListener('click', (e) => {
+	                _Crud.clearSearch(crudMain);
+	            });
+
+				_Crud.searchField.addEventListener('keyup', (e) => {
+
+					let searchString = _Crud.searchField.value;
+
+					if (searchString && searchString.length && e.keyCode === 13) {
+
+						_Crud.searchFieldClearIcon.style.display = 'block';
+
+						_Crud.search(searchString, crudMain, null, function(e, node) {
+							e.preventDefault();
+							_Crud.showDetails(node, false, node.type);
+							return false;
+						});
+
+						$('#crud-top').hide();
+						$('#crud-type-detail').hide();
+
+					} else if (e.keyCode === 27 || searchString === '') {
+
 						_Crud.clearSearch(crudMain);
-					});
-
-					_Crud.search(searchString, crudMain, null, function(e, node) {
-						e.preventDefault();
-						_Crud.showDetails(node, false, node.type);
-						return false;
-					});
-
-					$('#crud-top').hide();
-					$('#crud-type-detail').hide();
-
-				} else if (e.keyCode === 27 || searchString === '') {
-
-					_Crud.clearSearch(crudMain);
-				}
+					}
+				});
 			});
 		});
 	},
@@ -2234,8 +2239,8 @@ var _Crud = {
 	},
 	clearSearch: function(el) {
 		if (_Crud.clearSearchResults(el)) {
-			$('.clearSearchIcon').hide().off('click');
-			$('.search').val('');
+			_Crud.searchFieldClearIcon.style.display = 'none';
+			_Crud.searchField.value = '';
 			$('#crud-top').show();
 			$('#crud-type-detail').show();
 		}
