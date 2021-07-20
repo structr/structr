@@ -799,32 +799,29 @@ var Structr = {
 			left: l + 'px'
 		});
 
-		var codeMirror = $('#dialogBox .CodeMirror');
+		let codeMirror = $('#dialogBox .CodeMirror');
 		if (codeMirror.length) {
 
-			var cmPosition = codeMirror.position();
-			var bottomOffset = 0;
+			let cmPosition   = codeMirror.position();
+			let bottomOffset = 0;
+			let cmHeight     = (dh - headerHeight - horizontalOffset - cmPosition.top) + 'px';
 
-			var cmHeight = (dh - headerHeight - horizontalOffset - cmPosition.top) + 'px';
-
-			$('.CodeMirror:not(.cm-schema-methods)').css({
+			$('.CodeMirror:not(.cm-schema-methods)', codeMirror).css({
 				height: cmHeight
 			});
 
-			$('.CodeMirror:not(.cm-schema-methods) .CodeMirror-gutters').css({
+			$('.CodeMirror:not(.cm-schema-methods) .CodeMirror-gutters', codeMirror).css({
 				height: cmHeight
 			});
 
-			$('.CodeMirror:not(.cm-schema-methods)').each(function(i, el) {
+			$('.CodeMirror:not(.cm-schema-methods)', codeMirror).each(function(i, el) {
 				el.CodeMirror.refresh();
 			});
-
 		}
 
 		$('.fit-to-height').css({
 			height: h - 84 + 'px'
 		});
-
 	},
 	resize: function(callback) {
 
