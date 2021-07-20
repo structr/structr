@@ -271,7 +271,11 @@ var _Code = {
 		}
 
 		for (let p of document.querySelectorAll('#code-contents select[data-property]')) {
-			propertyData[p.dataset.property] = Array.prototype.map.call(p.selectedOptions, (o) => o.value);
+			if (p.multiple === true) {
+				propertyData[p.dataset.property] = Array.prototype.map.call(p.selectedOptions, (o) => o.value);
+			} else {
+				propertyData[p.dataset.property] = p.value;
+			}
 		}
 
 		for (let p of document.querySelectorAll('#code-contents div.editor[data-property]')) {
@@ -290,6 +294,7 @@ var _Code = {
 
 		// remove unchanged keys
 		for (let key of keys) {
+
 			if ( (formContent[key] === entity[key]) || (!formContent[key] && entity[key] === "") || (formContent[key] === "" && !entity[key]) || (!formContent[key] && !entity[key])) {
 				delete formContent[key];
 			}
@@ -304,8 +309,11 @@ var _Code = {
 				}
 
 				if (formContent[key].length === 0 && (!compareSource || compareSource.length === 0)) {
+
 					delete formContent[key];
+
 				} else if (compareSource && compareSource.length === formContent[key].length) {
+
 					// check if same
 					let diff = formContent[key].filter((v) => {
 						return !compareSource.includes(v);
@@ -2710,7 +2718,7 @@ var _Code = {
 				_Code.saveEntityAction(property);
 			};
 
-			var buttons = $('#property-buttons');
+			let buttons = $('#property-buttons');
 			buttons.prepend(html);
 
 			_Code.displayActionButton('#property-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save property', _Code.runCurrentEntitySaveAction);
@@ -2726,15 +2734,19 @@ var _Code = {
 				});
 			}
 
-			_Code.updateDirtyFlag(property);
-
 			if (property.propertyType !== 'Function') {
 				$('#property-type-hint-input').parent().remove();
+			} else {
+				$('#property-type-hint-input').val(property.typeHint);
 			}
 
 			if (property.propertyType === 'Cypher') {
 				$('#property-format-input').parent().remove();
 			}
+
+			$('select', buttons).on('change', function() {
+				_Code.updateDirtyFlag(property);
+			});
 
 			$('input[type=checkbox]', buttons).on('change', function() {
 				_Code.updateDirtyFlag(property);
@@ -2751,6 +2763,8 @@ var _Code = {
 					_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'Property values will not be removed from data nodes.', identifier);
 				});
 			}
+
+			_Code.updateDirtyFlag(property);
 
 			if (typeof callback === 'function') {
 				callback();

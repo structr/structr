@@ -154,6 +154,7 @@
 }
 
 #code-contents #property-options input[type="text"],
+#code-contents #property-options select,
 #code-contents #method-options input[type="text"],
 #code-contents #view-options input[type="text"],
 #code-contents #openapi-options input[type="text"] {
@@ -161,7 +162,7 @@
 }
 
 #code-contents input[type="checkbox"] {
-	vertical-align: top;
+	vertical-align: middle;
 }
 
 #code-contents #openapi-options .input {

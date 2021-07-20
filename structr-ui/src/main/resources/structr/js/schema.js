@@ -1386,13 +1386,13 @@ var _Schema = {
 
 				_Schema.sort(entity.schemaProperties);
 
-				$.each(entity.schemaProperties, function(i, prop) {
+				for (let prop of entity.schemaProperties) {
 
 					Structr.fetchHtmlTemplate('schema/type-options', {}, function(typeOptions) {
 
 						Structr.fetchHtmlTemplate('schema/type-hint-options', {}, function(typeHintOptions) {
 
-							Structr.fetchHtmlTemplate('schema/property.local', {property: prop, typeOptions: typeOptions, typeHintOptions: typeHintOptions}, function(html) {
+							Structr.fetchHtmlTemplate('schema/property.local', { property: prop, typeOptions: typeOptions, typeHintOptions: typeHintOptions }, function(html) {
 
 								let row = $(html);
 
@@ -1403,7 +1403,7 @@ var _Schema = {
 							});
 						});
 					});
-				});
+				}
 
 				$('.discard-all', propertiesTable).on('click', () => {
 					tbody.find('i.discard-changes').click();
