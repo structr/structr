@@ -367,23 +367,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			broadcastData.put("source",  source.toString());
 			publishBeginMessage(DEPLOYMENT_IMPORT_STATUS, broadcastData);
 
-			// visibility check
-			if (!relativeVisibility) {
-
-				final String title = "Deprecation Notice";
-				final String text = "The deployment export data currently being imported has been created with an older version of Structr "
-						+ "in which the visibility flags of DOM elements were exported depending on the flags of the containing page.\n\n"
-						+ "***The data will be imported correctly, based on the old format.***\n\n"
-						+ "After this import has finished, you should **export again to the same location** so that the deployment export data will be upgraded to the most recent format.";
-				final String htmlText = "The deployment export currently being imported has been created with an older version of Structr "
-						+ "in which the visibility flags of DOM elements were exported depending on the flags of the containing page.<br><br>"
-						+ "<b>The data will be imported correctly, based on the old format.</b><br><br>"
-						+ "After this import has finished, you should <b>export again to the same location</b> so that the deployment export data will be upgraded to the most recent format.";
-
-				deferredLogTexts.add(title + ": " + text);
-				publishWarningMessage(title, htmlText);
-			}
-
 			// apply pre-deploy.conf
 			applyConfigurationFileIfExists(ctx, preDeployConfFile, DEPLOYMENT_IMPORT_STATUS);
 
@@ -1875,103 +1858,126 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			templatesMetadata.putAll(readMetadataFileIntoMap(templatesMetadataFile));
 		}
 
-		// construct paths
-		final Path templates  = source.resolve("templates");
-		final Path components = source.resolve("components");
-		final Path pages      = source.resolve("pages");
+		final int keysTotal = componentsMetadata.size() + templatesMetadata.size() + pagesMetadata.size();
+		if (keysTotal > 0) {
 
-		// remove all DOMNodes from the database (clean webapp for import, but only
-		// if the actual import directories exist, don't delete web components if
-		// an empty directory was specified accidentially).
-		if (!extendExistingApp && Files.exists(templates) && Files.exists(components) && Files.exists(pages)) {
+			// if no keys are defined we do not need to look at the respective directories
 
-			try (final Tx tx = app.tx()) {
+			// visibility check
+			if (!relativeVisibility) {
 
-				tx.disableChangelog();
+				final String title = "Deprecation Notice";
+				final String text = "The deployment export data currently being imported has been created with an older version of Structr (or deployment.conf is missing) "
+						+ "in which the visibility flags of DOM elements were exported depending on the flags of the containing page (or deployment.conf is missing).\n\n"
+						+ "***The data will be imported correctly, based on the old format.***\n\n"
+						+ "After this import has finished, you should **export again to the same location** so that the deployment export data will be upgraded to the most recent format.";
+				final String htmlText = "The deployment export currently being imported has been created with an older version of Structr "
+						+ "in which the visibility flags of DOM elements were exported depending on the flags of the containing page (or deployment.conf is missing).<br><br>"
+						+ "<b>The data will be imported correctly, based on the old format.</b><br><br>"
+						+ "After this import has finished, you should <b>export again to the same location</b> so that the deployment export data will be upgraded to the most recent format.";
 
-				logger.info("Removing pages, templates and components");
-				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing pages, templates and components");
-
-				app.deleteAllNodesOfType(DOMNode.class);
-
-				if (Files.exists(sitesConfFile)) {
-
-					logger.info("Removing sites");
-					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing sites");
-
-					app.deleteAllNodesOfType(Site.class);
-				}
-
-				FlushCachesCommand.flushAll();
-
-				tx.success();
+				deferredLogTexts.add(title + ": " + text);
+				publishWarningMessage(title, htmlText);
 			}
 
-		} else {
+			// construct paths
+			final Path templates = source.resolve("templates");
+			final Path components = source.resolve("components");
+			final Path pages = source.resolve("pages");
 
-			logger.info("Import directory does not seem to contain pages, templates or components, NOT removing any data.");
-		}
+			// remove all DOMNodes from the database (clean webapp for import, but only
+			// if the actual import directories exist, don't delete web components if
+			// an empty directory was specified accidentially).
+			if (!extendExistingApp && Files.exists(templates) && Files.exists(components) && Files.exists(pages)) {
 
-		// import templates, must be done before pages so the templates exist
-		if (Files.exists(templates)) {
+				try (final Tx tx = app.tx()) {
 
-			try {
+					tx.disableChangelog();
 
-				logger.info("Importing templates");
-				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing templates");
+					logger.info("Removing pages, templates and components");
+					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing pages, templates and components");
 
-				Files.walkFileTree(templates, new TemplateImportVisitor(templatesMetadata));
+					app.deleteAllNodesOfType(DOMNode.class);
 
-			} catch (IOException ioex) {
-				logger.warn("Exception while importing templates", ioex);
-			}
-		}
+					if (Files.exists(sitesConfFile)) {
 
-		// make sure shadow document is created in any case
-		CreateComponentCommand.getOrCreateHiddenDocument();
+						logger.info("Removing sites");
+						publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing sites");
 
-		// import components, must be done before pages so the shared components exist
-		if (Files.exists(components)) {
-
-			try {
-
-				logger.info("Importing shared components");
-				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing shared components");
-
-				final ComponentImportVisitor visitor = new ComponentImportVisitor(componentsMetadata, relativeVisibility);
-
-				Files.walkFileTree(components, visitor);
-
-				final List<Path> deferredPaths = visitor.getDeferredPaths();
-				if (!deferredPaths.isEmpty()) {
-
-					logger.info("Attempting to import deferred components..");
-
-					for (final Path deferred : deferredPaths) {
-
-						visitor.visitFile(deferred, Files.readAttributes(deferred, BasicFileAttributes.class));
+						app.deleteAllNodesOfType(Site.class);
 					}
 
 					FlushCachesCommand.flushAll();
+
+					tx.success();
 				}
 
-			} catch (IOException ioex) {
-				logger.warn("Exception while importing shared components", ioex);
+			} else {
+
+				logger.info("Import directory does not seem to contain pages, templates or components, NOT removing any data.");
 			}
-		}
 
-		// import pages
-		if (Files.exists(pages)) {
+			// import templates, must be done before pages so the templates exist
+			if (Files.exists(templates)) {
 
-			try {
+				try {
 
-				logger.info("Importing pages");
-				publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing pages");
+					logger.info("Importing templates");
+					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing templates");
 
-				Files.walkFileTree(pages, new PageImportVisitor(pages, pagesMetadata, relativeVisibility));
+					Files.walkFileTree(templates, new TemplateImportVisitor(templatesMetadata));
 
-			} catch (IOException ioex) {
-				logger.warn("Exception while importing pages", ioex);
+				} catch (IOException ioex) {
+					logger.warn("Exception while importing templates", ioex);
+				}
+			}
+
+			// make sure shadow document is created in any case
+			CreateComponentCommand.getOrCreateHiddenDocument();
+
+			// import components, must be done before pages so the shared components exist
+			if (Files.exists(components)) {
+
+				try {
+
+					logger.info("Importing shared components");
+					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing shared components");
+
+					final ComponentImportVisitor visitor = new ComponentImportVisitor(componentsMetadata, relativeVisibility);
+
+					Files.walkFileTree(components, visitor);
+
+					final List<Path> deferredPaths = visitor.getDeferredPaths();
+					if (!deferredPaths.isEmpty()) {
+
+						logger.info("Attempting to import deferred components..");
+
+						for (final Path deferred : deferredPaths) {
+
+							visitor.visitFile(deferred, Files.readAttributes(deferred, BasicFileAttributes.class));
+						}
+
+						FlushCachesCommand.flushAll();
+					}
+
+				} catch (IOException ioex) {
+					logger.warn("Exception while importing shared components", ioex);
+				}
+			}
+
+			// import pages
+			if (Files.exists(pages)) {
+
+				try {
+
+					logger.info("Importing pages");
+					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing pages");
+
+					Files.walkFileTree(pages, new PageImportVisitor(pages, pagesMetadata, relativeVisibility));
+
+				} catch (IOException ioex) {
+					logger.warn("Exception while importing pages", ioex);
+				}
 			}
 		}
 
