@@ -2271,10 +2271,11 @@ var _Entities = {
 	removeExpandIcon: function(el) {
 		if (!el)
 			return;
-		var button = $(el.children('.expand_icon_svg').first());
+
+		let button = $(el.children('.expand_icon_svg').first());
 
 		// unregister click handlers
-		$(el).off('click');
+		//$(el).off('click');
 		$(button).off('click');
 
 		button.remove();
