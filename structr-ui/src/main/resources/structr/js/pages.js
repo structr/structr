@@ -785,7 +785,7 @@ var _Pages = {
 			}
 
 
-			_Pages.adaptSubmenu();
+			_Pages.adaptFunctionBarTabs();
 
 			for (const menuLink of document.querySelectorAll('#function-bar .tabs-menu li a')) {
 				menuLink.onclick = (event) => _Pages.activateCenterPane(menuLink);
@@ -972,23 +972,16 @@ var _Pages = {
 			otherTab.classList.remove('active');
 		}
 	},
-	adaptSubmenu: (obj) => {
+	adaptFunctionBarTabs: (entity) => {
 
-		if (!obj) {
+		// first show everything - later hide some
+		for (let li of document.querySelectorAll('.tabs-menu li')) {
+			li.classList.remove('hidden');
+		}
 
-			// hide all - no obj selected
-			for (let li of document.querySelectorAll('.tabs-menu li')) {
-				li.classList.add('hidden');
-			}
+		if (entity) {
 
-		} else {
-
-			// first show everything - later hide some
-			for (let li of document.querySelectorAll('.tabs-menu li')) {
-				li.classList.remove('hidden');
-			}
-
-			switch (obj.type) {
+			switch (entity.type) {
 				case 'Page':
 					document.querySelector('a[href="#pages:html"]').closest('li').classList.add('hidden');
 					document.querySelector('a[href="#pages:editor"]').closest('li').classList.add('hidden');
@@ -998,7 +991,7 @@ var _Pages = {
 
 				default:
 
-					if (obj.isContent) {
+					if (entity.isContent) {
 						document.querySelector('a[href="#pages:html"]').closest('li').classList.add('hidden');
 						document.querySelector('a[href="#pages:editor"]').closest('li').classList.remove('hidden');
 						document.querySelector('a[href="#pages:events"]').closest('li').classList.add('hidden');
@@ -1008,6 +1001,11 @@ var _Pages = {
 						document.querySelector('a[href="#pages:repeater"]').closest('li').classList.remove('hidden');
 						document.querySelector('a[href="#pages:events"]').closest('li').classList.remove('hidden');
 					}
+			}
+
+			let isEntityInSharedComponents = (entity.pageId === shadowPage.id);
+			if (isEntityInSharedComponents) {
+				document.querySelector('a[href="#pages:preview"]').closest('li').classList.add('hidden');
 			}
 		}
 	},
@@ -1059,7 +1057,7 @@ var _Pages = {
 			_Pages.centerPane.removeChild(contentContainer);
 		}
 
-		_Pages.adaptSubmenu(obj);
+		_Pages.adaptFunctionBarTabs(obj);
 
 		if (!urlHash) {
 			urlHash = new URL(location.href).hash;
@@ -1497,7 +1495,7 @@ var _Pages = {
 		}
 	},
 	selectedObjectWasDeleted: () => {
-		_Pages.adaptSubmenu();
+		_Pages.adaptFunctionBarTabs();
 		_Pages.emptyCenterPane();
 		_Pages.hideTabsMenu();
 	},
