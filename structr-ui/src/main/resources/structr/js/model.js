@@ -779,6 +779,11 @@ StructrPage.prototype.append = function() {
 };
 
 StructrPage.prototype.remove = function() {
+
+	if (_Entities?.selectedObject?.id === this.id) {
+		_Pages.selectedObjectWasDeleted();
+	}
+
 	if (Structr.isModuleActive(_Pages)) {
 		_Pages.removePage(this);
 	}
@@ -864,6 +869,10 @@ StructrElement.prototype.remove = function() {
 				_Pages.previews.modelForPageUpdated(pageId);
 			}
 			element.remove();
+		}
+
+		if (_Entities?.selectedObject?.id === this.id) {
+			_Pages.selectedObjectWasDeleted();
 		}
 
 		if (element && parent && !Structr.containsNodes(parent)) {

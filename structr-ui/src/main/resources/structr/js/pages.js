@@ -784,7 +784,6 @@ var _Pages = {
 				$('#' + _Pages.getActiveTabRight()).click();
 			}
 
-
 			_Pages.adaptFunctionBarTabs();
 
 			for (const menuLink of document.querySelectorAll('#function-bar .tabs-menu li a')) {
@@ -956,19 +955,24 @@ var _Pages = {
 
 		Structr.removeExpandedNode(page.id);
 	},
-	deactivateAllSubmenuLinks: () => {
+	deactivateAllFunctionBarTabs: () => {
 		for (const otherTab of document.querySelectorAll('#function-bar .tabs-menu li.active')) {
 			otherTab.classList.remove('active');
 		}
 	},
+	hideAllFunctionBarTabs: () => {
+		for (const otherTab of document.querySelectorAll('#function-bar .tabs-menu li')) {
+			otherTab.classList.add('hidden');
+		}
+	},
 	adaptFunctionBarTabs: (entity) => {
 
-		// first show everything - later hide some
-		for (let li of document.querySelectorAll('.tabs-menu li.hidden')) {
-			li.classList.remove('hidden');
-		}
-
 		if (entity) {
+
+			// first show everything - later hide some
+			for (let li of document.querySelectorAll('.tabs-menu li.hidden')) {
+				li.classList.remove('hidden');
+			}
 
 			switch (entity.type) {
 				case 'Page':
@@ -997,10 +1001,13 @@ var _Pages = {
 			if (isEntityInSharedComponents || isEntityInTrash) {
 				document.querySelector('a[href="#pages:preview"]').closest('li').classList.add('hidden');
 			}
+
+		} else {
+			_Pages.hideAllFunctionBarTabs();
 		}
 	},
 	activateSubmenuTabElement: (tab) => {
-		_Pages.deactivateAllSubmenuLinks();
+		_Pages.deactivateAllFunctionBarTabs();
 
 		tab.classList.add('active');
 	},
@@ -1489,9 +1496,8 @@ var _Pages = {
 		}
 	},
 	selectedObjectWasDeleted: () => {
-		_Pages.adaptFunctionBarTabs();
 		_Pages.emptyCenterPane();
-		_Pages.hideTabsMenu();
+		_Pages.adaptFunctionBarTabs();
 	},
 	showPagesPager: () => {
 		let pagesPager = document.getElementById('pagesPager');
