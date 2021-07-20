@@ -142,9 +142,9 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 	this.view = view;
 	if (!callback) {
 		this.callback = function(entities) {
-			entities.forEach(function(entity) {
+			for (let entity of entities) {
 				StructrModel.create(entity);
-			});
+			}
 		};
 	} else {
 		this.callback = callback;
@@ -420,11 +420,11 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 	this.getNonEmptyFilterAttributes = function () {
 		var nonEmptyFilters = {};
 
-		Object.keys(pagerFilters[pagerObj.id]).forEach(function(fa) {
+		for (let fa in pagerFilters[pagerObj.id]) {
 			if (pagerFilters[pagerObj.id][fa] !== null && pagerFilters[pagerObj.id][fa] !== "") {
 				nonEmptyFilters[fa] = pagerFilters[pagerObj.id][fa];
 			}
-		});
+		}
 
 		return nonEmptyFilters;
 	};

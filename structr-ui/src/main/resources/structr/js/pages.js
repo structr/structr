@@ -1342,8 +1342,8 @@ var _Pages = {
 		});
 	},
 	appendElementElement: function(entity, refNode, refNodeIsParent) {
-		entity = StructrModel.ensureObject(entity);
-		var div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
+		entity  = StructrModel.ensureObject(entity);
+		let div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
 
 		if (!div) {
 			return false;
@@ -1926,9 +1926,9 @@ var _Pages = {
 								let doc       = iframe.contentDocument || iframe.contentWindow.document;
 								let previewEl = doc.querySelector('[data-structr-id="' + highlightElementId + '"]');
 
-								doc.querySelectorAll('.structr-element-container-selected').forEach((el) => {
+								for (let el of doc.querySelectorAll('.structr-element-container-selected')) {
 									el.classList.remove('structr-element-container-selected');
-								});
+								}
 
 								previewEl?.classList.add('structr-element-container-selected');
 							}
@@ -1938,7 +1938,6 @@ var _Pages = {
 
 						_Pages.resize();
 					});
-
 				};
 
 				if (_Pages.previews.loadPreviewTimer) {

@@ -316,21 +316,21 @@ function wsConnect() {
 				var refObject = StructrModel.obj(data.id);
 
 				if (refObject && refObject.constructor.name === 'StructrGroup') {
-					result.forEach(function (entity) {
+					for (let entity of result) {
 						StructrModel.create(entity, data.id);
-					});
+					}
 				} else {
-					result.forEach(function (entity) {
+					for (let entity of result) {
 						StructrModel.create(entity);
-					});
+					}
 				}
 				StructrModel.callCallback(data.callback, result);
 
 			} else if (command.endsWith('CHILDREN')) {
 
-				$(result).each(function (i, entity) {
+				for (let entity of result) {
 					StructrModel.create(entity);
-				});
+				}
 
 				StructrModel.callCallback(data.callback, result);
 
