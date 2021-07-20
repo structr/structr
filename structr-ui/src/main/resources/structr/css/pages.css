@@ -35,7 +35,8 @@
 	margin-left: 1rem;
 }
 
-#pages .node.page:hover {
+#pages .node.page:hover,
+#componentsArea .node:hover  {
 	cursor: pointer;
 }
 
