@@ -582,6 +582,8 @@ var _Entities = {
 				});
 			}
 
+			repeaterConfigEditor.setValue(entity[queryType] || '');
+
 			// toggle auto completion
 			if (queryType === 'functionQuery') {
 				_Code.setupAutocompletion(repeaterConfigEditor, entity.id, true);
@@ -595,42 +597,19 @@ var _Entities = {
 			let saveBtn = $('<button class="btn">Save</button>');
 			el.append('<br>').append(saveBtn);
 
-			queryTypes.forEach(function(queryType) {
-
+			for (let queryType of queryTypes) {
 				let btn = $('<button data-query-type="' + queryType.propertyName + '" class="' + queryType.propertyName + '">' + queryType.title + '</button>').appendTo(queryTypeButtonsContainer);
-
-				if (queryType.propertyName === 'flow' && entity[queryType.propertyName]) {
-
-					btn.addClass('active');
-					btn.click();
-					saveBtn.hide();
-					textAreaWrapper.hide();
-					flowSelector.show();
-					let flow = entity[queryType.propertyName];
-					if (flow) {
-						flowSelector.val(flow.id);
-					}
-
-				} else if (entity[queryType.propertyName] && entity[queryType.propertyName].trim() !== "") {
-
-					btn.addClass('active');
-					saveBtn.show();
-					textAreaWrapper.show();
-					flowSelector.hide();
-
-					$('button.flow', el).removeClass('active');
-					textArea.text(textArea.text() + entity[queryType.propertyName]);
-					activateEditor();
-				}
-			});
+			}
 
 			let allButtons = $('.query-type-buttons button', el);
 
 			allButtons.on('click', function () {
 				allButtons.removeClass('active');
-				var btn = $(this);
+
+				let btn = $(this);
 				btn.addClass('active');
-				var queryType = btn.data('query-type');
+
+				let queryType = btn.data('query-type');
 
 				if (queryType === 'flow') {
 
@@ -647,6 +626,15 @@ var _Entities = {
 				}
 			});
 
+			for (let queryType of queryTypes) {
+
+				if (queryType.propertyName === 'flow' && entity[queryType.propertyName]) {
+					$('button.' + queryType.propertyName).click();
+				} else if (entity[queryType.propertyName] && entity[queryType.propertyName].trim() !== "") {
+					$('button.' + queryType.propertyName).click();
+				}
+			}
+
 			if ($('button.active', queryTypeButtonsContainer).length === 0) {
 				$('.query-type-buttons button:first', el).click();
 			}
@@ -661,9 +649,11 @@ var _Entities = {
 					return new MessageBuilder().error('Please select only one query type.').show();
 				}
 
-				var data = {};
+				let data = {};
+
 				queryTypes.forEach(function(queryType) {
-					var val = null;
+
+					let val = null;
 
 					if ($('.' + queryType.propertyName, queryTypeButtonsContainer).hasClass('active')) {
 
@@ -672,6 +662,7 @@ var _Entities = {
 							val = flowSelector.val();
 
 						} else {
+
 							val = repeaterConfigEditor.getValue();
 							data.flow = null;
 							flowSelector.val('--- Select Flow ---');
@@ -681,6 +672,9 @@ var _Entities = {
 				});
 
 				Command.setProperties(entity.id, data, function(obj) {
+
+					Object.assign(entity, data);
+
 					if (flowSelector.is(':visible')) {
 						blinkGreen(flowSelector);
 					} else if (textAreaWrapper.is(':visible')) {
@@ -710,9 +704,9 @@ var _Entities = {
 
 			Command.getByType('FlowContainer', 1000, 1, 'effectiveName', 'asc', null, false, function(flows) {
 
-				flows.forEach(function(flow) {
+				for (let flow of flows) {
 					flowSelector.append('<option value="' + flow.id + '">' + flow.effectiveName + '</option>');
-				});
+				}
 
 				initRepeaterInputs();
 			});
@@ -2180,10 +2174,10 @@ var _Entities = {
 		let btn = $('.save_' + key, el);
 		let inp = $('.' + key + '_', el);
 		btn.on('click', function() {
-			Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
+			let value = $('.' + key + '_', el).val();
+			Command.setProperty(entity.id, key, value, false, function(obj) {
 				blinkGreen(inp);
-//				_Pages.reloadPreviews();
-				console.log('reload preview?')
+				entity[key] = value;
 			});
 		});
 	},
