@@ -234,7 +234,8 @@ var _Files = {
 		const isFolder           = entity.isFolder;
 		let selectedElements     = document.querySelectorAll('.node.selected');
 
-		let fileNode = $('.node', div);
+		// there is a difference when right-clicking versus clicking the kebab icon
+		let fileNode = (div.hasClass('node') ? div : $('.node', div));
 
 		if (!fileNode.hasClass('selected')) {
 			for (let selNode of document.querySelectorAll('.node.selected')) {
@@ -1373,17 +1374,17 @@ var _Files = {
 	// 		return false;
 	// 	});
 	// },
-	appendRemoveFavoriteIcon: function (parent, file) {
-
-		parent.append('<i title="Remove from favorites" class="remove_favorite_icon button ' + _Icons.getFullSpriteClass(_Icons.star_delete_icon) + '" />');
-		$('.remove_favorite_icon', parent).on('click', function(e) {
-			e.stopPropagation();
-
-			Command.favorites('remove', file.id, function() {
-				parent.remove();
-			});
-		});
-	},
+//	appendRemoveFavoriteIcon: function (parent, file) {
+//
+//		parent.append('<i title="Remove from favorites" class="remove_favorite_icon button ' + _Icons.getFullSpriteClass(_Icons.star_delete_icon) + '" />');
+//		$('.remove_favorite_icon', parent).on('click', function(e) {
+//			e.stopPropagation();
+//
+//			Command.favorites('remove', file.id, function() {
+//				parent.remove();
+//			});
+//		});
+//	},
 	displaySearchResultsForURL: async (url, searchString) => {
 
 		let content = $('#folder-contents');
