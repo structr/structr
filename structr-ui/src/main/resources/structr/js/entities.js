@@ -925,14 +925,13 @@ var _Entities = {
 
 			handleGraphObject = function(entity) {
 
-				var views      = ['ui'];
+				let views      = ['ui'];
+				let activeView = 'ui';
+				let tabTexts   = [];
 
 				if (Object.keys(properties).length) {
 					views.push('custom');
 				}
-
-				var activeView = 'ui';
-				var tabTexts   = [];
 
 				if (activeViewOverride) {
 					activeView = activeViewOverride;
@@ -966,7 +965,6 @@ var _Entities = {
 						tabTexts.custom = 'Custom Properties';
 
 						dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' node ' + (entity.name ? entity.name : entity.id);
-
 					}
 
 
@@ -983,7 +981,7 @@ var _Entities = {
 					}
 
 					// custom dialog tab?
-					var hasCustomDialog = _Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
+					let hasCustomDialog = _Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
 
 					if (entity.isDOMNode) {
 

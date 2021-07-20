@@ -102,14 +102,22 @@ var _Dialogs = {
 			let textContentContainer = $('.show-text-content-container', el);
 			if (textContentContainer.length) {
 
-				Structr.fetchHtmlTemplate('dialogs/content-partial', { entity: entity }, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/content-partial', {}, function (html) {
 
 					textContentContainer.html(html);
 
 					let child = entity.children[0];
 
-					_Dialogs.populateInputFields(textContentContainer, child);
-					_Dialogs.registerSimpleInputChangeHandlers(textContentContainer, child, true);
+					let populateDialog = (contentEl) => {
+						_Dialogs.populateInputFields(textContentContainer, contentEl);
+						_Dialogs.registerSimpleInputChangeHandlers(textContentContainer, contentEl, true);
+					};
+
+					if (!child.content) {
+						Command.get(child.id, 'id,type,content', (loadedChild) => { populateDialog(loadedChild); });
+					} else {
+						populateDialog(child);
+					}
 				});
 			}
 		}
