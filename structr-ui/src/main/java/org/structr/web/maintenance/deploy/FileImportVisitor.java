@@ -266,7 +266,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					final Long checksumOfExistingFile = FileHelper.getChecksum(file.getFileOnDisk());
 					final Long checksumOfNewFile      = FileHelper.getChecksum(path.toFile());
 
-					if (checksumOfExistingFile != null && checksumOfNewFile != null && checksumOfExistingFile.equals(checksumOfNewFile)) {
+					if (checksumOfExistingFile != null && checksumOfNewFile != null && checksumOfExistingFile.equals(checksumOfNewFile) && file.getUuid().equals(rawProperties.get("id"))) {
 
 						skipFile = true;
 
