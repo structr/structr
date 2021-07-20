@@ -806,15 +806,15 @@ var Structr = {
 			let bottomOffset = 0;
 			let cmHeight     = (dh - headerHeight - horizontalOffset - cmPosition.top) + 'px';
 
-			$('.CodeMirror:not(.cm-schema-methods)', codeMirror).css({
+			$('.CodeMirror:not(.cm-schema-methods)', dialogBox).css({
 				height: cmHeight
 			});
 
-			$('.CodeMirror:not(.cm-schema-methods) .CodeMirror-gutters', codeMirror).css({
+			$('.CodeMirror:not(.cm-schema-methods) .CodeMirror-gutters', dialogBox).css({
 				height: cmHeight
 			});
 
-			$('.CodeMirror:not(.cm-schema-methods)', codeMirror).each(function(i, el) {
+			$('.CodeMirror:not(.cm-schema-methods)', dialogBox).each(function(i, el) {
 				el.CodeMirror.refresh();
 			});
 		}
