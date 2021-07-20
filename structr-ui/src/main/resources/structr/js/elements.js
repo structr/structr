@@ -255,18 +255,18 @@ var _Elements = {
 	selectedEntity: undefined,
 	appendEntitiesToDOMElement: function (entities, domElement) {
 
-		entities.forEach(function(entity) {
+		for (let entity of entities) {
 
 			if (entity) {
 
-				var obj = StructrModel.create(entity, null, false);
-				var el = (obj.isContent) ? _Elements.appendContentElement(obj, domElement, true) : _Pages.appendElementElement(obj, domElement, true);
+				let obj = StructrModel.create(entity, null, false);
+				let el  = (obj.isContent) ? _Elements.appendContentElement(obj, domElement, true) : _Pages.appendElementElement(obj, domElement, true);
 
 				if (Structr.isExpanded(entity.id)) {
 					_Entities.ensureExpanded(el);
 				}
 			}
-		});
+		}
 	},
 	componentNode: function(id) {
 		return $($('#componentId_' + id)[0]);

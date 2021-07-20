@@ -1004,7 +1004,8 @@ var _Pages = {
 			}
 
 			let isEntityInSharedComponents = (entity.pageId === shadowPage.id);
-			if (isEntityInSharedComponents) {
+			let isEntityInTrash = (!entity.pageId);
+			if (isEntityInSharedComponents || isEntityInTrash) {
 				document.querySelector('a[href="#pages:preview"]').closest('li').classList.add('hidden');
 			}
 		}
