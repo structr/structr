@@ -1867,7 +1867,7 @@ var Structr = {
 				if (data.subtype === 'BEGIN') {
 
 					var text = type + ' started: ' + new Date(data.start) + '<br>'
-						+ 'Importing from: ' + data.source + '<br><br>'
+						+ 'Importing from: <span class="deployment-source">' + data.source + '</span><br><br>'
 						+ 'Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>';
 
 					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info(text).requiresConfirmation().updatesText().show();
@@ -1901,7 +1901,7 @@ var Structr = {
 				if (data.subtype === 'BEGIN') {
 
 					var text = type + ' started: ' + new Date(data.start) + '<br>'
-						+ 'Exporting to: ' + data.target + '<br><br>'
+						+ 'Exporting to: <span class="deployment-target">' + data.target + '</span><br><br>'
 						+ 'System performance may be affected during Export.<br><ol class="message-steps"></ol>';
 
 					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info(text).requiresConfirmation().updatesText().show();
