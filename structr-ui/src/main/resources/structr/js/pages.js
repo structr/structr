@@ -414,8 +414,8 @@ var _Pages = {
 				});
 			}
 
-			let isEntitySharedComponent = entity.sharedComponent || (entity.isPage && entity.pageId === shadowPage.id);
-			if (!isEntitySharedComponent) {
+			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && entity.pageId !== shadowPage.id;
+			if (canConvertToSharedComponent) {
 				_Elements.appendContextMenuSeparator(elements);
 
 				elements.push({
