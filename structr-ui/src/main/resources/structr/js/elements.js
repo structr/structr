@@ -756,15 +756,17 @@ var _Elements = {
 			addContextMenuElements(mainMenuList, mainEl, false);
 		});
 
-		// prepend suggested elements if present
-		_Elements.getSuggestedWidgets(entity, function(data) {
+		if (Structr.getActiveModule() === _Pages) {
+			// prepend suggested elements if present
+			_Elements.getSuggestedWidgets(entity, function(data) {
 
-			if (data && data.length) {
+				if (data && data.length) {
 
-				addContextMenuElements(mainMenuList, [ '|', { name: 'Suggested Widgets', elements: data } ], false, undefined, true);
-				updateMenuGroupVisibility();
-			}
-		});
+					addContextMenuElements(mainMenuList, [ '|', { name: 'Suggested Widgets', elements: data } ], false, undefined, true);
+					updateMenuGroupVisibility();
+				}
+			});
+		}
 
 		_Elements.updateVisibilityInheritanceCheckbox();
 		updateMenuGroupVisibility();
