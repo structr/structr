@@ -469,16 +469,33 @@ var _Elements = {
 			});
 		}
 
+		_Elements.clickOrSelectElementIfLastSelected(div, entity);
+
 		return div;
 	},
+	clickOrSelectElementIfLastSelected: (div, entity) => {
+
+		let selectedObjectId = LSWrapper.getItem(_Entities.selectedObjectIdKey);
+
+		if (entity.id === selectedObjectId) {
+
+			let isElementBeingEditedCurrently = (_Pages.centerPane.dataset['elementId'] === selectedObjectId);
+
+			if (!isElementBeingEditedCurrently) {
+				div.click();
+			} else {
+				_Entities.selectElement(div);
+			}
+		}
+	},
 	getElementIcon:function(element) {
-		var isComponent = element.sharedComponentId || (element.syncedNodesIds && element.syncedNodesIds.length);
-		var isActiveNode = (typeof element.isActiveNode === "function") ? element.isActiveNode() : false;
+		let isComponent  = element.sharedComponentId || (element.syncedNodesIds && element.syncedNodesIds.length);
+		let isActiveNode = (typeof element.isActiveNode === "function") ? element.isActiveNode() : false;
 
 		return (isActiveNode ? _Icons.repeater_icon : (isComponent ? _Icons.comp_icon : _Icons.brick_icon));
 	},
 	classIdString: function(idString, classString) {
-		var classIdString = '<span class="class-id-attrs abbr-ellipsis abbr-75pc">' + (idString ? '<span class="_html_id_">#' + idString.replace(/\${.*}/g, '${…}') + '</span>' : '')
+		let classIdString = '<span class="class-id-attrs abbr-ellipsis abbr-75pc">' + (idString ? '<span class="_html_id_">#' + idString.replace(/\${.*}/g, '${…}') + '</span>' : '')
 				+ (classString ? '<span class="_html_class_">.' + classString.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '') + '</span>';
 		return classIdString;
 	},
@@ -1015,6 +1032,8 @@ var _Elements = {
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 
 		_Entities.appendEditPropertiesIcon(div, entity);
+
+		_Elements.clickOrSelectElementIfLastSelected(div, entity);
 
 		return div;
 	},

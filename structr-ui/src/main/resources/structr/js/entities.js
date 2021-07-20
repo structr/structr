@@ -2100,6 +2100,8 @@ var _Entities = {
 
 		_Entities.accessControlDialog(entity, dialogText);
 
+		_Elements.clickOrSelectElementIfLastSelected(div, entity);
+
 	},
 	addPrincipal: function (entity, principal, permissions, allowRecursive, container) {
 

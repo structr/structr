@@ -791,10 +791,10 @@ var _Pages = {
 				menuLink.onclick = (event) => _Pages.activateCenterPane(menuLink);
 			}
 
-			var pPager = _Pager.addPager('pages', pagesPager, true, 'Page', null, function(pages) {
-				pages.forEach(function(page) {
+			let pPager = _Pager.addPager('pages', pagesPager, true, 'Page', null, function(pages) {
+				for (let page of pages) {
 					StructrModel.create(page);
-				});
+				}
 			});
 
 			pPager.cleanupFunction = function () {
@@ -802,7 +802,7 @@ var _Pages = {
 			};
 			let pagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name"/></span>');
 			pPager.pager.append(pagerFilters);
-			var categoryFilter = $('<input type="text" class="filter page-label" data-attribute="category" placeholder="Category" />');
+			let categoryFilter = $('<input type="text" class="filter page-label" data-attribute="category" placeholder="Category" />');
 			pagerFilters.append(categoryFilter);
 			pPager.activateFilterElements();
 
@@ -943,18 +943,7 @@ var _Pages = {
 			if (selectedObjectId) {
 
 				fetch(rootUrl + selectedObjectId).then(response => {
-					if (response.ok) {
-						// Wait for the tree element to become visible
-						const observer = new MutationObserver((mutations, obs) => {
-							let el = Structr.node(selectedObjectId);
-							if (el) {
-								el.click();
-								obs.disconnect();
-								return;
-							}
-						});
-						observer.observe(document, { childList: true, subtree: true });
-					} else {
+					if (!response.ok) {
 						// looks like element was deleted
 						LSWrapper.removeItem(_Entities.selectedObjectIdKey);
 					}
@@ -968,14 +957,14 @@ var _Pages = {
 		Structr.removeExpandedNode(page.id);
 	},
 	deactivateAllSubmenuLinks: () => {
-		for (const otherTab of document.querySelectorAll('#function-bar .tabs-menu li')) {
+		for (const otherTab of document.querySelectorAll('#function-bar .tabs-menu li.active')) {
 			otherTab.classList.remove('active');
 		}
 	},
 	adaptFunctionBarTabs: (entity) => {
 
 		// first show everything - later hide some
-		for (let li of document.querySelectorAll('.tabs-menu li')) {
+		for (let li of document.querySelectorAll('.tabs-menu li.hidden')) {
 			li.classList.remove('hidden');
 		}
 
@@ -1004,7 +993,7 @@ var _Pages = {
 			}
 
 			let isEntityInSharedComponents = (entity.pageId === shadowPage.id);
-			let isEntityInTrash = (!entity.pageId);
+			let isEntityInTrash = (!entity.isPage && !entity.pageId);
 			if (isEntityInSharedComponents || isEntityInTrash) {
 				document.querySelector('a[href="#pages:preview"]').closest('li').classList.add('hidden');
 			}
@@ -1044,6 +1033,8 @@ var _Pages = {
 	refreshCenterPane: (obj, urlHash) => {
 
 		_Entities.deselectAllElements();
+
+		_Pages.centerPane.dataset['elementId'] = obj.id;
 
 		if (_Dashboard.isFavorEditorForContentElements() && (!urlHash && obj.isContent)) {
 			/*
@@ -1307,6 +1298,8 @@ var _Pages = {
 		}
 
 		_Dragndrop.makeDroppable(div);
+
+		_Elements.clickOrSelectElementIfLastSelected(div, entity);
 
 		return div;
 	},
