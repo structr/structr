@@ -24,6 +24,7 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
@@ -122,6 +123,9 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 						if (ex.getTargetException() instanceof FrameworkException) {
 
 							throw new RuntimeException(ex.getTargetException());
+						} else if (ex.getTargetException() instanceof AssertException) {
+
+							throw ((AssertException)ex.getTargetException());
 						}
 						logger.error("Unexpected exception while trying to get GraphObject member.", ex);
 					}
