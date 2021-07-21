@@ -170,7 +170,7 @@ public class Scripting {
 			RuntimeUsageLog.enter(entity, methodName);
 
 			boolean isScriptEngine = false;
-			String engine          = "";
+			String engine = "";
 
 			if (!isJavascript) {
 
@@ -182,7 +182,7 @@ public class Scripting {
 
 					logger.debug("Scripting engine {} requested.", engine);
 
-					isJavascript   = StringUtils.isBlank(engine) || "JavaScript".equals(engine);
+					isJavascript = StringUtils.isBlank(engine) || "JavaScript".equals(engine);
 					isScriptEngine = !isJavascript && StringUtils.isNotBlank(engine);
 				}
 			}
@@ -201,7 +201,7 @@ public class Scripting {
 				securityContext.setDoTransactionNotifications(false);
 			}
 
-			final Snippet snippet  = new Snippet(methodName, source);
+			final Snippet snippet = new Snippet(methodName, source);
 			snippet.setCodeSource(codeSource);
 			snippet.setStartRow(startRow);
 
@@ -224,9 +224,9 @@ public class Scripting {
 				try {
 
 					final EvaluationHints hints = new EvaluationHints();
-					Object extractedValue       = Functions.evaluate(actionContext, entity, snippet, hints);
-					final String value          = extractedValue != null ? extractedValue.toString() : "";
-					final String output         = actionContext.getOutput();
+					Object extractedValue = Functions.evaluate(actionContext, entity, snippet, hints);
+					final String value = extractedValue != null ? extractedValue.toString() : "";
+					final String output = actionContext.getOutput();
 
 					if (StringUtils.isEmpty(value) && output != null && !output.isEmpty()) {
 						extractedValue = output;
@@ -254,7 +254,7 @@ public class Scripting {
 				return null;
 			}
 
-		} finally {
+		}  finally {
 
 			RuntimeUsageLog.leave(entity);
 		}
@@ -287,7 +287,12 @@ public class Scripting {
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
 
 					reportError(actionContext.getSecurityContext(), ex, snippet, false);
-					throw ex.asHostException();
+					// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
+					if (ex.asHostException().getCause() instanceof FrameworkException) {
+						throw ex.asHostException().getCause();
+					} else {
+						throw ex.asHostException();
+					}
 				}
 
 				reportError(actionContext.getSecurityContext(), ex, snippet);
@@ -377,18 +382,18 @@ public class Scripting {
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
 
 					reportError(actionContext.getSecurityContext(), ex, snippet, false);
-					throw ex.asHostException();
+					// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
+					if (ex.asHostException().getCause() instanceof FrameworkException) {
+						throw ex.asHostException().getCause();
+					} else {
+						throw ex.asHostException();
+					}
 				}
 
 				reportError(actionContext.getSecurityContext(), ex, snippet);
 			}
 
 			context.leave();
-
-			if (actionContext.hasError()) {
-
-				throw new FrameworkException(422, "Server-side scripting error", actionContext.getErrorBuffer());
-			}
 
 			// Prefer explicitly printed output over actual result
 			final String outputBuffer = actionContext.getOutput();
