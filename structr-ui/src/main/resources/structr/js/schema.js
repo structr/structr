@@ -167,7 +167,6 @@ var _Schema = {
 				}
 			});
 
-			$('#schema-tools').off('click').on('click', _Schema.openTypeVisibilityDialog);
 			$('#global-schema-methods').off('click').on('click', _Schema.methods.showGlobalSchemaMethods);
 
 			_Schema.globalLayoutSelector = $('#saved-layout-selector-main');
@@ -3644,7 +3643,9 @@ var _Schema = {
 	},
 	activateLayoutTools: () => {
 
+		$('#schema-tools').off('click').on('click', _Schema.openTypeVisibilityDialog);
 		$('#reset-schema-positions').off('click').on('click', _Schema.clearPositions);
+
 		var layoutSelector        = $('#saved-layout-selector');
 		var layoutNameInput       = $('#layout-name');
 		var createNewLayoutButton = $('#create-new-layout');

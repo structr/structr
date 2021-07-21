@@ -1567,18 +1567,18 @@ button.action.disabled:hover {
 }
 
 #dialogBox .minmax {
-	top: .5rem;
-	left: .5rem;
+	top: .65rem;
+	left: .65rem;
 	width: 16px;
 	height: 16px;
 }
 
 #dialogBox .close {
 	background-color: var(--solid-white);
-	top: .35rem;
-	right: .25rem;
-	width: 24px;
-	height: 24px;
+	top: .65rem;
+	right: .65rem;
+	width: 16px;
+	height: 16px;
 }
 
 #dialogBox .window-icon:hover {
@@ -2199,7 +2199,7 @@ button.disabled, i.disabled {
 
 .dropdown-select svg, .dropdown-menu-container svg {
 	margin-right: .5rem;
-	vertical-align: middle;
+	vertical-align: bottom;
 }
 
 .dropdown-menu-container > .row,
@@ -2213,7 +2213,7 @@ button.disabled, i.disabled {
 }
 
 .dropdown-menu-container > .separator {
-	margin-top: .5rem;
+	/*margin-top: .5rem;*/
 	border-top: .1rem solid var(--input-field-border);
 }
 
