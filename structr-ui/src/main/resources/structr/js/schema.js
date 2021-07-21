@@ -2708,7 +2708,7 @@ var _Schema = {
 									}
 								});
 							} else {
-								Command.rest('SchemaMethod?schemaNode=null&sort=name&order=ascending', function (methods) {
+								Command.rest('SchemaMethod?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', function (methods) {
 									el.empty();
 									_Schema.methods.appendMethods(el, null, _Schema.filterJavaMethods(methods));
 									_Schema.hideSchemaRecompileMessage();
