@@ -2546,10 +2546,11 @@ var _Code = {
 
 		_Code.addRecentlyUsedElement(selection.source, "Global methods", _Icons.getFullSpriteClass(_Icons.world_icon), selection.source, false);
 
-		Structr.fetchHtmlTemplate('code/globals', { }, function(html) {
+		Structr.fetchHtmlTemplate('code/globals', {}, function(html) {
+
 			codeContents.append(html);
 
-			Command.rest('SchemaMethod?schemaNode=null&sort=name&order=ascending', function (methods) {
+			Command.rest('SchemaMethod?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', function (methods) {
 
 				_Schema.methods.appendMethods($('.content-container', codeContents), null, methods, function() {
 					if (selection && selection.extended) {
@@ -3236,29 +3237,30 @@ var _Code = {
 		dialog.append('<h3>Method output</h3>');
 		dialog.append('<pre id="log-output"></pre>');
 
-		$('#run-method').on('click', function() {
+		$('#run-method').on('click', async () => {
 
-			$('#log-output').empty();
-			$('#log-output').append('Running method..\n');
+			$('#log-output').html('Running method..\n');
 
-			var params = {};
+			let params = {};
 			$('#params .param').each(function (index, el) {
-				var name = $('.param-name', el).val();
-				var val = $('.param-value', el).val();
+				let name = $('.param-name', el).val();
+				let val  = $('.param-value', el).val();
 				if (name) {
 					params[name] = val;
 				}
 			});
 
-			$.ajax({
-				url: rootUrl + '/maintenance/globalSchemaMethods/' + schemaMethod.name,
-				data: JSON.stringify(params),
+			let response = await fetch(rootUrl + 'maintenance/globalSchemaMethods/' + schemaMethod.name, {
 				method: 'POST',
-				complete: function(data) {
-					$('#log-output').append(data.responseText);
-					$('#log-output').append('Done.');
-				}
+				body: JSON.stringify(params)
 			});
+
+			if (response.ok) {
+				let text = await response.text();
+
+				$('#log-output').append(text);
+				$('#log-output').append('Done.');
+			}
 		});
 
 		$('#clear-log').on('click', function() {
@@ -3266,12 +3268,15 @@ var _Code = {
 		});
 	},
 	activatePropertyValueInput: function(inputId, id, name) {
+
 		$('input#' + inputId).on('blur', function() {
-			var elem     = $(this);
-			var previous = elem.attr('value');
+			let elem     = $(this);
+			let previous = elem.attr('value');
+
 			if (previous !== elem.val()) {
-				var data   = {};
+				let data   = {};
 				data[name] = elem.val();
+
 				Command.setProperties(id, data, function() {
 					blinkGreen(elem);
 					_TreeHelper.refreshTree('#code-tree');
@@ -3279,7 +3284,7 @@ var _Code = {
 			}
 		});
 	},
-	showScriptErrors: function(entity, text, callback, attributeName) {
+	showScriptErrors: async (entity, text, callback, attributeName) => {
 
 		let methodName = attributeName;
 		let schemaType = '';
@@ -3296,74 +3301,71 @@ var _Code = {
 			schemaType = entity.type;
 		}
 
-		$.ajax({
-			url: '/structr/rest/_runtimeEventLog?type=Scripting&seen=false&' + Structr.getRequestParameterName('pageSize') + '=100',
-			method: 'get',
-			statusCode: {
-				200: function(eventLog) {
+		let response = await fetch(rootUrl + '_runtimeEventLog?type=Scripting&seen=false&' + Structr.getRequestParameterName('pageSize') + '=100');
 
-					let keys   = {};
-					let events = [];
+		if (response.ok) {
+			let eventLog = await response.json();
 
-					for (var runtimeEvent of eventLog.result) {
+			let keys   = {};
+			let events = [];
 
-						if (runtimeEvent.data) {
+			for (var runtimeEvent of eventLog.result) {
 
-							let message = runtimeEvent.data.message;
-							let line    = runtimeEvent.data.row;
-							let column  = runtimeEvent.data.column;
-							let type    = runtimeEvent.data.type;
-							let name    = runtimeEvent.data.name;
-							let id      = runtimeEvent.data.id;
+				if (runtimeEvent.data) {
 
-//							console.log({
-//								id: id,
-//								entityId: entity.id,
-//								type: type,
-//								schemaType: schemaType,
-//								name: name,
-//								methodName: methodName
-//							});
+					let message = runtimeEvent.data.message;
+					let line    = runtimeEvent.data.row;
+					let column  = runtimeEvent.data.column;
+					let type    = runtimeEvent.data.type;
+					let name    = runtimeEvent.data.name;
+					let id      = runtimeEvent.data.id;
 
-							if (
-								(!id || (entity.id && id === entity.id)) &&
-								(!type || type === schemaType) &&
-								name === methodName
-							) {
+//					console.log({
+//						id: id,
+//						entityId: entity.id,
+//						type: type,
+//						schemaType: schemaType,
+//						name: name,
+//						methodName: methodName
+//					});
 
-								let fromLine = line-1;
-								let toLine   = line-1;
-								let fromCol  = column-2;
-								let toCol    = column-1;
+					if (
+						(!id || (entity.id && id === entity.id)) &&
+						(!type || type === schemaType) &&
+						name === methodName
+					) {
 
-								// column == 0 => error column unknown
-								if (column === 0) {
+						let fromLine = line - 1;
+						let toLine   = line - 1;
+						let fromCol  = column - 2;
+						let toCol    = column - 1;
 
-									toLine  = line;
-									fromCol = 0;
-									toCol   = 0;
-								}
+						// column == 0 => error column unknown
+						if (column === 0) {
 
-								let key = entity.id + '.' + entity.name + ':' + fromLine + ':' + toCol;
-								if (!keys[key]) {
+							toLine  = line;
+							fromCol = 0;
+							toCol   = 0;
+						}
 
-									keys[key] = true;
+						let key = entity.id + '.' + entity.name + ':' + fromLine + ':' + toCol;
+						if (!keys[key]) {
 
-									events.push({
-										from: CodeMirror.Pos(fromLine, fromCol),
-										to: CodeMirror.Pos(toLine, toCol),
-										message: 'Scripting error: ' + message,
-										severity : 'warning'
-									});
-								}
-							}
+							keys[key] = true;
+
+							events.push({
+								from: CodeMirror.Pos(fromLine, fromCol),
+								to: CodeMirror.Pos(toLine, toCol),
+								message: 'Scripting error: ' + message,
+								severity : 'warning'
+							});
 						}
 					}
-
-					callback(events);
 				}
 			}
-		});
+
+			callback(events);
+		}
 	},
 	setCodeMirorUpdateMode: function (entity, editor) {
 
@@ -3384,6 +3386,7 @@ var _Code = {
 	},
 	debounce(func, wait, immediate) {
 		var timeout;
+
 		return function() {
 			var context = this, args = arguments;
 			var later = function() {

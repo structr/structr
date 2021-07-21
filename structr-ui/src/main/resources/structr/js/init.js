@@ -391,7 +391,6 @@ var Structr = {
 		}).catch(function(e) {
 			console.log(e.statusText, templateName, e);
 		});
-
 	}),
 
 	reconnect: function() {
@@ -446,6 +445,7 @@ var Structr = {
 			}
 			Structr.hideLoadingSpinner();
 			_Console.initConsole();
+			document.querySelector('#header .logo').addEventListener('click', _Console.toggleConsole);
 			_Favorites.initFavorites();
 		});
 	},

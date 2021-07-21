@@ -2227,6 +2227,11 @@ button.disabled, i.disabled {
 	cursor: pointer;
 }
 
+.dropdown-menu-container > .row > a {
+	display: block;
+	width: 100%;
+}
+
 .dropdown-menu-container > .row:hover > a {
 	color: var(--solid-black);
 }
