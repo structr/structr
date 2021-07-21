@@ -2556,7 +2556,7 @@ var _Entities = {
 			return newEl;
 		};
 
-		var saveAndUpdate = function (el) {
+		let saveAndUpdate = function (el) {
 
 			let newVal = el.val();
 

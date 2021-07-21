@@ -223,9 +223,7 @@ var _Files = {
 
 				_Files.resize();
 				Structr.adaptUiToAvailableFeatures();
-
 			});
-
 		});
 	},
 	getContextMenuElements: function (div, entity) {
@@ -595,18 +593,16 @@ var _Files = {
 	},
 	load: function(id, callback) {
 
-		var displayFunction = function (folders) {
+		let displayFunction = function (folders) {
 
-			var list = [];
-
-			folders.forEach(function(d) {
-				list.push({
-					id: d.id,
-					text:  d.name || '[unnamed]',
-					children: d.foldersCount > 0,
-					icon: 'fa fa-folder',
-					path: d.path
-				});
+			let list = folders.map((d) => {
+				return {
+                    id: d.id,
+                    text:  d.name || '[unnamed]',
+                    children: d.foldersCount > 0,
+                    icon: 'fa fa-folder',
+                    path: d.path
+                };
 			});
 
 			callback(list);
@@ -704,14 +700,16 @@ var _Files = {
 		// store current folder id so we can filter slow requests
 		folderContents.data('currentFolder', id);
 
-		let handleChildren = function(children) {
+		let handleChildren = (children) => {
 
 			let currentFolder = folderContents.data('currentFolder');
 
 			if (currentFolder === id) {
 
 				if (children && children.length) {
-					children.forEach(_Files.appendFileOrFolder);
+					for (let child of children) {
+						_Files.appendFileOrFolder(child);
+					}
 				}
 
 				_Files.resize();
@@ -753,7 +751,7 @@ var _Files = {
 			_Pager.initPager('filesystem-files', 'File', 1, 25, 'name', 'asc');
 			page['File'] = 1;
 
-			var filterOptions = {
+			let filterOptions = {
 				parentId: (parentIsRoot ? '' : id),
 				hasParent: (!parentIsRoot)
 			};
@@ -763,12 +761,13 @@ var _Files = {
 
 			let filesPager = _Pager.addPager(pagerId, folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,isFavoritable,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers');
 
-			filesPager.cleanupFunction = function () {
-				var toRemove = $('.node.file', filesPager.el).closest( (_Files.isViewModeActive('list') ? 'tr' : '.tile') );
-				toRemove.each(function(i, elem) {
+			filesPager.cleanupFunction = () => {
+				let toRemove = $('.node.file', filesPager.el).closest( (_Files.isViewModeActive('list') ? 'tr' : '.tile') );
+
+				for (let elem of toRemove) {
 					fastRemoveAllChildren(elem);
 					elem.remove();
-				});
+				}
 			};
 
 			filesPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name">');
@@ -776,7 +775,7 @@ var _Files = {
 			filesPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + (parentIsRoot ? '' : 'checked') + ' hidden>');
 			filesPager.activateFilterElements();
 
-			_Files.insertBreadCrumbNavigation(parents, nodePath);
+			_Files.insertBreadCrumbNavigation(parents, nodePath, id);
 
 			if (_Files.isViewModeActive('list')) {
 				folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
@@ -795,22 +794,22 @@ var _Files = {
 			}
 		}
 	},
-	insertBreadCrumbNavigation: function(parents, nodePath) {
+	insertBreadCrumbNavigation: function(parents, nodePath, id) {
 
 		if (parents) {
 
-			let path = '';
+			let preventOldFolderNameInBreadcrumbs = () => {
+				let modelObj = StructrModel.obj(id);
+				if (modelObj && modelObj.path) {
+					nodePath = modelObj.path;
+				}
+			};
+			preventOldFolderNameInBreadcrumbs();
 
 			parents = [].concat(parents).reverse().slice(1);
-			let pathNames = [''];
-			if (nodePath !== '/') {
-				pathNames = pathNames.concat(nodePath.slice(1).split('/'));
-			}
-			path = parents.map(function(parent, idx) {
-				return '<a class="breadcrumb-entry" data-folder-id="' + parent + '">' + pathNames[idx] + '/</a>';
-			}).join('');
 
-			path += pathNames.pop();
+			let pathNames = (nodePath === '/') ? ['/'] : [''].concat(nodePath.slice(1).split('/'));
+			let path      = parents.map((parent, idx) => { return '<a class="breadcrumb-entry" data-folder-id="' + parent + '">' + pathNames[idx] + '/</a>'; }).join('') + pathNames.pop();
 
 			folderContents.append('<div class="folder-path">' + path + '</div>');
 
@@ -829,14 +828,15 @@ var _Files = {
 			+ '<button class="switch ' + (_Files.isViewModeActive('img') ? 'active' : 'inactive') + '" id="switch-img" data-view-mode="img">' + (_Files.isViewModeActive('img') ? '<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' : '') + ' Images</button>'
 			+ '</div>');
 
-		var listSw  = $('#switch-list');
-		var tilesSw = $('#switch-tiles');
-		var imgSw   = $('#switch-img');
+		let listSw  = $('#switch-list');
+		let tilesSw = $('#switch-tiles');
+		let imgSw   = $('#switch-img');
 
-		var layoutSwitchFunction = function() {
-			var state = $(this).hasClass('inactive');
+		let layoutSwitchFunction = function() {
+			let state = $(this).hasClass('inactive');
+
 			if (state) {
-				var viewMode = $(this).data('viewMode');
+				let viewMode = $(this).data('viewMode');
 				_Files.setViewMode(viewMode);
 
 				_Entities.changeBooleanAttribute(listSw,  _Files.isViewModeActive('list'),  'List',   'List');
