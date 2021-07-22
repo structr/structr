@@ -3255,12 +3255,9 @@ var _Code = {
 				body: JSON.stringify(params)
 			});
 
-			if (response.ok) {
-				let text = await response.text();
-
-				$('#log-output').append(text);
-				$('#log-output').append('Done.');
-			}
+			let text = await response.text();
+			$('#log-output').append(text);
+			$('#log-output').append('Done.');
 		});
 
 		$('#clear-log').on('click', function() {

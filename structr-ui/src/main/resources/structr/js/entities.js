@@ -771,8 +771,8 @@ var _Entities = {
 					indentWithTabs: true
 				}));
 
-				$('.CodeMirror-scroll').prepend('<div class="starttag"></div>');
-				$('.CodeMirror-scroll').append('<div class="endtag"></div>');
+				$('.CodeMirror-scroll', dialog).prepend('<div class="starttag"></div>');
+				$('.CodeMirror-scroll', dialog).append('<div class="endtag"></div>');
 				$('.starttag', dialog).append(escapeTags(startTag.replace(/\sdata-structr-hash=".{32}"/, "")));
 				$('.endtag', dialog).append(escapeTags(endTag));
 
@@ -849,7 +849,7 @@ var _Entities = {
 
 				dialogMeta.append('<span class="editor-info"><label for"lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span>');
 				$('#lineWrapping').off('change').on('change', function() {
-					var inp = $(this);
+					let inp = $(this);
 					Structr.updateCodeMirrorOptionGlobally('lineWrapping', inp.is(':checked'));
 					blinkGreen(inp.parent());
 					editor.refresh();
@@ -1590,7 +1590,6 @@ var _Entities = {
 
 		$('tr:visible:odd', container).css({'background-color': '#f6f6f6'});
 		$('tr:visible:even', container).css({'background-color': '#fff'});
-
 	},
 	displaySearch: function(id, key, type, el, isCollection) {
 
@@ -2059,9 +2058,9 @@ var _Entities = {
 	},
 	showAccessControlDialog: function(entity) {
 
-		var id = entity.id;
+		let id = entity.id;
 
-		var initialObj = {
+		let initialObj = {
 			ownerId: entity.owner ? entity.owner.id : null,
 			visibleToPublicUsers: entity.visibleToPublicUsers,
 			visibleToAuthenticatedUsers: entity.visibleToAuthenticatedUsers
@@ -2071,7 +2070,7 @@ var _Entities = {
 		}, function() {
 			if (Structr.isModuleActive(_Crud)) {
 
-				var handleGraphObject = function(entity) {
+				let handleGraphObject = function(entity) {
 					if ((!entity.owner && initialObj.owner !== null) || initialObj.ownerId !== entity.owner.id) {
 						_Crud.refreshCell(id, "owner", entity.owner, entity.type, initialObj.ownerId);
 					}
@@ -2169,8 +2168,10 @@ var _Entities = {
 			return false;
 		}
 		el.append('<div class="input-section"><h3>' + label + '</h3><p>' + desc + '</p><div class="input-and-button"><input type="text" class="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button class="save_' + key + '">Save</button></div></div>');
+
 		let btn = $('.save_' + key, el);
 		let inp = $('.' + key + '_', el);
+
 		btn.on('click', function() {
 			let value = $('.' + key + '_', el).val();
 			Command.setProperty(entity.id, key, value, false, function(obj) {
@@ -2184,8 +2185,10 @@ var _Entities = {
 			return false;
 		}
 		el.append('<div class="' + entity.id + '_"><button class="switch inactive ' + key + '_"></button>' + desc + '</div>');
-		var sw = $('.' + key + '_', el);
+
+		let sw = $('.' + key + '_', el);
 		_Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
+
 		sw.on('click', function(e) {
 			e.stopPropagation();
 			Command.setProperty(entity.id, key, sw.hasClass('inactive'), $(recElementId, el).is(':checked'), function(obj) {
@@ -2200,38 +2203,40 @@ var _Entities = {
 	},
 	appendEditPropertiesIcon: function(parent, entity, visible) {
 
-		var editIcon = $('.edit_props_icon', parent);
+		let editIcon = $('.edit_props_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
 			editIcon = $('<svg class="node-menu-icon" viewBox="0 0 16 16" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(0.6666666666666666,0,0,0.6666666666666666,0,0)"><path d="M8.750 3.250 A3.250 3.250 0 1 0 15.250 3.250 A3.250 3.250 0 1 0 8.750 3.250 Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8.750 12.000 A3.250 3.250 0 1 0 15.250 12.000 A3.250 3.250 0 1 0 8.750 12.000 Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8.750 20.750 A3.250 3.250 0 1 0 15.250 20.750 A3.250 3.250 0 1 0 8.750 20.750 Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round"></path></g></svg>');
 			parent.append(editIcon);
 		}
+
 		editIcon.on('click', function(e) {
 			e.stopPropagation();
 			// _Entities.showProperties(entity);
 			_Elements.activateContextMenu(e, parent, entity);
 		});
+
 		if (visible) {
 			editIcon.css({
 				visibility: 'visible',
 				display: 'inline-block'
 			});
 		}
+
 		return editIcon;
 	},
 	appendExpandIcon: function(el, entity, hasChildren, expanded) {
 
-		var button = $(el.children('.expand_icon_svg').first());
+		let button = $(el.children('.expand_icon_svg').first());
 		if (button && button.length) {
 			return;
 		}
 
 		if (hasChildren) {
 
-			var typeIcon = $(el.children('.typeIcon').first());
-			var icon = expanded ? _Icons.expandedClass : _Icons.collapsedClass;
-
-			var displayName = getElementDisplayName(entity);
+			let typeIcon    = $(el.children('.typeIcon').first());
+			let icon        = expanded ? _Icons.expandedClass : _Icons.collapsedClass;
+			let displayName = getElementDisplayName(entity);
 
 			typeIcon.removeClass('typeIcon-nochildren').before('<i title="Expand ' + displayName + '" class="expand_icon_svg ' + icon + '" />');
 
@@ -2389,7 +2394,7 @@ var _Entities = {
 			return;
 		} else {
 			Command.children(id, callback);
-			var displayName = getElementDisplayName(Structr.entity(id));
+			let displayName = getElementDisplayName(StructrModel.obj(id));
 
 			el.children('.expand_icon_svg').first()
 				.removeClass(_Icons.collapsedClass)
@@ -2503,11 +2508,10 @@ var _Entities = {
 	},
 	toggleElement: function(element, expanded) {
 
-		var el = $(element);
-		var id = Structr.getId(el) || Structr.getComponentId(el) || Structr.getGroupId(el);
-
-		var b = el.children('.expand_icon_svg').first();
-		var displayName = getElementDisplayName(Structr.entity(id));
+		let el          = $(element);
+		let id          = Structr.getId(el) || Structr.getComponentId(el) || Structr.getGroupId(el);
+		let b           = el.children('.expand_icon_svg').first();
+		let displayName = getElementDisplayName(StructrModel.obj(id));
 
 		if (_Entities.isExpanded(element)) {
 

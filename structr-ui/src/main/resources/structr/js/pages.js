@@ -97,7 +97,7 @@ var _Pages = {
 			elementsSlideout = $('#elements');
 			elementsSlideout.data('closeCallback', _Pages.unattachedNodes.removeElementsFromUI);
 
-			var pagesTabSlideoutAction = function () {
+			let pagesTabSlideoutAction = function () {
 				_Pages.leftSlideoutTrigger(this, pagesSlideout, [/*activeElementsSlideout, dataBindingSlideout*/, localizationsSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
 					_Pages.resize();
@@ -133,17 +133,18 @@ var _Pages = {
 			$('#localizationsTab').on('click', function () {
 				_Pages.leftSlideoutTrigger(this, localizationsSlideout, [pagesSlideout, /*activeElementsSlideout, dataBindingSlideout*/], (params) => {
 					LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
+					_Pages.localizations.refreshPagesForLocalizationPreview();
 					_Pages.resize();
 				}, _Pages.leftSlideoutClosedCallback);
 			});
 
 			$('#localizations input.locale').on('keydown', function (e) {
 				if (e.which === 13) {
-					_Pages.refreshLocalizations();
+					_Pages.localizations.refreshLocalizations();
 				}
 			});
 			$('#localizations button.refresh').on('click', function () {
-				_Pages.refreshLocalizations();
+				_Pages.localizations.refreshLocalizations();
 			});
 
 			Structr.appendInfoTextToElement({
@@ -790,11 +791,7 @@ var _Pages = {
 				menuLink.onclick = (event) => _Pages.activateCenterPane(menuLink);
 			}
 
-			let pPager = _Pager.addPager('pages', pagesPager, true, 'Page', null, function(pages) {
-				for (let page of pages) {
-					StructrModel.create(page);
-				}
-			});
+			let pPager = _Pager.addPager('pages', pagesPager, true, 'Page', null);
 
 			pPager.cleanupFunction = function () {
 				$('.node', pages).remove();
@@ -805,24 +802,26 @@ var _Pages = {
 			pagerFilters.append(categoryFilter);
 			pPager.activateFilterElements();
 
-			$.ajax({
-				url: '/structr/rest/Page/category',
-				success: function(data) {
-					var categories = [];
-					data.result.forEach(function(page) {
-						if (page.category !== null && categories.indexOf(page.category) === -1) {
-							categories.push(page.category);
-						}
-					});
-					categories.sort();
-
-					let helpText = 'Filter pages by page category.';
-					if (categories.length > 0) {
-						helpText += 'Available categories: \n\n' + categories.join('\n');
-					}
-
-					categoryFilter.attr('title', helpText);
+			fetch('/structr/rest/Page/category').then((response) => {
+				if (response.ok) {
+					return response.json();
 				}
+			}).then((data) => {
+
+				let categories = [];
+				for (let page of data.result) {
+					if (page.category !== null && categories.indexOf(page.category) === -1) {
+						categories.push(page.category);
+					}
+				}
+				categories.sort();
+
+				let helpText = 'Filter pages by page category.';
+				if (categories.length > 0) {
+					helpText += 'Available categories: \n\n' + categories.join('\n');
+				}
+
+				categoryFilter.attr('title', helpText);
 			});
 
 			/*
@@ -861,7 +860,7 @@ var _Pages = {
 						+ '</table>');
 
 				$('#_address', dialog).on('blur', function() {
-					var addr = $(this).val().replace(/\/+$/, "");
+					let addr = $(this).val().replace(/\/+$/, "");
 					$('#_name', dialog).val(addr.substring(addr.lastIndexOf("/") + 1));
 				});
 
@@ -870,18 +869,17 @@ var _Pages = {
 				$('#startImport').on('click', function(e) {
 					e.stopPropagation();
 
-					var code = $('#_code', dialog).val();
-					var address = $('#_address', dialog).val();
+					let code                  = $('#_code', dialog).val();
+					let address               = $('#_address', dialog).val();
+					let name                  = $('#_name', dialog).val();
+					let publicVisible         = $('#_publicVisible', dialog).prop('checked');
+					let authVisible           = $('#_authVisible', dialog).prop('checked');
+					let includeInExport       = $('#_includeInExport', dialog).prop('checked');
+					let processDeploymentInfo = $('#_processDeploymentInfo', dialog).prop('checked');
 
 					if (code.length > 0) {
 						address = null;
 					}
-
-					var name = $('#_name', dialog).val();
-					var publicVisible = $('#_publicVisible', dialog).prop('checked');
-					var authVisible = $('#_authVisible', dialog).prop('checked');
-					var includeInExport = $('#_includeInExport', dialog).prop('checked');
-					var processDeploymentInfo = $('#_processDeploymentInfo', dialog).prop('checked');
 
 					return Command.importPage(code, address, name, publicVisible, authVisible, includeInExport, processDeploymentInfo);
 				});
@@ -913,11 +911,11 @@ var _Pages = {
 						dialogMsg.empty();
 						dialog.append('<div id="template-tiles"></div>');
 
-						var container = $('#template-tiles');
+						let container = $('#template-tiles');
 
-						result.forEach(function(widget) {
+						for (let widget of result) {
 
-							var id = 'create-from-' + widget.id;
+							let id = 'create-from-' + widget.id;
 							container.append('<div class="app-tile"><h4>' + widget.name + '</h4><p>' + widget.description + '</p><button class="action" id="' + id + '">Create Page</button></div>');
 							$('#' + id).on('click', function() {
 								Command.create({ type: 'Page' }, function(page) {
@@ -925,8 +923,7 @@ var _Pages = {
 									Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
 								});
 							});
-
-						});
+						}
 					});
 
 				} else {
@@ -1531,174 +1528,290 @@ var _Pages = {
 			tabsMenu.style.display = 'none';
 		}
 	},
-	refreshLocalizations: function() {
+	localizations: {
+		wrapperTypeForContextMenu: 'WrappedLocalizationForPreview',
+		getContextMenuElements: function (div, wrappedEntity) {
 
-		let id = _Pages.previews.activePreviewPageId;
+			let entity               = wrappedEntity.entity;
+			const isPage             = (entity.type === 'Page');
+			const isContent          = (entity.type === 'Content');
+			const isTemplate         = (entity.type === 'Template');
+			const isDOMNode          = (entity.isDOMNode);
+			const isSchemaNode       = (entity.type === 'SchemaNode');
 
-		let localizationsContainer = $('#localizations div.inner div.results');
-		localizationsContainer.empty().attr('id', 'id_' + id);
+			let elements = [];
 
-		if (_Pages.previews.isPreviewForActiveForPage(id)) {
+			if (_Entities.isContentElement(entity)) {
 
-			let localeInput = $('#localizations input.locale');
-			let locale      = localeInput.val();
+				elements.push({
+					icon: _Icons.svg.pencil_edit,
+					name: 'Edit',
+					clickHandler: function () {
+						_Elements.openEditContentDialog(this, entity, {
+							extraKeys: { "Ctrl-Space": "autocomplete" },
+							gutters: ["CodeMirror-lint-markers"],
+							lint: {
+								getAnnotations: function(text, callback) {
+									_Code.showScriptErrors(entity, text, callback, 'content');
+								},
+								async: true
+							}
+						});
+						return false;
+					}
+				});
+			}
+
+			_Elements.appendContextMenuSeparator(elements);
+
+			if (isDOMNode && !isPage) {
+
+				elements.push({
+					name: 'Repeater',
+					clickHandler: function () {
+						_Entities.showProperties(entity, 'query');
+						return false;
+					}
+				});
+
+				if (_Entities.isContentElement(entity)) {
+					elements.push({
+						name: 'Events',
+						clickHandler: function () {
+							_Entities.showProperties(entity, 'editBinding');
+							return false;
+						}
+					});
+				}
+
+				elements.push({
+					name: 'HTML Attributes',
+					clickHandler: function () {
+						_Entities.showProperties(entity, '_html_');
+						return false;
+					}
+				});
+
+				elements.push({
+					name: 'Properties',
+					clickHandler: function() {
+						_Entities.showProperties(entity, 'ui');
+						return false;
+					}
+				});
+			}
+
+			if (isSchemaNode) {
+
+				elements.push({
+					name: 'Go to Schema Node',
+					clickHandler: function() {
+
+						let pathToOpen = 'custom--' + entity.id;
+
+						window.location.href = '#code';
+						window.setTimeout(function() {
+							_Code.findAndOpenNode(pathToOpen, false);
+						}, 1000);
+
+						return false;
+					}
+				});
+			}
+
+			_Elements.appendContextMenuSeparator(elements);
+
+			return elements;
+		},
+
+		refreshPagesForLocalizationPreview: async () => {
+
+			let pageSelect = document.getElementById('localization-preview-page');
+			pageSelect.innerHTML = '';
+
+			let pages = await Command.queryPromise('Page', 1000, 1, 'name', 'asc', { hidden: false }, true, null, 'id,name');
+
+			for (let page of pages) {
+
+				let option = document.createElement('option');
+				option.value = page.id;
+				option.textContent = page.name;
+
+				if (page.id === _Pages.previews.activePreviewPageId) {
+					option.selected = true;
+				}
+				pageSelect.appendChild(option);
+			}
+
+		},
+		refreshLocalizations: async () => {
+
+			let localizationsContainer = $('#localizations div.inner div.results');
+			let localeInput            = document.querySelector('#localizations input.locale');
+			let locale                 = localeInput.value;
+			let pageSelect             = document.getElementById('localization-preview-page');
 
 			if (!locale) {
 				blinkRed(localeInput);
 				return;
 			}
 
-			let detailObjectId = LSWrapper.getItem(_Pages.detailsObjectIdKey + id);
-			let queryString    = LSWrapper.getItem(_Pages.requestParametersKey + id);
+			let id                = pageSelect.value;
+			let detailObjectId    = LSWrapper.getItem(_Pages.detailsObjectIdKey + id);
+			let queryString       = LSWrapper.getItem(_Pages.requestParametersKey + id);
+			let localizations     = await Command.listLocalizations(id, locale, detailObjectId, queryString);
+			let localizationIdKey = 'localizationId';
+			let previousValueKey  = 'previousValue';
 
-			Command.listLocalizations(id, locale, detailObjectId, queryString, function (result) {
+			localizationsContainer.empty();
 
-				$('#localizations .page').prop('id', 'id_' + id);
+			if (localizations.length == 0) {
 
-				let localizationIdKey = 'localizationId';
-				let previousValueKey  = 'previousValue';
+				localizationsContainer.append("<br>No localizations found in page.");
 
-				if (result.length > 0) {
-
-					for (let res of result) {
-
-						let div   = _Pages.getNodeForLocalization(localizationsContainer, res.node);
-						let tbody = $('tbody', div);
-						let row   = $('<tr><td><div class="key-column allow-break">' + res.key + '</div></td><td class="domain-column">' + res.domain + '</td><td class="locale-column">' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td><td class="input"><input class="localized-value" placeholder="..."><a title="Delete" class="delete"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /></a></td></tr>');
-						let key   = $('div.key-column', row).attr('title', res.key);
-						let input = $('input.localized-value', row);
-
-						if (res.localization) {
-							let domainIdentical = (res.localization.domain === res.domain) || (!res.localization.domain && !res.domain);
-							if (!domainIdentical) {
-								res.localization = null;
-								// we are getting the fallback localization for this entry - do not show this as we would update the wrong localization otherwise
-							}
-						}
-
-						if (res.localization !== null) {
-							row.addClass('has-value');
-							input.val(res.localization.localizedName).data(localizationIdKey, res.localization.id).data(previousValueKey, res.localization.localizedName);
-						}
-
-						$('.delete', row).on('click', function(event) {
-							event.preventDefault();
-
-							let id = input.data(localizationIdKey);
-
-							if (id) {
-								var c = confirm('Are you sure you want to delete this localization ' + id + ' ?');
-								if (c === true) {
-									Command.deleteNode(id, false, () => {
-										row.removeClass('has-value');
-										input.data(localizationIdKey, null).data(previousValueKey, null).val('');
-									});
-								}
-							}
-						});
-
-						input.on('blur', function() {
-
-							let el             = $(this);
-							let newValue       = el.val();
-							let localizationId = el.data(localizationIdKey);
-							let previousValue  = el.data(previousValueKey);
-							let isChange       = (!previousValue && newValue !== '') || (previousValue && previousValue !== newValue);
-
-							if (isChange) {
-
-								if (localizationId) {
-
-									Command.setProperties(localizationId, {
-										localizedName: newValue
-									}, function() {
-										blinkGreen(el);
-										el.data(previousValueKey, newValue);
-									});
-
-								} else {
-
-									Command.create({
-										type: 'Localization',
-										name: res.key,
-										domain: res.domain || null,
-										locale: res.locale,
-										localizedName: newValue
-									},
-									function(createdLocalization) {
-										el.data(localizationIdKey, createdLocalization.id);
-										el.data(previousValueKey, newValue);
-										row.addClass('has-value');
-										blinkGreen(el);
-									});
-								}
-							}
-						});
-
-						tbody.append(row);
-					};
-
-				} else {
-
-					localizationsContainer.append("<br>No localizations found in page.");
-				}
-			});
-
-		} else {
-			localizationsContainer.append('<br>Cannot show localizations - no preview loaded.<br><br>');
-		}
-	},
-	getNodeForLocalization: function (container, entity) {
-
-		let idString = 'locNode_' + entity.id;
-		let existing = $('#' + idString, container);
-
-		if (existing.length) {
-			return existing;
-		}
-
-		let div = $('<div id="' + idString + '" class="node localization-element ' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
-
-		div.data('nodeId', (_Entities.isContentElement(entity) ? entity.parent.id : entity.id ));
-
-		let displayName = getElementDisplayName(entity);
-		let iconClass   = _Icons.getFullSpriteClass(_Elements.getElementIcon(entity));
-		let detailHtml  = '';
-
-		if (entity.type === 'Content') {
-
-			detailHtml = '<div>' + entity.content + '</div>';
-
-		} else if (entity.type === 'Template') {
-
-			if (entity.name) {
-				detailHtml = '<div>' + displayName + '</div>';
 			} else {
-				detailHtml = '<div>' + escapeTags(entity.content) + '</div>';
+
+				for (let res of localizations) {
+
+					let div   = _Pages.localizations.getNodeForLocalization(localizationsContainer, res.node);
+					let tbody = $('tbody', div);
+					let row   = $('<tr><td><div class="key-column allow-break">' + res.key + '</div></td><td class="domain-column">' + res.domain + '</td><td class="locale-column">' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td><td class="input"><input class="localized-value" placeholder="..."><a title="Delete" class="delete"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /></a></td></tr>');
+					let key   = $('div.key-column', row).attr('title', res.key);
+					let input = $('input.localized-value', row);
+
+					if (res.localization) {
+						let domainIdentical = (res.localization.domain === res.domain) || (!res.localization.domain && !res.domain);
+						if (!domainIdentical) {
+							res.localization = null;
+							// we are getting the fallback localization for this entry - do not show this as we would update the wrong localization otherwise
+						}
+					}
+
+					if (res.localization !== null) {
+						row.addClass('has-value');
+						input.val(res.localization.localizedName).data(localizationIdKey, res.localization.id).data(previousValueKey, res.localization.localizedName);
+					}
+
+					$('.delete', row).on('click', function(event) {
+						event.preventDefault();
+
+						let id = input.data(localizationIdKey);
+
+						if (id) {
+							_Entities.deleteNodes(this, [{id: id, name: input.val()}], false, () => {
+								row.removeClass('has-value');
+								input.data(localizationIdKey, null).data(previousValueKey, null).val('');
+                            });
+						}
+					});
+
+					input.on('blur', function() {
+
+						let el             = $(this);
+						let newValue       = el.val();
+						let localizationId = el.data(localizationIdKey);
+						let previousValue  = el.data(previousValueKey);
+						let isChange       = (!previousValue && newValue !== '') || (previousValue && previousValue !== newValue);
+
+						if (isChange) {
+
+							if (localizationId) {
+
+								Command.setProperties(localizationId, {
+									localizedName: newValue
+								}, function() {
+									blinkGreen(el);
+									el.data(previousValueKey, newValue);
+								});
+
+							} else {
+
+								Command.create({
+									type: 'Localization',
+									name: res.key,
+									domain: res.domain || null,
+									locale: res.locale,
+									localizedName: newValue
+								},
+								function(createdLocalization) {
+									el.data(localizationIdKey, createdLocalization.id);
+									el.data(previousValueKey, newValue);
+									row.addClass('has-value');
+									blinkGreen(el);
+								});
+							}
+						}
+					});
+
+					tbody.append(row);
+				};
+			}
+		},
+		getNodeForLocalization: function (container, entity) {
+
+			let idString = 'locNode_' + entity.id;
+			let existing = $('#' + idString, container);
+
+			if (existing.length) {
+				return existing;
 			}
 
-		} else {
-			detailHtml = '<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>';
-		}
+			let div = $('<div id="' + idString + '" class="node localization-element ' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
 
-		div.append('<i class="typeIcon ' + iconClass + '"></i><span class="abbr-ellipsis abbr-pages-tree">' + detailHtml + _Elements.classIdString(entity._html_id, entity._html_class)) + '</span>';
+			div.data('nodeId', (_Entities.isContentElement(entity) ? entity.parent.id : entity.id ));
 
-		if (_Entities.isContentElement(entity)) {
+			let displayName = getElementDisplayName(entity);
+			let iconClass   = _Icons.getFullSpriteClass(_Elements.getElementIcon(entity));
+			let detailHtml  = '';
 
-			_Elements.appendEditContentIcon(div, entity);
-		}
+			if (entity.type === 'Content') {
 
-		//_Entities.appendEditPropertiesIcon(div, entity, false);
+				detailHtml = '<div>' + entity.content + '</div>';
 
-		div.append('<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>');
+			} else if (entity.type === 'Template') {
 
-		container.append(div);
+				if (entity.name) {
+					detailHtml = '<div>' + displayName + '</div>';
+				} else {
+					detailHtml = '<div>' + escapeTags(entity.content) + '</div>';
+				}
 
-		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId] ));
+			} else {
+				detailHtml = '<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>';
+			}
 
-		return div;
+			div.append('<i class="typeIcon ' + iconClass + '"></i><span class="abbr-ellipsis abbr-pages-tree">' + detailHtml + _Elements.classIdString(entity._html_id, entity._html_class)) + '</span>';
+
+			if (!entity.isDOMNode) {
+
+				Command.queryPromise('SchemaNode', 1, 1, 'name', 'asc', { name: entity.type }, true).then((schemaNodes) => {
+
+					if (schemaNodes.length === 1) {
+
+						_Entities.appendEditPropertiesIcon(div, {
+							type: _Pages.localizations.wrapperTypeForContextMenu,
+							entity: schemaNodes[0]
+						}, false);
+					}
+				});
+
+			} else {
+				_Entities.appendEditPropertiesIcon(div, {
+					type: _Pages.localizations.wrapperTypeForContextMenu,
+					entity: entity
+				}, false);
+			}
+
+			div.append('<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>');
+
+			container.append(div);
+
+			_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId] ));
+
+			return div;
+		},
+
 	},
-
 	previews: {
 		loadPreviewTimer : undefined,
 		previewElement: undefined,

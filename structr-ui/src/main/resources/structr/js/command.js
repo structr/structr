@@ -224,6 +224,12 @@ var Command = {
 		if (customView) obj.data.customView = customView;
 		return sendObj(obj, callback);
 	},
+	queryPromise: (type, pageSize, page, sort, order, properties, exact, view, customView) => {
+
+		return new Promise((resolve, reject) => {
+			Command.query(type, pageSize, page, sort, order, properties, resolve, exact, view, customView);
+		});
+	},
 	/**
 	 * Send a CHILDREN or DOM_NODE_CHILDREN command to the server.
 	 *
@@ -1067,17 +1073,20 @@ var Command = {
 		};
 		return sendObj(obj, callback);
 	},
-	listLocalizations: function(pageId, locale, detailObjectId, queryString, callback) {
-		var obj = {
-			command: 'LIST_LOCALIZATIONS',
-			id: pageId,
-			data: {
-				locale: locale,
-				detailObjectId: detailObjectId,
-				queryString: queryString
-			}
-		};
-		return sendObj(obj, callback);
+	listLocalizations: (pageId, locale, detailObjectId, queryString) => {
+		return new Promise((resolve, reject) => {
+			let obj = {
+				command: 'LIST_LOCALIZATIONS',
+				id: pageId,
+				data: {
+					locale: locale,
+					detailObjectId: detailObjectId,
+					queryString: queryString
+				}
+			};
+
+			sendObj(obj, resolve);
+		});
 	},
 	/**
 	 * Send a LIST_COMPONENTS command to the server.

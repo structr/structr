@@ -17,7 +17,7 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var elements, dropBlocked;
-var contents, editor, contentType, currentEntity;
+var contents, editor, contentType;
 
 $(function() {
 
@@ -827,6 +827,8 @@ var _Elements = {
 		// 1. dedicated context menu for type
 		if (entity.type === 'Widget') {
 			return _Widgets.getContextMenuElements(div, entity);
+		} else if (entity.type === _Pages.localizations.wrapperTypeForContextMenu) {
+			return _Pages.localizations.getContextMenuElements(div, entity);
 		}
 
 		// 2. dedicated context menu for module
@@ -1066,19 +1068,137 @@ var _Elements = {
 		});
 
 	},
+//	openEditContentDialog: function(btn, entity, configOverride) {
+//		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {}, function() {});
+//
+//		Structr.fetchHtmlTemplate('pages/content-editor', {}, (html) => {
+//
+//			dialogText.html(html);
+//
+//			contentEditorContainer = dialogText[0].querySelector('.content-editor-container');
+//
+//			Command.get(entity.id, 'content,contentType', (data) => {
+//				entity.contentType = data.contentType;
+//				_Elements.editContent(btn, entity, data.content, dialogText[0], configOverride);
+//			});
+//		});
+//	},
+
 	openEditContentDialog: function(btn, entity, configOverride) {
-		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {
-		}, function() {
-		});
-		Command.get(entity.id, 'content,contentType', function(data) {
-			currentEntity = entity;
+
+		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {}, function() {});
+
+		Command.get(entity.id, 'content,contentType', (data) => {
 			entity.contentType = data.contentType;
-			_Elements.editContent(this, entity, data.content, dialogText, configOverride);
+			let text = data.content;
+
+			dialog.append('<div class="editor"></div>');
+
+			let contentBox = $('.editor', dialog);
+
+			// Intitialize editor
+			CodeMirror.defineMIME('text/html', 'htmlmixed-structr');
+			editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
+				value: text,
+				mode: contentType,
+				lineNumbers: true,
+				lineWrapping: false,
+				indentUnit: 4,
+				tabSize:4,
+				indentWithTabs: true
+			}));
+
+			editor.id = entity.id;
+
+			dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
+			dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+
+			dialogSaveButton = $('#saveFile', dialogBtn);
+			saveAndClose = $('#saveAndClose', dialogBtn);
+
+			editor.on('scroll', function() {
+				_Entities.hideDataHashAttribute(editor);
+			});
+
+			editor.on('change', function(cm, change) {
+
+				text2 = editor.getValue();
+
+				if (text === text2) {
+					dialogSaveButton.prop('disabled', true).addClass('disabled');
+					saveAndClose.prop('disabled', true).addClass('disabled');
+				} else {
+					dialogSaveButton.prop('disabled', false).removeClass('disabled');
+					saveAndClose.prop('disabled', false).removeClass('disabled');
+				}
+
+				_Entities.hideDataHashAttribute(editor);
+			});
+
+			dialogSaveButton.on('click', function(e) {
+
+				e.stopPropagation();
+
+				text1 = text;
+				text2 = editor.getValue();
+
+				if (!text1)
+					text1 = '';
+				if (!text2)
+					text2 = '';
+
+				if (text1 === text2) {
+					return;
+				}
+
+				if (text === text2) {
+					dialogSaveButton.prop('disabled', true).addClass('disabled');
+					saveAndClose.prop('disabled', true).addClass('disabled');
+				} else {
+					dialogSaveButton.prop('disabled', false).removeClass('disabled');
+					saveAndClose.prop('disabled', false).removeClass('disabled');
+				}
+
+				Command.patch(entity.id, text1, text2, function () {
+					Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
+					dialogSaveButton.prop('disabled', true).addClass('disabled');
+					saveAndClose.prop('disabled', true).addClass('disabled');
+					Command.getProperty(entity.id, 'content', function (newText) {
+						text = newText;
+					});
+
+					window.setTimeout(function () {
+						editor.performLint();
+					}, 300);
+				});
+			});
+
+			saveAndClose.on('click', function(e) {
+				e.stopPropagation();
+				dialogSaveButton.click();
+				setTimeout(function() {
+					dialogSaveButton.remove();
+					saveAndClose.remove();
+					dialogCancelButton.click();
+				}, 500);
+			});
+
+			dialogMeta.append('<span class="editor-info"><label for"lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span>');
+			$('#lineWrapping').off('change').on('change', function() {
+				let inp = $(this);
+				Structr.updateCodeMirrorOptionGlobally('lineWrapping', inp.is(':checked'));
+				blinkGreen(inp.parent());
+				editor.refresh();
+			});
+
+			Structr.resize();
+
+			_Entities.hideDataHashAttribute(editor);
 		});
 	},
 	displayCentralEditor: function(entity, configOverride) {
 
-		let previewsContainer = document.querySelector('#center-pane');
+		let previewsContainer      = document.querySelector('#center-pane');
 		let contentEditorContainer = document.querySelector('#center-pane .content-editor-container');
 
 		if (contentEditorContainer) {
@@ -1091,14 +1211,13 @@ var _Elements = {
 
 			contentEditorContainer = document.querySelector('#center-pane .content-editor-container');
 
-			Command.get(entity.id, 'content,contentType', function(data) {
-				currentEntity = entity;
+			Command.get(entity.id, 'content,contentType', (data) => {
 				entity.contentType = data.contentType;
 				_Elements.editContent(this, entity, data.content, contentEditorContainer, configOverride);
 			});
 		});
 	},
-	activateEditorMode: function(contentType) {
+	activateEditorMode: function (contentType) {
 		let modeObj = CodeMirror.findModeByMIME(contentType);
 		let mode = contentType; // default
 
@@ -1112,7 +1231,7 @@ var _Elements = {
 			}
 		}
 	},
-	editContent: function(button, entity, text, element, configOverride = {}) {
+	editContent: function (button, entity, text, element, configOverride = {}) {
 
 		let buttonArea = element.querySelector('.editor-button-container') || dialogBtn;
 		let infoArea   = element.querySelector('.editor-info-container')   || dialogMeta;
@@ -1122,12 +1241,42 @@ var _Elements = {
 		}
 
 		element.insertAdjacentHTML('afterbegin', '<div class="editor"></div>');
+
 		let contentBox = element.querySelector('.editor');
-		contentType = entity.contentType || 'text/plain';
+		contentType    = entity.contentType || 'text/plain';
 
 		_Elements.activateEditorMode(contentType);
 
-		var text1, text2;
+		let text1, text2;
+
+		let saveFunction = (editor) => {
+			text1 = text;
+			text2 = editor.getValue();
+
+			if (!text1)
+				text1 = '';
+			if (!text2)
+				text2 = '';
+
+			if (text1 === text2) {
+				return;
+			}
+
+			Command.patch(entity.id, text1, text2, function () {
+
+				Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
+				dialogSaveButton.prop('disabled', true).addClass('disabled');
+				saveAndClose.prop('disabled', true).addClass('disabled');
+
+				Command.getProperty(entity.id, 'content', function (newText) {
+					text = newText;
+				});
+
+				window.setTimeout(function () {
+					editor.performLint();
+				}, 300);
+			});
+		};
 
 		let cmConfig = Structr.getCodeMirrorSettings({
 			value: text || '',
@@ -1135,7 +1284,9 @@ var _Elements = {
 			lineNumbers: true,
 			lineWrapping: false,
 			extraKeys: {
-				'Ctrl-Space': 'autocomplete'
+				'Ctrl-Space': 'autocomplete',
+				'Ctrl-S': (cm) => { saveFunction(cm); },
+				'Cmd-S': (cm) => { saveFunction(cm); }
 			},
 			indentUnit: 4,
 			tabSize: 4,
@@ -1231,14 +1382,12 @@ var _Elements = {
 				} else {
 					editor.replaceSelection(interim);
 				}
-
 			});
 		}
 
-		dialogSaveButton = $('#editorSave');
-		saveAndClose = $('#saveAndClose');
-
-		let saveButton = buttonArea.querySelector('.save-button') || document.querySelector('#editorSave');
+		let dialogSaveButton = $('#editorSave');
+		let saveAndClose     = $('#saveAndClose');
+		let saveButton       = buttonArea.querySelector('.save-button') || document.querySelector('#editorSave');
 
 		let saveAndCloseButton;
 		if (dialogBox.is(':visible')) {
@@ -1296,31 +1445,7 @@ var _Elements = {
 			saveButton.addEventListener('click', (e) => {
 				e.stopPropagation();
 
-				text1 = text;
-				text2 = editor.getValue();
-
-				if (!text1)
-					text1 = '';
-				if (!text2)
-					text2 = '';
-
-				if (text1 === text2) {
-					return;
-				}
-
-				Command.patch(entity.id, text1, text2, function () {
-					Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
-					dialogSaveButton.prop('disabled', true).addClass('disabled');
-					saveAndClose.prop('disabled', true).addClass('disabled');
-					Command.getProperty(entity.id, 'content', function (newText) {
-						text = newText;
-					});
-
-					window.setTimeout(function () {
-						editor.performLint();
-					}, 300);
-				});
-
+				saveFunction(editor);
 			});
 		}
 

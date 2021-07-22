@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var StructrModel = {
+let StructrModel = {
 	objects: {},
 	callbacks: {},
 	obj: function(id) {
@@ -32,13 +32,13 @@ var StructrModel = {
 
 	createSearchResult: function(data) {
 
-		var obj = new StructrSearchResult(data);
+		let obj = new StructrSearchResult(data);
 
 		// Store a reference of this object
 		StructrModel.objects[data.id] = obj;
 
 		// Check if the object is already contained in page
-		var el = $('#id_' + obj.id);
+		let el = $('#id_' + obj.id);
 		if (el && el.length) {
 			return obj;
 		}
@@ -46,7 +46,6 @@ var StructrModel = {
 		StructrModel.append(obj);
 
 		return obj;
-
 	},
 	/**
 	 * Create a new object in the model and potentially append a UI element
@@ -58,7 +57,7 @@ var StructrModel = {
 			return;
 		}
 
-		var keys = Object.keys(data);
+		let keys = Object.keys(data);
 
 		if (keys.length === 1 && keys[0] === 'id') {
 

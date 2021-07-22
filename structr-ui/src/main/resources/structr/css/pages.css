@@ -127,6 +127,10 @@ ul#previewTabs {
 /**
  * Central content container
  */
+.dialogText .content-container {
+	margin-top: 0rem;
+	height: calc(100% - 20rem);
+}
 .content-container {
 	margin-top: 2rem;
 	background-color: var(--solid-white);
@@ -333,6 +337,11 @@ input.dataKey_ {
 /**
  * Localizations slideout
  */
+
+#localization-preview-page {
+	max-width: 10rem;
+}
+
 #localizations .inner {
 	margin: 1rem 0 0 0;
 	height: 100%;
@@ -345,7 +354,7 @@ input.dataKey_ {
 }
 
 #localizations .inner input.locale {
-	/*margin-left: 14px;*/
+	max-width: 5.5rem;
 	margin-right: 1rem;
 }
 
