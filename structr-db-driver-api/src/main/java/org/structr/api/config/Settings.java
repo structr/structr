@@ -254,8 +254,8 @@ public class Settings {
 
 	// servlets
 	public static final StringMultiChoiceSetting Servlets     = new StringMultiChoiceSetting(servletsGroup, "General", "httpservice.servlets",
-		"JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet LoginServlet LogoutServlet TokenServlet HealthCheckServlet HistogramServlet OpenAPIServlet FlowServlet",
-		Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet", "TokenServlet", "EventSourceServlet", "HealthCheckServlet", "HistogramServlet", "OpenAPIServlet"),
+		"JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet LoginServlet LogoutServlet TokenServlet HealthCheckServlet HistogramServlet OpenAPIServlet FlowServlet MetricsServlet",
+		Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet", "TokenServlet", "EventSourceServlet", "HealthCheckServlet", "HistogramServlet", "OpenAPIServlet", "MetricsServlet"),
 		"Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
 
 	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "configservlet.enabled",             true, "Enables the config servlet (available under <code>http(s)://&lt;your-server&gt;/structr/config</code>)");
@@ -408,7 +408,12 @@ public class Settings {
 	public static final Setting<String> OpenAPIServerTitle       = new StringSetting(servletsGroup,  "OpenAPIServerTitle", "openapiservlet.server.title", "Structr REST Server", "The main title of the OpenAPI server definition.");
 	public static final Setting<String> OpenAPIServerVersion     = new StringSetting(servletsGroup,  "OpenAPIServerVersion", "openapiservlet.server.version", "1.0.1", "The version number of the OpenAPI definition");
 
-
+	// Prometheus MetricsServlet
+	public static final Setting<String> MetricsServletPath              = new StringSetting(servletsGroup,  "hidden", "metricsservlet.path",                  "/structr/metrics");
+	public static final Setting<String> MetricsServletClass             = new StringSetting(servletsGroup,  "hidden", "metricsservlet.class",                 "org.structr.rest.servlet.MetricsServlet");
+	public static final Setting<String> MetricsServletAuthenticator     = new StringSetting(servletsGroup,  "hidden", "metricsservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> MetricsServletResourceProvider  = new StringSetting(servletsGroup,  "hidden", "metricsservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
+	public static final Setting<String> MetricsServletkDefaultView      = new StringSetting(servletsGroup,  "hidden", "metricsservlet.defaultview",           "public");
 
 	// cron settings
 	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations");
