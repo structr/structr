@@ -1085,6 +1085,15 @@ img.disabled {
 	max-width: 66%;
 }
 
+.abbr-ellipsis.abbr-pages-tree {
+	max-width: calc(100% - 4rem);
+}
+
+.abbr-ellipsis.abbr-pages-tree-page {
+	/* account for page position */
+	max-width: calc(100% - 6rem);
+}
+
 .abbr-ellipsis.abbr-75pc {
 	max-width: 75%;
 }
@@ -1133,7 +1142,7 @@ img.disabled {
 	display: none;
 }
 
-.page .position {
+.page .position_ {
 	color: var(--gray-999);
 	vertical-align: top;
 	display: inline-block;
@@ -1149,12 +1158,12 @@ img.disabled {
 
 .content .content_ {
 	/*margin: 4px 0 -2px 0;*/
-	display: inline-block;
-	max-width: 75%;
+	/*display: inline-block;
+	/*max-width: 75%;*/
 	font-weight: normal;
-	text-overflow: ellipsis;
-	overflow: hidden;
-	white-space: nowrap;
+	/*text-overflow: ellipsis;*/
+	/*overflow: hidden;*/
+	/*white-space: nowrap;*/
 }
 
 .content .content_:hover {

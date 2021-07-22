@@ -1275,8 +1275,13 @@ var _Pages = {
 
 		let pageName = (entity.name ? entity.name : '[' + entity.type + ']');
 
-		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.page_icon) + '" />'
-				+ '<b title="' + escapeForHtmlAttributes(entity.name) + '" class="name_ abbr-ellipsis abbr-75pc">' + pageName + '</b> <span class="id">' + entity.id + '</span>' + (entity.position ? ' <span class="position">' + entity.position + '</span>' : ''));
+		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.page_icon) + '"></i>'
+				+ '<span>'
+					+ '<b title="' + escapeForHtmlAttributes(entity.name) + '" class="name_ abbr-ellipsis abbr-pages-tree-page">' + pageName + '</b>'
+					+ (entity.position ? ' <span class="position_">' + entity.position + '</span>' : '')
+				+ '</span>'
+				+ '<span class="id">' + entity.id + '</span>'
+		);
 
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 		//_Entities.appendAccessControlIcon(div, entity);
@@ -1661,25 +1666,29 @@ var _Pages = {
 		let detailHtml  = '';
 
 		if (entity.type === 'Content') {
-			detailHtml = '<div class="abbr-ellipsis abbr-75pc">' + entity.content + '</div>';
+
+			detailHtml = '<div>' + entity.content + '</div>';
+
 		} else if (entity.type === 'Template') {
+
 			if (entity.name) {
-				detailHtml = '<div class="abbr-ellipsis abbr-75pc">' + displayName + '</div>';
+				detailHtml = '<div>' + displayName + '</div>';
 			} else {
-				detailHtml = '<div class="abbr-ellipsis abbr-75pc">' + escapeTags(entity.content) + '</div>';
+				detailHtml = '<div>' + escapeTags(entity.content) + '</div>';
 			}
+
 		} else {
 			detailHtml = '<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>';
 		}
 
-		div.append('<i class="typeIcon ' + iconClass + '" />' + detailHtml + _Elements.classIdString(entity._html_id, entity._html_class));
+		div.append('<i class="typeIcon ' + iconClass + '"></i><span class="abbr-ellipsis abbr-pages-tree">' + detailHtml + _Elements.classIdString(entity._html_id, entity._html_class)) + '</span>';
 
 		if (_Entities.isContentElement(entity)) {
 
 			_Elements.appendEditContentIcon(div, entity);
 		}
 
-		_Entities.appendEditPropertiesIcon(div, entity, false);
+		//_Entities.appendEditPropertiesIcon(div, entity, false);
 
 		div.append('<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>');
 
