@@ -279,21 +279,21 @@ var _Elements = {
 
 		entity = StructrModel.ensureObject(entity);
 
-		var parent;
+		let parent;
 		if (refNodeIsParent) {
 			parent = refNode;
 		} else {
-			parent = entity.parent && entity.parent.id ? Structr.node(entity.parent.id) : elements;
+			parent = (entity.parent && entity.parent.id) ? Structr.node(entity.parent.id) : elements;
 		}
 
 		if (!parent) {
 			return false;
 		}
 
-		var hasChildren = entity.childrenIds && entity.childrenIds.length;
+		let hasChildren = entity.childrenIds && entity.childrenIds.length;
 
 		// store active nodes in special place..
-		var isActiveNode = entity.isActiveNode();
+		let isActiveNode = entity.isActiveNode();
 
 		let elementClasses = ['node', 'element'];
 		elementClasses.push(isActiveNode ? 'activeNode' : 'staticNode');
@@ -309,9 +309,9 @@ var _Elements = {
 
 		_Entities.ensureExpanded(parent);
 
-		var id = entity.id;
+		let id = entity.id;
 
-		var html = '<div id="id_' + id + '" class="' + elementClasses.join(' ') + '"><div class="node-selector"></div></div>';
+		let html = '<div id="id_' + id + '" class="' + elementClasses.join(' ') + '"><div class="node-selector"></div></div>';
 
 		if (refNode && !refNodeIsParent) {
 			refNode.before(html);
@@ -319,33 +319,35 @@ var _Elements = {
 			parent.append(html);
 		}
 
-		var div = Structr.node(id);
+		let div = Structr.node(id);
 
 		if (!div) {
 			return false;
 		}
 
-		var displayName = getElementDisplayName(entity);
+		let displayName = getElementDisplayName(entity);
+		let icon        = _Elements.getElementIcon(entity);
 
-		var icon = _Elements.getElementIcon(entity);
-
-		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
-			+ '<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b><span class="id">' + entity.id + '</span>'
-			+ _Elements.classIdString(entity._html_id, entity._html_class));
+		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '"></i>'
+			+ '<span class="abbr-ellipsis abbr-pages-tree">'
+				+ '<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>'
+				+ _Elements.classIdString(entity._html_id, entity._html_class)
+			+ '</span>'
+			+ '<span class="id">' + entity.id + '</span>'
+		);
 
 		_Elements.enableContextMenuOnElement(div, entity);
-
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 
 		//_Entities.appendAccessControlIcon(div, entity);
 
-		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds&&entity.syncedNodesIds.length)?entity.syncedNodesIds:[entity.sharedComponentId]));
+		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 
 		_Entities.appendEditPropertiesIcon(div, entity);
 
 		if (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object') {
 
-			div.append('<i title="Edit Link" class="link_icon button ' + _Icons.getFullSpriteClass(_Icons.link_icon) + '" />');
+			div.append('<i title="Edit Link" class="link_icon button ' + _Icons.getFullSpriteClass(_Icons.link_icon) + '"></i>');
 			if (entity.linkableId) {
 
 				Command.get(entity.linkableId, 'id,type,name,isFile,isImage,isPage,isTemplate', function(linkedEntity) {
@@ -357,9 +359,7 @@ var _Elements = {
 						$('.linkable', div).on('click', function(e) {
 							e.stopPropagation();
 
-							Structr.dialog('Edit ' + linkedEntity.name, function() {
-							}, function() {
-							});
+							Structr.dialog('Edit ' + linkedEntity.name, function() {}, function() {});
 							_Files.editContent(this, linkedEntity, $('#dialogBox .dialogText'));
 						});
 					}
@@ -384,22 +384,22 @@ var _Elements = {
 
 					dialog.append('<h3>Pages</h3><div class="linkBox" id="pagesToLink"></div>');
 
-					var pagesToLink = $('#pagesToLink');
+					let pagesToLink = $('#pagesToLink');
 
 					_Pager.initPager('pages-to-link', 'Page', 1, 25);
 					let pagesPager = _Pager.addPager('pages-to-link', pagesToLink, true, 'Page', null, function(pages) {
 
-						pages.forEach(function(page){
+						for (let page of pages) {
 
 							if (page.type !== 'ShadowDocument') {
 
 								pagesToLink.append('<div class="node page ' + page.id + '_"><i class="' + _Icons.getFullSpriteClass(_Icons.page_icon) + '" /><b title="' + escapeForHtmlAttributes(page.name) + '" class="name_ abbr-ellipsis abbr-120">' + page.name + '</b></div>');
 
-								var div = $('.' + page.id + '_', pagesToLink);
+								let div = $('.' + page.id + '_', pagesToLink);
 
 								_Elements.handleLinkableElement(div, entity, page);
 							}
-						});
+						}
 					});
 
 					let pagesPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"/></span>');
@@ -408,7 +408,7 @@ var _Elements = {
 
 					dialog.append('<h3>Files</h3><div class="linkBox" id="foldersToLink"></div><div class="linkBox" id="filesToLink"></div>');
 
-					let filesToLink = $('#filesToLink');
+					let filesToLink   = $('#filesToLink');
 					let foldersToLink = $('#foldersToLink');
 
 					_Pager.initPager('folders-to-link', 'Folder', 1, 25);
@@ -417,7 +417,7 @@ var _Elements = {
 
 						for (let folder of folders) {
 							_Elements.appendFolder(entity, foldersToLink, folder);
-						};
+						}
 					}, null, 'id,name,hasParent');
 
 					let folderPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name" /></span>');
@@ -427,15 +427,15 @@ var _Elements = {
 					_Pager.initPager('files-to-link', 'File', 1, 25);
 					let linkFilesPager = _Pager.addPager('files-to-link', filesToLink, true, 'File', 'ui', function(files) {
 
-						files.forEach(function(file) {
+						for (let file of files) {
 
 							filesToLink.append('<div class="node file ' + file.id + '_"><i class="fa ' + _Icons.getFileIconClass(file) + '"></i> '
 									+ '<b title="' + escapeForHtmlAttributes(file.path) + '" class="name_ abbr-ellipsis abbr-120">' + file.name + '</b></div>');
 
-							var div = $('.' + file.id + '_', filesToLink);
+							let div = $('.' + file.id + '_', filesToLink);
 
 							_Elements.handleLinkableElement(div, entity, file);
-						});
+						}
 					}, null, 'id,name,contentType,linkingElementsIds,path');
 
 					let filesPagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" /><label><input type="checkbox"  class="filter" data-attribute="hasParent" /> Include subdirectories</label></span>');
@@ -447,19 +447,19 @@ var _Elements = {
 
 					dialog.append('<h3>Images</h3><div class="linkBox" id="imagesToLink"></div>');
 
-					var imagesToLink = $('#imagesToLink');
+					let imagesToLink = $('#imagesToLink');
 
 					_Pager.initPager('images-to-link', 'Image', 1, 25);
 					let imagesPager = _Pager.addPager('images-to-link', imagesToLink, false, 'Image', 'ui', function(images) {
 
-						images.forEach(function(image) {
+						for (let image of images) {
 
 							imagesToLink.append('<div class="node file ' + image.id + '_" title="' + escapeForHtmlAttributes(image.path) + '">' + _Icons.getImageOrIcon(image) + '<b class="name_ abbr-ellipsis abbr-120">' + image.name + '</b></div>');
 
-							var div = $('.' + image.id + '_', imagesToLink);
+							let div = $('.' + image.id + '_', imagesToLink);
 
 							_Elements.handleLinkableElement(div, entity, image);
-						});
+						}
 					}, null, 'id,name,contentType,linkingElementsIds,path,tnSmall');
 
 					let imagesPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"/></span>');
@@ -495,7 +495,7 @@ var _Elements = {
 		return (isActiveNode ? _Icons.repeater_icon : (isComponent ? _Icons.comp_icon : _Icons.brick_icon));
 	},
 	classIdString: function(idString, classString) {
-		let classIdString = '<span class="class-id-attrs abbr-ellipsis abbr-75pc">' + (idString ? '<span class="_html_id_">#' + idString.replace(/\${.*}/g, '${…}') + '</span>' : '')
+		let classIdString = '<span class="class-id-attrs">' + (idString ? '<span class="_html_id_">#' + idString.replace(/\${.*}/g, '${…}') + '</span>' : '')
 				+ (classString ? '<span class="_html_class_">.' + classString.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '') + '</span>';
 		return classIdString;
 	},
@@ -998,8 +998,10 @@ var _Elements = {
 
 		var icon = _Elements.getContentIcon(entity);
 		var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '') + '"><div class="node-selector"></div>'
-				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + ' typeIcon-nochildren" />'
-				+ (name ? ('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b>') : ('<div class="content_ abbr-ellipsis abbr-75pc">' + escapeTags(entity.content) + '</div>'))
+				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + ' typeIcon-nochildren"></i>'
+				+ '<span class="abbr-ellipsis abbr-pages-tree">'
+					+ (name ? ('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>') : ('<span class="content_">' + escapeTags(entity.content) + '</span>'))
+				+ '</span>'
 				+ '<span class="id">' + entity.id + '</span>'
 				+ '</div>';
 

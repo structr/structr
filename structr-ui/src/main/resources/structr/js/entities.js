@@ -2637,116 +2637,116 @@ var _Entities = {
 			}
 		});
 	},
-	handleActiveElement: function(entity) {
-
-		if (entity) {
-
-			var idString = 'id_' + entity.id;
-
-			if (!_Entities.activeElements.hasOwnProperty(idString)) {
-
-				_Entities.activeElements[idString] = entity;
-
-				var parent = $('#activeElements div.inner');
-				var id = entity.id;
-
-				if (entity.parentId) {
-					parent = $('#active_' + entity.parentId);
-				}
-
-				parent.append('<div id="active_' + id + '" class="node active-element' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
-
-				var div = $('#active_' + id);
-				var query = entity.query;
-				var expand = entity.state === 'Query';
-				var icon = _Icons.brick_icon;
-				var name = '', content = '', action = '';
-
-				switch (entity.state) {
-					case 'Query':
-						icon = _Icons.database_table_icon;
-						name = query || entity.dataKey.replace(',', '.');
-						break;
-					case 'Content':
-						icon = _Icons.page_white_icon;
-						content = entity.content ? entity.content : entity.type;
-						break;
-					case 'Button':
-						icon = _Icons.button_icon;
-						action = entity.action;
-						break;
-					case 'Link':
-						icon = _Icons.link_icon;
-						content = entity.action;
-						break;
-					default:
-						content = entity.type;
-				}
-
-				div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
-					+ '<b title="' + escapeForHtmlAttributes(name) + '" class="abbr-ellipsis abbr-75pc">' + name + '</b>'
-					+ '<b class="action">' + (action ? action : '&nbsp;') + '</b>'
-					+ '<span class="content_ abbr-ellipsis abbr-75pc">' + (content ? content : '&nbsp;') + '</span>'
-					+ '<span class="id">' + entity.id + '</span>'
-				);
-
-				_Entities.setMouseOver(div);
-
-				var editIcon = $('.edit_icon', div);
-
-				if (!(editIcon && editIcon.length)) {
-					if (entity.state === 'Content') {
-						div.append('<i title="Edit" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-					} else {
-						div.append('<i title="Edit Properties" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" />');
-					}
-					editIcon = $('.edit_icon', div);
-				}
-				editIcon.on('click', function(e) {
-					e.stopPropagation();
-
-					switch (entity.state) {
-						case 'Query':
-							_Entities.showProperties(entity, 'query');
-							break;
-						case 'Content':
-							_Elements.openEditContentDialog(this, entity);
-							break;
-						case 'Button':
-							_Entities.showProperties(entity, 'editBinding');
-							break;
-						case 'Link':
-							_Entities.showProperties(entity);
-							break;
-						default:
-							_Entities.showProperties(entity);
-					}
-
-				});
-
-				$('b[title]', div).on('click', function() {
-					_Entities.showProperties(entity, 'query');
-				});
-
-				$('.content_', div).on('click', function() {
-					_Elements.openEditContentDialog(this, entity);
-				});
-
-				$('.action', div).on('click', function() {
-					_Entities.showProperties(entity, 'editBinding');
-				});
-
-				var typeIcon = $(div.children('.typeIcon').first());
-				var displayName = getElementDisplayName(entity);
-
-				if (!expand) {
-					typeIcon.addClass('typeIcon-nochildren');
-				} else {
-					typeIcon.removeClass('typeIcon-nochildren').after('<i title="Expand ' + displayName + '" class="expand_icon_svg ' + _Icons.expandedClass + '" />');
-				}
-			}
-		}
-	},
+//	handleActiveElement: function(entity) {
+//
+//		if (entity) {
+//
+//			var idString = 'id_' + entity.id;
+//
+//			if (!_Entities.activeElements.hasOwnProperty(idString)) {
+//
+//				_Entities.activeElements[idString] = entity;
+//
+//				var parent = $('#activeElements div.inner');
+//				var id = entity.id;
+//
+//				if (entity.parentId) {
+//					parent = $('#active_' + entity.parentId);
+//				}
+//
+//				parent.append('<div id="active_' + id + '" class="node active-element' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
+//
+//				var div = $('#active_' + id);
+//				var query = entity.query;
+//				var expand = entity.state === 'Query';
+//				var icon = _Icons.brick_icon;
+//				var name = '', content = '', action = '';
+//
+//				switch (entity.state) {
+//					case 'Query':
+//						icon = _Icons.database_table_icon;
+//						name = query || entity.dataKey.replace(',', '.');
+//						break;
+//					case 'Content':
+//						icon = _Icons.page_white_icon;
+//						content = entity.content ? entity.content : entity.type;
+//						break;
+//					case 'Button':
+//						icon = _Icons.button_icon;
+//						action = entity.action;
+//						break;
+//					case 'Link':
+//						icon = _Icons.link_icon;
+//						content = entity.action;
+//						break;
+//					default:
+//						content = entity.type;
+//				}
+//
+//				div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
+//					+ '<b title="' + escapeForHtmlAttributes(name) + '" class="abbr-ellipsis abbr-75pc">' + name + '</b>'
+//					+ '<b class="action">' + (action ? action : '&nbsp;') + '</b>'
+//					+ '<span class="content_ abbr-ellipsis abbr-75pc">' + (content ? content : '&nbsp;') + '</span>'
+//					+ '<span class="id">' + entity.id + '</span>'
+//				);
+//
+//				_Entities.setMouseOver(div);
+//
+//				var editIcon = $('.edit_icon', div);
+//
+//				if (!(editIcon && editIcon.length)) {
+//					if (entity.state === 'Content') {
+//						div.append('<i title="Edit" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
+//					} else {
+//						div.append('<i title="Edit Properties" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" />');
+//					}
+//					editIcon = $('.edit_icon', div);
+//				}
+//				editIcon.on('click', function(e) {
+//					e.stopPropagation();
+//
+//					switch (entity.state) {
+//						case 'Query':
+//							_Entities.showProperties(entity, 'query');
+//							break;
+//						case 'Content':
+//							_Elements.openEditContentDialog(this, entity);
+//							break;
+//						case 'Button':
+//							_Entities.showProperties(entity, 'editBinding');
+//							break;
+//						case 'Link':
+//							_Entities.showProperties(entity);
+//							break;
+//						default:
+//							_Entities.showProperties(entity);
+//					}
+//
+//				});
+//
+//				$('b[title]', div).on('click', function() {
+//					_Entities.showProperties(entity, 'query');
+//				});
+//
+//				$('.content_', div).on('click', function() {
+//					_Elements.openEditContentDialog(this, entity);
+//				});
+//
+//				$('.action', div).on('click', function() {
+//					_Entities.showProperties(entity, 'editBinding');
+//				});
+//
+//				var typeIcon = $(div.children('.typeIcon').first());
+//				var displayName = getElementDisplayName(entity);
+//
+//				if (!expand) {
+//					typeIcon.addClass('typeIcon-nochildren');
+//				} else {
+//					typeIcon.removeClass('typeIcon-nochildren').after('<i title="Expand ' + displayName + '" class="expand_icon_svg ' + _Icons.expandedClass + '" />');
+//				}
+//			}
+//		}
+//	},
 	isContentElement: function (entity) {
 		return (entity.type === 'Template' || entity.type === 'Content');
 	},
