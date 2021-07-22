@@ -51,15 +51,15 @@ var _Entities = {
 		buttonClicked = button;
 		if ( !Structr.isButtonDisabled(button) ) {
 
-			var confirmationText = '<p>Delete the following objects' + (recursive ? ' (all folders recursively) ' : '') + '?</p>\n';
+			let confirmationText = '<p>Delete the following objects' + (recursive ? ' (all folders recursively) ' : '') + '?</p>\n';
 
-			var nodeIds = [];
+			let nodeIds = [];
 
-			entities.forEach(function(entity) {
+			for (let entity of entities) {
 
 				confirmationText += '' + entity.name + ' [' + entity.id + ']<br>';
 				nodeIds.push(entity.id);
-			});
+			}
 
 			confirmationText += '<br>';
 
@@ -1588,8 +1588,8 @@ var _Entities = {
 			});
 		}
 
-		$('tr:visible:odd').css({'background-color': '#f6f6f6'});
-		$('tr:visible:even').css({'background-color': '#fff'});
+		$('tr:visible:odd', container).css({'background-color': '#f6f6f6'});
+		$('tr:visible:even', container).css({'background-color': '#fff'});
 
 	},
 	displaySearch: function(id, key, type, el, isCollection) {
