@@ -2099,7 +2099,7 @@ var _Crud = {
 			}
 		}
 
-		if (!isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean') {
+		if (id && !isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean') {
 			cell.prepend('<i title="Clear value" class="crud-clear-value ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />');
 			$('.crud-clear-value', cell).on('click', function(e) {
 				e.preventDefault();
