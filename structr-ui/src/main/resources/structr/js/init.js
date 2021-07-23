@@ -2335,6 +2335,16 @@ var Structr = {
 				});
 			});
 		}
+	},
+	createSingleDOMElementFromHTML: (html) => {
+		let elements = Structr.createDOMElementsFromHTML(html);
+		return elements[0];
+	},
+	createDOMElementsFromHTML: (html) => {
+		let dummy = document.createElement('div');
+		dummy.innerHTML = html;
+
+		return dummy.children;
 	}
 };
 
