@@ -360,7 +360,7 @@ var _Elements = {
 							e.stopPropagation();
 
 							Structr.dialog('Edit ' + linkedEntity.name, function() {}, function() {});
-							_Files.editContent(this, linkedEntity, $('#dialogBox .dialogText'));
+							_Files.editContent(linkedEntity, $('#dialogBox .dialogText'));
 						});
 					}
 				});

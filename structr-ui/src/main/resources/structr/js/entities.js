@@ -715,25 +715,33 @@ var _Entities = {
 		}
 	},
 	activateTabs: function(nodeId, elId, activeId, activeTabPrefix) {
+
 		activeTabPrefix = activeTabPrefix || _Entities.activeQueryTabPrefix;
-		var el = $(elId);
-		var tabs = $('li', el);
-		$.each(tabs, function(i, tab) {
-			$(tab).on('click', function() {
-				var tab = $(this);
-				tabs.removeClass('active');
-				tab.addClass('active');
-				el.children('div').hide();
-				var id = tab.prop('id').substring(4);
+
+		let $el = $(elId);
+		let $tabs = $('li', $el);
+
+		for (let tabEl of $tabs) {
+			let $tab = $(tabEl);
+
+			$tab.on('click', function() {
+
+				$tabs.removeClass('active');
+				$tab.addClass('active');
+				$el.children('div').hide();
+
+				let id = $tab.prop('id').substring(4);
 				LSWrapper.setItem(activeTabPrefix  + '_' + nodeId, id);
-				var content = $('#content-tab-' + id);
-				content.show();
+
+				$('#content-tab-' + id).show();
 			});
-		});
-		var id = LSWrapper.getItem(activeTabPrefix  + '_' + nodeId) || activeId.substring(13);
-		var tab = $('#tab-' + id);
-		if (!tab.hasClass('active')) {
-			tab.click();
+		}
+
+		let id = LSWrapper.getItem(activeTabPrefix  + '_' + nodeId) || activeId.substring(13);
+
+		let activeTab = $('#tab-' + id, $el);
+		if (!activeTab.hasClass('active')) {
+			activeTab.click();
 		}
 	},
 	editSource: function(entity) {
