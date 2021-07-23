@@ -563,14 +563,62 @@ var _Entities = {
 		let flowSelector = $('#flow-selector', el);
 
 		let repeaterConfigEditor;
+		let saveBtn;
+
+		let saveFunction = () => {
+
+			if ($('button.active', queryTypeButtonsContainer).length > 1) {
+				return new MessageBuilder().error('Please select only one query type.').show();
+			}
+
+			let data = {};
+
+			queryTypes.forEach(function(queryType) {
+
+				let val = null;
+
+				if ($('.' + queryType.propertyName, queryTypeButtonsContainer).hasClass('active')) {
+
+					if (queryType.propertyName === 'flow') {
+
+						val = flowSelector.val();
+
+					} else {
+
+						val = repeaterConfigEditor.getValue();
+						data.flow = null;
+						flowSelector.val('--- Select Flow ---');
+					}
+				}
+				data[queryType.propertyName] = val;
+			});
+
+			Command.setProperties(entity.id, data, function(obj) {
+
+				Object.assign(entity, data);
+
+				if (flowSelector.is(':visible')) {
+					blinkGreen(flowSelector);
+				} else {
+					blinkGreen(saveBtn);
+				}
+			});
+		};
+
 		let activateEditor = (queryType) => {
 			if (!repeaterConfigEditor) {
+
 				repeaterConfigEditor = CodeMirror.fromTextArea(textArea[0], Structr.getCodeMirrorSettings({
 					lineNumbers: true,
 					lineWrapping: false,
 					indentUnit: 4,
 					tabSize: 4,
-					indentWithTabs: true
+					indentWithTabs: true,
+					extraKeys: {
+						'Ctrl-Space': 'autocomplete',
+						'Ctrl-S': (cm) => { saveFunction(cm); },
+						'Cmd-S': (cm) => { saveFunction(cm); }
+					}
 				}));
 
 				repeaterConfigEditor.on('change', function() {
@@ -594,7 +642,7 @@ var _Entities = {
 
 		let initRepeaterInputs = function() {
 
-			let saveBtn = $('<button class="btn">Save</button>');
+			saveBtn = $('<button class="btn">Save</button>');
 			el.append('<br>').append(saveBtn);
 
 			for (let queryType of queryTypes) {
@@ -630,6 +678,7 @@ var _Entities = {
 
 				if (queryType.propertyName === 'flow' && entity[queryType.propertyName]) {
 					$('button.' + queryType.propertyName).click();
+					flowSelector.val(entity[queryType.propertyName]);
 				} else if (entity[queryType.propertyName] && entity[queryType.propertyName].trim() !== "") {
 					$('button.' + queryType.propertyName).click();
 				}
@@ -639,51 +688,8 @@ var _Entities = {
 				$('.query-type-buttons button:first', el).click();
 			}
 
-			flowSelector.on('change', function() {
-				saveBtn.click();
-			});
-
-			saveBtn.on('click', function() {
-
-				if ($('button.active', queryTypeButtonsContainer).length > 1) {
-					return new MessageBuilder().error('Please select only one query type.').show();
-				}
-
-				let data = {};
-
-				queryTypes.forEach(function(queryType) {
-
-					let val = null;
-
-					if ($('.' + queryType.propertyName, queryTypeButtonsContainer).hasClass('active')) {
-
-						if (queryType.propertyName === 'flow') {
-
-							val = flowSelector.val();
-
-						} else {
-
-							val = repeaterConfigEditor.getValue();
-							data.flow = null;
-							flowSelector.val('--- Select Flow ---');
-						}
-					}
-					data[queryType.propertyName] = val;
-				});
-
-				Command.setProperties(entity.id, data, function(obj) {
-
-					Object.assign(entity, data);
-
-					if (flowSelector.is(':visible')) {
-						blinkGreen(flowSelector);
-					} else if (textAreaWrapper.is(':visible')) {
-						blinkGreen(textAreaWrapper);
-					} else {
-						blinkGreen(saveBtn);
-					}
-				});
-			});
+			flowSelector.on('change', saveFunction);
+			saveBtn.on('click', saveFunction);
 
 			_Entities.appendInput(el, entity, 'dataKey', 'Repeater Keyword',
 				'The repeater keyword or data key is either a word to reference result objects, or it can be the name of a collection property of the result object.<br><br>' +
