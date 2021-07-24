@@ -102,7 +102,7 @@ var _Pages = {
 					LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
 					_Pages.resize();
 					_Pages.showPagesPagerToggle();
-					_Pages.showTabsMenu();
+					_Entities.highlightSelectedElementOnSlidoutOpen();
 				}, _Pages.leftSlideoutClosedCallback);
 			};
 			$('#pagesTab').on('click', pagesTabSlideoutAction).droppable({
@@ -135,6 +135,7 @@ var _Pages = {
 					LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
 					_Pages.localizations.refreshPagesForLocalizationPreview();
 					_Pages.resize();
+					_Entities.highlightSelectedElementOnSlidoutOpen();
 				}, _Pages.leftSlideoutClosedCallback);
 			});
 
@@ -202,30 +203,6 @@ var _Pages = {
 					}
 					_Pages.resize();
 				}, _Pages.rightSlideoutClosedCallback);
-			});
-
-			live('#function-bar-switch', 'click', (e) => {
-				let icon = e.target.closest('.icon');
-				let pagesPager = document.getElementById('pagesPager');
-				let subMenu = document.querySelector('#function-bar .tabs-menu');
-
-				if (pagesPager.classList.contains('hidden')) {
-
-					_Pages.showPagesPager();
-					_Pages.hideTabsMenu();
-
-					icon.innerHTML = '<svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M.748,12.25a6,6,0,0,0,6,6h10.5a6,6,0,0,0,0-12H6.748A6,6,0,0,0,.748,12.25Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.248 9.25L17.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.248 9.25L14.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg>';
-					LSWrapper.setItem(_Pages.functionBarSwitchKey, 'visible');
-
-				} else {
-
-					_Pages.hidePagesPager();
-
-					icon.innerHTML = '<svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M23.248,12a6,6,0,0,1-6,6H6.748a6,6,0,0,1,0-12h10.5A6,6,0,0,1,23.248,12Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.748 9L6.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.748 9L9.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg>';
-					LSWrapper.setItem(_Pages.functionBarSwitchKey, 'hidden');
-
-					_Pages.showTabsMenu();
-				}
 			});
 
 			_Pages.refresh();
@@ -752,13 +729,38 @@ var _Pages = {
 
 		let functionBarSwitchActive = (LSWrapper.getItem(_Pages.functionBarSwitchKey) === 'active');
 		if (functionBarSwitchActive) {
-			functionBar.append('<div id="function-bar-switch" class="icon"><svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M.748,12.25a6,6,0,0,0,6,6h10.5a6,6,0,0,0,0-12H6.748A6,6,0,0,0,.748,12.25Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.248 9.25L17.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.248 9.25L14.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></div>');
+			functionBar.append('<div id="function-bar-switch" class="icon">' + _Icons.svg.toggleSwitchRight + '</div>');
 		} else {
-			functionBar.append('<div id="function-bar-switch" class="icon hidden"><svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M23.248,12a6,6,0,0,1-6,6H6.748a6,6,0,0,1,0-12h10.5A6,6,0,0,1,23.248,12Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.748 9L6.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.748 9L9.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></div>');
+			functionBar.append('<div id="function-bar-switch" class="icon hidden">' + _Icons.svg.toggleSwitchLeft + '</div>');
 		}
 
 		functionBar.append('<div class="hidden" id="pagesPager"></div>');
-		let pagesPager = $('#pagesPager', functionBar);
+
+
+		let functionBarToggleSwitch = document.getElementById('function-bar-switch');
+
+		functionBarToggleSwitch.addEventListener('click', (e) => {
+			let pagesPager = document.getElementById('pagesPager');
+			let subMenu    = document.querySelector('#function-bar .tabs-menu');
+
+			if (pagesPager.classList.contains('hidden')) {
+
+				_Pages.showPagesPager();
+				_Pages.hideTabsMenu();
+
+				functionBarToggleSwitch.innerHTML = _Icons.svg.toggleSwitchRight;
+				LSWrapper.setItem(_Pages.functionBarSwitchKey, 'visible');
+
+			} else {
+
+				_Pages.hidePagesPager();
+
+				functionBarToggleSwitch.innerHTML = _Icons.svg.toggleSwitchLeft;
+				LSWrapper.setItem(_Pages.functionBarSwitchKey, 'hidden');
+
+				_Pages.showTabsMenu();
+			}
+		});
 
 		Structr.fetchHtmlTemplate('pages/submenu', {}, (html) => {
 
@@ -791,7 +793,8 @@ var _Pages = {
 				menuLink.onclick = (event) => _Pages.activateCenterPane(menuLink);
 			}
 
-			let pPager = _Pager.addPager('pages', pagesPager, true, 'Page', null);
+			let pagesPager = $('#pagesPager', functionBar);
+			let pPager     = _Pager.addPager('pages', pagesPager, true, 'Page', null);
 
 			pPager.cleanupFunction = function () {
 				$('.node', pages).remove();
@@ -836,9 +839,9 @@ var _Pages = {
 			});
 			*/
 
-			functionBar.append('<a id="import_page" title="Import Template" class="icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" width="24" height="24"><g transform="matrix(1,0,0,1,0,0)"><path d="M11.250 17.250 A6.000 6.000 0 1 0 23.250 17.250 A6.000 6.000 0 1 0 11.250 17.250 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.25 14.25L17.25 20.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 17.25L20.25 17.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25,20.25h-6a1.5,1.5,0,0,1-1.5-1.5V2.25A1.5,1.5,0,0,1,2.25.75H12.879a1.5,1.5,0,0,1,1.06.439l2.872,2.872a1.5,1.5,0,0,1,.439,1.06V8.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></a>');
-			functionBar.append('<a id="add_page" title="Add page" class="icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" width="24" height="24"><g transform="matrix(1,0,0,1,0,0)"><path d="M12 7.5L12 16.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M7.5 12L16.5 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></a>');
-			functionBar.append('<a id="add_template" title="Add Template" class="icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" width="24" height="24"><g transform="matrix(1,0,0,1,0,0)"><path d="M22.151,2.85,20.892,6.289l2.121,2.122a.735.735,0,0,1-.541,1.273l-3.653-.029L17.5,13.018a.785.785,0,0,1-1.485-.1L14.932,9.07,11.08,7.991a.786.786,0,0,1-.1-1.486l3.363-1.323-.029-3.653A.734.734,0,0,1,15.588.986L17.71,3.107,21.151,1.85A.8.8,0,0,1,22.151,2.85Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.932 9.07L0.75 23.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></a>');
+			functionBar.append('<a id="import_page" title="Import Template" class="icon">' + _Icons.svg.import_page + '</a>');
+			functionBar.append('<a id="add_page" title="Add page" class="icon">' + _Icons.svg.add_page + '</a>');
+			functionBar.append('<a id="add_template" title="Add Template" class="icon">' + _Icons.svg.add_template + '</a>');
 
 			$('#import_page', functionBar).on('click', function(e) {
 				e.stopPropagation();
@@ -965,6 +968,8 @@ var _Pages = {
 	adaptFunctionBarTabs: (entity) => {
 
 		if (entity) {
+
+			_Pages.showTabsMenu();
 
 			// first show everything - later hide some
 			for (let li of document.querySelectorAll('.tabs-menu li.hidden')) {
@@ -1321,9 +1326,16 @@ var _Pages = {
 
 			element.on('click', function(e) {
 
-				_Entities.selectedObject = entity;
-				_Entities.selectElement(element.closest('.node'));
-				_Pages.refreshCenterPane(entity);
+				let clickedObjectIsCurrentlySelected = _Entities.selectedObject && _Entities.selectedObject.id === entity.id;
+				let isElementBeingEditedCurrently    = (_Pages.centerPane.dataset['elementId'] === entity.id);
+
+                _Entities.selectElement(element.closest('.node')[0], entity);
+
+				if (!clickedObjectIsCurrentlySelected || !isElementBeingEditedCurrently) {
+
+					LSWrapper.setItem(_Entities.selectedObjectIdKey, entity.id);
+					_Pages.refreshCenterPane(entity);
+				}
 			});
 		}
 	},
@@ -1334,6 +1346,7 @@ var _Pages = {
 		var text = unescapeTags(cleanText(self.html()));
 		self.attr('contenteditable', false);
 		self.removeClass('structr-editable-area-active').removeClass('structr-editable-area');
+
 		Command.setProperty(contentSourceId, 'content', text, false, function(obj) {
 			if (contentSourceId === obj.id) {
 				if (callback) {
@@ -1350,18 +1363,6 @@ var _Pages = {
 		if (!div) {
 			return false;
 		}
-
-//		var parentId = entity.parent && entity.parent.id;
-//		if (parentId) {
-//			$('.delete_icon', div).replaceWith('<i title="Remove" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_brick_icon) + '" />');
-//			$('.button', div).on('mousedown', function(e) {
-//				e.stopPropagation();
-//			});
-//			$('.delete_icon', div).on('click', function(e) {
-//				e.stopPropagation();
-//				Command.removeChild(entity.id);
-//			});
-//		}
 
 		_Dragndrop.makeDroppable(div);
 		_Dragndrop.makeSortable(div);
@@ -1517,6 +1518,9 @@ var _Pages = {
 	},
 	showTabsMenu: () => {
 
+		// if the pages pager is shown, hide it
+		_Pages.hidePagesPager();
+
 		let tabsMenu = document.querySelector('#function-bar .tabs-menu');
 		if (tabsMenu) {
 			tabsMenu.style.display = 'inline-block';
@@ -1529,6 +1533,8 @@ var _Pages = {
 		}
 	},
 	localizations: {
+		lastSelectedPageKey: 'structrLocalizationsLastSelectedPageKey_' + port,
+		lastUsedLocaleKey: 'structrLocalizationsLastUsedLocale_' + port,
 		wrapperTypeForContextMenu: 'WrappedLocalizationForPreview',
 		getContextMenuElements: function (div, wrappedEntity) {
 
@@ -1626,8 +1632,15 @@ var _Pages = {
 
 		refreshPagesForLocalizationPreview: async () => {
 
-			let pageSelect = document.getElementById('localization-preview-page');
+			let pageSelect       = document.getElementById('localization-preview-page');
+			let localeInput      = document.querySelector('#localizations input.locale');
 			pageSelect.innerHTML = '';
+
+			let lastSelectedPage = LSWrapper.getItem(_Pages.localizations.lastSelectedPageKey);
+			let lastUsedLocale   = LSWrapper.getItem(_Pages.localizations.lastUsedLocaleKey);
+			if (lastUsedLocale) {
+				localeInput.value = lastUsedLocale;
+			}
 
 			let pages = await Command.queryPromise('Page', 1000, 1, 'name', 'asc', { hidden: false }, true, null, 'id,name');
 
@@ -1637,16 +1650,22 @@ var _Pages = {
 				option.value = page.id;
 				option.textContent = page.name;
 
+				// first assumption: if we are previewing a page, use that page
 				if (page.id === _Pages.previews.activePreviewPageId) {
 					option.selected = true;
 				}
+
+				// second assumption: use previously selected page if not actively previewing a page
+				if (!_Pages.previews.activePreviewPageId && page.id === lastSelectedPage) {
+					option.selected = true;
+				}
+
 				pageSelect.appendChild(option);
 			}
-
 		},
 		refreshLocalizations: async () => {
 
-			let localizationsContainer = $('#localizations div.inner div.results');
+			let localizationsContainer = document.querySelector('#localizations div.inner div.results');
 			let localeInput            = document.querySelector('#localizations input.locale');
 			let locale                 = localeInput.value;
 			let pageSelect             = document.getElementById('localization-preview-page');
@@ -1656,6 +1675,9 @@ var _Pages = {
 				return;
 			}
 
+			LSWrapper.setItem(_Pages.localizations.lastSelectedPageKey, pageSelect.value);
+			LSWrapper.setItem(_Pages.localizations.lastUsedLocaleKey, locale);
+
 			let id                = pageSelect.value;
 			let detailObjectId    = LSWrapper.getItem(_Pages.detailsObjectIdKey + id);
 			let queryString       = LSWrapper.getItem(_Pages.requestParametersKey + id);
@@ -1663,21 +1685,26 @@ var _Pages = {
 			let localizationIdKey = 'localizationId';
 			let previousValueKey  = 'previousValue';
 
-			localizationsContainer.empty();
+			localizationsContainer.innerHTML = '';
 
 			if (localizations.length == 0) {
 
-				localizationsContainer.append("<br>No localizations found in page.");
+				localizationsContainer.innerHTML = 'No localizations found in page.';
 
 			} else {
 
 				for (let res of localizations) {
 
-					let div   = _Pages.localizations.getNodeForLocalization(localizationsContainer, res.node);
-					let tbody = $('tbody', div);
-					let row   = $('<tr><td><div class="key-column allow-break">' + res.key + '</div></td><td class="domain-column">' + res.domain + '</td><td class="locale-column">' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td><td class="input"><input class="localized-value" placeholder="..."><a title="Delete" class="delete"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /></a></td></tr>');
-					let key   = $('div.key-column', row).attr('title', res.key);
-					let input = $('input.localized-value', row);
+					let modelNode = StructrModel.createFromData(res.node);
+					let tbody     = _Pages.localizations.getNodeForLocalization(localizationsContainer, modelNode);
+					let row       = Structr.createSingleDOMElementFromHTML('<tr>' +
+							'<td><div class="key-column allow-break">' + res.key + '</div></td>' +
+							'<td class="domain-column">' + res.domain + '</td>' +
+							'<td class="locale-column">' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td>' +
+							'<td class="input"><input class="localized-value" placeholder="..."><a title="Delete" class="delete"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '"></i></a></td>' +
+						'</tr>'
+					);
+					let input     = row.querySelector('input.localized-value');
 
 					if (res.localization) {
 						let domainIdentical = (res.localization.domain === res.domain) || (!res.localization.domain && !res.domain);
@@ -1688,40 +1715,41 @@ var _Pages = {
 					}
 
 					if (res.localization !== null) {
-						row.addClass('has-value');
-						input.val(res.localization.localizedName).data(localizationIdKey, res.localization.id).data(previousValueKey, res.localization.localizedName);
+						row.classList.add('has-value');
+						input.value = res.localization.localizedName;
+						input.dataset[localizationIdKey] = res.localization.id;
+						input.dataset[previousValueKey]  = res.localization.localizedName;
 					}
 
-					$('.delete', row).on('click', function(event) {
+					row.querySelector('.delete').addEventListener('click', (event) => {
 						event.preventDefault();
 
-						let id = input.data(localizationIdKey);
+						let id = input.dataset[localizationIdKey];
 
 						if (id) {
-							_Entities.deleteNodes(this, [{id: id, name: input.val()}], false, () => {
-								row.removeClass('has-value');
-								input.data(localizationIdKey, null).data(previousValueKey, null).val('');
+							_Entities.deleteNodes(this, [{id: id, name: input.value}], false, () => {
+								row.classList.remove('has-value');
+								input.value = '';
+								input.dataset[localizationIdKey] = null;
+								input.dataset[previousValueKey]  = null;
                             });
 						}
 					});
 
-					input.on('blur', function() {
+					input.addEventListener('blur', (event) => {
 
-						let el             = $(this);
-						let newValue       = el.val();
-						let localizationId = el.data(localizationIdKey);
-						let previousValue  = el.data(previousValueKey);
+						let newValue       = input.value;
+						let localizationId = input.dataset[localizationIdKey];
+						let previousValue  = input.dataset[previousValueKey];
 						let isChange       = (!previousValue && newValue !== '') || (previousValue && previousValue !== newValue);
 
 						if (isChange) {
 
 							if (localizationId) {
 
-								Command.setProperties(localizationId, {
-									localizedName: newValue
-								}, function() {
-									blinkGreen(el);
-									el.data(previousValueKey, newValue);
+								Command.setProperties(localizationId, { localizedName: newValue }, () => {
+									blinkGreen(input);
+									input.dataset[previousValueKey] = newValue;
 								});
 
 							} else {
@@ -1734,10 +1762,10 @@ var _Pages = {
 									localizedName: newValue
 								},
 								function(createdLocalization) {
-									el.data(localizationIdKey, createdLocalization.id);
-									el.data(previousValueKey, newValue);
-									row.addClass('has-value');
-									blinkGreen(el);
+									input.dataset[localizationIdKey] = createdLocalization.id;
+									input.dataset[previousValueKey]  = newValue;
+									row.classList.add('has-value');
+									blinkGreen(input);
 								});
 							}
 						}
@@ -1750,18 +1778,14 @@ var _Pages = {
 		getNodeForLocalization: function (container, entity) {
 
 			let idString = 'locNode_' + entity.id;
-			let existing = $('#' + idString, container);
+			let existing = container.querySelector('#' + idString);
 
-			if (existing.length) {
-				return existing;
+			if (existing) {
+				return existing.querySelector('tbody');
 			}
 
-			let div = $('<div id="' + idString + '" class="node localization-element ' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
-
-			div.data('nodeId', (_Entities.isContentElement(entity) ? entity.parent.id : entity.id ));
-
 			let displayName = getElementDisplayName(entity);
-			let iconClass   = _Icons.getFullSpriteClass(_Elements.getElementIcon(entity));
+			let iconClass   = _Icons.getFullSpriteClass(entity.isContent ? _Elements.getContentIcon(entity) : _Elements.getElementIcon(entity));
 			let detailHtml  = '';
 
 			if (entity.type === 'Content') {
@@ -1776,19 +1800,33 @@ var _Pages = {
 					detailHtml = '<div>' + escapeTags(entity.content) + '</div>';
 				}
 
+			} else if (!entity.isDOMNode) {
+				detailHtml = '<b title="' + escapeForHtmlAttributes(entity.type) + '" class="tag_ name_">' + entity.type + '</b>';
 			} else {
 				detailHtml = '<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>';
 			}
 
-			div.append('<i class="typeIcon ' + iconClass + '"></i><span class="abbr-ellipsis abbr-pages-tree">' + detailHtml + _Elements.classIdString(entity._html_id, entity._html_class)) + '</span>';
+			let div = Structr.createSingleDOMElementFromHTML(
+				'<div id="' + idString + '" class="node localization-element ' + (entity.tag === 'html' ? ' html_element' : '') + ' ">'
+					+ '<div class="node-selector"></div>'
+					+ '<i class="typeIcon ' + iconClass + '"></i><span class="abbr-ellipsis abbr-pages-tree">' + detailHtml + _Elements.classIdString(entity._html_id, entity._html_class) + '</span>'
+					+ '<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>'
+				+ '</div>'
+			);
+			div.dataset['nodeId'] = (_Entities.isContentElement(entity) ? entity.parent.id : entity.id );
+
+			let $div = $(div);
 
 			if (!entity.isDOMNode) {
+
+				// do not use pointer cursor
+				div.classList.add('schema');
 
 				Command.queryPromise('SchemaNode', 1, 1, 'name', 'asc', { name: entity.type }, true).then((schemaNodes) => {
 
 					if (schemaNodes.length === 1) {
 
-						_Entities.appendEditPropertiesIcon(div, {
+						_Entities.appendEditPropertiesIcon($div, {
 							type: _Pages.localizations.wrapperTypeForContextMenu,
 							entity: schemaNodes[0]
 						}, false);
@@ -1796,19 +1834,23 @@ var _Pages = {
 				});
 
 			} else {
-				_Entities.appendEditPropertiesIcon(div, {
+
+				_Entities.appendEditPropertiesIcon($div, {
 					type: _Pages.localizations.wrapperTypeForContextMenu,
 					entity: entity
 				}, false);
 			}
 
-			div.append('<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>');
+			container.appendChild(div);
 
-			container.append(div);
+			_Entities.setMouseOver($div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId] ));
 
-			_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId] ));
+			if (entity.isDOMNode) {
+				_Pages.registerDetailClickHandler($div, entity);
+				_Elements.clickOrSelectElementIfLastSelected($div, entity);
+			}
 
-			return div;
+			return div.querySelector('tbody');
 		},
 
 	},

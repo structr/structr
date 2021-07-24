@@ -484,15 +484,9 @@ var _Elements = {
 			if (!isElementBeingEditedCurrently) {
 				div.click();
 			} else {
-				_Entities.selectElement(div);
+				_Entities.selectElement(div[0], entity);
 			}
 		}
-	},
-	getElementIcon:function(element) {
-		let isComponent  = element.sharedComponentId || (element.syncedNodesIds && element.syncedNodesIds.length);
-		let isActiveNode = (typeof element.isActiveNode === "function") ? element.isActiveNode() : false;
-
-		return (isActiveNode ? _Icons.repeater_icon : (isComponent ? _Icons.comp_icon : _Icons.brick_icon));
 	},
 	classIdString: function(idString, classString) {
 		let classIdString = '<span class="class-id-attrs">' + (idString ? '<span class="_html_id_">#' + idString.replace(/\${.*}/g, '${…}') + '</span>' : '')
@@ -1042,12 +1036,18 @@ var _Elements = {
 		return div;
 	},
 	getContentIcon:function(content) {
-		var isComment = (content.type === 'Comment');
-		var isTemplate = (content.type === 'Template');
-		var isComponent = content.sharedComponentId || (content.syncedNodesIds && content.syncedNodesIds.length);
-		var isActiveNode = content.isActiveNode();
+		let isComment = (content.type === 'Comment');
+		let isTemplate = (content.type === 'Template');
+		let isComponent = content.sharedComponentId || (content.syncedNodesIds && content.syncedNodesIds.length);
+		let isActiveNode = (typeof content.isActiveNode === "function") ? content.isActiveNode() : false;
 
 		return isComment ? _Icons.comment_icon : ((isTemplate && isComponent) ? _Icons.comp_templ_icon : (isTemplate ? (isActiveNode ? _Icons.active_template_icon : _Icons.template_icon) : (isComponent ? _Icons.active_content_icon : (isActiveNode ? _Icons.active_content_icon : _Icons.content_icon))));
+	},
+	getElementIcon:function(element) {
+		let isComponent  = element.sharedComponentId || (element.syncedNodesIds && element.syncedNodesIds.length);
+		let isActiveNode = (typeof element.isActiveNode === "function") ? element.isActiveNode() : false;
+
+		return (isActiveNode ? _Icons.repeater_icon : (isComponent ? _Icons.comp_icon : _Icons.brick_icon));
 	},
 	appendEditContentIcon: function(div, entity) {
 

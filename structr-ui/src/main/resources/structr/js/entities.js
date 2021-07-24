@@ -2505,20 +2505,23 @@ var _Entities = {
 
 		_Entities.scrollTimer = window.setTimeout(scrollFn, 100);
 	},
-	selectElement: function(element, expanded) {
+	highlightSelectedElementOnSlidoutOpen: () => {
 
-		let el = $(element);
-		let id = Structr.getId(el) || Structr.getComponentId(el) || Structr.getGroupId(el);
+		// on slideout open the elements are not (always) refreshed --> highlight the currently active element (if there is one)
+		let selectedElementId = LSWrapper.getItem(_Entities.selectedObjectIdKey);
+		let element = document.querySelector('#id_' + selectedElementId);
 
-		let b = el.children('.expand_icon_svg').first();
-		let displayName = getElementDisplayName(Structr.entity(id));
+		element?.querySelector('.node-selector')?.classList.add('active');
+	},
+	selectElement: function(element, entity) {
 
-		//_Entities.deselectAllElements();
-		$('.node-selector').removeClass('active');
-		// el.closest('.node').addClass('nodeSelected');
-		el.closest('.node').children('.node-selector').addClass('active');
+		for (let activeSelector of document.querySelectorAll('.node-selector.active')) {
+			activeSelector.classList.remove('active');
+		}
+		element.querySelector('.node-selector').classList.add('active');
 
-		LSWrapper.setItem(_Entities.selectedObjectIdKey, id);
+		_Entities.selectedObject = entity;
+		LSWrapper.setItem(_Entities.selectedObjectIdKey, entity.id);
 	},
 	toggleElement: function(element, expanded) {
 
