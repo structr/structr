@@ -2341,10 +2341,11 @@ var Structr = {
 		return elements[0];
 	},
 	createDOMElementsFromHTML: (html) => {
-		let dummy = document.createElement('div');
+		// use template element so we can create arbitrary HTML which is not parsed but not rendered (otherwise tr/td and some other elements would not work)
+		let dummy = document.createElement('template');
 		dummy.innerHTML = html;
 
-		return dummy.children;
+		return dummy.content.children;
 	}
 };
 
