@@ -478,15 +478,15 @@ var _Pages = {
 						return false;
 					}
 				});
-			}
 
-			elements.push({
-				name: 'HTML Attributes',
-				clickHandler: function () {
-					_Entities.showProperties(entity, '_html_');
-					return false;
-				}
-			});
+				elements.push({
+					name: 'HTML Attributes',
+					clickHandler: function () {
+						_Entities.showProperties(entity, '_html_');
+						return false;
+					}
+				});
+			}
 		}
 
 		elements.push({
@@ -1547,29 +1547,6 @@ var _Pages = {
 
 			let elements = [];
 
-			if (_Entities.isContentElement(entity)) {
-
-				elements.push({
-					icon: _Icons.svg.pencil_edit,
-					name: 'Edit',
-					clickHandler: function () {
-						_Elements.openEditContentDialog(this, entity, {
-							extraKeys: { "Ctrl-Space": "autocomplete" },
-							gutters: ["CodeMirror-lint-markers"],
-							lint: {
-								getAnnotations: function(text, callback) {
-									_Code.showScriptErrors(entity, text, callback, 'content');
-								},
-								async: true
-							}
-						});
-						return false;
-					}
-				});
-			}
-
-			_Elements.appendContextMenuSeparator(elements);
-
 			if (isDOMNode && !isPage) {
 
 				elements.push({
@@ -1580,7 +1557,7 @@ var _Pages = {
 					}
 				});
 
-				if (_Entities.isContentElement(entity)) {
+				if (!_Entities.isContentElement(entity)) {
 					elements.push({
 						name: 'Events',
 						clickHandler: function () {
@@ -1590,13 +1567,15 @@ var _Pages = {
 					});
 				}
 
-				elements.push({
-					name: 'HTML Attributes',
-					clickHandler: function () {
-						_Entities.showProperties(entity, '_html_');
-						return false;
-					}
-				});
+				if (!_Entities.isContentElement(entity)) {
+					elements.push({
+						name: 'HTML Attributes',
+						clickHandler: function () {
+							_Entities.showProperties(entity, '_html_');
+							return false;
+						}
+					});
+				}
 
 				elements.push({
 					name: 'Properties',
@@ -1785,7 +1764,7 @@ var _Pages = {
 			}
 
 			let displayName = getElementDisplayName(entity);
-			let iconClass   = _Icons.getFullSpriteClass(entity.isContent ? _Elements.getContentIcon(entity) : _Elements.getElementIcon(entity));
+			let iconClass   = (entity.isDOMNode) ? _Icons.getFullSpriteClass(entity.isContent ? _Elements.getContentIcon(entity) : _Elements.getElementIcon(entity)) : 'fa fa-file-code-o';
 			let detailHtml  = '';
 
 			if (entity.type === 'Content') {
