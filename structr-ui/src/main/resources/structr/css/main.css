@@ -226,11 +226,11 @@ button {
 }
 
 button:hover:not(.disabled), button:focus:not(.disabled) {
-	color: var(--body-text);
+	/*color: var(--body-text);*/
 	/*padding: 1px 8px 2px 4px;*/
 	/*vertical-align: middle;*/
 	/*border: 1px solid var(--black-opacity-25);*/
-	background-color: var(--main-background);
+	/*background-color: var(--main-background);*/
 	cursor: pointer ! important;
 	/*box-shadow: 0px 0px 36px var(--gray-opacity-10);*/
 }
