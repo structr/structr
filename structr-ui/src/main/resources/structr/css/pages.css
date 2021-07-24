@@ -36,7 +36,8 @@
 }
 
 #pages .node.page:hover,
-#componentsArea .node:hover  {
+#componentsArea .node:hover,
+#localizations .node:not(.schema):hover {
 	cursor: pointer;
 }
 
@@ -351,6 +352,7 @@ input.dataKey_ {
 
 #localizations .results {
 	overflow: auto;
+	margin-top: 0.5rem;
 }
 
 #localizations .inner input.locale {
