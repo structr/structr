@@ -179,9 +179,14 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 
 		_Pager.restorePagerData(this.id);
 
-		this.el.append('<div class="pager pager' + this.id + '" style="clear: both"><i class="pageLeft fa fa-angle-left"></i>'
-				+ ' <input class="pageNo" type="text" size="2" value="' + page[this.id] + '"><i class="pageRight fa fa-angle-right"></i>'
-				+ ' of <input readonly="readonly" class="readonly pageCount" type="text" size="2">'
+		this.el.prepend('<div class="pager pager' + this.id + '" style="clear: both">'
+				+ '<i class="pageLeft fa fa-angle-left"></i>'
+				+ '<span class="pageWrapper">'
+					+ '<input class="pageNo" value="' + page[this.id] + '">'
+					+ '<span class="of">of</span>'
+					+ '<input readonly="readonly" class="readonly pageCount" type="text" size="2">'
+				+ '</span>'
+				+ '<i class="pageRight fa fa-angle-right"></i>'
 				+ ' Items: <select class="pageSize">'
 				+ '<option' + (pageSize[this.id] === 5 ? ' selected' : '') + '>5</option>'
 				+ '<option' + (pageSize[this.id] === 10 ? ' selected' : '') + '>10</option>'
@@ -208,7 +213,7 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 		let limitPager = function(inputEl) {
 			let val = $(inputEl).val();
 			if (val < 1 || val > pageCount[pagerObj.id]) {
-					$(inputEl).val(page[pagerObj.id]);
+				$(inputEl).val(page[pagerObj.id]);
 			} else {
 				page[pagerObj.id] = val;
 			}

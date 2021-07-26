@@ -38,7 +38,7 @@ $(function() {
 
 });
 
-var _Elements = {
+let _Elements = {
 	inheritVisibilityFlagsKey: 'inheritVisibilityFlags_' + port,
 	elementGroups: [
 		{

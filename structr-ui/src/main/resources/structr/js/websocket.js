@@ -422,14 +422,14 @@ function wsConnect() {
 						StructrModel.create(entity);
 					} else {
 
-						if (!entity.parent && shadowPage && entity.pageId === shadowPage.id) {
+						if (!entity.parent && _Pages.shadowPage && entity.pageId === _Pages.shadowPage.id) {
 
 							entity = StructrModel.create(entity, null, false);
 							var el;
 							if (entity.isContent || entity.type === 'Template') {
-								el = _Elements.appendContentElement(entity, components, true);
+								el = _Elements.appendContentElement(entity, _Pages.components, true);
 							} else {
-								el = _Pages.appendElementElement(entity, components, true);
+								el = _Pages.appendElementElement(entity, _Pages.components, true);
 							}
 
 							if (Structr.isExpanded(entity.id)) {

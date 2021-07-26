@@ -19,7 +19,6 @@
 var header, main, functionBar;
 var sessionId, user;
 var lastMenuEntry, menuBlocked, mainModule, subModule, navView;
-var dmp;
 var editorCursor, ignoreKeyUp;
 var dialog, isMax = false;
 var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogHead, dialogCancelButton, dialogSaveButton, saveAndClose, loginBox, dialogCloseButton;
@@ -293,9 +292,6 @@ $(function() {
 
 	$(window).on('resize', resizeFunction);
 
-	dmp = new diff_match_patch();
-
-
 	live('.dropdown-select', 'click', (e) => {
 		e.stopPropagation();
 		e.preventDefault();
@@ -303,26 +299,35 @@ $(function() {
 		let menu = e.target.closest('.dropdown-menu');
 
 		if (menu) {
-			let template = menu.dataset['template'];
-			let config = JSON.parse(menu.dataset['config'] || '{}');
-			let callbackString = menu.dataset['callback'];
 
-			Structr.fetchHtmlTemplate(template, config, function (html) {
-				let container = e.target.closest('.dropdown-menu').querySelector('.dropdown-menu-container');
-				if (container) {
-					if (!container.hasChildNodes()) {
+			let template       = menu.dataset['template'];
+			let config         = JSON.parse(menu.dataset['config'] || '{}');
+			let callbackString = menu.dataset['callback'];
+			let container      = e.target.closest('.dropdown-menu').querySelector('.dropdown-menu-container');
+
+			if (container) {
+
+				if (container.hasChildNodes() && container.style.opacity === '0') {
+
+					container.style.opacity = '1';
+
+				} else if (container.hasChildNodes() && container.style.opacity === '1') {
+
+					container.style.opacity = '0';
+
+				} else if (!container.hasChildNodes()) {
+
+					Structr.fetchHtmlTemplate(template, config, function (html) {
+
 						container.insertAdjacentHTML('beforeend', html);
 						container.style.opacity = '1';
-					} else {
-						container.style.opacity = '0';
-						fastRemoveAllChildren(container);
-					}
-				}
 
-				if (callbackString && callbackString.length) {
-					Structr.getActiveModule()[callbackString]();
+						if (callbackString && callbackString.length) {
+							Structr.getActiveModule()[callbackString]();
+						}
+					});
 				}
-			});
+			}
 		}
 		return false;
 	});
@@ -342,14 +347,13 @@ $(function() {
 		if (!menuContainer) {
 			document.querySelectorAll('.dropdown-menu-container').forEach((container) => {
 				container.style.opacity = '0';
-				fastRemoveAllChildren(container);
 			});
 		}
 		return false;
 	});
 });
 
-var Structr = {
+let Structr = {
 	modules: {},
 	activeModules: {},
 	moduleAvailabilityCallbacks: [],
@@ -362,6 +366,13 @@ var Structr = {
 	loadingSpinnerTimeout: undefined,
 	keyCodeMirrorSettings: 'structrCodeMirrorSettings_' + port,
 	legacyRequestParameters: false,
+	diffMatchPatch: undefined,
+	getDiffMatchPatch: () => {
+		if (!Structr.diffMatchPatch) {
+			Structr.diffMatchPatch = new diff_match_patch();
+		}
+		return Structr.diffMatchPatch;
+	},
 	getRequestParameterName: (key) => {
 
 		if (Structr.legacyRequestParameters === true) {
@@ -803,8 +814,7 @@ var Structr = {
 		if (codeMirror.length) {
 
 			let cmPosition   = codeMirror.position();
-			let bottomOffset = 0;
-			let cmHeight     = (dh - headerHeight - horizontalOffset - cmPosition.top) + 'px';
+			let cmHeight     = (dh - headerHeight - horizontalOffset - cmPosition.top - 8) + 'px';
 
 			$('.CodeMirror:not(.cm-schema-methods)', dialogBox).css({
 				height: cmHeight
@@ -1105,41 +1115,45 @@ var Structr = {
 		return (element && Structr.numberOfNodes(element) && Structr.numberOfNodes(element) > 0);
 	},
 	numberOfNodes: function(element, excludeId) {
-		var childNodes = $(element).children('.node');
+		let childNodes = $(element).children('.node');
+
 		if (excludeId) {
 			childNodes = childNodes.not('.' + excludeId + '_');
 		}
-		var n = childNodes.length;
 
-		return n;
+		return childNodes.length;
 	},
 	findParent: function(parentId, componentId, pageId, defaultElement) {
-		var parent = Structr.node(parentId, null, componentId, pageId);
+		let parent = Structr.node(parentId, null, componentId, pageId);
+
 		if (!parent) {
 			parent = defaultElement;
 		}
+
 		return parent;
 	},
 	parent: function(id) {
 		return Structr.node(id) && Structr.node(id).parent().closest('.node');
 	},
 	node: function(id, prefix) {
-		var p = prefix || '#id_';
-		var node = $($(p + id)[0]);
-		return node.length ? node : undefined;
+		let p    = prefix || '#id_';
+		let node = $($(p + id)[0]);
+
+		return (node.length ? node : undefined);
 	},
 	entity: function(id, parentId) {
-		var entityElement = Structr.node(id, parentId);
-		var entity = Structr.entityFromElement(entityElement);
+		let entityElement = Structr.node(id, parentId);
+		let entity        = Structr.entityFromElement(entityElement);
 		return entity;
 	},
 	getClass: function(el) {
-		var c;
-		$(Structr.classes).each(function(i, cls) {
+		let c;
+		for(let cls of Structr.classes) {
 			if (el && $(el).hasClass(cls)) {
 				c = cls;
 			}
-		});
+		}
+
 		return c;
 	},
 	entityFromElement: function(element) {
@@ -2316,7 +2330,7 @@ var Structr = {
 	},
 	getShadowPage: function(callback) {
 
-		if (shadowPage) {
+		if (_Pages.shadowPage) {
 
 			if (callback) {
 				callback();
@@ -2327,7 +2341,7 @@ var Structr = {
 			// wrap getter for shadowdocument in listComponents so we're sure that shadow document has been created
 			Command.listComponents(1, 1, 'name', 'asc', function(result) {
 				Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
-					shadowPage = entities[0];
+					_Pages.shadowPage = entities[0];
 
 					if (callback) {
 						callback();

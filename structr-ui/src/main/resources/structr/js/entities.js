@@ -2477,8 +2477,8 @@ var _Entities = {
 		let scrollFn = () => {
 			let elOffsetTop = el.offset().top;
 			let elHeight    = el.height();
-			let pagesScrollTop = pages.scrollTop();
-			let pagesOffsetTop = pages.offset().top
+			let pagesScrollTop = _Pages.pagesTree.scrollTop();
+			let pagesOffsetTop = _Pages.pagesTree.offset().top
 
 			let topPositionOfElementInTree    = elOffsetTop - pagesOffsetTop;
 			let bottomPositionOfElementInTree = elOffsetTop + elHeight - pagesOffsetTop;
@@ -2486,15 +2486,15 @@ var _Entities = {
 			if (topPositionOfElementInTree < 0) {
 				// element is *above* the currently visible portion of the pages tree
 
-				pages.animate({
+				_Pages.pagesTree.animate({
 					scrollTop: elOffsetTop - pagesOffsetTop + pagesScrollTop
 				});
 
-			} else if (bottomPositionOfElementInTree > pages.height()) {
+			} else if (bottomPositionOfElementInTree > _Pages.pagesTree.height()) {
 				// element is *below* the currently visible portion of the pages tree
 
-				pages.animate({
-					scrollTop: elOffsetTop + elHeight + pagesScrollTop - pages.prop('clientHeight')
+				_Pages.pagesTree.animate({
+					scrollTop: elOffsetTop + elHeight + pagesScrollTop - _Pages.pagesTree.prop('clientHeight')
 				});
 			}
 		};

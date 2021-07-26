@@ -16,20 +16,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var pages, shadowPage;
-var controls, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout, activeElementsSlideout, dataBindingSlideout;
-var components, elements;
-var selStart, selEnd;
-var sel;
 var contentSourceId, elementSourceId, rootId;
-var textBeforeEditing;
 
 $(document).ready(function() {
 	Structr.registerModule(_Pages);
 	Structr.classes.push('page');
 });
 
-var _Pages = {
+let _Pages = {
 	_moduleName: 'pages',
 	autoRefresh: [],
 	urlHashKey: 'structrUrlHashKey_' + port,
@@ -43,7 +37,23 @@ var _Pages = {
 	pagesResizerRightKey: 'structrPagesResizerRightKey_' + port,
 	functionBarSwitchKey: 'structrFunctionBarSwitchKey_' + port,
 
+	shadowPage: undefined,
+
+	pagesSlideout: undefined,
+	localizationsSlideout: undefined,
+
+	widgetsSlideout: undefined,
+	paletteSlideout: undefined,
+	componentsSlideout: undefined,
+	unusedElementsSlideout: undefined,
+
+	components: undefined,
+	unusedElementsTree: undefined,
+
+	pagesTree: undefined,
 	centerPane: undefined,
+
+	textBeforeEditing: undefined,
 
 	init: function() {
 
@@ -83,25 +93,24 @@ var _Pages = {
 
 			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('pages'));
 
-			pagesSlideout = $('#pages');
-//			activeElementsSlideout = $('#activeElements');
-//			dataBindingSlideout = $('#dataBinding');
-			localizationsSlideout = $('#localizations');
+			_Pages.pagesSlideout         = $('#pages');
+			_Pages.localizationsSlideout = $('#localizations');
+			_Pages.pagesTree = $('#pagesTree', _Pages.pagesSlideout);
 
-			_Pages.centerPane = document.querySelector('#center-pane');
+			_Pages.centerPane              = document.querySelector('#center-pane');
 			_Pages.previews.previewElement = document.querySelector('#previews');
 
-			widgetsSlideout = $('#widgetsSlideout');
-			paletteSlideout = $('#palette');
-			componentsSlideout = $('#components');
-			elementsSlideout = $('#elements');
-			elementsSlideout.data('closeCallback', _Pages.unattachedNodes.removeElementsFromUI);
+			_Pages.widgetsSlideout        = $('#widgetsSlideout');
+			_Pages.paletteSlideout        = $('#palette');
+			_Pages.componentsSlideout     = $('#components');
+			_Pages.unusedElementsSlideout = $('#elements');
+			_Pages.unusedElementsSlideout.data('closeCallback', _Pages.unattachedNodes.removeElementsFromUI);
+			_Pages.unusedElementsTree     = $('#elementsArea', _Pages.unusedElementsSlideout);
 
 			let pagesTabSlideoutAction = function () {
-				_Pages.leftSlideoutTrigger(this, pagesSlideout, [/*activeElementsSlideout, dataBindingSlideout*/, localizationsSlideout], (params) => {
+				_Pages.leftSlideoutTrigger(this, _Pages.pagesSlideout, [_Pages.localizationsSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
 					_Pages.resize();
-					_Pages.showPagesPagerToggle();
 					_Entities.highlightSelectedElementOnSlidoutOpen();
 				}, _Pages.leftSlideoutClosedCallback);
 			};
@@ -110,28 +119,8 @@ var _Pages = {
 				//over: pagesTabSlideoutAction
 			});
 
-//			$('#activeElementsTab').on('click', function () {
-//				_Pages.leftSlideoutTrigger(this, activeElementsSlideout, [pagesSlideout, dataBindingSlideout, localizationsSlideout], (params) => {
-//                  LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
-//					if (params.isOpenAction) {
-//						_Pages.activeelements.refreshActiveElements();
-//					}
-//					_Pages.resize();
-//				}, _Pages.leftSlideoutClosedCallback);
-//			});
-//
-//			$('#dataBindingTab').on('click', function () {
-//				_Pages.leftSlideoutTrigger(this, dataBindingSlideout, [pagesSlideout, activeElementsSlideout, localizationsSlideout], (params) => {
-//                  LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
-//					if (params.isOpenAction) {
-//						_Pages.databinding.reloadDataBindingWizard();
-//					}
-//					_Pages.resize();
-//				}, _Pages.leftSlideoutClosedCallback);
-//			});
-
 			$('#localizationsTab').on('click', function () {
-				_Pages.leftSlideoutTrigger(this, localizationsSlideout, [pagesSlideout, /*activeElementsSlideout, dataBindingSlideout*/], (params) => {
+				_Pages.leftSlideoutTrigger(this, _Pages.localizationsSlideout, [_Pages.pagesSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
 					_Pages.localizations.refreshPagesForLocalizationPreview();
 					_Pages.resize();
@@ -144,6 +133,7 @@ var _Pages = {
 					_Pages.localizations.refreshLocalizations();
 				}
 			});
+
 			$('#localizations button.refresh').on('click', function () {
 				_Pages.localizations.refreshLocalizations();
 			});
@@ -158,7 +148,7 @@ var _Pages = {
 			});
 
 			$('#widgetsTab').on('click', function () {
-				_Pages.rightSlideoutClickTrigger(this, widgetsSlideout, [paletteSlideout, componentsSlideout, elementsSlideout], (params) => {
+				_Pages.rightSlideoutClickTrigger(this, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabRightKey, $(this).prop('id'));
 					if (params.isOpenAction) {
 						_Widgets.reloadWidgets();
@@ -168,7 +158,7 @@ var _Pages = {
 			});
 
 			$('#paletteTab').on('click', function () {
-				_Pages.rightSlideoutClickTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], (params) => {
+				_Pages.rightSlideoutClickTrigger(this, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabRightKey, $(this).prop('id'));
 					if (params.isOpenAction) {
 						_Pages.palette.reload();
@@ -178,7 +168,7 @@ var _Pages = {
 			});
 
 			let componentsTabSlideoutAction = function () {
-				_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], (params) => {
+				_Pages.rightSlideoutClickTrigger(this, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabRightKey, $(this).prop('id'));
 					if (params.isOpenAction) {
 						_Pages.sharedComponents.reload();
@@ -189,14 +179,14 @@ var _Pages = {
 			$('#componentsTab').on('click', componentsTabSlideoutAction).droppable({
 				tolerance: 'touch',
 				over: function () {
-					if (!componentsSlideout.hasClass('open')) {
+					if (!_Pages.componentsSlideout.hasClass('open')) {
 						componentsTabSlideoutAction();
 					}
 				}
 			});
 
 			$('#elementsTab').on('click', function () {
-				_Pages.rightSlideoutClickTrigger(this, elementsSlideout, [widgetsSlideout, paletteSlideout, componentsSlideout], (params) => {
+				_Pages.rightSlideoutClickTrigger(this, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabRightKey, $(this).prop('id'));
 					if (params.isOpenAction) {
 						_Pages.unattachedNodes.reload();
@@ -392,7 +382,7 @@ var _Pages = {
 				});
 			}
 
-			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && entity.pageId !== shadowPage.id;
+			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && entity.pageId !== _Pages.shadowPage.id;
 			if (canConvertToSharedComponent) {
 				_Elements.appendContextMenuSeparator(elements);
 
@@ -410,7 +400,7 @@ var _Pages = {
 
 			var isSamePage = _Elements.selectedEntity.pageId === entity.pageId;
 			var isThisEntityDirectParentOfSelectedEntity = (_Elements.selectedEntity.parent && _Elements.selectedEntity.parent.id === entity.id);
-			var isSelectedEntityInShadowPage = _Elements.selectedEntity.pageId === shadowPage.id;
+			var isSelectedEntityInShadowPage = _Elements.selectedEntity.pageId === _Pages.shadowPage.id;
 			var isSelectedEntitySharedComponent = isSelectedEntityInShadowPage && !_Elements.selectedEntity.parent;
 
 			var isDescendantOfSelectedEntity = function (possibleDescendant) {
@@ -722,45 +712,7 @@ var _Pages = {
 	},
 	refresh: function() {
 
-		pagesSlideout.find(':not(.slideout-activator)').remove();
-
-		pagesSlideout.append('<div id="pagesTree"></div>');
-		pages = $('#pagesTree', pagesSlideout);
-
-		let functionBarSwitchActive = (LSWrapper.getItem(_Pages.functionBarSwitchKey) === 'active');
-		if (functionBarSwitchActive) {
-			functionBar.append('<div id="function-bar-switch" class="icon">' + _Icons.svg.toggleSwitchRight + '</div>');
-		} else {
-			functionBar.append('<div id="function-bar-switch" class="icon hidden">' + _Icons.svg.toggleSwitchLeft + '</div>');
-		}
-
-		functionBar.append('<div class="hidden" id="pagesPager"></div>');
-
-
-		let functionBarToggleSwitch = document.getElementById('function-bar-switch');
-
-		functionBarToggleSwitch.addEventListener('click', (e) => {
-			let pagesPager = document.getElementById('pagesPager');
-			let subMenu    = document.querySelector('#function-bar .tabs-menu');
-
-			if (pagesPager.classList.contains('hidden')) {
-
-				_Pages.showPagesPager();
-				_Pages.hideTabsMenu();
-
-				functionBarToggleSwitch.innerHTML = _Icons.svg.toggleSwitchRight;
-				LSWrapper.setItem(_Pages.functionBarSwitchKey, 'visible');
-
-			} else {
-
-				_Pages.hidePagesPager();
-
-				functionBarToggleSwitch.innerHTML = _Icons.svg.toggleSwitchLeft;
-				LSWrapper.setItem(_Pages.functionBarSwitchKey, 'hidden');
-
-				_Pages.showTabsMenu();
-			}
-		});
+		fastRemoveAllChildren(_Pages.pagesTree[0]);
 
 		Structr.fetchHtmlTemplate('pages/submenu', {}, (html) => {
 
@@ -772,7 +724,7 @@ var _Pages = {
 				_Pages.resize();
 			});
 
-			Structr.initVerticalSlider($('.column-resizer-left', main), _Pages.pagesResizerLeftKey, 300, _Pages.moveLeftResizer);
+			Structr.initVerticalSlider($('.column-resizer-left', main), _Pages.pagesResizerLeftKey, 400, _Pages.moveLeftResizer);
 			Structr.initVerticalSlider($('.column-resizer-right', main), _Pages.pagesResizerRightKey, 400, _Pages.moveRightResizer, true);
 
 			Structr.unblockMenu(500);
@@ -793,17 +745,15 @@ var _Pages = {
 				menuLink.onclick = (event) => _Pages.activateCenterPane(menuLink);
 			}
 
-			let pagesPager = $('#pagesPager', functionBar);
+			let pagesPager = $('#pagesPager');
 			let pPager     = _Pager.addPager('pages', pagesPager, true, 'Page', null);
 
 			pPager.cleanupFunction = function () {
-				$('.node', pages).remove();
+				fastRemoveAllChildren(_Pages.pagesTree[0]);
 			};
-			let pagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name"/></span>');
-			pPager.pager.append(pagerFilters);
-			let categoryFilter = $('<input type="text" class="filter page-label" data-attribute="category" placeholder="Category" />');
-			pagerFilters.append(categoryFilter);
-			pPager.activateFilterElements();
+
+			let filerEl = $('#pagesPagerFilters');
+			pPager.activateFilterElements(filerEl);
 
 			fetch('/structr/rest/Page/category').then((response) => {
 				if (response.ok) {
@@ -824,7 +774,7 @@ var _Pages = {
 					helpText += 'Available categories: \n\n' + categories.join('\n');
 				}
 
-				categoryFilter.attr('title', helpText);
+				$('input.category-filter', filerEl).attr('title', helpText);
 			});
 
 			/*
@@ -839,11 +789,7 @@ var _Pages = {
 			});
 			*/
 
-			functionBar.append('<a id="import_page" title="Import Template" class="icon">' + _Icons.svg.import_page + '</a>');
-			functionBar.append('<a id="add_page" title="Add page" class="icon">' + _Icons.svg.add_page + '</a>');
-			functionBar.append('<a id="add_template" title="Add Template" class="icon">' + _Icons.svg.add_template + '</a>');
-
-			$('#import_page', functionBar).on('click', function(e) {
+			$('#import_page').on('click', function(e) {
 				e.stopPropagation();
 
 				Structr.dialog('Import Template', function() {}, function() {});
@@ -889,12 +835,12 @@ var _Pages = {
 
 			});
 
-			$('#pull_page', functionBar).on('click', function(e) {
+			$('#pull_page').on('click', function(e) {
 				e.stopPropagation();
 				Structr.pullDialog('Page');
 			});
 
-			$('#add_page', functionBar).on('click', function(e) {
+			$('#add_page').on('click', function(e) {
 				e.stopPropagation();
 				Command.createSimplePage();
 			});
@@ -932,7 +878,7 @@ var _Pages = {
 				} else {
 
 					// remove wizard button if no page templates exist (can be changed later when the dialog includes some hints etc.)
-					$('#add_template').remove();
+					$('#add_template').closest('.row').remove();
 				}
 			});
 
@@ -951,7 +897,7 @@ var _Pages = {
 		});
 
 	},
-	removePage:function(page) {
+	removePage: function(page) {
 
 		Structr.removeExpandedNode(page.id);
 	},
@@ -963,6 +909,16 @@ var _Pages = {
 	hideAllFunctionBarTabs: () => {
 		for (const otherTab of document.querySelectorAll('#function-bar .tabs-menu li')) {
 			otherTab.classList.add('hidden');
+		}
+	},
+	selectedObjectWasDeleted: () => {
+		_Pages.emptyCenterPane();
+		_Pages.adaptFunctionBarTabs();
+	},
+	showTabsMenu: () => {
+		let tabsMenu = document.querySelector('#function-bar .tabs-menu');
+		if (tabsMenu) {
+			tabsMenu.style.display = 'inline-block';
 		}
 	},
 	adaptFunctionBarTabs: (entity) => {
@@ -998,7 +954,7 @@ var _Pages = {
 					}
 			}
 
-			let isEntityInSharedComponents = (entity.pageId === shadowPage.id);
+			let isEntityInSharedComponents = (entity.pageId === _Pages.shadowPage.id);
 			let isEntityInTrash = (!entity.isPage && !entity.pageId);
 			if (isEntityInSharedComponents || isEntityInTrash) {
 				document.querySelector('a[href="#pages:preview"]').closest('li').classList.add('hidden');
@@ -1260,13 +1216,13 @@ var _Pages = {
 
 		let hasChildren = entity.children && entity.children.length;
 
-		if (!pages) return;
+		if (!_Pages.pagesTree) return;
 
-		if ($('#id_' + entity.id, pages).length > 0) {
+		if ($('#id_' + entity.id, _Pages.pagesTree).length > 0) {
 			return;
 		}
 
-		pages.append('<div id="id_' + entity.id + '" class="node page"><div class="node-selector"></div></div>');
+		_Pages.pagesTree.append('<div id="id_' + entity.id + '" class="node page"><div class="node-selector"></div></div>');
 		let div = Structr.node(entity.id);
 
 		_Dragndrop.makeSortable(div);
@@ -1496,40 +1452,6 @@ var _Pages = {
 			LSWrapper.removeItem(_Pages.activeTabRightKey);
 
 			_Pages.resize();
-		}
-	},
-	selectedObjectWasDeleted: () => {
-		_Pages.emptyCenterPane();
-		_Pages.adaptFunctionBarTabs();
-	},
-	showPagesPager: () => {
-		let pagesPager = document.getElementById('pagesPager');
-		pagesPager.classList.remove('hidden');
-	},
-	hidePagesPager: () => {
-		let pagesPager = document.getElementById('pagesPager');
-		pagesPager.classList.add('hidden');
-	},
-	showPagesPagerToggle: () => {
-		document.getElementById('function-bar-switch').classList.remove('hidden');
-	},
-	hidePagesPagerToggle: () => {
-		document.getElementById('function-bar-switch').classList.add('hidden');
-	},
-	showTabsMenu: () => {
-
-		// if the pages pager is shown, hide it
-		_Pages.hidePagesPager();
-
-		let tabsMenu = document.querySelector('#function-bar .tabs-menu');
-		if (tabsMenu) {
-			tabsMenu.style.display = 'inline-block';
-		}
-	},
-	hideTabsMenu: () => {
-		let tabsMenu = document.querySelector('#function-bar .tabs-menu');
-		if (tabsMenu) {
-			tabsMenu.style.display = 'none';
 		}
 	},
 	localizations: {
@@ -1987,14 +1909,14 @@ var _Pages = {
 							self.removeClass('structr-editable-area').addClass('structr-editable-area-active').prop('contenteditable', true).focus();
 
 							// Store old text in global var and attribute
-							textBeforeEditing = self.text();
+							_Pages.textBeforeEditing = self.text();
 
 							var srcText = expandNewline(self.attr('data-structr-raw-content'));
 
 							// Replace only if it differs (e.g. for variables)
-							if (srcText !== textBeforeEditing) {
+							if (srcText !== _Pages.textBeforeEditing) {
 								self.html(srcText);
-								textBeforeEditing = srcText;
+								_Pages.textBeforeEditing = srcText;
 							}
 							_Pages.expandTreeNode(contentSourceId);
 							return false;
@@ -2225,55 +2147,55 @@ var _Pages = {
 		},
 
 	},
-	databinding: {
-		displayDataBinding: function(id) {
-			dataBindingSlideout.children('#data-binding-inputs').remove();
-			dataBindingSlideout.append('<div class="inner" id="data-binding-inputs"></div>');
-
-			var el = $('#data-binding-inputs');
-			var entity = StructrModel.obj(id);
-
-			if (entity) {
-				_Entities.repeaterConfig(entity, el);
-			}
-
-			},
-		reloadDataBindingWizard: function() {
-			dataBindingSlideout.children('#wizard').remove();
-			dataBindingSlideout.prepend('<div class="inner" id="wizard"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');
-
-			let lastSelectedType = LSWrapper.getItem(_Pages.selectedTypeKey);
-
-			Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', 'id,name', function(typeNodes) {
-
-				let lastSelectedTypeExists = false;
-
-				typeNodes.forEach(function(typeNode) {
-
-					let selected = '';
-					if (typeNode.id === lastSelectedType) {
-						lastSelectedTypeExists = true;
-						selected = 'selected';
-					}
-
-					$('#type-selector').append('<option ' + selected + ' value="' + typeNode.id + '">' + typeNode.name + '</option>');
-				});
-
-				$('#data-wizard-attributes').empty();
-				if (lastSelectedType && lastSelectedTypeExists) {
-					_Pages.showTypeData(lastSelectedType);
-				}
-			});
-
-			$('#type-selector').on('change', function() {
-				$('#data-wizard-attributes').empty();
-				let id = $(this).children(':selected').attr('value');
-				_Pages.showTypeData(id);
-			});
-		},
-	},
-	activeelements: {
-		refreshActiveElements: function() {
+	// databinding: {
+	// 	displayDataBinding: function(id) {
+	// 		dataBindingSlideout.children('#data-binding-inputs').remove();
+	// 		dataBindingSlideout.append('<div class="inner" id="data-binding-inputs"></div>');
+	//
+	// 		var el = $('#data-binding-inputs');
+	// 		var entity = StructrModel.obj(id);
+	//
+	// 		if (entity) {
+	// 			_Entities.repeaterConfig(entity, el);
+	// 		}
+	//
+	// 		},
+	// 	reloadDataBindingWizard: function() {
+	// 		dataBindingSlideout.children('#wizard').remove();
+	// 		dataBindingSlideout.prepend('<div class="inner" id="wizard"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');
+	//
+	// 		let lastSelectedType = LSWrapper.getItem(_Pages.selectedTypeKey);
+	//
+	// 		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', 'id,name', function(typeNodes) {
+	//
+	// 			let lastSelectedTypeExists = false;
+	//
+	// 			typeNodes.forEach(function(typeNode) {
+	//
+	// 				let selected = '';
+	// 				if (typeNode.id === lastSelectedType) {
+	// 					lastSelectedTypeExists = true;
+	// 					selected = 'selected';
+	// 				}
+	//
+	// 				$('#type-selector').append('<option ' + selected + ' value="' + typeNode.id + '">' + typeNode.name + '</option>');
+	// 			});
+	//
+	// 			$('#data-wizard-attributes').empty();
+	// 			if (lastSelectedType && lastSelectedTypeExists) {
+	// 				_Pages.showTypeData(lastSelectedType);
+	// 			}
+	// 		});
+	//
+	// 		$('#type-selector').on('change', function() {
+	// 			$('#data-wizard-attributes').empty();
+	// 			let id = $(this).children(':selected').attr('value');
+	// 			_Pages.showTypeData(id);
+	// 		});
+	// 	},
+	// },
+	// activeelements: {
+	// 	refreshActiveElements: function() {
 //			var id = _Pages.previews.activePreviewPageId;
 //
 //			_Entities.activeElements = {};
@@ -2296,52 +2218,56 @@ var _Pages = {
 //			} else {
 //				activeElementsContainer.append('<br>Unable to show active elements - no preview loaded.<br><br');
 //			}
-		},
-	},
+// 		},
+// 	},
 
 	palette: {
 		reload: () => {
 
-			paletteSlideout.find(':not(.slideout-activator)').remove();
-			paletteSlideout.append('<div id="paletteArea"></div>');
-			palette = $('#paletteArea', paletteSlideout);
+			let newPalette = Structr.createSingleDOMElementFromHTML('<div id="paletteArea"></div>');
 
-			if (!$('.draggable', palette).length) {
+			for (let group of _Elements.elementGroups) {
 
-				$(_Elements.elementGroups).each(function(i, group) {
-					palette.append('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
-					$(group.elements).each(function(j, elem) {
-						var div = $('#group_' + group.name);
-						div.append('<div class="draggable element" id="add_' + elem + '">' + elem + '</div>');
-						$('#add_' + elem, div).draggable({
-							iframeFix: true,
-							revert: 'invalid',
-							containment: 'body',
-							helper: 'clone',
-							appendTo: '#main',
-							stack: '.node',
-							zIndex: 99
-						});
-					});
-				});
+				let groupDiv = Structr.createSingleDOMElementFromHTML('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
+				newPalette.appendChild(groupDiv);
+
+				for (let elem of group.elements) {
+
+					let elemDiv = Structr.createSingleDOMElementFromHTML('<div class="draggable element" id="add_' + elem + '">' + elem + '</div>');
+					groupDiv.appendChild(elemDiv);
+				}
 			}
+
+			let oldPalette = _Pages.paletteSlideout[0].querySelector('#paletteArea');
+			oldPalette.replaceWith(newPalette);
+
+			$('.draggable.element', _Pages.paletteSlideout).draggable({
+				iframeFix: true,
+				revert: 'invalid',
+				containment: 'body',
+				helper: 'clone',
+				appendTo: '#main',
+				stack: '.node',
+				zIndex: 99
+			});
+
 		},
 	},
 
 	sharedComponents: {
 		reload: () => {
 
-			if (!componentsSlideout) return;
+			if (!_Pages.componentsSlideout) return;
 
 			Command.listComponents(1000, 1, 'name', 'asc', function(result) {
 
-				componentsSlideout.find(':not(.slideout-activator)').remove();
+				_Pages.componentsSlideout.find(':not(.slideout-activator)').remove();
 
-				componentsSlideout.append('<div class="" id="newComponentDropzone"><div class="new-component-info"><i class="active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /><i class="inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> Drop element here to create<br>a new shared component</div></div>');
-				let newComponentDropzone = $('#newComponentDropzone', componentsSlideout);
+				_Pages.componentsSlideout.append('<div class="" id="newComponentDropzone"><div class="new-component-info"><i class="active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /><i class="inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> Drop element here to create<br>a new shared component</div></div>');
+				let newComponentDropzone = $('#newComponentDropzone', _Pages.componentsSlideout);
 
-				componentsSlideout.append('<div id="componentsArea"></div>');
-				components = $('#componentsArea', componentsSlideout);
+				_Pages.componentsSlideout.append('<div id="componentsArea"></div>');
+				_Pages.components = $('#componentsArea', _Pages.componentsSlideout);
 
 				newComponentDropzone.droppable({
 					drop: function(e, ui) {
@@ -2352,7 +2278,7 @@ var _Pages = {
 							// special treatment for widgets dragged to the shared components area
 
 						} else {
-							if (!shadowPage) {
+							if (!_Pages.shadowPage) {
 								// Create shadow page if not existing
 								Structr.getShadowPage(() => {
 									_Pages.sharedComponents.createNew(ui);
@@ -2364,9 +2290,9 @@ var _Pages = {
 					}
 				});
 
-				_Dragndrop.makeSortable(components);
+				_Dragndrop.makeSortable(_Pages.components);
 
-				_Elements.appendEntitiesToDOMElement(result, components);
+				_Elements.appendEntitiesToDOMElement(result, _Pages.components);
 
 				Structr.refreshPositionsForCurrentlyActiveSortable();
 			});
@@ -2397,14 +2323,11 @@ var _Pages = {
 	unattachedNodes: {
 		reload: () => {
 
-			if (elementsSlideout.hasClass('open')) {
+			if (_Pages.unusedElementsSlideout.hasClass('open')) {
 
 				_Pages.unattachedNodes.removeElementsFromUI();
 
-				elementsSlideout.append('<div id="elementsArea"></div>');
-				elements = $('#elementsArea', elementsSlideout);
-
-				elements.append('<button class="btn disabled" id="delete-all-unattached-nodes" disabled> Loading </button>');
+				_Pages.unusedElementsTree.append('<button class="btn disabled" id="delete-all-unattached-nodes" disabled> Loading </button>');
 
 				let btn = $('#delete-all-unattached-nodes');
 				Structr.loaderIcon(btn, {
@@ -2420,11 +2343,11 @@ var _Pages = {
 								$.unblockUI({
 									fadeOut: 25
 								});
-								Structr.closeSlideOuts([elementsSlideout], _Pages.rightSlideoutClosedCallback);
+								Structr.closeSlideOuts([_Pages.unusedElementsSlideout], _Pages.rightSlideoutClosedCallback);
 							});
 				});
 
-				_Dragndrop.makeSortable(elements);
+				_Dragndrop.makeSortable(_Pages.unusedElementsTree);
 
 				Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(result) {
 
@@ -2437,12 +2360,12 @@ var _Pages = {
 						btn.text('No unused elements');
 					}
 
-					_Elements.appendEntitiesToDOMElement(result, elements);
+					_Elements.appendEntitiesToDOMElement(result, _Pages.unusedElementsTree);
 				});
 			}
 		},
 		removeElementsFromUI: () => {
-			elementsSlideout.find(':not(.slideout-activator)').remove();
+			fastRemoveAllChildren(_Pages.unusedElementsTree[0]);
 		},
 		blinkUI: () => {
 			blinkGreen('#elementsTab');
