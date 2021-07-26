@@ -950,10 +950,10 @@ var Command = {
 			text2 = '';
 		}
 
-		var p = dmp.patch_make(text1, text2);
-		var strp = dmp.patch_toText(p);
+		let p    = Structr.getDiffMatchPatch().patch_make(text1, text2);
+		let strp = Structr.getDiffMatchPatch().patch_toText(p);
 
-		var obj = {
+		let obj = {
 			command: 'PATCH',
 			id: id,
 			data: {

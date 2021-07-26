@@ -2088,29 +2088,42 @@ button.enabled, button.active {
 	/*text-align: center;*/
 }
 
-.pager input[type=text][data-attribute="category"] {
-	width: 5rem;
-}
-
 .pager input.page, .pager input.pageNo, .pager select.pageSize, .pager input.pageCount {
 	/*margin-top: -1px;*/
 	/*background-color: var(--solid-white);*/
 	text-align: center;
 }
 
-.pager input.pageNo {
-	background-color: var(--solid-white) ! important;
-	width: 2rem;
+.pager .pageWrapper {
+	border: 1px solid var(--input-field-border);
+	border-radius: 0.25rem;
+	display: inline-block;
+	padding: 0;
+	background: var(--solid-white) ! important;
+	font-size: 1rem;
+	white-space: nowrap;
 }
 
-.pager input.pageNo.disabled {
-	/*border: 1px solid transparent;*/
+.pager .pageWrapper .of {
+	color: var(--gray-999);
+	font-weight: normal;
+}
+
+.pager .pageRight {
+	margin-right: 0.5rem;
+}
+
+.pager input.pageNo,
+.pager input.pageCount {
+	background-color: var(--solid-white) ! important;
+	width: 2rem;
+	border: none;
+	text-align: center;
+	margin: 0;
 }
 
 .pager input.pageCount {
-	/*background-color: transparent ! important;*/
-	/*border: none;*/
-	width: 2rem;
+	color: var(--gray-999);
 }
 
 .pager select.pageSize {

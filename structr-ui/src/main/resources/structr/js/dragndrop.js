@@ -158,8 +158,8 @@ var _Dragndrop = {
 			distance: 5,
 			items: '> .node',
 			helper: function (event, helperEl) {
-				pages.append('<div id="collapse-offset"></div>');
-				$('#collapse-offset', pages).css('height', helperEl.height() - 17);
+				_Pages.pagesTree.append('<div id="collapse-offset"></div>');
+				$('#collapse-offset', _Pages.pagesTree).css('height', helperEl.height() - 17);
 				helperEl.css({height: '2rem'});
 				var hlp = helperEl.clone();
 				hlp.find('.node').remove();
@@ -194,7 +194,7 @@ var _Dragndrop = {
 				Command.insertBefore(parentId, id, refId);
 				sorting = false;
 				sortParent = undefined;
-				$('#collapse-offset', pages).remove();
+				$('#collapse-offset', _Pages.pagesTree).remove();
 
 				Structr.currentlyActiveSortable = undefined;
 			},
@@ -206,7 +206,7 @@ var _Dragndrop = {
 					e.stopImmediatePropagation();
 				});
 				$(ui.item).css({height: ''});
-				$('#collapse-offset', pages).remove();
+				$('#collapse-offset', _Pages.pagesTree).remove();
 
 				Structr.currentlyActiveSortable = undefined;
 			}
@@ -227,7 +227,7 @@ var _Dragndrop = {
 
 		if (source && pageId && source.pageId && pageId !== source.pageId) {
 
-			if (shadowPage && source.pageId === shadowPage.id) {
+			if (_Pages.shadowPage && source.pageId === _Pages.shadowPage.id) {
 
 				Command.cloneComponent(source.id, target.id);
 

@@ -96,14 +96,6 @@
    text-align: left;
 }
 
-#resourceAccessesTable thead th input {
-   width: calc(100% - 2rem);
-}
-
-#resourceAccessesTable thead th .pager input {
-   width: initial;
-}
-
 #resourceAccessesTable td img {
    vertical-align: middle;
 }
