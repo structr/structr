@@ -18,7 +18,6 @@
  */
 package org.structr.rest.servlet;
 
-import static com.caucho.quercus.lib.JavaModule.java;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
@@ -637,6 +636,9 @@ public class JsonRestServlet extends AbstractDataServlet {
 			final IJsonInput jsonInput = cleanAndParseJsonString(app, input);
 
 			if (securityContext != null) {
+
+				// allow setting of nested properties in PATCH documents
+				securityContext.setAttribute("setNestedProperties", true);
 
 				propertyView.set(securityContext, config.getDefaultPropertyView());
 

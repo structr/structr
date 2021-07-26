@@ -65,30 +65,37 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 
 				final Map<String, Object> properties = (Map<String, Object>) source;
 				Class<T> actualType                  = type;
+				T relatedNode                        = null;
 
-				//if (actualType != null && actualType.isInterface()) {
+				if (properties.containsKey(NodeInterface.id.jsonName())) {
 
-					if (properties.containsKey(NodeInterface.type.jsonName())) {
+					// fetch node by ID
+					relatedNode = (T) app.getNodeById(properties.get(NodeInterface.id.jsonName()).toString());
+					if (relatedNode != null) {
 
-						final String typeFromInput = properties.get(NodeInterface.type.jsonName()).toString();
-						actualType = StructrApp.getConfiguration().getNodeEntityClass(typeFromInput);
-
-						// reset type on failed check
-						if (actualType == null) {
-							actualType = type;
-						}
+						// fetch type from actual node
+						actualType = (Class)relatedNode.getClass();
 					}
-				//}
+
+				} else if (properties.containsKey(NodeInterface.type.jsonName())) {
+
+					final String typeFromInput = properties.get(NodeInterface.type.jsonName()).toString();
+					actualType = StructrApp.getConfiguration().getNodeEntityClass(typeFromInput);
+
+					// reset type on failed check
+					if (actualType == null) {
+						actualType = type;
+					}
+				}
 
 				final PropertyMap convertedProperties  = PropertyMap.inputTypeToJavaType(securityContext, actualType, properties);
 				final Set<PropertyKey> allProperties   = StructrApp.getConfiguration().getPropertySet(type, "all");
 				final Map<String, Object> foreignProps = new HashMap<>();
-				T relatedNode                          = null;
 
 				// If property map contains the uuid, search only for uuid
 				if (convertedProperties.containsKey(GraphObject.id)) {
 
-					relatedNode = (T) app.getNodeById(convertedProperties.get(GraphObject.id));
+					// related node is already found
 					if (relatedNode != null) {
 
 						if ( !SearchCommand.isTypeAssignableFromOtherType(type, relatedNode.getClass()) ) {

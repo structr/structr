@@ -238,9 +238,6 @@ public class TypeResource extends WrappingResource {
 		final int batchSize                          = intOrDefault(RequestKeywords.BatchSize.keyword(), 1000);
 		int overallCount                             = 0;
 
-		// allow setting of nested properties in PATCH documents
-		securityContext.setAttribute("setNestedProperties", true);
-
 		while (iterator.hasNext()) {
 
 			try (final Tx tx = app.tx()) {
