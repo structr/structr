@@ -66,10 +66,8 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 				final Map<String, Object> properties = (Map<String, Object>) source;
 				Class<T> actualType                  = type;
 
-				if (actualType != null && actualType.isInterface()) {
+				//if (actualType != null && actualType.isInterface()) {
 
-					// try to identify concrete type from input set
-					// (creation wouldn't work otherwise anyway)
 					if (properties.containsKey(NodeInterface.type.jsonName())) {
 
 						final String typeFromInput = properties.get(NodeInterface.type.jsonName()).toString();
@@ -80,7 +78,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 							actualType = type;
 						}
 					}
-				}
+				//}
 
 				final PropertyMap convertedProperties  = PropertyMap.inputTypeToJavaType(securityContext, actualType, properties);
 				final Set<PropertyKey> allProperties   = StructrApp.getConfiguration().getPropertySet(type, "all");
