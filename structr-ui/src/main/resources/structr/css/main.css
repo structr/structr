@@ -191,7 +191,7 @@ textarea {
 
 button, textarea, input, select {
 	font-family: var(--font-inter) ! important;
-	/*font-size: 1rem;*/
+	font-size: 1rem;
 	color: var(--body-text);
 	border: 1px solid var(--input-field-border);
 	padding: .5rem .75rem;
@@ -2094,23 +2094,19 @@ button.enabled, button.active {
 	text-align: center;
 }
 
-.pager .pageWrapper {
+.pager > .pageWrapper {
 	border: 1px solid var(--input-field-border);
-	border-radius: 0.25rem;
+	border-radius: .25rem;
 	display: inline-block;
 	padding: 0;
 	background: var(--solid-white) ! important;
 	font-size: 1rem;
+	line-height: 2.35rem;
 	white-space: nowrap;
 }
 
-.pager .pageWrapper .of {
-	color: var(--gray-999);
-	font-weight: normal;
-}
-
 .pager .pageRight {
-	margin-right: 0.5rem;
+	margin-right: .5rem;
 }
 
 .pager input.pageNo,
@@ -2166,9 +2162,9 @@ button.enabled, button.active {
 
 button.disabled, i.disabled {
 	filter: alpha(opacity=60);
-	-khtml-opacity: 0.6;
-	-moz-opacity: 0.6;
-	opacity: 0.6;
+	-khtml-opacity: .6;
+	-moz-opacity: .6;
+	opacity: .6;
 	cursor: not-allowed;
 }
 
