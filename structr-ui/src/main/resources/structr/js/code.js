@@ -3239,7 +3239,9 @@ var _Code = {
 
 		$('#run-method').on('click', async () => {
 
-			$('#log-output').html('Running method..\n');
+			let logOutput = document.getElementById('log-output');
+
+			logOutput.textContent = 'Running method..\n';
 
 			let params = {};
 			$('#params .param').each(function (index, el) {
@@ -3256,8 +3258,8 @@ var _Code = {
 			});
 
 			let text = await response.text();
-			$('#log-output').append(text);
-			$('#log-output').append('Done.');
+			logOutput.textContent += text;
+			logOutput.textContent += 'Done.';
 		});
 
 		$('#clear-log').on('click', function() {
