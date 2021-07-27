@@ -821,22 +821,51 @@ let _Dashboard = {
                         let buttonContainer = _Dashboard.elementWithContent(tr, 'td', '');
                         if (data.id && data.type) {
 
-                            let button = _Dashboard.elementWithContent(buttonContainer, 'button', 'Open content in editor');
-                            button.addEventListener('click', function() {
+                        	if (data.type === 'SchemaMethod' || data.type === 'SchemaProperty') {
 
-                                Command.get(data.id, null, function (obj) {
-                                    _Elements.openEditContentDialog(button, obj, {
-                                        extraKeys: { "Ctrl-Space": "autocomplete" },
-                                        gutters: ["CodeMirror-lint-markers"],
-                                        lint: {
-                                            getAnnotations: function(text, callback) {
-                                                _Code.showScriptErrors(obj, text, callback);
-                                            },
-                                            async: true
-                                        }
-                                    });
-                                });
-                            });
+								let button = _Dashboard.elementWithContent(buttonContainer, 'button', 'Go to code');
+								button.addEventListener('click', function() {
+
+									Command.get(data.id, null, function (obj) {
+
+										let pathToOpen = '';
+
+										if (obj.schemaNode) {
+
+											pathToOpen = 'custom--' + obj.schemaNode.id + '-methods-' + obj.id;
+
+										} else {
+
+											pathToOpen = 'globals--' + obj.id;
+										}
+
+										window.location.href = '#code';
+										window.setTimeout(function() {
+											_Code.findAndOpenNode(pathToOpen, false);
+										}, 1000);
+									});
+								});
+
+							} else {
+
+								let button = _Dashboard.elementWithContent(buttonContainer, 'button', 'Open content in editor');
+								button.addEventListener('click', function() {
+
+									Command.get(data.id, null, function (obj) {
+										_Elements.openEditContentDialog(button, obj, {
+											extraKeys: { "Ctrl-Space": "autocomplete" },
+											gutters: ["CodeMirror-lint-markers"],
+											lint: {
+												getAnnotations: function(text, callback) {
+													_Code.showScriptErrors(obj, text, callback);
+												},
+												async: true
+											}
+										});
+									});
+								});
+							}
+
                         }
 
                         row.appendChild(tr);
