@@ -321,7 +321,8 @@ var _Files = {
 						(async () => {
 							// fake the a element so we do not need to look up the server
 							let a = document.createElement('a');
-							a.href = entity.path;
+							let possiblyUpdatedEntity = StructrModel.obj(entity.id);
+							a.href = possiblyUpdatedEntity.path;
 							await navigator.clipboard.writeText(a.href);
 						})();
 						return false;
