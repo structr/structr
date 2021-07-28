@@ -130,33 +130,32 @@ var _Files = {
 
 					functionBar.prepend(html);
 
-					let fileTypeSelect   = $('select#file-type');
-					let addFileButton    = $('#add-file-button', functionBar);
-					let folderTypeSelect = $('select#folder-type');
-					let addFolderButton  = $('#add-file-button', functionBar);
+					let fileTypeSelect   = document.querySelector('select#file-type');
+					let addFileButton    = document.getElementById('add-file-button');
+					let folderTypeSelect = document.querySelector('select#folder-type');
+					let addFolderButton  = document.getElementById('add-folder-button');
 
-					addFileButton.on('click', function (e) {
+					addFileButton.addEventListener('click', () => {
 						Command.create({
-							type: fileTypeSelect.val(),
+							type: fileTypeSelect.value,
 							size: 0,
 							parentId: currentWorkingDir ? currentWorkingDir.id : null
 						});
 					});
 
-
-					addFolderButton.on('click', function (e) {
+					addFolderButton.addEventListener('click', () => {
 						Command.create({
-							type: folderTypeSelect.val(),
+							type: folderTypeSelect.value,
 							parentId: currentWorkingDir ? currentWorkingDir.id : null
 						});
 					});
 
-					fileTypeSelect.on('change', function () {
+					fileTypeSelect.addEventListener('change', () => {
 						// addFileButton.find('span').text('Add' + fileTypeSelect.val());
 						addFileButton.find('span').text('Add');
 					});
 
-					folderTypeSelect.on('change', function () {
+					folderTypeSelect.addEventListener('change', () => {
 						// addFolderButton.find('span').text('Add ' + folderTypeSelect.val());
 						addFolderButton.find('span').text('Add');
 					});
