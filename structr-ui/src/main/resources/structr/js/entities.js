@@ -2220,7 +2220,8 @@ var _Entities = {
 		let editIcon = $('.edit_props_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			editIcon = $('<svg class="node-menu-icon" viewBox="0 0 16 16" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(0.6666666666666666,0,0,0.6666666666666666,0,0)"><path d="M8.750 3.250 A3.250 3.250 0 1 0 15.250 3.250 A3.250 3.250 0 1 0 8.750 3.250 Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8.750 12.000 A3.250 3.250 0 1 0 15.250 12.000 A3.250 3.250 0 1 0 8.750 12.000 Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8.750 20.750 A3.250 3.250 0 1 0 15.250 20.750 A3.250 3.250 0 1 0 8.750 20.750 Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round"></path></g></svg>');
+			editIcon = $(_Icons.svg.kebab_icon);
+			editIcon.addClass('node-menu-icon');
 			parent.append(editIcon);
 		}
 
