@@ -108,7 +108,7 @@ var _Files = {
 
 			main[0].innerHTML = html;
 
-			Structr.fetchHtmlTemplate('files/search', {}, function(html) {
+			Structr.fetchHtmlTemplate('files/search', {}, async (html) => {
 				functionBar[0].innerHTML = html;
 
 				_Files.init();
@@ -123,52 +123,45 @@ var _Files = {
 				_Files.moveResizer();
 				Structr.initVerticalSlider($('.column-resizer', filesMain), filesResizerLeftKey, 204, _Files.moveResizer);
 
-				Structr.fetchHtmlTemplate('files/button.file.new', {}, function (html) {
+				let fileTypes   = await _Schema.getDerivedTypes('org.structr.dynamic.File', ['CsvFile']);
+				let folderTypes = await _Schema.getDerivedTypes('org.structr.dynamic.Folder', ['Trash']);
+
+				Structr.fetchHtmlTemplate('files/button.file.new', { fileTypes, folderTypes }, function (html) {
 
 					functionBar.prepend(html);
 
-					$('.add_file_icon', functionBar).on('click', function (e) {
+					let fileTypeSelect   = $('select#file-type');
+					let addFileButton    = $('#add-file-button', functionBar);
+					let folderTypeSelect = $('select#folder-type');
+					let addFolderButton  = $('#add-file-button', functionBar);
+
+					addFileButton.on('click', function (e) {
 						Command.create({
-							type: $('select#file-type').val(),
+							type: fileTypeSelect.val(),
 							size: 0,
 							parentId: currentWorkingDir ? currentWorkingDir.id : null
 						});
 					});
 
-					$('.mount_folder', functionBar).on('click', _Files.openMountDialog);
 
-					$('.add_folder_icon', functionBar).on('click', function (e) {
+					addFolderButton.on('click', function (e) {
 						Command.create({
-							type: $('select#folder-type').val(),
+							type: folderTypeSelect.val(),
 							parentId: currentWorkingDir ? currentWorkingDir.id : null
 						});
 					});
 
-					$('select#file-type').on('change', function () {
-						// $('#add-file-button', functionBar).find('span').text('Add' + $(this).val());
-						$('#add-file-button', functionBar).find('span').text('Add');
+					fileTypeSelect.on('change', function () {
+						// addFileButton.find('span').text('Add' + fileTypeSelect.val());
+						addFileButton.find('span').text('Add');
 					});
 
-					$('select#folder-type').on('change', function () {
-						// $('#add-folder-button', functionBar).find('span').text('Add ' + $(this).val());
-						$('#add-folder-button', functionBar).find('span').text('Add');
+					folderTypeSelect.on('change', function () {
+						// addFolderButton.find('span').text('Add ' + folderTypeSelect.val());
+						addFolderButton.find('span').text('Add');
 					});
 
-					// list types that extend File
-					_Schema.getDerivedTypes('org.structr.dynamic.File', ['CsvFile'], function (types) {
-						var elem = $('select#file-type');
-						types.forEach(function (type) {
-							elem.append('<option value="' + type + '">' + type + '</option>');
-						});
-					});
-
-					// list types that extend folder
-					_Schema.getDerivedTypes('org.structr.dynamic.Folder', ['Trash'], function (types) {
-						var elem = $('select#folder-type');
-						types.forEach(function (type) {
-							elem.append('<option value="' + type + '">' + type + '</option>');
-						});
-					});
+					$('.mount_folder', functionBar).on('click', _Files.openMountDialog);
 				});
 
 				$.jstree.defaults.core.themes.dots = false;
@@ -247,10 +240,11 @@ var _Files = {
 		let fileCount     = document.querySelectorAll('.node.file.selected').length;
 		let isMultiSelect = selectedElements.length > 1;
 		let elements      = [];
+		let contentType   = entity.contentType || '';
 
 		if (isFile) {
 
-			if (entity.isImage && entity.contentType !== 'text/svg' && !entity.contentType.startsWith('image/svg')) {
+			if (entity.isImage && contentType !== 'text/svg' && !contentType.startsWith('image/svg')) {
 				elements.push({
 					icon: _Icons.svg.pencil_edit,
 					name: 'Edit Image',
@@ -347,7 +341,7 @@ var _Files = {
 			}
 
 			Structr.performModuleDependendAction(function () {
-				if (fileCount === 1 && Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && entity.contentType === 'text/csv') {
+				if (fileCount === 1 && Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && contentType === 'text/csv') {
 					elements.push({
 						name: 'Import CSV',
 						clickHandler: function () {
@@ -359,7 +353,7 @@ var _Files = {
 			});
 
 			Structr.performModuleDependendAction(function () {
-				if (fileCount === 1 && Structr.isModulePresent('xml') && (entity.contentType === 'text/xml' || entity.contentType === 'application/xml')) {
+				if (fileCount === 1 && Structr.isModulePresent('xml') && (contentType === 'text/xml' || contentType === 'application/xml')) {
 					elements.push({
 						name: 'Import XML',
 						clickHandler: function () {

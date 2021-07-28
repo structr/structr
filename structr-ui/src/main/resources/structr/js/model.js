@@ -672,8 +672,7 @@ StructrUser.prototype.remove = function(groupId) {
 StructrUser.prototype.append = function(groupId) {
 	if (Structr.isModuleActive(_Security)) {
 		if (groupId) {
-			var grpContainer = $('.groupid_' + groupId, _Security.groupList);
-			//$('.userid_' + this.id, grpContainer).remove();
+			let grpContainer = $('.groupid_' + groupId, $(_Security.groupList));
 			_UsersAndGroups.appendMemberToGroup(this, StructrModel.obj(groupId), grpContainer);
 		} else {
 			_UsersAndGroups.appendUserToUserList(this);
@@ -699,12 +698,9 @@ StructrGroup.prototype.setProperty = function(key, value, recursive, callback) {
 
 StructrGroup.prototype.append = function(groupId) {
 	if (Structr.isModuleActive(_Security)) {
-		var container = _Security.groupList;
+		let container = $(_Security.groupList);
 		if (groupId) {
-			var grpContainer = $('.groupid_' + groupId, container);
-			if (grpContainer.length) {
-//				$('.groupid_' + this.id, container).remove();
-			}
+			let grpContainer = $('.groupid_' + groupId, container);
 			StructrModel.expand(_UsersAndGroups.appendMemberToGroup(this, StructrModel.obj(groupId), grpContainer), this);
 		} else {
 			StructrModel.expand(_UsersAndGroups.appendGroupElement(container, this), this);

@@ -23,7 +23,7 @@ $(document).ready(function() {
 	Structr.classes.push('resourceAccess');
 });
 
-var _Security = {
+let _Security = {
 	_moduleName: 'security',
 	userControls: undefined,
 	userList: undefined,
@@ -50,12 +50,10 @@ var _Security = {
 
 				main.append(html);
 
-				_Security.userControls     = $('#users-controls');
-				_Security.userList         = $('#users-list');
-
-				_Security.groupControls    = $('#groups-controls');
-				_Security.groupList        = $('#groups-list');
-
+				_Security.userControls     = document.getElementById('users-controls');
+				_Security.userList         = document.getElementById('users-list');
+				_Security.groupControls    = document.getElementById('groups-controls');
+				_Security.groupList        = document.getElementById('groups-list');
 				_Security.resourceAccesses = $('#resourceAccesses');
 
 				let subModule = LSWrapper.getItem(_Security.securityTabKey) || 'users-and-groups';
@@ -67,7 +65,6 @@ var _Security = {
 
 						let urlHash = e.target.closest('a').getAttribute('href');
 						let subModule = urlHash.split(':')[1];
-						let targetId = '#dashboard-' + subModule;
 						window.location.hash = urlHash;
 
 						_Security.selectTab(subModule);
@@ -166,35 +163,31 @@ var _Security = {
 	}
 };
 
-var _UsersAndGroups = {
+let _UsersAndGroups = {
 
-	refreshUsers: function() {
+	refreshUsers: async () => {
 
-		Structr.fetchHtmlTemplate('security/button.user.new', {}, function (html) {
+		let types = await _Schema.getDerivedTypes('org.structr.dynamic.User', []);
 
-			_Security.userList.empty();
-			_Security.userControls.empty();
-			_Security.userControls.append(html);
+		Structr.fetchHtmlTemplate('security/button.user.new', { types: types }, function (html) {
 
-			$('.add_user_icon', _Security.userControls).on('click', function(e) {
-				e.stopPropagation();
-				return Command.create({type: $('select#user-type').val()});
+			_Security.userList.innerHTML     = '';
+			_Security.userControls.innerHTML = html;
+
+			let userTypeSelect = document.querySelector('select#user-type');
+			let addUserButton  = document.getElementById('add-user-button');
+
+			addUserButton.addEventListener('click', (e) => {
+				Command.create({ type: userTypeSelect.value });
 			});
 
-			$('select#user-type').on('change', function() {
-				$('#add-user-button', _Security.userControls).find('span').text('Add ' + $(this).val());
+			userTypeSelect.addEventListener('change', () => {
+				addUserButton.querySelector('span').textContent = 'Add ' + userTypeSelect.value;
 			});
 
-			_Schema.getDerivedTypes('org.structr.dynamic.User', [], function(types) {
-				var elem = $('select#user-type');
-				types.forEach(function(type) {
-					elem.append('<option value="' + type + '">' + type + '</option>');
-				});
-			});
-
-			var userPager = _Pager.addPager('users', _Security.userControls, true, 'User', 'public');
+			let userPager = _Pager.addPager('users', $(_Security.userControls), true, 'User', 'public');
 			userPager.cleanupFunction = function () {
-				$('.node', _Security.userList).remove();
+				_Security.userList.innerHTML = '';
 			};
 			userPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></th></div>');
 			userPager.activateFilterElements();
@@ -212,41 +205,16 @@ var _UsersAndGroups = {
 		);
 		userElement.data('userId', user.id);
 
-		// if (group) {
-		//
-		// 	userElement.append('<i title="Remove user \'' + userName + '\' from group \'' + group.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.user_delete_icon) + '" />');
-		//
-		// 	$('.delete_icon', userElement).on('click', function(e) {
-		// 		e.stopPropagation();
-		// 		Command.removeFromCollection(group.id, 'members', user.id, function () {
-		// 			_UsersAndGroups.deactivateNodeHover(user.id, '.userid_');
-		// 		});
-		// 	});
-		//
-		// } else {
-		//
-		// 	userElement.append('<i title="Delete user \'' + userName + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
-		//
-		// 	$('.delete_icon', userElement).on('click', function(e) {
-		// 		e.stopPropagation();
-		// 		_UsersAndGroups.deleteUser(this, user);
-		// 	});
-		// }
-
 		_UsersAndGroups.makeDraggable(userElement);
 
 		return userElement;
 	},
 	appendUserToUserList: function (user) {
 
-		if (!_Security.userList || !_Security.userList.is(':visible')) {
-			return;
-		}
-
-		var userDiv = _UsersAndGroups.createUserElement(user);
+		let userDiv = _UsersAndGroups.createUserElement(user);
 		$('.typeIcon', userDiv).removeClass('typeIcon-nochildren');
 
-		_Security.userList.append(userDiv);
+		_Security.userList.appendChild(userDiv[0]);
 
 		_Entities.appendEditPropertiesIcon(userDiv, user);
 		_Elements.enableContextMenuOnElement(userDiv, user);
@@ -366,34 +334,29 @@ var _UsersAndGroups = {
 	deleteUser: function(button, user) {
 		_Entities.deleteNode(button, user);
 	},
-	refreshGroups: function() {
+	refreshGroups: async () => {
 
-		Structr.fetchHtmlTemplate('security/button.group.new', {}, function (html) {
+		let types = await _Schema.getDerivedTypes('org.structr.dynamic.Group', []);
 
-			_Security.groupList.empty();
-			_Security.groupControls.empty();
-			_Security.groupControls.append(html);
+		Structr.fetchHtmlTemplate('security/button.group.new', { types: types }, function (html) {
 
-			$('.add_group_icon', _Security.groupControls).on('click', function(e) {
-				e.stopPropagation();
-				return Command.create({type: $('select#group-type').val()});
+			_Security.groupList.innerHTML     = '';
+			_Security.groupControls.innerHTML = html;
+
+			let groupTypeSelect = document.querySelector('select#group-type');
+			let addGroupButton  = document.getElementById('add-group-button');
+
+			addGroupButton.addEventListener('click', (e) => {
+				Command.create({ type: groupTypeSelect.value });
 			});
 
-			$('select#group-type').on('change', function() {
-				$('#add-group-button', _Security.groupControls).find('span').text('Add ' + $(this).val());
+			groupTypeSelect.addEventListener('change', () => {
+				addGroupButton.querySelector('span').textContent = 'Add ' + groupTypeSelect.value;
 			});
 
-			// list types that extend User
-			_Schema.getDerivedTypes('org.structr.dynamic.Group', [], function(types) {
-				var elem = $('select#group-type');
-				types.forEach(function(type) {
-					elem.append('<option value="' + type + '">' + type + '</option>');
-				});
-			});
-
-			var groupPager = _Pager.addPager('groups', _Security.groupControls, true, 'Group', 'public');
+			let groupPager = _Pager.addPager('groups', $(_Security.groupControls), true, 'Group', 'public');
 			groupPager.cleanupFunction = function () {
-				$('.node', _Security.groupList).remove();
+				_Security.groupList.innerHTML = '';
 			};
 			groupPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
 			groupPager.activateFilterElements();

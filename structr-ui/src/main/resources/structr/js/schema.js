@@ -4284,17 +4284,21 @@ console.warn(layoutJSON)
 			});
 		}
 	},
-	getDerivedTypes: function(baseType, blacklist, callback) {
+	getDerivedTypes: async (baseType, blacklist) => {
 
 		// baseType is FQCN
-		$.get(rootUrl + '_schema', function(data) {
+		let response = await fetch(rootUrl + '_schema');
 
-			var result    = data.result;
-			var fileTypes = [];
-			var depth     = 5;
-			var types     = {};
+		if (response.ok) {
 
-			var collect = function(list, type) {
+			let data = await response.json();
+
+			let result    = data.result;
+			let fileTypes = [];
+			let depth     = 5;
+			let types     = {};
+
+			let collect = function(list, type) {
 
 				list.forEach(function(n) {
 
@@ -4313,7 +4317,7 @@ console.warn(layoutJSON)
 
 			collect(result, baseType);
 
-			for (var i=0; i<depth; i++) {
+			for (let i=0; i<depth; i++) {
 
 				fileTypes.forEach(function(type) {
 
@@ -4321,10 +4325,11 @@ console.warn(layoutJSON)
 				});
 			}
 
-			if (callback && typeof callback === 'function') {
-				callback(Object.keys(types));
-			}
-		});
+			return Object.keys(types);
+
+		} else {
+			return [];
+		}
 	},
 	ui: {
 		showInheritance: true,

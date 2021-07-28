@@ -746,7 +746,7 @@ let _Pages = {
 			}
 
 			let pagesPager = $('#pagesPager');
-			let pPager     = _Pager.addPager('pages', pagesPager, true, 'Page', null);
+			let pPager     = _Pager.addPager('pages', pagesPager, true, 'Page', null, null, null, null, true);
 
 			pPager.cleanupFunction = function () {
 				fastRemoveAllChildren(_Pages.pagesTree[0]);
@@ -1276,7 +1276,7 @@ let _Pages = {
 
 	registerDetailClickHandler: (element, entity) => {
 
-		if (element.data('clickhandlerSet') !== true) {
+		if (Structr.getActiveModule() === _Pages && element.data('clickhandlerSet') !== true) {
 
 			element.data('clickhandlerSet', true);
 

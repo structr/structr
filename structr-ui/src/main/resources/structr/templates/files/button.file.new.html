@@ -3,6 +3,7 @@
 	<div class="select-and-button">
 		<select class="select-create-type" id="folder-type">
 			<option value="Folder">Folder</option>
+			${config.folderTypes.map(type => '<option value="' + type + '">' + type + '</option>').join('')}
 		</select>
 		<button class="action add_folder_icon button" id="add-folder-button">
 			<i title="Add Folder" class="${_Icons.getFullSpriteClass(_Icons.add_folder_icon)}"></i>
@@ -13,6 +14,7 @@
 	<div class="select-and-button">
 		<select class="select-create-type" id="file-type">
 			<option value="File">File</option>
+			${config.fileTypes.map(type => '<option value="' + type + '">' + type + '</option>').join('')}
 		</select>
 		<button class="action add_file_icon button" id="add-file-button">
 			<i title="Add File" class="${_Icons.getFullSpriteClass(_Icons.add_file_icon)}"></i>

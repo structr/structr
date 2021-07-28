@@ -100,9 +100,9 @@ var _Pager = {
 
 		return false;
 	},
-	addPager: function (id, el, rootOnly, type, view, callback, optionalTransportFunction, customView) {
+	addPager: function (id, el, rootOnly, type, view, callback, optionalTransportFunction, customView, prepend) {
 
-		let pager = new Pager(id, el, rootOnly, type, view, callback);
+		let pager = new Pager(id, el, rootOnly, type, view, callback, prepend);
 
 		pager.transportFunction = function() {
 			let filterAttrs = pager.getNonEmptyFilterAttributes();
@@ -129,7 +129,7 @@ var _Pager = {
 	}
 };
 
-var Pager = function (id, el, rootOnly, type, view, callback) {
+var Pager = function (id, el, rootOnly, type, view, callback, prepend) {
 
 	var pagerObj = this;
 
@@ -179,21 +179,27 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 
 		_Pager.restorePagerData(this.id);
 
-		this.el.prepend('<div class="pager pager' + this.id + '" style="clear: both">'
-				+ '<i class="pageLeft fa fa-angle-left"></i>'
-				+ '<span class="pageWrapper">'
-					+ '<input class="pageNo" value="' + page[this.id] + '">'
-					+ '<span class="of">of</span>'
-					+ '<input readonly="readonly" class="readonly pageCount" type="text" size="2">'
-				+ '</span>'
-				+ '<i class="pageRight fa fa-angle-right"></i>'
-				+ ' Items: <select class="pageSize">'
-				+ '<option' + (pageSize[this.id] === 5 ? ' selected' : '') + '>5</option>'
-				+ '<option' + (pageSize[this.id] === 10 ? ' selected' : '') + '>10</option>'
-				+ '<option' + (pageSize[this.id] === 25 ? ' selected' : '') + '>25</option>'
-				+ '<option' + (pageSize[this.id] === 50 ? ' selected' : '') + '>50</option>'
-				+ '<option' + (pageSize[this.id] === 100 ? ' selected' : '') + '>100</option>'
-				+ '</select></div>');
+		let pagerHtml = '<div class="pager pager' + this.id + '" style="clear: both">'
+			+ '<i class="pageLeft fa fa-angle-left"></i>'
+			+ '<span class="pageWrapper">'
+			+ '<input class="pageNo" value="' + page[this.id] + '">'
+			+ '<span class="of">of</span>'
+			+ '<input readonly="readonly" class="readonly pageCount" type="text" size="2">'
+			+ '</span>'
+			+ '<i class="pageRight fa fa-angle-right"></i>'
+			+ ' Items: <select class="pageSize">'
+			+ '<option' + (pageSize[this.id] === 5 ? ' selected' : '') + '>5</option>'
+			+ '<option' + (pageSize[this.id] === 10 ? ' selected' : '') + '>10</option>'
+			+ '<option' + (pageSize[this.id] === 25 ? ' selected' : '') + '>25</option>'
+			+ '<option' + (pageSize[this.id] === 50 ? ' selected' : '') + '>50</option>'
+			+ '<option' + (pageSize[this.id] === 100 ? ' selected' : '') + '>100</option>'
+			+ '</select></div>';
+
+		if (prepend === true) {
+			this.el.prepend(pagerHtml);
+		} else {
+			this.el.append(pagerHtml);
+		}
 
 		this.pager = $('.pager' + this.id, this.el);
 
@@ -211,7 +217,7 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 		});
 
 		let limitPager = function(inputEl) {
-			let val = $(inputEl).val();
+			let val = parseInt($(inputEl).val());
 			if (val < 1 || val > pageCount[pagerObj.id]) {
 				$(inputEl).val(page[pagerObj.id]);
 			} else {
@@ -227,7 +233,7 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 			}
 		});
 
-		this.pageNo.on('blur', function(e) {
+		this.pageNo.on('change', function(e) {
 			if (e.target.classList.contains('disabled')) return;
 			limitPager(this);
 		});
@@ -259,8 +265,6 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 	 */
 	this.updatePager = function() {
 
-		//console.log(pageCount[this.id]);
-
 		if (page[this.id] === 1) {
 			this.pageLeft.attr('disabled', 'disabled').addClass('disabled');
 		} else {
@@ -286,7 +290,7 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 	 * Gets called whenever a change has been made (i.e. button has been pressed)
 	 */
 	this.updatePagerElements = function () {
-		$('.pageNo', this.pager).val(page[this.id]);
+		$('.pageNo',   this.pager).val(page[this.id]);
 		$('.pageSize', this.pager).val(pageSize[this.id]);
 
 		this.cleanupFunction();
