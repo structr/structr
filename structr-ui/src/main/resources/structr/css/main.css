@@ -1700,6 +1700,11 @@ button.action.disabled:hover {
 	min-width: 200px;
 }
 
+.security-container button.switch {
+	min-width: 14rem;
+	margin: .5rem 1rem 0 0;
+}
+
 .schema-props tbody tr:nth-child(odd),
 .schema-props .fake-tbody .fake-tr:nth-child(odd) {
 	background-color: var(--light-gray-bg-f6);
