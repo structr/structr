@@ -89,12 +89,13 @@ let _Dashboard = {
 			    meData.result = meData.result[0];
 			}
 			templateConfig.meObj = meData.result;
-			let deployResponse = await fetch('/structr/deploy');
+			let deployResponse = await fetch('/structr/deploy?mode=test');
 
-			templateConfig.deployServletAvailable = (deployResponse.status !== 404);
+			templateConfig.deployServletAvailable = (deployResponse.status == 200);
 
-			templateConfig.zipExportPrefix          = LSWrapper.getItem(_Dashboard.deployment.zipExportPrefixKey);
-			templateConfig.zipExportAppendTimestamp = LSWrapper.getItem(_Dashboard.deployment.zipExportAppendTimestampKey, true);
+			templateConfig.zipExportPrefix              = LSWrapper.getItem(_Dashboard.deployment.zipExportPrefixKey);
+			templateConfig.zipExportAppendTimestamp     = LSWrapper.getItem(_Dashboard.deployment.zipExportAppendTimestampKey, true);
+			templateConfig.zipDataExportAppendTimestamp = LSWrapper.getItem(_Dashboard.deployment.zipDataExportAppendTimestamp, true);
 
 			Structr.fetchHtmlTemplate('dashboard/dashboard', templateConfig, function(html) {
 
@@ -420,40 +421,64 @@ let _Dashboard = {
 	},
 
 	deployment: {
-    	zipExportPrefixKey: 'zipExportPrefix' + port,
-        zipExportAppendTimestampKey: 'zipExportAppendTimestamp' + port,
+    	zipExportPrefixKey:              'zipExportPrefix' + port,
+		zipDataExportPrefixKey:          'zipDataExportPrefix' + port,
+        zipExportAppendTimestampKey:     'zipExportAppendTimestamp' + port,
+		zipDataExportAppendTimestampKey: 'zipDataExportAppendTimestamp' + port,
 
         init: () => {
+
+    		// App Import
+
             $('button#do-app-import').on('click', function() {
                 _Dashboard.deployment.deploy('import', $('#deployment-source-input').val());
             });
+
+			$('button#do-app-import-from-zip').on('click', function() {
+				let filesSelectField = document.getElementById('deployment-file-input');
+				if (filesSelectField && filesSelectField.files.length > 0) {
+					_Dashboard.deployment.deployFromZIPUpload($('#redirect-url').val(), filesSelectField);
+				} else {
+					_Dashboard.deployment.deployFromZIPURL($('#redirect-url').val(), $('#deployment-url-input').val());
+				}
+			});
+
+			// App Export
 
             $('button#do-app-export').on('click', function() {
                 _Dashboard.deployment.deploy('export', $('#app-export-target-input').val());
             });
 
-            $('button#do-app-import-from-zip').on('click', function() {
-            	let filesSelectField = document.getElementById('deployment-file-input');
-            	if (filesSelectField && filesSelectField.files.length > 0) {
-					_Dashboard.deployment.deployFromZIPUpload($('#redirect-url').val(), filesSelectField);
-				} else {
-					_Dashboard.deployment.deployFromZIPURL($('#redirect-url').val(), $('#deployment-url-input').val());
-				}
-            });
+			$('button#do-app-export-to-zip').on('click', function() {
+				_Dashboard.deployment.exportAsZip();
+			});
+
+
+            // Data Import
 
             $('button#do-data-import').on('click', function() {
                 _Dashboard.deployment.deployData('import', $('#data-import-source-input').val());
             });
 
+			$('button#do-data-import-from-zip').on('click', function() {
+				let filesSelectField = document.getElementById('data-deployment-file-input');
+				if (filesSelectField && filesSelectField.files.length > 0) {
+					_Dashboard.deployment.deployDataFromZIPUpload($('#redirect-url').val(), filesSelectField);
+				} else {
+					_Dashboard.deployment.deployDataFromZIPURL($('#redirect-url').val(), $('#data-deployment-url-input').val());
+				}
+			});
+
+			// Data Export
+
             $('button#do-data-export').on('click', function() {
                 _Dashboard.deployment.deployData('export', $('#data-export-target-input').val(), $('#data-export-types-input').val());
             });
 
-            $('button#do-app-export-to-zip').on('click', function() {
-                _Dashboard.deployment.exportAsZip();
-            });
+			$('button#do-data-export-to-zip').on('click', function() {
+				_Dashboard.deployment.exportDataAsZip();
+			});
 
-            let typesSelectElem = $('#data-export-types-input');
 
             Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isBuiltinType', function(nodes) {
 
@@ -470,23 +495,30 @@ let _Dashboard = {
 
                 if (customTypes.length > 0) {
 
-                    typesSelectElem.append(customTypes.reduce(function(html, node) {
-                        return html + '<option>' + node.name + '</option>';
-                    }, '<optgroup label="Custom Types">') + '</optgroup>');
+                    for (let typesSelectElemSelector of ['#data-export-types-input', '#zip-data-export-types-input']) {
+
+						let typesSelectElem = $(typesSelectElemSelector);
+
+						console.log(typesSelectElemSelector, typesSelectElem);
+
+						typesSelectElem.append(customTypes.reduce(function (html, node) {
+							return html + '<option>' + node.name + '</option>';
+						}, '<optgroup label="Custom Types">') + '</optgroup>');
+
+						typesSelectElem.append(builtinTypes.reduce(function(html, node) {
+							return html + '<option>' + node.name + '</option>';
+						}, '<optgroup label="Builtin Types">') + '</optgroup>');
+
+						typesSelectElem.chosen({
+							search_contains: true,
+							width: 'calc(100% - 2rem)',
+							display_selected_options: false,
+							hide_results_on_select: false,
+							display_disabled_options: false
+						}).chosenSortable();
+
+					}
                 }
-
-                typesSelectElem.append(builtinTypes.reduce(function(html, node) {
-                    return html + '<option>' + node.name + '</option>';
-                }, '<optgroup label="Builtin Types">') + '</optgroup>');
-
-
-                typesSelectElem.chosen({
-                    search_contains: true,
-                    width: 'calc(100% - 14px)',
-                    display_selected_options: false,
-                    hide_results_on_select: false,
-                    display_disabled_options: false
-                }).chosenSortable();
             });
 
         },
@@ -548,6 +580,33 @@ let _Dashboard = {
 
             window.location = '/structr/deploy?name=' + prefix;
         },
+		exportDataAsZip: function() {
+
+			let prefix = document.getElementById('zip-data-export-prefix').value;
+
+			let cleaned = prefix.replaceAll(/[^a-zA-Z0-9 _-]/g, '').trim();
+			if (cleaned !== prefix) {
+				new MessageBuilder().title('Cleaned prefix').info('The given filename prefix was changed to "' + cleaned + '".').requiresConfirmation().show();
+				prefix = cleaned;
+			}
+			LSWrapper.setItem(_Dashboard.deployment.zipDataExportPrefixKey, prefix);
+
+			let appendTimestamp = document.getElementById('zip-data-export-append-timestamp').checked;
+			LSWrapper.setItem(_Dashboard.deployment.zipDataExportAppendTimestampKey, appendTimestamp);
+
+			if (appendTimestamp) {
+
+				let zeroPad = (v) => {
+					return ((v < 10) ? '0' : '') + v;
+				};
+
+				let date = new Date();
+
+				prefix += '_' + date.getFullYear() + zeroPad(date.getMonth()+1) + zeroPad(date.getDate()) + '_' + zeroPad(date.getHours()) + zeroPad(date.getMinutes()) + zeroPad(date.getSeconds());
+			}
+
+			window.location = '/structr/deploy?mode=data&name=' + prefix + '&types=' + $('#zip-data-export-types-input').val().join(',');
+		},
         deployFromZIPURL: function(redirectUrl, downloadUrl) {
 
             if (!(downloadUrl && downloadUrl.length)) {
@@ -558,6 +617,7 @@ let _Dashboard = {
             let data = new FormData();
             data.append('redirectUrl', redirectUrl);
             data.append('downloadUrl', downloadUrl);
+			data.append('mode', 'app');
 
             $.ajax({
                 url: '/structr/deploy',
@@ -572,6 +632,31 @@ let _Dashboard = {
                 }
             });
         },
+		deployDataFromZIPURL: function(redirectUrl, downloadUrl) {
+
+			if (!(downloadUrl && downloadUrl.length)) {
+				new MessageBuilder().title('Unable to start data import from URL').warning('Please enter a URL or upload a ZIP file containing the ddata.').requiresConfirmation().show();
+				return;
+			}
+
+			let data = new FormData();
+			data.append('redirectUrl', redirectUrl);
+			data.append('downloadUrl', downloadUrl);
+			data.append('mode', 'data');
+
+			$.ajax({
+				url: '/structr/deploy',
+				method: 'POST',
+				processData: false,
+				contentType: false,
+				data: data,
+				statusCode: {
+					400: function(data) {
+						new MessageBuilder().title('Unable to import app from URL').warning(data.responseText).requiresConfirmation().show();
+					}
+				}
+			});
+		},
 		deployFromZIPUpload: function(redirectUrl, filesSelectField) {
 
 			if (!(filesSelectField && filesSelectField.files.length)) {
@@ -581,6 +666,7 @@ let _Dashboard = {
 
 			let data = new FormData();
 			data.append('redirectUrl', redirectUrl);
+			data.append('mode', 'app');
 			data.append('file', filesSelectField.files[0]);
 
 			$.ajax({
@@ -592,6 +678,31 @@ let _Dashboard = {
 				statusCode: {
 					400: function(data) {
 						new MessageBuilder().title('Unable to import app from URL').warning(data.responseText).requiresConfirmation().show();
+					}
+				}
+			});
+		},
+		deployDataFromZIPUpload: function(redirectUrl, filesSelectField) {
+
+			if (!(filesSelectField && filesSelectField.files.length)) {
+				new MessageBuilder().title('Unable to start data import from ZIP file').warning('Please select a ZIP file containing the data for upload.').requiresConfirmation().show();
+				return;
+			}
+
+			let data = new FormData();
+			data.append('file', filesSelectField.files[0]);
+			data.append('redirectUrl', redirectUrl);
+			data.append('mode', 'data');
+
+			$.ajax({
+				url: '/structr/deploy',
+				method: 'POST',
+				processData: false,
+				contentType: false,
+				data: data,
+				statusCode: {
+					400: function(data) {
+						new MessageBuilder().title('Unable to import data from URL').warning(data.responseText).requiresConfirmation().show();
 					}
 				}
 			});

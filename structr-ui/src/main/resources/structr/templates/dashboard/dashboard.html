@@ -32,69 +32,80 @@
 
         <div class="tab-content" id="dashboard-deployment">
 
-            <table>
-                <tr>
-                    <td><h2>Application Import</h2></td>
-                    <td><h2>Application Export</h2></td>
-                </tr>
-                <tr>
-                    <td>
-                        <h3>Import application from local directory</h3>
-                        <div>
-                            <input type="text" id="deployment-source-input" placeholder="Local directory path for app import"><br>
-                            <button class="action" id="do-app-import">Import from local directory</button>
-                        </div>
+            <input type="hidden" id="redirect-url" value="${window.location.href}">
 
-                        <h3>Import application from URL or upload a ZIP file</h3>
-                        ${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Deployment via URL is not possible because <code>DeployServlet</code> is not running.</span>')}
-                        <div>
-                            <input type="hidden" id="redirect-url" value="${window.location.href}">
-                            <input type="text" id="deployment-url-input" placeholder="Download URL of ZIP file for app import" name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}>
-                            <input type="file" id="deployment-file-input" placeholder="Upload ZIP file" ${(config.deployServletAvailable ? '' : 'disabled')}><br>
-                            <button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-import-from-zip">Import app from ZIP file</button>
-                        </div>
-                    </td>
-                    <td>
-                        <h3>Export application to local directory</h3>
-                        <div>
-                            <input type="text" id="app-export-target-input" placeholder="Local directory path for app export"><br>
-                            <button class="action" id="do-app-export">Export app to local directory</button>
-                        </div>
-                        <h3>Export application and download as ZIP file</h3>
-                        ${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Export and download as ZIP file is not possible because <code>DeployServlet</code> is not running.</span>')}
-                        <div>
-                            <input type="text" id="zip-export-prefix" placeholder="ZIP File prefix" ${(config.deployServletAvailable ? '' : 'disabled')} value="${(config.zipExportPrefix || 'webapp')}"><br>
-                            <label class="checkbox-label"><input type="checkbox" id="zip-export-append-timestamp" ${(config.deployServletAvailable ? '' : 'disabled')} ${(config.zipExportAppendTimestamp ? 'checked' : '')}> Append timestamp</label>
-                            <button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-export-to-zip">Export and download app as ZIP file</button>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2"><hr></td>
-                </tr>
+            <div class="dashboard-grid-wrapper">
+                <div class="dashboard-grid-row"><h2>Application Import and Export</h2></div>
+                <div>
+                    <h3>Application import from server directory</h3>
+                    <div>
+                        <input type="text" id="deployment-source-input" placeholder="Server directory path for app import"><br>
+                        <button class="action" id="do-app-import">Import app from server directory</button>
+                    </div>
+                </div>
+                <div>
+                    <h3>Application export to server directory</h3>
+                    <div>
+                        <input type="text" id="app-export-target-input" placeholder="Server directory path for app export"><br>
+                        <button class="action" id="do-app-export">Export app to server directory</button>
+                    </div>
+                </div>
+                <div>
+                    <h3>Application import from URL or upload a ZIP file</h3>
+                    ${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Deployment via URL is not possible because <code>DeployServlet</code> is not running.</span>')}
+                    <div>
+                        <input type="text" id="deployment-url-input" placeholder="Download URL of ZIP file for app import" name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}>
+                        <input type="file" id="deployment-file-input" placeholder="Upload ZIP file" ${(config.deployServletAvailable ? '' : 'disabled')}><br>
+                        <button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-import-from-zip">Import app from ZIP file</button>
+                    </div>
+                </div>
+                <div>
+                    <h3>Application import and download as ZIP file</h3>
+                    ${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Export and download as ZIP file is not possible because <code>DeployServlet</code> is not running.</span>')}
+                    <div>
+                        <input type="text" id="zip-export-prefix" placeholder="ZIP File prefix" ${(config.deployServletAvailable ? '' : 'disabled')} value="${(config.zipExportPrefix || 'webapp')}"><br>
+                        <label class="checkbox-label"><input type="checkbox" id="zip-export-append-timestamp" ${(config.deployServletAvailable ? '' : 'disabled')} ${(config.zipExportAppendTimestamp ? 'checked' : '')}> Append timestamp</label>
+                        <button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-export-to-zip">Export and download app as ZIP file</button>
+                    </div>
+                </div>
+                <div class="dashboard-grid-row"><hr></div>
+                <div class="dashboard-grid-row"><h2>Data Import and Export</h2></div>
+                <div>
+                    <h3>Data import from server directory</h3>
+                    <div>
+                        <input type="text" id="data-import-source-input" placeholder="Local directory path for data import"><br>
+                        <button class="action" id="do-data-import">Import data from server directory</button>
+                    </div>
+                </div>
+                <div>
+                    <h3>Data export to server directory</h3>
+                    <div>
+                        <input type="text" id="data-export-target-input" placeholder="Server directory path for data export"><br>
+                        <select id="data-export-types-input" class="chosen-sortable" data-placeholder="Please select data type(s) to export" multiple="multiple"></select><br>
+                        <button class="action" id="do-data-export">Export data to server directory</button>
+                    </div>
 
-                <tr>
-                    <td><h2>Data Import</h2></td>
-                    <td><h2>Data Export</h2></td>
-                </tr>
-                <tr>
-                    <td>
-                        <h3>Import data from local directory</h3>
-                        <div>
-                            <input type="text" id="data-import-source-input" placeholder="Local directory path for data import"><br>
-                            <button class="action" id="do-data-import">Import data from local directory</button>
-                        </div>
-                    </td>
-                    <td>
-                        <h3>Export data to local directory</h3>
-                        <div>
-                            <input type="text" id="data-export-target-input" placeholder="Local directory path for data export"><br>
-                            <select id="data-export-types-input" class="chosen-sortable" data-placeholder="Please select data type(s) to export" multiple="multiple"></select><br>
-                            <button class="action" id="do-data-export">Export data to local directory</button>
-                        </div>
-                    </td>
-                </tr>
-            </table>
+                </div>
+                <div>
+                    <h3>Import data from URL or upload a ZIP file</h3>
+                    ${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Deployment via URL is not possible because <code>DeployServlet</code> is not running.</span>')}
+                    <div>
+                        <input type="text" id="data-deployment-url-input" placeholder="Download URL of ZIP file for data import" name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}>
+                        <input type="file" id="data-deployment-file-input" placeholder="Upload ZIP file" ${(config.deployServletAvailable ? '' : 'disabled')}><br>
+                        <button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-data-import-from-zip">Import data from ZIP file</button>
+                    </div>
+                </div>
+                <div>
+                    <h3>Export data and download as ZIP file</h3>
+                    ${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Export and download data as ZIP file is not possible because <code>DeployServlet</code> is not running.</span>')}
+                    <div>
+                        <input type="text" id="zip-data-export-prefix" placeholder="ZIP file prefix" ${(config.deployServletAvailable ? '' : 'disabled')} value="${(config.zipDataExportPrefix || 'data')}"><br>
+                        <select id="zip-data-export-types-input" class="chosen-sortable" data-placeholder="Please select data type(s) to export" multiple="multiple"></select><br>
+                        <label class="checkbox-label"><input type="checkbox" id="zip-data-export-append-timestamp" ${(config.deployServletAvailable ? '' : 'disabled')} ${(config.zipDataExportAppendTimestamp ? 'checked' : '')}> Append timestamp</label>
+                        <button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-data-export-to-zip">Export and download data as ZIP file</button>
+                    </div>
+                </div>
+            </div>
 
         </div>
 
