@@ -29,7 +29,6 @@ public class ApplicationStoreDeleteFunction extends UiAdvancedFunction {
 	public static final String ERROR_MESSAGE_APPLICATION_STORE_DELETE    = "Usage: ${application_store_delete(key)}. Example: ${application_store_delete(\"do_no_track\")}";
 	public static final String ERROR_MESSAGE_APPLICATION_STORE_DELETE_JS = "Usage: ${{Structr.application_store_delete(key)}}. Example: ${{Structr.application_store_delete(\"do_not_track\")}}";
 
-
 	@Override
 	public String getName() {
 		return "application_store_delete";
@@ -42,12 +41,15 @@ public class ApplicationStoreDeleteFunction extends UiAdvancedFunction {
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+
 		try {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
-			Services.getInstance().applicationStoreDelete(sources[0].toString());
+
+			Services.getInstance().getApplicationStore().remove(sources[0].toString());
 
 			return null;
+
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
@@ -56,7 +58,7 @@ public class ApplicationStoreDeleteFunction extends UiAdvancedFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 
@@ -69,8 +71,4 @@ public class ApplicationStoreDeleteFunction extends UiAdvancedFunction {
 	public String shortDescription() {
 		return "Removes a stored value from the application level store.";
 	}
-
-
-
-
 }

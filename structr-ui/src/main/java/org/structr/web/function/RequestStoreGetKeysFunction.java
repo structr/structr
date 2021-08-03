@@ -18,55 +18,39 @@
  */
 package org.structr.web.function;
 
-import org.structr.common.error.ArgumentCountException;
-import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.schema.action.ActionContext;
 
-public class ApplicationStoreGetFunction extends UiAdvancedFunction {
+public class RequestStoreGetKeysFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET    = "Usage: ${application_store_get(key)}. Example: ${application_store_get(\"do_no_track\")}";
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET_JS = "Usage: ${{ $.application_store_get(key); }}. Example: ${{ $.application_store_get(\"do_not_track\"); }}";
+	public static final String ERROR_MESSAGE_REQUEST_STORE_GET_KEYS    = "Usage: ${request_store_get_keys()}. Example: ${request_store_get_keys()}";
+	public static final String ERROR_MESSAGE_REQUEST_STORE_GET_KEYS_JS = "Usage: ${{ $.request_store_get_keys(); }}. Example: ${{ $.request_store_get_keys(); }}";
+
 
 	@Override
 	public String getName() {
-		return "application_store_get";
+		return "request_store_get_keys";
 	}
 
 	@Override
 	public String getSignature() {
-		return "key";
+		return "";
 	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		try {
-
-			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
-
-			return Services.getInstance().getApplicationStore().get(sources[0].toString());
-
-		} catch (ArgumentNullException pe) {
-
-			// silently ignore null arguments
-			return null;
-
-		} catch (ArgumentCountException pe) {
-
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return null;
-		}
+		return ctx.getRequestStore().keySet();
 	}
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_APPLICATION_STORE_GET_JS : ERROR_MESSAGE_APPLICATION_STORE_GET);
+		return (inJavaScriptContext ? ERROR_MESSAGE_REQUEST_STORE_GET_KEYS_JS : ERROR_MESSAGE_REQUEST_STORE_GET_KEYS);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Retrieves a stored value from the application level store.";
+		return "Lists all keys stored in the request level store.";
 	}
 }

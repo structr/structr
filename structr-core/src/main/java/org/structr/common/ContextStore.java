@@ -110,7 +110,7 @@ public class ContextStore {
 
 		if (tmpParameters.containsKey(key)) {
 			
-			logger.info("Function store() was called for key \"" + key + "\", which is already used in the current context by a method parameter and won't be accessible.");
+			logger.info("Function store() was called for key \"" + key + "\", which is already used in the current context by a method parameter and won't be accessible. Consider using $.requestStore / request_store_put() to store data in the request context.");
 		}
 
 		requestStore.put(key, value);
@@ -121,6 +121,7 @@ public class ContextStore {
 		if (tmpParameters.containsKey(key)) {
 			return tmpParameters.get(key);
 		}
+
 		return requestStore.get(key);
 	}
 
