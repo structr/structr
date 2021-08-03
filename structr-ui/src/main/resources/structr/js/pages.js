@@ -314,7 +314,10 @@ let _Pages = {
 			});
 		}
 
-		if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page')) {
+		let hasParentAndParentIsNotPage = (entity.parent && entity.parent.type !== 'Page');
+		let parentIsShadowPage          = (entity.parent === null && entity.pageId === _Pages.shadowPage.id);
+
+		if (!isPage && hasParentAndParentIsNotPage || parentIsShadowPage) {
 
 			elements.push({
 				name: 'Clone Node',
@@ -323,6 +326,11 @@ let _Pages = {
 					return false;
 				}
 			});
+
+			_Elements.appendContextMenuSeparator(elements);
+		}
+
+		if (!isPage && hasParentAndParentIsNotPage) {
 
 			_Elements.appendContextMenuSeparator(elements);
 
@@ -398,12 +406,12 @@ let _Pages = {
 
 		if (!isContent && _Elements.selectedEntity && _Elements.selectedEntity.id !== entity.id) {
 
-			var isSamePage = _Elements.selectedEntity.pageId === entity.pageId;
-			var isThisEntityDirectParentOfSelectedEntity = (_Elements.selectedEntity.parent && _Elements.selectedEntity.parent.id === entity.id);
-			var isSelectedEntityInShadowPage = _Elements.selectedEntity.pageId === _Pages.shadowPage.id;
-			var isSelectedEntitySharedComponent = isSelectedEntityInShadowPage && !_Elements.selectedEntity.parent;
+			let isSamePage = _Elements.selectedEntity.pageId === entity.pageId;
+			let isThisEntityDirectParentOfSelectedEntity = (_Elements.selectedEntity.parent && _Elements.selectedEntity.parent.id === entity.id);
+			let isSelectedEntityInShadowPage = _Elements.selectedEntity.pageId === _Pages.shadowPage.id;
+			let isSelectedEntitySharedComponent = isSelectedEntityInShadowPage && !_Elements.selectedEntity.parent;
 
-			var isDescendantOfSelectedEntity = function (possibleDescendant) {
+			let isDescendantOfSelectedEntity = function (possibleDescendant) {
 				if (possibleDescendant.parent) {
 					if (possibleDescendant.parent.id === _Elements.selectedEntity.id) {
 						return true;
