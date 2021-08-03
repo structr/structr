@@ -247,6 +247,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	public static boolean isDeploymentActive() {
+		return deploymentActive.get();
+	}
+
 	protected void doImport(final Map<String, Object> attributes) throws FrameworkException {
 
 		// backup previous value of change log setting and disable during deployment

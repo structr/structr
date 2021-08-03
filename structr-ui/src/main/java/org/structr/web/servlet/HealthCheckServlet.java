@@ -4,19 +4,19 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as
+ * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.servlet;
+package org.structr.web.servlet;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
-import java.text.MessageFormat;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -42,6 +41,9 @@ import org.structr.api.config.Settings;
 import org.structr.core.Services;
 import org.structr.rest.common.Stats;
 import org.structr.rest.service.HttpService;
+import org.structr.rest.servlet.AbstractDataServlet;
+import org.structr.schema.SchemaService;
+import org.structr.web.maintenance.DeployCommand;
 
 /**
  * A servlet that implements the /health endpoint.
@@ -67,6 +69,19 @@ public class HealthCheckServlet extends AbstractDataServlet {
 
 		final String remoteAddress = request.getRemoteAddr();
 		if (remoteAddress != null) {
+
+			if (request.getPathInfo() != null && request.getPathInfo().equals("/ready")) {
+
+				if (DeployCommand.isDeploymentActive() || SchemaService.isCompiling()) {
+
+					response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+				} else {
+
+					response.setStatus(HttpServletResponse.SC_OK);
+				}
+
+				return;
+			}
 
 			final Set<String> wl = getWhitelistAddresses();
 			if (!wl.contains(remoteAddress)) {
