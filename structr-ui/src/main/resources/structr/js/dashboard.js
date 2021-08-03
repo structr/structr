@@ -123,8 +123,6 @@ let _Dashboard = {
 
 					document.querySelectorAll('#function-bar .tabs-menu li a').forEach(function(tabLink) {
 
-						// console.log(tabLink, tabLink.getAttribute('href'), '#' + mainModule + ':' + subModule);
-
 						tabLink.addEventListener('click', function(e) {
 							e.preventDefault();
 
@@ -498,8 +496,6 @@ let _Dashboard = {
                     for (let typesSelectElemSelector of ['#data-export-types-input', '#zip-data-export-types-input']) {
 
 						let typesSelectElem = $(typesSelectElemSelector);
-
-						console.log(typesSelectElemSelector, typesSelectElem);
 
 						typesSelectElem.append(customTypes.reduce(function (html, node) {
 							return html + '<option>' + node.name + '</option>';

@@ -51,19 +51,19 @@ var _Entities = {
 		buttonClicked = button;
 		if ( !Structr.isButtonDisabled(button) ) {
 
-			let confirmationText = '<p>Delete the following objects' + (recursive ? ' (all folders recursively) ' : '') + '?</p>\n';
+			let confirmationHtml = '<p>Delete the following objects' + (recursive ? ' (all folders recursively) ' : '') + '?</p>';
 
 			let nodeIds = [];
 
 			for (let entity of entities) {
 
-				confirmationText += '' + entity.name + ' [' + entity.id + ']<br>';
+				confirmationHtml += '<strong>' + entity.name + '</strong> [' + entity.id + ']<br>';
 				nodeIds.push(entity.id);
 			}
 
-			confirmationText += '<br>';
+			confirmationHtml += '<br>';
 
-			Structr.confirmation(confirmationText,
+			Structr.confirmation(confirmationHtml,
 				function() {
 
 					Command.deleteNodes(nodeIds, recursive);
@@ -79,7 +79,7 @@ var _Entities = {
 	deleteNode: function(button, entity, recursive, callback) {
 		buttonClicked = button;
 		if ( !Structr.isButtonDisabled(button) ) {
-			Structr.confirmation('<p>Delete ' + entity.type + ' ' + (entity.name || '') + ' ' + entity.id + '' + (recursive ? ' recursively' : '') + '?</p>',
+			Structr.confirmation('<p>Delete ' + entity.type + ' <strong>' + (entity.name || '') + '</strong> [' + entity.id + ']' + (recursive ? ' recursively' : '') + '?</p>',
 				function() {
 					Command.deleteNode(entity.id, recursive);
 					$.unblockUI({
@@ -111,22 +111,22 @@ var _Entities = {
 		}
 
 	},
-	showSyncDialog: function(source, target) {
-		Structr.dialog('Sync between ' + source.id + ' and ' + target.id, function() {
-			return true;
-		}, function() {
-			return true;
-		});
-
-		dialog.append('<div><input type="radio" name="syncMode" value="none"><label for="unidir">None</label></div>');
-		dialog.append('<div><input type="radio" name="syncMode" value="unidir"><label for="unidir">Uni-directional (primary/secondary)</label></div>');
-		dialog.append('<div><input type="radio" name="syncMode" value="bidir"><label for="unidir">Bi-directional</label></div>');
-
-		$('input[name=syncMode]:radio', dialog).on('change', function() {
-			Command.setSyncMode(source.id, target.id, $(this).val());
-		});
-
-	},
+	// showSyncDialog: function(source, target) {
+	// 	Structr.dialog('Sync between ' + source.id + ' and ' + target.id, function() {
+	// 		return true;
+	// 	}, function() {
+	// 		return true;
+	// 	});
+	//
+	// 	dialog.append('<div><input type="radio" name="syncMode" value="none"><label for="unidir">None</label></div>');
+	// 	dialog.append('<div><input type="radio" name="syncMode" value="unidir"><label for="unidir">Uni-directional (primary/secondary)</label></div>');
+	// 	dialog.append('<div><input type="radio" name="syncMode" value="bidir"><label for="unidir">Bi-directional</label></div>');
+	//
+	// 	$('input[name=syncMode]:radio', dialog).on('change', function() {
+	// 		Command.setSyncMode(source.id, target.id, $(this).val());
+	// 	});
+	//
+	// },
 	dataBindingDialog: function(entity, el, typeInfo) {
 
 		Structr.fetchHtmlTemplate('entities/events', { entity: entity }, function (html) {
@@ -521,13 +521,13 @@ var _Entities = {
 
 		_Entities.appendSchemaHint($('.key:last', el), key, typeInfo);
 	},
-	appendRowWithBooleanSwitch: function (entity, el, key, label, text, typeInfo) {
-		el.append('<tr><td class="key">' + label + '</td><td class="value"></td><td></td></tr>');
-
-		_Entities.appendBooleanSwitch($('tr:last .value', el), entity, key, '', text);
-
-		_Entities.appendSchemaHint($('.key:last', el), key, typeInfo);
-	},
+	// appendRowWithBooleanSwitch: function (entity, el, key, label, text, typeInfo) {
+	// 	el.append('<tr><td class="key">' + label + '</td><td class="value"></td><td></td></tr>');
+	//
+	// 	_Entities.appendBooleanSwitch($('tr:last .value', el), entity, key, '', text);
+	//
+	// 	_Entities.appendSchemaHint($('.key:last', el), key, typeInfo);
+	// },
 	appendSchemaHint: function (el, key, typeInfo) {
 
 		if (typeInfo[key] && typeInfo[key].hint) {
@@ -539,9 +539,9 @@ var _Entities = {
 		}
 
 	},
-	queryDialog: function(entity, el) {
-		return _Entities.repeaterConfig(entity, el);
-	},
+	// queryDialog: function(entity, el) {
+	// 	return _Entities.repeaterConfig(entity, el);
+	// },
 	repeaterConfig: function(entity, el) {
 
 		let queryTypes = [
@@ -1008,10 +1008,10 @@ var _Entities = {
 
 									$('.inline-info', element).remove();
 
-									repeaterContainer = $('.repeater-container', element);
+									let repeaterContainer = $('.repeater-container', element);
 									repeaterContainer.removeClass('content-container');
 
-									_Entities.repeaterConfig(obj, $(repeaterContainer));
+									_Entities.repeaterConfig(obj, repeaterContainer);
 								});
 
 							}, function() { }, function() { });
