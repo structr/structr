@@ -24,14 +24,14 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.schema.action.ActionContext;
 
-public class ApplicationStoreGetFunction extends UiAdvancedFunction {
+public class RequestStoreDeleteFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET    = "Usage: ${application_store_get(key)}. Example: ${application_store_get(\"do_no_track\")}";
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET_JS = "Usage: ${{ $.application_store_get(key); }}. Example: ${{ $.application_store_get(\"do_not_track\"); }}";
+	public static final String ERROR_MESSAGE_REQUEST_STORE_DELETE    = "Usage: ${request_store_delete(key)}. Example: ${request_store_delete(\"do_no_track\")}";
+	public static final String ERROR_MESSAGE_REQUEST_STORE_DELETE_JS = "Usage: ${{ $.request_store_delete(key); }}. Example: ${{ $.request_store_delete(\"do_not_track\"); }}";
 
 	@Override
 	public String getName() {
-		return "application_store_get";
+		return "request_store_delete";
 	}
 
 	@Override
@@ -46,8 +46,10 @@ public class ApplicationStoreGetFunction extends UiAdvancedFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			return Services.getInstance().getApplicationStore().get(sources[0].toString());
+			ctx.getRequestStore().remove(sources[0].toString());
 
+			return null;
+			
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
@@ -62,11 +64,11 @@ public class ApplicationStoreGetFunction extends UiAdvancedFunction {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_APPLICATION_STORE_GET_JS : ERROR_MESSAGE_APPLICATION_STORE_GET);
+		return (inJavaScriptContext ? ERROR_MESSAGE_REQUEST_STORE_DELETE_JS : ERROR_MESSAGE_REQUEST_STORE_DELETE);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Retrieves a stored value from the application level store.";
+		return "Removes a stored value from the request level store.";
 	}
 }

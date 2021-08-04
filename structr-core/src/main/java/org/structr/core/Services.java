@@ -1143,26 +1143,6 @@ public class Services implements StructrServices {
 		return jvmIdentifier;
 	}
 
-	public Object applicationStoreGet(final String key) {
-		return applicationStore.get(key);
-	}
-
-	public boolean applicationStoreHas(final String key) {
-		return applicationStore.containsKey(key);
-	}
-
-	public Object applicationStorePut(final String key, final Object value) {
-		return applicationStore.put(key, value);
-	}
-
-	public void applicationStoreDelete(final String key) {
-		applicationStore.remove(key);
-	}
-
-	public Set<String> applicationStoreGetKeys() {
-		return applicationStore.keySet();
-	}
-
 	public Map<String, Object> getApplicationStore() {
 		return applicationStore;
 	}
@@ -1179,7 +1159,6 @@ public class Services implements StructrServices {
 
 			logger.error("Vital service {} failed to start, aborting.", service.getSimpleName() );
 			System.err.println("Vital service " + service.getSimpleName() + " failed to start, aborting.");
-
 		}
 
 		System.exit(1);

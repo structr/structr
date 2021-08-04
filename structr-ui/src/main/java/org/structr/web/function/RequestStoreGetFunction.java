@@ -24,14 +24,14 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.schema.action.ActionContext;
 
-public class ApplicationStoreGetFunction extends UiAdvancedFunction {
+public class RequestStoreGetFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET    = "Usage: ${application_store_get(key)}. Example: ${application_store_get(\"do_no_track\")}";
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET_JS = "Usage: ${{ $.application_store_get(key); }}. Example: ${{ $.application_store_get(\"do_not_track\"); }}";
+	public static final String ERROR_MESSAGE_REQUEST_STORE_GET    = "Usage: ${request_store_get(key)}. Example: ${request_store_get(\"do_no_track\")}";
+	public static final String ERROR_MESSAGE_REQUEST_STORE_GET_JS = "Usage: ${{ $.request_store_get(key); }}. Example: ${{ $.request_store_get(\"do_not_track\"); }}";
 
 	@Override
 	public String getName() {
-		return "application_store_get";
+		return "request_store_get";
 	}
 
 	@Override
@@ -41,12 +41,12 @@ public class ApplicationStoreGetFunction extends UiAdvancedFunction {
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
-
+		
 		try {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			return Services.getInstance().getApplicationStore().get(sources[0].toString());
+			return ctx.getRequestStore().get(sources[0].toString());
 
 		} catch (ArgumentNullException pe) {
 
@@ -62,11 +62,11 @@ public class ApplicationStoreGetFunction extends UiAdvancedFunction {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_APPLICATION_STORE_GET_JS : ERROR_MESSAGE_APPLICATION_STORE_GET);
+		return (inJavaScriptContext ? ERROR_MESSAGE_REQUEST_STORE_GET_JS : ERROR_MESSAGE_REQUEST_STORE_GET);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Retrieves a stored value from the application level store.";
+		return "Retrieves a stored value from the request level store.";
 	}
 }
