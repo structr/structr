@@ -1970,7 +1970,7 @@ var _Code = {
 		});
 
 	},
-	displaySchemaMethodContent: function(data, lastOpenTab, cursorInfo) {
+	displaySchemaMethodContent: function(data, lastOpenTab, cursorInfo, historyInfo) {
 
 		var identifier = _Code.splitIdentifier(data);
 
@@ -2004,6 +2004,10 @@ var _Code = {
 				if (cursorInfo && cursorInfo.line && cursorInfo.ch) {
 					sourceEditor.setCursor(cursorInfo);
 					sourceEditor.focus();
+				}
+
+				if (historyInfo) {
+					sourceEditor.setHistory(historyInfo);
 				}
 
 				sourceEditor.on('focus', function() {
@@ -2113,13 +2117,13 @@ var _Code = {
 
 						let afterSaveCallback = () => {
 							_Code.additionalDirtyChecks = [];
-							_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'), sourceEditor.getCursor());
+							_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'), sourceEditor.getCursor(), sourceEditor.getHistory());
 						};
 
 						_Code.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
 					};
 
-					var buttons = $('#method-buttons');
+					let buttons = $('#method-buttons');
 					buttons.prepend(html);
 
 					_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save method', _Code.runCurrentEntitySaveAction);
@@ -2127,7 +2131,6 @@ var _Code = {
 					_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
 						_Code.additionalDirtyChecks = [];
 						_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'), sourceEditor.getCursor());
-
 					});
 
 					// delete button
