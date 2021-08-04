@@ -156,6 +156,7 @@ var _Entities = {
 			let customEventInput    = $('#custom-event-input', el);
 			let customActionInput   = $('#custom-action-input', el);
 			let customTargetInput   = $('#custom-target-input', el);
+			let paginationNameInput = $('#pagination-name-input', el);
 
 			// event mapping selector
 			eventMappingSelect.select2({
@@ -233,6 +234,7 @@ var _Entities = {
 			customEventInput.on('change', function(e) { customEventInput.removeClass('required'); });
 			customActionInput.on('change', function(e) { customActionInput.removeClass('required'); });
 			customTargetInput.on('change', function(e) { customTargetInput.removeClass('required'); });
+			paginationNameInput.on('change', function(e) { paginationNameInput.removeClass('required'); });
 
 			Structr.activateCommentsInElement(el);
 
@@ -254,6 +256,14 @@ var _Entities = {
 
 						case 'delete':
 							id = 'options-delete-click';
+							break;
+
+						case 'previous-page':
+							id = 'options-prev-page-click';
+							break;
+
+						case 'next-page':
+							id = 'options-next-page-click';
 							break;
 
 						default:
@@ -310,6 +320,7 @@ var _Entities = {
 				methodTargetInput.val(entity['data-structr-target']);
 				updateTargetInput.val(entity['data-structr-target']);
 				customTargetInput.val(entity['data-structr-target']);
+				paginationNameInput.val(entity['data-structr-target']);
 
 				let reloadTargetValue = entity['data-structr-reload-target'];
 				if (reloadTargetValue) {
@@ -371,6 +382,7 @@ var _Entities = {
 					let customEvent    = customEventInput.val();
 					let customAction   = customActionInput.val();
 					let customTarget   = customTargetInput.val();
+					let paginationName = paginationNameInput.val();
 					let reloadTarget   = null;
 					let inputEl        = $(eventType);
 
@@ -446,6 +458,20 @@ var _Entities = {
 							} else {
 								Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to delete.', 'warning', 2000, 200);
 								deleteTargetInput.addClass('required');
+							}
+							break;
+
+						case 'options-next-page-click':
+						case 'options-prev-page-click':
+							if (paginationName) {
+								let paginationAction = 'next-page';
+								if (eventType === 'options-prev-page-click') { paginationAction = 'previous-page'; }
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "' + paginationAction + '" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  paginationName, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								Structr.showAndHideInfoBoxMessage('Please provide the name of the pagination request parameter.', 'warning', 2000, 200);
+								paginationNameInput.addClass('required');
 							}
 							break;
 
