@@ -2444,7 +2444,7 @@ var _TreeHelper = {
 		}, 500);
 	},
 	makeTreeElementDroppable: function(tree, id) {
-		var el = $('#' + id + ' > .jstree-wholerow', tree);
+		let el = $('#' + id + ' > .jstree-wholerow', tree);
 		_Dragndrop.makeDroppable(el);
 	}
 };
