@@ -61,6 +61,7 @@ public class DoInNewTransactionFunction implements ProxyExecutable {
 
 					// Execute main batch function
 					Object result = null;
+					Throwable exception = null;
 
 					if (unwrappedArgs[0] instanceof PolyglotWrapper.FunctionWrapper) {
 
@@ -86,6 +87,7 @@ public class DoInNewTransactionFunction implements ProxyExecutable {
 								} catch (Throwable ex) {
 
 									hasError = true;
+									exception = ex;
 									// Log if no error handler is given
 									if (unwrappedArgs.length < 2 || !(unwrappedArgs[1] instanceof PolyglotWrapper.FunctionWrapper)) {
 
@@ -100,7 +102,7 @@ public class DoInNewTransactionFunction implements ProxyExecutable {
 										// Execute error handler
 										try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-											result = PolyglotWrapper.unwrap(actionContext, ((PolyglotWrapper.FunctionWrapper) unwrappedArgs[1]).execute());
+											result = PolyglotWrapper.unwrap(actionContext, ((PolyglotWrapper.FunctionWrapper) unwrappedArgs[1]).execute(Value.asValue(exception)));
 											tx.success();
 
 											// Error has been handled, clear error buffer.
