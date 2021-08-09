@@ -50,9 +50,10 @@ public class DoInNewTransactionFunction implements ProxyExecutable {
 
 		if (arguments != null && arguments.length > 0) {
 			Object[] unwrappedArgs = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
+			Context context = null;
 
 			try {
-				Context context = ContextFactory.getContext("js", actionContext, entity);
+				context = ContextFactory.getContext("js", actionContext, entity);
 
 				context.leave();
 
@@ -70,50 +71,55 @@ public class DoInNewTransactionFunction implements ProxyExecutable {
 							logger.error("Could not retrieve context in DoInNewTransactionFunction worker.", ex);
 							return;
 						}
-						innerContext.enter();
 
-						// Execute batch function until it returns anything but true
-						do {
-							boolean hasError = false;
+						try {
+							innerContext.enter();
 
-							try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
+							// Execute batch function until it returns anything but true
+							do {
+								boolean hasError = false;
 
-								result = PolyglotWrapper.unwrap(actionContext, ((PolyglotWrapper.FunctionWrapper) unwrappedArgs[0]).execute());
-								tx.success();
-							} catch (FrameworkException ex) {
+								try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-								hasError = true;
-								// Log if no error handler is given
-								if (unwrappedArgs.length < 2 || !(unwrappedArgs[1] instanceof PolyglotWrapper.FunctionWrapper)) {
+									result = PolyglotWrapper.unwrap(actionContext, ((PolyglotWrapper.FunctionWrapper) unwrappedArgs[0]).execute());
+									tx.success();
+								} catch (Throwable ex) {
 
-									Function.logException(logger, ex, "Error in transaction function: {}", new Object[]{ex.getMessage()});
-								}
-							}
+									hasError = true;
+									// Log if no error handler is given
+									if (unwrappedArgs.length < 2 || !(unwrappedArgs[1] instanceof PolyglotWrapper.FunctionWrapper)) {
 
-							if (actionContext.hasError() || hasError) {
-
-								if (unwrappedArgs.length >= 2 && unwrappedArgs[1] instanceof PolyglotWrapper.FunctionWrapper) {
-
-									// Execute error handler
-									try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
-
-										result = PolyglotWrapper.unwrap(actionContext, ((PolyglotWrapper.FunctionWrapper) unwrappedArgs[1]).execute());
-										tx.success();
-
-										// Error has been handled, clear error buffer.
-										actionContext.getErrorBuffer().setStatus(0);
-										actionContext.getErrorBuffer().getErrorTokens().clear();
-									} catch (FrameworkException ex) {
-
-										Function.logException(logger, ex, "Error in transaction error handler: {}", new Object[]{ex.getMessage()});
+										Function.logException(logger, ex, "Error in transaction function: {}", new Object[]{ex.getMessage()});
 									}
-
 								}
-							}
 
-						} while (result != null && result.equals(true));
+								if (actionContext.hasError() || hasError) {
 
-						innerContext.leave();
+									if (unwrappedArgs.length >= 2 && unwrappedArgs[1] instanceof PolyglotWrapper.FunctionWrapper) {
+
+										// Execute error handler
+										try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
+
+											result = PolyglotWrapper.unwrap(actionContext, ((PolyglotWrapper.FunctionWrapper) unwrappedArgs[1]).execute());
+											tx.success();
+
+											// Error has been handled, clear error buffer.
+											actionContext.getErrorBuffer().setStatus(0);
+											actionContext.getErrorBuffer().getErrorTokens().clear();
+										} catch (Throwable ex) {
+
+											Function.logException(logger, ex, "Error in transaction error handler: {}", new Object[]{ex.getMessage()});
+										}
+
+									}
+								}
+
+							} while (result != null && result.equals(true));
+
+						} finally {
+
+							innerContext.leave();
+						}
 					}
 
 
@@ -127,11 +133,15 @@ public class DoInNewTransactionFunction implements ProxyExecutable {
 
 				} catch (Throwable t) {}
 
-				context.enter();
-
 			} catch (FrameworkException ex) {
 
 				logger.error("Exception in DoInNewTransactionFunction.", ex);
+			} finally {
+
+				if (context != null) {
+
+					context.enter();
+				}
 			}
 		}
 
