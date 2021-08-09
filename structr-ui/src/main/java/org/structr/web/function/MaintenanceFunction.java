@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.service.Command;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -56,6 +57,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
+
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
@@ -98,6 +100,8 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 
 					final Command command = app.command(commandType);
 					if (command instanceof MaintenanceCommand) {
+
+						RuntimeEventLog.maintenance(commandName, params);
 
 						final MaintenanceCommand cmd = (MaintenanceCommand)command;
 
