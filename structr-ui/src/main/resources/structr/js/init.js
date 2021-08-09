@@ -1983,7 +1983,7 @@ let Structr = {
 
 			case "MAINTENANCE":
 
-				let enabled = data.enabled ? 'enabeld' : 'disabled';
+				let enabled = data.enabled ? 'enabled' : 'disabled';
 
 				new MessageBuilder().title('Maintenance Mode ' + enabled).warning("Maintenance Mode has been " + enabled + ". Redirecting...").allowConfirmAll().show();
 				window.setTimeout(function() {
@@ -2444,7 +2444,7 @@ var _TreeHelper = {
 		}, 500);
 	},
 	makeTreeElementDroppable: function(tree, id) {
-		var el = $('#' + id + ' > .jstree-wholerow', tree);
+		let el = $('#' + id + ' > .jstree-wholerow', tree);
 		_Dragndrop.makeDroppable(el);
 	}
 };

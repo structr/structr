@@ -117,7 +117,6 @@ public class Services implements StructrServices {
 
 			singletonInstance = new Services();
 			singletonInstance.initialize();
-
 		}
 
 		if (System.currentTimeMillis() > lastLicenseCheck + licenseCheckInterval) {
@@ -224,8 +223,7 @@ public class Services implements StructrServices {
 	private void initialize() {
 
 		// read structr.conf
-		final String configFileName = "structr.conf";
-		final File configFile       = new File(configFileName);
+		final File configFile       = new File(Settings.ConfigFileName);
 
 		if (Services.isTesting()) {
 
@@ -234,8 +232,8 @@ public class Services implements StructrServices {
 
 		} else if (configFile.exists()) {
 
-			logger.info("Reading {}..", configFileName);
-			Settings.loadConfiguration(configFileName);
+			logger.info("Reading {}..", Settings.ConfigFileName);
+			Settings.loadConfiguration(Settings.ConfigFileName);
 
 			// this might be the first start with a new / upgraded version
 			// check if we need to do some migration maybe?
@@ -287,7 +285,7 @@ public class Services implements StructrServices {
 
 			try {
 
-				Settings.storeConfiguration(configFileName);
+				Settings.storeConfiguration(Settings.ConfigFileName);
 
 			} catch (IOException ioex) {
 				logger.warn("Unable to store migrated config: {}", ioex.getMessage());
@@ -504,43 +502,77 @@ public class Services implements StructrServices {
 		}
 	}
 
-	public void setMaintenanceMode(final Boolean maintenanceEnabled) {
+	public boolean setMaintenanceMode(final Boolean maintenanceEnabled) {
 
-		logger.info("Setting maintenace mode = {}", maintenanceEnabled);
+		if (Settings.MaintenanceModeEnabled.getValue().equals(maintenanceEnabled)) {
 
-		final List<Class> configuredServiceClasses = getCongfiguredServiceClasses();
-		final List<Class> reverseServiceClassNames = new LinkedList<>(configuredServiceClasses);
-		Collections.reverse(reverseServiceClassNames);
+			logger.info("Not setting maintenace mode to {} because it already is.", maintenanceEnabled);
 
-		for (final Class serviceClass : reverseServiceClassNames) {
+		} else {
 
-			final StopServiceForMaintenanceMode stopAnnotation = (StopServiceForMaintenanceMode)serviceClass.getAnnotation(StopServiceForMaintenanceMode.class);
-			if (stopAnnotation != null) {
+			Settings.MaintenanceModeEnabled.setValue(maintenanceEnabled);
 
-				shutdownServices(serviceClass);
-			}
-		}
+			try {
 
-		for (final Class serviceClass : configuredServiceClasses) {
+				Settings.storeConfiguration(Settings.ConfigFileName);
 
-			final StopServiceForMaintenanceMode stopAnnotation = (StopServiceForMaintenanceMode)serviceClass.getAnnotation(StopServiceForMaintenanceMode.class);
-			if (stopAnnotation != null) {
+				new Thread(new Runnable() {
 
-				final StartServiceInMaintenanceMode startAnnotation = (StartServiceInMaintenanceMode)serviceClass.getAnnotation(StartServiceInMaintenanceMode.class);
+					@Override
+					public void run() {
 
-				if (maintenanceEnabled == false || startAnnotation != null) {
+						try { Thread.sleep(1000); } catch (Throwable t) {}
 
-					try {
+						logger.info("Setting maintenace mode = {}", maintenanceEnabled);
 
-						final String activeServiceName = getNameOfActiveService(serviceClass);
-						startService(serviceClass, activeServiceName, false);
+						final List<Class> configuredServiceClasses = getCongfiguredServiceClasses();
+						final List<Class> reverseServiceClassNames = new LinkedList<>(configuredServiceClasses);
+						Collections.reverse(reverseServiceClassNames);
 
-					} catch (FrameworkException ex) {
-						logger.warn("Service {} failed to start: {}", serviceClass.getSimpleName(), ex.getMessage());
+						for (final Class serviceClass : reverseServiceClassNames) {
+
+							final StopServiceForMaintenanceMode stopAnnotation = (StopServiceForMaintenanceMode)serviceClass.getAnnotation(StopServiceForMaintenanceMode.class);
+							if (stopAnnotation != null) {
+
+								shutdownServices(serviceClass);
+							}
+						}
+
+						for (final Class serviceClass : configuredServiceClasses) {
+
+							final StopServiceForMaintenanceMode stopAnnotation = (StopServiceForMaintenanceMode)serviceClass.getAnnotation(StopServiceForMaintenanceMode.class);
+							if (stopAnnotation != null) {
+
+								final StartServiceInMaintenanceMode startAnnotation = (StartServiceInMaintenanceMode)serviceClass.getAnnotation(StartServiceInMaintenanceMode.class);
+
+								if (maintenanceEnabled == false || startAnnotation != null) {
+
+									try {
+
+										final String activeServiceName = getNameOfActiveService(serviceClass);
+										startService(serviceClass, activeServiceName, false);
+
+									} catch (FrameworkException ex) {
+										logger.warn("Service {} failed to start: {}", serviceClass.getSimpleName(), ex.getMessage());
+									}
+								}
+							}
+						}
 					}
-				}
+				}).start();
+
+				return true;
+
+			} catch (IOException ioe) {
+
+				logger.warn("Storing configuration failed - unable to set maintenance mode");
+
+				// revert settings in-memory back to previous value
+				Settings.MaintenanceModeEnabled.setValue( !maintenanceEnabled );
 			}
 		}
+
+		return false;
 	}
 
 	/**
@@ -1143,26 +1175,6 @@ public class Services implements StructrServices {
 		return jvmIdentifier;
 	}
 
-	public Object applicationStoreGet(final String key) {
-		return applicationStore.get(key);
-	}
-
-	public boolean applicationStoreHas(final String key) {
-		return applicationStore.containsKey(key);
-	}
-
-	public Object applicationStorePut(final String key, final Object value) {
-		return applicationStore.put(key, value);
-	}
-
-	public void applicationStoreDelete(final String key) {
-		applicationStore.remove(key);
-	}
-
-	public Set<String> applicationStoreGetKeys() {
-		return applicationStore.keySet();
-	}
-
 	public Map<String, Object> getApplicationStore() {
 		return applicationStore;
 	}
@@ -1179,7 +1191,6 @@ public class Services implements StructrServices {
 
 			logger.error("Vital service {} failed to start, aborting.", service.getSimpleName() );
 			System.err.println("Vital service " + service.getSimpleName() + " failed to start, aborting.");
-
 		}
 
 		System.exit(1);

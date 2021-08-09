@@ -24,14 +24,14 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.schema.action.ActionContext;
 
-public class ApplicationStoreGetFunction extends UiAdvancedFunction {
+public class RequestStoreHasFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET    = "Usage: ${application_store_get(key)}. Example: ${application_store_get(\"do_no_track\")}";
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET_JS = "Usage: ${{ $.application_store_get(key); }}. Example: ${{ $.application_store_get(\"do_not_track\"); }}";
+	public static final String ERROR_MESSAGE_REQUEST_STORE_HAS    = "Usage: ${request_store_has(key)}. Example: ${request_store_has(\"do_no_track\")}";
+	public static final String ERROR_MESSAGE_REQUEST_STORE_HAS_JS = "Usage: ${{ $.request_store_has(key); }}. Example: ${{ $.request_store_has(\"do_not_track\"); }}";
 
 	@Override
 	public String getName() {
-		return "application_store_get";
+		return "request_store_has";
 	}
 
 	@Override
@@ -46,8 +46,8 @@ public class ApplicationStoreGetFunction extends UiAdvancedFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			return Services.getInstance().getApplicationStore().get(sources[0].toString());
-
+			return ctx.getRequestStore().containsKey(sources[0].toString());
+			
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
@@ -62,11 +62,11 @@ public class ApplicationStoreGetFunction extends UiAdvancedFunction {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_APPLICATION_STORE_GET_JS : ERROR_MESSAGE_APPLICATION_STORE_GET);
+		return (inJavaScriptContext ? ERROR_MESSAGE_REQUEST_STORE_HAS_JS : ERROR_MESSAGE_REQUEST_STORE_HAS);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Retrieves a stored value from the application level store.";
+		return "Checks if a key is present in the request level store.";
 	}
 }

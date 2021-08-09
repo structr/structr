@@ -320,7 +320,8 @@ let _Pages = {
 		if (!isPage && hasParentAndParentIsNotPage || parentIsShadowPage) {
 
 			elements.push({
-				name: 'Clone Node',
+				icon: _Icons.svg.duplicate,
+				name: 'Clone',
 				clickHandler: function () {
 					Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
 					return false;
@@ -360,6 +361,7 @@ let _Pages = {
 
 		if (isPage) {
 			elements.push({
+				icon: _Icons.svg.duplicate,
 				name: 'Clone Page',
 				clickHandler: function () {
 					Command.clonePage(entity.id);

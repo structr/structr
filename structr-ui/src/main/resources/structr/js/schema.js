@@ -1538,21 +1538,21 @@ var _Schema = {
 				_Schema.properties.rowChanged(property, row);
 			};
 
-			let prot = false;
+			let isProtected = false;
 
-			var propertyTypeOption = $('.property-type option[value="' + property.propertyType + '"]', row);
+			let propertyTypeOption = $('.property-type option[value="' + property.propertyType + '"]', row);
 			if (propertyTypeOption) {
 				propertyTypeOption.attr('selected', true);
 				if (propertyTypeOption.data('protected')) {
 					propertyTypeOption.prop('disabled', true);
 					propertyTypeOption.closest('select').attr('disabled', true);
-					prot = true;
+					isProtected = true;
 				} else {
 					propertyTypeOption.prop('disabled', null);
 				}
 			}
 
-			var typeField = $('.property-type', row);
+			let typeField = $('.property-type', row);
 			$('.property-type option[value=""]', row).remove();
 
 			if (property.propertyType === 'String' && !property.isBuiltinProperty) {
@@ -1562,45 +1562,43 @@ var _Schema = {
 				$('.content-type', row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', null);
 			}
 
-			$('.property-name',    row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.property-dbname',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.caching-enabled',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.type-hint',        row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.property-type',    row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.property-format',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.not-null',         row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.compound',         row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.unique',           row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.indexed',          row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.property-default', row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
+			$('.property-name',    row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.property-dbname',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.caching-enabled',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.type-hint',        row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.property-type',    row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.property-format',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.not-null',         row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.compound',         row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.unique',           row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.indexed',          row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.property-default', row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
 
-			$('.edit-read-function', row).off('click').on('click', function() {
-				let unsavedChanges = _Schema.properties.hasUnsavedChanges(row.closest('table'));
+			let readWriteButtonClickHandler = (targetProperty) => {
 
-				if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
+				if (overrides && overrides.editReadWriteFunction) {
 
-					if (overrides && overrides.editReadWriteFunction) {
-						overrides.editReadWriteFunction(property);
-					} else {
-						_Schema.properties.openCodeEditorForFunctionProperty($(this), property.id, 'readFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
+					overrides.editReadWriteFunction(property, targetProperty);
+
+				} else {
+
+					let unsavedChanges = _Schema.properties.hasUnsavedChanges(row.closest('table'));
+
+					if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
+						_Schema.properties.openCodeEditorForFunctionProperty(property.id, targetProperty, function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
 					}
 				}
-			}).prop('disabled', prot);
+			};
 
-			$('.edit-write-function', row).off('click').on('click', function() {
-				let unsavedChanges = _Schema.properties.hasUnsavedChanges(row.closest('table'));
+			$('.edit-read-function', row).off('click').on('click', () => {
+				readWriteButtonClickHandler('readFunction');
+			}).prop('disabled', isProtected);
 
-				if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
-					if (overrides && overrides.editReadWriteFunction) {
-						overrides.editReadWriteFunction(property);
-					} else {
-						_Schema.properties.openCodeEditorForFunctionProperty($(this), property.id, 'writeFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
-					}
-				}
-			}).prop('disabled', prot);
+			$('.edit-write-function', row).off('click').on('click', () => {
+				readWriteButtonClickHandler('writeFunction');
+			}).prop('disabled', isProtected);
 
-
-			if (!prot) {
+			if (!isProtected) {
 
 				$('.remove-action', row).off('click').on('click', function() {
 
@@ -1734,7 +1732,7 @@ var _Schema = {
 
 			return true;
 		},
-		openCodeEditorForFunctionProperty: function(btn, id, key, callback) {
+		openCodeEditorForFunctionProperty: function(id, key, callback) {
 
 			dialogMeta.show();
 
@@ -1744,24 +1742,21 @@ var _Schema = {
 
 				Structr.dialog(title, function() {}, function() {});
 
-				_Schema.properties.editFunctionPropertyCode(btn, entity, key, dialogText, function() {
+				_Schema.properties.editFunctionPropertyCode(entity, key, dialogText, function() {
 					window.setTimeout(function() {
 						callback();
 					}, 250);
 				});
 			});
 		},
-		editFunctionPropertyCode: function(button, entity, key, element, callback) {
+		editFunctionPropertyCode: function(entity, key, element, callback) {
 
-			var text = entity[key] || '';
+			let text = entity[key] || '';
 
-			if (Structr.isButtonDisabled(button)) {
-				return;
-			}
 			element.append('<div class="editor"></div>');
-			var contentBox = $('.editor', element);
+			let contentBox = $('.editor', element);
 			contentType = contentType ? contentType : entity.contentType;
-			var text1, text2;
+			let text1, text2;
 
 			// Intitialize editor
 			editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
@@ -1812,13 +1807,13 @@ var _Schema = {
 				$('#words').text((editorText.match(/\S+/g) || []).length);
 			});
 
-			var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
+			let scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
 			if (scrollInfo) {
 				editor.scrollTo(scrollInfo.left, scrollInfo.top);
 			}
 
 			editor.on('scroll', function() {
-				var scrollInfo = editor.getScrollInfo();
+				let scrollInfo = editor.getScrollInfo();
 				LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
 			});
 

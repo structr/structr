@@ -26,9 +26,8 @@ import org.structr.schema.action.ActionContext;
 
 public class ApplicationStorePutFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_PUT = "Usage: ${application_store_put(key,value)}. Example: ${application_store_put(\"do_no_track\", true)}";
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_PUT_JS = "Usage: ${{Structr.application_store_put(key,value)}}. Example: ${{Structr.application_store_put(\"do_not_track\", true)}}";
-
+	public static final String ERROR_MESSAGE_APPLICATION_STORE_PUT    = "Usage: ${application_store_put(key,value)}. Example: ${application_store_put(\"do_no_track\", true)}";
+	public static final String ERROR_MESSAGE_APPLICATION_STORE_PUT_JS = "Usage: ${{ $.application_store_put(key,value); }}. Example: ${{ $.application_store_put(\"do_not_track\", true); }}";
 
 	@Override
 	public String getName() {
@@ -42,10 +41,13 @@ public class ApplicationStorePutFunction extends UiAdvancedFunction {
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+
 		try {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
-			return Services.getInstance().applicationStorePut(sources[0].toString(), sources[1]);
+
+			return Services.getInstance().getApplicationStore().put(sources[0].toString(), sources[1]);
+
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
@@ -67,8 +69,4 @@ public class ApplicationStorePutFunction extends UiAdvancedFunction {
 	public String shortDescription() {
 		return "Stores a value in the application level store.";
 	}
-
-
-
-
 }

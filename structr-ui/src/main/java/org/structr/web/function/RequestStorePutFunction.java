@@ -24,19 +24,20 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.schema.action.ActionContext;
 
-public class ApplicationStoreGetFunction extends UiAdvancedFunction {
+public class RequestStorePutFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET    = "Usage: ${application_store_get(key)}. Example: ${application_store_get(\"do_no_track\")}";
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET_JS = "Usage: ${{ $.application_store_get(key); }}. Example: ${{ $.application_store_get(\"do_not_track\"); }}";
+	public static final String ERROR_MESSAGE_REQUEST_STORE_PUT    = "Usage: ${request_store_put(key,value)}. Example: ${request_store_put(\"do_no_track\", true)}";
+	public static final String ERROR_MESSAGE_REQUEST_STORE_PUT_JS = "Usage: ${{ $.request_store_put(key,value); }}. Example: ${{ $.request_store_put(\"do_not_track\", true); }}";
+
 
 	@Override
 	public String getName() {
-		return "application_store_get";
+		return "request_store_put";
 	}
 
 	@Override
 	public String getSignature() {
-		return "key";
+		return "key, value";
 	}
 
 	@Override
@@ -44,10 +45,10 @@ public class ApplicationStoreGetFunction extends UiAdvancedFunction {
 
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
-			return Services.getInstance().getApplicationStore().get(sources[0].toString());
-
+			return ctx.getRequestStore().put(sources[0].toString(), sources[1]);
+			
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
@@ -56,17 +57,17 @@ public class ApplicationStoreGetFunction extends UiAdvancedFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return null;
+			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_APPLICATION_STORE_GET_JS : ERROR_MESSAGE_APPLICATION_STORE_GET);
+		return (inJavaScriptContext ? ERROR_MESSAGE_REQUEST_STORE_PUT_JS : ERROR_MESSAGE_REQUEST_STORE_PUT);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Retrieves a stored value from the application level store.";
+		return "Stores a value in the request level store.";
 	}
 }

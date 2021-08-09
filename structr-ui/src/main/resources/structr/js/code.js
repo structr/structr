@@ -136,7 +136,6 @@ var _Code = {
 				codeTree.on('refresh.jstree', _Code.activateLastClicked);
 
 				_Code.loadRecentlyUsedElements(function() {
-
 					_TreeHelper.initTree(codeTree, _Code.treeInitFunction, 'structr-ui-code');
 				});
 
@@ -148,7 +147,6 @@ var _Code = {
 
 				_Code.resize();
 				Structr.adaptUiToAvailableFeatures();
-
 			});
 		});
 
@@ -503,7 +501,8 @@ var _Code = {
 		}
 
 		Structr.fetchHtmlTemplate('code/recently-used-button', { id: id, name: name, iconClass: iconClass }, function(html) {
-			var ctx  = $('#code-context');
+
+			let ctx = $('#code-context');
 
 			if (fromStorage) {
 				ctx.append(html);
@@ -885,7 +884,7 @@ var _Code = {
 	},
 	load: function(obj, callback) {
 
-		var identifier = _Code.splitIdentifier(obj);
+		let identifier = _Code.splitIdentifier(obj);
 
 		identifier.callback = callback;
 
@@ -1103,9 +1102,11 @@ var _Code = {
 	},
 	loadInheritedProperties: function(identifier) {
 		Command.listSchemaProperties(identifier.typeId, 'custom', function(result) {
-			var filtered = result.filter(function(p) {
+
+			let filtered = result.filter(function(p) {
 				return p.declaringClass !== identifier.obj.data.type;
 			});
+
 			_Code.displayFunction(filtered.map(function(s) {
 
 				return {
@@ -1120,11 +1121,10 @@ var _Code = {
 	},
 	splitIdentifier: function(obj) {
 
-		var id    = obj.id;
-		var parts = id.split('-');
+		let parts = obj.id.split('-');
 
-		var identifier = {
-			source: id,
+		let identifier = {
+			source: obj.id,
 			obj: obj
 		};
 
@@ -1270,8 +1270,7 @@ var _Code = {
 	},
 	getIconForNodeType: function(entity) {
 
-		// set global default
-		var icon = 'file-code-o gray';
+		let icon = 'file-code-o gray';
 
 		switch (entity.type) {
 
@@ -1301,7 +1300,7 @@ var _Code = {
 	},
 	getIconForPropertyType: function(propertyType) {
 
-		var icon = 'exclamation-triangle';
+		let icon = 'exclamation-triangle';
 
 		switch (propertyType) {
 
@@ -1331,38 +1330,6 @@ var _Code = {
 
 		return icon;
 	},
-	convertOutgoingRelationshipNodesForTree: function(related) {
-
-		var list = [];
-
-		related.forEach(function(rel) {
-
-			list.push({
-				id: 'out-' + rel.id,
-				text: rel.targetJsonName + ': ' + rel.targetMultiplicity,
-				children: false,
-				icon: 'fa fa-arrow-right gray'
-			});
-		});
-
-		return list;
-	},
-	convertIncomingRelationshipNodesForTree: function(related) {
-
-		var list = [];
-
-		related.forEach(function(rel) {
-
-			list.push({
-				id: 'in-' + rel.id,
-				text: rel.sourceJsonName + ': ' + rel.sourceMultiplicity,
-				children: false,
-				icon: 'fa fa-arrow-left gray'
-			});
-		});
-
-		return list;
-	},
 	hasVisibleChildren: function(id, entity) {
 
 		var hasVisibleChildren = false;
@@ -1384,7 +1351,7 @@ var _Code = {
 
 		if (data && data.node && data.node.id) {
 
-			var selection = {
+			let selection = {
 				id: data.node.id,
 				updateLocationStack: true,
 				nodeData: data.node.data
@@ -1411,7 +1378,7 @@ var _Code = {
 			// clear page
 			_Code.clearMainArea();
 
-			var identifier = _Code.splitIdentifier(data);
+			let identifier = _Code.splitIdentifier(data);
 
 			// the order of the checks is important: member id first, then member collection, then type, then root
 			if (identifier.memberId) {
@@ -1495,7 +1462,7 @@ var _Code = {
 	},
 	handleNodeObjectClick: function(data) {
 
-		var identifier = _Code.splitIdentifier(data);
+		let identifier = _Code.splitIdentifier(data);
 
 		if (data.type) {
 
@@ -1970,9 +1937,9 @@ var _Code = {
 		});
 
 	},
-	displaySchemaMethodContent: function(data, lastOpenTab, cursorInfo) {
+	displaySchemaMethodContent: function(data, lastOpenTab, cursorInfo, historyInfo) {
 
-		var identifier = _Code.splitIdentifier(data);
+		let identifier = _Code.splitIdentifier(data);
 
 		// ID of schema method can either be in typeId (for global schema methods) or in memberId (for type methods)
 		Command.get(identifier.memberId || identifier.typeId, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,isStatic,schemaNode,source,returnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', function(result) {
@@ -2004,6 +1971,10 @@ var _Code = {
 				if (cursorInfo && cursorInfo.line && cursorInfo.ch) {
 					sourceEditor.setCursor(cursorInfo);
 					sourceEditor.focus();
+				}
+
+				if (historyInfo) {
+					sourceEditor.setHistory(historyInfo);
 				}
 
 				sourceEditor.on('focus', function() {
@@ -2113,13 +2084,13 @@ var _Code = {
 
 						let afterSaveCallback = () => {
 							_Code.additionalDirtyChecks = [];
-							_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'), sourceEditor.getCursor());
+							_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'), sourceEditor.getCursor(), sourceEditor.getHistory());
 						};
 
 						_Code.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
 					};
 
-					var buttons = $('#method-buttons');
+					let buttons = $('#method-buttons');
 					buttons.prepend(html);
 
 					_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save method', _Code.runCurrentEntitySaveAction);
@@ -2127,7 +2098,6 @@ var _Code = {
 					_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
 						_Code.additionalDirtyChecks = [];
 						_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'), sourceEditor.getCursor());
-
 					});
 
 					// delete button
@@ -2491,9 +2461,11 @@ var _Code = {
 			codeContents.append(html);
 
 			Command.get(selection.typeId, null, (entity) => {
+
 				_Schema.properties.appendLocalProperties($('.content-container', codeContents), entity, {
+
 					editReadWriteFunction: (property) => {
-						_Code.handleSelection(property);
+						_Code.findAndOpenNode(selection.obj.id + '-' + property.id, true);
 					}
 				}, _Code.refreshTree);
 
@@ -2650,7 +2622,7 @@ var _Code = {
 	},
 	displayViewDetails: function(selection) {
 
-		var identifier = _Code.splitIdentifier(selection);
+		let identifier = _Code.splitIdentifier(selection);
 
 		Command.get(identifier.memberId, null, function(result) {
 
@@ -3004,14 +2976,14 @@ var _Code = {
 		}
 	},
 	findAndOpenNode: function(path, updateLocationStack) {
-		var tree = $('#code-tree').jstree(true);
+		let tree = $('#code-tree').jstree(true);
 		tree.open_node('root', function() {
 			_Code.findAndOpenNodeRecursive(tree, path, 0, updateLocationStack);
 		});
 	},
 	findAndOpenNodeRecursive: function(tree, path, depth, updateLocationStack) {
 
-		var parts = path.split('-');
+		let parts = path.split('-');
 		if (path.length === 0) { return; }
 		if (parts.length < 1) {	return; }
 		if (depth > 15) { return; }
