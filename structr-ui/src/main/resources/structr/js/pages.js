@@ -1018,7 +1018,7 @@ let _Pages = {
 			urlHash = '#pages:editor';
 		}
 
-		if ((!urlHash && obj.isDOMNode)) {
+		if (_Dashboard.isFavorHTMLForDOMNodes() && (!urlHash && obj.isDOMNode)) {
 			/*
 				if urlHash is given, user has manually selected a tab. if it is not given, user has selected a node
 			*/
