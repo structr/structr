@@ -233,10 +233,6 @@ ul#previewTabs {
 	margin-top: 2rem;
 }
 
-.security-container button.switch {
-	min-width: 14rem;
-}
-
 .query-type-buttons button.active {
 	/*border: 1px solid var(--black-opacity-125);*/
 	/*background: var(--solid-white);*/
