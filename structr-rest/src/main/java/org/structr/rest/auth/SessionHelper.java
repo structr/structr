@@ -177,27 +177,32 @@ public class SessionHelper {
 	 */
 	public static void clearAllSessions(final Principal user) {
 
-		logger.info("Clearing all sessions for user {} ({})", user.getName(), user.getUuid());
+		final Class groupClass = StructrApp.getConfiguration().getNodeEntityClass("Group");
 
-		final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
-		final String[] sessionIds                = user.getProperty(sessionIdKey);
+		if (!groupClass.isAssignableFrom(user.getClass())) {
 
-		if (sessionIds != null && sessionIds.length > 0) {
+			logger.info("Clearing all sessions for user {} ({})", user.getName(), user.getUuid());
 
-			final SessionCache sessionCache = Services.getInstance().getService(HttpService.class, "default").getSessionCache();
+			final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
+			final String[] sessionIds                = user.getProperty(sessionIdKey);
 
-			for (final String sessionId : sessionIds) {
+			if (sessionIds != null && sessionIds.length > 0) {
 
-				HttpSession session = null;
-				try {
-					session = sessionCache.get(sessionId);
+				final SessionCache sessionCache = Services.getInstance().getService(HttpService.class, "default").getSessionCache();
 
-				} catch (Exception ex) {
-					logger.warn("Unable to retrieve session " + sessionId + " from session cache:", ex);
-				}
+				for (final String sessionId : sessionIds) {
 
-				if (session == null) {
-					SessionHelper.clearSession(sessionId);
+					HttpSession session = null;
+					try {
+						session = sessionCache.get(sessionId);
+
+					} catch (Exception ex) {
+						logger.warn("Unable to retrieve session " + sessionId + " from session cache:", ex);
+					}
+
+					if (session == null) {
+						SessionHelper.clearSession(sessionId);
+					}
 				}
 			}
 		}

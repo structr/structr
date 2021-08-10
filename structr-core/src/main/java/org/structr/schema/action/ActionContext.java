@@ -510,6 +510,10 @@ public class ActionContext {
 	}
 
 	public static String getBaseUrl(final HttpServletRequest request) {
+		return getBaseUrl(request, false);
+	}
+
+	public static String getBaseUrl(final HttpServletRequest request, final boolean forceConfigForPort) {
 
 		final String baseUrlOverride = Settings.BaseUrlOverride.getValue();
 
@@ -521,7 +525,7 @@ public class ActionContext {
 
 		final Boolean httpsEnabled       = Settings.HttpsEnabled.getValue();
 		final String name                = (request != null) ? request.getServerName() : Settings.ApplicationHost.getValue();
-		final Integer port               = (request != null) ? request.getServerPort() : ((httpsEnabled) ? Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getValue() : Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
+		final Integer port               = (request != null && forceConfigForPort != true) ? request.getServerPort() : ((httpsEnabled) ? Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getValue() : Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
 
 		if (httpsEnabled) {
 			sb.append("s");

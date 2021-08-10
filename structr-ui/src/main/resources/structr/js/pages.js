@@ -1018,6 +1018,13 @@ let _Pages = {
 			urlHash = '#pages:editor';
 		}
 
+		if (_Dashboard.isFavorHTMLForDOMNodes() && (!urlHash && obj.isDOMNode)) {
+			/*
+				if urlHash is given, user has manually selected a tab. if it is not given, user has selected a node
+			*/
+			urlHash = '#pages:html';
+		}
+
 		let contentContainers = _Pages.centerPane.querySelectorAll('.content-container');
 
 		for (const contentContainer of contentContainers) {

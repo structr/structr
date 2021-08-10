@@ -335,10 +335,15 @@ let _Localization = {
 	clearLocalizationsList: function () {
 		fastRemoveAllChildren(_Localization.keysAndDomainsList[0]);
 	},
-	appendLocalizationDetailListRow: (locale) => {
+	appendLocalizationDetailListRow: (localization) => {
+
 		Structr.fetchHtmlTemplate('localization/empty-row', {}, function(html) {
-			let $tr = _Localization.appendEmptyLocalizationRow(html);
-			_Localization.fillLocalizationRow($tr, locale);
+
+			_Localization.localizationsDetailList.append(html);
+
+			let $tr = $('tr:last', _Localization.localizationsDetailList);
+
+			_Localization.fillLocalizationRow($tr, localization);
 		});
 	},
 	clearLocalizationDetailsList: function () {
@@ -346,9 +351,8 @@ let _Localization = {
 	},
 	saveButtonAction: async (e) => {
 
-		let saveButton = e.target.closest('.btn');
-		let oldKey = _Localization.localizationDetailKey.data('oldValue');
-		let curKey = _Localization.localizationDetailKey.val().trim();
+		let oldKey    = _Localization.localizationDetailKey.data('oldValue');
+		let curKey    = _Localization.localizationDetailKey.val().trim();
 		let oldDomain = _Localization.localizationDetailDomain.data('oldValue');
 		let curDomain = _Localization.localizationDetailDomain.val().trim();
 		if (curDomain === '') {
@@ -409,7 +413,7 @@ let _Localization = {
 		blinkRed(_Localization.localizationDetailKey);
 	},
 	isFieldNonEmpty: function ($field) {
-		return ($field.val().trim() !== "");
+		return ($field.val().trim() !== '');
 	},
 	appendEmptyLocalizationRow: function (rowHtml) {
 
@@ -422,8 +426,6 @@ let _Localization = {
 	fillLocalizationRow: function ($row, localization) {
 
 		$row.attr('id', 'loc_' + localization.id);
-
-		// $('td:eq(0)', $row).text(localization.id);
 
 		let $localeField = $('.___locale', $row);
 		$localeField.val(localization.locale)
@@ -462,12 +464,11 @@ let _Localization = {
 				_Localization.checkboxChangeAction($(event.target), localization, 'visibleToAuthenticatedUsers');
 			});
 
+		$('.id', $row).text(localization.id);
+
 		$('td.actions', $row).html('<a title="Delete" class="delete">' + _Icons.svg.trashcan + '</a>');
 
-		// make svg customizable... better somewhere else
-		let svg = $row[0].querySelector('.delete').querySelector('svg');
-		svg.setAttribute('width', 24);
-		svg.setAttribute('height', 24);
+		_Localization.resizeSvg('.delete', $row);
 
 		$row[0].querySelector('.delete').addEventListener('click', async (e) => {
 			e.preventDefault();
@@ -492,6 +493,12 @@ let _Localization = {
 			);
 		});
 	},
+	resizeSvg: (selector, $row) => {
+		// TODO: make svg customizable... somewhere else
+		let svg = $row[0].querySelector(selector).querySelector('svg');
+		svg.setAttribute('width', 24);
+		svg.setAttribute('height', 24);
+	},
 	textfieldChangeAction: function ($el, localization, attr) {
 		let oldValue = $el.data('oldValue');
 		let curValue = $el.val();
@@ -507,6 +514,7 @@ let _Localization = {
 		}
 	},
 	updateLocalization: async (localization, attr, curValue, oldValue, $el, $blinkTarget) => {
+
 		let newData = {};
 		newData[attr] = curValue;
 
@@ -555,12 +563,15 @@ let _Localization = {
 
 			$('input[type=checkbox]', $tr).attr('disabled', 'disabled');
 
+			_Localization.resizeSvg('.discard', $tr);
+
 			trElement.querySelector('td.actions .discard').addEventListener('click', function(event) {
 				event.preventDefault();
 				$tr.remove();
 			});
 
 			trElement.querySelector('td.actions .save').addEventListener('click', async (event) => {
+
 				event.preventDefault();
 
 				if (_Localization.isFieldNonEmpty(_Localization.localizationDetailKey)) {

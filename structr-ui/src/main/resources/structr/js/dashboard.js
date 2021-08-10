@@ -25,9 +25,10 @@ let _Dashboard = {
 	dashboard: undefined,
 	activeTabPrefixKey: 'activeDashboardTabPrefix' + port,
 
-	showScriptingErrorPopupsKey: 'showScriptinErrorPopups' + port,
+	showScriptingErrorPopupsKey:         'showScriptinErrorPopups' + port,
 	showVisibilityFlagsInGrantsTableKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + port,
-	favorEditorForContentElementsKey: 'favorEditorForContentElements' + port,
+	favorEditorForContentElementsKey:    'favorEditorForContentElements' + port,
+	favorHTMLForDOMNodesKey:             'favorEditorForContentElements' + port,
 
 	init: function() {
 		if (!subModule) subModule = LSWrapper.getItem(_Dashboard.activeTabPrefixKey);
@@ -236,6 +237,17 @@ let _Dashboard = {
 						});
 					}
 
+					let favorHTMLForDOMNodes = _Dashboard.isFavorHTMLForDOMNodes();
+
+					let favorHTMLForDOMNodesCheckbox = document.querySelector('#dashboard-favor-html-tab-for-dom-nodes');
+					if (favorHTMLForDOMNodesCheckbox) {
+						favorHTMLForDOMNodesCheckbox.checked = favorEditorForContentElements;
+
+						favorHTMLForDOMNodesCheckbox.addEventListener('change', () => {
+							LSWrapper.setItem(_Dashboard.favorHTMLForDOMNodesKey, favorHTMLForDOMNodesCheckbox.checked);
+						});
+					}
+
 					Structr.unblockMenu(100);
 				});
 			});
@@ -260,6 +272,9 @@ let _Dashboard = {
 	},
 	isFavorEditorForContentElements: () => {
 		return LSWrapper.getItem(_Dashboard.favorEditorForContentElementsKey, true);
+	},
+	isFavorHTMLForDOMNodes: () => {
+		return LSWrapper.getItem(_Dashboard.favorHTMLForDOMNodesKey, true);
 	},
 	gatherVersionUpdateInfo(currentVersion, releasesIndexUrl, snapshotsIndexUrl) {
 
@@ -827,16 +842,11 @@ let _Dashboard = {
             };
 
             logBoxContentBox.bind('scroll', (event) => {
-                let textarea = event.target;
-
-                let maxScroll = textarea.scrollHeight - 4;
+                let textarea      = event.target;
+                let maxScroll     = textarea.scrollHeight - 4;
                 let currentScroll = (textarea.scrollTop + $(textarea).height());
 
-                if (currentScroll >= maxScroll) {
-                    scrollEnabled = true;
-                } else {
-                    scrollEnabled = false;
-                }
+                scrollEnabled = currentScroll >= maxScroll;
             });
 
 			document.getElementById('dashboard-server-log-copy').addEventListener('click', async () => {
@@ -982,6 +992,3 @@ let _Dashboard = {
         },
 	}
 };
-
-/*
- */

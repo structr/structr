@@ -79,7 +79,7 @@ public class MaintenanceResource extends Resource {
 
 			if (this.taskOrCommand != null) {
 
-				RuntimeEventLog.maintenance(taskOrCommand.getSimpleName());
+				RuntimeEventLog.maintenance(taskOrCommand.getSimpleName(), propertySet);
 
 				try {
 

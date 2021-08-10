@@ -39,6 +39,8 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class Settings {
 
+	public static final String ConfigFileName                 = "structr.conf";
+
 	public static final String DEFAULT_DATABASE_DRIVER        = "org.structr.memory.MemoryDatabaseService";
 	public static final String DEFAULT_REMOTE_DATABASE_DRIVER = "org.structr.bolt.BoltDatabaseService";
 
@@ -723,7 +725,6 @@ public class Settings {
 		} catch (ConfigurationException ex) {
 			System.err.println("Unable to store configuration: " + ex.getMessage());
 		}
-
 	}
 
 	public static void loadConfiguration(final String fileName) {

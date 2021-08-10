@@ -64,7 +64,6 @@ public class ConfigServlet extends AbstractServletBase {
 	private static final Set<String> sessions         = new HashSet<>();
 	private static final String MainUrl               = "/structr/";
 	private static final String ConfigUrl             = "/structr/config";
-	private static final String ConfigName            = "structr.conf";
 	private static final String TITLE                 = "Structr Configuration Editor";
 
 	@Override
@@ -94,7 +93,7 @@ public class ConfigServlet extends AbstractServletBase {
 			if (request.getParameter("reload") != null) {
 
 				// reload data
-				Settings.loadConfiguration(ConfigName);
+				Settings.loadConfiguration(Settings.ConfigFileName);
 
 				// redirect
 				response.sendRedirect(ConfigUrl);
@@ -123,7 +122,7 @@ public class ConfigServlet extends AbstractServletBase {
 				}
 
 				// serialize settings
-				Settings.storeConfiguration(ConfigName);
+				Settings.storeConfiguration(Settings.ConfigFileName);
 
 				// redirect
 				response.sendRedirect(ConfigUrl);
@@ -192,7 +191,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 				// finish wizard
 				Settings.SetupWizardCompleted.setValue(true);
-				Settings.storeConfiguration(ConfigName);
+				Settings.storeConfiguration(Settings.ConfigFileName);
 
 				response.sendRedirect(MainUrl);
 
@@ -220,7 +219,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 				// finish wizard
 				Settings.SetupWizardCompleted.setValue(true);
-				Settings.storeConfiguration(ConfigName);
+				Settings.storeConfiguration(Settings.ConfigFileName);
 
 				// make session valid
 				authenticateSession(request);
@@ -229,32 +228,21 @@ public class ConfigServlet extends AbstractServletBase {
 
 			} else if (request.getParameter("setMaintenance") != null) {
 
-				final Boolean mainteanceEnabled = Boolean.parseBoolean(request.getParameter("setMaintenance"));
+				final boolean maintenanceEnabled = Boolean.parseBoolean(request.getParameter("setMaintenance"));
+				final boolean success            = Services.getInstance().setMaintenanceMode(maintenanceEnabled);
 
-				Settings.MaintenanceModeEnabled.setValue(mainteanceEnabled);
+				if (success) {
 
-				Settings.storeConfiguration(ConfigName);
+					final String baseUrl = ActionContext.getBaseUrl(request, true);
 
-				new Thread(new Runnable() {
+					final Map<String, Object> msgData = new HashMap();
+					msgData.put(MaintenanceCommand.COMMAND_TYPE_KEY, "MAINTENANCE");
+					msgData.put("enabled",                           maintenanceEnabled);
+					msgData.put("baseUrl",                           baseUrl);
+					TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
 
-					@Override
-					public void run() {
-
-						try { Thread.sleep(1000); } catch (Throwable t) {}
-
-						Services.getInstance().setMaintenanceMode(mainteanceEnabled);
-					}
-				}).start();
-
-				final String baseUrl = ActionContext.getBaseUrl(request);
-
-				final Map<String, Object> msgData = new HashMap();
-				msgData.put(MaintenanceCommand.COMMAND_TYPE_KEY, "MAINTENANCE");
-				msgData.put("enabled",                           mainteanceEnabled);
-				msgData.put("baseUrl",                           baseUrl);
-				TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
-
-				response.sendRedirect(baseUrl + ConfigUrl + "#maintenance");
+					response.sendRedirect(baseUrl + ConfigUrl + "#maintenance");
+				}
 
 			} else {
 
@@ -470,7 +458,7 @@ public class ConfigServlet extends AbstractServletBase {
 			}
 
 			// serialize settings
-			Settings.storeConfiguration(ConfigName);
+			Settings.storeConfiguration(Settings.ConfigFileName);
 		}
 
 		response.sendRedirect(ConfigUrl + redirectTarget);
