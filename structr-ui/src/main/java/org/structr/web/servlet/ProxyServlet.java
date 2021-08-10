@@ -30,6 +30,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -66,6 +67,16 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
+
+		if (Settings.ProxyServletMode.getValue().equals("disabled")) {
+
+			logger.info("Proxy servlet disabled.");
+			response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+
+			return;
+
+		}
+
 
 		try {
 
@@ -124,7 +135,20 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 			// Ensure access mode is frontend
 			securityContext.setAccessMode(AccessMode.Frontend);
 
-			String address = request.getParameter("url");
+			if (Settings.ProxyServletMode.getValue().equals("protected") && securityContext.getUser(false) == null) {
+				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+				logger.error("Authorization required in 'protected' mode");
+				return;
+			}
+
+			final String address = request.getParameter("url");
+
+			if (StringUtils.isBlank(address)) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                logger.error("Empty request parameter 'url'");
+                return;
+            }
+
 			final URI url  = URI.create(address);
 
 			String proxyUrl      = request.getParameter("proxyUrl");
@@ -166,6 +190,14 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 	@Override
 	protected void doOptions(final HttpServletRequest request, final HttpServletResponse response) {
+
+		if (Settings.ProxyServletMode.getValue().equals("disabled")) {
+
+			logger.info("Proxy servlet disabled.");
+			response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+
+			return;
+		}
 
 		try {
 

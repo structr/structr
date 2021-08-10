@@ -214,6 +214,7 @@ public class Settings {
 	public static final Setting<String> HttpProxyUrl              = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.url",                  "");
 	public static final Setting<String> HttpProxyUser             = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.username",             "");
 	public static final Setting<String> HttpProxyPassword         = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.password",             "");
+	public static final ChoiceSetting   ProxyServletMode          = new ChoiceSetting(applicationGroup,  "Proxy",        "application.proxy.mode",                      "disabled", Set.of("disabled", "protected", "public"), "Sets the mode of the proxy servlet. Possible values are 'disabled' (off, servlet responds with 503 error code), 'protected' (only authenticated requests allowed) and 'public' (anonymous requests allowed). Default is disabled.");
 
 	public static final Setting<Integer> HttpConnectionRequestTimeout = new IntegerSetting(applicationGroup, "Outgoing Connection Timeouts",   "application.httphelper.timeouts.connectionrequest",   60,    "Applies when making outgoing connections. Returns the timeout in <b>seconds</b> used when requesting a connection from the connection manager. A timeout value of zero is interpreted as an infinite timeout.");
 	public static final Setting<Integer> HttpConnectTimeout           = new IntegerSetting(applicationGroup, "Outgoing Connection Timeouts",   "application.httphelper.timeouts.connect",             60,    "Applies when making outgoing connections. Determines the timeout in <b>seconds</b> until a connection is established. A timeout value of zero is interpreted as an infinite timeout.");
@@ -561,7 +562,7 @@ public class Settings {
 	public static final Setting<String> LDAPGroupNames      = new StringSetting(ldapGroup,  "General", "ldap.groupnames", "{ group: member, groupOfNames: member, groupOfUniqueNames: uniqueMember }", "LDAP objectclass tuples for group and member identification.");
 	public static final Setting<Integer> LDAPUpdateInterval = new IntegerSetting(ldapGroup, "General", "ldap.updateinterval", 600, "Update interval for group synchronization in seconds.");
 
-	// miscellaneous settings
+	// payment settings
 	public static final Setting<String> PaymentPaypalMode      = new StringSetting(miscGroup,  "Payment Options", "paypal.mode",         "");
 	public static final Setting<String> PaymentPaypalUsername  = new StringSetting(miscGroup,  "Payment Options", "paypal.username",     "");
 	public static final Setting<String> PaymentPaypalPassword  = new StringSetting(miscGroup,  "Payment Options", "paypal.password",     "");
