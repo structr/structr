@@ -144,7 +144,6 @@ let _Dashboard = {
 						});
 
 						if (tabLink.closest('a').getAttribute('href') === '#' + mainModule + ':' + subModule) {
-							// tabLink.closest('li').classList.add('active');
 							tabLink.click();
 						}
 					});
@@ -212,6 +211,7 @@ let _Dashboard = {
 
 						showScriptingErrorPopupsCheckbox.addEventListener('change', () => {
 							LSWrapper.setItem(_Dashboard.showScriptingErrorPopupsKey, showScriptingErrorPopupsCheckbox.checked);
+							blinkGreen(showScriptingErrorPopupsCheckbox.parentElement);
 						});
 					}
 
@@ -223,6 +223,7 @@ let _Dashboard = {
 
 						showVisibilityFlagsInGrantsTableCheckbox.addEventListener('change', () => {
 							LSWrapper.setItem(_Dashboard.showVisibilityFlagsInGrantsTableKey, showVisibilityFlagsInGrantsTableCheckbox.checked);
+							blinkGreen(showVisibilityFlagsInGrantsTableCheckbox.parentElement);
 						});
 					}
 
@@ -234,6 +235,7 @@ let _Dashboard = {
 
 						favorEditorForContentElementsCheckbox.addEventListener('change', () => {
 							LSWrapper.setItem(_Dashboard.favorEditorForContentElementsKey, favorEditorForContentElementsCheckbox.checked);
+							blinkGreen(favorEditorForContentElementsCheckbox.parentElement);
 						});
 					}
 
@@ -245,6 +247,7 @@ let _Dashboard = {
 
 						favorHTMLForDOMNodesCheckbox.addEventListener('change', () => {
 							LSWrapper.setItem(_Dashboard.favorHTMLForDOMNodesKey, favorHTMLForDOMNodesCheckbox.checked);
+							blinkGreen(favorHTMLForDOMNodesCheckbox.parentElement);
 						});
 					}
 
@@ -359,6 +362,7 @@ let _Dashboard = {
 		Command.setProperty(userId, 'localStorage', null, false, function() {
 			blinkGreen($('#clear-local-storage-on-server'));
 			LSWrapper.clear();
+			location.reload();
 		});
 	},
 	checkLicenseEnd: function(envInfo, element, cfg) {
