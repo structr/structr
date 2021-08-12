@@ -104,31 +104,29 @@ var _Files = {
 	},
 	onload: function() {
 
-		Structr.fetchHtmlTemplate('files/files', {}, function(html) {
+		Structr.fetchHtmlTemplate('files/files', {}, async (html) => {
 
 			main[0].innerHTML = html;
 
-			Structr.fetchHtmlTemplate('files/search', {}, async (html) => {
-				functionBar[0].innerHTML = html;
+			_Files.init();
 
-				_Files.init();
+			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('files'));
 
-				Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('files'));
+			filesMain      = $('#files-main');
+			fileTree       = $('#file-tree');
+			folderContents = $('#folder-contents');
 
-				filesMain = $('#files-main');
+			_Files.moveResizer();
+			Structr.initVerticalSlider($('.column-resizer', filesMain), filesResizerLeftKey, 204, _Files.moveResizer);
 
-				fileTree = $('#file-tree');
-				folderContents = $('#folder-contents');
-
-				_Files.moveResizer();
-				Structr.initVerticalSlider($('.column-resizer', filesMain), filesResizerLeftKey, 204, _Files.moveResizer);
+			let initFunctionBar = async () => {
 
 				let fileTypes   = await _Schema.getDerivedTypes('org.structr.dynamic.File', ['CsvFile']);
 				let folderTypes = await _Schema.getDerivedTypes('org.structr.dynamic.Folder', ['Trash']);
 
-				Structr.fetchHtmlTemplate('files/button.file.new', { fileTypes, folderTypes }, function (html) {
+				Structr.fetchHtmlTemplate('files/functions', { fileTypes, folderTypes }, async (html) => {
 
-					functionBar.prepend(html);
+					functionBar[0].innerHTML = html;
 
 					let fileTypeSelect   = document.querySelector('select#file-type');
 					let addFileButton    = document.getElementById('add-file-button');
@@ -150,72 +148,63 @@ var _Files = {
 						});
 					});
 
-					fileTypeSelect.addEventListener('change', () => {
-						// addFileButton.find('span').text('Add' + fileTypeSelect.val());
-						addFileButton.find('span').text('Add');
-					});
-
-					folderTypeSelect.addEventListener('change', () => {
-						// addFolderButton.find('span').text('Add ' + folderTypeSelect.val());
-						addFolderButton.find('span').text('Add');
-					});
-
 					$('.mount_folder', functionBar).on('click', _Files.openMountDialog);
 				});
+			};
+			initFunctionBar(); // run async (do not await) so it can execute while jstree is initialized
 
-				$.jstree.defaults.core.themes.dots = false;
-				$.jstree.defaults.dnd.inside_pos = 'last';
-				$.jstree.defaults.dnd.large_drop_target = true;
+			$.jstree.defaults.core.themes.dots = false;
+			$.jstree.defaults.dnd.inside_pos = 'last';
+			$.jstree.defaults.dnd.large_drop_target = true;
 
-				fileTree.on('ready.jstree', function () {
-					_TreeHelper.makeTreeElementDroppable(fileTree, 'root');
-					_TreeHelper.makeTreeElementDroppable(fileTree, 'favorites');
+			fileTree.on('ready.jstree', function () {
+				_TreeHelper.makeTreeElementDroppable(fileTree, 'root');
+				_TreeHelper.makeTreeElementDroppable(fileTree, 'favorites');
 
-					_Files.loadAndSetWorkingDir(function () {
+				_Files.loadAndSetWorkingDir(function () {
 
-						var lastOpenFolder = LSWrapper.getItem(filesLastOpenFolderKey);
+					var lastOpenFolder = LSWrapper.getItem(filesLastOpenFolderKey);
 
-						if (lastOpenFolder === 'favorites') {
+					if (lastOpenFolder === 'favorites') {
 
-							$('#favorites_anchor').click();
+						$('#favorites_anchor').click();
 
-						} else if (currentWorkingDir) {
+					} else if (currentWorkingDir) {
 
-							_Files.deepOpen(currentWorkingDir);
-
-						} else {
-
-							$('#root_anchor').click();
-						}
-					});
-				});
-
-				fileTree.on('select_node.jstree', function (evt, data) {
-
-					if (data.node.id === 'favorites') {
-
-						_Files.displayFolderContents('favorites');
+						_Files.deepOpen(currentWorkingDir);
 
 					} else {
 
-						_Files.setWorkingDirectory(data.node.id);
-						_Files.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
+						$('#root_anchor').click();
 					}
 				});
-
-				_TreeHelper.initTree(fileTree, _Files.treeInitFunction, 'structr-ui-filesystem');
-
-				_Files.activateUpload();
-
-				$(window).off('resize').resize(function () {
-					_Files.resize();
-				});
-
-				Structr.unblockMenu(100);
-
-				_Files.resize();
-				Structr.adaptUiToAvailableFeatures();
 			});
+
+			fileTree.on('select_node.jstree', function (evt, data) {
+
+				if (data.node.id === 'favorites') {
+
+					_Files.displayFolderContents('favorites');
+
+				} else {
+
+					_Files.setWorkingDirectory(data.node.id);
+					_Files.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
+				}
+			});
+
+			_TreeHelper.initTree(fileTree, _Files.treeInitFunction, 'structr-ui-filesystem');
+
+			_Files.activateUpload();
+
+			$(window).off('resize').resize(function () {
+				_Files.resize();
+			});
+
+			Structr.unblockMenu(100);
+
+			_Files.resize();
+			Structr.adaptUiToAvailableFeatures();
 		});
 	},
 	getContextMenuElements: function (div, entity) {

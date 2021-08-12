@@ -360,6 +360,7 @@ let _Localization = {
 		}
 
 		if ((oldKey !== curKey) || (oldDomain !== curDomain)) {
+
 			if (_Localization.isFieldNonEmpty(_Localization.localizationDetailKey)) {
 
 				let newData = {
@@ -380,6 +381,7 @@ let _Localization = {
 					for (let loc of data.result) {
 
 						if (oldKey === loc.name && oldDomain === loc.domain) {
+
 							totalCounter++;
 
 							let putResponse = await fetch(rootUrl + 'Localizations/' + loc.id, {

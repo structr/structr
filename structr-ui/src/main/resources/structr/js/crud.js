@@ -203,12 +203,12 @@ var _Crud = {
 			main.append(html);
 
 			Structr.fetchHtmlTemplate('crud/menu', {}, function(html) {
+
 				functionBar.append(html);
 
 				_Crud.moveResizer();
-				Structr.initVerticalSlider($('.column-resizer', main), _Crud.crudResizerLeftKey, 204, _Crud.moveResizer);
 
-				let savedTypeVisibility = _Crud.getStoredTypeVisibilityConfig();
+				Structr.initVerticalSlider($('.column-resizer', main), _Crud.crudResizerLeftKey, 204, _Crud.moveResizer);
 
 				$('#crudTypesSearch').keyup(function (e) {
 
@@ -303,7 +303,6 @@ var _Crud = {
 							return false;
 						});
 
-						$('#crud-top').hide();
 						$('#crud-type-detail').hide();
 
 					} else if (e.keyCode === 27 || searchString === '') {
@@ -374,63 +373,58 @@ var _Crud = {
 			clearTimeout(_Crud.messageTimeout);
 
 			fastRemoveAllChildren(crudRight[0]);
-			$('#crud-buttons').remove();
 
 			crudRight.data('url', '/' + type);
 
-			functionBar.append('<div id="crud-buttons">'
-					+ '<button class="action" id="create' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Create new ' + type + '</button>'
-					+ '<button id="export' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_table_icon) + '" /> Export as CSV</button>'
-					+ '<button id="import' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_add_icon) + '" /> Import CSV</button>'
-					+ '<button id="delete' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /> Delete <b>all</b> objects of this type</button>'
-					+ '<input id="exact_type_' + type + '" class="exact-type-checkbox" type="checkbox"><label for="exact_type_' + type + '" class="exact-type-checkbox-label"> Exclude subtypes</label>'
-					+ '</div>');
+			Structr.fetchHtmlTemplate('crud/crud-buttons', { type }, function(html) {
 
-			_Crud.determinePagerData(type);
-			var pagerNode = _Crud.addPager(type, crudRight);
+				functionBar[0].querySelector('#crud-buttons').innerHTML = html;
 
-			crudRight.append('<table class="crud-table"><thead><tr></tr></thead><tbody></tbody></table>');
-			_Crud.updateCrudTableHeader(type);
+				_Crud.determinePagerData(type);
 
-			crudRight.append('<div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
+				let pagerNode = _Crud.addPager(type, crudRight);
 
-			$('#create' + type).on('click', function() {
-				_Crud.crudCreate(type);
-			});
+				crudRight.append('<table class="crud-table"><thead><tr></tr></thead><tbody></tbody></table>');
+				_Crud.updateCrudTableHeader(type);
 
-			$('#export' + type).on('click', function() {
-				_Crud.crudExport(type);
-			});
+				crudRight.append('<div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
 
-			$('#import' + type).on('click', function() {
-				_Crud.crudImport(type);
-			});
-
-			$('#delete' + type).on('click', function() {
-
-				Structr.confirmation('<h3>WARNING: Really delete all objects of type \'' + type + '\'?</h3><p>This will delete all objects of the type (and of all inheriting types!).</p><p>Depending on the amount of objects this can take a while.</p>', function() {
-					$.unblockUI({
-						fadeOut: 25
-					});
-
-					_Crud.deleteAllNodesOfType(type);
+				$('#create' + type).on('click', function() {
+					_Crud.crudCreate(type);
 				});
-			});
 
-			let exactTypeCheckbox = $('#exact_type_' + type);
-			if (_Crud.exact[type] === true) {
-				exactTypeCheckbox.prop('checked', true);
-			}
-			exactTypeCheckbox.on('change', function() {
-				_Crud.exact[type] = exactTypeCheckbox.prop('checked');
-				LSWrapper.setItem(_Crud.crudExactTypeKey, _Crud.exact);
-				_Crud.refreshList(type);
-			});
+				$('#export' + type).on('click', function() {
+					_Crud.crudExport(type);
+				});
 
-			_Crud.deActivatePagerElements(pagerNode);
-			_Crud.activateList(type);
-			_Crud.activatePagerElements(type, pagerNode);
-			_Crud.updateUrl(type);
+				$('#import' + type).on('click', function() {
+					_Crud.crudImport(type);
+				});
+
+				let exactTypeCheckbox = $('#exact_type_' + type);
+				if (_Crud.exact[type] === true) {
+					exactTypeCheckbox.prop('checked', true);
+				}
+				exactTypeCheckbox.on('change', function() {
+					_Crud.exact[type] = exactTypeCheckbox.prop('checked');
+					LSWrapper.setItem(_Crud.crudExactTypeKey, _Crud.exact);
+					_Crud.refreshList(type);
+				});
+
+				$('#delete' + type).on('click', function() {
+
+					Structr.confirmation('<h3>WARNING: Really delete all objects of type \'' + type + '\'?</h3><p>This will delete all objects of the type (and of all inheriting types!).</p><p>Depending on the amount of objects this can take a while.</p>', function() {
+						$.unblockUI({ fadeOut: 25 });
+
+						_Crud.deleteAllNodesOfType(type, exactTypeCheckbox.value);
+					});
+				});
+
+				_Crud.deActivatePagerElements(pagerNode);
+				_Crud.activateList(type);
+				_Crud.activatePagerElements(type, pagerNode);
+				_Crud.updateUrl(type);
+			});
 		});
 	},
 	getCurrentProperties: function(type) {
@@ -448,9 +442,9 @@ var _Crud = {
 	},
 	updateCrudTableHeader: function(type) {
 
-		let properties = _Crud.getCurrentProperties(type);
+		let properties     = _Crud.getCurrentProperties(type);
+		let tableHeaderRow = $('#crud-type-detail table thead tr');
 
-		var tableHeaderRow = $('#crud-type-detail table thead tr');
 		fastRemoveAllChildren(tableHeaderRow[0]);
 
 		tableHeaderRow.append('<th class="___action_header">Actions</th>');
@@ -1070,7 +1064,7 @@ var _Crud = {
 		_Crud.activateList(type);
 	},
 	activateList: function(type) {
-		var url = rootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type], _Crud.exact[type]);
+		let url = rootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type], _Crud.exact[type]);
 		_Crud.list(type, url);
 	},
 	clearList: function(type) {
@@ -1299,21 +1293,21 @@ var _Crud = {
 		});
 
 	},
-	deleteAllNodesOfType: function(type) {
+	deleteAllNodesOfType: async (type, exact) => {
 
-		var url = rootUrl + '/' + type;
+		let url      = rootUrl + '/' + type + ((exact === true) ? '?type=' + type : '');
+		let response = await fetch(url, { method: 'DELETE' });
 
-		fetch(url, { method: 'DELETE' }).then(async (response) => {
+		if (response.ok) {
+
+			new MessageBuilder().success('Deletion of all nodes of type \'' + type + '\' finished.').delayDuration(2000).fadeDuration(1000).show();
+			_Crud.typeSelected(type);
+
+		} else {
 
 			let data = await response.json();
-
-			if (response.ok) {
-				new MessageBuilder().success('Deletion of all nodes of type \'' + type + '\' finished.').delayDuration(2000).fadeDuration(1000).show();
-				_Crud.typeSelected(type);
-			} else {
-				Structr.errorFromResponse(data, url, {statusCode: 400, requiresConfirmation: true});
-			}
-		});
+			Structr.errorFromResponse(data, url, {statusCode: 400, requiresConfirmation: true});
+		}
 	},
 	updatePager: function(type, qt, st, ps, p, pc) {
 
@@ -2238,7 +2232,6 @@ var _Crud = {
 		if (_Crud.clearSearchResults(el)) {
 			_Crud.searchFieldClearIcon.style.display = 'none';
 			_Crud.searchField.value = '';
-			$('#crud-top').show();
 			$('#crud-type-detail').show();
 		}
 	},

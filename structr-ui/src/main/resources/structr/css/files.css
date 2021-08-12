@@ -349,11 +349,9 @@
  */
 .searchBox {
 	position: absolute;
-	right: 2rem;
-	top: .75rem;
+	right: 3rem;
 	z-index: 5;
 }
-
 
 .searchBox input.search {
 	/*border: 1px solid var(--link-color-active);*/
