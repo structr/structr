@@ -28,7 +28,7 @@ let _Dashboard = {
 	showScriptingErrorPopupsKey:         'showScriptinErrorPopups' + port,
 	showVisibilityFlagsInGrantsTableKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + port,
 	favorEditorForContentElementsKey:    'favorEditorForContentElements' + port,
-	favorHTMLForDOMNodesKey:             'favorEditorForContentElements' + port,
+	favorHTMLForDOMNodesKey:             'favorHTMLForDOMNodes' + port,
 
 	init: function() {
 		if (!subModule) subModule = LSWrapper.getItem(_Dashboard.activeTabPrefixKey);
@@ -241,7 +241,7 @@ let _Dashboard = {
 
 					let favorHTMLForDOMNodesCheckbox = document.querySelector('#dashboard-favor-html-tab-for-dom-nodes');
 					if (favorHTMLForDOMNodesCheckbox) {
-						favorHTMLForDOMNodesCheckbox.checked = favorEditorForContentElements;
+						favorHTMLForDOMNodesCheckbox.checked = favorHTMLForDOMNodes;
 
 						favorHTMLForDOMNodesCheckbox.addEventListener('change', () => {
 							LSWrapper.setItem(_Dashboard.favorHTMLForDOMNodesKey, favorHTMLForDOMNodesCheckbox.checked);
