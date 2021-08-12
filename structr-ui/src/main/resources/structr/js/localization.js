@@ -145,7 +145,7 @@ let _Localization = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.svg.trashcan,
+			icon: _Icons.svg.trashcan(),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete Localization',
 			clickHandler: () => {
@@ -468,9 +468,7 @@ let _Localization = {
 
 		$('.id', $row).text(localization.id);
 
-		$('td.actions', $row).html('<a title="Delete" class="delete">' + _Icons.svg.trashcan + '</a>');
-
-		_Localization.resizeSvg('.delete', $row);
+		$('td.actions', $row).html('<a title="Delete" class="delete">' + _Icons.svg.trashcan(24, 24) + '</a>');
 
 		$row[0].querySelector('.delete').addEventListener('click', async (e) => {
 			e.preventDefault();
@@ -494,12 +492,6 @@ let _Localization = {
 				}
 			);
 		});
-	},
-	resizeSvg: (selector, $row) => {
-		// TODO: make svg customizable... somewhere else
-		let svg = $row[0].querySelector(selector).querySelector('svg');
-		svg.setAttribute('width', 24);
-		svg.setAttribute('height', 24);
 	},
 	textfieldChangeAction: function ($el, localization, attr) {
 		let oldValue = $el.data('oldValue');
@@ -564,8 +556,6 @@ let _Localization = {
 			let trElement = $tr[0];
 
 			$('input[type=checkbox]', $tr).attr('disabled', 'disabled');
-
-			_Localization.resizeSvg('.discard', $tr);
 
 			trElement.querySelector('td.actions .discard').addEventListener('click', function(event) {
 				event.preventDefault();

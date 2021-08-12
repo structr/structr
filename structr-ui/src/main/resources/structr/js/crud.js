@@ -202,7 +202,7 @@ var _Crud = {
 
 			main.append(html);
 
-			Structr.fetchHtmlTemplate('crud/menu', {}, function(html) {
+			Structr.fetchHtmlTemplate('crud/functions', {}, function(html) {
 
 				functionBar.append(html);
 

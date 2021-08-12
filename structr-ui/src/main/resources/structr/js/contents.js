@@ -192,7 +192,7 @@ var _Contents = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.svg.trashcan,
+			icon: _Icons.svg.trashcan(),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete ' + entity.type,
 			clickHandler: () => {

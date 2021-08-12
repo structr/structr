@@ -320,28 +320,22 @@
 /*
  * Display type switches
  */
-
 #switches {
-	/*width: 20rem;*/
+	display: flex;
 	position: absolute;
 	top: 1rem;
 	right: .5rem;
 }
 
-#switch-list.active {
-	width: 5rem;
+#switches .switch {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+	min-width: initial;
 }
 
-#switch-list.inactive {
-	width: 4rem;
-}
-
-#switch-tiles.active {
-	width: 5rem;
-}
-
-#switch-tiles.inactive {
-	width: 4rem;
+#switches .switch.active svg {
+	color: var(--icon-color-dark-green);
 }
 
 /*

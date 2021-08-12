@@ -234,7 +234,7 @@ var _Files = {
 
 			if (entity.isImage && contentType !== 'text/svg' && !contentType.startsWith('image/svg')) {
 				elements.push({
-					icon: _Icons.svg.pencil_edit,
+					icon: _Icons.svg.pencil_edit(),
 					name: 'Edit Image',
 					clickHandler: function () {
 						_Files.editImage(entity);
@@ -243,7 +243,7 @@ var _Files = {
 				});
 			} else {
 				elements.push({
-					icon: _Icons.svg.pencil_edit,
+					icon: _Icons.svg.pencil_edit(),
 					name: 'Edit File' + ((fileCount > 1) ? 's' : ''),
 					clickHandler: function () {
 						_Files.editFile(entity);
@@ -364,7 +364,7 @@ var _Files = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.svg.trashcan,
+			icon: _Icons.svg.trashcan(),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete ' + (isMultiSelect ? 'selected' : entity.type),
 			clickHandler: () => {
@@ -674,8 +674,8 @@ var _Files = {
 		LSWrapper.setItem(filesLastOpenFolderKey, id);
 
 		displayingFavorites = (id === 'favorites');
-		let isRootFolder = (id === 'root');
-		let parentIsRoot = (parentId === '#');
+		let isRootFolder    = (id === 'root');
+		let parentIsRoot    = (parentId === '#');
 
 		_Files.updateFunctionBarStatus(displayingFavorites);
 		_Files.insertLayoutSwitches(id, parentId, nodePath, parents);
@@ -806,9 +806,9 @@ var _Files = {
 	insertLayoutSwitches: function (id, parentId, nodePath, parents) {
 
 		folderContents.prepend('<div id="switches">'
-			+ '<button class="switch ' + (_Files.isViewModeActive('list') ? 'active' : 'inactive') + '" id="switch-list" data-view-mode="list">' + (_Files.isViewModeActive('list') ? '<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' : '') + ' List</button>'
-			+ '<button class="switch ' + (_Files.isViewModeActive('tiles') ? 'active' : 'inactive') + '" id="switch-tiles" data-view-mode="tiles">'	+ (_Files.isViewModeActive('tiles') ? '<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' : '') + ' Tiles</button>'
-			+ '<button class="switch ' + (_Files.isViewModeActive('img') ? 'active' : 'inactive') + '" id="switch-img" data-view-mode="img">' + (_Files.isViewModeActive('img') ? '<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' : '') + ' Images</button>'
+			+ '<button class="switch ' + (_Files.isViewModeActive('list') ? 'active' : 'inactive') + '" id="switch-list" data-view-mode="list">' + (_Files.isViewModeActive('list') ? _Icons.svg.checkmark_bold() : '') + ' List</button>'
+			+ '<button class="switch ' + (_Files.isViewModeActive('tiles') ? 'active' : 'inactive') + '" id="switch-tiles" data-view-mode="tiles">' + (_Files.isViewModeActive('tiles') ? _Icons.svg.checkmark_bold() : '') + ' Tiles</button>'
+			+ '<button class="switch ' + (_Files.isViewModeActive('img') ? 'active' : 'inactive') + '" id="switch-img" data-view-mode="img">' + (_Files.isViewModeActive('img') ? _Icons.svg.checkmark_bold() : '') + ' Images</button>'
 			+ '</div>');
 
 		let listSw  = $('#switch-list');
