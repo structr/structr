@@ -305,7 +305,7 @@ let _Pages = {
 		if (entity.type === 'Div' && !hasChildren) {
 
 			elements.push({
-				icon: _Icons.svg.pencil_edit(),
+				icon: _Icons.getSvgIcon('pencil_edit'),
 				name: 'Edit',
 				clickHandler: function () {
 					_Entities.editSource(entity);
@@ -320,7 +320,7 @@ let _Pages = {
 		if (!isPage && hasParentAndParentIsNotPage || parentIsShadowPage) {
 
 			elements.push({
-				icon: _Icons.svg.duplicate(),
+				icon: _Icons.getSvgIcon('duplicate'),
 				name: 'Clone',
 				clickHandler: function () {
 					Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
@@ -361,7 +361,7 @@ let _Pages = {
 
 		if (isPage) {
 			elements.push({
-				icon: _Icons.svg.duplicate(),
+				icon: _Icons.getSvgIcon('duplicate'),
 				name: 'Clone Page',
 				clickHandler: function () {
 					Command.clonePage(entity.id);
@@ -565,7 +565,7 @@ let _Pages = {
 
 		if (isPage) {
 			elements.push({
-				icon: _Icons.svg.page_settings(),
+				icon: _Icons.getSvgIcon('page_settings'),
 				name: 'Configure Page Preview',
 				clickHandler: function () {
 					_Pages.previews.configurePreview(entity);
@@ -574,7 +574,7 @@ let _Pages = {
 			});
 
 			elements.push({
-				icon: _Icons.svg.page_open(),
+				icon: _Icons.getSvgIcon('page_open'),
 				name: 'Open Page in new tab',
 				clickHandler: function () {
 					let url = _Pages.previews.getUrlForPage(entity);
@@ -589,7 +589,7 @@ let _Pages = {
 		if (!isPage && entity.parent !== null) {
 
 			elements.push({
-				icon: _Icons.svg.trashcan(),
+				icon: _Icons.getSvgIcon('trashcan'),
 				classes: ['menu-bolder', 'danger'],
 				name: 'Remove Node',
 				clickHandler: function () {
@@ -605,7 +605,7 @@ let _Pages = {
 		if (isPage || !entity.parent) {
 
 			elements.push({
-				icon: _Icons.svg.trashcan(),
+				icon: _Icons.getSvgIcon('trashcan'),
 				classes: ['menu-bolder', 'danger'],
 				name: 'Delete ' + entity.type,
 				clickHandler: () => {
@@ -1011,14 +1011,14 @@ let _Pages = {
 
 		_Pages.centerPane.dataset['elementId'] = obj.id;
 
-		if (_Dashboard.isFavorEditorForContentElements() && (!urlHash && obj.isContent)) {
+		if (UISettings.getValueFor(UISettings.pages.settings.favorEditorForContentElementsKey) && (!urlHash && obj.isContent)) {
 			/*
 				if urlHash is given, user has manually selected a tab. if it is not given, user has selected a node
 			*/
 			urlHash = '#pages:editor';
 		}
 
-		if (_Dashboard.isFavorHTMLForDOMNodes() && (!urlHash && obj.isDOMNode)) {
+		if (UISettings.getValueFor(UISettings.pages.settings.favorHTMLForDOMNodesKey) && (!urlHash && obj.isDOMNode)) {
 			/*
 				if urlHash is given, user has manually selected a tab. if it is not given, user has selected a node
 			*/
@@ -2370,7 +2370,7 @@ let _Pages = {
 
 					let count = result.length;
 					if (count > 0) {
-						btn.html(_Icons.svg.trashcan() + ' Delete all (' + count + ')');
+						btn.html(_Icons.getSvgIcon('trashcan') + ' Delete all (' + count + ')');
 						btn.removeClass('disabled');
 						btn.prop('disabled', false);
 					} else {

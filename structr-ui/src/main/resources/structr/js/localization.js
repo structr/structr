@@ -145,7 +145,7 @@ let _Localization = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.svg.trashcan(),
+			icon: _Icons.getSvgIcon('trashcan'),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete Localization',
 			clickHandler: () => {
@@ -468,7 +468,7 @@ let _Localization = {
 
 		$('.id', $row).text(localization.id);
 
-		$('td.actions', $row).html('<a title="Delete" class="delete">' + _Icons.svg.trashcan(24, 24) + '</a>');
+		$('td.actions', $row).html('<a title="Delete" class="delete">' + _Icons.getSvgIcon('trashcan', 20, 20) + '</a>');
 
 		$row[0].querySelector('.delete').addEventListener('click', async (e) => {
 			e.preventDefault();

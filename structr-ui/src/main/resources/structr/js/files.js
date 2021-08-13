@@ -234,7 +234,7 @@ var _Files = {
 
 			if (entity.isImage && contentType !== 'text/svg' && !contentType.startsWith('image/svg')) {
 				elements.push({
-					icon: _Icons.svg.pencil_edit(),
+					icon: _Icons.getSvgIcon('pencil_edit'),
 					name: 'Edit Image',
 					clickHandler: function () {
 						_Files.editImage(entity);
@@ -243,7 +243,7 @@ var _Files = {
 				});
 			} else {
 				elements.push({
-					icon: _Icons.svg.pencil_edit(),
+					icon: _Icons.getSvgIcon('pencil_edit'),
 					name: 'Edit File' + ((fileCount > 1) ? 's' : ''),
 					clickHandler: function () {
 						_Files.editFile(entity);
@@ -364,7 +364,7 @@ var _Files = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.svg.trashcan(),
+			icon: _Icons.getSvgIcon('trashcan'),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete ' + (isMultiSelect ? 'selected' : entity.type),
 			clickHandler: () => {
@@ -805,10 +805,12 @@ var _Files = {
 	},
 	insertLayoutSwitches: function (id, parentId, nodePath, parents) {
 
+		let checkmark = _Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green');
+
 		folderContents.prepend('<div id="switches">'
-			+ '<button class="switch ' + (_Files.isViewModeActive('list') ? 'active' : 'inactive') + '" id="switch-list" data-view-mode="list">' + (_Files.isViewModeActive('list') ? _Icons.svg.checkmark_bold() : '') + ' List</button>'
-			+ '<button class="switch ' + (_Files.isViewModeActive('tiles') ? 'active' : 'inactive') + '" id="switch-tiles" data-view-mode="tiles">' + (_Files.isViewModeActive('tiles') ? _Icons.svg.checkmark_bold() : '') + ' Tiles</button>'
-			+ '<button class="switch ' + (_Files.isViewModeActive('img') ? 'active' : 'inactive') + '" id="switch-img" data-view-mode="img">' + (_Files.isViewModeActive('img') ? _Icons.svg.checkmark_bold() : '') + ' Images</button>'
+			+ '<button class="switch ' + (_Files.isViewModeActive('list') ? 'active' : 'inactive') + ' inline-flex items-center gap-1" id="switch-list" data-view-mode="list">' + (_Files.isViewModeActive('list') ? checkmark : '') + ' List</button>'
+			+ '<button class="switch ' + (_Files.isViewModeActive('tiles') ? 'active' : 'inactive') + ' inline-flex items-center gap-1" id="switch-tiles" data-view-mode="tiles">' + (_Files.isViewModeActive('tiles') ? checkmark : '') + ' Tiles</button>'
+			+ '<button class="switch ' + (_Files.isViewModeActive('img') ? 'active' : 'inactive') + ' inline-flex items-center gap-1" id="switch-img" data-view-mode="img">' + (_Files.isViewModeActive('img') ? checkmark : '') + ' Images</button>'
 			+ '</div>');
 
 		let listSw  = $('#switch-list');

@@ -30,7 +30,9 @@
 				</div>
 			</div>
 		</form>
-		<button title="Save" class="btn save" id="localization-fields-save"><i class="${_Icons.getFullSpriteClass(_Icons.tick_icon)}"></i> Save</button>
+		<button id="localization-fields-save" title="Save" class="btn save inline-flex items-center gap-1">
+			${_Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green')} Save
+		</button>
 
 		<button id="add-new-translation" class="create"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add translation</button>
 		<table id="localization-detail-table" class="props">
