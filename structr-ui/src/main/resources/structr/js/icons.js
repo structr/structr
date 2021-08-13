@@ -127,6 +127,11 @@ var _Icons = {
 	expandedClass: 'svg-expanded',
 
 	getSvgIcon: (id, width = 16, height = 16, optionalClasses) => {
+
+		/**
+		 * SVG Icons are all loaded in index.html and can be used anywhere using this function
+		 **/
+
 		let classString = '';
 
 		if (Array.isArray(optionalClasses)) {
@@ -138,21 +143,6 @@ var _Icons = {
 		}
 
 		return `<svg width="${width}" height="${height}" class="${classString}"><use xlink:href="#${id}"></use></svg>`;
-	},
-
-	svg: {
-		trashcan:       (height = 16, width = 16) => { return `<svg width="${width}" height="${height}"><use xlink:href="#trashcan"></use></svg>`; },
-		security:       (height = 16, width = 16) => { return `<svg width="${width}" height="${height}"><use xlink:href="#security"></use></svg>`; },
-		page_settings:  (height = 16, width = 16) => { return `<svg width="${width}" height="${height}"><use xlink:href="#page_settings"></use></svg>`; },
-		page_open:      (height = 16, width = 16) => { return `<svg width="${width}" height="${height}"><use xlink:href="#page_open"></use></svg>`; },
-		pencil_edit:    (height = 16, width = 16) => { return `<svg width="${width}" height="${height}"><use xlink:href="#pencil_edit"></use></svg>`; },
-		import_page:    (height = 16, width = 16) => { return `<svg width="${width}" height="${height}"><use xlink:href="#import_page"></use></svg>`; },
-		circle_plus:    (height = 16, width = 16) => { return `<svg width="${width}" height="${height}"><use xlink:href="#circle_plus"></use></svg>`; },
-		add_template:   (height = 16, width = 16) => { return `<svg width="${width}" height="${height}"><use xlink:href="#add_template"></use></svg>`; },
-		kebab_icon:     (height = 16, width = 16) => { return `<svg width="${width}" height="${height}"><use xlink:href="#kebab_icon"></use></svg>`; },
-		duplicate:      (height = 16, width = 16) => { return `<svg width="${width}" height="${height}"><use xlink:href="#duplicate"></use></svg>`; },
-
-		checkmark_bold: (height = 12, width = 12) => { return `<svg width="${width}" height="${height}"><use xlink:href="#checkmark_bold"></use></svg>`; },
 	},
 
 	getFullSpriteClass: function (key) {
