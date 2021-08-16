@@ -49,6 +49,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.protocol.HTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -497,7 +498,7 @@ public class HttpHelper {
 	public static String charset(final HttpResponse response) {
 
 		final ContentType contentType = ContentType.get(response.getEntity());
-		String charset = "UTF-8";
+		String charset = HTTP.DEF_CONTENT_CHARSET.name();
 		if (contentType != null && contentType.getCharset() != null) {
 
 			charset = contentType.getCharset().toString();
