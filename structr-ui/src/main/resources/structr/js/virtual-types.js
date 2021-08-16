@@ -30,7 +30,7 @@ var _VirtualTypes = {
 	virtualPropertiesTableBody: undefined,
 	resourceLink: undefined,
 
-	virtualTypesResizerLeftKey: 'structrVirtualTypesResizerLeftKey_' + port,
+	virtualTypesResizerLeftKey: 'structrVirtualTypesResizerLeftKey_' + location.port,
 
 	init: function() {},
 	unload: function() {},

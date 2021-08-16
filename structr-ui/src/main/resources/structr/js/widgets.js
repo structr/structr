@@ -16,9 +16,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var _Widgets = {
+let _Widgets = {
 	defaultWidgetServerUrl: 'https://widgets.structr.org/structr/rest/widgets',
-	widgetServerKey: 'structrWidgetServerKey_' + port,
+	widgetServerKey: 'structrWidgetServerKey_' + location.port,
 	applicationConfigurationDataNodeKey: 'remote_widget_server',
 
 	remoteWidgetData: [],
@@ -27,8 +27,8 @@ var _Widgets = {
 	localWidgetsEl: undefined,
 	widgetServerSelector: undefined,
 
-	localWidgetsCollapsedKey: 'structrWidgetLocalCollapsedKey_' + port,
-	remoteWidgetsCollapsedKey: 'structrWidgetRemoteCollapsedKey_' + port,
+	localWidgetsCollapsedKey: 'structrWidgetLocalCollapsedKey_' + location.port,
+	remoteWidgetsCollapsedKey: 'structrWidgetRemoteCollapsedKey_' + location.port,
 
 	getContextMenuElements: function (div, entity) {
 
@@ -107,14 +107,14 @@ var _Widgets = {
 				drop: function(e, ui) {
 					e.preventDefault();
 					e.stopPropagation();
-					dropBlocked = true;
+					_Elements.dropBlocked = true;
 					var sourceId = Structr.getId($(ui.draggable));
 					var sourceWidget = StructrModel.obj(sourceId);
 
 					if (sourceWidget && sourceWidget.isWidget) {
 						if (sourceWidget.treePath) {
 							Command.create({ type: 'Widget', name: sourceWidget.name + ' (copied)', source: sourceWidget.source, description: sourceWidget.description, configuration: sourceWidget.configuration }, function(entity) {
-								dropBlocked = false;
+								_Elements.dropBlocked = false;
 							});
 						}
 					} else if (sourceId) {
@@ -124,7 +124,7 @@ var _Widgets = {
 							statusCode: {
 								200: function(data) {
 									Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function(entity) {
-										dropBlocked = false;
+										_Elements.dropBlocked = false;
 									});
 								}
 							}

@@ -23,15 +23,15 @@ $(document).ready(function() {
 let _Dashboard = {
 	_moduleName: 'dashboard',
 	dashboard: undefined,
-	activeTabPrefixKey: 'activeDashboardTabPrefix' + port,
+	activeTabPrefixKey: 'activeDashboardTabPrefix' + location.port,
 
-	showScriptingErrorPopupsKey:         'showScriptinErrorPopups' + port,
-	showVisibilityFlagsInGrantsTableKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + port,
-	favorEditorForContentElementsKey:    'favorEditorForContentElements' + port,
-	favorHTMLForDOMNodesKey:             'favorHTMLForDOMNodes' + port,
+	showScriptingErrorPopupsKey:         'showScriptinErrorPopups' + location.port,
+	showVisibilityFlagsInGrantsTableKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + location.port,
+	favorEditorForContentElementsKey:    'favorEditorForContentElements' + location.port,
+	favorHTMLForDOMNodesKey:             'favorHTMLForDOMNodes' + location.port,
 
 	init: function() {
-		if (!subModule) subModule = LSWrapper.getItem(_Dashboard.activeTabPrefixKey);
+
 	},
 	unload: function() {
 		window.clearInterval(_Dashboard.serverlog.interval);
@@ -90,17 +90,16 @@ let _Dashboard = {
 			    meData.result = meData.result[0];
 			}
 			templateConfig.meObj = meData.result;
-			let deployResponse = await fetch('/structr/deploy?mode=test');
+			let deployResponse   = await fetch('/structr/deploy?mode=test');
 
-			templateConfig.deployServletAvailable = (deployResponse.status == 200);
-
+			templateConfig.deployServletAvailable       = (deployResponse.status == 200);
 			templateConfig.zipExportPrefix              = LSWrapper.getItem(_Dashboard.deployment.zipExportPrefixKey);
 			templateConfig.zipExportAppendTimestamp     = LSWrapper.getItem(_Dashboard.deployment.zipExportAppendTimestampKey, true);
 			templateConfig.zipDataExportAppendTimestamp = LSWrapper.getItem(_Dashboard.deployment.zipDataExportAppendTimestamp, true);
 
 			Structr.fetchHtmlTemplate('dashboard/dashboard', templateConfig, function(html) {
 
-				main.append(html);
+				main[0].innerHTML = html;
 
 				document.getElementById('deployment-file-input').addEventListener('input', () => {
 					document.getElementById('deployment-url-input').value = '';
@@ -111,7 +110,8 @@ let _Dashboard = {
 				});
 
 				Structr.fetchHtmlTemplate('dashboard/dashboard.menu', templateConfig, function(html) {
-					functionBar.append(html);
+
+					functionBar[0].innerHTML = html
 
 					if (templateConfig.envInfo.databaseService === 'MemoryDatabaseService') {
 						Structr.appendInMemoryInfoToElement($('#dashboard-about-structr .db-driver'));
@@ -127,10 +127,9 @@ let _Dashboard = {
 						tabLink.addEventListener('click', function(e) {
 							e.preventDefault();
 
-							let urlHash = e.target.closest('a').getAttribute('href');
-
-							subModule = urlHash.split(':')[1];
-							let targetId = '#dashboard-' + subModule;
+							let urlHash   = e.target.closest('a').getAttribute('href');
+							let subModule = urlHash.split(':')[1];
+							let targetId  = '#dashboard-' + subModule;
 							window.location.hash = urlHash;
 
 							_Dashboard.removeActiveClass(document.querySelectorAll('#dashboard .tabs-contents .tab-content'));
@@ -142,15 +141,33 @@ let _Dashboard = {
 
 							$(targetId).trigger('show');
 						});
+					});
 
-						if (tabLink.closest('a').getAttribute('href') === '#' + mainModule + ':' + subModule) {
-							tabLink.click();
+					// activate tab - either defined by URL or by last accessed
+					let tabSelected = false;
+					if (location.hash.split(':').length > 1) {
+						let locationHashLink = functionBar[0].querySelector('[href="' + location.hash + '"]');
+						if (locationHashLink) {
+							tabSelected = true;
+							locationHashLink.click();
 						}
-					});
+					}
 
-					document.querySelector('#clear-local-storage-on-server').addEventListener('click', function() {
-						_Dashboard.clearLocalStorageOnServer(templateConfig.meObj.id);
-					});
+					if (!tabSelected) {
+						let storedSubModule = LSWrapper.getItem(_Dashboard.activeTabPrefixKey);
+						let activeTabLink   = document.querySelector('[href="#' + _Dashboard._moduleName + ':' + storedSubModule + '"]');
+						if (activeTabLink) {
+							tabSelected = true;
+							activeTabLink.click();
+						}
+					}
+
+					if (!tabSelected) {
+						let firstTab = functionBar[0].querySelector('a');
+						if (firstTab) {
+							firstTab.click();
+						}
+					}
 
 					_Dashboard.checkLicenseEnd(templateConfig.envInfo, $('#dashboard-about-structr .end-date'));
 
@@ -163,87 +180,17 @@ let _Dashboard = {
 						Structr.resize();
 					});
 
-					let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
-					if (!userConfigMenu) {
-						userConfigMenu = {
-							main: templateConfig.envInfo.mainMenu,
-							sub: []
-						};
-					}
+					_Dashboard.uisettings.showMainMenuConfiguration(templateConfig.envInfo.mainMenu);
 
-					let mainMenuConfigContainer = document.querySelector('#main-menu-entries-config');
-					let subMenuConfigContainer = document.querySelector('#sub-menu-entries-config');
+					_Dashboard.uisettings.showConfigurableSettings();
 
-					for (let menuitem of document.querySelectorAll('#menu li[data-name]')) {
-
-						// account for missing modules because of license
-						if (menuitem.style.display !== 'none') {
-							let n = document.createElement('div');
-							n.classList.add('menu-item');
-							n.textContent = menuitem.dataset.name;
-							n.dataset.name = menuitem.dataset.name;
-							subMenuConfigContainer.appendChild(n);
-						}
-					}
-
-					for (let mainMenuItem of userConfigMenu.main) {
-						mainMenuConfigContainer.appendChild(subMenuConfigContainer.querySelector('div[data-name="' + mainMenuItem + '"]'));
-					}
-
-					$('#main-menu-entries-config, #sub-menu-entries-config').sortable({
-						connectWith: ".connectedSortable"
-					}).disableSelection();
-
-					document.querySelector('#save-menu-config').addEventListener('click', () => {
-						let newMenuConfig = {
-							main: [].map.call(mainMenuConfigContainer.querySelectorAll('div.menu-item'), (el) => { return el.dataset.name; }),
-							sub: [].map.call(subMenuConfigContainer.querySelectorAll('div.menu-item'), (el) => { return el.dataset.name; })
-						};
-
-						Structr.updateMainMenu(newMenuConfig);
-					});
-
-					let showScriptingErrorPopupsCheckbox = document.querySelector('#dashboard-show-scripting-error-popups');
-					if (showScriptingErrorPopupsCheckbox) {
-						showScriptingErrorPopupsCheckbox.checked = UISettings.getValueFor(UISettings.global.settings.showScriptingErrorPopupsKey);
-
-						showScriptingErrorPopupsCheckbox.addEventListener('change', () => {
-							UISettings.setValueFor(UISettings.global.settings.showScriptingErrorPopupsKey, showScriptingErrorPopupsCheckbox.checked, showScriptingErrorPopupsCheckbox.parentElement);
-						});
-					}
-
-					let showVisibilityFlagsInGrantsTableCheckbox = document.querySelector('#dashboard-show-visibility-flags-grants');
-					if (showVisibilityFlagsInGrantsTableCheckbox) {
-						showVisibilityFlagsInGrantsTableCheckbox.checked = UISettings.getValueFor(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey);
-
-						showVisibilityFlagsInGrantsTableCheckbox.addEventListener('change', () => {
-							UISettings.setValueFor(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey, showVisibilityFlagsInGrantsTableCheckbox.checked, showVisibilityFlagsInGrantsTableCheckbox.parentElement);
-						});
-					}
-
-					let favorEditorForContentElementsCheckbox = document.querySelector('#dashboard-favor-editors-for-content-elements');
-					if (favorEditorForContentElementsCheckbox) {
-						favorEditorForContentElementsCheckbox.checked = UISettings.getValueFor(UISettings.pages.settings.favorEditorForContentElementsKey);
-
-						favorEditorForContentElementsCheckbox.addEventListener('change', () => {
-							UISettings.setValueFor(UISettings.pages.settings.favorEditorForContentElementsKey, favorEditorForContentElementsCheckbox.checked, favorEditorForContentElementsCheckbox.parentElement);
-						});
-					}
-
-					let favorHTMLForDOMNodesCheckbox = document.querySelector('#dashboard-favor-html-tab-for-dom-nodes');
-					if (favorHTMLForDOMNodesCheckbox) {
-						favorHTMLForDOMNodesCheckbox.checked = UISettings.getValueFor(UISettings.pages.settings.favorHTMLForDOMNodesKey);
-
-						favorHTMLForDOMNodesCheckbox.addEventListener('change', () => {
-							UISettings.setValueFor(UISettings.pages.settings.favorHTMLForDOMNodesKey, favorHTMLForDOMNodesCheckbox.checked, favorHTMLForDOMNodesCheckbox.parentElement);
-						});
-					}
+					_Dashboard.uisettings.handleResetConfiguration(templateConfig.meObj.id);
 
 					Structr.unblockMenu(100);
 				});
 			});
 
-			} catch(e) {
+		} catch(e) {
 
 			if (retryCount < 3) {
 				setTimeout(() => {
@@ -330,14 +277,6 @@ let _Dashboard = {
 			});
 		}
 	},
-	clearLocalStorageOnServer: function(userId) {
-
-		Command.setProperty(userId, 'localStorage', null, false, function() {
-			blinkGreen($('#clear-local-storage-on-server'));
-			LSWrapper.clear();
-			location.reload();
-		});
-	},
 	checkLicenseEnd: function(envInfo, element, cfg) {
 
 		if (envInfo && envInfo.endDate && element) {
@@ -400,21 +339,11 @@ let _Dashboard = {
 	},
 
 
-	elementWithContent: function(parent, tag, content) {
-
-		let element = document.createElement(tag);
-		element.innerHTML = content;
-
-		parent.appendChild(element);
-
-		return element;
-	},
-
 	deployment: {
-    	zipExportPrefixKey:              'zipExportPrefix' + port,
-		zipDataExportPrefixKey:          'zipDataExportPrefix' + port,
-        zipExportAppendTimestampKey:     'zipExportAppendTimestamp' + port,
-		zipDataExportAppendTimestampKey: 'zipDataExportAppendTimestamp' + port,
+    	zipExportPrefixKey:              'zipExportPrefix' + location.port,
+		zipDataExportPrefixKey:          'zipDataExportPrefix' + location.port,
+        zipExportAppendTimestampKey:     'zipExportAppendTimestamp' + location.port,
+		zipDataExportAppendTimestampKey: 'zipDataExportAppendTimestamp' + location.port,
 
         init: () => {
 
@@ -739,8 +668,8 @@ let _Dashboard = {
 
 	serverlog: {
         interval: undefined,
-        refreshTimeIntervalKey: 'dashboardLogRefreshTimeInterval' + port,
-        numberOfLinesKey: 'dashboardNumberOfLines' + port,
+        refreshTimeIntervalKey: 'dashboardLogRefreshTimeInterval' + location.port,
+        numberOfLinesKey: 'dashboardNumberOfLines' + location.port,
 
         init: function() {
 
@@ -862,6 +791,16 @@ let _Dashboard = {
             }
         },
 
+		elementWithContent: function(parent, tag, content) {
+
+			let element       = document.createElement(tag);
+			element.innerHTML = content;
+
+			parent.appendChild(element);
+
+			return element;
+		},
+
         loadRuntimeEventLog: function() {
 
             let row    = document.querySelector('#event-log-container');
@@ -886,38 +825,38 @@ let _Dashboard = {
                         let tr        = document.createElement('tr');
                         let data      = event.data;
 
-                        _Dashboard.elementWithContent(tr, 'td', timestamp);
-                        _Dashboard.elementWithContent(tr, 'td', event.type);
-                        _Dashboard.elementWithContent(tr, 'td', event.description);
+                        _Dashboard.eventlog.elementWithContent(tr, 'td', timestamp);
+                        _Dashboard.eventlog.elementWithContent(tr, 'td', event.type);
+                        _Dashboard.eventlog.elementWithContent(tr, 'td', event.description);
 
                         if (data) {
 
                             switch (event.type) {
 
                                 case 'Authentication':
-                                    _Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
+                                    _Dashboard.eventlog.elementWithContent(tr, 'td', JSON.stringify(data));
                                     break;
 
                                 case 'Scripting':
-                                    _Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
+                                    _Dashboard.eventlog.elementWithContent(tr, 'td', JSON.stringify(data));
                                     break;
 
                                 default:
-                                    _Dashboard.elementWithContent(tr, 'td', JSON.stringify(data));
+                                    _Dashboard.eventlog.elementWithContent(tr, 'td', JSON.stringify(data));
                                     break;
                             }
 
                         } else {
 
-                            _Dashboard.elementWithContent(tr, 'td', '');
+                            _Dashboard.eventlog.elementWithContent(tr, 'td', '');
                         }
 
-                        let buttonContainer = _Dashboard.elementWithContent(tr, 'td', '');
+                        let buttonContainer = _Dashboard.eventlog.elementWithContent(tr, 'td', '');
                         if (data.id && data.type) {
 
                         	if (data.type === 'SchemaMethod' || data.type === 'SchemaProperty') {
 
-								let button = _Dashboard.elementWithContent(buttonContainer, 'button', 'Go to code');
+								let button = _Dashboard.eventlog.elementWithContent(buttonContainer, 'button', 'Go to code');
 								button.addEventListener('click', function() {
 
 									Command.get(data.id, null, function (obj) {
@@ -942,7 +881,7 @@ let _Dashboard = {
 
 							} else {
 
-								let button = _Dashboard.elementWithContent(buttonContainer, 'button', 'Open content in editor');
+								let button = _Dashboard.eventlog.elementWithContent(buttonContainer, 'button', 'Open content in editor');
 								button.addEventListener('click', function() {
 
 									Command.get(data.id, null, function (obj) {
@@ -967,5 +906,102 @@ let _Dashboard = {
                 }
             );
         },
+	},
+
+	uisettings: {
+
+		showMainMenuConfiguration: (defaultMainMenu) => {
+
+			let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
+			if (!userConfigMenu) {
+				userConfigMenu = {
+					main: defaultMainMenu,
+					sub: []
+				};
+			}
+
+			let mainMenuConfigContainer = document.querySelector('#main-menu-entries-config');
+			let subMenuConfigContainer  = document.querySelector('#sub-menu-entries-config');
+
+			for (let menuitem of document.querySelectorAll('#menu li[data-name]')) {
+
+				// account for missing modules because of license
+				if (menuitem.style.display !== 'none') {
+					let n = document.createElement('div');
+					n.classList.add('menu-item');
+					n.textContent = menuitem.dataset.name;
+					n.dataset.name = menuitem.dataset.name;
+					subMenuConfigContainer.appendChild(n);
+				}
+			}
+
+			for (let mainMenuItem of userConfigMenu.main) {
+				mainMenuConfigContainer.appendChild(subMenuConfigContainer.querySelector('div[data-name="' + mainMenuItem + '"]'));
+			}
+
+			$('#main-menu-entries-config, #sub-menu-entries-config').sortable({
+				connectWith: ".connectedSortable",
+				stop: _Dashboard.uisettings.updateMenu
+			}).disableSelection();
+
+			_Dashboard.uisettings.updateMenu();
+
+		},
+
+		updateMenu: () => {
+
+			let mainMenuConfigContainer = document.querySelector('#main-menu-entries-config');
+			let subMenuConfigContainer  = document.querySelector('#sub-menu-entries-config');
+
+			let newMenuConfig = {
+				main: [].map.call(mainMenuConfigContainer.querySelectorAll('div.menu-item'), (el) => { return el.dataset.name; }),
+				sub: [].map.call(subMenuConfigContainer.querySelectorAll('div.menu-item'), (el) => { return el.dataset.name; })
+			};
+
+			Structr.updateMainMenu(newMenuConfig);
+		},
+
+		showConfigurableSettings: () => {
+
+			let settingsContainer = document.querySelector('#settings-container');
+			let allSettings       = UISettings.getSettings();
+
+			for (let section of allSettings) {
+
+				let sectionDOM = Structr.createSingleDOMElementFromHTML('<div><div class="font-bold pt-4 pb-2">' + section.title + '</div></div>');
+
+				for (let [settingKey, setting] of Object.entries(section.settings)) {
+
+					let settingDOM = Structr.createSingleDOMElementFromHTML('<label class="ui-setting-checkbox"><input type="checkbox"> ' + setting.text + '</label>');
+
+					let input = settingDOM.querySelector('input');
+					input.checked = UISettings.getValueForSetting(setting);
+
+					input.addEventListener('change', () => {
+						UISettings.setValueForSetting(setting, input.checked, input.parentElement);
+					});
+
+					sectionDOM.appendChild(settingDOM);
+				}
+
+				settingsContainer.appendChild(sectionDOM);
+			}
+		},
+
+		handleResetConfiguration: (userId) => {
+
+			document.querySelector('#clear-local-storage-on-server').addEventListener('click', function() {
+
+				// save before we remove to possibly force an update. (if no update is done, the callback is not fired)
+				LSWrapper.save(() => {
+
+					Command.setProperty(userId, 'localStorage', null, false, function() {
+						blinkGreen($('#clear-local-storage-on-server'));
+						LSWrapper.clear();
+						_Dashboard.onload();
+					});
+				});
+			});
+		}
 	}
 };

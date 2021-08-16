@@ -691,7 +691,7 @@ var _Console = new (function() {
 	};
 
 	var _showConsole = function() {
-		if (user !== null) {
+		if (StructrWS.user !== null) {
 			_consoleVisible = true;
 			_terminal.enable();
 			$('#structr-console').slideDown('fast');
@@ -750,8 +750,8 @@ var _Favorites = new (function () {
 
 	this.initFavorites = function() {
 
-		favoritesTabKey = 'structrFavoritesTab_' + port;
-		scrollInfoKey = 'structrScrollInfoKey_' + port;
+		favoritesTabKey = 'structrFavoritesTab_' + location.port;
+		scrollInfoKey = 'structrScrollInfoKey_' + location.port;
 
 	};
 
@@ -924,7 +924,7 @@ var _Favorites = new (function () {
 	};
 
 	var _showFavorites = function() {
-		if (user !== null) {
+		if (StructrWS.user !== null) {
 			_favsVisible = true;
 			$('#structr-favorites').slideDown('fast', function() {
 				_Favorites.refreshFavorites();

@@ -20,14 +20,14 @@ var main, contentsMain, contentTree, contentsContents;
 var selectedElements = [];
 var currentContentContainer;
 var containerPageSize = 10000, containerPage = 1;
-var currentContentContainerKey = 'structrCurrentContentContainer_' + port;
-var contentsResizerLeftKey = 'structrContentsResizerLeftKey_' + port;
+var currentContentContainerKey = 'structrCurrentContentContainer_' + location.port;
+var contentsResizerLeftKey = 'structrContentsResizerLeftKey_' + location.port;
 
 $(document).ready(function() {
 	Structr.registerModule(_Contents);
 });
 
-var _Contents = {
+let _Contents = {
 	_moduleName: 'contents',
 	searchField: undefined,
 	init: function() {
@@ -66,7 +66,7 @@ var _Contents = {
 
 			Structr.fetchHtmlTemplate('contents/buttons.new', { containerTypes: contentContainerTypes, itemTypes: contentItemTypes }, async (html) => {
 
-				functionBar[0].insertAdjacentHTML('beforeend', html);
+				functionBar[0].innerHTML = html;
 
 				let itemTypeSelect      = document.querySelector('select#content-item-type');
 				let addItemButton       = document.getElementById('add-item-button');
@@ -353,7 +353,7 @@ var _Contents = {
 		}
 
 		_Pager.initPager('contents-items', 'ContentItem', 1, 25, 'position', 'asc');
-		page['ContentItem'] = 1;
+		_Pager.page['ContentItem'] = 1;
 		_Pager.initFilters('contents-items', 'ContentItem', id === 'root' ? { containers: [] } : { containers: [id] });
 
 		var itemsPager = _Pager.addPager('contents-items', contentsContents, false, 'ContentItem', 'ui', handleChildren);
@@ -651,7 +651,7 @@ var _Contents = {
 								if (val) {
 									checkbox.prop('checked', true);
 								}
-								if ((!isReadOnly || isAdmin) && !isSystem) {
+								if ((!isReadOnly || StructrWS.isAdmin) && !isSystem) {
 									checkbox.on('change', function() {
 										var checked = checkbox.prop('checked');
 										_Contents.checkValueHasChanged(oldVal, checked || false, [dialogSaveButton, saveAndClose]);

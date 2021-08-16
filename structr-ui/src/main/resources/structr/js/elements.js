@@ -16,8 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var elements, dropBlocked;
-var contents, editor, contentType;
+var editor, contentType;
 
 $(function() {
 
@@ -39,7 +38,8 @@ $(function() {
 });
 
 let _Elements = {
-	inheritVisibilityFlagsKey: 'inheritVisibilityFlags_' + port,
+	dropBlocked: false,
+	inheritVisibilityFlagsKey: 'inheritVisibilityFlags_' + location.port,
 	elementGroups: [
 		{
 			name: 'Root',
@@ -283,7 +283,7 @@ let _Elements = {
 		if (refNodeIsParent) {
 			parent = refNode;
 		} else {
-			parent = (entity.parent && entity.parent.id) ? Structr.node(entity.parent.id) : elements;
+			parent = (entity.parent && entity.parent.id) ? Structr.node(entity.parent.id) : null;
 		}
 
 		if (!parent) {

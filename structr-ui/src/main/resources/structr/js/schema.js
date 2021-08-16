@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var canvas, instance, res, nodes = {}, rels = {}, localStorageSuffix = '_schema_' + port;
+var canvas, instance, res, nodes = {}, rels = {}, localStorageSuffix = '_schema_' + location.port;
 var reload = false;
 var schemaContainer;
 var inheritanceTree, inheritanceSlideout;
@@ -81,15 +81,15 @@ var _Schema = {
 	nodePositions: undefined,
 	availableTypeNames: [],
 	hiddenSchemaNodes: [],
-	hiddenSchemaNodesKey: 'structrHiddenSchemaNodes_' + port,
-	schemaPositionsKey: 'structrSchemaPositions_' + port,
-	showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + port,
-	showSchemaInheritanceKey: 'structrShowSchemaInheritance_' + port,
-	showJavaMethodsKey: 'structrShowJavaMethods_' + port,
-	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + port,
-	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + port,
-	activeSchemaToolsSelectedTabLevel1Key: 'structrSchemaToolsSelectedTabLevel1_' + port,
-	activeSchemaToolsSelectedVisibilityTab: 'activeSchemaToolsSelectedVisibilityTab_' + port,
+	hiddenSchemaNodesKey: 'structrHiddenSchemaNodes_' + location.port,
+	schemaPositionsKey: 'structrSchemaPositions_' + location.port,
+	showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + location.port,
+	showSchemaInheritanceKey: 'structrShowSchemaInheritance_' + location.port,
+	showJavaMethodsKey: 'structrShowJavaMethods_' + location.port,
+	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + location.port,
+	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + location.port,
+	activeSchemaToolsSelectedTabLevel1Key: 'structrSchemaToolsSelectedTabLevel1_' + location.port,
+	activeSchemaToolsSelectedVisibilityTab: 'activeSchemaToolsSelectedVisibilityTab_' + location.port,
 	schemaZoomLevelKey: localStorageSuffix + 'zoomLevel',
 	schemaConnectorStyleKey: localStorageSuffix + 'connectorStyle',
 	currentNodeDialogId: null,
@@ -1754,8 +1754,8 @@ var _Schema = {
 			let text = entity[key] || '';
 
 			element.append('<div class="editor"></div>');
-			let contentBox = $('.editor', element);
-			contentType = contentType ? contentType : entity.contentType;
+			let contentBox  = $('.editor', element);
+			let contentType = entity.contentType;
 			let text1, text2;
 
 			// Intitialize editor
@@ -3669,7 +3669,7 @@ var _Schema = {
 				let username    = optGroup.prop('label');
 				let isOwnerless = optGroup.data('ownerless') === true;
 
-				if (isOwnerless || username === me.username) {
+				if (isOwnerless || username === StructrWS.me.username) {
 					Structr.enableButton(updateLayoutButton);
 					Structr.enableButton(deleteLayoutButton);
 				} else {

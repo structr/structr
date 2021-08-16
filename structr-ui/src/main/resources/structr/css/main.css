@@ -3684,7 +3684,8 @@ i.fa-trash-o {
 	display: flex;
 }
 
-.menu-entry-container > svg {
+.menu-entry-container > svg,
+.menu-entry-container > i {
 	margin-right: 0.5rem;
 }
 
@@ -4593,6 +4594,9 @@ table.props td.__value {
 .flex {
 	display: flex;
 }
+.flex-col {
+	flex-direction: column;
+}
 .flex-grow {
 	flex-grow: 1;
 }
@@ -4602,6 +4606,30 @@ table.props td.__value {
 .items-center {
 	align-items: center;
 }
-.gap-1 {
-	gap: 0.25rem;
+.mr-1 {
+	margin-right: .25rem;
+}
+.mr-8 {
+	margin-right: 2rem;
+}
+.w-40 {
+	width: 10rem;
+}
+.w-full {
+	width: 100%;
+}
+.text-center {
+	text-align: center;
+}
+.font-bold {
+	font-weight: 700;
+}
+.pb-2 {
+	padding-bottom: .5rem;
+}
+.p-4 {
+	padding: 1rem;
+}
+.pt-4 {
+	padding-top: 1rem;
 }

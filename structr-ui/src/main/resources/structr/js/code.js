@@ -20,12 +20,9 @@
 
 var main, codeMain, codeTree, codeContents, codeContext;
 var drop;
-var selectedElements = [];
 var activeMethodId, methodContents = {};
-var currentWorkingDir;
 var methodPageSize = 10000, methodPage = 1;
 var timeout, attempts = 0, maxRetry = 10;
-var displayingFavorites = false;
 
 $(document).ready(function() {
 	Structr.registerModule(_Code);
@@ -42,10 +39,10 @@ var _Code = {
 	seed: 42,
 	availableTags: [],
 	tagBlacklist: ['core', 'ui', 'html'],       // don't show internal tags (core, ui, html)
-	codeRecentElementsKey: 'structrCodeRecentElements_' + port,
-	codeLastOpenMethodKey: 'structrCodeLastOpenMethod_' + port,
-	codeResizerLeftKey: 'structrCodeResizerLeftKey_' + port,
-	codeResizerRightKey: 'structrCodeResizerRightKey_' + port,
+	codeRecentElementsKey: 'structrCodeRecentElements_' + location.port,
+	codeLastOpenMethodKey: 'structrCodeLastOpenMethod_' + location.port,
+	codeResizerLeftKey: 'structrCodeResizerLeftKey_' + location.port,
+	codeResizerRightKey: 'structrCodeResizerRightKey_' + location.port,
 	additionalDirtyChecks: [],
 	init: function() {
 
@@ -3386,7 +3383,7 @@ var _WorkingSets = {
 
 			for (var layout of result) {
 
-				if (!layout.owner || layout.owner.name === me.username) {
+				if (!layout.owner || layout.owner.name === StructrWS.me.username) {
 
 					let content  = JSON.parse(layout.content);
 					let children = Object.keys(content.positions);
