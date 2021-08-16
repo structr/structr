@@ -490,8 +490,9 @@
 	stroke: orange; }
 
 .node-editor select, .node-editor input, .node-editor select, .node-editor select {
+	width: initial;
 	font-family: var(--font-inter) ! important;
-	/*font-size: 1rem;*/
+	font-size: 1rem;
 	color: var(--body-text);
 	border: 1px solid var(--input-field-border);
 	padding: .5rem .75rem;
@@ -732,7 +733,7 @@ span.close:focus {
 	min-width: 20%;
 }
 .query-operation select, .query-operation input {
-	min-width: 27%;
+	min-width: 20%;
 }
 .query-operation .query-operation-delete {
 	border: 1px solid transparent;
