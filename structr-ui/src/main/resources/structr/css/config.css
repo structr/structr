@@ -26,29 +26,29 @@
 	.config-group {
 	}
 	.form-group {
+		display: flex;
+		flex-wrap: wrap;
 		padding: 0;
 		margin: 1em 0 0 0;
+		align-items: center;
 	}
 	.form-group label {
-		padding-top: 1rem;
-		display: block;
+		flex-basis: 100%;
+		padding: 1rem 0 .5rem 0;
 	}
 	.form-group input[type=text], .form-group textarea {
-		min-width: 500px;
+		flex-grow: 1;
 		display: block;
 	}
 }
 
 @media (min-width: 641px) {
-	.config-group {
-		display: table;
-	}
 	.form-group {
-		display: table-row;
-		margin: 1em 0;
+		display: flex;
+		/*margin: 1em 0;*/
+		align-items: center;
 	}
 	.form-group label {
-		display: table-cell;
 		padding: 1em 1em 1em 0;
 		min-width: 32rem;
 	}
@@ -61,6 +61,10 @@
 	top: 4rem;
 }
 
+body {
+	min-width: initial ! important;
+}
+
 body.login {
 	background-color: #606060;
 }
@@ -68,7 +72,7 @@ body.login {
 #configTabs {
 	margin: 1rem 2rem 0 2rem;
 	/*width: calc(100vw - 2rem);*/
-	min-width: calc(570px + 4rem);
+	/*min-width: calc(570px + 4rem);*/
 	height: calc(100vh - 10rem);
 	border: none;
 	background: none;
@@ -397,4 +401,11 @@ p.already_taken::after {
 div.warning-message {
 	padding: 5px 5px 5px 30px;
 	margin: 8px 0 0 0;
+}
+
+svg.reset-key {
+	width: 16px;
+	height: 16px;
+	color: #d8000c;
+	cursor: pointer;
 }

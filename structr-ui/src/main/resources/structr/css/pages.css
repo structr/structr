@@ -49,6 +49,10 @@
 	color: var(--icon-stroke);
 }
 
+#add_template {
+	white-space: nowrap;
+}
+
 #pages-actions .dropdown-menu-container {
 	margin-left: -10rem;
 }

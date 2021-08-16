@@ -328,14 +328,7 @@
 }
 
 #switches .switch {
-	display: flex;
-	align-items: center;
-	gap: 0.25rem;
 	min-width: initial;
-}
-
-#switches .switch.active svg {
-	color: var(--icon-color-dark-green);
 }
 
 /*

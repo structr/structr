@@ -2252,7 +2252,7 @@ var _Entities = {
 		let editIcon = $('.edit_props_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			editIcon = $(_Icons.svg.kebab_icon());
+			editIcon = $(_Icons.getSvgIcon('kebab_icon'));
 			editIcon.addClass('node-menu-icon');
 			parent.append(editIcon);
 		}

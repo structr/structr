@@ -104,7 +104,7 @@ let _MailTemplates = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.svg.trashcan(),
+			icon: _Icons.getSvgIcon('trashcan'),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete Mail Template',
 			clickHandler: () => {

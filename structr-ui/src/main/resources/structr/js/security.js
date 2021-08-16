@@ -121,7 +121,7 @@ let _Security = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.svg.trashcan(),
+			icon: _Icons.getSvgIcon('trashcan'),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete ' + entity.type,
 			clickHandler: () => {
@@ -473,7 +473,7 @@ var _ResourceAccessGrants = {
 	refreshResourceAccesses: function() {
 		_Security.resourceAccesses.empty();
 
-		Structr.fetchHtmlTemplate('security/resource-access', {showVisibilityFlags: _Dashboard.isShowVisibilityFlagsInGrantsTable()}, function (html) {
+		Structr.fetchHtmlTemplate('security/resource-access', { showVisibilityFlags: UISettings.getValueFor(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey) }, function (html) {
 
 			_Security.resourceAccesses.append(html);
 
@@ -650,7 +650,7 @@ var _ResourceAccessGrants = {
 
 		trHtml += '<td><input type="text" class="bitmask" size="4" value="' + flags + '"></td>';
 
-		let showVisibilityFlagsInGrantsTable = _Dashboard.isShowVisibilityFlagsInGrantsTable();
+		let showVisibilityFlagsInGrantsTable = UISettings.getValueFor(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey);
 
 		if (showVisibilityFlagsInGrantsTable) {
 			trHtml += '<td class="bl-1"><input type="checkbox" ' + (resourceAccess.visibleToAuthenticatedUsers ? 'checked="checked"' : '') + ' name="visibleToAuthenticatedUsers" class="resource-access-visibility"></td>';

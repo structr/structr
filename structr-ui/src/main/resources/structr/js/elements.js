@@ -844,7 +844,7 @@ let _Elements = {
 	appendSecurityContextMenuItems: (elements, entity, supportsSubtree) => {
 
 		let securityMenu = {
-			icon: _Icons.svg.security(),
+			icon: _Icons.getSvgIcon('security'),
 			name: 'Security',
 			elements: [
 				{

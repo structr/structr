@@ -203,51 +203,39 @@ let _Dashboard = {
 						Structr.updateMainMenu(newMenuConfig);
 					});
 
-					let showScriptingErrorPopups = _Dashboard.isShowScriptingErrorPopups();
-
 					let showScriptingErrorPopupsCheckbox = document.querySelector('#dashboard-show-scripting-error-popups');
 					if (showScriptingErrorPopupsCheckbox) {
-						showScriptingErrorPopupsCheckbox.checked = showScriptingErrorPopups;
+						showScriptingErrorPopupsCheckbox.checked = UISettings.getValueFor(UISettings.global.settings.showScriptingErrorPopupsKey);
 
 						showScriptingErrorPopupsCheckbox.addEventListener('change', () => {
-							LSWrapper.setItem(_Dashboard.showScriptingErrorPopupsKey, showScriptingErrorPopupsCheckbox.checked);
-							blinkGreen(showScriptingErrorPopupsCheckbox.parentElement);
+							UISettings.setValueFor(UISettings.global.settings.showScriptingErrorPopupsKey, showScriptingErrorPopupsCheckbox.checked, showScriptingErrorPopupsCheckbox.parentElement);
 						});
 					}
-
-					let showVisibilityFlagsInGrantsTable = _Dashboard.isShowVisibilityFlagsInGrantsTable();
 
 					let showVisibilityFlagsInGrantsTableCheckbox = document.querySelector('#dashboard-show-visibility-flags-grants');
 					if (showVisibilityFlagsInGrantsTableCheckbox) {
-						showVisibilityFlagsInGrantsTableCheckbox.checked = showVisibilityFlagsInGrantsTable;
+						showVisibilityFlagsInGrantsTableCheckbox.checked = UISettings.getValueFor(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey);
 
 						showVisibilityFlagsInGrantsTableCheckbox.addEventListener('change', () => {
-							LSWrapper.setItem(_Dashboard.showVisibilityFlagsInGrantsTableKey, showVisibilityFlagsInGrantsTableCheckbox.checked);
-							blinkGreen(showVisibilityFlagsInGrantsTableCheckbox.parentElement);
+							UISettings.setValueFor(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey, showVisibilityFlagsInGrantsTableCheckbox.checked, showVisibilityFlagsInGrantsTableCheckbox.parentElement);
 						});
 					}
-
-					let favorEditorForContentElements = _Dashboard.isFavorEditorForContentElements();
 
 					let favorEditorForContentElementsCheckbox = document.querySelector('#dashboard-favor-editors-for-content-elements');
 					if (favorEditorForContentElementsCheckbox) {
-						favorEditorForContentElementsCheckbox.checked = favorEditorForContentElements;
+						favorEditorForContentElementsCheckbox.checked = UISettings.getValueFor(UISettings.pages.settings.favorEditorForContentElementsKey);
 
 						favorEditorForContentElementsCheckbox.addEventListener('change', () => {
-							LSWrapper.setItem(_Dashboard.favorEditorForContentElementsKey, favorEditorForContentElementsCheckbox.checked);
-							blinkGreen(favorEditorForContentElementsCheckbox.parentElement);
+							UISettings.setValueFor(UISettings.pages.settings.favorEditorForContentElementsKey, favorEditorForContentElementsCheckbox.checked, favorEditorForContentElementsCheckbox.parentElement);
 						});
 					}
 
-					let favorHTMLForDOMNodes = _Dashboard.isFavorHTMLForDOMNodes();
-
 					let favorHTMLForDOMNodesCheckbox = document.querySelector('#dashboard-favor-html-tab-for-dom-nodes');
 					if (favorHTMLForDOMNodesCheckbox) {
-						favorHTMLForDOMNodesCheckbox.checked = favorHTMLForDOMNodes;
+						favorHTMLForDOMNodesCheckbox.checked = UISettings.getValueFor(UISettings.pages.settings.favorHTMLForDOMNodesKey);
 
 						favorHTMLForDOMNodesCheckbox.addEventListener('change', () => {
-							LSWrapper.setItem(_Dashboard.favorHTMLForDOMNodesKey, favorHTMLForDOMNodesCheckbox.checked);
-							blinkGreen(favorHTMLForDOMNodesCheckbox.parentElement);
+							UISettings.setValueFor(UISettings.pages.settings.favorHTMLForDOMNodesKey, favorHTMLForDOMNodesCheckbox.checked, favorHTMLForDOMNodesCheckbox.parentElement);
 						});
 					}
 
@@ -266,18 +254,6 @@ let _Dashboard = {
 			}
 		}
 
-	},
-	isShowScriptingErrorPopups: function() {
-		return LSWrapper.getItem(_Dashboard.showScriptingErrorPopupsKey, true);
-	},
-	isShowVisibilityFlagsInGrantsTable: function() {
-		return LSWrapper.getItem(_Dashboard.showVisibilityFlagsInGrantsTableKey, false);
-	},
-	isFavorEditorForContentElements: () => {
-		return LSWrapper.getItem(_Dashboard.favorEditorForContentElementsKey, true);
-	},
-	isFavorHTMLForDOMNodes: () => {
-		return LSWrapper.getItem(_Dashboard.favorHTMLForDOMNodesKey, true);
 	},
 	gatherVersionUpdateInfo(currentVersion, releasesIndexUrl, snapshotsIndexUrl) {
 
@@ -353,9 +329,6 @@ let _Dashboard = {
 				}
 			});
 		}
-	},
-	displayVersion: function(obj) {
-		return (obj.version ? ' (v' + obj.version + ')': '');
 	},
 	clearLocalStorageOnServer: function(userId) {
 

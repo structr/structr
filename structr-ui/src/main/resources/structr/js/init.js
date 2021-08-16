@@ -309,18 +309,21 @@ $(function() {
 
 				if (container.hasChildNodes() && container.style.opacity === '0') {
 
-					container.style.opacity = '1';
+					container.style.opacity    = '1';
+					container.style.visibility = '';
 
 				} else if (container.hasChildNodes() && container.style.opacity === '1') {
 
-					container.style.opacity = '0';
+					container.style.opacity    = '0';
+					container.style.visibility = 'hidden';
 
 				} else if (!container.hasChildNodes()) {
 
 					Structr.fetchHtmlTemplate(template, config, function (html) {
 
 						container.insertAdjacentHTML('beforeend', html);
-						container.style.opacity = '1';
+						container.style.opacity    = '1';
+						container.style.visibility = '';
 
 						if (callbackString && callbackString.length) {
 							Structr.getActiveModule()[callbackString]();
@@ -346,7 +349,8 @@ $(function() {
 		const menuContainer  = menu && menu.querySelector('.dropdown-menu-container');
 		if (!menuContainer) {
 			document.querySelectorAll('.dropdown-menu-container').forEach((container) => {
-				container.style.opacity = '0';
+				container.style.opacity    = '0';
+				container.style.visibility = 'hidden';
 			});
 		}
 		return false;
@@ -1727,7 +1731,7 @@ let Structr = {
 	handleGenericMessage: function(data) {
 
 		let showScheduledJobsNotifications = Importer.isShowNotifications();
-		let showScriptingErrorPopups       = _Dashboard.isShowScriptingErrorPopups();
+		let showScriptingErrorPopups       = UISettings.getValueFor(UISettings.global.settings.showScriptingErrorPopupsKey);
 
 		switch (data.type) {
 
@@ -2363,7 +2367,7 @@ let Structr = {
 	}
 };
 
-var _TreeHelper = {
+let _TreeHelper = {
 	initTree: function(tree, initFunction, stateKey) {
 		$(tree).jstree({
 			plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
@@ -2721,6 +2725,54 @@ function MessageBuilder () {
 	};
 
 	return this;
+}
+
+let UISettings = {
+	getValueFor: (setting) => {
+		return LSWrapper.getItem(setting.key, setting.defaultValue);
+	},
+	setValueFor: (setting, value, container) => {
+		LSWrapper.setItem(setting.key, value);
+
+		if (container) {
+			blinkGreen(container);
+		}
+	},
+	global: {
+		title: 'Global / Misc',
+		settings: {
+			showScriptingErrorPopupsKey: {
+				text: 'Show popups for scripting errors',
+				key: 'showScriptinErrorPopups' + port,
+				defaultValue: true
+			}
+		}
+	},
+	pages: {
+		title: 'Global / Misc',
+		settings: {
+			favorEditorForContentElementsKey: {
+				text: 'Always favor editor for content elements in Pages area (otherwise last used is picked)',
+				key: 'favorEditorForContentElements' + port,
+				defaultValue: true
+			},
+			favorHTMLForDOMNodesKey: {
+				text: 'Always favor HTML tab for DOM nodes in Pages area (otherwise last used is picked)',
+				key: 'favorHTMLForDOMNodes' + port,
+				defaultValue: true
+			}
+		}
+	},
+	security: {
+		title: 'Global / Misc',
+		settings: {
+			showVisibilityFlagsInGrantsTableKey: {
+				text: 'Show visibility flags in Resource Access Grants table',
+				key: 'showVisibilityFlagsInResourceAccessGrantsTable' + port,
+				defaultValue: false
+			}
+		}
+	},
 }
 
 function isImage(contentType) {

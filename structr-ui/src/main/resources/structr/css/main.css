@@ -235,6 +235,20 @@ button:hover:not(.disabled), button:focus:not(.disabled) {
 	/*box-shadow: 0px 0px 36px var(--gray-opacity-10);*/
 }
 
+button.yesButton, button.noButton {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.icon-green {
+	color: var(--icon-color-dark-green);
+}
+
+.icon-red {
+	color: var(--light-red);
+}
+
 button img, button i {
 	padding: 0;
 	margin: 0;
@@ -263,8 +277,10 @@ input[type="checkbox"] {
 #header .logo {
 	position: absolute;
 	width: 90px;
+	height: 24px;
 	top: 1rem;
 	left: 2rem;
+	color: white;
 }
 
 #header .structr-instance-info {
@@ -1818,6 +1834,9 @@ button.action.disabled:hover {
 #login .logo-login {
 	margin: 8px auto 14px auto;
 	display: block;
+	width: 100px;
+	height: 27px;
+	color: var(--gray-555);
 }
 
 #login #two-factor-qr-code {
@@ -4576,4 +4595,13 @@ table.props td.__value {
 }
 .flex-grow {
 	flex-grow: 1;
+}
+.inline-flex {
+	display: inline-flex;
+}
+.items-center {
+	align-items: center;
+}
+.gap-1 {
+	gap: 0.25rem;
 }
