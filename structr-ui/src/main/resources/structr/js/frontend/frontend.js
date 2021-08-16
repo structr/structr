@@ -127,9 +127,54 @@ export class Frontend {
 		}
 	}
 
-	handleResult(element, parameters, status) {
+	resetValue(element) {
 
-		this.fireEvent('result', { target: element, data: parameters });
+		if (element.nodeName === 'INPUT' && element.type === 'checkbox') {
+
+			// input[type="checkbox"]
+			element.checked = element.defaultChecked;
+
+		} else {
+
+			// all other node types
+			element.value = element.defaultValue;
+		}
+	}
+
+	handleResult(element, json, status) {
+
+		switch (status) {
+
+			case 200:
+				this.handleSuccessResult(element, json.result, status);
+				break;
+
+			case 401:
+			case 403:
+				this.resetValue(element);
+				this.fireEvent('forbidden', { target: element, data: json, status: status });
+				break;
+
+			case 404:
+				this.resetValue(element);
+				this.fireEvent('notfound', { target: element, data: json, status: status });
+				break;
+
+			case 400:
+			case 422:
+			case 500:
+			case 503:
+				this.resetValue(element);
+				this.fireEvent('error', { target: element, data: json, status: status });
+				break;
+		}
+	}
+
+	handleSuccessResult(element, parameters, status) {
+
+		// result is deprecated, use success here..
+		this.fireEvent('result', { target: element, data: parameters, status: status });
+		this.fireEvent('success', { target: element, data: parameters, status: status });
 
 		if (element.dataset.structrReloadTarget) {
 
@@ -180,16 +225,14 @@ export class Frontend {
 
 	handleError(element, error, status) {
 
-		if (error && error.status) {
+		console.log('ERROR!!');
 
-			switch (error.status) {
+		console.log(error);
 
-				case 401:
-				case 403:
-					window.location.reload();
-					break;
-			}
-		}
+		/*
+		this.resetValue(element);
+		this.fireEvent('error', { target: element, data: {}, status: status });
+		*/
 	}
 
 	reloadPartial(selector, parameters, element) {
@@ -238,6 +281,9 @@ export class Frontend {
 						}
 
 						this.bindEvents();
+
+						// fire reloaded event
+						this.fireEvent('reloaded', { target: element, data: parameters });
 
 					}).catch(e => {
 						this.handleError(element, e, {});
@@ -408,10 +454,9 @@ export class Frontend {
 					})
 
 					.then(response => {
-						if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
 						return response.json().then(json => ({ json: json, status: response.status, statusText: response.statusText }))
 					})
-					.then(response => this.handleResult(target, response.json.result, response.status))
+					.then(response => this.handleResult(target, response.json, response.status))
 					.catch(error   => this.handleError(target, error, {}));
 				}
 			}
@@ -476,7 +521,7 @@ export class Frontend {
 				}
 			}
 
-			this.handleResult(target, parameters, { code: 200, statusText: "OK", headers: [] });
+			this.handleResult(target, { result: parameters }, 200);
 
 		} else {
 

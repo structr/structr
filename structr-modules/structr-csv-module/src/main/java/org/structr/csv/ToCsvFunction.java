@@ -21,10 +21,6 @@ package org.structr.csv;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -36,11 +32,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.LocalizeFunction;
-import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.servlet.CsvServlet;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.parser.DatePropertyParser;
 
 public class ToCsvFunction extends CsvFunction {
 
@@ -64,12 +58,12 @@ public class ToCsvFunction extends CsvFunction {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 8);
 
-			if ( !(sources[0] instanceof List) ) {
+			if ( !(sources[0] instanceof Iterable) ) {
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
 				return "ERROR: First parameter must be a collection!".concat(usage(ctx.isJavaScriptContext()));
 			}
 
-			final List<GraphObject> nodes           = (List)sources[0];
+			final List<GraphObject> nodes           = Iterables.toList((Iterable)sources[0]);
 			String delimiterChar                    = ";";
 			String quoteChar                        = "\"";
 			String recordSeparator                  = "\n";

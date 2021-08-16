@@ -254,6 +254,10 @@ var _Entities = {
 							id = 'options-create-click';
 							break;
 
+						case 'update':
+							id = 'options-update-click';
+							break;
+
 						case 'delete':
 							id = 'options-delete-click';
 							break;
