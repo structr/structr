@@ -965,27 +965,20 @@ let _Dashboard = {
 
 			let settingsContainer = document.querySelector('#settings-container');
 			let allSettings       = UISettings.getSettings();
+			let offCanvasDummy    = Structr.createSingleDOMElementFromHTML('<div></div>');	// prepare off-canvas to reduce number of renders
 
 			for (let section of allSettings) {
 
 				let sectionDOM = Structr.createSingleDOMElementFromHTML('<div><div class="font-bold pt-4 pb-2">' + section.title + '</div></div>');
+				offCanvasDummy.appendChild(sectionDOM);
 
 				for (let [settingKey, setting] of Object.entries(section.settings)) {
 
-					let settingDOM = Structr.createSingleDOMElementFromHTML('<label class="ui-setting-checkbox"><input type="checkbox"> ' + setting.text + '</label>');
-
-					let input = settingDOM.querySelector('input');
-					input.checked = UISettings.getValueForSetting(setting);
-
-					input.addEventListener('change', () => {
-						UISettings.setValueForSetting(setting, input.checked, input.parentElement);
-					});
-
-					sectionDOM.appendChild(settingDOM);
+					UISettings.appendSettingToContainer(setting, sectionDOM);
 				}
-
-				settingsContainer.appendChild(sectionDOM);
 			}
+
+			settingsContainer.appendChild(offCanvasDummy);
 		},
 
 		handleResetConfiguration: (userId) => {

@@ -2752,13 +2752,38 @@ let UISettings = {
 
 		return null;
 	},
+	appendSettingToContainer: (setting, container) => {
+
+		switch (setting.type) {
+			case 'checkbox': {
+
+				let settingDOM = Structr.createSingleDOMElementFromHTML('<label class="ui-setting-checkbox"><input type="checkbox"> ' + setting.text + '</label>');
+
+				let input = settingDOM.querySelector('input');
+				input.checked = UISettings.getValueForSetting(setting);
+
+				input.addEventListener('change', () => {
+					UISettings.setValueForSetting(setting, input.checked, input.parentElement);
+				});
+
+				container.appendChild(settingDOM);
+
+				break;
+			}
+
+			default: {
+				console.log('ERROR! Unable to render setting:', setting, container);
+			}
+		}
+	},
 	global: {
 		title: 'Global',
 		settings: {
 			showScriptingErrorPopupsKey: {
 				text: 'Show popups for scripting errors',
 				storageKey: 'showScriptinErrorPopups' + location.port,
-				defaultValue: true
+				defaultValue: true,
+				type: 'checkbox'
 			}
 		}
 	},
@@ -2768,12 +2793,14 @@ let UISettings = {
 			favorEditorForContentElementsKey: {
 				text: 'Always favor editor for content elements in Pages area (otherwise last used is picked)',
 				storageKey: 'favorEditorForContentElements' + location.port,
-				defaultValue: true
+				defaultValue: true,
+				type: 'checkbox'
 			},
 			favorHTMLForDOMNodesKey: {
 				text: 'Always favor HTML tab for DOM nodes in Pages area (otherwise last used is picked)',
 				storageKey: 'favorHTMLForDOMNodes' + location.port,
-				defaultValue: true
+				defaultValue: true,
+				type: 'checkbox'
 			}
 		}
 	},
@@ -2783,7 +2810,8 @@ let UISettings = {
 			showVisibilityFlagsInGrantsTableKey: {
 				text: 'Show visibility flags in Resource Access Grants table',
 				storageKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + location.port,
-				defaultValue: false
+				defaultValue: false,
+				type: 'checkbox'
 			}
 		}
 	}
