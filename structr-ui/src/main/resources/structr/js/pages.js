@@ -795,7 +795,7 @@ let _Pages = {
 			});
 			*/
 
-			$('#import_page').on('click', function(e) {
+			live('#import_page', 'click', (e) => {
 				e.stopPropagation();
 
 				Structr.dialog('Import Template', function() {}, function() {});
