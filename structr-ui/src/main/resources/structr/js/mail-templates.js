@@ -30,8 +30,8 @@ let _MailTemplates = {
 	previewElement: undefined,
 	editor: undefined,
 
-	mailTemplatesResizerLeftKey: 'structrMailTemplatesResizerLeftKey_' + port,
-	mailTemplateSelectedElementKey: 'structrMailTemplatesSelectedElementKey_' + port,
+	mailTemplatesResizerLeftKey: 'structrMailTemplatesResizerLeftKey_' + location.port,
+	mailTemplateSelectedElementKey: 'structrMailTemplatesSelectedElementKey_' + location.port,
 
 	init: function() {},
 	unload: function() {},

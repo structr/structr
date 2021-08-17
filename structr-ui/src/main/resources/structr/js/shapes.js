@@ -17,7 +17,7 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var pagesArea, widgetsArea, statusArea, paWidth, paHeight, currentPage, block = 0, activePreviewDoc, widgetGroups = {};
-var appBuilderActiveWidgetTabRightKey = 'structrAppBuilderActiveWidgetTabRightKey' + port;
+var appBuilderActiveWidgetTabRightKey = 'structrAppBuilderActiveWidgetTabRightKey' + location.port;
 
 $(document).ready(function() {
 	Structr.registerModule(_Shapes);

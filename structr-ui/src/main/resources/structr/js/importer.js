@@ -35,7 +35,7 @@ $(document).ready(function() {
 
 var Importer = {
 	_moduleName: 'importer',
-	showNotificationsKey: 'structrImporterShowNotifications_' + port,
+	showNotificationsKey: 'structrImporterShowNotifications_' + location.port,
 	appDataXMLKey: 'xml-import-config',
 	appDataCSVKey: 'csv-import-config',
 	timeout: undefined,
@@ -318,7 +318,7 @@ var Importer = {
 
 			var username = selectedOption.closest('optgroup').prop('label');
 
-			if (username !== 'null' && username !== me.username) {
+			if (username !== 'null' && username !== StructrWS.me.username) {
 				Structr.disableButton(updateImportConfigButton);
 				Structr.disableButton(deleteImportConfigButton);
 			} else {

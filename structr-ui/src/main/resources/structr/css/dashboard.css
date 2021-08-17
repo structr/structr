@@ -206,18 +206,6 @@
 	width: 10px;
 }
 
-.flex-row {
-	display: flex;
-	/*gap: 2rem; /** not yet supported by Safari, see https://developer.mozilla.org/en-US/docs/Web/CSS/gap */
-}
-
-.flex-col {
-	display: flex;
-	flex-direction: column;
-	margin-left: 2rem;
-	margin-bottom: 1rem;
-}
-
 .dashboard-grid-wrapper {
 	display: grid;
 	grid-template-columns: 50% 50%;
@@ -241,7 +229,6 @@
 }
 
 .menu-order-container {
-	display: flex;
 }
 
 .menu-order-config-container {
@@ -251,7 +238,6 @@
 
 .menu-order-config-container.header {
 	font-weight: bold;
-	text-align: center;
 }
 
 .menu-item {

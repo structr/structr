@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var contentSourceId, elementSourceId, rootId;
-
 $(document).ready(function() {
 	Structr.registerModule(_Pages);
 	Structr.classes.push('page');
@@ -26,16 +24,16 @@ $(document).ready(function() {
 let _Pages = {
 	_moduleName: 'pages',
 	autoRefresh: [],
-	urlHashKey: 'structrUrlHashKey_' + port,
-	activeTabRightKey: 'structrActiveTabRight_' + port,
-	activeTabLeftKey: 'structrActiveTabLeft_' + port,
-	selectedTypeKey: 'structrSelectedType_' + port,
-	autoRefreshDisabledKey: 'structrAutoRefreshDisabled_' + port,
-	detailsObjectIdKey: 'structrDetailsObjectId_' + port,
-	requestParametersKey: 'structrRequestParameters_' + port,
-	pagesResizerLeftKey: 'structrPagesResizerLeftKey_' + port,
-	pagesResizerRightKey: 'structrPagesResizerRightKey_' + port,
-	functionBarSwitchKey: 'structrFunctionBarSwitchKey_' + port,
+	urlHashKey: 'structrUrlHashKey_' + location.port,
+	activeTabRightKey: 'structrActiveTabRight_' + location.port,
+	activeTabLeftKey: 'structrActiveTabLeft_' + location.port,
+	selectedTypeKey: 'structrSelectedType_' + location.port,
+	autoRefreshDisabledKey: 'structrAutoRefreshDisabled_' + location.port,
+	detailsObjectIdKey: 'structrDetailsObjectId_' + location.port,
+	requestParametersKey: 'structrRequestParameters_' + location.port,
+	pagesResizerLeftKey: 'structrPagesResizerLeftKey_' + location.port,
+	pagesResizerRightKey: 'structrPagesResizerRightKey_' + location.port,
+	functionBarSwitchKey: 'structrFunctionBarSwitchKey_' + location.port,
 
 	shadowPage: undefined,
 
@@ -54,6 +52,8 @@ let _Pages = {
 	centerPane: undefined,
 
 	textBeforeEditing: undefined,
+
+	contentSourceId: undefined,
 
 	init: function() {
 
@@ -83,29 +83,25 @@ let _Pages = {
 			window.location.hash = urlHash;
 		}
 
-		Structr.fetchHtmlTemplate('pages/pages', {}, function(html) {
+		Structr.fetchHtmlTemplate('pages/pages', {}, (html) => {
 
-			fastRemoveAllChildren(main[0]);
-
-			main[0].insertAdjacentHTML('afterbegin', html);
+			main[0].innerHTML = html;
 
 			_Pages.init();
 
 			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('pages'));
 
-			_Pages.pagesSlideout         = $('#pages');
-			_Pages.localizationsSlideout = $('#localizations');
-			_Pages.pagesTree = $('#pagesTree', _Pages.pagesSlideout);
-
+			_Pages.pagesSlideout           = $('#pages');
+			_Pages.localizationsSlideout   = $('#localizations');
+			_Pages.pagesTree               = $('#pagesTree', _Pages.pagesSlideout);
 			_Pages.centerPane              = document.querySelector('#center-pane');
 			_Pages.previews.previewElement = document.querySelector('#previews');
-
-			_Pages.widgetsSlideout        = $('#widgetsSlideout');
-			_Pages.paletteSlideout        = $('#palette');
-			_Pages.componentsSlideout     = $('#components');
-			_Pages.unusedElementsSlideout = $('#elements');
+			_Pages.widgetsSlideout         = $('#widgetsSlideout');
+			_Pages.paletteSlideout         = $('#palette');
+			_Pages.componentsSlideout      = $('#components');
+			_Pages.unusedElementsTree      = $('#elementsArea', _Pages.unusedElementsSlideout);
+			_Pages.unusedElementsSlideout  = $('#elements');
 			_Pages.unusedElementsSlideout.data('closeCallback', _Pages.unattachedNodes.removeElementsFromUI);
-			_Pages.unusedElementsTree     = $('#elementsArea', _Pages.unusedElementsSlideout);
 
 			let pagesTabSlideoutAction = function () {
 				_Pages.leftSlideoutTrigger(this, _Pages.pagesSlideout, [_Pages.localizationsSlideout], (params) => {
@@ -799,7 +795,7 @@ let _Pages = {
 			});
 			*/
 
-			$('#import_page').on('click', function(e) {
+			$('#import_page').on('click', (e) => {
 				e.stopPropagation();
 
 				Structr.dialog('Import Template', function() {}, function() {});
@@ -842,12 +838,6 @@ let _Pages = {
 
 					return Command.importPage(code, address, name, publicVisible, authVisible, includeInExport, processDeploymentInfo);
 				});
-
-			});
-
-			$('#pull_page').on('click', function(e) {
-				e.stopPropagation();
-				Structr.pullDialog('Page');
 			});
 
 			$('#add_page').on('click', function(e) {
@@ -1011,14 +1001,14 @@ let _Pages = {
 
 		_Pages.centerPane.dataset['elementId'] = obj.id;
 
-		if (UISettings.getValueFor(UISettings.pages.settings.favorEditorForContentElementsKey) && (!urlHash && obj.isContent)) {
+		if (UISettings.getValueForSetting(UISettings.pages.settings.favorEditorForContentElementsKey) && (!urlHash && obj.isContent)) {
 			/*
 				if urlHash is given, user has manually selected a tab. if it is not given, user has selected a node
 			*/
 			urlHash = '#pages:editor';
 		}
 
-		if (UISettings.getValueFor(UISettings.pages.settings.favorHTMLForDOMNodesKey) && (!urlHash && obj.isDOMNode)) {
+		if (UISettings.getValueForSetting(UISettings.pages.settings.favorHTMLForDOMNodesKey) && (!urlHash && obj.isDOMNode)) {
 			/*
 				if urlHash is given, user has manually selected a tab. if it is not given, user has selected a node
 			*/
@@ -1109,7 +1099,6 @@ let _Pages = {
 					if (callbackObject) {
 						callbackObject.callback($(basicContainer), obj);
 					}
-
 				});
 
 				break;
@@ -1314,18 +1303,18 @@ let _Pages = {
 	},
 
 	saveInlineElement: function(el, callback) {
-		var self = $(el);
-		contentSourceId = self.attr('data-structr-id');
-		var text = unescapeTags(cleanText(self.html()));
+		let self = $(el);
+		_Pages.contentSourceId = self.attr('data-structr-id');
+		let text = unescapeTags(cleanText(self.html()));
 		self.attr('contenteditable', false);
 		self.removeClass('structr-editable-area-active').removeClass('structr-editable-area');
 
-		Command.setProperty(contentSourceId, 'content', text, false, function(obj) {
-			if (contentSourceId === obj.id) {
+		Command.setProperty(_Pages.contentSourceId, 'content', text, false, function(obj) {
+			if (_Pages.contentSourceId === obj.id) {
 				if (callback) {
 					callback();
 				}
-				contentSourceId = null;
+				_Pages.contentSourceId = null;
 			}
 		});
 	},
@@ -1472,8 +1461,8 @@ let _Pages = {
 		}
 	},
 	localizations: {
-		lastSelectedPageKey: 'structrLocalizationsLastSelectedPageKey_' + port,
-		lastUsedLocaleKey: 'structrLocalizationsLastUsedLocale_' + port,
+		lastSelectedPageKey: 'structrLocalizationsLastSelectedPageKey_' + location.port,
+		lastUsedLocaleKey: 'structrLocalizationsLastUsedLocale_' + location.port,
 		wrapperTypeForContextMenu: 'WrappedLocalizationForPreview',
 		getContextMenuElements: function (div, wrappedEntity) {
 
@@ -1912,13 +1901,13 @@ let _Pages = {
 							e.preventDefault();
 							var self = $(this);
 
-							if (contentSourceId) {
+							if (_Pages.contentSourceId) {
 								// click on same element again?
-								if (self.attr('data-structr-id') === contentSourceId) {
+								if (self.attr('data-structr-id') === _Pages.contentSourceId) {
 									return;
 								}
 							}
-							contentSourceId = self.attr('data-structr-id');
+							_Pages.contentSourceId = self.attr('data-structr-id');
 
 							if (self.hasClass('structr-editable-area-active')) {
 								return false;
@@ -1935,7 +1924,7 @@ let _Pages = {
 								self.html(srcText);
 								_Pages.textBeforeEditing = srcText;
 							}
-							_Pages.expandTreeNode(contentSourceId);
+							_Pages.expandTreeNode(_Pages.contentSourceId);
 							return false;
 						},
 						blur: function(e) {
@@ -2316,7 +2305,7 @@ let _Pages = {
 		},
 		createNew: function(el) {
 
-			dropBlocked = true;
+			_Elements.dropBlocked = true;
 
 			let sourceEl = $(el.draggable);
 			let sourceId = Structr.getId(sourceEl);
@@ -2333,7 +2322,7 @@ let _Pages = {
 
 			Command.createComponent(sourceId);
 
-			dropBlocked = false;
+			_Elements.dropBlocked = false;
 		},
 	},
 

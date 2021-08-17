@@ -21,9 +21,9 @@ var buttonClicked;
 var _Entities = {
 	selectedObject: {},
 	activeElements: {},
-	activeQueryTabPrefix: 'structrActiveQueryTab_' + port,
-	activeEditTabPrefix: 'structrActiveEditTab_' + port,
-	selectedObjectIdKey: 'structrSelectedObjectId_' + port,
+	activeQueryTabPrefix: 'structrActiveQueryTab_' + location.port,
+	activeEditTabPrefix: 'structrActiveEditTab_' + location.port,
+	selectedObjectIdKey: 'structrSelectedObjectId_' + location.port,
 	numberAttrs: ['position', 'size'],
 	readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'createdBy', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
 	pencilEditBlacklist: ['html', 'body', 'head', 'title', 'script',  'input', 'label', 'button', 'textarea', 'link', 'meta', 'noscript', 'tbody', 'thead', 'tr', 'td', 'caption', 'colgroup', 'tfoot', 'col', 'style'],
@@ -252,6 +252,10 @@ var _Entities = {
 
 						case 'create':
 							id = 'options-create-click';
+							break;
+
+						case 'update':
+							id = 'options-update-click';
 							break;
 
 						case 'delete':
@@ -1422,7 +1426,7 @@ var _Entities = {
 							if (val) {
 								checkbox.prop('checked', true);
 							}
-							if ((!isReadOnly || isAdmin) && !isSystem) {
+							if ((!isReadOnly || StructrWS.isAdmin) && !isSystem) {
 								checkbox.on('change', function() {
 									var checked = checkbox.prop('checked');
 									_Entities.setProperty(id, key, checked, false, function(newVal) {

@@ -17,21 +17,17 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var header, main, functionBar;
-var sessionId, user;
-var lastMenuEntry, menuBlocked, mainModule, subModule, navView;
-var editorCursor, ignoreKeyUp;
+var lastMenuEntry, menuBlocked, mainModule, subModule;
+var ignoreKeyUp;
 var dialog, isMax = false;
 var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogHead, dialogCancelButton, dialogSaveButton, saveAndClose, loginBox, dialogCloseButton;
 var dialogId;
-var pagerType = {}, page = {}, pageSize = {}, sortKey = {}, sortOrder = {}, pagerFilters = {}, pagerExactFilterKeys = {};
-var dialogMaximizedKey = 'structrDialogMaximized_' + port;
-var expandedIdsKey = 'structrTreeExpandedIds_' + port;
-var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
-var pagerDataKey = 'structrPagerData_' + port + '_';
-var dialogDataKey = 'structrDialogData_' + port;
-var dialogHtmlKey = 'structrDialogHtml_' + port;
-var scrollInfoKey = 'structrScrollInfoKey_' + port;
-var consoleModeKey = 'structrConsoleModeKey_' + port;
+var dialogMaximizedKey = 'structrDialogMaximized_' + location.port;
+var expandedIdsKey = 'structrTreeExpandedIds_' + location.port;
+var lastMenuEntryKey = 'structrLastMenuEntry_' + location.port;
+var dialogDataKey = 'structrDialogData_' + location.port;
+var scrollInfoKey = 'structrScrollInfoKey_' + location.port;
+var consoleModeKey = 'structrConsoleModeKey_' + location.port;
 var resizeFunction;
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 
@@ -40,11 +36,17 @@ $(function() {
 	$.blockUI.defaults.overlayCSS.opacity        = .6;
 	$.blockUI.defaults.overlayCSS.cursor         = 'default';
 	$.blockUI.defaults.applyPlatformOpacityRules = false;
+	$.blockUI.defaults.onBlock = () => {
+		_Console.insertHeaderBlocker();
+	};
+	$.blockUI.defaults.onUnblock = () => {
+		_Console.removeHeaderBlocker();
+	};
 
-	header = $('#header');
-	main = $('#main');
+	header      = $('#header');
+	main        = $('#main');
 	functionBar = $('#function-bar');
-	loginBox = $('#login');
+	loginBox    = $('#login');
 
 	dialogBox          = $('#dialogBox');
 	dialog             = $('.dialogText', dialogBox);
@@ -59,8 +61,8 @@ $(function() {
 
 	$('#loginButton').on('click', function(e) {
 		e.stopPropagation();
-		var username = $('#usernameField').val();
-		var password = $('#passwordField').val();
+		let username = $('#usernameField').val();
+		let password = $('#passwordField').val();
 		Structr.doLogin(username, password);
 		return false;
 	});
@@ -361,16 +363,21 @@ let Structr = {
 	modules: {},
 	activeModules: {},
 	moduleAvailabilityCallbacks: [],
-	keyMenuConfig: 'structrMenuConfig_' + port,
+	keyMenuConfig: 'structrMenuConfig_' + location.port,
 	edition: '',
 	classes: [],
 	expanded: {},
 	msgCount: 0,
 	currentlyActiveSortable: undefined,
 	loadingSpinnerTimeout: undefined,
-	keyCodeMirrorSettings: 'structrCodeMirrorSettings_' + port,
+	keyCodeMirrorSettings: 'structrCodeMirrorSettings_' + location.port,
 	legacyRequestParameters: false,
 	diffMatchPatch: undefined,
+	defaultBlockUICss: {
+		cursor: 'default',
+		border: 'none',
+		backgroundColor: 'transparent'
+	},
 	getDiffMatchPatch: () => {
 		if (!Structr.diffMatchPatch) {
 			Structr.diffMatchPatch = new diff_match_patch();
@@ -385,11 +392,6 @@ let Structr = {
 		} else {
 			return '_' + key;
 		}
-	},
-	defaultBlockUICss: {
-		cursor: 'default',
-		border: 'none',
-		backgroundColor: 'transparent'
 	},
 	templateCache: new AsyncObjectCache(function(templateName) {
 
@@ -411,16 +413,16 @@ let Structr = {
 	reconnect: function() {
 		Structr.stopPing();
 		Structr.stopReconnect();
-		reconn = window.setInterval(function() {
-			wsConnect();
+		StructrWS.reconnectIntervalId = window.setInterval(function() {
+			StructrWS.connect();
 		}, 1000);
-		wsConnect();
+		StructrWS.connect();
 	},
 	stopReconnect: function() {
-		if (reconn) {
-			window.clearInterval(reconn);
-			reconn = undefined;
-			user = undefined;
+		if (StructrWS.reconnectIntervalId) {
+			window.clearInterval(StructrWS.reconnectIntervalId);
+			StructrWS.reconnectIntervalId = undefined;
+			StructrWS.user = undefined;
 		}
 	},
 	init: function() {
@@ -430,13 +432,13 @@ let Structr = {
 	},
 	ping: function(callback) {
 
-		if (ws.readyState !== 1) {
+		if (StructrWS.ws.readyState !== 1) {
 			Structr.reconnect();
 		}
 
-		sessionId = Structr.getSessionId();
+		StructrWS.sessionId = Structr.getSessionId();
 
-		if (sessionId) {
+		if (StructrWS.sessionId) {
 			Command.ping(callback);
 		} else {
 			Structr.renewSessionId(function() {
@@ -465,36 +467,36 @@ let Structr = {
 		});
 	},
 	updateUsername: function(name) {
-		if (name !== user) {
-			user = name;
+		if (name !== StructrWS.user) {
+			StructrWS.user = name;
 			$('#logout_').html('Logout <span class="username">' + name + '</span>');
 		}
 	},
 	startPing: function() {
 		Structr.stopPing();
-		if (!ping) {
-			ping = window.setInterval(function() {
+		if (!StructrWS.ping) {
+			StructrWS.ping = window.setInterval(function() {
 				Structr.ping();
 			}, 1000);
 		}
 	},
 	stopPing: function() {
-		if (ping) {
-			window.clearInterval(ping);
-			ping = undefined;
+		if (StructrWS.ping) {
+			window.clearInterval(StructrWS.ping);
+			StructrWS.ping = undefined;
 		}
 	},
 	getSessionId: function() {
 		return Cookies.get('JSESSIONID');
 	},
 	connect: function() {
-		sessionId = Structr.getSessionId();
-		if (!sessionId) {
+		StructrWS.sessionId = Structr.getSessionId();
+		if (!StructrWS.sessionId) {
 			Structr.renewSessionId(function() {
-				wsConnect();
+				StructrWS.connect();
 			});
 		} else {
-			wsConnect();
+			StructrWS.connect();
 		}
 	},
 	login: function(text) {
@@ -569,23 +571,23 @@ let Structr = {
 		_Favorites.logoutAction();
 		_Console.logoutAction();
 		LSWrapper.save();
-		if (Command.logout(user)) {
+		if (Command.logout(StructrWS.user)) {
 			Cookies.remove('JSESSIONID');
-			sessionId.length = 0;
+			StructrWS.sessionId = '';
 			Structr.renewSessionId();
 			Structr.clearMain();
 			Structr.clearVersionInfo();
 			Structr.login(text);
 			return true;
 		}
-		ws.close();
+		StructrWS.ws.close();
 		return false;
 	},
 	renewSessionId: function(callback) {
 		$.get('/').always(function() {
-			sessionId = Structr.getSessionId();
+			StructrWS.sessionId = Structr.getSessionId();
 
-			if (!sessionId && location.protocol === 'http:') {
+			if (!StructrWS.sessionId && location.protocol === 'http:') {
 
 				new MessageBuilder()
 					.title("Unable to retrieve session id cookie")
@@ -619,6 +621,7 @@ let Structr = {
 		});
 	},
 	determineModule: () => {
+
 		const browserUrl = new URL(window.location.href);
 		const anchor = browserUrl.hash.substring(1);
 		const navState  = anchor.split(':');
@@ -1731,13 +1734,13 @@ let Structr = {
 	handleGenericMessage: function(data) {
 
 		let showScheduledJobsNotifications = Importer.isShowNotifications();
-		let showScriptingErrorPopups       = UISettings.getValueFor(UISettings.global.settings.showScriptingErrorPopupsKey);
+		let showScriptingErrorPopups       = UISettings.getValueForSetting(UISettings.global.settings.showScriptingErrorPopupsKey);
 
 		switch (data.type) {
 
 			case "CSV_IMPORT_STATUS":
 
-				if (me.username === data.username) {
+				if (StructrWS.me.username === data.username) {
 
 					let titles = {
 						BEGIN: 'CSV Import started',
@@ -1757,7 +1760,7 @@ let Structr = {
 
 			case "CSV_IMPORT_ERROR":
 
-				if (me.username === data.username) {
+				if (StructrWS.me.username === data.username) {
 					new MessageBuilder()
 						.title(data.title)
 						.error(data.text)
@@ -1793,7 +1796,7 @@ let Structr = {
 					RESUMED: 'The import of <b>' + data.filename + '</b> has been resumed'
 				};
 
-				if (showScheduledJobsNotifications && me.username === data.username) {
+				if (showScheduledJobsNotifications && StructrWS.me.username === data.username) {
 
 					var msg = new MessageBuilder()
 						.title(data.jobtype + ' ' + fileImportTitles[data.subtype])
@@ -1815,7 +1818,7 @@ let Structr = {
 
 			case "FILE_IMPORT_EXCEPTION":
 
-				if (showScheduledJobsNotifications && me.username === data.username) {
+				if (showScheduledJobsNotifications && StructrWS.me.username === data.username) {
 
 					var text = data.message;
 					if (data.message !== data.stringvalue) {
@@ -1848,7 +1851,7 @@ let Structr = {
 					END: 'Finished script job #' + data.jobId + ((data.jobName.length === 0) ? '' : ' (' + data.jobName + ')')
 				};
 
-				if (showScheduledJobsNotifications && me.username === data.username) {
+				if (showScheduledJobsNotifications && StructrWS.me.username === data.username) {
 
 					let msg = new MessageBuilder()
 						.title(scriptJobTitles[data.subtype])
@@ -2024,7 +2027,7 @@ let Structr = {
 
 					let resourceAccessKey = 'resource-access';
 
-					let grantPagerConfig = LSWrapper.getItem(pagerDataKey + resourceAccessKey);
+					let grantPagerConfig = LSWrapper.getItem(_Pager.pagerDataKey + resourceAccessKey);
 					if (!grantPagerConfig) {
 						grantPagerConfig = {
 							id: resourceAccessKey,
@@ -2042,7 +2045,7 @@ let Structr = {
 						signature: data.signature
 					};
 
-					LSWrapper.setItem(pagerDataKey + resourceAccessKey, JSON.stringify(grantPagerConfig));
+					LSWrapper.setItem(_Pager.pagerDataKey + resourceAccessKey, JSON.stringify(grantPagerConfig));
 
 					if (Structr.getActiveModule()._moduleName === _Security._moduleName) {
 						_Security.selectTab(resourceAccessKey);
@@ -2731,51 +2734,96 @@ function MessageBuilder () {
 }
 
 let UISettings = {
-	getValueFor: (setting) => {
-		return LSWrapper.getItem(setting.key, setting.defaultValue);
+	getValueForSetting: (setting) => {
+		return LSWrapper.getItem(setting.storageKey, setting.defaultValue);
 	},
-	setValueFor: (setting, value, container) => {
-		LSWrapper.setItem(setting.key, value);
+	setValueForSetting: (setting, value, container) => {
+		console.log(setting, value)
+		LSWrapper.setItem(setting.storageKey, value);
 
 		if (container) {
 			blinkGreen(container);
 		}
 	},
+	getSettings: (section) => {
+
+		if (!section) {
+			// no section given - return all
+			return [UISettings.global, UISettings.pages, UISettings.security];
+
+		} else {
+
+			let settings = UISettings[section];
+			if (settings) {
+				return settings;
+			}
+		}
+
+		return null;
+	},
+	appendSettingToContainer: (setting, container) => {
+
+		switch (setting.type) {
+			case 'checkbox': {
+
+				let settingDOM = Structr.createSingleDOMElementFromHTML('<label class="ui-setting-checkbox"><input type="checkbox"> ' + setting.text + '</label>');
+
+				let input = settingDOM.querySelector('input');
+				input.checked = UISettings.getValueForSetting(setting);
+
+				input.addEventListener('change', () => {
+					UISettings.setValueForSetting(setting, input.checked, input.parentElement);
+				});
+
+				container.appendChild(settingDOM);
+
+				break;
+			}
+
+			default: {
+				console.log('ERROR! Unable to render setting:', setting, container);
+			}
+		}
+	},
 	global: {
-		title: 'Global / Misc',
+		title: 'Global',
 		settings: {
 			showScriptingErrorPopupsKey: {
 				text: 'Show popups for scripting errors',
-				key: 'showScriptinErrorPopups' + port,
-				defaultValue: true
+				storageKey: 'showScriptinErrorPopups' + location.port,
+				defaultValue: true,
+				type: 'checkbox'
 			}
 		}
 	},
 	pages: {
-		title: 'Global / Misc',
+		title: 'Pages',
 		settings: {
 			favorEditorForContentElementsKey: {
 				text: 'Always favor editor for content elements in Pages area (otherwise last used is picked)',
-				key: 'favorEditorForContentElements' + port,
-				defaultValue: true
+				storageKey: 'favorEditorForContentElements' + location.port,
+				defaultValue: true,
+				type: 'checkbox'
 			},
 			favorHTMLForDOMNodesKey: {
 				text: 'Always favor HTML tab for DOM nodes in Pages area (otherwise last used is picked)',
-				key: 'favorHTMLForDOMNodes' + port,
-				defaultValue: true
+				storageKey: 'favorHTMLForDOMNodes' + location.port,
+				defaultValue: true,
+				type: 'checkbox'
 			}
 		}
 	},
 	security: {
-		title: 'Global / Misc',
+		title: 'Security',
 		settings: {
 			showVisibilityFlagsInGrantsTableKey: {
 				text: 'Show visibility flags in Resource Access Grants table',
-				key: 'showVisibilityFlagsInResourceAccessGrantsTable' + port,
-				defaultValue: false
+				storageKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + location.port,
+				defaultValue: false,
+				type: 'checkbox'
 			}
 		}
-	},
+	}
 }
 
 function isImage(contentType) {

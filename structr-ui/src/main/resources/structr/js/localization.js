@@ -31,11 +31,11 @@ let _Localization = {
 	localizationDetailSaveButton: undefined,
 	localizationDetailList: undefined,
 
-	localizationSelectedElementKey: 'structrLocalizationSelectedElementKey_' + port,
-	localizationPreselectNameKey  : 'structrLocalizationPreselectNameKey_' + port,
-	localizationPreselectDomainKey: 'structrLocalizationPreselectDomainKey_' + port,
-	localizationPreselectLocaleKey: 'structrLocalizationPreselectLocaleKey_' + port,
-	localizationResizerLeftKey    : 'structrLocalizationResizerLeftKey_' + port,
+	localizationSelectedElementKey: 'structrLocalizationSelectedElementKey_' + location.port,
+	localizationPreselectNameKey  : 'structrLocalizationPreselectNameKey_' + location.port,
+	localizationPreselectDomainKey: 'structrLocalizationPreselectDomainKey_' + location.port,
+	localizationPreselectLocaleKey: 'structrLocalizationPreselectLocaleKey_' + location.port,
+	localizationResizerLeftKey    : 'structrLocalizationResizerLeftKey_' + location.port,
 
 	init: function() {
 		main = $('#main');
@@ -220,7 +220,7 @@ let _Localization = {
 		if (presentFilters.length > 0) {
 			filterString = 'WHERE ' + presentFilters.map(function(key) { return 'n.' + key + ' =~ "(?i).*' + filterAttrs[key] + '.*"'; }).join(' AND ');
 		}
-		Command.cypher('MATCH (n:Localization) ' + filterString + ' RETURN DISTINCT {name: n.name, domain: n.domain} as res ORDER BY res.' + sortKey[type] + ' ' + sortOrder[type], undefined, callback, pageSize, page);
+		Command.cypher('MATCH (n:Localization) ' + filterString + ' RETURN DISTINCT {name: n.name, domain: n.domain} as res ORDER BY res.' + _Pager.sortKey[type] + ' ' + _Pager.sortOrder[type], undefined, callback, pageSize, page);
 	},
 	processPagerData: (pagerData) => {
 		if (pagerData && pagerData.length) {

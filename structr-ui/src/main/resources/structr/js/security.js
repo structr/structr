@@ -30,7 +30,7 @@ let _Security = {
 	groupControls: undefined,
 	groupList: undefined,
 	resourceAccesses: undefined,
-	securityTabKey: 'structrSecurityTab_' + port,
+	securityTabKey: 'structrSecurityTab_' + location.port,
 	init: function() {
 		_Pager.initPager('users',           'User', 1, 25, 'name', 'asc');
 		_Pager.initPager('groups',          'Group', 1, 25, 'name', 'asc');
@@ -468,12 +468,12 @@ let _UsersAndGroups = {
 	}
 };
 
-var _ResourceAccessGrants = {
+let _ResourceAccessGrants = {
 
 	refreshResourceAccesses: function() {
 		_Security.resourceAccesses.empty();
 
-		Structr.fetchHtmlTemplate('security/resource-access', { showVisibilityFlags: UISettings.getValueFor(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey) }, function (html) {
+		Structr.fetchHtmlTemplate('security/resource-access', { showVisibilityFlags: UISettings.getValueForSetting(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey) }, function (html) {
 
 			_Security.resourceAccesses.append(html);
 
@@ -499,6 +499,7 @@ var _ResourceAccessGrants = {
 		});
 	},
 	customPagerTransportFunction: function(type, pageSize, page, filterAttrs, callback) {
+
 		let filterString = "";
 		let presentFilters = Object.keys(filterAttrs);
 		if (presentFilters.length > 0) {
@@ -530,7 +531,7 @@ var _ResourceAccessGrants = {
 			});
 		}
 
-		Command.cypher('MATCH (n:ResourceAccess) ' + filterString + ' RETURN DISTINCT n ORDER BY n.' + sortKey[type] + ' ' + sortOrder[type], undefined, fetchAllGranteesCallback, pageSize, page);
+		Command.cypher('MATCH (n:ResourceAccess) ' + filterString + ' RETURN DISTINCT n ORDER BY n.' + _Pager.sortKey[type] + ' ' + _Pager.sortOrder[type], undefined, fetchAllGranteesCallback, pageSize, page);
 	},
 	addResourceGrant: function(e) {
 		e.stopPropagation();
@@ -650,7 +651,7 @@ var _ResourceAccessGrants = {
 
 		trHtml += '<td><input type="text" class="bitmask" size="4" value="' + flags + '"></td>';
 
-		let showVisibilityFlagsInGrantsTable = UISettings.getValueFor(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey);
+		let showVisibilityFlagsInGrantsTable = UISettings.getValueForSetting(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey);
 
 		if (showVisibilityFlagsInGrantsTable) {
 			trHtml += '<td class="bl-1"><input type="checkbox" ' + (resourceAccess.visibleToAuthenticatedUsers ? 'checked="checked"' : '') + ' name="visibleToAuthenticatedUsers" class="resource-access-visibility"></td>';

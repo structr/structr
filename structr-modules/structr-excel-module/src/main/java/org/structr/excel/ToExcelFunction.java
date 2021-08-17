@@ -35,6 +35,7 @@ import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -73,12 +74,12 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 7);
 
-			if ( !(sources[0] instanceof List) ) {
+			if ( !(sources[0] instanceof Iterable) ) {
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
 				return "ERROR: First parameter must be a collection! ".concat(usage(ctx.isJavaScriptContext()));
 			}
 
-			final List<GraphObject> nodes           = (List)sources[0];
+			final List<GraphObject> nodes           = Iterables.toList((Iterable)sources[0]);
 			boolean includeHeader                   = true;
 			boolean localizeHeader                  = false;
 			String headerLocalizationDomain         = null;

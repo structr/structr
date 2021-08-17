@@ -360,13 +360,7 @@ public class StaticRelationshipResource extends WrappingResource {
 			} catch (IllegalPathException ex) {
 
 				// try direct invocation of the schema method on the node type
-				try {
-
-					result = SchemaMethodResource.wrapInResult(entity.invokeMethod(securityContext, methodName, propertySet, true, new EvaluationHints()));
-
-				} catch (Throwable t) {
-					logger.warn("Unable to execute {}.{}: {}", entityType.getSimpleName(), methodName, t.getMessage());
-				}
+				result = SchemaMethodResource.wrapInResult(entity.invokeMethod(securityContext, methodName, propertySet, true, new EvaluationHints()));
 			}
 		}
 

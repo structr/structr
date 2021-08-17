@@ -347,6 +347,9 @@ function getDateTimePickerFormat(rawFormat) {
 
 function getElementDisplayName(entity) {
 	if (!entity.name) {
+		if (entity.tag === 'option' && entity._html_value) {
+			return (entity.tag + '[value="' + entity._html_value + '"]');
+		}
 		return (entity.tag ? entity.tag : '[' + entity.type + ']');
 	}
 	if (entity.name && $.isBlank(entity.name)) {
@@ -565,12 +568,12 @@ function fastRemoveAllChildren(el) {
 /**
  * Encapsulated Console object so we can keep error-handling and console-code in one place
  */
-var _Console = new (function() {
+let _Console = new (function() {
 
 	// private variables
-	var _terminal;
-	var _initialized = false;
-	var _consoleVisible = false;
+	let _terminal;
+	let _initialized = false;
+	let _consoleVisible = false;
 
 
 	// public methods
@@ -585,19 +588,19 @@ var _Console = new (function() {
 			return;
 		}
 
-		var storedMode = LSWrapper.getItem(consoleModeKey);
+		let storedMode = LSWrapper.getItem(consoleModeKey);
 
 		// Get initial mode and prompt from backend
 		// If backend sends no mode, use value from local storage
 		Command.console('Console.getMode()', storedMode, function(data) {
 
-			var message = data.message;
-			var mode = storedMode || data.data.mode;
-			var prompt = data.data.prompt;
-			var versionInfo = data.data.versionInfo;
+			let message = data.message;
+			let mode = storedMode || data.data.mode;
+			let prompt = data.data.prompt;
+			let versionInfo = data.data.versionInfo;
 			//console.log(message, mode, prompt, versionInfo);
 
-			var consoleEl = $('#structr-console');
+			let consoleEl = $('#structr-console');
 			_terminal = consoleEl.terminal(function(command, term) {
 				if (command !== '') {
 					try {
@@ -617,7 +620,7 @@ var _Console = new (function() {
 
 					if (e.which === 9) {
 
-						var term = _terminal;
+						let term = _terminal;
 
 						if (shiftKey) {
 
@@ -644,7 +647,7 @@ var _Console = new (function() {
 									break;
 							}
 
-							var line = 'Console.setMode("' + mode + '")';
+							let line = 'Console.setMode("' + mode + '")';
 							term.consoleMode = mode;
 							LSWrapper.setItem(consoleModeKey, mode);
 
@@ -669,15 +672,30 @@ var _Console = new (function() {
 	};
 
 	this.toggleConsole = function() {
+
 		if (_consoleVisible === true) {
+			document.body.classList.remove('console-open');
+			_Console.removeHeaderBlocker();
 			_hideConsole();
 		} else {
+			document.body.classList.add('console-open');
 			_showConsole();
+			_Console.insertHeaderBlocker();
 		}
 	};
 
+	this.insertHeaderBlocker = function () {
+		if (_consoleVisible === true && document.querySelector('.blockUI')) {
+			header[0].appendChild(Structr.createSingleDOMElementFromHTML('<div id="header-blocker"></div>'));
+		}
+	};
+
+	this.removeHeaderBlocker = function () {
+		header[0].querySelector('#header-blocker')?.remove();
+	};
+
 	// private methods
-	var _getBanner = function() {
+	let _getBanner = function() {
 		return ''
 		+ '        _                          _         \n'
 		+ ' ____  | |_   ___   _   _   ____  | |_   ___ \n'
@@ -687,32 +705,32 @@ var _Console = new (function() {
 		+ '|____) |___| |_|   |_____| |____| |___| |_|  \n\n';
 	};
 
-	var _showConsole = function() {
-		if (user !== null) {
+	let _showConsole = function() {
+		if (StructrWS.user !== null) {
 			_consoleVisible = true;
 			_terminal.enable();
 			$('#structr-console').slideDown('fast');
 		}
 	};
 
-	var _hideConsole = function() {
+	let _hideConsole = function() {
 		_consoleVisible = false;
 		_terminal.disable();
 		$('#structr-console').slideUp('fast');
 	};
 
-	var _runCommand = function(command, mode, term) {
+	let _runCommand = function(command, mode, term) {
 
 		if (!term) {
 			term = _terminal;
 		}
 
 		Command.console(command, mode, function(data) {
-			var prompt = data.data.prompt;
+			let prompt = data.data.prompt;
 			if (prompt) {
 				term.set_prompt(prompt + '> ');
 			}
-			var result = data.message;
+			let result = data.message;
 
 			if (result !== undefined) {
 
@@ -735,21 +753,20 @@ var _Console = new (function() {
 /**
  * Encapsulated Favorites object
  */
-var _Favorites = new (function () {
+let _Favorites = new (function () {
 
 	// private variables
-	var _favsVisible = false;
+	let _favsVisible = false;
 
-	var container;
-	var menu;
-	var favoritesTabKey;
-	var text = '';
+	let container;
+	let menu;
+	let favoritesTabKey;
+	let text = '';
 
 	this.initFavorites = function() {
 
-		favoritesTabKey = 'structrFavoritesTab_' + port;
-		scrollInfoKey = 'structrScrollInfoKey_' + port;
-
+		favoritesTabKey = 'structrFavoritesTab_' + location.port;
+		scrollInfoKey = 'structrScrollInfoKey_' + location.port;
 	};
 
 	this.refreshFavorites = function() {
@@ -767,14 +784,14 @@ var _Favorites = new (function () {
 
 					if (data && data.result && data.result.length) {
 
-						var favorites = data.result;
+						let favorites = data.result;
 
 						favorites.forEach(function(favorite) {
 
-							var id   = favorite.id;
+							let id   = favorite.id;
 							_Favorites.menu.append(
 								'<li id="tab-' + id + '" class="button">' + favorite.favoriteContext + '&nbsp;&nbsp;' +
-								'<i title="Close" id="button-close-' + id + '" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" >' +
+								'<i title="Close" id="button-close-' + id + '" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" ></i>' +
 								'</li>'
 							);
 
@@ -787,7 +804,7 @@ var _Favorites = new (function () {
 							);
 
 							CodeMirror.defineMIME("text/html", "htmlmixed-structr");
-							var editor = CodeMirror($('#editor-' + id).get(0), Structr.getCodeMirrorSettings({
+							let editor = CodeMirror($('#editor-' + id).get(0), Structr.getCodeMirrorSettings({
 								value: favorite.favoriteContent || '',
 								mode: favorite.favoriteContentType || 'text/plain',
 								autoFocus: true,
@@ -799,18 +816,18 @@ var _Favorites = new (function () {
 							}));
 							_Code.setupAutocompletion(editor, id);
 
-							var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + id));
+							let scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + id));
 							if (scrollInfo) {
 								editor.scrollTo(scrollInfo.left, scrollInfo.top);
 							}
 
 							editor.on('scroll', function() {
-								var scrollInfo = editor.getScrollInfo();
+								let scrollInfo = editor.getScrollInfo();
 								LSWrapper.setItem(scrollInfoKey + '_' + id, JSON.stringify(scrollInfo));
 							});
 							editor.id = id;
 
-							var buttons = $('#buttons-' + id);
+							let buttons = $('#buttons-' + id);
 
 							buttons.children('#saveFile').remove();
 							buttons.children('#saveAndClose').remove();
@@ -839,7 +856,7 @@ var _Favorites = new (function () {
 							$('button#saveFile', buttons).on('click', function(e) {
 								e.preventDefault();
 								e.stopPropagation();
-								var newText = editor.getValue();
+								let newText = editor.getValue();
 								if (text === newText) {
 									return;
 								}
@@ -876,7 +893,6 @@ var _Favorites = new (function () {
 							$('#tab-' + id).on('click', function(e) {
 								_Favorites.selectTab(id);
 							});
-
 						});
 
 					} else {
@@ -884,7 +900,7 @@ var _Favorites = new (function () {
 						_Favorites.container.append(' No favorites found');
 					}
 
-					var activeTab = LSWrapper.getItem(_Favorites.favoritesTabKey);
+					let activeTab = LSWrapper.getItem(_Favorites.favoritesTabKey);
 
 					if (!activeTab || !($('#tab-' + activeTab)).length) {
 						activeTab = Structr.getIdFromPrefixIdString($('li:first-child', _Favorites.menu).prop('id'), 'tab-');
@@ -893,7 +909,6 @@ var _Favorites = new (function () {
 					_Entities.activateTabs(activeTab, '#favs-tabs', '#content-tab-' + activeTab, _Favorites.favoritesTabKey);
 
 					$('#tab-' + activeTab).click();
-
 				}
 			}
 		});
@@ -920,8 +935,8 @@ var _Favorites = new (function () {
 		}
 	};
 
-	var _showFavorites = function() {
-		if (user !== null) {
+	let _showFavorites = function() {
+		if (StructrWS.user !== null) {
 			_favsVisible = true;
 			$('#structr-favorites').slideDown('fast', function() {
 				_Favorites.refreshFavorites();
@@ -934,22 +949,22 @@ var _Favorites = new (function () {
 		}
 	};
 
-	var _hideFavorites = function() {
+	let _hideFavorites = function() {
 		_favsVisible = false;
 		$('#structr-favorites').slideUp('fast');
 		fastRemoveAllChildren($('#structr-favorites')[0]);
 	};
 
-	var _refreshEditor = function(id) {
+	let _refreshEditor = function(id) {
 
-		var h = $('#structr-favorites').height();
+		let h = $('#structr-favorites').height();
 
 		$('.fav-editor').height(h-100);
 		$('.fav-editor .CodeMirror').height(h-100);
 		$('.fav-editor .CodeMirror-code').height(h-100);
 
-		var el = $('#editor-' + id).find('.CodeMirror');
-		var e = el.get(0);
+		let el = $('#editor-' + id).find('.CodeMirror');
+		let e = el.get(0);
 		if (e && e.CodeMirror) {
 
 			window.setTimeout(function() {
@@ -974,9 +989,9 @@ var _Favorites = new (function () {
  * @param {function} fetchFunction The function which handles fetching a single object - must take the ID as single parameter
  * @returns {AsyncObjectCache}*
  */
-var AsyncObjectCache = function(fetchFunction) {
+let AsyncObjectCache = function(fetchFunction) {
 
-	var _cache = {};
+	let _cache = {};
 
 	/**
 	 * This methods registers a callback for a resource.<br>

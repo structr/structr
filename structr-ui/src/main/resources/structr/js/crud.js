@@ -56,15 +56,15 @@ if (browser) {
 
 var _Crud = {
 	_moduleName: 'crud',
-	displayTypeConfigKey: 'structrCrudDisplayTypes_' + port,
+	displayTypeConfigKey: 'structrCrudDisplayTypes_' + location.port,
 	defaultCollectionPageSize: 10,
 	resultCountSoftLimit: 10000,
-	crudPagerDataKey: 'structrCrudPagerData_' + port + '_',
-	crudTypeKey: 'structrCrudType_' + port,
-	crudHiddenColumnsKey: 'structrCrudHiddenColumns_' + port,
-	crudRecentTypesKey: 'structrCrudRecentTypes_' + port,
-	crudResizerLeftKey: 'structrCrudResizerLeft_' + port,
-	crudExactTypeKey: 'structrCrudExactType_' + port,
+	crudPagerDataKey: 'structrCrudPagerData_' + location.port + '_',
+	crudTypeKey: 'structrCrudType_' + location.port,
+	crudHiddenColumnsKey: 'structrCrudHiddenColumns_' + location.port,
+	crudRecentTypesKey: 'structrCrudRecentTypes_' + location.port,
+	crudResizerLeftKey: 'structrCrudResizerLeft_' + location.port,
+	crudExactTypeKey: 'structrCrudExactType_' + location.port,
 	searchField: undefined,
 	searchFieldClearIcon: undefined,
 	types: {},
@@ -743,26 +743,26 @@ var _Crud = {
 		LSWrapper.setItem(_Crud.crudTypeKey, _Crud.type);
 	},
 	restoreType: function() {
-		var val = LSWrapper.getItem(_Crud.crudTypeKey);
+		let val = LSWrapper.getItem(_Crud.crudTypeKey);
 		if (val) {
 			_Crud.type = val;
 		}
 	},
 	storePagerData: function() {
-		var type = _Crud.type;
-		var pagerData = _Crud.view[type] + ',' + _Crud.sort[type] + ',' + _Crud.order[type] + ',' + _Crud.page[type] + ',' + _Crud.pageSize[type];
+		let type      = _Crud.type;
+		let pagerData = _Crud.view[type] + ',' + _Crud.sort[type] + ',' + _Crud.order[type] + ',' + _Crud.page[type] + ',' + _Crud.pageSize[type];
 		LSWrapper.setItem(_Crud.crudPagerDataKey + type, pagerData);
 	},
 	restorePagerData: function() {
-		var type = _Crud.type;
-		var val = LSWrapper.getItem(_Crud.crudPagerDataKey + type);
+		let type = _Crud.type;
+		let val  = LSWrapper.getItem(_Crud.crudPagerDataKey + type);
 
 		if (val) {
-			var pagerData = val.split(',');
-			_Crud.view[type] = pagerData[0];
-			_Crud.sort[type] = pagerData[1];
-			_Crud.order[type] = pagerData[2];
-			_Crud.page[type] = pagerData[3];
+			let pagerData        = val.split(',');
+			_Crud.view[type]     = pagerData[0];
+			_Crud.sort[type]     = pagerData[1];
+			_Crud.order[type]    = pagerData[2];
+			_Crud.page[type]     = pagerData[3];
 			_Crud.pageSize[type] = pagerData[4];
 		}
 	},

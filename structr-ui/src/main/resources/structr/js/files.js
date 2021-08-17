@@ -23,25 +23,25 @@ var chunkSize = 1024 * 64;
 var sizeLimit = 1024 * 1024 * 1024;
 var selectedElements = [];
 var activeFileId, fileContents = {};
-var currentWorkingDir;
 var folderPageSize = 10000, folderPage = 1;
-var filesViewModeKey = 'structrFilesViewMode_' + port;
+var filesViewModeKey = 'structrFilesViewMode_' + location.port;
 var timeout, attempts = 0, maxRetry = 10;
 var displayingFavorites = false;
-var filesLastOpenFolderKey = 'structrFilesLastOpenFolder_' + port;
-var filesResizerLeftKey = 'structrFilesResizerLeftKey_' + port;
-var activeFileTabPrefix = 'activeFileTabPrefix' + port;
+var filesLastOpenFolderKey = 'structrFilesLastOpenFolder_' + location.port;
+var filesResizerLeftKey = 'structrFilesResizerLeftKey_' + location.port;
+var activeFileTabPrefix = 'activeFileTabPrefix' + location.port;
 
 $(document).ready(function() {
 	Structr.registerModule(_Files);
 });
 
-var _Files = {
+let _Files = {
 	_moduleName: 'files',
 	_viewMode: LSWrapper.getItem(filesViewModeKey) || 'list',
 	defaultFolderAttributes: 'id,name,type,owner,isFolder,path,visibleToPublicUsers,visibleToAuthenticatedUsers,ownerId,isMounted,parentId,foldersCount,filesCount',
 	searchField: undefined,
 	searchFieldClearIcon: undefined,
+	currentWorkingDir: undefined,
 	getViewMode: function () {
 		return _Files._viewMode || 'list';
 	},
@@ -137,14 +137,14 @@ var _Files = {
 						Command.create({
 							type: fileTypeSelect.value,
 							size: 0,
-							parentId: currentWorkingDir ? currentWorkingDir.id : null
+							parentId: _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null
 						});
 					});
 
 					addFolderButton.addEventListener('click', () => {
 						Command.create({
 							type: folderTypeSelect.value,
-							parentId: currentWorkingDir ? currentWorkingDir.id : null
+							parentId: _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null
 						});
 					});
 
@@ -169,9 +169,9 @@ var _Files = {
 
 						$('#favorites_anchor').click();
 
-					} else if (currentWorkingDir) {
+					} else if (_Files.currentWorkingDir) {
 
-						_Files.deepOpen(currentWorkingDir);
+						_Files.deepOpen(_Files.currentWorkingDir);
 
 					} else {
 
@@ -241,6 +241,17 @@ var _Files = {
 						return false;
 					}
 				});
+
+			} else if (fileCount === 1 && _Files.isMinificationTarget(entity)) {
+				elements.push({
+					// icon: '<i class="' + _Icons.getFullSpriteClass(_Icons.getMinificationIcon(entity)) + '" ></i>',
+					name: 'Edit Minification',
+					clickHandler: function () {
+						_Minification.showMinificationDialog(entity);
+						return false;
+					}
+				});
+
 			} else {
 				elements.push({
 					icon: _Icons.getSvgIcon('pencil_edit'),
@@ -269,6 +280,7 @@ var _Files = {
 
 			if (displayingFavorites) {
 				elements.push({
+					// icon: '<i class="' + _Icons.getFullSpriteClass(_Icons.star_delete_icon) + '" ></i>',
 					name: 'Remove from Favorites',
 					clickHandler: function () {
 
@@ -284,7 +296,9 @@ var _Files = {
 				});
 
 			} else if (entity.isFavoritable) {
+
 				elements.push({
+					// icon: '<i class="' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" ></i>',
 					name: 'Add to Favorites',
 					clickHandler: function () {
 
@@ -332,6 +346,7 @@ var _Files = {
 			Structr.performModuleDependendAction(function () {
 				if (fileCount === 1 && Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && contentType === 'text/csv') {
 					elements.push({
+						// icon: '<i class="' + _Icons.getFullSpriteClass(_Icons.import_icon) + '"></i>',
 						name: 'Import CSV',
 						clickHandler: function () {
 							Importer.importCSVDialog(entity, false);
@@ -344,6 +359,7 @@ var _Files = {
 			Structr.performModuleDependendAction(function () {
 				if (fileCount === 1 && Structr.isModulePresent('xml') && (contentType === 'text/xml' || contentType === 'application/xml')) {
 					elements.push({
+						// icon: '<i class="' + _Icons.getFullSpriteClass(_Icons.import_icon) + '"></i>',
 						name: 'Import XML',
 						clickHandler: function () {
 							Importer.importXMLDialog(entity, false);
@@ -389,7 +405,7 @@ var _Files = {
 	},
 	deepOpen: function(d, dirs) {
 
-		_TreeHelper.deepOpen(fileTree, d, dirs, 'parent', (currentWorkingDir ? currentWorkingDir.id : 'root'));
+		_TreeHelper.deepOpen(fileTree, d, dirs, 'parent', (_Files.currentWorkingDir ? _Files.currentWorkingDir.id : 'root'));
 
 	},
 	refreshTree: function() {
@@ -505,7 +521,7 @@ var _Files = {
 				}
 
 				filesToUpload.forEach(function(fileToUpload) {
-					fileToUpload.parentId = currentWorkingDir ? currentWorkingDir.id : null;
+					fileToUpload.parentId = _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null;
 					fileToUpload.hasParent = true; // Setting hasParent = true forces the backend to upload the file to the root dir even if parentId is null
 
 					Command.createFile(fileToUpload, (createdFileNode) => {
@@ -566,9 +582,9 @@ var _Files = {
 		Command.rest("/me/ui", function (result) {
 			var me = result[0];
 			if (me.workingDirectory) {
-				currentWorkingDir = me.workingDirectory;
+				_Files.currentWorkingDir = me.workingDirectory;
 			} else {
-				currentWorkingDir = null;
+				_Files.currentWorkingDir = null;
 			}
 
 			callback();
@@ -602,9 +618,9 @@ var _Files = {
 	setWorkingDirectory: function(id) {
 
 		if (id === 'root') {
-			currentWorkingDir = null;
+			_Files.currentWorkingDir = null;
 		} else {
-			currentWorkingDir = { id: id };
+			_Files.currentWorkingDir = { id: id };
 		}
 
 		$.ajax({
@@ -612,7 +628,7 @@ var _Files = {
 			dataType: 'json',
 			contentType: 'application/json; UTF-8',
 			type: 'PUT',
-			data: JSON.stringify({'workingDirectory': currentWorkingDir})
+			data: JSON.stringify({'workingDirectory': _Files.currentWorkingDir})
 		});
 	},
 	registerFolderLinks: function() {
@@ -732,7 +748,7 @@ var _Files = {
 			}
 
 			_Pager.initPager('filesystem-files', 'File', 1, 25, 'name', 'asc');
-			page['File'] = 1;
+			_Pager.page['File'] = 1;
 
 			let filterOptions = {
 				parentId: (parentIsRoot ? '' : id),
@@ -805,12 +821,12 @@ var _Files = {
 	},
 	insertLayoutSwitches: function (id, parentId, nodePath, parents) {
 
-		let checkmark = _Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green');
+		let checkmark = _Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-1');
 
 		folderContents.prepend('<div id="switches">'
-			+ '<button class="switch ' + (_Files.isViewModeActive('list') ? 'active' : 'inactive') + ' inline-flex items-center gap-1" id="switch-list" data-view-mode="list">' + (_Files.isViewModeActive('list') ? checkmark : '') + ' List</button>'
-			+ '<button class="switch ' + (_Files.isViewModeActive('tiles') ? 'active' : 'inactive') + ' inline-flex items-center gap-1" id="switch-tiles" data-view-mode="tiles">' + (_Files.isViewModeActive('tiles') ? checkmark : '') + ' Tiles</button>'
-			+ '<button class="switch ' + (_Files.isViewModeActive('img') ? 'active' : 'inactive') + ' inline-flex items-center gap-1" id="switch-img" data-view-mode="img">' + (_Files.isViewModeActive('img') ? checkmark : '') + ' Images</button>'
+			+ '<button class="switch ' + (_Files.isViewModeActive('list') ? 'active' : 'inactive') + ' inline-flex items-center" id="switch-list" data-view-mode="list">' + (_Files.isViewModeActive('list') ? checkmark : '') + ' List</button>'
+			+ '<button class="switch ' + (_Files.isViewModeActive('tiles') ? 'active' : 'inactive') + ' inline-flex items-center" id="switch-tiles" data-view-mode="tiles">' + (_Files.isViewModeActive('tiles') ? checkmark : '') + ' Tiles</button>'
+			+ '<button class="switch ' + (_Files.isViewModeActive('img') ? 'active' : 'inactive') + ' inline-flex items-center" id="switch-img" data-view-mode="img">' + (_Files.isViewModeActive('img') ? checkmark : '') + ' Images</button>'
 			+ '</div>');
 
 		let listSw  = $('#switch-list');
@@ -837,9 +853,9 @@ var _Files = {
 		imgSw.on('click', layoutSwitchFunction);
 	},
 	fileOrFolderCreationNotification: function (newFileOrFolder) {
-		if ((currentWorkingDir === undefined || currentWorkingDir === null) && newFileOrFolder.parent === null) {
+		if ((_Files.currentWorkingDir === undefined || _Files.currentWorkingDir === null) && newFileOrFolder.parent === null) {
 			_Files.appendFileOrFolder(newFileOrFolder);
-		} else if ((currentWorkingDir !== undefined && currentWorkingDir !== null) && newFileOrFolder.parent && currentWorkingDir.id === newFileOrFolder.parent.id) {
+		} else if ((_Files.currentWorkingDir !== undefined && _Files.currentWorkingDir !== null) && newFileOrFolder.parent && _Files.currentWorkingDir.id === newFileOrFolder.parent.id) {
 			_Files.appendFileOrFolder(newFileOrFolder);
 		}
 	},
@@ -1082,7 +1098,7 @@ var _Files = {
 				return false;
 			});
 		}
-
+/*
 		// if (_Files.isArchive(d)) {
 		// 	div.append('<i class="unarchive_icon button ' + _Icons.getFullSpriteClass(_Icons.compress_icon) + '" />');
 		// 	$('.unarchive_icon', div).on('click', function() {
@@ -1142,6 +1158,7 @@ var _Files = {
 		// 		_Files.appendXMLImportDialogIcon(div, d);
 		// 	}
 		// });
+*/
 	},
 	unpackArchive: (d) => {
 
@@ -1166,7 +1183,7 @@ var _Files = {
 			});
 		}, 500);
 
-		Command.unarchive(d.id, currentWorkingDir ? currentWorkingDir.id : undefined, function (data) {
+		Command.unarchive(d.id, _Files.currentWorkingDir ? _Files.currentWorkingDir.id : undefined, function (data) {
 			if (data.success === true) {
 				_Files.refreshTree();
 				var message = "Extraction of '" + data.filename + "' finished successfully. ";
@@ -1352,15 +1369,15 @@ var _Files = {
 			});
 		}
 	},
-	appendMinificationDialogIcon: function(parent, file) {
-
-		parent.append('<i title="Open minification dialog" class="minify_file_icon button ' + _Icons.getFullSpriteClass(_Icons.getMinificationIcon(file)) + '" />');
-		$('.minify_file_icon', parent).on('click', function(e) {
-			e.stopPropagation();
-
-			_Minification.showMinificationDialog(file);
-		});
-	},
+	// appendMinificationDialogIcon: function(parent, file) {
+	//
+	// 	parent.append('<i title="Open minification dialog" class="minify_file_icon button ' + _Icons.getFullSpriteClass(_Icons.getMinificationIcon(file)) + '" />');
+	// 	$('.minify_file_icon', parent).on('click', function(e) {
+	// 		e.stopPropagation();
+	//
+	// 		_Minification.showMinificationDialog(file);
+	// 	});
+	// },
 	// appendCSVImportDialogIcon: function(parent, file) {
 	//
 	// 	parent.append(' <i class="import_icon button ' + _Icons.getFullSpriteClass(_Icons.import_icon) + '" title="Import this CSV file" />');
@@ -1712,7 +1729,7 @@ var _Files = {
 		return isIn(contentType, archiveTypes) || isIn(extension, archiveExtensions);
 	},
 	isMinificationTarget: function(file) {
-		var minifyTypes = [ 'MinifiedCssFile', 'MinifiedJavaScriptFile' ];
+		let minifyTypes = [ 'MinifiedCssFile', 'MinifiedJavaScriptFile' ];
 		return isIn(file.type, minifyTypes);
 	},
 	openMountDialog: function() {
@@ -1760,7 +1777,7 @@ var _Files = {
 						Structr.showAndHideInfoBoxMessage('Must supply mount target', 'warning', 2000);
 					} else {
 						mountConfig.type = 'Folder';
-						mountConfig.parentId = currentWorkingDir ? currentWorkingDir.id : null;
+						mountConfig.parentId = _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null;
 						Command.create(mountConfig);
 
 						dialogCancelButton.click();

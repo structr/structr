@@ -117,7 +117,7 @@ public class PaymentTest extends StructrUiTest {
 				.header("X-Password", "admin")
 				.body("{ providerName: 'test', token: 'error', successUrl: 'success', payerId: 'errorPayer' }")
 				.expect()
-				.statusCode(400)
+				.statusCode(422)
 				.when()
 				.post("/PaymentNode/" + uuid + "/confirmCheckout");
 

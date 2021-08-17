@@ -24,8 +24,8 @@ document.addEventListener('DOMContentLoaded', function() {
 var _SimplePages = {
 
 	_moduleName: 'simple-pages',
-	resizerLeftKey: 'structrSimplePagesResizerLeftKey_' + port,
-	currentPageIdKey: 'structrSimplePagesCurrentPageIdKey_' + port,
+	resizerLeftKey: 'structrSimplePagesResizerLeftKey_' + location.port,
+	currentPageIdKey: 'structrSimplePagesCurrentPageIdKey_' + location.port,
 
 	components: {},
 	objectCache: {},
