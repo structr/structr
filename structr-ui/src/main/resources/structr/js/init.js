@@ -2073,7 +2073,10 @@ let Structr = {
 							switch (obj.type) {
 
 								case 'SchemaMethod':
-									if (obj.schemaNode) {
+								    if (obj.schemaNode && data.isStaticMethod) {
+								        title = 'type "' + data.staticType + '"';
+								        property ='StaticMethod';
+								    } else if (obj.schemaNode) {
 										title = 'type "' + obj.schemaNode.name + '"';
 										property = 'Method';
 									} else {
