@@ -36,6 +36,12 @@ $(function() {
 	$.blockUI.defaults.overlayCSS.opacity        = .6;
 	$.blockUI.defaults.overlayCSS.cursor         = 'default';
 	$.blockUI.defaults.applyPlatformOpacityRules = false;
+	$.blockUI.defaults.onBlock = () => {
+		_Console.insertHeaderBlocker();
+	};
+	$.blockUI.defaults.onUnblock = () => {
+		_Console.removeHeaderBlocker();
+	};
 
 	header      = $('#header');
 	main        = $('#main');
