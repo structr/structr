@@ -795,7 +795,7 @@ let _Pages = {
 			});
 			*/
 
-			live('#import_page', 'click', (e) => {
+			$('#import_page').on('click', (e) => {
 				e.stopPropagation();
 
 				Structr.dialog('Import Template', function() {}, function() {});
@@ -838,12 +838,6 @@ let _Pages = {
 
 					return Command.importPage(code, address, name, publicVisible, authVisible, includeInExport, processDeploymentInfo);
 				});
-
-			});
-
-			$('#pull_page').on('click', function(e) {
-				e.stopPropagation();
-				Structr.pullDialog('Page');
 			});
 
 			$('#add_page').on('click', function(e) {
