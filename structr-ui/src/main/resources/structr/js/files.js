@@ -241,6 +241,17 @@ let _Files = {
 						return false;
 					}
 				});
+
+			} else if (fileCount === 1 && _Files.isMinificationTarget(entity)) {
+				elements.push({
+					// icon: '<i class="' + _Icons.getFullSpriteClass(_Icons.getMinificationIcon(entity)) + '" ></i>',
+					name: 'Edit Minification',
+					clickHandler: function () {
+						_Minification.showMinificationDialog(entity);
+						return false;
+					}
+				});
+
 			} else {
 				elements.push({
 					icon: _Icons.getSvgIcon('pencil_edit'),
@@ -285,6 +296,7 @@ let _Files = {
 				});
 
 			} else if (entity.isFavoritable) {
+
 				elements.push({
 					// icon: '<i class="' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" ></i>',
 					name: 'Add to Favorites',
@@ -326,17 +338,6 @@ let _Files = {
 					name: 'Unpack archive',
 					clickHandler: function () {
 						_Files.unpackArchive(entity);
-						return false;
-					}
-				});
-			}
-
-			if (fileCount === 1 && _Files.isMinificationTarget(entity)) {
-				elements.push({
-					// icon: '<i class="' + _Icons.getFullSpriteClass(_Icons.getMinificationIcon(entity)) + '" ></i>',
-					name: 'Edit Minification',
-					clickHandler: function () {
-						_Minification.showMinificationDialog(entity);
 						return false;
 					}
 				});
@@ -1728,7 +1729,7 @@ let _Files = {
 		return isIn(contentType, archiveTypes) || isIn(extension, archiveExtensions);
 	},
 	isMinificationTarget: function(file) {
-		var minifyTypes = [ 'MinifiedCssFile', 'MinifiedJavaScriptFile' ];
+		let minifyTypes = [ 'MinifiedCssFile', 'MinifiedJavaScriptFile' ];
 		return isIn(file.type, minifyTypes);
 	},
 	openMountDialog: function() {
