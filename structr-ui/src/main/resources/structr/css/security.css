@@ -22,14 +22,9 @@
    max-height: 100%;
 }
 
-#usersAndGroups, #resourceAccess {
-   /*height: calc(100% - 28px);*/
-}
-
 #usersAndGroups #users,
 #usersAndGroups #groups {
    padding: 0;
-   /*max-height: 100%;*/
    display: flex;
    flex-direction: column;
 }
@@ -45,19 +40,6 @@
 #groups-list .node {
    line-height: 2rem;
 }
-
-#filter-resource-access-grants {
-   display: inline-block;
-}
-
-#filter-resource-access-grants input[type=checkbox] {
-   margin-left: 1rem;
-}
-
-/*#resourceAccess #resourceAccesses {*/
-/*   padding: 1em;*/
-/*   height: calc(100% - 2em);*/
-/*}*/
 
 #resourceAccessesTable {
    display: block;
@@ -85,7 +67,7 @@
 }
 
 #resourceAccessesTable th.br-1, #resourceAccessesTable td.br-1 {
-   /*border-right: 1px solid var(--gray-ccc);*/
+   border-right: 1px solid var(--gray-eee);
 }
 
 #resourceAccessesTable th.bl-1, #resourceAccessesTable td.bl-1 {
@@ -129,10 +111,6 @@
 input.bitmask {
 	text-align: right;
 	width: calc(100% - 2rem);
-}
-
-#add-resource-access-grant {
-	margin-bottom: 1rem;
 }
 
 .acl-resource-access {

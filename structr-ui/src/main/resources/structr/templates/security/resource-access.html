@@ -1,9 +1,11 @@
-<div id="add-resource-access-grant" class="input-and-button">
-	<input type="text" size="20" id="resource-signature" placeholder="Signature"><button class="action add_grant_icon button"><i title="Add Resource Grant" class="${_Icons.getFullSpriteClass(_Icons.key_add_icon)}" ></i> Add Grant</button>
-</div>
-<div id="filter-resource-access-grants">
-	<input type="text" class="filter" data-attribute="signature" placeholder="Filter/Search...">
-	<input type="checkbox" class="filter" data-attribute="flags" id="show-grants-in-use"><label for="show-grants-in-use">Show only grants in use</label>
+<div class="flex items-center">
+	<div id="add-resource-access-grant" class="input-and-button">
+		<input type="text" size="20" id="resource-signature" placeholder="Signature"><button class="action add_grant_icon button"><i title="Add Resource Grant" class="${_Icons.getFullSpriteClass(_Icons.key_add_icon)}" ></i> Add Grant</button>
+	</div>
+	<div id="filter-resource-access-grants" class="flex items-center">
+		<input type="text" class="filter" data-attribute="signature" placeholder="Filter/Search...">
+		<label class="ui-setting-checkbox inline-flex ml-4"><input type="checkbox" class="filter" data-attribute="flags" id="show-grants-in-use"> Show only grants in use</label>
+	</div>
 </div>
 
 <table id="resourceAccessesTable">
