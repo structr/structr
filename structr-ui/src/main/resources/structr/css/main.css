@@ -2811,6 +2811,8 @@ th.center {
 	left: 60%;
 	right: 4px;
 	top: 4px;
+	overflow-y: auto;
+	max-height: 100vh;
 }
 
 #info-area .message {
