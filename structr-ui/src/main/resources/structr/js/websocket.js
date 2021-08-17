@@ -93,7 +93,7 @@ let StructrWS = {
 				window.setTimeout(function () {
 
 					fastRemoveAllChildren(main[0]);
-					fastRemoveAllChildren(functionBar[0]);
+					fastRemoveAllChildren(Structr.functionBar);
 
 					var restoreDialogText = '';
 					var dialogData = JSON.parse(LSWrapper.getItem(dialogDataKey));

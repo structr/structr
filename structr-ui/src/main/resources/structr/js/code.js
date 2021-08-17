@@ -92,8 +92,12 @@ var _Code = {
 		Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', null, _Code.addAvailableTagsForEntities, false, null, 'tags');
 		Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', null, _Code.addAvailableTagsForEntities, false, null, 'tags');
 
-		Structr.fetchHtmlTemplate('code/search', {}, function(html) {
-			functionBar.append(html);
+		Structr.fetchHtmlTemplate('code/functions', {}, function(html) {
+
+			Structr.functionBar.innerHTML = html;
+
+			UISettings.showSettingsForCurrentModule();
+
 			$('#tree-search-input').on('input', _Code.debounce(_Code.doSearch, 300));
 			$('#tree-forward-button').on('click', _Code.pathLocationForward);
 			$('#tree-back-button').on('click', _Code.pathLocationBackward);

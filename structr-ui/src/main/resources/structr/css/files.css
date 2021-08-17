@@ -335,8 +335,6 @@
  * Search (similar to crud search box but different)
  */
 .searchBox {
-	position: absolute;
-	right: 3rem;
 	z-index: 5;
 }
 

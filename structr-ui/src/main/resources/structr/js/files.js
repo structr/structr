@@ -126,7 +126,9 @@ let _Files = {
 
 				Structr.fetchHtmlTemplate('files/functions', { fileTypes, folderTypes }, async (html) => {
 
-					functionBar[0].innerHTML = html;
+					Structr.functionBar.innerHTML = html;
+
+					UISettings.showSettingsForCurrentModule();
 
 					let fileTypeSelect   = document.querySelector('select#file-type');
 					let addFileButton    = document.getElementById('add-file-button');
@@ -148,7 +150,7 @@ let _Files = {
 						});
 					});
 
-					$('.mount_folder', functionBar).on('click', _Files.openMountDialog);
+					Structr.functionBar.querySelector('.mount_folder').addEventListener('click', _Files.openMountDialog);
 				});
 			};
 			initFunctionBar(); // run async (do not await) so it can execute while jstree is initialized
@@ -468,9 +470,8 @@ let _Files = {
 	},
 	unload: function() {
 		window.removeEventListener('resize', _Files.resize);
-		fastRemoveAllChildren($('.searchBox', functionBar)[0]);
 		fastRemoveAllChildren($('#files-main', main)[0]);
-		fastRemoveAllChildren(functionBar[0]);
+		fastRemoveAllChildren(Structr.functionBar);
 	},
 	activateUpload: function() {
 

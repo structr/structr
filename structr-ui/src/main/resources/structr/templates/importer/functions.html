@@ -1,11 +1,11 @@
-<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css">
-<link rel="stylesheet" type="text/css" media="screen" href="css/importer.css">
+<div class="flex flex-grow">
 
-<button class="refresh">${ config.refreshIcon } Refresh</button>
-<div class="button-and-input">
-  <label for="cancel-all-queued-after-job-id">Cancel ALL <b>queued</b> jobs after this ID:</label>
-  <input size="6" type="text" id="cancel-all-queued-after-job-id" placeholder="Job ID">
-  <button id="cancel-all-queued-after" class="btn"><i class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i> Cancel</button>
+	<button class="refresh">${ config.refreshIcon } Refresh</button>
+
+	<div class="button-and-input">
+		<label for="cancel-all-queued-after-job-id">Cancel ALL <b>queued</b> jobs after this ID:</label>
+		<input size="6" type="text" id="cancel-all-queued-after-job-id" placeholder="Job ID">
+		<button id="cancel-all-queued-after" class="btn"><i class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i> Cancel</button>
+	</div>
 
 </div>
-<input id="importer-show-notifications" type="checkbox"><label for="importer-show-notifications"> Show notifications for scheduled jobs</label>

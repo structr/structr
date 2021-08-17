@@ -109,9 +109,11 @@ let _Dashboard = {
 					document.getElementById('deployment-file-input').value = '';
 				});
 
-				Structr.fetchHtmlTemplate('dashboard/dashboard.menu', templateConfig, function(html) {
+				Structr.fetchHtmlTemplate('dashboard/functions', templateConfig, function(html) {
 
-					functionBar[0].innerHTML = html
+					Structr.functionBar.innerHTML = html;
+
+					UISettings.showSettingsForCurrentModule();
 
 					if (templateConfig.envInfo.databaseService === 'MemoryDatabaseService') {
 						Structr.appendInMemoryInfoToElement($('#dashboard-about-structr .db-driver'));
@@ -146,7 +148,7 @@ let _Dashboard = {
 					// activate tab - either defined by URL or by last accessed
 					let tabSelected = false;
 					if (location.hash.split(':').length > 1) {
-						let locationHashLink = functionBar[0].querySelector('[href="' + location.hash + '"]');
+						let locationHashLink = Structr.functionBar.querySelector('[href="' + location.hash + '"]');
 						if (locationHashLink) {
 							tabSelected = true;
 							locationHashLink.click();
@@ -163,7 +165,7 @@ let _Dashboard = {
 					}
 
 					if (!tabSelected) {
-						let firstTab = functionBar[0].querySelector('a');
+						let firstTab = Structr.functionBar.querySelector('a');
 						if (firstTab) {
 							firstTab.click();
 						}
@@ -968,14 +970,7 @@ let _Dashboard = {
 			let offCanvasDummy    = Structr.createSingleDOMElementFromHTML('<div></div>');	// prepare off-canvas to reduce number of renders
 
 			for (let section of allSettings) {
-
-				let sectionDOM = Structr.createSingleDOMElementFromHTML('<div><div class="font-bold pt-4 pb-2">' + section.title + '</div></div>');
-				offCanvasDummy.appendChild(sectionDOM);
-
-				for (let [settingKey, setting] of Object.entries(section.settings)) {
-
-					UISettings.appendSettingToContainer(setting, sectionDOM);
-				}
+				UISettings.appendSettingsSectionToContainer(section, offCanvasDummy);
 			}
 
 			settingsContainer.appendChild(offCanvasDummy);

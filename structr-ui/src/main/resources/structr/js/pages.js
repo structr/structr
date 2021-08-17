@@ -561,8 +561,8 @@ let _Pages = {
 
 		if (isPage) {
 			elements.push({
-				icon: _Icons.getSvgIcon('page_settings'),
-				name: 'Configure Page Preview',
+				icon: _Icons.getSvgIcon('ui_configuration_settings'),
+				name: 'Page Preview Settings',
 				clickHandler: function () {
 					_Pages.previews.configurePreview(entity);
 					return false;
@@ -720,9 +720,11 @@ let _Pages = {
 
 		fastRemoveAllChildren(_Pages.pagesTree[0]);
 
-		Structr.fetchHtmlTemplate('pages/submenu', {}, (html) => {
+		Structr.fetchHtmlTemplate('pages/functions', {}, (html) => {
 
-			functionBar.append(html);
+			Structr.functionBar.innerHTML = html;
+
+			UISettings.showSettingsForCurrentModule();
 
 			_Pages.resize();
 

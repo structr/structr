@@ -43,7 +43,10 @@ let _MailTemplates = {
 			main.append(html);
 
 			Structr.fetchHtmlTemplate('mail-templates/functions', {}, function (html) {
-				functionBar.append(html);
+
+				Structr.functionBar.innerHTML = html;
+
+				UISettings.showSettingsForCurrentModule();
 
 				let namePreselect = document.getElementById('mail-template-name-preselect');
 

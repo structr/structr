@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var header, main, functionBar;
+var main;
 var lastMenuEntry, menuBlocked, mainModule, subModule;
 var ignoreKeyUp;
 var dialog, isMax = false;
@@ -43,21 +43,21 @@ $(function() {
 		_Console.removeHeaderBlocker();
 	};
 
-	header      = $('#header');
-	main        = $('#main');
-	functionBar = $('#function-bar');
-	loginBox    = $('#login');
+	main                = $('#main');
+	Structr.header      = document.getElementById('header');
+	Structr.functionBar = document.getElementById('function-bar');
+	loginBox            = $('#login');
 
-	dialogBox          = $('#dialogBox');
-	dialog             = $('.dialogText', dialogBox);
-	dialogText         = $('.dialogText', dialogBox);
-	dialogHead         = $('.dialogHeaderWrapper', dialogBox);
-	dialogMsg          = $('.dialogMsg', dialogBox);
-	dialogBtn          = $('.dialogBtn', dialogBox);
-	dialogTitle        = $('.dialogTitle', dialogBox);
-	dialogMeta         = $('.dialogMeta', dialogBox);
-	dialogCancelButton = $('.closeButton', dialogBox);
-	dialogSaveButton   = $('.save', dialogBox);
+	dialogBox           = $('#dialogBox');
+	dialog              = $('.dialogText', dialogBox);
+	dialogText          = $('.dialogText', dialogBox);
+	dialogHead          = $('.dialogHeaderWrapper', dialogBox);
+	dialogMsg           = $('.dialogMsg', dialogBox);
+	dialogBtn           = $('.dialogBtn', dialogBox);
+	dialogTitle         = $('.dialogTitle', dialogBox);
+	dialogMeta          = $('.dialogMeta', dialogBox);
+	dialogCancelButton  = $('.closeButton', dialogBox);
+	dialogSaveButton    = $('.save', dialogBox);
 
 	$('#loginButton').on('click', function(e) {
 		e.stopPropagation();
@@ -504,7 +504,7 @@ let Structr = {
 		if (!loginBox.is(':visible')) {
 
 			fastRemoveAllChildren(main[0]);
-			fastRemoveAllChildren(functionBar[0]);
+			fastRemoveAllChildren(Structr.functionBar);
 			_Elements.removeContextMenu();
 
 			$.blockUI({
@@ -641,7 +641,7 @@ let Structr = {
 		$.ui.ddmanager.droppables['default'] = newDroppables;
 		$('iframe').contents().remove();
 		fastRemoveAllChildren(main[0]);
-		fastRemoveAllChildren(functionBar[0]);
+		fastRemoveAllChildren(Structr.functionBar);
 		_Elements.removeContextMenu();
 		$('#graph-box').hide();
 	},
@@ -1100,7 +1100,7 @@ let Structr = {
 		}
 	},
 	registerModule: function(module) {
-		var name = module._moduleName;
+		let name = module._moduleName;
 		if (!name || name.trim().length === 0) {
 			new MessageBuilder().error("Cannot register module without a name - ignoring attempt. To fix this error, please add the '_moduleName' variable to the module.").show();
 		} else if (!Structr.modules[name]) {
@@ -2738,18 +2738,18 @@ let UISettings = {
 		return LSWrapper.getItem(setting.storageKey, setting.defaultValue);
 	},
 	setValueForSetting: (setting, value, container) => {
-		console.log(setting, value)
 		LSWrapper.setItem(setting.storageKey, value);
 
 		if (container) {
 			blinkGreen(container);
+			setting.onUpdate?.();
 		}
 	},
 	getSettings: (section) => {
 
 		if (!section) {
 			// no section given - return all
-			return [UISettings.global, UISettings.pages, UISettings.security];
+			return [UISettings.global, UISettings.pages, UISettings.security, UISettings.importer];
 
 		} else {
 
@@ -2761,9 +2761,42 @@ let UISettings = {
 
 		return null;
 	},
+	showSettingsForCurrentModule: () => {
+
+		let moduleSettings = UISettings.getSettings(Structr.getActiveModuleName());
+		if (moduleSettings) {
+
+			let dropdown = Structr.createSingleDOMElementFromHTML(`<div id="ui-settings-popup" class="dropdown-menu dropdown-menu-large">
+				<button class="btn dropdown-select">
+					${_Icons.getSvgIcon('ui_configuration_settings')}
+				</button>
+				<div class="dropdown-menu-container" style="opacity: 0"></div>
+			</div>`);
+
+			let container = dropdown.querySelector('.dropdown-menu-container');
+
+			let globalSettings = UISettings.getSettings('global');
+
+			UISettings.appendSettingsSectionToContainer(globalSettings, container);
+			UISettings.appendSettingsSectionToContainer(moduleSettings, container);
+
+			Structr.functionBar.appendChild(dropdown);
+		}
+	},
+	appendSettingsSectionToContainer: (section, container) => {
+
+		let sectionDOM = Structr.createSingleDOMElementFromHTML('<div><div class="font-bold pt-4 pb-2">' + section.title + '</div></div>');
+
+		for (let [settingKey, setting] of Object.entries(section.settings)) {
+			UISettings.appendSettingToContainer(setting, sectionDOM);
+		}
+
+		container.appendChild(sectionDOM);
+	},
 	appendSettingToContainer: (setting, container) => {
 
 		switch (setting.type) {
+
 			case 'checkbox': {
 
 				let settingDOM = Structr.createSingleDOMElementFromHTML('<label class="ui-setting-checkbox"><input type="checkbox"> ' + setting.text + '</label>');
@@ -2820,6 +2853,22 @@ let UISettings = {
 				text: 'Show visibility flags in Resource Access Grants table',
 				storageKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + location.port,
 				defaultValue: false,
+				type: 'checkbox',
+				onUpdate: () => {
+					if (Structr.isModuleActive(_Security)) {
+						_ResourceAccessGrants.refreshResourceAccesses();
+					}
+				}
+			}
+		}
+	},
+	importer: {
+		title: 'Importer',
+		settings: {
+			showNotificationsKey: {
+				text: 'Show notifications for scheduled jobs',
+				storageKey: 'structrImporterShowNotifications_' + location.port,
+				defaultValue: true,
 				type: 'checkbox'
 			}
 		}

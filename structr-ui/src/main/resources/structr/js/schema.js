@@ -129,9 +129,11 @@ var _Schema = {
 	},
 	init: function(scrollPosition, callback) {
 
-		Structr.fetchHtmlTemplate('schema/schema-container', {}, function(html) {
+		Structr.fetchHtmlTemplate('schema/functions', {}, function(html) {
 
-			functionBar[0].innerHTML = html;
+			Structr.functionBar.innerHTML = html;
+
+			UISettings.showSettingsForCurrentModule();
 
 			_Schema.schemaLoading = false;
 			_Schema.schemaLoaded = false;
@@ -3412,13 +3414,13 @@ var _Schema = {
 			});
 		}
 	},
-	appendSnapshotsDialogToContainer: function(container) {
-
-		Structr.fetchHtmlTemplate('schema/snapshots', {}, function (html) {
-			container.append(html);
-			_Schema.activateSnapshotsDialog();
-		});
-	},
+	// appendSnapshotsDialogToContainer: function(container) {
+	//
+	// 	Structr.fetchHtmlTemplate('schema/snapshots', {}, function (html) {
+	// 		container.append(html);
+	// 		_Schema.activateSnapshotsDialog();
+	// 	});
+	// },
 	activateSnapshotsDialog: () => {
 
 		var table = $('#snapshots');
@@ -3524,13 +3526,13 @@ var _Schema = {
 		});
 
 	},
-	appendAdminToolsToContainer: function(container) {
-
-		Structr.fetchHtmlTemplate('schema/admin-tools', {}, function(html) {
-			container.append(html);
-			_Schema.activateAdminTools();
-		});
-	},
+	// appendAdminToolsToContainer: function(container) {
+	//
+	// 	Structr.fetchHtmlTemplate('schema/admin-tools', {}, function(html) {
+	// 		container.append(html);
+	// 		_Schema.activateAdminTools();
+	// 	});
+	// },
 	activateAdminTools: () => {
 
 		var registerSchemaToolButtonAction = function (btn, target, connectedSelectElement, getPayloadFunction) {
@@ -3630,12 +3632,12 @@ var _Schema = {
 			});
 		}
 	},
-	appendLayoutToolsToContainer: function(container) {
-		Structr.fetchHtmlTemplate('schema/layout-tools', {}, function(html) {
-			container.append(html);
-			_Schema.activateLayoutTools();
-		});
-	},
+	// appendLayoutToolsToContainer: function(container) {
+	// 	Structr.fetchHtmlTemplate('schema/layout-tools', {}, function(html) {
+	// 		container.append(html);
+	// 		_Schema.activateLayoutTools();
+	// 	});
+	// },
 	activateLayoutTools: () => {
 
 		$('#schema-tools').off('click').on('click', _Schema.openTypeVisibilityDialog);
@@ -3807,7 +3809,7 @@ var _Schema = {
 		}
 	},
 	applySavedLayoutConfiguration: function(layoutJSON) {
-console.warn(layoutJSON)
+
 		try {
 
 			var loadedConfig = JSON.parse(layoutJSON);

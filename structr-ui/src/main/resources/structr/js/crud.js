@@ -31,8 +31,6 @@ if (browser) {
 		defaultPage = 1;
 		defaultPageSize = 10;
 
-		main = $('#main');
-
 		Structr.registerModule(_Crud);
 
 		$(document).on('click', '#crud-left .crud-type', function() {
@@ -204,7 +202,9 @@ var _Crud = {
 
 			Structr.fetchHtmlTemplate('crud/functions', {}, function(html) {
 
-				functionBar.append(html);
+				Structr.functionBar.innerHTML = html;
+
+				UISettings.showSettingsForCurrentModule();
 
 				_Crud.moveResizer();
 
@@ -378,7 +378,7 @@ var _Crud = {
 
 			Structr.fetchHtmlTemplate('crud/crud-buttons', { type }, function(html) {
 
-				functionBar[0].querySelector('#crud-buttons').innerHTML = html;
+				Structr.functionBar.querySelector('#crud-buttons').innerHTML = html;
 
 				_Crud.determinePagerData(type);
 

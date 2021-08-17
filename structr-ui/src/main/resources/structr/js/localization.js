@@ -38,7 +38,6 @@ let _Localization = {
 	localizationResizerLeftKey    : 'structrLocalizationResizerLeftKey_' + location.port,
 
 	init: function() {
-		main = $('#main');
 	},
 	resize: function() {
 		_Localization.moveResizer();
@@ -59,7 +58,10 @@ let _Localization = {
 			});
 
 			Structr.fetchHtmlTemplate('localization/functions', {}, function (html) {
-				functionBar.append(html);
+
+				Structr.functionBar.innerHTML = html;
+
+				UISettings.showSettingsForCurrentModule();
 
 				let keyPreselect    = document.getElementById('localization-key-preselect');
 				let domainPreselect = document.getElementById('localization-domain-preselect');

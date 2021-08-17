@@ -64,9 +64,11 @@ let _Contents = {
 			let contentContainerTypes = await _Schema.getDerivedTypes('org.structr.dynamic.ContentContainer', []);
 			let contentItemTypes      = await _Schema.getDerivedTypes('org.structr.dynamic.ContentItem', []);
 
-			Structr.fetchHtmlTemplate('contents/buttons.new', { containerTypes: contentContainerTypes, itemTypes: contentItemTypes }, async (html) => {
+			Structr.fetchHtmlTemplate('contents/functions', { containerTypes: contentContainerTypes, itemTypes: contentItemTypes }, async (html) => {
 
-				functionBar[0].innerHTML = html;
+				Structr.functionBar.innerHTML = html;
+
+				UISettings.showSettingsForCurrentModule();
 
 				let itemTypeSelect      = document.querySelector('select#content-item-type');
 				let addItemButton       = document.getElementById('add-item-button');
@@ -114,29 +116,26 @@ let _Contents = {
 						css: { marginLeft: '-1rem', marginRight: '1rem' }
 					});
 				}
-			});
 
-			// Structr.fetchHtmlTemplate('contents/search', {}, function(html) {
-			// 	functionBar[0].insertAdjacentHTML('beforeend', html);
-			// 	_Contents.searchField = $('.search', functionBar);
-			// 	_Contents.searchField.focus();
-			//
-			// 	_Contents.searchField.keyup(function(e) {
-			//
-			// 		var searchString = $(this).val();
-			// 		if (searchString && searchString.length && e.keyCode === 13) {
-			//
-			// 			$('.clearSearchIcon').show().on('click', function() {
-			// 				_Contents.clearSearch();
-			// 			});
-			//
-			// 			_Contents.fulltextSearch(searchString);
-			//
-			// 		} else if (e.keyCode === 27 || searchString === '') {
-			// 			_Contents.clearSearch();
-			// 		}
-			// 	});
-			// });
+				// _Contents.searchField = $('.search', $(functionBar));
+				// _Contents.searchField.focus();
+				//
+				// _Contents.searchField.keyup(function(e) {
+				//
+				// 	var searchString = $(this).val();
+				// 	if (searchString && searchString.length && e.keyCode === 13) {
+				//
+				// 		$('.clearSearchIcon').show().on('click', function() {
+				// 			_Contents.clearSearch();
+				// 		});
+				//
+				// 		_Contents.fulltextSearch(searchString);
+				//
+				// 	} else if (e.keyCode === 27 || searchString === '') {
+				// 		_Contents.clearSearch();
+				// 	}
+				// });
+			});
 
 			$.jstree.defaults.core.themes.dots      = false;
 			$.jstree.defaults.dnd.inside_pos        = 'last';
@@ -944,8 +943,8 @@ let _Contents = {
 		$('#search-results').remove();
 		contentsContents.append('<div id="search-results"></div>');
 
-		var searchString = $('.search', functionBar).val();
-		var container = $('#search-results');
+		let searchString = Structr.functionBar.querySelector('.search').value;
+		let container    = $('#search-results');
 		contentsContents.on('scroll', function() {
 			window.history.pushState('', '', '#contents');
 		});

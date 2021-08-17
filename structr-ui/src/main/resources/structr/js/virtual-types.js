@@ -40,7 +40,9 @@ var _VirtualTypes = {
 
 		Structr.fetchHtmlTemplate('virtual-types/functions', {}, function (html) {
 
-			functionBar.append(html);
+			Structr.functionBar.innerHTML = html;
+
+			UISettings.showSettingsForCurrentModule();
 
 			$('#create-virtual-type').on('click', function() {
 				_VirtualTypes.clearVirtualTypeDetails();
@@ -53,7 +55,6 @@ var _VirtualTypes = {
 		Structr.fetchHtmlTemplate('virtual-types/main', {}, function (html) {
 
 			main.append(html);
-
 
 			_VirtualTypes.virtualTypesList = $('#virtual-types-table tbody');
 			_VirtualTypes.listVirtualTypes();

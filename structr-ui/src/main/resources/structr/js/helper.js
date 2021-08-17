@@ -686,12 +686,12 @@ let _Console = new (function() {
 
 	this.insertHeaderBlocker = function () {
 		if (_consoleVisible === true && document.querySelector('.blockUI')) {
-			header[0].appendChild(Structr.createSingleDOMElementFromHTML('<div id="header-blocker"></div>'));
+			Structr.header.appendChild(Structr.createSingleDOMElementFromHTML('<div id="header-blocker"></div>'));
 		}
 	};
 
 	this.removeHeaderBlocker = function () {
-		header[0].querySelector('#header-blocker')?.remove();
+		Structr.header.querySelector('#header-blocker')?.remove();
 	};
 
 	// private methods

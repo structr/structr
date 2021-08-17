@@ -77,11 +77,6 @@
     margin: 6px 0 2px 0;
 }
 
-.schema-input-container {
-    background-color: transparent;
-    /*padding: 8px 12px 4px 12px;*/
-}
-
 #connector-style, #node-type-selector, #rel-type-selector, #saved-layout-selector, #layout-style {
     /*color: var(--gray-222);*/
     /*padding: 1px 2px 3px 4px;*/
@@ -101,10 +96,7 @@
 }
 
 #zoom-slider {
-    position: fixed;
     z-index: 10;
-    top: 5.5rem;
-    left: calc(100vw - 13rem);
     width: 10rem;
 }
 

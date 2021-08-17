@@ -42,9 +42,11 @@ let _Security = {
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('security'));
 
-		Structr.fetchHtmlTemplate('security/security.menu', {}, function (html) {
+		Structr.fetchHtmlTemplate('security/functions', {}, function (html) {
 
-			functionBar.append(html);
+			Structr.functionBar.innerHTML = html;
+
+			UISettings.showSettingsForCurrentModule();
 
 			Structr.fetchHtmlTemplate('security/main', {}, function (html) {
 
@@ -471,6 +473,7 @@ let _UsersAndGroups = {
 let _ResourceAccessGrants = {
 
 	refreshResourceAccesses: function() {
+
 		_Security.resourceAccesses.empty();
 
 		Structr.fetchHtmlTemplate('security/resource-access', { showVisibilityFlags: UISettings.getValueForSetting(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey) }, function (html) {

@@ -216,7 +216,10 @@ var _Graph = {
 		});
 
 		Structr.fetchHtmlTemplate('graph/submenu', {}, function(html) {
-			functionBar[0].innerHTML = html;
+
+			Structr.functionBar.innerHTML = html;
+
+			UISettings.showSettingsForCurrentModule();
 
 			$('#clear-graph').on('click', function() {
 				_Graph.clearGraph();
@@ -230,8 +233,6 @@ var _Graph = {
 			$('#graphTypeToggleUi').prop('checked', (savedTypeVisibility.ui === undefined ? true : savedTypeVisibility.ui));
 			$('#graphTypeToggleLog').prop('checked', (savedTypeVisibility.log === undefined ? true : savedTypeVisibility.log));
 			$('#graphTypeToggleOther').prop('checked', (savedTypeVisibility.other === undefined ? true : savedTypeVisibility.other));
-
-
 
 			$('#selectionLasso').on('click', function() {
 				if (!graphBrowser.selectionToolsActive) {

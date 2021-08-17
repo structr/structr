@@ -132,7 +132,9 @@ var _Flows = {
 
 		Structr.fetchHtmlTemplate('flows/buttons', {}, function(html) {
 
-			functionBar[0].innerHTML = html;
+			Structr.functionBar.innerHTML = html;
+
+			UISettings.showSettingsForCurrentModule();
 
 			document.querySelector('#name-input').onkeydown = ((event) => {
 				if (event.key === "Enter") {
