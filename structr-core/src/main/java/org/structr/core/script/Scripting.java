@@ -288,7 +288,7 @@ public class Scripting {
 
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
 
-					reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+					reportError(actionContext.getSecurityContext(), entity, ex, snippet, null);
 					// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
 					if (ex.asHostException().getCause() instanceof FrameworkException) {
 						throw ex.asHostException().getCause();
@@ -297,7 +297,7 @@ public class Scripting {
 					}
 				}
 
-				reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+				reportError(actionContext.getSecurityContext(), entity, ex, snippet, ex);
 			}
 
 			// Prefer explicitly printed output over actual result
@@ -672,15 +672,9 @@ public class Scripting {
 		reportError(securityContext, entity, message, lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet, rethrowException);
 	}
 
-	private static void reportError(final SecurityContext securityContext, final GraphObject entity,  final String message, final int lineNumber, final int columnNumber, final Snippet snippet) throws FrameworkException {
+	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final String message, final int lineNumber, final int columnNumber, final Snippet snippet) throws FrameworkException {
 
 		reportError(securityContext, entity, message, lineNumber, columnNumber, lineNumber, columnNumber, snippet, null);
-
-	}
-
-	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final String message, final int lineNumber, final int columnNumber, final Snippet snippet, final Throwable rethrowException) throws FrameworkException {
-
-		reportError(securityContext, entity, message, lineNumber, columnNumber, lineNumber, columnNumber, snippet, rethrowException);
 
 	}
 
@@ -782,12 +776,10 @@ public class Scripting {
 		if (rethrowException != null) {
 
 			throw new FrameworkException(422, exceptionPrefix.toString() + "\n" + message, rethrowException);
-
 		} else {
 
 			// log error but don't throw exception
-			//logger.warn(exceptionPrefix.toString() + ": " + message);
-			throw new FrameworkException(422, exceptionPrefix.toString() + "\n" + message);
+			logger.warn(exceptionPrefix.toString() + ": " + message);
 		}
 	}
 
