@@ -44,7 +44,7 @@
 
 #graph-canvas .node {
     position: absolute;
-    background-color: var(--medium-light-gray-e9);
+    background-color: var(--medium-light-gray-e0);
 }
 
 #graph-canvas .node:hover {
@@ -121,7 +121,7 @@
 }
 
 .node .body table.props th {
-    background-color: var(--medium-light-gray-ef);
+    background-color: var(--medium-light-gray-e0);
     border: 1px solid var(--medium-light-gray-c0);
     padding: 2px;
 }
@@ -270,7 +270,7 @@ ul.relBox li, ul.nodeBox li {
 }
 
 #graph-canvas {
-    /*background-color: var(--light-gray-bg-f1);*/
+    /*background-color: var(--light-gray-bg-f3);*/
     width: calc(100vw - 1rem);
     height: calc(100vh - 8rem);
 }

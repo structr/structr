@@ -210,7 +210,7 @@ table#schema-grants {
 }
 
 table#schema-grants tr:nth-child(even) {
-	background-color: var(--light-gray-bg-f6);
+	background-color: var(--light-gray-bg-f7);
 }
 
 table#schema-grants tr:nth-child(odd) {

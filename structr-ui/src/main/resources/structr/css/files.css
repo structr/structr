@@ -166,11 +166,11 @@
 }
 
 #folder-contents tr[id]:hover {
-	background-color: var(--light-gray-bg-f5) ! important;
+	background-color: var(--light-gray-bg-f3) ! important;
 }
 
 #folder-contents .nodeActive {
-	background-color: var(--light-gray-bg-f5) ! important;
+	background-color: var(--light-gray-bg-f3) ! important;
 	/*border: 1px solid var(--gray-eee);*/
 }
 

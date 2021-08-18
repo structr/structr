@@ -19,6 +19,11 @@
 @charset "UTF-8";
 /** Defaults */
 
+:root {
+	--config-servlet-red: #d8000c;
+	--config-servlet-lightred: #ffbaba;
+}
+
 @media (max-width: 640px) {
 	.config-group, .form-group, .form-group-label {
 		display: block;
@@ -377,25 +382,25 @@ div.connection button:hover {
 }
 
 p.must_not_be_empty input {
-	background-color: #ffbaba;
-	color: #d8000c;
-	border: 1px solid #d8000c;
+	background-color: var(--config-servlet-lightred);
+	color: var(--config-servlet-red);
+	border: 1px solid var(--config-servlet-red);
 }
 
 p.must_not_be_empty::after {
 	content: "Please provide a value for this field.";
-	color: #d8000c;
+	color: var(--config-servlet-red);
 }
 
 p.already_taken input {
-	background-color: #ffbaba;
-	color: #d8000c;
-	border: 1px solid #d8000c;
+	background-color: var(--config-servlet-lightred);
+	color: var(--config-servlet-red);
+	border: 1px solid var(--config-servlet-red);
 }
 
 p.already_taken::after {
 	content: "The selected name cannot be used.";
-	color: #d8000c;
+	color: var(--config-servlet-red);
 }
 
 div.warning-message {
@@ -406,6 +411,7 @@ div.warning-message {
 svg.reset-key {
 	width: 16px;
 	height: 16px;
-	color: #d8000c;
+	color: var(--config-servlet-red);
 	cursor: pointer;
+	margin-left: 1rem;
 }
