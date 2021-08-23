@@ -92,6 +92,10 @@ public class FrameworkException extends Exception implements JsonException {
 		} else {
 
 			buf.append("FrameworkException(").append(status).append("): ").append(message);
+			if (this.getCause() != null) {
+
+				buf.append(" (").append(this.getCause().getMessage()).append(")");
+			}
 		}
 
 		return buf.toString();

@@ -288,7 +288,7 @@ public class Scripting {
 
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
 
-					reportError(actionContext.getSecurityContext(), entity, ex, snippet, null);
+					reportError(actionContext.getSecurityContext(), entity, ex, snippet);
 					// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
 					if (ex.asHostException().getCause() instanceof FrameworkException) {
 						throw ex.asHostException().getCause();
@@ -297,7 +297,8 @@ public class Scripting {
 					}
 				}
 
-				reportError(actionContext.getSecurityContext(), entity, ex, snippet, ex);
+				reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+				throw new FrameworkException(422, "Server-side scripting error", ex);
 			}
 
 			// Prefer explicitly printed output over actual result
@@ -393,6 +394,7 @@ public class Scripting {
 				}
 
 				reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+				throw new FrameworkException(422, "Server-side scripting error", ex);
 			}
 
 			context.leave();
@@ -649,11 +651,6 @@ public class Scripting {
 
 	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final PolyglotException ex, final Snippet snippet) throws FrameworkException {
 
-		reportError(securityContext, entity, ex, snippet, ex);
-	}
-
-	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final PolyglotException ex, final Snippet snippet, final Throwable rethrowException) throws FrameworkException {
-
 		final String message = ex.getMessage();
 		int lineNumber       = 1;
 		int columnNumber     = 1;
@@ -669,16 +666,16 @@ public class Scripting {
 			endColumnNumber = location.getEndColumn();
 		}
 
-		reportError(securityContext, entity, message, lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet, rethrowException);
+		reportError(securityContext, entity, message, lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet);
 	}
 
 	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final String message, final int lineNumber, final int columnNumber, final Snippet snippet) throws FrameworkException {
 
-		reportError(securityContext, entity, message, lineNumber, columnNumber, lineNumber, columnNumber, snippet, null);
+		reportError(securityContext, entity, message, lineNumber, columnNumber, lineNumber, columnNumber, snippet);
 
 	}
 
-	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final String message, final int lineNumber, final int columnNumber, final int endLineNumber, final int endColumnNumber, final Snippet snippet, final Throwable rethrowException) throws FrameworkException {
+	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final String message, final int lineNumber, final int columnNumber, final int endLineNumber, final int endColumnNumber, final Snippet snippet) throws FrameworkException {
 
 		final String entityName               = snippet.getName();
 		final String entityDescription        = (StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + snippet.getCodeSource();
@@ -773,14 +770,8 @@ public class Scripting {
 
 		exceptionPrefix.append(snippet.getName()).append(":").append(lineNumber).append(":").append(columnNumber);
 
-		if (rethrowException != null) {
-
-			throw new FrameworkException(422, exceptionPrefix.toString() + "\n" + message, rethrowException);
-		} else {
-
-			// log error but don't throw exception
-			logger.warn(exceptionPrefix.toString() + ": " + message);
-		}
+		// log error but don't throw exception
+		logger.warn(exceptionPrefix.toString() + ": " + message);
 	}
 
 	private static void putIfNotNull(final Map<String, Object> map, final String key, final Object value) {
