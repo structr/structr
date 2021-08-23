@@ -25,7 +25,7 @@ let _MailTemplates = {
 
 	mailTemplatesPager: undefined,
 	mailTemplatesList: undefined,
-	mailTemplateDetail: undefined,
+	mailTemplateDetailContainer: undefined,
 	mailTemplateDetailForm: undefined,
 	previewElement: undefined,
 	editor: undefined,
@@ -50,31 +50,31 @@ let _MailTemplates = {
 
 				let namePreselect = document.getElementById('mail-template-name-preselect');
 
-				document.getElementById('create-mail-template-form').addEventListener('submit', (e) => {
+				Structr.functionBar.querySelector('#create-mail-template-form').addEventListener('submit', async (e) => {
 					e.preventDefault();
 
 					_MailTemplates.showMain();
-					_MailTemplates.createObject('MailTemplate', { name: namePreselect.value }, this, (data) => {
+					await _MailTemplates.createObject('MailTemplate', { name: namePreselect.value }, this, (data) => {
 						let id = data.result[0];
 						_MailTemplates.showMailTemplateDetails(id, true);
 					});
 				});
 
-				_MailTemplates.mailTemplatesList = $('#mail-templates-table tbody');
+				_MailTemplates.mailTemplatesList           = document.querySelector('#mail-templates-table tbody');
+				_MailTemplates.mailTemplateDetailContainer = document.getElementById('mail-templates-detail-container');
+				_MailTemplates.mailTemplateDetailForm      = document.getElementById('mail-template-detail-form');
+				_MailTemplates.previewElement              = document.getElementById('mail-template-preview');
+
 				_MailTemplates.listMailTemplates();
 
-				_MailTemplates.mailTemplateDetail = $('#mail-template-detail');
-				_MailTemplates.mailTemplateDetailForm = $('#mail-template-detail-form');
-				_MailTemplates.previewElement = document.getElementById('mail-template-preview');
-
-				document.querySelector('#mail-templates-detail-container button.save').addEventListener('click', function() {
+				_MailTemplates.mailTemplateDetailContainer.querySelector('button.save').addEventListener('click', function() {
 
 					let data = _MailTemplates.getObjectDataFromElement(_MailTemplates.mailTemplateDetailForm);
-					let id   = _MailTemplates.mailTemplateDetailForm.data('mail-template-id');
+					let id   = _MailTemplates.mailTemplateDetailForm.dataset['mailTemplateId'];
 
 					_MailTemplates.updateObject('MailTemplate', id, data, this, null, function() {
 
-						let rowInList = $('#mail-template-' + id, _MailTemplates.mailTemplatesList);
+						let rowInList = _MailTemplates.mailTemplatesList.querySelector('#mail-template-' + id);
 						_MailTemplates.populateMailTemplatePagerRow(rowInList, data);
 						_MailTemplates.updatePreview();
 					});
@@ -102,10 +102,6 @@ let _MailTemplates = {
 
 		_Elements.appendContextMenuSeparator(elements);
 
-		_Elements.appendSecurityContextMenuItems(elements, entity);
-
-		_Elements.appendContextMenuSeparator(elements);
-
 		elements.push({
 			icon: _Icons.getSvgIcon('trashcan'),
 			classes: ['menu-bolder', 'danger'],
@@ -117,7 +113,7 @@ let _MailTemplates = {
 					let lastSelectedMailTemplateId = LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey);
 					if (lastSelectedMailTemplateId === entity.id) {
 						LSWrapper.removeItem(_MailTemplates.mailTemplateSelectedElementKey);
-						document.getElementById('mail-templates-detail-container').style.display = 'none';
+						_MailTemplates.mailTemplateDetailContainer.style.display = 'none';
 					}
 
 					_MailTemplates.mailTemplatesPager.refresh();
@@ -125,7 +121,7 @@ let _MailTemplates = {
 					let row = Structr.node(entity.id, '#mail-template-');
 					if (row) {
 						row.remove();
-						_MailTemplates.checkMainVisibility();
+						window.setTimeout(_MailTemplates.checkMainVisibility, 200);
 					}
 				});
 				return false;
@@ -154,39 +150,32 @@ let _MailTemplates = {
 		if (!rows || rows.length === 0) {
 			_MailTemplates.hideMain();
 		} else if (!selectedRowExists) {
-			document.getElementById('mail-templates-detail-container').style.display = 'none';
+			_MailTemplates.mailTemplateDetailContainer.style.display = 'none';
 		}
 	},
-	resize: function() {
+	resize: () => {
 
 		_MailTemplates.moveResizer();
 		Structr.resize();
 	},
-	moveResizer: function(left) {
+	moveResizer: (left) => {
 
 		requestAnimationFrame(() => {
 
 			left = left || LSWrapper.getItem(_MailTemplates.mailTemplatesResizerLeftKey) || 300;
 			left = Math.max(300, Math.min(left, window.innerWidth - 300));
 
-			document.querySelector('.column-resizer').style.left = left + 'px';
-
-			let listContainer = document.getElementById('mail-templates-list-container');
-			listContainer.style.width = 'calc(' + left + 'px - 1rem)';
-
-			let detailContainer = document.getElementById('mail-templates-detail-container');
-			detailContainer.style.width = 'calc(100% - ' + left + 'px - 3rem)';
+			document.getElementById('mail-templates-list-container').style.width = 'calc(' + left + 'px - 1rem)';
+			document.querySelector('.column-resizer').style.left                  = left + 'px';
+			_MailTemplates.mailTemplateDetailContainer.style.width                        = 'calc(100% - ' + left + 'px - 3rem)';
 
 			return true;
 		});
 	},
 	updatePreview: () => {
 
-		//_MailTemplates.previewElement.contentDocument.open();
 		let value = _MailTemplates.editor ? _MailTemplates.editor.getValue() : document.getElementById('mail-template-text').value;
-		//_MailTemplates.previewElement.contentDocument.write(value);
 		_MailTemplates.previewElement.contentDocument.documentElement.innerHTML = value;
-		//_MailTemplates.previewElement.contentDocument.close();
 	},
 	listMailTemplates: () => {
 
@@ -197,7 +186,7 @@ let _MailTemplates = {
 		_MailTemplates.mailTemplatesPager = _Pager.addPager('mail-templates', pagerEl, false, 'MailTemplate', 'ui', _MailTemplates.processPagerData);
 
 		_MailTemplates.mailTemplatesPager.cleanupFunction = function () {
-			fastRemoveAllChildren(_MailTemplates.mailTemplatesList[0]);
+			_MailTemplates.mailTemplatesList.innerHTML = '';
 		};
 		_MailTemplates.mailTemplatesPager.pager.append('Filters: <input type="text" class="filter w100 mail-template-name" data-attribute="name" placeholder="Name" />');
 		_MailTemplates.mailTemplatesPager.pager.append('<input type="text" class="filter w100 mail-template-locale" data-attribute="locale" placeholder="Locale" />');
@@ -216,20 +205,18 @@ let _MailTemplates = {
 
 		Structr.fetchHtmlTemplate('mail-templates/row.type', { mailTemplate: mailTemplate }, function(html) {
 
-			let row = $(html);
+			let row = Structr.createSingleDOMElementFromHTML(html);
 
 			_MailTemplates.populateMailTemplatePagerRow(row, mailTemplate);
-			_MailTemplates.mailTemplatesList.append(row);
+			_MailTemplates.mailTemplatesList.appendChild(row);
 
-			let actionsCol = $('.actions', row);
-
-			row.on('click', function () {
+			row.addEventListener('click', () => {
 				_MailTemplates.selectRow(mailTemplate.id);
 				_MailTemplates.showMailTemplateDetails(mailTemplate.id);
 			});
 
-			_Elements.enableContextMenuOnElement(row, mailTemplate);
-			_Entities.appendEditPropertiesIcon(actionsCol, mailTemplate, true);
+			_Elements.enableContextMenuOnElement($(row), mailTemplate);
+			_Entities.appendEditPropertiesIcon($(row.querySelector('.actions')), mailTemplate, true);
 
 			let lastSelectedMailTemplateId = LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey);
 			if (lastSelectedMailTemplateId === mailTemplate.id) {
@@ -247,35 +234,27 @@ let _MailTemplates = {
 	},
 	populateMailTemplatePagerRow: (row, mailTemplate) => {
 
-		$('.property', row).each(function(i, el) {
-			var self = $(this);
-			var val = mailTemplate[self.attr('data-property')];
-			self.text(val !== null ? val : "");
-		});
-
+		for (let el of row.querySelectorAll('.property')) {
+			let val        = mailTemplate[el.dataset.property];
+			el.textContent = ((val !== null) ? val : '');
+		}
 	},
 	getObjectDataFromElement: function(element) {
-		var data = {};
 
-		if (_MailTemplates.editor) {
-			_MailTemplates.editor.toTextArea();
-		}
+		let data = {};
 
-		$('.property', element).each(function(idx, el) {
-			var el = $(el);
+		_MailTemplates.editor.save();
 
-			if (el.attr('type') === 'checkbox') {
-				data[el.data('property')] = el.prop('checked');
+		for (let el of element.querySelectorAll('.property')) {
+
+			let propName = el.dataset.property;
+
+			if (el.type === 'checkbox') {
+				data[propName] = el.checked;
 			} else {
-				var val = el.val();
-				if (val === "") {
-					val = null;
-				}
-				data[el.data('property')] = val;
+				data[propName] = ((el.value === '') ? null : el.value);
 			}
-		});
-
-		_MailTemplates.activateEditor();
+		}
 
 		return data;
 	},
@@ -283,9 +262,9 @@ let _MailTemplates = {
 
 		Command.get(mailTemplateId, '', function(mt) {
 
-			document.getElementById('mail-templates-detail-container').style.display = null;
+			_MailTemplates.mailTemplateDetailContainer.style.display = null;
 
-			_MailTemplates.mailTemplateDetailForm.data('mail-template-id', mailTemplateId);
+			_MailTemplates.mailTemplateDetailForm.dataset['mailTemplateId'] = mailTemplateId;
 
 			LSWrapper.setItem(_MailTemplates.mailTemplateSelectedElementKey, mailTemplateId);
 
@@ -293,16 +272,17 @@ let _MailTemplates = {
 				_MailTemplates.editor.toTextArea();
 			}
 
-			$('.property', _MailTemplates.mailTemplateDetailForm).each(function(idx, el) {
-				var el = $(el);
-				var val = mt[el.data('property')];
+			for (let el of _MailTemplates.mailTemplateDetailForm.querySelectorAll('.property')) {
 
-				if (el.attr('type') === 'checkbox') {
-					el.prop('checked', (val === true));
+				let propName = el.dataset.property;
+				let value    = mt[propName];
+
+				if (el.type === 'checkbox') {
+					el.checked = (value === true);
 				} else {
-					el.val(val);
+					el.value = value;
 				}
-			});
+			}
 
 			_MailTemplates.activateEditor();
 			_MailTemplates.updatePreview();
