@@ -20,17 +20,10 @@
 
 
 #virtual-types-main {
-    display: flex;
+    display: none;
     height: calc(100% - 3rem);
     margin: 2rem;
 }
-
-/*#virtual-types-list {*/
-/*    vertical-align: top;*/
-/*    height: 100%;*/
-/*    padding-top: 1rem;*/
-/*    margin-right: 2rem;*/
-/*}*/
 
 #virtual-types-list {
     vertical-align: top;
@@ -83,4 +76,13 @@
     width: 100%;
     display: table;
     margin-bottom: 1rem;
+}
+
+.virtual-type-row.selected {
+    background-color: var(--structr-green) !important;
+}
+
+.virtual-type-row:hover {
+    cursor: pointer;
+    background-color: var(--structr-light-green) !important;
 }

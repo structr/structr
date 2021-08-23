@@ -179,13 +179,9 @@ let _Localization = {
 			left = left || LSWrapper.getItem(_Localization.localizationResizerLeftKey) || 340;
 			left = Math.max(300, Math.min(left, window.innerWidth - 300));
 
-			document.querySelector('.column-resizer').style.left = left + 'px';
-
-			let listContainer = document.getElementById('localization-list-container');
-			listContainer.style.width = 'calc(' + left + 'px - 1rem)';
-
-			let detailContainer = document.getElementById('localization-detail-container');
-			detailContainer.style.width = 'calc(100% - ' + left + 'px - 3rem)';
+			document.getElementById('localization-list-container').style.width = 'calc(' + left + 'px - 1rem)';
+			document.querySelector('.column-resizer').style.left                = left + 'px';
+			_Localization.localizationDetailContainer.style.width                       = 'calc(100% - ' + left + 'px - 3rem)';
 
 			return true;
 		});
@@ -245,7 +241,7 @@ let _Localization = {
 		if (!rows || rows.length === 0) {
 			_Localization.hideMain();
 		} else if (!selectedRowExists) {
-			rows[0].click();
+			_Localization.localizationDetailContainer.style.display = 'none';
 		}
 	},
 	selectRow: (row) => {

@@ -107,12 +107,12 @@ $(function() {
 	});
 
 	$(document).on('mouseenter', '[data-toggle="popup"]', function() {
-		var target = $(this).data("target");
+		let target = $(this).data("target");
 		$(target).addClass('visible');
 	});
 
 	$(document).on('mouseleave', '[data-toggle="popup"]', function() {
-		var target = $(this).data("target");
+		let target = $(this).data("target");
 		$(target).removeClass('visible');
 	});
 
@@ -128,7 +128,7 @@ $(function() {
 	});
 
 	$(window).keyup(function(e) {
-		var k = e.which;
+		let k = e.which;
 		if (k === 16) {
 			shiftKey = false;
 		}
@@ -149,7 +149,7 @@ $(function() {
 			}
 			if (dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
 				ignoreKeyUp = true;
-				var saveBeforeExit = confirm('Save changes?');
+				let saveBeforeExit = confirm('Save changes?');
 				if (saveBeforeExit) {
 					dialogSaveButton.click();
 					setTimeout(function() {
@@ -643,14 +643,13 @@ let Structr = {
 		fastRemoveAllChildren(main[0]);
 		fastRemoveAllChildren(Structr.functionBar);
 		_Elements.removeContextMenu();
-		$('#graph-box').hide();
 	},
 	confirmation: function(text, yesCallback, noCallback) {
 		if (text) {
 			$('#confirmation .confirmationText').html(text);
 		}
-		var yesButton = $('#confirmation .yesButton');
-		var noButton = $('#confirmation .noButton');
+		let yesButton = $('#confirmation .yesButton');
+		let noButton  = $('#confirmation .noButton');
 
 		if (yesCallback) {
 			yesButton.on('click', function(e) {
@@ -679,7 +678,6 @@ let Structr = {
 			message: $('#confirmation'),
 			css: Structr.defaultBlockUICss
 		});
-
 	},
 	restoreDialog: function(dialogData) {
 
@@ -2201,8 +2199,8 @@ let Structr = {
 	fetchHtmlTemplate: function(templateName, templateConfig, callback) {
 
 		Structr.templateCache.registerCallback(templateName, templateName, function(templateHtml, cacheHit) {
-			var convertTemplateToLiteral = new Function('config', 'return `' + templateHtml + '`;');
-			var parameterizedTemplate = convertTemplateToLiteral(templateConfig);
+			let convertTemplateToLiteral = new Function('config', 'return `' + templateHtml + '`;');
+			let parameterizedTemplate = convertTemplateToLiteral(templateConfig);
 			callback(parameterizedTemplate, cacheHit);
 		});
 	},
