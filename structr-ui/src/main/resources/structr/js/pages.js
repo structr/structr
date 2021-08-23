@@ -1087,19 +1087,15 @@ let _Pages = {
 
 			case '#pages:basic':
 
-				let callbackObject = registeredDialogs[obj.type];
-
-				if (!callbackObject && obj.isDOMNode) {
-					callbackObject = registeredDialogs['DEFAULT_DOM_NODE'];
-				}
+				let dialogConfig = _Dialogs.getDialogConfigForEntity(obj);
 
 				Structr.fetchHtmlTemplate('pages/basic', {}, (html) => {
 
 					_Pages.centerPane.insertAdjacentHTML('beforeend', html);
 					let basicContainer = document.querySelector('#center-pane .basic-container');
 
-					if (callbackObject) {
-						callbackObject.callback($(basicContainer), obj);
+					if (dialogConfig) {
+						dialogConfig.appendDialogForEntityToContainer($(basicContainer), obj);
 					}
 				});
 
