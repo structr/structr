@@ -822,7 +822,7 @@ let _Files = {
 	},
 	insertLayoutSwitches: function (id, parentId, nodePath, parents) {
 
-		let checkmark = _Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-1');
+		let checkmark = _Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2');
 
 		folderContents.prepend('<div id="switches">'
 			+ '<button class="switch ' + (_Files.isViewModeActive('list') ? 'active' : 'inactive') + ' inline-flex items-center" id="switch-list" data-view-mode="list">' + (_Files.isViewModeActive('list') ? checkmark : '') + ' List</button>'
