@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -66,16 +67,14 @@ import org.structr.schema.parser.LongPropertyParser;
 import org.structr.schema.parser.NotionPropertyParser;
 import org.structr.schema.parser.PropertyDefinition;
 
-/**
- *
- *
- */
 public class SchemaProperty extends SchemaReloadingNode implements PropertyDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaProperty.class.getName());
 
+	public static final String schemaPropertyNamePattern    = "[_A-Za-z][_0-9A-Za-z]*";
+
 	public static final Property<AbstractSchemaNode> schemaNode            = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType));
-	public static final Property<Iterable<SchemaView>>   schemaViews       = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<Iterable<SchemaView>> schemaViews         = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 
 	public static final Property<String>             declaringUuid         = new StringProperty("declaringUuid");
 	public static final Property<String>             declaringClass        = new StringProperty("declaringClass");
@@ -276,6 +275,16 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	@Override
 	public String getTypeHint() {
 		return getProperty(typeHint);
+	}
+
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
+
+		boolean valid = super.isValid(errorBuffer);
+
+		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, schemaPropertyNamePattern, errorBuffer);
+
+		return valid;
 	}
 
 	@Override
