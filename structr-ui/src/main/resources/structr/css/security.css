@@ -17,6 +17,23 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#security {
+   height: 100%;
+}
+
+#securityTabs {
+   height: calc(100% - 2rem);
+   border: none;
+   background: none;
+}
+
+#security .tab-content {
+   /* overflow-y: scroll; */
+   /* max-height: 100%; */
+   height: calc(100% - 4rem);
+   overflow: auto;
+}
+
 #usersAndGroups-inner {
    display: flex;
    max-height: 100%;
@@ -27,6 +44,10 @@
    padding: 0;
    display: flex;
    flex-direction: column;
+}
+
+#usersAndGroups #users {
+   margin-right: 6rem;
 }
 
 #users-list,
@@ -43,16 +64,7 @@
 
 #resourceAccessesTable {
    display: block;
-   overflow: auto;
-   height: calc(100% - 2rem);
-   border-collapse: collapse;
-   background: var(--solid-white);
    margin: 1rem 0;
-   width: 100%;
-}
-
-#resourceAccessesTable .node {
-   border: none;
 }
 
 #resourceAccessesTable tbody tr:hover {
@@ -67,19 +79,15 @@
 }
 
 #resourceAccessesTable th.br-1, #resourceAccessesTable td.br-1 {
-   border-right: 1px solid var(--gray-eee);
+   /*border-right: 1px solid var(--light-gray-bg-f3);*/
 }
 
 #resourceAccessesTable th.bl-1, #resourceAccessesTable td.bl-1 {
-   /*border-left: 1px solid var(--gray-ccc);*/
+   /*border-left: 1px solid var(--light-gray-bg-f3);*/
 }
 
 #resourceAccessesTable .title-cell {
    text-align: left;
-}
-
-#resourceAccessesTable td img {
-   vertical-align: middle;
 }
 
 #resourceAccessesTable tr:nth-child(odd) {
@@ -97,15 +105,12 @@
    min-width: 2rem;
 }
 
-#resourceAccessesPager {
-   text-align: left;
+#resourceAccessesTable td {
+   position: relative;
 }
 
-#securityTabs {
-   margin: 2rem;
-   height: calc(100% - 2rem);
-   border: none;
-   background: none;
+#resourceAccessesPager {
+   text-align: left;
 }
 
 input.bitmask {
@@ -115,10 +120,6 @@ input.bitmask {
 
 .acl-resource-access {
 	margin-right: 1rem;
-}
-
-#users-controls {
-   padding-right: 6rem;
 }
 
 #users-controls .select-and-button,

@@ -366,8 +366,8 @@ let _UsersAndGroups = {
 	},
 	createGroupElement: function (group) {
 
-		var groupIcon = group.type === 'LDAPGroup' ? _Icons.getFullSpriteClass(_Icons.group_link_icon) : _Icons.getFullSpriteClass(_Icons.group_icon);
-		var groupElement = $('<div class="node group groupid_' + group.id + '">'
+		let groupIcon = ((group.type === 'LDAPGroup') ? _Icons.getFullSpriteClass(_Icons.group_link_icon) : _Icons.getFullSpriteClass(_Icons.group_icon));
+		let groupElement = $('<div class="node group groupid_' + group.id + '">'
 				+ '<i class="typeIcon ' + groupIcon + ' typeIcon-nochildren" />'
 				+ ' <b title="' + group.name + '" class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
 				// + '<i title="Delete Group ' + group.id + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'
@@ -375,10 +375,10 @@ let _UsersAndGroups = {
 		);
 		groupElement.data('groupId', group.id);
 
-		$('.delete_icon', groupElement).on('click', function(e) {
-			e.stopPropagation();
-			_UsersAndGroups.deleteGroup(this, group);
-		});
+		// $('.delete_icon', groupElement).on('click', function(e) {
+		// 	e.stopPropagation();
+		// 	_UsersAndGroups.deleteGroup(this, group);
+		// });
 
 		groupElement.droppable({
 			accept: '.user, .group',
