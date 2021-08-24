@@ -1329,47 +1329,47 @@ let _Pages = {
 
 		return div;
 	},
-	showTypeData: function(id) {
-		if (!id) {
-			return;
-		}
-		Command.get(id, 'id,name', function(sourceSchemaNode) {
-
-			var typeKey = sourceSchemaNode.name.toLowerCase();
-			LSWrapper.setItem(_Pages.selectedTypeKey, id);
-
-			$('#data-wizard-attributes')
-					.append('<div class="clear">&nbsp;</div><p>You can drag and drop the type box onto a block in a page. The type will be bound to the block which will loop over the result set.</p>')
-					.append('<div class="data-binding-type draggable">:' + sourceSchemaNode.name + '</div>')
-					.append('<h3>Properties</h3><div class="properties"></div>')
-					.append('<p>Drag and drop these elements onto the page for data binding.</p>');
-
-			var draggableSettings = {
-				iframeFix: true,
-				revert: 'invalid',
-				containment: 'body',
-				helper: 'clone',
-				appendTo: '#main',
-				stack: '.node',
-				zIndex: 99
-			};
-
-			$('.data-binding-type').draggable(draggableSettings);
-
-			Command.getSchemaInfo(sourceSchemaNode.name, function(properties) {
-
-				var el = $('#data-wizard-attributes .properties');
-
-				properties.reverse().forEach(function(property) {
-
-					var subkey = property.relatedType ? 'name' : '';
-
-					el.append('<div class="draggable data-binding-attribute ' + property.jsonName + '" collection="' + property.isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + property.jsonName  + '</div>');
-					el.children('.' + property.jsonName).draggable(draggableSettings);
-				});
-			});
-		});
-	},
+	// showTypeData: function(id) {
+	// 	if (!id) {
+	// 		return;
+	// 	}
+	// 	Command.get(id, 'id,name', function(sourceSchemaNode) {
+	//
+	// 		var typeKey = sourceSchemaNode.name.toLowerCase();
+	// 		LSWrapper.setItem(_Pages.selectedTypeKey, id);
+	//
+	// 		$('#data-wizard-attributes')
+	// 				.append('<div class="clear">&nbsp;</div><p>You can drag and drop the type box onto a block in a page. The type will be bound to the block which will loop over the result set.</p>')
+	// 				.append('<div class="data-binding-type draggable">:' + sourceSchemaNode.name + '</div>')
+	// 				.append('<h3>Properties</h3><div class="properties"></div>')
+	// 				.append('<p>Drag and drop these elements onto the page for data binding.</p>');
+	//
+	// 		var draggableSettings = {
+	// 			iframeFix: true,
+	// 			revert: 'invalid',
+	// 			containment: 'body',
+	// 			helper: 'clone',
+	// 			appendTo: '#main',
+	// 			stack: '.node',
+	// 			zIndex: 99
+	// 		};
+	//
+	// 		$('.data-binding-type').draggable(draggableSettings);
+	//
+	// 		Command.getSchemaInfo(sourceSchemaNode.name, function(properties) {
+	//
+	// 			var el = $('#data-wizard-attributes .properties');
+	//
+	// 			properties.reverse().forEach(function(property) {
+	//
+	// 				var subkey = property.relatedType ? 'name' : '';
+	//
+	// 				el.append('<div class="draggable data-binding-attribute ' + property.jsonName + '" collection="' + property.isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + property.jsonName  + '</div>');
+	// 				el.children('.' + property.jsonName).draggable(draggableSettings);
+	// 			});
+	// 		});
+	// 	});
+	// },
 	expandTreeNode: function(id, stack, lastId) {
 		if (!id) {
 			return;
@@ -1386,23 +1386,24 @@ let _Pages = {
 		});
 	},
 	highlight: function(id) {
-		var node = Structr.node(id);
+		let node = Structr.node(id);
 		if (node) {
 			node.parent().removeClass('nodeHover');
 			node.addClass('nodeHover');
 		}
-		var activeNode = Structr.node(id, '#active_');
+
+		let activeNode = Structr.node(id, '#active_');
 		if (activeNode) {
 			activeNode.parent().removeClass('nodeHover');
 			activeNode.addClass('nodeHover');
 		}
 	},
 	unhighlight: function(id) {
-		var node = Structr.node(id);
+		let node = Structr.node(id);
 		if (node) {
 			node.removeClass('nodeHover');
 		}
-		var activeNode = Structr.node(id, '#active_');
+		let activeNode = Structr.node(id, '#active_');
 		if (activeNode) {
 			activeNode.removeClass('nodeHover');
 		}
@@ -1869,13 +1870,54 @@ let _Pages = {
 			_Pages.previews.activateComments(doc);
 		},
 
+		getComments: (el) => {
+
+			let comments = [];
+			let child    = el.firstChild;
+
+			while (child) {
+
+				if (child.nodeType === 8) {
+					let id = child.nodeValue.extractVal('data-structr-id');
+
+					if (id) {
+						let raw = child.nodeValue.extractVal('data-structr-raw-value');
+
+						if (raw !== undefined) {
+							comments.push({
+								id: id,
+								node: child,
+								rawContent: raw
+							});
+						}
+					}
+				}
+				child = child ? child.nextSibling : child;
+			}
+			return comments;
+		},
+
+		getNonCommentSiblings: (el) => {
+
+			let siblings = [];
+			let sibling  = el.nextSibling;
+
+			while (sibling) {
+				if (sibling.nodeType === 8) {
+					return siblings;
+				}
+				siblings.push(sibling);
+				sibling = sibling.nextSibling;
+			}
+		},
+
 		activateComments: function(doc, callback) {
 
 			doc.find('*').each(function(i, element) {
 
-				getComments(element).forEach(function(c) {
+				_Pages.previews.getComments(element).forEach(function(c) {
 
-					var inner = $(getNonCommentSiblings(c.node));
+					let inner  = $(_Pages.previews.getNonCommentSiblings(c.node));
 					let newDiv = $('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
 
 					newDiv.append(inner);
@@ -1884,20 +1926,22 @@ let _Pages = {
 					$(newDiv).on({
 						mouseover: function(e) {
 							e.stopPropagation();
-							var self = $(this);
+							let self = $(this);
+
 							self.addClass('structr-editable-area');
 							_Pages.highlight(self.attr('data-structr-id'));
 						},
 						mouseout: function(e) {
 							e.stopPropagation();
-							var self = $(this);
+							let self = $(this);
+
 							self.removeClass('structr-editable-area');
 							_Pages.unhighlight(self.attr('data-structr-id'));
 						},
 						click: function(e) {
 							e.stopPropagation();
 							e.preventDefault();
-							var self = $(this);
+							let self = $(this);
 
 							if (_Pages.contentSourceId) {
 								// click on same element again?
@@ -1915,7 +1959,7 @@ let _Pages = {
 							// Store old text in global var and attribute
 							_Pages.textBeforeEditing = self.text();
 
-							var srcText = expandNewline(self.attr('data-structr-raw-content'));
+							let srcText = expandNewline(self.attr('data-structr-raw-content'));
 
 							// Replace only if it differs (e.g. for variables)
 							if (srcText !== _Pages.textBeforeEditing) {

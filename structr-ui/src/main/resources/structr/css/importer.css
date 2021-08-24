@@ -16,23 +16,19 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-/**
- * Importer
- */
-
 #importer-main {
-    width: calc(100% - 4rem);
-    margin: 2rem 0 0 2rem;
+	width: calc(100% - 4rem);
+	margin: 2rem 0 0 2rem;
 }
 
 #log-output {
-    background-color: var(--solid-white);
-    border: 1px solid var(--gray-ddd);
-    padding: 2px;
-    overflow: auto;
+	background-color: var(--solid-white);
+	border: 1px solid var(--gray-ddd);
+	padding: 2px;
+	overflow: auto;
 }
 
 #importer-jobs-table {
-    display: table;
-    width: 100%;
+	display: table;
+	width: 100%;
 }
