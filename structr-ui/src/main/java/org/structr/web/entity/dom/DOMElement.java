@@ -1430,12 +1430,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					if (node != null) {
 
 						targets.add(node);
-					}
 
-					final RelationshipInterface rel = app.getRelationshipById(cleaned);
-					if (rel != null) {
+					} else {
 
-						targets.add(rel);
+						final RelationshipInterface rel = app.getRelationshipById(cleaned);
+						if (rel != null) {
+
+							targets.add(rel);
+						}
 					}
 				}
 			}
