@@ -486,25 +486,25 @@ let StructrModel = {
 	 * Save model data to server. This will trigger a refresh of the model.
 	 */
 	save: function(id) {
-		var obj = StructrModel.obj(id);
+		let obj = StructrModel.obj(id);
 
 		// Filter out object type data
-		var data = {};
-		$.each(Object.keys(obj), function(i, key) {
+		let data = {};
+		for (let key in obj) {
 
-			var value = obj[key];
+			let value = obj[key];
 
 			if (typeof value !== 'object') {
 				data[key] = value;
 			}
+		}
 
-		});
 		Command.setProperties(id, data);
 	},
 
 	callCallback: function(callback, entity, resultSize, errorOccurred) {
 		if (callback) {
-			var callbackFunction = StructrModel.callbacks[callback];
+			let callbackFunction = StructrModel.callbacks[callback];
 			if (callbackFunction) {
 				try {
 					StructrModel.callbacks[callback](entity, resultSize, errorOccurred);
@@ -525,9 +525,9 @@ let StructrModel = {
 	},
 
 	copyDataToObject: function(data, target) {
-		$.each(Object.keys(data), function(i, key) {
+		for (let key in data) {
 			target[key] = data[key];
-		});
+		}
 	}
 };
 
@@ -559,7 +559,7 @@ StructrFolder.prototype.append = function() {
 };
 
 StructrFolder.prototype.exists = function() {
-	var el = Structr.node(this.id);
+	let el = Structr.node(this.id);
 	return el && el.length > 0;
 };
 
@@ -583,9 +583,9 @@ StructrFile.prototype.remove = function() {
 };
 
 StructrFile.prototype.append = function() {
-	var file = this;
+	let file = this;
 	if (file.parent) {
-		var parentFolder = StructrModel.obj(file.parent.id);
+		let parentFolder = StructrModel.obj(file.parent.id);
 		if (parentFolder) {
 			if (!parentFolder.files) {
 				parentFolder.files = [];
@@ -620,9 +620,9 @@ StructrImage.prototype.remove = function() {
 };
 
 StructrImage.prototype.append = function() {
-	var image = this;
+	let image = this;
 	if (image.parent) {
-		var parentFolder = StructrModel.obj(image.parent.id);
+		let parentFolder = StructrModel.obj(image.parent.id);
 		if (parentFolder) {
 			if (!parentFolder.files) {
 				parentFolder.files = [];
@@ -655,13 +655,13 @@ StructrUser.prototype.setProperty = function(key, value, recursive, callback) {
 
 StructrUser.prototype.remove = function(groupId) {
 	if (groupId) {
-		var group = StructrModel.obj(groupId);
+		let group = StructrModel.obj(groupId);
 		if (group) {
 			group.removeUser(this.id);
 		}
 	} else {
 		if (Structr.isModuleActive(_Security)) {
-			var userEl = Structr.node(this.id, '.userid_');
+			let userEl = Structr.node(this.id, '.userid_');
 			if (userEl && userEl.length) {
 				userEl.remove();
 			}
