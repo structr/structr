@@ -60,6 +60,7 @@ import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.User;
+import org.structr.web.maintenance.deploy.ImportPreconditionFailedException;
 
 public class DeployDataCommand extends DeployCommand {
 
@@ -102,17 +103,23 @@ public class DeployDataCommand extends DeployCommand {
 
 		if (StringUtils.isBlank(path)) {
 
-			logger.warn("Please provide target path for data deployment export.");
+			publishWarningMessage("Data export not started", "Please provide target path for data deployment export.");
 			throw new FrameworkException(422, "Please provide target path for data deployment export.");
 		}
 
 		if (StringUtils.isBlank(types)) {
 
-			logger.warn("Please provide a comma-separated list of type(s) to export. (e.g. 'ContentContainer,ContentItem')");
+			publishWarningMessage("Data export not started", "Please provide a comma-separated list of type(s) to export. (e.g. 'ContentContainer,ContentItem')");
 			throw new FrameworkException(422, "Please provide a comma-separated list of type(s) to export. (e.g. 'ContentContainer,ContentItem')");
 		}
 
 		final Path target  = Paths.get(path);
+
+		if (target.isAbsolute() != true) {
+
+			publishWarningMessage("Data export not started", "Target path '" + path + "' is not an absolute path - relative paths are not allowed.");
+			throw new FrameworkException(422, "Target path '" + path + "' is not an absolute path - relative paths are not allowed.");
+		}
 
 		try {
 
@@ -270,20 +277,23 @@ public class DeployDataCommand extends DeployCommand {
 
 			if (StringUtils.isBlank(path)) {
 
-				logger.warn("Please provide 'source' attribute for deployment source directory path.");
-				throw new FrameworkException(422, "Please provide 'source' attribute for deployment source directory path.");
+				throw new ImportPreconditionFailedException("Please provide 'source' attribute for deployment source directory path.");
 			}
 
 			final Path source = Paths.get(path);
 			if (!Files.exists(source)) {
 
-				logger.warn("Please provide 'source' attribute for deployment source directory path.");
-				throw new FrameworkException(422, "Source path '" + path + "' does not exist.");
+				throw new ImportPreconditionFailedException("Source path " + path + " does not exist.");
 			}
 
 			if (!Files.isDirectory(source)) {
 
-				throw new FrameworkException(422, "Source path '" + path + "' is not a directory.");
+				throw new ImportPreconditionFailedException("Source path " + path + " is not a directory.");
+			}
+
+			if (source.isAbsolute() != true) {
+
+				throw new ImportPreconditionFailedException("Source path '" + path + "' is not an absolute path - relative paths are not allowed.");
 			}
 
 			doInnerCallbacks  = parameters.get("doInnerCallbacks") == null  ? false : "true".equals(parameters.get("doInnerCallbacks").toString());
@@ -291,6 +301,11 @@ public class DeployDataCommand extends DeployCommand {
 			doCascadingDelete = parameters.get("doCascadingDelete") == null ? false : "true".equals(parameters.get("doCascadingDelete").toString());
 
 			doImportFromDirectory(source);
+
+		} catch (ImportPreconditionFailedException ipfe) {
+
+			logger.warn("Data Deployment Import not started: {}", ipfe.getMessage());
+			publishWarningMessage("Data Deployment Import not started", ipfe.getMessage());
 
 		} catch (Throwable t) {
 

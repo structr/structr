@@ -101,14 +101,6 @@ let _Dashboard = {
 
 				main[0].innerHTML = html;
 
-				document.getElementById('deployment-file-input').addEventListener('input', () => {
-					document.getElementById('deployment-url-input').value = '';
-				});
-
-				document.getElementById('deployment-url-input').addEventListener('input', () => {
-					document.getElementById('deployment-file-input').value = '';
-				});
-
 				Structr.fetchHtmlTemplate('dashboard/functions', templateConfig, function(html) {
 
 					Structr.functionBar.innerHTML = html;
@@ -349,54 +341,70 @@ let _Dashboard = {
 
         init: () => {
 
-    		// App Import
+			// App Import
+			let deploymentFileInput = document.getElementById('deployment-file-input');
+    		let deploymentUrlInput  = document.getElementById('deployment-url-input');
 
-            $('button#do-app-import').on('click', function() {
-                _Dashboard.deployment.deploy('import', $('#deployment-source-input').val());
+			deploymentFileInput.addEventListener('input', () => {
+				deploymentUrlInput.value = '';
+			});
+
+			deploymentUrlInput.addEventListener('input', () => {
+				deploymentFileInput.value = '';
+			});
+
+			document.getElementById('do-app-import').addEventListener('click', () => {
+                _Dashboard.deployment.deploy('import', document.getElementById('deployment-source-input').value);
             });
 
-			$('button#do-app-import-from-zip').on('click', function() {
-				let filesSelectField = document.getElementById('deployment-file-input');
-				if (filesSelectField && filesSelectField.files.length > 0) {
-					_Dashboard.deployment.deployFromZIPUpload($('#redirect-url').val(), filesSelectField);
+			document.getElementById('do-app-import-from-zip').addEventListener('click', () => {
+				if (deploymentFileInput && deploymentFileInput.files.length > 0) {
+					_Dashboard.deployment.deployFromZIPFileUpload(window.location.href, deploymentFileInput);
 				} else {
-					_Dashboard.deployment.deployFromZIPURL($('#redirect-url').val(), $('#deployment-url-input').val());
+					_Dashboard.deployment.deployFromZIPURL(window.location.href, deploymentUrlInput.value);
 				}
 			});
 
 			// App Export
-
-            $('button#do-app-export').on('click', function() {
-                _Dashboard.deployment.deploy('export', $('#app-export-target-input').val());
+			document.getElementById('do-app-export').addEventListener('click', () => {
+                _Dashboard.deployment.deploy('export', document.getElementById('app-export-target-input').value);
             });
 
-			$('button#do-app-export-to-zip').on('click', function() {
+			document.getElementById('do-app-export-to-zip').addEventListener('click', () => {
 				_Dashboard.deployment.exportAsZip();
 			});
 
 
             // Data Import
+			let dataDeploymentFileInput = document.getElementById('data-deployment-file-input');
+			let dataDeploymentUrlInput  = document.getElementById('data-deployment-url-input');
 
-            $('button#do-data-import').on('click', function() {
-                _Dashboard.deployment.deployData('import', $('#data-import-source-input').val());
+			dataDeploymentFileInput.addEventListener('input', () => {
+				dataDeploymentUrlInput.value = '';
+			});
+
+			dataDeploymentUrlInput.addEventListener('input', () => {
+				dataDeploymentFileInput.value = '';
+			});
+
+			document.getElementById('do-data-import').addEventListener('click', () => {
+                _Dashboard.deployment.deployData('import', document.getElementById('data-import-source-input').value);
             });
 
-			$('button#do-data-import-from-zip').on('click', function() {
-				let filesSelectField = document.getElementById('data-deployment-file-input');
-				if (filesSelectField && filesSelectField.files.length > 0) {
-					_Dashboard.deployment.deployDataFromZIPUpload($('#redirect-url').val(), filesSelectField);
+			document.getElementById('do-data-import-from-zip').addEventListener('click', () => {
+				if (dataDeploymentFileInput && dataDeploymentFileInput.files.length > 0) {
+					_Dashboard.deployment.deployDataFromZIPFileUpload(window.location.href, dataDeploymentFileInput);
 				} else {
-					_Dashboard.deployment.deployDataFromZIPURL($('#redirect-url').val(), $('#data-deployment-url-input').val());
+					_Dashboard.deployment.deployDataFromZIPURL(window.location.href, dataDeploymentUrlInput.value);
 				}
 			});
 
 			// Data Export
-
-            $('button#do-data-export').on('click', function() {
+            document.getElementById('do-data-export').addEventListener('click', () => {
                 _Dashboard.deployment.deployData('export', $('#data-export-target-input').val(), $('#data-export-types-input').val());
             });
 
-			$('button#do-data-export-to-zip').on('click', function() {
+			document.getElementById('do-data-export-to-zip').addEventListener('click', () => {
 				_Dashboard.deployment.exportDataAsZip();
 			});
 
@@ -432,14 +440,14 @@ let _Dashboard = {
             });
         },
 
-        deploy: function(mode, location) {
+        deploy: (mode, location) => {
 
             if (!(location && location.length)) {
                 new MessageBuilder().title('Unable to start data ' + mode + '').warning('Please enter a local directory path for data export.').requiresConfirmation().show();
                 return;
             }
 
-            var data = {
+            let data = {
                 mode: mode
             };
 
@@ -449,212 +457,173 @@ let _Dashboard = {
                 data['target'] = location;
             }
 
-            $.ajax({
-                url: rootUrl + '/maintenance/deploy',
-                data: JSON.stringify(data),
-                method: 'POST',
-                dataType: 'json',
-                contentType: 'application/json; charset=utf-8',
-                statusCode: {
-                    422: function(data) {
-                        //new MessageBuilder().title('Unable to start app ' + mode + '').warning(data.responseJSON.message).requiresConfirmation().show();
-                    }
-                }
-            });
+			fetch(rootUrl + '/maintenance/deploy', {
+				method: 'POST',
+				body: JSON.stringify(data)
+			});
         },
-        exportAsZip: function() {
+		cleanFileNamePrefix: (prefix) => {
+			let cleaned = prefix.replaceAll(/[^a-zA-Z0-9 _-]/g, '').trim();
+			if (cleaned !== prefix) {
+				new MessageBuilder().title('Cleaned prefix').info('The given filename prefix was changed to "' + cleaned + '".').requiresConfirmation().show();
+			}
+			return cleaned;
+		},
+		appendTimeStampToPrefix: (prefix) => {
 
-            let prefix = document.getElementById('zip-export-prefix').value;
+			let zeroPad = (v) => (((v < 10) ? '0' : '') + v);
+			let date    = new Date();
 
-            let cleaned = prefix.replaceAll(/[^a-zA-Z0-9 _-]/g, '').trim();
-            if (cleaned !== prefix) {
-                new MessageBuilder().title('Cleaned prefix').info('The given filename prefix was changed to "' + cleaned + '".').requiresConfirmation().show();
-                prefix = cleaned;
-            }
+			return prefix + '_' + date.getFullYear() + zeroPad(date.getMonth()+1) + zeroPad(date.getDate()) + '_' + zeroPad(date.getHours()) + zeroPad(date.getMinutes()) + zeroPad(date.getSeconds());
+		},
+        exportAsZip: () => {
+
+            let prefix = _Dashboard.deployment.cleanFileNamePrefix(document.getElementById('zip-export-prefix').value);
             LSWrapper.setItem(_Dashboard.deployment.zipExportPrefixKey, prefix);
 
             let appendTimestamp = document.getElementById('zip-export-append-timestamp').checked;
             LSWrapper.setItem(_Dashboard.deployment.zipExportAppendTimestampKey, appendTimestamp);
 
             if (appendTimestamp) {
-
-                let zeroPad = (v) => {
-                    return ((v < 10) ? '0' : '') + v;
-                };
-
-                let date = new Date();
-
-                prefix += '_' + date.getFullYear() + zeroPad(date.getMonth()+1) + zeroPad(date.getDate()) + '_' + zeroPad(date.getHours()) + zeroPad(date.getMinutes()) + zeroPad(date.getSeconds());
+            	prefix = _Dashboard.deployment.appendTimeStampToPrefix(prefix);
             }
 
-            window.location = '/structr/deploy?name=' + prefix;
-        },
-		exportDataAsZip: function() {
-
-			let prefix = document.getElementById('zip-data-export-prefix').value;
-
-			let cleaned = prefix.replaceAll(/[^a-zA-Z0-9 _-]/g, '').trim();
-			if (cleaned !== prefix) {
-				new MessageBuilder().title('Cleaned prefix').info('The given filename prefix was changed to "' + cleaned + '".').requiresConfirmation().show();
-				prefix = cleaned;
+			if (prefix === '') {
+				new MessageBuilder().title('Unable to export application').warning('Please enter a prefix or select "Append timestamp"').requiresConfirmation().show();
+			} else {
+				window.location = '/structr/deploy?name=' + prefix;
 			}
+        },
+		exportDataAsZip: () => {
+
+			let prefix = _Dashboard.deployment.cleanFileNamePrefix(document.getElementById('zip-data-export-prefix').value);
 			LSWrapper.setItem(_Dashboard.deployment.zipDataExportPrefixKey, prefix);
 
 			let appendTimestamp = document.getElementById('zip-data-export-append-timestamp').checked;
 			LSWrapper.setItem(_Dashboard.deployment.zipDataExportAppendTimestampKey, appendTimestamp);
 
 			if (appendTimestamp) {
-
-				let zeroPad = (v) => {
-					return ((v < 10) ? '0' : '') + v;
-				};
-
-				let date = new Date();
-
-				prefix += '_' + date.getFullYear() + zeroPad(date.getMonth()+1) + zeroPad(date.getDate()) + '_' + zeroPad(date.getHours()) + zeroPad(date.getMinutes()) + zeroPad(date.getSeconds());
+				prefix = _Dashboard.deployment.appendTimeStampToPrefix(prefix);
 			}
 
-			window.location = '/structr/deploy?mode=data&name=' + prefix + '&types=' + $('#zip-data-export-types-input').val().join(',');
+			let zipDataExportTypesSelect = document.getElementById('zip-data-export-types-input');
+			let types                    = Array.from(zipDataExportTypesSelect.selectedOptions).map(o => o.value).join(',');
+
+			if (types === '') {
+				new MessageBuilder().title('Unable to export data').warning('Please select at least one data type.').requiresConfirmation().show();
+			} else if (prefix === '') {
+				new MessageBuilder().title('Unable to export data').warning('Please enter a prefix or select "Append timestamp"').requiresConfirmation().show();
+			} else {
+				window.location = '/structr/deploy?mode=data&name=' + prefix + '&types=' + types;
+			}
 		},
-        deployFromZIPURL: function(redirectUrl, downloadUrl) {
+        deployFromZIPURL: async (redirectUrl, downloadUrl) => {
 
             if (!(downloadUrl && downloadUrl.length)) {
                 new MessageBuilder().title('Unable to start app import from URL').warning('Please enter a URL or upload a ZIP file containing the app data.').requiresConfirmation().show();
                 return;
             }
 
-            let data = new FormData();
-            data.append('redirectUrl', redirectUrl);
-            data.append('downloadUrl', downloadUrl);
-			data.append('mode', 'app');
+            let formData = new FormData();
+            formData.append('redirectUrl', redirectUrl);
+            formData.append('downloadUrl', downloadUrl);
+			formData.append('mode', 'app');
 
-            $.ajax({
-                url: '/structr/deploy',
-                method: 'POST',
-                processData: false,
-                contentType: false,
-                data: data,
-                statusCode: {
-                    400: function(data) {
-                        new MessageBuilder().title('Unable to import app from URL').warning(data.responseText).requiresConfirmation().show();
-                    }
-                }
-            });
+			let response = await fetch('/structr/deploy', {
+				method: 'POST',
+				body: formData
+			});
+
+			if (!response.ok) {
+				let responseText = await response.text();
+				new MessageBuilder().title('Unable to import app from URL').warning(responseText).requiresConfirmation().show();
+			}
         },
-		deployDataFromZIPURL: function(redirectUrl, downloadUrl) {
+		deployDataFromZIPURL: async (redirectUrl, downloadUrl) => {
 
 			if (!(downloadUrl && downloadUrl.length)) {
 				new MessageBuilder().title('Unable to start data import from URL').warning('Please enter a URL or upload a ZIP file containing the ddata.').requiresConfirmation().show();
 				return;
 			}
 
-			let data = new FormData();
-			data.append('redirectUrl', redirectUrl);
-			data.append('downloadUrl', downloadUrl);
-			data.append('mode', 'data');
+			let formData = new FormData();
+			formData.append('redirectUrl', redirectUrl);
+			formData.append('downloadUrl', downloadUrl);
+			formData.append('mode', 'data');
 
-			$.ajax({
-				url: '/structr/deploy',
+			let response = await fetch('/structr/deploy', {
 				method: 'POST',
-				processData: false,
-				contentType: false,
-				data: data,
-				statusCode: {
-					400: function(data) {
-						new MessageBuilder().title('Unable to import app from URL').warning(data.responseText).requiresConfirmation().show();
-					}
-				}
+				body: formData
 			});
-		},
-		deployFromZIPUpload: function(redirectUrl, filesSelectField) {
 
-			if (!(filesSelectField && filesSelectField.files.length)) {
-				new MessageBuilder().title('Unable to start app import from ZIP file').warning('Please select a ZIP file containing the app data for upload.').requiresConfirmation().show();
-				return;
+			if (!response.ok) {
+				let responseText = await response.text();
+				new MessageBuilder().title('Unable to import app from URL').warning(responseText).requiresConfirmation().show();
 			}
-
-			let data = new FormData();
-			data.append('redirectUrl', redirectUrl);
-			data.append('mode', 'app');
-			data.append('file', filesSelectField.files[0]);
-
-			$.ajax({
-				url: '/structr/deploy',
-				method: 'POST',
-				processData: false,
-				contentType: false,
-				data: data,
-				statusCode: {
-					400: function(data) {
-						new MessageBuilder().title('Unable to import app from URL').warning(data.responseText).requiresConfirmation().show();
-					}
-				}
-			});
 		},
-		deployDataFromZIPUpload: function(redirectUrl, filesSelectField) {
+		deployFromZIPFileUpload: async (redirectUrl, filesSelectField) => {
 
-			if (!(filesSelectField && filesSelectField.files.length)) {
-				new MessageBuilder().title('Unable to start data import from ZIP file').warning('Please select a ZIP file containing the data for upload.').requiresConfirmation().show();
-				return;
+			let formData = new FormData();
+			formData.append('redirectUrl', redirectUrl);
+			formData.append('mode', 'app');
+			formData.append('file', filesSelectField.files[0]);
+
+			let response = await fetch('/structr/deploy', {
+				method: 'POST',
+				body: formData
+			});
+
+			if (!response.ok) {
+				let responseText = await response.text();
+				new MessageBuilder().title('Unable to import app from URL').warning(responseText).requiresConfirmation().show();
 			}
-
-			let data = new FormData();
-			data.append('file', filesSelectField.files[0]);
-			data.append('redirectUrl', redirectUrl);
-			data.append('mode', 'data');
-
-			$.ajax({
-				url: '/structr/deploy',
-				method: 'POST',
-				processData: false,
-				contentType: false,
-				data: data,
-				statusCode: {
-					400: function(data) {
-						new MessageBuilder().title('Unable to import data from URL').warning(data.responseText).requiresConfirmation().show();
-					}
-				}
-			});
 		},
-        deployData: function(mode, location, types) {
+		deployDataFromZIPFileUpload: async (redirectUrl, filesSelectField) => {
+
+			let formData = new FormData();
+			formData.append('file', filesSelectField.files[0]);
+			formData.append('redirectUrl', redirectUrl);
+			formData.append('mode', 'data');
+
+			let response = await fetch('/structr/deploy', {
+				method: 'POST',
+				body: formData
+			});
+
+			if (!response.ok) {
+				let responseText = await response.text();
+				new MessageBuilder().title('Unable to import app from URL').warning(responseText).requiresConfirmation().show();
+			}
+		},
+        deployData: async (mode, location, types) => {
 
             if (!(location && location.length)) {
                 new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please enter a directory path for data ' + mode + '.').requiresConfirmation().show();
                 return;
             }
 
-            var data = {
+            let data = {
                 mode: mode
             };
 
             if (mode === 'import') {
                 data['source'] = location;
+
             } else if (mode === 'export') {
                 data['target'] = location;
+
                 if (types && types.length) {
                     data['types'] = types.join(',');
                 } else {
                     new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please select at least one data type.').requiresConfirmation().show();
                     return;
                 }
-
             }
 
-            let url = rootUrl + '/maintenance/deployData';
-
-            $.ajax({
-                url: url,
-                data: JSON.stringify(data),
-                method: 'POST',
-                dataType: 'json',
-                contentType: 'application/json; charset=utf-8',
-                statusCode: {
-                    422: function(data) {
-                        new MessageBuilder().warning(data.responseJSON.message).requiresConfirmation().show();
-                    }
-                }
-            });
-
+			let response = await fetch(rootUrl + '/maintenance/deployData', {
+				method: 'POST',
+				body: JSON.stringify(data)
+			});
         },
 	},
 
@@ -707,7 +676,7 @@ let _Dashboard = {
 
             let logBoxContentBox = $('#dashboard-server-log textarea');
 
-            let scrollEnabled = true;
+            let scrollEnabled    = true;
             let textAreaHasFocus = false;
 
             logBoxContentBox.on('focus', () => {
@@ -744,7 +713,7 @@ let _Dashboard = {
                 let maxScroll     = textarea.scrollHeight - 4;
                 let currentScroll = (textarea.scrollTop + $(textarea).height());
 
-                scrollEnabled = currentScroll >= maxScroll;
+                scrollEnabled     = (currentScroll >= maxScroll);
             });
 
 			document.getElementById('dashboard-server-log-copy').addEventListener('click', async () => {

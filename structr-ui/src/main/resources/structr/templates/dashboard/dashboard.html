@@ -32,8 +32,6 @@
 
 		<div class="tab-content" id="dashboard-deployment">
 
-			<input type="hidden" id="redirect-url" value="${window.location.href}">
-
 			<div class="dashboard-grid-wrapper">
 				<div class="dashboard-grid-row"><h2>Application Import and Export</h2></div>
 				<div>
@@ -95,7 +93,7 @@
 					<div>
 						<input type="text" id="data-deployment-url-input" placeholder="Download URL of ZIP file for data import" name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}>
 						<input type="file" id="data-deployment-file-input" placeholder="Upload ZIP file" ${(config.deployServletAvailable ? '' : 'disabled')}><br>
-						<button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-data-import-from-zip">Import data from ZIP file</button>
+						<button id="do-data-import-from-zip" class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')}>Import data from ZIP file</button>
 					</div>
 				</div>
 				<div>
@@ -108,7 +106,7 @@
 							<optgroup label="Builtin Types" class="builtin-types"></optgroup>
 						</select><br>
 						<label class="checkbox-label"><input type="checkbox" id="zip-data-export-append-timestamp" ${(config.deployServletAvailable ? '' : 'disabled')} ${(config.zipDataExportAppendTimestamp ? 'checked' : '')}> Append timestamp</label>
-						<button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-data-export-to-zip">Export and download data as ZIP file</button>
+						<button id="do-data-export-to-zip" class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')}>Export and download data as ZIP file</button>
 					</div>
 				</div>
 			</div>
