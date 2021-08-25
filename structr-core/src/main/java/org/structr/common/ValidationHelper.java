@@ -37,6 +37,7 @@ import org.structr.common.error.UniqueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.GenericProperty;
@@ -166,13 +167,19 @@ public class ValidationHelper {
 
 		final String value = node.getProperty(key);
 
-		if (isValidStringMatchingRegex(value, expression)) {
-			return true;
+		if (!isValidStringMatchingRegex(value, expression)) {
+
+			final String typeName;
+			if (node instanceof SchemaProperty) {
+				typeName = ((SchemaProperty) node).getProperty(SchemaProperty.schemaNode).getName();
+			} else {
+				typeName = node.getType();
+			}
+
+			logger.warn("Property name " + typeName + "." + value + " doesn't match strict pattern " + expression + " that will be enforced in future versions.");
 		}
 
-		// no match
-		errorBuffer.add(new MatchToken(node.getType(), key, expression));
-		return false;
+		return true;
 	}
 
 	/**
