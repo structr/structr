@@ -81,7 +81,10 @@
 					<h3>Data export to server directory</h3>
 					<div>
 						<input type="text" id="data-export-target-input" placeholder="Server directory path for data export"><br>
-						<select id="data-export-types-input" class="chosen-sortable" data-placeholder="Please select data type(s) to export" multiple="multiple"></select><br>
+						<select id="data-export-types-input" class="chosen-sortable" data-placeholder="Please select data type(s) to export" multiple="multiple">
+							<optgroup label="Custom Types" class="custom-types"></optgroup>
+							<optgroup label="Builtin Types" class="builtin-types"></optgroup>
+						</select><br>
 						<button class="action" id="do-data-export">Export data to server directory</button>
 					</div>
 
@@ -100,7 +103,10 @@
 					${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Export and download data as ZIP file is not possible because <code>DeployServlet</code> is not running.</span>')}
 					<div>
 						<input type="text" id="zip-data-export-prefix" placeholder="ZIP file prefix" ${(config.deployServletAvailable ? '' : 'disabled')} value="${(config.zipDataExportPrefix || 'data')}"><br>
-						<select id="zip-data-export-types-input" class="chosen-sortable" data-placeholder="Please select data type(s) to export" multiple="multiple"></select><br>
+						<select id="zip-data-export-types-input" class="chosen-sortable" data-placeholder="Please select data type(s) to export" multiple="multiple">
+							<optgroup label="Custom Types" class="custom-types"></optgroup>
+							<optgroup label="Builtin Types" class="builtin-types"></optgroup>
+						</select><br>
 						<label class="checkbox-label"><input type="checkbox" id="zip-data-export-append-timestamp" ${(config.deployServletAvailable ? '' : 'disabled')} ${(config.zipDataExportAppendTimestamp ? 'checked' : '')}> Append timestamp</label>
 						<button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-data-export-to-zip">Export and download data as ZIP file</button>
 					</div>

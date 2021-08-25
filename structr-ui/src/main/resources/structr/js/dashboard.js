@@ -414,32 +414,22 @@ let _Dashboard = {
                     }
                 }
 
-                if (customTypes.length > 0) {
+				for (let typesSelectElemSelector of ['#data-export-types-input', '#zip-data-export-types-input']) {
 
-                    for (let typesSelectElemSelector of ['#data-export-types-input', '#zip-data-export-types-input']) {
+					let typesSelectElem = $(typesSelectElemSelector);
 
-						let typesSelectElem = $(typesSelectElemSelector);
+					$('.custom-types', typesSelectElem).append(customTypes.map((type) => '<option>' + type.name + '</option>').join(''));
+					$('.builtin-types', typesSelectElem).append(builtinTypes.map((type) => '<option>' + type.name + '</option>').join(''));
 
-						typesSelectElem.append(customTypes.reduce(function (html, node) {
-							return html + '<option>' + node.name + '</option>';
-						}, '<optgroup label="Custom Types">') + '</optgroup>');
-
-						typesSelectElem.append(builtinTypes.reduce(function(html, node) {
-							return html + '<option>' + node.name + '</option>';
-						}, '<optgroup label="Builtin Types">') + '</optgroup>');
-
-						typesSelectElem.chosen({
-							search_contains: true,
-							width: 'calc(100% - 2rem)',
-							display_selected_options: false,
-							hide_results_on_select: false,
-							display_disabled_options: false
-						}).chosenSortable();
-
-					}
+					typesSelectElem.chosen({
+						search_contains: true,
+						width: 'calc(100% - 2rem)',
+						display_selected_options: false,
+						hide_results_on_select: false,
+						display_disabled_options: false
+					}).chosenSortable();
                 }
             });
-
         },
 
         deploy: function(mode, location) {
