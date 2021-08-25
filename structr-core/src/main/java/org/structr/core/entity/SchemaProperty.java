@@ -44,7 +44,8 @@ import static org.structr.core.entity.SchemaNode.GraphQLNodeReferenceName;
 import org.structr.core.entity.relationship.SchemaNodeProperty;
 import org.structr.core.entity.relationship.SchemaViewProperty;
 import org.structr.core.graph.ModificationQueue;
-import static org.structr.core.graph.NodeInterface.name;
+
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
@@ -70,8 +71,6 @@ import org.structr.schema.parser.PropertyDefinition;
 public class SchemaProperty extends SchemaReloadingNode implements PropertyDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaProperty.class.getName());
-
-	public static final String schemaPropertyNamePattern    = "[\\-_A-Za-z][\\-_0-9A-Za-z]*";
 
 	public static final Property<AbstractSchemaNode> schemaNode            = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType));
 	public static final Property<Iterable<SchemaView>> schemaViews         = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
@@ -282,7 +281,26 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 		boolean valid = super.isValid(errorBuffer);
 
-		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, schemaPropertyNamePattern, errorBuffer);
+		// do not take into account for property validity - this might only be enforced in future versions
+		final String futureSchemaPropertyNamePattern = "[_A-Za-z][\\-_0-9A-Za-z]*";
+		final boolean futurePropertyNameValidity     = ValidationHelper.isValidStringMatchingRegex(getProperty(name), futureSchemaPropertyNamePattern);
+
+		if (!futurePropertyNameValidity) {
+
+			final AbstractSchemaNode parent = getProperty(SchemaProperty.schemaNode);
+			final String typeName           = (parent != null) ? parent.getName() : "[Unknown type]";
+			final String warningMessage     = "Property name " + typeName + "." + getProperty(name) + " doesn't match strict pattern " + futureSchemaPropertyNamePattern.toString() + " that will be enforced in future versions.";
+
+			logger.warn(warningMessage);
+
+			TransactionCommand.simpleBroadcastGenericMessage(
+					Map.of(
+							"type", "WARNING",
+							"title", "Warning",
+							"message", warningMessage
+					)
+			);
+		}
 
 		return valid;
 	}

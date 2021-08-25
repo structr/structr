@@ -167,19 +167,13 @@ public class ValidationHelper {
 
 		final String value = node.getProperty(key);
 
-		if (!isValidStringMatchingRegex(value, expression)) {
-
-			final String typeName;
-			if (node instanceof SchemaProperty) {
-				typeName = ((SchemaProperty) node).getProperty(SchemaProperty.schemaNode).getName();
-			} else {
-				typeName = node.getType();
-			}
-
-			logger.warn("Property name " + typeName + "." + value + " doesn't match strict pattern " + expression + " that will be enforced in future versions.");
+		if (isValidStringMatchingRegex(value, expression)) {
+			return true;
 		}
 
-		return true;
+		// no match
+		errorBuffer.add(new MatchToken(node.getType(), key, expression));
+		return false;
 	}
 
 	/**
