@@ -461,7 +461,7 @@ let _Dashboard = {
                 }
             });
         },
-        deploy: (mode, location) => {
+        deploy: async (mode, location) => {
 
             if (!(location && location.length)) {
                 new MessageBuilder().title('Unable to start application ' + mode).warning('Please enter a local directory path for application ' + mode + '.').requiresConfirmation().allowConfirmAll().show();
@@ -478,10 +478,12 @@ let _Dashboard = {
                 data['target'] = location;
             }
 
-			fetch(rootUrl + '/maintenance/deploy', {
+			await fetch(rootUrl + '/maintenance/deploy', {
 				method: 'POST',
 				body: JSON.stringify(data)
 			});
+
+			// do not listen for errors - they are sent by the backend via WS
         },
 		cleanFileNamePrefix: (prefix) => {
 			let cleaned = prefix.replaceAll(/[^a-zA-Z0-9 _-]/g, '').trim();
@@ -550,7 +552,7 @@ let _Dashboard = {
 				body: formData
 			});
 
-			if (!response.ok) {
+			if (!response.ok && response.status === 400) {
 				let responseText = await response.text();
 				new MessageBuilder().title('Unable to import app from URL').warning(responseText).requiresConfirmation().allowConfirmAll().show();
 			}
@@ -572,7 +574,7 @@ let _Dashboard = {
 				body: formData
 			});
 
-			if (!response.ok) {
+			if (!response.ok && response.status === 400) {
 				let responseText = await response.text();
 				new MessageBuilder().title('Unable to import app from ZIP URL').warning(responseText).requiresConfirmation().allowConfirmAll().show();
 			}
@@ -589,7 +591,7 @@ let _Dashboard = {
 				body: formData
 			});
 
-			if (!response.ok) {
+			if (!response.ok && response.status === 400) {
 				let responseText = await response.text();
 				new MessageBuilder().title('Unable to import app from uploaded ZIP').warning(responseText).requiresConfirmation().allowConfirmAll().show();
 			}
@@ -611,7 +613,7 @@ let _Dashboard = {
 				body: formData
 			});
 
-			if (!response.ok) {
+			if (!response.ok && response.status === 400) {
 				let responseText = await response.text();
 				new MessageBuilder().title('Unable to import app from uploaded ZIP').warning(responseText).requiresConfirmation().allowConfirmAll().show();
 			}
@@ -647,10 +649,12 @@ let _Dashboard = {
                 }
             }
 
-			let response = await fetch(rootUrl + '/maintenance/deployData', {
+			await fetch(rootUrl + '/maintenance/deployData', {
 				method: 'POST',
 				body: JSON.stringify(data)
 			});
+
+            // do not listen for errors - they are sent by the backend via WS
         },
 	},
 
