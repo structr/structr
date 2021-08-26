@@ -652,6 +652,8 @@ let _Pages = {
 		let rightResizer      = document.querySelector('.column-resizer-right');
 		let openRightSlideout = document.querySelector('.slideOutRight.open');
 
+		if (!leftResizer) return;
+
 		if (!openLeftSlideout) {
 			pxLeft = 0;
 		}
@@ -692,6 +694,8 @@ let _Pages = {
 				_Pages.centerPane.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
 			}
 		}
+
+		if (!rightResizer) return;
 
 		if (pxRight) {
 
