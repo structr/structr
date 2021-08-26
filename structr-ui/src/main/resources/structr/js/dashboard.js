@@ -96,6 +96,8 @@ let _Dashboard = {
 			templateConfig.zipExportPrefix              = LSWrapper.getItem(_Dashboard.deployment.zipExportPrefixKey);
 			templateConfig.zipExportAppendTimestamp     = LSWrapper.getItem(_Dashboard.deployment.zipExportAppendTimestampKey, true);
 			templateConfig.zipDataExportAppendTimestamp = LSWrapper.getItem(_Dashboard.deployment.zipDataExportAppendTimestamp, true);
+			templateConfig.dataImportRebuildIndexes     = LSWrapper.getItem(_Dashboard.deployment.dataImportRebuildIndexes, true);
+			templateConfig.zipDataImportRebuildIndexes  = LSWrapper.getItem(_Dashboard.deployment.zipDataImportRebuildIndexes, true);
 
 			Structr.fetchHtmlTemplate('dashboard/dashboard', templateConfig, function(html) {
 
@@ -275,10 +277,10 @@ let _Dashboard = {
 
 		if (envInfo && envInfo.endDate && element) {
 
-			var showMessage = true;
-			var daysLeft = Math.ceil((new Date(envInfo.endDate.slice(0, 10)) - new Date()) / 86400000) + 1;
+			let showMessage = true;
+			let daysLeft    = Math.ceil((new Date(envInfo.endDate.slice(0, 10)) - new Date()) / 86400000) + 1;
 
-			var config = {
+			let config = {
 				element: element,
 				appendToElement: element
 			};
@@ -338,6 +340,8 @@ let _Dashboard = {
 		zipDataExportPrefixKey:          'zipDataExportPrefix' + location.port,
         zipExportAppendTimestampKey:     'zipExportAppendTimestamp' + location.port,
 		zipDataExportAppendTimestampKey: 'zipDataExportAppendTimestamp' + location.port,
+		dataImportRebuildIndexes:        'dataImportRebuildIndexes' + location.port,
+		zipDataImportRebuildIndexes:     'zipDataImportRebuildIndexes' + location.port,
 
         init: () => {
 
@@ -361,7 +365,14 @@ let _Dashboard = {
 				if (deploymentFileInput && deploymentFileInput.files.length > 0) {
 					_Dashboard.deployment.deployFromZIPFileUpload(window.location.href, deploymentFileInput);
 				} else {
-					_Dashboard.deployment.deployFromZIPURL(window.location.href, deploymentUrlInput.value);
+
+					let downloadUrl = deploymentUrlInput.value;
+
+					if (!(downloadUrl && downloadUrl.length)) {
+						new MessageBuilder().title('Unable to start application import from URL').warning('Please enter a URL or upload a ZIP file containing the application export.').requiresConfirmation().allowConfirmAll().show();
+					} else {
+						_Dashboard.deployment.deployFromZIPURL(window.location.href, downloadUrl);
+					}
 				}
 			});
 
@@ -373,7 +384,6 @@ let _Dashboard = {
 			document.getElementById('do-app-export-to-zip').addEventListener('click', () => {
 				_Dashboard.deployment.exportAsZip();
 			});
-
 
             // Data Import
 			let dataDeploymentFileInput = document.getElementById('data-deployment-file-input');
@@ -392,10 +402,22 @@ let _Dashboard = {
             });
 
 			document.getElementById('do-data-import-from-zip').addEventListener('click', () => {
+
 				if (dataDeploymentFileInput && dataDeploymentFileInput.files.length > 0) {
+
 					_Dashboard.deployment.deployDataFromZIPFileUpload(window.location.href, dataDeploymentFileInput);
+
 				} else {
-					_Dashboard.deployment.deployDataFromZIPURL(window.location.href, dataDeploymentUrlInput.value);
+
+					let downloadUrl = dataDeploymentUrlInput.value;
+					if (!(downloadUrl && downloadUrl.length)) {
+
+						new MessageBuilder().title('Unable to start data import from URL').warning('Please enter a URL or upload a ZIP file containing the data export.').requiresConfirmation().allowConfirmAll().show();
+
+					} else {
+
+						_Dashboard.deployment.deployDataFromZIPURL(window.location.href, downloadUrl);
+					}
 				}
 			});
 
@@ -439,11 +461,10 @@ let _Dashboard = {
                 }
             });
         },
-
         deploy: (mode, location) => {
 
             if (!(location && location.length)) {
-                new MessageBuilder().title('Unable to start data ' + mode + '').warning('Please enter a local directory path for data export.').requiresConfirmation().show();
+                new MessageBuilder().title('Unable to start application ' + mode).warning('Please enter a local directory path for application ' + mode + '.').requiresConfirmation().allowConfirmAll().show();
                 return;
             }
 
@@ -465,7 +486,7 @@ let _Dashboard = {
 		cleanFileNamePrefix: (prefix) => {
 			let cleaned = prefix.replaceAll(/[^a-zA-Z0-9 _-]/g, '').trim();
 			if (cleaned !== prefix) {
-				new MessageBuilder().title('Cleaned prefix').info('The given filename prefix was changed to "' + cleaned + '".').requiresConfirmation().show();
+				new MessageBuilder().title('Cleaned prefix').info('The given filename prefix was changed to "' + cleaned + '".').requiresConfirmation().allowConfirmAll().show();
 			}
 			return cleaned;
 		},
@@ -489,17 +510,17 @@ let _Dashboard = {
             }
 
 			if (prefix === '') {
-				new MessageBuilder().title('Unable to export application').warning('Please enter a prefix or select "Append timestamp"').requiresConfirmation().show();
+				new MessageBuilder().title('Unable to export application').warning('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
 			} else {
 				window.location = '/structr/deploy?name=' + prefix;
 			}
         },
 		exportDataAsZip: () => {
 
-			let prefix = _Dashboard.deployment.cleanFileNamePrefix(document.getElementById('zip-data-export-prefix').value);
-			LSWrapper.setItem(_Dashboard.deployment.zipDataExportPrefixKey, prefix);
-
+			let prefix          = _Dashboard.deployment.cleanFileNamePrefix(document.getElementById('zip-data-export-prefix').value);
 			let appendTimestamp = document.getElementById('zip-data-export-append-timestamp').checked;
+
+			LSWrapper.setItem(_Dashboard.deployment.zipDataExportPrefixKey, prefix);
 			LSWrapper.setItem(_Dashboard.deployment.zipDataExportAppendTimestampKey, appendTimestamp);
 
 			if (appendTimestamp) {
@@ -510,19 +531,14 @@ let _Dashboard = {
 			let types                    = Array.from(zipDataExportTypesSelect.selectedOptions).map(o => o.value).join(',');
 
 			if (types === '') {
-				new MessageBuilder().title('Unable to export data').warning('Please select at least one data type.').requiresConfirmation().show();
+				new MessageBuilder().title('Unable to start data export').warning('Please select at least one data type.').requiresConfirmation().allowConfirmAll().show();
 			} else if (prefix === '') {
-				new MessageBuilder().title('Unable to export data').warning('Please enter a prefix or select "Append timestamp"').requiresConfirmation().show();
+				new MessageBuilder().title('Unable to start data export').warning('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
 			} else {
 				window.location = '/structr/deploy?mode=data&name=' + prefix + '&types=' + types;
 			}
 		},
         deployFromZIPURL: async (redirectUrl, downloadUrl) => {
-
-            if (!(downloadUrl && downloadUrl.length)) {
-                new MessageBuilder().title('Unable to start app import from URL').warning('Please enter a URL or upload a ZIP file containing the app data.').requiresConfirmation().show();
-                return;
-            }
 
             let formData = new FormData();
             formData.append('redirectUrl', redirectUrl);
@@ -536,20 +552,20 @@ let _Dashboard = {
 
 			if (!response.ok) {
 				let responseText = await response.text();
-				new MessageBuilder().title('Unable to import app from URL').warning(responseText).requiresConfirmation().show();
+				new MessageBuilder().title('Unable to import app from URL').warning(responseText).requiresConfirmation().allowConfirmAll().show();
 			}
         },
 		deployDataFromZIPURL: async (redirectUrl, downloadUrl) => {
-
-			if (!(downloadUrl && downloadUrl.length)) {
-				new MessageBuilder().title('Unable to start data import from URL').warning('Please enter a URL or upload a ZIP file containing the ddata.').requiresConfirmation().show();
-				return;
-			}
 
 			let formData = new FormData();
 			formData.append('redirectUrl', redirectUrl);
 			formData.append('downloadUrl', downloadUrl);
 			formData.append('mode', 'data');
+
+			let rebuildAllIndexes = document.getElementById('zip-data-import-rebuild-indexes').checked;
+			LSWrapper.setItem(_Dashboard.deployment.zipDataImportRebuildIndexes, rebuildAllIndexes);
+
+			formData.append('rebuildAllIndexes', rebuildAllIndexes);
 
 			let response = await fetch('/structr/deploy', {
 				method: 'POST',
@@ -558,7 +574,7 @@ let _Dashboard = {
 
 			if (!response.ok) {
 				let responseText = await response.text();
-				new MessageBuilder().title('Unable to import app from URL').warning(responseText).requiresConfirmation().show();
+				new MessageBuilder().title('Unable to import app from ZIP URL').warning(responseText).requiresConfirmation().allowConfirmAll().show();
 			}
 		},
 		deployFromZIPFileUpload: async (redirectUrl, filesSelectField) => {
@@ -575,7 +591,7 @@ let _Dashboard = {
 
 			if (!response.ok) {
 				let responseText = await response.text();
-				new MessageBuilder().title('Unable to import app from URL').warning(responseText).requiresConfirmation().show();
+				new MessageBuilder().title('Unable to import app from uploaded ZIP').warning(responseText).requiresConfirmation().allowConfirmAll().show();
 			}
 		},
 		deployDataFromZIPFileUpload: async (redirectUrl, filesSelectField) => {
@@ -585,6 +601,11 @@ let _Dashboard = {
 			formData.append('redirectUrl', redirectUrl);
 			formData.append('mode', 'data');
 
+			let rebuildAllIndexes = document.getElementById('zip-data-import-rebuild-indexes').checked;
+			LSWrapper.setItem(_Dashboard.deployment.zipDataImportRebuildIndexes, rebuildAllIndexes);
+
+			formData.append('rebuildAllIndexes', rebuildAllIndexes);
+
 			let response = await fetch('/structr/deploy', {
 				method: 'POST',
 				body: formData
@@ -592,13 +613,13 @@ let _Dashboard = {
 
 			if (!response.ok) {
 				let responseText = await response.text();
-				new MessageBuilder().title('Unable to import app from URL').warning(responseText).requiresConfirmation().show();
+				new MessageBuilder().title('Unable to import app from uploaded ZIP').warning(responseText).requiresConfirmation().allowConfirmAll().show();
 			}
 		},
         deployData: async (mode, location, types) => {
 
             if (!(location && location.length)) {
-                new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please enter a directory path for data ' + mode + '.').requiresConfirmation().show();
+                new MessageBuilder().title('Unable to start data ' + mode + '').warning('Please enter a local directory path for data ' + mode + '.').requiresConfirmation().allowConfirmAll().show();
                 return;
             }
 
@@ -609,13 +630,19 @@ let _Dashboard = {
             if (mode === 'import') {
                 data['source'] = location;
 
+				let rebuildAllIndexes = document.getElementById('data-import-rebuild-indexes').checked;
+				LSWrapper.setItem(_Dashboard.deployment.dataImportRebuildIndexes, rebuildAllIndexes);
+
+				data['rebuildAllIndexes'] = rebuildAllIndexes;
+
             } else if (mode === 'export') {
+
                 data['target'] = location;
 
                 if (types && types.length) {
                     data['types'] = types.join(',');
                 } else {
-                    new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please select at least one data type.').requiresConfirmation().show();
+                    new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please select at least one data type.').requiresConfirmation().allowConfirmAll().show();
                     return;
                 }
             }
