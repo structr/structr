@@ -482,9 +482,8 @@ let LSWrapper = new (function() {
 
 function fastRemoveAllChildren(el) {
 	if (!el) return;
-	var child;
-	while ((child = el.firstChild)) {
-		el.removeChild(child);
+	while (el.firstChild) {
+		el.removeChild(el.firstChild);
 	}
 }
 
@@ -498,10 +497,9 @@ let _Console = new (function() {
 	let _initialized = false;
 	let _consoleVisible = false;
 
-
 	// public methods
 	this.logoutAction = function() {
-		_terminal.reset();
+		_terminal?.reset();
 		_initialized = false;
 		_hideConsole();
 	};
@@ -638,7 +636,7 @@ let _Console = new (function() {
 
 	let _hideConsole = function() {
 		_consoleVisible = false;
-		_terminal.disable();
+		_terminal?.disable();
 		$('#structr-console').slideUp('fast');
 	};
 
@@ -680,7 +678,6 @@ let _Favorites = new (function () {
 
 	// private variables
 	let _favsVisible = false;
-
 	let container;
 	let menu;
 	let favoritesTabKey;
@@ -839,7 +836,7 @@ let _Favorites = new (function () {
 
 	// public methods
 	this.logoutAction = function() {
-		fastRemoveAllChildren($('#structr-favorites')[0]);
+		fastRemoveAllChildren(document.getElementById('structr-favorites'));
 		_hideFavorites();
 	};
 
