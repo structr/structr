@@ -63,7 +63,7 @@ let _Dashboard = {
 
 			templateConfig.envInfo = envData.result;
 			if (Array.isArray(templateConfig.envInfo)) {
-			    templateConfig.envInfo = templateConfig.envInfo[0];
+				templateConfig.envInfo = templateConfig.envInfo[0];
 			}
 
 			templateConfig.envInfo.version = (templateConfig.envInfo.components['structr'] || templateConfig.envInfo.components['structr-ui']).version || '';
@@ -87,7 +87,7 @@ let _Dashboard = {
 			let meData           = await meResponse.json();
 
 			if (Array.isArray(meData.result)) {
-			    meData.result = meData.result[0];
+				meData.result = meData.result[0];
 			}
 			templateConfig.meObj = meData.result;
 			let deployResponse   = await fetch('/structr/deploy?mode=test');
@@ -167,7 +167,7 @@ let _Dashboard = {
 
 					_Dashboard.checkLicenseEnd(templateConfig.envInfo, $('#dashboard-about-structr .end-date'));
 
-                    _Dashboard.deployment.init();
+					_Dashboard.deployment.init();
 
 					_Dashboard.appendGlobalSchemaMethods($('#dashboard-global-schema-methods'));
 
@@ -336,18 +336,18 @@ let _Dashboard = {
 
 
 	deployment: {
-    	zipExportPrefixKey:              'zipExportPrefix' + location.port,
+		zipExportPrefixKey:              'zipExportPrefix' + location.port,
 		zipDataExportPrefixKey:          'zipDataExportPrefix' + location.port,
-        zipExportAppendTimestampKey:     'zipExportAppendTimestamp' + location.port,
+		zipExportAppendTimestampKey:     'zipExportAppendTimestamp' + location.port,
 		zipDataExportAppendTimestampKey: 'zipDataExportAppendTimestamp' + location.port,
 		dataImportRebuildIndexes:        'dataImportRebuildIndexes' + location.port,
 		zipDataImportRebuildIndexes:     'zipDataImportRebuildIndexes' + location.port,
 
-        init: () => {
+		init: () => {
 
 			// App Import
 			let deploymentFileInput = document.getElementById('deployment-file-input');
-    		let deploymentUrlInput  = document.getElementById('deployment-url-input');
+			let deploymentUrlInput  = document.getElementById('deployment-url-input');
 
 			deploymentFileInput.addEventListener('input', () => {
 				deploymentUrlInput.value = '';
@@ -358,8 +358,8 @@ let _Dashboard = {
 			});
 
 			document.getElementById('do-app-import').addEventListener('click', () => {
-                _Dashboard.deployment.deploy('import', document.getElementById('deployment-source-input').value);
-            });
+				_Dashboard.deployment.deploy('import', document.getElementById('deployment-source-input').value);
+			});
 
 			document.getElementById('do-app-import-from-zip').addEventListener('click', () => {
 				if (deploymentFileInput && deploymentFileInput.files.length > 0) {
@@ -378,14 +378,14 @@ let _Dashboard = {
 
 			// App Export
 			document.getElementById('do-app-export').addEventListener('click', () => {
-                _Dashboard.deployment.deploy('export', document.getElementById('app-export-target-input').value);
-            });
+				_Dashboard.deployment.deploy('export', document.getElementById('app-export-target-input').value);
+			});
 
 			document.getElementById('do-app-export-to-zip').addEventListener('click', () => {
 				_Dashboard.deployment.exportAsZip();
 			});
 
-            // Data Import
+			// Data Import
 			let dataDeploymentFileInput = document.getElementById('data-deployment-file-input');
 			let dataDeploymentUrlInput  = document.getElementById('data-deployment-url-input');
 
@@ -398,8 +398,8 @@ let _Dashboard = {
 			});
 
 			document.getElementById('do-data-import').addEventListener('click', () => {
-                _Dashboard.deployment.deployData('import', document.getElementById('data-import-source-input').value);
-            });
+				_Dashboard.deployment.deployData('import', document.getElementById('data-import-source-input').value);
+			});
 
 			document.getElementById('do-data-import-from-zip').addEventListener('click', () => {
 
@@ -422,27 +422,27 @@ let _Dashboard = {
 			});
 
 			// Data Export
-            document.getElementById('do-data-export').addEventListener('click', () => {
-                _Dashboard.deployment.deployData('export', $('#data-export-target-input').val(), $('#data-export-types-input').val());
-            });
+			document.getElementById('do-data-export').addEventListener('click', () => {
+				_Dashboard.deployment.deployData('export', $('#data-export-target-input').val(), $('#data-export-types-input').val());
+			});
 
 			document.getElementById('do-data-export-to-zip').addEventListener('click', () => {
 				_Dashboard.deployment.exportDataAsZip();
 			});
 
 
-            Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isBuiltinType', function(nodes) {
+			Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isBuiltinType', function(nodes) {
 
-                let builtinTypes = [];
-                let customTypes = [];
+				let builtinTypes = [];
+				let customTypes = [];
 
-                for (let n of nodes) {
-                    if (n.isBuiltinType) {
-                        builtinTypes.push(n);
-                    } else {
-                        customTypes.push(n);
-                    }
-                }
+				for (let n of nodes) {
+					if (n.isBuiltinType) {
+						builtinTypes.push(n);
+					} else {
+						customTypes.push(n);
+					}
+				}
 
 				for (let typesSelectElemSelector of ['#data-export-types-input', '#zip-data-export-types-input']) {
 
@@ -458,25 +458,25 @@ let _Dashboard = {
 						hide_results_on_select: false,
 						display_disabled_options: false
 					}).chosenSortable();
-                }
-            });
-        },
-        deploy: async (mode, location) => {
+				}
+			});
+		},
+		deploy: async (mode, location) => {
 
-            if (!(location && location.length)) {
-                new MessageBuilder().title('Unable to start application ' + mode).warning('Please enter a local directory path for application ' + mode + '.').requiresConfirmation().allowConfirmAll().show();
-                return;
-            }
+			if (!(location && location.length)) {
+				new MessageBuilder().title('Unable to start application ' + mode).warning('Please enter a local directory path for application ' + mode + '.').requiresConfirmation().allowConfirmAll().show();
+				return;
+			}
 
-            let data = {
-                mode: mode
-            };
+			let data = {
+				mode: mode
+			};
 
-            if (mode === 'import') {
-                data['source'] = location;
-            } else if (mode === 'export') {
-                data['target'] = location;
-            }
+			if (mode === 'import') {
+				data['source'] = location;
+			} else if (mode === 'export') {
+				data['target'] = location;
+			}
 
 			await fetch(rootUrl + '/maintenance/deploy', {
 				method: 'POST',
@@ -484,7 +484,7 @@ let _Dashboard = {
 			});
 
 			// do not listen for errors - they are sent by the backend via WS
-        },
+		},
 		cleanFileNamePrefix: (prefix) => {
 			let cleaned = prefix.replaceAll(/[^a-zA-Z0-9 _-]/g, '').trim();
 			if (cleaned !== prefix) {
@@ -499,24 +499,24 @@ let _Dashboard = {
 
 			return prefix + '_' + date.getFullYear() + zeroPad(date.getMonth()+1) + zeroPad(date.getDate()) + '_' + zeroPad(date.getHours()) + zeroPad(date.getMinutes()) + zeroPad(date.getSeconds());
 		},
-        exportAsZip: () => {
+		exportAsZip: () => {
 
-            let prefix = _Dashboard.deployment.cleanFileNamePrefix(document.getElementById('zip-export-prefix').value);
-            LSWrapper.setItem(_Dashboard.deployment.zipExportPrefixKey, prefix);
+			let prefix = _Dashboard.deployment.cleanFileNamePrefix(document.getElementById('zip-export-prefix').value);
+			LSWrapper.setItem(_Dashboard.deployment.zipExportPrefixKey, prefix);
 
-            let appendTimestamp = document.getElementById('zip-export-append-timestamp').checked;
-            LSWrapper.setItem(_Dashboard.deployment.zipExportAppendTimestampKey, appendTimestamp);
+			let appendTimestamp = document.getElementById('zip-export-append-timestamp').checked;
+			LSWrapper.setItem(_Dashboard.deployment.zipExportAppendTimestampKey, appendTimestamp);
 
-            if (appendTimestamp) {
-            	prefix = _Dashboard.deployment.appendTimeStampToPrefix(prefix);
-            }
+			if (appendTimestamp) {
+				prefix = _Dashboard.deployment.appendTimeStampToPrefix(prefix);
+			}
 
 			if (prefix === '') {
 				new MessageBuilder().title('Unable to export application').warning('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
 			} else {
 				window.location = '/structr/deploy?name=' + prefix;
 			}
-        },
+		},
 		exportDataAsZip: () => {
 
 			let prefix          = _Dashboard.deployment.cleanFileNamePrefix(document.getElementById('zip-data-export-prefix').value);
@@ -540,11 +540,11 @@ let _Dashboard = {
 				window.location = '/structr/deploy?mode=data&name=' + prefix + '&types=' + types;
 			}
 		},
-        deployFromZIPURL: async (redirectUrl, downloadUrl) => {
+		deployFromZIPURL: async (redirectUrl, downloadUrl) => {
 
-            let formData = new FormData();
-            formData.append('redirectUrl', redirectUrl);
-            formData.append('downloadUrl', downloadUrl);
+			let formData = new FormData();
+			formData.append('redirectUrl', redirectUrl);
+			formData.append('downloadUrl', downloadUrl);
 			formData.append('mode', 'app');
 
 			let response = await fetch('/structr/deploy', {
@@ -556,7 +556,7 @@ let _Dashboard = {
 				let responseText = await response.text();
 				new MessageBuilder().title('Unable to import app from URL').warning(responseText).requiresConfirmation().allowConfirmAll().show();
 			}
-        },
+		},
 		deployDataFromZIPURL: async (redirectUrl, downloadUrl) => {
 
 			let formData = new FormData();
@@ -618,170 +618,170 @@ let _Dashboard = {
 				new MessageBuilder().title('Unable to import app from uploaded ZIP').warning(responseText).requiresConfirmation().allowConfirmAll().show();
 			}
 		},
-        deployData: async (mode, location, types) => {
+		deployData: async (mode, location, types) => {
 
-            if (!(location && location.length)) {
-                new MessageBuilder().title('Unable to start data ' + mode + '').warning('Please enter a local directory path for data ' + mode + '.').requiresConfirmation().allowConfirmAll().show();
-                return;
-            }
+			if (!(location && location.length)) {
+				new MessageBuilder().title('Unable to start data ' + mode + '').warning('Please enter a local directory path for data ' + mode + '.').requiresConfirmation().allowConfirmAll().show();
+				return;
+			}
 
-            let data = {
-                mode: mode
-            };
+			let data = {
+				mode: mode
+			};
 
-            if (mode === 'import') {
-                data['source'] = location;
+			if (mode === 'import') {
+				data['source'] = location;
 
 				let rebuildAllIndexes = document.getElementById('data-import-rebuild-indexes').checked;
 				LSWrapper.setItem(_Dashboard.deployment.dataImportRebuildIndexes, rebuildAllIndexes);
 
 				data['rebuildAllIndexes'] = rebuildAllIndexes;
 
-            } else if (mode === 'export') {
+			} else if (mode === 'export') {
 
-                data['target'] = location;
+				data['target'] = location;
 
-                if (types && types.length) {
-                    data['types'] = types.join(',');
-                } else {
-                    new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please select at least one data type.').requiresConfirmation().allowConfirmAll().show();
-                    return;
-                }
-            }
+				if (types && types.length) {
+					data['types'] = types.join(',');
+				} else {
+					new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please select at least one data type.').requiresConfirmation().allowConfirmAll().show();
+					return;
+				}
+			}
 
 			await fetch(rootUrl + '/maintenance/deployData', {
 				method: 'POST',
 				body: JSON.stringify(data)
 			});
 
-            // do not listen for errors - they are sent by the backend via WS
-        },
+			// do not listen for errors - they are sent by the backend via WS
+		},
 	},
 
 	serverlog: {
-        interval: undefined,
-        refreshTimeIntervalKey: 'dashboardLogRefreshTimeInterval' + location.port,
-        numberOfLinesKey: 'dashboardNumberOfLines' + location.port,
+		interval: undefined,
+		refreshTimeIntervalKey: 'dashboardLogRefreshTimeInterval' + location.port,
+		numberOfLinesKey: 'dashboardNumberOfLines' + location.port,
 
-        init: function() {
+		init: function() {
 
-            let feedbackElement      = document.querySelector('#dashboard-server-log-feedback');
-            let numberOfLines        = LSWrapper.getItem(_Dashboard.serverlog.numberOfLinesKey, 300);
-            let numberOfLinesInput   = document.querySelector('#dashboard-server-log-lines');
-            numberOfLinesInput.value = numberOfLines;
+			let feedbackElement      = document.querySelector('#dashboard-server-log-feedback');
+			let numberOfLines        = LSWrapper.getItem(_Dashboard.serverlog.numberOfLinesKey, 300);
+			let numberOfLinesInput   = document.querySelector('#dashboard-server-log-lines');
+			numberOfLinesInput.value = numberOfLines;
 
-            numberOfLinesInput.addEventListener('change', () => {
-                numberOfLines = numberOfLinesInput.value;
-                LSWrapper.setItem(_Dashboard.serverlog.numberOfLinesKey, numberOfLines);
+			numberOfLinesInput.addEventListener('change', () => {
+				numberOfLines = numberOfLinesInput.value;
+				LSWrapper.setItem(_Dashboard.serverlog.numberOfLinesKey, numberOfLines);
 
-                blinkGreen($(numberOfLinesInput));
-            });
+				blinkGreen($(numberOfLinesInput));
+			});
 
-            let manualRefreshButton       = document.querySelector('#dashboard-server-log-manual-refresh');
-            manualRefreshButton.addEventListener('click', () => updateLog());
+			let manualRefreshButton       = document.querySelector('#dashboard-server-log-manual-refresh');
+			manualRefreshButton.addEventListener('click', () => updateLog());
 
-            let registerRefreshInterval = (timeInMs) => {
+			let registerRefreshInterval = (timeInMs) => {
 
-                window.clearInterval(_Dashboard.serverlog.interval);
+				window.clearInterval(_Dashboard.serverlog.interval);
 
-                if (timeInMs > 0) {
-                    manualRefreshButton.classList.add('hidden');
-                    _Dashboard.serverlog.interval = window.setInterval(() => updateLog(), timeInMs);
-                } else {
-                    manualRefreshButton.classList.remove('hidden');
-                }
-            };
+				if (timeInMs > 0) {
+					manualRefreshButton.classList.add('hidden');
+					_Dashboard.serverlog.interval = window.setInterval(() => updateLog(), timeInMs);
+				} else {
+					manualRefreshButton.classList.remove('hidden');
+				}
+			};
 
-            let logRefreshTimeInterval    = LSWrapper.getItem(_Dashboard.serverlog.refreshTimeIntervalKey, 1000);
-            let refreshTimeIntervalSelect = document.querySelector('#dashboard-server-log-refresh-interval');
+			let logRefreshTimeInterval    = LSWrapper.getItem(_Dashboard.serverlog.refreshTimeIntervalKey, 1000);
+			let refreshTimeIntervalSelect = document.querySelector('#dashboard-server-log-refresh-interval');
 
-            refreshTimeIntervalSelect.value = logRefreshTimeInterval;
+			refreshTimeIntervalSelect.value = logRefreshTimeInterval;
 
-            refreshTimeIntervalSelect.addEventListener('change', () => {
-                logRefreshTimeInterval = refreshTimeIntervalSelect.value;
-                LSWrapper.setItem(_Dashboard.serverlog.refreshTimeIntervalKey, logRefreshTimeInterval);
+			refreshTimeIntervalSelect.addEventListener('change', () => {
+				logRefreshTimeInterval = refreshTimeIntervalSelect.value;
+				LSWrapper.setItem(_Dashboard.serverlog.refreshTimeIntervalKey, logRefreshTimeInterval);
 
-                registerRefreshInterval(logRefreshTimeInterval);
-                blinkGreen($(refreshTimeIntervalSelect));
-            });
+				registerRefreshInterval(logRefreshTimeInterval);
+				blinkGreen($(refreshTimeIntervalSelect));
+			});
 
-            let logBoxContentBox = $('#dashboard-server-log textarea');
+			let logBoxContentBox = $('#dashboard-server-log textarea');
 
-            let scrollEnabled    = true;
-            let textAreaHasFocus = false;
+			let scrollEnabled    = true;
+			let textAreaHasFocus = false;
 
-            logBoxContentBox.on('focus', () => {
-                textAreaHasFocus = true;
-                feedbackElement.textContent = 'Text area has focus, refresh disabled until focus lost.';
-            });
+			logBoxContentBox.on('focus', () => {
+				textAreaHasFocus = true;
+				feedbackElement.textContent = 'Text area has focus, refresh disabled until focus lost.';
+			});
 
-            logBoxContentBox.on('blur', () => {
-                textAreaHasFocus = false;
-                feedbackElement.textContent = '';
-            });
+			logBoxContentBox.on('blur', () => {
+				textAreaHasFocus = false;
+				feedbackElement.textContent = '';
+			});
 
-            let updateLog = function() {
+			let updateLog = function() {
 
-                if (!textAreaHasFocus) {
+				if (!textAreaHasFocus) {
 
-                    feedbackElement.textContent = 'Refreshing server log...';
+					feedbackElement.textContent = 'Refreshing server log...';
 
-                    Command.getServerLogSnapshot(numberOfLines, (a) => {
-                        logBoxContentBox.text(a[0].result);
-                        if (scrollEnabled) {
-                            logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
-                        }
+					Command.getServerLogSnapshot(numberOfLines, (a) => {
+						logBoxContentBox.text(a[0].result);
+						if (scrollEnabled) {
+							logBoxContentBox.scrollTop(logBoxContentBox[0].scrollHeight);
+						}
 
-                        window.setTimeout(() => {
-                            feedbackElement.textContent = '';
-                        }, 250);
-                    });
-                }
-            };
+						window.setTimeout(() => {
+							feedbackElement.textContent = '';
+						}, 250);
+					});
+				}
+			};
 
-            logBoxContentBox.bind('scroll', (event) => {
-                let textarea      = event.target;
-                let maxScroll     = textarea.scrollHeight - 4;
-                let currentScroll = (textarea.scrollTop + $(textarea).height());
+			logBoxContentBox.bind('scroll', (event) => {
+				let textarea      = event.target;
+				let maxScroll     = textarea.scrollHeight - 4;
+				let currentScroll = (textarea.scrollTop + $(textarea).height());
 
-                scrollEnabled     = (currentScroll >= maxScroll);
-            });
+				scrollEnabled     = (currentScroll >= maxScroll);
+			});
 
 			document.getElementById('dashboard-server-log-copy').addEventListener('click', async () => {
 				let text = logBoxContentBox[0].textContent;
 				await navigator.clipboard.writeText(text);
 			});
 
-            let container = $('#dashboard-server-log');
-            if (container) {
+			let container = $('#dashboard-server-log');
+			if (container) {
 
-                container.on('show', function() {
-                    updateLog();
-                    registerRefreshInterval(logRefreshTimeInterval);
-                });
+				container.on('show', function() {
+					updateLog();
+					registerRefreshInterval(logRefreshTimeInterval);
+				});
 
-                container.on('hide', function() {
-                    window.clearInterval(_Dashboard.serverlog.interval);
-                });
-            }
-        },
+				container.on('hide', function() {
+					window.clearInterval(_Dashboard.serverlog.interval);
+				});
+			}
+		},
 
 	},
 
 	eventlog: {
-        initializeRuntimeEventLog: function() {
+		initializeRuntimeEventLog: function() {
 
-            let container = $('#dashboard-event-log');
-            if (container) {
+			let container = $('#dashboard-event-log');
+			if (container) {
 
-                container.on('show', function() {
-                    _Dashboard.eventlog.loadRuntimeEventLog();
-                });
+				container.on('show', function() {
+					_Dashboard.eventlog.loadRuntimeEventLog();
+				});
 
-                $('#refresh-event-log').off('click').on('click', _Dashboard.eventlog.loadRuntimeEventLog);
-                $('#event-type-filter').off('change').on('change', _Dashboard.eventlog.loadRuntimeEventLog);
-            }
-        },
+				$('#refresh-event-log').off('click').on('click', _Dashboard.eventlog.loadRuntimeEventLog);
+				$('#event-type-filter').off('change').on('change', _Dashboard.eventlog.loadRuntimeEventLog);
+			}
+		},
 
 		elementWithContent: function(parent, tag, content) {
 
@@ -793,60 +793,60 @@ let _Dashboard = {
 			return element;
 		},
 
-        loadRuntimeEventLog: function() {
+		loadRuntimeEventLog: function() {
 
-            let row    = document.querySelector('#event-log-container');
-            let num    = document.querySelector('#event-type-page-size');
-            let filter = document.querySelector('#event-type-filter');
-            let url    = rootUrl + '/_runtimeEventLog?' + Structr.getRequestParameterName('order') + '=absoluteTimestamp&' + Structr.getRequestParameterName('sort') + '=desc&' + Structr.getRequestParameterName('pageSize') + '=' + num.value;
-            let type   = filter.value;
+			let row    = document.querySelector('#event-log-container');
+			let num    = document.querySelector('#event-type-page-size');
+			let filter = document.querySelector('#event-type-filter');
+			let url    = rootUrl + '/_runtimeEventLog?' + Structr.getRequestParameterName('order') + '=absoluteTimestamp&' + Structr.getRequestParameterName('sort') + '=desc&' + Structr.getRequestParameterName('pageSize') + '=' + num.value;
+			let type   = filter.value;
 
-            row.innerHTML = '';
+			row.innerHTML = '';
 
-            if ( type &&type.length) {
-                url += '&type=' + type;
-            }
+			if ( type &&type.length) {
+				url += '&type=' + type;
+			}
 
-            fetch(url)
-                .then(response => response.json())
-                .then(result => {
+			fetch(url)
+				.then(response => response.json())
+				.then(result => {
 
-                    for (let event of result.result) {
+					for (let event of result.result) {
 
-                        let timestamp = new Date(event.absoluteTimestamp).toISOString();
-                        let tr        = document.createElement('tr');
-                        let data      = event.data;
+						let timestamp = new Date(event.absoluteTimestamp).toISOString();
+						let tr        = document.createElement('tr');
+						let data      = event.data;
 
-                        _Dashboard.eventlog.elementWithContent(tr, 'td', timestamp);
-                        _Dashboard.eventlog.elementWithContent(tr, 'td', event.type);
-                        _Dashboard.eventlog.elementWithContent(tr, 'td', event.description);
+						_Dashboard.eventlog.elementWithContent(tr, 'td', timestamp);
+						_Dashboard.eventlog.elementWithContent(tr, 'td', event.type);
+						_Dashboard.eventlog.elementWithContent(tr, 'td', event.description);
 
-                        if (data) {
+						if (data) {
 
-                            switch (event.type) {
+							switch (event.type) {
 
-                                case 'Authentication':
-                                    _Dashboard.eventlog.elementWithContent(tr, 'td', JSON.stringify(data));
-                                    break;
+								case 'Authentication':
+									_Dashboard.eventlog.elementWithContent(tr, 'td', JSON.stringify(data));
+									break;
 
-                                case 'Scripting':
-                                    _Dashboard.eventlog.elementWithContent(tr, 'td', JSON.stringify(data));
-                                    break;
+								case 'Scripting':
+									_Dashboard.eventlog.elementWithContent(tr, 'td', JSON.stringify(data));
+									break;
 
-                                default:
-                                    _Dashboard.eventlog.elementWithContent(tr, 'td', JSON.stringify(data));
-                                    break;
-                            }
+								default:
+									_Dashboard.eventlog.elementWithContent(tr, 'td', JSON.stringify(data));
+									break;
+							}
 
-                        } else {
+						} else {
 
-                            _Dashboard.eventlog.elementWithContent(tr, 'td', '');
-                        }
+							_Dashboard.eventlog.elementWithContent(tr, 'td', '');
+						}
 
-                        let buttonContainer = _Dashboard.eventlog.elementWithContent(tr, 'td', '');
-                        if (data.id && data.type) {
+						let buttonContainer = _Dashboard.eventlog.elementWithContent(tr, 'td', '');
+						if (data.id && data.type) {
 
-                        	if (data.type === 'SchemaMethod' || data.type === 'SchemaProperty') {
+							if (data.type === 'SchemaMethod' || data.type === 'SchemaProperty') {
 
 								let button = _Dashboard.eventlog.elementWithContent(buttonContainer, 'button', 'Go to code');
 								button.addEventListener('click', function() {
@@ -891,13 +891,13 @@ let _Dashboard = {
 								});
 							}
 
-                        }
+						}
 
-                        row.appendChild(tr);
-                    }
-                }
-            );
-        },
+						row.appendChild(tr);
+					}
+				}
+			);
+		},
 	},
 
 	uisettings: {
