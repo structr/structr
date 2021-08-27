@@ -16,23 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-function lastPart(id, separator) {
-	if (!separator) {
-		separator = '_';
-	}
-	if (id) {
-		return id.substring(id.lastIndexOf(separator) + 1);
-	}
-	return '';
-}
-
-function sortArray(arrayIn, sortBy) {
-	var arrayOut = arrayIn.sort(function(a, b) {
-		return sortBy.indexOf(a.id) > sortBy.indexOf(b.id);
-	});
-	return arrayOut;
-}
-
 function isIn(s, array) {
 	return (s && array && array.indexOf(s) !== -1);
 }
@@ -41,11 +24,11 @@ function escapeForHtmlAttributes(str, escapeWhitespace) {
 	if (!(typeof str === 'string'))
 		return str;
 	var escapedStr = str
-			.replace(/&/g, '&amp;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;')
-			.replace(/"/g, '&quot;')
-			.replace(/'/g, '&#39;');
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;');
 
 	return escapeWhitespace ? escapedStr.replace(/ /g, '&nbsp;') : escapedStr;
 }
@@ -72,11 +55,11 @@ function utf8_to_b64(str) {
 	return window.btoa(unescape(encodeURIComponent(str)));
 }
 
-function b64_to_utf8(str) {
-	return decodeURIComponent(escape(window.atob(str)));
-}
+// function b64_to_utf8(str) {
+// 	return decodeURIComponent(escape(window.atob(str)));
+// }
 
-$.fn.reverse = [].reverse;
+// $.fn.reverse = [].reverse;
 
 if (typeof String.prototype.endsWith !== 'function') {
 	String.prototype.endsWith = function(pattern) {
@@ -233,15 +216,6 @@ function formatValue(value) {
 	}
 }
 
-function formatBytes(a,b=2){if(0===a)return"0 Bytes";const c=0>b?0:b,d=Math.floor(Math.log(a)/Math.log(1024));return parseFloat((a/Math.pow(1024,d)).toFixed(c))+" "+["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"][d]}
-
-function getTypeFromResourceSignature(signature) {
-	var i = signature.indexOf('/');
-	if (i === -1)
-		return signature;
-	return signature.substring(0, i);
-}
-
 function blinkGreen(element) {
 	blink($(element), '#6db813', '#81ce25');
 }
@@ -290,44 +264,6 @@ function blink(element, color, bgColor) {
 	}
 }
 
-function getComments(el) {
-	var comments = [];
-	var f = el.firstChild;
-	while (f) {
-		if (f.nodeType === 8) {
-			var id = f.nodeValue.extractVal('data-structr-id');
-			if (id) {
-				var raw = f.nodeValue.extractVal('data-structr-raw-value');
-				if (raw !== undefined) {
-					var comment = {};
-					comment.id = id;
-					comment.node = f;
-					comment.rawContent = raw;
-					comments.push(comment);
-				}
-			}
-		}
-		f = f ? f.nextSibling : f;
-	}
-	return comments;
-}
-
-function getNonCommentSiblings(el) {
-	var siblings = [];
-	var s = el.nextSibling;
-	while (s) {
-		if (s.nodeType === 8) {
-			return siblings;
-		}
-		siblings.push(s);
-		s = s.nextSibling;
-	}
-}
-
-function pluralize(name) {
-	return name.endsWith('y') ? name.substring(0, name.length - 1) + 'ies' : (name.endsWith('s') ? name : name + 's');
-}
-
 function getDateTimePickerFormat(rawFormat) {
 	var dateTimeFormat, obj = {};
 	if (rawFormat.indexOf('T') > 0) {
@@ -352,29 +288,16 @@ function getElementDisplayName(entity) {
 		}
 		return (entity.tag ? entity.tag : '[' + entity.type + ']');
 	}
-	if (entity.name && $.isBlank(entity.name)) {
+	if (entity.name && (entity.name+'').trim() === '') {
 		return '(blank name)';
 	}
 	return entity.name;
 }
 
-jQuery.isBlank = function (obj) {
-	if (!obj || $.trim(obj) === "") return true;
-	if (obj.length && obj.length > 0) return false;
-
-	for (var prop in obj) if (obj[prop]) return false;
-	return true;
-};
-
-$.fn.showInlineBlock = function () {
-	return this.css('display', 'inline-block');
-};
-
-
 /**
  * thin wrapper for localStorage with a success-check and error display
  */
-var LSWrapper = new (function() {
+let LSWrapper = new (function() {
 
 	let _localStorageObject = {};
 	let _localStoragePersistenceKey = 'structrLocalStoragePersistence_';
@@ -559,9 +482,8 @@ var LSWrapper = new (function() {
 
 function fastRemoveAllChildren(el) {
 	if (!el) return;
-	var child;
-	while ((child = el.firstChild)) {
-		el.removeChild(child);
+	while (el.firstChild) {
+		el.removeChild(el.firstChild);
 	}
 }
 
@@ -575,10 +497,9 @@ let _Console = new (function() {
 	let _initialized = false;
 	let _consoleVisible = false;
 
-
 	// public methods
 	this.logoutAction = function() {
-		_terminal.reset();
+		_terminal?.reset();
 		_initialized = false;
 		_hideConsole();
 	};
@@ -715,7 +636,7 @@ let _Console = new (function() {
 
 	let _hideConsole = function() {
 		_consoleVisible = false;
-		_terminal.disable();
+		_terminal?.disable();
 		$('#structr-console').slideUp('fast');
 	};
 
@@ -757,7 +678,6 @@ let _Favorites = new (function () {
 
 	// private variables
 	let _favsVisible = false;
-
 	let container;
 	let menu;
 	let favoritesTabKey;
@@ -916,7 +836,7 @@ let _Favorites = new (function () {
 
 	// public methods
 	this.logoutAction = function() {
-		fastRemoveAllChildren($('#structr-favorites')[0]);
+		fastRemoveAllChildren(document.getElementById('structr-favorites'));
 		_hideFavorites();
 	};
 

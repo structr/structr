@@ -2385,7 +2385,7 @@ var _Entities = {
 					} catch (e) {}
 				}
 				self.addClass('nodeHover');
-				self.children('i.button').showInlineBlock();
+				self.children('i.button').css('display', 'inline-block');
 			},
 			mouseout: function(e) {
 				e.stopPropagation();
@@ -2589,22 +2589,25 @@ var _Entities = {
 	makeAttributeEditable: function(parentElement, id, attributeSelector, attributeName, callback) {
 
 		let attributeElement        = parentElement.find(attributeSelector).first();
+		let additionalInputClass    = attributeElement.data('inputClass') || '';
 		let attributeElementTagName = attributeElement.prop('tagName').toLowerCase();
 		let oldValue                = $.trim(attributeElement.attr('title'));
 
-		attributeElement.replaceWith('<input type="text" size="' + (oldValue.length + 4) + '" class="new-' + attributeName + '" value="' + oldValue + '">');
+		attributeElement.replaceWith('<input type="text" size="' + (oldValue.length + 4) + '" class="new-' + attributeName + ' ' + additionalInputClass + '" value="' + oldValue + '">');
 
 		let input = $('input', parentElement);
 		input.focus().select();
 
 		let restoreNonEditableTag = function(el, text) {
 
-			let newEl = $('<' + attributeElementTagName + ' title="' + escapeForHtmlAttributes(text) + '" class="' + attributeName + '_ abbr-ellipsis abbr-75pc">' + text + '</' + attributeElementTagName + '>');
+			let dataInputClass = (additionalInputClass !== '') ? ' data-input-class="' + additionalInputClass + '"' : '';
+
+			let newEl = $('<' + attributeElementTagName + ' title="' + escapeForHtmlAttributes(text) + '" class="' + attributeName + '_ abbr-ellipsis abbr-75pc"' + dataInputClass + '>' + text + '</' + attributeElementTagName + '>');
 			el.replaceWith(newEl);
 
 			parentElement.find(attributeSelector).first().off('click').on('click', function(e) {
 				e.stopPropagation();
-				_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName);
+				_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, callback);
 			});
 
 			return newEl;
@@ -2619,10 +2622,10 @@ var _Entities = {
 
 			let successFunction = () => {
 
-				restoreNonEditableTag(newEl, newVal);
+				let finalEl = restoreNonEditableTag(newEl, newVal);
 
 				if (callback) {
-					callback();
+					callback(finalEl);
 				}
 			};
 

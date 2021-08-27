@@ -405,6 +405,17 @@ let _Files = {
 
 		return elements;
 	},
+	formatBytes(a, b= 2) {
+
+		const sizes = ["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"];
+
+		if (0 === a) return "0 " + sizes[0];
+
+		const c = (0 > b) ? 0 : b;
+		const d = Math.floor(Math.log(a) / Math.log(1024));
+
+		return parseFloat((a/Math.pow(1024,d)).toFixed(c)) + " " + sizes[d]
+	},
 	deepOpen: function(d, dirs) {
 
 		_TreeHelper.deepOpen(fileTree, d, dirs, 'parent', (_Files.currentWorkingDir ? _Files.currentWorkingDir.id : 'root'));
@@ -822,7 +833,7 @@ let _Files = {
 	},
 	insertLayoutSwitches: function (id, parentId, nodePath, parents) {
 
-		let checkmark = _Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-1');
+		let checkmark = _Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2');
 
 		folderContents.prepend('<div id="switches">'
 			+ '<button class="switch ' + (_Files.isViewModeActive('list') ? 'active' : 'inactive') + ' inline-flex items-center" id="switch-list" data-view-mode="list">' + (_Files.isViewModeActive('list') ? checkmark : '') + ' List</button>'
@@ -895,7 +906,7 @@ let _Files = {
 			if (d.isFolder) {
 				row.append('<td class="size">' + size + '</td>');
 			} else {
-				row.append('<td class="size">' + formatBytes(size,0) + '</td>');
+				row.append('<td class="size">' + _Files.formatBytes(size, 0) + '</td>');
 			}
 
 			row.append('<td class="abbr-ellipsis abbr-75pc">' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');

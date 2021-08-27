@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -43,7 +44,8 @@ import static org.structr.core.entity.SchemaNode.GraphQLNodeReferenceName;
 import org.structr.core.entity.relationship.SchemaNodeProperty;
 import org.structr.core.entity.relationship.SchemaViewProperty;
 import org.structr.core.graph.ModificationQueue;
-import static org.structr.core.graph.NodeInterface.name;
+
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
@@ -66,16 +68,12 @@ import org.structr.schema.parser.LongPropertyParser;
 import org.structr.schema.parser.NotionPropertyParser;
 import org.structr.schema.parser.PropertyDefinition;
 
-/**
- *
- *
- */
 public class SchemaProperty extends SchemaReloadingNode implements PropertyDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaProperty.class.getName());
 
 	public static final Property<AbstractSchemaNode> schemaNode            = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType));
-	public static final Property<Iterable<SchemaView>>   schemaViews       = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<Iterable<SchemaView>> schemaViews         = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 
 	public static final Property<String>             declaringUuid         = new StringProperty("declaringUuid");
 	public static final Property<String>             declaringClass        = new StringProperty("declaringClass");
@@ -276,6 +274,35 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	@Override
 	public String getTypeHint() {
 		return getProperty(typeHint);
+	}
+
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
+
+		boolean valid = super.isValid(errorBuffer);
+
+		// do not take into account for property validity - this might only be enforced in future versions
+		final String futureSchemaPropertyNamePattern = "[_A-Za-z][\\-_0-9A-Za-z]*";
+		final boolean futurePropertyNameValidity     = ValidationHelper.isValidStringMatchingRegex(getProperty(name), futureSchemaPropertyNamePattern);
+
+		if (!futurePropertyNameValidity) {
+
+			final AbstractSchemaNode parent = getProperty(SchemaProperty.schemaNode);
+			final String typeName           = (parent != null) ? parent.getName() : "[Unknown type]";
+			final String warningMessage     = "Property name " + typeName + "." + getProperty(name) + " doesn't match strict pattern " + futureSchemaPropertyNamePattern.toString() + " that will be enforced in future versions.";
+
+			logger.warn(warningMessage);
+
+			TransactionCommand.simpleBroadcastGenericMessage(
+					Map.of(
+							"type", "WARNING",
+							"title", "Warning",
+							"message", warningMessage
+					)
+			);
+		}
+
+		return valid;
 	}
 
 	@Override

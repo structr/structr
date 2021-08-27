@@ -95,8 +95,8 @@ let StructrWS = {
 					fastRemoveAllChildren(main[0]);
 					fastRemoveAllChildren(Structr.functionBar);
 
-					var restoreDialogText = '';
-					var dialogData = JSON.parse(LSWrapper.getItem(dialogDataKey));
+					let restoreDialogText = '';
+					let dialogData = JSON.parse(LSWrapper.getItem(dialogDataKey));
 					if (dialogData && dialogData.text) {
 						restoreDialogText = '<br><br>The dialog<br><b>"' + dialogData.text + '"</b><br> will be restored after reconnect.';
 					}

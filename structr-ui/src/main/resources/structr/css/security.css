@@ -17,95 +17,105 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#security {
+	height: 100%;
+}
+
+#securityTabs {
+	height: calc(100% - 2rem);
+	border: none;
+	background: none;
+}
+
+#security .tab-content {
+	/* overflow-y: scroll; */
+	/* max-height: 100%; */
+	height: calc(100% - 4rem);
+	overflow: auto;
+}
+
 #usersAndGroups-inner {
-   display: flex;
-   max-height: 100%;
+	display: flex;
+	max-height: 100%;
 }
 
 #usersAndGroups #users,
 #usersAndGroups #groups {
-   padding: 0;
-   display: flex;
-   flex-direction: column;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+#usersAndGroups #users {
+	margin-right: 6rem;
 }
 
 #users-list,
 #groups-list {
 	flex-grow: 1;
+	max-width: 27.5rem;
 	overflow-y: auto;
 	margin-top: 1rem;
 }
 
 #users-list .node,
 #groups-list .node {
-   line-height: 2rem;
+	line-height: 2rem;
+}
+
+input.max-w-75 {
+	max-width: 75%;
 }
 
 #resourceAccessesTable {
-   display: block;
-   overflow: auto;
-   height: calc(100% - 2rem);
-   border-collapse: collapse;
-   background: var(--solid-white);
-   margin: 1rem 0;
-   width: 100%;
-}
-
-#resourceAccessesTable .node {
-   border: none;
+	display: block;
+	margin: 1rem 0;
 }
 
 #resourceAccessesTable tbody tr:hover {
-   background-color: var(--structr-light-green-transparent) ! important;
+	background-color: var(--structr-light-green-transparent) ! important;
 }
 
 #resourceAccessesTable td, #resourceAccessesTable th {
-   padding: .5rem 1rem;
-   text-align: center;
-   vertical-align: middle;
-   height: 1rem;
+	padding: .5rem 1rem;
+	text-align: center;
+	vertical-align: middle;
+	height: 1rem;
 }
 
 #resourceAccessesTable th.br-1, #resourceAccessesTable td.br-1 {
-   border-right: 1px solid var(--gray-eee);
+	/*border-right: 1px solid var(--light-gray-bg-f3);*/
 }
 
 #resourceAccessesTable th.bl-1, #resourceAccessesTable td.bl-1 {
-   /*border-left: 1px solid var(--gray-ccc);*/
+	/*border-left: 1px solid var(--light-gray-bg-f3);*/
 }
 
 #resourceAccessesTable .title-cell {
-   text-align: left;
-}
-
-#resourceAccessesTable td img {
-   vertical-align: middle;
+	text-align: left;
 }
 
 #resourceAccessesTable tr:nth-child(odd) {
-   background: var(--light-gray-bg-f7) ! important;
+	background: var(--light-gray-bg-f7) ! important;
 }
 
 #resourceAccessesTable tr:nth-child(even) {
-   background: var(--solid-white) ! important;
+	background: var(--solid-white) ! important;
 }
 
 #resourceAccessesTable th {
-   background: var(--input-background);
-   color: var(--gray-333);
-   vertical-align: top;
-   min-width: 2rem;
+	background: var(--input-background);
+	color: var(--gray-333);
+	vertical-align: top;
+	min-width: 2rem;
+}
+
+#resourceAccessesTable td {
+	position: relative;
 }
 
 #resourceAccessesPager {
-   text-align: left;
-}
-
-#securityTabs {
-   margin: 2rem;
-   height: calc(100% - 2rem);
-   border: none;
-   background: none;
+	text-align: left;
 }
 
 input.bitmask {
@@ -117,11 +127,7 @@ input.bitmask {
 	margin-right: 1rem;
 }
 
-#users-controls {
-   padding-right: 6rem;
-}
-
 #users-controls .select-and-button,
 #groups-controls .select-and-button {
-   padding-bottom: 2rem;
+	padding-bottom: 2rem;
 }

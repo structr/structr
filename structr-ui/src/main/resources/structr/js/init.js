@@ -107,12 +107,12 @@ $(function() {
 	});
 
 	$(document).on('mouseenter', '[data-toggle="popup"]', function() {
-		var target = $(this).data("target");
+		let target = $(this).data("target");
 		$(target).addClass('visible');
 	});
 
 	$(document).on('mouseleave', '[data-toggle="popup"]', function() {
-		var target = $(this).data("target");
+		let target = $(this).data("target");
 		$(target).removeClass('visible');
 	});
 
@@ -128,7 +128,7 @@ $(function() {
 	});
 
 	$(window).keyup(function(e) {
-		var k = e.which;
+		let k = e.which;
 		if (k === 16) {
 			shiftKey = false;
 		}
@@ -149,7 +149,7 @@ $(function() {
 			}
 			if (dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
 				ignoreKeyUp = true;
-				var saveBeforeExit = confirm('Save changes?');
+				let saveBeforeExit = confirm('Save changes?');
 				if (saveBeforeExit) {
 					dialogSaveButton.click();
 					setTimeout(function() {
@@ -503,6 +503,9 @@ let Structr = {
 
 		if (!loginBox.is(':visible')) {
 
+			_Favorites.logoutAction();
+			_Console.logoutAction();
+
 			fastRemoveAllChildren(main[0]);
 			fastRemoveAllChildren(Structr.functionBar);
 			_Elements.removeContextMenu();
@@ -623,15 +626,15 @@ let Structr = {
 	determineModule: () => {
 
 		const browserUrl = new URL(window.location.href);
-		const anchor = browserUrl.hash.substring(1);
-		const navState  = anchor.split(':');
-		mainModule = navState[0];
-		subModule  = navState.length > 1 ? navState[1] : null;
+		const anchor     = browserUrl.hash.substring(1);
+		const navState   = anchor.split(':');
+		mainModule       = navState[0];
+		subModule        = navState.length > 1 ? navState[1] : null;
 
 		// console.log(window.location.href, anchor, navState, mainModule, subModule);
 	},
 	clearMain: function() {
-		var newDroppables = new Array();
+		let newDroppables = new Array();
 		$.ui.ddmanager.droppables['default'].forEach(function(droppable, i) {
 			if (!droppable.element.attr('id') || droppable.element.attr('id') !== 'graph-canvas') {
 			} else {
@@ -639,18 +642,17 @@ let Structr = {
 			}
 		});
 		$.ui.ddmanager.droppables['default'] = newDroppables;
-		$('iframe').contents().remove();
+
 		fastRemoveAllChildren(main[0]);
 		fastRemoveAllChildren(Structr.functionBar);
 		_Elements.removeContextMenu();
-		$('#graph-box').hide();
 	},
 	confirmation: function(text, yesCallback, noCallback) {
 		if (text) {
 			$('#confirmation .confirmationText').html(text);
 		}
-		var yesButton = $('#confirmation .yesButton');
-		var noButton = $('#confirmation .noButton');
+		let yesButton = $('#confirmation .yesButton');
+		let noButton  = $('#confirmation .noButton');
 
 		if (yesCallback) {
 			yesButton.on('click', function(e) {
@@ -679,7 +681,6 @@ let Structr = {
 			message: $('#confirmation'),
 			css: Structr.defaultBlockUICss
 		});
-
 	},
 	restoreDialog: function(dialogData) {
 
@@ -2201,8 +2202,8 @@ let Structr = {
 	fetchHtmlTemplate: function(templateName, templateConfig, callback) {
 
 		Structr.templateCache.registerCallback(templateName, templateName, function(templateHtml, cacheHit) {
-			var convertTemplateToLiteral = new Function('config', 'return `' + templateHtml + '`;');
-			var parameterizedTemplate = convertTemplateToLiteral(templateConfig);
+			let convertTemplateToLiteral = new Function('config', 'return `' + templateHtml + '`;');
+			let parameterizedTemplate = convertTemplateToLiteral(templateConfig);
 			callback(parameterizedTemplate, cacheHit);
 		});
 	},

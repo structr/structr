@@ -88,6 +88,10 @@ public class ContextStore {
 		return constants.keySet();
 	}
 
+	public boolean hasConstant(final String name) {
+		return constants.containsKey(name);
+	}
+
 	// --- store() / retrieve() ---
 	public void setTemporaryParameters(Map<String, Object> parameters) {
 

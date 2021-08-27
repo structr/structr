@@ -227,7 +227,6 @@ button:hover:not(.disabled), button:focus:not(.disabled) {
 button.yesButton, button.noButton {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.5rem;
 }
 
 .icon-green {
@@ -4632,6 +4631,9 @@ table.props td.__value {
 }
 .mr-1 {
 	margin-right: .25rem;
+}
+.mr-2 {
+	margin-right: .5rem;
 }
 .ml-4 {
 	margin-left: 1rem;

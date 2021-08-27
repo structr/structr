@@ -19,86 +19,86 @@
 @charset "UTF-8";
 
 #mail-templates-main {
-    display: none;
-    height: calc(100% - 3rem);
-    margin: 2rem;
+	display: none;
+	height: calc(100% - 3rem);
+	margin: 2rem;
 }
 
 #mail-templates-list {
-    vertical-align: top;
-    height: 100%;
-    padding-top: 1rem;
+	vertical-align: top;
+	height: 100%;
+	padding-top: 1rem;
 }
 
 #mail-templates-table {
-    display: table;
+	display: table;
 }
 
 #mail-templates-detail-container {
-    margin-left: 2rem;
-    padding: 1rem;
-    vertical-align: top;
-    overflow: auto;
-    height: calc(100% - 1rem);
-    background: var(--solid-white);
-    box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
+	margin-left: 2rem;
+	padding: 1rem;
+	vertical-align: top;
+	overflow: auto;
+	height: calc(100% - 1rem);
+	background: var(--solid-white);
+	box-shadow: 0 0 .625rem 0 rgba(0, 0, 0, 0.1);
 }
 
 #mail-templates-list td.allow-break {
-    word-break: break-all;
+	word-break: break-all;
 }
 
 .mail-template-row:hover {
-    cursor: pointer;
-    background-color: var(--structr-light-green) !important;
+	cursor: pointer;
+	background-color: var(--structr-light-green) !important;
 }
 
 .mail-template-row.selected {
-    background-color: var(--structr-green) !important;
+	background-color: var(--structr-green) !important;
 }
 
 #mail-template-detail-form .form-row textarea, #mail-template-detail-form .form-row .CodeMirror {
-    font-family: Courier, 'Courier New', monospace !important;
-    display: block;
-    font-size: .875rem;
-    /*width: 100%;*/
-    height: calc(100vh - 29rem);
-    margin-top: .5rem;
-    border: 1px solid var(--input-field-border);
+	font-family: Courier, 'Courier New', monospace !important;
+	display: block;
+	font-size: .875rem;
+	/*width: 100%;*/
+	height: calc(100vh - 29rem);
+	margin-top: .5rem;
+	border: 1px solid var(--input-field-border);
 }
 
 #mail-template-detail-form .form-row .CodeMirror {
-    font-family: Courier, 'Courier New', monospace !important;
-    display: block;
-    font-size: .875rem;
-    /*width: 100%;*/
-    height: calc(100vh - 28rem);
-    margin-top: .5rem;
+	font-family: Courier, 'Courier New', monospace !important;
+	display: block;
+	font-size: .875rem;
+	/*width: 100%;*/
+	height: calc(100vh - 28rem);
+	margin-top: .5rem;
 }
 
 #mail-template-detail-form .form-row iframe {
-    margin-top: .5rem;
-    padding: .5rem;
-    border: 1px solid var(--input-field-border);
-    /*width: 100%;*/
-    height: calc(100vh - 29rem);
+	margin-top: .5rem;
+	padding: .5rem;
+	border: 1px solid var(--input-field-border);
+	/*width: 100%;*/
+	height: calc(100vh - 29rem);
 }
 
 #mail-templates-detail-container .actions {
-    margin-top: 1rem;
+	margin-top: 1rem;
 }
 
 #mail-templates-preview {
-    width: 100%;
-    height: calc(100% + 1px);
-    border: 0;
-    padding: 0;
-    margin: 0;
-    -moz-transform-origin: 0 0;
-    -o-transform-origin: 0 0;
-    -webkit-transform-origin: 0 0;
+	width: 100%;
+	height: calc(100% + 1px);
+	border: 0;
+	padding: 0;
+	margin: 0;
+	-moz-transform-origin: 0 0;
+	-o-transform-origin: 0 0;
+	-webkit-transform-origin: 0 0;
 }
 
 #mail-templates-pager {
-    display: inline-block;
+	display: inline-block;
 }
