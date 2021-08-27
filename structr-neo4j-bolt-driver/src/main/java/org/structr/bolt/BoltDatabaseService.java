@@ -231,7 +231,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 				sessions.set(session);
 
 			} catch (ServiceUnavailableException ex) {
-				throw new NetworkException(ex.getMessage(), ex);
+				
+				logger.warn("ServiceUnavailableException in BoltDataBaseService.beginTx(). Retrying with timeout.");
+				return beginTx(1);
 			} catch (ClientException cex) {
 				logger.warn("Cannot connect to Neo4j database server at {}: {}", databaseUrl, cex.getMessage());
 			}
