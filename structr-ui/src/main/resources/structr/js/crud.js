@@ -2033,7 +2033,7 @@ var _Crud = {
 
 		} else if (isCollection) {
 
-			simpleType = lastPart(relatedType, '.');
+			simpleType = relatedType.substring(relatedType.lastIndexOf('.') + 1);
 
 			cell.append('<i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" />');
 
@@ -2052,7 +2052,7 @@ var _Crud = {
 
 		} else {
 
-			simpleType = lastPart(relatedType, '.');
+			simpleType = relatedType.substring(relatedType.lastIndexOf('.') + 1);
 
 			if (isRel && _Crud.relInfo[type]) {
 

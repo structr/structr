@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,7 +39,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.Vector;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +52,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
@@ -60,6 +61,7 @@ import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.User;
+import org.structr.web.maintenance.deploy.ImportPreconditionFailedException;
 
 public class DeployDataCommand extends DeployCommand {
 
@@ -81,9 +83,15 @@ public class DeployDataCommand extends DeployCommand {
 	private final static String DEPLOYMENT_DATA_IMPORT_STATUS   = "DEPLOYMENT_DATA_IMPORT_STATUS";
 	private final static String DEPLOYMENT_DATA_EXPORT_STATUS   = "DEPLOYMENT_DATA_EXPORT_STATUS";
 
+	public final static String DOINNERCALLBACKS_PARAMTER_NAME = "doInnerCallbacks";
+	public final static String DOOUTERCALLBACKS_PARAMTER_NAME = "doOuterCallbacks";
+	public final static String DOCASCADINGDELETE_PARAMTER_NAME = "doCascadingDelete";
+	public final static String REBUILDALLINDEXES_PARAMTER_NAME = "rebuildAllIndexes";
+
 	private boolean doInnerCallbacks  = false;
 	private boolean doOuterCallbacks  = false;
 	private boolean doCascadingDelete = false;
+	private boolean rebuildAllIndexesAfterImport = false;
 
 	private boolean relationshipToFileTypeExists = false;
 
@@ -102,17 +110,23 @@ public class DeployDataCommand extends DeployCommand {
 
 		if (StringUtils.isBlank(path)) {
 
-			logger.warn("Please provide target path for data deployment export.");
+			publishWarningMessage("Data export not started", "Please provide target path for data deployment export.");
 			throw new FrameworkException(422, "Please provide target path for data deployment export.");
 		}
 
 		if (StringUtils.isBlank(types)) {
 
-			logger.warn("Please provide a comma-separated list of type(s) to export. (e.g. 'ContentContainer,ContentItem')");
+			publishWarningMessage("Data export not started", "Please provide a comma-separated list of type(s) to export. (e.g. 'ContentContainer,ContentItem')");
 			throw new FrameworkException(422, "Please provide a comma-separated list of type(s) to export. (e.g. 'ContentContainer,ContentItem')");
 		}
 
 		final Path target  = Paths.get(path);
+
+		if (target.isAbsolute() != true) {
+
+			publishWarningMessage("Data export not started", "Target path '" + path + "' is not an absolute path - relative paths are not allowed.");
+			throw new FrameworkException(422, "Target path '" + path + "' is not an absolute path - relative paths are not allowed.");
+		}
 
 		try {
 
@@ -270,27 +284,36 @@ public class DeployDataCommand extends DeployCommand {
 
 			if (StringUtils.isBlank(path)) {
 
-				logger.warn("Please provide 'source' attribute for deployment source directory path.");
-				throw new FrameworkException(422, "Please provide 'source' attribute for deployment source directory path.");
+				throw new ImportPreconditionFailedException("Please provide 'source' attribute for deployment source directory path.");
 			}
 
 			final Path source = Paths.get(path);
 			if (!Files.exists(source)) {
 
-				logger.warn("Please provide 'source' attribute for deployment source directory path.");
-				throw new FrameworkException(422, "Source path '" + path + "' does not exist.");
+				throw new ImportPreconditionFailedException("Source path " + path + " does not exist.");
 			}
 
 			if (!Files.isDirectory(source)) {
 
-				throw new FrameworkException(422, "Source path '" + path + "' is not a directory.");
+				throw new ImportPreconditionFailedException("Source path " + path + " is not a directory.");
 			}
 
-			doInnerCallbacks  = parameters.get("doInnerCallbacks") == null  ? false : "true".equals(parameters.get("doInnerCallbacks").toString());
-			doOuterCallbacks  = parameters.get("doOuterCallbacks") == null  ? false : "true".equals(parameters.get("doOuterCallbacks").toString());
-			doCascadingDelete = parameters.get("doCascadingDelete") == null ? false : "true".equals(parameters.get("doCascadingDelete").toString());
+			if (source.isAbsolute() != true) {
+
+				throw new ImportPreconditionFailedException("Source path '" + path + "' is not an absolute path - relative paths are not allowed.");
+			}
+
+			doInnerCallbacks             = parameters.get(DOINNERCALLBACKS_PARAMTER_NAME) == null  ? false : "true".equals(parameters.get(DOINNERCALLBACKS_PARAMTER_NAME).toString());
+			doOuterCallbacks             = parameters.get(DOOUTERCALLBACKS_PARAMTER_NAME) == null  ? false : "true".equals(parameters.get(DOOUTERCALLBACKS_PARAMTER_NAME).toString());
+			doCascadingDelete            = parameters.get(DOCASCADINGDELETE_PARAMTER_NAME) == null ? false : "true".equals(parameters.get(DOCASCADINGDELETE_PARAMTER_NAME).toString());
+			rebuildAllIndexesAfterImport = parameters.get(REBUILDALLINDEXES_PARAMTER_NAME) == null ? false : "true".equals(parameters.get(REBUILDALLINDEXES_PARAMTER_NAME).toString());
 
 			doImportFromDirectory(source);
+
+		} catch (ImportPreconditionFailedException ipfe) {
+
+			logger.warn("Data Deployment Import not started: {}", ipfe.getMessage());
+			publishWarningMessage("Data Deployment Import not started", ipfe.getMessage());
 
 		} catch (Throwable t) {
 
@@ -307,7 +330,7 @@ public class DeployDataCommand extends DeployCommand {
 
 	public void doImportFromDirectory(final Path source) {
 
-		missingTypesForImport = new HashSet();
+		missingTypesForImport     = new HashSet();
 		failedRelationshipImports = new TreeMap();
 
 		final long startTime = System.currentTimeMillis();
@@ -401,6 +424,12 @@ public class DeployDataCommand extends DeployCommand {
 
 		// apply post-deploy.conf
 		applyConfigurationFileIfExists(context, source.resolve("post-data-deploy.conf"), DEPLOYMENT_DATA_IMPORT_STATUS);
+
+		if (rebuildAllIndexesAfterImport) {
+
+			publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Rebuilding all indexes after import (depending on the database size this might take a while)");
+			StructrApp.getInstance(context).command(BulkRebuildIndexCommand.class).execute(Collections.EMPTY_MAP);
+		}
 
 		if (!missingPrincipals.isEmpty()) {
 

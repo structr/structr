@@ -418,7 +418,7 @@ let StructrModel = {
 				if (Structr.isModuleActive(_Files)) {
 					let row = element.closest('tr');
 					if (row.length) {
-						$('td.size', row).text(formatBytes(obj.size,0));
+						$('td.size', row).text(_Files.formatBytes(obj.size, 0));
 					}
 				}
 
@@ -442,7 +442,7 @@ let StructrModel = {
 				keyIcon = $('.icons', element).children('.key_icon');
 			}
 			if (isProtected) {
-				keyIcon.showInlineBlock();
+				keyIcon.css('display', 'inline-block');
 				keyIcon.addClass('donthide');
 			} else {
 				keyIcon.hide();

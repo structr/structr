@@ -20,29 +20,29 @@
 
 
 #virtual-types-main {
-    display: none;
-    height: calc(100% - 3rem);
-    margin: 2rem;
+	display: none;
+	height: calc(100% - 3rem);
+	margin: 2rem;
 }
 
 #virtual-types-list {
-    vertical-align: top;
-    height: 100%;
-    padding-top: 1rem;
+	vertical-align: top;
+	height: 100%;
+	padding-top: 1rem;
 }
 
 #virtual-types-list td.allow-break {
-    word-break: break-all;
+	word-break: break-all;
 }
 
 #virtual-type-detail {
-    margin-left: 2rem;
-    padding: 1rem;
-    vertical-align: top;
-    overflow: auto;
-    height: calc(100% - 1rem);
-    background: var(--solid-white);
-    box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
+	margin-left: 2rem;
+	padding: 1rem;
+	vertical-align: top;
+	overflow: auto;
+	height: calc(100% - 1rem);
+	background: var(--solid-white);
+	box-shadow: 0 0 .625rem 0 rgba(0, 0, 0, 0.1);
 }
 
 /*#virtual-type-detail {*/
@@ -53,36 +53,36 @@
 /*}*/
 
 #virtual-type-detail th {
-    white-space: nowrap;
+	white-space: nowrap;
 }
 
 #virtual-type-detail th * {
-    white-space: initial;
+	white-space: initial;
 }
 
 #virtual-types-list-th-actions {
-    min-width: initial;
+	min-width: initial;
 }
 
 #virtual-types-table {
-    display: table;
+	display: table;
 }
 
 #virtual-types-pager {
-    display: inline-block;
+	display: inline-block;
 }
 
 #virtual-type-detail-table, #virtual-properties-table {
-    width: 100%;
-    display: table;
-    margin-bottom: 1rem;
+	width: 100%;
+	display: table;
+	margin-bottom: 1rem;
 }
 
 .virtual-type-row.selected {
-    background-color: var(--structr-green) !important;
+	background-color: var(--structr-green) !important;
 }
 
 .virtual-type-row:hover {
-    cursor: pointer;
-    background-color: var(--structr-light-green) !important;
+	cursor: pointer;
+	background-color: var(--structr-light-green) !important;
 }

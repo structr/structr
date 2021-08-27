@@ -875,7 +875,7 @@ var _Schema = {
 					}
 
 					$('#rel_' + res.id).parent().off('mouseover').on('mouseover', function() {
-						$('#rel_' + res.id + ' .icon').showInlineBlock();
+						$('#rel_' + res.id + ' .icon').css('display', 'inline-block');
 						$('#rel_' + res.id + ' .target-multiplicity').addClass('hover');
 					}).off('mouseout').on('mouseout', function() {
 						$('#rel_' + res.id + ' .icon').hide();

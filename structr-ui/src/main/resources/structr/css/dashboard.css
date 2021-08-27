@@ -124,13 +124,13 @@
 #dashboard-deployment input[type=file] {
 	width: calc(100% - 48px);
 	/*height: 15px;*/
-	margin: .5rem 0 1rem 0;
+	margin: .25rem 0 1rem 0;
 }
 
 #dashboard-deployment label.checkbox-label {
-	display: block;
-	/*height: 15px;*/
-	margin: .5rem 0 1rem 0;
+	display: flex;
+	align-items: center;
+	margin: .25rem 0 1rem 0;
 }
 
 #dashboard-deployment td > div {

@@ -195,14 +195,14 @@ let _UsersAndGroups = {
 			userPager.activateFilterElements();
 		});
 	},
-	createUserElement:function (user, group) {
+	createUserElement:function (user) {
 
-		var userName = user.name ? user.name : user.eMail ? '[' + user.eMail + ']' : '[unnamed]';
-		var userIcon = user.type === 'LDAPUser' ? _Icons.getFullSpriteClass(_Icons.user_orange_icon) : _Icons.getFullSpriteClass(_Icons.user_icon);
+		let userName = ((user.name) ? user.name : ((user.eMail) ? '[' + user.eMail + ']' : '[unnamed]'));
+		let userIcon = ((user.type === 'LDAPUser') ? _Icons.getFullSpriteClass(_Icons.user_orange_icon) : _Icons.getFullSpriteClass(_Icons.user_icon));
 
-		var userElement = $('<div class="node user userid_' + user.id + '">'
-				+ '<i class="typeIcon ' + userIcon + ' typeIcon-nochildren" />'
-				+ ' <b title="' + userName + '" class="name_">' + userName + '</b> <span class="id">' + user.id + '</span>'
+		let userElement = $('<div class="node user userid_' + user.id + '">'
+				+ '<i class="typeIcon ' + userIcon + '"></i>'
+				+ '<b title="' + userName + '" class="name_ abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + userName + '</b>'
 				+ '</div>'
 		);
 		userElement.data('userId', user.id);
@@ -214,7 +214,6 @@ let _UsersAndGroups = {
 	appendUserToUserList: function (user) {
 
 		let userDiv = _UsersAndGroups.createUserElement(user);
-		$('.typeIcon', userDiv).removeClass('typeIcon-nochildren');
 
 		_Security.userList.appendChild(userDiv[0]);
 
@@ -258,7 +257,7 @@ let _UsersAndGroups = {
 			return;
 		}
 
-		var prefix = (member.isUser) ? '.userid_' : '.groupid_';
+		let prefix = (member.isUser) ? '.userid_' : '.groupid_';
 
 		if (member.isUser) {
 
@@ -267,12 +266,9 @@ let _UsersAndGroups = {
 				let memberAlreadyListed = $(prefix + member.id, grpEl).length > 0;
 				if (!memberAlreadyListed) {
 
-					var userDiv = _UsersAndGroups.createUserElement(member, group);
+					let userDiv = _UsersAndGroups.createUserElement(member);
 
-					$(grpEl).append(userDiv.css({
-						top: 0,
-						left: 0
-					}));
+					$(grpEl).append(userDiv);
 					userDiv.removeClass('disabled');
 
 					_Entities.appendEditPropertiesIcon(userDiv, member);
@@ -288,9 +284,9 @@ let _UsersAndGroups = {
 
 			if (!alreadyShownInMembers && !alreadyShownInParents) {
 
-				var groupDiv = _UsersAndGroups.createGroupElement(member);
+				let groupDiv = _UsersAndGroups.createGroupElement(member);
 
-				$('.delete_icon', groupDiv).remove();
+				// $('.delete_icon', groupDiv).remove();
 
 				// groupDiv.append('<i title="Remove \'' + member.name + '\' from group \'' + group.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.user_delete_icon) + '" />');
 				//
@@ -301,10 +297,7 @@ let _UsersAndGroups = {
 				// 	});
 				// });
 
-				groupEl.append(groupDiv.css({
-					top: 0,
-					left: 0
-				}));
+				groupEl.append(groupDiv);
 
 				groupDiv.removeClass('disabled');
 
@@ -332,9 +325,6 @@ let _UsersAndGroups = {
 			return true;
 		}
 		return _UsersAndGroups.isGroupAlreadyShown(group, groupEl.parent().closest('.group'));
-	},
-	deleteUser: function(button, user) {
-		_Entities.deleteNode(button, user);
 	},
 	refreshGroups: async () => {
 
@@ -368,17 +358,11 @@ let _UsersAndGroups = {
 
 		let groupIcon = ((group.type === 'LDAPGroup') ? _Icons.getFullSpriteClass(_Icons.group_link_icon) : _Icons.getFullSpriteClass(_Icons.group_icon));
 		let groupElement = $('<div class="node group groupid_' + group.id + '">'
-				+ '<i class="typeIcon ' + groupIcon + ' typeIcon-nochildren" />'
-				+ ' <b title="' + group.name + '" class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
-				// + '<i title="Delete Group ' + group.id + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'
+				+ '<i class="typeIcon ' + groupIcon + '" />'
+				+ '<b title="' + group.name + '" class="name_  abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + group.name + '</b>'
 				+ '</div>'
 		);
 		groupElement.data('groupId', group.id);
-
-		// $('.delete_icon', groupElement).on('click', function(e) {
-		// 	e.stopPropagation();
-		// 	_UsersAndGroups.deleteGroup(this, group);
-		// });
 
 		groupElement.droppable({
 			accept: '.user, .group',
@@ -386,7 +370,7 @@ let _UsersAndGroups = {
 			hoverClass: 'nodeHover',
 			tolerance: 'pointer',
 			drop: function(event, ui) {
-				var nodeId;
+				let nodeId;
 
 				if (ui.draggable.hasClass('user')) {
 					nodeId = Structr.getUserId(ui.draggable);
@@ -410,9 +394,8 @@ let _UsersAndGroups = {
 	},
 	appendGroupElement: function(element, group) {
 
-		var hasChildren = group.members && group.members.length;
-
-		var groupDiv = _UsersAndGroups.createGroupElement(group);
+		let hasChildren = group.members && group.members.length;
+		let groupDiv    = _UsersAndGroups.createGroupElement(group);
 		element.append(groupDiv);
 
 		_Entities.appendExpandIcon(groupDiv, group, hasChildren, Structr.isExpanded(group.id));
@@ -426,14 +409,13 @@ let _UsersAndGroups = {
 
 		return groupDiv;
 	},
-	deleteGroup: function(button, group) {
-		_Entities.deleteNode(button, group);
-	},
-
 	setMouseOver: function (node, id, prefix) {
+
 		node.children('b.name_').off('click').on('click', function(e) {
 			e.stopPropagation();
-			_Entities.makeAttributeEditable(node, id, 'b.name_', 'name');
+			_Entities.makeAttributeEditable(node, id, 'b.name_', 'name', (el) => {
+				blinkGreen(el);
+			});
 		});
 
 		node.on({
@@ -448,16 +430,14 @@ let _UsersAndGroups = {
 		});
 	},
 	activateNodeHover: function (id, prefix) {
-		var nodes = $(prefix + id);
-		nodes.each(function (i, el) {
-			$(el).addClass('nodeHover').children('i.button').showInlineBlock();
-		});
+		for (let el of document.querySelectorAll(prefix + id)) {
+			el.classList.add('nodeHover');
+		}
 	},
 	deactivateNodeHover: function (id, prefix) {
-		var nodes = $(prefix + id);
-		nodes.each(function (i, el) {
-			$(el).removeClass('nodeHover').children('i.button').hide();
-		});
+		for (let el of document.querySelectorAll(prefix + id)) {
+			el.classList.remove('nodeHover');
+		}
 	},
 	makeDraggable: function(el) {
 		el.draggable({

@@ -1949,20 +1949,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					final ComponentImportVisitor visitor = new ComponentImportVisitor(componentsMetadata, relativeVisibility);
 
+					// first, only import the HULL for each shared component (the outermost element)
+					visitor.setHullMode(true);
 					Files.walkFileTree(components, visitor);
 
-					final List<Path> deferredPaths = visitor.getDeferredPaths();
-					if (!deferredPaths.isEmpty()) {
-
-						logger.info("Attempting to import deferred components..");
-
-						for (final Path deferred : deferredPaths) {
-
-							visitor.visitFile(deferred, Files.readAttributes(deferred, BasicFileAttributes.class));
-						}
-
-						FlushCachesCommand.flushAll();
-					}
+					// then, when all of those are imported, import their children so we know they all exist
+					visitor.setHullMode(false);
+					Files.walkFileTree(components, visitor);
 
 				} catch (IOException ioex) {
 					logger.warn("Exception while importing shared components", ioex);
