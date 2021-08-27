@@ -57,11 +57,11 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 	private static final Logger logger       = LoggerFactory.getLogger(ComponentImportVisitor.class.getName());
 	private static final GenericProperty internalSharedTemplateKey = new GenericProperty("shared");
 
-	private final List<Path> deferredPaths    = new LinkedList<>();
 	private Map<String, Object> configuration = null;
 	private SecurityContext securityContext   = null;
 	private boolean relativeVisibility        = false;
 	private App app                           = null;
+	private boolean isHullMode                = false;
 
 	public ComponentImportVisitor(final Map<String, Object> pagesConfiguration, final boolean relativeVisibility) {
 
@@ -86,7 +86,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 				try {
 
-					createComponent(file, fileName);
+					createComponentChildren(file, fileName);
 
 				} catch (FrameworkException fex) {
 					logger.warn("Exception while importing shared component {}: {}", fileName, fex.toString());
@@ -111,10 +111,6 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 	@Override
 	public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
 		return FileVisitResult.CONTINUE;
-	}
-
-	public List<Path> getDeferredPaths() {
-		return deferredPaths;
 	}
 
 	// ----- private methods -----
@@ -196,7 +192,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 		return defaultValue;
 	}
 
-	private void createComponent(final Path file, final String fileName) throws IOException, FrameworkException {
+	private void createComponentChildren(final Path file, final String fileName) throws IOException, FrameworkException {
 
 		final String componentName      = StringUtils.substringBeforeLast(fileName, ".html");
 
@@ -218,7 +214,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 			} else {
 
-				if (existingComponent != null) {
+				if (existingComponent != null && isHullMode()) {
 
 					final PropertyKey<String> contentKey = StructrApp.key(Template.class, "content");
 
@@ -248,14 +244,27 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 				final boolean parseOk = importer.parse(false);
 				if (parseOk) {
 
-					logger.info("Importing component {} from {}..", new Object[] { componentName, fileName } );
-
 					// set comment handler that can parse and apply special Structr comments in HTML source files
 					importer.setCommentHandler(new DeploymentCommentHandler());
 
 					// parse page
 					final ShadowDocument shadowDocument = CreateComponentCommand.getOrCreateHiddenDocument();
-					final DOMNode rootElement           = importer.createComponentChildNodes(shadowDocument);
+					final DOMNode rootElement;
+
+					if (isHullMode()) {
+
+						logger.info("Importing outer component shell for {} from {}..", new Object[] { componentName, fileName } );
+
+						importer.retainHullOnly();
+
+						rootElement = importer.createComponentChildNodes(shadowDocument);
+
+					} else {
+
+						logger.info("Importing inner component contents for {} from {}..", new Object[] { componentName, fileName } );
+
+						rootElement = importer.createComponentHullChildNodes(existingComponent, shadowDocument);
+					}
 
 					if (rootElement != null) {
 
@@ -288,17 +297,18 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 						// store properties from components.json if present
 						rootElement.setProperties(securityContext, properties);
 					}
-
-					final List<String> missingComponentNames = importer.getMissingComponentNames();
-					if (!missingComponentNames.isEmpty()) {
-
-						// there are missing components => defer import for this file
-						deferredPaths.add(file);
-					}
 				}
 			}
 
 			tx.success();
 		}
+	}
+
+	public boolean isHullMode() {
+		return isHullMode;
+	}
+
+	public void setHullMode(boolean hullMode) {
+		isHullMode = hullMode;
 	}
 }

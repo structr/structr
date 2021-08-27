@@ -122,7 +122,6 @@ public class Importer {
 
 	}
 
-	private final List<String> missingComponentNames = new LinkedList<>();
 	private final StringBuilder commentSource    = new StringBuilder();
 	private final SecurityContext securityContext;
 	private final boolean includeInExport;
@@ -353,8 +352,42 @@ public class Importer {
 		this.isDeployment = isDeployment;
 	}
 
-	public List<String> getMissingComponentNames() {
-		return missingComponentNames;
+	public void retainHullOnly() {
+
+		final List<Node> nodeList = new LinkedList<>();
+
+		for (final Node node : parsedDocument.childNodes()) {
+
+			for (final Node child : node.childNodes()) {
+				nodeList.add(child);
+			}
+		}
+
+		for (final Node deleteNode : nodeList) {
+			deleteNode.remove();
+		}
+	}
+
+	public DOMNode createComponentHullChildNodes (final DOMNode parent, final Page page) throws FrameworkException {
+
+		for (final Node node : parsedDocument.childNodes()) {
+
+			String tag = node.nodeName();
+			final String type = CaseHelper.toUpperCamelCase(tag);
+
+			if (ignoreElementNames.contains(type)) {
+
+				continue;
+			}
+
+			if (!type.equals("#comment")) {
+				return createChildNodes(node, parent, page, false, 1, parent);
+			}
+		}
+
+		logger.warn("Empty shared component!");
+
+		return null;
 	}
 
 	// ----- public static methods -----
@@ -542,8 +575,12 @@ public class Importer {
 	}
 
 	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page, final boolean removeHashAttribute, final int depth) throws FrameworkException {
+		return createChildNodes(startNode, parent, page, false, 0, null);
+	}
 
-		DOMNode rootElement     = null;
+	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page, final boolean removeHashAttribute, final int depth, final DOMNode suppliedRoot) throws FrameworkException {
+
+		DOMNode rootElement     = suppliedRoot;
 		Linkable linkable       = null;
 		String instructions     = null;
 
@@ -806,9 +843,7 @@ public class Importer {
 
 					} else {
 
-						logger.warn("Unable to find shared component {} - ignored! Import will be re-tried after all other components are imported. ", src);
-
-						missingComponentNames.add(src);
+						logger.warn("Unable to find shared component '{}' - ignored! This should not happen.", src);
 					}
 
 				} else {
@@ -1086,12 +1121,10 @@ public class Importer {
 				// Link new node to its parent node
 				// linkNodes(parent, newNode, page, localIndex);
 				// Step down and process child nodes except for newly created templates
-				if (!isNewTemplateOrComponent){
+				if (!isNewTemplateOrComponent) {
 
 					createChildNodes(node, newNode, page, removeHashAttribute, depth + 1);
-
 				}
-
 			}
 		}
 

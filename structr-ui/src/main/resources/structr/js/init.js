@@ -503,6 +503,9 @@ let Structr = {
 
 		if (!loginBox.is(':visible')) {
 
+			_Favorites.logoutAction();
+			_Console.logoutAction();
+
 			fastRemoveAllChildren(main[0]);
 			fastRemoveAllChildren(Structr.functionBar);
 			_Elements.removeContextMenu();
@@ -623,15 +626,15 @@ let Structr = {
 	determineModule: () => {
 
 		const browserUrl = new URL(window.location.href);
-		const anchor = browserUrl.hash.substring(1);
-		const navState  = anchor.split(':');
-		mainModule = navState[0];
-		subModule  = navState.length > 1 ? navState[1] : null;
+		const anchor     = browserUrl.hash.substring(1);
+		const navState   = anchor.split(':');
+		mainModule       = navState[0];
+		subModule        = navState.length > 1 ? navState[1] : null;
 
 		// console.log(window.location.href, anchor, navState, mainModule, subModule);
 	},
 	clearMain: function() {
-		var newDroppables = new Array();
+		let newDroppables = new Array();
 		$.ui.ddmanager.droppables['default'].forEach(function(droppable, i) {
 			if (!droppable.element.attr('id') || droppable.element.attr('id') !== 'graph-canvas') {
 			} else {
@@ -639,7 +642,7 @@ let Structr = {
 			}
 		});
 		$.ui.ddmanager.droppables['default'] = newDroppables;
-		$('iframe').contents().remove();
+
 		fastRemoveAllChildren(main[0]);
 		fastRemoveAllChildren(Structr.functionBar);
 		_Elements.removeContextMenu();

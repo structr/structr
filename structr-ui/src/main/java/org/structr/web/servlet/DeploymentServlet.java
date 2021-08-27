@@ -65,14 +65,14 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 	private static final Logger logger = LoggerFactory.getLogger(DeploymentServlet.class.getName());
 
-	private static final String DOWNLOAD_URL_PARAMETER = "downloadUrl";
-	private static final String REDIRECT_URL_PARAMETER = "redirectUrl";
-	private static final String FILE_PARAMETER         = "file";
-	private static final String NAME_PARAMETER         = "name";
-	private static final String MODE_PARAMETER         = "mode";
-	private static final String TYPES_PARAMETER        = "types";
-	private static final int MEGABYTE = 1024 * 1024;
-	private static final int MEMORY_THRESHOLD = 10 * MEGABYTE;  // above 10 MB, files are stored on disk
+	private static final String DOWNLOAD_URL_PARAMETER        = "downloadUrl";
+	private static final String REDIRECT_URL_PARAMETER        = "redirectUrl";
+	private static final String FILE_PARAMETER                = "file";
+	private static final String NAME_PARAMETER                = "name";
+	private static final String MODE_PARAMETER                = "mode";
+	private static final String TYPES_PARAMETER               = "types";
+	private static final int MEGABYTE                         = 1024 * 1024;
+	private static final int MEMORY_THRESHOLD                 = 10 * MEGABYTE;  // above 10 MB, files are stored on disk
 
 	// non-static fields
 	private ServletFileUpload uploader = null;
@@ -270,14 +270,14 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			response.setContentType("text/html");
 
 			final FileItemIterator fileItemsIterator   = uploader.getItemIterator(request);
-			final Map<String, Object> params           = new HashMap<>();
 			final String directoryPath                 = "/tmp/" + UUID.randomUUID();
 			final String filePath                      = directoryPath + ".zip";
 			final File file                            = new File(filePath);
 
-			String downloadUrl = null;
-			String fileName    = null;
-			String mode        = null;
+			String downloadUrl        = null;
+			String fileName           = null;
+			String mode               = null;
+			boolean rebuildAllIndexes = false;
 
 			while (fileItemsIterator.hasNext()) {
 
@@ -291,17 +291,18 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 					if (DOWNLOAD_URL_PARAMETER.equals(fieldName)) {
 
 						downloadUrl = StringUtils.trim(fieldValue);
-						params.put(fieldName, fieldValue);
 
 					} else if (REDIRECT_URL_PARAMETER.equals(fieldName)) {
 
 						redirectUrl = fieldValue;
-						params.put(fieldName, fieldValue);
+
+					} else if (DeployDataCommand.REBUILDALLINDEXES_PARAMTER_NAME.equals(fieldName)) {
+
+						rebuildAllIndexes = fieldValue.equals("true");
 
 					} else if (MODE_PARAMETER.equals(fieldName)) {
 
 						mode = fieldValue;
-						params.put(fieldName, fieldValue);
 
 					} else if (FILE_PARAMETER.equals(fieldName)) {
 
@@ -346,7 +347,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 					return;
 				}
-
 			}
 
 			if (file.exists() && file.length() > 0L) {
@@ -359,7 +359,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 					} else if ("data".equals(mode)) {
 
-						deployDataFile(file, fileName, directoryPath, securityContext);
+						deployDataFile(file, fileName, directoryPath, securityContext, rebuildAllIndexes);
 
 					} else {
 
@@ -573,7 +573,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	private void deployDataFile(final File file, final String fileName, final String directoryPath, final SecurityContext securityContext) throws FrameworkException, IOException {
+	private void deployDataFile(final File file, final String fileName, final String directoryPath, final SecurityContext securityContext, final boolean rebuildAllIndexes) throws FrameworkException, IOException {
 
 		unzip(file, directoryPath);
 
@@ -583,6 +583,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 		attributes.put("mode", "import");
 		attributes.put("source", directoryPath  + "/" + StringUtils.substringBeforeLast(fileName, "."));
+		attributes.put(DeployDataCommand.REBUILDALLINDEXES_PARAMTER_NAME, rebuildAllIndexes);
 
 		deployDataCommand.execute(attributes);
 
