@@ -70,4 +70,7 @@ public interface JsonMethod extends Comparable<JsonMethod> {
 
 	boolean includeInOpenAPI();
 	JsonMethod setIncludeInOpenAPI(final boolean includeInOpenAPI);
+
+	String getOpenAPIReturnType();
+	JsonMethod setOpenAPIReturnType(final String openAPIReturnType);
 }

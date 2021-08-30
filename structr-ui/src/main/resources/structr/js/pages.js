@@ -647,12 +647,15 @@ let _Pages = {
 	},
 	resizeColumns: function(pxLeft, pxRight) {
 
+		if (!pxLeft && !pxRight) {
+			pxLeft = LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 200;
+			pxRight = LSWrapper.getItem(_Pages.pagesResizerRightKey) || 200;
+		}
+
 		let leftResizer       = document.querySelector('.column-resizer-left');
 		let openLeftSlideout  = document.querySelector('.slideOutLeft.open');
 		let rightResizer      = document.querySelector('.column-resizer-right');
 		let openRightSlideout = document.querySelector('.slideOutRight.open');
-
-		if (!leftResizer) return;
 
 		if (!openLeftSlideout) {
 			pxLeft = 0;
@@ -666,59 +669,64 @@ let _Pages = {
 
 		let tabsMenu = document.querySelector('#function-bar .tabs-menu');
 
-		if (pxLeft) {
+		if (leftResizer) {
 
-			leftResizer.style.left = 'calc(' + leftPos + 'px + 0rem)';
+			if (pxLeft) {
 
-			if (openLeftSlideout) openLeftSlideout.style.width = 'calc(' + leftPos + 'px - 3rem)';
+				leftResizer.style.left = 'calc(' + leftPos + 'px + 0rem)';
 
-			_Pages.centerPane.style.marginLeft = 'calc(' + leftPos + 'px + 3rem)';
+				if (openLeftSlideout) openLeftSlideout.style.width = 'calc(' + leftPos + 'px - 3rem)';
 
-			if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
-
-		} else {
-
-			if (leftPos === 0) {
+				_Pages.centerPane.style.marginLeft = 'calc(' + leftPos + 'px + 3rem)';
 
 				if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
 
-				let columnResizerLeft = '4rem';
-				leftResizer.style.left = columnResizerLeft;
-				_Pages.centerPane.style.marginLeft = columnResizerLeft;
-
 			} else {
 
-				if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 0rem)';
+				if (leftPos === 0) {
 
-				leftResizer.style.left = 'calc(' + leftPos + 'px - 1rem)';
-				_Pages.centerPane.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
+					if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
+
+					let columnResizerLeft = '4rem';
+					leftResizer.style.left = columnResizerLeft;
+					_Pages.centerPane.style.marginLeft = columnResizerLeft;
+
+				} else {
+
+					if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 0rem)';
+
+					leftResizer.style.left = 'calc(' + leftPos + 'px - 1rem)';
+					_Pages.centerPane.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
+				}
 			}
 		}
 
-		if (!rightResizer) return;
+		if (rightResizer) {
 
-		if (pxRight) {
+			if (pxRight) {
 
-			rightResizer.style.left = 'calc(' + (window.innerWidth - rightPos) + 'px + 0rem)';
+				rightResizer.style.left = 'calc(' + (window.innerWidth - rightPos) + 'px + 0rem)';
 
-			if (openRightSlideout) openRightSlideout.style.width = 'calc(' + rightPos + 'px - 7rem)';
+				if (openRightSlideout) openRightSlideout.style.width = 'calc(' + rightPos + 'px - 7rem)';
 
-			_Pages.centerPane.style.marginRight = 'calc(' + rightPos + 'px - 1rem)';
-
-		} else {
-
-			if (rightPos === 0) {
-
-				let columnResizerRight = '4rem';
-				rightResizer.style.left = columnResizerRight;
-				_Pages.centerPane.style.marginRight = columnResizerRight;
+				_Pages.centerPane.style.marginRight = 'calc(' + rightPos + 'px - 1rem)';
 
 			} else {
 
-				rightResizer.style.left = 'calc(' + (window.innerWidth - rightPos) + 'px - 3rem)';
-				_Pages.centerPane.style.marginRight = 'calc(' + (rightPos) + 'px + 2rem)';
+				if (rightPos === 0) {
+
+					let columnResizerRight = '4rem';
+					rightResizer.style.left = columnResizerRight;
+					_Pages.centerPane.style.marginRight = columnResizerRight;
+
+				} else {
+
+					rightResizer.style.left = 'calc(' + (window.innerWidth - rightPos) + 'px - 3rem)';
+					_Pages.centerPane.style.marginRight = 'calc(' + (rightPos) + 'px + 2rem)';
+				}
 			}
 		}
+
 	},
 	refresh: function() {
 
@@ -740,8 +748,6 @@ let _Pages = {
 			Structr.initVerticalSlider($('.column-resizer-right', main), _Pages.pagesResizerRightKey, 400, _Pages.moveRightResizer, true);
 
 			Structr.unblockMenu(500);
-
-			_Pages.resizeColumns(LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 200, LSWrapper.getItem(_Pages.pagesResizerRightKey) || 200);
 
 			if (_Pages.getActiveTabLeft()) {
 				$('#' + _Pages.getActiveTabLeft()).click();

@@ -2862,21 +2862,21 @@ function formatArrayValueField(key, values, isMultiline, isReadOnly, isPassword)
 
 		if (isMultiline) {
 
-			html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + '>' + value + '</textarea> <i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>';
+			html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + ' autocomplete="new-password">' + value + '</textarea> <i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>';
 
 		} else {
 
-			html += '<div class="array-attr"><input name="' + key + '" type="' + (isPassword ? 'password" autocomplete="new-password' : 'text') + '" value="' + value + '"' + (isReadOnly ? 'readonly class="readonly"' : '') + '> <i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>';
+			html += '<div class="array-attr"><input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" value="' + value + '"' + (isReadOnly ? 'readonly class="readonly"' : '') + ' autocomplete="new-password"> <i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>';
 		}
 	});
 
 	if (isMultiline) {
 
-		html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + '></textarea></div>';
+		html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + ' autocomplete="new-password"></textarea></div>';
 
 	} else {
 
-		html += '<div class="array-attr"><input name="' + key + '" type="' + (isPassword ? 'password" autocomplete="new-password' : 'text') + '" value=""' + (isReadOnly ? 'readonly class="readonly"' : '') + '></div>';
+		html += '<div class="array-attr"><input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" value=""' + (isReadOnly ? 'readonly class="readonly"' : '') + ' autocomplete="new-password"></div>';
 	}
 
 	return html;
@@ -2887,10 +2887,10 @@ function formatRegularValueField(key, value, isMultiline, isReadOnly, isPassword
 
 	if (isMultiline) {
 
-		return '<textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + '>' + value + '</textarea>';
+		return '<textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + ' autocomplete="new-password">' + value + '</textarea>';
 
 	} else {
 
-		return '<input name="' + key + '" type="' + (isPassword ? 'password" autocomplete="new-password' : 'text') + '" value="' + value + '"' + (isReadOnly ? 'readonly class="readonly"' : '') + '>';
+		return '<input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" value="' + value + '"' + (isReadOnly ? 'readonly class="readonly"' : '') + ' autocomplete="new-password">';
 	}
 }
