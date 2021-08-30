@@ -1943,7 +1943,7 @@ var _Code = {
 		let identifier = _Code.splitIdentifier(data);
 
 		// ID of schema method can either be in typeId (for global schema methods) or in memberId (for type methods)
-		Command.get(identifier.memberId || identifier.typeId, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,isStatic,schemaNode,source,returnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', function(result) {
+		Command.get(identifier.memberId || identifier.typeId, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,isStatic,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', function(result) {
 
 			_Code.updateRecentlyUsed(result, identifier.source, data.updateLocationStack);
 
@@ -2066,7 +2066,7 @@ var _Code = {
 							_Code.updateDirtyFlag(result);
 						});
 
-						_Code.editPropertyContent(result, 'returnType', $('.editor-wrapper', apiTab), {mode: "application/json", lint: true, gutters: ["CodeMirror-lint-markers"]});
+						_Code.editPropertyContent(result, 'openAPIReturnType', $('.editor-wrapper', apiTab), {mode: "application/json", lint: true, gutters: ["CodeMirror-lint-markers"]});
 
 						Structr.activateCommentsInElement(apiTab);
 					});
