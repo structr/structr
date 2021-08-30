@@ -39,6 +39,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Div;
@@ -48,6 +49,8 @@ import org.structr.web.entity.html.Option;
 import org.structr.web.entity.html.Select;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
+
+import org.structr.websocket.command.CreateComponentCommand;
 import org.testng.annotations.Test;
 
 public class Deployment5Test extends DeploymentTestBase {
@@ -308,4 +311,78 @@ public class Deployment5Test extends DeploymentTestBase {
 
 	}
 
+	@Test
+	public void test53CircularNestedSharedComponents() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			app.create(User.class,
+					new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
+					new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
+					new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page shadowPage = CreateComponentCommand.getOrCreateHiddenDocument();
+
+			final Page page = Page.createNewPage(securityContext, "test52");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test52");
+
+			final Body body       = createElement(page, html, "body");
+
+			final Div div1        = createElement(page, body, "div");
+			final Div div2        = createElement(page, body, "div");
+
+			final DOMNode comp1   = createComponent(div1);
+			final DOMNode comp2   = createComponent(div2);
+
+			comp1.setProperty(AbstractNode.name, "shared-component-one");
+			comp1.setProperty(StructrApp.key(DOMNode.class, "hideConditions"), "{ return $.requestStore['SC1_render_count'] > 3; }");
+
+			comp2.setProperty(AbstractNode.name, "shared-component-two");
+			comp2.setProperty(StructrApp.key(DOMNode.class, "hideConditions"), "{ return $.requestStore['SCS_render_count'] > 3; }");
+
+
+			createContent(shadowPage, comp1, "shared-component-one\n" +
+					"${{\n" +
+					"\n" +
+					"\tlet cnt2 = $.requestStore['SC1_render_count'] || 0;\n" +
+					"\t\n" +
+					"\t$.requestStore['SC1_render_count'] = cnt2 + 1;\n" +
+					"\n" +
+					"}}");
+
+			createContent(shadowPage, comp2, "shared-component-two\n" +
+					"${{\n" +
+					"\n" +
+					"\tlet cnt2 = $.requestStore['SC2_render_count'] || 0;\n" +
+					"\t\n" +
+					"\t$.requestStore['SC2_render_count'] = cnt2 + 1;\n" +
+					"\n" +
+					"}}");
+
+			// insert shared-component-one in shared-component-two (AND vice versa)
+			cloneComponent(comp1, comp2);
+			cloneComponent(comp2, comp1);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
 }
