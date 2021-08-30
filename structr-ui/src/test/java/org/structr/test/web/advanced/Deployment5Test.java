@@ -347,12 +347,15 @@ public class Deployment5Test extends DeploymentTestBase {
 			final DOMNode comp1   = createComponent(div1);
 			final DOMNode comp2   = createComponent(div2);
 
+			// remove both divs from body (to later add the shared components)
+			body.removeChild(div1);
+			body.removeChild(div2);
+
 			comp1.setProperty(AbstractNode.name, "shared-component-one");
 			comp1.setProperty(StructrApp.key(DOMNode.class, "hideConditions"), "{ return $.requestStore['SC1_render_count'] > 3; }");
 
 			comp2.setProperty(AbstractNode.name, "shared-component-two");
 			comp2.setProperty(StructrApp.key(DOMNode.class, "hideConditions"), "{ return $.requestStore['SCS_render_count'] > 3; }");
-
 
 			createContent(shadowPage, comp1, "shared-component-one\n" +
 					"${{\n" +
@@ -375,6 +378,10 @@ public class Deployment5Test extends DeploymentTestBase {
 			// insert shared-component-one in shared-component-two (AND vice versa)
 			cloneComponent(comp1, comp2);
 			cloneComponent(comp2, comp1);
+
+			// insert shared components into page
+			cloneComponent(comp1, body);
+			cloneComponent(comp2, body);
 
 			tx.success();
 
