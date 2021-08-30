@@ -75,6 +75,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private boolean isStatic                                  = false;
 	private JsonType parent                                   = null;
 	private String returnType                                 = "void";
+	private String openAPIReturnType                          = "void";
 	private String codeType                                   = null;
 	private String name                                       = null;
 	private String description                                = null;
@@ -205,6 +206,15 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	@Override
+	public String getOpenAPIReturnType() { return openAPIReturnType; }
+
+	@Override
+	public JsonMethod setOpenAPIReturnType(final String openAPIReturnType) {
+		this.openAPIReturnType = openAPIReturnType;
+		return this;
+	}
+
+	@Override
 	public boolean callSuper() {
 		return callSuper;
 	}
@@ -317,6 +327,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		getOrCreateProperties.put(SchemaMethod.signature,             getSignature());
 		getOrCreateProperties.put(SchemaMethod.codeType,              getCodeType());
 		getOrCreateProperties.put(SchemaMethod.returnType,            getReturnType());
+		getOrCreateProperties.put(SchemaMethod.openAPIReturnType,     getOpenAPIReturnType());
 		getOrCreateProperties.put(SchemaMethod.schemaNode,            schemaNode);
 		getOrCreateProperties.put(SchemaMethod.exceptions,            getExceptions().toArray(new String[0]));
 		getOrCreateProperties.put(SchemaMethod.overridesExisting,     overridesExisting());
@@ -390,6 +401,12 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		if (_returnType != null && _returnType instanceof String) {
 
 			this.returnType = (String)_returnType;
+		}
+
+		final Object _openAPIReturnType = source.get(JsonSchema.KEY_OPENAPI_RETURN_TYPE);
+		if (_openAPIReturnType != null && _openAPIReturnType instanceof String) {
+
+			this.openAPIReturnType = (String)_openAPIReturnType;
 		}
 
 		final Object _exceptions = source.get(JsonSchema.KEY_EXCEPTIONS);
@@ -483,6 +500,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		setOverridesExisting(method.getProperty(SchemaMethod.overridesExisting));
 		setDoExport(method.getProperty(SchemaMethod.doExport));
 		setIncludeInOpenAPI(method.getProperty(SchemaMethod.includeInOpenAPI));
+		setOpenAPIReturnType(method.getProperty(SchemaMethod.openAPIReturnType));
 
 		final String[] exceptionArray = method.getProperty(SchemaMethod.exceptions);
 		if (exceptionArray != null) {
@@ -528,6 +546,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		map.put(JsonSchema.KEY_OVERRIDES_EXISTING, overridesExisting);
 		map.put(JsonSchema.KEY_DO_EXPORT, doExport);
 		map.put(JsonSchema.KEY_INCLUDE_IN_OPENAPI, includeInOpenAPI);
+		map.put(JsonSchema.KEY_OPENAPI_RETURN_TYPE, openAPIReturnType);
 
 		for (final StructrParameterDefinition param : parameters) {
 			params.put(param.getName(), param.serialize());
@@ -695,13 +714,13 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	public Map<String, Object> getOpenAPISuccessResponse() {
 
 		final Map<String, Object> schemaFromJsonString = new LinkedHashMap<>();
-		final String returnType                        = getReturnType();
+		final String returnType                        = getOpenAPIReturnType();
 
 		if (returnType != null) {
 
 			try {
 
-				schemaFromJsonString.putAll(new GsonBuilder().create().fromJson(getReturnType(), Map.class));
+				schemaFromJsonString.putAll(new GsonBuilder().create().fromJson(returnType, Map.class));
 
 			} catch (Throwable ignore) {}
 

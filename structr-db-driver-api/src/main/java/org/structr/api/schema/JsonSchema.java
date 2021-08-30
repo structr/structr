@@ -80,6 +80,7 @@ public interface JsonSchema {
 	public static final String KEY_CODE_TYPE                = "codeType";
 	public static final String KEY_OVERRIDES_EXISTING       = "overridesExisting";
 	public static final String KEY_RETURN_TYPE              = "returnType";
+	public static final String KEY_OPENAPI_RETURN_TYPE      = "openAPIReturnType";
 	public static final String KEY_EXCEPTIONS               = "exceptions";
 	public static final String KEY_CALL_SUPER               = "callSuper";
 	public static final String KEY_IS_STATIC                = "isStatic";

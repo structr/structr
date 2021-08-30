@@ -221,7 +221,7 @@ public class OpenAPIEndpointTest extends StructrRestTestBase {
 
 			// method with parameter and return type
 			customer.addMethod("doTestParamsReturn", "log('Test')").setIncludeInOpenAPI(true).addTags("test", "customer")
-				.setReturnType(returnTypeJson)
+				.setOpenAPIReturnType(returnTypeJson)
 				.addParameter("id", "string").setDescription("The ID of the test object.");
 
 			// static method
@@ -237,7 +237,7 @@ public class OpenAPIEndpointTest extends StructrRestTestBase {
 			// static method with parameter and return type
 			customer.addMethod("doStaticParamsReturn",  "log('Static')").setIncludeInOpenAPI(true).addTags("test", "customer")
 				.setIsStatic(true)
-				.setReturnType(returnTypeJson)
+				.setOpenAPIReturnType(returnTypeJson)
 				.addParameter("id", "string").setDescription("The ID of the test object.");
 
 			// add global schema methods (no way of doing this with JsonSchema.. :'()
