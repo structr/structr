@@ -413,8 +413,8 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		responses.put("validationError", new OpenAPIRequestResponse("The request entity was not valid, or validation failed.",
 			new OpenAPIReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "422", "message", "Unable to commit transaction, validation failed", "errors", List.of(
-				Map.of("type", "Folder", "property", "name", "token", "must_not_be_empty"),
-				Map.of("type", "Folder", "property", "name", "token", "must_match", "detail", "[^\\\\/\\\\x00]+")
+				Map.of("type", "ExampleType", "property", "name", "token", "must_not_be_empty"),
+				Map.of("type", "ExampleType", "property", "name", "token", "must_match", "detail", "[^\\\\/\\\\x00]+")
 			))
 		));
 
