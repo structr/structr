@@ -1064,9 +1064,9 @@ var _Schema = {
 			$('#source-type-name').text(sourceTypeName);
 			$('#target-type-name').text(targetTypeName);
 
-			dialogBtn.prepend('<button id="edit-rel-options-button"><i class="edit icon ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /> Edit relationship options</button>\n' +
-				'<button id="save-rel-options-button"><i class="save icon ' + _Icons.getFullSpriteClass(_Icons.tick_icon) +'" /> Save</button>\n' +
-				'<button id="cancel-rel-options-button"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) +'" /> Discard</button>\n');
+			dialogBtn.prepend('<button id="edit-rel-options-button"><i class="edit icon ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '"></i> Edit relationship options</button>\n' +
+				'<button id="save-rel-options-button" class="inline-flex items-center">' + _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green mr-2') + ' Save</button>\n' +
+				'<button id="cancel-rel-options-button" class="inline-flex items-center">' + _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red mr-2') + ' Discard</button>\n');
 
 			$('#edit-rel-options-button').hide();
 			let saveButton = $('#save-rel-options-button');
@@ -1210,9 +1210,9 @@ var _Schema = {
 				$('#masked-properties').val(rel.propertyMask);
 			};
 
-			dialogBtn.prepend('<button id="edit-rel-options-button"><i class="edit icon ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /> Edit relationship options</button>\n' +
-				'<button id="save-rel-options-button"><i class="save icon ' + _Icons.getFullSpriteClass(_Icons.tick_icon) +'" /> Save</button>\n' +
-				'<button id="cancel-rel-options-button"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) +'" /> Discard</button>\n');
+			dialogBtn.prepend('<button id="edit-rel-options-button"><i class="edit icon ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '"></i> Edit relationship options</button>\n' +
+				'<button id="save-rel-options-button" class="inline-flex items-center">' + _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green mr-2') + ' Save</button>\n' +
+				'<button id="cancel-rel-options-button" class="inline-flex items-center">' + _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red mr-2') + ' Discard</button>\n');
 
 			if (!saveSuccessFunction) {
 
@@ -2967,10 +2967,9 @@ var _Schema = {
 
 				dialogMeta.hide();
 
-				var contentEl = dialogText;
-
-				var contentDiv = $('<div id="tabView-methods" class="schema-details"></div>');
-				var outerDiv = $('<div class="schema-details"></div>');
+				let contentEl  = dialogText;
+				let contentDiv = $('<div id="tabView-methods" class="schema-details"></div>');
+				let outerDiv   = $('<div class="schema-details"></div>');
 				outerDiv.append(contentDiv);
 				contentEl.append(outerDiv);
 
@@ -3013,19 +3012,6 @@ var _Schema = {
 
 			return true;
 		},
-	},
-	confirmRemoveSchemaEntity: function(entity, title, callback, hint) {
-
-		Structr.confirmation('<h3>' + title + ' ' + entity.name + '?</h3>' + (hint ? '<p>' + hint + '</p>' : ''),
-			function() {
-				$.unblockUI({
-					fadeOut: 25
-				});
-
-				_Schema.removeSchemaEntity(entity, callback);
-			},
-			callback
-		);
 	},
 	resize: function() {
 

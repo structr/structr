@@ -482,11 +482,8 @@ var _Code = {
 
 		if (!fromStorage) {
 
-			var recentElements = LSWrapper.getItem(_Code.codeRecentElementsKey) || [];
-
-			var updatedList = recentElements.filter(function(recentElement) {
-				return (recentElement.id !== id);
-			});
+			let recentElements = LSWrapper.getItem(_Code.codeRecentElementsKey) || [];
+			let updatedList    = recentElements.filter((recentElement) => { return (recentElement.id !== id); });
 			updatedList.unshift({ id: id, name: name, iconClass: iconClass, path: path });
 
 			// keep list at length 10
@@ -1588,7 +1585,7 @@ var _Code = {
 					]
 				};
 
-				Structr.fetchHtmlTemplate('code/schema-grants-table', schemaGrantsTableConfig, function(html) {
+				Structr.fetchHtmlTemplate('schema/schema-table', schemaGrantsTableConfig, function(html) {
 
 					let schemaGrantsContainer = document.querySelector('#schema-grants');
 					schemaGrantsContainer.innerHTML = html;
@@ -2335,7 +2332,7 @@ var _Code = {
 
 			$('#schema-node-name').off('blur').on('blur', function() {
 
-				var name = $(this).val();
+				let name = $(this).val();
 
 				_Code.showSchemaRecompileMessage();
 
@@ -2359,8 +2356,8 @@ var _Code = {
 			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: false }, function(result) {
 
 				result.forEach(function(t) {
-					_Code.displayActionButton('#existing-types', 'fa fa-file-code-o', t.id, t.name, function() {
-						_Code.findAndOpenNode('Types/Custom/' + t.name);
+					_Code.displayActionButton('#existing-types', 'fa fa-file-code-o', t.id, t.name, () => {
+						_Code.findAndOpenNode('custom--' + t.id);
 					});
 				});
 			}, true);
@@ -2374,6 +2371,16 @@ var _Code = {
 	displayBuiltInTypesContent: function() {
 		Structr.fetchHtmlTemplate('code/builtin', { }, function(html) {
 			codeContents.append(html);
+
+			// list of existing custom types
+			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: true }, function(result) {
+
+				result.forEach(function(t) {
+					_Code.displayActionButton('#builtin-types', 'fa fa-file-code-o', t.id, t.name, () => {
+						_Code.findAndOpenNode('builtin--' + t.id);
+					});
+				});
+			}, true);
 		});
 	},
 	displayPropertiesContent: function(selection, updateLocationStack) {
