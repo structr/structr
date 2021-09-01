@@ -327,7 +327,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		getOrCreateProperties.put(SchemaMethod.signature,             getSignature());
 		getOrCreateProperties.put(SchemaMethod.codeType,              getCodeType());
 		getOrCreateProperties.put(SchemaMethod.returnType,            getReturnType());
-		getOrCreateProperties.put(SchemaMethod.openAPIReturnType,     getOpenAPIReturnType());
 		getOrCreateProperties.put(SchemaMethod.schemaNode,            schemaNode);
 		getOrCreateProperties.put(SchemaMethod.exceptions,            getExceptions().toArray(new String[0]));
 		getOrCreateProperties.put(SchemaMethod.overridesExisting,     overridesExisting());
@@ -346,6 +345,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		updateProperties.put(SchemaMethod.isPartOfBuiltInSchema, true);
 		updateProperties.put(SchemaMethod.isStatic,              isStatic());
 		updateProperties.put(SchemaMethod.includeInOpenAPI,      includeInOpenAPI());
+		updateProperties.put(SchemaMethod.openAPIReturnType,     getOpenAPIReturnType());
 
 		final Set<String> mergedTags     = new LinkedHashSet<>(this.tags);
 		final String[] existingTagsArray = method.getProperty(SchemaMethod.tags);
