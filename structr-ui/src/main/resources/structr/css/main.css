@@ -3467,26 +3467,6 @@ button.action-button-open {
 	box-shadow: 0px 0px 36px var(--gray-opacity-20);
 }
 
-button.create-form-button {
-	margin: 0 !important;
-	padding: 0 8px;
-}
-
-button.create-form-button:hover {
-	margin: 0 !important;
-	padding: 0 8px;
-}
-
-button.create-form-button.cancel {
-	float: left;
-	color: var(--gray-ccc);
-}
-
-button.create-form-button.accept {
-	float: right;
-	color: var(--structr-green);
-}
-
 table.dataTable thead th, table.dataTable thead td {
 	border-bottom: 1px solid var(--gray-ccc) !important;
 }
@@ -4641,6 +4621,18 @@ table.props td.__value {
 .mr-2 {
 	margin-right: .5rem;
 }
+.mt-2 {
+	margin-top: .5rem;
+}
+.mt-3 {
+	margin-top: .75rem;
+}
+.mt-4 {
+	margin-top: 1rem;
+}
+.ml-2 {
+	margin-left: .5rem;
+}
 .ml-4 {
 	margin-left: 1rem;
 }
@@ -4670,4 +4662,12 @@ table.props td.__value {
 }
 .pt-4 {
 	padding-top: 1rem;
+}
+.px-3 {
+	padding-left: .75rem;
+	padding-right: .75rem;
+}
+.py-1 {
+	padding-top: .25rem;
+	padding-bottom: .25rem;
 }

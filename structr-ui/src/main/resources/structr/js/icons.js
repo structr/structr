@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var _Icons = {
+let _Icons = {
 	application_form_add: 'icon/application_form_add.png',
 	add_icon: 'icon/add.png',
 	delete_icon: 'icon/delete.png',

@@ -1185,27 +1185,29 @@ var _Code = {
 	},
 	getDisplayNameInRecentsForType: function (entity) {
 
-		var name = entity.name;
+		let displayName = entity.name;
 
 		switch (entity.type) {
 			case 'SchemaNode':
-				name = 'Class ' + entity.name;
+				displayName = 'Type ' + entity.name;
 				break;
+
 			case 'SchemaMethod':
 				if (entity.schemaNode && entity.schemaNode.name) {
-					name = entity.schemaNode.name + '.' + entity.name + '()';
+					displayName = entity.schemaNode.name + '.' + entity.name + '()';
 				} else {
-					name = entity.name + '()';
+					displayName = entity.name + '()';
 				}
 				break;
+
 			case 'SchemaProperty':
 				if (entity.schemaNode && entity.schemaNode.name) {
-					name = entity.schemaNode.name + '.' + entity.name;
+					displayName = entity.schemaNode.name + '.' + entity.name;
 				}
 				break;
 		}
 
-		return name;
+		return displayName;
 	},
 	getIconForNodeType: function(entity) {
 
@@ -1385,7 +1387,7 @@ var _Code = {
 						break;
 
 					case 'custom':
-						_Code.displayCustomTypesContent(data);
+						_Code.displayCustomTypesContent();
 						break;
 
 					case 'builtin':
@@ -1457,20 +1459,19 @@ var _Code = {
 					_Code.saveEntityAction(result);
 				};
 
-				var buttons = $('#method-buttons');
+				let buttons = $('#method-buttons');
 				buttons.prepend(html);
 
-				_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save', _Code.runCurrentEntitySaveAction);
+				_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save', _Code.runCurrentEntitySaveAction);
 
-				_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
+				_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red'), 'cancel', 'Revert changes', function() {
 					_Code.revertFormData(result);
 				});
 
 				// delete button
 				if (!result.isBuiltinType) {
-					_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete type ' + result.name, function() {
+					_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'delete', 'Delete type ' + result.name, function() {
 						_Code.deleteSchemaEntity(result, 'Delete type ' + result.name + '?', 'This will delete all schema relationships as well, but no data will be removed.', identifier);
-						_TreeHelper.refreshTree('#code-tree');
 					});
 				}
 
@@ -1553,7 +1554,7 @@ var _Code = {
 						});
 					});
 
-					_Code.displayActionButton('#type-actions', _Icons.getFullSpriteClass(_Icons.add_folder_icon), 'new', 'Create new Working Set', function() {
+					_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('folder_add', 14, 14, ''), 'new', 'Create new Working Set', function() {
 
 						_WorkingSets.createNewSetAndAddType(result.name, function(ws) {
 							_TreeHelper.refreshNode('#code-tree', 'workingsets');
@@ -2019,21 +2020,21 @@ var _Code = {
 					let buttons = $('#method-buttons');
 					buttons.prepend(html);
 
-					_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save method', _Code.runCurrentEntitySaveAction);
+					_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save method', _Code.runCurrentEntitySaveAction);
 
-					_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
+					_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red'), 'cancel', 'Revert changes', function() {
 						_Code.additionalDirtyChecks = [];
 						_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'), sourceEditor.getCursor());
 					});
 
 					// delete button
-					_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete method', function() {
+					_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'delete', 'Delete method', function() {
 						_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', identifier);
 					});
 
 					// run button and global schema method flags
 					if (!result.schemaNode && !result.isPartOfBuiltInSchema) {
-						_Code.displayActionButton('#method-actions', _Icons.getFullSpriteClass(_Icons.exec_blue_icon), 'run', 'Run method', function() {
+						_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('run_button', 14, 14, ''), 'run', 'Run method', function() {
 							_Code.runGlobalSchemaMethod(result);
 						});
 
@@ -2154,9 +2155,9 @@ var _Code = {
 
 				if (workingSet.name === _WorkingSets.recentlyUsedName) {
 
-					_Code.displayActionButton('#working-set-content', _Icons.getFullSpriteClass(_Icons.delete_icon), 'clear', 'Clear', function() {
+					_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'clear', 'Clear', function() {
 						_WorkingSets.clearRecentlyUsed(function() {
-							_TreeHelper.refreshTree('#code-tree');
+							_Code.refreshTree();
 						});
 					});
 
@@ -2164,7 +2165,7 @@ var _Code = {
 
  				} else {
 
-					_Code.displayActionButton('#working-set-content', _Icons.getFullSpriteClass(_Icons.delete_icon), 'remove', 'Remove', function() {
+					_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'remove', 'Remove', function() {
 						_WorkingSets.deleteSet(identifier.workingSetId, function() {
 							_TreeHelper.refreshNode('#code-tree', 'workingsets');
 							_Code.findAndOpenNode('workingsets');
@@ -2346,9 +2347,9 @@ var _Code = {
 				});
 			});
 		});
-
 	},
-	displayCustomTypesContent: function(data) {
+	displayCustomTypesContent: function() {
+
 		Structr.fetchHtmlTemplate('code/custom', { }, function(html) {
 			codeContents.append(html);
 
@@ -2620,15 +2621,15 @@ var _Code = {
 			let buttons = $('#property-buttons');
 			buttons.prepend(html);
 
-			_Code.displayActionButton('#property-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save property', _Code.runCurrentEntitySaveAction);
+			_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save property', _Code.runCurrentEntitySaveAction);
 
-			_Code.displayActionButton('#property-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
+			_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red'), 'cancel', 'Revert changes', function() {
 				_Code.revertFormData(property);
 			});
 
 			if (!property.schemaNode.isBuiltinType) {
 
-				_Code.displayActionButton('#property-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete property', function() {
+				_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'delete', 'Delete property', function() {
 					_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'No data will be removed.', identifier);
 				});
 			}
@@ -2705,18 +2706,18 @@ var _Code = {
 				}
 			};
 
-			var buttons = $('#view-buttons');
+			let buttons = $('#view-buttons');
 			buttons.prepend(html);
 
-			_Code.displayActionButton('#view-actions', _Icons.getFullSpriteClass(_Icons.floppy_icon), 'save', 'Save view', _Code.runCurrentEntitySaveAction);
+			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save view', _Code.runCurrentEntitySaveAction);
 
-			_Code.displayActionButton('#view-actions', _Icons.getFullSpriteClass(_Icons.cross_icon), 'cancel', 'Revert changes', function() {
+			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red'), 'cancel', 'Revert changes', function() {
 				_Code.revertFormData(view);
 				_Code.displayViewSelect(view);
 			});
 
 			// delete button
-			_Code.displayActionButton('#view-actions', _Icons.getFullSpriteClass(_Icons.delete_icon), 'delete', 'Delete view', function() {
+			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'delete', 'Delete view', function() {
 				_Code.deleteSchemaEntity(view, 'Delete view' + ' ' + view.name + '?', 'Note: Builtin views will be restored in their initial configuration', identifier);
 			});
 
@@ -2819,9 +2820,9 @@ var _Code = {
 	},
 	activateCreateDialog: function(suffix, presetValue, nodeData, elHtml) {
 
-		var button = $('button#action-button-' + suffix);
+		let button = $('button#action-button-' + suffix);
 
-		var revertFunction = function () {
+		let revertFunction = function () {
 			button.replaceWith(elHtml);
 			_Code.activateCreateDialog(suffix, presetValue, nodeData, elHtml);
 		};
@@ -2862,6 +2863,12 @@ var _Code = {
 			_Code.activateCreateDialog(suffix, presetValue, createData, html);
 		});
 	},
+	displaySvgCreateButton: function(targetId, iconSvg, suffix, name, presetValue, createData) {
+		Structr.fetchHtmlTemplate('code/action-button', { iconSvg: iconSvg, suffix: suffix, name: name }, function(html) {
+			$(targetId).append(html);
+			_Code.activateCreateDialog(suffix, presetValue, createData, html);
+		});
+	},
 	displayActionButton: function(targetId, iconClass, suffix, name, callback) {
 		let buttonId = '#action-button-' + suffix;
 		Structr.fetchHtmlTemplate('code/action-button', { iconClass: iconClass, suffix: suffix, name: name }, function(html) {
@@ -2870,19 +2877,24 @@ var _Code = {
 		});
 		return buttonId;
 	},
+	displaySvgActionButton: function(targetId, iconSvg, suffix, name, callback) {
+		let buttonId = '#action-button-' + suffix;
+		Structr.fetchHtmlTemplate('code/action-button', { iconSvg: iconSvg, suffix: suffix, name: name }, function(html) {
+			$(targetId).append(html);
+			$(buttonId).off('click.action').on('click.action', callback);
+		});
+		return buttonId;
+	},
 	displayCreatePropertyButton: function(targetId, type, nodeData) {
-		var data = Object.assign({}, nodeData);
+		let data = Object.assign({}, nodeData);
 		data['propertyType'] = type;
 		if (type === 'Enum') {
 			data.format = 'value1, value2, value3';
 		}
 		_Code.displayCreateButton(targetId, 'fa fa-' + _Code.getIconForPropertyType(type), type.toLowerCase(), 'Add ' + type + ' property', '', data);
 	},
-	displayCreateMethodButton: function(targetId, type, data, presetValue) {
-		_Code.displayCreateButton(targetId, 'fa fa-' + _Code.getIconForNodeType(data), type.toLowerCase(), 'Add ' + type + ' method', presetValue, data);
-	},
 	displayCreateTypeButton: function(targetId) {
-		_Code.displayCreateButton(targetId, 'fa fa-magic', 'create-type', 'Create new type', '', { type: 'SchemaNode'});
+		_Code.displaySvgCreateButton(targetId, _Icons.getSvgIcon('magic_wand', 14, 14, ''), 'create-type', 'Create new type', '', { type: 'SchemaNode'});
 	},
 	getEditorModeForContent: function(content) {
 		return (content && content.indexOf('{') === 0) ? 'text/javascript' : 'text';
@@ -3074,12 +3086,12 @@ var _Code = {
 	},
 	deleteSchemaEntity: function(entity, title, text, identifier) {
 
-		var path  = identifier.source;
-		var parts = path.split('-');
+		let path  = identifier.source;
+		let parts = path.split('-');
 
 		parts.pop();
 
-		var parent = parts.join('-');
+		let parent = parts.join('-');
 
 		Structr.confirmation('<h3>' + title + '</h3><p>' + (text || '') + '</p>',
 			function() {
@@ -3107,10 +3119,10 @@ var _Code = {
 		dialogBtn.prepend('<button id="run-method">Run</button>');
 		dialogBtn.append('<button id="clear-log">Clear output</button>');
 
-		var paramsOuterBox = $('<div id="params"><h3 class="heading-narrow">Parameters</h3></div>');
-		var paramsBox = $('<div></div>');
+		let paramsOuterBox = $('<div id="params"><h3 class="heading-narrow">Parameters</h3></div>');
+		let paramsBox = $('<div></div>');
 		paramsOuterBox.append(paramsBox);
-		var addParamBtn = $('<i title="Add parameter" class="button ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
+		let addParamBtn = $('<i title="Add parameter" class="button ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '"></i>');
 		paramsBox.append(addParamBtn);
 		dialog.append(paramsOuterBox);
 
@@ -3122,8 +3134,8 @@ var _Code = {
 		});
 
 		addParamBtn.on('click', function() {
-			var newParam = $('<div class="param"><input class="param-name" placeholder="Parameter name"> : <input class="param-value" placeholder="Parameter value"></div>');
-			var removeParam = $('<i class="button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" alt="Remove parameter" title="Remove parameter"/>');
+			let newParam    = $('<div class="param"><input class="param-name" placeholder="Parameter name"> : <input class="param-value" placeholder="Parameter value"></div>');
+			let removeParam = $('<a href="javascript:void(0);">' + _Icons.getSvgIcon('trashcan', 14, 14, 'ml-2') + '</a>');
 
 			newParam.append(removeParam);
 			removeParam.on('click', function() {
