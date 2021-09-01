@@ -52,6 +52,7 @@ import org.structr.core.parser.IsExpression;
 import org.structr.core.parser.MapExpression;
 import org.structr.core.parser.NoneExpression;
 import org.structr.core.parser.NullExpression;
+import org.structr.core.parser.ReduceExpression;
 import org.structr.core.parser.RootExpression;
 import org.structr.core.parser.SliceExpression;
 import org.structr.core.parser.ValueExpression;
@@ -353,6 +354,9 @@ public class Functions {
 
 			case "map":
 				return new MapExpression(row, column);
+
+			case "reduce":
+				return new ReduceExpression(row, column);
 
 			case "slice":
 				return new SliceExpression(row, column);

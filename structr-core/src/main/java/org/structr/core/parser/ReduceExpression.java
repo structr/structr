@@ -1,0 +1,104 @@
+/*
+ * Copyright (C) 2010-2021 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.core.parser;
+
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedScriptException;
+import org.structr.core.GraphObject;
+import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
+
+/**
+ *
+ *
+ */
+
+public class ReduceExpression extends Expression {
+
+	public static final String ERROR_MESSAGE_MAP = "Usage: ${reduce(list, initialValue, reduceExpression)}. Example: ${reduce(this.children, 0, sum(accumulator, data.value)))}";
+
+	private Expression listExpression         = null;
+	private Expression initialValueExpression = null;
+	private Expression reduceExpression       = null;
+
+	public ReduceExpression(final int row, final int column) {
+		super("reduce", row, column);
+	}
+
+	@Override
+	public void add(final Expression expression) throws FrameworkException {
+
+		// first expression must yield a List
+		if (this.listExpression == null) {
+
+			this.listExpression = expression;
+
+		} else if (this.initialValueExpression == null) {
+
+			this.initialValueExpression = expression;
+
+		} else if (this.reduceExpression == null) {
+
+			this.reduceExpression = expression;
+
+		} else {
+
+			throw new FrameworkException(422, "Invalid reduce() expression in builtin function: too many parameters.");
+		}
+
+		expression.parent = this;
+		expression.level  = this.level + 1;
+	}
+
+	@Override
+	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+
+		if (listExpression == null || initialValueExpression == null || reduceExpression == null) {
+			return ERROR_MESSAGE_MAP;
+		}
+
+		final Object listSource = listExpression.evaluate(ctx, entity, hints);
+		Object accumulator      = initialValueExpression.evaluate(ctx, entity, hints);
+
+		if (listSource != null && listSource instanceof Iterable && accumulator != null) {
+
+			final Iterable source     = (Iterable)listSource;
+			final Object oldAccValue  = ctx.getConstant("accumulator");
+			final Object oldDataValue = ctx.getConstant("data");
+
+			for (Object obj : source) {
+
+				ctx.setConstant("accumulator", accumulator);
+				ctx.setConstant("data", obj);
+
+				accumulator = reduceExpression.evaluate(ctx, entity, hints);
+			}
+
+			ctx.setConstant("accumulator", oldAccValue);
+			ctx.setConstant("data",        oldDataValue);
+		}
+
+		return accumulator;
+	}
+
+	@Override
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+		return source;
+	}
+}

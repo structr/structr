@@ -122,8 +122,13 @@ export class Frontend {
 
 		} else {
 
-			// all other node types
-			return element.value;
+			if (element.value.length) {
+				
+				// all other node types
+				return element.value;
+			}
+
+			return null;
 		}
 	}
 

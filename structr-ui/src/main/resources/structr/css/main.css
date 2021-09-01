@@ -4620,6 +4620,9 @@ table.props td.__value {
 .flex-col {
 	flex-direction: column;
 }
+.flex-row {
+	flex-direction: row;
+}
 .flex-grow {
 	flex-grow: 1;
 }
@@ -4628,6 +4631,9 @@ table.props td.__value {
 }
 .items-center {
 	align-items: center;
+}
+.justify-between {
+	justify-content: space-between;
 }
 .mr-1 {
 	margin-right: .25rem;

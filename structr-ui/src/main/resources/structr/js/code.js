@@ -1183,68 +1183,6 @@ var _Code = {
 
 		return editor;
 	},
-	displayCreateButtons: function(showCreateMethodsButton, showCreateGlobalButton, showCreateTypeButton, schemaNodeId) {
-
-		if (showCreateMethodsButton) {
-
-			Structr.fetchHtmlTemplate('code/method-button', {}, function(html) {
-
-				$('#code-button-container').append(html);
-
-				$('#add-method-button').on('click', function() {
-					_Code.createMethodAndRefreshTree('SchemaMethod', $('#schema-method-name').val() || 'unnamed', schemaNodeId);
-				});
-
-				$('#add-onCreate-button').on('click', function() {
-					_Code.createMethodAndRefreshTree('SchemaMethod', 'onCreate', schemaNodeId);
-				});
-
-				$('#add-onSave-button').on('click', function() {
-					_Code.createMethodAndRefreshTree('SchemaMethod', 'onSave', schemaNodeId);
-				});
-			});
-		}
-
-		if (showCreateGlobalButton) {
-
-			Structr.fetchHtmlTemplate('code/global-button', {}, function(html) {
-
-				$('#code-button-container').append(html);
-
-				$('#create-global-method-button').on('click', function() {
-					_Code.createMethodAndRefreshTree('SchemaMethod', $('#schema-method-name').val() || 'unnamed');
-				});
-			});
-		}
-
-		if (showCreateTypeButton) {
-
-			Structr.fetchHtmlTemplate('code/type-button', {}, function(html) {
-
-				$('#code-button-container').append(html);
-
-				$('#add-type-button').on('click', function() {
-					_Code.createMethodAndRefreshTree('SchemaNode', $('#schema-type-name').val());
-				});
-			});
-		}
-	},
-	createMethodAndRefreshTree: function(type, name, schemaNode, callback) {
-
-		_Code.showSchemaRecompileMessage();
-		Command.create({
-			type: type,
-			name: name,
-			schemaNode: schemaNode,
-			source: ''
-		}, function(result) {
-			_TreeHelper.refreshTree('#code-tree');
-			_Code.hideSchemaRecompileMessage();
-			if (callback && typeof callback === 'function') {
-				callback(result);
-			}
-		});
-	},
 	getDisplayNameInRecentsForType: function (entity) {
 
 		var name = entity.name;
@@ -1491,19 +1429,6 @@ var _Code = {
 
 				case 'SchemaRelationshipNode':
 					_Code.displaySchemaRelationshipNodeContent(data, identifier);
-					break;
-			}
-
-		} else {
-
-			switch (identifier.root) {
-
-				case 'globals':
-					_Code.displayCreateButtons(false, true, false, '');
-					break;
-
-				case 'custom':
-					_Code.displayCreateButtons(false, false, true, '');
 					break;
 			}
 		}
