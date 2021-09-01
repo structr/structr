@@ -3045,8 +3045,8 @@ var _Schema = {
 
 			$('.node').each(function(i, elem) {
 				let $elem = $(elem);
-				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left + $elem.width() - canvasPosition.left) / zoom + $elem.width()) + padding);
-				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top + $elem.height() - canvasPosition.top)  / zoom + $elem.height()) + padding);
+				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left + $elem.outerWidth() - canvasPosition.left) / zoom));
+				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top + $elem.outerHeight() - canvasPosition.top)  / zoom + $elem.outerHeight()));
 
 			});
 
@@ -3067,14 +3067,8 @@ var _Schema = {
 				position: 'relative'
 			});
 
-			$('html').css({
-				background: '#fff'
-			});
 		}
 
-		// $('body').css({
-		// 	position: 'relative'
-		// });
 	},
 	removeSchemaEntity: function(entity, onSuccess, onError) {
 
