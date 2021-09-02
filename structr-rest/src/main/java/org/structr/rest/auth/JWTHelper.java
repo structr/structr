@@ -252,6 +252,10 @@ public class JWTHelper {
 
         Principal user = getPrincipalForTokenClaims(claims, eMailKey);
 
+        if (user == null) {
+            return null;
+        }
+
         // Check if the access_token is still valid.
         // If access_token isn't valid anymore, then either it timed out, or the user logged out.
         String tokenReference = claims.getOrDefault("tokenId", new NullClaim()).asString();
@@ -274,6 +278,10 @@ public class JWTHelper {
         }
 
         Principal user =  getPrincipalForTokenClaims(claims, eMailKey);
+
+        if (user == null) {
+            return null;
+        }
 
         // Check if the access_token is still valid.
         // If access_token isn't valid anymore, then either it timed out, or the user logged out.
