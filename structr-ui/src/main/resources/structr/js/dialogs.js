@@ -448,23 +448,20 @@ let _Dialogs = {
 	},
 	contentDialog: (el, entity) => {
 
-		Command.get(entity.id, null, function(htmlProperties) {
+		Structr.fetchHtmlTemplate('dialogs/content.options', { entity: entity, title: _Dialogs.title }, (html) => {
 
-			Structr.fetchHtmlTemplate('dialogs/content.options', { entity: entity, title: _Dialogs.title }, (html) => {
+			el.html(html);
 
-				el.html(html);
+			_Dialogs.populateInputFields(el, entity);
+			_Dialogs.registerSimpleInputChangeHandlers(el, entity);
 
-				_Dialogs.populateInputFields(el, htmlProperties);
-				_Dialogs.registerSimpleInputChangeHandlers(el, htmlProperties);
+			_Dialogs.focusInput(el);
 
-				_Dialogs.focusInput(el);
+			_Dialogs.showCustomProperties(entity);
+			_Dialogs.showRepeaterOptions(el, entity);
+			_Dialogs.showShowHideConditionOptions(el, entity);
+		});
 
-				_Dialogs.showCustomProperties(entity);
-				_Dialogs.showRepeaterOptions(el, entity);
-				_Dialogs.showShowHideConditionOptions(el, entity);
-			});
-
-		}, '_html_');
 	},
 	optionDialog: (el, entity) => {
 
