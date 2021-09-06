@@ -854,6 +854,7 @@ let _Pages = {
 
 			$('#add_page').on('click', function(e) {
 				e.stopPropagation();
+				blinkGreen($(this).parent());
 				Command.createSimplePage();
 			});
 
