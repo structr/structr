@@ -1054,6 +1054,7 @@ var _Schema = {
 	createRelationship: function(sourceId, targetId, headEl, contentEl) {
 
 		Structr.fetchHtmlTemplate('schema/dialog.relationship', {}, function (html) {
+
 			headEl.append(html);
 
 			_Schema.appendCascadingDeleteHelpText();
@@ -1064,9 +1065,11 @@ var _Schema = {
 			$('#source-type-name').text(sourceTypeName);
 			$('#target-type-name').text(targetTypeName);
 
-			dialogBtn.prepend('<button id="edit-rel-options-button"><i class="edit icon ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '"></i> Edit relationship options</button>\n' +
-				'<button id="save-rel-options-button" class="inline-flex items-center">' + _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green mr-2') + ' Save</button>\n' +
-				'<button id="cancel-rel-options-button" class="inline-flex items-center">' + _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red mr-2') + ' Discard</button>\n');
+			if (Structr.isModuleActive(_Schema)) {
+				// move buttons to footer of dialog (in code area they stay put)
+				let buttonsContainer = headEl[0].querySelector('#rel-edit-buttons');
+				dialogBtn[0].prepend(buttonsContainer);
+			}
 
 			$('#edit-rel-options-button').hide();
 			let saveButton = $('#save-rel-options-button');
@@ -1210,9 +1213,11 @@ var _Schema = {
 				$('#masked-properties').val(rel.propertyMask);
 			};
 
-			dialogBtn.prepend('<button id="edit-rel-options-button"><i class="edit icon ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '"></i> Edit relationship options</button>\n' +
-				'<button id="save-rel-options-button" class="inline-flex items-center">' + _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green mr-2') + ' Save</button>\n' +
-				'<button id="cancel-rel-options-button" class="inline-flex items-center">' + _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red mr-2') + ' Discard</button>\n');
+			if (Structr.isModuleActive(_Schema)) {
+				// move buttons to footer of dialog (in code area they stay put)
+				let buttonsContainer = headEl[0].querySelector('#rel-edit-buttons');
+				dialogBtn[0].prepend(buttonsContainer);
+			}
 
 			if (!saveSuccessFunction) {
 
