@@ -1667,7 +1667,10 @@ let _Files = {
 				_Entities.setProperty(file.id, 'isTemplate', false, false, () => {
 					saveFileAction(() => {
 						_Entities.setProperty(file.id, 'isTemplate', true, false, () => {
-							_Files.updateTemplatePreview(element, urlForFileAndPreview);
+							let active = showPreviewCheckbox.is(':checked');
+							if (active) {
+								_Files.updateTemplatePreview(element, urlForFileAndPreview);
+							}
 						});
 					});
 				});
