@@ -1,7 +1,11 @@
-<div style="margin-top: 12px;">
+<div class="mt-4">
 	<input style="width: 100%; box-sizing: border-box;" id="new-object-name-${config.suffix}" value="${config.value}" placeholder="Enter name.." />
 </div>
-<div style="margin-top: 8px;">
-	<button id="cancel-button-${config.suffix}" type="button" class="create-form-button cancel"><i class="${ _Icons.getFullSpriteClass(_Icons.cross_icon) }"></i></button>
-	<button id="create-button-${config.suffix}" type="button" class="create-form-button accept"><i class="${ _Icons.getFullSpriteClass(_Icons.tick_icon) }"></i></button>
+<div class="flex justify-between mt-3">
+	<button id="cancel-button-${config.suffix}" type="button" class="create-form-button cancel flex items-center px-3 py-1">
+		${_Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red')}
+	</button>
+	<button id="create-button-${config.suffix}" type="button" class="create-form-button accept flex items-center px-3 py-1">
+		${_Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green')}
+	</button>
 </div>

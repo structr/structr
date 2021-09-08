@@ -1054,6 +1054,7 @@ var _Schema = {
 	createRelationship: function(sourceId, targetId, headEl, contentEl) {
 
 		Structr.fetchHtmlTemplate('schema/dialog.relationship', {}, function (html) {
+
 			headEl.append(html);
 
 			_Schema.appendCascadingDeleteHelpText();
@@ -1064,9 +1065,11 @@ var _Schema = {
 			$('#source-type-name').text(sourceTypeName);
 			$('#target-type-name').text(targetTypeName);
 
-			dialogBtn.prepend('<button id="edit-rel-options-button"><i class="edit icon ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /> Edit relationship options</button>\n' +
-				'<button id="save-rel-options-button"><i class="save icon ' + _Icons.getFullSpriteClass(_Icons.tick_icon) +'" /> Save</button>\n' +
-				'<button id="cancel-rel-options-button"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) +'" /> Discard</button>\n');
+			if (Structr.isModuleActive(_Schema)) {
+				// move buttons to footer of dialog (in code area they stay put)
+				let buttonsContainer = headEl[0].querySelector('#rel-edit-buttons');
+				dialogBtn[0].prepend(buttonsContainer);
+			}
 
 			$('#edit-rel-options-button').hide();
 			let saveButton = $('#save-rel-options-button');
@@ -1210,9 +1213,11 @@ var _Schema = {
 				$('#masked-properties').val(rel.propertyMask);
 			};
 
-			dialogBtn.prepend('<button id="edit-rel-options-button"><i class="edit icon ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /> Edit relationship options</button>\n' +
-				'<button id="save-rel-options-button"><i class="save icon ' + _Icons.getFullSpriteClass(_Icons.tick_icon) +'" /> Save</button>\n' +
-				'<button id="cancel-rel-options-button"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) +'" /> Discard</button>\n');
+			if (Structr.isModuleActive(_Schema)) {
+				// move buttons to footer of dialog (in code area they stay put)
+				let buttonsContainer = headEl[0].querySelector('#rel-edit-buttons');
+				dialogBtn[0].prepend(buttonsContainer);
+			}
 
 			if (!saveSuccessFunction) {
 
@@ -2967,10 +2972,9 @@ var _Schema = {
 
 				dialogMeta.hide();
 
-				var contentEl = dialogText;
-
-				var contentDiv = $('<div id="tabView-methods" class="schema-details"></div>');
-				var outerDiv = $('<div class="schema-details"></div>');
+				let contentEl  = dialogText;
+				let contentDiv = $('<div id="tabView-methods" class="schema-details"></div>');
+				let outerDiv   = $('<div class="schema-details"></div>');
 				outerDiv.append(contentDiv);
 				contentEl.append(outerDiv);
 
@@ -3014,19 +3018,6 @@ var _Schema = {
 			return true;
 		},
 	},
-	confirmRemoveSchemaEntity: function(entity, title, callback, hint) {
-
-		Structr.confirmation('<h3>' + title + ' ' + entity.name + '?</h3>' + (hint ? '<p>' + hint + '</p>' : ''),
-			function() {
-				$.unblockUI({
-					fadeOut: 25
-				});
-
-				_Schema.removeSchemaEntity(entity, callback);
-			},
-			callback
-		);
-	},
 	resize: function() {
 
 		Structr.resize();
@@ -3045,8 +3036,8 @@ var _Schema = {
 
 			$('.node').each(function(i, elem) {
 				let $elem = $(elem);
-				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left + $elem.width() - canvasPosition.left) / zoom + $elem.width()) + padding);
-				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top + $elem.height() - canvasPosition.top)  / zoom + $elem.height()) + padding);
+				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left + $elem.outerWidth() - canvasPosition.left) / zoom));
+				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top + $elem.outerHeight() - canvasPosition.top)  / zoom + $elem.outerHeight()));
 
 			});
 
@@ -3067,14 +3058,8 @@ var _Schema = {
 				position: 'relative'
 			});
 
-			$('html').css({
-				background: '#fff'
-			});
 		}
 
-		// $('body').css({
-		// 	position: 'relative'
-		// });
 	},
 	removeSchemaEntity: function(entity, onSuccess, onError) {
 

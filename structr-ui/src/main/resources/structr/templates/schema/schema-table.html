@@ -1,10 +1,10 @@
 <table class="${config.class}">
-	<thead>${config.cols.reduce((acc, col) => { return acc + '<th class="' + col.class + '">' + col.title + '</th>'; }, '')}</thead>
+	<thead><tr>${config.cols.reduce((acc, col) => { return acc + '<th class="' + col.class + '">' + col.title + '</th>'; }, '')}</tr></thead>
 	<tbody></tbody>
 	<tfoot class="hidden">
 		<th colspan=${config.cols.length} class="actions-col">
-			<button class="discard-all"><i class="${_Icons.getFullSpriteClass(_Icons.cross_icon)}"></i> Discard all</button>
-			<button class="save-all"><i class="${_Icons.getFullSpriteClass(_Icons.tick_icon)}"></i> Save all</button>
+			<button class="discard-all inline-flex items-center">${_Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red mr-2')} Discard all</button>
+			<button class="save-all inline-flex items-center">${_Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green mr-2')} Save all</button>
 		</th>
 	</tfoot>
 </table>
