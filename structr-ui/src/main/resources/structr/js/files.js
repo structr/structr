@@ -269,6 +269,14 @@ let _Files = {
 		}
 
 		elements.push({
+			name: 'Basic',
+			clickHandler: function() {
+				_Entities.showProperties(entity, 'general');
+				return false;
+			}
+		});
+
+		elements.push({
 			name: 'Properties',
 			clickHandler: function() {
 				_Entities.showProperties(entity, 'ui');
