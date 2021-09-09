@@ -625,10 +625,8 @@ public class HttpService implements RunnableService, StatsCallback {
 						maintenanceHTML.append("<meta charset=\"utf-8\">\n");
 						maintenanceHTML.append("</head>\n<body>\n");
 						maintenanceHTML.append("<h2>Maintenance Mode Active</h2>\n");
-						maintenanceHTML.append("<p>");
 						maintenanceHTML.append(Settings.MaintenanceMessage.getValue());
-						maintenanceHTML.append("</p>\n");
-						maintenanceHTML.append("</body>\n</html>\n");
+						maintenanceHTML.append("\n</body>\n</html>\n");
 
 						response.setContentLength(maintenanceHTML.length());
 
