@@ -226,7 +226,7 @@ let _VirtualTypes = {
 			});
 
 			_Elements.enableContextMenuOnElement(row, virtualType);
-			_Entities.appendEditPropertiesIcon($('.actions', row), virtualType, true);
+			_Entities.appendContextMenuIcon($('.actions', row), virtualType, true);
 
 			let previouslySelectedElement = LSWrapper.getItem(_VirtualTypes.virtualTypeSelectedElementKey);
 			if (previouslySelectedElement && previouslySelectedElement === virtualType.id) {

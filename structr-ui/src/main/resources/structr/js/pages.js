@@ -1259,7 +1259,7 @@ let _Pages = {
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 		//_Entities.appendAccessControlIcon(div, entity);
 
-		_Entities.appendEditPropertiesIcon(div, entity);
+		_Entities.appendContextMenuIcon(div, entity);
 
 		_Elements.enableContextMenuOnElement(div, entity);
 		_Entities.setMouseOver(div);
@@ -1743,7 +1743,7 @@ let _Pages = {
 
 					if (schemaNodes.length === 1) {
 
-						_Entities.appendEditPropertiesIcon($div, {
+						_Entities.appendContextMenuIcon($div, {
 							type: _Pages.localizations.wrapperTypeForContextMenu,
 							entity: schemaNodes[0]
 						}, false);
@@ -1752,7 +1752,7 @@ let _Pages = {
 
 			} else {
 
-				_Entities.appendEditPropertiesIcon($div, {
+				_Entities.appendContextMenuIcon($div, {
 					type: _Pages.localizations.wrapperTypeForContextMenu,
 					entity: entity
 				}, false);

@@ -1022,7 +1022,7 @@ let _Files = {
 			}
 		});
 
-		_Entities.appendEditPropertiesIcon(div, d);
+		_Entities.appendContextMenuIcon(div, d);
 		_Entities.makeSelectable(div);
 
 	},

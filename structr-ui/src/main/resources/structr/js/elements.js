@@ -343,7 +343,7 @@ let _Elements = {
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 
-		_Entities.appendEditPropertiesIcon(div, entity);
+		_Entities.appendContextMenuIcon(div, entity);
 
 		if (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object') {
 
@@ -1029,7 +1029,7 @@ let _Elements = {
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 
-		_Entities.appendEditPropertiesIcon(div, entity);
+		_Entities.appendContextMenuIcon(div, entity);
 
 		_Elements.clickOrSelectElementIfLastSelected(div, entity);
 

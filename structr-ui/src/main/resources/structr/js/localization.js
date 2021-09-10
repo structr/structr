@@ -271,7 +271,7 @@ let _Localization = {
 			});
 
 			_Elements.enableContextMenuOnElement(row, keyAndDomainObject);
-			_Entities.appendEditPropertiesIcon(actionsCol, keyAndDomainObject, true);
+			_Entities.appendContextMenuIcon(actionsCol, keyAndDomainObject, true);
 
 			let previouslySelectedElement = LSWrapper.getItem(_Localization.localizationSelectedElementKey);
 			if (previouslySelectedElement && previouslySelectedElement.htmlId === row[0].id) {

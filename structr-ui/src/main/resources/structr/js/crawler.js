@@ -381,7 +381,7 @@ var _Crawler = {
 			}
 		});
 
-		_Entities.appendEditPropertiesIcon(div, sourcePage);
+		_Entities.appendContextMenuIcon(div, sourcePage);
 		_Entities.setMouseOver(div);
 		_Entities.makeSelectable(div);
 	},
@@ -745,7 +745,7 @@ var _Crawler = {
 
 			var div = Structr.node(subPattern.id);
 			_Entities.appendAccessControlIcon(div, d);
-			_Entities.appendEditPropertiesIcon(div, subPattern);
+			_Entities.appendContextMenuIcon(div, subPattern);
 
 			var delIcon = div.children('.delete_icon');
 
@@ -938,7 +938,7 @@ var _Crawler = {
 			});
 		});
 
-		_Entities.appendEditPropertiesIcon(div, d);
+		_Entities.appendContextMenuIcon(div, d);
 		_Entities.setMouseOver(div);
 		_Entities.makeSelectable(div);
 	},

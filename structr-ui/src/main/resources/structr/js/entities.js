@@ -2247,7 +2247,7 @@ var _Entities = {
 			});
 		});
 	},
-	appendEditPropertiesIcon: function(parent, entity, visible) {
+	appendContextMenuIcon: function(parent, entity, visible) {
 
 		let editIcon = $('.edit_props_icon', parent);
 
