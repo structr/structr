@@ -233,6 +233,10 @@ button.yesButton, button.noButton {
 	color: var(--icon-color-dark-green);
 }
 
+.icon-grey {
+	color: var(--icon-stroke);
+}
+
 .icon-red {
 	color: var(--light-red);
 }
@@ -4686,4 +4690,27 @@ table.props td.__value {
 .py-1 {
 	padding-top: .25rem;
 	padding-bottom: .25rem;
+}
+.truncate {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.overflow-ellipsis {
+	text-overflow: ellipsis;
+}
+.overflow-clip {
+	text-overflow: clip;
+}
+.leading-8 {
+	line-height: 2rem;
+}
+.whitespace-nowrap {
+	white-space: nowrap;
+}
+.justify-between {
+	justify-content: space-between;
+}
+.cursor-pointer {
+	cursor: pointer;
 }

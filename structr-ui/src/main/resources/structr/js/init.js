@@ -1208,8 +1208,8 @@ let Structr = {
 				Structr.activateMenuEntry('pages');
 				window.location.href = '/structr/#pages';
 
-				if (filesMain && filesMain.length) {
-					filesMain.hide();
+				if (_Files.filesMain && _Files.filesMain.length) {
+					_Files.filesMain.hide();
 				}
 				if (_Widgets.widgets && _Widgets.widgets.length) {
 					_Widgets.widgets.hide();
@@ -2448,7 +2448,7 @@ let _TreeHelper = {
 			list.forEach(function(obj) {
 				// only load data necessary for dnd. prevent from loading the complete folder (with its files)
 				Command.get(obj.id, 'id,type,isFolder', function(data) {
-					StructrModel.createFromData(data, null, false);
+					StructrModel.createOrUpdateFromData(data, null, false);
 					_TreeHelper.makeTreeElementDroppable(tree, obj.id);
 				});
 			});

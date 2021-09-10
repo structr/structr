@@ -151,6 +151,19 @@ let StructrModel = {
 
 	},
 	/**
+	 * Create a new model object from data - if it already exists update all keys in the dataset.
+	 * This prevents possible deletion of previously loaded object if it was fetched another time with fewer properties or a different view.
+	 */
+	createOrUpdateFromData: (data, refId, append) => {
+
+		let modelObj = StructrModel.obj(data.id);
+		if (!modelObj) {
+			StructrModel.createFromData(data, refId, append);
+		} else {
+			StructrModel.copyDataToObject(data, modelObj);
+		}
+	},
+	/**
 	 * Append and check expand status
 	 */
 	append: function(obj, refId) {
@@ -361,11 +374,11 @@ let StructrModel = {
 	 */
 	refresh: function(id) {
 
-		var obj = StructrModel.obj(id);
+		let obj = StructrModel.obj(id);
 
 		if (obj) {
 
-			var element = Structr.node(id);
+			let element = Structr.node(id);
 
 			if (graphBrowser) {
 				graphBrowser.updateNode(id, obj, ['name', 'tag', 'id', 'type'], {label: 'name', nodeType: 'type'});
@@ -402,7 +415,7 @@ let StructrModel = {
 			}
 
 			// update icon
-			var icon = undefined;
+			let icon = undefined;
 			if (element.hasClass('element')) {
 
 				icon = _Elements.getElementIcon(obj);
@@ -435,18 +448,31 @@ let StructrModel = {
 			}
 
 			// check if key icon needs to be displayed (in case of nodes not visible to public/auth users)
-			let isProtected = !obj.visibleToPublicUsers || !obj.visibleToAuthenticatedUsers;
 			let keyIcon = element.children('.key_icon');
 			if (!keyIcon.length) {
 				// Images have a special subnode containing the icons
 				keyIcon = $('.icons', element).children('.key_icon');
 			}
+			let isProtected = !obj.visibleToPublicUsers || !obj.visibleToAuthenticatedUsers;
 			if (isProtected) {
 				keyIcon.css('display', 'inline-block');
 				keyIcon.addClass('donthide');
 			} else {
 				keyIcon.hide();
 				keyIcon.removeClass('donthide');
+			}
+
+			// update svg key icon
+			let svgKeyIcon = element[0].querySelector(':scope > .svg_key_icon');
+			if (!svgKeyIcon) {
+				svgKeyIcon = element[0].querySelector(':scope > .icons-container > .svg_key_icon');
+			}
+			if (svgKeyIcon) {
+				let newIconId = _Entities.getVisibilityIconId(obj);
+
+				// replace only xlink:href to keep bindings intact
+				let use = svgKeyIcon.querySelector(':scope > use');
+				use.setAttribute('xlink:href', '#' + newIconId);
 			}
 
 			let displayName = getElementDisplayName(obj);

@@ -32,7 +32,7 @@ var _Entities = {
 	changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
 
 		if (value === true) {
-			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html('<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' + (activeLabel ? ' ' + activeLabel : ''));
+			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html(_Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2') + (activeLabel ? ' ' + activeLabel : ''));
 		} else {
 			attrElement.removeClass('active').addClass('inactive').prop('checked', false).text((inactiveLabel ? inactiveLabel : '-'));
 		}
@@ -1930,9 +1930,9 @@ var _Entities = {
 	},
 	appendAccessControlIcon: function(parent, entity) {
 
-		var isProtected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
+		let isProtected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
 
-		var keyIcon = $('.key_icon', parent);
+		let keyIcon = $('.key_icon', parent);
 		if (!(keyIcon && keyIcon.length)) {
 
 			keyIcon = $('<i title="Access Control and Visibility" class="key_icon button ' + (isProtected ? 'donthide ' : '') + _Icons.getFullSpriteClass(_Icons.key_icon) + '" ' + (isProtected ? 'style="display: inline-block;"' : '') + '/>');
@@ -1950,9 +1950,9 @@ var _Entities = {
 	},
 	accessControlDialog: function(entity, el, typeInfo) {
 
-		var id = entity.id;
+		let id = entity.id;
 
-		var handleGraphObject = function(entity) {
+		let handleGraphObject = function(entity) {
 
 			let owner_select_id = 'owner_select_' + id;
 			el.append('<h3>Owner</h3><div><select id="' + owner_select_id + '"></select></div>');
@@ -2000,15 +2000,15 @@ var _Entities = {
 				}
 			});
 
-			let ownerSelect = $('#' + owner_select_id, el);
+			let ownerSelect   = $('#' + owner_select_id, el);
 			let granteeSelect = $('#newPrincipal', el);
-			let spinnerIcon = Structr.loaderIcon(granteeSelect.parent(), {float: 'right'});
+			let spinnerIcon   = Structr.loaderIcon(granteeSelect.parent(), {float: 'right'});
 
 			Command.getByType('Principal', null, null, 'name', 'asc', 'id,name,isGroup', false, function(principals) {
 
-				let ownerOptions = '';
+				let ownerOptions        = '';
 				let granteeGroupOptions = '';
-				let granteeUserOptions = '';
+				let granteeUserOptions  = '';
 
 				if (entity.owner) {
 					// owner is first entry
@@ -2136,9 +2136,6 @@ var _Entities = {
 		});
 
 		_Entities.accessControlDialog(entity, dialogText);
-
-		_Elements.clickOrSelectElementIfLastSelected(div, entity);
-
 	},
 	addPrincipal: function (entity, principal, permissions, allowRecursive, container) {
 
@@ -2230,7 +2227,7 @@ var _Entities = {
 		if (!el || !entity) {
 			return false;
 		}
-		el.append('<div class="' + entity.id + '_"><button class="switch inactive ' + key + '_"></button>' + desc + '</div>');
+		el.append('<div class="' + entity.id + '_"><button class="switch inactive ' + key + '_ inline-flex items-center"></button>' + desc + '</div>');
 
 		let sw = $('.' + key + '_', el);
 		_Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
@@ -2247,9 +2244,35 @@ var _Entities = {
 			});
 		});
 	},
+	appendNewAccessControlIcon: function(parent, entity) {
+
+		let keyIcon = $('.svg_key_icon', parent);
+		if (!(keyIcon && keyIcon.length)) {
+
+			keyIcon = $(_Icons.getSvgIcon(_Entities.getVisibilityIconId(entity), 16, 16, 'svg_key_icon icon-grey cursor-pointer'));
+			parent.append(keyIcon);
+
+			_Entities.bindAccessControl(keyIcon, entity);
+		}
+	},
+	getVisibilityIconId: (entity) => {
+
+		let iconId = 'visibility-lock-key';
+
+		if (true === entity.visibleToPublicUsers &&  true === entity.visibleToAuthenticatedUsers) {
+
+			iconId = 'visibility-lock-open';
+
+		} else if (false === entity.visibleToPublicUsers &&  false === entity.visibleToAuthenticatedUsers) {
+
+			iconId = 'visibility-lock-locked';
+		}
+
+		return iconId;
+	},
 	appendContextMenuIcon: function(parent, entity, visible) {
 
-		let editIcon = $('.edit_props_icon', parent);
+		let editIcon = $('.node-menu-icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
 			editIcon = $(_Icons.getSvgIcon('kebab_icon'));

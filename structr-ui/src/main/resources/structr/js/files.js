@@ -16,11 +16,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var main, filesMain, fileTree, folderContents;
+var main;
 var drop;
-var fileList;
-var chunkSize = 1024 * 64;
-var sizeLimit = 1024 * 1024 * 1024;
 var selectedElements = [];
 var activeFileId, fileContents = {};
 var folderPageSize = 10000, folderPage = 1;
@@ -42,6 +39,12 @@ let _Files = {
 	searchField: undefined,
 	searchFieldClearIcon: undefined,
 	currentWorkingDir: undefined,
+	filesMain: undefined,
+	fileTree: undefined,
+	folderContents: undefined,
+	fileUploadList: undefined,
+	chunkSize: 1024 * 64,
+	fileSizeLimit: 1024 * 1024 * 1024,
 	getViewMode: function () {
 		return _Files._viewMode || 'list';
 	},
@@ -61,8 +64,8 @@ let _Files = {
 
 			_Files.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
 			_Files.searchFieldClearIcon.addEventListener('click', (e) => {
-                _Files.clearSearch();
-            });
+				_Files.clearSearch();
+			});
 
 			_Files.searchField.focus();
 
@@ -97,9 +100,10 @@ let _Files = {
 		// throttle
 		requestAnimationFrame(() => {
 			left = left || LSWrapper.getItem(filesResizerLeftKey) || 300;
-			$('.column-resizer', filesMain).css({ left: left });
+			$('.column-resizer', _Files.filesMain).css({ left: left });
 
-			fileTree.css({width: left - 14 + 'px'});
+			_Files.fileTree.css({width: left - 14 + 'px'});
+			$('#folder-contents-container').css({width: 'calc(100% - ' + (left + 14) + 'px)'});
 		});
 	},
 	onload: function() {
@@ -112,12 +116,12 @@ let _Files = {
 
 			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('files'));
 
-			filesMain      = $('#files-main');
-			fileTree       = $('#file-tree');
-			folderContents = $('#folder-contents');
+			_Files.filesMain      = $('#files-main');
+			_Files.fileTree       = $('#file-tree');
+			_Files.folderContents = $('#folder-contents');
 
 			_Files.moveResizer();
-			Structr.initVerticalSlider($('.column-resizer', filesMain), filesResizerLeftKey, 204, _Files.moveResizer);
+			Structr.initVerticalSlider($('.column-resizer', _Files.filesMain), filesResizerLeftKey, 204, _Files.moveResizer);
 
 			let initFunctionBar = async () => {
 
@@ -159,9 +163,9 @@ let _Files = {
 			$.jstree.defaults.dnd.inside_pos = 'last';
 			$.jstree.defaults.dnd.large_drop_target = true;
 
-			fileTree.on('ready.jstree', function () {
-				_TreeHelper.makeTreeElementDroppable(fileTree, 'root');
-				_TreeHelper.makeTreeElementDroppable(fileTree, 'favorites');
+			_Files.fileTree.on('ready.jstree', function () {
+				_TreeHelper.makeTreeElementDroppable(_Files.fileTree, 'root');
+				_TreeHelper.makeTreeElementDroppable(_Files.fileTree, 'favorites');
 
 				_Files.loadAndSetWorkingDir(function () {
 
@@ -182,7 +186,7 @@ let _Files = {
 				});
 			});
 
-			fileTree.on('select_node.jstree', function (evt, data) {
+			_Files.fileTree.on('select_node.jstree', function (evt, data) {
 
 				if (data.node.id === 'favorites') {
 
@@ -195,7 +199,7 @@ let _Files = {
 				}
 			});
 
-			_TreeHelper.initTree(fileTree, _Files.treeInitFunction, 'structr-ui-filesystem');
+			_TreeHelper.initTree(_Files.fileTree, _Files.treeInitFunction, 'structr-ui-filesystem');
 
 			_Files.activateUpload();
 
@@ -298,8 +302,8 @@ let _Files = {
 							let id = Structr.getId(el);
 
 							Command.favorites('remove', id, () => {
-                                Structr.node(id).remove();
-                            });
+								Structr.node(id).remove();
+							});
 						}
 						return false;
 					}
@@ -426,27 +430,27 @@ let _Files = {
 	},
 	deepOpen: function(d, dirs) {
 
-		_TreeHelper.deepOpen(fileTree, d, dirs, 'parent', (_Files.currentWorkingDir ? _Files.currentWorkingDir.id : 'root'));
+		_TreeHelper.deepOpen(_Files.fileTree, d, dirs, 'parent', (_Files.currentWorkingDir ? _Files.currentWorkingDir.id : 'root'));
 
 	},
 	refreshTree: function() {
 
-		let selectedId = fileTree.jstree('get_selected');
+		let selectedId = _Files.fileTree.jstree('get_selected');
 
-		_TreeHelper.refreshTree(fileTree, function() {
-			_TreeHelper.makeTreeElementDroppable(fileTree, 'root');
-			_TreeHelper.makeTreeElementDroppable(fileTree, 'favorites');
+		_TreeHelper.refreshTree(_Files.fileTree, function() {
+			_TreeHelper.makeTreeElementDroppable(_Files.fileTree, 'root');
+			_TreeHelper.makeTreeElementDroppable(_Files.fileTree, 'favorites');
 
-			fileTree.jstree('deselect_all');
-			fileTree.jstree('activate_node', selectedId);
+			_Files.fileTree.jstree('deselect_all');
+			_Files.fileTree.jstree('activate_node', selectedId);
 		});
 	},
 	refreshNode: function(nodeId, newName) {
 
-		let node = fileTree.jstree('get_node', nodeId);
+		let node = _Files.fileTree.jstree('get_node', nodeId);
 		node.text = newName;
 
-		_TreeHelper.refreshNode(fileTree, node);
+		_TreeHelper.refreshNode(_Files.fileTree, node);
 	},
 	treeInitFunction: function(obj, callback) {
 
@@ -517,21 +521,21 @@ let _Files = {
 					return;
 				}
 
-				fileList = event.originalEvent.dataTransfer.files;
-				var filesToUpload = [];
-				var tooLargeFiles = [];
+				_Files.fileUploadList = event.originalEvent.dataTransfer.files;
+				let filesToUpload = [];
+				let tooLargeFiles = [];
 
-				$(fileList).each(function(i, file) {
-					if (file.size <= sizeLimit) {
+				$(_Files.fileUploadList).each(function(i, file) {
+					if (file.size <= _Files.fileSizeLimit) {
 						filesToUpload.push(file);
 					} else {
 						tooLargeFiles.push(file);
 					}
 				});
 
-				if (filesToUpload.length < fileList.length) {
+				if (filesToUpload.length < _Files.fileUploadList.length) {
 
-					var errorText = 'The following files are too large (limit ' + sizeLimit / (1024 * 1024) + ' Mbytes):<br>\n';
+					let errorText = 'The following files are too large (limit ' + _Files.fileSizeLimit / (1024 * 1024) + ' Mbytes):<br>\n';
 
 					$(tooLargeFiles).each(function(i, tooLargeFile) {
 						errorText += '<b>' + tooLargeFile.name + '</b>: ' + Math.round(tooLargeFile.size / (1024 * 1024)) + ' Mbytes<br>\n';
@@ -563,17 +567,17 @@ let _Files = {
 			let node          = Structr.node(file.id);
 			node.find('.size').text(fileSize);
 
-			let chunks = Math.ceil(fileSize / chunkSize);
+			let chunks = Math.ceil(fileSize / _Files.chunkSize);
 
 			for (let c = 0; c < chunks; c++) {
-				let start = c * chunkSize;
-				let end = (c + 1) * chunkSize;
+				let start = c * _Files.chunkSize;
+				let end = (c + 1) * _Files.chunkSize;
 				let chunk = window.btoa(String.fromCharCode.apply(null, new Uint8Array(binaryContent.slice(start, end))));
-				Command.chunk(file.id, c, chunkSize, chunk, chunks);
+				Command.chunk(file.id, c, _Files.chunkSize, chunk, chunks);
 			}
 		};
 
-		$(fileList).each(function(i, fileObj) {
+		$(_Files.fileUploadList).each(function(i, fileObj) {
 			if (file.id === fileObj.id) {
 				worker.postMessage(fileObj);
 			}
@@ -616,17 +620,17 @@ let _Files = {
 
 			let list = folders.map((d) => {
 				return {
-                    id: d.id,
-                    text:  d.name || '[unnamed]',
-                    children: d.foldersCount > 0,
-                    icon: 'fa fa-folder',
-                    path: d.path
-                };
+					id: d.id,
+					text:  d.name || '[unnamed]',
+					children: d.foldersCount > 0,
+					icon: 'fa fa-folder',
+					path: d.path
+				};
 			});
 
 			callback(list);
 
-			_TreeHelper.makeDroppable(fileTree, list);
+			_TreeHelper.makeDroppable(_Files.fileTree, list);
 		};
 
 		if (!id) {
@@ -653,7 +657,7 @@ let _Files = {
 	},
 	registerFolderLinks: function() {
 
-		$('.is-folder.file-icon', folderContents).off('click').on('click', function (e) {
+		$('.is-folder.file-icon', _Files.folderContents).off('click').on('click', function (e) {
 			e.preventDefault();
 			e.stopPropagation();
 
@@ -661,17 +665,17 @@ let _Files = {
 			let targetId = el.data('targetId');
 
 			let openTargetNode = () => {
-				fileTree.jstree('open_node', targetId, () => {
-					fileTree.jstree('activate_node', targetId);
+				_Files.fileTree.jstree('open_node', targetId, () => {
+					_Files.fileTree.jstree('activate_node', targetId);
 				});
 			};
 
 			let parentId = el.data('parentId');
 
-			if (!parentId || fileTree.jstree('is_open', parentId)) {
+			if (!parentId || _Files.fileTree.jstree('is_open', parentId)) {
 				openTargetNode();
 			} else {
-				fileTree.jstree('open_node', parentId, openTargetNode);
+				_Files.fileTree.jstree('open_node', parentId, openTargetNode);
 			}
 
 		});
@@ -705,7 +709,7 @@ let _Files = {
 	},
 	displayFolderContents: function(id, parentId, nodePath, parents) {
 
-		fastRemoveAllChildren(folderContents[0]);
+		fastRemoveAllChildren(_Files.folderContents[0]);
 
 		LSWrapper.setItem(filesLastOpenFolderKey, id);
 
@@ -717,11 +721,11 @@ let _Files = {
 		_Files.insertLayoutSwitches(id, parentId, nodePath, parents);
 
 		// store current folder id so we can filter slow requests
-		folderContents.data('currentFolder', id);
+		_Files.folderContents.data('currentFolder', id);
 
 		let handleChildren = (children) => {
 
-			let currentFolder = folderContents.data('currentFolder');
+			let currentFolder = _Files.folderContents.data('currentFolder');
 
 			if (currentFolder === id) {
 
@@ -740,11 +744,11 @@ let _Files = {
 
 			$('#folder-contents-container > button').addClass('disabled').attr('disabled', 'disabled');
 
-			folderContents.append('<div class="folder-path"><i class="' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" /> Favorite Files</div>');
+			_Files.folderContents.append('<div class="folder-path truncate"><i class="' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" /> Favorite Files</div>');
 
 			if (_Files.isViewModeActive('list')) {
 
-				folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
+				_Files.folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
 					+ '<tbody id="files-table-body"></tbody></table>');
 			}
 
@@ -778,7 +782,7 @@ let _Files = {
 			let pagerId = 'filesystem-files';
 			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			let filesPager = _Pager.addPager(pagerId, folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,isFavoritable,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers');
+			let filesPager = _Pager.addPager(pagerId, _Files.folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,isFavoritable,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers');
 
 			filesPager.cleanupFunction = () => {
 				let toRemove = $('.node.file', filesPager.el).closest( (_Files.isViewModeActive('list') ? 'tr' : '.tile') );
@@ -797,18 +801,18 @@ let _Files = {
 			_Files.insertBreadCrumbNavigation(parents, nodePath, id);
 
 			if (_Files.isViewModeActive('list')) {
-				folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
+				_Files.folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
 					+ '<tbody id="files-table-body">'
 					+ (!isRootFolder ? '<tr><td class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td></tr>' : '')
 					+ '</tbody></table>');
 
 			} else if (_Files.isViewModeActive('tiles')) {
 				if (!isRootFolder) {
-					folderContents.append('<div class="tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
+					_Files.folderContents.append('<div class="tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
 				}
 			} else if (_Files.isViewModeActive('img')) {
 				if (!isRootFolder) {
-					folderContents.append('<div class="tile img-tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
+					_Files.folderContents.append('<div class="tile img-tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
 				}
 			}
 		}
@@ -830,7 +834,7 @@ let _Files = {
 			let pathNames = (nodePath === '/') ? ['/'] : [''].concat(nodePath.slice(1).split('/'));
 			let path      = parents.map((parent, idx) => { return '<a class="breadcrumb-entry" data-folder-id="' + parent + '">' + pathNames[idx] + '/</a>'; }).join('') + pathNames.pop();
 
-			folderContents.append('<div class="folder-path">' + path + '</div>');
+			_Files.folderContents.append('<div class="folder-path truncate">' + path + '</div>');
 
 			$('.breadcrumb-entry').click(function (e) {
 				e.preventDefault();
@@ -843,7 +847,7 @@ let _Files = {
 
 		let checkmark = _Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2');
 
-		folderContents.prepend('<div id="switches">'
+		_Files.folderContents.prepend('<div id="switches">'
 			+ '<button class="switch ' + (_Files.isViewModeActive('list') ? 'active' : 'inactive') + ' inline-flex items-center" id="switch-list" data-view-mode="list">' + (_Files.isViewModeActive('list') ? checkmark : '') + ' List</button>'
 			+ '<button class="switch ' + (_Files.isViewModeActive('tiles') ? 'active' : 'inactive') + ' inline-flex items-center" id="switch-tiles" data-view-mode="tiles">' + (_Files.isViewModeActive('tiles') ? checkmark : '') + ' Tiles</button>'
 			+ '<button class="switch ' + (_Files.isViewModeActive('img') ? 'active' : 'inactive') + ' inline-flex items-center" id="switch-img" data-view-mode="img">' + (_Files.isViewModeActive('img') ? checkmark : '') + ' Images</button>'
@@ -883,7 +887,7 @@ let _Files = {
 
 		if (!d.isFile && !d.isFolder) return;
 
-		StructrModel.createFromData(d, null, false);
+		StructrModel.createOrUpdateFromData(d, null, false);
 
 		let size = d.isFolder ? (d.foldersCount + d.filesCount) : d.size;
 		let icon = d.isFolder ? 'fa-folder' : _Icons.getFileIconClass(d);
@@ -902,19 +906,19 @@ let _Files = {
 			if (d.isFolder) {
 				let icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-2x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
 				row.append('<td class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</td>');
-				row.append('<td><div id="id_' + d.id + '" class="node folder"><b title="' + escapeForHtmlAttributes(name) + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b></div></td>');
+				row.append('<td><div id="id_' + d.id + '" class="node folder flex items-center justify-between"><b title="' + escapeForHtmlAttributes(name) + '" class="name_ leading-8 truncate">' + name + '</b><div class="icons-container"></div></div></td>');
 			} else {
 				row.append('<td class="file-icon"><a href="' + d.path + '" target="_blank"><i class="fa ' + icon + '"></i></a></td>');
-				row.append('<td><div id="id_' + d.id + '" class="node file"><b title="' + escapeForHtmlAttributes(name) + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b>'
-				+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + d.size + '</span></div></div></div><span class="id">' + d.id + '</span></div></td>');
+				row.append('<td><div id="id_' + d.id + '" class="node file flex items-center justify-between"><b title="' + escapeForHtmlAttributes(name) + '" class="name_ leading-8 truncate">' + name + '</b><div class="icons-container"></div>'
+					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + d.size + '</span></div></div></div></div></td>');
 			}
 
-			row.append('<td class="abbr-ellipsis abbr-75pc id">' + d.id + '</td>');
+			row.append('<td class="truncate id">' + d.id + '</td>');
 
 			if (d.isFolder) {
-				row.append('<td class="size">' + size + '</td>');
+				row.append('<td class="size whitespace-nowrap">' + size + '</td>');
 			} else {
-				row.append('<td class="size">' + _Files.formatBytes(size, 0) + '</td>');
+				row.append('<td class="size whitespace-nowrap">' + _Files.formatBytes(size, 0) + '</td>');
 			}
 
 			row.append('<td class="abbr-ellipsis abbr-75pc">' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
@@ -925,7 +929,7 @@ let _Files = {
 		} else if (_Files.isViewModeActive('tiles')) {
 
 			let tileId = 'tile' + d.id;
-			folderContents.append('<div id="' + tileId + '" class="tile' + (d.isThumbnail ? ' thumbnail' : '') + '"></div>');
+			_Files.folderContents.append('<div id="' + tileId + '" class="tile' + (d.isThumbnail ? ' thumbnail' : '') + '"></div>');
 			let tile = $('#' + tileId);
 
 			if (d.isFolder) {
@@ -948,7 +952,7 @@ let _Files = {
 		} else if (_Files.isViewModeActive('img')) {
 
 			let tileId = 'tile' + d.id;
-			folderContents.append('<div id="' + tileId + '" class="tile img-tile' + (d.isThumbnail ? ' thumbnail' : '') + '"></div>');
+			_Files.folderContents.append('<div id="' + tileId + '" class="tile img-tile' + (d.isThumbnail ? ' thumbnail' : '') + '"></div>');
 			let tile = $('#' + tileId);
 
 			if (d.isFolder) {
@@ -985,8 +989,6 @@ let _Files = {
 			div.closest('tr').remove();
 		});
 
-		// _Entities.appendAccessControlIcon(div, d);
-
 		if (d.isFolder) {
 			_Files.handleFolder(div, d);
 		} else {
@@ -1022,9 +1024,15 @@ let _Files = {
 			}
 		});
 
-		_Entities.appendContextMenuIcon(div, d);
-		_Entities.makeSelectable(div);
+		let iconsContainer = $('.icons-container', div);
+		if (iconsContainer.length === 0) {
+			_Entities.appendContextMenuIcon(div, d);
+		} else {
+			_Entities.appendContextMenuIcon(iconsContainer, d);
+			_Entities.appendNewAccessControlIcon(iconsContainer, d);
+		}
 
+		_Entities.makeSelectable(div);
 	},
 	handleFolder: function(div, d) {
 
@@ -1280,13 +1288,13 @@ let _Files = {
 		$('.fa-crop', el).on('click', function() {
 
 			$('#image-editor').cropper({
-			  crop: function(e) {
+				crop: function(e) {
 
-				x = e.x, y = e.y, w = e.width, h = e.height;
+					x = e.x, y = e.y, w = e.width, h = e.height;
 
-				dialogSaveButton.prop("disabled", false).removeClass('disabled');
-				saveAndClose.prop("disabled", false).removeClass('disabled');
-			  }
+					dialogSaveButton.prop("disabled", false).removeClass('disabled');
+					saveAndClose.prop("disabled", false).removeClass('disabled');
+				}
 			});
 		});
 	},
@@ -1509,14 +1517,14 @@ let _Files = {
 	},
 	updateTextFile: function(file, text, callback) {
 		if (text === "") {
-			Command.chunk(file.id, 0, chunkSize, "", 1, callback);
+			Command.chunk(file.id, 0, _Files.chunkSize, "", 1, callback);
 		} else {
-			var chunks = Math.ceil(text.length / chunkSize);
+			var chunks = Math.ceil(text.length / _Files.chunkSize);
 			for (var c = 0; c < chunks; c++) {
-				var start = c * chunkSize;
-				var end = (c + 1) * chunkSize;
+				var start = c * _Files.chunkSize;
+				var end = (c + 1) * _Files.chunkSize;
 				var chunk = utf8_to_b64(text.substring(start, end));
-				Command.chunk(file.id, c, chunkSize, chunk, chunks, ((c+1 === chunks) ? callback : undefined));
+				Command.chunk(file.id, c, _Files.chunkSize, chunk, chunks, ((c+1 === chunks) ? callback : undefined));
 			}
 		}
 	},
@@ -1570,10 +1578,10 @@ let _Files = {
 		editor.id = file.id;
 
 		dialogMeta.html('<span class="editor-info">'
-            + '<label for="lineWrapping">Line Wrapping: <input id="lineWrapping" type="checkbox"></label>&nbsp;&nbsp;'
-            + '<label for="isTemplate">Replace template expressions: <input id="isTemplate" type="checkbox"></label>'
-            + '<label for="showTemplatePreview">Show preview:</label> <input id="showTemplatePreview" type="checkbox">'
-            + '</span>'
+			+ '<label for="lineWrapping">Line Wrapping: <input id="lineWrapping" type="checkbox"></label>&nbsp;&nbsp;'
+			+ '<label for="isTemplate">Replace template expressions: <input id="isTemplate" type="checkbox"></label>'
+			+ '<label for="showTemplatePreview">Show preview:</label> <input id="showTemplatePreview" type="checkbox">'
+			+ '</span>'
 		);
 
 		let lineWrappingCheckbox = $('#lineWrapping').prop('checked', Structr.getCodeMirrorSettings().lineWrapping)
@@ -1727,7 +1735,6 @@ let _Files = {
 		});
 
 		_Files.resize();
-
 	},
 	updateTemplatePreview: async (element, url) => {
 
