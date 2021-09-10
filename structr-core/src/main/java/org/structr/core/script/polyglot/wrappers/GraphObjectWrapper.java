@@ -226,7 +226,13 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 					if (inputConverter != null) {
 
-						unwrappedValue = inputConverter.convert(unwrappedValue);
+						try {
+
+							unwrappedValue = inputConverter.convert(unwrappedValue);
+						} catch (ClassCastException ex) {
+
+							throw new FrameworkException(422, "Invalid input for key " + propKey.jsonName() + ", expected a " + propKey.typeName() + ".");
+						}
 					}
 				}
 				node.setProperty(propKey, unwrappedValue);
