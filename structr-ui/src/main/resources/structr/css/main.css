@@ -4421,6 +4421,10 @@ div.option-tile label {
 	margin-bottom: .5rem;
 }
 
+div.option-tile .flex label {
+	margin-bottom: 0;
+}
+
 textarea#content-input {
 	display: block;
 }
@@ -4594,6 +4598,9 @@ table.props td.__value {
 /**
  * Tailwind classes
  */
+.block {
+	display: block;
+}
 .flex {
 	display: flex;
 }
@@ -4620,6 +4627,15 @@ table.props td.__value {
 }
 .mr-2 {
 	margin-right: .5rem;
+}
+.mb-1 {
+	margin-bottom: .25rem;
+}
+.mb-2 {
+	margin-bottom: .5rem;
+}
+.mt-1 {
+	margin-top: .25rem;
 }
 .mt-2 {
 	margin-top: .5rem;

@@ -269,6 +269,14 @@ let _Files = {
 		}
 
 		elements.push({
+			name: 'Basic',
+			clickHandler: function() {
+				_Entities.showProperties(entity, 'general');
+				return false;
+			}
+		});
+
+		elements.push({
 			name: 'Properties',
 			clickHandler: function() {
 				_Entities.showProperties(entity, 'ui');
@@ -1667,7 +1675,10 @@ let _Files = {
 				_Entities.setProperty(file.id, 'isTemplate', false, false, () => {
 					saveFileAction(() => {
 						_Entities.setProperty(file.id, 'isTemplate', true, false, () => {
-							_Files.updateTemplatePreview(element, urlForFileAndPreview);
+							let active = showPreviewCheckbox.is(':checked');
+							if (active) {
+								_Files.updateTemplatePreview(element, urlForFileAndPreview);
+							}
 						});
 					});
 				});

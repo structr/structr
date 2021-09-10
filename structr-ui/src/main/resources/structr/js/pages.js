@@ -99,8 +99,8 @@ let _Pages = {
 			_Pages.widgetsSlideout         = $('#widgetsSlideout');
 			_Pages.paletteSlideout         = $('#palette');
 			_Pages.componentsSlideout      = $('#components');
-			_Pages.unusedElementsTree      = $('#elementsArea', _Pages.unusedElementsSlideout);
 			_Pages.unusedElementsSlideout  = $('#elements');
+			_Pages.unusedElementsTree      = $('#elementsArea', _Pages.unusedElementsSlideout);
 			_Pages.unusedElementsSlideout.data('closeCallback', _Pages.unattachedNodes.removeElementsFromUI);
 
 			let pagesTabSlideoutAction = function () {
@@ -854,6 +854,7 @@ let _Pages = {
 
 			$('#add_page').on('click', function(e) {
 				e.stopPropagation();
+				blinkGreen($(this).parent());
 				Command.createSimplePage();
 			});
 
