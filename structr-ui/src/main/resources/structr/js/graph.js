@@ -19,7 +19,7 @@
 var graphBrowser, mode, colors = [], c = 0;
 var nodeIds = [], relIds = [], removedRel;
 var graph;
-var savedQueriesKey = 'structrSavedQueries_' + port;
+var savedQueriesKey = 'structrSavedQueries_' + location.port;
 var relTypes = {}, nodeTypes = {}, color = {}, relColors = {}, hasDragged, hasDoubleClicked, clickTimeout, doubleClickTime = 250, refreshTimeout;
 var filteredNodeTypes = [], hiddenNodeTypes = [], hiddenRelTypes = [];
 var edgeType = 'curvedArrow';
@@ -69,7 +69,7 @@ $(document).ready(function() {
 
 var _Graph = {
 	_moduleName: 'graph',
-	displayTypeConfigKey: 'structrGraphDisplayTypes_' + port,
+	displayTypeConfigKey: 'structrGraphDisplayTypes_' + location.port,
 	searchField: undefined,
 	init: function() {
 
@@ -216,7 +216,10 @@ var _Graph = {
 		});
 
 		Structr.fetchHtmlTemplate('graph/submenu', {}, function(html) {
-			functionBar[0].innerHTML = html;
+
+			Structr.functionBar.innerHTML = html;
+
+			UISettings.showSettingsForCurrentModule();
 
 			$('#clear-graph').on('click', function() {
 				_Graph.clearGraph();
@@ -230,8 +233,6 @@ var _Graph = {
 			$('#graphTypeToggleUi').prop('checked', (savedTypeVisibility.ui === undefined ? true : savedTypeVisibility.ui));
 			$('#graphTypeToggleLog').prop('checked', (savedTypeVisibility.log === undefined ? true : savedTypeVisibility.log));
 			$('#graphTypeToggleOther').prop('checked', (savedTypeVisibility.other === undefined ? true : savedTypeVisibility.other));
-
-
 
 			$('#selectionLasso').on('click', function() {
 				if (!graphBrowser.selectionToolsActive) {

@@ -18,11 +18,11 @@
 
 					<br>
 
-					<input id="source-json-name" class="remote-property-name" data-attr-name="sourceJsonName">
+					<input id="source-json-name" class="remote-property-name" data-attr-name="sourceJsonName" autocomplete="off">
 
 				</div>
 
-				<input id="relationship-type-name" data-attr-name="relationshipType">
+				<input id="relationship-type-name" data-attr-name="relationshipType" autocomplete="off">
 
 				<div style="display:inline-block;">
 
@@ -37,7 +37,7 @@
 
 					<br>
 
-					<input id="target-json-name" class="remote-property-name" data-attr-name="targetJsonName">
+					<input id="target-json-name" class="remote-property-name" data-attr-name="targetJsonName" autocomplete="off">
 
 				</div>
 
@@ -121,6 +121,12 @@
 			</td>
 		</tr>
 	</table>
+
+	<div id="rel-edit-buttons">
+		<button id="edit-rel-options-button"><i class="edit icon ${_Icons.getFullSpriteClass(_Icons.edit_icon)}"></i> Edit relationship options</button>
+		<button id="save-rel-options-button" class="inline-flex items-center">${_Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green mr-2')} Save</button>
+		<button id="cancel-rel-options-button" class="inline-flex items-center">${_Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red mr-2')} Discard</button>
+	</div>
 
 	<div id="tabs">
 		<ul></ul>

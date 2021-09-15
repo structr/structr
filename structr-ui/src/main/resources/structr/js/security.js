@@ -23,14 +23,14 @@ $(document).ready(function() {
 	Structr.classes.push('resourceAccess');
 });
 
-var _Security = {
+let _Security = {
 	_moduleName: 'security',
 	userControls: undefined,
 	userList: undefined,
 	groupControls: undefined,
 	groupList: undefined,
 	resourceAccesses: undefined,
-	securityTabKey: 'structrSecurityTab_' + port,
+	securityTabKey: 'structrSecurityTab_' + location.port,
 	init: function() {
 		_Pager.initPager('users',           'User', 1, 25, 'name', 'asc');
 		_Pager.initPager('groups',          'Group', 1, 25, 'name', 'asc');
@@ -42,20 +42,20 @@ var _Security = {
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('security'));
 
-		Structr.fetchHtmlTemplate('security/security.menu', {}, function (html) {
+		Structr.fetchHtmlTemplate('security/functions', {}, function (html) {
 
-			functionBar.append(html);
+			Structr.functionBar.innerHTML = html;
+
+			UISettings.showSettingsForCurrentModule();
 
 			Structr.fetchHtmlTemplate('security/main', {}, function (html) {
 
 				main.append(html);
 
-				_Security.userControls     = $('#users-controls');
-				_Security.userList         = $('#users-list');
-
-				_Security.groupControls    = $('#groups-controls');
-				_Security.groupList        = $('#groups-list');
-
+				_Security.userControls     = document.getElementById('users-controls');
+				_Security.userList         = document.getElementById('users-list');
+				_Security.groupControls    = document.getElementById('groups-controls');
+				_Security.groupList        = document.getElementById('groups-list');
 				_Security.resourceAccesses = $('#resourceAccesses');
 
 				let subModule = LSWrapper.getItem(_Security.securityTabKey) || 'users-and-groups';
@@ -67,7 +67,6 @@ var _Security = {
 
 						let urlHash = e.target.closest('a').getAttribute('href');
 						let subModule = urlHash.split(':')[1];
-						let targetId = '#dashboard-' + subModule;
 						window.location.hash = urlHash;
 
 						_Security.selectTab(subModule);
@@ -124,7 +123,7 @@ var _Security = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.svg.trashcan,
+			icon: _Icons.getSvgIcon('trashcan'),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete ' + entity.type,
 			clickHandler: () => {
@@ -166,72 +165,47 @@ var _Security = {
 	}
 };
 
-var _UsersAndGroups = {
+let _UsersAndGroups = {
 
-	refreshUsers: function() {
+	refreshUsers: async () => {
 
-		Structr.fetchHtmlTemplate('security/button.user.new', {}, function (html) {
+		let types = await _Schema.getDerivedTypes('org.structr.dynamic.User', []);
 
-			_Security.userList.empty();
-			_Security.userControls.empty();
-			_Security.userControls.append(html);
+		Structr.fetchHtmlTemplate('security/button.user.new', { types: types }, function (html) {
 
-			$('.add_user_icon', _Security.userControls).on('click', function(e) {
-				e.stopPropagation();
-				return Command.create({type: $('select#user-type').val()});
+			_Security.userList.innerHTML     = '';
+			_Security.userControls.innerHTML = html;
+
+			let userTypeSelect = document.querySelector('select#user-type');
+			let addUserButton  = document.getElementById('add-user-button');
+
+			addUserButton.addEventListener('click', (e) => {
+				Command.create({ type: userTypeSelect.value });
 			});
 
-			$('select#user-type').on('change', function() {
-				$('#add-user-button', _Security.userControls).find('span').text('Add ' + $(this).val());
+			userTypeSelect.addEventListener('change', () => {
+				addUserButton.querySelector('span').textContent = 'Add ' + userTypeSelect.value;
 			});
 
-			_Schema.getDerivedTypes('org.structr.dynamic.User', [], function(types) {
-				var elem = $('select#user-type');
-				types.forEach(function(type) {
-					elem.append('<option value="' + type + '">' + type + '</option>');
-				});
-			});
-
-			var userPager = _Pager.addPager('users', _Security.userControls, true, 'User', 'public');
+			let userPager = _Pager.addPager('users', $(_Security.userControls), true, 'User', 'public');
 			userPager.cleanupFunction = function () {
-				$('.node', _Security.userList).remove();
+				_Security.userList.innerHTML = '';
 			};
 			userPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></th></div>');
 			userPager.activateFilterElements();
 		});
 	},
-	createUserElement:function (user, group) {
+	createUserElement:function (user) {
 
-		var userName = user.name ? user.name : user.eMail ? '[' + user.eMail + ']' : '[unnamed]';
-		var userIcon = user.type === 'LDAPUser' ? _Icons.getFullSpriteClass(_Icons.user_orange_icon) : _Icons.getFullSpriteClass(_Icons.user_icon);
+		let userName = ((user.name) ? user.name : ((user.eMail) ? '[' + user.eMail + ']' : '[unnamed]'));
+		let userIcon = ((user.type === 'LDAPUser') ? _Icons.getFullSpriteClass(_Icons.user_orange_icon) : _Icons.getFullSpriteClass(_Icons.user_icon));
 
-		var userElement = $('<div class="node user userid_' + user.id + '">'
-				+ '<i class="typeIcon ' + userIcon + ' typeIcon-nochildren" />'
-				+ ' <b title="' + userName + '" class="name_">' + userName + '</b> <span class="id">' + user.id + '</span>'
+		let userElement = $('<div class="node user userid_' + user.id + '">'
+				+ '<i class="typeIcon ' + userIcon + '"></i>'
+				+ '<b title="' + userName + '" class="name_ abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + userName + '</b>'
 				+ '</div>'
 		);
 		userElement.data('userId', user.id);
-
-		// if (group) {
-		//
-		// 	userElement.append('<i title="Remove user \'' + userName + '\' from group \'' + group.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.user_delete_icon) + '" />');
-		//
-		// 	$('.delete_icon', userElement).on('click', function(e) {
-		// 		e.stopPropagation();
-		// 		Command.removeFromCollection(group.id, 'members', user.id, function () {
-		// 			_UsersAndGroups.deactivateNodeHover(user.id, '.userid_');
-		// 		});
-		// 	});
-		//
-		// } else {
-		//
-		// 	userElement.append('<i title="Delete user \'' + userName + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
-		//
-		// 	$('.delete_icon', userElement).on('click', function(e) {
-		// 		e.stopPropagation();
-		// 		_UsersAndGroups.deleteUser(this, user);
-		// 	});
-		// }
 
 		_UsersAndGroups.makeDraggable(userElement);
 
@@ -239,16 +213,11 @@ var _UsersAndGroups = {
 	},
 	appendUserToUserList: function (user) {
 
-		if (!_Security.userList || !_Security.userList.is(':visible')) {
-			return;
-		}
+		let userDiv = _UsersAndGroups.createUserElement(user);
 
-		var userDiv = _UsersAndGroups.createUserElement(user);
-		$('.typeIcon', userDiv).removeClass('typeIcon-nochildren');
+		_Security.userList.appendChild(userDiv[0]);
 
-		_Security.userList.append(userDiv);
-
-		_Entities.appendEditPropertiesIcon(userDiv, user);
+		_Entities.appendContextMenuIcon(userDiv, user);
 		_Elements.enableContextMenuOnElement(userDiv, user);
 		_UsersAndGroups.setMouseOver(userDiv, user.id, '.userid_');
 	},
@@ -288,7 +257,7 @@ var _UsersAndGroups = {
 			return;
 		}
 
-		var prefix = (member.isUser) ? '.userid_' : '.groupid_';
+		let prefix = (member.isUser) ? '.userid_' : '.groupid_';
 
 		if (member.isUser) {
 
@@ -297,15 +266,12 @@ var _UsersAndGroups = {
 				let memberAlreadyListed = $(prefix + member.id, grpEl).length > 0;
 				if (!memberAlreadyListed) {
 
-					var userDiv = _UsersAndGroups.createUserElement(member, group);
+					let userDiv = _UsersAndGroups.createUserElement(member);
 
-					$(grpEl).append(userDiv.css({
-						top: 0,
-						left: 0
-					}));
+					$(grpEl).append(userDiv);
 					userDiv.removeClass('disabled');
 
-					_Entities.appendEditPropertiesIcon(userDiv, member);
+					_Entities.appendContextMenuIcon(userDiv, member);
 					_Elements.enableContextMenuOnElement(userDiv, member);
 					_UsersAndGroups.setMouseOver(userDiv, member.id, prefix);
 				}
@@ -318,9 +284,9 @@ var _UsersAndGroups = {
 
 			if (!alreadyShownInMembers && !alreadyShownInParents) {
 
-				var groupDiv = _UsersAndGroups.createGroupElement(member);
+				let groupDiv = _UsersAndGroups.createGroupElement(member);
 
-				$('.delete_icon', groupDiv).remove();
+				// $('.delete_icon', groupDiv).remove();
 
 				// groupDiv.append('<i title="Remove \'' + member.name + '\' from group \'' + group.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.user_delete_icon) + '" />');
 				//
@@ -331,14 +297,11 @@ var _UsersAndGroups = {
 				// 	});
 				// });
 
-				groupEl.append(groupDiv.css({
-					top: 0,
-					left: 0
-				}));
+				groupEl.append(groupDiv);
 
 				groupDiv.removeClass('disabled');
 
-				_Entities.appendEditPropertiesIcon(groupDiv, member);
+				_Entities.appendContextMenuIcon(groupDiv, member);
 				_Elements.enableContextMenuOnElement(groupDiv, member);
 				_UsersAndGroups.setMouseOver(groupDiv, member.id, prefix);
 
@@ -363,37 +326,29 @@ var _UsersAndGroups = {
 		}
 		return _UsersAndGroups.isGroupAlreadyShown(group, groupEl.parent().closest('.group'));
 	},
-	deleteUser: function(button, user) {
-		_Entities.deleteNode(button, user);
-	},
-	refreshGroups: function() {
+	refreshGroups: async () => {
 
-		Structr.fetchHtmlTemplate('security/button.group.new', {}, function (html) {
+		let types = await _Schema.getDerivedTypes('org.structr.dynamic.Group', []);
 
-			_Security.groupList.empty();
-			_Security.groupControls.empty();
-			_Security.groupControls.append(html);
+		Structr.fetchHtmlTemplate('security/button.group.new', { types: types }, function (html) {
 
-			$('.add_group_icon', _Security.groupControls).on('click', function(e) {
-				e.stopPropagation();
-				return Command.create({type: $('select#group-type').val()});
+			_Security.groupList.innerHTML     = '';
+			_Security.groupControls.innerHTML = html;
+
+			let groupTypeSelect = document.querySelector('select#group-type');
+			let addGroupButton  = document.getElementById('add-group-button');
+
+			addGroupButton.addEventListener('click', (e) => {
+				Command.create({ type: groupTypeSelect.value });
 			});
 
-			$('select#group-type').on('change', function() {
-				$('#add-group-button', _Security.groupControls).find('span').text('Add ' + $(this).val());
+			groupTypeSelect.addEventListener('change', () => {
+				addGroupButton.querySelector('span').textContent = 'Add ' + groupTypeSelect.value;
 			});
 
-			// list types that extend User
-			_Schema.getDerivedTypes('org.structr.dynamic.Group', [], function(types) {
-				var elem = $('select#group-type');
-				types.forEach(function(type) {
-					elem.append('<option value="' + type + '">' + type + '</option>');
-				});
-			});
-
-			var groupPager = _Pager.addPager('groups', _Security.groupControls, true, 'Group', 'public');
+			let groupPager = _Pager.addPager('groups', $(_Security.groupControls), true, 'Group', 'public');
 			groupPager.cleanupFunction = function () {
-				$('.node', _Security.groupList).remove();
+				_Security.groupList.innerHTML = '';
 			};
 			groupPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
 			groupPager.activateFilterElements();
@@ -401,19 +356,13 @@ var _UsersAndGroups = {
 	},
 	createGroupElement: function (group) {
 
-		var groupIcon = group.type === 'LDAPGroup' ? _Icons.getFullSpriteClass(_Icons.group_link_icon) : _Icons.getFullSpriteClass(_Icons.group_icon);
-		var groupElement = $('<div class="node group groupid_' + group.id + '">'
-				+ '<i class="typeIcon ' + groupIcon + ' typeIcon-nochildren" />'
-				+ ' <b title="' + group.name + '" class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
-				// + '<i title="Delete Group ' + group.id + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'
+		let groupIcon = ((group.type === 'LDAPGroup') ? _Icons.getFullSpriteClass(_Icons.group_link_icon) : _Icons.getFullSpriteClass(_Icons.group_icon));
+		let groupElement = $('<div class="node group groupid_' + group.id + '">'
+				+ '<i class="typeIcon ' + groupIcon + '" />'
+				+ '<b title="' + group.name + '" class="name_  abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + group.name + '</b>'
 				+ '</div>'
 		);
 		groupElement.data('groupId', group.id);
-
-		$('.delete_icon', groupElement).on('click', function(e) {
-			e.stopPropagation();
-			_UsersAndGroups.deleteGroup(this, group);
-		});
 
 		groupElement.droppable({
 			accept: '.user, .group',
@@ -421,7 +370,7 @@ var _UsersAndGroups = {
 			hoverClass: 'nodeHover',
 			tolerance: 'pointer',
 			drop: function(event, ui) {
-				var nodeId;
+				let nodeId;
 
 				if (ui.draggable.hasClass('user')) {
 					nodeId = Structr.getUserId(ui.draggable);
@@ -445,13 +394,12 @@ var _UsersAndGroups = {
 	},
 	appendGroupElement: function(element, group) {
 
-		var hasChildren = group.members && group.members.length;
-
-		var groupDiv = _UsersAndGroups.createGroupElement(group);
+		let hasChildren = group.members && group.members.length;
+		let groupDiv    = _UsersAndGroups.createGroupElement(group);
 		element.append(groupDiv);
 
 		_Entities.appendExpandIcon(groupDiv, group, hasChildren, Structr.isExpanded(group.id));
-		_Entities.appendEditPropertiesIcon(groupDiv, group);
+		_Entities.appendContextMenuIcon(groupDiv, group);
 		_Elements.enableContextMenuOnElement(groupDiv, group);
 		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.groupid_');
 
@@ -461,14 +409,13 @@ var _UsersAndGroups = {
 
 		return groupDiv;
 	},
-	deleteGroup: function(button, group) {
-		_Entities.deleteNode(button, group);
-	},
-
 	setMouseOver: function (node, id, prefix) {
+
 		node.children('b.name_').off('click').on('click', function(e) {
 			e.stopPropagation();
-			_Entities.makeAttributeEditable(node, id, 'b.name_', 'name');
+			_Entities.makeAttributeEditable(node, id, 'b.name_', 'name', (el) => {
+				blinkGreen(el);
+			});
 		});
 
 		node.on({
@@ -483,16 +430,14 @@ var _UsersAndGroups = {
 		});
 	},
 	activateNodeHover: function (id, prefix) {
-		var nodes = $(prefix + id);
-		nodes.each(function (i, el) {
-			$(el).addClass('nodeHover').children('i.button').showInlineBlock();
-		});
+		for (let el of document.querySelectorAll(prefix + id)) {
+			el.classList.add('nodeHover');
+		}
 	},
 	deactivateNodeHover: function (id, prefix) {
-		var nodes = $(prefix + id);
-		nodes.each(function (i, el) {
-			$(el).removeClass('nodeHover').children('i.button').hide();
-		});
+		for (let el of document.querySelectorAll(prefix + id)) {
+			el.classList.remove('nodeHover');
+		}
 	},
 	makeDraggable: function(el) {
 		el.draggable({
@@ -505,12 +450,13 @@ var _UsersAndGroups = {
 	}
 };
 
-var _ResourceAccessGrants = {
+let _ResourceAccessGrants = {
 
 	refreshResourceAccesses: function() {
+
 		_Security.resourceAccesses.empty();
 
-		Structr.fetchHtmlTemplate('security/resource-access', {showVisibilityFlags: _Dashboard.isShowVisibilityFlagsInGrantsTable()}, function (html) {
+		Structr.fetchHtmlTemplate('security/resource-access', { showVisibilityFlags: UISettings.getValueForSetting(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey) }, function (html) {
 
 			_Security.resourceAccesses.append(html);
 
@@ -536,6 +482,7 @@ var _ResourceAccessGrants = {
 		});
 	},
 	customPagerTransportFunction: function(type, pageSize, page, filterAttrs, callback) {
+
 		let filterString = "";
 		let presentFilters = Object.keys(filterAttrs);
 		if (presentFilters.length > 0) {
@@ -567,7 +514,7 @@ var _ResourceAccessGrants = {
 			});
 		}
 
-		Command.cypher('MATCH (n:ResourceAccess) ' + filterString + ' RETURN DISTINCT n ORDER BY n.' + sortKey[type] + ' ' + sortOrder[type], undefined, fetchAllGranteesCallback, pageSize, page);
+		Command.cypher('MATCH (n:ResourceAccess) ' + filterString + ' RETURN DISTINCT n ORDER BY n.' + _Pager.sortKey[type] + ' ' + _Pager.sortOrder[type], undefined, fetchAllGranteesCallback, pageSize, page);
 	},
 	addResourceGrant: function(e) {
 		e.stopPropagation();
@@ -687,7 +634,7 @@ var _ResourceAccessGrants = {
 
 		trHtml += '<td><input type="text" class="bitmask" size="4" value="' + flags + '"></td>';
 
-		let showVisibilityFlagsInGrantsTable = _Dashboard.isShowVisibilityFlagsInGrantsTable();
+		let showVisibilityFlagsInGrantsTable = UISettings.getValueForSetting(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey);
 
 		if (showVisibilityFlagsInGrantsTable) {
 			trHtml += '<td class="bl-1"><input type="checkbox" ' + (resourceAccess.visibleToAuthenticatedUsers ? 'checked="checked"' : '') + ' name="visibleToAuthenticatedUsers" class="resource-access-visibility"></td>';

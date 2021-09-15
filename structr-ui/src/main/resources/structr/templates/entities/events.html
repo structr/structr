@@ -6,8 +6,11 @@
 			<option value="options-none">No action</option>
 			<optgroup label="Click actions">
 				<option value="options-create-click">Create a new data object on click</option>
+				<option value="options-update-click">Update a data object on click</option>
 				<option value="options-delete-click">Delete a data object on click</option>
 				<option value="options-method-click">Execute a method on click</option>
+				<option value="options-next-page-click">Go to next page on click</option>
+				<option value="options-prev-page-click">Go to previous page on click</option>
 			</optgroup>
 			<optgroup label="Change actions">
 				<option value="options-create-change">Create a new data object on change</option>
@@ -18,6 +21,12 @@
 				<option value="options-custom">Custom configuration</option>
 			</optgroup>
 		</select>
+	</div>
+</div>
+<div class="row hidden event-options options-prev-page-click options-next-page-click">
+	<div class="option-tile">
+		<label data-comment="Define the name of the pagination request parameter (ususally &quot;page&quot;).">Pagination request parameter</label>
+		<input type="text" id="pagination-name-input">
 	</div>
 </div>
 <div class="row hidden event-options options-custom">
@@ -58,7 +67,7 @@
 		<input type="text" id="method-target-input">
 	</div>
 </div>
-<div class="row hidden event-options options-update-change">
+<div class="row hidden event-options options-update-change options-update-click">
 	<div class="option-tile">
 		<label>UUID of data object to update</label>
 		<input type="text" id="update-target-input">

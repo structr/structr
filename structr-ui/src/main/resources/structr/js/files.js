@@ -16,31 +16,35 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var main, filesMain, fileTree, folderContents;
+var main;
 var drop;
-var fileList;
-var chunkSize = 1024 * 64;
-var sizeLimit = 1024 * 1024 * 1024;
 var selectedElements = [];
 var activeFileId, fileContents = {};
-var currentWorkingDir;
 var folderPageSize = 10000, folderPage = 1;
-var filesViewModeKey = 'structrFilesViewMode_' + port;
+var filesViewModeKey = 'structrFilesViewMode_' + location.port;
 var timeout, attempts = 0, maxRetry = 10;
 var displayingFavorites = false;
-var filesLastOpenFolderKey = 'structrFilesLastOpenFolder_' + port;
-var filesResizerLeftKey = 'structrFilesResizerLeftKey_' + port;
-var activeFileTabPrefix = 'activeFileTabPrefix' + port;
+var filesLastOpenFolderKey = 'structrFilesLastOpenFolder_' + location.port;
+var filesResizerLeftKey = 'structrFilesResizerLeftKey_' + location.port;
+var activeFileTabPrefix = 'activeFileTabPrefix' + location.port;
 
 $(document).ready(function() {
 	Structr.registerModule(_Files);
 });
 
-var _Files = {
+let _Files = {
 	_moduleName: 'files',
 	_viewMode: LSWrapper.getItem(filesViewModeKey) || 'list',
 	defaultFolderAttributes: 'id,name,type,owner,isFolder,path,visibleToPublicUsers,visibleToAuthenticatedUsers,ownerId,isMounted,parentId,foldersCount,filesCount',
 	searchField: undefined,
+	searchFieldClearIcon: undefined,
+	currentWorkingDir: undefined,
+	filesMain: undefined,
+	fileTree: undefined,
+	folderContents: undefined,
+	fileUploadList: undefined,
+	chunkSize: 1024 * 64,
+	fileSizeLimit: 1024 * 1024 * 1024,
 	getViewMode: function () {
 		return _Files._viewMode || 'list';
 	},
@@ -55,27 +59,29 @@ var _Files = {
 
 		_Files.setViewMode(LSWrapper.getItem(filesViewModeKey) || 'list');
 
-		_Files.searchField = $('.search', functionBar);
+		_Files.searchField = document.getElementById('files-search-box');
+		if (_Files.searchField) {
 
-		if (_Files.searchField && _Files.searchField.length > 0) {
+			_Files.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
+			_Files.searchFieldClearIcon.addEventListener('click', (e) => {
+				_Files.clearSearch();
+			});
 
 			_Files.searchField.focus();
 
-			_Files.searchField.keyup(function(e) {
+			_Files.searchField.addEventListener('keyup', (e) => {
 
-				var searchString = $(this).val();
+				let searchString = _Files.searchField.value;
+
 				if (searchString && searchString.length && e.keyCode === 13) {
 
-					$('.clearSearchIcon').show().on('click', function() {
-						_Files.clearSearch();
-					});
+					_Files.searchFieldClearIcon.style.display = 'block';
 
 					_Files.fulltextSearch(searchString);
 
 				} else if (e.keyCode === 27 || searchString === '') {
 					_Files.clearSearch();
 				}
-
 			});
 		}
 
@@ -94,135 +100,117 @@ var _Files = {
 		// throttle
 		requestAnimationFrame(() => {
 			left = left || LSWrapper.getItem(filesResizerLeftKey) || 300;
-			$('.column-resizer', filesMain).css({ left: left });
+			$('.column-resizer', _Files.filesMain).css({ left: left });
 
-			fileTree.css({width: left - 14 + 'px'});
+			_Files.fileTree.css({width: left - 14 + 'px'});
+			$('#folder-contents-container').css({width: 'calc(100% - ' + (left + 14) + 'px)'});
 		});
 	},
 	onload: function() {
 
-		Structr.fetchHtmlTemplate('files/files', {}, function(html) {
+		Structr.fetchHtmlTemplate('files/files', {}, async (html) => {
 
 			main[0].innerHTML = html;
 
-			Structr.fetchHtmlTemplate('files/search', {}, function(html) {
-				functionBar[0].innerHTML = html;
+			_Files.init();
 
-				_Files.init();
+			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('files'));
 
-				Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('files'));
+			_Files.filesMain      = $('#files-main');
+			_Files.fileTree       = $('#file-tree');
+			_Files.folderContents = $('#folder-contents');
 
-				filesMain = $('#files-main');
+			_Files.moveResizer();
+			Structr.initVerticalSlider($('.column-resizer', _Files.filesMain), filesResizerLeftKey, 204, _Files.moveResizer);
 
-				fileTree = $('#file-tree');
-				folderContents = $('#folder-contents');
+			let initFunctionBar = async () => {
 
-				_Files.moveResizer();
-				Structr.initVerticalSlider($('.column-resizer', filesMain), filesResizerLeftKey, 204, _Files.moveResizer);
+				let fileTypes   = await _Schema.getDerivedTypes('org.structr.dynamic.File', ['CsvFile']);
+				let folderTypes = await _Schema.getDerivedTypes('org.structr.dynamic.Folder', ['Trash']);
 
-				Structr.fetchHtmlTemplate('files/button.file.new', {}, function (html) {
+				Structr.fetchHtmlTemplate('files/functions', { fileTypes, folderTypes }, async (html) => {
 
-					functionBar.prepend(html);
+					Structr.functionBar.innerHTML = html;
 
-					$('.add_file_icon', functionBar).on('click', function (e) {
+					UISettings.showSettingsForCurrentModule();
+
+					let fileTypeSelect   = document.querySelector('select#file-type');
+					let addFileButton    = document.getElementById('add-file-button');
+					let folderTypeSelect = document.querySelector('select#folder-type');
+					let addFolderButton  = document.getElementById('add-folder-button');
+
+					addFileButton.addEventListener('click', () => {
 						Command.create({
-							type: $('select#file-type').val(),
+							type: fileTypeSelect.value,
 							size: 0,
-							parentId: currentWorkingDir ? currentWorkingDir.id : null
+							parentId: _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null
 						});
 					});
 
-					$('.mount_folder', functionBar).on('click', _Files.openMountDialog);
-
-					$('.add_folder_icon', functionBar).on('click', function (e) {
+					addFolderButton.addEventListener('click', () => {
 						Command.create({
-							type: $('select#folder-type').val(),
-							parentId: currentWorkingDir ? currentWorkingDir.id : null
+							type: folderTypeSelect.value,
+							parentId: _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null
 						});
 					});
 
-					$('select#file-type').on('change', function () {
-						// $('#add-file-button', functionBar).find('span').text('Add' + $(this).val());
-						$('#add-file-button', functionBar).find('span').text('Add');
-					});
-
-					$('select#folder-type').on('change', function () {
-						// $('#add-folder-button', functionBar).find('span').text('Add ' + $(this).val());
-						$('#add-folder-button', functionBar).find('span').text('Add');
-					});
-
-					// list types that extend File
-					_Schema.getDerivedTypes('org.structr.dynamic.File', ['CsvFile'], function (types) {
-						var elem = $('select#file-type');
-						types.forEach(function (type) {
-							elem.append('<option value="' + type + '">' + type + '</option>');
-						});
-					});
-
-					// list types that extend folder
-					_Schema.getDerivedTypes('org.structr.dynamic.Folder', ['Trash'], function (types) {
-						var elem = $('select#folder-type');
-						types.forEach(function (type) {
-							elem.append('<option value="' + type + '">' + type + '</option>');
-						});
-					});
+					Structr.functionBar.querySelector('.mount_folder').addEventListener('click', _Files.openMountDialog);
 				});
+			};
+			initFunctionBar(); // run async (do not await) so it can execute while jstree is initialized
 
-				$.jstree.defaults.core.themes.dots = false;
-				$.jstree.defaults.dnd.inside_pos = 'last';
-				$.jstree.defaults.dnd.large_drop_target = true;
+			$.jstree.defaults.core.themes.dots = false;
+			$.jstree.defaults.dnd.inside_pos = 'last';
+			$.jstree.defaults.dnd.large_drop_target = true;
 
-				fileTree.on('ready.jstree', function () {
-					_TreeHelper.makeTreeElementDroppable(fileTree, 'root');
-					_TreeHelper.makeTreeElementDroppable(fileTree, 'favorites');
+			_Files.fileTree.on('ready.jstree', function () {
+				_TreeHelper.makeTreeElementDroppable(_Files.fileTree, 'root');
+				_TreeHelper.makeTreeElementDroppable(_Files.fileTree, 'favorites');
 
-					_Files.loadAndSetWorkingDir(function () {
+				_Files.loadAndSetWorkingDir(function () {
 
-						var lastOpenFolder = LSWrapper.getItem(filesLastOpenFolderKey);
+					var lastOpenFolder = LSWrapper.getItem(filesLastOpenFolderKey);
 
-						if (lastOpenFolder === 'favorites') {
+					if (lastOpenFolder === 'favorites') {
 
-							$('#favorites_anchor').click();
+						$('#favorites_anchor').click();
 
-						} else if (currentWorkingDir) {
+					} else if (_Files.currentWorkingDir) {
 
-							_Files.deepOpen(currentWorkingDir);
-
-						} else {
-
-							$('#root_anchor').click();
-						}
-					});
-				});
-
-				fileTree.on('select_node.jstree', function (evt, data) {
-
-					if (data.node.id === 'favorites') {
-
-						_Files.displayFolderContents('favorites');
+						_Files.deepOpen(_Files.currentWorkingDir);
 
 					} else {
 
-						_Files.setWorkingDirectory(data.node.id);
-						_Files.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
+						$('#root_anchor').click();
 					}
 				});
-
-				_TreeHelper.initTree(fileTree, _Files.treeInitFunction, 'structr-ui-filesystem');
-
-				_Files.activateUpload();
-
-				$(window).off('resize').resize(function () {
-					_Files.resize();
-				});
-
-				Structr.unblockMenu(100);
-
-				_Files.resize();
-				Structr.adaptUiToAvailableFeatures();
-
 			});
 
+			_Files.fileTree.on('select_node.jstree', function (evt, data) {
+
+				if (data.node.id === 'favorites') {
+
+					_Files.displayFolderContents('favorites');
+
+				} else {
+
+					_Files.setWorkingDirectory(data.node.id);
+					_Files.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
+				}
+			});
+
+			_TreeHelper.initTree(_Files.fileTree, _Files.treeInitFunction, 'structr-ui-filesystem');
+
+			_Files.activateUpload();
+
+			$(window).off('resize').resize(function () {
+				_Files.resize();
+			});
+
+			Structr.unblockMenu(100);
+
+			_Files.resize();
+			Structr.adaptUiToAvailableFeatures();
 		});
 	},
 	getContextMenuElements: function (div, entity) {
@@ -230,34 +218,67 @@ var _Files = {
 		const isFile             = entity.isFile;
 		const isFolder           = entity.isFolder;
 		let selectedElements     = document.querySelectorAll('.node.selected');
-		let isMultiSelect        = selectedElements.length > 1;
 
-		let elements = [];
+		// there is a difference when right-clicking versus clicking the kebab icon
+		let fileNode = (div.hasClass('node') ? div : $('.node', div));
+
+		if (!fileNode.hasClass('selected')) {
+			for (let selNode of document.querySelectorAll('.node.selected')) {
+				selNode.classList.remove('selected');
+			}
+			fileNode.addClass('selected');
+
+			selectedElements = document.querySelectorAll('.node.selected');
+		}
+
+		let fileCount     = document.querySelectorAll('.node.file.selected').length;
+		let isMultiSelect = selectedElements.length > 1;
+		let elements      = [];
+		let contentType   = entity.contentType || '';
 
 		if (isFile) {
 
-			if (isFile && entity.isImage && entity.contentType !== 'text/svg' && !entity.contentType.startsWith('image/svg')) {
+			if (entity.isImage && contentType !== 'text/svg' && !contentType.startsWith('image/svg')) {
 				elements.push({
-					icon: _Icons.svg.pencil_edit,
+					icon: _Icons.getSvgIcon('pencil_edit'),
 					name: 'Edit Image',
 					clickHandler: function () {
 						_Files.editImage(entity);
 						return false;
 					}
 				});
-			} else if (isFile) {
+
+			} else if (fileCount === 1 && _Files.isMinificationTarget(entity)) {
 				elements.push({
-					icon: _Icons.svg.pencil_edit,
-					name: 'Edit File' + (isMultiSelect ? 's' : ''),
+					// icon: '<i class="' + _Icons.getFullSpriteClass(_Icons.getMinificationIcon(entity)) + '" ></i>',
+					name: 'Edit Minification',
+					clickHandler: function () {
+						_Minification.showMinificationDialog(entity);
+						return false;
+					}
+				});
+
+			} else {
+				elements.push({
+					icon: _Icons.getSvgIcon('pencil_edit'),
+					name: 'Edit File' + ((fileCount > 1) ? 's' : ''),
 					clickHandler: function () {
 						_Files.editFile(entity);
 						return false;
 					}
 				});
 			}
+
+			_Elements.appendContextMenuSeparator(elements);
 		}
 
-		_Elements.appendContextMenuSeparator(elements);
+		elements.push({
+			name: 'Basic',
+			clickHandler: function() {
+				_Entities.showProperties(entity, 'general');
+				return false;
+			}
+		});
 
 		elements.push({
 			name: 'Properties',
@@ -273,41 +294,60 @@ var _Files = {
 
 			if (displayingFavorites) {
 				elements.push({
+					// icon: '<i class="' + _Icons.getFullSpriteClass(_Icons.star_delete_icon) + '" ></i>',
 					name: 'Remove from Favorites',
 					clickHandler: function () {
-						Command.favorites('remove', entity.id, () => {
-							Structr.node(entity.id).remove();
-						});
+
+						for (let el of selectedElements) {
+							let id = Structr.getId(el);
+
+							Command.favorites('remove', id, () => {
+								Structr.node(id).remove();
+							});
+						}
 						return false;
 					}
 				});
 
 			} else if (entity.isFavoritable) {
+
 				elements.push({
+					// icon: '<i class="' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" ></i>',
 					name: 'Add to Favorites',
 					clickHandler: function () {
-						Command.favorites('add', entity.id, () => {});
+
+						for (let el of selectedElements) {
+							let obj = StructrModel.obj(Structr.getId(el));
+
+							if (obj.isFavoritable) {
+								Command.favorites('add', obj.id, () => {});
+							}
+						}
+
 						return false;
 					}
 				});
 			}
 
-			elements.push({
-				name: 'Copy Download URL',
-				clickHandler: function () {
-					// do not make the click handler async because it would return a promise instead of the boolean
+			if (fileCount === 1) {
+				elements.push({
+					name: 'Copy Download URL',
+					clickHandler: function () {
+						// do not make the click handler async because it would return a promise instead of the boolean
 
-					(async () => {
-						// fake the a element so we do not need to look up the server
-						let a = document.createElement('a');
-						a.href = entity.path;
-						await navigator.clipboard.writeText(a.href);
-					})();
-					return false;
-				}
-			});
+						(async () => {
+							// fake the a element so we do not need to look up the server
+							let a = document.createElement('a');
+							let possiblyUpdatedEntity = StructrModel.obj(entity.id);
+							a.href = possiblyUpdatedEntity.path;
+							await navigator.clipboard.writeText(a.href);
+						})();
+						return false;
+					}
+				});
+			}
 
-			if (_Files.isArchive(entity)) {
+			if (fileCount === 1 && _Files.isArchive(entity)) {
 				elements.push({
 					name: 'Unpack archive',
 					clickHandler: function () {
@@ -318,8 +358,9 @@ var _Files = {
 			}
 
 			Structr.performModuleDependendAction(function () {
-				if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && entity.contentType === 'text/csv') {
+				if (fileCount === 1 && Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && contentType === 'text/csv') {
 					elements.push({
+						// icon: '<i class="' + _Icons.getFullSpriteClass(_Icons.import_icon) + '"></i>',
 						name: 'Import CSV',
 						clickHandler: function () {
 							Importer.importCSVDialog(entity, false);
@@ -330,8 +371,9 @@ var _Files = {
 			});
 
 			Structr.performModuleDependendAction(function () {
-				if (Structr.isModulePresent('xml') && (entity.contentType === 'text/xml' || entity.contentType === 'application/xml')) {
+				if (fileCount === 1 && Structr.isModulePresent('xml') && (contentType === 'text/xml' || contentType === 'application/xml')) {
 					elements.push({
+						// icon: '<i class="' + _Icons.getFullSpriteClass(_Icons.import_icon) + '"></i>',
 						name: 'Import XML',
 						clickHandler: function () {
 							Importer.importXMLDialog(entity, false);
@@ -342,23 +384,26 @@ var _Files = {
 			});
 		}
 
-		_Elements.appendContextMenuSeparator(elements);
+		if (!isMultiSelect) {
 
-		_Elements.appendSecurityContextMenuItems(elements, entity);
+			_Elements.appendContextMenuSeparator(elements);
+
+			_Elements.appendSecurityContextMenuItems(elements, entity, entity.isFolder);
+		}
 
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.svg.trashcan,
+			icon: _Icons.getSvgIcon('trashcan'),
 			classes: ['menu-bolder', 'danger'],
-			name: 'Delete ' + (isMultiSelect ? 'selected data objects' : entity.type),
+			name: 'Delete ' + (isMultiSelect ? 'selected' : entity.type),
 			clickHandler: () => {
 
 				let files = [];
 
-				selectedElements.forEach((el) => {
+				for (let el of selectedElements) {
 					files.push(Structr.entityFromElement(el));
-				});
+				}
 
 				_Entities.deleteNodes(this, files, true, () => {
 					_Files.refreshTree();
@@ -372,29 +417,40 @@ var _Files = {
 
 		return elements;
 	},
+	formatBytes(a, b= 2) {
+
+		const sizes = ["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"];
+
+		if (0 === a) return "0 " + sizes[0];
+
+		const c = (0 > b) ? 0 : b;
+		const d = Math.floor(Math.log(a) / Math.log(1024));
+
+		return parseFloat((a/Math.pow(1024,d)).toFixed(c)) + " " + sizes[d]
+	},
 	deepOpen: function(d, dirs) {
 
-		_TreeHelper.deepOpen(fileTree, d, dirs, 'parent', (currentWorkingDir ? currentWorkingDir.id : 'root'));
+		_TreeHelper.deepOpen(_Files.fileTree, d, dirs, 'parent', (_Files.currentWorkingDir ? _Files.currentWorkingDir.id : 'root'));
 
 	},
 	refreshTree: function() {
 
-		let selectedId = fileTree.jstree('get_selected');
+		let selectedId = _Files.fileTree.jstree('get_selected');
 
-		_TreeHelper.refreshTree(fileTree, function() {
-			_TreeHelper.makeTreeElementDroppable(fileTree, 'root');
-			_TreeHelper.makeTreeElementDroppable(fileTree, 'favorites');
+		_TreeHelper.refreshTree(_Files.fileTree, function() {
+			_TreeHelper.makeTreeElementDroppable(_Files.fileTree, 'root');
+			_TreeHelper.makeTreeElementDroppable(_Files.fileTree, 'favorites');
 
-			fileTree.jstree('deselect_all');
-			fileTree.jstree('activate_node', selectedId);
+			_Files.fileTree.jstree('deselect_all');
+			_Files.fileTree.jstree('activate_node', selectedId);
 		});
 	},
 	refreshNode: function(nodeId, newName) {
 
-		let node = fileTree.jstree('get_node', nodeId);
+		let node = _Files.fileTree.jstree('get_node', nodeId);
 		node.text = newName;
 
-		_TreeHelper.refreshNode(fileTree, node);
+		_TreeHelper.refreshNode(_Files.fileTree, node);
 	},
 	treeInitFunction: function(obj, callback) {
 
@@ -437,9 +493,8 @@ var _Files = {
 	},
 	unload: function() {
 		window.removeEventListener('resize', _Files.resize);
-		fastRemoveAllChildren($('.searchBox', functionBar)[0]);
 		fastRemoveAllChildren($('#files-main', main)[0]);
-		fastRemoveAllChildren(functionBar[0]);
+		fastRemoveAllChildren(Structr.functionBar);
 	},
 	activateUpload: function() {
 
@@ -466,21 +521,21 @@ var _Files = {
 					return;
 				}
 
-				fileList = event.originalEvent.dataTransfer.files;
-				var filesToUpload = [];
-				var tooLargeFiles = [];
+				_Files.fileUploadList = event.originalEvent.dataTransfer.files;
+				let filesToUpload = [];
+				let tooLargeFiles = [];
 
-				$(fileList).each(function(i, file) {
-					if (file.size <= sizeLimit) {
+				$(_Files.fileUploadList).each(function(i, file) {
+					if (file.size <= _Files.fileSizeLimit) {
 						filesToUpload.push(file);
 					} else {
 						tooLargeFiles.push(file);
 					}
 				});
 
-				if (filesToUpload.length < fileList.length) {
+				if (filesToUpload.length < _Files.fileUploadList.length) {
 
-					var errorText = 'The following files are too large (limit ' + sizeLimit / (1024 * 1024) + ' Mbytes):<br>\n';
+					let errorText = 'The following files are too large (limit ' + _Files.fileSizeLimit / (1024 * 1024) + ' Mbytes):<br>\n';
 
 					$(tooLargeFiles).each(function(i, tooLargeFile) {
 						errorText += '<b>' + tooLargeFile.name + '</b>: ' + Math.round(tooLargeFile.size / (1024 * 1024)) + ' Mbytes<br>\n';
@@ -490,7 +545,7 @@ var _Files = {
 				}
 
 				filesToUpload.forEach(function(fileToUpload) {
-					fileToUpload.parentId = currentWorkingDir ? currentWorkingDir.id : null;
+					fileToUpload.parentId = _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null;
 					fileToUpload.hasParent = true; // Setting hasParent = true forces the backend to upload the file to the root dir even if parentId is null
 
 					Command.createFile(fileToUpload, (createdFileNode) => {
@@ -512,40 +567,38 @@ var _Files = {
 			let node          = Structr.node(file.id);
 			node.find('.size').text(fileSize);
 
-			let chunks = Math.ceil(fileSize / chunkSize);
+			let chunks = Math.ceil(fileSize / _Files.chunkSize);
 
 			for (let c = 0; c < chunks; c++) {
-				let start = c * chunkSize;
-				let end = (c + 1) * chunkSize;
+				let start = c * _Files.chunkSize;
+				let end = (c + 1) * _Files.chunkSize;
 				let chunk = window.btoa(String.fromCharCode.apply(null, new Uint8Array(binaryContent.slice(start, end))));
-				Command.chunk(file.id, c, chunkSize, chunk, chunks);
+				Command.chunk(file.id, c, _Files.chunkSize, chunk, chunks);
 			}
 		};
 
-		$(fileList).each(function(i, fileObj) {
+		$(_Files.fileUploadList).each(function(i, fileObj) {
 			if (file.id === fileObj.id) {
 				worker.postMessage(fileObj);
 			}
 		});
 	},
 	fulltextSearch: function(searchString) {
-		var content = $('#folder-contents');
+
+		let content = $('#folder-contents');
 		content.children().hide();
 
-		var url;
-		if (searchString.contains(' ')) {
-			url = rootUrl + 'files/ui?' + Structr.getRequestParameterName('loose') + '=1';
-			searchString.split(' ').forEach(function(str, i) {
-				url = url + '&indexedWords=' + str;
-			});
-		} else {
-			url = rootUrl + 'files/ui?' + Structr.getRequestParameterName('loose') + '=1&indexedWords=' + searchString;
+		let url = rootUrl + 'files/ui?' + Structr.getRequestParameterName('loose') + '=1';
+
+		for (let str of searchString.split(' ')) {
+			url = url + '&indexedWords=' + str;
 		}
 
-		_Files.displaySearchResultsForURL(url);
+		_Files.displaySearchResultsForURL(url, searchString);
 	},
 	clearSearch: function() {
-		$('.search', main).val('');
+		_Files.searchField.value = '';
+		_Files.searchFieldClearIcon.style.display = 'block';
 		$('#search-results').remove();
 		$('#folder-contents').children().show();
 	},
@@ -553,9 +606,9 @@ var _Files = {
 		Command.rest("/me/ui", function (result) {
 			var me = result[0];
 			if (me.workingDirectory) {
-				currentWorkingDir = me.workingDirectory;
+				_Files.currentWorkingDir = me.workingDirectory;
 			} else {
-				currentWorkingDir = null;
+				_Files.currentWorkingDir = null;
 			}
 
 			callback();
@@ -563,23 +616,21 @@ var _Files = {
 	},
 	load: function(id, callback) {
 
-		var displayFunction = function (folders) {
+		let displayFunction = function (folders) {
 
-			var list = [];
-
-			folders.forEach(function(d) {
-				list.push({
+			let list = folders.map((d) => {
+				return {
 					id: d.id,
 					text:  d.name || '[unnamed]',
 					children: d.foldersCount > 0,
 					icon: 'fa fa-folder',
 					path: d.path
-				});
+				};
 			});
 
 			callback(list);
 
-			_TreeHelper.makeDroppable(fileTree, list);
+			_TreeHelper.makeDroppable(_Files.fileTree, list);
 		};
 
 		if (!id) {
@@ -591,9 +642,9 @@ var _Files = {
 	setWorkingDirectory: function(id) {
 
 		if (id === 'root') {
-			currentWorkingDir = null;
+			_Files.currentWorkingDir = null;
 		} else {
-			currentWorkingDir = { id: id };
+			_Files.currentWorkingDir = { id: id };
 		}
 
 		$.ajax({
@@ -601,12 +652,12 @@ var _Files = {
 			dataType: 'json',
 			contentType: 'application/json; UTF-8',
 			type: 'PUT',
-			data: JSON.stringify({'workingDirectory': currentWorkingDir})
+			data: JSON.stringify({'workingDirectory': _Files.currentWorkingDir})
 		});
 	},
 	registerFolderLinks: function() {
 
-		$('.is-folder.file-icon', folderContents).off('click').on('click', function (e) {
+		$('.is-folder.file-icon', _Files.folderContents).off('click').on('click', function (e) {
 			e.preventDefault();
 			e.stopPropagation();
 
@@ -614,17 +665,17 @@ var _Files = {
 			let targetId = el.data('targetId');
 
 			let openTargetNode = () => {
-				fileTree.jstree('open_node', targetId, () => {
-					fileTree.jstree('activate_node', targetId);
+				_Files.fileTree.jstree('open_node', targetId, () => {
+					_Files.fileTree.jstree('activate_node', targetId);
 				});
 			};
 
 			let parentId = el.data('parentId');
 
-			if (!parentId || fileTree.jstree('is_open', parentId)) {
+			if (!parentId || _Files.fileTree.jstree('is_open', parentId)) {
 				openTargetNode();
 			} else {
-				fileTree.jstree('open_node', parentId, openTargetNode);
+				_Files.fileTree.jstree('open_node', parentId, openTargetNode);
 			}
 
 		});
@@ -658,28 +709,30 @@ var _Files = {
 	},
 	displayFolderContents: function(id, parentId, nodePath, parents) {
 
-		fastRemoveAllChildren(folderContents[0]);
+		fastRemoveAllChildren(_Files.folderContents[0]);
 
 		LSWrapper.setItem(filesLastOpenFolderKey, id);
 
 		displayingFavorites = (id === 'favorites');
-		let isRootFolder = (id === 'root');
-		let parentIsRoot = (parentId === '#');
+		let isRootFolder    = (id === 'root');
+		let parentIsRoot    = (parentId === '#');
 
 		_Files.updateFunctionBarStatus(displayingFavorites);
 		_Files.insertLayoutSwitches(id, parentId, nodePath, parents);
 
 		// store current folder id so we can filter slow requests
-		folderContents.data('currentFolder', id);
+		_Files.folderContents.data('currentFolder', id);
 
-		let handleChildren = function(children) {
+		let handleChildren = (children) => {
 
-			let currentFolder = folderContents.data('currentFolder');
+			let currentFolder = _Files.folderContents.data('currentFolder');
 
 			if (currentFolder === id) {
 
 				if (children && children.length) {
-					children.forEach(_Files.appendFileOrFolder);
+					for (let child of children) {
+						_Files.appendFileOrFolder(child);
+					}
 				}
 
 				_Files.resize();
@@ -691,11 +744,11 @@ var _Files = {
 
 			$('#folder-contents-container > button').addClass('disabled').attr('disabled', 'disabled');
 
-			folderContents.append('<div class="folder-path"><i class="' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" /> Favorite Files</div>');
+			_Files.folderContents.append('<div class="folder-path truncate"><i class="' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" /> Favorite Files</div>');
 
 			if (_Files.isViewModeActive('list')) {
 
-				folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
+				_Files.folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
 					+ '<tbody id="files-table-body"></tbody></table>');
 			}
 
@@ -719,9 +772,9 @@ var _Files = {
 			}
 
 			_Pager.initPager('filesystem-files', 'File', 1, 25, 'name', 'asc');
-			page['File'] = 1;
+			_Pager.page['File'] = 1;
 
-			var filterOptions = {
+			let filterOptions = {
 				parentId: (parentIsRoot ? '' : id),
 				hasParent: (!parentIsRoot)
 			};
@@ -729,14 +782,15 @@ var _Files = {
 			let pagerId = 'filesystem-files';
 			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			let filesPager = _Pager.addPager(pagerId, folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,isFavoritable,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers');
+			let filesPager = _Pager.addPager(pagerId, _Files.folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,isFavoritable,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers');
 
-			filesPager.cleanupFunction = function () {
-				var toRemove = $('.node.file', filesPager.el).closest( (_Files.isViewModeActive('list') ? 'tr' : '.tile') );
-				toRemove.each(function(i, elem) {
+			filesPager.cleanupFunction = () => {
+				let toRemove = $('.node.file', filesPager.el).closest( (_Files.isViewModeActive('list') ? 'tr' : '.tile') );
+
+				for (let elem of toRemove) {
 					fastRemoveAllChildren(elem);
 					elem.remove();
-				});
+				}
 			};
 
 			filesPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name">');
@@ -744,43 +798,43 @@ var _Files = {
 			filesPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + (parentIsRoot ? '' : 'checked') + ' hidden>');
 			filesPager.activateFilterElements();
 
-			_Files.insertBreadCrumbNavigation(parents, nodePath);
+			_Files.insertBreadCrumbNavigation(parents, nodePath, id);
 
 			if (_Files.isViewModeActive('list')) {
-				folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
+				_Files.folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
 					+ '<tbody id="files-table-body">'
 					+ (!isRootFolder ? '<tr><td class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td></tr>' : '')
 					+ '</tbody></table>');
 
 			} else if (_Files.isViewModeActive('tiles')) {
 				if (!isRootFolder) {
-					folderContents.append('<div class="tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
+					_Files.folderContents.append('<div class="tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
 				}
 			} else if (_Files.isViewModeActive('img')) {
 				if (!isRootFolder) {
-					folderContents.append('<div class="tile img-tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
+					_Files.folderContents.append('<div class="tile img-tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
 				}
 			}
 		}
 	},
-	insertBreadCrumbNavigation: function(parents, nodePath) {
+	insertBreadCrumbNavigation: function(parents, nodePath, id) {
 
 		if (parents) {
 
-			let path = '';
+			let preventOldFolderNameInBreadcrumbs = () => {
+				let modelObj = StructrModel.obj(id);
+				if (modelObj && modelObj.path) {
+					nodePath = modelObj.path;
+				}
+			};
+			preventOldFolderNameInBreadcrumbs();
 
 			parents = [].concat(parents).reverse().slice(1);
-			let pathNames = ['/'];
-			if (nodePath !== '/') {
-				pathNames = pathNames.concat(nodePath.slice(1).split('/'));
-			}
-			path = parents.map(function(parent, idx) {
-				return '<a class="breadcrumb-entry" data-folder-id="' + parent + '"><i class="fa fa-caret-right"></i> ' + pathNames[idx] + '</a>';
-			}).join(' ');
 
-			path += ' <i class="fa fa-caret-right"></i> ' + pathNames.pop();
+			let pathNames = (nodePath === '/') ? ['/'] : [''].concat(nodePath.slice(1).split('/'));
+			let path      = parents.map((parent, idx) => { return '<a class="breadcrumb-entry" data-folder-id="' + parent + '">' + pathNames[idx] + '/</a>'; }).join('') + pathNames.pop();
 
-			folderContents.append('<div class="folder-path">' + path + '</div>');
+			_Files.folderContents.append('<div class="folder-path truncate">' + path + '</div>');
 
 			$('.breadcrumb-entry').click(function (e) {
 				e.preventDefault();
@@ -791,20 +845,23 @@ var _Files = {
 	},
 	insertLayoutSwitches: function (id, parentId, nodePath, parents) {
 
-		folderContents.prepend('<div id="switches">'
-			+ '<button class="switch ' + (_Files.isViewModeActive('list') ? 'active' : 'inactive') + '" id="switch-list" data-view-mode="list">' + (_Files.isViewModeActive('list') ? '<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' : '') + ' List</button>'
-			+ '<button class="switch ' + (_Files.isViewModeActive('tiles') ? 'active' : 'inactive') + '" id="switch-tiles" data-view-mode="tiles">'	+ (_Files.isViewModeActive('tiles') ? '<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' : '') + ' Tiles</button>'
-			+ '<button class="switch ' + (_Files.isViewModeActive('img') ? 'active' : 'inactive') + '" id="switch-img" data-view-mode="img">' + (_Files.isViewModeActive('img') ? '<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' : '') + ' Images</button>'
+		let checkmark = _Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2');
+
+		_Files.folderContents.prepend('<div id="switches">'
+			+ '<button class="switch ' + (_Files.isViewModeActive('list') ? 'active' : 'inactive') + ' inline-flex items-center" id="switch-list" data-view-mode="list">' + (_Files.isViewModeActive('list') ? checkmark : '') + ' List</button>'
+			+ '<button class="switch ' + (_Files.isViewModeActive('tiles') ? 'active' : 'inactive') + ' inline-flex items-center" id="switch-tiles" data-view-mode="tiles">' + (_Files.isViewModeActive('tiles') ? checkmark : '') + ' Tiles</button>'
+			+ '<button class="switch ' + (_Files.isViewModeActive('img') ? 'active' : 'inactive') + ' inline-flex items-center" id="switch-img" data-view-mode="img">' + (_Files.isViewModeActive('img') ? checkmark : '') + ' Images</button>'
 			+ '</div>');
 
-		var listSw  = $('#switch-list');
-		var tilesSw = $('#switch-tiles');
-		var imgSw   = $('#switch-img');
+		let listSw  = $('#switch-list');
+		let tilesSw = $('#switch-tiles');
+		let imgSw   = $('#switch-img');
 
-		var layoutSwitchFunction = function() {
-			var state = $(this).hasClass('inactive');
+		let layoutSwitchFunction = function() {
+			let state = $(this).hasClass('inactive');
+
 			if (state) {
-				var viewMode = $(this).data('viewMode');
+				let viewMode = $(this).data('viewMode');
 				_Files.setViewMode(viewMode);
 
 				_Entities.changeBooleanAttribute(listSw,  _Files.isViewModeActive('list'),  'List',   'List');
@@ -820,9 +877,9 @@ var _Files = {
 		imgSw.on('click', layoutSwitchFunction);
 	},
 	fileOrFolderCreationNotification: function (newFileOrFolder) {
-		if ((currentWorkingDir === undefined || currentWorkingDir === null) && newFileOrFolder.parent === null) {
+		if ((_Files.currentWorkingDir === undefined || _Files.currentWorkingDir === null) && newFileOrFolder.parent === null) {
 			_Files.appendFileOrFolder(newFileOrFolder);
-		} else if ((currentWorkingDir !== undefined && currentWorkingDir !== null) && newFileOrFolder.parent && currentWorkingDir.id === newFileOrFolder.parent.id) {
+		} else if ((_Files.currentWorkingDir !== undefined && _Files.currentWorkingDir !== null) && newFileOrFolder.parent && _Files.currentWorkingDir.id === newFileOrFolder.parent.id) {
 			_Files.appendFileOrFolder(newFileOrFolder);
 		}
 	},
@@ -830,7 +887,7 @@ var _Files = {
 
 		if (!d.isFile && !d.isFolder) return;
 
-		StructrModel.createFromData(d, null, false);
+		StructrModel.createOrUpdateFromData(d, null, false);
 
 		let size = d.isFolder ? (d.foldersCount + d.filesCount) : d.size;
 		let icon = d.isFolder ? 'fa-folder' : _Icons.getFileIconClass(d);
@@ -849,19 +906,19 @@ var _Files = {
 			if (d.isFolder) {
 				let icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-2x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
 				row.append('<td class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</td>');
-				row.append('<td><div id="id_' + d.id + '" class="node folder"><b title="' + escapeForHtmlAttributes(name) + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b></div></td>');
+				row.append('<td><div id="id_' + d.id + '" class="node folder flex items-center justify-between"><b title="' + escapeForHtmlAttributes(name) + '" class="name_ leading-8 truncate">' + name + '</b><div class="icons-container"></div></div></td>');
 			} else {
 				row.append('<td class="file-icon"><a href="' + d.path + '" target="_blank"><i class="fa ' + icon + '"></i></a></td>');
-				row.append('<td><div id="id_' + d.id + '" class="node file"><b title="' + escapeForHtmlAttributes(name) + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b>'
-				+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + d.size + '</span></div></div></div><span class="id">' + d.id + '</span></div></td>');
+				row.append('<td><div id="id_' + d.id + '" class="node file flex items-center justify-between"><b title="' + escapeForHtmlAttributes(name) + '" class="name_ leading-8 truncate">' + name + '</b><div class="icons-container"></div>'
+					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + d.size + '</span></div></div></div></div></td>');
 			}
 
-			row.append('<td class="abbr-ellipsis abbr-75pc id">' + d.id + '</td>');
+			row.append('<td class="truncate id">' + d.id + '</td>');
 
 			if (d.isFolder) {
-				row.append('<td class="size">' + size + '</td>');
+				row.append('<td class="size whitespace-nowrap">' + size + '</td>');
 			} else {
-				row.append('<td class="size">' + formatBytes(size,0) + '</td>');
+				row.append('<td class="size whitespace-nowrap">' + _Files.formatBytes(size, 0) + '</td>');
 			}
 
 			row.append('<td class="abbr-ellipsis abbr-75pc">' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
@@ -872,7 +929,7 @@ var _Files = {
 		} else if (_Files.isViewModeActive('tiles')) {
 
 			let tileId = 'tile' + d.id;
-			folderContents.append('<div id="' + tileId + '" class="tile' + (d.isThumbnail ? ' thumbnail' : '') + '"></div>');
+			_Files.folderContents.append('<div id="' + tileId + '" class="tile' + (d.isThumbnail ? ' thumbnail' : '') + '"></div>');
 			let tile = $('#' + tileId);
 
 			if (d.isFolder) {
@@ -895,7 +952,7 @@ var _Files = {
 		} else if (_Files.isViewModeActive('img')) {
 
 			let tileId = 'tile' + d.id;
-			folderContents.append('<div id="' + tileId + '" class="tile img-tile' + (d.isThumbnail ? ' thumbnail' : '') + '"></div>');
+			_Files.folderContents.append('<div id="' + tileId + '" class="tile img-tile' + (d.isThumbnail ? ' thumbnail' : '') + '"></div>');
 			let tile = $('#' + tileId);
 
 			if (d.isFolder) {
@@ -932,8 +989,6 @@ var _Files = {
 			div.closest('tr').remove();
 		});
 
-		// _Entities.appendAccessControlIcon(div, d);
-
 		if (d.isFolder) {
 			_Files.handleFolder(div, d);
 		} else {
@@ -969,9 +1024,15 @@ var _Files = {
 			}
 		});
 
-		_Entities.appendEditPropertiesIcon(div, d);
-		_Entities.makeSelectable(div);
+		let iconsContainer = $('.icons-container', div);
+		if (iconsContainer.length === 0) {
+			_Entities.appendContextMenuIcon(div, d);
+		} else {
+			_Entities.appendContextMenuIcon(iconsContainer, d);
+			_Entities.appendNewAccessControlIcon(iconsContainer, d);
+		}
 
+		_Entities.makeSelectable(div);
 	},
 	handleFolder: function(div, d) {
 
@@ -1065,7 +1126,7 @@ var _Files = {
 				return false;
 			});
 		}
-
+/*
 		// if (_Files.isArchive(d)) {
 		// 	div.append('<i class="unarchive_icon button ' + _Icons.getFullSpriteClass(_Icons.compress_icon) + '" />');
 		// 	$('.unarchive_icon', div).on('click', function() {
@@ -1125,6 +1186,7 @@ var _Files = {
 		// 		_Files.appendXMLImportDialogIcon(div, d);
 		// 	}
 		// });
+*/
 	},
 	unpackArchive: (d) => {
 
@@ -1149,7 +1211,7 @@ var _Files = {
 			});
 		}, 500);
 
-		Command.unarchive(d.id, currentWorkingDir ? currentWorkingDir.id : undefined, function (data) {
+		Command.unarchive(d.id, _Files.currentWorkingDir ? _Files.currentWorkingDir.id : undefined, function (data) {
 			if (data.success === true) {
 				_Files.refreshTree();
 				var message = "Extraction of '" + data.filename + "' finished successfully. ";
@@ -1226,13 +1288,13 @@ var _Files = {
 		$('.fa-crop', el).on('click', function() {
 
 			$('#image-editor').cropper({
-			  crop: function(e) {
+				crop: function(e) {
 
-				x = e.x, y = e.y, w = e.width, h = e.height;
+					x = e.x, y = e.y, w = e.width, h = e.height;
 
-				dialogSaveButton.prop("disabled", false).removeClass('disabled');
-				saveAndClose.prop("disabled", false).removeClass('disabled');
-			  }
+					dialogSaveButton.prop("disabled", false).removeClass('disabled');
+					saveAndClose.prop("disabled", false).removeClass('disabled');
+				}
 			});
 		});
 	},
@@ -1275,6 +1337,8 @@ var _Files = {
 			}
 		}
 
+		let filesTabs    = document.getElementById('files-tabs');
+		let filesTabsUl  = filesTabs.querySelector('ul');
 		let loadedEditors = 0;
 
 		for (let el of filteredElements) {
@@ -1285,39 +1349,63 @@ var _Files = {
 
 				loadedEditors++;
 
-				$('#files-tabs ul').append('<li id="tab-' + entity.id + '">' + entity.name + '</li>');
-				$('#files-tabs').append('<div id="content-tab-' + entity.id + '"></div>');
+				let tab             = Structr.createSingleDOMElementFromHTML('<li id="tab-' + entity.id + '" class="file-tab">' + entity.name + '</li>');
+				let editorContainer = Structr.createSingleDOMElementFromHTML('<div id="content-tab-' + entity.id + '" class="content-tab-editor"></div>');
 
-				$('#tab-' + entity.id).on('click', function(e) {
+				filesTabsUl.appendChild(tab);
+				filesTabs.appendChild(editorContainer);
+
+				tab.addEventListener('click', (e) => {
 					e.stopPropagation();
+
+					// prevent activating the current tab
+					if (tab.classList.contains('active')) {
+						return;
+					}
+
+					// set all other tabs inactive and this one active
+					for (let tab of filesTabsUl.querySelectorAll('li')) {
+						tab.classList.remove('active');
+					}
+					tab.classList.add('active');
+
+					// hide all editors and show this one
+					for (let otherEditorContainer of filesTabs.querySelectorAll('div.content-tab-editor')) {
+						otherEditorContainer.style.display = 'none';
+					}
+					editorContainer.style.display = 'block';
 
 					// Store current editor text
 					if (editor) {
 						fileContents[activeFileId] = editor.getValue();
 					}
-
 					activeFileId = entity.id;
-					$('#content-tab-' + activeFileId).empty();
-					_Files.editContent(null, entity, $('#content-tab-' + activeFileId));
+
+					// clear all other tabs before editing this one to ensure correct height
+					for (let editor of filesTabs.querySelectorAll('.content-tab-editor')) {
+						editor.innerHTML = '';
+					}
+
+					_Files.editContent(entity, $(editorContainer));
 
 					return false;
 				});
 
-				if (loadedEditors === filteredElements.length) {
-					_Entities.activateTabs(file.id, '#files-tabs', '#content-tab-' + file.id, activeFileTabPrefix);
+				if (file.id === entity.id) {
+					tab.click();
 				}
 			});
 		}
 	},
-	appendMinificationDialogIcon: function(parent, file) {
-
-		parent.append('<i title="Open minification dialog" class="minify_file_icon button ' + _Icons.getFullSpriteClass(_Icons.getMinificationIcon(file)) + '" />');
-		$('.minify_file_icon', parent).on('click', function(e) {
-			e.stopPropagation();
-
-			_Minification.showMinificationDialog(file);
-		});
-	},
+	// appendMinificationDialogIcon: function(parent, file) {
+	//
+	// 	parent.append('<i title="Open minification dialog" class="minify_file_icon button ' + _Icons.getFullSpriteClass(_Icons.getMinificationIcon(file)) + '" />');
+	// 	$('.minify_file_icon', parent).on('click', function(e) {
+	// 		e.stopPropagation();
+	//
+	// 		_Minification.showMinificationDialog(file);
+	// 	});
+	// },
 	// appendCSVImportDialogIcon: function(parent, file) {
 	//
 	// 	parent.append(' <i class="import_icon button ' + _Icons.getFullSpriteClass(_Icons.import_icon) + '" title="Import this CSV file" />');
@@ -1334,131 +1422,117 @@ var _Files = {
 	// 		return false;
 	// 	});
 	// },
-	appendRemoveFavoriteIcon: function (parent, file) {
+//	appendRemoveFavoriteIcon: function (parent, file) {
+//
+//		parent.append('<i title="Remove from favorites" class="remove_favorite_icon button ' + _Icons.getFullSpriteClass(_Icons.star_delete_icon) + '" />');
+//		$('.remove_favorite_icon', parent).on('click', function(e) {
+//			e.stopPropagation();
+//
+//			Command.favorites('remove', file.id, function() {
+//				parent.remove();
+//			});
+//		});
+//	},
+	displaySearchResultsForURL: async (url, searchString) => {
 
-		parent.append('<i title="Remove from favorites" class="remove_favorite_icon button ' + _Icons.getFullSpriteClass(_Icons.star_delete_icon) + '" />');
-		$('.remove_favorite_icon', parent).on('click', function(e) {
-			e.stopPropagation();
-
-			Command.favorites('remove', file.id, function() {
-				parent.remove();
-			});
-		});
-	},
-	displaySearchResultsForURL: function(url) {
-
-		var content = $('#folder-contents');
+		let content = $('#folder-contents');
 		$('#search-results').remove();
 		content.append('<div id="search-results"></div>');
 
-		var searchString = $('.search', functionBar).val();
-		var container = $('#search-results');
-		content.on('scroll', function() {
-			window.history.pushState('', '', '#filesystem');
-		});
+		let container = $('#search-results');
 
-		$.ajax({
-			url: url,
-			statusCode: {
-				200: function(data) {
+		let response = await fetch(url);
 
-					if (!data.result || data.result.length === 0) {
+		if (response.ok) {
+			let data = await response.json();
 
-						container.append('<h1>No results for "' + searchString + '"</h1>');
-						container.append('<h2>Press ESC or click <a href="#filesystem" class="clear-results">here to clear</a> empty result list.</h2>');
-						$('.clear-results', container).on('click', function() {
-							_Files.clearSearch();
-						});
+			if (!data.result || data.result.length === 0) {
 
-						return;
+				container.append('<h1>No results for "' + searchString + '"</h1>');
+				container.append('<h2>Press ESC or click <a href="#filesystem" class="clear-results">here to clear</a> empty result list.</h2>');
 
-					} else {
+				$('.clear-results', container).on('click', function() {
+					_Files.clearSearch();
+				});
 
-						container.append('<h1>' + data.result.length + ' result' + (data.result.length > 1 ? 's' : '') + ':</h1><table class="props"><thead><th class="_type">Type</th><th>Name</th><th>Size</th></thead><tbody></tbody></table>');
-						data.result.forEach(function(d) {
+			} else {
 
-							$('tbody', container).append('<tr><td><i class="fa ' + _Icons.getFileIconClass(d) + '"></i> ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td><a href="#results' + d.id + '">' + d.name + '</a></td><td>' + d.size + '</td></tr>');
+				container.append('<h1>' + data.result.length + ' result' + (data.result.length > 1 ? 's' : '') + ':</h1><table class="props"><thead><th class="_type">Type</th><th>Name</th><th>Size</th></thead><tbody></tbody></table>');
+				container.append('<div id="search-results-details"></div>')
 
-						});
-					}
+				let tbody = $('tbody', container);
+				let detailsContainer = $('#search-results-details', container);
 
-					data.result.forEach(function(d) {
+				for (let d of data.result) {
 
-						$.ajax({
-							url: rootUrl + 'files/' + d.id + '/getSearchContext',
-							contentType: 'application/json',
-							method: 'POST',
-							data: JSON.stringify({searchString: searchString, contextLength: 30}),
-							statusCode: {
-								200: function(data) {
+					tbody.append('<tr><td><i class="fa ' + _Icons.getFileIconClass(d) + '"></i> ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td>' + d.name + '</td><td>' + d.size + '</td></tr>');
 
-									if (!data.result) {
-										return;
-									}
-
-									container.append('<div class="search-result collapsed" id="results' + d.id + '"></div>');
-
-									var div = $('#results' + d.id);
-
-									div.append('<h2><i class="fa ' + _Icons.getFileIconClass(d) + '"></i> ' + d.name + '<i id="preview' + d.id + '" class="' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
-									div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
-
-									$('.toggle-height', div).on('click', function() {
-										var icon = $(this);
-										div.toggleClass('collapsed');
-										if (icon.hasClass('fa-expand')) {
-											icon.removeClass('fa-expand');
-											icon.addClass('fa-compress');
-										} else {
-											icon.removeClass('fa-compress');
-											icon.addClass('fa-expand');
-										}
-									});
-
-									$('.go-to-top', div).on('click', function() {
-										content.scrollTop(0);
-										window.history.pushState('', '', '#filesystem');
-									});
-
-									$.each(data.result.context, function(i, contextString) {
-
-										searchString.split(/[\s,;]/).forEach(function(str) {
-											contextString = contextString.replace(new RegExp('(' + str + ')', 'gi'), '<span class="highlight">$1</span>');
-										});
-
-										div.append('<div class="part">' + contextString + '</div>');
-									});
-
-									div.append('<div style="clear: both;"></div>');
-								}
-							}
-						});
+					let contextResponse = await fetch(rootUrl + 'files/' + d.id + '/getSearchContext', {
+						method: 'POST',
+						body: JSON.stringify({
+							searchString: searchString,
+							contextLength: 30
+						})
 					});
+
+					if (contextResponse.ok) {
+
+						let data = await contextResponse.json();
+
+						if (data.result) {
+
+							detailsContainer.append('<div class="search-result collapsed" id="results' + d.id + '"></div>');
+
+							let div = $('#results' + d.id);
+
+							div.append('<h2><i class="fa ' + _Icons.getFileIconClass(d) + '"></i> ' + d.name + '</h2>');
+							div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
+
+							$('.toggle-height', div).on('click', function() {
+								let icon = $(this);
+								div.toggleClass('collapsed');
+								icon.toggleClass('fa-expand');
+								icon.toggleClass('fa-compress');
+							});
+
+							$('.go-to-top', div).on('click', function() {
+								content.scrollTop(0);
+							});
+
+							for (let contextString of data.result.context) {
+
+								for (let str of searchString.split(/[\s,;]/)) {
+									contextString = contextString.replace(new RegExp('(' + str + ')', 'gi'), '<span class="highlight">$1</span>');
+								}
+
+								div.append('<div class="part">' + contextString + '</div>');
+							}
+
+							div.append('<div style="clear: both;"></div>');
+						}
+					}
 				}
-			}
-		});
-	},
-	updateTextFile: function(file, text, callback) {
-		if (text === "") {
-			Command.chunk(file.id, 0, chunkSize, "", 1, callback);
-		} else {
-			var chunks = Math.ceil(text.length / chunkSize);
-			for (var c = 0; c < chunks; c++) {
-				var start = c * chunkSize;
-				var end = (c + 1) * chunkSize;
-				var chunk = utf8_to_b64(text.substring(start, end));
-				Command.chunk(file.id, c, chunkSize, chunk, chunks, ((c+1 === chunks) ? callback : undefined));
 			}
 		}
 	},
-	editContent: function(button, file, element) {
+	updateTextFile: function(file, text, callback) {
+		if (text === "") {
+			Command.chunk(file.id, 0, _Files.chunkSize, "", 1, callback);
+		} else {
+			var chunks = Math.ceil(text.length / _Files.chunkSize);
+			for (var c = 0; c < chunks; c++) {
+				var start = c * _Files.chunkSize;
+				var end = (c + 1) * _Files.chunkSize;
+				var chunk = utf8_to_b64(text.substring(start, end));
+				Command.chunk(file.id, c, _Files.chunkSize, chunk, chunks, ((c+1 === chunks) ? callback : undefined));
+			}
+		}
+	},
+	editContent: async (file, element) => {
 
-		var url = viewRootUrl + file.id + '?' + Structr.getRequestParameterName('edit') + '=1';
-
-		var text = '';
-
-		var contentType = file.contentType;
-		var dataType = 'text';
+		let text                 = '';
+		let contentType          = file.contentType;
+		let urlForFileAndPreview = viewRootUrl + file.id + '?' + Structr.getRequestParameterName('edit') + '=1';
 
 		if (!contentType) {
 			if (file.name.endsWith('.css')) {
@@ -1470,181 +1544,210 @@ var _Files = {
 			}
 		}
 
-		$.ajax({
-			url: url,
-			dataType: dataType,
-			contentType: contentType,
-			success: function(data) {
-				text = fileContents[file.id] || data;
-				if (Structr.isButtonDisabled(button)) {
-					return;
-				}
-				element.append('<div class="editor"></div><div id="template-preview"><textarea readonly></textarea></div>');
-				var contentBox = $('.editor', element);
+		let fileResponse = await fetch(urlForFileAndPreview);
 
-				CodeMirror.defineMIME("text/html", "htmlmixed-structr");
-				editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
-					value: text,
-					mode: contentType,
-					lineNumbers: true,
-					lineWrapping: false,
-					indentUnit: 4,
-					tabSize: 4,
-					indentWithTabs: true,
-					extraKeys: {
-						"Ctrl-Space": "autocomplete"
-					}
-				}));
-				_Code.setupAutocompletion(editor, file.id, false);
+		let data = await fileResponse.text();
 
-				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + file.id));
-				if (scrollInfo) {
-					editor.scrollTo(scrollInfo.left, scrollInfo.top);
-				}
+		text = fileContents[file.id] || data;
 
-				editor.on('scroll', function() {
-					var scrollInfo = editor.getScrollInfo();
-					LSWrapper.setItem(scrollInfoKey + '_' + file.id, JSON.stringify(scrollInfo));
-				});
+		element.append('<div class="editor"></div><div id="template-preview"><textarea readonly></textarea></div>');
+		let contentBox = $('.editor', element);
 
-				editor.id = file.id;
+		CodeMirror.defineMIME("text/html", "htmlmixed-structr");
+		editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
+			value: text,
+			mode: contentType,
+			lineNumbers: true,
+			lineWrapping: false,
+			indentUnit: 4,
+			tabSize: 4,
+			indentWithTabs: true,
+			extraKeys: {
+				"Ctrl-Space": "autocomplete"
+			}
+		}));
+		_Code.setupAutocompletion(editor, file.id, false);
 
-				dialogBtn.children('#saveFile').remove();
-				dialogBtn.children('#saveAndClose').remove();
+		let scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + file.id));
+		if (scrollInfo) {
+			editor.scrollTo(scrollInfo.left, scrollInfo.top);
+		}
 
-				var h = '<span class="editor-info"><label for="lineWrapping">Line Wrapping: <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></label>&nbsp;&nbsp;'
-				+ '<label for="isTemplate">Replace template expressions:</label> <input id="isTemplate" type="checkbox"><label for="showTemplatePreview">Show preview:</label> <input id="showTemplatePreview" type="checkbox"></span>';
-				dialogMeta.html(h);
+		editor.on('scroll', () => { LSWrapper.setItem(scrollInfoKey + '_' + file.id, JSON.stringify(editor.getScrollInfo())); });
 
-				let isTemplateCheckbox   = $('#isTemplate').prop('checked', file.isTemplate);
-				let showPreviewCheckbox  = $('#showTemplatePreview');
+		editor.id = file.id;
 
-				Structr.appendInfoTextToElement({
-					text: "Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. To see a preview, tick the adjacent checkbox.",
-					element: isTemplateCheckbox,
-					insertAfter: true,
-					css: {
-						"margin-right": "4px"
-					}
-				});
+		dialogMeta.html('<span class="editor-info">'
+			+ '<label for="lineWrapping">Line Wrapping: <input id="lineWrapping" type="checkbox"></label>&nbsp;&nbsp;'
+			+ '<label for="isTemplate">Replace template expressions: <input id="isTemplate" type="checkbox"></label>'
+			+ '<label for="showTemplatePreview">Show preview:</label> <input id="showTemplatePreview" type="checkbox">'
+			+ '</span>'
+		);
 
+		let lineWrappingCheckbox = $('#lineWrapping').prop('checked', Structr.getCodeMirrorSettings().lineWrapping)
+		let isTemplateCheckbox   = $('#isTemplate').prop('checked', file.isTemplate);
+		let showPreviewCheckbox  = $('#showTemplatePreview');
 
-				let isTemplateCheckboxChangeFunction = function(isTemplate) {
-					if (isTemplate) {
-						showPreviewCheckbox.attr('disabled', null);
-					} else {
-						showPreviewCheckbox.attr('disabled', 'disabled');
-					}
-				};
-				isTemplateCheckboxChangeFunction(file.isTemplate);
+		Structr.appendInfoTextToElement({
+			text: "Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. To see a preview, tick the adjacent checkbox.",
+			element: isTemplateCheckbox,
+			insertAfter: true,
+			css: {
+				"margin-right": "4px"
+			}
+		});
 
-				$('#lineWrapping').off('change').on('change', function() {
-					var inp = $(this);
-					Structr.updateCodeMirrorOptionGlobally('lineWrapping', inp.is(':checked'));
-					blinkGreen(inp.parent());
-					editor.refresh();
-				});
+		let isTemplateCheckboxChangeFunction = function(isTemplate) {
+			if (isTemplate) {
+				showPreviewCheckbox.attr('disabled', null);
+			} else {
+				showPreviewCheckbox.attr('disabled', 'disabled');
+			}
+		};
+		isTemplateCheckboxChangeFunction(file.isTemplate);
 
-				isTemplateCheckbox.on('change', function() {
-					var active = isTemplateCheckbox.is(':checked');
-					_Entities.setProperty(file.id, 'isTemplate', active, false, function() {
-						isTemplateCheckboxChangeFunction(active);
+		lineWrappingCheckbox.on('change', function() {
+			Structr.updateCodeMirrorOptionGlobally('lineWrapping', lineWrappingCheckbox.is(':checked'));
+			blinkGreen(lineWrappingCheckbox.parent());
+			editor.refresh();
+		});
+
+		isTemplateCheckbox.on('change', function() {
+			let active = isTemplateCheckbox.is(':checked');
+			_Entities.setProperty(file.id, 'isTemplate', active, false, function() {
+				file.isTemplate = active;
+				isTemplateCheckboxChangeFunction(active);
+			});
+		});
+
+		showPreviewCheckbox.on('change', function() {
+			let active = showPreviewCheckbox.is(':checked');
+			if (active) {
+				_Files.updateTemplatePreview(element, urlForFileAndPreview);
+			} else {
+				let previewArea = $('#template-preview').hide();
+				$('textarea', previewArea).val('');
+				$('.editor', element).width('inherit');
+			}
+		});
+
+		// remove all buttons
+		dialogBtn.children().remove();
+
+		dialogBtn.html('<button class="closeButton">Close</button>');
+		dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled">Save</button>');
+		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled">Save and close</button>');
+
+		dialogCancelButton = $('.closeButton', dialogBox);
+		dialogSaveButton   = $('#saveFile', dialogBtn);
+		saveAndClose       = $('#saveAndClose', dialogBtn);
+
+		let changeFunction = () => {
+			if (data === editor.getValue()) {
+				dialogSaveButton.prop("disabled", true).addClass('disabled');
+				saveAndClose.prop("disabled", true).addClass('disabled');
+				$('#tab-' + file.id).removeClass('has-changes');
+			} else {
+				dialogSaveButton.prop("disabled", false).removeClass('disabled');
+				saveAndClose.prop("disabled", false).removeClass('disabled');
+				$('#tab-' + file.id).addClass('has-changes');
+			}
+		};
+		changeFunction();
+
+		editor.on('change', (cm, change) => { changeFunction();	});
+
+		$('button#saveFile', dialogBtn).on('click', function(e) {
+
+			e.preventDefault();
+			e.stopPropagation();
+
+			let newText = editor.getValue();
+			if (data === newText) {
+				return;
+			}
+
+			// update current value so we can check against it
+			data = newText;
+			changeFunction();
+
+			let saveFileAction = (callback) => {
+				_Files.updateTextFile(file, newText, callback);
+				text = newText;
+				dialogSaveButton.prop("disabled", true).addClass('disabled');
+				saveAndClose.prop("disabled", true).addClass('disabled');
+			};
+
+			if ($('#isTemplate').is(':checked')) {
+
+				_Entities.setProperty(file.id, 'isTemplate', false, false, () => {
+					saveFileAction(() => {
+						_Entities.setProperty(file.id, 'isTemplate', true, false, () => {
+							let active = showPreviewCheckbox.is(':checked');
+							if (active) {
+								_Files.updateTemplatePreview(element, urlForFileAndPreview);
+							}
+						});
 					});
 				});
 
-				showPreviewCheckbox.on('change', function() {
-					var active = showPreviewCheckbox.is(':checked');
-					if (active) {
-						_Files.updateTemplatePreview(element, url, dataType, contentType);
-					} else {
-						var previewArea = $('#template-preview');
-						previewArea.hide();
-						$('textarea', previewArea).val('');
-						$('.editor', element).width('inherit');
-					}
-				});
+			} else {
 
-				dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled">Save</button>');
-				dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled">Save and close</button>');
-
-				dialogSaveButton = $('#saveFile', dialogBtn);
-				saveAndClose = $('#saveAndClose', dialogBtn);
-
-				editor.on('change', function(cm, change) {
-
-					if (text === editor.getValue()) {
-						dialogSaveButton.prop("disabled", true).addClass('disabled');
-						saveAndClose.prop("disabled", true).addClass('disabled');
-					} else {
-						dialogSaveButton.prop("disabled", false).removeClass('disabled');
-						saveAndClose.prop("disabled", false).removeClass('disabled');
-					}
-				});
-
-				$('button#saveFile', dialogBtn).on('click', function(e) {
-
-					e.preventDefault();
-					e.stopPropagation();
-
-					var newText = editor.getValue();
-					if (text === newText) {
-						return;
-					}
-
-					let saveFileAction = function (callback) {
-
-						_Files.updateTextFile(file, newText, callback);
-						text = newText;
-						dialogSaveButton.prop("disabled", true).addClass('disabled');
-						saveAndClose.prop("disabled", true).addClass('disabled');
-					};
-
-					if ($('#isTemplate').is(':checked')) {
-
-						_Entities.setProperty(file.id, 'isTemplate', false, false, function() {
-
-							saveFileAction(function() {
-
-								_Entities.setProperty(file.id, 'isTemplate', true);
-							});
-						});
-
-					} else {
-
-						saveFileAction();
-					}
-				});
-
-				saveAndClose.on('click', function(e) {
-					e.stopPropagation();
-					dialogSaveButton.click();
-					setTimeout(function() {
-						dialogSaveButton.remove();
-						saveAndClose.remove();
-						dialogCancelButton.click();
-					}, 500);
-				});
-
-				_Files.resize();
-			},
-			error: function(xhr, statusText, error) {
-				console.log(xhr, statusText, error);
+				saveFileAction();
 			}
 		});
+
+		let checkForUnsaved = () => {
+			if ($('.file-tab.has-changes').length > 0) {
+				return confirm('You have unsaved changes, really close without saving?');
+			} else {
+				return true;
+			}
+		};
+
+		saveAndClose.on('click', function(e) {
+			e.stopPropagation();
+			dialogSaveButton.click();
+
+			if (checkForUnsaved()) {
+				setTimeout(function() {
+					dialogSaveButton.remove();
+					saveAndClose.remove();
+					dialogCancelButton.click();
+				}, 500);
+			}
+		});
+
+		dialogCancelButton.on('click', (e) => {
+			if (checkForUnsaved()) {
+				e.stopPropagation();
+				dialogText.empty();
+				$.unblockUI({
+					fadeOut: 25
+				});
+
+				dialogBtn.children(':not(.closeButton)').remove();
+
+				Structr.focusSearchField();
+
+				LSWrapper.removeItem(dialogDataKey);
+			}
+		});
+
+		_Files.resize();
 	},
-	updateTemplatePreview: function(element, url, dataType, contentType) {
-		$.ajax({
-			url: url.substr(0, url.indexOf('?')),
-			dataType: dataType,
-			contentType: contentType,
-			success: function(data) {
-				var contentBox = $('.editor', element);
-				contentBox.width('50%');
-				var previewArea = $('#template-preview');
-				$('textarea', previewArea).val(data);
-				previewArea.show();
-			}
-		});
+	updateTemplatePreview: async (element, url) => {
+
+		let contentBox = $('.editor', element);
+		contentBox.width('50%');
+
+		let previewArea = $('#template-preview');
+		previewArea.show();
+
+		let response = await fetch(url.substr(0, url.indexOf('?')));
+		let text     = await response.text();
+
+		$('textarea', previewArea).val(text);
 	},
 	isArchive: function(file) {
 		var contentType = file.contentType;
@@ -1656,7 +1759,7 @@ var _Files = {
 		return isIn(contentType, archiveTypes) || isIn(extension, archiveExtensions);
 	},
 	isMinificationTarget: function(file) {
-		var minifyTypes = [ 'MinifiedCssFile', 'MinifiedJavaScriptFile' ];
+		let minifyTypes = [ 'MinifiedCssFile', 'MinifiedJavaScriptFile' ];
 		return isIn(file.type, minifyTypes);
 	},
 	openMountDialog: function() {
@@ -1704,7 +1807,7 @@ var _Files = {
 						Structr.showAndHideInfoBoxMessage('Must supply mount target', 'warning', 2000);
 					} else {
 						mountConfig.type = 'Folder';
-						mountConfig.parentId = currentWorkingDir ? currentWorkingDir.id : null;
+						mountConfig.parentId = _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null;
 						Command.create(mountConfig);
 
 						dialogCancelButton.click();

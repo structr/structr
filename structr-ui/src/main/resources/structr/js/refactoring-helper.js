@@ -28,15 +28,39 @@ class RefactoringHelper {
 			+ 'This helper allows you to find and edit the attributes of HTML elements in Structr pages and Shared Components based on a type and some common attributes. '
 			+ 'Enter a type selector and one or more attributes to show all DOM nodes that contain a value in at least one of the fields. '
 			+ '</p>');
-		this.container.append('<div id="select-container"></div>');
+		this.container.append('<div id="select-container" class="flex flex-row items-center justify-between"></div>');
 
 		var selectContainer = $('#select-container');
 
+		selectContainer.append('<select class="refactoring-helper" id="page-input" placeholder="Page in which to search"></select>');
 		selectContainer.append('<input class="refactoring-helper" id="selector-input" placeholder="HTML tag, e.g. div, button" />');
 		selectContainer.append('<input class="refactoring-helper" id="property-input" placeholder="Property keys to display, e.g. id, class, name, onclick" />');
 		selectContainer.append('<input type="checkbox" id="empty-checkbox" /><label for="empty-checkbox"> Show empty results</label>');
-		selectContainer.append('<div id="result-container"></div>');
-		selectContainer.append('<div><pre id="error-container"></pre></div>');
+
+		this.container.append('<div id="result-container"></div>');
+		this.container.append('<div><pre id="error-container"></pre></div>');
+
+		let selectedPageId = LSWrapper.getItem(_Entities.selectedObjectIdKey);
+		if (_Entities.selectedObject && _Entities.selectedObject.type) {
+
+			if (_Entities.selectedObject.type !== 'Page') {
+				selectedPageId  = _Entities.selectedObject.pageId;
+			}
+		}
+
+		$.ajax({
+			url: '/structr/rest/Page?hidden=false&_sort=name',
+			method: 'get',
+			statusCode: {
+				200: response => {
+					let pageSelect = $('#page-input');
+					response.result.forEach(page => {
+						let selected = (page.id === selectedPageId  ? 'selected' : '');
+						pageSelect.append('<option ' + selected + ' value="' + page.id + '">' + page.name + '</option>');
+					});
+				}
+			}
+		});
 
 		window.setTimeout(() => { $('#selector-input').focus(); }, 100);
 
@@ -48,6 +72,7 @@ class RefactoringHelper {
 
 	loadResults() {
 
+		var pageSelector    = $('#page-input');
 		var typeSelector    = $('#selector-input');
 		var keysSelector    = $('#property-input');
 		var emptyCheckbox   = $('#empty-checkbox');
@@ -66,7 +91,7 @@ class RefactoringHelper {
 			errorContainer.empty();
 
 			$.ajax({
-				url: '/structr/rest/' + typeQuery + '/all',
+				url: '/structr/rest/' + typeQuery + '/all?pageId=' + pageSelector.val(),
 				method: 'get',
 				statusCode: {
 					200: (response) => {

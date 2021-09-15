@@ -1,4 +1,6 @@
-<div class="heading-row"><h3>Visibility</h3></div>
+<div class="row"><a title="Open dialog to show/hide the data types" id="schema-tools"><svg viewBox="0 0 16 16" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(0.6666666666666666,0,0,0.6666666666666666,0,0)"><path d="M0.750 0.750 L23.250 0.750 L23.250 23.250 L0.750 23.250 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M4.267,10.722a1.825,1.825,0,0,0,0,2.544C5.818,14.821,8.591,17.25,12,17.25s6.183-2.428,7.735-3.983a1.825,1.825,0,0,0,0-2.544C18.182,9.168,15.406,6.739,12,6.739S5.819,9.166,4.267,10.722Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.750 11.991 A2.250 2.250 0 1 0 14.250 11.991 A2.250 2.250 0 1 0 9.750 11.991 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg> Type Visibility</a></div>
+<div class="separator"></div>
+<div class="heading-row"><h3>Display Options</h3></div>
 <div class="row"><input ${_Schema.ui.showSchemaOverlays ? 'checked' : ''} type="checkbox" id="schema-show-overlays" name="schema-show-overlays"> <label for="schema-show-overlays"> Relationship labels</label></div>
 <div class="row"><input ${_Schema.ui.showInheritance    ? 'checked' : ''} type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"> <label for="schema-show-inheritance"> Inheritance arrows</label></div>
 <div class="separator"></div>
@@ -7,3 +9,15 @@
 <div class="row"><a class="edge-style ${_Schema.ui.connectorStyle === 'Bezier'       ? 'active' : ''}"> Bezier</a></div>
 <div class="row"><a class="edge-style ${_Schema.ui.connectorStyle === 'StateMachine' ? 'active' : ''}"> StateMachine</a></div>
 <div class="row"><a class="edge-style ${_Schema.ui.connectorStyle === 'Straight'     ? 'active' : ''}"> Straight</a></div>
+<div class="separator"></div>
+<div class="heading-row"><h3>Saved Layouts</h3></div>
+<div class="row">
+    <select id="saved-layout-selector"></select>
+    <button id="restore-layout">Apply</button>
+    <button id="download-layout">Download</button>
+    <button id="update-layout">Update</button>
+    <button id="delete-layout">Delete</button>
+</div>
+<div class="row"><input id="layout-name" placeholder="Enter name for layout"> <button id="create-new-layout">Save</button></div>
+<div class="separator"></div>
+<div class="row"><a title="Reset the stored node positions and apply an automatic layouting algorithm." id="reset-schema-positions"><svg viewBox="0 0 16 16" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(0.6666666666666666,0,0,0.6666666666666666,0,0)"><path d="M0.75 0.748L0.75 8.248 8.25 8.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12,23.248a11.25,11.25,0,1,0-10.6-15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg> Reset Layout (apply Auto-Layouting)</a></div>

@@ -16,34 +16,44 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var pages, shadowPage;
-var controls, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout, activeElementsSlideout, dataBindingSlideout;
-var components, elements;
-var selStart, selEnd;
-var sel;
-var contentSourceId, elementSourceId, rootId;
-var textBeforeEditing;
-
 $(document).ready(function() {
 	Structr.registerModule(_Pages);
 	Structr.classes.push('page');
 });
 
-var _Pages = {
+let _Pages = {
 	_moduleName: 'pages',
 	autoRefresh: [],
-	urlHashKey: 'structrUrlHashKey_' + port,
-	activeTabRightKey: 'structrActiveTabRight_' + port,
-	activeTabLeftKey: 'structrActiveTabLeft_' + port,
-	selectedTypeKey: 'structrSelectedType_' + port,
-	autoRefreshDisabledKey: 'structrAutoRefreshDisabled_' + port,
-	detailsObjectIdKey: 'structrDetailsObjectId_' + port,
-	requestParametersKey: 'structrRequestParameters_' + port,
-	pagesResizerLeftKey: 'structrPagesResizerLeftKey_' + port,
-	pagesResizerRightKey: 'structrPagesResizerRightKey_' + port,
-	functionBarSwitchKey: 'structrFunctionBarSwitchKey_' + port,
+	urlHashKey: 'structrUrlHashKey_' + location.port,
+	activeTabRightKey: 'structrActiveTabRight_' + location.port,
+	activeTabLeftKey: 'structrActiveTabLeft_' + location.port,
+	selectedTypeKey: 'structrSelectedType_' + location.port,
+	autoRefreshDisabledKey: 'structrAutoRefreshDisabled_' + location.port,
+	detailsObjectIdKey: 'structrDetailsObjectId_' + location.port,
+	requestParametersKey: 'structrRequestParameters_' + location.port,
+	pagesResizerLeftKey: 'structrPagesResizerLeftKey_' + location.port,
+	pagesResizerRightKey: 'structrPagesResizerRightKey_' + location.port,
+	functionBarSwitchKey: 'structrFunctionBarSwitchKey_' + location.port,
 
+	shadowPage: undefined,
+
+	pagesSlideout: undefined,
+	localizationsSlideout: undefined,
+
+	widgetsSlideout: undefined,
+	paletteSlideout: undefined,
+	componentsSlideout: undefined,
+	unusedElementsSlideout: undefined,
+
+	components: undefined,
+	unusedElementsTree: undefined,
+
+	pagesTree: undefined,
 	centerPane: undefined,
+
+	textBeforeEditing: undefined,
+
+	contentSourceId: undefined,
 
 	init: function() {
 
@@ -73,36 +83,31 @@ var _Pages = {
 			window.location.hash = urlHash;
 		}
 
-		Structr.fetchHtmlTemplate('pages/pages', {}, function(html) {
+		Structr.fetchHtmlTemplate('pages/pages', {}, (html) => {
 
-			fastRemoveAllChildren(main[0]);
-
-			main[0].insertAdjacentHTML('afterbegin', html);
+			main[0].innerHTML = html;
 
 			_Pages.init();
 
 			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('pages'));
 
-			pagesSlideout = $('#pages');
-//			activeElementsSlideout = $('#activeElements');
-//			dataBindingSlideout = $('#dataBinding');
-			localizationsSlideout = $('#localizations');
-
-			_Pages.centerPane = document.querySelector('#center-pane');
+			_Pages.pagesSlideout           = $('#pages');
+			_Pages.localizationsSlideout   = $('#localizations');
+			_Pages.pagesTree               = $('#pagesTree', _Pages.pagesSlideout);
+			_Pages.centerPane              = document.querySelector('#center-pane');
 			_Pages.previews.previewElement = document.querySelector('#previews');
+			_Pages.widgetsSlideout         = $('#widgetsSlideout');
+			_Pages.paletteSlideout         = $('#palette');
+			_Pages.componentsSlideout      = $('#components');
+			_Pages.unusedElementsSlideout  = $('#elements');
+			_Pages.unusedElementsTree      = $('#elementsArea', _Pages.unusedElementsSlideout);
+			_Pages.unusedElementsSlideout.data('closeCallback', _Pages.unattachedNodes.removeElementsFromUI);
 
-			widgetsSlideout = $('#widgetsSlideout');
-			paletteSlideout = $('#palette');
-			componentsSlideout = $('#components');
-			elementsSlideout = $('#elements');
-			elementsSlideout.data('closeCallback', _Pages.unattachedNodes.removeElementsFromUI);
-
-			var pagesTabSlideoutAction = function () {
-				_Pages.leftSlideoutTrigger(this, pagesSlideout, [/*activeElementsSlideout, dataBindingSlideout*/, localizationsSlideout], (params) => {
+			let pagesTabSlideoutAction = function () {
+				_Pages.leftSlideoutTrigger(this, _Pages.pagesSlideout, [_Pages.localizationsSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
 					_Pages.resize();
-					_Pages.showPagesPagerToggle();
-					_Pages.showTabsMenu();
+					_Entities.highlightSelectedElementOnSlidoutOpen();
 				}, _Pages.leftSlideoutClosedCallback);
 			};
 			$('#pagesTab').on('click', pagesTabSlideoutAction).droppable({
@@ -110,40 +115,23 @@ var _Pages = {
 				//over: pagesTabSlideoutAction
 			});
 
-//			$('#activeElementsTab').on('click', function () {
-//				_Pages.leftSlideoutTrigger(this, activeElementsSlideout, [pagesSlideout, dataBindingSlideout, localizationsSlideout], (params) => {
-//                  LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
-//					if (params.isOpenAction) {
-//						_Pages.activeelements.refreshActiveElements();
-//					}
-//					_Pages.resize();
-//				}, _Pages.leftSlideoutClosedCallback);
-//			});
-//
-//			$('#dataBindingTab').on('click', function () {
-//				_Pages.leftSlideoutTrigger(this, dataBindingSlideout, [pagesSlideout, activeElementsSlideout, localizationsSlideout], (params) => {
-//                  LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
-//					if (params.isOpenAction) {
-//						_Pages.databinding.reloadDataBindingWizard();
-//					}
-//					_Pages.resize();
-//				}, _Pages.leftSlideoutClosedCallback);
-//			});
-
 			$('#localizationsTab').on('click', function () {
-				_Pages.leftSlideoutTrigger(this, localizationsSlideout, [pagesSlideout, /*activeElementsSlideout, dataBindingSlideout*/], (params) => {
+				_Pages.leftSlideoutTrigger(this, _Pages.localizationsSlideout, [_Pages.pagesSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
+					_Pages.localizations.refreshPagesForLocalizationPreview();
 					_Pages.resize();
+					_Entities.highlightSelectedElementOnSlidoutOpen();
 				}, _Pages.leftSlideoutClosedCallback);
 			});
 
 			$('#localizations input.locale').on('keydown', function (e) {
 				if (e.which === 13) {
-					_Pages.refreshLocalizations();
+					_Pages.localizations.refreshLocalizations();
 				}
 			});
+
 			$('#localizations button.refresh').on('click', function () {
-				_Pages.refreshLocalizations();
+				_Pages.localizations.refreshLocalizations();
 			});
 
 			Structr.appendInfoTextToElement({
@@ -156,7 +144,7 @@ var _Pages = {
 			});
 
 			$('#widgetsTab').on('click', function () {
-				_Pages.rightSlideoutClickTrigger(this, widgetsSlideout, [paletteSlideout, componentsSlideout, elementsSlideout], (params) => {
+				_Pages.rightSlideoutClickTrigger(this, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabRightKey, $(this).prop('id'));
 					if (params.isOpenAction) {
 						_Widgets.reloadWidgets();
@@ -166,7 +154,7 @@ var _Pages = {
 			});
 
 			$('#paletteTab').on('click', function () {
-				_Pages.rightSlideoutClickTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], (params) => {
+				_Pages.rightSlideoutClickTrigger(this, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabRightKey, $(this).prop('id'));
 					if (params.isOpenAction) {
 						_Pages.palette.reload();
@@ -176,7 +164,7 @@ var _Pages = {
 			});
 
 			let componentsTabSlideoutAction = function () {
-				_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], (params) => {
+				_Pages.rightSlideoutClickTrigger(this, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabRightKey, $(this).prop('id'));
 					if (params.isOpenAction) {
 						_Pages.sharedComponents.reload();
@@ -187,44 +175,20 @@ var _Pages = {
 			$('#componentsTab').on('click', componentsTabSlideoutAction).droppable({
 				tolerance: 'touch',
 				over: function () {
-					if (!componentsSlideout.hasClass('open')) {
+					if (!_Pages.componentsSlideout.hasClass('open')) {
 						componentsTabSlideoutAction();
 					}
 				}
 			});
 
 			$('#elementsTab').on('click', function () {
-				_Pages.rightSlideoutClickTrigger(this, elementsSlideout, [widgetsSlideout, paletteSlideout, componentsSlideout], (params) => {
+				_Pages.rightSlideoutClickTrigger(this, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabRightKey, $(this).prop('id'));
 					if (params.isOpenAction) {
 						_Pages.unattachedNodes.reload();
 					}
 					_Pages.resize();
 				}, _Pages.rightSlideoutClosedCallback);
-			});
-
-			live('#function-bar-switch', 'click', (e) => {
-				let icon = e.target.closest('.icon');
-				let pagesPager = document.getElementById('pagesPager');
-				let subMenu = document.querySelector('#function-bar .tabs-menu');
-
-				if (pagesPager.classList.contains('hidden')) {
-
-					_Pages.showPagesPager();
-					_Pages.hideTabsMenu();
-
-					icon.innerHTML = '<svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M.748,12.25a6,6,0,0,0,6,6h10.5a6,6,0,0,0,0-12H6.748A6,6,0,0,0,.748,12.25Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.248 9.25L17.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.248 9.25L14.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg>';
-					LSWrapper.setItem(_Pages.functionBarSwitchKey, 'visible');
-
-				} else {
-
-					_Pages.hidePagesPager();
-
-					icon.innerHTML = '<svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M23.248,12a6,6,0,0,1-6,6H6.748a6,6,0,0,1,0-12h10.5A6,6,0,0,1,23.248,12Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.748 9L6.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.748 9L9.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg>';
-					LSWrapper.setItem(_Pages.functionBarSwitchKey, 'hidden');
-
-					_Pages.showTabsMenu();
-				}
 			});
 
 			_Pages.refresh();
@@ -248,7 +212,7 @@ var _Pages = {
 		let handleInsertAfterAction  = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'After', _Elements.isInheritVisibililtyFlagsChecked()); };
 		let handleWrapInHTMLAction   = (itemText)  => { Command.wrapDOMNodeInNewDOMNode(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibililtyFlagsChecked()); };
 
-		var elements = [];
+		let elements = [];
 
 		if (!isContent) {
 
@@ -337,7 +301,7 @@ var _Pages = {
 		if (entity.type === 'Div' && !hasChildren) {
 
 			elements.push({
-				icon: _Icons.svg.pencil_edit,
+				icon: _Icons.getSvgIcon('pencil_edit'),
 				name: 'Edit',
 				clickHandler: function () {
 					_Entities.editSource(entity);
@@ -346,15 +310,24 @@ var _Pages = {
 			});
 		}
 
-		if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page')) {
+		let hasParentAndParentIsNotPage = (entity.parent && entity.parent.type !== 'Page');
+		let parentIsShadowPage          = (entity.parent === null && entity.pageId === _Pages.shadowPage.id);
+
+		if (!isPage && hasParentAndParentIsNotPage || parentIsShadowPage) {
 
 			elements.push({
-				name: 'Clone Node',
+				icon: _Icons.getSvgIcon('duplicate'),
+				name: 'Clone',
 				clickHandler: function () {
 					Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
 					return false;
 				}
 			});
+
+			_Elements.appendContextMenuSeparator(elements);
+		}
+
+		if (!isPage && hasParentAndParentIsNotPage) {
 
 			_Elements.appendContextMenuSeparator(elements);
 
@@ -384,6 +357,7 @@ var _Pages = {
 
 		if (isPage) {
 			elements.push({
+				icon: _Icons.getSvgIcon('duplicate'),
 				name: 'Clone Page',
 				clickHandler: function () {
 					Command.clonePage(entity.id);
@@ -414,8 +388,8 @@ var _Pages = {
 				});
 			}
 
-			let isEntitySharedComponent = entity.sharedComponent || (entity.isPage && entity.pageId === shadowPage.id);
-			if (!isEntitySharedComponent) {
+			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && entity.pageId !== _Pages.shadowPage.id;
+			if (canConvertToSharedComponent) {
 				_Elements.appendContextMenuSeparator(elements);
 
 				elements.push({
@@ -430,12 +404,12 @@ var _Pages = {
 
 		if (!isContent && _Elements.selectedEntity && _Elements.selectedEntity.id !== entity.id) {
 
-			var isSamePage = _Elements.selectedEntity.pageId === entity.pageId;
-			var isThisEntityDirectParentOfSelectedEntity = (_Elements.selectedEntity.parent && _Elements.selectedEntity.parent.id === entity.id);
-			var isSelectedEntityInShadowPage = _Elements.selectedEntity.pageId === shadowPage.id;
-			var isSelectedEntitySharedComponent = isSelectedEntityInShadowPage && !_Elements.selectedEntity.parent;
+			let isSamePage = _Elements.selectedEntity.pageId === entity.pageId;
+			let isThisEntityDirectParentOfSelectedEntity = (_Elements.selectedEntity.parent && _Elements.selectedEntity.parent.id === entity.id);
+			let isSelectedEntityInShadowPage = _Elements.selectedEntity.pageId === _Pages.shadowPage.id;
+			let isSelectedEntitySharedComponent = isSelectedEntityInShadowPage && !_Elements.selectedEntity.parent;
 
-			var isDescendantOfSelectedEntity = function (possibleDescendant) {
+			let isDescendantOfSelectedEntity = function (possibleDescendant) {
 				if (possibleDescendant.parent) {
 					if (possibleDescendant.parent.id === _Elements.selectedEntity.id) {
 						return true;
@@ -500,15 +474,15 @@ var _Pages = {
 						return false;
 					}
 				});
-			}
 
-			elements.push({
-				name: 'HTML Attributes',
-				clickHandler: function () {
-					_Entities.showProperties(entity, '_html_');
-					return false;
-				}
-			});
+				elements.push({
+					name: 'HTML Attributes',
+					clickHandler: function () {
+						_Entities.showProperties(entity, '_html_');
+						return false;
+					}
+				});
+			}
 		}
 
 		elements.push({
@@ -587,8 +561,8 @@ var _Pages = {
 
 		if (isPage) {
 			elements.push({
-				icon: _Icons.svg.page_settings,
-				name: 'Configure Page Preview',
+				icon: _Icons.getSvgIcon('ui_configuration_settings'),
+				name: 'Page Preview Settings',
 				clickHandler: function () {
 					_Pages.previews.configurePreview(entity);
 					return false;
@@ -596,7 +570,7 @@ var _Pages = {
 			});
 
 			elements.push({
-				icon: _Icons.svg.page_open,
+				icon: _Icons.getSvgIcon('page_open'),
 				name: 'Open Page in new tab',
 				clickHandler: function () {
 					let url = _Pages.previews.getUrlForPage(entity);
@@ -611,7 +585,7 @@ var _Pages = {
 		if (!isPage && entity.parent !== null) {
 
 			elements.push({
-				icon: _Icons.svg.trashcan,
+				icon: _Icons.getSvgIcon('trashcan'),
 				classes: ['menu-bolder', 'danger'],
 				name: 'Remove Node',
 				clickHandler: function () {
@@ -627,7 +601,7 @@ var _Pages = {
 		if (isPage || !entity.parent) {
 
 			elements.push({
-				icon: _Icons.svg.trashcan,
+				icon: _Icons.getSvgIcon('trashcan'),
 				classes: ['menu-bolder', 'danger'],
 				name: 'Delete ' + entity.type,
 				clickHandler: () => {
@@ -673,6 +647,11 @@ var _Pages = {
 	},
 	resizeColumns: function(pxLeft, pxRight) {
 
+		if (!pxLeft && !pxRight) {
+			pxLeft = LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 200;
+			pxRight = LSWrapper.getItem(_Pages.pagesResizerRightKey) || 200;
+		}
+
 		let leftResizer       = document.querySelector('.column-resizer-left');
 		let openLeftSlideout  = document.querySelector('.slideOutLeft.open');
 		let rightResizer      = document.querySelector('.column-resizer-right');
@@ -690,78 +669,74 @@ var _Pages = {
 
 		let tabsMenu = document.querySelector('#function-bar .tabs-menu');
 
-		if (pxLeft) {
+		if (leftResizer) {
 
-			leftResizer.style.left = 'calc(' + leftPos + 'px + 0rem)';
+			if (pxLeft) {
 
-			if (openLeftSlideout) openLeftSlideout.style.width = 'calc(' + leftPos + 'px - 3rem)';
+				leftResizer.style.left = 'calc(' + leftPos + 'px + 0rem)';
 
-			_Pages.centerPane.style.marginLeft = 'calc(' + leftPos + 'px + 3rem)';
+				if (openLeftSlideout) openLeftSlideout.style.width = 'calc(' + leftPos + 'px - 3rem)';
 
-			if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
-
-		} else {
-
-			if (leftPos === 0) {
+				_Pages.centerPane.style.marginLeft = 'calc(' + leftPos + 'px + 3rem)';
 
 				if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
 
-				let columnResizerLeft = '4rem';
-				leftResizer.style.left = columnResizerLeft;
-				_Pages.centerPane.style.marginLeft = columnResizerLeft;
-
 			} else {
 
-				if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 0rem)';
+				if (leftPos === 0) {
 
-				leftResizer.style.left = 'calc(' + leftPos + 'px - 1rem)';
-				_Pages.centerPane.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
+					if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
+
+					let columnResizerLeft = '4rem';
+					leftResizer.style.left = columnResizerLeft;
+					_Pages.centerPane.style.marginLeft = columnResizerLeft;
+
+				} else {
+
+					if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 0rem)';
+
+					leftResizer.style.left = 'calc(' + leftPos + 'px - 1rem)';
+					_Pages.centerPane.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
+				}
 			}
 		}
 
-		if (pxRight) {
+		if (rightResizer) {
 
-			rightResizer.style.left = 'calc(' + (window.innerWidth - rightPos) + 'px + 0rem)';
+			if (pxRight) {
 
-			if (openRightSlideout) openRightSlideout.style.width = 'calc(' + rightPos + 'px - 7rem)';
+				rightResizer.style.left = 'calc(' + (window.innerWidth - rightPos) + 'px + 0rem)';
 
-			_Pages.centerPane.style.marginRight = 'calc(' + rightPos + 'px - 1rem)';
+				if (openRightSlideout) openRightSlideout.style.width = 'calc(' + rightPos + 'px - 7rem)';
 
-		} else {
-
-			if (rightPos === 0) {
-
-				let columnResizerRight = '4rem';
-				rightResizer.style.left = columnResizerRight;
-				_Pages.centerPane.style.marginRight = columnResizerRight;
+				_Pages.centerPane.style.marginRight = 'calc(' + rightPos + 'px - 1rem)';
 
 			} else {
 
-				rightResizer.style.left = 'calc(' + (window.innerWidth - rightPos) + 'px - 3rem)';
-				_Pages.centerPane.style.marginRight = 'calc(' + (rightPos) + 'px + 2rem)';
+				if (rightPos === 0) {
+
+					let columnResizerRight = '4rem';
+					rightResizer.style.left = columnResizerRight;
+					_Pages.centerPane.style.marginRight = columnResizerRight;
+
+				} else {
+
+					rightResizer.style.left = 'calc(' + (window.innerWidth - rightPos) + 'px - 3rem)';
+					_Pages.centerPane.style.marginRight = 'calc(' + (rightPos) + 'px + 2rem)';
+				}
 			}
 		}
+
 	},
 	refresh: function() {
 
-		pagesSlideout.find(':not(.slideout-activator)').remove();
+		fastRemoveAllChildren(_Pages.pagesTree[0]);
 
-		pagesSlideout.append('<div id="pagesTree"></div>');
-		pages = $('#pagesTree', pagesSlideout);
+		Structr.fetchHtmlTemplate('pages/functions', {}, (html) => {
 
-		let functionBarSwitchActive = (LSWrapper.getItem(_Pages.functionBarSwitchKey) === 'active');
-		if (functionBarSwitchActive) {
-			functionBar.append('<div id="function-bar-switch" class="icon"><svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M.748,12.25a6,6,0,0,0,6,6h10.5a6,6,0,0,0,0-12H6.748A6,6,0,0,0,.748,12.25Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.248 9.25L17.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.248 9.25L14.248 15.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></div>');
-		} else {
-			functionBar.append('<div id="function-bar-switch" class="icon hidden"><svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M23.248,12a6,6,0,0,1-6,6H6.748a6,6,0,0,1,0-12h10.5A6,6,0,0,1,23.248,12Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.748 9L6.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.748 9L9.748 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></div>');
-		}
+			Structr.functionBar.innerHTML = html;
 
-		functionBar.append('<div class="hidden" id="pagesPager"></div>');
-		let pagesPager = $('#pagesPager', functionBar);
-
-		Structr.fetchHtmlTemplate('pages/submenu', {}, (html) => {
-
-			functionBar.append(html);
+			UISettings.showSettingsForCurrentModule();
 
 			_Pages.resize();
 
@@ -769,12 +744,10 @@ var _Pages = {
 				_Pages.resize();
 			});
 
-			Structr.initVerticalSlider($('.column-resizer-left', main), _Pages.pagesResizerLeftKey, 300, _Pages.moveLeftResizer);
+			Structr.initVerticalSlider($('.column-resizer-left', main), _Pages.pagesResizerLeftKey, 400, _Pages.moveLeftResizer);
 			Structr.initVerticalSlider($('.column-resizer-right', main), _Pages.pagesResizerRightKey, 400, _Pages.moveRightResizer, true);
 
 			Structr.unblockMenu(500);
-
-			_Pages.resizeColumns(LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 200, LSWrapper.getItem(_Pages.pagesResizerRightKey) || 200);
 
 			if (_Pages.getActiveTabLeft()) {
 				$('#' + _Pages.getActiveTabLeft()).click();
@@ -784,46 +757,42 @@ var _Pages = {
 				$('#' + _Pages.getActiveTabRight()).click();
 			}
 
-
-			_Pages.adaptSubmenu();
+			_Pages.adaptFunctionBarTabs();
 
 			for (const menuLink of document.querySelectorAll('#function-bar .tabs-menu li a')) {
 				menuLink.onclick = (event) => _Pages.activateCenterPane(menuLink);
 			}
 
-			var pPager = _Pager.addPager('pages', pagesPager, true, 'Page', null, function(pages) {
-				pages.forEach(function(page) {
-					StructrModel.create(page);
-				});
-			});
+			let pagesPager = $('#pagesPager');
+			let pPager     = _Pager.addPager('pages', pagesPager, true, 'Page', null, null, null, null, true);
 
 			pPager.cleanupFunction = function () {
-				$('.node', pages).remove();
+				fastRemoveAllChildren(_Pages.pagesTree[0]);
 			};
-			let pagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name"/></span>');
-			pPager.pager.append(pagerFilters);
-			var categoryFilter = $('<input type="text" class="filter page-label" data-attribute="category" placeholder="Category" />');
-			pagerFilters.append(categoryFilter);
-			pPager.activateFilterElements();
 
-			$.ajax({
-				url: '/structr/rest/Page/category',
-				success: function(data) {
-					var categories = [];
-					data.result.forEach(function(page) {
-						if (page.category !== null && categories.indexOf(page.category) === -1) {
-							categories.push(page.category);
-						}
-					});
-					categories.sort();
+			let filerEl = $('#pagesPagerFilters');
+			pPager.activateFilterElements(filerEl);
 
-					let helpText = 'Filter pages by page category.';
-					if (categories.length > 0) {
-						helpText += 'Available categories: \n\n' + categories.join('\n');
-					}
-
-					categoryFilter.attr('title', helpText);
+			fetch('/structr/rest/Page/category').then((response) => {
+				if (response.ok) {
+					return response.json();
 				}
+			}).then((data) => {
+
+				let categories = [];
+				for (let page of data.result) {
+					if (page.category !== null && categories.indexOf(page.category) === -1) {
+						categories.push(page.category);
+					}
+				}
+				categories.sort();
+
+				let helpText = 'Filter pages by page category.';
+				if (categories.length > 0) {
+					helpText += 'Available categories: \n\n' + categories.join('\n');
+				}
+
+				$('input.category-filter', filerEl).attr('title', helpText);
 			});
 
 			/*
@@ -838,11 +807,7 @@ var _Pages = {
 			});
 			*/
 
-			functionBar.append('<a id="import_page" title="Import Template" class="icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" width="24" height="24"><g transform="matrix(1,0,0,1,0,0)"><path d="M11.250 17.250 A6.000 6.000 0 1 0 23.250 17.250 A6.000 6.000 0 1 0 11.250 17.250 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.25 14.25L17.25 20.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 17.25L20.25 17.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25,20.25h-6a1.5,1.5,0,0,1-1.5-1.5V2.25A1.5,1.5,0,0,1,2.25.75H12.879a1.5,1.5,0,0,1,1.06.439l2.872,2.872a1.5,1.5,0,0,1,.439,1.06V8.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></a>');
-			functionBar.append('<a id="add_page" title="Add page" class="icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" width="24" height="24"><g transform="matrix(1,0,0,1,0,0)"><path d="M12 7.5L12 16.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M7.5 12L16.5 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></a>');
-			functionBar.append('<a id="add_template" title="Add Template" class="icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" width="24" height="24"><g transform="matrix(1,0,0,1,0,0)"><path d="M22.151,2.85,20.892,6.289l2.121,2.122a.735.735,0,0,1-.541,1.273l-3.653-.029L17.5,13.018a.785.785,0,0,1-1.485-.1L14.932,9.07,11.08,7.991a.786.786,0,0,1-.1-1.486l3.363-1.323-.029-3.653A.734.734,0,0,1,15.588.986L17.71,3.107,21.151,1.85A.8.8,0,0,1,22.151,2.85Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.932 9.07L0.75 23.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></a>');
-
-			$('#import_page', functionBar).on('click', function(e) {
+			$('#import_page').on('click', (e) => {
 				e.stopPropagation();
 
 				Structr.dialog('Import Template', function() {}, function() {});
@@ -862,7 +827,7 @@ var _Pages = {
 						+ '</table>');
 
 				$('#_address', dialog).on('blur', function() {
-					var addr = $(this).val().replace(/\/+$/, "");
+					let addr = $(this).val().replace(/\/+$/, "");
 					$('#_name', dialog).val(addr.substring(addr.lastIndexOf("/") + 1));
 				});
 
@@ -871,31 +836,25 @@ var _Pages = {
 				$('#startImport').on('click', function(e) {
 					e.stopPropagation();
 
-					var code = $('#_code', dialog).val();
-					var address = $('#_address', dialog).val();
+					let code                  = $('#_code', dialog).val();
+					let address               = $('#_address', dialog).val();
+					let name                  = $('#_name', dialog).val();
+					let publicVisible         = $('#_publicVisible', dialog).prop('checked');
+					let authVisible           = $('#_authVisible', dialog).prop('checked');
+					let includeInExport       = $('#_includeInExport', dialog).prop('checked');
+					let processDeploymentInfo = $('#_processDeploymentInfo', dialog).prop('checked');
 
 					if (code.length > 0) {
 						address = null;
 					}
 
-					var name = $('#_name', dialog).val();
-					var publicVisible = $('#_publicVisible', dialog).prop('checked');
-					var authVisible = $('#_authVisible', dialog).prop('checked');
-					var includeInExport = $('#_includeInExport', dialog).prop('checked');
-					var processDeploymentInfo = $('#_processDeploymentInfo', dialog).prop('checked');
-
 					return Command.importPage(code, address, name, publicVisible, authVisible, includeInExport, processDeploymentInfo);
 				});
-
 			});
 
-			$('#pull_page', functionBar).on('click', function(e) {
+			$('#add_page').on('click', function(e) {
 				e.stopPropagation();
-				Structr.pullDialog('Page');
-			});
-
-			$('#add_page', functionBar).on('click', function(e) {
-				e.stopPropagation();
+				blinkGreen($(this).parent());
 				Command.createSimplePage();
 			});
 
@@ -914,11 +873,11 @@ var _Pages = {
 						dialogMsg.empty();
 						dialog.append('<div id="template-tiles"></div>');
 
-						var container = $('#template-tiles');
+						let container = $('#template-tiles');
 
-						result.forEach(function(widget) {
+						for (let widget of result) {
 
-							var id = 'create-from-' + widget.id;
+							let id = 'create-from-' + widget.id;
 							container.append('<div class="app-tile"><h4>' + widget.name + '</h4><p>' + widget.description + '</p><button class="action" id="' + id + '">Create Page</button></div>');
 							$('#' + id).on('click', function() {
 								Command.create({ type: 'Page' }, function(page) {
@@ -926,14 +885,13 @@ var _Pages = {
 									Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
 								});
 							});
-
-						});
+						}
 					});
 
 				} else {
 
 					// remove wizard button if no page templates exist (can be changed later when the dialog includes some hints etc.)
-					$('#add_template').remove();
+					$('#add_template').closest('.row').remove();
 				}
 			});
 
@@ -943,18 +901,7 @@ var _Pages = {
 			if (selectedObjectId) {
 
 				fetch(rootUrl + selectedObjectId).then(response => {
-					if (response.ok) {
-						// Wait for the tree element to become visible
-						const observer = new MutationObserver((mutations, obs) => {
-							let el = Structr.node(selectedObjectId);
-							if (el) {
-								el.click();
-								obs.disconnect();
-								return;
-							}
-						});
-						observer.observe(document, { childList: true, subtree: true });
-					} else {
+					if (!response.ok) {
 						// looks like element was deleted
 						LSWrapper.removeItem(_Entities.selectedObjectIdKey);
 					}
@@ -963,32 +910,42 @@ var _Pages = {
 		});
 
 	},
-	removePage:function(page) {
+	removePage: function(page) {
 
 		Structr.removeExpandedNode(page.id);
 	},
-	deactivateAllSubmenuLinks: () => {
-		for (const otherTab of document.querySelectorAll('#function-bar .tabs-menu li')) {
+	deactivateAllFunctionBarTabs: () => {
+		for (const otherTab of document.querySelectorAll('#function-bar .tabs-menu li.active')) {
 			otherTab.classList.remove('active');
 		}
 	},
-	adaptSubmenu: (obj) => {
+	hideAllFunctionBarTabs: () => {
+		for (const otherTab of document.querySelectorAll('#function-bar .tabs-menu li')) {
+			otherTab.classList.add('hidden');
+		}
+	},
+	selectedObjectWasDeleted: () => {
+		_Pages.emptyCenterPane();
+		_Pages.adaptFunctionBarTabs();
+	},
+	showTabsMenu: () => {
+		let tabsMenu = document.querySelector('#function-bar .tabs-menu');
+		if (tabsMenu) {
+			tabsMenu.style.display = 'inline-block';
+		}
+	},
+	adaptFunctionBarTabs: (entity) => {
 
-		if (!obj) {
+		if (entity) {
 
-			// hide all - no obj selected
-			for (let li of document.querySelectorAll('.tabs-menu li')) {
-				li.classList.add('hidden');
-			}
-
-		} else {
+			_Pages.showTabsMenu();
 
 			// first show everything - later hide some
-			for (let li of document.querySelectorAll('.tabs-menu li')) {
+			for (let li of document.querySelectorAll('.tabs-menu li.hidden')) {
 				li.classList.remove('hidden');
 			}
 
-			switch (obj.type) {
+			switch (entity.type) {
 				case 'Page':
 					document.querySelector('a[href="#pages:html"]').closest('li').classList.add('hidden');
 					document.querySelector('a[href="#pages:editor"]').closest('li').classList.add('hidden');
@@ -998,7 +955,7 @@ var _Pages = {
 
 				default:
 
-					if (obj.isContent) {
+					if (entity.isContent) {
 						document.querySelector('a[href="#pages:html"]').closest('li').classList.add('hidden');
 						document.querySelector('a[href="#pages:editor"]').closest('li').classList.remove('hidden');
 						document.querySelector('a[href="#pages:events"]').closest('li').classList.add('hidden');
@@ -1009,10 +966,19 @@ var _Pages = {
 						document.querySelector('a[href="#pages:events"]').closest('li').classList.remove('hidden');
 					}
 			}
+
+			let isEntityInSharedComponents = (entity.pageId === _Pages.shadowPage.id);
+			let isEntityInTrash = (!entity.isPage && !entity.pageId);
+			if (isEntityInSharedComponents || isEntityInTrash) {
+				document.querySelector('a[href="#pages:preview"]').closest('li').classList.add('hidden');
+			}
+
+		} else {
+			_Pages.hideAllFunctionBarTabs();
 		}
 	},
 	activateSubmenuTabElement: (tab) => {
-		_Pages.deactivateAllSubmenuLinks();
+		_Pages.deactivateAllFunctionBarTabs();
 
 		tab.classList.add('active');
 	},
@@ -1046,11 +1012,20 @@ var _Pages = {
 
 		_Entities.deselectAllElements();
 
-		if (_Dashboard.isFavorEditorForContentElements() && (!urlHash && obj.isContent)) {
+		_Pages.centerPane.dataset['elementId'] = obj.id;
+
+		if (UISettings.getValueForSetting(UISettings.pages.settings.favorEditorForContentElementsKey) && (!urlHash && obj.isContent)) {
 			/*
 				if urlHash is given, user has manually selected a tab. if it is not given, user has selected a node
 			*/
 			urlHash = '#pages:editor';
+		}
+
+		if (UISettings.getValueForSetting(UISettings.pages.settings.favorHTMLForDOMNodesKey) && (!urlHash && obj.isDOMNode)) {
+			/*
+				if urlHash is given, user has manually selected a tab. if it is not given, user has selected a node
+			*/
+			urlHash = '#pages:html';
 		}
 
 		let contentContainers = _Pages.centerPane.querySelectorAll('.content-container');
@@ -1059,7 +1034,7 @@ var _Pages = {
 			_Pages.centerPane.removeChild(contentContainer);
 		}
 
-		_Pages.adaptSubmenu(obj);
+		_Pages.adaptFunctionBarTabs(obj);
 
 		if (!urlHash) {
 			urlHash = new URL(location.href).hash;
@@ -1123,21 +1098,16 @@ var _Pages = {
 
 			case '#pages:basic':
 
-				let callbackObject = registeredDialogs[obj.type];
-
-				if (!callbackObject && obj.isDOMNode) {
-					callbackObject = registeredDialogs['DEFAULT_DOM_NODE'];
-				}
+				let dialogConfig = _Dialogs.getDialogConfigForEntity(obj);
 
 				Structr.fetchHtmlTemplate('pages/basic', {}, (html) => {
 
 					_Pages.centerPane.insertAdjacentHTML('beforeend', html);
 					let basicContainer = document.querySelector('#center-pane .basic-container');
 
-					if (callbackObject) {
-						callbackObject.callback($(basicContainer), obj);
+					if (dialogConfig) {
+						dialogConfig.appendDialogForEntityToContainer($(basicContainer), obj);
 					}
-
 				});
 
 				break;
@@ -1261,13 +1231,13 @@ var _Pages = {
 
 		let hasChildren = entity.children && entity.children.length;
 
-		if (!pages) return;
+		if (!_Pages.pagesTree) return;
 
-		if ($('#id_' + entity.id, pages).length > 0) {
+		if ($('#id_' + entity.id, _Pages.pagesTree).length > 0) {
 			return;
 		}
 
-		pages.append('<div id="id_' + entity.id + '" class="node page"><div class="node-selector"></div></div>');
+		_Pages.pagesTree.append('<div id="id_' + entity.id + '" class="node page"><div class="node-selector"></div></div>');
 		let div = Structr.node(entity.id);
 
 		_Dragndrop.makeSortable(div);
@@ -1278,13 +1248,18 @@ var _Pages = {
 
 		let pageName = (entity.name ? entity.name : '[' + entity.type + ']');
 
-		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.page_icon) + '" />'
-				+ '<b title="' + escapeForHtmlAttributes(entity.name) + '" class="name_ abbr-ellipsis abbr-75pc">' + pageName + '</b> <span class="id">' + entity.id + '</span>' + (entity.position ? ' <span class="position">' + entity.position + '</span>' : ''));
+		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.page_icon) + '"></i>'
+				+ '<span>'
+					+ '<b title="' + escapeForHtmlAttributes(entity.name) + '" class="name_ abbr-ellipsis abbr-pages-tree-page">' + pageName + '</b>'
+					+ (entity.position ? ' <span class="position_">' + entity.position + '</span>' : '')
+				+ '</span>'
+				+ '<span class="id">' + entity.id + '</span>'
+		);
 
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 		//_Entities.appendAccessControlIcon(div, entity);
 
-		_Entities.appendEditPropertiesIcon(div, entity);
+		_Entities.appendContextMenuIcon(div, entity);
 
 		_Elements.enableContextMenuOnElement(div, entity);
 		_Entities.setMouseOver(div);
@@ -1309,105 +1284,103 @@ var _Pages = {
 
 		_Dragndrop.makeDroppable(div);
 
+		_Elements.clickOrSelectElementIfLastSelected(div, entity);
+
 		return div;
 	},
 
 	registerDetailClickHandler: (element, entity) => {
 
-		if (element.data('clickhandlerSet') !== true) {
+		if (Structr.getActiveModule() === _Pages && element.data('clickhandlerSet') !== true) {
 
 			element.data('clickhandlerSet', true);
 
 			element.on('click', function(e) {
 
-				_Entities.selectedObject = entity;
-				_Entities.selectElement(element.closest('.node'));
-				_Pages.refreshCenterPane(entity);
+				let clickedObjectIsCurrentlySelected = _Entities.selectedObject && _Entities.selectedObject.id === entity.id;
+				let isElementBeingEditedCurrently    = (_Pages.centerPane.dataset['elementId'] === entity.id);
+
+                		_Entities.selectElement(element.closest('.node')[0], entity);
+
+				if (!clickedObjectIsCurrentlySelected || !isElementBeingEditedCurrently) {
+
+					LSWrapper.setItem(_Entities.selectedObjectIdKey, entity.id);
+					_Pages.refreshCenterPane(entity);
+				}
 			});
 		}
 	},
 
 	saveInlineElement: function(el, callback) {
-		var self = $(el);
-		contentSourceId = self.attr('data-structr-id');
-		var text = unescapeTags(cleanText(self.html()));
+		let self = $(el);
+		_Pages.contentSourceId = self.attr('data-structr-id');
+		let text = unescapeTags(cleanText(self.html()));
 		self.attr('contenteditable', false);
 		self.removeClass('structr-editable-area-active').removeClass('structr-editable-area');
-		Command.setProperty(contentSourceId, 'content', text, false, function(obj) {
-			if (contentSourceId === obj.id) {
+
+		Command.setProperty(_Pages.contentSourceId, 'content', text, false, function(obj) {
+			if (_Pages.contentSourceId === obj.id) {
 				if (callback) {
 					callback();
 				}
-				contentSourceId = null;
+				_Pages.contentSourceId = null;
 			}
 		});
 	},
 	appendElementElement: function(entity, refNode, refNodeIsParent) {
-		entity = StructrModel.ensureObject(entity);
-		var div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
+		entity  = StructrModel.ensureObject(entity);
+		let div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
 
 		if (!div) {
 			return false;
 		}
-
-//		var parentId = entity.parent && entity.parent.id;
-//		if (parentId) {
-//			$('.delete_icon', div).replaceWith('<i title="Remove" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_brick_icon) + '" />');
-//			$('.button', div).on('mousedown', function(e) {
-//				e.stopPropagation();
-//			});
-//			$('.delete_icon', div).on('click', function(e) {
-//				e.stopPropagation();
-//				Command.removeChild(entity.id);
-//			});
-//		}
 
 		_Dragndrop.makeDroppable(div);
 		_Dragndrop.makeSortable(div);
 
 		return div;
 	},
-	showTypeData: function(id) {
-		if (!id) {
-			return;
-		}
-		Command.get(id, 'id,name', function(sourceSchemaNode) {
-
-			var typeKey = sourceSchemaNode.name.toLowerCase();
-			LSWrapper.setItem(_Pages.selectedTypeKey, id);
-
-			$('#data-wizard-attributes')
-					.append('<div class="clear">&nbsp;</div><p>You can drag and drop the type box onto a block in a page. The type will be bound to the block which will loop over the result set.</p>')
-					.append('<div class="data-binding-type draggable">:' + sourceSchemaNode.name + '</div>')
-					.append('<h3>Properties</h3><div class="properties"></div>')
-					.append('<p>Drag and drop these elements onto the page for data binding.</p>');
-
-			var draggableSettings = {
-				iframeFix: true,
-				revert: 'invalid',
-				containment: 'body',
-				helper: 'clone',
-				appendTo: '#main',
-				stack: '.node',
-				zIndex: 99
-			};
-
-			$('.data-binding-type').draggable(draggableSettings);
-
-			Command.getSchemaInfo(sourceSchemaNode.name, function(properties) {
-
-				var el = $('#data-wizard-attributes .properties');
-
-				properties.reverse().forEach(function(property) {
-
-					var subkey = property.relatedType ? 'name' : '';
-
-					el.append('<div class="draggable data-binding-attribute ' + property.jsonName + '" collection="' + property.isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + property.jsonName  + '</div>');
-					el.children('.' + property.jsonName).draggable(draggableSettings);
-				});
-			});
-		});
-	},
+	// showTypeData: function(id) {
+	// 	if (!id) {
+	// 		return;
+	// 	}
+	// 	Command.get(id, 'id,name', function(sourceSchemaNode) {
+	//
+	// 		var typeKey = sourceSchemaNode.name.toLowerCase();
+	// 		LSWrapper.setItem(_Pages.selectedTypeKey, id);
+	//
+	// 		$('#data-wizard-attributes')
+	// 				.append('<div class="clear">&nbsp;</div><p>You can drag and drop the type box onto a block in a page. The type will be bound to the block which will loop over the result set.</p>')
+	// 				.append('<div class="data-binding-type draggable">:' + sourceSchemaNode.name + '</div>')
+	// 				.append('<h3>Properties</h3><div class="properties"></div>')
+	// 				.append('<p>Drag and drop these elements onto the page for data binding.</p>');
+	//
+	// 		var draggableSettings = {
+	// 			iframeFix: true,
+	// 			revert: 'invalid',
+	// 			containment: 'body',
+	// 			helper: 'clone',
+	// 			appendTo: '#main',
+	// 			stack: '.node',
+	// 			zIndex: 99
+	// 		};
+	//
+	// 		$('.data-binding-type').draggable(draggableSettings);
+	//
+	// 		Command.getSchemaInfo(sourceSchemaNode.name, function(properties) {
+	//
+	// 			var el = $('#data-wizard-attributes .properties');
+	//
+	// 			properties.reverse().forEach(function(property) {
+	//
+	// 				var subkey = property.relatedType ? 'name' : '';
+	//
+	// 				el.append('<div class="draggable data-binding-attribute ' + property.jsonName + '" collection="' + property.isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + property.jsonName  + '</div>');
+	// 				el.children('.' + property.jsonName).draggable(draggableSettings);
+	// 			});
+	// 		});
+	// 	});
+	// },
 	expandTreeNode: function(id, stack, lastId) {
 		if (!id) {
 			return;
@@ -1424,23 +1397,24 @@ var _Pages = {
 		});
 	},
 	highlight: function(id) {
-		var node = Structr.node(id);
+		let node = Structr.node(id);
 		if (node) {
 			node.parent().removeClass('nodeHover');
 			node.addClass('nodeHover');
 		}
-		var activeNode = Structr.node(id, '#active_');
+
+		let activeNode = Structr.node(id, '#active_');
 		if (activeNode) {
 			activeNode.parent().removeClass('nodeHover');
 			activeNode.addClass('nodeHover');
 		}
 	},
 	unhighlight: function(id) {
-		var node = Structr.node(id);
+		let node = Structr.node(id);
 		if (node) {
 			node.removeClass('nodeHover');
 		}
-		var activeNode = Structr.node(id, '#active_');
+		let activeNode = Structr.node(id, '#active_');
 		if (activeNode) {
 			activeNode.removeClass('nodeHover');
 		}
@@ -1496,202 +1470,307 @@ var _Pages = {
 			_Pages.resize();
 		}
 	},
-	selectedObjectWasDeleted: () => {
-		_Pages.adaptSubmenu();
-		_Pages.emptyCenterPane();
-		_Pages.hideTabsMenu();
-	},
-	showPagesPager: () => {
-		let pagesPager = document.getElementById('pagesPager');
-		pagesPager.classList.remove('hidden');
-	},
-	hidePagesPager: () => {
-		let pagesPager = document.getElementById('pagesPager');
-		pagesPager.classList.add('hidden');
-	},
-	showPagesPagerToggle: () => {
-		document.getElementById('function-bar-switch').classList.remove('hidden');
-	},
-	hidePagesPagerToggle: () => {
-		document.getElementById('function-bar-switch').classList.add('hidden');
-	},
-	showTabsMenu: () => {
+	localizations: {
+		lastSelectedPageKey: 'structrLocalizationsLastSelectedPageKey_' + location.port,
+		lastUsedLocaleKey: 'structrLocalizationsLastUsedLocale_' + location.port,
+		wrapperTypeForContextMenu: 'WrappedLocalizationForPreview',
+		getContextMenuElements: function (div, wrappedEntity) {
 
-		let tabsMenu = document.querySelector('#function-bar .tabs-menu');
-		if (tabsMenu) {
-			tabsMenu.style.display = 'inline-block';
-		}
-	},
-	hideTabsMenu: () => {
-		let tabsMenu = document.querySelector('#function-bar .tabs-menu');
-		if (tabsMenu) {
-			tabsMenu.style.display = 'none';
-		}
-	},
-	refreshLocalizations: function() {
+			let entity               = wrappedEntity.entity;
+			const isPage             = (entity.type === 'Page');
+			const isContent          = (entity.type === 'Content');
+			const isTemplate         = (entity.type === 'Template');
+			const isDOMNode          = (entity.isDOMNode);
+			const isSchemaNode       = (entity.type === 'SchemaNode');
 
-		let id = _Pages.previews.activePreviewPageId;
+			let elements = [];
 
-		let localizationsContainer = $('#localizations div.inner div.results');
-		localizationsContainer.empty().attr('id', 'id_' + id);
+			if (isDOMNode && !isPage) {
 
-		if (_Pages.previews.isPreviewForActiveForPage(id)) {
+				elements.push({
+					name: 'Repeater',
+					clickHandler: function () {
+						_Entities.showProperties(entity, 'query');
+						return false;
+					}
+				});
 
-			let localeInput = $('#localizations input.locale');
-			let locale      = localeInput.val();
+				if (!_Entities.isContentElement(entity)) {
+					elements.push({
+						name: 'Events',
+						clickHandler: function () {
+							_Entities.showProperties(entity, 'editBinding');
+							return false;
+						}
+					});
+				}
+
+				if (!_Entities.isContentElement(entity)) {
+					elements.push({
+						name: 'HTML Attributes',
+						clickHandler: function () {
+							_Entities.showProperties(entity, '_html_');
+							return false;
+						}
+					});
+				}
+
+				elements.push({
+					name: 'Properties',
+					clickHandler: function() {
+						_Entities.showProperties(entity, 'ui');
+						return false;
+					}
+				});
+			}
+
+			if (isSchemaNode) {
+
+				elements.push({
+					name: 'Go to Schema Node',
+					clickHandler: function() {
+
+						let pathToOpen = 'custom--' + entity.id;
+
+						window.location.href = '#code';
+						window.setTimeout(function() {
+							_Code.findAndOpenNode(pathToOpen, false);
+						}, 1000);
+
+						return false;
+					}
+				});
+			}
+
+			_Elements.appendContextMenuSeparator(elements);
+
+			return elements;
+		},
+
+		refreshPagesForLocalizationPreview: async () => {
+
+			let pageSelect       = document.getElementById('localization-preview-page');
+			let localeInput      = document.querySelector('#localizations input.locale');
+			pageSelect.innerHTML = '';
+
+			let lastSelectedPage = LSWrapper.getItem(_Pages.localizations.lastSelectedPageKey);
+			let lastUsedLocale   = LSWrapper.getItem(_Pages.localizations.lastUsedLocaleKey);
+			if (lastUsedLocale) {
+				localeInput.value = lastUsedLocale;
+			}
+
+			let pages = await Command.queryPromise('Page', 1000, 1, 'name', 'asc', { hidden: false }, true, null, 'id,name');
+
+			for (let page of pages) {
+
+				let option = document.createElement('option');
+				option.value = page.id;
+				option.textContent = page.name;
+
+				// first assumption: if we are previewing a page, use that page
+				if (page.id === _Pages.previews.activePreviewPageId) {
+					option.selected = true;
+				}
+
+				// second assumption: use previously selected page if not actively previewing a page
+				if (!_Pages.previews.activePreviewPageId && page.id === lastSelectedPage) {
+					option.selected = true;
+				}
+
+				pageSelect.appendChild(option);
+			}
+		},
+		refreshLocalizations: async () => {
+
+			let localizationsContainer = document.querySelector('#localizations div.inner div.results');
+			let localeInput            = document.querySelector('#localizations input.locale');
+			let locale                 = localeInput.value;
+			let pageSelect             = document.getElementById('localization-preview-page');
 
 			if (!locale) {
 				blinkRed(localeInput);
 				return;
 			}
 
-			let detailObjectId = LSWrapper.getItem(_Pages.detailsObjectIdKey + id);
-			let queryString    = LSWrapper.getItem(_Pages.requestParametersKey + id);
+			LSWrapper.setItem(_Pages.localizations.lastSelectedPageKey, pageSelect.value);
+			LSWrapper.setItem(_Pages.localizations.lastUsedLocaleKey, locale);
 
-			Command.listLocalizations(id, locale, detailObjectId, queryString, function (result) {
+			let id                = pageSelect.value;
+			let detailObjectId    = LSWrapper.getItem(_Pages.detailsObjectIdKey + id);
+			let queryString       = LSWrapper.getItem(_Pages.requestParametersKey + id);
+			let localizations     = await Command.listLocalizations(id, locale, detailObjectId, queryString);
+			let localizationIdKey = 'localizationId';
+			let previousValueKey  = 'previousValue';
 
-				$('#localizations .page').prop('id', 'id_' + id);
+			localizationsContainer.innerHTML = '';
 
-				let localizationIdKey = 'localizationId';
-				let previousValueKey  = 'previousValue';
+			if (localizations.length == 0) {
 
-				if (result.length > 0) {
+				localizationsContainer.innerHTML = 'No localizations found in page.';
 
-					for (let res of result) {
-
-						let div   = _Pages.getNodeForLocalization(localizationsContainer, res.node);
-						let tbody = $('tbody', div);
-						let row   = $('<tr><td><div class="key-column allow-break">' + res.key + '</div></td><td class="domain-column">' + res.domain + '</td><td class="locale-column">' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td><td class="input"><input class="localized-value" placeholder="..."><a title="Delete" class="delete"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /></a></td></tr>');
-						let key   = $('div.key-column', row).attr('title', res.key);
-						let input = $('input.localized-value', row);
-
-						if (res.localization) {
-							let domainIdentical = (res.localization.domain === res.domain) || (!res.localization.domain && !res.domain);
-							if (!domainIdentical) {
-								res.localization = null;
-								// we are getting the fallback localization for this entry - do not show this as we would update the wrong localization otherwise
-							}
-						}
-
-						if (res.localization !== null) {
-							row.addClass('has-value');
-							input.val(res.localization.localizedName).data(localizationIdKey, res.localization.id).data(previousValueKey, res.localization.localizedName);
-						}
-
-						$('.delete', row).on('click', function(event) {
-							event.preventDefault();
-
-							let id = input.data(localizationIdKey);
-
-							if (id) {
-								var c = confirm('Are you sure you want to delete this localization ' + id + ' ?');
-								if (c === true) {
-									Command.deleteNode(id, false, () => {
-										row.removeClass('has-value');
-										input.data(localizationIdKey, null).data(previousValueKey, null).val('');
-									});
-								}
-							}
-						});
-
-						input.on('blur', function() {
-
-							let el             = $(this);
-							let newValue       = el.val();
-							let localizationId = el.data(localizationIdKey);
-							let previousValue  = el.data(previousValueKey);
-							let isChange       = (!previousValue && newValue !== '') || (previousValue && previousValue !== newValue);
-
-							if (isChange) {
-
-								if (localizationId) {
-
-									Command.setProperties(localizationId, {
-										localizedName: newValue
-									}, function() {
-										blinkGreen(el);
-										el.data(previousValueKey, newValue);
-									});
-
-								} else {
-
-									Command.create({
-										type: 'Localization',
-										name: res.key,
-										domain: res.domain || null,
-										locale: res.locale,
-										localizedName: newValue
-									},
-									function(createdLocalization) {
-										el.data(localizationIdKey, createdLocalization.id);
-										el.data(previousValueKey, newValue);
-										row.addClass('has-value');
-										blinkGreen(el);
-									});
-								}
-							}
-						});
-
-						tbody.append(row);
-					};
-
-				} else {
-
-					localizationsContainer.append("<br>No localizations found in page.");
-				}
-			});
-
-		} else {
-			localizationsContainer.append('<br>Cannot show localizations - no preview loaded.<br><br>');
-		}
-	},
-	getNodeForLocalization: function (container, entity) {
-
-		let idString = 'locNode_' + entity.id;
-		let existing = $('#' + idString, container);
-
-		if (existing.length) {
-			return existing;
-		}
-
-		let div = $('<div id="' + idString + '" class="node localization-element ' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
-
-		div.data('nodeId', (_Entities.isContentElement(entity) ? entity.parent.id : entity.id ));
-
-		let displayName = getElementDisplayName(entity);
-		let iconClass   = _Icons.getFullSpriteClass(_Elements.getElementIcon(entity));
-		let detailHtml  = '';
-
-		if (entity.type === 'Content') {
-			detailHtml = '<div class="abbr-ellipsis abbr-75pc">' + entity.content + '</div>';
-		} else if (entity.type === 'Template') {
-			if (entity.name) {
-				detailHtml = '<div class="abbr-ellipsis abbr-75pc">' + displayName + '</div>';
 			} else {
-				detailHtml = '<div class="abbr-ellipsis abbr-75pc">' + escapeTags(entity.content) + '</div>';
+
+				for (let res of localizations) {
+
+					let modelNode = StructrModel.createFromData(res.node);
+					let tbody     = _Pages.localizations.getNodeForLocalization(localizationsContainer, modelNode);
+					let row       = Structr.createSingleDOMElementFromHTML('<tr>' +
+							'<td><div class="key-column allow-break">' + res.key + '</div></td>' +
+							'<td class="domain-column">' + res.domain + '</td>' +
+							'<td class="locale-column">' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td>' +
+							'<td class="input"><input class="localized-value" placeholder="..."><a title="Delete" class="delete"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '"></i></a></td>' +
+						'</tr>'
+					);
+					let input     = row.querySelector('input.localized-value');
+
+					if (res.localization) {
+						let domainIdentical = (res.localization.domain === res.domain) || (!res.localization.domain && !res.domain);
+						if (!domainIdentical) {
+							res.localization = null;
+							// we are getting the fallback localization for this entry - do not show this as we would update the wrong localization otherwise
+						}
+					}
+
+					if (res.localization !== null) {
+						row.classList.add('has-value');
+						input.value = res.localization.localizedName;
+						input.dataset[localizationIdKey] = res.localization.id;
+						input.dataset[previousValueKey]  = res.localization.localizedName;
+					}
+
+					row.querySelector('.delete').addEventListener('click', (event) => {
+						event.preventDefault();
+
+						let id = input.dataset[localizationIdKey];
+
+						if (id) {
+							_Entities.deleteNodes(this, [{id: id, name: input.value}], false, () => {
+								row.classList.remove('has-value');
+								input.value = '';
+								input.dataset[localizationIdKey] = null;
+								input.dataset[previousValueKey]  = null;
+                            });
+						}
+					});
+
+					input.addEventListener('blur', (event) => {
+
+						let newValue       = input.value;
+						let localizationId = input.dataset[localizationIdKey];
+						let previousValue  = input.dataset[previousValueKey];
+						let isChange       = (!previousValue && newValue !== '') || (previousValue && previousValue !== newValue);
+
+						if (isChange) {
+
+							if (localizationId) {
+
+								Command.setProperties(localizationId, { localizedName: newValue }, () => {
+									blinkGreen(input);
+									input.dataset[previousValueKey] = newValue;
+								});
+
+							} else {
+
+								Command.create({
+									type: 'Localization',
+									name: res.key,
+									domain: res.domain || null,
+									locale: res.locale,
+									localizedName: newValue
+								},
+								function(createdLocalization) {
+									input.dataset[localizationIdKey] = createdLocalization.id;
+									input.dataset[previousValueKey]  = newValue;
+									row.classList.add('has-value');
+									blinkGreen(input);
+								});
+							}
+						}
+					});
+
+					tbody.append(row);
+				};
 			}
-		} else {
-			detailHtml = '<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>';
-		}
+		},
+		getNodeForLocalization: function (container, entity) {
 
-		div.append('<i class="typeIcon ' + iconClass + '" />' + detailHtml + _Elements.classIdString(entity._html_id, entity._html_class));
+			let idString = 'locNode_' + entity.id;
+			let existing = container.querySelector('#' + idString);
 
-		if (_Entities.isContentElement(entity)) {
+			if (existing) {
+				return existing.querySelector('tbody');
+			}
 
-			_Elements.appendEditContentIcon(div, entity);
-		}
+			let displayName = getElementDisplayName(entity);
+			let iconClass   = (entity.isDOMNode) ? _Icons.getFullSpriteClass(entity.isContent ? _Elements.getContentIcon(entity) : _Elements.getElementIcon(entity)) : 'fa fa-file-code-o';
+			let detailHtml  = '';
 
-		_Entities.appendEditPropertiesIcon(div, entity, false);
+			if (entity.type === 'Content') {
 
-		div.append('<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>');
+				detailHtml = '<div>' + entity.content + '</div>';
 
-		container.append(div);
+			} else if (entity.type === 'Template') {
 
-		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId] ));
+				if (entity.name) {
+					detailHtml = '<div>' + displayName + '</div>';
+				} else {
+					detailHtml = '<div>' + escapeTags(entity.content) + '</div>';
+				}
 
-		return div;
+			} else if (!entity.isDOMNode) {
+				detailHtml = '<b title="' + escapeForHtmlAttributes(entity.type) + '" class="tag_ name_">' + entity.type + '</b>';
+			} else {
+				detailHtml = '<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>';
+			}
+
+			let div = Structr.createSingleDOMElementFromHTML(
+				'<div id="' + idString + '" class="node localization-element ' + (entity.tag === 'html' ? ' html_element' : '') + ' ">'
+					+ '<div class="node-selector"></div>'
+					+ '<i class="typeIcon ' + iconClass + '"></i><span class="abbr-ellipsis abbr-pages-tree">' + detailHtml + _Elements.classIdString(entity._html_id, entity._html_class) + '</span>'
+					+ '<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>'
+				+ '</div>'
+			);
+			div.dataset['nodeId'] = (_Entities.isContentElement(entity) ? entity.parent.id : entity.id );
+
+			let $div = $(div);
+
+			if (!entity.isDOMNode) {
+
+				// do not use pointer cursor
+				div.classList.add('schema');
+
+				Command.queryPromise('SchemaNode', 1, 1, 'name', 'asc', { name: entity.type }, true).then((schemaNodes) => {
+
+					if (schemaNodes.length === 1) {
+
+						_Entities.appendContextMenuIcon($div, {
+							type: _Pages.localizations.wrapperTypeForContextMenu,
+							entity: schemaNodes[0]
+						}, false);
+					}
+				});
+
+			} else {
+
+				_Entities.appendContextMenuIcon($div, {
+					type: _Pages.localizations.wrapperTypeForContextMenu,
+					entity: entity
+				}, false);
+			}
+
+			container.appendChild(div);
+
+			_Entities.setMouseOver($div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId] ));
+
+			if (entity.isDOMNode) {
+				_Pages.registerDetailClickHandler($div, entity);
+				_Elements.clickOrSelectElementIfLastSelected($div, entity);
+			}
+
+			return div.querySelector('tbody');
+		},
+
 	},
-
 	previews: {
 		loadPreviewTimer : undefined,
 		previewElement: undefined,
@@ -1802,13 +1881,54 @@ var _Pages = {
 			_Pages.previews.activateComments(doc);
 		},
 
+		getComments: (el) => {
+
+			let comments = [];
+			let child    = el.firstChild;
+
+			while (child) {
+
+				if (child.nodeType === 8) {
+					let id = child.nodeValue.extractVal('data-structr-id');
+
+					if (id) {
+						let raw = child.nodeValue.extractVal('data-structr-raw-value');
+
+						if (raw !== undefined) {
+							comments.push({
+								id: id,
+								node: child,
+								rawContent: raw
+							});
+						}
+					}
+				}
+				child = child ? child.nextSibling : child;
+			}
+			return comments;
+		},
+
+		getNonCommentSiblings: (el) => {
+
+			let siblings = [];
+			let sibling  = el.nextSibling;
+
+			while (sibling) {
+				if (sibling.nodeType === 8) {
+					return siblings;
+				}
+				siblings.push(sibling);
+				sibling = sibling.nextSibling;
+			}
+		},
+
 		activateComments: function(doc, callback) {
 
 			doc.find('*').each(function(i, element) {
 
-				getComments(element).forEach(function(c) {
+				_Pages.previews.getComments(element).forEach(function(c) {
 
-					var inner = $(getNonCommentSiblings(c.node));
+					let inner  = $(_Pages.previews.getNonCommentSiblings(c.node));
 					let newDiv = $('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
 
 					newDiv.append(inner);
@@ -1817,28 +1937,30 @@ var _Pages = {
 					$(newDiv).on({
 						mouseover: function(e) {
 							e.stopPropagation();
-							var self = $(this);
+							let self = $(this);
+
 							self.addClass('structr-editable-area');
 							_Pages.highlight(self.attr('data-structr-id'));
 						},
 						mouseout: function(e) {
 							e.stopPropagation();
-							var self = $(this);
+							let self = $(this);
+
 							self.removeClass('structr-editable-area');
 							_Pages.unhighlight(self.attr('data-structr-id'));
 						},
 						click: function(e) {
 							e.stopPropagation();
 							e.preventDefault();
-							var self = $(this);
+							let self = $(this);
 
-							if (contentSourceId) {
+							if (_Pages.contentSourceId) {
 								// click on same element again?
-								if (self.attr('data-structr-id') === contentSourceId) {
+								if (self.attr('data-structr-id') === _Pages.contentSourceId) {
 									return;
 								}
 							}
-							contentSourceId = self.attr('data-structr-id');
+							_Pages.contentSourceId = self.attr('data-structr-id');
 
 							if (self.hasClass('structr-editable-area-active')) {
 								return false;
@@ -1846,16 +1968,16 @@ var _Pages = {
 							self.removeClass('structr-editable-area').addClass('structr-editable-area-active').prop('contenteditable', true).focus();
 
 							// Store old text in global var and attribute
-							textBeforeEditing = self.text();
+							_Pages.textBeforeEditing = self.text();
 
-							var srcText = expandNewline(self.attr('data-structr-raw-content'));
+							let srcText = expandNewline(self.attr('data-structr-raw-content'));
 
 							// Replace only if it differs (e.g. for variables)
-							if (srcText !== textBeforeEditing) {
+							if (srcText !== _Pages.textBeforeEditing) {
 								self.html(srcText);
-								textBeforeEditing = srcText;
+								_Pages.textBeforeEditing = srcText;
 							}
-							_Pages.expandTreeNode(contentSourceId);
+							_Pages.expandTreeNode(_Pages.contentSourceId);
 							return false;
 						},
 						blur: function(e) {
@@ -1927,9 +2049,9 @@ var _Pages = {
 								let doc       = iframe.contentDocument || iframe.contentWindow.document;
 								let previewEl = doc.querySelector('[data-structr-id="' + highlightElementId + '"]');
 
-								doc.querySelectorAll('.structr-element-container-selected').forEach((el) => {
+								for (let el of doc.querySelectorAll('.structr-element-container-selected')) {
 									el.classList.remove('structr-element-container-selected');
-								});
+								}
 
 								previewEl?.classList.add('structr-element-container-selected');
 							}
@@ -1939,7 +2061,6 @@ var _Pages = {
 
 						_Pages.resize();
 					});
-
 				};
 
 				if (_Pages.previews.loadPreviewTimer) {
@@ -2085,55 +2206,55 @@ var _Pages = {
 		},
 
 	},
-	databinding: {
-		displayDataBinding: function(id) {
-			dataBindingSlideout.children('#data-binding-inputs').remove();
-			dataBindingSlideout.append('<div class="inner" id="data-binding-inputs"></div>');
-
-			var el = $('#data-binding-inputs');
-			var entity = StructrModel.obj(id);
-
-			if (entity) {
-				_Entities.repeaterConfig(entity, el);
-			}
-
-			},
-		reloadDataBindingWizard: function() {
-			dataBindingSlideout.children('#wizard').remove();
-			dataBindingSlideout.prepend('<div class="inner" id="wizard"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');
-
-			let lastSelectedType = LSWrapper.getItem(_Pages.selectedTypeKey);
-
-			Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', 'id,name', function(typeNodes) {
-
-				let lastSelectedTypeExists = false;
-
-				typeNodes.forEach(function(typeNode) {
-
-					let selected = '';
-					if (typeNode.id === lastSelectedType) {
-						lastSelectedTypeExists = true;
-						selected = 'selected';
-					}
-
-					$('#type-selector').append('<option ' + selected + ' value="' + typeNode.id + '">' + typeNode.name + '</option>');
-				});
-
-				$('#data-wizard-attributes').empty();
-				if (lastSelectedType && lastSelectedTypeExists) {
-					_Pages.showTypeData(lastSelectedType);
-				}
-			});
-
-			$('#type-selector').on('change', function() {
-				$('#data-wizard-attributes').empty();
-				let id = $(this).children(':selected').attr('value');
-				_Pages.showTypeData(id);
-			});
-		},
-	},
-	activeelements: {
-		refreshActiveElements: function() {
+	// databinding: {
+	// 	displayDataBinding: function(id) {
+	// 		dataBindingSlideout.children('#data-binding-inputs').remove();
+	// 		dataBindingSlideout.append('<div class="inner" id="data-binding-inputs"></div>');
+	//
+	// 		var el = $('#data-binding-inputs');
+	// 		var entity = StructrModel.obj(id);
+	//
+	// 		if (entity) {
+	// 			_Entities.repeaterConfig(entity, el);
+	// 		}
+	//
+	// 		},
+	// 	reloadDataBindingWizard: function() {
+	// 		dataBindingSlideout.children('#wizard').remove();
+	// 		dataBindingSlideout.prepend('<div class="inner" id="wizard"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');
+	//
+	// 		let lastSelectedType = LSWrapper.getItem(_Pages.selectedTypeKey);
+	//
+	// 		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', 'id,name', function(typeNodes) {
+	//
+	// 			let lastSelectedTypeExists = false;
+	//
+	// 			typeNodes.forEach(function(typeNode) {
+	//
+	// 				let selected = '';
+	// 				if (typeNode.id === lastSelectedType) {
+	// 					lastSelectedTypeExists = true;
+	// 					selected = 'selected';
+	// 				}
+	//
+	// 				$('#type-selector').append('<option ' + selected + ' value="' + typeNode.id + '">' + typeNode.name + '</option>');
+	// 			});
+	//
+	// 			$('#data-wizard-attributes').empty();
+	// 			if (lastSelectedType && lastSelectedTypeExists) {
+	// 				_Pages.showTypeData(lastSelectedType);
+	// 			}
+	// 		});
+	//
+	// 		$('#type-selector').on('change', function() {
+	// 			$('#data-wizard-attributes').empty();
+	// 			let id = $(this).children(':selected').attr('value');
+	// 			_Pages.showTypeData(id);
+	// 		});
+	// 	},
+	// },
+	// activeelements: {
+	// 	refreshActiveElements: function() {
 //			var id = _Pages.previews.activePreviewPageId;
 //
 //			_Entities.activeElements = {};
@@ -2156,52 +2277,56 @@ var _Pages = {
 //			} else {
 //				activeElementsContainer.append('<br>Unable to show active elements - no preview loaded.<br><br');
 //			}
-		},
-	},
+// 		},
+// 	},
 
 	palette: {
 		reload: () => {
 
-			paletteSlideout.find(':not(.slideout-activator)').remove();
-			paletteSlideout.append('<div id="paletteArea"></div>');
-			palette = $('#paletteArea', paletteSlideout);
+			let newPalette = Structr.createSingleDOMElementFromHTML('<div id="paletteArea"></div>');
 
-			if (!$('.draggable', palette).length) {
+			for (let group of _Elements.elementGroups) {
 
-				$(_Elements.elementGroups).each(function(i, group) {
-					palette.append('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
-					$(group.elements).each(function(j, elem) {
-						var div = $('#group_' + group.name);
-						div.append('<div class="draggable element" id="add_' + elem + '">' + elem + '</div>');
-						$('#add_' + elem, div).draggable({
-							iframeFix: true,
-							revert: 'invalid',
-							containment: 'body',
-							helper: 'clone',
-							appendTo: '#main',
-							stack: '.node',
-							zIndex: 99
-						});
-					});
-				});
+				let groupDiv = Structr.createSingleDOMElementFromHTML('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
+				newPalette.appendChild(groupDiv);
+
+				for (let elem of group.elements) {
+
+					let elemDiv = Structr.createSingleDOMElementFromHTML('<div class="draggable element" id="add_' + elem + '">' + elem + '</div>');
+					groupDiv.appendChild(elemDiv);
+				}
 			}
+
+			let oldPalette = _Pages.paletteSlideout[0].querySelector('#paletteArea');
+			oldPalette.replaceWith(newPalette);
+
+			$('.draggable.element', _Pages.paletteSlideout).draggable({
+				iframeFix: true,
+				revert: 'invalid',
+				containment: 'body',
+				helper: 'clone',
+				appendTo: '#main',
+				stack: '.node',
+				zIndex: 99
+			});
+
 		},
 	},
 
 	sharedComponents: {
 		reload: () => {
 
-			if (!componentsSlideout) return;
+			if (!_Pages.componentsSlideout) return;
 
 			Command.listComponents(1000, 1, 'name', 'asc', function(result) {
 
-				componentsSlideout.find(':not(.slideout-activator)').remove();
+				_Pages.componentsSlideout.find(':not(.slideout-activator)').remove();
 
-				componentsSlideout.append('<div class="" id="newComponentDropzone"><div class="new-component-info"><i class="active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /><i class="inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> Drop element here to create<br>a new shared component</div></div>');
-				let newComponentDropzone = $('#newComponentDropzone', componentsSlideout);
+				_Pages.componentsSlideout.append('<div class="" id="newComponentDropzone"><div class="new-component-info"><i class="active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /><i class="inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> Drop element here to create<br>a new shared component</div></div>');
+				let newComponentDropzone = $('#newComponentDropzone', _Pages.componentsSlideout);
 
-				componentsSlideout.append('<div id="componentsArea"></div>');
-				components = $('#componentsArea', componentsSlideout);
+				_Pages.componentsSlideout.append('<div id="componentsArea"></div>');
+				_Pages.components = $('#componentsArea', _Pages.componentsSlideout);
 
 				newComponentDropzone.droppable({
 					drop: function(e, ui) {
@@ -2212,7 +2337,7 @@ var _Pages = {
 							// special treatment for widgets dragged to the shared components area
 
 						} else {
-							if (!shadowPage) {
+							if (!_Pages.shadowPage) {
 								// Create shadow page if not existing
 								Structr.getShadowPage(() => {
 									_Pages.sharedComponents.createNew(ui);
@@ -2224,16 +2349,16 @@ var _Pages = {
 					}
 				});
 
-				_Dragndrop.makeSortable(components);
+				_Dragndrop.makeSortable(_Pages.components);
 
-				_Elements.appendEntitiesToDOMElement(result, components);
+				_Elements.appendEntitiesToDOMElement(result, _Pages.components);
 
 				Structr.refreshPositionsForCurrentlyActiveSortable();
 			});
 		},
 		createNew: function(el) {
 
-			dropBlocked = true;
+			_Elements.dropBlocked = true;
 
 			let sourceEl = $(el.draggable);
 			let sourceId = Structr.getId(sourceEl);
@@ -2250,21 +2375,18 @@ var _Pages = {
 
 			Command.createComponent(sourceId);
 
-			dropBlocked = false;
+			_Elements.dropBlocked = false;
 		},
 	},
 
 	unattachedNodes: {
 		reload: () => {
 
-			if (elementsSlideout.hasClass('open')) {
+			if (_Pages.unusedElementsSlideout.hasClass('open')) {
 
 				_Pages.unattachedNodes.removeElementsFromUI();
 
-				elementsSlideout.append('<div id="elementsArea"></div>');
-				elements = $('#elementsArea', elementsSlideout);
-
-				elements.append('<button class="btn disabled" id="delete-all-unattached-nodes" disabled> Loading </button>');
+				_Pages.unusedElementsTree.append('<button class="btn disabled" id="delete-all-unattached-nodes" disabled> Loading </button>');
 
 				let btn = $('#delete-all-unattached-nodes');
 				Structr.loaderIcon(btn, {
@@ -2280,29 +2402,29 @@ var _Pages = {
 								$.unblockUI({
 									fadeOut: 25
 								});
-								Structr.closeSlideOuts([elementsSlideout], _Pages.rightSlideoutClosedCallback);
+								Structr.closeSlideOuts([_Pages.unusedElementsSlideout], _Pages.rightSlideoutClosedCallback);
 							});
 				});
 
-				_Dragndrop.makeSortable(elements);
+				_Dragndrop.makeSortable(_Pages.unusedElementsTree);
 
 				Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(result) {
 
 					let count = result.length;
 					if (count > 0) {
-						btn.html(_Icons.svg.trashcan + ' Delete all (' + count + ')');
+						btn.html(_Icons.getSvgIcon('trashcan') + ' Delete all (' + count + ')');
 						btn.removeClass('disabled');
 						btn.prop('disabled', false);
 					} else {
 						btn.text('No unused elements');
 					}
 
-					_Elements.appendEntitiesToDOMElement(result, elements);
+					_Elements.appendEntitiesToDOMElement(result, _Pages.unusedElementsTree);
 				});
 			}
 		},
 		removeElementsFromUI: () => {
-			elementsSlideout.find(':not(.slideout-activator)').remove();
+			fastRemoveAllChildren(_Pages.unusedElementsTree[0]);
 		},
 		blinkUI: () => {
 			blinkGreen('#elementsTab');

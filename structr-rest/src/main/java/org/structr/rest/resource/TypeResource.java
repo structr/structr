@@ -232,78 +232,86 @@ public class TypeResource extends WrappingResource {
 	@Override
 	public RestMethodResult doPatch(final List<Map<String, Object>> propertySets) throws FrameworkException {
 
-		if (isNode) {
+		final RestMethodResult result                = new RestMethodResult(HttpServletResponse.SC_OK);
+		final App app                                = StructrApp.getInstance(securityContext);
+		final Iterator<Map<String, Object>> iterator = propertySets.iterator();
+		final int batchSize                          = intOrDefault(RequestKeywords.BatchSize.keyword(), 1000);
+		int overallCount                             = 0;
 
-			final RestMethodResult result                = new RestMethodResult(HttpServletResponse.SC_OK);
-			final App app                                = StructrApp.getInstance(securityContext);
-			final Iterator<Map<String, Object>> iterator = propertySets.iterator();
-			final int batchSize                          = intOrDefault(RequestKeywords.BatchSize.keyword(), 1000);
-			int overallCount                             = 0;
+		while (iterator.hasNext()) {
 
-			while (iterator.hasNext()) {
+			try (final Tx tx = app.tx()) {
 
-				try (final Tx tx = app.tx()) {
+				int count = 0;
 
-					int count = 0;
+				while (iterator.hasNext() && count++ < batchSize) {
 
-					while (iterator.hasNext() && count++ < batchSize) {
+					final Map<String, Object> propertySet = iterator.next();
+					Class localType                       = entityClass;
 
-						final Map<String, Object> propertySet = iterator.next();
+					overallCount++;
 
-						overallCount++;
+					// determine type of object
+					final Object typeSource = propertySet.get("type");
+					if (typeSource != null && typeSource instanceof String) {
 
-						// virtual type?
-						if (virtualType != null) {
-							virtualType.transformInput(securityContext, entityClass, propertySet);
+						final String typeString = (String)typeSource;
+
+						Class type = SchemaHelper.getEntityClassForRawType(typeString);
+						if (type != null) {
+
+							localType = type;
 						}
+					}
 
-						// find object by id, apply PATCH
-						final Object idSource = propertySet.get("id");
+					// virtual type?
+					if (virtualType != null) {
+						virtualType.transformInput(securityContext, localType, propertySet);
+					}
 
-						if (idSource != null) {
+					// find object by id, apply PATCH
+					final Object idSource = propertySet.get("id");
+					if (idSource != null) {
 
-							if (idSource instanceof String) {
+						if (idSource instanceof String) {
 
-								final String id       = (String)idSource;
-								final GraphObject obj = app.get(entityClass, id);
+							final String id       = (String)idSource;
+							final GraphObject obj = app.get(localType, id);
 
-								if (obj != null) {
+							if (obj != null) {
 
-									propertySet.remove("id");
+								// test
+								localType = obj.getClass();
 
-									final PropertyMap data = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
+								propertySet.remove("id");
 
-									obj.setProperties(securityContext, data);
+								final PropertyMap data = PropertyMap.inputTypeToJavaType(securityContext, localType, propertySet);
 
-								} else {
-
-									throw new NotFoundException("Object with ID " + id + " not found.");
-								}
+								obj.setProperties(securityContext, data);
 
 							} else {
 
-								throw new FrameworkException(422, "Invalid PATCH input, object id must be of type string.");
+								throw new NotFoundException("Object with ID " + id + " not found.");
 							}
 
 						} else {
 
-							createNode(propertySet);
+							throw new FrameworkException(422, "Invalid PATCH input, object id must be of type string.");
 						}
+
+					} else {
+
+						createNode(propertySet);
 					}
-
-					logger.info("Committing PATCH transaction batch, {} objects processed.", overallCount);
-
-					tx.success();
 				}
+
+				logger.info("Committing PATCH transaction batch, {} objects processed.", overallCount);
+
+				tx.success();
 			}
-
-			return result;
-
-		} else {
-
-			return new RestMethodResult(400, "PATCH can only be applied to node types.");
 		}
 
+		return result;
 	}
 
 	public NodeInterface createNode(final Map<String, Object> propertySet) throws FrameworkException {

@@ -149,7 +149,7 @@ public abstract class Resource {
 
 			} catch (Throwable t) {
 
-				logger.warn("Exception in DELETE chunk #{}: {}", chunk, t.getMessage());
+				logger.warn("Exception in DELETE chunk #{}: {}", chunk, t.toString());
 
 				// we need to break here, otherwise the delete call will loop
 				// endlessly, trying to delete the erroneous objects.

@@ -4,12 +4,24 @@
 		<div style="clear: both;"></div>
 	</div>
 	<div class="property-options-group">
-		<p class="input"><label>Name</label><input type="text" id="property-name-input" size="30" data-property="name" value="${config.property.name}" /></p>
-		<p class="input"><label>Content type</label><input type="text" id="property-content-type-input" size="30" data-property="contentType" value="${config.property.contentType || ''}" /></p>
-		<p class="input"><label>Type hint</label><input type="text" id="property-type-hint-input" size="30" data-property="typeHint" value="${config.property.typeHint || ''}" /></p>
-		<p class="input"><label>Database name</label><input type="text" id="property-dbname-input" size="30" data-property="dbName" value="${config.property.dbName || ''}" /></p>
-		<p class="input"><label>Format</label><input type="text" id="property-format-input" size="30" data-property="format" value="${config.property.format || ''}" /></p>
-		<p class="input"><label>Default value</label><input type="text" id="property-default-input" size="30" data-property="defaultValue" value="${config.property.defaultValue || ''}" /></p>
+		<p class="input"><label>Name</label><input type="text" id="property-name-input" data-property="name" value="${config.property.name}" /></p>
+		<p class="input"><label>Content type</label><input type="text" id="property-content-type-input" data-property="contentType" value="${config.property.contentType || ''}" /></p>
+		<p class="input"><label>Type hint</label>
+			<select id="property-type-hint-input" class="type-hint" data-property="typeHint">
+				<optgroup label="Type Hint">
+					<option value="null">-</option>
+					<option value="boolean">Boolean</option>
+					<option value="string">String</option>
+					<option value="int">Int</option>
+					<option value="long">Long</option>
+					<option value="double">Double</option>
+					<option value="date">Date</option>
+				</optgroup>
+			</select>
+		</p>
+		<p class="input"><label>Database name</label><input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName || ''}" /></p>
+		<p class="input"><label>Format</label><input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}" /></p>
+		<p class="input"><label>Default value</label><input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}" /></p>
 		<div style="clear: both;"></div>
 	</div>
 	<div class="property-options-group">

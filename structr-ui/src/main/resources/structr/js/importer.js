@@ -35,7 +35,6 @@ $(document).ready(function() {
 
 var Importer = {
 	_moduleName: 'importer',
-	showNotificationsKey: 'structrImporterShowNotifications_' + port,
 	appDataXMLKey: 'xml-import-config',
 	appDataCSVKey: 'csv-import-config',
 	timeout: undefined,
@@ -48,64 +47,54 @@ var Importer = {
 	},
 
 	init: function() {
-		main = $('#main');
 	},
 	resize: function() {
 	},
 	onload: function() {
 		Importer.init();
 
-		Structr.fetchHtmlTemplate('importer/functions', { refreshIcon: _Icons.getHtmlForIcon(_Icons.refresh_icon) }, function(html) {
-			functionBar.append(html);
-		});
-
 		Structr.fetchHtmlTemplate('importer/main', { refreshIcon: _Icons.getHtmlForIcon(_Icons.refresh_icon) }, function(html) {
 
 			main.append(html);
 
-			$('#importer-main .refresh').click(function () {
-				Importer.updateJobTable();
-			});
+			Structr.fetchHtmlTemplate('importer/functions', { refreshIcon: _Icons.getHtmlForIcon(_Icons.refresh_icon) }, function(html) {
 
-			$('#cancel-all-queued-after').click(function () {
+				Structr.functionBar.innerHTML = html;
 
-				let jobId = parseInt($('#cancel-all-queued-after-job-id').val());
+				UISettings.showSettingsForCurrentModule();
 
-				if (isNaN(jobId)) {
-					new MessageBuilder().warning("Unable to parse job id").show();
-				} else {
-					Command.fileImport('cancelAllAfter', jobId, () => {
-
-						$('#cancel-all-queued-after-job-id').val('');
-						Importer.updateJobTable();
-					});
-				}
-			});
-
-			let showNotifications = Importer.isShowNotifications();
-
-			let showNotificationsCheckbox = document.querySelector('#importer-show-notifications');
-			if (showNotificationsCheckbox) {
-				showNotificationsCheckbox.checked = showNotifications;
-
-				showNotificationsCheckbox.addEventListener('change', () => {
-					LSWrapper.setItem(Importer.showNotificationsKey, showNotificationsCheckbox.checked);
+				$('#importer-main .refresh').click(function () {
+					Importer.updateJobTable();
 				});
-			}
 
-			Importer.updateJobTable();
+				$('#cancel-all-queued-after').click(function () {
 
-			Structr.unblockMenu(100);
+					let jobId = parseInt($('#cancel-all-queued-after-job-id').val());
+
+					if (isNaN(jobId)) {
+						new MessageBuilder().warning("Unable to parse job id").show();
+					} else {
+						Command.fileImport('cancelAllAfter', jobId, () => {
+
+							$('#cancel-all-queued-after-job-id').val('');
+							Importer.updateJobTable();
+						});
+					}
+				});
+
+				Importer.updateJobTable();
+
+				Structr.unblockMenu(100);
+			});
 		});
 
 	},
 	unload: function() {
 		Importer.schemaTypeCachePopulated = false;
-
 		Importer.restoreButtons();
 	},
 	isShowNotifications: function() {
-		return LSWrapper.getItem(Importer.showNotificationsKey, true);
+		return UISettings.getValueForSetting(UISettings.importer.settings.showNotificationsKey);
 	},
 	updateJobTable: function () {
 
@@ -318,7 +307,7 @@ var Importer = {
 
 			var username = selectedOption.closest('optgroup').prop('label');
 
-			if (username !== 'null' && username !== me.username) {
+			if (username !== 'null' && username !== StructrWS.me.username) {
 				Structr.disableButton(updateImportConfigButton);
 				Structr.disableButton(deleteImportConfigButton);
 			} else {

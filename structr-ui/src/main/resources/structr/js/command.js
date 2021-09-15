@@ -22,40 +22,40 @@
  * The websocket listener is in the websocket.js file.
  *
  */
-var Command = {
+let Command = {
 	/**
 	 * Send the LOGIN command to the server.
 	 */
 	login: function(data) {
-		var obj = {
+		let obj = {
 			command: 'LOGIN',
 			sessionId: Structr.getSessionId(),
 			data: data
 		};
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send the LOGOUT command to the server.
 	 */
 	logout: function(username) {
-		var obj = {
+		let obj = {
 			command: 'LOGOUT',
 			sessionId: Structr.getSessionId(),
 			data: {
 				username: username
 			}
 		};
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send the PING command to the server.
 	 */
 	ping: function(callback) {
-		var obj = {
+		let obj = {
 			command: 'PING',
 			sessionId: Structr.getSessionId()
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a single GET command to the server.
@@ -65,7 +65,7 @@ var Command = {
 	 * If null is provided, all properties are returned.
 	 */
 	get: function(id, properties, callback, view) {
-		var obj = {
+		let obj = {
 			command: 'GET',
 			id: id
 		};
@@ -77,7 +77,7 @@ var Command = {
 		if (view) {
 			obj.view = view;
 		}
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a CONSOLE command with a single line as payload to the server.
@@ -86,7 +86,7 @@ var Command = {
 	 * console infrastructure to the sending client (no broadcast).
 	 */
 	console: function(line, mode, callback, completion) {
-		var obj = {
+		let obj = {
 			command: 'CONSOLE',
 			data: {
 				line: line,
@@ -94,7 +94,7 @@ var Command = {
 				completion: (completion === true ? true : false)
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a single GET command to the server.
@@ -110,7 +110,7 @@ var Command = {
 			console.warn('getRelationship called without nodeId');
 		}
 
-		var obj = {
+		let obj = {
 			command: 'GET_RELATIONSHIP',
 			id: id,
 			data: {
@@ -123,7 +123,7 @@ var Command = {
 		if (view) {
 			obj.view = view;
 		}
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a single GET_BY_TYPE command to the server.
@@ -133,7 +133,7 @@ var Command = {
 	 * The optional callback function will be executed for each node in the result set.
 	 */
 	getByType: function(type, pageSize, page, sort, order, properties, includeHidden, callback) {
-		var obj = {
+		let obj = {
 			command: 'GET_BY_TYPE',
 			data: {
 				type: type,
@@ -145,7 +145,7 @@ var Command = {
 		if (sort) obj.sort = sort;
 		if (order) obj.order = order;
 		if (properties) obj.data.properties = properties;
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a single GET_TYPE_INFO command to the server.
@@ -154,13 +154,13 @@ var Command = {
 	 * of the node with the given type to the sending client (no broadcast).
 	 */
 	getTypeInfo: function(type, callback) {
-		var obj = {
+		let obj = {
 			command: 'GET_TYPE_INFO',
 			data: {
 				type: type
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a single GET_SCHEMA_INFO command to the server.
@@ -168,13 +168,13 @@ var Command = {
 	 * The server will return a schema overview with all relevant properties.
 	 */
 	getSchemaInfo: function(type, callback) {
-		var obj = {
+		let obj = {
 			command: 'GET_SCHEMA_INFO',
 			data: {
 				type: type
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a LIST command to the server.
@@ -185,7 +185,7 @@ var Command = {
 	 * The optional callback function will be executed with the result set as parameter.
 	 */
 	list: function(type, rootOnly, pageSize, page, sort, order, properties, callback) {
-		var obj = {
+		let obj = {
 			command: 'LIST',
 			pageSize: pageSize,
 			page: page,
@@ -197,7 +197,7 @@ var Command = {
 			}
 		};
 		if (properties) obj.data.properties = properties;
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a QUERY command to the server.
@@ -208,7 +208,7 @@ var Command = {
 	 * The optional callback function will be executed with the result set as parameter.
 	 */
 	query: function(type, pageSize, page, sort, order, properties, callback, exact, view, customView) {
-		var obj = {
+		let obj = {
 			command: 'QUERY',
 			pageSize: pageSize,
 			page: page,
@@ -222,7 +222,13 @@ var Command = {
 		if (exact !== null) obj.data.exact = exact;
 		if (view) obj.view = view;
 		if (customView) obj.data.customView = customView;
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
+	},
+	queryPromise: (type, pageSize, page, sort, order, properties, exact, view, customView) => {
+
+		return new Promise((resolve, reject) => {
+			Command.query(type, pageSize, page, sort, order, properties, resolve, exact, view, customView);
+		});
 	},
 	/**
 	 * Send a CHILDREN or DOM_NODE_CHILDREN command to the server.
@@ -233,18 +239,18 @@ var Command = {
 	 * The optional callback function will be executed with the result set as parameter.
 	 */
 	children: function(id, callback) {
-		var obj = {
+		let obj = {
 			id: id
 		};
 
-		var structrObj = StructrModel.obj(id);
+		let structrObj = StructrModel.obj(id);
 		if (structrObj && (structrObj instanceof StructrElement || structrObj.type === 'Template')) {
 			obj.command = 'DOM_NODE_CHILDREN';
 		} else {
 			obj.command = 'CHILDREN';
 		}
 
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a GET command to the server.
@@ -253,14 +259,14 @@ var Command = {
 	 * of the node with the given id to the sending client (no broadcast).
 	 */
 	getProperty: function(id, key, callback) {
-		var obj = {
+		let obj = {
 			command: 'GET_PROPERTY',
 			id: id,
 			data: {
 				key: key
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send an SEARCH command to the server.
@@ -273,7 +279,7 @@ var Command = {
 	 *
 	 */
 	search: function(searchString, type, exact, callback) {
-		var obj = {
+		let obj = {
 			command: 'SEARCH',
 			data: {
 				searchString: searchString,
@@ -281,27 +287,27 @@ var Command = {
 				exact: exact
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a REST query by SEARCH command to the server.
 	 *
 	 */
 	rest: function(searchString, callback) {
-		var obj = {
+		let obj = {
 			command: 'SEARCH',
 			data: {
 				restQuery: searchString
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a Cypher query by SEARCH command to the server.
 	 *
 	 */
 	cypher: function(query, params, callback, pageSize, page) {
-		var obj = {
+		let obj = {
 			command: 'SEARCH',
 			data: {
 				cypherQuery: query,
@@ -312,7 +318,7 @@ var Command = {
 			obj.pageSize = pageSize;
 			obj.page = page;
 		}
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a DELETE command to the server.
@@ -321,13 +327,13 @@ var Command = {
 	 * a deletion notification.
 	 */
 	deleteNode: function(id, recursive, callback) {
-		var obj = {
+		let obj = {
 			command: 'DELETE',
 			id: id,
 			data: {}
 		};
 		if (recursive) obj.data.recursive = recursive;
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a DELETE_NODES command to the server.
@@ -336,14 +342,14 @@ var Command = {
 	 * a deletion notification.
 	 */
 	deleteNodes: function(ids, recursive) {
-		var obj = {
+		let obj = {
 			command: 'DELETE_NODES',
 			data: {
 				nodeIds: ids
 			}
 		};
 		if (recursive) obj.data.recursive = recursive;
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send a DELETE_RELATIONSHIP command to the server.
@@ -352,13 +358,13 @@ var Command = {
 	 * a deletion notification.
 	 */
 	deleteRelationship: function(id, recursive) {
-		var obj = {
+		let obj = {
 			command: 'DELETE_RELATIONSHIP',
 			id: id,
 			data: {}
 		};
 		if (recursive) obj.data.recursive = recursive;
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send a REMOVE command to the server.
@@ -367,14 +373,14 @@ var Command = {
 	 * with the given targetId and broadcast a removal notification.
 	 */
 	removeSourceFromTarget: function(entityId, parentId) {
-		var obj = {
+		let obj = {
 			command: 'REMOVE',
 			id: entityId,
 			data: {
 				id: parentId
 			}
 		};
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send a REMOVE command to the server.
@@ -383,12 +389,12 @@ var Command = {
 	 * tree and broadcast a removal notification.
 	 */
 	removeChild: function(id, callback) {
-		var obj = {
+		let obj = {
 			command: 'REMOVE',
 			id: id,
 			data: {}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a REMOVE_FROM_COLLECTION command to the server.
@@ -397,7 +403,7 @@ var Command = {
 	 * collection property with the given key of the object with the given id.
 	 */
 	removeFromCollection: function(id, key, idToRemove, callback) {
-		var obj = {
+		let obj = {
 			command: 'REMOVE_FROM_COLLECTION',
 			id: id,
 			data: {
@@ -405,7 +411,7 @@ var Command = {
 				idToRemove: idToRemove
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send an UPDATE command to the server.
@@ -417,14 +423,14 @@ var Command = {
 	 * If recursive is set to true, the property will be set on all subnodes, too.
 	 */
 	setProperty: function(id, key, value, recursive, callback) {
-		var obj = {
+		let obj = {
 			command: 'UPDATE',
 			id: id,
 			data: {}
 		};
 		obj.data[key] = value;
 		if (recursive) obj.data.recursive = true;
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send an UPDATE command to the server.
@@ -433,12 +439,12 @@ var Command = {
 	 * with the given id and broadcast an update notification.
 	 */
 	setProperties: function(id, data, callback) {
-		var obj = {
+		let obj = {
 			command: 'UPDATE',
 			id: id,
 			data: data
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a SET_PERMISSIONS command to the server.
@@ -447,7 +453,7 @@ var Command = {
 	 * with the given id and broadcast an update notification.
 	 */
 	setPermission: function(id, principalId, action, permissions, recursive, callback) {
-		var obj = {
+		let obj = {
 			command: 'SET_PERMISSION',
 			id: id,
 			data: {
@@ -457,7 +463,7 @@ var Command = {
 				recursive: recursive
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send an APPEND_FILE command to the server.
@@ -471,27 +477,27 @@ var Command = {
 	 *
 	 */
 	appendFile: function(id, parentId, callback) {
-		var obj = {
+		let obj = {
 			command: 'APPEND_FILE',
 			id: id,
 			data: {
 				parentId: parentId
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send an APPEND_CONTENT_ITEM command to the server.
 	 */
 	appendContentItem: function(id, parentId, callback) {
-		var obj = {
+		let obj = {
 			command: 'APPEND_CONTENT_ITEM',
 			id: id,
 			data: {
 				parentId: parentId
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send an UNARCHIVE command to the server.
@@ -501,14 +507,14 @@ var Command = {
 	 *
 	 */
 	unarchive: function(id, parentFolderId, callback) {
-		var obj = {
+		let obj = {
 			command: 'UNARCHIVE',
 			id: id,
 			data: {
 				parentFolderId: parentFolderId
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send an APPEND_MEMBER command to the server.
@@ -518,14 +524,14 @@ var Command = {
 	 *
 	 */
 	appendMember: function(id, groupId) {
-		var obj = {
+		let obj = {
 			command: 'APPEND_MEMBER',
 			id: id,
 			data: {
 				parentId: groupId
 			}
 		};
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send an APPEND_CHILD command to the server.
@@ -539,7 +545,7 @@ var Command = {
 	 *
 	 */
 	appendChild: function(id, parentId, key, callback) {
-		var obj = {
+		let obj = {
 			command: 'APPEND_CHILD',
 			id: id,
 			data: {
@@ -547,7 +553,7 @@ var Command = {
 				key: key
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send an APPEND_WIDGET command to the server.
@@ -561,7 +567,7 @@ var Command = {
 	 *
 	 */
 	appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes, processDeploymentInfo, callback) {
-		var obj = {
+		let obj = {
 			command: 'APPEND_WIDGET',
 			pageId: pageId,
 			data: {
@@ -574,7 +580,7 @@ var Command = {
 		if (attributes) {
 			$.extend(obj.data, attributes);
 		}
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a SAVE_NODE command to the server.
@@ -584,14 +590,14 @@ var Command = {
 	 *
 	 */
 	saveNode: function(source, id, callback) {
-		var obj = {
+		let obj = {
 			command: 'SAVE_NODE',
 			id: id,
 			data: {
 				source: source
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a SAVE_LOCAL_STORAGE command to the server.
@@ -601,22 +607,22 @@ var Command = {
 	 *
 	 */
 	saveLocalStorage: function(callback) {
-		var obj = {
+		let obj = {
 			command: 'SAVE_LOCAL_STORAGE',
 			data: {
 				localStorageString: LSWrapper.getAsJSON()
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a GET_LOCAL_STORAGE command to the server.
 	 */
 	getLocalStorage: function(callback) {
-		var obj = {
+		let obj = {
 			command: 'GET_LOCAL_STORAGE'
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send an INSERT_BEFORE command to the server.
@@ -630,7 +636,7 @@ var Command = {
 	 *
 	 */
 	insertBefore: function(parentId, id, refId) {
-		var obj = {
+		let obj = {
 			command: 'INSERT_BEFORE',
 			id: id,
 			data: {
@@ -638,7 +644,7 @@ var Command = {
 				parentId: parentId
 			}
 		};
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send a CREATE_AND_ADD_DOM_ELEMENT command to the server.
@@ -651,7 +657,7 @@ var Command = {
 	 *
 	 */
 	createAndAppendDOMNode: function(pageId, parentId, tagName, attributes, inheritVisibilityFlags) {
-		var obj = {
+		let obj = {
 			command: 'CREATE_AND_APPEND_DOM_NODE',
 			pageId: pageId,
 			data: {
@@ -661,7 +667,7 @@ var Command = {
 			}
 		};
 		$.extend(obj.data, attributes);
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send a CREATE_AND_INSERT_RELATIVE_TO_DOM_NODE command to the server.
@@ -671,7 +677,7 @@ var Command = {
 	 *
 	 */
 	createAndInsertRelativeToDOMNode: function(pageId, nodeId, tagName, relativePosition, inheritVisibilityFlags) {
-		var obj = {
+		let obj = {
 			command: 'CREATE_AND_INSERT_RELATIVE_TO_DOM_NODE',
 			pageId: pageId,
 			data: {
@@ -682,7 +688,7 @@ var Command = {
 			}
 		};
 
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send a WRAP_DOM_NODE command to the server.
@@ -692,7 +698,7 @@ var Command = {
 	 *
 	 */
 	wrapDOMNodeInNewDOMNode: function(pageId, nodeId, tagName, attributes, inheritVisibilityFlags) {
-		var obj = {
+		let obj = {
 			command: 'WRAP_DOM_NODE',
 			pageId: pageId,
 			data: {
@@ -702,10 +708,10 @@ var Command = {
 			}
 		};
 		$.extend(obj.data, attributes);
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	wrapContent: function(pageId, parentId, tagName) {
-		var obj = {
+		let obj = {
 			command: 'WRAP_CONTENT',
 			pageId: pageId,
 			data: {
@@ -713,7 +719,7 @@ var Command = {
 				tagName: tagName
 			}
 		};
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send a CREATE_COMPONENT command to the server.
@@ -722,11 +728,11 @@ var Command = {
 	 *
 	 */
 	createComponent: function(id, callback) {
-		var obj = {
+		let obj = {
 			command: 'CREATE_COMPONENT',
 			id: id
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a CLONE_COMPONENT command to the server.
@@ -736,14 +742,14 @@ var Command = {
 	 *
 	 */
 	cloneComponent: function(id, parentId, callback) {
-		var obj = {
+		let obj = {
 			command: 'CLONE_COMPONENT',
 			id: id,
 			data: {
 				parentId: parentId
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a REPLACE_TEMPLATE command to the server.
@@ -753,14 +759,14 @@ var Command = {
 	 *
 	 */
 	replaceTemplate: function(id, newTemplateId, callback) {
-		var obj = {
+		let obj = {
 			command: 'REPLACE_TEMPLATE',
 			id: id,
 			data: {
 				newTemplateId: newTemplateId
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a CREATE_LOCAL_WIDGET command to the server.
@@ -769,7 +775,7 @@ var Command = {
 	 * name and source code.
 	 */
 	createLocalWidget: function(id, name, source, callback) {
-		var obj = {
+		let obj = {
 			command: 'CREATE_LOCAL_WIDGET',
 			id: id,
 			data: {
@@ -777,7 +783,7 @@ var Command = {
 				source: source
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a CLONE_NODE command to the server.
@@ -787,7 +793,7 @@ var Command = {
 	 *
 	 */
 	cloneNode: function(id, parentId, deep) {
-		var obj = {
+		let obj = {
 			command: 'CLONE_NODE',
 			id: id,
 			data: {
@@ -795,7 +801,7 @@ var Command = {
 				deep: deep
 			}
 		};
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send a SYNC_MODE command to the server.
@@ -808,7 +814,7 @@ var Command = {
 	 *
 	 */
 	setSyncMode: function(id, targetId, mode) {
-		var obj = {
+		let obj = {
 			command: 'SYNC_MODE',
 			id: id,
 			data: {
@@ -816,7 +822,7 @@ var Command = {
 				syncMode: mode
 			}
 		};
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send an ADD command to the server.
@@ -839,7 +845,7 @@ var Command = {
 	 * a CREATE notification.
 	 */
 	createAndAdd: function(id, nodeData, relData) {
-		var obj = {
+		let obj = {
 			command: 'ADD',
 			id: id,
 			data: nodeData,
@@ -851,7 +857,7 @@ var Command = {
 		if (obj.data.isContent && !obj.data.content) {
 			obj.data.content = obj.data.name;
 		}
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send a CREATE command to the server.
@@ -860,7 +866,7 @@ var Command = {
 	 * in the 'nodeData' hash and broadcast a CREATE notification.
 	 */
 	create: function(nodeData, callback) {
-		var obj = {
+		let obj = {
 			command: 'CREATE',
 			data: nodeData
 		};
@@ -870,7 +876,7 @@ var Command = {
 		if (obj.data.isContent && !obj.data.content) {
 			obj.data.content = obj.data.name;
 		}
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a CREATE_RELATIONSHIP command to the server.
@@ -879,11 +885,11 @@ var Command = {
 	 * in the 'relData' hash and broadcast a CREATE_RELATIONSHIP notification.
 	 */
 	createRelationship: function(relData, callback) {
-		var obj = {
+		let obj = {
 			command: 'CREATE_RELATIONSHIP',
 			relData: relData
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a CREATE_SIMPLE_PAGE command to the server.
@@ -892,13 +898,13 @@ var Command = {
 	 * and title element and broadcast a CREATE notification.
 	 */
 	createSimplePage: function() {
-		var obj = {
+		let obj = {
 			command: 'CREATE_SIMPLE_PAGE',
 			data: {
 				name: 'New Page ' + Math.floor(Math.random() * (999999 - 1))
 			}
 		};
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send an IMPORT command to the server.
@@ -912,7 +918,7 @@ var Command = {
 	 * node respective relationship created.
 	 */
 	importPage: function(code, address, name, publicVisible, authVisible, includeInExport, processDeploymentInfo) {
-		var obj = {
+		let obj = {
 			command: 'IMPORT',
 			data: {
 				code: code,
@@ -924,7 +930,7 @@ var Command = {
 				processDeploymentInfo: processDeploymentInfo
 			}
 		};
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send a PATCH command to the server.
@@ -944,17 +950,17 @@ var Command = {
 			text2 = '';
 		}
 
-		var p = dmp.patch_make(text1, text2);
-		var strp = dmp.patch_toText(p);
+		let p    = Structr.getDiffMatchPatch().patch_make(text1, text2);
+		let strp = Structr.getDiffMatchPatch().patch_toText(p);
 
-		var obj = {
+		let obj = {
 			command: 'PATCH',
 			id: id,
 			data: {
 				patch: strp
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a CLONE command to the server.
@@ -966,14 +972,14 @@ var Command = {
 	 * The server will broadcast a CREATE and an ADD notification.
 	 */
 	clonePage: function(id) {
-		var obj = {
+		let obj = {
 			command: 'CLONE_PAGE',
 			id: id,
 			data: {
 				name: 'New Page ' + Math.floor(Math.random() * (999999 - 1))
 			}
 		};
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send a CHUNK command to the server.
@@ -987,7 +993,7 @@ var Command = {
 	 * The server gives no feedback on a CHUNK command.
 	 */
 	chunk: function(id, chunkId, chunkSize, chunk, chunks, callback) {
-		var obj = {
+		let obj = {
 			command: 'CHUNK',
 			id: id,
 			data: {
@@ -997,7 +1003,7 @@ var Command = {
 				chunks: chunks
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a CREATE command to the server.
@@ -1005,7 +1011,7 @@ var Command = {
 	 * This will create a file with the given properties.
 	 */
 	createFile: function(file, callback) {
-		var obj = {
+		let obj = {
 			command: 'CREATE',
 			data: {
 				contentType: file.type,
@@ -1017,7 +1023,7 @@ var Command = {
 				type: (isImage(file.type) ? 'Image' : (isVideo(file.type) && Structr.isModulePresent('media')) ? 'VideoFile' : 'File')
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send an UPLOAD command to the server.
@@ -1025,14 +1031,14 @@ var Command = {
 	 *
 	 */
 	upload: function(name, fileData) {
-		var obj = {
+		let obj = {
 			command: 'UPLOAD',
 			data: {
 				name: name,
 				fileData: fileData
 			}
 		};
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send a LINK command to the server.
@@ -1043,14 +1049,14 @@ var Command = {
 	 * The server gives no feedback on a LINK command.
 	 */
 	link: function(id, targetId) {
-		var obj = {
+		let obj = {
 			command: 'LINK',
 			id: id,
 			data: {
 				targetId: targetId
 			}
 		};
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send a LIST_ACTIVE_ELEMENTS command to the server.
@@ -1061,23 +1067,26 @@ var Command = {
 	 * The optional callback function will be executed for each node in the result set.
 	 */
 	listActiveElements: function(pageId, callback) {
-		var obj = {
+		let obj = {
 			command: 'LIST_ACTIVE_ELEMENTS',
 			id: pageId
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
-	listLocalizations: function(pageId, locale, detailObjectId, queryString, callback) {
-		var obj = {
-			command: 'LIST_LOCALIZATIONS',
-			id: pageId,
-			data: {
-				locale: locale,
-				detailObjectId: detailObjectId,
-				queryString: queryString
-			}
-		};
-		return sendObj(obj, callback);
+	listLocalizations: (pageId, locale, detailObjectId, queryString) => {
+		return new Promise((resolve, reject) => {
+			let obj = {
+				command: 'LIST_LOCALIZATIONS',
+				id: pageId,
+				data: {
+					locale: locale,
+					detailObjectId: detailObjectId,
+					queryString: queryString
+				}
+			};
+
+			StructrWS.sendObj(obj, resolve);
+		});
 	},
 	/**
 	 * Send a LIST_COMPONENTS command to the server.
@@ -1088,14 +1097,14 @@ var Command = {
 	 * The optional callback function will be executed for each node in the result set.
 	 */
 	listComponents: function(pageSize, page, sort, order, callback) {
-		var obj = {
+		let obj = {
 			command: 'LIST_COMPONENTS',
 			pageSize: pageSize,
 			page: page,
 			sort: sort,
 			order: order
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a LIST_UNATTACHED_NODES command to the server.
@@ -1106,14 +1115,14 @@ var Command = {
 	 * The optional callback function will be executed for each node in the result set.
 	 */
 	listUnattachedNodes: function(pageSize, page, sort, order, callback) {
-		var obj = {
+		let obj = {
 			command: 'LIST_UNATTACHED_NODES',
 			pageSize: pageSize,
 			page: page,
 			sort: sort,
 			order: order
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a DELETE_UNATTACHED_NODES command to the server.
@@ -1124,10 +1133,10 @@ var Command = {
 	 * No broadcast.
 	 */
 	deleteUnattachedNodes: function() {
-		var obj = {
+		let obj = {
 			command: 'DELETE_UNATTACHED_NODES'
 		};
-		return sendObj(obj);
+		return StructrWS.sendObj(obj);
 	},
 	/**
 	 * Send a LIST_SCHEMA_PROPERTIES command to the server.
@@ -1135,14 +1144,14 @@ var Command = {
 	 * No broadcast.
 	 */
 	listSchemaProperties: function(id, view, callback) {
-		var obj  = {
+		let obj  = {
 			command: 'LIST_SCHEMA_PROPERTIES',
 			id: id,
 			data: {
 				view: view
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a SNAPSHOTS command to the server.
@@ -1150,7 +1159,7 @@ var Command = {
 	 * The server will return a status object.
 	 */
 	snapshots: function(mode, name, types, callback) {
-		var obj  = {
+		let obj  = {
 			command: 'SNAPSHOTS',
 			data: {
 				mode: mode,
@@ -1160,7 +1169,7 @@ var Command = {
 		if (types && types.length) {
 			obj.data.types = types.join(',');
 		}
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send an AUTOCOMPLETE command to the server.
@@ -1168,7 +1177,7 @@ var Command = {
 	 * No broadcast.
 	 */
 	autocomplete: function(id, isAutoscriptEnv, before, after, line, cursorPosition, contentType, callback) {
-		var obj  = {
+		let obj  = {
 			command: 'AUTOCOMPLETE',
 			id: id,
 			data: {
@@ -1180,7 +1189,7 @@ var Command = {
 				isAutoscriptEnv: isAutoscriptEnv
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a FIND_DUPLICATES command to the server.
@@ -1188,10 +1197,10 @@ var Command = {
 	 * The server will return a list of all files with identical paths
 	 */
 	findDuplicates: function(callback) {
-		var obj  = {
+		let obj  = {
 			command: 'FIND_DUPLICATES'
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a FAVORITES command to the server.
@@ -1200,14 +1209,14 @@ var Command = {
 	 * the users favorite files.
 	 */
 	favorites: function(mode, fileId, callback) {
-		var obj  = {
+		let obj  = {
 			command: 'FAVORITES',
 			data: {
 				mode: mode,
 				id: fileId
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a CONVERT_IMAGE command to the server.
@@ -1216,7 +1225,7 @@ var Command = {
 	 * the users favorite files.
 	 */
 	createConvertedImage: function(originalImageId, width, height, format, offsetX, offsetY, callback) {
-		var obj  = {
+		let obj  = {
 			command: 'CONVERT_IMAGE',
 			id: originalImageId,
 			data: {
@@ -1227,7 +1236,7 @@ var Command = {
 				offsetY: offsetY
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a FILE_IMPORT command to the server.
@@ -1236,14 +1245,14 @@ var Command = {
 	 * file imports
 	 */
 	fileImport: function(mode, jobId, callback) {
-		var obj  = {
+		let obj  = {
 			command: 'FILE_IMPORT',
 			data: {
 				mode: mode,
 				jobId: jobId
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Shortcut to create an ApplicationConfigurationDataNode
@@ -1268,8 +1277,8 @@ var Command = {
 	getApplicationConfigurationDataNodesGroupedByUser: function(configType, callback) {
 		return Command.query('ApplicationConfigurationDataNode', 1000, 1, 'name', true, { configType: configType }, function(data) {
 
-			var grouped = {};
-			var ownerlessConfigs = [];
+			let grouped = {};
+			let ownerlessConfigs = [];
 
 			data.forEach(function(n) {
 				if (n.owner) {
@@ -1282,7 +1291,7 @@ var Command = {
 				}
 			});
 
-			var ownerNames = Object.keys(grouped);
+			let ownerNames = Object.keys(grouped);
 
 			// sort by name
 			ownerNames.sort(function (a, b) {
@@ -1291,17 +1300,17 @@ var Command = {
 				return 0;
 			});
 
-			var sortedAndGrouped = [];
+			let sortedAndGrouped = [];
 
 			// add current users config first
-			var myIndex = ownerNames.indexOf(me.username);
+			let myIndex = ownerNames.indexOf(StructrWS.me.username);
 			if (myIndex !== -1) {
 				ownerNames.splice(myIndex,1);
 
 				sortedAndGrouped.push({
-					label: me.username,
+					label: StructrWS.me.username,
 					ownerless: false,
-					configs: grouped[me.username]
+					configs: grouped[StructrWS.me.username]
 				});
 			}
 
@@ -1342,7 +1351,7 @@ var Command = {
 	 *
 	 */
 	getSuggestions: function(id, name, tag, classes, callback) {
-		var obj  = {
+		let obj  = {
 			command: 'GET_SUGGESTIONS',
 			data: {
 				htmlId: id,
@@ -1351,19 +1360,19 @@ var Command = {
 				classes: classes
 			}
 		};
-		return sendObj(obj, callback);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
      * Requests log snapshot from the server.
      *
      */
     getServerLogSnapshot: function(numberOfLines, callback) {
-        var obj  = {
+		let obj  = {
             command: 'SERVER_LOG',
             data: {
                 numberOfLines: numberOfLines
             }
         };
-        return sendObj(obj, callback);
+        return StructrWS.sendObj(obj, callback);
     }
 };

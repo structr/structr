@@ -253,6 +253,10 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		if (!hasName) {
 
+			if (previousElement != null) {
+				previousElement.appendComma();
+			}
+
 			currentElement = currentElement.block("li");
 		}
 
@@ -312,6 +316,10 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		if (!hasName) {
 
+			if (previousElement != null) {
+				previousElement.appendComma();
+			}
+
 			currentElement = currentElement.block("li");
 		}
 
@@ -327,6 +335,10 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	public RestWriter value(double value) throws IOException {
 
 		if (!hasName) {
+
+			if (previousElement != null) {
+				previousElement.appendComma();
+			}
 
 			currentElement = currentElement.block("li");
 		}
@@ -344,6 +356,10 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		if (!hasName) {
 
+			if (previousElement != null) {
+				previousElement.appendComma();
+			}
+
 			currentElement = currentElement.block("li");
 		}
 
@@ -359,6 +375,10 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	public RestWriter value(Number value) throws IOException {
 
 		if (!hasName) {
+
+			if (previousElement != null) {
+				previousElement.appendComma();
+			}
 
 			currentElement = currentElement.block("li");
 		}

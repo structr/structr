@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 var _Flows = {
 	_moduleName: 'flows',
-	flowsResizerLeftKey: 'structrFlowsResizerLeftKey_' + port,
+	flowsResizerLeftKey: 'structrFlowsResizerLeftKey_' + location.port,
 	init: function() {
 
 		Structr.makePagesMenuDroppable();
@@ -132,7 +132,9 @@ var _Flows = {
 
 		Structr.fetchHtmlTemplate('flows/buttons', {}, function(html) {
 
-			functionBar[0].innerHTML = html;
+			Structr.functionBar.innerHTML = html;
+
+			UISettings.showSettingsForCurrentModule();
 
 			document.querySelector('#name-input').onkeydown = ((event) => {
 				if (event.key === "Enter") {
@@ -197,7 +199,7 @@ var _Flows = {
 			Structr.initVerticalSlider(document.querySelector('#flows-main .column-resizer'), _Flows.flowsResizerLeftKey, 204, _Flows.moveResizer);
 
 			$(flowsTree).jstree({
-				plugins: ["themes", "dnd", "search", "state", "types", "wholerow","sort", "contextmenu"],
+				plugins: ["themes", "dnd", "search", "state", "types", "wholerow", "sort", "contextmenu"],
 				core: {
 					check_callback: true,
 					animation: 0,

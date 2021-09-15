@@ -25,8 +25,7 @@ import org.structr.schema.action.ActionContext;
 public class ApplicationStoreGetKeysFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET_KEYS    = "Usage: ${application_store_get_keys()}. Example: ${application_store_get_keys()}";
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET_KEYS_JS = "Usage: ${{Structr.application_store_get_keys()}}. Example: ${{Structr.application_store_get_keys()}}";
-
+	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET_KEYS_JS = "Usage: ${{ $.application_store_get_keys(); }}. Example: ${{ $.application_store_get_keys(); }}";
 
 	@Override
 	public String getName() {
@@ -41,7 +40,7 @@ public class ApplicationStoreGetKeysFunction extends UiAdvancedFunction {
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		return Services.getInstance().applicationStoreGetKeys();
+		return Services.getInstance().getApplicationStore().keySet();
 	}
 
 	@Override
@@ -53,8 +52,4 @@ public class ApplicationStoreGetKeysFunction extends UiAdvancedFunction {
 	public String shortDescription() {
 		return "Lists all keys stored in the application level store.";
 	}
-
-
-
-
 }

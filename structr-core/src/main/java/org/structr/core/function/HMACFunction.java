@@ -52,15 +52,24 @@ public class HMACFunction extends CoreFunction {
             }
             algorithm = algorithmPrefix.concat(algorithm);
 
+            Boolean returnRawHash = false;
+            if (sources.length > 3) {
+                returnRawHash = true;
+            }
+
             SecretKeySpec key = new SecretKeySpec((secret).getBytes("UTF-8"), algorithm);
             Mac mac = Mac.getInstance(algorithm);
             mac.init(key);
 
-            byte[] bytes = mac.doFinal(value.getBytes("UTF-8"));
+            byte[] rawBytesHash = mac.doFinal(value.getBytes("UTF-8"));
 
+            if (returnRawHash) {
+                return rawBytesHash;
+            }
+            
             // Create Hex String and fill with 0 if needed
             StringBuffer hash = new StringBuffer();
-            for (final byte b : bytes ) {
+            for (final byte b : rawBytesHash ) {
                 String hex = Integer.toHexString(0xFF & b);
                 if (hex.length() == 1) {
                     hash.append('0');

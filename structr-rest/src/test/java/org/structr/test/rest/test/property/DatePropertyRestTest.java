@@ -18,11 +18,28 @@
  */
 package org.structr.test.rest.test.property;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.RequestLoggingFilter;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import static org.hamcrest.Matchers.*;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.common.PropertyView;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
+import org.structr.schema.export.StructrSchema;
 import org.testng.annotations.Test;
 import org.structr.test.rest.common.StructrRestTestBase;
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 
 /**
  *
@@ -152,5 +169,567 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 		.when()
 			.get("/test_threes?dateProperty=[2013-04-01T00:00:00+0000 TO 2013-04-06T23:59:59+0000]");
 
+	}
+
+	@Test
+	public void testPatchOnNestedResourceWithoutType() {
+
+		final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+		// setup 1: create types
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema                 = StructrSchema.createFromDatabase(app);
+			final JsonObjectType baseType           = schema.addType("BaseType");
+			final JsonObjectType actualType         = schema.addType("ActualType");
+			final JsonObjectType propertyBase       = schema.addType("PropertyBaseType");
+			final JsonObjectType datePropertyType   = schema.addType("DateType");
+			final JsonObjectType stringPropertyType = schema.addType("StringType");
+
+			baseType.addDateProperty("validFrom", PropertyView.Public);
+			baseType.addDateProperty("validUntil", PropertyView.Public);
+
+			datePropertyType.addDateProperty("value", PropertyView.Public);
+			stringPropertyType.addStringProperty("value", PropertyView.Public);
+
+			actualType.setExtends(baseType);
+			propertyBase.setExtends(baseType);
+			datePropertyType.setExtends(propertyBase);
+			stringPropertyType.setExtends(propertyBase);
+
+			actualType.relate(propertyBase, "HAS_PROPERTY", Cardinality.OneToMany, "base", "properties");
+			actualType.addViewProperty(PropertyView.Public, "properties");
+
+			propertyBase.addViewProperty(PropertyView.Public, "base");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String type1   = createEntity("/ActualType", "{ name: 'ActualType' }");
+		final String date1   = createEntity("/DateType", "{ name: 'DateType', base: '" + type1 + "', value: '2020-07-26T10:34:56+0000' }");
+		final String string1 = createEntity("/StringType", "{ name: 'StringType', base: '" + type1 + "', value: 'A string' }");
+
+		// verify setup
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(1))
+			.body("result[0].properties[0].value", equalTo("2020-07-26T10:34:56+0000"))
+			.body("result[0].properties[1].value", equalTo("A string"))
+		.when()
+			.get("/ActualType");
+
+		// create patch document
+		final List<Map<String, Object>> data = List.of(
+			Map.of(
+				"id", type1,
+				"properties", List.of(
+					Map.of(
+						"id", date1,
+						"value", "2021-07-26T10:34:56+0000"
+					),
+					Map.of(
+						"id", string1,
+						"value", "Another string"
+					)
+				)
+			)
+		);
+
+		// test
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body(gson.toJson(data))
+		.expect()
+			.statusCode(200)
+		.when()
+			.patch("/ActualType");
+
+
+		final Class<NodeInterface> stringType = StructrApp.getConfiguration().getNodeEntityClass("StringType");
+		final Class<NodeInterface> dateType   = StructrApp.getConfiguration().getNodeEntityClass("DateType");
+
+		// verify result
+		try (final Tx tx = app.tx()) {
+
+			for (final NodeInterface n : StructrApp.getInstance().nodeQuery(dateType).getResultStream()) {
+				assertTrue("Date values must be of type Date", n.getProperty("value") instanceof Date);
+			}
+
+			for (final NodeInterface n : StructrApp.getInstance().nodeQuery(stringType).getResultStream()) {
+				assertTrue("String values must be of type String", n.getProperty("value") instanceof String);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testPatchOnNestedResourceWithType() {
+
+		final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+		// setup 1: create types
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema                 = StructrSchema.createFromDatabase(app);
+			final JsonObjectType baseType           = schema.addType("BaseType");
+			final JsonObjectType actualType         = schema.addType("ActualType");
+			final JsonObjectType propertyBase       = schema.addType("PropertyBaseType");
+			final JsonObjectType datePropertyType   = schema.addType("DateType");
+			final JsonObjectType stringPropertyType = schema.addType("StringType");
+
+			baseType.addDateProperty("validFrom", PropertyView.Public);
+			baseType.addDateProperty("validUntil", PropertyView.Public);
+
+			datePropertyType.addDateProperty("value", PropertyView.Public);
+			stringPropertyType.addStringProperty("value", PropertyView.Public);
+
+			actualType.setExtends(baseType);
+			propertyBase.setExtends(baseType);
+			datePropertyType.setExtends(propertyBase);
+			stringPropertyType.setExtends(propertyBase);
+
+			actualType.relate(propertyBase, "HAS_PROPERTY", Cardinality.OneToMany, "base", "properties");
+			actualType.addViewProperty(PropertyView.Public, "properties");
+
+			propertyBase.addViewProperty(PropertyView.Public, "base");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String type1   = createEntity("/ActualType", "{ name: 'ActualType' }");
+		final String date1   = createEntity("/DateType", "{ name: 'DateType', base: '" + type1 + "', value: '2020-07-26T10:34:56+0000' }");
+		final String string1 = createEntity("/StringType", "{ name: 'StringType', base: '" + type1 + "', value: 'A string' }");
+
+		// verify setup
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(1))
+			.body("result[0].properties[0].value", equalTo("2020-07-26T10:34:56+0000"))
+			.body("result[0].properties[1].value", equalTo("A string"))
+		.when()
+			.get("/ActualType");
+
+		// create patch document
+		final List<Map<String, Object>> data = List.of(
+			Map.of(
+				"id", type1,
+				"properties", List.of(
+					Map.of(
+						"id", date1,
+						"type", "DateType",
+						"value", "2021-07-26T10:34:56+0000"
+					),
+					Map.of(
+						"id", string1,
+						"type", "StringType",
+						"value", "Another string"
+					)
+				)
+			)
+		);
+
+		// test
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.filter(RequestLoggingFilter.logRequestTo(System.out))
+			.body(gson.toJson(data))
+		.expect()
+			.statusCode(200)
+		.when()
+			.patch("/ActualType");
+
+
+		final Class<NodeInterface> stringType = StructrApp.getConfiguration().getNodeEntityClass("StringType");
+		final Class<NodeInterface> dateType   = StructrApp.getConfiguration().getNodeEntityClass("DateType");
+
+		// verify result
+		try (final Tx tx = app.tx()) {
+
+			for (final NodeInterface n : StructrApp.getInstance().nodeQuery(dateType).getResultStream()) {
+				assertTrue("Date values must be of type Date", n.getProperty("value") instanceof Date);
+			}
+
+			for (final NodeInterface n : StructrApp.getInstance().nodeQuery(stringType).getResultStream()) {
+				assertTrue("String values must be of type String", n.getProperty("value") instanceof String);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testPatchWithoutNesting() {
+
+		final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+		// setup 1: create types
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema                 = StructrSchema.createFromDatabase(app);
+			final JsonObjectType baseType           = schema.addType("BaseType");
+			final JsonObjectType actualType         = schema.addType("ActualType");
+			final JsonObjectType propertyBase       = schema.addType("PropertyBaseType");
+			final JsonObjectType datePropertyType   = schema.addType("DateType");
+			final JsonObjectType stringPropertyType = schema.addType("StringType");
+
+			baseType.addDateProperty("validFrom", PropertyView.Public);
+			baseType.addDateProperty("validUntil", PropertyView.Public);
+
+			datePropertyType.addDateProperty("value", PropertyView.Public);
+			stringPropertyType.addStringProperty("value", PropertyView.Public);
+
+			actualType.setExtends(baseType);
+			propertyBase.setExtends(baseType);
+			datePropertyType.setExtends(propertyBase);
+			stringPropertyType.setExtends(propertyBase);
+
+			actualType.relate(propertyBase, "HAS_PROPERTY", Cardinality.OneToMany, "base", "properties");
+			actualType.addViewProperty(PropertyView.Public, "properties");
+
+			propertyBase.addViewProperty(PropertyView.Public, "base");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String type1   = createEntity("/ActualType", "{ name: 'ActualType' }");
+		final String date1   = createEntity("/DateType", "{ name: 'DateType', base: '" + type1 + "', value: '2020-07-26T10:34:56+0000' }");
+		final String string1 = createEntity("/StringType", "{ name: 'StringType', base: '" + type1 + "', value: 'A string' }");
+
+		// verify setup
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(1))
+			.body("result[0].properties[0].value", equalTo("2020-07-26T10:34:56+0000"))
+			.body("result[0].properties[1].value", equalTo("A string"))
+		.when()
+			.get("/ActualType");
+
+
+		// create patch document
+		final List<Map<String, Object>> data = List.of(
+			Map.of(
+				"id", date1,
+				"value", "2021-07-26T10:34:56+0000"
+			),
+			Map.of(
+				"id", string1,
+				"value", "Another string"
+			)
+		);
+
+		// test
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body(gson.toJson(data))
+		.expect()
+			.statusCode(200)
+		.when()
+			.patch("/PropertyBaseType");
+
+		final Class<NodeInterface> stringType = StructrApp.getConfiguration().getNodeEntityClass("StringType");
+		final Class<NodeInterface> dateType   = StructrApp.getConfiguration().getNodeEntityClass("DateType");
+
+		// verify result
+		try (final Tx tx = app.tx()) {
+
+			for (final NodeInterface n : StructrApp.getInstance().nodeQuery(dateType).getResultStream()) {
+				assertTrue("Date values must be of type Date", n.getProperty("value") instanceof Date);
+			}
+
+			for (final NodeInterface n : StructrApp.getInstance().nodeQuery(stringType).getResultStream()) {
+				assertTrue("String values must be of type String", n.getProperty("value") instanceof String);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testPatchOnNestedResourceWithMultipleObjects() {
+
+		final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+		// setup 1: create types
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema                 = StructrSchema.createFromDatabase(app);
+			final JsonObjectType baseType           = schema.addType("BaseType");
+			final JsonObjectType actualType         = schema.addType("ActualType");
+			final JsonObjectType propertyBase       = schema.addType("PropertyBaseType");
+			final JsonObjectType datePropertyType   = schema.addType("DateType");
+			final JsonObjectType stringPropertyType = schema.addType("StringType");
+
+			baseType.addDateProperty("validFrom", PropertyView.Public);
+			baseType.addDateProperty("validUntil", PropertyView.Public);
+
+			datePropertyType.addDateProperty("value", PropertyView.Public);
+			stringPropertyType.addStringProperty("value", PropertyView.Public);
+
+			actualType.setExtends(baseType);
+			propertyBase.setExtends(baseType);
+			datePropertyType.setExtends(propertyBase);
+			stringPropertyType.setExtends(propertyBase);
+
+			actualType.relate(propertyBase, "HAS_PROPERTY", Cardinality.OneToMany, "base", "properties").setCascadingCreate(JsonSchema.Cascade.sourceToTarget);
+			actualType.addViewProperty(PropertyView.Public, "properties");
+
+			propertyBase.addViewProperty(PropertyView.Public, "base");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String type1   = createEntity("/ActualType", "{ name: 'ActualType' }");
+		final String date1   = createEntity("/DateType", "{ name: 'DateType', base: '" + type1 + "', value: '2020-07-26T10:34:56+0000' }");
+		final String string1 = createEntity("/StringType", "{ name: 'StringType', base: '" + type1 + "', value: 'A string' }");
+
+		// verify setup
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(1))
+			.body("result[0].properties[0].value", equalTo("2020-07-26T10:34:56+0000"))
+			.body("result[0].properties[1].value", equalTo("A string"))
+		.when()
+			.get("/ActualType");
+
+		{
+			// create patch document
+			final List<Map<String, Object>> data = List.of(
+				Map.of(
+					"id", type1,
+					"properties", List.of(
+						Map.of(
+							"id", date1,
+							"type", "DateType",
+							"value", "2021-07-26T10:34:56+0000"
+						),
+						Map.of(
+							"id", string1,
+							"type", "StringType",
+							"value", "Another string"
+						)
+					)
+				)
+			);
+
+			// test
+			RestAssured.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.filter(RequestLoggingFilter.logRequestTo(System.out))
+				.body(gson.toJson(data))
+			.expect()
+				.statusCode(200)
+			.when()
+				.patch("/ActualType");
+
+
+			// verify setup
+			RestAssured.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+				.statusCode(200)
+				.body("result_count", equalTo(1))
+				.body("result[0].properties[0].value", equalTo("2021-07-26T10:34:56+0000"))
+				.body("result[0].properties[1].value", equalTo("Another string"))
+			.when()
+				.get("/ActualType");
+
+			final Class<NodeInterface> stringType = StructrApp.getConfiguration().getNodeEntityClass("StringType");
+			final Class<NodeInterface> dateType   = StructrApp.getConfiguration().getNodeEntityClass("DateType");
+
+			// verify result
+			try (final Tx tx = app.tx()) {
+
+				for (final NodeInterface n : StructrApp.getInstance().nodeQuery(dateType).getResultStream()) {
+					assertTrue("Date values must be of type Date", n.getProperty("value") instanceof Date);
+				}
+
+				for (final NodeInterface n : StructrApp.getInstance().nodeQuery(stringType).getResultStream()) {
+					assertTrue("String values must be of type String", n.getProperty("value") instanceof String);
+				}
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+
+		// second test, add a new property
+		{
+			// create patch document
+			final List<Map<String, Object>> data = List.of(
+				Map.of(
+					"id", type1,
+					"properties", List.of(
+						Map.of(
+							"id", date1,
+							"value", "2021-07-26T10:34:56+0000"
+						),
+						Map.of(
+							"type", "DateType",
+							"value", "2022-08-22T10:00:00Z"
+						),
+						Map.of(
+							"id", string1,
+							"type", "StringType",
+							"value", "Another string"
+						)
+					)
+				)
+			);
+
+			// test
+			RestAssured.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.filter(RequestLoggingFilter.logRequestTo(System.out))
+				.body(gson.toJson(data))
+			.expect()
+				.statusCode(200)
+			.when()
+				.patch("/ActualType");
+
+
+			// verify setup
+			RestAssured.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+				.statusCode(200)
+				.body("result_count", equalTo(1))
+				.body("result[0].properties[0].value", equalTo("2021-07-26T10:34:56+0000"))
+				.body("result[0].properties[1].value", equalTo("Another string"))
+			.when()
+				.get("/ActualType");
+
+			final Class<NodeInterface> stringType = StructrApp.getConfiguration().getNodeEntityClass("StringType");
+			final Class<NodeInterface> dateType   = StructrApp.getConfiguration().getNodeEntityClass("DateType");
+
+			// verify result
+			try (final Tx tx = app.tx()) {
+
+				for (final NodeInterface n : StructrApp.getInstance().nodeQuery(dateType).getResultStream()) {
+					assertTrue("Date values must be of type Date", n.getProperty("value") instanceof Date);
+				}
+
+				for (final NodeInterface n : StructrApp.getInstance().nodeQuery(stringType).getResultStream()) {
+					assertTrue("String values must be of type String", n.getProperty("value") instanceof String);
+				}
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
 	}
 }

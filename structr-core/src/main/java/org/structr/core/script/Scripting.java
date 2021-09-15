@@ -40,6 +40,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.DateProperty;
@@ -170,7 +172,7 @@ public class Scripting {
 			RuntimeUsageLog.enter(entity, methodName);
 
 			boolean isScriptEngine = false;
-			String engine          = "";
+			String engine = "";
 
 			if (!isJavascript) {
 
@@ -182,7 +184,7 @@ public class Scripting {
 
 					logger.debug("Scripting engine {} requested.", engine);
 
-					isJavascript   = StringUtils.isBlank(engine) || "JavaScript".equals(engine);
+					isJavascript = StringUtils.isBlank(engine) || "JavaScript".equals(engine);
 					isScriptEngine = !isJavascript && StringUtils.isNotBlank(engine);
 				}
 			}
@@ -201,7 +203,7 @@ public class Scripting {
 				securityContext.setDoTransactionNotifications(false);
 			}
 
-			final Snippet snippet  = new Snippet(methodName, source);
+			final Snippet snippet = new Snippet(methodName, source);
 			snippet.setCodeSource(codeSource);
 			snippet.setStartRow(startRow);
 
@@ -224,9 +226,9 @@ public class Scripting {
 				try {
 
 					final EvaluationHints hints = new EvaluationHints();
-					Object extractedValue       = Functions.evaluate(actionContext, entity, snippet, hints);
-					final String value          = extractedValue != null ? extractedValue.toString() : "";
-					final String output         = actionContext.getOutput();
+					Object extractedValue = Functions.evaluate(actionContext, entity, snippet, hints);
+					final String value = extractedValue != null ? extractedValue.toString() : "";
+					final String output = actionContext.getOutput();
 
 					if (StringUtils.isEmpty(value) && output != null && !output.isEmpty()) {
 						extractedValue = output;
@@ -238,7 +240,7 @@ public class Scripting {
 
 					hints.checkForErrorsAndThrowException((message, row, column) -> {
 						// report usage errors (missing keys etc.)
-						reportError(actionContext.getSecurityContext(), message, row, column, snippet, false);
+						reportError(actionContext.getSecurityContext(), entity, message, row, column, snippet);
 					});
 
 					return extractedValue;
@@ -248,13 +250,13 @@ public class Scripting {
 					// This block reports syntax errors in StructrScript expressions
 					// StructrScript evaluation should not throw exceptions
 
-					reportError(actionContext.getSecurityContext(), t.getMessage(), t.getRow(), t.getColumn(), snippet, false);
+					reportError(actionContext.getSecurityContext(), entity, t.getMessage(), t.getRow(), t.getColumn(), snippet);
 				}
 
 				return null;
 			}
 
-		} finally {
+		}  finally {
 
 			RuntimeUsageLog.leave(entity);
 		}
@@ -286,11 +288,17 @@ public class Scripting {
 
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
 
-					reportError(actionContext.getSecurityContext(), ex, snippet, false);
-					throw ex.asHostException();
+					reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+					// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
+					if (ex.asHostException().getCause() instanceof FrameworkException) {
+						throw ex.asHostException().getCause();
+					} else {
+						throw ex.asHostException();
+					}
 				}
 
-				reportError(actionContext.getSecurityContext(), ex, snippet);
+				reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+				throw new FrameworkException(422, "Server-side scripting error", ex);
 			}
 
 			// Prefer explicitly printed output over actual result
@@ -376,19 +384,20 @@ public class Scripting {
 
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
 
-					reportError(actionContext.getSecurityContext(), ex, snippet, false);
-					throw ex.asHostException();
+					reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+					// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
+					if (ex.asHostException().getCause() instanceof FrameworkException) {
+						throw ex.asHostException().getCause();
+					} else {
+						throw ex.asHostException();
+					}
 				}
 
-				reportError(actionContext.getSecurityContext(), ex, snippet);
+				reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+				throw new FrameworkException(422, "Server-side scripting error", ex);
 			}
 
 			context.leave();
-
-			if (actionContext.hasError()) {
-
-				throw new FrameworkException(422, "Server-side scripting error", actionContext.getErrorBuffer());
-			}
 
 			// Prefer explicitly printed output over actual result
 			final String outputBuffer = actionContext.getOutput();
@@ -640,12 +649,7 @@ public class Scripting {
 		}
 	}
 
-	private static void reportError(final SecurityContext securityContext, final PolyglotException ex, final Snippet snippet) throws FrameworkException {
-
-		reportError(securityContext, ex, snippet, true);
-	}
-
-	private static void reportError(final SecurityContext securityContext, final PolyglotException ex, final Snippet snippet, final boolean shouldThrow) throws FrameworkException {
+	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final PolyglotException ex, final Snippet snippet) throws FrameworkException {
 
 		final String message = ex.getMessage();
 		int lineNumber       = 1;
@@ -662,16 +666,16 @@ public class Scripting {
 			endColumnNumber = location.getEndColumn();
 		}
 
-		reportError(securityContext, message, lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet, shouldThrow);
+		reportError(securityContext, entity, message, lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet);
 	}
 
-	private static void reportError(final SecurityContext securityContext, final String message, final int lineNumber, final int columnNumber, final Snippet snippet, final boolean shouldThrow) throws FrameworkException {
+	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final String message, final int lineNumber, final int columnNumber, final Snippet snippet) throws FrameworkException {
 
-		reportError(securityContext, message, lineNumber, columnNumber, lineNumber, columnNumber, snippet, shouldThrow);
+		reportError(securityContext, entity, message, lineNumber, columnNumber, lineNumber, columnNumber, snippet);
 
 	}
 
-	private static void reportError(final SecurityContext securityContext, final String message, final int lineNumber, final int columnNumber, final int endLineNumber, final int endColumnNumber, final Snippet snippet, final boolean shouldThrow) throws FrameworkException {
+	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final String message, final int lineNumber, final int columnNumber, final int endLineNumber, final int endColumnNumber, final Snippet snippet) throws FrameworkException {
 
 		final String entityName               = snippet.getName();
 		final String entityDescription        = (StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + snippet.getCodeSource();
@@ -706,20 +710,53 @@ public class Scripting {
 		final String codeSourceId = snippet.getCodeSource();
 		if (codeSourceId != null) {
 
+			String nodeType = null;
+			String nodeId = null;
+
+			if (entity != null) {
+
+				final String entityType = entity.getClass().getSimpleName();
+				final String entityId = entity.getUuid();
+
+				messageData.put("entityType", entityType);
+				messageData.put("entityId", entityId);
+				eventData.put("entityType", entityType);
+				eventData.put("entityId", entityId);
+
+				exceptionPrefix.append(entityType).append("[").append(entityId).append("]:");
+
+			}
+
 			final GraphObject codeSource = StructrApp.getInstance().getNodeById(codeSourceId);
 			if (codeSource != null) {
 
-				final String nodeType = codeSource.getClass().getSimpleName();
-				final String nodeId   = codeSource.getUuid();
+				nodeType = codeSource.getClass().getSimpleName();
+				nodeId = codeSource.getUuid();
 
-				eventData.put("type", nodeType);
-				eventData.put("id",   nodeId);
+				if (codeSource instanceof SchemaMethod && ((SchemaMethod)codeSource).isStaticMethod()) {
 
-				messageData.put("nodeType", nodeType);
-				messageData.put("nodeId", nodeId);
+					final AbstractSchemaNode node = codeSource.getProperty(SchemaMethod.schemaNode);
+					final String staticTypeName = node.getName();
+					messageData.put("staticType", staticTypeName);
+					messageData.put("isStaticMethod", true);
+					eventData.put("staticType", staticTypeName);
+					eventData.put("isStaticMethod", true);
 
-				exceptionPrefix.append(nodeType).append("[").append(nodeId).append("]:");
+					exceptionPrefix.append(staticTypeName).append("[static]:");
+				} else {
+
+					if (entity == null) {
+						// Only generate generic exception prefix, if none has been written for entity
+						exceptionPrefix.append(nodeType).append("[").append(nodeId).append("]:");
+					}
+				}
+
 			}
+
+			eventData.put("type", nodeType);
+			messageData.put("nodeType", nodeType);
+			eventData.put("id", nodeId);
+			messageData.put("nodeId", nodeId);
 		}
 
 		if (snippet.getName() != null) {
@@ -733,15 +770,8 @@ public class Scripting {
 
 		exceptionPrefix.append(snippet.getName()).append(":").append(lineNumber).append(":").append(columnNumber);
 
-		if (shouldThrow) {
-
-			throw new FrameworkException(422, exceptionPrefix.toString() + "\n" + message);
-
-		} else {
-
-			// log error but don't throw exception
-			logger.warn(exceptionPrefix.toString() + ": " + message);
-		}
+		// log error but don't throw exception
+		logger.warn(exceptionPrefix.toString() + ": " + message);
 	}
 
 	private static void putIfNotNull(final Map<String, Object> map, final String key, final Object value) {

@@ -17,17 +17,52 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pages {
+	display: flex;
+	flex-direction: column;
+}
+
 #pagesTree {
-	height: 100%;
+	flex-grow: 1;
 	overflow: auto;
 	/*margin-top: -1rem;*/
 	padding-top: 1rem;
 }
 
-#pages {
+#pages-controls {
 	display: flex;
-	flex-direction: column;
-	/*font-size: .875rem;*/
+	margin-top: 1rem;
+	margin-left: 1rem;
+}
+
+#pagesPager {
+	flex-grow: 1;
+	display: inline-block;
+}
+
+#pagesPagerFilters {
+	margin-top: 0.5rem;
+}
+
+#pages-actions .dropdown-select,
+#pages-controls .icon {
+	color: var(--icon-stroke);
+}
+
+#add_template {
+	white-space: nowrap;
+}
+
+#pages-actions .dropdown-menu-container {
+	margin-left: -10rem;
+}
+
+#pagesPagerFilters input[type=text] {
+	width: 3rem;
+	margin-right: .5rem;
+}
+#pagesPagerFilters input[type=text][data-attribute="category"] {
+	width: 5rem;
 }
 
 #pages .node.page {
@@ -35,7 +70,9 @@
 	margin-left: 1rem;
 }
 
-#pages .node.page:hover {
+#pages .node.page:hover,
+#componentsArea .node:hover,
+#localizations .node:not(.schema):hover {
 	cursor: pointer;
 }
 
@@ -70,34 +107,6 @@ ul#previewTabs {
 	-webkit-transform-origin: 0 0;
 }
 
-#function-bar-switch {
-	background-color: var(--solid-white);
-	/*display: inline-block;*/
-	margin-left: -.75rem ! important;
-}
-
-#function-bar-switch.hidden {
-	display: none;
-}
-
-#function-bar-switch:hover {
-}
-
-#pagesPager {
-	transition: margin-left .1s ease-in-out;
-	display: inline-block;
-	/*margin-left: 4rem;*/
-	/*padding-left: 3rem;*/
-	position: absolute;
-	left: 4rem;
-	/*background-color: var(--solid-white);*/
-}
-
-#pagesPager.hidden {
-	/*display: inline-block;*/
-	margin-left: -60rem;
-}
-
 #add_page {
 	right: 1rem;
 }
@@ -126,6 +135,10 @@ ul#previewTabs {
 /**
  * Central content container
  */
+.dialogText .content-container {
+	margin-top: 0rem;
+	height: calc(100% - 20rem);
+}
 .content-container {
 	margin-top: 2rem;
 	background-color: var(--solid-white);
@@ -222,10 +235,6 @@ ul#previewTabs {
 
 .repeater-container .input-section {
 	margin-top: 2rem;
-}
-
-.security-container button.switch {
-	min-width: 14rem;
 }
 
 .query-type-buttons button.active {
@@ -332,6 +341,11 @@ input.dataKey_ {
 /**
  * Localizations slideout
  */
+
+#localization-preview-page {
+	max-width: 10rem;
+}
+
 #localizations .inner {
 	margin: 1rem 0 0 0;
 	height: 100%;
@@ -341,10 +355,11 @@ input.dataKey_ {
 
 #localizations .results {
 	overflow: auto;
+	margin-top: 0.5rem;
 }
 
 #localizations .inner input.locale {
-	/*margin-left: 14px;*/
+	max-width: 5.5rem;
 	margin-right: 1rem;
 }
 

@@ -26,9 +26,8 @@ import org.structr.schema.action.ActionContext;
 
 public class ApplicationStoreGetFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET = "Usage: ${application_store_get(key)}. Example: ${application_store_get(\"do_no_track\")}";
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET_JS = "Usage: ${{Structr.application_store_get(key)}}. Example: ${{Structr.application_store_get(\"do_not_track\")}}";
-
+	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET    = "Usage: ${application_store_get(key)}. Example: ${application_store_get(\"do_no_track\")}";
+	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET_JS = "Usage: ${{ $.application_store_get(key); }}. Example: ${{ $.application_store_get(\"do_not_track\"); }}";
 
 	@Override
 	public String getName() {
@@ -42,10 +41,13 @@ public class ApplicationStoreGetFunction extends UiAdvancedFunction {
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+
 		try {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
-			return Services.getInstance().applicationStoreGet(sources[0].toString());
+
+			return Services.getInstance().getApplicationStore().get(sources[0].toString());
+
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
@@ -54,7 +56,7 @@ public class ApplicationStoreGetFunction extends UiAdvancedFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 
@@ -67,8 +69,4 @@ public class ApplicationStoreGetFunction extends UiAdvancedFunction {
 	public String shortDescription() {
 		return "Retrieves a stored value from the application level store.";
 	}
-
-
-
-
 }

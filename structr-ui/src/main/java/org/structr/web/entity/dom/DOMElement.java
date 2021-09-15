@@ -1426,10 +1426,18 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				final String cleaned = part.trim();
 				if (StringUtils.isNotBlank(cleaned) && cleaned.length() == 32) {
 
-					final AbstractNode node = app.get(AbstractNode.class, cleaned);
+					final NodeInterface node = app.getNodeById(cleaned);
 					if (node != null) {
 
 						targets.add(node);
+
+					} else {
+
+						final RelationshipInterface rel = app.getRelationshipById(cleaned);
+						if (rel != null) {
+
+							targets.add(rel);
+						}
 					}
 				}
 			}

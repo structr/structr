@@ -30,12 +30,12 @@ public class ChoiceSetting extends StringSetting {
 
 	private final Set<String> choices = new LinkedHashSet<>();
 
-	public ChoiceSetting(final SettingsGroup group, final String groupName, final String key, final String value, final Set<String> choices) {
-		this(group, groupName, key, value, choices, null);
+	public ChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final Set<String> choices) {
+		this(group, categoryName, key, value, choices, null);
 	}
 
-	public ChoiceSetting(final SettingsGroup group, final String groupName, final String key, final String value, final Set<String> choices, final String comment) {
-		super(group, groupName, key, value, comment);
+	public ChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final Set<String> choices, final String comment) {
+		super(group, categoryName, key, value, comment);
 
 		this.choices.addAll(choices);
 	}

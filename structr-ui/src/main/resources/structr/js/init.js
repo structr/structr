@@ -16,23 +16,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var header, main, functionBar;
-var sessionId, user;
-var lastMenuEntry, menuBlocked, mainModule, subModule, navView;
-var dmp;
-var editorCursor, ignoreKeyUp;
+var main;
+var lastMenuEntry, menuBlocked, mainModule, subModule;
+var ignoreKeyUp;
 var dialog, isMax = false;
 var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogHead, dialogCancelButton, dialogSaveButton, saveAndClose, loginBox, dialogCloseButton;
 var dialogId;
-var pagerType = {}, page = {}, pageSize = {}, sortKey = {}, sortOrder = {}, pagerFilters = {}, pagerExactFilterKeys = {};
-var dialogMaximizedKey = 'structrDialogMaximized_' + port;
-var expandedIdsKey = 'structrTreeExpandedIds_' + port;
-var lastMenuEntryKey = 'structrLastMenuEntry_' + port;
-var pagerDataKey = 'structrPagerData_' + port + '_';
-var dialogDataKey = 'structrDialogData_' + port;
-var dialogHtmlKey = 'structrDialogHtml_' + port;
-var scrollInfoKey = 'structrScrollInfoKey_' + port;
-var consoleModeKey = 'structrConsoleModeKey_' + port;
+var dialogMaximizedKey = 'structrDialogMaximized_' + location.port;
+var expandedIdsKey = 'structrTreeExpandedIds_' + location.port;
+var lastMenuEntryKey = 'structrLastMenuEntry_' + location.port;
+var dialogDataKey = 'structrDialogData_' + location.port;
+var scrollInfoKey = 'structrScrollInfoKey_' + location.port;
+var consoleModeKey = 'structrConsoleModeKey_' + location.port;
 var resizeFunction;
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 
@@ -41,27 +36,33 @@ $(function() {
 	$.blockUI.defaults.overlayCSS.opacity        = .6;
 	$.blockUI.defaults.overlayCSS.cursor         = 'default';
 	$.blockUI.defaults.applyPlatformOpacityRules = false;
+	$.blockUI.defaults.onBlock = () => {
+		_Console.insertHeaderBlocker();
+	};
+	$.blockUI.defaults.onUnblock = () => {
+		_Console.removeHeaderBlocker();
+	};
 
-	header = $('#header');
-	main = $('#main');
-	functionBar = $('#function-bar');
-	loginBox = $('#login');
+	main                = $('#main');
+	Structr.header      = document.getElementById('header');
+	Structr.functionBar = document.getElementById('function-bar');
+	loginBox            = $('#login');
 
-	dialogBox          = $('#dialogBox');
-	dialog             = $('.dialogText', dialogBox);
-	dialogText         = $('.dialogText', dialogBox);
-	dialogHead         = $('.dialogHeaderWrapper', dialogBox);
-	dialogMsg          = $('.dialogMsg', dialogBox);
-	dialogBtn          = $('.dialogBtn', dialogBox);
-	dialogTitle        = $('.dialogTitle', dialogBox);
-	dialogMeta         = $('.dialogMeta', dialogBox);
-	dialogCancelButton = $('.closeButton', dialogBox);
-	dialogSaveButton   = $('.save', dialogBox);
+	dialogBox           = $('#dialogBox');
+	dialog              = $('.dialogText', dialogBox);
+	dialogText          = $('.dialogText', dialogBox);
+	dialogHead          = $('.dialogHeaderWrapper', dialogBox);
+	dialogMsg           = $('.dialogMsg', dialogBox);
+	dialogBtn           = $('.dialogBtn', dialogBox);
+	dialogTitle         = $('.dialogTitle', dialogBox);
+	dialogMeta          = $('.dialogMeta', dialogBox);
+	dialogCancelButton  = $('.closeButton', dialogBox);
+	dialogSaveButton    = $('.save', dialogBox);
 
 	$('#loginButton').on('click', function(e) {
 		e.stopPropagation();
-		var username = $('#usernameField').val();
-		var password = $('#passwordField').val();
+		let username = $('#usernameField').val();
+		let password = $('#passwordField').val();
 		Structr.doLogin(username, password);
 		return false;
 	});
@@ -106,12 +107,12 @@ $(function() {
 	});
 
 	$(document).on('mouseenter', '[data-toggle="popup"]', function() {
-		var target = $(this).data("target");
+		let target = $(this).data("target");
 		$(target).addClass('visible');
 	});
 
 	$(document).on('mouseleave', '[data-toggle="popup"]', function() {
-		var target = $(this).data("target");
+		let target = $(this).data("target");
 		$(target).removeClass('visible');
 	});
 
@@ -127,7 +128,7 @@ $(function() {
 	});
 
 	$(window).keyup(function(e) {
-		var k = e.which;
+		let k = e.which;
 		if (k === 16) {
 			shiftKey = false;
 		}
@@ -148,7 +149,7 @@ $(function() {
 			}
 			if (dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
 				ignoreKeyUp = true;
-				var saveBeforeExit = confirm('Save changes?');
+				let saveBeforeExit = confirm('Save changes?');
 				if (saveBeforeExit) {
 					dialogSaveButton.click();
 					setTimeout(function() {
@@ -293,9 +294,6 @@ $(function() {
 
 	$(window).on('resize', resizeFunction);
 
-	dmp = new diff_match_patch();
-
-
 	live('.dropdown-select', 'click', (e) => {
 		e.stopPropagation();
 		e.preventDefault();
@@ -303,26 +301,38 @@ $(function() {
 		let menu = e.target.closest('.dropdown-menu');
 
 		if (menu) {
-			let template = menu.dataset['template'];
-			let config = JSON.parse(menu.dataset['config'] || '{}');
+
+			let template       = menu.dataset['template'];
+			let config         = JSON.parse(menu.dataset['config'] || '{}');
 			let callbackString = menu.dataset['callback'];
+			let container      = e.target.closest('.dropdown-menu').querySelector('.dropdown-menu-container');
 
-			Structr.fetchHtmlTemplate(template, config, function (html) {
-				let container = e.target.closest('.dropdown-menu').querySelector('.dropdown-menu-container');
-				if (container) {
-					if (!container.hasChildNodes()) {
+			if (container) {
+
+				if (container.hasChildNodes() && container.style.opacity === '0') {
+
+					container.style.opacity    = '1';
+					container.style.visibility = '';
+
+				} else if (container.hasChildNodes() && container.style.opacity === '1') {
+
+					container.style.opacity    = '0';
+					container.style.visibility = 'hidden';
+
+				} else if (!container.hasChildNodes()) {
+
+					Structr.fetchHtmlTemplate(template, config, function (html) {
+
 						container.insertAdjacentHTML('beforeend', html);
-						container.style.opacity = '1';
-					} else {
-						container.style.opacity = '0';
-						fastRemoveAllChildren(container);
-					}
-				}
+						container.style.opacity    = '1';
+						container.style.visibility = '';
 
-				if (callbackString && callbackString.length) {
-					Structr.getActiveModule()[callbackString]();
+						if (callbackString && callbackString.length) {
+							Structr.getActiveModule()[callbackString]();
+						}
+					});
 				}
-			});
+			}
 		}
 		return false;
 	});
@@ -341,27 +351,39 @@ $(function() {
 		const menuContainer  = menu && menu.querySelector('.dropdown-menu-container');
 		if (!menuContainer) {
 			document.querySelectorAll('.dropdown-menu-container').forEach((container) => {
-				container.style.opacity = '0';
-				fastRemoveAllChildren(container);
+				container.style.opacity    = '0';
+				container.style.visibility = 'hidden';
 			});
 		}
 		return false;
 	});
 });
 
-var Structr = {
+let Structr = {
 	modules: {},
 	activeModules: {},
 	moduleAvailabilityCallbacks: [],
-	keyMenuConfig: 'structrMenuConfig_' + port,
+	keyMenuConfig: 'structrMenuConfig_' + location.port,
 	edition: '',
 	classes: [],
 	expanded: {},
 	msgCount: 0,
 	currentlyActiveSortable: undefined,
 	loadingSpinnerTimeout: undefined,
-	keyCodeMirrorSettings: 'structrCodeMirrorSettings_' + port,
+	keyCodeMirrorSettings: 'structrCodeMirrorSettings_' + location.port,
 	legacyRequestParameters: false,
+	diffMatchPatch: undefined,
+	defaultBlockUICss: {
+		cursor: 'default',
+		border: 'none',
+		backgroundColor: 'transparent'
+	},
+	getDiffMatchPatch: () => {
+		if (!Structr.diffMatchPatch) {
+			Structr.diffMatchPatch = new diff_match_patch();
+		}
+		return Structr.diffMatchPatch;
+	},
 	getRequestParameterName: (key) => {
 
 		if (Structr.legacyRequestParameters === true) {
@@ -370,11 +392,6 @@ var Structr = {
 		} else {
 			return '_' + key;
 		}
-	},
-	defaultBlockUICss: {
-		cursor: 'default',
-		border: 'none',
-		backgroundColor: 'transparent'
 	},
 	templateCache: new AsyncObjectCache(function(templateName) {
 
@@ -391,22 +408,21 @@ var Structr = {
 		}).catch(function(e) {
 			console.log(e.statusText, templateName, e);
 		});
-
 	}),
 
 	reconnect: function() {
 		Structr.stopPing();
 		Structr.stopReconnect();
-		reconn = window.setInterval(function() {
-			wsConnect();
+		StructrWS.reconnectIntervalId = window.setInterval(function() {
+			StructrWS.connect();
 		}, 1000);
-		wsConnect();
+		StructrWS.connect();
 	},
 	stopReconnect: function() {
-		if (reconn) {
-			window.clearInterval(reconn);
-			reconn = undefined;
-			user = undefined;
+		if (StructrWS.reconnectIntervalId) {
+			window.clearInterval(StructrWS.reconnectIntervalId);
+			StructrWS.reconnectIntervalId = undefined;
+			StructrWS.user = undefined;
 		}
 	},
 	init: function() {
@@ -416,13 +432,13 @@ var Structr = {
 	},
 	ping: function(callback) {
 
-		if (ws.readyState !== 1) {
+		if (StructrWS.ws.readyState !== 1) {
 			Structr.reconnect();
 		}
 
-		sessionId = Structr.getSessionId();
+		StructrWS.sessionId = Structr.getSessionId();
 
-		if (sessionId) {
+		if (StructrWS.sessionId) {
 			Command.ping(callback);
 		} else {
 			Structr.renewSessionId(function() {
@@ -446,48 +462,52 @@ var Structr = {
 			}
 			Structr.hideLoadingSpinner();
 			_Console.initConsole();
+			document.querySelector('#header .logo').addEventListener('click', _Console.toggleConsole);
 			_Favorites.initFavorites();
 		});
 	},
 	updateUsername: function(name) {
-		if (name !== user) {
-			user = name;
+		if (name !== StructrWS.user) {
+			StructrWS.user = name;
 			$('#logout_').html('Logout <span class="username">' + name + '</span>');
 		}
 	},
 	startPing: function() {
 		Structr.stopPing();
-		if (!ping) {
-			ping = window.setInterval(function() {
+		if (!StructrWS.ping) {
+			StructrWS.ping = window.setInterval(function() {
 				Structr.ping();
 			}, 1000);
 		}
 	},
 	stopPing: function() {
-		if (ping) {
-			window.clearInterval(ping);
-			ping = undefined;
+		if (StructrWS.ping) {
+			window.clearInterval(StructrWS.ping);
+			StructrWS.ping = undefined;
 		}
 	},
 	getSessionId: function() {
 		return Cookies.get('JSESSIONID');
 	},
 	connect: function() {
-		sessionId = Structr.getSessionId();
-		if (!sessionId) {
+		StructrWS.sessionId = Structr.getSessionId();
+		if (!StructrWS.sessionId) {
 			Structr.renewSessionId(function() {
-				wsConnect();
+				StructrWS.connect();
 			});
 		} else {
-			wsConnect();
+			StructrWS.connect();
 		}
 	},
 	login: function(text) {
 
 		if (!loginBox.is(':visible')) {
 
+			_Favorites.logoutAction();
+			_Console.logoutAction();
+
 			fastRemoveAllChildren(main[0]);
-			fastRemoveAllChildren(functionBar[0]);
+			fastRemoveAllChildren(Structr.functionBar);
 			_Elements.removeContextMenu();
 
 			$.blockUI({
@@ -554,23 +574,23 @@ var Structr = {
 		_Favorites.logoutAction();
 		_Console.logoutAction();
 		LSWrapper.save();
-		if (Command.logout(user)) {
+		if (Command.logout(StructrWS.user)) {
 			Cookies.remove('JSESSIONID');
-			sessionId.length = 0;
+			StructrWS.sessionId = '';
 			Structr.renewSessionId();
 			Structr.clearMain();
 			Structr.clearVersionInfo();
 			Structr.login(text);
 			return true;
 		}
-		ws.close();
+		StructrWS.ws.close();
 		return false;
 	},
 	renewSessionId: function(callback) {
 		$.get('/').always(function() {
-			sessionId = Structr.getSessionId();
+			StructrWS.sessionId = Structr.getSessionId();
 
-			if (!sessionId && location.protocol === 'http:') {
+			if (!StructrWS.sessionId && location.protocol === 'http:') {
 
 				new MessageBuilder()
 					.title("Unable to retrieve session id cookie")
@@ -604,16 +624,17 @@ var Structr = {
 		});
 	},
 	determineModule: () => {
+
 		const browserUrl = new URL(window.location.href);
-		const anchor = browserUrl.hash.substring(1);
-		const navState  = anchor.split(':');
-		mainModule = navState[0];
-		subModule  = navState.length > 1 ? navState[1] : null;
+		const anchor     = browserUrl.hash.substring(1);
+		const navState   = anchor.split(':');
+		mainModule       = navState[0];
+		subModule        = navState.length > 1 ? navState[1] : null;
 
 		// console.log(window.location.href, anchor, navState, mainModule, subModule);
 	},
 	clearMain: function() {
-		var newDroppables = new Array();
+		let newDroppables = new Array();
 		$.ui.ddmanager.droppables['default'].forEach(function(droppable, i) {
 			if (!droppable.element.attr('id') || droppable.element.attr('id') !== 'graph-canvas') {
 			} else {
@@ -621,18 +642,17 @@ var Structr = {
 			}
 		});
 		$.ui.ddmanager.droppables['default'] = newDroppables;
-		$('iframe').contents().remove();
+
 		fastRemoveAllChildren(main[0]);
-		fastRemoveAllChildren(functionBar[0]);
+		fastRemoveAllChildren(Structr.functionBar);
 		_Elements.removeContextMenu();
-		$('#graph-box').hide();
 	},
 	confirmation: function(text, yesCallback, noCallback) {
 		if (text) {
 			$('#confirmation .confirmationText').html(text);
 		}
-		var yesButton = $('#confirmation .yesButton');
-		var noButton = $('#confirmation .noButton');
+		let yesButton = $('#confirmation .yesButton');
+		let noButton  = $('#confirmation .noButton');
 
 		if (yesCallback) {
 			yesButton.on('click', function(e) {
@@ -661,7 +681,6 @@ var Structr = {
 			message: $('#confirmation'),
 			css: Structr.defaultBlockUICss
 		});
-
 	},
 	restoreDialog: function(dialogData) {
 
@@ -799,32 +818,28 @@ var Structr = {
 			left: l + 'px'
 		});
 
-		var codeMirror = $('#dialogBox .CodeMirror');
+		let codeMirror = $('#dialogBox .CodeMirror');
 		if (codeMirror.length) {
 
-			var cmPosition = codeMirror.position();
-			var bottomOffset = 0;
+			let cmPosition   = codeMirror.position();
+			let cmHeight     = (dh - headerHeight - horizontalOffset - cmPosition.top - 8) + 'px';
 
-			var cmHeight = (dh - headerHeight - horizontalOffset - cmPosition.top) + 'px';
-
-			$('.CodeMirror:not(.cm-schema-methods)').css({
+			$('.CodeMirror:not(.cm-schema-methods)', dialogBox).css({
 				height: cmHeight
 			});
 
-			$('.CodeMirror:not(.cm-schema-methods) .CodeMirror-gutters').css({
+			$('.CodeMirror:not(.cm-schema-methods) .CodeMirror-gutters', dialogBox).css({
 				height: cmHeight
 			});
 
-			$('.CodeMirror:not(.cm-schema-methods)').each(function(i, el) {
+			$('.CodeMirror:not(.cm-schema-methods)', dialogBox).each(function(i, el) {
 				el.CodeMirror.refresh();
 			});
-
 		}
 
 		$('.fit-to-height').css({
 			height: h - 84 + 'px'
 		});
-
 	},
 	resize: function(callback) {
 
@@ -1086,7 +1101,7 @@ var Structr = {
 		}
 	},
 	registerModule: function(module) {
-		var name = module._moduleName;
+		let name = module._moduleName;
 		if (!name || name.trim().length === 0) {
 			new MessageBuilder().error("Cannot register module without a name - ignoring attempt. To fix this error, please add the '_moduleName' variable to the module.").show();
 		} else if (!Structr.modules[name]) {
@@ -1108,41 +1123,45 @@ var Structr = {
 		return (element && Structr.numberOfNodes(element) && Structr.numberOfNodes(element) > 0);
 	},
 	numberOfNodes: function(element, excludeId) {
-		var childNodes = $(element).children('.node');
+		let childNodes = $(element).children('.node');
+
 		if (excludeId) {
 			childNodes = childNodes.not('.' + excludeId + '_');
 		}
-		var n = childNodes.length;
 
-		return n;
+		return childNodes.length;
 	},
 	findParent: function(parentId, componentId, pageId, defaultElement) {
-		var parent = Structr.node(parentId, null, componentId, pageId);
+		let parent = Structr.node(parentId, null, componentId, pageId);
+
 		if (!parent) {
 			parent = defaultElement;
 		}
+
 		return parent;
 	},
 	parent: function(id) {
 		return Structr.node(id) && Structr.node(id).parent().closest('.node');
 	},
 	node: function(id, prefix) {
-		var p = prefix || '#id_';
-		var node = $($(p + id)[0]);
-		return node.length ? node : undefined;
+		let p    = prefix || '#id_';
+		let node = $($(p + id)[0]);
+
+		return (node.length ? node : undefined);
 	},
 	entity: function(id, parentId) {
-		var entityElement = Structr.node(id, parentId);
-		var entity = Structr.entityFromElement(entityElement);
+		let entityElement = Structr.node(id, parentId);
+		let entity        = Structr.entityFromElement(entityElement);
 		return entity;
 	},
 	getClass: function(el) {
-		var c;
-		$(Structr.classes).each(function(i, cls) {
+		let c;
+		for(let cls of Structr.classes) {
 			if (el && $(el).hasClass(cls)) {
 				c = cls;
 			}
-		});
+		}
+
 		return c;
 	},
 	entityFromElement: function(element) {
@@ -1189,8 +1208,8 @@ var Structr = {
 				Structr.activateMenuEntry('pages');
 				window.location.href = '/structr/#pages';
 
-				if (filesMain && filesMain.length) {
-					filesMain.hide();
+				if (_Files.filesMain && _Files.filesMain.length) {
+					_Files.filesMain.hide();
 				}
 				if (_Widgets.widgets && _Widgets.widgets.length) {
 					_Widgets.widgets.hide();
@@ -1716,13 +1735,13 @@ var Structr = {
 	handleGenericMessage: function(data) {
 
 		let showScheduledJobsNotifications = Importer.isShowNotifications();
-		let showScriptingErrorPopups       = _Dashboard.isShowScriptingErrorPopups();
+		let showScriptingErrorPopups       = UISettings.getValueForSetting(UISettings.global.settings.showScriptingErrorPopupsKey);
 
 		switch (data.type) {
 
 			case "CSV_IMPORT_STATUS":
 
-				if (me.username === data.username) {
+				if (StructrWS.me.username === data.username) {
 
 					let titles = {
 						BEGIN: 'CSV Import started',
@@ -1742,7 +1761,7 @@ var Structr = {
 
 			case "CSV_IMPORT_ERROR":
 
-				if (me.username === data.username) {
+				if (StructrWS.me.username === data.username) {
 					new MessageBuilder()
 						.title(data.title)
 						.error(data.text)
@@ -1778,7 +1797,7 @@ var Structr = {
 					RESUMED: 'The import of <b>' + data.filename + '</b> has been resumed'
 				};
 
-				if (showScheduledJobsNotifications && me.username === data.username) {
+				if (showScheduledJobsNotifications && StructrWS.me.username === data.username) {
 
 					var msg = new MessageBuilder()
 						.title(data.jobtype + ' ' + fileImportTitles[data.subtype])
@@ -1800,7 +1819,7 @@ var Structr = {
 
 			case "FILE_IMPORT_EXCEPTION":
 
-				if (showScheduledJobsNotifications && me.username === data.username) {
+				if (showScheduledJobsNotifications && StructrWS.me.username === data.username) {
 
 					var text = data.message;
 					if (data.message !== data.stringvalue) {
@@ -1833,7 +1852,7 @@ var Structr = {
 					END: 'Finished script job #' + data.jobId + ((data.jobName.length === 0) ? '' : ' (' + data.jobName + ')')
 				};
 
-				if (showScheduledJobsNotifications && me.username === data.username) {
+				if (showScheduledJobsNotifications && StructrWS.me.username === data.username) {
 
 					let msg = new MessageBuilder()
 						.title(scriptJobTitles[data.subtype])
@@ -1867,7 +1886,7 @@ var Structr = {
 				if (data.subtype === 'BEGIN') {
 
 					var text = type + ' started: ' + new Date(data.start) + '<br>'
-						+ 'Importing from: ' + data.source + '<br><br>'
+						+ 'Importing from: <span class="deployment-source">' + data.source + '</span><br><br>'
 						+ 'Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>';
 
 					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info(text).requiresConfirmation().updatesText().show();
@@ -1901,7 +1920,7 @@ var Structr = {
 				if (data.subtype === 'BEGIN') {
 
 					var text = type + ' started: ' + new Date(data.start) + '<br>'
-						+ 'Exporting to: ' + data.target + '<br><br>'
+						+ 'Exporting to: <span class="deployment-target">' + data.target + '</span><br><br>'
 						+ 'System performance may be affected during Export.<br><ol class="message-steps"></ol>';
 
 					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info(text).requiresConfirmation().updatesText().show();
@@ -1972,7 +1991,7 @@ var Structr = {
 
 			case "MAINTENANCE":
 
-				let enabled = data.enabled ? 'enabeld' : 'disabled';
+				let enabled = data.enabled ? 'enabled' : 'disabled';
 
 				new MessageBuilder().title('Maintenance Mode ' + enabled).warning("Maintenance Mode has been " + enabled + ". Redirecting...").allowConfirmAll().show();
 				window.setTimeout(function() {
@@ -2009,7 +2028,7 @@ var Structr = {
 
 					let resourceAccessKey = 'resource-access';
 
-					let grantPagerConfig = LSWrapper.getItem(pagerDataKey + resourceAccessKey);
+					let grantPagerConfig = LSWrapper.getItem(_Pager.pagerDataKey + resourceAccessKey);
 					if (!grantPagerConfig) {
 						grantPagerConfig = {
 							id: resourceAccessKey,
@@ -2027,7 +2046,7 @@ var Structr = {
 						signature: data.signature
 					};
 
-					LSWrapper.setItem(pagerDataKey + resourceAccessKey, JSON.stringify(grantPagerConfig));
+					LSWrapper.setItem(_Pager.pagerDataKey + resourceAccessKey, JSON.stringify(grantPagerConfig));
 
 					if (Structr.getActiveModule()._moduleName === _Security._moduleName) {
 						_Security.selectTab(resourceAccessKey);
@@ -2058,7 +2077,10 @@ var Structr = {
 							switch (obj.type) {
 
 								case 'SchemaMethod':
-									if (obj.schemaNode) {
+								    if (obj.schemaNode && data.isStaticMethod) {
+								        title = 'type "' + data.staticType + '"';
+								        property ='StaticMethod';
+								    } else if (obj.schemaNode) {
 										title = 'type "' + obj.schemaNode.name + '"';
 										property = 'Method';
 									} else {
@@ -2180,8 +2202,8 @@ var Structr = {
 	fetchHtmlTemplate: function(templateName, templateConfig, callback) {
 
 		Structr.templateCache.registerCallback(templateName, templateName, function(templateHtml, cacheHit) {
-			var convertTemplateToLiteral = new Function('config', 'return `' + templateHtml + '`;');
-			var parameterizedTemplate = convertTemplateToLiteral(templateConfig);
+			let convertTemplateToLiteral = new Function('config', 'return `' + templateHtml + '`;');
+			let parameterizedTemplate = convertTemplateToLiteral(templateConfig);
 			callback(parameterizedTemplate, cacheHit);
 		});
 	},
@@ -2319,7 +2341,7 @@ var Structr = {
 	},
 	getShadowPage: function(callback) {
 
-		if (shadowPage) {
+		if (_Pages.shadowPage) {
 
 			if (callback) {
 				callback();
@@ -2330,7 +2352,7 @@ var Structr = {
 			// wrap getter for shadowdocument in listComponents so we're sure that shadow document has been created
 			Command.listComponents(1, 1, 'name', 'asc', function(result) {
 				Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
-					shadowPage = entities[0];
+					_Pages.shadowPage = entities[0];
 
 					if (callback) {
 						callback();
@@ -2338,10 +2360,21 @@ var Structr = {
 				});
 			});
 		}
+	},
+	createSingleDOMElementFromHTML: (html) => {
+		let elements = Structr.createDOMElementsFromHTML(html);
+		return elements[0];
+	},
+	createDOMElementsFromHTML: (html) => {
+		// use template element so we can create arbitrary HTML which is not parsed but not rendered (otherwise tr/td and some other elements would not work)
+		let dummy = document.createElement('template');
+		dummy.innerHTML = html;
+
+		return dummy.content.children;
 	}
 };
 
-var _TreeHelper = {
+let _TreeHelper = {
 	initTree: function(tree, initFunction, stateKey) {
 		$(tree).jstree({
 			plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
@@ -2415,14 +2448,14 @@ var _TreeHelper = {
 			list.forEach(function(obj) {
 				// only load data necessary for dnd. prevent from loading the complete folder (with its files)
 				Command.get(obj.id, 'id,type,isFolder', function(data) {
-					StructrModel.createFromData(data, null, false);
+					StructrModel.createOrUpdateFromData(data, null, false);
 					_TreeHelper.makeTreeElementDroppable(tree, obj.id);
 				});
 			});
 		}, 500);
 	},
 	makeTreeElementDroppable: function(tree, id) {
-		var el = $('#' + id + ' > .jstree-wholerow', tree);
+		let el = $('#' + id + ' > .jstree-wholerow', tree);
 		_Dragndrop.makeDroppable(el);
 	}
 };
@@ -2699,6 +2732,148 @@ function MessageBuilder () {
 	};
 
 	return this;
+}
+
+let UISettings = {
+	getValueForSetting: (setting) => {
+		return LSWrapper.getItem(setting.storageKey, setting.defaultValue);
+	},
+	setValueForSetting: (setting, value, container) => {
+		LSWrapper.setItem(setting.storageKey, value);
+
+		if (container) {
+			blinkGreen(container);
+			setting.onUpdate?.();
+		}
+	},
+	getSettings: (section) => {
+
+		if (!section) {
+			// no section given - return all
+			return [UISettings.global, UISettings.pages, UISettings.security, UISettings.importer];
+
+		} else {
+
+			let settings = UISettings[section];
+			if (settings) {
+				return settings;
+			}
+		}
+
+		return null;
+	},
+	showSettingsForCurrentModule: () => {
+
+		let moduleSettings = UISettings.getSettings(Structr.getActiveModuleName());
+		if (moduleSettings) {
+
+			let dropdown = Structr.createSingleDOMElementFromHTML(`<div id="ui-settings-popup" class="dropdown-menu dropdown-menu-large">
+				<button class="btn dropdown-select">
+					${_Icons.getSvgIcon('ui_configuration_settings')}
+				</button>
+				<div class="dropdown-menu-container" style="opacity: 0"></div>
+			</div>`);
+
+			let container = dropdown.querySelector('.dropdown-menu-container');
+
+			let globalSettings = UISettings.getSettings('global');
+
+			UISettings.appendSettingsSectionToContainer(globalSettings, container);
+			UISettings.appendSettingsSectionToContainer(moduleSettings, container);
+
+			Structr.functionBar.appendChild(dropdown);
+		}
+	},
+	appendSettingsSectionToContainer: (section, container) => {
+
+		let sectionDOM = Structr.createSingleDOMElementFromHTML('<div><div class="font-bold pt-4 pb-2">' + section.title + '</div></div>');
+
+		for (let [settingKey, setting] of Object.entries(section.settings)) {
+			UISettings.appendSettingToContainer(setting, sectionDOM);
+		}
+
+		container.appendChild(sectionDOM);
+	},
+	appendSettingToContainer: (setting, container) => {
+
+		switch (setting.type) {
+
+			case 'checkbox': {
+
+				let settingDOM = Structr.createSingleDOMElementFromHTML('<label class="ui-setting-checkbox"><input type="checkbox"> ' + setting.text + '</label>');
+
+				let input = settingDOM.querySelector('input');
+				input.checked = UISettings.getValueForSetting(setting);
+
+				input.addEventListener('change', () => {
+					UISettings.setValueForSetting(setting, input.checked, input.parentElement);
+				});
+
+				container.appendChild(settingDOM);
+
+				break;
+			}
+
+			default: {
+				console.log('ERROR! Unable to render setting:', setting, container);
+			}
+		}
+	},
+	global: {
+		title: 'Global',
+		settings: {
+			showScriptingErrorPopupsKey: {
+				text: 'Show popups for scripting errors',
+				storageKey: 'showScriptinErrorPopups' + location.port,
+				defaultValue: true,
+				type: 'checkbox'
+			}
+		}
+	},
+	pages: {
+		title: 'Pages',
+		settings: {
+			favorEditorForContentElementsKey: {
+				text: 'Always favor editor for content elements in Pages area (otherwise last used is picked)',
+				storageKey: 'favorEditorForContentElements' + location.port,
+				defaultValue: true,
+				type: 'checkbox'
+			},
+			favorHTMLForDOMNodesKey: {
+				text: 'Always favor HTML tab for DOM nodes in Pages area (otherwise last used is picked)',
+				storageKey: 'favorHTMLForDOMNodes' + location.port,
+				defaultValue: true,
+				type: 'checkbox'
+			}
+		}
+	},
+	security: {
+		title: 'Security',
+		settings: {
+			showVisibilityFlagsInGrantsTableKey: {
+				text: 'Show visibility flags in Resource Access Grants table',
+				storageKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + location.port,
+				defaultValue: false,
+				type: 'checkbox',
+				onUpdate: () => {
+					if (Structr.isModuleActive(_Security)) {
+						_ResourceAccessGrants.refreshResourceAccesses();
+					}
+				}
+			}
+		}
+	},
+	importer: {
+		title: 'Importer',
+		settings: {
+			showNotificationsKey: {
+				text: 'Show notifications for scheduled jobs',
+				storageKey: 'structrImporterShowNotifications_' + location.port,
+				defaultValue: true,
+				type: 'checkbox'
+			}
+		}
+	}
 }
 
 function isImage(contentType) {

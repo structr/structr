@@ -149,9 +149,13 @@ public class Context {
 
 		if(this.data.get(node.getUuid()) != null) {
 			ctx.setConstant("data", this.data.get(node.getUuid()));
+		} else {
+			ctx.setConstant("data", null);
 		}
 		if(this.currentData.get(node.getUuid()) != null) {
 			ctx.setConstant("currentData", this.currentData.get(node.getUuid()));
+		} else {
+			ctx.setConstant("currentData", null);
 		}
 		return ctx;
 	}

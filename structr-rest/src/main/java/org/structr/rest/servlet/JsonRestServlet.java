@@ -637,6 +637,9 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			if (securityContext != null) {
 
+				// allow setting of nested properties in PATCH documents
+				securityContext.setAttribute("setNestedProperties", true);
+
 				propertyView.set(securityContext, config.getDefaultPropertyView());
 
 				// isolate resource authentication

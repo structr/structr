@@ -31,14 +31,13 @@ let _Localization = {
 	localizationDetailSaveButton: undefined,
 	localizationDetailList: undefined,
 
-	localizationSelectedElementKey: 'structrLocalizationSelectedElementKey_' + port,
-	localizationPreselectNameKey  : 'structrLocalizationPreselectNameKey_' + port,
-	localizationPreselectDomainKey: 'structrLocalizationPreselectDomainKey_' + port,
-	localizationPreselectLocaleKey: 'structrLocalizationPreselectLocaleKey_' + port,
-	localizationResizerLeftKey    : 'structrLocalizationResizerLeftKey_' + port,
+	localizationSelectedElementKey: 'structrLocalizationSelectedElementKey_' + location.port,
+	localizationPreselectNameKey  : 'structrLocalizationPreselectNameKey_' + location.port,
+	localizationPreselectDomainKey: 'structrLocalizationPreselectDomainKey_' + location.port,
+	localizationPreselectLocaleKey: 'structrLocalizationPreselectLocaleKey_' + location.port,
+	localizationResizerLeftKey    : 'structrLocalizationResizerLeftKey_' + location.port,
 
 	init: function() {
-		main = $('#main');
 	},
 	resize: function() {
 		_Localization.moveResizer();
@@ -59,7 +58,10 @@ let _Localization = {
 			});
 
 			Structr.fetchHtmlTemplate('localization/functions', {}, function (html) {
-				functionBar.append(html);
+
+				Structr.functionBar.innerHTML = html;
+
+				UISettings.showSettingsForCurrentModule();
 
 				let keyPreselect    = document.getElementById('localization-key-preselect');
 				let domainPreselect = document.getElementById('localization-domain-preselect');
@@ -145,7 +147,7 @@ let _Localization = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.svg.trashcan,
+			icon: _Icons.getSvgIcon('trashcan'),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete Localization',
 			clickHandler: () => {
@@ -177,13 +179,9 @@ let _Localization = {
 			left = left || LSWrapper.getItem(_Localization.localizationResizerLeftKey) || 340;
 			left = Math.max(300, Math.min(left, window.innerWidth - 300));
 
-			document.querySelector('.column-resizer').style.left = left + 'px';
-
-			let listContainer = document.getElementById('localization-list-container');
-			listContainer.style.width = 'calc(' + left + 'px - 1rem)';
-
-			let detailContainer = document.getElementById('localization-detail-container');
-			detailContainer.style.width = 'calc(100% - ' + left + 'px - 3rem)';
+			document.getElementById('localization-list-container').style.width = 'calc(' + left + 'px - 1rem)';
+			document.querySelector('.column-resizer').style.left                = left + 'px';
+			_Localization.localizationDetailContainer.style.width                       = 'calc(100% - ' + left + 'px - 3rem)';
 
 			return true;
 		});
@@ -220,7 +218,7 @@ let _Localization = {
 		if (presentFilters.length > 0) {
 			filterString = 'WHERE ' + presentFilters.map(function(key) { return 'n.' + key + ' =~ "(?i).*' + filterAttrs[key] + '.*"'; }).join(' AND ');
 		}
-		Command.cypher('MATCH (n:Localization) ' + filterString + ' RETURN DISTINCT {name: n.name, domain: n.domain} as res ORDER BY res.' + sortKey[type] + ' ' + sortOrder[type], undefined, callback, pageSize, page);
+		Command.cypher('MATCH (n:Localization) ' + filterString + ' RETURN DISTINCT {name: n.name, domain: n.domain} as res ORDER BY res.' + _Pager.sortKey[type] + ' ' + _Pager.sortOrder[type], undefined, callback, pageSize, page);
 	},
 	processPagerData: (pagerData) => {
 		if (pagerData && pagerData.length) {
@@ -243,7 +241,7 @@ let _Localization = {
 		if (!rows || rows.length === 0) {
 			_Localization.hideMain();
 		} else if (!selectedRowExists) {
-			rows[0].click();
+			_Localization.localizationDetailContainer.style.display = 'none';
 		}
 	},
 	selectRow: (row) => {
@@ -273,7 +271,7 @@ let _Localization = {
 			});
 
 			_Elements.enableContextMenuOnElement(row, keyAndDomainObject);
-			_Entities.appendEditPropertiesIcon(actionsCol, keyAndDomainObject, true);
+			_Entities.appendContextMenuIcon(actionsCol, keyAndDomainObject, true);
 
 			let previouslySelectedElement = LSWrapper.getItem(_Localization.localizationSelectedElementKey);
 			if (previouslySelectedElement && previouslySelectedElement.htmlId === row[0].id) {
@@ -335,10 +333,15 @@ let _Localization = {
 	clearLocalizationsList: function () {
 		fastRemoveAllChildren(_Localization.keysAndDomainsList[0]);
 	},
-	appendLocalizationDetailListRow: (locale) => {
+	appendLocalizationDetailListRow: (localization) => {
+
 		Structr.fetchHtmlTemplate('localization/empty-row', {}, function(html) {
-			let $tr = _Localization.appendEmptyLocalizationRow(html);
-			_Localization.fillLocalizationRow($tr, locale);
+
+			_Localization.localizationsDetailList.append(html);
+
+			let $tr = $('tr:last', _Localization.localizationsDetailList);
+
+			_Localization.fillLocalizationRow($tr, localization);
 		});
 	},
 	clearLocalizationDetailsList: function () {
@@ -346,9 +349,8 @@ let _Localization = {
 	},
 	saveButtonAction: async (e) => {
 
-		let saveButton = e.target.closest('.btn');
-		let oldKey = _Localization.localizationDetailKey.data('oldValue');
-		let curKey = _Localization.localizationDetailKey.val().trim();
+		let oldKey    = _Localization.localizationDetailKey.data('oldValue');
+		let curKey    = _Localization.localizationDetailKey.val().trim();
 		let oldDomain = _Localization.localizationDetailDomain.data('oldValue');
 		let curDomain = _Localization.localizationDetailDomain.val().trim();
 		if (curDomain === '') {
@@ -356,6 +358,7 @@ let _Localization = {
 		}
 
 		if ((oldKey !== curKey) || (oldDomain !== curDomain)) {
+
 			if (_Localization.isFieldNonEmpty(_Localization.localizationDetailKey)) {
 
 				let newData = {
@@ -376,6 +379,7 @@ let _Localization = {
 					for (let loc of data.result) {
 
 						if (oldKey === loc.name && oldDomain === loc.domain) {
+
 							totalCounter++;
 
 							let putResponse = await fetch(rootUrl + 'Localizations/' + loc.id, {
@@ -409,7 +413,7 @@ let _Localization = {
 		blinkRed(_Localization.localizationDetailKey);
 	},
 	isFieldNonEmpty: function ($field) {
-		return ($field.val().trim() !== "");
+		return ($field.val().trim() !== '');
 	},
 	appendEmptyLocalizationRow: function (rowHtml) {
 
@@ -422,8 +426,6 @@ let _Localization = {
 	fillLocalizationRow: function ($row, localization) {
 
 		$row.attr('id', 'loc_' + localization.id);
-
-		// $('td:eq(0)', $row).text(localization.id);
 
 		let $localeField = $('.___locale', $row);
 		$localeField.val(localization.locale)
@@ -462,12 +464,9 @@ let _Localization = {
 				_Localization.checkboxChangeAction($(event.target), localization, 'visibleToAuthenticatedUsers');
 			});
 
-		$('td.actions', $row).html('<a title="Delete" class="delete">' + _Icons.svg.trashcan + '</a>');
+		$('.id', $row).text(localization.id);
 
-		// make svg customizable... better somewhere else
-		let svg = $row[0].querySelector('.delete').querySelector('svg');
-		svg.setAttribute('width', 24);
-		svg.setAttribute('height', 24);
+		$('td.actions', $row).html('<a title="Delete" class="delete">' + _Icons.getSvgIcon('trashcan', 20, 20) + '</a>');
 
 		$row[0].querySelector('.delete').addEventListener('click', async (e) => {
 			e.preventDefault();
@@ -507,6 +506,7 @@ let _Localization = {
 		}
 	},
 	updateLocalization: async (localization, attr, curValue, oldValue, $el, $blinkTarget) => {
+
 		let newData = {};
 		newData[attr] = curValue;
 
@@ -561,6 +561,7 @@ let _Localization = {
 			});
 
 			trElement.querySelector('td.actions .save').addEventListener('click', async (event) => {
+
 				event.preventDefault();
 
 				if (_Localization.isFieldNonEmpty(_Localization.localizationDetailKey)) {

@@ -102,9 +102,9 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 				Mono.from(tx.rollback()).block();
 
-			} catch (Throwable t) {
-				t.printStackTrace();
+			} catch (Throwable ignore) {
 			}
+
 			for (final EntityWrapper entity : accessedEntities) {
 
 				entity.rollback(transactionKey);
@@ -121,8 +121,7 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 				Mono.from(tx.commit()).block();
 
-			} catch (Throwable t) {
-				t.printStackTrace();
+			} catch (Throwable ignore) {
 			}
 
 			RelationshipWrapper.expunge(deletedRels);

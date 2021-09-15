@@ -31,8 +31,6 @@ if (browser) {
 		defaultPage = 1;
 		defaultPageSize = 10;
 
-		main = $('#main');
-
 		Structr.registerModule(_Crud);
 
 		$(document).on('click', '#crud-left .crud-type', function() {
@@ -56,16 +54,17 @@ if (browser) {
 
 var _Crud = {
 	_moduleName: 'crud',
-	displayTypeConfigKey: 'structrCrudDisplayTypes_' + port,
+	displayTypeConfigKey: 'structrCrudDisplayTypes_' + location.port,
 	defaultCollectionPageSize: 10,
 	resultCountSoftLimit: 10000,
-	crudPagerDataKey: 'structrCrudPagerData_' + port + '_',
-	crudTypeKey: 'structrCrudType_' + port,
-	crudHiddenColumnsKey: 'structrCrudHiddenColumns_' + port,
-	crudRecentTypesKey: 'structrCrudRecentTypes_' + port,
-	crudResizerLeftKey: 'structrCrudResizerLeft_' + port,
-	crudExactTypeKey: 'structrCrudExactType_' + port,
+	crudPagerDataKey: 'structrCrudPagerData_' + location.port + '_',
+	crudTypeKey: 'structrCrudType_' + location.port,
+	crudHiddenColumnsKey: 'structrCrudHiddenColumns_' + location.port,
+	crudRecentTypesKey: 'structrCrudRecentTypes_' + location.port,
+	crudResizerLeftKey: 'structrCrudResizerLeft_' + location.port,
+	crudExactTypeKey: 'structrCrudExactType_' + location.port,
 	searchField: undefined,
+	searchFieldClearIcon: undefined,
 	types: {},
 	abstractSchemaNodes: {},
 	availableViews: {},
@@ -197,115 +196,120 @@ var _Crud = {
 	},
 	init: function() {
 
-		Structr.fetchHtmlTemplate('crud/menu', {}, function(html) {
-			functionBar.append(html);
-		});
-
 		Structr.fetchHtmlTemplate('crud/main', {}, function(html) {
 
 			main.append(html);
 
-			_Crud.moveResizer();
-			Structr.initVerticalSlider($('.column-resizer', main), _Crud.crudResizerLeftKey, 204, _Crud.moveResizer);
+			Structr.fetchHtmlTemplate('crud/functions', {}, function(html) {
 
-			let savedTypeVisibility = _Crud.getStoredTypeVisibilityConfig();
+				Structr.functionBar.innerHTML = html;
 
-			$('#crudTypesSearch').keyup(function (e) {
+				UISettings.showSettingsForCurrentModule();
 
-				if (e.keyCode === 27) {
+				_Crud.moveResizer();
 
-					$(this).val('');
+				Structr.initVerticalSlider($('.column-resizer', main), _Crud.crudResizerLeftKey, 204, _Crud.moveResizer);
 
-				} else if (e.keyCode === 13) {
+				$('#crudTypesSearch').keyup(function (e) {
 
-					let visibleTypes = $('#crud-types-list .crud-type:not(.hidden)');
+					if (e.keyCode === 27) {
 
-					if (visibleTypes.length === 1) {
+						$(this).val('');
 
-						_Crud.typeSelected(visibleTypes.data('type'));
+					} else if (e.keyCode === 13) {
 
-					} else {
+						let visibleTypes = $('#crud-types-list .crud-type:not(.hidden)');
 
-						let filterVal = $(this).val().toLowerCase();
+						if (visibleTypes.length === 1) {
 
-						let matchingTypes = Object.keys(_Crud.types).filter(function(type) {
-							return type.toLowerCase() === filterVal;
-						});
+							_Crud.typeSelected(visibleTypes.data('type'));
 
-						if (matchingTypes.length === 1) {
-							_Crud.typeSelected(matchingTypes[0]);
+						} else {
+
+							let filterVal = $(this).val().toLowerCase();
+
+							let matchingTypes = Object.keys(_Crud.types).filter(function(type) {
+								return type.toLowerCase() === filterVal;
+							});
+
+							if (matchingTypes.length === 1) {
+								_Crud.typeSelected(matchingTypes[0]);
+							}
 						}
 					}
-				}
 
-				_Crud.filterTypes($(this).val().toLowerCase());
-			});
-
-			_Crud.exact = LSWrapper.getItem(_Crud.crudExactTypeKey) || {};
-
-			_Crud.schemaLoading = false;
-			_Crud.schemaLoaded  = false;
-			_Crud.keys = {};
-
-			_Crud.loadSchema(function() {
-
-				Command.query('AbstractSchemaNode', 2000, 1, 'name', 'asc', {}, function(abstractSchemaNodes) {
-
-					for (let asn of abstractSchemaNodes) {
-						_Crud.abstractSchemaNodes[asn.name] = asn;
-					}
-
-					if (browser) {
-						_Crud.updateTypeList();
-						_Crud.typeSelected(_Crud.type);
-						_Crud.updateRecentTypeList(_Crud.type);
-					}
-					_Crud.resize();
-					Structr.unblockMenu();
-
+					_Crud.filterTypes($(this).val().toLowerCase());
 				});
-			});
 
-			_Crud.searchField = $('.search', main);
-			_Crud.searchField.focus();
+				_Crud.exact = LSWrapper.getItem(_Crud.crudExactTypeKey) || {};
 
-			Structr.appendInfoTextToElement({
-				element: _Crud.searchField,
-				text: 'By default a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search like so:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
-				insertAfter: true,
-				css: {
-					left: '-18px',
-					position: 'absolute'
-				},
-				helpElementCss: {
-					fontSize: '12px',
-					lineHeight: '1.1em'
-				}
-			});
+				_Crud.schemaLoading = false;
+				_Crud.schemaLoaded  = false;
+				_Crud.keys = {};
 
-			let crudMain = $('#crud-main');
+				_Crud.loadSchema(function() {
 
-			_Crud.searchField.keyup(function(e) {
-				var searchString = $(this).val();
-				if (searchString && searchString.length && e.keyCode === 13) {
+					Command.query('AbstractSchemaNode', 2000, 1, 'name', 'asc', {}, function(abstractSchemaNodes) {
 
-					$('.clearSearchIcon').show().on('click', function() {
+						for (let asn of abstractSchemaNodes) {
+							_Crud.abstractSchemaNodes[asn.name] = asn;
+						}
+
+						if (browser) {
+							_Crud.updateTypeList();
+							_Crud.typeSelected(_Crud.type);
+							_Crud.updateRecentTypeList(_Crud.type);
+						}
+						_Crud.resize();
+						Structr.unblockMenu();
+
+					});
+				});
+
+				let crudMain = $('#crud-main');
+				_Crud.searchField          = document.getElementById('crud-search-box');
+				_Crud.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
+				_Crud.searchField.focus();
+
+				Structr.appendInfoTextToElement({
+					element: $(_Crud.searchField),
+					text: 'By default a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search like so:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
+					insertAfter: true,
+					css: {
+						left: '-18px',
+						position: 'absolute'
+					},
+					helpElementCss: {
+						fontSize: '12px',
+						lineHeight: '1.1em'
+					}
+				});
+
+				_Crud.searchFieldClearIcon.addEventListener('click', (e) => {
+	                _Crud.clearSearch(crudMain);
+	            });
+
+				_Crud.searchField.addEventListener('keyup', (e) => {
+
+					let searchString = _Crud.searchField.value;
+
+					if (searchString && searchString.length && e.keyCode === 13) {
+
+						_Crud.searchFieldClearIcon.style.display = 'block';
+
+						_Crud.search(searchString, crudMain, null, function(e, node) {
+							e.preventDefault();
+							_Crud.showDetails(node, false, node.type);
+							return false;
+						});
+
+						$('#crud-type-detail').hide();
+
+					} else if (e.keyCode === 27 || searchString === '') {
+
 						_Crud.clearSearch(crudMain);
-					});
-
-					_Crud.search(searchString, crudMain, null, function(e, node) {
-						e.preventDefault();
-						_Crud.showDetails(node, false, node.type);
-						return false;
-					});
-
-					$('#crud-top').hide();
-					$('#crud-type-detail').hide();
-
-				} else if (e.keyCode === 27 || searchString === '') {
-
-					_Crud.clearSearch(crudMain);
-				}
+					}
+				});
 			});
 		});
 	},
@@ -369,63 +373,58 @@ var _Crud = {
 			clearTimeout(_Crud.messageTimeout);
 
 			fastRemoveAllChildren(crudRight[0]);
-			$('#crud-buttons').remove();
 
 			crudRight.data('url', '/' + type);
 
-			functionBar.append('<div id="crud-buttons">'
-					+ '<button class="action" id="create' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Create new ' + type + '</button>'
-					+ '<button id="export' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_table_icon) + '" /> Export as CSV</button>'
-					+ '<button id="import' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_add_icon) + '" /> Import CSV</button>'
-					+ '<button id="delete' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /> Delete <b>all</b> objects of this type</button>'
-					+ '<input id="exact_type_' + type + '" class="exact-type-checkbox" type="checkbox"><label for="exact_type_' + type + '" class="exact-type-checkbox-label"> Exclude subtypes</label>'
-					+ '</div>');
+			Structr.fetchHtmlTemplate('crud/crud-buttons', { type }, function(html) {
 
-			_Crud.determinePagerData(type);
-			var pagerNode = _Crud.addPager(type, crudRight);
+				Structr.functionBar.querySelector('#crud-buttons').innerHTML = html;
 
-			crudRight.append('<table class="crud-table"><thead><tr></tr></thead><tbody></tbody></table>');
-			_Crud.updateCrudTableHeader(type);
+				_Crud.determinePagerData(type);
 
-			crudRight.append('<div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
+				let pagerNode = _Crud.addPager(type, crudRight);
 
-			$('#create' + type).on('click', function() {
-				_Crud.crudCreate(type);
-			});
+				crudRight.append('<table class="crud-table"><thead><tr></tr></thead><tbody></tbody></table>');
+				_Crud.updateCrudTableHeader(type);
 
-			$('#export' + type).on('click', function() {
-				_Crud.crudExport(type);
-			});
+				crudRight.append('<div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
 
-			$('#import' + type).on('click', function() {
-				_Crud.crudImport(type);
-			});
-
-			$('#delete' + type).on('click', function() {
-
-				Structr.confirmation('<h3>WARNING: Really delete all objects of type \'' + type + '\'?</h3><p>This will delete all objects of the type (and of all inheriting types!).</p><p>Depending on the amount of objects this can take a while.</p>', function() {
-					$.unblockUI({
-						fadeOut: 25
-					});
-
-					_Crud.deleteAllNodesOfType(type);
+				$('#create' + type).on('click', function() {
+					_Crud.crudCreate(type);
 				});
-			});
 
-			let exactTypeCheckbox = $('#exact_type_' + type);
-			if (_Crud.exact[type] === true) {
-				exactTypeCheckbox.prop('checked', true);
-			}
-			exactTypeCheckbox.on('change', function() {
-				_Crud.exact[type] = exactTypeCheckbox.prop('checked');
-				LSWrapper.setItem(_Crud.crudExactTypeKey, _Crud.exact);
-				_Crud.refreshList(type);
-			});
+				$('#export' + type).on('click', function() {
+					_Crud.crudExport(type);
+				});
 
-			_Crud.deActivatePagerElements(pagerNode);
-			_Crud.activateList(type);
-			_Crud.activatePagerElements(type, pagerNode);
-			_Crud.updateUrl(type);
+				$('#import' + type).on('click', function() {
+					_Crud.crudImport(type);
+				});
+
+				let exactTypeCheckbox = $('#exact_type_' + type);
+				if (_Crud.exact[type] === true) {
+					exactTypeCheckbox.prop('checked', true);
+				}
+				exactTypeCheckbox.on('change', function() {
+					_Crud.exact[type] = exactTypeCheckbox.prop('checked');
+					LSWrapper.setItem(_Crud.crudExactTypeKey, _Crud.exact);
+					_Crud.refreshList(type);
+				});
+
+				$('#delete' + type).on('click', function() {
+
+					Structr.confirmation('<h3>WARNING: Really delete all objects of type \'' + type + '\'?</h3><p>This will delete all objects of the type (and of all inheriting types!).</p><p>Depending on the amount of objects this can take a while.</p>', function() {
+						$.unblockUI({ fadeOut: 25 });
+
+						_Crud.deleteAllNodesOfType(type, exactTypeCheckbox.value);
+					});
+				});
+
+				_Crud.deActivatePagerElements(pagerNode);
+				_Crud.activateList(type);
+				_Crud.activatePagerElements(type, pagerNode);
+				_Crud.updateUrl(type);
+			});
 		});
 	},
 	getCurrentProperties: function(type) {
@@ -443,9 +442,9 @@ var _Crud = {
 	},
 	updateCrudTableHeader: function(type) {
 
-		let properties = _Crud.getCurrentProperties(type);
+		let properties     = _Crud.getCurrentProperties(type);
+		let tableHeaderRow = $('#crud-type-detail table thead tr');
 
-		var tableHeaderRow = $('#crud-type-detail table thead tr');
 		fastRemoveAllChildren(tableHeaderRow[0]);
 
 		tableHeaderRow.append('<th class="___action_header">Actions</th>');
@@ -744,26 +743,26 @@ var _Crud = {
 		LSWrapper.setItem(_Crud.crudTypeKey, _Crud.type);
 	},
 	restoreType: function() {
-		var val = LSWrapper.getItem(_Crud.crudTypeKey);
+		let val = LSWrapper.getItem(_Crud.crudTypeKey);
 		if (val) {
 			_Crud.type = val;
 		}
 	},
 	storePagerData: function() {
-		var type = _Crud.type;
-		var pagerData = _Crud.view[type] + ',' + _Crud.sort[type] + ',' + _Crud.order[type] + ',' + _Crud.page[type] + ',' + _Crud.pageSize[type];
+		let type      = _Crud.type;
+		let pagerData = _Crud.view[type] + ',' + _Crud.sort[type] + ',' + _Crud.order[type] + ',' + _Crud.page[type] + ',' + _Crud.pageSize[type];
 		LSWrapper.setItem(_Crud.crudPagerDataKey + type, pagerData);
 	},
 	restorePagerData: function() {
-		var type = _Crud.type;
-		var val = LSWrapper.getItem(_Crud.crudPagerDataKey + type);
+		let type = _Crud.type;
+		let val  = LSWrapper.getItem(_Crud.crudPagerDataKey + type);
 
 		if (val) {
-			var pagerData = val.split(',');
-			_Crud.view[type] = pagerData[0];
-			_Crud.sort[type] = pagerData[1];
-			_Crud.order[type] = pagerData[2];
-			_Crud.page[type] = pagerData[3];
+			let pagerData        = val.split(',');
+			_Crud.view[type]     = pagerData[0];
+			_Crud.sort[type]     = pagerData[1];
+			_Crud.order[type]    = pagerData[2];
+			_Crud.page[type]     = pagerData[3];
 			_Crud.pageSize[type] = pagerData[4];
 		}
 	},
@@ -1065,7 +1064,7 @@ var _Crud = {
 		_Crud.activateList(type);
 	},
 	activateList: function(type) {
-		var url = rootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type], _Crud.exact[type]);
+		let url = rootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type], _Crud.exact[type]);
 		_Crud.list(type, url);
 	},
 	clearList: function(type) {
@@ -1294,21 +1293,21 @@ var _Crud = {
 		});
 
 	},
-	deleteAllNodesOfType: function(type) {
+	deleteAllNodesOfType: async (type, exact) => {
 
-		var url = rootUrl + '/' + type;
+		let url      = rootUrl + '/' + type + ((exact === true) ? '?type=' + type : '');
+		let response = await fetch(url, { method: 'DELETE' });
 
-		fetch(url, { method: 'DELETE' }).then(async (response) => {
+		if (response.ok) {
+
+			new MessageBuilder().success('Deletion of all nodes of type \'' + type + '\' finished.').delayDuration(2000).fadeDuration(1000).show();
+			_Crud.typeSelected(type);
+
+		} else {
 
 			let data = await response.json();
-
-			if (response.ok) {
-				new MessageBuilder().success('Deletion of all nodes of type \'' + type + '\' finished.').delayDuration(2000).fadeDuration(1000).show();
-				_Crud.typeSelected(type);
-			} else {
-				Structr.errorFromResponse(data, url, {statusCode: 400, requiresConfirmation: true});
-			}
-		});
+			Structr.errorFromResponse(data, url, {statusCode: 400, requiresConfirmation: true});
+		}
 	},
 	updatePager: function(type, qt, st, ps, p, pc) {
 
@@ -1814,13 +1813,13 @@ var _Crud = {
 	activateTextInputField: function(el, id, key, propertyType) {
 		var oldValue = el.text();
 		el.off('click');
-		var w = el.width(), h = el.height();
+//		var w = el.width(), h = el.height();
 		var input;
 		if (propertyType === 'String') {
 			el.html('<textarea name="' + key + '" class="__value"></textarea>');
 			input = $('textarea', el);
-			input.width(w);
-			input.height(h);
+//			input.width(w);
+//			input.height(h);
 		} else {
 			el.html('<input name="' + key + '" class="__value" type="text" size="10">');
 			input = $('input', el);
@@ -2034,7 +2033,7 @@ var _Crud = {
 
 		} else if (isCollection) {
 
-			simpleType = lastPart(relatedType, '.');
+			simpleType = relatedType.substring(relatedType.lastIndexOf('.') + 1);
 
 			cell.append('<i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" />');
 
@@ -2053,7 +2052,7 @@ var _Crud = {
 
 		} else {
 
-			simpleType = lastPart(relatedType, '.');
+			simpleType = relatedType.substring(relatedType.lastIndexOf('.') + 1);
 
 			if (isRel && _Crud.relInfo[type]) {
 
@@ -2090,14 +2089,11 @@ var _Crud = {
 							});
 						}
 					});
-
 				}
-
 			}
-
 		}
 
-		if (!isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean') {
+		if (id && !isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean') {
 			cell.prepend('<i title="Clear value" class="crud-clear-value ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />');
 			$('.crud-clear-value', cell).on('click', function(e) {
 				e.preventDefault();
@@ -2234,9 +2230,8 @@ var _Crud = {
 	},
 	clearSearch: function(el) {
 		if (_Crud.clearSearchResults(el)) {
-			$('.clearSearchIcon').hide().off('click');
-			$('.search').val('');
-			$('#crud-top').show();
+			_Crud.searchFieldClearIcon.style.display = 'none';
+			_Crud.searchField.value = '';
 			$('#crud-type-detail').show();
 		}
 	},

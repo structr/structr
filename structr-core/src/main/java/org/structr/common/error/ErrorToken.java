@@ -18,10 +18,14 @@
  */
 package org.structr.common.error;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.util.Map;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 
 /**
  * Abstract base class for all error tokens.
@@ -136,6 +140,47 @@ public abstract class ErrorToken {
 	protected JsonElement getObjectOrNull(final Object source) {
 
 		if (source != null) {
+
+			if (source instanceof Iterable) {
+
+				final Iterable iterable = (Iterable)source;
+				final JsonArray array   = new JsonArray();
+
+				for (final Object o : iterable) {
+					array.add(getObjectOrNull(o));
+				}
+
+				return array;
+			}
+
+			if (source instanceof Map) {
+
+				final Map<String, Object> map = (Map)source;
+				final JsonObject object       = new JsonObject();
+
+				for (final String key : map.keySet()) {
+
+					final Object value = map.get(key);
+					object.add(key, getObjectOrNull(value));
+				}
+
+				return object;
+			}
+
+			if (source instanceof PropertyMap) {
+
+				final PropertyMap map    = (PropertyMap)source;
+				final JsonObject object       = new JsonObject();
+
+				for (final PropertyKey key : map.keySet()) {
+
+					final Object value = map.get(key);
+
+					object.add(key.jsonName(), getObjectOrNull(value));
+				}
+
+				return object;
+			}
 
 			if (source instanceof String) {
 				return new JsonPrimitive((String)source);

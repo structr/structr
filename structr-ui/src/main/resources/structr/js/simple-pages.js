@@ -18,14 +18,14 @@
  */
 document.addEventListener('DOMContentLoaded', function() {
 	Structr.registerModule(_SimplePages);
-	Structr.classes.push('');
+	// Structr.classes.push('');
 });
 
 var _SimplePages = {
 
 	_moduleName: 'simple-pages',
-	resizerLeftKey: 'structrSimplePagesResizerLeftKey_' + port,
-	currentPageIdKey: 'structrSimplePagesCurrentPageIdKey_' + port,
+	resizerLeftKey: 'structrSimplePagesResizerLeftKey_' + location.port,
+	currentPageIdKey: 'structrSimplePagesCurrentPageIdKey_' + location.port,
 
 	components: {},
 	objectCache: {},
@@ -379,7 +379,7 @@ var _SimplePages = {
 
 			Command.query('TemplateCategory', 10, 1, 'name', 'desc', { name: 'Page Templates' }, function(categories) {
 
-				Command.query('Template', 1000, 1, 'name', 'desc', { category: { id: categories[0].id }, hidden: false, pageId: shadowPage.id }, function(templates) {
+				Command.query('Template', 1000, 1, 'name', 'desc', { category: { id: categories[0].id }, hidden: false, pageId: _Pages.shadowPage.id }, function(templates) {
 
 					templates.forEach(function(template) {
 						_SimplePages.appendTemplate(template, parent, callback);
@@ -426,7 +426,7 @@ var _SimplePages = {
 
 		Structr.getShadowPage(() => {
 
-			Command.query('Template', 1000, 1, 'name', 'desc', { hidden: false, pageId: shadowPage.id }, function(templates) {
+			Command.query('Template', 1000, 1, 'name', 'desc', { hidden: false, pageId: _Pages.shadowPage.id }, function(templates) {
 
 				templates.forEach(function(template) {
 

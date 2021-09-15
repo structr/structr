@@ -75,9 +75,11 @@ public class FrameworkException extends Exception implements JsonException {
 	public String toString() {
 
 		StringBuilder buf = new StringBuilder();
+		buf.append("FrameworkException(").append(status).append("): ").append(message);
 
 		if (errorBuffer != null && !errorBuffer.getErrorTokens().isEmpty()) {
 
+			buf.append(" ErrorTokens: ");
 			for (final Iterator<ErrorToken> it = errorBuffer.getErrorTokens().iterator(); it.hasNext();) {
 
 				final ErrorToken token = it.next();
@@ -91,7 +93,10 @@ public class FrameworkException extends Exception implements JsonException {
 
 		} else {
 
-			buf.append("FrameworkException(").append(status).append("): ").append(message);
+			if (this.getCause() != null) {
+
+				buf.append(" (").append(this.getCause().getMessage()).append(")");
+			}
 		}
 
 		return buf.toString();

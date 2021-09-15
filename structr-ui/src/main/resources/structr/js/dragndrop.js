@@ -19,11 +19,10 @@
 /**
  * Library for all drag & drop actions in Structr
  */
+let _Dragndrop = {
+	sorting: false,
+	sortParent: undefined,
 
-var sorting = false;
-var sortParent;
-
-var _Dragndrop = {
 	makeDroppable: function(element, previewId) {
 		let el = $(element);
 		let tag, iframe = previewId ? $('#preview_' + previewId) : undefined;
@@ -36,23 +35,23 @@ var _Dragndrop = {
 			hoverClass: 'nodeHover',
 			drop: function(e, ui) {
 
-				if (dropBlocked) {
-					dropBlocked = false;
+				if (_Elements.dropBlocked === true) {
+					_Elements.dropBlocked = false;
 					return false;
 				}
 
 				e.preventDefault();
 				e.stopPropagation();
 
-				var self = $(this), related;
+				let self = $(this), related;
 
-				var sourceId = Structr.getId(ui.draggable) || Structr.getComponentId(ui.draggable);
+				let sourceId = Structr.getId(ui.draggable) || Structr.getComponentId(ui.draggable);
 
 				if (!sourceId) {
 					// palette element dragged
 
-					var d = $(ui.draggable);
-					tag = d.text();
+					let d = $(ui.draggable);
+					tag   = d.text();
 					if (d.attr('subkey')) {
 						related = {};
 						related.subKey = d.attr('subkey');
@@ -60,7 +59,7 @@ var _Dragndrop = {
 					}
 				}
 
-				var targetId = Structr.getId(self);
+				let targetId = Structr.getId(self);
 
 				if (self.hasClass('jstree-wholerow')) {
 					targetId = self.parent().prop('id');
@@ -70,7 +69,7 @@ var _Dragndrop = {
 						Command.setProperty(sourceId, 'parent', null, false, function() {
 							$(ui.draggable).remove();
 
-							var activeModule = Structr.getActiveModule();
+							let activeModule = Structr.getActiveModule();
 							if (typeof activeModule.refreshTree === 'function') {
 								activeModule.refreshTree();
 							}
@@ -80,7 +79,7 @@ var _Dragndrop = {
 
 					} else if (targetId === 'favorites') {
 
-						var obj = StructrModel.obj(sourceId);
+						let obj = StructrModel.obj(sourceId);
 						if (obj.isFile) {
 
 							Command.favorites('add', sourceId, function() {
@@ -100,23 +99,23 @@ var _Dragndrop = {
 					targetId = self.attr('data-structr-id');
 				}
 
-				if (targetId === Structr.getId(sortParent)) {
+				if (targetId === Structr.getId(_Dragndrop.sortParent)) {
 					return false;
 				}
 
 				_Entities.ensureExpanded(self);
-				sorting = false;
-				sortParent = undefined;
+				_Dragndrop.sorting    = false;
+				_Dragndrop.sortParent = undefined;
 
-				var source = StructrModel.obj(sourceId);
-				var target = StructrModel.obj(targetId);
+				let source = StructrModel.obj(sourceId);
+				let target = StructrModel.obj(targetId);
 
-				var page = self.closest('.page')[0];
+				let page = self.closest('.page')[0];
 
 				if (!page) {
 					page = self.closest('[data-structr-page]')[0];
 				}
-				var pageId = (page ? Structr.getId(page) : target.pageId);
+				let pageId = (page ? Structr.getId(page) : target.pageId);
 
 				if (!pageId) {
 					pageId = $(page).attr('data-structr-page');
@@ -141,15 +140,15 @@ var _Dragndrop = {
 
 				if (_Dragndrop.dropAction(source, target, pageId, tag, related)) {
 					$(ui.draggable).remove();
-					sortParent = undefined;
+					_Dragndrop.sortParent = undefined;
 				}
 			}
 		});
 	},
 	makeSortable: function(element) {
-		var el = $(element);
+		let el = $(element);
 
-		var sortableOptions = {
+		let sortableOptions = {
 			iframeFix: true,
 			appendTo: '#main',
 			forceHelperSize: true,
@@ -158,10 +157,12 @@ var _Dragndrop = {
 			distance: 5,
 			items: '> .node',
 			helper: function (event, helperEl) {
-				pages.append('<div id="collapse-offset"></div>');
-				$('#collapse-offset', pages).css('height', helperEl.height() - 17);
+				_Pages.pagesTree.append('<div id="collapse-offset"></div>');
+
+				$('#collapse-offset', _Pages.pagesTree).css('height', helperEl.height() - 17);
 				helperEl.css({height: '2rem'});
-				var hlp = helperEl.clone();
+
+				let hlp = helperEl.clone();
 				hlp.find('.node').remove();
 				hlp.find('.expand_icon').removeClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon)).addClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon));
 				return hlp;
@@ -169,51 +170,53 @@ var _Dragndrop = {
 			zIndex: 99,
 			containment: 'body',
 			start: function(event, ui) {
-				sorting = true;
-				sortParent = $(ui.item).parent();
+				_Dragndrop.sorting    = true;
+				_Dragndrop.sortParent = $(ui.item).parent();
+
 				Structr.currentlyActiveSortable = el;
 				$('#newComponentDropzone').addClass("allow-drop");
 			},
 			update: function(event, ui) {
-				var el = $(ui.item);
-				if (!sorting)
+				let el = $(ui.item);
+				if (!_Dragndrop.sorting) {
 					return false;
+				}
 
-				var id = Structr.getId(el);
-				if (!id)
+				let id = Structr.getId(el);
+				if (!id) {
 					id = Structr.getComponentId(el);
+				}
 
-				var nextNode = el.next('.node');
-				var refId = Structr.getId(nextNode);
+				let nextNode = el.next('.node');
+				let refId = Structr.getId(nextNode);
 				if (!refId) {
 					refId = Structr.getComponentId(nextNode);
 				}
 
-				var parentId = Structr.getId(sortParent);
+				let parentId = Structr.getId(_Dragndrop.sortParent);
 				el.remove();
 				Command.insertBefore(parentId, id, refId);
-				sorting = false;
-				sortParent = undefined;
-				$('#collapse-offset', pages).remove();
+				_Dragndrop.sorting    = false;
+				_Dragndrop.sortParent = undefined;
+				$('#collapse-offset', _Pages.pagesTree).remove();
 
 				Structr.currentlyActiveSortable = undefined;
 			},
 			stop: function(event, ui) {
 				$('#newComponentDropzone').removeClass("allow-drop");
-				sorting = false;
+				_Dragndrop.sorting = false;
 				_Entities.resetMouseOverState(ui.item);
 				$(event.toElement).one('click', function(e) {
 					e.stopImmediatePropagation();
 				});
 				$(ui.item).css({height: ''});
-				$('#collapse-offset', pages).remove();
+				$('#collapse-offset', _Pages.pagesTree).remove();
 
 				Structr.currentlyActiveSortable = undefined;
 			}
 		};
 
 		el.sortable(sortableOptions).disableSelection();
-
 	},
 	/**
 	 * Define what happens when a source object is dropped onto
@@ -227,7 +230,7 @@ var _Dragndrop = {
 
 		if (source && pageId && source.pageId && pageId !== source.pageId) {
 
-			if (shadowPage && source.pageId === shadowPage.id) {
+			if (_Pages.shadowPage && source.pageId === _Pages.shadowPage.id) {
 
 				Command.cloneComponent(source.id, target.id);
 
@@ -269,9 +272,9 @@ var _Dragndrop = {
 			if (tag.indexOf('.') !== -1) {
 
 				Command.get(target.id, 'id,children', function(target) {
-					var firstContentId = target.children[0].id;
+					let firstContentId = target.children[0].id;
 					if (related) {
-						var key = tag.substring(tag.indexOf('.') + 1);
+						let key = tag.substring(tag.indexOf('.') + 1);
 
 						if (related.isCollection) {
 							Command.setProperty(firstContentId, 'content', '${' + key + '.' + related.subKey + '}');
@@ -290,7 +293,7 @@ var _Dragndrop = {
 				});
 
 			} else if (tag.indexOf(':') !== -1) {
-				var type = tag.substring(1);
+				let type = tag.substring(1);
 				Command.setProperty(target.id, 'restQuery', type);
 				Command.setProperty(target.id, 'dataKey', type.toLowerCase(), false, function() {
 //					_Pages.reloadPreviews();
@@ -306,7 +309,7 @@ var _Dragndrop = {
 
 			if (source && target && source.id && target.id) {
 
-				sorting = false;
+				_Dragndrop.sorting = false;
 				Command.appendChild(source.id, target.id);
 
 				return true;
@@ -315,7 +318,7 @@ var _Dragndrop = {
 		}
 	},
 	htmlElementFromPaletteDropped: function(tag, target, pageId) {
-		var nodeData = _Dragndrop.getAdditionalDataForElementCreation(tag, target.tag);
+		let nodeData = _Dragndrop.getAdditionalDataForElementCreation(tag, target.tag);
 
 		if (target.type !== 'Template' && (target.isContent || target.type === 'Comment')) {
 			if (tag === 'content' || tag === 'comment') {
@@ -329,7 +332,7 @@ var _Dragndrop = {
 		return false;
 	},
 	getAdditionalDataForElementCreation:function(tag, parentTag) {
-		var nodeData = {};
+		let nodeData = {};
 
 		let tagsWithAutoContent = ['a', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h5', 'pre', 'label', 'option', 'li', 'em', 'title', 'b', 'span', 'th', 'td', 'button', 'figcaption'];
 
@@ -375,7 +378,7 @@ var _Dragndrop = {
 		_Widgets.insertWidgetIntoPage(source, target, pageId);
 	},
 	fileDropped: function(source, target, pageId) {
-		var refreshTimeout;
+		let refreshTimeout;
 		if (!pageId) {
 
 			if (source.id === target.id) {
@@ -385,7 +388,7 @@ var _Dragndrop = {
 			if (selectedElements.length > 1) {
 
 				$.each(selectedElements, function(i, fileEl) {
-					var fileId = Structr.getId(fileEl);
+					let fileId = Structr.getId(fileEl);
 
 					if (fileId === target.id) {
 						return false;
@@ -401,7 +404,7 @@ var _Dragndrop = {
 						}, 100);
 					});
 				});
-				selectedElements.length = 0;
+				selectedElements = [];
 
 			} else {
 				Command.appendFile(source.id, target.id, function() {
@@ -412,8 +415,8 @@ var _Dragndrop = {
 			return true;
 		}
 
-		let nodeData = {}, tag;
-		let name = source.name;
+		let nodeData  = {}, tag;
+		let name      = source.name;
 		let parentTag = target.tag;
 
 		nodeData.linkableId = source.id;
@@ -450,7 +453,7 @@ var _Dragndrop = {
 	},
 	imageDropped: function(source, target, pageId) {
 
-		var nodeData = {}, name = source.name, tag;
+		let nodeData = {}, tag;
 		nodeData._html_src = '${link.path}?${link.version}';
 		nodeData.linkableId = source.id;
 		tag = 'img';

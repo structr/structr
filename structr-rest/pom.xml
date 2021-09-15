@@ -89,6 +89,24 @@
 			<artifactId>jwks-rsa</artifactId>
 			<version>0.18.0</version>
 		</dependency>
+		<!-- Prometheus -->
+		<dependency>
+		  <groupId>io.prometheus</groupId>
+		  <artifactId>simpleclient</artifactId>
+		  <version>0.11.0</version>
+		</dependency>
+		<!-- Prometheus HTTPServer -->
+		<dependency>
+			<groupId>io.prometheus</groupId>
+			<artifactId>simpleclient_servlet</artifactId>
+			<version>0.11.0</version>
+		</dependency>
+		<!-- Prometheus Hotspot -->
+		<dependency>
+			<groupId>io.prometheus</groupId>
+			<artifactId>simpleclient_hotspot</artifactId>
+			<version>0.11.0</version>
+		</dependency>
     </dependencies>
 
 	<build>

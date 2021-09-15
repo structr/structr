@@ -19,8 +19,8 @@
 var main, crawlerMain, crawlerTree, crawlerList;
 var currentSite, currentPage;
 var sitePageSize = 10000, sitePage = 1;
-var currentSiteKey = 'structrCurrentSite_' + port;
-var crawlerResizerLeftKey = 'structrCrawlerResizerLeftKey_' + port;
+var currentSiteKey = 'structrCurrentSite_' + location.port;
+var crawlerResizerLeftKey = 'structrCrawlerResizerLeftKey_' + location.port;
 var link, path, elid, claz, pageFrame, frameDoc;
 var proxyUrl = '/structr/proxy';
 
@@ -285,7 +285,7 @@ var _Crawler = {
 			};
 
 			_Pager.initPager('crawler-pages', 'SourcePage', 1, 25, 'name', 'asc');
-			page['SourcePage'] = 1;
+			_Pager.page['SourcePage'] = 1;
 			_Pager.initFilters('crawler-pages', 'SourcePage', id === 'root' ? {} : { site: id });
 
 			var itemsPager = _Pager.addPager('crawler-pages', $('.site-header', crawlerList), false, 'SourcePage', 'ui', handlePage);
@@ -381,7 +381,7 @@ var _Crawler = {
 			}
 		});
 
-		_Entities.appendEditPropertiesIcon(div, sourcePage);
+		_Entities.appendContextMenuIcon(div, sourcePage);
 		_Entities.setMouseOver(div);
 		_Entities.makeSelectable(div);
 	},
@@ -427,7 +427,7 @@ var _Crawler = {
 			});
 
 			_Pager.initPager('crawler-patterns', 'SourcePattern', 1, 25, 'name', 'asc');
-			page['SourcePattern'] = 1;
+			_Pager.page['SourcePattern'] = 1;
 			_Pager.initFilters('crawler-patterns', 'SourcePattern', sourcePage.id === 'root' ? {} : { sourcePage: sourcePage.id });
 
 			if (sourcePage.isLoginPage) {
@@ -745,7 +745,7 @@ var _Crawler = {
 
 			var div = Structr.node(subPattern.id);
 			_Entities.appendAccessControlIcon(div, d);
-			_Entities.appendEditPropertiesIcon(div, subPattern);
+			_Entities.appendContextMenuIcon(div, subPattern);
 
 			var delIcon = div.children('.delete_icon');
 
@@ -938,7 +938,7 @@ var _Crawler = {
 			});
 		});
 
-		_Entities.appendEditPropertiesIcon(div, d);
+		_Entities.appendContextMenuIcon(div, d);
 		_Entities.setMouseOver(div);
 		_Entities.makeSelectable(div);
 	},

@@ -482,6 +482,10 @@ public class SchemaService implements Service {
 		return 1;
 	}
 
+	public static boolean isCompiling() {
+		return compiling.get();
+	}
+
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {

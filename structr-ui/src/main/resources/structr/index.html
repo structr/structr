@@ -104,9 +104,74 @@
 		<script src="js/flows.js" type="module"></script>
 	</head>
 	<body>
+		<svg style="display: none">
+			<symbol id="structr-logo" viewBox="0 0 345.12 92.83" stroke="currentColor" fill="currentColor">
+				<g id="Ebene_2" data-name="Ebene 2"><g id="Ebene_1-2" data-name="Ebene 1"><path d="M15,33.71a4,4,0,0,0-4,4v4.87c0,1.63,0,4,3.62,5.88l19.75,11c10.25,5.25,11,9.5,11,14v7.12c0,10.25-8.37,12.25-12.87,12.25H1.62A1.25,1.25,0,0,1,.37,91.58V84.46a1.26,1.26,0,0,1,1.25-1.25H30.37a3.92,3.92,0,0,0,4-3.88V75.08c0-1.62,0-4.5-3.5-6L11,58.21C.75,53.58,0,48.08,0,44.21V35.33c0-7.62,6.37-11.25,12.75-11.25H41.12a1.26,1.26,0,0,1,1.25,1.25v7.13a1.25,1.25,0,0,1-1.25,1.25Z"/><path d="M71.75,32.83V79.08a4.08,4.08,0,0,0,4.12,4.13H88.75A1.25,1.25,0,0,1,90,84.46v7.12a1.26,1.26,0,0,1-1.25,1.25H73.87a13.5,13.5,0,0,1-13.5-13.5V4.58a1.73,1.73,0,0,1,1.25-1.75L70.5.08c1-.37,1.25.63,1.25,1.25V23.21h15.5a1.25,1.25,0,0,1,1.25,1.25v7.12a1.26,1.26,0,0,1-1.25,1.25Z"/><path d="M119,34.33a3,3,0,0,0-2.75,3l-.13,54.25a1.25,1.25,0,0,1-1.25,1.25H106a1.25,1.25,0,0,1-1.25-1.25l-.13-53.75c0-6.87,5-13.75,13.75-13.75h17.5a1.26,1.26,0,0,1,1.25,1.25v7.75a1.25,1.25,0,0,1-1.25,1.25Z"/><path d="M181.62,83.21a4.17,4.17,0,0,0,4.13-4.13V25.33A1.25,1.25,0,0,1,187,24.08h8.87a1.26,1.26,0,0,1,1.25,1.25V79.08c0,6.88-5,13.75-13.75,13.75H161c-8.75,0-13.75-6.87-13.75-13.75V25.33a1.25,1.25,0,0,1,1.25-1.25h8.75a1.26,1.26,0,0,1,1.25,1.25V79.08a4.16,4.16,0,0,0,4.12,4.13Z"/><path d="M245.62,92.83H227a13.66,13.66,0,0,1-13.63-13.62V37.71A13.41,13.41,0,0,1,227,24.08h27.62a1.26,1.26,0,0,1,1.25,1.25v7.13a1.25,1.25,0,0,1-1.25,1.25h-26a4,4,0,0,0-4,4V79.33a3.82,3.82,0,0,0,3.88,3.88h26.12a1.25,1.25,0,0,1,1.25,1.25v7.12a1.25,1.25,0,0,1-1.25,1.25Z"/><path d="M279.74,32.83V79.08a4.08,4.08,0,0,0,4.13,4.13h12.87A1.25,1.25,0,0,1,298,84.46v7.12a1.25,1.25,0,0,1-1.25,1.25H281.87a13.5,13.5,0,0,1-13.5-13.5V4.58a1.72,1.72,0,0,1,1.25-1.75L278.49.08c1-.37,1.25.63,1.25,1.25V23.21h15.5a1.25,1.25,0,0,1,1.25,1.25v7.12a1.25,1.25,0,0,1-1.25,1.25Z"/><path d="M327,34.33a3.05,3.05,0,0,0-2.75,3l-.12,54.25a1.26,1.26,0,0,1-1.25,1.25H314a1.25,1.25,0,0,1-1.25-1.25l-.12-53.75c0-6.87,5-13.75,13.75-13.75h17.5a1.26,1.26,0,0,1,1.25,1.25v7.75a1.26,1.26,0,0,1-1.25,1.25Z"/></g></g>
+			</symbol>
+			<symbol id="trashcan" viewBox="0 0 24 24" stroke="currentColor" fill="currentColor">
+				<g><path d="M1.5 4.5L22.5 4.5" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25,1.5H9.75A1.5,1.5,0,0,0,8.25,3V4.5h7.5V3A1.5,1.5,0,0,0,14.25,1.5Z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.75 17.25L9.75 9.75" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 17.25L14.25 9.75" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M18.865,21.124A1.5,1.5,0,0,1,17.37,22.5H6.631a1.5,1.5,0,0,1-1.495-1.376L3.75,4.5h16.5Z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g>
+			</symbol>
+			<symbol id="security" viewBox="0 0 24 24" stroke="currentColor" fill="currentColor">
+				<g><path d="M3.750 9.750 L20.250 9.750 L20.250 23.250 L3.750 23.250 Z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75,9.75V6a5.25,5.25,0,0,1,10.5,0V9.75" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12,15.75a.375.375,0,1,0,.375.375A.374.374,0,0,0,12,15.75h0" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g>
+			</symbol>
+			<symbol id="ui_configuration_settings" viewBox="0 0 24 24" stroke="currentColor" fill="currentColor">
+				<g><path d="M21.76,8.253v-6a1.5,1.5,0,0,0-1.5-1.5h-18a1.5,1.5,0,0,0-1.5,1.5v16.5a1.5,1.5,0,0,0,1.5,1.5h6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.76 5.253L21.76 5.253" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.760 16.503 A1.500 1.500 0 1 0 18.760 16.503 A1.500 1.500 0 1 0 15.760 16.503 Z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M18.534,10.7l.443,1.452a.992.992,0,0,0,1.173.681l1.472-.341A1.339,1.339,0,0,1,22.9,14.711l-1.031,1.111a1,1,0,0,0,0,1.362L22.9,18.3a1.339,1.339,0,0,1-1.275,2.218l-1.472-.341a.992.992,0,0,0-1.173.681l-.443,1.452a1.33,1.33,0,0,1-2.548,0l-.442-1.452a.993.993,0,0,0-1.174-.681l-1.472.341A1.338,1.338,0,0,1,11.624,18.3l1.03-1.112a1,1,0,0,0,0-1.362l-1.03-1.111A1.338,1.338,0,0,1,12.9,12.493l1.472.341a.993.993,0,0,0,1.174-.681l.442-1.452A1.33,1.33,0,0,1,18.534,10.7Z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g>
+			</symbol>
+			<symbol id="page_open" viewBox="0 0 24 24" stroke="currentColor" fill="currentColor">
+				<g><path d="M1.510 2.253 L22.510 2.253 L22.510 21.753 L1.510 21.753 Z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M1.51 6.753L22.51 6.753" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.858,13.807a.732.732,0,0,1,0,.894C17.1,15.7,15.015,18,12.01,18S6.92,15.7,6.162,14.7a.734.734,0,0,1,0-.894c.759-.994,2.843-3.3,5.848-3.3S17.1,12.812,17.858,13.807Z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12.01,13.878a.375.375,0,1,1-.375.375.375.375,0,0,1,.375-.375" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g>
+			</symbol>
+			<symbol id="pencil_edit" viewBox="0 0 24 24" stroke="currentColor" fill="currentColor">
+				<g><path d="M22.19,1.81a3.638,3.638,0,0,0-5.169.035l-14.5,14.5L.75,23.25l6.905-1.771,14.5-14.5A3.638,3.638,0,0,0,22.19,1.81Z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M16.606 2.26L21.74 7.394" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.512 4.354L19.646 9.488" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.521 16.345L7.66 21.474" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g>
+			</symbol>
+			<symbol id="page_circle_plus" viewBox="0 0 24 24" stroke="currentColor" fill="currentColor">
+				<g><path d="M11.250 17.250 A6.000 6.000 0 1 0 23.250 17.250 A6.000 6.000 0 1 0 11.250 17.250 Z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.25 14.25L17.25 20.25" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 17.25L20.25 17.25" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25,20.25h-6a1.5,1.5,0,0,1-1.5-1.5V2.25A1.5,1.5,0,0,1,2.25.75H12.879a1.5,1.5,0,0,1,1.06.439l2.872,2.872a1.5,1.5,0,0,1,.439,1.06V8.25" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g>
+			</symbol>
+			<symbol id="circle_plus" viewBox="0 0 24 24" stroke="currentColor" fill="currentColor">
+				<g><path d="M12 7.5L12 16.5" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M7.5 12L16.5 12" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g>
+			</symbol>
+			<symbol id="kebab_icon" viewBox="0 0 24 24" stroke="currentColor" fill="currentColor">
+				<g><path d="M8.750 3.250 A3.250 3.250 0 1 0 15.250 3.250 A3.250 3.250 0 1 0 8.750 3.250 Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8.750 12.000 A3.250 3.250 0 1 0 15.250 12.000 A3.250 3.250 0 1 0 8.750 12.000 Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8.750 20.750 A3.250 3.250 0 1 0 15.250 20.750 A3.250 3.250 0 1 0 8.750 20.750 Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round"></path></g>
+			</symbol>
+			<symbol id="duplicate" viewBox="0 0 24 24" stroke="currentColor" fill="currentColor">
+				<g><path d="M16.5,21.75a1.5,1.5,0,0,1-1.5,1.5H4.5A1.5,1.5,0,0,1,3,21.75V8.25a1.5,1.5,0,0,1,1.5-1.5h7.629a1.5,1.5,0,0,1,1.06.439l2.872,2.872a1.5,1.5,0,0,1,.439,1.06Z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M7.5,6.75V2.25A1.5,1.5,0,0,1,9,.75h7.629a1.5,1.5,0,0,1,1.06.439l2.872,2.872A1.5,1.5,0,0,1,21,5.121V15.75a1.5,1.5,0,0,1-1.5,1.5h-3" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g>
+			</symbol>
+			<symbol id="checkmark_bold" viewBox="0 0 10 10" stroke="currentColor" fill="currentColor">
+				<g><path d="M2.99,9.375a1.713,1.713,0,0,1-1.321-.619L.161,6.839a.75.75,0,1,1,1.178-.928l1.5,1.9a.16.16,0,0,0,.158.063.217.217,0,0,0,.17-.082L8.664.907a.75.75,0,1,1,1.172.936L4.329,8.735A1.717,1.717,0,0,1,3,9.375Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"></path></g>
+			</symbol>
+			<symbol id="cross_bold" viewBox="0 0 10 10" stroke="currentColor" fill="currentColor">
+				<g><path d="M6.414,5.354a.5.5,0,0,1,0-.708L9.78,1.28A.75.75,0,0,0,8.72.22L5.354,3.586a.5.5,0,0,1-.708,0L1.28.22A.75.75,0,0,0,.22,1.28L3.586,4.646a.5.5,0,0,1,0,.708L.22,8.72A.75.75,0,1,0,1.28,9.78L4.646,6.414a.5.5,0,0,1,.708,0L8.72,9.78A.75.75,0,0,0,9.78,8.72Z" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"></path></g>
+			</symbol>
+			<symbol id="interface_delete_circle" viewBox="0 0 10 10"  stroke="currentColor" fill="currentColor">
+				<g><path d="M5,0a5,5,0,1,0,5,5A5.006,5.006,0,0,0,5,0ZM7.28,6.22A.75.75,0,1,1,6.22,7.28L5,6.061,3.78,7.28A.75.75,0,0,1,2.72,6.22L3.939,5,2.72,3.78A.75.75,0,0,1,3.78,2.72L5,3.939,6.22,2.72A.75.75,0,0,1,7.28,3.78L6.061,5Z" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"></path></g>
+			</symbol>
+			<symbol id="magic_wand" viewBox="0 0 24 24" stroke="currentColor" fill="currentColor">
+				<g><path d="M0.75 23.25L15.75 8.25" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M10.5 8.25L8.25 8.25" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M23.25 8.25L21 8.25" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M21 3L19.409 4.591" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.75 3L15.75 0.75" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.75 15.75L15.75 13.5" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12.091 4.591L10.5 3" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M21 13.5L19.409 11.909" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g>
+			</symbol>
+			<symbol id="run_button" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor">
+				<g><path d="M.75 11.998a11.25 11.25 0 1 0 22.5 0 11.25 11.25 0 1 0-22.5 0z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9 15.613a1.636 1.636 0 0 0 2.712 1.231L17.25 12l-5.538-4.847A1.635 1.635 0 0 0 9 8.384z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g>
+			</symbol>
+			<symbol id="folder_add" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor">
+				<g transform=""><path d="M8.25 18.75L2.447 18.75" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M20.25,8.25v-3a1.5,1.5,0,0,0-1.5-1.5H8.25V2.25A1.5,1.5,0,0,0,6.75.75H2.25a1.5,1.5,0,0,0-1.5,1.5v14.8a1.7,1.7,0,0,0,3.336.438L6.437,9.334A1.5,1.5,0,0,1,7.879,8.25H21.75A1.5,1.5,0,0,1,23.2,10.136" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M11.250 17.250 A6.000 6.000 0 1 0 23.250 17.250 A6.000 6.000 0 1 0 11.250 17.250 Z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.25 15L17.25 19.5" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15 17.25L19.5 17.25" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g>
+			</symbol>
+
+			<symbol id="visibility-lock-open" viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+				<path class="a" d="M.75,9.75V6a5.25,5.25,0,0,1,10.5,0V9.75"></path><rect class="a" x="6.75" y="9.75" width="16.5" height="13.5" rx="1.5" ry="1.5"></rect><line class="a" x1="15" y1="15" x2="15" y2="18"></line>
+			</symbol>
+
+			<symbol id="visibility-lock-locked" viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+				<rect class="a" x="3.75" y="9.75" width="16.5" height="13.5" rx="1.5" ry="1.5"></rect><path class="a" d="M6.75,9.75V6a5.25,5.25,0,0,1,10.5,0V9.75"></path><line class="a" x1="12" y1="15" x2="12" y2="18"></line>
+			</symbol>
+
+			<symbol id="visibility-lock-key" viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M0.750 20.250 A3.000 3.000 0 1 0 6.750 20.250 A3.000 3.000 0 1 0 0.750 20.250 Z"></path><path d="M6.75 20.25L14.25 20.25 14.25 22.5"></path><path d="M11.25 20.25L11.25 21.75"></path><path d="M6.75,15V11.25a1.5,1.5,0,0,1,1.5-1.5h13.5a1.5,1.5,0,0,1,1.5,1.5v10.5a1.5,1.5,0,0,1-1.5,1.5h-4.5"></path><path d="M9.75,9.75V6a5.25,5.25,0,0,1,10.5,0V9.75"></path><path d="M15 14.25L15 17.25"></path>
+			</symbol>
+		</svg>
+
 		<div id="info-area" class="blockMsg"></div>
 		<div id="header">
-			<img class="logo" src="img/structr-logo-white.svg">
+
+			<svg width="90" height="24" class="logo"><use xlink:href="#structr-logo"></use></svg>
+
 			<div id="menu" class="menu">
 				<ul>
 					<li class="submenu-trigger" data-toggle="popup" data-target="#submenu">
@@ -156,7 +221,7 @@
 		</div>
 
 		<div id="login" class="dialog">
-			<i title="Structr Logo" class="logo-login sprite sprite-structr_gray_100x27"></i>
+			<svg class="logo-login"><use xlink:href="#structr-logo"></use></svg>
 
 			<form action="javascript:void(0)">
 				<table class="username-password">
@@ -183,8 +248,14 @@
 
 		<div id="confirmation" class="dialog">
 			<div class="confirmationText"></div>
-			<button class="yesButton"><i class="sprite sprite-tick"></i> Yes</button>
-			<button class="noButton"><i class="sprite sprite-cross"></i> No</button>
+			<button class="yesButton">
+				<svg width="12" height="12" class="icon-green mr-2"><use xlink:href="#checkmark_bold"></use></svg>
+				Yes
+			</button>
+			<button class="noButton">
+				<svg width="12" height="12" class="icon-red mr-2"><use xlink:href="#cross_bold"></use></svg>
+				No
+			</button>
 		</div>
 
 		<div id="infoBox" class="dialog">
@@ -219,9 +290,9 @@
 		</div>
 
 		<div id="dialogBox" class="dialog">
-			<i title="Fullscreen Mode" id="maximizeDialog" class="window-icon minmax"><svg viewBox="0 0 16 16" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(0.6666666666666666,0,0,0.6666666666666666,0,0)"><path d="M6 17.998L0.75 23.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M23.25 6.748L23.25 0.748 17.25 0.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.75 17.248L0.75 23.248 6.75 23.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M23.25 0.748L18 5.998" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M18 17.998L23.25 23.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.75 6.748L0.75 0.748 6.75 0.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M23.25 17.248L23.25 23.248 17.25 23.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.75 0.748L6 5.998" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.250 8.248 L15.750 8.248 L15.750 15.748 L8.250 15.748 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></i>
-			<i title="Window Mode" id="minimizeDialog" class="window-icon minmax"><svg viewBox="0 0 16 16" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(0.6666666666666666,0,0,0.6666666666666666,0,0)"><path d="M23.25 0.748L17.25 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75 23.248L6.75 17.248 0.75 17.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.25 0.748L17.25 6.748 23.25 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75 17.248L0.75 23.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.75 0.748L6.75 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.25 23.248L17.25 17.248 23.25 17.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75 0.748L6.75 6.748 0.75 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.25 17.248L23.25 23.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.250 8.248 L15.750 8.248 L15.750 15.748 L8.250 15.748 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></i>
-			<i title="Close" id="closeDialog" class="window-icon close"><svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,0,0)"><path d="M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.3,14.121,15.182,12,17.3,9.878a1.5,1.5,0,0,0,0-2.121L16.243,6.7a1.5,1.5,0,0,0-2.122,0L12,8.818,9.879,6.7a1.5,1.5,0,0,0-2.122,0L6.7,7.757a1.5,1.5,0,0,0,0,2.121L8.818,12,6.7,14.121a1.5,1.5,0,0,0,0,2.121L7.757,17.3a1.5,1.5,0,0,0,2.122,0L12,15.182,14.121,17.3a1.5,1.5,0,0,0,2.122,0l1.06-1.061A1.5,1.5,0,0,0,17.3,14.121Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg></i>
+			<i title="Fullscreen Mode" id="maximizeDialog" class="window-icon minmax"><svg viewBox="0 0 16 16" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1.1428571428571428,0,0,1.1428571428571428,0,0)"><path d="M0,1A1,1,0,0,1,1,0H5.5a1,1,0,0,1,0,2H4.018a.25.25,0,0,0-.177.427l7.732,7.732A.25.25,0,0,0,12,9.982V8.5a1,1,0,0,1,2,0V13a1,1,0,0,1-1,1H8.5a1,1,0,0,1,0-2H9.982a.25.25,0,0,0,.177-.427L2.427,3.841A.25.25,0,0,0,2,4.018V5.5a1,1,0,0,1-2,0Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"></path></g></svg></i>
+			<i title="Window Mode" id="minimizeDialog" class="window-icon minmax"><svg viewBox="0 0 16 16" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1.6,0,0,1.6,0,0)"><path d="M9.78,8.72,8.259,7.2,9.1,6.354A.5.5,0,0,0,8.75,5.5H6a.5.5,0,0,0-.5.5V8.75a.5.5,0,0,0,.309.462A.493.493,0,0,0,6,9.25.5.5,0,0,0,6.354,9.1L7.2,8.259,8.72,9.78A.75.75,0,0,0,9.78,8.72Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"></path><path d="M4.191.788A.5.5,0,0,0,3.646.9L2.8,1.741,1.28.22A.75.75,0,0,0,.22,1.28L1.741,2.8.9,3.646A.5.5,0,0,0,1.25,4.5H4A.5.5,0,0,0,4.5,4V1.25A.5.5,0,0,0,4.191.788Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"></path></g></svg></i>
+			<i title="Close" id="closeDialog" class="window-icon close"><svg viewBox="0 0 16 16" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1.1428571428571428,0,0,1.1428571428571428,0,0)"><path d="M10.005,7.17a.252.252,0,0,1,0-.354l3.2-3.2h0a1.5,1.5,0,0,0,0-2.121L12.5.786a1.537,1.537,0,0,0-2.122,0l-3.2,3.2a.249.249,0,0,1-.353,0l-3.2-3.2A1.536,1.536,0,0,0,1.5.786l-.708.707a1.5,1.5,0,0,0,0,2.121L4,6.816A.251.251,0,0,1,4,7.17l-3.2,3.2a1.5,1.5,0,0,0,0,2.121L1.5,13.2a1.5,1.5,0,0,0,2.121,0l3.2-3.2a.249.249,0,0,1,.353,0l3.2,3.2a1.5,1.5,0,0,0,2.122,0l.707-.707a1.5,1.5,0,0,0,0-2.121Z" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"></path></g></svg></i>
 			<h2 class="dialogTitle"></h2>
 			<div class="dialogHeaderWrapper"></div>
 			<div class="dialogTextWrapper">
@@ -231,7 +302,7 @@
 			<div class="dialogMsg"></div>
 			<!--<button id="dialogOkButton">Save</button>-->
 			<div class="dialogMeta"></div>
-			<div class="dialogBtn">
+			<div class="dialogBtn flex">
 				<button class="closeButton">Close</button>
 			</div>
 		</div>

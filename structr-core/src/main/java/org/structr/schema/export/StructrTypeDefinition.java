@@ -1846,9 +1846,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		boolean selected       = tag == null || tags.contains(tag);
 
 		// don't show types without tags
-		if (tags.isEmpty()) {
+		if (tags.isEmpty() && !isBuiltinType()) {
+			return true;
+		} else if (tags.isEmpty()) {
 			return false;
-	}
+		}
 
 		// skip blacklisted tags
 		if (intersects(TagBlacklist, tags)) {

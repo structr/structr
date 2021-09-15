@@ -71,6 +71,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<String>             signature               = new StringProperty("signature").indexed();
 	public static final Property<String>             virtualFileName         = new StringProperty("virtualFileName").indexed();
 	public static final Property<String>             returnType              = new StringProperty("returnType").indexed();
+	public static final Property<String>             openAPIReturnType       = new StringProperty("openAPIReturnType").indexed();
 	public static final Property<String>             source                  = new StringProperty("source");
 	public static final Property<String[]>           exceptions              = new ArrayProperty("exceptions", String.class).indexed();
 	public static final Property<Boolean>            callSuper               = new BooleanProperty("callSuper").indexed();
@@ -96,11 +97,11 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	);
 
 	public static final View uiView = new View(SchemaMethod.class, PropertyView.Ui,
-		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI
+		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
-		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI
+		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType
 	);
 
 	public ActionEntry getActionEntry(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode schemaEntity) throws FrameworkException {

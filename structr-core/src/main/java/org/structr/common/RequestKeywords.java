@@ -56,7 +56,10 @@ public enum RequestKeywords {
 	BatchSize("batchSize"),
 
 	// edit mode
-	EditMode("edit")
+	EditMode("edit"),
+
+	// locale
+	Locale("locale")
 
 	;
 

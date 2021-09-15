@@ -64,7 +64,6 @@ public class ConfigServlet extends AbstractServletBase {
 	private static final Set<String> sessions         = new HashSet<>();
 	private static final String MainUrl               = "/structr/";
 	private static final String ConfigUrl             = "/structr/config";
-	private static final String ConfigName            = "structr.conf";
 	private static final String TITLE                 = "Structr Configuration Editor";
 
 	@Override
@@ -94,7 +93,7 @@ public class ConfigServlet extends AbstractServletBase {
 			if (request.getParameter("reload") != null) {
 
 				// reload data
-				Settings.loadConfiguration(ConfigName);
+				Settings.loadConfiguration(Settings.ConfigFileName);
 
 				// redirect
 				response.sendRedirect(ConfigUrl);
@@ -123,7 +122,7 @@ public class ConfigServlet extends AbstractServletBase {
 				}
 
 				// serialize settings
-				Settings.storeConfiguration(ConfigName);
+				Settings.storeConfiguration(Settings.ConfigFileName);
 
 				// redirect
 				response.sendRedirect(ConfigUrl);
@@ -192,7 +191,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 				// finish wizard
 				Settings.SetupWizardCompleted.setValue(true);
-				Settings.storeConfiguration(ConfigName);
+				Settings.storeConfiguration(Settings.ConfigFileName);
 
 				response.sendRedirect(MainUrl);
 
@@ -220,7 +219,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 				// finish wizard
 				Settings.SetupWizardCompleted.setValue(true);
-				Settings.storeConfiguration(ConfigName);
+				Settings.storeConfiguration(Settings.ConfigFileName);
 
 				// make session valid
 				authenticateSession(request);
@@ -229,32 +228,21 @@ public class ConfigServlet extends AbstractServletBase {
 
 			} else if (request.getParameter("setMaintenance") != null) {
 
-				final Boolean mainteanceEnabled = Boolean.parseBoolean(request.getParameter("setMaintenance"));
+				final boolean maintenanceEnabled = Boolean.parseBoolean(request.getParameter("setMaintenance"));
+				final boolean success            = Services.getInstance().setMaintenanceMode(maintenanceEnabled);
 
-				Settings.MaintenanceModeEnabled.setValue(mainteanceEnabled);
+				if (success) {
 
-				Settings.storeConfiguration(ConfigName);
+					final String baseUrl = ActionContext.getBaseUrl(request, true);
 
-				new Thread(new Runnable() {
+					final Map<String, Object> msgData = new HashMap();
+					msgData.put(MaintenanceCommand.COMMAND_TYPE_KEY, "MAINTENANCE");
+					msgData.put("enabled",                           maintenanceEnabled);
+					msgData.put("baseUrl",                           baseUrl);
+					TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
 
-					@Override
-					public void run() {
-
-						try { Thread.sleep(1000); } catch (Throwable t) {}
-
-						Services.getInstance().setMaintenanceMode(mainteanceEnabled);
-					}
-				}).start();
-
-				final String baseUrl = ActionContext.getBaseUrl(request);
-
-				final Map<String, Object> msgData = new HashMap();
-				msgData.put(MaintenanceCommand.COMMAND_TYPE_KEY, "MAINTENANCE");
-				msgData.put("enabled",                           mainteanceEnabled);
-				msgData.put("baseUrl",                           baseUrl);
-				TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
-
-				response.sendRedirect(baseUrl + ConfigUrl + "#maintenance");
+					response.sendRedirect(baseUrl + ConfigUrl + "#maintenance");
+				}
 
 			} else {
 
@@ -470,7 +458,7 @@ public class ConfigServlet extends AbstractServletBase {
 			}
 
 			// serialize settings
-			Settings.storeConfiguration(ConfigName);
+			Settings.storeConfiguration(Settings.ConfigFileName);
 		}
 
 		response.sendRedirect(ConfigUrl + redirectTarget);
@@ -609,11 +597,10 @@ public class ConfigServlet extends AbstractServletBase {
 
 		final Document doc = new Document(writer);
 		final Tag body     = setupDocument(request, doc).css("login");
-
 		final Tag loginBox = body.block("div").id("login").css("dialog").attr(new Style("display: block; margin: auto; margin-top: 200px;"));
 
-		loginBox.block("i").attr(new Attr("title", "Structr Logo")).css("logo-login sprite sprite-structr_gray_100x27");
-		loginBox.block("p").text("Welcome to the " + TITLE + ". Please log in with the <b>super- user</b> password which can be found in your structr.conf.");
+		loginBox.block("svg").attr(new Attr("title", "Structr Logo")).css("logo-login").block("use").attr(new Attr("xlink:href", "#structr-logo"));
+		loginBox.block("p").text("Welcome to the " + TITLE + ". Please log in with the <b>super-user</b> password which can be found in your structr.conf.");
 
 		final Tag form     = loginBox.block("form").attr(new Attr("action", ConfigUrl), new Attr("method", "post"));
 		final Tag table    = form.block("table");
@@ -654,7 +641,7 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag body = doc.block("body");
 		final Tag header = body.block("div").id("header");
 
-		header.block("i").css("logo sprite sprite-structr-logo");
+		header.block("svg").attr(new Attr("title", "Structr Logo")).css("logo").block("use").attr(new Attr("xlink:href", "#structr-logo"));
 		final Tag links = header.block("div").id("menu").css("menu").block("ul");
 
 		if (isAuthenticated(request)) {
@@ -664,6 +651,15 @@ public class ConfigServlet extends AbstractServletBase {
 			form.empty("input").attr(new Type("hidden"), new Name("action"), new Value("logout"));
 			links.block("a").text("Logout").attr(new Style("cursor: pointer"), new OnClick("$('#logout-form').submit();"));
 		}
+
+		body.text("<svg style=\"display: none\">" +
+				"<symbol id=\"structr-logo\" viewBox=\"0 0 345.12 92.83\" stroke=\"currentColor\" fill=\"currentColor\">" +
+				"<g id=\"Ebene_2\" data-name=\"Ebene 2\"><g id=\"Ebene_1-2\" data-name=\"Ebene 1\"><path d=\"M15,33.71a4,4,0,0,0-4,4v4.87c0,1.63,0,4,3.62,5.88l19.75,11c10.25,5.25,11,9.5,11,14v7.12c0,10.25-8.37,12.25-12.87,12.25H1.62A1.25,1.25,0,0,1,.37,91.58V84.46a1.26,1.26,0,0,1,1.25-1.25H30.37a3.92,3.92,0,0,0,4-3.88V75.08c0-1.62,0-4.5-3.5-6L11,58.21C.75,53.58,0,48.08,0,44.21V35.33c0-7.62,6.37-11.25,12.75-11.25H41.12a1.26,1.26,0,0,1,1.25,1.25v7.13a1.25,1.25,0,0,1-1.25,1.25Z\"/><path d=\"M71.75,32.83V79.08a4.08,4.08,0,0,0,4.12,4.13H88.75A1.25,1.25,0,0,1,90,84.46v7.12a1.26,1.26,0,0,1-1.25,1.25H73.87a13.5,13.5,0,0,1-13.5-13.5V4.58a1.73,1.73,0,0,1,1.25-1.75L70.5.08c1-.37,1.25.63,1.25,1.25V23.21h15.5a1.25,1.25,0,0,1,1.25,1.25v7.12a1.26,1.26,0,0,1-1.25,1.25Z\"/><path d=\"M119,34.33a3,3,0,0,0-2.75,3l-.13,54.25a1.25,1.25,0,0,1-1.25,1.25H106a1.25,1.25,0,0,1-1.25-1.25l-.13-53.75c0-6.87,5-13.75,13.75-13.75h17.5a1.26,1.26,0,0,1,1.25,1.25v7.75a1.25,1.25,0,0,1-1.25,1.25Z\"/><path d=\"M181.62,83.21a4.17,4.17,0,0,0,4.13-4.13V25.33A1.25,1.25,0,0,1,187,24.08h8.87a1.26,1.26,0,0,1,1.25,1.25V79.08c0,6.88-5,13.75-13.75,13.75H161c-8.75,0-13.75-6.87-13.75-13.75V25.33a1.25,1.25,0,0,1,1.25-1.25h8.75a1.26,1.26,0,0,1,1.25,1.25V79.08a4.16,4.16,0,0,0,4.12,4.13Z\"/><path d=\"M245.62,92.83H227a13.66,13.66,0,0,1-13.63-13.62V37.71A13.41,13.41,0,0,1,227,24.08h27.62a1.26,1.26,0,0,1,1.25,1.25v7.13a1.25,1.25,0,0,1-1.25,1.25h-26a4,4,0,0,0-4,4V79.33a3.82,3.82,0,0,0,3.88,3.88h26.12a1.25,1.25,0,0,1,1.25,1.25v7.12a1.25,1.25,0,0,1-1.25,1.25Z\"/><path d=\"M279.74,32.83V79.08a4.08,4.08,0,0,0,4.13,4.13h12.87A1.25,1.25,0,0,1,298,84.46v7.12a1.25,1.25,0,0,1-1.25,1.25H281.87a13.5,13.5,0,0,1-13.5-13.5V4.58a1.72,1.72,0,0,1,1.25-1.75L278.49.08c1-.37,1.25.63,1.25,1.25V23.21h15.5a1.25,1.25,0,0,1,1.25,1.25v7.12a1.25,1.25,0,0,1-1.25,1.25Z\"/><path d=\"M327,34.33a3.05,3.05,0,0,0-2.75,3l-.12,54.25a1.26,1.26,0,0,1-1.25,1.25H314a1.25,1.25,0,0,1-1.25-1.25l-.12-53.75c0-6.87,5-13.75,13.75-13.75h17.5a1.26,1.26,0,0,1,1.25,1.25v7.75a1.26,1.26,0,0,1-1.25,1.25Z\"/></g></g>" +
+				"</symbol>" +
+				"<symbol id=\"interface_delete_circle\" viewBox=\"0 0 10 10\"  stroke=\"currentColor\" fill=\"currentColor\">" +
+				"<g><path d=\"M5,0a5,5,0,1,0,5,5A5.006,5.006,0,0,0,5,0ZM7.28,6.22A.75.75,0,1,1,6.22,7.28L5,6.061,3.78,7.28A.75.75,0,0,1,2.72,6.22L3.939,5,2.72,3.78A.75.75,0,0,1,3.78,2.72L5,3.939,6.22,2.72A.75.75,0,0,1,7.28,3.78L6.061,5Z\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"0\"></path></g>" +
+				"</symbol>" +
+				"</svg>");
 
 		return body;
 	}

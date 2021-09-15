@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
+import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
@@ -88,7 +89,7 @@ public class ListLocalizationsCommand extends AbstractCommand {
 				}
 
 				// after the query string so it is overwritten (if present)
-				getWebSocket().getRequest().getParameterMap().put("locale", new String[]{ locale });
+				getWebSocket().getRequest().getParameterMap().put(RequestKeywords.Locale.toString(), new String[]{ locale });
 
 				rCtx.setLocale(securityContext.getEffectiveLocale());
 

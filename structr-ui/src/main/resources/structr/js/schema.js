@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var canvas, instance, res, nodes = {}, rels = {}, localStorageSuffix = '_schema_' + port;
+var canvas, instance, res, nodes = {}, rels = {}, localStorageSuffix = '_schema_' + location.port;
 var reload = false;
 var schemaContainer;
 var inheritanceTree, inheritanceSlideout;
@@ -81,15 +81,15 @@ var _Schema = {
 	nodePositions: undefined,
 	availableTypeNames: [],
 	hiddenSchemaNodes: [],
-	hiddenSchemaNodesKey: 'structrHiddenSchemaNodes_' + port,
-	schemaPositionsKey: 'structrSchemaPositions_' + port,
-	showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + port,
-	showSchemaInheritanceKey: 'structrShowSchemaInheritance_' + port,
-	showJavaMethodsKey: 'structrShowJavaMethods_' + port,
-	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + port,
-	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + port,
-	activeSchemaToolsSelectedTabLevel1Key: 'structrSchemaToolsSelectedTabLevel1_' + port,
-	activeSchemaToolsSelectedVisibilityTab: 'activeSchemaToolsSelectedVisibilityTab_' + port,
+	hiddenSchemaNodesKey: 'structrHiddenSchemaNodes_' + location.port,
+	schemaPositionsKey: 'structrSchemaPositions_' + location.port,
+	showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + location.port,
+	showSchemaInheritanceKey: 'structrShowSchemaInheritance_' + location.port,
+	showJavaMethodsKey: 'structrShowJavaMethods_' + location.port,
+	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + location.port,
+	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + location.port,
+	activeSchemaToolsSelectedTabLevel1Key: 'structrSchemaToolsSelectedTabLevel1_' + location.port,
+	activeSchemaToolsSelectedVisibilityTab: 'activeSchemaToolsSelectedVisibilityTab_' + location.port,
 	schemaZoomLevelKey: localStorageSuffix + 'zoomLevel',
 	schemaConnectorStyleKey: localStorageSuffix + 'connectorStyle',
 	currentNodeDialogId: null,
@@ -129,9 +129,11 @@ var _Schema = {
 	},
 	init: function(scrollPosition, callback) {
 
-		Structr.fetchHtmlTemplate('schema/schema-container', {}, function(html) {
+		Structr.fetchHtmlTemplate('schema/functions', {}, function(html) {
 
-			functionBar[0].innerHTML = html;
+			Structr.functionBar.innerHTML = html;
+
+			UISettings.showSettingsForCurrentModule();
 
 			_Schema.schemaLoading = false;
 			_Schema.schemaLoaded = false;
@@ -167,7 +169,6 @@ var _Schema = {
 				}
 			});
 
-			$('#schema-tools').off('click').on('click', _Schema.openTypeVisibilityDialog);
 			$('#global-schema-methods').off('click').on('click', _Schema.methods.showGlobalSchemaMethods);
 
 			_Schema.globalLayoutSelector = $('#saved-layout-selector-main');
@@ -874,7 +875,7 @@ var _Schema = {
 					}
 
 					$('#rel_' + res.id).parent().off('mouseover').on('mouseover', function() {
-						$('#rel_' + res.id + ' .icon').showInlineBlock();
+						$('#rel_' + res.id + ' .icon').css('display', 'inline-block');
 						$('#rel_' + res.id + ' .target-multiplicity').addClass('hover');
 					}).off('mouseout').on('mouseout', function() {
 						$('#rel_' + res.id + ' .icon').hide();
@@ -1053,6 +1054,7 @@ var _Schema = {
 	createRelationship: function(sourceId, targetId, headEl, contentEl) {
 
 		Structr.fetchHtmlTemplate('schema/dialog.relationship', {}, function (html) {
+
 			headEl.append(html);
 
 			_Schema.appendCascadingDeleteHelpText();
@@ -1063,9 +1065,11 @@ var _Schema = {
 			$('#source-type-name').text(sourceTypeName);
 			$('#target-type-name').text(targetTypeName);
 
-			dialogBtn.prepend('<button id="edit-rel-options-button"><i class="edit icon ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /> Edit relationship options</button>\n' +
-				'<button id="save-rel-options-button"><i class="save icon ' + _Icons.getFullSpriteClass(_Icons.tick_icon) +'" /> Save</button>\n' +
-				'<button id="cancel-rel-options-button"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) +'" /> Discard</button>\n');
+			if (Structr.isModuleActive(_Schema)) {
+				// move buttons to footer of dialog (in code area they stay put)
+				let buttonsContainer = headEl[0].querySelector('#rel-edit-buttons');
+				dialogBtn[0].prepend(buttonsContainer);
+			}
 
 			$('#edit-rel-options-button').hide();
 			let saveButton = $('#save-rel-options-button');
@@ -1209,9 +1213,11 @@ var _Schema = {
 				$('#masked-properties').val(rel.propertyMask);
 			};
 
-			dialogBtn.prepend('<button id="edit-rel-options-button"><i class="edit icon ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /> Edit relationship options</button>\n' +
-				'<button id="save-rel-options-button"><i class="save icon ' + _Icons.getFullSpriteClass(_Icons.tick_icon) +'" /> Save</button>\n' +
-				'<button id="cancel-rel-options-button"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) +'" /> Discard</button>\n');
+			if (Structr.isModuleActive(_Schema)) {
+				// move buttons to footer of dialog (in code area they stay put)
+				let buttonsContainer = headEl[0].querySelector('#rel-edit-buttons');
+				dialogBtn[0].prepend(buttonsContainer);
+			}
 
 			if (!saveSuccessFunction) {
 
@@ -1386,13 +1392,13 @@ var _Schema = {
 
 				_Schema.sort(entity.schemaProperties);
 
-				$.each(entity.schemaProperties, function(i, prop) {
+				for (let prop of entity.schemaProperties) {
 
 					Structr.fetchHtmlTemplate('schema/type-options', {}, function(typeOptions) {
 
 						Structr.fetchHtmlTemplate('schema/type-hint-options', {}, function(typeHintOptions) {
 
-							Structr.fetchHtmlTemplate('schema/property.local', {property: prop, typeOptions: typeOptions, typeHintOptions: typeHintOptions}, function(html) {
+							Structr.fetchHtmlTemplate('schema/property.local', { property: prop, typeOptions: typeOptions, typeHintOptions: typeHintOptions }, function(html) {
 
 								let row = $(html);
 
@@ -1403,7 +1409,7 @@ var _Schema = {
 							});
 						});
 					});
-				});
+				}
 
 				$('.discard-all', propertiesTable).on('click', () => {
 					tbody.find('i.discard-changes').click();
@@ -1539,21 +1545,21 @@ var _Schema = {
 				_Schema.properties.rowChanged(property, row);
 			};
 
-			let prot = false;
+			let isProtected = false;
 
-			var propertyTypeOption = $('.property-type option[value="' + property.propertyType + '"]', row);
+			let propertyTypeOption = $('.property-type option[value="' + property.propertyType + '"]', row);
 			if (propertyTypeOption) {
 				propertyTypeOption.attr('selected', true);
 				if (propertyTypeOption.data('protected')) {
 					propertyTypeOption.prop('disabled', true);
 					propertyTypeOption.closest('select').attr('disabled', true);
-					prot = true;
+					isProtected = true;
 				} else {
 					propertyTypeOption.prop('disabled', null);
 				}
 			}
 
-			var typeField = $('.property-type', row);
+			let typeField = $('.property-type', row);
 			$('.property-type option[value=""]', row).remove();
 
 			if (property.propertyType === 'String' && !property.isBuiltinProperty) {
@@ -1563,45 +1569,43 @@ var _Schema = {
 				$('.content-type', row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', null);
 			}
 
-			$('.property-name',    row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.property-dbname',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.caching-enabled',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.type-hint',        row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.property-type',    row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.property-format',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.not-null',         row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.compound',         row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.unique',           row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.indexed',          row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
-			$('.property-default', row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', prot);
+			$('.property-name',    row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.property-dbname',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.caching-enabled',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.type-hint',        row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.property-type',    row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.property-format',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.not-null',         row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.compound',         row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.unique',           row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.indexed',          row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.property-default', row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
 
-			$('.edit-read-function', row).off('click').on('click', function() {
-				let unsavedChanges = _Schema.properties.hasUnsavedChanges(row.closest('table'));
+			let readWriteButtonClickHandler = (targetProperty) => {
 
-				if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
+				if (overrides && overrides.editReadWriteFunction) {
 
-					if (overrides && overrides.editReadWriteFunction) {
-						overrides.editReadWriteFunction(property);
-					} else {
-						_Schema.properties.openCodeEditorForFunctionProperty($(this), property.id, 'readFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
+					overrides.editReadWriteFunction(property, targetProperty);
+
+				} else {
+
+					let unsavedChanges = _Schema.properties.hasUnsavedChanges(row.closest('table'));
+
+					if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
+						_Schema.properties.openCodeEditorForFunctionProperty(property.id, targetProperty, function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
 					}
 				}
-			}).prop('disabled', prot);
+			};
 
-			$('.edit-write-function', row).off('click').on('click', function() {
-				let unsavedChanges = _Schema.properties.hasUnsavedChanges(row.closest('table'));
+			$('.edit-read-function', row).off('click').on('click', () => {
+				readWriteButtonClickHandler('readFunction');
+			}).prop('disabled', isProtected);
 
-				if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
-					if (overrides && overrides.editReadWriteFunction) {
-						overrides.editReadWriteFunction(property);
-					} else {
-						_Schema.properties.openCodeEditorForFunctionProperty($(this), property.id, 'writeFunction', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
-					}
-				}
-			}).prop('disabled', prot);
+			$('.edit-write-function', row).off('click').on('click', () => {
+				readWriteButtonClickHandler('writeFunction');
+			}).prop('disabled', isProtected);
 
-
-			if (!prot) {
+			if (!isProtected) {
 
 				$('.remove-action', row).off('click').on('click', function() {
 
@@ -1735,7 +1739,7 @@ var _Schema = {
 
 			return true;
 		},
-		openCodeEditorForFunctionProperty: function(btn, id, key, callback) {
+		openCodeEditorForFunctionProperty: function(id, key, callback) {
 
 			dialogMeta.show();
 
@@ -1745,24 +1749,21 @@ var _Schema = {
 
 				Structr.dialog(title, function() {}, function() {});
 
-				_Schema.properties.editFunctionPropertyCode(btn, entity, key, dialogText, function() {
+				_Schema.properties.editFunctionPropertyCode(entity, key, dialogText, function() {
 					window.setTimeout(function() {
 						callback();
 					}, 250);
 				});
 			});
 		},
-		editFunctionPropertyCode: function(button, entity, key, element, callback) {
+		editFunctionPropertyCode: function(entity, key, element, callback) {
 
-			var text = entity[key] || '';
+			let text = entity[key] || '';
 
-			if (Structr.isButtonDisabled(button)) {
-				return;
-			}
 			element.append('<div class="editor"></div>');
-			var contentBox = $('.editor', element);
-			contentType = contentType ? contentType : entity.contentType;
-			var text1, text2;
+			let contentBox  = $('.editor', element);
+			let contentType = entity.contentType;
+			let text1, text2;
 
 			// Intitialize editor
 			editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
@@ -1813,13 +1814,13 @@ var _Schema = {
 				$('#words').text((editorText.match(/\S+/g) || []).length);
 			});
 
-			var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
+			let scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
 			if (scrollInfo) {
 				editor.scrollTo(scrollInfo.left, scrollInfo.top);
 			}
 
 			editor.on('scroll', function() {
-				var scrollInfo = editor.getScrollInfo();
+				let scrollInfo = editor.getScrollInfo();
 				LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
 			});
 
@@ -2708,7 +2709,7 @@ var _Schema = {
 									}
 								});
 							} else {
-								Command.rest('SchemaMethod?schemaNode=null&sort=name&order=ascending', function (methods) {
+								Command.rest('SchemaMethod?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', function (methods) {
 									el.empty();
 									_Schema.methods.appendMethods(el, null, _Schema.filterJavaMethods(methods));
 									_Schema.hideSchemaRecompileMessage();
@@ -2958,7 +2959,7 @@ var _Schema = {
 		},
 		showGlobalSchemaMethods: function () {
 
-			Command.rest('SchemaMethod?schemaNode=null&sort=name&order=ascending', function (methods) {
+			Command.rest('SchemaMethod?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', function (methods) {
 
 				Structr.dialog('Global Schema Methods', function() {
 					dialogMeta.show();
@@ -2971,10 +2972,9 @@ var _Schema = {
 
 				dialogMeta.hide();
 
-				var contentEl = dialogText;
-
-				var contentDiv = $('<div id="tabView-methods" class="schema-details"></div>');
-				var outerDiv = $('<div class="schema-details"></div>');
+				let contentEl  = dialogText;
+				let contentDiv = $('<div id="tabView-methods" class="schema-details"></div>');
+				let outerDiv   = $('<div class="schema-details"></div>');
 				outerDiv.append(contentDiv);
 				contentEl.append(outerDiv);
 
@@ -3018,19 +3018,6 @@ var _Schema = {
 			return true;
 		},
 	},
-	confirmRemoveSchemaEntity: function(entity, title, callback, hint) {
-
-		Structr.confirmation('<h3>' + title + ' ' + entity.name + '?</h3>' + (hint ? '<p>' + hint + '</p>' : ''),
-			function() {
-				$.unblockUI({
-					fadeOut: 25
-				});
-
-				_Schema.removeSchemaEntity(entity, callback);
-			},
-			callback
-		);
-	},
 	resize: function() {
 
 		Structr.resize();
@@ -3049,8 +3036,8 @@ var _Schema = {
 
 			$('.node').each(function(i, elem) {
 				let $elem = $(elem);
-				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left + $elem.width() - canvasPosition.left) / zoom + $elem.width()) + padding);
-				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top + $elem.height() - canvasPosition.top)  / zoom + $elem.height()) + padding);
+				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left + $elem.outerWidth() - canvasPosition.left) / zoom));
+				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top + $elem.outerHeight() - canvasPosition.top)  / zoom + $elem.outerHeight()));
 
 			});
 
@@ -3071,14 +3058,8 @@ var _Schema = {
 				position: 'relative'
 			});
 
-			$('html').css({
-				background: '#fff'
-			});
 		}
 
-		// $('body').css({
-		// 	position: 'relative'
-		// });
 	},
 	removeSchemaEntity: function(entity, onSuccess, onError) {
 
@@ -3418,13 +3399,13 @@ var _Schema = {
 			});
 		}
 	},
-	appendSnapshotsDialogToContainer: function(container) {
-
-		Structr.fetchHtmlTemplate('schema/snapshots', {}, function (html) {
-			container.append(html);
-			_Schema.activateSnapshotsDialog();
-		});
-	},
+	// appendSnapshotsDialogToContainer: function(container) {
+	//
+	// 	Structr.fetchHtmlTemplate('schema/snapshots', {}, function (html) {
+	// 		container.append(html);
+	// 		_Schema.activateSnapshotsDialog();
+	// 	});
+	// },
 	activateSnapshotsDialog: () => {
 
 		var table = $('#snapshots');
@@ -3530,13 +3511,13 @@ var _Schema = {
 		});
 
 	},
-	appendAdminToolsToContainer: function(container) {
-
-		Structr.fetchHtmlTemplate('schema/admin-tools', {}, function(html) {
-			container.append(html);
-			_Schema.activateAdminTools();
-		});
-	},
+	// appendAdminToolsToContainer: function(container) {
+	//
+	// 	Structr.fetchHtmlTemplate('schema/admin-tools', {}, function(html) {
+	// 		container.append(html);
+	// 		_Schema.activateAdminTools();
+	// 	});
+	// },
 	activateAdminTools: () => {
 
 		var registerSchemaToolButtonAction = function (btn, target, connectedSelectElement, getPayloadFunction) {
@@ -3636,15 +3617,17 @@ var _Schema = {
 			});
 		}
 	},
-	appendLayoutToolsToContainer: function(container) {
-		Structr.fetchHtmlTemplate('schema/layout-tools', {}, function(html) {
-			container.append(html);
-			_Schema.activateLayoutTools();
-		});
-	},
+	// appendLayoutToolsToContainer: function(container) {
+	// 	Structr.fetchHtmlTemplate('schema/layout-tools', {}, function(html) {
+	// 		container.append(html);
+	// 		_Schema.activateLayoutTools();
+	// 	});
+	// },
 	activateLayoutTools: () => {
 
+		$('#schema-tools').off('click').on('click', _Schema.openTypeVisibilityDialog);
 		$('#reset-schema-positions').off('click').on('click', _Schema.clearPositions);
+
 		var layoutSelector        = $('#saved-layout-selector');
 		var layoutNameInput       = $('#layout-name');
 		var createNewLayoutButton = $('#create-new-layout');
@@ -3673,7 +3656,7 @@ var _Schema = {
 				let username    = optGroup.prop('label');
 				let isOwnerless = optGroup.data('ownerless') === true;
 
-				if (isOwnerless || username === me.username) {
+				if (isOwnerless || username === StructrWS.me.username) {
 					Structr.enableButton(updateLayoutButton);
 					Structr.enableButton(deleteLayoutButton);
 				} else {
@@ -3811,7 +3794,7 @@ var _Schema = {
 		}
 	},
 	applySavedLayoutConfiguration: function(layoutJSON) {
-console.warn(layoutJSON)
+
 		try {
 
 			var loadedConfig = JSON.parse(layoutJSON);
@@ -4283,17 +4266,21 @@ console.warn(layoutJSON)
 			});
 		}
 	},
-	getDerivedTypes: function(baseType, blacklist, callback) {
+	getDerivedTypes: async (baseType, blacklist) => {
 
 		// baseType is FQCN
-		$.get(rootUrl + '_schema', function(data) {
+		let response = await fetch(rootUrl + '_schema');
 
-			var result    = data.result;
-			var fileTypes = [];
-			var depth     = 5;
-			var types     = {};
+		if (response.ok) {
 
-			var collect = function(list, type) {
+			let data = await response.json();
+
+			let result    = data.result;
+			let fileTypes = [];
+			let depth     = 5;
+			let types     = {};
+
+			let collect = function(list, type) {
 
 				list.forEach(function(n) {
 
@@ -4312,7 +4299,7 @@ console.warn(layoutJSON)
 
 			collect(result, baseType);
 
-			for (var i=0; i<depth; i++) {
+			for (let i=0; i<depth; i++) {
 
 				fileTypes.forEach(function(type) {
 
@@ -4320,10 +4307,11 @@ console.warn(layoutJSON)
 				});
 			}
 
-			if (callback && typeof callback === 'function') {
-				callback(Object.keys(types));
-			}
-		});
+			return Object.keys(types);
+
+		} else {
+			return [];
+		}
 	},
 	ui: {
 		showInheritance: true,

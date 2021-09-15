@@ -122,19 +122,19 @@
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcmail-jdk15on</artifactId>
-				<version>1.53</version>
+				<version>1.67</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcprov-jdk15on</artifactId>
-				<version>1.53</version>
+				<version>1.67</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcpkix-jdk15on</artifactId>
-				<version>1.53</version>
+				<version>1.67</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -164,7 +164,7 @@
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-compress</artifactId>
-				<version>1.19</version>
+				<version>1.21</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>

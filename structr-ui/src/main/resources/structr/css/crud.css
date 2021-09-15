@@ -291,10 +291,6 @@ input.readonly {
 	overflow: auto;
 }
 
-.resourceBox td button {
-	margin: 2px 3px 0 2px;
-}
-
 #dialogBoximg.thumbnail {
 	max-width: 100px;
 	max-height: 100px;
@@ -405,6 +401,7 @@ input.readonly {
 .searchResults {
 	height: 100%;
 	overflow-y: auto;
+	flex-grow: 1;
 }
 
 .searchResults h3 {
@@ -445,38 +442,30 @@ img.loader {
 /*
 * Collection pager
 */
-.cell-pager {
-	margin: -4px -4px 4px -4px;
-	padding: 4px;
-	clear: both;
-	white-space: nowrap;
-	border-bottom: 1px solid var(--gray-ccc);
+.cell-pager button {
 	background-color: var(--solid-white);
 }
 
-.cell-pager .prev, .cell-pager .next {
-	vertical-align: top;
-	height: 1.7em;
+.cell-pager .next {
+	margin-left: .5rem;
+	margin-right: .5rem;
 }
 
-.cell-pager .next {
-	margin-left: 2px;
+.cell-pager .page-count {
+	margin-left: .5rem;
 }
 
 .cell-pager .collection-page {
-	margin-bottom: 2px;
+	margin-bottom: .5rem;
 }
 
 .collection-page-size {
-	margin-left: 2px;
+	margin-left: 1rem;
 	display: inline-block;
 	clear: both;
 }
 
 .resourceBox .pager {
-	/*float: left;*/
-	/*margin-top: -2px;*/
-	/*margin-bottom: 8px;*/
 	margin: 1rem;
 }
 
@@ -489,5 +478,5 @@ img.loader {
 
 .soft-limit-warning {
 	vertical-align: text-top;
-	margin: 0 4px 0 -4px;
+	margin: 0 .5rem 0 -.5rem;
 }

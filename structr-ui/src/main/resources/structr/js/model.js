@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var StructrModel = {
+let StructrModel = {
 	objects: {},
 	callbacks: {},
 	obj: function(id) {
@@ -32,13 +32,13 @@ var StructrModel = {
 
 	createSearchResult: function(data) {
 
-		var obj = new StructrSearchResult(data);
+		let obj = new StructrSearchResult(data);
 
 		// Store a reference of this object
 		StructrModel.objects[data.id] = obj;
 
 		// Check if the object is already contained in page
-		var el = $('#id_' + obj.id);
+		let el = $('#id_' + obj.id);
 		if (el && el.length) {
 			return obj;
 		}
@@ -46,7 +46,6 @@ var StructrModel = {
 		StructrModel.append(obj);
 
 		return obj;
-
 	},
 	/**
 	 * Create a new object in the model and potentially append a UI element
@@ -58,7 +57,7 @@ var StructrModel = {
 			return;
 		}
 
-		var keys = Object.keys(data);
+		let keys = Object.keys(data);
 
 		if (keys.length === 1 && keys[0] === 'id') {
 
@@ -150,6 +149,19 @@ var StructrModel = {
 
 		return obj;
 
+	},
+	/**
+	 * Create a new model object from data - if it already exists update all keys in the dataset.
+	 * This prevents possible deletion of previously loaded object if it was fetched another time with fewer properties or a different view.
+	 */
+	createOrUpdateFromData: (data, refId, append) => {
+
+		let modelObj = StructrModel.obj(data.id);
+		if (!modelObj) {
+			StructrModel.createFromData(data, refId, append);
+		} else {
+			StructrModel.copyDataToObject(data, modelObj);
+		}
 	},
 	/**
 	 * Append and check expand status
@@ -281,24 +293,24 @@ var StructrModel = {
 	 */
 	refreshKey: function(id, key) {
 
-		var obj = StructrModel.obj(id);
+		let obj = StructrModel.obj(id);
 		if (!obj) {
 			return;
 		}
 
-		var element = Structr.node(id);
+		let element = Structr.node(id);
 
 		if (!element) {
 			return;
 		}
 
-		var inputElement = $('td.' + key + '_ input', element);
-		var newValue = obj[key];
-
-		var attrElement = element.children('.' + key + '_');
+		let inputElement = $('td.' + key + '_ input', element);
+		let newValue     = obj[key];
+		let attrElement  = element.children(':not(.node)').find('.' + key + '_');
 
 		if (attrElement && $(attrElement).length) {
-			var tag = $(attrElement).get(0).tagName.toLowerCase();
+
+			let tag = $(attrElement).get(0).tagName.toLowerCase();
 
 			if (typeof newValue === 'boolean') {
 
@@ -309,8 +321,11 @@ var StructrModel = {
 				blinkGreen(attrElement);
 
 				if (attrElement && tag === 'select') {
+
 					attrElement.val(newValue);
+
 				} else {
+
 					if (key === 'name') {
 						attrElement.attr('title', newValue).html(newValue);
 					}
@@ -321,6 +336,11 @@ var StructrModel = {
 				}
 
 				if (key === 'content') {
+
+					attrElement.text(newValue);
+				}
+
+				if (key === 'position') {
 
 					attrElement.text(newValue);
 				}
@@ -354,11 +374,11 @@ var StructrModel = {
 	 */
 	refresh: function(id) {
 
-		var obj = StructrModel.obj(id);
+		let obj = StructrModel.obj(id);
 
 		if (obj) {
 
-			var element = Structr.node(id);
+			let element = Structr.node(id);
 
 			if (graphBrowser) {
 				graphBrowser.updateNode(id, obj, ['name', 'tag', 'id', 'type'], {label: 'name', nodeType: 'type'});
@@ -369,9 +389,9 @@ var StructrModel = {
 			}
 
 			// update values with given key
-			$.each(Object.keys(obj), function(i, key) {
+			for (let key in obj) {
 				StructrModel.refreshKey(id, key);
-			});
+			}
 
 			if (Structr.isModuleActive(_Pages) && _Pages.previews.isPreviewForActiveForPage(obj.pageId)) {
 				_Pages.previews.modelForPageUpdated(obj.pageId);
@@ -380,15 +400,11 @@ var StructrModel = {
 			// update HTML 'class' and 'id' attributes
 			if (isIn('_html_id', Object.keys(obj)) || isIn('_html_class', Object.keys(obj))) {
 
-				var classIdAttrsEl = element.children('.class-id-attrs');
+				let classIdAttrsEl = element.children('span').children('.class-id-attrs');
 				if (classIdAttrsEl.length) {
-					classIdAttrsEl.remove();
-				}
 
-				var classIdString = _Elements.classIdString(obj._html_id, obj._html_class);
-				var idEl = element.children('.id');
-				if (idEl.length) {
-					element.children('.id').after(classIdString);
+					let classIdString = _Elements.classIdString(obj._html_id, obj._html_class);
+					classIdAttrsEl.replaceWith(classIdString);
 				}
 			}
 
@@ -399,7 +415,7 @@ var StructrModel = {
 			}
 
 			// update icon
-			var icon = undefined;
+			let icon = undefined;
 			if (element.hasClass('element')) {
 
 				icon = _Elements.getElementIcon(obj);
@@ -415,7 +431,7 @@ var StructrModel = {
 				if (Structr.isModuleActive(_Files)) {
 					let row = element.closest('tr');
 					if (row.length) {
-						$('td.size', row).text(formatBytes(obj.size,0));
+						$('td.size', row).text(_Files.formatBytes(obj.size, 0));
 					}
 				}
 
@@ -426,49 +442,62 @@ var StructrModel = {
 				}
 			}
 
-			var iconEl = element.children('.typeIcon');
+			let iconEl = element.children('.typeIcon');
 			if (icon && iconEl.length) {
 				_Icons.updateSpriteClassTo(iconEl[0], _Icons.getSpriteClassOnly(icon));
 			}
 
 			// check if key icon needs to be displayed (in case of nodes not visible to public/auth users)
-			var isProtected = !obj.visibleToPublicUsers || !obj.visibleToAuthenticatedUsers;
-			var keyIcon = element.children('.key_icon');
+			let keyIcon = element.children('.key_icon');
 			if (!keyIcon.length) {
 				// Images have a special subnode containing the icons
 				keyIcon = $('.icons', element).children('.key_icon');
 			}
+			let isProtected = !obj.visibleToPublicUsers || !obj.visibleToAuthenticatedUsers;
 			if (isProtected) {
-				keyIcon.showInlineBlock();
+				keyIcon.css('display', 'inline-block');
 				keyIcon.addClass('donthide');
 			} else {
 				keyIcon.hide();
 				keyIcon.removeClass('donthide');
 			}
 
-			var displayName = getElementDisplayName(obj);
+			// update svg key icon
+			let svgKeyIcon = element[0].querySelector(':scope > .svg_key_icon');
+			if (!svgKeyIcon) {
+				svgKeyIcon = element[0].querySelector(':scope > .icons-container > .svg_key_icon');
+			}
+			if (svgKeyIcon) {
+				let newIconId = _Entities.getVisibilityIconId(obj);
+
+				// replace only xlink:href to keep bindings intact
+				let use = svgKeyIcon.querySelector(':scope > use');
+				use.setAttribute('xlink:href', '#' + newIconId);
+			}
+
+			let displayName = getElementDisplayName(obj);
 
 			if (obj.hasOwnProperty('name')) {
 
 				// Did name change from null?
 				if ((obj.type === 'Template' || obj.isContent)) {
 					if (obj.name) {
-						element.children('.content_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b>');
-						element.children('.content_').off('click').on('click', function(e) {
-							e.stopPropagation();
-							_Entities.makeNameEditable(element);
-						});
+						element.children('span').children('.content_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>');
+//						element.children('.content_').off('click').on('click', function(e) {
+//							e.stopPropagation();
+//							_Entities.makeNameEditable(element);
+//						});
 
-						element.children('.name_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_ abbr-ellipsis abbr-75pc">' + displayName + '</b>');
+						element.children('span').children('.name_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>');
 						// element.children('b.name_').off('click').on('click', function(e) {
 						// 	e.stopPropagation();
 						// 	_Entities.makeNameEditable(element);
 						// });
 					} else {
-						element.children('.name_').html(escapeTags(obj.content));
+						element.children('span').children('.name_').html(escapeTags(obj.content));
 					}
 				} else {
-					element.children('.name_').attr('title', displayName).html(displayName);
+					element.children('span').children('.name_').attr('title', displayName).html(displayName);
 				}
 			}
 		}
@@ -483,25 +512,25 @@ var StructrModel = {
 	 * Save model data to server. This will trigger a refresh of the model.
 	 */
 	save: function(id) {
-		var obj = StructrModel.obj(id);
+		let obj = StructrModel.obj(id);
 
 		// Filter out object type data
-		var data = {};
-		$.each(Object.keys(obj), function(i, key) {
+		let data = {};
+		for (let key in obj) {
 
-			var value = obj[key];
+			let value = obj[key];
 
 			if (typeof value !== 'object') {
 				data[key] = value;
 			}
+		}
 
-		});
 		Command.setProperties(id, data);
 	},
 
 	callCallback: function(callback, entity, resultSize, errorOccurred) {
 		if (callback) {
-			var callbackFunction = StructrModel.callbacks[callback];
+			let callbackFunction = StructrModel.callbacks[callback];
 			if (callbackFunction) {
 				try {
 					StructrModel.callbacks[callback](entity, resultSize, errorOccurred);
@@ -522,9 +551,9 @@ var StructrModel = {
 	},
 
 	copyDataToObject: function(data, target) {
-		$.each(Object.keys(data), function(i, key) {
+		for (let key in data) {
 			target[key] = data[key];
-		});
+		}
 	}
 };
 
@@ -556,7 +585,7 @@ StructrFolder.prototype.append = function() {
 };
 
 StructrFolder.prototype.exists = function() {
-	var el = Structr.node(this.id);
+	let el = Structr.node(this.id);
 	return el && el.length > 0;
 };
 
@@ -580,9 +609,9 @@ StructrFile.prototype.remove = function() {
 };
 
 StructrFile.prototype.append = function() {
-	var file = this;
+	let file = this;
 	if (file.parent) {
-		var parentFolder = StructrModel.obj(file.parent.id);
+		let parentFolder = StructrModel.obj(file.parent.id);
 		if (parentFolder) {
 			if (!parentFolder.files) {
 				parentFolder.files = [];
@@ -617,9 +646,9 @@ StructrImage.prototype.remove = function() {
 };
 
 StructrImage.prototype.append = function() {
-	var image = this;
+	let image = this;
 	if (image.parent) {
-		var parentFolder = StructrModel.obj(image.parent.id);
+		let parentFolder = StructrModel.obj(image.parent.id);
 		if (parentFolder) {
 			if (!parentFolder.files) {
 				parentFolder.files = [];
@@ -652,13 +681,13 @@ StructrUser.prototype.setProperty = function(key, value, recursive, callback) {
 
 StructrUser.prototype.remove = function(groupId) {
 	if (groupId) {
-		var group = StructrModel.obj(groupId);
+		let group = StructrModel.obj(groupId);
 		if (group) {
 			group.removeUser(this.id);
 		}
 	} else {
 		if (Structr.isModuleActive(_Security)) {
-			var userEl = Structr.node(this.id, '.userid_');
+			let userEl = Structr.node(this.id, '.userid_');
 			if (userEl && userEl.length) {
 				userEl.remove();
 			}
@@ -669,8 +698,7 @@ StructrUser.prototype.remove = function(groupId) {
 StructrUser.prototype.append = function(groupId) {
 	if (Structr.isModuleActive(_Security)) {
 		if (groupId) {
-			var grpContainer = $('.groupid_' + groupId, _Security.groupList);
-			//$('.userid_' + this.id, grpContainer).remove();
+			let grpContainer = $('.groupid_' + groupId, $(_Security.groupList));
 			_UsersAndGroups.appendMemberToGroup(this, StructrModel.obj(groupId), grpContainer);
 		} else {
 			_UsersAndGroups.appendUserToUserList(this);
@@ -696,12 +724,9 @@ StructrGroup.prototype.setProperty = function(key, value, recursive, callback) {
 
 StructrGroup.prototype.append = function(groupId) {
 	if (Structr.isModuleActive(_Security)) {
-		var container = _Security.groupList;
+		let container = $(_Security.groupList);
 		if (groupId) {
-			var grpContainer = $('.groupid_' + groupId, container);
-			if (grpContainer.length) {
-//				$('.groupid_' + this.id, container).remove();
-			}
+			let grpContainer = $('.groupid_' + groupId, container);
 			StructrModel.expand(_UsersAndGroups.appendMemberToGroup(this, StructrModel.obj(groupId), grpContainer), this);
 		} else {
 			StructrModel.expand(_UsersAndGroups.appendGroupElement(container, this), this);
@@ -779,6 +804,11 @@ StructrPage.prototype.append = function() {
 };
 
 StructrPage.prototype.remove = function() {
+
+	if (_Entities?.selectedObject?.id === this.id) {
+		_Pages.selectedObjectWasDeleted();
+	}
+
 	if (Structr.isModuleActive(_Pages)) {
 		_Pages.removePage(this);
 	}
@@ -864,6 +894,10 @@ StructrElement.prototype.remove = function() {
 				_Pages.previews.modelForPageUpdated(pageId);
 			}
 			element.remove();
+		}
+
+		if (_Entities?.selectedObject?.id === this.id) {
+			_Pages.selectedObjectWasDeleted();
 		}
 
 		if (element && parent && !Structr.containsNodes(parent)) {

@@ -27,13 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
-import java.util.EnumSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import javax.servlet.DispatcherType;
 import javax.servlet.ServletException;
@@ -47,6 +41,7 @@ import org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.eclipse.jetty.http.HttpCookie;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.Connector;
@@ -336,12 +331,16 @@ public class HttpService implements RunnableService, StatsCallback {
 			idManager.setWorkerName(hardwareId);
 
 			sessionCache.getSessionHandler().setSessionIdManager(idManager);
-
-			if (Settings.HttpOnly.getValue()) {
-				sessionCache.getSessionHandler().setHttpOnly(isTest);
-			}
-
 		}
+
+		// configure the HttpOnly flag for JSESSIONID cookie
+		sessionCache.getSessionHandler().setHttpOnly(Settings.HttpOnly.getValue());
+
+		// configure the SameSite attribute for JSESSIONID cookie
+		sessionCache.getSessionHandler().setSameSite(HttpCookie.SameSite.valueOf(Settings.CookieSameSite.getValue().toUpperCase()));
+
+		// configure the Secure flag for JSESSIONID cookie
+		sessionCache.getSessionHandler().getSessionCookieConfig().setSecure(Settings.CookieSecure.getValue());
 
 		final StructrSessionDataStore sessionDataStore = new StructrSessionDataStore();
 
@@ -626,10 +625,8 @@ public class HttpService implements RunnableService, StatsCallback {
 						maintenanceHTML.append("<meta charset=\"utf-8\">\n");
 						maintenanceHTML.append("</head>\n<body>\n");
 						maintenanceHTML.append("<h2>Maintenance Mode Active</h2>\n");
-						maintenanceHTML.append("<p>");
 						maintenanceHTML.append(Settings.MaintenanceMessage.getValue());
-						maintenanceHTML.append("</p>\n");
-						maintenanceHTML.append("</body>\n</html>\n");
+						maintenanceHTML.append("\n</body>\n</html>\n");
 
 						response.setContentLength(maintenanceHTML.length());
 

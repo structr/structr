@@ -1,1 +1,8 @@
-<button class="btn action" id="create-virtual-type"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> New Virtual Type</button><div id="virtual-types-pager"></div>
+<form id="create-virtual-type-form" autocomplete="off">
+    <input title="Enter a name for the virtual type" id="virtual-type-name-preselect" type="text" size="10" placeholder="Name" required>
+    <input title="Enter the name of the source type of the virtual type" id="virtual-type-source-type-preselect" type="text" size="12" placeholder="Source Type" required>
+
+    <button type="submit" form="create-virtual-type-form" class="btn action" id="create-virtual-type"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> New Virtual Type</button>
+</form>
+
+<div id="virtual-types-pager"></div>

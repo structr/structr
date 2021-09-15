@@ -16,9 +16,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var _Widgets = {
+let _Widgets = {
 	defaultWidgetServerUrl: 'https://widgets.structr.org/structr/rest/widgets',
-	widgetServerKey: 'structrWidgetServerKey_' + port,
+	widgetServerKey: 'structrWidgetServerKey_' + location.port,
 	applicationConfigurationDataNodeKey: 'remote_widget_server',
 
 	remoteWidgetData: [],
@@ -27,15 +27,15 @@ var _Widgets = {
 	localWidgetsEl: undefined,
 	widgetServerSelector: undefined,
 
-	localWidgetsCollapsedKey: 'structrWidgetLocalCollapsedKey_' + port,
-	remoteWidgetsCollapsedKey: 'structrWidgetRemoteCollapsedKey_' + port,
+	localWidgetsCollapsedKey: 'structrWidgetLocalCollapsedKey_' + location.port,
+	remoteWidgetsCollapsedKey: 'structrWidgetRemoteCollapsedKey_' + location.port,
 
 	getContextMenuElements: function (div, entity) {
 
 		let elements = [];
 
 		elements.push({
-			icon: _Icons.svg.pencil_edit,
+			icon: _Icons.getSvgIcon('pencil_edit'),
 			name: 'Edit',
 			clickHandler: function () {
 
@@ -59,7 +59,7 @@ var _Widgets = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.svg.trashcan,
+			icon: _Icons.getSvgIcon('trashcan'),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete Widget',
 			clickHandler: () => {
@@ -76,7 +76,7 @@ var _Widgets = {
 
 	reloadWidgets: function() {
 
-		widgetsSlideout.find(':not(.slideout-activator)').remove();
+		_Pages.widgetsSlideout.find(':not(.slideout-activator)').remove();
 
 		let templateConfig = {
 			localCollapsed: LSWrapper.getItem(_Widgets.localWidgetsCollapsedKey, false),
@@ -85,9 +85,9 @@ var _Widgets = {
 
 		Structr.fetchHtmlTemplate('widgets/slideout', templateConfig, function(html) {
 
-			widgetsSlideout.append(html);
+			_Pages.widgetsSlideout.append(html);
 
-			widgetsSlideout[0].querySelectorAll('a.tab-group-toggle').forEach(function(toggleLink) {
+			_Pages.widgetsSlideout[0].querySelectorAll('a.tab-group-toggle').forEach(function(toggleLink) {
 
 				toggleLink.addEventListener('click', function(event) {
 					let tabGroup = event.target.closest('.tab-group');
@@ -96,9 +96,9 @@ var _Widgets = {
 				});
 			});
 
-			_Widgets.localWidgetsEl = $('#widgets', widgetsSlideout);
+			_Widgets.localWidgetsEl = $('#widgets', _Pages.widgetsSlideout);
 
-			$('.add_widgets_icon', widgetsSlideout).on('click', function(e) {
+			$('.add_widgets_icon', _Pages.widgetsSlideout).on('click', function(e) {
 				e.stopPropagation();
 				Command.create({type: 'Widget'});
 			});
@@ -107,14 +107,14 @@ var _Widgets = {
 				drop: function(e, ui) {
 					e.preventDefault();
 					e.stopPropagation();
-					dropBlocked = true;
+					_Elements.dropBlocked = true;
 					var sourceId = Structr.getId($(ui.draggable));
 					var sourceWidget = StructrModel.obj(sourceId);
 
 					if (sourceWidget && sourceWidget.isWidget) {
 						if (sourceWidget.treePath) {
 							Command.create({ type: 'Widget', name: sourceWidget.name + ' (copied)', source: sourceWidget.source, description: sourceWidget.description, configuration: sourceWidget.configuration }, function(entity) {
-								dropBlocked = false;
+								_Elements.dropBlocked = false;
 							});
 						}
 					} else if (sourceId) {
@@ -124,7 +124,7 @@ var _Widgets = {
 							statusCode: {
 								200: function(data) {
 									Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function(entity) {
-										dropBlocked = false;
+										_Elements.dropBlocked = false;
 									});
 								}
 							}
@@ -144,7 +144,7 @@ var _Widgets = {
 			_wPager.pager.append('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" /></span>');
 			_wPager.activateFilterElements();
 
-			_Widgets.remoteWidgetsEl = $('#remoteWidgets', widgetsSlideout);
+			_Widgets.remoteWidgetsEl = $('#remoteWidgets', _Pages.widgetsSlideout);
 
 			_Widgets.remoteWidgetFilterEl = $('#remoteWidgetsFilter');
 			_Widgets.remoteWidgetFilterEl.keyup(function (e) {
@@ -454,7 +454,7 @@ var _Widgets = {
 //				});
 //			});
 
-			_Entities.appendEditPropertiesIcon(div, widget);
+			_Entities.appendContextMenuIcon(div, widget);
 			_Elements.enableContextMenuOnElement(div, widget);
 		}
 
