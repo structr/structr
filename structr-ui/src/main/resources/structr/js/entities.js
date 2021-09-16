@@ -2342,19 +2342,20 @@ var _Entities = {
 		let button = $(el.children('.expand_icon_svg').first());
 
 		// unregister click handlers
-		//$(el).off('click');
 		$(button).off('click');
 
 		button.remove();
 		el.children('.typeIcon').addClass('typeIcon-nochildren');
 	},
 	makeSelectable: function(el) {
-		var node = $(el).closest('.node');
+		let node = $(el).closest('.node');
 		if (!node || !node.children) {
 			return;
 		}
-		node.on('click', function() {
-			$(this).toggleClass('selected');
+		node.on('click', function(e) {
+			if (e.originalEvent.detail === 1) {
+				$(this).toggleClass('selected');
+			}
 		});
 	},
 	setMouseOver: function(el, allowClick, syncedNodesIds) {

@@ -1032,12 +1032,24 @@ let _Files = {
 			_Entities.appendNewAccessControlIcon(iconsContainer, d);
 		}
 
+		if (d.isFile) {
+			let dblclickHandler = (e) => {
+				_Files.editFile(d);
+			};
+
+			if (div) {
+				let node = div[0].closest('.node');
+				node.removeEventListener('dblclick', dblclickHandler);
+				node.addEventListener('dblclick', dblclickHandler);
+			}
+		}
+
 		_Entities.makeSelectable(div);
 	},
 	handleFolder: function(div, d) {
 
 		if (Structr.isModulePresent('cloud')) {
-			div.append('<i title="Sync folder \'' + d.name + '\' to remote instance" class="push_icon button ' + _Icons.getFullSpriteClass(_Icons.push_file_icon) + '" />');
+			div.append('<i title="Sync folder \'' + d.name + '\' to remote instance" class="push_icon button ' + _Icons.getFullSpriteClass(_Icons.push_file_icon) + '"></i>');
 			div.children('.push_icon').on('click', function() {
 				Structr.pushDialog(d.id, true);
 				return false;
@@ -1320,7 +1332,7 @@ let _Files = {
 
 		selectedElements = $('.node.selected');
 		if (selectedElements.length > 1 && parent.hasClass('selected')) {
-			selectedElements.removeClass('selected');
+			// selectedElements.removeClass('selected');
 		} else {
 			selectedElements = parent;
 		}
@@ -1337,8 +1349,8 @@ let _Files = {
 			}
 		}
 
-		let filesTabs    = document.getElementById('files-tabs');
-		let filesTabsUl  = filesTabs.querySelector('ul');
+		let filesTabs     = document.getElementById('files-tabs');
+		let filesTabsUl   = filesTabs.querySelector('ul');
 		let loadedEditors = 0;
 
 		for (let el of filteredElements) {
