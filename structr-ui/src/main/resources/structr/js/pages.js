@@ -388,7 +388,7 @@ let _Pages = {
 				});
 			}
 
-			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && entity.pageId !== _Pages.shadowPage.id;
+			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && (entity.pageId !== _Pages.shadowPage.id || entity.parent !== null );
 			if (canConvertToSharedComponent) {
 				_Elements.appendContextMenuSeparator(elements);
 
