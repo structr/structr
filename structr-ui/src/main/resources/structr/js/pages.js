@@ -2322,7 +2322,7 @@ let _Pages = {
 
 				_Pages.componentsSlideout.find(':not(.slideout-activator)').remove();
 
-				_Pages.componentsSlideout.append('<div class="" id="newComponentDropzone"><div class="new-component-info"><i class="active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /><i class="inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> Drop element here to create<br>a new shared component</div></div>');
+				_Pages.componentsSlideout.append('<div id="newComponentDropzone"><div class="new-component-info h-16 flex items-center justify-center"><i class="m-2 active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '"></i><i class="m-2 inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '"></i> Drop element here to create a new shared component</div></div>');
 				let newComponentDropzone = $('#newComponentDropzone', _Pages.componentsSlideout);
 
 				_Pages.componentsSlideout.append('<div id="componentsArea"></div>');
@@ -2386,7 +2386,7 @@ let _Pages = {
 
 				_Pages.unattachedNodes.removeElementsFromUI();
 
-				_Pages.unusedElementsTree.append('<button class="btn disabled" id="delete-all-unattached-nodes" disabled> Loading </button>');
+				_Pages.unusedElementsTree.append('<button class="btn disabled flex items-center" id="delete-all-unattached-nodes" disabled> Loading </button>');
 
 				let btn = $('#delete-all-unattached-nodes');
 				Structr.loaderIcon(btn, {
@@ -2412,7 +2412,7 @@ let _Pages = {
 
 					let count = result.length;
 					if (count > 0) {
-						btn.html(_Icons.getSvgIcon('trashcan') + ' Delete all (' + count + ')');
+						btn.html(_Icons.getSvgIcon('trashcan', 16, 16, 'mr-2') + ' Delete all (' + count + ')');
 						btn.removeClass('disabled');
 						btn.prop('disabled', false);
 					} else {

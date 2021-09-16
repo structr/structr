@@ -1508,54 +1508,6 @@ i.button {
 	flex-grow: 1;
 }
 
-#delete-all-unattached-nodes {
-	min-height: 24px;
-}
-
-#delete-all-unattached-nodes svg {
-	vertical-align: top;
-}
-
-/*#componentsArea > .node, #elementsArea > .node {*/
-/*	margin-left: 0;*/
-/*	margin-right: 20px;*/
-/*}*/
-
-#newComponentDropzone {
-	border: .15rem dashed lightgray;
-	border-radius: .25rem;
-	padding: 1rem .5rem;
-	color: lightgray;
-	margin: 1rem;
-}
-
-#newComponentDropzone.allow-drop {
-	color: black;
-}
-
-#newComponentDropzone .new-component-info {
-	text-align: center;
-}
-
-#newComponentDropzone .new-component-info .sprite {
-	vertical-align: middle;
-}
-
-#newComponentDropzone .new-component-info .active {
-	visibility: hidden;
-	display: none;
-}
-
-#newComponentDropzone.allow-drop .new-component-info .inactive {
-	visibility: hidden;
-	display: none;
-}
-
-#newComponentDropzone.allow-drop .new-component-info .active {
-	visibility: visible;
-	display: inline-block;
-}
-
 .node.nodeSelectedFromContextMenu {
     color: var(--gray-333) ! important;
     background-color: var(--light-gray-bg-fa) ! important;
@@ -4623,8 +4575,17 @@ table.props td.__value {
 .items-center {
 	align-items: center;
 }
+.justify-center {
+	justify-content: center;
+}
 .justify-between {
 	justify-content: space-between;
+}
+.h-16 {
+	height: 4rem;
+}
+.m-2 {
+	margin: .5rem;
 }
 .mr-1 {
 	margin-right: .25rem;
