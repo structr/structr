@@ -673,7 +673,7 @@ let _ResourceAccessGrants = {
 				Structr.appendInfoTextToElement({
 					text: flagSanityInfos[key].join('<br><br>'),
 					element: $('input[data-key=' + key + ']', tr),
-					customToggleIcon: _Icons.warning_icon,
+					customToggleIcon: _Icons.exclamation_icon,
 					css: {position:'absolute'},
 					insertAfter: true
 				});
