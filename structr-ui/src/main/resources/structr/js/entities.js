@@ -2865,8 +2865,8 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 
 	} else if (obj.constructor === Object) {
 
-		var displayName = _Crud.displayName(obj);
-		return '<div title="' + escapeForHtmlAttributes(displayName) + '" id="_' + obj.id + '" class="node ' + (obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')) + ' ' + obj.id + '_"><span class="abbr-ellipsis abbr-80">' + displayName + '</span><i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>';
+		let displayName = _Crud.displayName(obj);
+		return '<div title="' + escapeForHtmlAttributes(displayName) + '" id="_' + obj.id + '" class="node ' + (obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')) + ' ' + obj.id + '_"><span class="abbr-ellipsis abbr-80">' + displayName + '</span><i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>';
 
 	} else if (obj.constructor === Array) {
 
@@ -2880,31 +2880,33 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 
 function formatArrayValueField(key, values, isMultiline, isReadOnly, isPassword) {
 
-	let html = '';
+	let html            = '';
+	let readonlyHTML    = (isReadOnly ? ' readonly class="readonly"' : '');
+	let inputTypeHTML   = (isPassword ? 'password' : 'text');
+	let removeIconClass = _Icons.getFullSpriteClass(_Icons.grey_cross_icon);
 
-	values.forEach(function(value) {
+	for (let value of values) {
 
 		if (isMultiline) {
 
-			html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + ' autocomplete="new-password">' + value + '</textarea> <i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>';
+			html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + readonlyHTML + ' autocomplete="new-password">' + value + '</textarea><i title="Remove single value" class="remove ' + removeIconClass + '"></i></div>';
 
 		} else {
 
-			html += '<div class="array-attr"><input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" value="' + value + '"' + (isReadOnly ? 'readonly class="readonly"' : '') + ' autocomplete="new-password"> <i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>';
+			html += '<div class="array-attr"><input name="' + key + '" type="' + inputTypeHTML + '" value="' + value + '"' + readonlyHTML + ' autocomplete="new-password"><i title="Remove single value" class="remove ' + removeIconClass + '"></i></div>';
 		}
-	});
+	}
 
 	if (isMultiline) {
 
-		html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + ' autocomplete="new-password"></textarea></div>';
+		html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + readonlyHTML + ' autocomplete="new-password"></textarea></div>';
 
 	} else {
 
-		html += '<div class="array-attr"><input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" value=""' + (isReadOnly ? 'readonly class="readonly"' : '') + ' autocomplete="new-password"></div>';
+		html += '<div class="array-attr"><input name="' + key + '" type="' + inputTypeHTML + '" value=""' + readonlyHTML + ' autocomplete="new-password"></div>';
 	}
 
 	return html;
-
 }
 
 function formatRegularValueField(key, value, isMultiline, isReadOnly, isPassword) {
