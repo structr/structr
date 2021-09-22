@@ -159,17 +159,18 @@ let _Files = {
 			};
 			initFunctionBar(); // run async (do not await) so it can execute while jstree is initialized
 
-			$.jstree.defaults.core.themes.dots = false;
-			$.jstree.defaults.dnd.inside_pos = 'last';
+			$.jstree.defaults.core.themes.dots      = false;
+			$.jstree.defaults.dnd.inside_pos        = 'last';
 			$.jstree.defaults.dnd.large_drop_target = true;
 
 			_Files.fileTree.on('ready.jstree', function () {
+
 				_TreeHelper.makeTreeElementDroppable(_Files.fileTree, 'root');
 				_TreeHelper.makeTreeElementDroppable(_Files.fileTree, 'favorites');
 
 				_Files.loadAndSetWorkingDir(function () {
 
-					var lastOpenFolder = LSWrapper.getItem(filesLastOpenFolderKey);
+					let lastOpenFolder = LSWrapper.getItem(filesLastOpenFolderKey);
 
 					if (lastOpenFolder === 'favorites') {
 
@@ -181,7 +182,10 @@ let _Files = {
 
 					} else {
 
-						$('#root_anchor').click();
+						let selectedNode = _Files.fileTree.jstree('get_selected');
+						if (selectedNode.length === 0) {
+							$('#root_anchor').click();
+						}
 					}
 				});
 			});
@@ -458,7 +462,7 @@ let _Files = {
 
 			case '#':
 
-				var defaultFilesystemEntries = [
+				let defaultFilesystemEntries = [
 					{
 						id: 'favorites',
 						text: 'Favorite Files',
@@ -472,8 +476,7 @@ let _Files = {
 						icon: _Icons.structr_logo_small,
 						path: '/',
 						state: {
-							opened: true,
-							selected: true
+							opened: true
 						}
 					}
 				];
@@ -604,7 +607,7 @@ let _Files = {
 	},
 	loadAndSetWorkingDir: function(callback) {
 		Command.rest("/me/ui", function (result) {
-			var me = result[0];
+			let me = result[0];
 			if (me.workingDirectory) {
 				_Files.currentWorkingDir = me.workingDirectory;
 			} else {
