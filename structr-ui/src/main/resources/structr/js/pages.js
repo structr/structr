@@ -165,16 +165,17 @@ let _Pages = {
 				}, _Pages.rightSlideoutClosedCallback);
 			});
 
+			let componentsTab = $('#componentsTab');
 			let componentsTabSlideoutAction = function () {
-				_Pages.rightSlideoutClickTrigger(this, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout], (params) => {
-					LSWrapper.setItem(_Pages.activeTabRightKey, $(this).prop('id'));
+				_Pages.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.prop('id'));
 					if (params.isOpenAction) {
 						_Pages.sharedComponents.reload();
 					}
 					_Pages.resize();
 				}, _Pages.rightSlideoutClosedCallback);
 			};
-			$('#componentsTab').on('click', componentsTabSlideoutAction).droppable({
+			componentsTab.on('click', componentsTabSlideoutAction).droppable({
 				tolerance: 'touch',
 				over: function (e, ui) {
 
