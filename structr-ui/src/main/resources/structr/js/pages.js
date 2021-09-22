@@ -176,8 +176,12 @@ let _Pages = {
 			};
 			$('#componentsTab').on('click', componentsTabSlideoutAction).droppable({
 				tolerance: 'touch',
-				over: function () {
-					if (!_Pages.componentsSlideout.hasClass('open')) {
+				over: function (e, ui) {
+
+					let isComponentsSlideoutOpen = _Pages.componentsSlideout.hasClass('open');
+					let isColumnResizer          = $(ui.draggable).hasClass('column-resizer');
+
+					if (!isComponentsSlideoutOpen && !isColumnResizer) {
 						componentsTabSlideoutAction();
 					}
 				}
