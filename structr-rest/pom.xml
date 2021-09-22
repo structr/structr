@@ -48,17 +48,17 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			<version>9.4.42.v20210604</version>
+			<version>10.0.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlets</artifactId>
-			<version>9.4.42.v20210604</version>
+			<version>10.0.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-runner</artifactId>
-			<version>9.4.42.v20210604</version>
+			<version>10.0.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.tuckey</groupId>

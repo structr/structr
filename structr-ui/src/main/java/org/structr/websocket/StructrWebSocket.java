@@ -365,7 +365,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 			if (session != null && session.getRemote() != null) {
 
-				session.getRemote().sendStringByFuture(msg);
+				session.getRemote().sendString(msg);
 
 			} else {
 

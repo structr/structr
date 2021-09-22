@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.session.SessionCache;
-import org.eclipse.jetty.websocket.servlet.UpgradeHttpServletRequest;
+import org.eclipse.jetty.websocket.server.JettyServerUpgradeRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -92,7 +92,7 @@ public class SessionHelper {
 
 		if (request.getSession(true) == null) {
 
-			if (request instanceof UpgradeHttpServletRequest) {
+			if (request instanceof JettyServerUpgradeRequest) {
 				logger.debug("Requested to create a new session on a Websocket request, aborting");
 				return;
 			}

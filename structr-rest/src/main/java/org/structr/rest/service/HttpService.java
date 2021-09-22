@@ -72,6 +72,7 @@ import org.eclipse.jetty.util.resource.JarResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -138,6 +139,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		logger.info("Starting {} (host={}:{}, maxIdleTime={}, requestHeaderSize={})", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue(), maxIdleTime, requestHeaderSize);
 		logger.info("Base path {}", Settings.getBasePath());
 		logger.info("{} started at http://{}:{}", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
+
 
 		server.start();
 
@@ -271,7 +273,6 @@ public class HttpService implements RunnableService, StatsCallback {
 			gzipHandler.setIncludedMimeTypes("text/html", "text/xml", "text/plain", "text/css", "text/javascript", "application/javascript", "application/json", "image/svg+xml");
 			gzipHandler.setInflateBufferSize(32768);
 			gzipHandler.setMinGzipSize(256);
-			gzipHandler.setCompressionLevel(9);
 			gzipHandler.setIncludedMethods("GET", "POST", "PUT", "HEAD", "DELETE");
 			gzipHandler.addIncludedPaths("/*");
 			gzipHandler.setDispatcherTypes(EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
@@ -454,6 +455,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			logger.info("Adding servlet {} for {}", new Object[]{servletHolder, path});
 
 			servletContext.addServlet(servletHolder, path);
+			JettyWebSocketServletContainerInitializer.configure(servletContext, null);
 		}
 
 		contexts.addHandler(servletContext);

@@ -1307,7 +1307,7 @@ let Structr = {
 	},
 	updateVersionInfo: function(retryCount = 0, isLogin = false) {
 
-		fetch(rootUrl + '/_env').then(function(response) {
+		fetch(rootUrl + '_env').then(function(response) {
 
 			if (response.ok) {
 				return response.json();
