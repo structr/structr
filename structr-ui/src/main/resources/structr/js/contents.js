@@ -578,7 +578,7 @@ let _Contents = {
 			}
 		});
 
-		_Entities.appendEditPropertiesIcon(div, d);
+		_Entities.appendContextMenuIcon(div, d);
 		_Entities.setMouseOver(div);
 		_Entities.makeSelectable(div);
 		_Elements.enableContextMenuOnElement(div, d);

@@ -27,6 +27,8 @@ let _Pages = {
 	urlHashKey: 'structrUrlHashKey_' + location.port,
 	activeTabRightKey: 'structrActiveTabRight_' + location.port,
 	activeTabLeftKey: 'structrActiveTabLeft_' + location.port,
+	leftTabMinWidth: 400,
+	rightTabMinWidth: 400,
 	selectedTypeKey: 'structrSelectedType_' + location.port,
 	autoRefreshDisabledKey: 'structrAutoRefreshDisabled_' + location.port,
 	detailsObjectIdKey: 'structrDetailsObjectId_' + location.port,
@@ -163,19 +165,24 @@ let _Pages = {
 				}, _Pages.rightSlideoutClosedCallback);
 			});
 
+			let componentsTab = $('#componentsTab');
 			let componentsTabSlideoutAction = function () {
-				_Pages.rightSlideoutClickTrigger(this, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout], (params) => {
-					LSWrapper.setItem(_Pages.activeTabRightKey, $(this).prop('id'));
+				_Pages.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.prop('id'));
 					if (params.isOpenAction) {
 						_Pages.sharedComponents.reload();
 					}
 					_Pages.resize();
 				}, _Pages.rightSlideoutClosedCallback);
 			};
-			$('#componentsTab').on('click', componentsTabSlideoutAction).droppable({
+			componentsTab.on('click', componentsTabSlideoutAction).droppable({
 				tolerance: 'touch',
-				over: function () {
-					if (!_Pages.componentsSlideout.hasClass('open')) {
+				over: function (e, ui) {
+
+					let isComponentsSlideoutOpen = _Pages.componentsSlideout.hasClass('open');
+					let isColumnResizer          = $(ui.draggable).hasClass('column-resizer');
+
+					if (!isComponentsSlideoutOpen && !isColumnResizer) {
 						componentsTabSlideoutAction();
 					}
 				}
@@ -388,7 +395,7 @@ let _Pages = {
 				});
 			}
 
-			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && entity.pageId !== _Pages.shadowPage.id;
+			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && (entity.pageId !== _Pages.shadowPage.id || entity.parent !== null );
 			if (canConvertToSharedComponent) {
 				_Elements.appendContextMenuSeparator(elements);
 
@@ -648,8 +655,8 @@ let _Pages = {
 	resizeColumns: function(pxLeft, pxRight) {
 
 		if (!pxLeft && !pxRight) {
-			pxLeft = LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 200;
-			pxRight = LSWrapper.getItem(_Pages.pagesResizerRightKey) || 200;
+			pxLeft  = LSWrapper.getItem(_Pages.pagesResizerLeftKey)  || _Pages.leftTabMinWidth;
+			pxRight = LSWrapper.getItem(_Pages.pagesResizerRightKey) || _Pages.rightTabMinWidth;
 		}
 
 		let leftResizer       = document.querySelector('.column-resizer-left');
@@ -744,8 +751,8 @@ let _Pages = {
 				_Pages.resize();
 			});
 
-			Structr.initVerticalSlider($('.column-resizer-left', main), _Pages.pagesResizerLeftKey, 400, _Pages.moveLeftResizer);
-			Structr.initVerticalSlider($('.column-resizer-right', main), _Pages.pagesResizerRightKey, 400, _Pages.moveRightResizer, true);
+			Structr.initVerticalSlider($('.column-resizer-left', main), _Pages.pagesResizerLeftKey, _Pages.leftTabMinWidth, _Pages.moveLeftResizer);
+			Structr.initVerticalSlider($('.column-resizer-right', main), _Pages.pagesResizerRightKey, _Pages.rightTabMinWidth, _Pages.moveRightResizer, true);
 
 			Structr.unblockMenu(500);
 
@@ -1259,7 +1266,7 @@ let _Pages = {
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 		//_Entities.appendAccessControlIcon(div, entity);
 
-		_Entities.appendEditPropertiesIcon(div, entity);
+		_Entities.appendContextMenuIcon(div, entity);
 
 		_Elements.enableContextMenuOnElement(div, entity);
 		_Entities.setMouseOver(div);
@@ -1743,7 +1750,7 @@ let _Pages = {
 
 					if (schemaNodes.length === 1) {
 
-						_Entities.appendEditPropertiesIcon($div, {
+						_Entities.appendContextMenuIcon($div, {
 							type: _Pages.localizations.wrapperTypeForContextMenu,
 							entity: schemaNodes[0]
 						}, false);
@@ -1752,7 +1759,7 @@ let _Pages = {
 
 			} else {
 
-				_Entities.appendEditPropertiesIcon($div, {
+				_Entities.appendContextMenuIcon($div, {
 					type: _Pages.localizations.wrapperTypeForContextMenu,
 					entity: entity
 				}, false);
@@ -2322,7 +2329,7 @@ let _Pages = {
 
 				_Pages.componentsSlideout.find(':not(.slideout-activator)').remove();
 
-				_Pages.componentsSlideout.append('<div class="" id="newComponentDropzone"><div class="new-component-info"><i class="active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /><i class="inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> Drop element here to create<br>a new shared component</div></div>');
+				_Pages.componentsSlideout.append('<div id="newComponentDropzone"><div class="new-component-info h-16 flex items-center justify-center"><i class="m-2 active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '"></i><i class="m-2 inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '"></i> Drop element here to create a new shared component</div></div>');
 				let newComponentDropzone = $('#newComponentDropzone', _Pages.componentsSlideout);
 
 				_Pages.componentsSlideout.append('<div id="componentsArea"></div>');
@@ -2386,7 +2393,7 @@ let _Pages = {
 
 				_Pages.unattachedNodes.removeElementsFromUI();
 
-				_Pages.unusedElementsTree.append('<button class="btn disabled" id="delete-all-unattached-nodes" disabled> Loading </button>');
+				_Pages.unusedElementsTree.append('<button class="btn disabled flex items-center" id="delete-all-unattached-nodes" disabled> Loading </button>');
 
 				let btn = $('#delete-all-unattached-nodes');
 				Structr.loaderIcon(btn, {
@@ -2412,7 +2419,7 @@ let _Pages = {
 
 					let count = result.length;
 					if (count > 0) {
-						btn.html(_Icons.getSvgIcon('trashcan') + ' Delete all (' + count + ')');
+						btn.html(_Icons.getSvgIcon('trashcan', 16, 16, 'mr-2') + ' Delete all (' + count + ')');
 						btn.removeClass('disabled');
 						btn.prop('disabled', false);
 					} else {

@@ -235,7 +235,7 @@
 }
 
 #files-table th:nth-child(2) {
-	padding-left: 1.5rem;
+	padding-left: 1rem;
 }
 
 #files-table tbody tr td .editable {
@@ -257,7 +257,7 @@
 
 #files-table tbody tr td .node {
 	min-width: 6rem;
-	padding-left: .5rem;
+	padding-right: .5rem;
 }
 
 #files-table tbody tr td input {
@@ -658,4 +658,23 @@ div#xml-configurations button {
 
 .file-tab.has-changes::after {
 	content: "*";
+}
+
+/* resets so we can use tailwind classes */
+#files-table .node-menu-icon {
+	justify-self: end;
+	position: initial;
+	min-width: 16px;
+}
+
+#files-table .nodeHover > .icons-container .node-menu-icon {
+	display: inline-block;
+	/*color: var(--icon-stroke-hover);*/
+}
+
+#files-table .key_icon {
+	justify-self: end;
+	position: initial;
+	min-width: 16px;
+	margin-left: 0 !important;
 }

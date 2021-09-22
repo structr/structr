@@ -217,7 +217,7 @@ let _UsersAndGroups = {
 
 		_Security.userList.appendChild(userDiv[0]);
 
-		_Entities.appendEditPropertiesIcon(userDiv, user);
+		_Entities.appendContextMenuIcon(userDiv, user);
 		_Elements.enableContextMenuOnElement(userDiv, user);
 		_UsersAndGroups.setMouseOver(userDiv, user.id, '.userid_');
 	},
@@ -271,7 +271,7 @@ let _UsersAndGroups = {
 					$(grpEl).append(userDiv);
 					userDiv.removeClass('disabled');
 
-					_Entities.appendEditPropertiesIcon(userDiv, member);
+					_Entities.appendContextMenuIcon(userDiv, member);
 					_Elements.enableContextMenuOnElement(userDiv, member);
 					_UsersAndGroups.setMouseOver(userDiv, member.id, prefix);
 				}
@@ -301,7 +301,7 @@ let _UsersAndGroups = {
 
 				groupDiv.removeClass('disabled');
 
-				_Entities.appendEditPropertiesIcon(groupDiv, member);
+				_Entities.appendContextMenuIcon(groupDiv, member);
 				_Elements.enableContextMenuOnElement(groupDiv, member);
 				_UsersAndGroups.setMouseOver(groupDiv, member.id, prefix);
 
@@ -399,7 +399,7 @@ let _UsersAndGroups = {
 		element.append(groupDiv);
 
 		_Entities.appendExpandIcon(groupDiv, group, hasChildren, Structr.isExpanded(group.id));
-		_Entities.appendEditPropertiesIcon(groupDiv, group);
+		_Entities.appendContextMenuIcon(groupDiv, group);
 		_Elements.enableContextMenuOnElement(groupDiv, group);
 		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.groupid_');
 
@@ -673,7 +673,7 @@ let _ResourceAccessGrants = {
 				Structr.appendInfoTextToElement({
 					text: flagSanityInfos[key].join('<br><br>'),
 					element: $('input[data-key=' + key + ']', tr),
-					customToggleIcon: _Icons.warning_icon,
+					customToggleIcon: _Icons.exclamation_icon,
 					css: {position:'absolute'},
 					insertAfter: true
 				});

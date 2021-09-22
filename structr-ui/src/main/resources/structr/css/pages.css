@@ -390,3 +390,33 @@ input.dataKey_ {
 	width: calc(100% - 28px);
 	margin-right: 2px;
 }
+
+#newComponentDropzone {
+	border: .15rem dashed lightgray;
+	border-radius: .25rem;
+	color: lightgray;
+	margin: 1rem;
+}
+
+#newComponentDropzone.allow-drop {
+	color: black;
+}
+
+#newComponentDropzone .new-component-info .sprite {
+	min-width: 16px;
+}
+
+#newComponentDropzone .new-component-info .active {
+	visibility: hidden;
+	display: none;
+}
+
+#newComponentDropzone.allow-drop .new-component-info .inactive {
+	visibility: hidden;
+	display: none;
+}
+
+#newComponentDropzone.allow-drop .new-component-info .active {
+	visibility: visible;
+	display: inline-block;
+}

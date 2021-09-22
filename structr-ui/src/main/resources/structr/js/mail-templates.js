@@ -216,7 +216,7 @@ let _MailTemplates = {
 			});
 
 			_Elements.enableContextMenuOnElement($(row), mailTemplate);
-			_Entities.appendEditPropertiesIcon($(row.querySelector('.actions')), mailTemplate, true);
+			_Entities.appendContextMenuIcon($(row.querySelector('.actions')), mailTemplate, true);
 
 			let lastSelectedMailTemplateId = LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey);
 			if (lastSelectedMailTemplateId === mailTemplate.id) {

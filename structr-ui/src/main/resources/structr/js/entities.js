@@ -32,7 +32,7 @@ var _Entities = {
 	changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
 
 		if (value === true) {
-			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html('<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' + (activeLabel ? ' ' + activeLabel : ''));
+			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html(_Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2') + (activeLabel ? ' ' + activeLabel : ''));
 		} else {
 			attrElement.removeClass('active').addClass('inactive').prop('checked', false).text((inactiveLabel ? inactiveLabel : '-'));
 		}
@@ -1930,9 +1930,9 @@ var _Entities = {
 	},
 	appendAccessControlIcon: function(parent, entity) {
 
-		var isProtected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
+		let isProtected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
 
-		var keyIcon = $('.key_icon', parent);
+		let keyIcon = $('.key_icon', parent);
 		if (!(keyIcon && keyIcon.length)) {
 
 			keyIcon = $('<i title="Access Control and Visibility" class="key_icon button ' + (isProtected ? 'donthide ' : '') + _Icons.getFullSpriteClass(_Icons.key_icon) + '" ' + (isProtected ? 'style="display: inline-block;"' : '') + '/>');
@@ -1950,9 +1950,9 @@ var _Entities = {
 	},
 	accessControlDialog: function(entity, el, typeInfo) {
 
-		var id = entity.id;
+		let id = entity.id;
 
-		var handleGraphObject = function(entity) {
+		let handleGraphObject = function(entity) {
 
 			let owner_select_id = 'owner_select_' + id;
 			el.append('<h3>Owner</h3><div><select id="' + owner_select_id + '"></select></div>');
@@ -2000,15 +2000,15 @@ var _Entities = {
 				}
 			});
 
-			let ownerSelect = $('#' + owner_select_id, el);
+			let ownerSelect   = $('#' + owner_select_id, el);
 			let granteeSelect = $('#newPrincipal', el);
-			let spinnerIcon = Structr.loaderIcon(granteeSelect.parent(), {float: 'right'});
+			let spinnerIcon   = Structr.loaderIcon(granteeSelect.parent(), {float: 'right'});
 
 			Command.getByType('Principal', null, null, 'name', 'asc', 'id,name,isGroup', false, function(principals) {
 
-				let ownerOptions = '';
+				let ownerOptions        = '';
 				let granteeGroupOptions = '';
-				let granteeUserOptions = '';
+				let granteeUserOptions  = '';
 
 				if (entity.owner) {
 					// owner is first entry
@@ -2136,9 +2136,6 @@ var _Entities = {
 		});
 
 		_Entities.accessControlDialog(entity, dialogText);
-
-		_Elements.clickOrSelectElementIfLastSelected(div, entity);
-
 	},
 	addPrincipal: function (entity, principal, permissions, allowRecursive, container) {
 
@@ -2230,7 +2227,7 @@ var _Entities = {
 		if (!el || !entity) {
 			return false;
 		}
-		el.append('<div class="' + entity.id + '_"><button class="switch inactive ' + key + '_"></button>' + desc + '</div>');
+		el.append('<div class="' + entity.id + '_"><button class="switch inactive ' + key + '_ inline-flex items-center"></button>' + desc + '</div>');
 
 		let sw = $('.' + key + '_', el);
 		_Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
@@ -2247,9 +2244,35 @@ var _Entities = {
 			});
 		});
 	},
-	appendEditPropertiesIcon: function(parent, entity, visible) {
+	appendNewAccessControlIcon: function(parent, entity) {
 
-		let editIcon = $('.edit_props_icon', parent);
+		let keyIcon = $('.svg_key_icon', parent);
+		if (!(keyIcon && keyIcon.length)) {
+
+			keyIcon = $(_Icons.getSvgIcon(_Entities.getVisibilityIconId(entity), 16, 16, 'svg_key_icon icon-grey cursor-pointer'));
+			parent.append(keyIcon);
+
+			_Entities.bindAccessControl(keyIcon, entity);
+		}
+	},
+	getVisibilityIconId: (entity) => {
+
+		let iconId = 'visibility-lock-key';
+
+		if (true === entity.visibleToPublicUsers &&  true === entity.visibleToAuthenticatedUsers) {
+
+			iconId = 'visibility-lock-open';
+
+		} else if (false === entity.visibleToPublicUsers &&  false === entity.visibleToAuthenticatedUsers) {
+
+			iconId = 'visibility-lock-locked';
+		}
+
+		return iconId;
+	},
+	appendContextMenuIcon: function(parent, entity, visible) {
+
+		let editIcon = $('.node-menu-icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
 			editIcon = $(_Icons.getSvgIcon('kebab_icon'));
@@ -2319,19 +2342,20 @@ var _Entities = {
 		let button = $(el.children('.expand_icon_svg').first());
 
 		// unregister click handlers
-		//$(el).off('click');
 		$(button).off('click');
 
 		button.remove();
 		el.children('.typeIcon').addClass('typeIcon-nochildren');
 	},
 	makeSelectable: function(el) {
-		var node = $(el).closest('.node');
+		let node = $(el).closest('.node');
 		if (!node || !node.children) {
 			return;
 		}
-		node.on('click', function() {
-			$(this).toggleClass('selected');
+		node.on('click', function(e) {
+			if (e.originalEvent.detail === 1) {
+				$(this).toggleClass('selected');
+			}
 		});
 	},
 	setMouseOver: function(el, allowClick, syncedNodesIds) {
@@ -2841,8 +2865,8 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 
 	} else if (obj.constructor === Object) {
 
-		var displayName = _Crud.displayName(obj);
-		return '<div title="' + escapeForHtmlAttributes(displayName) + '" id="_' + obj.id + '" class="node ' + (obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')) + ' ' + obj.id + '_"><span class="abbr-ellipsis abbr-80">' + displayName + '</span><i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>';
+		let displayName = _Crud.displayName(obj);
+		return '<div title="' + escapeForHtmlAttributes(displayName) + '" id="_' + obj.id + '" class="node ' + (obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')) + ' ' + obj.id + '_"><span class="abbr-ellipsis abbr-80">' + displayName + '</span><i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>';
 
 	} else if (obj.constructor === Array) {
 
@@ -2856,31 +2880,33 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 
 function formatArrayValueField(key, values, isMultiline, isReadOnly, isPassword) {
 
-	let html = '';
+	let html            = '';
+	let readonlyHTML    = (isReadOnly ? ' readonly class="readonly"' : '');
+	let inputTypeHTML   = (isPassword ? 'password' : 'text');
+	let removeIconClass = _Icons.getFullSpriteClass(_Icons.grey_cross_icon);
 
-	values.forEach(function(value) {
+	for (let value of values) {
 
 		if (isMultiline) {
 
-			html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + ' autocomplete="new-password">' + value + '</textarea> <i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>';
+			html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + readonlyHTML + ' autocomplete="new-password">' + value + '</textarea><i title="Remove single value" class="remove ' + removeIconClass + '"></i></div>';
 
 		} else {
 
-			html += '<div class="array-attr"><input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" value="' + value + '"' + (isReadOnly ? 'readonly class="readonly"' : '') + ' autocomplete="new-password"> <i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>';
+			html += '<div class="array-attr"><input name="' + key + '" type="' + inputTypeHTML + '" value="' + value + '"' + readonlyHTML + ' autocomplete="new-password"><i title="Remove single value" class="remove ' + removeIconClass + '"></i></div>';
 		}
-	});
+	}
 
 	if (isMultiline) {
 
-		html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + ' autocomplete="new-password"></textarea></div>';
+		html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + readonlyHTML + ' autocomplete="new-password"></textarea></div>';
 
 	} else {
 
-		html += '<div class="array-attr"><input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" value=""' + (isReadOnly ? 'readonly class="readonly"' : '') + ' autocomplete="new-password"></div>';
+		html += '<div class="array-attr"><input name="' + key + '" type="' + inputTypeHTML + '" value=""' + readonlyHTML + ' autocomplete="new-password"></div>';
 	}
 
 	return html;
-
 }
 
 function formatRegularValueField(key, value, isMultiline, isReadOnly, isPassword) {

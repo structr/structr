@@ -454,7 +454,7 @@ let _Widgets = {
 //				});
 //			});
 
-			_Entities.appendEditPropertiesIcon(div, widget);
+			_Entities.appendContextMenuIcon(div, widget);
 			_Elements.enableContextMenuOnElement(div, widget);
 		}
 
