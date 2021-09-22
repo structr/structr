@@ -27,6 +27,8 @@ let _Pages = {
 	urlHashKey: 'structrUrlHashKey_' + location.port,
 	activeTabRightKey: 'structrActiveTabRight_' + location.port,
 	activeTabLeftKey: 'structrActiveTabLeft_' + location.port,
+	leftTabMinWidth: 400,
+	rightTabMinWidth: 400,
 	selectedTypeKey: 'structrSelectedType_' + location.port,
 	autoRefreshDisabledKey: 'structrAutoRefreshDisabled_' + location.port,
 	detailsObjectIdKey: 'structrDetailsObjectId_' + location.port,
@@ -648,8 +650,8 @@ let _Pages = {
 	resizeColumns: function(pxLeft, pxRight) {
 
 		if (!pxLeft && !pxRight) {
-			pxLeft = LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 200;
-			pxRight = LSWrapper.getItem(_Pages.pagesResizerRightKey) || 200;
+			pxLeft  = LSWrapper.getItem(_Pages.pagesResizerLeftKey)  || _Pages.leftTabMinWidth;
+			pxRight = LSWrapper.getItem(_Pages.pagesResizerRightKey) || _Pages.rightTabMinWidth;
 		}
 
 		let leftResizer       = document.querySelector('.column-resizer-left');
@@ -744,8 +746,8 @@ let _Pages = {
 				_Pages.resize();
 			});
 
-			Structr.initVerticalSlider($('.column-resizer-left', main), _Pages.pagesResizerLeftKey, 400, _Pages.moveLeftResizer);
-			Structr.initVerticalSlider($('.column-resizer-right', main), _Pages.pagesResizerRightKey, 400, _Pages.moveRightResizer, true);
+			Structr.initVerticalSlider($('.column-resizer-left', main), _Pages.pagesResizerLeftKey, _Pages.leftTabMinWidth, _Pages.moveLeftResizer);
+			Structr.initVerticalSlider($('.column-resizer-right', main), _Pages.pagesResizerRightKey, _Pages.rightTabMinWidth, _Pages.moveRightResizer, true);
 
 			Structr.unblockMenu(500);
 
