@@ -106,21 +106,21 @@ let _Contents = {
 
 				if (contentItemTypes.length === 0) {
 					Structr.appendInfoTextToElement({
-						text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentItem</u></b> to add ContentItems",
+						text: "It is recommended to create a custom type extending <b>org.structr.web.entity.<u>ContentItem</u></b> to create ContentItems.<br><br>If only one type of ContentItem is required, custom attributes can be added to the type ContentItem in the schema.",
 						element: $(itemTypeSelect).parent(),
 						after: true,
 						css: { marginLeft: '-1rem', marginRight: '1rem' }
 					});
 				}
 
-				if (contentContainerTypes.length === 0) {
-					Structr.appendInfoTextToElement({
-						text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers",
-						element: $(containerTypeSelect).parent(),
-						after: true,
-						css: { marginLeft: '-1rem', marginRight: '1rem' }
-					});
-				}
+				// if (contentContainerTypes.length === 0) {
+				// 	Structr.appendInfoTextToElement({
+				// 		text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers",
+				// 		element: $(containerTypeSelect).parent(),
+				// 		after: true,
+				// 		css: { marginLeft: '-1rem', marginRight: '1rem' }
+				// 	});
+				// }
 
 				// _Contents.searchField = $('.search', $(functionBar));
 				// _Contents.searchField.focus();
@@ -621,12 +621,6 @@ let _Contents = {
 
 			_Entities.getSchemaProperties(entity.type, 'custom', function(properties) {
 
-				var typeInfo = {};
-				$(properties).each(function(i, prop) {
-					typeInfo[prop.jsonName] = prop;
-				});
-
-				//let properties = schemaNodes[0].schemaProperties.concat(schemaNodes[0].relatedTo);
 				let props = Object.values(properties);
 
 				//_Contents.sortBySchemaOrder(entity.type, 'custom', properties, function(props) {
@@ -638,18 +632,15 @@ let _Contents = {
 						let isCollection = prop.isCollection || false;
 						let isReadOnly   = prop.isReadOnly   || false;
 						let isSystem     = prop.system       || false;
-
-						//var isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
-
-						var oldVal = entity[key];
+						let oldVal       = entity[key];
 
 						dialogText.append('<div id="prop-' + key + '" class="prop"><label for="' + key + '"><h3>' + formatKey(key) + '</h3></label></div>');
-						var div = $('#prop-' + key);
+						let div = $('#prop-' + key);
 
 						if (prop.type === 'Boolean') {
 
 							div.removeClass('value').append('<div class="value-container"><input type="checkbox" class="' + key + '_"></div>');
-							var checkbox = div.find('input[type="checkbox"].' + key + '_');
+							let checkbox = div.find('input[type="checkbox"].' + key + '_');
 							Command.getProperty(entity.id, key, function(val) {
 								if (val) {
 									checkbox.prop('checked', true);
@@ -670,7 +661,7 @@ let _Contents = {
 
 							div.append('<div class="value-container"></div>');
 							_Entities.appendDatePicker($('.value-container', div), entity, key, prop.format || "yyyy-MM-dd'T'HH:mm:ssZ");
-							var valueInput = $('.value-container input', div);
+							let valueInput = $('.value-container input', div);
 							valueInput.on('change', function(e) {
 								if (e.keyCode !== 27) {
 									Command.get(entity.id, key, function(newEntity) {
@@ -693,11 +684,11 @@ let _Contents = {
 
 							if (entity[key]) {
 
-								var relatedNodes = $('.related-nodes', div);
+								let relatedNodes = $('.related-nodes', div);
 
 								if (!isCollection) {
 
-									var nodeId = entity[key].id || entity[key];
+									let nodeId = entity[key].id || entity[key];
 
 									Command.get(nodeId, 'id,type,tag,isContent,content,name', function(node) {
 
@@ -716,9 +707,7 @@ let _Contents = {
 												});
 												return false;
 											});
-
 										});
-
 									});
 
 								} else {
@@ -742,18 +731,15 @@ let _Contents = {
 												});
 											});
 										});
-
 									});
-
 								}
-
 							}
 
 						} else {
 
 							if (prop.contentType && prop.contentType === 'text/html') {
 								div.append('<div class="value-container edit-area">' + (oldVal || '') + '</div>');
-								var editArea = $('.edit-area', div);
+								let editArea = $('.edit-area', div);
 								editArea.trumbowyg({
 									//btns: ['strong', 'em', '|', 'insertImage'],
 									//autogrow: true
@@ -837,10 +823,8 @@ let _Contents = {
 										blinkGreen(f);
 									}
 								});
-
 							}
 						}
-
 					});
 
 					setTimeout(function() {
@@ -869,7 +853,6 @@ let _Contents = {
 			});
 
 		}, 'all');
-
 	},
 	sortBySchemaOrder: function(type, view, properties, callback) {
 
@@ -928,20 +911,20 @@ let _Contents = {
 			}
 		});
 	},
-	appendEditFileIcon: function(parent, item) {
-
-		var editIcon = $('.edit_file_icon', parent);
-
-		if (!(editIcon && editIcon.length)) {
-			parent.append('<i title="Edit ' + item.name + ' [' + item.id + ']" class="edit_file_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-		}
-
-		$(parent.children('.edit_file_icon')).on('click', function(e) {
-			e.stopPropagation();
-
-			_Contents.editItem(item);
-		});
-	},
+	// appendEditFileIcon: function(parent, item) {
+	//
+	// 	var editIcon = $('.edit_file_icon', parent);
+	//
+	// 	if (!(editIcon && editIcon.length)) {
+	// 		parent.append('<i title="Edit ' + item.name + ' [' + item.id + ']" class="edit_file_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
+	// 	}
+	//
+	// 	$(parent.children('.edit_file_icon')).on('click', function(e) {
+	// 		e.stopPropagation();
+	//
+	// 		_Contents.editItem(item);
+	// 	});
+	// },
 	displaySearchResultsForURL: function(url) {
 
 		$('#search-results').remove();
