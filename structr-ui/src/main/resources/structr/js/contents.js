@@ -16,12 +16,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var main, contentsMain, contentTree, contentsContents;
+var main;
 var selectedElements = [];
-var currentContentContainer;
-var containerPageSize = 10000, containerPage = 1;
-var currentContentContainerKey = 'structrCurrentContentContainer_' + location.port;
-var contentsResizerLeftKey = 'structrContentsResizerLeftKey_' + location.port;
 
 $(document).ready(function() {
 	Structr.registerModule(_Contents);
@@ -30,6 +26,15 @@ $(document).ready(function() {
 let _Contents = {
 	_moduleName: 'contents',
 	searchField: undefined,
+	contentsMain: undefined,
+	contentTree: undefined,
+	contentsContents: undefined,
+	currentContentContainer: undefined,
+	containerPageSize: 10000,
+	containerPage: 1,
+	currentContentContainerKey: 'structrCurrentContentContainer_' + location.port,
+	contentsResizerLeftKey: 'structrContentsResizerLeftKey_' + location.port,
+
 	init: function() {
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
@@ -39,10 +44,10 @@ let _Contents = {
 		Structr.resize();
 	},
 	moveResizer: function(left) {
-		left = left || LSWrapper.getItem(contentsResizerLeftKey) || 300;
-		$('.column-resizer', contentsMain).css({ left: left });
+		left = left || LSWrapper.getItem(_Contents.contentsResizerLeftKey) || 300;
+		$('.column-resizer', _Contents.contentsMain).css({ left: left });
 
-		contentTree.css({width: left - 14 + 'px'});
+		_Contents.contentTree.css({width: left - 14 + 'px'});
 	},
 	onload: function() {
 
@@ -54,12 +59,12 @@ let _Contents = {
 
 			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('contents'));
 
-			contentsMain     = $('#contents-main');
-			contentTree      = $('#contents-tree');
-			contentsContents = $('#contents-contents');
+			_Contents.contentsMain     = $('#contents-main');
+			_Contents.contentTree      = $('#contents-tree');
+			_Contents.contentsContents = $('#contents-contents');
 
 			_Contents.moveResizer();
-			Structr.initVerticalSlider($('.column-resizer', contentsMain), contentsResizerLeftKey, 204, _Contents.moveResizer);
+			Structr.initVerticalSlider($('.column-resizer', _Contents.contentsMain), _Contents.contentsResizerLeftKey, 204, _Contents.moveResizer);
 
 			let contentContainerTypes = await _Schema.getDerivedTypes('org.structr.dynamic.ContentContainer', []);
 			let contentItemTypes      = await _Schema.getDerivedTypes('org.structr.dynamic.ContentItem', []);
@@ -76,7 +81,7 @@ let _Contents = {
 				let addContainerButton  = document.getElementById('add-container-button');
 
 				addItemButton.addEventListener('click', () => {
-					let containers = (currentContentContainer ? [ { id : currentContentContainer.id } ] : null);
+					let containers = (_Contents.currentContentContainer ? [ { id : _Contents.currentContentContainer.id } ] : null);
 					Command.create({ type: itemTypeSelect.value, size: 0, containers: containers }, function(f) {
 						_Contents.appendItemOrContainerRow(f);
 						_Contents.refreshTree();
@@ -84,7 +89,7 @@ let _Contents = {
 				});
 
 				addContainerButton.addEventListener('click', () => {
-					let parent = (currentContentContainer ? currentContentContainer.id : null);
+					let parent = (_Contents.currentContentContainer ? _Contents.currentContentContainer.id : null);
 					Command.create({ type: containerTypeSelect.value, parent: parent }, function(f) {
 						_Contents.appendItemOrContainerRow(f);
 						_Contents.refreshTree();
@@ -141,24 +146,23 @@ let _Contents = {
 			$.jstree.defaults.dnd.inside_pos        = 'last';
 			$.jstree.defaults.dnd.large_drop_target = true;
 
-			contentTree.on('ready.jstree', function() {
-				_TreeHelper.makeTreeElementDroppable(contentTree, 'root');
+			_Contents.contentTree.on('ready.jstree', function() {
+				_TreeHelper.makeTreeElementDroppable(_Contents.contentTree, 'root');
 
 				_Contents.loadAndSetWorkingDir(function() {
-					if (currentContentContainer) {
-						_Contents.deepOpen(currentContentContainer);
+					if (_Contents.currentContentContainer) {
+						_Contents.deepOpen(_Contents.currentContentContainer);
 					}
 				});
 			});
 
-			contentTree.on('select_node.jstree', function(evt, data) {
+			_Contents.contentTree.on('select_node.jstree', function(evt, data) {
 
 				_Contents.setWorkingDirectory(data.node.id);
 				_Contents.displayContainerContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
-
 			});
 
-			_TreeHelper.initTree(contentTree, _Contents.treeInitFunction, 'structr-ui-contents');
+			_TreeHelper.initTree(_Contents.contentTree, _Contents.treeInitFunction, 'structr-ui-contents');
 
 			$(window).off('resize').resize(function() {
 				_Contents.resize();
@@ -175,6 +179,18 @@ let _Contents = {
 		const isContentItem      = entity.isContentItem;
 
 		let elements = [];
+
+		if (isContentItem) {
+
+			elements.push({
+				icon: _Icons.getSvgIcon('pencil_edit'),
+				name: 'Edit',
+				clickHandler: function () {
+					_Contents.editItem(entity);
+					return false;
+				}
+			});
+		}
 
 		elements.push({
 			name: 'Properties',
@@ -216,12 +232,12 @@ let _Contents = {
 	},
 	deepOpen: function(d, dirs) {
 
-		_TreeHelper.deepOpen(contentTree, d, dirs, 'parent', (currentContentContainer ? currentContentContainer.id : 'root'));
+		_TreeHelper.deepOpen(_Contents.contentTree, d, dirs, 'parent', (_Contents.currentContentContainer ? _Contents.currentContentContainer.id : 'root'));
 	},
 	refreshTree: function() {
 
-		_TreeHelper.refreshTree(contentTree, function() {
-			_TreeHelper.makeTreeElementDroppable(contentTree, 'root');
+		_TreeHelper.refreshTree(_Contents.contentTree, function() {
+			_TreeHelper.makeTreeElementDroppable(_Contents.contentTree, 'root');
 		});
 	},
 	treeInitFunction: function(obj, callback) {
@@ -260,7 +276,7 @@ let _Contents = {
 		fastRemoveAllChildren($('#contents-main', main));
 	},
 	fulltextSearch: function(searchString) {
-		contentsContents.children().hide();
+		_Contents.contentsContents.children().hide();
 
 		var url;
 		if (searchString.contains(' ')) {
@@ -277,11 +293,11 @@ let _Contents = {
 	clearSearch: function() {
 		$('.search', main).val('');
 		$('#search-results').remove();
-		contentsContents.children().show();
+		_Contents.contentsContents.children().show();
 	},
 	loadAndSetWorkingDir: function(callback) {
 
-		currentContentContainer = LSWrapper.getItem(currentContentContainerKey);
+		_Contents.currentContentContainer = LSWrapper.getItem(_Contents.currentContentContainerKey);
 		callback();
 
 	},
@@ -293,12 +309,12 @@ let _Contents = {
 			filter = {parent: id};
 		}
 
-		Command.query('ContentContainer', containerPageSize, containerPage, 'position', 'asc', filter, function(folders) {
+		Command.query('ContentContainer', _Contents.containerPageSize, _Contents.containerPage, 'position', 'asc', filter, function(folders) {
 
-			var list = [];
+			let list = [];
 
 			folders.forEach(function(d) {
-				var childCount = (d.items && d.items.length > 0) ? ' (' + d.items.length + ')' : '';
+				let childCount = (d.items && d.items.length > 0) ? ' (' + d.items.length + ')' : '';
 				list.push({
 					id: d.id,
 					text: (d.name ? d.name : '[unnamed]') + childCount,
@@ -310,7 +326,7 @@ let _Contents = {
 
 			callback(list);
 
-			_TreeHelper.makeDroppable(contentTree, list);
+			_TreeHelper.makeDroppable(_Contents.contentTree, list);
 
 		}, true, null, 'id,name,items,isContentContainer,childContainers,path');
 
@@ -318,28 +334,18 @@ let _Contents = {
 	setWorkingDirectory: function(id) {
 
 		if (id === 'root') {
-			currentContentContainer = null;
+			_Contents.currentContentContainer = null;
 		} else {
-			currentContentContainer = { 'id': id };
+			_Contents.currentContentContainer = { 'id': id };
 		}
 
-		LSWrapper.setItem(currentContentContainerKey, currentContentContainer);
+		LSWrapper.setItem(_Contents.currentContentContainerKey, _Contents.currentContentContainer);
 	},
 	displayContainerContents: function(id, parentId, nodePath, parents) {
 
-		fastRemoveAllChildren(contentsContents[0]);
-		var path = '';
-		if (parents) {
-			parents = [].concat(parents).reverse().slice(1);
-			var pathNames = nodePath.split('/');
-			pathNames[0] = '/';
-			path = parents.map(function(parent, idx) {
-				return '<a class="breadcrumb-entry" data-folder-id="' + parent + '"><i class="fa fa-caret-right"></i> ' + pathNames[idx] + '</a>';
-			}).join(' ');
-			path += ' <i class="fa fa-caret-right"></i> ' + pathNames.pop();
-		}
+		fastRemoveAllChildren(_Contents.contentsContents[0]);
 
-		var handleChildren = function(children) {
+		let handleChildren = function(children) {
 			if (children && children.length) {
 				children.forEach(_Contents.appendItemOrContainerRow);
 			}
@@ -355,10 +361,10 @@ let _Contents = {
 		_Pager.page['ContentItem'] = 1;
 		_Pager.initFilters('contents-items', 'ContentItem', id === 'root' ? { containers: [] } : { containers: [id] });
 
-		var itemsPager = _Pager.addPager('contents-items', contentsContents, false, 'ContentItem', 'ui', handleChildren);
+		let itemsPager = _Pager.addPager('contents-items', _Contents.contentsContents, false, 'ContentItem', 'ui', handleChildren);
 
 		itemsPager.cleanupFunction = function () {
-			var toRemove = $('.node.item', itemsPager.el).closest('tr');
+			let toRemove = $('.node.item', itemsPager.el).closest('tr');
 			toRemove.each(function(i, elem) {
 				fastRemoveAllChildren(elem);
 			});
@@ -369,20 +375,13 @@ let _Contents = {
 		itemsPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + ((parentId === '#') ? '' : 'checked') + ' hidden>');
 		itemsPager.activateFilterElements();
 
-		contentsContents.append(
-				'<h2>' + path + '</h2>'
-				+ '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th><th>Modified</th></tr></thead>'
+		_Contents.insertBreadCrumbNavigation(parents, nodePath, id);
+
+		_Contents.contentsContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th><th>Modified</th></tr></thead>'
 				+ '<tbody id="files-table-body">'
 				+ ((id !== 'root') ? '<tr id="parent-file-link"><td class="file-icon"><i class="fa fa-folder-o"></i></td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td><td></td></tr>' : '')
 				+ '</tbody></table>'
 		);
-
-		$('.breadcrumb-entry').click(function (e) {
-			e.preventDefault();
-
-			$('#' + $(this).data('folderId') + '_anchor').click();
-
-		});
 
 		$('#parent-file-link').on('click', function(e) {
 
@@ -392,48 +391,67 @@ let _Contents = {
 		});
 
 	},
+	insertBreadCrumbNavigation: function(parents, nodePath, id) {
+
+		if (parents) {
+
+			let preventOldFolderNameInBreadcrumbs = () => {
+				let modelObj = StructrModel.obj(id);
+				if (modelObj && modelObj.path) {
+					nodePath = modelObj.path;
+				}
+			};
+			preventOldFolderNameInBreadcrumbs();
+
+			parents = [].concat(parents).reverse().slice(1);
+
+			let pathNames = (nodePath === '/') ? ['/'] : [''].concat(nodePath.slice(1).split('/'));
+			let path      = parents.map((parent, idx) => { return '<a class="breadcrumb-entry" data-folder-id="' + parent + '">' + pathNames[idx] + '/</a>'; }).join('') + pathNames.pop();
+
+			_Contents.contentsContents.append('<div class="folder-path truncate">' + path + '</div>');
+
+			$('.breadcrumb-entry').click(function (e) {
+				e.preventDefault();
+
+				$('#' + $(this).data('folderId') + '_anchor').click();
+			});
+		}
+	},
 	appendItemOrContainerRow: function(d) {
 
 		// add container/item to global model
 		StructrModel.createFromData(d, null, false);
 
-		var tableBody = $('#files-table-body');
+		let tableBody  = $('#files-table-body');
 
 		$('#row' + d.id, tableBody).remove();
 
-		var items = d.items || [];
-		var containers = d.containers || [];
-		var size = d.isContentContainer ? containers.length + items.length : (d.size ? d.size : '-');
+		let items      = d.items || [];
+		let containers = d.containers || [];
+		let size       = d.isContentContainer ? containers.length + items.length : (d.size ? d.size : '-');
 
-		var rowId = 'row' + d.id;
+		let rowId = 'row' + d.id;
 		tableBody.append('<tr id="' + rowId + '"' + (d.isThumbnail ? ' class="thumbnail"' : '') + '></tr>');
-		var row = $('#' + rowId);
-		var icon = d.isContentContainer ? 'fa-folder-o' : _Contents.getIcon(d);
 
+		let row   = $('#' + rowId);
+		let icon  = d.isContentContainer ? 'fa-folder-o' : _Contents.getIcon(d);
 		let title = (d.name ? d.name : '[unnamed]');
 
 		if (d.isContentContainer) {
 
 			row.append('<td class="file-icon"><i class="fa ' + icon + '"></i></td>');
-			row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node container"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ abbr-ellipsis abbr-75pc">' + d.name + '</b> <span class="id">' + d.id + '</span></div></td>');
+			row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node container flex items-center justify-between"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ leading-8 truncate">' + d.name + '</b></div></td>');
 
 		} else {
 
 			row.append('<td class="file-icon"><a href="javascript:void(0)"><i class="fa ' + icon + '"></i></a></td>');
-			row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ abbr-ellipsis abbr-75pc">' + (d.name ? d.name : '[unnamed]') + '</b></td>');
-			$('.file-icon', row).on('click', function() {
-				_Contents.editItem(d);
-			});
+			row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item flex items-center justify-between"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ leading-8 truncate">' + (d.name ? d.name : '[unnamed]') + '</b></td>');
 		}
 
-		$('.item-title b', row).on('click', function() {
-			_Contents.editItem(d);
-		});
-
 		row.append('<td>' + size + '</td>');
-		row.append('<td>' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
-		row.append('<td>' + (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '') + '</td>');
-		row.append('<td>' + moment(d.lastModifiedDate).calendar() + '</td>');
+		row.append('<td class="truncate">' + d.type + '</td>');
+		row.append('<td class="truncate">' + (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '') + '</td>');
+		row.append('<td class="truncate">' + moment(d.lastModifiedDate).calendar() + '</td>');
 
 		// Change working dir by click on folder icon
 		$('#id_' + d.id + '.container').parent().prev().on('click', function(e) {
@@ -443,7 +461,7 @@ let _Contents = {
 
 			if (d.parentId) {
 
-				contentTree.jstree('open_node', $('#' + d.parentId), function() {
+				_Contents.contentTree.jstree('open_node', $('#' + d.parentId), function() {
 
 					if (d.name === '..') {
 						$('#' + d.parentId + '_anchor').click();
@@ -461,7 +479,7 @@ let _Contents = {
 			return false;
 		});
 
-		var div = Structr.node(d.id);
+		let div = Structr.node(d.id);
 
 		if (!div || !div.length)
 			return;
@@ -475,8 +493,6 @@ let _Contents = {
 			div.closest('tr').remove();
 		});
 
-		// _Entities.appendAccessControlIcon(div, d);
-		var delIcon = div.children('.delete_icon');
 		if (d.isContentContainer) {
 
 			// ********** Containers **********
@@ -504,12 +520,12 @@ let _Contents = {
 					e.preventDefault();
 					e.stopPropagation();
 
-					var self = $(this);
-					var itemId = Structr.getId(ui.draggable);
-					var containerId = Structr.getId(self);
+					let self        = $(this);
+					let itemId      = Structr.getId(ui.draggable);
+					let containerId = Structr.getId(self);
 
 					if (!(itemId === containerId)) {
-						var nodeData = {};
+						let nodeData = {};
 						nodeData.id = itemId;
 
 						_Entities.addToCollection(itemId, containerId, 'containers', function() {
@@ -525,27 +541,15 @@ let _Contents = {
 
 			// ********** Items **********
 
-			// div.children('.typeIcon').on('click', function(e) {
-			// 	e.stopPropagation();
-			// 	window.open(file.path, 'Download ' + file.name);
-			// });
-			// var newDelIcon = '<i title="Delete item ' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
-			// if (delIcon && delIcon.length) {
-			// 	delIcon.replaceWith(newDelIcon);
-			// } else {
-			// 	div.append(newDelIcon);
-			// }
-			// div.children('.delete_icon').on('click', function(e) {
-			// 	e.stopPropagation();
-			// 	_Entities.deleteNode(this, d);
-			// });
-
-			// _Contents.appendEditFileIcon(div, d);
-			div.on('click', (e) => {
-				e.stopPropagation();
+			let dblclickHandler = (e) => {
 				_Contents.editItem(d);
-			});
+			};
 
+			if (div) {
+				let node = div[0].closest('.node');
+				node.removeEventListener('dblclick', dblclickHandler);
+				node.addEventListener('dblclick', dblclickHandler);
+			}
 		}
 
 		div.draggable({
@@ -941,11 +945,11 @@ let _Contents = {
 	displaySearchResultsForURL: function(url) {
 
 		$('#search-results').remove();
-		contentsContents.append('<div id="search-results"></div>');
+		_Contents.contentsContents.append('<div id="search-results"></div>');
 
 		let searchString = Structr.functionBar.querySelector('.search').value;
 		let container    = $('#search-results');
-		contentsContents.on('scroll', function() {
+		_Contents.contentsContents.on('scroll', function() {
 			window.history.pushState('', '', '#contents');
 		});
 

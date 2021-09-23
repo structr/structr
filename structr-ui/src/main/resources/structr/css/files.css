@@ -142,7 +142,7 @@
 	/*font-size: 16px ! important;*/
 }
 
-#folder-contents table th, #contents-contents table th, #crawler-list table th {
+#folder-contents table th, #contents-contents table th {
 	text-align: left;
 	padding-left: 1rem;
 }
@@ -151,10 +151,6 @@
 #folder-contents .thumbnail .file,
 #folder-contents .thumbnail i.fa-file-image-o {
 	color: var(--gray-aaa);
-}
-
-#folder-contents .thumbnail i.fa-file-image-o {
-	/*font-size: 16px;*/
 }
 
 #folder-contents .thumbnailZoom {
@@ -171,7 +167,6 @@
 
 #folder-contents .nodeActive {
 	background-color: var(--light-gray-bg-f3) ! important;
-	/*border: 1px solid var(--gray-eee);*/
 }
 
 #folder-contents .nodeHover, .image.nodeHover {
@@ -232,10 +227,6 @@
 #files-table th {
 	padding: 0 0 1rem .5rem;
 	text-align: left;
-}
-
-#files-table th:nth-child(2) {
-	padding-left: 1rem;
 }
 
 #files-table tbody tr td .editable {

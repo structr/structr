@@ -924,7 +924,7 @@ let _Files = {
 				row.append('<td class="size whitespace-nowrap">' + _Files.formatBytes(size, 0) + '</td>');
 			}
 
-			row.append('<td class="abbr-ellipsis abbr-75pc">' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
+			row.append('<td class="truncate">' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
 			row.append('<td>' + (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '') + '</td>');
 
 			_Elements.enableContextMenuOnElement(row, d);
