@@ -478,7 +478,7 @@ let _Dashboard = {
 				data['target'] = location;
 			}
 
-			await fetch(rootUrl + '/maintenance/deploy', {
+			await fetch(rootUrl + 'maintenance/deploy', {
 				method: 'POST',
 				body: JSON.stringify(data)
 			});
@@ -649,7 +649,7 @@ let _Dashboard = {
 				}
 			}
 
-			await fetch(rootUrl + '/maintenance/deployData', {
+			await fetch(rootUrl + 'maintenance/deployData', {
 				method: 'POST',
 				body: JSON.stringify(data)
 			});
