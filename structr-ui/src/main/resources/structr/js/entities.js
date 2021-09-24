@@ -1976,7 +1976,7 @@ var _Entities = {
 			tb.append('<tr id="new"><td><select style="z-index: 999" id="newPrincipal"><option></option></select></td><td></td><td></td><td></td><td></td>' + (allowRecursive ? '<td></td>' : '') + '</tr>');
 
 			$.ajax({
-				url: rootUrl + '/' + entity.id + '/in',
+				url: rootUrl + entity.id + '/in',
 				dataType: 'json',
 				contentType: 'application/json; charset=utf-8',
 				success: function(data) {

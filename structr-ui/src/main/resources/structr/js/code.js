@@ -2230,7 +2230,7 @@ var _Code = {
 			});
 		});
 	},
-	showGeneratedSource: function() {
+	showGeneratedSource: async () => {
 
 		let sourceContainer = document.getElementById('generated-source-code');
 		if (sourceContainer) {
@@ -2241,37 +2241,37 @@ var _Code = {
 
 			if (typeId) {
 
-				$.ajax({
-					url: '/structr/rest/SchemaNode/' + typeId + '/getGeneratedSourceCode',
-					method: 'post',
-					statusCode: {
-						200: function(result) {
-
-							let container = $(sourceContainer);
-							let editor    = CodeMirror(container[0], Structr.getCodeMirrorSettings({
-								value: result.result,
-								mode: 'text/x-java',
-								lineNumbers: true,
-								readOnly: true
-							}));
-
-							$('.CodeMirror').height('100%');
-							editor.refresh();
-						}
-					}
+				let response = await fetch(rootUrl + 'SchemaNode/' + typeId + '/getGeneratedSourceCode', {
+					method: 'POST'
 				});
+
+				if (response.ok) {
+
+					let result = await response.json();
+
+					let container = $(sourceContainer);
+					let editor    = CodeMirror(container[0], Structr.getCodeMirrorSettings({
+						value: result.result,
+						mode: 'text/x-java',
+						lineNumbers: true,
+						readOnly: true
+					}));
+
+					$('.CodeMirror').height('100%');
+					editor.refresh();
+				}
 			}
 		}
 	},
-	displayContent: function(templateName) {
-		Structr.fetchHtmlTemplate('code/' + templateName, { }, function(html) {
-			codeContents.append(html);
-		});
-	},
-	random: function() {
-	    var x = Math.sin(_Code.seed++) * 10000;
-	    return x - Math.floor(x);
-	},
+	// displayContent: function(templateName) {
+	// 	Structr.fetchHtmlTemplate('code/' + templateName, { }, function(html) {
+	// 		codeContents.append(html);
+	// 	});
+	// },
+	// random: function() {
+	//     let x = Math.sin(_Code.seed++) * 10000;
+	//     return x - Math.floor(x);
+	// },
 	displayRootContent: function() {
 
 		Structr.fetchHtmlTemplate('code/root', { }, function(html) {

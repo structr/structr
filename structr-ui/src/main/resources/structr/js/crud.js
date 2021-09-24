@@ -376,8 +376,6 @@ var _Crud = {
 
 			fastRemoveAllChildren(crudRight[0]);
 
-			crudRight.data('url', '/' + type);
-
 			Structr.fetchHtmlTemplate('crud/crud-buttons', { type }, function(html) {
 
 				Structr.functionBar.querySelector('#crud-buttons').innerHTML = html;
@@ -1164,7 +1162,7 @@ var _Crud = {
 		}
 	},
 	crudExport: function(type) {
-		var url = csvRootUrl + '/' + $('#crud-type-detail').data('url') + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+		var url = csvRootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
 
 		_Crud.dialog('Export ' + type + ' list as CSV', function() {}, function() {});
 
@@ -1186,7 +1184,6 @@ var _Crud = {
 		});
 
 		$('.closeButton', $('#dialogBox')).on('click', function() {
-			clipboard.destroy();
 			$('#copyToClipboard', dialogBtn).remove();
 		});
 
@@ -1206,7 +1203,7 @@ var _Crud = {
 	},
 	crudImport: function(type) {
 
-		var url = csvRootUrl + $('#crud-type-detail').data('url');
+		var url = csvRootUrl + type;
 
 		_Crud.dialog('Import CSV data for type ' + type + '', function() {}, function() {});
 
@@ -1724,7 +1721,7 @@ var _Crud = {
 		});
 	},
 	crudDelete: function(type, id) {
-		var url = rootUrl + '/' + type + '/' + id;
+		var url = rootUrl + type + '/' + id;
 		$.ajax({
 			url: url,
 			type: 'DELETE',
