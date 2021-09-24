@@ -326,14 +326,12 @@
  * Search (similar to crud search box but different)
  */
 .searchBox {
+	position: relative;
 	z-index: 5;
 }
 
 .searchBox input.search {
-	/*border: 1px solid var(--link-color-active);*/
-	width: 12rem;
-	/*height: 22px;*/
-	/*padding: 2px 4px;*/
+	width: 20rem;
 }
 
 i.clearSearchIcon {

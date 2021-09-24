@@ -780,7 +780,7 @@ let _Pages = {
 			let filerEl = $('#pagesPagerFilters');
 			pPager.activateFilterElements(filerEl);
 
-			fetch('/structr/rest/Page/category').then((response) => {
+			fetch(rootUrl + 'Page/category').then((response) => {
 				if (response.ok) {
 					return response.json();
 				}

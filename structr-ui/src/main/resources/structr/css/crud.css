@@ -392,22 +392,12 @@ input.readonly {
 * Search
 */
 .searchBox {
-	position: absolute;
-	right: 3rem;
-	/*top: 1rem;*/
+	position: relative;
 	z-index: 5;
-	/*line-height: 1em;*/
-}
-
-.searchBoxDialog {
-	 /*top: 1px;*/
 }
 
 .searchBox input.search {
-	/*border: 1px solid var(--link-color-active);*/
 	width: 20rem;
-	/*height: 22px;*/
-	/*padding: 2px 4px;*/
 }
 
 .searchResults {
@@ -436,8 +426,8 @@ input.readonly {
 i.clearSearchIcon {
 	display: none;
 	position: absolute;
-	top: 9px;
-	right: 8px;
+	top: .75rem;
+	right: .75rem;
 	cursor: pointer;
 }
 

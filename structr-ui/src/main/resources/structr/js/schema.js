@@ -407,7 +407,7 @@ var _Schema = {
 	},
 	updateHiddenSchemaNodes: function() {
 
-		return fetch(rootUrl + '/ApplicationConfigurationDataNode/ui?configType=layout').then(function(response) {
+		return fetch(rootUrl + 'ApplicationConfigurationDataNode/ui?configType=layout').then(function(response) {
 
 			return response.json();
 

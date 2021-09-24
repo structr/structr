@@ -286,16 +286,18 @@ var _Crud = {
 				});
 
 				_Crud.searchFieldClearIcon.addEventListener('click', (e) => {
-	                _Crud.clearSearch(crudMain);
+	                _Crud.clearMainSearch(crudMain);
 	            });
 
 				_Crud.searchField.addEventListener('keyup', (e) => {
 
 					let searchString = _Crud.searchField.value;
 
-					if (searchString && searchString.length && e.keyCode === 13) {
-
+					if (searchString && searchString.length) {
 						_Crud.searchFieldClearIcon.style.display = 'block';
+					}
+
+					if (searchString && searchString.length && e.keyCode === 13) {
 
 						_Crud.search(searchString, crudMain, null, function(e, node) {
 							e.preventDefault();
@@ -307,7 +309,7 @@ var _Crud = {
 
 					} else if (e.keyCode === 27 || searchString === '') {
 
-						_Crud.clearSearch(crudMain);
+						_Crud.clearMainSearch(crudMain);
 					}
 				});
 			});
@@ -1295,7 +1297,7 @@ var _Crud = {
 	},
 	deleteAllNodesOfType: async (type, exact) => {
 
-		let url      = rootUrl + '/' + type + ((exact === true) ? '?type=' + type : '');
+		let url      = rootUrl + type + ((exact === true) ? '?type=' + type : '');
 		let response = await fetch(url, { method: 'DELETE' });
 
 		if (response.ok) {
@@ -2228,15 +2230,14 @@ var _Crud = {
 		}
 
 	},
-	clearSearch: function(el) {
-		if (_Crud.clearSearchResults(el)) {
-			_Crud.searchFieldClearIcon.style.display = 'none';
-			_Crud.searchField.value = '';
-			$('#crud-type-detail').show();
-		}
+	clearMainSearch: function(el) {
+		_Crud.clearSearchResults(el);
+		_Crud.searchFieldClearIcon.style.display = 'none';
+		_Crud.searchField.value = '';
+		$('#crud-type-detail').show();
 	},
 	clearSearchResults: function(el) {
-		var searchResults = $('.searchResults', el);
+		let searchResults = $('.searchResults', el);
 		if (searchResults.length) {
 			searchResults.remove();
 			return true;
@@ -2394,7 +2395,7 @@ var _Crud = {
 		search.keyup(function(e) {
 			e.preventDefault();
 
-			var searchString = $(this).val();
+			let searchString = $(this).val();
 			if (e.keyCode === 13) {
 
 				$('.clearSearchIcon', searchBox).show().on('click', function() {
@@ -2431,7 +2432,6 @@ var _Crud = {
 			}
 
 			return false;
-
 		});
 
 		_Crud.populateSearchDialogWithInitialResult(parentType, id, key, type, el, callbackOverride, "*");

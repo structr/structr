@@ -1434,7 +1434,7 @@ var _Code = {
 	},
 	displaySchemaNodeContent: function(data, identifier) {
 
-		fetch(rootUrl + '/' + identifier.typeId + '/schema').then(function(response) {
+		fetch(rootUrl + identifier.typeId + '/schema').then(function(response) {
 
 			if (response.ok) {
 				return response.json();

@@ -296,7 +296,7 @@ let _Localization = {
 
 		LSWrapper.setItem(_Localization.localizationSelectedElementKey, keyAndDomainObject);
 
-		let response = await fetch(rootUrl + 'Localizations/all?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
+		let response = await fetch(rootUrl + 'Localization/all?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
 
 		if (response.ok) {
 
@@ -366,7 +366,7 @@ let _Localization = {
 					domain: curDomain
 				};
 
-				let response = await fetch(rootUrl + 'Localizations/ui?' + (oldKey ? 'name=' + oldKey : '') + (oldDomain ? '&domain=' + oldDomain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
+				let response = await fetch(rootUrl + 'Localization/ui?' + (oldKey ? 'name=' + oldKey : '') + (oldDomain ? '&domain=' + oldDomain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
 
 				if (response.ok) {
 
@@ -382,7 +382,7 @@ let _Localization = {
 
 							totalCounter++;
 
-							let putResponse = await fetch(rootUrl + 'Localizations/' + loc.id, {
+							let putResponse = await fetch(rootUrl + 'Localization/' + loc.id, {
 								method: 'PUT',
 								body: JSON.stringify(newData)
 							});
@@ -510,7 +510,7 @@ let _Localization = {
 		let newData = {};
 		newData[attr] = curValue;
 
-		let response = await fetch(rootUrl + 'Localizations/' + localization.id, {
+		let response = await fetch(rootUrl + 'Localization/' + localization.id, {
 			method: 'PUT',
 			body: JSON.stringify(newData),
 		});
@@ -580,7 +580,7 @@ let _Localization = {
 						newData.domain = null;
 					}
 
-					let response = await fetch(rootUrl + 'Localizations', {
+					let response = await fetch(rootUrl + 'Localization', {
 						method: 'POST',
 						body: JSON.stringify(newData),
 					});
@@ -616,7 +616,7 @@ let _Localization = {
 	},
 	deleteCompleteLocalization: async (key, domain) => {
 
-		let response = await fetch(rootUrl + 'Localizations/ui?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
+		let response = await fetch(rootUrl + 'Localization/ui?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
 
 		if (response.ok) {
 
