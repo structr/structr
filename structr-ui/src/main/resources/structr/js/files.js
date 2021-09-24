@@ -59,32 +59,6 @@ let _Files = {
 
 		_Files.setViewMode(LSWrapper.getItem(filesViewModeKey) || 'list');
 
-		_Files.searchField = document.getElementById('files-search-box');
-		if (_Files.searchField) {
-
-			_Files.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
-			_Files.searchFieldClearIcon.addEventListener('click', (e) => {
-				_Files.clearSearch();
-			});
-
-			_Files.searchField.focus();
-
-			_Files.searchField.addEventListener('keyup', (e) => {
-
-				let searchString = _Files.searchField.value;
-
-				if (searchString && searchString.length && e.keyCode === 13) {
-
-					_Files.searchFieldClearIcon.style.display = 'block';
-
-					_Files.fulltextSearch(searchString);
-
-				} else if (e.keyCode === 27 || searchString === '') {
-					_Files.clearSearch();
-				}
-			});
-		}
-
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
 
@@ -155,6 +129,32 @@ let _Files = {
 					});
 
 					Structr.functionBar.querySelector('.mount_folder').addEventListener('click', _Files.openMountDialog);
+
+					_Files.searchField = Structr.functionBar.querySelector('#files-search-box');
+
+					_Files.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
+					_Files.searchFieldClearIcon.addEventListener('click', (e) => {
+						_Files.clearSearch();
+					});
+
+					_Files.searchField.focus();
+
+					_Files.searchField.addEventListener('keyup', (e) => {
+
+						let searchString = _Files.searchField.value;
+
+						if (searchString && searchString.length) {
+							_Files.searchFieldClearIcon.style.display = 'block';
+						}
+
+						if (searchString && searchString.length && e.keyCode === 13) {
+
+							_Files.fulltextSearch(searchString);
+
+						} else if (e.keyCode === 27 || searchString === '') {
+							_Files.clearSearch();
+						}
+					});
 				});
 			};
 			initFunctionBar(); // run async (do not await) so it can execute while jstree is initialized
@@ -601,7 +601,7 @@ let _Files = {
 	},
 	clearSearch: function() {
 		_Files.searchField.value = '';
-		_Files.searchFieldClearIcon.style.display = 'block';
+		_Files.searchFieldClearIcon.style.display = 'none';
 		$('#search-results').remove();
 		$('#folder-contents').children().show();
 	},
