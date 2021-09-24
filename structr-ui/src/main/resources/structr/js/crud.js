@@ -1297,7 +1297,7 @@ var _Crud = {
 	},
 	deleteAllNodesOfType: async (type, exact) => {
 
-		let url      = rootUrl + '/' + type + ((exact === true) ? '?type=' + type : '');
+		let url      = rootUrl + type + ((exact === true) ? '?type=' + type : '');
 		let response = await fetch(url, { method: 'DELETE' });
 
 		if (response.ok) {
