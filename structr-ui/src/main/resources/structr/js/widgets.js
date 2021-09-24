@@ -817,7 +817,7 @@ let _Widgets = {
 	fetchLocalPageTemplateWidgets: async function() {
 
 		try {
-			let response = await fetch('/structr/rest/Widget?isPageTemplate=true&' + Structr.getRequestParameterName('sort') + '=name');
+			let response = await fetch(rootUrl + 'Widget?isPageTemplate=true&' + Structr.getRequestParameterName('sort') + '=name');
 			if (response && response.ok) {
 
 				let json = await response.json();

@@ -76,8 +76,5 @@ export class Rest {
                 throw 'Unauthorized. Make sure your session has not expired.';
         }
     }
-
-
-
 }
 
