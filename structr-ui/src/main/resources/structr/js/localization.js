@@ -85,7 +85,7 @@ let _Localization = {
 					return false;
 				});
 
-				keyPreselect.value    = LSWrapper.getItem(_Localization.localizationPreselectNameKey) || '';
+				//keyPreselect.value    = LSWrapper.getItem(_Localization.localizationPreselectNameKey) || '';
 				domainPreselect.value = LSWrapper.getItem(_Localization.localizationPreselectDomainKey) || '';
 				localePreselect.value = LSWrapper.getItem(_Localization.localizationPreselectLocaleKey) || 'en';
 
