@@ -41,9 +41,12 @@ import org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
 import org.eclipse.jetty.http.HttpCookie;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.MimeTypes;
+import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
+import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -112,7 +115,7 @@ public class HttpService implements RunnableService, StatsCallback {
 	private GzipHandler gzipHandler               = null;
 	private HttpConfiguration httpConfig          = null;
 	private HttpConfiguration httpsConfig         = null;
-	private SslContextFactory.Server sslServer    = null;
+	private SslContextFactory.Server sslContextFactory = null;
 	private Server server                         = null;
 	private Server maintenanceServer              = null;
 	private int maxIdleTime                       = 30000;
@@ -469,7 +472,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 		if (StringUtils.isNotBlank(host) && httpPort > -1) {
 
-			final ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
+			final ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory(httpConfig), new HTTP2CServerConnectionFactory(httpConfig));
 
 			httpConnector.setHost(host);
 			httpConnector.setPort(httpPort);
@@ -494,9 +497,9 @@ public class HttpService implements RunnableService, StatsCallback {
 					httpsConfig = new HttpConfiguration(httpConfig);
 					httpsConfig.addCustomizer(new SecureRequestCustomizer());
 
-					sslServer = new SslContextFactory.Server();
-					sslServer.setKeyStorePath(keyStorePath);
-					sslServer.setKeyStorePassword(keyStorePassword);
+					sslContextFactory = new SslContextFactory.Server();
+					sslContextFactory.setKeyStorePath(keyStorePath);
+					sslContextFactory.setKeyStorePassword(keyStorePassword);
 
 					String excludedProtocols = Settings.excludedProtocols.getValue();
 					String includedProtocols = Settings.includedProtocols.getValue();
@@ -504,30 +507,34 @@ public class HttpService implements RunnableService, StatsCallback {
 
 					if (disabledCiphers.length() > 0) {
 						disabledCiphers = disabledCiphers.replaceAll("\\s+", "");
-						sslServer.setExcludeCipherSuites(disabledCiphers.split(","));
+						sslContextFactory.setExcludeCipherSuites(disabledCiphers.split(","));
 					}
 
 					if (excludedProtocols.length() > 0) {
 						excludedProtocols = excludedProtocols.replaceAll("\\s+", "");
-						sslServer.setExcludeProtocols(excludedProtocols.split(","));
+						sslContextFactory.setExcludeProtocols(excludedProtocols.split(","));
 					}
 
 					if (includedProtocols.length() > 0) {
 						includedProtocols = includedProtocols.replaceAll("\\s+", "");
-						sslServer.setIncludeProtocols(includedProtocols.split(","));
+						sslContextFactory.setIncludeProtocols(includedProtocols.split(","));
 					}
 
-					final ServerConnector httpsConnector = new ServerConnector(server,
-						new SslConnectionFactory(sslServer, "http/1.1"),
-						new HttpConnectionFactory(httpsConfig));
+					final HttpConnectionFactory http11 = new HttpConnectionFactory(httpsConfig);
+					final HTTP2ServerConnectionFactory http2 = new HTTP2ServerConnectionFactory(httpsConfig);
 
 					if (forceHttps) {
 						sessionCache.getSessionHandler().setSecureRequestOnly(true);
 					}
 
-					httpsConnector.setPort(httpsPort);
-					httpsConnector.setIdleTimeout(500000);
+					ALPNServerConnectionFactory alpn = new ALPNServerConnectionFactory();
+					alpn.setDefaultProtocol(http11.getProtocol());
 
+					final SslConnectionFactory tls = new SslConnectionFactory(sslContextFactory, alpn.getProtocol());
+
+					final ServerConnector httpsConnector = new ServerConnector(server, tls, alpn, http2, http11);
+
+					httpsConnector.setIdleTimeout(500000);
 					httpsConnector.setHost(host);
 					httpsConnector.setPort(httpsPort);
 
@@ -675,7 +682,7 @@ public class HttpService implements RunnableService, StatsCallback {
 				if (httpsPort > -1 && keyStorePath != null && !keyStorePath.isEmpty() && keyStorePassword != null) {
 
 					final ServerConnector httpsConnector = new ServerConnector(maintenanceServer,
-						new SslConnectionFactory(sslServer, "http/1.1"),
+						new SslConnectionFactory(sslContextFactory, "http/1.1"),
 						new HttpConnectionFactory(httpsConfig));
 
 					httpsConnector.setPort(httpsPort);
@@ -700,7 +707,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 	public void reloadSSLCertificate() {
 
-		if (sslServer != null) {
+		if (sslContextFactory != null) {
 
 			try {
 
@@ -708,10 +715,10 @@ public class HttpService implements RunnableService, StatsCallback {
 				final String keyStorePassword       = Settings.KeystorePassword.getValue();
 
 				// in case path/password changed
-				sslServer.setKeyStorePath(keyStorePath);
-				sslServer.setKeyStorePassword(keyStorePassword);
+				sslContextFactory.setKeyStorePath(keyStorePath);
+				sslContextFactory.setKeyStorePassword(keyStorePassword);
 
-				sslServer.reload(new Consumer<SslContextFactory>() {
+				sslContextFactory.reload(new Consumer<SslContextFactory>() {
 					@Override
 					public void accept(SslContextFactory t) {
 					}
