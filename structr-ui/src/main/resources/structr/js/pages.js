@@ -205,7 +205,6 @@ let _Pages = {
 
 		const isPage             = (entity.type === 'Page');
 		const isContent          = (entity.type === 'Content');
-		const isTemplate         = (entity.type === 'Template');
 		const hasChildren        = (entity.children && entity.children.length > 0);
 
 		let handleInsertHTMLAction = function (itemText) {
@@ -217,7 +216,7 @@ let _Pages = {
 
 		let handleInsertBeforeAction = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'Before', _Elements.isInheritVisibililtyFlagsChecked()); };
 		let handleInsertAfterAction  = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'After', _Elements.isInheritVisibililtyFlagsChecked()); };
-		let handleWrapInHTMLAction   = (itemText)  => { Command.wrapDOMNodeInNewDOMNode(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibililtyFlagsChecked()); };
+		let handleWrapInHTMLAction   = (itemText) => { Command.wrapDOMNodeInNewDOMNode(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibililtyFlagsChecked()); };
 
 		let elements = [];
 
@@ -460,49 +459,6 @@ let _Pages = {
 				});
 			}
 		}
-
-		_Elements.appendContextMenuSeparator(elements);
-
-		if (!isPage) {
-
-			elements.push({
-				name: 'Repeater',
-				clickHandler: function () {
-					_Entities.showProperties(entity, 'query');
-					return false;
-				}
-			});
-
-			if (!isContent && !isTemplate) {
-				elements.push({
-					name: 'Events',
-					clickHandler: function () {
-						_Entities.showProperties(entity, 'editBinding');
-						return false;
-					}
-				});
-
-				elements.push({
-					name: 'HTML Attributes',
-					clickHandler: function () {
-						_Entities.showProperties(entity, '_html_');
-						return false;
-					}
-				});
-			}
-		}
-
-		elements.push({
-			name: 'Properties',
-			clickHandler: function() {
-				_Entities.showProperties(entity, 'ui');
-				return false;
-			}
-		});
-
-		_Elements.appendContextMenuSeparator(elements);
-
-		_Elements.appendSecurityContextMenuItems(elements, entity, hasChildren);
 
 		_Elements.appendContextMenuSeparator(elements);
 
@@ -1485,8 +1441,6 @@ let _Pages = {
 
 			let entity               = wrappedEntity.entity;
 			const isPage             = (entity.type === 'Page');
-			const isContent          = (entity.type === 'Content');
-			const isTemplate         = (entity.type === 'Template');
 			const isDOMNode          = (entity.isDOMNode);
 			const isSchemaNode       = (entity.type === 'SchemaNode');
 
