@@ -422,7 +422,7 @@ public class DiffTest extends StructrUiTest {
 			+ "	</head>\n"
 			+ "	<body>\n"
 			+ "		<div>\n"
-			+ "			<h2 class=\"foo\" id=\"two\">one</h2>\n"
+			+ "			<h2 id=\"two\" class=\"foo\">one</h2>\n"
 			+ "		</div>\n"
 			+ "		<div>\n"
 			+ "			<h2>two</h2>\n"
