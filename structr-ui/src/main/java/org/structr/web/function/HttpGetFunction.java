@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.entity.ContentType;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -111,11 +112,11 @@ public class HttpGetFunction extends UiAdvancedFunction {
 					}
 				} else if ("application/octet-stream".equals(contentType)) {
 
-					return getBinaryFromUrl(ctx, charset, address, username, password);
+					return getBinaryFromUrl(ctx, address, charset, username, password);
 
 				} else {
 
-					return getFromUrl(ctx, charset, address, username, password);
+					return getFromUrl(ctx, address, charset, username, password);
 				}
 
 			} catch (Throwable t) {
