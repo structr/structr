@@ -30,6 +30,8 @@ import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.UiFunction;
 
+import java.util.Map;
+
 public class TranslateFunction extends UiFunction {
 
 	public static final String ERROR_MESSAGE_TRANSLATE    = "Usage: ${translate(text, sourceLanguage, targetLanguage[, translationProvider])}. Supported translation providers: google, deepl. Example: ${translate(\"Hello world!\", \"en\", \"ru\", \"deepl\")}";
@@ -98,7 +100,11 @@ public class TranslateFunction extends UiFunction {
 							return "";
 						}
 
-						final String response = HttpHelper.get("https://api.deepl.com/v2/translate?text=" + encodeURL(text) + "&source_lang=" + sourceLanguage.toUpperCase() + "&target_lang=" + targetLanguage.toUpperCase() + "&auth_key=" + deeplAPIKey);
+						final String response = HttpHelper.get("https://api.deepl.com/v2/translate?text=" + encodeURL(text)
+								+ "&source_lang=" + sourceLanguage.toUpperCase()
+								+ "&target_lang=" + targetLanguage.toUpperCase()
+								+ "&auth_key=" + deeplAPIKey,
+								"UTF-8");
 
 						final JsonObject resultObject = new JsonParser().parse(response).getAsJsonObject();
 						final JsonArray translations = (JsonArray) resultObject.getAsJsonArray("translations");

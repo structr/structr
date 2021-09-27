@@ -21,6 +21,8 @@ package org.structr.web.function;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -55,21 +57,33 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 				String address = sources[0].toString();
 				String contentType = null;
+				String charset     = null;
 				String username = null;
 				String password = null;
 
 				switch (sources.length) {
 
-					case 4: password = sources[3].toString();
-					case 3: username = sources[2].toString();
+					case 4: password    = sources[3].toString();
+					case 3: username    = sources[2].toString();
 					case 2: contentType = sources[1].toString();
 						break;
+				}
+
+				// Extract character set from contentType if given
+				if (StringUtils.isNotBlank(contentType)) {
+					final String[] contentTypeParts = contentType.split(";");
+					if (contentTypeParts.length >= 0) {
+						contentType = contentTypeParts[0];
+					}
+					if (contentTypeParts.length == 2) {
+						charset = StringUtils.trim(contentTypeParts[1]);
+					}
 				}
 
 				//long t0 = System.currentTimeMillis();
 				if ("text/html".equals(contentType)) {
 
-					final Document doc = Jsoup.parse(HttpHelper.get(address, ctx.getHeaders()));
+					final Document doc = Jsoup.parse(HttpHelper.get(address, charset, ctx.getHeaders()));
 
 					if (sources.length > 2) {
 
@@ -97,11 +111,11 @@ public class HttpGetFunction extends UiAdvancedFunction {
 					}
 				} else if ("application/octet-stream".equals(contentType)) {
 
-					return getBinaryFromUrl(ctx, address, username, password);
+					return getBinaryFromUrl(ctx, charset, address, username, password);
 
 				} else {
 
-					return getFromUrl(ctx, address, username, password);
+					return getFromUrl(ctx, charset, address, username, password);
 				}
 
 			} catch (Throwable t) {

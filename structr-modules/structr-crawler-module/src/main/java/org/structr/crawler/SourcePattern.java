@@ -131,7 +131,7 @@ public class SourcePattern extends AbstractNode {
 
 		final String cookie = site.getProperty(SourceSite.cookie);
 
-		return HttpHelper.get(urlString, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP)
+		return HttpHelper.get(urlString, null, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP)
 				.replace("<head>", "<head>\n  <base href=\"" + urlString + "\">");
 	}
 
