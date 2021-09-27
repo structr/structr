@@ -18,6 +18,11 @@
  */
 package org.structr.rest.auth;
 
+import java.math.BigInteger;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -469,15 +474,79 @@ public class AuthHelper {
 		return false;
 	}
 
-	public static boolean isRequestingIPWhitelistedForTwoFactorAuthentication(final String requestIP) {
+	public static boolean isRequestingIPWhitelistedForTwoFactorAuthentication(final String requestIP, final String whitelistEntries) {
 
-		final String whitelistedIPs = Settings.TwoFactorWhitelistedIPs.getValue();
+		if (!StringUtils.isEmpty(requestIP) && !StringUtils.isEmpty(whitelistEntries)) {
 
-		if (!StringUtils.isEmpty(whitelistedIPs) && !StringUtils.isEmpty(requestIP)) {
-			for (final String whitelistedIP : whitelistedIPs.split(",")) {
-				if (whitelistedIP.trim().equals(requestIP.split(":")[0])) {
-					return true;
+			try {
+
+				final InetAddress requestAddress     = InetAddress.getByName(requestIP);
+				final String[] splitWhitelistEntries = whitelistEntries.split("[ ,]+");
+
+				final BigInteger maxIP;
+				final int maxPrefix;
+				boolean isIPv6 = false;
+				boolean isIPv4 = false;
+
+				if (requestAddress instanceof Inet6Address) {
+
+					isIPv6    = true;
+					maxIP     = new BigInteger("ffffffffffffffffffffffffffffffff", 16);
+					maxPrefix = 128;
+
+				} else if (requestAddress instanceof Inet4Address) {
+
+					isIPv4    = true;
+					maxIP     = new BigInteger("ffffffff", 16);
+					maxPrefix = 32;
+
+				} else {
+
+					return false;
 				}
+
+				for (final String wlEntry : splitWhitelistEntries) {
+
+					final String[] wlEntryParts = wlEntry.split("/");
+					final InetAddress wlAddress = InetAddress.getByName(wlEntryParts[0]);
+
+					if (wlAddress instanceof Inet4Address && isIPv4 || wlAddress instanceof Inet6Address && isIPv6) {
+
+						int prefixLength = maxPrefix;
+						if (wlEntryParts.length == 2) {
+							try {
+								final int definedPrefix = Integer.parseInt(wlEntryParts[1]);
+
+								if (definedPrefix > 0) {
+									prefixLength = definedPrefix;
+								} else {
+									logger.warn("Prefix length for '{}' is invalid, using most restrictive value {}", wlEntry, maxPrefix);
+								}
+
+							} catch (NumberFormatException nfe) {
+								logger.warn("Unable to parse numeric prefix length for '{}', using most restrictive value {}", wlEntry, maxPrefix);
+							}
+						}
+
+						final BigInteger prefixMask          = maxIP.shiftLeft(maxPrefix - prefixLength).and(maxIP);
+						final BigInteger wildcard            = prefixMask.xor(maxIP);
+						final BigInteger requestIPAsBigInt   = new BigInteger(1, requestAddress.getAddress());
+						final BigInteger whiteListIpAsBigInt = new BigInteger(1, wlAddress.getAddress());
+						final BigInteger lowerBound          = whiteListIpAsBigInt.and(prefixMask);
+						final BigInteger upperBound          = lowerBound.or(wildcard);
+
+						final boolean myIpIsBiggerOrEqualToLowerBound = (-1 != requestIPAsBigInt.compareTo(lowerBound));
+						final boolean myIpIsLowerOrEqualToUpperBound  = (-1 != upperBound.compareTo(requestIPAsBigInt));
+
+						if (myIpIsBiggerOrEqualToLowerBound && myIpIsLowerOrEqualToUpperBound) {
+							return true;
+						}
+					}
+				}
+
+			} catch (UnknownHostException uhe) {
+
+				logger.warn("Unable to parse IP address: {}", uhe.getMessage());
 			}
 		}
 
@@ -486,7 +555,7 @@ public class AuthHelper {
 
 	public static boolean handleTwoFactorAuthentication (final Principal principal, final String twoFactorCode, final String twoFactorToken, final String requestIP) throws FrameworkException, TwoFactorAuthenticationRequiredException, TwoFactorAuthenticationFailedException {
 
-		if (!AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication(requestIP)) {
+		if (!AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication(requestIP, Settings.TwoFactorWhitelistedIPs.getValue())) {
 
 			final PropertyKey<String> twoFactorTokenKey      = StructrApp.key(Principal.class, "twoFactorToken");
 			final PropertyKey<Boolean> isTwoFactorUserKey    = StructrApp.key(Principal.class, "isTwoFactorUser");
