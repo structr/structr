@@ -508,45 +508,53 @@ public class AuthHelper {
 				for (final String wlEntry : splitWhitelistEntries) {
 
 					final String[] wlEntryParts = wlEntry.split("/");
-					final InetAddress wlAddress = InetAddress.getByName(wlEntryParts[0]);
 
-					if (wlAddress instanceof Inet4Address && isIPv4 || wlAddress instanceof Inet6Address && isIPv6) {
+					try {
 
-						int prefixLength = maxPrefix;
-						if (wlEntryParts.length == 2) {
-							try {
-								final int definedPrefix = Integer.parseInt(wlEntryParts[1]);
+						final InetAddress wlAddress = InetAddress.getByName(wlEntryParts[0]);
 
-								if (definedPrefix > 0) {
-									prefixLength = definedPrefix;
-								} else {
-									logger.warn("Prefix length for '{}' is invalid, using most restrictive value {}", wlEntry, maxPrefix);
+						if (wlAddress instanceof Inet4Address && isIPv4 || wlAddress instanceof Inet6Address && isIPv6) {
+
+							int prefixLength = maxPrefix;
+							if (wlEntryParts.length == 2) {
+								try {
+									final int definedPrefix = Integer.parseInt(wlEntryParts[1]);
+
+									if (definedPrefix > 0) {
+										prefixLength = definedPrefix;
+									} else {
+										logger.warn("Prefix length for '{}' is invalid, using most restrictive value {}", wlEntry, maxPrefix);
+									}
+
+								} catch (NumberFormatException nfe) {
+									logger.warn("Unable to parse numeric prefix length for '{}', using most restrictive value {}", wlEntry, maxPrefix);
 								}
+							}
 
-							} catch (NumberFormatException nfe) {
-								logger.warn("Unable to parse numeric prefix length for '{}', using most restrictive value {}", wlEntry, maxPrefix);
+							final BigInteger prefixMask          = maxIP.shiftLeft(maxPrefix - prefixLength).and(maxIP);
+							final BigInteger wildcard            = prefixMask.xor(maxIP);
+							final BigInteger requestIPAsBigInt   = new BigInteger(1, requestAddress.getAddress());
+							final BigInteger whiteListIpAsBigInt = new BigInteger(1, wlAddress.getAddress());
+							final BigInteger lowerBound          = whiteListIpAsBigInt.and(prefixMask);
+							final BigInteger upperBound          = lowerBound.or(wildcard);
+
+							final boolean myIp_GTE_lowerBound    = (-1 != requestIPAsBigInt.compareTo(lowerBound));
+							final boolean myIp_LTE_upperBound    = (-1 != upperBound.compareTo(requestIPAsBigInt));
+
+							if (myIp_GTE_lowerBound && myIp_LTE_upperBound) {
+								return true;
 							}
 						}
 
-						final BigInteger prefixMask          = maxIP.shiftLeft(maxPrefix - prefixLength).and(maxIP);
-						final BigInteger wildcard            = prefixMask.xor(maxIP);
-						final BigInteger requestIPAsBigInt   = new BigInteger(1, requestAddress.getAddress());
-						final BigInteger whiteListIpAsBigInt = new BigInteger(1, wlAddress.getAddress());
-						final BigInteger lowerBound          = whiteListIpAsBigInt.and(prefixMask);
-						final BigInteger upperBound          = lowerBound.or(wildcard);
+					} catch (UnknownHostException uhe) {
 
-						final boolean myIpIsBiggerOrEqualToLowerBound = (-1 != requestIPAsBigInt.compareTo(lowerBound));
-						final boolean myIpIsLowerOrEqualToUpperBound  = (-1 != upperBound.compareTo(requestIPAsBigInt));
-
-						if (myIpIsBiggerOrEqualToLowerBound && myIpIsLowerOrEqualToUpperBound) {
-							return true;
-						}
+						logger.warn("Unable to parse whitelist entry '{}': {}", wlEntryParts[0], uhe.getMessage());
 					}
 				}
 
 			} catch (UnknownHostException uhe) {
 
-				logger.warn("Unable to parse IP address: {}", uhe.getMessage());
+				logger.warn("Unable to parse request IP address '{}': {}", requestIP, uhe.getMessage());
 			}
 		}
 

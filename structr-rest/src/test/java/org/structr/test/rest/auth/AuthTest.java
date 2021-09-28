@@ -33,26 +33,50 @@ public class AuthTest  extends StructrRestTestBase {
     @Test
     public void test01TwoFactorWhitelistTest() {
 
-        Assert.assertTrue(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("[2a01:598:d826:fe8f:38ab:d115:7644:3223]", "2a01:598:d826:fe8f:28ab::/67"));
+        Assert.assertTrue (AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("[2a01:598:d826:fe8f:38ab:d115:7644:3223]", "2a01:598:d826:fe8f:28ab::/67"));
 
-        Assert.assertTrue(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("2a01:598:d826:fe8f:38ab:d115:7644:3223", "2a01:598:d826:fe8f:38ab:d115:7644:3223"));
+        Assert.assertTrue (AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("2a01:598:d826:fe8f:38ab:d115:7644:3223", "2a01:598:d826:fe8f:38ab:d115:7644:3223"));
 
-        Assert.assertTrue(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("2a11::", "2a01:598:d826:fe8f:28ab::/8"));
+        Assert.assertTrue (AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("2a11::", "2a01:598:d826:fe8f:28ab::/8"));
         Assert.assertFalse(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("2a11::", "2a01:598:d826:fe8f:28ab::/12"));
 
-        Assert.assertTrue(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.55", "192.168.1.1/24"));
+        Assert.assertTrue (AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.55", "192.168.1.1/24"));
         Assert.assertFalse(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.2.1", "192.168.1.1/24"));
 
-        Assert.assertTrue(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.255", "192.168.1.1/23"));
+        Assert.assertTrue (AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.255", "192.168.1.1/23"));
         Assert.assertFalse(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.45", "192.168.0.0/24"));
-        Assert.assertTrue(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.45", "192.168.0.0/23"));
+        Assert.assertTrue (AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.45", "192.168.0.0/23"));
 
-        Assert.assertTrue(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.1", "192.168.1.1/a"));
+        Assert.assertTrue (AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.1", "192.168.1.1/a"));
         Assert.assertFalse(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.2", "192.168.1.1/a"));
 
-        Assert.assertTrue(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.1", "192.168.1.1/0"));
+        Assert.assertTrue (AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.1", "192.168.1.1/0"));
         Assert.assertFalse(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.2", "192.168.1.1/0"));
 
         Assert.assertFalse(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("254.254.254.254", "192.168.1.1/0"));
+
+
+        // expect malformed whitelist entries to not affect the result of the checks - only log entries will be generated
+        Assert.assertTrue (AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("[2a01:598:d826:fe8f:38ab:d115:7644:3223]", "xxx, 2a01:598:d826:fe8f:28ab::/67, xxx"));
+
+        Assert.assertTrue (AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("2a01:598:d826:fe8f:38ab:d115:7644:3223", "xxx, 2a01:598:d826:fe8f:38ab:d115:7644:3223, xxx"));
+
+        Assert.assertTrue (AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("2a11::", "xxx, 2a01:598:d826:fe8f:28ab::/8, xxx"));
+        Assert.assertFalse(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("2a11::", "xxx, 2a01:598:d826:fe8f:28ab::/12, xxx"));
+
+        Assert.assertTrue (AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.55", "xxx, 192.168.1.1/24, xxx"));
+        Assert.assertFalse(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.2.1", "xxx, 192.168.1.1/24, xxx"));
+
+        Assert.assertTrue (AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.255", "xxx, 192.168.1.1/23, xxx"));
+        Assert.assertFalse(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.45", "xxx, 192.168.0.0/24, xxx"));
+        Assert.assertTrue (AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.45", "xxx, 192.168.0.0/23, xxx"));
+
+        Assert.assertTrue (AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.1", "xxx, 192.168.1.1/a, xxx"));
+        Assert.assertFalse(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.2", "xxx, 192.168.1.1/a, xxx"));
+
+        Assert.assertTrue (AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.1", "xxx, 192.168.1.1/0, xxx"));
+        Assert.assertFalse(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("192.168.1.2", "xxx, 192.168.1.1/0, xxx"));
+
+        Assert.assertFalse(AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication("254.254.254.254", "xxx, 192.168.1.1/0, xxx"));
     }
 }
