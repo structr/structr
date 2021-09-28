@@ -1481,7 +1481,7 @@ var _Entities = {
 							$('.add', cell).on('click', function() {
 								Structr.dialog('Add ' + typeInfo[key].type, function() {
 								}, function() {
-									_Entities.showProperties(entity);
+									//_Entities.showProperties(entity);
 								});
 								_Entities.displaySearch(id, key, typeInfo[key].type, dialogText, isCollection);
 							});
