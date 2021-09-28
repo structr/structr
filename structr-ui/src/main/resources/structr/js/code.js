@@ -741,7 +741,7 @@ var _Code = {
 					{
 						children.push({
 							id: treeId + '-properties',
-							text: 'Local Attributes',
+							text: 'Local Properties',
 							children: entity.schemaProperties.length > 0,
 							icon: 'fa fa-sliders gray',
 							data: data
@@ -749,7 +749,7 @@ var _Code = {
 
 						children.push({
 							id: treeId + '-remoteproperties',
-							text: 'Remote Attributes',
+							text: 'Related Properties',
 							children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
 							icon: 'fa fa-sliders gray',
 							data: data
@@ -773,7 +773,7 @@ var _Code = {
 
 						children.push({
 							id: treeId + '-inheritedproperties',
-							text: 'Inherited Attributes',
+							text: 'Inherited Properties',
 							children: true,
 							icon: 'fa fa-sliders gray',
 							data: data
@@ -2548,7 +2548,7 @@ var _Code = {
 			} else {
 
 				if (result.type === 'SchemaRelationshipNode') {
-					// this is a remote property/adjacent type
+					// this is a linked property/adjacent type
 					// _Code.displayRelationshipPropertyDetails(result);
 				}
 			}

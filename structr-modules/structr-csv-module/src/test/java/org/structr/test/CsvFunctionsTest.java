@@ -410,7 +410,7 @@ public class CsvFunctionsTest extends StructrUiTest {
 					+ "\"" + testTwo.getUuid() + "\";\"[\\\"" + testFive1.getUuid() + "\\\", \\\"" + testFive2.getUuid() + "\\\"]\"\n";
 
 			assertEquals(
-					"Invalid result of to_csv() call with only id and remote property testFives (JavaScript)",
+					"Invalid result of to_csv() call with only id and linked property testFives (JavaScript)",
 					expectedIdAndTestFives,
 					Scripting.replaceVariables(ctx, csvTestTwo, "${{ $.print($.to_csv($.find('TestTwo'), ['id', 'testFives'])) }}")
 			);

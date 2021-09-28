@@ -940,8 +940,19 @@ var _Schema = {
 		let contentDiv = $('<div class="schema-details"></div>');
 		contentEl.append(contentDiv);
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Local Attributes', targetView === 'local', function(c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', targetView === 'local', function(c) {
 			_Schema.properties.appendLocalProperties(c, entity);
+		});
+
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote', function(c) {
+			let editSchemaObjectLinkHandler = ($el) => {
+				_Schema.openEditDialog($el.data('objectId'));
+			};
+			_Schema.remoteProperties.appendRemote(c, entity, editSchemaObjectLinkHandler);
+		});
+
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited properties', targetView === 'builtin', function(c) {
+			_Schema.properties.appendBuiltinProperties(c, entity);
 		});
 
 		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views', function(c) {
@@ -951,17 +962,6 @@ var _Schema = {
 		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', function(c) {
 			_Schema.methods.appendMethods(c, entity, _Schema.filterJavaMethods(entity.schemaMethods));
 		}, null, _Schema.methods.refreshEditors);
-
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Remote Attributes', targetView === 'remote', function(c) {
-			let editSchemaObjectLinkHandler = ($el) => {
-				_Schema.openEditDialog($el.data('objectId'));
-			};
-			_Schema.remoteProperties.appendRemote(c, entity, editSchemaObjectLinkHandler);
-		});
-
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited Attributes', targetView === 'builtin', function(c) {
-			_Schema.properties.appendBuiltinProperties(c, entity);
-		});
 
 		if (!entity.isBuiltinType) {
 
@@ -1047,7 +1047,7 @@ var _Schema = {
 
 		} else {
 
-			new MessageBuilder().title('Unsupported cardinality: ' + cardinality).warning('Unable to generate suggestion for remote property name. Unsupported cardinality encountered!').requiresConfirmation().show();
+			new MessageBuilder().title('Unsupported cardinality: ' + cardinality).warning('Unable to generate suggestion for linked property name. Unsupported cardinality encountered!').requiresConfirmation().show();
 			return typeName;
 		}
 	},
@@ -1941,7 +1941,7 @@ var _Schema = {
 				class: 'related-attrs schema-props',
 				cols: [
 					{ class: '', title: 'JSON Name' },
-					{ class: '', title: 'Type, Direction and Remote type' },
+					{ class: '', title: 'Type, direction and related type' },
 					{ class: 'actions-col', title: 'Action' }
 				]
 			};
@@ -2015,9 +2015,9 @@ var _Schema = {
 
 			if (allow) {
 
-				let message = 'Update remote attribute names for ' + entity.name + '?\n\n';
-				message += (counts.update > 0 ? 'Update ' + counts.update + ' remote attribute names.\n' : '');
-				message += (counts.reset > 0 ? 'Reset ' + counts.reset + ' remote attribute names.\n' : '');
+				let message = 'Update linked property names for ' + entity.name + '?\n\n';
+				message += (counts.update > 0 ? 'Update ' + counts.update + ' linked property names.\n' : '');
+				message += (counts.reset > 0 ? 'Reset ' + counts.reset + ' linked property names.\n' : '');
 
 				if (confirm(message)) {
 					_Schema.showSchemaRecompileMessage();

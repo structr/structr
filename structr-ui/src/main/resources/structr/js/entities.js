@@ -1557,16 +1557,16 @@ var _Entities = {
 				$(this).attr('disabled', 'disabled').addClass('disabled');
 			});
 
-			let addCustomAttributeButton = $('<button class="add-custom-attribute">Add custom attribute</button>');
+			let addCustomAttributeButton = $('<button class="add-custom-attribute">Add custom property</button>');
 			container.append(addCustomAttributeButton);
 
 			Structr.appendInfoTextToElement({
 				element: addCustomAttributeButton,
-				text: "Any attribute name is allowed but 'data-' attributes are recommended. (data-structr is reserved for internal use!)",
+				text: "Any property name is allowed but the 'data-' prefix is recommended. Please note that 'data-structr-' is reserved for internal use.",
 				insertAfter: true,
 				css: {
-					marginLeft: "3px",
-					top: "-5px",
+					marginLeft: ".25rem",
+					top: "-.5rem",
 					position: "relative"
 				}
 			});
@@ -1584,10 +1584,10 @@ var _Entities = {
 
 					var regexAllowed = new RegExp("^[a-zA-Z0-9_\-]*$");
 
-					if (key.indexOf('data-structr') === 0) {
+					if (key.indexOf('data-structr-') === 0) {
 
 						blinkRed(keyInput);
-						new MessageBuilder().error('Key can not start with "data-structr" as it is reserved for internal use.').show();
+						new MessageBuilder().error('Key can not begin with "data-structr-" as it is reserved for internal use.').show();
 
 					} else if (!regexAllowed.test(key)) {
 
