@@ -19,10 +19,13 @@
 package org.structr.web.function;
 
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.ParseException;
 import org.apache.http.entity.ContentType;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -72,12 +75,26 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 				// Extract character set from contentType if given
 				if (StringUtils.isNotBlank(contentType)) {
-					final String[] contentTypeParts = contentType.split(";");
-					if (contentTypeParts.length >= 0) {
-						contentType = contentTypeParts[0];
-					}
-					if (contentTypeParts.length == 2) {
-						charset = StringUtils.trim(contentTypeParts[1]);
+
+					try {
+
+						final ContentType ct = ContentType.parse(contentType);
+
+						contentType = ct.getMimeType();
+
+						final Charset cs = ct.getCharset();
+
+						if (cs != null) {
+							charset = cs.toString();
+						}
+
+					} catch(ParseException pe) {
+
+						logger.warn("Unable to parse contentType parameter '{}' - using as is.", contentType);
+
+					} catch (UnsupportedCharsetException uce) {
+
+						logger.warn("Unsupported charset in contentType parameter '{}'", contentType);
 					}
 				}
 
