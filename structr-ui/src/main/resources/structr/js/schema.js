@@ -1183,7 +1183,7 @@ var _Schema = {
 			let contentDiv = $('<div class="schema-details"></div>');
 			contentEl.append(contentDiv);
 
-			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Local Attributes', true, function(c) {
+			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', true, function(c) {
 				_Schema.properties.appendLocalProperties(c, entity);
 			});
 
@@ -1387,7 +1387,7 @@ var _Schema = {
 
 				let propertiesTable = $(html);
 				el.append(propertiesTable);
-				el.append('<i title="Add local attribute" class="add-icon add-local-attribute ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
+				el.append('<i title="Add direct property" class="add-icon add-local-attribute ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
 				let tbody = $('tbody', propertiesTable);
 
 				_Schema.sort(entity.schemaProperties);
@@ -2161,7 +2161,7 @@ var _Schema = {
 				class: 'related-attrs schema-props',
 				cols: [
 					{ class: '', title: 'Name' },
-					{ class: '', title: 'Attributes' },
+					{ class: '', title: 'Properties' },
 					{ class: 'actions-col', title: 'Action' }
 				]
 			};
