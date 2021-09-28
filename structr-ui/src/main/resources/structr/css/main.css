@@ -2851,14 +2851,14 @@ table#relationship-options {
 	font-weight: 600;
 }
 
-#relationship-options #basic-options select, #basic-options input {
-	margin: -.5rem 1rem .25rem;
-}
-
 #relationship-options #basic-options input[disabled] {
 	color: graytext;
 	border: 1px solid var(--gray-ccc);
 	background-color: var(--light-gray-bg-f3);
+}
+
+#relationship-options #basic-options input {
+	min-width: 1rem;
 }
 
 #basic-options input.remote-property-name {
@@ -4563,6 +4563,9 @@ table.props td.__value {
 .flex {
 	display: flex;
 }
+.grid {
+	display: grid;
+}
 .flex-col {
 	flex-direction: column;
 }
@@ -4635,6 +4638,12 @@ table.props td.__value {
 .text-center {
 	text-align: center;
 }
+.text-left {
+	text-align: left;
+}
+.text-right {
+	text-align: right;
+}
 .font-bold {
 	font-weight: 700;
 }
@@ -4675,6 +4684,24 @@ table.props td.__value {
 .justify-between {
 	justify-content: space-between;
 }
+.justify-around {
+	justify-content: space-around;
+}
 .cursor-pointer {
 	cursor: pointer;
+}
+.gap-y-2 {
+	row-gap: 0.5rem;
+}
+.gap-x-4 {
+	column-gap: 1rem;
+}
+.grid-cols-2 {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.grid-cols-5 {
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.overflow-hidden {
+	overflow: hidden;
 }

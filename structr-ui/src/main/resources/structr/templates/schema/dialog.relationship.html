@@ -1,126 +1,130 @@
 <div class="schema-details">
-	<table id="relationship-options">
-		<tr>
-			<td colspan=2 id="basic-options">
+	<div id="relationship-options">
 
-				<span id="source-type-name" class="edit-schema-object relationship-emphasis"></span>
+			<div id="basic-options" class="grid grid-cols-5 gap-y-2 items-center">
 
-				<div style="display:inline-block;">
+				<div class="text-right pb-2 truncate">
+					<span id="source-type-name" class="edit-schema-object relationship-emphasis"></span>
+				</div>
 
-					<span style="float: left;">&#8212;</span>
+				<div class="flex items-center justify-around">
+					<div class="overflow-hidden whitespace-nowrap">&#8212;</div>
 
 					<select id="source-multiplicity-selector" data-attr-name="sourceMultiplicity">
 						<option value="1">1</option>
 						<option value="*" selected>*</option>
 					</select>
 
-					<span style="float: right;">&#8212;[</span>
-
-					<br>
-
-					<input id="source-json-name" class="remote-property-name" data-attr-name="sourceJsonName" autocomplete="off">
-
+					<div class="overflow-hidden whitespace-nowrap">&#8212;[</div>
 				</div>
 
 				<input id="relationship-type-name" data-attr-name="relationshipType" autocomplete="off">
 
-				<div style="display:inline-block;">
-
-					<span style="float: left;">]&#8212;</span>
+				<div class="flex items-center justify-around">
+					<div class="overflow-hidden whitespace-nowrap">]&#8212;</div>
 
 					<select id="target-multiplicity-selector" data-attr-name="targetMultiplicity">
 						<option value="1">1</option>
 						<option value="*" selected>*</option>
 					</select>
 
-					<span style="float: right;">&#8212;&#9658;</span>
-
-					<br>
-
-					<input id="target-json-name" class="remote-property-name" data-attr-name="targetJsonName" autocomplete="off">
-
+					<div class="overflow-hidden whitespace-nowrap">&#8212;&#9658;</div>
 				</div>
 
-				<span id="target-type-name" class="edit-schema-object relationship-emphasis"></span>
-			</td>
-		</tr>
-		<tr>
-			<td id="cascading-options">
-				<h3>Cascading Delete</h3>
-				<p>Direction of automatic removal of related nodes when a node is deleted</p>
+				<div class="text-left pb-2 truncate">
+					<span id="target-type-name" class="edit-schema-object relationship-emphasis"></span>
+				</div>
 
-				<select id="cascading-delete-selector" data-attr-name="cascadingDeleteFlag">
-					<option value="0">NONE</option>
-					<option value="1">SOURCE_TO_TARGET</option>
-					<option value="2">TARGET_TO_SOURCE</option>
-					<option value="3">ALWAYS</option>
-					<option value="4">CONSTRAINT_BASED</option>
-				</select>
 
-				<h3>Automatic Creation of Related Nodes</h3>
-				<p>Direction of automatic creation of related nodes when a node is created</p>
+				<div></div>
+				<input id="source-json-name" class="remote-property-name" data-attr-name="sourceJsonName" autocomplete="off">
+				<div></div>
+				<input id="target-json-name" class="remote-property-name" data-attr-name="targetJsonName" autocomplete="off">
+				<div></div>
+			</div>
 
-				<select id="autocreate-selector" data-attr-name="autocreationFlag">
-					<option value="0">NONE</option>
-					<option value="1">SOURCE_TO_TARGET</option>
-					<option value="2">TARGET_TO_SOURCE</option>
-					<option value="3">ALWAYS</option>
-				</select>
+			<div class="grid grid-cols-2 gap-x-4">
 
-			</td>
-			<td id="propagation-options">
-				<h3>Permission Resolution</h3>
-				<select id="propagation-selector" data-attr-name="permissionPropagation">
-					<option value="None">NONE</option>
-					<option value="Out">SOURCE_TO_TARGET</option>
-					<option value="In">TARGET_TO_SOURCE</option>
-					<option value="Both">ALWAYS</option>
-				</select>
+				<div id="cascading-options">
+					<h3>Cascading Delete</h3>
+					<p>Direction of automatic removal of related nodes when a node is deleted</p>
 
-				<table style="margin: 12px 0 0 0;">
-					<tr id="propagation-table">
-						<td class="selector">
-							<p>Read</p>
-							<select id="read-selector" data-attr-name="readPropagation">
-								<option value="Add">Add</option>
-								<option value="Keep">Keep</option>
-								<option value="Remove" selected>Remove</option>
-							</select>
-						</td>
+					<select id="cascading-delete-selector" data-attr-name="cascadingDeleteFlag">
+						<option value="0">NONE</option>
+						<option value="1">SOURCE_TO_TARGET</option>
+						<option value="2">TARGET_TO_SOURCE</option>
+						<option value="3">ALWAYS</option>
+						<option value="4">CONSTRAINT_BASED</option>
+					</select>
 
-						<td class="selector">
-							<p>Write</p>
-							<select id="write-selector" data-attr-name="writePropagation">
-								<option value="Add">Add</option>
-								<option value="Keep">Keep</option>
-								<option value="Remove" selected>Remove</option>
-							</select>
-						</td>
+					<h3>Automatic Creation of Related Nodes</h3>
+					<p>Direction of automatic creation of related nodes when a node is created</p>
 
-						<td class="selector">
-							<p>Delete</p>
-							<select id="delete-selector" data-attr-name="deletePropagation">
-								<option value="Add">Add</option>
-								<option value="Keep">Keep</option>
-								<option value="Remove" selected>Remove</option>
-							</select>
-						</td>
+					<select id="autocreate-selector" data-attr-name="autocreationFlag">
+						<option value="0">NONE</option>
+						<option value="1">SOURCE_TO_TARGET</option>
+						<option value="2">TARGET_TO_SOURCE</option>
+						<option value="3">ALWAYS</option>
+					</select>
+				</div>
 
-						<td class="selector">
-							<p>AccessControl</p>
-							<select id="access-control-selector" data-attr-name="accessControlPropagation">
-								<option value="Add">Add</option>
-								<option value="Keep">Keep</option>
-								<option value="Remove" selected>Remove</option>
-							</select>
-						</td>
-					</tr>
-				</table>
+				<div id="propagation-options">
 
-				<p style="margin-top:12px">Hidden properties</p><textarea id="masked-properties" cols="40" rows="2" data-attr-name="propertyMask" />
-			</td>
-		</tr>
-	</table>
+					<div>
+						<h3>Permission Resolution</h3>
+						<select id="propagation-selector" data-attr-name="permissionPropagation">
+							<option value="None">NONE</option>
+							<option value="Out">SOURCE_TO_TARGET</option>
+							<option value="In">TARGET_TO_SOURCE</option>
+							<option value="Both">ALWAYS</option>
+						</select>
+					</div>
+
+					<div class="mt-4">
+						<div id="propagation-table" class="flex">
+							<div class="selector">
+								<p>Read</p>
+								<select id="read-selector" data-attr-name="readPropagation">
+									<option value="Add">Add</option>
+									<option value="Keep">Keep</option>
+									<option value="Remove" selected>Remove</option>
+								</select>
+							</div>
+
+							<div class="selector">
+								<p>Write</p>
+								<select id="write-selector" data-attr-name="writePropagation">
+									<option value="Add">Add</option>
+									<option value="Keep">Keep</option>
+									<option value="Remove" selected>Remove</option>
+								</select>
+							</div>
+
+							<div class="selector">
+								<p>Delete</p>
+								<select id="delete-selector" data-attr-name="deletePropagation">
+									<option value="Add">Add</option>
+									<option value="Keep">Keep</option>
+									<option value="Remove" selected>Remove</option>
+								</select>
+							</div>
+
+							<div class="selector">
+								<p>AccessControl</p>
+								<select id="access-control-selector" data-attr-name="accessControlPropagation">
+									<option value="Add">Add</option>
+									<option value="Keep">Keep</option>
+									<option value="Remove" selected>Remove</option>
+								</select>
+							</div>
+						</div>
+					</div>
+
+					<p class="mt-4">Hidden properties</p><textarea id="masked-properties" cols="40" rows="2" data-attr-name="propertyMask" />
+				</div>
+			</div>
+		</div>
+	</div>
 
 	<div id="rel-edit-buttons">
 		<button id="edit-rel-options-button"><i class="edit icon ${_Icons.getFullSpriteClass(_Icons.edit_icon)}"></i> Edit relationship options</button>
