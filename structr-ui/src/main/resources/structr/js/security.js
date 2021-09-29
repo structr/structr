@@ -197,12 +197,12 @@ let _UsersAndGroups = {
 	},
 	createUserElement:function (user) {
 
-		let userName = ((user.name) ? user.name : ((user.eMail) ? '[' + user.eMail + ']' : '[unnamed]'));
-		let userIcon = _Icons.getFullSpriteClass((user.isAdmin === true) ? _Icons.user_red_icon : ((user.type === 'LDAPUser') ? _Icons.user_orange_icon : _Icons.user_icon));
+		let displayName = ((user.name) ? user.name : ((user.eMail) ? '[' + user.eMail + ']' : '[unnamed]'));
+		let userIcon    = _Icons.getFullSpriteClass((user.isAdmin === true) ? _Icons.user_red_icon : ((user.type === 'LDAPUser') ? _Icons.user_orange_icon : _Icons.user_icon));
 
 		let userElement = $('<div class="node user userid_' + user.id + '">'
 				+ '<i class="typeIcon ' + userIcon + '"></i>'
-				+ '<b title="' + userName + '" class="name_ abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + userName + '</b>'
+				+ '<b title="' + displayName + '" class="name_ abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + displayName + '</b>'
 				+ '</div>'
 		);
 		userElement.data('userId', user.id);
@@ -210,6 +210,30 @@ let _UsersAndGroups = {
 		_UsersAndGroups.makeDraggable(userElement);
 
 		return userElement;
+	},
+	updateUserElementAfterModelChange: (user) => {
+
+		requestAnimationFrame(() => {
+
+			// request animation frame is especially important if a name is completely removed!
+
+			for (let userEl of document.querySelectorAll('.userid_' + user.id)) {
+
+				let icon = userEl.querySelector('.typeIcon');
+				if (icon) {
+					let userIcon = _Icons.getFullSpriteClass((user.isAdmin === true) ? _Icons.user_red_icon : ((user.type === 'LDAPUser') ? _Icons.user_orange_icon : _Icons.user_icon));
+					icon.setAttribute('class', 'typeIcon ' + userIcon);
+				}
+
+				let userName = userEl.querySelector('.name_');
+				if (userName) {
+					let displayName = ((user.name) ? user.name : ((user.eMail) ? '[' + user.eMail + ']' : '[unnamed]'));
+
+					userName.setAttribute('title', displayName);
+					userName.textContent = displayName;
+				}
+			}
+		});
 	},
 	appendUserToUserList: function (user) {
 

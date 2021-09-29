@@ -675,6 +675,12 @@ StructrUser.prototype.save = function() {
 	StructrModel.save(this.id);
 };
 
+StructrUser.prototype.updatedModel = function() {
+	if (Structr.isModuleActive(_Security)) {
+		_UsersAndGroups.updateUserElementAfterModelChange(this);
+	}
+}
+
 StructrUser.prototype.setProperty = function(key, value, recursive, callback) {
 	Command.setProperty(this.id, key, value, false, callback);
 };
