@@ -187,7 +187,7 @@ let _UsersAndGroups = {
 				addUserButton.querySelector('span').textContent = 'Add ' + userTypeSelect.value;
 			});
 
-			let userPager = _Pager.addPager('users', $(_Security.userControls), true, 'User', 'public');
+			let userPager = _Pager.addPager('users', $(_Security.userControls), true, 'User', 'public', null, null, 'id,isUser,name,type,isAdmin');
 			userPager.cleanupFunction = function () {
 				_Security.userList.innerHTML = '';
 			};
@@ -198,7 +198,7 @@ let _UsersAndGroups = {
 	createUserElement:function (user) {
 
 		let userName = ((user.name) ? user.name : ((user.eMail) ? '[' + user.eMail + ']' : '[unnamed]'));
-		let userIcon = ((user.type === 'LDAPUser') ? _Icons.getFullSpriteClass(_Icons.user_orange_icon) : _Icons.getFullSpriteClass(_Icons.user_icon));
+		let userIcon = _Icons.getFullSpriteClass((user.isAdmin === true) ? _Icons.user_red_icon : ((user.type === 'LDAPUser') ? _Icons.user_orange_icon : _Icons.user_icon));
 
 		let userElement = $('<div class="node user userid_' + user.id + '">'
 				+ '<i class="typeIcon ' + userIcon + '"></i>'
@@ -266,7 +266,8 @@ let _UsersAndGroups = {
 				let memberAlreadyListed = $(prefix + member.id, grpEl).length > 0;
 				if (!memberAlreadyListed) {
 
-					let userDiv = _UsersAndGroups.createUserElement(member);
+					let modelObj = StructrModel.obj(member.id);
+					let userDiv = _UsersAndGroups.createUserElement(modelObj ? modelObj : member);
 
 					$(grpEl).append(userDiv);
 					userDiv.removeClass('disabled');
