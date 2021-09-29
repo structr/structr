@@ -381,10 +381,11 @@ let _UsersAndGroups = {
 	},
 	createGroupElement: function (group) {
 
+		let displayName = ((group.name) ? group.name : '[unnamed]');
 		let groupIcon = ((group.type === 'LDAPGroup') ? _Icons.getFullSpriteClass(_Icons.group_link_icon) : _Icons.getFullSpriteClass(_Icons.group_icon));
 		let groupElement = $('<div class="node group groupid_' + group.id + '">'
 				+ '<i class="typeIcon ' + groupIcon + '" />'
-				+ '<b title="' + group.name + '" class="name_  abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + group.name + '</b>'
+				+ '<b title="' + displayName + '" class="name_  abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + displayName + '</b>'
 				+ '</div>'
 		);
 		groupElement.data('groupId', group.id);
@@ -416,6 +417,30 @@ let _UsersAndGroups = {
 		_UsersAndGroups.makeDraggable(groupElement);
 
 		return groupElement;
+	},
+	updateGroupElementAfterModelChange: (group) => {
+
+		requestAnimationFrame(() => {
+
+			// request animation frame is especially important if a name is completely removed!
+
+			for (let userEl of document.querySelectorAll('.groupid_' + group.id)) {
+
+				let icon = userEl.querySelector('.typeIcon');
+				if (icon) {
+					let groupIcon = ((group.type === 'LDAPGroup') ? _Icons.getFullSpriteClass(_Icons.group_link_icon) : _Icons.getFullSpriteClass(_Icons.group_icon));
+					icon.setAttribute('class', 'typeIcon ' + groupIcon);
+				}
+
+				let groupName = userEl.querySelector('.name_');
+				if (groupName) {
+					let displayName = ((group.name) ? group.name : '[unnamed]');
+
+					groupName.setAttribute('title', displayName);
+					groupName.textContent = displayName;
+				}
+			}
+		});
 	},
 	appendGroupElement: function(element, group) {
 
