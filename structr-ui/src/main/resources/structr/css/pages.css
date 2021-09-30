@@ -359,8 +359,8 @@ input.dataKey_ {
 }
 
 #localizations .inner input.locale {
-	max-width: 5.5rem;
-	margin-right: 1rem;
+	max-width: 3.5rem;
+	margin-right: .5rem;
 }
 
 .localization-element .edit_props_icon {
