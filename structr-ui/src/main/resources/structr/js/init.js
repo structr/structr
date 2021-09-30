@@ -2767,7 +2767,7 @@ let UISettings = {
 		let moduleSettings = UISettings.getSettings(Structr.getActiveModuleName());
 		if (moduleSettings) {
 
-			let dropdown = Structr.createSingleDOMElementFromHTML(`<div id="ui-settings-popup" class="dropdown-menu dropdown-menu-large">
+			let dropdown = Structr.createSingleDOMElementFromHTML(`<div id="ui-settings-popup" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 				<button class="btn dropdown-select">
 					${_Icons.getSvgIcon('ui_configuration_settings')}
 				</button>
@@ -2800,7 +2800,7 @@ let UISettings = {
 
 			case 'checkbox': {
 
-				let settingDOM = Structr.createSingleDOMElementFromHTML('<label class="ui-setting-checkbox"><input type="checkbox"> ' + setting.text + '</label>');
+				let settingDOM = Structr.createSingleDOMElementFromHTML('<label class="flex items-center p-1"><input type="checkbox"> ' + setting.text + '</label>');
 
 				let input = settingDOM.querySelector('input');
 				input.checked = UISettings.getValueForSetting(setting);
@@ -2833,6 +2833,12 @@ let UISettings = {
 	pages: {
 		title: 'Pages',
 		settings: {
+			inheritVisibilityFlagsKey: {
+				text: 'Inherit Visibility Flags (when creating new elements from the context menu)',
+				storageKey: 'inheritVisibilityFlags_' + location.port,
+				defaultValue: false,
+				type: 'checkbox'
+			},
 			favorEditorForContentElementsKey: {
 				text: 'Always favor editor for content elements in Pages area (otherwise last used is picked)',
 				storageKey: 'favorEditorForContentElements' + location.port,

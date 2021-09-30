@@ -26,11 +26,6 @@ $(function() {
 		e.preventDefault();
 	});
 
-	$(document).on('click', '#add-child-dialog #inherit-visibility-flags' , function (e) {
-		e.preventDefault();
-		e.stopPropagation();
-	});
-
 	$(document).on('mouseup', function() {
 		_Elements.removeContextMenu();
 	});
@@ -666,7 +661,7 @@ let _Elements = {
 					let pageId = (entity.type === 'Page') ? entity.id : entity.pageId;
 					let tagName = (itemText === 'content') ? null : itemText;
 
-					Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName), _Elements.isInheritVisibililtyFlagsChecked());
+					Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName), _Elements.isInheritVisibilityFlagsChecked());
 				}
 
 				_Elements.removeContextMenu();
@@ -779,7 +774,6 @@ let _Elements = {
 			});
 		}
 
-		_Elements.updateVisibilityInheritanceCheckbox();
 		updateMenuGroupVisibility();
 
 		let repositionMenu = function() {
@@ -802,15 +796,8 @@ let _Elements = {
 
 		repositionMenu();
 	},
-	updateVisibilityInheritanceCheckbox: function() {
-		let checked = LSWrapper.getItem(_Elements.inheritVisibilityFlagsKey) || false;
-
-		if (checked === true) {
-			$('#add-child-dialog #inherit-visibility-flags').prop('checked', checked);
-		}
-	},
-	isInheritVisibililtyFlagsChecked: function () {
-		return $('#add-child-dialog #inherit-visibility-flags').prop('checked');
+	isInheritVisibilityFlagsChecked: function () {
+		return UISettings.getValueForSetting(UISettings.pages.settings.inheritVisibilityFlagsKey);
 	},
 	removeContextMenu: function() {
 		$('#add-child-dialog').remove();

@@ -211,12 +211,12 @@ let _Pages = {
 			let pageId = isPage ? entity.id : entity.pageId;
 			let tagName = (itemText === 'content') ? null : itemText;
 
-			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), _Elements.isInheritVisibililtyFlagsChecked());
+			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), _Elements.isInheritVisibilityFlagsChecked());
 		};
 
-		let handleInsertBeforeAction = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'Before', _Elements.isInheritVisibililtyFlagsChecked()); };
-		let handleInsertAfterAction  = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'After', _Elements.isInheritVisibililtyFlagsChecked()); };
-		let handleWrapInHTMLAction   = (itemText) => { Command.wrapDOMNodeInNewDOMNode(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibililtyFlagsChecked()); };
+		let handleInsertBeforeAction = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'Before', _Elements.isInheritVisibilityFlagsChecked()); };
+		let handleInsertAfterAction  = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'After', _Elements.isInheritVisibilityFlagsChecked()); };
+		let handleWrapInHTMLAction   = (itemText) => { Command.wrapDOMNodeInNewDOMNode(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibilityFlagsChecked()); };
 
 		let elements = [];
 
@@ -247,7 +247,7 @@ let _Pages = {
 			elements.push({
 				name: 'Insert div element',
 				clickHandler: function () {
-					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', _Dragndrop.getAdditionalDataForElementCreation('div'), _Elements.isInheritVisibililtyFlagsChecked());
+					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', _Dragndrop.getAdditionalDataForElementCreation('div'), _Elements.isInheritVisibilityFlagsChecked());
 					return false;
 				}
 			});
@@ -505,20 +505,6 @@ let _Pages = {
 				]
 			});
 		}
-
-		_Elements.appendContextMenuSeparator(elements);
-
-		elements.push({
-			name: '<input type="checkbox" id="inherit-visibility-flags">Inherit Visibility Flags',
-			stayOpen: true,
-			clickHandler: function(el) {
-				var checkbox = el.find('input');
-				var wasChecked = checkbox.prop('checked');
-				checkbox.prop('checked', !wasChecked);
-				LSWrapper.setItem(_Elements.inheritVisibilityFlagsKey, !wasChecked);
-				return true;
-			}
-		});
 
 		_Elements.appendContextMenuSeparator(elements);
 
@@ -2270,7 +2256,6 @@ let _Pages = {
 				stack: '.node',
 				zIndex: 99
 			});
-
 		},
 	},
 

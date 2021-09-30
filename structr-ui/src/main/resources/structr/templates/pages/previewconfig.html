@@ -4,8 +4,8 @@
 	<tr>
 		<td><label for="_details-object-id">UUID of details object to append to preview URL</label></td>
 		<td>
-			<div style="display: flex; align-items: baseline">
-				<input style="flex-grow: 1;" id="_details-object-id" value="${(LSWrapper.getItem(_Pages.detailsObjectIdKey + config.entity.id) ? LSWrapper.getItem(_Pages.detailsObjectIdKey + config.entity.id) : '')}">
+			<div class="flex items-baseline">
+				<input class="flex-grow" id="_details-object-id" value="${(LSWrapper.getItem(_Pages.detailsObjectIdKey + config.entity.id) ? LSWrapper.getItem(_Pages.detailsObjectIdKey + config.entity.id) : '')}">
 			</div>
 		</td>
 		<td><i id="clear-details-object-id" class="${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i></td>
@@ -14,9 +14,9 @@
 	<tr>
 		<td><label for="_request-parameters">Request parameters to append to preview URL</label></td>
 		<td>
-			<div style="display: flex; align-items: baseline">
-				<code style="font-size: 10pt;">?</code>
-				<input style="flex-grow: 1;" id="_request-parameters" value="${(LSWrapper.getItem(_Pages.requestParametersKey + config.entity.id) ? LSWrapper.getItem(_Pages.requestParametersKey + config.entity.id) : '')}">
+			<div class="flex items-baseline">
+				<code>?</code>
+				<input class="flex-grow" id="_request-parameters" value="${(LSWrapper.getItem(_Pages.requestParametersKey + config.entity.id) ? LSWrapper.getItem(_Pages.requestParametersKey + config.entity.id) : '')}">
 			</div>
 		</td>
 		<td><i id="clear-request-parameters" class="${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i></td>
@@ -33,10 +33,10 @@
 	<tr>
 		<td><label for="_page-category">Category</label></td>
 		<td>
-			<div style="display: flex; align-items: baseline">
-				<input style="flex-grow: 1;" id="_page-category" type="text" value="${(config.entity.category || '')}">
+			<div class="flex items-baseline">
+				<input class="flex-grow"  id="_page-category" type="text" value="${(config.entity.category || '')}">
 			</div>
 		</td>
-		<td><i id="clear-request-parameters" class="${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i></td>
+		<td><i id="clear-page-category" class="${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i></td>
 	</tr>
 </table>
