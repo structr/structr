@@ -72,7 +72,7 @@ let _Security = {
 						_Security.selectTab(subModule);
 					});
 
-					if (tabLink.closest('a').getAttribute('href') === '#' + mainModule + ':' + subModule) {
+					if (tabLink.closest('a').getAttribute('href') === '#security:' + subModule) {
 						tabLink.click();
 					}
 				});
