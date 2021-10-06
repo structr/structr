@@ -3635,21 +3635,8 @@
     if (this.disableHoriz) { this.enableZeroWidthBar(this.horiz, this.disableHoriz, "horiz"); }
   };
 
-  // NativeScrollbars.prototype.setScrollTop = function (pos) {
-  //   if (this.vert.scrollTop != pos) { this.vert.scrollTop = pos; }
-  //   if (this.disableVert) { this.enableZeroWidthBar(this.vert, this.disableVert, "vert"); }
-  // };
-
-  NativeScrollbars.prototype.scrollTimer = undefined;
   NativeScrollbars.prototype.setScrollTop = function (pos) {
-    if (!chrome) {
-      this.vert.scrollTop = pos;
-    } else {
-      window.clearTimeout(this.scrollTimer);
-      this.scrollTimer = window.setTimeout(() => {
-        this.vert.scrollTop = pos;
-      }, 20);
-    }
+    if (this.vert.scrollTop != pos) { this.vert.scrollTop = pos; }
     if (this.disableVert) { this.enableZeroWidthBar(this.vert, this.disableVert, "vert"); }
   };
 
