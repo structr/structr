@@ -18,8 +18,6 @@
  */
 package org.structr.rest.service;
 
-import ch.qos.logback.access.jetty.RequestLogImpl;
-import ch.qos.logback.access.servlet.TeeFilter;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -47,15 +45,7 @@ import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.HttpConfiguration;
-import org.eclipse.jetty.server.HttpConnectionFactory;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.SecureRequestCustomizer;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
@@ -407,9 +397,9 @@ public class HttpService implements RunnableService, StatsCallback {
 				}
 			}
 
-			final FilterHolder loggingFilter = new FilterHolder(TeeFilter.class);
-			servletContext.addFilter(loggingFilter, "/*", EnumSet.of(DispatcherType.REQUEST, Settings.Async.getValue() ? DispatcherType.ASYNC : DispatcherType.FORWARD));
-			loggingFilter.setInitParameter("includes", "");
+			//final FilterHolder loggingFilter = new FilterHolder(TeeFilter.class);
+			//servletContext.addFilter(loggingFilter, "/*", EnumSet.of(DispatcherType.REQUEST, Settings.Async.getValue() ? DispatcherType.ASYNC : DispatcherType.FORWARD));
+			//loggingFilter.setInitParameter("includes", "");
 
 			final RequestLogHandler requestLogHandler = new RequestLogHandler();
 			final String logPath                      = basePath + "/logs";
@@ -422,11 +412,12 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			}
 
-			final RequestLogImpl requestLog = new RequestLogImpl();
-			requestLog.setName("REQUESTLOG");
-			requestLog.start();
+			//final RequestLogImpl requestLog = new RequestLogImpl();
+			//requestLog.setName("REQUESTLOG");
+			//requestLog.start();
 
-			requestLogHandler.setRequestLog(requestLog);
+			//requestLogHandler.setRequestLog(requestLog);
+			requestLogHandler.setRequestLog(new CustomRequestLog());
 
 			final HandlerCollection handlers = new HandlerCollection();
 

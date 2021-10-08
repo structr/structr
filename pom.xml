@@ -313,12 +313,6 @@
 			</dependency>
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
-				<artifactId>logback-access</artifactId>
-				<version>1.2.0</version>
-				<optional>true</optional>
-			</dependency>
-			<dependency>
-				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-classic</artifactId>
 				<version>1.2.0</version>
 			</dependency>
