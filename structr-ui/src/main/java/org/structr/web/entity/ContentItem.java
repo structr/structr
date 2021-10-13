@@ -41,7 +41,6 @@ public interface ContentItem extends NodeInterface {
 
 		type.addBooleanProperty("isContentItem", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 		type.addIntegerProperty("position", PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addEnumProperty("kind", PropertyView.Public, PropertyView.Ui).setEnums("heading", "paragraph");
 
 		type.addViewProperty(PropertyView.Public, "containers");
 		type.addViewProperty(PropertyView.Public, "name");
