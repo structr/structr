@@ -271,7 +271,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			gzipHandler.setDispatcherTypes(EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
 		}
 
-		servletContext.setGzipHandler(gzipHandler);
+		servletContext.insertHandler(gzipHandler);
 
 		final List<Connector> connectors = new LinkedList<>();
 
@@ -358,50 +358,6 @@ public class HttpService implements RunnableService, StatsCallback {
 		// enable request logging
 		if (logRequests) {
 
-			final String etcPath = basePath + "/etc";
-			final File etcDir    = new File(etcPath);
-
-			if (!etcDir.exists()) {
-
-				etcDir.mkdir();
-			}
-
-			final String logbackConfFilePath = basePath + "/etc/logback-access.xml";
-			final File logbackConfFile       = new File(logbackConfFilePath);
-
-			if (!logbackConfFile.exists()) {
-
-				// synthesize a logback accees log config file
-				List<String> config = new LinkedList<>();
-
-				config.add("<configuration>");
-				config.add("  <appender name=\"FILE\" class=\"ch.qos.logback.core.rolling.RollingFileAppender\">");
-				config.add("    <rollingPolicy class=\"ch.qos.logback.core.rolling.TimeBasedRollingPolicy\">");
-				config.add("      <fileNamePattern>logs/" + logPrefix + "-%d{yyyy_MM_dd}.request.log.zip</fileNamePattern>");
-				config.add("    </rollingPolicy>");
-				config.add("    <encoder>");
-				config.add("      <charset>UTF-8</charset>");
-				config.add("      <pattern>%h %l %u %t \"%r\" %s %b %n%fullRequest%n%n%fullResponse</pattern>");
-				config.add("    </encoder>");
-				config.add("  </appender>");
-				config.add("  <appender-ref ref=\"FILE\" />");
-				config.add("</configuration>");
-
-				try {
-					logbackConfFile.createNewFile();
-					FileUtils.writeLines(logbackConfFile, "UTF-8", config);
-
-				} catch (IOException ioex) {
-
-					logger.warn("Unable to write logback configuration.", ioex);
-				}
-			}
-
-			//final FilterHolder loggingFilter = new FilterHolder(TeeFilter.class);
-			//servletContext.addFilter(loggingFilter, "/*", EnumSet.of(DispatcherType.REQUEST, Settings.Async.getValue() ? DispatcherType.ASYNC : DispatcherType.FORWARD));
-			//loggingFilter.setInitParameter("includes", "");
-
-			final RequestLogHandler requestLogHandler = new RequestLogHandler();
 			final String logPath                      = basePath + "/logs";
 			final File logDir                         = new File(logPath);
 
@@ -412,19 +368,15 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			}
 
-			//final RequestLogImpl requestLog = new RequestLogImpl();
-			//requestLog.setName("REQUESTLOG");
-			//requestLog.start();
+			Slf4jRequestLogWriter requestLogWriter = new Slf4jRequestLogWriter();
 
-			//requestLogHandler.setRequestLog(requestLog);
-			requestLogHandler.setRequestLog(new CustomRequestLog());
+			final String request_format = "%t \"%r\" %s %{ms}T";
+			final RequestLog requestLog = new CustomRequestLog(requestLogWriter, request_format);
+			server.setRequestLog(requestLog);
 
 			final HandlerCollection handlers = new HandlerCollection();
-
-			handlers.setHandlers(new Handler[]{contexts, requestLogHandler});
-
+			handlers.setHandlers(new Handler[]{contexts});
 			server.setHandler(handlers);
-
 		} else {
 
 			server.setHandler(contexts);
