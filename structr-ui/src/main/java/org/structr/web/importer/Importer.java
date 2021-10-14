@@ -302,8 +302,39 @@ public class Importer {
 
 	public DOMNode createComponentChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
 
-		final Element head = parsedDocument.head();
-		final Element body = parsedDocument.body();
+		// head() and body() automatically create elements (inlcuding "html") - but we want to keep the original intact
+		final String initialDocument = parsedDocument.toString();
+		Element head                 = parsedDocument.head();
+
+		if (!initialDocument.equals(parsedDocument.toString())) {
+
+			// at least "head" element was added
+			final Element headParent = head.parent();
+			head.remove();
+
+			if (!initialDocument.equals(parsedDocument.toString())) {
+				// also "html" element was added
+				headParent.remove();
+			}
+
+			head = null;
+		}
+
+		Element body = parsedDocument.body();
+
+		if (!initialDocument.equals(parsedDocument.toString())) {
+
+			// at least "body" element was added
+			final Element bodyParent = body.parent();
+			body.remove();
+
+			if (!initialDocument.equals(parsedDocument.toString())) {
+				// also "html" element was added
+				bodyParent.remove();
+			}
+
+			body = null;
+		}
 
 		if (head != null && !head.html().isEmpty()) {
 
