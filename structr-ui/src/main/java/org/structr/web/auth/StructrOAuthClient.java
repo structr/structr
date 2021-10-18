@@ -18,6 +18,7 @@
  */
 package org.structr.web.auth;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.oltu.oauth2.client.OAuthClient;
@@ -41,7 +42,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.web.entity.User;
+import org.structr.web.entity.html.P;
 
 /**
  * Central class for OAuth client implementations.
@@ -50,7 +53,7 @@ import org.structr.web.entity.User;
  */
 public abstract class StructrOAuthClient {
 
-	private static final Logger logger = LoggerFactory.getLogger(StructrOAuthClient.class.getName());
+	protected static final Logger logger = LoggerFactory.getLogger(StructrOAuthClient.class.getName());
 
 	protected enum ResponseFormat {
 		json, urlEncoded
@@ -83,7 +86,7 @@ public abstract class StructrOAuthClient {
 
 	public StructrOAuthClient() {};
 
-	public StructrOAuthClient(final String authorizationLocation, final String tokenLocation, final String clientId, final String clientSecret, final String redirectUri) {
+	public StructrOAuthClient(final String authorizationLocation, final String tokenLocation, final String clientId, final String clientSecret, final String redirect_uri) {
 
 		this.init(authorizationLocation, tokenLocation, clientId, clientSecret, redirectUri, OAuthJSONAccessTokenResponse.class);
 	}
@@ -221,6 +224,9 @@ public abstract class StructrOAuthClient {
 		}
 
 	}
+	public String getProviderName () {
+		return null;
+	}
 
 	private static Class getServerClassForName(final String name) {
 
@@ -328,9 +334,11 @@ public abstract class StructrOAuthClient {
 		} catch (Exception ex) {
 
 			logger.warn("Could not extract {} from JSON response", ex);
-		}
+		}		return null;
+	}
 
-		return null;
+	public Map<String, Object> getUserInfo() {
+		return userInfo;
 	}
 
 	public String getAccessToken(final HttpServletRequest request) {
@@ -487,5 +495,14 @@ public abstract class StructrOAuthClient {
 
 	protected static boolean isVerboseLoggingEnabled() {
 		return (Boolean.TRUE.equals(Settings.OAuthVerboseLogging.getValue()));
+	}
+
+	public void invokeOnLoginMethod(Principal user) throws FrameworkException {
+
+		final Map<String, Object> methodParamerers = new LinkedHashMap<>();
+		methodParamerers.put("provider", this.getProviderName());
+		methodParamerers.put("userinfo", this.getUserInfo());
+
+		user.invokeMethod(user.getSecurityContext(), "onOAuthLogin", methodParamerers, false, new EvaluationHints());
 	}
 }

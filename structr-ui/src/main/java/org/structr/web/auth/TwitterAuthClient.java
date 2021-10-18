@@ -48,6 +48,11 @@ public class TwitterAuthClient extends StructrOAuthClient {
 	public TwitterAuthClient() {}
 
 	@Override
+	public String getProviderName () {
+		return "twitter";
+	}
+
+	@Override
 	protected void init(final String authorizationLocation, final String tokenLocation, final String clientId, final String clientSecret, final String redirectUri, final Class tokenResponseClass) {
 
 		super.init(authorizationLocation, tokenLocation, clientId, clientSecret, redirectUri, tokenResponseClass);

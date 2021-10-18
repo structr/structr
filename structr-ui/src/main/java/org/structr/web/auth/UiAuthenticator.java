@@ -551,6 +551,8 @@ public class UiAuthenticator implements Authenticator {
 						AuthHelper.doLogin(request, user);
 						HtmlServlet.setNoCacheHeaders(response);
 
+						oauthServer.invokeOnLoginMethod(user);
+
 						logger.debug("Response status: {}", response.getStatus());
 
 						if (Settings.OAuthDelayedRedirect.getValue(false)) {

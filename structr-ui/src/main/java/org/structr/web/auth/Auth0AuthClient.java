@@ -21,7 +21,13 @@ package org.structr.web.auth;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.property.PropertyKey;
+import org.structr.schema.action.EvaluationHints;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  *
@@ -30,6 +36,11 @@ import org.structr.core.entity.Principal;
 public class Auth0AuthClient extends StructrOAuthClient {
 
 	public Auth0AuthClient() {}
+
+	@Override
+	public String getProviderName () {
+		return "auth0";
+	}
 
 	@Override
 	public String getScope() {

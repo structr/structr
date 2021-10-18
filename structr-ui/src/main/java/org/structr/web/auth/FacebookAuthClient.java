@@ -31,6 +31,11 @@ public class FacebookAuthClient extends StructrOAuthClient {
 	public FacebookAuthClient() {}
 
 	@Override
+	public String getProviderName () {
+		return "facebook";
+	}
+
+	@Override
 	public String getScope() {
 		return Settings.OAuthFacebookScope.getValue();
 	}

@@ -27,6 +27,11 @@ import org.structr.api.config.Settings;
 public class GoogleAuthClient extends StructrOAuthClient {
 
 	@Override
+	public String getProviderName () {
+		return "google";
+	}
+
+	@Override
 	protected String getScope() {
 		return Settings.OAuthGoogleScope.getValue();
 	}

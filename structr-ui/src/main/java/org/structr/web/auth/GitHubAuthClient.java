@@ -40,6 +40,11 @@ public class GitHubAuthClient extends StructrOAuthClient {
 	}
 
 	@Override
+	public String getProviderName () {
+		return "github";
+	}
+
+	@Override
 	public String getScope() {
 		return Settings.OAuthGithubScope.getValue();
 	}
