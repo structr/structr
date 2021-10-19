@@ -84,7 +84,7 @@ public class GitHubAuthClient extends StructrOAuthClient {
 
 		if (result instanceof JsonArray) {
 
-			final JsonArray arr                  = (JsonArray) result;
+			final JsonArray arr = (JsonArray) result;
 			final Iterator<JsonElement> iterator = arr.iterator();
 
 			if (iterator.hasNext()) {

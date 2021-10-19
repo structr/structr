@@ -78,7 +78,7 @@ public class TwitterAuthClient extends StructrOAuthClient {
 	 * @return auth request URI
 	 */
 	@Override
-	public String getEndUserAuthorizationRequestUri(final HttpServletRequest request) {
+	public String getEndUserAuthorizationRequestUri(final HttpServletRequest request, String state) {
 
 		RequestToken requestToken;
 

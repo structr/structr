@@ -21,13 +21,7 @@ package org.structr.web.auth;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
-import org.structr.core.property.PropertyKey;
-import org.structr.schema.action.EvaluationHints;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  *
@@ -82,6 +76,21 @@ public class Auth0AuthClient extends StructrOAuthClient {
 
 			user.setProperty(Principal.name, name);
 		}
+	}
+
+	@Override
+	public String getLogoutUri () {
+		return Settings.OAuthAuth0LogoutLocation.getValue();
+	}
+
+	@Override
+	public String getLogoutReturnUri () {
+		return Settings.OAuthAuth0LogoutReturnUri.getValue();
+	}
+
+	@Override
+	public String getLogouReturnUriParameterKey () {
+		return Settings.OAuthAuth0LogoutReturnLocationParameterKey.getValue();
 	}
 
 	@Override

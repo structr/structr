@@ -19,13 +19,19 @@
 package org.structr.web.auth;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.mchange.v2.uid.UidUtils;
+import com.microsoft.schemas.office.x2006.encryption.CTKeyEncryptor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -43,12 +49,15 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.rest.auth.SessionHelper;
+import org.structr.rest.common.HttpHelper;
 import org.structr.web.entity.User;
+import org.structr.web.entity.html.P;
 import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
 
@@ -63,6 +72,7 @@ public class UiAuthenticator implements Authenticator {
 
 	private enum Method { GET, PUT, POST, DELETE, HEAD, OPTIONS, PATCH }
 	private static final Map<String, Method> methods = new LinkedHashMap();
+	private static final Map<String, Map<String,String[]>> stateParamters = new LinkedHashMap<>();
 
 	// HTTP methods
 	static {
@@ -486,13 +496,28 @@ public class UiAuthenticator implements Authenticator {
 
 			try {
 
-				response.sendRedirect(oauthServer.getEndUserAuthorizationRequestUri(request));
+				final String state = NodeServiceCommand.getNextUuid();
+				stateParamters.put(state, request.getParameterMap());
+				response.sendRedirect(oauthServer.getEndUserAuthorizationRequestUri(request, state));
+
 				return null;
 
 			} catch (Exception ex) {
 
 				logger.error("Could not send redirect to authorization server", ex);
 			}
+
+		} else if ("logout".equals(action)) {
+
+			 try {
+
+				 response.sendRedirect(oauthServer.getEndUserLogoutRequestUri());
+				 return null;
+
+			 } catch (Exception ex) {
+
+				 logger.error("Could not send redirect to logout endpoint", ex);
+			 }
 
 		} else if ("auth".equals(action)) {
 
@@ -565,10 +590,34 @@ public class UiAuthenticator implements Authenticator {
 
 							try {
 
-								// send redirect immediately
-								response.sendRedirect(oauthServer.getReturnUri());
+								// get the original request state and add the parameters to the redirect page
+								final String originalRequestState = request.getParameter("state");
+								Map<String, String[]> originalRequestParameters = stateParamters.get(originalRequestState);
+								stateParamters.remove(originalRequestState);
 
-							} catch (IOException ex) {
+								URIBuilder uriBuilder = new URIBuilder();
+								for (Map.Entry<String, String[]> entry : originalRequestParameters.entrySet()) {
+									for (String parameterEntry : entry.getValue()) {
+										uriBuilder.addParameter(entry.getKey(), parameterEntry);
+									}
+								}
+
+								final String configuredReturnUri = oauthServer.getReturnUri();
+								if (StringUtils.startsWith(configuredReturnUri, "http")) {
+
+									URI redirectUri = new URI(configuredReturnUri);
+									uriBuilder.setHost(redirectUri.getHost());
+									uriBuilder.setPath(redirectUri.getPath());
+									uriBuilder.setPort(redirectUri.getPort());
+									uriBuilder.setScheme(redirectUri.getScheme());
+
+								} else {
+									uriBuilder.setPath(configuredReturnUri);
+								}
+
+								response.sendRedirect(uriBuilder.build().toString());
+
+							} catch (IOException | URISyntaxException ex) {
 
 								logger.error("Could not redirect to {}: {}", new Object[]{oauthServer.getReturnUri(), ex});
 							}

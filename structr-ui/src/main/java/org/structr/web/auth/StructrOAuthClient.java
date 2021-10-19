@@ -122,18 +122,21 @@ public abstract class StructrOAuthClient {
 	 * @param request
 	 * @return request URI
 	 */
-	public String getEndUserAuthorizationRequestUri(final HttpServletRequest request) {
+	public String getEndUserAuthorizationRequestUri(final HttpServletRequest request, String state) {
 
 		try {
+			if (state == null) {
+				state = getState();
+			}
 
 			final OAuthClientRequest oauthClientRequest = OAuthClientRequest
-				.authorizationLocation(authorizationLocation)
-				.setClientId(clientId)
-				.setRedirectURI(getAbsoluteUrl(request, redirectUri))
-				.setScope(getScope())
-				.setResponseType(getResponseType())
-				.setState(getState())
-				.buildQueryMessage();
+					.authorizationLocation(authorizationLocation)
+					.setClientId(clientId)
+					.setRedirectURI(getAbsoluteUrl(request, redirectUri))
+					.setScope(getScope())
+					.setResponseType(getResponseType())
+					.setState(state)
+					.buildQueryMessage();
 
 			if (isVerboseLoggingEnabled()) {
 				logger.info("Authorization request location URI: {}", oauthClientRequest.getLocationUri());
@@ -146,6 +149,16 @@ public abstract class StructrOAuthClient {
 		}
 
 		return null;
+	}
+
+	public String getEndUserLogoutRequestUri() throws OAuthSystemException {
+		final OAuthClientRequest oauthClientRequest = OAuthClientRequest
+				.authorizationLocation(this.getLogoutUri())
+				.setClientId(this.clientId)
+				.setParameter(this.getLogouReturnUriParameterKey(), this.getLogoutReturnUri())
+				.buildQueryMessage();
+
+		return oauthClientRequest.getLocationUri();
 	}
 
 	/**
@@ -224,7 +237,20 @@ public abstract class StructrOAuthClient {
 		}
 
 	}
+
 	public String getProviderName () {
+		return null;
+	}
+
+	public String getLogoutUri () {
+		return null;
+	}
+
+	public String getLogoutReturnUri () {
+		return null;
+	}
+
+	public String getLogouReturnUriParameterKey () {
 		return null;
 	}
 
