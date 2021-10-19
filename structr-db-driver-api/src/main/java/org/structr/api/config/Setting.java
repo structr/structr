@@ -174,7 +174,7 @@ public abstract class Setting<T> {
 
 		if (isModified()) {
 
-			final Tag icon = group.block("svg").css("reset-key").block("use").attr(new Attr("xlink:href", "#interface_delete_circle"), new Attr("onclick", "javascript:resetToDefault('" + getKey() + "');"));
+			final Tag icon = group.block("svg").css("reset-key").attr(new Attr("data-key", getKey())).block("use").attr(new Attr("xlink:href", "#interface_delete_circle"));
 
 			if (isDynamic()) {
 
