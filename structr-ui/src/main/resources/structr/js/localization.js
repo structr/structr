@@ -222,7 +222,9 @@ let _Localization = {
 	},
 	processPagerData: (pagerData) => {
 		if (pagerData && pagerData.length) {
-			pagerData.forEach(_Localization.appendKeyAndDomainListRow);
+			for (let entry of pagerData) {
+				_Localization.appendKeyAndDomainListRow(entry);
+			}
 		}
 	},
 	showMain: () => {
@@ -235,9 +237,9 @@ let _Localization = {
 	checkMainVisibility: () => {
 		let rows = document.querySelectorAll('.localization-row');
 		let selectedRowExists = false;
-		rows.forEach((row) => {
+		for (let row of rows) {
 			selectedRowExists |= row.classList.contains('selected');
-		});
+		}
 		if (!rows || rows.length === 0) {
 			_Localization.hideMain();
 		} else if (!selectedRowExists) {
@@ -256,7 +258,7 @@ let _Localization = {
 
 		_Localization.showMain();
 
-		let combinedTypeForId = _Localization.getCombinedTypeForId(keyAndDomainObject);
+		let combinedTypeForId     = _Localization.getCombinedTypeForId(keyAndDomainObject);
 		keyAndDomainObject.htmlId = combinedTypeForId;
 
 		Structr.fetchHtmlTemplate('localization/row.type', { localization: keyAndDomainObject }, function(html) {
@@ -288,10 +290,10 @@ let _Localization = {
 	},
 	showLocalizationsForKeyAndDomainObject: async (keyAndDomainObject, isCreate) => {
 
-		let key    = (keyAndDomainObject.name ? keyAndDomainObject.name : null);
-		let domain = (keyAndDomainObject.domain ? keyAndDomainObject.domain : null);
+		let key    = (keyAndDomainObject.name === undefined ? null : keyAndDomainObject.name);
+		let domain = (keyAndDomainObject.domain === undefined ? null: keyAndDomainObject.domain);
 
-		let combinedTypeForId = _Localization.getCombinedTypeForId(keyAndDomainObject);
+		let combinedTypeForId     = _Localization.getCombinedTypeForId(keyAndDomainObject);
 		keyAndDomainObject.htmlId = combinedTypeForId;
 
 		LSWrapper.setItem(_Localization.localizationSelectedElementKey, keyAndDomainObject);
