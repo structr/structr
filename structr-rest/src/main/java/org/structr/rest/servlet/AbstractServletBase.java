@@ -46,14 +46,14 @@ public abstract class AbstractServletBase extends HttpServlet {
 			final String customResponseHeadersString = Settings.HtmlCustomResponseHeaders.getValue();
 			if (StringUtils.isNotBlank(customResponseHeadersString)) {
 
-				for (final String header : Arrays.asList(customResponseHeadersString.split("[ ,]+"))) {
+				for (final String header : Arrays.asList(customResponseHeadersString.split("[,]+"))) {
 
-					final String[] keyValuePair = header.split("[ :]+");
+					final String[] keyValuePair = header.split("[:]+");
 					if (keyValuePair != null && keyValuePair.length == 2) {
 
-						response.setHeader(keyValuePair[0], keyValuePair[1]);
+						response.setHeader(keyValuePair[0].trim(), keyValuePair[1].trim());
 
-						logger.debug("Set custom response header: {} {}", keyValuePair[0], keyValuePair[1]);
+						logger.debug("Set custom response header: {} {}", keyValuePair[0].trim(), keyValuePair[1].trim());
 					}
 				}
 			}
