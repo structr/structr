@@ -18,6 +18,12 @@
  */
 package org.structr.core.function;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,12 +34,15 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 import org.structr.util.AbstractProcess;
 
 public class ExecFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_EXEC    = "Usage: ${exec(fileName [, parameters...]}. Example ${exec('my-script')}";
 	public static final String ERROR_MESSAGE_EXEC_JS = "Usage: ${{Structr.exec(fileName [, parameters...]}}. Example ${{Structr.exec('my-script')}}";
+
+	public static final String SCRIPTS_FOLDER = "scripts";
 
 	@Override
 	public String getName() {
@@ -55,39 +64,71 @@ public class ExecFunction extends AdvancedScriptingFunction {
 			final String scriptKey              = sources[0].toString();
 			final Setting<String> scriptSetting = Settings.getStringSetting(scriptKey);
 
-			if (scriptSetting != null) {
+			if (scriptSetting == null) {
 
-				final StringBuilder scriptBuilder = new StringBuilder(scriptSetting.getValue());
-				if (sources.length > 1) {
+				logger.warn("{}(): No script found for key '{}' in structr.conf, nothing executed.", getName(), scriptKey);
 
-					for (int i = 1; i < sources.length; i++) {
-						if (sources[i] != null) {
+			} else if (!scriptSetting.isDynamic()) {
 
-							scriptBuilder.append(" ").append(sources[i].toString());
-						}
-					}
-				}
-
-				final ExecutorService executorService = Executors.newSingleThreadExecutor();
-				final ScriptingProcess process        = new ScriptingProcess(ctx.getSecurityContext(), scriptBuilder.toString());
-
-				try {
-
-					return executorService.submit(process).get();
-
-				} catch (InterruptedException | ExecutionException iex) {
-
-					logException(caller, iex, sources);
-
-				} finally {
-
-					executorService.shutdown();
-				}
+				logger.warn("{}(): Key '{}' in structr.conf is builtin. This is not allowed, nothing executed.", getName(), scriptKey);
 
 			} else {
 
-				logger.warn("No script found for key \"{}\" in structr.conf, nothing executed.", scriptKey);
+				final String scriptName              = scriptSetting.getValue();
+				final Path scriptPath                = Paths.get(SCRIPTS_FOLDER.concat(File.separator).concat(scriptName));
+				final String absolutePath            = scriptPath.toAbsolutePath().toString();
+				final String canonicalPath           = scriptPath.toFile().getCanonicalPath();
+
+				final boolean pathExists        = Files.exists(scriptPath);
+				final boolean pathIsRegularFile = Files.isRegularFile(scriptPath, LinkOption.NOFOLLOW_LINKS);
+				final boolean pathIsAllowed     = absolutePath.equals(canonicalPath);
+
+				if (!pathExists) {
+
+					logger.warn("{}(): No file found for script key '{}' = '{}' ({}), nothing executed.", getName(), scriptKey, scriptName, absolutePath);
+
+				} else if (!pathIsRegularFile) {
+
+					logger.warn("{}(): Script key '{}' = '{}' points to script file '{}' which is either not a file (or a symlink) and not allowed, nothing executed.", getName(), scriptKey, scriptName, absolutePath);
+
+				} else if (!pathIsAllowed) {
+
+					logger.warn("{}(): Script key '{}' = '{}' resolves to '{}' which seems to contain a directory traversal attack, nothing executed.", getName(), scriptKey, scriptName, absolutePath);
+
+				} else {
+
+					final StringBuilder scriptBuilder = new StringBuilder(absolutePath);
+					if (sources.length > 1) {
+
+						for (int i = 1; i < sources.length; i++) {
+							if (sources[i] != null) {
+
+								scriptBuilder.append(" ").append(sources[i].toString());
+							}
+						}
+					}
+
+					final ExecutorService executorService = Executors.newSingleThreadExecutor();
+					final ScriptingProcess process        = new ScriptingProcess(ctx.getSecurityContext(), scriptBuilder.toString());
+
+					try {
+
+						return executorService.submit(process).get();
+
+					} catch (InterruptedException | ExecutionException iex) {
+
+						logException(caller, iex, sources);
+
+					} finally {
+
+						executorService.shutdown();
+					}
+				}
 			}
+
+		} catch (IOException ex) {
+
+			Function.logException(logger, ex, "{}(): IOException encountered: {}", new Object[]{ getName(), ex.getMessage() });
 
 		} catch (ArgumentNullException pe) {
 
