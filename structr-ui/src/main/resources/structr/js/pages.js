@@ -216,7 +216,14 @@ let _Pages = {
 
 		let handleInsertBeforeAction = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'Before', _Elements.isInheritVisibilityFlagsChecked()); };
 		let handleInsertAfterAction  = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'After', _Elements.isInheritVisibilityFlagsChecked()); };
-		let handleWrapInHTMLAction   = (itemText) => { Command.wrapDOMNodeInNewDOMNode(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibilityFlagsChecked()); };
+		let handleWrapInHTMLAction   = (itemText) => {
+
+			_Dragndrop.storeTemporarilyRemovedElementUUID(entity.id);
+
+			Command.wrapDOMNodeInNewDOMNode(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibilityFlagsChecked());
+
+			_Dragndrop.clearTemporarilyRemovedElementUUID();
+		};
 
 		let elements = [];
 
