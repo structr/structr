@@ -438,7 +438,15 @@ public class HttpService implements RunnableService, StatsCallback {
 					httpsActive = true;
 
 					httpsConfig = new HttpConfiguration(httpConfig);
-					httpsConfig.addCustomizer(new SecureRequestCustomizer());
+
+					final SecureRequestCustomizer secureRequestCustomizer = new SecureRequestCustomizer();
+
+					if (Settings.SNIRequired.getValue()) {
+
+						secureRequestCustomizer.setSniRequired(false);
+					}
+
+					httpsConfig.addCustomizer(secureRequestCustomizer);
 
 					sslContextFactory = new SslContextFactory.Server();
 					sslContextFactory.setKeyStorePath(keyStorePath);
