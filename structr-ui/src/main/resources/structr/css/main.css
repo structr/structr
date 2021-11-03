@@ -2376,7 +2376,7 @@ button.add_property {
 .property-default,
 .localization-locale,
 .localization-name {
-	width: 98%;
+	/*width: 98%;*/
 	/*font-size: 1em;*/
 	border: none;
 	background: transparent;

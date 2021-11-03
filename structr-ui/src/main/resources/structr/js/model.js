@@ -908,7 +908,7 @@ StructrElement.prototype.remove = function() {
 			element.remove();
 		}
 
-		if (_Entities?.selectedObject?.id === this.id) {
+		if (_Entities?.selectedObject?.id === this.id && !(_Dragndrop.temporarilyRemovedElementUUID === this.id)) {
 			_Pages.selectedObjectWasDeleted();
 		}
 
@@ -920,7 +920,7 @@ StructrElement.prototype.remove = function() {
 
 StructrElement.prototype.append = function(refId) {
 	if (Structr.isModuleActive(_Pages)) {
-		var refNode = refId ? Structr.node(refId) : undefined;
+		let refNode = refId ? Structr.node(refId) : undefined;
 		StructrModel.expand(_Pages.appendElementElement(this, refNode), this);
 	}
 };
@@ -1006,7 +1006,7 @@ StructrContent.prototype.remove = function() {
 			element.remove();
 		}
 
-		if (_Entities?.selectedObject?.id === this.id) {
+		if (_Entities?.selectedObject?.id === this.id && !(_Dragndrop.temporarilyRemovedElementUUID === this.id)) {
 			_Pages.selectedObjectWasDeleted();
 		}
 
