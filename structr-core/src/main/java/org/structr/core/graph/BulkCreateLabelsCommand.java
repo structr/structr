@@ -36,6 +36,11 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 	@Override
 	public void execute(Map<String, Object> attributes) {
 
+		executeWithCount(attributes);
+	}
+
+	public long executeWithCount(Map<String, Object> attributes) {
+
 		final String entityType                   = (String) attributes.get("type");
 		final DatabaseService graphDb             = (DatabaseService) arguments.get("graphDb");
 		final SecurityContext superUserContext    = SecurityContext.getSuperUserInstance();
@@ -74,6 +79,7 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 		});
 
 		info("Done with creating labels on {} nodes", count);
+		return count;
 	}
 
 	@Override

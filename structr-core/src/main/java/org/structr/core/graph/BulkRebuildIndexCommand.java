@@ -71,6 +71,27 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		return true;
 	}
 
+	public long executeWithCount(Map<String, Object> attributes) {
+
+		final String mode       = (String) attributes.get("mode");
+		final String entityType = (String) attributes.get("type");
+		final String relType    = (String) attributes.get("relType");
+
+		if (mode == null || "nodesOnly".equals(mode)) {
+			return rebuildNodeIndex(entityType);
+		}
+
+		if (mode == null || "relsOnly".equals(mode)) {
+			return rebuildRelationshipIndex(relType);
+		}
+
+		if ("fulltext".equals(mode)) {
+			return rebuildFulltextIndex();
+		}
+
+		return 0;
+	}
+
 	@Override
 	public boolean requiresEnclosingTransaction() {
 		return false;
@@ -82,7 +103,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 	}
 
 	// ----- private methods -----
-	private void rebuildNodeIndex(final String entityType) {
+	private long rebuildNodeIndex(final String entityType) {
 
 		final NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
 		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
@@ -99,7 +120,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			info("Starting (re-)indexing all nodes of type {}", entityType);
 		}
 
-		long count = bulkGraphOperation(securityContext, nodes, 1000, "RebuildNodeIndex", new BulkGraphOperation<AbstractNode>() {
+		final long count = bulkGraphOperation(securityContext, nodes, 1000, "RebuildNodeIndex", new BulkGraphOperation<AbstractNode>() {
 
 			@Override
 			public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
@@ -121,9 +142,11 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		});
 
 		info("Done with (re-)indexing {} nodes", count);
+
+		return count;
 	}
 
-	private void rebuildRelationshipIndex(final String relType) {
+	private long rebuildRelationshipIndex(final String relType) {
 
 		final RelationshipFactory relFactory               = new RelationshipFactory(SecurityContext.getSuperUserInstance());
 		final DatabaseService graphDb                      = (DatabaseService) arguments.get("graphDb");
@@ -139,7 +162,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 		}
 
-		long count = bulkGraphOperation(securityContext, relationships, 1000, "RebuildRelIndex", new BulkGraphOperation<AbstractRelationship>() {
+		final long count = bulkGraphOperation(securityContext, relationships, 1000, "RebuildRelIndex", new BulkGraphOperation<AbstractRelationship>() {
 
 			@Override
 			public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
@@ -161,15 +184,17 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		});
 
 		info("Done with (re-)indexing {} relationships", count);
+
+		return count;
 	}
 
-	private void rebuildFulltextIndex() {
+	private long rebuildFulltextIndex() {
 
 		final NodeFactory nodeFactory   = new NodeFactory(SecurityContext.getSuperUserInstance());
 		final DatabaseService graphDb   = (DatabaseService) arguments.get("graphDb");
 		final Iterable<Indexable> nodes = Iterables.map(nodeFactory, graphDb.getNodesByLabel("Indexable"));
 
-		bulkGraphOperation(securityContext, nodes, 1000, "RebuildFulltextIndex", new BulkGraphOperation<Indexable>() {
+		final long count = bulkGraphOperation(securityContext, nodes, 1000, "RebuildFulltextIndex", new BulkGraphOperation<Indexable>() {
 
 			@Override
 			public boolean handleGraphObject(SecurityContext securityContext, Indexable indexable) throws FrameworkException {
@@ -191,5 +216,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		});
 
 		info("Rebuilding fulltext index done.");
+
+		return count;
 	}
 }

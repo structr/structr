@@ -294,7 +294,7 @@ public class MaintenanceTest extends StructrTest {
 			// intentionally create raw Neo4j transaction and create nodes in there
 			try (Transaction tx = graphDb.beginTx()) {
 
-				for (int i=0; i<100; i++) {
+				for (int i=0; i<3000; i++) {
 
 					// Create nodes with one label and the type Group, and no properties
 					graphDb.createNode("Group", Set.of("Group", "NodeInterface"), Map.of());
@@ -304,13 +304,16 @@ public class MaintenanceTest extends StructrTest {
 			}
 
 			// test set UUIDs command
-			app.command(BulkSetUuidCommand.class).execute(Map.of("type", "Group"));
+			final long count = app.command(BulkSetUuidCommand.class).executeWithCount(Map.of("type", "Group"));
+
+			// ensure at least 3000 nodes have been touched
+			assertTrue(count >= 3000);
 
 			// nodes should now be visible to Structr
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 100 Groups here
-				assertEquals(100, app.nodeQuery(Group.class).getAsList().size());
+				assertEquals(3000, app.nodeQuery(Group.class).getAsList().size());
 
 				// check nodes
 				for (final Group group : app.nodeQuery(Group.class).getResultStream()) {
@@ -352,7 +355,7 @@ public class MaintenanceTest extends StructrTest {
 			// intentionally create raw Neo4j transaction and create nodes in there
 			try (Transaction tx = graphDb.beginTx()) {
 
-				for (int i=0; i<100; i++) {
+				for (int i=0; i<3000; i++) {
 
 					final Node test = graphDb.createNode("Group", Collections.EMPTY_SET, Collections.EMPTY_MAP);
 
@@ -366,13 +369,15 @@ public class MaintenanceTest extends StructrTest {
 			}
 
 			// test rebuild index and create labels
-			app.command(BulkCreateLabelsCommand.class).execute(new LinkedHashMap<>());
+			final long count = app.command(BulkCreateLabelsCommand.class).executeWithCount(new LinkedHashMap<>());
+
+			assertTrue(count >= 3000);
 
 			// nodes should now be visible to Structr
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 100 Groups here
-				assertEquals(100, app.nodeQuery(Group.class).getAsList().size());
+				assertEquals(3000, app.nodeQuery(Group.class).getAsList().size());
 
 				// check nodes
 				for (final Group group : app.nodeQuery(Group.class).getResultStream()) {
@@ -402,18 +407,21 @@ public class MaintenanceTest extends StructrTest {
 			// nodes should not be found yet..
 			try (final Tx tx = app.tx()) {
 
-				createTestNodes(TestOne.class, 100);
+				createTestNodes(TestOne.class, 3000);
 				tx.success();
 			}
 
 			// test rebuild index
-			app.command(BulkRebuildIndexCommand.class).execute(new LinkedHashMap<>());
+			final long count = app.command(BulkRebuildIndexCommand.class).executeWithCount(new LinkedHashMap<>());
+
+			// Ensure count of processed nodes is greater or equal than 3000
+			assertTrue(count >= 3000);
 
 			// nodes should now be visible to Structr
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 100 TestOnes here, and none TestTwos
-				assertEquals(100, app.nodeQuery(TestOne.class).getAsList().size());
+				assertEquals(3000, app.nodeQuery(TestOne.class).getAsList().size());
 				tx.success();
 			}
 
@@ -432,12 +440,12 @@ public class MaintenanceTest extends StructrTest {
 		try {
 
 			// create test nodes first
-			createTestNodes(TestOne.class, 100);
+			createTestNodes(TestOne.class, 3000);
 
 			try {
 
 				// test failure with wrong type
-				app.command(BulkSetNodePropertiesCommand.class).execute(toMap("type", "NonExistingType"));
+				app.command(BulkSetNodePropertiesCommand.class).executeWithCount(toMap("type", "NonExistingType"));
 				fail("Using BulkSetNodePropertiesCommand with a non-existing type should throw an exception.");
 
 			} catch (FrameworkException fex) {
@@ -461,13 +469,16 @@ public class MaintenanceTest extends StructrTest {
 			}
 
 			// test success
-			app.command(BulkSetNodePropertiesCommand.class).execute(toMap("type", "TestOne", "anInt", 1, "aString", "one"));
+			final long count = app.command(BulkSetNodePropertiesCommand.class).executeWithCount(toMap("type", "TestOne", "anInt", 1, "aString", "one"));
+
+			// ensure that at least 3000 nodes were affected by the bulk command
+			assertTrue(count >= 3000);
 
 			try (final Tx tx = app.tx()) {
 
 				// check nodes, we should find 100 TestOnes here, and none TestTwos
 				assertEquals(  0, app.nodeQuery(TestTwo.class).getAsList().size());
-				assertEquals(100, app.nodeQuery(TestOne.class).getAsList().size());
+				assertEquals(3000, app.nodeQuery(TestOne.class).getAsList().size());
 
 				// check nodes
 				for (final TestOne test : app.nodeQuery(TestOne.class).getResultStream()) {
@@ -484,7 +495,7 @@ public class MaintenanceTest extends StructrTest {
 
 				// check nodes, we should find 100 TestTwos here, and none TestOnes
 				assertEquals(  0, app.nodeQuery(TestOne.class).getAsList().size());
-				assertEquals(100, app.nodeQuery(TestTwo.class).getAsList().size());
+				assertEquals(3000, app.nodeQuery(TestTwo.class).getAsList().size());
 
 				tx.success();
 			}
