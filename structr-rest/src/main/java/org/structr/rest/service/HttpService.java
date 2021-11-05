@@ -440,11 +440,8 @@ public class HttpService implements RunnableService, StatsCallback {
 					httpsConfig = new HttpConfiguration(httpConfig);
 
 					final SecureRequestCustomizer secureRequestCustomizer = new SecureRequestCustomizer();
-
-					if (Settings.SNIRequired.getValue()) {
-
-						secureRequestCustomizer.setSniRequired(false);
-					}
+					secureRequestCustomizer.setSniRequired(Settings.SNIRequired.getValue());
+					secureRequestCustomizer.setSniHostCheck(Settings.SNIHostCheck.getValue());
 
 					httpsConfig.addCustomizer(secureRequestCustomizer);
 
