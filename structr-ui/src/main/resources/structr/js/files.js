@@ -243,14 +243,26 @@ let _Files = {
 		if (isFile) {
 
 			if (entity.isImage && contentType !== 'text/svg' && !contentType.startsWith('image/svg')) {
-				elements.push({
-					icon: _Icons.getSvgIcon('pencil_edit'),
-					name: 'Edit Image',
-					clickHandler: function () {
-						_Files.editImage(entity);
-						return false;
-					}
-				});
+
+				if (entity.isTemplate) {
+					elements.push({
+						icon: _Icons.getSvgIcon('pencil_edit'),
+						name: 'Edit source',
+						clickHandler: function () {
+							_Files.editFile(entity);
+							return false;
+						}
+					});
+				} else {
+					elements.push({
+						icon: _Icons.getSvgIcon('pencil_edit'),
+						name: 'Edit Image',
+						clickHandler: function () {
+							_Files.editImage(entity);
+							return false;
+						}
+					});
+				}
 
 			} else if (fileCount === 1 && _Files.isMinificationTarget(entity)) {
 				elements.push({
@@ -785,7 +797,7 @@ let _Files = {
 			let pagerId = 'filesystem-files';
 			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			let filesPager = _Pager.addPager(pagerId, _Files.folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,isFavoritable,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers');
+			let filesPager = _Pager.addPager(pagerId, _Files.folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,isFavoritable,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers');
 
 			filesPager.cleanupFunction = () => {
 				let toRemove = $('.node.file', filesPager.el).closest( (_Files.isViewModeActive('list') ? 'tr' : '.tile') );
@@ -1241,21 +1253,21 @@ let _Files = {
 			}
 		});
 	},
-	appendEditImageIcon: function(parent, image) {
-
-		var viewIcon = $('.view_icon', parent);
-
-		if (!(viewIcon && viewIcon.length)) {
-			parent.append('<i title="' + image.name + ' [' + image.id + ']" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-		}
-
-		viewIcon = $('.edit_icon', parent);
-
-		viewIcon.on('click', function(e) {
-			e.stopPropagation();
-			_Files.editImage(image);
-		});
-	},
+	// appendEditImageIcon: function(parent, image) {
+	//
+	// 	var viewIcon = $('.view_icon', parent);
+	//
+	// 	if (!(viewIcon && viewIcon.length)) {
+	// 		parent.append('<i title="' + image.name + ' [' + image.id + ']" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
+	// 	}
+	//
+	// 	viewIcon = $('.edit_icon', parent);
+	//
+	// 	viewIcon.on('click', function(e) {
+	// 		e.stopPropagation();
+	// 		_Files.editImage(image);
+	// 	});
+	// },
 	editImage: (image) => {
 		let parent = Structr.node(image.id);
 		Structr.dialog('' + image.name, function() {
