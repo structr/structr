@@ -1049,7 +1049,9 @@ let _Files = {
 
 		if (d.isFile) {
 			let dblclickHandler = (e) => {
-				_Files.editFile(d);
+				if ($('b.name_', div).length > 0) {
+					_Files.editFile(d);
+				}
 			};
 
 			if (div) {
