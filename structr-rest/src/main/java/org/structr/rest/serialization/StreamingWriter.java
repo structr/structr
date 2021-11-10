@@ -45,6 +45,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.AbstractPrimitiveProperty;
+import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.Schema;
@@ -456,7 +458,12 @@ public abstract class StreamingWriter {
 
 							} else {
 
-								writer.name(localKey.jsonName()).nullValue();
+								if (localKey.isCollection()) {
+
+									writer.name(localKey.jsonName()).beginArray().endArray();
+								} else {
+									writer.name(localKey.jsonName()).nullValue();
+								}
 							}
 						}
 					}
