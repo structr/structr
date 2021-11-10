@@ -368,7 +368,13 @@ public class StructrWebSocket implements WebSocketListener {
 
 			if (session != null && session.getRemote() != null) {
 
-				session.getRemote().sendString(msg);
+				try {
+
+					session.getRemote().sendString(msg);
+				} catch (ClosedChannelException t) {
+
+					logger.debug("Unable to send websocket message to remote client: Client closed connection before message was sent successfully.");
+				}
 
 			} else {
 
@@ -385,9 +391,6 @@ public class StructrWebSocket implements WebSocketListener {
 			if (t instanceof QuietException || t.getCause() instanceof TimeoutException) {
 				// ignore exceptions which (by jettys standards) should be handled less verbosely
 				// also ignore timeoutexceptions
-			} else if (t instanceof ClosedChannelException) {
-
-				logger.debug("Unable to send websocket message to remote client: Client closed connection before message was sent successfully.");
 			} else {
 
 				logger.warn("Unable to send websocket message to remote client: {}", t);
