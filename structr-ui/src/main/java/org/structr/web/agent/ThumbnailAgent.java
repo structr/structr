@@ -43,7 +43,7 @@ import java.util.Set;
 public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 
 	public static final Logger logger                        = LoggerFactory.getLogger(ThumbnailAgent.class);
-	public static final String TASK_NAME                     = "FulltextIndexing";
+	public static final String TASK_NAME                     = "ThumbnailAgent";
 	public static final Set queuedImageUUIDs                 = Collections.synchronizedSet(new HashSet<>());
 
 	public ThumbnailAgent() {
