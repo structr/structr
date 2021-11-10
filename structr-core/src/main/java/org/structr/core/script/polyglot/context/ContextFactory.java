@@ -81,7 +81,7 @@ public abstract class ContextFactory {
 				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
 				.allowHostAccess(AccessProvider.getHostAccessConfig())
 				// TODO: Add config switch to toggle Host Class Lookup
-				.allowHostClassLookup(new StructrClassPredicate())
+				//.allowHostClassLookup(new StructrClassPredicate())
 				// TODO: Add configurable chrome debug
 				//.option("inspect", "4242")
 				//.option("inspect.Path", "/structr/scripting/remotedebugger/" + java.util.UUID.randomUUID().toString())
@@ -100,7 +100,7 @@ public abstract class ContextFactory {
 				.engine(engine)
 				.allowAllAccess(true)
 				.allowHostAccess(AccessProvider.getHostAccessConfig())
-				.allowHostClassLookup(new StructrClassPredicate())
+				//.allowHostClassLookup(new StructrClassPredicate())
 				.build();
 
 		return updateBindings(context, language, actionContext, entity);
@@ -122,7 +122,8 @@ public abstract class ContextFactory {
 
 		@Override
 		public boolean test(String s) {
-			return s.startsWith("org.structr.api.config.Settings");
+			//return s.startsWith("org.structr.api.config.Settings");
+			return false;
 		}
 	}
 }
