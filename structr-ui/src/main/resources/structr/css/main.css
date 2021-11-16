@@ -4341,6 +4341,11 @@ div.option-tile.double {
 	width: calc(100%);
 }
 
+#hide-conditions, #show-conditions {
+	width: 76%;
+	padding-right: 1rem;
+}
+
 #show-conditions-templates, #hide-conditions-templates {
 	position: absolute;
 	width: 25%;
@@ -4376,7 +4381,7 @@ div.option-tile h4 {
 }
 
 div.option-tile label {
-	display: inline-block;
+	display: block;
 	margin-bottom: .5rem;
 }
 

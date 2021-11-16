@@ -2156,6 +2156,7 @@ let Structr = {
 							} else {
 
 								builder.specialInteractionButton('Open in editor', function(btn) {
+
 									switch (data.nodeType) {
 										case 'Content':
 										case 'Template':
@@ -2173,6 +2174,24 @@ let Structr = {
 										default:
 											_Entities.showProperties(obj);
 											break;
+									}
+
+									{
+										// open and select element in tree
+										let structrId = obj.id;
+										_Entities.deselectAllElements();
+
+										if (!Structr.node(structrId)) {
+											_Pages.expandTreeNode(structrId);
+										} else {
+											var treeEl = Structr.node(structrId);
+											if (treeEl) {
+												_Entities.highlightElement(treeEl);
+											}
+										}
+
+										LSWrapper.setItem(_Entities.selectedObjectIdKey, structrId);
+
 									}
 								}, 'Dismiss');
 							}
