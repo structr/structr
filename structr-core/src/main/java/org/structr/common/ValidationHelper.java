@@ -589,7 +589,7 @@ public class ValidationHelper {
 							// we can assume that the object currently examined is the first
 							// existing object, hence all others get the error message with the
 							// UUID of the first one.
-							errorBuffer.add(new UniqueToken(object.getType(), key, object.getUuid()));
+							errorBuffer.add(new UniqueToken(object.getType(), key, foundNode.getUuid()));
 
 							// error!
 							return false;
@@ -738,7 +738,7 @@ public class ValidationHelper {
 						// we can assume that the object currently exmained is the first
 						// existing object, hence all others get the error message with the
 						// UUID of the first one.
-						errorBuffer.add(new UniqueToken(object.getType(), key, object.getUuid()));
+						errorBuffer.add(new UniqueToken(object.getType(), key, foundNode.getUuid()));
 
 						// error!
 						return false;
