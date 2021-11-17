@@ -443,6 +443,12 @@ public class HttpService implements RunnableService, StatsCallback {
 					secureRequestCustomizer.setSniRequired(Settings.SNIRequired.getValue());
 					secureRequestCustomizer.setSniHostCheck(Settings.SNIHostCheck.getValue());
 
+					if (!Settings.SNIRequired.getValue() && !Settings.SNIHostCheck.getValue()) {
+
+						logger.info("HTTPS enabled with default settings of disabled SNI enforcement.");
+					}
+					logger.info("SNI settings: httpservice.sni.required = {}, httpservice.sni.hostcheck = {}", Settings.SNIRequired.getValue(), Settings.SNIHostCheck.getValue());
+
 					httpsConfig.addCustomizer(secureRequestCustomizer);
 
 					sslContextFactory = new SslContextFactory.Server();
