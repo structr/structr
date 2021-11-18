@@ -881,7 +881,7 @@ public class DeployDataCommand extends DeployCommand {
 
 				} catch (FrameworkException fex) {
 
-					logger.error("Unable to import nodes for type {}. Cause: {}", defaultType.getSimpleName(), fex.getMessage());
+					logger.error("Unable to import nodes for type {}. Cause: {}", defaultType.getSimpleName(), fex.toString());
 				}
 			}
 		}
