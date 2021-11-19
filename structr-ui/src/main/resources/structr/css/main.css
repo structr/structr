@@ -4402,7 +4402,7 @@ button.icon-button i {
 	margin: 0;
 }
 
-div#tabView-query div.CodeMirror {
+.repeater-container .CodeMirror {
 	height: 120px !important;
 }
 
