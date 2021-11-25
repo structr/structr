@@ -221,6 +221,10 @@ public class ActionContext {
 		getContextStore().removeHeader(key);
 	}
 
+	public void clearHeaders() {
+		getContextStore().clearHeaders();
+	}
+
 	public Map<String, String> getHeaders() {
 		return getContextStore().getHeaders();
 	}
