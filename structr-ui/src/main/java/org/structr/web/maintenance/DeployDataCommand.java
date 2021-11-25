@@ -29,6 +29,7 @@ import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -206,6 +207,9 @@ public class DeployDataCommand extends DeployCommand {
 				publishProgressMessage(DEPLOYMENT_DATA_EXPORT_STATUS, "Exporting relationships for type " + relType);
 
 				final List<Map<String, Object>> relsForType = relationshipMap.get(relType);
+
+				// sort list by createdDate
+				Collections.sort(relsForType, Comparator.comparing(o -> ((Long) o.get("createdDate"))));
 
 				final Path relsConf = relsDir.resolve(relType + ".json");
 
@@ -580,7 +584,7 @@ public class DeployDataCommand extends DeployCommand {
 
 				fos.write("[");
 
-				try (final ResultStream<T> resultStream = app.nodeQuery(nodeType).getResultStream()) {
+				try (final ResultStream<T> resultStream = app.nodeQuery(nodeType).sort(AbstractNode.createdDate).getResultStream()) {
 
 					for (final T node : resultStream) {
 
