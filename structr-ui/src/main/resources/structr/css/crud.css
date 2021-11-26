@@ -431,11 +431,6 @@ i.clearSearchIcon {
 	cursor: pointer;
 }
 
-.dialogText .searchResultGroup {
-	position: absolute;
-	top: 42px;
-}
-
 img.loader {
 	vertical-align: middle;
 	margin-right: 12px;
