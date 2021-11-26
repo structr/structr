@@ -374,7 +374,7 @@ public class DeployDataCommand extends DeployCommand {
 
 			try {
 
-				Files.list(nodesDir).forEach((Path p) -> {
+				Files.list(nodesDir).sorted().forEach((Path p) -> {
 
 					java.io.File f = p.toFile();
 
@@ -398,7 +398,7 @@ public class DeployDataCommand extends DeployCommand {
 
 			try {
 
-				Files.list(relsDir).forEach((Path p) -> {
+				Files.list(relsDir).sorted().forEach((Path p) -> {
 
 					java.io.File f = p.toFile();
 
@@ -717,14 +717,13 @@ public class DeployDataCommand extends DeployCommand {
 
 		final App app         = StructrApp.getInstance(context);
 		final String typeName = type.getSimpleName();
+		final int chunkSize   = Settings.DeploymentRelBatchSize.getValue();
+		int chunkCount        = 0;
+		int relCount          = 0;
+		final int maxSize     = data.size();
 
-		logger.info("Importing relationships for type {}", typeName);
-		publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Importing relationships for type " + typeName);
-
-		final int chunkSize = Settings.DeploymentRelBatchSize.getValue();
-		int chunkCount      = 0;
-		int relCount        = 0;
-		final int maxSize   = data.size();
+		logger.info("Importing relationships for type {} ({})", typeName, maxSize);
+		publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Importing relationships for type " + typeName + " (" + maxSize + ")");
 
 		while (data.size() >= (chunkCount * chunkSize)) {
 
@@ -780,7 +779,8 @@ public class DeployDataCommand extends DeployCommand {
 
 			} catch (FrameworkException fex) {
 
-				logger.error("Unable to import relationships for type {}. Cause: {}", type.getSimpleName(), fex.getMessage());
+				logger.error("Unable to import relationships for type {}. Cause: {}", typeName, fex.toString());
+				publishWarningMessage("Unable to import relationships for type " + typeName, fex.toString());
 			}
 		}
 	}
@@ -810,15 +810,14 @@ public class DeployDataCommand extends DeployCommand {
 
 		} else {
 
-			logger.info("Importing nodes for type {}", defaultTypeName);
-			publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Importing nodes for type " + defaultTypeName);
-
-			final App app = StructrApp.getInstance(context);
-
+			final App app       = StructrApp.getInstance(context);
 			final int chunkSize = Settings.DeploymentNodeBatchSize.getValue();
 			int chunkCount      = 0;
 			int nodeCount       = 0;
 			final int maxSize   = data.size();
+
+			logger.info("Importing nodes for type {} ({})", defaultTypeName, maxSize);
+			publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Importing nodes for type " + defaultTypeName + " (" + maxSize + ")");
 
 			while (data.size() >= (chunkCount * chunkSize)) {
 
@@ -885,7 +884,8 @@ public class DeployDataCommand extends DeployCommand {
 
 				} catch (FrameworkException fex) {
 
-					logger.error("Unable to import nodes for type {}. Cause: {}", defaultType.getSimpleName(), fex.toString());
+					logger.error("Unable to import nodes for type {}. Cause: {}", defaultTypeName, fex.toString());
+					publishWarningMessage("Unable to import relationships for type " + defaultTypeName, fex.toString());
 				}
 			}
 		}
@@ -948,5 +948,10 @@ public class DeployDataCommand extends DeployCommand {
 				}
 			}
 		}
+	}
+
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return true;
 	}
 }
