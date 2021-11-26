@@ -4474,9 +4474,9 @@ var _Schema = {
 			LSWrapper.setItem(_Schema.showSchemaInheritanceKey, show);
 			$('#schema-show-inheritance').prop('checked', show);
 			if (show) {
-				$('.dashed-inheritance-relationship').show();
+				canvas.removeClass('hide-inheritance-arrwows');
 			} else {
-				$('.dashed-inheritance-relationship').hide();
+				canvas.addClass('hide-inheritance-arrwows');
 			}
 		},
 	},
