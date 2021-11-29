@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.structr</groupId>
 	<artifactId>structr-binaries</artifactId>
-	<version>4.0-rc2</version>
+	<version>4.0.0</version>
 
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>4.0-rc2</version>
+		<version>4.0.0</version>
 	</parent>
 
 	<build>
@@ -180,7 +180,7 @@
 							<goal>push</goal>
 						</goals>
 					</execution>
-					<!--execution DISABLED for RC1!>
+					<execution>
 						<id>tag-latest</id>
 						<phase>install</phase>
 						<goals>
@@ -191,7 +191,7 @@
 						<configuration>
 							<tag>latest</tag>
 						</configuration>
-					</execution-->
+					</execution>
 				</executions>
 				<configuration>
 					<repository>structr/structr</repository>
