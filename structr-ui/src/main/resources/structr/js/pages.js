@@ -772,7 +772,7 @@ let _Pages = {
 				dialogMsg.empty();
 
 				dialog.append('<h3>Create page from source code ...</h3>'
-						+ '<textarea id="_code" name="code" cols="40" rows="10" placeholder="Paste HTML code here"></textarea>');
+						+ '<textarea id="_code" name="code" cols="40" rows="5" placeholder="Paste HTML code here"></textarea>');
 
 				dialog.append('<h3>... or fetch page from URL: <input id="_address" name="address" size="40" value="http://"></h3><table class="props">'
 						+ '<tr><td><label for="name">Name of new page:</label></td><td><input id="_name" name="name" size="20"></td></tr>'

@@ -297,9 +297,9 @@ input.readonly {
 }
 
 .exportArea, .importArea {
-	border: none;
-	margin: 0 0 0 4px;
-	height: 470px;
+	border: 1x solid var(--input-field-border);
+	margin: 0;
+	height: 448px;
 	overflow: auto;
 }
 
