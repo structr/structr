@@ -26,6 +26,8 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+
+import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.io.QuietException;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
@@ -365,7 +367,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 			if (session != null && session.getRemote() != null) {
 
-				session.getRemote().sendStringByFuture(msg);
+				session.getRemote().sendString(msg);
 
 			} else {
 
@@ -374,6 +376,9 @@ public class StructrWebSocket implements WebSocketListener {
 
 			tx.success();
 
+		} catch (EofException ex) {
+
+			logger.warn("Unable to send websocket message to remote client: Connection might have been terminated before all content was delivered.");
 		} catch (Throwable t) {
 
 			if (t instanceof QuietException || t.getCause() instanceof TimeoutException) {

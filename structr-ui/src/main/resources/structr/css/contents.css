@@ -17,28 +17,37 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
-* Search (similar to crud search box but different)
-*/
-.searchBox {
-	position: absolute;
-	right: 2rem;
-	top: .75rem;
+.folder-path {
+	font-size: 1.5rem;
+	line-height: 2rem;
+	margin: 2rem .75rem;
 }
 
-/*.searchBox input.search {*/
-/*	border: 1px solid var(--link-color-active);*/
-/*	width: 260px;*/
-/*	height: 22px;*/
-/*	padding: 2px 4px;*/
-/*}*/
+#contents-contents {
+	position: relative;
+}
 
-i.clearSearchIcon {
-	display: none;
+#contents-contents table th {
+	text-align: left;
+	padding-left: 1rem;
+}
+
+#contents-contents .thumbnail,
+#contents-contents .thumbnail .file,
+#contents-contents .thumbnail i.fa-file-image-o {
+	color: var(--gray-aaa);
+}
+
+#contents-contents .thumbnail i.fa-file-image-o {
+	/*font-size: 16px;*/
+}
+
+#contents-contents .thumbnailZoom {
+	max-width: 300px;
+	max-height: 300px;
 	position: absolute;
-	top: 9px;
-	right: 8px;
-	cursor: pointer;
+	z-index: 4;
+	display: none;
 }
 
 #contents-contents tr[id]:hover {
@@ -47,5 +56,140 @@ i.clearSearchIcon {
 
 #contents-contents .nodeActive {
 	background-color: var(--light-gray-bg-f3) ! important;
-	/*border: 1px solid var(--gray-eee);*/
+}
+
+#contents-contents .nodeHover, .image.nodeHover {
+	color: var(--gray-333) ! important;
+	/*background: var(--structr-light-green) ! important;*/
+	/*border: 1px solid transparent;*/
+	z-index: 1;
+}
+
+#contents-contents table {
+	table-layout: fixed;
+}
+
+#contents-contents table th:nth-child(1) {
+	width: 3%;
+}
+
+#contents-contents table th:nth-child(2) {
+	width: 40%;
+}
+
+#contents-contents table th:nth-child(3) {
+	width: 10%;
+}
+
+#contents-contents table th:nth-child(4) {
+	width: 20%;
+}
+
+#contents-contents table th:nth-child(5) {
+	width: 17%;
+}
+
+#contents-contents table th:nth-child(6) {
+	width: 20%;
+}
+
+/*
+ * Files table
+ */
+#files-table {
+	margin-bottom: 1rem;
+}
+
+#files-table tr:nth-child(even) {
+	background-color: var(--main-background);
+}
+
+#files-table tr:nth-child(odd) {
+	background-color: var(--solid-white);
+}
+
+#files-table th {
+	padding: 0 0 1rem .5rem;
+	text-align: left;
+}
+
+#files-table tbody tr td .editable {
+	min-width: 100px;
+	min-height: 14px;
+}
+
+#files-table tbody tr td .node {
+	min-width: 6rem;
+	padding-right: .5rem;
+}
+
+#files-table td.file-icon {
+	cursor: pointer;
+}
+
+#files-table td {
+	text-align: left;
+	padding-left: 1rem;
+	height: 2rem;
+}
+
+#files-table tr#parent-file-link {
+	cursor: pointer;
+}
+
+#files-table td a {
+	text-decoration: none;
+}
+
+#files-table td a:hover {
+	text-decoration: underline;
+}
+
+#files-table .file, #files-table .folder {
+	margin: 0;
+}
+
+#files-table .folder-up {
+	padding-left: .5rem;
+}
+
+
+/*
+ * Search (similar to crud search box but different)
+ */
+.searchBox {
+	z-index: 5;
+}
+
+.searchBox input.search {
+	/*border: 1px solid var(--link-color-active);*/
+	width: 12rem;
+	/*height: 22px;*/
+	/*padding: 2px 4px;*/
+}
+
+i.clearSearchIcon {
+	display: none;
+	position: absolute;
+	top: .75rem;
+	right: .75rem;
+	cursor: pointer;
+}
+
+/* resets so we can use tailwind classes */
+#files-table .node-menu-icon {
+	justify-self: end;
+	position: initial;
+	min-width: 16px;
+}
+
+#files-table .nodeHover > .icons-container .node-menu-icon {
+	display: inline-block;
+}
+
+#files-table .key_icon {
+	justify-self: end;
+	position: initial;
+	min-width: 16px;
+	margin-left: 0 !important;
 }

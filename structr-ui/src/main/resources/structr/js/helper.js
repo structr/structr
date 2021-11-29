@@ -795,7 +795,7 @@ let _Favorites = new (function () {
 								// close button
 								$('#button-close-' + id).on('click', function() {
 									$.ajax({
-										url: rootUrl + '/' + favorite.relationshipId,
+										url: rootUrl + favorite.relationshipId,
 										type: 'DELETE',
 										statusCode: {
 											200: function() {

@@ -72,7 +72,7 @@ let _Security = {
 						_Security.selectTab(subModule);
 					});
 
-					if (tabLink.closest('a').getAttribute('href') === '#' + mainModule + ':' + subModule) {
+					if (tabLink.closest('a').getAttribute('href') === '#security:' + subModule) {
 						tabLink.click();
 					}
 				});
@@ -187,7 +187,7 @@ let _UsersAndGroups = {
 				addUserButton.querySelector('span').textContent = 'Add ' + userTypeSelect.value;
 			});
 
-			let userPager = _Pager.addPager('users', $(_Security.userControls), true, 'User', 'public');
+			let userPager = _Pager.addPager('users', $(_Security.userControls), true, 'User', 'public', null, null, 'id,isUser,name,type,isAdmin');
 			userPager.cleanupFunction = function () {
 				_Security.userList.innerHTML = '';
 			};
@@ -197,12 +197,12 @@ let _UsersAndGroups = {
 	},
 	createUserElement:function (user) {
 
-		let userName = ((user.name) ? user.name : ((user.eMail) ? '[' + user.eMail + ']' : '[unnamed]'));
-		let userIcon = ((user.type === 'LDAPUser') ? _Icons.getFullSpriteClass(_Icons.user_orange_icon) : _Icons.getFullSpriteClass(_Icons.user_icon));
+		let displayName = ((user.name) ? user.name : ((user.eMail) ? '[' + user.eMail + ']' : '[unnamed]'));
+		let userIcon    = _Icons.getFullSpriteClass((user.isAdmin === true) ? _Icons.user_red_icon : ((user.type === 'LDAPUser') ? _Icons.user_orange_icon : _Icons.user_icon));
 
 		let userElement = $('<div class="node user userid_' + user.id + '">'
 				+ '<i class="typeIcon ' + userIcon + '"></i>'
-				+ '<b title="' + userName + '" class="name_ abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + userName + '</b>'
+				+ '<b title="' + displayName + '" class="name_ abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + displayName + '</b>'
 				+ '</div>'
 		);
 		userElement.data('userId', user.id);
@@ -210,6 +210,30 @@ let _UsersAndGroups = {
 		_UsersAndGroups.makeDraggable(userElement);
 
 		return userElement;
+	},
+	updateUserElementAfterModelChange: (user) => {
+
+		requestAnimationFrame(() => {
+
+			// request animation frame is especially important if a name is completely removed!
+
+			for (let userEl of document.querySelectorAll('.userid_' + user.id)) {
+
+				let icon = userEl.querySelector('.typeIcon');
+				if (icon) {
+					let userIcon = _Icons.getFullSpriteClass((user.isAdmin === true) ? _Icons.user_red_icon : ((user.type === 'LDAPUser') ? _Icons.user_orange_icon : _Icons.user_icon));
+					icon.setAttribute('class', 'typeIcon ' + userIcon);
+				}
+
+				let userName = userEl.querySelector('.name_');
+				if (userName) {
+					let displayName = ((user.name) ? user.name : ((user.eMail) ? '[' + user.eMail + ']' : '[unnamed]'));
+
+					userName.setAttribute('title', displayName);
+					userName.textContent = displayName;
+				}
+			}
+		});
 	},
 	appendUserToUserList: function (user) {
 
@@ -266,7 +290,8 @@ let _UsersAndGroups = {
 				let memberAlreadyListed = $(prefix + member.id, grpEl).length > 0;
 				if (!memberAlreadyListed) {
 
-					let userDiv = _UsersAndGroups.createUserElement(member);
+					let modelObj = StructrModel.obj(member.id);
+					let userDiv = _UsersAndGroups.createUserElement(modelObj ? modelObj : member);
 
 					$(grpEl).append(userDiv);
 					userDiv.removeClass('disabled');
@@ -356,10 +381,11 @@ let _UsersAndGroups = {
 	},
 	createGroupElement: function (group) {
 
+		let displayName = ((group.name) ? group.name : '[unnamed]');
 		let groupIcon = ((group.type === 'LDAPGroup') ? _Icons.getFullSpriteClass(_Icons.group_link_icon) : _Icons.getFullSpriteClass(_Icons.group_icon));
 		let groupElement = $('<div class="node group groupid_' + group.id + '">'
 				+ '<i class="typeIcon ' + groupIcon + '" />'
-				+ '<b title="' + group.name + '" class="name_  abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + group.name + '</b>'
+				+ '<b title="' + displayName + '" class="name_  abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + displayName + '</b>'
 				+ '</div>'
 		);
 		groupElement.data('groupId', group.id);
@@ -391,6 +417,30 @@ let _UsersAndGroups = {
 		_UsersAndGroups.makeDraggable(groupElement);
 
 		return groupElement;
+	},
+	updateGroupElementAfterModelChange: (group) => {
+
+		requestAnimationFrame(() => {
+
+			// request animation frame is especially important if a name is completely removed!
+
+			for (let userEl of document.querySelectorAll('.groupid_' + group.id)) {
+
+				let icon = userEl.querySelector('.typeIcon');
+				if (icon) {
+					let groupIcon = ((group.type === 'LDAPGroup') ? _Icons.getFullSpriteClass(_Icons.group_link_icon) : _Icons.getFullSpriteClass(_Icons.group_icon));
+					icon.setAttribute('class', 'typeIcon ' + groupIcon);
+				}
+
+				let groupName = userEl.querySelector('.name_');
+				if (groupName) {
+					let displayName = ((group.name) ? group.name : '[unnamed]');
+
+					groupName.setAttribute('title', displayName);
+					groupName.textContent = displayName;
+				}
+			}
+		});
 	},
 	appendGroupElement: function(element, group) {
 
@@ -673,7 +723,7 @@ let _ResourceAccessGrants = {
 				Structr.appendInfoTextToElement({
 					text: flagSanityInfos[key].join('<br><br>'),
 					element: $('input[data-key=' + key + ']', tr),
-					customToggleIcon: _Icons.warning_icon,
+					customToggleIcon: _Icons.exclamation_icon,
 					css: {position:'absolute'},
 					insertAfter: true
 				});

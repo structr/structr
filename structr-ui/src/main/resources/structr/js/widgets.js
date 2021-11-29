@@ -386,7 +386,7 @@ let _Widgets = {
 	},
 	appendFolderElement: function(parent, id, icon, name) {
 
-		var expanded = Structr.isExpanded(id);
+		let expanded = Structr.isExpanded(id);
 
 		parent.append('<div id="' + id + '_folder" class="widget node">'
 			+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '"></i>'
@@ -394,7 +394,7 @@ let _Widgets = {
 			+ '<div id="' + id + '" class="node' + (expanded ? ' hidden' : '') + '"></div>'
 			+ '</div>');
 
-		var div = $('#' + id + '_folder');
+		let div = $('#' + id + '_folder');
 
 		_Widgets.appendVisualExpandIcon(div, id, name, true, false);
 	},
@@ -505,16 +505,17 @@ let _Widgets = {
 			dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 
 			dialogSaveButton = $('#editorSave', dialogBtn);
-			saveAndClose = $('#saveAndClose', dialogBtn);
+			saveAndClose     = $('#saveAndClose', dialogBtn);
 
-			var widgetChanged = function () {
-				var sourceChanged = ((entity.source || '') !== sourceEditor.getValue());
-				var configChanged = ((entity.configuration || '') !== configEditor.getValue());
-				var descriptionChanged = ((entity.description || '') !== descriptionEditor.getValue());
+			let widgetChanged = function () {
+				let sourceChanged      = ((entity.source || '') !== sourceEditor.getValue());
+				let configChanged      = ((entity.configuration || '') !== configEditor.getValue());
+				let descriptionChanged = ((entity.description || '') !== descriptionEditor.getValue());
+
 				return (sourceChanged || configChanged || descriptionChanged);
 			};
 
-			var updateButtonStatus = function () {
+			let updateButtonStatus = function () {
 				if (widgetChanged()) {
 					dialogSaveButton.prop("disabled", false).removeClass('disabled');
 					saveAndClose.prop("disabled", false).removeClass('disabled');
@@ -528,14 +529,15 @@ let _Widgets = {
 			configEditor.on('change', updateButtonStatus);
 			descriptionEditor.on('change', updateButtonStatus);
 
-			var saveWidgetFunction = function (closeAfterSave) {
-				var widgetData = {
-					source: sourceEditor.getValue(),
+			let saveWidgetFunction = function (closeAfterSave) {
+				let widgetData = {
+					source:        sourceEditor.getValue(),
 					configuration: configEditor.getValue(),
-					description: descriptionEditor.getValue()
+					description:   descriptionEditor.getValue()
 				};
 
 				try {
+
 					if (widgetData.configuration) {
 						JSON.parse(widgetData.configuration);
 					}
@@ -546,7 +548,7 @@ let _Widgets = {
 						if (closeAfterSave) {
 							dialogCancelButton.click();
 						} else {
-							var modelObj = StructrModel.obj(entity.id);
+							let modelObj = StructrModel.obj(entity.id);
 							modelObj.source        = widgetData.source;
 							modelObj.configuration = widgetData.configuration;
 							modelObj.description   = widgetData.description;
@@ -603,20 +605,22 @@ let _Widgets = {
 
 		if (hasChildren) {
 
-			var typeIcon = $(el.children('.typeIcon').first());
-			var icon = $(el).children('.node').hasClass('hidden') ? _Icons.collapsedClass : _Icons.expandedClass;
+			let typeIcon            = $(el.children('.typeIcon').first());
+			let icon                = $(el).children('.node').hasClass('hidden') ? _Icons.collapsedClass : _Icons.expandedClass;
+			let expandIconClassName = 'expand_icon_svg';
 
 			typeIcon.css({
 				paddingRight: 0 + 'px'
-			}).after('<i title="Expand ' + name + '" class="expand_icon_svg ' + icon + '" />');
+			}).after(`<i title="Expand ${name}" class="${expandIconClassName} ${icon}"></i>`);
 
-			var expandIcon = el.children('.expand_icon').first();
+			let expandIcon = el.children('.' + expandIconClassName).first();
 
-			var expandClickHandler = function (e) {
+			let expandClickHandler = function (e) {
 				e.stopPropagation();
-				var body = $('#' + id);
+				let body = $('#' + id);
 				body.toggleClass('hidden');
-				var collapsed = body.hasClass('hidden');
+
+				let collapsed = body.hasClass('hidden');
 				if (collapsed) {
 					Structr.addExpandedNode(id);
 					expandIcon.removeClass(_Icons.expandedClass).addClass(_Icons.collapsedClass);
@@ -628,7 +632,7 @@ let _Widgets = {
 
 			$(el).on('click', expandClickHandler);
 
-			var button = $(el.children('.expand_icon').first());
+			let button = $(el.children('.' + expandIconClassName).first());
 
 			if (button) {
 
@@ -638,7 +642,9 @@ let _Widgets = {
 					e.stopPropagation();
 				});
 			}
+
 		} else {
+
 			el.children('.typeIcon').css({
 				paddingRight: '11px'
 			});
@@ -646,10 +652,10 @@ let _Widgets = {
 	},
 	insertWidgetIntoPage: function(widget, target, pageId, callback) {
 
-		let url = _Widgets.getWidgetServerUrl();
-		var widgetSource = widget.source;
-		var widgetDescription = widget.description;
-		var widgetConfig = widget.configuration;
+		let url               = _Widgets.getWidgetServerUrl();
+		let widgetSource      = widget.source;
+		let widgetDescription = widget.description;
+		let widgetConfig      = widget.configuration;
 
 		if (widgetConfig) {
 			try {
@@ -674,53 +680,56 @@ let _Widgets = {
 
 				dialogText.append('<table class="props widget-props"></table>');
 
-				var table = $('table', dialogText);
+				let table = $('table', dialogText);
 
-				var getOptionsAsText = function (options, defaultValue) {
+				let getOptionsAsText = (options, defaultValue) => {
 
-					var buffer = '';
+					let buffer = '';
 
 					if (Object.prototype.toString.call(options) === '[object Array]') {
-						options.forEach(function (option) {
-							buffer += '<option' + ((option === defaultValue) ? ' selected' : '') + '>' + option + '</option>';
-						});
+						for (let option of options) {
+							buffer += `<option ${((option === defaultValue) ? 'selected' : '')}>${option}</option>`;
+						}
 
 					} else if (Object.prototype.toString.call(options) === '[object Object]') {
 
-						Object.keys(options).forEach(function (option) {
-							buffer += '<option' + ((option === defaultValue) ? ' selected' : '') + ' value="' + option + '">' + options[option] + '</option>';
-						});
+						for (let option in options) {
+							buffer += `<option ${((option === defaultValue) ? 'selected' : '')} value="${option}">${options[option]}</option>`;
+						}
 					}
 
 					return buffer;
 				};
 
-				var sortedWidgetConfig = _Widgets.sortWidgetConfigurationByPosition(widgetConfig);
-				sortedWidgetConfig.forEach(function (configElement) {
-					var label = configElement[0];
+				let sortedWidgetConfig = _Widgets.sortWidgetConfigurationByPosition(widgetConfig);
+
+				for (let configElement of sortedWidgetConfig) {
+
+					let label = configElement[0];
 					if (label === 'processDeploymentInfo') {
 						return;
 					}
-					var cleanedLabel = label.replace(/[^\w]/g, '_');
 
-					var fieldConfig = configElement[1];
-					var fieldType = fieldConfig.type;
-					var defaultValue = fieldConfig.default || '';
-					var titleLabel = fieldConfig.title || label;
-					var placeholder = fieldConfig.placeholder || titleLabel;
+					let cleanedLabel = label.replace(/[^\w]/g, '_');
+
+					let fieldConfig  = configElement[1];
+					let fieldType    = fieldConfig.type;
+					let defaultValue = fieldConfig.default || '';
+					let titleLabel   = fieldConfig.title || label;
+					let placeholder  = fieldConfig.placeholder || titleLabel;
 
 					switch (fieldType) {
 						case "select":
-							var options = fieldConfig.options || ["-"];
+							let options = fieldConfig.options || ["-"];
 
-							var buffer = '<tr><td><span id="label-' + cleanedLabel + '">' + titleLabel + ' </span></td><td><select id="' + cleanedLabel + '" class="form-field" data-key="' + label + '">';
-							var delayedAppendFunction;
+							let buffer = `<tr><td><span id="label-${cleanedLabel}">${titleLabel}</span></td><td><select id="${cleanedLabel}" class="form-field" data-key="${label}">`;
+							let delayedAppendFunction;
 
 							if (fieldConfig.dynamicOptionsFunction) {
 
-								var dynamicOptionsFunction = new Function("callback", fieldConfig.dynamicOptionsFunction);
+								let dynamicOptionsFunction = new Function("callback", fieldConfig.dynamicOptionsFunction);
 
-								var delayedAppendOptions = function (options) {
+								let delayedAppendOptions = function (options) {
 									delayedAppendFunction = new function() {
 										$('select#' + cleanedLabel).append(getOptionsAsText(options, defaultValue));
 									};
@@ -742,13 +751,13 @@ let _Widgets = {
 							break;
 
 						case "textarea":
-							var rows = (fieldConfig.rows ? parseInt(fieldConfig.rows) || 5 : 5);
-							table.append('<tr><td><span id="label-' + cleanedLabel + '">' + titleLabel + ' </span></td><td><textarea rows=' + rows + ' class="form-field" id="' + label + '" placeholder="' + placeholder + '" data-key="' + label + '">' + defaultValue + '</textarea></td></tr>');
+							let rows = (fieldConfig.rows ? parseInt(fieldConfig.rows) || 5 : 5);
+							table.append(`<tr><td><span id="label-${cleanedLabel}">${titleLabel}</span></td><td><textarea rows=${rows} class="form-field" id="${label}" placeholder="${placeholder}" data-key="${label}">${defaultValue}</textarea></td></tr>`);
 							break;
 
 						case "input":
 						default:
-							table.append('<tr><td><span id="label-' + cleanedLabel + '">' + titleLabel + ' </span></td><td><input class="form-field" type="text" id="' + label + '" placeholder="' + placeholder + '" data-key="' + label + '" value="' + defaultValue + '"></td></tr>');
+							table.append(`<tr><td><span id="label-${cleanedLabel}">${titleLabel}</span></td><td><input class="form-field" type="text" id="${label}" placeholder="${placeholder}" data-key="${label}" value="${defaultValue}"></td></tr>`);
 					}
 
 					if (fieldConfig.help) {
@@ -757,18 +766,20 @@ let _Widgets = {
 							element: $('#label-' + cleanedLabel)
 						});
 					}
-				});
+				}
 
 				dialog.append('<button id="appendWidget">Append Widget</button>');
-				var attrs = {};
+
 				$('#appendWidget').on('click', function(e) {
 
-					$('.form-field', table).each(function(i, field) {
-						var key = $(field).data('key');
+					let attrs = {};
+
+					for (let field of table[0].querySelectorAll('.form-field')) {
+						let key = field.dataset['key'];
 						if (widgetConfig[key]) {
-							attrs[key] = $(this).val();
+							attrs[key] = field.value;
 						}
-					});
+					}
 
 					e.stopPropagation();
 					Command.appendWidget(widgetSource, target.id, pageId, url, attrs, widgetConfig.processDeploymentInfo, callback);
@@ -786,13 +797,14 @@ let _Widgets = {
 		}
 	},
 	sortWidgetConfigurationByPosition: function (config) {
-		var flattenedConfig = [];
-		Object.keys(config).forEach(function(key) {
-			var val = config[key];
-			flattenedConfig.push([val.position, key, val]);
-		});
+		let flattenedConfig = [];
 
-		var sortedConfig = flattenedConfig.sort(function (a, b) {
+		for (let key in config) {
+			let val = config[key];
+			flattenedConfig.push([val.position, key, val]);
+		}
+
+		let sortedConfig = flattenedConfig.sort(function (a, b) {
 			return (a[0] - b[0]);
 		});
 
@@ -817,7 +829,7 @@ let _Widgets = {
 	fetchLocalPageTemplateWidgets: async function() {
 
 		try {
-			let response = await fetch('/structr/rest/Widget?isPageTemplate=true&' + Structr.getRequestParameterName('sort') + '=name');
+			let response = await fetch(rootUrl + 'Widget?isPageTemplate=true&' + Structr.getRequestParameterName('sort') + '=name');
 			if (response && response.ok) {
 
 				let json = await response.json();

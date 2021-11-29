@@ -27,6 +27,8 @@ let _Pages = {
 	urlHashKey: 'structrUrlHashKey_' + location.port,
 	activeTabRightKey: 'structrActiveTabRight_' + location.port,
 	activeTabLeftKey: 'structrActiveTabLeft_' + location.port,
+	leftTabMinWidth: 400,
+	rightTabMinWidth: 400,
 	selectedTypeKey: 'structrSelectedType_' + location.port,
 	autoRefreshDisabledKey: 'structrAutoRefreshDisabled_' + location.port,
 	detailsObjectIdKey: 'structrDetailsObjectId_' + location.port,
@@ -163,19 +165,24 @@ let _Pages = {
 				}, _Pages.rightSlideoutClosedCallback);
 			});
 
+			let componentsTab = $('#componentsTab');
 			let componentsTabSlideoutAction = function () {
-				_Pages.rightSlideoutClickTrigger(this, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout], (params) => {
-					LSWrapper.setItem(_Pages.activeTabRightKey, $(this).prop('id'));
+				_Pages.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout], (params) => {
+					LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.prop('id'));
 					if (params.isOpenAction) {
 						_Pages.sharedComponents.reload();
 					}
 					_Pages.resize();
 				}, _Pages.rightSlideoutClosedCallback);
 			};
-			$('#componentsTab').on('click', componentsTabSlideoutAction).droppable({
+			componentsTab.on('click', componentsTabSlideoutAction).droppable({
 				tolerance: 'touch',
-				over: function () {
-					if (!_Pages.componentsSlideout.hasClass('open')) {
+				over: function (e, ui) {
+
+					let isComponentsSlideoutOpen = _Pages.componentsSlideout.hasClass('open');
+					let isColumnResizer          = $(ui.draggable).hasClass('column-resizer');
+
+					if (!isComponentsSlideoutOpen && !isColumnResizer) {
 						componentsTabSlideoutAction();
 					}
 				}
@@ -198,19 +205,25 @@ let _Pages = {
 
 		const isPage             = (entity.type === 'Page');
 		const isContent          = (entity.type === 'Content');
-		const isTemplate         = (entity.type === 'Template');
 		const hasChildren        = (entity.children && entity.children.length > 0);
 
 		let handleInsertHTMLAction = function (itemText) {
 			let pageId = isPage ? entity.id : entity.pageId;
 			let tagName = (itemText === 'content') ? null : itemText;
 
-			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), _Elements.isInheritVisibililtyFlagsChecked());
+			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), _Elements.isInheritVisibilityFlagsChecked());
 		};
 
-		let handleInsertBeforeAction = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'Before', _Elements.isInheritVisibililtyFlagsChecked()); };
-		let handleInsertAfterAction  = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'After', _Elements.isInheritVisibililtyFlagsChecked()); };
-		let handleWrapInHTMLAction   = (itemText)  => { Command.wrapDOMNodeInNewDOMNode(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibililtyFlagsChecked()); };
+		let handleInsertBeforeAction = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'Before', _Elements.isInheritVisibilityFlagsChecked()); };
+		let handleInsertAfterAction  = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'After', _Elements.isInheritVisibilityFlagsChecked()); };
+		let handleWrapInHTMLAction   = (itemText) => {
+
+			_Dragndrop.storeTemporarilyRemovedElementUUID(entity.id);
+
+			Command.wrapDOMNodeInNewDOMNode(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibilityFlagsChecked());
+
+			_Dragndrop.clearTemporarilyRemovedElementUUID();
+		};
 
 		let elements = [];
 
@@ -241,7 +254,7 @@ let _Pages = {
 			elements.push({
 				name: 'Insert div element',
 				clickHandler: function () {
-					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', _Dragndrop.getAdditionalDataForElementCreation('div'), _Elements.isInheritVisibililtyFlagsChecked());
+					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', _Dragndrop.getAdditionalDataForElementCreation('div'), _Elements.isInheritVisibilityFlagsChecked());
 					return false;
 				}
 			});
@@ -388,7 +401,7 @@ let _Pages = {
 				});
 			}
 
-			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && entity.pageId !== _Pages.shadowPage.id;
+			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && (entity.pageId !== _Pages.shadowPage.id || entity.parent !== null );
 			if (canConvertToSharedComponent) {
 				_Elements.appendContextMenuSeparator(elements);
 
@@ -456,49 +469,6 @@ let _Pages = {
 
 		_Elements.appendContextMenuSeparator(elements);
 
-		if (!isPage) {
-
-			elements.push({
-				name: 'Repeater',
-				clickHandler: function () {
-					_Entities.showProperties(entity, 'query');
-					return false;
-				}
-			});
-
-			if (!isContent && !isTemplate) {
-				elements.push({
-					name: 'Events',
-					clickHandler: function () {
-						_Entities.showProperties(entity, 'editBinding');
-						return false;
-					}
-				});
-
-				elements.push({
-					name: 'HTML Attributes',
-					clickHandler: function () {
-						_Entities.showProperties(entity, '_html_');
-						return false;
-					}
-				});
-			}
-		}
-
-		elements.push({
-			name: 'Properties',
-			clickHandler: function() {
-				_Entities.showProperties(entity, 'ui');
-				return false;
-			}
-		});
-
-		_Elements.appendContextMenuSeparator(elements);
-
-		_Elements.appendSecurityContextMenuItems(elements, entity, hasChildren);
-
-		_Elements.appendContextMenuSeparator(elements);
-
 		if (!isContent && hasChildren) {
 
 			elements.push({
@@ -542,20 +512,6 @@ let _Pages = {
 				]
 			});
 		}
-
-		_Elements.appendContextMenuSeparator(elements);
-
-		elements.push({
-			name: '<input type="checkbox" id="inherit-visibility-flags">Inherit Visibility Flags',
-			stayOpen: true,
-			clickHandler: function(el) {
-				var checkbox = el.find('input');
-				var wasChecked = checkbox.prop('checked');
-				checkbox.prop('checked', !wasChecked);
-				LSWrapper.setItem(_Elements.inheritVisibilityFlagsKey, !wasChecked);
-				return true;
-			}
-		});
 
 		_Elements.appendContextMenuSeparator(elements);
 
@@ -648,8 +604,8 @@ let _Pages = {
 	resizeColumns: function(pxLeft, pxRight) {
 
 		if (!pxLeft && !pxRight) {
-			pxLeft = LSWrapper.getItem(_Pages.pagesResizerLeftKey) || 200;
-			pxRight = LSWrapper.getItem(_Pages.pagesResizerRightKey) || 200;
+			pxLeft  = LSWrapper.getItem(_Pages.pagesResizerLeftKey)  || _Pages.leftTabMinWidth;
+			pxRight = LSWrapper.getItem(_Pages.pagesResizerRightKey) || _Pages.rightTabMinWidth;
 		}
 
 		let leftResizer       = document.querySelector('.column-resizer-left');
@@ -744,8 +700,8 @@ let _Pages = {
 				_Pages.resize();
 			});
 
-			Structr.initVerticalSlider($('.column-resizer-left', main), _Pages.pagesResizerLeftKey, 400, _Pages.moveLeftResizer);
-			Structr.initVerticalSlider($('.column-resizer-right', main), _Pages.pagesResizerRightKey, 400, _Pages.moveRightResizer, true);
+			Structr.initVerticalSlider($('.column-resizer-left', main), _Pages.pagesResizerLeftKey, _Pages.leftTabMinWidth, _Pages.moveLeftResizer);
+			Structr.initVerticalSlider($('.column-resizer-right', main), _Pages.pagesResizerRightKey, _Pages.rightTabMinWidth, _Pages.moveRightResizer, true);
 
 			Structr.unblockMenu(500);
 
@@ -773,7 +729,7 @@ let _Pages = {
 			let filerEl = $('#pagesPagerFilters');
 			pPager.activateFilterElements(filerEl);
 
-			fetch('/structr/rest/Page/category').then((response) => {
+			fetch(rootUrl + 'Page/category').then((response) => {
 				if (response.ok) {
 					return response.json();
 				}
@@ -816,7 +772,7 @@ let _Pages = {
 				dialogMsg.empty();
 
 				dialog.append('<h3>Create page from source code ...</h3>'
-						+ '<textarea id="_code" name="code" cols="40" rows="10" placeholder="Paste HTML code here"></textarea>');
+						+ '<textarea id="_code" name="code" cols="40" rows="5" placeholder="Paste HTML code here"></textarea>');
 
 				dialog.append('<h3>... or fetch page from URL: <input id="_address" name="address" size="40" value="http://"></h3><table class="props">'
 						+ '<tr><td><label for="name">Name of new page:</label></td><td><input id="_name" name="name" size="20"></td></tr>'
@@ -1478,8 +1434,6 @@ let _Pages = {
 
 			let entity               = wrappedEntity.entity;
 			const isPage             = (entity.type === 'Page');
-			const isContent          = (entity.type === 'Content');
-			const isTemplate         = (entity.type === 'Template');
 			const isDOMNode          = (entity.isDOMNode);
 			const isSchemaNode       = (entity.type === 'SchemaNode');
 
@@ -2309,7 +2263,6 @@ let _Pages = {
 				stack: '.node',
 				zIndex: 99
 			});
-
 		},
 	},
 
@@ -2322,7 +2275,7 @@ let _Pages = {
 
 				_Pages.componentsSlideout.find(':not(.slideout-activator)').remove();
 
-				_Pages.componentsSlideout.append('<div class="" id="newComponentDropzone"><div class="new-component-info"><i class="active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /><i class="inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> Drop element here to create<br>a new shared component</div></div>');
+				_Pages.componentsSlideout.append('<div id="newComponentDropzone"><div class="new-component-info h-16 flex items-center justify-center"><i class="m-2 active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '"></i><i class="m-2 inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '"></i> Drop element here to create a new shared component</div></div>');
 				let newComponentDropzone = $('#newComponentDropzone', _Pages.componentsSlideout);
 
 				_Pages.componentsSlideout.append('<div id="componentsArea"></div>');
@@ -2386,7 +2339,7 @@ let _Pages = {
 
 				_Pages.unattachedNodes.removeElementsFromUI();
 
-				_Pages.unusedElementsTree.append('<button class="btn disabled" id="delete-all-unattached-nodes" disabled> Loading </button>');
+				_Pages.unusedElementsTree.append('<button class="btn disabled flex items-center" id="delete-all-unattached-nodes" disabled> Loading </button>');
 
 				let btn = $('#delete-all-unattached-nodes');
 				Structr.loaderIcon(btn, {
@@ -2412,7 +2365,7 @@ let _Pages = {
 
 					let count = result.length;
 					if (count > 0) {
-						btn.html(_Icons.getSvgIcon('trashcan') + ' Delete all (' + count + ')');
+						btn.html(_Icons.getSvgIcon('trashcan', 16, 16, 'mr-2') + ' Delete all (' + count + ')');
 						btn.removeClass('disabled');
 						btn.prop('disabled', false);
 					} else {

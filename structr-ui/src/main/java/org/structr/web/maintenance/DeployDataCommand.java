@@ -29,6 +29,7 @@ import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -207,6 +208,9 @@ public class DeployDataCommand extends DeployCommand {
 
 				final List<Map<String, Object>> relsForType = relationshipMap.get(relType);
 
+				// sort list by createdDate
+				Collections.sort(relsForType, Comparator.comparing(o -> ((Long) o.get("createdDate"))));
+
 				final Path relsConf = relsDir.resolve(relType + ".json");
 
 				writeJsonToFile(relsConf, relsForType);
@@ -370,7 +374,7 @@ public class DeployDataCommand extends DeployCommand {
 
 			try {
 
-				Files.list(nodesDir).forEach((Path p) -> {
+				Files.list(nodesDir).sorted().forEach((Path p) -> {
 
 					java.io.File f = p.toFile();
 
@@ -394,7 +398,7 @@ public class DeployDataCommand extends DeployCommand {
 
 			try {
 
-				Files.list(relsDir).forEach((Path p) -> {
+				Files.list(relsDir).sorted().forEach((Path p) -> {
 
 					java.io.File f = p.toFile();
 
@@ -579,7 +583,7 @@ public class DeployDataCommand extends DeployCommand {
 
 				fos.write("[");
 
-				try (final ResultStream<T> resultStream = app.nodeQuery(nodeType).getResultStream()) {
+				try (final ResultStream<T> resultStream = app.nodeQuery(nodeType).sort(AbstractNode.createdDate).getResultStream()) {
 
 					for (final T node : resultStream) {
 
@@ -712,14 +716,13 @@ public class DeployDataCommand extends DeployCommand {
 
 		final App app         = StructrApp.getInstance(context);
 		final String typeName = type.getSimpleName();
+		final int chunkSize   = Settings.DeploymentRelBatchSize.getValue();
+		int chunkCount        = 0;
+		int relCount          = 0;
+		final int maxSize     = data.size();
 
-		logger.info("Importing relationships for type {}", typeName);
-		publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Importing relationships for type " + typeName);
-
-		final int chunkSize = Settings.DeploymentRelBatchSize.getValue();
-		int chunkCount      = 0;
-		int relCount        = 0;
-		final int maxSize   = data.size();
+		logger.info("Importing relationships for type {} ({})", typeName, maxSize);
+		publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Importing relationships for type " + typeName + " (" + maxSize + ")");
 
 		while (data.size() >= (chunkCount * chunkSize)) {
 
@@ -775,7 +778,8 @@ public class DeployDataCommand extends DeployCommand {
 
 			} catch (FrameworkException fex) {
 
-				logger.error("Unable to import relationships for type {}. Cause: {}", type.getSimpleName(), fex.getMessage());
+				logger.error("Unable to import relationships for type {}. Cause: {}", typeName, fex.toString());
+				publishWarningMessage("Unable to import relationships for type " + typeName, fex.toString());
 			}
 		}
 	}
@@ -805,15 +809,14 @@ public class DeployDataCommand extends DeployCommand {
 
 		} else {
 
-			logger.info("Importing nodes for type {}", defaultTypeName);
-			publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Importing nodes for type " + defaultTypeName);
-
-			final App app = StructrApp.getInstance(context);
-
+			final App app       = StructrApp.getInstance(context);
 			final int chunkSize = Settings.DeploymentNodeBatchSize.getValue();
 			int chunkCount      = 0;
 			int nodeCount       = 0;
 			final int maxSize   = data.size();
+
+			logger.info("Importing nodes for type {} ({})", defaultTypeName, maxSize);
+			publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Importing nodes for type " + defaultTypeName + " (" + maxSize + ")");
 
 			while (data.size() >= (chunkCount * chunkSize)) {
 
@@ -880,7 +883,8 @@ public class DeployDataCommand extends DeployCommand {
 
 				} catch (FrameworkException fex) {
 
-					logger.error("Unable to import nodes for type {}. Cause: {}", defaultType.getSimpleName(), fex.getMessage());
+					logger.error("Unable to import nodes for type {}. Cause: {}", defaultTypeName, fex.toString());
+					publishWarningMessage("Unable to import relationships for type " + defaultTypeName, fex.toString());
 				}
 			}
 		}
@@ -943,5 +947,10 @@ public class DeployDataCommand extends DeployCommand {
 				}
 			}
 		}
+	}
+
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return true;
 	}
 }

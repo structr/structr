@@ -44,6 +44,7 @@ import org.structr.core.function.ExecBinaryFunction;
 import org.structr.core.function.ExecFunction;
 import org.structr.core.function.Functions;
 import org.structr.core.function.GeocodeFunction;
+import org.structr.core.function.GetenvFunction;
 import org.structr.core.function.GetRelationshipTypesFunction;
 import org.structr.core.function.GrantFunction;
 import org.structr.core.function.HasErrorFunction;
@@ -101,6 +102,7 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new ErrorFunction());
 		Functions.put(licenseManager, new HasErrorFunction());
 		Functions.put(licenseManager, new ConfigFunction());
+		Functions.put(licenseManager, new GetenvFunction());
 		Functions.put(licenseManager, new ChangelogFunction());
 		Functions.put(licenseManager, new UserChangelogFunction());
 		Functions.put(licenseManager, new ServerLogFunction());

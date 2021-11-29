@@ -158,6 +158,17 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 			String authPassword  = request.getParameter("authPassword");
 			String cookie        = request.getParameter("cookie");
 
+			String contentType   = request.getContentType();
+			String charset       = null;
+
+			// Extract character set from contentType if given
+			if (StringUtils.isNotBlank(contentType)) {
+				final String[] contentTypeParts = contentType.split(";");
+				if (contentTypeParts.length == 2) {
+					charset = org.apache.commons.lang.StringUtils.trim(contentTypeParts[1]);
+				}
+			}
+
 			final Principal user = securityContext.getCachedUser();
 
 			if (user != null && StringUtils.isBlank(proxyUrl)) {
@@ -166,7 +177,7 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 				proxyPassword = user.getProperty(proxyPasswordKey);
 			}
 
-			content = HttpHelper.get(address, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
+			content = HttpHelper.get(address, charset, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
 
 
 		} catch (Throwable t) {

@@ -289,11 +289,18 @@ let StructrWS = {
 
 				} else if (command === 'UPDATE' || command === 'SET_PERMISSION') {
 
-					var obj = StructrModel.obj(data.id);
+					let modelObj = StructrModel.obj(data.id);
 
-					if (!obj) {
+					if (!modelObj) {
 						data.data.id = data.id;
-						obj = StructrModel.create(data.data, null, false);
+						modelObj = StructrModel.create(data.data, null, false);
+					} else {
+						if (modelObj.updatedModel && (typeof modelObj.updatedModel === 'function')) {
+							for (let [key, value] of Object.entries(data.data)) {
+								modelObj[key] = value;
+							}
+							modelObj.updatedModel();
+						}
 					}
 
 					StructrModel.update(data);

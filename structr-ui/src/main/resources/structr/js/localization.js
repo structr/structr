@@ -85,7 +85,7 @@ let _Localization = {
 					return false;
 				});
 
-				keyPreselect.value    = LSWrapper.getItem(_Localization.localizationPreselectNameKey) || '';
+				//keyPreselect.value    = LSWrapper.getItem(_Localization.localizationPreselectNameKey) || '';
 				domainPreselect.value = LSWrapper.getItem(_Localization.localizationPreselectDomainKey) || '';
 				localePreselect.value = LSWrapper.getItem(_Localization.localizationPreselectLocaleKey) || 'en';
 
@@ -222,7 +222,9 @@ let _Localization = {
 	},
 	processPagerData: (pagerData) => {
 		if (pagerData && pagerData.length) {
-			pagerData.forEach(_Localization.appendKeyAndDomainListRow);
+			for (let entry of pagerData) {
+				_Localization.appendKeyAndDomainListRow(entry);
+			}
 		}
 	},
 	showMain: () => {
@@ -235,9 +237,9 @@ let _Localization = {
 	checkMainVisibility: () => {
 		let rows = document.querySelectorAll('.localization-row');
 		let selectedRowExists = false;
-		rows.forEach((row) => {
+		for (let row of rows) {
 			selectedRowExists |= row.classList.contains('selected');
-		});
+		}
 		if (!rows || rows.length === 0) {
 			_Localization.hideMain();
 		} else if (!selectedRowExists) {
@@ -256,7 +258,7 @@ let _Localization = {
 
 		_Localization.showMain();
 
-		let combinedTypeForId = _Localization.getCombinedTypeForId(keyAndDomainObject);
+		let combinedTypeForId     = _Localization.getCombinedTypeForId(keyAndDomainObject);
 		keyAndDomainObject.htmlId = combinedTypeForId;
 
 		Structr.fetchHtmlTemplate('localization/row.type', { localization: keyAndDomainObject }, function(html) {
@@ -288,15 +290,15 @@ let _Localization = {
 	},
 	showLocalizationsForKeyAndDomainObject: async (keyAndDomainObject, isCreate) => {
 
-		let key    = (keyAndDomainObject.name ? keyAndDomainObject.name : null);
-		let domain = (keyAndDomainObject.domain ? keyAndDomainObject.domain : null);
+		let key    = (keyAndDomainObject.name === undefined ? null : keyAndDomainObject.name);
+		let domain = (keyAndDomainObject.domain === undefined ? null: keyAndDomainObject.domain);
 
-		let combinedTypeForId = _Localization.getCombinedTypeForId(keyAndDomainObject);
+		let combinedTypeForId     = _Localization.getCombinedTypeForId(keyAndDomainObject);
 		keyAndDomainObject.htmlId = combinedTypeForId;
 
 		LSWrapper.setItem(_Localization.localizationSelectedElementKey, keyAndDomainObject);
 
-		let response = await fetch(rootUrl + 'Localizations/all?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
+		let response = await fetch(rootUrl + 'Localization/all?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
 
 		if (response.ok) {
 
@@ -366,7 +368,7 @@ let _Localization = {
 					domain: curDomain
 				};
 
-				let response = await fetch(rootUrl + 'Localizations/ui?' + (oldKey ? 'name=' + oldKey : '') + (oldDomain ? '&domain=' + oldDomain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
+				let response = await fetch(rootUrl + 'Localization/ui?' + (oldKey ? 'name=' + oldKey : '') + (oldDomain ? '&domain=' + oldDomain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
 
 				if (response.ok) {
 
@@ -382,7 +384,7 @@ let _Localization = {
 
 							totalCounter++;
 
-							let putResponse = await fetch(rootUrl + 'Localizations/' + loc.id, {
+							let putResponse = await fetch(rootUrl + 'Localization/' + loc.id, {
 								method: 'PUT',
 								body: JSON.stringify(newData)
 							});
@@ -510,7 +512,7 @@ let _Localization = {
 		let newData = {};
 		newData[attr] = curValue;
 
-		let response = await fetch(rootUrl + 'Localizations/' + localization.id, {
+		let response = await fetch(rootUrl + 'Localization/' + localization.id, {
 			method: 'PUT',
 			body: JSON.stringify(newData),
 		});
@@ -580,7 +582,7 @@ let _Localization = {
 						newData.domain = null;
 					}
 
-					let response = await fetch(rootUrl + 'Localizations', {
+					let response = await fetch(rootUrl + 'Localization', {
 						method: 'POST',
 						body: JSON.stringify(newData),
 					});
@@ -616,7 +618,7 @@ let _Localization = {
 	},
 	deleteCompleteLocalization: async (key, domain) => {
 
-		let response = await fetch(rootUrl + 'Localizations/ui?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
+		let response = await fetch(rootUrl + 'Localization/ui?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
 
 		if (response.ok) {
 

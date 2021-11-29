@@ -59,32 +59,6 @@ let _Files = {
 
 		_Files.setViewMode(LSWrapper.getItem(filesViewModeKey) || 'list');
 
-		_Files.searchField = document.getElementById('files-search-box');
-		if (_Files.searchField) {
-
-			_Files.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
-			_Files.searchFieldClearIcon.addEventListener('click', (e) => {
-				_Files.clearSearch();
-			});
-
-			_Files.searchField.focus();
-
-			_Files.searchField.addEventListener('keyup', (e) => {
-
-				let searchString = _Files.searchField.value;
-
-				if (searchString && searchString.length && e.keyCode === 13) {
-
-					_Files.searchFieldClearIcon.style.display = 'block';
-
-					_Files.fulltextSearch(searchString);
-
-				} else if (e.keyCode === 27 || searchString === '') {
-					_Files.clearSearch();
-				}
-			});
-		}
-
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
 
@@ -155,21 +129,48 @@ let _Files = {
 					});
 
 					Structr.functionBar.querySelector('.mount_folder').addEventListener('click', _Files.openMountDialog);
+
+					_Files.searchField = Structr.functionBar.querySelector('#files-search-box');
+
+					_Files.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
+					_Files.searchFieldClearIcon.addEventListener('click', (e) => {
+						_Files.clearSearch();
+					});
+
+					_Files.searchField.focus();
+
+					_Files.searchField.addEventListener('keyup', (e) => {
+
+						let searchString = _Files.searchField.value;
+
+						if (searchString && searchString.length) {
+							_Files.searchFieldClearIcon.style.display = 'block';
+						}
+
+						if (searchString && searchString.length && e.keyCode === 13) {
+
+							_Files.fulltextSearch(searchString);
+
+						} else if (e.keyCode === 27 || searchString === '') {
+							_Files.clearSearch();
+						}
+					});
 				});
 			};
 			initFunctionBar(); // run async (do not await) so it can execute while jstree is initialized
 
-			$.jstree.defaults.core.themes.dots = false;
-			$.jstree.defaults.dnd.inside_pos = 'last';
+			$.jstree.defaults.core.themes.dots      = false;
+			$.jstree.defaults.dnd.inside_pos        = 'last';
 			$.jstree.defaults.dnd.large_drop_target = true;
 
 			_Files.fileTree.on('ready.jstree', function () {
+
 				_TreeHelper.makeTreeElementDroppable(_Files.fileTree, 'root');
 				_TreeHelper.makeTreeElementDroppable(_Files.fileTree, 'favorites');
 
 				_Files.loadAndSetWorkingDir(function () {
 
-					var lastOpenFolder = LSWrapper.getItem(filesLastOpenFolderKey);
+					let lastOpenFolder = LSWrapper.getItem(filesLastOpenFolderKey);
 
 					if (lastOpenFolder === 'favorites') {
 
@@ -181,7 +182,10 @@ let _Files = {
 
 					} else {
 
-						$('#root_anchor').click();
+						let selectedNode = _Files.fileTree.jstree('get_selected');
+						if (selectedNode.length === 0) {
+							$('#root_anchor').click();
+						}
 					}
 				});
 			});
@@ -239,14 +243,26 @@ let _Files = {
 		if (isFile) {
 
 			if (entity.isImage && contentType !== 'text/svg' && !contentType.startsWith('image/svg')) {
-				elements.push({
-					icon: _Icons.getSvgIcon('pencil_edit'),
-					name: 'Edit Image',
-					clickHandler: function () {
-						_Files.editImage(entity);
-						return false;
-					}
-				});
+
+				if (entity.isTemplate) {
+					elements.push({
+						icon: _Icons.getSvgIcon('pencil_edit'),
+						name: 'Edit source',
+						clickHandler: function () {
+							_Files.editFile(entity);
+							return false;
+						}
+					});
+				} else {
+					elements.push({
+						icon: _Icons.getSvgIcon('pencil_edit'),
+						name: 'Edit Image',
+						clickHandler: function () {
+							_Files.editImage(entity);
+							return false;
+						}
+					});
+				}
 
 			} else if (fileCount === 1 && _Files.isMinificationTarget(entity)) {
 				elements.push({
@@ -458,7 +474,7 @@ let _Files = {
 
 			case '#':
 
-				var defaultFilesystemEntries = [
+				let defaultFilesystemEntries = [
 					{
 						id: 'favorites',
 						text: 'Favorite Files',
@@ -472,8 +488,7 @@ let _Files = {
 						icon: _Icons.structr_logo_small,
 						path: '/',
 						state: {
-							opened: true,
-							selected: true
+							opened: true
 						}
 					}
 				];
@@ -598,13 +613,13 @@ let _Files = {
 	},
 	clearSearch: function() {
 		_Files.searchField.value = '';
-		_Files.searchFieldClearIcon.style.display = 'block';
+		_Files.searchFieldClearIcon.style.display = 'none';
 		$('#search-results').remove();
 		$('#folder-contents').children().show();
 	},
 	loadAndSetWorkingDir: function(callback) {
 		Command.rest("/me/ui", function (result) {
-			var me = result[0];
+			let me = result[0];
 			if (me.workingDirectory) {
 				_Files.currentWorkingDir = me.workingDirectory;
 			} else {
@@ -782,7 +797,7 @@ let _Files = {
 			let pagerId = 'filesystem-files';
 			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			let filesPager = _Pager.addPager(pagerId, _Files.folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,isFavoritable,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers');
+			let filesPager = _Pager.addPager(pagerId, _Files.folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,isFavoritable,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers');
 
 			filesPager.cleanupFunction = () => {
 				let toRemove = $('.node.file', filesPager.el).closest( (_Files.isViewModeActive('list') ? 'tr' : '.tile') );
@@ -921,7 +936,7 @@ let _Files = {
 				row.append('<td class="size whitespace-nowrap">' + _Files.formatBytes(size, 0) + '</td>');
 			}
 
-			row.append('<td class="abbr-ellipsis abbr-75pc">' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
+			row.append('<td class="truncate">' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
 			row.append('<td>' + (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '') + '</td>');
 
 			_Elements.enableContextMenuOnElement(row, d);
@@ -1032,12 +1047,26 @@ let _Files = {
 			_Entities.appendNewAccessControlIcon(iconsContainer, d);
 		}
 
+		if (d.isFile) {
+			let dblclickHandler = (e) => {
+				if ($('b.name_', div).length > 0) {
+					_Files.editFile(d);
+				}
+			};
+
+			if (div) {
+				let node = div[0].closest('.node');
+				node.removeEventListener('dblclick', dblclickHandler);
+				node.addEventListener('dblclick', dblclickHandler);
+			}
+		}
+
 		_Entities.makeSelectable(div);
 	},
 	handleFolder: function(div, d) {
 
 		if (Structr.isModulePresent('cloud')) {
-			div.append('<i title="Sync folder \'' + d.name + '\' to remote instance" class="push_icon button ' + _Icons.getFullSpriteClass(_Icons.push_file_icon) + '" />');
+			div.append('<i title="Sync folder \'' + d.name + '\' to remote instance" class="push_icon button ' + _Icons.getFullSpriteClass(_Icons.push_file_icon) + '"></i>');
 			div.children('.push_icon').on('click', function() {
 				Structr.pushDialog(d.id, true);
 				return false;
@@ -1226,25 +1255,27 @@ let _Files = {
 			}
 		});
 	},
-	appendEditImageIcon: function(parent, image) {
-
-		var viewIcon = $('.view_icon', parent);
-
-		if (!(viewIcon && viewIcon.length)) {
-			parent.append('<i title="' + image.name + ' [' + image.id + ']" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-		}
-
-		viewIcon = $('.edit_icon', parent);
-
-		viewIcon.on('click', function(e) {
-			e.stopPropagation();
-			_Files.editImage(image);
-		});
-	},
+	// appendEditImageIcon: function(parent, image) {
+	//
+	// 	var viewIcon = $('.view_icon', parent);
+	//
+	// 	if (!(viewIcon && viewIcon.length)) {
+	// 		parent.append('<i title="' + image.name + ' [' + image.id + ']" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
+	// 	}
+	//
+	// 	viewIcon = $('.edit_icon', parent);
+	//
+	// 	viewIcon.on('click', function(e) {
+	// 		e.stopPropagation();
+	// 		_Files.editImage(image);
+	// 	});
+	// },
 	editImage: (image) => {
 		let parent = Structr.node(image.id);
 		Structr.dialog('' + image.name, function() {
+			dialogMeta.show();
 		}, function() {
+			dialogMeta.show();
 		});
 		_Files.viewImage(image, $('#dialogBox .dialogText'));
 	},
@@ -1320,7 +1351,7 @@ let _Files = {
 
 		selectedElements = $('.node.selected');
 		if (selectedElements.length > 1 && parent.hasClass('selected')) {
-			selectedElements.removeClass('selected');
+			// selectedElements.removeClass('selected');
 		} else {
 			selectedElements = parent;
 		}
@@ -1337,8 +1368,8 @@ let _Files = {
 			}
 		}
 
-		let filesTabs    = document.getElementById('files-tabs');
-		let filesTabsUl  = filesTabs.querySelector('ul');
+		let filesTabs     = document.getElementById('files-tabs');
+		let filesTabsUl   = filesTabs.querySelector('ul');
 		let loadedEditors = 0;
 
 		for (let el of filteredElements) {

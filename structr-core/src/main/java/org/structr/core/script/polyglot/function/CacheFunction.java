@@ -64,7 +64,7 @@ public class CacheFunction implements ProxyExecutable {
 				}
 			}
 
-			retVal = cacheExpr.evaluate(actionContext, entity, new EvaluationHints());
+			retVal = PolyglotWrapper.wrap(actionContext, cacheExpr.evaluate(actionContext, entity, new EvaluationHints()));
 
 		} catch (FrameworkException ex) {
 

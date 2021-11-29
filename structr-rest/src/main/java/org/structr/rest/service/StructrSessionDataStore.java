@@ -19,6 +19,7 @@
 package org.structr.rest.service;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.eclipse.jetty.server.session.AbstractSessionDataStore;
@@ -46,6 +47,12 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	private static final Logger logger       = LoggerFactory.getLogger(StructrSessionDataStore.class.getName());
 
 	private static final Map<String, SessionData> anonymousSessionCache = new ConcurrentHashMap<>();
+
+	@Override
+	public boolean doExists(final String id) throws Exception {
+
+		return exists(id);
+	}
 
 	@Override
 	public void doStore(final String id, final SessionData data, final long lastSaveTime) throws Exception {
@@ -86,42 +93,6 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 			logger.info("Unable to store session data for session id " + id + ".", ex);
 		}
-	}
-
-	@Override
-	public Set<String> doGetExpired(final Set<String> candidates) {
-
-		final long sessionTimeout = Settings.SessionTimeout.getValue(1800) * 1000;
-		final Date timeoutDate    = new Date(System.currentTimeMillis() - sessionTimeout);
-
-		assertInitialized();
-
-		for (Map.Entry<String,SessionData> entry : anonymousSessionCache.entrySet()) {
-
-			SessionData data = entry.getValue();
-			if ( (new Date().getTime() - data.getLastAccessed()) > sessionTimeout) {
-
-				candidates.add(entry.getKey());
-			}
-		}
-
-		final App app = StructrApp.getInstance();
-
-		try (final Tx tx = app.tx()) {
-
-			for (final SessionDataNode node : app.nodeQuery(SessionDataNode.class).andRange(SessionDataNode.lastAccessed, new Date(0), timeoutDate).getAsList()) {
-
-				candidates.add(node.getProperty(SessionDataNode.sessionId));
-			}
-
-			tx.success();
-
-		} catch (FrameworkException ex) {
-
-			logger.info("Unable to determine list of expired session candidates.");
-		}
-
-		return candidates;
 	}
 
 	@Override
@@ -174,13 +145,13 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 			if (node != null) {
 
 				result = new SessionData(
-					id,
-					node.getProperty(SessionDataNode.contextPath),
-					node.getProperty(SessionDataNode.vhost),
-					node.getCreatedDate().getTime(),
-					node.getLastModifiedDate().getTime(),
-					node.getLastModifiedDate().getTime(),
-					-1
+						id,
+						node.getProperty(SessionDataNode.contextPath),
+						node.getProperty(SessionDataNode.vhost),
+						node.getCreatedDate().getTime(),
+						node.getLastModifiedDate().getTime(),
+						node.getLastModifiedDate().getTime(),
+						-1
 				);
 			}
 
@@ -226,6 +197,131 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 		return false;
 	}
 
+	@Override
+	public SessionData doLoad(final String id) throws Exception {
+		return load(id);
+	}
+
+	@Override
+	public Set<String> doCheckExpired(final Set<String> candidates, final long sessionTimeout) {
+		final Date timeoutDate    = new Date(System.currentTimeMillis() - sessionTimeout);
+
+		assertInitialized();
+
+		for (Map.Entry<String,SessionData> entry : anonymousSessionCache.entrySet()) {
+
+			SessionData data = entry.getValue();
+			if ( (new Date().getTime() - data.getLastAccessed()) > sessionTimeout) {
+
+				candidates.add(entry.getKey());
+			}
+		}
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final SessionDataNode node : app.nodeQuery(SessionDataNode.class).andRange(SessionDataNode.lastAccessed, new Date(0), timeoutDate).getAsList()) {
+
+				candidates.add(node.getProperty(SessionDataNode.sessionId));
+			}
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.info("Unable to determine list of expired session candidates.");
+		}
+
+		return candidates;
+	}
+
+	@Override
+	public Set<String> doGetExpired(final long sessionTimeout) {
+		final Date timeoutDate    = new Date(System.currentTimeMillis() - sessionTimeout);
+
+		assertInitialized();
+
+		Set<String> candidates = new HashSet<>();
+
+		for (Map.Entry<String,SessionData> entry : anonymousSessionCache.entrySet()) {
+
+			SessionData data = entry.getValue();
+			if ( (new Date().getTime() - data.getLastAccessed()) > sessionTimeout) {
+
+				candidates.add(entry.getKey());
+			}
+		}
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final SessionDataNode node : app.nodeQuery(SessionDataNode.class).andRange(SessionDataNode.lastAccessed, new Date(0), timeoutDate).getAsList()) {
+
+				candidates.add(node.getProperty(SessionDataNode.sessionId));
+			}
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.info("Unable to determine list of expired session candidates.");
+		}
+
+		return candidates;
+	}
+
+	@Override
+	public void doCleanOrphans(long timeout) {
+
+		for (final String id : doGetExpired(timeout)) {
+
+			try {
+
+				delete(id);
+			} catch (Exception ex) {
+
+				logger.warn("Could not delete session data for id[" + id + "]");
+			}
+		}
+	}
+
+	public Set<String> doGetExpired(final Set<String> candidates) {
+
+		final long sessionTimeout = Settings.SessionTimeout.getValue(1800) * 1000;
+		final Date timeoutDate    = new Date(System.currentTimeMillis() - sessionTimeout);
+
+		assertInitialized();
+
+		for (Map.Entry<String,SessionData> entry : anonymousSessionCache.entrySet()) {
+
+			SessionData data = entry.getValue();
+			if ( (new Date().getTime() - data.getLastAccessed()) > sessionTimeout) {
+
+				candidates.add(entry.getKey());
+			}
+		}
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final SessionDataNode node : app.nodeQuery(SessionDataNode.class).andRange(SessionDataNode.lastAccessed, new Date(0), timeoutDate).getAsList()) {
+
+				candidates.add(node.getProperty(SessionDataNode.sessionId));
+			}
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.info("Unable to determine list of expired session candidates.");
+		}
+
+		return candidates;
+	}
+
 
 	// ----- private methods -----
 	private void assertInitialized() {
@@ -250,10 +346,5 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 		}
 
 		return node;
-	}
-
-	@Override
-	public SessionData doLoad(String id) throws Exception {
-		return load(id);
 	}
 }

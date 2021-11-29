@@ -37,9 +37,15 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 	private static final Logger logger = LoggerFactory.getLogger(BulkSetUuidCommand.class.getName());
 
+
+
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
+		executeWithCount(attributes);
+	}
 
+
+	public long executeWithCount(final Map<String, Object> attributes) throws FrameworkException {
 		final String nodeType         = (String) attributes.get("type");
 		final String relType          = (String) attributes.get("relType");
 		final Boolean allNodes        = (Boolean) attributes.get("allNodes");
@@ -106,7 +112,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 			info("Done with setting UUID on {} nodes", count);
 
-			return;
+			return count;
 		}
 
 		if (relType != null || Boolean.TRUE.equals(allRels)) {
@@ -165,11 +171,11 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 			info("Done with setting UUID on {} relationships", count);
 
-			return;
+			return count;
 		}
 
 		info("Unable to determine entity type to set UUID.");
-
+		return 0;
 	}
 
 	@Override

@@ -26,11 +26,11 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.RelatedNodePropertyMapper;
 
 /**
- * A property that can be used to make the property of a related node
- * appear to be a local property. Use this property type if you want
+ * A property that can be used to make the property of a linked node
+ * appear to be a direct property. Use this property type if you want
  * to reproduce the value of a given node on a node with a different
- * type. This propert works in both directions, i.e. you can get and
- * set the value as if it was a local property.
+ * type. This property works in both directions, i.e. you can get and
+ * set the value as if it was a direct property.
  *
  *
  */

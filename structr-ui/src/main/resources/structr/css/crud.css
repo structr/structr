@@ -228,14 +228,26 @@
 	border-top: none;
 }
 
+.crud-table tr td .array-attr {
+	position: relative;
+}
+
 .crud-table tr td .array-attr input,
 .crud-table tr td .array-attr textarea {
-	width: calc(100% - 30px);
+	width: calc(100% - 3rem);
 }
 
 .crud-table tr td .array-attr i.remove {
 	vertical-align: middle;
     margin: 7px 0 6px 2px;
+	position: absolute;
+	top: .25rem;
+	right: .3rem;
+}
+
+.crud-table tr td .array-attr i.remove:hover {
+	cursor: pointer;
+	opacity: .8;
 }
 
 .resourceBox th i {
@@ -285,9 +297,9 @@ input.readonly {
 }
 
 .exportArea, .importArea {
-	border: none;
-	margin: 0 0 0 4px;
-	height: 470px;
+	border: 1x solid var(--input-field-border);
+	margin: 0;
+	height: 448px;
 	overflow: auto;
 }
 
@@ -380,22 +392,12 @@ input.readonly {
 * Search
 */
 .searchBox {
-	position: absolute;
-	right: 3rem;
-	/*top: 1rem;*/
+	position: relative;
 	z-index: 5;
-	/*line-height: 1em;*/
-}
-
-.searchBoxDialog {
-	 /*top: 1px;*/
 }
 
 .searchBox input.search {
-	/*border: 1px solid var(--link-color-active);*/
 	width: 20rem;
-	/*height: 22px;*/
-	/*padding: 2px 4px;*/
 }
 
 .searchResults {
@@ -424,14 +426,9 @@ input.readonly {
 i.clearSearchIcon {
 	display: none;
 	position: absolute;
-	top: 9px;
-	right: 8px;
+	top: .75rem;
+	right: .75rem;
 	cursor: pointer;
-}
-
-.dialogText .searchResultGroup {
-	position: absolute;
-	top: 42px;
 }
 
 img.loader {

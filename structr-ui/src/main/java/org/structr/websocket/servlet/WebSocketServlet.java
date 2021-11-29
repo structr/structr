@@ -20,7 +20,8 @@ package org.structr.websocket.servlet;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
+import org.eclipse.jetty.websocket.server.JettyWebSocketServlet;
+import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory;
 import org.structr.api.config.Settings;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.common.StatsCallback;
@@ -32,10 +33,12 @@ import org.structr.websocket.WebSocketDataGSONAdapter;
 import org.structr.websocket.WebsocketController;
 import org.structr.websocket.message.WebSocketMessage;
 
+import java.time.Duration;
+
 /**
  *
  */
-public class WebSocketServlet extends org.eclipse.jetty.websocket.servlet.WebSocketServlet implements HttpServiceServlet {
+public class WebSocketServlet extends JettyWebSocketServlet implements HttpServiceServlet {
 
 	private static final int MAX_TEXT_MESSAGE_SIZE = 1024 * 1024;
 
@@ -53,7 +56,7 @@ public class WebSocketServlet extends org.eclipse.jetty.websocket.servlet.WebSoc
 	}
 
 	@Override
-	public void configure(final WebSocketServletFactory factory) {
+	public void configure(final JettyWebSocketServletFactory factory) {
 
 		// create GSON serializer
 		final GsonBuilder gsonBuilder = new GsonBuilder()
@@ -78,15 +81,17 @@ public class WebSocketServlet extends org.eclipse.jetty.websocket.servlet.WebSoc
 		// register (Structr) transaction listener
 		TransactionCommand.registerTransactionListener(syncController);
 
-		factory.getPolicy().setIdleTimeout(61000);
+		factory.setIdleTimeout(Duration.ofSeconds(60));
 		factory.setCreator(new StructrWebSocketCreator(syncController, gson, config.getAuthenticator()));
 		factory.register(StructrWebSocket.class);
 
 		// Disable compression (experimental features)
-		factory.getExtensionFactory().unregister("x-webkit-deflate-frame");
-		factory.getExtensionFactory().unregister("permessage-deflate");
+		// TODO: Check if these are available in Jetty 10
+		//factory.getExtensionFactory().unregister("x-webkit-deflate-frame");
+		//factory.getExtensionFactory().unregister("permessage-deflate");
 
-		factory.getPolicy().setMaxTextMessageSize(MAX_TEXT_MESSAGE_SIZE);
+		factory.setMaxTextMessageSize(MAX_TEXT_MESSAGE_SIZE);
+
 
 	}
 

@@ -195,7 +195,13 @@ let _Dragndrop = {
 
 				let parentId = Structr.getId(_Dragndrop.sortParent);
 				el.remove();
+
+				_Dragndrop.storeTemporarilyRemovedElementUUID(id);
+
 				Command.insertBefore(parentId, id, refId);
+
+				_Dragndrop.clearTemporarilyRemovedElementUUID();
+
 				_Dragndrop.sorting    = false;
 				_Dragndrop.sortParent = undefined;
 				$('#collapse-offset', _Pages.pagesTree).remove();
@@ -297,7 +303,7 @@ let _Dragndrop = {
 				Command.setProperty(target.id, 'restQuery', type);
 				Command.setProperty(target.id, 'dataKey', type.toLowerCase(), false, function() {
 //					_Pages.reloadPreviews();
-					console.log('reload preview?');
+// 					console.log('reload preview?');
 				});
 			} else {
 				return _Dragndrop.htmlElementFromPaletteDropped(tag, target, pageId);
@@ -310,10 +316,14 @@ let _Dragndrop = {
 			if (source && target && source.id && target.id) {
 
 				_Dragndrop.sorting = false;
-				Command.appendChild(source.id, target.id);
+
+				_Dragndrop.storeTemporarilyRemovedElementUUID(source.id);
+
+				Command.appendChild(source.id, target.id, undefined, () => {
+					_Dragndrop.temporarilyRemovedElementUUID = undefined;
+				});
 
 				return true;
-
 			}
 		}
 	},
@@ -473,5 +483,23 @@ let _Dragndrop = {
 		});
 
 		return true;
+	},
+
+
+	/**
+	 * save and element uuid which will be removed from the UI temporarily so we do not close the center editing pane for this element
+	 * this happens if the selected element is moved/wrapped or changes its parent
+	 * the cleanup function is used if the websocket function which causes the change does not have a callback
+	 */
+	temporarilyRemovedElementUUID: undefined,
+	storeTemporarilyRemovedElementUUID: (id) => {
+		if (id === _Entities?.selectedObject?.id) {
+			_Dragndrop.temporarilyRemovedElementUUID = id;
+		}
+	},
+	clearTemporarilyRemovedElementUUID: () => {
+		window.setTimeout(() => {
+			_Dragndrop.temporarilyRemovedElementUUID = undefined;
+		}, 1000);
 	}
 };

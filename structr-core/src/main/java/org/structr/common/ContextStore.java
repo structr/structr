@@ -70,6 +70,10 @@ public class ContextStore {
 		headers.remove(key);
 	}
 
+	public void clearHeaders() {
+		headers.clear();
+	}
+
 	public Map<String, String> getHeaders() {
 		return headers;
 	}

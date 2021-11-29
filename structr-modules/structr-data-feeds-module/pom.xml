@@ -37,7 +37,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.rometools</groupId>
-			<artifactId>rome-utils	</artifactId>
+			<artifactId>rome-utils</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.jdom</groupId>

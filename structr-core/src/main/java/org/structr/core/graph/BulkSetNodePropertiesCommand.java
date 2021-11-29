@@ -48,6 +48,11 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 	@Override
 	public void execute(final Map<String, Object> properties) throws FrameworkException {
 
+		executeWithCount(properties);
+	}
+
+	public long executeWithCount(final Map<String, Object> properties) throws FrameworkException {
+
 		final DatabaseService graphDb          = (DatabaseService) arguments.get("graphDb");
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
@@ -145,9 +150,12 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 
 			logger.info("Fixed {} nodes ...", count);
+			logger.info("Done");
+
+			return count;
 		}
 
-		logger.info("Done");
+		return 0;
 	}
 
 	@Override

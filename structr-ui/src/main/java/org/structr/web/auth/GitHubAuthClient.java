@@ -40,6 +40,11 @@ public class GitHubAuthClient extends StructrOAuthClient {
 	}
 
 	@Override
+	public String getProviderName () {
+		return "github";
+	}
+
+	@Override
 	public String getScope() {
 		return Settings.OAuthGithubScope.getValue();
 	}
@@ -79,7 +84,7 @@ public class GitHubAuthClient extends StructrOAuthClient {
 
 		if (result instanceof JsonArray) {
 
-			final JsonArray arr                  = (JsonArray) result;
+			final JsonArray arr = (JsonArray) result;
 			final Iterator<JsonElement> iterator = arr.iterator();
 
 			if (iterator.hasNext()) {

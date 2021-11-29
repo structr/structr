@@ -9,30 +9,38 @@
 			<input type="text" id="e-mail-input" autocomplete="off" name="eMail">
 		</div>
 	</div>
+
 	<div class="row">
+
 		<div class="option-tile">
 			<label for="password-input">Password</label>
 			<input type="password" id="password-input" autocomplete="new-password" value="">
 			<button class="action" type="button" id="set-password-button">Set Password</button>
 		</div>
+
 		<div class="option-tile">
-			<label>Options</label>
-			<div>
+
+			<label class="block">Options</label>
+
+			<div class="mb-2 flex items-center">
 				<input type="checkbox" name="isAdmin" id="isAdmin">
 				<label for="isAdmin">Is Admin User</label>
 			</div>
-			<div>
+
+			<div class="mb-2 flex items-center">
 				<input type="checkbox" name="skipSecurityRelationships" id="skipSecurityRelationships">
 				<label for="skipSecurityRelationships">Skip Security Relationships</label>
 			</div>
-			<div>
+
+			<div class="mb-2 flex items-center">
 				<input type="checkbox" name="isTwoFactorUser" id="isTwoFactorUser">
 				<label for="isTwoFactorUser">Enable Two-Factor Authentication for this User</label>
 			</div>
 		</div>
 	</div>
+
 	<div id="custom-properties-parent" class="hidden">
-		<h3>Custom Properties</h3>
+		<h3>Custom Attributes</h3>
 		<div class="row">
 		     <div id="custom-properties-container"></div>
 		</div>

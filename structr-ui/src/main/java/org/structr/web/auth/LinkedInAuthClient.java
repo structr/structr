@@ -52,6 +52,11 @@ public class LinkedInAuthClient extends StructrOAuthClient {
 	private Map<String, Object> userProfileInfo = null;
 
 	@Override
+	public String getProviderName () {
+		return "linkedin";
+	}
+
+	@Override
 	protected String getAccessTokenParameterKey() {
 		return "oauth2_access_token";
 	}

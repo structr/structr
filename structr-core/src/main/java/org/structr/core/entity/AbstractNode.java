@@ -878,9 +878,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		final Principal _owner = getOwnerNode();
 		final boolean hasOwner = (_owner != null);
 
-		// allow full access for nodes without owner
+		// allow access for nodes without owner, but only on first level!
 		// (covered by ResourceAccess objects)
-		if (!hasOwner && Services.getPermissionsForOwnerlessNodes().contains(permission)) {
+		if (level == 0 && !hasOwner && Services.getPermissionsForOwnerlessNodes().contains(permission)) {
 
 			if (accessingUser != null && isVisibleToAuthenticatedUsers()) {
 				return true;

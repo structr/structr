@@ -193,7 +193,7 @@ export class CloneHandler {
 
 		let node = Object.assign({}, currentNode);
 
-		// Remove remote property key and id
+		// Remove linked property key and id
 		delete node[this.config.remotePropertyKey];
 		delete node["id"];
 

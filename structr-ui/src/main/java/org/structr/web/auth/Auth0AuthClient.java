@@ -32,6 +32,11 @@ public class Auth0AuthClient extends StructrOAuthClient {
 	public Auth0AuthClient() {}
 
 	@Override
+	public String getProviderName () {
+		return "auth0";
+	}
+
+	@Override
 	public String getScope() {
 		return "openid profile email";
 	}
@@ -71,6 +76,21 @@ public class Auth0AuthClient extends StructrOAuthClient {
 
 			user.setProperty(Principal.name, name);
 		}
+	}
+
+	@Override
+	public String getLogoutUri () {
+		return Settings.OAuthAuth0LogoutLocation.getValue();
+	}
+
+	@Override
+	public String getLogoutReturnUri () {
+		return Settings.OAuthAuth0LogoutReturnUri.getValue();
+	}
+
+	@Override
+	public String getLogouReturnUriParameterKey () {
+		return Settings.OAuthAuth0LogoutReturnLocationParameterKey.getValue();
 	}
 
 	@Override

@@ -675,6 +675,12 @@ StructrUser.prototype.save = function() {
 	StructrModel.save(this.id);
 };
 
+StructrUser.prototype.updatedModel = function() {
+	if (Structr.isModuleActive(_Security)) {
+		_UsersAndGroups.updateUserElementAfterModelChange(this);
+	}
+}
+
 StructrUser.prototype.setProperty = function(key, value, recursive, callback) {
 	Command.setProperty(this.id, key, value, false, callback);
 };
@@ -717,6 +723,12 @@ function StructrGroup(data, refId) {
 StructrGroup.prototype.save = function() {
 	StructrModel.save(this.id);
 };
+
+StructrGroup.prototype.updatedModel = function() {
+	if (Structr.isModuleActive(_Security)) {
+		_UsersAndGroups.updateGroupElementAfterModelChange(this);
+	}
+}
 
 StructrGroup.prototype.setProperty = function(key, value, recursive, callback) {
 	Command.setProperty(this.id, key, value, recursive, callback);
@@ -896,7 +908,7 @@ StructrElement.prototype.remove = function() {
 			element.remove();
 		}
 
-		if (_Entities?.selectedObject?.id === this.id) {
+		if (_Entities?.selectedObject?.id === this.id && !(_Dragndrop.temporarilyRemovedElementUUID === this.id)) {
 			_Pages.selectedObjectWasDeleted();
 		}
 
@@ -908,7 +920,7 @@ StructrElement.prototype.remove = function() {
 
 StructrElement.prototype.append = function(refId) {
 	if (Structr.isModuleActive(_Pages)) {
-		var refNode = refId ? Structr.node(refId) : undefined;
+		let refNode = refId ? Structr.node(refId) : undefined;
 		StructrModel.expand(_Pages.appendElementElement(this, refNode), this);
 	}
 };
@@ -994,7 +1006,7 @@ StructrContent.prototype.remove = function() {
 			element.remove();
 		}
 
-		if (_Entities?.selectedObject?.id === this.id) {
+		if (_Entities?.selectedObject?.id === this.id && !(_Dragndrop.temporarilyRemovedElementUUID === this.id)) {
 			_Pages.selectedObjectWasDeleted();
 		}
 

@@ -53,7 +53,7 @@ let _Dashboard = {
 			let releasesIndexUrl = '';
 			let snapshotsIndexUrl = '';
 
-			let envResponse = await fetch(rootUrl + '/_env');
+			let envResponse = await fetch(rootUrl + '_env');
 
 			if (!envResponse.ok) {
 				throw Error("Unable to read env resource data");
@@ -83,7 +83,7 @@ let _Dashboard = {
 
 			templateConfig.databaseDriver = Structr.getDatabaseDriverNameForDatabaseServiceName(templateConfig.envInfo.databaseService);
 
-			let meResponse       = await fetch(rootUrl + '/me/ui');
+			let meResponse       = await fetch(rootUrl + 'me/ui');
 			let meData           = await meResponse.json();
 
 			if (Array.isArray(meData.result)) {
@@ -312,7 +312,7 @@ let _Dashboard = {
 
 		let maintenanceList = $('<table class="props"></table>').appendTo(container);
 
-		$.get(rootUrl + '/SchemaMethod?schemaNode=&' + Structr.getRequestParameterName('sort') + '=name', function(data) {
+		$.get(rootUrl + 'SchemaMethod?schemaNode=&' + Structr.getRequestParameterName('sort') + '=name', function(data) {
 
 			if (data.result.length === 0) {
 				maintenanceList.append('No global schema methods.')
@@ -478,7 +478,7 @@ let _Dashboard = {
 				data['target'] = location;
 			}
 
-			await fetch(rootUrl + '/maintenance/deploy', {
+			await fetch(rootUrl + 'maintenance/deploy', {
 				method: 'POST',
 				body: JSON.stringify(data)
 			});
@@ -649,7 +649,7 @@ let _Dashboard = {
 				}
 			}
 
-			await fetch(rootUrl + '/maintenance/deployData', {
+			await fetch(rootUrl + 'maintenance/deployData', {
 				method: 'POST',
 				body: JSON.stringify(data)
 			});
@@ -798,7 +798,7 @@ let _Dashboard = {
 			let row    = document.querySelector('#event-log-container');
 			let num    = document.querySelector('#event-type-page-size');
 			let filter = document.querySelector('#event-type-filter');
-			let url    = rootUrl + '/_runtimeEventLog?' + Structr.getRequestParameterName('order') + '=absoluteTimestamp&' + Structr.getRequestParameterName('sort') + '=desc&' + Structr.getRequestParameterName('pageSize') + '=' + num.value;
+			let url    = rootUrl + '_runtimeEventLog?' + Structr.getRequestParameterName('order') + '=absoluteTimestamp&' + Structr.getRequestParameterName('sort') + '=desc&' + Structr.getRequestParameterName('pageSize') + '=' + num.value;
 			let type   = filter.value;
 
 			row.innerHTML = '';

@@ -154,12 +154,22 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 				if (!isAdvancedSearch(securityContext, type, null, sources[1], query, exact)) {
 
-					// special case: second parameter is a UUID
-					final PropertyKey key = StructrApp.key(type, "id");
+					final String uuid = sources[1].toString();
 
-					query.and(key, sources[1].toString());
+					if (uuid.matches("[a-fA-F0-9]{32}")) {
 
-					return query.getFirst();
+						// special case: second parameter is a UUID
+						final PropertyKey key = StructrApp.key(type, "id");
+
+						query.and(key, sources[1].toString());
+
+						return query.getFirst();
+
+					} else {
+
+						// probably an error case where migration to predicates was forgotten
+						throw new FrameworkException(422, getReplacement() + ": Invalid parameter '" + uuid + "'. If a single parameter is given, it must be of type Map, UUID or Advanced Find Predicate! Maybe a missing migration of advanced find to predicates? Returning null.");
+					}
 				}
 			}
 

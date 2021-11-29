@@ -82,8 +82,11 @@ public abstract class PolyglotWrapper {
 
 		} else if (obj instanceof Date) {
 
-			return Date.from(((Date)obj).toInstant());
-
+			final Context context = actionContext.getScriptingContext("js");
+			final Value jsDateValue = context.eval("js", "new Date()");
+			jsDateValue.invokeMember("setTime", ((Date)obj).getTime());
+			return jsDateValue;
+			
 		} else if (obj instanceof Value && !((Value)obj).getContext().equals(Context.getCurrent())) {
 
 			// Try to rewrap objects from foreign contexts

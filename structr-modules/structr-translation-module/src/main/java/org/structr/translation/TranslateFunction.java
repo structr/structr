@@ -30,6 +30,8 @@ import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.UiFunction;
 
+import java.util.Map;
+
 public class TranslateFunction extends UiFunction {
 
 	public static final String ERROR_MESSAGE_TRANSLATE    = "Usage: ${translate(text, sourceLanguage, targetLanguage[, translationProvider])}. Supported translation providers: google, deepl. Example: ${translate(\"Hello world!\", \"en\", \"ru\", \"deepl\")}";
@@ -72,13 +74,13 @@ public class TranslateFunction extends UiFunction {
 				switch (translationProvider) {
 
 					case "google": {
+
 						final String gctAPIKey = TranslationModule.TranslationGoogleAPIKey.getValue();
 
 						if (gctAPIKey == null) {
 							logger.error("Google Cloud Translation API Key not configured in structr.conf");
 							return "";
 						}
-
 
 						final Translate translate = TranslateOptions.builder().apiKey(gctAPIKey).build().service();
 
@@ -91,6 +93,7 @@ public class TranslateFunction extends UiFunction {
 						return translation.translatedText();
 					}
 					case "deepl": {
+
 						final String deeplAPIKey = TranslationModule.TranslationDeepLAPIKey.getValue();
 
 						if (deeplAPIKey == null) {
@@ -98,7 +101,13 @@ public class TranslateFunction extends UiFunction {
 							return "";
 						}
 
-						final String response = HttpHelper.get("https://api.deepl.com/v2/translate?text=" + encodeURL(text) + "&source_lang=" + sourceLanguage.toUpperCase() + "&target_lang=" + targetLanguage.toUpperCase() + "&auth_key=" + deeplAPIKey);
+						final String apiBaseURL = deeplAPIKey.contains(":fx") ? "https://api-free.deepl.com/v2/translate" : "https://api.deepl.com/v2/translate";
+
+						final String response = HttpHelper.get(apiBaseURL + "?text=" + encodeURL(text)
+								+ "&source_lang=" + sourceLanguage.toUpperCase()
+								+ "&target_lang=" + targetLanguage.toUpperCase()
+								+ "&auth_key=" + deeplAPIKey,
+								"UTF-8");
 
 						final JsonObject resultObject = new JsonParser().parse(response).getAsJsonObject();
 						final JsonArray translations = (JsonArray) resultObject.getAsJsonArray("translations");
@@ -109,8 +118,6 @@ public class TranslateFunction extends UiFunction {
 						}
 					}
 				}
-
-
 
 			} catch (TranslateException te) {
 

@@ -43,3 +43,6 @@ license.key
 neo4j
 neo4j*/
 
+# Key files
+*.pem
+*.p12

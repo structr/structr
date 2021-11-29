@@ -49,7 +49,7 @@ class RefactoringHelper {
 		}
 
 		$.ajax({
-			url: '/structr/rest/Page?hidden=false&_sort=name',
+			url: rootUrl + 'Page?hidden=false&' + Structr.getRequestParameterName('sort') + '=name',
 			method: 'get',
 			statusCode: {
 				200: response => {
@@ -91,7 +91,7 @@ class RefactoringHelper {
 			errorContainer.empty();
 
 			$.ajax({
-				url: '/structr/rest/' + typeQuery + '/all?pageId=' + pageSelector.val(),
+				url: rootUrl + typeQuery + '/all?pageId=' + pageSelector.val(),
 				method: 'get',
 				statusCode: {
 					200: (response) => {

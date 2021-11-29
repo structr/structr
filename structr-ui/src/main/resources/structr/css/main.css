@@ -365,7 +365,7 @@ body.console-open #header-blocker {
 	background-color: var(--solid-white);
 	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
 	/*clip-path: polygon(-20% -20%, 120% -20%, 120% 100%, -20% 100%);*/
-	z-index: 3;
+	z-index: 2;
 	padding: 1rem 2rem 1rem 2rem;
 }
 
@@ -1508,54 +1508,6 @@ i.button {
 	flex-grow: 1;
 }
 
-#delete-all-unattached-nodes {
-	min-height: 24px;
-}
-
-#delete-all-unattached-nodes svg {
-	vertical-align: top;
-}
-
-/*#componentsArea > .node, #elementsArea > .node {*/
-/*	margin-left: 0;*/
-/*	margin-right: 20px;*/
-/*}*/
-
-#newComponentDropzone {
-	border: .15rem dashed lightgray;
-	border-radius: .25rem;
-	padding: 1rem .5rem;
-	color: lightgray;
-	margin: 1rem;
-}
-
-#newComponentDropzone.allow-drop {
-	color: black;
-}
-
-#newComponentDropzone .new-component-info {
-	text-align: center;
-}
-
-#newComponentDropzone .new-component-info .sprite {
-	vertical-align: middle;
-}
-
-#newComponentDropzone .new-component-info .active {
-	visibility: hidden;
-	display: none;
-}
-
-#newComponentDropzone.allow-drop .new-component-info .inactive {
-	visibility: hidden;
-	display: none;
-}
-
-#newComponentDropzone.allow-drop .new-component-info .active {
-	visibility: visible;
-	display: inline-block;
-}
-
 .node.nodeSelectedFromContextMenu {
     color: var(--gray-333) ! important;
     background-color: var(--light-gray-bg-fa) ! important;
@@ -2424,7 +2376,7 @@ button.add_property {
 .property-default,
 .localization-locale,
 .localization-name {
-	width: 98%;
+	/*width: 98%;*/
 	/*font-size: 1em;*/
 	border: none;
 	background: transparent;
@@ -2496,7 +2448,7 @@ input.property-name:disabled {
 }
 
 .endtag {
-	margin-top: -4px;
+	margin-top: 1rem;
 }
 
 
@@ -2899,14 +2851,14 @@ table#relationship-options {
 	font-weight: 600;
 }
 
-#relationship-options #basic-options select, #basic-options input {
-	margin: -.5rem 1rem .25rem;
-}
-
 #relationship-options #basic-options input[disabled] {
 	color: graytext;
 	border: 1px solid var(--gray-ccc);
 	background-color: var(--light-gray-bg-f3);
+}
+
+#relationship-options #basic-options input {
+	min-width: 1rem;
 }
 
 #basic-options input.remote-property-name {
@@ -4389,6 +4341,11 @@ div.option-tile.double {
 	width: calc(100%);
 }
 
+#hide-conditions, #show-conditions {
+	width: 76%;
+	padding-right: 1rem;
+}
+
 #show-conditions-templates, #hide-conditions-templates {
 	position: absolute;
 	width: 25%;
@@ -4413,7 +4370,10 @@ div.option-tile select, div.option-tile input[type="text"], div.option-tile sele
 div.option-tile textarea {
 	width: 100%;
 	box-sizing: border-box;
-	margin-top: .5rem;
+	margin-top: .25rem;
+}
+div.option-tile select, div.option-tile input[type="text"], div.option-tile select, div.option-tile input[type="password"] {
+	height: 2.5rem;
 }
 
 div.option-tile h4 {
@@ -4421,7 +4381,7 @@ div.option-tile h4 {
 }
 
 div.option-tile label {
-	display: inline-block;
+	display: block;
 	margin-bottom: .5rem;
 }
 
@@ -4442,7 +4402,7 @@ button.icon-button i {
 	margin: 0;
 }
 
-div#tabView-query div.CodeMirror {
+.repeater-container .CodeMirror {
 	height: 120px !important;
 }
 
@@ -4590,7 +4550,10 @@ table.props td.__value {
 	width: 30rem;
 	margin-left: -34rem;
 	padding: .25rem 0 1rem 1rem;
-	box-shadow: 0 0 0.625rem 0 rgb(0 0 0 / 25%);
+}
+
+.darker-shadow-dropdown .dropdown-menu-container {
+	box-shadow: 0 0 0.625rem 0 rgba(0 0 0 / 25%);
 }
 
 .ui-setting-checkbox {
@@ -4608,6 +4571,9 @@ table.props td.__value {
 .flex {
 	display: flex;
 }
+.grid {
+	display: grid;
+}
 .flex-col {
 	flex-direction: column;
 }
@@ -4623,8 +4589,20 @@ table.props td.__value {
 .items-center {
 	align-items: center;
 }
+.items-baseline {
+	align-items: baseline;
+}
+.justify-center {
+	justify-content: center;
+}
 .justify-between {
 	justify-content: space-between;
+}
+.h-16 {
+	height: 4rem;
+}
+.m-2 {
+	margin: .5rem;
 }
 .mr-1 {
 	margin-right: .25rem;
@@ -4671,11 +4649,20 @@ table.props td.__value {
 .text-center {
 	text-align: center;
 }
+.text-left {
+	text-align: left;
+}
+.text-right {
+	text-align: right;
+}
 .font-bold {
 	font-weight: 700;
 }
 .pb-2 {
 	padding-bottom: .5rem;
+}
+.p-1 {
+	padding: .25rem;
 }
 .p-4 {
 	padding: 1rem;
@@ -4711,6 +4698,24 @@ table.props td.__value {
 .justify-between {
 	justify-content: space-between;
 }
+.justify-around {
+	justify-content: space-around;
+}
 .cursor-pointer {
 	cursor: pointer;
+}
+.gap-y-2 {
+	row-gap: 0.5rem;
+}
+.gap-x-4 {
+	column-gap: 1rem;
+}
+.grid-cols-2 {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.grid-cols-5 {
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.overflow-hidden {
+	overflow: hidden;
 }

@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.WebSocketException;
+import org.eclipse.jetty.websocket.api.exceptions.WebSocketException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -139,7 +139,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 				try {
 
-					session.getRemote().sendStringByFuture(message);
+					session.getRemote().sendString(message);
 
 				} catch (Throwable t) {
 

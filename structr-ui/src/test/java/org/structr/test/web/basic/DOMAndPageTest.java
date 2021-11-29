@@ -955,7 +955,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			.header("X-Content-Type-Options", "nosniff")
 			.header("X-Frame-Options", "SAMEORIGIN")
 			.header("X-XSS-Protection", "1;mode=block")
-			.header("Vary", "Accept-Encoding, User-Agent")
+			.header("Vary", "Accept-Encoding")
 			.header("Content-Length", "133")
 			.statusCode(200)
 			.when()

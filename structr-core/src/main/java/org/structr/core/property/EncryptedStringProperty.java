@@ -24,6 +24,7 @@ import org.structr.api.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.function.CryptFunction;
 
 /**
@@ -51,7 +52,8 @@ public class EncryptedStringProperty extends StringProperty {
 
 		if (clearText != null) {
 
-			return super.setProperty(securityContext, obj, CryptFunction.encrypt(clearText));
+			return super.setProperty(securityContext, obj, clearText);
+			//return super.setProperty(securityContext, obj, CryptFunction.encrypt(clearText));
 
 		} else {
 
@@ -65,9 +67,65 @@ public class EncryptedStringProperty extends StringProperty {
 		final String encryptedString = super.getProperty(securityContext, obj, applyConverter, predicate);
 		if (encryptedString != null) {
 
-			return CryptFunction.decrypt(encryptedString);
+			return encryptedString;
+			//return CryptFunction.decrypt(encryptedString);
 		}
 
 		return null;
 	}
+
+	@Override
+	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext) {
+		return new PropertyConverter<>(securityContext) {
+			@Override
+			public String revert(Object source) throws FrameworkException {
+
+				if (source != null) {
+
+					return CryptFunction.decrypt(source.toString());
+				}
+
+				return null;
+			}
+
+			@Override
+			public Object convert(String source) throws FrameworkException {
+
+				if (source != null) {
+
+					return CryptFunction.encrypt(source);
+				}
+
+				return null;
+			}
+		};
+	}
+
+	@Override
+	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+		return new PropertyConverter<>(securityContext) {
+			@Override
+			public String revert(Object source) throws FrameworkException {
+
+				if (source != null) {
+
+					return CryptFunction.decrypt(source.toString());
+				}
+
+				return null;
+			}
+
+			@Override
+			public Object convert(String source) throws FrameworkException {
+
+				if (source != null) {
+
+					return CryptFunction.encrypt(source);
+				}
+
+				return null;
+			}
+		};
+	}
+
 }

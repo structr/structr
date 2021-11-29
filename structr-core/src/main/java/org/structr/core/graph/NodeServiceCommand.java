@@ -108,51 +108,60 @@ public abstract class NodeServiceCommand extends Command {
 		boolean active                  = true;
 
 
-		while (active) {
+		try (final Tx outerTx = app.tx(doValidation, doCallbacks, doNotifications)) {
 
-			active = false;
+			// fetch iterator only once
+			if (iterator == null) {
+				iterator = iterable.iterator();
+			}
 
-			try (final Tx tx = app.tx(doValidation, doCallbacks, doNotifications)) {
+			while (active) {
 
-				// fetch iterator only once
-				if (iterator == null) {
-					iterator = iterable.iterator();
-				}
+				active = false;
 
-				while (iterator.hasNext() && (condition == null || condition.accept(objectCount))) {
+				try (final Tx tx = app.tx(doValidation, doCallbacks, doNotifications)) {
 
-					T node = iterator.next();
-					active = true;
+					while (iterator.hasNext() && (condition == null || condition.accept(objectCount))) {
 
-					try {
+						T node = iterator.next();
+						active = true;
 
-						boolean success = operation.handleGraphObject(securityContext, node);
-						if (success) {
-							objectCount++;
+						try {
+
+							boolean success = operation.handleGraphObject(securityContext, node);
+							if (success) {
+								objectCount++;
+							}
+
+						} catch (Throwable t) {
+
+							operation.handleThrowable(securityContext, t, node);
 						}
 
-					} catch (Throwable t) {
-
-						operation.handleThrowable(securityContext, t, node);
+						// commit transaction after commitCount
+						if ((objectCount % commitCount) == 0) {
+							break;
+						}
 					}
 
-					// commit transaction after commitCount
-					if ((objectCount % commitCount) == 0) {
-						break;
-					}
+					tx.success();
+
+				} catch (Throwable t) {
+
+					// bulk transaction failed, what to do?
+					operation.handleTransactionFailure(securityContext, t);
 				}
 
-				tx.success();
-
-			} catch (Throwable t) {
-
-				// bulk transaction failed, what to do?
-				operation.handleTransactionFailure(securityContext, t);
+				if (description != null) {
+					info("{}: {} objects processed", description, objectCount);
+				}
 			}
 
-			if (description != null) {
-				info("{}: {} objects processed", description, objectCount);
-			}
+			outerTx.success();
+		} catch (Throwable t) {
+
+			// bulk transaction failed, what to do?
+			operation.handleTransactionFailure(securityContext, t);
 		}
 
 		return objectCount;

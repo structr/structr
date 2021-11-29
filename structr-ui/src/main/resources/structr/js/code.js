@@ -741,7 +741,7 @@ var _Code = {
 					{
 						children.push({
 							id: treeId + '-properties',
-							text: 'Local Attributes',
+							text: 'Local Properties',
 							children: entity.schemaProperties.length > 0,
 							icon: 'fa fa-sliders gray',
 							data: data
@@ -749,7 +749,7 @@ var _Code = {
 
 						children.push({
 							id: treeId + '-remoteproperties',
-							text: 'Remote Attributes',
+							text: 'Related Properties',
 							children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
 							icon: 'fa fa-sliders gray',
 							data: data
@@ -773,7 +773,7 @@ var _Code = {
 
 						children.push({
 							id: treeId + '-inheritedproperties',
-							text: 'Inherited Attributes',
+							text: 'Inherited Properties',
 							children: true,
 							icon: 'fa fa-sliders gray',
 							data: data
@@ -1434,7 +1434,7 @@ var _Code = {
 	},
 	displaySchemaNodeContent: function(data, identifier) {
 
-		fetch(rootUrl + '/' + identifier.typeId + '/schema').then(function(response) {
+		fetch(rootUrl + identifier.typeId + '/schema').then(function(response) {
 
 			if (response.ok) {
 				return response.json();
@@ -2237,7 +2237,7 @@ var _Code = {
 			});
 		});
 	},
-	showGeneratedSource: function() {
+	showGeneratedSource: async () => {
 
 		let sourceContainer = document.getElementById('generated-source-code');
 		if (sourceContainer) {
@@ -2248,37 +2248,37 @@ var _Code = {
 
 			if (typeId) {
 
-				$.ajax({
-					url: '/structr/rest/SchemaNode/' + typeId + '/getGeneratedSourceCode',
-					method: 'post',
-					statusCode: {
-						200: function(result) {
-
-							let container = $(sourceContainer);
-							let editor    = CodeMirror(container[0], Structr.getCodeMirrorSettings({
-								value: result.result,
-								mode: 'text/x-java',
-								lineNumbers: true,
-								readOnly: true
-							}));
-
-							$('.CodeMirror').height('100%');
-							editor.refresh();
-						}
-					}
+				let response = await fetch(rootUrl + 'SchemaNode/' + typeId + '/getGeneratedSourceCode', {
+					method: 'POST'
 				});
+
+				if (response.ok) {
+
+					let result = await response.json();
+
+					let container = $(sourceContainer);
+					let editor    = CodeMirror(container[0], Structr.getCodeMirrorSettings({
+						value: result.result,
+						mode: 'text/x-java',
+						lineNumbers: true,
+						readOnly: true
+					}));
+
+					$('.CodeMirror').height('100%');
+					editor.refresh();
+				}
 			}
 		}
 	},
-	displayContent: function(templateName) {
-		Structr.fetchHtmlTemplate('code/' + templateName, { }, function(html) {
-			codeContents.append(html);
-		});
-	},
-	random: function() {
-	    var x = Math.sin(_Code.seed++) * 10000;
-	    return x - Math.floor(x);
-	},
+	// displayContent: function(templateName) {
+	// 	Structr.fetchHtmlTemplate('code/' + templateName, { }, function(html) {
+	// 		codeContents.append(html);
+	// 	});
+	// },
+	// random: function() {
+	//     let x = Math.sin(_Code.seed++) * 10000;
+	//     return x - Math.floor(x);
+	// },
 	displayRootContent: function() {
 
 		Structr.fetchHtmlTemplate('code/root', { }, function(html) {
@@ -2555,7 +2555,7 @@ var _Code = {
 			} else {
 
 				if (result.type === 'SchemaRelationshipNode') {
-					// this is a remote property/adjacent type
+					// this is a linked property/adjacent type
 					// _Code.displayRelationshipPropertyDetails(result);
 				}
 			}

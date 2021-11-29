@@ -29,7 +29,6 @@ import com.rometools.rome.io.XmlReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
-import java.net.URL;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,6 +49,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.rest.common.HttpHelper;
 import org.structr.schema.SchemaService;
 
 
@@ -186,10 +186,9 @@ public interface DataFeed extends NodeInterface {
 
 			try {
 
-				final URL remote                       = new URL(remoteUrl);
 				final SyndFeedInput input              = new SyndFeedInput();
 
-				try (final Reader reader = new XmlReader(remote)) {
+				try (final Reader reader = new XmlReader(HttpHelper.getAsStream(remoteUrl))) {
 
 					final SyndFeed        feed    = input.build(reader);
 					final List<SyndEntry> entries = feed.getEntries();

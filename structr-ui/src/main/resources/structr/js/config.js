@@ -35,19 +35,6 @@ function createNewEntry(e) {
 	}
 }
 
-function resetToDefault(key) {
-
-	var currentTab = $('#active_section').val();
-
-	window.location.href = '/structr/config?reset=' + key + currentTab;
-}
-
-function resize() {
-	$('.tab-content').css({
-		height: $(window).height() - $('#header').height() - $('#configTabs .tabs-menu').height() - 124
-	});
-}
-
 function appendInfoTextToElement (text, el, css) {
 
 	var toggleElement = $('<span><i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '"></span>');
@@ -295,6 +282,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	$('#new-entry-button').on('click', createNewEntry);
 
+	for (let resetButton of document.querySelectorAll('.reset-key')) {
+		resetButton.addEventListener('click', () => {
+
+			let currentTab = $('#active_section').val();
+			let key        = resetButton.dataset['key'];
+
+			window.location.href = '/structr/config?reset=' + key + currentTab;
+		});
+	}
+
 	$('#reload-config-button').on('click', function() {
 		window.location.href = window.location.origin + window.location.pathname + "?reload" + $('#active_section').val();
 	});
@@ -308,11 +305,17 @@ document.addEventListener('DOMContentLoaded', () => {
 		$(el.attr('href')).show();
 	});
 
+	let resizeFunction = () => {
+		$('.tab-content').css({
+			height: $(window).height() - $('#header').height() - $('#configTabs .tabs-menu').height() - 124
+		});
+	};
+
 	$(window).resize(function() {
-		resize();
+		resizeFunction();
 	});
 
-	resize();
+	resizeFunction();
 
 	$('label.has-comment').each(function(idx, label) {
 		appendInfoTextToElement($(label).data("comment"), $(label), {

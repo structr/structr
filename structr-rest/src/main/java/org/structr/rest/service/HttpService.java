@@ -18,8 +18,6 @@
  */
 package org.structr.rest.service;
 
-import ch.qos.logback.access.jetty.RequestLogImpl;
-import ch.qos.logback.access.servlet.TeeFilter;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -41,18 +39,13 @@ import org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
 import org.eclipse.jetty.http.HttpCookie;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.MimeTypes;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.HttpConfiguration;
-import org.eclipse.jetty.server.HttpConnectionFactory;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.SecureRequestCustomizer;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
+import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
+import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
@@ -72,6 +65,7 @@ import org.eclipse.jetty.util.resource.JarResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -111,7 +105,7 @@ public class HttpService implements RunnableService, StatsCallback {
 	private GzipHandler gzipHandler               = null;
 	private HttpConfiguration httpConfig          = null;
 	private HttpConfiguration httpsConfig         = null;
-	private SslContextFactory.Server sslServer    = null;
+	private SslContextFactory.Server sslContextFactory = null;
 	private Server server                         = null;
 	private Server maintenanceServer              = null;
 	private int maxIdleTime                       = 30000;
@@ -138,6 +132,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		logger.info("Starting {} (host={}:{}, maxIdleTime={}, requestHeaderSize={})", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue(), maxIdleTime, requestHeaderSize);
 		logger.info("Base path {}", Settings.getBasePath());
 		logger.info("{} started at http://{}:{}", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
+
 
 		server.start();
 
@@ -271,13 +266,12 @@ public class HttpService implements RunnableService, StatsCallback {
 			gzipHandler.setIncludedMimeTypes("text/html", "text/xml", "text/plain", "text/css", "text/javascript", "application/javascript", "application/json", "image/svg+xml");
 			gzipHandler.setInflateBufferSize(32768);
 			gzipHandler.setMinGzipSize(256);
-			gzipHandler.setCompressionLevel(9);
 			gzipHandler.setIncludedMethods("GET", "POST", "PUT", "HEAD", "DELETE");
 			gzipHandler.addIncludedPaths("/*");
 			gzipHandler.setDispatcherTypes(EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
 		}
 
-		servletContext.setGzipHandler(gzipHandler);
+		servletContext.insertHandler(gzipHandler);
 
 		final List<Connector> connectors = new LinkedList<>();
 
@@ -364,50 +358,6 @@ public class HttpService implements RunnableService, StatsCallback {
 		// enable request logging
 		if (logRequests) {
 
-			final String etcPath = basePath + "/etc";
-			final File etcDir    = new File(etcPath);
-
-			if (!etcDir.exists()) {
-
-				etcDir.mkdir();
-			}
-
-			final String logbackConfFilePath = basePath + "/etc/logback-access.xml";
-			final File logbackConfFile       = new File(logbackConfFilePath);
-
-			if (!logbackConfFile.exists()) {
-
-				// synthesize a logback accees log config file
-				List<String> config = new LinkedList<>();
-
-				config.add("<configuration>");
-				config.add("  <appender name=\"FILE\" class=\"ch.qos.logback.core.rolling.RollingFileAppender\">");
-				config.add("    <rollingPolicy class=\"ch.qos.logback.core.rolling.TimeBasedRollingPolicy\">");
-				config.add("      <fileNamePattern>logs/" + logPrefix + "-%d{yyyy_MM_dd}.request.log.zip</fileNamePattern>");
-				config.add("    </rollingPolicy>");
-				config.add("    <encoder>");
-				config.add("      <charset>UTF-8</charset>");
-				config.add("      <pattern>%h %l %u %t \"%r\" %s %b %n%fullRequest%n%n%fullResponse</pattern>");
-				config.add("    </encoder>");
-				config.add("  </appender>");
-				config.add("  <appender-ref ref=\"FILE\" />");
-				config.add("</configuration>");
-
-				try {
-					logbackConfFile.createNewFile();
-					FileUtils.writeLines(logbackConfFile, "UTF-8", config);
-
-				} catch (IOException ioex) {
-
-					logger.warn("Unable to write logback configuration.", ioex);
-				}
-			}
-
-			final FilterHolder loggingFilter = new FilterHolder(TeeFilter.class);
-			servletContext.addFilter(loggingFilter, "/*", EnumSet.of(DispatcherType.REQUEST, Settings.Async.getValue() ? DispatcherType.ASYNC : DispatcherType.FORWARD));
-			loggingFilter.setInitParameter("includes", "");
-
-			final RequestLogHandler requestLogHandler = new RequestLogHandler();
 			final String logPath                      = basePath + "/logs";
 			final File logDir                         = new File(logPath);
 
@@ -418,18 +368,15 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			}
 
-			final RequestLogImpl requestLog = new RequestLogImpl();
-			requestLog.setName("REQUESTLOG");
-			requestLog.start();
+			Slf4jRequestLogWriter requestLogWriter = new Slf4jRequestLogWriter();
 
-			requestLogHandler.setRequestLog(requestLog);
+			final String request_format = "%t \"%r\" %s %{ms}T";
+			final RequestLog requestLog = new CustomRequestLog(requestLogWriter, request_format);
+			server.setRequestLog(requestLog);
 
 			final HandlerCollection handlers = new HandlerCollection();
-
-			handlers.setHandlers(new Handler[]{contexts, requestLogHandler});
-
+			handlers.setHandlers(new Handler[]{contexts});
 			server.setHandler(handlers);
-
 		} else {
 
 			server.setHandler(contexts);
@@ -454,6 +401,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			logger.info("Adding servlet {} for {}", new Object[]{servletHolder, path});
 
 			servletContext.addServlet(servletHolder, path);
+			JettyWebSocketServletContainerInitializer.configure(servletContext, null);
 		}
 
 		contexts.addHandler(servletContext);
@@ -467,7 +415,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 		if (StringUtils.isNotBlank(host) && httpPort > -1) {
 
-			final ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
+			final ServerConnector httpConnector = new ServerConnector(server, new HttpConnectionFactory(httpConfig), new HTTP2CServerConnectionFactory(httpConfig));
 
 			httpConnector.setHost(host);
 			httpConnector.setPort(httpPort);
@@ -490,11 +438,22 @@ public class HttpService implements RunnableService, StatsCallback {
 					httpsActive = true;
 
 					httpsConfig = new HttpConfiguration(httpConfig);
-					httpsConfig.addCustomizer(new SecureRequestCustomizer());
 
-					sslServer = new SslContextFactory.Server();
-					sslServer.setKeyStorePath(keyStorePath);
-					sslServer.setKeyStorePassword(keyStorePassword);
+					final SecureRequestCustomizer secureRequestCustomizer = new SecureRequestCustomizer();
+					secureRequestCustomizer.setSniRequired(Settings.SNIRequired.getValue());
+					secureRequestCustomizer.setSniHostCheck(Settings.SNIHostCheck.getValue());
+
+					if (!Settings.SNIRequired.getValue() && !Settings.SNIHostCheck.getValue()) {
+
+						logger.info("HTTPS enabled with default settings of disabled SNI enforcement.");
+					}
+					logger.info("SNI settings: httpservice.sni.required = {}, httpservice.sni.hostcheck = {}", Settings.SNIRequired.getValue(), Settings.SNIHostCheck.getValue());
+
+					httpsConfig.addCustomizer(secureRequestCustomizer);
+
+					sslContextFactory = new SslContextFactory.Server();
+					sslContextFactory.setKeyStorePath(keyStorePath);
+					sslContextFactory.setKeyStorePassword(keyStorePassword);
 
 					String excludedProtocols = Settings.excludedProtocols.getValue();
 					String includedProtocols = Settings.includedProtocols.getValue();
@@ -502,30 +461,34 @@ public class HttpService implements RunnableService, StatsCallback {
 
 					if (disabledCiphers.length() > 0) {
 						disabledCiphers = disabledCiphers.replaceAll("\\s+", "");
-						sslServer.setExcludeCipherSuites(disabledCiphers.split(","));
+						sslContextFactory.setExcludeCipherSuites(disabledCiphers.split(","));
 					}
 
 					if (excludedProtocols.length() > 0) {
 						excludedProtocols = excludedProtocols.replaceAll("\\s+", "");
-						sslServer.setExcludeProtocols(excludedProtocols.split(","));
+						sslContextFactory.setExcludeProtocols(excludedProtocols.split(","));
 					}
 
 					if (includedProtocols.length() > 0) {
 						includedProtocols = includedProtocols.replaceAll("\\s+", "");
-						sslServer.setIncludeProtocols(includedProtocols.split(","));
+						sslContextFactory.setIncludeProtocols(includedProtocols.split(","));
 					}
 
-					final ServerConnector httpsConnector = new ServerConnector(server,
-						new SslConnectionFactory(sslServer, "http/1.1"),
-						new HttpConnectionFactory(httpsConfig));
+					final HttpConnectionFactory http11 = new HttpConnectionFactory(httpsConfig);
+					final HTTP2ServerConnectionFactory http2 = new HTTP2ServerConnectionFactory(httpsConfig);
 
 					if (forceHttps) {
 						sessionCache.getSessionHandler().setSecureRequestOnly(true);
 					}
 
-					httpsConnector.setPort(httpsPort);
-					httpsConnector.setIdleTimeout(500000);
+					ALPNServerConnectionFactory alpn = new ALPNServerConnectionFactory();
+					alpn.setDefaultProtocol(http11.getProtocol());
 
+					final SslConnectionFactory tls = new SslConnectionFactory(sslContextFactory, alpn.getProtocol());
+
+					final ServerConnector httpsConnector = new ServerConnector(server, tls, alpn, http2, http11);
+
+					httpsConnector.setIdleTimeout(500000);
 					httpsConnector.setHost(host);
 					httpsConnector.setPort(httpsPort);
 
@@ -673,7 +636,7 @@ public class HttpService implements RunnableService, StatsCallback {
 				if (httpsPort > -1 && keyStorePath != null && !keyStorePath.isEmpty() && keyStorePassword != null) {
 
 					final ServerConnector httpsConnector = new ServerConnector(maintenanceServer,
-						new SslConnectionFactory(sslServer, "http/1.1"),
+						new SslConnectionFactory(sslContextFactory, "http/1.1"),
 						new HttpConnectionFactory(httpsConfig));
 
 					httpsConnector.setPort(httpsPort);
@@ -698,7 +661,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 	public void reloadSSLCertificate() {
 
-		if (sslServer != null) {
+		if (sslContextFactory != null) {
 
 			try {
 
@@ -706,10 +669,10 @@ public class HttpService implements RunnableService, StatsCallback {
 				final String keyStorePassword       = Settings.KeystorePassword.getValue();
 
 				// in case path/password changed
-				sslServer.setKeyStorePath(keyStorePath);
-				sslServer.setKeyStorePassword(keyStorePassword);
+				sslContextFactory.setKeyStorePath(keyStorePath);
+				sslContextFactory.setKeyStorePassword(keyStorePassword);
 
-				sslServer.reload(new Consumer<SslContextFactory>() {
+				sslContextFactory.reload(new Consumer<SslContextFactory>() {
 					@Override
 					public void accept(SslContextFactory t) {
 					}

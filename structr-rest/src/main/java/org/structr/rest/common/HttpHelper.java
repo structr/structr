@@ -66,11 +66,18 @@ public class HttpHelper {
 	private static String proxyUsername;
 	private static String proxyPassword;
 	private static String cookie;
+	private static String charset;
 
 	private static CloseableHttpClient client;
 	private static RequestConfig reqConfig;
 
-	private static void configure(final HttpRequestBase req, final String username, final String password, final String proxyUrlParameter, final String proxyUsernameParameter, final String proxyPasswordParameter, final String cookieParameter, final Map<String, String> headers, final boolean followRedirects) {
+	private static void configure(final HttpRequestBase req, final String requestCharset, final String username, final String password, final String proxyUrlParameter, final String proxyUsernameParameter, final String proxyPasswordParameter, final String cookieParameter, final Map<String, String> headers, final boolean followRedirects) {
+
+		if (StringUtils.isBlank(requestCharset)) {
+			charset = Settings.HttpDefaultCharset.getValue();
+		} else {
+			charset = requestCharset;
+		}
 
 		if (StringUtils.isBlank(proxyUrlParameter)) {
 			proxyUrl = Settings.HttpProxyUrl.getValue();
@@ -154,6 +161,7 @@ public class HttpHelper {
 
 		// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
 		if (content != null && content.length() > 1 && content.charAt(0) == 65279) {
+			charset = "UTF-8";
 			return content.substring(1);
 		}
 
@@ -161,31 +169,36 @@ public class HttpHelper {
 	}
 
 	public static String get(final String address)
-	throws FrameworkException {
-		return get(address, null, null, null, null, Collections.EMPTY_MAP);
+			throws FrameworkException {
+		return get(address, null, null, null, null, null, Collections.EMPTY_MAP);
 	}
 
-	public static String get(final String address, final Map<String, String> headers)
+	public static String get(final String address, final String charset)
 	throws FrameworkException {
-		return get(address, null, null, headers);
+		return get(address, charset, null, null, null, null, Collections.EMPTY_MAP);
 	}
 
-	public static String get(final String address, final String username, final String password, final Map<String, String> headers)
+	public static String get(final String address, final String charset, final Map<String, String> headers)
 	throws FrameworkException {
-		return get(address, username, password, null, null, null, null, headers);
+		return get(address, charset, null, null, headers);
 	}
 
-	public static byte[] getBinary(final String address, final String username, final String password, final Map<String, String> headers)
+	public static String get(final String address, final String charset, final String username, final String password, final Map<String, String> headers)
 	throws FrameworkException {
-		return getBinary(address, username, password, null, null, null, null, headers);
+		return get(address, charset, username, password, null, null, null, null, headers);
 	}
 
-	public static String get(final String address, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers)
+	public static byte[] getBinary(final String address, final String charset, final String username, final String password, final Map<String, String> headers)
 	throws FrameworkException {
-		return get(address, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
+		return getBinary(address, charset, username, password, null, null, null, null, headers);
 	}
 
-	public static String get(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers)
+	public static String get(final String address, final String charset, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers)
+	throws FrameworkException {
+		return get(address, charset, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
+	}
+
+	public static String get(final String address, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers)
 	throws FrameworkException {
 
 		String content = "";
@@ -195,7 +208,7 @@ public class HttpHelper {
 			final URI     url = URI.create(address);
 			final HttpGet req = new HttpGet(url);
 
-			configure(req, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
 
 			final CloseableHttpResponse resp = client.execute(req);
 
@@ -210,16 +223,16 @@ public class HttpHelper {
 		return content;
 	}
 
-	public static byte[] getBinary(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) throws FrameworkException {
+	public static byte[] getBinary(final String address, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) throws FrameworkException {
 
 		try {
 
 			final URI     url = URI.create(address);
 			final HttpGet req = new HttpGet(url);
 
-			configure(req, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
 
-			return IOUtils.toByteArray(getAsStream(address, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers));
+			return IOUtils.toByteArray(getAsStream(address, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers));
 
 		} catch (final Throwable t) {
 			logger.error("Error while dowloading binary data from " + address, t);
@@ -248,7 +261,7 @@ public class HttpHelper {
 			final URI      url = URI.create(address);
 			final HttpHead req = new HttpHead(url);
 
-			configure(req, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, false);
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, false);
 
 			final CloseableHttpResponse response = client.execute(req);
 
@@ -279,7 +292,7 @@ public class HttpHelper {
 			final URI url     = URI.create(address);
 			final HttpPut req = new HttpPatch(url);
 
-			configure(req, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
 
 			req.setEntity(new StringEntity(requestBody, charset));
 
@@ -343,7 +356,7 @@ public class HttpHelper {
 			final URI      url = URI.create(address);
 			final HttpPost req = new HttpPost(url);
 
-			configure(req, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
 
 			req.setEntity(new StringEntity(requestBody, charset));
 
@@ -398,7 +411,7 @@ public class HttpHelper {
 			final URI      url = URI.create(address);
 			final HttpPut req = new HttpPut(url);
 
-			configure(req, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
 
 			req.setEntity(new StringEntity(requestBody, charset));
 
@@ -445,7 +458,7 @@ public class HttpHelper {
 			final URI     url = URI.create(address);
 			final HttpDelete req = new HttpDelete(url);
 
-			configure(req, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
 
 			final CloseableHttpResponse response = client.execute(req);
 
@@ -470,17 +483,22 @@ public class HttpHelper {
 
 	public static InputStream getAsStream(final String address) {
 
-		return getAsStream(address, null, null, null, null, null, null, Collections.EMPTY_MAP);
+		return getAsStream(address, null, null, null, null, null, null, null, Collections.EMPTY_MAP);
 	}
 
-	public static InputStream getAsStream(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+	public static InputStream getAsStream(final String address, final String charset) {
+
+		return getAsStream(address, charset, null, null, null, null, null, null, Collections.EMPTY_MAP);
+	}
+
+	public static InputStream getAsStream(final String address, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
 
 		try {
 
 			final URI     url = URI.create(address);
 			final HttpGet req = new HttpGet(url);
 
-			configure(req, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
 
 			final CloseableHttpResponse resp = client.execute(req);
 
@@ -498,9 +516,7 @@ public class HttpHelper {
 	public static String charset(final HttpResponse response) {
 
 		final ContentType contentType = ContentType.get(response.getEntity());
-		String charset = HTTP.DEF_CONTENT_CHARSET.name();
 		if (contentType != null && contentType.getCharset() != null) {
-
 			charset = contentType.getCharset().toString();
 		}
 
@@ -509,25 +525,25 @@ public class HttpHelper {
 
 	public static void streamURLToFile(final String address, final java.io.File fileOnDisk)
 	throws FrameworkException {
-		streamURLToFile(address, null, null, null, null, Collections.EMPTY_MAP, fileOnDisk);
+		streamURLToFile(address, null, null, null, null, null, Collections.EMPTY_MAP, fileOnDisk);
 	}
 
-	public static void streamURLToFile(final String address, final Map<String, String> headers, final java.io.File fileOnDisk)
+	public static void streamURLToFile(final String address, final String charset, final Map<String, String> headers, final java.io.File fileOnDisk)
 	throws FrameworkException {
-		streamURLToFile(address, null, null, headers, fileOnDisk);
+		streamURLToFile(address, charset, null, null, headers, fileOnDisk);
 	}
 
-	public static void streamURLToFile(final String address, final String username, final String password, final Map<String, String> headers, final java.io.File fileOnDisk)
+	public static void streamURLToFile(final String address, final String charset, final String username, final String password, final Map<String, String> headers, final java.io.File fileOnDisk)
 	throws FrameworkException {
-		streamURLToFile(address, username, password, null, null, null, null, headers, fileOnDisk);
+		streamURLToFile(address, charset, username, password, null, null, null, null, headers, fileOnDisk);
 	}
 
-	public static void streamURLToFile(final String address, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final java.io.File fileOnDisk)
+	public static void streamURLToFile(final String address, final String charset, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final java.io.File fileOnDisk)
 	throws FrameworkException {
-		streamURLToFile(address, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers, fileOnDisk);
+		streamURLToFile(address, charset, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers, fileOnDisk);
 	}
 
-	public static void streamURLToFile(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final java.io.File fileOnDisk)
+	public static void streamURLToFile(final String address, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final java.io.File fileOnDisk)
 	throws FrameworkException {
 
 		try {
@@ -537,7 +553,7 @@ public class HttpHelper {
 
 			logger.info("Downloading from {}", address);
 
-			configure(req, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
 
 			req.addHeader("User-Agent", "curl/7.35.0");
 

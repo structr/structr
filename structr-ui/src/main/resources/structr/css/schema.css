@@ -23,6 +23,10 @@
 	height: calc(100vh - 8rem);
 }
 
+#schema-graph.hide-inheritance-arrwows .dashed-inheritance-relationship {
+	display: none;
+}
+
 #schema-graph .light {
 	/*opacity: .7;*/
 }

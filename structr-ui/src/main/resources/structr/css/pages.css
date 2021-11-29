@@ -359,8 +359,8 @@ input.dataKey_ {
 }
 
 #localizations .inner input.locale {
-	max-width: 5.5rem;
-	margin-right: 1rem;
+	max-width: 3.5rem;
+	margin-right: .5rem;
 }
 
 .localization-element .edit_props_icon {
@@ -389,4 +389,34 @@ input.dataKey_ {
 .localization-element table td.input input {
 	width: calc(100% - 28px);
 	margin-right: 2px;
+}
+
+#newComponentDropzone {
+	border: .15rem dashed lightgray;
+	border-radius: .25rem;
+	color: lightgray;
+	margin: 1rem;
+}
+
+#newComponentDropzone.allow-drop {
+	color: black;
+}
+
+#newComponentDropzone .new-component-info .sprite {
+	min-width: 16px;
+}
+
+#newComponentDropzone .new-component-info .active {
+	visibility: hidden;
+	display: none;
+}
+
+#newComponentDropzone.allow-drop .new-component-info .inactive {
+	visibility: hidden;
+	display: none;
+}
+
+#newComponentDropzone.allow-drop .new-component-info .active {
+	visibility: visible;
+	display: inline-block;
 }

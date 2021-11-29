@@ -286,16 +286,18 @@ var _Crud = {
 				});
 
 				_Crud.searchFieldClearIcon.addEventListener('click', (e) => {
-	                _Crud.clearSearch(crudMain);
+	                _Crud.clearMainSearch(crudMain);
 	            });
 
 				_Crud.searchField.addEventListener('keyup', (e) => {
 
 					let searchString = _Crud.searchField.value;
 
-					if (searchString && searchString.length && e.keyCode === 13) {
-
+					if (searchString && searchString.length) {
 						_Crud.searchFieldClearIcon.style.display = 'block';
+					}
+
+					if (searchString && searchString.length && e.keyCode === 13) {
 
 						_Crud.search(searchString, crudMain, null, function(e, node) {
 							e.preventDefault();
@@ -307,7 +309,7 @@ var _Crud = {
 
 					} else if (e.keyCode === 27 || searchString === '') {
 
-						_Crud.clearSearch(crudMain);
+						_Crud.clearMainSearch(crudMain);
 					}
 				});
 			});
@@ -373,8 +375,6 @@ var _Crud = {
 			clearTimeout(_Crud.messageTimeout);
 
 			fastRemoveAllChildren(crudRight[0]);
-
-			crudRight.data('url', '/' + type);
 
 			Structr.fetchHtmlTemplate('crud/crud-buttons', { type }, function(html) {
 
@@ -1162,7 +1162,7 @@ var _Crud = {
 		}
 	},
 	crudExport: function(type) {
-		var url = csvRootUrl + '/' + $('#crud-type-detail').data('url') + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+		var url = csvRootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
 
 		_Crud.dialog('Export ' + type + ' list as CSV', function() {}, function() {});
 
@@ -1184,7 +1184,6 @@ var _Crud = {
 		});
 
 		$('.closeButton', $('#dialogBox')).on('click', function() {
-			clipboard.destroy();
 			$('#copyToClipboard', dialogBtn).remove();
 		});
 
@@ -1204,7 +1203,7 @@ var _Crud = {
 	},
 	crudImport: function(type) {
 
-		var url = csvRootUrl + $('#crud-type-detail').data('url');
+		var url = csvRootUrl + type;
 
 		_Crud.dialog('Import CSV data for type ' + type + '', function() {}, function() {});
 
@@ -1295,7 +1294,7 @@ var _Crud = {
 	},
 	deleteAllNodesOfType: async (type, exact) => {
 
-		let url      = rootUrl + '/' + type + ((exact === true) ? '?type=' + type : '');
+		let url      = rootUrl + type + ((exact === true) ? '?type=' + type : '');
 		let response = await fetch(url, { method: 'DELETE' });
 
 		if (response.ok) {
@@ -1722,7 +1721,7 @@ var _Crud = {
 		});
 	},
 	crudDelete: function(type, id) {
-		var url = rootUrl + '/' + type + '/' + id;
+		var url = rootUrl + type + '/' + id;
 		$.ajax({
 			url: url,
 			type: 'DELETE',
@@ -2228,15 +2227,14 @@ var _Crud = {
 		}
 
 	},
-	clearSearch: function(el) {
-		if (_Crud.clearSearchResults(el)) {
-			_Crud.searchFieldClearIcon.style.display = 'none';
-			_Crud.searchField.value = '';
-			$('#crud-type-detail').show();
-		}
+	clearMainSearch: function(el) {
+		_Crud.clearSearchResults(el);
+		_Crud.searchFieldClearIcon.style.display = 'none';
+		_Crud.searchField.value = '';
+		$('#crud-type-detail').show();
 	},
 	clearSearchResults: function(el) {
-		var searchResults = $('.searchResults', el);
+		let searchResults = $('.searchResults', el);
 		if (searchResults.length) {
 			searchResults.remove();
 			return true;
@@ -2394,7 +2392,7 @@ var _Crud = {
 		search.keyup(function(e) {
 			e.preventDefault();
 
-			var searchString = $(this).val();
+			let searchString = $(this).val();
 			if (e.keyCode === 13) {
 
 				$('.clearSearchIcon', searchBox).show().on('click', function() {
@@ -2431,7 +2429,6 @@ var _Crud = {
 			}
 
 			return false;
-
 		});
 
 		_Crud.populateSearchDialogWithInitialResult(parentType, id, key, type, el, callbackOverride, "*");

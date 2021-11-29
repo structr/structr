@@ -67,10 +67,10 @@ let _Dialogs = {
 
 		return false;
 	},
-	showCustomProperties: function(entity) {
+	showCustomProperties: function(el, entity) {
 
 		// custom properties
-		let customContainer = $('div#custom-properties-container');
+		let customContainer = $('div#custom-properties-container', el);
 
 		_Schema.getTypeInfo(entity.type, function(typeInfo) {
 
@@ -249,7 +249,7 @@ let _Dialogs = {
 
 			$('button#ldap-sync-button').on('click', async () => {
 
-				let response = await fetch('/structr/rest/' + entity.type + '/' + entity.id + '/update', {
+				let response = await fetch(rootUrl + entity.type + '/' + entity.id + '/update', {
 					method: 'POST'
 				});
 
@@ -277,7 +277,7 @@ let _Dialogs = {
 
 					Structr.showAndHideInfoBoxMessage('Extracting structure..', 'info', 2000, 200);
 
-					let response = await fetch('/structr/rest/' + entity.type + '/' + entity.id + '/extractStructure', {
+					let response = await fetch(rootUrl + entity.type + '/' + entity.id + '/extractStructure', {
 						method: 'POST'
 					});
 
@@ -318,7 +318,7 @@ let _Dialogs = {
 
 				_Dialogs.focusInput(el);
 
-				_Dialogs.showCustomProperties(entity);
+				_Dialogs.showCustomProperties(el, entity);
 				_Dialogs.showRepeaterOptions(el, entity);
 				_Dialogs.showShowHideConditionOptions(el, entity);
 
@@ -341,7 +341,7 @@ let _Dialogs = {
 
 				_Dialogs.focusInput(el);
 
-				_Dialogs.showCustomProperties(entity);
+				_Dialogs.showCustomProperties(el, entity);
 				_Dialogs.showRepeaterOptions(el, entity);
 				_Dialogs.showShowHideConditionOptions(el, entity);
 
@@ -364,7 +364,7 @@ let _Dialogs = {
 
 				_Dialogs.focusInput(el);
 
-				_Dialogs.showCustomProperties(entity);
+				_Dialogs.showCustomProperties(el, entity);
 				_Dialogs.showShowHideConditionOptions(el, entity);
 			});
 
@@ -383,7 +383,7 @@ let _Dialogs = {
 
 				_Dialogs.focusInput(el);
 
-				_Dialogs.showCustomProperties(entity);
+				_Dialogs.showCustomProperties(el, entity);
 				_Dialogs.showRepeaterOptions(el, entity);
 				_Dialogs.showShowHideConditionOptions(el, entity);
 			});
@@ -406,7 +406,7 @@ let _Dialogs = {
 
 			_Dialogs.focusInput(el);
 
-			_Dialogs.showCustomProperties(entity);
+			_Dialogs.showCustomProperties(el, entity);
 		});
 	},
 	pageDialog: (el, entity) => {
@@ -420,7 +420,7 @@ let _Dialogs = {
 
 			_Dialogs.focusInput(el);
 
-			_Dialogs.showCustomProperties(entity);
+			_Dialogs.showCustomProperties(el, entity);
 		});
 	},
 	defaultDomDialog: (el, entity) => {
@@ -436,7 +436,7 @@ let _Dialogs = {
 
 				_Dialogs.focusInput(el);
 
-				_Dialogs.showCustomProperties(entity);
+				_Dialogs.showCustomProperties(el, entity);
 				_Dialogs.showRepeaterOptions(el, entity);
 				_Dialogs.showShowHideConditionOptions(el, entity);
 
@@ -457,7 +457,7 @@ let _Dialogs = {
 
 			_Dialogs.focusInput(el);
 
-			_Dialogs.showCustomProperties(entity);
+			_Dialogs.showCustomProperties(el, entity);
 			_Dialogs.showRepeaterOptions(el, entity);
 			_Dialogs.showShowHideConditionOptions(el, entity);
 		});
@@ -478,7 +478,7 @@ let _Dialogs = {
 
 				_Dialogs.focusInput(el);
 
-				_Dialogs.showCustomProperties(entity);
+				_Dialogs.showCustomProperties(el, entity);
 				_Dialogs.showRepeaterOptions(el, entity);
 				_Dialogs.showShowHideConditionOptions(el, entity);
 

@@ -1481,7 +1481,7 @@ var _Entities = {
 							$('.add', cell).on('click', function() {
 								Structr.dialog('Add ' + typeInfo[key].type, function() {
 								}, function() {
-									_Entities.showProperties(entity);
+									//_Entities.showProperties(entity);
 								});
 								_Entities.displaySearch(id, key, typeInfo[key].type, dialogText, isCollection);
 							});
@@ -1557,16 +1557,16 @@ var _Entities = {
 				$(this).attr('disabled', 'disabled').addClass('disabled');
 			});
 
-			let addCustomAttributeButton = $('<button class="add-custom-attribute">Add custom attribute</button>');
+			let addCustomAttributeButton = $('<button class="add-custom-attribute">Add custom property</button>');
 			container.append(addCustomAttributeButton);
 
 			Structr.appendInfoTextToElement({
 				element: addCustomAttributeButton,
-				text: "Any attribute name is allowed but 'data-' attributes are recommended. (data-structr is reserved for internal use!)",
+				text: "Any property name is allowed but the 'data-' prefix is recommended. Please note that 'data-structr-' is reserved for internal use.",
 				insertAfter: true,
 				css: {
-					marginLeft: "3px",
-					top: "-5px",
+					marginLeft: ".25rem",
+					top: "-.5rem",
 					position: "relative"
 				}
 			});
@@ -1584,10 +1584,10 @@ var _Entities = {
 
 					var regexAllowed = new RegExp("^[a-zA-Z0-9_\-]*$");
 
-					if (key.indexOf('data-structr') === 0) {
+					if (key.indexOf('data-structr-') === 0) {
 
 						blinkRed(keyInput);
-						new MessageBuilder().error('Key can not start with "data-structr" as it is reserved for internal use.').show();
+						new MessageBuilder().error('Key can not begin with "data-structr-" as it is reserved for internal use.').show();
 
 					} else if (!regexAllowed.test(key)) {
 
@@ -1976,7 +1976,7 @@ var _Entities = {
 			tb.append('<tr id="new"><td><select style="z-index: 999" id="newPrincipal"><option></option></select></td><td></td><td></td><td></td><td></td>' + (allowRecursive ? '<td></td>' : '') + '</tr>');
 
 			$.ajax({
-				url: rootUrl + '/' + entity.id + '/in',
+				url: rootUrl + entity.id + '/in',
 				dataType: 'json',
 				contentType: 'application/json; charset=utf-8',
 				success: function(data) {
@@ -2342,19 +2342,20 @@ var _Entities = {
 		let button = $(el.children('.expand_icon_svg').first());
 
 		// unregister click handlers
-		//$(el).off('click');
 		$(button).off('click');
 
 		button.remove();
 		el.children('.typeIcon').addClass('typeIcon-nochildren');
 	},
 	makeSelectable: function(el) {
-		var node = $(el).closest('.node');
+		let node = $(el).closest('.node');
 		if (!node || !node.children) {
 			return;
 		}
-		node.on('click', function() {
-			$(this).toggleClass('selected');
+		node.on('click', function(e) {
+			if (e.originalEvent.detail === 1) {
+				$(this).toggleClass('selected');
+			}
 		});
 	},
 	setMouseOver: function(el, allowClick, syncedNodesIds) {
@@ -2864,8 +2865,8 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 
 	} else if (obj.constructor === Object) {
 
-		var displayName = _Crud.displayName(obj);
-		return '<div title="' + escapeForHtmlAttributes(displayName) + '" id="_' + obj.id + '" class="node ' + (obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')) + ' ' + obj.id + '_"><span class="abbr-ellipsis abbr-80">' + displayName + '</span><i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>';
+		let displayName = _Crud.displayName(obj);
+		return '<div title="' + escapeForHtmlAttributes(displayName) + '" id="_' + obj.id + '" class="node ' + (obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')) + ' ' + obj.id + '_"><span class="abbr-ellipsis abbr-80">' + displayName + '</span><i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>';
 
 	} else if (obj.constructor === Array) {
 
@@ -2879,31 +2880,33 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 
 function formatArrayValueField(key, values, isMultiline, isReadOnly, isPassword) {
 
-	let html = '';
+	let html            = '';
+	let readonlyHTML    = (isReadOnly ? ' readonly class="readonly"' : '');
+	let inputTypeHTML   = (isPassword ? 'password' : 'text');
+	let removeIconClass = _Icons.getFullSpriteClass(_Icons.grey_cross_icon);
 
-	values.forEach(function(value) {
+	for (let value of values) {
 
 		if (isMultiline) {
 
-			html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + ' autocomplete="new-password">' + value + '</textarea> <i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>';
+			html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + readonlyHTML + ' autocomplete="new-password">' + value + '</textarea><i title="Remove single value" class="remove ' + removeIconClass + '"></i></div>';
 
 		} else {
 
-			html += '<div class="array-attr"><input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" value="' + value + '"' + (isReadOnly ? 'readonly class="readonly"' : '') + ' autocomplete="new-password"> <i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>';
+			html += '<div class="array-attr"><input name="' + key + '" type="' + inputTypeHTML + '" value="' + value + '"' + readonlyHTML + ' autocomplete="new-password"><i title="Remove single value" class="remove ' + removeIconClass + '"></i></div>';
 		}
-	});
+	}
 
 	if (isMultiline) {
 
-		html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + ' autocomplete="new-password"></textarea></div>';
+		html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + readonlyHTML + ' autocomplete="new-password"></textarea></div>';
 
 	} else {
 
-		html += '<div class="array-attr"><input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" value=""' + (isReadOnly ? 'readonly class="readonly"' : '') + ' autocomplete="new-password"></div>';
+		html += '<div class="array-attr"><input name="' + key + '" type="' + inputTypeHTML + '" value=""' + readonlyHTML + ' autocomplete="new-password"></div>';
 	}
 
 	return html;
-
 }
 
 function formatRegularValueField(key, value, isMultiline, isReadOnly, isPassword) {
