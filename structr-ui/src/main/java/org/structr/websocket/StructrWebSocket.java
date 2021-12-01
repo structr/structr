@@ -21,6 +21,7 @@ package org.structr.websocket;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.channels.ClosedChannelException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -367,7 +368,13 @@ public class StructrWebSocket implements WebSocketListener {
 
 			if (session != null && session.getRemote() != null) {
 
-				session.getRemote().sendString(msg);
+				try {
+
+					session.getRemote().sendString(msg);
+				} catch (ClosedChannelException t) {
+
+					logger.debug("Unable to send websocket message to remote client: Client closed connection before message was sent successfully.");
+				}
 
 			} else {
 
@@ -385,6 +392,7 @@ public class StructrWebSocket implements WebSocketListener {
 				// ignore exceptions which (by jettys standards) should be handled less verbosely
 				// also ignore timeoutexceptions
 			} else {
+
 				logger.warn("Unable to send websocket message to remote client: {}", t);
 			}
 		}

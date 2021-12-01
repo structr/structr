@@ -730,6 +730,11 @@ public abstract class ImageHelper extends FileHelper {
 
 		Metadata metadata = new Metadata();
 
+		if (originalImage.isTemplate()) {
+
+			return metadata;
+		}
+
 		try (final InputStream in = originalImage.getInputStream()) {
 
 			if (in != null && in.available() > 0) {
@@ -745,6 +750,11 @@ public abstract class ImageHelper extends FileHelper {
 	}
 
 	public static int getOrientation(final File originalImage) {
+
+		if (originalImage.isTemplate()) {
+
+			return 1;
+		}
 
 		try {
 
@@ -767,6 +777,11 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static JSONObject getExifData(final File originalImage) {
 
+		if (originalImage.isTemplate()) {
+
+			return null;
+		}
+
 		try {
 
 			// Get new instance with superuser context to be able to update EXIF data
@@ -780,7 +795,6 @@ public abstract class ImageHelper extends FileHelper {
 				final ExifIFD0Directory   exifIFD0Directory   = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
 				final ExifSubIFDDirectory exifSubIFDDirectory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
 				final GpsDirectory        gpsDirectory        = metadata.getFirstDirectoryOfType(GpsDirectory.class);
-
 
 				if (exifIFD0Directory != null) {
 

@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.property.AbstractReadOnlyProperty;
 import org.structr.core.property.Property;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 
 /**
@@ -53,6 +54,9 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 	@Override
 	public Image getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<GraphObject> predicate) {
 
+		if (obj instanceof File && ((File)obj).isTemplate()) {
+			return null;
+		} else
 		if (obj instanceof Image && ((Image)obj).isThumbnail()) {
 			return null;
 		}
