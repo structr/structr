@@ -27,6 +27,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -212,7 +214,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 		for (final StructrTypeDefinition type : typeDefinitions) {
 
-			if (type.isSelected(tag)) {
+			if (type.isSelected(tag) && (StringUtils.isNotBlank(tag) && type.includeInOpenAPI())) {
 
 				map.putAll(type.serializeOpenAPIOperations(tag));
 			}

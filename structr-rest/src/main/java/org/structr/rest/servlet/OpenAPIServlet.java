@@ -238,7 +238,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		for (final StructrTypeDefinition type : schema.getTypeDefinitions()) {
 
-			if (type.isSelected(tag)) {
+			if (type.isSelected(tag) && (StringUtils.isNotBlank(tag) && type.includeInOpenAPI())) {
 
 				String summary = type.getSummary();
 				if (StringUtils.isBlank(summary)) {
@@ -331,15 +331,13 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		}
 
 		// session endpoints are only visible when there is no tag set
-		if (StringUtils.isBlank(tag)) {
 
-			// session handling and user management
-			paths.putAll(new OpenAPIResetPasswordOperation());
-			paths.putAll(new OpenAPIRegistrationOperation());
-			paths.putAll(new OpenAPILoginOperation());
-			paths.putAll(new OpenAPITokenOperation());
-			paths.putAll(new OpenAPILogoutOperation());
-		}
+		// session handling and user management
+		paths.putAll(new OpenAPIResetPasswordOperation());
+		paths.putAll(new OpenAPIRegistrationOperation());
+		paths.putAll(new OpenAPILoginOperation());
+		paths.putAll(new OpenAPITokenOperation());
+		paths.putAll(new OpenAPILogoutOperation());
 
 		// add all other endpoints filtered by tag
 		paths.putAll(schema.serializeOpenAPIOperations(tag));
@@ -425,9 +423,9 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		final Map<String, Object> parameters  = new LinkedHashMap<>();
 
-		parameters.put("page",          new OpenAPIQueryParameter("page",     "Page number of the results to fetch.", Map.of("type", "integer", "default", 1)));
-		parameters.put("pageSize",      new OpenAPIQueryParameter("pageSize", "Page size of result pages.",           Map.of("type", "integer")));
-		parameters.put("inexactSearch", new OpenAPIQueryParameter("loose",    "Use inexact search",                   Map.of("type", "boolean", "default", false)));
+		parameters.put("page",          new OpenAPIQueryParameter("_page",     "Page number of the results to fetch.", Map.of("type", "integer", "default", 1)));
+		parameters.put("pageSize",      new OpenAPIQueryParameter("_pageSize", "Page size of result pages.",           Map.of("type", "integer")));
+		parameters.put("inexactSearch", new OpenAPIQueryParameter("_loose",    "Use inexact search",                   Map.of("type", "boolean", "default", false)));
 
 		return parameters;
 	}
