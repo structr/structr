@@ -109,7 +109,7 @@ let _Pages = {
 				_Pages.leftSlideoutTrigger(this, _Pages.pagesSlideout, [_Pages.localizationsSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
 					_Pages.resize();
-					_Entities.highlightSelectedElementOnSlidoutOpen();
+					_Entities.highlightSelectedElementOnSlideoutOpen();
 				}, _Pages.leftSlideoutClosedCallback);
 			};
 			$('#pagesTab').on('click', pagesTabSlideoutAction).droppable({
@@ -122,7 +122,7 @@ let _Pages = {
 					LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
 					_Pages.localizations.refreshPagesForLocalizationPreview();
 					_Pages.resize();
-					_Entities.highlightSelectedElementOnSlidoutOpen();
+					_Entities.highlightSelectedElementOnSlideoutOpen();
 				}, _Pages.leftSlideoutClosedCallback);
 			});
 
@@ -1606,6 +1606,10 @@ let _Pages = {
                             });
 						}
 					});
+
+					input.addEventListener('click', (e) => {
+						e.stopPropagation();
+					})
 
 					input.addEventListener('blur', (event) => {
 
