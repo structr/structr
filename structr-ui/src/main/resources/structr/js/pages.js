@@ -1432,51 +1432,10 @@ let _Pages = {
 		wrapperTypeForContextMenu: 'WrappedLocalizationForPreview',
 		getContextMenuElements: function (div, wrappedEntity) {
 
-			let entity               = wrappedEntity.entity;
-			const isPage             = (entity.type === 'Page');
-			const isDOMNode          = (entity.isDOMNode);
-			const isSchemaNode       = (entity.type === 'SchemaNode');
+			let entity         = wrappedEntity.entity;
+			const isSchemaNode = (entity.type === 'SchemaNode');
 
 			let elements = [];
-
-			if (isDOMNode && !isPage) {
-
-				elements.push({
-					name: 'Repeater',
-					clickHandler: function () {
-						_Entities.showProperties(entity, 'query');
-						return false;
-					}
-				});
-
-				if (!_Entities.isContentElement(entity)) {
-					elements.push({
-						name: 'Events',
-						clickHandler: function () {
-							_Entities.showProperties(entity, 'editBinding');
-							return false;
-						}
-					});
-				}
-
-				if (!_Entities.isContentElement(entity)) {
-					elements.push({
-						name: 'HTML Attributes',
-						clickHandler: function () {
-							_Entities.showProperties(entity, '_html_');
-							return false;
-						}
-					});
-				}
-
-				elements.push({
-					name: 'Properties',
-					clickHandler: function() {
-						_Entities.showProperties(entity, 'ui');
-						return false;
-					}
-				});
-			}
 
 			if (isSchemaNode) {
 
@@ -1495,8 +1454,6 @@ let _Pages = {
 					}
 				});
 			}
-
-			_Elements.appendContextMenuSeparator(elements);
 
 			return elements;
 		},
@@ -1566,14 +1523,14 @@ let _Pages = {
 
 				for (let res of localizations) {
 
-					let modelNode = StructrModel.createFromData(res.node);
+					let modelNode = (res.node) ? StructrModel.createFromData(res.node) : { type: "Untraceable source (probably static method)", isFake: true };
 					let tbody     = _Pages.localizations.getNodeForLocalization(localizationsContainer, modelNode);
-					let row       = Structr.createSingleDOMElementFromHTML('<tr>' +
-							'<td><div class="key-column allow-break">' + res.key + '</div></td>' +
-							'<td class="domain-column">' + res.domain + '</td>' +
-							'<td class="locale-column">' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td>' +
-							'<td class="input"><input class="localized-value" placeholder="..."><a title="Delete" class="delete"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '"></i></a></td>' +
-						'</tr>'
+					let row       = Structr.createSingleDOMElementFromHTML(`<tr>
+							<td><div class="key-column allow-break">${res.key}</div></td>
+							<td class="domain-column">${res.domain}</td>
+							<td class="locale-column">${((res.localization !== null) ? res.localization.locale : res.locale)}</td>
+							<td class="input"><input class="localized-value" placeholder="..."><a title="Delete" class="delete"><i class="${_Icons.getFullSpriteClass(_Icons.cross_icon)}"></i></a></td>
+						</tr>`
 					);
 					let input     = row.querySelector('input.localized-value');
 
@@ -1601,8 +1558,8 @@ let _Pages = {
 							_Entities.deleteNodes(this, [{id: id, name: input.value}], false, () => {
 								row.classList.remove('has-value');
 								input.value = '';
-								input.dataset[localizationIdKey] = null;
-								input.dataset[previousValueKey]  = null;
+								delete input.dataset[localizationIdKey];
+								delete input.dataset[previousValueKey];
                             });
 						}
 					});
@@ -1665,34 +1622,34 @@ let _Pages = {
 
 			if (entity.type === 'Content') {
 
-				detailHtml = '<div>' + entity.content + '</div>';
+				detailHtml = `<div>${entity.content}</div>`;
 
 			} else if (entity.type === 'Template') {
 
 				if (entity.name) {
-					detailHtml = '<div>' + displayName + '</div>';
+					detailHtml = `<div>${displayName}</div>`;
 				} else {
-					detailHtml = '<div>' + escapeTags(entity.content) + '</div>';
+					detailHtml = `<div>${escapeTags(entity.content)}</div>`;
 				}
 
 			} else if (!entity.isDOMNode) {
-				detailHtml = '<b title="' + escapeForHtmlAttributes(entity.type) + '" class="tag_ name_">' + entity.type + '</b>';
+				detailHtml = `<b title="${escapeForHtmlAttributes(entity.type)}" class="tag_ name_">${entity.type}</b>`;
 			} else {
-				detailHtml = '<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>';
+				detailHtml = `<b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>`;
 			}
 
-			let div = Structr.createSingleDOMElementFromHTML(
-				'<div id="' + idString + '" class="node localization-element ' + (entity.tag === 'html' ? ' html_element' : '') + ' ">'
-					+ '<div class="node-selector"></div>'
-					+ '<i class="typeIcon ' + iconClass + '"></i><span class="abbr-ellipsis abbr-pages-tree">' + detailHtml + _Elements.classIdString(entity._html_id, entity._html_class) + '</span>'
-					+ '<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>'
-				+ '</div>'
+			let div = Structr.createSingleDOMElementFromHTML(`
+				<div id="${idString}" class="node localization-element ${(entity.tag === 'html' ? ' html_element' : '')}">
+					<div class="node-selector"></div>
+					<i class="typeIcon ${iconClass}"></i><span class="abbr-ellipsis abbr-pages-tree">${detailHtml}${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
+					<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>
+				</div>`
 			);
 			div.dataset['nodeId'] = (_Entities.isContentElement(entity) ? entity.parent.id : entity.id );
 
 			let $div = $(div);
 
-			if (!entity.isDOMNode) {
+			if (!entity.isDOMNode && !entity.isFake) {
 
 				// do not use pointer cursor
 				div.classList.add('schema');
@@ -1707,13 +1664,6 @@ let _Pages = {
 						}, false);
 					}
 				});
-
-			} else {
-
-				_Entities.appendContextMenuIcon($div, {
-					type: _Pages.localizations.wrapperTypeForContextMenu,
-					entity: entity
-				}, false);
 			}
 
 			container.appendChild(div);
