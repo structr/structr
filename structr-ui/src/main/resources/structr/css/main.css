@@ -1084,10 +1084,6 @@ img.disabled {
 	background-image: none;
 }
 
-.link_icon {
-	display: none;
-}
-
 .node .name_ {
 	max-width: 75%;
 	text-overflow: ellipsis;
@@ -1376,7 +1372,7 @@ i.link_icon {
 	cursor: pointer;
 	height: 16px;
 	width: 16px;
-	margin-left: 24px ! important;
+	margin-left: .325rem ! important;
 	vertical-align: top;
 	position: absolute;
 }
@@ -2019,6 +2015,8 @@ button.enabled, button.active {
 }
 
 .node .linkable {
+	vertical-align: top;
+	line-height: 2rem;
 	margin-left: 2rem;
 	cursor: pointer;
 }
