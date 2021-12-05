@@ -116,6 +116,7 @@ input.max-w-75 {
 
 #resourceAccessesPager {
 	text-align: left;
+	min-width: 24rem;
 }
 
 input.bitmask {
