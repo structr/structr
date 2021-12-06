@@ -46,7 +46,7 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.OpenAPIGlobalSchemaMethodOperation;
 import org.structr.schema.openapi.operation.OpenAPIMethodOperation;
 import org.structr.schema.openapi.operation.OpenAPIStaticMethodOperation;
@@ -705,7 +705,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	public Map<String, Object> getOpenAPIRequestBody() {
 
 		if (!getParameters().isEmpty()) {
-			return new OpenAPIRequestResponse("Parameters", getOpenAPIRequestSchema(), getOpenAPIRequestBodyExample(), null);
+			return new OpenAPIRequestResponse("Parameters", getOpenAPIRequestSchema(), getOpenAPIRequestBodyExample(), null, false);
 		}
 
 		return null;
@@ -730,7 +730,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		} else {
 
-			return new OpenAPIReference("#/components/responses/ok");
+			return new OpenAPISchemaReference("#/components/responses/ok");
 		}
 	}
 

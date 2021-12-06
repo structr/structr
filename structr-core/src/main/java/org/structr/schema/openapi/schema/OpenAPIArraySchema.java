@@ -30,7 +30,9 @@ public class OpenAPIArraySchema extends TreeMap<String, Object> {
 		if (description != null) {
 			put("description", description);
 		}
-		
-		put("items", properties);
+
+		if (properties != null) {
+			put("items", properties);
+		}
 	}
 }

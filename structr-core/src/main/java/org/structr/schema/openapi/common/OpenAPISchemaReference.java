@@ -26,13 +26,13 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.export.StructrTypeDefinitions;
 
-public class OpenAPIReference extends TreeMap<String, Object> {
+public class OpenAPISchemaReference extends TreeMap<String, Object> {
 
-	public OpenAPIReference(final String reference) {
+	public OpenAPISchemaReference(final String reference) {
 		this(reference, null);
 	}
 
-	public OpenAPIReference(final Class type, final String viewName) {
+	public OpenAPISchemaReference(final Class type, final String viewName) {
 
 		final String base = "#/components/schemas/";
 		ConfigurationProvider configuration = StructrApp.getConfiguration();
@@ -51,7 +51,7 @@ public class OpenAPIReference extends TreeMap<String, Object> {
 		StructrTypeDefinitions.openApiSerializedSchemaTypes.add((simpleName));
 	}
 
-	public OpenAPIReference(final StructrTypeDefinition type, final String viewName) {
+	public OpenAPISchemaReference(final StructrTypeDefinition type, final String viewName) {
 
 		final String base = "#/components/schemas/";
 
@@ -68,7 +68,7 @@ public class OpenAPIReference extends TreeMap<String, Object> {
 		StructrTypeDefinitions.openApiSerializedSchemaTypes.add((name));
 	}
 
-	public OpenAPIReference(final String reference, final String viewName) {
+	public OpenAPISchemaReference(final String reference, final String viewName) {
 
 		if (viewName == null || "public".equals(viewName)) {
 

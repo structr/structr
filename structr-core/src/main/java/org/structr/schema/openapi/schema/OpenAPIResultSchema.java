@@ -18,7 +18,10 @@
  */
 package org.structr.schema.openapi.schema;
 
+import org.structr.schema.openapi.common.OpenAPIResponseReference;
+
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -32,6 +35,44 @@ public class OpenAPIResultSchema extends TreeMap<String, Object> {
 		put("properties", properties);
 
 		properties.put("result", result);
+
+		if (includeQueryTime) {
+			properties.put("query_time", Map.of("type", "string", "example", "0.003547842"));
+		}
+
+		properties.put("result_count",       Map.of("type", "integer", "example", 1));
+		properties.put("page_count",         Map.of("type", "integer", "example", 1));
+		properties.put("result_count_time",  Map.of("type", "string", "example", "0.004132365"));
+		properties.put("serialization_time", Map.of("type", "string", "example", "0.000642111"));
+	}
+
+	public OpenAPIResultSchema(final List result, final boolean includeQueryTime) {
+
+		final Map<String, Object> properties = new LinkedHashMap<>();
+
+		put("type",       "object");
+		put("properties", properties);
+
+		properties.put("result", result);
+
+		if (includeQueryTime) {
+			properties.put("query_time", Map.of("type", "string", "example", "0.003547842"));
+		}
+
+		properties.put("result_count",       Map.of("type", "integer", "example", 1));
+		properties.put("page_count",         Map.of("type", "integer", "example", 1));
+		properties.put("result_count_time",  Map.of("type", "string", "example", "0.004132365"));
+		properties.put("serialization_time", Map.of("type", "string", "example", "0.000642111"));
+	}
+
+	public OpenAPIResultSchema(final OpenAPIResponseReference schemaReference, final boolean includeQueryTime) {
+
+		final Map<String, Object> properties = new LinkedHashMap<>();
+
+		put("type",       "object");
+		put("properties", properties);
+
+		properties.put("result", schemaReference);
 
 		if (includeQueryTime) {
 			properties.put("query_time", Map.of("type", "string", "example", "0.003547842"));

@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
@@ -37,7 +38,10 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.schema.ConfigurationProvider;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
+import org.structr.schema.openapi.request.OpenAPIRequestResponse;
+import org.structr.schema.openapi.result.OpenAPIExampleAnyResult;
+import org.structr.schema.openapi.schema.OpenAPIResultSchema;
 import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
 /**
@@ -189,6 +193,52 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		return schemas;
 	}
 
+	public Map<String, Object> serializeOpenAPIResponses(final Map<String, Object> responses, final String tag) {
+		final Map<String, Object> map = new TreeMap<>();
+
+		for (final StructrTypeDefinition type : typeDefinitions) {
+
+			if (type.isSelected(tag) && type.includeInOpenAPI()) {
+
+				ConfigurationProvider configuration = StructrApp.getConfiguration();
+				Class typeClass = configuration.getNodeEntityClass(type.name);
+
+				if (typeClass == null) {
+					Map<String, Class> interfaces = configuration.getInterfaces();
+					typeClass = interfaces.get(type.name);
+				};
+
+				Set<String> viewNames = configuration.getPropertyViewsForType(typeClass);
+				viewNames = viewNames.stream().filter(viewName ->  StringUtils.equals(viewName, "all") || !StructrTypeDefinition.VIEW_BLACKLIST.contains(viewName)).collect(Collectors.toSet());
+
+				for (String viewName : viewNames) {
+
+					final String typeName = type.getName() + (viewName == null || StringUtils.equals(PropertyView.Public, viewName) ? "" : "." + viewName);
+					Map<String, Object> multipleItemsMap = new HashMap<>();
+
+					map.put(typeName + "MultipleResponse",
+							new OpenAPIRequestResponse("The request was executed successfully.",
+									new OpenAPISchemaReference(type, viewName),
+									new OpenAPIExampleAnyResult(List.of(), true),
+									null,
+									true,
+									"array"
+							)
+					);
+
+					map.put(typeName + "SingleResponse",
+						new OpenAPIRequestResponse("The request was executed successfully.",
+							new OpenAPISchemaReference(type, viewName),
+							new OpenAPIExampleAnyResult(Map.of(), true)
+						)
+					);
+				}
+			}
+		}
+
+		return map;
+	}
+
 	private Map<String, Object> serializeOpenAPIForTypes (Set<StructrTypeDefinition> typeDefinitions, final Map<String, Object> schemas, final String tag, String view) {
 
 		final Map<String, Object> map = new TreeMap<>();
@@ -241,12 +291,12 @@ public class StructrTypeDefinitions implements StructrDefinition {
 					final String reference = type.resolveTypeReferenceForOpenAPI(type.getExtends());
 					if (StringUtils.isEmpty(view) && reference != null ) {
 
-						allOf.add(new OpenAPIReference(reference, PropertyView.Public));
+						allOf.add(new OpenAPISchemaReference(reference, PropertyView.Public));
 
 					} else if (StringUtils.isEmpty(view)) {
 
 						// default base type AbstractNode
-						allOf.add(new OpenAPIReference("#/components/schemas/AbstractNode", PropertyView.Public));
+						allOf.add(new OpenAPISchemaReference("#/components/schemas/AbstractNode", PropertyView.Public));
 					}
 
 					// add actual type definition

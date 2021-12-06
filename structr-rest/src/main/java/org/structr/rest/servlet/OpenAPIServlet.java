@@ -22,13 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
+import java.util.*;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -44,7 +38,7 @@ import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrSchemaDefinition;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.export.StructrTypeDefinitions;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.*;
 import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationChangeNodePropertyKey;
 import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationClearDatabase;
@@ -185,7 +179,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		components.put("securitySchemes", createSecuritySchemesObject());
 		components.put("schemas",         schemas);
-		components.put("responses",       createResponsesObject(schemas));
+		components.put("responses",       createResponsesObject(schema, tag));
 		components.put("parameters",      createParametersObject());
 
 		return components;
@@ -288,10 +282,14 @@ public class OpenAPIServlet extends AbstractDataServlet {
 			new OpenAPIPrimitiveSchema("Optional detail information.", "detail",   "string")
 		));
 
+		map.put("CreateResponse",
+				new OpenAPIResultSchema(new OpenAPIArraySchema("The UUID(s) of the created object(s).", Map.of("type", "string", "example", NodeServiceCommand.getNextUuid())), false)
+		);
+
 		map.put("RESTResponse", new OpenAPIObjectSchema("HTTP status code, message and optional error tokens used in semantic error messages returned by the REST server.",
 			new OpenAPIPrimitiveSchema("The error code.",    "code",    "integer"),
 			new OpenAPIPrimitiveSchema("The error message.", "message", "string"),
-			Map.of("errors", new OpenAPIArraySchema("A list of error tokens.", new OpenAPIReference("#/components/schemas/ErrorToken")))
+			Map.of("errors", new OpenAPIArraySchema("A list of error tokens.", new OpenAPISchemaReference("#/components/schemas/ErrorToken")))
 		));
 
 		map.put("TokenResponse", new OpenAPIObjectSchema("Contains the bearer token and refresh token that can be used to authenticate further calls to any other resources.",
@@ -362,25 +360,26 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		return buf.toString();
 	}
 
-	private Map<String, Object> createResponsesObject(final Map<String, Object> schemas) {
+	private Map<String, Object> createResponsesObject(final StructrSchemaDefinition schema, final String tag) {
 
 		final Map<String, Object> responses = new LinkedHashMap<>();
 
+		final Map<String, Object> placeholderForOkReponseSchema = new HashMap<>();
 		// 200 OK
 		responses.put("ok", new OpenAPIRequestResponse("The request was executed successfully.",
-			new OpenAPIResultSchema(new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, "public", 0), true),
+				new OpenAPIArraySchema(null, placeholderForOkReponseSchema),
 			new OpenAPIExampleAnyResult(List.of(), false)
 		));
 
 		// 201 Created
 		responses.put("created", new OpenAPIRequestResponse("Created",
-			new OpenAPIResultSchema(new OpenAPIArraySchema("The UUID(s) of the created object(s).", Map.of("type", "string", "example", NodeServiceCommand.getNextUuid())), false),
+			new OpenAPISchemaReference("#/components/schemas/CreateResponse"),
 			new OpenAPIExampleAnyResult(Arrays.asList(NodeServiceCommand.getNextUuid()), true)
 		));
 
 		// 400 Bad Request
 		responses.put("badRequest", new OpenAPIRequestResponse("The request was not valid and should not be repeated without modifications.",
-			new OpenAPIReference("#/components/schemas/RESTResponse"),
+			new OpenAPISchemaReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "400", "message", "Please specify sync file", "errors", List.of())
 		));
 
@@ -388,40 +387,43 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		responses.put("unauthorized", new OpenAPIRequestResponse(
 			"Access denied or wrong password.\n\nIf the error message is \"Access denied\", you need to configure a resource access grant for this endpoint."
 			+ " otherwise the error message is \"Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!\".",
-			new OpenAPIReference("#/components/schemas/RESTResponse"),
+			new OpenAPISchemaReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "401", "message", "Access denied", "errors", List.of())
 		));
 
 		responses.put("loginError", new OpenAPIRequestResponse("Wrong username or password, or user is blocked.",
-			new OpenAPIReference("#/components/schemas/RESTResponse"),
+			new OpenAPISchemaReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "401", "message", "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!")
 		));
 
 		responses.put("tokenError", new OpenAPIRequestResponse("The given access token or refresh token is invalid.",
-			new OpenAPIReference("#/components/schemas/RESTResponse"),
+			new OpenAPISchemaReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "401", "message", "The given access_token or refresh_token is invalid!")
 		));
 
 		// 403 Forbidden
 		responses.put("forbidden", new OpenAPIRequestResponse("The request was denied due to insufficient access rights to the object.",
-			new OpenAPIReference("#/components/schemas/RESTResponse"),
+			new OpenAPISchemaReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "403", "message", "Forbidden", "errors", List.of())
 		));
 
 		// 404 Not Found
 		responses.put("notFound", new OpenAPIRequestResponse("The desired object was not found.",
-			new OpenAPIReference("#/components/schemas/RESTResponse"),
+			new OpenAPISchemaReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "404", "message", "Not Found", "errors", List.of())
 		));
 
 		// 422 Unprocessable Entity
 		responses.put("validationError", new OpenAPIRequestResponse("The request entity was not valid, or validation failed.",
-			new OpenAPIReference("#/components/schemas/RESTResponse"),
+			new OpenAPISchemaReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "422", "message", "Unable to commit transaction, validation failed", "errors", List.of(
 				Map.of("type", "ExampleType", "property", "name", "token", "must_not_be_empty"),
 				Map.of("type", "ExampleType", "property", "name", "token", "must_match", "detail", "[^\\\\/\\\\x00]+")
 			))
 		));
+
+		final StructrTypeDefinitions definitions = schema.getTypeDefinitionsObject();
+		responses.putAll(definitions.serializeOpenAPIResponses(responses, tag));
 
 		return responses;
 	}

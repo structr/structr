@@ -21,16 +21,13 @@ package org.structr.schema.openapi.operation;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.neethi.All;
 import org.structr.common.PropertyView;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPIAllOf;
-import org.structr.schema.openapi.common.OpenAPIOneOf;
+import org.structr.schema.openapi.common.OpenAPIResponseReference;
 import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
-import org.structr.schema.openapi.schema.OpenAPIBaseSchemaWrite;
-import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaInput;
 
 public class OpenAPIPutSingleOperation extends OpenAPIOperation {
 
@@ -56,19 +53,19 @@ public class OpenAPIPutSingleOperation extends OpenAPIOperation {
 			// request body
 			new OpenAPIRequestResponse("Properties to update.",
 					new OpenAPIAllOf(
-						new OpenAPIReference(type, PropertyView.Public),
-						new OpenAPIReference(type, PropertyView.All)
+						new OpenAPISchemaReference(type, PropertyView.Public),
+						new OpenAPISchemaReference(type, PropertyView.All)
 					)
 
 			),
 
 			// responses
 			Map.of(
-				"200", new OpenAPIReference("#/components/responses/ok"),
-				"401", new OpenAPIReference("#/components/responses/unauthorized"),
-				"403", new OpenAPIReference("#/components/responses/forbidden"),
-				"404", new OpenAPIReference("#/components/responses/notFound"),
-				"422", new OpenAPIReference("#/components/responses/validationError")
+				"200", new OpenAPIResponseReference("#/components/responses/ok"),
+				"401", new OpenAPIResponseReference("#/components/responses/unauthorized"),
+				"403", new OpenAPIResponseReference("#/components/responses/forbidden"),
+				"404", new OpenAPIResponseReference("#/components/responses/notFound"),
+				"422", new OpenAPIResponseReference("#/components/responses/validationError")
 			)
 		);
 	}

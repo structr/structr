@@ -77,7 +77,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.OpenAPIDeleteMultipleOperation;
 import org.structr.schema.openapi.operation.OpenAPIDeleteSingleOperation;
 import org.structr.schema.openapi.operation.OpenAPIGetMultipleOperation;
@@ -1896,9 +1896,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		}, viewName);
 
-		params.add(new OpenAPIReference("#/components/parameters/page"));
-		params.add(new OpenAPIReference("#/components/parameters/pageSize"));
-		params.add(new OpenAPIReference("#/components/parameters/inexactSearch"));
+		params.add(new OpenAPISchemaReference("#/components/parameters/page"));
+		params.add(new OpenAPISchemaReference("#/components/parameters/pageSize"));
+		params.add(new OpenAPISchemaReference("#/components/parameters/inexactSearch"));
 
 		return params;
 	}

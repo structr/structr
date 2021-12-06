@@ -177,7 +177,6 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 			map.put("readOnly", true);
 		}
 
-
 		return map;
 	}
 

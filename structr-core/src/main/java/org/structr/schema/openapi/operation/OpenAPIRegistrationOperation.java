@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.structr.core.graph.NodeServiceCommand;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.result.OpenAPIExampleAnyResult;
 import org.structr.schema.openapi.schema.OpenAPIArraySchema;
@@ -67,21 +67,21 @@ public class OpenAPIRegistrationOperation extends LinkedHashMap<String, Object> 
 
 			// responses
 			Map.of(
-				"200", new OpenAPIReference("#/components/responses/ok"),
+				"200", new OpenAPISchemaReference("#/components/responses/ok"),
 				"201", new OpenAPIRequestResponse(
 					"The new user was created successfully.",
 					new OpenAPIResultSchema(new OpenAPIArraySchema("The UUID(s) of the created object(s).", Map.of("type", "string", "example", NodeServiceCommand.getNextUuid())), false),
 					new OpenAPIExampleAnyResult(Arrays.asList(NodeServiceCommand.getNextUuid()), true)
 				),
-				"401", new OpenAPIReference("#/components/responses/forbidden"),
+				"401", new OpenAPISchemaReference("#/components/responses/forbidden"),
 				"422", new OpenAPIRequestResponse(
 					"No e-mail address given.",
-					new OpenAPIReference("#/components/schemas/RESTResponse"),
+					new OpenAPISchemaReference("#/components/schemas/RESTResponse"),
 					Map.of("code", "422", "message", "No e-mail address given.", "errors", List.of())
 				),
 				"503", new OpenAPIRequestResponse(
 					"User self-registration is not configured correctly.\n\nYou need to enable and configure user self-registration according to https://docs.structr.com/docs/handling-user-sessions#user-self-registration.",
-					new OpenAPIReference("#/components/schemas/RESTResponse"),
+					new OpenAPISchemaReference("#/components/schemas/RESTResponse"),
 					Map.of("code", "503", "message", "User self-registration is not configured correctly.", "errors", List.of())
 				)
 			)

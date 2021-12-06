@@ -21,17 +21,18 @@ package org.structr.schema.openapi.operation;
 import java.util.Map;
 import org.structr.common.PropertyView;
 import org.structr.schema.export.StructrTypeDefinition;
-import org.structr.schema.openapi.schema.OpenAPIArraySchema;
-import org.structr.schema.openapi.common.OpenAPIOneOf;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPIResponseReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
-import org.structr.schema.openapi.schema.OpenAPIResultSchema;
-import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
 public class OpenAPIGetMultipleOperation extends OpenAPIOperation {
 
 	public OpenAPIGetMultipleOperation(final StructrTypeDefinition type, final String view) {
 
+		/*responses.put("ok", new OpenAPIRequestResponse("The request was executed successfully.",
+				new OpenAPIResultSchema(new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, "public", 0), true),
+				new OpenAPIExampleAnyResult(List.of(), false)
+		));*/
 		super(	// summary
 			"Lists all objects of type " + type.getName(),
 
@@ -51,20 +52,10 @@ public class OpenAPIGetMultipleOperation extends OpenAPIOperation {
 			null,
 
 			// responses
-				Map.of("200", new OpenAPIRequestResponse("The request was executed successfully.",
-					new OpenAPIResultSchema(
-						new OpenAPIArraySchema(
-							"List of objects of type " + type.getName() + " and subtypes.",
-							new OpenAPIOneOf(
-									new OpenAPIReference(type, view)
-								//new OpenAPIStructrTypeSchemaOutput(type, view, 0)
-							)
-						),
-						true
-					)
-				),
-				"401", new OpenAPIReference("#/components/responses/unauthorized"),
-				"404", new OpenAPIReference("#/components/responses/notFound")
+			Map.of("200",
+				new OpenAPIResponseReference(type, view, true),
+				"401", new OpenAPIResponseReference("#/components/responses/unauthorized"),
+				"404", new OpenAPIResponseReference("#/components/responses/notFound")
 			)
 		);
 	}

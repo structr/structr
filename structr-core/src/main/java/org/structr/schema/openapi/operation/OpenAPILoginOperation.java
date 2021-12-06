@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.structr.schema.openapi.common.OpenAPIOneOf;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
@@ -79,14 +79,15 @@ public class OpenAPILoginOperation extends LinkedHashMap<String, Object> {
 			Map.of(
 					"200", new OpenAPIRequestResponse(
 							"Login successful.",
-							new OpenAPIResultSchema(new OpenAPIReference("#/components/schemas/User"), false),
+							new OpenAPIResultSchema(new OpenAPISchemaReference("#/components/schemas/User"), false),
 							null,
-							openAPIPrimitiveSchema
+							openAPIPrimitiveSchema,
+							false
 					),
 					"401", new OpenAPIRequestResponse(
 							"Access denied or wrong password.\n\nIf the error message is \"Access denied\", you need to configure a resource access grant for the `_login` endpoint."
 									+ " otherwise the error message is \"Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!\".",
-							new OpenAPIReference("#/components/schemas/RESTResponse"),
+							new OpenAPISchemaReference("#/components/schemas/RESTResponse"),
 							Map.of("code", "401", "message", "Access denied", "errors", List.of())
 					)
 			)

@@ -22,11 +22,9 @@ import java.util.Map;
 import org.structr.common.PropertyView;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPIAllOf;
-import org.structr.schema.openapi.common.OpenAPIOneOf;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPIResponseReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
-import org.structr.schema.openapi.schema.OpenAPIBaseSchemaWrite;
-import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaInput;
 
 public class OpenAPIPostOperation extends OpenAPIOperation {
 
@@ -50,19 +48,19 @@ public class OpenAPIPostOperation extends OpenAPIOperation {
 			// request body
 			new OpenAPIRequestResponse("Contents of new " + type.getName() + " object to add.",
 					new OpenAPIAllOf(
-							new OpenAPIReference(type, PropertyView.Public),
-							new OpenAPIReference(type, PropertyView.All)
+							new OpenAPISchemaReference(type, PropertyView.Public),
+							new OpenAPISchemaReference(type, PropertyView.All)
 					)
 
 					//new OpenAPIBaseSchemaWrite(),
 					//new OpenAPIStructrTypeSchemaInput(type, PropertyView.Custom, 0)
 			),
 
-			// responses
+			// response
 			Map.of(
-				"201", new OpenAPIReference("#/components/responses/created"),
-				"401", new OpenAPIReference("#/components/responses/unauthorized"),
-				"422", new OpenAPIReference("#/components/responses/validationError")
+				"201", new OpenAPIResponseReference("#/components/responses/created"),
+				"401", new OpenAPIResponseReference("#/components/responses/unauthorized"),
+				"422", new OpenAPIResponseReference("#/components/responses/validationError")
 			)
 		);
 	}

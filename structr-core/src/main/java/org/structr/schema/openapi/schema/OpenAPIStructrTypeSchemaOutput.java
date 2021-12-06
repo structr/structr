@@ -30,7 +30,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrTypeDefinition;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 
 public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 
@@ -59,7 +59,7 @@ public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 	public OpenAPIStructrTypeSchemaOutput(final Class type, final String viewName, final int level) {
 
 		if (level > 0) {
-			this.putAll(new OpenAPIReference(type, PropertyView.Public));
+			this.putAll(new OpenAPISchemaReference(type, PropertyView.Public));
 			return;
 		}
 

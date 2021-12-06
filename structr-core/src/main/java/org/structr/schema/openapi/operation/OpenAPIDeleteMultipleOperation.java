@@ -21,7 +21,8 @@ package org.structr.schema.openapi.operation;
 import java.util.Map;
 import org.structr.common.PropertyView;
 import org.structr.schema.export.StructrTypeDefinition;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPIResponseReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 
 public class OpenAPIDeleteMultipleOperation extends OpenAPIOperation {
 
@@ -48,10 +49,10 @@ public class OpenAPIDeleteMultipleOperation extends OpenAPIOperation {
 
 			// responses
 			Map.of(
-				"200", new OpenAPIReference("#/components/responses/ok"),
-				"401", new OpenAPIReference("#/components/responses/unauthorized"),
-				"403", new OpenAPIReference("#/components/responses/forbidden"),
-				"422", new OpenAPIReference("#/components/responses/validationError")
+				"200", new OpenAPIResponseReference("#/components/responses/ok"),
+				"401", new OpenAPIResponseReference("#/components/responses/unauthorized"),
+				"403", new OpenAPIResponseReference("#/components/responses/forbidden"),
+				"422", new OpenAPIResponseReference("#/components/responses/validationError")
 			)
 		);
 	}

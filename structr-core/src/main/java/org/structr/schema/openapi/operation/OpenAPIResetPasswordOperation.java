@@ -22,7 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
@@ -62,16 +62,16 @@ public class OpenAPIResetPasswordOperation extends LinkedHashMap<String, Object>
 
 			// responses
 			Map.of(
-				"200", new OpenAPIReference("#/components/responses/ok"),
-				"401", new OpenAPIReference("#/components/responses/unauthorized"),
+				"200", new OpenAPISchemaReference("#/components/responses/ok"),
+				"401", new OpenAPISchemaReference("#/components/responses/unauthorized"),
 				"422", new OpenAPIRequestResponse(
 					"No e-mail address given.",
-					new OpenAPIReference("#/components/schemas/RESTResponse"),
+					new OpenAPISchemaReference("#/components/schemas/RESTResponse"),
 					Map.of("code", "422", "message", "No e-mail address given.", "errors", List.of())
 				),
 				"503", new OpenAPIRequestResponse(
 					"User self-registration is not configured correctly.\n\nYou need to enable and configure user self-registration according to https://docs.structr.com/docs/handling-user-sessions#user-self-registration.",
-					new OpenAPIReference("#/components/schemas/RESTResponse"),
+					new OpenAPISchemaReference("#/components/schemas/RESTResponse"),
 					Map.of("code", "503", "message", "User self-registration is not configured correctly.", "errors", List.of())
 				)
 			)

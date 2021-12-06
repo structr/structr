@@ -23,7 +23,7 @@ import org.structr.common.PropertyView;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPIAllOf;
 import org.structr.schema.openapi.schema.OpenAPIBaseSchemaWrite;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaInput;
 
@@ -54,11 +54,11 @@ public class OpenAPIPatchOperation extends OpenAPIOperation {
 
 			// responses
 			Map.of(
-				"200", new OpenAPIReference("#/components/responses/ok"),
-				"401", new OpenAPIReference("#/components/responses/unauthorized"),
-				"403", new OpenAPIReference("#/components/responses/forbidden"),
-				"404", new OpenAPIReference("#/components/responses/notFound"),
-				"422", new OpenAPIReference("#/components/responses/validationError")
+				"200", new OpenAPISchemaReference("#/components/responses/ok"),
+				"401", new OpenAPISchemaReference("#/components/responses/unauthorized"),
+				"403", new OpenAPISchemaReference("#/components/responses/forbidden"),
+				"404", new OpenAPISchemaReference("#/components/responses/notFound"),
+				"422", new OpenAPISchemaReference("#/components/responses/validationError")
 			)
 		);
 	}

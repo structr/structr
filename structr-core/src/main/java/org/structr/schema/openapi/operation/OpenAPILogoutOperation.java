@@ -22,7 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 
 public class OpenAPILogoutOperation extends LinkedHashMap<String, Object> {
@@ -51,11 +51,11 @@ public class OpenAPILogoutOperation extends LinkedHashMap<String, Object> {
 
 				// responses
 				Map.of(
-						"200", new OpenAPIReference("#/components/responses/ok"),
+						"200", new OpenAPISchemaReference("#/components/responses/ok"),
 						"401", new OpenAPIRequestResponse(
 								"Access denied.\n\nYou either need to configure a resource access grant for the `_logout` endpoint, or the session"
 										+ " you wanted to log out from  was already invalidated",
-								new OpenAPIReference("#/components/schemas/RESTResponse"),
+								new OpenAPISchemaReference("#/components/schemas/RESTResponse"),
 								Map.of("code", "401", "message", "Access denied", "errors", List.of())
 						)
 				)
