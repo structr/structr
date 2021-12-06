@@ -57,8 +57,8 @@ public class OpenAPIMaintenanceOperationCopyRelationshipProperties extends Linke
                 new OpenAPIRequestResponse(
                         "Request body",
 			new OpenAPIObjectSchema(
-                        	new OpenAPIPrimitiveSchema("Source key to copy the value from", "sourceKey", "string", null, "id"),
-				new OpenAPIPrimitiveSchema("target key to copy the value to",   "destKey",   "string", null, "originId")
+                        	new OpenAPIPrimitiveSchema("Source key to copy the value from", "sourceKey", "string", null, "id", false),
+				new OpenAPIPrimitiveSchema("target key to copy the value to",   "destKey",   "string", null, "originId", false)
                         )
                 ),
 

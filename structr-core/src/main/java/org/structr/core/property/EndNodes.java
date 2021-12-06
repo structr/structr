@@ -37,6 +37,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.ManyEndpoint;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Source;
@@ -46,6 +47,8 @@ import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
+import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
@@ -310,6 +313,22 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 			map.put("type", "array");
 			map.put("items", items);
 
+			if (this.isReadOnly()) {
+				map.put("readOnly", true);
+			}
+
+			final String destTypeName = destType.getName();
+			if (destTypeName == "org.structr.core.graph.NodeInterface" || destTypeName == "org.structr.flow.impl.FlowContainer" ) {
+				ConfigurationProvider configuration = StructrApp.getConfiguration();
+				Class typeClass = configuration.getNodeEntityClass(AbstractNode.class.getSimpleName());
+				destType = typeClass;
+
+				if (destType == null) {
+					Map<String, Class> interfaces = configuration.getInterfaces();
+					destType = interfaces.get(AbstractNode.class.getSimpleName());
+				};
+			}
+
 			items.putAll(new OpenAPIStructrTypeSchemaOutput(destType, viewName, level + 1));
 		}
 
@@ -330,6 +349,10 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 
 			map.put("type", "array");
 			map.put("items", items);
+
+			if (this.isReadOnly()) {
+				map.put("readOnly", true);
+			}
 
 			items.putAll(new OpenAPIAnyOf(
 				Map.of("type", "string", "example", NodeServiceCommand.getNextUuid(), "description", "The UUID of an existing object"),

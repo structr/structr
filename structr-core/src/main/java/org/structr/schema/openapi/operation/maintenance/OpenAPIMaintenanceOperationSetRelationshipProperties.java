@@ -58,7 +58,7 @@ public class OpenAPIMaintenanceOperationSetRelationshipProperties extends Linked
                         "Request body",
 			new OpenAPIObjectSchema(
                         	new OpenAPIPrimitiveSchema("Select the relationship type on which to set the properties", "type", "string"),
-                        	new OpenAPIPrimitiveSchema("Example key to illustrate the usage",                         "key",  "string", null, "value")
+                        	new OpenAPIPrimitiveSchema("Example key to illustrate the usage",                         "key",  "string", null, "value", false)
                         )
                 ),
 

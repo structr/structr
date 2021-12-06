@@ -20,9 +20,12 @@ package org.structr.schema.openapi.operation;
 
 import java.util.List;
 import java.util.Map;
+
+import org.apache.neethi.All;
 import org.structr.common.PropertyView;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPIAllOf;
+import org.structr.schema.openapi.common.OpenAPIOneOf;
 import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
 import org.structr.schema.openapi.common.OpenAPIReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
@@ -51,10 +54,13 @@ public class OpenAPIPutSingleOperation extends OpenAPIOperation {
 			),
 
 			// request body
-			new OpenAPIRequestResponse("Properties to update.", new OpenAPIAllOf(
-				new OpenAPIBaseSchemaWrite(),
-				new OpenAPIStructrTypeSchemaInput(type, PropertyView.Custom, 0)
-			)),
+			new OpenAPIRequestResponse("Properties to update.",
+					new OpenAPIAllOf(
+						new OpenAPIReference(type, PropertyView.Public),
+						new OpenAPIReference(type, PropertyView.All)
+					)
+
+			),
 
 			// responses
 			Map.of(

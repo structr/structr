@@ -209,6 +209,10 @@ public class BooleanArrayProperty extends AbstractPrimitiveProperty<Boolean[]> {
 		map.put("type", "array");
 		map.put("items", items);
 
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
+
 		return map;
 	}
 
@@ -222,6 +226,10 @@ public class BooleanArrayProperty extends AbstractPrimitiveProperty<Boolean[]> {
 
 		map.put("type", "array");
 		map.put("items", items);
+
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
 
 		return map;
 	}

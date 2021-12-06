@@ -57,10 +57,10 @@ public class OpenAPIMaintenanceOperationDeployData extends LinkedHashMap<String,
                 new OpenAPIRequestResponse(
                         "Request body",
 			new OpenAPIObjectSchema(
-                        	new OpenAPIPrimitiveSchema("Deployment mode",                              "mode",   "string", null, "export", Map.of(0, "import", 1, "export")),
+                        	new OpenAPIPrimitiveSchema("Deployment mode",                              "mode",   "string", null, "export", Map.of(0, "import", 1, "export"), false),
                         	new OpenAPIPrimitiveSchema("Source folder when **importing**",             "source", "string"),
-                        	new OpenAPIPrimitiveSchema("Target folder when **exporting**",             "target", "string", null, "/home/user/structr-app/webapp/data"),
-                        	new OpenAPIPrimitiveSchema("Comma-separated list of data types to export", "types",  "string", null, "Project, Task, Customer")
+                        	new OpenAPIPrimitiveSchema("Target folder when **exporting**",             "target", "string", null, "/home/user/structr-app/webapp/data", false),
+                        	new OpenAPIPrimitiveSchema("Comma-separated list of data types to export", "types",  "string", null, "Project, Task, Customer", false)
                         )
                 ),
 

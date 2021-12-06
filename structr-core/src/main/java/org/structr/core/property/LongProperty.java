@@ -173,6 +173,11 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 		map.put("format",  "int64");
 		map.put("example", 12467634433L);
 
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
+
+
 		return map;
 	}
 
@@ -184,6 +189,10 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 		map.put("type",    "integer");
 		map.put("format",  "int64");
 		map.put("example", 12467634433L);
+
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
 
 		return map;
 	}

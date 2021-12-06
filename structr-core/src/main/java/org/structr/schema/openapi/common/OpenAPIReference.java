@@ -18,8 +18,13 @@
  */
 package org.structr.schema.openapi.common;
 
+import java.util.Set;
 import java.util.TreeMap;
+
+import org.structr.core.app.StructrApp;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrTypeDefinition;
+import org.structr.schema.export.StructrTypeDefinitions;
 
 public class OpenAPIReference extends TreeMap<String, Object> {
 
@@ -27,18 +32,40 @@ public class OpenAPIReference extends TreeMap<String, Object> {
 		this(reference, null);
 	}
 
+	public OpenAPIReference(final Class type, final String viewName) {
+
+		final String base = "#/components/schemas/";
+		ConfigurationProvider configuration = StructrApp.getConfiguration();
+		Set<String> viewNames = configuration.getPropertyViewsForType(type);
+
+		final String simpleName = type.getSimpleName();
+		if (viewName == null || "public".equals(viewName) || !viewNames.contains(viewName)) {
+
+			put("$ref", base + simpleName);
+
+		} else {
+
+			put("$ref", base + simpleName + "." + viewName);
+		}
+
+		StructrTypeDefinitions.openApiSerializedSchemaTypes.add((simpleName));
+	}
+
 	public OpenAPIReference(final StructrTypeDefinition type, final String viewName) {
 
 		final String base = "#/components/schemas/";
 
-		if (viewName == null || "public".equals(viewName) || !type.getViewNames().contains(viewName)) {
+		final String name = type.getName();
+		if (!"all".equals(viewName) && (viewName == null || "public".equals(viewName) || !type.getViewNames().contains(viewName))) {
 
-			put("$ref", base + type.getName());
+			put("$ref", base + name);
 
 		} else {
 
-			put("$ref", base + type.getName() + "." + viewName);
+			put("$ref", base + name + "." + viewName);
 		}
+
+		StructrTypeDefinitions.openApiSerializedSchemaTypes.add((name));
 	}
 
 	public OpenAPIReference(final String reference, final String viewName) {
@@ -51,5 +78,7 @@ public class OpenAPIReference extends TreeMap<String, Object> {
 
 			put("$ref", reference + "." + viewName);
 		}
+
+		StructrTypeDefinitions.openApiSerializedSchemaTypes.add((reference));
 	}
 }

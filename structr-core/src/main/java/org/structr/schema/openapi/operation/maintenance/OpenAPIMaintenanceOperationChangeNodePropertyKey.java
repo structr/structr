@@ -56,10 +56,10 @@ public class OpenAPIMaintenanceOperationChangeNodePropertyKey extends LinkedHash
                 // request body
                 new OpenAPIRequestResponse(
                         "Request body",
-			new OpenAPIObjectSchema(
-                        	new OpenAPIPrimitiveSchema("Source key to migrate the value from", "oldKey", "string", null, "surname"),
-				new OpenAPIPrimitiveSchema("target key to migrate the value to",   "newKey", "string", null, "lastName")
-                        )
+			    new OpenAPIObjectSchema(
+                        new OpenAPIPrimitiveSchema("Source key to migrate the value from", "oldKey", "string", null, "surname", false),
+                        new OpenAPIPrimitiveSchema("target key to migrate the value to",   "newKey", "string", null, "lastName", false)
+                    )
                 ),
 
                 // responses

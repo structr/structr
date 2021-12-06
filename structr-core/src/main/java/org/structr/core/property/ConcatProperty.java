@@ -102,6 +102,10 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 
 			map.put("type",    valueType.getSimpleName().toLowerCase());
 			map.put("example", getExampleValue(type, viewName));
+
+			if (this.readOnly) {
+				map.put("readOnly", true);
+			}
 		}
 
 		return map;
@@ -116,6 +120,7 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 		if (valueType != null) {
 
 			map.put("type", valueType.getSimpleName().toLowerCase());
+			map.put("readOnly",    true);
 			map.put("example", getExampleValue(type, viewName));
 		}
 

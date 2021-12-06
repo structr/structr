@@ -58,7 +58,7 @@ public class OpenAPIMaintenanceOperationLetsencrypt extends LinkedHashMap<String
                 new OpenAPIRequestResponse(
                         "Request body",
 			new OpenAPIObjectSchema(
-                        	new OpenAPIPrimitiveSchema("Server mode to use (staging creates dummy certificates",  "server",    "string", null, "production", Map.of(0, "staging", 1, "production")).required(),
+                        	new OpenAPIPrimitiveSchema("Server mode to use (staging creates dummy certificates",  "server",    "string", null, "production", Map.of(0, "staging", 1, "production"), false).required(),
                         	new OpenAPIPrimitiveSchema("Challenge to overwrite the default challenge method",     "challenge", "string"),
                         	new OpenAPIPrimitiveSchema("Seconds to wait before the challenge check is started",   "wait",      "string"),
                         	new OpenAPIPrimitiveSchema("Reload the certificate after updating it",                "reload",    "boolean")

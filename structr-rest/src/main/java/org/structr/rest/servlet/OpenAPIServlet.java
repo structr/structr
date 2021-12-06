@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -42,6 +43,7 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrSchemaDefinition;
 import org.structr.schema.export.StructrTypeDefinition;
+import org.structr.schema.export.StructrTypeDefinitions;
 import org.structr.schema.openapi.common.OpenAPIReference;
 import org.structr.schema.openapi.operation.*;
 import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationChangeNodePropertyKey;
@@ -179,9 +181,11 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		final Map<String, Object> components = new TreeMap<>();
 
+		final Map<String, Object> schemas = createSchemasObject(schema, tag);
+
 		components.put("securitySchemes", createSecuritySchemesObject());
-		components.put("schemas",         createSchemasObject(schema, tag));
-		components.put("responses",       createResponsesObject());
+		components.put("schemas",         schemas);
+		components.put("responses",       createResponsesObject(schemas));
 		components.put("parameters",      createParametersObject());
 
 		return components;
@@ -268,14 +272,14 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		final Map<String, Object> map = new TreeMap<>();
 
 		// base classes
-		map.put("AbstractNode", new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, PropertyView.Public, 0));
-		map.put("User", new OpenAPIObjectSchema(
+		map.put("AbstractNode", new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, PropertyView.All, 0));
+		/*map.put("User", new OpenAPIObjectSchema(
 			"A user",
-			new OpenAPIPrimitiveSchema("UUID",         "id",     "string",  null, "bccfae68ecab45cab9e6c061077cea73"),
-			new OpenAPIPrimitiveSchema("Type",         "type",   "string",  null, "User"),
-			new OpenAPIPrimitiveSchema("IsUser flag",  "isUser", "boolean", null, true),
-			new OpenAPIPrimitiveSchema("Name",         "name",   "string",  null, "admin")
-		));
+			new OpenAPIPrimitiveSchema("UUID",         "id",     "string",  null, "bccfae68ecab45cab9e6c061077cea73", false),
+			new OpenAPIPrimitiveSchema("Type",         "type",   "string",  null, "User", false),
+			new OpenAPIPrimitiveSchema("IsUser flag",  "isUser", "boolean", null, true, false),
+			new OpenAPIPrimitiveSchema("Name",         "name",   "string",  null, "admin", false)
+		));*/
 
 		map.put("ErrorToken",  new OpenAPIObjectSchema("An error token used in semantic error messages returned by the REST server.",
 			new OpenAPIPrimitiveSchema("The type that caused the error.", "type",     "string"),
@@ -296,6 +300,9 @@ public class OpenAPIServlet extends AbstractDataServlet {
 			new OpenAPIPrimitiveSchema("The exiration timestamp of the Bearer token.",                     "expiration_date", "integer"),
 			new OpenAPIPrimitiveSchema("The token type.",                                                  "token_type",      "string")
 		));
+
+		final StructrTypeDefinitions definitions = schema.getTypeDefinitionsObject();
+		map.putAll(definitions.serializeOpenAPI(map, tag));
 
 		return map;
 	}
@@ -355,7 +362,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		return buf.toString();
 	}
 
-	private Map<String, Object> createResponsesObject() {
+	private Map<String, Object> createResponsesObject(final Map<String, Object> schemas) {
 
 		final Map<String, Object> responses = new LinkedHashMap<>();
 

@@ -222,6 +222,10 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		map.put("type",   "string");
 		map.put("format", "date-time");
 
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
+
 		return map;
 	}
 
@@ -232,6 +236,10 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 		map.put("type",   "string");
 		map.put("format", "date-time");
+
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
 
 		return map;
 	}

@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import org.structr.common.SecurityContext;
@@ -100,10 +101,23 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 		final Map<String, Object> map = new TreeMap<>();
 		final Class valueType         = valueType();
 
-		if (valueType != null) {
+		final Map<String, String> openApiTypeMap = new HashMap<>();
+		openApiTypeMap.put("image", "object");
+		openApiTypeMap.put("double", "number");
 
-			map.put("type", valueType.getSimpleName().toLowerCase());
+		if (valueType != null) {
+			String simpleName = valueType.getSimpleName().toLowerCase();
+
+			if (openApiTypeMap.containsKey(simpleName)) {
+				simpleName = openApiTypeMap.get(simpleName);
+			}
+
+			map.put("type", simpleName);
 			map.put("example", getExampleValue(type, viewName));
+
+			if (this.isReadOnly()) {
+				map.put("readOnly", true);
+			}
 		}
 
 		return map;
@@ -119,6 +133,10 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 
 			map.put("type", valueType.getSimpleName().toLowerCase());
 			map.put("example", getExampleValue(type, viewName));
+
+			if (this.isReadOnly()) {
+				map.put("readOnly", true);
+			}
 		}
 
 		return map;

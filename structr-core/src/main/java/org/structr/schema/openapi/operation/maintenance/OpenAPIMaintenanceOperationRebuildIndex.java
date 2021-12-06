@@ -60,7 +60,7 @@ public class OpenAPIMaintenanceOperationRebuildIndex extends LinkedHashMap<Strin
 			new OpenAPIObjectSchema(
                         	new OpenAPIPrimitiveSchema("Limit the index rebuild to a certain node type",              "type",    "string"),
                         	new OpenAPIPrimitiveSchema("Limit the index rebuild to a certain relationship type",      "relType", "string"),
-                        	new OpenAPIPrimitiveSchema("Rebuild the index only for nodes, or only for relationships", "mode",    "string", null, "nodesOnly", Map.of(0, "nodesOnly", 1, "relsOnly"))
+                        	new OpenAPIPrimitiveSchema("Rebuild the index only for nodes, or only for relationships", "mode",    "string", null, "nodesOnly", Map.of(0, "nodesOnly", 1, "relsOnly"), false)
                         )
                 ),
 

@@ -268,6 +268,10 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		map.put("type", "array");
 		map.put("items", items);
 
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
+
 		return map;
 	}
 
@@ -281,6 +285,10 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 		map.put("type", "array");
 		map.put("items", items);
+
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
 
 		return map;
 	}

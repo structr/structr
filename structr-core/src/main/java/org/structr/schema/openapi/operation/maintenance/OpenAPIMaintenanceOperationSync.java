@@ -57,9 +57,9 @@ public class OpenAPIMaintenanceOperationSync extends LinkedHashMap<String, Objec
                 new OpenAPIRequestResponse(
                         "Request body",
 			new OpenAPIObjectSchema(
-                        	new OpenAPIPrimitiveSchema("Operation mode",                             "mode",      "string", null, "export", Map.of(0, "import", 1, "export")),
-                        	new OpenAPIPrimitiveSchema("Name of the input / output ZIP file",        "file",      "string", null, "data.zip"),
-                        	new OpenAPIPrimitiveSchema("Cypher query that selects the export set",   "query",     "string", null, "MATCH (n) RETURN n"),
+                        	new OpenAPIPrimitiveSchema("Operation mode",                             "mode",      "string", null, "export", Map.of(0, "import", 1, "export"), false),
+                        	new OpenAPIPrimitiveSchema("Name of the input / output ZIP file",        "file",      "string", null, "data.zip", false),
+                        	new OpenAPIPrimitiveSchema("Cypher query that selects the export set",   "query",     "string", null, "MATCH (n) RETURN n", false),
                         	new OpenAPIPrimitiveSchema("Enables or disables import validation",      "validate",  "boolean"),
                         	new OpenAPIPrimitiveSchema("Specifies the batch size for large imports", "batchSize", "number", 200)
                         )

@@ -20,7 +20,10 @@ package org.structr.schema.openapi.operation;
 
 import java.util.List;
 import java.util.Map;
+
+import org.structr.common.PropertyView;
 import org.structr.schema.export.StructrTypeDefinition;
+import org.structr.schema.openapi.common.OpenAPIOneOf;
 import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
 import org.structr.schema.openapi.common.OpenAPIReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
@@ -53,7 +56,8 @@ public class OpenAPIGetSingleOperation extends OpenAPIOperation {
 
 			// responses
 				Map.of("200", new OpenAPIRequestResponse("The request was executed successfully.",
-					new OpenAPIResultSchema(new OpenAPIStructrTypeSchemaOutput(type, view, 0), true)
+					//new OpenAPIResultSchema(new OpenAPIStructrTypeSchemaOutput(type, view, 0), true)
+								new OpenAPIReference(type, view)
 				),
 				"401", new OpenAPIReference("#/components/responses/unauthorized"),
 				"404", new OpenAPIReference("#/components/responses/notFound")

@@ -59,9 +59,9 @@ public class OpenAPIMaintenanceOperationDirectFileImport extends LinkedHashMap<S
                 new OpenAPIRequestResponse(
                         "Request body",
 			new OpenAPIObjectSchema(
-                        	new OpenAPIPrimitiveSchema("Import mode",                            "mode",     "string", null, "copy", Map.of(0, "copy", 1, "move")),
+                        	new OpenAPIPrimitiveSchema("Import mode",                            "mode",     "string", null, "copy", Map.of(0, "copy", 1, "move"), false),
                         	new OpenAPIPrimitiveSchema("Source folder to import files from",     "source",   "string"),
-                        	new OpenAPIPrimitiveSchema("How to handle existing files",           "existing", "string", null, "skip", Map.of(0, "skip", 1, "overwrite", 2, "rename")),
+                        	new OpenAPIPrimitiveSchema("How to handle existing files",           "existing", "string", null, "skip", Map.of(0, "skip", 1, "overwrite", 2, "rename"), false),
                         	new OpenAPIPrimitiveSchema("Whether the imported files are indexed", "index",    "boolean", true)
                         )
                 ),

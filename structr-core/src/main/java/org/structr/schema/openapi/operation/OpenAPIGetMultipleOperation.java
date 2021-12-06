@@ -56,7 +56,8 @@ public class OpenAPIGetMultipleOperation extends OpenAPIOperation {
 						new OpenAPIArraySchema(
 							"List of objects of type " + type.getName() + " and subtypes.",
 							new OpenAPIOneOf(
-								new OpenAPIStructrTypeSchemaOutput(type, view, 0)
+									new OpenAPIReference(type, view)
+								//new OpenAPIStructrTypeSchemaOutput(type, view, 0)
 							)
 						),
 						true

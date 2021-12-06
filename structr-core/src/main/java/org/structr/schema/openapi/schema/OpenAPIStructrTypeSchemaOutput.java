@@ -23,11 +23,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+
+import org.structr.common.PropertyView;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrTypeDefinition;
+import org.structr.schema.openapi.common.OpenAPIReference;
 
 public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 
@@ -41,7 +44,7 @@ public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 		final String typeName                = type.getName();
 
 		put("type",        "object");
-		put("description", typeName);
+		put("description", "schema for type " + typeName + " with view " + viewName);
 		put("properties",  properties);
 
 		type.visitProperties(key -> {
@@ -49,9 +52,16 @@ public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 			properties.put(key.jsonName(), key.describeOpenAPIOutputType(typeName, viewName, level));
 
 		}, viewName);
+
+
 	}
 
 	public OpenAPIStructrTypeSchemaOutput(final Class type, final String viewName, final int level) {
+
+		if (level > 0) {
+			this.putAll(new OpenAPIReference(type, PropertyView.Public));
+			return;
+		}
 
 		if (level > 3) {
 			return;

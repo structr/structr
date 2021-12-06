@@ -58,17 +58,17 @@ public class OpenAPIMaintenanceOperationCreateLabels extends LinkedHashMap<Strin
 
                 // request body
                 new OpenAPIRequestResponse(
-                        "Request body",
-			new OpenAPIObjectSchema(
-                        	new OpenAPIPrimitiveSchema("Node type to limit creation of labels to", "type", "string", null, "Group")
-                        )
-                ),
+                   "Request body",
+			        new OpenAPIObjectSchema(
+                    new OpenAPIPrimitiveSchema("Node type to limit creation of labels to", "type", "string", null, "Group", false)
+                    )
+            ),
 
-                // responses
-                Map.of(
-                        "200", new OpenAPIReference("#/components/responses/ok"),
-                        "401", new OpenAPIReference("#/components/responses/unauthorized")
-                )
+            // responses
+            Map.of(
+                "200", new OpenAPIReference("#/components/responses/ok"),
+                "401", new OpenAPIReference("#/components/responses/unauthorized")
+            )
         ));
 
     }

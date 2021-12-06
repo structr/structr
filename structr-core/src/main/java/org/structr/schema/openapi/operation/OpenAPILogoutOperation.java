@@ -28,42 +28,41 @@ import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 public class OpenAPILogoutOperation extends LinkedHashMap<String, Object> {
 
 	public OpenAPILogoutOperation() {
-
 		final Map<String, Object> operations = new LinkedHashMap<>();
+		final Map<String, Object> post	   = new OpenAPIOperation(
 
-		put("/logout", operations);
+				// summary
+				"Logout",
 
-		operations.put("post", new OpenAPIOperation(
+				// description
+				"Logs the user out of the system, invalidates the session.",
 
-			// summary
-			"Logout",
+				// operation ID
+				"logout",
 
-			// description
-			"Logs the user out of the system, invalidates the session.",
+				// tags
+				Set.of("Session handling and user management"),
 
-			// operation ID
-			"logout",
+				// parameters
+				null,
 
-			// tags
-			Set.of("Session handling and user management"),
+				// request body
+				null,
 
-			// parameters
-			null,
-
-			// request body
-			null,
-
-			// responses
-			Map.of(
-				"200", new OpenAPIReference("#/components/responses/ok"),
-				"401", new OpenAPIRequestResponse(
-					"Access denied.\n\nYou either need to configure a resource access grant for the `_logout` endpoint, or the session"
-					+ " you wanted to log out from  was already invalidated",
-					new OpenAPIReference("#/components/schemas/RESTResponse"),
-					Map.of("code", "401", "message", "Access denied", "errors", List.of())
+				// responses
+				Map.of(
+						"200", new OpenAPIReference("#/components/responses/ok"),
+						"401", new OpenAPIRequestResponse(
+								"Access denied.\n\nYou either need to configure a resource access grant for the `_logout` endpoint, or the session"
+										+ " you wanted to log out from  was already invalidated",
+								new OpenAPIReference("#/components/schemas/RESTResponse"),
+								Map.of("code", "401", "message", "Access denied", "errors", List.of())
+						)
 				)
-			)
-		));
+		);
+		post.put("security", Set.of());
 
+		operations.put("post", post);
+		put("/logout", operations);
 	}
 }

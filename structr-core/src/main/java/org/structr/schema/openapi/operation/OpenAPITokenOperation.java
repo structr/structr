@@ -41,7 +41,7 @@ public class OpenAPITokenOperation extends LinkedHashMap<String, Object> {
 			"Token",
 
 			// description
-			"Creates a new Bearer token and refresh token for username and password credentials. Instead of username and password the resource also accepts a previously created refresh token as credentials.",
+			"Creates a new bearer and refresh token for the given username and password credentials. Instead of username and password the resource also accepts a previously created refresh token as credentials.",
 
 			// operation ID
 			"token",
@@ -89,7 +89,7 @@ public class OpenAPITokenOperation extends LinkedHashMap<String, Object> {
 		);
 
 		// override global security object to indicate that this request does not need authentication
-		post.put("security", Map.of());
+		post.put("security", Set.of());
 
 		operations.put("post", post);
 		put("/token", operations);

@@ -78,7 +78,7 @@ public class OpenAPIResetPasswordOperation extends LinkedHashMap<String, Object>
 		);
 
 		// override global security object to indicate that this request does not need authentication
-		post.put("security", Map.of());
+		post.put("security", Set.of());
 
 		operations.put("post", post);
 		put("/reset-password", operations);

@@ -131,6 +131,10 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 		map.put("type", "array");
 		map.put("items", items);
 
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
+
 		items.put("type", "string");
 		items.put("enum", Arrays.asList(enumType.getEnumConstants()));
 
@@ -145,6 +149,10 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 
 		map.put("type", "array");
 		map.put("items", items);
+
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
 
 		items.put("type", "string");
 		items.put("enum", Arrays.asList(enumType.getEnumConstants()));

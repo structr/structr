@@ -57,10 +57,10 @@ public class OpenAPIMaintenanceOperationSetNodeProperties extends LinkedHashMap<
                 // request body
                 new OpenAPIRequestResponse(
                         "Request body",
-			new OpenAPIObjectSchema(
-                        	new OpenAPIPrimitiveSchema("Select the node type on which to set the properties", "type", "string"),
-                        	new OpenAPIPrimitiveSchema("Example key to illustrate the usage",                 "key",  "string", null, "value")
-                        )
+			    new OpenAPIObjectSchema(
+                        new OpenAPIPrimitiveSchema("Select the node type on which to set the properties", "type", "string"),
+                        new OpenAPIPrimitiveSchema("Example key to illustrate the usage",                 "key",  "string", null, "value", false)
+                    )
                 ),
 
                 // responses
