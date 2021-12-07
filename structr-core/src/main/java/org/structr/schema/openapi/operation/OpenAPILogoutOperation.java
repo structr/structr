@@ -52,12 +52,7 @@ public class OpenAPILogoutOperation extends LinkedHashMap<String, Object> {
 				// responses
 				Map.of(
 						"200", new OpenAPISchemaReference("#/components/responses/ok"),
-						"401", new OpenAPIRequestResponse(
-								"Access denied.\n\nYou either need to configure a resource access grant for the `_logout` endpoint, or the session"
-										+ " you wanted to log out from  was already invalidated",
-								new OpenAPISchemaReference("#/components/schemas/RESTResponse"),
-								Map.of("code", "401", "message", "Access denied", "errors", List.of())
-						)
+						"401", new OpenAPISchemaReference("#/components/responses/unauthorized")
 				)
 		);
 		post.put("security", Set.of());

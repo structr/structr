@@ -19,6 +19,7 @@
 package org.structr.schema.openapi.operation;
 
 import org.structr.schema.openapi.common.OpenAPIOneOf;
+import org.structr.schema.openapi.common.OpenAPIResponseReference;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
@@ -72,20 +73,8 @@ public class OpenAPITokenOperation extends LinkedHashMap<String, Object> {
 
 			// responses
 			Map.of(
-				"200", new OpenAPIRequestResponse(
-					"The request was executed successfully.",
-					new OpenAPIResultSchema(
-						new OpenAPISchemaReference("#/components/schemas/TokenResponse"), false),
-						null,
-						null,
-						false
-					),
-				"401", new OpenAPIRequestResponse(
-					"Access denied or wrong password.\n\nIf the error message is \"Access denied\", you need to configure a resource access grant for the `_token` endpoint."
-					+ " otherwise the error message is \"Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!\".",
-					new OpenAPISchemaReference("#/components/schemas/RESTResponse"),
-					Map.of("code", "401", "message", "Access denied", "errors", List.of())
-				)
+				"200", new OpenAPISchemaReference("#/components/responses/tokenResponse"),
+				"401", new OpenAPISchemaReference("#/components/responses/tokenError")
 			)
 		);
 

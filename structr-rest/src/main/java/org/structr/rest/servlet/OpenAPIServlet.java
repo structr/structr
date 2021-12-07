@@ -38,6 +38,7 @@ import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrSchemaDefinition;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.export.StructrTypeDefinitions;
+import org.structr.schema.openapi.common.OpenAPIResponseReference;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.*;
 import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationChangeNodePropertyKey;
@@ -266,14 +267,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		final Map<String, Object> map = new TreeMap<>();
 
 		// base classes
-		map.put("AbstractNode", new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, PropertyView.All, 0));
-		/*map.put("User", new OpenAPIObjectSchema(
-			"A user",
-			new OpenAPIPrimitiveSchema("UUID",         "id",     "string",  null, "bccfae68ecab45cab9e6c061077cea73", false),
-			new OpenAPIPrimitiveSchema("Type",         "type",   "string",  null, "User", false),
-			new OpenAPIPrimitiveSchema("IsUser flag",  "isUser", "boolean", null, true, false),
-			new OpenAPIPrimitiveSchema("Name",         "name",   "string",  null, "admin", false)
-		));*/
+		map.put("AbstractNode", new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, PropertyView.Public, 0));
 
 		map.put("ErrorToken",  new OpenAPIObjectSchema("An error token used in semantic error messages returned by the REST server.",
 			new OpenAPIPrimitiveSchema("The type that caused the error.", "type",     "string"),
@@ -368,7 +362,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		// 200 OK
 		responses.put("ok", new OpenAPIRequestResponse("The request was executed successfully.",
 				new OpenAPIArraySchema(null, placeholderForOkReponseSchema),
-			new OpenAPIExampleAnyResult(List.of(), false)
+				new OpenAPIExampleAnyResult(List.of(), false)
 		));
 
 		// 201 Created
@@ -396,9 +390,20 @@ public class OpenAPIServlet extends AbstractDataServlet {
 			Map.of("code", "401", "message", "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!")
 		));
 
+		OpenAPIPrimitiveSchema openAPIPrimitiveSchema = new OpenAPIPrimitiveSchema("Sets the JSESSIONID cookie.", "Set-Cookie", "string", null, "JSESSIONID=0d47152b8e7b6c85a07994d2687250f5114rzrrnhat2wn80ump8x8iqp0.0d47152b8e7b6c85a07994d2687250f5;Path=/", true);
+		responses.put("loginResponse", new OpenAPIRequestResponse(
+				"Login successful.",
+				new OpenAPISchemaReference("#/components/schemas/User")
+		));
+
 		responses.put("tokenError", new OpenAPIRequestResponse("The given access token or refresh token is invalid.",
 			new OpenAPISchemaReference("#/components/schemas/RESTResponse"),
 			Map.of("code", "401", "message", "The given access_token or refresh_token is invalid!")
+		));
+
+		responses.put("tokenResponse", new OpenAPIRequestResponse(
+				"The request was executed successfully.",
+				new OpenAPISchemaReference("#/components/schemas/TokenResponse")
 		));
 
 		// 403 Forbidden
@@ -432,9 +437,10 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		final Map<String, Object> parameters  = new LinkedHashMap<>();
 
-		parameters.put("page",          new OpenAPIQueryParameter("_page",     "Page number of the results to fetch.", Map.of("type", "integer", "default", 1)));
-		parameters.put("pageSize",      new OpenAPIQueryParameter("_pageSize", "Page size of result pages.",           Map.of("type", "integer")));
-		parameters.put("inexactSearch", new OpenAPIQueryParameter("_loose",    "Use inexact search",                   Map.of("type", "boolean", "default", false)));
+		parameters.put("page",               new OpenAPIQueryParameter("_page",     "Page number of the results to fetch.", Map.of("type", "integer", "default", 1)));
+		parameters.put("pageSize",           new OpenAPIQueryParameter("_pageSize", "Page size of result pages.",           Map.of("type", "integer")));
+		parameters.put("inexactSearch",      new OpenAPIQueryParameter("_loose",    "Use inexact search",                   Map.of("type", "boolean", "default", false)));
+		parameters.put("outputNestingDepth", new OpenAPIQueryParameter("_outputNestingDepth",     "Depth in the graph of the JSON output rendering. Does not work with the all view.", Map.of("type", "integer", "default", 3)));
 
 		return parameters;
 	}

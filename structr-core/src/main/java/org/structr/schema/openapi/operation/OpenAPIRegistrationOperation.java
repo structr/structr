@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.structr.core.graph.NodeServiceCommand;
+import org.structr.schema.openapi.common.OpenAPIResponseReference;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.result.OpenAPIExampleAnyResult;
@@ -67,13 +68,13 @@ public class OpenAPIRegistrationOperation extends LinkedHashMap<String, Object> 
 
 			// responses
 			Map.of(
-				"200", new OpenAPISchemaReference("#/components/responses/ok"),
+				"200", new OpenAPIResponseReference("#/components/responses/ok"),
 				"201", new OpenAPIRequestResponse(
 					"The new user was created successfully.",
 					new OpenAPIResultSchema(new OpenAPIArraySchema("The UUID(s) of the created object(s).", Map.of("type", "string", "example", NodeServiceCommand.getNextUuid())), false),
 					new OpenAPIExampleAnyResult(Arrays.asList(NodeServiceCommand.getNextUuid()), true)
 				),
-				"401", new OpenAPISchemaReference("#/components/responses/forbidden"),
+				"401", new OpenAPIResponseReference("#/components/responses/forbidden"),
 				"422", new OpenAPIRequestResponse(
 					"No e-mail address given.",
 					new OpenAPISchemaReference("#/components/schemas/RESTResponse"),

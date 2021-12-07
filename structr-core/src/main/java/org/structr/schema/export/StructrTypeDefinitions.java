@@ -41,6 +41,7 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.result.OpenAPIExampleAnyResult;
+import org.structr.schema.openapi.schema.OpenAPIArraySchema;
 import org.structr.schema.openapi.schema.OpenAPIResultSchema;
 import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
@@ -233,6 +234,18 @@ public class StructrTypeDefinitions implements StructrDefinition {
 						)
 					);
 				}
+
+				for (final StructrMethodDefinition method : (List<StructrMethodDefinition>) type.getMethods()) {
+
+					if (method.isSelected(tag)) {
+
+						map.put(type.getName() + "." + method.getName() + "MethodResponse",
+							new OpenAPIRequestResponse("The request was executed successfully.",
+								new OpenAPISchemaReference("#/components/schemas/" + type.getName() + "." + method.getName() + "ResponseSchema", null)
+							)
+						);
+					}
+				}
 			}
 		}
 
@@ -301,7 +314,16 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 					// add actual type definition
 					allOf.add(new OpenAPIStructrTypeSchemaOutput(type, viewName, 0));
+				}
 
+				for (final StructrMethodDefinition method : (List<StructrMethodDefinition>) type.getMethods()) {
+
+					if (method.isSelected(tag)) {
+
+						map.put(type.getName() + "." + method.getName() + "ResponseSchema",
+								method.getOpenAPISuccessResponse()
+						);
+					}
 				}
 			}
 		}

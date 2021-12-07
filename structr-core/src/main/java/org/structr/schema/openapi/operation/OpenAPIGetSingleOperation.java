@@ -45,7 +45,8 @@ public class OpenAPIGetSingleOperation extends OpenAPIOperation {
 
 			// parameters
 			List.of(
-				new OpenAPIPathParameter("uuid", "The UUID of the desired object", Map.of("type", "string"))
+				new OpenAPIPathParameter("uuid", "The UUID of the desired object", Map.of("type", "string")),
+				new OpenAPISchemaReference("#/components/parameters/outputNestingDepth")
 			),
 
 			// requestBody

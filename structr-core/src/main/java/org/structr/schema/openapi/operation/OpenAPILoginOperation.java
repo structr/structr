@@ -36,9 +36,6 @@ public class OpenAPILoginOperation extends LinkedHashMap<String, Object> {
 
 		final Map<String, Object> operations = new LinkedHashMap<>();
 
-		OpenAPIPrimitiveSchema openAPIPrimitiveSchema = new OpenAPIPrimitiveSchema("Sets the JSESSIONID cookie.", "Set-Cookie", "string", null, "JSESSIONID=0d47152b8e7b6c85a07994d2687250f5114rzrrnhat2wn80ump8x8iqp0.0d47152b8e7b6c85a07994d2687250f5;Path=/", true);
-
-
 		final Map<String, Object> post       = new OpenAPIOperation(
 
 			// summary
@@ -77,23 +74,10 @@ public class OpenAPILoginOperation extends LinkedHashMap<String, Object> {
 
 			// responses
 			Map.of(
-					"200", new OpenAPIRequestResponse(
-							"Login successful.",
-							new OpenAPIResultSchema(new OpenAPISchemaReference("#/components/schemas/User"), false),
-							null,
-							openAPIPrimitiveSchema,
-							false
-					),
-					"401", new OpenAPIRequestResponse(
-							"Access denied or wrong password.\n\nIf the error message is \"Access denied\", you need to configure a resource access grant for the `_login` endpoint."
-									+ " otherwise the error message is \"Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!\".",
-							new OpenAPISchemaReference("#/components/schemas/RESTResponse"),
-							Map.of("code", "401", "message", "Access denied", "errors", List.of())
-					)
+					"200", new OpenAPISchemaReference("#/components/responses/loginResponse"),
+					"401", new OpenAPISchemaReference("#/components/responses/loginError")
 			)
 		);
-
-
 
 
 		// override global security object to indicate that this request does not need authentication

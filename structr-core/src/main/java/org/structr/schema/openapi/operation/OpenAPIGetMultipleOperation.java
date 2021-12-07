@@ -46,7 +46,7 @@ public class OpenAPIGetMultipleOperation extends OpenAPIOperation {
 			type.getTagsForOpenAPI(),
 
 			// parameters
-			type.getOpenAPIParameters(PropertyView.All, 0),
+			type.getOpenAPIParameters(PropertyView.All, 0, true),
 
 			// requestBody
 			null,

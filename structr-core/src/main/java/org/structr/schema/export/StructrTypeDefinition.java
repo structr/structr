@@ -1821,7 +1821,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 			if (method.isSelected(tag)) {
 
-				root.putAll(method.serializeOpenAPI());
+				root.putAll(method.serializeOpenAPI(this));
 			}
 		}
 
@@ -1882,7 +1882,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 	}
 
-	public List<Map<String, Object>> getOpenAPIParameters(final String viewName, final int level) {
+	public List<Map<String, Object>> getOpenAPIParameters(final String viewName, final int level, final Boolean isGetOperation) {
 
 		final List<Map<String, Object>> params = new LinkedList<>();
 
@@ -1899,6 +1899,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		params.add(new OpenAPISchemaReference("#/components/parameters/page"));
 		params.add(new OpenAPISchemaReference("#/components/parameters/pageSize"));
 		params.add(new OpenAPISchemaReference("#/components/parameters/inexactSearch"));
+
+		if (isGetOperation) {
+			params.add(new OpenAPISchemaReference("#/components/parameters/outputNestingDepth"));
+		}
 
 		return params;
 	}

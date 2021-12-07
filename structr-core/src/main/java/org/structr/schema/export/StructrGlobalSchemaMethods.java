@@ -54,7 +54,7 @@ public class StructrGlobalSchemaMethods {
 				// filter by tag
 				if (StringUtils.isBlank(tag) || def.getTags().contains(tag)) {
 
-					methods.putAll(def.serializeOpenAPI());
+					methods.putAll(def.serializeOpenAPI(null));
 				}
 			}
 

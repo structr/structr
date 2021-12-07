@@ -18,16 +18,17 @@
  */
 package org.structr.schema.openapi.operation;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.schema.export.StructrMethodDefinition;
+import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 
 public class OpenAPIStaticMethodOperation extends OpenAPIOperation {
 
-	public OpenAPIStaticMethodOperation(final StructrMethodDefinition method) {
-
+	public OpenAPIStaticMethodOperation(final StructrMethodDefinition method, final StructrTypeDefinition parentType) {
 		super(
 			// summary
 			StringUtils.isBlank(method.getSummary()) ? "Executes the static method " + method.getName() + "()." : method.getSummary(),
@@ -48,7 +49,7 @@ public class OpenAPIStaticMethodOperation extends OpenAPIOperation {
 
 			// responses
 			Map.of(
-				"200", method.getOpenAPISuccessResponse(),
+				"200", new OpenAPISchemaReference("#/components/responses/" + parentType.getName() + "." + method.getName() + "MethodResponse"),
 				"401", new OpenAPISchemaReference("#/components/responses/unauthorized"),
 				"422", new OpenAPISchemaReference("#/components/responses/validationError")
 			)
