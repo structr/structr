@@ -50,12 +50,12 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 
 				} else {
 
-					logger.warn("{}: First parameter is not a graph object. Parameters: {}", getDisplayName(), getParametersAsString(sources));
+					logger.warn("{}(): First parameter is not a graph object. Parameters: {}", getName(), getParametersAsString(sources));
 				}
 
 			} else {
 
-				logger.warn("{}: This function can only be called in a page-rendering context! Parameters: {}", getName(), getParametersAsString(sources));
+				logger.warn("{}(): This function can only be called in a page-rendering context! Parameters: {}", getName(), getParametersAsString(sources));
 			}
 
 			return "";
