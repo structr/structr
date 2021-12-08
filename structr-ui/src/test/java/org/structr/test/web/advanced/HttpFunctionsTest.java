@@ -98,6 +98,54 @@ public class HttpFunctionsTest extends StructrUiTest {
 
 	}
 
+	public static Object getMapPathValue(final Map<String, Object> map, final String mapPath) {
+
+		final String[] parts = mapPath.split("[\\.]+");
+		Object current       = map;
+
+		for (int i=0; i<parts.length; i++) {
+
+			final String part = parts[i];
+			if (StringUtils.isNumeric(part)) {
+
+				int index = Integer.valueOf(part);
+				if (current instanceof List) {
+
+					final List list = (List)current;
+					if (index >= list.size()) {
+
+						return null;
+
+					} else {
+
+						current = list.get(index);
+					}
+				}
+
+			} else if ("#".equals(part)) {
+
+				if (current instanceof List) {
+
+					return ((List)current).size();
+				}
+
+				if (current instanceof Map) {
+
+					return ((Map)current).size();
+				}
+
+			} else {
+
+				if (current instanceof Map) {
+
+					current = ((Map)current).get(part);
+				}
+			}
+		}
+
+		return current;
+	}
+
 	// static methods
 	public static void assertMapPathValueIs(final Map<String, Object> map, final String mapPath, final Object value) {
 
@@ -127,12 +175,23 @@ public class HttpFunctionsTest extends StructrUiTest {
 					}
 				}
 
-			} else if ("#".equals(part) && current instanceof List) {
+			} else if ("#".equals(part)) {
 
-				assertEquals("Invalid collection size for " + mapPath, value, ((List)current).size());
+				if (current instanceof List) {
 
-				// nothing more to check here
-				return;
+					assertEquals("Invalid collection size for " + mapPath, value, ((List)current).size());
+
+					// nothing more to check here
+					return;
+				}
+
+				if (current instanceof Map) {
+
+					assertEquals("Invalid map size for " + mapPath, value, ((Map)current).size());
+
+					// nothing more to check here
+					return;
+				}
 
 			} else {
 
