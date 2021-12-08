@@ -73,6 +73,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.rest.service.HttpService;
 import org.structr.schema.SchemaHelper;
+import org.structr.schema.action.Actions;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Folder;
 
@@ -173,31 +174,29 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 				case WAIT_MODE_KEY: {
 
+					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Creating Order");
 					final Order order = createNewOrder();
-					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Order created");
 
+					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Creating Challenges");
 					createChallenges();
-					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Challenges created");
 
 					try {
 						// Wait the specified amount of milliseconds
+						publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Waiting " + waitForSeconds + " seconds");
+
 						Thread.sleep(waitForSeconds * 1000);
 
-					} catch (final InterruptedException ignore) {}
+					} catch (final InterruptedException ignore) {
+					}
+
 					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Waited " + waitForSeconds + " seconds");
 
+					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Verifying Challenges");
 					verifyChallenges(order.getAuthorizations());
-					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Challenges verified");
 
 					getCertificate(reload);
 
-					final Long endTime = System.currentTimeMillis();
-					broadcastData.remove("start");
-					broadcastData.put("end", endTime);
-					DecimalFormat decimalFormat = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-					final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
-					broadcastData.put("duration", duration);
-					publishEndMessage(CERTIFICATE_RETRIEVAL_STATUS, broadcastData);
+					sendEndMessage(broadcastData, startTime);
 
 					break;
 				}
@@ -210,13 +209,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 					createChallenges();
 					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Challenges created");
 
-					final Long endTime = System.currentTimeMillis();
-					broadcastData.remove("start");
-					broadcastData.put("end", endTime);
-					DecimalFormat decimalFormat = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-					final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
-					broadcastData.put("duration", duration);
-					publishEndMessage(CERTIFICATE_RETRIEVAL_STATUS, broadcastData);
+					sendEndMessage(broadcastData, startTime);
 
 					break;
 				}
@@ -231,13 +224,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 					getCertificate(reload);
 
-					final Long endTime = System.currentTimeMillis();
-					broadcastData.remove("start");
-					broadcastData.put("end", endTime);
-					DecimalFormat decimalFormat = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-					final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
-					broadcastData.put("duration", duration);
-					publishEndMessage(CERTIFICATE_RETRIEVAL_STATUS, broadcastData);
+					sendEndMessage(broadcastData, startTime);
 
 					break;
 				}
@@ -250,6 +237,19 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 			cleanUpChallengeFiles();
 		}
+	}
+
+	private void sendEndMessage (Map<String, Object> broadcastData, final Long startTime) {
+
+		final Long endTime = System.currentTimeMillis();
+		broadcastData.remove("start");
+		broadcastData.put("end", endTime);
+
+		DecimalFormat decimalFormat = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+
+		final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
+		broadcastData.put("duration", duration);
+		publishEndMessage(CERTIFICATE_RETRIEVAL_STATUS, broadcastData);
 	}
 
 	private void error(final String msg) throws FrameworkException {
@@ -282,6 +282,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		}
 
 		try {
+
 			final Session session = new Session(serverUrl);
 
 			account = new AccountBuilder()
@@ -700,14 +701,25 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			error("No " + Dns01Challenge.TYPE + " challenge found, aborting.");
 		}
 
-		if (WAIT_MODE_KEY.equals(mode)) {
-			logger.info("Within the next " + waitForSeconds + " seconds, create a TXT record in your DNS for " + auth.getIdentifier().getDomain() + " with the following data:");
-		}
+		final String domain   = auth.getIdentifier().getDomain();
+		final String hostname = "_acme-challenge." + domain + ".";
+		final String digest   = challenge.getDigest();
 
-		logger.info("_acme-challenge.{}. IN TXT {}", auth.getIdentifier().getDomain(), ((Dns01Challenge) challenge).getDigest());
+		final Object result = Actions.callWithSecurityContext("onAcmeChallenge", SecurityContext.getSuperUserInstance(), Map.of("type", "dns", "hostname", hostname, "digest", digest));
+		if (result == null) {
 
-		if (WAIT_MODE_KEY.equals(mode)) {
+			publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Lifecycle method 'onAcmeChallenge' not found! Within the next " + waitForSeconds + " seconds, create a TXT record in your DNS for " + domain + " with the following data: Hostname = '" + hostname + "', Target = '" + digest + "'");
+
+			logger.info("Within the next " + waitForSeconds + " seconds, create a TXT record in your DNS for " + domain + " with the following data:");
+			logger.info("{} IN TXT {}", hostname, digest);
 			logger.info("After " + waitForSeconds + " seconds, the certificate authority will probe the DNS record to authorize the challenge. If the record is not available, the authorization will fail.");
+
+		} else {
+
+			publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Called lifecycle method onAcmeChallenge");
+
+			logger.info("DNS record (TXT) for domain " + domain + " has to be created with the following data:");
+			logger.info("{} IN TXT {}", hostname, digest);
 		}
 
 		return challenge;

@@ -139,18 +139,108 @@
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-core</artifactId>
+			<version>3.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-jpeg</artifactId>
-			<version>3.3.2</version>
+			<version>3.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-webp</artifactId>
+			<version>3.7.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-tiff</artifactId>
-			<version>3.3.2</version>
+			<version>3.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-bmp</artifactId>
+			<version>3.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-psd</artifactId>
+			<version>3.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-pdf</artifactId>
+			<version>3.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-icns</artifactId>
+			<version>3.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-metadata</artifactId>
+			<version>3.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-batik</artifactId>
+			<version>3.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-pnm</artifactId>
+			<version>3.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-sgi</artifactId>
+			<version>3.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-tga</artifactId>
+			<version>3.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-pcx</artifactId>
+			<version>3.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-iff</artifactId>
+			<version>3.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-pict</artifactId>
+			<version>3.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-thumbsdb</artifactId>
+			<version>3.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-hdr</artifactId>
+			<version>3.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-clippath</artifactId>
+			<version>3.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-xwd</artifactId>
+			<version>3.7.0</version>
 		</dependency>
 		<dependency>
 			<groupId>net.coobird</groupId>
 			<artifactId>thumbnailator</artifactId>
-			<version>0.4.8</version>
+			<version>0.4.15</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.sshd</groupId>

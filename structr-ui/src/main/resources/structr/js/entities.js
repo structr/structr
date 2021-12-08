@@ -2282,7 +2282,6 @@ var _Entities = {
 
 		editIcon.on('click', function(e) {
 			e.stopPropagation();
-			// _Entities.showProperties(entity);
 			_Elements.activateContextMenu(e, parent, entity);
 		});
 
@@ -2528,41 +2527,43 @@ var _Entities = {
 	scrollTimer: undefined,
 	highlightElement:function(el) {
 
-		el.addClass('nodeSelected');
+		if (el) {
+			el.addClass('nodeSelected');
 
-		// inner debounced function
-		let scrollFn = () => {
-			let elOffsetTop = el.offset().top;
-			let elHeight    = el.height();
-			let pagesScrollTop = _Pages.pagesTree.scrollTop();
-			let pagesOffsetTop = _Pages.pagesTree.offset().top
+			// inner debounced function
+			let scrollFn = () => {
+				let elOffsetTop = el.offset().top;
+				let elHeight    = el.height();
+				let pagesScrollTop = _Pages.pagesTree.scrollTop();
+				let pagesOffsetTop = _Pages.pagesTree.offset().top
 
-			let topPositionOfElementInTree    = elOffsetTop - pagesOffsetTop;
-			let bottomPositionOfElementInTree = elOffsetTop + elHeight - pagesOffsetTop;
+				let topPositionOfElementInTree    = elOffsetTop - pagesOffsetTop;
+				let bottomPositionOfElementInTree = elOffsetTop + elHeight - pagesOffsetTop;
 
-			if (topPositionOfElementInTree < 0) {
-				// element is *above* the currently visible portion of the pages tree
+				if (topPositionOfElementInTree < 0) {
+					// element is *above* the currently visible portion of the pages tree
 
-				_Pages.pagesTree.animate({
-					scrollTop: elOffsetTop - pagesOffsetTop + pagesScrollTop
-				});
+					_Pages.pagesTree.animate({
+						scrollTop: elOffsetTop - pagesOffsetTop + pagesScrollTop
+					});
 
-			} else if (bottomPositionOfElementInTree > _Pages.pagesTree.height()) {
-				// element is *below* the currently visible portion of the pages tree
+				} else if (bottomPositionOfElementInTree > _Pages.pagesTree.height()) {
+					// element is *below* the currently visible portion of the pages tree
 
-				_Pages.pagesTree.animate({
-					scrollTop: elOffsetTop + elHeight + pagesScrollTop - _Pages.pagesTree.prop('clientHeight')
-				});
+					_Pages.pagesTree.animate({
+						scrollTop: elOffsetTop + elHeight + pagesScrollTop - _Pages.pagesTree.prop('clientHeight')
+					});
+				}
+			};
+
+			if (_Entities.scrollTimer) {
+				window.clearTimeout(_Entities.scrollTimer);
 			}
-		};
 
-		if (_Entities.scrollTimer) {
-			window.clearTimeout(_Entities.scrollTimer);
+			_Entities.scrollTimer = window.setTimeout(scrollFn, 100);
 		}
-
-		_Entities.scrollTimer = window.setTimeout(scrollFn, 100);
 	},
-	highlightSelectedElementOnSlidoutOpen: () => {
+	highlightSelectedElementOnSlideoutOpen: () => {
 
 		// on slideout open the elements are not (always) refreshed --> highlight the currently active element (if there is one)
 		let selectedElementId = LSWrapper.getItem(_Entities.selectedObjectIdKey);
