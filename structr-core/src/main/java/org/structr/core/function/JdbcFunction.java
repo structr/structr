@@ -63,24 +63,27 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 
 					final Statement statement = connection.createStatement();
 
-					try (final ResultSet resultSet = statement.executeQuery(sql)) {
+					if (statement.execute(sql)) {
 
-						final ResultSetMetaData metaData = resultSet.getMetaData();
-						final int count                  = metaData.getColumnCount();
+						try (final ResultSet resultSet = statement.getResultSet()) {
 
-						while (resultSet.next()) {
+							final ResultSetMetaData metaData = resultSet.getMetaData();
+							final int count                  = metaData.getColumnCount();
 
-							final Map<String, Object> row = new LinkedHashMap<>();
+							while (resultSet.next()) {
 
-							for (int i=1; i<=count; i++) {
+								final Map<String, Object> row = new LinkedHashMap<>();
 
-								final String key   = metaData.getColumnName(i);
-								final Object value = resultSet.getObject(i);
+								for (int i=1; i<=count; i++) {
 
-								row.put(key, value);
+									final String key   = metaData.getColumnName(i);
+									final Object value = resultSet.getObject(i);
+
+									row.put(key, value);
+								}
+
+								data.add(row);
 							}
-
-							data.add(row);
 						}
 					}
 				}
@@ -89,11 +92,13 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 
 				if (t instanceof ClassNotFoundException) {
 
-					logException((ClassNotFoundException) t, "JDBC driver not found. Make sure the driver's JAR is located in the lib directory.", new Object[] { t.getMessage() });
+					logException(t, "JDBC driver not found. Make sure the driver's JAR is located in the lib directory.", new Object[] { t.getMessage() });
+					throw new FrameworkException(422, "JDBC driver not found. Make sure the driver's JAR is located in the lib directory.");
 
 				} else {
 
 					logException(t, t.getMessage(), sources);
+					throw new FrameworkException(422, t.getMessage());
 				}
 			}
 
