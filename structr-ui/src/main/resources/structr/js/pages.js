@@ -808,18 +808,12 @@ let _Pages = {
 				});
 			});
 
-			$('#add_page').on('click', function(e) {
-				e.stopPropagation();
-				blinkGreen($(this).parent());
-				Command.createSimplePage();
-			});
-
-			// page template widgets present? Display special create page dialog
+			// Display 'Create Page' dialog
 			_Widgets.fetchAllPageTemplateWidgets(function(result) {
 
-				if (result && result.length) {
+				//if (result && result.length) {
 
-					$('#add_template').on('click', function(e) {
+					$('#create_page').on('click', function(e) {
 
 						e.stopPropagation();
 
@@ -827,14 +821,18 @@ let _Pages = {
 
 						dialog.empty();
 						dialogMsg.empty();
-						dialog.append('<div id="template-tiles"></div>');
+						dialog.append('<div id="template-tiles"><div class="app-tile"><h4>Simple Page</h4><br><p>Create simple page</p><button class="action" id="create-simple-page">Create</button></div></div>');
+
+						$('#create-simple-page').on('click', function() {
+							Command.createSimplePage();
+						});
 
 						let container = $('#template-tiles');
 
 						for (let widget of result) {
 
 							let id = 'create-from-' + widget.id;
-							container.append('<div class="app-tile"><h4>' + widget.name + '</h4><p>' + widget.description + '</p><button class="action" id="' + id + '">Create Page</button></div>');
+							container.append('<div class="app-tile"><h4>' + widget.name + '</h4><br><p>' + widget.description + '</p><button class="action" id="' + id + '">Create</button></div>');
 							$('#' + id).on('click', function() {
 								Command.create({ type: 'Page' }, function(page) {
 									Structr.removeExpandedNode(page.id);
@@ -844,11 +842,11 @@ let _Pages = {
 						}
 					});
 
-				} else {
+				//} else {
 
 					// remove wizard button if no page templates exist (can be changed later when the dialog includes some hints etc.)
-					$('#add_template').closest('.row').remove();
-				}
+					//$('#add_template').closest('.row').remove();
+				//}
 			});
 
 			Structr.adaptUiToAvailableFeatures();
