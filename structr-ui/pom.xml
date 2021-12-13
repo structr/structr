@@ -135,6 +135,12 @@
 			<groupId>jmimemagic</groupId>
 			<artifactId>jmimemagic</artifactId>
 			<version>0.1.2</version>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
