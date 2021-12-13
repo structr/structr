@@ -809,44 +809,37 @@ let _Pages = {
 			});
 
 			// Display 'Create Page' dialog
-			_Widgets.fetchAllPageTemplateWidgets(function(result) {
+			$('#create_page').on('click', function(e) {
 
-				//if (result && result.length) {
+				_Widgets.fetchAllPageTemplateWidgets(function(result) {
 
-					$('#create_page').on('click', function(e) {
+					e.stopPropagation();
 
-						e.stopPropagation();
+					Structr.dialog('Select Template to Create New Page', function() {}, function() {});
 
-						Structr.dialog('Select Template to Create New Page', function() {}, function() {});
+					dialog.empty();
+					dialogMsg.empty();
+					dialog.append('<div id="template-tiles"><div class="app-tile"><h4>Simple Page</h4><br><p>Create simple page</p><button class="action" id="create-simple-page">Create</button></div></div>');
 
-						dialog.empty();
-						dialogMsg.empty();
-						dialog.append('<div id="template-tiles"><div class="app-tile"><h4>Simple Page</h4><br><p>Create simple page</p><button class="action" id="create-simple-page">Create</button></div></div>');
-
-						$('#create-simple-page').on('click', function() {
-							Command.createSimplePage();
-						});
-
-						let container = $('#template-tiles');
-
-						for (let widget of result) {
-
-							let id = 'create-from-' + widget.id;
-							container.append('<div class="app-tile"><h4>' + widget.name + '</h4><br><p>' + widget.description + '</p><button class="action" id="' + id + '">Create</button></div>');
-							$('#' + id).on('click', function() {
-								Command.create({ type: 'Page' }, function(page) {
-									Structr.removeExpandedNode(page.id);
-									Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
-								});
-							});
-						}
+					$('#create-simple-page').on('click', function() {
+						Command.createSimplePage();
 					});
 
-				//} else {
+					let container = $('#template-tiles');
 
-					// remove wizard button if no page templates exist (can be changed later when the dialog includes some hints etc.)
-					//$('#add_template').closest('.row').remove();
-				//}
+					for (let widget of result) {
+
+						let id = 'create-from-' + widget.id;
+						container.append('<div class="app-tile"><h4>' + widget.name + '</h4><br><p>' + (widget.description || '') + '</p><button class="action" id="' + id + '">Create</button></div>');
+						$('#' + id).on('click', function() {
+							Command.create({ type: 'Page' }, function(page) {
+								Structr.removeExpandedNode(page.id);
+								Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
+							});
+						});
+					}
+				});
+
 			});
 
 			Structr.adaptUiToAvailableFeatures();
