@@ -1518,7 +1518,6 @@ i.button {
 
 .nodeSelected {
 	background-color: var(--light-yellow-bg) ! important;
-	box-shadow: 0 0 36px var(--gray-opacity-20);
 }
 
 button.action {

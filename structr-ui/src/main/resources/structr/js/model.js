@@ -702,14 +702,6 @@ StructrUser.prototype.remove = function(groupId) {
 };
 
 StructrUser.prototype.append = function(groupId) {
-	if (Structr.isModuleActive(_Security)) {
-		if (groupId) {
-			let grpContainer = $('.groupid_' + groupId, $(_Security.groupList));
-			_UsersAndGroups.appendMemberToGroup(this, StructrModel.obj(groupId), grpContainer);
-		} else {
-			_UsersAndGroups.appendUserToUserList(this);
-		}
-	}
 };
 
 /**************************************
@@ -735,20 +727,11 @@ StructrGroup.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrGroup.prototype.append = function(groupId) {
-	if (Structr.isModuleActive(_Security)) {
-		let container = $(_Security.groupList);
-		if (groupId) {
-			let grpContainer = $('.groupid_' + groupId, container);
-			StructrModel.expand(_UsersAndGroups.appendMemberToGroup(this, StructrModel.obj(groupId), grpContainer), this);
-		} else {
-			StructrModel.expand(_UsersAndGroups.appendGroupElement(container, this), this);
-		}
-	}
 };
 
 StructrGroup.prototype.remove = function() {
 	if (Structr.isModuleActive(_Security)) {
-		var groupEl = Structr.node(this.id, '.groupid_');
+		let groupEl = Structr.node(this.id, '.groupid_');
 		if (groupEl && groupEl.length) {
 			groupEl.remove();
 		}

@@ -228,6 +228,11 @@
 	border-top: none;
 }
 
+.crud-table tr td textarea.__value {
+	min-width: 20rem;
+	min-height: 10rem;
+}
+
 .crud-table tr td .array-attr {
 	position: relative;
 }
