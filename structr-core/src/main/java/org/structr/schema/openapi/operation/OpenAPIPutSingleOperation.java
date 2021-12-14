@@ -18,20 +18,21 @@
  */
 package org.structr.schema.openapi.operation;
 
+import org.structr.schema.export.StructrTypeDefinition;
+import org.structr.schema.openapi.common.OpenAPIAnyOf;
+import org.structr.schema.openapi.common.OpenAPIResponseReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
+import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
+import org.structr.schema.openapi.request.OpenAPIRequestResponse;
+
 import java.util.List;
 import java.util.Map;
-
-import org.structr.common.PropertyView;
-import org.structr.schema.export.StructrTypeDefinition;
-import org.structr.schema.openapi.common.OpenAPIAllOf;
-import org.structr.schema.openapi.common.OpenAPIResponseReference;
-import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
-import org.structr.schema.openapi.common.OpenAPISchemaReference;
-import org.structr.schema.openapi.request.OpenAPIRequestResponse;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class OpenAPIPutSingleOperation extends OpenAPIOperation {
 
-	public OpenAPIPutSingleOperation(final StructrTypeDefinition type) {
+	public OpenAPIPutSingleOperation(final StructrTypeDefinition type, final Set<String> viewNames) {
 
 		super(// summary
 			"Updates an existing object of type " + type.getName(),
@@ -52,11 +53,9 @@ public class OpenAPIPutSingleOperation extends OpenAPIOperation {
 
 			// request body
 			new OpenAPIRequestResponse("Properties to update.",
-					new OpenAPIAllOf(
-						new OpenAPISchemaReference(type, PropertyView.Public),
-						new OpenAPISchemaReference(type, PropertyView.All)
-					)
-
+				new OpenAPIAnyOf(
+						viewNames.stream().map( viewName -> new OpenAPISchemaReference(type, viewName)).collect(Collectors.toList())
+				)
 			),
 
 			// responses

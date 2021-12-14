@@ -252,6 +252,26 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		return map;
 	}
 
+	private Set<String> getViewNamesOfType (StructrTypeDefinition type, final String view) {
+
+		ConfigurationProvider configuration = StructrApp.getConfiguration();
+		Class typeClass = configuration.getNodeEntityClass(type.name);
+
+		if (typeClass == null) {
+			Map<String, Class> interfaces = configuration.getInterfaces();
+			typeClass = interfaces.get(type.name);
+		};
+
+		Set<String> viewNames = configuration.getPropertyViewsForType(typeClass);
+		viewNames = viewNames.stream().filter(viewName -> {
+			if (StringUtils.isNotEmpty(view) && !StringUtils.equals(view, viewName)) {
+				return false;
+			}
+			return StringUtils.equals(viewName, "all") || !StructrTypeDefinition.VIEW_BLACKLIST.contains(viewName);
+		}).collect(Collectors.toSet());
+		return viewNames;
+	}
+
 	private Map<String, Object> serializeOpenAPIForTypes (Set<StructrTypeDefinition> typeDefinitions, final Map<String, Object> schemas, final String tag, String view) {
 
 		final Map<String, Object> map = new TreeMap<>();
@@ -261,21 +281,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 			if (StringUtils.isNotEmpty(view) || typeWhiteList.contains(type.getName()) || type.isSelected(tag) && type.includeInOpenAPI()) {
 
-				ConfigurationProvider configuration = StructrApp.getConfiguration();
-				Class typeClass = configuration.getNodeEntityClass(type.name);
-
-				if (typeClass == null) {
-					Map<String, Class> interfaces = configuration.getInterfaces();
-					typeClass = interfaces.get(type.name);
-				};
-
-				Set<String> viewNames = configuration.getPropertyViewsForType(typeClass);
-				viewNames = viewNames.stream().filter(viewName -> {
-					if (StringUtils.isNotEmpty(view) && !StringUtils.equals(view, viewName)) {
-						return false;
-					}
-					return StringUtils.equals(viewName, "all") || !StructrTypeDefinition.VIEW_BLACKLIST.contains(viewName);
-				}).collect(Collectors.toSet());
+				Set<String> viewNames = this.getViewNamesOfType(type, view);
 
 				for (String viewName : viewNames) {
 
@@ -339,7 +345,9 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 			if (type.isSelected(tag) && (StringUtils.isNotBlank(tag) && type.includeInOpenAPI())) {
 
-				map.putAll(type.serializeOpenAPIOperations(tag));
+				Set<String> viewNames = this.getViewNamesOfType(type, null);
+
+				map.putAll(type.serializeOpenAPIOperations(tag, viewNames));
 			}
 		}
 

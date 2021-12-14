@@ -18,17 +18,19 @@
  */
 package org.structr.schema.openapi.operation;
 
-import java.util.Map;
-import org.structr.common.PropertyView;
 import org.structr.schema.export.StructrTypeDefinition;
-import org.structr.schema.openapi.common.OpenAPIAllOf;
+import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.common.OpenAPIResponseReference;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public class OpenAPIPostOperation extends OpenAPIOperation {
 
-	public OpenAPIPostOperation(final StructrTypeDefinition type) {
+	public OpenAPIPostOperation(final StructrTypeDefinition type, final Set<String> viewNames) {
 
 		super(// summary
 			"Creates a new object of type " + type.getName(),
@@ -47,13 +49,9 @@ public class OpenAPIPostOperation extends OpenAPIOperation {
 
 			// request body
 			new OpenAPIRequestResponse("Contents of new " + type.getName() + " object to add.",
-					new OpenAPIAllOf(
-							new OpenAPISchemaReference(type, PropertyView.Public),
-							new OpenAPISchemaReference(type, PropertyView.All)
+					new OpenAPIAnyOf(
+							viewNames.stream().map( viewName -> new OpenAPISchemaReference(type, viewName)).collect(Collectors.toList())
 					)
-
-					//new OpenAPIBaseSchemaWrite(),
-					//new OpenAPIStructrTypeSchemaInput(type, PropertyView.Custom, 0)
 			),
 
 			// response
