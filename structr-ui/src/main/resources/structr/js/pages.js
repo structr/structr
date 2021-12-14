@@ -1247,7 +1247,7 @@ let _Pages = {
 				let clickedObjectIsCurrentlySelected = _Entities.selectedObject && _Entities.selectedObject.id === entity.id;
 				let isElementBeingEditedCurrently    = (_Pages.centerPane.dataset['elementId'] === entity.id);
 
-                		_Entities.selectElement(element.closest('.node')[0], entity);
+				_Entities.selectElement(element.closest('.node')[0], entity);
 
 				if (!clickedObjectIsCurrentlySelected || !isElementBeingEditedCurrently) {
 

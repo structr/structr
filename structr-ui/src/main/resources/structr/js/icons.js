@@ -82,7 +82,6 @@ let _Icons = {
 	delete_content_icon: 'icon/page_white_delete.png',
 	template_icon: 'icon/layout_content.png',
 	active_template_icon: 'icon/layout_yellow.png',
-	comp_templ_icon: 'icon/layout_yellow.png',
 	icon_shared_template: 'icon/layout_yellow.png',
 	comment_icon: 'icon/comment.png',
 	repeater_icon: 'icon/bricks.png',
@@ -224,7 +223,6 @@ let _Icons = {
 			case _Icons.delete_content_icon:          return 'sprite-page_white_delete';
 			case _Icons.template_icon:                return 'sprite-layout_content';
 			case _Icons.active_template_icon:         return 'sprite-layout_yellow';
-			case _Icons.comp_templ_icon:              return 'sprite-layout_yellow';
 			case _Icons.icon_shared_template:         return 'sprite-layout_yellow';
 			case _Icons.comment_icon:                 return 'sprite-comment';
 			case _Icons.repeater_icon:                return 'sprite-bricks';

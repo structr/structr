@@ -31,6 +31,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.common.util.UrlUtils;
 import org.slf4j.Logger;
@@ -1785,7 +1787,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	// ----- OpenAPI methods -----
-	public Map<String, Object> serializeOpenAPIOperations(final String tag) {
+	public Map<String, Object> serializeOpenAPIOperations(final String tag, Set<String> viewNames) {
+
 
 		final Map<String, Object> root      = new LinkedHashMap<>();
 		final Map<String, Object> singleOps = new LinkedHashMap<>();
@@ -1801,7 +1804,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		multiOps.put("get",    new OpenAPIGetMultipleOperation(this, PropertyView.Public));
 		//multiOps.put("patch",  new OpenAPIPatchOperation(this));
-		multiOps.put("post",   new OpenAPIPostOperation(this));
+		multiOps.put("post",   new OpenAPIPostOperation(this, viewNames));
 		multiOps.put("delete", new OpenAPIDeleteMultipleOperation(this));
 
 
@@ -1813,7 +1816,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		root.put("/" + name + "/{uuid}", singleOps);
 
 		singleOps.put("get",    new OpenAPIGetSingleOperation(this, PropertyView.Public));
-		singleOps.put("put",    new OpenAPIPutSingleOperation(this));
+		singleOps.put("put",    new OpenAPIPutSingleOperation(this, viewNames));
 		singleOps.put("delete", new OpenAPIDeleteSingleOperation(this));
 
 		// methods

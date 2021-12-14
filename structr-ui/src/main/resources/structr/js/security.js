@@ -187,7 +187,12 @@ let _UsersAndGroups = {
 				addUserButton.querySelector('span').textContent = 'Add ' + userTypeSelect.value;
 			});
 
-			let userPager = _Pager.addPager('users', $(_Security.userControls), true, 'User', 'public', null, null, 'id,isUser,name,type,isAdmin');
+			let userPager = _Pager.addPager('users', $(_Security.userControls), true, 'User', 'public', (users) => {
+				for (let user of users) {
+					let userModelObj = StructrModel.create(user);
+					_UsersAndGroups.appendUserToUserList(userModelObj);
+				}
+			}, null, 'id,isUser,name,type,isAdmin');
 			userPager.cleanupFunction = function () {
 				_Security.userList.innerHTML = '';
 			};
@@ -198,10 +203,9 @@ let _UsersAndGroups = {
 	createUserElement:function (user) {
 
 		let displayName = ((user.name) ? user.name : ((user.eMail) ? '[' + user.eMail + ']' : '[unnamed]'));
-		let userIcon    = _Icons.getFullSpriteClass((user.isAdmin === true) ? _Icons.user_red_icon : ((user.type === 'LDAPUser') ? _Icons.user_orange_icon : _Icons.user_icon));
 
 		let userElement = $('<div class="node user userid_' + user.id + '">'
-				+ '<i class="typeIcon ' + userIcon + '"></i>'
+				+ '<i class="typeIcon ' + _UsersAndGroups.getIconForPrincipal(user) + '"></i>'
 				+ '<b title="' + displayName + '" class="name_ abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + displayName + '</b>'
 				+ '</div>'
 		);
@@ -210,6 +214,14 @@ let _UsersAndGroups = {
 		_UsersAndGroups.makeDraggable(userElement);
 
 		return userElement;
+	},
+	getIconForPrincipal: (principal) => {
+		return _Icons.getFullSpriteClass(
+			principal.isGroup ?
+				((principal.type === 'LDAPGroup') ? _Icons.group_link_icon : _Icons.group_icon)
+				:
+				((principal.isAdmin === true) ? _Icons.user_red_icon : ((principal.type === 'LDAPUser') ? _Icons.user_orange_icon : _Icons.user_icon))
+		);
 	},
 	updateUserElementAfterModelChange: (user) => {
 
@@ -221,8 +233,7 @@ let _UsersAndGroups = {
 
 				let icon = userEl.querySelector('.typeIcon');
 				if (icon) {
-					let userIcon = _Icons.getFullSpriteClass((user.isAdmin === true) ? _Icons.user_red_icon : ((user.type === 'LDAPUser') ? _Icons.user_orange_icon : _Icons.user_icon));
-					icon.setAttribute('class', 'typeIcon ' + userIcon);
+					icon.setAttribute('class', 'typeIcon ' + _UsersAndGroups.getIconForPrincipal(user));
 				}
 
 				let userName = userEl.querySelector('.name_');
@@ -256,17 +267,20 @@ let _UsersAndGroups = {
 					// can have members which are not loaded yet
 					// if a user is removed from this group the model will try to filter its members array (which is null atm) which leads to an error, therefor fetch it
 					Command.get(member.id, null, (g) => {
-						StructrModel.createFromData(g, group.id, true);
+						let groupModelObj = StructrModel.createFromData(g);
+						_UsersAndGroups.appendMemberToGroup(groupModelObj, group, groupDiv);
 					});
 
 				} else {
 
 					// member is a user, no danger
-					StructrModel.createFromData(member, group.id, true);
+					let userModelObj = StructrModel.createFromData(member);
+					_UsersAndGroups.appendMemberToGroup(userModelObj, group, groupDiv);
 				}
 
 			} else {
-				_UsersAndGroups.appendMemberToGroup(member, group, groupDiv);
+				let memberModelObj = StructrModel.createFromData(member);
+				_UsersAndGroups.appendMemberToGroup(memberModelObj, group, groupDiv);
 			}
 		}
 	},
@@ -275,7 +289,7 @@ let _UsersAndGroups = {
 		let groupId    = group.id;
 		let isExpanded = Structr.isExpanded(groupId);
 
-		_Entities.appendExpandIcon(groupEl, group, true, isExpanded);
+		_Entities.appendExpandIcon(groupEl, group, true, isExpanded, (members) => { _UsersAndGroups.appendMembersToGroup(members, group, groupEl); } );
 
 		if (!isExpanded) {
 			return;
@@ -310,17 +324,6 @@ let _UsersAndGroups = {
 			if (!alreadyShownInMembers && !alreadyShownInParents) {
 
 				let groupDiv = _UsersAndGroups.createGroupElement(member);
-
-				// $('.delete_icon', groupDiv).remove();
-
-				// groupDiv.append('<i title="Remove \'' + member.name + '\' from group \'' + group.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.user_delete_icon) + '" />');
-				//
-				// $('.delete_icon', groupDiv).on('click', function(e) {
-				// 	e.stopPropagation();
-				// 	Command.removeFromCollection(group.id, 'members', member.id, function () {
-				// 		_UsersAndGroups.deactivateNodeHover(member.id, prefix);
-				// 	});
-				// });
 
 				groupEl.append(groupDiv);
 
@@ -371,7 +374,12 @@ let _UsersAndGroups = {
 				addGroupButton.querySelector('span').textContent = 'Add ' + groupTypeSelect.value;
 			});
 
-			let groupPager = _Pager.addPager('groups', $(_Security.groupControls), true, 'Group', 'public');
+			let groupPager = _Pager.addPager('groups', $(_Security.groupControls), true, 'Group', 'public', (groups) => {
+				for (let group of groups) {
+					let groupModelObj = StructrModel.create(group);
+					_UsersAndGroups.appendGroupElement($(_Security.groupList), groupModelObj);
+				}
+			});
 			groupPager.cleanupFunction = function () {
 				_Security.groupList.innerHTML = '';
 			};
@@ -382,9 +390,8 @@ let _UsersAndGroups = {
 	createGroupElement: function (group) {
 
 		let displayName = ((group.name) ? group.name : '[unnamed]');
-		let groupIcon = ((group.type === 'LDAPGroup') ? _Icons.getFullSpriteClass(_Icons.group_link_icon) : _Icons.getFullSpriteClass(_Icons.group_icon));
 		let groupElement = $('<div class="node group groupid_' + group.id + '">'
-				+ '<i class="typeIcon ' + groupIcon + '" />'
+				+ '<i class="typeIcon ' + _UsersAndGroups.getIconForPrincipal(group) + '"></i>'
 				+ '<b title="' + displayName + '" class="name_  abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + displayName + '</b>'
 				+ '</div>'
 		);
@@ -428,8 +435,7 @@ let _UsersAndGroups = {
 
 				let icon = userEl.querySelector('.typeIcon');
 				if (icon) {
-					let groupIcon = ((group.type === 'LDAPGroup') ? _Icons.getFullSpriteClass(_Icons.group_link_icon) : _Icons.getFullSpriteClass(_Icons.group_icon));
-					icon.setAttribute('class', 'typeIcon ' + groupIcon);
+					icon.setAttribute('class', 'typeIcon ' + _UsersAndGroups.getIconForPrincipal(group));
 				}
 
 				let groupName = userEl.querySelector('.name_');
@@ -448,13 +454,14 @@ let _UsersAndGroups = {
 		let groupDiv    = _UsersAndGroups.createGroupElement(group);
 		element.append(groupDiv);
 
-		_Entities.appendExpandIcon(groupDiv, group, hasChildren, Structr.isExpanded(group.id));
+		_Entities.appendExpandIcon(groupDiv, group, hasChildren, Structr.isExpanded(group.id), (members) => { _UsersAndGroups.appendMembersToGroup(members, group, groupDiv); } );
 		_Entities.appendContextMenuIcon(groupDiv, group);
 		_Elements.enableContextMenuOnElement(groupDiv, group);
 		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.groupid_');
 
-		if (hasChildren) {
-			_UsersAndGroups.appendMembersToGroup(group.members, group, groupDiv);
+		if (hasChildren && Structr.isExpanded(group.id)) {
+			// do not directly use group.members (it does not contain all necessary information)
+			Command.children(group.id, (members) => { _UsersAndGroups.appendMembersToGroup(members, group, groupDiv); });
 		}
 
 		return groupDiv;
