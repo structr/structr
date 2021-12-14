@@ -18,34 +18,24 @@
  */
 package org.structr.web.entity.html;
 
-import java.net.URI;
-import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
+import org.structr.common.PropertyView;
+import org.structr.schema.SchemaService;
 import org.structr.web.entity.dom.DOMElement;
 
-public interface Video extends DOMElement {
+import java.net.URI;
+
+public interface Picture extends DOMElement {
 
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Video");
+		final JsonObjectType type = schema.addType("Picture");
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Video"));
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Picture"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 		type.setCategory("html");
 
-		type.addStringProperty("_html_src",         PropertyView.Html);
-		type.addStringProperty("_html_crossorigin", PropertyView.Html);
-		type.addStringProperty("_html_poster",      PropertyView.Html);
-		type.addStringProperty("_html_preload",     PropertyView.Html);
-		type.addStringProperty("_html_autoplay",    PropertyView.Html);
-		type.addStringProperty("_html_playsinline", PropertyView.Html);
-		type.addStringProperty("_html_loop",        PropertyView.Html);
-		type.addStringProperty("_html_muted",       PropertyView.Html);
-		type.addStringProperty("_html_controls",    PropertyView.Html);
-		type.addStringProperty("_html_width",       PropertyView.Html);
-		type.addStringProperty("_html_height",      PropertyView.Html);
 	}}
 }
