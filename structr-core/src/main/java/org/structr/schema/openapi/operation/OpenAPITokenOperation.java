@@ -57,13 +57,9 @@ public class OpenAPITokenOperation extends LinkedHashMap<String, Object> {
 			new OpenAPIRequestResponse(
 				"Request body",
 				new OpenAPIOneOf(
-					new OpenAPIObjectSchema(
-						new OpenAPIPrimitiveSchema("Username of user to log in.", "name",	 "string"),
-						new OpenAPIPrimitiveSchema("Password of the user.",	   "password", "string")
-					),
-					new OpenAPIObjectSchema(
-						new OpenAPIPrimitiveSchema("A refresh token from a previous call to the resource.", "refresh_token",	"string")
-					)
+					new OpenAPISchemaReference("UsernameLoginBody"),
+					new OpenAPISchemaReference("EMailLoginBody"),
+					new OpenAPISchemaReference("RefreshTokenLoginBody")
 				),
 				Map.of(
 					"name",	 "admin",

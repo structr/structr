@@ -57,14 +57,8 @@ public class OpenAPILoginOperation extends LinkedHashMap<String, Object> {
 			new OpenAPIRequestResponse(
 				"Request body",
 				new OpenAPIOneOf(
-					new OpenAPIObjectSchema(
-						new OpenAPIPrimitiveSchema("Username of user to log in.", "name",     "string"),
-						new OpenAPIPrimitiveSchema("Password of the user.",       "password", "string")
-					),
-					new OpenAPIObjectSchema(
-						new OpenAPIPrimitiveSchema("eMail of user to log in.", "eMail",    "string"),
-						new OpenAPIPrimitiveSchema("Password of the user.",    "password", "string")
-					)
+					new OpenAPISchemaReference("UsernameLoginBody"),
+					new OpenAPISchemaReference("EMailLoginBody")
 				),
 				Map.of(
 					"name",     "admin",
