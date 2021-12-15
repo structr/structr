@@ -81,6 +81,7 @@ let _Icons = {
 	active_content_icon: 'icon/page_yellow.png',
 	delete_content_icon: 'icon/page_white_delete.png',
 	template_icon: 'icon/layout_content.png',
+	comp_templ_icon: 'icon/layout_yellow.png',
 	active_template_icon: 'icon/layout_yellow.png',
 	icon_shared_template: 'icon/layout_yellow.png',
 	comment_icon: 'icon/comment.png',
