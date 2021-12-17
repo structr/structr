@@ -333,9 +333,13 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
 		// If filterContainer is given, set as filter element. Default is the pager container itself.
 		this.filterEl = filterContainer || pagerObj.pager;
 
+		let foundFilters = [];
+
 		$('input.filter[type=text]', this.filterEl).each(function (idx, elem) {
 			let $elem           = $(elem);
 			let filterAttribute = $elem.data('attribute');
+
+			foundFilters.push(filterAttribute);
 
 			if (_Pager.pagerFilters[pagerObj.id][filterAttribute]) {
 				$elem.val(_Pager.pagerFilters[pagerObj.id][filterAttribute]);
@@ -414,6 +418,8 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
 			let $elem           = $(elem);
 			let filterAttribute = $elem.data('attribute');
 
+			foundFilters.push(filterAttribute);
+
 			if (_Pager.pagerFilters[pagerObj.id][filterAttribute]) {
 				$elem.prop('checked', _Pager.pagerFilters[pagerObj.id][filterAttribute]);
 			}
@@ -431,6 +437,22 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
 				pagerObj.transportFunction();
 			}
 		});
+
+		// remove filters which are either removed or temporarily disabled due to database limitations
+		// for example resource access grants filtering for "active" grants
+		let storedKeys = Object.keys(_Pager.pagerFilters[pagerObj.id]);
+		let update     = false;
+
+		for (let key of storedKeys) {
+			if (foundFilters.indexOf(key) === -1) {
+				update = true;
+				delete _Pager.pagerFilters[pagerObj.id][key];
+			}
+		}
+
+		if (update) {
+			this.transportFunction();
+		}
 	};
 
 	/**

@@ -360,6 +360,7 @@ $(function() {
 });
 
 let Structr = {
+	isInMemoryDatabase: undefined,
 	modules: {},
 	activeModules: {},
 	moduleAvailabilityCallbacks: [],
@@ -1334,7 +1335,9 @@ let Structr = {
 
 				dbInfoEl.html('<span><i class="' + _Icons.getFullSpriteClass(icon) + '" title="' + driverName + '"></span>');
 
-				if (envInfo.databaseService === 'MemoryDatabaseService') {
+				Structr.isInMemoryDatabase = (envInfo.databaseService === 'MemoryDatabaseService');
+				if (Structr.isInMemoryDatabase === true) {
+					Structr.isInMemoryDatabase = true;
 					Structr.appendInMemoryInfoToElement($('span', dbInfoEl), $('span i', dbInfoEl));
 
 					if (isLogin) {
