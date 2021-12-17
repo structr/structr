@@ -67,11 +67,11 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 	}
 
 	public String getName() {
-		return (String)get(KEY_NAME);
+		return String.valueOf(get(KEY_NAME));
 	}
 
 	public String getDisplayName() {
-		return (String)get(KEY_DISPLAYNAME);
+		return String.valueOf(get(KEY_DISPLAYNAME));
 	}
 
 	public void setUrl(final String url) {
@@ -87,7 +87,7 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 	}
 
 	public String getUsername() {
-		return (String)get(KEY_USERNAME);
+		return String.valueOf(get(KEY_USERNAME));
 	}
 
 	public void setPassword(final String password) {
@@ -95,7 +95,7 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 	}
 
 	public String getPassword() {
-		return (String)get(KEY_PASSWORD);
+		return String.valueOf(get(KEY_PASSWORD));
 	}
 
 	public boolean isActive() {
