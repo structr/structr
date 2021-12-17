@@ -518,7 +518,6 @@ let _ResourceAccessGrants = {
 		}
 
 		let pagerTransportFunction = Structr.isInMemoryDatabase ? null : _ResourceAccessGrants.customPagerTransportFunction;
-		let pagerCallbackFunction  = Structr.isInMemoryDatabase ? _ResourceAccessGrants.customInMemoryCallbackFunction : null;
 
 		_Security.resourceAccesses.empty();
 
