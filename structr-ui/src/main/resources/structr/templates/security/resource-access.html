@@ -4,7 +4,9 @@
 	</div>
 	<div id="filter-resource-access-grants" class="flex items-center">
 		<input type="text" class="filter" data-attribute="signature" placeholder="Filter/Search...">
-		<label class="ui-setting-checkbox inline-flex ml-4"><input type="checkbox" class="filter" data-attribute="flags" id="show-grants-in-use"> Show only grants in use</label>
+		<label class="ui-setting-checkbox inline-flex ml-4">
+			<input type="checkbox" id="show-grants-in-use" ${(Structr.isInMemoryDatabase ? 'disabled title="This feature can not be used when working on an in-memory database"' : 'class="filter" data-attribute="flags"')}> Show only grants in use
+		</label>
 	</div>
 </div>
 

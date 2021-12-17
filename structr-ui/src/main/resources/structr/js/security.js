@@ -511,6 +511,14 @@ let _ResourceAccessGrants = {
 
 	refreshResourceAccesses: function() {
 
+		if (Structr.isInMemoryDatabase === undefined) {
+			window.setTimeout(() => {
+				_ResourceAccessGrants.refreshResourceAccesses();
+			}, 500);
+		}
+
+		let pagerTransportFunction = Structr.isInMemoryDatabase ? null : _ResourceAccessGrants.customPagerTransportFunction;
+
 		_Security.resourceAccesses.empty();
 
 		Structr.fetchHtmlTemplate('security/resource-access', { showVisibilityFlags: UISettings.getValueForSetting(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey) }, function (html) {
@@ -519,7 +527,7 @@ let _ResourceAccessGrants = {
 
 			Structr.activateCommentsInElement(_Security.resourceAccesses);
 
-			let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', undefined, undefined, _ResourceAccessGrants.customPagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees');
+			let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', undefined, undefined, pagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees');
 
 			raPager.cleanupFunction = function () {
 				$('#resourceAccessesTable tbody tr').remove();
