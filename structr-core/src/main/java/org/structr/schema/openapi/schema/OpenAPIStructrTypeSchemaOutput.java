@@ -34,6 +34,18 @@ import org.structr.schema.openapi.common.OpenAPISchemaReference;
 
 public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 
+	public OpenAPIStructrTypeSchemaOutput(final String description, final String type, final Map properties) {
+
+		put("description", description);
+		put("type",       type);
+
+		if (type == "object") {
+			put("properties",  properties);
+		} else {
+			put("items",  properties);
+		}
+	}
+
 	public OpenAPIStructrTypeSchemaOutput(final StructrTypeDefinition<?> type, final String viewName, final int level) {
 
 		if (level > 3) {

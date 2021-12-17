@@ -38,12 +38,11 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.openapi.common.OpenAPIAllOf;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
-import org.structr.schema.openapi.result.OpenAPIExampleAnyResult;
-import org.structr.schema.openapi.schema.OpenAPIArraySchema;
-import org.structr.schema.openapi.schema.OpenAPIResultSchema;
-import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
+import org.structr.schema.openapi.result.*;
+import org.structr.schema.openapi.schema.*;
 
 /**
  *
@@ -191,6 +190,28 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			schemas.putAll(otherReferencesMap);
 		}
 
+		// now generate the response schemas for each type schema reference
+		// Single and Multiple ReesponseSchemas only differ in the 'result' key. It's either object or array.
+		Iterator<Entry<String, Object>> iterator = schemas.entrySet().iterator();
+		Map<String, Object> additionalSchemas = new HashMap<>();
+		while (iterator.hasNext()) {
+			Entry<String, Object> entry = iterator.next();
+
+			additionalSchemas.put(entry.getKey() + "SingleResponseSchema", new OpenAPIAllOf(
+				new OpenAPISchemaReference("GetBaseResponse"),
+				new OpenAPISingleResponseSchema(new OpenAPISchemaReference(entry.getKey()))
+			));
+
+			additionalSchemas.put(entry.getKey() + "MultipleResponseSchema", new OpenAPIAllOf(
+				new OpenAPISchemaReference("GetBaseResponse"),
+				new OpenAPIMultipleResponseSchema(new OpenAPISchemaReference(entry.getKey()))
+			));
+		}
+
+		StructrTypeDefinitions.openApiSerializedSchemaTypes.clear();
+		schemas.putAll(additionalSchemas);
+
+
 		return schemas;
 	}
 
@@ -217,20 +238,25 @@ public class StructrTypeDefinitions implements StructrDefinition {
 					final String typeName = type.getName() + (viewName == null || StringUtils.equals(PropertyView.Public, viewName) ? "" : "." + viewName);
 					Map<String, Object> multipleItemsMap = new HashMap<>();
 
+					String viewNameStringForReference = StringUtils.equals(viewName, PropertyView.Public) ? "" : "." + viewName;
 					map.put(typeName + "MultipleResponse",
-							new OpenAPIRequestResponse("The request was executed successfully.",
-									new OpenAPISchemaReference(type, viewName),
-									new OpenAPIExampleAnyResult(List.of(), true),
-									null,
-									true,
-									"array"
+							new OpenAPIRequestResponse(
+								"The request was executed successfully.",
+								new OpenAPISchemaReference(type.getName() + viewNameStringForReference + "MultipleResponseSchema"),
+								new OpenAPIExampleAnyResult(List.of(), true),
+								null,
+								false,
+								null
 							)
 					);
 
 					map.put(typeName + "SingleResponse",
 						new OpenAPIRequestResponse("The request was executed successfully.",
-							new OpenAPISchemaReference(type, viewName),
-							new OpenAPIExampleAnyResult(Map.of(), true)
+							new OpenAPISchemaReference(type.getName() + viewNameStringForReference + "SingleResponseSchema"),
+							new OpenAPIExampleAnyResult(Map.of(), true),
+							null,
+							false,
+							null
 						)
 					);
 				}
@@ -241,7 +267,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 						map.put(type.getName() + "." + method.getName() + "MethodResponse",
 							new OpenAPIRequestResponse("The request was executed successfully.",
-								new OpenAPISchemaReference("#/components/schemas/" + type.getName() + "." + method.getName() + "ResponseSchema", null)
+								new OpenAPISchemaReference(type.getName() + "." + method.getName() + "ResponseSchema", null)
 							)
 						);
 					}

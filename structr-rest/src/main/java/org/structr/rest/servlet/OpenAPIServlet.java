@@ -38,6 +38,7 @@ import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrSchemaDefinition;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.export.StructrTypeDefinitions;
+import org.structr.schema.openapi.common.OpenAPIAllOf;
 import org.structr.schema.openapi.common.OpenAPIResponseReference;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.*;
@@ -59,7 +60,10 @@ import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperat
 import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationSync;
 import org.structr.schema.openapi.parameter.OpenAPIQueryParameter;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
+import org.structr.schema.openapi.result.OpenAPICreateResponseSchema;
 import org.structr.schema.openapi.result.OpenAPIExampleAnyResult;
+import org.structr.schema.openapi.result.OpenAPISingleResponseSchema;
+import org.structr.schema.openapi.result.OpenAPIWriteResponseSchema;
 import org.structr.schema.openapi.schema.OpenAPIArraySchema;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
@@ -266,8 +270,52 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		final Map<String, Object> map = new TreeMap<>();
 
+		final StructrTypeDefinitions definitions = schema.getTypeDefinitionsObject();
+		map.putAll(definitions.serializeOpenAPI(map, tag));
+
 		// base classes
 		map.put("AbstractNode", new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, PropertyView.Public, 0));
+
+		// base responses for GET and PUT,POST operations
+		Map<String, Object> getResponseBaseSchema = new HashMap<>();
+		getResponseBaseSchema.putAll(new OpenAPIPrimitiveSchema("query_time", "query_time", "number", null, "0.001659655", false));
+		getResponseBaseSchema.putAll(new OpenAPIPrimitiveSchema("result_count", "result_count", "integer",null, "1", false));
+		getResponseBaseSchema.putAll(new OpenAPIPrimitiveSchema("page_count", "page_count", "integer",null, "1", false));
+		getResponseBaseSchema.putAll(new OpenAPIPrimitiveSchema("result_count_time", "result_count_time", "number", null, "0.000195496", false));
+		getResponseBaseSchema.putAll(new OpenAPIPrimitiveSchema("serialization_time", "serialization_time", "number", null, "0.001270261", false));
+		map.put("GetBaseResponse", new OpenAPIStructrTypeSchemaOutput("Response schema used by GET operations. Responses also contain the key 'result' as either an object or an array depending on the GET resource.", "object", getResponseBaseSchema));
+
+		Map<String, Object> writeResponseBaseSchema = new HashMap<>();
+		writeResponseBaseSchema.putAll(new OpenAPIPrimitiveSchema("result_count", "result_count", "integer",null, "1", false));
+		writeResponseBaseSchema.putAll(new OpenAPIPrimitiveSchema("page_count", "page_count", "integer",null, "1", false));
+		writeResponseBaseSchema.putAll(new OpenAPIPrimitiveSchema("result_count_time", "result_count_time", "number", null, "0.000195496", false));
+		writeResponseBaseSchema.putAll(new OpenAPIPrimitiveSchema("serialization_time", "serialization_time", "number", null, "0.001270261", false));
+		map.put("WriteBaseResponse", new OpenAPIStructrTypeSchemaOutput("Response schema used by PUT and POST operations.", "object", writeResponseBaseSchema));
+
+		map.put("WriteResponse", new OpenAPIAllOf(
+				new OpenAPISchemaReference("WriteBaseResponse"),
+				new OpenAPIWriteResponseSchema()
+		));
+
+		map.put("CreateResponse", new OpenAPIAllOf(
+				new OpenAPISchemaReference("WriteBaseResponse"),
+				new OpenAPICreateResponseSchema()
+		));
+
+		map.put("LoginResponse", new OpenAPIAllOf(
+				new OpenAPISchemaReference("WriteBaseResponse"),
+				new OpenAPISingleResponseSchema(new OpenAPISchemaReference("#/components/schemas/User"))
+		));
+
+		map.put("TokenResponse", new OpenAPIAllOf(
+				new OpenAPISchemaReference("WriteBaseResponse"),
+				new OpenAPISingleResponseSchema(new OpenAPISchemaReference("#/components/schemas/TokenResponse"))
+		));
+
+		map.put("ok", new OpenAPIAllOf(
+				new OpenAPISchemaReference("WriteResponse"),
+				new OpenAPIWriteResponseSchema()
+		));
 
 		map.put("ErrorToken",  new OpenAPIObjectSchema("An error token used in semantic error messages returned by the REST server.",
 			new OpenAPIPrimitiveSchema("The type that caused the error.", "type",     "string"),
@@ -275,10 +323,6 @@ public class OpenAPIServlet extends AbstractDataServlet {
 			new OpenAPIPrimitiveSchema("The error token identifier.", "token",    "string"),
 			new OpenAPIPrimitiveSchema("Optional detail information.", "detail",   "string")
 		));
-
-		map.put("CreateResponse",
-				new OpenAPIResultSchema(new OpenAPIArraySchema("The UUID(s) of the created object(s).", Map.of("type", "string", "example", NodeServiceCommand.getNextUuid())), false)
-		);
 
 		map.put("RESTResponse", new OpenAPIObjectSchema("HTTP status code, message and optional error tokens used in semantic error messages returned by the REST server.",
 			new OpenAPIPrimitiveSchema("The error code.",    "code",    "integer"),
@@ -306,11 +350,6 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		map.put("RefreshTokenLoginBody", new OpenAPIObjectSchema("Requestbody for login or token creation requests with refresh_token.",
 				new OpenAPIPrimitiveSchema("A refresh token from a previous call to the token resource.", "refresh_token",	"string")
 		));
-
-
-
-		final StructrTypeDefinitions definitions = schema.getTypeDefinitionsObject();
-		map.putAll(definitions.serializeOpenAPI(map, tag));
 
 		return map;
 	}
@@ -373,12 +412,10 @@ public class OpenAPIServlet extends AbstractDataServlet {
 	private Map<String, Object> createResponsesObject(final StructrSchemaDefinition schema, final String tag) {
 
 		final Map<String, Object> responses = new LinkedHashMap<>();
-
-		final Map<String, Object> placeholderForOkReponseSchema = new HashMap<>();
 		// 200 OK
 		responses.put("ok", new OpenAPIRequestResponse("The request was executed successfully.",
-				new OpenAPIArraySchema(null, placeholderForOkReponseSchema),
-				new OpenAPIExampleAnyResult(List.of(), false)
+			new OpenAPISchemaReference("ok"),
+			new OpenAPIExampleAnyResult(List.of(), false)
 		));
 
 		// 201 Created
@@ -406,10 +443,9 @@ public class OpenAPIServlet extends AbstractDataServlet {
 			Map.of("code", "401", "message", "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!")
 		));
 
-		OpenAPIPrimitiveSchema openAPIPrimitiveSchema = new OpenAPIPrimitiveSchema("Sets the JSESSIONID cookie.", "Set-Cookie", "string", null, "JSESSIONID=0d47152b8e7b6c85a07994d2687250f5114rzrrnhat2wn80ump8x8iqp0.0d47152b8e7b6c85a07994d2687250f5;Path=/", true);
 		responses.put("loginResponse", new OpenAPIRequestResponse(
-				"Login successful.",
-				new OpenAPISchemaReference("#/components/schemas/User")
+			"Login successful.",
+			new OpenAPISchemaReference("LoginResponse")
 		));
 
 		responses.put("tokenError", new OpenAPIRequestResponse("The given access token or refresh token is invalid.",
@@ -418,8 +454,8 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		));
 
 		responses.put("tokenResponse", new OpenAPIRequestResponse(
-				"The request was executed successfully.",
-				new OpenAPISchemaReference("#/components/schemas/TokenResponse")
+			"The request was executed successfully.",
+			new OpenAPISchemaReference("TokenResponse")
 		));
 
 		// 403 Forbidden
