@@ -438,21 +438,25 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
 			}
 		});
 
-		// remove filters which are either removed or temporarily disabled due to database limitations
-		// for example resource access grants filtering for "active" grants
-		let storedKeys = Object.keys(_Pager.pagerFilters[pagerObj.id]);
-		let update     = false;
+		if (Structr.isInMemoryDatabase) {
+			
+			// remove filters which are either removed or temporarily disabled due to database limitations
+			// for example resource access grants filtering for "active" grants
+			let storedKeys = Object.keys(_Pager.pagerFilters[pagerObj.id]);
+			let update = false;
 
-		for (let key of storedKeys) {
-			if (foundFilters.indexOf(key) === -1) {
-				update = true;
-				delete _Pager.pagerFilters[pagerObj.id][key];
+			for (let key of storedKeys) {
+				if (foundFilters.indexOf(key) === -1) {
+					update = true;
+					delete _Pager.pagerFilters[pagerObj.id][key];
+				}
+			}
+
+			if (update) {
+				this.transportFunction();
 			}
 		}
 
-		if (update) {
-			this.transportFunction();
-		}
 	};
 
 	/**
