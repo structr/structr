@@ -33,6 +33,7 @@ let _Pager = {
 	sortKey: {},
 	sortOrder: {},
 	pagerFilters: {},
+	pagerForcedFilters: {},
 	pagerExactFilterKeys: {},
 	rawResultCount: [],
 	pagerDataKey: 'structrPagerData_' + location.port + '_',
@@ -69,10 +70,12 @@ let _Pager = {
 	},
 
 	forceAddFilters: function(id, type, filters) {
-		_Pager.initFilters(id, type, $.extend(_Pager.pagerFilters[id], filters));
+		_Pager.pagerForcedFilters[id] = Object.assign({}, _Pager.pagerForcedFilters[id], filters);
+		_Pager.initFilters(id, type, Object.assign({}, _Pager.pagerFilters[id], filters));
 	},
 
 	storePagerData: function(id, type, page, pageSize, sort, order, filters) {
+		// do not include forced filters so they can be removed in later versions without persisting in localstorage
 		let data = {
 			id: id,
 			type: type,
@@ -438,25 +441,26 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
 			}
 		});
 
-		if (Structr.isInMemoryDatabase) {
-			
-			// remove filters which are either removed or temporarily disabled due to database limitations
-			// for example resource access grants filtering for "active" grants
-			let storedKeys = Object.keys(_Pager.pagerFilters[pagerObj.id]);
-			let update = false;
+		// remove filters which are either removed or temporarily disabled due to database limitations
+		// for example resource access grants filtering for "active" grants
+		let storedKeys = Object.keys(_Pager.pagerFilters[pagerObj.id]);
+		let forcedKeys = Object.keys(Object.assign({}, _Pager.pagerForcedFilters[pagerObj.id]));
+		let update = false;
 
-			for (let key of storedKeys) {
-				if (foundFilters.indexOf(key) === -1) {
-					update = true;
-					delete _Pager.pagerFilters[pagerObj.id][key];
-				}
-			}
+		for (let key of storedKeys) {
 
-			if (update) {
-				this.transportFunction();
+			let isUiFilter     = (foundFilters.indexOf(key) > -1);
+			let isForcedFilter = (forcedKeys.indexOf(key) > -1);
+
+			if (!isUiFilter && !isForcedFilter) {
+				update = true;
+				delete _Pager.pagerFilters[pagerObj.id][key];
 			}
 		}
 
+		if (update) {
+			this.transportFunction();
+		}
 	};
 
 	/**
