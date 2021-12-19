@@ -38,7 +38,7 @@ public class BulkDeleteCommand extends NodeServiceCommand {
 
 		final App app = StructrApp.getInstance(securityContext);
 
-		final long count = bulkGraphOperation(securityContext, iterable, 1000, "DeleteObjects", new BulkGraphOperation<GraphObject>() {
+		final long count = bulkOperation(securityContext, iterable, 1000, "DeleteObjects", new BulkGraphOperation<GraphObject>() {
 
 			@Override
 			public boolean handleGraphObject(final SecurityContext securityContext, final GraphObject obj) {

@@ -23,9 +23,7 @@ import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
 import org.structr.api.graph.Node;
-import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -49,32 +47,20 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 	@Override
 	public void execute(final Map<String, Object> properties) throws FrameworkException {
 
-		final DatabaseService graphDb          = (DatabaseService) arguments.get("graphDb");
-		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
-
-		String type		= null;
 		final String oldKey	= (String) properties.get("oldKey");
 		final String newKey	= (String) properties.get("newKey");
+		String type             = null;
 
-		if (graphDb != null && StringUtils.isNotBlank(oldKey) && StringUtils.isNotBlank(newKey)) {
-
-			Iterable<AbstractNode> nodes = null;
+		if (StringUtils.isNotBlank(oldKey) && StringUtils.isNotBlank(newKey)) {
 
 			if (properties.containsKey(AbstractNode.type.dbName())) {
 
 				type = (String) properties.get(AbstractNode.type.dbName());
 
-				nodes = Iterables.map(nodeFactory, graphDb.getNodesByLabel(type));
-
 				properties.remove(AbstractNode.type.dbName());
-
-			} else {
-
-				nodes = Iterables.map(nodeFactory, graphDb.getAllNodes());
 			}
 
-			final long count = bulkGraphOperation(securityContext, nodes, 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {
+			final long count = bulkGraphOperation(securityContext, getNodeQuery(type), 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {

@@ -38,7 +38,7 @@ public class QueryIterable implements Iterable<Record> {
 	public Iterator<Record> iterator() {
 
 		final SessionTransaction tx = db.getCurrentTransaction();
-		final Flux<Record> flux     = (Flux<Record>)tx.collectRecords(query.getStatement(false), query.getParameters(), null);
+		final Flux<Record> flux     = (Flux<Record>)tx.collectRecords(query.getStatement(true), query.getParameters(), null);
 
 		return flux.toIterable().iterator();
 	}

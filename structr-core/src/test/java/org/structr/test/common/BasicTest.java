@@ -123,68 +123,76 @@ public class BasicTest extends StructrTest {
 	@Test
 	public void testQuerySoftLimit() {
 
-		Settings.ResultCountSoftLimit.setValue(100);
-		Settings.FetchSize.setValue(100);
+		Settings.CypherDebugLogging.setValue(true);
 
-		final int num = 3234;
-		int total     = 0;
+		try {
+			Settings.ResultCountSoftLimit.setValue(100);
+			Settings.FetchSize.setValue(100);
 
-		System.out.println("Creating " + num + " elements..");
+			final int num = 3234;
+			int total     = 0;
 
-		try (final Tx tx = app.tx()) {
+			System.out.println("Creating " + num + " elements..");
 
-			for (int i=0; i<num; i++) {
-				app.create(TestSix.class);
-			}
+			try (final Tx tx = app.tx()) {
 
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
-
-		System.out.println("Done.");
-
-		try (final Tx tx = app.tx()) {
-
-			int count = 0;
-
-			try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
-
-				for (TestSix test : results) {
-					count++;
+				for (int i=0; i<num; i++) {
+					app.create(TestSix.class);
 				}
 
-				total = results.calculateTotalResultCount(null, Settings.ResultCountSoftLimit.getValue());
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
 			}
 
-			System.out.println(count + " / " + total);
+			System.out.println("Done.");
 
-			assertEquals("Invalid result count", num, count);
-			assertEquals("Invalid total count", num, total);
+			try (final Tx tx = app.tx()) {
 
-			tx.success();
+				int count = 0;
 
-		} catch (Exception fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
+				try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
 
-		try (final Tx tx = app.tx()) {
+					for (TestSix test : results) {
+						count++;
+					}
 
-			try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
-
-				if (results.iterator().hasNext()) {
-					results.iterator().next();
+					total = results.calculateTotalResultCount(null, Settings.ResultCountSoftLimit.getValue());
 				}
+
+				System.out.println(count + " / " + total);
+
+				assertEquals("Invalid result count", num, count);
+				assertEquals("Invalid total count", num, total);
+
+				tx.success();
+
+			} catch (Exception fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
 			}
 
-			tx.success();
+			try (final Tx tx = app.tx()) {
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
+				try (final ResultStream<TestSix> results = app.nodeQuery(TestSix.class).getResultStream()) {
+
+					if (results.iterator().hasNext()) {
+						results.iterator().next();
+					}
+				}
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
+
+		} finally {
+
+			Settings.CypherDebugLogging.setValue(false);
 		}
 	}
 

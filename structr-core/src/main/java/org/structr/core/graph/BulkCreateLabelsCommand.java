@@ -21,7 +21,6 @@ package org.structr.core.graph;
 import java.util.Collections;
 import java.util.Map;
 import org.structr.api.DatabaseService;
-import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -41,23 +40,20 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 
 	public long executeWithCount(Map<String, Object> attributes) {
 
-		final String entityType                   = (String) attributes.get("type");
-		final DatabaseService graphDb             = (DatabaseService) arguments.get("graphDb");
-		final SecurityContext superUserContext    = SecurityContext.getSuperUserInstance();
-		final NodeFactory nodeFactory             = new NodeFactory(superUserContext);
-		final boolean removeUnused                = !attributes.containsKey("removeUnused");
-		final Iterable<AbstractNode> nodes        = Iterables.map(nodeFactory, graphDb.getNodesByTypeProperty(entityType));
+		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
+		final String entityType       = (String) attributes.get("type");
+		final boolean removeUnused    = !attributes.containsKey("removeUnused");
 
 		if (entityType == null) {
 
-			info("Node type not set or no entity class found. Starting creation of labels for all nodes.");
+			info("Node type not set or no entity class found. Starting (re-)indexing all nodes");
 
 		} else {
 
-			info("Starting creation of labels for all nodes of type {}", entityType);
+			info("Starting (re-)indexing all nodes of type {}", entityType);
 		}
 
-		final long count = bulkGraphOperation(securityContext, nodes, 10000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
+		final long count = bulkGraphOperation(securityContext, getNodeQuery(entityType), 10000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
 
 			@Override
 			public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {

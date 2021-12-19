@@ -22,8 +22,6 @@ import java.util.Collections;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
-import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -105,12 +103,6 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 	// ----- private methods -----
 	private long rebuildNodeIndex(final String entityType) {
 
-		final NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
-		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
-		Iterable<AbstractNode> nodes  = null;
-
-		nodes = Iterables.map(nodeFactory, graphDb.getNodesByTypeProperty(entityType));
-
 		if (entityType == null) {
 
 			info("Node type not set or no entity class found. Starting (re-)indexing all nodes");
@@ -120,10 +112,10 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			info("Starting (re-)indexing all nodes of type {}", entityType);
 		}
 
-		final long count = bulkGraphOperation(securityContext, nodes, 1000, "RebuildNodeIndex", new BulkGraphOperation<AbstractNode>() {
+		final long count = bulkGraphOperation(securityContext, getNodeQuery(entityType), 1000, "RebuildNodeIndex", new BulkGraphOperation<AbstractNode>() {
 
 			@Override
-			public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+			public boolean handleGraphObject(final SecurityContext securityContext, final AbstractNode node) {
 
 				node.addToIndex();
 
@@ -131,12 +123,12 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			}
 
 			@Override
-			public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
-				logger.warn("Unable to index node {}: {}", new Object[]{node, t.getMessage()});
+			public void handleThrowable(final SecurityContext securityContext, final Throwable t, final AbstractNode node) {
+				logger.warn("Unable to index node {}: {}", node, t.getMessage());
 			}
 
 			@Override
-			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+			public void handleTransactionFailure(final SecurityContext securityContext, final Throwable t) {
 				logger.warn("Unable to index node: {}", t.getMessage());
 			}
 		});
@@ -148,24 +140,19 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	private long rebuildRelationshipIndex(final String relType) {
 
-		final RelationshipFactory relFactory               = new RelationshipFactory(SecurityContext.getSuperUserInstance());
-		final DatabaseService graphDb                      = (DatabaseService) arguments.get("graphDb");
-		final Iterable<AbstractRelationship> relationships = Iterables.map(relFactory, graphDb.getRelationshipsByType(relType));
-
 		if (relType == null) {
 
 			info("Relationship type not set, starting (re-)indexing all relationships");
 
 		} else {
 
-			info("Starting (re-)indexing all relationships of type {}", new Object[]{relType});
-
+			info("Starting (re-)indexing all relationships of type {}", relType);
 		}
 
-		final long count = bulkGraphOperation(securityContext, relationships, 1000, "RebuildRelIndex", new BulkGraphOperation<AbstractRelationship>() {
+		final long count = bulkGraphOperation(securityContext, getRelationshipQuery(relType), 1000, "RebuildRelIndex", new BulkGraphOperation<AbstractRelationship>() {
 
 			@Override
-			public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
+			public boolean handleGraphObject(final SecurityContext securityContext, final AbstractRelationship rel) {
 
 				rel.addToIndex();
 
@@ -173,12 +160,12 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			}
 
 			@Override
-			public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
-				logger.warn("Unable to index relationship {}: {}", new Object[]{rel, t.getMessage()});
+			public void handleThrowable(final SecurityContext securityContext, final Throwable t, final AbstractRelationship rel) {
+				logger.warn("Unable to index relationship {}: {}", rel, t.getMessage());
 			}
 
 			@Override
-			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+			public void handleTransactionFailure(final SecurityContext securityContext, final Throwable t) {
 				logger.warn("Unable to index relationship: {}", t.getMessage());
 			}
 		});
@@ -190,14 +177,10 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	private long rebuildFulltextIndex() {
 
-		final NodeFactory nodeFactory   = new NodeFactory(SecurityContext.getSuperUserInstance());
-		final DatabaseService graphDb   = (DatabaseService) arguments.get("graphDb");
-		final Iterable<Indexable> nodes = Iterables.map(nodeFactory, graphDb.getNodesByLabel("Indexable"));
-
-		final long count = bulkGraphOperation(securityContext, nodes, 1000, "RebuildFulltextIndex", new BulkGraphOperation<Indexable>() {
+		final long count = bulkGraphOperation(securityContext, StructrApp.getInstance().nodeQuery(Indexable.class), 1000, "RebuildFulltextIndex", new BulkGraphOperation<Indexable>() {
 
 			@Override
-			public boolean handleGraphObject(SecurityContext securityContext, Indexable indexable) throws FrameworkException {
+			public boolean handleGraphObject(final SecurityContext securityContext, final Indexable indexable) throws FrameworkException {
 
 				StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(indexable);
 
@@ -205,12 +188,12 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			}
 
 			@Override
-			public void handleThrowable(SecurityContext securityContext, Throwable t, Indexable rel) {
+			public void handleThrowable(final SecurityContext securityContext, final Throwable t, final Indexable rel) {
 				logger.warn("Unable to build fulltext index for {}: {}", rel.getUuid(), t.getMessage());
 			}
 
 			@Override
-			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+			public void handleTransactionFailure(final SecurityContext securityContext, final Throwable t) {
 				logger.warn("Unable to build fulltext index: {}", t.getMessage());
 			}
 		});
