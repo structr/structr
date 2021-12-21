@@ -46,14 +46,14 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 
 		if (entityType == null) {
 
-			info("Node type not set or no entity class found. Starting (re-)indexing all nodes");
+			info("Node type not set or no entity class found. Starting creation of labels for all nodes.");
 
 		} else {
 
-			info("Starting (re-)indexing all nodes of type {}", entityType);
+			info("Starting creation of labels for all nodes of type {}", entityType);
 		}
 
-		final long count = bulkGraphOperation(securityContext, getNodeQuery(entityType), 10000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
+		final long count = bulkGraphOperation(securityContext, getNodeQuery(entityType, true), 10000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
 
 			@Override
 			public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {

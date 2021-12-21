@@ -112,7 +112,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			info("Starting (re-)indexing all nodes of type {}", entityType);
 		}
 
-		final long count = bulkGraphOperation(securityContext, getNodeQuery(entityType), 1000, "RebuildNodeIndex", new BulkGraphOperation<AbstractNode>() {
+		final long count = bulkGraphOperation(securityContext, getNodeQuery(entityType, true), 1000, "RebuildNodeIndex", new BulkGraphOperation<AbstractNode>() {
 
 			@Override
 			public boolean handleGraphObject(final SecurityContext securityContext, final AbstractNode node) {
@@ -149,7 +149,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			info("Starting (re-)indexing all relationships of type {}", relType);
 		}
 
-		final long count = bulkGraphOperation(securityContext, getRelationshipQuery(relType), 1000, "RebuildRelIndex", new BulkGraphOperation<AbstractRelationship>() {
+		final long count = bulkGraphOperation(securityContext, getRelationshipQuery(relType, true), 1000, "RebuildRelIndex", new BulkGraphOperation<AbstractRelationship>() {
 
 			@Override
 			public boolean handleGraphObject(final SecurityContext securityContext, final AbstractRelationship rel) {

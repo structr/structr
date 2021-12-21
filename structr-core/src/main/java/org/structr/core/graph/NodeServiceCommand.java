@@ -82,6 +82,12 @@ public abstract class NodeServiceCommand extends Command {
 		boolean active                  = true;
 		int page                        = 1;
 
+		if (query == null) {
+
+			info("{}: {} objects processed", description, 0);
+			return 0;
+		}
+
 		// set page size to commit count
 		query.getQueryContext().overrideFetchSize(commitCount);
 		query.pageSize(commitCount);
@@ -280,7 +286,7 @@ public abstract class NodeServiceCommand extends Command {
 		}
 	}
 
-	protected Query getNodeQuery(final String nodeType) {
+	protected Query getNodeQuery(final String nodeType, final boolean returnAllNodesQueryIfTypeNotFound) {
 
 		if (nodeType != null) {
 
@@ -292,10 +298,14 @@ public abstract class NodeServiceCommand extends Command {
 			}
 		}
 
-		return StructrApp.getInstance().nodeQuery();
+		if (returnAllNodesQueryIfTypeNotFound) {
+			return StructrApp.getInstance().nodeQuery();
+		}
+
+		return null;
 	}
 
-	protected Query getRelationshipQuery(final String relationshipType) {
+	protected Query getRelationshipQuery(final String relationshipType, final boolean returnAllRelationshipsQueryIfTypeNotFound) {
 
 		if (relationshipType != null) {
 
@@ -306,7 +316,11 @@ public abstract class NodeServiceCommand extends Command {
 			}
 		}
 
-		return StructrApp.getInstance().relationshipQuery();
+		if (returnAllRelationshipsQueryIfTypeNotFound) {
+			return StructrApp.getInstance().relationshipQuery();
+		}
+
+		return null;
 	}
 
 	// create uuid producer that fills the queue

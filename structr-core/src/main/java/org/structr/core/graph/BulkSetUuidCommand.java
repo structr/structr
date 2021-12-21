@@ -59,7 +59,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				info("Start setting UUID on nodes of type {}", nodeType);
 			}
 
-			final long count = bulkGraphOperation(securityContext, getNodeQuery(nodeType), 1000, "SetNodeUuid", new BulkGraphOperation<AbstractNode>() {
+			final long count = bulkGraphOperation(securityContext, getNodeQuery(nodeType, Boolean.TRUE.equals(allNodes)), 1000, "SetNodeUuid", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public boolean handleGraphObject(final SecurityContext securityContext, final AbstractNode node) {
@@ -112,7 +112,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 				info("Start setting UUID on rels of type {}", relType);
 			}
 
-			final long count = bulkGraphOperation(securityContext, getRelationshipQuery(relType), 1000, "SetRelationshipUuid", new BulkGraphOperation<AbstractRelationship>() {
+			final long count = bulkGraphOperation(securityContext, getRelationshipQuery(relType, Boolean.TRUE.equals(allRels)), 1000, "SetRelationshipUuid", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
 				public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {

@@ -60,7 +60,7 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 				properties.remove(AbstractNode.type.dbName());
 			}
 
-			final long count = bulkGraphOperation(securityContext, getNodeQuery(type), 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {
+			final long count = bulkGraphOperation(securityContext, getNodeQuery(type, true), 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
