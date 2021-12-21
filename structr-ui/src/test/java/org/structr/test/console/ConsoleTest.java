@@ -182,8 +182,9 @@ public class ConsoleTest extends StructrUiTest {
 
 		final String typedNodeIndexRebuildOutput =
 			"Starting (re-)indexing all nodes of type ResourceAccess\r\n" +
-			"RebuildNodeIndex: 0 objects processed\r\n" +
-			"Done with (re-)indexing 0 nodes\r\n";
+			"RebuildNodeIndex: 576 objects processed\r\n" +
+			"RebuildNodeIndex: 576 objects processed\r\n" +
+			"Done with (re-)indexing 576 nodes\r\n";
 
 		final String typedRelationshipIndexRebuildOutput =
 			"Starting (re-)indexing all relationships of type ResourceAccess\r\n" +

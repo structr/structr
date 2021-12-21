@@ -21,8 +21,6 @@ package org.structr.core.graph;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
-import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -37,8 +35,6 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 	private static final Logger logger = LoggerFactory.getLogger(BulkSetUuidCommand.class.getName());
 
-
-
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 		executeWithCount(attributes);
@@ -46,34 +42,24 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 
 	public long executeWithCount(final Map<String, Object> attributes) throws FrameworkException {
-		final String nodeType         = (String) attributes.get("type");
-		final String relType          = (String) attributes.get("relType");
-		final Boolean allNodes        = (Boolean) attributes.get("allNodes");
-		final Boolean allRels         = (Boolean) attributes.get("allRels");
-		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 
-		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
-		final RelationshipFactory relFactory   = new RelationshipFactory(superUserContext);
+		final String nodeType  = (String) attributes.get("type");
+		final String relType   = (String) attributes.get("relType");
+		final Boolean allNodes = (Boolean) attributes.get("allNodes");
+		final Boolean allRels  = (Boolean) attributes.get("allRels");
 
 		if (nodeType != null || Boolean.TRUE.equals(allNodes)) {
 
-			Iterable<AbstractNode> nodes = null;
-
 			if (Boolean.TRUE.equals(allNodes)) {
-
-				nodes = Iterables.map(nodeFactory, graphDb.getAllNodes());
 
 				info("Start setting UUID on all nodes");
 
 			} else {
 
-				nodes = Iterables.map(nodeFactory, graphDb.getNodesByTypeProperty(nodeType));
-
-				info("Start setting UUID on nodes of type {}", new Object[] { nodeType });
+				info("Start setting UUID on nodes of type {}", nodeType);
 			}
 
-			final long count = bulkGraphOperation(securityContext, nodes, 1000, "SetNodeUuid", new BulkGraphOperation<AbstractNode>() {
+			final long count = bulkGraphOperation(securityContext, getNodeQuery(nodeType, Boolean.TRUE.equals(allNodes)), 1000, "SetNodeUuid", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
 				public boolean handleGraphObject(final SecurityContext securityContext, final AbstractNode node) {
@@ -117,22 +103,16 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 		if (relType != null || Boolean.TRUE.equals(allRels)) {
 
-			Iterable<AbstractRelationship> relationships = null;
-
 			if (Boolean.TRUE.equals(allRels)) {
-
-				relationships = Iterables.map(relFactory, graphDb.getAllRelationships());
 
 				info("Start setting UUID on all rels");
 
 			} else {
 
-				relationships = Iterables.map(relFactory, graphDb.getRelationshipsByType(relType));
-
 				info("Start setting UUID on rels of type {}", relType);
 			}
 
-			final long count = bulkGraphOperation(securityContext, relationships, 1000, "SetRelationshipUuid", new BulkGraphOperation<AbstractRelationship>() {
+			final long count = bulkGraphOperation(securityContext, getRelationshipQuery(relType, Boolean.TRUE.equals(allRels)), 1000, "SetRelationshipUuid", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
 				public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {

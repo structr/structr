@@ -21,8 +21,6 @@ package org.structr.core.graph;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
-import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -41,9 +39,6 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 	@Override
 	public void execute(final Map<String, Object> map) throws FrameworkException {
 
-		final DatabaseService graphDb        = (DatabaseService)arguments.get("graphDb");
-		final RelationshipFactory relFactory = new RelationshipFactory(securityContext);
-
 		final String sourceKey = (String)map.get("sourceKey");
 		final String destKey   = (String)map.get("destKey");
 
@@ -52,48 +47,43 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 			throw new IllegalArgumentException("This command requires one argument of type Map. Map must contain values for 'sourceKey' and 'destKey'.");
 		}
 
-		if(graphDb != null) {
+		final long count = bulkGraphOperation(securityContext, StructrApp.getInstance().relationshipQuery(), 1000, "CopyRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 
-			final Iterable<AbstractRelationship> relIterator = Iterables.map(relFactory, graphDb.getAllRelationships());
-			final long count = bulkGraphOperation(securityContext, relIterator, 1000, "CopyRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
+			@Override
+			public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
-				@Override
-				public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
+				// Treat only "our" rels
+				if(rel.getProperty(GraphObject.id) != null) {
 
-					// Treat only "our" rels
-					if(rel.getProperty(GraphObject.id) != null) {
+					final Class type                    = rel.getClass();
+					final PropertyKey destPropertyKey   = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, destKey);
+					final PropertyKey sourcePropertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sourceKey);
 
-						Class type                    = rel.getClass();
-						PropertyKey destPropertyKey   = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, destKey);
-						PropertyKey sourcePropertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sourceKey);
+					try {
+						// copy properties
+						rel.setProperty(destPropertyKey, rel.getProperty(sourcePropertyKey));
 
-						try {
-							// copy properties
-							rel.setProperty(destPropertyKey, rel.getProperty(sourcePropertyKey));
+					} catch (FrameworkException fex) {
 
-						} catch (FrameworkException fex) {
-
-							logger.warn("Unable to copy relationship property {} of relationship {} to {}: {}", new Object[] { sourcePropertyKey, rel.getUuid(), destPropertyKey, fex.getMessage() } );
-						}
+						logger.warn("Unable to copy relationship property {} of relationship {} to {}: {}", new Object[] { sourcePropertyKey, rel.getUuid(), destPropertyKey, fex.getMessage() } );
 					}
-
-					return true;
 				}
 
-				@Override
-				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
-					logger.warn("Unable to copy relationship properties of relationship {}: {}", new Object[] { rel.getUuid(), t.getMessage() } );
-				}
+				return true;
+			}
 
-				@Override
-				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-					logger.warn("Unable to copy relationship properties: {}", t.getMessage() );
-				}
-			});
+			@Override
+			public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
+				logger.warn("Unable to copy relationship properties of relationship {}: {}", rel.getUuid(), t.getMessage());
+			}
 
-			logger.info("Finished setting properties on {} nodes", count);
+			@Override
+			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+				logger.warn("Unable to copy relationship properties: {}", t.getMessage() );
+			}
+		});
 
-		}
+		logger.info("Finished setting properties on {} nodes", count);
 	}
 
 	@Override
