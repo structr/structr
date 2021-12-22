@@ -60,9 +60,9 @@ let _Security = {
 
 				let subModule = LSWrapper.getItem(_Security.securityTabKey) || 'users-and-groups';
 
-				document.querySelectorAll('#function-bar .tabs-menu li a').forEach(function(tabLink) {
+				for (let tabLink of document.querySelectorAll('#function-bar .tabs-menu li a')) {
 
-					tabLink.addEventListener('click', function(e) {
+					tabLink.addEventListener('click', (e) => {
 						e.preventDefault();
 
 						let urlHash = e.target.closest('a').getAttribute('href');
@@ -75,7 +75,7 @@ let _Security = {
 					if (tabLink.closest('a').getAttribute('href') === '#security:' + subModule) {
 						tabLink.click();
 					}
-				});
+				}
 
 				Structr.unblockMenu(100);
 			});
@@ -142,9 +142,9 @@ let _Security = {
 
 		LSWrapper.setItem(_Security.securityTabKey, subModule);
 
-		document.querySelectorAll('#function-bar .tabs-menu li').forEach((tab) => {
+		for (let tab of document.querySelectorAll('#function-bar .tabs-menu li')) {
 			tab.classList.remove('active');
-		});
+		}
 
 		let tabLink = document.querySelector('#function-bar .tabs-menu li a[href="#security:' + subModule + '"]');
 		if (tabLink) tabLink.closest('li').classList.add('active');
@@ -167,6 +167,9 @@ let _Security = {
 
 let _UsersAndGroups = {
 
+	userNodeClassPrefix:  'userid_',
+	groupNodeClassPrefix: 'groupid_',
+
 	refreshUsers: async () => {
 
 		let types = await _Schema.getDerivedTypes('org.structr.dynamic.User', []);
@@ -180,7 +183,10 @@ let _UsersAndGroups = {
 			let addUserButton  = document.getElementById('add-user-button');
 
 			addUserButton.addEventListener('click', (e) => {
-				Command.create({ type: userTypeSelect.value });
+				Command.create({ type: userTypeSelect.value }, (user) => {
+					let userModelObj = StructrModel.create(user);
+					_UsersAndGroups.appendUserToUserList(userModelObj);
+				});
 			});
 
 			userTypeSelect.addEventListener('change', () => {
@@ -204,7 +210,7 @@ let _UsersAndGroups = {
 
 		let displayName = ((user.name) ? user.name : ((user.eMail) ? '[' + user.eMail + ']' : '[unnamed]'));
 
-		let userElement = $('<div class="node user userid_' + user.id + '">'
+		let userElement = $('<div class="node user ' + _UsersAndGroups.userNodeClassPrefix + user.id + '">'
 				+ '<i class="typeIcon ' + _UsersAndGroups.getIconForPrincipal(user) + '"></i>'
 				+ '<b title="' + displayName + '" class="name_ abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + displayName + '</b>'
 				+ '</div>'
@@ -229,7 +235,7 @@ let _UsersAndGroups = {
 
 			// request animation frame is especially important if a name is completely removed!
 
-			for (let userEl of document.querySelectorAll('.userid_' + user.id)) {
+			for (let userEl of document.querySelectorAll('.' + _UsersAndGroups.userNodeClassPrefix + user.id)) {
 
 				let icon = userEl.querySelector('.typeIcon');
 				if (icon) {
@@ -254,7 +260,7 @@ let _UsersAndGroups = {
 
 		_Entities.appendContextMenuIcon(userDiv, user);
 		_Elements.enableContextMenuOnElement(userDiv, user);
-		_UsersAndGroups.setMouseOver(userDiv, user.id, '.userid_');
+		_UsersAndGroups.setMouseOver(userDiv, user.id, '.' + _UsersAndGroups.userNodeClassPrefix);
 	},
 	appendMembersToGroup: function(members, group, groupDiv) {
 
@@ -295,7 +301,7 @@ let _UsersAndGroups = {
 			return;
 		}
 
-		let prefix = (member.isUser) ? '.userid_' : '.groupid_';
+		let prefix = '.' + (member.isUser) ? _UsersAndGroups.userNodeClassPrefix : _UsersAndGroups.groupNodeClassPrefix;
 
 		if (member.isUser) {
 
@@ -367,7 +373,10 @@ let _UsersAndGroups = {
 			let addGroupButton  = document.getElementById('add-group-button');
 
 			addGroupButton.addEventListener('click', (e) => {
-				Command.create({ type: groupTypeSelect.value });
+				Command.create({ type: groupTypeSelect.value }, (group) => {
+					let groupModelObj = StructrModel.create(group);
+					_UsersAndGroups.appendGroupElement($(_Security.groupList), groupModelObj);
+				});
 			});
 
 			groupTypeSelect.addEventListener('change', () => {
@@ -390,7 +399,7 @@ let _UsersAndGroups = {
 	createGroupElement: function (group) {
 
 		let displayName = ((group.name) ? group.name : '[unnamed]');
-		let groupElement = $('<div class="node group groupid_' + group.id + '">'
+		let groupElement = $('<div class="node group ' + _UsersAndGroups.groupNodeClassPrefix + group.id + '">'
 				+ '<i class="typeIcon ' + _UsersAndGroups.getIconForPrincipal(group) + '"></i>'
 				+ '<b title="' + displayName + '" class="name_  abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + displayName + '</b>'
 				+ '</div>'
@@ -413,7 +422,15 @@ let _UsersAndGroups = {
 
 				if (nodeId) {
 					if (nodeId !== group.id) {
-						Command.appendMember(nodeId, group.id);
+						Command.appendMember(nodeId, group.id, (group) => {
+
+							let groupModelObj = StructrModel.obj(group.id);
+							let userModelObj  = StructrModel.obj(nodeId);
+
+							blinkGreen($('.' + _UsersAndGroups.groupNodeClassPrefix + group.id));
+
+							_UsersAndGroups.appendMemberToGroup(userModelObj, groupModelObj, $(groupElement));
+						});
 					} else {
 						new MessageBuilder().title("Warning").warning("Prevented adding group as a member of itself").show();
 					}
@@ -431,7 +448,7 @@ let _UsersAndGroups = {
 
 			// request animation frame is especially important if a name is completely removed!
 
-			for (let userEl of document.querySelectorAll('.groupid_' + group.id)) {
+			for (let userEl of document.querySelectorAll('.' + _UsersAndGroups.groupNodeClassPrefix + group.id)) {
 
 				let icon = userEl.querySelector('.typeIcon');
 				if (icon) {
@@ -457,7 +474,7 @@ let _UsersAndGroups = {
 		_Entities.appendExpandIcon(groupDiv, group, hasChildren, Structr.isExpanded(group.id), (members) => { _UsersAndGroups.appendMembersToGroup(members, group, groupDiv); } );
 		_Entities.appendContextMenuIcon(groupDiv, group);
 		_Elements.enableContextMenuOnElement(groupDiv, group);
-		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.groupid_');
+		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.' + _UsersAndGroups.groupNodeClassPrefix);
 
 		if (hasChildren && Structr.isExpanded(group.id)) {
 			// do not directly use group.members (it does not contain all necessary information)

@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -85,7 +86,11 @@ public class AppendMemberCommand extends AbstractCommand {
 			if (principal != null) {
 
 				try {
+
 					group.addMember(getWebSocket().getSecurityContext(), principal);
+
+					TransactionCommand.registerNodeCallback(group, callback);
+
 				} catch (final FrameworkException ex) {
 
 					if (ex.getStatus() == 403) {

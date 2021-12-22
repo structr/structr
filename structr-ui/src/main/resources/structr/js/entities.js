@@ -2294,7 +2294,7 @@ var _Entities = {
 
 		return editIcon;
 	},
-	appendExpandIcon: function(el, entity, hasChildren, expanded) {
+	appendExpandIcon: function(el, entity, hasChildren, expanded, callback) {
 
 		let button = $(el.children('.expand_icon_svg').first());
 		if (button && button.length) {
@@ -2315,7 +2315,7 @@ var _Entities = {
 
 				button.on('click', function(e) {
 					e.stopPropagation();
-					_Entities.toggleElement($(this).parent('.node'));
+					_Entities.toggleElement($(this).parent('.node'), undefined, callback);
 				});
 
 				// Prevent expand icon from being draggable
@@ -2581,7 +2581,7 @@ var _Entities = {
 		_Entities.selectedObject = entity;
 		LSWrapper.setItem(_Entities.selectedObjectIdKey, entity.id);
 	},
-	toggleElement: function(element, expanded) {
+	toggleElement: function(element, expanded, callback) {
 
 		let el          = $(element);
 		let id          = Structr.getId(el) || Structr.getComponentId(el) || Structr.getGroupId(el);
@@ -2601,7 +2601,7 @@ var _Entities = {
 		} else {
 
 			if (!expanded) {
-				Command.children(id);
+				Command.children(id, callback);
 			}
 
 			b.removeClass(_Icons.collapsedClass)

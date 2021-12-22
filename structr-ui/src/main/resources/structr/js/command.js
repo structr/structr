@@ -523,7 +523,7 @@ let Command = {
 	 * as child of the parent group node with the given group id.
 	 *
 	 */
-	appendMember: function(id, groupId) {
+	appendMember: function(id, groupId, callback) {
 		let obj = {
 			command: 'APPEND_MEMBER',
 			id: id,
@@ -531,7 +531,7 @@ let Command = {
 				parentId: groupId
 			}
 		};
-		return StructrWS.sendObj(obj);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send an APPEND_CHILD command to the server.
