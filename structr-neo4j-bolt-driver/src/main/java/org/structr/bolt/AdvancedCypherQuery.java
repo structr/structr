@@ -193,8 +193,8 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 			buf.append(" SKIP ");
 			buf.append(fetchPage * fetchSize);
-			buf.append(" LIMIT ");
-			buf.append(fetchSize);
+			//buf.append(" LIMIT ");
+			//buf.append(fetchSize);
 		}
 
 		return buf.toString();

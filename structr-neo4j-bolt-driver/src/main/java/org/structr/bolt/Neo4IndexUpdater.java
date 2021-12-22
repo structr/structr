@@ -33,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
 import org.structr.api.Transaction;
-import org.structr.api.config.Settings;
 import org.structr.api.index.IndexConfig;
 
 public class Neo4IndexUpdater {
@@ -303,7 +302,5 @@ public class Neo4IndexUpdater {
 				logger.debug("Dropped {} indexes of deleted types ({})", droppedIndexesOfRemovedTypes.get(), StringUtils.join(removedTypes, ", "));
 			}
 		}
-
-		Settings.CypherDebugLogging.setValue(false);
 	}
 }

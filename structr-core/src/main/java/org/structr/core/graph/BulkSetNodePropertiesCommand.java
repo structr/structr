@@ -24,11 +24,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
-import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
@@ -53,109 +52,91 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 	public long executeWithCount(final Map<String, Object> properties) throws FrameworkException {
 
-		final DatabaseService graphDb          = (DatabaseService) arguments.get("graphDb");
-		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
-
 		final String type = (String)properties.get("type");
 		if (StringUtils.isBlank(type)) {
 
 			throw new FrameworkException(422, "Type must not be empty");
 		}
 
+		final App app     = StructrApp.getInstance();
 		final Class clazz = SchemaHelper.getEntityClassForRawType(type);
 		if (clazz == null) {
 
 			throw new FrameworkException(422, "Invalid type " + type);
 		}
 
-		if (graphDb != null) {
+		// remove "type" so it won't be set later
+		properties.remove("type");
 
-			Iterable<AbstractNode> nodes = null;
+		// to be able to change the type (i.e. the labels) of a node, we cannot rely on the node query here, hence we need to fetch ALL nodes
+		final long count = bulkGraphOperation(securityContext, app.nodeQuery(), 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
-			if (properties.containsKey(AbstractNode.type.dbName())) {
+			@Override
+			public boolean handleGraphObject(final SecurityContext securityContext, final AbstractNode node) {
 
-				nodes = Iterables.map(nodeFactory, graphDb.getNodesByLabel(type));
+				// Treat only "our" nodes
+				if (node.getProperty(GraphObject.id) != null && node.getProperty(AbstractNode.type).equals(type)) {
 
-			} else {
+					for (Entry entry : properties.entrySet()) {
 
-				nodes = Iterables.map(nodeFactory, graphDb.getAllNodes());
-			}
+						String key = (String) entry.getKey();
+						Object val = null;
 
-			// remove "type" so it won't be set later
-			properties.remove("type");
+						// allow to set new type
+						if (key.equals("newType")) {
+							key = "type";
+						}
 
-			final long count = bulkGraphOperation(securityContext, nodes, 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
+						PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+						if (propertyKey != null) {
 
-				@Override
-				public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
-
-					// Treat only "our" nodes
-					if (node.getProperty(GraphObject.id) != null) {
-
-						for (Entry entry : properties.entrySet()) {
-
-							String key = (String) entry.getKey();
-							Object val = null;
-
-							// allow to set new type
-							if (key.equals("newType")) {
-								key = "type";
-							}
-
-							PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
-							if (propertyKey != null) {
-
-								final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
-								if (inputConverter != null) {
-
-									try {
-
-										val = inputConverter.convert(entry.getValue());
-
-									} catch (FrameworkException ex) {
-										logger.error(ExceptionUtils.getStackTrace(ex));
-									}
-
-								} else {
-
-									val = entry.getValue();
-								}
+							final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+							if (inputConverter != null) {
 
 								try {
-									node.unlockSystemPropertiesOnce();
-									node.setProperty(propertyKey, val);
 
-								} catch (FrameworkException fex) {
-									logger.warn("Unable to set node property {} of node {} to {}: {}", propertyKey, node.getUuid(), val, fex.getMessage());
+									val = inputConverter.convert(entry.getValue());
 
+								} catch (FrameworkException ex) {
+									logger.error(ExceptionUtils.getStackTrace(ex));
 								}
+
+							} else {
+
+								val = entry.getValue();
+							}
+
+							try {
+								node.unlockSystemPropertiesOnce();
+								node.setProperty(propertyKey, val);
+
+							} catch (FrameworkException fex) {
+								logger.warn("Unable to set node property {} of node {} to {}: {}", propertyKey, node.getUuid(), val, fex.getMessage());
+
 							}
 						}
 					}
-
-					return true;
 				}
 
-				@Override
-				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
-					logger.warn("Unable to set properties of node {}: {}", new Object[] { node.getUuid(), t.getMessage() } );
-				}
+				return true;
+			}
 
-				@Override
-				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-					logger.warn("Unable to set node properties: {}", t.getMessage() );
-				}
-			});
+			@Override
+			public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
+				logger.warn("Unable to set properties of node {}: {}", new Object[] { node.getUuid(), t.getMessage() } );
+			}
+
+			@Override
+			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+				logger.warn("Unable to set node properties: {}", t.getMessage() );
+			}
+		});
 
 
-			logger.info("Fixed {} nodes ...", count);
-			logger.info("Done");
+		logger.info("Fixed {} nodes ...", count);
+		logger.info("Done");
 
-			return count;
-		}
-
-		return 0;
+		return count;
 	}
 
 	@Override

@@ -21,9 +21,7 @@ package org.structr.core.graph;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
 import org.structr.api.graph.Node;
-import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -32,7 +30,6 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.SchemaHelper;
 
 /**
  * Tries to fix properties in the database that have been stored there with the
@@ -52,98 +49,90 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 		if (entityTypeName != null) {
 
-			final Class type = SchemaHelper.getEntityClassForRawType(entityTypeName);
-			if (type != null) {
+			logger.info("Trying to fix properties of all {} nodes", entityTypeName);
 
-				final DatabaseService db                  = StructrApp.getInstance(securityContext).getDatabaseService();
-				final NodeFactory factory                 = new NodeFactory(securityContext);
-				final Iterable<AbstractNode> nodeIterator = Iterables.map(factory, db.getNodesByLabel(entityTypeName));
+			long nodeCount = bulkGraphOperation(securityContext, getNodeQuery(entityTypeName, false), 100, "FixNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
-				logger.info("Trying to fix properties of all {} nodes", type.getSimpleName() );
+				private void fixProperty(AbstractNode node, Property propertyToFix) {
 
-				long nodeCount = bulkGraphOperation(securityContext, nodeIterator, 100, "FixNodeProperties", new BulkGraphOperation<AbstractNode>() {
+					Node databaseNode = node.getNode();
 
-					private void fixProperty(AbstractNode node, Property propertyToFix) {
+					if (databaseNode.hasProperty(propertyToFix.dbName())) {
 
-						Node databaseNode = node.getNode();
+						// check value with property converter
+						PropertyConverter converter = propertyToFix.databaseConverter(securityContext, node);
+						if (converter != null) {
 
-						if (databaseNode.hasProperty(propertyToFix.dbName())) {
+							try {
+								Object value = databaseNode.getProperty(propertyToFix.dbName());
+								converter.revert(value);
 
-							// check value with property converter
-							PropertyConverter converter = propertyToFix.databaseConverter(securityContext, node);
-							if (converter != null) {
+							} catch (ClassCastException cce) {
 
-								try {
-									Object value = databaseNode.getProperty(propertyToFix.dbName());
-									converter.revert(value);
+								// exception, needs fix
+								final String databaseName   = propertyToFix.dbName();
+								final Object databaseValue  = databaseNode.getProperty(databaseName);
+								final Object correctedValue = propertyToFix.fixDatabaseProperty(databaseValue);
 
-								} catch (ClassCastException cce) {
+								if (databaseValue != null && correctedValue != null) {
 
-									// exception, needs fix
-									String databaseName   = propertyToFix.dbName();
-									Object databaseValue  = databaseNode.getProperty(databaseName);
-									Object correctedValue = propertyToFix.fixDatabaseProperty(databaseValue);
+									try {
+										// try to set database value to corrected value
+										databaseNode.setProperty(databaseName, correctedValue);
 
-									if (databaseValue != null && correctedValue != null) {
+									} catch (Throwable t) {
 
-										try {
-											// try to set database value to corrected value
-											databaseNode.setProperty(databaseName, correctedValue);
+										logger.warn("Unable to fix property {} of {} with UUID {} which is of type {}",
+											propertyToFix.dbName(),
+											entityTypeName,
+											node.getUuid(),
+											databaseValue != null ? databaseValue.getClass() : "null"
+										);
 
-										} catch (Throwable t) {
-
-											logger.warn("Unable to fix property {} of {} with UUID {} which is of type {}", new Object[] {
-												propertyToFix.dbName(),
-												type.getSimpleName(),
-												node.getUuid(),
-												databaseValue != null ? databaseValue.getClass() : "null"
-											});
-
-										}
 									}
-
-								} catch (Throwable t) {
-
-									// log exceptions of other types
-									logger.warn("", t);
 								}
+
+							} catch (Throwable t) {
+
+								// log exceptions of other types
+								logger.warn("", t);
+							}
+						}
+					}
+				}
+
+				@Override
+				public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+
+					if (propertyName != null) {
+
+						final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), propertyName);
+						if (key != null) {
+
+							// needs type cast to Property to use fixDatabaseProperty method
+							if (key instanceof Property) {
+								fixProperty(node, (Property)key);
+							}
+						}
+
+					} else {
+
+						for(final PropertyKey key : node.getPropertyKeys(PropertyView.All)) {
+
+							// needs type cast to Property to use fixDatabaseProperty method
+							if (key instanceof Property) {
+								fixProperty(node, (Property)key);
 							}
 						}
 					}
 
-					@Override
-					public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+					return true;
+				}
+			});
 
-						if (propertyName != null) {
+			logger.info("Fixed {} nodes", nodeCount);
 
-							PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, propertyName);
-							if (key != null) {
-
-								// needs type cast to Property to use fixDatabaseProperty method
-								if (key instanceof Property) {
-									fixProperty(node, (Property)key);
-								}
-							}
-
-						} else {
-
-							for(PropertyKey key : node.getPropertyKeys(PropertyView.All)) {
-
-								// needs type cast to Property to use fixDatabaseProperty method
-								if (key instanceof Property) {
-									fixProperty(node, (Property)key);
-								}
-							}
-						}
-
-						return true;
-					}
-				});
-
-				logger.info("Fixed {} nodes", nodeCount);
-
-				return;
-			}
+			return;
 		}
 
 		logger.info("Unable to determine property and/or entity type to fix.");

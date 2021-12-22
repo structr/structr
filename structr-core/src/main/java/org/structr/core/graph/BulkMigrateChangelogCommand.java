@@ -25,12 +25,11 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
 import org.structr.api.graph.PropertyContainer;
-import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.function.ChangelogFunction;
@@ -46,42 +45,29 @@ public class BulkMigrateChangelogCommand extends NodeServiceCommand implements M
 	@Override
 	public void execute(final Map<String, Object> properties) throws FrameworkException {
 
-		final DatabaseService graphDb          = (DatabaseService) arguments.get("graphDb");
-		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-		final RelationshipFactory relFactory   = new RelationshipFactory(superUserContext);
-		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
+		final long nodeCount = bulkGraphOperation(securityContext, StructrApp.getInstance().nodeQuery(), 1000, "MigrateChangeLog", new BulkGraphOperation<AbstractNode>() {
 
-		if (graphDb != null) {
+			@Override
+			public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
-			final Iterable<AbstractNode> nodeIterator = Iterables.map(nodeFactory, graphDb.getAllNodes());
+				handleObject(node);
+				return true;
+			}
+		});
 
-			final long nodeCount = bulkGraphOperation(securityContext, nodeIterator, 1000, "MigrateChangeLog", new BulkGraphOperation<AbstractNode>() {
+		logger.info("Migrated {} nodes ...", nodeCount);
 
-				@Override
-				public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+		final long relCount = bulkGraphOperation(securityContext, StructrApp.getInstance().relationshipQuery(), 1000, "MigrateChangeLog", new BulkGraphOperation<AbstractRelationship>() {
 
-					handleObject(node);
-					return true;
-				}
-			});
+			@Override
+			public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
-			logger.info("Migrated {} nodes ...", nodeCount);
+				handleObject(rel);
+				return true;
+			}
+		});
 
-			final Iterable<AbstractRelationship> relIterator = Iterables.map(relFactory, graphDb.getAllRelationships());
-
-			final long relCount = bulkGraphOperation(securityContext, relIterator, 1000, "MigrateChangeLog", new BulkGraphOperation<AbstractRelationship>() {
-
-				@Override
-				public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
-
-					handleObject(rel);
-					return true;
-				}
-			});
-
-			logger.info("Migrated {} relationships ...", relCount);
-		}
-
+		logger.info("Migrated {} relationships ...", relCount);
 		logger.info("Done");
 	}
 
