@@ -309,7 +309,7 @@ public class FileHelper {
 		FileHelper.writeToFile(file, fileData);
 
 		if (updateMetadata) {
-			setFileProperties(file, contentType);
+			setFilePropertiesOnCreation(file, contentType);
 		}
 	}
 
@@ -325,18 +325,18 @@ public class FileHelper {
 	public static void setFileData(final File file, final InputStream fileStream, final String contentType) throws FrameworkException, IOException {
 
 		FileHelper.writeToFile(file, fileStream);
-		setFileProperties(file, contentType);
+		setFilePropertiesOnCreation(file, contentType);
 	}
 
 	/**
-	 * Set the contentType, checksum, size and version properties of the given fileNode
+	 * Set the contentType, checksum, size and version properties of the given fileNode on creation
 	 *
 	 * @param file
 	 * @param contentType if null, try to auto-detect content type
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static void setFileProperties (final File file, final String contentType) throws IOException, FrameworkException {
+	private static void setFilePropertiesOnCreation(final File file, final String contentType) throws IOException, FrameworkException {
 
 		final java.io.File fileOnDisk = file.getFileOnDisk(false);
 		final PropertyMap map         = new PropertyMap();
@@ -365,7 +365,7 @@ public class FileHelper {
 			}
 		}
 
-		file.setProperties(file.getSecurityContext(), map);
+		file.setProperties(file.getSecurityContext(), map, true);
 	}
 
 	/**
@@ -374,7 +374,7 @@ public class FileHelper {
 	 * @param fileNode
 	 * @throws FrameworkException
 	 */
-	public static void setFileProperties (File fileNode) throws FrameworkException {
+	private static void setFilePropertiesOnCreation(File fileNode) throws FrameworkException {
 
 		final PropertyMap properties = new PropertyMap();
 
@@ -389,7 +389,7 @@ public class FileHelper {
 		}
 
 		fileNode.unlockSystemPropertiesOnce();
-		fileNode.setProperties(fileNode.getSecurityContext(), properties);
+		fileNode.setProperties(fileNode.getSecurityContext(), properties, true);
 
 	}
 
@@ -506,7 +506,7 @@ public class FileHelper {
 				}
 
 				file.unlockSystemPropertiesOnce();
-				file.setProperties(file.getSecurityContext(), map);
+				file.setProperties(SecurityContext.getSuperUserInstance(), map);
 
 			} catch (IOException ioex) {
 				logger.warn("Unable to access {} on disk: {}", fileOnDisk, ioex.getMessage());
@@ -598,7 +598,7 @@ public class FileHelper {
 	 */
 	public static void writeToFile(final File fileNode, final byte[] data) throws FrameworkException, IOException {
 
-		setFileProperties(fileNode);
+		setFilePropertiesOnCreation(fileNode);
 
 		FileUtils.writeByteArrayToFile(fileNode.getFileOnDisk(), data);
 
@@ -614,7 +614,7 @@ public class FileHelper {
 	 */
 	public static void writeToFile(final File fileNode, final InputStream data) throws FrameworkException, IOException {
 
-		setFileProperties(fileNode);
+		setFilePropertiesOnCreation(fileNode);
 
 		try (final FileOutputStream out = new FileOutputStream(fileNode.getFileOnDisk())) {
 

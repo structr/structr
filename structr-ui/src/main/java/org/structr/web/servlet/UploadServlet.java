@@ -333,7 +333,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 								changedProperties.put(AbstractNode.type, type);
 
 								newFile.unlockSystemPropertiesOnce();
-								newFile.setProperties(securityContext, changedProperties);
+								newFile.setProperties(securityContext, changedProperties, true);
 
 								uuid = newFile.getUuid();
 
