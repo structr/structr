@@ -1,14 +1,18 @@
-<div class="query-box rest">
-	<input class="search" name="rest" size="39" placeholder="REST query">
-	<i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}" id="clear-rest" data-type="rest"></i>
+<div class="query-box rest flex mr-4">
+	<div class="relative">
+		<input class="search" name="rest" size="39" placeholder="REST query">
+		<i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}" id="clear-rest" data-type="rest"></i>
+	</div>
 	<a class="icon" id="exec-rest">
 		${_Icons.getSvgIcon('run_button', 24, 24, '')}
 	</a>
 </div>
 
-<div class="query-box cypher">
-	<textarea class="search" name="cypher" cols="39" rows="1" placeholder="Cypher query"></textarea>
-	<i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}" id="clear-cypher" data-type="cypher"></i>
+<div class="query-box cypher flex mr-4">
+	<div class="relative max-h-5">
+		<textarea class="search min-h-5 min-w-64" name="cypher" cols="39" rows="1" placeholder="Cypher query"></textarea>
+		<i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}" id="clear-cypher" data-type="cypher"></i>
+	</div>
 	<a class="icon" id="exec-cypher">
 		${_Icons.getSvgIcon('run_button', 24, 24, '')}
 	</a>
