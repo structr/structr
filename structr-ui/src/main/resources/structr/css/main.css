@@ -369,14 +369,14 @@ body.console-open #header-blocker {
 	padding: 1rem 2rem 1rem 2rem;
 }
 
-#function-bar .icon {
-	color: var(--icon-stroke);
-	position: absolute;
-	top: 1rem;
-	/*display: inline-block;*/
-	float: right;
-	margin: .25rem 1rem 0 1rem;
-}
+/*#function-bar .icon {*/
+/*	color: var(--icon-stroke);*/
+/*	!*position: absolute;*!*/
+/*	!*top: 1rem;*!*/
+/*	!*display: inline-block;*!*/
+/*	!*float: right;*!*/
+/*	margin: .25rem 1rem 0 1rem;*/
+/*}*/
 
 #function-bar .tabs-menu {
 	margin-top: 1rem;
@@ -4584,6 +4584,12 @@ table.props td.__value {
 .grid {
 	display: grid;
 }
+.relative {
+	position: relative;
+}
+.absolute {
+	position: absolute;
+}
 .flex-col {
 	flex-direction: column;
 }
@@ -4620,6 +4626,15 @@ table.props td.__value {
 .mr-2 {
 	margin-right: .5rem;
 }
+.mr-4 {
+	margin-right: 1rem;
+}
+.mr-8 {
+	margin-right: 2rem;
+}
+.mr-12 {
+	margin-right: 3rem;
+}
 .mb-1 {
 	margin-bottom: .25rem;
 }
@@ -4643,12 +4658,6 @@ table.props td.__value {
 }
 .ml-4 {
 	margin-left: 1rem;
-}
-.mr-8 {
-	margin-right: 2rem;
-}
-.mr-12 {
-	margin-right: 3rem;
 }
 .w-40 {
 	width: 10rem;
@@ -4728,4 +4737,13 @@ table.props td.__value {
 }
 .overflow-hidden {
 	overflow: hidden;
+}
+.max-h-5 {
+	max-height: 1.25rem;
+}
+.min-h-5 {
+	min-height: 1.25rem;
+}
+.min-w-64 {
+	min-width: 16rem;
 }
