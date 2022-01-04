@@ -57,7 +57,7 @@ public class NumberFormatFunction extends CoreFunction {
 			final String langCode = sources[1].toString();
 			final String pattern  = sources[2].toString();
 
-			return new DecimalFormat(pattern, DecimalFormatSymbols.getInstance(Locale.forLanguageTag(langCode))).format(val);
+			return new DecimalFormat(pattern, DecimalFormatSymbols.getInstance(Locale.forLanguageTag(langCode.replaceAll("_", "-")))).format(val);
 
 		} catch (ArgumentNullException pe) {
 

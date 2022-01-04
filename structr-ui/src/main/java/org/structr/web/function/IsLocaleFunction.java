@@ -43,13 +43,13 @@ public class IsLocaleFunction extends UiAdvancedFunction {
 		final Locale locale = ctx.getLocale();
 		if (locale != null) {
 
-			final String localeString = locale.toString();
+			final String localeString = locale.toLanguageTag();
 
 			if (sources != null && sources.length > 0) {
 				final int len = sources.length;
 				for (int i = 0; i < len; i++) {
 
-					if (localeString.equals(sources[i].toString())) {
+					if (localeString.equals(sources[0].toString().replaceAll("_", "-"))) {
 						return true;
 					}
 				}

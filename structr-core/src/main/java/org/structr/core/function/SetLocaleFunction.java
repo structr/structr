@@ -51,7 +51,7 @@ public class SetLocaleFunction extends CoreFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			ctx.setLocale(new Locale(sources[0].toString()));
+			ctx.setLocale(Locale.forLanguageTag(sources[0].toString().replaceAll("_", "-")));
 
 		} catch (ArgumentNullException pe) {
 
