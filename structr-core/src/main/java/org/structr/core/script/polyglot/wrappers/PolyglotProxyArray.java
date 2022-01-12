@@ -69,7 +69,6 @@ public class PolyglotProxyArray implements ProxyArray {
 	@Override
 	public Object get(long index) {
 		this.checkIndex(index);
-		updateListFromSource();
 
 		if (index >= list.size()) {
 
@@ -82,7 +81,6 @@ public class PolyglotProxyArray implements ProxyArray {
 	@Override
 	public void set(long index, Value value) {
 		this.checkIndex(index);
-		updateListFromSource();
 
 		if (list.size() <= index) {
 
@@ -102,6 +100,7 @@ public class PolyglotProxyArray implements ProxyArray {
 		}
 
 		writeListToSource();
+		updateListFromSource();
 	}
 
 	@Override
@@ -112,7 +111,6 @@ public class PolyglotProxyArray implements ProxyArray {
 	@Override
 	public boolean remove(long index) {
 		this.checkIndex(index);
-		updateListFromSource();
 
 		if (index < list.size()) {
 
