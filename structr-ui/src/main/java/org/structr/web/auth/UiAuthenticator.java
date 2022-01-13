@@ -596,9 +596,11 @@ public class UiAuthenticator implements Authenticator {
 								stateParamters.remove(originalRequestState);
 
 								URIBuilder uriBuilder = new URIBuilder();
-								for (Map.Entry<String, String[]> entry : originalRequestParameters.entrySet()) {
-									for (String parameterEntry : entry.getValue()) {
-										uriBuilder.addParameter(entry.getKey(), parameterEntry);
+								if (originalRequestParameters != null) {
+									for (Map.Entry<String, String[]> entry : originalRequestParameters.entrySet()) {
+										for (String parameterEntry : entry.getValue()) {
+											uriBuilder.addParameter(entry.getKey(), parameterEntry);
+										}
 									}
 								}
 
