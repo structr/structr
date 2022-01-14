@@ -52,7 +52,7 @@ if (browser) {
 	defaultView = 'public';
 }
 
-var _Crud = {
+let _Crud = {
 	_moduleName: 'crud',
 	displayTypeConfigKey: 'structrCrudDisplayTypes_' + location.port,
 	defaultCollectionPageSize: 10,
@@ -693,7 +693,27 @@ var _Crud = {
 	 * of the given type
 	 */
 	relatedType: function(key, type) {
-		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && _Crud.keys[type][key].relatedType);
+
+		if (key && type && _Crud.keys[type] && _Crud.keys[type][key]) {
+
+			let storedInfo = _Crud.keys[type][key].relatedType;
+
+			if (!storedInfo) {
+
+				let declaringClass = _Crud.keys[type][key].declaringClass;
+				if (declaringClass && _Crud.relInfo[declaringClass]) {
+					if (key === 'sourceId') {
+						storedInfo = _Crud.relInfo[declaringClass].source;
+					} else if (key === 'targetId') {
+						storedInfo = _Crud.relInfo[declaringClass].target;
+					}
+				}
+			}
+
+			return storedInfo;
+		}
+
+		console.log(`Unkown relatedType for ${type}.${key}`);
 	},
 	/**
 	 * Return the format information stored about the given property key
