@@ -54,7 +54,7 @@ let _Elements = {
 		},
 		{
 			name: 'Scripting',
-			elements: ['script', 'noscript']
+			elements: ['script', 'noscript', 'slot', 'canvas']
 		},
 		{
 			name: 'Tabular',
@@ -62,7 +62,7 @@ let _Elements = {
 		},
 		{
 			name: 'Text',
-			elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'g', 'dfn', 'abbr', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr', 'q']
+			elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'ruby', 'rt', 'rp', 'data', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'bdi', 'bdo', 'span', 'br', 'wbr']
 		},
 		{
 			name: 'Edits',
@@ -70,7 +70,7 @@ let _Elements = {
 		},
 		{
 			name: 'Embedded',
-			elements: ['img', 'video', 'audio', 'source', 'track', 'canvas', 'map', 'area', 'iframe', 'embed', 'object', 'param']
+			elements: ['picture', 'source', 'img', 'iframe', 'embed', 'object', 'param', 'video', 'audio', 'track', 'map', 'area']
 		},
 		{
 			name: 'Forms',
@@ -78,7 +78,7 @@ let _Elements = {
 		},
 		{
 			name: 'Interactive',
-			elements: ['details', 'summary', 'command', 'menu']
+			elements: ['dialog', 'details', 'summary', 'command', 'menu']
 		}
 	],
 	mostUsedAttrs: [
@@ -161,6 +161,11 @@ let _Elements = {
 			elements: ['audio'],
 			attrs: ['autoplay', 'controls', 'loop', 'muted', 'preload', 'src'],
 			focus: 'controls'
+		},
+		{
+			elements: ['slot'],
+			attrs: ['name'],
+			focus: 'name'
 		}
 	],
 	voidAttrs: ['br', 'hr', 'img', 'input', 'link', 'meta', 'area', 'base', 'col', 'embed', 'keygen', 'menuitem', 'param', 'track', 'wbr'],
@@ -179,7 +184,7 @@ let _Elements = {
 		},
 		{
 			name: 'd',
-			elements: ['datalist', 'dd', 'del', 'details', 'div', 'dfn', 'dl', 'dt']
+			elements: ['data', 'datalist', 'dd', 'del', 'details', 'dialog', 'div', 'dfn', 'dl', 'dt']
 		},
 		{
 			name: 'e-f',
@@ -203,11 +208,11 @@ let _Elements = {
 		},
 		{
 			name: 'p-r',
-			elements: ['p', 'param', 'pre', 'progress', '|',  'q', '|', 'rp', 'rt', 'ruby']
+			elements: ['p', 'param', 'picture', 'pre', 'progress', '|',  'q', '|', 'rp', 'rt', 'ruby']
 		},
 		{
 			name: 's',
-			elements: ['s', 'samp', 'script', 'section', 'select', 'small', 'source', 'span', 'strong', 'style', 'sub', 'summary', 'sup']
+			elements: ['s', 'samp', 'script', 'section', 'select', 'slot', 'small', 'source', 'span', 'strong', 'style', 'sub', 'summary', 'sup']
 		},
 		{
 			name: 't',
