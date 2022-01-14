@@ -32,6 +32,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.Adapter;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -162,6 +163,13 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 	void setContentType(final String contentType) throws FrameworkException;
 
 	static void onModification(final Content thisContent, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		final String uuid = thisContent.getUuid();
+		if (uuid != null) {
+
+			// acknowledge all events for this node when it is modified
+			RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
+		}
 
 		final PropertyMap map = new PropertyMap();
 

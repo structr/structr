@@ -310,7 +310,6 @@ let _Dialogs = {
 		Command.get(entity.id, null, function(aHtmlProperties) {
 
 			Structr.fetchHtmlTemplate('dialogs/a.options', { entity: entity, a: aHtmlProperties, title: _Dialogs.title }, (html) => {
-
 				el.html(html);
 
 				_Dialogs.populateInputFields(el, aHtmlProperties);

@@ -20,7 +20,6 @@ import {FlowOr} from "./entities/FlowOr.js";
 import {FlowAnd} from "./entities/FlowAnd.js";
 import {FlowForEach} from "./entities/FlowForEach.js";
 import {Rest} from "../../../../lib/structr/rest/Rest.js";
-import {CodeModal} from "./utility/CodeModal.js";
 import {DependencyLoader} from "./utility/DependencyLoader.js";
 import {FlowAggregate} from "./entities/FlowAggregate.js";
 import {FlowConstant} from "./entities/FlowConstant.js";
@@ -52,7 +51,6 @@ export class FlowEditor {
 
 			this._injectDependencies().then(() => {
 
-
 				this._editorId = 'structr-flow-editor@0.1.0';
 
 				this._flowContainer = flowContainer;
@@ -64,20 +62,10 @@ export class FlowEditor {
 
 				this._setupEditor();
 
-				if (options && !options.deactivateInternalEvents) {
-					document.addEventListener('floweditor.internal.openeditor', e => {
-						new CodeModal(e.detail.element);
-					});
-				}
-
 				resolve();
-
 			});
-
 		});
-
 	}
-
 
 	waitForInitialization() {
 		return this._initializationPromise;
@@ -98,15 +86,27 @@ export class FlowEditor {
 				"lib/d3-node-editor/alight.min.js"
 			],
 			stylesheets: [
-				"lib/d3-node-editor/d3-node-editor.css"
-				, "../../../css/flow-editor.css"
+				"lib/d3-node-editor/d3-node-editor.css",
+				"../../../css/flow-editor.css"
 			]
 		};
 
-		return dep.injectDependencies(depObject).then( () => {return dep.injectScript("lib/d3-node-editor/d3-node-editor.js");})
+		/**
+		* Evil hack: Backup global define function (created by monaco editor loader) and restore it after d3 has been initialized
+		**/
+		let backupDefine = window.define;
+		delete window.define;
+
+		return dep.injectDependencies(depObject).then( () => {
+			return dep.injectScript("lib/d3-node-editor/d3-node-editor.js");
+		}).then(() => {
+			// restore global define function
+			window.define = backupDefine;
+		});
 	}
 
 	_setupEditor() {
+
 		this._editor = new D3NE.NodeEditor(this._editorId, this._rootElement, this._getComponents(), this._getMenu());
 
 		// Extend the maximum viewport to feature a much larger workspace
@@ -156,6 +156,7 @@ export class FlowEditor {
 	}
 
 	_getEventHandlers() {
+
 		const self = this;
 		if (this._eventHandlers === undefined) {
 			this._eventHandlers = {
@@ -242,7 +243,6 @@ export class FlowEditor {
 		// Global binds
 		document.addEventListener('keydown', this._getEventHandlers().global.keydown);
 		document.addEventListener('keyup', this._getEventHandlers().global.keyup);
-
 	}
 
 	_unregisterKeybinds() {

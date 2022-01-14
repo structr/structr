@@ -71,7 +71,7 @@ $(document).ready(function() {
 	});
 });
 
-var _Schema = {
+let _Schema = {
 	storedLayouts: [{'foo':'bar'}],
 	_moduleName: 'schema',
 	undefinedRelType: 'UNDEFINED_RELATIONSHIP_TYPE',
@@ -961,7 +961,7 @@ var _Schema = {
 
 		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', function(c) {
 			_Schema.methods.appendMethods(c, entity, _Schema.filterJavaMethods(entity.schemaMethods));
-		}, null, _Schema.methods.refreshEditors);
+		}, null, _Editors.resizeVisibleEditors);
 
 		if (!entity.isBuiltinType) {
 
@@ -1193,7 +1193,7 @@ var _Schema = {
 
 			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', false, function(c) {
 				_Schema.methods.appendMethods(c, entity, _Schema.filterJavaMethods(entity.schemaMethods));
-			}, null, _Schema.methods.refreshEditors);
+			}, null, _Editors.resizeVisibleEditors);
 
 			let selectRelationshipOptions = function(rel) {
 				$('#source-type-name').text(sourceNode.name).data('objectId', rel.sourceId);
@@ -1592,7 +1592,9 @@ var _Schema = {
 					let unsavedChanges = _Schema.properties.hasUnsavedChanges(row.closest('table'));
 
 					if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
-						_Schema.properties.openCodeEditorForFunctionProperty(property.id, targetProperty, function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); });
+						_Schema.properties.openCodeEditorForFunctionProperty(property.id, targetProperty, () => {
+							_Schema.openEditDialog(property.schemaNode.id, 'local');
+						});
 					}
 				}
 			};
@@ -1603,6 +1605,25 @@ var _Schema = {
 
 			$('.edit-write-function', row).off('click').on('click', () => {
 				readWriteButtonClickHandler('writeFunction');
+			}).prop('disabled', isProtected);
+
+			$('.edit-cypher-query', row).off('click').on('click', () => {
+
+				if (overrides && overrides.editCypherProperty) {
+
+					overrides.editCypherProperty(property);
+
+				} else {
+
+					let unsavedChanges = _Schema.properties.hasUnsavedChanges(row.closest('table'));
+
+					if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
+						_Schema.properties.openCodeEditorForCypherProperty(property.id, () => {
+							_Schema.openEditDialog(property.schemaNode.id, 'local');
+						});
+					}
+				}
+
 			}).prop('disabled', isProtected);
 
 			if (!isProtected) {
@@ -1745,83 +1766,80 @@ var _Schema = {
 
 			Command.get(id, 'id,name,contentType,' + key, function(entity) {
 
-				var title = 'Edit ' + key + ' of ' + entity.name;
+				Structr.dialog('Edit ' + key + ' of ' + entity.name, function() {}, function() {}, ['popup-dialog-with-editor']);
 
-				Structr.dialog(title, function() {}, function() {});
-
-				_Schema.properties.editFunctionPropertyCode(entity, key, dialogText, function() {
-					window.setTimeout(function() {
+				_Schema.properties.editFunctionPropertyCode(entity, key, dialogText, () => {
+					window.setTimeout(() => {
 						callback();
 					}, 250);
 				});
 			});
 		},
-		editFunctionPropertyCode: function(entity, key, element, callback) {
+		editFunctionPropertyCode: (entity, key, element, callback) => {
 
-			let text = entity[key] || '';
+			let initialText = entity[key] || '';
 
-			element.append('<div class="editor"></div>');
-			let contentBox  = $('.editor', element);
-			let contentType = entity.contentType;
-			let text1, text2;
-
-			// Intitialize editor
-			editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
-				value: text,
-				mode: contentType,
-				lineNumbers: true,
-				lineWrapping: false,
-				extraKeys: {
-					"Ctrl-Space": _Contents.autoComplete
-				},
-				indentUnit: 4,
-				tabSize:4,
-				indentWithTabs: true
-			}));
-			_Code.setupAutocompletion(editor, entity.id);
-
-			Structr.resize();
+			element.append('<div class="editor h-full"></div>');
+			let contentBox = $('.editor', element);
 
 			dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
 			dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 
 			dialogSaveButton = $('#editorSave', dialogBtn);
-			saveAndClose = $('#saveAndClose', dialogBtn);
+			saveAndClose     = $('#saveAndClose', dialogBtn);
+
+			let functionPropertyMonacoConfig = {
+				language: 'auto',
+				lint: true,
+				autocomplete: true,
+				changeFn: (editor, entity) => {
+					let editorText = editor.getValue();
+
+					if (initialText === editorText) {
+						dialogSaveButton.prop("disabled", true).addClass('disabled');
+						saveAndClose.prop("disabled", true).addClass('disabled');
+					} else {
+						dialogSaveButton.prop("disabled", false).removeClass('disabled');
+						saveAndClose.prop("disabled", false).removeClass('disabled');
+					}
+				},
+				saveFn: (editor, entity) => {
+					let text1 = initialText;
+					let text2 = editor.getValue();
+
+					if (text1 === text2) {
+						return;
+					}
+
+					Command.setProperty(entity.id, key, text2, false, function() {
+
+						Structr.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
+						dialogSaveButton.prop("disabled", true).addClass('disabled');
+						saveAndClose.prop("disabled", true).addClass('disabled');
+						Command.getProperty(entity.id, key, function(newText) {
+							initialText = newText;
+						});
+					});
+				},
+				saveFnText: `Save ${key} Function`,
+				restoreModel: false,
+				isAutoscriptEnv: true
+			};
+
+			let editor = _Editors.getMonacoEditor(entity, key, contentBox, functionPropertyMonacoConfig);
+
+			_Editors.resizeVisibleEditors();
+			Structr.resize();
 
 			saveAndClose.off('click').on('click', function(e) {
 				e.stopPropagation();
 				dialogSaveButton.click();
-				setTimeout(function() {
+
+				setTimeout(() => {
 					dialogSaveButton.remove();
 					saveAndClose.remove();
 					dialogCancelButton.click();
 				}, 500);
-			});
-
-			editor.on('change', function(cm, change) {
-
-				let editorText = editor.getValue();
-
-				if (text === editorText) {
-					dialogSaveButton.prop("disabled", true).addClass('disabled');
-					saveAndClose.prop("disabled", true).addClass('disabled');
-				} else {
-					dialogSaveButton.prop("disabled", false).removeClass('disabled');
-					saveAndClose.prop("disabled", false).removeClass('disabled');
-				}
-
-				$('#chars').text(editorText.length);
-				$('#words').text((editorText.match(/\S+/g) || []).length);
-			});
-
-			let scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
-			if (scrollInfo) {
-				editor.scrollTo(scrollInfo.left, scrollInfo.top);
-			}
-
-			editor.on('scroll', function() {
-				let scrollInfo = editor.getScrollInfo();
-				LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
 			});
 
 			dialogCancelButton.off('click').on('click', function(e) {
@@ -1831,7 +1849,7 @@ var _Schema = {
 					callback();
 				}
 				dialogSaveButton = $('#editorSave', dialogBtn);
-				saveAndClose = $('#saveAndClose', dialogBtn);
+				saveAndClose     = $('#saveAndClose', dialogBtn);
 				dialogSaveButton.remove();
 				saveAndClose.remove();
 				return false;
@@ -1840,42 +1858,126 @@ var _Schema = {
 			dialogSaveButton.off('click').on('click', function(e) {
 				e.stopPropagation();
 
-				text1 = text;
-				text2 = editor.getValue();
+				functionPropertyMonacoConfig.saveFn(editor, entity);
+			});
 
-				if (!text1)
-					text1 = '';
-				if (!text2)
-					text2 = '';
+			dialogMeta.append('<span class="editor-info"></span>');
 
-				if (text1 === text2) {
-					return;
-				}
+			let editorInfo = dialogMeta[0].querySelector('.editor-info');
+			_Editors.appendEditorOptionsElement(editorInfo);
 
-				Command.setProperty(entity.id, key, text2, false, function() {
+			editor.focus();
+		},
+		openCodeEditorForCypherProperty: (id, closeCallback) => {
 
-					Structr.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
-					_Schema.reload();
-					dialogSaveButton.prop("disabled", true).addClass('disabled');
-					saveAndClose.prop("disabled", true).addClass('disabled');
-					Command.getProperty(entity.id, key, function(newText) {
-						text = newText;
-					});
+			dialogMeta.show();
+
+			Command.get(id, 'id,name,format', (entity) => {
+
+				Structr.dialog('Edit cypher query of ' + entity.name, () => {}, () => {}, ['popup-dialog-with-editor']);
+
+				_Schema.properties.editCypherPropertyCode(entity, dialogText, () => {
+					window.setTimeout(() => {
+						closeCallback();
+					}, 250);
 				});
 			});
+		},
+		editCypherPropertyCode: (entity, element, callback) => {
 
-			dialogMeta.append('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span>');
-			$('#lineWrapping').off('change').on('change', function() {
-				var inp = $(this);
-				Structr.updateCodeMirrorOptionGlobally('lineWrapping', inp.is(':checked'));
-				blinkGreen(inp.parent());
-				editor.refresh();
+			let key         = 'format';
+			let initialText = entity[key] || '';
+
+			element.append('<div class="editor h-full"></div>');
+			let contentBox = $('.editor', element);
+
+			dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
+			dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+
+			dialogSaveButton = $('#editorSave', dialogBtn);
+			saveAndClose     = $('#saveAndClose', dialogBtn);
+
+			let cypherPropertyMonacoConfig = {
+				language: 'cypher',
+				lint: false,
+				autocomplete: false,
+				changeFn: (editor, entity) => {
+					let editorText = editor.getValue();
+
+					if (initialText === editorText) {
+						dialogSaveButton.prop("disabled", true).addClass('disabled');
+						saveAndClose.prop("disabled", true).addClass('disabled');
+					} else {
+						dialogSaveButton.prop("disabled", false).removeClass('disabled');
+						saveAndClose.prop("disabled", false).removeClass('disabled');
+					}
+				},
+				saveFn: (editor, entity) => {
+					let text1 = initialText;
+					let text2 = editor.getValue();
+
+					if (text1 === text2) {
+						return;
+					}
+
+					_Schema.showSchemaRecompileMessage();
+
+					Command.setProperty(entity.id, key, text2, false, function() {
+
+						_Schema.hideSchemaRecompileMessage();
+
+						Structr.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
+						dialogSaveButton.prop("disabled", true).addClass('disabled');
+						saveAndClose.prop("disabled", true).addClass('disabled');
+						Command.getProperty(entity.id, key, function(newText) {
+							initialText = newText;
+						});
+					});
+				},
+				saveFnText: `Save Cypher Property Query`,
+				restoreModel: false,
+				isAutoscriptEnv: false
+			};
+
+			let editor = _Editors.getMonacoEditor(entity, key, contentBox, cypherPropertyMonacoConfig);
+
+			_Editors.resizeVisibleEditors();
+			Structr.resize();
+
+			saveAndClose.off('click').on('click', function(e) {
+				e.stopPropagation();
+				dialogSaveButton.click();
+
+				setTimeout(() => {
+					dialogSaveButton.remove();
+					saveAndClose.remove();
+					dialogCancelButton.click();
+				}, 500);
 			});
 
-			dialogMeta.append('<span class="editor-info">Characters: <span id="chars">' + editor.getValue().length + '</span></span>');
-			dialogMeta.append('<span class="editor-info">Words: <span id="chars">' + (editor.getValue().match(/\S+/g) ? editor.getValue().match(/\S+/g).length : 0) + '</span></span>');
+			dialogCancelButton.off('click').on('click', function(e) {
+				e.stopPropagation();
+				e.preventDefault();
+				if (callback) {
+					callback();
+				}
+				dialogSaveButton = $('#editorSave', dialogBtn);
+				saveAndClose     = $('#saveAndClose', dialogBtn);
+				dialogSaveButton.remove();
+				saveAndClose.remove();
+				return false;
+			});
 
-			editor.id = entity.id;
+			dialogSaveButton.off('click').on('click', function(e) {
+				e.stopPropagation();
+
+				cypherPropertyMonacoConfig.saveFn(editor, entity);
+			});
+
+			dialogMeta.append('<span class="editor-info"></span>');
+
+			let editorInfo = dialogMeta[0].querySelector('.editor-info');
+			_Editors.appendEditorOptionsElement(editorInfo);
 
 			editor.focus();
 		},
@@ -2601,12 +2703,10 @@ var _Schema = {
 						_Schema.methods.bulkSave(el, fakeTbody, entity, optionalAfterSaveCallback);
 					});
 
-					$('#methods-container-right', el).append('<div class="editor-settings"><span><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span></div>');
-					$('#lineWrapping', el).off('change').on('change', function() {
-						let checkbox = $(this);
-						Structr.updateCodeMirrorOptionGlobally('lineWrapping', checkbox.is(':checked'));
-						blinkGreen(checkbox.parent());
-					});
+					$('#methods-container-right', el).append('<div class="editor-info"></div>');
+
+					let editorInfo = el[0].querySelector('#methods-container-right .editor-info');
+					_Editors.appendEditorOptionsElement(editorInfo);
 				});
 			});
 		},
@@ -2741,93 +2841,74 @@ var _Schema = {
 				};
 			};
 
-			$('.add-action-button', el).off('click').on('click', function() {
+			el[0].querySelector('.add-action-button').addEventListener('click', () => {
 				_Schema.methods.appendEmptyMethod(fakeTbody, getNewMethodTemplateConfig(''));
 			});
 
 			if (entity) {
 
-				$('.add-onCreate-button', el).off('click').on('click', function() {
+				el[0].querySelector('.add-onCreate-button').addEventListener('click', () => {
 					_Schema.methods.appendEmptyMethod(fakeTbody, getNewMethodTemplateConfig('onCreate'));
 				});
 
-				$('.add-afterCreate-button', el).off('click').on('click', function() {
+				let addAfterCreateButton = el[0].querySelector('.add-afterCreate-button');
+
+				addAfterCreateButton.addEventListener('click', () => {
 					_Schema.methods.appendEmptyMethod(fakeTbody, getNewMethodTemplateConfig('afterCreate'));
 				});
 
 				Structr.appendInfoTextToElement({
 					text: "The difference between onCreate an afterCreate is that afterCreate is called after all checks have run and the transaction is committed.<br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.",
-					element: $('.add-afterCreate-button', el),
+					element: $(addAfterCreateButton),
 					insertAfter: true
 				});
 
-				$('.add-onSave-button', el).off('click').on('click', function() {
+				el[0].querySelector('.add-onSave-button').addEventListener('click', () => {
 					_Schema.methods.appendEmptyMethod(fakeTbody, getNewMethodTemplateConfig('onSave'));
 				});
 			}
-
-			let contentDiv = $('#methods-container-right', el);
-
-			let activateTab = function(tabName) {
-				$('.method-tab-content', contentDiv).hide();
-				$('li[data-name]', contentDiv).removeClass('active');
-				$('#tabView-' + tabName, contentDiv).show();
-				$('li[data-name="' + tabName + '"]', contentDiv).addClass('active');
-
-				if (_Schema.methods.cm && _Schema.methods.cm[tabName]) {
-					_Schema.methods.cm[tabName].refresh();
-				}
-			};
-
-			$('li[data-name]', contentDiv).off('click').on('click', function(e) {
-				e.stopPropagation();
-				activateTab($(this).data('name'));
-			});
-			activateTab('source');
-			contentDiv.hide();
 		},
-		refreshEditors: function() {
-			if (_Schema.methods.cm) {
+		appendEmptyMethod: (fakeTbody, tplConfig) => {
 
-				if (_Schema.methods.cm.source) {
-					_Schema.methods.cm.source.refresh();
-				}
-			}
-		},
-		appendEmptyMethod: function(fakeTbody, tplConfig) {
-
-			Structr.fetchHtmlTemplate('schema/method.new', tplConfig, function(html) {
+			Structr.fetchHtmlTemplate('schema/method.new', tplConfig, (html) => {
 
 				let row = $(html);
+				let rowEl = row[0];
 				fakeTbody.append(row);
 
 				fakeTbody.scrollTop(row.position().top);
 
 				_Schema.methods.methodsData[tplConfig.methodId] = {
+					id: tplConfig.methodId,
 					isNew: true,
 					name: tplConfig.name,
 					isStatic: false,
 					source: '',
 				};
 
-				$('.property-name', row).off('keyup').on('keyup', function() {
-					_Schema.methods.methodsData[tplConfig.methodId].name = $(this).val();
+				let propertyNameInput = rowEl.querySelector('.property-name');
+				propertyNameInput.addEventListener('input', () => {
+					_Schema.methods.methodsData[tplConfig.methodId].name = propertyNameInput.value;
 				});
 
-				$('.property-isStatic', row).off('change').on('change', function() {
-					_Schema.methods.methodsData[tplConfig.methodId].isStatic = $(this).prop('checked');
+				let isStaticCheckbox = rowEl.querySelector('.property-isStatic');
+				isStaticCheckbox.addEventListener('change', () => {
+					_Schema.methods.methodsData[tplConfig.methodId].isStatic = isStaticCheckbox.checked;
 				});
 
-				$('.edit-action', row).off('click').on('click', function() {
+				rowEl.querySelector('.edit-action').addEventListener('click', () => {
 					_Schema.methods.editMethod(row);
 				});
 
-				$('.discard-changes', row).off('click').on('click', function() {
+				rowEl.querySelector('.discard-changes').addEventListener('click', () => {
 					if (row.hasClass('editing')) {
 						$('#methods-container-right').hide();
 					}
 					row.remove();
+
 					_Schema.methods.rowChanged(fakeTbody.closest('.fake-table'));
+
+					_Editors.nukeEditorsById(tplConfig.methodId);
 				});
 
 				_Schema.methods.fakeTableChanged(fakeTbody.closest('.fake-table'));
@@ -2877,7 +2958,7 @@ var _Schema = {
 				_Schema.methods.rowChanged(row, (methodData.isStatic !== methodData.initialisStatic));
 			});
 
-			$('.edit-action', row).off('click').on('click', function() {
+			$('.edit-action', row).off('click').on('click', () => {
 				_Schema.methods.editMethod(row);
 			});
 
@@ -2901,61 +2982,49 @@ var _Schema = {
 					$('.property-isStatic', row).prop('checked', methodData.isStatic);
 
 					if (row.hasClass('editing')) {
-						_Schema.methods.editMethod(row);
+						_Schema.methods.editMethod(row, false);
 					}
 
 					_Schema.methods.rowChanged(row, false);
 				}
 			});
 		},
-		editMethod: function(row) {
+		saveAndDisposePreviousEditor: (row) => {
 
-			let contentDiv = $('#methods-container-right').show();
+			let previouslyActiveRow = row.closest('.fake-tbody').find('.fake-tr.editing');
+			if (previouslyActiveRow) {
+				let previousMethodId = previouslyActiveRow.data('methodId');
+				_Editors.saveViewState(previousMethodId, 'source');
+				_Editors.disposeEditor(previousMethodId, 'source');
+			}
+		},
+		editMethod: function(row, restoreModel) {
+
+			_Schema.methods.saveAndDisposePreviousEditor(row);
+
+			$('#methods-container-right').show();
 
 			row.closest('.fake-tbody').find('.fake-tr').removeClass('editing');
 			row.addClass('editing');
 
-			let methodId = row.data('methodId');
+			let methodId   = row.data('methodId');
 			let methodData = _Schema.methods.methodsData[methodId];
 
-			if (!_Schema.methods.cm) {
-				_Schema.methods.cm = {};
-			} else {
-				_Schema.methods.cm.source.toTextArea();
-			}
-
-			let sourceTextarea = $('textarea.property-code', contentDiv);
-
-			_Schema.methods.cm.source = CodeMirror.fromTextArea(sourceTextarea[0], Structr.getCodeMirrorSettings({
-				lineNumbers: true,
-				lineWrapping: false,
-				extraKeys: {
-					"'.'":        _Contents.autoComplete,
-					"Ctrl-Space": _Contents.autoComplete
+			let sourceMonacoConfig = {
+				language: 'auto',
+				lint: true,
+				autocomplete: true,
+				changeFn: (editor, entity) => {
+					methodData.source = editor.getValue();
+					_Schema.methods.rowChanged(row, (methodData.source !== methodData.initialSource));
 				},
-				indentUnit: 4,
-				tabSize: 4,
-				indentWithTabs: true
-			}));
-			$(_Schema.methods.cm.source.getWrapperElement()).addClass('cm-schema-methods');
-			_Schema.methods.cm.source.setValue(methodData.source);
-			_Schema.methods.cm.source.setOption('mode', _Schema.methods.senseCodeMirrorMode(methodData.source));
-			_Schema.methods.cm.source.refresh();
-			_Schema.methods.cm.source.clearHistory();
-			_Schema.methods.cm.source.on('change', function (cm, changeset) {
-				cm.save();
-				cm.setOption('mode', _Schema.methods.senseCodeMirrorMode(cm.getValue()));
-				$(cm.getTextArea()).trigger('change');
+				restoreModel: restoreModel
+			};
 
-				methodData.source = cm.getValue();
+			let sourceEditor = _Editors.getMonacoEditor(methodData, 'source', $('.editor', $('#methods-content')), sourceMonacoConfig);
+			sourceEditor.focus();
 
-				_Schema.methods.rowChanged(row, (methodData.source !== methodData.initialSource));
-			});
-
-			_Code.setupAutocompletion(_Schema.methods.cm.source, methodId, true);
-		},
-		senseCodeMirrorMode: function(content) {
-			return (content && content.indexOf('{') === 0) ? 'text/javascript' : 'text';
+			_Schema.resizeVisibleEditors();
 		},
 		showGlobalSchemaMethods: function () {
 
@@ -3057,9 +3126,13 @@ var _Schema = {
 			$('body').css({
 				position: 'relative'
 			});
-
 		}
-
+	},
+	dialogSizeChanged: () => {
+		_Schema.resizeVisibleEditors();
+	},
+	resizeVisibleEditors: () => {
+		_Editors.resizeVisibleEditors();
 	},
 	removeSchemaEntity: function(entity, onSuccess, onError) {
 

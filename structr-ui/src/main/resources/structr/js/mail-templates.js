@@ -33,16 +33,21 @@ let _MailTemplates = {
 	mailTemplatesResizerLeftKey: 'structrMailTemplatesResizerLeftKey_' + location.port,
 	mailTemplateSelectedElementKey: 'structrMailTemplatesSelectedElementKey_' + location.port,
 
-	init: function() {},
-	unload: function() {},
-	onload: function() {
+	init: () => {
+		$(window).off('resize').on('resize', _MailTemplates.resize);
+	},
+	unload: () => {},
+	onload: () => {
+
+		_MailTemplates.init();
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('mail-templates'));
 
-		Structr.fetchHtmlTemplate('mail-templates/main', {}, function(html) {
+		Structr.fetchHtmlTemplate('mail-templates/main', {}, (html) => {
+
 			main.append(html);
 
-			Structr.fetchHtmlTemplate('mail-templates/functions', {}, function (html) {
+			Structr.fetchHtmlTemplate('mail-templates/functions', {}, (html) => {
 
 				Structr.functionBar.innerHTML = html;
 
@@ -67,18 +72,7 @@ let _MailTemplates = {
 
 				_MailTemplates.listMailTemplates();
 
-				_MailTemplates.mailTemplateDetailContainer.querySelector('button.save').addEventListener('click', function() {
-
-					let data = _MailTemplates.getObjectDataFromElement(_MailTemplates.mailTemplateDetailForm);
-					let id   = _MailTemplates.mailTemplateDetailForm.dataset['mailTemplateId'];
-
-					_MailTemplates.updateObject('MailTemplate', id, data, this, null, function() {
-
-						let rowInList = _MailTemplates.mailTemplatesList.querySelector('#mail-template-' + id);
-						_MailTemplates.populateMailTemplatePagerRow(rowInList, data);
-						_MailTemplates.updatePreview();
-					});
-				});
+				_MailTemplates.mailTemplateDetailContainer.querySelector('button.save').addEventListener('click', _MailTemplates.saveMailTemplate);
 
 				Structr.unblockMenu(100);
 
@@ -88,7 +82,7 @@ let _MailTemplates = {
 			});
 		});
 	},
-	getContextMenuElements: function (div, entity) {
+	getContextMenuElements: (div, entity) => {
 
 		let elements = [];
 
@@ -154,7 +148,6 @@ let _MailTemplates = {
 		}
 	},
 	resize: () => {
-
 		_MailTemplates.moveResizer();
 		Structr.resize();
 	},
@@ -169,13 +162,10 @@ let _MailTemplates = {
 			document.querySelector('.column-resizer').style.left                  = left + 'px';
 			_MailTemplates.mailTemplateDetailContainer.style.width                        = 'calc(100% - ' + left + 'px - 3rem)';
 
+			_Editors.resizeVisibleEditors();
+
 			return true;
 		});
-	},
-	updatePreview: () => {
-
-		let value = _MailTemplates.editor ? _MailTemplates.editor.getValue() : document.getElementById('mail-template-text').value;
-		_MailTemplates.previewElement.contentDocument.documentElement.innerHTML = value;
 	},
 	listMailTemplates: () => {
 
@@ -239,11 +229,9 @@ let _MailTemplates = {
 			el.textContent = ((val !== null) ? val : '');
 		}
 	},
-	getObjectDataFromElement: function(element) {
+	getObjectDataFromElement: (element) => {
 
 		let data = {};
-
-		_MailTemplates.editor.save();
 
 		for (let el of element.querySelectorAll('.property')) {
 
@@ -256,9 +244,11 @@ let _MailTemplates = {
 			}
 		}
 
+		data.text = _MailTemplates.editor.getValue();
+
 		return data;
 	},
-	showMailTemplateDetails: function(mailTemplateId, isCreate) {
+	showMailTemplateDetails: (mailTemplateId, isCreate) => {
 
 		Command.get(mailTemplateId, '', function(mt) {
 
@@ -269,7 +259,7 @@ let _MailTemplates = {
 			LSWrapper.setItem(_MailTemplates.mailTemplateSelectedElementKey, mailTemplateId);
 
 			if (_MailTemplates.editor) {
-				_MailTemplates.editor.toTextArea();
+				_MailTemplates.editor.dispose()
 			}
 
 			for (let el of _MailTemplates.mailTemplateDetailForm.querySelectorAll('.property')) {
@@ -284,7 +274,7 @@ let _MailTemplates = {
 				}
 			}
 
-			_MailTemplates.activateEditor();
+			_MailTemplates.activateEditor(mt);
 			_MailTemplates.updatePreview();
 
 			if (isCreate === true) {
@@ -292,16 +282,34 @@ let _MailTemplates = {
 			}
 		});
 	},
-	activateEditor: () => {
+	activateEditor: (mt) => {
 
-		let templateContentTextarea = document.getElementById('mail-template-text');
-		_MailTemplates.editor = CodeMirror.fromTextArea(templateContentTextarea, Structr.getCodeMirrorSettings({
-			lineNumbers: true,
-			lineWrapping: false,
-			indentUnit: 4,
-			tabSize: 4,
-			indentWithTabs: false
-		}));
+		let initialText = mt.text || '';
+
+		let getLanguageForMailTemplateText = (text) => {
+			return (text.trim().charAt(0) === '<') ? 'html' : 'text';
+		}
+
+		let mailTemplateMonacoConfig = {
+			initialText: initialText,
+			language: getLanguageForMailTemplateText(initialText),
+			lint: true,
+			autocomplete: true,
+			changeFn: (editor, entity) => {
+				_Editors.updateMonacoEditorLanguage(editor, getLanguageForMailTemplateText(editor.getValue()));
+			},
+			saveFn: (editor, entity) => {
+				_MailTemplates.saveMailTemplate();
+			},
+			wordWrap: (_Editors.getSavedEditorOptions().lineWrapping ? 'on' : 'off')
+		};
+
+		_MailTemplates.editor = _Editors.getMonacoEditor(mt, 'text', $('#mail-template-text'), mailTemplateMonacoConfig);
+		_Editors.resizeVisibleEditors();
+	},
+	updatePreview: () => {
+		let value = _MailTemplates.editor.getValue();
+		_MailTemplates.previewElement.contentDocument.documentElement.innerHTML = value;
 	},
 	createObject: async (type, data, element, successCallback) => {
 
@@ -324,6 +332,18 @@ let _MailTemplates = {
 			blinkRed($('td', element));
 		}
 	},
+	saveMailTemplate: async (e) => {
+
+		let data = _MailTemplates.getObjectDataFromElement(_MailTemplates.mailTemplateDetailForm);
+		let id   = _MailTemplates.mailTemplateDetailForm.dataset['mailTemplateId'];
+
+		await _MailTemplates.updateObject('MailTemplate', id, data, $(_MailTemplates.mailTemplateDetailContainer.querySelector('button.save')), null, () => {
+
+			let rowInList = _MailTemplates.mailTemplatesList.querySelector('#mail-template-' + id);
+			_MailTemplates.populateMailTemplatePagerRow(rowInList, data);
+			_MailTemplates.updatePreview();
+		});
+	},
 	updateObject: async (type, id, newData, $el, $blinkTarget, successCallback) => {
 
 		let response = await fetch(rootUrl + type + '/' + id, {
@@ -342,5 +362,5 @@ let _MailTemplates = {
 		} else {
 			blinkRed(($blinkTarget ? $blinkTarget : $el));
 		}
-	}
+	},
 };

@@ -1,78 +1,26 @@
-<div id="openapi-options">
+<div id="openapi-options"  class="flex flex-col flex-grow mt-4">
 
-	<p class="input">
-		<label style="display: block;">Enabled</label>
-		<label class="checkbox"><input type="checkbox" data-property="includeInOpenAPI" ${config.element.includeInOpenAPI ? "checked" : ""} /> Include in OpenAPI output</label>
-	</p>
+	<div class="flex flex-wrap gap-x-8">
 
-	<p class="input">
-		<label data-comment="Use tags to combine types and methods into an API. Each tag is available under its own OpenAPI endpoint (/structr/openapi/tag.json).">Tags</label>
-		<select id="tags-select" data-property="tags" multiple="multiple">
-			${ ((config.availableTags) ? config.availableTags.map((t) => { let selected = (config.element.tags && config.element.tags.includes(t)); return '<option' + (selected ? ' selected' : '') + '>' + t + '</option>'}).join() : '')}
-		</select>
-	</p>
-	<p class="input">
-		<label>Summary</label>
-		<input data-property="summary" value="${config.element.summary || ''}" type="text">
-	</p>
-
-	<p class="input ${config.element.type === 'SchemaNode' ? 'hidden' : ''}">
-		<label>Description</label>
-		<input data-property="description" value="${config.element.description || ''}" type="text">
-	</p>
-
-	<div style="clear: both;"></div>
-
-	<div class="hidden">
-
-		<div class="input">
-			<label>Parameters</label>
-
-			<button id="add-parameter-button"><i class="${ _Icons.getFullSpriteClass(_Icons.add_icon)}"></i></button>
-
-			<div class="method-parameter-grid">
-				<div class="method-parameter-heading">
-					<div>Index</div>
-					<div>Name</div>
-					<div>Parameter Type</div>
-					<div>Description</div>
-					<div>Example Value</div>
-					<div></div>
-				</div>
-			</div>
-
-			<div class="method-parameter-grid template">
-				<div class="method-parameter">
-					<div>
-						<input data-parameter-property="index" type="number">
-					</div>
-					<div>
-						<input data-parameter-property="name">
-					</div>
-					<div>
-						<input data-parameter-property="parameterType">
-					</div>
-					<div>
-						<input data-parameter-property="description">
-					</div>
-					<div>
-						<input data-parameter-property="exampleValue">
-					</div>
-
-					<div class="method-parameter-property method-parameter-delete">
-						<button><i class="${ _Icons.getFullSpriteClass(_Icons.delete_icon)}"></i></button>
-					</div>
-				</div>
-			</div>
+		<div>
+			<label class="font-semibold">Enabled</label>
+			<label class="checkbox block mt-3"><input type="checkbox" data-property="includeInOpenAPI" ${config.element.includeInOpenAPI ? "checked" : ""} /> Include in OpenAPI output</label>
 		</div>
 
-		<div style="clear: both;"></div>
+		<div style="width: 200px">
+			<label class="font-semibold" data-comment="Use tags to combine types and methods into an API. Each tag is available under its own OpenAPI endpoint (/structr/openapi/tag.json).">Tags</label>
+			<select id="tags-select" data-property="tags" multiple="multiple">
+				${ ((config.availableTags) ? config.availableTags.map((t) => { let selected = (config.element.tags && config.element.tags.includes(t)); return '<option' + (selected ? ' selected' : '') + '>' + t + '</option>'}).join() : '')}
+			</select>
+		</div>
+		<div>
+			<label class="font-semibold">Summary</label>
+			<input class="mt-1" data-property="summary" value="${config.element.summary || ''}" type="text">
+		</div>
 
-		<div class="input">
-			<p><label data-comment="Write an OpenAPI schema for your return type here.">Return Type</label></p>
-			<div class="editor-wrapper">
-				<div class="editor" data-property="openAPIReturnType"></div>
-			</div>
+		<div class="${config.element.type === 'SchemaNode' ? 'hidden' : ''}">
+			<label class="font-semibold">Description</label>
+			<input class="mt-1" data-property="description" value="${config.element.description || ''}" type="text">
 		</div>
 	</div>
 

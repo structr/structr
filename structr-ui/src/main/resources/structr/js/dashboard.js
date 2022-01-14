@@ -874,23 +874,13 @@ let _Dashboard = {
 							} else {
 
 								let button = _Dashboard.eventlog.elementWithContent(buttonContainer, 'button', 'Open content in editor');
-								button.addEventListener('click', function() {
+								button.addEventListener('click', () => {
 
 									Command.get(data.id, null, function (obj) {
-										_Elements.openEditContentDialog(button, obj, {
-											extraKeys: { "Ctrl-Space": "autocomplete" },
-											gutters: ["CodeMirror-lint-markers"],
-											lint: {
-												getAnnotations: function(text, callback) {
-													_Code.showScriptErrors(obj, text, callback);
-												},
-												async: true
-											}
-										});
+										_Elements.openEditContentDialog(obj);
 									});
 								});
 							}
-
 						}
 
 						row.appendChild(tr);

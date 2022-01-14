@@ -233,7 +233,7 @@ $(function() {
 			var uuid = prompt('Enter the UUID for which you want to open the content/template edit dialog');
 			if (uuid && uuid.length === 32) {
 				Command.get(uuid, null, function(obj) {
-					_Elements.openEditContentDialog(this, obj);
+					_Elements.openEditContentDialog(obj);
 				});
 			} else {
 				alert('That does not look like a UUID! length != 32');
@@ -269,22 +269,7 @@ $(function() {
 		if (k === 73 && altKey && ctrlKey) {
 			e.preventDefault();
 
-			let tableData = [];
-			Object.keys(_Icons).forEach(function(key) {
-				if (typeof _Icons[key] === "string") {
-					tableData.push({
-						name: key,
-						icon: '<i class="' + _Icons.getFullSpriteClass(_Icons[key]) + '" />'
-					});
-				}
-			});
-
-			let html = '<table>' + tableData.map(function(trData) {
-				return '<tr><td>' + trData.name + '</td><td>' + trData.icon + '</td></tr>';
-			}).join('') + '</table>';
-
-			Structr.dialog('Icons');
-			dialogText.html(html);
+			Structr.showAvailableIcons();
 		}
 	});
 
@@ -371,7 +356,6 @@ let Structr = {
 	msgCount: 0,
 	currentlyActiveSortable: undefined,
 	loadingSpinnerTimeout: undefined,
-	keyCodeMirrorSettings: 'structrCodeMirrorSettings_' + location.port,
 	legacyRequestParameters: false,
 	diffMatchPatch: undefined,
 	defaultBlockUICss: {
@@ -819,25 +803,6 @@ let Structr = {
 			left: l + 'px'
 		});
 
-		let codeMirror = $('#dialogBox .CodeMirror');
-		if (codeMirror.length) {
-
-			let cmPosition   = codeMirror.position();
-			let cmHeight     = (dh - headerHeight - horizontalOffset - cmPosition.top - 8) + 'px';
-
-			$('.CodeMirror:not(.cm-schema-methods)', dialogBox).css({
-				height: cmHeight
-			});
-
-			$('.CodeMirror:not(.cm-schema-methods) .CodeMirror-gutters', dialogBox).css({
-				height: cmHeight
-			});
-
-			$('.CodeMirror:not(.cm-schema-methods)', dialogBox).each(function(i, el) {
-				el.CodeMirror.refresh();
-			});
-		}
-
 		$('.fit-to-height').css({
 			height: h - 84 + 'px'
 		});
@@ -880,10 +845,13 @@ let Structr = {
 			isMax = false;
 			LSWrapper.removeItem(dialogMaximizedKey);
 			Structr.resize();
+
+			Structr.getActiveModule()?.dialogSizeChanged?.();
 		});
 
 		LSWrapper.setItem(dialogMaximizedKey, '1');
 
+		Structr.getActiveModule()?.dialogSizeChanged?.();
 	},
 	error: function(text, confirmationRequired) {
 		var message = new MessageBuilder().error(text);
@@ -1061,7 +1029,7 @@ let Structr = {
 		Structr.determineModule();
 		// console.log('doActivateModule', name, mainModule, subModule);
 		if (Structr.modules[name]) {
-			var activeModule = Structr.getActiveModule();
+			let activeModule = Structr.getActiveModule();
 
 			let moduleAllowsNavigation = true;
 			if (activeModule && activeModule.unload) {
@@ -1351,7 +1319,7 @@ let Structr = {
 
 			Structr.legacyRequestParameters = envInfo.legacyRequestParameters;
 
-			if (true == envInfo.maintenanceModeActive) {
+			if (true === envInfo.maintenanceModeActive) {
 				$('#header .structr-instance-maintenance').text("MAINTENANCE");
 			}
 
@@ -2163,16 +2131,7 @@ let Structr = {
 									switch (data.nodeType) {
 										case 'Content':
 										case 'Template':
-											_Elements.openEditContentDialog(btn, obj, {
-												extraKeys: { "Ctrl-Space": "autocomplete" },
-												gutters: ["CodeMirror-lint-markers"],
-												lint: {
-													getAnnotations: function(text, callback) {
-														_Code.showScriptErrors(obj, text, callback, data.name);
-													},
-													async: true
-												}
-											});
+											_Elements.openEditContentDialog(obj);
 											break;
 										default:
 											_Entities.showProperties(obj);
@@ -2316,30 +2275,6 @@ let Structr = {
 		$('#' + Structr.nonBlockUIBlockerId).remove();
 		$('#' + Structr.nonBlockUIBlockerContentId).remove();
 	},
-
-	getCodeMirrorSettings: function(baseConfig) {
-
-		let savedSettings = LSWrapper.getItem(Structr.keyCodeMirrorSettings) || {};
-
-		if (baseConfig) {
-			return Object.assign(baseConfig, savedSettings);
-		}
-
-		return savedSettings;
-	},
-
-	updateCodeMirrorOptionGlobally: function(optionName, value) {
-
-		let codeMirrorSettings = Structr.getCodeMirrorSettings();
-
-		$('.CodeMirror').each(function(idx, cmEl) {
-			cmEl.CodeMirror.setOption(optionName, value);
-			codeMirrorSettings[optionName] = value;
-			cmEl.CodeMirror.refresh();
-		});
-
-		LSWrapper.setItem(Structr.keyCodeMirrorSettings, codeMirrorSettings);
-	},
 	getDocumentationURLForTopic: function (topic) {
 		switch (topic) {
 			case 'security':       return 'https://docs.structr.com/docs/security';
@@ -2393,6 +2328,32 @@ let Structr = {
 		dummy.innerHTML = html;
 
 		return dummy.content.children;
+	},
+	showAvailableIcons: () => {
+
+		Structr.dialog('Icons');
+
+		dialogText.html(`<div class="flex items-start">
+			<div class="flex-grow">
+				<h3>Sprite Icons</h3>
+				<table>
+					${Object.keys(_Icons).filter((key) => (typeof _Icons[key] === "string")).map((key) => `<tr><td>${key}</td><td><i class="${_Icons.getFullSpriteClass(_Icons[key])}"></i></td></tr>`).join('')}
+				</table>
+			</div>
+			
+			<div class="flex-grow">
+				<h3>SVG Icons</h3>
+				<table>
+					${[...document.querySelectorAll('body > svg > symbol')].map(el => `<tr><td>${el.id}</td><td>${_Icons.getSvgIcon(el.id, 24, 24)}</td></tr>`).join('')}
+				</table>
+			</div>
+		</div>`);
+	},
+	isImage: (contentType) => {
+		return (contentType && contentType.indexOf('image') > -1);
+	},
+	isVideo: (contentType) => {
+		return (contentType && contentType.indexOf('video') > -1);
 	}
 };
 
@@ -2808,7 +2769,7 @@ let UISettings = {
 	},
 	appendSettingsSectionToContainer: (section, container) => {
 
-		let sectionDOM = Structr.createSingleDOMElementFromHTML('<div><div class="font-bold pt-4 pb-2">' + section.title + '</div></div>');
+		let sectionDOM = Structr.createSingleDOMElementFromHTML(`<div><div class="font-bold pt-4 pb-2">${section.title}</div></div>`);
 
 		for (let [settingKey, setting] of Object.entries(section.settings)) {
 			UISettings.appendSettingToContainer(setting, sectionDOM);
@@ -2822,7 +2783,7 @@ let UISettings = {
 
 			case 'checkbox': {
 
-				let settingDOM = Structr.createSingleDOMElementFromHTML('<label class="flex items-center p-1"><input type="checkbox"> ' + setting.text + '</label>');
+				let settingDOM = Structr.createSingleDOMElementFromHTML(`<label class="flex items-center p-1"><input type="checkbox"> ${setting.text}</label>`);
 
 				let input = settingDOM.querySelector('input');
 				input.checked = UISettings.getValueForSetting(setting);
@@ -2902,15 +2863,7 @@ let UISettings = {
 			}
 		}
 	}
-}
-
-function isImage(contentType) {
-	return (contentType && contentType.indexOf('image') > -1);
-}
-
-function isVideo(contentType) {
-	return (contentType && contentType.indexOf('video') > -1);
-}
+};
 
 function formatKey(text) {
 	// don't format custom 'data-*' attributes

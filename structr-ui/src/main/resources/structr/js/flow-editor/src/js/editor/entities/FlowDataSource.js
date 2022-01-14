@@ -32,8 +32,8 @@ export class FlowDataSource extends FlowNode {
                     control.name = "Query";
 
                     element.addEventListener('focus', ()=> {
-                        document.dispatchEvent(new CustomEvent('floweditor.internal.openeditor', {detail: {element: element}}));
-                        document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: {element: element, nodeType: "DataSource"}}));
+                        // document.dispatchEvent(new CustomEvent('floweditor.internal.openeditor', {detail: {element: element}}));
+                        document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: { entity: scopedDbNode, propertyName: 'query', element: element, nodeType: "DataSource"}}));
                     });
 
                     element.addEventListener('mousedown', event => {

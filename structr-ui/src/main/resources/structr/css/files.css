@@ -622,33 +622,6 @@ div#xml-configurations button {
 	margin: 0 0 0 12px;
 }
 
-/**
- * Dynamic files
- */
-
-#template-preview {
-	display: none;
-	position: absolute;
-	margin-left: 12px;
-	top: 26px;
-	right: 0;
-	left: 50%;
-	bottom: 0;
-}
-
-#template-preview textarea {
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	border: none;
-	border-radius: 0;
-	line-height: 1.0;
-}
-
-.file-tab.has-changes::after {
-	content: "*";
-}
-
 /* resets so we can use tailwind classes */
 #files-table .node-menu-icon {
 	justify-self: end;

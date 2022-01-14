@@ -586,11 +586,9 @@ var _Entities = {
 		}
 
 		let queryTypeButtonsContainer = $('.query-type-buttons', el);
-		//el.append(queryTypeButtonsContainer);
 
-		let textAreaWrapper = $('<div class="hidden"></div>').appendTo(el);
-		let textArea = $('<textarea class="query-text"></textarea>').appendTo(textAreaWrapper);
-		let flowSelector = $('#flow-selector', el);
+		let queryTextElement = $('.query-text', el);
+		let flowSelector     = $('#flow-selector');
 
 		let repeaterConfigEditor;
 		let saveBtn;
@@ -603,7 +601,7 @@ var _Entities = {
 
 			let data = {};
 
-			queryTypes.forEach(function(queryType) {
+			for (let queryType of queryTypes) {
 
 				let val = null;
 
@@ -620,8 +618,9 @@ var _Entities = {
 						flowSelector.val('--- Select Flow ---');
 					}
 				}
+
 				data[queryType.propertyName] = val;
-			});
+			};
 
 			Command.setProperties(entity.id, data, function(obj) {
 
@@ -636,37 +635,44 @@ var _Entities = {
 		};
 
 		let activateEditor = (queryType) => {
-			if (!repeaterConfigEditor) {
 
-				repeaterConfigEditor = CodeMirror.fromTextArea(textArea[0], Structr.getCodeMirrorSettings({
-					lineNumbers: true,
-					lineWrapping: false,
-					indentUnit: 4,
-					tabSize: 4,
-					indentWithTabs: true,
-					extraKeys: {
-						'Ctrl-Space': 'autocomplete',
-						'Ctrl-S': (cm) => { saveFunction(cm); },
-						'Cmd-S': (cm) => { saveFunction(cm); }
-					}
-				}));
+			let queryText = entity[queryType] || '';
 
-				repeaterConfigEditor.on('change', function() {
-					let type = _Code.getEditorModeForContent(repeaterConfigEditor.getValue());
-					let prev = repeaterConfigEditor.getOption('mode');
-					if (prev !== type) {
-						repeaterConfigEditor.setOption('mode', type);
-					}
-				});
+			if (repeaterConfigEditor) {
+
+				repeaterConfigEditor.setValue(queryText);
+
+			} else {
+
+				let customConfig = {
+					value: queryText,
+					language: 'plain',
+					lint: false,
+					autocomplete: false,
+					// changeFn: (editor, entity) => { },
+					restoreModel: true,
+					isAutoscriptEnv: true,
+					saveFn: saveFunction,
+					saveFnText: 'Save Repeater Config'
+				};
+
+				repeaterConfigEditor = _Editors.getMonacoEditor(entity, 'repeater-config-fake-key', queryTextElement, customConfig);
 			}
 
-			repeaterConfigEditor.setValue(entity[queryType] || '');
+			let model = repeaterConfigEditor.getModel();
 
-			// toggle auto completion
 			if (queryType === 'functionQuery') {
-				_Code.setupAutocompletion(repeaterConfigEditor, entity.id, true);
+				// enable auto completion
+				repeaterConfigEditor.customConfig.language = 'auto';
+				repeaterConfigEditor.customConfig.autocomplete = true;
+				repeaterConfigEditor.customConfig.lint = true;
+				model.uri.isAutoscriptEnv = true;
 			} else {
-				delete(CodeMirror.hint.ajax);
+				// disable auto completion
+				repeaterConfigEditor.customConfig.language = 'text';
+				repeaterConfigEditor.customConfig.autocomplete = false;
+				repeaterConfigEditor.customConfig.lint = false;
+				model.uri.isAutoscriptEnv = false;
 			}
 		};
 
@@ -676,12 +682,13 @@ var _Entities = {
 			el.append('<br>').append(saveBtn);
 
 			for (let queryType of queryTypes) {
-				let btn = $('<button data-query-type="' + queryType.propertyName + '" class="' + queryType.propertyName + '">' + queryType.title + '</button>').appendTo(queryTypeButtonsContainer);
+				$('<button data-query-type="' + queryType.propertyName + '" class="' + queryType.propertyName + '">' + queryType.title + '</button>').appendTo(queryTypeButtonsContainer);
 			}
 
 			let allButtons = $('.query-type-buttons button', el);
 
 			allButtons.on('click', function () {
+
 				allButtons.removeClass('active');
 
 				let btn = $(this);
@@ -692,13 +699,13 @@ var _Entities = {
 				if (queryType === 'flow') {
 
 					saveBtn.hide();
-					textAreaWrapper.hide();
+					queryTextElement.hide();
 					flowSelector.show();
 
 				} else {
 
 					saveBtn.show();
-					textAreaWrapper.show();
+					queryTextElement.show();
 					flowSelector.hide();
 					activateEditor(queryType);
 				}
@@ -724,17 +731,9 @@ var _Entities = {
 			_Entities.appendInput(el, entity, 'dataKey', 'Repeater Keyword',
 				'The repeater keyword or data key is either a word to reference result objects, or it can be the name of a collection property of the result object.<br><br>' +
 				'You can access result objects or the objects of the collection using template expressions, e.g. <i>${project.name}</i>.');
-
-			_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-rest');
 		};
 
 		if (Structr.isModulePresent('flows')) {
-
-			if (flowSelector && flowSelector.length) {
-				flowSelector.remove();
-			}
-
-			flowSelector = $('<select class="hidden" id="flow-selector"></select>').insertBefore(textAreaWrapper);
 
 			flowSelector.append('<option>--- Select Flow ---</option>');
 
@@ -746,169 +745,106 @@ var _Entities = {
 
 				initRepeaterInputs();
 			});
+
 		} else {
+
+			if (flowSelector && flowSelector.length) {
+				flowSelector.remove();
+			}
+
 			initRepeaterInputs();
 		}
 	},
-	activateTabs: function(nodeId, elId, activeId, activeTabPrefix) {
+	editEmptyDiv: function(entity) {
 
-		activeTabPrefix = activeTabPrefix || _Entities.activeQueryTabPrefix;
+		Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function () {}, function () {}, ['popup-dialog-with-editor']);
+		dialog.append('<div class="editor h-full"></div>');
+		dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
+		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 
-		let $el = $(elId);
-		let $tabs = $('li', $el);
+		dialogMeta.html('<span class="editor-info"></span>');
 
-		for (let tabEl of $tabs) {
-			let $tab = $(tabEl);
+		let editorInfo       = dialogMeta[0].querySelector('.editor-info');
+		_Editors.appendEditorOptionsElement(editorInfo);
 
-			$tab.on('click', function() {
+		let dialogSaveButton = dialogBtn[0].querySelector('#saveFile');
+		let saveAndClose     = dialogBtn[0].querySelector('#saveAndClose');
 
-				$tabs.removeClass('active');
-				$tab.addClass('active');
-				$el.children('div').hide();
+		let initialText = '';
 
-				let id = $tab.prop('id').substring(4);
-				LSWrapper.setItem(activeTabPrefix  + '_' + nodeId, id);
+		let emptyDivMonacoConfig = {
+			value: initialText,
+			language: 'html',
+			lint: true,
+			autocomplete: true,
+			restoreModel: false,
+			forceAllowAutoComplete: true,
+			changeFn: (editor, entity) => {
 
-				$('#content-tab-' + id).show();
-			});
-		}
+				let editorText = editor.getValue();
 
-		let id = LSWrapper.getItem(activeTabPrefix  + '_' + nodeId) || activeId.substring(13);
+				if (initialText === editorText) {
+					dialogSaveButton.disabled = true;
+					dialogSaveButton.classList.add('disabled');
+					saveAndClose.disabled = true;
+					saveAndClose.classList.add('disabled');
+				} else {
+					dialogSaveButton.disabled = null;
+					dialogSaveButton.classList.remove('disabled');
+					saveAndClose.disabled = null;
+					saveAndClose.classList.remove('disabled');
+				}
+			},
+			saveFn: (editor, entity) => {
 
-		let activeTab = $('#tab-' + id, $el);
-		if (!activeTab.hasClass('active')) {
-			activeTab.click();
-		}
-	},
-	editSource: function(entity) {
+				let text1 = initialText || '';
+				let text2 = editor.getValue();
 
-		Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function () {}, function () {});
+				if (text1 === text2) {
+					return;
+				}
 
-		// Get content in widget mode
-		var url = viewRootUrl + entity.id + '?' + Structr.getRequestParameterName('edit') + '=3', contentType = 'text/html';
+				Command.patch(entity.id, text1, text2, function () {
 
-		$.ajax({
-			url: url,
-			//async: false,
-			contentType: contentType,
-			success: function(data) {
-				text = data;
-				text = text.replace(/<!DOCTYPE[^>]*>/, '');
-				var startTag = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$1').replace(/^\s+|\s+$/g, '');
-				var innerText = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$2').replace(/^\s+|\s+$/g, '');
-				var endTag = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$3').replace(/^\s+|\s+$/g, '');
-				text = innerText;
+					Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
+					saveButton.disabled = true;
+					saveButton.classList.add('disabled')
 
-				dialog.append('<div class="editor"></div>');
-
-				var contentBox = $('.editor', dialog);
-
-				// Intitialize editor
-				CodeMirror.defineMIME('text/html', 'htmlmixed-structr');
-				editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
-					value: unescapeTags(innerText),
-					mode: contentType,
-					lineNumbers: true,
-					lineWrapping: false,
-					indentUnit: 4,
-					tabSize:4,
-					indentWithTabs: true
-				}));
-
-				$('.CodeMirror-scroll', dialog).prepend('<div class="starttag"></div>');
-				$('.CodeMirror-scroll', dialog).append('<div class="endtag"></div>');
-				$('.starttag', dialog).append(escapeTags(startTag.replace(/\sdata-structr-hash=".{32}"/, "")));
-				$('.endtag', dialog).append(escapeTags(endTag));
-
-				editor.id = entity.id;
-
-				dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
-				dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
-
-				dialogSaveButton = $('#saveFile', dialogBtn);
-				saveAndClose = $('#saveAndClose', dialogBtn);
-
-				editor.on('scroll', function() {
-					_Entities.hideDataHashAttribute(editor);
-				});
-
-				editor.on('change', function(cm, change) {
-
-					//text1 = $(contentNode).children('.content_').text();
-					text2 = editor.getValue();
-					//console.log(text, text2, text === text2);
-					if (text === text2) {
-						dialogSaveButton.prop('disabled', true).addClass('disabled');
-						saveAndClose.prop('disabled', true).addClass('disabled');
-					} else {
-						dialogSaveButton.prop('disabled', false).removeClass('disabled');
-						saveAndClose.prop('disabled', false).removeClass('disabled');
-					}
-
-					_Entities.hideDataHashAttribute(editor);
-				});
-
-				dialogSaveButton.on('click', function(e) {
-					e.stopPropagation();
-					text2 = editor.getValue();
-					//console.log(text, text2, text === text2);
-					if (text === text2) {
-						dialogSaveButton.prop('disabled', true).addClass('disabled');
-						saveAndClose.prop('disabled', true).addClass('disabled');
-					} else {
-						dialogSaveButton.prop('disabled', false).removeClass('disabled');
-						saveAndClose.prop('disabled', false).removeClass('disabled');
-					}
-
-					Command.saveNode(startTag + editor.getValue() + endTag, entity.id, function() {
-						$.ajax({
-							url: url,
-							contentType: contentType,
-							success: function(data) {
-								text = unescapeTags(data).replace(/<!DOCTYPE[^>]*>/, '');
-								text = text.replace(/(<[^>]*>)([^]*)(<\/[^>]*>)/, '$2').replace(/^\s+|\s+$/g, '');
-								editor.setValue(text);
-
-								dialogSaveButton.prop('disabled', true).addClass('disabled');
-								saveAndClose.prop('disabled', true).addClass('disabled');
-								Structr.showAndHideInfoBoxMessage('Node source saved and DOM tree rebuilt.', 'success', 2000, 200);
-
-								if (_Entities.isExpanded(Structr.node(entity.id))) {
-									$('.expand_icon_svg', Structr.node(entity.id)).click().click();
-								}
-							}
-						});
+					Command.getProperty(entity.id, 'content', function (newText) {
+						initialText = newText;
 					});
 				});
+				Command.saveNode(`<div data-structr-hash="${entity.id}">${editor.getValue()}</div>`, entity.id, function() {
+					Structr.showAndHideInfoBoxMessage('Node source saved and DOM tree rebuilt.', 'success', 2000, 200);
 
-				saveAndClose.on('click', function(e) {
-					e.stopPropagation();
-					dialogSaveButton.click();
-					setTimeout(function() {
-						dialogSaveButton.remove();
-						saveAndClose.remove();
-						dialogCancelButton.click();
-					}, 500);
+					if (_Entities.isExpanded(Structr.node(entity.id))) {
+						$('.expand_icon_svg', Structr.node(entity.id)).click().click();
+					}
+
+					dialogCancelButton.click();
 				});
-
-				dialogMeta.append('<span class="editor-info"><label for"lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span>');
-				$('#lineWrapping').off('change').on('change', function() {
-					let inp = $(this);
-					Structr.updateCodeMirrorOptionGlobally('lineWrapping', inp.is(':checked'));
-					blinkGreen(inp.parent());
-					editor.refresh();
-				});
-
-				Structr.resize();
-
-				_Entities.hideDataHashAttribute(editor);
-
-			},
-			error: function(xhr, statusText, error) {
-				console.log(xhr, statusText, error);
 			}
+		};
+
+		let editor = _Editors.getMonacoEditor(entity, 'source', $('.editor', dialog), emptyDivMonacoConfig);
+
+		Structr.resize();
+
+		saveAndClose.addEventListener('click', (e) => {
+			e.stopPropagation();
+
+			emptyDivMonacoConfig.saveFn(editor, entity);
+
+			setTimeout(function() {
+				dialogSaveButton.remove();
+				saveAndClose.remove();
+				dialogCancelButton.click();
+			}, 500);
 		});
 
+		Structr.resize();
+
+		_Editors.resizeVisibleEditors();
 	},
 	hideDataHashAttribute: function(editor) {
 		var sc = editor.getSearchCursor(/\sdata-structr-hash=".{32}"/);
@@ -1081,20 +1017,20 @@ var _Entities = {
 	},
 	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback, initCallback, showCallback) {
 
-		var ul = tabsEl.children('ul');
-		ul.append('<li id="tab-' + name + '">' + label + '</li>');
+		let ul = tabsEl.children('ul');
+		ul.append(`<li id="tab-${name}">${label}</li>`);
 
-		var tab = $('#tab-' + name + '');
+		let tab = $('#tab-' + name + '');
 		if (active) {
 			tab.addClass('active');
 		}
+
 		tab.on('click', function(e) {
 			e.stopPropagation();
-			var self = $(this);
 			$('.propTabContent').hide();
 			$('li', ul).removeClass('active');
 			$('#tabView-' + name).show();
-			self.addClass('active');
+			tab.addClass('active');
 			LSWrapper.setItem(_Entities.activeEditTabPrefix  + '_' + entity.id, name);
 
 			if (typeof initCallback === "function") {
@@ -1105,9 +1041,13 @@ var _Entities = {
 
 				// update entity for show callback
 				if (entity.relType) {
-					Command.getRelationship(entity.id, entity.target, null, function(e) { showCallback($('#tabView-' + name), e); });
+					Command.getRelationship(entity.id, entity.target, null, function(e) {
+						showCallback($('#tabView-' + name), e);
+					});
 				} else {
-					Command.get(entity.id, null, function(e) { showCallback($('#tabView-' + name), e); });
+					Command.get(entity.id, null, function(e) {
+						showCallback($('#tabView-' + name), e);
+					});
 				}
 			}
 		});
@@ -2307,7 +2247,7 @@ var _Entities = {
 			let icon        = expanded ? _Icons.expandedClass : _Icons.collapsedClass;
 			let displayName = getElementDisplayName(entity);
 
-			typeIcon.removeClass('typeIcon-nochildren').before('<i title="Expand ' + displayName + '" class="expand_icon_svg ' + icon + '" />');
+			typeIcon.removeClass('typeIcon-nochildren').before(`<i title="Expand ${displayName}" class="expand_icon_svg ${icon}"></i>`);
 
 			button = $(el.children('.expand_icon_svg').first());
 
@@ -2719,116 +2659,6 @@ var _Entities = {
 			}
 		});
 	},
-//	handleActiveElement: function(entity) {
-//
-//		if (entity) {
-//
-//			var idString = 'id_' + entity.id;
-//
-//			if (!_Entities.activeElements.hasOwnProperty(idString)) {
-//
-//				_Entities.activeElements[idString] = entity;
-//
-//				var parent = $('#activeElements div.inner');
-//				var id = entity.id;
-//
-//				if (entity.parentId) {
-//					parent = $('#active_' + entity.parentId);
-//				}
-//
-//				parent.append('<div id="active_' + id + '" class="node active-element' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
-//
-//				var div = $('#active_' + id);
-//				var query = entity.query;
-//				var expand = entity.state === 'Query';
-//				var icon = _Icons.brick_icon;
-//				var name = '', content = '', action = '';
-//
-//				switch (entity.state) {
-//					case 'Query':
-//						icon = _Icons.database_table_icon;
-//						name = query || entity.dataKey.replace(',', '.');
-//						break;
-//					case 'Content':
-//						icon = _Icons.page_white_icon;
-//						content = entity.content ? entity.content : entity.type;
-//						break;
-//					case 'Button':
-//						icon = _Icons.button_icon;
-//						action = entity.action;
-//						break;
-//					case 'Link':
-//						icon = _Icons.link_icon;
-//						content = entity.action;
-//						break;
-//					default:
-//						content = entity.type;
-//				}
-//
-//				div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
-//					+ '<b title="' + escapeForHtmlAttributes(name) + '" class="abbr-ellipsis abbr-75pc">' + name + '</b>'
-//					+ '<b class="action">' + (action ? action : '&nbsp;') + '</b>'
-//					+ '<span class="content_ abbr-ellipsis abbr-75pc">' + (content ? content : '&nbsp;') + '</span>'
-//					+ '<span class="id">' + entity.id + '</span>'
-//				);
-//
-//				_Entities.setMouseOver(div);
-//
-//				var editIcon = $('.edit_icon', div);
-//
-//				if (!(editIcon && editIcon.length)) {
-//					if (entity.state === 'Content') {
-//						div.append('<i title="Edit" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-//					} else {
-//						div.append('<i title="Edit Properties" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" />');
-//					}
-//					editIcon = $('.edit_icon', div);
-//				}
-//				editIcon.on('click', function(e) {
-//					e.stopPropagation();
-//
-//					switch (entity.state) {
-//						case 'Query':
-//							_Entities.showProperties(entity, 'query');
-//							break;
-//						case 'Content':
-//							_Elements.openEditContentDialog(this, entity);
-//							break;
-//						case 'Button':
-//							_Entities.showProperties(entity, 'editBinding');
-//							break;
-//						case 'Link':
-//							_Entities.showProperties(entity);
-//							break;
-//						default:
-//							_Entities.showProperties(entity);
-//					}
-//
-//				});
-//
-//				$('b[title]', div).on('click', function() {
-//					_Entities.showProperties(entity, 'query');
-//				});
-//
-//				$('.content_', div).on('click', function() {
-//					_Elements.openEditContentDialog(this, entity);
-//				});
-//
-//				$('.action', div).on('click', function() {
-//					_Entities.showProperties(entity, 'editBinding');
-//				});
-//
-//				var typeIcon = $(div.children('.typeIcon').first());
-//				var displayName = getElementDisplayName(entity);
-//
-//				if (!expand) {
-//					typeIcon.addClass('typeIcon-nochildren');
-//				} else {
-//					typeIcon.removeClass('typeIcon-nochildren').after('<i title="Expand ' + displayName + '" class="expand_icon_svg ' + _Icons.expandedClass + '" />');
-//				}
-//			}
-//		}
-//	},
 	isContentElement: function (entity) {
 		return (entity.type === 'Template' || entity.type === 'Content');
 	},

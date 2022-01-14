@@ -12,11 +12,6 @@
 		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/jstree.min.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/vis.min.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="css/lib/font-awesome.min.css">
-		<link rel="stylesheet" type="text/css" media="screen" href="codemirror/lib/codemirror.css">
-		<link rel="stylesheet" type="text/css" media="screen" href="codemirror/addon/lint/lint.css">
-		<link rel="stylesheet" type="text/css" media="screen" href="codemirror/addon/dialog/dialog.css">
-		<link rel="stylesheet" type="text/css" media="screen" href="codemirror/addon/hint/show-hint.css">
-		<link rel="stylesheet" type="text/css" media="screen" href="codemirror/addon/search/matchesonscrollbar.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="trumbowyg/ui/trumbowyg.min.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="css/main.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="css/sprites.css">
@@ -48,29 +43,13 @@
 		<script src="js/lib/vis.min.js"></script>
 
 		<script src="js/lib/jsonlint.js"></script>
-		<script src="codemirror/lib/codemirror.js"></script>
-		<script src="codemirror/addon/scroll/annotatescrollbar.js"></script>
-		<script src="codemirror/addon/search/matchesonscrollbar.js"></script>
-		<script src="codemirror/addon/search/search.js"></script>
-		<script src="codemirror/addon/search/searchcursor.js"></script>
-		<script src="codemirror/addon/dialog/dialog.js"></script>
-		<script src="codemirror/addon/hint/show-hint.js"></script>
-		<script src="codemirror/addon/lint/lint.js"></script>
-		<script src="codemirror/addon/lint/javascript-lint.js"></script>
-		<script src="codemirror/addon/lint/json-lint.js"></script>
-		<script src="codemirror/mode/xml/xml.js"></script>
-		<script src="codemirror/mode/css/css.js"></script>
-		<script src="codemirror/mode/htmlembedded/htmlembedded.js"></script>
-		<script src="codemirror/mode/cypher/cypher.js"></script>
-		<script src="codemirror/mode/clike/clike.js"></script>
-		<script src="codemirror/mode/javascript/javascript.js"></script>
-		<script src="codemirror/mode/meta.js"></script>
-		<script src="js/codemirror-htmlmixed-structr.js"></script>
 		<script src="trumbowyg/trumbowyg.min.js"></script>
 
 		<script src="js/lib/cropper/cropper.min.js"></script>
 
 		<script src="js/helper.js"></script>
+		<script src="js/lib/monaco-editor/min/vs/loader.js"></script>
+		<script src="js/editors.js"></script>
 		<script src="js/pager.js"></script>
 		<script src="js/dragndrop.js"></script>
 		<script src="js/websocket.js"></script>
@@ -164,6 +143,17 @@
 			</symbol>
 			<symbol id="info-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 				<path d="M14.25,16.5H13.5A1.5,1.5,0,0,1,12,15V11.25a.75.75,0,0,0-.75-.75H10.5"></path><path d="M11.625,6.75A.375.375,0,1,0,12,7.125a.375.375,0,0,0-.375-.375h0"></path><path d="M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z"></path>
+			</symbol>
+			<symbol id="favorite-star" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+				<path d="M12.729,1.2l3.346,6.629,6.44.638a.805.805,0,0,1,.5,1.374l-5.3,5.253,1.965,7.138a.813.813,0,0,1-1.151.935L12,19.934,5.48,23.163a.813.813,0,0,1-1.151-.935L6.294,15.09.99,9.837a.805.805,0,0,1,.5-1.374l6.44-.638L11.271,1.2A.819.819,0,0,1,12.729,1.2Z" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+			</symbol>
+			<symbol id="favorite-star-remove" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+				<path d="M12.729,1.2l3.346,6.629,6.44.638a.805.805,0,0,1,.5,1.374l-5.3,5.253,1.965,7.138a.813.813,0,0,1-1.151.935L12,19.934,5.48,23.163a.813.813,0,0,1-1.151-.935L6.294,15.09.99,9.837a.805.805,0,0,1,.5-1.374l6.44-.638L11.271,1.2A.819.819,0,0,1,12.729,1.2Z" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+				<line x1="0" y1="24" x2="24" y2="0"></line>
+			</symbol>
+			<symbol id="text-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+				<path d="M15.750 16.500 A1.500 1.500 0 1 0 18.750 16.500 A1.500 1.500 0 1 0 15.750 16.500 Z"></path>
+				<path d="M18.524,10.7l.442,1.453a.994.994,0,0,0,1.174.681l1.472-.341a1.339,1.339,0,0,1,1.275,2.218l-1.031,1.111a1,1,0,0,0,0,1.362l1.031,1.111a1.339,1.339,0,0,1-1.275,2.218l-1.472-.341a.994.994,0,0,0-1.174.681L18.524,22.3a1.33,1.33,0,0,1-2.548,0l-.442-1.453a.994.994,0,0,0-1.174-.681l-1.472.341a1.339,1.339,0,0,1-1.275-2.218l1.031-1.111a1,1,0,0,0,0-1.362l-1.031-1.111a1.339,1.339,0,0,1,1.275-2.218l1.472.341a.994.994,0,0,0,1.174-.681l.442-1.453A1.33,1.33,0,0,1,18.524,10.7Z" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M3.75 6.75L14.25 6.75" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M3.75 11.25L7.5 11.25" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M3.75 15.75L7.5 15.75" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M7.5,20.25H2.25a1.5,1.5,0,0,1-1.5-1.5V2.25A1.5,1.5,0,0,1,2.25.75H12.879a1.5,1.5,0,0,1,1.06.439l2.872,2.872a1.5,1.5,0,0,1,.439,1.06V6.75"></path>
 			</symbol>
 		</svg>
 
@@ -297,7 +287,7 @@
 			<div class="dialogHeaderWrapper"></div>
 			<div class="dialogTextWrapper">
 				<div class="dialogText"></div>
-				<div style="clear: both"></div>
+<!--				<div style="clear: both"></div>-->
 			</div>
 			<div class="dialogMsg"></div>
 			<!--<button id="dialogOkButton">Save</button>-->

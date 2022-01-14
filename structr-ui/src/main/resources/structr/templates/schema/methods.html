@@ -1,14 +1,15 @@
-<div id="methods-container" class="${config.class}" style="display:flex">
+<div id="methods-container" class="${config.class} flex">
+
 	<div id="methods-container-left">
 
 		<div id="methods-table-container"></div>
 
 	</div>
-	<div id="methods-container-right">
-		<div id="methods-content" style="background-color:#fff">
-			<div class="tab method-tab-content" id="tabView-source">
-				<textarea class="property-code"></textarea>
-			</div>
+
+	<div id="methods-container-right" class="flex flex-col flex-grow">
+		<div id="methods-content" class="flex-grow">
+			<div class="editor h-full"></div>
 		</div>
 	</div>
+
 </div>

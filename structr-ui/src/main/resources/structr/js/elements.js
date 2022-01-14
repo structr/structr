@@ -359,8 +359,7 @@ let _Elements = {
 						$('.linkable', div).on('click', function(e) {
 							e.stopPropagation();
 
-							Structr.dialog('Edit ' + linkedEntity.name, function() {}, function() {});
-							_Files.editContent(linkedEntity, $('#dialogBox .dialogText'));
+							_Files.editFile(linkedEntity, $('#dialogBox .dialogText'));
 						});
 					}
 				});
@@ -1033,7 +1032,7 @@ let _Elements = {
 		let isComponent = content.sharedComponentId || (content.syncedNodesIds && content.syncedNodesIds.length);
 		let isActiveNode = (typeof content.isActiveNode === "function") ? content.isActiveNode() : false;
 
-		return isComment ? _Icons.comment_icon : ((isTemplate && isComponent) ? _Icons.comp_templ_icon : (isTemplate ? (isActiveNode ? _Icons.active_template_icon : _Icons.template_icon) : (isComponent ? _Icons.active_content_icon : (isActiveNode ? _Icons.active_content_icon : _Icons.content_icon))));
+		return isComment ? _Icons.comment_icon : ((isTemplate && isComponent) ? _Icons.icon_shared_template : (isTemplate ? (isActiveNode ? _Icons.active_template_icon : _Icons.template_icon) : (isComponent ? _Icons.active_content_icon : (isActiveNode ? _Icons.active_content_icon : _Icons.content_icon))));
 	},
 	getElementIcon:function(element) {
 		let isComponent  = element.sharedComponentId || (element.syncedNodesIds && element.syncedNodesIds.length);
@@ -1041,133 +1040,84 @@ let _Elements = {
 
 		return (isActiveNode ? _Icons.repeater_icon : (isComponent ? _Icons.comp_icon : _Icons.brick_icon));
 	},
-	appendEditContentIcon: function(div, entity) {
+	openEditContentDialog: function(entity) {
 
-		div.append('<i title="Edit Content of ' + (entity.name ? entity.name : entity.id) + '" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-		$('.edit_icon', div).on('click', function(e) {
-			e.stopPropagation();
-			_Elements.openEditContentDialog(this, entity, {
-				extraKeys: { "Ctrl-Space": "autocomplete" },
-				gutters: ["CodeMirror-lint-markers"],
-				lint: {
-					getAnnotations: function(text, callback) {
-						_Code.showScriptErrors(entity, text, callback, 'content');
-					},
-					async: true
-				}
-			});
-			return false;
-		});
+		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {}, function() {}, ['popup-dialog-with-editor']);
 
-	},
-//	openEditContentDialog: function(btn, entity, configOverride) {
-//		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {}, function() {});
-//
-//		Structr.fetchHtmlTemplate('pages/content-editor', {}, (html) => {
-//
-//			dialogText.html(html);
-//
-//			contentEditorContainer = dialogText[0].querySelector('.content-editor-container');
-//
-//			Command.get(entity.id, 'content,contentType', (data) => {
-//				entity.contentType = data.contentType;
-//				_Elements.editContent(btn, entity, data.content, dialogText[0], configOverride);
-//			});
-//		});
-//	},
+		dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
+		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+		dialog.append('<div class="editor h-full"></div>');
 
-	openEditContentDialog: function(btn, entity, configOverride) {
+		let contentBox = $('.editor', dialog);
 
-		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {}, function() {});
+		let dialogSaveButton = dialogBtn[0].querySelector('#saveFile');
+		let saveAndClose     = dialogBtn[0].querySelector('#saveAndClose');
 
 		Command.get(entity.id, 'content,contentType', (data) => {
+
 			entity.contentType = data.contentType;
-			let text = data.content;
 
-			dialog.append('<div class="editor"></div>');
+			let initialText = data.content;
 
-			let contentBox = $('.editor', dialog);
+			let openEditDialogMonacoConfig = {
+				value: initialText,
+				language: entity.contentType,
+				lint: true,
+				autocomplete: true,
+				restoreModel: false,
+				forceAllowAutoComplete: true,
+				changeFn: (editor, entity) => {
 
-			// Intitialize editor
-			CodeMirror.defineMIME('text/html', 'htmlmixed-structr');
-			editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
-				value: text,
-				mode: contentType,
-				lineNumbers: true,
-				lineWrapping: false,
-				indentUnit: 4,
-				tabSize:4,
-				indentWithTabs: true
-			}));
+					let editorText = editor.getValue();
 
-			editor.id = entity.id;
+					if (initialText === editorText) {
+						dialogSaveButton.disabled = true;
+						dialogSaveButton.classList.add('disabled');
+						saveAndClose.disabled = true;
+						saveAndClose.classList.add('disabled');
+					} else {
+						dialogSaveButton.disabled = null;
+						dialogSaveButton.classList.remove('disabled');
+						saveAndClose.disabled = null;
+						saveAndClose.classList.remove('disabled');
+					}
+				},
+				saveFn: (editor, entity) => {
 
-			dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
-			dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+					let text1 = initialText || '';
+					let text2 = editor.getValue();
 
-			dialogSaveButton = $('#saveFile', dialogBtn);
-			saveAndClose = $('#saveAndClose', dialogBtn);
+					if (text1 === text2) {
+						return;
+					}
 
-			editor.on('scroll', function() {
-				_Entities.hideDataHashAttribute(editor);
-			});
+					Command.patch(entity.id, text1, text2, function () {
+						Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
+						dialogSaveButton.disabled = true;
+						dialogSaveButton.classList.add('disabled');
+						saveAndClose.disabled = true;
+						saveAndClose.classList.add('disabled');
 
-			editor.on('change', function(cm, change) {
-
-				text2 = editor.getValue();
-
-				if (text === text2) {
-					dialogSaveButton.prop('disabled', true).addClass('disabled');
-					saveAndClose.prop('disabled', true).addClass('disabled');
-				} else {
-					dialogSaveButton.prop('disabled', false).removeClass('disabled');
-					saveAndClose.prop('disabled', false).removeClass('disabled');
-				}
-
-				_Entities.hideDataHashAttribute(editor);
-			});
-
-			dialogSaveButton.on('click', function(e) {
-
-				e.stopPropagation();
-
-				text1 = text;
-				text2 = editor.getValue();
-
-				if (!text1)
-					text1 = '';
-				if (!text2)
-					text2 = '';
-
-				if (text1 === text2) {
-					return;
-				}
-
-				if (text === text2) {
-					dialogSaveButton.prop('disabled', true).addClass('disabled');
-					saveAndClose.prop('disabled', true).addClass('disabled');
-				} else {
-					dialogSaveButton.prop('disabled', false).removeClass('disabled');
-					saveAndClose.prop('disabled', false).removeClass('disabled');
-				}
-
-				Command.patch(entity.id, text1, text2, function () {
-					Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
-					dialogSaveButton.prop('disabled', true).addClass('disabled');
-					saveAndClose.prop('disabled', true).addClass('disabled');
-					Command.getProperty(entity.id, 'content', function (newText) {
-						text = newText;
+						Command.getProperty(entity.id, 'content', function (newText) {
+							initialText = newText;
+						});
 					});
+				}
+			};
 
-					window.setTimeout(function () {
-						editor.performLint();
-					}, 300);
-				});
-			});
+			let editor = _Editors.getMonacoEditor(entity, 'source', $(contentBox), openEditDialogMonacoConfig);
 
-			saveAndClose.on('click', function(e) {
+			Structr.resize();
+
+			dialogSaveButton.addEventListener('click', (e) => {
 				e.stopPropagation();
-				dialogSaveButton.click();
+				openEditDialogMonacoConfig.saveFn(editor, entity);
+			});
+			saveAndClose.addEventListener('click', (e) => {
+				e.stopPropagation();
+
+				openEditDialogMonacoConfig.saveFn(editor, entity);
+
 				setTimeout(function() {
 					dialogSaveButton.remove();
 					saveAndClose.remove();
@@ -1175,20 +1125,17 @@ let _Elements = {
 				}, 500);
 			});
 
-			dialogMeta.append('<span class="editor-info"><label for"lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span>');
-			$('#lineWrapping').off('change').on('change', function() {
-				let inp = $(this);
-				Structr.updateCodeMirrorOptionGlobally('lineWrapping', inp.is(':checked'));
-				blinkGreen(inp.parent());
-				editor.refresh();
-			});
+			dialogMeta.append(`<span class="editor-info"></span>`);
+
+			let editorInfo = dialogMeta[0].querySelector('.editor-info');
+			_Editors.appendEditorOptionsElement(editorInfo);
 
 			Structr.resize();
 
-			_Entities.hideDataHashAttribute(editor);
+			_Editors.resizeVisibleEditors();
 		});
 	},
-	displayCentralEditor: function(entity, configOverride) {
+	displayCentralEditor: (entity) => {
 
 		let previewsContainer      = document.querySelector('#center-pane');
 		let contentEditorContainer = document.querySelector('#center-pane .content-editor-container');
@@ -1205,106 +1152,78 @@ let _Elements = {
 
 			Command.get(entity.id, 'content,contentType', (data) => {
 				entity.contentType = data.contentType;
-				_Elements.editContent(this, entity, data.content, contentEditorContainer, configOverride);
+				_Elements.editContentInCentralEditor(entity, data.content, contentEditorContainer);
 			});
 		});
 	},
-	activateEditorMode: function (contentType) {
-		let modeObj = CodeMirror.findModeByMIME(contentType);
-		let mode = contentType; // default
-
-		if (modeObj) {
-			mode = modeObj.mode;
-			if (mode && mode !== "null") { // findModeMIME function above returns "null" string :(
-				let existingScript = $('head script[data-codemirror-mode="' + mode + '"]');
-				if (!existingScript.length) {
-					$('head').append('<script data-codemirror-mode="' + mode + '" src="codemirror/mode/' + mode + '/' + mode + '.js"></script>');
-				}
-			}
-		}
-	},
-	editContent: function (button, entity, text, element, configOverride = {}) {
+	editContentInCentralEditor: function (entity, initialText, element) {
 
 		let buttonArea = element.querySelector('.editor-button-container') || dialogBtn;
 		let infoArea   = element.querySelector('.editor-info-container')   || dialogMeta;
-
-		if (Structr.isButtonDisabled(button)) {
-			return;
-		}
-
-		element.insertAdjacentHTML('afterbegin', '<div class="editor"></div>');
-
 		let contentBox = element.querySelector('.editor');
-		contentType    = entity.contentType || 'text/plain';
+		buttonArea.insertAdjacentHTML('beforeend', `<button id="editorSave" disabled="disabled" class="disabled">Save</button>`);
+		let saveButton = buttonArea.querySelector('.save-button') || document.querySelector('#editorSave');
 
-		_Elements.activateEditorMode(contentType);
+		infoArea.insertAdjacentHTML('beforeend', `
+			<label for="contentTypeSelect">Content-Type: </label><select class="contentType_" id="contentTypeSelect"></select>
+			<span class="editor-info"></span>
+		`);
 
-		let text1, text2;
+		let contentType = entity.contentType || 'text/plain';
 
-		let saveFunction = (editor) => {
-			text1 = text;
-			text2 = editor.getValue();
+		let centralEditorMonacoConfig = {
+			value: initialText || '',
+			language: contentType,
+			lint: true,
+			autocomplete: true,
+			restoreModel: true,
+			forceAllowAutoComplete: true,
+			changeFn: (editor, entity) => {
 
-			if (!text1)
-				text1 = '';
-			if (!text2)
-				text2 = '';
+				let editorText = editor.getValue();
 
-			if (text1 === text2) {
-				return;
-			}
+				if (initialText === editorText) {
+					saveButton.disabled = true;
+					saveButton.classList.add('disabled');
+				} else {
+					saveButton.disabled = null;
+					saveButton.classList.remove('disabled');
+				}
+			},
+			saveFn: (editor, entity) => {
 
-			Command.patch(entity.id, text1, text2, function () {
+				let text1 = initialText || '';
+				let text2 = editor.getValue();
 
-				Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
-				dialogSaveButton.prop('disabled', true).addClass('disabled');
-				saveAndClose.prop('disabled', true).addClass('disabled');
+				if (text1 === text2) {
+					return;
+				}
 
-				Command.getProperty(entity.id, 'content', function (newText) {
-					text = newText;
+				Command.patch(entity.id, text1, text2, function () {
+
+					Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
+					saveButton.disabled = true;
+					saveButton.classList.add('disabled');
+
+					Command.getProperty(entity.id, 'content', function (newText) {
+						initialText = newText;
+					});
 				});
-
-				window.setTimeout(function () {
-					editor.performLint();
-				}, 300);
-			});
+			}
 		};
 
-		let cmConfig = Structr.getCodeMirrorSettings({
-			value: text || '',
-			mode: mode || contentType,
-			lineNumbers: true,
-			lineWrapping: false,
-			extraKeys: {
-				'Ctrl-Space': 'autocomplete',
-				'Ctrl-S': (cm) => { saveFunction(cm); },
-				'Cmd-S': (cm) => { saveFunction(cm); }
-			},
-			indentUnit: 4,
-			tabSize: 4,
-			indentWithTabs: true
-		});
+		let editor = _Editors.getMonacoEditor(entity, 'content', $(contentBox), centralEditorMonacoConfig);
 
-		cmConfig = Object.assign(cmConfig, configOverride);
-
-		// Intitialize editor
-		CodeMirror.defineMIME('text/html', 'htmlmixed-structr');
-		editor = CodeMirror(contentBox, cmConfig);
-
-		_Code.setupAutocompletion(editor, entity.id);
+		let editorInfo = infoArea.querySelector('.editor-info');
+		_Editors.appendEditorOptionsElement(editorInfo);
 
 		Structr.resize();
 
-		buttonArea.insertAdjacentHTML('beforeend', '<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
-
-		// Append "Save and close" button only when dialog window is open
-		if (dialogBox.is(':visible')) {
-			buttonArea.insertAdjacentHTML('beforeend', '<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
-		}
-
 		if (entity.isFavoritable) {
-			buttonArea.insertAdjacentHTML('beforeend', '<i title="Add to favorites" class="add-to-favorites ' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" >');
+
+			buttonArea.insertAdjacentHTML('beforeend', `<i title="Add to favorites" class="add-to-favorites ${_Icons.getFullSpriteClass(_Icons.star_icon)}"></i>`);
 			let addToFavs = buttonArea.querySelector('.add-to-favorites');
+
 			addToFavs.addEventListener('click', () => {
 				Command.favorites('add', entity.id, () => {
 					blinkGreen(addToFavs);
@@ -1312,173 +1231,33 @@ let _Elements = {
 			});
 		}
 
-		// Experimental speech recognition, works only in Chrome 25+
-		if (typeof(webkitSpeechRecognition) === 'function') {
+		_Editors.enableSpeechToTextForEditor(editor, buttonArea);
 
-			buttonArea.insertAdjacentHTML('beforeend', '<button class="speechToText"><i class="' + _Icons.getFullSpriteClass(_Icons.microphone_icon) + '" /></button>');
-			let speechToTextButton = buttonArea.querySelector('.speechToText');
-			let speechBtn = $(speechToTextButton);
-			_Speech.init(speechBtn, function(interim, finalResult) {
+		saveButton.addEventListener('click', (e) => {
+			e.stopPropagation();
 
-				if (_Speech.isCommand('save', interim)) {
-					dialogSaveButton.click();
-				} else if (_Speech.isCommand('saveAndClose', interim)) {
-					_Speech.toggleStartStop(speechBtn, function() {
-						buttonArea.querySelector('#saveAndClose').click();
-					});
-				} else if (_Speech.isCommand('close', interim)) {
-					_Speech.toggleStartStop(speechBtn, function() {
-						buttonArea.querySelector('.closeButton').click();
-					});
-				} else if (_Speech.isCommand('stop', interim)) {
-					_Speech.toggleStartStop(speechBtn, function() {
-						//
-					});
-				} else if (_Speech.isCommand('clearAll', interim)) {
-					editor.setValue('');
-					editor.focus();
-					editor.execCommand('goDocEnd');
-				} else if (_Speech.isCommand('deleteLastParagraph', interim)) {
-					var text = editor.getValue();
-					editor.setValue(text.substring(0, text.lastIndexOf('\n')));
-					editor.focus();
-					editor.execCommand('goDocEnd');
-				} else if (_Speech.isCommand('deleteLastSentence', interim)) {
-					var text = editor.getValue();
-					editor.setValue(text.substring(0, text.lastIndexOf('.')+1));
-					editor.focus();
-					editor.execCommand('goDocEnd');
-				} else if (_Speech.isCommand('deleteLastWord', interim)) {
-					var text = editor.getValue();
-					editor.setValue(text.substring(0, text.lastIndexOf(' ')));
-					editor.focus();
-					editor.execCommand('goDocEnd');
-				} else if (_Speech.isCommand('deleteLine', interim)) {
-					editor.execCommand('deleteLine');
-				} else if (_Speech.isCommand('deleteLineLeft', interim)) {
-					editor.execCommand('deleteLineLeft');
-				} else if (_Speech.isCommand('deleteLineRight', interim)) {
-					editor.execCommand('killLine');
-				} else if (_Speech.isCommand('lineUp', interim)) {
-					editor.execCommand('goLineUp');
-				} else if (_Speech.isCommand('lineDown', interim)) {
-					editor.execCommand('goLineDown');
-				} else if (_Speech.isCommand('wordLeft', interim)) {
-					editor.execCommand('goWordLeft');
-				} else if (_Speech.isCommand('wordRight', interim)) {
-					editor.execCommand('goWordRight');
-				} else if (_Speech.isCommand('left', interim)) {
-					editor.execCommand('goCharLeft');
-				} else if (_Speech.isCommand('right', interim)) {
-					editor.execCommand('goCharRight');
-				} else {
-					editor.replaceSelection(interim);
-				}
-			});
-		}
-
-		let dialogSaveButton = $('#editorSave');
-		let saveAndClose     = $('#saveAndClose');
-		let saveButton       = buttonArea.querySelector('.save-button') || document.querySelector('#editorSave');
-
-		let saveAndCloseButton;
-		if (dialogBox.is(':visible')) {
-
-			saveAndCloseButton = buttonArea.querySelector('.save-and-close-button') || document.querySelector('#saveAndClose');
-			saveAndCloseButton.addEventListener('click', (e) => {
-				e.stopPropagation();
-				saveButton.click();
-				// setTimeout(function() {
-				// 	dialogSaveButton = $('#editorSave');
-				// 	saveAndClose = $('#saveAndClose');
-				// 	dialogSaveButton.remove();
-				// 	saveAndClose.remove();
-				// 	dialogCancelButton.click();
-				// }, 500);
-			});
-		}
-
-		editor.on('change', function(cm, change) {
-
-			let editorText = editor.getValue();
-
-			if (text === editorText) {
-				saveButton.setAttribute('disabled', 'disabled');
-				saveButton.classList.add('disabled');
-				if (saveAndCloseButton) {
-					saveAndCloseButton.setAttribute('disabled', 'disabled');
-					saveAndCloseButton.classList.add('disabled');
-				}
-			} else {
-				saveButton.removeAttribute('disabled');
-				saveButton.classList.remove('disabled');
-				if (saveAndCloseButton) {
-					saveAndCloseButton.removeAttribute('disabled');
-					saveAndCloseButton.classList.remove('disabled');
-				}
-			}
-
-			$('#chars').text(editorText.length);
-			$('#words').text((editorText.match(/\S+/g) || []).length);
+			centralEditorMonacoConfig.saveFn(editor, entity);
 		});
-
-		let scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + entity.id));
-		if (scrollInfo) {
-			editor.scrollTo(scrollInfo.left, scrollInfo.top);
-		}
-
-		editor.on('scroll', function() {
-			let scrollInfo = editor.getScrollInfo();
-			LSWrapper.setItem(scrollInfoKey + '_' + entity.id, JSON.stringify(scrollInfo));
-		});
-
-		if (saveButton) {
-
-			saveButton.addEventListener('click', (e) => {
-				e.stopPropagation();
-
-				saveFunction(editor);
-			});
-		}
 
 		const values = ['text/plain', 'text/html', 'text/xml', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence', 'text/asciidoc'];
 
-		infoArea.insertAdjacentHTML('beforeend', '<label for="contentTypeSelect">Content-Type:</label> <select class="contentType_" id="contentTypeSelect"></select>');
 		let select = infoArea.querySelector('#contentTypeSelect');
 		values.forEach((type) => {
-			select.insertAdjacentHTML('beforeend', '<option ' + (type === entity.contentType ? 'selected' : '') + ' value="' + type + '">' + type + '</option>');
+			select.insertAdjacentHTML('beforeend', `<option ${(type === entity.contentType ? 'selected' : '')} value="${type}">${type}</option>`);
 		});
-		select.addEventListener('change', () => {
+		select.addEventListener('change', (e) => {
+
 			contentType = select.value;
-			_Elements.activateEditorMode(contentType);
-			editor.setOption('mode', contentType);
 
 			entity.setProperty('contentType', contentType, false, function() {
+
+				_Editors.updateMonacoEditorLanguage(editor, contentType);
+
 				blinkGreen(select);
 			});
 		});
 
-		infoArea.insertAdjacentHTML('beforeend', '<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (Structr.getCodeMirrorSettings().lineWrapping ? ' checked="checked" ' : '') + '></span>');
-		let lineWrappingHandler = (e) => {
-			Structr.updateCodeMirrorOptionGlobally('lineWrapping', e.target.checked);
-			blinkGreen(this.parentNode);
-			editor.refresh();
-		};
-
-		let lineWrapping = document.querySelector('#lineWrapping');
-		if (lineWrapping) {
-			lineWrapping.removeEventListener('change', lineWrappingHandler);
-			lineWrapping.addEventListener('change', lineWrappingHandler);
-		}
-
-		infoArea.insertAdjacentHTML('beforeend', '<span class="editor-info">Characters: <span id="chars">' + editor.getValue().length + '</span></span>');
-		infoArea.insertAdjacentHTML('beforeend', '<span class="editor-info">Words: <span id="words">' + (editor.getValue().match(/\S+/g) !== null ? editor.getValue().match(/\S+/g).length : 0) + '</span></span>');
-
-		editor.id = entity.id;
 		editor.focus();
-
-		window.setTimeout(function() { editor.performLint(); }, 300);
-
 	},
 	getSuggestedWidgets: function(entity, callback) {
 

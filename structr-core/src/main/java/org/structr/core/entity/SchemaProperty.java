@@ -39,6 +39,7 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.StructrApp;
 import static org.structr.core.entity.SchemaNode.GraphQLNodeReferenceName;
 import org.structr.core.entity.relationship.SchemaNodeProperty;
@@ -349,6 +350,13 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		super.onModification(securityContext, errorBuffer, modificationQueue);
+
+		final String uuid = getUuid();
+		if (uuid != null) {
+
+			// acknowledge all events for this node when it is modified
+			RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
+		}
 
 		if (getProperty(schemaNode) == null) {
 			StructrApp.getInstance().delete(this);

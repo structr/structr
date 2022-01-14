@@ -150,6 +150,7 @@
 	flex-basis: 28%;
 	flex-shrink: 0;
 	margin-right: 6px;
+	overflow-y: auto;
 }
 
 #methods-container-right {
@@ -168,14 +169,6 @@
 
 .actions.schema-props .fake-tr.editing {
 	background: var(--very-light-structr-green);
-}
-
-.editor-settings {
-	padding-left: 4px;
-}
-
-#tabView-methods .editor-settings label {
-	min-width: 0px;
 }
 
 .related-attrs.schema-props th:first-of-type {
@@ -527,4 +520,9 @@
 
 div#inheritance-tree-container {
 	margin-left: 0.5rem;
+}
+
+#methods-container .editor-settings-popup .dropdown-menu-container {
+	margin: 0 0 0 -5rem;
+	bottom: 3rem;
 }

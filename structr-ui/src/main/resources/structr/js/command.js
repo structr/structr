@@ -1020,7 +1020,7 @@ let Command = {
 				parent: file.parent,
 				hasParent: file.hasParent,
 				parentId: file.parentId,
-				type: (isImage(file.type) ? 'Image' : (isVideo(file.type) && Structr.isModulePresent('media')) ? 'VideoFile' : 'File')
+				type: (Structr.isImage(file.type) ? 'Image' : (Structr.isVideo(file.type) && Structr.isModulePresent('media')) ? 'VideoFile' : 'File')
 			}
 		};
 		return StructrWS.sendObj(obj, callback);

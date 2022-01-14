@@ -332,7 +332,7 @@ body.console-open #header-blocker {
 }
 
 #header .structr-version:empty:before {
-    content: "No version info available.";
+	content: "No version info available.";
 }
 
 #header .structr-version a,
@@ -840,11 +840,11 @@ img.disabled {
 	position: relative;
 	width: 50%;
 	/*font-size: 1rem;*/
-/*	-webkit-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-	-o-user-select: none;
-	user-select: none;*/
+	/*	-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		-o-user-select: none;
+		user-select: none;*/
 	cursor: default;
 }
 
@@ -886,7 +886,7 @@ img.disabled {
 
 .props tr td.value .array-attr i.remove {
 	vertical-align: middle;
-    margin: 7px 0 6px 2px;
+	margin: 7px 0 6px 2px;
 }
 
 .props tr td.value input.active {
@@ -1505,9 +1505,9 @@ i.button {
 }
 
 .node.nodeSelectedFromContextMenu {
-    color: var(--gray-333) ! important;
-    background-color: var(--light-gray-bg-fa) ! important;
-    border: 1px dashed var(--gray-777);
+	color: var(--gray-333) ! important;
+	background-color: var(--light-gray-bg-fa) ! important;
+	border: 1px dashed var(--gray-777);
 }
 
 .node.contextMenuActive {
@@ -1700,7 +1700,7 @@ button.action.disabled:hover {
 }
 
 .schema-props td input[type="checkbox"] {
-    vertical-align: initial;
+	vertical-align: initial;
 }
 
 .schema-props .to-delete {
@@ -1743,16 +1743,12 @@ button.action.disabled:hover {
 	display: inline-block;
 }
 
-.schema-props tfoot .actions-col,
-.schema-props .fake-tfoot .actions-col {
+.schema-props tfoot .actions-col {
 	text-align: right;
 }
 
 #confirmationText, #infoText, #dialogBox .dialogText {
-	/*margin-bottom: 12px;*/
 	vertical-align: top;
-	/*height: 100%;*/
-
 }
 
 #login {
@@ -1889,8 +1885,8 @@ button.action.disabled:hover {
 
 .pages-sortable-placeholder {
 	height: 2rem ! important;
-/*	border-radius: 0.25rem;
-	border: 1px solid var(--gray-bg);*/
+	/*	border-radius: 0.25rem;
+		border: 1px solid var(--gray-bg);*/
 }
 
 #offset-tester {
@@ -2380,7 +2376,7 @@ button.add_property {
 }
 
 .view-properties-select > .chosen-container > .chosen-choices > li {
-    cursor: move;
+	cursor: move;
 }
 
 .view-properties-select .ui-state-highlight {
@@ -2503,10 +2499,6 @@ table.push {
 
 .editor-info-container .editor-info {
 	margin-left: 1rem;
-}
-
-.editor-info span {
-	font-weight: bold;
 }
 
 /**
@@ -2794,10 +2786,10 @@ th.center {
 }
 
 #info-area .message-buttons {
-    position: relative;
-    text-align: right;
-    margin-bottom: -6px;
-    margin: 2px -3px -8px 0;
+	position: relative;
+	text-align: right;
+	margin-bottom: -6px;
+	margin: 2px -3px -8px 0;
 }
 
 #info-area .message:only-child .confirmAll {
@@ -2831,7 +2823,7 @@ table#relationship-options {
 }
 
 #relationship-options [disabled] {
-    color: var(--disabled-relationship-options);
+	color: var(--disabled-relationship-options);
 }
 
 #relationship-options #basic-options {
@@ -3064,6 +3056,14 @@ td#cascading-options, td#propagation-options {
 	padding-top: 1rem;
 }
 
+/* reset classes for monaco editor which also uses a tree class */
+.overflowingContentWidgets .tree {
+	overflow: initial;
+	vertical-align: initial;
+	background-color: initial;
+	padding-top: initial;
+}
+
 .tree-main {
 	display: flex;
 	height: calc(100% - 2rem);
@@ -3281,6 +3281,7 @@ input.tree-search-input {
 }
 
 .fake-tfoot .fake-td.actions-col {
+	display: flex;
 	width: calc(100% - 8px);
 }
 
@@ -3325,33 +3326,13 @@ input.tree-search-input {
 /* END: styles to maximize methods editors in bulk save dialog for CODE area */
 
 
-/* BEGIN: styles to maximize methods editors in the detail dialog for CODE area */
-#method-code-container {
-	height: calc(100% - 240px);
-}
-
-#methods-content {
-	height: calc(100% - 26px);
-}
-
-#methods-content .method-tab-content {
-	height: 100%;
-}
-
-#method-code-container .editor,
-#method-code-container .cm-s-default {
-	height: 100%;
-}
-/* END: styles to maximize methods editors in the detail dialog for CODE area */
-
-
 /* BEGIN: styles to maximize methods editors in bulk save dialog for SCHEMA area */
 #dialogBox.dialog.schema-edit-dialog .dialogText,
 #dialogBox.dialog.schema-edit-dialog .dialogText .schema-details,
 #dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods,
 #dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods #methods-container {
 	height: 100%;
-    margin-bottom: 0;
+	margin-bottom: 0;
 }
 
 #dialogBox.dialog.schema-edit-dialog .dialogText .schema-details #tabView-methods #methods-container #methods-content .method-tab-content,
@@ -3913,36 +3894,36 @@ input#element-class {
  * Styles for the 'Contents' area
  */
 .trumbowyg-box {
-    background-color: var(--solid-white);
-    border: none;
-    margin: 0 auto;
+	background-color: var(--solid-white);
+	border: none;
+	margin: 0 auto;
 }
 
 .trumbowyg-editor {
-    min-height: 274px;
+	min-height: 274px;
 }
 
 .trumbowyg-button-pane {
-    background-color: var(--medium-light-gray-e0);
+	background-color: var(--medium-light-gray-e0);
 }
 
 .trumbowyg-button-pane button {
-    width: 32px;
+	width: 32px;
 }
 
 .trumbowyg-fullscreen.trumbowyg-box {
-    width: 100%;
+	width: 100%;
 }
 
 .value-container {
-    display: inline-block;
+	display: inline-block;
 	width: calc(100% - 236px);
 }
 
 .value-container input[type=text], .value-container textarea {
 	width: 100%;
-    /*font-size: 1.2em;*/
-    padding: 4px;
+	/*font-size: 1.2em;*/
+	padding: 4px;
 }
 
 .value-container textarea {
@@ -3961,7 +3942,7 @@ input#element-class {
 }
 
 .item-title:hover b {
-    cursor: pointer;
+	cursor: pointer;
 }
 
 
@@ -4153,9 +4134,9 @@ table.refactoring-helper td input {
 }
 
 .select2-dropdown {
-    /*background-color: var(--light-gray-bg-f3);*/
+	/*background-color: var(--light-gray-bg-f3);*/
 	/*border: 1px solid var(--black-opacity-125);*/
-    /*border-radius: 0;*/
+	/*border-radius: 0;*/
 }
 
 .select2-container {
@@ -4323,8 +4304,8 @@ table#principals .typeIcon {
 }
 
 .type-mapping select {
-    width: 100%;
-    text-overflow: ellipsis;
+	width: 100%;
+	text-overflow: ellipsis;
 }
 
 .type-mapping .add-selector {
@@ -4562,6 +4543,19 @@ table.props td.__value {
 	padding: .25rem 0 1rem 1rem;
 }
 
+.editor-settings-popup .dropdown-menu-container {
+	width: 30rem;
+	margin: 0 0 0 -5.5rem;
+	padding: .25rem 1rem 1rem 1rem;
+	bottom: 7rem;
+}
+
+#favs-tabs .editor-settings-popup .dropdown-menu-container {
+	margin: 0 0 0 -5rem;
+	bottom: 4rem;
+}
+
+
 .darker-shadow-dropdown .dropdown-menu-container {
 	box-shadow: 0 0 0.625rem 0 rgba(0 0 0 / 25%);
 }
@@ -4570,6 +4564,44 @@ table.props td.__value {
 	display: flex;
 	align-items: center;
 	padding: 0.25rem;
+}
+
+/**
+ * Popup editor with monaco files-style
+ */
+.popup-dialog-with-editor .dialogText {
+	height: 100%;
+}
+
+.popup-dialog-with-editor .dialogText #widget-dialog_content {
+	height: calc(100% - 8px);
+}
+
+.popup-dialog-with-editor .content-tab-editor {
+	display: none;
+}
+
+#template-preview {
+	display: none;
+	position: absolute;
+	margin-left: 12px;
+	top: 26px;
+	right: 0;
+	left: 50%;
+	bottom: 0;
+}
+
+#template-preview textarea {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	border: none;
+	border-radius: 0;
+	line-height: 1.0;
+}
+
+.file-tab.has-changes::after {
+	content: "*";
 }
 
 /**
@@ -4599,6 +4631,9 @@ table.props td.__value {
 .flex-grow {
 	flex-grow: 1;
 }
+.flex-wrap {
+	flex-wrap: wrap;
+}
 .inline-flex {
 	display: inline-flex;
 }
@@ -4608,14 +4643,29 @@ table.props td.__value {
 .items-baseline {
 	align-items: baseline;
 }
+.items-start {
+	align-items: flex-start;
+}
+.items-end {
+	align-items: flex-end;
+}
 .justify-center {
 	justify-content: center;
 }
 .justify-between {
 	justify-content: space-between;
 }
+.justify-end {
+	justify-content: flex-end;
+}
 .h-16 {
 	height: 4rem;
+}
+.h-40 {
+	height: 10rem;
+}
+.h-1\/2 {
+	height: 50%;
 }
 .m-2 {
 	margin: .5rem;
@@ -4635,11 +4685,17 @@ table.props td.__value {
 .mr-12 {
 	margin-right: 3rem;
 }
-.mb-1 {
-	margin-bottom: .25rem;
+.ml-2 {
+	margin-left: .5rem;
 }
-.mb-2 {
-	margin-bottom: .5rem;
+.ml-4 {
+	margin-left: 1rem;
+}
+.ml-6 {
+	margin-left: 1.5rem;
+}
+.ml-8 {
+	margin-left: 2rem;
 }
 .mt-1 {
 	margin-top: .25rem;
@@ -4653,17 +4709,26 @@ table.props td.__value {
 .mt-4 {
 	margin-top: 1rem;
 }
-.ml-2 {
-	margin-left: .5rem;
+.mt-5 {
+	margin-top: 1.25rem;
 }
-.ml-4 {
-	margin-left: 1rem;
+.mt-6 {
+	margin-top: 1.5rem;
+}
+.mb-1 {
+	margin-bottom: .25rem;
+}
+.mb-2 {
+	margin-bottom: .5rem;
 }
 .w-40 {
 	width: 10rem;
 }
 .w-full {
 	width: 100%;
+}
+.h-full {
+	height: 100%;
 }
 .text-center {
 	text-align: center;
@@ -4673,6 +4738,9 @@ table.props td.__value {
 }
 .text-right {
 	text-align: right;
+}
+.font-semibold {
+	font-weight: 600;
 }
 .font-bold {
 	font-weight: 700;
@@ -4728,6 +4796,9 @@ table.props td.__value {
 }
 .gap-x-4 {
 	column-gap: 1rem;
+}
+.gap-x-8 {
+	column-gap: 2rem;
 }
 .grid-cols-2 {
 	grid-template-columns: repeat(2, minmax(0, 1fr));

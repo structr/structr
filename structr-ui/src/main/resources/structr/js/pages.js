@@ -67,7 +67,7 @@ let _Pages = {
 
 		Structr.getShadowPage();
 	},
-	resize: function(left, right) {
+	resize: function() {
 
 		Structr.resize();
 
@@ -76,6 +76,9 @@ let _Pages = {
 		});
 
 		_Pages.resizeColumns();
+	},
+	dialogSizeChanged: () => {
+		_Editors.resizeVisibleEditors();
 	},
 	onload: function() {
 
@@ -316,8 +319,8 @@ let _Pages = {
 			elements.push({
 				icon: _Icons.getSvgIcon('pencil_edit'),
 				name: 'Edit',
-				clickHandler: function () {
-					_Entities.editSource(entity);
+				clickHandler: () => {
+					_Entities.editEmptyDiv(entity);
 					return false;
 				}
 			});
@@ -683,6 +686,7 @@ let _Pages = {
 			}
 		}
 
+		_Editors.resizeVisibleEditors();
 	},
 	refresh: function() {
 
