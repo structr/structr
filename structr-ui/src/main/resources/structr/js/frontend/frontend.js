@@ -263,9 +263,9 @@ export class Frontend {
 						if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
 						return response.text();
 					}).then(html => {
-						var content = document.createElement(container.nodeName);
+						let content = document.createElement('div');
 						if (content) {
-							content.innerHTML = html;
+							content.insertAdjacentHTML('afterbegin', html);
 							if (content && content.children && content.children.length) {
 								container.replaceWith(content.children[0]);
 							} else {
