@@ -236,7 +236,6 @@ public class StructrTypeDefinitions implements StructrDefinition {
 				for (String viewName : viewNames) {
 
 					final String typeName = type.getName() + (viewName == null || StringUtils.equals(PropertyView.Public, viewName) ? "" : "." + viewName);
-					Map<String, Object> multipleItemsMap = new HashMap<>();
 
 					String viewNameStringForReference = StringUtils.equals(viewName, PropertyView.Public) ? "" : "." + viewName;
 					map.put(typeName + "MultipleResponse",
