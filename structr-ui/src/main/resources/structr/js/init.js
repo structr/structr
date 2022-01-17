@@ -17,18 +17,8 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var main;
-var lastMenuEntry, menuBlocked, mainModule, subModule;
 var ignoreKeyUp;
-var dialog, isMax = false;
-var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogHead, dialogCancelButton, dialogSaveButton, saveAndClose, loginBox, dialogCloseButton;
-var dialogId;
-var dialogMaximizedKey = 'structrDialogMaximized_' + location.port;
-var expandedIdsKey = 'structrTreeExpandedIds_' + location.port;
-var lastMenuEntryKey = 'structrLastMenuEntry_' + location.port;
-var dialogDataKey = 'structrDialogData_' + location.port;
-var scrollInfoKey = 'structrScrollInfoKey_' + location.port;
-var consoleModeKey = 'structrConsoleModeKey_' + location.port;
-var resizeFunction;
+var dialog, dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogHead, dialogCancelButton, dialogSaveButton, saveAndClose, loginBox, dialogCloseButton;
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 
 $(function() {
@@ -273,11 +263,7 @@ $(function() {
 		}
 	});
 
-	resizeFunction = function() {
-		Structr.resize();
-	};
-
-	$(window).on('resize', resizeFunction);
+	$(window).on('resize', Structr.resize);
 
 	live('.dropdown-select', 'click', (e) => {
 		e.stopPropagation();
@@ -350,6 +336,15 @@ let Structr = {
 	activeModules: {},
 	moduleAvailabilityCallbacks: [],
 	keyMenuConfig: 'structrMenuConfig_' + location.port,
+	mainModule: undefined,
+	subModule: undefined,
+	lastMenuEntry: undefined,
+	lastMenuEntryKey: 'structrLastMenuEntry_' + location.port,
+	menuBlocked: undefined,
+	dialogMaximizedKey: 'structrDialogMaximized_' + location.port,
+	isMax: false,
+	expandedIdsKey: 'structrTreeExpandedIds_' + location.port,
+	dialogDataKey: 'structrDialogData_' + location.port,
 	edition: '',
 	classes: [],
 	expanded: {},
@@ -363,6 +358,7 @@ let Structr = {
 		border: 'none',
 		backgroundColor: 'transparent'
 	},
+	dialogTimeoutId: undefined,
 	getDiffMatchPatch: () => {
 		if (!Structr.diffMatchPatch) {
 			Structr.diffMatchPatch = new diff_match_patch();
@@ -438,9 +434,9 @@ let Structr = {
 		Structr.loadInitialModule(isLogin, function() {
 			Structr.startPing();
 			if (!dialogText.text().length) {
-				LSWrapper.removeItem(dialogDataKey);
+				LSWrapper.removeItem(Structr.dialogDataKey);
 			} else {
-				var dialogData = JSON.parse(LSWrapper.getItem(dialogDataKey));
+				let dialogData = JSON.parse(LSWrapper.getItem(Structr.dialogDataKey));
 				if (dialogData) {
 					Structr.restoreDialog(dialogData);
 				}
@@ -594,29 +590,27 @@ let Structr = {
 
 		LSWrapper.restore(function() {
 
-			Structr.expanded = JSON.parse(LSWrapper.getItem(expandedIdsKey));
+			Structr.expanded = JSON.parse(LSWrapper.getItem(Structr.expandedIdsKey));
 
 			Structr.determineModule();
 
-			lastMenuEntry = ((!isLogin && mainModule && mainModule !== 'logout') ? mainModule : Structr.getActiveModuleName());
-			if (!lastMenuEntry) {
-				lastMenuEntry = Structr.getActiveModuleName() || 'dashboard';
+			Structr.lastMenuEntry = ((!isLogin && Structr.mainModule && Structr.mainModule !== 'logout') ? Structr.mainModule : Structr.getActiveModuleName());
+			if (!Structr.lastMenuEntry) {
+				Structr.lastMenuEntry = Structr.getActiveModuleName() || 'dashboard';
 			}
 			Structr.updateVersionInfo(0, isLogin);
-			Structr.doActivateModule(lastMenuEntry);
+			Structr.doActivateModule(Structr.lastMenuEntry);
 
 			callback();
 		});
 	},
 	determineModule: () => {
 
-		const browserUrl = new URL(window.location.href);
-		const anchor     = browserUrl.hash.substring(1);
-		const navState   = anchor.split(':');
-		mainModule       = navState[0];
-		subModule        = navState.length > 1 ? navState[1] : null;
-
-		// console.log(window.location.href, anchor, navState, mainModule, subModule);
+		const browserUrl   = new URL(window.location.href);
+		const anchor       = browserUrl.hash.substring(1);
+		const navState     = anchor.split(':');
+		Structr.mainModule = navState[0];
+		Structr.subModule  = navState.length > 1 ? navState[1] : null;
 	},
 	clearMain: function() {
 		let newDroppables = new Array();
@@ -714,22 +708,20 @@ let Structr = {
 
 				Structr.focusSearchField();
 
-				LSWrapper.removeItem(dialogDataKey);
+				LSWrapper.removeItem(Structr.dialogDataKey);
 
 				if (callbackCancel) {
-					window.setTimeout(function() {
-						callbackCancel();
-					}, 100);
+					window.setTimeout(callbackCancel, 100);
 				}
 			});
 
-			var dimensions = Structr.getDialogDimensions(24, 24);
+			let dimensions = Structr.getDialogDimensions(24, 24);
 			Structr.blockUI(dimensions);
 
 			Structr.resize();
 
 			dimensions.text = text;
-			LSWrapper.setItem(dialogDataKey, JSON.stringify(dimensions));
+			LSWrapper.setItem(Structr.dialogDataKey, JSON.stringify(dimensions));
 		}
 	},
 	focusSearchField: function() {
@@ -809,9 +801,9 @@ let Structr = {
 	},
 	resize: function(callback) {
 
-		isMax = LSWrapper.getItem(dialogMaximizedKey);
+		Structr.isMax = LSWrapper.getItem(Structr.dialogMaximizedKey);
 
-		if (isMax) {
+		if (Structr.isMax) {
 			Structr.maximize();
 		} else {
 
@@ -824,13 +816,11 @@ let Structr = {
 			$('#maximizeDialog').show().off('click').on('click', function() {
 				Structr.maximize();
 			});
-
 		}
 
 		if (callback) {
 			callback();
 		}
-
 	},
 	maximize: function() {
 
@@ -839,22 +829,22 @@ let Structr = {
 			Structr.setSize($(window).width(), $(window).height(), $(window).width() - 24, $(window).height() - 24);
 		}
 
-		isMax = true;
+		Structr.isMax = true;
 		$('#maximizeDialog').hide();
 		$('#minimizeDialog').show().off('click').on('click', function() {
-			isMax = false;
-			LSWrapper.removeItem(dialogMaximizedKey);
+			Structr.isMax = false;
+			LSWrapper.removeItem(Structr.dialogMaximizedKey);
 			Structr.resize();
 
 			Structr.getActiveModule()?.dialogSizeChanged?.();
 		});
 
-		LSWrapper.setItem(dialogMaximizedKey, '1');
+		LSWrapper.setItem(Structr.dialogMaximizedKey, '1');
 
 		Structr.getActiveModule()?.dialogSizeChanged?.();
 	},
-	error: function(text, confirmationRequired) {
-		var message = new MessageBuilder().error(text);
+	error: (text, confirmationRequired) => {
+		let message = new MessageBuilder().error(text);
 		if (confirmationRequired) {
 			message.requiresConfirmation();
 		} else {
@@ -961,14 +951,14 @@ let Structr = {
 	},
 	tempInfo: function(text, autoclose) {
 
-		window.clearTimeout(dialogId);
+		window.clearTimeout(Structr.dialogTimeoutId);
 
 		if (text) {
-			$('#tempInfoBox .infoHeading').html('<i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '" /> ' + text);
+			$('#tempInfoBox .infoHeading').html('<i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '"></i> ' + text);
 		}
 
 		if (autoclose) {
-			dialogId = window.setTimeout(function() {
+			Structr.dialogTimeoutId = window.setTimeout(() => {
 				$.unblockUI({
 					fadeOut: 25
 				});
@@ -977,7 +967,7 @@ let Structr = {
 
 		$('#tempInfoBox .closeButton').on('click', function(e) {
 			e.stopPropagation();
-			window.clearTimeout(dialogId);
+			window.clearTimeout(Structr.dialogTimeoutId);
 			$.unblockUI({
 				fadeOut: 25
 			});
@@ -993,7 +983,7 @@ let Structr = {
 	},
 	reconnectDialog: function(text) {
 		if (text) {
-			$('#tempErrorBox .errorText').html('<i class="' + _Icons.getFullSpriteClass(_Icons.error_icon) + '" /> ' + text);
+			$('#tempErrorBox .errorText').html('<i class="' + _Icons.getFullSpriteClass(_Icons.error_icon) + '"></i> ' + text);
 		}
 		$('#tempErrorBox .closeButton').hide();
 
@@ -1002,19 +992,19 @@ let Structr = {
 			css: Structr.defaultBlockUICss
 		});
 	},
-	blockMenu: function() {
-		menuBlocked = true;
+	blockMenu: () => {
+		Structr.menuBlocked = true;
 		$('#menu > ul > li > a').attr('disabled', 'disabled').addClass('disabled');
 	},
-	unblockMenu: function(ms) {
+	unblockMenu: (ms) => {
 		// Wait ms before releasing the main menu
 		window.setTimeout(function() {
-			menuBlocked = false;
+			Structr.menuBlocked = false;
 			$('#menu > ul > li > a').removeAttr('disabled', 'disabled').removeClass('disabled');
 		}, ms || 0);
 	},
 	requestActivateModule: function(event, name) {
-		if (menuBlocked) {
+		if (Structr.menuBlocked) {
 			return false;
 		}
 
@@ -1027,7 +1017,7 @@ let Structr = {
 	},
 	doActivateModule: function(name) {
 		Structr.determineModule();
-		// console.log('doActivateModule', name, mainModule, subModule);
+
 		if (Structr.modules[name]) {
 			let activeModule = Structr.getActiveModule();
 
@@ -1055,18 +1045,18 @@ let Structr = {
 	},
 	activateMenuEntry: function(name) {
 		Structr.blockMenu();
-		var menuEntry = $('#' + name + '_');
-		var li = menuEntry.parent();
+		let menuEntry = $('#' + name + '_');
+		let li = menuEntry.parent();
 		if (li.hasClass('active')) {
 			return false;
 		}
-		lastMenuEntry = name;
+		Structr.lastMenuEntry = name;
 		$('.menu li').removeClass('active');
 		li.addClass('active');
 		$('#title').text('Structr ' + menuEntry.text());
-		window.location.hash = lastMenuEntry;
-		if (lastMenuEntry && lastMenuEntry !== 'logout') {
-			LSWrapper.setItem(lastMenuEntryKey, lastMenuEntry);
+		window.location.hash = Structr.lastMenuEntry;
+		if (Structr.lastMenuEntry && Structr.lastMenuEntry !== 'logout') {
+			LSWrapper.setItem(Structr.lastMenuEntryKey, Structr.lastMenuEntry);
 		}
 	},
 	registerModule: function(module) {
@@ -1079,16 +1069,16 @@ let Structr = {
 			new MessageBuilder().error("Cannot register module '" + name + "' a second time - ignoring attempt.").show();
 		}
 	},
-	getActiveModuleName: function() {
-		return lastMenuEntry || LSWrapper.getItem(lastMenuEntryKey);
+	getActiveModuleName: () => {
+		return Structr.lastMenuEntry || LSWrapper.getItem(Structr.lastMenuEntryKey);
 	},
-	getActiveModule: function() {
+	getActiveModule: () => {
 		return Structr.modules[Structr.getActiveModuleName()];
 	},
-	isModuleActive: function(module) {
+	isModuleActive: (module) => {
 		return (module._moduleName === Structr.getActiveModuleName());
 	},
-	containsNodes: function(element) {
+	containsNodes: (element) => {
 		return (element && Structr.numberOfNodes(element) && Structr.numberOfNodes(element) > 0);
 	},
 	numberOfNodes: function(element, excludeId) {
@@ -1543,38 +1533,39 @@ let Structr = {
 	enableButton: function(btn) {
 		$(btn).removeClass('disabled').removeAttr('disabled');
 	},
-	addExpandedNode: function(id) {
+	addExpandedNode: (id) => {
 
 		if (id) {
-			var alreadyStored = Structr.getExpanded()[id];
+			let alreadyStored = Structr.getExpanded()[id];
 			if (!alreadyStored) {
 
 				Structr.getExpanded()[id] = true;
-				LSWrapper.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
+				LSWrapper.setItem(Structr.expandedIdsKey, JSON.stringify(Structr.expanded));
 
 			}
 		}
 	},
-	removeExpandedNode: function(id) {
+	removeExpandedNode: (id) => {
 
 		if (id) {
 			delete Structr.getExpanded()[id];
-			LSWrapper.setItem(expandedIdsKey, JSON.stringify(Structr.expanded));
+			LSWrapper.setItem(Structr.expandedIdsKey, JSON.stringify(Structr.expanded));
 		}
 	},
-	isExpanded: function(id) {
+	isExpanded: (id) => {
 
 		if (id) {
-			var isExpanded = (Structr.getExpanded()[id] === true) ? true : false;
+			let isExpanded = (Structr.getExpanded()[id] === true) ? true : false;
 
 			return isExpanded;
 		}
 
 		return false;
 	},
-	getExpanded: function() {
+	getExpanded: () => {
+
 		if (!Structr.expanded) {
-			Structr.expanded = JSON.parse(LSWrapper.getItem(expandedIdsKey));
+			Structr.expanded = JSON.parse(LSWrapper.getItem(Structr.expandedIdsKey));
 		}
 
 		if (!Structr.expanded) {
@@ -2895,11 +2886,11 @@ window.addEventListener('beforeunload', (event) => {
 				event.returnValue = ret;
 			}
 			// persist last menu entry
-			LSWrapper.setItem(lastMenuEntryKey, lastMenuEntry);
+			LSWrapper.setItem(Structr.lastMenuEntryKey, Structr.lastMenuEntry);
 		}
 
 		// Remove dialog data in case of page reload
-		LSWrapper.removeItem(dialogDataKey);
+		LSWrapper.removeItem(Structr.dialogDataKey);
 		LSWrapper.save();
 	}
 });

@@ -96,7 +96,7 @@ let StructrWS = {
 					fastRemoveAllChildren(Structr.functionBar);
 
 					let restoreDialogText = '';
-					let dialogData = JSON.parse(LSWrapper.getItem(dialogDataKey));
+					let dialogData = JSON.parse(LSWrapper.getItem(Structr.dialogDataKey));
 					if (dialogData && dialogData.text) {
 						restoreDialogText = '<br><br>The dialog<br><b>"' + dialogData.text + '"</b><br> will be restored after reconnect.';
 					}
@@ -460,7 +460,7 @@ let StructrWS = {
 							}
 						}
 
-						if (command === 'CREATE' && entity.isPage && lastMenuEntry === _Pages._moduleName) {
+						if (command === 'CREATE' && entity.isPage && Structr.lastMenuEntry === _Pages._moduleName) {
 
 							if (entity.createdBy === StructrWS.userId) {
 								setTimeout(function () {

@@ -84,7 +84,7 @@ let _Pages = {
 
 		let urlHash = LSWrapper.getItem(_Pages.urlHashKey);
 		if (urlHash) {
-			menuBlocked = false;
+			Structr.menuBlocked = false;
 			window.location.hash = urlHash;
 		}
 

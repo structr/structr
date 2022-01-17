@@ -1574,7 +1574,7 @@ let _Files = {
 
 				Structr.focusSearchField();
 
-				LSWrapper.removeItem(dialogDataKey);
+				LSWrapper.removeItem(Structr.dialogDataKey);
 			}
 		});
 

@@ -497,6 +497,8 @@ let _Console = new (function() {
 	let _initialized = false;
 	let _consoleVisible = false;
 
+	let consoleModeKey = 'structrConsoleModeKey_' + location.port;
+
 	// public methods
 	this.logoutAction = function() {
 		_terminal?.reset();
@@ -504,7 +506,8 @@ let _Console = new (function() {
 		_hideConsole();
 	};
 
-	this.initConsole = function() {
+	this.initConsole = () => {
+
 		if (_initialized) {
 			return;
 		}
@@ -513,7 +516,7 @@ let _Console = new (function() {
 
 		// Get initial mode and prompt from backend
 		// If backend sends no mode, use value from local storage
-		Command.console('Console.getMode()', storedMode, function(data) {
+		Command.console(`Console.setMode('${storedMode}')`, storedMode, function(data) {
 
 			let message = data.message;
 			let mode = storedMode || data.data.mode;
@@ -579,7 +582,7 @@ let _Console = new (function() {
 					}
 				},
 				completion: function(lineToBeCompleted, callback) {
-					Command.console(lineToBeCompleted, mode, function(data) {
+					Command.console(lineToBeCompleted, mode, (data) => {
 						callback(data.data.commands);
 					}, true);
 				}

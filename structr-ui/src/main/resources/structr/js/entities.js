@@ -16,9 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var buttonClicked;
-
-var _Entities = {
+let _Entities = {
 	selectedObject: {},
 	activeElements: {},
 	activeQueryTabPrefix: 'structrActiveQueryTab_' + location.port,
@@ -39,16 +37,15 @@ var _Entities = {
 
 	},
 	reloadChildren: function(id) {
-		var el = Structr.node(id);
+		let el = Structr.node(id);
 
 		$(el).children('.node').remove();
 		_Entities.resetMouseOverState(el);
 
 		Command.children(id);
-
 	},
 	deleteNodes: function(button, entities, recursive, callback) {
-		buttonClicked = button;
+
 		if ( !Structr.isButtonDisabled(button) ) {
 
 			let confirmationHtml = '<p>Delete the following objects' + (recursive ? ' (all folders recursively) ' : '') + '?</p>';
@@ -63,8 +60,7 @@ var _Entities = {
 
 			confirmationHtml += '<br>';
 
-			Structr.confirmation(confirmationHtml,
-				function() {
+			Structr.confirmation(confirmationHtml,() => {
 
 					Command.deleteNodes(nodeIds, recursive);
 					$.unblockUI({
@@ -76,8 +72,8 @@ var _Entities = {
 				});
 		}
 	},
-	deleteNode: function(button, entity, recursive, callback) {
-		buttonClicked = button;
+	deleteNode: (button, entity, recursive, callback) => {
+
 		if ( !Structr.isButtonDisabled(button) ) {
 			Structr.confirmation('<p>Delete ' + entity.type + ' <strong>' + (entity.name || '') + '</strong> [' + entity.id + ']' + (recursive ? ' recursively' : '') + '?</p>',
 				function() {
@@ -92,8 +88,7 @@ var _Entities = {
 		}
 
 	},
-	deleteEdge: function(button, entity, recursive, callback) {
-		buttonClicked = button;
+	deleteEdge: (button, entity, recursive, callback) => {
 
 		if ( !Structr.isButtonDisabled(button) ) {
 
