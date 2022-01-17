@@ -674,12 +674,13 @@ var _Entities = {
 				repeaterConfigEditor.customConfig.lint = false;
 				model.uri.isAutoscriptEnv = false;
 			}
+
+			_Editors.updateMonacoEditorLanguage(repeaterConfigEditor, repeaterConfigEditor.customConfig.language);
 		};
 
 		let initRepeaterInputs = function() {
 
-			saveBtn = $('<button class="btn">Save</button>');
-			el.append('<br>').append(saveBtn);
+			saveBtn = $('button.save', el);
 
 			for (let queryType of queryTypes) {
 				$('<button data-query-type="' + queryType.propertyName + '" class="' + queryType.propertyName + '">' + queryType.title + '</button>').appendTo(queryTypeButtonsContainer);
@@ -744,6 +745,8 @@ var _Entities = {
 				}
 
 				initRepeaterInputs();
+
+				_Editors.resizeVisibleEditors();
 			});
 
 		} else {
@@ -753,6 +756,7 @@ var _Entities = {
 			}
 
 			initRepeaterInputs();
+			_Editors.resizeVisibleEditors();
 		}
 	},
 	editEmptyDiv: function(entity) {

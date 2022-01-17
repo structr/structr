@@ -343,11 +343,8 @@ let _Editors = {
 		// dispose previously existing editor
 		storageContainer?.instance?.dispose();
 
-		let savedEditorOptions = _Editors.getSavedEditorOptions();
-
 		let monacoConfig = Object.assign(_Editors.getOurSavedEditorOptionsForEditor(), {
 			model: storageContainer.model,
-			// automaticLayout: true, // kind of works, but not in all cases we need
 			value: editorText,
 			language: language,
 		});
@@ -428,6 +425,9 @@ let _Editors = {
 		return (content && content.indexOf('{') === 0) ? 'javascript' : 'text';
 	},
 	updateMonacoEditorLanguage: (editor, newLanguage) => {
+		if (newLanguage === 'auto') {
+			newLanguage = _Editors.getMonacoEditorModeForContent(editor.getValue());
+		}
 		monaco.editor.setModelLanguage(editor.getModel(), newLanguage);
 	},
 	enableSpeechToTextForEditor: (editor, buttonArea) => {

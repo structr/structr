@@ -231,7 +231,7 @@ ul#previewTabs {
 }
 
 .repeater-container .input-section {
-	margin-top: 2rem;
+	margin: 2rem 0 4rem 0;
 }
 
 .query-type-buttons button.active {
@@ -239,8 +239,6 @@ ul#previewTabs {
 	/*background: var(--solid-white);*/
 	margin-bottom: 1rem;
 }
-
-
 
 /*.query-type-heading {*/
 /*    margin-top: 6px;*/
@@ -320,7 +318,7 @@ input.dataKey_ {
 
 .query-text {
 	width: calc(100% - 2rem);
-	height: 8rem;
+	min-height: 8rem;
 	margin-bottom: 1rem;
 	/*border: 1px solid var(--gray-ccc);*/
 	/*padding: 2px 4px;*/
