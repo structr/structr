@@ -1744,7 +1744,12 @@ button.action.disabled:hover {
 }
 
 .schema-props tfoot .actions-col {
-	text-align: right;
+	text-align: left;
+	padding-top: 1rem;
+}
+
+.schema-props tfoot .actions-col button {
+	margin-right: 0.5rem;
 }
 
 #confirmationText, #infoText, #dialogBox .dialogText {
@@ -2369,8 +2374,7 @@ button.add_property {
 .property-default,
 .localization-locale,
 .localization-name {
-	/*width: 98%;*/
-	/*font-size: 1em;*/
+	width: calc(100% - 1rem);
 	border: none;
 	background: transparent;
 }
@@ -3282,6 +3286,8 @@ input.tree-search-input {
 
 .fake-tfoot .fake-td.actions-col {
 	display: flex;
+	padding-top: .5rem;
+	padding-bottom: 1rem;
 	width: calc(100% - 8px);
 }
 

@@ -940,32 +940,32 @@ let _Schema = {
 		let contentDiv = $('<div class="schema-details"></div>');
 		contentEl.append(contentDiv);
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', targetView === 'local', function(c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', targetView === 'local', (c) => {
 			_Schema.properties.appendLocalProperties(c, entity);
 		});
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote', function(c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote', (c) => {
 			let editSchemaObjectLinkHandler = ($el) => {
 				_Schema.openEditDialog($el.data('objectId'));
 			};
 			_Schema.remoteProperties.appendRemote(c, entity, editSchemaObjectLinkHandler);
 		});
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited properties', targetView === 'builtin', function(c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited properties', targetView === 'builtin', (c) => {
 			_Schema.properties.appendBuiltinProperties(c, entity);
 		});
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views', function(c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views', (c) => {
 			_Schema.views.appendViews(c, entity);
 		});
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', function(c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', (c) => {
 			_Schema.methods.appendMethods(c, entity, _Schema.filterJavaMethods(entity.schemaMethods));
 		}, null, _Editors.resizeVisibleEditors);
 
 		if (!entity.isBuiltinType) {
 
-			headContentDiv.children('b').off('click').on('click', function() {
+			headContentDiv.children('b').off('click').on('click', () => {
 				_Schema.makeAttrEditable(headContentDiv, 'name');
 			});
 		}
@@ -1380,54 +1380,57 @@ let _Schema = {
 					{ class: '', title: 'Idx' },
 					{ class: '', title: 'Default' },
 					{ class: 'actions-col', title: 'Action' }
-				]
+				],
+				addButtonText: 'Add direct property'
 			};
 
-			Structr.fetchHtmlTemplate('schema/schema-table', tableConfig, function(html) {
+			Structr.fetchHtmlTemplate('schema/schema-table', tableConfig, (html) => {
 
 				let propertiesTable = $(html);
 				el.append(propertiesTable);
-				el.append('<i title="Add direct property" class="add-icon add-local-attribute ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
 				let tbody = $('tbody', propertiesTable);
 
 				_Schema.sort(entity.schemaProperties);
 
 				for (let prop of entity.schemaProperties) {
 
-					Structr.fetchHtmlTemplate('schema/type-options', {}, function(typeOptions) {
+					Structr.fetchHtmlTemplate('schema/type-options', {}, (typeOptions) => {
 
-						Structr.fetchHtmlTemplate('schema/type-hint-options', {}, function(typeHintOptions) {
+						Structr.fetchHtmlTemplate('schema/type-hint-options', {}, (typeHintOptions) => {
 
-							Structr.fetchHtmlTemplate('schema/property.local', { property: prop, typeOptions: typeOptions, typeHintOptions: typeHintOptions }, function(html) {
+							Structr.fetchHtmlTemplate('schema/property.local', { property: prop, typeOptions: typeOptions, typeHintOptions: typeHintOptions }, (html) => {
 
 								let row = $(html);
-
 								tbody.append(row);
 
 								_Schema.properties.setAttributesInRow(prop, row);
 								_Schema.properties.bindRowEvents(prop, row, overrides);
+
+								_Schema.properties.tableChanged(propertiesTable);
 							});
 						});
 					});
 				}
 
-				$('.discard-all', propertiesTable).on('click', () => {
+				propertiesTable[0].querySelector('.discard-all').addEventListener('click', () => {
 					tbody.find('i.discard-changes').click();
 				});
 
-				$('.save-all', propertiesTable).on('click', () => {
+				propertiesTable[0].querySelector('.save-all').addEventListener('click', () => {
 					_Schema.properties.bulkSave(el, tbody, entity, optionalAfterSaveCallback);
 				});
 
-				$('.add-local-attribute', el).off('click').on('click', function() {
+				el[0].querySelector('button.add-button').addEventListener('click', () => {
 
-					Structr.fetchHtmlTemplate('schema/type-options', {}, function(typeOptions) {
-						Structr.fetchHtmlTemplate('schema/property.new', {typeOptions: typeOptions}, function(html) {
+					Structr.fetchHtmlTemplate('schema/type-options', {}, (typeOptions) => {
+
+						Structr.fetchHtmlTemplate('schema/property.new', { typeOptions: typeOptions }, (html) => {
 
 							let tr = $(html);
 							tbody.append(tr);
 
-							$('.property-type', tr).off('change').on('change', function() {
+							tr[0].querySelector('.property-type').addEventListener('change', () => {
+
 								let selectedOption = $('option:selected', this);
 								let shouldIndex = selectedOption.data('indexed');
 								if (shouldIndex === undefined) {
@@ -1442,7 +1445,7 @@ let _Schema = {
 								}
 							});
 
-							$('.discard-changes', tr).off('click').on('click', function() {
+							tr[0].querySelector('.discard-changes').addEventListener('click', () => {
 								tr.remove();
 								_Schema.properties.tableChanged(propertiesTable);
 							});
@@ -1566,20 +1569,20 @@ let _Schema = {
 				if (!$('input.content-type', typeField.parent()).length) {
 					typeField.after('<input type="text" size="5" class="content-type">');
 				}
-				$('.content-type', row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', null);
+				$('.content-type', row).val(property.contentType).on('keyup', propertyInfoChangeHandler).prop('disabled', null);
 			}
 
-			$('.property-name',    row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.property-dbname',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.caching-enabled',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.type-hint',        row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.property-type',    row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.property-format',  row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.not-null',         row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.compound',         row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.unique',           row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.indexed',          row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.property-default', row).off('change').on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.property-name',    row).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.property-dbname',  row).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.caching-enabled',  row).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.type-hint',        row).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.property-type',    row).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.property-format',  row).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.not-null',         row).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.compound',         row).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.unique',           row).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.indexed',          row).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.property-default', row).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
 
 			let readWriteButtonClickHandler = (targetProperty) => {
 
@@ -1599,15 +1602,15 @@ let _Schema = {
 				}
 			};
 
-			$('.edit-read-function', row).off('click').on('click', () => {
+			$('.edit-read-function', row).on('click', () => {
 				readWriteButtonClickHandler('readFunction');
 			}).prop('disabled', isProtected);
 
-			$('.edit-write-function', row).off('click').on('click', () => {
+			$('.edit-write-function', row).on('click', () => {
 				readWriteButtonClickHandler('writeFunction');
 			}).prop('disabled', isProtected);
 
-			$('.edit-cypher-query', row).off('click').on('click', () => {
+			$('.edit-cypher-query', row).on('click', () => {
 
 				if (overrides && overrides.editCypherProperty) {
 
@@ -1628,14 +1631,14 @@ let _Schema = {
 
 			if (!isProtected) {
 
-				$('.remove-action', row).off('click').on('click', function() {
+				$('.remove-action', row).on('click', function() {
 
 					row.addClass('to-delete');
 					propertyInfoChangeHandler();
 
 				}).prop('disabled', null);
 
-				$('.discard-changes', row).off('click').on('click', function() {
+				$('.discard-changes', row).on('click', function() {
 
 					_Schema.properties.setAttributesInRow(property, row);
 
@@ -1687,7 +1690,6 @@ let _Schema = {
 			$('.property-default', tr).val(property.defaultValue);
 			$('.caching-enabled', tr).prop('checked', property.isCachingEnabled);
 			$('.type-hint', tr).val(property.typeHint || "null");
-
 		},
 		hasUnsavedChanges: function (table) {
 			let tbody = $('tbody', table);
@@ -1700,15 +1702,16 @@ let _Schema = {
 			let tfoot = table.find('tfoot');
 
 			if (unsavedChanges) {
-				tfoot.removeClass('hidden');
+				$('.discard-all', tfoot).removeClass('disabled').attr('disabled', null);
+				$('.save-all', tfoot).removeClass('disabled').attr('disabled', null);
 			} else {
-				tfoot.addClass('hidden');
+				$('.discard-all', tfoot).addClass('disabled').attr('disabled', 'disabled');
+				$('.save-all', tfoot).addClass('disabled').attr('disabled', 'disabled');
 			}
-
 		},
 		rowChanged: function(property, row) {
 
-			var propertyInfoUI = _Schema.properties.getInfoFromRow(row);
+			let propertyInfoUI = _Schema.properties.getInfoFromRow(row);
 			let hasChanges     = false;
 
 			for (let key in propertyInfoUI) {
@@ -1981,7 +1984,7 @@ let _Schema = {
 
 			editor.focus();
 		},
-		appendBuiltinProperties: function(el, entity) {
+		appendBuiltinProperties: (el, entity) => {
 
 			let tableConfig = {
 				class: 'builtin schema-props',
@@ -1996,19 +1999,21 @@ let _Schema = {
 				]
 			};
 
-			Structr.fetchHtmlTemplate('schema/schema-table', tableConfig, function(html) {
+			Structr.fetchHtmlTemplate('schema/schema-table', tableConfig, (html) => {
 
-				var propertiesTable = $(html);
+				let propertiesTable = $(html);
 				el.append(propertiesTable);
+
+				$('tfoot', propertiesTable).addClass('hidden');
 
 				_Schema.sort(entity.schemaProperties);
 
-				Command.listSchemaProperties(entity.id, 'ui', function(data) {
+				Command.listSchemaProperties(entity.id, 'ui', (data) => {
 
 					// sort by name
 					_Schema.sort(data, "declaringClass", "name");
 
-					$.each(data, function(i, prop) {
+					for (let prop of data) {
 
 						if (prop.declaringClass !== entity.name) {
 
@@ -2023,11 +2028,11 @@ let _Schema = {
 								declaringClass: prop.declaringClass
 							};
 
-							Structr.fetchHtmlTemplate('schema/property.builtin', {property: property}, function(html) {
+							Structr.fetchHtmlTemplate('schema/property.builtin', { property: property }, function(html) {
 								propertiesTable.append(html);
 							});
 						}
-					});
+					}
 				});
 			});
 		},
@@ -2057,6 +2062,7 @@ let _Schema = {
 
 				if (entity.relatedTo.length === 0 && entity.relatedFrom.length === 0) {
 					tbody.append('<td colspan=3 class="no-rels">Type has no relationships...</td></tr>');
+					$('tfoot', tbl).addClass('hidden');
 				} else {
 
 					entity.relatedTo.forEach(function(target) {
@@ -2161,21 +2167,21 @@ let _Schema = {
 
 			let renderRemoteProperty = (tplConfig) => {
 
-				Structr.fetchHtmlTemplate('schema/remote-property', tplConfig, function(html) {
+				Structr.fetchHtmlTemplate('schema/remote-property', tplConfig, (html) => {
 
 					let row = $(html);
 					el.append(row);
 
-					$('.property-name', row).off('keyup').on('keyup', function() {
+					$('.property-name', row).on('keyup', () => {
 						_Schema.remoteProperties.rowChanged(row, attributeName);
 					});
 
-					$('.reset-action', row).off('click').on('click', function () {
+					$('.reset-action', row).on('click', () => {
 						$('.property-name', row).val('');
 						_Schema.remoteProperties.rowChanged(row, attributeName);
 					});
 
-					$('.discard-changes', row).off('click').on('click', function () {
+					$('.discard-changes', row).on('click', () => {
 						$('.property-name', row).val(attributeName);
 						_Schema.remoteProperties.rowChanged(row, attributeName);
 					});
@@ -2184,7 +2190,7 @@ let _Schema = {
 						$('.edit-schema-object', row).removeClass('edit-schema-object');
 					} else {
 
-						$('.edit-schema-object', row).off('click').on('click', function(e) {
+						$('.edit-schema-object', row).on('click', (e) => {
 							e.stopPropagation();
 
 							let unsavedChanges = _Schema.remoteProperties.hasUnsavedChanges(row.closest('table'));
@@ -2233,15 +2239,17 @@ let _Schema = {
 			let tfoot = table.find('tfoot');
 
 			if (unsavedChanges) {
-				tfoot.removeClass('hidden');
+				$('.discard-all', tfoot).removeClass('disabled').attr('disabled', null);
+				$('.save-all', tfoot).removeClass('disabled').attr('disabled', null);
 			} else {
-				tfoot.addClass('hidden');
+				$('.discard-all', tfoot).addClass('disabled').attr('disabled', 'disabled');
+				$('.save-all', tfoot).addClass('disabled').attr('disabled', 'disabled');
 			}
 
 		},
-		rowChanged: function(row, originalName) {
+		rowChanged: (row, originalName) => {
 
-			let nameInUI = $('.property-name', row).val();
+			let nameInUI   = $('.property-name', row).val();
 			let hasChanges = (nameInUI !== originalName);
 
 			if (hasChanges) {
@@ -2252,12 +2260,12 @@ let _Schema = {
 
 			_Schema.remoteProperties.tableChanged(row.closest('table'));
 		},
-		validate: function(row) {
+		validate: (row) => {
 			return true;
 		}
 	},
 	views: {
-		appendViews: function(el, entity, optionalAfterSaveCallback) {
+		appendViews: (el, entity, optionalAfterSaveCallback) => {
 
 			let tableConfig = {
 				class: 'related-attrs schema-props',
@@ -2265,48 +2273,46 @@ let _Schema = {
 					{ class: '', title: 'Name' },
 					{ class: '', title: 'Properties' },
 					{ class: 'actions-col', title: 'Action' }
-				]
+				],
+				addButtonText: 'Add view'
 			};
 
-			Structr.fetchHtmlTemplate('schema/schema-table', tableConfig, function(html) {
+			Structr.fetchHtmlTemplate('schema/schema-table', tableConfig, (html) => {
 
 				let viewsTable = $(html);
-
 				el.append(viewsTable);
-				el.append('<i title="Add view" class="add-icon add-view ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
 
 				let tbody = viewsTable.find('tbody');
 
 				_Schema.sort(entity.schemaViews);
 
-				$.each(entity.schemaViews, function(i, view) {
+				for (let view of entity.schemaViews) {
 					_Schema.views.appendView(tbody, view, entity);
-				});
+				}
 
-				$('.discard-all', viewsTable).on('click', () => {
+				viewsTable[0].querySelector('.discard-all').addEventListener('click', () => {
 					tbody.find('i.discard-changes').click();
 				});
 
-				$('.save-all', viewsTable).on('click', () => {
+				viewsTable[0].querySelector('.save-all').addEventListener('click', () => {
 					_Schema.views.bulkSave(el, tbody, entity, optionalAfterSaveCallback);
 				});
 
-				$('.add-view', el).off('click').on('click', function() {
+				el[0].querySelector('button.add-button', ).addEventListener('click', () => {
 
-					Structr.fetchHtmlTemplate('schema/view.new', {}, function(html) {
+					Structr.fetchHtmlTemplate('schema/view.new', {}, (html) => {
 
-						var row = $(html);
+						let row = $(html);
 						tbody.append(row);
 
 						_Schema.views.tableChanged(viewsTable);
 
-						_Schema.views.appendViewSelectionElement(row, {name: 'new'}, entity, function (chznElement) {
-
+						_Schema.views.appendViewSelectionElement(row, { name: 'new' }, entity, (chznElement) => {
 							chznElement.chosenSortable();
 						});
 
-						$('.discard-changes', row).off('click').on('click', function() {
-							 row.remove();
+						row[0].querySelector('.discard-changes').addEventListener('click', () => {
+							row.remove();
 							_Schema.views.tableChanged(viewsTable);
 						});
 					});
@@ -2568,11 +2574,12 @@ let _Schema = {
 			let tfoot = table.find('tfoot');
 
 			if (unsavedChanges) {
-				tfoot.removeClass('hidden');
+				$('.discard-all', tfoot).removeClass('disabled').attr('disabled', null);
+				$('.save-all', tfoot).removeClass('disabled').attr('disabled', null);
 			} else {
-				tfoot.addClass('hidden');
+				$('.discard-all', tfoot).addClass('disabled').attr('disabled', 'disabled');
+				$('.save-all', tfoot).addClass('disabled').attr('disabled', 'disabled');
 			}
-
 		},
 		getInfoFromRow:function(row, schemaNodeEntity) {
 
@@ -2916,7 +2923,7 @@ let _Schema = {
 				_Schema.methods.editMethod(row);
 			});
 		},
-		getFirstFreeMethodName: function(prefix) {
+		getFirstFreeMethodName: (prefix) => {
 
 			if (!prefix) {
 				return '';
@@ -2945,7 +2952,7 @@ let _Schema = {
 		},
 		bindRowEvents: function(row, entity, method) {
 
-			let methodId = row.data('methodId');
+			let methodId   = row.data('methodId');
 			let methodData = _Schema.methods.methodsData[methodId];
 
 			$('.property-name', row).off('keyup').on('keyup', function() {
@@ -3061,9 +3068,11 @@ let _Schema = {
 			let footer = fakeTable.find('.fake-tfoot');
 
 			if (unsavedChanges) {
-				footer.removeClass('hidden');
+				$('.discard-all', footer).removeClass('disabled').attr('disabled', null);
+				$('.save-all', footer).removeClass('disabled').attr('disabled', null);
 			} else {
-				footer.addClass('hidden');
+				$('.discard-all', footer).addClass('disabled').attr('disabled', 'disabled');
+				$('.save-all', footer).addClass('disabled').attr('disabled', 'disabled');
 			}
 		},
 		rowChanged: function(row, hasChanges) {

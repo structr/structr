@@ -1,10 +1,11 @@
 <table class="${config.class}">
 	<thead><tr>${config.cols.reduce((acc, col) => { return acc + '<th class="' + col.class + '">' + col.title + '</th>'; }, '')}</tr></thead>
 	<tbody></tbody>
-	<tfoot class="hidden">
+	<tfoot>
 		<th colspan=${config.cols.length} class="actions-col">
-			<button class="discard-all inline-flex items-center">${_Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red mr-2')} Discard all</button>
-			<button class="save-all inline-flex items-center">${_Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green mr-2')} Save all</button>
+			${(config.addButtonText ? '<button class="add-button inline-flex items-center">' + _Icons.getSvgIcon('circle_plus', 14, 14, 'icon-green mr-2') + config.addButtonText + '</button>' : '')}
+			<button class="discard-all inline-flex items-center disabled" disabled>${_Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red mr-2')} Discard all</button>
+			<button class="save-all inline-flex items-center disabled" disabled>${_Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green mr-2')} Save all</button>
 		</th>
 	</tfoot>
 </table>

@@ -238,7 +238,7 @@ let _Code = {
 			codeContents.children().first().removeClass('has-changes');
 		}
 	},
-	testAllowNavigation: function() {
+	testAllowNavigation: () => {
 		if (_Code.isDirty()) {
 			return confirm('Discard unsaved changes?');
 		}
@@ -1270,7 +1270,7 @@ let _Code = {
 			_Code.handleSelection(selection);
 		}
 	},
-	handleSelection: function(data) {
+	handleSelection: (data) => {
 
 		if (_Code.testAllowNavigation()) {
 
