@@ -71,6 +71,9 @@ public class StructrBinding implements ProxyObject {
 			case "do_privileged":
 			case "doPrivileged":
 				return new DoPrivilegedFunction(actionContext);
+			case "do_as":
+			case "doAs":
+				return new DoAsFunction(actionContext);
 			case "request":
 				return new HttpServletRequestWrapper(actionContext, actionContext.getSecurityContext().getRequest());
 			case "session":
