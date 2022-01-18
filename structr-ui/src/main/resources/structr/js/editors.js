@@ -406,7 +406,7 @@ let _Editors = {
 				id: 'editor-save-action-' + entity.id + '-' + propertyName,
 				label: customConfig.saveFnText || 'Save',
 				keybindings: [
-					monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S
+					monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS
 				],
 				precondition: null,
 				keybindingContext: null,
