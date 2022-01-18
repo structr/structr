@@ -263,7 +263,7 @@ let _Editors = {
 
 					let isAutoscriptEnv        = model.uri.isAutoscriptEnv || false;
 					let forceAllowAutoComplete = model.uri.forceAllowAutoComplete || false;
-					let modelLanguage          = model.getLanguageIdentifier().language;
+					let modelLanguage          = model.getLanguageId();
 					let contentType            = (modelLanguage === 'javascript') ? 'text/javascript' : 'text';
 
 					let doAutocomplete = forceAllowAutoComplete || modelLanguage === 'javascript' || isAutoscriptEnv === true;
