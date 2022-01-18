@@ -43,13 +43,15 @@ let _Editors = {
 
 		return _Editors.editors[id][propertyName];
 	},
-	disposeAllEditors: () => {
+	disposeAllEditors: (exceptionIds = []) => {
 
 		for (let id in _Editors.editors) {
 
 			for (let propertyName in _Editors.editors[id]) {
 
-				_Editors.disposeEditor(id, propertyName);
+				if (exceptionIds.indexOf(id) === -1) {
+					_Editors.disposeEditor(id, propertyName);
+				}
 			}
 		}
 	},
@@ -342,7 +344,7 @@ let _Editors = {
 		}
 
 		// dispose previously existing editors
-		_Editors.disposeAllEditors();
+		_Editors.disposeAllEditors([entity.id]);
 
 		let monacoConfig = Object.assign(_Editors.getOurSavedEditorOptionsForEditor(), {
 			model: storageContainer.model,
