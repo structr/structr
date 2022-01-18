@@ -329,6 +329,7 @@ let _Editors = {
 		let viewState        = _Editors.restoreViewState(entity.id, propertyName);
 
 		if (customConfig.restoreModel === false || !storageContainer.model) {
+
 			storageContainer?.model?.dispose();
 
 			// A bit hacky to transport additional configuration to deeper layers...
@@ -340,8 +341,8 @@ let _Editors = {
 			storageContainer.model = monaco.editor.createModel(editorText, language, _Editors.getModelURI(entity.id, propertyName, extraModelConfig));
 		}
 
-		// dispose previously existing editor
-		storageContainer?.instance?.dispose();
+		// dispose previously existing editors
+		_Editors.disposeAllEditors();
 
 		let monacoConfig = Object.assign(_Editors.getOurSavedEditorOptionsForEditor(), {
 			model: storageContainer.model,
