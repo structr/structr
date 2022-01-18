@@ -43,13 +43,15 @@ let _Editors = {
 
 		return _Editors.editors[id][propertyName];
 	},
-	disposeAllEditors: () => {
+	disposeAllEditors: (exceptionIds = []) => {
 
 		for (let id in _Editors.editors) {
 
 			for (let propertyName in _Editors.editors[id]) {
 
-				_Editors.disposeEditor(id, propertyName);
+				if (exceptionIds.indexOf(id) === -1) {
+					_Editors.disposeEditor(id, propertyName);
+				}
 			}
 		}
 	},
@@ -261,7 +263,7 @@ let _Editors = {
 
 					let isAutoscriptEnv        = model.uri.isAutoscriptEnv || false;
 					let forceAllowAutoComplete = model.uri.forceAllowAutoComplete || false;
-					let modelLanguage          = model.getLanguageIdentifier().language;
+					let modelLanguage          = model.getLanguageId();
 					let contentType            = (modelLanguage === 'javascript') ? 'text/javascript' : 'text';
 
 					let doAutocomplete = forceAllowAutoComplete || modelLanguage === 'javascript' || isAutoscriptEnv === true;
@@ -329,6 +331,7 @@ let _Editors = {
 		let viewState        = _Editors.restoreViewState(entity.id, propertyName);
 
 		if (customConfig.restoreModel === false || !storageContainer.model) {
+
 			storageContainer?.model?.dispose();
 
 			// A bit hacky to transport additional configuration to deeper layers...
@@ -340,8 +343,8 @@ let _Editors = {
 			storageContainer.model = monaco.editor.createModel(editorText, language, _Editors.getModelURI(entity.id, propertyName, extraModelConfig));
 		}
 
-		// dispose previously existing editor
-		storageContainer?.instance?.dispose();
+		// dispose previously existing editors
+		_Editors.disposeAllEditors([entity.id]);
 
 		let monacoConfig = Object.assign(_Editors.getOurSavedEditorOptionsForEditor(), {
 			model: storageContainer.model,
@@ -403,7 +406,7 @@ let _Editors = {
 				id: 'editor-save-action-' + entity.id + '-' + propertyName,
 				label: customConfig.saveFnText || 'Save',
 				keybindings: [
-					monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S
+					monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS
 				],
 				precondition: null,
 				keybindingContext: null,
