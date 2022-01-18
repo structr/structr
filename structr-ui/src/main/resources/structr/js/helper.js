@@ -512,7 +512,7 @@ let _Console = new (function() {
 			return;
 		}
 
-		let storedMode = LSWrapper.getItem(consoleModeKey);
+		let storedMode = LSWrapper.getItem(consoleModeKey, 'JavaScript');
 
 		// Get initial mode and prompt from backend
 		// If backend sends no mode, use value from local storage
