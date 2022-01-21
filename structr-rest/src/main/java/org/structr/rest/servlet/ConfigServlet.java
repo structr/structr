@@ -201,6 +201,7 @@ public class ConfigServlet extends AbstractServletBase {
 				final ManageDatabasesCommand cmd    = Services.getInstance().command(null, ManageDatabasesCommand.class);
 				final String name                   = "neo-1";
 				final String url                    = Settings.SampleConnectionUrl.getDefaultValue();
+				final String databaseName           = Settings.ConnectionDatabaseName.getDefaultValue();
 				final String username               = Settings.ConnectionUser.getDefaultValue();
 				final String password               = Settings.ConnectionPassword.getDefaultValue();
 
@@ -209,6 +210,7 @@ public class ConfigServlet extends AbstractServletBase {
 				connection.setUrl(url);
 				connection.setUsername(username);
 				connection.setPassword(password);
+				connection.setDatabaseName(databaseName);
 
 				try {
 					cmd.addConnection(connection, false);
@@ -301,6 +303,7 @@ public class ConfigServlet extends AbstractServletBase {
 				final String name                   = request.getParameter("name");
 				final String driver                 = request.getParameter("driver");
 				final String url                    = request.getParameter("url");
+				final String databaseName           = request.getParameter("database");
 				final String username               = request.getParameter("username");
 				final String password               = request.getParameter("password");
 				final String connectNow             = request.getParameter("now");
@@ -309,6 +312,7 @@ public class ConfigServlet extends AbstractServletBase {
 				connection.setName(name);
 				connection.setDriver(driver);
 				connection.setUrl(url);
+				connection.setDatabaseName(databaseName);
 				connection.setUsername(username);
 				connection.setPassword(password);
 
@@ -349,14 +353,16 @@ public class ConfigServlet extends AbstractServletBase {
 						// values for save action
 						final String driver              = request.getParameter("driver");
 						final String connectionUrl       = request.getParameter("url");
+						final String databaseName        = request.getParameter("database");
 						final String connectionUsername  = request.getParameter("username");
 						final String connectionPassword  = request.getParameter("password");
 
-						data.put(DatabaseConnection.KEY_NAME,     name);
-						data.put(DatabaseConnection.KEY_DRIVER,   driver);
-						data.put(DatabaseConnection.KEY_URL,      connectionUrl);
-						data.put(DatabaseConnection.KEY_USERNAME, connectionUsername);
-						data.put(DatabaseConnection.KEY_PASSWORD, connectionPassword);
+						data.put(DatabaseConnection.KEY_NAME,         name);
+						data.put(DatabaseConnection.KEY_DRIVER,       driver);
+						data.put(DatabaseConnection.KEY_URL,          connectionUrl);
+						data.put(DatabaseConnection.KEY_DATABASENAME, databaseName);
+						data.put(DatabaseConnection.KEY_USERNAME,     connectionUsername);
+						data.put(DatabaseConnection.KEY_PASSWORD,     connectionPassword);
 
 						try {
 							switch (restAction) {
@@ -804,6 +810,10 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag url = div.block("p");
 		url.block("label").text("Connection URL");
 		url.add(new InputField(url, "text", "url-structr-new-connection", "", "Enter URL"));
+
+		final Tag databaseName = div.block("p");
+		databaseName.block("label").text("Database Name").css("has-comment").attr(new Attr("data-comment", DatabaseConnection.INFO_TEXT));
+		databaseName.add(new InputField(databaseName, "text", "database-structr-new-connection", "", "Enter Database Name"));
 
 		final Tag user = div.block("p");
 		user.block("label").text("Username");

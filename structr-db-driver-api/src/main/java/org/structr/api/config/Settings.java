@@ -168,6 +168,7 @@ public class Settings {
 	public static final Setting<String> TestingConnectionUrl         = new StringSetting(databaseGroup,  "hidden",                  "testing.connection.url",           "bolt://localhost:7689");
 	public static final Setting<String> ConnectionUser               = new StringSetting(databaseGroup,  "hidden",                  "database.connection.username",     "neo4j");
 	public static final Setting<String> ConnectionPassword           = new StringSetting(databaseGroup,  "hidden",                  "database.connection.password",     "neo4j");
+	public static final Setting<String> ConnectionDatabaseName       = new StringSetting(databaseGroup,  "hidden",                  "database.connection.databasename", "neo4j");
 	public static final Setting<String> TenantIdentifier             = new StringSetting(databaseGroup,  "hidden",                  "database.tenant.identifier",       "");
 	public static final Setting<Integer> RelationshipCacheSize       = new IntegerSetting(databaseGroup, "Caching",                 "database.cache.relationship.size", 500000);
 	public static final Setting<Integer> NodeCacheSize               = new IntegerSetting(databaseGroup, "Caching",                 "database.cache.node.size",         100000, "Size of the database driver node cache");

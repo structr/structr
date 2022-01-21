@@ -35,6 +35,7 @@ import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.service.DatabaseConnection;
 import static org.structr.api.service.DatabaseConnection.KEY_ACTIVE;
+import static org.structr.api.service.DatabaseConnection.KEY_DATABASENAME;
 import static org.structr.api.service.DatabaseConnection.KEY_DISPLAYNAME;
 import static org.structr.api.service.DatabaseConnection.KEY_DRIVER;
 import static org.structr.api.service.DatabaseConnection.KEY_FORCE_STREAMING;
@@ -163,11 +164,12 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 		if (!connectionNames.contains(prefix)) {
 
-			setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
-			setOrDefault(Settings.ConnectionName,        prefix, data, KEY_DISPLAYNAME);
-			setOrDefault(Settings.ConnectionUrl,         prefix, data, KEY_URL);
-			setOrDefault(Settings.ConnectionUser,        prefix, data, KEY_USERNAME);
-			setOrDefault(Settings.ConnectionPassword,    prefix, data, KEY_PASSWORD);
+			setOrDefault(Settings.DatabaseDriver,         prefix, data, KEY_DRIVER);
+			setOrDefault(Settings.ConnectionName,         prefix, data, KEY_DISPLAYNAME);
+			setOrDefault(Settings.ConnectionUrl,          prefix, data, KEY_URL);
+			setOrDefault(Settings.ConnectionDatabaseName, prefix, data, KEY_DATABASENAME);
+			setOrDefault(Settings.ConnectionUser,         prefix, data, KEY_USERNAME);
+			setOrDefault(Settings.ConnectionPassword,     prefix, data, KEY_PASSWORD);
 
 			//setOrDefault(Settings.TenantIdentifier,      prefix, data, KEY_TENANT_IDENTIFIER);
 			//setOrDefault(Settings.RelationshipCacheSize, prefix, data, KEY_RELATIONSHIP_CACHE_SIZE);
@@ -211,10 +213,11 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 		if (connectionNames.contains(prefix)) {
 
-			setOrDefault(Settings.DatabaseDriver,        prefix, data, KEY_DRIVER);
-			setOrDefault(Settings.ConnectionUrl,         prefix, data, KEY_URL);
-			setOrDefault(Settings.ConnectionUser,        prefix, data, KEY_USERNAME);
-			setOrDefault(Settings.ConnectionPassword,    prefix, data, KEY_PASSWORD);
+			setOrDefault(Settings.DatabaseDriver,         prefix, data, KEY_DRIVER);
+			setOrDefault(Settings.ConnectionUrl,          prefix, data, KEY_URL);
+			setOrDefault(Settings.ConnectionDatabaseName, prefix, data, KEY_DATABASENAME);
+			setOrDefault(Settings.ConnectionUser,         prefix, data, KEY_USERNAME);
+			setOrDefault(Settings.ConnectionPassword,     prefix, data, KEY_PASSWORD);
 			//setOrDefault(Settings.TenantIdentifier,      prefix, data, KEY_TENANT_IDENTIFIER);
 			//setOrDefault(Settings.RelationshipCacheSize, prefix, data, KEY_RELATIONSHIP_CACHE_SIZE);
 			//setOrDefault(Settings.NodeCacheSize,         prefix, data, KEY_NODE_CACHE_SIZE);
@@ -243,6 +246,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 				Settings.DatabaseDriver.getPrefixedSetting(prefix).unregister();
 				Settings.ConnectionName.getPrefixedSetting(prefix).unregister();
 				Settings.ConnectionUrl.getPrefixedSetting(prefix).unregister();
+				Settings.ConnectionDatabaseName.getPrefixedSetting(prefix).unregister();
 				Settings.ConnectionUser.getPrefixedSetting(prefix).unregister();
 				Settings.ConnectionPassword.getPrefixedSetting(prefix).unregister();
 				Settings.TenantIdentifier.getPrefixedSetting(prefix).unregister();
@@ -300,6 +304,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		settings.put(KEY_DRIVER,                  Settings.DatabaseDriver.getPrefixedValue(prefix));
 		settings.put(KEY_DISPLAYNAME,             Settings.ConnectionName.getPrefixedValue(prefix));
 		settings.put(KEY_URL,                     Settings.ConnectionUrl.getPrefixedValue(prefix));
+		settings.put(KEY_DATABASENAME,            Settings.ConnectionDatabaseName.getPrefixedValue(prefix));
 		settings.put(KEY_USERNAME,                Settings.ConnectionUser.getPrefixedValue(prefix));
 		settings.put(KEY_PASSWORD,                Settings.ConnectionPassword.getPrefixedValue(prefix));
 		settings.put(KEY_TENANT_IDENTIFIER,       Settings.TenantIdentifier.getPrefixedValue(prefix));
