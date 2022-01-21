@@ -639,7 +639,6 @@ let _Flows = {
 			language: 'javascript',
 			lint: true,
 			autocomplete: true,
-			restoreModel: true,
 			forceAllowAutoComplete: true,
 			isAutoscriptEnv: true,
 			changeFn: (editor, entity) => {

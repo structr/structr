@@ -252,6 +252,7 @@ public class Services implements StructrServices {
 					connection.setDisplayName("default-migrated");
 					connection.setName(migratedServiceName);
 					connection.setUrl(Settings.ConnectionUrl.getValue());
+					connection.setDatabaseName(Settings.ConnectionDatabaseName.getValue());
 					connection.setUsername(Settings.ConnectionUser.getValue());
 					connection.setPassword(Settings.ConnectionPassword.getValue());
 					connection.setDriver(Settings.DEFAULT_REMOTE_DATABASE_DRIVER);
@@ -266,6 +267,7 @@ public class Services implements StructrServices {
 
 						Settings.DatabaseDriver.setValue(Settings.DatabaseDriver.getDefaultValue());
 						Settings.ConnectionUrl.setValue(Settings.ConnectionUrl.getDefaultValue());
+						Settings.ConnectionDatabaseName.setValue(Settings.ConnectionDatabaseName.getDefaultValue());
 						Settings.ConnectionUser.setValue(Settings.ConnectionUser.getDefaultValue());
 						Settings.ConnectionPassword.setValue(Settings.ConnectionPassword.getDefaultValue());
 						Settings.DatabaseDriverMode.setValue(Settings.DatabaseDriverMode.getDefaultValue());

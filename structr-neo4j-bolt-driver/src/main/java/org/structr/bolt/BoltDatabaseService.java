@@ -91,6 +91,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	private String databaseUrl                                    = null;
 	private String databasePath                                   = null;
 	private Driver driver                                         = null;
+	private SessionConfig sessionConfig                           = null;
 
 	@Override
 	public boolean initialize(final String name, final String version, final String instance) {
@@ -102,10 +103,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			serviceName = name;
 		}
 
-		this.databasePath        = Settings.DatabasePath.getPrefixedValue(serviceName);
-		databaseUrl              = Settings.ConnectionUrl.getPrefixedValue(serviceName);
-		final String username    = Settings.ConnectionUser.getPrefixedValue(serviceName);
-		final String password    = Settings.ConnectionPassword.getPrefixedValue(serviceName);
+		this.databasePath         = Settings.DatabasePath.getPrefixedValue(serviceName);
+		databaseUrl               = Settings.ConnectionUrl.getPrefixedValue(serviceName);
+		final String username     = Settings.ConnectionUser.getPrefixedValue(serviceName);
+		final String password     = Settings.ConnectionPassword.getPrefixedValue(serviceName);
+		final String databaseName = Settings.ConnectionDatabaseName.getPrefixedValue(serviceName);
 		String databaseDriverUrl = "bolt://" + databaseUrl;
 
 		// build list of supported query languages
@@ -139,6 +141,8 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 						AuthTokens.basic(username, password),
 						config
 				);
+
+				sessionConfig = SessionConfig.forDatabase(databaseName);
 
 				// probe connection to database:
 				//   by creating a session, transaction and committing the transaction
@@ -221,7 +225,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 				if (supportsReactive) {
 
-					session = new ReactiveSessionTransaction(this, driver.rxSession());
+					session = new ReactiveSessionTransaction(this, driver.rxSession(sessionConfig));
 
 				} else {
 
@@ -252,7 +256,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 				if (supportsReactive) {
 
-					session = new ReactiveSessionTransaction(this, driver.rxSession(), timeoutInSeconds);
+					session = new ReactiveSessionTransaction(this, driver.rxSession(sessionConfig), timeoutInSeconds);
 
 				} else {
 

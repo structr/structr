@@ -31,7 +31,8 @@ let _Editors = {
 				instance: x,
 				model: y,
 				viewState: z,
-				disposables: [],
+				editorDisposables: [],
+				modelDisposables: [],
 				decorations: []
 			}
 		}	*/
@@ -63,10 +64,25 @@ let _Editors = {
 		delete container?.instance;
 
 		// dispose previous disposables
-		for (let disposable of container?.disposables ?? []) {
+		for (let disposable of container?.instanceDisposables ?? []) {
 			disposable.dispose();
 		}
-		delete container?.disposables;
+		delete container?.instanceDisposables;
+	},
+	disposeEditorModel: (id, propertyName) => {
+
+		let container = _Editors.getContainerForIdAndProperty(id, propertyName);
+		_Editors.disposeModelForStorageContainer(container);
+	},
+	disposeModelForStorageContainer: (container) => {
+
+		container?.model?.dispose();
+		delete container?.model;
+
+		for (let disposable of container?.modelDisposables ?? []) {
+			disposable.dispose();
+		}
+		delete container?.modelDisposables;
 	},
 	nukeEditorsById: (id) => {
 
@@ -78,7 +94,10 @@ let _Editors = {
 			container?.model.dispose();
 
 			// dispose previous disposables
-			for (let disposable of container?.disposables ?? []) {
+			for (let disposable of container?.instanceDisposables ?? []) {
+				disposable.dispose();
+			}
+			for (let disposable of container?.modelDisposables ?? []) {
 				disposable.dispose();
 			}
 		}
@@ -238,9 +257,6 @@ let _Editors = {
 		// let editor auto-layout
 		monacoEditor.layout();
 	},
-	toggleWordWrapForEditor: (monacoEditor, wordWrap) => {
-		monacoEditor.updateOptions({ wordWrap: (wordWrap ? 'on' : 'off') });
-	},
 	setupMonacoAutoCompleteOnce: () => {
 
 		if (window.monacoAutoCompleteSetupComplete !== true) {
@@ -323,6 +339,9 @@ let _Editors = {
 	getTextForExistingEditor: (id, propertyName) => {
 		return _Editors.getContainerForIdAndProperty(id, propertyName)?.instance?.getValue();
 	},
+	setTextForExistingEditor: (id, propertyName, text) => {
+		return _Editors.getContainerForIdAndProperty(id, propertyName)?.instance?.setValue(text);
+	},
 	getMonacoEditor: (entity, propertyName, domElement, customConfig) => {
 
 		let storageContainer = _Editors.getContainerForIdAndProperty(entity.id, propertyName);
@@ -330,9 +349,12 @@ let _Editors = {
 		let language         = (customConfig.language === 'auto') ? _Editors.getMonacoEditorModeForContent(editorText) : customConfig.language;
 		let viewState        = _Editors.restoreViewState(entity.id, propertyName);
 
-		if (customConfig.restoreModel === false || !storageContainer.model) {
+		let restoreModelConfig = _Editors.getSavedEditorOptions()?.restoreModels ?? false;
+		let doRestoreModel     = (customConfig.preventRestoreModel !== true) && restoreModelConfig;
 
-			storageContainer?.model?.dispose();
+		if (doRestoreModel === false || !storageContainer.model) {
+
+			_Editors.disposeModelForStorageContainer(storageContainer);
 
 			// A bit hacky to transport additional configuration to deeper layers...
 			let extraModelConfig = {
@@ -373,13 +395,17 @@ let _Editors = {
 		}
 
 		// dispose previous disposables
-		for (let disposable of storageContainer?.disposables ?? []) {
+		for (let disposable of storageContainer?.instanceDisposables ?? []) {
 			disposable.dispose();
 		}
-		storageContainer.disposables = [];
+		for (let disposable of storageContainer?.modelDisposables ?? []) {
+			disposable.dispose();
+		}
+		storageContainer.instanceDisposables = [];
+		storageContainer.modelDisposables    = [];
 
 		// change handler
-		storageContainer.disposables.push(storageContainer.model.onDidChangeContent((e) => {
+		storageContainer.modelDisposables.push(storageContainer.model.onDidChangeContent((e) => {
 
 			if (storageContainer.instance.customConfig.language === 'auto') {
 				let newLang = _Editors.getMonacoEditorModeForContent(storageContainer.instance.getValue());
@@ -396,13 +422,13 @@ let _Editors = {
 		}));
 
 		// cursor change handler
-		storageContainer.disposables.push(storageContainer.instance.onDidChangeCursorPosition((e) => {
+		storageContainer.instanceDisposables.push(storageContainer.instance.onDidChangeCursorPosition((e) => {
 			_Editors.saveViewState(entity.id, propertyName);
 		}));
 
 		if (customConfig.saveFn) {
 
-			storageContainer.disposables.push(storageContainer.instance.addAction({
+			storageContainer.instanceDisposables.push(storageContainer.instance.addAction({
 				id: 'editor-save-action-' + entity.id + '-' + propertyName,
 				label: customConfig.saveFnText || 'Save',
 				keybindings: [
@@ -584,6 +610,8 @@ let _Editors = {
 
 		delete savedOptions.indentation;
 
+		delete savedOptions.restoreModel;
+
 		return savedOptions;
 	},
 	getSavedEditorOptions: () => {
@@ -689,6 +717,10 @@ let _Editors = {
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="minimapEnabled" type="checkbox"> Show Mini Map</label>
 					</div>
+					<div class="font-bold pt-4 pb-2">Global Editor Behaviour Settings</div>
+					<div class="editor-setting flex items-center p-1">
+						<label data-comment="This means that <u>unsaved</u> changes are stored in-memory and such changes are restored even after opening other editors or user interfaces in the admin UI. The are only lost after a page reload or navigation event."><input name="restoreModels" type="checkbox"> Restore text models</label>
+					</div>
 				</div>
 			</div>`);
 
@@ -726,5 +758,7 @@ let _Editors = {
 		}
 
 		element.appendChild(dropdown);
+
+		Structr.activateCommentsInElement(dropdown);
 	}
 };

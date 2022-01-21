@@ -228,6 +228,7 @@ public abstract class StructrRestTestBase {
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+		Settings.ConnectionDatabaseName.setValue("neo4j");
 		Settings.TenantIdentifier.setValue(randomTenantId);
 	}
 
