@@ -355,8 +355,7 @@ let _Code = {
 		for (let editorWrapper of document.querySelectorAll('#code-contents .editor[data-property]')) {
 			let propertyName = editorWrapper.dataset.property;
 
-			let existingEditor = _Editors.getExistingEditor(entity.id, propertyName);
-			existingEditor?.setValue(entity[propertyName] || '');
+			_Editors.setTextForExistingEditor(entity.id, propertyName, (entity[propertyName] || ''));
 		}
 
 		_Code.updateDirtyFlag(entity);
@@ -1810,7 +1809,7 @@ let _Code = {
 			});
 		});
 	},
-	displaySchemaMethodContent: function(data, lastOpenTab, restoreModel = false) {
+	displaySchemaMethodContent: function(data, lastOpenTab) {
 
 		let identifier = _Code.splitIdentifier(data);
 
@@ -1819,7 +1818,7 @@ let _Code = {
 
 			_Code.updateRecentlyUsed(result, identifier.source, data.updateLocationStack);
 
-			Structr.fetchHtmlTemplate('code/method', { method: result }, function(html) {
+			Structr.fetchHtmlTemplate('code/method', { method: result }, (html) => {
 
 				codeContents.empty();
 				codeContents.append(html);
@@ -1833,8 +1832,7 @@ let _Code = {
 					autocomplete: true,
 					changeFn: (editor, entity) => {
 						_Code.updateDirtyFlag(entity);
-					},
-					restoreModel: restoreModel
+					}
 				};
 
 				let sourceEditor = _Editors.getMonacoEditor(result, 'source', $('#tabView-source .editor', codeContents), sourceMonacoConfig);
@@ -1930,8 +1928,7 @@ let _Code = {
 								autocomplete: true,
 								changeFn: (editor, entity) => {
 									_Code.updateDirtyFlag(entity);
-								},
-								restoreModel: restoreModel
+								}
 							};
 
 							_Editors.getMonacoEditor(result, 'openAPIReturnType', $('.editor', apiTab), openAPIReturnTypeMonacoConfig);
@@ -1965,8 +1962,10 @@ let _Code = {
 
 					_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save method', _Code.runCurrentEntitySaveAction);
 
-					_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red'), 'cancel', 'Revert changes', function() {
+					_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 						_Code.additionalDirtyChecks = [];
+						_Editors.disposeEditorModel(result.id, 'source');
+						_Editors.disposeEditorModel(result.id, 'openAPIReturnType');
 						_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'));
 					});
 
@@ -2530,7 +2529,6 @@ let _Code = {
 				changeFn: (editor, entity) => {
 					_Code.updateDirtyFlag(entity);
 				},
-				restoreModel: false,
 				isAutoscriptEnv: true
 			};
 
@@ -2554,7 +2552,6 @@ let _Code = {
 				changeFn: (editor, entity) => {
 					_Code.updateDirtyFlag(entity);
 				},
-				restoreModel: true,
 				isAutoscriptEnv: false
 			};
 

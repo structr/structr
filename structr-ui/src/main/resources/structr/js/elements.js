@@ -1064,7 +1064,7 @@ let _Elements = {
 				language: entity.contentType,
 				lint: true,
 				autocomplete: true,
-				restoreModel: false,
+				preventRestoreModel: true,
 				forceAllowAutoComplete: true,
 				changeFn: (editor, entity) => {
 
@@ -1176,7 +1176,6 @@ let _Elements = {
 			language: contentType,
 			lint: true,
 			autocomplete: true,
-			restoreModel: true,
 			forceAllowAutoComplete: true,
 			changeFn: (editor, entity) => {
 

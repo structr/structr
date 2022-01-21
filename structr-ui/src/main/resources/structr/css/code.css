@@ -198,3 +198,7 @@ ul#usage-tree {
 	margin: 0 0 0 -5rem;
 	bottom: 4rem;
 }
+
+h2.has-changes::after {
+	content: "*";
+}

@@ -1484,8 +1484,7 @@ let _Files = {
 					dialogSaveButton.prop("disabled", false).removeClass('disabled');
 					saveAndClose.prop("disabled", false).removeClass('disabled');
 				}
-			},
-			restoreModel: true
+			}
 		};
 
 		dialogMeta.html('<span class="editor-info"></span>');

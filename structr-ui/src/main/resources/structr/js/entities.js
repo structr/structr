@@ -645,7 +645,6 @@ let _Entities = {
 					lint: false,
 					autocomplete: false,
 					// changeFn: (editor, entity) => { },
-					restoreModel: true,
 					isAutoscriptEnv: true,
 					saveFn: saveFunction,
 					saveFnText: 'Save Repeater Config'
@@ -776,7 +775,7 @@ let _Entities = {
 			language: 'html',
 			lint: true,
 			autocomplete: true,
-			restoreModel: false,
+			preventRestoreModel: true,
 			forceAllowAutoComplete: true,
 			changeFn: (editor, entity) => {
 

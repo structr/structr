@@ -1825,7 +1825,7 @@ let _Schema = {
 					});
 				},
 				saveFnText: `Save ${key} Function`,
-				restoreModel: false,
+				preventRestoreModel: true,
 				isAutoscriptEnv: true
 			};
 
@@ -1938,7 +1938,7 @@ let _Schema = {
 					});
 				},
 				saveFnText: `Save Cypher Property Query`,
-				restoreModel: false,
+				preventRestoreModel: true,
 				isAutoscriptEnv: false
 			};
 
@@ -2989,7 +2989,8 @@ let _Schema = {
 					$('.property-isStatic', row).prop('checked', methodData.isStatic);
 
 					if (row.hasClass('editing')) {
-						_Schema.methods.editMethod(row, false);
+						_Editors.disposeEditorModel(methodData.id, 'source');
+						_Schema.methods.editMethod(row);
 					}
 
 					_Schema.methods.rowChanged(row, false);
@@ -3000,12 +3001,16 @@ let _Schema = {
 
 			let previouslyActiveRow = row.closest('.fake-tbody').find('.fake-tr.editing');
 			if (previouslyActiveRow) {
+
 				let previousMethodId = previouslyActiveRow.data('methodId');
-				_Editors.saveViewState(previousMethodId, 'source');
-				_Editors.disposeEditor(previousMethodId, 'source');
+
+				if (previousMethodId) {
+					_Editors.saveViewState(previousMethodId, 'source');
+					_Editors.disposeEditor(previousMethodId, 'source');
+				}
 			}
 		},
-		editMethod: function(row, restoreModel) {
+		editMethod: (row) => {
 
 			_Schema.methods.saveAndDisposePreviousEditor(row);
 
@@ -3024,22 +3029,23 @@ let _Schema = {
 				changeFn: (editor, entity) => {
 					methodData.source = editor.getValue();
 					_Schema.methods.rowChanged(row, (methodData.source !== methodData.initialSource));
-				},
-				restoreModel: restoreModel
+				}
 			};
 
 			let sourceEditor = _Editors.getMonacoEditor(methodData, 'source', $('.editor', $('#methods-content')), sourceMonacoConfig);
 			sourceEditor.focus();
 
+			sourceMonacoConfig.changeFn(sourceEditor);
+
 			_Schema.resizeVisibleEditors();
 		},
-		showGlobalSchemaMethods: function () {
+		showGlobalSchemaMethods: () => {
 
-			Command.rest('SchemaMethod?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', function (methods) {
+			Command.rest('SchemaMethod?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', (methods) => {
 
-				Structr.dialog('Global Schema Methods', function() {
+				Structr.dialog('Global Schema Methods', () => {
 					dialogMeta.show();
-				}, function() {
+				}, () => {
 					_Schema.currentNodeDialogId = null;
 
 					dialogMeta.show();
@@ -3057,11 +3063,11 @@ let _Schema = {
 				_Schema.methods.appendMethods(contentDiv, null, methods);
 			});
 		},
-		hasUnsavedChanges: function (fakeTable) {
+		hasUnsavedChanges: (fakeTable) => {
 			let fakeTbody = $('.fake-tbody', fakeTable);
 			return (fakeTbody.find('.fake-tr.to-delete').length + fakeTbody.find('.fake-tr.has-changes').length) > 0;
 		},
-		fakeTableChanged: function (fakeTable) {
+		fakeTableChanged: (fakeTable) => {
 
 			let unsavedChanges = _Schema.methods.hasUnsavedChanges(fakeTable);
 
@@ -3075,7 +3081,7 @@ let _Schema = {
 				$('.save-all', footer).addClass('disabled').attr('disabled', 'disabled');
 			}
 		},
-		rowChanged: function(row, hasChanges) {
+		rowChanged: (row, hasChanges) => {
 
 			if (hasChanges) {
 				row.addClass('has-changes');
@@ -3085,7 +3091,7 @@ let _Schema = {
 
 			_Schema.methods.fakeTableChanged(row.closest('.fake-table'));
 		},
-		validateMethodRow: function (row) {
+		validateMethodRow: (row) => {
 
 			if ($('.property-name', row).val().length === 0) {
 
@@ -3481,13 +3487,6 @@ let _Schema = {
 			});
 		}
 	},
-	// appendSnapshotsDialogToContainer: function(container) {
-	//
-	// 	Structr.fetchHtmlTemplate('schema/snapshots', {}, function (html) {
-	// 		container.append(html);
-	// 		_Schema.activateSnapshotsDialog();
-	// 	});
-	// },
 	activateSnapshotsDialog: () => {
 
 		var table = $('#snapshots');
