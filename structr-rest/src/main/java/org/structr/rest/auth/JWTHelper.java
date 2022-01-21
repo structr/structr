@@ -75,6 +75,7 @@ public class JWTHelper {
             case "jwks":
 
                 final String provider = Settings.JWTSProvider.getValue();
+                final String issuer = Settings.JWTIssuer.getValue(provider);
 
                 if (provider != null) {
 
@@ -89,7 +90,7 @@ public class JWTHelper {
                             Algorithm algorithm = Algorithm.RSA256((RSAPublicKey) jwk.getPublicKey(), null);
 
                             JWTVerifier verifier = JWT.require(algorithm)
-                                    .withIssuer(provider)
+                                    .withIssuer(issuer)
                                     .build();
 
                             jwt = verifier.verify(token);
@@ -99,7 +100,8 @@ public class JWTHelper {
 
                     } catch (JwkException ex) {
 
-                        throw new FrameworkException(422, "Error while trying to process JWKS. ", ex);
+                        logger.warn("Error while trying to process JWKS.", ex.getMessage());
+                        throw new FrameworkException(422, "Error while trying to process JWKS.");
                     }
                 }
 
@@ -225,6 +227,10 @@ public class JWTHelper {
         String instance = claims.getOrDefault("instance", new NullClaim()).asString();
         String uuid = claims.getOrDefault("uuid", new NullClaim()).asString();
         String eMail = claims.getOrDefault("eMail", new NullClaim()).asString();
+
+        if (StringUtils.isEmpty(eMail)) {
+            eMail = claims.getOrDefault("email", new NullClaim()).asString();
+        }
 
         // if the instance is the same that issued the token, we can lookup the user with uuid claim
         if (StringUtils.equals(instance, instanceName)) {
