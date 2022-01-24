@@ -21,7 +21,7 @@
 		<dependency>
 			<groupId>com.github.jhonnymertz</groupId>
 			<artifactId>java-wkhtmltopdf-wrapper</artifactId>
-			<version>1.1.4-RELEASE</version>
+			<version>1.1.13-RELEASE</version>
 		</dependency>
 	</dependencies>
 	<repositories>
