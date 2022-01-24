@@ -1892,7 +1892,7 @@ let _Code = {
 								_Code.updateDirtyFlag(result);
 							};
 
-							Command.query('SchemaMethodParameter', 1000, 1, 'index', 'asc', {schemaMethod: result.id}, (parameters) => {
+							Command.query('SchemaMethodParameter', 1000, 1, 'index', 'asc', { schemaMethod: result.id }, (parameters) => {
 
 								_Code.additionalDirtyChecks.push(() => {
 									return _Code.schemaMethodParametersChanged(parameters);
@@ -2508,17 +2508,39 @@ let _Code = {
 
 			_Code.updateRecentlyUsed(result, identifier.source, selection.updateLocationStack);
 
-			Structr.fetchHtmlTemplate('code/default-view', { view: result }, function(html) {
+			Structr.fetchHtmlTemplate('code/default-view', { view: result }, (html) => {
 				codeContents.append(html);
 				_Code.displayDefaultViewOptions(result, undefined, identifier);
 			});
 		});
 	},
-	displayFunctionPropertyDetails: function(property, identifier) {
+	displayFunctionPropertyDetails: function(property, identifier, lastOpenTab) {
 
-		Structr.fetchHtmlTemplate('code/function-property', { property: property }, function(html) {
+		Structr.fetchHtmlTemplate('code/function-property', { property: property }, (html) => {
 
 			codeContents.append(html);
+
+			let activateTab = (tabName) => {
+				$('.function-property-tab-content', codeContents).hide();
+				$('li[data-name]', codeContents).removeClass('active');
+
+				let activeTab = $('#tabView-' + tabName, codeContents);
+				activeTab.show();
+				$('li[data-name="' + tabName + '"]', codeContents).addClass('active');
+
+				window.setTimeout(() => { _Editors.resizeVisibleEditors(); }, 250);
+			};
+
+			for (let tabLink of codeContents[0].querySelectorAll('li[data-name]')) {
+				tabLink.addEventListener('click', (e) => {
+					e.stopPropagation();
+					activateTab(tabLink.dataset.name);
+				})
+			}
+			activateTab(lastOpenTab || 'source');
+
+			// sourceEditor.focus();
+
 
 			Structr.activateCommentsInElement(codeContents, { insertAfter: true });
 
@@ -2536,6 +2558,17 @@ let _Code = {
 			_Editors.getMonacoEditor(property, 'writeFunction', $('#write-code-container .editor', codeContents), functionPropertyMonacoConfig);
 
 			_Editors.appendEditorOptionsElement(codeContents[0].querySelector('.editor-info'));
+
+			let openAPIReturnTypeMonacoConfig = {
+				language: 'json',
+				lint: true,
+				autocomplete: true,
+				changeFn: (editor, entity) => {
+					_Code.updateDirtyFlag(entity);
+				}
+			};
+
+			_Editors.getMonacoEditor(property, 'openAPIReturnType', $('#tabView-api .editor', codeContents), openAPIReturnTypeMonacoConfig);
 
 			_Code.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, identifier);
 		});
@@ -2584,7 +2617,7 @@ let _Code = {
 	},
 	displayDefaultPropertyOptions: function(property, callback, identifier) {
 
-		Structr.fetchHtmlTemplate('code/property-options', { property: property }, function(html) {
+		Structr.fetchHtmlTemplate('code/property-options', { property: property }, (html) => {
 
 			_Code.runCurrentEntitySaveAction = function() {
 				_Code.saveEntityAction(property);
@@ -2595,13 +2628,13 @@ let _Code = {
 
 			_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save property', _Code.runCurrentEntitySaveAction);
 
-			_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red'), 'cancel', 'Revert changes', function() {
+			_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 				_Code.revertFormData(property);
 			});
 
 			if (!property.schemaNode.isBuiltinType) {
 
-				_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'delete', 'Delete property', function() {
+				_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'delete', 'Delete property', () => {
 					_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'No data will be removed.', identifier);
 				});
 			}

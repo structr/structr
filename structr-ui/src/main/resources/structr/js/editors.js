@@ -672,15 +672,18 @@ let _Editors = {
 					<div class="font-bold pt-4 pb-2">Global Editor Settings</div>
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Word Wrap</label>
-						<select name="wordWrap"><option>off</option><option>on</option></select>
+						<select name="wordWrap" class="min-w-48">
+							<option>off</option>
+							<option>on</option>
+						</select>
 					</div>
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Wrapping Indent</label>
-						<select name="wrappingIndent"><option>none</option><option>same</option><option>indent</option><option>deepIndent</option></select>
+						<select name="wrappingIndent" class="min-w-48"><option>none</option><option>same</option><option>indent</option><option>deepIndent</option></select>
 					</div>
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Indentation</label>
-						<select name="indentation"><option>tabs</option><option>spaces</option></select>
+						<select name="indentation" class="min-w-48"><option>tabs</option><option>spaces</option></select>
 					</div>
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Tab Size</label>
@@ -688,19 +691,23 @@ let _Editors = {
 					</div>
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Auto-Indent</label>
-						<select name="autoIndent"><option>advanced</option><option>none</option><option>full</option><option>brackets</option><option>keep</option></select>
+						<select name="autoIndent" class="min-w-48"><option>advanced</option><option>none</option><option>full</option><option>brackets</option><option>keep</option></select>
 					</div>
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Theme</label>
-						<select name="theme"><option>vs</option><option>vs-dark</option><option>hc-black</option></select>
+						<select name="theme" class="min-w-48">
+							<option value="vs">Visual Studio</option>
+							<option value="vs-dark">Visual Studio Dark</option>
+							<option value="hc-black">High Contrast Dark</option>
+						</select>
 					</div>
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Line Highligh Rendering</label>
-						<select name="renderLineHighlight"><option>all</option><option>gutter</option><option>line</option><option>none</option></select>
+						<select name="renderLineHighlight" class="min-w-48"><option>all</option><option>gutter</option><option>line</option><option>none</option></select>
 					</div>
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Show Folding Controls</label>
-						<select name="showFoldingControls"><option>always</option><option>mouseover</option></select>
+						<select name="showFoldingControls" class="min-w-48"><option>always</option><option>mouseover</option></select>
 					</div>
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="renderWhitespace" type="checkbox"> Render Whitespace</label>

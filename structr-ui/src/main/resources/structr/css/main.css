@@ -4821,6 +4821,9 @@ table.props td.__value {
 .min-h-5 {
 	min-height: 1.25rem;
 }
+.min-w-48 {
+	min-width: 12rem;
+}
 .min-w-64 {
 	min-width: 16rem;
 }
