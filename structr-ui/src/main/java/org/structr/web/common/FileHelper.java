@@ -96,7 +96,7 @@ public class FileHelper {
 	}
 
 	/**
-	 * Create a new image node from image data encoded in base64 format.
+	 * Create a new file node from file data encoded in base64 format.
 	 *
 	 * If the given string is an uuid of an existing file, transform it into
 	 * the target class.
@@ -138,6 +138,7 @@ public class FileHelper {
 	}
 
 	/**
+	 * Create a new file node from a given file on disk by moving existing file to referenced file location
 	 *
 	 * @param <T>
 	 * @param securityContext
@@ -151,7 +152,12 @@ public class FileHelper {
 	public static <T extends File> T createFile(final SecurityContext securityContext, final java.io.File existingFileOnDisk, final String contentType, final String name)
 		throws FrameworkException, IOException {
 
-		final T newFile = (T) StructrApp.getInstance(securityContext).create(File.class, name);
+		final PropertyMap props = new PropertyMap();
+
+		props.put(StructrApp.key(AbstractFile.class, "name"), name);
+		props.put(StructrApp.key(File.class, "contentType"), contentType);
+
+		final T newFile = (T) StructrApp.getInstance(securityContext).create(File.class, props);
 		final java.io.File newFileOnDisk = newFile.getFileOnDisk(false);
 
 		FileUtils.moveFile(existingFileOnDisk, newFileOnDisk);
