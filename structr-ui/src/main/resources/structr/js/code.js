@@ -1542,32 +1542,47 @@ let _Code = {
 						{ class: '', title: 'write' },
 						{ class: '', title: 'delete' },
 						{ class: '', title: 'access control' }
-					]
+					],
+					discardButtonText: 'Discard Schema Grant changes',
+					saveButtonText: 'Save Schema Grants'
 				};
 
-				Structr.fetchHtmlTemplate('schema/schema-table', schemaGrantsTableConfig, function(html) {
+				Structr.fetchHtmlTemplate('schema/schema-table', schemaGrantsTableConfig, (html) => {
 
-					let schemaGrantsContainer = document.querySelector('#schema-grants');
+					let schemaGrantsContainer       = document.querySelector('#schema-grants');
 					schemaGrantsContainer.innerHTML = html;
 
-					let tbody = schemaGrantsContainer.querySelector('tbody');
-					let tfoot = schemaGrantsContainer.querySelector('tfoot');
+					let tbody      = schemaGrantsContainer.querySelector('tbody');
+					let tfoot      = schemaGrantsContainer.querySelector('tfoot');
+					let discardBtn = tfoot.querySelector('.discard-all');
+					let saveBtn    = tfoot.querySelector('.save-all');
 
-					let schemaGrantsTableChange = function (cb, rowConfig) {
+					let setButtonDisabled = (btn, disabled) => {
+						btn.disabled = disabled;
+						if (disabled) {
+							btn.classList.add('disabled');
+						} else {
+							btn.classList.remove('disabled');
+						}
+					}
+
+					let schemaGrantsTableChange = (cb, rowConfig) => {
+
 						if (rowConfig[cb.name] !== cb.checked) {
 							cb.classList.add('changed');
 						} else {
 							cb.classList.remove('changed');
 						}
 
-						if (schemaGrantsContainer.querySelector('.changed')) {
-							tfoot.classList.remove('hidden');
-						} else {
-							tfoot.classList.add('hidden');
-						}
+						let hasChanges      = (schemaGrantsContainer.querySelector('.changed'));
+						discardBtn.disabled = !hasChanges;
+						saveBtn.disabled    = !hasChanges;
+
+						setButtonDisabled(saveBtn,    !hasChanges);
+						setButtonDisabled(discardBtn, !hasChanges);
 					};
 
-					schemaGrantsContainer.querySelector('.discard-all').addEventListener('click', function (e) {
+					discardBtn.addEventListener('click', (e) => {
 
 						for (let changedCb of tbody.querySelectorAll('.changed')) {
 
@@ -1575,10 +1590,11 @@ let _Code = {
 							changedCb.classList.remove('changed');
 						}
 
-						tfoot.classList.add('hidden');
+						setButtonDisabled(saveBtn,    true);
+						setButtonDisabled(discardBtn, true);
 					});
 
-					schemaGrantsContainer.querySelector('.save-all').addEventListener('click', function (e) {
+					saveBtn.addEventListener('click', async (e) => {
 
 						let grantData = [];
 
@@ -1606,28 +1622,29 @@ let _Code = {
 
 						_Code.showSchemaRecompileMessage();
 
-						fetch(rootUrl + 'SchemaGrant', {
+						let response = await fetch(rootUrl + 'SchemaGrant', {
 							dataType: 'json',
 							contentType: 'application/json; charset=utf-8',
 							method: 'PATCH',
 							body: JSON.stringify(grantData)
-						}).then((response) => {
-
-							if (response.ok) {
-
-								_Code.hideSchemaRecompileMessage();
-								_Code.displaySchemaNodeContent(data, identifier);
-							}
 						});
+
+						if (response.ok) {
+							_Code.hideSchemaRecompileMessage();
+							_Code.displaySchemaNodeContent(data, identifier);
+						} else {
+							_Code.hideSchemaRecompileMessage();
+							new MessageBuilder().warning('Saving schema grants failed - please try again!').requiresConfirmation().show();
+						}
 					});
 
 					let grants = {};
 
-					result.schemaGrants.forEach(function(grant) {
+					for (let grant of result.schemaGrants) {
 						grants[grant.principal.id] = grant;
-					});
+					}
 
-					Command.query('Group', 1000, 1, 'name', 'asc', { }, function(groupResult) {
+					Command.query('Group', 1000, 1, 'name', 'asc', { }, (groupResult) => {
 
 						for (let group of groupResult) {
 
@@ -1641,17 +1658,17 @@ let _Code = {
 								allowAccessControl : (!grants[group.id]) ? false : grants[group.id].allowAccessControl
 							};
 
-							Structr.fetchHtmlTemplate('code/schema-grants-row', tplConfig, function(html) {
+							Structr.fetchHtmlTemplate('code/schema-grants-row', tplConfig, (html) => {
 
-								let dummyTbody = document.createElement('tbody');
+								let dummyTbody       = document.createElement('tbody');
 								dummyTbody.innerHTML = html;
-								let row = dummyTbody.firstChild;
+								let row              = dummyTbody.firstChild;
 
 								tbody.appendChild(row);
 
 								for (let cb of row.querySelectorAll('input')) {
 
-									cb.addEventListener('change', function (e) {
+									cb.addEventListener('change', (e) => {
 										schemaGrantsTableChange(cb, tplConfig);
 									});
 								}
@@ -1680,7 +1697,7 @@ let _Code = {
 					let tree = { name: 'Usage', children: {} };
 
 					// append rows
-					for (var usage of sorted) {
+					for (let usage of sorted) {
 
 						let path = usage.path;
 
@@ -1691,7 +1708,7 @@ let _Code = {
 						let parts   = path.split('/').filter(p => p.length > 0);
 						let current = tree;
 
-						for (var part of parts) {
+						for (let part of parts) {
 
 							if (!current.children[part]) {
 
@@ -1720,7 +1737,7 @@ let _Code = {
 
 						if (root.data) {
 
-							for (var key of Object.keys(root.data.mapped)) {
+							for (let key in root.data.mapped) {
 
 								let value = root.data.mapped[key];
 								let item  = document.createElement('li');
@@ -1732,7 +1749,7 @@ let _Code = {
 							}
 						}
 
-						for (var key of Object.keys(root.children)) {
+						for (let key in root.children) {
 							let child = root.children[key];
 							buildTree(child, list);
 						}
@@ -1747,16 +1764,12 @@ let _Code = {
 						}
 					});
 
-					// console.log(usageTree);
-
 					usageTree.on('select_node.jstree', function(node, selected, event) {
-
-						// console.log({ node: node, selected: selected, event:event });
 
 						let id = selected.node.data.id;
 						if (id) {
 
-							Command.get(id, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
+							Command.get(id, 'id,type,name,content,ownerDocument,schemaNode', (obj) => {
 
 								switch (obj.type) {
 
@@ -1787,8 +1800,6 @@ let _Code = {
 				}
 			});
 		});
-
-		//}, 'schema');
 	},
 	displaySchemaRelationshipNodeContent: function (data, identifier) {
 
