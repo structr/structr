@@ -101,7 +101,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		// access the user confirmation page
 		RestAssured
 			.given()
-				.param(HtmlServlet.CONFIRM_KEY_KEY, confKey)
+				.param(HtmlServlet.CONFIRMATION_KEY_KEY, confKey)
 			.expect()
 			.statusCode(200)
 			.when()
@@ -195,8 +195,8 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		RestAssured
 			.given()
 				.filter(sessionFilter)
-				.param(HtmlServlet.CONFIRM_KEY_KEY, confKey)
-				.param(HtmlServlet.TARGET_PAGE_KEY, "success")
+				.param(HtmlServlet.CONFIRMATION_KEY_KEY, confKey)
+				.param(HtmlServlet.TARGET_PATH_KEY, "success")
 			.expect()
 			.statusCode(200)
 			.body("html.head.title", Matchers.equalTo("Success"))

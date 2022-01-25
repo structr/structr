@@ -61,11 +61,11 @@ public class ResetPasswordResource extends Resource {
 		RESET_PASSWORD_TEXT_BODY,
 		RESET_PASSWORD_HTML_BODY,
 		RESET_PASSWORD_BASE_URL,
-		RESET_PASSWORD_TARGET_PAGE,
+		RESET_PASSWORD_TARGET_PATH,
 		RESET_PASSWORD_ERROR_PAGE,
 		RESET_PASSWORD_PAGE,
-		RESET_PASSWORD_CONFIRM_KEY_KEY,
-		RESET_PASSWORD_TARGET_PAGE_KEY,
+		RESET_PASSWORD_CONFIRMATION_KEY_KEY,
+		RESET_PASSWORD_TARGET_PATH_KEY,
 		RESET_PASSWORD_ERROR_PAGE_KEY
 	}
 
@@ -158,8 +158,8 @@ public class ResetPasswordResource extends Resource {
 		replacementMap.put(toPlaceholder("link"),
 			getTemplateText(TemplateKey.RESET_PASSWORD_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString, confKey)
 			      + getTemplateText(TemplateKey.RESET_PASSWORD_PAGE, HtmlServlet.RESET_PASSWORD_PAGE, localeString, confKey)
-			+ "?" + getTemplateText(TemplateKey.RESET_PASSWORD_CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY, localeString, confKey) + "=" + confKey
-			+ "&" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY, localeString, confKey) + "=" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PAGE, HtmlServlet.RESET_PASSWORD_PAGE, localeString, confKey)
+			+ "?" + getTemplateText(TemplateKey.RESET_PASSWORD_CONFIRMATION_KEY_KEY, HtmlServlet.CONFIRMATION_KEY_KEY, localeString, confKey) + "=" + confKey
+			+ "&" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PATH_KEY, HtmlServlet.TARGET_PATH_KEY, localeString, confKey) + "=" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PATH, HtmlServlet.RESET_PASSWORD_PAGE, localeString, confKey)
 		);
 
 		String textMailTemplate = getTemplateText(TemplateKey.RESET_PASSWORD_TEXT_BODY, "Go to ${link} to reset your password.", localeString, confKey);

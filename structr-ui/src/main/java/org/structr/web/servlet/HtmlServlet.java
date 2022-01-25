@@ -113,8 +113,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	public static final String DOWNLOAD_AS_FILENAME_KEY  = "filename";
 	public static final String RANGE_KEY                 = "range";
 	public static final String DOWNLOAD_AS_DATA_URL_KEY  = "as-data-url";
-	public static final String CONFIRM_KEY_KEY           = "key";
-	public static final String TARGET_PAGE_KEY           = "target";
+	public static final String CONFIRMATION_KEY_KEY      = "key";
+	public static final String TARGET_PATH_KEY           = "target";
 	public static final String ERROR_PAGE_KEY            = "onerror";
 
 	public static final String OBJECT_RESOLUTION_PROPERTIES        = "HtmlServlet.resolveProperties";
@@ -1189,14 +1189,14 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		logger.debug("Checking registration ...");
 
-		final String key = request.getParameter(CONFIRM_KEY_KEY);
+		final String key = request.getParameter(CONFIRMATION_KEY_KEY);
 
 		if (StringUtils.isEmpty(key)) {
 			return false;
 		}
 
 		final PropertyKey<String> confirmationKeyKey = StructrApp.key(User.class, "confirmationKey");
-		final String targetPage                      = filterMaliciousRedirects(request.getParameter(TARGET_PAGE_KEY));
+		final String targetPage                      = filterMaliciousRedirects(request.getParameter(TARGET_PATH_KEY));
 		final String errorPage                       = filterMaliciousRedirects(request.getParameter(ERROR_PAGE_KEY));
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
@@ -1273,14 +1273,14 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		logger.debug("Checking reset password ...");
 
-		final String key = request.getParameter(CONFIRM_KEY_KEY);
+		final String key = request.getParameter(CONFIRMATION_KEY_KEY);
 
 		if (StringUtils.isEmpty(key)) {
 			return false;
 		}
 
 		final PropertyKey<String> confirmationKeyKey = StructrApp.key(User.class, "confirmationKey");
-		final String targetPage                      = filterMaliciousRedirects(request.getParameter(TARGET_PAGE_KEY));
+		final String targetPath                      = filterMaliciousRedirects(request.getParameter(TARGET_PATH_KEY));
 
 		if (RESET_PASSWORD_PAGE.equals(path)) {
 
@@ -1329,8 +1329,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			}
 
 			// Redirect to target page
-			if (StringUtils.isNotBlank(targetPage)) {
-				response.sendRedirect("/" + targetPage);
+			if (StringUtils.isNotBlank(targetPath)) {
+				response.sendRedirect(targetPath);
 			}
 
 			return true;

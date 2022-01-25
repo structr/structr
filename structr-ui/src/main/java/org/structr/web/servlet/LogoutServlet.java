@@ -94,7 +94,7 @@ public class LogoutServlet extends AbstractDataServlet implements HttpServiceSer
 			}
 
 			// redirect to requested target page or /
-			response.sendRedirect(coalesce(HtmlServlet.filterMaliciousRedirects(request.getParameter(HtmlServlet.TARGET_PAGE_KEY)), "/"));
+			response.sendRedirect(coalesce(HtmlServlet.filterMaliciousRedirects(request.getParameter(HtmlServlet.TARGET_PATH_KEY)), "/"));
 
 		} catch (FrameworkException fex) {
 

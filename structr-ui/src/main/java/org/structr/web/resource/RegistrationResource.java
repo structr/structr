@@ -65,19 +65,6 @@ public class RegistrationResource extends Resource {
 	private static final Logger logger = LoggerFactory.getLogger(RegistrationResource.class.getName());
 
 	private enum TemplateKey {
-		// outdated, deprecated Template keys. will be supported for some time, but should not be used anymore
-		SENDER_NAME,
-		SENDER_ADDRESS,
-		SUBJECT,
-		TEXT_BODY,
-		HTML_BODY,
-		BASE_URL,
-		TARGET_PAGE,
-		ERROR_PAGE,
-		CONFIRM_REGISTRATION_PAGE,
-		CONFIRM_KEY_KEY,
-		TARGET_PAGE_KEY,
-		ERROR_PAGE_KEY,
 
 		// unified, new Template keys. these should be the ones to be used
 		CONFIRM_REGISTRATION_SENDER_NAME,
@@ -86,11 +73,11 @@ public class RegistrationResource extends Resource {
 		CONFIRM_REGISTRATION_TEXT_BODY,
 		CONFIRM_REGISTRATION_HTML_BODY,
 		CONFIRM_REGISTRATION_BASE_URL,
-		CONFIRM_REGISTRATION_TARGET_PAGE,
+		CONFIRM_REGISTRATION_TARGET_PATH,
 		CONFIRM_REGISTRATION_ERROR_PAGE,
-//		CONFIRM_REGISTRATION_PAGE,				// this key was named correctly and does not need special treatment below
-		CONFIRM_REGISTRATION_CONFIRM_KEY_KEY,
-		CONFIRM_REGISTRATION_TARGET_PAGE_KEY,
+		CONFIRM_REGISTRATION_PAGE,
+		CONFIRM_REGISTRATION_CONFIRMATION_KEY_KEY,
+		CONFIRM_REGISTRATION_TARGET_PATH_KEY,
 		CONFIRM_REGISTRATION_ERROR_PAGE_KEY
 	}
 
@@ -222,25 +209,25 @@ public class RegistrationResource extends Resource {
 
 		replacementMap.put(toPlaceholder("eMail"), userEmail);
 		replacementMap.put(toPlaceholder("link"),
-			getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_BASE_URL, TemplateKey.BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
+			getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_BASE_URL, TemplateKey.CONFIRM_REGISTRATION_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
 			      + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE, localeString)
-			+ "?" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_CONFIRM_KEY_KEY, TemplateKey.CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY, localeString) + "=" + confKey
-			+ "&" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_TARGET_PAGE_KEY, TemplateKey.TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY, localeString) + "=" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_TARGET_PAGE, TemplateKey.TARGET_PAGE, "register_thanks", localeString)
-			+ "&" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE_KEY, TemplateKey.ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY, localeString)   + "=" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE, TemplateKey.ERROR_PAGE, "register_error", localeString)
+			+ "?" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_CONFIRMATION_KEY_KEY, TemplateKey.CONFIRM_REGISTRATION_CONFIRMATION_KEY_KEY, HtmlServlet.CONFIRMATION_KEY_KEY, localeString) + "=" + confKey
+			+ "&" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_TARGET_PATH_KEY, TemplateKey.CONFIRM_REGISTRATION_TARGET_PATH_KEY, HtmlServlet.TARGET_PATH_KEY, localeString) + "=" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_TARGET_PATH, TemplateKey.CONFIRM_REGISTRATION_TARGET_PATH, "register_thanks", localeString)
+			+ "&" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE_KEY, TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY, localeString)   + "=" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE, TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE, "register_error", localeString)
 		);
 
-		String textMailTemplate = getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_TEXT_BODY, TemplateKey.TEXT_BODY, "Go to ${link} to finalize registration.", localeString);
-		String htmlMailTemplate = getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_HTML_BODY, TemplateKey.HTML_BODY, "<div>Click <a href='${link}'>here</a> to finalize registration.</div>", localeString);
+		String textMailTemplate = getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_TEXT_BODY, TemplateKey.CONFIRM_REGISTRATION_TEXT_BODY, "Go to ${link} to finalize registration.", localeString);
+		String htmlMailTemplate = getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_HTML_BODY, TemplateKey.CONFIRM_REGISTRATION_HTML_BODY, "<div>Click <a href='${link}'>here</a> to finalize registration.</div>", localeString);
 		String textMailContent  = MailHelper.replacePlaceHoldersInTemplate(textMailTemplate, replacementMap);
 		String htmlMailContent  = MailHelper.replacePlaceHoldersInTemplate(htmlMailTemplate, replacementMap);
 
 		try {
 
 			MailHelper.sendHtmlMail(
-				getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_SENDER_ADDRESS, TemplateKey.SENDER_ADDRESS, "structr-mail-daemon@localhost", localeString),
-				getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_SENDER_NAME, TemplateKey.SENDER_NAME, "Structr Mail Daemon", localeString),
+				getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_SENDER_ADDRESS, TemplateKey.CONFIRM_REGISTRATION_SENDER_ADDRESS, "structr-mail-daemon@localhost", localeString),
+				getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_SENDER_NAME, TemplateKey.CONFIRM_REGISTRATION_SENDER_NAME, "Structr Mail Daemon", localeString),
 				userEmail, "", null, null, null,
-				getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_SUBJECT, TemplateKey.SUBJECT, "Welcome to Structr, please finalize registration", localeString),
+				getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_SUBJECT, TemplateKey.CONFIRM_REGISTRATION_SUBJECT, "Welcome to Structr, please finalize registration", localeString),
 				htmlMailContent, textMailContent);
 
 		} catch (Exception e) {
