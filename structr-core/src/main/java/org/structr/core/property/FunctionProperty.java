@@ -389,7 +389,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 		} catch (FrameworkException e) {
 
-			logger.warn(e.toString());
+			logger.warn("Unable to create schema output for openAPIReturnType {}", e.getMessage());
 		}
 
 		return Collections.EMPTY_MAP;
