@@ -145,13 +145,12 @@ let _Editors = {
 	restoreViewStateFromLocalStorage: (id, propertyName) => {
 		return LSWrapper.getItem(_Editors.getStorageKeyForViewState(id, propertyName));
 	},
-	updateMonacoLintingDecorations: async (editorStorageContainer, entity, errorPropertyName) => {
+	updateMonacoLintingDecorations: async (entity, propertyName, errorPropertyName) => {
 
-		editorStorageContainer.decorations = editorStorageContainer?.decorations ?? [];
-
-		let newErrorEvents = await _Editors.getScriptErrors(entity, errorPropertyName);
-
-		editorStorageContainer.decorations = editorStorageContainer.instance.deltaDecorations(editorStorageContainer.decorations, newErrorEvents);
+		let storageContainer         = _Editors.getContainerForIdAndProperty(entity.id, propertyName);
+		storageContainer.decorations = storageContainer?.decorations ?? [];
+		let newErrorEvents           = await _Editors.getScriptErrors(entity, errorPropertyName);
+		storageContainer.decorations = storageContainer.instance.deltaDecorations(storageContainer.decorations, newErrorEvents);
 	},
 	getScriptErrors: async function(entity, errorAttributeName) {
 
@@ -374,25 +373,8 @@ let _Editors = {
 			language: language,
 		});
 
-		storageContainer.instance = monaco.editor.create(domElement.get(0), monacoConfig);
-
-		// save initial customConfig on object to be able to alter it later without re-creating the editor
-		storageContainer.instance.customConfig = customConfig;
-
-		if (viewState) {
-			storageContainer.instance.restoreViewState(viewState);
-		}
-
-		let errorPropertyNameForLinting = _Code.getErrorPropertyNameForLinting(entity, propertyName);
-
-		if (customConfig.lint === true) {
-
-			_Editors.updateMonacoLintingDecorations(storageContainer, entity, errorPropertyNameForLinting);
-
-			storageContainer.instance.onDidFocusEditorText((e) => {
-				_Editors.updateMonacoLintingDecorations(storageContainer, entity, errorPropertyNameForLinting);
-			});
-		}
+		// dispose previous editor
+		storageContainer?.instance?.dispose();
 
 		// dispose previous disposables
 		for (let disposable of storageContainer?.instanceDisposables ?? []) {
@@ -401,34 +383,45 @@ let _Editors = {
 		for (let disposable of storageContainer?.modelDisposables ?? []) {
 			disposable.dispose();
 		}
+
+		let monacoInstance = monaco.editor.create(domElement.get(0), monacoConfig);
+
+		storageContainer.instance            = monacoInstance;
 		storageContainer.instanceDisposables = [];
 		storageContainer.modelDisposables    = [];
 
+		// save initial customConfig on object to be able to alter it later without re-creating the editor
+		monacoInstance.customConfig = customConfig;
+
+		if (viewState) {
+			monacoInstance.restoreViewState(viewState);
+		}
+
+		let errorPropertyNameForLinting = _Code.getErrorPropertyNameForLinting(entity, propertyName);
+
+		if (customConfig.lint === true) {
+
+			_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting);
+
+			// onFocus handler
+			storageContainer.instanceDisposables.push(monacoInstance.onDidFocusEditorText((e) => {
+				_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting);
+			}));
+		}
+
 		// change handler
 		storageContainer.modelDisposables.push(storageContainer.model.onDidChangeContent((e) => {
-
-			if (storageContainer.instance.customConfig.language === 'auto') {
-				let newLang = _Editors.getMonacoEditorModeForContent(storageContainer.instance.getValue());
-				monaco.editor.setModelLanguage(storageContainer.model, newLang);
-			}
-
-			if (storageContainer.instance.customConfig.lint === true) {
-				_Editors.updateMonacoLintingDecorations(storageContainer, entity, errorPropertyNameForLinting);
-			}
-
-			if (storageContainer.instance.customConfig.changeFn) {
-				storageContainer.instance.customConfig.changeFn(storageContainer.instance, entity, propertyName);
-			}
+			_Editors.defaultChangeHandler(e, entity, propertyName, errorPropertyNameForLinting);
 		}));
 
 		// cursor change handler
-		storageContainer.instanceDisposables.push(storageContainer.instance.onDidChangeCursorPosition((e) => {
+		storageContainer.instanceDisposables.push(monacoInstance.onDidChangeCursorPosition((e) => {
 			_Editors.saveViewState(entity.id, propertyName);
 		}));
 
 		if (customConfig.saveFn) {
 
-			storageContainer.instanceDisposables.push(storageContainer.instance.addAction({
+			storageContainer.instanceDisposables.push(monacoInstance.addAction({
 				id: 'editor-save-action-' + entity.id + '-' + propertyName,
 				label: customConfig.saveFnText || 'Save',
 				keybindings: [
@@ -439,16 +432,34 @@ let _Editors = {
 				contextMenuGroupId: '1_modification',
 				contextMenuOrder: 1.5,
 				run: (editor) => {
+
 					customConfig.saveFn(editor, entity);
 
-					if (storageContainer.instance.customConfig.lint === true) {
-						_Editors.updateMonacoLintingDecorations(storageContainer, entity, errorPropertyNameForLinting);
+					if (monacoInstance.customConfig.lint === true) {
+						_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting);
 					}
 				}
 			}));
 		}
 
-		return storageContainer.instance;
+		return monacoInstance;
+	},
+	defaultChangeHandler: (e, entity, propertyName, errorPropertyNameForLinting) => {
+
+		let storageContainer = _Editors.getContainerForIdAndProperty(entity.id, propertyName);
+
+		if (storageContainer.instance.customConfig.language === 'auto') {
+			let newLang = _Editors.getMonacoEditorModeForContent(storageContainer.instance.getValue());
+			monaco.editor.setModelLanguage(storageContainer.model, newLang);
+		}
+
+		if (storageContainer.instance.customConfig.lint === true) {
+			_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting);
+		}
+
+		if (storageContainer.instance.customConfig.changeFn) {
+			storageContainer.instance.customConfig.changeFn(storageContainer.instance, entity, propertyName);
+		}
 	},
 	getMonacoEditorModeForContent: function(content) {
 		return (content && content.indexOf('{') === 0) ? 'javascript' : 'text';
