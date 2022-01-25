@@ -90,19 +90,14 @@ let StructrWS = {
 				}
 
 				// Delay reconnect dialog to prevent it popping up before page reload
-				window.setTimeout(function () {
+				window.setTimeout(() => {
 
 					fastRemoveAllChildren(main[0]);
 					fastRemoveAllChildren(Structr.functionBar);
 
-					let restoreDialogText = '';
-					let dialogData = JSON.parse(LSWrapper.getItem(Structr.dialogDataKey));
-					if (dialogData && dialogData.text) {
-						restoreDialogText = '<br><br>The dialog<br><b>"' + dialogData.text + '"</b><br> will be restored after reconnect.';
-					}
-					Structr.reconnectDialog('<b>Connection lost or timed out.</b><br><br>Don\'t reload the page!' + restoreDialogText + '<br><br>Trying to reconnect... <img class="al" src="' + _Icons.getSpinnerImageAsData() + '">');
-
+					Structr.reconnectDialog();
 					Structr.reconnect();
+
 				}, 100);
 			};
 

@@ -981,14 +981,33 @@ let Structr = {
 			css: Structr.defaultBlockUICss
 		});
 	},
-	reconnectDialog: function(text) {
-		if (text) {
-			$('#tempErrorBox .errorText').html('<i class="' + _Icons.getFullSpriteClass(_Icons.error_icon) + '"></i> ' + text);
+	reconnectDialog: () => {
+
+		let restoreDialogText = '';
+		let dialogData = JSON.parse(LSWrapper.getItem(Structr.dialogDataKey));
+		if (dialogData && dialogData.text) {
+			restoreDialogText = '<br><br>The dialog<br><b>"' + dialogData.text + '"</b><br> will be restored after reconnect.';
 		}
-		$('#tempErrorBox .closeButton').hide();
+
+		let tmpErrorHTML = `
+			<div id="tempErrorBox" class="dialog" style="display: block;">
+				<div class="errorText">
+					<i class="${_Icons.getFullSpriteClass(_Icons.error_icon)}"></i>
+					<b>Connection lost or timed out.</b>
+					<br><br>
+					Don't reload the page!
+					${restoreDialogText}
+					<br><br>
+					Trying to reconnect...
+					<img class="al" src="${_Icons.getSpinnerImageAsData()}">
+				</div>
+				<div class="errorMsg"></div>
+				<div class="dialogBtn"></div>
+			</div>
+		`;
 
 		$.blockUI({
-			message: $('#tempErrorBox'),
+			message: tmpErrorHTML,
 			css: Structr.defaultBlockUICss
 		});
 	},
