@@ -136,6 +136,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public String openAPIReturnType() {
+		return propertyKey.openAPIReturnType();
+	}
+
+	@Override
 	public boolean cachingEnabled() { return propertyKey.cachingEnabled(); }
 
 	@Override
@@ -332,6 +337,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public Property<T> openAPIReturnType(final String openAPIReturnType) {
+		return null;
+	}
+
+	@Override
 	public PropertyKey<T> cachingEnabled(boolean enabled) { return null; }
 
 	@Override
@@ -413,6 +423,11 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
 		return propertyKey.getExampleValue(type, viewName);
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
 	}
 
 	@Override

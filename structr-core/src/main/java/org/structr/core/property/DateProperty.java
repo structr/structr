@@ -213,6 +213,11 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		return new SimpleDateFormat(this.format).format(System.currentTimeMillis());
 	}
 
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
+	}
+
 	// ----- OpenAPI -----
 	@Override
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {

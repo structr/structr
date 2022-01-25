@@ -28,6 +28,8 @@ import org.structr.common.error.NumberToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
+import java.util.Map;
+
 /**
  * A property that stores and retrieves a simple Double value.
  *
@@ -194,5 +196,10 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
 		return 1.0;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
 	}
 }

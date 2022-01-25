@@ -24,6 +24,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.PropertyMapper;
 
+import java.util.Map;
+
 /**
  * A property that maps another (local) property of the same node. This class can be used
  * to establish name mappings between different properties.
@@ -84,5 +86,10 @@ public class MappedProperty<T> extends AbstractPrimitiveProperty<T> {
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
 		return mappedKey.getExampleValue(type, viewName);
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
 	}
 }

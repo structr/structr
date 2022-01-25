@@ -91,6 +91,11 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 		return "concatenated string";
 	}
 
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
+	}
+
 	// ----- OpenAPI -----
 	@Override
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {

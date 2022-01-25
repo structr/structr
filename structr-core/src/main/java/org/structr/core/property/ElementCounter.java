@@ -19,6 +19,8 @@
 package org.structr.core.property;
 
 import java.util.Collection;
+import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
@@ -110,6 +112,11 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
 		return null;
 	}
 

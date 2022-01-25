@@ -19,6 +19,8 @@
 package org.structr.core.property;
 
 import java.util.List;
+import java.util.Map;
+
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -127,5 +129,10 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 	@Override
 	public Object getExampleValue(java.lang.String type, final String viewName) {
 		return 1;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
 	}
 }

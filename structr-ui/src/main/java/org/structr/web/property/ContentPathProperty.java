@@ -26,6 +26,8 @@ import org.structr.core.property.AbstractReadOnlyProperty;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.ContentContainer;
 
+import java.util.Map;
+
 /**
  * A property which returns the complete folder path of a content container or item
  * including name. The path consists of the names of the parent elements,
@@ -91,6 +93,11 @@ public class ContentPathProperty extends AbstractReadOnlyProperty<String> {
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
 		return null;
 	}
 }

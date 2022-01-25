@@ -19,6 +19,8 @@
 package org.structr.schema.export;
 
 import java.util.Map;
+
+import org.python.netty.handler.codec.serialization.ObjectEncoder;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -40,6 +42,7 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 	protected String readFunction  		= null;
 	protected String writeFunction 		= null;
 	protected String contentType   		= null;
+	protected String openAPIReturnType	= null;
 
 	public StructrFunctionProperty(final StructrTypeDefinition parent, final String name) {
 
@@ -88,6 +91,17 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 	}
 
 	@Override
+	public JsonFunctionProperty setOpenAPIReturnType(String openAPIReturnType) {
+		this.openAPIReturnType = openAPIReturnType;
+		return this;
+	}
+
+	@Override
+	public String getOpenAPIReturnType() {
+		return this.openAPIReturnType;
+	}
+
+	@Override
 	public JsonFunctionProperty setContentType(String contentType) {
 
 		this.contentType = contentType;
@@ -114,6 +128,10 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 			map.put(JsonSchema.KEY_WRITE_FUNCTION, writeFunction);
 		}
 
+		if (openAPIReturnType != null) {
+			map.put(JsonSchema.KEY_OPENAPI_RETURN_TYPE, openAPIReturnType);
+		}
+
 		return map;
 	}
 
@@ -132,6 +150,19 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 			} else {
 
 				throw new IllegalStateException("Invalid readFunction for property " + name + ", expected string.");
+			}
+		}
+
+		final Object openAPIReturnTypeValue = source.get(JsonSchema.KEY_OPENAPI_RETURN_TYPE);
+		if (openAPIReturnTypeValue != null) {
+
+			if (openAPIReturnTypeValue instanceof String) {
+
+				this.openAPIReturnType = (String)openAPIReturnTypeValue;
+
+			} else {
+
+				throw new IllegalStateException("Invalid openAPIReturnType for property " + name + ", expected string.");
 			}
 		}
 
@@ -184,6 +215,7 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 		setWriteFunction(property.getWriteFunction());
 		setIsCachingEnabled(property.isCachingEnabled());
 		setContentType(property.getSourceContentType());
+		setOpenAPIReturnType(property.getOpenAPIReturnType());
 	}
 
 	@Override

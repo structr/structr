@@ -121,6 +121,11 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 		return "abc";
 	}
 
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
+	}
+
 	// ----- OpenAPI -----
 	@Override
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {

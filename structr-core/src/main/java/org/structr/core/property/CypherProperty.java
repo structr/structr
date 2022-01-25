@@ -26,6 +26,8 @@ import org.structr.core.converter.CypherQueryConverter;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.cypher.CypherQueryHandler;
 
+import java.util.Map;
+
 /**
  * A property that executes the given {@link CypherQueryHandler} when evaluated
  * and returns the results of the query.
@@ -84,6 +86,11 @@ public class CypherProperty<T> extends AbstractPrimitiveProperty<T> {
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
 		return null;
 	}
 }

@@ -21,6 +21,8 @@ package org.structr.core.property;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -88,5 +90,10 @@ public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
 		return 1;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
 	}
 }

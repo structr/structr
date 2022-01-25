@@ -33,6 +33,9 @@ public interface JsonFunctionProperty extends JsonDynamicProperty {
 	public JsonFunctionProperty setIsCachingEnabled(final boolean enabled);
 	public Boolean getIsCachingEnabled();
 
+	public JsonFunctionProperty setOpenAPIReturnType(final String openAPIReturnType);
+	public String getOpenAPIReturnType();
+
 	@Override
 	public JsonFunctionProperty setContentType(final String contentType);
 

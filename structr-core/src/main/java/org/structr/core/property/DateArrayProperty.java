@@ -19,10 +19,8 @@
 package org.structr.core.property;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -275,6 +273,11 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
 		return List.of(new SimpleDateFormat(this.format).format(System.currentTimeMillis()));
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
 	}
 
 	// ----- static methods -----

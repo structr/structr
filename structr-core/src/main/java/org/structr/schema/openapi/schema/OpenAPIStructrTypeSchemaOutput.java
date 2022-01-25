@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.structr.common.PropertyView;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
@@ -68,7 +69,7 @@ public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 
 	}
 
-	public OpenAPIStructrTypeSchemaOutput(final Class type, final String viewName, final int level) {
+	public OpenAPIStructrTypeSchemaOutput(final Class type, final String viewName, final int level)  {
 
 		if (level > 0) {
 			this.putAll(new OpenAPISchemaReference(type, PropertyView.Public));

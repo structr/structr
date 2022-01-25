@@ -100,4 +100,9 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<Iterable<Graph
 	public Object getExampleValue(final String type, final String viewName) {
 		return null;
 	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
+	}
 }

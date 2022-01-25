@@ -101,6 +101,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String>             contentHash           = new StringProperty("contentHash");
 	public static final Property<String>             readFunction          = new StringProperty("readFunction");
 	public static final Property<String>             writeFunction         = new StringProperty("writeFunction");
+	public static final Property<String>             openAPIReturnType     = new StringProperty("openAPIReturnType");
 	public static final Property<String[]>           validators            = new ArrayProperty("validators", String.class);
 	public static final Property<String[]>           transformers          = new ArrayProperty("transformers", String.class);
 	public static final Property<Object>             usedIn                = new UsageProperty("usedIn", SchemaProperty.class);
@@ -112,19 +113,19 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	));
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers, isCachingEnabled
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, openAPIReturnType, validators, transformers, isCachingEnabled
 	);
 
 	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers, isCachingEnabled
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, openAPIReturnType, validators, transformers, isCachingEnabled
 	);
 
 	public static final View schemaView = new View(SchemaProperty.class, "schema",
-		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers, isCachingEnabled
+		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, openAPIReturnType, validators, transformers, isCachingEnabled
 	);
 
 	public static final View exportView = new View(SchemaProperty.class, "export",
-		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers, isCachingEnabled
+		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, openAPIReturnType, validators, transformers, isCachingEnabled
 	);
 
 	private NotionPropertyParser notionPropertyParser           = null;
@@ -413,6 +414,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		_contentHash = addContentHash(isCachingEnabled,  _contentHash);
 		_contentHash = addContentHash(readFunction,      _contentHash);
 		_contentHash = addContentHash(writeFunction,     _contentHash);
+		_contentHash = addContentHash(openAPIReturnType, _contentHash);
 		_contentHash = addContentHash(transformers,      _contentHash);
 		_contentHash = addContentHash(validators,        _contentHash);
 
@@ -544,6 +546,17 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		}
 
 		return _writeFunction;
+	}
+
+	@Override
+	public String getOpenAPIReturnType() {
+		String _openAPIReturnType = getProperty(SchemaProperty.openAPIReturnType);
+		if (_openAPIReturnType != null) {
+
+			_openAPIReturnType = _openAPIReturnType.trim();
+		}
+
+		return _openAPIReturnType;
 	}
 
 	@Override
