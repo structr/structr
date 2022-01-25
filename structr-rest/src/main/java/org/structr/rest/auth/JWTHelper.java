@@ -251,7 +251,7 @@ public class JWTHelper {
 
             user  = StructrApp.getInstance().nodeQuery(Principal.class).and().or(NodeInterface.id, uuid).disableSorting().getFirst();
 
-        } else if (eMail != null && StringUtils.equals(eMail, "")) {
+        } else if (eMail != null && StringUtils.isNotEmpty(eMail)) {
 
             user  = StructrApp.getInstance().nodeQuery(Principal.class).and().or(eMailKey, eMail).disableSorting().getFirst();
 
