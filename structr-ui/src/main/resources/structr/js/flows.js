@@ -618,8 +618,6 @@ let _Flows = {
 		let entity       = detail.entity; // proxy object
 		let propertyName = detail.propertyName;
 
-		console.log(element, flowNodeType)
-
         Structr.dialog("Edit " + flowNodeType, () => {}, () => {}, ['popup-dialog-with-editor']);
 
         dialogText.append('<div class="editor h-full"></div>');
@@ -628,7 +626,7 @@ let _Flows = {
 			<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>
 		`);
 
-		let contentBox = $('.editor', dialogText);
+		let contentBox       = $('.editor', dialogText);
 		let dialogSaveButton = dialogBtn[0].querySelector('#editorSave');
 		let saveAndClose     = dialogBtn[0].querySelector('#saveAndClose');
 
@@ -636,7 +634,7 @@ let _Flows = {
 
 		let editorConfig = {
 			value: initialText,
-			language: 'javascript',
+			language: 'auto',
 			lint: true,
 			autocomplete: true,
 			forceAllowAutoComplete: true,
@@ -669,7 +667,7 @@ let _Flows = {
 			}
 		};
 
-		let editor = _Editors.getMonacoEditor(entity, propertyName, $(contentBox), editorConfig);
+		let editor = _Editors.getMonacoEditor(entity, propertyName, contentBox, editorConfig);
 
         Structr.resize();
 
