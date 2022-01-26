@@ -28,12 +28,12 @@ let _Editors = {
 	editors: {
 		/*	id: {
 			property: {
-				instance: x,
-				model: y,
-				viewState: z,
-				editorDisposables: [],
-				modelDisposables: [],
-				decorations: []
+				instance:  ...,
+				model:     ...,
+				viewState: ...,
+				instanceDisposables: [],
+				modelDisposables:    [],
+				decorations:         []
 			}
 		}	*/
 	},
@@ -364,16 +364,15 @@ let _Editors = {
 			storageContainer.model = monaco.editor.createModel(editorText, language, _Editors.getModelURI(entity.id, propertyName, extraModelConfig));
 		}
 
-		// dispose previously existing editors
-		_Editors.disposeAllEditors([entity.id]);
-
 		let monacoConfig = Object.assign(_Editors.getOurSavedEditorOptionsForEditor(), {
 			model: storageContainer.model,
 			value: editorText,
 			language: language,
 		});
 
-		// dispose previous editor
+		// dispose previously existing editors (with the exception of editors for this id - required for multiple editors per element, like function property)
+		_Editors.disposeAllEditors([entity.id]);
+		// also delete a possible previous editor for this id and propertyName to start fresh
 		storageContainer?.instance?.dispose();
 
 		// dispose previous disposables
