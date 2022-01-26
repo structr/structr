@@ -95,7 +95,7 @@ export class FlowEditor {
 		* Evil hack: Backup global define function (created by monaco editor loader) and restore it after d3 has been initialized
 		**/
 		let backupDefine = window.define;
-		delete window.define;
+		window.define = undefined;
 
 		return dep.injectDependencies(depObject).then( () => {
 			return dep.injectScript("lib/d3-node-editor/d3-node-editor.js");
