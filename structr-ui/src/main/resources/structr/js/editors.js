@@ -462,7 +462,7 @@ let _Editors = {
 		}
 	},
 	getMonacoEditorModeForContent: function(content) {
-		return (content && content.indexOf('{') === 0) ? 'javascript' : 'text';
+		return (content && content.trim().indexOf('{') === 0) ? 'javascript' : 'text';
 	},
 	updateMonacoEditorLanguage: (editor, newLanguage) => {
 		if (newLanguage === 'auto') {
