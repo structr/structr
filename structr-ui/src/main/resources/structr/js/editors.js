@@ -241,17 +241,19 @@ let _Editors = {
 	},
 	resizeEditor: (monacoEditor) => {
 
-		// first set to 0 to allow the parent box to auto-calc its height
-		monacoEditor.getDomNode().style.height            = 0;
-		monacoEditor.getDomNode().style.width             = 0;
-		monacoEditor.getDomNode().firstChild.style.height = 0;
-		monacoEditor.getDomNode().firstChild.style.width  = 0;
+		let domNode = monacoEditor.getDomNode();
 
-		monacoEditor.getDomNode().style.overflow          = 'hidden';
-		monacoEditor.getDomNode().style.height            = '100%';
-		monacoEditor.getDomNode().style.width             = '100%';
-		monacoEditor.getDomNode().firstChild.style.width  = '100%';
-		monacoEditor.getDomNode().firstChild.style.height = '100%';
+		// first set to 0 to allow the parent box to auto-calc its height
+		domNode.style.height            = 0;
+		domNode.style.width             = 0;
+		domNode.firstChild.style.height = 0;
+		domNode.firstChild.style.width  = 0;
+
+		// domNode.style.overflow          = 'hidden';
+		domNode.style.height            = '100%';
+		domNode.style.width             = '100%';
+		domNode.firstChild.style.width  = '100%';
+		domNode.firstChild.style.height = '100%';
 
 		// let editor auto-layout
 		monacoEditor.layout();
