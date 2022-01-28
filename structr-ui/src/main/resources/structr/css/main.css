@@ -367,6 +367,7 @@ body.console-open #header-blocker {
 	/*clip-path: polygon(-20% -20%, 120% -20%, 120% 100%, -20% 100%);*/
 	z-index: 2;
 	padding: 1rem 2rem 1rem 2rem;
+	white-space: nowrap;
 }
 
 /*#function-bar .icon {*/
