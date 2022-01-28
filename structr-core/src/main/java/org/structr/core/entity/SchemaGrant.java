@@ -156,6 +156,11 @@ public class SchemaGrant extends SchemaReloadingNode {
 			logger.warn("Deleting SchemaGrant {} because it is not linked to a schema node.", getUuid());
 			StructrApp.getInstance().delete(this);
 		}
+
+		// silently delete this node if all settings are set to false
+		if (!getProperty(allowRead) && !getProperty(allowWrite) && !getProperty(allowDelete) && !getProperty(allowAccessControl)) {
+			StructrApp.getInstance().delete(this);
+		}
 	}
 
 	@Override

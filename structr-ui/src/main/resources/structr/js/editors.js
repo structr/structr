@@ -28,12 +28,12 @@ let _Editors = {
 	editors: {
 		/*	id: {
 			property: {
-				instance: x,
-				model: y,
-				viewState: z,
-				editorDisposables: [],
-				modelDisposables: [],
-				decorations: []
+				instance:  ...,
+				model:     ...,
+				viewState: ...,
+				instanceDisposables: [],
+				modelDisposables:    [],
+				decorations:         []
 			}
 		}	*/
 	},
@@ -241,17 +241,19 @@ let _Editors = {
 	},
 	resizeEditor: (monacoEditor) => {
 
-		// first set to 0 to allow the parent box to auto-calc its height
-		monacoEditor.getDomNode().style.height            = 0;
-		monacoEditor.getDomNode().style.width             = 0;
-		monacoEditor.getDomNode().firstChild.style.height = 0;
-		monacoEditor.getDomNode().firstChild.style.width  = 0;
+		let domNode = monacoEditor.getDomNode();
 
-		monacoEditor.getDomNode().style.overflow          = 'hidden';
-		monacoEditor.getDomNode().style.height            = '100%';
-		monacoEditor.getDomNode().style.width             = '100%';
-		monacoEditor.getDomNode().firstChild.style.width  = '100%';
-		monacoEditor.getDomNode().firstChild.style.height = '100%';
+		// first set to 0 to allow the parent box to auto-calc its height
+		domNode.style.height            = 0;
+		domNode.style.width             = 0;
+		domNode.firstChild.style.height = 0;
+		domNode.firstChild.style.width  = 0;
+
+		// domNode.style.overflow          = 'hidden';
+		domNode.style.height            = '100%';
+		domNode.style.width             = '100%';
+		domNode.firstChild.style.width  = '100%';
+		domNode.firstChild.style.height = '100%';
 
 		// let editor auto-layout
 		monacoEditor.layout();
@@ -364,16 +366,15 @@ let _Editors = {
 			storageContainer.model = monaco.editor.createModel(editorText, language, _Editors.getModelURI(entity.id, propertyName, extraModelConfig));
 		}
 
-		// dispose previously existing editors
-		_Editors.disposeAllEditors([entity.id]);
-
 		let monacoConfig = Object.assign(_Editors.getOurSavedEditorOptionsForEditor(), {
 			model: storageContainer.model,
 			value: editorText,
 			language: language,
 		});
 
-		// dispose previous editor
+		// dispose previously existing editors (with the exception of editors for this id - required for multiple editors per element, like function property)
+		_Editors.disposeAllEditors([entity.id]);
+		// also delete a possible previous editor for this id and propertyName to start fresh
 		storageContainer?.instance?.dispose();
 
 		// dispose previous disposables
@@ -462,7 +463,7 @@ let _Editors = {
 		}
 	},
 	getMonacoEditorModeForContent: function(content) {
-		return (content && content.indexOf('{') === 0) ? 'javascript' : 'text';
+		return (content && content.trim().indexOf('{') === 0) ? 'javascript' : 'text';
 	},
 	updateMonacoEditorLanguage: (editor, newLanguage) => {
 		if (newLanguage === 'auto') {
