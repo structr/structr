@@ -212,16 +212,20 @@
 	grid-gap: 2rem;
 }
 
+.dashboard-grid-wrapper .dashboard-grid-row {
+	grid-column: 1 / 3;
+}
+
 @media screen and (max-width: 900px) {
 	.dashboard-grid-wrapper {
 		display: grid;
 		grid-template-columns: 100%;
 		grid-gap: 2rem;
 	}
-}
 
-.dashboard-grid-wrapper .dashboard-grid-row {
-	grid-column: 1 / 3;
+	.dashboard-grid-wrapper .dashboard-grid-row {
+		grid-column: 1 / 1;
+	}
 }
 
 .dashboard-grid-wrapper .dashboard-grid-row hr {
