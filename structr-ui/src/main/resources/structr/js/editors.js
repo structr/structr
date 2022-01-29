@@ -589,6 +589,7 @@ let _Editors = {
 			scrollBeyondLastLine: false,
 			readOnly: false,
 			renderLineHighlight: 'all',
+			folding: true,
 			showFoldingControls: 'always',
 			theme: "vs",
 			wrappingIndent: 'none',
@@ -714,8 +715,11 @@ let _Editors = {
 						</select>
 					</div>
 					<div class="editor-setting flex items-center p-1">
-						<label class="flex-grow">Line Highligh Rendering</label>
+						<label class="flex-grow">Line Highlight Rendering</label>
 						<select name="renderLineHighlight" class="min-w-48"><option>all</option><option>gutter</option><option>line</option><option>none</option></select>
+					</div>
+					<div class="editor-setting flex items-center p-1">
+						<label><input name="folding" type="checkbox"> Enable Code Folding</label>
 					</div>
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Show Folding Controls</label>
