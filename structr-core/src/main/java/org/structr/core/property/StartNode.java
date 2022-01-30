@@ -259,6 +259,11 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 	}
 
 	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
+	}
+
+	@Override
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
 		return new OpenAPIStructrTypeSchemaOutput(destType, viewName, level + 1);
 	}

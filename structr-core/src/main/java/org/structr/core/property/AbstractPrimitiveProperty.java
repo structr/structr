@@ -22,6 +22,8 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.NotInTransactionException;
@@ -284,7 +286,13 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 		if (valueType != null) {
 
-			map.put("type", valueType.getSimpleName().toLowerCase());
+			String valueTypeName = valueType.getSimpleName().toLowerCase();
+
+			if (StringUtils.equals(valueTypeName, "double")) {
+				valueTypeName = "number";
+			}
+
+			map.put("type", valueTypeName);
 			map.put("example", getExampleValue(type, viewName));
 
 			if (this.isReadOnly()) {

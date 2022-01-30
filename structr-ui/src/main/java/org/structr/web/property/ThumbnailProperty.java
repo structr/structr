@@ -28,6 +28,8 @@ import org.structr.core.property.Property;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 
+import java.util.Map;
+
 /**
  * A property that automatically creates a thumbnail for an image.
  */
@@ -131,6 +133,11 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
 		return null;
 	}
 }

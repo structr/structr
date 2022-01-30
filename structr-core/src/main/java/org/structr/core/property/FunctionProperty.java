@@ -20,7 +20,10 @@ package org.structr.core.property;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Map;
+
+import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -28,11 +31,14 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 
 /**
  *
@@ -324,6 +330,10 @@ public class FunctionProperty<T> extends Property<T> {
 		return getCachedSourceCode(SchemaProperty.writeFunction, this.writeFunction);
 	}
 
+	private String getOpenAPIReturnType() throws FrameworkException {
+		return getCachedSourceCode(SchemaProperty.openAPIReturnType, this.openAPIReturnType);
+	}
+
 	public String getCachedSourceCode(final PropertyKey<String> key, final String defaultValue) throws FrameworkException {
 
 		final SchemaProperty property = getCodeSource();
@@ -364,18 +374,50 @@ public class FunctionProperty<T> extends Property<T> {
 
 	// ----- OpenAPI -----
 	@Override
-	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+	public Map<String, Object> describeOpenAPIOutputSchema(final String type, final String viewName) {
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final Map<String, Object> schemaFromJsonString = new LinkedHashMap<>();
+			final String returnType = getOpenAPIReturnType();
+			if (returnType != null) {
+				schemaFromJsonString.putAll(new GsonBuilder().create().fromJson(returnType, Map.class));
+			}
+
+			tx.success();
+
+			return schemaFromJsonString;
+
+		} catch (FrameworkException e) {
+
+			logger.warn("Unable to create schema output for openAPIReturnType {}", e.getMessage());
+		}
+
+		return Collections.EMPTY_MAP;
+	}
+
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level)  {
 
 		if (typeHint != null) {
 
 			switch (typeHint.toLowerCase()) {
 
-				case "boolean": return pBoolean.describeOpenAPIOutputType(type, viewName, level + 1);
-				case "int":     return pInt.describeOpenAPIOutputType(type, viewName, level + 1);
-				case "long":    return pLong.describeOpenAPIOutputType(type, viewName, level + 1);
-				case "double":  return pDouble.describeOpenAPIOutputType(type, viewName, level + 1);
-				case "date":    return pDate.describeOpenAPIOutputType(type, viewName, level + 1);
+				case "boolean":
+					return pBoolean.describeOpenAPIOutputType(type, viewName, level + 1);
+				case "int":
+					return pInt.describeOpenAPIOutputType(type, viewName, level + 1);
+				case "long":
+					return pLong.describeOpenAPIOutputType(type, viewName, level + 1);
+				case "double":
+					return pDouble.describeOpenAPIOutputType(type, viewName, level + 1);
+				case "date":
+					return pDate.describeOpenAPIOutputType(type, viewName, level + 1);
 			}
+		} else {
+
+			return new OpenAPISchemaReference(type + "." + this.dbName + "PropertySchema");
+
 		}
 
 		return Collections.EMPTY_MAP;

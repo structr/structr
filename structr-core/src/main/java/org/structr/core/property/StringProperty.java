@@ -29,6 +29,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
+import java.util.Map;
+
 /**
  * A property that stores and retrieves a String value.
  *
@@ -136,6 +138,11 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
 		return "Example value";
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
 	}
 
 	// ----- private methods -----

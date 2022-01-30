@@ -23,6 +23,8 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 
+import java.util.Map;
+
 /**
  *
  *
@@ -94,5 +96,10 @@ public class LongSumProperty extends AbstractReadOnlyProperty<Long> {
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
 		return 1L;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
 	}
 }

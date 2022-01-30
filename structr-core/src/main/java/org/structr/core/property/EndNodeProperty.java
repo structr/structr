@@ -24,6 +24,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.RelationshipEndNodeConverter;
 
+import java.util.Map;
+
 //~--- classes ----------------------------------------------------------------
 
 /**
@@ -88,6 +90,11 @@ public class EndNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
 		return null;
 	}
 }

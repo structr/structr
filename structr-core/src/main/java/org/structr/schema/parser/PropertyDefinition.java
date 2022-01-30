@@ -44,6 +44,7 @@ public interface PropertyDefinition extends CodeSource {
 	String getContentType();
 	String getReadFunction();
 	String getWriteFunction();
+	String getOpenAPIReturnType();
 	String[] getTransformators();
 	String[] getValidators();
 }

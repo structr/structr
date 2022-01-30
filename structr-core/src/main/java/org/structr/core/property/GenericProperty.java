@@ -19,6 +19,8 @@
 package org.structr.core.property;
 
 import java.lang.reflect.ParameterizedType;
+import java.util.Map;
+
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -102,6 +104,11 @@ public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
 		return null;
 	}
 }

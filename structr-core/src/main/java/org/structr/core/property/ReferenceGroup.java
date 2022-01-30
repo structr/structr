@@ -280,6 +280,11 @@ public class ReferenceGroup extends Property<PropertyMap> implements PropertyGro
 	}
 
 	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
+	}
+
+	@Override
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
 		return Collections.EMPTY_MAP;
 	}

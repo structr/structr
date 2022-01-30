@@ -25,6 +25,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.RelatedNodePropertyMapper;
 
+import java.util.Map;
+
 /**
  * A property that can be used to make the property of a linked node
  * appear to be a direct property. Use this property type if you want
@@ -96,6 +98,11 @@ public class RelatedNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(java.lang.String type, final String viewName) {
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
 		return null;
 	}
 }

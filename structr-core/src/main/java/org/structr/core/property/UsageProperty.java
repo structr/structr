@@ -136,6 +136,11 @@ public class UsageProperty extends AbstractReadOnlyProperty<Object> {
 		return null;
 	}
 
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
+	}
+
 	// ----- private methods -----
 	private Map<String, Set<Usage>> getSchemaTypeUsage(final GraphObject obj) {
 

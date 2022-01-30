@@ -20,6 +20,8 @@ package org.structr.core.property;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -93,6 +95,11 @@ public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNod
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(java.lang.String type, final String viewName) {
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
 		return null;
 	}
 }

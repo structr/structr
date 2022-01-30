@@ -161,6 +161,7 @@ public abstract class PropertySourceGenerator {
 				new NodeAttribute<>(SchemaProperty.isCachingEnabled,	  source.isCachingEnabled()),
 				new NodeAttribute<>(SchemaProperty.readFunction,          source.getReadFunction()),
 				new NodeAttribute<>(SchemaProperty.writeFunction,         source.getWriteFunction()),
+				new NodeAttribute<>(SchemaProperty.openAPIReturnType,     source.getOpenAPIReturnType()),
 				new NodeAttribute<>(SchemaProperty.transformers,          source.getTransformators()),
 				new NodeAttribute<>(SchemaProperty.validators,            source.getValidators())
 			);

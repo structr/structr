@@ -26,17 +26,15 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
+import org.structr.core.property.FunctionProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.openapi.common.OpenAPIAllOf;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
@@ -218,7 +216,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 	public Map<String, Object> serializeOpenAPIResponses(final Map<String, Object> responses, final String tag) {
 		final Map<String, Object> map = new TreeMap<>();
 
-		for (final StructrTypeDefinition type : typeDefinitions) {
+		for (final StructrTypeDefinition<?> type : typeDefinitions) {
 
 			if (type.isSelected(tag) && type.includeInOpenAPI()) {
 
@@ -260,7 +258,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 					);
 				}
 
-				for (final StructrMethodDefinition method : (List<StructrMethodDefinition>) type.getMethods()) {
+				for (final StructrMethodDefinition method : type.methods) {
 
 					if (method.isSelected(tag)) {
 
@@ -301,7 +299,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 		final Map<String, Object> map = new TreeMap<>();
 
-		for (final StructrTypeDefinition type : typeDefinitions) {
+		for (final StructrTypeDefinition<?> type : typeDefinitions) {
 			final Set<String> typeWhiteList = new LinkedHashSet<>(Arrays.asList("User", "File", "Image", "NodeInterface"));
 
 			if (StringUtils.isNotEmpty(view) || typeWhiteList.contains(type.getName()) || type.isSelected(tag) && type.includeInOpenAPI()) {
@@ -345,9 +343,21 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 					// add actual type definition
 					allOf.add(new OpenAPIStructrTypeSchemaOutput(type, viewName, 0));
+
+					// genereate schema for readFunction returnType
+					type.visitProperties(key -> {
+
+						if (key instanceof FunctionProperty && StringUtils.isEmpty(key.typeHint())) {
+							map.put(
+								type.getName() + "." + key.jsonName() + "PropertySchema",
+								key.describeOpenAPIOutputSchema(typeName, viewName)
+							);
+						}
+
+					}, viewName);
 				}
 
-				for (final StructrMethodDefinition method : (List<StructrMethodDefinition>) type.getMethods()) {
+				for (final StructrMethodDefinition method : type.methods) {
 
 					if (method.isSelected(tag)) {
 

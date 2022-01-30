@@ -168,6 +168,13 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 */
 	boolean cachingEnabled();
 
+	/**
+	 * Returns the openAPIReturnType value for this property.
+	 *
+	 * @return openAPIReturnType
+	 */
+	String openAPIReturnType();
+
 
 	PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext);
 	PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity);
@@ -349,6 +356,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	PropertyKey<T> readFunction(final String readFunction);
 	PropertyKey<T> writeFunction(final String writeFunction);
 	PropertyKey<T> cachingEnabled(final boolean enabled);
+	PropertyKey<T> openAPIReturnType(final String openAPIReturnType);
 	PropertyKey<T> transformators(final String... transformators);
 
 	Comparator<GraphObject> sorted(final boolean descending);
@@ -359,6 +367,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 
 	// ----- OpenAPI -----
 	Object getExampleValue(final String type, final String viewName);
+	Map<String, Object> describeOpenAPIOutputSchema(final String type, final String viewName);
 	Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level);
 	Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level);
 }

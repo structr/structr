@@ -28,12 +28,12 @@ let _Editors = {
 	editors: {
 		/*	id: {
 			property: {
-				instance: x,
-				model: y,
-				viewState: z,
-				editorDisposables: [],
-				modelDisposables: [],
-				decorations: []
+				instance:  ...,
+				model:     ...,
+				viewState: ...,
+				instanceDisposables: [],
+				modelDisposables:    [],
+				decorations:         []
 			}
 		}	*/
 	},
@@ -145,13 +145,12 @@ let _Editors = {
 	restoreViewStateFromLocalStorage: (id, propertyName) => {
 		return LSWrapper.getItem(_Editors.getStorageKeyForViewState(id, propertyName));
 	},
-	updateMonacoLintingDecorations: async (editorStorageContainer, entity, errorPropertyName) => {
+	updateMonacoLintingDecorations: async (entity, propertyName, errorPropertyName) => {
 
-		editorStorageContainer.decorations = editorStorageContainer?.decorations ?? [];
-
-		let newErrorEvents = await _Editors.getScriptErrors(entity, errorPropertyName);
-
-		editorStorageContainer.decorations = editorStorageContainer.instance.deltaDecorations(editorStorageContainer.decorations, newErrorEvents);
+		let storageContainer         = _Editors.getContainerForIdAndProperty(entity.id, propertyName);
+		storageContainer.decorations = storageContainer?.decorations ?? [];
+		let newErrorEvents           = await _Editors.getScriptErrors(entity, errorPropertyName);
+		storageContainer.decorations = storageContainer.instance.deltaDecorations(storageContainer.decorations, newErrorEvents);
 	},
 	getScriptErrors: async function(entity, errorAttributeName) {
 
@@ -242,17 +241,19 @@ let _Editors = {
 	},
 	resizeEditor: (monacoEditor) => {
 
-		// first set to 0 to allow the parent box to auto-calc its height
-		monacoEditor.getDomNode().style.height            = 0;
-		monacoEditor.getDomNode().style.width             = 0;
-		monacoEditor.getDomNode().firstChild.style.height = 0;
-		monacoEditor.getDomNode().firstChild.style.width  = 0;
+		let domNode = monacoEditor.getDomNode();
 
-		monacoEditor.getDomNode().style.overflow          = 'hidden';
-		monacoEditor.getDomNode().style.height            = '100%';
-		monacoEditor.getDomNode().style.width             = '100%';
-		monacoEditor.getDomNode().firstChild.style.width  = '100%';
-		monacoEditor.getDomNode().firstChild.style.height = '100%';
+		// first set to 0 to allow the parent box to auto-calc its height
+		domNode.style.height            = 0;
+		domNode.style.width             = 0;
+		domNode.firstChild.style.height = 0;
+		domNode.firstChild.style.width  = 0;
+
+		// domNode.style.overflow          = 'hidden';
+		domNode.style.height            = '100%';
+		domNode.style.width             = '100%';
+		domNode.firstChild.style.width  = '100%';
+		domNode.firstChild.style.height = '100%';
 
 		// let editor auto-layout
 		monacoEditor.layout();
@@ -365,34 +366,16 @@ let _Editors = {
 			storageContainer.model = monaco.editor.createModel(editorText, language, _Editors.getModelURI(entity.id, propertyName, extraModelConfig));
 		}
 
-		// dispose previously existing editors
-		_Editors.disposeAllEditors([entity.id]);
-
 		let monacoConfig = Object.assign(_Editors.getOurSavedEditorOptionsForEditor(), {
 			model: storageContainer.model,
 			value: editorText,
 			language: language,
 		});
 
-		storageContainer.instance = monaco.editor.create(domElement.get(0), monacoConfig);
-
-		// save initial customConfig on object to be able to alter it later without re-creating the editor
-		storageContainer.instance.customConfig = customConfig;
-
-		if (viewState) {
-			storageContainer.instance.restoreViewState(viewState);
-		}
-
-		let errorPropertyNameForLinting = _Code.getErrorPropertyNameForLinting(entity, propertyName);
-
-		if (customConfig.lint === true) {
-
-			_Editors.updateMonacoLintingDecorations(storageContainer, entity, errorPropertyNameForLinting);
-
-			storageContainer.instance.onDidFocusEditorText((e) => {
-				_Editors.updateMonacoLintingDecorations(storageContainer, entity, errorPropertyNameForLinting);
-			});
-		}
+		// dispose previously existing editors (with the exception of editors for this id - required for multiple editors per element, like function property)
+		_Editors.disposeAllEditors([entity.id]);
+		// also delete a possible previous editor for this id and propertyName to start fresh
+		storageContainer?.instance?.dispose();
 
 		// dispose previous disposables
 		for (let disposable of storageContainer?.instanceDisposables ?? []) {
@@ -401,34 +384,45 @@ let _Editors = {
 		for (let disposable of storageContainer?.modelDisposables ?? []) {
 			disposable.dispose();
 		}
+
+		let monacoInstance = monaco.editor.create(domElement.get(0), monacoConfig);
+
+		storageContainer.instance            = monacoInstance;
 		storageContainer.instanceDisposables = [];
 		storageContainer.modelDisposables    = [];
 
+		// save initial customConfig on object to be able to alter it later without re-creating the editor
+		monacoInstance.customConfig = customConfig;
+
+		if (viewState) {
+			monacoInstance.restoreViewState(viewState);
+		}
+
+		let errorPropertyNameForLinting = _Code.getErrorPropertyNameForLinting(entity, propertyName);
+
+		if (customConfig.lint === true) {
+
+			_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting);
+
+			// onFocus handler
+			storageContainer.instanceDisposables.push(monacoInstance.onDidFocusEditorText((e) => {
+				_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting);
+			}));
+		}
+
 		// change handler
 		storageContainer.modelDisposables.push(storageContainer.model.onDidChangeContent((e) => {
-
-			if (storageContainer.instance.customConfig.language === 'auto') {
-				let newLang = _Editors.getMonacoEditorModeForContent(storageContainer.instance.getValue());
-				monaco.editor.setModelLanguage(storageContainer.model, newLang);
-			}
-
-			if (storageContainer.instance.customConfig.lint === true) {
-				_Editors.updateMonacoLintingDecorations(storageContainer, entity, errorPropertyNameForLinting);
-			}
-
-			if (storageContainer.instance.customConfig.changeFn) {
-				storageContainer.instance.customConfig.changeFn(storageContainer.instance, entity, propertyName);
-			}
+			_Editors.defaultChangeHandler(e, entity, propertyName, errorPropertyNameForLinting);
 		}));
 
 		// cursor change handler
-		storageContainer.instanceDisposables.push(storageContainer.instance.onDidChangeCursorPosition((e) => {
+		storageContainer.instanceDisposables.push(monacoInstance.onDidChangeCursorPosition((e) => {
 			_Editors.saveViewState(entity.id, propertyName);
 		}));
 
 		if (customConfig.saveFn) {
 
-			storageContainer.instanceDisposables.push(storageContainer.instance.addAction({
+			storageContainer.instanceDisposables.push(monacoInstance.addAction({
 				id: 'editor-save-action-' + entity.id + '-' + propertyName,
 				label: customConfig.saveFnText || 'Save',
 				keybindings: [
@@ -439,19 +433,37 @@ let _Editors = {
 				contextMenuGroupId: '1_modification',
 				contextMenuOrder: 1.5,
 				run: (editor) => {
+
 					customConfig.saveFn(editor, entity);
 
-					if (storageContainer.instance.customConfig.lint === true) {
-						_Editors.updateMonacoLintingDecorations(storageContainer, entity, errorPropertyNameForLinting);
+					if (monacoInstance.customConfig.lint === true) {
+						_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting);
 					}
 				}
 			}));
 		}
 
-		return storageContainer.instance;
+		return monacoInstance;
+	},
+	defaultChangeHandler: (e, entity, propertyName, errorPropertyNameForLinting) => {
+
+		let storageContainer = _Editors.getContainerForIdAndProperty(entity.id, propertyName);
+
+		if (storageContainer.instance.customConfig.language === 'auto') {
+			let newLang = _Editors.getMonacoEditorModeForContent(storageContainer.instance.getValue());
+			monaco.editor.setModelLanguage(storageContainer.model, newLang);
+		}
+
+		if (storageContainer.instance.customConfig.lint === true) {
+			_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting);
+		}
+
+		if (storageContainer.instance.customConfig.changeFn) {
+			storageContainer.instance.customConfig.changeFn(storageContainer.instance, entity, propertyName);
+		}
 	},
 	getMonacoEditorModeForContent: function(content) {
-		return (content && content.indexOf('{') === 0) ? 'javascript' : 'text';
+		return (content && content.trim().indexOf('{') === 0) ? 'javascript' : 'text';
 	},
 	updateMonacoEditorLanguage: (editor, newLanguage) => {
 		if (newLanguage === 'auto') {
@@ -577,6 +589,7 @@ let _Editors = {
 			scrollBeyondLastLine: false,
 			readOnly: false,
 			renderLineHighlight: 'all',
+			folding: true,
 			showFoldingControls: 'always',
 			theme: "vs",
 			wrappingIndent: 'none',
@@ -702,8 +715,11 @@ let _Editors = {
 						</select>
 					</div>
 					<div class="editor-setting flex items-center p-1">
-						<label class="flex-grow">Line Highligh Rendering</label>
+						<label class="flex-grow">Line Highlight Rendering</label>
 						<select name="renderLineHighlight" class="min-w-48"><option>all</option><option>gutter</option><option>line</option><option>none</option></select>
+					</div>
+					<div class="editor-setting flex items-center p-1">
+						<label><input name="folding" type="checkbox"> Enable Code Folding</label>
 					</div>
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Show Folding Controls</label>
