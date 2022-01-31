@@ -468,11 +468,21 @@ let StructrModel = {
 				svgKeyIcon = element[0].querySelector(':scope > .icons-container > .svg_key_icon');
 			}
 			if (svgKeyIcon) {
+
 				let newIconId = _Entities.getVisibilityIconId(obj);
 
 				// replace only xlink:href to keep bindings intact
 				let use = svgKeyIcon.querySelector(':scope > use');
 				use.setAttribute('xlink:href', '#' + newIconId);
+
+				if (svgKeyIcon.dataset['onlyShowWhenProtected'] === true) {
+
+					if (isProtected) {
+						svgKeyIcon.classList.remove('node-action-icon');
+					} else {
+						svgKeyIcon.classList.add('node-action-icon');
+					}
+				}
 			}
 
 			let displayName = getElementDisplayName(obj);

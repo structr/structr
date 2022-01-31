@@ -2182,15 +2182,17 @@ let _Entities = {
 			});
 		});
 	},
-	appendNewAccessControlIcon: (parent, entity, addtionalClass = '') => {
+	appendNewAccessControlIcon: (parent, entity, onlyShowWhenProtected = true) => {
 
 		let keyIcon = $('.svg_key_icon', parent);
 		if (!(keyIcon && keyIcon.length)) {
 
 			let iconClasses = ['svg_key_icon', 'icon-grey', 'cursor-pointer'];
 
-			if (addtionalClass) {
-				iconClasses.push(addtionalClass);
+			if (onlyShowWhenProtected) {
+				if (entity.visibleToPublicUsers && entity.visibleToAuthenticatedUsers) {
+					iconClasses.push('node-action-icon');
+				}
 			}
 
 			keyIcon = $(_Icons.getSvgIcon(_Entities.getVisibilityIconId(entity), 16, 16, iconClasses));
@@ -2198,6 +2200,10 @@ let _Entities = {
 
 			_Entities.bindAccessControl(keyIcon, entity);
 		}
+
+		keyIcon[0].dataset['onlyShowWhenProtected'] = onlyShowWhenProtected;
+
+		return keyIcon;
 	},
 	getVisibilityIconId: (entity) => {
 
@@ -2216,26 +2222,26 @@ let _Entities = {
 	},
 	appendContextMenuIcon: (parent, entity, visible) => {
 
-		let editIcon = $('.node-menu-icon', parent);
+		let contextMenuIcon = $('.node-action-icon', parent);
 
-		if (!(editIcon && editIcon.length)) {
-			editIcon = $(_Icons.getSvgIcon('kebab_icon', 16, 16, 'node-menu-icon'));
-			parent.append(editIcon);
+		if (!(contextMenuIcon && contextMenuIcon.length)) {
+			contextMenuIcon = $(_Icons.getSvgIcon('kebab_icon', 16, 16, 'node-action-icon'));
+			parent.append(contextMenuIcon);
 		}
 
-		editIcon.on('click', (e) => {
+		contextMenuIcon.on('click', (e) => {
 			e.stopPropagation();
 			_Elements.activateContextMenu(e, parent, entity);
 		});
 
 		if (visible) {
-			editIcon.css({
+			contextMenuIcon.css({
 				visibility: 'visible',
 				display: 'inline-block'
 			});
 		}
 
-		return editIcon;
+		return contextMenuIcon;
 	},
 	appendExpandIcon: function(el, entity, hasChildren, expanded, callback) {
 
@@ -2319,7 +2325,9 @@ let _Entities = {
 		// 	_Entities.makeNameEditable(node);
 		// });
 
-		let nodeId = Structr.getId(el), isComponent;
+		let nodeId = Structr.getId(el);
+		let isComponent = false;
+
 		if (nodeId === undefined) {
 			nodeId = Structr.getComponentId(el);
 			if (nodeId) {
@@ -2345,7 +2353,7 @@ let _Entities = {
 					});
 				}
 
-				var page = $(el).closest('.page');
+				let page = $(el).closest('.page');
 				if (page.length) {
 					try {
 						$(`.previewBox[data-id="${Structr.getId(page)}"] iframe`).contents().find('[data-structr-id=' + nodeId + ']').addClass('nodeHover');

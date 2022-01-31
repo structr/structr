@@ -623,13 +623,13 @@ div#xml-configurations button {
 }
 
 /* resets so we can use tailwind classes */
-/*#files-table .node-menu-icon {*/
+/*#files-table .node-action-icon {*/
 /*	justify-self: end;*/
 /*	position: initial;*/
 /*	min-width: 16px;*/
 /*}*/
 
-/*#files-table .nodeHover > .icons-container .node-menu-icon {*/
+/*#files-table .nodeHover > .icons-container .node-action-icon {*/
 /*	display: inline-block;*/
 /*	!*color: var(--icon-stroke-hover);*!*/
 /*}*/

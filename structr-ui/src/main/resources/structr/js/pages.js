@@ -1214,7 +1214,7 @@ let _Pages = {
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 
 		_Entities.appendContextMenuIcon(iconsContainer, entity);
-		_Entities.appendNewAccessControlIcon(iconsContainer, entity, ((entity.visibleToPublicUsers && entity.visibleToAuthenticatedUsers) ? 'node-menu-icon' : ''));
+		_Entities.appendNewAccessControlIcon(iconsContainer, entity);
 
 		_Elements.enableContextMenuOnElement(div, entity);
 		_Entities.setMouseOver(div);

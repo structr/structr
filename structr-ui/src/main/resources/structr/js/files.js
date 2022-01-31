@@ -1049,7 +1049,7 @@ let _Files = {
 			_Entities.appendContextMenuIcon(div, d);
 		} else {
 			_Entities.appendContextMenuIcon(iconsContainer, d);
-			_Entities.appendNewAccessControlIcon(iconsContainer, d);
+			_Entities.appendNewAccessControlIcon(iconsContainer, d, false);
 		}
 
 		if (d.isFile) {

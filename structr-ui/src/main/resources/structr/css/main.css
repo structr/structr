@@ -1397,13 +1397,13 @@ i.link_icon {
 	margin-left: .125rem;
 }
 
-.node-menu-icon {
+.node-action-icon {
 	display: none;
 	cursor: pointer;
 	color: var(--icon-stroke);
 }
 
-.nodeHover > .icons-container > .node-menu-icon {
+.nodeHover > .icons-container > .node-action-icon {
 	display: inline-block;
 }
 

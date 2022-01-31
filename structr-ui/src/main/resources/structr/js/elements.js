@@ -346,7 +346,7 @@ let _Elements = {
 
 		if (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object') {
 
-			let linkIconElement = $(_Icons.getSvgIcon('chain-link', 16, 16, ['node-menu-icon']));
+			let linkIconElement = $(_Icons.getSvgIcon('chain-link', 16, 16, ['node-action-icon']));
 			iconsContainer.prepend(linkIconElement);
 
 			if (entity.linkableId) {
@@ -464,7 +464,7 @@ let _Elements = {
 			});
 		}
 
-		_Entities.appendNewAccessControlIcon(iconsContainer, entity, ((entity.visibleToPublicUsers && entity.visibleToAuthenticatedUsers) ? 'node-menu-icon' : ''));
+		_Entities.appendNewAccessControlIcon(iconsContainer, entity);
 
 		_Elements.clickOrSelectElementIfLastSelected(div, entity);
 
@@ -1020,7 +1020,7 @@ let _Elements = {
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 
 		_Entities.appendContextMenuIcon(iconsContainer, entity);
-		_Entities.appendNewAccessControlIcon(iconsContainer, entity, ((entity.visibleToPublicUsers && entity.visibleToAuthenticatedUsers) ? 'node-menu-icon' : ''));
+		_Entities.appendNewAccessControlIcon(iconsContainer, entity);
 
 		_Elements.clickOrSelectElementIfLastSelected(div, entity);
 
