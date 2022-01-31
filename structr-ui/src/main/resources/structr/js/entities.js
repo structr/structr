@@ -2208,7 +2208,7 @@ let _Entities = {
 
 		return iconId;
 	},
-	appendContextMenuIcon: function(parent, entity, visible) {
+	appendContextMenuIcon: (parent, entity, visible) => {
 
 		let editIcon = $('.node-menu-icon', parent);
 
@@ -2218,7 +2218,7 @@ let _Entities = {
 			parent.append(editIcon);
 		}
 
-		editIcon.on('click', function(e) {
+		editIcon.on('click', (e) => {
 			e.stopPropagation();
 			_Elements.activateContextMenu(e, parent, entity);
 		});
@@ -2296,13 +2296,14 @@ let _Entities = {
 		});
 	},
 	setMouseOver: function(el, allowClick, syncedNodesIds) {
-		var node = $(el).closest('.node');
+
+		let node = $(el).closest('.node');
 		if (!node || !node.children) {
 			return;
 		}
 
 		if (!allowClick) {
-			node.on('click', function(e) {
+			node.on('click', (e) => {
 				e.stopPropagation();
 				return false;
 			});
@@ -2313,7 +2314,7 @@ let _Entities = {
 		// 	_Entities.makeNameEditable(node);
 		// });
 
-		var nodeId = Structr.getId(el), isComponent;
+		let nodeId = Structr.getId(el), isComponent;
 		if (nodeId === undefined) {
 			nodeId = Structr.getComponentId(el);
 			if (nodeId) {
@@ -2342,7 +2343,7 @@ let _Entities = {
 				var page = $(el).closest('.page');
 				if (page.length) {
 					try {
-						$('#preview_' + Structr.getId(page)).contents().find('[data-structr-id=' + nodeId + ']').addClass('nodeHover');
+						$(`.previewBox[data-id="${Structr.getId(page)}"] iframe`).contents().find('[data-structr-id=' + nodeId + ']').addClass('nodeHover');
 					} catch (e) {}
 				}
 				self.addClass('nodeHover');
@@ -2364,22 +2365,22 @@ let _Entities = {
 			}
 		});
 	},
-	resetMouseOverState: function(element) {
-		var el = $(element);
-		var node = el.closest('.node');
+	resetMouseOverState: (element) => {
+		let el = $(element);
+		let node = el.closest('.node');
 		if (node) {
 			node.removeClass('nodeHover');
 			node.find('i.button').not('.donthide').hide().css('display', 'none');
 		}
-		var page = node.closest('.page');
+		let page = node.closest('.page');
 		if (page.length) {
 			try {
-				$('#preview_' + Structr.getId(page)).contents().find('[data-structr-id]').removeClass('nodeHover');
+				$(`.previewBox[data-id="${Structr.getId(page)}"] iframe`).contents().find('[data-structr-id]').removeClass('nodeHover');
 			} catch (e) {}
 		}
 	},
 	isExpanded: function(element) {
-		var b = $(element).children('.expand_icon_svg').first();
+		let b = $(element).children('.expand_icon_svg').first();
 		if (!b) {
 			return false;
 		}

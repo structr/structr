@@ -1935,7 +1935,7 @@ let _Pages = {
 
 					Command.get(pageId, 'id,name,path,site', function (pageObj) {
 
-						Structr.fetchHtmlTemplate('pages/preview', {}, (html) => {
+						Structr.fetchHtmlTemplate('pages/preview', { pageId: pageObj.id }, (html) => {
 
 							_Pages.centerPane.insertAdjacentHTML('beforeend', html);
 
