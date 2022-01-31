@@ -158,7 +158,7 @@ public class SchemaGrant extends SchemaReloadingNode {
 		}
 
 		// silently delete this node if all settings are set to false
-		if (!getProperty(allowRead) && !getProperty(allowWrite) && !getProperty(allowDelete) && !getProperty(allowAccessControl)) {
+		if (!TransactionCommand.isDeleted(dbNode) && (!getProperty(allowRead) && !getProperty(allowWrite) && !getProperty(allowDelete) && !getProperty(allowAccessControl))) {
 			StructrApp.getInstance().delete(this);
 		}
 	}
