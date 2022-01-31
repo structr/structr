@@ -440,12 +440,12 @@ let _Contents = {
 		if (d.isContentContainer) {
 
 			row.append('<td class="file-icon"><i class="fa ' + icon + '"></i></td>');
-			row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node container flex items-center justify-between"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ leading-8 truncate">' + d.name + '</b></div></td>');
+			row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node container flex items-center justify-between"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ leading-8 truncate">' + d.name + '</b><div class="icons-container"></div></div></td>');
 
 		} else {
 
 			row.append('<td class="file-icon"><a href="javascript:void(0)"><i class="fa ' + icon + '"></i></a></td>');
-			row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item flex items-center justify-between"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ leading-8 truncate">' + (d.name ? d.name : '[unnamed]') + '</b></td>');
+			row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item flex items-center justify-between"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ leading-8 truncate">' + (d.name ? d.name : '[unnamed]') + '</b><div class="icons-container"></div></td>');
 		}
 
 		row.append('<td>' + size + '</td>');
@@ -479,7 +479,8 @@ let _Contents = {
 			return false;
 		});
 
-		let div = Structr.node(d.id);
+		let div            = Structr.node(d.id);
+		let iconsContainer = $('.icons-container', div);
 
 		if (!div || !div.length)
 			return;
@@ -582,7 +583,8 @@ let _Contents = {
 			}
 		});
 
-		_Entities.appendContextMenuIcon(div, d);
+		_Entities.appendContextMenuIcon(iconsContainer, d);
+		_Entities.appendNewAccessControlIcon(iconsContainer, d);
 		_Entities.setMouseOver(div);
 		_Entities.makeSelectable(div);
 		_Elements.enableContextMenuOnElement(div, d);
