@@ -1187,9 +1187,23 @@ let _Pages = {
 		if ($('#id_' + entity.id, _Pages.pagesTree).length > 0) {
 			return;
 		}
+		let pageName = (entity.name ? entity.name : '[' + entity.type + ']');
 
-		_Pages.pagesTree.append('<div id="id_' + entity.id + '" class="node page"><div class="node-selector"></div></div>');
-		let div = Structr.node(entity.id);
+		_Pages.pagesTree.append(`
+			<div id="id_${entity.id}" class="node page">
+				<div class="node-selector"></div>
+				<i class="typeIcon ${_Icons.getFullSpriteClass(_Icons.page_icon)}"></i>
+				<span>
+					<b title="${escapeForHtmlAttributes(entity.name)}" class="name_ abbr-ellipsis abbr-pages-tree-page">${pageName}</b>
+					${(entity.position ? ' <span class="position_">' + entity.position + '</span>' : '')}
+				</span>
+				<span class="id">${entity.id}</span>
+				<div class="icons-container"></div>
+			</div>
+		`);
+
+		let div            = Structr.node(entity.id);
+		let iconsContainer = $('.icons-container', div);
 
 		_Dragndrop.makeSortable(div);
 
@@ -1197,20 +1211,10 @@ let _Pages = {
 			e.stopPropagation();
 		});
 
-		let pageName = (entity.name ? entity.name : '[' + entity.type + ']');
-
-		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.page_icon) + '"></i>'
-				+ '<span>'
-					+ '<b title="' + escapeForHtmlAttributes(entity.name) + '" class="name_ abbr-ellipsis abbr-pages-tree-page">' + pageName + '</b>'
-					+ (entity.position ? ' <span class="position_">' + entity.position + '</span>' : '')
-				+ '</span>'
-				+ '<span class="id">' + entity.id + '</span>'
-		);
-
 		_Entities.appendExpandIcon(div, entity, hasChildren);
-		//_Entities.appendAccessControlIcon(div, entity);
 
-		_Entities.appendContextMenuIcon(div, entity);
+		_Entities.appendContextMenuIcon(iconsContainer, entity);
+		_Entities.appendNewAccessControlIcon(iconsContainer, entity, ((entity.visibleToPublicUsers && entity.visibleToAuthenticatedUsers) ? 'node-menu-icon' : ''));
 
 		_Elements.enableContextMenuOnElement(div, entity);
 		_Entities.setMouseOver(div);
@@ -1225,7 +1229,7 @@ let _Pages = {
 				let url = _Pages.previews.getUrlForPage(entity);
 				window.open(url);
 			}
-		};
+			};
 
 		let pageNode = Structr.node(entity.id)[0];
 		if (pageNode) {
@@ -1279,6 +1283,7 @@ let _Pages = {
 		});
 	},
 	appendElementElement: function(entity, refNode, refNodeIsParent) {
+
 		entity  = StructrModel.ensureObject(entity);
 		let div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
 

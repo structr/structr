@@ -2182,12 +2182,18 @@ let _Entities = {
 			});
 		});
 	},
-	appendNewAccessControlIcon: function(parent, entity) {
+	appendNewAccessControlIcon: (parent, entity, addtionalClass = '') => {
 
 		let keyIcon = $('.svg_key_icon', parent);
 		if (!(keyIcon && keyIcon.length)) {
 
-			keyIcon = $(_Icons.getSvgIcon(_Entities.getVisibilityIconId(entity), 16, 16, 'svg_key_icon icon-grey cursor-pointer'));
+			let iconClasses = ['svg_key_icon', 'icon-grey', 'cursor-pointer'];
+
+			if (addtionalClass) {
+				iconClasses.push(addtionalClass);
+			}
+
+			keyIcon = $(_Icons.getSvgIcon(_Entities.getVisibilityIconId(entity), 16, 16, iconClasses));
 			parent.append(keyIcon);
 
 			_Entities.bindAccessControl(keyIcon, entity);
@@ -2213,8 +2219,7 @@ let _Entities = {
 		let editIcon = $('.node-menu-icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			editIcon = $(_Icons.getSvgIcon('kebab_icon'));
-			editIcon.addClass('node-menu-icon');
+			editIcon = $(_Icons.getSvgIcon('kebab_icon', 16, 16, 'node-menu-icon'));
 			parent.append(editIcon);
 		}
 

@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var editor, contentType;
-
 $(function() {
 
 	// disable default contextmenu on our contextmenu *once*, so it doesnt fire/register once per element
@@ -309,9 +307,22 @@ let _Elements = {
 
 		_Entities.ensureExpanded(parent);
 
-		let id = entity.id;
+		let id          = entity.id;
+		let displayName = getElementDisplayName(entity);
+		let icon        = _Elements.getElementIcon(entity);
 
-		let html = '<div id="id_' + id + '" class="' + elementClasses.join(' ') + '"><div class="node-selector"></div></div>';
+		let html = `
+			<div id="id_${id}" class="${elementClasses.join(' ')}">
+				<div class="node-selector"></div>
+				<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
+				<span class="abbr-ellipsis abbr-pages-tree">
+					<b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>
+					${_Elements.classIdString(entity._html_id, entity._html_class)}
+				</span>
+				<span class="id">${entity.id}</span>
+				<div class="icons-container"></div>
+			</div>
+		`;
 
 		if (refNode && !refNodeIsParent) {
 			refNode.before(html);
@@ -319,60 +330,46 @@ let _Elements = {
 			parent.append(html);
 		}
 
-		let div = Structr.node(id);
+		let div            = Structr.node(id);
+		let iconsContainer = $('.icons-container', div);
 
 		if (!div) {
 			return false;
 		}
 
-		let displayName = getElementDisplayName(entity);
-		let icon        = _Elements.getElementIcon(entity);
-
-		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '"></i>'
-			+ '<span class="abbr-ellipsis abbr-pages-tree">'
-				+ '<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>'
-				+ _Elements.classIdString(entity._html_id, entity._html_class)
-			+ '</span>'
-			+ '<span class="id">' + entity.id + '</span>'
-		);
-
 		_Elements.enableContextMenuOnElement(div, entity);
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 
-		//_Entities.appendAccessControlIcon(div, entity);
-
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 
-		_Entities.appendContextMenuIcon(div, entity);
+		_Entities.appendContextMenuIcon(iconsContainer, entity);
 
 		if (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object') {
 
-			div.append('<i title="Edit Link" class="link_icon button ' + _Icons.getFullSpriteClass(_Icons.link_icon) + '"></i>');
+			let linkIconElement = $(_Icons.getSvgIcon('chain-link', 16, 16, ['node-menu-icon']));
+			iconsContainer.prepend(linkIconElement);
+
 			if (entity.linkableId) {
 
-				Command.get(entity.linkableId, 'id,type,name,isFile,isImage,isPage,isTemplate', function(linkedEntity) {
+				Command.get(entity.linkableId, 'id,type,name,isFile,isImage,isPage,isTemplate', (linkedEntity) => {
 
-					div.append('<span class="linkable' + (linkedEntity.isImage ? ' default-cursor' : '') + '">' + linkedEntity.name + '</span>');
+					let linkableText = $(`<span class="linkable${(linkedEntity.isImage ? ' default-cursor' : '')}">${linkedEntity.name}</span>`);
+					iconsContainer.before(linkableText);
 
-					if (linkedEntity.isFile && !linkedEntity.isImage) {
+					if (linkedEntity.isFile || linkedEntity.isImage) {
 
-						$('.linkable', div).on('click', function(e) {
+						linkableText.on('click', (e) => {
 							e.stopPropagation();
-
 							_Files.editFile(linkedEntity, $('#dialogBox .dialogText'));
 						});
 					}
 				});
 			}
 
-			$('.link_icon', div).on('click', function(e) {
+			linkIconElement.on('click', function(e) {
 				e.stopPropagation();
 
-				Structr.dialog('Link to Resource (Page, File or Image)', function() {
-					return true;
-				}, function() {
-					return true;
-				});
+				Structr.dialog('Link to Resource (Page, File or Image)', () => { return true; }, () => { return true; });
 
 				dialog.empty();
 				dialogMsg.empty();
@@ -380,7 +377,6 @@ let _Elements = {
 				if (entity.tag !== 'img') {
 
 					dialog.append('<p>Click on a Page, File or Image to establish a hyperlink to this &lt;' + entity.tag + '&gt; element.</p>');
-
 					dialog.append('<h3>Pages</h3><div class="linkBox" id="pagesToLink"></div>');
 
 					let pagesToLink = $('#pagesToLink');
@@ -467,6 +463,8 @@ let _Elements = {
 				}
 			});
 		}
+
+		_Entities.appendNewAccessControlIcon(iconsContainer, entity, ((entity.visibleToPublicUsers && entity.visibleToAuthenticatedUsers) ? 'node-menu-icon' : ''));
 
 		_Elements.clickOrSelectElementIfLastSelected(div, entity);
 
@@ -964,7 +962,7 @@ let _Elements = {
 	},
 	appendContentElement: function(entity, refNode, refNodeIsParent) {
 
-		var parent;
+		let parent;
 
 		if (entity.parent && entity.parent.id) {
 			parent = Structr.node(entity.parent.id);
@@ -977,20 +975,22 @@ let _Elements = {
 			return false;
 		}
 
-		var isActiveNode = entity.isActiveNode();
-		var isTemplate = (entity.type === 'Template');
+		let isActiveNode = entity.isActiveNode();
+		let isTemplate   = (entity.type === 'Template');
+		let name         = entity.name;
+		let displayName  = getElementDisplayName(entity);
+		let nameText     = (name ? `<b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>` : `<span class="content_">${escapeTags(entity.content)}</span>`);
 
-		var name = entity.name;
-		var displayName = getElementDisplayName(entity);
+		let icon = _Elements.getContentIcon(entity);
+		let html = `
+			<div id="id_${entity.id}" class="node content ${(isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '')}">
+				<div class="node-selector"></div>
+				<i class="typeIcon ${_Icons.getFullSpriteClass(icon)} typeIcon-nochildren"></i>
+				<span class="abbr-ellipsis abbr-pages-tree">${nameText}</span>
+				<span class="id">${entity.id}</span>
+				<div class="icons-container"></div>
+			</div>`;
 
-		var icon = _Elements.getContentIcon(entity);
-		var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '') + '"><div class="node-selector"></div>'
-				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + ' typeIcon-nochildren"></i>'
-				+ '<span class="abbr-ellipsis abbr-pages-tree">'
-					+ (name ? ('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>') : ('<span class="content_">' + escapeTags(entity.content) + '</span>'))
-				+ '</span>'
-				+ '<span class="id">' + entity.id + '</span>'
-				+ '</div>';
 
 		if (refNode && !refNodeIsParent) {
 			refNode.before(html);
@@ -998,13 +998,14 @@ let _Elements = {
 			parent.append(html);
 		}
 
-		var div = Structr.node(entity.id);
+		let div            = Structr.node(entity.id);
+		let iconsContainer = $('.icons-container', div);
 
 		_Dragndrop.makeSortable(div);
 		_Dragndrop.makeDroppable(div);
 
 		if (isTemplate) {
-			var hasChildren = entity.childrenIds && entity.childrenIds.length;
+			let hasChildren = entity.childrenIds && entity.childrenIds.length;
 			_Entities.appendExpandIcon(div, entity, hasChildren);
 		}
 
@@ -1012,15 +1013,14 @@ let _Elements = {
 			div.addClass('is-hidden');
 		}
 
-		//_Entities.appendAccessControlIcon(div, entity);
-
 		_Elements.enableContextMenuOnElement(div, entity);
 
 		_Pages.registerDetailClickHandler(div, entity);
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 
-		_Entities.appendContextMenuIcon(div, entity);
+		_Entities.appendContextMenuIcon(iconsContainer, entity);
+		_Entities.appendNewAccessControlIcon(iconsContainer, entity, ((entity.visibleToPublicUsers && entity.visibleToAuthenticatedUsers) ? 'node-menu-icon' : ''));
 
 		_Elements.clickOrSelectElementIfLastSelected(div, entity);
 

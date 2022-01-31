@@ -126,23 +126,26 @@ let _Icons = {
 	collapsedClass: 'svg-collapsed',
 	expandedClass: 'svg-expanded',
 
-	getSvgIcon: (id, width = 16, height = 16, optionalClasses) => {
+	getSvgIcon: (id, width = 16, height = 16, optionalClasses, title = '') => {
 
 		/**
 		 * SVG Icons are all loaded in index.html and can be used anywhere using this function
 		 **/
-
 		let classString = '';
 
 		if (Array.isArray(optionalClasses)) {
-			classString.join(' ');
+			classString = optionalClasses.join(' ');
 		} else if (typeof optionalClasses === 'string') {
 			classString = optionalClasses;
 		} else {
 			// ignore
 		}
 
-		return `<svg width="${width}" height="${height}" class="${classString}"><use xlink:href="#${id}"></use></svg>`;
+		return `<svg width="${width}" height="${height}" class="${classString}">
+			<use xlink:href="#${id}">
+				<title>${title}</title>
+			</use>
+		</svg>`;
 	},
 
 	getFullSpriteClass: function (key) {

@@ -370,6 +370,10 @@ body.console-open #header-blocker {
 	white-space: nowrap;
 }
 
+#function-bar .dropdown-menu-container {
+	white-space: initial;
+}
+
 /*#function-bar .icon {*/
 /*	color: var(--icon-stroke);*/
 /*	!*position: absolute;*!*/
@@ -1115,7 +1119,7 @@ img.disabled {
 }
 
 .abbr-ellipsis.abbr-pages-tree {
-	max-width: calc(100% - 4rem);
+	max-width: calc(100% - 6rem);
 }
 
 .abbr-ellipsis.abbr-pages-tree-page {
@@ -1382,19 +1386,25 @@ i.link_icon {
 	right: 84px;
 }
 
-.node-menu-icon {
-	display: none;
-	cursor: pointer;
+.icons-container {
 	position: absolute;
 	right: .5rem;
 	top: .4rem;
 	vertical-align: top;
+}
+
+.icons-container svg {
+	margin-left: .125rem;
+}
+
+.node-menu-icon {
+	display: none;
+	cursor: pointer;
 	color: var(--icon-stroke);
 }
 
-.nodeHover > .node-menu-icon {
+.nodeHover > .icons-container > .node-menu-icon {
 	display: inline-block;
-	/*color: var(--icon-stroke-hover);*/
 }
 
 .node-selector:hover, .node-selector.active {
@@ -2024,10 +2034,6 @@ button.enabled, button.active {
 
 .node .linkable:hover {
 	color: var(--gray-555);
-}
-
-.node .linkable.default-cursor {
-	cursor: default;
 }
 
 .node .linkable.default-cursor:hover {
