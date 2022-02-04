@@ -2196,7 +2196,7 @@ let _Schema = {
 							let unsavedChanges = _Schema.remoteProperties.hasUnsavedChanges(row.closest('table'));
 
 							if (!unsavedChanges || confirm("Really switch to other type? There are unsaved changes which will be lost!")) {
-								editSchemaObjectLinkHandler($(this));
+								editSchemaObjectLinkHandler($(e.target));
 							}
 
 							return false;
