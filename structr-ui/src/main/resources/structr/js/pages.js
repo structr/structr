@@ -60,7 +60,6 @@ let _Pages = {
 	init: function() {
 
 		_Pager.initPager('pages',   'Page', 1, 25, 'name', 'asc');
-		_Pager.forceAddFilters('pages', 'Page', { hidden: false });
 		_Pager.initPager('files',   'File', 1, 25, 'name', 'asc');
 		_Pager.initPager('folders', 'Folder', 1, 25, 'name', 'asc');
 		_Pager.initPager('images',  'Image', 1, 25, 'name', 'asc');
@@ -1190,7 +1189,7 @@ let _Pages = {
 		let pageName = (entity.name ? entity.name : '[' + entity.type + ']');
 
 		_Pages.pagesTree.append(`
-			<div id="id_${entity.id}" class="node page">
+			<div id="id_${entity.id}" class="node page${entity.hidden ? ' is-hidden' : ''}">
 				<div class="node-selector"></div>
 				<i class="typeIcon ${_Icons.getFullSpriteClass(_Icons.page_icon)}"></i>
 				<span>

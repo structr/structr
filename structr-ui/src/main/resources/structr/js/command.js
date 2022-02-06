@@ -218,7 +218,19 @@ let Command = {
 				type: type
 			}
 		};
-		if (properties) obj.data.properties = JSON.stringify(properties);
+		if (properties) {
+			const andProperties = {};
+			const notProperties = {};
+			for (const key of Object.keys(properties)) {
+				if (key.startsWith('!')) {
+					notProperties[key.substring(1)] = properties[key];
+				} else {
+					andProperties[key] = properties[key];
+				}
+			}
+			obj.data.properties    = JSON.stringify(andProperties);
+			obj.data.notProperties = JSON.stringify(notProperties);
+		}
 		if (exact !== null) obj.data.exact = exact;
 		if (view) obj.view = view;
 		if (customView) obj.data.customView = customView;
