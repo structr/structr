@@ -108,6 +108,16 @@ let _Security = {
 			_Elements.appendContextMenuSeparator(elements);
 		}
 
+		if (isUser) {
+			elements.push({
+				name: 'Basic',
+				clickHandler: function () {
+					_Entities.showProperties(entity, 'general');
+					return false;
+				}
+			});
+		}
+
 		elements.push({
 			name: 'Properties',
 			clickHandler: function() {
@@ -213,7 +223,7 @@ let _UsersAndGroups = {
 		let userElement = $('<div class="node user ' + _UsersAndGroups.userNodeClassPrefix + user.id + '">'
 				+ '<i class="typeIcon ' + _UsersAndGroups.getIconForPrincipal(user) + '"></i>'
 				+ '<b title="' + displayName + '" class="name_ abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + displayName + '</b>'
-				+ '</div>'
+				+ '<div class="icons-container"></div>'
 		);
 		userElement.data('userId', user.id);
 
@@ -258,12 +268,12 @@ let _UsersAndGroups = {
 
 		_Security.userList.appendChild(userDiv[0]);
 
-		_Entities.appendContextMenuIcon(userDiv, user);
+		_Entities.appendContextMenuIcon(userDiv.children('.icons-container'), user);
 		_Elements.enableContextMenuOnElement(userDiv, user);
 		_UsersAndGroups.setMouseOver(userDiv, user.id, '.' + _UsersAndGroups.userNodeClassPrefix);
 
 		let dblclickHandler = (e) => {
-			_Entities.showProperties(user);
+			_Entities.showProperties(user, LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + user.id) || 'general');
 		};
 
 		if (userDiv) {
@@ -412,7 +422,7 @@ let _UsersAndGroups = {
 		let groupElement = $('<div class="node group ' + _UsersAndGroups.groupNodeClassPrefix + group.id + '">'
 				+ '<i class="typeIcon ' + _UsersAndGroups.getIconForPrincipal(group) + '"></i>'
 				+ '<b title="' + displayName + '" class="name_  abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + displayName + '</b>'
-				+ '</div>'
+				+ '<div class="icons-container"></div>'
 		);
 		groupElement.data('groupId', group.id);
 
@@ -482,7 +492,7 @@ let _UsersAndGroups = {
 		element.append(groupDiv);
 
 		_Entities.appendExpandIcon(groupDiv, group, hasChildren, Structr.isExpanded(group.id), (members) => { _UsersAndGroups.appendMembersToGroup(members, group, groupDiv); } );
-		_Entities.appendContextMenuIcon(groupDiv, group);
+		_Entities.appendContextMenuIcon(groupDiv.children('.icons-container'), group);
 		_Elements.enableContextMenuOnElement(groupDiv, group);
 		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.' + _UsersAndGroups.groupNodeClassPrefix);
 
