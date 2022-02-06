@@ -416,6 +416,8 @@ let _Widgets = {
 			div = Structr.node(widget.id);
 		}
 
+		let iconsContainer = div.children('.icons-container');
+
 		div.draggable({
 			iframeFix: true,
 			revert: 'invalid',
@@ -432,15 +434,16 @@ let _Widgets = {
 
 			div.children('b.name_').off('click').css({cursor: 'move'});
 
-			div.append('<i title="View widget ' + widget.name + '" class="view_icon button ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" />');
+			let eyeIcon = $(_Icons.getSvgIcon('eye_open', 16, 16, ['svg_eye_icon', 'icon-grey', 'cursor-pointer', 'node-action-icon']));
+			iconsContainer.append(eyeIcon);
 
-			$('.view_icon', div).on('click', function() {
+			eyeIcon.on('click', function() {
 				_Widgets.editWidget(widget, false);
 			});
 
 		} else {
 
-			_Entities.appendContextMenuIcon(div.children('.icons-container'), widget);
+			_Entities.appendContextMenuIcon(iconsContainer, widget);
 			_Elements.enableContextMenuOnElement(div, widget);
 		}
 
