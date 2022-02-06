@@ -2675,14 +2675,14 @@ let _Entities = {
 		return (entity.type === 'Template' || entity.type === 'Content');
 	},
 	setPropertyWithFeedback: function(entity, key, newVal, input, blinkEl) {
-		var oldVal = entity[key];
+		const oldVal = entity[key];
 		Command.setProperty(entity.id, key, newVal, false, function(result) {
-			var newVal = result[key];
+			let newVal = result[key];
 
 			// update entity so this works multiple times
 			entity[key] = newVal;
 
-			if (newVal !== oldVal) {
+			if (key === 'password' || newVal !== oldVal) {
 				blinkGreen(input);
 				if (blinkEl) {
 					blinkGreen(blinkEl);
@@ -2691,7 +2691,7 @@ let _Entities = {
 					newVal = newVal.join(',');
 				}
 				input.val(newVal);
-				let valueMsg = (newVal !== undefined || newValue !== null) ? 'value "' + newVal : 'empty value';
+				let valueMsg = (newVal !== undefined || newVal !== null) ? 'value "' + newVal : 'empty value';
 				Structr.showAndHideInfoBoxMessage('Updated property "' + key + '" with ' + valueMsg, 'success', 2000, 200);
 			} else {
 				input.val(oldVal);
