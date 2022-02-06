@@ -261,6 +261,16 @@ let _UsersAndGroups = {
 		_Entities.appendContextMenuIcon(userDiv, user);
 		_Elements.enableContextMenuOnElement(userDiv, user);
 		_UsersAndGroups.setMouseOver(userDiv, user.id, '.' + _UsersAndGroups.userNodeClassPrefix);
+
+		let dblclickHandler = (e) => {
+			_Entities.showProperties(user);
+		};
+
+		if (userDiv) {
+			let node = userDiv[0].closest('.node');
+			node.removeEventListener('dblclick', dblclickHandler);
+			node.addEventListener('dblclick', dblclickHandler);
+		}
 	},
 	appendMembersToGroup: function(members, group, groupDiv) {
 
@@ -479,6 +489,16 @@ let _UsersAndGroups = {
 		if (hasChildren && Structr.isExpanded(group.id)) {
 			// do not directly use group.members (it does not contain all necessary information)
 			Command.children(group.id, (members) => { _UsersAndGroups.appendMembersToGroup(members, group, groupDiv); });
+		}
+
+		let dblclickHandler = (e) => {
+			_Entities.showProperties(group);
+		};
+
+		if (groupDiv) {
+			let node = groupDiv[0].closest('.node');
+			node.removeEventListener('dblclick', dblclickHandler);
+			node.addEventListener('dblclick', dblclickHandler);
 		}
 
 		return groupDiv;
