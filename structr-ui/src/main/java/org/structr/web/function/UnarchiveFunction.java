@@ -32,8 +32,8 @@ import java.util.Map;
 
 public class UnarchiveFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_UNARCHIVE    = "Usage: ${unarchive(archiveFileName)}. Example: ${unarchive(\"archive.zip\")}";
-	public static final String ERROR_MESSAGE_UNARCHIVE_JS = "Usage: ${{Structr.unarchive(archiveFileName)}}. Example: ${{Structr.unarchive(\"archive.zip\")}}";
+	public static final String ERROR_MESSAGE_UNARCHIVE    = "Usage: ${unarchive(archiveFile [, parentFolder])}. Example: ${unarchive(first(find('File', 'name', 'archive.zip')), first(find('Folder', 'name', 'parent')) )}";
+	public static final String ERROR_MESSAGE_UNARCHIVE_JS = "Usage: ${{$.unarchive(archiveFile [, parentFolder])}}. Example: ${{ $.unarchive($.first($.find('File', 'name', 'archive.zip')), $.first($.find('Folder', 'name', 'parent')) )}}";
 
 	@Override
 	public String getName() {
@@ -42,7 +42,7 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getSignature() {
-		return "fileName, [, parentFolder ]";
+		return "file, [, parentFolder ]";
 	}
 
 	@Override
