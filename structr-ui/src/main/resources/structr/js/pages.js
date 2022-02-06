@@ -1643,11 +1643,13 @@ let _Pages = {
 					<div class="node-selector"></div>
 					<i class="typeIcon ${iconClass}"></i><span class="abbr-ellipsis abbr-pages-tree">${detailHtml}${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
 					<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>
+					<div class="icons-container"></div>
 				</div>`
 			);
 			div.dataset['nodeId'] = (_Entities.isContentElement(entity) ? entity.parent.id : entity.id );
 
 			let $div = $(div);
+			let iconsContainer = $('.icons-container', $div);
 
 			if (!entity.isDOMNode && !entity.isFake) {
 
@@ -1658,7 +1660,7 @@ let _Pages = {
 
 					if (schemaNodes.length === 1) {
 
-						_Entities.appendContextMenuIcon($div, {
+						_Entities.appendContextMenuIcon(iconsContainer, {
 							type: _Pages.localizations.wrapperTypeForContextMenu,
 							entity: schemaNodes[0]
 						}, false);

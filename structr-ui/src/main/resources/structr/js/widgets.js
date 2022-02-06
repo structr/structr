@@ -406,10 +406,13 @@ let _Widgets = {
 
 		if (!div) {
 
-			parent.append('<div id="id_' + widget.id + '" class="node widget">'
-				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
-				+ '<b title="' + escapeForHtmlAttributes(widget.name) + '" class="name_ abbr-ellipsis abbr-66pc">' + widget.name + '</b> <span class="id">' + widget.id + '</span>'
-				+ '</div>');
+			parent.append(`
+				<div id="id_${widget.id}" class="node widget">
+					<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
+					<b title="${escapeForHtmlAttributes(widget.name)}" class="name_ abbr-ellipsis abbr-66pc">${widget.name}</b> <span class="id">${widget.id}</span>
+					<div class="icons-container"></div>
+				</div>
+			`);
 			div = Structr.node(widget.id);
 		}
 
@@ -437,24 +440,7 @@ let _Widgets = {
 
 		} else {
 
-			//_Entities.appendAccessControlIcon(div, widget);
-
-//			div.append('<i title="Delete widget ' + widget.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
-//			div.children('.delete_icon').on('click', function(e) {
-//				e.stopPropagation();
-//				_Entities.deleteNode(this, widget);
-//			});
-//
-//			div.append('<i title="Edit widget ' + widget.name + '" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-//			$('.edit_icon', div).on('click', function(e) {
-//				e.stopPropagation();
-//
-//				Command.get(widget.id, 'id,type,name,source,configuration,description', function(entity) {
-//					_Widgets.editWidget(entity, true);
-//				});
-//			});
-
-			_Entities.appendContextMenuIcon(div, widget);
+			_Entities.appendContextMenuIcon(div.children('.icons-container'), widget);
 			_Elements.enableContextMenuOnElement(div, widget);
 		}
 
