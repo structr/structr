@@ -44,7 +44,7 @@ public class OpenAPIDeleteSingleOperation extends OpenAPIOperation {
 
 			// parameters
 			List.of(
-				new OpenAPIPathParameter("uuid", "The UUID of the existing object", Map.of("type", "string"))
+				new OpenAPIPathParameter("uuid", "The UUID of the existing object", Map.of("type", "string"), true)
 			),
 
 			// request body

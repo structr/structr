@@ -21,9 +21,12 @@ package org.structr.schema.openapi.operation;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.structr.schema.export.StructrMethodDefinition;
 import org.structr.schema.export.StructrTypeDefinition;
+import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 
@@ -46,7 +49,7 @@ public class OpenAPIMethodOperation extends OpenAPIOperation {
 
 			// parameters
 			List.of(
-				new OpenAPIPathParameter("uuid", "The UUID of the target object", Map.of("type", "string"))
+				new OpenAPIPathParameter("uuid", "The UUID of the target object", Map.of("type", "string"), true)
 			),
 
 			// request body
@@ -79,7 +82,7 @@ public class OpenAPIMethodOperation extends OpenAPIOperation {
 
 						// parameters
 						List.of(
-								new OpenAPIPathParameter("uuid", "The UUID of the target object", Map.of("type", "string"))
+								new OpenAPIPathParameter("uuid", "The UUID of the target object", Map.of("type", "string"), true)
 						),
 
 						// request body
@@ -92,6 +95,39 @@ public class OpenAPIMethodOperation extends OpenAPIOperation {
 							"422", new OpenAPISchemaReference("#/components/responses/validationError")
 						)
 				);
+	}
+
+	public OpenAPIMethodOperation(final StructrMethodDefinition method, final StructrTypeDefinition parentType,  Set<String> viewNames) {
+
+		super(
+				// summary
+				StringUtils.isBlank(method.getSummary()) ? "Executes " + method.getName() + "() on the entity with the given UUID." : method.getSummary(),
+
+				// description
+				StringUtils.isBlank(method.getDescription()) ? "Executes " + method.getName() + "() on the entity with the given UUID." : method.getDescription(),
+
+				// operationId
+				"execute" + method.getParent().getName() + "." + method.getName(),
+
+				// tags
+				Set.of(method.getParent().getName()),
+
+				// parameters
+				List.of(
+						new OpenAPIPathParameter("uuid", "The UUID of the target object", Map.of("type", "string"), true),
+						new OpenAPIPathParameter("view", "Changes the response schema to the selected views schema", Map.of("type", "string", "enum", viewNames), false)
+				),
+
+				// request body
+				method.getOpenAPIRequestBody(),
+
+				// responses
+				Map.of(
+						"200", new OpenAPISchemaReference("#/components/responses/" + parentType.getName() + "." + method.getName() + "MethodResponse"),
+						"401", new OpenAPISchemaReference("#/components/responses/unauthorized"),
+						"422", new OpenAPISchemaReference("#/components/responses/validationError")
+				)
+		);
 	}
 
 	// The boolean parameter is not used in the code, it is only there to create a second constructor to differentiate between non-static and static methods.

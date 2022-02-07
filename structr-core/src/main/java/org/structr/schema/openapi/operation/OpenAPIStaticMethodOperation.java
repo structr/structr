@@ -21,10 +21,14 @@ package org.structr.schema.openapi.operation;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.structr.schema.export.StructrMethodDefinition;
 import org.structr.schema.export.StructrTypeDefinition;
+import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
+import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
 
 public class OpenAPIStaticMethodOperation extends OpenAPIOperation {
 
@@ -53,6 +57,35 @@ public class OpenAPIStaticMethodOperation extends OpenAPIOperation {
 				"401", new OpenAPISchemaReference("#/components/responses/unauthorized"),
 				"422", new OpenAPISchemaReference("#/components/responses/validationError")
 			)
+		);
+	}
+
+	public OpenAPIStaticMethodOperation(final StructrMethodDefinition method, final StructrTypeDefinition parentType, Set<String> viewNames) {
+		super(
+				// summary
+				StringUtils.isBlank(method.getSummary()) ? "Executes the static method " + method.getName() + "()." : method.getSummary(),
+
+				// description
+				StringUtils.isBlank(method.getDescription()) ? "Executes the static method " + method.getName() + "()." : method.getDescription(),
+
+				// operationId
+				"execute" + method.getParent().getName() + "." + method.getName(),
+
+				// tags
+				Set.of(method.getParent().getName()),
+
+				List.of(
+						new OpenAPIPathParameter("view", "Changes the response schema to the selected views schema", Map.of("type", "string", "enum", viewNames), false)
+				),
+
+				// request body
+				method.getOpenAPIRequestBody(),
+
+				// responses
+				Map.of(
+						"401", new OpenAPISchemaReference("#/components/responses/unauthorized"),
+						"422", new OpenAPISchemaReference("#/components/responses/validationError")
+				)
 		);
 	}
 }
