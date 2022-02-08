@@ -75,7 +75,7 @@ public class OpenAPIStaticMethodOperation extends OpenAPIOperation {
 				Set.of(method.getParent().getName()),
 
 				List.of(
-						new OpenAPIPathParameter("view", "Changes the response schema to the selected views schema", Map.of("type", "string", "enum", viewNames), false)
+						new OpenAPIPathParameter("view", "Changes the response schema to the selected views schema", Map.of("type", "string", "enum", viewNames), true)
 				),
 
 				// request body

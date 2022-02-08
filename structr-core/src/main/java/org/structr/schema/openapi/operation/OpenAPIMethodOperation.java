@@ -115,7 +115,7 @@ public class OpenAPIMethodOperation extends OpenAPIOperation {
 				// parameters
 				List.of(
 						new OpenAPIPathParameter("uuid", "The UUID of the target object", Map.of("type", "string"), true),
-						new OpenAPIPathParameter("view", "Changes the response schema to the selected views schema", Map.of("type", "string", "enum", viewNames), false)
+						new OpenAPIPathParameter("view", "Changes the response schema to the selected views schema", Map.of("type", "string", "enum", viewNames), true)
 				),
 
 				// request body
