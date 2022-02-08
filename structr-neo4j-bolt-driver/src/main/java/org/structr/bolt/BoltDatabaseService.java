@@ -108,21 +108,12 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		final String username     = Settings.ConnectionUser.getPrefixedValue(serviceName);
 		final String password     = Settings.ConnectionPassword.getPrefixedValue(serviceName);
 		final String databaseName = Settings.ConnectionDatabaseName.getPrefixedValue(serviceName);
-		String databaseDriverUrl = "bolt://" + databaseUrl;
+		String databaseDriverUrl  = ((databaseUrl.indexOf("://") == -1) ? "bolt://" + databaseUrl : databaseUrl);
 
 		// build list of supported query languages
 		supportedQueryLanguages.add("application/x-cypher-query");
 		supportedQueryLanguages.add("application/cypher");
 		supportedQueryLanguages.add("text/cypher");
-
-		if (databaseUrl.length() >= 7 && databaseUrl.substring(0, 7).equalsIgnoreCase("bolt://")) {
-
-			databaseDriverUrl = databaseUrl;
-
-		} else if (databaseUrl.length() >= 15 && databaseUrl.substring(0, 15).equalsIgnoreCase("bolt+routing://")) {
-
-			databaseDriverUrl = databaseUrl;
-		}
 
 		// create db directory if it does not exist
 		new File(databasePath).mkdirs();
