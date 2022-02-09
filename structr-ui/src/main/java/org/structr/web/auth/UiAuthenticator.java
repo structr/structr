@@ -710,7 +710,15 @@ public class UiAuthenticator implements Authenticator {
 
 				if (tryLogin) {
 
-					user = AuthHelper.getPrincipalForPassword(AbstractNode.name, userName, password);
+					try {
+
+						user = AuthHelper.getPrincipalForPassword(AbstractNode.name, userName, password);
+
+					} catch (AuthenticationException ex) {
+
+						final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
+						user = AuthHelper.getPrincipalForPassword(eMailKey, userName, password);
+					}
 				}
 			}
 		}

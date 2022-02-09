@@ -23,12 +23,12 @@ import java.util.TreeMap;
 
 public class OpenAPIPathParameter extends TreeMap<String, Object> {
 
-	public OpenAPIPathParameter(final String name, final String description, final Map<String, Object> schema) {
+	public OpenAPIPathParameter(final String name, final String description, final Map<String, Object> schema, final Boolean required) {
 
 		put("name",        name);
 		put("description", description);
 		put("in",          "path");
-		put("required",    true);
+		put("required",    required);
 		put("schema",      schema);
 	}
 }

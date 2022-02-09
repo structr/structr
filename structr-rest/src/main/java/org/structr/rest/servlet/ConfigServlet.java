@@ -808,11 +808,11 @@ public class ConfigServlet extends AbstractServletBase {
 		driver.add(new SelectField(driver, "driver-structr-new-connection").addOption("Neo4j", "org.structr.bolt.BoltDatabaseService").addOption("Memgraph DB (experimental)", "org.structr.memgraph.MemgraphDatabaseService"));
 
 		final Tag url = div.block("p");
-		url.block("label").text("Connection URL");
+		url.block("label").text("Connection URL").css("has-comment").attr(new Attr("data-comment", DatabaseConnection.INFO_TEXT_URL));
 		url.add(new InputField(url, "text", "url-structr-new-connection", "", "Enter URL"));
 
 		final Tag databaseName = div.block("p");
-		databaseName.block("label").text("Database Name").css("has-comment").attr(new Attr("data-comment", DatabaseConnection.INFO_TEXT));
+		databaseName.block("label").text("Database Name").css("has-comment").attr(new Attr("data-comment", DatabaseConnection.INFO_TEXT_DATABASENAME));
 		databaseName.add(new InputField(databaseName, "text", "database-structr-new-connection", "", "Enter Database Name"));
 
 		final Tag user = div.block("p");

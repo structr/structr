@@ -590,7 +590,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	// ----- OpenAPI -----
-	public Map<String, Object> serializeOpenAPI(final StructrTypeDefinition parentType) {
+	public Map<String, Object> serializeOpenAPI(final StructrTypeDefinition parentType, Set<String> viewNames) {
 
 		final Map<String, Object> operations = new LinkedHashMap<>();
 
@@ -598,13 +598,14 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 			if (isStatic) {
 
-				operations.put("/" + getParent().getName() + "/" + getName(), Map.of("post", new OpenAPIStaticMethodOperation(this, parentType)));
+				operations.put("/" + getParent().getName() + "/" + getName() + "/{view}", Map.of("post", new OpenAPIStaticMethodOperation(this, parentType, viewNames)));
+
 
 			} else {
 
 				if (parent != null) {
 
-					operations.put("/" + getParent().getName() + "/{uuid}/" + getName(), Map.of("post", new OpenAPIMethodOperation(this, parentType)));
+					operations.put("/" + getParent().getName() + "/{uuid}/" + getName() + "/{view}", Map.of("post", new OpenAPIMethodOperation(this, parentType, viewNames)));
 
 				} else {
 
