@@ -932,20 +932,20 @@ let Structr = {
 			case 503: return 'Service Unavailable';
 		}
 	},
-	loaderIcon: function(element, css) {
-		element.append('<img class="loader-icon" alt="Loading..." title="Loading.." src="' + _Icons.getSpinnerImageAsData() + '">');
-		var li = $('.loader-icon', element);
+	loaderIcon: (element, css) => {
+		let icon = $(_Icons.getSvgIcon('waiting-spinner', 24, 24));
+		element.append(icon);
 		if (css) {
-			li.css(css);
+			icon.css(css);
 		}
-		return li;
+		return icon;
 	},
-	updateButtonWithAjaxLoaderAndText: function(btn, html) {
-		btn.attr('disabled', 'disabled').addClass('disabled').html(html + ' <img src="' + _Icons.ajax_loader_2 + '">');
+	updateButtonWithAjaxLoaderAndText: (btn, html) => {
+		btn.attr('disabled', 'disabled').addClass('disabled').html(html + _Icons.getSvgIcon('waiting-spinner', 20, 20, 'ml-2'));
 	},
-	updateButtonWithSuccessIcon: function(btn, html) {
-		btn.attr('disabled', null).removeClass('disabled').html(html + ' <i class="tick ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
-		window.setTimeout(function() {
+	updateButtonWithSuccessIcon: (btn, html) => {
+		btn.attr('disabled', null).removeClass('disabled').html(html + _Icons.getSvgIcon('checkmark_bold', 16, 16, 'tick icon-green ml-2'));
+		window.setTimeout(() => {
 			$('.tick', btn).fadeOut();
 		}, 1000);
 	},
@@ -986,20 +986,27 @@ let Structr = {
 		let restoreDialogText = '';
 		let dialogData = JSON.parse(LSWrapper.getItem(Structr.dialogDataKey));
 		if (dialogData && dialogData.text) {
-			restoreDialogText = '<br><br>The dialog<br><b>"' + dialogData.text + '"</b><br> will be restored after reconnect.';
+			restoreDialogText = '<div>The dialog</div><b>"' + dialogData.text + '"</b><div>will be restored after reconnect.</div>';
 		}
 
 		let tmpErrorHTML = `
-			<div id="tempErrorBox" class="dialog" style="display: block;">
-				<div class="errorText">
-					<i class="${_Icons.getFullSpriteClass(_Icons.error_icon)}"></i>
-					<b>Connection lost or timed out.</b>
-					<br><br>
-					Don't reload the page!
+			<div id="tempErrorBox" class="dialog block">
+				<div class="flex flex-col gap-y-4 items-center justify-center">
+					<div class="flex items-center">
+						<i class="${_Icons.getFullSpriteClass(_Icons.error_icon)} mr-2"></i>
+						<b>Connection lost or timed out.</b>
+					</div>
+
+					<div>
+						Don't reload the page!
+					</div>
+					
 					${restoreDialogText}
-					<br><br>
-					Trying to reconnect...
-					<img class="al" src="${_Icons.getSpinnerImageAsData()}">
+
+					<div class="flex items-center">
+						<span>Trying to reconnect...</span>
+						${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'ml-2')}
+					</div>
 				</div>
 				<div class="errorMsg"></div>
 				<div class="dialogBtn"></div>
@@ -2246,23 +2253,23 @@ let Structr = {
 			fadeOut: 0
 		});
 	},
-	showLoadingSpinner: function() {
-		Structr.blockUiGeneric('<div id="structr-loading-spinner"><img src="' + _Icons.getSpinnerImageAsData() + '"></div>');
+	showLoadingSpinner: () => {
+		Structr.blockUiGeneric('<div id="structr-loading-spinner">' + _Icons.getSvgIcon('waiting-spinner', 36, 36) + '</div>');
 	},
-	hideLoadingSpinner: function() {
+	hideLoadingSpinner: () => {
 		Structr.unblockUiGeneric();
 	},
-	showLoadingMessage: function(title, text, timeout) {
+	showLoadingMessage: (title, text, timeout) => {
 
-		var messageTitle = title || 'Executing Task';
-		var messageText  = text || 'Please wait until the operation has finished...';
+		let messageTitle = title || 'Executing Task';
+		let messageText  = text || 'Please wait until the operation has finished...';
 
-		$('#tempInfoBox .infoMsg').html('<img src="' + _Icons.getSpinnerImageAsData() + '"> <b>' + messageTitle + '</b><br><br>' + messageText);
+		$('#tempInfoBox .infoMsg').html(`<div class="flex items-center justify-center">${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<b>${messageTitle}</b></div><br>${messageText}`);
 
 		$('#tempInfoBox .closeButton').hide();
 		Structr.blockUiGeneric($('#tempInfoBox'), timeout || 500);
 	},
-	hideLoadingMessage: function() {
+	hideLoadingMessage: () => {
 		Structr.unblockUiGeneric();
 	},
 
@@ -2270,13 +2277,12 @@ let Structr = {
 	nonBlockUIBlockerContentId: 'non-block-ui-blocker-content',
 	showNonBlockUILoadingMessage: function(title, text) {
 
-		var messageTitle = title || 'Executing Task';
-		var messageText  = text || 'Please wait until the operation has finished...';
+		let messageTitle = title || 'Executing Task';
+		let messageText  = text || 'Please wait until the operation has finished...';
 
 		let pageBlockerDiv = $('<div id="' + Structr.nonBlockUIBlockerId +'"></div>');
-
-		let messageDiv = $('<div id="' + Structr.nonBlockUIBlockerContentId +'"></div>');
-		messageDiv.html('<img src="' + _Icons.getSpinnerImageAsData() + '"> <b>' + messageTitle + '</b><br><br>' + messageText);
+		let messageDiv     = $('<div id="' + Structr.nonBlockUIBlockerContentId +'"></div>');
+		messageDiv.html(`<div class="flex items-center justify-center">${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<b>${messageTitle}</b></div><br>${messageText}`);
 
 		$('body').append(pageBlockerDiv);
 		$('body').append(messageDiv);

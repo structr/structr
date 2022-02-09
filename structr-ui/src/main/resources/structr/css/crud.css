@@ -156,11 +156,6 @@
 #crud-type-detail .crud-message .crud-centered {
 	position: relative;
 	top: 50%;
-	vertical-align: middle;
-}
-
-#crud-type-detail .crud-message .crud-centered img {
-	vertical-align: middle;
 }
 
 .crud-table {

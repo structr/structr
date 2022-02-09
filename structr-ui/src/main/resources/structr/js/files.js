@@ -1226,8 +1226,7 @@ let _Files = {
 
 		$('#tempInfoBox .infoHeading, #tempInfoBox .infoMsg').empty();
 		$('#tempInfoBox .closeButton').hide();
-		Structr.loaderIcon($('#tempInfoBox .infoMsg'), { marginBottom: '-6px' });
-		$('#tempInfoBox .infoMsg').append(' Unpacking Archive - please stand by...');
+		$('#tempInfoBox .infoMsg').append(`<div class="flex items-center justify-center">${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<div>Unpacking Archive - please stand by...</div></div>`);
 		$('#tempInfoBox .infoMsg').append('<p>Extraction will run in the background.<br>You can safely close this popup and work during this operation.<br>You will be notified when the extraction has finished.</p>');
 
 		$.blockUI({

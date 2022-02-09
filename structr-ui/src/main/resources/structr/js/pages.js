@@ -2220,15 +2220,9 @@ let _Pages = {
 
 				_Pages.unattachedNodes.removeElementsFromUI();
 
-				_Pages.unusedElementsTree.append('<button class="btn disabled flex items-center" id="delete-all-unattached-nodes" disabled> Loading </button>');
+				_Pages.unusedElementsTree.append(`<button class="btn disabled flex items-center" id="delete-all-unattached-nodes" disabled><span>Loading</span>${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'ml-2')}</button>`);
 
 				let btn = $('#delete-all-unattached-nodes');
-				Structr.loaderIcon(btn, {
-					"max-height": "100%",
-					"height": "initial",
-					"width": "initial"
-				});
-
 				btn.on('click', function() {
 					Structr.confirmation('<p>Delete all DOM elements without parent?</p>',
 							function() {

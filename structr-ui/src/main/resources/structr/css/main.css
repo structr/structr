@@ -2219,7 +2219,7 @@ button.disabled, i.disabled {
 	z-index: 100;
 }
 
-.dropdown-select svg, .dropdown-menu-container svg {
+.dropdown-select svg {
 	margin-right: .5rem;
 	vertical-align: bottom;
 }
@@ -4646,6 +4646,9 @@ table.props td.__value {
 .flex {
 	display: flex;
 }
+.inline-flex {
+	display: inline-flex;
+}
 .grid {
 	display: grid;
 }
@@ -4825,7 +4828,10 @@ table.props td.__value {
 	cursor: pointer;
 }
 .gap-y-2 {
-	row-gap: 0.5rem;
+	row-gap: .5rem;
+}
+.gap-y-4 {
+	row-gap: 1rem;
 }
 .gap-x-4 {
 	column-gap: 1rem;

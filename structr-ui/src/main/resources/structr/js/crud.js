@@ -341,7 +341,7 @@ let _Crud = {
 	messageTimeout: undefined,
 	showLoadingMessageAfterDelay: function (message, delay) {
 
-		_Crud.showMessageAfterDelay('<img src="' + _Icons.getSpinnerImageAsData() + '"> ' + message + ' - please stand by', delay);
+		_Crud.showMessageAfterDelay(_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2') + ' ' + message + ' - please stand by', delay);
 
 	},
 	showMessageAfterDelay: function (message, delay) {
@@ -353,7 +353,7 @@ let _Crud = {
 			_Crud.removeMessage();
 
 			let crudRight = $('#crud-type-detail');
-			crudRight.append('<div class="crud-message"><div class="crud-centered">' + message + '</div></div>');
+			crudRight.append('<div class="crud-message"><div class="crud-centered flex items-center justify-center">' + message + '</div></div>');
 
 		}, delay);
 
@@ -1147,7 +1147,7 @@ let _Crud = {
 					if (!isRetry) {
 						_Crud.list(type, url, true);
 					} else {
-						_Crud.showMessageAfterDelay('<img src="' + _Icons.getSpinnerImageAsData() + '"> View is too large - please select different view', 1);
+						_Crud.showMessageAfterDelay(_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2') + ' View is too large - please select different view', 1);
 					}
 
 				} else {
@@ -2311,7 +2311,7 @@ let _Crud = {
 				url = rootUrl + type + '/public' + _Crud.sortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1) + searchPart;
 			}
 
-			searchResults.append('<div id="placeholderFor' + type + '" class="searchResultGroup resourceBox"><img class="loader" src="' + _Icons.getSpinnerImageAsData() + '">Searching for "' + searchString + '" in ' + type + '</div>');
+			searchResults.append(`<div id="placeholderFor${type}" class="searchResultGroup resourceBox flex items-center">${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')} Searching for "${searchString}" in ${type}</div>`);
 
 			$.ajax({
 				url: url,
@@ -2323,7 +2323,7 @@ let _Crud = {
 						if (!data || !data.result) {
 							return;
 						}
-						var result = data.result;
+						let result = data.result;
 						$('#placeholderFor' + type + '').remove();
 
 						if (result) {
@@ -2637,10 +2637,13 @@ let _Crud = {
 				});
 			}
 
-			var dimensions = Structr.getDialogDimensions(0, 24);
+			let dimensions = Structr.getDialogDimensions(0, 24);
 			Structr.blockUI(dimensions);
 
 			_Crud.resize();
+
+			dimensions.text = text;
+			LSWrapper.setItem(Structr.dialogDataKey, JSON.stringify(dimensions));
 		}
 	},
 	resize: function() {

@@ -3601,13 +3601,13 @@ let _Schema = {
 	// },
 	activateAdminTools: () => {
 
-		var registerSchemaToolButtonAction = function (btn, target, connectedSelectElement, getPayloadFunction) {
+		let registerSchemaToolButtonAction = function (btn, target, connectedSelectElement, getPayloadFunction) {
 
 			btn.off('click').on('click', function(e) {
 				e.preventDefault();
-				var oldHtml = btn.html();
+				let oldHtml = btn.html();
 
-				var transportAction = function (target, payload) {
+				let transportAction = function (target, payload) {
 
 					Structr.updateButtonWithAjaxLoaderAndText(btn, oldHtml);
 					$.ajax({
@@ -3616,7 +3616,7 @@ let _Schema = {
 						data: JSON.stringify(payload),
 						contentType: 'application/json',
 						statusCode: {
-							200: function() {
+							200: () => {
 								Structr.updateButtonWithSuccessIcon(btn, oldHtml);
 							}
 						}
@@ -3627,7 +3627,7 @@ let _Schema = {
 					transportAction(target, {});
 
 				} else {
-					var type = connectedSelectElement.val();
+					let type = connectedSelectElement.val();
 					if (!type) {
 						blinkRed(connectedSelectElement);
 					} else {
