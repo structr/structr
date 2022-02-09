@@ -34,6 +34,7 @@ export class Frontend {
 		this.boundHandleFocus        = this.handleFocus.bind(this);
 		this.boundHandleBlur         = this.handleBlur.bind(this);
 		this.boundHandleDrag         = this.handleDrag.bind(this);
+		this.boundHandleRender       = this.handleRender.bind(this);
 
 		// variables
 		this.eventListeners          = {};
@@ -55,7 +56,7 @@ export class Frontend {
 			resolved[target.name] = this.resolveValue(target);
 		}
 
-		for (var key in data) {
+		for (const key in data) {
 
 			let value = data[key];
 			if (value) {
@@ -240,7 +241,7 @@ export class Frontend {
 		*/
 	}
 
-	reloadPartial(selector, parameters, element) {
+	reloadPartial(selector, parameters, element, dontRebind) {
 
 		let reloadTargets = document.querySelectorAll(selector);
 		if (reloadTargets.length) {
@@ -285,7 +286,9 @@ export class Frontend {
 							}
 						}
 
-						this.bindEvents();
+						if (!dontRebind) {
+							this.bindEvents();
+						}
 
 						// fire reloaded event
 						this.fireEvent('reloaded', { target: element, data: parameters });
@@ -315,9 +318,9 @@ export class Frontend {
 			if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
 			return response.text();
 		}).then(html => {
-			var content = document.createElement(container.nodeName);
+			let content = document.createElement('div');
 			if (content) {
-				content.innerHTML = html;
+				content.insertAdjacentHTML('afterbegin', html);
 				if (content && content.children && content.children.length) {
 					container.replaceWith(content.children[0]);
 				} else {
@@ -595,7 +598,21 @@ export class Frontend {
 		this.focusId     = undefined;
 	}
 
+	handleRender(el) {
+		const id = el.dataset.structrId;
+		this.reloadPartial('[data-structr-id="' + id + '"]', null, el, true);
+	}
+
 	bindEvents() {
+
+		document.querySelectorAll('*[data-structr-rendering-mode]').forEach(elem => {
+
+			let renderingMode   = elem.dataset.structrRenderingMode;
+			let delayOrInterval = elem.dataset.structrDelayOrInterval;
+			if (renderingMode.length) {
+				this.attachRenderingHandler(elem, this.boundHandleRender, renderingMode, delayOrInterval);
+			}
+		});
 
 		document.querySelectorAll('*[data-structr-events]').forEach(elem => {
 
@@ -668,6 +685,50 @@ export class Frontend {
 				listener.apply(null, [data]);
 			}
 		}
+	}
+
+	attachRenderingHandler(element, callback, renderingMode, delayOrInterval) {
+
+		switch (renderingMode) {
+
+			case 'load':
+				callback(element);
+				break;
+
+			case 'delayed':
+
+				window.setTimeout(() => {
+					callback(element);
+				}, delayOrInterval|| 1000);
+				break;
+
+			case 'visible':
+
+				const observer = new IntersectionObserver((entries, observer) => {
+					entries.forEach(entry => {
+						if (entry.isIntersecting) {
+							callback(element, observer);
+						}
+					});
+				});
+
+				observer.observe(element);
+
+				break;
+
+			case 'periodic':
+
+				callback(element);
+				window.setInterval(() => {
+					callback(element);
+				}, delayOrInterval|| 10000);
+				break;
+
+			default:
+				callback(element);
+				break;
+		}
+
 	}
 }
 

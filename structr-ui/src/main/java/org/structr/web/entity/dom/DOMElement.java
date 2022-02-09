@@ -160,7 +160,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addStringProperty("_html_onwaiting", PropertyView.Html);
 		type.addStringProperty("_html_data", PropertyView.Html);
 
-		// data-structr-* attibutes
+		// data-structr-* attributes
 		type.addBooleanProperty("data-structr-reload",              PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If active, the page will refresh after a successful action.");
 		type.addBooleanProperty("data-structr-confirm",             PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If active, a user has to confirm the action.");
 		type.addBooleanProperty("data-structr-append-id",           PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("On create, append ID of first created object to the return URI.");
@@ -190,6 +190,10 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addPropertyGetter("eventMapping", String.class);
 		type.relate(type, "RELOADS",   Cardinality.ManyToMany, "reloadSources",     "reloadTargets");
 		type.addViewProperty("_html_name", PropertyView.Ui);
+
+		// attributes for lazy rendering
+		type.addStringProperty("data-structr-rendering-mode",       PropertyView.Ui).setHint("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval");
+		type.addStringProperty("data-structr-delay-or-interval",    PropertyView.Ui).setHint("Delay or interval in milliseconds for 'delayed' or 'periodic' rendering mode");
 
 		// Core attributes
 		type.addStringProperty("_html_accesskey", PropertyView.Html);
@@ -906,8 +910,16 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					renderContext.setInBody(true);
 				}
 
-				// only render children if we are not in a shared component scenario and not in deployment mode
-				if (thisElement.getSharedComponent() == null || !EditMode.DEPLOYMENT.equals(editMode)) {
+				boolean lazyRendering = false;
+				final String renderingMode = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-rendering-mode"));
+
+				// lazy rendering can only work if this node is not requested as a partial
+				if (renderContext.getPage() != null && renderingMode != null) {
+					lazyRendering = true;
+				}
+
+				// only render children if we are not in a shared component scenario, not in deployment mode and it's not rendered lazily
+				if (!lazyRendering && (thisElement.getSharedComponent() == null || !EditMode.DEPLOYMENT.equals(editMode))) {
 
 					// fetch children
 					final List<RelationshipInterface> rels = thisElement.getChildRelationships();
@@ -1213,6 +1225,13 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 							out.append(" data-structr-render-state=\"").append(encodedRenderState).append("\"");
 						}
+					}
+
+					final String renderingMode = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-rendering-mode"));
+					if (renderingMode != null) {
+						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+						out.append(" data-structr-delay-or-interval=\"").append(thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-delay-or-interval"))).append("\"");
+
 					}
 
 					break;

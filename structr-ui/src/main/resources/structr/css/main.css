@@ -4386,13 +4386,17 @@ div.option-tile.double {
 /*	margin: 0;*/
 /*}*/
 
-div.option-tile select, div.option-tile input[type="text"], div.option-tile select, div.option-tile input[type="password"],
+div.option-tile select, div.option-tile input[type="text"],
+div.option-tile select, div.option-tile input[type="password"],
+div.option-tile select, div.option-tile input[type="number"],
 div.option-tile textarea {
 	width: 100%;
 	box-sizing: border-box;
 	margin-top: .25rem;
 }
-div.option-tile select, div.option-tile input[type="text"], div.option-tile select, div.option-tile input[type="password"] {
+div.option-tile select, div.option-tile input[type="text"],
+div.option-tile select, div.option-tile input[type="password"],
+div.option-tile select, div.option-tile input[type="number"] {
 	height: 2.5rem;
 }
 
