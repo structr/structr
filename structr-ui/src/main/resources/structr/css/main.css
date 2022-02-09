@@ -562,9 +562,10 @@ img.disabled {
 
 .add_widgets_icon {
 	position: absolute;
-	right: 1rem;
+	right: 5.75rem;
 	top: 1rem;
 	cursor: pointer;
+	z-index: 1;
 }
 
 #edit-widget-servers {
@@ -743,7 +744,8 @@ img.disabled {
 }
 
 #widgets > .node, #remoteWidgets > .node {
-	width: calc(100% - 5px);
+	width: calc(100%);
+	margin-left: .75rem;
 }
 
 #widgets .pagerlocal-widgets {
@@ -1127,6 +1129,10 @@ img.disabled {
 	max-width: calc(100% - 6rem);
 }
 
+.abbr-ellipsis.abbr-70pc {
+	max-width: 70%;
+}
+
 .abbr-ellipsis.abbr-75pc {
 	max-width: 75%;
 }
@@ -1389,7 +1395,7 @@ i.link_icon {
 .icons-container {
 	position: absolute;
 	right: .5rem;
-	top: .4rem;
+	top: .375rem;
 	vertical-align: top;
 	height: 1rem;
 }
@@ -2468,6 +2474,15 @@ table.push {
 
 .widget b, .widget span {
 	cursor: pointer;
+	line-height: 2rem;
+}
+
+.widget.node {
+	margin-left: 0;
+}
+
+.widget .typeIcon {
+	vertical-align: sub;
 }
 
 .hidden, i.hidden {
@@ -4154,7 +4169,7 @@ table.refactoring-helper td input {
 }
 
 .select2-container {
-	margin-top: .25rem;
+	margin-top: .275rem;
 }
 
 .select2-container--default .select2-selection--single .select2-selection__rendered {
@@ -4338,7 +4353,7 @@ div.option-tile {
 	position: relative;
 }
 
-div.option-tile:nth-child(even) {
+div.option-tile:nth-child(2), div.option-tile:nth-child(3), div.option-tile:nth-child(4) {
 	margin-left: 2rem;
 }
 

@@ -99,7 +99,7 @@ let _Widgets = {
 			_Widgets.localWidgetsEl = $('#widgets', _Pages.widgetsSlideout);
 
 			$('.add_widgets_icon', _Pages.widgetsSlideout).on('click', function(e) {
-				e.stopPropagation();
+				e.preventDefault();
 				Command.create({type: 'Widget'});
 			});
 
@@ -133,7 +133,7 @@ let _Widgets = {
 				}
 			});
 
-			_Pager.initPager('local-widgets', 'Widget', 1, 100, 'treePath', 'asc');
+			_Pager.initPager('local-widgets', 'Widget', 1, 1000, 'treePath', 'asc');
 			var _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl, true, 'Widget', 'public', function(entities) {
 				entities.forEach(function (entity) {
 					StructrModel.create(entity, null, false);
@@ -388,11 +388,13 @@ let _Widgets = {
 
 		let expanded = Structr.isExpanded(id);
 
-		parent.append('<div id="' + id + '_folder" class="widget node">'
-			+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '"></i>'
-			+ '<b title="' + escapeForHtmlAttributes(name) + '" class="name abbr-ellipsis abbr-66pc">' + name + '</b>'
-			+ '<div id="' + id + '" class="node' + (expanded ? ' hidden' : '') + '"></div>'
-			+ '</div>');
+		parent.append(`
+			<div id="${id}_folder" class="widget node">
+				<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
+				<b title="${escapeForHtmlAttributes(name)}" class="name abbr-ellipsis abbr-70pc">${name}</b>
+				<div id="${id}" class="node${expanded ? ' hidden' : ''}"></div>
+			</div>
+			`);
 
 		let div = $('#' + id + '_folder');
 
@@ -409,7 +411,7 @@ let _Widgets = {
 			parent.append(`
 				<div id="id_${widget.id}" class="node widget">
 					<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
-					<b title="${escapeForHtmlAttributes(widget.name)}" class="name_ abbr-ellipsis abbr-66pc">${widget.name}</b> <span class="id">${widget.id}</span>
+					<b title="${escapeForHtmlAttributes(widget.name)}" class="name_ abbr-ellipsis abbr-70pc">${widget.name}</b> <span class="id">${widget.id}</span>
 					<div class="icons-container"></div>
 				</div>
 			`);
