@@ -192,8 +192,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addViewProperty("_html_name", PropertyView.Ui);
 
 		// attributes for lazy rendering
-		type.addStringProperty("data-structr-rendering-mode",       PropertyView.Ui).setHint("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval");
-		type.addStringProperty("data-structr-delay-or-interval",    PropertyView.Ui).setHint("Delay or interval in milliseconds for 'delayed' or 'periodic' rendering mode");
+		type.addStringProperty("data-structr-rendering-mode",       PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval");
+		type.addStringProperty("data-structr-delay-or-interval",    PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Delay or interval in milliseconds for 'delayed' or 'periodic' rendering mode");
 
 		// Core attributes
 		type.addStringProperty("_html_accesskey", PropertyView.Html);
