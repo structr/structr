@@ -130,18 +130,8 @@ public class SchemaMethodResource extends WrappingResource {
 		} else {
 
 			result = new RestMethodResult(200);
+			result.addContent(obj);
 
-			// unwrap nested object(s)
-			if (obj instanceof Collection) {
-
-				for (Object o : (Collection)obj) {
-					
-					result.addContent(o);
-				}
-
-			} else {
-				result.addContent(obj);
-			}
 		}
 
 		return result;
