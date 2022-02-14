@@ -133,6 +133,12 @@ let _Pager = {
 			if (typeof optionalTransportFunction === "function") {
 				optionalTransportFunction(id, _Pager.pageSize[id], _Pager.page[id], filterAttrs, pager.internalCallback);
 			} else {
+
+				// Filter out the special page named __ShadowDocument__ to allow displaying hidden pages in the admin UI
+				if (pager.type === 'Page') {
+					filterAttrs['!name'] = '__ShadowDocument__';
+				}
+
 				Command.query(pager.type, _Pager.pageSize[id], _Pager.page[id], _Pager.sortKey[id], _Pager.sortOrder[id], filterAttrs, pager.internalCallback, isExactPager, view, customView);
 			}
 		};

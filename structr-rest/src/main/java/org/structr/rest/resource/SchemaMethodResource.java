@@ -37,6 +37,7 @@ import org.structr.rest.exception.IllegalPathException;
 import org.structr.schema.action.Actions;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -129,9 +130,8 @@ public class SchemaMethodResource extends WrappingResource {
 		} else {
 
 			result = new RestMethodResult(200);
-
-			// unwrap nested object(s)
 			result.addContent(obj);
+
 		}
 
 		return result;

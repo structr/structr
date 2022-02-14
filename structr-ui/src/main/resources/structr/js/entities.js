@@ -124,7 +124,7 @@ let _Entities = {
 	// },
 	dataBindingDialog: function(entity, el, typeInfo) {
 
-		Structr.fetchHtmlTemplate('entities/events', { entity: entity }, function (html) {
+		Structr.fetchHtmlTemplate('pages/event-action-mapping', { entity: entity }, function (html) {
 
 			el.empty();
 			el.append(html);
@@ -137,21 +137,21 @@ let _Entities = {
 			    parent = $(document.body);
 			}
 
-			let eventMappingSelect  = $('select#event-mapping-select', el);
-			let targetTypeSelect    = $('select#target-type-select', el);
-			let deleteTargetInput   = $('#delete-target-input', el);
-			let methodNameInput     = $('#method-name-input', el);
-			let methodTargetInput   = $('#method-target-input', el);
-			let updateTargetInput   = $('#update-target-input', el);
-			let updatePropertyInput = $('#update-property-input', el);
-			let reloadOptionSelect  = $('select#reload-option-select', el);
-			let reloadSelectorInput = $('#reload-selector-input', el);
-			let reloadUrlInput      = $('#reload-url-input', el);
-			let reloadEventInput    = $('#reload-event-input', el);
-			let customEventInput    = $('#custom-event-input', el);
-			let customActionInput   = $('#custom-action-input', el);
-			let customTargetInput   = $('#custom-target-input', el);
-			let paginationNameInput = $('#pagination-name-input', el);
+			let eventMappingSelect  =  $('select#event-mapping-select', el);
+			let targetTypeSelect    =  $('select#target-type-select', el);
+			let deleteTargetInput   =  $('#delete-target-input', el);
+			let methodNameInput     =  $('#method-name-input', el);
+			let methodTargetInput   =  $('#method-target-input', el);
+			let updateTargetInput   =  $('#update-target-input', el);
+			let updatePropertyInput =  $('#update-property-input', el);
+			let reloadOptionSelect  =  $('select#reload-option-select', el);
+			let reloadSelectorInput =  $('#reload-selector-input', el);
+			let reloadUrlInput      =  $('#reload-url-input', el);
+			let reloadEventInput    =  $('#reload-event-input', el);
+			let customEventInput    =  $('#custom-event-input', el);
+			let customActionInput   =  $('#custom-action-input', el);
+			let customTargetInput   =  $('#custom-target-input', el);
+			let paginationNameInput =  $('#pagination-name-input', el);
 
 			// event mapping selector
 			eventMappingSelect.select2({
@@ -159,7 +159,7 @@ let _Entities = {
 				style: style,
 				width: width,
 				dropdownParent: parent,
-			}).on('select2:select', function (e) {
+			}).on('select2:select', function(e) {
 				let data = e.params.data;
 				$('div.event-options', el).addClass('hidden');
 				if (this.value && this.value.length > 0) {
@@ -211,7 +211,7 @@ let _Entities = {
 				style: style,
 				width: width,
 				dropdownParent: parent,
-			}).on('select2:select', function (e) {
+			}).on('select2:select', function(e) {
 				$('div.reload-options', el).addClass('hidden');
 				if (this.value && this.value.length > 0) {
 					$('#' + this.value).removeClass('hidden');
@@ -291,7 +291,7 @@ let _Entities = {
 
 				} else {
 
-					for (var key of Object.keys(eventMapping)) {
+					for (let key of Object.keys(eventMapping)) {
 
 						customEventInput.val(key);
 						customActionInput.val(eventMapping[key]);
@@ -306,7 +306,7 @@ let _Entities = {
 				let selectedType = entity['data-structr-target'];
 				if (selectedType) {
 
-					var option = new Option(selectedType, selectedType, true, true);
+					let option = new Option(selectedType, selectedType, true, true);
 					targetTypeSelect.append(option).trigger('change');
 
 					targetTypeSelect.trigger({
@@ -682,7 +682,7 @@ let _Entities = {
 
 			let allButtons = $('.query-type-buttons button', el);
 
-			allButtons.on('click', function () {
+			allButtons.on('click', function() {
 
 				allButtons.removeClass('active');
 
@@ -1993,7 +1993,7 @@ let _Entities = {
 					templateSelection: (state) => {
 						return templateOption(state, true);
 					}
-				}).on('select2:unselecting', function (e) {
+				}).on('select2:unselecting', function(e) {
 					e.preventDefault();
 
 					Command.setProperty(id, 'owner', null, false, function() {
@@ -2001,7 +2001,7 @@ let _Entities = {
 						ownerSelect.val(null).trigger('change');
 					});
 
-				}).on('select2:select', function (e) {
+				}).on('select2:select', function(e) {
 
 					let data = e.params.data;
 					Command.setProperty(id, 'owner', data.id, false, function() {
@@ -2016,7 +2016,7 @@ let _Entities = {
 					templateResult: (state) => {
 						return templateOption(state, false);
 					}
-				}).on('select2:select', function (e) {
+				}).on('select2:select', function(e) {
 
 					let data = e.params.data;
 					let pId = data.id;
@@ -2229,7 +2229,7 @@ let _Entities = {
 			parent.append(contextMenuIcon);
 		}
 
-		contextMenuIcon.on('click', (e) => {
+		contextMenuIcon.on('click', function(e) {
 			e.stopPropagation();
 			_Elements.activateContextMenu(e, parent, entity);
 		});
@@ -2314,7 +2314,7 @@ let _Entities = {
 		}
 
 		if (!allowClick) {
-			node.on('click', (e) => {
+			node.on('click', function(e) {
 				e.stopPropagation();
 				return false;
 			});
@@ -2675,14 +2675,14 @@ let _Entities = {
 		return (entity.type === 'Template' || entity.type === 'Content');
 	},
 	setPropertyWithFeedback: function(entity, key, newVal, input, blinkEl) {
-		var oldVal = entity[key];
+		const oldVal = entity[key];
 		Command.setProperty(entity.id, key, newVal, false, function(result) {
-			var newVal = result[key];
+			let newVal = result[key];
 
 			// update entity so this works multiple times
 			entity[key] = newVal;
 
-			if (newVal !== oldVal) {
+			if (key === 'password' || newVal !== oldVal) {
 				blinkGreen(input);
 				if (blinkEl) {
 					blinkGreen(blinkEl);
@@ -2691,7 +2691,7 @@ let _Entities = {
 					newVal = newVal.join(',');
 				}
 				input.val(newVal);
-				let valueMsg = (newVal !== undefined || newValue !== null) ? 'value "' + newVal : 'empty value';
+				let valueMsg = (newVal !== undefined || newVal !== null) ? 'value "' + newVal : 'empty value';
 				Structr.showAndHideInfoBoxMessage('Updated property "' + key + '" with ' + valueMsg, 'success', 2000, 200);
 			} else {
 				input.val(oldVal);

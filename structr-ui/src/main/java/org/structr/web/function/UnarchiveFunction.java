@@ -21,16 +21,19 @@ package org.structr.web.function;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
+import java.util.Map;
+
 public class UnarchiveFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_UNARCHIVE    = "Usage: ${unarchive(archiveFileName)}. Example: ${unarchive(\"archive.zip\")}";
-	public static final String ERROR_MESSAGE_UNARCHIVE_JS = "Usage: ${{Structr.unarchive(archiveFileName)}}. Example: ${{Structr.unarchive(\"archive.zip\")}}";
+	public static final String ERROR_MESSAGE_UNARCHIVE    = "Usage: ${unarchive(archiveFile [, parentFolder])}. Example: ${unarchive(first(find('File', 'name', 'archive.zip')), first(find('Folder', 'name', 'parent')) )}";
+	public static final String ERROR_MESSAGE_UNARCHIVE_JS = "Usage: ${{$.unarchive(archiveFile [, parentFolder])}}. Example: ${{ $.unarchive($.first($.find('File', 'name', 'archive.zip')), $.first($.find('Folder', 'name', 'parent')) )}}";
 
 	@Override
 	public String getName() {
@@ -39,7 +42,7 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getSignature() {
-		return "fileName, [, parentFolder ]";
+		return "file, [, parentFolder ]";
 	}
 
 	@Override
@@ -67,8 +70,12 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 
 			} else {
 
-				// Create folder with same name (without extension) as file
-				parentFolder = StructrApp.getInstance(ctx.getSecurityContext()).create(Folder.class, StringUtils.substringBeforeLast(archiveFile.getName(), "."));
+				final PropertyMap props = new PropertyMap();
+				props.put(StructrApp.key(Folder.class, "name"), StringUtils.substringBeforeLast(archiveFile.getName(), "."));
+				props.put(StructrApp.key(Folder.class, "parent"), archiveFile.getParent());
+
+				// Create folder with same name (without extension) and in same folder as file
+				parentFolder = StructrApp.getInstance(ctx.getSecurityContext()).create(Folder.class, props);
 			}
 
 			FileHelper.unarchive(ctx.getSecurityContext(), (File) sources[0], parentFolder == null ? null : parentFolder.getUuid());

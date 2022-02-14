@@ -386,10 +386,12 @@ public class StructrWebSocket implements WebSocketListener {
 		} catch (EofException ex) {
 
 			logger.warn("Unable to send websocket message to remote client: Connection might have been terminated before all content was delivered.");
+
 		} catch (Throwable t) {
 
-			if (t instanceof QuietException || t.getCause() instanceof TimeoutException) {
+			if (t instanceof QuietException || t.getCause() instanceof QuietException) {
 				// ignore exceptions which (by jettys standards) should be handled less verbosely
+			} else if (t.getCause() instanceof TimeoutException) {
 				// also ignore timeoutexceptions
 			} else {
 

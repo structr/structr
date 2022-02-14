@@ -44,7 +44,8 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 	public static final String KEY_UUID_CACHE_SIZE         = "uuidCacheSize";
 	public static final String KEY_FORCE_STREAMING         = "forceStreaming";
 
-	public static final String INFO_TEXT                   = "Only available in Neo4j Enterprise &gt;= 4. Make sure database exists before using it.";
+	public static final String INFO_TEXT_URL               = "If no URI scheme is entered, the default 'bolt://' scheme will be used.";
+	public static final String INFO_TEXT_DATABASENAME      = "Only available in Neo4j Enterprise &gt;= 4. Make sure database exists before using it.";
 
 	public DatabaseConnection() {
 	}
@@ -132,7 +133,7 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 		driver.add(driverSelect);
 
 		final Tag url = div.block("p");
-		url.block("label").text("Connection URL");
+		url.block("label").text("Connection URL").css("has-comment").attr(new Attr("data-comment", INFO_TEXT_URL));
 		final InputField nameInput = new InputField(url, "text", "url-" + name, getUrl());
 		if (isActive()) {
 			nameInput.attr(new Attr("readonly", "readonly"));
@@ -140,7 +141,7 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 		url.add(nameInput);
 
 		final Tag databaseName = div.block("p");
-		databaseName.block("label").text("Database Name").css("has-comment").attr(new Attr("data-comment", INFO_TEXT));
+		databaseName.block("label").text("Database Name").css("has-comment").attr(new Attr("data-comment", INFO_TEXT_DATABASENAME));
 		final InputField databaseNameInput = new InputField(databaseName, "text", "database-" + name, getDatabaseName());
 		if (isActive()) {
 			databaseNameInput.attr(new Attr("readonly", "readonly"));

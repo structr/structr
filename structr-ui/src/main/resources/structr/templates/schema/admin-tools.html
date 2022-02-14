@@ -6,9 +6,9 @@
 		<option value="allNodes">All Node Types</option>
 		<option disabled>──────────</option>
 	</select>
-	<button id="reindex-nodes">Rebuild node index</button>
-	<button id="add-node-uuids">Add UUIDs</button>
-	<button id="create-labels">Create Labels</button>
+	<button id="reindex-nodes" class="inline-flex items-center">Rebuild node index</button>
+	<button id="add-node-uuids" class="inline-flex items-center">Add UUIDs</button>
+	<button id="create-labels" class="inline-flex items-center">Create Labels</button>
 </div>
 <div class="row">
 	<select id="rel-type-selector">
@@ -17,10 +17,15 @@
 		<option value="allRels">All Relationship Types</option>
 		<option disabled>──────────</option>
 	</select>
-	<button id="reindex-rels">Rebuid relationship index</button>
-	<button id="add-rel-uuids">Add UUIDs</button>
+	<button id="reindex-rels" class="inline-flex items-center">Rebuild relationship index</button>
+	<button id="add-rel-uuids" class="inline-flex items-center">Add UUIDs</button>
 </div>
-<div class="row"><button id="rebuild-index"><i class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)}"></i> Rebuild all indexes</button><label for="rebuild-index">Rebuild indexes for entire database (all node and relationship indexes)</label></div>
+<div class="row flex items-center">
+	<button id="rebuild-index" class="inline-flex items-center">
+		<i class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)} mr-2"></i> Rebuild all indexes
+	</button>
+	<label for="rebuild-index">Rebuild indexes for entire database (all node and relationship indexes)</label>
+</div>
 <div class="separator"></div>
 <div class="heading-row"><h3>Maintenance</h3></div>
 <!--<div class="inline-info"><div class="inline-info-icon">${_Icons.getSvgIcon('info-icon', 24, 24)}</div>-->
@@ -30,7 +35,23 @@
 <!--		The respective result element can be accessed via a keyword configured further below.-->
 <!--	</div>-->
 <!--</div>-->
-<div class="row"><button id="flush-caches"><i class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)}"></i> Flush Caches</button><label for="flush-caches">Flushes internal caches to refresh schema information</label></div>
-<div class="row"><button id="clear-schema"><i class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i> Clear Schema</button><label for="clear-schema">Delete all schema nodes and relationships in custom schema</label></div>
+<div class="row flex items-center">
+	<button id="flush-caches" class="inline-flex items-center">
+		<i class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)} mr-2"></i> Flush Caches
+	</button>
+	<label for="flush-caches">Flushes internal caches to refresh schema information</label>
+</div>
+
+<div class="row flex items-center">
+	<button id="clear-schema" class="inline-flex items-center">
+		<i class="${_Icons.getFullSpriteClass(_Icons.delete_icon)} mr-2"></i> Clear Schema
+	</button>
+	<label for="clear-schema">Delete all schema nodes and relationships in custom schema</label>
+</div>
+
 <div class="separator"></div>
-<div class="row"><input type="checkbox" id="show-java-methods-in-schema-checkbox"><label for="show-java-methods-in-schema-checkbox"> Show Java methods in SchemaNode</label></div>
+
+<div class="row">
+	<input type="checkbox" id="show-java-methods-in-schema-checkbox">
+	<label for="show-java-methods-in-schema-checkbox"> Show Java methods in SchemaNode</label>
+</div>

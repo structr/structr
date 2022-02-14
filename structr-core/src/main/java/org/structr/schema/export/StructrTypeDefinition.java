@@ -1824,7 +1824,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 			if (method.isSelected(tag)) {
 
-				root.putAll(method.serializeOpenAPI(this));
+				root.putAll(method.serializeOpenAPI(this, viewNames));
 			}
 		}
 

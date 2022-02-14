@@ -60,7 +60,6 @@ let _Pages = {
 	init: function() {
 
 		_Pager.initPager('pages',   'Page', 1, 25, 'name', 'asc');
-		_Pager.forceAddFilters('pages', 'Page', { hidden: false });
 		_Pager.initPager('files',   'File', 1, 25, 'name', 'asc');
 		_Pager.initPager('folders', 'Folder', 1, 25, 'name', 'asc');
 		_Pager.initPager('images',  'Image', 1, 25, 'name', 'asc');
@@ -1190,7 +1189,7 @@ let _Pages = {
 		let pageName = (entity.name ? entity.name : '[' + entity.type + ']');
 
 		_Pages.pagesTree.append(`
-			<div id="id_${entity.id}" class="node page">
+			<div id="id_${entity.id}" class="node page${entity.hidden ? ' is-hidden' : ''}">
 				<div class="node-selector"></div>
 				<i class="typeIcon ${_Icons.getFullSpriteClass(_Icons.page_icon)}"></i>
 				<span>
@@ -1643,11 +1642,13 @@ let _Pages = {
 					<div class="node-selector"></div>
 					<i class="typeIcon ${iconClass}"></i><span class="abbr-ellipsis abbr-pages-tree">${detailHtml}${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
 					<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>
+					<div class="icons-container"></div>
 				</div>`
 			);
 			div.dataset['nodeId'] = (_Entities.isContentElement(entity) ? entity.parent.id : entity.id );
 
 			let $div = $(div);
+			let iconsContainer = $('.icons-container', $div);
 
 			if (!entity.isDOMNode && !entity.isFake) {
 
@@ -1658,7 +1659,7 @@ let _Pages = {
 
 					if (schemaNodes.length === 1) {
 
-						_Entities.appendContextMenuIcon($div, {
+						_Entities.appendContextMenuIcon(iconsContainer, {
 							type: _Pages.localizations.wrapperTypeForContextMenu,
 							entity: schemaNodes[0]
 						}, false);
@@ -2219,15 +2220,9 @@ let _Pages = {
 
 				_Pages.unattachedNodes.removeElementsFromUI();
 
-				_Pages.unusedElementsTree.append('<button class="btn disabled flex items-center" id="delete-all-unattached-nodes" disabled> Loading </button>');
+				_Pages.unusedElementsTree.append(`<button class="btn disabled flex items-center" id="delete-all-unattached-nodes" disabled><span>Loading</span>${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'ml-2')}</button>`);
 
 				let btn = $('#delete-all-unattached-nodes');
-				Structr.loaderIcon(btn, {
-					"max-height": "100%",
-					"height": "initial",
-					"width": "initial"
-				});
-
 				btn.on('click', function() {
 					Structr.confirmation('<p>Delete all DOM elements without parent?</p>',
 							function() {
