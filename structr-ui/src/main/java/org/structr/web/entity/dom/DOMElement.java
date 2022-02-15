@@ -69,6 +69,9 @@ import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
+
+import org.structr.web.entity.html.Input;
+import org.structr.web.entity.html.Select;
 import org.structr.web.function.InsertHtmlFunction;
 import org.structr.web.function.RemoveDOMChildFunction;
 import org.structr.web.function.ReplaceDOMChildFunction;
@@ -189,7 +192,10 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addStringProperty("eventMapping",                       PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
 		type.addPropertyGetter("eventMapping", String.class);
 		type.relate(type, "RELOADS",   Cardinality.ManyToMany, "reloadSources",     "reloadTargets");
+		type.relate(type, "INPUTS",   Cardinality.OneToMany,   "actionElement",     "inputs");
 		type.addViewProperty("_html_name", PropertyView.Ui);
+		type.addViewProperty(PropertyView.Ui, "actionElement");
+		type.addViewProperty(PropertyView.Ui, "inputs");
 
 		// attributes for lazy rendering
 		type.addStringProperty("data-structr-rendering-mode",       PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval");
@@ -1188,6 +1194,26 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 								out.append(" data-tree-item-state=\"").append(open ? "open" : "closed").append("\"");
 							}
+						}
+
+						for (DOMElement element : (Iterable<? extends DOMElement>) thisElement.getProperty(StructrApp.key(DOMElement.class, "inputs"))) {
+
+							String nameAttribute = null;
+
+							if (element instanceof Input) {
+
+								element = (Input) element;
+								nameAttribute = element.getProperty(StructrApp.key(Input.class, "_html_name"));
+
+							} else if (element instanceof Select) {
+
+								element = (Select) element;
+								nameAttribute = element.getProperty(StructrApp.key(Select.class, "_html_name"));
+							}
+
+							final String cssIdAttribute = element.getProperty(StructrApp.key(DOMElement.class, "_html_id"));
+
+							out.append(" data-").append(nameAttribute).append("=\"css(#").append(cssIdAttribute).append(")\"");
 						}
 
 

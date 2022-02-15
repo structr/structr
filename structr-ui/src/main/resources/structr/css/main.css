@@ -1364,6 +1364,17 @@ i.edit_ui_properties_icon, i.edit_icon, i.add_icon, i.delete_icon, i.close_icon,
 	top: .25rem;
 }
 
+.add-icon:hover,
+.remove-icon:hover,
+.reset-icon:hover,
+.discard-icon:hover,
+.create-icon:hover,
+.edit-icon:hover,
+.preview-icon:hover {
+	opacity: .6;
+	cursor: pointer;
+}
+
 i.push_icon {
 	position: initial;
 }
@@ -4353,12 +4364,20 @@ div.option-tile {
 	position: relative;
 }
 
-div.option-tile:nth-child(2), div.option-tile:nth-child(3), div.option-tile:nth-child(4) {
+div.option-tile:nth-child(2), div.option-tile:nth-child(3), div.option-tile:nth-child(4), div.option-tile:nth-child(5) {
 	margin-left: 2rem;
 }
 
 div.option-tile.double {
 	width: calc(100%);
+}
+
+div.option-tile.flat {
+	padding-bottom: 1rem;
+}
+
+div.option-tile.narrow {
+	width: calc(25% - 1.5rem);
 }
 
 #hide-conditions, #show-conditions {
@@ -4411,6 +4430,10 @@ div.option-tile label {
 
 div.option-tile .flex label {
 	margin-bottom: 0;
+}
+
+.add-property-input-button {
+	margin-bottom: 1rem;
 }
 
 textarea#content-input {

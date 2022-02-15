@@ -124,7 +124,7 @@ let _Entities = {
 	// },
 	dataBindingDialog: function(entity, el, typeInfo) {
 
-		Structr.fetchHtmlTemplate('pages/event-action-mapping', { entity: entity }, function (html) {
+		Structr.fetchHtmlTemplate('entities/events', { entity: entity }, function (html) {
 
 			el.empty();
 			el.append(html);
@@ -137,21 +137,22 @@ let _Entities = {
 			    parent = $(document.body);
 			}
 
-			let eventMappingSelect  =  $('select#event-mapping-select', el);
-			let targetTypeSelect    =  $('select#target-type-select', el);
-			let deleteTargetInput   =  $('#delete-target-input', el);
-			let methodNameInput     =  $('#method-name-input', el);
-			let methodTargetInput   =  $('#method-target-input', el);
-			let updateTargetInput   =  $('#update-target-input', el);
-			let updatePropertyInput =  $('#update-property-input', el);
-			let reloadOptionSelect  =  $('select#reload-option-select', el);
-			let reloadSelectorInput =  $('#reload-selector-input', el);
-			let reloadUrlInput      =  $('#reload-url-input', el);
-			let reloadEventInput    =  $('#reload-event-input', el);
-			let customEventInput    =  $('#custom-event-input', el);
-			let customActionInput   =  $('#custom-action-input', el);
-			let customTargetInput   =  $('#custom-target-input', el);
-			let paginationNameInput =  $('#pagination-name-input', el);
+			let eventMappingSelect  = $('select#event-mapping-select', el);
+			let targetTypeSelect    = $('select#target-type-select', el);
+			let deleteTargetInput   = $('#delete-target-input', el);
+			let methodNameInput     = $('#method-name-input', el);
+			let methodTargetInput   = $('#method-target-input', el);
+			let updateTargetInput   = $('#update-target-input', el);
+			let updatePropertyInput = $('#update-property-input', el);
+			let reloadOptionSelect  = $('select#reload-option-select', el);
+			let reloadSelectorInput = $('#reload-selector-input', el);
+			let reloadUrlInput      = $('#reload-url-input', el);
+			let reloadEventInput    = $('#reload-event-input', el);
+			let customEventInput    = $('#custom-event-input', el);
+			let customActionInput   = $('#custom-action-input', el);
+			let customTargetInput   = $('#custom-target-input', el);
+			let paginationNameInput = $('#pagination-name-input', el);
+			let multipleProperties  = $('.multiple-properties', el);
 
 			// event mapping selector
 			eventMappingSelect.select2({
@@ -239,6 +240,7 @@ let _Entities = {
 
 				let click        = eventMapping.click;
 				let change       = eventMapping.change;
+				let focusout     = eventMapping.focusout;
 				let id           = 'options-custom';
 
 				if (click) {
@@ -286,6 +288,24 @@ let _Entities = {
 						default:
 							id = 'options-method-change';
 							methodNameInput.val(change);
+							break;
+					}
+
+				} else if (focusout) {
+
+					switch (focusout) {
+
+						case 'update':
+							id = 'options-update-focusout';
+							break;
+
+						case 'create':
+							id = 'options-create-focusout';
+							break;
+
+						default:
+							id = 'options-method-focusout';
+							methodNameInput.val(focusout);
 							break;
 					}
 
@@ -364,6 +384,56 @@ let _Entities = {
 				updatePropertyInput.val(result);
 			});
 
+			let customPropertiesPresent = false;
+
+			Command.get(entity.id, 'inputs', (actionElementData) => {
+
+				for (const input of actionElementData.inputs) {
+
+					customPropertiesPresent = true;
+
+					Command.get(input.id, 'name,_html_name,_html_id,_html_value', (inputData) => {
+
+						Structr.fetchHtmlTemplate('entities/multiple-inputs-row', { id: input.id }, (html) => {
+							document.querySelector('.custom-properties-container').insertAdjacentHTML('beforeend', html);
+							[...document.querySelectorAll('.custom-properties-container .multiple-input-name-input')].pop().value         = inputData.name;
+							[...document.querySelectorAll('.custom-properties-container .multiple-input-property-key-input')].pop().value = inputData._html_name;
+							[...document.querySelectorAll('.custom-properties-container .multiple-input-css-id-input')].pop().value       = inputData._html_id;
+							[...document.querySelectorAll('.custom-properties-container .multiple-input-value-input')].pop().value        = inputData._html_value;
+						});
+					});
+				}
+
+				if (customPropertiesPresent) {
+					updatePropertyInput.removeClass('required');
+				}
+
+			}, 'html');
+
+			let addPropertyInputButton = $('.add-property-input-button');
+			if (addPropertyInputButton) {
+				addPropertyInputButton.on('click', (e) => {
+					updatePropertyInput.removeClass('required');
+
+					const initialName = 'Input of ' + entity.tag + ' ' + entity.id.substring(0,6);
+
+					Command.create({type: 'Input', tag: 'input', name: initialName, _html_type: 'text', actionElement: entity.id, pageId: entity.pageId }, (data) => {
+
+						Command.insertBefore(entity.parent.id, data.id, entity.id);
+
+						customPropertiesPresent = true;
+
+						Structr.fetchHtmlTemplate('entities/multiple-inputs-row', { id: data.id }, (html) => {
+							document.querySelector('.custom-properties-container').insertAdjacentHTML('beforeend', html);
+							[...document.querySelectorAll('.custom-properties-container .multiple-input-name-input')].pop().value         = data.name;
+							[...document.querySelectorAll('.custom-properties-container .multiple-input-property-key-input')].pop().value = data._html_name  || null;
+							[...document.querySelectorAll('.custom-properties-container .multiple-input-css-id-input')].pop().value       = data._html_id    || null;
+							[...document.querySelectorAll('.custom-properties-container .multiple-input-value-input')].pop().value        = data._html_value || null;
+						});
+					});
+				});
+			}
+
 			let saveButton = $('#save-event-mapping-button');
 			if (saveButton) {
 
@@ -405,7 +475,6 @@ let _Entities = {
 					}
 
 					switch (eventType) {
-
 						case 'options-none':
 							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target', null, $(inputEl), null);
 							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',        null, $(inputEl), null);
@@ -441,6 +510,17 @@ let _Entities = {
 						case 'options-create-change':
 							if (targetType) {
 								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "change": "create" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  targetType, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								Structr.showAndHideInfoBoxMessage('Please select the type of object to create.', 'warning', 2000, 200);
+								$('.select2-selection', targetTypeSelect.parent()).addClass('required');
+							}
+							break;
+
+						case 'options-create-focusout':
+							if (targetType) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "focusout": "create" }', $(inputEl), null);
 								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  targetType, $(inputEl), null);
 								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
 							} else {
@@ -508,9 +588,86 @@ let _Entities = {
 							}
 							break;
 
+						case 'options-method-focusout':
+							if (methodTarget && methodName) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "focusout": "' + methodName + '" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  methodTarget, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								if (!methodTarget) {
+									Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to call.', 'warning', 2000, 200);
+									methodTargetInput.addClass('required');
+								}
+								if (!methodName) {
+									Structr.showAndHideInfoBoxMessage('Please provide the name of the method to execute.', 'warning', 2000, 200);
+									methodNameInput.addClass('required');
+								}
+							}
+							break;
+
+						case 'options-update-click':
+							if (updateTarget && (updateProperty || customPropertiesPresent)) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "update" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  updateTarget, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, '_html_name',  updateProperty, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+
+								if (customPropertiesPresent) {
+
+									const inputDefinitions = [
+										{ key: 'name',        selector: '.custom-properties-container .multiple-input-name-input' },
+										{ key: '_html_name',  selector: '.custom-properties-container .multiple-input-property-key-input' },
+										{ key: '_html_id',    selector: '.custom-properties-container .multiple-input-css-id-input' },
+										{ key: '_html_value', selector: '.custom-properties-container .multiple-input-value-input' }
+									];
+
+									for (const inputDefinition of inputDefinitions) {
+
+										for (const inp of document.querySelectorAll(inputDefinition.selector)) {
+											const structrId = inp.dataset.structrId;
+											const value     = inp.value;
+											Command.get(structrId, inputDefinition.key, (data) => {
+												_Entities.setPropertyWithFeedback(data, inputDefinition.key, value, $(inp), null);
+											});
+										}
+
+									}
+								}
+
+							} else {
+								if (!updateTarget) {
+									updateTargetInput.addClass('required');
+									Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to update.', 'warning', 2000, 200);
+								}
+								if (!updateProperty) {
+									updatePropertyInput.addClass('required');
+									Structr.showAndHideInfoBoxMessage('Please provide the name of the property to update.', 'warning', 2000, 200);
+								}
+							}
+							break;
+
 						case 'options-update-change':
 							if (updateTarget && updateProperty) {
 								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "change": "update" }', $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  updateTarget, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, '_html_name',  updateProperty, $(inputEl), null);
+								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							} else {
+								if (!updateTarget) {
+
+									updateTargetInput.addClass('required');
+									Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to update.', 'warning', 2000, 200);
+								}
+								if (!updateProperty) {
+									updatePropertyInput.addClass('required');
+									Structr.showAndHideInfoBoxMessage('Please provide the name of the property to update.', 'warning', 2000, 200);
+								}
+							}
+							break;
+
+						case 'options-update-focusout':
+							if (updateTarget && updateProperty) {
+								_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "focusout": "update" }', $(inputEl), null);
 								_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  updateTarget, $(inputEl), null);
 								_Entities.setPropertyWithFeedback(entity, '_html_name',  updateProperty, $(inputEl), null);
 								_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);

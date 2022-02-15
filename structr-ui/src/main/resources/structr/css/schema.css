@@ -413,18 +413,6 @@
 	margin-left: 2px;
 }
 
-.schema-details .add-icon:hover, #code-main .add-icon:hover,
-.schema-details .remove-icon:hover, #code-main .remove-icon:hover,
-.schema-details .reset-icon:hover, #code-main .reset-icon:hover,
-.schema-details .discard-icon:hover, #code-main .discard-icon:hover,
-.schema-details .create-icon:hover, #code-main .create-icon:hover,
-.schema-details .edit-icon:hover, #code-main .edit-icon:hover,
-.schema-details .preview-icon:hover, #code-main .preview-icon:hover {
-	opacity: .6;
-	cursor: pointer;
-}
-
-
 .schema b {
 	margin: 0 3rem;
 	display: block;
