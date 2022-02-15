@@ -961,36 +961,6 @@ let _Entities = {
 					// custom dialog tab?
 					let hasCustomDialog = _Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
 
-					if (entity.isDOMNode) {
-
-						if (entity.isContent !== true || entity.type === 'Template') {
-
-							_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Repeater', !hasCustomDialog, function(element) {
-
-								Structr.fetchHtmlTemplate('pages/repeater', {}, (html) => {
-									element.append(html);
-
-									$('.inline-info', element).remove();
-
-									let repeaterContainer = $('.repeater-container', element);
-									repeaterContainer.removeClass('content-container');
-
-									_Entities.repeaterConfig(obj, repeaterContainer);
-								});
-
-							}, function() { }, function() { });
-						}
-
-						if (entity.isContent !== true) {
-
-							_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Events', false, function(c) {
-								_Entities.dataBindingDialog(entity, c, typeInfo);
-							}, function(c) {}, function(c) {
-								_Entities.dataBindingDialog(entity, c, typeInfo);
-							});
-						}
-					}
-
 					_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
 
 					if (!entity.hasOwnProperty('relType')) {
