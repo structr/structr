@@ -265,7 +265,6 @@ let _Localization = {
 
 			let row = $(html);
 			_Localization.keysAndDomainsList.append(row);
-			let actionsCol = $('.actions', row);
 
 			row[0].addEventListener('click', () => {
 				_Localization.selectRow(row[0]);
@@ -273,7 +272,7 @@ let _Localization = {
 			});
 
 			_Elements.enableContextMenuOnElement(row, keyAndDomainObject);
-			_Entities.appendContextMenuIcon(actionsCol, keyAndDomainObject, true);
+			_Entities.appendContextMenuIcon($('.icons-container', row), keyAndDomainObject, true);
 
 			let previouslySelectedElement = LSWrapper.getItem(_Localization.localizationSelectedElementKey);
 			if (previouslySelectedElement && previouslySelectedElement.htmlId === row[0].id) {
@@ -373,35 +372,30 @@ let _Localization = {
 				if (response.ok) {
 
 					let data            = await response.json();
-					let totalCounter    = 0;
-					let finishedCounter = 0;
-
 					LSWrapper.setItem(_Localization.localizationSelectedElementKey, newData);
+
+					let patchData = [];
 
 					for (let loc of data.result) {
 
 						if (oldKey === loc.name && oldDomain === loc.domain) {
-
-							totalCounter++;
-
-							let putResponse = await fetch(rootUrl + 'Localization/' + loc.id, {
-								method: 'PUT',
-								body: JSON.stringify(newData)
-							});
-
-							if (putResponse.ok) {
-								blinkGreen($('#loc_' + loc.id + ' td'));
-								finishedCounter++;
-
-								if (finishedCounter === totalCounter) {
-									_Localization.keyAndDomainPager.refresh();
-									_Localization.showLocalizationsForKeyAndDomainObject(newData);
-								}
-
-							} else {
-								blinkRed($('#loc_' + loc.id + ' td'));
-							}
+							patchData.push(Object.assign({ id: loc.id }, newData));
 						}
+					}
+
+					let putResponse = await fetch(rootUrl + 'Localization/', {
+						method: 'PATCH',
+						body: JSON.stringify(patchData)
+					});
+
+					if (putResponse.ok) {
+						blinkGreen($(e.target));
+
+						_Localization.keyAndDomainPager.refresh();
+						_Localization.showLocalizationsForKeyAndDomainObject(newData);
+
+					} else {
+						blinkRed($(e.target));
 					}
 				}
 
