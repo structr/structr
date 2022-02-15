@@ -214,7 +214,7 @@ let _VirtualTypes = {
 
 		_VirtualTypes.showMain();
 
-		Structr.fetchHtmlTemplate('virtual-types/row.type', {virtualType: virtualType}, function(html) {
+		Structr.fetchHtmlTemplate('virtual-types/row.type', {virtualType: virtualType}, (html) => {
 
 			let row = $(html);
 			_VirtualTypes.populateVirtualTypeRow(row, virtualType);
@@ -226,7 +226,7 @@ let _VirtualTypes = {
 			});
 
 			_Elements.enableContextMenuOnElement(row, virtualType);
-			_Entities.appendContextMenuIcon($('.actions', row), virtualType, true);
+			_Entities.appendContextMenuIcon($('.icons-container', row), virtualType, true);
 
 			let previouslySelectedElement = LSWrapper.getItem(_VirtualTypes.virtualTypeSelectedElementKey);
 			if (previouslySelectedElement && previouslySelectedElement === virtualType.id) {
