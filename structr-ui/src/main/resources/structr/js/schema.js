@@ -1508,7 +1508,10 @@ let _Schema = {
 				message += (counts.delete > 0 ? 'Delete ' + counts.delete + ' properties. (Note: Builtin properties will be restored in their initial configuration!)\n' : '');
 				message += (counts.update > 0 ? 'Update ' + counts.update + ' properties.\n' : '');
 
-				if (confirm(message)) {
+				let onlyOneChange = (counts.new + counts.delete + counts.update) === 1;
+
+				if (onlyOneChange || confirm(message)) {
+
 					_Schema.showSchemaRecompileMessage();
 
 					fetch(rootUrl + entity.id, {
@@ -2127,7 +2130,10 @@ let _Schema = {
 				message += (counts.update > 0 ? 'Update ' + counts.update + ' linked property names.\n' : '');
 				message += (counts.reset > 0 ? 'Reset ' + counts.reset + ' linked property names.\n' : '');
 
-				if (confirm(message)) {
+				let onlyOneChange = (counts.reset + counts.update) === 1;
+
+				if (onlyOneChange || confirm(message)) {
+
 					_Schema.showSchemaRecompileMessage();
 
 					fetch(rootUrl + entity.id, {
@@ -2371,7 +2377,9 @@ let _Schema = {
 				message += (counts.delete > 0 ? 'Delete ' + counts.delete + ' views. (Note: Builtin views will be restored in their initial configuration!)\n' : '');
 				message += (counts.update > 0 ? 'Update ' + counts.update + ' views.\n' : '');
 
-				if (confirm(message)) {
+				let onlyOneChange = (counts.new + counts.delete + counts.update) === 1;
+
+				if (onlyOneChange || confirm(message)) {
 
 					_Schema.showSchemaRecompileMessage();
 
@@ -2785,7 +2793,9 @@ let _Schema = {
 				message += (counts.delete > 0 ? 'Delete ' + counts.delete + ' methods.' + (entity ? '(Note: Builtin methods will be restored in their initial configuration!)\n' : '\n') : '');
 				message += (counts.update > 0 ? 'Update ' + counts.update + ' methods.\n' : '');
 
-				if (confirm(message)) {
+				let onlyOneChange = (counts.new + counts.delete + counts.update) === 1;
+
+				if (onlyOneChange || confirm(message)) {
 
 					let activeMethod = fakeTbody.find('.fake-tr.editing');
 					if (activeMethod) {
