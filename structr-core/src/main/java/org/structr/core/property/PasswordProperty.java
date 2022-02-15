@@ -22,7 +22,10 @@ import java.util.Date;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.PasswordPolicyViolationException;
+import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.error.TooShortToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -123,7 +126,62 @@ public class PasswordProperty extends StringProperty {
 			wrappedObject.removeProperty(StructrApp.key(Principal.class, "sessionIds"));
 		}
 
+		if (Settings.PasswordComplexityEnforce.getValue()) {
+			checkPasswordPolicy(obj, clearTextPassword);
+		}
+
 		return returnValue;
-		
+	}
+
+	private void checkPasswordPolicy (GraphObject obj, final String clearTextPassword) throws FrameworkException {
+
+		final String passwordToCheck  = clearTextPassword == null ? "" : clearTextPassword;
+		final ErrorBuffer errorBuffer = new ErrorBuffer();
+		final PropertyKey passwordKey = StructrApp.key(Principal.class, "password");
+
+		final int passwordMinLength             = Settings.PasswordComplexityMinLength.getValue();
+		final boolean enforceMinUpperCase       = Settings.PasswordComplexityRequireUpperCase.getValue();
+		final boolean enforceMinLowerCase       = Settings.PasswordComplexityRequireLowerCase.getValue();
+		final boolean enforceMinDigits          = Settings.PasswordComplexityRequireDigit.getValue();
+		final boolean enforceMinNonAlphaNumeric = Settings.PasswordComplexityRequireNonAlphaNumeric.getValue();
+
+		final String passwordWithoutUpperCase   = passwordToCheck.replaceAll("[A-Z]", "");
+		final String passwordWithoutLowerCase   = passwordToCheck.replaceAll("[a-z]", "");
+		final String passwordWithoutDigits      = passwordToCheck.replaceAll("[0-9]", "");
+
+		final int passwordLength                = passwordToCheck.length();
+		final int upperCaseCharactersInPassword = passwordLength - passwordWithoutUpperCase.length();
+		final int lowerCaseCharactersInPassword = passwordLength - passwordWithoutLowerCase.length();
+		final int digitsInPassword              = passwordLength - passwordWithoutDigits.length();
+		final int otherCharactersInPassword     = (passwordLength - upperCaseCharactersInPassword - lowerCaseCharactersInPassword - digitsInPassword);
+
+		if (passwordLength < passwordMinLength) {
+			errorBuffer.add(new TooShortToken("User", passwordKey, passwordMinLength));
+		}
+
+		if (enforceMinUpperCase && upperCaseCharactersInPassword == 0) {
+			errorBuffer.add(new SemanticErrorToken("User", passwordKey, "must_contain_uppercase"));
+		}
+
+		if (enforceMinLowerCase && lowerCaseCharactersInPassword == 0) {
+			errorBuffer.add(new SemanticErrorToken("User", passwordKey, "must_contain_lowercase"));
+		}
+
+		if (enforceMinDigits && digitsInPassword == 0) {
+			errorBuffer.add(new SemanticErrorToken("User", passwordKey, "must_contain_digits"));
+		}
+
+		if (enforceMinNonAlphaNumeric && otherCharactersInPassword == 0) {
+			errorBuffer.add(new SemanticErrorToken("User", passwordKey, "must_contain_non_alpha_numeric"));
+		}
+
+		if (errorBuffer.hasError()) {
+
+			if (((CreationContainer) obj).getWrappedObject() == null) {
+				throw new PasswordPolicyViolationException(422, "Password policy violation prevented creation of entity with ID " + ((CreationContainer<?>) obj).getData().get("id") + "!", errorBuffer);
+			} else {
+				throw new PasswordPolicyViolationException(422, "Password policy violation prevented password change on entity with ID " + ((CreationContainer) obj).getWrappedObject().getUuid() + "!", errorBuffer);
+			}
+		}
 	}
 }

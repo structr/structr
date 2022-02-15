@@ -178,11 +178,9 @@ let _MailTemplates = {
 		_MailTemplates.mailTemplatesPager.cleanupFunction = function () {
 			_MailTemplates.mailTemplatesList.innerHTML = '';
 		};
-		_MailTemplates.mailTemplatesPager.pager.append('Filters: <input type="text" class="filter w100 mail-template-name" data-attribute="name" placeholder="Name" />');
-		_MailTemplates.mailTemplatesPager.pager.append('<input type="text" class="filter w100 mail-template-locale" data-attribute="locale" placeholder="Locale" />');
+		_MailTemplates.mailTemplatesPager.pager.append('Filters: <input type="text" class="filter w100 mail-template-name" data-attribute="name" placeholder="Name">');
+		_MailTemplates.mailTemplatesPager.pager.append('<input type="text" class="filter w100 mail-template-locale" data-attribute="locale" placeholder="Locale">');
 		_MailTemplates.mailTemplatesPager.activateFilterElements();
-
-		pagerEl.append('<div style="clear:both;"></div>');
 	},
 	processPagerData: (pagerData) => {
 		if (pagerData && pagerData.length) {
@@ -193,7 +191,7 @@ let _MailTemplates = {
 
 		_MailTemplates.showMain();
 
-		Structr.fetchHtmlTemplate('mail-templates/row.type', { mailTemplate: mailTemplate }, function(html) {
+		Structr.fetchHtmlTemplate('mail-templates/row.type', { mailTemplate: mailTemplate }, (html) => {
 
 			let row = Structr.createSingleDOMElementFromHTML(html);
 
@@ -206,7 +204,7 @@ let _MailTemplates = {
 			});
 
 			_Elements.enableContextMenuOnElement($(row), mailTemplate);
-			_Entities.appendContextMenuIcon($(row.querySelector('.actions')), mailTemplate, true);
+			_Entities.appendContextMenuIcon($(row.querySelector('.icons-container')), mailTemplate, true);
 
 			let lastSelectedMailTemplateId = LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey);
 			if (lastSelectedMailTemplateId === mailTemplate.id) {

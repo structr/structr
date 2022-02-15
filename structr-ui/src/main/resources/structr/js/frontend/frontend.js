@@ -231,14 +231,11 @@ export class Frontend {
 
 	handleError(element, error, status) {
 
-		console.log('ERROR!!');
+		if (element) {
+			this.resetValue(element);
+		}
 
-		console.log(error);
-
-		/*
-		this.resetValue(element);
 		this.fireEvent('error', { target: element, data: {}, status: status });
-		*/
 	}
 
 	reloadPartial(selector, parameters, element, dontRebind) {
@@ -330,7 +327,7 @@ export class Frontend {
 			this.bindEvents();
 
 		}).catch(e => {
-			this.handleError(element, e, {});
+			this.handleError(container, e, {});
 		});
 	}
 

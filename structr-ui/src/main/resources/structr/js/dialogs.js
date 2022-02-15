@@ -67,22 +67,26 @@ let _Dialogs = {
 
 		return false;
 	},
-	showCustomProperties: (el, entity) => {
+	showCustomProperties: async (el, entity) => {
 
-		// custom properties
-		let customContainer = $('div#custom-properties-container', el);
+		return new Promise((resolve, reject) => {
 
-		_Schema.getTypeInfo(entity.type, function(typeInfo) {
+			let customContainer = $('div#custom-properties-container', el);
 
-			_Entities.listProperties(entity, 'custom', customContainer, typeInfo, (properties) => {
+			_Schema.getTypeInfo(entity.type, (typeInfo) => {
 
-				// make container visible when custom properties exist
-				if (Object.keys(properties).length > 0) {
-					$('div#custom-properties-parent').removeClass("hidden");
-				}
+				_Entities.listProperties(entity, 'custom', customContainer, typeInfo, (properties) => {
 
-				$('input.dateField', customContainer).each(function(i, input) {
-					_Entities.activateDatePicker($(input));
+					// make container visible when custom properties exist
+					if (Object.keys(properties).length > 0) {
+						$('div#custom-properties-parent').removeClass("hidden");
+					}
+
+					$('input.dateField', customContainer).each(function(i, input) {
+						_Entities.activateDatePicker($(input));
+					});
+
+					resolve();
 				});
 			});
 		});
@@ -450,7 +454,7 @@ let _Dialogs = {
 	},
 	pageDialog: (el, entity) => {
 
-		Structr.fetchHtmlTemplate('dialogs/page.options', { entity: entity, page: entity, title: _Dialogs.title }, (html) => {
+		Structr.fetchHtmlTemplate('dialogs/page.options', { entity: entity, page: entity, title: _Dialogs.title }, async (html) => {
 
 			el.html(html);
 
@@ -459,7 +463,9 @@ let _Dialogs = {
 
 			_Dialogs.focusInput(el);
 
-			_Dialogs.showCustomProperties(el, entity);
+			await _Dialogs.showCustomProperties(el, entity);
+
+			Structr.activateCommentsInElement(el);
 		});
 	},
 	defaultDomDialog: (el, entity) => {
