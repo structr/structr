@@ -31,6 +31,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.renjin.repackaged.guava.base.CaseFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -1203,17 +1204,18 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 							if (element instanceof Input) {
 
 								element = (Input) element;
-								nameAttribute = element.getProperty(StructrApp.key(Input.class, "_html_name"));
+								nameAttribute = element.getPropertyWithVariableReplacement(renderContext, StructrApp.key(Input.class, "_html_name"));
 
 							} else if (element instanceof Select) {
 
 								element = (Select) element;
-								nameAttribute = element.getProperty(StructrApp.key(Select.class, "_html_name"));
+								nameAttribute = element.getPropertyWithVariableReplacement(renderContext, StructrApp.key(Select.class, "_html_name"));
 							}
 
-							final String cssIdAttribute = element.getProperty(StructrApp.key(DOMElement.class, "_html_id"));
+							final String cssIdAttribute = element.getPropertyWithVariableReplacement(renderContext, StructrApp.key(DOMElement.class, "_html_id"));
+							final String nameAttributeHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, nameAttribute);
 
-							out.append(" data-").append(nameAttribute).append("=\"css(#").append(cssIdAttribute).append(")\"");
+							out.append(" data-").append(nameAttributeHyphenated).append("=\"css(#").append(cssIdAttribute).append(")\"");
 						}
 
 
