@@ -976,7 +976,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.expect()
 				.statusCode(200)
 
-				.body("result_count", equalTo(2))
+				.body("result_count", equalTo(1))
 				.body("result[0].type", equalTo("Test2"))
 				.body("result[0].name", equalTo("Test1"))
 
