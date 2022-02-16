@@ -928,9 +928,13 @@ public class SchemaResourceTest extends StructrRestTestBase {
 	@Test
 	public void testInheritedSchemaMethodExecution() {
 
-		final String uuid = createEntity("/SchemaNode", "{ name: TestBase, ___test: \"find('Test')\" }");
-		createEntity("/SchemaNode", "{ name: Test, __public: \"name, type\", extendsClass: \"" + uuid + "\" }");
-		createEntity("Test", "{ name: Test }");
+		final String uuid1 = createEntity("/SchemaNode", "{ name: TestBase1, ___test: \"find('Test1')\" }");
+		final String uuid2 = createEntity("/SchemaNode", "{ name: TestBase2, ___test: \"find('Test2')\" }");
+		createEntity("/SchemaNode", "{ name: Test1, __public: \"name, type\", extendsClass: \"" + uuid1 + "\" }");
+		createEntity("Test1", "{ name: Test1 }");
+		createEntity("Test1", "{ name: Test2 }");
+		createEntity("/SchemaNode", "{ name: Test2, __public: \"name, type\", extendsClass: \"" + uuid2 + "\" }");
+		createEntity("Test2", "{ name: Test1 }");
 
 		// default setting for "force arrays" is false..
 		Settings.ForceArrays.setValue(false);
@@ -949,12 +953,35 @@ public class SchemaResourceTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(200)
 
-				.body("result_count", equalTo(1))
-				.body("result[0].type", equalTo("Test"))
-				.body("result[0].name", equalTo("Test"))
+				.body("result_count", equalTo(2))
+				.body("result[0].type", equalTo("Test1"))
+				.body("result[0].name", equalTo("Test1"))
+				.body("result[1].type", equalTo("Test1"))
+				.body("result[1].name", equalTo("Test2"))
 
 			.when()
-				.post("/Test/test");
+				.post("/Test1/test");
+
+		RestAssured
+
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+				.expect()
+				.statusCode(200)
+
+				.body("result_count", equalTo(2))
+				.body("result[0].type", equalTo("Test2"))
+				.body("result[0].name", equalTo("Test1"))
+
+				.when()
+				.post("/Test2/test");
 
 		// test with true as well
 		Settings.ForceArrays.setValue(true);
