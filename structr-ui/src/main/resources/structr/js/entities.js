@@ -392,14 +392,19 @@ let _Entities = {
 
 					customPropertiesPresent = true;
 
-					Command.get(input.id, 'name,_html_name,_html_id,_html_value', (inputData) => {
+					Command.get(input.id, 'type,name,_html_name,_html_id,_html_value', (inputData) => {
 
 						Structr.fetchHtmlTemplate('entities/multiple-inputs-row', { id: input.id }, (html) => {
 							document.querySelector('.custom-properties-container').insertAdjacentHTML('beforeend', html);
 							[...document.querySelectorAll('.custom-properties-container .multiple-input-name-input')].pop().value         = inputData.name;
 							[...document.querySelectorAll('.custom-properties-container .multiple-input-property-key-input')].pop().value = inputData._html_name;
 							[...document.querySelectorAll('.custom-properties-container .multiple-input-css-id-input')].pop().value       = inputData._html_id;
-							[...document.querySelectorAll('.custom-properties-container .multiple-input-value-input')].pop().value        = inputData._html_value;
+
+							if (inputData.type === 'Input') {
+								[...document.querySelectorAll('.custom-properties-container .multiple-input-value-input')].pop().value = inputData._html_value;
+							} else {
+								[...document.querySelectorAll('.custom-properties-container .multiple-input-value-input')].pop().remove();
+							}
 						});
 					});
 				}
@@ -410,27 +415,41 @@ let _Entities = {
 
 			}, 'html');
 
-			let addPropertyInputButton = $('.add-property-input-button');
+			const createInput = (elementType) => {
+				const initialName = elementType + ' of ' + entity.tag + ' ' + entity.id.substring(0,6);
+
+				Command.create({type: elementType, tag: elementType.toLowerCase(), name: initialName, _html_type: 'text', actionElement: entity.id, pageId: entity.pageId }, (data) => {
+
+					Command.insertBefore(entity.parent.id, data.id, entity.id);
+					customPropertiesPresent = true;
+
+					Structr.fetchHtmlTemplate('entities/multiple-inputs-row', { id: data.id }, (html) => {
+						document.querySelector('.custom-properties-container').insertAdjacentHTML('beforeend', html);
+						[...document.querySelectorAll('.custom-properties-container .multiple-input-name-input')].pop().value         = data.name;
+						[...document.querySelectorAll('.custom-properties-container .multiple-input-property-key-input')].pop().value = data._html_name  || null;
+						[...document.querySelectorAll('.custom-properties-container .multiple-input-css-id-input')].pop().value       = data._html_id    || null;
+						if (elementType === 'Input') {
+							[...document.querySelectorAll('.custom-properties-container .multiple-input-value-input')].pop().value = data._html_value || null;
+						} else {
+							[...document.querySelectorAll('.custom-properties-container .multiple-input-value-input')].pop().remove();
+						}
+					});
+				});
+			};
+
+			let addPropertyInputButton  = $('.add-property-input-button');
 			if (addPropertyInputButton) {
 				addPropertyInputButton.on('click', (e) => {
 					updatePropertyInput.removeClass('required');
+					createInput('Input');
+				});
+			}
 
-					const initialName = 'Input of ' + entity.tag + ' ' + entity.id.substring(0,6);
-
-					Command.create({type: 'Input', tag: 'input', name: initialName, _html_type: 'text', actionElement: entity.id, pageId: entity.pageId }, (data) => {
-
-						Command.insertBefore(entity.parent.id, data.id, entity.id);
-
-						customPropertiesPresent = true;
-
-						Structr.fetchHtmlTemplate('entities/multiple-inputs-row', { id: data.id }, (html) => {
-							document.querySelector('.custom-properties-container').insertAdjacentHTML('beforeend', html);
-							[...document.querySelectorAll('.custom-properties-container .multiple-input-name-input')].pop().value         = data.name;
-							[...document.querySelectorAll('.custom-properties-container .multiple-input-property-key-input')].pop().value = data._html_name  || null;
-							[...document.querySelectorAll('.custom-properties-container .multiple-input-css-id-input')].pop().value       = data._html_id    || null;
-							[...document.querySelectorAll('.custom-properties-container .multiple-input-value-input')].pop().value        = data._html_value || null;
-						});
-					});
+			let addPropertySelectButton = $('.add-property-select-button');
+			if (addPropertySelectButton) {
+				addPropertySelectButton.on('click', (e) => {
+					updatePropertyInput.removeClass('required');
+					createInput('Select');
 				});
 			}
 
