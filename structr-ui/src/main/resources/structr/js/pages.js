@@ -528,11 +528,11 @@ let _Pages = {
 			});
 
 			elements.push({
-				icon: _Icons.getSvgIcon('page_open'),
+				icon: _Icons.getSvgIcon('link_external'),
 				name: 'Open Page in new tab',
 				clickHandler: function () {
-					let url = _Pages.previews.getUrlForPage(entity);
-					window.open(url);
+					_Pages.openPagePreviewInNewWindow(entity);
+
 					return false;
 				}
 			});
@@ -1213,34 +1213,59 @@ let _Pages = {
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 
 		_Entities.appendContextMenuIcon(iconsContainer, entity);
+		_Pages.appendPagePreviewIcon(iconsContainer, entity);
 		_Entities.appendNewAccessControlIcon(iconsContainer, entity);
 
 		_Elements.enableContextMenuOnElement(div, entity);
 		_Entities.setMouseOver(div);
 
-		let dblclickHandler = (e) => {
-			e.stopPropagation();
-			let self = e.target;
-
-			// only on page nodes and if not clicked on expand/collapse icon
-			if (!self.classList.contains('expand_icon_svg') && self.closest('.node').classList.contains('page')) {
-
-				let url = _Pages.previews.getUrlForPage(entity);
-				window.open(url);
-			}
-			};
-
-		let pageNode = Structr.node(entity.id)[0];
-		if (pageNode) {
-			pageNode.removeEventListener('dblclick', dblclickHandler);
-			pageNode.addEventListener('dblclick', dblclickHandler);
-		}
+		// let dblclickHandler = (e) => {
+		// 	e.stopPropagation();
+		// 	let self = e.target;
+		//
+		// 	// only on page nodes and if not clicked on expand/collapse icon
+		// 	if (!self.classList.contains('expand_icon_svg') && self.closest('.node').classList.contains('page')) {
+		//
+		// 		let url = _Pages.previews.getUrlForPage(entity);
+		// 		window.open(url);
+		// 	}
+		// 	};
+		//
+		// let pageNode = Structr.node(entity.id)[0];
+		// if (pageNode) {
+		// 	pageNode.removeEventListener('dblclick', dblclickHandler);
+		// 	pageNode.addEventListener('dblclick', dblclickHandler);
+		// }
 
 		_Dragndrop.makeDroppable(div);
 
 		_Elements.clickOrSelectElementIfLastSelected(div, entity);
 
 		return div;
+	},
+
+	appendPagePreviewIcon: (parent, page) => {
+
+		let pagePreviewIcon = $('.svg_page_preview_icon', parent);
+		if (!(pagePreviewIcon && pagePreviewIcon.length)) {
+
+			let iconClasses = ['svg_page_preview_icon', 'icon-grey', 'cursor-pointer', 'node-action-icon', 'mr-1', ''];
+
+			pagePreviewIcon = $(_Icons.getSvgIcon('link_external', 16, 16, iconClasses));
+			parent.append(pagePreviewIcon);
+
+			pagePreviewIcon.on('click', () => {
+				_Pages.openPagePreviewInNewWindow(page);
+			});
+		}
+
+		return pagePreviewIcon;
+	},
+
+	openPagePreviewInNewWindow: (entity) => {
+
+		let url = _Pages.previews.getUrlForPage(entity);
+		window.open(url);
 	},
 
 	registerDetailClickHandler: (element, entity) => {
