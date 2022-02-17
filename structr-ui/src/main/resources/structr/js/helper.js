@@ -713,6 +713,14 @@ let _Favorites = new (function () {
 
 			if (data && data.result && data.result.length) {
 
+				let allFavoriteIds = data.result.map(favorite => favorite.id);
+
+				// first "forget" editors for those elements - otherwise we do not get updates
+				for (let favoriteId of allFavoriteIds) {
+					_Editors.disposeEditor(favoriteId, 'favoriteContent');
+					_Editors.disposeEditorModel(favoriteId, 'favoriteContent');
+				}
+
 				for (let favorite of data.result) {
 
 					let id = favorite.id;
@@ -737,11 +745,10 @@ let _Favorites = new (function () {
 
 					let dialogSaveButton = document.getElementById('saveFile-' + id);
 
-					let editorElement = $('#editor-' + id);
-
 					let initialText = favorite.favoriteContent || '';
 
 					let favoriteEditorMonacoConfig = {
+						preventDisposeForIds: allFavoriteIds,
 						value: initialText,
 						language: (favorite.type === 'File' ? _Files.getLanguageForFile(favorite) : favorite.favoriteContentType || 'text/plain'),
 						lint: true,
@@ -773,7 +780,7 @@ let _Favorites = new (function () {
 						}
 					};
 
-					let editor = _Editors.getMonacoEditor(favorite, 'favoriteContent', editorElement, favoriteEditorMonacoConfig);
+					let editor = _Editors.getMonacoEditor(favorite, 'favoriteContent', $('#editor-' + id), favoriteEditorMonacoConfig);
 
 					dialogSaveButton.addEventListener('click', (e) => {
 						e.preventDefault();

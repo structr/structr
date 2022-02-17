@@ -373,7 +373,12 @@ let _Editors = {
 		});
 
 		// dispose previously existing editors (with the exception of editors for this id - required for multiple editors per element, like function property)
-		_Editors.disposeAllEditors([entity.id]);
+		if (customConfig.preventDisposeForIds) {
+			_Editors.disposeAllEditors(customConfig.preventDisposeForIds);
+		} else {
+			_Editors.disposeAllEditors([entity.id]);
+		}
+
 		// also delete a possible previous editor for this id and propertyName to start fresh
 		storageContainer?.instance?.dispose();
 
@@ -399,7 +404,6 @@ let _Editors = {
 		}
 
 		let errorPropertyNameForLinting = _Code.getErrorPropertyNameForLinting(entity, propertyName);
-
 		if (customConfig.lint === true) {
 
 			_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting);
