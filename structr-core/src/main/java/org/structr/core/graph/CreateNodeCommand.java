@@ -147,8 +147,9 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			properties.remove(AbstractNode.createdBy);
 
 			// Force existence of password property to enable complexity enforcement on creation (otherwise PasswordProperty.setProperty is not called)
-			if (isCreation && !properties.containsKey(StructrApp.key(Principal.class, "password"))) {
-				properties.put(StructrApp.key(Principal.class, "password"), null);
+			final PropertyKey passwordKey = StructrApp.key(Principal.class, "password", false);
+			if (isCreation && !properties.containsKey(passwordKey)) {
+				properties.put(passwordKey, null);
 			}
 
 			// move properties to creation container that can be set directly on creation
