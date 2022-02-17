@@ -388,7 +388,7 @@ public class SchemaService implements Service {
 								}
 							}
 						}
-				}
+					}
 
 				} catch (FrameworkException fex) {
 
