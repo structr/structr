@@ -42,6 +42,7 @@ import org.structr.core.Transformation;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
@@ -146,10 +147,13 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			properties.remove(AbstractNode.createdDate);
 			properties.remove(AbstractNode.createdBy);
 
-			// Force existence of password property to enable complexity enforcement on creation (otherwise PasswordProperty.setProperty is not called)
-			final PropertyKey passwordKey = StructrApp.key(Principal.class, "password", false);
-			if (isCreation && !properties.containsKey(passwordKey)) {
-				properties.put(passwordKey, null);
+			if (Principal.class.isAssignableFrom(nodeType) && !Group.class.isAssignableFrom(nodeType)) {
+				// If we are creating a node inheriting from Principal, force existence of password property
+				// to enable complexity enforcement on creation (otherwise PasswordProperty.setProperty is not called)
+				final PropertyKey passwordKey = StructrApp.key(Principal.class, "password", false);
+				if (isCreation && !properties.containsKey(passwordKey)) {
+					properties.put(passwordKey, null);
+				}
 			}
 
 			// move properties to creation container that can be set directly on creation
