@@ -25,7 +25,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
-import org.apache.tika.langdetect.OptimaizeLangDetector;
 import org.apache.tika.language.detect.LanguageDetector;
 import org.apache.tika.language.detect.LanguageResult;
 import org.slf4j.Logger;
@@ -161,7 +160,7 @@ public class FulltextTokenizer extends Writer {
 
 		flush();
 
-		final LanguageDetector detector = new OptimaizeLangDetector();
+		final LanguageDetector detector = LanguageDetector.getDefaultLanguageDetector();
 		detector.loadModels();
 
 		final LanguageResult result = detector.detect(getRawText());

@@ -41,7 +41,6 @@ import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.json.JSONException;
@@ -465,7 +464,7 @@ public abstract class ImageHelper extends FileHelper {
 
 		try {
 
-			final PDDocument pdfDocument  = Loader.loadPDF(originalFile.getFileOnDisk());
+			final PDDocument pdfDocument  = PDDocument.load(originalFile.getFileOnDisk());
 			final PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
 
 			// Create thumbnail of page

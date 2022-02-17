@@ -43,8 +43,8 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.shredzone.acme4j.Account;
 import org.shredzone.acme4j.AccountBuilder;
 import org.shredzone.acme4j.Authorization;
@@ -865,7 +865,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			final Challenge challenge = challenges.get(domain);
 			final JSONObject challengeJson = new JSONObject(challenge.getJSON().toMap());
 			challengeJson.put("domain", domain);
-			challengesJSON.add(challengeJson);
+			challengesJSON.put(challengeJson);
 		}
 		payload.add(challengesJSON);
 		return payload;

@@ -23,7 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import org.apache.tika.io.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.structr.api.graph.Cardinality;
 import org.testng.annotations.Test;
 import org.structr.common.error.FrameworkException;

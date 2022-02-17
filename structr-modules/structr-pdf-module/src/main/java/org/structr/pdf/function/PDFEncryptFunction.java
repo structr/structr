@@ -19,18 +19,13 @@
 
 package org.structr.pdf.function;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
-import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
@@ -78,7 +73,7 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 				final String userPassword = (String) sources[1];
 
 				final java.io.File fileOnDisk = pdfFileObject.getFileOnDisk();
-				final PDDocument pdDocument = Loader.loadPDF(fileOnDisk);
+				final PDDocument pdDocument = PDDocument.load(fileOnDisk);
 
 				final AccessPermission accessPermission = new AccessPermission();
 				accessPermission.setCanPrint(false);
