@@ -1241,7 +1241,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				// Redirect to target page
 				if (StringUtils.isNotBlank(targetPage)) {
-					response.sendRedirect("/" + targetPage);
+					sendRelativeRedirect(response, targetPage);
 				}
 
 				return true;
@@ -1249,7 +1249,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			} else {
 				// Redirect to error page
 				if (StringUtils.isNotBlank(errorPage)) {
-					response.sendRedirect("/" + errorPage);
+					sendRelativeRedirect(response, errorPage);
 				}
 
 				return true;
@@ -1330,7 +1330,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			// Redirect to target page
 			if (StringUtils.isNotBlank(targetPath)) {
-				response.sendRedirect(targetPath);
+				sendRelativeRedirect(response, targetPath);
 			}
 
 			return true;
@@ -1932,6 +1932,15 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		return null;
 	}
+
+	private void sendRelativeRedirect (final HttpServletResponse response, final String location) throws IOException {
+
+		response.resetBuffer();
+		response.setHeader("Location", (location.startsWith("/") ? "" : "/") + location);
+		response.setStatus(302);
+		response.flushBuffer();
+	}
+
 	// ----- nested classes -----
 	private enum AuthState {
 		NoBasicAuth, MustAuthenticate, Authenticated
