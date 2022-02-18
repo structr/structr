@@ -51,7 +51,7 @@ let _Code = {
 
 		$(window).off('keydown', _Code.handleKeyDownEvent).on('keydown', _Code.handleKeyDownEvent);
 	},
-	beforeunloadHandler: function() {
+	beforeunloadHandler: () => {
 		if (_Code.isDirty()) {
 			return 'There are unsaved changes - discard changes?';
 		}
@@ -207,14 +207,20 @@ let _Code = {
 			}
 		}
 	},
-	isDirty: function() {
+	forceNotDirty: () => {
+		codeContents.find('.to-delete').removeClass('to-delete');
+		codeContents.find('.has-changes').removeClass('has-changes');
+
+		_Code.additionalDirtyChecks = [];
+	},
+	isDirty: () => {
 		let isDirty = false;
 		if (codeContents) {
 			isDirty = (codeContents.find('.to-delete').length + codeContents.find('.has-changes').length) > 0;
 		}
 		return isDirty;
 	},
-	updateDirtyFlag: function(entity) {
+	updateDirtyFlag: (entity) => {
 
 		let formContent = _Code.collectChangedPropertyData(entity);
 		let dirty       = Object.keys(formContent).length > 0;
@@ -244,7 +250,7 @@ let _Code = {
 
 		return true;
 	},
-	collectPropertyData: function(entity) {
+	collectPropertyData: (entity) => {
 
 		let propertyData = {};
 
@@ -287,7 +293,7 @@ let _Code = {
 
 		return propertyData;
 	},
-	collectChangedPropertyData: function(entity) {
+	collectChangedPropertyData: (entity) => {
 
 		let formContent = _Code.collectPropertyData(entity);
 		let keys        = Object.keys(formContent);
@@ -1423,18 +1429,18 @@ let _Code = {
 
 				_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save', _Code.runCurrentEntitySaveAction);
 
-				_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red'), 'cancel', 'Revert changes', function() {
+				_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 					_Code.revertFormData(result);
 				});
 
 				// delete button
 				if (!result.isBuiltinType) {
-					_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'delete', 'Delete type ' + result.name, function() {
+					_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'delete', 'Delete type ' + result.name, () => {
 						_Code.deleteSchemaEntity(result, 'Delete type ' + result.name + '?', 'This will delete all schema relationships as well, but no data will be removed.', identifier);
 					});
 				}
 
-				Structr.fetchHtmlTemplate('code/openapi-config', { element: result, availableTags: _Code.availableTags }, function(inner) {
+				Structr.fetchHtmlTemplate('code/openapi-config', { element: result, availableTags: _Code.availableTags }, (inner) => {
 
 					let apiTab = $('#type-openapi', codeContents);
 					apiTab.append(inner);
@@ -1446,11 +1452,11 @@ let _Code = {
 						_Code.updateDirtyFlag(result);
 					});
 
-					$('input[type=checkbox]', apiTab).on('change', function() {
+					$('input[type=checkbox]', apiTab).on('change', () => {
 						_Code.updateDirtyFlag(result);
 					});
 
-					$('input[type=text]', apiTab).on('keyup', function() {
+					$('input[type=text]', apiTab).on('keyup', () => {
 						_Code.updateDirtyFlag(result);
 					});
 
@@ -1981,13 +1987,13 @@ let _Code = {
 					});
 
 					// delete button
-					_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'delete', 'Delete method', function() {
+					_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'delete', 'Delete method', () => {
 						_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', identifier);
 					});
 
 					// run button and global schema method flags
 					if (!result.schemaNode && !result.isPartOfBuiltInSchema) {
-						_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('run_button', 14, 14, ''), 'run', 'Run method', function() {
+						_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('run_button', 14, 14, ''), 'run', 'Run method', () => {
 							_Code.runGlobalSchemaMethod(result);
 						});
 
@@ -2727,19 +2733,19 @@ let _Code = {
 
 			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save view', _Code.runCurrentEntitySaveAction);
 
-			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red'), 'cancel', 'Revert changes', function() {
+			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 				_Code.revertFormData(view);
 				_Code.displayViewSelect(view);
 			});
 
 			// delete button
-			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'delete', 'Delete view', function() {
+			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'delete', 'Delete view', () => {
 				_Code.deleteSchemaEntity(view, 'Delete view' + ' ' + view.name + '?', 'Note: Builtin views will be restored in their initial configuration', identifier);
 			});
 
 			_Code.updateDirtyFlag(view);
 
-			$('input[type=text]', buttons).on('keyup', function() {
+			$('input[type=text]', buttons).on('keyup', () => {
 				_Code.updateDirtyFlag(view);
 			});
 
@@ -3062,18 +3068,18 @@ let _Code = {
 
 		_Code.searchTextLength = text.length;
 	},
-	searchIsActive: function() {
+	searchIsActive: () => {
 		let text = $('#tree-search-input').val();
-		return text && text.length >= _Code.searchThreshold;
+		return (text && text.length >= _Code.searchThreshold);
 	},
-	cancelSearch: function() {
+	cancelSearch: () => {
 		$('#tree-search-input').val('');
 		$('#tree-search-input').trigger('input');
 	},
-	activateLastClicked: function() {
+	activateLastClicked: () => {
 		_Code.findAndOpenNode(_Code.lastClickedPath);
 	},
-	deleteSchemaEntity: function(entity, title, text, identifier) {
+	deleteSchemaEntity: (entity, title, text, identifier) => {
 
 		let path  = identifier.source;
 		let parts = path.split('-');
@@ -3090,7 +3096,8 @@ let _Code = {
 				_Code.showSchemaRecompileMessage();
 				_Code.dirty = false;
 
-				Command.deleteNode(entity.id, false, function() {
+				Command.deleteNode(entity.id, false, () => {
+					_Code.forceNotDirty();
 					_Code.hideSchemaRecompileMessage();
 					_Code.findAndOpenNode(parent, false);
 					_Code.refreshTree();
