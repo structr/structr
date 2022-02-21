@@ -1896,10 +1896,13 @@ let _Crud = {
 			});
 			$('.actions .delete', row).on('click', function(event) {
 				event.preventDefault();
-				var c = confirm('Are you sure you want to delete ' + type + ' ' + id + ' ?');
-				if (c === true) {
+				Structr.confirmation(`<p>Are you sure you want to delete <b>${type}</b> ${id}?</p>`, () => {
 					_Crud.crudDelete(type, id);
-				}
+
+					$.unblockUI({
+						fadeOut: 25
+					});
+				});
 			});
 
 			if (_Crud.types[type] && _Crud.types[type].isRel === true) {
