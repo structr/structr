@@ -83,6 +83,7 @@ public class OpenAPIStaticMethodOperation extends OpenAPIOperation {
 
 				// responses
 				Map.of(
+						"200", new OpenAPISchemaReference("#/components/responses/" + parentType.getName() + "." + method.getName() + "MethodResponse"),
 						"401", new OpenAPISchemaReference("#/components/responses/unauthorized"),
 						"422", new OpenAPISchemaReference("#/components/responses/validationError")
 				)
