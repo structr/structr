@@ -75,6 +75,7 @@ public abstract class StreamingWriter {
 	protected boolean compactNestedProperties             = true;
 	protected boolean wrapSingleResultInArray             = false;
 	private int skippedDeletedObjects                     = 0;
+	private Integer overriddenResultCount                 = null;
 
 	public abstract RestWriter getRestWriter(final SecurityContext securityContext, final Writer writer);
 
@@ -217,7 +218,7 @@ public abstract class StreamingWriter {
 
 				if (resultCount >= 0 && pageCount >= 0) {
 
-					rootWriter.name("result_count").value(resultCount);
+					rootWriter.name("result_count").value(overriddenResultCount != null ? overriddenResultCount : resultCount);
 					rootWriter.name("page_count").value(pageCount);
 					rootWriter.name("result_count_time").value(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0));
 
@@ -241,6 +242,10 @@ public abstract class StreamingWriter {
 
 	public void setRenderSerializationTime(final boolean doRender) {
 		this.renderSerializationTime = doRender;
+	}
+
+	public void setOverriddenResultCount(final int resultCount) {
+		this.overriddenResultCount = resultCount;
 	}
 
 	private Serializer getSerializerForType(Class type) {

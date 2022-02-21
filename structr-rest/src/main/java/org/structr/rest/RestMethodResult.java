@@ -44,6 +44,7 @@ public class RestMethodResult {
 	private Object nonGraphObjectResult               = null;
 	private int responseCode                          = 0;
 	private String message                            = null;
+	private Integer overridenResultCount              = null;
 
 	public RestMethodResult(final int responseCode) {
 		this.headers      = new LinkedHashMap<>();
@@ -97,6 +98,14 @@ public class RestMethodResult {
 
 	public Object getNonGraphObjectResult() {
 		return nonGraphObjectResult;
+	}
+
+	public void setOverridenResultCount(final int resultCount) {
+		this.overridenResultCount = resultCount;
+	}
+
+	public Integer getOverridenResultCount() {
+		return this.overridenResultCount;
 	}
 
 	// ----- public static methods -----

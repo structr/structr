@@ -132,6 +132,11 @@ public class SchemaMethodResource extends WrappingResource {
 			result = new RestMethodResult(200);
 			result.addContent(obj);
 
+			if (obj instanceof Collection) {
+
+				result.setOverridenResultCount(((Collection)obj).size());
+			}
+
 		}
 
 		return result;

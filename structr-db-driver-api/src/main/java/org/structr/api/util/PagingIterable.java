@@ -27,9 +27,10 @@ import org.slf4j.LoggerFactory;
  */
 public class PagingIterable<T> implements ResultStream<T> {
 
-	private static final Logger logger = LoggerFactory.getLogger(PagingIterable.class);
-	private PagingIterator<T> source   = null;
-	private String queryTimeFormatted  = null;
+	private static final Logger logger       = LoggerFactory.getLogger(PagingIterable.class);
+	private PagingIterator<T> source         = null;
+	private String queryTimeFormatted        = null;
+	private Integer overriddenResultCount = null;
 
 	public PagingIterable(final String description, final Iterable<T> source) {
 		this(description, source, Integer.MAX_VALUE, 1);
@@ -56,12 +57,12 @@ public class PagingIterable<T> implements ResultStream<T> {
 
 	@Override
 	public int calculateTotalResultCount(final ProgressWatcher progressConsumer, final int softLimit) {
-		return source.getResultCount(progressConsumer, softLimit);
+		return overriddenResultCount != null ? overriddenResultCount : source.getResultCount(progressConsumer, softLimit);
 	}
 
 	@Override
 	public int calculatePageCount(final ProgressWatcher progressConsumer, final int softLimit) {
-		return source.getPageCount(progressConsumer, softLimit);
+		return overriddenResultCount != null && this.getPageSize() != 0 ? (int)Math.ceil( ((double)overriddenResultCount) / ((double)this.getPageSize())) : source.getPageCount(progressConsumer, softLimit);
 	}
 
 	@Override
@@ -114,5 +115,9 @@ public class PagingIterable<T> implements ResultStream<T> {
 				logger.error("Unable to close iterable", ex);
 			}
 		}
+	}
+
+	public void setOverriddenResultCount(final int resultCount) {
+		this.overriddenResultCount = resultCount;
 	}
 }
