@@ -1000,10 +1000,10 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.statusCode(200)
 
 				.body("result_count", equalTo(1))
-				.body("result[0][0].type", equalTo("Test"))
-				.body("result[0][0].name", equalTo("Test"))
+				.body("result[0][0].type", equalTo("Test2"))
+				.body("result[0][0].name", equalTo("Test1"))
 
 			.when()
-				.post("/Test/test");
+				.post("/Test2/test");
 	}
 }

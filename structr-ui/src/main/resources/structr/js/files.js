@@ -1490,6 +1490,16 @@ let _Files = {
 
 		let monacoEditor = _Editors.getMonacoEditor(file, 'content', $('.editor', element), fileMonacoConfig);
 
+		// for files only: install a listener for the ESC key which is only active if there is a suggestWidget visible
+		monacoEditor.addCommand(monaco.KeyCode.Escape, () => {
+
+			// set the structr-internal ignoreKeyUp so that the popup is not closed
+			ignoreKeyUp = true;
+			// blur the active element so that the popup is removed
+			document.activeElement.blur();
+
+		}, 'suggestWidgetVisible');
+
 		let editorInfo = dialogMeta[0].querySelector('.editor-info');
 		_Editors.appendEditorOptionsElement(editorInfo);
 		_Files.appendTemplateConfig(editorInfo, monacoEditor, file, element, urlForFileAndPreview);

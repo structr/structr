@@ -123,7 +123,11 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 			final List<Object> content = result.getContent();
 			if (content != null) {
 
-				writeJson(securityContext, response, new PagingIterable(request.toString(), content), baseUrl, outputDepth, wrapSingleResultInArray);
+				final PagingIterable resultIterable = new PagingIterable(request.toString(), content);
+				if (result.getOverridenResultCount() != null) {
+					resultIterable.setOverriddenResultCount(result.getOverridenResultCount());
+				}
+				writeJson(securityContext, response, resultIterable, baseUrl, outputDepth, wrapSingleResultInArray);
 
 			} else {
 
