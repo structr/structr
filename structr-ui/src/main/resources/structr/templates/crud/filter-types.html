@@ -1,8 +1,25 @@
-<div class="heading-row"><h3>Type Filters</h3></div>
-<div class="row"><input ${_Crud.getStoredTypeVisibilityConfig('rels')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleRels"><label for="crudTypeToggleRels"> Relationship Types</label></div>
-<div class="row"><input ${_Crud.getStoredTypeVisibilityConfig('custom') ? 'checked' : ''} type="checkbox" id="crudTypeToggleCustom"><label for="crudTypeToggleCustom"> Custom Types</label></div>
-<div class="row"><input ${_Crud.getStoredTypeVisibilityConfig('core')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleCore"><label for="crudTypeToggleCore"> Core Types</label></div>
-<div class="row"><input ${_Crud.getStoredTypeVisibilityConfig('html')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleHtml"><label for="crudTypeToggleHtml"> HTML Types</label></div>
-<div class="row"><input ${_Crud.getStoredTypeVisibilityConfig('ui')     ? 'checked' : ''} type="checkbox" id="crudTypeToggleUi"><label for="crudTypeToggleUi"> UI Types</label></div>
-<div class="row"><input ${_Crud.getStoredTypeVisibilityConfig('log')    ? 'checked' : ''} type="checkbox" id="crudTypeToggleLog"><label for="crudTypeToggleLog"> Log Types</label></div>
-<div class="row"><input ${_Crud.getStoredTypeVisibilityConfig('other')  ? 'checked' : ''} type="checkbox" id="crudTypeToggleOther"><label for="crudTypeToggleOther"> Other Types</label></div>
+<div class="heading-row">
+	<h3>Type Filters</h3>
+</div>
+
+<div class="row">
+	<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('rels')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleRels"> Relationship Types</label>
+</div>
+<div class="row">
+	<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('custom') ? 'checked' : ''} type="checkbox" id="crudTypeToggleCustom"> Custom Types</label>
+</div>
+<div class="row">
+	<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('core')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleCore"> Core Types</label>
+</div>
+<div class="row">
+	<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('html')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleHtml"> HTML Types</label>
+</div>
+<div class="row">
+	<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('ui')     ? 'checked' : ''} type="checkbox" id="crudTypeToggleUi"> UI Types</label>
+</div>
+<div class="row">
+	<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('log')    ? 'checked' : ''} type="checkbox" id="crudTypeToggleLog"> Log Types</label>
+</div>
+<div class="row mb-2">
+	<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('other')  ? 'checked' : ''} type="checkbox" id="crudTypeToggleOther"> Other Types</label>
+</div>
