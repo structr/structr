@@ -1747,6 +1747,18 @@ let Structr = {
 				}
 				break;
 
+			case "CSV_IMPORT_WARNING":
+
+				if (StructrWS.me.username === data.username) {
+					new MessageBuilder()
+						.title(data.title)
+						.warning(data.text)
+						.requiresConfirmation()
+						.allowConfirmAll()
+						.show();
+				}
+				break;
+
 			case "CSV_IMPORT_ERROR":
 
 				if (StructrWS.me.username === data.username) {

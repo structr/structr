@@ -72,6 +72,7 @@ public class GetCsvHeadersFunction extends CsvFunction {
 				format = format.withIgnoreEmptyLines(true);
 				format = format.withIgnoreSurroundingSpaces(true);
 				format = format.withQuoteMode(QuoteMode.ALL);
+				format = format.withAllowMissingColumnNames(true);
 
 				try (final CSVParser parser = new CSVParser(new StringReader(source), format)) {
 
