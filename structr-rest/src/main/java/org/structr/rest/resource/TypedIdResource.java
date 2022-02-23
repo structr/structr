@@ -139,6 +139,14 @@ public class TypedIdResource extends FilterableResource {
 		final Class type  = typeResource.entityClass;
 		final String uuid = idResource.getUuid();
 
+		if (type == null) {
+			if (uuid != null) {
+				throw new NotFoundException("Type " + typeResource.getRawType() + " does not exist for request with entity ID " + uuid);
+			} else {
+				throw new NotFoundException("Request specifies no value for type and entity ID");
+			}
+		}
+
 		GraphObject entity = app.nodeQuery(type).uuid(uuid).getFirst();
 		if (entity == null) {
 
@@ -156,7 +164,7 @@ public class TypedIdResource extends FilterableResource {
 			return entity;
 		}
 
-		throw new NotFoundException("Entity with ID " + idResource.getUuid() + " of type " +  typeResource.getRawType() +  " not found");
+		throw new NotFoundException("Entity with ID " + idResource.getUuid() + " of type " +  typeResource.getRawType() +  " does not exist");
 	}
 
 	@Override
