@@ -44,6 +44,13 @@ let _Editors = {
 
 		return _Editors.editors[id][propertyName];
 	},
+	getEditorInstanceForIdAndProperty: (id, propertyName) => {
+
+		_Editors.editors[id]               = _Editors.editors?.[id] ?? {};
+		_Editors.editors[id][propertyName] = _Editors.editors[id]?.[propertyName] ?? {};
+
+		return _Editors.editors[id][propertyName].instance;
+	},
 	disposeAllEditors: (exceptionIds = []) => {
 
 		for (let id in _Editors.editors) {
