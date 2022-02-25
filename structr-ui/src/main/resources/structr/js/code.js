@@ -1993,12 +1993,10 @@ let _Code = {
 
 					// run button and global schema method flags
 					if (!result.schemaNode && !result.isPartOfBuiltInSchema) {
+
 						_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('run_button', 14, 14, ''), 'run', 'Run method', () => {
 							_Code.runGlobalSchemaMethod(result);
 						});
-
-						$('.checkbox.global-method.hidden', buttons).removeClass('hidden');
-						Structr.activateCommentsInElement(buttons);
 
 					} else if (result.schemaNode) {
 

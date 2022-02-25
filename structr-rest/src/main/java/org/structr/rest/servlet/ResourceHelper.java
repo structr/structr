@@ -126,8 +126,7 @@ public class ResourceHelper {
 
 								if (resource.checkAndConfigure(part, securityContext, request)) {
 
-									logger.debug("{} matched, adding resource of type {} for part {}", new Object[] { matcher.pattern(), type.getName(),
-										part });
+									logger.debug("{} matched, adding resource of type {} for part {}", new Object[] { matcher.pattern(), type.getName(), part });
 
 									// allow constraint to modify context
 									resource.configurePropertyView(propertyView);
@@ -142,7 +141,6 @@ public class ResourceHelper {
 
 								}
 							}
-
 						}
 					}
 				}
@@ -151,12 +149,10 @@ public class ResourceHelper {
 
 					throw new NotFoundException("Cannot resolve URL path");
 				}
-
 			}
 		}
 
 		return resourceChain;
-
 	}
 
 	/**
@@ -188,9 +184,7 @@ public class ResourceHelper {
 					view = (ViewFilterResource) constr;
 
 					it.remove();
-
 				}
-
 			}
 
 			found = false;
@@ -214,16 +208,13 @@ public class ResourceHelper {
 
 						// signal success
 						found = true;
-
 					}
-
 				}
 
 			} catch (Throwable t) {
 
 				// ignore exceptions thrown here but make it possible to set a breakpoint
 				final boolean test = false;
-
 			}
 
 		} while (found);
@@ -247,7 +238,6 @@ public class ResourceHelper {
 		} else {
 
 			logger.warn("Resource chain evaluation for path {} resulted in {} entries, returning status code 400.", new Object[] { request.getPathInfo(), resourceChain.size() });
-
 		}
 
 		throw new IllegalPathException("Cannot resolve URL path");
