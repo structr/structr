@@ -3,9 +3,9 @@
 	<tbody></tbody>
 	<tfoot>
 		<th colspan=${config.cols.length} class="actions-col">
-			${(config.addButtonText ? '<button class="add-button inline-flex items-center">' + _Icons.getSvgIcon('circle_plus', 14, 14, 'icon-green mr-2') + config.addButtonText + '</button>' : '')}
-			<button class="discard-all inline-flex items-center disabled" disabled>${_Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red mr-2')} ${(config.discardButtonText ? config.discardButtonText : 'Discard all')}</button>
-			<button class="save-all inline-flex items-center disabled" disabled>${_Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green mr-2')} ${(config.discardButtonText ? config.saveButtonText : 'Save all')}</button>
+			${(config.addButtonText ? '<button class="add-button inline-flex items-center">' + _Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2') + config.addButtonText + '</button>' : '')}
+			<button class="discard-all inline-flex items-center disabled" disabled>${_Icons.getSvgIcon('close-dialog-x', 16, 16, 'icon-red mr-2')} ${(config.discardButtonText ? config.discardButtonText : 'Discard all')}</button>
+			<button class="save-all inline-flex items-center disabled" disabled>${_Icons.getSvgIcon('checkmark_bold', 16, 16, 'icon-green mr-2')} ${(config.discardButtonText ? config.saveButtonText : 'Save all')}</button>
 		</th>
 	</tfoot>
 </table>

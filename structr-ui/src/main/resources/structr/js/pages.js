@@ -566,21 +566,20 @@ let _Pages = {
 
 					if (isContent) {
 
-						_Entities.deleteNode(this, entity);
+						_Entities.deleteNode(undefined, entity);
 
 					} else {
-						_Entities.deleteNode(this, entity, true, () => {
-							var synced = entity.syncedNodesIds;
-							if (synced && synced.length) {
-								synced.forEach(function (id) {
-									var el = Structr.node(id);
+						_Entities.deleteNode(undefined, entity, true, () => {
+							if (entity.syncedNodesIds && entity.syncedNodesIds.length) {
+								for (let id of entity.syncedNodesIds) {
+									let el = Structr.node(id);
 									if (el && el.children && el.children.length) {
 										var newSpriteClass = _Icons.getSpriteClassOnly(_Icons.brick_icon);
 										el.children('i.typeIcon').each(function (i, el) {
 											_Icons.updateSpriteClassTo(el, newSpriteClass);
 										});
 									}
-								});
+								}
 							}
 						});
 					}
@@ -1249,7 +1248,7 @@ let _Pages = {
 		let pagePreviewIcon = $('.svg_page_preview_icon', parent);
 		if (!(pagePreviewIcon && pagePreviewIcon.length)) {
 
-			let iconClasses = ['svg_page_preview_icon', 'icon-grey', 'cursor-pointer', 'node-action-icon', 'mr-1', ''];
+			let iconClasses = _Icons.getSvgIconClassesNonColorIcon(['svg_page_preview_icon', 'node-action-icon', 'mr-1']);
 
 			pagePreviewIcon = $(_Icons.getSvgIcon('link_external', 16, 16, iconClasses));
 			parent.append(pagePreviewIcon);
@@ -2245,7 +2244,7 @@ let _Pages = {
 
 				_Pages.unattachedNodes.removeElementsFromUI();
 
-				_Pages.unusedElementsTree.append(`<button class="btn disabled flex items-center" id="delete-all-unattached-nodes" disabled><span>Loading</span>${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'ml-2')}</button>`);
+				_Pages.unusedElementsTree.append(`<button class="btn disabled flex items-center" id="delete-all-unattached-nodes" disabled><span>Loading</span>${_Icons.getSvgIcon('waiting-spinner', 24, 24, ['ml-2'])}</button>`);
 
 				let btn = $('#delete-all-unattached-nodes');
 				btn.on('click', function() {
@@ -2265,7 +2264,7 @@ let _Pages = {
 
 					let count = result.length;
 					if (count > 0) {
-						btn.html(_Icons.getSvgIcon('trashcan', 16, 16, 'mr-2') + ' Delete all (' + count + ')');
+						btn.html(_Icons.getSvgIcon('trashcan', 16, 16, ['mr-2']) + ' Delete all (' + count + ')');
 						btn.removeClass('disabled');
 						btn.prop('disabled', false);
 					} else {

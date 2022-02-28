@@ -507,20 +507,22 @@ let _Code = {
 			LSWrapper.setItem(_Code.codeRecentElementsKey, updatedList);
 		}
 
-		Structr.fetchHtmlTemplate('code/recently-used-button', { id: id, name: name, iconClass: iconClass }, function(html) {
+		Structr.fetchHtmlTemplate('code/recently-used-button', { id: id, name: name, iconClass: iconClass }, (html) => {
 
 			let ctx = $('#code-context');
 
+			let recentlyUsedButton = $(html);
+
 			if (fromStorage) {
-				ctx.append(html);
+				ctx.append(recentlyUsedButton);
 			} else {
-				ctx.prepend(html);
+				ctx.prepend(recentlyUsedButton);
 			}
 
-			$('#recently-used-' + id).on('click.recently-used', function() {
+			recentlyUsedButton.on('click.recently-used', () => {
 				_Code.findAndOpenNode(path, true);
 			});
-			$('#remove-recently-used-' + id).on('click.recently-used', function(e) {
+			$('.remove-recently-used', recentlyUsedButton).on('click.recently-used', (e) => {
 				e.stopPropagation();
 				_Code.deleteRecentlyUsedElement(id);
 			});
@@ -1429,13 +1431,13 @@ let _Code = {
 
 				_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save', _Code.runCurrentEntitySaveAction);
 
-				_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+				_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('close-dialog-x', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 					_Code.revertFormData(result);
 				});
 
 				// delete button
 				if (!result.isBuiltinType) {
-					_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'delete', 'Delete type ' + result.name, () => {
+					_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete type ' + result.name, () => {
 						_Code.deleteSchemaEntity(result, 'Delete type ' + result.name + '?', 'This will delete all schema relationships as well, but no data will be removed.', identifier);
 					});
 				}
@@ -1900,7 +1902,7 @@ let _Code = {
 
 								parameterContainer.append(clone);
 
-								$('.method-parameter-delete button', clone).on('click', () => {
+								$('.method-parameter-delete .remove-action', clone).on('click', () => {
 									clone.remove();
 
 									_Code.updateDirtyFlag(result);
@@ -1979,7 +1981,7 @@ let _Code = {
 
 					_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save method', _Code.runCurrentEntitySaveAction);
 
-					_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+					_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('close-dialog-x', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 						_Code.additionalDirtyChecks = [];
 						_Editors.disposeEditorModel(result.id, 'source');
 						_Editors.disposeEditorModel(result.id, 'openAPIReturnType');
@@ -1987,7 +1989,7 @@ let _Code = {
 					});
 
 					// delete button
-					_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'delete', 'Delete method', () => {
+					_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete method', () => {
 						_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', identifier);
 					});
 
@@ -2111,7 +2113,7 @@ let _Code = {
 
 				if (workingSet.name === _WorkingSets.recentlyUsedName) {
 
-					_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'clear', 'Clear', function() {
+					_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'clear', 'Clear', function() {
 						_WorkingSets.clearRecentlyUsed(function() {
 							_Code.refreshTree();
 						});
@@ -2121,7 +2123,7 @@ let _Code = {
 
  				} else {
 
-					_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'remove', 'Remove', function() {
+					_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'remove', 'Remove', function() {
 						_WorkingSets.deleteSet(identifier.workingSetId, function() {
 							_TreeHelper.refreshNode('#code-tree', 'workingsets');
 							_Code.findAndOpenNode('workingsets');
@@ -2643,13 +2645,13 @@ let _Code = {
 
 			_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save property', _Code.runCurrentEntitySaveAction);
 
-			_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+			_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('close-dialog-x', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 				_Code.revertFormData(property);
 			});
 
 			if (!property.schemaNode.isBuiltinType) {
 
-				_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'delete', 'Delete property', () => {
+				_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete property', () => {
 					_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'No data will be removed.', identifier);
 				});
 			}
@@ -2731,13 +2733,13 @@ let _Code = {
 
 			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save view', _Code.runCurrentEntitySaveAction);
 
-			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('close-dialog-x', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 				_Code.revertFormData(view);
 				_Code.displayViewSelect(view);
 			});
 
 			// delete button
-			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('trashcan', 14, 14, ''), 'delete', 'Delete view', () => {
+			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete view', () => {
 				_Code.deleteSchemaEntity(view, 'Delete view' + ' ' + view.name + '?', 'Note: Builtin views will be restored in their initial configuration', identifier);
 			});
 
@@ -3110,7 +3112,7 @@ let _Code = {
 			$('#clear-log').remove();
 		}, ['run-global-schema-method-dialog']);
 
-		dialogBtn.prepend('<button id="run-method">Run</button>');
+		dialogBtn.prepend(`<button id="run-method" class="flex items-center">${_Icons.getSvgIcon('run_button', 16, 18, 'mr-2')}<span>Run</span></button>`);
 		dialogBtn.append('<button id="clear-log">Clear output</button>');
 
 		let paramsOuterBox = $('<div id="params"><h3 class="heading-narrow">Parameters</h3></div>');
@@ -3127,19 +3129,20 @@ let _Code = {
 			helpElementCss: { fontSize: "12px" }
 		});
 
-		addParamBtn.on('click', function() {
-			let newParam    = $('<div class="param"><input class="param-name" placeholder="Parameter name"> : <input class="param-value" placeholder="Parameter value"></div>');
-			let removeParam = $('<a href="javascript:void(0);">' + _Icons.getSvgIcon('trashcan', 14, 14, 'ml-2') + '</a>');
+		addParamBtn.on('click', () => {
+
+			let newParam    = $('<div class="param flex items-center mb-1"><input class="param-name" placeholder="Parameter name"><span class="px-2">=</span><input class="param-value" placeholder="Parameter value"></div>');
+			let removeParam = $(_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2'])));
 
 			newParam.append(removeParam);
-			removeParam.on('click', function() {
+			removeParam.on('click', () => {
 				newParam.remove();
 			});
+
 			paramsBox.append(newParam);
 		});
 
-		dialog.append('<h3>Method output</h3>');
-		dialog.append('<pre id="log-output"></pre>');
+		dialog.append('<h3>Method output</h3><pre id="log-output"></pre>');
 
 		$('#run-method').on('click', async () => {
 

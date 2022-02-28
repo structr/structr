@@ -665,8 +665,8 @@ let _ResourceAccessGrants = {
 
 		Command.create(grantData, callback);
 	},
-	deleteResourceAccess: function(button, resourceAccess) {
-		_Entities.deleteNode(button, resourceAccess);
+	deleteResourceAccess: (resourceAccess) => {
+		_Entities.deleteNode(null, resourceAccess);
 	},
 	getVerbFromKey: function(key = '') {
 		return key.substring(key.lastIndexOf('_')+1, key.length);
@@ -696,15 +696,14 @@ let _ResourceAccessGrants = {
 
 		let flags = parseInt(resourceAccess.flags);
 
-		let trHtml = '<tr id="id_' + resourceAccess.id + '" class="resourceAccess"><td class="title-cell"><b class="name_">' + resourceAccess.signature + '</b></td>';
+		let trHtml = `<tr id="id_${resourceAccess.id}" class="resourceAccess"><td class="title-cell"><b class="name_">${resourceAccess.signature}</b></td>`;
 
 		let noAuthAccessPossible = resourceAccess.visibleToAuthenticatedUsers === false && (!resourceAccess.grantees || resourceAccess.grantees.length === 0);
 
 		let flagWarningTexts = {};
 		let flagSanityInfos  = {};
-
-		let hasAuthFlag    = false;
-		let hasNonAuthFlag = false;
+		let hasAuthFlag      = false;
+		let hasNonAuthFlag   = false;
 
 		for (let key in _ResourceAccessGrants.mask) {
 
@@ -734,6 +733,7 @@ let _ResourceAccessGrants = {
 			hasNonAuthFlag = hasNonAuthFlag || (flagIsSet && key.startsWith('NON_AUTH_'));
 			hasAuthFlag    = hasAuthFlag    || (flagIsSet && key.startsWith('AUTH_'));
 
+			// currently this function is disabled (would grey out checkboxes if grant is not usable)
 			let isDisabled = false && (disabledBecauseNotPublic || disabledBecauseNoAuthAccess);
 
 			let additionalClasses = [];
@@ -741,22 +741,31 @@ let _ResourceAccessGrants = {
 			if (key === 'AUTH_USER_PATCH') { additionalClasses.push('br-1'); }
 			if (key === 'NON_AUTH_USER_PATCH') { additionalClasses.push('br-1'); }
 
-			trHtml += '<td class="' + additionalClasses.join(' ') + '"><input type="checkbox" ' + (flagIsSet ? 'checked="checked"' : '') + (isDisabled ? ' disabled' : '') + ' data-flag="' + _ResourceAccessGrants.mask[key] + '" class="resource-access-flag" data-key="' + key +'"></td>';
+			trHtml += `<td class="${additionalClasses.join(' ')}"><input type="checkbox" ${(flagIsSet ? 'checked="checked"' : '')}${(isDisabled ? ' disabled' : '')} data-flag="${_ResourceAccessGrants.mask[key]}" class="resource-access-flag" data-key="${key}"></td>`;
 		}
 
-		trHtml += '<td><input type="text" class="bitmask" size="4" value="' + flags + '"></td>';
+		trHtml += `<td><input type="text" class="bitmask" size="4" value="${flags}"></td>`;
 
 		let showVisibilityFlagsInGrantsTable = UISettings.getValueForSetting(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey);
 
 		if (showVisibilityFlagsInGrantsTable) {
-			trHtml += '<td class="bl-1"><input type="checkbox" ' + (resourceAccess.visibleToAuthenticatedUsers ? 'checked="checked"' : '') + ' name="visibleToAuthenticatedUsers" class="resource-access-visibility"></td>';
-			trHtml += '<td class="br-1"><input type="checkbox" ' + (resourceAccess.visibleToPublicUsers ? 'checked="checked"' : '') + ' name="visibleToPublicUsers" class="resource-access-visibility"></td>';
+			trHtml += `<td class="bl-1"><input type="checkbox" ${(resourceAccess.visibleToAuthenticatedUsers ? 'checked="checked"' : '')} name="visibleToAuthenticatedUsers" class="resource-access-visibility"></td>`;
+			trHtml += `<td class="br-1"><input type="checkbox" ${(resourceAccess.visibleToPublicUsers ? 'checked="checked"' : '')} name="visibleToPublicUsers" class="resource-access-visibility"></td>`;
 		}
-		trHtml += '<td><i class="acl-resource-access button ' + _Icons.getFullSpriteClass(_Icons.key_icon) + '" /> ' +
-				'<i title="Delete Resource Access ' + resourceAccess.id + '" class="delete-resource-access button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />' +
-				'</td></tr>';
+		trHtml += '<td class="actions"></td></tr>';
 
-		let tr = $(trHtml);
+		let tr         = $(trHtml);
+		let actionsCol = $('td.actions', tr);
+		_Entities.appendNewAccessControlIcon(actionsCol, resourceAccess, false);
+
+		actionsCol.append(_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-resource-access'])));
+
+		$('.delete-resource-access', tr).on('click', (e) => {
+			e.stopPropagation();
+			resourceAccess.name = resourceAccess.signature;
+			_ResourceAccessGrants.deleteResourceAccess(resourceAccess);
+		});
+
 
 		if (hasAuthFlag && hasNonAuthFlag) {
 			Structr.appendInfoTextToElement({
@@ -792,8 +801,6 @@ let _ResourceAccessGrants = {
 			}
 		}
 
-		_Entities.bindAccessControl($('.acl-resource-access', tr), resourceAccess);
-
 		let replaceElement = $('#resourceAccessesTable #id_' + resourceAccess.id);
 
 		if (replaceElement && replaceElement.length) {
@@ -817,12 +824,6 @@ let _ResourceAccessGrants = {
 			if (e.keyCode === 13) {
 				$(this).blur();
 			}
-		});
-
-		$('.delete-resource-access', tr).on('click', function(e) {
-			e.stopPropagation();
-			resourceAccess.name = resourceAccess.signature;
-			_ResourceAccessGrants.deleteResourceAccess(this, resourceAccess);
 		});
 
 		let div = Structr.node(resourceAccess.id);

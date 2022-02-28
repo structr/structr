@@ -22,7 +22,7 @@
 </div>
 <div class="row flex items-center">
 	<button id="rebuild-index" class="inline-flex items-center">
-		<i class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)} mr-2"></i> Rebuild all indexes
+		${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Rebuild all indexes
 	</button>
 	<label for="rebuild-index">Rebuild indexes for entire database (all node and relationship indexes)</label>
 </div>
@@ -37,14 +37,14 @@
 <!--</div>-->
 <div class="row flex items-center">
 	<button id="flush-caches" class="inline-flex items-center">
-		<i class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)} mr-2"></i> Flush Caches
+		${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Flush Caches
 	</button>
 	<label for="flush-caches">Flushes internal caches to refresh schema information</label>
 </div>
 
 <div class="row flex items-center">
 	<button id="clear-schema" class="inline-flex items-center">
-		<i class="${_Icons.getFullSpriteClass(_Icons.delete_icon)} mr-2"></i> Clear Schema
+		${_Icons.getSvgIcon('trashcan', 16, 16, 'mr-2 icon-red')} Clear Schema
 	</button>
 	<label for="clear-schema">Delete all schema nodes and relationships in custom schema</label>
 </div>

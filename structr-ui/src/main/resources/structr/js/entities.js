@@ -2333,7 +2333,7 @@ let _Entities = {
 		let keyIcon = $('.svg_key_icon', parent);
 		if (!(keyIcon && keyIcon.length)) {
 
-			let iconClasses = ['svg_key_icon', 'icon-grey', 'cursor-pointer'];
+			let iconClasses = _Icons.getSvgIconClassesNonColorIcon(['svg_key_icon']);
 
 			if (onlyShowWhenProtected) {
 				if (entity.visibleToPublicUsers && entity.visibleToAuthenticatedUsers) {
@@ -2371,7 +2371,7 @@ let _Entities = {
 		let contextMenuIcon = $('.node-action-icon', parent);
 
 		if (!(contextMenuIcon && contextMenuIcon.length)) {
-			contextMenuIcon = $(_Icons.getSvgIcon('kebab_icon', 16, 16, 'node-action-icon'));
+			contextMenuIcon = $(_Icons.getSvgIcon('kebab_icon', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['node-action-icon'])));
 			parent.append(contextMenuIcon);
 		}
 

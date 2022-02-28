@@ -17,12 +17,10 @@
 	<td>
 		<input class="___visibleToAuthenticatedUsers" type="checkbox" checked>
 	</td>
-	<td class="actions">
-		<button title="Save" class="btn save inline-flex items-center">
-			${_Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2')} Save
-		</button>
-		<a title="Discard" class="discard">
-			${_Icons.getSvgIcon('trashcan', 20, 20)}
-		</a>
+	<td class="actions text-center">
+		<div class="flex items-center justify-center">
+			${_Icons.getSvgIcon('checkmark_bold', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'mr-2', 'save-localization']))}
+			${_Icons.getSvgIcon('trashcan', 20, 20,       _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-localization']), 'Remove')}
+		</div>
 	</td>
 </tr>

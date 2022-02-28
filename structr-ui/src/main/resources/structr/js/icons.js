@@ -142,10 +142,17 @@ let _Icons = {
 		}
 
 		return `<svg width="${width}" height="${height}" class="${classString}">
-			<use xlink:href="#${id}">
-				<title>${title}</title>
-			</use>
+			<title>${title}</title>
+			<use xlink:href="#${id}"></use>
 		</svg>`;
+	},
+
+	getSvgIconClassesForColoredIcon: (customClasses = []) => {
+		return [...customClasses].concat(['opacity-60', 'hover:opacity-100']).concat('cursor-pointer');
+	},
+
+	getSvgIconClassesNonColorIcon: (customClasses = []) => {
+		return [...customClasses].concat(['icon-inactive', 'hover:icon-active']).concat('cursor-pointer');
 	},
 
 	getFullSpriteClass: function (key) {

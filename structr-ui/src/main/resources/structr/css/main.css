@@ -644,38 +644,6 @@ img.disabled {
 	/*background-color: var(--solid-white);*/
 }
 
-/*.slideOutRight .slideout-activator {*/
-/*	-webkit-transform: rotate(-90deg);*/
-/*	-moz-transform: rotate(-90deg);*/
-/*	-o-transform: rotate(-90deg);*/
-/*	-ms-transform: rotate(-90deg);*/
-/*	transform: rotate(-90deg);*/
-/*	!*border-top: 1px solid var(--black-opacity-125);*!*/
-/*	!*border-right: 1px solid var(--black-opacity-125);*!*/
-/*	!*border-left: 1px solid var(--black-opacity-125);*!*/
-/*}*/
-
-/*.slideOutLeft .slideout-activator {*/
-/*	-webkit-transform: rotate(90deg);*/
-/*	-moz-transform: rotate(90deg);*/
-/*	-o-transform: rotate(90deg);*/
-/*	-ms-transform: rotate(90deg);*/
-/*	transform: rotate(90deg);*/
-/*	!*border-top: 1px solid var(--black-opacity-125);*!*/
-/*	!*border-right: 1px solid var(--black-opacity-125);*!*/
-/*	!*border-left: 1px solid var(--black-opacity-125);*!*/
-/*}*/
-
-/*.slideOutLeft .slideout-activator.smallTab {*/
-/*	right: -5.5rem;*/
-/*	width: 7rem;*/
-/*}*/
-
-/*.slideOutLeft .slideout-activator.largeTab {*/
-/*	right: calc(-6.5rem);*/
-/*	width: 9rem;*/
-/*}*/
-
 /*
  * Pages: Left slideout activators
  */
@@ -1411,6 +1379,11 @@ i.link_icon {
 	height: 1rem;
 }
 
+.tile:not(.img-tile) .icons-container {
+	bottom: 1rem;
+	top: initial;
+}
+
 .icons-container svg {
 	margin-left: .125rem;
 }
@@ -1418,10 +1391,11 @@ i.link_icon {
 .node-action-icon {
 	display: none;
 	cursor: pointer;
-	color: var(--icon-stroke);
 }
 
-.nodeHover > .icons-container > .node-action-icon {
+.nodeHover > .icons-container > .node-action-icon,
+.jstree-hovered > .icons-container > .node-action-icon,
+.schema:hover .icons-container > .node-action-icon {
 	display: inline-block;
 }
 
@@ -1747,19 +1721,19 @@ button.action.disabled:hover {
 	opacity: 0.5;
 }
 
-.schema-props i.discard-changes {
+.schema-props .discard-changes {
 	display: none;
 }
 
-.schema-props tr.to-delete i.discard-changes,
-.schema-props tr.has-changes i.discard-changes,
-.schema-props .fake-tr.has-changes i.discard-changes
+.schema-props tr.to-delete .discard-changes,
+.schema-props tr.has-changes .discard-changes,
+.schema-props .fake-tr.has-changes .discard-changes
 {
 	display: inline-block;
 }
 
-.schema-props tr.to-delete i.remove-action,
-.schema-props .fake-tr.to-delete i.remove-action {
+.schema-props tr.to-delete .remove-action,
+.schema-props .fake-tr.to-delete .remove-action {
 	display: none;
 }
 
@@ -4676,6 +4650,15 @@ table.props td.__value {
 .absolute {
 	position: absolute;
 }
+.right-0 {
+	right: 0;
+}
+.right-1 {
+	right: .25rem;
+}
+.flex-none {
+	flex: none;
+}
 .flex-col {
 	flex-direction: column;
 }
@@ -4863,6 +4846,9 @@ table.props td.__value {
 .gap-y-4 {
 	row-gap: 1rem;
 }
+.gap-x-2 {
+	column-gap: .5rem;
+}
 .gap-x-4 {
 	column-gap: 1rem;
 }
@@ -4889,4 +4875,25 @@ table.props td.__value {
 }
 .min-w-64 {
 	min-width: 16rem;
+}
+.hover\:opacity-60:hover {
+	opacity: .6;
+}
+.opacity-60 {
+	opacity: .6;
+}
+.opacity-100 {
+	opacity: 1;
+}
+.hover\:opacity-60:hover {
+	opacity: .6;
+}
+.hover\:opacity-100:hover {
+	opacity: 1;
+}
+.icon-inactive {
+	color: var(--inactive-link);
+}
+.hover\:icon-active:hover {
+	color: var(--active-link);
 }

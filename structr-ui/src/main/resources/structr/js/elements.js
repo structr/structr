@@ -346,7 +346,7 @@ let _Elements = {
 
 		if (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object') {
 
-			let linkIconElement = $(_Icons.getSvgIcon('chain-link', 16, 16, ['node-action-icon']));
+			let linkIconElement = $(_Icons.getSvgIcon('chain-link', 16, 16, ['node-action-icon', 'icon-grey']));
 			iconsContainer.prepend(linkIconElement);
 
 			if (entity.linkableId) {
@@ -833,7 +833,7 @@ let _Elements = {
 	appendSecurityContextMenuItems: (elements, entity, supportsSubtree) => {
 
 		let securityMenu = {
-			icon: _Icons.getSvgIcon('security'),
+			icon: _Icons.getSvgIcon('visibility-lock-locked'),
 			name: 'Security',
 			elements: [
 				{

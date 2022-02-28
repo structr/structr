@@ -414,7 +414,7 @@
 }
 
 .schema b {
-	margin: 0 3rem;
+	margin: 0 3.5rem;
 	display: block;
 	text-align: center;
 	font-weight: 500;
@@ -488,18 +488,6 @@
 
 #inheritance-tree .jstree-anchor {
 	width: calc(100% - 30px);
-}
-
-#inheritance-tree .edit_icon, #inheritance-tree .delete_icon {
-	position: absolute;
-}
-
-#inheritance-tree .edit_icon {
-	right: 24px;
-}
-
-#inheritance-tree .delete_icon {
-	right: 4px;
 }
 
 #inheritance-tree-container {

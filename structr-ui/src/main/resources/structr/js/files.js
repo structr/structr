@@ -913,81 +913,84 @@ let _Files = {
 		let icon = d.isFolder ? 'fa-folder' : _Icons.getFileIconClass(d);
 		let name = d.name ? d.name : '[unnamed]';
 
-		if (_Files.isViewModeActive('list')) {
+		let listModeActive  = _Files.isViewModeActive('list');
+		let tilesModeActive = _Files.isViewModeActive('tiles');
+		let imageModeActive = _Files.isViewModeActive('img');
+
+		let folderIconElement = (d.isMounted) ? `<span class="fa-stack"><i class="fa ${icon} fa-stack-2x"></i><i class="fa fa-plug fa-stack-1x"></i></span>` : `<i class="fa ${icon}"></i>`;
+
+		if (listModeActive) {
 
 			let tableBody = $('#files-table-body');
 
 			$('#row' + d.id, tableBody).remove();
 
 			let rowId = 'row' + d.id;
-			tableBody.append('<tr id="' + rowId + '"' + (d.isThumbnail ? ' class="thumbnail"' : '') + '></tr>');
+			tableBody.append(`<tr id="${rowId}"${(d.isThumbnail ? ' class="thumbnail"' : '')}></tr>`);
 			let row = $('#' + rowId);
 
 			if (d.isFolder) {
-				let icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-2x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
-				row.append('<td class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</td>');
-				row.append('<td><div id="id_' + d.id + '" class="node folder flex items-center justify-between"><b title="' + escapeForHtmlAttributes(name) + '" class="name_ leading-8 truncate">' + name + '</b><div class="icons-container"></div></div></td>');
+
+				row.append(`
+					<td class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${folderIconElement}</td>
+					<td>
+						<div id="id_${d.id}" class="node folder flex items-center justify-between"><b class="name_ leading-8 truncate">${name}</b><div class="icons-container"></div></div>
+					</td>
+				`);
+
 			} else {
-				row.append('<td class="file-icon"><a href="' + d.path + '" target="_blank"><i class="fa ' + icon + '"></i></a></td>');
-				row.append('<td><div id="id_' + d.id + '" class="node file flex items-center justify-between"><b title="' + escapeForHtmlAttributes(name) + '" class="name_ leading-8 truncate">' + name + '</b><div class="icons-container"></div>'
-					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + d.size + '</span></div></div></div></div></td>');
+
+				row.append(`
+					<td class="file-icon"><a href="${d.path}" target="_blank"><i class="fa ${icon}"></i></a></td>
+					<td>
+						<div id="id_${d.id}" class="node file flex items-center justify-between"><b class="name_ leading-8 truncate">${name}</b><div class="icons-container"></div>
+						<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">${d.size}</span></div></div></div></div>
+					</td>
+				`);
 			}
 
-			row.append('<td class="truncate id">' + d.id + '</td>');
-
-			if (d.isFolder) {
-				row.append('<td class="size whitespace-nowrap">' + size + '</td>');
-			} else {
-				row.append('<td class="size whitespace-nowrap">' + _Files.formatBytes(size, 0) + '</td>');
-			}
-
-			row.append('<td class="truncate">' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
-			row.append('<td>' + (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '') + '</td>');
+			row.append(`
+				<td class="truncate id">${d.id}</td>
+				<td class="size whitespace-nowrap">${d.isFolder ? size : _Files.formatBytes(size, 0)}</td>
+				<td class="truncate">${d.type}${(d.isThumbnail ? ' thumbnail' : '')}${(d.isFile && d.contentType ? ` (${d.contentType})` : '')}</td>
+				<td>${(d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '')}</td>
+			`);
 
 			_Elements.enableContextMenuOnElement(row, d);
 
-		} else if (_Files.isViewModeActive('tiles')) {
+		} else if (tilesModeActive || imageModeActive) {
 
 			let tileId = 'tile' + d.id;
-			_Files.folderContents.append('<div id="' + tileId + '" class="tile' + (d.isThumbnail ? ' thumbnail' : '') + '"></div>');
+
+			let tileClasses = ['tile'];
+			if (d.isThumbnail)   { tileClasses.push('thumbnail'); }
+			if (imageModeActive) { tileClasses.push('img-tile'); }
+
+			_Files.folderContents.append(`<div id="${tileId}" class="${tileClasses.join(' ')}"></div>`);
 			let tile = $('#' + tileId);
 
 			if (d.isFolder) {
 
-				let icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-1x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
-
-				tile.append('<div id="id_' + d.id + '" class="node folder"><div class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</div><b title="' + escapeForHtmlAttributes(name) + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b></div>');
-
-			} else {
-
-				let iconOrThumbnail = d.isImage && !d.isThumbnail && d.tnSmall ? '<img class="tn" src="' + d.tnSmall.path + '">' : '<i class="fa ' + icon + '"></i>';
-
-				tile.append('<div id="id_' + d.id + '" class="node file"><div class="file-icon"><a href="' + d.path + '" target="_blank">' + iconOrThumbnail + '</a></div>'
-					+ '<b title="' + escapeForHtmlAttributes(name) + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b>'
-					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + size + '</span></div></div></div><span class="id">' + d.id + '</span></div>');
-			}
-
-			_Elements.enableContextMenuOnElement(tile, d);
-
-		} else if (_Files.isViewModeActive('img')) {
-
-			let tileId = 'tile' + d.id;
-			_Files.folderContents.append('<div id="' + tileId + '" class="tile img-tile' + (d.isThumbnail ? ' thumbnail' : '') + '"></div>');
-			let tile = $('#' + tileId);
-
-			if (d.isFolder) {
-
-				let icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-1x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
-
-				tile.append('<div id="id_' + d.id + '" class="node folder"><div class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</div><b title="' + escapeForHtmlAttributes(name) + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b></div>');
+				tile.append(`
+					<div id="id_${d.id}" class="node folder">
+						<div class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${folderIconElement}</div>
+						<b class="name_ abbr-ellipsis abbr-75pc">${name}</b>
+					</div>
+				`);
 
 			} else {
 
-				let iconOrThumbnail = d.isImage && !d.isThumbnail && d.tnMid ? '<img class="tn" src="' + d.tnMid.path + '">' : '<i class="fa ' + icon + '"></i>';
+				let thumbnailProperty = (tilesModeActive ? 'tnSmall' : 'tnMid');
+				let iconOrThumbnail   = d.isImage && !d.isThumbnail && d[thumbnailProperty] ? `<img class="tn" src="${d[thumbnailProperty].path}">` : `<i class="fa ${icon}"></i>`;
 
-				tile.append('<div id="id_' + d.id + '" class="node file"><div class="file-icon"><a href="' + d.path + '" target="_blank">' + iconOrThumbnail + '</a></div>'
-					+ '<b title="' + escapeForHtmlAttributes(name) + '" class="name_  abbr-ellipsis abbr-75pc">' + name + '</b>'
-					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + size + '</span></div></div></div><span class="id">' + d.id + '</span></div>');
+				tile.append(`
+					<div id="id_${d.id}" class="node file">
+						<div class="file-icon"><a href="${d.path}" target="_blank">${iconOrThumbnail}</a></div>
+						<b class="name_ abbr-ellipsis abbr-75pc">${name}</b>
+						<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">${size}</span></div></div></div><span class="id">${d.id}</span>
+						<div class="icons-container"></div>
+					</div>
+				`);
 			}
 
 			_Elements.enableContextMenuOnElement(tile, d);
@@ -1000,7 +1003,9 @@ let _Files = {
 
 		_Entities.setMouseOver(div, true);
 
-		div.children('b.name_').off('click').on('click', function(e) {
+		let nameElement = div.children('b.name_');
+		nameElement.attr('title', name);
+		nameElement.off('click').on('click', (e) => {
 			e.stopPropagation();
 			_Entities.makeNameEditable(div);
 		});

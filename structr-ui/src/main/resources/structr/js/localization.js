@@ -48,7 +48,7 @@ let _Localization = {
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('localization'));
 
-		Structr.fetchHtmlTemplate('localization/main', {}, function (html) {
+		Structr.fetchHtmlTemplate('localization/main', {}, (html) => {
 
 			main.append(html);
 
@@ -57,9 +57,9 @@ let _Localization = {
 				_Localization.createNewLocalizationEntry();
 			});
 
-			Structr.fetchHtmlTemplate('localization/functions', {}, function (html) {
+			Structr.fetchHtmlTemplate('localization/functions', {}, (fnBarHtml) => {
 
-				Structr.functionBar.innerHTML = html;
+				Structr.functionBar.innerHTML = fnBarHtml;
 
 				UISettings.showSettingsForCurrentModule();
 
@@ -69,7 +69,7 @@ let _Localization = {
 
 				keyPreselect.addEventListener('keyup', (e) => {
 
-					if (e.keyCode === 27) {
+					if (e.code === 'Escape' || e.keyCode === 27) {
 						keyPreselect.value = '';
 						LSWrapper.setItem(_Localization.localizationPreselectNameKey, '');
 					}
@@ -78,7 +78,7 @@ let _Localization = {
 
 				domainPreselect.addEventListener('keyup', (e) => {
 
-					if (e.keyCode === 27) {
+					if (e.code === 'Escape' || e.keyCode === 27) {
 						domainPreselect.value = '';
 						LSWrapper.setItem(_Localization.localizationPreselectDomainKey, '');
 					}
@@ -116,11 +116,11 @@ let _Localization = {
 				_Localization.keysAndDomainsList = $('#localization-table tbody');
 				_Localization.listKeysAndDomains();
 
-				_Localization.localizationDetailContainer = document.getElementById('localization-detail-container');
-				_Localization.localizationDetailKey = $('#localization-key');
-				_Localization.localizationDetailDomain = $('#localization-domain');
+				_Localization.localizationDetailContainer  = document.getElementById('localization-detail-container');
+				_Localization.localizationDetailKey        = $('#localization-key');
+				_Localization.localizationDetailDomain     = $('#localization-domain');
 				_Localization.localizationDetailSaveButton = $('#localization-fields-save').on('click', _Localization.saveButtonAction);
-				_Localization.localizationsDetailList = $('#localization-detail-table tbody');
+				_Localization.localizationsDetailList      = $('#localization-detail-table tbody');
 
 				Structr.unblockMenu(100);
 
@@ -138,7 +138,7 @@ let _Localization = {
 
 		elements.push({
 			name: 'Edit',
-			clickHandler: function() {
+			clickHandler: () => {
 				_Localization.showLocalizationsForKeyAndDomainObject(keyAndDomainObject);
 				return false;
 			}
@@ -152,9 +152,9 @@ let _Localization = {
 			name: 'Delete Localization',
 			clickHandler: () => {
 
-				Structr.confirmation('<p>Do you really want to delete the complete localizations for "' + keyAndDomainObject.name + '"' + (keyAndDomainObject.domain ? ' in domain "' + keyAndDomainObject.domain + '"' : ' with empty domain') + ' ?</p>',
+				Structr.confirmation(`<p>Do you really want to delete the complete localizations for "<b>${keyAndDomainObject.name}</b>" ${(keyAndDomainObject.domain ? ` in domain "<b>${keyAndDomainObject.domain}</b>"` : ' with empty domain')} ?</p>`,
 					() => {
-						_Localization.deleteCompleteLocalization((keyAndDomainObject.name ? keyAndDomainObject.name : null), (keyAndDomainObject.domain ? keyAndDomainObject.domain : null), this);
+						_Localization.deleteCompleteLocalization((keyAndDomainObject.name ? keyAndDomainObject.name : null), (keyAndDomainObject.domain ? keyAndDomainObject.domain : null));
 
 						_Localization.localizationDetailContainer.style.display = 'none';
 
@@ -195,12 +195,12 @@ let _Localization = {
 		_Localization.keyAndDomainPager = _Pager.addPager('localizations', pagerEl, false, 'Localization', 'ui', _Localization.processPagerData, _Localization.customPagerTransportFunction);
 
 		_Localization.keyAndDomainPager.cleanupFunction = _Localization.clearLocalizationsList;
-		_Localization.keyAndDomainPager.pager.append('Filters: <input type="text" class="filter w75 localization-key" data-attribute="name" placeholder="Key">');
-		_Localization.keyAndDomainPager.pager.append('<input type="text" class="filter w75 localization-domain" data-attribute="domain" placeholder="Domain">');
-		_Localization.keyAndDomainPager.pager.append('<input type="text" class="filter w75 localization-text" data-attribute="localizedName" placeholder="Content">');
+		_Localization.keyAndDomainPager.pager.append(`
+			Filters: <input type="text" class="filter w75 localization-key" data-attribute="name" placeholder="Key">
+			<input type="text" class="filter w75 localization-domain" data-attribute="domain" placeholder="Domain">
+			<input type="text" class="filter w75 localization-text" data-attribute="localizedName" placeholder="Content">`
+		);
 		_Localization.keyAndDomainPager.activateFilterElements();
-
-		pagerEl.append('<div style="clear:both;"></div>');
 
 		let lastSelectedLocalizationElement = LSWrapper.getItem(_Localization.localizationSelectedElementKey);
 		if (!lastSelectedLocalizationElement) {
@@ -216,9 +216,9 @@ let _Localization = {
 		let filterString = "";
 		let presentFilters = Object.keys(filterAttrs);
 		if (presentFilters.length > 0) {
-			filterString = 'WHERE ' + presentFilters.map(function(key) { return 'n.' + key + ' =~ "(?i).*' + filterAttrs[key] + '.*"'; }).join(' AND ');
+			filterString = 'WHERE ' + presentFilters.map((key) => { return `n.${key} =~ "(?i).*${filterAttrs[key]}.*"`; }).join(' AND ');
 		}
-		Command.cypher('MATCH (n:Localization) ' + filterString + ' RETURN DISTINCT {name: n.name, domain: n.domain} as res ORDER BY res.' + _Pager.sortKey[type] + ' ' + _Pager.sortOrder[type], undefined, callback, pageSize, page);
+		Command.cypher(`MATCH (n:Localization) ${filterString} RETURN DISTINCT { name: n.name, domain: n.domain } as res ORDER BY res.${_Pager.sortKey[type]} ${_Pager.sortOrder[type]}`, undefined, callback, pageSize, page);
 	},
 	processPagerData: (pagerData) => {
 		if (pagerData && pagerData.length) {
@@ -248,7 +248,7 @@ let _Localization = {
 	},
 	selectRow: (row) => {
 
-		for (let row of document.querySelectorAll('.localization-row')) {
+		for (let row of document.querySelectorAll('.localization-row.selected')) {
 			row.classList.remove('selected');
 		}
 
@@ -261,7 +261,7 @@ let _Localization = {
 		let combinedTypeForId     = _Localization.getCombinedTypeForId(keyAndDomainObject);
 		keyAndDomainObject.htmlId = combinedTypeForId;
 
-		Structr.fetchHtmlTemplate('localization/row.type', { localization: keyAndDomainObject }, function(html) {
+		Structr.fetchHtmlTemplate('localization/row.type', { localization: keyAndDomainObject }, (html) => {
 
 			let row = $(html);
 			_Localization.keysAndDomainsList.append(row);
@@ -331,12 +331,12 @@ let _Localization = {
 			}
 		}
 	},
-	clearLocalizationsList: function () {
+	clearLocalizationsList: () => {
 		fastRemoveAllChildren(_Localization.keysAndDomainsList[0]);
 	},
 	appendLocalizationDetailListRow: (localization) => {
 
-		Structr.fetchHtmlTemplate('localization/empty-row', {}, function(html) {
+		Structr.fetchHtmlTemplate('localization/empty-row', {}, (html) => {
 
 			_Localization.localizationsDetailList.append(html);
 
@@ -345,7 +345,7 @@ let _Localization = {
 			_Localization.fillLocalizationRow($tr, localization);
 		});
 	},
-	clearLocalizationDetailsList: function () {
+	clearLocalizationDetailsList: () => {
 		fastRemoveAllChildren(_Localization.localizationsDetailList[0]);
 	},
 	saveButtonAction: async (e) => {
@@ -371,7 +371,7 @@ let _Localization = {
 
 				if (response.ok) {
 
-					let data            = await response.json();
+					let data = await response.json();
 					LSWrapper.setItem(_Localization.localizationSelectedElementKey, newData);
 
 					let patchData = [];
@@ -404,43 +404,35 @@ let _Localization = {
 			}
 		}
 	},
-	keyFieldErrorAction: function () {
+	keyFieldErrorAction: () => {
 		_Localization.localizationDetailKey.focus();
 		blinkRed(_Localization.localizationDetailKey);
 	},
-	isFieldNonEmpty: function ($field) {
+	isFieldNonEmpty: ($field) => {
 		return ($field.val().trim() !== '');
 	},
-	appendEmptyLocalizationRow: function (rowHtml) {
-
-		_Localization.localizationsDetailList.append(rowHtml);
-		let $row = $('tr:last', _Localization.localizationsDetailList);
-		let $localeField = $('.___locale', $row);
-
-		return $row;
-	},
-	fillLocalizationRow: function ($row, localization) {
+	fillLocalizationRow: ($row, localization) => {
 
 		$row.attr('id', 'loc_' + localization.id);
 
 		let $localeField = $('.___locale', $row);
 		$localeField.val(localization.locale)
 			.data('oldValue', localization.locale)
-			.on('blur', function (event) {
+			.on('blur', (event) => {
 				_Localization.textfieldChangeAction($(event.target), localization, 'locale');
 			});
 
 		$('.___localizedName', $row)
 			.val(localization.localizedName)
 			.data('oldValue', localization.localizedName)
-			.on('blur', function (event) {
+			.on('blur', (event) => {
 				_Localization.textfieldChangeAction($(event.target), localization, 'localizedName');
 			});
 
 		$('.___description', $row)
 			.val(localization.description)
 			.data('oldValue', localization.description)
-			.on('blur', function (event) {
+			.on('blur', (event) => {
 				_Localization.textfieldChangeAction($(event.target), localization, 'description');
 			});
 
@@ -448,7 +440,7 @@ let _Localization = {
 			.prop('checked', (localization.visibleToPublicUsers === true))
 			.attr('disabled', null)
 			.data('oldValue', localization.visibleToPublicUsers)
-			.on('change', function (event) {
+			.on('change', (event) => {
 				_Localization.checkboxChangeAction($(event.target), localization, 'visibleToPublicUsers');
 			});
 
@@ -456,45 +448,52 @@ let _Localization = {
 			.prop('checked', (localization.visibleToAuthenticatedUsers === true))
 			.attr('disabled', null)
 			.data('oldValue', localization.visibleToAuthenticatedUsers)
-			.on('change', function (event) {
+			.on('change', (event) => {
 				_Localization.checkboxChangeAction($(event.target), localization, 'visibleToAuthenticatedUsers');
 			});
 
 		$('.id', $row).text(localization.id);
 
-		$('td.actions', $row).html('<a title="Delete" class="delete">' + _Icons.getSvgIcon('trashcan', 20, 20) + '</a>');
+		$('td.actions .save-localization', $row).remove();
 
-		$row[0].querySelector('.delete').addEventListener('click', async (e) => {
+		$row[0].querySelector('.remove-localization').addEventListener('click', async (e) => {
 			e.preventDefault();
 
 			let key    = _Localization.localizationDetailKey.val();
 			let domain = _Localization.localizationDetailDomain.val();
-			Structr.confirmation('<p>Really delete localization "' + (localization.localizedName || '') + '" for key "' + key + '"' + (domain ? ' in domain "' + domain + '"' : ' with empty domain') + '?</p>',
+
+			Structr.confirmation(`<p>Really delete localization "${(localization.localizedName || '')}" for key "${key}"${(domain ? ` in domain "${domain}"` : ' with empty domain')}?</p>`,
 				() => {
-					_Localization.deleteSingleLocalization(localization.id, function () {
-						$row.remove();
+					_Localization.deleteSingleLocalization(localization.id).then((success) => {
+						if (success) {
 
-						if ($('tr', _Localization.localizationsDetailList).length === 0) {
-							_Localization.keyAndDomainPager.refresh();
-							_Localization.localizationDetailContainer.style.display = 'none';
+							$row.remove();
+
+							if ($('tr', _Localization.localizationsDetailList).length === 0) {
+								_Localization.keyAndDomainPager.refresh();
+								_Localization.localizationDetailContainer.style.display = 'none';
+							}
+
+							$.unblockUI({
+								fadeOut: 25
+							});
+
+						} else {
+							blinkRed($row);
 						}
-
-						$.unblockUI({
-							fadeOut: 25
-						});
 					});
 				}
 			);
 		});
 	},
-	textfieldChangeAction: function ($el, localization, attr) {
+	textfieldChangeAction: ($el, localization, attr) => {
 		let oldValue = $el.data('oldValue');
 		let curValue = $el.val();
 		if (oldValue !== curValue) {
 			_Localization.updateLocalization(localization, attr, curValue, oldValue, $el);
 		}
 	},
-	checkboxChangeAction: function ($el, localization, attr) {
+	checkboxChangeAction: ($el, localization, attr) => {
 		let oldValue = $el.data('oldValue');
 		let curValue = $el.prop('checked');
 		if (oldValue !== curValue) {
@@ -544,30 +543,29 @@ let _Localization = {
 	},
 	createNewLocalizationEntry: () => {
 
-		Structr.fetchHtmlTemplate('localization/empty-row', {}, function(html) {
+		Structr.fetchHtmlTemplate('localization/empty-row', {}, (html) => {
 
-			let $tr       = _Localization.appendEmptyLocalizationRow(html);
+			_Localization.localizationsDetailList.append(html);
+			let $tr       = $('tr:last', _Localization.localizationsDetailList);
 			let trElement = $tr[0];
 
-			$('input[type=checkbox]', $tr).attr('disabled', 'disabled');
-
-			trElement.querySelector('td.actions .discard').addEventListener('click', function(event) {
+			trElement.querySelector('td.actions .remove-localization').addEventListener('click', (event) => {
 				event.preventDefault();
-				$tr.remove();
+				trElement.remove();
 			});
 
-			trElement.querySelector('td.actions .save').addEventListener('click', async (event) => {
+			trElement.querySelector('td.actions .save-localization').addEventListener('click', async (event) => {
 
 				event.preventDefault();
 
 				if (_Localization.isFieldNonEmpty(_Localization.localizationDetailKey)) {
 
 					let newData = {
-						name: _Localization.localizationDetailKey.data('oldValue') || _Localization.localizationDetailKey.val().trim(),
-						locale: $('.___locale', $tr).val().trim(),
-						localizedName: $('.___localizedName', $tr).val(),
-						description: $('.___description', $tr).val(),
-						visibleToPublicUsers: $('.___visibleToPublicUsers', $tr).prop('checked'),
+						name:                        _Localization.localizationDetailKey.data('oldValue') || _Localization.localizationDetailKey.val().trim(),
+						locale:                      $('.___locale', $tr).val().trim(),
+						localizedName:               $('.___localizedName', $tr).val(),
+						description:                 $('.___description', $tr).val(),
+						visibleToPublicUsers:        $('.___visibleToPublicUsers', $tr).prop('checked'),
 						visibleToAuthenticatedUsers: $('.___visibleToAuthenticatedUsers', $tr).prop('checked')
 					};
 
@@ -598,17 +596,13 @@ let _Localization = {
 			});
 		});
 	},
-	deleteSingleLocalization: async (id, callback) => {
+	deleteSingleLocalization: async (id) => {
 
 		let response = await fetch(rootUrl + id, {
 			method: 'DELETE',
 		});
 
-		if (response.ok) {
-			if (typeof callback === "function") {
-				callback();
-			}
-		}
+		return response.ok;
 	},
 	deleteCompleteLocalization: async (key, domain) => {
 
@@ -618,24 +612,16 @@ let _Localization = {
 
 			let data = await response.json();
 
-			let totalCounter    = 0;
-			let finishedCounter = 0;
+			let promises = data.result.filter((loc) => {
+				return (key === loc.name && domain === loc.domain);
+			}).map((loc) => {
+				return _Localization.deleteSingleLocalization(loc.id);
+			});
 
-			for (let loc of data.result) {
-
-				if (key === loc.name && domain === loc.domain) {
-					totalCounter++;
-
-					_Localization.deleteSingleLocalization(loc.id, function () {
-						finishedCounter++;
-
-						if (finishedCounter === totalCounter) {
-							_Localization.keyAndDomainPager.refresh();
-							_Localization.checkMainVisibility();
-						}
-					});
-				}
-			}
+			Promise.all(promises).then(() => {
+				_Localization.keyAndDomainPager.refresh();
+				_Localization.checkMainVisibility();
+			});
 		}
 	}
 };

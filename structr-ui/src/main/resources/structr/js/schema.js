@@ -25,26 +25,6 @@ $(document).ready(function() {
 	Structr.registerModule(_Schema);
 	Structr.classes.push('schema');
 
-	$(document).on('click', '#inheritance-tree .edit_icon', function(e) {
-		var nodeId = $(e.target).closest('li').data('id');
-		if (nodeId) {
-			_Schema.openEditDialog(nodeId);
-		}
-	});
-
-	$(document).on('click', '#inheritance-tree .delete_icon', function(e) {
-		var nodeId = $(e.target).closest('li').data('id');
-		if (nodeId) {
-			Structr.confirmation(
-				'<h3>Delete schema node \'' + $(e.target).closest('a').text() + '\'?</h3><p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>',
-				function() {
-					$.unblockUI({ fadeOut: 25 });
-					_Schema.deleteNode(nodeId);
-				}
-			);
-		}
-	});
-
 	live('.edge-style', 'click', (e) => {
 		e.stopPropagation();
 		e.preventDefault();
@@ -468,10 +448,10 @@ let _Schema = {
 
 		let handleSchemaNodeData = function(data) {
 
-			var entities         = {};
-			var inheritancePairs = {};
-			var hierarchy        = {};
-			var x=0, y=0;
+			let entities         = {};
+			let inheritancePairs = {};
+			let hierarchy        = {};
+			let x=0, y=0;
 
 			if (savedHiddenSchemaNodesNull) {
 				_Schema.hiddenSchemaNodes = data.result.filter(function(entity) {
@@ -485,14 +465,14 @@ let _Schema = {
 			_Schema.nodePositions = LSWrapper.getItem(_Schema.schemaPositionsKey);
 			if (!_Schema.nodePositions) {
 
-				var nodePositions = {};
+				let nodePositions = {};
 
 				// positions are stored the 'old' way => convert to the 'new' way
 				data.result.map(function(entity) {
 					return entity.name;
 				}).forEach(function(typeName) {
 
-					var nodePos = JSON.parse(LSWrapper.getItem(typeName + localStorageSuffix + 'node-position'));
+					let nodePos = JSON.parse(LSWrapper.getItem(typeName + localStorageSuffix + 'node-position'));
 					if (nodePos) {
 						nodePositions[typeName] = nodePos.position;
 
@@ -516,14 +496,14 @@ let _Schema = {
 
 			_Schema.availableTypeNames = [];
 
-			data.result.forEach(function(entity) {
+			for (let entity of data.result) {
 
 				_Schema.availableTypeNames.push(entity.name);
 
-				var level   = 0;
-				var outs    = entity.relatedTo ? entity.relatedTo.length : 0;
-				var ins     = entity.relatedFrom ? entity.relatedFrom.length : 0;
-				var hasRels = (outs > 0 || ins > 0);
+				let level   = 0;
+				let outs    = entity.relatedTo ? entity.relatedTo.length : 0;
+				let ins     = entity.relatedFrom ? entity.relatedFrom.length : 0;
+				let hasRels = (outs > 0 || ins > 0);
 
 				if (ins === 0 && outs === 0) {
 
@@ -547,192 +527,170 @@ let _Schema = {
 				hierarchy[level].push(entity);
 
 				entities[entity.id] = entity.id;
-			});
+			}
 
-			data.result.forEach(function(entity) {
+			for (let entity of data.result) {
 
 				if (entity.extendsClass && entity.extendsClass.id && entities[entity.extendsClass.id]) {
-					var target = entities[entity.extendsClass.id];
+					let target = entities[entity.extendsClass.id];
 					inheritancePairs[entity.id] = target;
 				}
-			});
+			}
 
-			Object.keys(hierarchy).forEach(function(key) {
+			for (let entitiesAtHierarchyLevel of Object.values(hierarchy)) {
 
-				hierarchy[key].forEach(function(entity) {
+				for (let entity of entitiesAtHierarchyLevel) {
 
 					nodes[entity.id] = entity;
 
-					if (_Schema.hiddenSchemaNodes.length > 0 && _Schema.hiddenSchemaNodes.indexOf(entity.name) > -1) {
-						return;
-					}
+					if (!(_Schema.hiddenSchemaNodes.length > 0 && _Schema.hiddenSchemaNodes.indexOf(entity.name) > -1)) {
 
-					var id = 'id_' + entity.id;
-					canvas.append('<div class="schema node compact'
-							+ (entity.isBuiltinType ? ' light' : '')
-							+ '" id="' + id + '">'
-							+ '<b>' + entity.name + '</b>'
-							+ '<i class="icon delete ' + _Icons.getFullSpriteClass((entity.isBuiltinType ? _Icons.delete_disabled_icon : _Icons.delete_icon)) + '" />'
-							+ '<i class="icon edit ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />'
-							+ '</div>');
+						let id = 'id_' + entity.id;
+						canvas.append(`<div class="schema node compact${(entity.isBuiltinType ? ' light' : '')}" id="${id}">
+							<b>${entity.name}</b>
+							<div class="icons-container">
+								${_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['node-action-icon', 'edit-type-icon']))}
+								${(entity.isBuiltinType ? '' : _Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'node-action-icon', 'delete-type-icon'])))}
+							</div>
+						</div>`);
 
-					var node = $('#' + id);
+						let node = $('#' + id);
 
-					if (!entity.isBuiltinType) {
+						if (!entity.isBuiltinType) {
 
-						node.children('b').off('click').on('click', function() {
-							_Schema.makeAttrEditable(node, 'name');
-						});
+							node.children('b').off('click').on('click', () => {
+								_Schema.makeAttrEditable(node, 'name');
+							});
 
-						node.children('.delete').off('click').on('click', function() {
-							Structr.confirmation('<h3>Delete schema node \'' + entity.name + '\'?</h3><p>This will delete all incoming and outgoing schema relationships as well, but no data will be removed.</p>',
-									function() {
+							$('.delete-type-icon', node).off('click').on('click', function () {
+								Structr.confirmation(
+									`<h3>Delete schema node '${entity.name}'?</h3><p>This will delete all incoming and outgoing schema relationships as well, but no data will be removed.</p>`,
+									function () {
 										$.unblockUI({
 											fadeOut: 25
 										});
 										_Schema.deleteNode(entity.id);
-									});
-						});
-					}
-
-					node.off('mousedown').on('mousedown', function() {
-						node.css({zIndex: ++_Schema.ui.maxZ});
-					});
-
-					var getX = function() {
-						return (x * 300) + ((y % 2) * 150) + 140;
-					};
-					var getY = function() {
-						return (y * 150) + 150;
-					};
-					var calculatePosition = function() {
-						var calculatedX = getX();
-						if (calculatedX > 1500) {
-							y++;
-							x = 0;
-							calculatedX = getX();
-						}
-						var calculatedY = getY();
-						return { left: calculatedX, top: calculatedY };
-					};
-
-					let nodePosition = _Schema.nodePositions[entity.name];
-
-					if (!nodePosition || (nodePosition && nodePosition.left === 0 && nodePosition.top === 0)) {
-
-						nodePosition = calculatePosition();
-
-						// console.log('calculatedPosition', calculatedPosition);
-
-						let count = 0; // prevent endless looping
-
-						while (_Schema.overlapsExistingNodes(nodePosition) && count++ < 1000) {
-							x++;
-							nodePosition = calculatePosition();
-						}
-					}
-
-					let canvasOffsetTop = canvas.offset().top;
-
-					if (nodePosition.top < canvasOffsetTop) {
-						nodePosition.top = canvasOffsetTop;
-
-						let count = 0; // prevent endless looping
-
-						while (_Schema.overlapsExistingNodes(nodePosition) && count++ < 1000) {
-							x++;
-							nodePosition = calculatePosition();
-						}
-					}
-
-					node.offset(nodePosition);
-
-					$('.edit', node).off('click').on('click', function(e) {
-
-						e.stopPropagation();
-						var id = Structr.getId($(this).closest('.schema.node'));
-
-						if (!id) {
-							return false;
-						}
-
-						_Schema.openEditDialog(id);
-
-						return false;
-					});
-
-					nodes[entity.id + '_top'] = instance.addEndpoint(id, {
-						anchor: "Top",
-						maxConnections: -1,
-						isTarget: true,
-						deleteEndpointsOnDetach: false
-					});
-					nodes[entity.id + '_bottom'] = instance.addEndpoint(id, {
-						anchor: "Bottom",
-						maxConnections: -1,
-						isSource: true,
-						deleteEndpointsOnDetach: false
-					});
-
-					instance.draggable(id, {
-						containment: true,
-						start: function(ui) {
-							var nodeOffset   = $(ui.el).offset();
-							var canvasOffset = canvas.offset();
-							// var canvasOffset = {top:300,left:0};
-
-							_Schema.ui.nodeDragStartpoint = {
-								top:  (nodeOffset.top  - canvasOffset.top ),
-								left: (nodeOffset.left - canvasOffset.left)
-							};
-						},
-						drag: function(ui) {
-
-							var $element = $(ui.el);
-
-							if (!$element.hasClass('selected')) {
-
-								_Schema.ui.clearSelection();
-
-							} else {
-
-								var nodeOffset = $element.offset();
-								var canvasOffset = canvas.offset();
-
-								var posDelta = {
-									top:  (_Schema.ui.nodeDragStartpoint.top  - nodeOffset.top ),
-									left: (_Schema.ui.nodeDragStartpoint.left - nodeOffset.left)
-								};
-
-								_Schema.ui.selectedNodes.forEach(function(selectedNode) {
-									if (selectedNode.nodeId !== $element.attr('id')) {
-										$('#' + selectedNode.nodeId).offset({
-											top:  (selectedNode.pos.top  - posDelta.top  > canvasOffset.top ) ? (selectedNode.pos.top  - posDelta.top ) : canvasOffset.top,
-											left: (selectedNode.pos.left - posDelta.left > canvasOffset.left) ? (selectedNode.pos.left - posDelta.left) : canvasOffset.left
-										});
 									}
-								});
-
-								instance.repaintEverything();
-							}
-						},
-						stop: function() {
-							_Schema.storePositions();
-							_Schema.ui.updateSelectedNodes();
-							_Schema.resize();
+								);
+							});
 						}
-					});
 
-					x++;
-				});
+						node.off('mousedown').on('mousedown', function () {
+							node.css({zIndex: ++_Schema.ui.maxZ});
+						});
+
+						let nodePosition = _Schema.nodePositions[entity.name];
+
+						if (!nodePosition || (nodePosition && nodePosition.left === 0 && nodePosition.top === 0)) {
+
+							nodePosition = _Schema.ui.calculateNodePosition(x, y);
+
+							let count = 0; // prevent endless looping
+
+							while (_Schema.overlapsExistingNodes(nodePosition) && count++ < 1000) {
+								x++;
+								nodePosition = _Schema.ui.calculateNodePosition(x, y);
+							}
+						}
+
+						let canvasOffsetTop = canvas.offset().top;
+
+						if (nodePosition.top < canvasOffsetTop) {
+							nodePosition.top = canvasOffsetTop;
+
+							let count = 0; // prevent endless looping
+
+							while (_Schema.overlapsExistingNodes(nodePosition) && count++ < 1000) {
+								x++;
+								nodePosition = _Schema.ui.calculateNodePosition(x, y);
+							}
+						}
+
+						node.offset(nodePosition);
+
+						$('.edit-type-icon', node).off('click').on('click', function (e) {
+
+							e.stopPropagation();
+
+							_Schema.openEditDialog(entity.id);
+
+							return false;
+						});
+
+						nodes[entity.id + '_top'] = instance.addEndpoint(id, {
+							anchor: "Top",
+							maxConnections: -1,
+							isTarget: true,
+							deleteEndpointsOnDetach: false
+						});
+						nodes[entity.id + '_bottom'] = instance.addEndpoint(id, {
+							anchor: "Bottom",
+							maxConnections: -1,
+							isSource: true,
+							deleteEndpointsOnDetach: false
+						});
+
+						instance.draggable(id, {
+							containment: true,
+							start: function (ui) {
+								let nodeOffset = $(ui.el).offset();
+								let canvasOffset = canvas.offset();
+
+								_Schema.ui.nodeDragStartpoint = {
+									top: (nodeOffset.top - canvasOffset.top),
+									left: (nodeOffset.left - canvasOffset.left)
+								};
+							},
+							drag: function (ui) {
+
+								requestAnimationFrame(() => {
+
+									let $element = $(ui.el);
+									let elementId = $element.attr('id');
+
+									if (!$element.hasClass('selected')) {
+
+										_Schema.ui.clearSelection();
+
+									} else {
+
+										let nodeOffset = $element.offset();
+										let canvasOffset = canvas.offset();
+
+										let posDelta = {
+											top: (_Schema.ui.nodeDragStartpoint.top - nodeOffset.top),
+											left: (_Schema.ui.nodeDragStartpoint.left - nodeOffset.left)
+										};
+
+										for (let selectedNode of _Schema.ui.selectedNodes) {
+											if (selectedNode.nodeId !== elementId) {
+												$('#' + selectedNode.nodeId).offset({
+													top: (selectedNode.pos.top - posDelta.top > canvasOffset.top) ? (selectedNode.pos.top - posDelta.top) : canvasOffset.top,
+													left: (selectedNode.pos.left - posDelta.left > canvasOffset.left) ? (selectedNode.pos.left - posDelta.left) : canvasOffset.left
+												});
+											}
+										}
+									}
+									instance.repaintEverything();
+								});
+							},
+							stop: function () {
+								_Schema.storePositions();
+								_Schema.ui.updateSelectedNodes();
+								_Schema.resize();
+							}
+						});
+
+						x++;
+					}
+				}
 
 				y++;
 				x = 0;
-			});
+			}
 
-			for (var source of Object.keys(inheritancePairs)) {
+			for (let [source, target] of Object.entries(inheritancePairs)) {
 
-				let target = inheritancePairs[source];
 				let sourceEntity = nodes[source];
 				let targetEntity = nodes[target];
 
@@ -766,7 +724,6 @@ let _Schema = {
 		_Schema.currentNodeDialogId = id;
 
 		dialogMeta.hide();
-
 		Command.get(id, null, function(entity) {
 
 			let title = (entity.type === "SchemaRelationshipNode") ? 'Edit schema relationship' : 'Edit schema node';
@@ -905,33 +862,34 @@ let _Schema = {
 		}
 
 		let id = '___' + entity.id;
-		headEl.append('<div id="' + id + '_head" class="schema-details"></div>');
+		headEl.append(`
+			<div id="${id}_head" class="schema-details">
+				<div id="class-inheritance" class="flex items-center gap-x-2">
+					<b>${entity.name}</b>
+				</div>
+			</div>
+		`);
 		let headContentDiv = $('#' + id + '_head');
-
-		headContentDiv.append('<b>' + entity.name + '</b>');
+		let inheritanceDiv = $('#class-inheritance', headContentDiv);
 
 		if (!entity.isBuiltinType || entity.extendsClass) {
 
-			headContentDiv.append(' extends <select class="extends-class-select"></select>');
+			inheritanceDiv.append(' extends <select class="extends-class-select"></select>');
 
 			if (entity.extendsClass) {
-				headContentDiv.append(' <i id="edit-parent-class" class="icon edit ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" title="Edit parent class" />');
-			}
 
-			$("#edit-parent-class", headContentDiv).click(function() {
+				inheritanceDiv.append(_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['ml-2', 'edit-parent-type']), 'Edit parent type'));
 
-				if (!$(this).hasClass('disabled')) {
+				$(".edit-parent-type", inheritanceDiv).click(() => {
 
-					_Schema.openEditDialog(entity.extendsClass.id, undefined, function() {
+					_Schema.openEditDialog(entity.extendsClass.id, undefined, () => {
 
-						window.setTimeout(function() {
-
+						window.setTimeout(() => {
 							_Schema.openEditDialog(entity.id);
-
 						}, 250);
 					});
-				}
-			});
+				});
+			}
 		}
 
 		headContentDiv.append('<div id="tabs"><ul></ul></div>');
@@ -965,14 +923,16 @@ let _Schema = {
 
 		if (!entity.isBuiltinType) {
 
-			headContentDiv.children('b').off('click').on('click', () => {
-				_Schema.makeAttrEditable(headContentDiv, 'name');
+			inheritanceDiv.children('b').off('click').on('click', () => {
+				_Schema.makeAttrEditable(inheritanceDiv, 'name');
 			});
 		}
 
 		let classSelect = $('.extends-class-select', headEl);
 		classSelect.append('<optgroup label="Default Type"><option value="">AbstractNode - Structr default base type</option></optgroup>');
-		$.get(rootUrl + 'SchemaNode/ui?' + Structr.getRequestParameterName('sort') + '=name', function(data) {
+		fetch(rootUrl + 'SchemaNode/ui?' + Structr.getRequestParameterName('sort') + '=name').then(async (response) => {
+
+			let data = await response.json();
 
 			let customTypes  = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isBuiltinType));
 			let builtinTypes = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && cls.isBuiltinType));
@@ -1016,13 +976,14 @@ let _Schema = {
 				appendOptions($('#for-builtin-types'), builtinTypes);
 			}
 
-			classSelect.chosen({ search_contains: true, width: '500px' });
+			classSelect.chosen({
+				search_contains: true,
+				width: '500px'
+			});
 		});
 
-		classSelect.off('change').on('change', function() {
-			let obj = {extendsClass: $(this).val()};
-			_Schema.storeSchemaEntity('schema_properties', entity, JSON.stringify(obj), function() {
-
+		classSelect.off('change').on('change', () => {
+			_Schema.storeSchemaEntity('schema_properties', entity, JSON.stringify({ extendsClass: classSelect.val() }), () => {
 				_Schema.openEditDialog(entity.id);
 			});
 		});
@@ -1413,7 +1374,10 @@ let _Schema = {
 				}
 
 				propertiesTable[0].querySelector('.discard-all').addEventListener('click', () => {
-					tbody.find('i.discard-changes').click();
+
+					for (let discardIcon of tbody[0].querySelectorAll('.discard-changes')) {
+						discardIcon.dispatchEvent(new Event('click'));
+					}
 				});
 
 				propertiesTable[0].querySelector('.save-all').addEventListener('click', () => {
@@ -2078,7 +2042,9 @@ let _Schema = {
 				}
 
 				$('.discard-all', tbl).on('click', () => {
-					tbl.find('i.discard-changes').click();
+					for (let discardIcon of tbl[0].querySelectorAll('.discard-changes')) {
+						discardIcon.dispatchEvent(new Event('click'));
+					}
 				});
 
 				$('.save-all', tbl).on('click', () => {
@@ -2297,7 +2263,9 @@ let _Schema = {
 				}
 
 				viewsTable[0].querySelector('.discard-all').addEventListener('click', () => {
-					tbody.find('i.discard-changes').click();
+					for (let discardIcon of tbody[0].querySelectorAll('.discard-changes')) {
+						discardIcon.dispatchEvent(new Event('click'));
+					}
 				});
 
 				viewsTable[0].querySelector('.save-all').addEventListener('click', () => {
@@ -2690,14 +2658,14 @@ let _Schema = {
 							$('.property-isStatic', fakeRow).prop('checked', method.isStatic);
 
 							_Schema.methods.methodsData[method.id] = {
-								isNew: false,
-								id: method.id,
-								name: method.name,
-								isStatic: method.isStatic,
-								source: method.source || '',
-								initialName: method.name,
+								isNew:           false,
+								id:              method.id,
+								name:            method.name,
+								isStatic:        method.isStatic,
+								source:          method.source || '',
+								initialName:     method.name,
 								initialisStatic: method.isStatic,
-								initialSource: method.source || '',
+								initialSource:   method.source || '',
 							};
 
 							_Schema.methods.bindRowEvents(fakeRow, entity, method);
@@ -2711,7 +2679,9 @@ let _Schema = {
 					});
 
 					$('.discard-all', methodsFakeTable).on('click', () => {
-						methodsFakeTable.find('i.discard-changes').click();
+						for (let discardIcon of methodsFakeTable[0].querySelectorAll('.discard-changes')) {
+							discardIcon.dispatchEvent(new Event('click'));
+						}
 					});
 
 					$('.save-all', methodsFakeTable).on('click', () => {
@@ -4195,14 +4165,15 @@ let _Schema = {
 		});
 	},
 	loadClassTree: function(schemaNodes) {
-		var classTree = {};
-		var tmpHierarchy = {};
-		var classnameToId = {};
+		let classTree       = {};
+		let tmpHierarchy    = {};
+		let classnameToId   = {};
+		let schemaNodesById = {};
 
-		var insertClassInClassTree = function(classObj, tree) {
-			var classes = Object.keys(tree);
+		let insertClassInClassTree = (classObj, tree) => {
+			let classes = Object.keys(tree);
 
-			var position = classes.indexOf(classObj.parent);
+			let position = classes.indexOf(classObj.parent);
 			if (position !== -1) {
 
 				if (classTree[classObj.name]) {
@@ -4215,39 +4186,42 @@ let _Schema = {
 				return true;
 
 			} else {
-				var done = false;
-				classes.forEach(function(className) {
+				let done = false;
+				for (let className of classes) {
 					if (!done) {
 						done = insertClassInClassTree(classObj, tree[className]);
 					}
-				});
+				}
 				return done;
 			}
-
 		};
 
-		var printClassTree = function($elem, classTree) {
-			var classes = Object.keys(classTree).sort();
+		let printClassTree = ($elem, classTree) => {
+			let classes = Object.keys(classTree).sort();
 
 			if (classes.length > 0) {
 
-				var $newUl = $('<ul></ul>').appendTo($elem);
+				let $newUl = $('<ul></ul>').appendTo($elem);
 
-				classes.forEach(function(classname) {
-					var actionsAvailableForClass = !!(classnameToId[classname]);
+				for (let classname of classes) {
+					let idForClassname = classnameToId[classname];
+					let isCustomType   = !schemaNodesById?.[idForClassname]?.isBuiltinType;
 
-					var icons = (actionsAvailableForClass ? '<b class="delete_icon icon delete ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /><b class="edit_icon icon edit ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />' : '');
-					var classId = (actionsAvailableForClass ? ' data-id="' + classnameToId[classname] + '"' : '');
+					let icons   = `<div class="flex items-center icons-container">
+						${_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'node-action-icon', 'edit-type-icon']))}
+						${(isCustomType ? _Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'node-action-icon', 'delete-type-icon'])) : '')}
+					</div>`;
 
-					var $newLi = $('<li data-jstree=\'{"opened":true}\'' + classId + '>' + classname + icons + '</li>').appendTo($newUl);
+					let $newLi = $(`<li data-jstree='{"opened":true}' data-id="${classnameToId[classname]}">${classname}${icons}</li>`).appendTo($newUl);
+
 					printClassTree($newLi, classTree[classname]);
-				});
+				}
 			}
 		};
 
-		var getParentClassName = function (str) {
+		let getParentClassName = function (str) {
 			if (str.slice(-1) === '>') {
-				var res = str.match("([^<]*)<([^>]*)>");
+				let res = str.match("([^<]*)<([^>]*)>");
 				return getParentClassName(res[1]) + "&lt;" + getParentClassName(res[2]) + "&gt;";
 
 			} else {
@@ -4255,19 +4229,21 @@ let _Schema = {
 			}
 		};
 
-		schemaNodes.forEach(function(schemaNode) {
+		for (let schemaNode of schemaNodes) {
 
-			var classObj = {
+			schemaNodesById[schemaNode.id] = schemaNode;
+
+			let classObj = {
 				name: schemaNode.name,
 				parent: schemaNode.extendsClass ? schemaNode.extendsClass.name : 'AbstractNode'
 			};
 
 			classnameToId[classObj.name] = schemaNode.id;
 
-			var inserted = insertClassInClassTree(classObj, tmpHierarchy);
+			let inserted = insertClassInClassTree(classObj, tmpHierarchy);
 
 			if (!inserted) {
-				var insertedTmp = insertClassInClassTree(classObj, classTree);
+				let insertedTmp = insertClassInClassTree(classObj, classTree);
 
 				if (!insertedTmp) {
 					if (classTree[classObj.name]) {
@@ -4278,10 +4254,9 @@ let _Schema = {
 						classTree[classObj.parent] = {};
 						classTree[classObj.parent][classObj.name] = {};
 					}
-
 				}
 			}
-		});
+		}
 
 		$.jstree.destroy();
 		printClassTree(inheritanceTree, classTree);
@@ -4293,6 +4268,31 @@ let _Schema = {
 				}
 			},
 			plugins: ["search"]
+		}).on('ready.jstree', (e, data) => {
+
+			$('#inheritance-tree .edit-type-icon').on('click', function(e) {
+				let nodeId = $(e.target).closest('li').data('id');
+				if (nodeId) {
+					_Schema.openEditDialog(nodeId);
+				}
+			});
+
+			$('#inheritance-tree .delete-type-icon').on('click', function(e) {
+				let nodeId = $(e.target).closest('li').data('id');
+				if (nodeId) {
+					Structr.confirmation(
+						`<h3>Delete schema node '${$(e.target).closest('a').text()}'?</h3><p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>`,
+						() => {
+							$.unblockUI({
+								fadeOut: 25
+							});
+							_Schema.deleteNode(nodeId);
+						}
+					);
+				}
+			});
+
+
 		}).on('changed.jstree', function(e, data) {
 			let $node = $('#id_' + data.node.data.id);
 			if ($node.length > 0) {
@@ -4324,9 +4324,9 @@ let _Schema = {
 		if (!position) {
 			return false;
 		}
-		var overlaps = false;
+		let overlaps = false;
 		$('.node.schema.compact').each(function(i, node) {
-			var offset = $(node).offset();
+			let offset = $(node).offset();
 			overlaps |= (Math.abs(position.left - offset.left) < 20 && Math.abs(position.top - offset.top) < 20);
 		});
 		return overlaps;
@@ -4570,6 +4570,25 @@ let _Schema = {
 				canvas.addClass('hide-inheritance-arrwows');
 			}
 		},
+		getNodeXPosition: (x, y) => {
+			return (x * 300) + ((y % 2) * 150) + 140;
+		},
+		getNodeYPosition: (y) => {
+			return (y * 150) + 150;
+		},
+		calculateNodePosition: (x, y) => {
+			let calculatedX = _Schema.ui.getNodeXPosition(x, y);
+			if (calculatedX > 1500) {
+				y++;
+				x = 0;
+				calculatedX = _Schema.ui.getNodeXPosition(x, y);
+			}
+			let calculatedY = _Schema.ui.getNodeYPosition(y);
+			return {
+				left: calculatedX,
+				top: calculatedY
+			};
+		}
 	},
 	filterJavaMethods: function(methods) {
 		if (!_Schema.showJavaMethods) {

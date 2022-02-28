@@ -192,29 +192,26 @@ let _VirtualTypes = {
 
 		_VirtualTypes.virtualTypesPager = _Pager.addPager('virtual-types', pagerEl, false, 'VirtualType', 'ui', _VirtualTypes.processPagerData);
 
-		_VirtualTypes.virtualTypesPager.cleanupFunction = function () {
+		_VirtualTypes.virtualTypesPager.cleanupFunction = () => {
 			fastRemoveAllChildren(_VirtualTypes.virtualTypesList[0]);
 		};
-		_VirtualTypes.virtualTypesPager.pager.append('Filters: <input type="text" class="filter w100 virtual-type-name" data-attribute="name" placeholder="Name" />');
-		_VirtualTypes.virtualTypesPager.pager.append('<input type="text" class="filter w100 virtual-type-sourceType" data-attribute="sourceType" placeholder="Source Type" />');
+		_VirtualTypes.virtualTypesPager.pager.append(`
+			Filters: <input type="text" class="filter w100 virtual-type-name" data-attribute="name" placeholder="Name">
+			<input type="text" class="filter w100 virtual-type-sourceType" data-attribute="sourceType" placeholder="Source Type">
+		`);
 		_VirtualTypes.virtualTypesPager.activateFilterElements();
 
-		pagerEl.append('<div style="clear:both;"></div>');
-
-		// $('#virtual-types-table .sort').on('click', function () {
-		// 	_VirtualTypes.virtualTypesPager.setSortKey($(this).data('sort'));
-		// });
 	},
-	processPagerData: function (pagerData) {
+	processPagerData: (pagerData) => {
 		if (pagerData && pagerData.length) {
 			pagerData.forEach(_VirtualTypes.appendVirtualType);
 		}
 	},
-	appendVirtualType: function (virtualType) {
+	appendVirtualType: (virtualType) => {
 
 		_VirtualTypes.showMain();
 
-		Structr.fetchHtmlTemplate('virtual-types/row.type', {virtualType: virtualType}, (html) => {
+		Structr.fetchHtmlTemplate('virtual-types/row.type', { virtualType: virtualType }, (html) => {
 
 			let row = $(html);
 			_VirtualTypes.populateVirtualTypeRow(row, virtualType);
@@ -259,15 +256,17 @@ let _VirtualTypes = {
 			name: 'Delete Virtual Type',
 			clickHandler: () => {
 
-				Structr.confirmation('<p>Do you really want to delete the virtual type "' + virtualType.name + '" with all its virtual properties?</p>', () => {
+				Structr.confirmation(`<p>Do you really want to delete the virtual type "<b>${virtualType.name}</b>" with all its virtual properties?</p>`, () => {
 
 					Command.get(virtualType.id, 'id,properties', function(vt) {
 
-						vt.properties.forEach(function(vp) {
-							Command.deleteNode(vp.id);
+						let promises = vt.properties.map((vp) => {
+							return fetch(rootUrl + vp.id, { method: 'DELETE' });
 						});
 
-						Command.deleteNode(vt.id, null, () => {
+						promises.push(fetch(rootUrl + vt.id, { method: 'DELETE' }))
+
+						Promise.all(promises).then(() => {
 
 							_VirtualTypes.virtualTypesPager.refresh();
 							window.setTimeout(_VirtualTypes.checkMainVisibility, 200);
@@ -335,12 +334,12 @@ let _VirtualTypes = {
 	},
 	updateResourceLink: function (virtualType) {
 		let resourceLink = _VirtualTypes.virtualTypeDetail.querySelector('.resource-link a');
-		resourceLink.setAttribute('href' , '/structr/rest/' + virtualType.name + '?' + Structr.getRequestParameterName('pageSize') + '=1');
+		resourceLink.setAttribute('href' , rootUrl + virtualType.name + '?' + Structr.getRequestParameterName('pageSize') + '=1');
 		resourceLink.textContent = '/' + virtualType.name;
 	},
 	listVirtualProperties: (properties) => {
 
-		properties.sort(function(a, b) {
+		properties.sort((a, b) => {
 			return (a.position === b.position) ? 0 : (a.position > b.position) ? 1 : -1;
 		});
 
@@ -350,13 +349,13 @@ let _VirtualTypes = {
 			_VirtualTypes.appendVirtualProperty(p);
 		}
 	},
-	appendVirtualProperty: function(optionalProperty) {
+	appendVirtualProperty: (optionalProperty) => {
 
-		Structr.fetchHtmlTemplate('virtual-types/row.property', {}, function(html) {
+		Structr.fetchHtmlTemplate('virtual-types/row.property', {}, (html) => {
 
 			let row          = $(html);
-			let removeButton = $('a.remove', row);
-			let saveButton   = $('button.save', row);
+			let removeButton = $('.remove-virtual-property', row);
+			let saveButton   = $('.save-virtual-property', row);
 
 			if (optionalProperty) {
 
@@ -364,7 +363,7 @@ let _VirtualTypes = {
 
 				row.data('virtual-property-id', optionalProperty.id);
 
-				removeButton.attr('title', 'Delete').on('click', function () {
+				removeButton.on('click', () => {
 					_VirtualTypes.deleteVirtualProperty(row.data('virtual-property-id'), row);
 				});
 
@@ -401,7 +400,7 @@ let _VirtualTypes = {
 
 						saveButton.remove();
 
-						removeButton.attr('title', 'Delete').off('click').on('click', function () {
+						removeButton.off('click').on('click', () => {
 							_VirtualTypes.deleteVirtualProperty(row.data('virtual-property-id'), row);
 						});
 
@@ -410,7 +409,7 @@ let _VirtualTypes = {
 					}
 				});
 
-				removeButton.attr('title', 'Discard').on('click', function () {
+				removeButton.on('click', () => {
 					row.remove();
 				});
 			}
@@ -459,7 +458,7 @@ let _VirtualTypes = {
 	},
 	selectRow: (row) => {
 
-		for (let row of document.querySelectorAll('.virtual-type-row')) {
+		for (let row of document.querySelectorAll('.virtual-type-row.selected')) {
 			row.classList.remove('selected');
 		}
 
