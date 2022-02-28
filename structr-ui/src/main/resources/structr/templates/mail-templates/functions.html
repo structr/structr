@@ -3,8 +3,35 @@
 
 <form id="create-mail-template-form" autocomplete="off">
 	<input title="Enter a name to create a mail template" id="mail-template-name-preselect" type="text" size="30" placeholder="Name" required>
+	<input title="Enter a comma-separated list of locales (f.e. en,de,fr) to create mail templates for" id="mail-template-locale-preselect" type="text" size="10" placeholder="Locale(s)">
 
 	<button type="submit" form="create-mail-template-form" class="action btn" id="create-mail-template"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> New Mail Template</button>
 </form>
+
+<div class="dropdown-menu dropdown-menu-large">
+	<button class="btn dropdown-select">${_Icons.getSvgIcon('magic_wand', 16, 16, '')}</button>
+	<div class="dropdown-menu-container">
+
+		<div class="heading-row">
+			<h3>Create Mail Templates For Processes</h3>
+		</div>
+
+		<div class="row mb-2">
+			The templates will be created using the locales specified in the locale field.
+		</div>
+
+		<div class="row">
+			<a id="create-registration-templates" class="flex items-center py-1">
+				${_Icons.getSvgIcon('registration-templates', 16, 16, 'mr-2')} Create default "Self-Registration" mail templates
+			</a>
+		</div>
+
+		<div class="row">
+			<a id="create-reset-password-templates" class="flex items-center py-1">
+				${_Icons.getSvgIcon('reset-password-templates', 16, 16, 'mr-2')} Create default "Reset Password" mail templates
+			</a>
+		</div>
+	</div>
+</div>
 
 <div id="mail-templates-pager"></div>

@@ -28,10 +28,10 @@ let _MailTemplates = {
 	mailTemplateDetailContainer: undefined,
 	mailTemplateDetailForm: undefined,
 	previewElement: undefined,
-	editor: undefined,
 
-	mailTemplatesResizerLeftKey: 'structrMailTemplatesResizerLeftKey_' + location.port,
-	mailTemplateSelectedElementKey: 'structrMailTemplatesSelectedElementKey_' + location.port,
+	mailTemplatesResizerLeftKey:     'structrMailTemplatesResizerLeftKey_' + location.port,
+	mailTemplateSelectedElementKey:  'structrMailTemplatesSelectedElementKey_' + location.port,
+	mailTemplatesPreselectLocaleKey: 'structrMailTemplatesPreselectLocaleKey_' + location.port,
 
 	init: () => {
 		$(window).off('resize').on('resize', _MailTemplates.resize);
@@ -53,16 +53,72 @@ let _MailTemplates = {
 
 				UISettings.showSettingsForCurrentModule();
 
-				let namePreselect = document.getElementById('mail-template-name-preselect');
+				let newMailTemplateForm = Structr.functionBar.querySelector('#create-mail-template-form');
+				let namePreselect       = document.getElementById('mail-template-name-preselect');
+				let localePreselect     = document.getElementById('mail-template-locale-preselect');
 
-				Structr.functionBar.querySelector('#create-mail-template-form').addEventListener('submit', async (e) => {
+				localePreselect.value = LSWrapper.getItem(_MailTemplates.mailTemplatesPreselectLocaleKey) || 'en';
+
+				newMailTemplateForm.addEventListener('submit', async (e) => {
 					e.preventDefault();
 
 					_MailTemplates.showMain();
-					await _MailTemplates.createObject('MailTemplate', { name: namePreselect.value }, this, (data) => {
-						let id = data.result[0];
-						_MailTemplates.showMailTemplateDetails(id, true);
+
+					let preselectLocalesString = localePreselect.value.trim();
+
+					LSWrapper.setItem(_MailTemplates.mailTemplatesPreselectLocaleKey, preselectLocalesString);
+
+					let mtData = preselectLocalesString.split(',').map((l) => {
+						return {
+							name: namePreselect.value,
+							locale: l.trim()
+						}
 					});
+
+					let response = await _MailTemplates.createMailTemplates(mtData, newMailTemplateForm);
+				});
+
+				let createRegistrationTemplatesLink = Structr.functionBar.querySelector('#create-registration-templates');
+				createRegistrationTemplatesLink.addEventListener('click', async (e) => {
+					e.preventDefault();
+
+					let defaultRegistrationTemplates = [
+						{ name: 'CONFIRM_REGISTRATION_SENDER_ADDRESS',	text: 'structr-mail-daemon@localhost' },
+						{ name: 'CONFIRM_REGISTRATION_SENDER_NAME',		text: 'Structr Mail Daemon' },
+						{ name: 'CONFIRM_REGISTRATION_SUBJECT',			text: 'Welcome to Structr, please finalize registration' },
+						{ name: 'CONFIRM_REGISTRATION_TEXT_BODY',		text: 'Go to ${link} to finalize registration.' },
+						{ name: 'CONFIRM_REGISTRATION_HTML_BODY',		text: '<div>Click <a href=\'${link}\'>here</a> to finalize registration.</div>' },
+						{ name: 'CONFIRM_REGISTRATION_TARGET_PAGE',		text: '/register_thanks' },
+						{ name: 'CONFIRM_REGISTRATION_ERROR_PAGE',		text: '/register_error' },
+					];
+
+					let mtData = localePreselect.value.trim().split(',').map((l) => {
+						return defaultRegistrationTemplates.map(mt => Object.assign({ locale: l.trim() }, mt));
+					});
+					mtData = [].concat(...mtData);
+
+					let response = await _MailTemplates.createMailTemplates(mtData, createRegistrationTemplatesLink);
+				});
+
+				let createResetPasswordTemplatesLink = Structr.functionBar.querySelector('#create-reset-password-templates');
+				createResetPasswordTemplatesLink.addEventListener('click', async (e) => {
+					e.preventDefault();
+
+					let defaultResetPasswordTemplates = [
+						{ name: 'RESET_PASSWORD_SENDER_ADDRESS',	text: 'structr-mail-daemon@localhost' },
+						{ name: 'RESET_PASSWORD_SENDER_NAME',		text: 'Structr Mail Daemon' },
+						{ name: 'RESET_PASSWORD_SUBJECT',			text: 'Request to reset your Structr password' },
+						{ name: 'RESET_PASSWORD_TEXT_BODY',			text: 'Go to ${link} to reset your password.' },
+						{ name: 'RESET_PASSWORD_HTML_BODY',			text: '<div>Click <a href=\'${link}\'>here</a> to reset your password.</div>' },
+						{ name: 'RESET_PASSWORD_TARGET_PAGE',		text: '/reset-password' }
+					];
+
+					let mtData = localePreselect.value.trim().split(',').map((l) => {
+						return defaultResetPasswordTemplates.map(mt => Object.assign({ locale: l.trim() }, mt));
+					});
+					mtData = [].concat(...mtData);
+
+					let response = await _MailTemplates.createMailTemplates(mtData, createResetPasswordTemplatesLink);
 				});
 
 				_MailTemplates.mailTemplatesList           = document.querySelector('#mail-templates-table tbody');
@@ -175,7 +231,7 @@ let _MailTemplates = {
 
 		_MailTemplates.mailTemplatesPager = _Pager.addPager('mail-templates', pagerEl, false, 'MailTemplate', 'ui', _MailTemplates.processPagerData);
 
-		_MailTemplates.mailTemplatesPager.cleanupFunction = function () {
+		_MailTemplates.mailTemplatesPager.cleanupFunction = () => {
 			_MailTemplates.mailTemplatesList.innerHTML = '';
 		};
 		_MailTemplates.mailTemplatesPager.pager.append('Filters: <input type="text" class="filter w100 mail-template-name" data-attribute="name" placeholder="Name">');
@@ -242,23 +298,20 @@ let _MailTemplates = {
 			}
 		}
 
-		data.text = _MailTemplates.editor.getValue();
+		let editor = _Editors.getEditorInstanceForIdAndProperty(data.id, 'text');
+		data.text = editor.getValue();
 
 		return data;
 	},
 	showMailTemplateDetails: (mailTemplateId, isCreate) => {
 
-		Command.get(mailTemplateId, '', function(mt) {
+		Command.get(mailTemplateId, '', (mt) => {
 
 			_MailTemplates.mailTemplateDetailContainer.style.display = null;
 
 			_MailTemplates.mailTemplateDetailForm.dataset['mailTemplateId'] = mailTemplateId;
 
 			LSWrapper.setItem(_MailTemplates.mailTemplateSelectedElementKey, mailTemplateId);
-
-			if (_MailTemplates.editor) {
-				_MailTemplates.editor.dispose()
-			}
 
 			for (let el of _MailTemplates.mailTemplateDetailForm.querySelectorAll('.property')) {
 
@@ -272,8 +325,8 @@ let _MailTemplates = {
 				}
 			}
 
-			_MailTemplates.activateEditor(mt);
-			_MailTemplates.updatePreview();
+			let editor = _MailTemplates.activateEditor(mt);
+			_MailTemplates.updatePreview(editor.getValue());
 
 			if (isCreate === true) {
 				_MailTemplates.mailTemplatesPager.refresh();
@@ -302,63 +355,54 @@ let _MailTemplates = {
 			wordWrap: (_Editors.getSavedEditorOptions().lineWrapping ? 'on' : 'off')
 		};
 
-		_MailTemplates.editor = _Editors.getMonacoEditor(mt, 'text', $('#mail-template-text'), mailTemplateMonacoConfig);
+		let editor = _Editors.getMonacoEditor(mt, 'text', $('#mail-template-text'), mailTemplateMonacoConfig);
 		_Editors.resizeVisibleEditors();
+
+		return editor;
 	},
-	updatePreview: () => {
-		let value = _MailTemplates.editor.getValue();
-		_MailTemplates.previewElement.contentDocument.documentElement.innerHTML = value;
+	updatePreview: (text) => {
+		_MailTemplates.previewElement.contentDocument.documentElement.innerHTML = text;
 	},
-	createObject: async (type, data, element, successCallback) => {
-
-		let response = await fetch(rootUrl + type, {
-			method: 'POST',
-			body: JSON.stringify(data)
-		});
-
-		if (response.ok) {
-
-			let data = await response.json();
-
-			blinkGreen($('td', element));
-
-			if (typeof successCallback === "function") {
-				successCallback(data);
-			}
-
-		} else {
-			blinkRed($('td', element));
-		}
-	},
-	saveMailTemplate: async (e) => {
+	saveMailTemplate: async () => {
 
 		let data = _MailTemplates.getObjectDataFromElement(_MailTemplates.mailTemplateDetailForm);
 		let id   = _MailTemplates.mailTemplateDetailForm.dataset['mailTemplateId'];
 
-		await _MailTemplates.updateObject('MailTemplate', id, data, $(_MailTemplates.mailTemplateDetailContainer.querySelector('button.save')), null, () => {
+		let response = await fetch(rootUrl + 'MailTemplate/' + id, {
+			method: 'PUT',
+			body: JSON.stringify(data)
+		});
+
+		let $blinkTarget = $(_MailTemplates.mailTemplateDetailContainer.querySelector('button.save'));
+
+		if (response.ok) {
+
+			blinkGreen($blinkTarget);
 
 			let rowInList = _MailTemplates.mailTemplatesList.querySelector('#mail-template-' + id);
 			_MailTemplates.populateMailTemplatePagerRow(rowInList, data);
-			_MailTemplates.updatePreview();
-		});
-	},
-	updateObject: async (type, id, newData, $el, $blinkTarget, successCallback) => {
+			_MailTemplates.updatePreview(data.text);
 
-		let response = await fetch(rootUrl + type + '/' + id, {
-			method: 'PUT',
-			body: JSON.stringify(newData)
+		} else {
+			blinkRed($blinkTarget);
+		}
+	},
+	createMailTemplates: async (newTpls, blinkTarget) => {
+
+		let response = await fetch(rootUrl + 'MailTemplate', {
+			method: 'POST',
+			body: JSON.stringify(newTpls)
 		});
 
 		if (response.ok) {
 
-			blinkGreen(($blinkTarget ? $blinkTarget : $el));
+			blinkGreen($(blinkTarget));
 
-			if (typeof successCallback === "function") {
-				successCallback();
-			}
+			let data = await response.json();
+			_MailTemplates.showMailTemplateDetails(data.result[0], true);
 
 		} else {
-			blinkRed(($blinkTarget ? $blinkTarget : $el));
+			blinkRed($(blinkTarget));
 		}
-	},
+	}
 };

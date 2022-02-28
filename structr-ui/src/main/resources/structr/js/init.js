@@ -280,7 +280,7 @@ $(function() {
 
 			if (container) {
 
-				if (container.hasChildNodes() && container.style.opacity === '0') {
+				if (container.hasChildNodes() && (container.style.opacity === '0' || container.style.opacity === '')) {
 
 					container.style.opacity    = '1';
 					container.style.visibility = '';
