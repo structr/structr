@@ -1463,8 +1463,15 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 					out.append(" data-structr-meta-name=\"").append(escapeForHtmlAttributes(name)).append("\"");
 				}
 
+				final Object actionElement = thisNode.getProperty(StructrApp.key(DOMElement.class, "actionElement", false));
+				if (actionElement != null) {
+					out.append(" data-structr-meta-action-element=\"").append(((DOMElement) actionElement).getUuid()).append("\"");
+				}
+
+				final Object inputs = thisNode.getProperty(StructrApp.key(DOMElement.class, "inputs", false));
+
 				final Object flow = thisNode.getProperty(StructrApp.key(DOMNode.class, "flow", false));
-				if (flow != null) {
+				if (flow != null || actionElement != null || inputs != null) {
 
 					out.append(" data-structr-meta-id=\"").append(thisNode.getUuid()).append("\"");
 				}

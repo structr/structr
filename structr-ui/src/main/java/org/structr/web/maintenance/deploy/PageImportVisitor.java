@@ -59,6 +59,8 @@ public class PageImportVisitor implements FileVisitor<Path> {
 	private Path basePath                          = null;
 	private App app                                = null;
 
+	private Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = null;
+
 	public PageImportVisitor(final Path basePath, final Map<String, Object> pagesConfiguration, final boolean relativeVisibility) {
 
 		this.pagesConfiguration = pagesConfiguration;
@@ -116,6 +118,10 @@ public class PageImportVisitor implements FileVisitor<Path> {
 	@Override
 	public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
 		return FileVisitResult.CONTINUE;
+	}
+
+	public void setDeferredNodesAndTheirProperties(final Map<DOMNode, PropertyMap> data) {
+		this.deferredNodesAndTheirProperties = data;
 	}
 
 	// ----- private methods -----
@@ -216,6 +222,9 @@ public class PageImportVisitor implements FileVisitor<Path> {
 				// enable literal import of href attributes
 				importer.setIsDeployment(true);
 
+				// set deferred DOMNodes to be able to connect two imported nodes
+				importer.setDeferredNodesAndTheirProperties(deferredNodesAndTheirProperties);
+
 				if (StringUtils.startsWithIgnoreCase(src, DoctypeString) && "text/html".equals(contentType)) {
 
 					// Import document starts with <!DOCTYPE> definition, so we treat it as an HTML
@@ -262,6 +271,8 @@ public class PageImportVisitor implements FileVisitor<Path> {
 						importer.createChildNodes(newPage, newPage);
 					}
 				}
+
+				deferredNodesAndTheirProperties = importer.getDeferredNodesAndTheirProperties();
 			}
 
 			tx.success();

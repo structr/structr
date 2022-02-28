@@ -196,7 +196,7 @@ public class RenderContext extends ActionContext {
 	/**
 	 * Pushes the current security context on the stack of security
 	 * contexts and installs the given security context until a call
-	 * to {@link popSecurityContext} is made.
+	 * to {@link RenderContext#popSecurityContext()} is made.
 	 *
 	 * @param securityContext
 	 */

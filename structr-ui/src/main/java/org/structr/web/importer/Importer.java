@@ -138,6 +138,8 @@ public class Importer {
 
 	private Map<String, Linkable> alreadyDownloaded = new HashMap<>();
 
+	private Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = new HashMap<>();
+
 	/**
 	 * Construct an instance of the importer to either read the given code, or download code from the given address.
 	 *
@@ -381,6 +383,14 @@ public class Importer {
 
 	public void setIsDeployment(final boolean isDeployment) {
 		this.isDeployment = isDeployment;
+	}
+
+	public void setDeferredNodesAndTheirProperties(final Map<DOMNode, PropertyMap> props) {
+		this.deferredNodesAndTheirProperties = props;
+	}
+
+	public Map<DOMNode, PropertyMap> getDeferredNodesAndTheirProperties() {
+		return this.deferredNodesAndTheirProperties;
 	}
 
 	public void retainHullOnly() {
@@ -905,6 +915,7 @@ public class Importer {
 
 				// container for bulk setProperties()
 				final PropertyMap newNodeProperties = new PropertyMap();
+				final PropertyMap deferredNodeProperties = new PropertyMap();
 				final Class newNodeType             = newNode.getClass();
 
 				if (isDeployment && !relativeVisibility) {
@@ -953,7 +964,16 @@ public class Importer {
 										if (converter != null) {
 
 											final Object convertedValue = converter.convert(value);
-											newNodeProperties.put(actualKey, convertedValue);
+
+											if (value != null && convertedValue == null) {
+
+												// DOMNode to be linked is not yet imported, so we store it to handle it later
+												deferredNodeProperties.put(actualKey, value);
+
+											} else {
+
+												newNodeProperties.put(actualKey, convertedValue);
+											}
 
 										} else {
 
@@ -1025,6 +1045,8 @@ public class Importer {
 
 				// bulk set properties on new node
 				newNode.setProperties(securityContext, newNodeProperties);
+
+				deferredNodesAndTheirProperties.put(newNode, deferredNodeProperties);
 
 				if ("script".equals(tag)) {
 
