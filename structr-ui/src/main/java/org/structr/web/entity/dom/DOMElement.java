@@ -1657,12 +1657,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			if (Character.isUpperCase(c)) {
 
 				buf.append("-");
-				buf.append(Character.toLowerCase(c));
+				c = Character.toLowerCase(c);
 
-			} else {
-
-				buf.append(Character.toString(c));
 			}
+
+			buf.append(Character.toString(c));
 		});
 
 		return buf.toString();
