@@ -271,11 +271,10 @@ let _Editors = {
 
 			window.monacoAutoCompleteSetupComplete = true;
 
-			// experimental: remove all code completion except tokens (for javascript)
-			monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-				noLib: true,
-				allowNonTsExtensions: true
-			});
+			// remove library completions (like DOM) the defaults
+			let defaultJSCompilerOptions = monaco.languages.typescript.javascriptDefaults.getCompilerOptions();
+			defaultJSCompilerOptions.noLib = true;
+			monaco.languages.typescript.javascriptDefaults.setCompilerOptions(defaultJSCompilerOptions);
 
 			let defaultCompletionProvider = {
 				triggerCharacters: ['.', '('],
