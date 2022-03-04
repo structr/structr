@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,10 @@ public interface MaintenanceCommand {
 	public boolean requiresEnclosingTransaction();
 	public boolean requiresFlushingOfCaches();
 	public Map<String, String> getCustomHeaders();
-	public List<Object> getPayload();
+
+	default Object getCommandResult() {
+		return Collections.EMPTY_LIST;
+	}
 
 	default void publishBeginMessage (final String type, final Map additionalInfo) {
 

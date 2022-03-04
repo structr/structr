@@ -2586,7 +2586,6 @@ function MessageBuilder () {
 				$('#info-area button.confirmAll').click(function() {
 					$('#info-area button.confirm').click();
 				});
-
 			}
 
 		} else {
@@ -2610,7 +2609,6 @@ function MessageBuilder () {
 					originalMsgBuilder.hide();
 				}
 			});
-
 		}
 	};
 
