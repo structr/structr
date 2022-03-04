@@ -538,7 +538,7 @@ let _Crud = {
 	},
 	filterTypes: function (filterVal) {
 		$('#crud-types-list .crud-type').each(function (i, el) {
-			var $el = $(el);
+			let $el = $(el);
 			if ($el.data('type').toLowerCase().indexOf(filterVal) === -1) {
 				$el.addClass('hidden');
 			} else {
@@ -548,13 +548,11 @@ let _Crud = {
 	},
 	updateRecentTypeList: function (selectedType) {
 
-		var recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
+		let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
 
 		if (recentTypes && selectedType) {
 
-			var recentTypes = recentTypes.filter(function(type) {
-				return (type !== selectedType);
-			});
+			recentTypes = recentTypes.filter((type) => (type !== selectedType));
 			recentTypes.unshift(selectedType);
 
 		} else if (selectedType) {
@@ -565,26 +563,28 @@ let _Crud = {
 		recentTypes = recentTypes.slice(0, 12);
 
 		if (recentTypes) {
-			var $recentTypesList = $('#crud-recent-types-list');
+
+			let $recentTypesList = $('#crud-recent-types-list');
 
 			$('.crud-type', $recentTypesList).remove();
 
-			recentTypes.forEach(function (type) {
-				$recentTypesList.append('<div class="crud-type' + (selectedType === type ? ' active' : '') + '" data-type="' + type + '">' + type + '<i class="remove-recent-type ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
-			});
+			for (let type of recentTypes) {
+				$recentTypesList.append(`
+					<div class="crud-type flex items-center${(selectedType === type ? ' active' : '')}" data-type="${type}">
+						${type}${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['flex-none', 'icon-grey', 'remove-recent-type']))}
+					</div>
+				`);
+			}
 		}
 
 		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
-
 	},
 	removeRecentType: function (typeToRemove) {
 
-		var recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
+		let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
 
 		if (recentTypes) {
-			recentTypes = recentTypes.filter(function(type) {
-				return (type !== typeToRemove);
-			});
+			recentTypes = recentTypes.filter((type) => (type !== typeToRemove));
 		}
 
 		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
@@ -601,7 +601,6 @@ let _Crud = {
 
 		}
 		_Crud.searchField.focus();
-
 	},
 	/**
 	 * Read the schema from the _schema REST resource and call 'callback'
@@ -616,7 +615,6 @@ let _Crud = {
 						source: r.possibleSourceTypes,
 						target: r.possibleTargetTypes
 					};
-
 				});
 			}
 		};
@@ -1119,6 +1117,7 @@ let _Crud = {
 				_Crud.crudCache.clear();
 
 				data.result.forEach(function(item) {
+					StructrModel.create(item);
 					_Crud.appendRow(type, properties, item);
 				});
 				_Crud.updatePager(type, data.query_time, data.serialization_time, data.page_size, data.page, data.page_count);
@@ -1542,7 +1541,7 @@ let _Crud = {
 		}
 	},
 	crudRefresh: function(id, key, oldValue) {
-		var url = rootUrl + id + '/all';
+		let url = rootUrl + id + '/all';
 
 		$.ajax({
 			url: url,
@@ -1630,17 +1629,17 @@ let _Crud = {
 		});
 	},
 	crudUpdate: function(id, key, newValue, oldValue, onSuccess, onError) {
-		var url = rootUrl + id;
+		let url = rootUrl + id;
 
-		var obj = {};
+		let obj = {};
 		if (newValue && newValue !== '') {
 			obj[key] = newValue;
 		} else {
 			obj[key] = null;
 		}
 
-		var handleError = function (data, code) {
-			Structr.errorFromResponse(data.responseJSON, url, {statusCode: code, requiresConfirmation: true});
+		let handleError = function (data, code) {
+			Structr.errorFromResponse(data.responseJSON, url, { statusCode: code, requiresConfirmation: true });
 
 			if (typeof onError === "function") {
 				onError();
@@ -1825,7 +1824,7 @@ let _Crud = {
 		}
 	},
 	refreshRow: function(id, item, type) {
-		var row = _Crud.row(id);
+		let row = _Crud.row(id);
 		row.empty();
 		_Crud.populateRow(id, item, type, _Crud.keys[type]);
 	},
@@ -1854,7 +1853,7 @@ let _Crud = {
 		});
 	},
 	row: function(id) {
-		return $('tr._' + id);
+		return $('tr#id_' + id);
 	},
 	appendRow: function(type, properties, item) {
 
@@ -1864,7 +1863,7 @@ let _Crud = {
 			var tbody = $('#crud-type-detail table tbody');
 			var row = _Crud.row(id);
 			if ( !(row && row.length) ) {
-				tbody.append('<tr class="_' + id + '"></tr>');
+				tbody.append('<tr id="id_' + id + '"></tr>');
 			}
 			_Crud.populateRow(id, item, type, properties);
 		});
@@ -1873,7 +1872,18 @@ let _Crud = {
 		var row = _Crud.row(id);
 		row.empty();
 		if (properties) {
-			row.append('<td class="actions"><a title="Edit" class="edit"><i class="' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" /></a><a title="Delete" class="delete"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /></a><a title="Access Control" class="security"><i class="' + _Icons.getFullSpriteClass(_Icons.key_icon) + '" /></a></td>');
+
+			let actions = $(`
+				<td class="actions">
+					${_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'edit']))}
+					${_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-1', 'icon-red', 'delete']), 'Remove')}
+				</td>`);
+
+			if (!(_Crud.types[type] && _Crud.types[type].isRel === true)) {
+				_Entities.appendNewAccessControlIcon(actions, item, false);
+			}
+
+			row.append(actions);
 
 			let filterKeys = _Crud.filterKeys(type, Object.keys(properties));
 
@@ -1904,12 +1914,6 @@ let _Crud = {
 					});
 				});
 			});
-
-			if (_Crud.types[type] && _Crud.types[type].isRel === true) {
-				$('.actions .security', row).hide();
-			} else {
-				_Entities.bindAccessControl($('.actions .security', row), item);
-			}
 		}
 	},
 	populateCell: function(id, key, type, value, cell) {
@@ -1938,7 +1942,13 @@ let _Crud = {
 				if (!readOnly) {
 					$('input', cell).on('change', function() {
 						if (id) {
-							_Crud.crudUpdate(id, key, $(this).prop('checked').toString());
+							let checked = $(this).prop('checked');
+							_Crud.crudUpdate(id, key, checked, undefined, () => {
+								if (key === 'visibleToPublicUsers' || key === 'visibleToAuthenticatedUsers') {
+									StructrModel.updateKey(id, key, checked);
+									_Entities.updateNewAccessControlIconInElement(StructrModel.obj(id), Structr.node(id));
+								}
+							});
 						}
 					});
 				}

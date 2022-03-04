@@ -42,14 +42,8 @@
 }
 
 #crud-recent-types .crud-type .remove-recent-type {
-	display: none;
-}
-
-#crud-recent-types .crud-type:hover .remove-recent-type {
 	position: absolute;
 	right: 4px;
-	display: inline-block;
-	width: 14px;
 	height: 14px;
 	margin: 2px;
 }

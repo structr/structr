@@ -799,9 +799,11 @@ let _Schema = {
 							],
 							["Label", {
 									cssClass: "label rel-type",
-									label: '<div id="rel_' + res.id + '">' + (res.relationshipType === _Schema.initialRelType ? '<span>&nbsp;</span>' : res.relationshipType)
-											+ ' <i title="Edit schema relationship" class="edit icon ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '"></i>'
-											+ ' <i title="Remove schema relationship" class="remove icon ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '"></i></div>',
+									label: `<div id="rel_${res.id}">
+												${(res.relationshipType === _Schema.initialRelType ? '<span>&nbsp;</span>' : res.relationshipType)}
+												${_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'icon', 'edit-relationship-icon']))}
+												${_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'icon', 'mr-1', 'delete-relationship-icon']))}
+											</div>`,
 									location: .5,
 									id: "label"
 								}
@@ -833,17 +835,15 @@ let _Schema = {
 
 					$('#rel_' + res.id).parent().off('mouseover').on('mouseover', function() {
 						$('#rel_' + res.id + ' .icon').css('display', 'inline-block');
-						$('#rel_' + res.id + ' .target-multiplicity').addClass('hover');
 					}).off('mouseout').on('mouseout', function() {
 						$('#rel_' + res.id + ' .icon').hide();
-						$('#rel_' + res.id + ' .target-multiplicity').removeClass('hover');
 					});
 
-					$('#rel_' + res.id + ' .edit').off('click').on('click', function() {
+					$('#rel_' + res.id + ' .edit-relationship-icon').off('click').on('click', function() {
 						_Schema.openEditDialog(res.id);
 					});
 
-					$('#rel_' + res.id + ' .remove').off('click').on('click', function() {
+					$('#rel_' + res.id + ' .delete-relationship-icon').off('click').on('click', function() {
 						_Schema.askDeleteRelationship(res.id, res.relationshipType);
 						return false;
 					});
