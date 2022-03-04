@@ -2294,7 +2294,7 @@ let _Entities = {
 		if (!el || !entity) {
 			return false;
 		}
-		el.append('<div class="input-section"><h3>' + label + '</h3><p>' + desc + '</p><div class="input-and-button"><input type="text" class="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button class="save_' + key + '">Save</button></div></div>');
+		el.append('<div class="input-section"><h3>' + label + '</h3><p>' + desc + '</p><div><input type="text" class="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button class="save_' + key + '">Save</button></div></div>');
 
 		let btn = $('.save_' + key, el);
 		let inp = $('.' + key + '_', el);

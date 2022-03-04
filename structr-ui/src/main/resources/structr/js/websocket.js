@@ -32,7 +32,6 @@ let StructrWS = {
 	reconnectIntervalId: undefined,
 	ping: undefined,
 
-
 	connect: () => {
 
 		try {

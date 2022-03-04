@@ -1,10 +1,13 @@
-<div class="select-and-button">
-	<select class="select-create-type" id="user-type">
+<div class="mb-8">
+
+	<select class="select-create-type mr-2" id="user-type">
 		<option value="User">User</option>
 		${config.types.map(type => '<option value="' + type + '">' + type + '</option>').join('')}
 	</select>
+
 	<button class="action add_user_icon button" id="add-user-button">
 		<i title="Add User" class="${_Icons.getFullSpriteClass(_Icons.user_add_icon)}"></i>
 		<span>Add User</span>
 	</button>
+
 </div>
