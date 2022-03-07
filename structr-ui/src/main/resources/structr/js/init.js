@@ -1724,6 +1724,7 @@ let Structr = {
 
 		let showScheduledJobsNotifications = Importer.isShowNotifications();
 		let showScriptingErrorPopups       = UISettings.getValueForSetting(UISettings.global.settings.showScriptingErrorPopupsKey);
+		let showDeprecationWarningPopups   = UISettings.getValueForSetting(UISettings.global.settings.showDeprecationWarningPopupsKey);
 
 		switch (data.type) {
 
@@ -2096,7 +2097,6 @@ let Structr = {
 										} else {
 											title = 'page "' + obj.ownerDocument.name  + '"';
 										}
-
 									}
 									break;
 							}
@@ -2175,7 +2175,7 @@ let Structr = {
 										if (!Structr.node(structrId)) {
 											_Pages.expandTreeNode(structrId);
 										} else {
-											var treeEl = Structr.node(structrId);
+											let treeEl = Structr.node(structrId);
 											if (treeEl) {
 												_Entities.highlightElement(treeEl);
 											}
@@ -2196,6 +2196,75 @@ let Structr = {
 					}
 				}
 				break;
+
+			case "DEPRECATION": {
+
+				if (showDeprecationWarningPopups) {
+
+					let uniqueClass = 'deprecation-warning-' + data.nodeId;
+
+					let builder = new MessageBuilder().uniqueClass(uniqueClass).incrementsUniqueCount(true)
+						.title(data.title)
+						.warning(data.message)
+						.requiresConfirmation();
+
+					if (data.subtype === 'EDIT_MODE_BINDING') {
+
+						if (data.nodeId) {
+
+							Command.get(data.nodeId, 'id,type,name,content,ownerDocument', (obj) => {
+
+								let title = '';
+
+								switch (obj.type) {
+
+									default:
+										if (obj.ownerDocument) {
+											if (obj.ownerDocument.type === 'ShadowDocument') {
+												title = 'Shared component';
+											} else {
+												title = 'Page "' + obj.ownerDocument.name + '"';
+											}
+										}
+										break;
+								}
+
+								if (title != '') {
+									builder.warning(data.message + '<br><br>Soure: ' + title);
+								}
+
+								builder.specialInteractionButton('Show in tree', function (btn) {
+
+									// open and select element in tree
+									let structrId = obj.id;
+									_Entities.deselectAllElements();
+
+									if (!Structr.node(structrId)) {
+										_Pages.expandTreeNode(structrId);
+									} else {
+										let treeEl = Structr.node(structrId);
+										if (treeEl) {
+											_Entities.highlightElement(treeEl);
+										}
+									}
+
+									LSWrapper.setItem(_Entities.selectedObjectIdKey, structrId);
+
+								}, 'Dismiss');
+
+								builder.allowConfirmAll().show();
+							});
+						} else {
+							builder.allowConfirmAll().show();
+						}
+					} else {
+						builder.allowConfirmAll().show();
+					}
+
+
+				}
+				break;
+			}
 
 			default: {
 
@@ -2836,7 +2905,13 @@ let UISettings = {
 				storageKey: 'showScriptinErrorPopups' + location.port,
 				defaultValue: true,
 				type: 'checkbox'
-			}
+			},
+			showDeprecationWarningPopupsKey: {
+				text: 'Show popups for deprecation warnings',
+				storageKey: 'showDeprecationWarningPopups' + location.port,
+				defaultValue: true,
+				type: 'checkbox'
+			},
 		}
 	},
 	pages: {
