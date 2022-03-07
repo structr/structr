@@ -203,9 +203,10 @@
 
 		<div class="tab-content" id="dashboard-event-log">
 
-			<div id="event-log-options">
-				<label>Filter: </label>
-				<select id="event-type-filter">
+			<div id="event-log-options" class="flex items-center mb-4">
+
+				<label class="mr-1">Filter:</label>
+				<select id="event-type-filter" class="mr-8">
 					<option value="">All events</option>
 					<option value="Authentication">Authentication events</option>
 					<option value="Cron">Cron events</option>
@@ -218,9 +219,11 @@
 					<option value="Transaction">Transactions</option>
 					<option value="SystemInfo">SystemInfo</option>
 				</select>
-				<label>Number of events to show: </label>
-				<input id="event-type-page-size" type="number" size="6" value="100" />
-				<button id="refresh-event-log"><i class="sprite sprite-arrow_refresh"></i> Refresh</button>
+
+				<label class="mr-1">Number of events to show:</label>
+				<input id="event-type-page-size" class="mr-8" type="number" size="3" value="100">
+
+				<button id="refresh-event-log" class="inline-flex items-center">${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Refresh</button>
 			</div>
 
 			<table class="props">

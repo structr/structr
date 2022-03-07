@@ -1,8 +1,10 @@
 <div class="flex-grow">
 	<div class="inline-flex">
+
 		<input class="schema-input mr-2" id="type-name" type="text" size="10" placeholder="New type" autocomplete="off">
-		<button id="create-type" class="action btn">
-			<i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add
+
+		<button id="create-type" class="action inline-flex items-center">
+			${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} Add
 		</button>
 
 		<div class="dropdown-menu dropdown-menu-large">

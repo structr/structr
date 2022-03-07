@@ -1,12 +1,12 @@
-<div class="mb-8">
+<div class="flex items-center mb-8">
 
 	<select class="select-create-type mr-2" id="user-type">
 		<option value="User">User</option>
 		${config.types.map(type => '<option value="' + type + '">' + type + '</option>').join('')}
 	</select>
 
-	<button class="action add_user_icon button" id="add-user-button">
-		<i title="Add User" class="${_Icons.getFullSpriteClass(_Icons.user_add_icon)}"></i>
+	<button class="action add_user_icon inline-flex items-center" id="add-user-button">
+		${_Icons.getSvgIcon('user-add', 16, 16, 'mr-2')}
 		<span>Add User</span>
 	</button>
 
