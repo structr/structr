@@ -122,7 +122,7 @@ export class Frontend {
 		} else {
 
 			if (element.value.length) {
-				
+
 				// all other node types
 				return element.value;
 			}
@@ -204,9 +204,11 @@ export class Frontend {
 						element.classList.remove(css);
 					}, 1000);
 
-				} else if (reloadTarget === 'event') {
+				} else if (reloadTarget.indexOf('event:') === 0) {
 
-					element.dispatchEvent(new CustomEvent('structr-success', { detail: { result: parameters, status: status } }));
+					let event = reloadTarget.substring(6);
+
+					element.dispatchEvent(new CustomEvent(event, { detail: { result: parameters, status: status } }));
 
 				} else if (reloadTarget === 'none') {
 
@@ -247,60 +249,60 @@ export class Frontend {
 		    return;
 		}
 
-        for (let container of reloadTargets) {
+		for (let container of reloadTargets) {
 
-            let data = container.dataset;
-            let id   = data.structrId;
+		    let data = container.dataset;
+		    let id   = data.structrId;
 
-            if (!id && id.length !== 32) {
-                console.log('Container with selector ' + selector + ' has no data-id attribute, will not be reloaded.');
-                continue;
-            }
+		    if (!id && id.length !== 32) {
+			console.log('Container with selector ' + selector + ' has no data-id attribute, will not be reloaded.');
+			continue;
+		    }
 
-            let base   = '/structr/html/' + id;
-            let params = this.encodeRequestParameters(data, parameters);
-            let uri    = base + params;
+		    let base   = '/structr/html/' + id;
+		    let params = this.encodeRequestParameters(data, parameters);
+		    let uri    = base + params;
 
-            fetch(uri, {
-                method: 'GET',
-                credentials: 'same-origin'
-            }).then(response => {
-                if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
-                return response.text();
-            }).then(html => {
-                let content = document.createElement('div');
-                if (content) {
-                    content.insertAdjacentHTML('afterbegin', html);
-                    if (content && content.children && content.children.length) {
-                        container.replaceWith(content.children[0]);
-                    } else {
-                        container.replaceWith('');
-                    }
-                    container.dispatchEvent(new Event('structr-reload'));
-                }
+		    fetch(uri, {
+			method: 'GET',
+			credentials: 'same-origin'
+		    }).then(response => {
+			if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
+			return response.text();
+		    }).then(html => {
+			let content = document.createElement('div');
+			if (content) {
+			    content.insertAdjacentHTML('afterbegin', html);
+			    if (content && content.children && content.children.length) {
+				container.replaceWith(content.children[0]);
+			    } else {
+				container.replaceWith('');
+			    }
+			    container.dispatchEvent(new Event('structr-reload'));
+			}
 
-                // restore focus on selected element after partial reload
-                if (this.focusId && this.focusTarget && this.focusName) {
+			// restore focus on selected element after partial reload
+			if (this.focusId && this.focusTarget && this.focusName) {
 
-                    let restoreFocus = document.querySelector('*[name="' + this.focusName + '"][data-structr-id="' + this.focusId + '"][data-structr-target="' + this.focusTarget + '"]');
-                    if (restoreFocus) {
+			    let restoreFocus = document.querySelector('*[name="' + this.focusName + '"][data-structr-id="' + this.focusId + '"][data-structr-target="' + this.focusTarget + '"]');
+			    if (restoreFocus) {
 
-                        if (restoreFocus.focus && typeof restoreFocus.focus === 'function') { restoreFocus.focus(); }
-                        if (restoreFocus.select && typeof restoreFocus.select === 'function') { restoreFocus.select(); }
-                    }
-                }
+				if (restoreFocus.focus && typeof restoreFocus.focus === 'function') { restoreFocus.focus(); }
+				if (restoreFocus.select && typeof restoreFocus.select === 'function') { restoreFocus.select(); }
+			    }
+			}
 
-                if (!dontRebind) {
-                    this.bindEvents();
-                }
+			if (!dontRebind) {
+			    this.bindEvents();
+			}
 
-                // fire reloaded event
-                this.fireEvent('reloaded', { target: element, data: parameters });
+			// fire reloaded event
+			this.fireEvent('reloaded', { target: element, data: parameters });
 
-            }).catch(e => {
-                this.handleError(element, e, {});
-            });
-        }
+		    }).catch(e => {
+			this.handleError(element, e, {});
+		    });
+		}
 	}
 
 	loadPartial(uri, container) {
@@ -491,44 +493,44 @@ export class Frontend {
         	return;
 		}
 
-        let parameters = {};
-        let parts      = selector.split(',');
-        let sortKey    = selector;
-        let orderKey   = 'descending';
+		let parameters = {};
+		let parts      = selector.split(',');
+		let sortKey    = selector;
+		let orderKey   = 'descending';
 
-        // parse optional order key (default is "descending")
-        if (parts.length > 1) {
+		// parse optional order key (default is "descending")
+		if (parts.length > 1) {
 
-            sortKey  = parts[0].trim();
-            orderKey = parts[1].trim();
-        }
+		    sortKey  = parts[0].trim();
+		    orderKey = parts[1].trim();
+		}
 
-        let resolved        = this.resolveData(event, target);
-        parameters[sortKey] = resolved[sortKey];
+		let resolved        = this.resolveData(event, target);
+		parameters[sortKey] = resolved[sortKey];
 
-        let reloadTargets = document.querySelectorAll(reloadTarget);
-        if (reloadTargets.length) {
+		let reloadTargets = document.querySelectorAll(reloadTarget);
+		if (reloadTargets.length) {
 
-            let sortContainer = reloadTargets[0];
-            let sortValue     = sortContainer.getAttribute('data-request-' + sortKey);
-            let orderValue    = sortContainer.getAttribute('data-request-' + orderKey);
+		    let sortContainer = reloadTargets[0];
+		    let sortValue     = sortContainer.getAttribute('data-request-' + sortKey);
+		    let orderValue    = sortContainer.getAttribute('data-request-' + orderKey);
 
-            if (sortValue === resolved[sortKey]) {
+		    if (sortValue === resolved[sortKey]) {
 
-                // The values need to be strings because we're
-                // parsing them from the request query string.
-                if (!orderValue || orderValue === 'false') {
+			// The values need to be strings because we're
+			// parsing them from the request query string.
+			if (!orderValue || orderValue === 'false') {
 
-                    parameters[orderKey] = 'true';
+			    parameters[orderKey] = 'true';
 
-                } else {
+			} else {
 
-                    parameters[orderKey] = '';
-                }
-            }
-        }
+			    parameters[orderKey] = '';
+			}
+		    }
+		}
 
-        this.handleResult(target, { result: parameters }, 200);
+		this.handleResult(target, { result: parameters }, 200);
 	}
 
 	parseQueryString(query) {
@@ -539,17 +541,17 @@ export class Frontend {
 		    return result;
 		}
 
-        for (let part of query.substring(1).split('&')) {
+		for (let part of query.substring(1).split('&')) {
 
-            let keyvalue = part.split('=');
-            let key      = keyvalue[0];
-            let value    = keyvalue[1];
+		    let keyvalue = part.split('=');
+		    let key      = keyvalue[0];
+		    let value    = keyvalue[1];
 
-            if (key && value) {
+		    if (key && value) {
 
-                result[key] = value;
-            }
-        }
+			result[key] = value;
+		    }
+		}
 
 		return result;
 	}
