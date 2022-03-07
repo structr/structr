@@ -43,8 +43,8 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.shredzone.acme4j.Account;
 import org.shredzone.acme4j.AccountBuilder;
 import org.shredzone.acme4j.Authorization;
@@ -73,6 +73,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.rest.service.HttpService;
 import org.structr.schema.SchemaHelper;
+import org.structr.schema.action.Actions;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Folder;
 
@@ -118,131 +119,142 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	private Account                account;
 	private List<Order>            orders     = new ArrayList<>();
 	private Map<String, Challenge> challenges = new HashMap<>();
+	private boolean success                   = false;
 
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
-		domains = Arrays.asList(StringUtils.split(Settings.LetsEncryptDomains.getValue(), " "));
+		try {
 
-		final String challengeParameter = (String) attributes.get(CHALLENGE_PARAM_KEY);
-		challengeType = (StringUtils.isNotEmpty(challengeParameter) ? challengeParameter : Settings.LetsEncryptChallengeType.getValue());
+			domains = Arrays.asList(StringUtils.split(Settings.LetsEncryptDomains.getValue(), " "));
 
-		final String serverParameter = (String) attributes.get(SERVER_PARAM_KEY);
-		if (StringUtils.isNotEmpty(serverParameter)) {
+			final String challengeParameter = (String) attributes.get(CHALLENGE_PARAM_KEY);
+			challengeType = (StringUtils.isNotEmpty(challengeParameter) ? challengeParameter : Settings.LetsEncryptChallengeType.getValue());
 
-			switch (serverParameter) {
+			final String serverParameter = (String) attributes.get(SERVER_PARAM_KEY);
+			if (StringUtils.isNotEmpty(serverParameter)) {
 
-				case PRODUCTION_SERVER_KEY:
-					serverUrl = Settings.LetsEncryptProductionServerURL.getValue();
+				switch (serverParameter) {
+
+					case PRODUCTION_SERVER_KEY:
+						serverUrl = Settings.LetsEncryptProductionServerURL.getValue();
+						break;
+
+					case STAGING_SERVER_KEY:
+					default:
+						serverUrl = Settings.LetsEncryptStagingServerURL.getValue();
+						break;
+				}
+
+			} else {
+				logger.info("No server supplied, aborting.");
+				throw new FrameworkException(422, "No server supplied, aborting.");
+			}
+
+			mode = (String) attributes.get(MODE_PARAM_KEY);
+			if (StringUtils.isEmpty(mode)) {
+				mode = WAIT_MODE_KEY;
+			}
+
+			final Boolean reload        = Boolean.TRUE.equals(attributes.get("reload"));
+
+			final String wait = (String) attributes.get(WAIT_PARAM_KEY);
+			if (StringUtils.isBlank(wait)) {
+				waitForSeconds = Settings.LetsEncryptWaitBeforeAuthorization.getValue();
+			} else {
+				waitForSeconds = Integer.parseInt((String) attributes.get("wait"));
+			}
+
+			final Map<String, Object> broadcastData = new HashMap<>();
+			final Long startTime = System.currentTimeMillis();
+			broadcastData.put("start", startTime);
+			broadcastData.put("mode", mode);
+			publishBeginMessage(CERTIFICATE_RETRIEVAL_STATUS, broadcastData);
+
+			switch (mode) {
+
+				case WAIT_MODE_KEY: {
+
+					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Creating Order");
+					final Order order = createNewOrder();
+
+					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Creating Challenges");
+					createChallenges();
+
+					try {
+						// Wait the specified amount of milliseconds
+						publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Waiting " + waitForSeconds + " seconds");
+
+						Thread.sleep(waitForSeconds * 1000);
+
+					} catch (final InterruptedException ignore) {
+					}
+
+					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Waited " + waitForSeconds + " seconds");
+
+					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Verifying Challenges");
+					verifyChallenges(order.getAuthorizations());
+
+					getCertificate(reload);
+
+					success = true;
+
+					sendEndMessage(broadcastData, startTime);
+
 					break;
+				}
 
-				case STAGING_SERVER_KEY:
+				case CREATE_MODE_KEY: {
+
+					createNewOrder();
+					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Order created");
+
+					createChallenges();
+					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Challenges created");
+
+					sendEndMessage(broadcastData, startTime);
+
+					break;
+				}
+
+				case VERIFY_MODE_KEY: {
+
+					final Order order = createNewOrder();
+					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Order created");
+
+					verifyChallenges(order.getAuthorizations());
+					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Challenges verified");
+
+					getCertificate(reload);
+
+					success = true;
+
+					sendEndMessage(broadcastData, startTime);
+
+					break;
+				}
+
 				default:
-					serverUrl = Settings.LetsEncryptStagingServerURL.getValue();
-					break;
+					error("No valid mode supplied, aborting.");
 			}
 
-		} else {
-			logger.info("No server supplied, aborting.");
-			throw new FrameworkException(422, "No server supplied, aborting.");
+		} finally {
+
+			cleanUpChallengeFiles();
 		}
+	}
 
-		mode = (String) attributes.get(MODE_PARAM_KEY);
-		if (StringUtils.isEmpty(mode)) {
-			mode = WAIT_MODE_KEY;
-		}
+	private void sendEndMessage (Map<String, Object> broadcastData, final Long startTime) {
 
-		final Boolean reload        = Boolean.TRUE.equals(attributes.get("reload"));
+		final Long endTime = System.currentTimeMillis();
+		broadcastData.remove("start");
+		broadcastData.put("end", endTime);
 
-		final String wait = (String) attributes.get(WAIT_PARAM_KEY);
-		if (StringUtils.isBlank(wait)) {
-			waitForSeconds = Settings.LetsEncryptWaitBeforeAuthorization.getValue();
-		} else {
-			waitForSeconds = Integer.parseInt((String) attributes.get("wait"));
-		}
+		DecimalFormat decimalFormat = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 
-		final Map<String, Object> broadcastData = new HashMap<>();
-		final Long startTime = System.currentTimeMillis();
-		broadcastData.put("start", startTime);
-		broadcastData.put("mode", mode);
-		publishBeginMessage(CERTIFICATE_RETRIEVAL_STATUS, broadcastData);
-
-		switch (mode) {
-
-			case WAIT_MODE_KEY: {
-
-				final Order order = createNewOrder();
-				publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Order created");
-
-				createChallenges();
-				publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Challenges created");
-
-				try {
-					// Wait the specified amount of milliseconds
-					Thread.sleep(waitForSeconds * 1000);
-
-				} catch (final InterruptedException ignore) {}
-				publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Waited " + waitForSeconds + " seconds");
-
-				verifyChallenges(order.getAuthorizations());
-				publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Challenges verified");
-
-				getCertificate(reload);
-
-				final Long endTime = System.currentTimeMillis();
-				broadcastData.remove("start");
-				broadcastData.put("end", endTime);
-				DecimalFormat decimalFormat = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-				final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
-				broadcastData.put("duration", duration);
-				publishEndMessage(CERTIFICATE_RETRIEVAL_STATUS, broadcastData);
-
-				break;
-			}
-
-			case CREATE_MODE_KEY: {
-
-				createNewOrder();
-				publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Order created");
-
-				createChallenges();
-				publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Challenges created");
-
-				final Long endTime = System.currentTimeMillis();
-				broadcastData.remove("start");
-				broadcastData.put("end", endTime);
-				DecimalFormat decimalFormat = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-				final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
-				broadcastData.put("duration", duration);
-				publishEndMessage(CERTIFICATE_RETRIEVAL_STATUS, broadcastData);
-
-				break;
-			}
-
-			case VERIFY_MODE_KEY: {
-
-				final Order order = createNewOrder();
-				publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Order created");
-
-				verifyChallenges(order.getAuthorizations());
-				publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Challenges verified");
-
-				getCertificate(reload);
-
-				final Long endTime = System.currentTimeMillis();
-				broadcastData.remove("start");
-				broadcastData.put("end", endTime);
-				DecimalFormat decimalFormat = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-				final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
-				broadcastData.put("duration", duration);
-				publishEndMessage(CERTIFICATE_RETRIEVAL_STATUS, broadcastData);
-
-				break;
-			}
-
-			default:
-				error("No valid mode supplied, aborting.");
-		}
+		final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
+		broadcastData.put("duration", duration);
+		publishEndMessage(CERTIFICATE_RETRIEVAL_STATUS, broadcastData);
 	}
 
 	private void error(final String msg) throws FrameworkException {
@@ -275,6 +287,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		}
 
 		try {
+
 			final Session session = new Session(serverUrl);
 
 			account = new AccountBuilder()
@@ -534,47 +547,48 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			server.stop(0);
 
 			logger.info("Successfully stopped temporary HTTP server.");
+		}
+	}
 
-		} else {
+	private void cleanUpChallengeFiles() {
 
-			logger.info("Removing /.well-known/acme-challenge/* from internal file system...");
+		logger.info("Removing /.well-known/acme-challenge/* from internal file system...");
 
-			// put cleanup of folders/file in thread so we can use it in scripting
-			final Thread workerThread = new Thread(() -> {
+		// put cleanup of folders/file in thread so we can use it in scripting
+		final Thread workerThread = new Thread(() -> {
 
-				final App app = StructrApp.getInstance();
-				try (final Tx tx = app.tx()) {
+			final App app = StructrApp.getInstance();
+			try (final Tx tx = app.tx()) {
 
-					// Delete challenge response file and all parent folders from internal file system
+				// Delete challenge response file and all parent folders from internal file system
 
-					final SecurityContext adminContext = SecurityContext.getSuperUserInstance();
-					final Folder wellKnownFolder = (Folder) FileHelper.getFileByAbsolutePath(adminContext, "/.well-known");
-					if (wellKnownFolder != null) {
+				final SecurityContext adminContext = SecurityContext.getSuperUserInstance();
+				final Folder wellKnownFolder = (Folder) FileHelper.getFileByAbsolutePath(adminContext, "/.well-known");
+				if (wellKnownFolder != null) {
 
-						final List<NodeInterface> filteredResults = new LinkedList<>();
-						filteredResults.addAll(wellKnownFolder.getAllChildNodes());
+					final List<NodeInterface> filteredResults = new LinkedList<>();
+					filteredResults.addAll(wellKnownFolder.getAllChildNodes());
 
-						for (NodeInterface node : filteredResults) {
-							app.delete(node);
-						}
-
-						app.delete(wellKnownFolder);
+					for (NodeInterface node : filteredResults) {
+						app.delete(node);
 					}
 
-					tx.success();
-
-				} catch (FrameworkException fex) {
-
-					logger.error("Unable to remove challenge response file and folders. {}", fex.getMessage());
+					app.delete(wellKnownFolder);
 				}
 
-				logger.info("Successfully removed challenge response resources /.well-known/acme-challenge/* from internal file system.");
-			});
+				tx.success();
 
-			workerThread.start();
-			try { workerThread.join(); } catch (Throwable t) {
-				logger.error(ExceptionUtils.getStackTrace(t));
+			} catch (FrameworkException fex) {
+
+				logger.error("Unable to remove challenge response file and folders. {}", fex.getMessage());
 			}
+
+			logger.info("Successfully removed challenge response resources /.well-known/acme-challenge/* from internal file system.");
+		});
+
+		workerThread.start();
+		try { workerThread.join(); } catch (Throwable t) {
+			logger.error(ExceptionUtils.getStackTrace(t));
 		}
 	}
 
@@ -692,14 +706,25 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			error("No " + Dns01Challenge.TYPE + " challenge found, aborting.");
 		}
 
-		if (WAIT_MODE_KEY.equals(mode)) {
-			logger.info("Within the next " + waitForSeconds + " seconds, create a TXT record in your DNS for " + auth.getIdentifier().getDomain() + " with the following data:");
-		}
+		final String domain   = auth.getIdentifier().getDomain();
+		final String hostname = "_acme-challenge." + domain + ".";
+		final String digest   = challenge.getDigest();
 
-		logger.info("_acme-challenge.{}. IN TXT {}", auth.getIdentifier().getDomain(), ((Dns01Challenge) challenge).getDigest());
+		final Object result = Actions.callWithSecurityContext("onAcmeChallenge", SecurityContext.getSuperUserInstance(), Map.of("type", "dns", "hostname", hostname, "digest", digest));
+		if (result == null) {
 
-		if (WAIT_MODE_KEY.equals(mode)) {
+			publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Lifecycle method 'onAcmeChallenge' not found! Within the next " + waitForSeconds + " seconds, create a TXT record in your DNS for " + domain + " with the following data: Hostname = '" + hostname + "', Target = '" + digest + "'");
+
+			logger.info("Within the next " + waitForSeconds + " seconds, create a TXT record in your DNS for " + domain + " with the following data:");
+			logger.info("{} IN TXT {}", hostname, digest);
 			logger.info("After " + waitForSeconds + " seconds, the certificate authority will probe the DNS record to authorize the challenge. If the record is not available, the authorization will fail.");
+
+		} else {
+
+			publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Called lifecycle method onAcmeChallenge");
+
+			logger.info("DNS record (TXT) for domain " + domain + " has to be created with the following data:");
+			logger.info("{} IN TXT {}", hostname, digest);
 		}
 
 		return challenge;
@@ -837,17 +862,26 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	}
 
 	@Override
-	public List<Object> getPayload() {
+	public Object getCommandResult() {
 
-		final List<Object> payload = new ArrayList<>();
-		final JSONArray challengesJSON = new JSONArray();
-		for (final String domain : challenges.keySet()) {
-			final Challenge challenge = challenges.get(domain);
-			final JSONObject challengeJson = new JSONObject(challenge.getJSON().toMap());
-			challengeJson.put("domain", domain);
-			challengesJSON.add(challengeJson);
-		}
-		payload.add(challengesJSON);
-		return payload;
+		final Map<String, Object> result = new HashMap<>();
+		result.put("success", success);
+
+		// does not make sense, challenges are cleared after finishing
+//		final List<Map> transformedChallenges = new ArrayList<>();
+//		result.put("challenges", transformedChallenges);
+//
+//		for (final String domain : challenges.keySet()) {
+//
+//			final Challenge challenge = challenges.get(domain);
+//
+//			final Map<String, Object> tmp = new HashMap<>();
+//			tmp.putAll(challenge.getJSON().toMap());
+//			tmp.put("domain", domain);
+//
+//			transformedChallenges.add(tmp);
+//		}
+//
+		return result;
 	}
 }

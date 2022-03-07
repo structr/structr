@@ -60,9 +60,9 @@ let _Security = {
 
 				let subModule = LSWrapper.getItem(_Security.securityTabKey) || 'users-and-groups';
 
-				document.querySelectorAll('#function-bar .tabs-menu li a').forEach(function(tabLink) {
+				for (let tabLink of document.querySelectorAll('#function-bar .tabs-menu li a')) {
 
-					tabLink.addEventListener('click', function(e) {
+					tabLink.addEventListener('click', (e) => {
 						e.preventDefault();
 
 						let urlHash = e.target.closest('a').getAttribute('href');
@@ -75,7 +75,7 @@ let _Security = {
 					if (tabLink.closest('a').getAttribute('href') === '#security:' + subModule) {
 						tabLink.click();
 					}
-				});
+				}
 
 				Structr.unblockMenu(100);
 			});
@@ -106,6 +106,16 @@ let _Security = {
 			}
 
 			_Elements.appendContextMenuSeparator(elements);
+		}
+
+		if (isUser) {
+			elements.push({
+				name: 'Basic',
+				clickHandler: function () {
+					_Entities.showProperties(entity, 'general');
+					return false;
+				}
+			});
 		}
 
 		elements.push({
@@ -142,9 +152,9 @@ let _Security = {
 
 		LSWrapper.setItem(_Security.securityTabKey, subModule);
 
-		document.querySelectorAll('#function-bar .tabs-menu li').forEach((tab) => {
+		for (let tab of document.querySelectorAll('#function-bar .tabs-menu li')) {
 			tab.classList.remove('active');
-		});
+		}
 
 		let tabLink = document.querySelector('#function-bar .tabs-menu li a[href="#security:' + subModule + '"]');
 		if (tabLink) tabLink.closest('li').classList.add('active');
@@ -167,6 +177,9 @@ let _Security = {
 
 let _UsersAndGroups = {
 
+	userNodeClassPrefix:  'userid_',
+	groupNodeClassPrefix: 'groupid_',
+
 	refreshUsers: async () => {
 
 		let types = await _Schema.getDerivedTypes('org.structr.dynamic.User', []);
@@ -180,14 +193,22 @@ let _UsersAndGroups = {
 			let addUserButton  = document.getElementById('add-user-button');
 
 			addUserButton.addEventListener('click', (e) => {
-				Command.create({ type: userTypeSelect.value });
+				Command.create({ type: userTypeSelect.value }, (user) => {
+					let userModelObj = StructrModel.create(user);
+					_UsersAndGroups.appendUserToUserList(userModelObj);
+				});
 			});
 
 			userTypeSelect.addEventListener('change', () => {
 				addUserButton.querySelector('span').textContent = 'Add ' + userTypeSelect.value;
 			});
 
-			let userPager = _Pager.addPager('users', $(_Security.userControls), true, 'User', 'public', null, null, 'id,isUser,name,type,isAdmin');
+			let userPager = _Pager.addPager('users', $(_Security.userControls), true, 'User', 'public', (users) => {
+				for (let user of users) {
+					let userModelObj = StructrModel.create(user);
+					_UsersAndGroups.appendUserToUserList(userModelObj);
+				}
+			}, null, 'id,isUser,name,type,isAdmin');
 			userPager.cleanupFunction = function () {
 				_Security.userList.innerHTML = '';
 			};
@@ -198,12 +219,11 @@ let _UsersAndGroups = {
 	createUserElement:function (user) {
 
 		let displayName = ((user.name) ? user.name : ((user.eMail) ? '[' + user.eMail + ']' : '[unnamed]'));
-		let userIcon    = _Icons.getFullSpriteClass((user.isAdmin === true) ? _Icons.user_red_icon : ((user.type === 'LDAPUser') ? _Icons.user_orange_icon : _Icons.user_icon));
 
-		let userElement = $('<div class="node user userid_' + user.id + '">'
-				+ '<i class="typeIcon ' + userIcon + '"></i>'
+		let userElement = $('<div class="node user ' + _UsersAndGroups.userNodeClassPrefix + user.id + '">'
+				+ '<i class="typeIcon ' + _UsersAndGroups.getIconForPrincipal(user) + '"></i>'
 				+ '<b title="' + displayName + '" class="name_ abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + displayName + '</b>'
-				+ '</div>'
+				+ '<div class="icons-container"></div>'
 		);
 		userElement.data('userId', user.id);
 
@@ -211,18 +231,25 @@ let _UsersAndGroups = {
 
 		return userElement;
 	},
+	getIconForPrincipal: (principal) => {
+		return _Icons.getFullSpriteClass(
+			principal.isGroup ?
+				((principal.type === 'LDAPGroup') ? _Icons.group_link_icon : _Icons.group_icon)
+				:
+				((principal.isAdmin === true) ? _Icons.user_red_icon : ((principal.type === 'LDAPUser') ? _Icons.user_orange_icon : _Icons.user_icon))
+		);
+	},
 	updateUserElementAfterModelChange: (user) => {
 
 		requestAnimationFrame(() => {
 
 			// request animation frame is especially important if a name is completely removed!
 
-			for (let userEl of document.querySelectorAll('.userid_' + user.id)) {
+			for (let userEl of document.querySelectorAll('.' + _UsersAndGroups.userNodeClassPrefix + user.id)) {
 
 				let icon = userEl.querySelector('.typeIcon');
 				if (icon) {
-					let userIcon = _Icons.getFullSpriteClass((user.isAdmin === true) ? _Icons.user_red_icon : ((user.type === 'LDAPUser') ? _Icons.user_orange_icon : _Icons.user_icon));
-					icon.setAttribute('class', 'typeIcon ' + userIcon);
+					icon.setAttribute('class', 'typeIcon ' + _UsersAndGroups.getIconForPrincipal(user));
 				}
 
 				let userName = userEl.querySelector('.name_');
@@ -241,9 +268,19 @@ let _UsersAndGroups = {
 
 		_Security.userList.appendChild(userDiv[0]);
 
-		_Entities.appendContextMenuIcon(userDiv, user);
+		_Entities.appendContextMenuIcon(userDiv.children('.icons-container'), user);
 		_Elements.enableContextMenuOnElement(userDiv, user);
-		_UsersAndGroups.setMouseOver(userDiv, user.id, '.userid_');
+		_UsersAndGroups.setMouseOver(userDiv, user.id, '.' + _UsersAndGroups.userNodeClassPrefix);
+
+		let dblclickHandler = (e) => {
+			_Entities.showProperties(user, LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + user.id) || 'general');
+		};
+
+		if (userDiv) {
+			let node = userDiv[0].closest('.node');
+			node.removeEventListener('dblclick', dblclickHandler);
+			node.addEventListener('dblclick', dblclickHandler);
+		}
 	},
 	appendMembersToGroup: function(members, group, groupDiv) {
 
@@ -256,17 +293,20 @@ let _UsersAndGroups = {
 					// can have members which are not loaded yet
 					// if a user is removed from this group the model will try to filter its members array (which is null atm) which leads to an error, therefor fetch it
 					Command.get(member.id, null, (g) => {
-						StructrModel.createFromData(g, group.id, true);
+						let groupModelObj = StructrModel.createFromData(g);
+						_UsersAndGroups.appendMemberToGroup(groupModelObj, group, groupDiv);
 					});
 
 				} else {
 
 					// member is a user, no danger
-					StructrModel.createFromData(member, group.id, true);
+					let userModelObj = StructrModel.createFromData(member);
+					_UsersAndGroups.appendMemberToGroup(userModelObj, group, groupDiv);
 				}
 
 			} else {
-				_UsersAndGroups.appendMemberToGroup(member, group, groupDiv);
+				let memberModelObj = StructrModel.createFromData(member);
+				_UsersAndGroups.appendMemberToGroup(memberModelObj, group, groupDiv);
 			}
 		}
 	},
@@ -275,13 +315,13 @@ let _UsersAndGroups = {
 		let groupId    = group.id;
 		let isExpanded = Structr.isExpanded(groupId);
 
-		_Entities.appendExpandIcon(groupEl, group, true, isExpanded);
+		_Entities.appendExpandIcon(groupEl, group, true, isExpanded, (members) => { _UsersAndGroups.appendMembersToGroup(members, group, groupEl); } );
 
 		if (!isExpanded) {
 			return;
 		}
 
-		let prefix = (member.isUser) ? '.userid_' : '.groupid_';
+		let prefix = '.' + (member.isUser) ? _UsersAndGroups.userNodeClassPrefix : _UsersAndGroups.groupNodeClassPrefix;
 
 		if (member.isUser) {
 
@@ -310,17 +350,6 @@ let _UsersAndGroups = {
 			if (!alreadyShownInMembers && !alreadyShownInParents) {
 
 				let groupDiv = _UsersAndGroups.createGroupElement(member);
-
-				// $('.delete_icon', groupDiv).remove();
-
-				// groupDiv.append('<i title="Remove \'' + member.name + '\' from group \'' + group.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.user_delete_icon) + '" />');
-				//
-				// $('.delete_icon', groupDiv).on('click', function(e) {
-				// 	e.stopPropagation();
-				// 	Command.removeFromCollection(group.id, 'members', member.id, function () {
-				// 		_UsersAndGroups.deactivateNodeHover(member.id, prefix);
-				// 	});
-				// });
 
 				groupEl.append(groupDiv);
 
@@ -364,14 +393,22 @@ let _UsersAndGroups = {
 			let addGroupButton  = document.getElementById('add-group-button');
 
 			addGroupButton.addEventListener('click', (e) => {
-				Command.create({ type: groupTypeSelect.value });
+				Command.create({ type: groupTypeSelect.value }, (group) => {
+					let groupModelObj = StructrModel.create(group);
+					_UsersAndGroups.appendGroupElement($(_Security.groupList), groupModelObj);
+				});
 			});
 
 			groupTypeSelect.addEventListener('change', () => {
 				addGroupButton.querySelector('span').textContent = 'Add ' + groupTypeSelect.value;
 			});
 
-			let groupPager = _Pager.addPager('groups', $(_Security.groupControls), true, 'Group', 'public');
+			let groupPager = _Pager.addPager('groups', $(_Security.groupControls), true, 'Group', 'public', (groups) => {
+				for (let group of groups) {
+					let groupModelObj = StructrModel.create(group);
+					_UsersAndGroups.appendGroupElement($(_Security.groupList), groupModelObj);
+				}
+			});
 			groupPager.cleanupFunction = function () {
 				_Security.groupList.innerHTML = '';
 			};
@@ -382,11 +419,10 @@ let _UsersAndGroups = {
 	createGroupElement: function (group) {
 
 		let displayName = ((group.name) ? group.name : '[unnamed]');
-		let groupIcon = ((group.type === 'LDAPGroup') ? _Icons.getFullSpriteClass(_Icons.group_link_icon) : _Icons.getFullSpriteClass(_Icons.group_icon));
-		let groupElement = $('<div class="node group groupid_' + group.id + '">'
-				+ '<i class="typeIcon ' + groupIcon + '" />'
+		let groupElement = $('<div class="node group ' + _UsersAndGroups.groupNodeClassPrefix + group.id + '">'
+				+ '<i class="typeIcon ' + _UsersAndGroups.getIconForPrincipal(group) + '"></i>'
 				+ '<b title="' + displayName + '" class="name_  abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + displayName + '</b>'
-				+ '</div>'
+				+ '<div class="icons-container"></div>'
 		);
 		groupElement.data('groupId', group.id);
 
@@ -406,7 +442,15 @@ let _UsersAndGroups = {
 
 				if (nodeId) {
 					if (nodeId !== group.id) {
-						Command.appendMember(nodeId, group.id);
+						Command.appendMember(nodeId, group.id, (group) => {
+
+							let groupModelObj = StructrModel.obj(group.id);
+							let userModelObj  = StructrModel.obj(nodeId);
+
+							blinkGreen($('.' + _UsersAndGroups.groupNodeClassPrefix + group.id));
+
+							_UsersAndGroups.appendMemberToGroup(userModelObj, groupModelObj, $(groupElement));
+						});
 					} else {
 						new MessageBuilder().title("Warning").warning("Prevented adding group as a member of itself").show();
 					}
@@ -424,12 +468,11 @@ let _UsersAndGroups = {
 
 			// request animation frame is especially important if a name is completely removed!
 
-			for (let userEl of document.querySelectorAll('.groupid_' + group.id)) {
+			for (let userEl of document.querySelectorAll('.' + _UsersAndGroups.groupNodeClassPrefix + group.id)) {
 
 				let icon = userEl.querySelector('.typeIcon');
 				if (icon) {
-					let groupIcon = ((group.type === 'LDAPGroup') ? _Icons.getFullSpriteClass(_Icons.group_link_icon) : _Icons.getFullSpriteClass(_Icons.group_icon));
-					icon.setAttribute('class', 'typeIcon ' + groupIcon);
+					icon.setAttribute('class', 'typeIcon ' + _UsersAndGroups.getIconForPrincipal(group));
 				}
 
 				let groupName = userEl.querySelector('.name_');
@@ -448,13 +491,24 @@ let _UsersAndGroups = {
 		let groupDiv    = _UsersAndGroups.createGroupElement(group);
 		element.append(groupDiv);
 
-		_Entities.appendExpandIcon(groupDiv, group, hasChildren, Structr.isExpanded(group.id));
-		_Entities.appendContextMenuIcon(groupDiv, group);
+		_Entities.appendExpandIcon(groupDiv, group, hasChildren, Structr.isExpanded(group.id), (members) => { _UsersAndGroups.appendMembersToGroup(members, group, groupDiv); } );
+		_Entities.appendContextMenuIcon(groupDiv.children('.icons-container'), group);
 		_Elements.enableContextMenuOnElement(groupDiv, group);
-		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.groupid_');
+		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.' + _UsersAndGroups.groupNodeClassPrefix);
 
-		if (hasChildren) {
-			_UsersAndGroups.appendMembersToGroup(group.members, group, groupDiv);
+		if (hasChildren && Structr.isExpanded(group.id)) {
+			// do not directly use group.members (it does not contain all necessary information)
+			Command.children(group.id, (members) => { _UsersAndGroups.appendMembersToGroup(members, group, groupDiv); });
+		}
+
+		let dblclickHandler = (e) => {
+			_Entities.showProperties(group);
+		};
+
+		if (groupDiv) {
+			let node = groupDiv[0].closest('.node');
+			node.removeEventListener('dblclick', dblclickHandler);
+			node.addEventListener('dblclick', dblclickHandler);
 		}
 
 		return groupDiv;
@@ -504,6 +558,14 @@ let _ResourceAccessGrants = {
 
 	refreshResourceAccesses: function() {
 
+		if (Structr.isInMemoryDatabase === undefined) {
+			window.setTimeout(() => {
+				_ResourceAccessGrants.refreshResourceAccesses();
+			}, 500);
+		}
+
+		let pagerTransportFunction = Structr.isInMemoryDatabase ? null : _ResourceAccessGrants.customPagerTransportFunction;
+
 		_Security.resourceAccesses.empty();
 
 		Structr.fetchHtmlTemplate('security/resource-access', { showVisibilityFlags: UISettings.getValueForSetting(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey) }, function (html) {
@@ -512,7 +574,7 @@ let _ResourceAccessGrants = {
 
 			Structr.activateCommentsInElement(_Security.resourceAccesses);
 
-			let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', undefined, undefined, _ResourceAccessGrants.customPagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees');
+			let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', undefined, undefined, pagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees');
 
 			raPager.cleanupFunction = function () {
 				$('#resourceAccessesTable tbody tr').remove();
@@ -603,8 +665,8 @@ let _ResourceAccessGrants = {
 
 		Command.create(grantData, callback);
 	},
-	deleteResourceAccess: function(button, resourceAccess) {
-		_Entities.deleteNode(button, resourceAccess);
+	deleteResourceAccess: (resourceAccess) => {
+		_Entities.deleteNode(null, resourceAccess);
 	},
 	getVerbFromKey: function(key = '') {
 		return key.substring(key.lastIndexOf('_')+1, key.length);
@@ -634,15 +696,14 @@ let _ResourceAccessGrants = {
 
 		let flags = parseInt(resourceAccess.flags);
 
-		let trHtml = '<tr id="id_' + resourceAccess.id + '" class="resourceAccess"><td class="title-cell"><b class="name_">' + resourceAccess.signature + '</b></td>';
+		let trHtml = `<tr id="id_${resourceAccess.id}" class="resourceAccess"><td class="title-cell"><b class="name_">${resourceAccess.signature}</b></td>`;
 
 		let noAuthAccessPossible = resourceAccess.visibleToAuthenticatedUsers === false && (!resourceAccess.grantees || resourceAccess.grantees.length === 0);
 
 		let flagWarningTexts = {};
 		let flagSanityInfos  = {};
-
-		let hasAuthFlag    = false;
-		let hasNonAuthFlag = false;
+		let hasAuthFlag      = false;
+		let hasNonAuthFlag   = false;
 
 		for (let key in _ResourceAccessGrants.mask) {
 
@@ -672,6 +733,7 @@ let _ResourceAccessGrants = {
 			hasNonAuthFlag = hasNonAuthFlag || (flagIsSet && key.startsWith('NON_AUTH_'));
 			hasAuthFlag    = hasAuthFlag    || (flagIsSet && key.startsWith('AUTH_'));
 
+			// currently this function is disabled (would grey out checkboxes if grant is not usable)
 			let isDisabled = false && (disabledBecauseNotPublic || disabledBecauseNoAuthAccess);
 
 			let additionalClasses = [];
@@ -679,22 +741,33 @@ let _ResourceAccessGrants = {
 			if (key === 'AUTH_USER_PATCH') { additionalClasses.push('br-1'); }
 			if (key === 'NON_AUTH_USER_PATCH') { additionalClasses.push('br-1'); }
 
-			trHtml += '<td class="' + additionalClasses.join(' ') + '"><input type="checkbox" ' + (flagIsSet ? 'checked="checked"' : '') + (isDisabled ? ' disabled' : '') + ' data-flag="' + _ResourceAccessGrants.mask[key] + '" class="resource-access-flag" data-key="' + key +'"></td>';
+			trHtml += `<td class="${additionalClasses.join(' ')}"><input type="checkbox" ${(flagIsSet ? 'checked="checked"' : '')}${(isDisabled ? ' disabled' : '')} data-flag="${_ResourceAccessGrants.mask[key]}" class="resource-access-flag" data-key="${key}"></td>`;
 		}
 
-		trHtml += '<td><input type="text" class="bitmask" size="4" value="' + flags + '"></td>';
+		trHtml += `<td><input type="text" class="bitmask" size="4" value="${flags}"></td>`;
 
 		let showVisibilityFlagsInGrantsTable = UISettings.getValueForSetting(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey);
 
 		if (showVisibilityFlagsInGrantsTable) {
-			trHtml += '<td class="bl-1"><input type="checkbox" ' + (resourceAccess.visibleToAuthenticatedUsers ? 'checked="checked"' : '') + ' name="visibleToAuthenticatedUsers" class="resource-access-visibility"></td>';
-			trHtml += '<td class="br-1"><input type="checkbox" ' + (resourceAccess.visibleToPublicUsers ? 'checked="checked"' : '') + ' name="visibleToPublicUsers" class="resource-access-visibility"></td>';
+			trHtml += `
+				<td class="bl-1"><input type="checkbox" ${(resourceAccess.visibleToAuthenticatedUsers ? 'checked="checked"' : '')} name="visibleToAuthenticatedUsers" class="resource-access-visibility"></td>
+				<td class="br-1"><input type="checkbox" ${(resourceAccess.visibleToPublicUsers ? 'checked="checked"' : '')} name="visibleToPublicUsers" class="resource-access-visibility"></td>
+			`;
 		}
-		trHtml += '<td><i class="acl-resource-access button ' + _Icons.getFullSpriteClass(_Icons.key_icon) + '" /> ' +
-				'<i title="Delete Resource Access ' + resourceAccess.id + '" class="delete-resource-access button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />' +
-				'</td></tr>';
+		trHtml += '<td class="actions"></td></tr>';
 
-		let tr = $(trHtml);
+		let tr         = $(trHtml);
+		let actionsCol = $('td.actions', tr);
+		_Entities.appendNewAccessControlIcon(actionsCol, resourceAccess, false);
+
+		actionsCol.append(_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-resource-access'])));
+
+		$('.delete-resource-access', tr).on('click', (e) => {
+			e.stopPropagation();
+			resourceAccess.name = resourceAccess.signature;
+			_ResourceAccessGrants.deleteResourceAccess(resourceAccess);
+		});
+
 
 		if (hasAuthFlag && hasNonAuthFlag) {
 			Structr.appendInfoTextToElement({
@@ -730,8 +803,6 @@ let _ResourceAccessGrants = {
 			}
 		}
 
-		_Entities.bindAccessControl($('.acl-resource-access', tr), resourceAccess);
-
 		let replaceElement = $('#resourceAccessesTable #id_' + resourceAccess.id);
 
 		if (replaceElement && replaceElement.length) {
@@ -755,12 +826,6 @@ let _ResourceAccessGrants = {
 			if (e.keyCode === 13) {
 				$(this).blur();
 			}
-		});
-
-		$('.delete-resource-access', tr).on('click', function(e) {
-			e.stopPropagation();
-			resourceAccess.name = resourceAccess.signature;
-			_ResourceAccessGrants.deleteResourceAccess(this, resourceAccess);
 		});
 
 		let div = Structr.node(resourceAccess.id);

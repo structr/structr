@@ -18,7 +18,7 @@
  */
 package org.structr.schema.openapi.operation.maintenance;
 
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
@@ -58,17 +58,17 @@ public class OpenAPIMaintenanceOperationDeploy extends LinkedHashMap<String, Obj
                 new OpenAPIRequestResponse(
                         "Request body",
 			new OpenAPIObjectSchema(
-                        	new OpenAPIPrimitiveSchema("Deployment mode",                  "mode",              "string", null, "export", Map.of(0, "import", 1, "export")),
+                        	new OpenAPIPrimitiveSchema("Deployment mode",                  "mode",              "string", null, "export", Map.of(0, "import", 1, "export"), false),
                         	new OpenAPIPrimitiveSchema("Source folder when **importing**", "source",            "string"),
-                        	new OpenAPIPrimitiveSchema("Target folder when **exporting**", "target",            "string", null, "/home/user/structr-app/webapp"),
+                        	new OpenAPIPrimitiveSchema("Target folder when **exporting**", "target",            "string", null, "/home/user/structr-app/webapp", false),
                         	new OpenAPIPrimitiveSchema("Incremental import",               "extendExistingApp", "boolean", false)
                         )
                 ),
 
                 // responses
                 Map.of(
-                        "200", new OpenAPIReference("#/components/responses/ok"),
-                        "401", new OpenAPIReference("#/components/responses/unauthorized")
+                        "200", new OpenAPISchemaReference("#/components/responses/ok"),
+                        "401", new OpenAPISchemaReference("#/components/responses/unauthorized")
                 )
         ));
 

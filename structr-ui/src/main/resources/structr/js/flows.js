@@ -20,7 +20,7 @@ import { Persistence }         from "./lib/structr/persistence/Persistence.js";
 import { FlowContainer }       from "./flow-editor/src/js/editor/entities/FlowContainer.js";
 import { FlowEditor }          from "./flow-editor/src/js/editor/FlowEditor.js";
 import { LayoutModal }         from "./flow-editor/src/js/editor/utility/LayoutModal.js";
-import {Rest} from "./lib/structr/rest/Rest.js";
+import { Rest }                from "./lib/structr/rest/Rest.js";
 
 let main, flowsMain, flowsTree, flowsCanvas, nodeEditor;
 let flowEditor, flowId;
@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function() {
     Structr.registerModule(_Flows);
 });
 
-var _Flows = {
+let _Flows = {
 	_moduleName: 'flows',
 	flowsResizerLeftKey: 'structrFlowsResizerLeftKey_' + location.port,
 	init: function() {
@@ -44,6 +44,9 @@ var _Flows = {
 		Structr.resize(() => {
 			_Flows.moveResizer();
 		});
+	},
+	dialogSizeChanged: () => {
+		_Editors.resizeVisibleEditors();
 	},
 	moveResizer: (left) => {
 		left = left || LSWrapper.getItem(_Flows.flowsResizerLeftKey) || 300;
@@ -279,7 +282,6 @@ var _Flows = {
 									});
 								}
 							};
-
 						}
 
 						if (node.id !== 'root' && node.id !== 'globals') {
@@ -367,7 +369,6 @@ var _Flows = {
 				};
 
 				handleDeletion();
-
 			});
 
 			$(flowsTree).on('rename_node.jstree', function(event, data) {
@@ -406,7 +407,6 @@ var _Flows = {
 				};
 
 				handleRename();
-
 			});
 
 			$(flowsTree).on('move_node.jstree', function(event, data) {
@@ -457,11 +457,10 @@ var _Flows = {
 				};
 
 				handleParentChange();
-
 			});
 
 			document.addEventListener("floweditor.nodescriptclick", event => {
-				_Flows.openCodemirror(event.detail.element, event.detail.nodeType);
+				_Flows.openEditor(event.detail);
 			});
 
 			document.addEventListener("floweditor.loadflow", event => {
@@ -474,7 +473,6 @@ var _Flows = {
 	},
 	refreshTree: (callback) => {
 		_TreeHelper.refreshTree(flowsTree, callback);
-
 	},
 	treeInitFunction: (obj, callback) => {
 
@@ -613,47 +611,83 @@ var _Flows = {
 		}
 
 	},
-    openCodemirror: (element, flowNodeType) => {
-        Structr.dialog("Edit " + flowNodeType, function() {}, function() {});
+	openEditor: (detail) => {
 
-        dialogText.append('<div class="editor"></div>');
-		let contentBox = $('.editor', dialogText);
+		let flowNodeType = detail.nodeType;
+		let element      = detail.element;
+		let entity       = detail.entity; // proxy object
+		let propertyName = detail.propertyName;
 
-		let cmEditor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
-			value: element.value,
-			mode: "application/javascript",
-			lineNumbers: true,
-			lineWrapping: false,
-			indentUnit: 4,
-			tabSize: 4,
-			indentWithTabs: true,
-			autofocus: true
-		}));
+        Structr.dialog("Edit " + flowNodeType, () => {}, () => {}, ['popup-dialog-with-editor']);
+
+        dialogText.append('<div class="editor h-full"></div>');
+		dialogBtn.append(`
+			<button id="editorSave" disabled="disabled" class="disabled">Save</button>
+			<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>
+		`);
+
+		let contentBox       = $('.editor', dialogText);
+		let dialogSaveButton = dialogBtn[0].querySelector('#editorSave');
+		let saveAndClose     = dialogBtn[0].querySelector('#saveAndClose');
+
+		let initialText = entity[propertyName] || '';
+
+		let editorConfig = {
+			value: initialText,
+			language: 'auto',
+			lint: true,
+			autocomplete: true,
+			forceAllowAutoComplete: true,
+			isAutoscriptEnv: true,
+			changeFn: (editor, entity) => {
+
+				let editorText = editor.getValue();
+
+				if (initialText === editorText) {
+					dialogSaveButton.disabled = true;
+					dialogSaveButton.classList.add('disabled');
+					saveAndClose.disabled = true;
+					saveAndClose.classList.add('disabled');
+				} else {
+					dialogSaveButton.disabled = null;
+					dialogSaveButton.classList.remove('disabled');
+					saveAndClose.disabled = null;
+					saveAndClose.classList.remove('disabled');
+				}
+			},
+			saveFn: (editor, entity) => {
+
+				element.value = editor.getValue();
+				element.dispatchEvent(new Event('change'));
+
+				dialogSaveButton.disabled = true;
+				dialogSaveButton.classList.add('disabled');
+				saveAndClose.disabled = true;
+				saveAndClose.classList.add('disabled');
+			}
+		};
+
+		let editor = _Editors.getMonacoEditor(entity, propertyName, contentBox, editorConfig);
 
         Structr.resize();
 
-        dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
-        dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+		saveAndClose.addEventListener('click', (e) => {
+			e.stopPropagation();
 
-        dialogSaveButton = $('#editorSave', dialogBtn);
-        saveAndClose = $('#saveAndClose', dialogBtn);
+			editorConfig.saveFn(editor, entity);
 
-        saveAndClose.off('click').on('click', function(e) {
-            e.stopPropagation();
-            dialogSaveButton.click();
-            setTimeout(function() {
-                dialogSaveButton.remove();
-                saveAndClose.remove();
-                dialogCancelButton.click();
-            }, 500);
-        });
+			setTimeout(function() {
+				dialogSaveButton.remove();
+				saveAndClose.remove();
+				dialogCancelButton.click();
+			}, 500);
+		});
 
-        dialogSaveButton.off('click').on('click', function(e) {
-            e.stopPropagation();
-            element.value = cmEditor.getValue();
-            element.dispatchEvent(new Event('change'));
-            dialogSaveButton.prop("disabled", true).addClass('disabled');
-        });
+		dialogSaveButton.addEventListener('click', (e) => {
+			e.stopPropagation();
+
+			editorConfig.saveFn(editor, entity);
+		});
 
         dialogCancelButton.on('click', function(e) {
             dialogSaveButton.remove();
@@ -661,20 +695,14 @@ var _Flows = {
             return false;
         });
 
-        cmEditor.on('change', function(cm, change) {
-            if (element.value === cmEditor.getValue()) {
-                dialogSaveButton.prop("disabled", true).addClass('disabled');
-                saveAndClose.prop("disabled", true).addClass('disabled');
-            } else {
-                dialogSaveButton.prop("disabled", false).removeClass('disabled');
-                saveAndClose.prop("disabled", false).removeClass('disabled');
-            }
-        });
+		editor.focus();
 
-        cmEditor.focus();
-        cmEditor.setCursor(cmEditor.lineCount(), 0);
+        window.setTimeout(() => {
+			_Editors.resizeVisibleEditors();
 
-        window.setTimeout(() => {$('.closeButton', dialogBtn).blur(); cmEditor.focus();}, 10);
+			$('.closeButton', dialogBtn).blur();
+			editor.focus();
+		}, 10);
 	},
 
 	initFlow: (id) => {
@@ -744,14 +772,9 @@ var _Flows = {
 						document.querySelector('.run_flow_icon').classList.remove('disabled');
 						document.querySelector('.delete_flow_icon').classList.remove('disabled');
 						document.querySelector('.layout_icon').classList.remove('disabled');
-
-
 					});
-
 				});
-
             });
-
         });
 	}
 };

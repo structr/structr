@@ -375,6 +375,7 @@ function collectData(name) {
 	let nameInput    = $('input#name-' + name);
 	let driverSelect = $('select#driver-' + name);
 	let urlInput     = $('input#url-' + name);
+	let dbNameInput  = $('input#database-' + name);
 	let userInput    = $('input#username-' + name);
 	let pwdInput     = $('input#password-' + name);
 	let nowCheckbox  = $('input#connect-checkbox');
@@ -389,6 +390,7 @@ function collectData(name) {
 		name:     nameInput.val(),
 		driver:   driverSelect.val(),
 		url:      urlInput.val(),
+		database: dbNameInput.val(),
 		username: userInput.val(),
 		password: pwdInput.val(),
 		now:      nowCheckbox && nowCheckbox.is(':checked'),
@@ -452,6 +454,7 @@ function setNeo4jDefaults() {
 	$('#driver-structr-new-connection').val('org.structr.bolt.BoltDatabaseService');
 	$('#name-structr-new-connection').val('neo4j-localhost-7687');
 	$('#url-structr-new-connection').val('bolt://localhost:7687');
+	$('#database-structr-new-connection').val('neo4j');
 	$('#username-structr-new-connection').val('neo4j');
 	$('#password-structr-new-connection').val('neo4j');
 }
@@ -586,13 +589,13 @@ _Config = {
 	nonBlockUIBlockerContentId: 'non-block-ui-blocker-content',
 	showNonBlockUILoadingMessage: function(title, text) {
 
-		var messageTitle = title || 'Executing Task';
-		var messageText  = text || 'Please wait until the operation has finished...';
+		let messageTitle = title || 'Executing Task';
+		let messageText  = text || 'Please wait until the operation has finished...';
 
-		let pageBlockerDiv = $('<div id="' + _Config.nonBlockUIBlockerId +'"></div>');
+		let pageBlockerDiv = $(`<div id="${_Config.nonBlockUIBlockerId}"></div>`);
+		let messageDiv     = $(`<div id="${_Config.nonBlockUIBlockerContentId}"></div>`);
+		messageDiv.html(`<div class="flex items-center justify-center">${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<b>${messageTitle}</b></div><br>${messageText}`);
 
-		let messageDiv = $('<div id="' + _Config.nonBlockUIBlockerContentId +'"></div>');
-		messageDiv.html('<img src="' + _Icons.getSpinnerImageAsData() + '"> <b>' + messageTitle + '</b><br><br>' + messageText);
 
 		$('body').append(pageBlockerDiv);
 		$('body').append(messageDiv);

@@ -50,7 +50,7 @@ public class GlobalSchemaMethodResource extends Resource {
 	public boolean checkAndConfigure(final String part, final SecurityContext securityContext, final HttpServletRequest request) {
 
 		this.securityContext = securityContext;
-		final App app        = StructrApp.getInstance(securityContext);
+		final App app        = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 

@@ -1,17 +1,22 @@
 <div id="view-options">
+
 	<div class="property-options-group">
-		<div><label>View actions</label></div>
 		<div id="view-actions"></div>
-		<div style="clear: both;"></div>
 	</div>
+
 	<div class="property-options-group">
-		<p class="input"><label>Name</label><input type="text" id="view-name-input" data-property="name" size="30" value="${config.view.name}" /></p>
-		<div style="clear: both;"></div>
+		<div>
+			<label class="font-semibold">Name</label>
+			<input type="text" id="view-name-input" data-property="name" value="${config.view.name}" />
+		</div>
 	</div>
+
 	<div class="property-options-group">
-		<div><label>Properties</label></div>
+		<div>
+			<label class="font-semibold">Properties</label>
+		</div>
 		<input type="text" id="view-sort-order" class="hidden" data-property="sortOrder" value="${config.view.sortOrder || ''}">
 		<div id="view-properties"></div>
-		<div style="clear: both;"></div>
 	</div>
+
 </div>

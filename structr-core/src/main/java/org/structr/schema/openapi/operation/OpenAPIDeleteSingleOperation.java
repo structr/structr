@@ -21,8 +21,9 @@ package org.structr.schema.openapi.operation;
 import java.util.List;
 import java.util.Map;
 import org.structr.schema.export.StructrTypeDefinition;
+import org.structr.schema.openapi.common.OpenAPIResponseReference;
 import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 
 public class OpenAPIDeleteSingleOperation extends OpenAPIOperation {
 
@@ -43,7 +44,7 @@ public class OpenAPIDeleteSingleOperation extends OpenAPIOperation {
 
 			// parameters
 			List.of(
-				new OpenAPIPathParameter("uuid", "The UUID of the existing object", Map.of("type", "string"))
+				new OpenAPIPathParameter("uuid", "The UUID of the existing object", Map.of("type", "string"), true)
 			),
 
 			// request body
@@ -51,11 +52,11 @@ public class OpenAPIDeleteSingleOperation extends OpenAPIOperation {
 
 			// responses
 			Map.of(
-				"200", new OpenAPIReference("#/components/responses/ok"),
-				"401", new OpenAPIReference("#/components/responses/unauthorized"),
-				"403", new OpenAPIReference("#/components/responses/forbidden"),
-				"404", new OpenAPIReference("#/components/responses/notFound"),
-				"422", new OpenAPIReference("#/components/responses/validationError")
+				"200", new OpenAPIResponseReference("#/components/responses/ok"),
+				"401", new OpenAPIResponseReference("#/components/responses/unauthorized"),
+				"403", new OpenAPIResponseReference("#/components/responses/forbidden"),
+				"404", new OpenAPIResponseReference("#/components/responses/notFound"),
+				"422", new OpenAPIResponseReference("#/components/responses/validationError")
 			)
 		);
 	}

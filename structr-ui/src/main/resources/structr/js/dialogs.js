@@ -48,7 +48,7 @@ let _Dialogs = {
 		return dialogConfig;
 	},
 
-	findAndAppendCustomTypeDialog: function(entity, mainTabs, contentEl) {
+	findAndAppendCustomTypeDialog: (entity, mainTabs, contentEl) => {
 
 		let dialogConfig = _Dialogs.getDialogConfigForEntity(entity);
 
@@ -67,22 +67,26 @@ let _Dialogs = {
 
 		return false;
 	},
-	showCustomProperties: function(el, entity) {
+	showCustomProperties: async (el, entity) => {
 
-		// custom properties
-		let customContainer = $('div#custom-properties-container', el);
+		return new Promise((resolve, reject) => {
 
-		_Schema.getTypeInfo(entity.type, function(typeInfo) {
+			let customContainer = $('div#custom-properties-container', el);
 
-			_Entities.listProperties(entity, 'custom', customContainer, typeInfo, function(properties) {
+			_Schema.getTypeInfo(entity.type, (typeInfo) => {
 
-				// make container visible when custom properties exist
-				if (Object.keys(properties).length > 0) {
-					$('div#custom-properties-parent').removeClass("hidden");
-				}
+				_Entities.listProperties(entity, 'custom', customContainer, typeInfo, (properties) => {
 
-				$('input.dateField', customContainer).each(function(i, input) {
-					_Entities.activateDatePicker($(input));
+					// make container visible when custom properties exist
+					if (Object.keys(properties).length > 0) {
+						$('div#custom-properties-parent').removeClass("hidden");
+					}
+
+					$('input.dateField', customContainer).each(function(i, input) {
+						_Entities.activateDatePicker($(input));
+					});
+
+					resolve();
 				});
 			});
 		});
@@ -93,7 +97,7 @@ let _Dialogs = {
 
 		if (showConditionsContainer.length) {
 
-			Structr.fetchHtmlTemplate('dialogs/visibility-partial', { entity: entity }, function (html) {
+			Structr.fetchHtmlTemplate('dialogs/visibility-partial', { entity: entity }, (html) => {
 
 				showConditionsContainer.html(html);
 
@@ -123,7 +127,7 @@ let _Dialogs = {
 			let textContentContainer = $('.show-text-content-container', el);
 			if (textContentContainer.length) {
 
-				Structr.fetchHtmlTemplate('dialogs/content-partial', {}, function (html) {
+				Structr.fetchHtmlTemplate('dialogs/content-partial', {}, (html) => {
 
 					textContentContainer.html(html);
 
@@ -149,12 +153,46 @@ let _Dialogs = {
 
 		if (repeaterConfigContainer.length) {
 
-			Structr.fetchHtmlTemplate('dialogs/repeater-partial', { entity: entity }, function (html) {
+			Structr.fetchHtmlTemplate('dialogs/repeater-partial', { entity: entity }, (html) => {
 
 				repeaterConfigContainer.html(html);
 
 				_Dialogs.populateInputFields(repeaterConfigContainer, entity);
 				_Dialogs.registerSimpleInputChangeHandlers(repeaterConfigContainer, entity);
+			});
+		}
+	},
+	showRenderingOptions: (el, entity) => {
+
+		// Disable render options on certain elements
+		if (['html', 'body', 'head', 'title', 'style', 'meta', 'link', 'script', 'base'].includes(entity.tag)) {
+			return;
+		}
+
+		let renderingOptionsContainer = $('.rendering-options-container', el);
+
+		if (renderingOptionsContainer.length) {
+
+			Structr.fetchHtmlTemplate('dialogs/rendering-options', { entity: entity }, (html) => {
+
+				renderingOptionsContainer.html(html);
+
+				_Dialogs.populateInputFields(renderingOptionsContainer, entity);
+				_Dialogs.registerSimpleInputChangeHandlers(renderingOptionsContainer, entity);
+
+				let renderingModeSelect           = $('select#rendering-mode-select', el);
+				renderingModeSelect.select2();
+
+				Command.getProperty(entity.id, 'data-structr-rendering-mode', (result) => {
+					renderingModeSelect.val(result);
+					renderingModeSelect.trigger('change');
+				});
+
+				renderingModeSelect.on('change', () => {
+					let renderingMode = renderingModeSelect.val() === '' ? null : renderingModeSelect.val();
+					_Entities.setPropertyWithFeedback(entity, 'data-structr-rendering-mode', renderingMode, renderingModeSelect, null);
+				});
+
 			});
 		}
 	},
@@ -307,10 +345,9 @@ let _Dialogs = {
 	},
 	aDialog: (el, entity) => {
 
-		Command.get(entity.id, null, function(aHtmlProperties) {
+		Command.get(entity.id, null, (aHtmlProperties) => {
 
 			Structr.fetchHtmlTemplate('dialogs/a.options', { entity: entity, a: aHtmlProperties, title: _Dialogs.title }, (html) => {
-
 				el.html(html);
 
 				_Dialogs.populateInputFields(el, aHtmlProperties);
@@ -321,6 +358,7 @@ let _Dialogs = {
 				_Dialogs.showCustomProperties(el, entity);
 				_Dialogs.showRepeaterOptions(el, entity);
 				_Dialogs.showShowHideConditionOptions(el, entity);
+				_Dialogs.showRenderingOptions(el, entity);
 
 				// child content
 				_Dialogs.showChildContentEditor(el, entity);
@@ -330,7 +368,7 @@ let _Dialogs = {
 	},
 	buttonDialog: (el, entity) => {
 
-		Command.get(entity.id, null, function(buttonHtmlProperties) {
+		Command.get(entity.id, null, (buttonHtmlProperties) => {
 
 			Structr.fetchHtmlTemplate('dialogs/button.options', { entity: entity, button: buttonHtmlProperties, title: _Dialogs.title }, (html) => {
 
@@ -344,6 +382,7 @@ let _Dialogs = {
 				_Dialogs.showCustomProperties(el, entity);
 				_Dialogs.showRepeaterOptions(el, entity);
 				_Dialogs.showShowHideConditionOptions(el, entity);
+				_Dialogs.showRenderingOptions(el, entity);
 
 				// child content
 				_Dialogs.showChildContentEditor(el, entity);
@@ -353,7 +392,7 @@ let _Dialogs = {
 	},
 	inputDialog: (el, entity) => {
 
-		Command.get(entity.id, null, function(inputHtmlProperties) {
+		Command.get(entity.id, null, (inputHtmlProperties) => {
 
 			Structr.fetchHtmlTemplate('dialogs/input.options', { entity: entity, input: inputHtmlProperties, title: _Dialogs.title }, (html) => {
 
@@ -366,13 +405,15 @@ let _Dialogs = {
 
 				_Dialogs.showCustomProperties(el, entity);
 				_Dialogs.showShowHideConditionOptions(el, entity);
+				_Dialogs.showRenderingOptions(el, entity);
+
 			});
 
 		}, '_html_');
 	},
 	divDialog: (el, entity) => {
 
-		Command.get(entity.id, null, function(divHtmlProperties) {
+		Command.get(entity.id, null, (divHtmlProperties) => {
 
 			Structr.fetchHtmlTemplate('dialogs/div.options', { entity: entity, title: _Dialogs.title }, (html) => {
 
@@ -386,6 +427,8 @@ let _Dialogs = {
 				_Dialogs.showCustomProperties(el, entity);
 				_Dialogs.showRepeaterOptions(el, entity);
 				_Dialogs.showShowHideConditionOptions(el, entity);
+				_Dialogs.showRenderingOptions(el, entity);
+
 			});
 
 		}, '_html_');
@@ -399,7 +442,7 @@ let _Dialogs = {
 			_Dialogs.populateInputFields(el, entity);
 			_Dialogs.registerSimpleInputChangeHandlers(el, entity);
 
-			$('button#set-password-button').on('click', function(e) {
+			$('button#set-password-button').on('click', (e) => {
 				let input = $('input#password-input');
 				_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
 			});
@@ -411,7 +454,7 @@ let _Dialogs = {
 	},
 	pageDialog: (el, entity) => {
 
-		Structr.fetchHtmlTemplate('dialogs/page.options', { entity: entity, page: entity, title: _Dialogs.title }, (html) => {
+		Structr.fetchHtmlTemplate('dialogs/page.options', { entity: entity, page: entity, title: _Dialogs.title }, async (html) => {
 
 			el.html(html);
 
@@ -420,12 +463,14 @@ let _Dialogs = {
 
 			_Dialogs.focusInput(el);
 
-			_Dialogs.showCustomProperties(el, entity);
+			await _Dialogs.showCustomProperties(el, entity);
+
+			Structr.activateCommentsInElement(el);
 		});
 	},
 	defaultDomDialog: (el, entity) => {
 
-		Command.get(entity.id, null, function(htmlProperties) {
+		Command.get(entity.id, null, (htmlProperties) => {
 
 			Structr.fetchHtmlTemplate('dialogs/default_dom.options', { entity: entity, title: _Dialogs.title }, (html) => {
 
@@ -439,6 +484,7 @@ let _Dialogs = {
 				_Dialogs.showCustomProperties(el, entity);
 				_Dialogs.showRepeaterOptions(el, entity);
 				_Dialogs.showShowHideConditionOptions(el, entity);
+				_Dialogs.showRenderingOptions(el, entity);
 
 				// child content (optional)
 				_Dialogs.showChildContentEditor(el, entity);
@@ -460,12 +506,13 @@ let _Dialogs = {
 			_Dialogs.showCustomProperties(el, entity);
 			_Dialogs.showRepeaterOptions(el, entity);
 			_Dialogs.showShowHideConditionOptions(el, entity);
+
 		});
 
 	},
 	optionDialog: (el, entity) => {
 
-		Command.get(entity.id, null, function(divHtmlProperties) {
+		Command.get(entity.id, null, (divHtmlProperties) => {
 
 			Structr.fetchHtmlTemplate('dialogs/option.options', { entity: entity, title: _Dialogs.title }, (html) => {
 
@@ -481,6 +528,7 @@ let _Dialogs = {
 				_Dialogs.showCustomProperties(el, entity);
 				_Dialogs.showRepeaterOptions(el, entity);
 				_Dialogs.showShowHideConditionOptions(el, entity);
+				_Dialogs.showRenderingOptions(el, entity);
 
 				_Dialogs.showChildContentEditor(el, entity);
 			});

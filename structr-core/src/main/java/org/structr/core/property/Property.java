@@ -18,13 +18,7 @@
  */
 package org.structr.core.property;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
@@ -76,6 +70,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected String typeHint                              = null;
 	protected String readFunction                          = null;
 	protected String writeFunction                         = null;
+	protected String openAPIReturnType                     = null;
 	protected String hint                                  = null;
 	protected String category                              = null;
 	protected String sourceUuid                            = null;
@@ -380,6 +375,17 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public String openAPIReturnType() {
+		return openAPIReturnType;
+	}
+
+	@Override
+	public Property<T> openAPIReturnType(final String openAPIReturnType) {
+		this.openAPIReturnType = openAPIReturnType;
+		return this;
+	}
+
+	@Override
 	public String typeHint() {
 		return typeHint;
 	}
@@ -604,7 +610,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return isCMISProperty;
 	}
 
-	// ----- interface Comparable -----
+    // ----- interface Comparable -----
 	@Override
 	public int compareTo(final PropertyKey other) {
 		return dbName().compareTo(other.dbName());

@@ -23,9 +23,9 @@ import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
@@ -41,25 +41,22 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 	@Override
 	public void execute(final Map<String, Object> properties) throws FrameworkException {
 
-		final DatabaseService graphDb            = (DatabaseService) arguments.get("graphDb");
-		final RelationshipFactory relationshipFactory = new RelationshipFactory(securityContext);
+		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
+		final App app                 = StructrApp.getInstance();
+		Class relationshipTypeClass   = AbstractRelationship.class;
 
 		if (graphDb != null) {
 
-			Iterable<AbstractRelationship> relationships = null;
-			final String typeName                        = "type";
+			final String typeName = "type";
 
 			if (properties.containsKey(typeName)) {
 
-				relationships = Iterables.map(relationshipFactory, graphDb.getRelationshipsByType(typeName));
 				properties.remove(typeName);
 
-			} else {
-
-				relationships = Iterables.map(relationshipFactory, graphDb.getAllRelationships());
+				relationshipTypeClass = StructrApp.getConfiguration().getRelationshipEntityClass(typeName);
 			}
 
-			final long count = bulkGraphOperation(securityContext, relationships, 1000, "SetRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
+			final long count = bulkGraphOperation(securityContext, app.relationshipQuery(relationshipTypeClass), 1000, "SetRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
 				public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {

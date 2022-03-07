@@ -91,6 +91,11 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 		return "concatenated string";
 	}
 
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
+	}
+
 	// ----- OpenAPI -----
 	@Override
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
@@ -102,6 +107,10 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 
 			map.put("type",    valueType.getSimpleName().toLowerCase());
 			map.put("example", getExampleValue(type, viewName));
+
+			if (this.readOnly) {
+				map.put("readOnly", true);
+			}
 		}
 
 		return map;
@@ -116,6 +125,7 @@ public class ConcatProperty extends AbstractReadOnlyProperty<String> {
 		if (valueType != null) {
 
 			map.put("type", valueType.getSimpleName().toLowerCase());
+			map.put("readOnly",    true);
 			map.put("example", getExampleValue(type, viewName));
 		}
 

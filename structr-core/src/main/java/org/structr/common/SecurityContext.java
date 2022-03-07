@@ -32,7 +32,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -727,12 +726,7 @@ public class SecurityContext {
 			if (userLocaleString != null) {
 
 				userHasLocaleString = true;
-
-				try {
-					locale = LocaleUtils.toLocale(userLocaleString);
-				} catch (IllegalArgumentException e) {
-					locale = Locale.forLanguageTag(userLocaleString);
-				}
+				locale = Locale.forLanguageTag(userLocaleString.replaceAll("_", "-"));
 			}
 
 		}
@@ -754,13 +748,7 @@ public class SecurityContext {
 						if (c.getName().equals(LOCALE_KEY)) {
 
 							final String cookieLocaleString = c.getValue();
-
-							try {
-								locale = LocaleUtils.toLocale(cookieLocaleString);
-							} catch (IllegalArgumentException e) {
-								locale = Locale.forLanguageTag(cookieLocaleString);
-							}
-
+							locale = Locale.forLanguageTag(cookieLocaleString.replaceAll("_", "-"));
 						}
 
 					}
@@ -772,11 +760,8 @@ public class SecurityContext {
 			// Priority 1: URL parameter locale
 			String requestedLocaleString = request.getParameter("_" + LOCALE_KEY);
 			if (StringUtils.isNotBlank(requestedLocaleString)) {
-				try {
-					locale = LocaleUtils.toLocale(requestedLocaleString);
-				} catch (IllegalArgumentException e) {
-					locale = Locale.forLanguageTag(requestedLocaleString);
-				}
+
+				locale = Locale.forLanguageTag(requestedLocaleString.replaceAll("_", "-"));
 			}
 
 		}

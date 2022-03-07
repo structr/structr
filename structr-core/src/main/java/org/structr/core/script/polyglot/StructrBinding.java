@@ -62,12 +62,18 @@ public class StructrBinding implements ProxyObject {
 				return new PredicateBinding(actionContext, entity);
 			case "batch":
 				logger.warn("The batch() function has been renamed to doInNewTransaction() to better communicate the semantics. Using batch() is deprecated as it will be removed in future versions.");
+			case "do_in_new_transaction":
 			case "doInNewTransaction":
 				return new DoInNewTransactionFunction(actionContext, entity);
+			case "include_js":
 			case "includeJs":
 				return new IncludeJSFunction(actionContext);
+			case "do_privileged":
 			case "doPrivileged":
 				return new DoPrivilegedFunction(actionContext);
+			case "do_as":
+			case "doAs":
+				return new DoAsFunction(actionContext);
 			case "request":
 				return new HttpServletRequestWrapper(actionContext, actionContext.getSecurityContext().getRequest());
 			case "session":

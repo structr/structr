@@ -24,6 +24,7 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.module.StructrModule;
 import org.structr.pdf.function.PDFFunction;
+import org.structr.pdf.function.PDFEncryptFunction;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
 
@@ -36,6 +37,7 @@ public class PDFModule implements StructrModule {
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 		Functions.put(licenseManager, new PDFFunction());
+		Functions.put(licenseManager, new PDFEncryptFunction());
 	}
 
 	@Override

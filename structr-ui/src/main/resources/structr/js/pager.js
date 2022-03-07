@@ -33,6 +33,7 @@ let _Pager = {
 	sortKey: {},
 	sortOrder: {},
 	pagerFilters: {},
+	pagerForcedFilters: {},
 	pagerExactFilterKeys: {},
 	rawResultCount: [],
 	pagerDataKey: 'structrPagerData_' + location.port + '_',
@@ -69,10 +70,12 @@ let _Pager = {
 	},
 
 	forceAddFilters: function(id, type, filters) {
-		_Pager.initFilters(id, type, $.extend(_Pager.pagerFilters[id], filters));
+		_Pager.pagerForcedFilters[id] = Object.assign({}, _Pager.pagerForcedFilters[id], filters);
+		_Pager.initFilters(id, type, Object.assign({}, _Pager.pagerFilters[id], filters));
 	},
 
 	storePagerData: function(id, type, page, pageSize, sort, order, filters) {
+		// do not include forced filters so they can be removed in later versions without persisting in localstorage
 		let data = {
 			id: id,
 			type: type,
@@ -130,6 +133,12 @@ let _Pager = {
 			if (typeof optionalTransportFunction === "function") {
 				optionalTransportFunction(id, _Pager.pageSize[id], _Pager.page[id], filterAttrs, pager.internalCallback);
 			} else {
+
+				// Filter out the special page named __ShadowDocument__ to allow displaying hidden pages in the admin UI
+				if (pager.type === 'Page') {
+					filterAttrs['!name'] = '__ShadowDocument__';
+				}
+
 				Command.query(pager.type, _Pager.pageSize[id], _Pager.page[id], _Pager.sortKey[id], _Pager.sortOrder[id], filterAttrs, pager.internalCallback, isExactPager, view, customView);
 			}
 		};
@@ -333,9 +342,13 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
 		// If filterContainer is given, set as filter element. Default is the pager container itself.
 		this.filterEl = filterContainer || pagerObj.pager;
 
+		let foundFilters = [];
+
 		$('input.filter[type=text]', this.filterEl).each(function (idx, elem) {
 			let $elem           = $(elem);
 			let filterAttribute = $elem.data('attribute');
+
+			foundFilters.push(filterAttribute);
 
 			if (_Pager.pagerFilters[pagerObj.id][filterAttribute]) {
 				$elem.val(_Pager.pagerFilters[pagerObj.id][filterAttribute]);
@@ -414,6 +427,8 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
 			let $elem           = $(elem);
 			let filterAttribute = $elem.data('attribute');
 
+			foundFilters.push(filterAttribute);
+
 			if (_Pager.pagerFilters[pagerObj.id][filterAttribute]) {
 				$elem.prop('checked', _Pager.pagerFilters[pagerObj.id][filterAttribute]);
 			}
@@ -431,6 +446,27 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
 				pagerObj.transportFunction();
 			}
 		});
+
+		// remove filters which are either removed or temporarily disabled due to database limitations
+		// for example resource access grants filtering for "active" grants
+		let storedKeys = Object.keys(_Pager.pagerFilters[pagerObj.id]);
+		let forcedKeys = Object.keys(Object.assign({}, _Pager.pagerForcedFilters[pagerObj.id]));
+		let update = false;
+
+		for (let key of storedKeys) {
+
+			let isUiFilter     = (foundFilters.indexOf(key) > -1);
+			let isForcedFilter = (forcedKeys.indexOf(key) > -1);
+
+			if (!isUiFilter && !isForcedFilter) {
+				update = true;
+				delete _Pager.pagerFilters[pagerObj.id][key];
+			}
+		}
+
+		if (update) {
+			this.transportFunction();
+		}
 	};
 
 	/**

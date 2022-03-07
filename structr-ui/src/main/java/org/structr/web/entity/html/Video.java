@@ -41,7 +41,7 @@ public interface Video extends DOMElement {
 		type.addStringProperty("_html_poster",      PropertyView.Html);
 		type.addStringProperty("_html_preload",     PropertyView.Html);
 		type.addStringProperty("_html_autoplay",    PropertyView.Html);
-		type.addStringProperty("_html_mediagroup",  PropertyView.Html);
+		type.addStringProperty("_html_playsinline", PropertyView.Html);
 		type.addStringProperty("_html_loop",        PropertyView.Html);
 		type.addStringProperty("_html_muted",       PropertyView.Html);
 		type.addStringProperty("_html_controls",    PropertyView.Html);

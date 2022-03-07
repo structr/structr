@@ -19,6 +19,7 @@
 package org.structr.schema.openapi.common;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -27,5 +28,10 @@ public class OpenAPIAnyOf extends TreeMap<String, Object> {
 	public OpenAPIAnyOf(final Map<String, Object>... items) {
 
 		put("anyOf", Arrays.asList(items));
+	}
+
+	public OpenAPIAnyOf(final List items) {
+
+		put("anyOf", items);
 	}
 }

@@ -1,4 +1,4 @@
-<div class="content-container repeater-container">
+<div class="content-container">
 
     <div class="inline-info">
 		<div class="inline-info-icon">
@@ -11,11 +11,15 @@
         </div>
     </div>
 
-    <h3>Result Collection</h3>
-    <div class="query-type-buttons"></div>
+	<div class="flex flex-col h-full repeater-container">
+		<h3>Result Collection</h3>
 
-<!--    <h4 class="query-type-heading"></h4>-->
+		<div class="query-type-buttons"></div>
 
-    <textarea class="hidden query-text"></textarea>
-
+		<select class="hidden" id="flow-selector"></select>
+		<div class="hidden flex-grow query-text"></div>
+		<div>
+			<button class="btn save">Save</button>
+		</div>
+	</div>
 </div>

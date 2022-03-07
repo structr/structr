@@ -125,6 +125,8 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 
 								tx.success();
 
+								return cmd.getCommandResult();
+
 							} catch (FrameworkException ex) {
 								logger.warn("Unable to execute maintenance command {}: {}", commandName, ex.getMessage());
 							}
@@ -135,7 +137,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 
 								cmd.execute(params);
 
-								return cmd.getPayload();
+								return cmd.getCommandResult();
 
 							} catch (FrameworkException ex) {
 								logger.warn("Unable to execute maintenance command {}: {}", commandName, ex.getMessage());
@@ -157,7 +159,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 				logger.error("Cannot execute maintenance command {} with non-admin user {}", commandName, securityContext.getUser(false));
 			}
 
-			return "";
+			return null;
 
 		} catch (IllegalArgumentException e) {
 

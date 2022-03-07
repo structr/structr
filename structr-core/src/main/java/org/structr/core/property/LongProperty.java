@@ -165,6 +165,11 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 	}
 
 	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
+	}
+
+	@Override
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
 
 		final Map<String, Object> map = new TreeMap<>();
@@ -172,6 +177,10 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 		map.put("type",    "integer");
 		map.put("format",  "int64");
 		map.put("example", 12467634433L);
+
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
 
 		return map;
 	}
@@ -184,6 +193,10 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 		map.put("type",    "integer");
 		map.put("format",  "int64");
 		map.put("example", 12467634433L);
+
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
 
 		return map;
 	}

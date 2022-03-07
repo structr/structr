@@ -1,18 +1,18 @@
 <div class="fake-table ${config.class}">
 	<div class="fake-thead"><div class="fake-tr">${config.cols.reduce((acc, col) => { return acc + '<div class="fake-th ' + col.class + '">' + col.title + '</div>'; }, '')}</div></div>
 	<div class="fake-tbody"></div>
-	<div class="fake-tfoot hidden">
+	<div class="fake-tfoot">
 		<div class="fake-tr">
-			<div class="fake-td actions-col">
-			<button class="discard-all inline-flex items-center">${_Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red mr-2')} Discard all</button>
-			<button class="save-all inline-flex items-center">${_Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green mr-2')} Save all</button>
+			<div class="fake-td actions-col flex justify-end">
+				<button class="discard-all inline-flex items-center disabled" disabled>${_Icons.getSvgIcon('close-dialog-x', 16, 16, 'icon-red mr-2')} Discard all</button>
+				<button class="save-all inline-flex items-center disabled" disabled>${_Icons.getSvgIcon('checkmark_bold', 16, 16, 'icon-green mr-2')} Save all</button>
 			</div>
 		</div>
 	</div>
 	<div class="fake-tfoot-buttons">
-		<button class="add-icon add-action-button"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add method</button>
-		<button class="add-icon add-onCreate-button"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add onCreate</button>
-		<button class="add-icon add-afterCreate-button"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add afterCreate</button>
-		<button class="add-icon add-onSave-button"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add onSave</button>
+		<button class="add-icon inline-flex items-center add-action-button">${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add method</button>
+		<button class="add-icon inline-flex items-center add-onCreate-button">${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add onCreate</button>
+		<button class="add-icon inline-flex items-center add-afterCreate-button">${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add afterCreate</button>
+		<button class="add-icon inline-flex items-center add-onSave-button">${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add onSave</button>
 	</div>
 </div>

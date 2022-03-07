@@ -388,7 +388,7 @@ public class Functions {
 			final String namespaceIdentifier = function.getNamespaceIdentifier();
 			if (namespaceIdentifier != null) {
 
-				namespace.put(level, word);
+				namespace.put(level, namespaceIdentifier);
 			}
 
 			return new FunctionExpression(word, function, row, column);

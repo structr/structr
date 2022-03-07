@@ -24,7 +24,7 @@
 	--config-servlet-lightred: #ffbaba;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
 	.config-group, .form-group, .form-group-label {
 		display: block;
 	}
@@ -38,24 +38,30 @@
 		align-items: center;
 	}
 	.form-group label {
-		flex-basis: 100%;
 		padding: 1rem 0 .5rem 0;
+	}
+	.basis-full {
+		flex-basis: 100%;
 	}
 	.form-group input[type=text], .form-group textarea {
 		flex-grow: 1;
-		display: block;
+		/*display: block;*/
 	}
 }
 
-@media (min-width: 641px) {
+@media (min-width: 640px) {
 	.form-group {
 		display: flex;
-		/*margin: 1em 0;*/
 		align-items: center;
 	}
 	.form-group label {
 		padding: 1em 1em 1em 0;
+	}
+	.sm\:min-w-128 {
 		min-width: 32rem;
+	}
+	.sm\:basis-auto {
+		flex-basis: auto;
 	}
 	.form-group input[type=text], .form-group textarea {
 		min-width: 32rem;
@@ -76,8 +82,6 @@ body.login {
 
 #configTabs {
 	margin: 1rem 2rem 0 2rem;
-	/*width: calc(100vw - 2rem);*/
-	/*min-width: calc(570px + 4rem);*/
 	height: calc(100vh - 10rem);
 	border: none;
 	background: none;
@@ -108,14 +112,6 @@ form.config-form div.buttons input[type=reset] {
 	margin-right: 1em;
 }
 
-form.config-form div.buttons input[type=submit] {
-	/*background-color: #f6f6f6;*/
-}
-
-form.config-form div.buttons input[type=submit]:hover {
-	/*background-color: #fff;*/
-}
-
 .default-action {
 	background-color: #81ce25;
 }
@@ -127,25 +123,8 @@ form.config-form div.buttons input[type=submit]:hover {
 .form-group {
 }
 
-.form-group label {
-	font-weight: bold;
-	/*margin-bottom: 4px;*/
-	/*vertical-align: top;*/
-}
-
-.form-group input[type=text], .form-group textarea {
-	/*width: calc(100vw - 450px);*/
-}
-
-.form-group input[type=radio] {
-	/*vertical-align: top;*/
-	/*padding: 0;*/
-}
-
 .form-group span {
 	display: inline-block;
-	/*vertical-align: top;*/
-	/*margin-top: 4px;*/
 	margin: 0 1rem 0 .25rem;
 }
 
@@ -154,12 +133,7 @@ form.config-form div.buttons input[type=submit]:hover {
 	cursor: pointer;
 }
 
-#services-table {
-	/*margin: 12px;*/
-}
-
 #services-table th {
-	/*padding: 4px;*/
 	text-align: left;
 	font-size: 10pt;
 }
@@ -184,18 +158,10 @@ form.config-form div.buttons input[type=submit]:hover {
 
 .buttons input[type=submit] {
 	color: #222;
-	/*padding: 1px 8px 2px 4px;*/
-	/*margin: 0 3px 3px 0;*/
-	/*vertical-align: middle;*/
-	/*border: 1px solid #999;*/
-	/*height: 24px;*/
 }
 
 .buttons input[type=submit]:hover:not(.disabled) {
 	color: #333;
-	/*padding: .5rem 1rem .5rem 1rem;*/
-	/*vertical-align: middle;*/
-	/*border: 1px solid #bbb;*/
 	cursor: pointer ! important;
 }
 
@@ -228,10 +194,6 @@ button.toggle-option.active::after {
     position: absolute;
     top: .75rem;
     right: 10rem;
-}
-
-#search-box {
-    /*border-radius: 4px;*/
 }
 
 li.search-matches.active {
@@ -278,10 +240,6 @@ td.search-matches {
 .no-search-match, li.no-search-match {
 	display: none;
 }
-
-p.steps button {
-}
-
 h2 {
 	margin: 2em 0 0 0;
 }
@@ -302,7 +260,6 @@ div.connection {
 	min-height: 24rem;
 	padding: 1em 1.5em;
 	border-radius: 3px;
-	/*box-shadow: 0px 0px 12px rgba(127,127,127,.2);*/
 }
 
 div.connection.active {
@@ -323,7 +280,6 @@ div.connection.collapsed {
 	min-width: 0px;
 	min-height: 0px;
 	border: none;
-	/*background-color: #f6f6f6;*/
 	box-shadow: none;
 	border-radius: 0;
 	text-align: center;

@@ -65,6 +65,10 @@ public class UuidProperty extends StringProperty {
 		map.put("type",   "string");
 		map.put("example", getExampleValue(type, viewName));
 
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
+
 		return map;
 	}
 
@@ -75,6 +79,10 @@ public class UuidProperty extends StringProperty {
 
 		map.put("type",   "string");
 		map.put("example", getExampleValue(type, viewName));
+
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
 
 		return map;
 	}

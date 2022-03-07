@@ -18,6 +18,7 @@
  */
 package org.structr.common.error;
 
+import com.google.gson.JsonObject;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -27,7 +28,74 @@ import org.structr.core.property.PropertyKey;
  */
 public class UniqueToken extends SemanticErrorToken {
 
+	private final String existingUuid;
+
 	public UniqueToken(final String type, final PropertyKey propertyKey, final String uuid) {
 		super(type, propertyKey, "already_taken", uuid);
+		existingUuid = null;
 	}
+
+	public UniqueToken(final String type, final PropertyKey propertyKey, final String uuid, final String existingUuid) {
+		super(type, propertyKey, "already_taken", uuid);
+		this.existingUuid = existingUuid;
+	}
+
+	public JsonObject toJSON() {
+
+		final JsonObject token = new JsonObject();
+
+		token.add("type",     getStringOrNull(getType()));
+		token.add("property", getStringOrNull(getProperty()));
+		token.add("token",    getStringOrNull(getToken()));
+
+		// optional
+		addIfNonNull(token, "detail", getObjectOrNull(getDetail()));
+		addIfNonNull(token, "value",  getObjectOrNull(getValue()));
+		addIfNonNull(token, "existingNodeUuid",  getObjectOrNull(getExistingUuid()));
+
+		return token;
+	}
+
+	public String getExistingUuid() {
+
+		return this.existingUuid;
+	}
+
+	@Override
+	public String toString() {
+
+		final StringBuilder buf = new StringBuilder();
+
+		if (getType() != null) {
+
+			buf.append(getType());
+		}
+
+		if (getProperty() != null) {
+
+			buf.append(".");
+			buf.append(getProperty());
+		}
+
+		if (getToken() != null) {
+
+			buf.append(" ");
+			buf.append(getToken());
+		}
+
+		if (getDetail() != null) {
+
+			buf.append(" ");
+			buf.append(getDetail());
+		}
+
+		if (getExistingUuid() != null) {
+
+			buf.append(". Existing uuid: ");
+			buf.append(getExistingUuid());
+		}
+
+		return buf.toString();
+	}
+
 }

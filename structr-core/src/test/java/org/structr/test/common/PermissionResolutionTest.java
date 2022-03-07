@@ -512,8 +512,6 @@ public class PermissionResolutionTest extends StructrTest {
 		testGranted(projectType, new boolean[] { false, false, true, true });
 		configureSchemaGrant(uuid, SchemaGrant.allowDelete, false);
 		testGranted(projectType, new boolean[] { false, false, false, true });
-		configureSchemaGrant(uuid, SchemaGrant.allowAccessControl, false);
-		testGranted(projectType, new boolean[] { false, false, false, false });
 
 		// allow all, but remove group link
 		configureSchemaGrant(uuid, SchemaGrant.allowRead, true);

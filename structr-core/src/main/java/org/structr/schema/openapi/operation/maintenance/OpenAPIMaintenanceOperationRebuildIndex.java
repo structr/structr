@@ -18,7 +18,7 @@
  */
 package org.structr.schema.openapi.operation.maintenance;
 
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
@@ -60,14 +60,14 @@ public class OpenAPIMaintenanceOperationRebuildIndex extends LinkedHashMap<Strin
 			new OpenAPIObjectSchema(
                         	new OpenAPIPrimitiveSchema("Limit the index rebuild to a certain node type",              "type",    "string"),
                         	new OpenAPIPrimitiveSchema("Limit the index rebuild to a certain relationship type",      "relType", "string"),
-                        	new OpenAPIPrimitiveSchema("Rebuild the index only for nodes, or only for relationships", "mode",    "string", null, "nodesOnly", Map.of(0, "nodesOnly", 1, "relsOnly"))
+                        	new OpenAPIPrimitiveSchema("Rebuild the index only for nodes, or only for relationships", "mode",    "string", null, "nodesOnly", Map.of(0, "nodesOnly", 1, "relsOnly"), false)
                         )
                 ),
 
                 // responses
                 Map.of(
-                        "200", new OpenAPIReference("#/components/responses/ok"),
-                        "401", new OpenAPIReference("#/components/responses/unauthorized")
+                        "200", new OpenAPISchemaReference("#/components/responses/ok"),
+                        "401", new OpenAPISchemaReference("#/components/responses/unauthorized")
                 )
         ));
 

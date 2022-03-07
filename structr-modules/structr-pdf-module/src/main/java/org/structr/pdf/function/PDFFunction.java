@@ -18,7 +18,6 @@
  */
 package org.structr.pdf.function;
 
-import com.github.jhonnymertz.wkhtmltopdf.wrapper.PDFExportException;
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.Pdf;
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.configurations.WrapperConfig;
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.configurations.XvfbConfig;
@@ -62,7 +61,7 @@ public class PDFFunction extends Function<Object, Object> {
 		assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
 		String baseUrl = null;
-		String userParamter = null;
+		String userParameter = null;
 
 		Boolean runWithXserver = false;
 		String xServerSettings = null;
@@ -71,7 +70,7 @@ public class PDFFunction extends Function<Object, Object> {
 
 		if (sources.length >= 2) {
 
-			userParamter = sources[1].toString();
+			userParameter = sources[1].toString();
 		}
 
 		if (sources.length >= 3) {
@@ -111,8 +110,8 @@ public class PDFFunction extends Function<Object, Object> {
 			parameterList.add(new Param("--cookie JSESSIONID " + sessionId));
 		}
 
-		if (userParamter != null) {
-			parameterList.add(new Param(userParamter));
+		if (userParameter != null) {
+			parameterList.add(new Param(userParameter));
 		}
 
 		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -124,7 +123,7 @@ public class PDFFunction extends Function<Object, Object> {
 				return convertPageToPdfWithXServer(baseUrl, page, parameterList, baos, xServerSettings);
 			}
 
-		} catch (PDFExportException e) {
+		} catch (final Throwable t) {
 
 			logger.warn("Could not convert page {}{} to pdf... retrying with xvfb...", baseUrl, page);
 

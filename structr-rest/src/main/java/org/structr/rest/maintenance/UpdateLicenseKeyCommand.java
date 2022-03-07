@@ -98,11 +98,6 @@ public class UpdateLicenseKeyCommand extends Command implements MaintenanceComma
 		return Collections.EMPTY_MAP;
 	}
 
-	@Override
-	public List<Object> getPayload() {
-		return Collections.EMPTY_LIST;
-	}
-
 	private void writeNewLicenseKeyFile(final String newLicenseKey) throws IOException {
 
 		final File licenseKeyFile = new File(Settings.getBasePath() + "license.key");

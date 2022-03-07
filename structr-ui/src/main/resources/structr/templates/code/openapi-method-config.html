@@ -1,0 +1,47 @@
+<div class="mt-4">
+
+	<label class="font-semibold">Parameters</label>
+	<button id="add-parameter-button"><i class="${ _Icons.getFullSpriteClass(_Icons.add_icon)}"></i></button>
+
+	<div>
+		<div class="method-parameter-grid">
+			<div class="method-parameter-heading">
+				<div>Index</div>
+				<div>Name</div>
+				<div>Parameter Type</div>
+				<div>Description</div>
+				<div>Example Value</div>
+				<div></div>
+			</div>
+		</div>
+	</div>
+
+	<div class="method-parameter-grid template">
+		<div class="method-parameter">
+			<div>
+				<input data-parameter-property="index" type="number">
+			</div>
+			<div>
+				<input data-parameter-property="name">
+			</div>
+			<div>
+				<input data-parameter-property="parameterType">
+			</div>
+			<div>
+				<input data-parameter-property="description">
+			</div>
+			<div>
+				<input data-parameter-property="exampleValue">
+			</div>
+
+			<div class="method-parameter-property method-parameter-delete flex items-center justify-center">
+				${_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']))}
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="mt-4 flex flex-col flex-grow">
+	<label class="font-semibold" data-comment="Write an OpenAPI schema for your return type here.">Return Type</label>
+	<div class="editor flex-grow" data-property="openAPIReturnType"></div>
+</div>

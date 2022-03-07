@@ -37,11 +37,15 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 	public static final String KEY_URL                     = "url";
 	public static final String KEY_USERNAME                = "username";
 	public static final String KEY_PASSWORD                = "password";
+	public static final String KEY_DATABASENAME            = "databaseName";
 	public static final String KEY_TENANT_IDENTIFIER       = "tenantIdentifier";
 	public static final String KEY_RELATIONSHIP_CACHE_SIZE = "relationshipCacheSize";
 	public static final String KEY_NODE_CACHE_SIZE         = "nodeCacheSize";
 	public static final String KEY_UUID_CACHE_SIZE         = "uuidCacheSize";
 	public static final String KEY_FORCE_STREAMING         = "forceStreaming";
+
+	public static final String INFO_TEXT_URL               = "If no URI scheme is entered, the default 'bolt://' scheme will be used.";
+	public static final String INFO_TEXT_DATABASENAME      = "Only available in Neo4j Enterprise &gt;= 4. Make sure database exists before using it.";
 
 	public DatabaseConnection() {
 	}
@@ -67,11 +71,11 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 	}
 
 	public String getName() {
-		return (String)get(KEY_NAME);
+		return String.valueOf(get(KEY_NAME));
 	}
 
 	public String getDisplayName() {
-		return (String)get(KEY_DISPLAYNAME);
+		return String.valueOf(get(KEY_DISPLAYNAME));
 	}
 
 	public void setUrl(final String url) {
@@ -87,7 +91,7 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 	}
 
 	public String getUsername() {
-		return (String)get(KEY_USERNAME);
+		return String.valueOf(get(KEY_USERNAME));
 	}
 
 	public void setPassword(final String password) {
@@ -95,7 +99,15 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 	}
 
 	public String getPassword() {
-		return (String)get(KEY_PASSWORD);
+		return String.valueOf(get(KEY_PASSWORD));
+	}
+
+	public void setDatabaseName(final String databaseName) {
+		put(KEY_DATABASENAME, databaseName);
+	}
+
+	public String getDatabaseName() {
+		return String.valueOf(get(KEY_DATABASENAME));
 	}
 
 	public boolean isActive() {
@@ -121,12 +133,20 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 		driver.add(driverSelect);
 
 		final Tag url = div.block("p");
-		url.block("label").text("Connection URL");
+		url.block("label").text("Connection URL").css("has-comment").attr(new Attr("data-comment", INFO_TEXT_URL));
 		final InputField nameInput = new InputField(url, "text", "url-" + name, getUrl());
 		if (isActive()) {
 			nameInput.attr(new Attr("readonly", "readonly"));
 		}
 		url.add(nameInput);
+
+		final Tag databaseName = div.block("p");
+		databaseName.block("label").text("Database Name").css("has-comment").attr(new Attr("data-comment", INFO_TEXT_DATABASENAME));
+		final InputField databaseNameInput = new InputField(databaseName, "text", "database-" + name, getDatabaseName());
+		if (isActive()) {
+			databaseNameInput.attr(new Attr("readonly", "readonly"));
+		}
+		databaseName.add(databaseNameInput);
 
 		final Tag user = div.block("p");
 		user.block("label").text("Username");

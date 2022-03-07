@@ -118,7 +118,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 			}
 
-			if(archiveClass == null) {
+			if (archiveClass == null) {
 
 				archiveClass = org.structr.web.entity.File.class;
 			}
@@ -146,7 +146,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 		return "Packs the given files and folders into zipped archive.";
 	}
 
-	private void addFileToZipArchive(String path, File file, ArchiveOutputStream aps) throws IOException {
+	private void addFileToZipArchive(final String path, final File file, final ArchiveOutputStream aps) throws IOException {
 
 		logger.info("Adding File \"{}\" to new archive...", path);
 
@@ -161,17 +161,17 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 		aps.closeArchiveEntry();
 	}
 
-	private void addFilesToArchive(String path, Iterable<File> list, ArchiveOutputStream aps) throws IOException {
+	private void addFilesToArchive(final String path, final Iterable<File> list, final ArchiveOutputStream aps) throws IOException {
 
-		for(File fileForArchive : list) {
+		for (final File fileForArchive : list) {
 
 			addFileToZipArchive(path + fileForArchive.getProperty(AbstractFile.name), fileForArchive,  aps);
 		}
 	}
 
-	private void addFoldersToArchive(String path, Iterable<Folder> list, ArchiveOutputStream aps) throws IOException {
+	private void addFoldersToArchive(final String path, final Iterable<Folder> list, final ArchiveOutputStream aps) throws IOException {
 
-		for(Folder folder : list) {
+		for (final Folder folder : list) {
 
 			addFilesToArchive(path + folder.getProperty(Folder.name) + "/", folder.getFiles(), aps);
 			addFoldersToArchive(path + folder.getProperty(Folder.name) + "/", folder.getFolders(), aps);

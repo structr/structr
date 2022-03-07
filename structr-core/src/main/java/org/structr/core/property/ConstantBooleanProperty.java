@@ -27,6 +27,8 @@ import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
+import java.util.Map;
+
 /**
 * A property that returns a constant Boolean value.
  */
@@ -127,5 +129,10 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
 		return constantValue;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
 	}
 }

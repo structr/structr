@@ -44,7 +44,7 @@ export class FlowAggregate extends FlowNode {
 
                     element.addEventListener('focus', ()=> {
                         document.dispatchEvent(new CustomEvent('floweditor.openeditor', {detail: {element: element}}));
-                        document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: {element: element, nodeType: "Aggregation"}}));
+                        document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: { entity: scopedDbNode, propertyName: 'script', element: element, nodeType: "Aggregation"}}));
                     });
 
                     element.addEventListener('mousedown', event => {

@@ -58,7 +58,6 @@ public class GetFunction extends CoreFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
-			final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false);
 			final String keyName                           = sources[1].toString();
 			GraphObject dataObject                         = null;
 
@@ -111,6 +110,8 @@ public class GetFunction extends CoreFunction {
 			if (dataObject != null) {
 
 				final Class type = dataObject.getClass();
+
+				final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false) || dataObject instanceof GraphObjectMap;
 
 				final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, keyName, useGenericPropertyForUnknownKeys);
 				if (key != null) {

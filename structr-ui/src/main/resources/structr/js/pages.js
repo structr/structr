@@ -60,14 +60,13 @@ let _Pages = {
 	init: function() {
 
 		_Pager.initPager('pages',   'Page', 1, 25, 'name', 'asc');
-		_Pager.forceAddFilters('pages', 'Page', { hidden: false });
 		_Pager.initPager('files',   'File', 1, 25, 'name', 'asc');
 		_Pager.initPager('folders', 'Folder', 1, 25, 'name', 'asc');
 		_Pager.initPager('images',  'Image', 1, 25, 'name', 'asc');
 
 		Structr.getShadowPage();
 	},
-	resize: function(left, right) {
+	resize: function() {
 
 		Structr.resize();
 
@@ -77,11 +76,14 @@ let _Pages = {
 
 		_Pages.resizeColumns();
 	},
+	dialogSizeChanged: () => {
+		_Editors.resizeVisibleEditors();
+	},
 	onload: function() {
 
 		let urlHash = LSWrapper.getItem(_Pages.urlHashKey);
 		if (urlHash) {
-			menuBlocked = false;
+			Structr.menuBlocked = false;
 			window.location.hash = urlHash;
 		}
 
@@ -109,7 +111,7 @@ let _Pages = {
 				_Pages.leftSlideoutTrigger(this, _Pages.pagesSlideout, [_Pages.localizationsSlideout], (params) => {
 					LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
 					_Pages.resize();
-					_Entities.highlightSelectedElementOnSlidoutOpen();
+					_Entities.highlightSelectedElementOnSlideoutOpen();
 				}, _Pages.leftSlideoutClosedCallback);
 			};
 			$('#pagesTab').on('click', pagesTabSlideoutAction).droppable({
@@ -122,7 +124,7 @@ let _Pages = {
 					LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
 					_Pages.localizations.refreshPagesForLocalizationPreview();
 					_Pages.resize();
-					_Entities.highlightSelectedElementOnSlidoutOpen();
+					_Entities.highlightSelectedElementOnSlideoutOpen();
 				}, _Pages.leftSlideoutClosedCallback);
 			});
 
@@ -316,8 +318,8 @@ let _Pages = {
 			elements.push({
 				icon: _Icons.getSvgIcon('pencil_edit'),
 				name: 'Edit',
-				clickHandler: function () {
-					_Entities.editSource(entity);
+				clickHandler: () => {
+					_Entities.editEmptyDiv(entity);
 					return false;
 				}
 			});
@@ -526,11 +528,11 @@ let _Pages = {
 			});
 
 			elements.push({
-				icon: _Icons.getSvgIcon('page_open'),
+				icon: _Icons.getSvgIcon('link_external'),
 				name: 'Open Page in new tab',
 				clickHandler: function () {
-					let url = _Pages.previews.getUrlForPage(entity);
-					window.open(url);
+					_Pages.openPagePreviewInNewWindow(entity);
+
 					return false;
 				}
 			});
@@ -564,21 +566,20 @@ let _Pages = {
 
 					if (isContent) {
 
-						_Entities.deleteNode(this, entity);
+						_Entities.deleteNode(undefined, entity);
 
 					} else {
-						_Entities.deleteNode(this, entity, true, () => {
-							var synced = entity.syncedNodesIds;
-							if (synced && synced.length) {
-								synced.forEach(function (id) {
-									var el = Structr.node(id);
+						_Entities.deleteNode(undefined, entity, true, () => {
+							if (entity.syncedNodesIds && entity.syncedNodesIds.length) {
+								for (let id of entity.syncedNodesIds) {
+									let el = Structr.node(id);
 									if (el && el.children && el.children.length) {
 										var newSpriteClass = _Icons.getSpriteClassOnly(_Icons.brick_icon);
 										el.children('i.typeIcon').each(function (i, el) {
 											_Icons.updateSpriteClassTo(el, newSpriteClass);
 										});
 									}
-								});
+								}
 							}
 						});
 					}
@@ -683,6 +684,7 @@ let _Pages = {
 			}
 		}
 
+		_Editors.resizeVisibleEditors();
 	},
 	refresh: function() {
 
@@ -808,47 +810,38 @@ let _Pages = {
 				});
 			});
 
-			$('#add_page').on('click', function(e) {
-				e.stopPropagation();
-				blinkGreen($(this).parent());
-				Command.createSimplePage();
-			});
+			// Display 'Create Page' dialog
+			$('#create_page').on('click', function(e) {
 
-			// page template widgets present? Display special create page dialog
-			_Widgets.fetchAllPageTemplateWidgets(function(result) {
+				_Widgets.fetchAllPageTemplateWidgets(function(result) {
 
-				if (result && result.length) {
+					e.stopPropagation();
 
-					$('#add_template').on('click', function(e) {
+					Structr.dialog('Select Template to Create New Page', function() {}, function() {});
 
-						e.stopPropagation();
+					dialog.empty();
+					dialogMsg.empty();
+					dialog.append('<div id="template-tiles"><div class="app-tile"><h4>Simple Page</h4><br><p>Create simple page</p><button class="action" id="create-simple-page">Create</button></div></div>');
 
-						Structr.dialog('Select Template to Create New Page', function() {}, function() {});
-
-						dialog.empty();
-						dialogMsg.empty();
-						dialog.append('<div id="template-tiles"></div>');
-
-						let container = $('#template-tiles');
-
-						for (let widget of result) {
-
-							let id = 'create-from-' + widget.id;
-							container.append('<div class="app-tile"><h4>' + widget.name + '</h4><p>' + widget.description + '</p><button class="action" id="' + id + '">Create Page</button></div>');
-							$('#' + id).on('click', function() {
-								Command.create({ type: 'Page' }, function(page) {
-									Structr.removeExpandedNode(page.id);
-									Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
-								});
-							});
-						}
+					$('#create-simple-page').on('click', function() {
+						Command.createSimplePage();
 					});
 
-				} else {
+					let container = $('#template-tiles');
 
-					// remove wizard button if no page templates exist (can be changed later when the dialog includes some hints etc.)
-					$('#add_template').closest('.row').remove();
-				}
+					for (let widget of result) {
+
+						let id = 'create-from-' + widget.id;
+						container.append('<div class="app-tile"><h4>' + widget.name + '</h4><br><p>' + (widget.description || '') + '</p><button class="action" id="' + id + '">Create</button></div>');
+						$('#' + id).on('click', function() {
+							Command.create({ type: 'Page' }, function(page) {
+								Structr.removeExpandedNode(page.id);
+								Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
+							});
+						});
+					}
+				});
+
 			});
 
 			Structr.adaptUiToAvailableFeatures();
@@ -1192,9 +1185,23 @@ let _Pages = {
 		if ($('#id_' + entity.id, _Pages.pagesTree).length > 0) {
 			return;
 		}
+		let pageName = (entity.name ? entity.name : '[' + entity.type + ']');
 
-		_Pages.pagesTree.append('<div id="id_' + entity.id + '" class="node page"><div class="node-selector"></div></div>');
-		let div = Structr.node(entity.id);
+		_Pages.pagesTree.append(`
+			<div id="id_${entity.id}" class="node page${entity.hidden ? ' is-hidden' : ''}">
+				<div class="node-selector"></div>
+				<i class="typeIcon ${_Icons.getFullSpriteClass(_Icons.page_icon)}"></i>
+				<span>
+					<b title="${escapeForHtmlAttributes(entity.name)}" class="name_ abbr-ellipsis abbr-pages-tree-page">${pageName}</b>
+					${(entity.position ? ' <span class="position_">' + entity.position + '</span>' : '')}
+				</span>
+				<span class="id">${entity.id}</span>
+				<div class="icons-container"></div>
+			</div>
+		`);
+
+		let div            = Structr.node(entity.id);
+		let iconsContainer = $('.icons-container', div);
 
 		_Dragndrop.makeSortable(div);
 
@@ -1202,47 +1209,62 @@ let _Pages = {
 			e.stopPropagation();
 		});
 
-		let pageName = (entity.name ? entity.name : '[' + entity.type + ']');
-
-		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.page_icon) + '"></i>'
-				+ '<span>'
-					+ '<b title="' + escapeForHtmlAttributes(entity.name) + '" class="name_ abbr-ellipsis abbr-pages-tree-page">' + pageName + '</b>'
-					+ (entity.position ? ' <span class="position_">' + entity.position + '</span>' : '')
-				+ '</span>'
-				+ '<span class="id">' + entity.id + '</span>'
-		);
-
 		_Entities.appendExpandIcon(div, entity, hasChildren);
-		//_Entities.appendAccessControlIcon(div, entity);
 
-		_Entities.appendContextMenuIcon(div, entity);
+		_Entities.appendContextMenuIcon(iconsContainer, entity);
+		_Pages.appendPagePreviewIcon(iconsContainer, entity);
+		_Entities.appendNewAccessControlIcon(iconsContainer, entity);
 
 		_Elements.enableContextMenuOnElement(div, entity);
 		_Entities.setMouseOver(div);
 
-		let dblclickHandler = (e) => {
-			e.stopPropagation();
-			let self = e.target;
-
-			// only on page nodes and if not clicked on expand/collapse icon
-			if (!self.classList.contains('expand_icon_svg') && self.closest('.node').classList.contains('page')) {
-
-				let url = _Pages.previews.getUrlForPage(entity);
-				window.open(url);
-			}
-		};
-
-		let pageNode = Structr.node(entity.id)[0];
-		if (pageNode) {
-			pageNode.removeEventListener('dblclick', dblclickHandler);
-			pageNode.addEventListener('dblclick', dblclickHandler);
-		}
+		// let dblclickHandler = (e) => {
+		// 	e.stopPropagation();
+		// 	let self = e.target;
+		//
+		// 	// only on page nodes and if not clicked on expand/collapse icon
+		// 	if (!self.classList.contains('expand_icon_svg') && self.closest('.node').classList.contains('page')) {
+		//
+		// 		let url = _Pages.previews.getUrlForPage(entity);
+		// 		window.open(url);
+		// 	}
+		// 	};
+		//
+		// let pageNode = Structr.node(entity.id)[0];
+		// if (pageNode) {
+		// 	pageNode.removeEventListener('dblclick', dblclickHandler);
+		// 	pageNode.addEventListener('dblclick', dblclickHandler);
+		// }
 
 		_Dragndrop.makeDroppable(div);
 
 		_Elements.clickOrSelectElementIfLastSelected(div, entity);
 
 		return div;
+	},
+
+	appendPagePreviewIcon: (parent, page) => {
+
+		let pagePreviewIcon = $('.svg_page_preview_icon', parent);
+		if (!(pagePreviewIcon && pagePreviewIcon.length)) {
+
+			let iconClasses = _Icons.getSvgIconClassesNonColorIcon(['svg_page_preview_icon', 'node-action-icon', 'mr-1']);
+
+			pagePreviewIcon = $(_Icons.getSvgIcon('link_external', 16, 16, iconClasses));
+			parent.append(pagePreviewIcon);
+
+			pagePreviewIcon.on('click', () => {
+				_Pages.openPagePreviewInNewWindow(page);
+			});
+		}
+
+		return pagePreviewIcon;
+	},
+
+	openPagePreviewInNewWindow: (entity) => {
+
+		let url = _Pages.previews.getUrlForPage(entity);
+		window.open(url);
 	},
 
 	registerDetailClickHandler: (element, entity) => {
@@ -1256,7 +1278,7 @@ let _Pages = {
 				let clickedObjectIsCurrentlySelected = _Entities.selectedObject && _Entities.selectedObject.id === entity.id;
 				let isElementBeingEditedCurrently    = (_Pages.centerPane.dataset['elementId'] === entity.id);
 
-                		_Entities.selectElement(element.closest('.node')[0], entity);
+				_Entities.selectElement(element.closest('.node')[0], entity);
 
 				if (!clickedObjectIsCurrentlySelected || !isElementBeingEditedCurrently) {
 
@@ -1284,6 +1306,7 @@ let _Pages = {
 		});
 	},
 	appendElementElement: function(entity, refNode, refNodeIsParent) {
+
 		entity  = StructrModel.ensureObject(entity);
 		let div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
 
@@ -1432,51 +1455,10 @@ let _Pages = {
 		wrapperTypeForContextMenu: 'WrappedLocalizationForPreview',
 		getContextMenuElements: function (div, wrappedEntity) {
 
-			let entity               = wrappedEntity.entity;
-			const isPage             = (entity.type === 'Page');
-			const isDOMNode          = (entity.isDOMNode);
-			const isSchemaNode       = (entity.type === 'SchemaNode');
+			let entity         = wrappedEntity.entity;
+			const isSchemaNode = (entity.type === 'SchemaNode');
 
 			let elements = [];
-
-			if (isDOMNode && !isPage) {
-
-				elements.push({
-					name: 'Repeater',
-					clickHandler: function () {
-						_Entities.showProperties(entity, 'query');
-						return false;
-					}
-				});
-
-				if (!_Entities.isContentElement(entity)) {
-					elements.push({
-						name: 'Events',
-						clickHandler: function () {
-							_Entities.showProperties(entity, 'editBinding');
-							return false;
-						}
-					});
-				}
-
-				if (!_Entities.isContentElement(entity)) {
-					elements.push({
-						name: 'HTML Attributes',
-						clickHandler: function () {
-							_Entities.showProperties(entity, '_html_');
-							return false;
-						}
-					});
-				}
-
-				elements.push({
-					name: 'Properties',
-					clickHandler: function() {
-						_Entities.showProperties(entity, 'ui');
-						return false;
-					}
-				});
-			}
 
 			if (isSchemaNode) {
 
@@ -1495,8 +1477,6 @@ let _Pages = {
 					}
 				});
 			}
-
-			_Elements.appendContextMenuSeparator(elements);
 
 			return elements;
 		},
@@ -1566,14 +1546,14 @@ let _Pages = {
 
 				for (let res of localizations) {
 
-					let modelNode = StructrModel.createFromData(res.node);
+					let modelNode = (res.node) ? StructrModel.createFromData(res.node) : { type: "Untraceable source (probably static method)", isFake: true };
 					let tbody     = _Pages.localizations.getNodeForLocalization(localizationsContainer, modelNode);
-					let row       = Structr.createSingleDOMElementFromHTML('<tr>' +
-							'<td><div class="key-column allow-break">' + res.key + '</div></td>' +
-							'<td class="domain-column">' + res.domain + '</td>' +
-							'<td class="locale-column">' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td>' +
-							'<td class="input"><input class="localized-value" placeholder="..."><a title="Delete" class="delete"><i class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '"></i></a></td>' +
-						'</tr>'
+					let row       = Structr.createSingleDOMElementFromHTML(`<tr>
+							<td><div class="key-column allow-break">${res.key}</div></td>
+							<td class="domain-column">${res.domain}</td>
+							<td class="locale-column">${((res.localization !== null) ? res.localization.locale : res.locale)}</td>
+							<td class="input"><input class="localized-value" placeholder="..."><a title="Delete" class="delete"><i class="${_Icons.getFullSpriteClass(_Icons.cross_icon)}"></i></a></td>
+						</tr>`
 					);
 					let input     = row.querySelector('input.localized-value');
 
@@ -1601,11 +1581,15 @@ let _Pages = {
 							_Entities.deleteNodes(this, [{id: id, name: input.value}], false, () => {
 								row.classList.remove('has-value');
 								input.value = '';
-								input.dataset[localizationIdKey] = null;
-								input.dataset[previousValueKey]  = null;
+								delete input.dataset[localizationIdKey];
+								delete input.dataset[previousValueKey];
                             });
 						}
 					});
+
+					input.addEventListener('click', (e) => {
+						e.stopPropagation();
+					})
 
 					input.addEventListener('blur', (event) => {
 
@@ -1661,34 +1645,36 @@ let _Pages = {
 
 			if (entity.type === 'Content') {
 
-				detailHtml = '<div>' + entity.content + '</div>';
+				detailHtml = `<div>${entity.content}</div>`;
 
 			} else if (entity.type === 'Template') {
 
 				if (entity.name) {
-					detailHtml = '<div>' + displayName + '</div>';
+					detailHtml = `<div>${displayName}</div>`;
 				} else {
-					detailHtml = '<div>' + escapeTags(entity.content) + '</div>';
+					detailHtml = `<div>${escapeTags(entity.content)}</div>`;
 				}
 
 			} else if (!entity.isDOMNode) {
-				detailHtml = '<b title="' + escapeForHtmlAttributes(entity.type) + '" class="tag_ name_">' + entity.type + '</b>';
+				detailHtml = `<b title="${escapeForHtmlAttributes(entity.type)}" class="tag_ name_">${entity.type}</b>`;
 			} else {
-				detailHtml = '<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>';
+				detailHtml = `<b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>`;
 			}
 
-			let div = Structr.createSingleDOMElementFromHTML(
-				'<div id="' + idString + '" class="node localization-element ' + (entity.tag === 'html' ? ' html_element' : '') + ' ">'
-					+ '<div class="node-selector"></div>'
-					+ '<i class="typeIcon ' + iconClass + '"></i><span class="abbr-ellipsis abbr-pages-tree">' + detailHtml + _Elements.classIdString(entity._html_id, entity._html_class) + '</span>'
-					+ '<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>'
-				+ '</div>'
+			let div = Structr.createSingleDOMElementFromHTML(`
+				<div id="${idString}" class="node localization-element ${(entity.tag === 'html' ? ' html_element' : '')}">
+					<div class="node-selector"></div>
+					<i class="typeIcon ${iconClass}"></i><span class="abbr-ellipsis abbr-pages-tree">${detailHtml}${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
+					<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>
+					<div class="icons-container"></div>
+				</div>`
 			);
 			div.dataset['nodeId'] = (_Entities.isContentElement(entity) ? entity.parent.id : entity.id );
 
 			let $div = $(div);
+			let iconsContainer = $('.icons-container', $div);
 
-			if (!entity.isDOMNode) {
+			if (!entity.isDOMNode && !entity.isFake) {
 
 				// do not use pointer cursor
 				div.classList.add('schema');
@@ -1697,19 +1683,12 @@ let _Pages = {
 
 					if (schemaNodes.length === 1) {
 
-						_Entities.appendContextMenuIcon($div, {
+						_Entities.appendContextMenuIcon(iconsContainer, {
 							type: _Pages.localizations.wrapperTypeForContextMenu,
 							entity: schemaNodes[0]
 						}, false);
 					}
 				});
-
-			} else {
-
-				_Entities.appendContextMenuIcon($div, {
-					type: _Pages.localizations.wrapperTypeForContextMenu,
-					entity: entity
-				}, false);
 			}
 
 			container.appendChild(div);
@@ -1986,7 +1965,7 @@ let _Pages = {
 
 					Command.get(pageId, 'id,name,path,site', function (pageObj) {
 
-						Structr.fetchHtmlTemplate('pages/preview', {}, (html) => {
+						Structr.fetchHtmlTemplate('pages/preview', { pageId: pageObj.id }, (html) => {
 
 							_Pages.centerPane.insertAdjacentHTML('beforeend', html);
 
@@ -2160,80 +2139,6 @@ let _Pages = {
 		},
 
 	},
-	// databinding: {
-	// 	displayDataBinding: function(id) {
-	// 		dataBindingSlideout.children('#data-binding-inputs').remove();
-	// 		dataBindingSlideout.append('<div class="inner" id="data-binding-inputs"></div>');
-	//
-	// 		var el = $('#data-binding-inputs');
-	// 		var entity = StructrModel.obj(id);
-	//
-	// 		if (entity) {
-	// 			_Entities.repeaterConfig(entity, el);
-	// 		}
-	//
-	// 		},
-	// 	reloadDataBindingWizard: function() {
-	// 		dataBindingSlideout.children('#wizard').remove();
-	// 		dataBindingSlideout.prepend('<div class="inner" id="wizard"><select id="type-selector"><option>--- Select type ---</option></select><div id="data-wizard-attributes"></div></div>');
-	//
-	// 		let lastSelectedType = LSWrapper.getItem(_Pages.selectedTypeKey);
-	//
-	// 		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', 'id,name', function(typeNodes) {
-	//
-	// 			let lastSelectedTypeExists = false;
-	//
-	// 			typeNodes.forEach(function(typeNode) {
-	//
-	// 				let selected = '';
-	// 				if (typeNode.id === lastSelectedType) {
-	// 					lastSelectedTypeExists = true;
-	// 					selected = 'selected';
-	// 				}
-	//
-	// 				$('#type-selector').append('<option ' + selected + ' value="' + typeNode.id + '">' + typeNode.name + '</option>');
-	// 			});
-	//
-	// 			$('#data-wizard-attributes').empty();
-	// 			if (lastSelectedType && lastSelectedTypeExists) {
-	// 				_Pages.showTypeData(lastSelectedType);
-	// 			}
-	// 		});
-	//
-	// 		$('#type-selector').on('change', function() {
-	// 			$('#data-wizard-attributes').empty();
-	// 			let id = $(this).children(':selected').attr('value');
-	// 			_Pages.showTypeData(id);
-	// 		});
-	// 	},
-	// },
-	// activeelements: {
-	// 	refreshActiveElements: function() {
-//			var id = _Pages.previews.activePreviewPageId;
-//
-//			_Entities.activeElements = {};
-//
-//			var activeElementsContainer = $('#activeElements div.inner');
-//			activeElementsContainer.empty().attr('id', 'id_' + id);
-//
-//			if (_Pages.previews.isPreviewForActiveForPage(id)) {
-//
-//				Command.listActiveElements(id, function(result) {
-//					if (result.length > 0) {
-//						result.forEach(function(activeElement) {
-//							_Entities.handleActiveElement(activeElement);
-//						});
-//					} else {
-//						activeElementsContainer.append('<br>Page does not contain any active elements.');
-//					}
-//				});
-//
-//			} else {
-//				activeElementsContainer.append('<br>Unable to show active elements - no preview loaded.<br><br');
-//			}
-// 		},
-// 	},
-
 	palette: {
 		reload: () => {
 
@@ -2339,15 +2244,9 @@ let _Pages = {
 
 				_Pages.unattachedNodes.removeElementsFromUI();
 
-				_Pages.unusedElementsTree.append('<button class="btn disabled flex items-center" id="delete-all-unattached-nodes" disabled> Loading </button>');
+				_Pages.unusedElementsTree.append(`<button class="btn disabled flex items-center" id="delete-all-unattached-nodes" disabled><span>Loading</span>${_Icons.getSvgIcon('waiting-spinner', 24, 24, ['ml-2'])}</button>`);
 
 				let btn = $('#delete-all-unattached-nodes');
-				Structr.loaderIcon(btn, {
-					"max-height": "100%",
-					"height": "initial",
-					"width": "initial"
-				});
-
 				btn.on('click', function() {
 					Structr.confirmation('<p>Delete all DOM elements without parent?</p>',
 							function() {
@@ -2365,7 +2264,7 @@ let _Pages = {
 
 					let count = result.length;
 					if (count > 0) {
-						btn.html(_Icons.getSvgIcon('trashcan', 16, 16, 'mr-2') + ' Delete all (' + count + ')');
+						btn.html(_Icons.getSvgIcon('trashcan', 16, 16, ['mr-2']) + ' Delete all (' + count + ')');
 						btn.removeClass('disabled');
 						btn.prop('disabled', false);
 					} else {

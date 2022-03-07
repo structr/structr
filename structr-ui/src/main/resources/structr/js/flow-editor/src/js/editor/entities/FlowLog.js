@@ -39,8 +39,8 @@ export class FlowLog extends FlowNode {
                     control.name = "Script";
 
                     element.addEventListener('focus', ()=> {
-                        document.dispatchEvent(new CustomEvent('floweditor.internal.openeditor', {detail: {element: element}}));
-                        document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: {element: element, nodeType: "Log"}}));
+                        // document.dispatchEvent(new CustomEvent('floweditor.internal.openeditor', {detail: {element: element}}));
+                        document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: { entity: scopedDbNode, propertyName: 'script', element: element, nodeType: "Log"}}));
                     });
 
                     element.addEventListener('mousedown', event => {

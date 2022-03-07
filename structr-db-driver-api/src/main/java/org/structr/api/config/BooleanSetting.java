@@ -83,10 +83,13 @@ public class BooleanSetting extends Setting<Boolean> {
 
 		renderLabel(group);
 
-		final Tag trueInput  = group.empty("input").attr(new Attr("type", "radio"), new Attr("name", getKey()), new Attr("value",  "true"));
-		group.block("span").text("Enabled");
-		final Tag falseInput = group.empty("input").attr(new Attr("type", "radio"), new Attr("name", getKey()), new Attr("value", "false"));
-		group.block("span").text("Disabled");
+		final Tag trueLabel  = group.block("label").attr(new Attr("class", "flex items-center"));
+		final Tag trueInput  = trueLabel.empty("input").attr(new Attr("type", "radio"), new Attr("name", getKey()), new Attr("value",  "true"));
+		trueLabel.block("span").text("Enabled");
+
+		final Tag falseLabel = group.block("label").attr(new Attr("class", "flex items-center"));
+		final Tag falseInput = falseLabel.empty("input").attr(new Attr("type", "radio"), new Attr("name", getKey()), new Attr("value", "false"));
+		falseLabel.block("span").text("Disabled");
 
 		if (getValue(false)) {
 

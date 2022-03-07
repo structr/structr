@@ -18,7 +18,7 @@
  */
 package org.structr.schema.openapi.operation.maintenance;
 
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
@@ -59,17 +59,17 @@ public class OpenAPIMaintenanceOperationSnapshot extends LinkedHashMap<String, O
                 // request body
                 new OpenAPIRequestResponse(
                         "Request body",
-			new OpenAPIObjectSchema(
-                        	new OpenAPIPrimitiveSchema("Snapshot mode",                                                    "mode",  "string", null, "export", Map.of(0, "export", 1, "restore", 2, "add", 3, "delete", 4, "purge")),
-                        	new OpenAPIPrimitiveSchema("Name of the input / output file relative to the snapshots folder", "name",  "string", null, "schema-snapshot.json"),
-                        	new OpenAPIPrimitiveSchema("Optional list of types to export",                                 "types", "array",  null, List.of("Project", "Task")).add("items", Map.of("type", "string"))
+			    new OpenAPIObjectSchema(
+                        	new OpenAPIPrimitiveSchema("Snapshot mode",                                                    "mode",  "string", null, "export", Map.of(0, "export", 1, "restore", 2, "add", 3, "delete", 4, "purge"), false),
+                        	new OpenAPIPrimitiveSchema("Name of the input / output file relative to the snapshots folder", "name",  "string", null, "schema-snapshot.json", false),
+                        	new OpenAPIPrimitiveSchema("Optional list of types to export",                                 "types", "array",  null, List.of("Project", "Task"), false).add("items", Map.of("type", "string"))
                         )
                 ),
 
                 // responses
                 Map.of(
-                        "200", new OpenAPIReference("#/components/responses/ok"),
-                        "401", new OpenAPIReference("#/components/responses/unauthorized")
+                        "200", new OpenAPISchemaReference("#/components/responses/ok"),
+                        "401", new OpenAPISchemaReference("#/components/responses/unauthorized")
                 )
         ));
 

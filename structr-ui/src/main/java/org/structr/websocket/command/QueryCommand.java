@@ -65,7 +65,8 @@ public class QueryCommand extends AbstractCommand {
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		final String rawType                  = webSocketData.getNodeDataStringValue("type");
-		final String properties               = webSocketData.getNodeDataStringValue("properties");
+		final String andProperties            = webSocketData.getNodeDataStringValue("properties");
+		final String notProperties            = webSocketData.getNodeDataStringValue("notProperties");
 		final Boolean exact                   = webSocketData.getNodeDataBooleanValue("exact");
 		final String customView               = webSocketData.getNodeDataStringValue("customView");
 		final Class type                      = SchemaHelper.getEntityClassForRawType(rawType);
@@ -95,17 +96,27 @@ public class QueryCommand extends AbstractCommand {
 			query.sort(sortProperty, "desc".equals(sortOrder));
 		}
 
-		if (properties != null) {
+		if (andProperties != null) {
 
 			try {
-				final Gson gson                       = new GsonBuilder().create();
-				final Map<String, Object> querySource = gson.fromJson(properties, new TypeToken<Map<String, Object>>() {}.getType());
-				final PropertyMap queryMap            = PropertyMap.inputTypeToJavaType(securityContext, type, querySource);
-				final boolean inexactQuery            = exact != null && exact == false;
+				final Gson gson                          = new GsonBuilder().create();
+
+				final Map<String, Object> andQuerySource = gson.fromJson(andProperties, new TypeToken<Map<String, Object>>() {}.getType());
+				final PropertyMap andQueryMap            = PropertyMap.inputTypeToJavaType(securityContext, type, andQuerySource);
+
+				final Map<String, Object> notQuerySource = gson.fromJson(notProperties, new TypeToken<Map<String, Object>>() {}.getType());
+				final PropertyMap notQueryMap            = PropertyMap.inputTypeToJavaType(securityContext, type, notQuerySource);
+
+				final boolean inexactQuery               = exact != null && exact == false;
 
 				// add properties to query
-				for (final Entry<PropertyKey, Object> entry : queryMap.entrySet()) {
+				for (final Entry<PropertyKey, Object> entry : andQueryMap.entrySet()) {
 					query.and(entry.getKey(), entry.getValue(), !inexactQuery);
+				}
+
+				// "not" properties
+				for (final Entry<PropertyKey, Object> entry : notQueryMap.entrySet()) {
+					query.not().and(entry.getKey(), entry.getValue(), !inexactQuery);
 				}
 
 			} catch (FrameworkException fex) {

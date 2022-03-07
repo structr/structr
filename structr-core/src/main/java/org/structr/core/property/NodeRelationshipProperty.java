@@ -31,6 +31,8 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.notion.Notion;
 
+import java.util.Map;
+
 /**
  *
  *
@@ -111,6 +113,11 @@ public class NodeRelationshipProperty<T extends AbstractRelationship> extends Ab
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
 		return null;
 	}
 }

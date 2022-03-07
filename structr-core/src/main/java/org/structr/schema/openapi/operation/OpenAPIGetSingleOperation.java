@@ -20,12 +20,12 @@ package org.structr.schema.openapi.operation;
 
 import java.util.List;
 import java.util.Map;
+
 import org.structr.schema.export.StructrTypeDefinition;
+import org.structr.schema.openapi.common.OpenAPIResponseReference;
 import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
-import org.structr.schema.openapi.schema.OpenAPIResultSchema;
-import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
 public class OpenAPIGetSingleOperation extends OpenAPIOperation {
 
@@ -45,18 +45,17 @@ public class OpenAPIGetSingleOperation extends OpenAPIOperation {
 
 			// parameters
 			List.of(
-				new OpenAPIPathParameter("uuid", "The UUID of the desired object", Map.of("type", "string"))
+				new OpenAPIPathParameter("uuid", "The UUID of the desired object", Map.of("type", "string"), true),
+				new OpenAPISchemaReference("#/components/parameters/outputNestingDepth")
 			),
 
 			// requestBody
 			null,
 
 			// responses
-				Map.of("200", new OpenAPIRequestResponse("The request was executed successfully.",
-					new OpenAPIResultSchema(new OpenAPIStructrTypeSchemaOutput(type, view, 0), true)
-				),
-				"401", new OpenAPIReference("#/components/responses/unauthorized"),
-				"404", new OpenAPIReference("#/components/responses/notFound")
+			Map.of("200", new OpenAPIResponseReference(type, view, false),
+					"401", new OpenAPIResponseReference("#/components/responses/unauthorized"),
+					"404", new OpenAPIResponseReference("#/components/responses/notFound")
 			)
 		);
 	}

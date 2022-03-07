@@ -201,6 +201,7 @@ public class ConfigServlet extends AbstractServletBase {
 				final ManageDatabasesCommand cmd    = Services.getInstance().command(null, ManageDatabasesCommand.class);
 				final String name                   = "neo-1";
 				final String url                    = Settings.SampleConnectionUrl.getDefaultValue();
+				final String databaseName           = Settings.ConnectionDatabaseName.getDefaultValue();
 				final String username               = Settings.ConnectionUser.getDefaultValue();
 				final String password               = Settings.ConnectionPassword.getDefaultValue();
 
@@ -209,6 +210,7 @@ public class ConfigServlet extends AbstractServletBase {
 				connection.setUrl(url);
 				connection.setUsername(username);
 				connection.setPassword(password);
+				connection.setDatabaseName(databaseName);
 
 				try {
 					cmd.addConnection(connection, false);
@@ -301,6 +303,7 @@ public class ConfigServlet extends AbstractServletBase {
 				final String name                   = request.getParameter("name");
 				final String driver                 = request.getParameter("driver");
 				final String url                    = request.getParameter("url");
+				final String databaseName           = request.getParameter("database");
 				final String username               = request.getParameter("username");
 				final String password               = request.getParameter("password");
 				final String connectNow             = request.getParameter("now");
@@ -309,6 +312,7 @@ public class ConfigServlet extends AbstractServletBase {
 				connection.setName(name);
 				connection.setDriver(driver);
 				connection.setUrl(url);
+				connection.setDatabaseName(databaseName);
 				connection.setUsername(username);
 				connection.setPassword(password);
 
@@ -349,14 +353,16 @@ public class ConfigServlet extends AbstractServletBase {
 						// values for save action
 						final String driver              = request.getParameter("driver");
 						final String connectionUrl       = request.getParameter("url");
+						final String databaseName        = request.getParameter("database");
 						final String connectionUsername  = request.getParameter("username");
 						final String connectionPassword  = request.getParameter("password");
 
-						data.put(DatabaseConnection.KEY_NAME,     name);
-						data.put(DatabaseConnection.KEY_DRIVER,   driver);
-						data.put(DatabaseConnection.KEY_URL,      connectionUrl);
-						data.put(DatabaseConnection.KEY_USERNAME, connectionUsername);
-						data.put(DatabaseConnection.KEY_PASSWORD, connectionPassword);
+						data.put(DatabaseConnection.KEY_NAME,         name);
+						data.put(DatabaseConnection.KEY_DRIVER,       driver);
+						data.put(DatabaseConnection.KEY_URL,          connectionUrl);
+						data.put(DatabaseConnection.KEY_DATABASENAME, databaseName);
+						data.put(DatabaseConnection.KEY_USERNAME,     connectionUsername);
+						data.put(DatabaseConnection.KEY_PASSWORD,     connectionPassword);
 
 						try {
 							switch (restAction) {
@@ -659,6 +665,20 @@ public class ConfigServlet extends AbstractServletBase {
 				"<symbol id=\"interface_delete_circle\" viewBox=\"0 0 10 10\"  stroke=\"currentColor\" fill=\"currentColor\">" +
 				"<g><path d=\"M5,0a5,5,0,1,0,5,5A5.006,5.006,0,0,0,5,0ZM7.28,6.22A.75.75,0,1,1,6.22,7.28L5,6.061,3.78,7.28A.75.75,0,0,1,2.72,6.22L3.939,5,2.72,3.78A.75.75,0,0,1,3.78,2.72L5,3.939,6.22,2.72A.75.75,0,0,1,7.28,3.78L6.061,5Z\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"0\"></path></g>" +
 				"</symbol>" +
+				"<symbol id=\"waiting-spinner\" viewBox=\"0 0 50 50\" style=\"fill: var(--structr-green)\">\n" +
+				"<g transform=\"rotate  (0 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.9166666666666666s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
+				"<g transform=\"rotate (30 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.8333333333333334s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
+				"<g transform=\"rotate (60 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.75s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
+				"<g transform=\"rotate (90 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.6666666666666666s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
+				"<g transform=\"rotate(120 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.5833333333333334s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
+				"<g transform=\"rotate(150 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.5s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
+				"<g transform=\"rotate(180 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.4166666666666667s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
+				"<g transform=\"rotate(210 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.3333333333333333s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
+				"<g transform=\"rotate(240 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.25s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
+				"<g transform=\"rotate(270 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.16666666666666666s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
+				"<g transform=\"rotate(300 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.08333333333333333s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
+				"<g transform=\"rotate(330 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"0s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
+				"</symbol>" +
 				"</svg>");
 
 		return body;
@@ -802,8 +822,12 @@ public class ConfigServlet extends AbstractServletBase {
 		driver.add(new SelectField(driver, "driver-structr-new-connection").addOption("Neo4j", "org.structr.bolt.BoltDatabaseService").addOption("Memgraph DB (experimental)", "org.structr.memgraph.MemgraphDatabaseService"));
 
 		final Tag url = div.block("p");
-		url.block("label").text("Connection URL");
+		url.block("label").text("Connection URL").css("has-comment").attr(new Attr("data-comment", DatabaseConnection.INFO_TEXT_URL));
 		url.add(new InputField(url, "text", "url-structr-new-connection", "", "Enter URL"));
+
+		final Tag databaseName = div.block("p");
+		databaseName.block("label").text("Database Name").css("has-comment").attr(new Attr("data-comment", DatabaseConnection.INFO_TEXT_DATABASENAME));
+		databaseName.add(new InputField(databaseName, "text", "database-structr-new-connection", "", "Enter Database Name"));
 
 		final Tag user = div.block("p");
 		user.block("label").text("Username");

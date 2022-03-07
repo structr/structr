@@ -2,14 +2,27 @@
 	<td><input size="15" type="text" class="property-name" value="${escapeForHtmlAttributes(config.property.name)}"></td>
 	<td><input size="15" type="text" class="property-dbname" value="${escapeForHtmlAttributes(config.property.dbName)}"></td>
 	<td>${config.typeOptions}</td>
-	<td>${((config.property.propertyType !== 'Function') ? '<input size="15" type="text" class="property-format" value="' + (config.property.format ? escapeForHtmlAttributes(config.property.format) : '') + '">' : `<button class="edit-read-function">Read</button><button class="edit-write-function">Write</button><input id="checkbox-${config.property.id}" class="caching-enabled" type="checkbox" ${(config.property.isCachingEnabled ? 'checked' : '')}><label for="checkbox-${config.property.id}">Cache</label>${config.typeHintOptions}`)}</td>
+	<td>
+		${
+			(() => {
+				switch (config.property.propertyType) {
+					case 'Function':
+						return `<button class="edit-read-function">Read</button><button class="edit-write-function">Write</button><input id="checkbox-${config.property.id}" class="caching-enabled" type="checkbox" ${(config.property.isCachingEnabled ? 'checked' : '')}><label for="checkbox-${config.property.id}">Cache</label>${config.typeHintOptions}`;
+					case 'Cypher':
+						return `<button class="edit-cypher-query">Query</button>`;
+					default:
+						return `<input size="15" type="text" class="property-format" value="${(config.property.format ? escapeForHtmlAttributes(config.property.format) : '')}">`;
+				};
+			})()
+		}
+	</td>
 	<td class="centered"><input class="not-null" type="checkbox" ${(config.property.notNull ? 'checked' : '')}></td>
 	<td class="centered"><input class="compound" type="checkbox" ${(config.property.compound ? 'checked' : '')}></td>
 	<td class="centered"><input class="unique" type="checkbox" ${(config.property.unique ? 'checked' : '')}></td>
 	<td class="centered"><input class="indexed" type="checkbox" ${(config.property.indexed ? 'checked' : '')}></td>
 	<td><input type="text" size="10" class="property-default" value="${escapeForHtmlAttributes(config.property.defaultValue)}"></td>
 	<td class="centered actions-col">
-		${config.property.isBuiltinProperty ? '' : '<i title="Discard changes" class="discard-icon discard-changes ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '"></i>'}
-		${config.property.isBuiltinProperty ? '' : '<i title="Remove property" class="remove-icon remove-action ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '"></i>'}
+		${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon('close-dialog-x', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
+		${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon('trashcan', 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
 	</td>
 </tr>

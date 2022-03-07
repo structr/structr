@@ -164,6 +164,11 @@ public class TypeProperty extends StringProperty {
 		map.put("type",   "string");
 		map.put("example", getExampleValue(type, viewName));
 
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
+
+
 		return map;
 	}
 
@@ -174,6 +179,10 @@ public class TypeProperty extends StringProperty {
 
 		map.put("type",   "string");
 		map.put("example", getExampleValue(type, viewName));
+
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
 
 		return map;
 	}

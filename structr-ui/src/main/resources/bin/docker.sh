@@ -16,7 +16,6 @@ if [ "$AGREE_TO_STRUCTR_PRIVACY_POLICY" != "yes" ]; then
 	echo
 
 	exit 1
-
 fi
 
 . bin/config
@@ -49,6 +48,8 @@ if [ -e $PID_FILE ]; then
 	fi
 
 fi
+
+
 
 if [ ! -d $LOGS_DIR ]; then
 		echo "        Creating logs directory..."

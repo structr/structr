@@ -1,24 +1,14 @@
 <div id="method-options">
 	<div class="property-options-group">
-<!--		<div><label>Actions</label></div>-->
 		<div id="method-actions"></div>
-		<div style="clear: both;"></div>
 	</div>
-	<div class="property-options-group">
-		<p class="input">
+	<div class="property-options-group flex flex-wrap gap-x-8">
+		<div class="input">
 			<label>Name</label>
-			<input type="text" id="method-name-input" data-property="name" size="30" value="${config.method.name}" />
-		</p>
-		<p class="checkbox hidden global-method">
-			<label style="margin: 24px 0 0 10px;" data-comment="Only needs to be set if the method should be callable via REST by public users."><input type="checkbox" data-property="visibleToPublicUsers" ${config.method.visibleToPublicUsers ? 'checked' : ''} /> visibleToPublicUsers</label>
-		</p>
-		<p class="checkbox hidden global-method">
-			<label style="margin: 24px 0 0 10px;" data-comment="Only needs to be set if the method should be callable via REST by authenticated users."><input type="checkbox" data-property="visibleToAuthenticatedUsers" ${config.method.visibleToAuthenticatedUsers ? 'checked' : ''} /> visibleToAuthenticatedUsers</label>
-		</p>
-		<p class="checkbox hidden entity-method">
-			<label style="margin: 24px 0 0 10px;" data-comment="Only needs to be set if the method should be callable statically (without an object context)."><input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''} /> isStatic</label>
-		</p>
-		<div style="clear: both;"></div>
-
+			<input type="text" id="method-name-input" data-property="name" size="20" value="${config.method.name}" />
+		</div>
+		<div class="checkbox hidden entity-method">
+			<label class="block mt-6" data-comment="Only needs to be set if the method should be callable statically (without an object context)."><input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''} /> isStatic</label>
+		</div>
 	</div>
 </div>

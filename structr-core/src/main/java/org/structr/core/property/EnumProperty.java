@@ -121,6 +121,11 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 		return "abc";
 	}
 
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
+	}
+
 	// ----- OpenAPI -----
 	@Override
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
@@ -130,6 +135,10 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 
 		map.put("type", "array");
 		map.put("items", items);
+
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
 
 		items.put("type", "string");
 		items.put("enum", Arrays.asList(enumType.getEnumConstants()));
@@ -145,6 +154,10 @@ public class EnumProperty<T extends Enum> extends AbstractPrimitiveProperty<T> {
 
 		map.put("type", "array");
 		map.put("items", items);
+
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
 
 		items.put("type", "string");
 		items.put("enum", Arrays.asList(enumType.getEnumConstants()));

@@ -32,6 +32,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.OneEndpoint;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Source;
@@ -41,6 +42,7 @@ import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
@@ -281,7 +283,25 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	}
 
 	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
+	}
+
+	@Override
 	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+
+		final String destTypeName = destType.getName();
+		if (destTypeName == "org.structr.core.graph.NodeInterface" || destTypeName == "org.structr.flow.impl.FlowContainer" ) {
+			ConfigurationProvider configuration = StructrApp.getConfiguration();
+			Class typeClass = configuration.getNodeEntityClass(AbstractNode.class.getSimpleName());
+			destType = typeClass;
+
+			if (destType == null) {
+				Map<String, Class> interfaces = configuration.getInterfaces();
+				destType = interfaces.get(AbstractNode.class.getSimpleName());
+			};
+		}
+
 		return new OpenAPIStructrTypeSchemaOutput(destType, viewName, level + 1);
 	}
 

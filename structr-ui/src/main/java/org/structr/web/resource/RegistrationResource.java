@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
+import org.structr.common.AccessMode;
 import org.structr.common.MailHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -49,6 +50,7 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.script.Scripting;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
@@ -65,19 +67,6 @@ public class RegistrationResource extends Resource {
 	private static final Logger logger = LoggerFactory.getLogger(RegistrationResource.class.getName());
 
 	private enum TemplateKey {
-		// outdated, deprecated Template keys. will be supported for some time, but should not be used anymore
-		SENDER_NAME,
-		SENDER_ADDRESS,
-		SUBJECT,
-		TEXT_BODY,
-		HTML_BODY,
-		BASE_URL,
-		TARGET_PAGE,
-		ERROR_PAGE,
-		CONFIRM_REGISTRATION_PAGE,
-		CONFIRM_KEY_KEY,
-		TARGET_PAGE_KEY,
-		ERROR_PAGE_KEY,
 
 		// unified, new Template keys. these should be the ones to be used
 		CONFIRM_REGISTRATION_SENDER_NAME,
@@ -86,11 +75,11 @@ public class RegistrationResource extends Resource {
 		CONFIRM_REGISTRATION_TEXT_BODY,
 		CONFIRM_REGISTRATION_HTML_BODY,
 		CONFIRM_REGISTRATION_BASE_URL,
-		CONFIRM_REGISTRATION_TARGET_PAGE,
+		CONFIRM_REGISTRATION_TARGET_PATH,
 		CONFIRM_REGISTRATION_ERROR_PAGE,
-//		CONFIRM_REGISTRATION_PAGE,				// this key was named correctly and does not need special treatment below
-		CONFIRM_REGISTRATION_CONFIRM_KEY_KEY,
-		CONFIRM_REGISTRATION_TARGET_PAGE_KEY,
+		CONFIRM_REGISTRATION_PAGE,
+		CONFIRM_REGISTRATION_CONFIRMATION_KEY_KEY,
+		CONFIRM_REGISTRATION_TARGET_PATH_KEY,
 		CONFIRM_REGISTRATION_ERROR_PAGE_KEY
 	}
 
@@ -209,38 +198,34 @@ public class RegistrationResource extends Resource {
 
 	}
 
-	private boolean sendInvitationLink(final Principal user, final Map<String, Object> propertySetFromUserPOST, final String confKey, final String localeString) {
+	private boolean sendInvitationLink(final Principal user, final Map<String, Object> propertySetFromUserPOST, final String confKey, final String localeString) throws FrameworkException {
 
-		final PropertyKey<String> eMailKey       = StructrApp.key(User.class, "eMail");
-		final Map<String, String> replacementMap = new HashMap();
+		final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
+		final String userEmail             = user.getProperty(eMailKey);
+		final ActionContext ctx            = new ActionContext(SecurityContext.getInstance(user, AccessMode.Frontend));
 
 		// Populate the replacement map with all POSTed values
 		// WARNING! This is unchecked user input!!
-		populateReplacementMap(replacementMap, propertySetFromUserPOST);
+		propertySetFromUserPOST.entrySet().forEach(entry -> ctx.setConstant(entry.getKey(), entry.getValue().toString()));
 
-		final String userEmail = user.getProperty(eMailKey);
-
-		replacementMap.put(toPlaceholder("eMail"), userEmail);
-		replacementMap.put(toPlaceholder("link"),
-			getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_BASE_URL, TemplateKey.BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
-			      + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE, localeString)
-			+ "?" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_CONFIRM_KEY_KEY, TemplateKey.CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY, localeString) + "=" + confKey
-			+ "&" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_TARGET_PAGE_KEY, TemplateKey.TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY, localeString) + "=" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_TARGET_PAGE, TemplateKey.TARGET_PAGE, "register_thanks", localeString)
-			+ "&" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE_KEY, TemplateKey.ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY, localeString)   + "=" + getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE, TemplateKey.ERROR_PAGE, "register_error", localeString)
+		ctx.setConstant("eMail", userEmail);
+		ctx.setConstant("link",getTemplateText(TemplateKey.CONFIRM_REGISTRATION_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
+				+ getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE, localeString)
+				+ "?" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_CONFIRMATION_KEY_KEY, HtmlServlet.CONFIRMATION_KEY_KEY, localeString) + "=" + confKey
+				+ "&" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_TARGET_PATH_KEY, HtmlServlet.TARGET_PATH_KEY, localeString) + "=" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_TARGET_PATH, "register_thanks", localeString)
+				+ "&" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY, localeString)   + "=" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE, "register_error", localeString)
 		);
 
-		String textMailTemplate = getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_TEXT_BODY, TemplateKey.TEXT_BODY, "Go to ${link} to finalize registration.", localeString);
-		String htmlMailTemplate = getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_HTML_BODY, TemplateKey.HTML_BODY, "<div>Click <a href='${link}'>here</a> to finalize registration.</div>", localeString);
-		String textMailContent  = MailHelper.replacePlaceHoldersInTemplate(textMailTemplate, replacementMap);
-		String htmlMailContent  = MailHelper.replacePlaceHoldersInTemplate(htmlMailTemplate, replacementMap);
+		final String textMailContent = replaceVariablesInTemplate(TemplateKey.CONFIRM_REGISTRATION_TEXT_BODY,"Go to ${link} to finalize registration.", localeString, ctx);
+		final String htmlMailContent = replaceVariablesInTemplate(TemplateKey.CONFIRM_REGISTRATION_HTML_BODY,"<div>Click <a href='${link}'>here</a> to finalize registration.</div>", localeString, ctx);
 
 		try {
 
 			MailHelper.sendHtmlMail(
-				getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_SENDER_ADDRESS, TemplateKey.SENDER_ADDRESS, "structr-mail-daemon@localhost", localeString),
-				getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_SENDER_NAME, TemplateKey.SENDER_NAME, "Structr Mail Daemon", localeString),
+				getTemplateText(TemplateKey.CONFIRM_REGISTRATION_SENDER_ADDRESS, "structr-mail-daemon@localhost", localeString),
+				getTemplateText(TemplateKey.CONFIRM_REGISTRATION_SENDER_NAME, "Structr Mail Daemon", localeString),
 				userEmail, "", null, null, null,
-				getTemplateTextWithDeprecatedFallback(TemplateKey.CONFIRM_REGISTRATION_SUBJECT, TemplateKey.SUBJECT, "Welcome to Structr, please finalize registration", localeString),
+				getTemplateText(TemplateKey.CONFIRM_REGISTRATION_SUBJECT, "Welcome to Structr, please finalize registration", localeString),
 				htmlMailContent, textMailContent);
 
 		} catch (Exception e) {
@@ -250,7 +235,6 @@ public class RegistrationResource extends Resource {
 		}
 
 		return true;
-
 	}
 
 	private String getTemplateText(final TemplateKey key, final String defaultValue, final String localeString) {
@@ -282,47 +266,20 @@ public class RegistrationResource extends Resource {
 		return null;
 	}
 
-	private String getTemplateTextWithDeprecatedFallback(final TemplateKey defaultKey, final TemplateKey deprecatedFallbackKey, final String defaultValue, final String localeString) {
+	private String replaceVariablesInTemplate(final TemplateKey key, final String defaultValue, final String localeString, final ActionContext ctx) throws FrameworkException {
 
 		try {
 
-			final Query<MailTemplate> query = StructrApp.getInstance().nodeQuery(MailTemplate.class).andName(defaultKey.name());
+			final String templateText = getTemplateText(key, defaultValue, localeString);
 
-			if (localeString != null) {
-				query.and("locale", localeString);
-			}
+			return Scripting.replaceVariables(ctx, null, templateText, "sendInvitationLink()");
 
-			MailTemplate template = query.getFirst();
-			if (template != null) {
+		} catch (FrameworkException fxe) {
 
-				final String text = template.getProperty("text");
-				return text != null ? text : getTemplateText(deprecatedFallbackKey, defaultValue, localeString);
+			logger.warn("Unable to send confirmation e-mail, scripting error in {} template. {}", key.name(), fxe);
 
-			} else {
-
-				return getTemplateText(deprecatedFallbackKey, defaultValue, localeString);
-			}
-
-		} catch (FrameworkException ex) {
-
-			logger.warn("Could not get mail template for key " + defaultKey, ex);
+			throw new FrameworkException(503, "Unable to send confirmation e-mail");
 		}
-
-		return null;
-	}
-
-	private static void populateReplacementMap(final Map<String, String> replacementMap, final Map<String, Object> props) {
-
-		for (Entry<String, Object> entry : props.entrySet()) {
-
-			replacementMap.put(toPlaceholder(entry.getKey()), entry.getValue().toString());
-
-		}
-	}
-
-	private static String toPlaceholder(final String key) {
-
-		return "${".concat(key).concat("}");
 	}
 
 	/**

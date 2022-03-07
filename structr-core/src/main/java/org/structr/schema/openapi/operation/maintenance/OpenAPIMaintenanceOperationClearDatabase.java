@@ -18,7 +18,7 @@
  */
 package org.structr.schema.openapi.operation.maintenance;
 
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -55,8 +55,8 @@ public class OpenAPIMaintenanceOperationClearDatabase extends LinkedHashMap<Stri
 
                 // responses
                 Map.of(
-                        "200", new OpenAPIReference("#/components/responses/ok"),
-                        "401", new OpenAPIReference("#/components/responses/unauthorized")
+                        "200", new OpenAPISchemaReference("#/components/responses/ok"),
+                        "401", new OpenAPISchemaReference("#/components/responses/unauthorized")
                 )
         ));
 

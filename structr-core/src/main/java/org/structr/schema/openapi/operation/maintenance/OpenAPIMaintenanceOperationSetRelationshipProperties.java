@@ -18,7 +18,7 @@
  */
 package org.structr.schema.openapi.operation.maintenance;
 
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
@@ -58,14 +58,14 @@ public class OpenAPIMaintenanceOperationSetRelationshipProperties extends Linked
                         "Request body",
 			new OpenAPIObjectSchema(
                         	new OpenAPIPrimitiveSchema("Select the relationship type on which to set the properties", "type", "string"),
-                        	new OpenAPIPrimitiveSchema("Example key to illustrate the usage",                         "key",  "string", null, "value")
+                        	new OpenAPIPrimitiveSchema("Example key to illustrate the usage",                         "key",  "string", null, "value", false)
                         )
                 ),
 
                 // responses
                 Map.of(
-                        "200", new OpenAPIReference("#/components/responses/ok"),
-                        "401", new OpenAPIReference("#/components/responses/unauthorized")
+                        "200", new OpenAPISchemaReference("#/components/responses/ok"),
+                        "401", new OpenAPISchemaReference("#/components/responses/unauthorized")
                 )
         ));
 

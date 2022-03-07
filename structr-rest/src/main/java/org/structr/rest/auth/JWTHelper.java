@@ -44,6 +44,8 @@ import org.structr.core.property.PropertyKey;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.Certificate;
@@ -75,6 +77,7 @@ public class JWTHelper {
             case "jwks":
 
                 final String provider = Settings.JWTSProvider.getValue();
+                final String issuer = Settings.JWTIssuer.getValue();
 
                 if (provider != null) {
 
@@ -83,23 +86,36 @@ public class JWTHelper {
 
                         final String kid = jwt.getKeyId();
                         if (kid != null) {
-                            JwkProvider jwkProvider = new UrlJwkProvider(provider);
+
+                            // if no issuer is specified, we can assume that issuer url = provider url.
+                            JwkProvider jwkProvider;
+                            if (!StringUtils.isEmpty(issuer) && !StringUtils.equals("structr", issuer)) {
+                                jwkProvider = new UrlJwkProvider(new URL(provider));
+                            } else {
+                                // loads jwks from .well-known resource of provider
+                                jwkProvider = new UrlJwkProvider(provider);
+                            }
                             Jwk jwk = jwkProvider.get(kid);
 
                             Algorithm algorithm = Algorithm.RSA256((RSAPublicKey) jwk.getPublicKey(), null);
 
                             JWTVerifier verifier = JWT.require(algorithm)
-                                    .withIssuer(provider)
+                                    .withIssuer(issuer)
                                     .build();
 
-                            jwt = verifier.verify(token);
+                            jwt = verifier.verify(jwt);
 
                             user = getPrincipalForTokenClaims(jwt.getClaims(), eMailKey);
                         }
 
-                    } catch (JwkException ex) {
+                    } catch (JWTVerificationException ex) {
 
-                        throw new FrameworkException(422, "Error while trying to process JWKS. ", ex);
+                        throw new FrameworkException(422, ex.getMessage());
+
+                    } catch (Exception ex) {
+
+                        logger.warn("Error while trying to process JWKS.\n {}", ex.getMessage());
+                        throw new FrameworkException(422, "Error while trying to process JWKS.");
                     }
                 }
 
@@ -226,12 +242,16 @@ public class JWTHelper {
         String uuid = claims.getOrDefault("uuid", new NullClaim()).asString();
         String eMail = claims.getOrDefault("eMail", new NullClaim()).asString();
 
+        if (StringUtils.isEmpty(eMail)) {
+            eMail = claims.getOrDefault("email", new NullClaim()).asString();
+        }
+
         // if the instance is the same that issued the token, we can lookup the user with uuid claim
         if (StringUtils.equals(instance, instanceName)) {
 
             user  = StructrApp.getInstance().nodeQuery(Principal.class).and().or(NodeInterface.id, uuid).disableSorting().getFirst();
 
-        } else if (eMail != null && StringUtils.equals(eMail, "")) {
+        } else if (eMail != null && StringUtils.isNotEmpty(eMail)) {
 
             user  = StructrApp.getInstance().nodeQuery(Principal.class).and().or(eMailKey, eMail).disableSorting().getFirst();
 

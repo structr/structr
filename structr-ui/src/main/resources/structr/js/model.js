@@ -462,18 +462,7 @@ let StructrModel = {
 				keyIcon.removeClass('donthide');
 			}
 
-			// update svg key icon
-			let svgKeyIcon = element[0].querySelector(':scope > .svg_key_icon');
-			if (!svgKeyIcon) {
-				svgKeyIcon = element[0].querySelector(':scope > .icons-container > .svg_key_icon');
-			}
-			if (svgKeyIcon) {
-				let newIconId = _Entities.getVisibilityIconId(obj);
-
-				// replace only xlink:href to keep bindings intact
-				let use = svgKeyIcon.querySelector(':scope > use');
-				use.setAttribute('xlink:href', '#' + newIconId);
-			}
+			_Entities.updateNewAccessControlIconInElement(obj, element);
 
 			let displayName = getElementDisplayName(obj);
 
@@ -702,14 +691,6 @@ StructrUser.prototype.remove = function(groupId) {
 };
 
 StructrUser.prototype.append = function(groupId) {
-	if (Structr.isModuleActive(_Security)) {
-		if (groupId) {
-			let grpContainer = $('.groupid_' + groupId, $(_Security.groupList));
-			_UsersAndGroups.appendMemberToGroup(this, StructrModel.obj(groupId), grpContainer);
-		} else {
-			_UsersAndGroups.appendUserToUserList(this);
-		}
-	}
 };
 
 /**************************************
@@ -735,20 +716,11 @@ StructrGroup.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrGroup.prototype.append = function(groupId) {
-	if (Structr.isModuleActive(_Security)) {
-		let container = $(_Security.groupList);
-		if (groupId) {
-			let grpContainer = $('.groupid_' + groupId, container);
-			StructrModel.expand(_UsersAndGroups.appendMemberToGroup(this, StructrModel.obj(groupId), grpContainer), this);
-		} else {
-			StructrModel.expand(_UsersAndGroups.appendGroupElement(container, this), this);
-		}
-	}
 };
 
 StructrGroup.prototype.remove = function() {
 	if (Structr.isModuleActive(_Security)) {
-		var groupEl = Structr.node(this.id, '.groupid_');
+		let groupEl = Structr.node(this.id, '.groupid_');
 		if (groupEl && groupEl.length) {
 			groupEl.remove();
 		}

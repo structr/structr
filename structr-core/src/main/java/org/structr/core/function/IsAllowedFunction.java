@@ -58,7 +58,7 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 
 			} else if (sources[0] instanceof SuperUser) {
 
-				logParameterError(caller, sources, "Expected node of type Principal as first argument - unable to revoke rights for the SuperUser!", ctx.isJavaScriptContext());
+				logParameterError(caller, sources, "Expected node of type Principal as first argument - unable to check rights for the SuperUser!", ctx.isJavaScriptContext());
 
 			} else if (!(sources[1] instanceof AbstractNode)) {
 

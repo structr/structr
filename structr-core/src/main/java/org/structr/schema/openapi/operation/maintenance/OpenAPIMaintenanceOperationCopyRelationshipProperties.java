@@ -18,7 +18,7 @@
  */
 package org.structr.schema.openapi.operation.maintenance;
 
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
@@ -57,15 +57,15 @@ public class OpenAPIMaintenanceOperationCopyRelationshipProperties extends Linke
                 new OpenAPIRequestResponse(
                         "Request body",
 			new OpenAPIObjectSchema(
-                        	new OpenAPIPrimitiveSchema("Source key to copy the value from", "sourceKey", "string", null, "id"),
-				new OpenAPIPrimitiveSchema("target key to copy the value to",   "destKey",   "string", null, "originId")
+                        	new OpenAPIPrimitiveSchema("Source key to copy the value from", "sourceKey", "string", null, "id", false),
+				new OpenAPIPrimitiveSchema("target key to copy the value to",   "destKey",   "string", null, "originId", false)
                         )
                 ),
 
                 // responses
                 Map.of(
-                        "200", new OpenAPIReference("#/components/responses/ok"),
-                        "401", new OpenAPIReference("#/components/responses/unauthorized")
+                        "200", new OpenAPISchemaReference("#/components/responses/ok"),
+                        "401", new OpenAPISchemaReference("#/components/responses/unauthorized")
                 )
         ));
 

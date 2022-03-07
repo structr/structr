@@ -30,8 +30,8 @@ export class FlowConstant extends FlowNode {
                     control.name = "Value";
 
                     element.addEventListener('focus', ()=> {
-                        document.dispatchEvent(new CustomEvent('floweditor.internal.openeditor', {detail: {element: element}}));
-                        document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: {element: element, nodeType: "Constant"}}));
+                        // document.dispatchEvent(new CustomEvent('floweditor.internal.openeditor', {detail: {element: element}}));
+                        document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: { entity: scopedDbNode, propertyName: 'value', element: element, nodeType: "Constant"}}));
                     });
 
                     element.addEventListener('mousedown', event => {

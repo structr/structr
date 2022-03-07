@@ -136,7 +136,7 @@ public class AuthHelper {
 
 				final String keyMessage = ("name".equals(key.dbName())) ? "name" : "name OR " + key.dbName();
 
-				logger.info("No principal found for {} {}", keyMessage, value);
+				logger.info("No principal found for {} '{}'", keyMessage, value);
 
 				RuntimeEventLog.failedLogin("No principal found", Map.of("keyMessage", keyMessage, "value", value));
 

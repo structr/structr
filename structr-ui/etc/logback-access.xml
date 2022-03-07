@@ -1,0 +1,12 @@
+<configuration>
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>logs/structr-%d{yyyy_MM_dd}.request.log.zip</fileNamePattern>
+    </rollingPolicy>
+    <encoder>
+      <charset>UTF-8</charset>
+      <pattern>%h %l %u %t "%r" %s %b %n%fullRequest%n%n%fullResponse</pattern>
+    </encoder>
+  </appender>
+  <appender-ref ref="FILE" />
+</configuration>

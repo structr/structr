@@ -333,7 +333,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 								changedProperties.put(AbstractNode.type, type);
 
 								newFile.unlockSystemPropertiesOnce();
-								newFile.setProperties(securityContext, changedProperties);
+								newFile.setProperties(securityContext, changedProperties, true);
 
 								uuid = newFile.getUuid();
 
@@ -524,6 +524,72 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			logger.error("Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
+		}
+	}
+
+	@Override
+	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		setCustomResponseHeaders(response);
+
+		try {
+
+			assertInitialized();
+
+			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
+			response.setContentType("application/json; charset=utf-8");
+
+			// check if this is a CORS preflight request
+			final String origin      = request.getHeader("Origin");
+			final String corsHeaders = request.getHeader("Access-Control-Request-Headers");
+			final String corsMethod  = request.getHeader("Access-Control-Request-Method");
+			int statusCode           = HttpServletResponse.SC_OK;
+
+			if (origin != null && corsHeaders != null && corsMethod != null) {
+
+				// check origin
+				// ...
+
+				// allow origin
+				response.addHeader("Access-Control-Allow-Origin", origin);
+
+				// check headers
+				// ...
+
+				// allow headers
+				response.addHeader("Access-Control-Allow-Headers", corsHeaders);
+
+				// check method
+				// ...
+
+				// allow method
+				response.addHeader("Access-Control-Allow-Methods", corsMethod);
+
+			} else {
+
+				// OPTIONS is not allowed for non-CORS requests
+				statusCode = HttpServletResponse.SC_METHOD_NOT_ALLOWED;
+			}
+
+			response.setContentLength(0);
+			response.setStatus(statusCode);
+
+		} catch (Throwable t) {
+
+			logger.warn("Exception in UploadServlet OPTIONS", t);
+
+
+		} finally {
+
+			try {
+				//response.getWriter().flush();
+				response.getWriter().close();
+
+			} catch (Throwable t) {
+
+				logger.warn("Unable to flush and close response: {}", t.getMessage());
+			}
 		}
 	}
 

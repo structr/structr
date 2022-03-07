@@ -25,8 +25,6 @@ import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -36,6 +34,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.Tx;
@@ -62,6 +61,8 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 	private boolean relativeVisibility        = false;
 	private App app                           = null;
 	private boolean isHullMode                = false;
+
+	private Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = null;
 
 	public ComponentImportVisitor(final Map<String, Object> pagesConfiguration, final boolean relativeVisibility) {
 
@@ -111,6 +112,10 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 	@Override
 	public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
 		return FileVisitResult.CONTINUE;
+	}
+
+	public void setDeferredNodesAndTheirProperties(final Map<DOMNode, PropertyMap> data) {
+		this.deferredNodesAndTheirProperties = data;
 	}
 
 	// ----- private methods -----
@@ -241,6 +246,9 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 				// enable literal import of href attributes
 				importer.setIsDeployment(true);
 
+				// set deferred DOMNodes to be able to connect two imported nodes
+				importer.setDeferredNodesAndTheirProperties(deferredNodesAndTheirProperties);
+
 				final boolean parseOk = importer.parse(false);
 				if (parseOk) {
 
@@ -298,9 +306,12 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 						rootElement.setProperties(securityContext, properties);
 					}
 				}
+
+				deferredNodesAndTheirProperties.putAll(importer.getDeferredNodesAndTheirProperties());
 			}
 
 			tx.success();
+
 		}
 	}
 

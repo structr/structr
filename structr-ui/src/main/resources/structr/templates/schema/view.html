@@ -4,8 +4,11 @@
 	</td>
 	<td class="view-properties-select"></td>
 	<td class="centered actions-col">
-		<i title="Discard changes" class="discard-icon discard-changes ${_Icons.getFullSpriteClass(_Icons.cross_icon)}"></i>
-		<i title="Remove view" class="remove-icon remove-action ${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i>
-		<a href="/structr/rest/${config.type.name}/${config.view.name}" class="preview-action" target="_blank"><i title="Preview (with pageSize=1)" class="preview-icon ${_Icons.getFullSpriteClass(_Icons.eye_icon)}"></i></a>
+		${_Icons.getSvgIcon('close-dialog-x', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
+		${_Icons.getSvgIcon('trashcan', 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
+
+		<a href="/structr/rest/${config.type.name}/${config.view.name}" target="_blank">
+			${_Icons.getSvgIcon('link_external', 16, 16, _Icons.getSvgIconClassesNonColorIcon(), 'Preview (with pageSize=1)')}
+		</a>
 	</td>
 </tr>

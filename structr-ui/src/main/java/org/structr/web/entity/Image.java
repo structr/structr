@@ -221,7 +221,7 @@ public interface Image extends File {
 
 	public static void onModification(final Image thisImage, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		if ( !thisImage.isThumbnail() ) {
+		if ( !thisImage.isThumbnail() && !thisImage.isTemplate() ) {
 
 			if (modificationQueue.isPropertyModified(thisImage, name)) {
 
@@ -280,6 +280,11 @@ public interface Image extends File {
 	 * @return scaled image
 	 * */
 	public static Image getScaledImage(final Image thisImage, final int maxWidth, final int maxHeight, final boolean cropToFit) {
+		if (thisImage.isTemplate()) {
+
+			return thisImage;
+		}
+
 		final SecurityContext securityContext           = thisImage.getSecurityContext();
 		final String originalContentType                = thisImage.getContentType();
 		final Image existingThumbnail                   = getExistingThumbnail(thisImage, maxWidth, maxHeight);

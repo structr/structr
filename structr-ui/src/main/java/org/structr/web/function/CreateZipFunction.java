@@ -34,7 +34,7 @@ import org.structr.web.entity.Folder;
 public class CreateZipFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_CREATE_ZIP    = "Usage: ${create_zip(archiveFileName, files [, password [, encryptionMethod ] ])}. Example: ${create_zip(\"archive\", find(\"File\"))}";
-	public static final String ERROR_MESSAGE_CREATE_ZIP_JS = "Usage: ${{Structr.createArchive(archiveFileName, files [, password [, encryptionMethod ] ])}}. Example: ${{Structr.createZip(\"archive\", Structr.find(\"File\"))}}";
+	public static final String ERROR_MESSAGE_CREATE_ZIP_JS = "Usage: ${{Structr.createZip(archiveFileName, files [, password [, encryptionMethod ] ])}}. Example: ${{Structr.createZip(\"archive\", Structr.find(\"File\"))}}";
 
 	@Override
 	public String getName() {

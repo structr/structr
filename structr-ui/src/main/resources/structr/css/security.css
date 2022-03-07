@@ -116,6 +116,7 @@ input.max-w-75 {
 
 #resourceAccessesPager {
 	text-align: left;
+	min-width: 24rem;
 }
 
 input.bitmask {
@@ -125,9 +126,4 @@ input.bitmask {
 
 .acl-resource-access {
 	margin-right: 1rem;
-}
-
-#users-controls .select-and-button,
-#groups-controls .select-and-button {
-	padding-bottom: 2rem;
 }

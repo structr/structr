@@ -442,9 +442,7 @@ var _Graph = {
 
 				$('#newSelectionGroup').trigger('click');
 				Structr.unblockMenu(100);
-
 			});
-
 		});
 
 	},

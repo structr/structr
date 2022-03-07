@@ -33,8 +33,8 @@ export class FlowScriptCondition extends FlowNode {
                     control.name = "Script";
 
                     element.addEventListener('focus', ()=> {
-                        document.dispatchEvent(new CustomEvent('floweditor.internal.openeditor', {detail: {element: element}}));
-                        document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: {element: element, nodeType: "Condition"}}));
+                        // document.dispatchEvent(new CustomEvent('floweditor.internal.openeditor', {detail: {element: element}}));
+                        document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: { entity: scopedDbNode, propertyName: 'script', element: element, nodeType: "Condition"}}));
                     });
 
                     element.addEventListener('mousedown', event => {

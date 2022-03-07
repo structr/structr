@@ -114,7 +114,6 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 	public void analyzeSchema(final String statusMessageType) {
 
-
 		final String schemaAnalyzerTmpPath = userHome + File.separator + ".structrSchemaAnalyzer";
 
 		final File analyzerFolder = new File(schemaAnalyzerTmpPath + File.separator);
@@ -151,7 +150,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 		info("Starting to analyze nodes..");
 		publishProgressMessage(statusMessageType, "Starting to analyze nodes..");
 
-		bulkGraphOperation(SecurityContext.getSuperUserInstance(), nodeIterable, 100000, "Analyzing nodes", new BulkGraphOperation<Node>() {
+		bulkOperation(SecurityContext.getSuperUserInstance(), nodeIterable, 100000, "Analyzing nodes", new BulkGraphOperation<Node>() {
 
 			@Override
 			public boolean handleGraphObject(final SecurityContext securityContext, final Node node) throws FrameworkException {
@@ -260,7 +259,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 			info("Starting with setting of type and ID for type {}", type);
 
-			bulkGraphOperation(SecurityContext.getSuperUserInstance(), info.getNodeIds(), 10000, "Setting type and ID", new BulkGraphOperation<Identity>() {
+			bulkOperation(SecurityContext.getSuperUserInstance(), info.getNodeIds(), 10000, "Setting type and ID", new BulkGraphOperation<Identity>() {
 
 				@Override
 				public boolean handleGraphObject(SecurityContext securityContext, Identity nodeId) throws FrameworkException {
@@ -289,7 +288,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 		info("Starting with analyzing relationships..");
 		publishProgressMessage(statusMessageType, "Starting with analyzing relationships..");
 
-		bulkGraphOperation(SecurityContext.getSuperUserInstance(), relIterable, 10000, "Analyzing relationships", new BulkGraphOperation<Relationship>() {
+		bulkOperation(SecurityContext.getSuperUserInstance(), relIterable, 10000, "Analyzing relationships", new BulkGraphOperation<Relationship>() {
 
 			@Override
 			public boolean handleGraphObject(SecurityContext securityContext, Relationship rel) throws FrameworkException {
@@ -365,7 +364,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 		info("Starting with schema node creation..");
 		publishProgressMessage(statusMessageType, "Starting with schema node creation for " + reducedTypeInfos.size() + " node types..");
 
-		bulkGraphOperation(SecurityContext.getSuperUserInstance(), reducedTypeInfos, 100000, "Creating schema nodes", new BulkGraphOperation<TypeInfo>() {
+		bulkOperation(SecurityContext.getSuperUserInstance(), reducedTypeInfos, 100000, "Creating schema nodes", new BulkGraphOperation<TypeInfo>() {
 
 			@Override
 			public boolean handleGraphObject(SecurityContext securityContext, TypeInfo typeInfo) throws FrameworkException {
@@ -453,7 +452,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 		info("Starting with schema relationship creation..");
 		publishProgressMessage(statusMessageType, "Starting with schema relationship creation for " + reducedRelationshipInfos.size() + " relationship types..");
 
-		bulkGraphOperation(SecurityContext.getSuperUserInstance(), reducedRelationshipInfos, 100000, "Creating schema relationships", new BulkGraphOperation<RelationshipInfo>() {
+		bulkOperation(SecurityContext.getSuperUserInstance(), reducedRelationshipInfos, 100000, "Creating schema relationships", new BulkGraphOperation<RelationshipInfo>() {
 
 			@Override
 			public boolean handleGraphObject(SecurityContext securityContext, RelationshipInfo template) throws FrameworkException {

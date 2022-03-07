@@ -17,71 +17,80 @@
 				<option value="options-update-change">Update a data object on change</option>
 				<option value="options-method-change">Execute a method on change</option>
 			</optgroup>
+			<optgroup label="Focus actions">
+				<option value="options-create-focusout">Create a new data object on focus out</option>
+				<option value="options-update-focusout">Update a data object on focus out</option>
+				<option value="options-method-focusout">Execute a method on focus out</option>
+			</optgroup>
 			<optgroup label="Other">
 				<option value="options-custom">Custom configuration</option>
 			</optgroup>
 		</select>
 	</div>
+	<div class="option-tile hidden event-options options-delete-click">
+		<label for="delete-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be deleted on click.">UUID of data object to delete</label>
+		<input type="text" id="delete-target-input">
+	</div>
+	<div class="option-tile hidden event-options options-method-click options-method-change">
+		<label for="method-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on.">UUID of data object to call method on</label>
+		<input type="text" id="method-target-input">
+	</div>
+	<div class="option-tile hidden event-options options-custom">
+		<label for="custom-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the target data object.">UUID of action target object</label>
+		<input type="text" id="custom-target-input">
+	</div>
+	<div class="option-tile hidden event-options options-update-change options-update-click">
+		<label for="update-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be updated.">UUID of data object to update</label>
+		<input type="text" id="update-target-input">
+	</div>
 </div>
 <div class="row hidden event-options options-prev-page-click options-next-page-click">
 	<div class="option-tile">
-		<label data-comment="Define the name of the pagination request parameter (ususally &quot;page&quot;).">Pagination request parameter</label>
+		<label for="pagination-name-input" data-comment="Define the name of the pagination request parameter (usually &quot;page&quot;).">Pagination request parameter</label>
 		<input type="text" id="pagination-name-input">
 	</div>
 </div>
 <div class="row hidden event-options options-custom">
 	<div class="option-tile">
-		<label data-comment="Define the frontend event that triggers the action.">Frontend event</label>
+		<label for="custom-event-input" data-comment="Define the frontend event that triggers the action.">Frontend event</label>
 		<input type="text" id="custom-event-input">
 	</div>
 	<div class="option-tile">
-		<label data-comment="Define the backend action that is triggered by the event.">Backend action</label>
+		<label for="custom-action-input" data-comment="Define the backend action that is triggered by the event.">Backend action</label>
 		<input type="text" id="custom-action-input">
-	</div>
-	<div class="option-tile">
-		<label>UUID of action target object</label>
-		<input type="text" id="custom-target-input">
 	</div>
 </div>
 <div class="row hidden event-options options-create-click options-create-change">
 	<div class="option-tile">
-		<label data-comment="Define the type of data object that will be created with the create action.">Select type of data object to create</label>
+		<label for="target-type-select" data-comment="Define the type of data object that will be created with the create action.">Select type of data object to create</label>
 		<select class="select2" id="target-type-select">
 			<option value=""></option>
 		</select>
 	</div>
 </div>
-<div class="row hidden event-options options-delete-click">
-	<div class="option-tile">
-		<label>UUID of data object to delete</label>
-		<input type="text" id="delete-target-input">
-	</div>
-</div>
 <div class="row hidden event-options options-method-click options-method-change">
 	<div class="option-tile">
-		<label>Name of method to execute</label>
+		<label for="method-name-input">Name of method to execute</label>
 		<input type="text" id="method-name-input">
-	</div>
-	<div class="option-tile">
-		<label>UUID of data object to call method on</label>
-		<input type="text" id="method-target-input">
 	</div>
 </div>
 <div class="row hidden event-options options-update-change options-update-click">
 	<div class="option-tile">
-		<label>UUID of data object to update</label>
-		<input type="text" id="update-target-input">
-	</div>
-	<div class="option-tile">
-		<label>Name of attribute to update</label>
+		<label for="update-property-input">Name of property to update</label>
 		<input type="text" id="update-property-input">
 	</div>
+</div>
+<div class="row hidden event-options options-properties options-update-change options-update-click"><h3>Property Inputs</h3></div>
+<div class="row hidden event-options options-properties options-update-change options-update-click custom-properties-container"></div>
+<div class="row hidden event-options options-properties options-update-change options-update-click">
+	<button class="add-icon inline-flex items-center add-property-input-button">${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Create input</button>
+	<button class="add-icon inline-flex items-center add-property-select-button">${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Create select</button>
 </div>
 
 <div class="row hidden event-options options-reload-target"><h3>Refresh/Reload</h3></div>
 <div class="row hidden event-options options-reload-target">
 	<div class="option-tile">
-		<label>Select refresh/reload behaviour</label>
+		<label for="reload-option-select">Select refresh/reload behaviour</label>
 		<select class="select2" id="reload-option-select">
 			<option value="reload-none">No refresh/reload</option>
 			<option value="reload-selector">Partial page refresh</option>
@@ -91,15 +100,15 @@
 		</select>
 	</div>
 	<div class="option-tile reload-options hidden" id="reload-selector">
-		<label>CSS selector of element to refresh</label>
+		<label for="reload-selector-input">CSS selector of element to refresh</label>
 		<input type="text" id="reload-selector-input">
 	</div>
 	<div class="option-tile reload-options hidden" id="reload-url">
-		<label>Target URL</label>
+		<label for="reload-url-input">Target URL</label>
 		<input type="text" id="reload-url-input">
 	</div>
 	<div class="option-tile reload-options hidden" id="reload-event">
-		<label>Event to fire</label>
+		<label for="reload-event-input">Event to fire</label>
 		<input type="text" id="reload-event-input">
 	</div>
 </div>

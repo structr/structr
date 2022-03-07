@@ -32,7 +32,6 @@ let StructrWS = {
 	reconnectIntervalId: undefined,
 	ping: undefined,
 
-
 	connect: () => {
 
 		try {
@@ -47,9 +46,9 @@ let StructrWS = {
 					StructrWS.ws           = undefined;
 				}
 
-				var isEnc = (window.location.protocol === 'https:');
-				var host = document.location.host;
-				var wsUrl = 'ws' + (isEnc ? 's' : '') + '://' + host + wsRoot;
+				let isEnc = (window.location.protocol === 'https:');
+				let host  = document.location.host;
+				let wsUrl = 'ws' + (isEnc ? 's' : '') + '://' + host + wsRoot;
 
 				if ('WebSocket' in window) {
 
@@ -90,19 +89,14 @@ let StructrWS = {
 				}
 
 				// Delay reconnect dialog to prevent it popping up before page reload
-				window.setTimeout(function () {
+				window.setTimeout(() => {
 
 					fastRemoveAllChildren(main[0]);
 					fastRemoveAllChildren(Structr.functionBar);
 
-					let restoreDialogText = '';
-					let dialogData = JSON.parse(LSWrapper.getItem(dialogDataKey));
-					if (dialogData && dialogData.text) {
-						restoreDialogText = '<br><br>The dialog<br><b>"' + dialogData.text + '"</b><br> will be restored after reconnect.';
-					}
-					Structr.reconnectDialog('<b>Connection lost or timed out.</b><br><br>Don\'t reload the page!' + restoreDialogText + '<br><br>Trying to reconnect... <img class="al" src="' + _Icons.getSpinnerImageAsData() + '">');
-
+					Structr.reconnectDialog();
 					Structr.reconnect();
+
 				}, 100);
 			};
 
@@ -185,7 +179,7 @@ let StructrWS = {
 
 					} else {
 
-						var codeStr = code ? code.toString() : '';
+						let codeStr = code ? code.toString() : '';
 
 						if (codeStr === '422') {
 							try {
@@ -193,8 +187,8 @@ let StructrWS = {
 							} catch (e) {}
 						}
 
-						var msgClass;
-						var requiresConfirmation = false;
+						let msgClass;
+						let requiresConfirmation = false;
 						if (codeStr.startsWith('2')) {
 							msgClass = 'success';
 						} else if (codeStr.startsWith('3')) {
@@ -213,7 +207,7 @@ let StructrWS = {
 
 						if (msg && msg.startsWith('{')) {
 
-							var msgObj = JSON.parse(msg);
+							let msgObj = JSON.parse(msg);
 
 							if (dialogBox.is(':visible')) {
 
@@ -221,19 +215,19 @@ let StructrWS = {
 
 							} else {
 
-								var node = Structr.node(msgObj.id);
+								let node = Structr.node(msgObj.id);
 
 								if (node) {
 
-									var progr = node.find('.progress');
+									let progr = node.find('.progress');
 									progr.show();
 
-									var size = parseInt(node.find('.size').text());
-									var part = msgObj.size;
+									let size = parseInt(node.find('.size').text());
+									let part = msgObj.size;
 
 									node.find('.part').text(part);
-									var pw = node.find('.progress').width();
-									var w = pw / size * part;
+									let pw = node.find('.progress').width();
+									let w = pw / size * part;
 
 									node.find('.bar').css({width: w + 'px'});
 
@@ -251,7 +245,7 @@ let StructrWS = {
 
 							if (codeStr === "404") {
 
-								var msgBuilder = new MessageBuilder().className(msgClass);
+								let msgBuilder = new MessageBuilder().className(msgClass);
 
 								if (requiresConfirmation) {
 									msgBuilder.requiresConfirmation();
@@ -271,7 +265,7 @@ let StructrWS = {
 
 							} else {
 
-								var msgBuilder = new MessageBuilder().className(msgClass).text(msg);
+								let msgBuilder = new MessageBuilder().className(msgClass).text(msg);
 
 								if (requiresConfirmation) {
 									msgBuilder.requiresConfirmation();
@@ -321,13 +315,14 @@ let StructrWS = {
 						});
 					}
 
-					var refObject = StructrModel.obj(data.id);
+					let refObject = StructrModel.obj(data.id);
 
 					if (refObject && refObject.constructor.name === 'StructrGroup') {
-						for (let entity of result) {
-							StructrModel.create(entity, data.id);
-						}
+
+						// let security handle this
+
 					} else {
+
 						for (let entity of result) {
 							StructrModel.create(entity);
 						}
@@ -409,7 +404,7 @@ let StructrWS = {
 
 				} else if (command === 'REMOVE') {
 
-					var obj = StructrModel.obj(data.id);
+					let obj = StructrModel.obj(data.id);
 					if (obj) {
 						obj.remove();
 					}
@@ -418,7 +413,7 @@ let StructrWS = {
 
 				} else if (command === 'REMOVE_CHILD') {
 
-					var obj = StructrModel.obj(data.id);
+					let obj = StructrModel.obj(data.id);
 					if (obj) {
 						obj.remove(data.data.parentId);
 					}
@@ -427,7 +422,8 @@ let StructrWS = {
 
 				} else if (command === 'CREATE' || command === 'ADD' || command === 'IMPORT') {
 
-					$(result).each(function (i, entity) {
+					for (let entity of result) {
+
 						if (command === 'CREATE' && (entity.isPage || entity.isFolder || entity.isFile || entity.isImage || entity.isVideo || entity.isUser || entity.isGroup || entity.isWidget || entity.isResourceAccess)) {
 							StructrModel.create(entity);
 						} else {
@@ -435,35 +431,30 @@ let StructrWS = {
 							if (!entity.parent && _Pages.shadowPage && entity.pageId === _Pages.shadowPage.id) {
 
 								entity = StructrModel.create(entity, null, false);
-								var el;
-								if (entity.isContent || entity.type === 'Template') {
-									el = _Elements.appendContentElement(entity, _Pages.components, true);
-								} else {
-									el = _Pages.appendElementElement(entity, _Pages.components, true);
-								}
+								let el = (entity.isContent || entity.type === 'Template') ? _Elements.appendContentElement(entity, _Pages.components, true) : _Pages.appendElementElement(entity, _Pages.components, true);
 
 								if (Structr.isExpanded(entity.id)) {
 									_Entities.ensureExpanded(el);
 								}
 
-								var synced = entity.syncedNodesIds;
+								let synced = entity.syncedNodesIds;
 
 								if (synced && synced.length) {
 
 									// Change icon
-									$.each(synced, function (i, id) {
-										var el = Structr.node(id);
-										if (el && el.length) {
-											var icon = entity.isTemplate ? _Icons.icon_shared_template : (entity.isContent ? _Icons.active_content_icon : _Icons.comp_icon);
-											el.children('.typeIcon').attr('class', 'typeIcon ' + _Icons.getFullSpriteClass(icon));
-											_Entities.removeExpandIcon(el);
+									for (let syncedId of synced) {
+										let syncedEl = Structr.node(syncedId);
+										if (syncedEl && syncedEl.length) {
+											let icon = entity.isContent ? _Elements.getContentIcon(entity) : _Elements.getElementIcon(entity);
+											syncedEl.children('.typeIcon').attr('class', 'typeIcon ' + _Icons.getFullSpriteClass(icon));
+											_Entities.removeExpandIcon(syncedEl);
 										}
-									});
+									}
 								}
 							}
 						}
 
-						if (command === 'CREATE' && entity.isPage && lastMenuEntry === _Pages._moduleName) {
+						if (command === 'CREATE' && entity.isPage && Structr.lastMenuEntry === _Pages._moduleName) {
 
 							if (entity.createdBy === StructrWS.userId) {
 								setTimeout(function () {
@@ -478,17 +469,15 @@ let StructrWS = {
 							} else {
 								_Pages.previews.showPreviewInIframeIfVisible(entity.pageId);
 							}
-
 						}
 
 						StructrModel.callCallback(data.callback, entity);
-
-					});
+					}
 
 				} else if (command === 'PROGRESS') {
 
 					if (dialogMsg.is(':visible')) {
-						var msgObj = JSON.parse(data.message);
+						let msgObj = JSON.parse(data.message);
 						dialogMsg.html('<div class="infoBox info">' + msgObj.message + '</div>');
 					}
 
@@ -552,7 +541,6 @@ let StructrWS = {
 				StructrWS.ws.length = 0;
 			}
 		}
-
 	},
 
 	sendObj: (obj, callback) => {
@@ -575,5 +563,4 @@ let StructrWS = {
 		}
 		return true;
 	}
-
 };

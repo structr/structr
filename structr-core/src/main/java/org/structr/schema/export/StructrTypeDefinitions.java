@@ -19,28 +19,28 @@
 package org.structr.schema.export;
 
 import java.net.URI;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
-import org.structr.schema.openapi.common.OpenAPIReference;
-import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
+import org.structr.core.property.FunctionProperty;
+import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.openapi.common.OpenAPIAllOf;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
+import org.structr.schema.openapi.request.OpenAPIRequestResponse;
+import org.structr.schema.openapi.result.*;
+import org.structr.schema.openapi.schema.*;
 
 /**
  *
@@ -50,9 +50,12 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrTypeDefinitions.class);
 
+
 	private final Set<StructrRelationshipTypeDefinition> relationships = new TreeSet<>();
 	private final Set<StructrTypeDefinition> typeDefinitions           = new TreeSet<>();
 	private StructrSchemaDefinition root                               = null;
+
+	public static Set<String> openApiSerializedSchemaTypes = new TreeSet<String>();
 
 	StructrTypeDefinitions(final StructrSchemaDefinition root) {
 		this.root = root;
@@ -157,49 +160,212 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		return map;
 	}
 
-	public Map<String, Object> serializeOpenAPI(final Map<String, Object> schemas, final String tag, final String viewName) {
+	public Map<String, Object> serializeOpenAPI(final Map<String, Object> schemas, final String tag) {
+		final Map<String, Object> map = new TreeMap<>();
+
+		map.putAll(this.serializeOpenAPIForTypes(typeDefinitions, schemas, tag, null));
+
+		schemas.putAll(map);
+
+		while (!StructrTypeDefinitions.openApiSerializedSchemaTypes.isEmpty()) {
+
+			Set<StructrTypeDefinition> typesInReferencesButNotInOutputYet = new HashSet<>();
+			for (final String schemaReference : StructrTypeDefinitions.openApiSerializedSchemaTypes) {
+				for (StructrTypeDefinition type : typeDefinitions) {
+					if (!schemas.containsKey(schemaReference) && StringUtils.equals(type.getName(), schemaReference)) {
+						typesInReferencesButNotInOutputYet.add(type);
+					}
+				}
+			}
+
+			StructrTypeDefinitions.openApiSerializedSchemaTypes.clear();
+
+			final Map<String, Object> otherReferencesMap = new TreeMap<>();
+			if (!typesInReferencesButNotInOutputYet.isEmpty()) {
+				otherReferencesMap.putAll(serializeOpenAPIForTypes(typesInReferencesButNotInOutputYet, schemas, tag, PropertyView.Public));
+			}
+
+			schemas.putAll(otherReferencesMap);
+		}
+
+		// now generate the response schemas for each type schema reference
+		// Single and Multiple ReesponseSchemas only differ in the 'result' key. It's either object or array.
+		Iterator<Entry<String, Object>> iterator = schemas.entrySet().iterator();
+		Map<String, Object> additionalSchemas = new HashMap<>();
+		while (iterator.hasNext()) {
+			Entry<String, Object> entry = iterator.next();
+
+			additionalSchemas.put(entry.getKey() + "SingleResponseSchema", new OpenAPIAllOf(
+				new OpenAPISchemaReference("GetBaseResponse"),
+				new OpenAPISingleResponseSchema(new OpenAPISchemaReference(entry.getKey()))
+			));
+
+			additionalSchemas.put(entry.getKey() + "MultipleResponseSchema", new OpenAPIAllOf(
+				new OpenAPISchemaReference("GetBaseResponse"),
+				new OpenAPIMultipleResponseSchema(new OpenAPISchemaReference(entry.getKey()))
+			));
+		}
+
+		StructrTypeDefinitions.openApiSerializedSchemaTypes.clear();
+		schemas.putAll(additionalSchemas);
+
+
+		return schemas;
+	}
+
+	public Map<String, Object> serializeOpenAPIResponses(final Map<String, Object> responses, final String tag) {
+		final Map<String, Object> map = new TreeMap<>();
+
+		for (final StructrTypeDefinition<?> type : typeDefinitions) {
+
+			if (type.isSelected(tag) && type.includeInOpenAPI()) {
+
+				ConfigurationProvider configuration = StructrApp.getConfiguration();
+				Class typeClass = configuration.getNodeEntityClass(type.name);
+
+				if (typeClass == null) {
+					Map<String, Class> interfaces = configuration.getInterfaces();
+					typeClass = interfaces.get(type.name);
+				};
+
+				Set<String> viewNames = configuration.getPropertyViewsForType(typeClass);
+				viewNames = viewNames.stream().filter(viewName ->  StringUtils.equals(viewName, "all") || !StructrTypeDefinition.VIEW_BLACKLIST.contains(viewName)).collect(Collectors.toSet());
+
+				for (String viewName : viewNames) {
+
+					final String typeName = type.getName() + (viewName == null || StringUtils.equals(PropertyView.Public, viewName) ? "" : "." + viewName);
+
+					String viewNameStringForReference = StringUtils.equals(viewName, PropertyView.Public) ? "" : "." + viewName;
+					map.put(typeName + "MultipleResponse",
+							new OpenAPIRequestResponse(
+								"The request was executed successfully.",
+								new OpenAPISchemaReference(type.getName() + viewNameStringForReference + "MultipleResponseSchema"),
+								new OpenAPIExampleAnyResult(List.of(), true),
+								null,
+								false,
+								null
+							)
+					);
+
+					map.put(typeName + "SingleResponse",
+						new OpenAPIRequestResponse("The request was executed successfully.",
+							new OpenAPISchemaReference(type.getName() + viewNameStringForReference + "SingleResponseSchema"),
+							new OpenAPIExampleAnyResult(Map.of(), true),
+							null,
+							false,
+							null
+						)
+					);
+				}
+
+				for (final StructrMethodDefinition method : type.methods) {
+
+					if (method.isSelected(tag)) {
+
+						map.put(type.getName() + "." + method.getName() + "MethodResponse",
+							new OpenAPIRequestResponse("The request was executed successfully.",
+								new OpenAPISchemaReference(type.getName() + "." + method.getName() + "ResponseSchema", null)
+							)
+						);
+					}
+				}
+			}
+		}
+
+		return map;
+	}
+
+	private Set<String> getViewNamesOfType (StructrTypeDefinition type, final String view) {
+
+		ConfigurationProvider configuration = StructrApp.getConfiguration();
+		Class typeClass = configuration.getNodeEntityClass(type.name);
+
+		if (typeClass == null) {
+			Map<String, Class> interfaces = configuration.getInterfaces();
+			typeClass = interfaces.get(type.name);
+		};
+
+		Set<String> viewNames = configuration.getPropertyViewsForType(typeClass);
+		viewNames = viewNames.stream().filter(viewName -> {
+			if (StringUtils.isNotEmpty(view) && !StringUtils.equals(view, viewName)) {
+				return false;
+			}
+			return StringUtils.equals(viewName, "all") || !StructrTypeDefinition.VIEW_BLACKLIST.contains(viewName);
+		}).collect(Collectors.toSet());
+		return viewNames;
+	}
+
+	private Map<String, Object> serializeOpenAPIForTypes (Set<StructrTypeDefinition> typeDefinitions, final Map<String, Object> schemas, final String tag, String view) {
 
 		final Map<String, Object> map = new TreeMap<>();
 
-		for (final StructrTypeDefinition type : typeDefinitions) {
+		for (final StructrTypeDefinition<?> type : typeDefinitions) {
+			final Set<String> typeWhiteList = new LinkedHashSet<>(Arrays.asList("User", "File", "Image", "NodeInterface"));
 
-			if (type.isSelected(tag)) {
+			if (StringUtils.isNotEmpty(view) || typeWhiteList.contains(type.getName()) || type.isSelected(tag) && type.includeInOpenAPI()) {
 
-				final List<Map<String, Object>> allOf = new LinkedList<>();
-				final Map<String, Object> typeMap     = new TreeMap<>();
-				final String typeName                 = type.getName() + (viewName == null || "public".equals(viewName) ? "" : "." + viewName);
+				Set<String> viewNames = this.getViewNamesOfType(type, view);
 
-				map.put(typeName, typeMap);
-				typeMap.put("allOf", allOf);
+				for (String viewName : viewNames) {
 
-				// base type must be resolve and added as well
-				final URI baseTypeReference = type.getExtends();
-				if (baseTypeReference != null) {
+					final List<Map<String, Object>> allOf = new LinkedList<>();
+					final Map<String, Object> typeMap = new TreeMap<>();
+					final String typeName = type.getName() + (viewName == null || StringUtils.equals(PropertyView.Public, viewName) ? "" : "." + viewName);
 
-					final Object def = root.resolveURI(baseTypeReference);
-					if (def != null && def instanceof StructrTypeDefinition) {
+					map.put(typeName, typeMap);
+					typeMap.put("allOf", allOf);
 
-						final StructrTypeDefinition baseType = (StructrTypeDefinition)def;
-						if (!schemas.containsKey(baseType.getName())) {
+					// base type must be resolve and added as well, but only if base type isn't included in tag itself.
+					final URI baseTypeReference = type.getExtends();
 
-							schemas.putAll(new OpenAPIStructrTypeSchemaOutput(baseType, viewName, 0));
+					if (StringUtils.isEmpty(view) && baseTypeReference != null && !StringUtils.equals(viewName, PropertyView.All)) {
+
+						final Object def = root.resolveURI(baseTypeReference);
+						if (def instanceof StructrTypeDefinition) {
+							final StructrTypeDefinition baseType = (StructrTypeDefinition) def;
+							if (!schemas.containsKey(baseType.getName()) && !baseType.includeInOpenAPI()) {
+								OpenAPIStructrTypeSchemaOutput openAPIStructrTypeSchemaOutput = new OpenAPIStructrTypeSchemaOutput(baseType, PropertyView.Public, 0);
+								schemas.put(baseType.getName(), openAPIStructrTypeSchemaOutput);
+							}
 						}
 					}
+
+					final String reference = type.resolveTypeReferenceForOpenAPI(type.getExtends());
+					if (StringUtils.isEmpty(view) && reference != null ) {
+
+						allOf.add(new OpenAPISchemaReference(reference, PropertyView.Public));
+
+					} else if (StringUtils.isEmpty(view)) {
+
+						// default base type AbstractNode
+						allOf.add(new OpenAPISchemaReference("#/components/schemas/AbstractNode", PropertyView.Public));
+					}
+
+					// add actual type definition
+					allOf.add(new OpenAPIStructrTypeSchemaOutput(type, viewName, 0));
+
+					// genereate schema for readFunction returnType
+					type.visitProperties(key -> {
+
+						if (key instanceof FunctionProperty && StringUtils.isEmpty(key.typeHint())) {
+							map.put(
+								type.getName() + "." + key.jsonName() + "PropertySchema",
+								key.describeOpenAPIOutputSchema(typeName, viewName)
+							);
+						}
+
+					}, viewName);
 				}
 
-				final String reference = type.resolveTypeReferenceForOpenAPI(type.getExtends());
-				if (reference != null) {
+				for (final StructrMethodDefinition method : type.methods) {
 
-					allOf.add(new OpenAPIReference(reference, viewName));
+					if (method.isSelected(tag)) {
 
-				} else {
-
-					// default base type AbstractNode
-					allOf.add(new OpenAPIReference("#/components/schemas/AbstractNode", PropertyView.Public));
+						map.put(type.getName() + "." + method.getName() + "ResponseSchema",
+								method.getOpenAPISuccessResponse()
+						);
+					}
 				}
-
-				// add actual type definition
-				schemas.putAll(new OpenAPIStructrTypeSchemaOutput(type, viewName, 0));
 			}
 		}
 
@@ -212,9 +378,11 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 		for (final StructrTypeDefinition type : typeDefinitions) {
 
-			if (type.isSelected(tag)) {
+			if (type.isSelected(tag) && (StringUtils.isNotBlank(tag) && type.includeInOpenAPI())) {
 
-				map.putAll(type.serializeOpenAPIOperations(tag));
+				Set<String> viewNames = this.getViewNamesOfType(type, null);
+
+				map.putAll(type.serializeOpenAPIOperations(tag, viewNames));
 			}
 		}
 

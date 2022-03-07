@@ -18,7 +18,7 @@
  */
 package org.structr.schema.openapi.operation.maintenance;
 
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
@@ -56,16 +56,16 @@ public class OpenAPIMaintenanceOperationChangeNodePropertyKey extends LinkedHash
                 // request body
                 new OpenAPIRequestResponse(
                         "Request body",
-			new OpenAPIObjectSchema(
-                        	new OpenAPIPrimitiveSchema("Source key to migrate the value from", "oldKey", "string", null, "surname"),
-				new OpenAPIPrimitiveSchema("target key to migrate the value to",   "newKey", "string", null, "lastName")
-                        )
+			    new OpenAPIObjectSchema(
+                        new OpenAPIPrimitiveSchema("Source key to migrate the value from", "oldKey", "string", null, "surname", false),
+                        new OpenAPIPrimitiveSchema("target key to migrate the value to",   "newKey", "string", null, "lastName", false)
+                    )
                 ),
 
                 // responses
                 Map.of(
-                        "200", new OpenAPIReference("#/components/responses/ok"),
-                        "401", new OpenAPIReference("#/components/responses/unauthorized")
+                        "200", new OpenAPISchemaReference("#/components/responses/ok"),
+                        "401", new OpenAPISchemaReference("#/components/responses/unauthorized")
                 )
         ));
 

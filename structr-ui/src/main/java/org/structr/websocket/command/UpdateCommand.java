@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.PasswordPolicyViolationException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -145,9 +146,14 @@ public class UpdateCommand extends AbstractCommand {
 				}
 			}
 
+		} catch (PasswordPolicyViolationException ppve) {
+
+			logger.warn("Could not update node: {}", ppve.getMessage());
+			getWebSocket().send(MessageBuilder.status().code(ppve.getStatus()).message(ppve.toString()).build(), true);
+
 		} catch (FrameworkException ex) {
 
-			logger.warn("Exception occured", ex);
+			logger.warn("Exception occurred", ex);
 			getWebSocket().send(MessageBuilder.status().code(ex.getStatus()).message(ex.getMessage()).build(), true);
 		}
 	}

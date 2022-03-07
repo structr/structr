@@ -42,8 +42,8 @@ export class FlowAction extends FlowNode {
                     control.name = "Script";
 
                     element.addEventListener('focus', ()=> {
-                        document.dispatchEvent(new CustomEvent('floweditor.internal.openeditor', {detail: {element: element}}));
-                        document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: {element: element, nodeType: "Action"}}));
+                        // document.dispatchEvent(new CustomEvent('floweditor.internal.openeditor', {detail: {element: element}}));
+                        document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: { entity: scopedDbNode, propertyName: 'script', element: element, nodeType: "Action" }}));
                     });
 
                     element.addEventListener('mousedown', event => {

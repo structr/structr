@@ -36,6 +36,7 @@ import org.structr.common.Filter;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.util.Writable;
 
@@ -48,16 +49,11 @@ public abstract class NodeServiceCommand extends Command {
 	private static final ArrayBlockingQueue<String> uuidQueue = new ArrayBlockingQueue<>(100000);
 
 	protected final Map<String, String> customHeaders = new LinkedHashMap();
-	protected final List<Object> customPayload        = new LinkedList<>();
 	protected SecurityContext securityContext         = null;
 	private Writable logWritable                      = null;
 
 	public Map<String, String> getCustomHeaders () {
 		return customHeaders;
-	}
-
-	public List<Object> getPayload () {
-		return customPayload;
 	}
 
 	@Override
@@ -70,113 +66,135 @@ public abstract class NodeServiceCommand extends Command {
 		this.securityContext = (SecurityContext)getArgument("securityContext");
 	}
 
-	/**
-	 * Executes the given operation on all nodes in the given list.
-	 *
-	 * @param <T>
-	 * @param securityContext
-	 * @param iterable the iterable that provides the nodes to operate on
-	 * @param commitCount
-	 * @param description
-	 * @param operation the operation to execute
-	 * @return the number of nodes processed
-	 */
-	public <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterable<T> iterable, final long commitCount, String description, final BulkGraphOperation<T> operation) {
-		return bulkGraphOperation(securityContext, iterable, commitCount, description, operation, true);
-	}
-	/**
-	 * Executes the given operation on all nodes in the given list.
-	 *
-	 * @param <T>
-	 * @param securityContext
-	 * @param iterable the iterator that provides the nodes to operate on
-	 * @param commitCount
-	 * @param description
-	 * @param operation the operation to execute
-	 * @param validation
-	 * @return the number of nodes processed
-	 */
-	public <T> long bulkGraphOperation(final SecurityContext securityContext, final Iterable<T> iterable, final long commitCount, String description, final BulkGraphOperation<T> operation, boolean validation) {
+	public <T> long bulkGraphOperation(final SecurityContext securityContext, final Query query, final int commitCount, String description, final BulkGraphOperation<T> operation) {
 
 		final Predicate<Long> condition = operation.getCondition();
 		final App app                   = StructrApp.getInstance(securityContext);
 		final boolean doValidation      = operation.doValidation();
 		final boolean doCallbacks       = operation.doCallbacks();
 		final boolean doNotifications   = operation.doNotifications();
-		Iterator<T> iterator            = null;
 		long objectCount                = 0L;
 		boolean active                  = true;
+		int page                        = 1;
 
+		if (query == null) {
 
-		try (final Tx outerTx = app.tx(doValidation, doCallbacks, doNotifications)) {
+			info("{}: {} objects processed", description, 0);
+			return 0;
+		}
 
-			// fetch iterator only once
-			if (iterator == null) {
-				iterator = iterable.iterator();
-			}
+		// set page size to commit count
+		query.getQueryContext().overrideFetchSize(commitCount);
+		query.pageSize(commitCount);
 
-			while (active) {
+		while (active) {
 
-				active = false;
+			active = false;
 
-				try (final Tx tx = app.tx(doValidation, doCallbacks, doNotifications)) {
+			try (final Tx tx = app.tx(doValidation, doCallbacks, doNotifications)) {
 
-					while (iterator.hasNext() && (condition == null || condition.accept(objectCount))) {
+				query.page(page++);
 
-						T node = iterator.next();
-						active = true;
+				final Iterable<T> iterable = query.getResultStream();
+				final Iterator<T> iterator = iterable.iterator();
 
-						try {
+				while (iterator.hasNext() && (condition == null || condition.accept(objectCount))) {
 
-							boolean success = operation.handleGraphObject(securityContext, node);
-							if (success) {
-								objectCount++;
-							}
+					T node = iterator.next();
+					active = true;
 
-						} catch (Throwable t) {
+					try {
 
-							operation.handleThrowable(securityContext, t, node);
+						boolean success = operation.handleGraphObject(securityContext, node);
+						if (success) {
+							objectCount++;
 						}
 
-						// commit transaction after commitCount
-						if ((objectCount % commitCount) == 0) {
-							break;
-						}
+					} catch (Throwable t) {
+
+						operation.handleThrowable(securityContext, t, node);
 					}
 
-					tx.success();
-
-				} catch (Throwable t) {
-
-					// bulk transaction failed, what to do?
-					operation.handleTransactionFailure(securityContext, t);
+					// commit transaction after commitCount
+					if ((objectCount % commitCount) == 0) {
+						break;
+					}
 				}
 
-				if (description != null) {
-					info("{}: {} objects processed", description, objectCount);
-				}
+				tx.success();
+
+			} catch (Throwable t) {
+
+				// bulk transaction failed, what to do?
+				operation.handleTransactionFailure(securityContext, t);
 			}
 
-			outerTx.success();
-		} catch (Throwable t) {
-
-			// bulk transaction failed, what to do?
-			operation.handleTransactionFailure(securityContext, t);
+			if (description != null) {
+				info("{}: {} objects processed", description, objectCount);
+			}
 		}
 
 		return objectCount;
 	}
 
-	/**
-	 * Executes the given transaction until the stop condition evaluates to
-	 * <b>true</b>.
-	 *
-	 * @param securityContext
-	 * @param commitCount the number of executions after which the transaction is committed
-	 * @param transaction the operation to execute
-	 * @param stopCondition
-	 * @throws FrameworkException
-	 */
+	public <T> long bulkOperation(final SecurityContext securityContext, final Iterable<T> iterable, final int commitCount, String description, final BulkGraphOperation<T> operation) {
+
+		final Predicate<Long> condition = operation.getCondition();
+		final App app                   = StructrApp.getInstance(securityContext);
+		final boolean doValidation      = operation.doValidation();
+		final boolean doCallbacks       = operation.doCallbacks();
+		final boolean doNotifications   = operation.doNotifications();
+		final Iterator<T> iterator      = iterable.iterator();
+		long objectCount                = 0L;
+		boolean active                  = true;
+		int page                        = 0;
+
+
+		while (active) {
+
+			active = false;
+
+			try (final Tx tx = app.tx(doValidation, doCallbacks, doNotifications)) {
+
+				while (iterator.hasNext() && (condition == null || condition.accept(objectCount))) {
+
+					T node = iterator.next();
+					active = true;
+
+					try {
+
+						boolean success = operation.handleGraphObject(securityContext, node);
+						if (success) {
+							objectCount++;
+						}
+
+					} catch (Throwable t) {
+
+						operation.handleThrowable(securityContext, t, node);
+					}
+
+					// commit transaction after commitCount
+					if ((objectCount % commitCount) == 0) {
+						break;
+					}
+				}
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				// bulk transaction failed, what to do?
+				operation.handleTransactionFailure(securityContext, t);
+			}
+
+			if (description != null) {
+				info("{}: {} objects processed", description, objectCount);
+			}
+		}
+
+		return objectCount;
+	}
+
 	public void bulkTransaction(final SecurityContext securityContext, final long commitCount, final StructrTransaction transaction, final Predicate<Long> stopCondition) throws FrameworkException {
 
 		final App app                = StructrApp.getInstance(securityContext);
@@ -261,6 +279,43 @@ public abstract class NodeServiceCommand extends Command {
 			} catch (IOException ignore) {}
 
 		}
+	}
+
+	protected Query getNodeQuery(final String nodeType, final boolean returnAllNodesQueryIfTypeNotFound) {
+
+		if (nodeType != null) {
+
+			final Class entityType = StructrApp.getConfiguration().getNodeEntityClass(nodeType);
+			if (entityType != null) {
+
+
+				return StructrApp.getInstance().nodeQuery(entityType);
+			}
+		}
+
+		if (returnAllNodesQueryIfTypeNotFound) {
+			return StructrApp.getInstance().nodeQuery();
+		}
+
+		return null;
+	}
+
+	protected Query getRelationshipQuery(final String relationshipType, final boolean returnAllRelationshipsQueryIfTypeNotFound) {
+
+		if (relationshipType != null) {
+
+			final Class entityType = StructrApp.getConfiguration().getRelationshipEntityClass(relationshipType);
+			if (entityType != null) {
+
+				return StructrApp.getInstance().relationshipQuery(entityType);
+			}
+		}
+
+		if (returnAllRelationshipsQueryIfTypeNotFound) {
+			return StructrApp.getInstance().relationshipQuery();
+		}
+
+		return null;
 	}
 
 	// create uuid producer that fills the queue

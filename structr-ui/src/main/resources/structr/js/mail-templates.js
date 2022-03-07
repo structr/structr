@@ -28,36 +28,97 @@ let _MailTemplates = {
 	mailTemplateDetailContainer: undefined,
 	mailTemplateDetailForm: undefined,
 	previewElement: undefined,
-	editor: undefined,
 
-	mailTemplatesResizerLeftKey: 'structrMailTemplatesResizerLeftKey_' + location.port,
-	mailTemplateSelectedElementKey: 'structrMailTemplatesSelectedElementKey_' + location.port,
+	mailTemplatesResizerLeftKey:     'structrMailTemplatesResizerLeftKey_' + location.port,
+	mailTemplateSelectedElementKey:  'structrMailTemplatesSelectedElementKey_' + location.port,
+	mailTemplatesPreselectLocaleKey: 'structrMailTemplatesPreselectLocaleKey_' + location.port,
 
-	init: function() {},
-	unload: function() {},
-	onload: function() {
+	init: () => {
+		$(window).off('resize').on('resize', _MailTemplates.resize);
+	},
+	unload: () => {},
+	onload: () => {
+
+		_MailTemplates.init();
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('mail-templates'));
 
-		Structr.fetchHtmlTemplate('mail-templates/main', {}, function(html) {
+		Structr.fetchHtmlTemplate('mail-templates/main', {}, (html) => {
+
 			main.append(html);
 
-			Structr.fetchHtmlTemplate('mail-templates/functions', {}, function (html) {
+			Structr.fetchHtmlTemplate('mail-templates/functions', {}, (html) => {
 
 				Structr.functionBar.innerHTML = html;
 
 				UISettings.showSettingsForCurrentModule();
 
-				let namePreselect = document.getElementById('mail-template-name-preselect');
+				let newMailTemplateForm = Structr.functionBar.querySelector('#create-mail-template-form');
+				let namePreselect       = document.getElementById('mail-template-name-preselect');
+				let localePreselect     = document.getElementById('mail-template-locale-preselect');
 
-				Structr.functionBar.querySelector('#create-mail-template-form').addEventListener('submit', async (e) => {
+				localePreselect.value = LSWrapper.getItem(_MailTemplates.mailTemplatesPreselectLocaleKey) || 'en';
+
+				newMailTemplateForm.addEventListener('submit', async (e) => {
 					e.preventDefault();
 
 					_MailTemplates.showMain();
-					await _MailTemplates.createObject('MailTemplate', { name: namePreselect.value }, this, (data) => {
-						let id = data.result[0];
-						_MailTemplates.showMailTemplateDetails(id, true);
+
+					let preselectLocalesString = localePreselect.value.trim();
+
+					LSWrapper.setItem(_MailTemplates.mailTemplatesPreselectLocaleKey, preselectLocalesString);
+
+					let mtData = preselectLocalesString.split(',').map((l) => {
+						return {
+							name: namePreselect.value,
+							locale: l.trim()
+						}
 					});
+
+					let response = await _MailTemplates.createMailTemplates(mtData, newMailTemplateForm);
+				});
+
+				let createRegistrationTemplatesLink = Structr.functionBar.querySelector('#create-registration-templates');
+				createRegistrationTemplatesLink.addEventListener('click', async (e) => {
+					e.preventDefault();
+
+					let defaultRegistrationTemplates = [
+						{ name: 'CONFIRM_REGISTRATION_SENDER_ADDRESS',	text: 'structr-mail-daemon@localhost' },
+						{ name: 'CONFIRM_REGISTRATION_SENDER_NAME',		text: 'Structr Mail Daemon' },
+						{ name: 'CONFIRM_REGISTRATION_SUBJECT',			text: 'Welcome to Structr, please finalize registration' },
+						{ name: 'CONFIRM_REGISTRATION_TEXT_BODY',		text: 'Go to ${link} to finalize registration.' },
+						{ name: 'CONFIRM_REGISTRATION_HTML_BODY',		text: '<div>Click <a href=\'${link}\'>here</a> to finalize registration.</div>' },
+						{ name: 'CONFIRM_REGISTRATION_TARGET_PAGE',		text: '/register_thanks' },
+						{ name: 'CONFIRM_REGISTRATION_ERROR_PAGE',		text: '/register_error' },
+					];
+
+					let mtData = localePreselect.value.trim().split(',').map((l) => {
+						return defaultRegistrationTemplates.map(mt => Object.assign({ locale: l.trim() }, mt));
+					});
+					mtData = [].concat(...mtData);
+
+					let response = await _MailTemplates.createMailTemplates(mtData, createRegistrationTemplatesLink);
+				});
+
+				let createResetPasswordTemplatesLink = Structr.functionBar.querySelector('#create-reset-password-templates');
+				createResetPasswordTemplatesLink.addEventListener('click', async (e) => {
+					e.preventDefault();
+
+					let defaultResetPasswordTemplates = [
+						{ name: 'RESET_PASSWORD_SENDER_ADDRESS',	text: 'structr-mail-daemon@localhost' },
+						{ name: 'RESET_PASSWORD_SENDER_NAME',		text: 'Structr Mail Daemon' },
+						{ name: 'RESET_PASSWORD_SUBJECT',			text: 'Request to reset your Structr password' },
+						{ name: 'RESET_PASSWORD_TEXT_BODY',			text: 'Go to ${link} to reset your password.' },
+						{ name: 'RESET_PASSWORD_HTML_BODY',			text: '<div>Click <a href=\'${link}\'>here</a> to reset your password.</div>' },
+						{ name: 'RESET_PASSWORD_TARGET_PAGE',		text: '/reset-password' }
+					];
+
+					let mtData = localePreselect.value.trim().split(',').map((l) => {
+						return defaultResetPasswordTemplates.map(mt => Object.assign({ locale: l.trim() }, mt));
+					});
+					mtData = [].concat(...mtData);
+
+					let response = await _MailTemplates.createMailTemplates(mtData, createResetPasswordTemplatesLink);
 				});
 
 				_MailTemplates.mailTemplatesList           = document.querySelector('#mail-templates-table tbody');
@@ -67,18 +128,7 @@ let _MailTemplates = {
 
 				_MailTemplates.listMailTemplates();
 
-				_MailTemplates.mailTemplateDetailContainer.querySelector('button.save').addEventListener('click', function() {
-
-					let data = _MailTemplates.getObjectDataFromElement(_MailTemplates.mailTemplateDetailForm);
-					let id   = _MailTemplates.mailTemplateDetailForm.dataset['mailTemplateId'];
-
-					_MailTemplates.updateObject('MailTemplate', id, data, this, null, function() {
-
-						let rowInList = _MailTemplates.mailTemplatesList.querySelector('#mail-template-' + id);
-						_MailTemplates.populateMailTemplatePagerRow(rowInList, data);
-						_MailTemplates.updatePreview();
-					});
-				});
+				_MailTemplates.mailTemplateDetailContainer.querySelector('button.save').addEventListener('click', _MailTemplates.saveMailTemplate);
 
 				Structr.unblockMenu(100);
 
@@ -88,7 +138,7 @@ let _MailTemplates = {
 			});
 		});
 	},
-	getContextMenuElements: function (div, entity) {
+	getContextMenuElements: (div, entity) => {
 
 		let elements = [];
 
@@ -154,7 +204,6 @@ let _MailTemplates = {
 		}
 	},
 	resize: () => {
-
 		_MailTemplates.moveResizer();
 		Structr.resize();
 	},
@@ -169,13 +218,10 @@ let _MailTemplates = {
 			document.querySelector('.column-resizer').style.left                  = left + 'px';
 			_MailTemplates.mailTemplateDetailContainer.style.width                        = 'calc(100% - ' + left + 'px - 3rem)';
 
+			_Editors.resizeVisibleEditors();
+
 			return true;
 		});
-	},
-	updatePreview: () => {
-
-		let value = _MailTemplates.editor ? _MailTemplates.editor.getValue() : document.getElementById('mail-template-text').value;
-		_MailTemplates.previewElement.contentDocument.documentElement.innerHTML = value;
 	},
 	listMailTemplates: () => {
 
@@ -185,14 +231,12 @@ let _MailTemplates = {
 
 		_MailTemplates.mailTemplatesPager = _Pager.addPager('mail-templates', pagerEl, false, 'MailTemplate', 'ui', _MailTemplates.processPagerData);
 
-		_MailTemplates.mailTemplatesPager.cleanupFunction = function () {
+		_MailTemplates.mailTemplatesPager.cleanupFunction = () => {
 			_MailTemplates.mailTemplatesList.innerHTML = '';
 		};
-		_MailTemplates.mailTemplatesPager.pager.append('Filters: <input type="text" class="filter w100 mail-template-name" data-attribute="name" placeholder="Name" />');
-		_MailTemplates.mailTemplatesPager.pager.append('<input type="text" class="filter w100 mail-template-locale" data-attribute="locale" placeholder="Locale" />');
+		_MailTemplates.mailTemplatesPager.pager.append('Filters: <input type="text" class="filter w100 mail-template-name" data-attribute="name" placeholder="Name">');
+		_MailTemplates.mailTemplatesPager.pager.append('<input type="text" class="filter w100 mail-template-locale" data-attribute="locale" placeholder="Locale">');
 		_MailTemplates.mailTemplatesPager.activateFilterElements();
-
-		pagerEl.append('<div style="clear:both;"></div>');
 	},
 	processPagerData: (pagerData) => {
 		if (pagerData && pagerData.length) {
@@ -203,7 +247,7 @@ let _MailTemplates = {
 
 		_MailTemplates.showMain();
 
-		Structr.fetchHtmlTemplate('mail-templates/row.type', { mailTemplate: mailTemplate }, function(html) {
+		Structr.fetchHtmlTemplate('mail-templates/row.type', { mailTemplate: mailTemplate }, (html) => {
 
 			let row = Structr.createSingleDOMElementFromHTML(html);
 
@@ -216,7 +260,7 @@ let _MailTemplates = {
 			});
 
 			_Elements.enableContextMenuOnElement($(row), mailTemplate);
-			_Entities.appendContextMenuIcon($(row.querySelector('.actions')), mailTemplate, true);
+			_Entities.appendContextMenuIcon($(row.querySelector('.icons-container')), mailTemplate, true);
 
 			let lastSelectedMailTemplateId = LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey);
 			if (lastSelectedMailTemplateId === mailTemplate.id) {
@@ -239,11 +283,9 @@ let _MailTemplates = {
 			el.textContent = ((val !== null) ? val : '');
 		}
 	},
-	getObjectDataFromElement: function(element) {
+	getObjectDataFromElement: (element) => {
 
 		let data = {};
-
-		_MailTemplates.editor.save();
 
 		for (let el of element.querySelectorAll('.property')) {
 
@@ -256,21 +298,20 @@ let _MailTemplates = {
 			}
 		}
 
+		let editor = _Editors.getEditorInstanceForIdAndProperty(data.id, 'text');
+		data.text = editor.getValue();
+
 		return data;
 	},
-	showMailTemplateDetails: function(mailTemplateId, isCreate) {
+	showMailTemplateDetails: (mailTemplateId, isCreate) => {
 
-		Command.get(mailTemplateId, '', function(mt) {
+		Command.get(mailTemplateId, '', (mt) => {
 
 			_MailTemplates.mailTemplateDetailContainer.style.display = null;
 
 			_MailTemplates.mailTemplateDetailForm.dataset['mailTemplateId'] = mailTemplateId;
 
 			LSWrapper.setItem(_MailTemplates.mailTemplateSelectedElementKey, mailTemplateId);
-
-			if (_MailTemplates.editor) {
-				_MailTemplates.editor.toTextArea();
-			}
 
 			for (let el of _MailTemplates.mailTemplateDetailForm.querySelectorAll('.property')) {
 
@@ -284,63 +325,84 @@ let _MailTemplates = {
 				}
 			}
 
-			_MailTemplates.activateEditor();
-			_MailTemplates.updatePreview();
+			let editor = _MailTemplates.activateEditor(mt);
+			_MailTemplates.updatePreview(editor.getValue());
 
 			if (isCreate === true) {
 				_MailTemplates.mailTemplatesPager.refresh();
 			}
 		});
 	},
-	activateEditor: () => {
+	activateEditor: (mt) => {
 
-		let templateContentTextarea = document.getElementById('mail-template-text');
-		_MailTemplates.editor = CodeMirror.fromTextArea(templateContentTextarea, Structr.getCodeMirrorSettings({
-			lineNumbers: true,
-			lineWrapping: false,
-			indentUnit: 4,
-			tabSize: 4,
-			indentWithTabs: false
-		}));
+		let initialText = mt.text || '';
+
+		let getLanguageForMailTemplateText = (text) => {
+			return (text.trim().charAt(0) === '<') ? 'html' : 'text';
+		}
+
+		let mailTemplateMonacoConfig = {
+			initialText: initialText,
+			language: getLanguageForMailTemplateText(initialText),
+			lint: true,
+			autocomplete: true,
+			changeFn: (editor, entity) => {
+				_Editors.updateMonacoEditorLanguage(editor, getLanguageForMailTemplateText(editor.getValue()));
+			},
+			saveFn: (editor, entity) => {
+				_MailTemplates.saveMailTemplate();
+			},
+			wordWrap: (_Editors.getSavedEditorOptions().lineWrapping ? 'on' : 'off')
+		};
+
+		let editor = _Editors.getMonacoEditor(mt, 'text', $('#mail-template-text'), mailTemplateMonacoConfig);
+		_Editors.resizeVisibleEditors();
+
+		return editor;
 	},
-	createObject: async (type, data, element, successCallback) => {
+	updatePreview: (text) => {
+		_MailTemplates.previewElement.contentDocument.documentElement.innerHTML = text;
+	},
+	saveMailTemplate: async () => {
 
-		let response = await fetch(rootUrl + type, {
-			method: 'POST',
+		let data = _MailTemplates.getObjectDataFromElement(_MailTemplates.mailTemplateDetailForm);
+		let id   = _MailTemplates.mailTemplateDetailForm.dataset['mailTemplateId'];
+
+		let response = await fetch(rootUrl + 'MailTemplate/' + id, {
+			method: 'PUT',
 			body: JSON.stringify(data)
 		});
 
+		let $blinkTarget = $(_MailTemplates.mailTemplateDetailContainer.querySelector('button.save'));
+
 		if (response.ok) {
 
-			let data = await response.json();
+			blinkGreen($blinkTarget);
 
-			blinkGreen($('td', element));
-
-			if (typeof successCallback === "function") {
-				successCallback(data);
-			}
+			let rowInList = _MailTemplates.mailTemplatesList.querySelector('#mail-template-' + id);
+			_MailTemplates.populateMailTemplatePagerRow(rowInList, data);
+			_MailTemplates.updatePreview(data.text);
 
 		} else {
-			blinkRed($('td', element));
+			blinkRed($blinkTarget);
 		}
 	},
-	updateObject: async (type, id, newData, $el, $blinkTarget, successCallback) => {
+	createMailTemplates: async (newTpls, blinkTarget) => {
 
-		let response = await fetch(rootUrl + type + '/' + id, {
-			method: 'PUT',
-			body: JSON.stringify(newData)
+		let response = await fetch(rootUrl + 'MailTemplate', {
+			method: 'POST',
+			body: JSON.stringify(newTpls)
 		});
 
 		if (response.ok) {
 
-			blinkGreen(($blinkTarget ? $blinkTarget : $el));
+			blinkGreen($(blinkTarget));
 
-			if (typeof successCallback === "function") {
-				successCallback();
-			}
+			let data = await response.json();
+			_MailTemplates.showMailTemplateDetails(data.result[0], true);
 
 		} else {
-			blinkRed(($blinkTarget ? $blinkTarget : $el));
+			blinkRed($(blinkTarget));
 		}
 	}
 };

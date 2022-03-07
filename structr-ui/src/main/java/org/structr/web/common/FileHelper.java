@@ -19,11 +19,7 @@
 package org.structr.web.common;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -34,6 +30,13 @@ import javax.imageio.ImageIO;
 import net.openhft.hashing.Access;
 import net.openhft.hashing.LongHashFunction;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
+import org.apache.commons.compress.archivers.sevenz.SevenZFile;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -50,6 +53,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.util.Base64;
@@ -57,6 +61,7 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
+import org.structr.websocket.message.MessageBuilder;
 
 /**
  * File utility class.
@@ -96,7 +101,7 @@ public class FileHelper {
 	}
 
 	/**
-	 * Create a new image node from image data encoded in base64 format.
+	 * Create a new file node from file data encoded in base64 format.
 	 *
 	 * If the given string is an uuid of an existing file, transform it into
 	 * the target class.
@@ -138,6 +143,7 @@ public class FileHelper {
 	}
 
 	/**
+	 * Create a new file node from a given file on disk by moving existing file to referenced file location
 	 *
 	 * @param <T>
 	 * @param securityContext
@@ -151,7 +157,12 @@ public class FileHelper {
 	public static <T extends File> T createFile(final SecurityContext securityContext, final java.io.File existingFileOnDisk, final String contentType, final String name)
 		throws FrameworkException, IOException {
 
-		final T newFile = (T) StructrApp.getInstance(securityContext).create(File.class, name);
+		final PropertyMap props = new PropertyMap();
+
+		props.put(StructrApp.key(AbstractFile.class, "name"), name);
+		props.put(StructrApp.key(File.class, "contentType"), contentType);
+
+		final T newFile = (T) StructrApp.getInstance(securityContext).create(File.class, props);
 		final java.io.File newFileOnDisk = newFile.getFileOnDisk(false);
 
 		FileUtils.moveFile(existingFileOnDisk, newFileOnDisk);
@@ -309,7 +320,7 @@ public class FileHelper {
 		FileHelper.writeToFile(file, fileData);
 
 		if (updateMetadata) {
-			setFileProperties(file, contentType);
+			setFilePropertiesOnCreation(file, contentType);
 		}
 	}
 
@@ -325,18 +336,18 @@ public class FileHelper {
 	public static void setFileData(final File file, final InputStream fileStream, final String contentType) throws FrameworkException, IOException {
 
 		FileHelper.writeToFile(file, fileStream);
-		setFileProperties(file, contentType);
+		setFilePropertiesOnCreation(file, contentType);
 	}
 
 	/**
-	 * Set the contentType, checksum, size and version properties of the given fileNode
+	 * Set the contentType, checksum, size and version properties of the given fileNode on creation
 	 *
 	 * @param file
 	 * @param contentType if null, try to auto-detect content type
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static void setFileProperties (final File file, final String contentType) throws IOException, FrameworkException {
+	private static void setFilePropertiesOnCreation(final File file, final String contentType) throws IOException, FrameworkException {
 
 		final java.io.File fileOnDisk = file.getFileOnDisk(false);
 		final PropertyMap map         = new PropertyMap();
@@ -365,7 +376,7 @@ public class FileHelper {
 			}
 		}
 
-		file.setProperties(file.getSecurityContext(), map);
+		file.setProperties(file.getSecurityContext(), map, true);
 	}
 
 	/**
@@ -374,7 +385,7 @@ public class FileHelper {
 	 * @param fileNode
 	 * @throws FrameworkException
 	 */
-	public static void setFileProperties (File fileNode) throws FrameworkException {
+	private static void setFilePropertiesOnCreation(File fileNode) throws FrameworkException {
 
 		final PropertyMap properties = new PropertyMap();
 
@@ -389,7 +400,7 @@ public class FileHelper {
 		}
 
 		fileNode.unlockSystemPropertiesOnce();
-		fileNode.setProperties(fileNode.getSecurityContext(), properties);
+		fileNode.setProperties(fileNode.getSecurityContext(), properties, true);
 
 	}
 
@@ -506,7 +517,7 @@ public class FileHelper {
 				}
 
 				file.unlockSystemPropertiesOnce();
-				file.setProperties(file.getSecurityContext(), map);
+				file.setProperties(SecurityContext.getSuperUserInstance(), map);
 
 			} catch (IOException ioex) {
 				logger.warn("Unable to access {} on disk: {}", fileOnDisk, ioex.getMessage());
@@ -598,7 +609,7 @@ public class FileHelper {
 	 */
 	public static void writeToFile(final File fileNode, final byte[] data) throws FrameworkException, IOException {
 
-		setFileProperties(fileNode);
+		setFilePropertiesOnCreation(fileNode);
 
 		FileUtils.writeByteArrayToFile(fileNode.getFileOnDisk(), data);
 
@@ -614,7 +625,7 @@ public class FileHelper {
 	 */
 	public static void writeToFile(final File fileNode, final InputStream data) throws FrameworkException, IOException {
 
-		setFileProperties(fileNode);
+		setFilePropertiesOnCreation(fileNode);
 
 		try (final FileOutputStream out = new FileOutputStream(fileNode.getFileOnDisk())) {
 
@@ -812,6 +823,208 @@ public class FileHelper {
 		return folder;
 
 	}
+
+	/**
+	 * Unarchives a file in the (optional) folder with the given folder id.
+	 *
+	 * @param securityContext
+	 * @param file
+	 * @param parentFolderId
+	 * @throws ArchiveException
+	 * @throws IOException
+	 * @throws FrameworkException
+	 */
+	public static void unarchive(final SecurityContext securityContext, final File file, final String parentFolderId) throws ArchiveException, IOException, FrameworkException {
+
+		if (file == null) {
+			logger.error("Unable to unarchive file (file parameter was null).");
+			return;
+		}
+
+		Folder existingParentFolder = null;
+		final App app               = StructrApp.getInstance(securityContext);
+		final String fileName       = file.getName();
+
+		if (parentFolderId != null) {
+
+			try (final Tx tx = app.tx(true, true, true)) {
+
+				// search for existing parent folder
+				existingParentFolder = app.get(Folder.class, parentFolderId);
+				String parentFolderName = null;
+
+				String msgString = "Unarchiving file {}";
+				if (existingParentFolder != null) {
+
+					parentFolderName = existingParentFolder.getName();
+					msgString += " into existing folder {}.";
+				}
+
+				logger.info(msgString, new Object[]{fileName, parentFolderName});
+
+				tx.success();
+			}
+
+		} else {
+
+			existingParentFolder = file.getParent();
+		}
+
+		final BufferedInputStream bufferedIs = new BufferedInputStream(file.getInputStream());
+
+		switch (ArchiveStreamFactory.detect(bufferedIs)) {
+
+			// 7z doesn't support streaming
+			case ArchiveStreamFactory.SEVEN_Z: {
+				int overallCount = 0;
+
+				logger.info("7-Zip archive format detected");
+
+				try (final Tx outertx = app.tx()) {
+					SevenZFile sevenZFile = new SevenZFile(file.getFileOnDisk());
+
+					SevenZArchiveEntry sevenZEntry = sevenZFile.getNextEntry();
+
+					while (sevenZEntry != null) {
+
+						try (final Tx tx = app.tx(true, true, false)) {
+
+							int count = 0;
+
+							while (sevenZEntry != null && count++ < 50) {
+
+								final String entryPath = "/" + PathHelper.clean(sevenZEntry.getName());
+								logger.info("Entry path: {}", entryPath);
+
+								if (sevenZEntry.isDirectory()) {
+
+									handleDirectory(securityContext, existingParentFolder, entryPath);
+
+								} else {
+
+									byte[] buf = new byte[(int) sevenZEntry.getSize()];
+									sevenZFile.read(buf, 0, buf.length);
+
+									try (final ByteArrayInputStream in = new ByteArrayInputStream(buf)) {
+										handleFile(securityContext, in, existingParentFolder, entryPath);
+									}
+								}
+
+								sevenZEntry = sevenZFile.getNextEntry();
+
+								overallCount++;
+							}
+
+							logger.info("Committing transaction after {} entries.", overallCount);
+							tx.success();
+						}
+
+					}
+
+					logger.info("Unarchived {} files.", overallCount);
+					outertx.success();
+				}
+
+				break;
+			}
+
+			// ZIP needs special treatment to support "unsupported feature data descriptor"
+			case ArchiveStreamFactory.ZIP: {
+
+				logger.info("Zip archive format detected");
+
+				try (final ZipArchiveInputStream in = new ZipArchiveInputStream(bufferedIs, null, false, true)) {
+
+					handleArchiveInputStream(in, app, securityContext, existingParentFolder);
+				}
+
+				break;
+			}
+
+			default: {
+
+				logger.info("Default archive format detected");
+
+				try (final ArchiveInputStream in = new ArchiveStreamFactory().createArchiveInputStream(bufferedIs)) {
+
+					handleArchiveInputStream(in, app, securityContext, existingParentFolder);
+				}
+			}
+		}
+
+	}
+
+	private static void handleArchiveInputStream(final ArchiveInputStream in, final App app, final SecurityContext securityContext, final Folder existingParentFolder) throws FrameworkException, IOException {
+
+		int overallCount = 0;
+
+		ArchiveEntry entry = in.getNextEntry();
+
+		while (entry != null) {
+
+			try (final Tx tx = app.tx(true, true, false)) { // don't send notifications for bulk commands
+
+				int count = 0;
+
+				while (entry != null && count++ < 50) {
+
+					final String entryPath = "/" + PathHelper.clean(entry.getName());
+					logger.info("Entry path: {}", entryPath);
+
+					if (entry.isDirectory()) {
+
+						handleDirectory(securityContext, existingParentFolder, entryPath);
+
+					} else {
+
+						handleFile(securityContext, in, existingParentFolder, entryPath);
+					}
+
+					entry = in.getNextEntry();
+
+					overallCount++;
+				}
+
+				logger.info("Committing transaction after {} entries.", overallCount);
+
+				tx.success();
+			}
+		}
+
+		logger.info("Unarchived {} entries.", overallCount);
+	}
+
+	private static void handleDirectory(final SecurityContext securityContext, final Folder existingParentFolder, final String entryPath) throws FrameworkException {
+
+		final String folderPath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + entryPath;
+
+		FileHelper.createFolderPath(securityContext, folderPath);
+	}
+
+	private static void handleFile(final SecurityContext securityContext, final InputStream in, final Folder existingParentFolder, final String entryPath) throws FrameworkException, IOException {
+
+		final PropertyKey<Folder> parentKey     = StructrApp.key(AbstractFile.class, "parent");
+		final PropertyKey<Boolean> hasParentKey = StructrApp.key(AbstractFile.class, "hasParent");
+		final String filePath                   = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + PathHelper.clean(entryPath);
+		final String name                       = PathHelper.getName(entryPath);
+		final AbstractFile newFile              = ImageHelper.isImageType(name)
+				? ImageHelper.createImage(securityContext, in, null, Image.class, name, false)
+				: FileHelper.createFile(securityContext, in, null, File.class, name);
+
+		final String folderPath = StringUtils.substringBeforeLast(filePath, PathHelper.PATH_SEP);
+		final Folder parentFolder = FileHelper.createFolderPath(securityContext, folderPath);
+
+		if (parentFolder != null) {
+
+			final PropertyMap properties = new PropertyMap();
+
+			properties.put(parentKey,    parentFolder);
+			properties.put(hasParentKey, true);
+
+			newFile.setProperties(securityContext, properties);
+		}
+	}
+
 
 	public static String getDateString() {
 		return new SimpleDateFormat("yyyy-MM-dd-HHmmssSSS").format(new Date());

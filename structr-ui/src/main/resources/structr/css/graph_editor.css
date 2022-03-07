@@ -194,20 +194,11 @@ ul.relBox li, ul.nodeBox li {
 }
 
 .query-box {
-	display: inline-block;
-	position: relative;
-	vertical-align: top;
-}
-
-.query-box.rest {
-	width: 25rem;
-}
-
-.query-box.cypher {
-	width: 26rem;
+	/*vertical-align: top;*/
 }
 
 #function-bar .query-box .icon {
+	color: var(--icon-stroke);
 	top: 0;
 	margin: .375rem 0 0 .5rem;
 }
@@ -216,7 +207,7 @@ ul.relBox li, ul.nodeBox li {
 	display: none;
 	position: absolute;
 	top: .75rem;
-	right: 5rem;
+	right: .5rem;
 	cursor: pointer;
 }
 

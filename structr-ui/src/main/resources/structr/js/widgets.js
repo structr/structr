@@ -99,7 +99,7 @@ let _Widgets = {
 			_Widgets.localWidgetsEl = $('#widgets', _Pages.widgetsSlideout);
 
 			$('.add_widgets_icon', _Pages.widgetsSlideout).on('click', function(e) {
-				e.stopPropagation();
+				e.preventDefault();
 				Command.create({type: 'Widget'});
 			});
 
@@ -133,7 +133,7 @@ let _Widgets = {
 				}
 			});
 
-			_Pager.initPager('local-widgets', 'Widget', 1, 100, 'treePath', 'asc');
+			_Pager.initPager('local-widgets', 'Widget', 1, 1000, 'treePath', 'asc');
 			var _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl, true, 'Widget', 'public', function(entities) {
 				entities.forEach(function (entity) {
 					StructrModel.create(entity, null, false);
@@ -388,11 +388,13 @@ let _Widgets = {
 
 		let expanded = Structr.isExpanded(id);
 
-		parent.append('<div id="' + id + '_folder" class="widget node">'
-			+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '"></i>'
-			+ '<b title="' + escapeForHtmlAttributes(name) + '" class="name abbr-ellipsis abbr-66pc">' + name + '</b>'
-			+ '<div id="' + id + '" class="node' + (expanded ? ' hidden' : '') + '"></div>'
-			+ '</div>');
+		parent.append(`
+			<div id="${id}_folder" class="widget node">
+				<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
+				<b title="${escapeForHtmlAttributes(name)}" class="name abbr-ellipsis abbr-70pc">${name}</b>
+				<div id="${id}" class="node${expanded ? ' hidden' : ''}"></div>
+			</div>
+			`);
 
 		let div = $('#' + id + '_folder');
 
@@ -406,12 +408,17 @@ let _Widgets = {
 
 		if (!div) {
 
-			parent.append('<div id="id_' + widget.id + '" class="node widget">'
-				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
-				+ '<b title="' + escapeForHtmlAttributes(widget.name) + '" class="name_ abbr-ellipsis abbr-66pc">' + widget.name + '</b> <span class="id">' + widget.id + '</span>'
-				+ '</div>');
+			parent.append(`
+				<div id="id_${widget.id}" class="node widget">
+					<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
+					<b title="${escapeForHtmlAttributes(widget.name)}" class="name_ abbr-ellipsis abbr-70pc">${widget.name}</b> <span class="id">${widget.id}</span>
+					<div class="icons-container"></div>
+				</div>
+			`);
 			div = Structr.node(widget.id);
 		}
+
+		let iconsContainer = div.children('.icons-container');
 
 		div.draggable({
 			iframeFix: true,
@@ -429,32 +436,16 @@ let _Widgets = {
 
 			div.children('b.name_').off('click').css({cursor: 'move'});
 
-			div.append('<i title="View widget ' + widget.name + '" class="view_icon button ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" />');
+			let eyeIcon = $(_Icons.getSvgIcon('eye_open', 16, 16, ['svg_eye_icon', 'icon-grey', 'cursor-pointer', 'node-action-icon']));
+			iconsContainer.append(eyeIcon);
 
-			$('.view_icon', div).on('click', function() {
+			eyeIcon.on('click', function() {
 				_Widgets.editWidget(widget, false);
 			});
 
 		} else {
 
-			//_Entities.appendAccessControlIcon(div, widget);
-
-//			div.append('<i title="Delete widget ' + widget.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
-//			div.children('.delete_icon').on('click', function(e) {
-//				e.stopPropagation();
-//				_Entities.deleteNode(this, widget);
-//			});
-//
-//			div.append('<i title="Edit widget ' + widget.name + '" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-//			$('.edit_icon', div).on('click', function(e) {
-//				e.stopPropagation();
-//
-//				Command.get(widget.id, 'id,type,name,source,configuration,description', function(entity) {
-//					_Widgets.editWidget(entity, true);
-//				});
-//			});
-
-			_Entities.appendContextMenuIcon(div, widget);
+			_Entities.appendContextMenuIcon(iconsContainer, widget);
 			_Elements.enableContextMenuOnElement(div, widget);
 		}
 
@@ -462,38 +453,90 @@ let _Widgets = {
 	},
 	editWidget: function(entity, allowEdit) {
 
-		Structr.dialog((allowEdit ? 'Edit widget "' : 'Source code of "') + entity.name + '"', function() {}, function() {});
+		Structr.dialog((allowEdit ? 'Edit widget "' : 'Source code of "') + entity.name + '"', () => {}, () => {}, ['popup-dialog-with-editor']);
 
-		var id = "widget-dialog";
-		dialogHead.append('<div id="' + id + '_head"><div id="tabs"><ul id="widget-dialog-tabs"></ul></div></div>');
-		dialogText.append('<div id="' + id + '_content"></div>');
+		let id = "widget-dialog";
+		dialogHead.append(`
+			<div id="${id}_head">
+				<div id="tabs">
+					<ul id="widget-dialog-tabs">
+						<li data-name="source">Source</li>
+						<li data-name="config">Configuration</li>
+						<li data-name="description">Description</li>
+						<li data-name="selectors">Options</li>
+						<li data-name="help">Help</li>
+					</ul>
+				</div>
+			</div>
+		`);
+		dialogText.append(`<div id="${id}_content"></div>`);
 
-		var mainTabs = $('#tabs', dialogHead);
-		var contentDiv = $('#' + id + '_content', dialogText);
+		let mainTabs   = $('#tabs', dialogHead);
+		let contentDiv = $('#' + id + '_content', dialogText);
 
-		var ul = mainTabs.children('ul');
-		ul.append('<li data-name="source">Source</li><li data-name="config">Configuration</li><li data-name="description">Description</li><li data-name="selectors">Options</li><li data-name="help">Help</li>');
+		let ul = mainTabs.children('ul');
 
-		var activateTab = function (tabName) {
+		let activateTab = function (tabName) {
 			$('.widget-tab-content', contentDiv).hide();
 			$('li', ul).removeClass('active');
 			$('#tabView-' + tabName, contentDiv).show();
 			$('li[data-name="' + tabName + '"]', ul).addClass('active');
 			Structr.resize();
+
+			_Editors.resizeVisibleEditors();
 		};
 
 		$('#widget-dialog-tabs > li', mainTabs).on('click', function(e) {
 			activateTab($(this).data('name'));
 		});
 
-		contentDiv.append('<div class="tab widget-tab-content" id="tabView-source"></div><div class="tab widget-tab-content" id="tabView-config"></div><div class="tab widget-tab-content" id="tabView-description"></div><div class="tab widget-tab-content" id="tabView-selectors"></div><div class="tab widget-tab-content" id="tabView-help"></div>');
+		contentDiv.append(`
+			<div class="tab widget-tab-content h-full" id="tabView-source"><div class="editor h-full"></div></div>
+			<div class="tab widget-tab-content h-full" id="tabView-config"><div class="editor h-full"></div></div>
+			<div class="tab widget-tab-content h-full" id="tabView-description"><div class="editor h-full"></div></div>
+			<div class="tab widget-tab-content" id="tabView-selectors"></div>
+			<div class="tab widget-tab-content" id="tabView-help"></div>
+		`);
 
-		var sourceEditor      = _Widgets.appendWidgetPropertyEditor($('#tabView-source', contentDiv), (entity.source || ''), 'text/html', allowEdit);
-		var configEditor      = _Widgets.appendWidgetPropertyEditor($('#tabView-config', contentDiv), (entity.configuration || ''), 'application/json', allowEdit);
-		var descriptionEditor = _Widgets.appendWidgetPropertyEditor($('#tabView-description', contentDiv), (entity.description || ''), 'text/html', allowEdit);
+		let changes = {};
+		let widgetChanged = () => {
+			let changed = false;
+			for (let propertyName in changes) {
+				changed = changed || changes[propertyName];
+			}
+			return changed;
+		};
+
+		let updateButtonStatus = () => {
+			if (widgetChanged()) {
+				dialogSaveButton.prop("disabled", false).removeClass('disabled');
+				saveAndClose.prop("disabled", false).removeClass('disabled');
+			} else {
+				dialogSaveButton.prop("disabled", true).addClass('disabled');
+				saveAndClose.prop("disabled", true).addClass('disabled');
+			}
+		};
+
+		let editorChangeHandler = (editor, origEntity, propertyName) => {
+
+			changes[propertyName] = ((entity[propertyName] || '') !== editor.getValue());
+
+			if (allowEdit) {
+				updateButtonStatus();
+			}
+		};
+
+		let baseEditorConfig = {
+			readOnly: !allowEdit,
+			changeFn: editorChangeHandler
+		};
+
+		let sourceEditor      = _Editors.getMonacoEditor(entity, 'source',        $('#tabView-source .editor', contentDiv),      Object.assign({}, baseEditorConfig, { language: 'text/html', forceAllowAutoComplete: true }));
+		let configEditor      = _Editors.getMonacoEditor(entity, 'configuration', $('#tabView-config .editor', contentDiv),      Object.assign({}, baseEditorConfig, { language: 'application/json' }));
+		let descriptionEditor = _Editors.getMonacoEditor(entity, 'description',   $('#tabView-description .editor', contentDiv), Object.assign({}, baseEditorConfig, { language: 'text/html' }));
 
 		// allow editing of selectors property
-		_Schema.getTypeInfo(entity.type, function(typeInfo) {
+		_Schema.getTypeInfo(entity.type, (typeInfo) => {
 			_Entities.listProperties(entity, 'editWidget', $('#tabView-selectors'), typeInfo);
 		});
 
@@ -501,35 +544,16 @@ let _Widgets = {
 
 		if (allowEdit) {
 
-			dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save Widget</button>');
-			dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+			dialogBtn.append(`
+				<button id="editorSave" disabled="disabled" class="disabled">Save Widget</button>
+				<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>
+			`);
 
 			dialogSaveButton = $('#editorSave', dialogBtn);
 			saveAndClose     = $('#saveAndClose', dialogBtn);
 
-			let widgetChanged = function () {
-				let sourceChanged      = ((entity.source || '') !== sourceEditor.getValue());
-				let configChanged      = ((entity.configuration || '') !== configEditor.getValue());
-				let descriptionChanged = ((entity.description || '') !== descriptionEditor.getValue());
+			let saveWidgetFunction = (closeAfterSave) => {
 
-				return (sourceChanged || configChanged || descriptionChanged);
-			};
-
-			let updateButtonStatus = function () {
-				if (widgetChanged()) {
-					dialogSaveButton.prop("disabled", false).removeClass('disabled');
-					saveAndClose.prop("disabled", false).removeClass('disabled');
-				} else {
-					dialogSaveButton.prop("disabled", true).addClass('disabled');
-					saveAndClose.prop("disabled", true).addClass('disabled');
-				}
-			};
-
-			sourceEditor.on('change', updateButtonStatus);
-			configEditor.on('change', updateButtonStatus);
-			descriptionEditor.on('change', updateButtonStatus);
-
-			let saveWidgetFunction = function (closeAfterSave) {
 				let widgetData = {
 					source:        sourceEditor.getValue(),
 					configuration: configEditor.getValue(),
@@ -542,7 +566,8 @@ let _Widgets = {
 						JSON.parse(widgetData.configuration);
 					}
 
-					Command.setProperties(entity.id, widgetData, function() {
+					Command.setProperties(entity.id, widgetData, () => {
+
 						Structr.showAndHideInfoBoxMessage('Widget saved.', 'success', 2000, 200);
 
 						if (closeAfterSave) {
@@ -555,6 +580,9 @@ let _Widgets = {
 							entity.source          = widgetData.source;
 							entity.configuration   = widgetData.configuration;
 							entity.description     = widgetData.description;
+
+							changes = {};
+
 							updateButtonStatus();
 						}
 					});
@@ -575,19 +603,6 @@ let _Widgets = {
 		}
 
 		activateTab('source');
-	},
-	appendWidgetPropertyEditor: function (container, value, mode, allowEdit) {
-
-		CodeMirror.defineMIME('text/html', 'htmlmixed-structr');
-		return CodeMirror(container.get(0), Structr.getCodeMirrorSettings({
-			value: value,
-			mode: mode,
-			lineNumbers: true,
-			indentUnit: 4,
-			tabSize: 4,
-			indentWithTabs: true,
-			readOnly: !allowEdit
-		}));
 	},
 	appendWidgetSelectorEditor: function (container, entity, allowEdit) {
 

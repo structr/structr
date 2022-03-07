@@ -18,18 +18,19 @@
  */
 package org.structr.schema.openapi.operation;
 
-import java.util.Map;
-import org.structr.common.PropertyView;
 import org.structr.schema.export.StructrTypeDefinition;
-import org.structr.schema.openapi.common.OpenAPIAllOf;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPIAnyOf;
+import org.structr.schema.openapi.common.OpenAPIResponseReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
-import org.structr.schema.openapi.schema.OpenAPIBaseSchemaWrite;
-import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaInput;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class OpenAPIPostOperation extends OpenAPIOperation {
 
-	public OpenAPIPostOperation(final StructrTypeDefinition type) {
+	public OpenAPIPostOperation(final StructrTypeDefinition type, final Set<String> viewNames) {
 
 		super(// summary
 			"Creates a new object of type " + type.getName(),
@@ -47,16 +48,17 @@ public class OpenAPIPostOperation extends OpenAPIOperation {
 			null,
 
 			// request body
-			new OpenAPIRequestResponse("Contents of new " + type.getName() + " object to add.", new OpenAPIAllOf(
-				new OpenAPIBaseSchemaWrite(),
-				new OpenAPIStructrTypeSchemaInput(type, PropertyView.Custom, 0)
-			)),
+			new OpenAPIRequestResponse("Contents of new " + type.getName() + " object to add.",
+					new OpenAPIAnyOf(
+							viewNames.stream().map( viewName -> new OpenAPISchemaReference(type, viewName)).collect(Collectors.toList())
+					)
+			),
 
-			// responses
+			// response
 			Map.of(
-				"201", new OpenAPIReference("#/components/responses/created"),
-				"401", new OpenAPIReference("#/components/responses/unauthorized"),
-				"422", new OpenAPIReference("#/components/responses/validationError")
+				"201", new OpenAPIResponseReference("#/components/responses/created"),
+				"401", new OpenAPIResponseReference("#/components/responses/unauthorized"),
+				"422", new OpenAPIResponseReference("#/components/responses/validationError")
 			)
 		);
 	}

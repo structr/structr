@@ -18,7 +18,7 @@
  */
 package org.structr.schema.openapi.operation.maintenance;
 
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
@@ -57,9 +57,9 @@ public class OpenAPIMaintenanceOperationSync extends LinkedHashMap<String, Objec
                 new OpenAPIRequestResponse(
                         "Request body",
 			new OpenAPIObjectSchema(
-                        	new OpenAPIPrimitiveSchema("Operation mode",                             "mode",      "string", null, "export", Map.of(0, "import", 1, "export")),
-                        	new OpenAPIPrimitiveSchema("Name of the input / output ZIP file",        "file",      "string", null, "data.zip"),
-                        	new OpenAPIPrimitiveSchema("Cypher query that selects the export set",   "query",     "string", null, "MATCH (n) RETURN n"),
+                        	new OpenAPIPrimitiveSchema("Operation mode",                             "mode",      "string", null, "export", Map.of(0, "import", 1, "export"), false),
+                        	new OpenAPIPrimitiveSchema("Name of the input / output ZIP file",        "file",      "string", null, "data.zip", false),
+                        	new OpenAPIPrimitiveSchema("Cypher query that selects the export set",   "query",     "string", null, "MATCH (n) RETURN n", false),
                         	new OpenAPIPrimitiveSchema("Enables or disables import validation",      "validate",  "boolean"),
                         	new OpenAPIPrimitiveSchema("Specifies the batch size for large imports", "batchSize", "number", 200)
                         )
@@ -67,9 +67,9 @@ public class OpenAPIMaintenanceOperationSync extends LinkedHashMap<String, Objec
 
                 // responses
                 Map.of(
-                        "200", new OpenAPIReference("#/components/responses/ok"),
-                        "400", new OpenAPIReference("#/components/responses/badRequest"),
-                        "401", new OpenAPIReference("#/components/responses/unauthorized")
+                        "200", new OpenAPISchemaReference("#/components/responses/ok"),
+                        "400", new OpenAPISchemaReference("#/components/responses/badRequest"),
+                        "401", new OpenAPISchemaReference("#/components/responses/unauthorized")
                 )
         ));
 

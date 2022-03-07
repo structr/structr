@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
+import org.structr.common.AccessMode;
 import org.structr.common.MailHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -37,6 +38,7 @@ import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.script.Scripting;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
@@ -61,11 +63,11 @@ public class ResetPasswordResource extends Resource {
 		RESET_PASSWORD_TEXT_BODY,
 		RESET_PASSWORD_HTML_BODY,
 		RESET_PASSWORD_BASE_URL,
-		RESET_PASSWORD_TARGET_PAGE,
+		RESET_PASSWORD_TARGET_PATH,
 		RESET_PASSWORD_ERROR_PAGE,
 		RESET_PASSWORD_PAGE,
-		RESET_PASSWORD_CONFIRM_KEY_KEY,
-		RESET_PASSWORD_TARGET_PAGE_KEY,
+		RESET_PASSWORD_CONFIRMATION_KEY_KEY,
+		RESET_PASSWORD_TARGET_PATH_KEY,
 		RESET_PASSWORD_ERROR_PAGE_KEY
 	}
 
@@ -144,36 +146,32 @@ public class ResetPasswordResource extends Resource {
 		return null;
 	}
 
-	private boolean sendResetPasswordLink(final Principal user, final Map<String, Object> propertySetFromUserPOST, final String localeString, final String confKey) {
+	private boolean sendResetPasswordLink(final Principal user, final Map<String, Object> propertySetFromUserPOST, final String localeString, final String confKey) throws FrameworkException {
 
-		final Map<String, String> replacementMap = new HashMap();
+		final String userEmail  = user.getProperty("eMail");
+		final ActionContext ctx = new ActionContext(SecurityContext.getInstance(user, AccessMode.Frontend));
 
 		// Populate the replacement map with all POSTed values
 		// WARNING! This is unchecked user input!!
-		populateReplacementMap(replacementMap, propertySetFromUserPOST);
+		propertySetFromUserPOST.entrySet().forEach(entry -> ctx.setConstant(entry.getKey(), entry.getValue().toString()));
 
-		final String userEmail = user.getProperty("eMail");
-
-		replacementMap.put(toPlaceholder("eMail"), userEmail);
-		replacementMap.put(toPlaceholder("link"),
-			getTemplateText(TemplateKey.RESET_PASSWORD_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString, confKey)
-			      + getTemplateText(TemplateKey.RESET_PASSWORD_PAGE, HtmlServlet.RESET_PASSWORD_PAGE, localeString, confKey)
-			+ "?" + getTemplateText(TemplateKey.RESET_PASSWORD_CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY, localeString, confKey) + "=" + confKey
-			+ "&" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY, localeString, confKey) + "=" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PAGE, HtmlServlet.RESET_PASSWORD_PAGE, localeString, confKey)
+		ctx.setConstant("eMail", userEmail);
+		ctx.setConstant("link", getTemplateText(TemplateKey.RESET_PASSWORD_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
+				+ getTemplateText(TemplateKey.RESET_PASSWORD_PAGE, HtmlServlet.RESET_PASSWORD_PAGE, localeString)
+				+ "?" + getTemplateText(TemplateKey.RESET_PASSWORD_CONFIRMATION_KEY_KEY, HtmlServlet.CONFIRMATION_KEY_KEY, localeString) + "=" + confKey
+				+ "&" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PATH_KEY, HtmlServlet.TARGET_PATH_KEY, localeString) + "=" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PATH, HtmlServlet.RESET_PASSWORD_PAGE, localeString)
 		);
 
-		String textMailTemplate = getTemplateText(TemplateKey.RESET_PASSWORD_TEXT_BODY, "Go to ${link} to reset your password.", localeString, confKey);
-		String htmlMailTemplate = getTemplateText(TemplateKey.RESET_PASSWORD_HTML_BODY, "<div>Click <a href='${link}'>here</a> to reset your password.</div>", localeString, confKey);
-		String textMailContent  = MailHelper.replacePlaceHoldersInTemplate(textMailTemplate, replacementMap);
-		String htmlMailContent  = MailHelper.replacePlaceHoldersInTemplate(htmlMailTemplate, replacementMap);
+		final String textMailContent = replaceVariablesInTemplate(TemplateKey.RESET_PASSWORD_TEXT_BODY, "Go to ${link} to reset your password.", localeString, ctx);
+		final String htmlMailContent = replaceVariablesInTemplate(TemplateKey.RESET_PASSWORD_HTML_BODY, "<div>Click <a href='${link}'>here</a> to reset your password.</div>", localeString, ctx);
 
 		try {
 
 			MailHelper.sendHtmlMail(
-				getTemplateText(TemplateKey.RESET_PASSWORD_SENDER_ADDRESS, "structr-mail-daemon@localhost", localeString, confKey),
-				getTemplateText(TemplateKey.RESET_PASSWORD_SENDER_NAME, "Structr Mail Daemon", localeString, confKey),
+				getTemplateText(TemplateKey.RESET_PASSWORD_SENDER_ADDRESS, "structr-mail-daemon@localhost", localeString),
+				getTemplateText(TemplateKey.RESET_PASSWORD_SENDER_NAME, "Structr Mail Daemon", localeString),
 				userEmail, "", null, null, null,
-				getTemplateText(TemplateKey.RESET_PASSWORD_SUBJECT, "Request to reset your Structr password", localeString, confKey),
+				getTemplateText(TemplateKey.RESET_PASSWORD_SUBJECT, "Request to reset your Structr password", localeString),
 				htmlMailContent, textMailContent);
 
 		} catch (Exception e) {
@@ -186,7 +184,7 @@ public class ResetPasswordResource extends Resource {
 
 	}
 
-	private String getTemplateText(final TemplateKey key, final String defaultValue, final String localeString, final String confKey) {
+	private String getTemplateText(final TemplateKey key, final String defaultValue, final String localeString) {
 
 		try {
 
@@ -217,18 +215,22 @@ public class ResetPasswordResource extends Resource {
 		return null;
 	}
 
-	private static void populateReplacementMap(final Map<String, String> replacementMap, final Map<String, Object> props) {
+	private String replaceVariablesInTemplate(final TemplateKey key, final String defaultValue, final String localeString, final ActionContext ctx) throws FrameworkException {
 
-		for (Entry<String, Object> entry : props.entrySet()) {
+		try {
 
-			replacementMap.put(toPlaceholder(entry.getKey()), entry.getValue().toString());
+			final String templateText = getTemplateText(key, defaultValue, localeString);
+
+			return Scripting.replaceVariables(ctx, null, templateText, "sendResetPassword()");
+
+		} catch (FrameworkException fxe) {
+
+			logger.warn("Unable to send confirmation e-mail, scripting error in {} template. {}", key.name(), fxe);
+
+			throw new FrameworkException(503, "Unable to send confirmation e-mail");
 		}
 	}
 
-	private static String toPlaceholder(final String key) {
-
-		return "${".concat(key).concat("}");
-	}
 
 	@Override
 	public Class getEntityClass() {

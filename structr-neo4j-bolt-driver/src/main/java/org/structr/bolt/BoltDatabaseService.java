@@ -91,6 +91,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	private String databaseUrl                                    = null;
 	private String databasePath                                   = null;
 	private Driver driver                                         = null;
+	private SessionConfig sessionConfig                           = null;
 
 	@Override
 	public boolean initialize(final String name, final String version, final String instance) {
@@ -102,25 +103,17 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			serviceName = name;
 		}
 
-		this.databasePath        = Settings.DatabasePath.getPrefixedValue(serviceName);
-		databaseUrl              = Settings.ConnectionUrl.getPrefixedValue(serviceName);
-		final String username    = Settings.ConnectionUser.getPrefixedValue(serviceName);
-		final String password    = Settings.ConnectionPassword.getPrefixedValue(serviceName);
-		String databaseDriverUrl = "bolt://" + databaseUrl;
+		this.databasePath         = Settings.DatabasePath.getPrefixedValue(serviceName);
+		databaseUrl               = Settings.ConnectionUrl.getPrefixedValue(serviceName);
+		final String username     = Settings.ConnectionUser.getPrefixedValue(serviceName);
+		final String password     = Settings.ConnectionPassword.getPrefixedValue(serviceName);
+		final String databaseName = Settings.ConnectionDatabaseName.getPrefixedValue(serviceName);
+		String databaseDriverUrl  = ((databaseUrl.indexOf("://") == -1) ? "bolt://" + databaseUrl : databaseUrl);
 
 		// build list of supported query languages
 		supportedQueryLanguages.add("application/x-cypher-query");
 		supportedQueryLanguages.add("application/cypher");
 		supportedQueryLanguages.add("text/cypher");
-
-		if (databaseUrl.length() >= 7 && databaseUrl.substring(0, 7).equalsIgnoreCase("bolt://")) {
-
-			databaseDriverUrl = databaseUrl;
-
-		} else if (databaseUrl.length() >= 15 && databaseUrl.substring(0, 15).equalsIgnoreCase("bolt+routing://")) {
-
-			databaseDriverUrl = databaseUrl;
-		}
 
 		// create db directory if it does not exist
 		new File(databasePath).mkdirs();
@@ -139,6 +132,8 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 						AuthTokens.basic(username, password),
 						config
 				);
+
+				sessionConfig = SessionConfig.forDatabase(databaseName);
 
 				// probe connection to database:
 				//   by creating a session, transaction and committing the transaction
@@ -221,7 +216,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 				if (supportsReactive) {
 
-					session = new ReactiveSessionTransaction(this, driver.rxSession());
+					session = new ReactiveSessionTransaction(this, driver.rxSession(sessionConfig));
 
 				} else {
 
@@ -252,7 +247,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 				if (supportsReactive) {
 
-					session = new ReactiveSessionTransaction(this, driver.rxSession(), timeoutInSeconds);
+					session = new ReactiveSessionTransaction(this, driver.rxSession(sessionConfig), timeoutInSeconds);
 
 				} else {
 

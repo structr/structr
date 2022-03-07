@@ -19,7 +19,6 @@
 var main;
 var drop;
 var selectedElements = [];
-var activeFileId, fileContents = {};
 var folderPageSize = 10000, folderPage = 1;
 var filesViewModeKey = 'structrFilesViewMode_' + location.port;
 var timeout, attempts = 0, maxRetry = 10;
@@ -45,6 +44,10 @@ let _Files = {
 	fileUploadList: undefined,
 	chunkSize: 1024 * 64,
 	fileSizeLimit: 1024 * 1024 * 1024,
+	activeFileId: undefined,
+	currentEditor: undefined,
+	fileContents: {},
+	fileHasUnsavedChanges: {},
 	getViewMode: function () {
 		return _Files._viewMode || 'list';
 	},
@@ -65,9 +68,11 @@ let _Files = {
 		window.addEventListener('resize', _Files.resize);
 	},
 	resize: function() {
-		_Files.moveResizer();
-		Structr.resize();
-		$('div.xml-mapping').css({ height: dialogBox.height()- 118 });
+		if (Structr.isModuleActive(_Files)) {
+			_Files.moveResizer();
+			Structr.resize();
+			$('div.xml-mapping').css({ height: dialogBox.height() - 118 });
+		}
 	},
 	moveResizer: function(left) {
 
@@ -310,7 +315,7 @@ let _Files = {
 
 			if (displayingFavorites) {
 				elements.push({
-					// icon: '<i class="' + _Icons.getFullSpriteClass(_Icons.star_delete_icon) + '" ></i>',
+					icon: _Icons.getSvgIcon('favorite-star-remove'),
 					name: 'Remove from Favorites',
 					clickHandler: function () {
 
@@ -328,7 +333,7 @@ let _Files = {
 			} else if (entity.isFavoritable) {
 
 				elements.push({
-					// icon: '<i class="' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" ></i>',
+					icon: _Icons.getSvgIcon('favorite-star'),
 					name: 'Add to Favorites',
 					clickHandler: function () {
 
@@ -908,81 +913,84 @@ let _Files = {
 		let icon = d.isFolder ? 'fa-folder' : _Icons.getFileIconClass(d);
 		let name = d.name ? d.name : '[unnamed]';
 
-		if (_Files.isViewModeActive('list')) {
+		let listModeActive  = _Files.isViewModeActive('list');
+		let tilesModeActive = _Files.isViewModeActive('tiles');
+		let imageModeActive = _Files.isViewModeActive('img');
+
+		let folderIconElement = (d.isMounted) ? `<span class="fa-stack"><i class="fa ${icon} fa-stack-2x"></i><i class="fa fa-plug fa-stack-1x"></i></span>` : `<i class="fa ${icon}"></i>`;
+
+		if (listModeActive) {
 
 			let tableBody = $('#files-table-body');
 
 			$('#row' + d.id, tableBody).remove();
 
 			let rowId = 'row' + d.id;
-			tableBody.append('<tr id="' + rowId + '"' + (d.isThumbnail ? ' class="thumbnail"' : '') + '></tr>');
+			tableBody.append(`<tr id="${rowId}"${(d.isThumbnail ? ' class="thumbnail"' : '')}></tr>`);
 			let row = $('#' + rowId);
 
 			if (d.isFolder) {
-				let icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-2x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
-				row.append('<td class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</td>');
-				row.append('<td><div id="id_' + d.id + '" class="node folder flex items-center justify-between"><b title="' + escapeForHtmlAttributes(name) + '" class="name_ leading-8 truncate">' + name + '</b><div class="icons-container"></div></div></td>');
+
+				row.append(`
+					<td class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${folderIconElement}</td>
+					<td>
+						<div id="id_${d.id}" class="node folder flex items-center justify-between"><b class="name_ leading-8 truncate">${name}</b><div class="icons-container"></div></div>
+					</td>
+				`);
+
 			} else {
-				row.append('<td class="file-icon"><a href="' + d.path + '" target="_blank"><i class="fa ' + icon + '"></i></a></td>');
-				row.append('<td><div id="id_' + d.id + '" class="node file flex items-center justify-between"><b title="' + escapeForHtmlAttributes(name) + '" class="name_ leading-8 truncate">' + name + '</b><div class="icons-container"></div>'
-					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + d.size + '</span></div></div></div></div></td>');
+
+				row.append(`
+					<td class="file-icon"><a href="${d.path}" target="_blank"><i class="fa ${icon}"></i></a></td>
+					<td>
+						<div id="id_${d.id}" class="node file flex items-center justify-between"><b class="name_ leading-8 truncate">${name}</b><div class="icons-container"></div>
+						<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">${d.size}</span></div></div></div></div>
+					</td>
+				`);
 			}
 
-			row.append('<td class="truncate id">' + d.id + '</td>');
-
-			if (d.isFolder) {
-				row.append('<td class="size whitespace-nowrap">' + size + '</td>');
-			} else {
-				row.append('<td class="size whitespace-nowrap">' + _Files.formatBytes(size, 0) + '</td>');
-			}
-
-			row.append('<td class="truncate">' + d.type + (d.isThumbnail ? ' thumbnail' : '') + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td>');
-			row.append('<td>' + (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '') + '</td>');
+			row.append(`
+				<td class="truncate id">${d.id}</td>
+				<td class="size whitespace-nowrap">${d.isFolder ? size : _Files.formatBytes(size, 0)}</td>
+				<td class="truncate">${d.type}${(d.isThumbnail ? ' thumbnail' : '')}${(d.isFile && d.contentType ? ` (${d.contentType})` : '')}</td>
+				<td>${(d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '')}</td>
+			`);
 
 			_Elements.enableContextMenuOnElement(row, d);
 
-		} else if (_Files.isViewModeActive('tiles')) {
+		} else if (tilesModeActive || imageModeActive) {
 
 			let tileId = 'tile' + d.id;
-			_Files.folderContents.append('<div id="' + tileId + '" class="tile' + (d.isThumbnail ? ' thumbnail' : '') + '"></div>');
+
+			let tileClasses = ['tile'];
+			if (d.isThumbnail)   { tileClasses.push('thumbnail'); }
+			if (imageModeActive) { tileClasses.push('img-tile'); }
+
+			_Files.folderContents.append(`<div id="${tileId}" class="${tileClasses.join(' ')}"></div>`);
 			let tile = $('#' + tileId);
 
 			if (d.isFolder) {
 
-				let icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-1x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
-
-				tile.append('<div id="id_' + d.id + '" class="node folder"><div class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</div><b title="' + escapeForHtmlAttributes(name) + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b></div>');
-
-			} else {
-
-				let iconOrThumbnail = d.isImage && !d.isThumbnail && d.tnSmall ? '<img class="tn" src="' + d.tnSmall.path + '">' : '<i class="fa ' + icon + '"></i>';
-
-				tile.append('<div id="id_' + d.id + '" class="node file"><div class="file-icon"><a href="' + d.path + '" target="_blank">' + iconOrThumbnail + '</a></div>'
-					+ '<b title="' + escapeForHtmlAttributes(name) + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b>'
-					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + size + '</span></div></div></div><span class="id">' + d.id + '</span></div>');
-			}
-
-			_Elements.enableContextMenuOnElement(tile, d);
-
-		} else if (_Files.isViewModeActive('img')) {
-
-			let tileId = 'tile' + d.id;
-			_Files.folderContents.append('<div id="' + tileId + '" class="tile img-tile' + (d.isThumbnail ? ' thumbnail' : '') + '"></div>');
-			let tile = $('#' + tileId);
-
-			if (d.isFolder) {
-
-				let icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-1x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
-
-				tile.append('<div id="id_' + d.id + '" class="node folder"><div class="is-folder file-icon" data-target-id="' + d.id + '" data-parent-id="' + d.parentId + '">' + icon_element + '</div><b title="' + escapeForHtmlAttributes(name) + '" class="name_ abbr-ellipsis abbr-75pc">' + name + '</b></div>');
+				tile.append(`
+					<div id="id_${d.id}" class="node folder">
+						<div class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${folderIconElement}</div>
+						<b class="name_ abbr-ellipsis abbr-75pc">${name}</b>
+					</div>
+				`);
 
 			} else {
 
-				let iconOrThumbnail = d.isImage && !d.isThumbnail && d.tnMid ? '<img class="tn" src="' + d.tnMid.path + '">' : '<i class="fa ' + icon + '"></i>';
+				let thumbnailProperty = (tilesModeActive ? 'tnSmall' : 'tnMid');
+				let iconOrThumbnail   = d.isImage && !d.isThumbnail && d[thumbnailProperty] ? `<img class="tn" src="${d[thumbnailProperty].path}">` : `<i class="fa ${icon}"></i>`;
 
-				tile.append('<div id="id_' + d.id + '" class="node file"><div class="file-icon"><a href="' + d.path + '" target="_blank">' + iconOrThumbnail + '</a></div>'
-					+ '<b title="' + escapeForHtmlAttributes(name) + '" class="name_  abbr-ellipsis abbr-75pc">' + name + '</b>'
-					+ '<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">' + size + '</span></div></div></div><span class="id">' + d.id + '</span></div>');
+				tile.append(`
+					<div id="id_${d.id}" class="node file">
+						<div class="file-icon"><a href="${d.path}" target="_blank">${iconOrThumbnail}</a></div>
+						<b class="name_ abbr-ellipsis abbr-75pc">${name}</b>
+						<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">${size}</span></div></div></div><span class="id">${d.id}</span>
+						<div class="icons-container"></div>
+					</div>
+				`);
 			}
 
 			_Elements.enableContextMenuOnElement(tile, d);
@@ -995,7 +1003,9 @@ let _Files = {
 
 		_Entities.setMouseOver(div, true);
 
-		div.children('b.name_').off('click').on('click', function(e) {
+		let nameElement = div.children('b.name_');
+		nameElement.attr('title', name);
+		nameElement.off('click').on('click', (e) => {
 			e.stopPropagation();
 			_Entities.makeNameEditable(div);
 		});
@@ -1044,7 +1054,7 @@ let _Files = {
 			_Entities.appendContextMenuIcon(div, d);
 		} else {
 			_Entities.appendContextMenuIcon(iconsContainer, d);
-			_Entities.appendNewAccessControlIcon(iconsContainer, d);
+			_Entities.appendNewAccessControlIcon(iconsContainer, d, false);
 		}
 
 		if (d.isFile) {
@@ -1221,8 +1231,7 @@ let _Files = {
 
 		$('#tempInfoBox .infoHeading, #tempInfoBox .infoMsg').empty();
 		$('#tempInfoBox .closeButton').hide();
-		Structr.loaderIcon($('#tempInfoBox .infoMsg'), { marginBottom: '-6px' });
-		$('#tempInfoBox .infoMsg').append(' Unpacking Archive - please stand by...');
+		$('#tempInfoBox .infoMsg').append(`<div class="flex items-center justify-center">${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<div>Unpacking Archive - please stand by...</div></div>`);
 		$('#tempInfoBox .infoMsg').append('<p>Extraction will run in the background.<br>You can safely close this popup and work during this operation.<br>You will be notified when the extraction has finished.</p>');
 
 		$.blockUI({
@@ -1346,8 +1355,7 @@ let _Files = {
 
 		let parent = Structr.node(file.id);
 
-		fileContents = {};
-		editor = undefined;
+		_Files.fileContents = {};
 
 		selectedElements = $('.node.selected');
 		if (selectedElements.length > 1 && parent.hasClass('selected')) {
@@ -1356,15 +1364,25 @@ let _Files = {
 			selectedElements = parent;
 		}
 
-		Structr.dialog('Edit files', function() {}, function() {});
+		Structr.dialog('Edit files', function() {}, function() {}, ['popup-dialog-with-editor']);
 
-		dialogText.append('<div id="files-tabs" class="files-tabs"><ul></ul></div>');
+		dialogText.append('<div id="files-tabs" class="files-tabs flex flex-col h-full"><ul></ul></div>');
 
-		let filteredElements = [];
-		for (let el of selectedElements) {
-			let modelObj = StructrModel.obj(Structr.getId(el));
+		let filteredFileIds = [];
+		if (selectedElements && selectedElements.length > 1 && parent.hasClass('selected')) {
+			for (let el of selectedElements) {
+				let modelObj = StructrModel.obj(Structr.getId(el));
+				if (modelObj && !_Files.isMinificationTarget(modelObj) && modelObj.isFolder !== true) {
+					filteredFileIds.push(modelObj.id);
+				}
+			}
+		} else {
+			let modelObj = StructrModel.obj(file.id);
+			if (!modelObj) {
+				modelObj = StructrModel.create(file);
+			}
 			if (modelObj && !_Files.isMinificationTarget(modelObj) && modelObj.isFolder !== true) {
-				filteredElements.push(el);
+				filteredFileIds.push(file.id);
 			}
 		}
 
@@ -1372,52 +1390,45 @@ let _Files = {
 		let filesTabsUl   = filesTabs.querySelector('ul');
 		let loadedEditors = 0;
 
-		for (let el of filteredElements) {
+		for (let uuid of filteredFileIds) {
 
-			let elId = Structr.getId(el);
-
-			Command.get(elId, 'id,name,contentType,isTemplate', function (entity) {
+			Command.get(uuid, 'id,name,contentType,isTemplate', (entity) => {
 
 				loadedEditors++;
 
-				let tab             = Structr.createSingleDOMElementFromHTML('<li id="tab-' + entity.id + '" class="file-tab">' + entity.name + '</li>');
-				let editorContainer = Structr.createSingleDOMElementFromHTML('<div id="content-tab-' + entity.id + '" class="content-tab-editor"></div>');
+				let tab             = Structr.createSingleDOMElementFromHTML(`<li id="tab-${entity.id}" class="file-tab">${entity.name}</li>`);
+				let editorContainer = Structr.createSingleDOMElementFromHTML(`<div id="content-tab-${entity.id}" class="content-tab-editor flex-grow flex"></div>`);
 
 				filesTabsUl.appendChild(tab);
 				filesTabs.appendChild(editorContainer);
+
+				_Files.markFileEditorTabAsChanged(entity.id, _Files.fileHasUnsavedChanges[entity.id]);
 
 				tab.addEventListener('click', (e) => {
 					e.stopPropagation();
 
 					// prevent activating the current tab
-					if (tab.classList.contains('active')) {
-						return;
-					}
+					if (!tab.classList.contains('active')) {
 
-					// set all other tabs inactive and this one active
-					for (let tab of filesTabsUl.querySelectorAll('li')) {
-						tab.classList.remove('active');
-					}
-					tab.classList.add('active');
+						// set all other tabs inactive and this one active
+						for (let tab of filesTabsUl.querySelectorAll('li')) {
+							tab.classList.remove('active');
+						}
+						tab.classList.add('active');
 
-					// hide all editors and show this one
-					for (let otherEditorContainer of filesTabs.querySelectorAll('div.content-tab-editor')) {
-						otherEditorContainer.style.display = 'none';
-					}
-					editorContainer.style.display = 'block';
+						// hide all editors and show this one
+						for (let otherEditorContainer of filesTabs.querySelectorAll('div.content-tab-editor')) {
+							otherEditorContainer.style.display = 'none';
+						}
+						editorContainer.style.display = 'block';
 
-					// Store current editor text
-					if (editor) {
-						fileContents[activeFileId] = editor.getValue();
-					}
-					activeFileId = entity.id;
+						// clear all other tabs before editing this one to ensure correct height
+						for (let editor of filesTabs.querySelectorAll('.content-tab-editor')) {
+							editor.innerHTML = '';
+						}
 
-					// clear all other tabs before editing this one to ensure correct height
-					for (let editor of filesTabs.querySelectorAll('.content-tab-editor')) {
-						editor.innerHTML = '';
+						_Files.editFileWithMonaco(entity, $(editorContainer));
 					}
-
-					_Files.editContent(entity, $(editorContainer));
 
 					return false;
 				});
@@ -1427,6 +1438,227 @@ let _Files = {
 				}
 			});
 		}
+	},
+	markFileEditorTabAsChanged: (id, hasChanges) => {
+		if (hasChanges) {
+			$('#tab-' + id).addClass('has-changes');
+		} else {
+			$('#tab-' + id).removeClass('has-changes');
+		}
+	},
+	editFileWithMonaco: async (file, element) => {
+
+		// remove all buttons
+		dialogBtn.children().remove();
+
+		dialogBtn.html('<button class="closeButton">Close</button>');
+		dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled">Save</button>');
+		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled">Save and close</button>');
+
+		dialogCancelButton = $('.closeButton', dialogBox);
+		dialogSaveButton   = $('#saveFile', dialogBtn);
+		saveAndClose       = $('#saveAndClose', dialogBtn);
+
+		element.append('<div class="editor h-full"></div><div id="template-preview"><textarea readonly></textarea></div>');
+
+		let urlForFileAndPreview = viewRootUrl + file.id + '?' + Structr.getRequestParameterName('edit') + '=1';
+		let fileResponse         = await fetch(urlForFileAndPreview);
+		let data                 = await fileResponse.text();
+		let initialText          = _Files.fileContents[file.id] || data;
+
+		let fileMonacoConfig = {
+			value: initialText,
+			language: _Files.getLanguageForFile(file),
+			lint: true,
+			autocomplete: true,
+			changeFn: (editor, entity) => {
+				let currentText = editor.getValue();
+
+				// Store current editor text
+				_Files.fileContents[file.id] = currentText;
+
+				_Files.fileHasUnsavedChanges[file.id] = (data !== currentText);
+
+				_Files.markFileEditorTabAsChanged(file.id, _Files.fileHasUnsavedChanges[file.id]);
+
+				if (data === currentText) {
+					dialogSaveButton.prop("disabled", true).addClass('disabled');
+					saveAndClose.prop("disabled", true).addClass('disabled');
+				} else {
+					dialogSaveButton.prop("disabled", false).removeClass('disabled');
+					saveAndClose.prop("disabled", false).removeClass('disabled');
+				}
+			}
+		};
+
+		dialogMeta.html('<span class="editor-info"></span>');
+
+		let monacoEditor = _Editors.getMonacoEditor(file, 'content', $('.editor', element), fileMonacoConfig);
+
+		// for files only: install a listener for the ESC key which is only active if there is a suggestWidget visible
+		monacoEditor.addCommand(monaco.KeyCode.Escape, () => {
+
+			// set the structr-internal ignoreKeyUp so that the popup is not closed
+			ignoreKeyUp = true;
+			// blur the active element so that the popup is removed
+			document.activeElement.blur();
+
+		}, 'suggestWidgetVisible');
+
+		let editorInfo = dialogMeta[0].querySelector('.editor-info');
+		_Editors.appendEditorOptionsElement(editorInfo);
+		_Files.appendTemplateConfig(editorInfo, monacoEditor, file, element, urlForFileAndPreview);
+
+		_Editors.resizeVisibleEditors();
+
+		fileMonacoConfig.changeFn(monacoEditor);
+		monacoEditor.focus();
+
+		dialogSaveButton.on('click', function(e) {
+
+			e.preventDefault();
+			e.stopPropagation();
+
+			let newText = monacoEditor.getValue();
+			if (data === newText) {
+				return;
+			}
+
+			// update current value so we can check against it
+			data = newText;
+			fileMonacoConfig.changeFn(monacoEditor);
+
+			let saveFileAction = (callback) => {
+				_Files.updateTextFile(file, newText, callback);
+				initialText = newText;
+				dialogSaveButton.prop("disabled", true).addClass('disabled');
+				saveAndClose.prop("disabled", true).addClass('disabled');
+			};
+
+			if ($('#isTemplate').is(':checked')) {
+
+				_Entities.setProperty(file.id, 'isTemplate', false, false, () => {
+					saveFileAction(() => {
+						_Entities.setProperty(file.id, 'isTemplate', true, false, () => {
+							let active = showPreviewCheckbox.is(':checked');
+							if (active) {
+								_Files.updateTemplatePreview(element, urlForFileAndPreview);
+							}
+						});
+					});
+				});
+
+			} else {
+
+				saveFileAction();
+			}
+		});
+
+		let checkForUnsaved = () => {
+			if ($('.file-tab.has-changes').length > 0) {
+				return confirm('You have unsaved changes, really close without saving?');
+			} else {
+				return true;
+			}
+		};
+
+		saveAndClose.on('click', function(e) {
+			e.stopPropagation();
+			dialogSaveButton.click();
+
+			if (checkForUnsaved()) {
+				setTimeout(function() {
+					dialogSaveButton.remove();
+					saveAndClose.remove();
+					dialogCancelButton.click();
+				}, 500);
+			}
+		});
+
+		dialogCancelButton.on('click', (e) => {
+			if (checkForUnsaved()) {
+				e.stopPropagation();
+				dialogText.empty();
+				$.unblockUI({
+					fadeOut: 25
+				});
+
+				dialogBtn.children(':not(.closeButton)').remove();
+
+				Structr.focusSearchField();
+
+				LSWrapper.removeItem(Structr.dialogDataKey);
+			}
+		});
+
+		_Files.resize();
+	},
+	appendTemplateConfig: (element, editor, file, outerElement, urlForFileAndPreview) => {
+
+		element.insertAdjacentHTML('beforeend', `
+			<label for="isTemplate">Replace template expressions: <input id="isTemplate" type="checkbox" ${file.isTemplate ? 'checked' : ''}></label>
+			<label for="showTemplatePreview">Show preview: <input id="showTemplatePreview" type="checkbox" ${file.isTemplate ? '' : 'disabled=disabled'}></label>
+		`);
+
+		let isTemplateCheckbox   = element.querySelector('#isTemplate');
+		let showPreviewCheckbox  = element.querySelector('#showTemplatePreview');
+
+		Structr.appendInfoTextToElement({
+			text: "Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. To see a preview, tick the adjacent checkbox.",
+			element: $(isTemplateCheckbox),
+			insertAfter: true,
+			css: {
+				"margin-right": "4px"
+			}
+		});
+
+		isTemplateCheckbox.addEventListener('change', () => {
+			let active = isTemplateCheckbox.checked;
+			_Entities.setProperty(file.id, 'isTemplate', active, false, function() {
+				file.isTemplate = active;
+				showPreviewCheckbox.disabled = !active;
+			});
+		});
+
+		showPreviewCheckbox.addEventListener('change', () => {
+			let active = showPreviewCheckbox.checked;
+			if (active) {
+				_Files.updateTemplatePreview(outerElement, urlForFileAndPreview);
+			} else {
+				let previewArea = $('#template-preview').hide();
+				$('textarea', previewArea).val('');
+				$('.editor', outerElement).width('inherit');
+			}
+
+			_Editors.resizeVisibleEditors();
+		});
+	},
+	getLanguageForFile: (file) => {
+
+		let language = file.contentType;
+
+		if (language === 'application/javascript') {
+			language = 'javascript';
+		}
+
+		if (!language) {
+			if (file.name.endsWith('.css')) {
+				language = 'css';
+			} else if (file.name.endsWith('.js')) {
+				language = 'javascript';
+			} else {
+				language = 'text';
+			}
+		}
+
+		if (file.isTemplate) {
+			language = 'javascript';
+		}
+
+		return language;
+	},
+	dialogSizeChanged: () => {
+		_Editors.resizeVisibleEditors();
 	},
 	// appendMinificationDialogIcon: function(parent, file) {
 	//
@@ -1558,214 +1790,6 @@ let _Files = {
 				Command.chunk(file.id, c, _Files.chunkSize, chunk, chunks, ((c+1 === chunks) ? callback : undefined));
 			}
 		}
-	},
-	editContent: async (file, element) => {
-
-		let text                 = '';
-		let contentType          = file.contentType;
-		let urlForFileAndPreview = viewRootUrl + file.id + '?' + Structr.getRequestParameterName('edit') + '=1';
-
-		if (!contentType) {
-			if (file.name.endsWith('.css')) {
-				contentType = 'text/css';
-			} else if (file.name.endsWith('.js')) {
-				contentType = 'text/javascript';
-			} else {
-				contentType = 'text/plain';
-			}
-		}
-
-		let fileResponse = await fetch(urlForFileAndPreview);
-
-		let data = await fileResponse.text();
-
-		text = fileContents[file.id] || data;
-
-		element.append('<div class="editor"></div><div id="template-preview"><textarea readonly></textarea></div>');
-		let contentBox = $('.editor', element);
-
-		CodeMirror.defineMIME("text/html", "htmlmixed-structr");
-		editor = CodeMirror(contentBox.get(0), Structr.getCodeMirrorSettings({
-			value: text,
-			mode: contentType,
-			lineNumbers: true,
-			lineWrapping: false,
-			indentUnit: 4,
-			tabSize: 4,
-			indentWithTabs: true,
-			extraKeys: {
-				"Ctrl-Space": "autocomplete"
-			}
-		}));
-		_Code.setupAutocompletion(editor, file.id, false);
-
-		let scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + file.id));
-		if (scrollInfo) {
-			editor.scrollTo(scrollInfo.left, scrollInfo.top);
-		}
-
-		editor.on('scroll', () => { LSWrapper.setItem(scrollInfoKey + '_' + file.id, JSON.stringify(editor.getScrollInfo())); });
-
-		editor.id = file.id;
-
-		dialogMeta.html('<span class="editor-info">'
-			+ '<label for="lineWrapping">Line Wrapping: <input id="lineWrapping" type="checkbox"></label>&nbsp;&nbsp;'
-			+ '<label for="isTemplate">Replace template expressions: <input id="isTemplate" type="checkbox"></label>'
-			+ '<label for="showTemplatePreview">Show preview:</label> <input id="showTemplatePreview" type="checkbox">'
-			+ '</span>'
-		);
-
-		let lineWrappingCheckbox = $('#lineWrapping').prop('checked', Structr.getCodeMirrorSettings().lineWrapping)
-		let isTemplateCheckbox   = $('#isTemplate').prop('checked', file.isTemplate);
-		let showPreviewCheckbox  = $('#showTemplatePreview');
-
-		Structr.appendInfoTextToElement({
-			text: "Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. To see a preview, tick the adjacent checkbox.",
-			element: isTemplateCheckbox,
-			insertAfter: true,
-			css: {
-				"margin-right": "4px"
-			}
-		});
-
-		let isTemplateCheckboxChangeFunction = function(isTemplate) {
-			if (isTemplate) {
-				showPreviewCheckbox.attr('disabled', null);
-			} else {
-				showPreviewCheckbox.attr('disabled', 'disabled');
-			}
-		};
-		isTemplateCheckboxChangeFunction(file.isTemplate);
-
-		lineWrappingCheckbox.on('change', function() {
-			Structr.updateCodeMirrorOptionGlobally('lineWrapping', lineWrappingCheckbox.is(':checked'));
-			blinkGreen(lineWrappingCheckbox.parent());
-			editor.refresh();
-		});
-
-		isTemplateCheckbox.on('change', function() {
-			let active = isTemplateCheckbox.is(':checked');
-			_Entities.setProperty(file.id, 'isTemplate', active, false, function() {
-				file.isTemplate = active;
-				isTemplateCheckboxChangeFunction(active);
-			});
-		});
-
-		showPreviewCheckbox.on('change', function() {
-			let active = showPreviewCheckbox.is(':checked');
-			if (active) {
-				_Files.updateTemplatePreview(element, urlForFileAndPreview);
-			} else {
-				let previewArea = $('#template-preview').hide();
-				$('textarea', previewArea).val('');
-				$('.editor', element).width('inherit');
-			}
-		});
-
-		// remove all buttons
-		dialogBtn.children().remove();
-
-		dialogBtn.html('<button class="closeButton">Close</button>');
-		dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled">Save</button>');
-		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled">Save and close</button>');
-
-		dialogCancelButton = $('.closeButton', dialogBox);
-		dialogSaveButton   = $('#saveFile', dialogBtn);
-		saveAndClose       = $('#saveAndClose', dialogBtn);
-
-		let changeFunction = () => {
-			if (data === editor.getValue()) {
-				dialogSaveButton.prop("disabled", true).addClass('disabled');
-				saveAndClose.prop("disabled", true).addClass('disabled');
-				$('#tab-' + file.id).removeClass('has-changes');
-			} else {
-				dialogSaveButton.prop("disabled", false).removeClass('disabled');
-				saveAndClose.prop("disabled", false).removeClass('disabled');
-				$('#tab-' + file.id).addClass('has-changes');
-			}
-		};
-		changeFunction();
-
-		editor.on('change', (cm, change) => { changeFunction();	});
-
-		$('button#saveFile', dialogBtn).on('click', function(e) {
-
-			e.preventDefault();
-			e.stopPropagation();
-
-			let newText = editor.getValue();
-			if (data === newText) {
-				return;
-			}
-
-			// update current value so we can check against it
-			data = newText;
-			changeFunction();
-
-			let saveFileAction = (callback) => {
-				_Files.updateTextFile(file, newText, callback);
-				text = newText;
-				dialogSaveButton.prop("disabled", true).addClass('disabled');
-				saveAndClose.prop("disabled", true).addClass('disabled');
-			};
-
-			if ($('#isTemplate').is(':checked')) {
-
-				_Entities.setProperty(file.id, 'isTemplate', false, false, () => {
-					saveFileAction(() => {
-						_Entities.setProperty(file.id, 'isTemplate', true, false, () => {
-							let active = showPreviewCheckbox.is(':checked');
-							if (active) {
-								_Files.updateTemplatePreview(element, urlForFileAndPreview);
-							}
-						});
-					});
-				});
-
-			} else {
-
-				saveFileAction();
-			}
-		});
-
-		let checkForUnsaved = () => {
-			if ($('.file-tab.has-changes').length > 0) {
-				return confirm('You have unsaved changes, really close without saving?');
-			} else {
-				return true;
-			}
-		};
-
-		saveAndClose.on('click', function(e) {
-			e.stopPropagation();
-			dialogSaveButton.click();
-
-			if (checkForUnsaved()) {
-				setTimeout(function() {
-					dialogSaveButton.remove();
-					saveAndClose.remove();
-					dialogCancelButton.click();
-				}, 500);
-			}
-		});
-
-		dialogCancelButton.on('click', (e) => {
-			if (checkForUnsaved()) {
-				e.stopPropagation();
-				dialogText.empty();
-				$.unblockUI({
-					fadeOut: 25
-				});
-
-				dialogBtn.children(':not(.closeButton)').remove();
-
-				Structr.focusSearchField();
-
-				LSWrapper.removeItem(dialogDataKey);
-			}
-		});
-
-		_Files.resize();
 	},
 	updateTemplatePreview: async (element, url) => {
 

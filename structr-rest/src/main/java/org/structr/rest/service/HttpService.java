@@ -133,16 +133,29 @@ public class HttpService implements RunnableService, StatsCallback {
 		logger.info("Base path {}", Settings.getBasePath());
 		logger.info("{} started at http://{}:{}", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
 
+		int maxAttempts = 3;
 
-		server.start();
+		while (maxAttempts-- > 0) {
 
-		if (maintenanceServer != null) {
-			maintenanceServer.start();
+			try {
+
+				server.start();
+
+				if (maintenanceServer != null) {
+					maintenanceServer.start();
+				}
+
+				maxAttempts = 0;
+
+			} catch (Exception e) {
+				logger.warn("Error, retrying {} more times after 500ms - Caught: {} ", maxAttempts, e.getMessage());
+				Thread.sleep(500);
+			}
 		}
 
 		try {
 
-			while (!server.isStarted()) {
+			while (!server.isStarted() || (maintenanceServer != null && !maintenanceServer.isStarted()) ) {
 				Thread.sleep(100);
 			}
 
@@ -165,6 +178,11 @@ public class HttpService implements RunnableService, StatsCallback {
 			try {
 				server.stop();
 
+				while (server.isStopping() && !server.isStopped()) {
+					// wait until server is stopped
+					Thread.sleep(100);
+				}
+
 			} catch (Exception ex) {
 				logger.warn("Exception while stopping Jetty: {}", ex.getMessage());
 			}
@@ -174,6 +192,11 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			try {
 				maintenanceServer.stop();
+
+				while (maintenanceServer.isStopping() && !maintenanceServer.isStopped()) {
+					// wait until server is stopped
+					Thread.sleep(100);
+				}
 
 			} catch (Exception ex) {
 				logger.warn("Exception while stopping temporary maintenance server: {}", ex.getMessage());

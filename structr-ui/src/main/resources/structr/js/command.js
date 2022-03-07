@@ -218,7 +218,19 @@ let Command = {
 				type: type
 			}
 		};
-		if (properties) obj.data.properties = JSON.stringify(properties);
+		if (properties) {
+			const andProperties = {};
+			const notProperties = {};
+			for (const key of Object.keys(properties)) {
+				if (key.startsWith('!')) {
+					notProperties[key.substring(1)] = properties[key];
+				} else {
+					andProperties[key] = properties[key];
+				}
+			}
+			obj.data.properties    = JSON.stringify(andProperties);
+			obj.data.notProperties = JSON.stringify(notProperties);
+		}
 		if (exact !== null) obj.data.exact = exact;
 		if (view) obj.view = view;
 		if (customView) obj.data.customView = customView;
@@ -523,7 +535,7 @@ let Command = {
 	 * as child of the parent group node with the given group id.
 	 *
 	 */
-	appendMember: function(id, groupId) {
+	appendMember: function(id, groupId, callback) {
 		let obj = {
 			command: 'APPEND_MEMBER',
 			id: id,
@@ -531,7 +543,7 @@ let Command = {
 				parentId: groupId
 			}
 		};
-		return StructrWS.sendObj(obj);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send an APPEND_CHILD command to the server.
@@ -1020,7 +1032,7 @@ let Command = {
 				parent: file.parent,
 				hasParent: file.hasParent,
 				parentId: file.parentId,
-				type: (isImage(file.type) ? 'Image' : (isVideo(file.type) && Structr.isModulePresent('media')) ? 'VideoFile' : 'File')
+				type: (Structr.isImage(file.type) ? 'Image' : (Structr.isVideo(file.type) && Structr.isModulePresent('media')) ? 'VideoFile' : 'File')
 			}
 		};
 		return StructrWS.sendObj(obj, callback);

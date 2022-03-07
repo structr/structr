@@ -68,6 +68,7 @@ import org.structr.common.fulltext.Indexable;
 import org.structr.core.StaticValue;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Localization;
 import org.structr.core.entity.MailTemplate;
@@ -130,10 +131,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private static final Logger logger                     = LoggerFactory.getLogger(DeployCommand.class.getName());
 	private static final Pattern pattern                   = Pattern.compile("[a-f0-9]{32}");
 
-	private static final Map<String, String> deferredPageLinks = new LinkedHashMap<>();
+	private static final Map<String, String> deferredPageLinks        = new LinkedHashMap<>();
+	private Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = new LinkedHashMap<>();
+
 	protected static final Set<String> missingPrincipals       = new HashSet<>();
 	protected static final Set<String> missingSchemaFile       = new HashSet<>();
 	protected static final Set<String> deferredLogTexts        = new HashSet<>();
+
 
 	protected static final AtomicBoolean deploymentActive      = new AtomicBoolean(false);
 
@@ -390,7 +394,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			importModuleData(source);
 
-			importHTMLContent(app, source, pagesMetadataFile, componentsMetadataFile, templatesMetadataFile, sitesConfFile, extendExistingApp, relativeVisibility);
+			importHTMLContent(app, source, pagesMetadataFile, componentsMetadataFile, templatesMetadataFile, sitesConfFile, extendExistingApp, relativeVisibility, deferredNodesAndTheirProperties);
 
 			linkDeferredPages(app);
 
@@ -1835,7 +1839,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void importHTMLContent(final App app, final Path source, final Path pagesMetadataFile, final Path componentsMetadataFile, final Path templatesMetadataFile, final Path sitesConfFile, final boolean extendExistingApp, final boolean relativeVisibility) throws FrameworkException {
+	private void importHTMLContent(final App app, final Path source, final Path pagesMetadataFile, final Path componentsMetadataFile, final Path templatesMetadataFile, final Path sitesConfFile, final boolean extendExistingApp, final boolean relativeVisibility, final Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties) throws FrameworkException {
 
 		final Map<String, Object> componentsMetadata = new HashMap<>();
 		final Map<String, Object> templatesMetadata  = new HashMap<>();
@@ -1948,6 +1952,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing shared components");
 
 					final ComponentImportVisitor visitor = new ComponentImportVisitor(componentsMetadata, relativeVisibility);
+					visitor.setDeferredNodesAndTheirProperties(deferredNodesAndTheirProperties);
 
 					// first, only import the HULL for each shared component (the outermost element)
 					visitor.setHullMode(true);
@@ -1970,7 +1975,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing pages");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing pages");
 
-					Files.walkFileTree(pages, new PageImportVisitor(pages, pagesMetadata, relativeVisibility));
+					final PageImportVisitor visitor = new PageImportVisitor(pages, pagesMetadata, relativeVisibility);
+					visitor.setDeferredNodesAndTheirProperties(deferredNodesAndTheirProperties);
+
+					Files.walkFileTree(pages, visitor);
 
 				} catch (IOException ioex) {
 					logger.warn("Exception while importing pages", ioex);
@@ -1978,12 +1986,50 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 		}
 
+		handleDeferredProperties();
+
 		if (Files.exists(sitesConfFile)) {
 
 			logger.info("Importing sites");
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing sites");
 
 			importSites(readConfigList(sitesConfFile));
+		}
+	}
+
+	private void handleDeferredProperties() throws FrameworkException {
+
+		final SecurityContext context = SecurityContext.getSuperUserInstance();
+		context.setDoTransactionNotifications(false);
+		final App app                 = StructrApp.getInstance(context);
+
+		try (final Tx tx = app.tx()) {
+
+			tx.disableChangelog();
+
+			for (final DOMNode node : deferredNodesAndTheirProperties.keySet()) {
+
+				final PropertyMap properties = deferredNodesAndTheirProperties.get(node);
+
+				for (final PropertyKey propertyKey : properties.keySet()) {
+
+					final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+
+					if (inputConverter != null) {
+
+						node.setProperty(propertyKey, inputConverter.convert(properties.get(propertyKey)));
+					}
+				}
+
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.error("Unable to handle deferred properties, aborting with {}", fex.getMessage(), fex);
+
+			throw fex;
 		}
 	}
 

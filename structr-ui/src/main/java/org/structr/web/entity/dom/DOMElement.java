@@ -31,6 +31,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.renjin.repackaged.guava.base.CaseFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -69,6 +70,9 @@ import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
+
+import org.structr.web.entity.html.Input;
+import org.structr.web.entity.html.Select;
 import org.structr.web.function.InsertHtmlFunction;
 import org.structr.web.function.RemoveDOMChildFunction;
 import org.structr.web.function.ReplaceDOMChildFunction;
@@ -160,7 +164,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addStringProperty("_html_onwaiting", PropertyView.Html);
 		type.addStringProperty("_html_data", PropertyView.Html);
 
-		// data-structr-* attibutes
+		// data-structr-* attributes
 		type.addBooleanProperty("data-structr-reload",              PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If active, the page will refresh after a successful action.");
 		type.addBooleanProperty("data-structr-confirm",             PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If active, a user has to confirm the action.");
 		type.addBooleanProperty("data-structr-append-id",           PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("On create, append ID of first created object to the return URI.");
@@ -189,7 +193,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addStringProperty("eventMapping",                       PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
 		type.addPropertyGetter("eventMapping", String.class);
 		type.relate(type, "RELOADS",   Cardinality.ManyToMany, "reloadSources",     "reloadTargets");
+		type.relate(type, "INPUTS",   Cardinality.OneToMany,   "actionElement",     "inputs");
 		type.addViewProperty("_html_name", PropertyView.Ui);
+		type.addViewProperty(PropertyView.Ui, "actionElement");
+		type.addViewProperty(PropertyView.Ui, "inputs");
+
+		// attributes for lazy rendering
+		type.addStringProperty("data-structr-rendering-mode",       PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval");
+		type.addStringProperty("data-structr-delay-or-interval",    PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Delay or interval in milliseconds for 'delayed' or 'periodic' rendering mode");
 
 		// Core attributes
 		type.addStringProperty("_html_accesskey", PropertyView.Html);
@@ -906,8 +917,16 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					renderContext.setInBody(true);
 				}
 
-				// only render children if we are not in a shared component scenario and not in deployment mode
-				if (thisElement.getSharedComponent() == null || !EditMode.DEPLOYMENT.equals(editMode)) {
+				boolean lazyRendering = false;
+				final String renderingMode = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-rendering-mode"));
+
+				// lazy rendering can only work if this node is not requested as a partial
+				if (renderContext.getPage() != null && renderingMode != null) {
+					lazyRendering = true;
+				}
+
+				// only render children if we are not in a shared component scenario, not in deployment mode and it's not rendered lazily
+				if (!lazyRendering && (thisElement.getSharedComponent() == null || !EditMode.DEPLOYMENT.equals(editMode))) {
 
 					// fetch children
 					final List<RelationshipInterface> rels = thisElement.getChildRelationships();
@@ -1178,6 +1197,27 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 							}
 						}
 
+						for (DOMElement element : (Iterable<? extends DOMElement>) thisElement.getProperty(StructrApp.key(DOMElement.class, "inputs"))) {
+
+							String nameAttribute = null;
+
+							if (element instanceof Input) {
+
+								element = (Input) element;
+								nameAttribute = element.getPropertyWithVariableReplacement(renderContext, StructrApp.key(Input.class, "_html_name"));
+
+							} else if (element instanceof Select) {
+
+								element = (Select) element;
+								nameAttribute = element.getPropertyWithVariableReplacement(renderContext, StructrApp.key(Select.class, "_html_name"));
+							}
+
+							final String cssIdAttribute = element.getPropertyWithVariableReplacement(renderContext, StructrApp.key(DOMElement.class, "_html_id"));
+							final String nameAttributeHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, nameAttribute);
+
+							out.append(" data-").append(nameAttributeHyphenated).append("=\"css(#").append(cssIdAttribute).append(")\"");
+						}
+
 
 					} else if (isReloadTarget(thisElement)) {
 
@@ -1213,6 +1253,13 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 							out.append(" data-structr-render-state=\"").append(encodedRenderState).append("\"");
 						}
+					}
+
+					final String renderingMode = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-rendering-mode"));
+					if (renderingMode != null) {
+						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+						out.append(" data-structr-delay-or-interval=\"").append(thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-delay-or-interval"))).append("\"");
+
 					}
 
 					break;
@@ -1610,12 +1657,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			if (Character.isUpperCase(c)) {
 
 				buf.append("-");
-				buf.append(Character.toLowerCase(c));
+				c = Character.toLowerCase(c);
 
-			} else {
-
-				buf.append(Character.toString(c));
 			}
+
+			buf.append(Character.toString(c));
 		});
 
 		return buf.toString();

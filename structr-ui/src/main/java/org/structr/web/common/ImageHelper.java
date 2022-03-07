@@ -41,6 +41,8 @@ import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -154,7 +156,7 @@ public abstract class ImageHelper extends FileHelper {
 		if (origWidth == null || origHeight == null) {
 
 			if (!Arrays.asList("image/svg+xml", "image/x-icon", "image/x-photoshop").contains(originalImage.getContentType())) {
-				logger.info("Could not determine width and heigth for {}", originalImage.getName());
+				logger.info("Could not determine width and height for {}", originalImage.getName());
 			}
 
 			return;
@@ -366,12 +368,9 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static Thumbnail createCroppedImage(final Image originalImage, final int maxWidth, final int maxHeight, final Integer reqOffsetX, final Integer reqOffsetY, final String formatString) {
 
-		final String imageFormatString = getImageFormatString(originalImage);
-		final Thumbnail.Format format = formatString != null ? Thumbnail.Format.valueOf(formatString) : (imageFormatString != null ? Thumbnail.Format.valueOf(imageFormatString) : Thumbnail.defaultFormat);
 
 		// String contentType = (String) originalImage.getProperty(Image.CONTENT_TYPE_KEY);
-		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		final Thumbnail tn               = new Thumbnail();
+		Thumbnail tn;
 
 		try (final InputStream in = originalImage.getInputStream()) {
 
@@ -384,45 +383,12 @@ public abstract class ImageHelper extends FileHelper {
 			final long start = System.nanoTime();
 			final BufferedImage source = getRotatedImage(originalImage);
 
-			if (source != null) {
-
-				final int sourceWidth  = source.getWidth();
-				final int sourceHeight = source.getHeight();
-
-				// Update image dimensions
-				final PropertyMap properties = new PropertyMap();
-				properties.put(StructrApp.key(Image.class, "width"), sourceWidth);
-				properties.put(StructrApp.key(Image.class, "height"), sourceHeight);
-				originalImage.setProperties(originalImage.getSecurityContext(), properties);
-
-				final int offsetX = reqOffsetX != null ? reqOffsetX : 0;
-				final int offsetY = reqOffsetY != null ? reqOffsetY : 0;
-
-				final Integer[] dims = finalImageDimensions(offsetX, offsetY, maxWidth, maxHeight, sourceWidth, sourceHeight);
-
-				logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", new Object[] { dims[0], dims[1], dims[2], dims[3] });
-
-				Thumbnails.of(source)
-								.sourceRegion(dims[0], dims[1], dims[2], dims[3])
-								.scale(1)
-								.outputFormat(format.name())
-								.toOutputStream(baos);
-
-				tn.setWidth(dims[2]);
-				tn.setHeight(dims[3]);
-
-			} else {
-
-				logger.warn("Cropped image could not be created for '{}'", originalImage.getPath());
-				return null;
-			}
+			tn = createThumbnailFromBufferedImage(source, originalImage, reqOffsetX, reqOffsetX, maxWidth, maxHeight, formatString);
 
 			final long end  = System.nanoTime();
 			final long time = (end - start) / 1000000;
 
 			logger.debug("Cropped image created. Reading, scaling and writing took {} ms", time);
-
-			tn.setBytes(baos.toByteArray());
 
 			return tn;
 
@@ -434,7 +400,85 @@ public abstract class ImageHelper extends FileHelper {
 		return null;
 	}
 
-	public static BufferedImage getRotatedImage(final File originalImage) {
+	private static Thumbnail createThumbnailFromBufferedImage(final BufferedImage source, final Image originalImage, final Integer reqOffsetX, final Integer reqOffsetY, final Integer maxWidth, final Integer maxHeight, final String formatString) {
+
+		final String imageFormatString = getImageFormatString(originalImage);
+		final Thumbnail.Format format = formatString != null ? Thumbnail.Format.valueOf(formatString) : (imageFormatString != null ? Thumbnail.Format.valueOf(imageFormatString) : Thumbnail.defaultFormat);
+
+		final Thumbnail tn = new Thumbnail();
+		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+		if (source != null) {
+
+			final int sourceWidth  = source.getWidth();
+			final int sourceHeight = source.getHeight();
+
+			// Update image dimensions
+			final PropertyMap properties = new PropertyMap();
+			properties.put(StructrApp.key(Image.class, "width"), sourceWidth);
+			properties.put(StructrApp.key(Image.class, "height"), sourceHeight);
+
+			try {
+				if (originalImage != null) {
+					originalImage.setProperties(originalImage.getSecurityContext(), properties);
+				}
+			} catch (final FrameworkException ex) {
+				logger.debug("Unable to set properties of original image with ID {}", originalImage.getUuid(), ex);
+			}
+
+			final int offsetX = reqOffsetX != null ? reqOffsetX : 0;
+			final int offsetY = reqOffsetY != null ? reqOffsetY : 0;
+
+			final Integer[] dims = finalImageDimensions(offsetX, offsetY, maxWidth, maxHeight, sourceWidth, sourceHeight);
+
+			logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", new Object[] { dims[0], dims[1], dims[2], dims[3] });
+
+			try {
+
+				Thumbnails.of(source)
+						.sourceRegion(dims[0], dims[1], dims[2], dims[3])
+						.scale(1)
+						.outputFormat(format.name())
+						.toOutputStream(baos);
+
+			} catch (Throwable t) {
+				logger.warn("Unable to create thumbnail of source image", t);
+			}
+
+			tn.setWidth(dims[2]);
+			tn.setHeight(dims[3]);
+
+			tn.setBytes(baos.toByteArray());
+
+		} else {
+
+			logger.warn("Cropped image could not be created for '{}'", originalImage.getPath());
+		}
+
+		return null;
+	}
+
+	public static Thumbnail createThumbnailForPdf(final File originalFile, final int page, final int maxWidth, final int maxHeight, final String formatString) {
+
+		final Thumbnail.Format format = formatString != null ? Thumbnail.Format.valueOf(formatString) : Thumbnail.defaultFormat;
+
+		try {
+
+			final PDDocument pdfDocument  = PDDocument.load(originalFile.getFileOnDisk());
+			final PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
+
+			// Create thumbnail of page
+			final BufferedImage source = pdfRenderer.renderImage(page);
+			return createThumbnailFromBufferedImage(source, null, null, null, maxWidth, maxHeight, null);
+
+		} catch (final Throwable t) {
+			logger.warn("Unable to create PDDocument from original file with ID {}.", originalFile.getUuid(), t);
+		}
+
+		return null;
+	}
+
+	private static BufferedImage getRotatedImage(final File originalImage) {
 
 		try {
 
@@ -730,6 +774,11 @@ public abstract class ImageHelper extends FileHelper {
 
 		Metadata metadata = new Metadata();
 
+		if (originalImage.isTemplate()) {
+
+			return metadata;
+		}
+
 		try (final InputStream in = originalImage.getInputStream()) {
 
 			if (in != null && in.available() > 0) {
@@ -745,6 +794,11 @@ public abstract class ImageHelper extends FileHelper {
 	}
 
 	public static int getOrientation(final File originalImage) {
+
+		if (originalImage.isTemplate()) {
+
+			return 1;
+		}
 
 		try {
 
@@ -767,6 +821,11 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static JSONObject getExifData(final File originalImage) {
 
+		if (originalImage.isTemplate()) {
+
+			return null;
+		}
+
 		try {
 
 			// Get new instance with superuser context to be able to update EXIF data
@@ -780,7 +839,6 @@ public abstract class ImageHelper extends FileHelper {
 				final ExifIFD0Directory   exifIFD0Directory   = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
 				final ExifSubIFDDirectory exifSubIFDDirectory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
 				final GpsDirectory        gpsDirectory        = metadata.getFirstDirectoryOfType(GpsDirectory.class);
-
 
 				if (exifIFD0Directory != null) {
 

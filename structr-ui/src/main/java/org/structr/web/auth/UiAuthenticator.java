@@ -28,8 +28,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.mchange.v2.uid.UidUtils;
-import com.microsoft.schemas.office.x2006.encryption.CTKeyEncryptor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
@@ -55,9 +53,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.rest.auth.SessionHelper;
-import org.structr.rest.common.HttpHelper;
 import org.structr.web.entity.User;
-import org.structr.web.entity.html.P;
 import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
 
@@ -596,9 +592,11 @@ public class UiAuthenticator implements Authenticator {
 								stateParamters.remove(originalRequestState);
 
 								URIBuilder uriBuilder = new URIBuilder();
-								for (Map.Entry<String, String[]> entry : originalRequestParameters.entrySet()) {
-									for (String parameterEntry : entry.getValue()) {
-										uriBuilder.addParameter(entry.getKey(), parameterEntry);
+								if (originalRequestParameters != null) {
+									for (Map.Entry<String, String[]> entry : originalRequestParameters.entrySet()) {
+										for (String parameterEntry : entry.getValue()) {
+											uriBuilder.addParameter(entry.getKey(), parameterEntry);
+										}
 									}
 								}
 
@@ -708,7 +706,15 @@ public class UiAuthenticator implements Authenticator {
 
 				if (tryLogin) {
 
-					user = AuthHelper.getPrincipalForPassword(AbstractNode.name, userName, password);
+					try {
+
+						user = AuthHelper.getPrincipalForPassword(AbstractNode.name, userName, password);
+
+					} catch (AuthenticationException ex) {
+
+						final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
+						user = AuthHelper.getPrincipalForPassword(eMailKey, userName, password);
+					}
 				}
 			}
 		}

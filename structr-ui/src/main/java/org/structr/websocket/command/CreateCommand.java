@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.PasswordPolicyViolationException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -75,6 +76,10 @@ public class CreateCommand extends AbstractCommand {
 
 			}
 
+		} catch (PasswordPolicyViolationException ppve) {
+
+			logger.warn("Could not create node: {}", ppve.getMessage());
+			getWebSocket().send(MessageBuilder.status().code(ppve.getStatus()).message(ppve.toString()).build(), true);
 
 		} catch (FrameworkException fex) {
 

@@ -81,8 +81,8 @@ let _Icons = {
 	active_content_icon: 'icon/page_yellow.png',
 	delete_content_icon: 'icon/page_white_delete.png',
 	template_icon: 'icon/layout_content.png',
-	active_template_icon: 'icon/layout_yellow.png',
 	comp_templ_icon: 'icon/layout_yellow.png',
+	active_template_icon: 'icon/layout_yellow.png',
 	icon_shared_template: 'icon/layout_yellow.png',
 	comment_icon: 'icon/comment.png',
 	repeater_icon: 'icon/bricks.png',
@@ -92,8 +92,8 @@ let _Icons = {
 	add_file_icon: 'icon/page_white_add.png',
 	add_site_icon: 'icon/page_white_add.png',
 	add_page_icon: 'icon/page_add.png',
-	ajax_loader_1: 'img/ajax-loader.gif',
-	ajax_loader_2: 'img/al.gif',
+	// ajax_loader_1: 'img/ajax-loader.gif',
+	// ajax_loader_2: 'img/al.gif',
 	structr_logo_small: 'icon/structr_icon_16x16.png',
 	minification_dialog_js_icon: 'icon/script_lightning.png',
 	minification_dialog_css_icon: 'icon/script_palette.png',
@@ -126,23 +126,33 @@ let _Icons = {
 	collapsedClass: 'svg-collapsed',
 	expandedClass: 'svg-expanded',
 
-	getSvgIcon: (id, width = 16, height = 16, optionalClasses) => {
+	getSvgIcon: (id, width = 16, height = 16, optionalClasses, title = '') => {
 
 		/**
 		 * SVG Icons are all loaded in index.html and can be used anywhere using this function
 		 **/
-
 		let classString = '';
 
 		if (Array.isArray(optionalClasses)) {
-			classString.join(' ');
+			classString = optionalClasses.join(' ');
 		} else if (typeof optionalClasses === 'string') {
 			classString = optionalClasses;
 		} else {
 			// ignore
 		}
 
-		return `<svg width="${width}" height="${height}" class="${classString}"><use xlink:href="#${id}"></use></svg>`;
+		return `<svg width="${width}" height="${height}" class="${classString}">
+			<title>${title}</title>
+			<use xlink:href="#${id}"></use>
+		</svg>`;
+	},
+
+	getSvgIconClassesForColoredIcon: (customClasses = []) => {
+		return [...customClasses].concat(['opacity-60', 'hover:opacity-100']).concat('cursor-pointer');
+	},
+
+	getSvgIconClassesNonColorIcon: (customClasses = []) => {
+		return [...customClasses].concat(['icon-inactive', 'hover:icon-active']).concat('cursor-pointer');
 	},
 
 	getFullSpriteClass: function (key) {
@@ -224,7 +234,6 @@ let _Icons = {
 			case _Icons.delete_content_icon:          return 'sprite-page_white_delete';
 			case _Icons.template_icon:                return 'sprite-layout_content';
 			case _Icons.active_template_icon:         return 'sprite-layout_yellow';
-			case _Icons.comp_templ_icon:              return 'sprite-layout_yellow';
 			case _Icons.icon_shared_template:         return 'sprite-layout_yellow';
 			case _Icons.comment_icon:                 return 'sprite-comment';
 			case _Icons.repeater_icon:                return 'sprite-bricks';
@@ -376,10 +385,6 @@ let _Icons = {
 		}
 
 		return result;
-	},
-
-	getSpinnerImageAsData: function () {
-		return "data:image/gif;base64,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";
 	},
 
 	getIconForEdition: function (edition) {

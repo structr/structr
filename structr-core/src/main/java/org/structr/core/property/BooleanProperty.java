@@ -20,6 +20,7 @@ package org.structr.core.property;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.slf4j.Logger;
@@ -127,6 +128,11 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
 		return true;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
 	}
 
 	// ----- nested classes -----

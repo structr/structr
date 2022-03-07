@@ -126,31 +126,25 @@ public class CsvHelper {
 
 	private static void checkPropertyNames(final SecurityContext securityContext, final String[] propertyNames) throws FrameworkException {
 
-		try {
+		final int len = propertyNames.length;
 
-			final int len = propertyNames.length;
+		for (int i=0; i<len; i++) {
 
-			for (int i=0; i<len; i++) {
+			final String key = propertyNames[i];
 
-				final String key = propertyNames[i];
+			if (StringUtils.isBlank(key)) {
 
-				if (key == null || key.trim().equals("")) {
-					throw new FrameworkException(422, "Property name in header is empty  - maybe a problem with the field quoting?");
-				}
+				final String message = "Property name in header is empty  - maybe a problem with the field quoting?";
+				logger.warn(message);
+				final Map<String, Object> data = new LinkedHashMap();
+
+				data.put("type",     "CSV_IMPORT_WARNING");
+				data.put("title",    "CSV Import Warning");
+				data.put("text",     message);
+				data.put("username", securityContext.getUser(false).getName());
+
+				TransactionCommand.simpleBroadcastGenericMessage(data);
 			}
-
-		} catch (FrameworkException fxe) {
-
-			final Map<String, Object> data = new LinkedHashMap();
-
-			data.put("type",     "CSV_IMPORT_ERROR");
-			data.put("title",    "CSV Import Error");
-			data.put("text",     fxe.getMessage());
-			data.put("username", securityContext.getUser(false).getName());
-
-			TransactionCommand.simpleBroadcastGenericMessage(data);
-
-			throw fxe;
 		}
 	}
 

@@ -1,8 +1,5 @@
-<div class="code-favorite" id="recently-used-${config.id}">
-
-	<i class="${config.iconClass}" style="" />
-
-	<span>${config.name}</span>
-
-	<i id="remove-recently-used-${config.id}" class="fa fa-remove" />
+<div class="code-favorite items-center" id="recently-used-${config.id}">
+	<i class="${config.iconClass} flex-none"></i>
+	<div class="truncate flex-grow">${config.name}</div>
+	${_Icons.getSvgIcon('close-dialog-x', 14, 14, _Icons.getSvgIconClassesForColoredIcon(['flex-none', 'icon-grey', 'remove-recently-used']))}
 </div>

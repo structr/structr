@@ -48,6 +48,7 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 	private boolean isCachingEnabled      = false;
 	private String readFunction           = null;
 	private String writeFunction          = null;
+	private String openAPIReturnType      = null;
 	private String[] transformators       = null;
 	private String[] validators           = null;
 
@@ -205,6 +206,9 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 	public String getWriteFunction() {
 		return writeFunction;
 	}
+
+	@Override
+	public String getOpenAPIReturnType() {	return openAPIReturnType; }
 
 	@Override
 	public String[] getTransformators() {

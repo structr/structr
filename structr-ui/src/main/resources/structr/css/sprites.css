@@ -29,6 +29,11 @@
 	height: 16px;
 }
 
+.force-sprite-size {
+	width: 16px !important;
+	height: 16px !important;
+}
+
 .sprite-accept {
 	background-position: -4px -4px;
 }

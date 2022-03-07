@@ -162,12 +162,16 @@ public abstract class Setting<T> {
 	// ----- protected methods -----
 	protected void renderLabel(final Tag group) {
 
-		final Tag label = group.block("label").text(getKey());
+		final Tag label = group.block("label");
 
 		if (getComment() != null) {
-			label.attr(new Attr("class", "has-comment"));
+			label.attr(new Attr("class", "bold basis-full sm:basis-auto sm:min-w-128 has-comment"));
 			label.attr(new Attr("data-comment", getComment()));
+		} else {
+			label.attr(new Attr("class", "bold basis-full sm:basis-auto sm:min-w-128"));
 		}
+
+		label.text(getKey());
 	}
 
 	protected void renderResetButton(final Tag group) {

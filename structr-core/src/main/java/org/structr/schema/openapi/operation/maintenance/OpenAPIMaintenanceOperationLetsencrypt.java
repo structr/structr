@@ -18,7 +18,7 @@
  */
 package org.structr.schema.openapi.operation.maintenance;
 
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
@@ -58,7 +58,7 @@ public class OpenAPIMaintenanceOperationLetsencrypt extends LinkedHashMap<String
                 new OpenAPIRequestResponse(
                         "Request body",
 			new OpenAPIObjectSchema(
-                        	new OpenAPIPrimitiveSchema("Server mode to use (staging creates dummy certificates",  "server",    "string", null, "production", Map.of(0, "staging", 1, "production")).required(),
+                        	new OpenAPIPrimitiveSchema("Server mode to use (staging creates dummy certificates",  "server",    "string", null, "production", Map.of(0, "staging", 1, "production"), false).required(),
                         	new OpenAPIPrimitiveSchema("Challenge to overwrite the default challenge method",     "challenge", "string"),
                         	new OpenAPIPrimitiveSchema("Seconds to wait before the challenge check is started",   "wait",      "string"),
                         	new OpenAPIPrimitiveSchema("Reload the certificate after updating it",                "reload",    "boolean")
@@ -67,8 +67,8 @@ public class OpenAPIMaintenanceOperationLetsencrypt extends LinkedHashMap<String
 
                 // responses
                 Map.of(
-                        "200", new OpenAPIReference("#/components/responses/ok"),
-                        "401", new OpenAPIReference("#/components/responses/unauthorized")
+                        "200", new OpenAPISchemaReference("#/components/responses/ok"),
+                        "401", new OpenAPISchemaReference("#/components/responses/unauthorized")
                 )
         ));
 

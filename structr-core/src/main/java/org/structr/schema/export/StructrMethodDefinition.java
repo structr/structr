@@ -46,7 +46,8 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.openapi.common.OpenAPIReference;
+import org.structr.schema.openapi.common.OpenAPIResponseReference;
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.OpenAPIGlobalSchemaMethodOperation;
 import org.structr.schema.openapi.operation.OpenAPIMethodOperation;
 import org.structr.schema.openapi.operation.OpenAPIStaticMethodOperation;
@@ -589,7 +590,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	// ----- OpenAPI -----
-	public Map<String, Object> serializeOpenAPI() {
+	public Map<String, Object> serializeOpenAPI(final StructrTypeDefinition parentType, Set<String> viewNames) {
 
 		final Map<String, Object> operations = new LinkedHashMap<>();
 
@@ -597,13 +598,14 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 			if (isStatic) {
 
-				operations.put("/" + getParent().getName() + "/" + getName(), Map.of("post", new OpenAPIStaticMethodOperation(this)));
+				operations.put("/" + getParent().getName() + "/" + getName() + "/{view}", Map.of("post", new OpenAPIStaticMethodOperation(this, parentType, viewNames)));
+
 
 			} else {
 
 				if (parent != null) {
 
-					operations.put("/" + getParent().getName() + "/{uuid}/" + getName(), Map.of("post", new OpenAPIMethodOperation(this)));
+					operations.put("/" + getParent().getName() + "/{uuid}/" + getName() + "/{view}", Map.of("post", new OpenAPIMethodOperation(this, parentType, viewNames)));
 
 				} else {
 
@@ -705,7 +707,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	public Map<String, Object> getOpenAPIRequestBody() {
 
 		if (!getParameters().isEmpty()) {
-			return new OpenAPIRequestResponse("Parameters", getOpenAPIRequestSchema(), getOpenAPIRequestBodyExample(), null);
+			return new OpenAPIRequestResponse("Parameters", getOpenAPIRequestSchema(), getOpenAPIRequestBodyExample(), null, false);
 		}
 
 		return null;
@@ -724,13 +726,14 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 			} catch (Throwable ignore) {}
 
-			return new OpenAPIRequestResponse("The request was executed successfully.",
-				new OpenAPIResultSchema(schemaFromJsonString, true)
-			);
+			return new OpenAPIResultSchema(schemaFromJsonString, false);
+			/*return new OpenAPIRequestResponse("The request was executed successfully.",
+
+			);*/
 
 		} else {
 
-			return new OpenAPIReference("#/components/responses/ok");
+			return new OpenAPIResponseReference("#/components/responses/ok");
 		}
 	}
 

@@ -57,23 +57,9 @@
 	background-color: var(--structr-green) !important;
 }
 
-#mail-template-detail-form .form-row textarea, #mail-template-detail-form .form-row .CodeMirror {
-	font-family: Courier, 'Courier New', monospace !important;
+#mail-template-detail-form #mail-template-text {
 	display: block;
-	font-size: .875rem;
-	/*width: 100%;*/
-	height: calc(100vh - 29rem);
-	margin-top: .5rem;
-	border: 1px solid var(--input-field-border);
-}
-
-#mail-template-detail-form .form-row .CodeMirror {
-	font-family: Courier, 'Courier New', monospace !important;
-	display: block;
-	font-size: .875rem;
-	/*width: 100%;*/
 	height: calc(100vh - 28rem);
-	margin-top: .5rem;
 }
 
 #mail-template-detail-form .form-row iframe {
