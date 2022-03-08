@@ -1507,7 +1507,7 @@ let _Files = {
 			// re-focus the editor in the next cycle
 			window.setTimeout(() => { monacoEditor.focus(); }, 0);
 
-		}, 'suggestWidgetVisible || !findWidgetVisible');
+		}, 'suggestWidgetVisible');
 
 		// for files only: install a listener for the ESC key to hide the find widget
 		monacoEditor.addCommand(monaco.KeyCode.Escape, () => {
@@ -1517,7 +1517,7 @@ let _Files = {
 
 			monacoEditor.trigger('keyboard', 'closeFindWidget');
 
-		}, '!suggestWidgetVisible || findWidgetVisible');
+		}, 'findWidgetVisible');
 
 		let editorInfo = dialogMeta[0].querySelector('.editor-info');
 		_Editors.appendEditorOptionsElement(editorInfo);
