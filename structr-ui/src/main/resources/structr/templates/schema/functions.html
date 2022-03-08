@@ -1,25 +1,30 @@
 <div class="flex-grow">
-	<div class="input-and-button">
-		<input class="schema-input" id="type-name" type="text" size="10" placeholder="New type" autocomplete="off"><button id="create-type" class="action btn"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add</button>
-	</div>
+	<div class="inline-flex">
 
-	<div class="dropdown-menu dropdown-menu-large">
-		<button class="btn dropdown-select" id="global-schema-methods">${_Icons.getSvgIcon('globe-icon', 16, 16, '')} Global Methods</button>
-	</div>
+		<input class="schema-input mr-2" id="type-name" type="text" size="10" placeholder="New type" autocomplete="off">
 
-	<div class="dropdown-menu dropdown-menu-large" data-template="schema/display-settings" data-callback="activateLayoutTools">
-		<button class="btn dropdown-select">${_Icons.getSvgIcon('network-icon', 16, 16, '')} Display</button>
-		<div class="dropdown-menu-container"></div>
-	</div>
+		<button id="create-type" class="action inline-flex items-center">
+			${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} Add
+		</button>
 
-	<div class="dropdown-menu dropdown-menu-large" data-template="schema/snapshots" data-callback="activateSnapshotsDialog">
-		<button class="btn dropdown-select">${_Icons.getSvgIcon('snapshots-icon', 16, 16, '')} Snapshots</button>
-		<div class="dropdown-menu-container"></div>
-	</div>
+		<div class="dropdown-menu dropdown-menu-large">
+			<button class="btn dropdown-select" id="global-schema-methods">${_Icons.getSvgIcon('globe-icon', 16, 16, '')} Global Methods</button>
+		</div>
 
-	<div class="dropdown-menu dropdown-menu-large" data-template="schema/admin-tools" data-callback="activateAdminTools">
-		<button class="btn dropdown-select">${_Icons.getSvgIcon('settings-cog', 16, 16, '')} Admin</button>
-		<div class="dropdown-menu-container"></div>
+		<div class="dropdown-menu dropdown-menu-large" data-template="schema/display-settings" data-callback="activateLayoutTools">
+			<button class="btn dropdown-select">${_Icons.getSvgIcon('network-icon', 16, 16, '')} Display</button>
+			<div class="dropdown-menu-container"></div>
+		</div>
+
+		<div class="dropdown-menu dropdown-menu-large" data-template="schema/snapshots" data-callback="activateSnapshotsDialog">
+			<button class="btn dropdown-select">${_Icons.getSvgIcon('snapshots-icon', 16, 16, '')} Snapshots</button>
+			<div class="dropdown-menu-container"></div>
+		</div>
+
+		<div class="dropdown-menu dropdown-menu-large" data-template="schema/admin-tools" data-callback="activateAdminTools">
+			<button class="btn dropdown-select">${_Icons.getSvgIcon('settings-cog', 16, 16, '')} Admin</button>
+			<div class="dropdown-menu-container"></div>
+		</div>
 	</div>
 </div>
 

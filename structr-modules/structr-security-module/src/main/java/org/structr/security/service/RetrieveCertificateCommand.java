@@ -119,6 +119,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	private Account                account;
 	private List<Order>            orders     = new ArrayList<>();
 	private Map<String, Challenge> challenges = new HashMap<>();
+	private boolean success                   = false;
 
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
@@ -196,6 +197,8 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 					getCertificate(reload);
 
+					success = true;
+
 					sendEndMessage(broadcastData, startTime);
 
 					break;
@@ -223,6 +226,8 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Challenges verified");
 
 					getCertificate(reload);
+
+					success = true;
 
 					sendEndMessage(broadcastData, startTime);
 
@@ -857,17 +862,26 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	}
 
 	@Override
-	public List<Object> getPayload() {
+	public Object getCommandResult() {
 
-		final List<Object> payload = new ArrayList<>();
-		final JSONArray challengesJSON = new JSONArray();
-		for (final String domain : challenges.keySet()) {
-			final Challenge challenge = challenges.get(domain);
-			final JSONObject challengeJson = new JSONObject(challenge.getJSON().toMap());
-			challengeJson.put("domain", domain);
-			challengesJSON.put(challengeJson);
-		}
-		payload.add(challengesJSON);
-		return payload;
+		final Map<String, Object> result = new HashMap<>();
+		result.put("success", success);
+
+		// does not make sense, challenges are cleared after finishing
+//		final List<Map> transformedChallenges = new ArrayList<>();
+//		result.put("challenges", transformedChallenges);
+//
+//		for (final String domain : challenges.keySet()) {
+//
+//			final Challenge challenge = challenges.get(domain);
+//
+//			final Map<String, Object> tmp = new HashMap<>();
+//			tmp.putAll(challenge.getJSON().toMap());
+//			tmp.put("domain", domain);
+//
+//			transformedChallenges.add(tmp);
+//		}
+//
+		return result;
 	}
 }

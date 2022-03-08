@@ -2294,7 +2294,7 @@ let _Entities = {
 		if (!el || !entity) {
 			return false;
 		}
-		el.append('<div class="input-section"><h3>' + label + '</h3><p>' + desc + '</p><div class="input-and-button"><input type="text" class="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button class="save_' + key + '">Save</button></div></div>');
+		el.append('<div class="input-section"><h3>' + label + '</h3><p>' + desc + '</p><div><input type="text" class="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button class="save_' + key + '">Save</button></div></div>');
 
 		let btn = $('.save_' + key, el);
 		let inp = $('.' + key + '_', el);
@@ -2341,7 +2341,7 @@ let _Entities = {
 				}
 			}
 
-			keyIcon = $(_Icons.getSvgIcon(_Entities.getVisibilityIconId(entity), 16, 16, iconClasses));
+			keyIcon = $(_Icons.getSvgIcon(_Entities.getNewAccessControlIconId(entity), 16, 16, iconClasses));
 			parent.append(keyIcon);
 
 			_Entities.bindAccessControl(keyIcon, entity);
@@ -2351,11 +2351,11 @@ let _Entities = {
 
 		return keyIcon;
 	},
-	getVisibilityIconId: (entity) => {
+	getNewAccessControlIconId: (entity) => {
 
 		let iconId = 'visibility-lock-key';
 
-		if (true === entity.visibleToPublicUsers &&  true === entity.visibleToAuthenticatedUsers) {
+		if (true === entity.visibleToPublicUsers && true === entity.visibleToAuthenticatedUsers) {
 
 			iconId = 'visibility-lock-open';
 
@@ -2365,6 +2365,36 @@ let _Entities = {
 		}
 
 		return iconId;
+	},
+	updateNewAccessControlIconInElement: (entity, element) => {
+
+		let isProtected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
+
+		// update svg key icon
+		let svgKeyIcon = element[0].querySelector(':scope > .svg_key_icon');
+		if (!svgKeyIcon) {
+			svgKeyIcon = element[0].querySelector(':scope > .icons-container > .svg_key_icon');
+		}
+		if (!svgKeyIcon) {
+			svgKeyIcon = element[0].querySelector(':scope > .actions > .svg_key_icon');
+		}
+		if (svgKeyIcon) {
+
+			let newIconId = _Entities.getNewAccessControlIconId(entity);
+
+			// replace only xlink:href to keep bindings intact
+			let use = svgKeyIcon.querySelector(':scope > use');
+			use.setAttribute('xlink:href', '#' + newIconId);
+
+			if (svgKeyIcon.dataset['onlyShowWhenProtected'] === 'true') {
+
+				if (isProtected) {
+					svgKeyIcon.classList.remove('node-action-icon');
+				} else {
+					svgKeyIcon.classList.add('node-action-icon');
+				}
+			}
+		}
 	},
 	appendContextMenuIcon: (parent, entity, visible) => {
 

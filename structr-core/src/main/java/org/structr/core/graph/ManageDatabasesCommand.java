@@ -73,7 +73,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 			switch (command) {
 
 				case "list":
-					getPayload().addAll(getConnections());
+					// handled by getCommandResult
 					break;
 
 				case "add":
@@ -114,6 +114,11 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 	@Override
 	public boolean requiresFlushingOfCaches() {
 		return false;
+	}
+
+	@Override
+	public Object getCommandResult() {
+		return getConnections();
 	}
 
 	public void deactivateConnections() throws FrameworkException {

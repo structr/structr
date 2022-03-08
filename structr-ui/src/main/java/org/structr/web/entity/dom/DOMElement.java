@@ -54,6 +54,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -1020,8 +1021,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			renderContext.setAppLibRendered(true);
 
+			// Send deprecation warning
+			TransactionCommand.simpleBroadcastDeprecationWarning(
+					"EDIT_MODE_BINDING",
+					"Edit Mode Binding is deprecated",
+					"Element " + thisElement.getUuid() + " uses deprecated frontend edit-mode bindings. This feature is deprecated and will be removed in a coming version. Migration is needed to ensure future functioning.",
+					thisElement.getUuid()
+			);
 		}
-
 	}
 
 	static void openingTag(final DOMElement thisElement, final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {

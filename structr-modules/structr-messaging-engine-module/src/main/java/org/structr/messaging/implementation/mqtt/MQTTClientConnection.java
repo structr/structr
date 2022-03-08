@@ -66,6 +66,7 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 		connOpts.setCleanSession(true);
 
 		connOpts.setAutomaticReconnect(true);
+		connOpts.setMaxReconnectDelay(5);
 
 		if (info.getUsername() != null && info.getPassword() != null) {
 			connOpts.setUserName(info.getUsername());

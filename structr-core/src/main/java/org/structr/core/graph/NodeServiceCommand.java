@@ -49,16 +49,11 @@ public abstract class NodeServiceCommand extends Command {
 	private static final ArrayBlockingQueue<String> uuidQueue = new ArrayBlockingQueue<>(100000);
 
 	protected final Map<String, String> customHeaders = new LinkedHashMap();
-	protected final List<Object> customPayload        = new LinkedList<>();
 	protected SecurityContext securityContext         = null;
 	private Writable logWritable                      = null;
 
 	public Map<String, String> getCustomHeaders () {
 		return customHeaders;
-	}
-
-	public List<Object> getPayload () {
-		return customPayload;
 	}
 
 	@Override
