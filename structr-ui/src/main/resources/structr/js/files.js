@@ -1500,10 +1500,24 @@ let _Files = {
 
 			// set the structr-internal ignoreKeyUp so that the popup is not closed
 			ignoreKeyUp = true;
+
 			// blur the active element so that the popup is removed
 			document.activeElement.blur();
 
-		}, 'suggestWidgetVisible');
+			// re-focus the editor in the next cycle
+			window.setTimeout(() => { monacoEditor.focus(); }, 0);
+
+		}, 'suggestWidgetVisible || !findWidgetVisible');
+
+		// for files only: install a listener for the ESC key to hide the find widget
+		monacoEditor.addCommand(monaco.KeyCode.Escape, () => {
+
+			// set the structr-internal ignoreKeyUp so that the popup is not closed
+			ignoreKeyUp = true;
+
+			monacoEditor.trigger('keyboard', 'closeFindWidget');
+
+		}, '!suggestWidgetVisible || findWidgetVisible');
 
 		let editorInfo = dialogMeta[0].querySelector('.editor-info');
 		_Editors.appendEditorOptionsElement(editorInfo);
