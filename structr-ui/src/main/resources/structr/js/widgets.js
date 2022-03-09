@@ -155,7 +155,7 @@ let _Widgets = {
 				_Widgets.repaintRemoteWidgets();
 			});
 
-			document.querySelector('#edit-widget-servers').addEventListener('click', _Widgets.showWidgetServersDialog);
+			document.querySelector('.edit-widget-servers').addEventListener('click', _Widgets.showWidgetServersDialog);
 
 			_Widgets.updateWidgetServerSelector(function() {
 				_Widgets.refreshRemoteWidgets();
@@ -168,15 +168,14 @@ let _Widgets = {
 			return _Widgets.widgetServerSelector.value;
 		}
 	},
-	getConfiguredWidgetServers: function (callback) {
+	getConfiguredWidgetServers: (callback) => {
 
-		Command.getApplicationConfigurationDataNodes(_Widgets.applicationConfigurationDataNodeKey, null, function(acdns) {
+		Command.getApplicationConfigurationDataNodes(_Widgets.applicationConfigurationDataNodeKey, null, (appConfigDataNodes) => {
 
-			acdns.push({id: '', name: 'default', content: _Widgets.defaultWidgetServerUrl, editable: false});
+			appConfigDataNodes.push({id: '', name: 'default', content: _Widgets.defaultWidgetServerUrl, editable: false});
 
-			callback(acdns);
+			callback(appConfigDataNodes);
 		});
-
 	},
 	showWidgetServersDialog: function() {
 
@@ -203,23 +202,24 @@ let _Widgets = {
 	},
 	updateWidgetServersTable: function() {
 
-		_Widgets.getConfiguredWidgetServers(function(serverConfigs) {
+		_Widgets.getConfiguredWidgetServers((appConfigDataNodes) => {
 
-			Structr.fetchHtmlTemplate('widgets/servers-table', {servers: serverConfigs}, function(html) {
+			Structr.fetchHtmlTemplate('widgets/servers-table', { servers: appConfigDataNodes }, (html) => {
 
-				let tableContainer = dialogText[0].querySelector('#widget-servers-table-container');
+				let container = dialogText[0].querySelector('#widget-servers-container');
 
-				tableContainer.innerHTML = html;
+				container.innerHTML = html;
 
-				tableContainer.querySelectorAll('button.delete').forEach(function(deleteButton) {
-					deleteButton.addEventListener('click', function(e) {
-						let el = e.target;
-						let tr = el.closest('tr');
-						let acdnID = tr.dataset.acdnId;
+				for (let deleteIcon of container.querySelectorAll('.delete')) {
 
-						Structr.confirmation('Really delete Widget Server URL?', function() {
+					deleteIcon.addEventListener('click', function(e) {
+
+						let el     = e.target;
+						let acdnID = el.closest('div').dataset.acdnId;
+
+						Structr.confirmation('Really delete Widget Server URL?', () => {
+
 							Command.deleteNode(acdnID, false, function() {
-								tr.remove();
 
 								let currentServer = LSWrapper.getItem(_Widgets.widgetServerKey);
 								let needsRefresh = (_Widgets.widgetServerSelector.value === currentServer);
@@ -227,7 +227,7 @@ let _Widgets = {
 									LSWrapper.removeItem(_Widgets.widgetServerKey);
 								}
 
-								_Widgets.updateWidgetServerSelector(function() {
+								_Widgets.updateWidgetServerSelector(() => {
 									if (needsRefresh) {
 										_Widgets.refreshRemoteWidgets();
 									}
@@ -239,16 +239,18 @@ let _Widgets = {
 
 								_Widgets.showWidgetServersDialog();
 							});
+						}, () => {
+							_Widgets.showWidgetServersDialog();
 						});
 					});
-				});
+				}
 
-				tableContainer.querySelectorAll('table input').forEach(function(input) {
+				for (let input of container.querySelectorAll('input')) {
+
 					input.addEventListener('change', function(e) {
-						let el = e.target;
-						let acdnID = el.closest('tr').dataset.acdnId;
-						let key = el.dataset.key;
-						console.log(acdnID, key, el.value);
+						let el     = e.target;
+						let acdnID = el.closest('div').dataset.acdnId;
+						let key    = el.dataset.key;
 
 						Command.setProperty(acdnID, key, el.value, false, function(e) {
 
@@ -257,24 +259,32 @@ let _Widgets = {
 							_Widgets.updateWidgetServerSelector();
 						});
 					});
-				});
+				}
 			});
 		});
 	},
 	updateWidgetServerSelector: function(callback) {
 
-		_Widgets.getConfiguredWidgetServers(function(serverConfigs) {
+		_Widgets.getConfiguredWidgetServers((appConfigDataNodes) => {
 
 			let templateConfig = {
-				servers: serverConfigs,
+				servers: appConfigDataNodes,
 				selectedServerURL: LSWrapper.getItem(_Widgets.widgetServerKey, _Widgets.defaultWidgetServerUrl)
 			};
 
-			Structr.fetchHtmlTemplate('widgets/servers-selector', templateConfig, function(html) {
+			Structr.fetchHtmlTemplate('widgets/servers-selector', templateConfig, (html) => {
 
-				let selectorContainer = document.querySelector('#widget-server-selector-container');
+				let newElement = Structr.createSingleDOMElementFromHTML(html);
 
-				selectorContainer.innerHTML = html;
+				if (_Widgets.widgetServerSelector) {
+
+					_Widgets.widgetServerSelector.replaceWith(newElement);
+
+				} else {
+
+					let selectorContainer = document.querySelector('#widget-server-selector-container');
+					selectorContainer.prepend(newElement);
+				}
 
 				_Widgets.widgetServerSelector = document.querySelector('#widget-server-selector');
 				_Widgets.widgetServerSelector.addEventListener('change', _Widgets.refreshRemoteWidgets);
@@ -402,9 +412,9 @@ let _Widgets = {
 	},
 	appendWidgetElement: function(widget, remote, el) {
 
-		var icon = _Icons.widget_icon;
-		var parent = _Widgets.getTreeParent(el ? el : (remote ? _Widgets.remoteWidgetsEl : _Widgets.localWidgetsEl), widget.treePath, remote ? '_remote' : '_local');
-		var div = Structr.node(widget.id);
+		let icon   = _Icons.widget_icon;
+		let parent = _Widgets.getTreeParent(el ? el : (remote ? _Widgets.remoteWidgetsEl : _Widgets.localWidgetsEl), widget.treePath, remote ? '_remote' : '_local');
+		let div    = Structr.node(widget.id);
 
 		if (!div) {
 

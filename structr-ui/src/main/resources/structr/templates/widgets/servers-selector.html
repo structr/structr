@@ -1,4 +1,4 @@
-<select id="widget-server-selector">
+<select id="widget-server-selector" class="w-40">
 	${config.servers.map(s => {
 		return `<option value="${s.content}" ${(s.content === config.selectedServerURL) ? 'selected' : ''}>${s.name}</option>`
 	}).join('')}
