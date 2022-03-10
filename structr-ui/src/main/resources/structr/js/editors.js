@@ -585,6 +585,29 @@ let _Editors = {
 			});
 		}
 	},
+	addEscapeKeyHandlersToPreventPopupClose: (editor) => {
+
+		let contextActions = {
+			suggestWidgetVisible:           () => { editor.trigger('keyboard', 'hideSuggestWidget'); },
+			findWidgetVisible:              () => { editor.trigger('keyboard', 'closeFindWidget'); },
+			referenceSearchVisible:         () => { editor.trigger('keyboard', 'closeReferenceSearch'); },
+			markersNavigationVisible:       () => { editor.trigger('keyboard', 'closeMarkersNavigation'); },
+			renameInputVisible:             () => { editor.trigger('keyboard', 'cancelRenameInput'); },
+			accessibilityHelpWidgetVisible: () => { editor.trigger('keyboard', 'closeAccessibilityHelp'); },
+			// command palette should also be here... if I could only find out the correct "context" name for this thing
+		};
+
+		for (let [context, action] of Object.entries(contextActions)) {
+
+			editor.addCommand(monaco.KeyCode.Escape, () => {
+
+				ignoreKeyUp = true;
+				action();
+
+			}, context);
+		}
+
+	},
 	getDefaultEditorOptionsForStorage: () => {
 		/**
 		 * This is almost identical to IEditorOptions (https://microsoft.github.io/monaco-editor/api/interfaces/monaco.editor.IStandaloneEditorConstructionOptions.html)

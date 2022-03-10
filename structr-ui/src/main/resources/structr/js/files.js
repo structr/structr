@@ -1495,29 +1495,7 @@ let _Files = {
 
 		let monacoEditor = _Editors.getMonacoEditor(file, 'content', $('.editor', element), fileMonacoConfig);
 
-		// for files only: install a listener for the ESC key which is only active if there is a suggestWidget visible
-		monacoEditor.addCommand(monaco.KeyCode.Escape, () => {
-
-			// set the structr-internal ignoreKeyUp so that the popup is not closed
-			ignoreKeyUp = true;
-
-			// blur the active element so that the popup is removed
-			document.activeElement.blur();
-
-			// re-focus the editor in the next cycle
-			window.setTimeout(() => { monacoEditor.focus(); }, 0);
-
-		}, 'suggestWidgetVisible');
-
-		// for files only: install a listener for the ESC key to hide the find widget
-		monacoEditor.addCommand(monaco.KeyCode.Escape, () => {
-
-			// set the structr-internal ignoreKeyUp so that the popup is not closed
-			ignoreKeyUp = true;
-
-			monacoEditor.trigger('keyboard', 'closeFindWidget');
-
-		}, 'findWidgetVisible');
+		_Editors.addEscapeKeyHandlersToPreventPopupClose(monacoEditor);
 
 		let editorInfo = dialogMeta[0].querySelector('.editor-info');
 		_Editors.appendEditorOptionsElement(editorInfo);
