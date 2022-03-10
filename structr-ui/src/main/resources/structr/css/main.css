@@ -568,16 +568,6 @@ img.disabled {
 	z-index: 1;
 }
 
-#edit-widget-servers {
-	vertical-align: middle;
-	margin-left: .25rem;
-}
-
-#remoteWidgetsFilter {
-	margin-left: 2rem;
-	margin-bottom: 1rem;
-}
-
 #widgets, #remoteWidgets {
 	margin-left: -1rem;
 }
@@ -4127,9 +4117,6 @@ dl.help-definitions dd {
 	text-decoration: none;
 }
 
-.tab-group .tab-group-content {
-	display: initial;
-}
 .tab-group.collapsed .tab-group-content {
 	display: none;
 }
@@ -4650,6 +4637,9 @@ table.props td.__value {
 .mr-12 {
 	margin-right: 3rem;
 }
+.ml-1 {
+	margin-left: .25rem;
+}
 .ml-2 {
 	margin-left: .5rem;
 }
@@ -4685,6 +4675,9 @@ table.props td.__value {
 }
 .mb-2 {
 	margin-bottom: .5rem;
+}
+.mb-4 {
+	margin-bottom: 1rem;
 }
 .mb-8 {
 	margin-bottom: 2rem;
@@ -4788,6 +4781,9 @@ table.props td.__value {
 }
 .grid-cols-2 {
 	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.grid-cols-3 {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .grid-cols-5 {
 	grid-template-columns: repeat(5, minmax(0, 1fr));

@@ -486,7 +486,6 @@ public class StructrWebSocket implements WebSocketListener {
 						invalidateConsole();
 
 						timedOut = true;
-
 					}
 				}
 

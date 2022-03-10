@@ -276,22 +276,4 @@
 #event-log-container tr td:first-child {
 	white-space: nowrap;
 }
-
-#event-log-options {
-	margin-bottom: 1rem;
-}
-
-#event-log-options label {
-}
-
-#event-type-filter {
-	margin-right: 16px;
-}
-
-#event-type-page-size {
-	margin-right: 2rem;
-}
-
-#refresh-event-log {
-}
 /* END: runtime event log */

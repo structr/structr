@@ -108,7 +108,6 @@ public class HttpService implements RunnableService, StatsCallback {
 	private SslContextFactory.Server sslContextFactory = null;
 	private Server server                         = null;
 	private Server maintenanceServer              = null;
-	private int maxIdleTime                       = 30000;
 	private int requestHeaderSize                 = 8192;
 	private boolean httpsActive                   = false;
 
@@ -129,7 +128,7 @@ public class HttpService implements RunnableService, StatsCallback {
 	@Override
 	public void startService() throws Exception {
 
-		logger.info("Starting {} (host={}:{}, maxIdleTime={}, requestHeaderSize={})", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue(), maxIdleTime, requestHeaderSize);
+		logger.info("Starting {} (host={}:{}, maxIdleTime={}, requestHeaderSize={})", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue(), Services.getGlobalSessionTimeout(), requestHeaderSize);
 		logger.info("Base path {}", Settings.getBasePath());
 		logger.info("{} started at http://{}:{}", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
 
@@ -237,7 +236,6 @@ public class HttpService implements RunnableService, StatsCallback {
 		}
 
 		// load configuration from properties file
-		maxIdleTime       = Services.parseInt(System.getProperty("maxIdleTime"), 30000);
 		requestHeaderSize = Services.parseInt(System.getProperty("requestHeaderSize"), 8192);
 
 		if (Settings.Async.getValue()) {
@@ -366,7 +364,8 @@ public class HttpService implements RunnableService, StatsCallback {
 		sessionCache.setRemoveUnloadableSessions(true);
 		sessionCache.setEvictionPolicy(60);
 
-		servletContext.getSessionHandler().setMaxInactiveInterval(maxIdleTime);
+		// make sessions "immortal" from the session handlers POV (we handle timeout)
+		servletContext.getSessionHandler().setMaxInactiveInterval(-1);
 		servletContext.getSessionHandler().setSessionCache(sessionCache);
 
 		if (enableRewriteFilter) {
