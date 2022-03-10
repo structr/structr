@@ -2053,23 +2053,14 @@ button.enabled, button.active {
 	-khtml-user-select: none;
 	-moz-user-select: none;
 	-ms-user-select: none;
-
-}
-
-.pager input {
-	/*height: 17px;*/
 }
 
 .pager input[type=text] {
 	width: 3rem;
 	margin-right: .5rem;
-	/*padding-bottom: 3px;*/
-	/*text-align: center;*/
 }
 
 .pager input.page, .pager input.pageNo, .pager select.pageSize, .pager input.pageCount {
-	/*margin-top: -1px;*/
-	/*background-color: var(--solid-white);*/
 	text-align: center;
 }
 
@@ -2080,12 +2071,8 @@ button.enabled, button.active {
 	padding: 0;
 	background: var(--solid-white) ! important;
 	font-size: 1rem;
-	line-height: 2.35rem;
+	line-height: 2.3rem;
 	white-space: nowrap;
-}
-
-.pager .pageRight {
-	margin-right: .5rem;
 }
 
 .pager input.pageNo,
@@ -2101,13 +2088,7 @@ button.enabled, button.active {
 	color: var(--gray-999);
 }
 
-.pager select.pageSize {
-	margin-right: 1rem;
-	/*width: 4rem;*/
-}
-
 .pager button {
-	/*font-size: 8pt;*/
 	border: 1px solid transparent;
 	background-color: var(--gray-bg);
 }
@@ -2122,12 +2103,6 @@ button.enabled, button.active {
 	margin: 0 0 .25rem .5rem;
 	cursor: pointer;
 	vertical-align: middle;
-}
-
-.pager input.filter {
-	/*width: 52px;*/
-	/*font-size: 1.1em;*/
-	/*text-align: left;*/
 }
 
 .pager input[type=checkbox].filter {

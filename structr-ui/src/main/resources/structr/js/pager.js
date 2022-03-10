@@ -199,21 +199,21 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
 
 		_Pager.restorePagerData(this.id);
 
-		let pagerHtml = '<div class="pager pager' + this.id + '" style="clear: both">'
-			+ '<i class="pageLeft fa fa-angle-left"></i>'
-			+ '<span class="pageWrapper">'
-			+ '<input class="pageNo" value="' + _Pager.page[this.id] + '">'
-			+ '<span class="of">of</span>'
-			+ '<input readonly="readonly" class="readonly pageCount" type="text" size="2">'
-			+ '</span>'
-			+ '<i class="pageRight fa fa-angle-right"></i>'
-			+ ' Items: <select class="pageSize">'
-			+ '<option' + (_Pager.pageSize[this.id] === 5 ? ' selected' : '') + '>5</option>'
-			+ '<option' + (_Pager.pageSize[this.id] === 10 ? ' selected' : '') + '>10</option>'
-			+ '<option' + (_Pager.pageSize[this.id] === 25 ? ' selected' : '') + '>25</option>'
-			+ '<option' + (_Pager.pageSize[this.id] === 50 ? ' selected' : '') + '>50</option>'
-			+ '<option' + (_Pager.pageSize[this.id] === 100 ? ' selected' : '') + '>100</option>'
-			+ '</select></div>';
+		let pagerHtml = `
+			<div class="pager pager${this.id} flex items-center">
+				${_Icons.getSvgIcon('chevron-left', 14, 14, _Icons.getSvgIconClassesNonColorIcon(['pageLeft', 'mr-1']))}
+				<span class="pageWrapper">
+					<input class="pageNo" value="${_Pager.page[this.id]}">
+					<span class="of">of</span>
+					<input readonly="readonly" class="readonly pageCount" type="text" size="2">
+				</span>
+				${_Icons.getSvgIcon('chevron-right', 14, 14, _Icons.getSvgIconClassesNonColorIcon(['pageRight', 'ml-1']))}
+				<span class="ml-2 mr-1">Items:</span>
+				<select class="pageSize mr-4">
+					${[5, 10, 25, 50, 100].map((pageSize) => `<option${(_Pager.pageSize[this.id] === pageSize ? ' selected' : '')}>${pageSize}</option>`).join('')}
+				</select>
+			</div>
+		`;
 
 		if (prepend === true) {
 			this.el.prepend(pagerHtml);

@@ -54,7 +54,8 @@
 }
 
 #pages-actions .dropdown-menu-container {
-	margin-left: -10rem;
+	margin-left: -5.5rem;
+	width: 10rem;
 }
 
 #pagesPagerFilters input[type=text] {
