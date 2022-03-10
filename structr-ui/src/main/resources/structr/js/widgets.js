@@ -134,14 +134,15 @@ let _Widgets = {
 			});
 
 			_Pager.initPager('local-widgets', 'Widget', 1, 1000, 'treePath', 'asc');
-			var _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl, true, 'Widget', 'public', function(entities) {
-				entities.forEach(function (entity) {
+			let _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl, true, 'Widget', 'public', (entities) => {
+
+				for (let entity of entities) {
 					StructrModel.create(entity, null, false);
 					_Widgets.appendWidgetElement(entity, false, _Widgets.localWidgetsEl);
-				});
+				}
 			});
 
-			_wPager.pager.append('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" /></span>');
+			_wPager.pager.append('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name"></span>');
 			_wPager.activateFilterElements();
 
 			_Widgets.remoteWidgetsEl = $('#remoteWidgets', _Pages.widgetsSlideout);

@@ -370,9 +370,12 @@ let _Contents = {
 			});
 		};
 
-		itemsPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name">');
-		itemsPager.pager.append('<input type="text" class="filter" data-attribute="parentId" value="' + ((parentId === '#') ? '' : id) + '" hidden>');
-		itemsPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + ((parentId === '#') ? '' : 'checked') + ' hidden>');
+		itemsPager.pager.append(`
+			<span class="mr-1">Filter:</span>
+			<input type="text" class="filter" data-attribute="name">
+			<input type="text" class="filter" data-attribute="parentId" value="${((parentId === '#') ? '' : id)}" hidden>
+			<input type="checkbox" class="filter" data-attribute="hasParent" ${((parentId === '#') ? '' : 'checked')} hidden>
+		`);
 		itemsPager.activateFilterElements();
 
 		_Contents.insertBreadCrumbNavigation(parents, nodePath, id);

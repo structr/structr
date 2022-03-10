@@ -397,7 +397,7 @@ let _Elements = {
 						}
 					});
 
-					let pagesPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"/></span>');
+					let pagesPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"></span>');
 					pagesPager.pager.append(pagesPagerFilters);
 					pagesPager.activateFilterElements();
 
@@ -433,7 +433,7 @@ let _Elements = {
 						}
 					}, null, 'id,name,contentType,linkingElementsIds,path');
 
-					let filesPagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" /><label><input type="checkbox"  class="filter" data-attribute="hasParent" /> Include subdirectories</label></span>');
+					let filesPagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name"><label><input type="checkbox"  class="filter" data-attribute="hasParent"> Include subdirectories</label></span>');
 					linkFilesPager.pager.append(filesPagerFilters);
 					linkFilesPager.activateFilterElements();
 				}

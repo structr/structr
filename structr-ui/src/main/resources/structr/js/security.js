@@ -212,7 +212,7 @@ let _UsersAndGroups = {
 			userPager.cleanupFunction = function () {
 				_Security.userList.innerHTML = '';
 			};
-			userPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></th></div>');
+			userPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
 			userPager.activateFilterElements();
 		});
 	},

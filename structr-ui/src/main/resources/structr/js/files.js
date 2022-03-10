@@ -813,26 +813,33 @@ let _Files = {
 				}
 			};
 
-			filesPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name">');
-			filesPager.pager.append('<input type="text" class="filter" data-attribute="parentId" value="' + (parentIsRoot ? '' : id) + '" hidden>');
-			filesPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + (parentIsRoot ? '' : 'checked') + ' hidden>');
+			filesPager.pager.append(`
+				<span class="mr-1">Filter:</span>
+				<input type="text" class="filter" data-attribute="name">
+				<input type="text" class="filter" data-attribute="parentId" value="${(parentIsRoot ? '' : id)}" hidden>
+				<input type="checkbox" class="filter" data-attribute="hasParent" ${(parentIsRoot ? '' : 'checked')} hidden>
+			`);
 			filesPager.activateFilterElements();
 
 			_Files.insertBreadCrumbNavigation(parents, nodePath, id);
 
 			if (_Files.isViewModeActive('list')) {
-				_Files.folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
-					+ '<tbody id="files-table-body">'
-					+ (!isRootFolder ? '<tr><td class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td></tr>' : '')
-					+ '</tbody></table>');
+				_Files.folderContents.append(`
+					<table id="files-table" class="stripe">
+						<thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>
+						<tbody id="files-table-body">
+							${(!isRootFolder ? `<tr><td class="is-folder file-icon" data-target-id="${parentId}"><i class="fa fa-folder"></i></td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td></tr>` : '')}
+						</tbody>
+					</table>
+				`);
 
 			} else if (_Files.isViewModeActive('tiles')) {
 				if (!isRootFolder) {
-					_Files.folderContents.append('<div class="tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
+					_Files.folderContents.append(`<div class="tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>`);
 				}
 			} else if (_Files.isViewModeActive('img')) {
 				if (!isRootFolder) {
-					_Files.folderContents.append('<div class="tile img-tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="' + parentId + '"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
+					_Files.folderContents.append(`<div class="tile img-tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>`);
 				}
 			}
 		}
@@ -943,8 +950,11 @@ let _Files = {
 				row.append(`
 					<td class="file-icon"><a href="${d.path}" target="_blank"><i class="fa ${icon}"></i></a></td>
 					<td>
-						<div id="id_${d.id}" class="node file flex items-center justify-between"><b class="name_ leading-8 truncate">${name}</b><div class="icons-container"></div>
-						<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">${d.size}</span></div></div></div></div>
+						<div id="id_${d.id}" class="node file flex items-center justify-between">
+							<b class="name_ leading-8 truncate">${name}</b>
+							<div class="icons-container"></div>
+							<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">${size}</span></div></div></div>
+						</div>
 					</td>
 				`);
 			}
@@ -975,6 +985,7 @@ let _Files = {
 					<div id="id_${d.id}" class="node folder">
 						<div class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${folderIconElement}</div>
 						<b class="name_ abbr-ellipsis abbr-75pc">${name}</b>
+						<div class="icons-container"></div>
 					</div>
 				`);
 
@@ -987,7 +998,8 @@ let _Files = {
 					<div id="id_${d.id}" class="node file">
 						<div class="file-icon"><a href="${d.path}" target="_blank">${iconOrThumbnail}</a></div>
 						<b class="name_ abbr-ellipsis abbr-75pc">${name}</b>
-						<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">${size}</span></div></div></div><span class="id">${d.id}</span>
+						<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">${size}</span></div></div></div>
+						<!--span class="id">${d.id}</span-->
 						<div class="icons-container"></div>
 					</div>
 				`);
@@ -1041,7 +1053,7 @@ let _Files = {
 				selectedElements = $('.node.selected');
 				if (selectedElements.length > 1) {
 					selectedElements.removeClass('selected');
-					return $('<i class="node-helper ' + _Icons.getFullSpriteClass(_Icons.page_white_stack_icon) + '" />');
+					return $('<i class="node-helper ' + _Icons.getFullSpriteClass(_Icons.page_white_stack_icon) + '"></i>');
 				}
 				let hlp = helperEl.clone();
 				hlp.find('.button').remove();
@@ -1231,8 +1243,10 @@ let _Files = {
 
 		$('#tempInfoBox .infoHeading, #tempInfoBox .infoMsg').empty();
 		$('#tempInfoBox .closeButton').hide();
-		$('#tempInfoBox .infoMsg').append(`<div class="flex items-center justify-center">${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<div>Unpacking Archive - please stand by...</div></div>`);
-		$('#tempInfoBox .infoMsg').append('<p>Extraction will run in the background.<br>You can safely close this popup and work during this operation.<br>You will be notified when the extraction has finished.</p>');
+		$('#tempInfoBox .infoMsg').append(`
+			<div class="flex items-center justify-center">${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<div>Unpacking Archive - please stand by...</div></div>
+			<p>Extraction will run in the background.<br>You can safely close this popup and work during this operation.<br>You will be notified when the extraction has finished.</p>
+		`);
 
 		$.blockUI({
 			message: $('#tempInfoBox'),
@@ -1252,33 +1266,18 @@ let _Files = {
 		Command.unarchive(d.id, _Files.currentWorkingDir ? _Files.currentWorkingDir.id : undefined, function (data) {
 			if (data.success === true) {
 				_Files.refreshTree();
-				var message = "Extraction of '" + data.filename + "' finished successfully. ";
+				let message = "Extraction of '" + data.filename + "' finished successfully. ";
 				if (closed) {
 					new MessageBuilder().success(message).requiresConfirmation("Close").show();
 				} else {
-					$('#tempInfoBox .infoMsg').html('<i class="' + _Icons.getFullSpriteClass(_Icons.accept_icon) + '" /> ' + message);
+					$('#tempInfoBox .infoMsg').html('<i class="' + _Icons.getFullSpriteClass(_Icons.accept_icon) + '"></i> ' + message);
 				}
 
 			} else {
-				$('#tempInfoBox .infoMsg').html('<i class="' + _Icons.getFullSpriteClass(_Icons.error_icon) + '" /> Extraction failed');
+				$('#tempInfoBox .infoMsg').html('<i class="' + _Icons.getFullSpriteClass(_Icons.error_icon) + '"></i> Extraction failed');
 			}
 		});
 	},
-	// appendEditImageIcon: function(parent, image) {
-	//
-	// 	var viewIcon = $('.view_icon', parent);
-	//
-	// 	if (!(viewIcon && viewIcon.length)) {
-	// 		parent.append('<i title="' + image.name + ' [' + image.id + ']" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-	// 	}
-	//
-	// 	viewIcon = $('.edit_icon', parent);
-	//
-	// 	viewIcon.on('click', function(e) {
-	// 		e.stopPropagation();
-	// 		_Files.editImage(image);
-	// 	});
-	// },
 	editImage: (image) => {
 		let parent = Structr.node(image.id);
 		Structr.dialog('' + image.name, function() {
@@ -1340,10 +1339,10 @@ let _Files = {
 	},
 	appendEditFileIcon: function(parent, file) {
 
-		var editIcon = $('.edit_file_icon', parent);
+		let editIcon = $('.edit_file_icon', parent);
 
 		if (!(editIcon && editIcon.length)) {
-			parent.append('<i title="Edit ' + file.name + ' [' + file.id + ']" class="edit_file_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
+			parent.append('<i title="Edit ' + file.name + ' [' + file.id + ']" class="edit_file_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '"></i>');
 		}
 
 		$(parent.children('.edit_file_icon')).on('click', function(e) {
