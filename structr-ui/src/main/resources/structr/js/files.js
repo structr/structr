@@ -420,15 +420,24 @@ let _Files = {
 			name: 'Delete ' + (isMultiSelect ? 'selected' : entity.type),
 			clickHandler: () => {
 
-				let files = [];
+				if (isMultiSelect) {
 
-				for (let el of selectedElements) {
-					files.push(Structr.entityFromElement(el));
+					let files = [];
+
+					for (let el of selectedElements) {
+						files.push(Structr.entityFromElement(el));
+					}
+
+					_Entities.deleteNodes(this, files, true, () => {
+						_Files.refreshTree();
+					});
+
+				} else {
+
+					_Entities.deleteNode(this, entity, true, () => {
+						_Files.refreshTree();
+					});
 				}
-
-				_Entities.deleteNodes(this, files, true, () => {
-					_Files.refreshTree();
-				});
 
 				return false;
 			}
