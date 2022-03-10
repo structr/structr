@@ -297,7 +297,7 @@ let _Localization = {
 
 		LSWrapper.setItem(_Localization.localizationSelectedElementKey, keyAndDomainObject);
 
-		let response = await fetch(rootUrl + 'Localization/all?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
+		let response = await fetch(Structr.rootUrl + 'Localization/all?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
 
 		if (response.ok) {
 
@@ -367,7 +367,7 @@ let _Localization = {
 					domain: curDomain
 				};
 
-				let response = await fetch(rootUrl + 'Localization/ui?' + (oldKey ? 'name=' + oldKey : '') + (oldDomain ? '&domain=' + oldDomain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
+				let response = await fetch(Structr.rootUrl + 'Localization/ui?' + (oldKey ? 'name=' + oldKey : '') + (oldDomain ? '&domain=' + oldDomain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
 
 				if (response.ok) {
 
@@ -383,7 +383,7 @@ let _Localization = {
 						}
 					}
 
-					let putResponse = await fetch(rootUrl + 'Localization/', {
+					let putResponse = await fetch(Structr.rootUrl + 'Localization/', {
 						method: 'PATCH',
 						body: JSON.stringify(patchData)
 					});
@@ -505,7 +505,7 @@ let _Localization = {
 		let newData = {};
 		newData[attr] = curValue;
 
-		let response = await fetch(rootUrl + 'Localization/' + localization.id, {
+		let response = await fetch(Structr.rootUrl + 'Localization/' + localization.id, {
 			method: 'PUT',
 			body: JSON.stringify(newData),
 		});
@@ -532,7 +532,7 @@ let _Localization = {
 			preselectLocales.map((locale) => {
 				newData.locale = locale;
 
-				return fetch(rootUrl + 'Localization', {
+				return fetch(Structr.rootUrl + 'Localization', {
 					method: 'POST',
 					body: JSON.stringify(newData)
 				});
@@ -574,7 +574,7 @@ let _Localization = {
 						newData.domain = null;
 					}
 
-					let response = await fetch(rootUrl + 'Localization', {
+					let response = await fetch(Structr.rootUrl + 'Localization', {
 						method: 'POST',
 						body: JSON.stringify(newData),
 					});
@@ -598,7 +598,7 @@ let _Localization = {
 	},
 	deleteSingleLocalization: async (id) => {
 
-		let response = await fetch(rootUrl + id, {
+		let response = await fetch(Structr.rootUrl + id, {
 			method: 'DELETE',
 		});
 
@@ -606,7 +606,7 @@ let _Localization = {
 	},
 	deleteCompleteLocalization: async (key, domain) => {
 
-		let response = await fetch(rootUrl + 'Localization/ui?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
+		let response = await fetch(Structr.rootUrl + 'Localization/ui?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
 
 		if (response.ok) {
 

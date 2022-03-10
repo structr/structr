@@ -737,7 +737,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		exportFileConfiguration(file, properties);
 
 		if (!properties.isEmpty()) {
-			config.put(file.getPath(), properties);
+			String filePath = file.getPath();
+			String applicationRootPath = Settings.applicationRootPath.getValue("");
+			if (StringUtils.isNotBlank(applicationRootPath)) {
+				filePath = filePath.substring(applicationRootPath.length());
+			}
+
+			config.put(filePath, properties);
 		}
 	}
 

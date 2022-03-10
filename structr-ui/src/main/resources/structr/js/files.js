@@ -608,7 +608,7 @@ let _Files = {
 		let content = $('#folder-contents');
 		content.children().hide();
 
-		let url = rootUrl + 'files/ui?' + Structr.getRequestParameterName('loose') + '=1';
+		let url = Structr.rootUrl + 'files/ui?' + Structr.getRequestParameterName('loose') + '=1';
 
 		for (let str of searchString.split(' ')) {
 			url = url + '&indexedWords=' + str;
@@ -668,7 +668,7 @@ let _Files = {
 		}
 
 		$.ajax({
-			url: rootUrl + 'me',
+			url: Structr.rootUrl + 'me',
 			dataType: 'json',
 			contentType: 'application/json; UTF-8',
 			type: 'PUT',
@@ -773,7 +773,7 @@ let _Files = {
 			}
 
 			$.ajax({
-				url: rootUrl + 'me/favorites',
+				url: Structr.rootUrl + 'me/favorites',
 				statusCode: {
 					200: function(data) {
 						handleChildren(data.result);
@@ -1461,7 +1461,7 @@ let _Files = {
 
 		element.append('<div class="editor h-full"></div><div id="template-preview"><textarea readonly></textarea></div>');
 
-		let urlForFileAndPreview = viewRootUrl + file.id + '?' + Structr.getRequestParameterName('edit') + '=1';
+		let urlForFileAndPreview = Structr.viewRootUrl + file.id + '?' + Structr.getRequestParameterName('edit') + '=1';
 		let fileResponse         = await fetch(urlForFileAndPreview);
 		let data                 = await fileResponse.text();
 		let initialText          = _Files.fileContents[file.id] || data;
@@ -1730,7 +1730,7 @@ let _Files = {
 
 					tbody.append('<tr><td><i class="fa ' + _Icons.getFileIconClass(d) + '"></i> ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td>' + d.name + '</td><td>' + d.size + '</td></tr>');
 
-					let contextResponse = await fetch(rootUrl + 'files/' + d.id + '/getSearchContext', {
+					let contextResponse = await fetch(Structr.rootUrl + 'files/' + d.id + '/getSearchContext', {
 						method: 'POST',
 						body: JSON.stringify({
 							searchString: searchString,

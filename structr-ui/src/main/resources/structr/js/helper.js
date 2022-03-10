@@ -705,7 +705,7 @@ let _Favorites = new (function () {
 		_Favorites.menu      = document.querySelector('#favs-tabs > #fav-menu');
 		_Favorites.container = document.querySelector('#favs-tabs');
 
-		let response = await fetch(rootUrl + 'me/favorites/fav');
+		let response = await fetch(Structr.rootUrl + 'me/favorites/fav');
 
 		if (response.ok) {
 
@@ -798,7 +798,7 @@ let _Favorites = new (function () {
 							e.preventDefault();
 							e.stopPropagation();
 
-							let deleteResponse = await fetch(rootUrl + favorite.relationshipId, { method: 'DELETE' });
+							let deleteResponse = await fetch(Structr.rootUrl + favorite.relationshipId, { method: 'DELETE' });
 
 							if (deleteResponse.ok) {
 

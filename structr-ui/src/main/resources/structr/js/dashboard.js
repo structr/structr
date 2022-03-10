@@ -53,7 +53,7 @@ let _Dashboard = {
 			let releasesIndexUrl = '';
 			let snapshotsIndexUrl = '';
 
-			let envResponse = await fetch(rootUrl + '_env');
+			let envResponse = await fetch(Structr.rootUrl + '_env');
 
 			if (!envResponse.ok) {
 				throw Error("Unable to read env resource data");
@@ -83,14 +83,14 @@ let _Dashboard = {
 
 			templateConfig.databaseDriver = Structr.getDatabaseDriverNameForDatabaseServiceName(templateConfig.envInfo.databaseService);
 
-			let meResponse       = await fetch(rootUrl + 'me/ui');
+			let meResponse       = await fetch(Structr.rootUrl + 'me/ui');
 			let meData           = await meResponse.json();
 
 			if (Array.isArray(meData.result)) {
 				meData.result = meData.result[0];
 			}
 			templateConfig.meObj = meData.result;
-			let deployResponse   = await fetch('/structr/deploy?mode=test');
+			let deployResponse   = await fetch(Structr.deployRoot + '?mode=test');
 
 			templateConfig.deployServletAvailable       = (deployResponse.status == 200);
 			templateConfig.zipExportPrefix              = LSWrapper.getItem(_Dashboard.deployment.zipExportPrefixKey);
@@ -312,7 +312,7 @@ let _Dashboard = {
 
 		let maintenanceList = $('<table class="props"></table>').appendTo(container);
 
-		$.get(rootUrl + 'SchemaMethod?schemaNode=&' + Structr.getRequestParameterName('sort') + '=name', function(data) {
+		$.get(Structr.rootUrl + 'SchemaMethod?schemaNode=&' + Structr.getRequestParameterName('sort') + '=name', function(data) {
 
 			if (data.result.length === 0) {
 				maintenanceList.append('No global schema methods.')
@@ -478,7 +478,7 @@ let _Dashboard = {
 				data['target'] = location;
 			}
 
-			await fetch(rootUrl + 'maintenance/deploy', {
+			await fetch(Structr.rootUrl + 'maintenance/deploy', {
 				method: 'POST',
 				body: JSON.stringify(data)
 			});
@@ -514,7 +514,7 @@ let _Dashboard = {
 			if (prefix === '') {
 				new MessageBuilder().title('Unable to export application').warning('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
 			} else {
-				window.location = '/structr/deploy?name=' + prefix;
+				window.location = Structr.deployRoot + '?name=' + prefix;
 			}
 		},
 		exportDataAsZip: () => {
@@ -537,7 +537,7 @@ let _Dashboard = {
 			} else if (prefix === '') {
 				new MessageBuilder().title('Unable to start data export').warning('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
 			} else {
-				window.location = '/structr/deploy?mode=data&name=' + prefix + '&types=' + types;
+				window.location = Structr.deployRoot + '?mode=data&name=' + prefix + '&types=' + types;
 			}
 		},
 		deployFromZIPURL: async (redirectUrl, downloadUrl) => {
@@ -547,7 +547,7 @@ let _Dashboard = {
 			formData.append('downloadUrl', downloadUrl);
 			formData.append('mode', 'app');
 
-			let response = await fetch('/structr/deploy', {
+			let response = await fetch(Structr.deployRoot, {
 				method: 'POST',
 				body: formData
 			});
@@ -569,7 +569,7 @@ let _Dashboard = {
 
 			formData.append('rebuildAllIndexes', rebuildAllIndexes);
 
-			let response = await fetch('/structr/deploy', {
+			let response = await fetch(Structr.deployRoot, {
 				method: 'POST',
 				body: formData
 			});
@@ -586,7 +586,7 @@ let _Dashboard = {
 			formData.append('mode', 'app');
 			formData.append('file', filesSelectField.files[0]);
 
-			let response = await fetch('/structr/deploy', {
+			let response = await fetch(Structr.deployRoot, {
 				method: 'POST',
 				body: formData
 			});
@@ -608,7 +608,7 @@ let _Dashboard = {
 
 			formData.append('rebuildAllIndexes', rebuildAllIndexes);
 
-			let response = await fetch('/structr/deploy', {
+			let response = await fetch(Structr.deployRoot, {
 				method: 'POST',
 				body: formData
 			});
@@ -649,7 +649,7 @@ let _Dashboard = {
 				}
 			}
 
-			await fetch(rootUrl + 'maintenance/deployData', {
+			await fetch(Structr.rootUrl + 'maintenance/deployData', {
 				method: 'POST',
 				body: JSON.stringify(data)
 			});
@@ -798,7 +798,7 @@ let _Dashboard = {
 			let row    = document.querySelector('#event-log-container');
 			let num    = document.querySelector('#event-type-page-size');
 			let filter = document.querySelector('#event-type-filter');
-			let url    = rootUrl + '_runtimeEventLog?' + Structr.getRequestParameterName('order') + '=absoluteTimestamp&' + Structr.getRequestParameterName('sort') + '=desc&' + Structr.getRequestParameterName('pageSize') + '=' + num.value;
+			let url    = Structr.rootUrl + '_runtimeEventLog?' + Structr.getRequestParameterName('order') + '=absoluteTimestamp&' + Structr.getRequestParameterName('sort') + '=desc&' + Structr.getRequestParameterName('pageSize') + '=' + num.value;
 			let type   = filter.value;
 
 			row.innerHTML = '';

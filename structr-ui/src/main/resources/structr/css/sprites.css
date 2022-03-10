@@ -22,7 +22,7 @@
  * START Icon Sprites
  */
 .sprite {
-	background-image: url('/structr/img/spritesheet.png');
+	background-image: url('../img/spritesheet.png');
 	background-repeat: no-repeat;
 	display: inline-block;
 	width: 16px;

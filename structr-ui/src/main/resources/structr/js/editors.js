@@ -162,7 +162,7 @@ let _Editors = {
 	getScriptErrors: async function(entity, errorAttributeName) {
 
 		let schemaType = entity?.type ?? '';
-		let response   = await fetch(rootUrl + '_runtimeEventLog?type=Scripting&seen=false&' + Structr.getRequestParameterName('pageSize') + '=100');
+		let response   = await fetch(Structr.rootUrl + '_runtimeEventLog?type=Scripting&seen=false&' + Structr.getRequestParameterName('pageSize') + '=100');
 
 		if (response.ok) {
 

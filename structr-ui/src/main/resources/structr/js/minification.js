@@ -81,7 +81,7 @@ var _Minification = {
 
 	minifyFile: function (fileId, callback) {
 		$.ajax({
-			url: rootUrl + 'AbstractMinifiedFile/' + fileId + '/minify',
+			url: Structr.rootUrl + 'AbstractMinifiedFile/' + fileId + '/minify',
 			type: 'POST',
 			success: function () {
 				if (typeof callback === 'function') {
@@ -119,7 +119,7 @@ var _Minification = {
 		var maxPos = -1;
 
 		$.ajax({
-			url: rootUrl + 'AbstractMinifiedFile/' + file.id + '/out/all?relType=MINIFICATION&' + Structr.getRequestParameterName('sort') + '=position&' + Structr.getRequestParameterName('order') + '=asc',
+			url: Structr.rootUrl + 'AbstractMinifiedFile/' + file.id + '/out/all?relType=MINIFICATION&' + Structr.getRequestParameterName('sort') + '=position&' + Structr.getRequestParameterName('order') + '=asc',
 			success: function (data) {
 				var files = {};
 				file.minificationSources.forEach(function (f) {
@@ -141,7 +141,7 @@ var _Minification = {
 				$('.remove-minification-source', $minificationTable).on('click', function () {
 					var relId = $(this).data('relId');
 					$.ajax({
-						url: rootUrl + relId,
+						url: Structr.rootUrl + relId,
 						type: 'DELETE',
 						dataType: 'json',
 						contentType: 'application/json; charset=utf-8',
@@ -181,7 +181,7 @@ var _Minification = {
 	},
 	moveMinificationSource: function (fileId, from, to, callback) {
 		$.ajax({
-			url: rootUrl + 'AbstractMinifiedFile/' + fileId + '/moveMinificationSource',
+			url: Structr.rootUrl + 'AbstractMinifiedFile/' + fileId + '/moveMinificationSource',
 			type: 'POST',
 			data: JSON.stringify({from: from, to: to}),
 			success: function () {
@@ -242,7 +242,7 @@ var _Minification = {
 	},
 
 	addRelatedObject: function(type, id, key, relatedObj, callback) {
-		var url = rootUrl + type + '/' + id + '/' + key + '/ui';
+		var url = Structr.rootUrl + type + '/' + id + '/' + key + '/ui';
 		$.ajax({
 			url: url,
 			type: 'GET',

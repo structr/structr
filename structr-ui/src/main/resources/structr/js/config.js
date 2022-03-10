@@ -278,6 +278,21 @@ let _Search = {
 	}
 };
 
+const Structr = {
+    getPrefixedRootUrl: (rootUrl = '/structr/rest') => {
+        let prefix = [];
+        const pathEntries = window.location.pathname.split('/')?.filter( pathEntry => pathEntry !== '') ?? [];
+        let entry = pathEntries.shift();
+
+        while (entry !== 'structr' && entry !== undefined) {
+           prefix.push(entry);
+           entry = pathEntries.shift();
+        }
+
+        return `/${ prefix.join('/') }${rootUrl}`;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
 	$('#new-entry-button').on('click', createNewEntry);
@@ -288,12 +303,12 @@ document.addEventListener('DOMContentLoaded', () => {
 			let currentTab = $('#active_section').val();
 			let key        = resetButton.dataset['key'];
 
-			window.location.href = '/structr/config?reset=' + key + currentTab;
+			window.location.href = Structr.getPrefixedRootUrl('/structr/config') + '?reset=' + key + currentTab;
 		});
 	}
 
 	$('#reload-config-button').on('click', function() {
-		window.location.href = window.location.origin + window.location.pathname + "?reload" + $('#active_section').val();
+		window.location.href = Structr.getPrefixedRootUrl('/structr/config') + "?reload" + $('#active_section').val();
 	});
 
 	$('#configTabs a').on('click', function() {
@@ -422,7 +437,7 @@ function addConnection(button) {
 
 	$.ajax({
 		type: 'post',
-		url: '/structr/config/add',
+		url: Structr.getPrefixedRootUrl('/structr/config/add'),
 		data: data,
 		statusCode: {
 			200: reload,
@@ -437,7 +452,7 @@ function deleteConnection(name) {
 
 	$.ajax({
 		type: 'post',
-		url: '/structr/config/' + name + '/delete',
+		url: Structr.getPrefixedRootUrl('/structr/config/') + name + '/delete',
 		data: {
 			'active_section': '#databases'
 		},
@@ -469,7 +484,7 @@ function saveConnection(name) {
 
 	$.ajax({
 		type: 'post',
-		url: '/structr/config/' + name + '/use',
+		url: Structr.getPrefixedRootUrl('/structr/config/') + name + '/use',
 		data: data,
 		statusCode: {
 			200: reload,
@@ -484,7 +499,7 @@ function reload(response) {
 
 	_Config.hideNonBlockUILoadingMessage();
 
-	window.location.href = '/structr/config#databases';
+	window.location.href = Structr.getPrefixedRootUrl('/structr/config#databases');
 	window.location.reload(true);
 }
 
@@ -502,7 +517,7 @@ function connect(button, name) {
 
 	$.ajax({
 		type: 'post',
-		url: '/structr/config/' + name + '/connect',
+		url: Structr.getPrefixedRootUrl('/structr/config/') + name + '/connect',
 		data: collectData(name),
 		statusCode: {
 			200: reload,
@@ -527,7 +542,7 @@ function disconnect(button, name) {
 
 	$.ajax({
 		type: 'post',
-		url: '/structr/config/' + name + '/disconnect',
+		url: Structr.getPrefixedRootUrl('/structr/config/') + name + '/disconnect',
 		data: collectData(name),
 		statusCode: {
 			200: reload,

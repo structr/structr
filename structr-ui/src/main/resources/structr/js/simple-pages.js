@@ -154,8 +154,8 @@ var _SimplePages = {
 						let doc = this.contentDocument;
 						let head = doc.querySelector('head');
 						if (head) {
-							head.insertAdjacentHTML('beforeEnd', '<link rel="stylesheet" type="text/css" media="screen" href="/structr/css/sprites.css">');
-							head.insertAdjacentHTML('beforeEnd', '<link rel="stylesheet" type="text/css" media="screen" href="/structr/css/simple-pages.css">');
+							head.insertAdjacentHTML('beforeEnd', '<link rel="stylesheet" type="text/css" media="screen" href="' + Structr.getPrefixedRootUrl('/structr/css/sprites.css') + '">');
+							head.insertAdjacentHTML('beforeEnd', '<link rel="stylesheet" type="text/css" media="screen" href="' = Structr.getPrefixedRootUrl('/structr/css/simple-pages.css') + ">');
 						}
 
 						// attach event listener

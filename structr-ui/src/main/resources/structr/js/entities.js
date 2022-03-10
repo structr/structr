@@ -184,7 +184,7 @@ let _Entities = {
 				width: width,
 				dropdownParent: parent,
 				ajax: {
-					url: '/structr/rest/SchemaNode',
+					url: Structr.rootUrl + '/SchemaNode',
 					processResults: function (data) {
 						return {
 							results: data.result.map(n => ({ id: n.name, text: n.name }))
@@ -1027,7 +1027,7 @@ let _Entities = {
 		}
 	},
 	getSchemaProperties: function(type, view, callback) {
-		let url = rootUrl + '_schema/' + type + '/' + view;
+		let url = Structr.rootUrl + '_schema/' + type + '/' + view;
 		$.ajax({
 			url: url,
 			dataType: 'json',
@@ -1257,7 +1257,7 @@ let _Entities = {
 			});
 
 			$.ajax({
-				url: rootUrl + entity.type + '/' + entity.id + '/all?' + Structr.getRequestParameterName('edit') + '=2',
+				url: Structr.rootUrl + entity.type + '/' + entity.id + '/all?' + Structr.getRequestParameterName('edit') + '=2',
 				dataType: 'json',
 				headers: {
 					Accept: 'application/json; charset=utf-8; properties=' + filteredProperties.join(',')
@@ -1336,7 +1336,7 @@ let _Entities = {
 		cell.css('height', '60px');
 
 		$.ajax({
-			url: rootUrl + entity.type + '/' + entity.id + '/' + key + '?' + Structr.getRequestParameterName('pageSize') + '=' + pageSize + '&' + Structr.getRequestParameterName('page') + '=' + page,
+			url: Structr.rootUrl + entity.type + '/' + entity.id + '/' + key + '?' + Structr.getRequestParameterName('pageSize') + '=' + pageSize + '&' + Structr.getRequestParameterName('page') + '=' + page,
 			dataType: 'json',
 			headers: {
 				Accept: 'application/json; charset=utf-8; properties=id,name'
@@ -2060,7 +2060,7 @@ let _Entities = {
 			tb.append('<tr id="new"><td><select style="z-index: 999" id="newPrincipal"><option></option></select></td><td></td><td></td><td></td><td></td>' + (allowRecursive ? '<td></td>' : '') + '</tr>');
 
 			$.ajax({
-				url: rootUrl + entity.id + '/in',
+				url: Structr.rootUrl + entity.id + '/in',
 				dataType: 'json',
 				contentType: 'application/json; charset=utf-8',
 				success: function(data) {

@@ -731,7 +731,7 @@ let _Pages = {
 			let filerEl = $('#pagesPagerFilters');
 			pPager.activateFilterElements(filerEl);
 
-			fetch(rootUrl + 'Page/category').then((response) => {
+			fetch(Structr.rootUrl + 'Page/category').then((response) => {
 				if (response.ok) {
 					return response.json();
 				}
@@ -849,7 +849,7 @@ let _Pages = {
 			let selectedObjectId = LSWrapper.getItem(_Entities.selectedObjectIdKey);
 			if (selectedObjectId) {
 
-				fetch(rootUrl + selectedObjectId).then(response => {
+				fetch(Structr.rootUrl + selectedObjectId).then(response => {
 					if (!response.ok) {
 						// looks like element was deleted
 						LSWrapper.removeItem(_Entities.selectedObjectIdKey);
@@ -1937,7 +1937,7 @@ let _Pages = {
 		getBaseUrlForPage: (entity) => {
 			let pagePath = entity.path ? entity.path.replace(/^\//, '') : entity.name;
 			let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
-			let previewUrl        = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : viewRootUrl) + pagePath + detailsObject;
+			let previewUrl        = (entity.site && entity.site.hostname ? '//' + entity.site.hostname + (entity.site.port ? ':' + entity.site.port : '') + '/' : Structr.viewRootUrl) + pagePath + detailsObject;
 
 			return previewUrl;
 		},

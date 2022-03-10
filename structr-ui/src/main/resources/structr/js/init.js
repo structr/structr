@@ -365,6 +365,19 @@ let Structr = {
 		}
 		return Structr.diffMatchPatch;
 	},
+    getPrefixedRootUrl: (rootUrl = '/structr/rest') => {
+
+	    let prefix = [];
+	    const pathEntries = window.location.pathname.split('/')?.filter( pathEntry => pathEntry !== '') ?? [];
+	    let entry = pathEntries.shift();
+
+	    while (entry !== 'structr' && entry !== undefined) {
+           prefix.push(entry);
+           entry = pathEntries.shift();
+        }
+
+	    return `${ (prefix.length ? '/' : '') + prefix.join('/') }${rootUrl}`;
+	},
 	getRequestParameterName: (key) => {
 
 		if (Structr.legacyRequestParameters === true) {
@@ -568,7 +581,7 @@ let Structr = {
 		return false;
 	},
 	renewSessionId: function(callback) {
-		$.get('/').always(function() {
+		$.get(Structr.getPrefixedRootUrl('/')).always(function() {
 			StructrWS.sessionId = Structr.getSessionId();
 
 			if (!StructrWS.sessionId && location.protocol === 'http:') {
@@ -1292,7 +1305,7 @@ let Structr = {
 	},
 	updateVersionInfo: function(retryCount = 0, isLogin = false) {
 
-		fetch(rootUrl + '_env').then(function(response) {
+		fetch(Structr.rootUrl + '_env').then(function(response) {
 
 			if (response.ok) {
 				return response.json();
@@ -2453,6 +2466,12 @@ let Structr = {
 		return (contentType && contentType.indexOf('video') > -1);
 	}
 };
+
+Structr.rootUrl = `${Structr.getPrefixedRootUrl('/structr/rest/')}`;
+Structr.csvRootUrl = `${Structr.getPrefixedRootUrl('/structr/csv/')}`;
+Structr.viewRootUrl = `${Structr.getPrefixedRootUrl('/')}`;
+Structr.wsRoot = `${Structr.getPrefixedRootUrl('/structr/ws')}`;
+Structr.deployRoot = `${Structr.getPrefixedRootUrl('/structr/deploy')}`;
 
 let _TreeHelper = {
 	initTree: function(tree, initFunction, stateKey) {

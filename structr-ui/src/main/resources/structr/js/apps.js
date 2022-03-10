@@ -31,7 +31,7 @@ var _Apps = {
 
 		_Apps.init();
 
-		fetch('/structr/deploy').then((result) => {
+		fetch(Structr.getPrefixedRootUrl('/structr/deploy')).then((result) => {d
 			_Apps.deployServletAvailable = (result.status !== 404);
 		}).then(() => {
 

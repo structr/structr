@@ -96,36 +96,29 @@ public class OpenAPIServlet extends AbstractDataServlet {
 			response.addHeader("Access-Control-Allow-Origin", allowOrigin);
 		}
 
-
-		if (StringUtils.isEmpty(tag)) {
-
-			response.sendRedirect("/structr/openapi/schema.json");
-
-		} else {
-
-			// "schema" is the placeholder for "everything", all other values are used as a filter (sorry)
-			if ("schema".equals(tag)) {
-				tag = null;
-			}
-
-			request.setCharacterEncoding("UTF-8");
-			response.setCharacterEncoding("UTF-8");
-			response.setContentType("application/json");
-
-			try (final Writer writer = response.getWriter()) {
-
-				gson.toJson(createOpenAPIRoot(request, tag), writer);
-
-				response.setStatus(HttpServletResponse.SC_OK);
-				response.setHeader("Cache-Control", "no-cache");
-
-				writer.append("\n");
-				writer.flush();
-
-			} catch (FrameworkException fex) {
-				fex.printStackTrace();
-			}
+		// "schema" is the placeholder for "everything", all other values are used as a filter (sorry)
+		if ("schema".equals(tag)) {
+			tag = null;
 		}
+
+		request.setCharacterEncoding("UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json");
+
+		try (final Writer writer = response.getWriter()) {
+
+			gson.toJson(createOpenAPIRoot(request, tag), writer);
+
+			response.setStatus(HttpServletResponse.SC_OK);
+			response.setHeader("Cache-Control", "no-cache");
+
+			writer.append("\n");
+			writer.flush();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
 	}
 
 	@Override

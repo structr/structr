@@ -680,7 +680,7 @@ var _Graph = {
 	},
 
 	loadTypeDefinition: function(type, callback) {
-		var url = rootUrl + '_schema/' + type;
+		var url = Structr.rootUrl + '_schema/' + type;
 		$.ajax({
 			url: url,
 			dataType: 'json',

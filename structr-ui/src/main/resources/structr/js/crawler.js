@@ -22,7 +22,7 @@ var sitePageSize = 10000, sitePage = 1;
 var currentSiteKey = 'structrCurrentSite_' + location.port;
 var crawlerResizerLeftKey = 'structrCrawlerResizerLeftKey_' + location.port;
 var link, path, elid, claz, pageFrame, frameDoc;
-var proxyUrl = '/structr/proxy';
+var proxyUrl = Structr.getPrefixedRootUrl('/structr/proxy');
 
 $(document).ready(function() {
 	Structr.registerModule(_Crawler);
@@ -49,7 +49,7 @@ var _Crawler = {
 	},
 	onload: function() {
 
-		$.get(rootUrl + '/me/ui', function(data) {
+		$.get(Structr.rootUrl + 'me/ui', function(data) {
 			_Dashboard.meObj = data.result;
 			_Crawler.init();
 		});
@@ -711,7 +711,7 @@ var _Crawler = {
 
 				propertySelector.append('<option value="" disabled="disabled" selected="selected">Select target attribute..</option>');
 
-				$.get(rootUrl + '_schema/' + type + '/all', function(typeInfo) {
+				$.get(Structr.rootUrl + '_schema/' + type + '/all', function(typeInfo) {
 
 					if (typeInfo && typeInfo.result) {
 
@@ -798,7 +798,7 @@ var _Crawler = {
 		var propertySelector   = row.find('.property-select');
 
 
-		$.get(rootUrl + 'SchemaNode?sort=name', function(data) {
+		$.get(Structr.rootUrl + 'SchemaNode?sort=name', function(data) {
 
 			if (data && data.result) {
 				data.result.forEach(function(r) {
@@ -819,7 +819,7 @@ var _Crawler = {
 
 			propertySelector.append('<option value="" disabled="disabled" selected="selected">Select target attribute..</option>');
 
-			$.get(rootUrl + '_schema/' + type + '/all', function(typeInfo) {
+			$.get(Structr.rootUrl + '_schema/' + type + '/all', function(typeInfo) {
 
 				if (typeInfo && typeInfo.result) {
 
@@ -896,7 +896,7 @@ var _Crawler = {
 			Structr.updateButtonWithAjaxLoaderAndText(btn, text);
 			e.preventDefault();
 
-			var url = '/structr/rest/SourcePattern/' + d.id + '/extract';
+			var url = Structr.rootUrl + 'SourcePattern/' + d.id + '/extract');
 
 			$.ajax({
 				url: url,
@@ -1070,7 +1070,7 @@ var _Crawler = {
 
 		$.ajax({
 			type: 'POST',
-			url: '/structr/rest/SourcePage',
+			url: Structr.rootUrl + 'SourcePage',
 			contentType: 'application/json; charset=UTF-8',
 			data: JSON.stringify({
 				url: url,
@@ -1104,7 +1104,7 @@ var _Crawler = {
 			// try to find an existing pattern with the same selector
 			$.ajax({
 				type: 'GET',
-				url: '/structr/rest/SourcePattern/ui?sourcePage=' + sourcePageId,
+				url: Structr.rootUrl + 'SourcePattern/ui?sourcePage=' + sourcePageId),
 				contentType: 'application/json; charset=UTF-8',
 				statusCode: {
 					200: function(data) {
@@ -1143,7 +1143,7 @@ var _Crawler = {
 	createSourcePattern: function(data, callback) {
 		$.ajax({
 			type: 'POST',
-			url: '/structr/rest/SourcePattern',
+			url: Structr.rootUrl + 'SourcePattern',
 			contentType: 'application/json; charset=UTF-8',
 			data: JSON.stringify(data),
 			statusCode: {
@@ -1174,7 +1174,7 @@ var _Crawler = {
 
 		$.ajax({
 			type: 'PUT',
-			url: '/structr/rest/SourcePattern/' + patternId,
+			url: Structr.rootUrl + 'SourcePattern/' + patternId,
 			contentType: 'application/json; charset=UTF-8',
 			data: JSON.stringify({
 				selector: selector

@@ -16,11 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var rootUrl = '/structr/rest/';
-var csvRootUrl = '/structr/csv/';
-var viewRootUrl = '/';
-var wsRoot = '/structr/ws';
-
 let StructrWS = {
 
 	ws: undefined,
@@ -48,7 +43,7 @@ let StructrWS = {
 
 				let isEnc = (window.location.protocol === 'https:');
 				let host  = document.location.host;
-				let wsUrl = 'ws' + (isEnc ? 's' : '') + '://' + host + wsRoot;
+				let wsUrl = 'ws' + (isEnc ? 's' : '') + '://' + host + Structr.wsRoot;
 
 				if ('WebSocket' in window) {
 

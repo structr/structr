@@ -287,7 +287,7 @@ let _Dialogs = {
 
 			$('button#ldap-sync-button').on('click', async () => {
 
-				let response = await fetch(rootUrl + entity.type + '/' + entity.id + '/update', {
+				let response = await fetch(Structr.rootUrl + entity.type + '/' + entity.id + '/update', {
 					method: 'POST'
 				});
 
@@ -315,7 +315,7 @@ let _Dialogs = {
 
 					Structr.showAndHideInfoBoxMessage('Extracting structure..', 'info', 2000, 200);
 
-					let response = await fetch(rootUrl + entity.type + '/' + entity.id + '/extractStructure', {
+					let response = await fetch(Structr.rootUrl + entity.type + '/' + entity.id + '/extractStructure', {
 						method: 'POST'
 					});
 

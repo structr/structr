@@ -314,7 +314,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 			parentFolder = parentFolder.getParent();
 		}
 
-		return "/".concat(folderPath);
+		return Settings.applicationRootPath.getValue("").concat("/").concat(folderPath);
 	}
 
 	static boolean includeInFrontendExport(final AbstractFile thisFile) {

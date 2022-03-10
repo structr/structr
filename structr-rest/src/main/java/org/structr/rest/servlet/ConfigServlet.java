@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.python.modules._hashlib;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -54,6 +55,7 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.ManageDatabasesCommand;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.action.ActionContext;
+import org.tuckey.web.filters.urlrewrite.Conf;
 
 /**
  *
@@ -62,9 +64,10 @@ public class ConfigServlet extends AbstractServletBase {
 
 	private static final Logger logger                = LoggerFactory.getLogger(ConfigServlet.class);
 	private static final Set<String> sessions         = new HashSet<>();
-	private static final String MainUrl               = "/structr/";
-	private static final String ConfigUrl             = "/structr/config";
 	private static final String TITLE                 = "Structr Configuration Editor";
+
+	private static final String ConfigUrl             = Settings.applicationRootPath.getValue("") + "/structr/config";
+	private static final String MainUrl               = Settings.applicationRootPath.getValue("") + "/structr/";
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -96,7 +99,7 @@ public class ConfigServlet extends AbstractServletBase {
 				Settings.loadConfiguration(Settings.ConfigFileName);
 
 				// redirect
-				response.sendRedirect(ConfigUrl);
+				sendRelativeRedirect(response, ConfigUrl);
 
 			} else if (request.getParameter("reset") != null) {
 
@@ -125,7 +128,7 @@ public class ConfigServlet extends AbstractServletBase {
 				Settings.storeConfiguration(Settings.ConfigFileName);
 
 				// redirect
-				response.sendRedirect(ConfigUrl);
+				sendRelativeRedirect(response, ConfigUrl);
 
 			} else if (request.getParameter("start") != null) {
 
@@ -147,7 +150,7 @@ public class ConfigServlet extends AbstractServletBase {
 					}
 				}
 
-				response.sendRedirect(ConfigUrl + "#services");
+				sendRelativeRedirect(response, ConfigUrl + "#services");
 
 			} else if (request.getParameter("stop") != null) {
 
@@ -157,7 +160,7 @@ public class ConfigServlet extends AbstractServletBase {
 					Services.getInstance().shutdownService(serviceName);
 				}
 
-				response.sendRedirect(ConfigUrl + "#services");
+				sendRelativeRedirect(response, ConfigUrl + "#services");
 
 			} else if (request.getParameter("restart") != null) {
 
@@ -185,7 +188,7 @@ public class ConfigServlet extends AbstractServletBase {
 					}).start();
 				}
 
-				response.sendRedirect(ConfigUrl + "#services");
+				sendRelativeRedirect(response, ConfigUrl + "#services");
 
 			} else if (request.getParameter("finish") != null) {
 
@@ -193,7 +196,7 @@ public class ConfigServlet extends AbstractServletBase {
 				Settings.SetupWizardCompleted.setValue(true);
 				Settings.storeConfiguration(Settings.ConfigFileName);
 
-				response.sendRedirect(MainUrl);
+				sendRelativeRedirect(response, MainUrl);
 
 			} else if (request.getParameter("useDefault") != null) {
 
@@ -226,7 +229,7 @@ public class ConfigServlet extends AbstractServletBase {
 				// make session valid
 				authenticateSession(request);
 
-				response.sendRedirect(ConfigUrl + "#databases");
+				sendRelativeRedirect(response, ConfigUrl + "#databases");
 
 			} else if (request.getParameter("setMaintenance") != null) {
 
@@ -243,7 +246,7 @@ public class ConfigServlet extends AbstractServletBase {
 					msgData.put("baseUrl",                           baseUrl);
 					TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
 
-					response.sendRedirect(baseUrl + ConfigUrl + "#maintenance");
+					sendRelativeRedirect(response, ConfigUrl + "#maintenance");
 				}
 
 			} else {
@@ -467,7 +470,7 @@ public class ConfigServlet extends AbstractServletBase {
 			Settings.storeConfiguration(Settings.ConfigFileName);
 		}
 
-		response.sendRedirect(ConfigUrl + redirectTarget);
+		sendRelativeRedirect(response, ConfigUrl + redirectTarget);
 	}
 
 	// ----- private methods -----
@@ -632,17 +635,19 @@ public class ConfigServlet extends AbstractServletBase {
 
 		final Tag head = doc.block("head");
 
+		final String applicationRootPath = Settings.applicationRootPath.getValue("/");
+
 		head.block("title").text(TITLE);
 		head.empty("meta").attr(new Attr("http-equiv", "Content-Type"), new Attr("content", "text/html;charset=utf-8"));
 		head.empty("meta").attr(new Name("viewport"), new Attr("content", "width=1024, user-scalable=yes"));
-		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/lib/jquery-ui-1.10.3.custom.min.css"));
-		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/main.css"));
-		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/sprites.css"));
-		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/config.css"));
-		head.empty("link").attr(new Rel("icon"), new Href("favicon.ico"), new Type("image/x-icon"));
-		head.block("script").attr(new Src("/structr/js/lib/jquery-3.3.1.min.js"));
-		head.block("script").attr(new Src("/structr/js/icons.js"));
-		head.block("script").attr(new Src("/structr/js/config.js"));
+		head.empty("link").attr(new Rel("stylesheet"), new Href(applicationRootPath + "/structr/css/lib/jquery-ui-1.10.3.custom.min.css"));
+		head.empty("link").attr(new Rel("stylesheet"), new Href(applicationRootPath + "/structr/css/main.css"));
+		head.empty("link").attr(new Rel("stylesheet"), new Href(applicationRootPath + "/structr/css/sprites.css"));
+		head.empty("link").attr(new Rel("stylesheet"), new Href(applicationRootPath + "/structr/css/config.css"));
+		head.empty("link").attr(new Rel("icon"), new Href(applicationRootPath + "/favicon.ico"), new Type("image/x-icon"));
+		head.block("script").attr(new Src(applicationRootPath + "/structr/js/lib/jquery-3.3.1.min.js"));
+		head.block("script").attr(new Src(applicationRootPath + "/structr/js/icons.js"));
+		head.block("script").attr(new Src(applicationRootPath + "/structr/js/config.js"));
 
 		final Tag body = doc.block("body");
 		final Tag header = body.block("div").id("header");
@@ -758,7 +763,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 			} else {
 
-				body.block("p").css("steps").block("button").attr(new Type("button")).text("Configure a database connection").attr(new OnClick("window.location.href='/structr/config#databases'; $('#databasesMenu').click();"));
+				body.block("p").css("steps").block("button").attr(new Type("button")).text("Configure a database connection").attr(new OnClick("window.location.href='" + ConfigUrl + "#databases'; $('#databasesMenu').click();"));
 			}
 
 		}
@@ -801,7 +806,7 @@ public class ConfigServlet extends AbstractServletBase {
 		// database connections
 		for (final DatabaseConnection connection : connections) {
 
-			connection.render(body, ConfigUrl);
+			connection.render(body, MainUrl);
 		}
 
 		// new connection form should appear below existing connections

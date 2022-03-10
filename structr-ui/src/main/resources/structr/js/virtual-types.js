@@ -55,7 +55,7 @@ let _VirtualTypes = {
 					let name       = document.getElementById('virtual-type-name-preselect');
 					let sourceType = document.getElementById('virtual-type-source-type-preselect');
 
-					let response = await fetch(rootUrl + 'VirtualType', {
+					let response = await fetch(Structr.rootUrl + 'VirtualType', {
 						method: 'POST',
 						body: JSON.stringify({
 							name: name.value,
@@ -261,10 +261,10 @@ let _VirtualTypes = {
 					Command.get(virtualType.id, 'id,properties', function(vt) {
 
 						let promises = vt.properties.map((vp) => {
-							return fetch(rootUrl + vp.id, { method: 'DELETE' });
+							return fetch(Structr.rootUrl + vp.id, { method: 'DELETE' });
 						});
 
-						promises.push(fetch(rootUrl + vt.id, { method: 'DELETE' }))
+						promises.push(fetch(Structr.rootUrl + vt.id, { method: 'DELETE' }))
 
 						Promise.all(promises).then(() => {
 
@@ -334,7 +334,7 @@ let _VirtualTypes = {
 	},
 	updateResourceLink: function (virtualType) {
 		let resourceLink = _VirtualTypes.virtualTypeDetail.querySelector('.resource-link a');
-		resourceLink.setAttribute('href' , rootUrl + virtualType.name + '?' + Structr.getRequestParameterName('pageSize') + '=1');
+		resourceLink.setAttribute('href' , Structr.rootUrl + virtualType.name + '?' + Structr.getRequestParameterName('pageSize') + '=1');
 		resourceLink.textContent = '/' + virtualType.name;
 	},
 	listVirtualProperties: (properties) => {
@@ -385,7 +385,7 @@ let _VirtualTypes = {
 					let data         = _VirtualTypes.getVirtualObjectDataFromRow(row);
 					data.virtualType = _VirtualTypes.virtualTypeDetailTableRow.data('virtual-type-id');
 
-					let response = await fetch(rootUrl + 'VirtualProperty', {
+					let response = await fetch(Structr.rootUrl + 'VirtualProperty', {
 						method: 'POST',
 						body: JSON.stringify(data),
 					});
@@ -419,7 +419,7 @@ let _VirtualTypes = {
 	},
 	updateVirtualObject: async (type, id, newData, $el, $blinkTarget, successCallback) => {
 
-		let response = await fetch(rootUrl + type + '/' + id, {
+		let response = await fetch(Structr.rootUrl + type + '/' + id, {
 			method: 'PUT',
 			body: JSON.stringify(newData)
 		});
@@ -441,7 +441,7 @@ let _VirtualTypes = {
 
 		Structr.confirmation('<p>Do you really want to delete the virtual property?</p>', async () => {
 
-			let response = await fetch(rootUrl + 'VirtualProperty/' + id, {
+			let response = await fetch(Structr.rootUrl + 'VirtualProperty/' + id, {
 				method: 'DELETE'
 			});
 

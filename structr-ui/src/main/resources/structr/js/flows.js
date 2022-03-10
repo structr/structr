@@ -129,7 +129,7 @@ let _Flows = {
 		async function getPackageByEffectiveName(name) {
 			let nameComponents = name.split("/");
 			nameComponents = nameComponents.slice(1, nameComponents.length);
-			let packages = await rest.get('/structr/rest/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join(".")));
+			let packages = await rest.get(Structr.getPrefixedRootUrl('/structr/rest/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join("."))));
 			return packages.result.length > 0 ? packages.result[0] : null;
 		}
 
@@ -728,7 +728,7 @@ let _Flows = {
 
             flowEditor.waitForInitialization().then( () => {
 
-				rest.post('/structr/rest/FlowContainer/' + r[0].id + "/getFlowNodes").then((res) => {
+				rest.post(Structr.rootUrl + 'FlowContainer/' + r[0].id + "/getFlowNodes").then((res) => {
 
 					let result = res.result;
 
@@ -746,7 +746,7 @@ let _Flows = {
 
 				}).then(() => {
 
-					rest.post('/structr/rest/FlowContainer/' + r[0].id + "/getFlowRelationships").then((res) => {
+					rest.post(Structr.rootUrl  + 'FlowContainer/' + r[0].id + "/getFlowRelationships").then((res) => {
 
 						let result = res.result;
 

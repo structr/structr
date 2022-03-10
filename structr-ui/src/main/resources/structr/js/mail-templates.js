@@ -368,7 +368,7 @@ let _MailTemplates = {
 		let data = _MailTemplates.getObjectDataFromElement(_MailTemplates.mailTemplateDetailForm);
 		let id   = _MailTemplates.mailTemplateDetailForm.dataset['mailTemplateId'];
 
-		let response = await fetch(rootUrl + 'MailTemplate/' + id, {
+		let response = await fetch(Structr.rootUrl + 'MailTemplate/' + id, {
 			method: 'PUT',
 			body: JSON.stringify(data)
 		});
@@ -389,7 +389,7 @@ let _MailTemplates = {
 	},
 	createMailTemplates: async (newTpls, blinkTarget) => {
 
-		let response = await fetch(rootUrl + 'MailTemplate', {
+		let response = await fetch(Structr.rootUrl + 'MailTemplate', {
 			method: 'POST',
 			body: JSON.stringify(newTpls)
 		});

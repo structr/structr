@@ -576,49 +576,43 @@ public class UiAuthenticator implements Authenticator {
 
 						logger.debug("Response status: {}", response.getStatus());
 
-						if (Settings.OAuthDelayedRedirect.getValue(false)) {
+						try {
 
-							// delayed redirect might be necessary in some environments
-							response.setStatus(HttpServletResponse.SC_FOUND);
-							response.setHeader("Location", oauthServer.getReturnUri());
+							// get the original request state and add the parameters to the redirect page
+							final String originalRequestState = request.getParameter("state");
+							Map<String, String[]> originalRequestParameters = stateParamters.get(originalRequestState);
+							stateParamters.remove(originalRequestState);
 
-						} else {
-
-							try {
-
-								// get the original request state and add the parameters to the redirect page
-								final String originalRequestState = request.getParameter("state");
-								Map<String, String[]> originalRequestParameters = stateParamters.get(originalRequestState);
-								stateParamters.remove(originalRequestState);
-
-								URIBuilder uriBuilder = new URIBuilder();
-								if (originalRequestParameters != null) {
-									for (Map.Entry<String, String[]> entry : originalRequestParameters.entrySet()) {
-										for (String parameterEntry : entry.getValue()) {
-											uriBuilder.addParameter(entry.getKey(), parameterEntry);
-										}
+							URIBuilder uriBuilder = new URIBuilder();
+							if (originalRequestParameters != null) {
+								for (Map.Entry<String, String[]> entry : originalRequestParameters.entrySet()) {
+									for (String parameterEntry : entry.getValue()) {
+										uriBuilder.addParameter(entry.getKey(), parameterEntry);
 									}
 								}
-
-								final String configuredReturnUri = oauthServer.getReturnUri();
-								if (StringUtils.startsWith(configuredReturnUri, "http")) {
-
-									URI redirectUri = new URI(configuredReturnUri);
-									uriBuilder.setHost(redirectUri.getHost());
-									uriBuilder.setPath(redirectUri.getPath());
-									uriBuilder.setPort(redirectUri.getPort());
-									uriBuilder.setScheme(redirectUri.getScheme());
-
-								} else {
-									uriBuilder.setPath(configuredReturnUri);
-								}
-
-								response.sendRedirect(uriBuilder.build().toString());
-
-							} catch (IOException | URISyntaxException ex) {
-
-								logger.error("Could not redirect to {}: {}", new Object[]{oauthServer.getReturnUri(), ex});
 							}
+
+							final String configuredReturnUri = oauthServer.getReturnUri();
+							if (StringUtils.startsWith(configuredReturnUri, "http")) {
+
+								URI redirectUri = new URI(configuredReturnUri);
+								uriBuilder.setHost(redirectUri.getHost());
+								uriBuilder.setPath(redirectUri.getPath());
+								uriBuilder.setPort(redirectUri.getPort());
+								uriBuilder.setScheme(redirectUri.getScheme());
+
+							} else {
+								uriBuilder.setPath(configuredReturnUri);
+							}
+
+							response.resetBuffer();
+							response.setHeader("Location", uriBuilder.build().toString());
+							response.setStatus(HttpServletResponse.SC_FOUND);
+							response.flushBuffer();
+
+						} catch (IOException | URISyntaxException ex) {
+
+							logger.error("Could not redirect to {}: {}", new Object[]{oauthServer.getReturnUri(), ex});
 						}
 
 						return user;

@@ -387,7 +387,7 @@ let _Schema = {
 	},
 	updateHiddenSchemaNodes: function() {
 
-		return fetch(rootUrl + 'ApplicationConfigurationDataNode/ui?configType=layout').then(function(response) {
+		return fetch(Structr.rootUrl + 'ApplicationConfigurationDataNode/ui?configType=layout').then(function(response) {
 
 			return response.json();
 
@@ -429,7 +429,7 @@ let _Schema = {
 
 			} else {
 
-				return fetch(rootUrl + 'SchemaNode/ui?' + Structr.getRequestParameterName('sort') + '=hierarchyLevel&' + Structr.getRequestParameterName('order') + '=asc').then(function(response) {
+				return fetch(Structr.rootUrl + 'SchemaNode/ui?' + Structr.getRequestParameterName('sort') + '=hierarchyLevel&' + Structr.getRequestParameterName('order') + '=asc').then(function(response) {
 
 					if (response.ok) {
 						return response.json();
@@ -751,7 +751,7 @@ let _Schema = {
 
 	},
 	loadRels: function(callback) {
-		var url = rootUrl + 'schema_relationship_nodes';
+		var url = Structr.rootUrl + 'schema_relationship_nodes';
 		$.ajax({
 			url: url,
 			dataType: 'json',
@@ -930,7 +930,7 @@ let _Schema = {
 
 		let classSelect = $('.extends-class-select', headEl);
 		classSelect.append('<optgroup label="Default Type"><option value="">AbstractNode - Structr default base type</option></optgroup>');
-		fetch(rootUrl + 'SchemaNode/ui?' + Structr.getRequestParameterName('sort') + '=name').then(async (response) => {
+		fetch(Structr.rootUrl + 'SchemaNode/ui?' + Structr.getRequestParameterName('sort') + '=name').then(async (response) => {
 
 			let data = await response.json();
 
@@ -1478,7 +1478,7 @@ let _Schema = {
 
 					_Schema.showSchemaRecompileMessage();
 
-					fetch(rootUrl + entity.id, {
+					fetch(Structr.rootUrl + entity.id, {
 						dataType: 'json',
 						contentType: 'application/json; charset=utf-8',
 						method: 'PUT',
@@ -2102,7 +2102,7 @@ let _Schema = {
 
 					_Schema.showSchemaRecompileMessage();
 
-					fetch(rootUrl + entity.id, {
+					fetch(Structr.rootUrl + entity.id, {
 						dataType: 'json',
 						contentType: 'application/json; charset=utf-8',
 						method: 'PUT',
@@ -2351,7 +2351,7 @@ let _Schema = {
 
 					_Schema.showSchemaRecompileMessage();
 
-					fetch(rootUrl + entity.id, {
+					fetch(Structr.rootUrl + entity.id, {
 						dataType: 'json',
 						contentType: 'application/json; charset=utf-8',
 						method: 'PUT',
@@ -2776,7 +2776,7 @@ let _Schema = {
 
 					_Schema.showSchemaRecompileMessage();
 
-					fetch(rootUrl + 'SchemaMethod', {
+					fetch(Structr.rootUrl + 'SchemaMethod', {
 						dataType: 'json',
 						contentType: 'application/json; charset=utf-8',
 						method: 'PATCH',
@@ -3136,7 +3136,7 @@ let _Schema = {
 			_Schema.showSchemaRecompileMessage();
 
 			$.ajax({
-				url: rootUrl + entity.id,
+				url: Structr.rootUrl + entity.id,
 				type: 'DELETE',
 				dataType: 'json',
 				contentType: 'application/json; charset=utf-8',
@@ -3165,7 +3165,7 @@ let _Schema = {
 		if (entity && entity.id) {
 
 			$.ajax({
-				url: rootUrl + entity.id,
+				url: Structr.rootUrl + entity.id,
 				type: 'GET',
 				dataType: 'json',
 				contentType: 'application/json; charset=utf-8',
@@ -3186,7 +3186,7 @@ let _Schema = {
 							_Schema.showSchemaRecompileMessage();
 
 							$.ajax({
-								url: rootUrl + entity.id,
+								url: Structr.rootUrl + entity.id,
 								type: 'PUT',
 								dataType: 'json',
 								contentType: 'application/json; charset=utf-8',
@@ -3223,7 +3223,7 @@ let _Schema = {
 			_Schema.showSchemaRecompileMessage();
 
 			$.ajax({
-				url: rootUrl + resource,
+				url: Structr.rootUrl + resource,
 				type: 'POST',
 				dataType: 'json',
 				contentType: 'application/json; charset=utf-8',
@@ -3249,7 +3249,7 @@ let _Schema = {
 
 		_Schema.showSchemaRecompileMessage();
 
-		var url = rootUrl + 'schema_nodes';
+		var url = Structr.rootUrl + 'schema_nodes';
 		$.ajax({
 			url: url,
 			type: 'POST',
@@ -3272,7 +3272,7 @@ let _Schema = {
 
 		_Schema.showSchemaRecompileMessage();
 
-		var url = rootUrl + 'schema_nodes/' + id;
+		var url = Structr.rootUrl + 'schema_nodes/' + id;
 		$.ajax({
 			url: url,
 			type: 'DELETE',
@@ -3295,7 +3295,7 @@ let _Schema = {
 		_Schema.showSchemaRecompileMessage();
 
 		$.ajax({
-			url: rootUrl + 'schema_relationship_nodes',
+			url: Structr.rootUrl + 'schema_relationship_nodes',
 			type: 'POST',
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
@@ -3325,7 +3325,7 @@ let _Schema = {
 		_Schema.showSchemaRecompileMessage();
 
 		$.ajax({
-			url: rootUrl + 'schema_relationship_nodes/' + id,
+			url: Structr.rootUrl + 'schema_relationship_nodes/' + id,
 			type: 'DELETE',
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
@@ -3346,7 +3346,7 @@ let _Schema = {
 		_Schema.showSchemaRecompileMessage();
 
 		$.ajax({
-			url: rootUrl + 'schema_relationship_nodes/' + entity.id,
+			url: Structr.rootUrl + 'schema_relationship_nodes/' + entity.id,
 			type: 'GET',
 			contentType: 'application/json; charset=utf-8',
 			statusCode: {
@@ -3359,7 +3359,7 @@ let _Schema = {
 					if (changed) {
 
 						$.ajax({
-							url: rootUrl + 'schema_relationship_nodes/' + entity.id,
+							url: Structr.rootUrl + 'schema_relationship_nodes/' + entity.id,
 							type: 'PUT',
 							dataType: 'json',
 							contentType: 'application/json; charset=utf-8',
@@ -3591,7 +3591,7 @@ let _Schema = {
 
 					Structr.updateButtonWithAjaxLoaderAndText(btn, oldHtml);
 					$.ajax({
-						url: rootUrl + 'maintenance/' + target,
+						url: Structr.rootUrl + 'maintenance/' + target,
 						type: 'POST',
 						data: JSON.stringify(payload),
 						contentType: 'application/json',
@@ -4360,7 +4360,7 @@ let _Schema = {
 	getDerivedTypes: async (baseType, blacklist) => {
 
 		// baseType is FQCN
-		let response = await fetch(rootUrl + '_schema');
+		let response = await fetch(Structr.rootUrl + '_schema');
 
 		if (response.ok) {
 

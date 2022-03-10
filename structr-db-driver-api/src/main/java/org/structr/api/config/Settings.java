@@ -112,6 +112,7 @@ public class Settings {
 	public static final Setting<String> KeystorePassword      = new StringSetting(serverGroup,  "Interfaces", "application.keystore.password", "", "The password for the JKS keystore");
 	public static final Setting<String> RestPath              = new StringSetting(serverGroup,  "hidden",     "application.rest.path",         "/structr/rest", "Defines the URL path of the Structr REST server. Should not be changed because it is hard-coded in many parts of the application.");
 	public static final Setting<String> BaseUrlOverride       = new StringSetting(serverGroup,  "Interfaces", "application.baseurl.override",  "", "Overrides the baseUrl that can be used to prefix links to local web resources. By default, the value is assembled from the protocol, hostname and port of the server instance Structr is running on");
+	public static final Setting<String> applicationRootPath   = new StringSetting(serverGroup, "Interfaces", "application.root.path", "", "Root path of the application, e.g. in case Structr is being run behind a reverse proxy with additional path prefix in URI.");
 
 	public static final Setting<Integer> MaintenanceHttpPort          = new IntegerSetting(serverGroup, "Maintenance", MAINTENANCE_PREFIX + "." + HttpPort.getKey(),         8182, "HTTP port the Structr server will listen on in maintenance mode");
 	public static final Setting<Integer> MaintenanceHttpsPort         = new IntegerSetting(serverGroup, "Maintenance", MAINTENANCE_PREFIX + "." + HttpsPort.getKey(),        8183, "HTTPS port the Structr server will listen on (if SSL is enabled) in maintenance mode");
@@ -493,7 +494,6 @@ public class Settings {
 
 	// oauth settings
 	public static final Setting<String> OAuthServers = new StringSetting(oauthGroup, "General", "oauth.servers", "github twitter linkedin google facebook auth0", "Space-seperated List of available oauth services. Defaults to \"github twitter linkedin google facebook auth0\"");
-	public static final Setting<Boolean> OAuthDelayedRedirect = new BooleanSetting(oauthGroup, "General", "oauth.delayedredirect", false, "Enables delayed redirect after oauth login");
 	public static final Setting<Boolean> OAuthVerboseLogging  = new BooleanSetting(oauthGroup, "General", "oauth.logging.verbose", false, "Enables verbose logging for oauth login");
 
 	public static final Setting<String> OAuthGithubAuthLocation   = new StringSetting(oauthGroup, "GitHub", "oauth.github.authorization_location", "https://github.com/login/oauth/authorize", "URL of the authorization endpoint.");

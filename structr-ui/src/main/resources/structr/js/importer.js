@@ -457,7 +457,7 @@ var Importer = {
 			});
 
 			// load first lines to display a sample of the data
-			$.post(rootUrl + 'File/' + file.id + '/getFirstLines', {}, function(data) {
+			$.post(Structr.rootUrl + 'File/' + file.id + '/getFirstLines', {}, function(data) {
 
 				if (data && data.result) {
 
@@ -536,7 +536,7 @@ var Importer = {
 
 		if (!Importer.schemaTypeCachePopulated) {
 
-			$.get(rootUrl + 'AbstractSchemaNode?' + Structr.getRequestParameterName('sort') + '=name', function(data) {
+			$.get(Structr.rootUrl + 'AbstractSchemaNode?' + Structr.getRequestParameterName('sort') + '=name', function(data) {
 
 				if (data && data.result) {
 
@@ -614,7 +614,7 @@ var Importer = {
 		// clear current mapping list
 		propertySelector.empty();
 
-		$.post(rootUrl + 'File/' + file.id + '/getCSVHeaders', JSON.stringify({
+		$.post(Structr.rootUrl + 'File/' + file.id + '/getCSVHeaders', JSON.stringify({
 
 			delimiter: $('#delimiter').val(),
 			quoteChar: $('#quote-char').val(),
@@ -659,7 +659,7 @@ var Importer = {
 
 						} else {
 
-							$.post(rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify(configInfo.config));
+							$.post(Structr.rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify(configInfo.config));
 						}
 					});
 				});
@@ -755,7 +755,7 @@ var Importer = {
 			blacklist.push('id');
 		};
 
-		$.get(rootUrl + '_schema/' + config.type + '/all', function(typeInfo) {
+		$.get(Structr.rootUrl + '_schema/' + config.type + '/all', function(typeInfo) {
 
 			if (typeInfo && typeInfo.result) {
 
@@ -918,7 +918,7 @@ var Importer = {
 
 			$('#start-import').off('click').on('click', function() {
 
-				$.post(rootUrl + 'File/' + file.id + '/doXMLImport', JSON.stringify(configuration), function(data) {});
+				$.post(Structr.rootUrl + 'File/' + file.id + '/doXMLImport', JSON.stringify(configuration), function(data) {});
 			});
 
 			$('#save-xml-config-button').on('click', function() {
@@ -946,7 +946,7 @@ var Importer = {
 				'Use the &laquo;Next&raquo; and &laquo;Prev&raquo; buttons below to step through the XML elements.' +
 				'</p>');
 
-			$.post(rootUrl + 'File/' + file.id + '/getXMLStructure', {}, function(data) {
+			$.post(Structr.rootUrl + 'File/' + file.id + '/getXMLStructure', {}, function(data) {
 
 				if (data && data.result) {
 
@@ -1114,7 +1114,7 @@ var Importer = {
 		var propertySelector = $('#property-select');
 		var typeConfig       = configuration[path];
 
-		$.get(rootUrl + 'SchemaNode?' + Structr.getRequestParameterName('sort') + '=name', function(data) {
+		$.get(Structr.rootUrl + 'SchemaNode?' + Structr.getRequestParameterName('sort') + '=name', function(data) {
 
 			if (data && data.result) {
 
@@ -1321,7 +1321,7 @@ var Importer = {
 			'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
 		];
 
-		$.get(rootUrl + '_schema/' + type + '/all', function(typeInfo) {
+		$.get(Structr.rootUrl + '_schema/' + type + '/all', function(typeInfo) {
 
 			if (typeInfo && typeInfo.result) {
 
@@ -1438,7 +1438,7 @@ var Importer = {
 		Importer.updateSchemaTypeSelector(targetTypeSelector);
 
 		// collect CSV headers to use
-		$.post(rootUrl + 'File/' + file.id + '/getCSVHeaders', JSON.stringify({
+		$.post(Structr.rootUrl + 'File/' + file.id + '/getCSVHeaders', JSON.stringify({
 
 			delimiter: $('#delimiter').val(),
 			quoteChar: $('#quote-char').val(),
@@ -1535,7 +1535,7 @@ var Importer = {
 
 						configInfo.config.mixedMappings = mixedMappingConfig.mappedTypes;
 
-						$.post(rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify(configInfo.config));
+						$.post(Structr.rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify(configInfo.config));
 					}
 				})
 			}
@@ -1555,7 +1555,7 @@ var Importer = {
 			blacklist.push('id');
 		};
 
-		$.get(rootUrl + '_schema/' + config.type + '/all', function(typeInfo) {
+		$.get(Structr.rootUrl + '_schema/' + config.type + '/all', function(typeInfo) {
 
 			if (typeInfo && typeInfo.result) {
 

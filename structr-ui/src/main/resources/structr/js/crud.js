@@ -73,7 +73,7 @@ let _Crud = {
 	crudCache: new AsyncObjectCache(function(obj) {
 
 		$.ajax({
-			url: rootUrl + (obj.type ? obj.type + '/' : '') + obj.id + '/' + defaultView,
+			url: Structr.rootUrl + (obj.type ? obj.type + '/' : '') + obj.id + '/' + defaultView,
 			type: 'GET',
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8;',
@@ -91,7 +91,7 @@ let _Crud = {
 	}),
 	getTypeInfo: function(type, callback) {
 
-		let url = rootUrl + '_schema/' + type;
+		let url = Structr.rootUrl + '_schema/' + type;
 
 		let errorFn = function(data) {
 			Structr.errorFromResponse(data.responseJSON, url);
@@ -620,7 +620,7 @@ let _Crud = {
 		};
 
 		$.ajax({
-			url: rootUrl + '_schema',
+			url: Structr.rootUrl + '_schema',
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
 			statusCode: {
@@ -753,7 +753,7 @@ let _Crud = {
 			insertAfter: true
 		});
 
-		el.append('<div class="resource-link">Endpoint URL (opens in new window): <a target="_blank" href="' + rootUrl + type + '">/' + type + '</a></div>');
+		el.append('<div class="resource-link">Endpoint URL (opens in new window): <a target="_blank" href="' + Structr.rootUrl + type + '">/' + type + '</a></div>');
 
 		return $('.pager', el);
 	},
@@ -817,7 +817,7 @@ let _Crud = {
 					// append header row
 					table.append('<tr><th>Column Key</th><th>Visible</th></tr>');
 
-					var url = rootUrl + '_schema/' + type + '/' + defaultView;
+					var url = Structr.rootUrl + '_schema/' + type + '/' + defaultView;
 					$.ajax({
 						url: url,
 						dataType: 'json',
@@ -924,7 +924,7 @@ let _Crud = {
 	},
 	updateCellPager: function(el, id, type, key, page, pageSize) {
 		$.ajax({
-			url: rootUrl + type + '/' + id + '/' + key + '/public?' + Structr.getRequestParameterName('page') + '=' + page + '&' + Structr.getRequestParameterName('pageSize') + '=' + pageSize,
+			url: Structr.rootUrl + type + '/' + id + '/' + key + '/public?' + Structr.getRequestParameterName('page') + '=' + page + '&' + Structr.getRequestParameterName('pageSize') + '=' + pageSize,
 			contentType: 'application/json; charset=UTF-8',
 			dataType: 'json',
 			statusCode: {
@@ -973,7 +973,7 @@ let _Crud = {
 
 		// use public view for cell pager - we should not need more information than this!
 		$.ajax({
-			url: rootUrl + type + '/' + id + '/' + key + '/public' + _Crud.sortAndPagingParameters(null, null, null, pageSize, null),
+			url: Structr.rootUrl + type + '/' + id + '/' + key + '/public' + _Crud.sortAndPagingParameters(null, null, null, pageSize, null),
 			contentType: 'application/json; charset=UTF-8',
 			dataType: 'json',
 			statusCode: {
@@ -1082,7 +1082,7 @@ let _Crud = {
 		_Crud.activateList(type);
 	},
 	activateList: function(type) {
-		let url = rootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type], _Crud.exact[type]);
+		let url = Structr.rootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type], _Crud.exact[type]);
 		_Crud.list(type, url);
 	},
 	clearList: function(type) {
@@ -1181,7 +1181,7 @@ let _Crud = {
 		}
 	},
 	crudExport: function(type) {
-		var url = csvRootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+		var url = Structr.csvRootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
 
 		_Crud.dialog('Export ' + type + ' list as CSV', function() {}, function() {});
 
@@ -1222,7 +1222,7 @@ let _Crud = {
 	},
 	crudImport: function(type) {
 
-		var url = csvRootUrl + type;
+		var url = Structr.csvRootUrl + type;
 
 		_Crud.dialog('Import CSV data for type ' + type + '', function() {}, function() {});
 
@@ -1313,7 +1313,7 @@ let _Crud = {
 	},
 	deleteAllNodesOfType: async (type, exact) => {
 
-		let url      = rootUrl + type + ((exact === true) ? '?type=' + type : '');
+		let url      = Structr.rootUrl + type + ((exact === true) ? '?type=' + type : '');
 		let response = await fetch(url, { method: 'DELETE' });
 
 		if (response.ok) {
@@ -1424,7 +1424,7 @@ let _Crud = {
 		var t = type || _Crud.type;
 
 		$.ajax({
-			url: rootUrl + t + '/' + id + '/public',
+			url: Structr.rootUrl + t + '/' + id + '/public',
 			type: 'GET',
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
@@ -1440,7 +1440,7 @@ let _Crud = {
 
 		url = url || type;
 		$.ajax({
-			url: rootUrl + url,
+			url: Structr.rootUrl + url,
 			type: 'POST',
 			dataType: 'json',
 			data: json,
@@ -1541,7 +1541,7 @@ let _Crud = {
 		}
 	},
 	crudRefresh: function(id, key, oldValue) {
-		let url = rootUrl + id + '/all';
+		let url = Structr.rootUrl + id + '/all';
 
 		$.ajax({
 			url: url,
@@ -1565,7 +1565,7 @@ let _Crud = {
 	},
 	crudReset: function(id, key) {
 		$.ajax({
-			url: rootUrl + id + '/all',
+			url: Structr.rootUrl + id + '/all',
 			type: 'GET',
 			headers: {
 				Accept: 'application/json; charset=utf-8; properties=id,type,' + key
@@ -1581,7 +1581,7 @@ let _Crud = {
 		});
 	},
 	crudUpdateObj: function(id, json, onSuccess, onError) {
-		var url = rootUrl + id;
+		var url = Structr.rootUrl + id;
 
 		var handleError = function (data, code) {
 			Structr.errorFromResponse(data.responseJSON, url, {statusCode: code, requiresConfirmation: true});
@@ -1629,7 +1629,7 @@ let _Crud = {
 		});
 	},
 	crudUpdate: function(id, key, newValue, oldValue, onSuccess, onError) {
-		let url = rootUrl + id;
+		let url = Structr.rootUrl + id;
 
 		let obj = {};
 		if (newValue && newValue !== '') {
@@ -1683,7 +1683,7 @@ let _Crud = {
 		});
 	},
 	crudRemoveProperty: function(id, key, onSuccess, onError) {
-		var url = rootUrl + id;
+		var url = Structr.rootUrl + id;
 		var obj = {};
 		obj[key] = null;
 
@@ -1740,7 +1740,7 @@ let _Crud = {
 		});
 	},
 	crudDelete: function(type, id) {
-		var url = rootUrl + type + '/' + id;
+		var url = Structr.rootUrl + type + '/' + id;
 		$.ajax({
 			url: url,
 			type: 'DELETE',
@@ -2176,7 +2176,7 @@ let _Crud = {
 			type = _Crud.keys[parentType][key].relatedType.split('.').pop();
 
 			$.ajax({
-				url: rootUrl + type + '?name=' + obj,
+				url: Structr.rootUrl + type + '?name=' + obj,
 				type: 'GET',
 				dataType: 'json',
 				contentType: 'application/json; charset=utf-8;',
@@ -2318,10 +2318,10 @@ let _Crud = {
 		types.forEach(function(type) {
 			var url, searchPart;
 			if (attr === 'uuid') {
-				url = rootUrl + type + '/' + searchString;
+				url = Structr.rootUrl + type + '/' + searchString;
 			} else {
 				searchPart = searchString === '*' || searchString === '' ? '' : '&' + attr + '=' + encodeURIComponent(searchString) + '&' + Structr.getRequestParameterName('loose') + '=1';
-				url = rootUrl + type + '/public' + _Crud.sortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1) + searchPart;
+				url = Structr.rootUrl + type + '/public' + _Crud.sortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1) + searchPart;
 			}
 
 			searchResults.append(`<div id="placeholderFor${type}" class="searchResultGroup resourceBox flex items-center">${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')} Searching for "${searchString}" in ${type}</div>`);
@@ -2481,7 +2481,7 @@ let _Crud = {
 	},
 	removeRelatedObject: function(obj, key, relatedObj, callback) {
 		var type = obj.type;
-		var url = rootUrl + type + '/' + obj.id + '/all';
+		var url = Structr.rootUrl + type + '/' + obj.id + '/all';
 		if (_Crud.isCollection(key, type)) {
 			$.ajax({
 				url: url,
@@ -2504,7 +2504,7 @@ let _Crud = {
 		}
 	},
 	addRelatedObject: function(type, id, key, relatedObj, callback) {
-		var url = rootUrl + type + '/' + id + '/all';
+		var url = Structr.rootUrl + type + '/' + id + '/all';
 		if (_Crud.isCollection(key, type)) {
 			$.ajax({
 				url: url,
@@ -2545,7 +2545,7 @@ let _Crud = {
 		});
 	},
 	removeStringFromArray: function(type, id, key, obj, pos, callback) {
-		var url = rootUrl + type + '/' + id + '/public';
+		var url = Structr.rootUrl + type + '/' + id + '/public';
 		$.ajax({
 			url: url,
 			type: 'GET',
@@ -2584,7 +2584,7 @@ let _Crud = {
 		});
 	},
 	addStringToArray: function(type, id, key, obj, callback) {
-		var url = rootUrl + type + '/' + id + '/all';
+		var url = Structr.rootUrl + type + '/' + id + '/all';
 		$.ajax({
 			url: url,
 			type: 'GET',
@@ -2699,7 +2699,7 @@ let _Crud = {
 		var view = _Crud.view[type] || 'ui';
 
 		$.ajax({
-			url: rootUrl + type + '/' + n.id + '/' + view,
+			url: Structr.rootUrl + type + '/' + n.id + '/' + view,
 			type: 'GET',
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8;',

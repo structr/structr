@@ -126,7 +126,7 @@ var _Shapes = {
 					return false;
 				});
 
-				$('#app-preview_' + page.id).attr('src', '/structr/html/' + page.name + '?edit=4');
+				$('#app-preview_' + page.id).attr('src', Structr.getPrefixedRootUrl('/structr/html/') + page.name + '?edit=4');
 
 			});
 
@@ -193,7 +193,7 @@ var _Shapes = {
 			var doc = $(this).contents();
 			var head = doc.find('head');
 			if (head) {
-				head.append('<link rel="stylesheet" type="text/css" href="/structr/css/lib/font-awesome.min.css">');
+				head.append('<link rel="stylesheet" type="text/css" href="' + Structr.getPrefixedRootUrl('/structr/css/lib/font-awesome.min.css') + '">');
 				head.append('<style media="screen" type="text/css">'
 						+ '* { z-index: 0}\n'
 						+ 'body.active-shadows [data-structr-area] { position: relative ! important; -moz-box-shadow: 0 0 .1em #ccc ! important; -webkit-box-shadow: 0 0 .1em #ccc ! important; box-shadow: 0 0 .1em #ccc ! important; }\n'

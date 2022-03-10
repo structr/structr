@@ -1000,7 +1000,10 @@ public class HttpService implements RunnableService, StatsCallback {
 				response.setHeader("Expires", null);
 
 				// redirect to setup wizard
-				response.sendRedirect("/structr/config");
+				response.resetBuffer();
+				response.setHeader("Location", Settings.applicationRootPath.getValue("") + "/structr/config");
+				response.setStatus(HttpServletResponse.SC_FOUND);
+				response.flushBuffer();
 
 			} else {
 

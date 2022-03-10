@@ -280,12 +280,12 @@ let _Contents = {
 
 		var url;
 		if (searchString.contains(' ')) {
-			url = rootUrl + 'ContentItem/ui?' + Structr.getRequestParameterName('loose') + '=1';
+			url = Structr.rootUrl + 'ContentItem/ui?' + Structr.getRequestParameterName('loose') + '=1';
 			searchString.split(' ').forEach(function(str, i) {
 				url = url + '&name=' + str;
 			});
 		} else {
-			url = rootUrl + 'ContentItem/ui?' + Structr.getRequestParameterName('loose') + '=1&name=' + searchString;
+			url = Structr.rootUrl + 'ContentItem/ui?' + Structr.getRequestParameterName('loose') + '=1&name=' + searchString;
 		}
 
 		_Contents.displaySearchResultsForURL(url);
@@ -858,7 +858,7 @@ let _Contents = {
 	},
 	sortBySchemaOrder: function(type, view, properties, callback) {
 
-		let url = rootUrl + '_schema/' + type + '/' + view;
+		let url = Structr.rootUrl + '_schema/' + type + '/' + view;
 		$.ajax({
 			url: url,
 			dataType: 'json',
@@ -962,7 +962,7 @@ let _Contents = {
 					// data.result.forEach(function(d) {
 					//
 					// 	$.ajax({
-					// 		url: rootUrl + 'contents/' + d.id + '/getSearchContext',
+					// 		url: Structr.rootUrl + 'contents/' + d.id + '/getSearchContext',
 					// 		contentType: 'application/json',
 					// 		method: 'POST',
 					// 		data: JSON.stringify({searchString: searchString, contextLength: 30}),

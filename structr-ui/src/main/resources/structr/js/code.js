@@ -1404,7 +1404,7 @@ let _Code = {
 	},
 	displaySchemaNodeContent: function(data, identifier) {
 
-		fetch(rootUrl + identifier.typeId + '/schema').then(function(response) {
+		fetch(Structr.rootUrl + identifier.typeId + '/schema').then(function(response) {
 
 			if (response.ok) {
 				return response.json();
@@ -1630,7 +1630,7 @@ let _Code = {
 
 						_Code.showSchemaRecompileMessage();
 
-						let response = await fetch(rootUrl + 'SchemaGrant', {
+						let response = await fetch(Structr.rootUrl + 'SchemaGrant', {
 							dataType: 'json',
 							contentType: 'application/json; charset=utf-8',
 							method: 'PATCH',
@@ -1735,7 +1735,7 @@ let _Code = {
 					let buildTree = function(root, rootElement) {
 
 						let listItem = document.createElement('li');
-						listItem.dataset.jstree = JSON.stringify({ icon: '/structr/icon/folder.png' });
+						listItem.dataset.jstree = JSON.stringify({ icon: Structr.getPrefixedRootUrl('/structr/icon/folder.png') });
 						//listItem.classList.add('jstree-open');
 						listItem.innerHTML = root.name;
 						rootElement.appendChild(listItem);
@@ -2204,7 +2204,7 @@ let _Code = {
 
 			if (typeId) {
 
-				let response = await fetch(rootUrl + 'SchemaNode/' + typeId + '/getGeneratedSourceCode', { method: 'POST' });
+				let response = await fetch(Structr.rootUrl + 'SchemaNode/' + typeId + '/getGeneratedSourceCode', { method: 'POST' });
 
 				if (response.ok) {
 
@@ -3159,7 +3159,7 @@ let _Code = {
 				}
 			});
 
-			let response = await fetch(rootUrl + 'maintenance/globalSchemaMethods/' + schemaMethod.name, {
+			let response = await fetch(Structr.rootUrl + 'maintenance/globalSchemaMethods/' + schemaMethod.name, {
 				method: 'POST',
 				body: JSON.stringify(params)
 			});

@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -129,11 +130,11 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 							case HttpServletResponse.SC_OK:
 
 								// redirect to requested target page or /
-								response.sendRedirect(coalesce(HtmlServlet.filterMaliciousRedirects(request.getParameter(HtmlServlet.TARGET_PATH_KEY)), "/"));
+								sendRelativeRedirect(response, coalesce(HtmlServlet.filterMaliciousRedirects(request.getParameter(HtmlServlet.TARGET_PATH_KEY)), "/"));
 								break;
 
 							default:
-								response.sendRedirect(getRedirectPage(request, result.getResponseCode()));
+								sendRelativeRedirect(response, Settings.applicationRootPath.getValue("") +  getRedirectPage(request, result.getResponseCode()));
 								break;
 						}
 
