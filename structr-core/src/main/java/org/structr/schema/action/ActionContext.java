@@ -359,6 +359,10 @@ public class ActionContext {
 								hints.reportExistingKey(key);
 								return getBaseUrl(securityContext.getRequest());
 
+							case "applicationRootPath":
+								hints.reportExistingKey(key);
+								return Settings.applicationRootPath.getValue("");
+
 							case "me":
 								hints.reportExistingKey(key);
 								return securityContext.getUser(false);
