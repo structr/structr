@@ -690,7 +690,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (!properties.isEmpty()) {
 			String folderPath = folder.getPath();
-			folderPath = stripFilePathOfApplicationRootPath(folderPath);
 			config.put(folderPath, properties);
 		}
 
@@ -740,18 +739,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (!properties.isEmpty()) {
 			String filePath = file.getPath();
-			filePath = stripFilePathOfApplicationRootPath(filePath);
 			config.put(filePath, properties);
 		}
-	}
-
-	private String stripFilePathOfApplicationRootPath (String filePath) {
-		String applicationRootPath = Settings.applicationRootPath.getValue("");
-		if (StringUtils.isNotBlank(applicationRootPath)) {
-			filePath = filePath.substring(applicationRootPath.length());
-		}
-
-		return filePath;
 	}
 
 	private void exportSites(final Path target) throws FrameworkException {

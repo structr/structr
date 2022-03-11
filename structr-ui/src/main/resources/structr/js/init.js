@@ -2523,6 +2523,7 @@ let _TreeHelper = {
 
 			openRecursively(dirs);
 		}
+
 	},
 	refreshTree: function(tree, callback) {
 		$(tree).jstree('refresh');
