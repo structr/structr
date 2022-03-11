@@ -18,31 +18,29 @@
  */
 package org.structr.rest.serialization;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Document;
 import org.structr.api.util.html.Tag;
 import org.structr.api.util.html.attr.AtDepth;
 import org.structr.api.util.html.attr.Css;
 import org.structr.api.util.html.attr.Href;
 import org.structr.api.util.html.attr.If;
-import org.structr.api.util.html.attr.Onload;
 import org.structr.api.util.html.attr.Rel;
 import org.structr.api.util.html.attr.Src;
 import org.structr.api.util.html.attr.Type;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class StructrJsonHtmlWriter implements RestWriter {
 
@@ -53,7 +51,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	protected static final String LI               = "li";
 	protected static final String UL               = "ul";
 
-	protected final String restPath           = StringUtils.removeEnd(Settings.RestServletPath.getValue(), "/*");
+	protected final String restPath           = StringUtils.removeEnd(Settings.applicationRootPath.getValue("") + Settings.RestServletPath.getValue(), "/*");
 	protected SecurityContext securityContext = null;
 	protected Document doc                    = null;
 	protected Tag currentElement              = null;
@@ -91,17 +89,20 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter beginDocument(final String baseUrl, final String propertyView) throws IOException {
 
+		String applicationRootPath = Settings.applicationRootPath.getValue("");
+
 		String currentType = baseUrl.replace(restPath + "/", "").replace("/" + propertyView, "");
+		currentType = applicationRootPath + currentType;
 
 		if (!propertyView.equals("public")) {
 			this.propertyView = "/" + propertyView;
 		}
 
 		Tag head = doc.block("head");
-		head.empty("link").attr(new Rel("stylesheet"), new Type("text/css"), new Href("/structr/css/rest.css"));
-		head.inline("script").attr(new Type("text/javascript"), new Src("/structr/js/rest.js"));
+		head.empty("link").attr(new Rel("stylesheet"), new Type("text/css"), new Href(applicationRootPath + "/structr/css/rest.css"));
+		head.inline("script").attr(new Type("text/javascript"), new Src(applicationRootPath + "/structr/js/rest.js"));
 
-		head.inline("title").text(baseUrl);
+		head.inline("title").text(applicationRootPath + baseUrl);
 
 		Tag body = doc.block("body");
 //		Tag top  = body.block("div").id("top");
@@ -130,7 +131,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		for (String view : StructrApp.getConfiguration().getPropertyViews()) {
 
 			if (!hiddenViews.contains(view)) {
-				left.inline("a").attr(new Href(restPath + "/" + currentType + "/" + view), new If(view.equals(propertyView), new Css("active"))).text(view);
+				left.inline("a").attr(new Href(currentType + "/" + view), new If(view.equals(propertyView), new Css("active"))).text(view);
 			}
 		}
 
@@ -138,7 +139,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		currentElement = body.block("div").id("right");
 
 		// h1 title
-		currentElement.block("h1").text(baseUrl);
+		currentElement.block("h1").text(applicationRootPath + baseUrl);
 
 		// begin ul
 		currentElement = currentElement.block("ul");
@@ -243,6 +244,8 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public RestWriter value(String value) throws IOException {
+
+		String applicationRootPath = Settings.applicationRootPath.getValue("");
 
 		if (!hasName) {
 
