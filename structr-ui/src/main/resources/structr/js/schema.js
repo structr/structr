@@ -25,27 +25,6 @@ $(document).ready(function() {
 	Structr.registerModule(_Schema);
 	Structr.classes.push('schema');
 
-	live('.edge-style', 'click', (e) => {
-		e.stopPropagation();
-		e.preventDefault();
-		const el = e.target;
-		const newStyle = el.innerText.trim();
-		_Schema.ui.connectorStyle = newStyle;
-		LSWrapper.setItem(_Schema.schemaConnectorStyleKey, newStyle);
-		_Schema.reload();
-		return false;
-	});
-
-	live('#schema-show-overlays', 'change', (e) => {
-		_Schema.ui.updateOverlayVisibility(e.target.checked);
-		// _Schema.reload(); // necessary to refresh menu
-	});
-
-	live('#schema-show-inheritance', 'change', (e) => {
-		_Schema.ui.updateInheritanceVisibility(e.target.checked);
-		// _Schema.reload(); // necessary to refresh menu
-	});
-
 	Command.getApplicationConfigurationDataNodesGroupedByUser('layout', function(grouped) {
 		_Schema.storedLayouts = grouped;
 	});
@@ -118,15 +97,13 @@ let _Schema = {
 		_Schema.ui.showInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceKey, true) || true;
 		_Schema.showJavaMethods    = LSWrapper.getItem(_Schema.showJavaMethodsKey, false) || false;
 
-		let functionBarHtml = _Schema.templates.functions();
-
-		Structr.functionBar.innerHTML = functionBarHtml;
+		Structr.functionBar.innerHTML = _Schema.templates.functions();
 
 		UISettings.showSettingsForCurrentModule();
 
-		_Schema.activateLayoutTools();
-		_Schema.activateAdminTools();
+		_Schema.activateDisplayDropdownTools();
 		_Schema.activateSnapshotsDialog();
+		_Schema.activateAdminTools();
 
 		$('#zoom-slider').slider({
 			min: 0.25,
@@ -152,6 +129,7 @@ let _Schema = {
 				e.preventDefault();
 				if ($('#type-name').val().length) {
 					$('#create-type').click();
+					$('#type-name').blur();
 				}
 				return false;
 			}
@@ -769,7 +747,7 @@ let _Schema = {
 						target: nodes[res.targetId + '_top'],
 						deleteEndpointsOnDetach: false,
 						scope: res.id,
-						connector: [_Schema.ui.connectorStyle, {curviness: 200, cornerRadius: 20, stub: [stub, 20], gap: 6, alwaysRespectStubs: true }],
+						connector: [_Schema.ui.connectorStyle, { curviness: 200, cornerRadius: 20, stub: [stub, 20], gap: 6, alwaysRespectStubs: true }],
 						paintStyle: { lineWidth: 4, strokeStyle: res.permissionPropagation !== 'None' ? "#ffad25" : "#81ce25" },
 						overlays: [
 							["Label", {
@@ -3418,19 +3396,17 @@ let _Schema = {
 	},
 	activateSnapshotsDialog: () => {
 
-		var table = $('#snapshots');
+		let table = $('#snapshots');
 
-		var refresh = function() {
+		let refresh = function() {
 
 			table.empty();
 
 			Command.snapshots('list', '', null, function(result) {
 
-				result.forEach(function(data) {
+				for (let data of result) {
 
-					var snapshots = data.snapshots;
-
-					snapshots.forEach(function(snapshot, i) {
+					data.snapshots.forEach(function(snapshot, i) {
 						table.append('<tr><td class="snapshot-link name-' + i + '"><a href="#">' + snapshot + '</td><td style="text-align:right;"><button id="restore-' + i + '">Restore</button><button id="add-' + i + '">Add</button><button id="delete-' + i + '">Delete</button></td></tr>');
 
 						$('.name-' + i + ' a').off('click').on('click', function() {
@@ -3458,7 +3434,7 @@ let _Schema = {
 							Command.snapshots('delete', snapshot, null, refresh);
 						});
 					});
-				});
+				}
 			});
 		};
 
@@ -3620,117 +3596,86 @@ let _Schema = {
 			});
 		}
 	},
-	activateLayoutTools: () => {
+	activateDisplayDropdownTools: () => {
 
-		$('#schema-tools').off('click').on('click', _Schema.openTypeVisibilityDialog);
-		$('#reset-schema-positions').off('click').on('click', _Schema.clearPositions);
+		document.getElementById('schema-tools').addEventListener('click', (e) => {
+			_Schema.openTypeVisibilityDialog();
+		});
 
-		let layoutSelector        = $('#saved-layout-selector');
-		let layoutNameInput       = $('#layout-name');
-		let createNewLayoutButton = $('#create-new-layout');
-		let updateLayoutButton    = $('#update-layout');
-		let restoreLayoutButton   = $('#restore-layout');
-		let downloadLayoutButton  = $('#download-layout');
-		let deleteLayoutButton    = $('#delete-layout');
+		document.getElementById('schema-show-overlays').addEventListener('change', (e) => {
+			_Schema.ui.updateOverlayVisibility(e.target.checked);
+		});
 
-		let layoutSelectorChangeHandler = function () {
+		document.getElementById('schema-show-inheritance').addEventListener('change', (e) => {
+			_Schema.ui.updateInheritanceVisibility(e.target.checked);
+		});
 
-			let selectedOption = $(':selected:not(:disabled)', layoutSelector);
+		for (let edgeStyleOption of document.querySelectorAll('.edge-style')) {
+			edgeStyleOption.addEventListener('click', (e) => {
+				e.stopPropagation();
+				e.preventDefault();
 
-			if (selectedOption.length === 0) {
+				const el       = e.target;
+				const newStyle = el.innerText.trim();
 
-				Structr.disableButton(updateLayoutButton);
-				Structr.disableButton(restoreLayoutButton);
-				Structr.disableButton(downloadLayoutButton);
-				Structr.disableButton(deleteLayoutButton);
+				_Schema.ui.connectorStyle = newStyle;
+				LSWrapper.setItem(_Schema.schemaConnectorStyleKey, newStyle);
 
-			} else {
+				_Schema.reload();
 
-				Structr.enableButton(restoreLayoutButton);
-				Structr.enableButton(downloadLayoutButton);
+				return false;
+			});
+		}
 
-				let optGroup    = selectedOption.closest('optgroup');
-				let username    = optGroup.prop('label');
-				let isOwnerless = optGroup.data('ownerless') === true;
+		let activateLayoutFunctions = () => {
 
-				if (isOwnerless || username === StructrWS.me.username) {
-					Structr.enableButton(updateLayoutButton);
-					Structr.enableButton(deleteLayoutButton);
-				} else {
+			let layoutSelector        = $('#saved-layout-selector');
+			let layoutNameInput       = $('#layout-name');
+			let createNewLayoutButton = $('#create-new-layout');
+			let updateLayoutButton    = $('#update-layout');
+			let restoreLayoutButton   = $('#restore-layout');
+			let deleteLayoutButton    = $('#delete-layout');
+
+			let layoutSelectorChangeHandler = function () {
+
+				let selectedOption = $(':selected:not(:disabled)', layoutSelector);
+
+				if (selectedOption.length === 0) {
+
 					Structr.disableButton(updateLayoutButton);
+					Structr.disableButton(restoreLayoutButton);
 					Structr.disableButton(deleteLayoutButton);
-				}
-			}
-		};
-		layoutSelectorChangeHandler();
-
-		layoutSelector.on('change', layoutSelectorChangeHandler);
-
-		updateLayoutButton.click(function() {
-
-			var selectedLayout = layoutSelector.val();
-
-			Command.setProperty(selectedLayout, 'content', JSON.stringify(_Schema.getSchemaLayoutConfiguration()), false, function(data) {
-
-				if (!data.error) {
-
-					new MessageBuilder().success("Layout saved").show();
-
-					blinkGreen(layoutSelector);
 
 				} else {
 
-					new MessageBuilder().error().title(data.error).text(data.message).show();
+					Structr.enableButton(restoreLayoutButton);
+
+					let optGroup    = selectedOption.closest('optgroup');
+					let username    = optGroup.prop('label');
+					let isOwnerless = optGroup.data('ownerless') === true;
+
+					if (isOwnerless || username === StructrWS.me.username) {
+						Structr.enableButton(updateLayoutButton);
+						Structr.enableButton(deleteLayoutButton);
+					} else {
+						Structr.disableButton(updateLayoutButton);
+						Structr.disableButton(deleteLayoutButton);
+					}
 				}
-			});
-		});
+			};
+			layoutSelectorChangeHandler();
 
-		restoreLayoutButton.click(function() {
-			_Schema.restoreLayout(layoutSelector);
-		});
+			layoutSelector.on('change', layoutSelectorChangeHandler);
 
-		downloadLayoutButton.click(function() {
+			updateLayoutButton.click(function() {
 
-			var selectedLayout = layoutSelector.val();
+				let selectedLayout = layoutSelector.val();
 
-			Command.getApplicationConfigurationDataNode(selectedLayout, function(data) {
-
-				var element = document.createElement('a');
-				element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify({name:data.name, content: JSON.parse(data.content)})));
-				element.setAttribute('download', selectedLayout + '.json');
-
-				element.style.display = 'none';
-				document.body.appendChild(element);
-
-				element.click();
-				document.body.removeChild(element);
-			});
-		});
-
-		deleteLayoutButton.click(function() {
-
-			let selectedLayout = layoutSelector.val();
-
-			Command.deleteNode(selectedLayout, false, () => {
-				_Schema.updateGroupedLayoutSelector(layoutSelector, layoutSelectorChangeHandler);
-				blinkGreen(layoutSelector);
-			});
-		});
-
-		createNewLayoutButton.on('click', () => {
-
-			let layoutName = layoutNameInput.val();
-
-			if (layoutName && layoutName.length) {
-
-				Command.createApplicationConfigurationDataNode('layout', layoutName, JSON.stringify(_Schema.getSchemaLayoutConfiguration()), function(data) {
+				Command.setProperty(selectedLayout, 'content', JSON.stringify(_Schema.getSchemaLayoutConfiguration()), false, function(data) {
 
 					if (!data.error) {
 
 						new MessageBuilder().success("Layout saved").show();
-
-						_Schema.updateGroupedLayoutSelector(layoutSelector, layoutSelectorChangeHandler);
-						layoutNameInput.val('');
 
 						blinkGreen(layoutSelector);
 
@@ -3739,13 +3684,57 @@ let _Schema = {
 						new MessageBuilder().error().title(data.error).text(data.message).show();
 					}
 				});
+			});
 
-			} else {
-				Structr.error('Schema layout name is required.');
-			}
+			restoreLayoutButton.click(function() {
+				_Schema.restoreLayout(layoutSelector);
+			});
+
+			deleteLayoutButton.click(function() {
+
+				let selectedLayout = layoutSelector.val();
+
+				Command.deleteNode(selectedLayout, false, () => {
+					_Schema.updateGroupedLayoutSelector(layoutSelector, layoutSelectorChangeHandler);
+					blinkGreen(layoutSelector);
+				});
+			});
+
+			createNewLayoutButton.on('click', () => {
+
+				let layoutName = layoutNameInput.val();
+
+				if (layoutName && layoutName.length) {
+
+					Command.createApplicationConfigurationDataNode('layout', layoutName, JSON.stringify(_Schema.getSchemaLayoutConfiguration()), function(data) {
+
+						if (!data.error) {
+
+							new MessageBuilder().success("Layout saved").show();
+
+							_Schema.updateGroupedLayoutSelector(layoutSelector, layoutSelectorChangeHandler);
+							layoutNameInput.val('');
+
+							blinkGreen(layoutSelector);
+
+						} else {
+
+							new MessageBuilder().error().title(data.error).text(data.message).show();
+						}
+					});
+
+				} else {
+					Structr.error('Schema layout name is required.');
+				}
+			});
+
+			_Schema.updateGroupedLayoutSelector(layoutSelector, layoutSelectorChangeHandler);
+		};
+		activateLayoutFunctions();
+
+		document.getElementById('reset-schema-positions').addEventListener('click', (e) => {
+			_Schema.clearPositions();
 		});
-
-		_Schema.updateGroupedLayoutSelector(layoutSelector, layoutSelectorChangeHandler);
 	},
 	updateGroupedLayoutSelector: function(layoutSelector, callback) {
 
@@ -3758,16 +3747,16 @@ let _Schema = {
 				layoutSelector.append('<option value="" disabled>no layouts available</option>');
 			} else {
 
-				grouped.forEach(function(group) {
+				for (let group of grouped) {
 
 					let optGroup = $('<optgroup data-ownerless="' + group.ownerless + '" label="' + group.label + '"></optgroup>');
 					layoutSelector.append(optGroup);
 
-					group.configs.forEach(function(layout) {
+					for (let layout of group.configs) {
 
 						optGroup.append('<option value="' + layout.id + '">' + layout.name + '</option>');
-					});
-				});
+					}
+				}
 			}
 
 			if (typeof callback === "function") {
@@ -3790,7 +3779,7 @@ let _Schema = {
 
 		try {
 
-			var loadedConfig = JSON.parse(layoutJSON);
+			let loadedConfig = JSON.parse(layoutJSON);
 
 			if (loadedConfig._version) {
 
@@ -3826,7 +3815,7 @@ let _Schema = {
 						_Schema.ui.connectorStyle = connectorStyle;
 						LSWrapper.setItem(_Schema.schemaConnectorStyleKey, connectorStyle);
 
-						var positions = loadedConfig.positions;
+						let positions = loadedConfig.positions;
 						LSWrapper.setItem(_Schema.schemaPositionsKey, positions);
 						_Schema.applyNodePositions(positions);
 					}
@@ -3876,59 +3865,17 @@ let _Schema = {
 	},
 	getSchemaLayoutConfiguration: function() {
 		return {
-			_version: 2,
-			positions: _Schema.nodePositions,
-			hiddenTypes: _Schema.hiddenSchemaNodes,
-			zoom: _Schema.ui.zoomLevel,
+			_version:       2,
+			positions:      _Schema.nodePositions,
+			hiddenTypes:    _Schema.hiddenSchemaNodes,
+			zoom:           _Schema.ui.zoomLevel,
 			connectorStyle: _Schema.ui.connectorStyle,
-			showRelLabels: $('#schema-show-overlays').prop('checked')
+			showRelLabels:  $('#schema-show-overlays').prop('checked')
 		};
 	},
 	openTypeVisibilityDialog: function() {
+
 		Structr.dialog('', function() {}, function() {});
-
-		var id = "schema-tools";
-		// dialogHead.append('<div id="' + id + '_head"><div id="tabs"><ul id="schema-tools-tabs"></ul></div></div>');
-		dialogText.append('<div id="' + id + '_content"></div>');
-
-		var mainTabs = $('#tabs', dialogHead);
-		var contentDiv = $('#' + id + '_content', dialogText);
-
-		var ul = mainTabs.children('ul');
-		// ul.append('<li data-name="admin">Admin</li>');
-		// ul.append('<li data-name="layout">Layouts</li>');
-		ul.append('<li data-name="visibility active">Visibility</li>');
-		// ul.append('<li data-name="snapshots">Snapshots</li>');
-
-		var activateTab = function(tabName) {
-			$('.tools-tab-content', contentDiv).hide();
-			$('li', ul).removeClass('active');
-			$('#tabView-' + tabName, contentDiv).show();
-			// $('li[data-name="' + tabName + '"]', ul).addClass('active');
-			LSWrapper.setItem(_Schema.activeSchemaToolsSelectedTabLevel1Key, tabName);
-		};
-		//
-		// $('#schema-tools-tabs > li', mainTabs).off('click').on('click', function(e) {
-		// 	e.stopPropagation();
-		// 	activateTab($(this).data('name'));
-		// });
-
-		// contentDiv.append('<div class="tab tools-tab-content" id="tabView-admin"></div>');
-		// _Schema.appendAdminToolsToContainer($('#tabView-admin', contentDiv));
-
-		// contentDiv.append('<div class="tab tools-tab-content" id="tabView-layout"></div>');
-		// _Schema.appendLayoutToolsToContainer($('#tabView-layout', contentDiv));
-
-		contentDiv.append('<div class="tab tools-tab-content" id="tabView-visibility"></div>').show();
-		_Schema.appendTypeVisibilityOptionsToContainer($('#tabView-visibility', contentDiv));
-
-		// contentDiv.append('<div class="tab tools-tab-content" id="tabView-snapshots"></div>');
-		// _Schema.appendSnapshotsDialogToContainer($('#tabView-snapshots', contentDiv));
-
-		// var activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedTabLevel1Key) || 'admin';
-		activateTab('visibility');
-	},
-	appendTypeVisibilityOptionsToContainer: function(container) {
 
 		let visibilityTables = [
 			{
@@ -3959,13 +3906,12 @@ let _Schema = {
 		];
 
 		let id = "schema-tools-visibility";
-		container.append('<div id="' + id + '_head"><div class="data-tabs level-two"><ul id="' + id + '-tabs"></ul></div></div>');
-		let ul = $('#' + id + '-tabs', container);
-		let contentEl = $('<div id="' + id + '_content"></div>');
-		container.append(contentEl);
+		dialogText.append('<div id="' + id + '_head"><div class="data-tabs level-two"><ul id="' + id + '-tabs"></ul></div></div><div id="' + id + '_content"></div>');
+		let ul        = $('#' + id + '-tabs', dialogText);
+		let contentEl = $('#' + id + '_content', dialogText);
 
-		let activateTab = function(tabName) {
-			$('.tab', container).hide();
+		let activateTab = (tabName) => {
+			$('.tab', contentEl).hide();
 			$('li', ul).removeClass('active');
 			$('div[data-name="' + tabName + '"]', contentEl).show();
 			$('li[data-name="' + tabName + '"]', ul).addClass('active');
@@ -3975,13 +3921,13 @@ let _Schema = {
 		Command.query('SchemaNode', 2000, 1, 'name', 'asc', {}, function(schemaNodes) {
 
 			for (let visType of visibilityTables) {
+
 				ul.append('<li id="tab" data-name="' + visType.caption + '">' + visType.caption + '</li>');
 
 				let tab = $('<div class="tab" data-name="' + visType.caption + '"></div>');
 				contentEl.append(tab);
 
 				let schemaVisibilityTable = $('<table class="props schema-visibility-table"></table>');
-				// schemaVisibilityTable.append('<tr><th class="" colspan=2>' + visType.caption + '</th></tr>');
 				schemaVisibilityTable.append('<tr><th class="toggle-column-header"><input type="checkbox" title="Toggle all" class="toggle-all-types"><i class="invert-all-types invert-icon ' + _Icons.getFullSpriteClass(_Icons.toggle_icon) + '" title="Invert all"></i> Visible</th><th>Type</th></tr>');
 				tab.append(schemaVisibilityTable);
 
@@ -3994,7 +3940,7 @@ let _Schema = {
 				}
 			}
 
-			$('input.toggle-all-types', container).on('click', function() {
+			$('input.toggle-all-types', contentEl).on('click', function() {
 				let typeTable = $(this).closest('table');
 				let checked   = $(this).prop("checked");
 				$('.toggle-type', typeTable).each(function(i, checkbox) {
@@ -4005,7 +3951,7 @@ let _Schema = {
 				_Schema.reload();
 			});
 
-			$('i.invert-all-types', container).on('click', function() {
+			$('i.invert-all-types', contentEl).on('click', function() {
 				let typeTable = $(this).closest('table');
 				$('.toggle-type', typeTable).each(function(i, checkbox) {
 					let inp = $(checkbox);
@@ -4015,13 +3961,13 @@ let _Schema = {
 				_Schema.reload();
 			});
 
-			$('td .toggle-type', container).on('click', function(e) {
+			$('td .toggle-type', contentEl).on('click', function(e) {
 				e.stopPropagation();
 				e.preventDefault();
 				return false;
 			});
 
-			$('.schema-visibility-table td', container).on('mouseup', function(e) {
+			$('.schema-visibility-table td', contentEl).on('mouseup', function(e) {
 				e.stopPropagation();
 				e.preventDefault();
 				let td  = $(this);
@@ -4032,7 +3978,7 @@ let _Schema = {
 				return false;
 			});
 
-			$('#' + id + '-tabs > li', container).off('click').on('click', function(e) {
+			$('li', ul).off('click').on('click', function(e) {
 				e.stopPropagation();
 				activateTab($(this).data('name'));
 			});
@@ -4047,9 +3993,9 @@ let _Schema = {
 		let hiddenTypes = [];
 
 		$('.schema-visibility-table input.toggle-type').each(function(i, checkbox) {
-			let inp = $(checkbox);
-			var typeName = inp.attr('data-structr-type');
-			let visible = inp.is(':checked');
+			let inp       = $(checkbox);
+			let typeName = inp.attr('data-structr-type');
+			let visible  = inp.is(':checked');
 
 			if (!visible) {
 				hiddenTypes.push(typeName);
@@ -4613,7 +4559,6 @@ let _Schema = {
 							<div class="row">
 								<select id="saved-layout-selector"></select>
 								<button id="restore-layout">Apply</button>
-								<button id="download-layout">Download</button>
 								<button id="update-layout">Update</button>
 								<button id="delete-layout">Delete</button>
 							</div>
