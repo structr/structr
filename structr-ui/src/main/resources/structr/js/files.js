@@ -87,140 +87,134 @@ let _Files = {
 	},
 	onload: function() {
 
-		Structr.fetchHtmlTemplate('files/files', {}, async (html) => {
+		main[0].innerHTML = _Files.templates.main();
 
-			main[0].innerHTML = html;
+		_Files.init();
 
-			_Files.init();
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('files'));
 
-			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('files'));
+		_Files.filesMain      = $('#files-main');
+		_Files.fileTree       = $('#file-tree');
+		_Files.folderContents = $('#folder-contents');
 
-			_Files.filesMain      = $('#files-main');
-			_Files.fileTree       = $('#file-tree');
-			_Files.folderContents = $('#folder-contents');
+		_Files.moveResizer();
+		Structr.initVerticalSlider($('.column-resizer', _Files.filesMain), filesResizerLeftKey, 204, _Files.moveResizer);
 
-			_Files.moveResizer();
-			Structr.initVerticalSlider($('.column-resizer', _Files.filesMain), filesResizerLeftKey, 204, _Files.moveResizer);
+		let initFunctionBar = async () => {
 
-			let initFunctionBar = async () => {
+			let fileTypes   = await _Schema.getDerivedTypes('org.structr.dynamic.File', ['CsvFile']);
+			let folderTypes = await _Schema.getDerivedTypes('org.structr.dynamic.Folder', ['Trash']);
 
-				let fileTypes   = await _Schema.getDerivedTypes('org.structr.dynamic.File', ['CsvFile']);
-				let folderTypes = await _Schema.getDerivedTypes('org.structr.dynamic.Folder', ['Trash']);
+			Structr.functionBar.innerHTML = _Files.templates.functions({ fileTypes: fileTypes, folderTypes: folderTypes });
 
-				Structr.fetchHtmlTemplate('files/functions', { fileTypes, folderTypes }, async (html) => {
+			UISettings.showSettingsForCurrentModule();
 
-					Structr.functionBar.innerHTML = html;
+			let fileTypeSelect   = document.querySelector('select#file-type');
+			let addFileButton    = document.getElementById('add-file-button');
+			let folderTypeSelect = document.querySelector('select#folder-type');
+			let addFolderButton  = document.getElementById('add-folder-button');
 
-					UISettings.showSettingsForCurrentModule();
-
-					let fileTypeSelect   = document.querySelector('select#file-type');
-					let addFileButton    = document.getElementById('add-file-button');
-					let folderTypeSelect = document.querySelector('select#folder-type');
-					let addFolderButton  = document.getElementById('add-folder-button');
-
-					addFileButton.addEventListener('click', () => {
-						Command.create({
-							type: fileTypeSelect.value,
-							size: 0,
-							parentId: _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null
-						});
-					});
-
-					addFolderButton.addEventListener('click', () => {
-						Command.create({
-							type: folderTypeSelect.value,
-							parentId: _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null
-						});
-					});
-
-					Structr.functionBar.querySelector('.mount_folder').addEventListener('click', _Files.openMountDialog);
-
-					_Files.searchField = Structr.functionBar.querySelector('#files-search-box');
-
-					_Files.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
-					_Files.searchFieldClearIcon.addEventListener('click', (e) => {
-						_Files.clearSearch();
-					});
-
-					_Files.searchField.focus();
-
-					_Files.searchField.addEventListener('keyup', (e) => {
-
-						let searchString = _Files.searchField.value;
-
-						if (searchString && searchString.length) {
-							_Files.searchFieldClearIcon.style.display = 'block';
-						}
-
-						if (searchString && searchString.length && e.keyCode === 13) {
-
-							_Files.fulltextSearch(searchString);
-
-						} else if (e.keyCode === 27 || searchString === '') {
-							_Files.clearSearch();
-						}
-					});
-				});
-			};
-			initFunctionBar(); // run async (do not await) so it can execute while jstree is initialized
-
-			$.jstree.defaults.core.themes.dots      = false;
-			$.jstree.defaults.dnd.inside_pos        = 'last';
-			$.jstree.defaults.dnd.large_drop_target = true;
-
-			_Files.fileTree.on('ready.jstree', function () {
-
-				_TreeHelper.makeTreeElementDroppable(_Files.fileTree, 'root');
-				_TreeHelper.makeTreeElementDroppable(_Files.fileTree, 'favorites');
-
-				_Files.loadAndSetWorkingDir(function () {
-
-					let lastOpenFolder = LSWrapper.getItem(filesLastOpenFolderKey);
-
-					if (lastOpenFolder === 'favorites') {
-
-						$('#favorites_anchor').click();
-
-					} else if (_Files.currentWorkingDir) {
-
-						_Files.deepOpen(_Files.currentWorkingDir);
-
-					} else {
-
-						let selectedNode = _Files.fileTree.jstree('get_selected');
-						if (selectedNode.length === 0) {
-							$('#root_anchor').click();
-						}
-					}
+			addFileButton.addEventListener('click', () => {
+				Command.create({
+					type: fileTypeSelect.value,
+					size: 0,
+					parentId: _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null
 				});
 			});
 
-			_Files.fileTree.on('select_node.jstree', function (evt, data) {
+			addFolderButton.addEventListener('click', () => {
+				Command.create({
+					type: folderTypeSelect.value,
+					parentId: _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null
+				});
+			});
 
-				if (data.node.id === 'favorites') {
+			Structr.functionBar.querySelector('.mount_folder').addEventListener('click', _Files.openMountDialog);
 
-					_Files.displayFolderContents('favorites');
+			_Files.searchField = Structr.functionBar.querySelector('#files-search-box');
+
+			_Files.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
+			_Files.searchFieldClearIcon.addEventListener('click', (e) => {
+				_Files.clearSearch();
+			});
+
+			_Files.searchField.focus();
+
+			_Files.searchField.addEventListener('keyup', (e) => {
+
+				let searchString = _Files.searchField.value;
+
+				if (searchString && searchString.length) {
+					_Files.searchFieldClearIcon.style.display = 'block';
+				}
+
+				if (searchString && searchString.length && e.keyCode === 13) {
+
+					_Files.fulltextSearch(searchString);
+
+				} else if (e.keyCode === 27 || searchString === '') {
+					_Files.clearSearch();
+				}
+			});
+		};
+		initFunctionBar(); // run async (do not await) so it can execute while jstree is initialized
+
+		$.jstree.defaults.core.themes.dots      = false;
+		$.jstree.defaults.dnd.inside_pos        = 'last';
+		$.jstree.defaults.dnd.large_drop_target = true;
+
+		_Files.fileTree.on('ready.jstree', function () {
+
+			_TreeHelper.makeTreeElementDroppable(_Files.fileTree, 'root');
+			_TreeHelper.makeTreeElementDroppable(_Files.fileTree, 'favorites');
+
+			_Files.loadAndSetWorkingDir(function () {
+
+				let lastOpenFolder = LSWrapper.getItem(filesLastOpenFolderKey);
+
+				if (lastOpenFolder === 'favorites') {
+
+					$('#favorites_anchor').click();
+
+				} else if (_Files.currentWorkingDir) {
+
+					_Files.deepOpen(_Files.currentWorkingDir);
 
 				} else {
 
-					_Files.setWorkingDirectory(data.node.id);
-					_Files.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
+					let selectedNode = _Files.fileTree.jstree('get_selected');
+					if (selectedNode.length === 0) {
+						$('#root_anchor').click();
+					}
 				}
 			});
-
-			_TreeHelper.initTree(_Files.fileTree, _Files.treeInitFunction, 'structr-ui-filesystem');
-
-			_Files.activateUpload();
-
-			$(window).off('resize').resize(function () {
-				_Files.resize();
-			});
-
-			Structr.unblockMenu(100);
-
-			_Files.resize();
-			Structr.adaptUiToAvailableFeatures();
 		});
+
+		_Files.fileTree.on('select_node.jstree', function (evt, data) {
+
+			if (data.node.id === 'favorites') {
+
+				_Files.displayFolderContents('favorites');
+
+			} else {
+
+				_Files.setWorkingDirectory(data.node.id);
+				_Files.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
+			}
+		});
+
+		_TreeHelper.initTree(_Files.fileTree, _Files.treeInitFunction, 'structr-ui-filesystem');
+
+		_Files.activateUpload();
+
+		$(window).off('resize').resize(function () {
+			_Files.resize();
+		});
+
+		Structr.unblockMenu(100);
+
+		_Files.resize();
+		Structr.adaptUiToAvailableFeatures();
 	},
 	getContextMenuElements: function (div, entity) {
 
@@ -1828,56 +1822,150 @@ let _Files = {
 
 		_Schema.getTypeInfo('Folder', function(typeInfo) {
 
-			Structr.fetchHtmlTemplate('files/dialog.mount', {typeInfo: typeInfo}, function (html) {
+			Structr.dialog('Mount Folder', function(){}, function(){});
 
-				Structr.dialog('Mount Folder', function(){}, function(){});
+			let elem = $(_Files.templates.mountDialog({typeInfo: typeInfo}));
 
-				var elem = $(html);
-
-				$('[data-info-text]', elem).each(function(i, el) {
-					Structr.appendInfoTextToElement({
-						element: $(el),
-						text: $(el).data('info-text'),
-						css: { marginLeft: "5px" }
-					});
+			$('[data-info-text]', elem).each(function(i, el) {
+				Structr.appendInfoTextToElement({
+					element: $(el),
+					text: $(el).data('info-text'),
+					css: { marginLeft: "5px" }
 				});
+			});
 
-				dialogText.append(elem);
+			dialogText.append(elem);
 
-				var mountButton = $('<button id="mount-folder">Mount</button>').on('click', function() {
+			let mountButton = $('<button id="mount-folder">Mount</button>').on('click', function() {
 
-					var mountConfig = {};
-					$('.mount-option[type="text"]').each(function(i, el) {
-						var val = $(el).val();
-						if (val !== "") {
-							mountConfig[$(el).data('attributeName')] = val;
-						}
-					});
-					$('.mount-option[type="number"]').each(function(i, el) {
-						var val = $(el).val();
-						if (val !== "") {
-							mountConfig[$(el).data('attributeName')] = parseInt(val);
-						}
-					});
-					$('.mount-option[type="checkbox"]').each(function(i, el) {
-						mountConfig[$(el).data('attributeName')] = $(el).prop('checked');
-					});
-
-					if (!mountConfig.name) {
-						Structr.showAndHideInfoBoxMessage('Must supply name', 'warning', 2000);
-					} else if (!mountConfig.mountTarget) {
-						Structr.showAndHideInfoBoxMessage('Must supply mount target', 'warning', 2000);
-					} else {
-						mountConfig.type = 'Folder';
-						mountConfig.parentId = _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null;
-						Command.create(mountConfig);
-
-						dialogCancelButton.click();
+				var mountConfig = {};
+				$('.mount-option[type="text"]').each(function(i, el) {
+					var val = $(el).val();
+					if (val !== "") {
+						mountConfig[$(el).data('attributeName')] = val;
 					}
 				});
+				$('.mount-option[type="number"]').each(function(i, el) {
+					var val = $(el).val();
+					if (val !== "") {
+						mountConfig[$(el).data('attributeName')] = parseInt(val);
+					}
+				});
+				$('.mount-option[type="checkbox"]').each(function(i, el) {
+					mountConfig[$(el).data('attributeName')] = $(el).prop('checked');
+				});
 
-				dialogBtn.prepend(mountButton);
+				if (!mountConfig.name) {
+					Structr.showAndHideInfoBoxMessage('Must supply name', 'warning', 2000);
+				} else if (!mountConfig.mountTarget) {
+					Structr.showAndHideInfoBoxMessage('Must supply mount target', 'warning', 2000);
+				} else {
+					mountConfig.type = 'Folder';
+					mountConfig.parentId = _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null;
+					Command.create(mountConfig);
+
+					dialogCancelButton.click();
+				}
 			});
+
+			dialogBtn.prepend(mountButton);
 		});
+	},
+
+	templates: {
+		main: config => `
+			<link rel="stylesheet" type="text/css" media="screen" href="css/files.css">
+			<link rel="stylesheet" type="text/css" media="screen" href="css/lib/cropper.min.css">
+			
+			
+			<div class="tree-main" id="files-main">
+			
+				<div class="column-resizer"></div>
+			
+				<div class="tree-container" id="file-tree-container">
+					<div class="tree" id="file-tree">
+					</div>
+				</div>
+			
+				<div class="tree-contents-container" id="folder-contents-container">
+					<div class="tree-contents tree-contents-with-top-buttons" id="folder-contents">
+					</div>
+				</div>
+			
+			</div>
+		`,
+		functions: config => `
+			<div id="files-action-buttons" class="flex-grow">
+			
+				<div class="inline-flex">
+			
+					<select class="select-create-type mr-2" id="folder-type">
+						<option value="Folder">Folder</option>
+						${config.folderTypes.map(type => '<option value="' + type + '">' + type + '</option>').join('')}
+					</select>
+			
+					<button class="action add_folder_icon button inline-flex items-center" id="add-folder-button">
+						${_Icons.getSvgIcon('folder_add', 16, 16, ['mr-1'])}
+						<span>Add</span>
+					</button>
+			
+					<select class="select-create-type mr-2" id="file-type">
+						<option value="File">File</option>
+						${config.fileTypes.map(type => '<option value="' + type + '">' + type + '</option>').join('')}
+					</select>
+			
+					<button class="action add_file_icon button inline-flex items-center" id="add-file-button">
+						${_Icons.getSvgIcon('file_add', 16, 16, ['mr-1'])}
+						<span>Add</span>
+					</button>
+			
+					<button class="mount_folder button inline-flex items-center" id="mount-folder-dialog-button">
+						${_Icons.getSvgIcon('folder_link', 16, 16, ['mr-1'])}
+						Mount Folder
+					</button>
+				</div>
+			</div>
+			
+			<div class="searchBox module-dependend" data-structr-module="text-search">
+				<input id="files-search-box" class="search" name="search" placeholder="Search...">
+				<i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i>
+			</div>
+		`,
+		mountDialog: config => `
+			<table id="mount-dialog" class="props">
+				<tr>
+					<td data-info-text="The name of the folder which will mount the target directory">Name</td>
+					<td><input type="text" class="mount-option" data-attribute-name="name"></td>
+				</tr>
+				<tr>
+					<td data-info-text="The absolute path of the local directory to mount">Mount Target</td>
+					<td><input type="text" class="mount-option" data-attribute-name="mountTarget"></td>
+				</tr>
+				<tr>
+					<td>Do Fulltext Indexing</td>
+					<td><input type="checkbox" class="mount-option" data-attribute-name="mountDoFulltextIndexing"></td>
+				</tr>
+				<tr>
+					<td data-info-text="The scan interval for repeated scans of this mount target">Scan Interval (s)</td>
+					<td><input type="number" class="mount-option" data-attribute-name="mountScanInterval"></td>
+				</tr>
+				<tr>
+					<td data-info-text="Folders encountered underneath this mounted folder are created with this type">Mount Target Folder Type</td>
+					<td><input type="text" class="mount-option" data-attribute-name="mountTargetFolderType"></td>
+				</tr>
+				<tr>
+					<td data-info-text="Files encountered underneath this mounted folder are created with this type">Mount Target File Type</td>
+					<td><input type="text" class="mount-option" data-attribute-name="mountTargetFileType"></td>
+				</tr>
+				<tr>
+					<td data-info-text="List of checksum types which are being automatically calculated on file creation.<br>Supported values are: crc32, md5, sha1, sha512">Enabled Checksums</td>
+					<td><input type="text" class="mount-option" data-attribute-name="enabledChecksums"></td>
+				</tr>
+				<tr>
+					<td data-info-text="Registers this path with a watch service (if supported by operating/file system)">Watch Folder Contents</td>
+					<td><input type="checkbox" class="mount-option" data-attribute-name="mountWatchContents"></td>
+				</tr>
+			</table>
+		`,
 	}
 };

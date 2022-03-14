@@ -43,100 +43,93 @@ let _MailTemplates = {
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('mail-templates'));
 
-		Structr.fetchHtmlTemplate('mail-templates/main', {}, (html) => {
+		main[0].innerHTML             = _MailTemplates.templates.main();
+		Structr.functionBar.innerHTML = _MailTemplates.templates.functions();
 
-			main.append(html);
+		UISettings.showSettingsForCurrentModule();
 
-			Structr.fetchHtmlTemplate('mail-templates/functions', {}, (html) => {
+		let newMailTemplateForm = Structr.functionBar.querySelector('#create-mail-template-form');
+		let namePreselect       = document.getElementById('mail-template-name-preselect');
+		let localePreselect     = document.getElementById('mail-template-locale-preselect');
 
-				Structr.functionBar.innerHTML = html;
+		localePreselect.value = LSWrapper.getItem(_MailTemplates.mailTemplatesPreselectLocaleKey) || 'en';
 
-				UISettings.showSettingsForCurrentModule();
+		newMailTemplateForm.addEventListener('submit', async (e) => {
+			e.preventDefault();
 
-				let newMailTemplateForm = Structr.functionBar.querySelector('#create-mail-template-form');
-				let namePreselect       = document.getElementById('mail-template-name-preselect');
-				let localePreselect     = document.getElementById('mail-template-locale-preselect');
+			_MailTemplates.showMain();
 
-				localePreselect.value = LSWrapper.getItem(_MailTemplates.mailTemplatesPreselectLocaleKey) || 'en';
+			let preselectLocalesString = localePreselect.value.trim();
 
-				newMailTemplateForm.addEventListener('submit', async (e) => {
-					e.preventDefault();
+			LSWrapper.setItem(_MailTemplates.mailTemplatesPreselectLocaleKey, preselectLocalesString);
 
-					_MailTemplates.showMain();
-
-					let preselectLocalesString = localePreselect.value.trim();
-
-					LSWrapper.setItem(_MailTemplates.mailTemplatesPreselectLocaleKey, preselectLocalesString);
-
-					let mtData = preselectLocalesString.split(',').map((l) => {
-						return {
-							name: namePreselect.value,
-							locale: l.trim()
-						}
-					});
-
-					let response = await _MailTemplates.createMailTemplates(mtData, newMailTemplateForm);
-				});
-
-				let createRegistrationTemplatesLink = Structr.functionBar.querySelector('#create-registration-templates');
-				createRegistrationTemplatesLink.addEventListener('click', async (e) => {
-					e.preventDefault();
-
-					let defaultRegistrationTemplates = [
-						{ name: 'CONFIRM_REGISTRATION_SENDER_ADDRESS',	text: 'structr-mail-daemon@localhost' },
-						{ name: 'CONFIRM_REGISTRATION_SENDER_NAME',		text: 'Structr Mail Daemon' },
-						{ name: 'CONFIRM_REGISTRATION_SUBJECT',			text: 'Welcome to Structr, please finalize registration' },
-						{ name: 'CONFIRM_REGISTRATION_TEXT_BODY',		text: 'Go to ${link} to finalize registration.' },
-						{ name: 'CONFIRM_REGISTRATION_HTML_BODY',		text: '<div>Click <a href=\'${link}\'>here</a> to finalize registration.</div>' },
-						{ name: 'CONFIRM_REGISTRATION_TARGET_PAGE',		text: '/register_thanks' },
-						{ name: 'CONFIRM_REGISTRATION_ERROR_PAGE',		text: '/register_error' },
-					];
-
-					let mtData = localePreselect.value.trim().split(',').map((l) => {
-						return defaultRegistrationTemplates.map(mt => Object.assign({ locale: l.trim() }, mt));
-					});
-					mtData = [].concat(...mtData);
-
-					let response = await _MailTemplates.createMailTemplates(mtData, createRegistrationTemplatesLink);
-				});
-
-				let createResetPasswordTemplatesLink = Structr.functionBar.querySelector('#create-reset-password-templates');
-				createResetPasswordTemplatesLink.addEventListener('click', async (e) => {
-					e.preventDefault();
-
-					let defaultResetPasswordTemplates = [
-						{ name: 'RESET_PASSWORD_SENDER_ADDRESS',	text: 'structr-mail-daemon@localhost' },
-						{ name: 'RESET_PASSWORD_SENDER_NAME',		text: 'Structr Mail Daemon' },
-						{ name: 'RESET_PASSWORD_SUBJECT',			text: 'Request to reset your Structr password' },
-						{ name: 'RESET_PASSWORD_TEXT_BODY',			text: 'Go to ${link} to reset your password.' },
-						{ name: 'RESET_PASSWORD_HTML_BODY',			text: '<div>Click <a href=\'${link}\'>here</a> to reset your password.</div>' },
-						{ name: 'RESET_PASSWORD_TARGET_PAGE',		text: '/reset-password' }
-					];
-
-					let mtData = localePreselect.value.trim().split(',').map((l) => {
-						return defaultResetPasswordTemplates.map(mt => Object.assign({ locale: l.trim() }, mt));
-					});
-					mtData = [].concat(...mtData);
-
-					let response = await _MailTemplates.createMailTemplates(mtData, createResetPasswordTemplatesLink);
-				});
-
-				_MailTemplates.mailTemplatesList           = document.querySelector('#mail-templates-table tbody');
-				_MailTemplates.mailTemplateDetailContainer = document.getElementById('mail-templates-detail-container');
-				_MailTemplates.mailTemplateDetailForm      = document.getElementById('mail-template-detail-form');
-				_MailTemplates.previewElement              = document.getElementById('mail-template-preview');
-
-				_MailTemplates.listMailTemplates();
-
-				_MailTemplates.mailTemplateDetailContainer.querySelector('button.save').addEventListener('click', _MailTemplates.saveMailTemplate);
-
-				Structr.unblockMenu(100);
-
-				Structr.initVerticalSlider($('.column-resizer', main), _MailTemplates.mailTemplatesResizerLeftKey, 300, _MailTemplates.moveResizer);
-
-				_MailTemplates.moveResizer(LSWrapper.getItem(_MailTemplates.mailTemplatesResizerLeftKey));
+			let mtData = preselectLocalesString.split(',').map((l) => {
+				return {
+					name: namePreselect.value,
+					locale: l.trim()
+				}
 			});
+
+			let response = await _MailTemplates.createMailTemplates(mtData, newMailTemplateForm);
 		});
+
+		let createRegistrationTemplatesLink = Structr.functionBar.querySelector('#create-registration-templates');
+		createRegistrationTemplatesLink.addEventListener('click', async (e) => {
+			e.preventDefault();
+
+			let defaultRegistrationTemplates = [
+				{ name: 'CONFIRM_REGISTRATION_SENDER_ADDRESS',	text: 'structr-mail-daemon@localhost' },
+				{ name: 'CONFIRM_REGISTRATION_SENDER_NAME',		text: 'Structr Mail Daemon' },
+				{ name: 'CONFIRM_REGISTRATION_SUBJECT',			text: 'Welcome to Structr, please finalize registration' },
+				{ name: 'CONFIRM_REGISTRATION_TEXT_BODY',		text: 'Go to ${link} to finalize registration.' },
+				{ name: 'CONFIRM_REGISTRATION_HTML_BODY',		text: '<div>Click <a href=\'${link}\'>here</a> to finalize registration.</div>' },
+				{ name: 'CONFIRM_REGISTRATION_TARGET_PAGE',		text: '/register_thanks' },
+				{ name: 'CONFIRM_REGISTRATION_ERROR_PAGE',		text: '/register_error' },
+			];
+
+			let mtData = localePreselect.value.trim().split(',').map((l) => {
+				return defaultRegistrationTemplates.map(mt => Object.assign({ locale: l.trim() }, mt));
+			});
+			mtData = [].concat(...mtData);
+
+			let response = await _MailTemplates.createMailTemplates(mtData, createRegistrationTemplatesLink);
+		});
+
+		let createResetPasswordTemplatesLink = Structr.functionBar.querySelector('#create-reset-password-templates');
+		createResetPasswordTemplatesLink.addEventListener('click', async (e) => {
+			e.preventDefault();
+
+			let defaultResetPasswordTemplates = [
+				{ name: 'RESET_PASSWORD_SENDER_ADDRESS',	text: 'structr-mail-daemon@localhost' },
+				{ name: 'RESET_PASSWORD_SENDER_NAME',		text: 'Structr Mail Daemon' },
+				{ name: 'RESET_PASSWORD_SUBJECT',			text: 'Request to reset your Structr password' },
+				{ name: 'RESET_PASSWORD_TEXT_BODY',			text: 'Go to ${link} to reset your password.' },
+				{ name: 'RESET_PASSWORD_HTML_BODY',			text: '<div>Click <a href=\'${link}\'>here</a> to reset your password.</div>' },
+				{ name: 'RESET_PASSWORD_TARGET_PAGE',		text: '/reset-password' }
+			];
+
+			let mtData = localePreselect.value.trim().split(',').map((l) => {
+				return defaultResetPasswordTemplates.map(mt => Object.assign({ locale: l.trim() }, mt));
+			});
+			mtData = [].concat(...mtData);
+
+			let response = await _MailTemplates.createMailTemplates(mtData, createResetPasswordTemplatesLink);
+		});
+
+		_MailTemplates.mailTemplatesList           = document.querySelector('#mail-templates-table tbody');
+		_MailTemplates.mailTemplateDetailContainer = document.getElementById('mail-templates-detail-container');
+		_MailTemplates.mailTemplateDetailForm      = document.getElementById('mail-template-detail-form');
+		_MailTemplates.previewElement              = document.getElementById('mail-template-preview');
+
+		_MailTemplates.listMailTemplates();
+
+		_MailTemplates.mailTemplateDetailContainer.querySelector('button.save').addEventListener('click', _MailTemplates.saveMailTemplate);
+
+		Structr.unblockMenu(100);
+
+		Structr.initVerticalSlider($('.column-resizer', main), _MailTemplates.mailTemplatesResizerLeftKey, 300, _MailTemplates.moveResizer);
+
+		_MailTemplates.moveResizer(LSWrapper.getItem(_MailTemplates.mailTemplatesResizerLeftKey));
 	},
 	getContextMenuElements: (div, entity) => {
 
@@ -247,26 +240,24 @@ let _MailTemplates = {
 
 		_MailTemplates.showMain();
 
-		Structr.fetchHtmlTemplate('mail-templates/row.type', { mailTemplate: mailTemplate }, (html) => {
+		let html = _MailTemplates.templates.typeRow({ mailTemplate: mailTemplate });
+		let row = Structr.createSingleDOMElementFromHTML(html);
 
-			let row = Structr.createSingleDOMElementFromHTML(html);
+		_MailTemplates.populateMailTemplatePagerRow(row, mailTemplate);
+		_MailTemplates.mailTemplatesList.appendChild(row);
 
-			_MailTemplates.populateMailTemplatePagerRow(row, mailTemplate);
-			_MailTemplates.mailTemplatesList.appendChild(row);
-
-			row.addEventListener('click', () => {
-				_MailTemplates.selectRow(mailTemplate.id);
-				_MailTemplates.showMailTemplateDetails(mailTemplate.id);
-			});
-
-			_Elements.enableContextMenuOnElement($(row), mailTemplate);
-			_Entities.appendContextMenuIcon($(row.querySelector('.icons-container')), mailTemplate, true);
-
-			let lastSelectedMailTemplateId = LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey);
-			if (lastSelectedMailTemplateId === mailTemplate.id) {
-				row.click();
-			}
+		row.addEventListener('click', () => {
+			_MailTemplates.selectRow(mailTemplate.id);
+			_MailTemplates.showMailTemplateDetails(mailTemplate.id);
 		});
+
+		_Elements.enableContextMenuOnElement($(row), mailTemplate);
+		_Entities.appendContextMenuIcon($(row.querySelector('.icons-container')), mailTemplate, true);
+
+		let lastSelectedMailTemplateId = LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey);
+		if (lastSelectedMailTemplateId === mailTemplate.id) {
+			row.click();
+		}
 	},
 	selectRow: (id) => {
 
@@ -404,5 +395,123 @@ let _MailTemplates = {
 		} else {
 			blinkRed($(blinkTarget));
 		}
+	},
+
+	templates: {
+		main: config => `
+			<div id="mail-templates-main" style="display: none">
+			
+				<div class="column-resizer column-resizer-left"></div>
+			
+				<div id="mail-templates-list-container">
+					<div id="mail-templates-list" class="resourceBox">
+						<table id="mail-templates-table">
+			<!--				<thead><tr>-->
+			<!--					<th><a class="sort" data-sort="name">Name</a></th>-->
+			<!--					<th class="narrow"><a class="sort" data-sort="sourceType">Locale</a></th>-->
+			<!--					<th id="mail-templates-list-th-actions" class="narrow">Actions</th>-->
+			<!--				</tr></thead>-->
+							<tbody></tbody>
+						</table>
+					</div>
+				</div>
+			
+				<div id="mail-templates-detail-container" style="display: none;">
+			
+					<form id="mail-template-detail-form">
+			
+						<input id="mail-template-id" type="hidden" class="property" data-property="id">
+			
+						<div class="form-row">
+							<div class="form-col">
+								<label for="mail-template-name">Name</label>
+								<input id="mail-template-name" type="text" size="30" class="property" data-property="name">
+							</div>
+			
+							<div class="form-col">
+								<label for="mail-template-locale">Locale</label>
+								<input id="mail-template-locale" type="text" size="6" class="property" data-property="locale">
+							</div>
+						</div>
+			
+						<div class="form-row">
+							<input id="mail-template-visible-to-public-users" class="property" type="checkbox" data-property="visibleToPublicUsers">
+							<label for="mail-template-visible-to-public-users">Visible to public users</label>
+						</div>
+			
+						<div class="form-row">
+							<input id="mail-template-visible-to-authenticated-users" class="property" type="checkbox" data-property="visibleToAuthenticatedUsers">
+							<label for="mail-template-visible-to-authenticated-users">Visible to authenticated users</label>
+						</div>
+			
+						<div class="form-row">
+							<div class="form-col">
+								<label for="mail-template-text">Content</label>
+								<div id="mail-template-text" class="property" data-property="text"></div>
+							</div>
+			
+							<div class="form-col">
+								<label for="mail-template-preview">Preview</label>
+								<iframe id="mail-template-preview"></iframe>
+							</div>
+						</div>
+			
+					</form>
+					<div class="actions">
+						<button class="inline-flex items-center save show-in-modes" data-modes="create">
+							${_Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2')} Save
+						</button>
+					</div>
+				</div>
+			</div>
+		`,
+		functions: config => `
+			<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css">
+			<link rel="stylesheet" type="text/css" media="screen" href="css/mail-templates.css">
+			
+			<form id="create-mail-template-form" autocomplete="off">
+				<input title="Enter a name to create a mail template" id="mail-template-name-preselect" type="text" size="30" placeholder="Name" required>
+				<input title="Enter a comma-separated list of locales (f.e. en,de,fr) to create mail templates for" id="mail-template-locale-preselect" type="text" size="10" placeholder="Locale(s)">
+			
+				<button type="submit" form="create-mail-template-form" class="action btn" id="create-mail-template"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> New Mail Template</button>
+			</form>
+			
+			<div class="dropdown-menu dropdown-menu-large">
+				<button class="btn dropdown-select">${_Icons.getSvgIcon('magic_wand', 16, 16, '')}</button>
+				<div class="dropdown-menu-container">
+			
+					<div class="heading-row">
+						<h3>Create Mail Templates For Processes</h3>
+					</div>
+			
+					<div class="row mb-2">
+						The templates will be created using the locales specified in the locale field.
+					</div>
+			
+					<div class="row">
+						<a id="create-registration-templates" class="flex items-center py-1">
+							${_Icons.getSvgIcon('registration-templates', 16, 16, 'mr-2')} Create default "Self-Registration" mail templates
+						</a>
+					</div>
+			
+					<div class="row">
+						<a id="create-reset-password-templates" class="flex items-center py-1">
+							${_Icons.getSvgIcon('reset-password-templates', 16, 16, 'mr-2')} Create default "Reset Password" mail templates
+						</a>
+					</div>
+				</div>
+			</div>
+			
+			<div id="mail-templates-pager"></div>
+		`,
+		typeRow: config => `
+			<tr class="mail-template-row" id="mail-template-${config.mailTemplate.id}">
+				<td class="property allow-break" data-property="name"></td>
+				<td class="property" data-property="locale"></td>
+				<td class="actions">
+					<div class="icons-container"></div>
+				</td>
+			</tr>
+		`,
 	}
 };

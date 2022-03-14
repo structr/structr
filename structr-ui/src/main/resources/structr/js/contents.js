@@ -49,129 +49,125 @@ let _Contents = {
 
 		_Contents.contentTree.css({width: left - 14 + 'px'});
 	},
-	onload: function() {
+	onload: async () => {
 
-		Structr.fetchHtmlTemplate('contents/contents', {}, async (html) => {
+		let mainHtml = _Contents.templates.contents();
+		main[0].innerHTML = mainHtml;
 
-			main[0].innerHTML = html;
+		_Contents.init();
 
-			_Contents.init();
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('contents'));
 
-			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('contents'));
+		_Contents.contentsMain     = $('#contents-main');
+		_Contents.contentTree      = $('#contents-tree');
+		_Contents.contentsContents = $('#contents-contents');
 
-			_Contents.contentsMain     = $('#contents-main');
-			_Contents.contentTree      = $('#contents-tree');
-			_Contents.contentsContents = $('#contents-contents');
+		_Contents.moveResizer();
+		Structr.initVerticalSlider($('.column-resizer', _Contents.contentsMain), _Contents.contentsResizerLeftKey, 204, _Contents.moveResizer);
 
-			_Contents.moveResizer();
-			Structr.initVerticalSlider($('.column-resizer', _Contents.contentsMain), _Contents.contentsResizerLeftKey, 204, _Contents.moveResizer);
+		let contentContainerTypes = await _Schema.getDerivedTypes('org.structr.dynamic.ContentContainer', []);
+		let contentItemTypes      = await _Schema.getDerivedTypes('org.structr.dynamic.ContentItem', []);
 
-			let contentContainerTypes = await _Schema.getDerivedTypes('org.structr.dynamic.ContentContainer', []);
-			let contentItemTypes      = await _Schema.getDerivedTypes('org.structr.dynamic.ContentItem', []);
+		let functionBarHtml = _Contents.templates.functions({ containerTypes: contentContainerTypes, itemTypes: contentItemTypes });
+		Structr.functionBar.innerHTML = functionBarHtml;
 
-			Structr.fetchHtmlTemplate('contents/functions', { containerTypes: contentContainerTypes, itemTypes: contentItemTypes }, async (html) => {
+		UISettings.showSettingsForCurrentModule();
 
-				Structr.functionBar.innerHTML = html;
+		let itemTypeSelect      = document.querySelector('select#content-item-type');
+		let addItemButton       = document.getElementById('add-item-button');
+		let containerTypeSelect = document.querySelector('select#content-container-type');
+		let addContainerButton  = document.getElementById('add-container-button');
 
-				UISettings.showSettingsForCurrentModule();
+		addItemButton.addEventListener('click', () => {
+			let containers = (_Contents.currentContentContainer ? [ { id : _Contents.currentContentContainer.id } ] : null);
+			Command.create({ type: itemTypeSelect.value, size: 0, containers: containers }, function(f) {
+				_Contents.appendItemOrContainerRow(f);
+				_Contents.refreshTree();
+			});
+		});
 
-				let itemTypeSelect      = document.querySelector('select#content-item-type');
-				let addItemButton       = document.getElementById('add-item-button');
-				let containerTypeSelect = document.querySelector('select#content-container-type');
-				let addContainerButton  = document.getElementById('add-container-button');
+		addContainerButton.addEventListener('click', () => {
+			let parent = (_Contents.currentContentContainer ? _Contents.currentContentContainer.id : null);
+			Command.create({ type: containerTypeSelect.value, parent: parent }, function(f) {
+				_Contents.appendItemOrContainerRow(f);
+				_Contents.refreshTree();
+			});
+		});
 
-				addItemButton.addEventListener('click', () => {
-					let containers = (_Contents.currentContentContainer ? [ { id : _Contents.currentContentContainer.id } ] : null);
-					Command.create({ type: itemTypeSelect.value, size: 0, containers: containers }, function(f) {
-						_Contents.appendItemOrContainerRow(f);
-						_Contents.refreshTree();
-					});
-				});
+		itemTypeSelect.addEventListener('change', () => {
+			addItemButton.querySelector('span').textContent = 'Add ' + itemTypeSelect.value;
+		});
 
-				addContainerButton.addEventListener('click', () => {
-					let parent = (_Contents.currentContentContainer ? _Contents.currentContentContainer.id : null);
-					Command.create({ type: containerTypeSelect.value, parent: parent }, function(f) {
-						_Contents.appendItemOrContainerRow(f);
-						_Contents.refreshTree();
-					});
-				});
+		containerTypeSelect.addEventListener('change', () => {
+			addContainerButton.querySelector('span').textContent = 'Add ' + containerTypeSelect.value;
+		});
 
-				itemTypeSelect.addEventListener('change', () => {
-					addItemButton.querySelector('span').textContent = 'Add ' + itemTypeSelect.value;
-				});
+		if (contentItemTypes.length === 0) {
+			Structr.appendInfoTextToElement({
+				text: "It is recommended to create a custom type extending <b>org.structr.web.entity.<u>ContentItem</u></b> to create ContentItems.<br><br>If only one type of ContentItem is required, custom attributes can be added to the type ContentItem in the schema.",
+				element: $(itemTypeSelect).parent(),
+				after: true,
+				css: { marginLeft: '-1rem', marginRight: '1rem' }
+			});
+		}
 
-				containerTypeSelect.addEventListener('change', () => {
-					addContainerButton.querySelector('span').textContent = 'Add ' + containerTypeSelect.value;
-				});
+		// if (contentContainerTypes.length === 0) {
+		// 	Structr.appendInfoTextToElement({
+		// 		text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers",
+		// 		element: $(containerTypeSelect).parent(),
+		// 		after: true,
+		// 		css: { marginLeft: '-1rem', marginRight: '1rem' }
+		// 	});
+		// }
 
-				if (contentItemTypes.length === 0) {
-					Structr.appendInfoTextToElement({
-						text: "It is recommended to create a custom type extending <b>org.structr.web.entity.<u>ContentItem</u></b> to create ContentItems.<br><br>If only one type of ContentItem is required, custom attributes can be added to the type ContentItem in the schema.",
-						element: $(itemTypeSelect).parent(),
-						after: true,
-						css: { marginLeft: '-1rem', marginRight: '1rem' }
-					});
+		// _Contents.searchField = $('.search', $(functionBar));
+		// _Contents.searchField.focus();
+		//
+		// _Contents.searchField.keyup(function(e) {
+		//
+		// 	var searchString = $(this).val();
+		// 	if (searchString && searchString.length && e.keyCode === 13) {
+		//
+		// 		$('.clearSearchIcon').show().on('click', function() {
+		// 			_Contents.clearSearch();
+		// 		});
+		//
+		// 		_Contents.fulltextSearch(searchString);
+		//
+		// 	} else if (e.keyCode === 27 || searchString === '') {
+		// 		_Contents.clearSearch();
+		// 	}
+		// });
+
+		$.jstree.defaults.core.themes.dots      = false;
+		$.jstree.defaults.dnd.inside_pos        = 'last';
+		$.jstree.defaults.dnd.large_drop_target = true;
+
+		_Contents.contentTree.on('ready.jstree', function() {
+			_TreeHelper.makeTreeElementDroppable(_Contents.contentTree, 'root');
+
+			_Contents.loadAndSetWorkingDir(function() {
+				if (_Contents.currentContentContainer) {
+					_Contents.deepOpen(_Contents.currentContentContainer);
 				}
-
-				// if (contentContainerTypes.length === 0) {
-				// 	Structr.appendInfoTextToElement({
-				// 		text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers",
-				// 		element: $(containerTypeSelect).parent(),
-				// 		after: true,
-				// 		css: { marginLeft: '-1rem', marginRight: '1rem' }
-				// 	});
-				// }
-
-				// _Contents.searchField = $('.search', $(functionBar));
-				// _Contents.searchField.focus();
-				//
-				// _Contents.searchField.keyup(function(e) {
-				//
-				// 	var searchString = $(this).val();
-				// 	if (searchString && searchString.length && e.keyCode === 13) {
-				//
-				// 		$('.clearSearchIcon').show().on('click', function() {
-				// 			_Contents.clearSearch();
-				// 		});
-				//
-				// 		_Contents.fulltextSearch(searchString);
-				//
-				// 	} else if (e.keyCode === 27 || searchString === '') {
-				// 		_Contents.clearSearch();
-				// 	}
-				// });
 			});
+		});
 
-			$.jstree.defaults.core.themes.dots      = false;
-			$.jstree.defaults.dnd.inside_pos        = 'last';
-			$.jstree.defaults.dnd.large_drop_target = true;
+		_Contents.contentTree.on('select_node.jstree', function(evt, data) {
 
-			_Contents.contentTree.on('ready.jstree', function() {
-				_TreeHelper.makeTreeElementDroppable(_Contents.contentTree, 'root');
+			_Contents.setWorkingDirectory(data.node.id);
+			_Contents.displayContainerContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
+		});
 
-				_Contents.loadAndSetWorkingDir(function() {
-					if (_Contents.currentContentContainer) {
-						_Contents.deepOpen(_Contents.currentContentContainer);
-					}
-				});
-			});
+		_TreeHelper.initTree(_Contents.contentTree, _Contents.treeInitFunction, 'structr-ui-contents');
 
-			_Contents.contentTree.on('select_node.jstree', function(evt, data) {
-
-				_Contents.setWorkingDirectory(data.node.id);
-				_Contents.displayContainerContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
-			});
-
-			_TreeHelper.initTree(_Contents.contentTree, _Contents.treeInitFunction, 'structr-ui-contents');
-
-			$(window).off('resize').resize(function() {
-				_Contents.resize();
-			});
-
-			Structr.unblockMenu(100);
-
+		$(window).off('resize').resize(function() {
 			_Contents.resize();
 		});
+
+		Structr.unblockMenu(100);
+
+		_Contents.resize();
 	},
 	getContextMenuElements: function (div, entity) {
 
@@ -1023,5 +1019,62 @@ let _Contents = {
 	},
 	getIcon: function(file) {
 		return (file.isContentContainer ? 'fa-folder-o' : 'fa-file-o');
+	},
+
+
+	templates: {
+		contents: config => `
+			<link rel="stylesheet" type="text/css" media="screen" href="css/contents.css">
+			
+			<div class="tree-main" id="contents-main">
+				<div class="column-resizer"></div>
+			
+				<div class="tree-container" id="content-tree-container">
+					<div class="tree" id="contents-tree">
+			
+					</div>
+				</div>
+			
+				<div class="tree-contents-container" id="contents-contents-container">
+					<div class="tree-contents tree-contents-with-top-buttons" id="contents-contents">
+			
+					</div>
+				</div>
+			</div>
+		`,
+		functions: config => `
+			<div id="contents-action-buttons" class="flex-grow">
+			
+				<div class="inline-flex">
+			
+					<select class="select-create-type mr-2" id="content-container-type">
+						<option value="ContentContainer">Content Container</option>
+						${config.containerTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
+					</select>
+			
+					<button class="action add_container_icon button" id="add-container-button">
+						<i title="Add Content Container" class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i>
+						<span>Add Content Container</span>
+					</button>
+			
+					<select class="select-create-type mr-2" id="content-item-type">
+						<option value="ContentItem">Content Item</option>
+						${config.itemTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
+					</select>
+			
+					<button class="action add_item_icon button" id="add-item-button">
+						<i title="Add Content Item" class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i>
+						<span>Add Content Item</span>
+					</button>
+			
+				</div>
+			
+			</div>
+			
+			<!--div class="searchBox module-dependend" data-structr-module="text-search">
+				<input class="search" name="search" placeholder="Search...">
+				<i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i>
+			</div -->
+		`,
 	}
 };

@@ -1144,16 +1144,13 @@ let _Elements = {
 			previewsContainer.removeChild(contentEditorContainer);
 		}
 
-		Structr.fetchHtmlTemplate('pages/content-editor', {}, (html) => {
+		previewsContainer.insertAdjacentHTML('afterbegin', _Pages.templates.contentEditor());
 
-			previewsContainer.insertAdjacentHTML('afterbegin', html);
+		contentEditorContainer = document.querySelector('#center-pane .content-editor-container');
 
-			contentEditorContainer = document.querySelector('#center-pane .content-editor-container');
-
-			Command.get(entity.id, 'content,contentType', (data) => {
-				entity.contentType = data.contentType;
-				_Elements.editContentInCentralEditor(entity, data.content, contentEditorContainer);
-			});
+		Command.get(entity.id, 'content,contentType', (data) => {
+			entity.contentType = data.contentType;
+			_Elements.editContentInCentralEditor(entity, data.content, contentEditorContainer);
 		});
 	},
 	editContentInCentralEditor: function (entity, initialText, element) {

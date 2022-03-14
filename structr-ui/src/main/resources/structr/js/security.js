@@ -42,44 +42,37 @@ let _Security = {
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('security'));
 
-		Structr.fetchHtmlTemplate('security/functions', {}, function (html) {
+		main[0].innerHTML             = _Security.templates.main();
+		Structr.functionBar.innerHTML = _Security.templates.functions();
 
-			Structr.functionBar.innerHTML = html;
+		UISettings.showSettingsForCurrentModule();
 
-			UISettings.showSettingsForCurrentModule();
+		_Security.userControls     = document.getElementById('users-controls');
+		_Security.userList         = document.getElementById('users-list');
+		_Security.groupControls    = document.getElementById('groups-controls');
+		_Security.groupList        = document.getElementById('groups-list');
+		_Security.resourceAccesses = $('#resourceAccesses');
 
-			Structr.fetchHtmlTemplate('security/main', {}, function (html) {
+		let subModule = LSWrapper.getItem(_Security.securityTabKey) || 'users-and-groups';
 
-				main.append(html);
+		for (let tabLink of document.querySelectorAll('#function-bar .tabs-menu li a')) {
 
-				_Security.userControls     = document.getElementById('users-controls');
-				_Security.userList         = document.getElementById('users-list');
-				_Security.groupControls    = document.getElementById('groups-controls');
-				_Security.groupList        = document.getElementById('groups-list');
-				_Security.resourceAccesses = $('#resourceAccesses');
+			tabLink.addEventListener('click', (e) => {
+				e.preventDefault();
 
-				let subModule = LSWrapper.getItem(_Security.securityTabKey) || 'users-and-groups';
+				let urlHash = e.target.closest('a').getAttribute('href');
+				let subModule = urlHash.split(':')[1];
+				window.location.hash = urlHash;
 
-				for (let tabLink of document.querySelectorAll('#function-bar .tabs-menu li a')) {
-
-					tabLink.addEventListener('click', (e) => {
-						e.preventDefault();
-
-						let urlHash = e.target.closest('a').getAttribute('href');
-						let subModule = urlHash.split(':')[1];
-						window.location.hash = urlHash;
-
-						_Security.selectTab(subModule);
-					});
-
-					if (tabLink.closest('a').getAttribute('href') === '#security:' + subModule) {
-						tabLink.click();
-					}
-				}
-
-				Structr.unblockMenu(100);
+				_Security.selectTab(subModule);
 			});
-		});
+
+			if (tabLink.closest('a').getAttribute('href') === '#security:' + subModule) {
+				tabLink.click();
+			}
+		}
+
+		Structr.unblockMenu(100);
 	},
 	getContextMenuElements: function (div, entity) {
 
@@ -172,6 +165,126 @@ let _Security = {
 			$('#usersAndGroups').hide();
 			_ResourceAccessGrants.refreshResourceAccesses();
 		}
+	},
+
+	templates: {
+		main: config => `
+			<link rel="stylesheet" type="text/css" media="screen" href="css/security.css">
+			
+			<div class="main-app-box" id="security">
+			
+				<div id="securityTabs" class="tabs-contents">
+			
+					<div id="usersAndGroups" class="tab-content">
+			
+						<div id="usersAndGroups-inner">
+							<div id="users">
+								<div id="users-controls"></div>
+								<div id="users-list"></div>
+							</div>
+			
+							<div id="groups">
+								<div id="groups-controls"></div>
+								<div id="groups-list"></div>
+							</div>
+						</div>
+			
+					</div>
+			
+					<div id="resourceAccess" class="tab-content">
+						<div id="resourceAccesses"></div>
+					</div>
+				</div>
+			</div>
+		`,
+		functions: config => `
+			<ul id="securityTabsMenu" class="tabs-menu flex-grow">
+			  <li><a href="#security:users-and-groups" id="usersAndGroups_"><span>Users and Groups</span></a></li>
+			  <li><a href="#security:resource-access" id="resourceAccess_"><span>Resource Access Grants</span></a></li>
+			</ul>
+		`,
+		newGroupButton: config => `
+			<div class="flex items-center mb-8">
+			
+				<select class="select-create-type mr-2" id="group-type">
+					<option value="Group">Group</option>
+					${config.types.map(type => `<option value="${type}">${type}</option>`).join('')}
+				</select>
+			
+				<button class="action add_group_icon inline-flex items-center" id="add-group-button">
+					${_Icons.getSvgIcon('group-add', 16, 16, 'mr-2')}
+					<span>Add Group</span>
+				</button>
+			</div>
+		`,
+		newUserButton: config => `
+			<div class="flex items-center mb-8">
+			
+				<select class="select-create-type mr-2" id="user-type">
+					<option value="User">User</option>
+					${config.types.map(type => `<option value="${type}">${type}</option>`).join('')}
+				</select>
+			
+				<button class="action add_user_icon inline-flex items-center" id="add-user-button">
+					${_Icons.getSvgIcon('user-add', 16, 16, 'mr-2')}
+					<span>Add User</span>
+				</button>
+			</div>
+		`,
+		resourceAccess: config => `
+			<div class="flex items-center">
+				<div id="add-resource-access-grant">
+					<input type="text" size="20" id="resource-signature" placeholder="Signature">
+					<button class="action add_grant_icon button">
+						${_Icons.getSvgIcon('key-add', 16, 16, ['mr-2', 'hidden'])}
+			
+						<i title="Add Resource Grant" class="${_Icons.getFullSpriteClass(_Icons.key_add_icon)}" ></i> Add Grant
+					</button>
+				</div>
+			
+				<div id="filter-resource-access-grants" class="flex items-center">
+					<input type="text" class="filter" data-attribute="signature" placeholder="Filter/Search...">
+					<label class="ui-setting-checkbox inline-flex ml-4">
+						<input type="checkbox" id="show-grants-in-use" ${(Structr.isInMemoryDatabase ? 'disabled title="This feature can not be used when working on an in-memory database"' : 'class="filter" data-attribute="flags"')}> Show only grants in use
+					</label>
+				</div>
+			</div>
+			
+			<table id="resourceAccessesTable">
+				<thead>
+					<tr>
+						<th><div id="resourceAccessesPager"></div></th>
+						<th colspan="7" class="center br-1 bl-1" data-comment="These flags determine the access rights for authenticated users to the <b>resource</b> described by the signature (<b>not the data</b> behind that resource).<br><br>If a user is not able to read the grant, access to the resource (described by the signature) is denied. If the user is able to read mutliple grants for the same signature, the flags for those grants are combined.">Authenticated users</th>
+						<th colspan="7" class="center br-1" data-comment="These flags determine the access rights for public (non-authenticated) users to the <b>resource</b> described by the signature (<b>not the data</b> behind that resource).">Non-authenticated (public) users</th>
+						<th></th>
+						<th colspan="2" class="bl-1 br-1 ${config.showVisibilityFlags ? '' : 'hidden'}">Visibility</th>
+						<th></th>
+					</tr>
+					<tr>
+						<th class="title-cell">Signature</th>
+						<th class="bl-1">GET</th>
+						<th>PUT</th>
+						<th>POST</th>
+						<th>DELETE</th>
+						<th>OPTIONS</th>
+						<th>HEAD</th>
+						<th class="br-1">PATCH</th>
+						<th>GET</th>
+						<th>PUT</th>
+						<th>POST</th>
+						<th>DELETE</th>
+						<th>OPTIONS</th>
+						<th>HEAD</th>
+						<th class="br-1">PATCH</th>
+						<th>Bitmask</th>
+						<th class="bl-1 ${config.showVisibilityFlags ? '' : 'hidden'}">visibleToAuthenticatedUsers</th>
+						<th class="br-1 ${config.showVisibilityFlags ? '' : 'hidden'}">visibleToPublicUsers</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		`
 	}
 };
 
@@ -184,37 +297,35 @@ let _UsersAndGroups = {
 
 		let types = await _Schema.getDerivedTypes('org.structr.dynamic.User', []);
 
-		Structr.fetchHtmlTemplate('security/button.user.new', { types: types }, function (html) {
+		let newUserHtml = _Security.templates.newUserButton({ types: types });
+		_Security.userList.innerHTML     = '';
+		_Security.userControls.innerHTML = newUserHtml;
 
-			_Security.userList.innerHTML     = '';
-			_Security.userControls.innerHTML = html;
+		let userTypeSelect = document.querySelector('select#user-type');
+		let addUserButton  = document.getElementById('add-user-button');
 
-			let userTypeSelect = document.querySelector('select#user-type');
-			let addUserButton  = document.getElementById('add-user-button');
-
-			addUserButton.addEventListener('click', (e) => {
-				Command.create({ type: userTypeSelect.value }, (user) => {
-					let userModelObj = StructrModel.create(user);
-					_UsersAndGroups.appendUserToUserList(userModelObj);
-				});
+		addUserButton.addEventListener('click', (e) => {
+			Command.create({ type: userTypeSelect.value }, (user) => {
+				let userModelObj = StructrModel.create(user);
+				_UsersAndGroups.appendUserToUserList(userModelObj);
 			});
-
-			userTypeSelect.addEventListener('change', () => {
-				addUserButton.querySelector('span').textContent = 'Add ' + userTypeSelect.value;
-			});
-
-			let userPager = _Pager.addPager('users', $(_Security.userControls), true, 'User', 'public', (users) => {
-				for (let user of users) {
-					let userModelObj = StructrModel.create(user);
-					_UsersAndGroups.appendUserToUserList(userModelObj);
-				}
-			}, null, 'id,isUser,name,type,isAdmin');
-			userPager.cleanupFunction = function () {
-				_Security.userList.innerHTML = '';
-			};
-			userPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
-			userPager.activateFilterElements();
 		});
+
+		userTypeSelect.addEventListener('change', () => {
+			addUserButton.querySelector('span').textContent = 'Add ' + userTypeSelect.value;
+		});
+
+		let userPager = _Pager.addPager('users', $(_Security.userControls), true, 'User', 'public', (users) => {
+			for (let user of users) {
+				let userModelObj = StructrModel.create(user);
+				_UsersAndGroups.appendUserToUserList(userModelObj);
+			}
+		}, null, 'id,isUser,name,type,isAdmin');
+		userPager.cleanupFunction = function () {
+			_Security.userList.innerHTML = '';
+		};
+		userPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
+		userPager.activateFilterElements();
 	},
 	createUserElement:function (user) {
 
@@ -384,38 +495,36 @@ let _UsersAndGroups = {
 
 		let types = await _Schema.getDerivedTypes('org.structr.dynamic.Group', []);
 
-		Structr.fetchHtmlTemplate('security/button.group.new', { types: types }, function (html) {
+		let newGroupHtml = _Security.templates.newGroupButton({ types: types });
+		_Security.groupList.innerHTML     = '';
+		_Security.groupControls.innerHTML = newGroupHtml;
 
-			_Security.groupList.innerHTML     = '';
-			_Security.groupControls.innerHTML = html;
+		let groupTypeSelect = document.querySelector('select#group-type');
+		let addGroupButton  = document.getElementById('add-group-button');
 
-			let groupTypeSelect = document.querySelector('select#group-type');
-			let addGroupButton  = document.getElementById('add-group-button');
-
-			addGroupButton.addEventListener('click', (e) => {
-				Command.create({ type: groupTypeSelect.value }, (group) => {
-					let groupModelObj = StructrModel.create(group);
-					_UsersAndGroups.appendGroupElement($(_Security.groupList), groupModelObj);
-				});
+		addGroupButton.addEventListener('click', (e) => {
+			Command.create({ type: groupTypeSelect.value }, (group) => {
+				let groupModelObj = StructrModel.create(group);
+				_UsersAndGroups.appendGroupElement($(_Security.groupList), groupModelObj);
 			});
-
-			groupTypeSelect.addEventListener('change', () => {
-				addGroupButton.querySelector('span').textContent = 'Add ' + groupTypeSelect.value;
-			});
-
-			let groupPager = _Pager.addPager('groups', $(_Security.groupControls), true, 'Group', 'public', (groups) => {
-				for (let group of groups) {
-					let groupModelObj = StructrModel.create(group);
-					_UsersAndGroups.appendGroupElement($(_Security.groupList), groupModelObj);
-				}
-			});
-			groupPager.cleanupFunction = function () {
-				_Security.groupList.innerHTML = '';
-			};
-			groupPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
-			groupPager.activateFilterElements();
 		});
-	},
+
+		groupTypeSelect.addEventListener('change', () => {
+			addGroupButton.querySelector('span').textContent = 'Add ' + groupTypeSelect.value;
+		});
+
+		let groupPager = _Pager.addPager('groups', $(_Security.groupControls), true, 'Group', 'public', (groups) => {
+			for (let group of groups) {
+				let groupModelObj = StructrModel.create(group);
+				_UsersAndGroups.appendGroupElement($(_Security.groupList), groupModelObj);
+			}
+		});
+		groupPager.cleanupFunction = function () {
+			_Security.groupList.innerHTML = '';
+		};
+		groupPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
+		groupPager.activateFilterElements();
+                                                                                                                                                 	},
 	createGroupElement: function (group) {
 
 		let displayName = ((group.name) ? group.name : '[unnamed]');
@@ -566,31 +675,27 @@ let _ResourceAccessGrants = {
 
 		let pagerTransportFunction = Structr.isInMemoryDatabase ? null : _ResourceAccessGrants.customPagerTransportFunction;
 
-		_Security.resourceAccesses.empty();
+		let resourceAccessHtml = _Security.templates.resourceAccess({ showVisibilityFlags: UISettings.getValueForSetting(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey) });
+		_Security.resourceAccesses.html(resourceAccessHtml);
 
-		Structr.fetchHtmlTemplate('security/resource-access', { showVisibilityFlags: UISettings.getValueForSetting(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey) }, function (html) {
+		Structr.activateCommentsInElement(_Security.resourceAccesses);
 
-			_Security.resourceAccesses.append(html);
+		let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', undefined, undefined, pagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees');
 
-			Structr.activateCommentsInElement(_Security.resourceAccesses);
+		raPager.cleanupFunction = function () {
+			$('#resourceAccessesTable tbody tr').remove();
+		};
 
-			let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', undefined, undefined, pagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees');
+		raPager.activateFilterElements(_Security.resourceAccesses);
 
-			raPager.cleanupFunction = function () {
-				$('#resourceAccessesTable tbody tr').remove();
-			};
+		$('.add_grant_icon', _Security.resourceAccesses).on('click', function (e) {
+			_ResourceAccessGrants.addResourceGrant(e);
+		});
 
-			raPager.activateFilterElements(_Security.resourceAccesses);
-
-			$('.add_grant_icon', _Security.resourceAccesses).on('click', function (e) {
+		$('#resource-signature', _Security.resourceAccesses).on('keyup', function (e) {
+			if (e.keyCode === 13) {
 				_ResourceAccessGrants.addResourceGrant(e);
-			});
-
-			$('#resource-signature', _Security.resourceAccesses).on('keyup', function (e) {
-				if (e.keyCode === 13) {
-					_ResourceAccessGrants.addResourceGrant(e);
-				}
-			});
+			}
 		});
 	},
 	customPagerTransportFunction: function(type, pageSize, page, filterAttrs, callback) {

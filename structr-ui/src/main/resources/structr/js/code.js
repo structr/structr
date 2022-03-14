@@ -94,65 +94,54 @@ let _Code = {
 		Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', null, _Code.addAvailableTagsForEntities, false, null, 'tags');
 		Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', null, _Code.addAvailableTagsForEntities, false, null, 'tags');
 
-		Structr.fetchHtmlTemplate('code/functions', {}, function(html) {
+		Structr.functionBar.innerHTML = _Code.templates.functions();
 
-			Structr.functionBar.innerHTML = html;
+		UISettings.showSettingsForCurrentModule();
 
-			UISettings.showSettingsForCurrentModule();
+		$('#tree-search-input').on('input', _Code.debounce(_Code.doSearch, 300));
+		$('#tree-forward-button').on('click', _Code.pathLocationForward);
+		$('#tree-back-button').on('click', _Code.pathLocationBackward);
+		$('#cancel-search-button').on('click', _Code.cancelSearch);
 
-			$('#tree-search-input').on('input', _Code.debounce(_Code.doSearch, 300));
-			$('#tree-forward-button').on('click', _Code.pathLocationForward);
-			$('#tree-back-button').on('click', _Code.pathLocationBackward);
-			$('#cancel-search-button').on('click', _Code.cancelSearch);
-
-			$(window).on('keydown.search', function(e) {
-				if (_Code.searchIsActive()) {
-					if (e.key === 'Escape') {
-						_Code.cancelSearch();
-					}
-				};
-			});
+		$(window).on('keydown.search', function(e) {
+			if (_Code.searchIsActive()) {
+				if (e.key === 'Escape') {
+					_Code.cancelSearch();
+				}
+			};
 		});
 
-		Structr.fetchHtmlTemplate('code/main', {}, function(html) {
+		main.append(_Code.templates.main());
 
-			main.append(html);
+		_Code.init();
 
-			// preload action button
-			Structr.fetchHtmlTemplate('code/action-button', {}, function(html) {
+		codeMain     = $('#code-main');
+		codeTree     = $('#code-tree');
+		codeContents = $('#code-contents');
+		codeContext  = $('#code-context');
 
-				_Code.init();
+		Structr.initVerticalSlider($('.column-resizer-left', codeMain), _Code.codeResizerLeftKey, 204, _Code.moveLeftResizer);
+		Structr.initVerticalSlider($('.column-resizer-right', codeMain), _Code.codeResizerRightKey, 204, _Code.moveRightResizer, true);
 
-				codeMain     = $('#code-main');
-				codeTree     = $('#code-tree');
-				codeContents = $('#code-contents');
-				codeContext  = $('#code-context');
+		$.jstree.defaults.core.themes.dots      = false;
+		$.jstree.defaults.dnd.inside_pos        = 'last';
+		$.jstree.defaults.dnd.large_drop_target = true;
 
-				Structr.initVerticalSlider($('.column-resizer-left', codeMain), _Code.codeResizerLeftKey, 204, _Code.moveLeftResizer);
-				Structr.initVerticalSlider($('.column-resizer-right', codeMain), _Code.codeResizerRightKey, 204, _Code.moveRightResizer, true);
+		codeTree.on('select_node.jstree', _Code.handleTreeClick);
+		codeTree.on('refresh.jstree', _Code.activateLastClicked);
 
-				$.jstree.defaults.core.themes.dots      = false;
-				$.jstree.defaults.dnd.inside_pos        = 'last';
-				$.jstree.defaults.dnd.large_drop_target = true;
-
-				codeTree.on('select_node.jstree', _Code.handleTreeClick);
-				codeTree.on('refresh.jstree', _Code.activateLastClicked);
-
-				_Code.loadRecentlyUsedElements(function() {
-					_TreeHelper.initTree(codeTree, _Code.treeInitFunction, 'structr-ui-code');
-				});
-
-				$(window).off('resize').resize(function() {
-					_Code.resize();
-				});
-
-				Structr.unblockMenu(100);
-
-				_Code.resize();
-				Structr.adaptUiToAvailableFeatures();
-			});
+		_Code.loadRecentlyUsedElements(function() {
+			_TreeHelper.initTree(codeTree, _Code.treeInitFunction, 'structr-ui-code');
 		});
 
+		$(window).off('resize').resize(function() {
+			_Code.resize();
+		});
+
+		Structr.unblockMenu(100);
+
+		_Code.resize();
+		Structr.adaptUiToAvailableFeatures();
 	},
 	addAvailableTagsForEntities: function(entities) {
 
@@ -507,25 +496,21 @@ let _Code = {
 			LSWrapper.setItem(_Code.codeRecentElementsKey, updatedList);
 		}
 
-		Structr.fetchHtmlTemplate('code/recently-used-button', { id: id, name: name, iconClass: iconClass }, (html) => {
+		let ctx = $('#code-context');
+		let recentlyUsedButton = $(_Code.templates.recentlyUsedButton({ id: id, name: name, iconClass: iconClass }));
 
-			let ctx = $('#code-context');
+		if (fromStorage) {
+			ctx.append(recentlyUsedButton);
+		} else {
+			ctx.prepend(recentlyUsedButton);
+		}
 
-			let recentlyUsedButton = $(html);
-
-			if (fromStorage) {
-				ctx.append(recentlyUsedButton);
-			} else {
-				ctx.prepend(recentlyUsedButton);
-			}
-
-			recentlyUsedButton.on('click.recently-used', () => {
-				_Code.findAndOpenNode(path, true);
-			});
-			$('.remove-recently-used', recentlyUsedButton).on('click.recently-used', (e) => {
-				e.stopPropagation();
-				_Code.deleteRecentlyUsedElement(id);
-			});
+		recentlyUsedButton.on('click.recently-used', () => {
+			_Code.findAndOpenNode(path, true);
+		});
+		$('.remove-recently-used', recentlyUsedButton).on('click.recently-used', (e) => {
+			e.stopPropagation();
+			_Code.deleteRecentlyUsedElement(id);
 		});
 
 	},
@@ -1417,396 +1402,386 @@ let _Code = {
 			let result = json.result;
 
 			_Code.updateRecentlyUsed(result, identifier.source, data.updateLocationStack);
-			Structr.fetchHtmlTemplate('code/type', { type: result }, function(html) {
 
-				codeContents.empty();
-				codeContents.append(html);
+			let html = _Code.templates.type({ type: result });
+			codeContents.empty();
+			codeContents.append(html);
 
-				_Code.runCurrentEntitySaveAction = function() {
-					_Code.saveEntityAction(result);
+			_Code.runCurrentEntitySaveAction = function() {
+				_Code.saveEntityAction(result);
+			};
+
+			let buttons = $('#method-buttons');
+			buttons.prepend(html);
+
+			_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save', _Code.runCurrentEntitySaveAction);
+
+			_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('close-dialog-x', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+				_Code.revertFormData(result);
+			});
+
+			// delete button
+			if (!result.isBuiltinType) {
+				_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete type ' + result.name, () => {
+					_Code.deleteSchemaEntity(result, 'Delete type ' + result.name + '?', 'This will delete all schema relationships as well, but no data will be removed.', identifier);
+				});
+			}
+
+			let apiTab = $('#type-openapi', codeContents);
+			apiTab.append(_Code.templates.openAPIConfig({ element: result, availableTags: _Code.availableTags }));
+
+			$('#tags-select', apiTab).select2({
+				tags: true,
+				width: '100%'
+			}).on('change', () => {
+				_Code.updateDirtyFlag(result);
+			});
+
+			$('input[type=checkbox]', apiTab).on('change', () => {
+				_Code.updateDirtyFlag(result);
+			});
+
+			$('input[type=text]', apiTab).on('keyup', () => {
+				_Code.updateDirtyFlag(result);
+			});
+
+			Structr.activateCommentsInElement(apiTab);
+
+			// manage working sets
+			_WorkingSets.getWorkingSets(function(workingSets) {
+
+				let groupSelect = document.querySelector('select#type-groups');
+
+				let createAndAddWorkingSetOption = function(set, forceAdd) {
+
+					let setOption = document.createElement('option');
+					setOption.textContent = set.name;
+					setOption.dataset['groupId'] = set.id;
+
+					if (forceAdd === true || set.children && set.children.includes(result.name)) {
+						setOption.selected = true;
+					}
+
+					groupSelect.appendChild(setOption);
 				};
 
-				let buttons = $('#method-buttons');
-				buttons.prepend(html);
+				for (let set of workingSets) {
 
-				_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save', _Code.runCurrentEntitySaveAction);
-
-				_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('close-dialog-x', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
-					_Code.revertFormData(result);
-				});
-
-				// delete button
-				if (!result.isBuiltinType) {
-					_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete type ' + result.name, () => {
-						_Code.deleteSchemaEntity(result, 'Delete type ' + result.name + '?', 'This will delete all schema relationships as well, but no data will be removed.', identifier);
-					});
+					if (set.name !== _WorkingSets.recentlyUsedName) {
+						createAndAddWorkingSetOption(set);
+					}
 				}
 
-				Structr.fetchHtmlTemplate('code/openapi-config', { element: result, availableTags: _Code.availableTags }, (inner) => {
+				let isUnselect = false;
+				$(groupSelect).select2({
+					search_contains: true,
+					width: '100%',
+					closeOnSelect: false
+				}).on('select2:unselecting', function(e, p) {
+					isUnselect = true;
 
-					let apiTab = $('#type-openapi', codeContents);
-					apiTab.append(inner);
-
-					$('#tags-select', apiTab).select2({
-						tags: true,
-						width: '100%'
-					}).on('change', () => {
-						_Code.updateDirtyFlag(result);
-					});
-
-					$('input[type=checkbox]', apiTab).on('change', () => {
-						_Code.updateDirtyFlag(result);
-					});
-
-					$('input[type=text]', apiTab).on('keyup', () => {
-						_Code.updateDirtyFlag(result);
-					});
-
-					Structr.activateCommentsInElement(apiTab);
-				});
-
-				// manage working sets
-				_WorkingSets.getWorkingSets(function(workingSets) {
-
-					let groupSelect = document.querySelector('select#type-groups');
-
-					let createAndAddWorkingSetOption = function(set, forceAdd) {
-
-						let setOption = document.createElement('option');
-						setOption.textContent = set.name;
-						setOption.dataset['groupId'] = set.id;
-
-						if (forceAdd === true || set.children && set.children.includes(result.name)) {
-							setOption.selected = true;
-						}
-
-						groupSelect.appendChild(setOption);
-					};
-
-					for (let set of workingSets) {
-
-						if (set.name !== _WorkingSets.recentlyUsedName) {
-							createAndAddWorkingSetOption(set);
-						}
+				}).on('select2:opening', function(e, p) {
+					if (isUnselect) {
+						e.preventDefault();
+						isUnselect = false;
 					}
 
-					let isUnselect = false;
-					$(groupSelect).select2({
-						search_contains: true,
-						width: '100%',
-						closeOnSelect: false
-					}).on('select2:unselecting', function(e, p) {
-						isUnselect = true;
+				}).on('select2:select', function(e, p) {
+					let id = e.params.data.element.dataset['groupId'];
 
-					}).on('select2:opening', function(e, p) {
-						if (isUnselect) {
-							e.preventDefault();
-							isUnselect = false;
-						}
-
-					}).on('select2:select', function(e, p) {
-						let id = e.params.data.element.dataset['groupId'];
-
-						_WorkingSets.addTypeToSet(id, result.name, function() {
-							_TreeHelper.refreshNode('#code-tree', 'workingsets-' + id);
-						});
-
-					}).on('select2:unselect', function(e, p) {
-						let id = e.params.data.element.dataset['groupId'];
-
-						_WorkingSets.removeTypeFromSet(id, result.name, function() {
-							_TreeHelper.refreshNode('#code-tree', 'workingsets-' + id);
-						});
+					_WorkingSets.addTypeToSet(id, result.name, function() {
+						_TreeHelper.refreshNode('#code-tree', 'workingsets-' + id);
 					});
 
-					_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('folder_add', 14, 14, ''), 'new', 'Create new Working Set', function() {
+				}).on('select2:unselect', function(e, p) {
+					let id = e.params.data.element.dataset['groupId'];
 
-						_WorkingSets.createNewSetAndAddType(result.name, function(ws) {
-							_TreeHelper.refreshNode('#code-tree', 'workingsets');
-
-							createAndAddWorkingSetOption(ws, true);
-							$(groupSelect).trigger('change');
-						});
+					_WorkingSets.removeTypeFromSet(id, result.name, function() {
+						_TreeHelper.refreshNode('#code-tree', 'workingsets-' + id);
 					});
 				});
 
+				_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('folder_add', 14, 14, ''), 'new', 'Create new Working Set', function() {
+
+					_WorkingSets.createNewSetAndAddType(result.name, function(ws) {
+						_TreeHelper.refreshNode('#code-tree', 'workingsets');
+
+						createAndAddWorkingSetOption(ws, true);
+						$(groupSelect).trigger('change');
+					});
+				});
+			});
+
+			_Code.updateDirtyFlag(result);
+
+			$('input[type=checkbox]', codeContents).on('change', function() {
 				_Code.updateDirtyFlag(result);
-
-				$('input[type=checkbox]', codeContents).on('change', function() {
-					_Code.updateDirtyFlag(result);
-				});
-
-				$('input[type=text]', codeContents).on('keyup', function() {
-					_Code.updateDirtyFlag(result);
-				});
-
-				Structr.activateCommentsInElement(codeContents);
-
-				let schemaGrantsTableConfig = {
-					class: 'schema-grants-table schema-props',
-					cols: [
-						{ class: '', title: 'Name' },
-						{ class: '', title: 'read' },
-						{ class: '', title: 'write' },
-						{ class: '', title: 'delete' },
-						{ class: '', title: 'access control' }
-					],
-					discardButtonText: 'Discard Schema Grant changes',
-					saveButtonText: 'Save Schema Grants'
-				};
-
-				Structr.fetchHtmlTemplate('schema/schema-table', schemaGrantsTableConfig, (html) => {
-
-					let schemaGrantsContainer       = document.querySelector('#schema-grants');
-					schemaGrantsContainer.innerHTML = html;
-
-					let tbody      = schemaGrantsContainer.querySelector('tbody');
-					let tfoot      = schemaGrantsContainer.querySelector('tfoot');
-					let discardBtn = tfoot.querySelector('.discard-all');
-					let saveBtn    = tfoot.querySelector('.save-all');
-
-					let setButtonDisabled = (btn, disabled) => {
-						btn.disabled = disabled;
-						if (disabled) {
-							btn.classList.add('disabled');
-						} else {
-							btn.classList.remove('disabled');
-						}
-					}
-
-					let schemaGrantsTableChange = (cb, rowConfig) => {
-
-						if (rowConfig[cb.name] !== cb.checked) {
-							cb.classList.add('changed');
-						} else {
-							cb.classList.remove('changed');
-						}
-
-						let hasChanges      = (schemaGrantsContainer.querySelector('.changed'));
-						discardBtn.disabled = !hasChanges;
-						saveBtn.disabled    = !hasChanges;
-
-						setButtonDisabled(saveBtn,    !hasChanges);
-						setButtonDisabled(discardBtn, !hasChanges);
-					};
-
-					discardBtn.addEventListener('click', (e) => {
-
-						for (let changedCb of tbody.querySelectorAll('.changed')) {
-
-							changedCb.checked = !changedCb.checked;
-							changedCb.classList.remove('changed');
-						}
-
-						setButtonDisabled(saveBtn,    true);
-						setButtonDisabled(discardBtn, true);
-					});
-
-					saveBtn.addEventListener('click', async (e) => {
-
-						let grantData = [];
-
-						for (let row of tbody.querySelectorAll('tr')) {
-
-							if (row.querySelector('.changed')) {
-
-								let rowConfig = {
-									principal:          row.dataset['groupId'],
-									schemaNode:         result.id,
-									allowRead:          row.querySelector('input[name=allowRead]').checked,
-									allowWrite:         row.querySelector('input[name=allowWrite]').checked,
-									allowDelete:        row.querySelector('input[name=allowDelete]').checked,
-									allowAccessControl: row.querySelector('input[name=allowAccessControl]').checked
-								};
-
-								let grantId = row.dataset['grantId'];
-								if (grantId) {
-									rowConfig.id = grantId;
-								}
-
-								grantData.push(rowConfig);
-							}
-						}
-
-						_Code.showSchemaRecompileMessage();
-
-						let response = await fetch(Structr.rootUrl + 'SchemaGrant', {
-							dataType: 'json',
-							contentType: 'application/json; charset=utf-8',
-							method: 'PATCH',
-							body: JSON.stringify(grantData)
-						});
-
-						if (response.ok) {
-							_Code.hideSchemaRecompileMessage();
-							_Code.displaySchemaNodeContent(data, identifier);
-						} else {
-							_Code.hideSchemaRecompileMessage();
-							new MessageBuilder().warning('Saving schema grants failed - please try again!').requiresConfirmation().show();
-						}
-					});
-
-					let grants = {};
-
-					for (let grant of result.schemaGrants) {
-						grants[grant.principal.id] = grant;
-					}
-
-					Command.query('Group', 1000, 1, 'name', 'asc', { }, (groupResult) => {
-
-						for (let group of groupResult) {
-
-							let tplConfig = {
-								groupId: group.id,
-								name: group.name,
-								grantId            : (!grants[group.id]) ? '' : grants[group.id].id,
-								allowRead          : (!grants[group.id]) ? false : grants[group.id].allowRead,
-								allowWrite         : (!grants[group.id]) ? false : grants[group.id].allowWrite,
-								allowDelete        : (!grants[group.id]) ? false : grants[group.id].allowDelete,
-								allowAccessControl : (!grants[group.id]) ? false : grants[group.id].allowAccessControl
-							};
-
-							Structr.fetchHtmlTemplate('code/schema-grants-row', tplConfig, (html) => {
-
-								let dummyTbody       = document.createElement('tbody');
-								dummyTbody.innerHTML = html;
-								let row              = dummyTbody.firstChild;
-
-								tbody.appendChild(row);
-
-								for (let cb of row.querySelectorAll('input')) {
-
-									cb.addEventListener('change', (e) => {
-										schemaGrantsTableChange(cb, tplConfig);
-									});
-								}
-							});
-						}
-					});
-				});
-
-				// usedIn property
-				if (result.usedIn && result.usedIn.length > 0) {
-
-					let usageTreeContainer = document.querySelector('#usage-tree');
-					let label              = document.querySelector('#usage-label');
-
-					// add help text
-					label.innerHTML = 'This type is used in the following pages, HTML elements and attributes. Please note that this table might not be complete since the information here is collected at runtime, when you browse through the pages of your application.';
-
-					let sorted = result.usedIn.sort((a, b) => {
-
-						let p1 = a.path || a.page || a.type || a.id;
-						let p2 = b.path || b.page || b.type || b.id;
-
-						return p1 > p2 ? 1 : p1 < p2 ? -1 : 0;
-					});
-
-					let tree = { name: 'Usage', children: {} };
-
-					// append rows
-					for (let usage of sorted) {
-
-						let path = usage.path;
-
-						// The path is split into its parts to form the hierarchy, so if there is no
-						// path, we use the root term "Types" plus the type of the node.
-						if (!path) { path = 'Types/' + usage.type; } else { path = 'Pages/' + path; }
-
-						let parts   = path.split('/').filter(p => p.length > 0);
-						let current = tree;
-
-						for (let part of parts) {
-
-							if (!current.children[part]) {
-
-								current.children[part] = {
-									name: part,
-									children: {}
-								};
-							}
-
-							current = current.children[part];
-						}
-
-						current.data = usage;
-					}
-
-					let buildTree = function(root, rootElement) {
-
-						let listItem = document.createElement('li');
-						listItem.dataset.jstree = JSON.stringify({ icon: Structr.getPrefixedRootUrl('/structr/icon/folder.png') });
-						//listItem.classList.add('jstree-open');
-						listItem.innerHTML = root.name;
-						rootElement.appendChild(listItem);
-
-						let list = document.createElement('ul');
-						listItem.appendChild(list);
-
-						if (root.data) {
-
-							for (let key in root.data.mapped) {
-
-								let value = root.data.mapped[key];
-								let item  = document.createElement('li');
-								item.dataset.jstree = JSON.stringify({ icon: 'fa fa-edit' });
-								item.dataset.id = root.data.id;
-								item.innerHTML = key + ': '+ value;
-
-								list.append(item);
-							}
-						}
-
-						for (let key in root.children) {
-							let child = root.children[key];
-							buildTree(child, list);
-						}
-					};
-
-					buildTree(tree, usageTreeContainer);
-
-					let usageTree = $('#usage-tree-container').jstree({
-						plugins: ["themes"],
-						core: {
-							animation: 0
-						}
-					});
-
-					usageTree.on('select_node.jstree', function(node, selected, event) {
-
-						let id = selected.node.data.id;
-						if (id) {
-
-							Command.get(id, 'id,type,name,content,ownerDocument,schemaNode', (obj) => {
-
-								switch (obj.type) {
-
-									case 'Content':
-									case 'Template':
-										_Elements.openEditContentDialog(obj);
-										break;
-									default:
-										_Entities.showProperties(obj);
-										break;
-								}
-							});
-
-						} else {
-
-							// not a leaf, toggle "opened" state
-							usageTree.jstree('toggle_node', selected.node);
-						}
-					});
-
+			});
+
+			$('input[type=text]', codeContents).on('keyup', function() {
+				_Code.updateDirtyFlag(result);
+			});
+
+			Structr.activateCommentsInElement(codeContents);
+
+			let schemaGrantsTableConfig = {
+				class: 'schema-grants-table schema-props',
+				cols: [
+					{ class: '', title: 'Name' },
+					{ class: '', title: 'read' },
+					{ class: '', title: 'write' },
+					{ class: '', title: 'delete' },
+					{ class: '', title: 'access control' }
+				],
+				discardButtonText: 'Discard Schema Grant changes',
+				saveButtonText: 'Save Schema Grants'
+			};
+
+			let schemaGrantsContainer       = document.querySelector('#schema-grants');
+			schemaGrantsContainer.innerHTML = _Schema.templates.schemaTable(schemaGrantsTableConfig);
+
+			let tbody      = schemaGrantsContainer.querySelector('tbody');
+			let tfoot      = schemaGrantsContainer.querySelector('tfoot');
+			let discardBtn = tfoot.querySelector('.discard-all');
+			let saveBtn    = tfoot.querySelector('.save-all');
+
+			let setButtonDisabled = (btn, disabled) => {
+				btn.disabled = disabled;
+				if (disabled) {
+					btn.classList.add('disabled');
 				} else {
+					btn.classList.remove('disabled');
+				}
+			}
 
-					let label = document.querySelector('#usage-label');
-					if (label) {
+			let schemaGrantsTableChange = (cb, rowConfig) => {
 
-						label.innerHTML = 'Browse through your application to populate the usage list for this type.';
+				if (rowConfig[cb.name] !== cb.checked) {
+					cb.classList.add('changed');
+				} else {
+					cb.classList.remove('changed');
+				}
+
+				let hasChanges      = (schemaGrantsContainer.querySelector('.changed'));
+				discardBtn.disabled = !hasChanges;
+				saveBtn.disabled    = !hasChanges;
+
+				setButtonDisabled(saveBtn,    !hasChanges);
+				setButtonDisabled(discardBtn, !hasChanges);
+			};
+
+			discardBtn.addEventListener('click', (e) => {
+
+				for (let changedCb of tbody.querySelectorAll('.changed')) {
+
+					changedCb.checked = !changedCb.checked;
+					changedCb.classList.remove('changed');
+				}
+
+				setButtonDisabled(saveBtn,    true);
+				setButtonDisabled(discardBtn, true);
+			});
+
+			saveBtn.addEventListener('click', async (e) => {
+
+				let grantData = [];
+
+				for (let row of tbody.querySelectorAll('tr')) {
+
+					if (row.querySelector('.changed')) {
+
+						let rowConfig = {
+							principal:          row.dataset['groupId'],
+							schemaNode:         result.id,
+							allowRead:          row.querySelector('input[name=allowRead]').checked,
+							allowWrite:         row.querySelector('input[name=allowWrite]').checked,
+							allowDelete:        row.querySelector('input[name=allowDelete]').checked,
+							allowAccessControl: row.querySelector('input[name=allowAccessControl]').checked
+						};
+
+						let grantId = row.dataset['grantId'];
+						if (grantId) {
+							rowConfig.id = grantId;
+						}
+
+						grantData.push(rowConfig);
+					}
+				}
+
+				_Code.showSchemaRecompileMessage();
+
+				let response = await fetch(Structr.rootUrl + 'SchemaGrant', {
+					dataType: 'json',
+					contentType: 'application/json; charset=utf-8',
+					method: 'PATCH',
+					body: JSON.stringify(grantData)
+				});
+
+				if (response.ok) {
+					_Code.hideSchemaRecompileMessage();
+					_Code.displaySchemaNodeContent(data, identifier);
+				} else {
+					_Code.hideSchemaRecompileMessage();
+					new MessageBuilder().warning('Saving schema grants failed - please try again!').requiresConfirmation().show();
+				}
+			});
+
+			let grants = {};
+
+			for (let grant of result.schemaGrants) {
+				grants[grant.principal.id] = grant;
+			}
+
+			Command.query('Group', 1000, 1, 'name', 'asc', { }, (groupResult) => {
+
+				for (let group of groupResult) {
+
+					let tplConfig = {
+						groupId: group.id,
+						name: group.name,
+						grantId            : (!grants[group.id]) ? '' : grants[group.id].id,
+						allowRead          : (!grants[group.id]) ? false : grants[group.id].allowRead,
+						allowWrite         : (!grants[group.id]) ? false : grants[group.id].allowWrite,
+						allowDelete        : (!grants[group.id]) ? false : grants[group.id].allowDelete,
+						allowAccessControl : (!grants[group.id]) ? false : grants[group.id].allowAccessControl
+					};
+
+					let dummyTbody       = document.createElement('tbody');
+					dummyTbody.innerHTML = _Code.templates.schemaGrantsRow(tplConfig);
+					let row              = dummyTbody.firstElementChild;
+
+					tbody.appendChild(row);
+
+					for (let cb of row.querySelectorAll('input')) {
+
+						cb.addEventListener('change', (e) => {
+							schemaGrantsTableChange(cb, tplConfig);
+						});
 					}
 				}
 			});
+
+			// usedIn property
+			if (result.usedIn && result.usedIn.length > 0) {
+
+				let usageTreeContainer = document.querySelector('#usage-tree');
+				let label              = document.querySelector('#usage-label');
+
+				// add help text
+				label.innerHTML = 'This type is used in the following pages, HTML elements and attributes. Please note that this table might not be complete since the information here is collected at runtime, when you browse through the pages of your application.';
+
+				let sorted = result.usedIn.sort((a, b) => {
+
+					let p1 = a.path || a.page || a.type || a.id;
+					let p2 = b.path || b.page || b.type || b.id;
+
+					return p1 > p2 ? 1 : p1 < p2 ? -1 : 0;
+				});
+
+				let tree = { name: 'Usage', children: {} };
+
+				// append rows
+				for (let usage of sorted) {
+
+					let path = usage.path;
+
+					// The path is split into its parts to form the hierarchy, so if there is no
+					// path, we use the root term "Types" plus the type of the node.
+					if (!path) { path = 'Types/' + usage.type; } else { path = 'Pages/' + path; }
+
+					let parts   = path.split('/').filter(p => p.length > 0);
+					let current = tree;
+
+					for (let part of parts) {
+
+						if (!current.children[part]) {
+
+							current.children[part] = {
+								name: part,
+								children: {}
+							};
+						}
+
+						current = current.children[part];
+					}
+
+					current.data = usage;
+				}
+
+				let buildTree = function(root, rootElement) {
+
+					let listItem = document.createElement('li');
+					listItem.dataset.jstree = JSON.stringify({ icon: Structr.getPrefixedRootUrl('/structr/icon/folder.png') });
+					//listItem.classList.add('jstree-open');
+					listItem.innerHTML = root.name;
+					rootElement.appendChild(listItem);
+
+					let list = document.createElement('ul');
+					listItem.appendChild(list);
+
+					if (root.data) {
+
+						for (let key in root.data.mapped) {
+
+							let value = root.data.mapped[key];
+							let item  = document.createElement('li');
+							item.dataset.jstree = JSON.stringify({ icon: 'fa fa-edit' });
+							item.dataset.id = root.data.id;
+							item.innerHTML = key + ': '+ value;
+
+							list.append(item);
+						}
+					}
+
+					for (let key in root.children) {
+						let child = root.children[key];
+						buildTree(child, list);
+					}
+				};
+
+				buildTree(tree, usageTreeContainer);
+
+				let usageTree = $('#usage-tree-container').jstree({
+					plugins: ["themes"],
+					core: {
+						animation: 0
+					}
+				});
+
+				usageTree.on('select_node.jstree', function(node, selected, event) {
+
+					let id = selected.node.data.id;
+					if (id) {
+
+						Command.get(id, 'id,type,name,content,ownerDocument,schemaNode', (obj) => {
+
+							switch (obj.type) {
+
+								case 'Content':
+								case 'Template':
+									_Elements.openEditContentDialog(obj);
+									break;
+								default:
+									_Entities.showProperties(obj);
+									break;
+							}
+						});
+
+					} else {
+
+						// not a leaf, toggle "opened" state
+						usageTree.jstree('toggle_node', selected.node);
+					}
+				});
+
+			} else {
+
+				let label = document.querySelector('#usage-label');
+				if (label) {
+
+					label.innerHTML = 'Browse through your application to populate the usage list for this type.';
+				}
+			}
 		});
 	},
 	displaySchemaRelationshipNodeContent: function (data, identifier) {
@@ -1817,13 +1792,10 @@ let _Code = {
 
 				Command.get(entity.targetId, null, function(targetNode) {
 
-					Structr.fetchHtmlTemplate('code/property.remote', { identifier: identifier }, function(html) {
+					codeContents.empty();
+					codeContents.append(_Code.templates.propertyRemote({ identifier: identifier }));
 
-						codeContents.empty();
-						codeContents.append(html);
-
-						_Schema.loadRelationship(entity, $('#headEl', codeContents), $('#contentEl', codeContents), sourceNode, targetNode, _Code.refreshTree);
-					});
+					_Schema.loadRelationship(entity, $('#headEl', codeContents), $('#contentEl', codeContents), sourceNode, targetNode, _Code.refreshTree);
 				});
 			});
 		});
@@ -1837,16 +1809,106 @@ let _Code = {
 
 			_Code.updateRecentlyUsed(result, identifier.source, data.updateLocationStack);
 
-			Structr.fetchHtmlTemplate('code/method', { method: result }, (html) => {
+			codeContents.empty();
+			codeContents.append(_Code.templates.method({ method: result }));
 
-				codeContents.empty();
-				codeContents.append(html);
+			LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
 
-				LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
+			// Source Editor
+			let sourceMonacoConfig = {
+				language: 'auto',
+				lint: true,
+				autocomplete: true,
+				changeFn: (editor, entity) => {
+					_Code.updateDirtyFlag(entity);
+				}
+			};
 
-				// Source Editor
-				let sourceMonacoConfig = {
-					language: 'auto',
+			let sourceEditor = _Editors.getMonacoEditor(result, 'source', $('#tabView-source .editor', codeContents), sourceMonacoConfig);
+			_Editors.appendEditorOptionsElement(codeContents[0].querySelector('.editor-info'));
+
+			if (result.codeType === 'java' || _Code.methodNamesWithoutOpenAPITab.includes(result.name)) {
+
+				$('li[data-name=api]').hide();
+
+			} else {
+
+				let apiTab = $('#tabView-api', codeContents);
+				apiTab.append(_Code.templates.openAPIConfig({ element: result, availableTags: _Code.availableTags }));
+
+				let openApiConfig = $('#openapi-options', apiTab);
+				openApiConfig.append(_Code.templates.openAPIMethodConfig());
+
+				let parameterTplRow = $('.template', apiTab);
+				let parameterContainer = parameterTplRow.parent();
+				parameterTplRow.remove();
+
+				let addParameterRow = (parameter) => {
+
+					let clone = parameterTplRow.clone().removeClass('template');
+
+					if (parameter) {
+						$('input[data-parameter-property=index]', clone).val(parameter.index);
+						$('input[data-parameter-property=name]', clone).val(parameter.name);
+						$('input[data-parameter-property=parameterType]', clone).val(parameter.parameterType);
+						$('input[data-parameter-property=description]', clone).val(parameter.description);
+						$('input[data-parameter-property=exampleValue]', clone).val(parameter.exampleValue);
+					} else {
+						let maxCnt = 0;
+						for (let indexInput of apiTab[0].querySelectorAll('input[data-parameter-property=index]')) {
+							maxCnt = Math.max(maxCnt, parseInt(indexInput.value) + 1);
+						}
+
+						$('input[data-parameter-property=index]', clone).val(maxCnt);
+					}
+
+					$('input[data-parameter-property]', clone).on('keyup', () => {
+						_Code.updateDirtyFlag(result);
+					});
+
+					parameterContainer.append(clone);
+
+					$('.method-parameter-delete .remove-action', clone).on('click', () => {
+						clone.remove();
+
+						_Code.updateDirtyFlag(result);
+					});
+
+					_Code.updateDirtyFlag(result);
+				};
+
+				Command.query('SchemaMethodParameter', 1000, 1, 'index', 'asc', { schemaMethod: result.id }, (parameters) => {
+
+					_Code.additionalDirtyChecks.push(() => {
+						return _Code.schemaMethodParametersChanged(parameters);
+					});
+
+					for (let p of parameters) {
+
+						addParameterRow(p);
+					}
+
+				}, true, null, 'index,name,parameterType,description,exampleValue');
+
+				$('#add-parameter-button').on('click', () => { addParameterRow(); });
+
+				$('#tags-select', apiTab).select2({
+					tags: true,
+					width: '100%'
+				}).on('change', () => {
+					_Code.updateDirtyFlag(result);
+				});
+
+				$('input[type=checkbox]', apiTab).on('change', function() {
+					_Code.updateDirtyFlag(result);
+				});
+
+				$('input[type=text]', apiTab).on('keyup', function() {
+					_Code.updateDirtyFlag(result);
+				});
+
+				let openAPIReturnTypeMonacoConfig = {
+					language: 'json',
 					lint: true,
 					autocomplete: true,
 					changeFn: (editor, entity) => {
@@ -1854,192 +1916,90 @@ let _Code = {
 					}
 				};
 
-				let sourceEditor = _Editors.getMonacoEditor(result, 'source', $('#tabView-source .editor', codeContents), sourceMonacoConfig);
-				_Editors.appendEditorOptionsElement(codeContents[0].querySelector('.editor-info'));
+				_Editors.getMonacoEditor(result, 'openAPIReturnType', $('.editor', apiTab), openAPIReturnTypeMonacoConfig);
 
-				if (result.codeType === 'java' || _Code.methodNamesWithoutOpenAPITab.includes(result.name)) {
+				Structr.activateCommentsInElement(apiTab);
+			}
 
-					$('li[data-name=api]').hide();
+			// default buttons
+			_Code.runCurrentEntitySaveAction = function() {
 
-				} else {
+				let storeParametersInFormDataFunction = function(formData) {
+					let parametersData = _Code.collectSchemaMethodParameters();
 
-					Structr.fetchHtmlTemplate('code/openapi-config', { element: result, availableTags: _Code.availableTags }, function(inner) {
-
-						let apiTab = $('#tabView-api', codeContents);
-						apiTab.append(inner);
-
-						Structr.fetchHtmlTemplate('code/openapi-method-config', {}, function(methodHtml) {
-
-							let openApiConfig = $('#openapi-options', apiTab);
-							openApiConfig.append(methodHtml);
-
-							let parameterTplRow = $('.template', apiTab);
-							let parameterContainer = parameterTplRow.parent();
-							parameterTplRow.remove();
-
-							let addParameterRow = (parameter) => {
-
-								let clone = parameterTplRow.clone().removeClass('template');
-
-								if (parameter) {
-									$('input[data-parameter-property=index]', clone).val(parameter.index);
-									$('input[data-parameter-property=name]', clone).val(parameter.name);
-									$('input[data-parameter-property=parameterType]', clone).val(parameter.parameterType);
-									$('input[data-parameter-property=description]', clone).val(parameter.description);
-									$('input[data-parameter-property=exampleValue]', clone).val(parameter.exampleValue);
-								} else {
-									let maxCnt = 0;
-									for (let indexInput of apiTab[0].querySelectorAll('input[data-parameter-property=index]')) {
-										maxCnt = Math.max(maxCnt, parseInt(indexInput.value) + 1);
-									}
-
-									$('input[data-parameter-property=index]', clone).val(maxCnt);
-								}
-
-								$('input[data-parameter-property]', clone).on('keyup', () => {
-									_Code.updateDirtyFlag(result);
-								});
-
-								parameterContainer.append(clone);
-
-								$('.method-parameter-delete .remove-action', clone).on('click', () => {
-									clone.remove();
-
-									_Code.updateDirtyFlag(result);
-								});
-
-								_Code.updateDirtyFlag(result);
-							};
-
-							Command.query('SchemaMethodParameter', 1000, 1, 'index', 'asc', { schemaMethod: result.id }, (parameters) => {
-
-								_Code.additionalDirtyChecks.push(() => {
-									return _Code.schemaMethodParametersChanged(parameters);
-								});
-
-								for (let p of parameters) {
-
-									addParameterRow(p);
-								}
-
-							}, true, null, 'index,name,parameterType,description,exampleValue');
-
-							$('#add-parameter-button').on('click', () => { addParameterRow(); });
-
-							$('#tags-select', apiTab).select2({
-								tags: true,
-								width: '100%'
-							}).on('change', () => {
-								_Code.updateDirtyFlag(result);
-							});
-
-							$('input[type=checkbox]', apiTab).on('change', function() {
-								_Code.updateDirtyFlag(result);
-							});
-
-							$('input[type=text]', apiTab).on('keyup', function() {
-								_Code.updateDirtyFlag(result);
-							});
-
-							let openAPIReturnTypeMonacoConfig = {
-								language: 'json',
-								lint: true,
-								autocomplete: true,
-								changeFn: (editor, entity) => {
-									_Code.updateDirtyFlag(entity);
-								}
-							};
-
-							_Editors.getMonacoEditor(result, 'openAPIReturnType', $('.editor', apiTab), openAPIReturnTypeMonacoConfig);
-
-							Structr.activateCommentsInElement(apiTab);
-						});
-					});
-				}
-
-				// default buttons
-				Structr.fetchHtmlTemplate('code/method-options', { method: result }, function(html) {
-
-					_Code.runCurrentEntitySaveAction = function() {
-
-						let storeParametersInFormDataFunction = function(formData) {
-							let parametersData = _Code.collectSchemaMethodParameters();
-
-							formData['parameters'] = parametersData;
-						};
-
-						let afterSaveCallback = () => {
-							_Code.additionalDirtyChecks = [];
-							_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'), true);
-						};
-
-						_Code.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
-					};
-
-					let buttons = $('#method-buttons');
-					buttons.prepend(html);
-
-					_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save method', _Code.runCurrentEntitySaveAction);
-
-					_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('close-dialog-x', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
-						_Code.additionalDirtyChecks = [];
-						_Editors.disposeEditorModel(result.id, 'source');
-						_Editors.disposeEditorModel(result.id, 'openAPIReturnType');
-						_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'));
-					});
-
-					// delete button
-					_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete method', () => {
-						_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', identifier);
-					});
-
-					// run button and global schema method flags
-					if (!result.schemaNode && !result.isPartOfBuiltInSchema) {
-
-						_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('run_button', 14, 14, ''), 'run', 'Run method', () => {
-							_Code.runGlobalSchemaMethod(result);
-						});
-
-					} else if (result.schemaNode) {
-
-						$('.checkbox.entity-method.hidden', buttons).removeClass('hidden');
-						Structr.activateCommentsInElement(buttons);
-					}
-
-					_Code.updateDirtyFlag(result);
-
-					$('input[type=checkbox]', buttons).on('change', function() {
-						_Code.updateDirtyFlag(result);
-					});
-
-					$('input[type=text]', buttons).on('keyup', function() {
-						_Code.updateDirtyFlag(result);
-					});
-
-					if (typeof callback === 'function') {
-						callback();
-					}
-				});
-
-				let activateTab = (tabName) => {
-					$('.method-tab-content', codeContents).hide();
-					$('li[data-name]', codeContents).removeClass('active');
-
-					let activeTab = $('#tabView-' + tabName, codeContents);
-					activeTab.show();
-					$('li[data-name="' + tabName + '"]', codeContents).addClass('active');
-
-					window.setTimeout(() => { _Editors.resizeVisibleEditors(); }, 250);
+					formData['parameters'] = parametersData;
 				};
 
-				$('li[data-name]', codeContents).off('click').on('click', function(e) {
-					e.stopPropagation();
-					activateTab($(this).data('name'));
-				});
-				activateTab(lastOpenTab || 'source');
+				let afterSaveCallback = () => {
+					_Code.additionalDirtyChecks = [];
+					_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'), true);
+				};
 
-				sourceEditor.focus();
+				_Code.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
+			};
+
+			let buttons = $('#method-buttons');
+			buttons.prepend(_Code.templates.methodOptions({ method: result }));
+
+			_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save method', _Code.runCurrentEntitySaveAction);
+
+			_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('close-dialog-x', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+				_Code.additionalDirtyChecks = [];
+				_Editors.disposeEditorModel(result.id, 'source');
+				_Editors.disposeEditorModel(result.id, 'openAPIReturnType');
+				_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'));
 			});
+
+			// delete button
+			_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete method', () => {
+				_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', identifier);
+			});
+
+			// run button and global schema method flags
+			if (!result.schemaNode && !result.isPartOfBuiltInSchema) {
+
+				_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('run_button', 14, 14, ''), 'run', 'Run method', () => {
+					_Code.runGlobalSchemaMethod(result);
+				});
+
+			} else if (result.schemaNode) {
+
+				$('.checkbox.entity-method.hidden', buttons).removeClass('hidden');
+				Structr.activateCommentsInElement(buttons);
+			}
+
+			_Code.updateDirtyFlag(result);
+
+			$('input[type=checkbox]', buttons).on('change', function() {
+				_Code.updateDirtyFlag(result);
+			});
+
+			$('input[type=text]', buttons).on('keyup', function() {
+				_Code.updateDirtyFlag(result);
+			});
+
+			if (typeof callback === 'function') {
+				callback();
+			}
+
+			let activateTab = (tabName) => {
+				$('.method-tab-content', codeContents).hide();
+				$('li[data-name]', codeContents).removeClass('active');
+
+				let activeTab = $('#tabView-' + tabName, codeContents);
+				activeTab.show();
+				$('li[data-name="' + tabName + '"]', codeContents).addClass('active');
+
+				window.setTimeout(() => { _Editors.resizeVisibleEditors(); }, 250);
+			};
+
+			$('li[data-name]', codeContents).off('click').on('click', function(e) {
+				e.stopPropagation();
+				activateTab($(this).data('name'));
+			});
+			activateTab(lastOpenTab || 'source');
+
+			sourceEditor.focus();
 		});
 	},
 	collectSchemaMethodParameters: function() {
@@ -2106,89 +2066,83 @@ let _Code = {
 		_WorkingSets.getWorkingSet(identifier.workingSetId, function(workingSet) {
 
 			_Code.updateRecentlyUsed(workingSet, identifier.source, data.updateLocationStack);
-			Structr.fetchHtmlTemplate('code/group', { type: workingSet }, function(html) {
+			codeContents.empty();
+			codeContents.append(_Code.templates.workingSet({ type: workingSet }));
 
-				codeContents.empty();
-				codeContents.append(html);
+			if (workingSet.name === _WorkingSets.recentlyUsedName) {
 
-				if (workingSet.name === _WorkingSets.recentlyUsedName) {
-
-					_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'clear', 'Clear', function() {
-						_WorkingSets.clearRecentlyUsed(function() {
-							_Code.refreshTree();
-						});
+				_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'clear', 'Clear', function() {
+					_WorkingSets.clearRecentlyUsed(function() {
+						_Code.refreshTree();
 					});
+				});
 
-					$('#group-name-input').prop('disabled', true);
+				$('#group-name-input').prop('disabled', true);
 
- 				} else {
+			} else {
 
-					_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'remove', 'Remove', function() {
-						_WorkingSets.deleteSet(identifier.workingSetId, function() {
-							_TreeHelper.refreshNode('#code-tree', 'workingsets');
-							_Code.findAndOpenNode('workingsets');
-						});
+				_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'remove', 'Remove', function() {
+					_WorkingSets.deleteSet(identifier.workingSetId, function() {
+						_TreeHelper.refreshNode('#code-tree', 'workingsets');
+						_Code.findAndOpenNode('workingsets');
 					});
+				});
 
-					_Code.activatePropertyValueInput('group-name-input', workingSet.id, 'name');
+				_Code.activatePropertyValueInput('group-name-input', workingSet.id, 'name');
+			}
+
+			$('#schema-graph').append(_Code.templates.root());
+
+			var layouter = new SigmaLayouter('group-contents');
+
+			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, function(result1) {
+
+				for (let node of result1) {
+					if (workingSet.children.includes(node.name)) {
+						layouter.addNode(node, identifier.source);
+					}
 				}
 
-				Structr.fetchHtmlTemplate('code/root', { }, function(html) {
+				Command.query('SchemaRelationshipNode', 10000, 1, 'name', 'asc', { }, function(result2) {
 
-					$('#schema-graph').append(html);
+					for (let r of result2) {
+						layouter.addEdge(r.id, r.relationshipType, r.sourceId, r.targetId, true);
+					}
 
-					var layouter = new SigmaLayouter('group-contents');
+					layouter.refresh();
+					layouter.layout();
+					layouter.on('clickNode', _Code.handleGraphClick);
 
-					Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, function(result1) {
+					_Code.layouter = layouter;
 
-						result1.forEach(function(node) {
-							if (workingSet.children.includes(node.name)) {
-								layouter.addNode(node, identifier.source);
-							}
+					// experimental: use positions from schema layouter to initialize positions in schema editor
+					window.setTimeout(function() {
+
+						let minX = 0;
+						let minY = 0;
+
+						layouter.getNodes().forEach(function(node) {
+							if (node.x < minX) { minX = node.x; }
+							if (node.y < minY) { minY = node.y; }
 						});
 
-						Command.query('SchemaRelationshipNode', 10000, 1, 'name', 'asc', { }, function(result2) {
+						let positions = {};
 
-							result2.forEach(function(r) {
-								layouter.addEdge(r.id, r.relationshipType, r.sourceId, r.targetId, true);
-							});
+						layouter.getNodes().forEach(function(node) {
 
-							layouter.refresh();
-							layouter.layout();
-							layouter.on('clickNode', _Code.handleGraphClick);
+							positions[node.label] = {
+								top: node.y - minY + 20,
+								left: node.x - minX + 20
+							};
+						});
 
-							_Code.layouter = layouter;
+						_WorkingSets.updatePositions(workingSet.id, positions);
 
-							// experimental: use positions from schema layouter to initialize positions in schema editor
-							window.setTimeout(function() {
+					}, 300);
 
-								let minX = 0;
-								let minY = 0;
+				}, true, 'ui');
 
-								layouter.getNodes().forEach(function(node) {
-									if (node.x < minX) { minX = node.x; }
-									if (node.y < minY) { minY = node.y; }
-								});
-
-								let positions = {};
-
-								layouter.getNodes().forEach(function(node) {
-
-									positions[node.label] = {
-										top: node.y - minY + 20,
-										left: node.x - minX + 20
-									};
-								});
-
-								_WorkingSets.updatePositions(workingSet.id, positions);
-
-							}, 300);
-
-						}, true, 'ui');
-
-					}, true, 'ui');
-				});
-			});
+			}, true, 'ui');
 		});
 	},
 	showGeneratedSource: async () => {
@@ -2229,13 +2183,11 @@ let _Code = {
 	},
 	displayRootContent: function() {
 
-		Structr.fetchHtmlTemplate('code/root', { }, function(html) {
+		codeContents.append(_Code.templates.root());
 
-			codeContents.append(html);
+		let layouter = new SigmaLayouter('all-types');
 
-			var layouter = new SigmaLayouter('all-types');
-
-			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, function(result1) {
+		Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, function(result1) {
 
 				result1.forEach(function(node) {
 					layouter.addNode(node, '');
@@ -2256,7 +2208,6 @@ let _Code = {
 				}, true, 'ui');
 
 			}, true, 'ui');
-		});
 	},
 	handleGraphClick: function(e) {
 
@@ -2279,64 +2230,37 @@ let _Code = {
 		}
 
 	},
-	// displaySchemaNodeContext:function(entity) {
-	//
-	// 	Structr.fetchHtmlTemplate('code/type-context', { entity: entity }, function(html) {
-	//
-	// 		codeContext.append(html);
-	//
-	// 		$('#schema-node-name').off('blur').on('blur', function() {
-	//
-	// 			let name = $(this).val();
-	//
-	// 			_Code.showSchemaRecompileMessage();
-	//
-	// 			Command.setProperty(entity.id, 'name', name, false, function() {
-	//
-	// 				_Code.layouter.getNodes().update({ id: entity.id, label: '<b>' + name + '</b>' });
-	// 				_Code.hideSchemaRecompileMessage();
-	// 				_Code.refreshTree();
-	// 			});
-	// 		});
-	// 	});
-	// },
 	displayCustomTypesContent: function() {
 
-		Structr.fetchHtmlTemplate('code/custom', { }, function(html) {
-			codeContents.append(html);
+		codeContents.append(_Code.templates.custom());
 
-			_Code.displayCreateTypeButton("#type-actions");
+		_Code.displayCreateTypeButton("#type-actions");
 
-			// list of existing custom types
-			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: false }, function(result) {
+		// list of existing custom types
+		Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: false }, function(result) {
 
-				result.forEach(function(t) {
-					_Code.displayActionButton('#existing-types', 'fa fa-file-code-o', t.id, t.name, () => {
-						_Code.findAndOpenNode('custom--' + t.id);
-					});
+			for (let t of result) {
+				_Code.displayActionButton('#existing-types', 'fa fa-file-code-o', t.id, t.name, () => {
+					_Code.findAndOpenNode('custom--' + t.id);
 				});
-			}, true);
-		});
+			}
+		}, true);
 	},
 	displayWorkingSetsContent: function() {
-		Structr.fetchHtmlTemplate('code/groups', { }, function(html) {
-			codeContents.append(html);
-		});
+		codeContents.append(_Code.templates.workingSets());
 	},
 	displayBuiltInTypesContent: function() {
-		Structr.fetchHtmlTemplate('code/builtin', { }, function(html) {
-			codeContents.append(html);
+		codeContents.append(_Code.templates.builtin());
 
-			// list of existing custom types
-			Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: true }, function(result) {
+		// list of existing custom types
+		Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: true }, function(result) {
 
-				result.forEach(function(t) {
-					_Code.displayActionButton('#builtin-types', 'fa fa-file-code-o', t.id, t.name, () => {
-						_Code.findAndOpenNode('builtin--' + t.id);
-					});
+			for (let t of result) {
+				_Code.displayActionButton('#builtin-types', 'fa fa-file-code-o', t.id, t.name, () => {
+					_Code.findAndOpenNode('builtin--' + t.id);
 				});
-			}, true);
-		});
+			}
+		}, true);
 	},
 	displayPropertiesContent: function(selection, updateLocationStack) {
 
@@ -2345,26 +2269,23 @@ let _Code = {
 			_Code.lastClickedPath = selection.source;
 		}
 
-		Structr.fetchHtmlTemplate('code/properties.local', { identifier: selection }, function(html) {
+		codeContents.append(_Code.templates.propertiesLocal({ identifier: selection }));
 
-			codeContents.append(html);
+		Command.get(selection.typeId, null, (entity) => {
 
-			Command.get(selection.typeId, null, (entity) => {
+			_Schema.properties.appendLocalProperties($('.content-container', codeContents), entity, {
 
-				_Schema.properties.appendLocalProperties($('.content-container', codeContents), entity, {
+				editReadWriteFunction: (property) => {
+					_Code.findAndOpenNode(selection.obj.id + '-' + property.id, true);
+				},
+				editCypherProperty: (property) => {
+					_Code.findAndOpenNode(selection.obj.id + '-' + property.id, true);
+				}
+			}, _Code.refreshTree);
 
-					editReadWriteFunction: (property) => {
-						_Code.findAndOpenNode(selection.obj.id + '-' + property.id, true);
-					},
-					editCypherProperty: (property) => {
-						_Code.findAndOpenNode(selection.obj.id + '-' + property.id, true);
-					}
-				}, _Code.refreshTree);
-
-				_Code.runCurrentEntitySaveAction = () => {
-					$('.save-all', codeContents).click();
-				};
-			});
+			_Code.runCurrentEntitySaveAction = () => {
+				$('.save-all', codeContents).click();
+			};
 		});
 	},
 	displayRemotePropertiesContent: function (selection, updateLocationStack) {
@@ -2374,17 +2295,14 @@ let _Code = {
 			_Code.lastClickedPath = selection.source;
 		}
 
-		Structr.fetchHtmlTemplate('code/properties.remote', { identifier: selection }, function(html) {
+		codeContents.append(_Code.templates.propertiesRemote({ identifier: selection }));
 
-			codeContents.append(html);
+		Command.get(selection.typeId, null, (entity) => {
+			_Schema.remoteProperties.appendRemote($('.content-container', codeContents), entity, _Code.schemaNodes, _Code.refreshTree);
 
-			Command.get(selection.typeId, null, (entity) => {
-				_Schema.remoteProperties.appendRemote($('.content-container', codeContents), entity, _Code.schemaNodes, _Code.refreshTree);
-
-				_Code.runCurrentEntitySaveAction = () => {
-					$('.save-all', codeContents).click();
-				};
-			});
+			_Code.runCurrentEntitySaveAction = () => {
+				$('.save-all', codeContents).click();
+			};
 		});
 	},
 	displayViewsContent: function(selection, updateLocationStack) {
@@ -2394,16 +2312,14 @@ let _Code = {
 			_Code.lastClickedPath = selection.source;
 		}
 
-		Structr.fetchHtmlTemplate('code/views', { identifier: selection }, function(html) {
-			codeContents.append(html);
+		codeContents.append(_Code.templates.views({ identifier: selection }));
 
-			Command.get(selection.typeId, null, (entity) => {
-				_Schema.views.appendViews($('.content-container', codeContents), entity, _Code.refreshTree);
+		Command.get(selection.typeId, null, (entity) => {
+			_Schema.views.appendViews($('.content-container', codeContents), entity, _Code.refreshTree);
 
-				_Code.runCurrentEntitySaveAction = () => {
-					$('.save-all', codeContents).click();
-				};
-			});
+			_Code.runCurrentEntitySaveAction = () => {
+				$('.save-all', codeContents).click();
+			};
 		});
 	},
 	displayGlobalMethodsContent: function(selection, updateLocationStack) {
@@ -2415,24 +2331,21 @@ let _Code = {
 
 		_Code.addRecentlyUsedElement(selection.source, "Global methods", _Icons.getFullSpriteClass(_Icons.world_icon), selection.source, false);
 
-		Structr.fetchHtmlTemplate('code/globals', {}, function(html) {
+		codeContents.append(_Code.templates.globals());
 
-			codeContents.append(html);
+		Command.rest('SchemaMethod?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', function (methods) {
 
-			Command.rest('SchemaMethod?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', function (methods) {
-
-				_Schema.methods.appendMethods($('.content-container', codeContents), null, methods, function() {
-					if (selection && selection.extended) {
-						_TreeHelper.refreshNode('#code-tree', 'workingsets-' + selection.extended);
-					} else {
-						_Code.refreshTree();
-					}
-				});
-
-				_Code.runCurrentEntitySaveAction = () => {
-					$('.save-all', codeContents).click();
-				};
+			_Schema.methods.appendMethods($('.content-container', codeContents), null, methods, function() {
+				if (selection && selection.extended) {
+					_TreeHelper.refreshNode('#code-tree', 'workingsets-' + selection.extended);
+				} else {
+					_Code.refreshTree();
+				}
 			});
+
+			_Code.runCurrentEntitySaveAction = () => {
+				$('.save-all', codeContents).click();
+			};
 		});
 	},
 	displayMethodsContent: function(selection, updateLocationStack) {
@@ -2444,23 +2357,21 @@ let _Code = {
 
 		_Code.addRecentlyUsedElement(selection.source, selection.obj.type + ' Methods' , 'fa fa-code gray', selection.source, false);
 
-		Structr.fetchHtmlTemplate('code/methods', { identifier: selection }, function(html) {
-			codeContents.append(html);
+		codeContents.append(_Code.templates.methods({ identifier: selection }));
 
-			Command.get(selection.typeId, null, (entity) => {
+		Command.get(selection.typeId, null, (entity) => {
 
-				_Schema.methods.appendMethods($('.content-container', codeContents), entity, _Schema.filterJavaMethods(entity.schemaMethods), function() {
-					if (selection && selection.extended) {
-						_TreeHelper.refreshNode('#code-tree', 'workingsets-' + selection.extended);
-					} else {
-						_Code.refreshTree();
-					}
-				});
-
-				_Code.runCurrentEntitySaveAction = () => {
-					$('.save-all', codeContents).click();
-				};
+			_Schema.methods.appendMethods($('.content-container', codeContents), entity, _Schema.filterJavaMethods(entity.schemaMethods), function() {
+				if (selection && selection.extended) {
+					_TreeHelper.refreshNode('#code-tree', 'workingsets-' + selection.extended);
+				} else {
+					_Code.refreshTree();
+				}
 			});
+
+			_Code.runCurrentEntitySaveAction = () => {
+				$('.save-all', codeContents).click();
+			};
 		});
 	},
 	displayInheritedPropertiesContent: function(selection, updateLocationStack) {
@@ -2470,12 +2381,10 @@ let _Code = {
 			_Code.lastClickedPath = selection.source;
 		}
 
-		Structr.fetchHtmlTemplate('code/properties.inherited', { identifier: selection }, function(html) {
-			codeContents.append(html);
+		codeContents.append(_Code.templates.propertiesInherited({ identifier: selection }));
 
-			Command.get(selection.typeId, null, (entity) => {
-				_Schema.properties.appendBuiltinProperties($('.content-container', codeContents), entity);
-			});
+		Command.get(selection.typeId, null, (entity) => {
+			_Schema.properties.appendBuiltinProperties($('.content-container', codeContents), entity);
 		});
 	},
 	displayPropertyDetails: function(selection, identifier) {
@@ -2525,236 +2434,213 @@ let _Code = {
 
 			_Code.updateRecentlyUsed(result, identifier.source, selection.updateLocationStack);
 
-			Structr.fetchHtmlTemplate('code/default-view', { view: result }, (html) => {
-				codeContents.append(html);
-				_Code.displayDefaultViewOptions(result, undefined, identifier);
-			});
+			codeContents.append(_Code.templates.defaultView({ view: result }));
+			_Code.displayDefaultViewOptions(result, undefined, identifier);
 		});
 	},
 	displayFunctionPropertyDetails: function(property, identifier, lastOpenTab) {
 
-		Structr.fetchHtmlTemplate('code/function-property', { property: property }, (html) => {
+		codeContents.append(_Code.templates.functionProperty({ property: property }));
 
-			codeContents.append(html);
+		let activateTab = (tabName) => {
+			$('.function-property-tab-content', codeContents).hide();
+			$('li[data-name]', codeContents).removeClass('active');
 
-			let activateTab = (tabName) => {
-				$('.function-property-tab-content', codeContents).hide();
-				$('li[data-name]', codeContents).removeClass('active');
+			let activeTab = $('#tabView-' + tabName, codeContents);
+			activeTab.show();
+			$('li[data-name="' + tabName + '"]', codeContents).addClass('active');
 
-				let activeTab = $('#tabView-' + tabName, codeContents);
-				activeTab.show();
-				$('li[data-name="' + tabName + '"]', codeContents).addClass('active');
+			window.setTimeout(() => { _Editors.resizeVisibleEditors(); }, 250);
+		};
 
-				window.setTimeout(() => { _Editors.resizeVisibleEditors(); }, 250);
-			};
+		for (let tabLink of codeContents[0].querySelectorAll('li[data-name]')) {
+			tabLink.addEventListener('click', (e) => {
+				e.stopPropagation();
+				activateTab(tabLink.dataset.name);
+			})
+		}
+		activateTab(lastOpenTab || 'source');
 
-			for (let tabLink of codeContents[0].querySelectorAll('li[data-name]')) {
-				tabLink.addEventListener('click', (e) => {
-					e.stopPropagation();
-					activateTab(tabLink.dataset.name);
-				})
+		Structr.activateCommentsInElement(codeContents, { insertAfter: true });
+
+		let functionPropertyMonacoConfig = {
+			language: 'auto',
+			lint: true,
+			autocomplete: true,
+			changeFn: (editor, entity) => {
+				_Code.updateDirtyFlag(entity);
+			},
+			isAutoscriptEnv: true
+		};
+
+		_Editors.getMonacoEditor(property, 'readFunction', $('#read-code-container .editor', codeContents), functionPropertyMonacoConfig);
+		_Editors.getMonacoEditor(property, 'writeFunction', $('#write-code-container .editor', codeContents), functionPropertyMonacoConfig);
+
+		_Editors.appendEditorOptionsElement(codeContents[0].querySelector('.editor-info'));
+
+		let openAPIReturnTypeMonacoConfig = {
+			language: 'json',
+			lint: true,
+			autocomplete: true,
+			changeFn: (editor, entity) => {
+				_Code.updateDirtyFlag(entity);
 			}
-			activateTab(lastOpenTab || 'source');
+		};
 
-			// sourceEditor.focus();
+		_Editors.getMonacoEditor(property, 'openAPIReturnType', $('#tabView-api .editor', codeContents), openAPIReturnTypeMonacoConfig);
 
-
-			Structr.activateCommentsInElement(codeContents, { insertAfter: true });
-
-			let functionPropertyMonacoConfig = {
-				language: 'auto',
-				lint: true,
-				autocomplete: true,
-				changeFn: (editor, entity) => {
-					_Code.updateDirtyFlag(entity);
-				},
-				isAutoscriptEnv: true
-			};
-
-			_Editors.getMonacoEditor(property, 'readFunction', $('#read-code-container .editor', codeContents), functionPropertyMonacoConfig);
-			_Editors.getMonacoEditor(property, 'writeFunction', $('#write-code-container .editor', codeContents), functionPropertyMonacoConfig);
-
-			_Editors.appendEditorOptionsElement(codeContents[0].querySelector('.editor-info'));
-
-			let openAPIReturnTypeMonacoConfig = {
-				language: 'json',
-				lint: true,
-				autocomplete: true,
-				changeFn: (editor, entity) => {
-					_Code.updateDirtyFlag(entity);
-				}
-			};
-
-			_Editors.getMonacoEditor(property, 'openAPIReturnType', $('#tabView-api .editor', codeContents), openAPIReturnTypeMonacoConfig);
-
-			_Code.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, identifier);
-		});
+		_Code.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, identifier);
 	},
 	displayCypherPropertyDetails: function(property, identifier) {
 
-		Structr.fetchHtmlTemplate('code/cypher-property', { property: property }, function(html) {
-			codeContents.append(html);
+		codeContents.append(_Code.templates.cypherProperty({ property: property }));
 
-			let cypherMonacoConfig = {
-				language: 'cypher',
-				lint: false,
-				autocomplete: false,
-				changeFn: (editor, entity) => {
-					_Code.updateDirtyFlag(entity);
-				},
-				isAutoscriptEnv: false
-			};
+		let cypherMonacoConfig = {
+			language: 'cypher',
+			lint: false,
+			autocomplete: false,
+			changeFn: (editor, entity) => {
+				_Code.updateDirtyFlag(entity);
+			},
+			isAutoscriptEnv: false
+		};
 
-			_Editors.getMonacoEditor(property, 'format', $('#cypher-code-container .editor', codeContents), cypherMonacoConfig);
-			_Editors.appendEditorOptionsElement(codeContents[0].querySelector('.editor-info'));
+		_Editors.getMonacoEditor(property, 'format', $('#cypher-code-container .editor', codeContents), cypherMonacoConfig);
+		_Editors.appendEditorOptionsElement(codeContents[0].querySelector('.editor-info'));
 
-			_Code.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, identifier);
-		});
+		_Code.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, identifier);
 	},
 	displayStringPropertyDetails: function(property, identifier) {
 
-		Structr.fetchHtmlTemplate('code/string-property', { property: property }, function(html) {
-			codeContents.append(html);
-			_Code.displayDefaultPropertyOptions(property, undefined, identifier);
-		});
+		codeContents.append(_Code.templates.stringProperty({ property: property }));
+		_Code.displayDefaultPropertyOptions(property, undefined, identifier);
 	},
 	displayBooleanPropertyDetails: function(property, identifier) {
 
-		Structr.fetchHtmlTemplate('code/boolean-property', { property: property }, function(html) {
-			codeContents.append(html);
-			_Code.displayDefaultPropertyOptions(property, undefined, identifier);
-		});
+		codeContents.append(_Code.templates.booleanProperty({ property: property }));
+		_Code.displayDefaultPropertyOptions(property, undefined, identifier);
 	},
 	displayDefaultPropertyDetails: function(property, identifier) {
 
-		Structr.fetchHtmlTemplate('code/default-property', { property: property }, function(html) {
-			codeContents.append(html);
-			_Code.displayDefaultPropertyOptions(property, undefined, identifier);
-		});
+		codeContents.append(_Code.templates.defaultProperty({ property: property }));
+		_Code.displayDefaultPropertyOptions(property, undefined, identifier);
 	},
 	displayDefaultPropertyOptions: function(property, callback, identifier) {
 
-		Structr.fetchHtmlTemplate('code/property-options', { property: property }, (html) => {
+		_Code.runCurrentEntitySaveAction = function() {
+			_Code.saveEntityAction(property);
+		};
 
-			_Code.runCurrentEntitySaveAction = function() {
-				_Code.saveEntityAction(property);
-			};
+		let buttons = $('#property-buttons');
+		buttons.prepend(_Code.templates.propertyOptions({ property: property }));
 
-			let buttons = $('#property-buttons');
-			buttons.prepend(html);
+		_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save property', _Code.runCurrentEntitySaveAction);
 
-			_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save property', _Code.runCurrentEntitySaveAction);
-
-			_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('close-dialog-x', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
-				_Code.revertFormData(property);
-			});
-
-			if (!property.schemaNode.isBuiltinType) {
-
-				_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete property', () => {
-					_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'No data will be removed.', identifier);
-				});
-			}
-
-			if (property.propertyType !== 'Function') {
-				$('#property-type-hint-input').parent().remove();
-			} else {
-				$('#property-type-hint-input').val(property.typeHint);
-			}
-
-			if (property.propertyType === 'Cypher') {
-				$('#property-format-input').parent().remove();
-			}
-
-			$('select', buttons).on('change', function() {
-				_Code.updateDirtyFlag(property);
-			});
-
-			$('input[type=checkbox]', buttons).on('change', function() {
-				_Code.updateDirtyFlag(property);
-			});
-
-			$('input[type=text]', buttons).on('keyup', function() {
-				_Code.updateDirtyFlag(property);
-			});
-
-			if (property.schemaNode.isBuiltinType) {
-				$('button#delete-property-button').parent().remove();
-			} else {
-				$('button#delete-property-button').on('click', function() {
-					_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'Property values will not be removed from data nodes.', identifier);
-				});
-			}
-
-			_Code.updateDirtyFlag(property);
-
-			if (typeof callback === 'function') {
-				callback();
-			}
+		_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('close-dialog-x', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+			_Code.revertFormData(property);
 		});
+
+		if (!property.schemaNode.isBuiltinType) {
+
+			_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete property', () => {
+				_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'No data will be removed.', identifier);
+			});
+		}
+
+		if (property.propertyType !== 'Function') {
+			$('#property-type-hint-input').parent().remove();
+		} else {
+			$('#property-type-hint-input').val(property.typeHint);
+		}
+
+		if (property.propertyType === 'Cypher') {
+			$('#property-format-input').parent().remove();
+		}
+
+		$('select', buttons).on('change', function() {
+			_Code.updateDirtyFlag(property);
+		});
+
+		$('input[type=checkbox]', buttons).on('change', function() {
+			_Code.updateDirtyFlag(property);
+		});
+
+		$('input[type=text]', buttons).on('keyup', function() {
+			_Code.updateDirtyFlag(property);
+		});
+
+		if (property.schemaNode.isBuiltinType) {
+			$('button#delete-property-button').parent().remove();
+		} else {
+			$('button#delete-property-button').on('click', function() {
+				_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'Property values will not be removed from data nodes.', identifier);
+			});
+		}
+
+		_Code.updateDirtyFlag(property);
+
+		if (typeof callback === 'function') {
+			callback();
+		}
 	},
 	displayDefaultViewOptions: function(view, callback, identifier) {
 
-		// default buttons
-		Structr.fetchHtmlTemplate('code/view-options', { view: view }, function(html) {
+		_Code.runCurrentEntitySaveAction = function() {
 
-			_Code.runCurrentEntitySaveAction = function() {
+			if (_Code.isDirty()) {
 
-				if (_Code.isDirty()) {
+				// update entity before storing the view to make sure that nonGraphProperties are correctly identified..
+				Command.get(view.schemaNode.id, null, function(reloadedEntity) {
 
-					// update entity before storing the view to make sure that nonGraphProperties are correctly identified..
-					Command.get(view.schemaNode.id, null, function(reloadedEntity) {
+					let formData = _Code.collectChangedPropertyData(view);
+					let sortedAttrs = $('.property-attrs.view').sortedVals();
+					formData.schemaProperties   = _Schema.views.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
+					formData.nonGraphProperties = _Schema.views.findNonGraphProperties(reloadedEntity, sortedAttrs);
 
-						let formData = _Code.collectChangedPropertyData(view);
-						let sortedAttrs = $('.property-attrs.view').sortedVals();
-						formData.schemaProperties   = _Schema.views.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
-						formData.nonGraphProperties = _Schema.views.findNonGraphProperties(reloadedEntity, sortedAttrs);
+					_Code.showSchemaRecompileMessage();
 
-						_Code.showSchemaRecompileMessage();
+					Command.setProperties(view.id, formData, function() {
+						Object.assign(view, formData);
+						_Code.updateDirtyFlag(view);
 
-						Command.setProperties(view.id, formData, function() {
-							Object.assign(view, formData);
-							_Code.updateDirtyFlag(view);
+						_Code.showSaveAction(formData);
 
-							_Code.showSaveAction(formData);
+						if (formData.name) {
+							_Code.refreshTree();
+						}
 
-							if (formData.name) {
-								_Code.refreshTree();
-							}
-
-							_Code.hideSchemaRecompileMessage();
-						});
+						_Code.hideSchemaRecompileMessage();
 					});
-				}
-			};
-
-			let buttons = $('#view-buttons');
-			buttons.prepend(html);
-
-			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save view', _Code.runCurrentEntitySaveAction);
-
-			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('close-dialog-x', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
-				_Code.revertFormData(view);
-				_Code.displayViewSelect(view);
-			});
-
-			// delete button
-			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete view', () => {
-				_Code.deleteSchemaEntity(view, 'Delete view' + ' ' + view.name + '?', 'Note: Builtin views will be restored in their initial configuration', identifier);
-			});
-
-			_Code.updateDirtyFlag(view);
-
-			$('input[type=text]', buttons).on('keyup', () => {
-				_Code.updateDirtyFlag(view);
-			});
-
-			_Code.displayViewSelect(view);
-
-			if (typeof callback === 'function') {
-				callback();
+				});
 			}
+		};
+
+		let buttons = $('#view-buttons');
+		buttons.prepend(_Code.templates.viewOptions({ view: view }));
+
+		_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save view', _Code.runCurrentEntitySaveAction);
+
+		_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('close-dialog-x', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+			_Code.revertFormData(view);
+			_Code.displayViewSelect(view);
 		});
+
+		// delete button
+		_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete view', () => {
+			_Code.deleteSchemaEntity(view, 'Delete view' + ' ' + view.name + '?', 'Note: Builtin views will be restored in their initial configuration', identifier);
+		});
+
+		_Code.updateDirtyFlag(view);
+
+		$('input[type=text]', buttons).on('keyup', () => {
+			_Code.updateDirtyFlag(view);
+		});
+
+		_Code.displayViewSelect(view);
+
+		if (typeof callback === 'function') {
+			callback();
+		}
 	},
 	displayViewSelect: function(view) {
 
@@ -2827,57 +2713,49 @@ let _Code = {
 			button.off('click');
 			button.addClass('action-button-open');
 
-			Structr.fetchHtmlTemplate('code/create-object-form', { value: presetValue, suffix: suffix }, function(html) {
-				button.append(html);
-				$('#new-object-name-' + suffix).focus();
-				$('#new-object-name-' + suffix).on('keyup', function(e) {
-					if (e.keyCode === 27) { revertFunction(); }
-					if (e.keyCode === 13) { $('#create-button-' + suffix).click(); }
-				});
-				button.off('click.create-object-' + suffix);
-				$('#cancel-button-' + suffix).on('click', function() {
-					revertFunction();
-				});
-				$('#create-button-' + suffix).on('click', function() {
-					var data = Object.assign({}, nodeData);
-					data['name'] = $('#new-object-name-' + suffix).val();
-					_Code.showSchemaRecompileMessage();
-					Command.create(data, function() {
-						_Code.refreshTree();
-						_Code.clearMainArea();
-						_Code.displayCustomTypesContent();
-						_Code.hideSchemaRecompileMessage();
-					});
+			button.append(_Code.templates.createObjectForm({ value: presetValue, suffix: suffix }));
+			$('#new-object-name-' + suffix).focus();
+			$('#new-object-name-' + suffix).on('keyup', function(e) {
+				if (e.keyCode === 27) { revertFunction(); }
+				if (e.keyCode === 13) { $('#create-button-' + suffix).click(); }
+			});
+			button.off('click.create-object-' + suffix);
+			$('#cancel-button-' + suffix).on('click', function() {
+				revertFunction();
+			});
+			$('#create-button-' + suffix).on('click', function() {
+				var data = Object.assign({}, nodeData);
+				data['name'] = $('#new-object-name-' + suffix).val();
+				_Code.showSchemaRecompileMessage();
+				Command.create(data, function() {
+					_Code.refreshTree();
+					_Code.clearMainArea();
+					_Code.displayCustomTypesContent();
+					_Code.hideSchemaRecompileMessage();
 				});
 			});
 		});
 	},
 	displayCreateButton: function(targetId, iconClass, suffix, name, presetValue, createData) {
-		Structr.fetchHtmlTemplate('code/action-button', { iconClass: iconClass, suffix: suffix, name: name }, function(html) {
-			$(targetId).append(html);
-			_Code.activateCreateDialog(suffix, presetValue, createData, html);
-		});
+		let html =_Code.templates.actionButton({ iconClass: iconClass, suffix: suffix, name: name });
+		$(targetId).append(html);
+		_Code.activateCreateDialog(suffix, presetValue, createData, html);
 	},
 	displaySvgCreateButton: function(targetId, iconSvg, suffix, name, presetValue, createData) {
-		Structr.fetchHtmlTemplate('code/action-button', { iconSvg: iconSvg, suffix: suffix, name: name }, function(html) {
-			$(targetId).append(html);
-			_Code.activateCreateDialog(suffix, presetValue, createData, html);
-		});
+		let html = _Code.templates.actionButton({ iconSvg: iconSvg, suffix: suffix, name: name });
+		$(targetId).append(html);
+		_Code.activateCreateDialog(suffix, presetValue, createData, html);
 	},
 	displayActionButton: function(targetId, iconClass, suffix, name, callback) {
 		let buttonId = '#action-button-' + suffix;
-		Structr.fetchHtmlTemplate('code/action-button', { iconClass: iconClass, suffix: suffix, name: name }, function(html) {
-			$(targetId).append(html);
-			$(buttonId).off('click.action').on('click.action', callback);
-		});
+		$(targetId).append(_Code.templates.actionButton({ iconClass: iconClass, suffix: suffix, name: name }));
+		$(buttonId).off('click.action').on('click.action', callback);
 		return buttonId;
 	},
 	displaySvgActionButton: function(targetId, iconSvg, suffix, name, callback) {
 		let buttonId = '#action-button-' + suffix;
-		Structr.fetchHtmlTemplate('code/action-button', { iconSvg: iconSvg, suffix: suffix, name: name }, function(html) {
-			$(targetId).append(html);
-			$(buttonId).off('click.action').on('click.action', callback);
-		});
+		$(targetId).append(_Code.templates.actionButton({ iconSvg: iconSvg, suffix: suffix, name: name }));
+		$(buttonId).off('click.action').on('click.action', callback);
 		return buttonId;
 	},
 	displayCreatePropertyButton: function(targetId, type, nodeData) {
@@ -3241,6 +3119,447 @@ let _Code = {
 			timeout = setTimeout(later, wait);
 			if (callNow) func.apply(context, args);
 		};
+	},
+
+	templates: {
+		main: config => `
+			<link rel="stylesheet" type="text/css" media="screen" href="css/schema.css">
+			<link rel="stylesheet" type="text/css" media="screen" href="css/code.css">
+			
+			<div class="tree-main" id="code-main">
+			
+				<div class="column-resizer-blocker"></div>
+				<div class="column-resizer column-resizer-left"></div>
+				<div class="column-resizer column-resizer-right"></div>
+			
+				<div class="tree-container" id="code-tree-container">
+					<div class="tree" id="code-tree">
+			
+					</div>
+				</div>
+			
+				<div class="tree-contents-container" id="code-contents-container">
+					<div class="flex flex-col tree-contents" id="code-contents"></div>
+				</div>
+			
+				<div class="tree-context-container" id="code-context-container">
+					<div class="tree-context" id="code-context"></div>
+				</div>
+			</div>
+		`,
+		functions: config => `
+			<div class="tree-search-container" id="tree-search-container">
+				<i id="cancel-search-button" class="cancel-search-button hidden fa fa-remove"></i>
+				<button type="button" class="tree-back-button" id="tree-back-button" title="Back" disabled><i class="fa fa-caret-left"></i></button>
+				<input type="text" class="tree-search-input" id="tree-search-input" placeholder="Search.." />
+				<button type="button" class="tree-forward-button" id="tree-forward-button" title="Forward" disabled><i class="fa fa-caret-right"></i></button>
+			</div>
+		`,
+		actionButton: config => `
+			<button id="action-button-${config.suffix}" class="action-button">
+				<div class="action-button-icon">
+					${config.iconClass ? '<i class="' + config.iconClass +'"></i>' : ''}
+					${config.iconSvg ? config.iconSvg : ''}
+				</div>
+			
+				<div>${config.name}</div>
+			</button>
+		`,
+		booleanProperty: config => `
+			<h2>BooleanProperty ${config.property.schemaNode.name}.${config.property.name}</h2>
+			<div id="property-buttons"></div>
+		`,
+		builtin: config => `
+			<h2>System Types</h2>
+
+			<div class="property-options-group">
+				<div><label>Existing builtin types</label></div>
+				<div id="builtin-types"></div>
+			</div>
+		`,
+		createObjectForm: config => `
+			<div class="mt-4">
+				<input style="width: 100%; box-sizing: border-box;" id="new-object-name-${config.suffix}" value="${config.value}" placeholder="Enter name...">
+			</div>
+			<div class="flex justify-between mt-3">
+				<button id="cancel-button-${config.suffix}" type="button" class="create-form-button cancel flex items-center px-3 py-1">
+					${_Icons.getSvgIcon('cross_bold', 14, 14, 'icon-red')}
+				</button>
+				<button id="create-button-${config.suffix}" type="button" class="create-form-button accept flex items-center px-3 py-1">
+					${_Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green')}
+				</button>
+			</div>
+		`,
+		custom: config => `
+			<h2>Custom types</h2>
+			<div class="property-options-group">
+			<!--	<div><label>Add type</label></div>-->
+				<div id="type-actions"></div>
+				<div style="clear:both;"></div>
+			</div>
+			<div class="property-options-group">
+				<div><label>Existing custom types</label></div>
+				<div id="existing-types"></div>
+				<div style="clear:both;"></div>
+			</div>
+		`,
+		cypherProperty: config => `
+			<h2>CypherProperty ${config.property.schemaNode.name}.${config.property.name}</h2>
+			<div id="property-buttons"></div>
+			<div class="flex flex-col flex-grow">
+				<div id="cypher-code-container" class="property-options-group flex flex-col h-full">
+					<h4>Cypher Query</h4>
+					<div class="editor flex-grow" data-property="format"></div>
+					<div class="editor-info"></div>
+				</div>
+			</div>
+		`,
+		defaultProperty: config => `
+			<h2>${config.property.propertyType}Property ${config.property.schemaNode.name}.${config.property.name}</h2>
+			<div id="property-buttons"></div>
+		`,
+		defaultView: config => `
+			<h2>View ${config.view.schemaNode.name}.${config.view.name}</h2>
+			<div id="view-buttons"></div>
+		`,
+		functionProperty: config => `
+			<h2>FunctionProperty ${config.property.schemaNode.name}.${config.property.name}</h2>
+			<div id="property-buttons"></div>
+			
+			<div id="function-property-container" class="data-tabs level-two flex flex-col flex-grow">
+				<ul>
+					<li data-name="source">Code</li>
+					<li data-name="api">API</li>
+				</ul>
+				<div id="function-property-content" class="flex flex-col flex-grow">
+			
+					<div class="tab function-property-tab-content flex flex-col flex-grow" id="tabView-source">
+			
+						<div id="read-code-container" class="property-options-group flex flex-col h-1/2">
+							<h4>Read Function</h4>
+							<div class="editor flex-grow" data-property="readFunction" data-recompile="false"></div>
+						</div>
+						<div id="write-code-container" class="property-options-group flex flex-col h-1/2">
+							<div>
+								<h4 data-comment="To retrieve the parameter passed to the write function, use &lt;code&gt;Structr.get('value');&lt;/code&gt; in a JavaScript context or the keyword &lt;code&gt;value&lt;/code&gt; in a StructrScript context.">Write Function</h4>
+							</div>
+							<div class="editor flex-grow" data-property="writeFunction" data-recompile="false"></div>
+						</div>
+			
+					</div>
+			
+					<div class="tab function-property-tab-content flex flex-col flex-grow" id="tabView-api">
+						<div>
+							<h4 class="font-semibold" data-comment="Write an OpenAPI schema for your return type here.">Return Type</h4>
+						</div>
+						<div class="editor flex-grow" data-property="openAPIReturnType"></div>
+					</div>
+			
+				</div>
+				<div class="editor-info"></div>
+			</div>
+		`,
+		globals: config => `
+			<h2>Global schema methods</h2>
+			<div id="code-methods-container" class="content-container"></div>
+		`,
+		method: config => `
+			<h2>${(config.method.schemaNode ? config.method.schemaNode.name + '.' : '') + config.method.name}()</h2>
+			<div id="method-buttons"></div>
+			<div id="method-code-container" class="data-tabs level-two flex flex-col flex-grow">
+				<ul>
+					<li data-name="source">Code</li>
+					<li data-name="api">API</li>
+				</ul>
+				<div id="methods-content" class="flex flex-col flex-grow">
+			
+					<div class="tab method-tab-content flex flex-col flex-grow" id="tabView-source">
+						<div class="editor property-code flex-grow" data-property="source"></div>
+					</div>
+			
+					<div class="tab method-tab-content flex flex-col flex-grow" id="tabView-api">
+					</div>
+			
+				</div>
+				<div class="editor-info"></div>
+			</div>
+		`,
+		methodOptions: config => `
+			<div id="method-options">
+				<div class="property-options-group">
+					<div id="method-actions"></div>
+				</div>
+				<div class="property-options-group flex flex-wrap gap-x-8">
+					<div class="input">
+						<label>Name</label>
+						<input type="text" id="method-name-input" data-property="name" size="20" value="${config.method.name}" />
+					</div>
+					<div class="checkbox hidden entity-method">
+						<label class="block mt-6" data-comment="Only needs to be set if the method should be callable statically (without an object context)."><input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''} /> isStatic</label>
+					</div>
+				</div>
+			</div>
+		`,
+		methods: config => `
+			<h2>Methods of type ${config.identifier.obj.type}</h2>
+			<div id="code-methods-container" class="content-container"></div>
+		`,
+		openAPIConfig: config => `
+			<div id="openapi-options"  class="flex flex-col flex-grow mt-4">
+			
+				<div class="flex flex-wrap gap-x-8">
+			
+					<div>
+						<label class="font-semibold">Enabled</label>
+						<label class="checkbox block mt-3"><input type="checkbox" data-property="includeInOpenAPI" ${config.element.includeInOpenAPI ? "checked" : ""} /> Include in OpenAPI output</label>
+					</div>
+			
+					<div style="width: 200px">
+						<label class="font-semibold" data-comment="Use tags to combine types and methods into an API. Each tag is available under its own OpenAPI endpoint (/structr/openapi/tag.json).">Tags</label>
+						<select id="tags-select" data-property="tags" multiple="multiple">
+							${ ((config.availableTags) ? config.availableTags.map((t) => { let selected = (config.element.tags && config.element.tags.includes(t)); return '<option' + (selected ? ' selected' : '') + '>' + t + '</option>'}).join() : '')}
+						</select>
+					</div>
+					<div>
+						<label class="font-semibold">Summary</label>
+						<input class="mt-1" data-property="summary" value="${config.element.summary || ''}" type="text">
+					</div>
+			
+					<div class="${config.element.type === 'SchemaNode' ? 'hidden' : ''}">
+						<label class="font-semibold">Description</label>
+						<input class="mt-1" data-property="description" value="${config.element.description || ''}" type="text">
+					</div>
+				</div>
+			</div>
+		`,
+		openAPIMethodConfig: config => `
+			<div class="mt-4">
+			
+				<label class="font-semibold">Parameters</label>
+				<button id="add-parameter-button"><i class="${ _Icons.getFullSpriteClass(_Icons.add_icon)}"></i></button>
+			
+				<div>
+					<div class="method-parameter-grid">
+						<div class="method-parameter-heading">
+							<div>Index</div>
+							<div>Name</div>
+							<div>Parameter Type</div>
+							<div>Description</div>
+							<div>Example Value</div>
+							<div></div>
+						</div>
+					</div>
+				</div>
+			
+				<div class="method-parameter-grid template">
+					<div class="method-parameter">
+						<div>
+							<input data-parameter-property="index" type="number">
+						</div>
+						<div>
+							<input data-parameter-property="name">
+						</div>
+						<div>
+							<input data-parameter-property="parameterType">
+						</div>
+						<div>
+							<input data-parameter-property="description">
+						</div>
+						<div>
+							<input data-parameter-property="exampleValue">
+						</div>
+			
+						<div class="method-parameter-property method-parameter-delete flex items-center justify-center">
+							${_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']))}
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div class="mt-4 flex flex-col flex-grow">
+				<label class="font-semibold" data-comment="Write an OpenAPI schema for your return type here.">Return Type</label>
+				<div class="editor flex-grow" data-property="openAPIReturnType"></div>
+			</div>
+		`,
+		propertiesInherited: config => `
+			<h2>Inherited Attributes of type ${config.identifier.obj.type}</h2>
+			<div class="content-container"></div>
+		`,
+		propertiesLocal: config => `
+			<h2>Local Properties of type ${config.identifier.obj.type}</h2>
+			<div class="content-container"></div>
+		`,
+		propertiesRemote: config => `
+			<h2>Linked properties of type ${config.identifier.obj.type}</h2>
+			<div class="content-container"></div>
+		`,
+		property: config => `
+			<h2>${config.property.schemaNode.name}.${config.property.name}</h2>
+		`,
+		propertyRemote: config => `
+			<div class="content-container">
+				<div id="headEl"></div>
+				<div id="contentEl"></div>
+			</div>
+		`,
+		propertyOptions: config => `
+			<div id="property-options">
+			
+				<div id="default-buttons" class="property-options-group">
+					<div id="property-actions"></div>
+				</div>
+			
+				<div class="property-options-group flex flex-wrap gap-x-8">
+					<div><label class="font-semibold">Name</label><input type="text" id="property-name-input" data-property="name" value="${config.property.name}" /></div>
+					<div><label class="font-semibold">Content type</label><input type="text" id="property-content-type-input" data-property="contentType" value="${config.property.contentType || ''}" /></div>
+					<div><label class="font-semibold">Type hint</label>
+						<select id="property-type-hint-input" class="type-hint" data-property="typeHint">
+							<optgroup label="Type Hint">
+								<option value="null">-</option>
+								<option value="boolean">Boolean</option>
+								<option value="string">String</option>
+								<option value="int">Int</option>
+								<option value="long">Long</option>
+								<option value="double">Double</option>
+								<option value="date">Date</option>
+							</optgroup>
+						</select>
+					</div>
+					<div><label class="font-semibold">Database name</label><input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName || ''}" /></div>
+					<div><label class="font-semibold">Format</label><input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}" /></div>
+					<div><label class="font-semibold">Default value</label><input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}" /></div>
+				</div>
+			
+				<div class="property-options-group">
+					<div>
+						<label class="font-semibold">Options</label>
+					</div>
+					<div class="flex flex-wrap gap-x-8 mt-2">
+						<div><label><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''} />Property value must be unique</label></div>
+						<div><label><input type="checkbox" id="property-composite" data-property="compound" ${config.property.compound ? 'checked' : ''} />Include in composite uniqueness</label></div>
+						<div><label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''} />Property value must not be null</label></div>
+						<div><label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''} />Property value is indexed</label></div>
+						<div><label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''} />Property value can be cached</label></div>
+					</div>
+				</div>
+			</div>
+		`,
+		recentlyUsedButton: config => `
+			<div class="code-favorite items-center" id="recently-used-${config.id}">
+				<i class="${config.iconClass} flex-none"></i>
+				<div class="truncate flex-grow">${config.name}</div>
+				${_Icons.getSvgIcon('close-dialog-x', 14, 14, _Icons.getSvgIconClassesForColoredIcon(['flex-none', 'icon-grey', 'remove-recently-used']))}
+			</div>
+		`,
+		root: config => `
+			<div id="all-types" style="position: relative; width: 100%; height: 98%;">
+			</div>
+		`,
+		schemaGrantsRow: config => `
+			<tr data-group-id="${config.groupId}" data-grant-id="${config.grantId}">
+				<td>${config.name}</td>
+				<td class="centered"><input type="checkbox" name="allowRead" ${(config.allowRead ? 'checked="checked"' : '')}/></td>
+				<td class="centered"><input type="checkbox" name="allowWrite" ${(config.allowWrite ? 'checked="checked"' : '')}/></td>
+				<td class="centered"><input type="checkbox" name="allowDelete" ${(config.allowDelete ? 'checked="checked"' : '')}/></td>
+				<td class="centered"><input type="checkbox" name="allowAccessControl" ${(config.allowAccessControl ? 'checked="checked"' : '')}/></td>
+			</tr>
+		`,
+		stringProperty: config => `
+			<h2>StringProperty ${config.property.schemaNode.name}.${config.property.name}</h2>
+			<div id="property-buttons"></div>
+		`,
+		type: config => `
+			<h2>Class ${config.type.name}</h2>
+			<div class="property-options-group">
+				<div id="type-actions"></div>
+			</div>
+			<h3 id="type-working-sets-heading" data-comment="Working Sets are identical to layouts. Removing an element from a group removes it from the layout">Working Sets</h3>
+			<div class="property-options-group">
+				<div>
+					<select id="type-groups" multiple="multiple"></select>
+					<span id="add-to-new-group"></span>
+				</div>
+			</div>
+			<h3>Options</h3>
+			<div class="property-options-group">
+				<div>
+					<label data-comment="Only takes effect if the changelog is active"><input id="changelog-checkbox" type="checkbox" data-property="changelogDisabled" ${config.type.changelogDisabled ? 'checked' : ''} /> Disable changelog</label>
+					<label class="ml-8" data-comment="Makes all nodes of this type visible to public users if checked"><input id="public-checkbox" type="checkbox" data-property="defaultVisibleToPublic" ${config.type.defaultVisibleToPublic ? 'checked' : ''} /> Visible for public users</label>
+					<label class="ml-8" data-comment="Makes all nodes of this type visible to authenticated users if checked"><input id="authenticated-checkbox" type="checkbox" data-property="defaultVisibleToAuth" ${config.type.defaultVisibleToAuth ? 'checked' : ''} /> Visible for authenticated users</label>
+				</div>
+			</div>
+			
+			<h3>OpenAPI</h3>
+			<div class="property-options-group">
+				<div id="type-openapi">
+				</div>
+			</div>
+			
+			<h3>Schema Grants</h3>
+			<div class="property-options-group">
+				<div><label>Check the below boxes to grant the corresponding permissions on <b>all ${config.type.name} nodes</b> to the given group.</label></div>
+				<div id="schema-grants"></div>
+			</div>
+			
+			<h3>Usage Search</h3>
+			<div class="property-options-group">
+				<div><label id="usage-label"></label></div>
+				<div id="usage-tree-container"><ul id="usage-tree"></ul></div>
+			</div>
+			
+			<div id="generated-source-code" data-type-id="${config.type.id}"></div>
+		`,
+		viewOptions: config => `
+			<div id="view-options">
+			
+				<div class="property-options-group">
+					<div id="view-actions"></div>
+				</div>
+			
+				<div class="property-options-group">
+					<div>
+						<label class="font-semibold">Name</label>
+						<input type="text" id="view-name-input" data-property="name" value="${config.view.name}" />
+					</div>
+				</div>
+			
+				<div class="property-options-group">
+					<div>
+						<label class="font-semibold">Properties</label>
+					</div>
+					<input type="text" id="view-sort-order" class="hidden" data-property="sortOrder" value="${config.view.sortOrder || ''}">
+					<div id="view-properties"></div>
+				</div>
+			</div>
+		`,
+		views: config => `
+			<h2>Views of type ${config.identifier.obj.type}</h2>
+			<div class="content-container"></div>
+		`,
+		workingSet: config => `
+			<h2>Group ${config.type.name}</h2>
+			<div class="property-options-group">
+				A customizable group of classes. To add classes, click on the class name and then on the "New group" button.
+			</div>
+			
+			<div id="working-set-content" data-type-id="${config.type.id}"></div>
+			<div style="clear: both;"></div>
+			
+			<div class="property-options-group">
+				<p class="input"><label>Name</label><input type="text" id="group-name-input" data-property="name" size="30" value="${config.type.name}" /></p>
+				<div style="clear: both;"></div>
+			</div>
+			
+			<div id="group-contents" style="height: calc(100% - 200px); background-color: #fff;" class="fit-to-height"></div>
+		`,
+		workingSets: config => `
+			<h2>Working Sets</h2>
+			<div class="property-options-group">
+				<p>
+					Working Sets are customizable group of classes. To add classes to a working set, click on the class name and then on the "New working set" button.
+				</p>
+			</div>
+		`,
 	}
 };
 

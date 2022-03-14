@@ -273,35 +273,18 @@ $(function() {
 
 		if (menu) {
 
-			let template       = menu.dataset['template'];
-			let config         = JSON.parse(menu.dataset['config'] || '{}');
-			let callbackString = menu.dataset['callback'];
-			let container      = e.target.closest('.dropdown-menu').querySelector('.dropdown-menu-container');
+			let container = e.target.closest('.dropdown-menu').querySelector('.dropdown-menu-container');
 
 			if (container) {
+				console.log(container);
 
-				if (container.hasChildNodes() && (container.style.opacity === '0' || container.style.opacity === '')) {
+				if (container.style.display === 'none' || container.style.display === '') {
 
-					container.style.opacity    = '1';
-					container.style.visibility = '';
+					container.style.display = 'inline-block';
 
-				} else if (container.hasChildNodes() && container.style.opacity === '1') {
+				} else if (container.style.display === 'inline-block') {
 
-					container.style.opacity    = '0';
-					container.style.visibility = 'hidden';
-
-				} else if (!container.hasChildNodes()) {
-
-					Structr.fetchHtmlTemplate(template, config, function (html) {
-
-						container.insertAdjacentHTML('beforeend', html);
-						container.style.opacity    = '1';
-						container.style.visibility = '';
-
-						if (callbackString && callbackString.length) {
-							Structr.getActiveModule()[callbackString]();
-						}
-					});
+					container.style.display = 'none';
 				}
 			}
 		}
@@ -322,8 +305,7 @@ $(function() {
 		const menuContainer  = menu && menu.querySelector('.dropdown-menu-container');
 		if (!menuContainer) {
 			document.querySelectorAll('.dropdown-menu-container').forEach((container) => {
-				container.style.opacity    = '0';
-				container.style.visibility = 'hidden';
+				container.style.display    = 'none';
 			});
 		}
 		return false;
@@ -1733,7 +1715,7 @@ let Structr = {
 			}, 500);
 		}
 	},
-	handleGenericMessage: function(data) {
+	handleGenericMessage: (data) => {
 
 		let showScheduledJobsNotifications = Importer.isShowNotifications();
 		let showScriptingErrorPopups       = UISettings.getValueForSetting(UISettings.global.settings.showScriptingErrorPopupsKey);
@@ -1753,8 +1735,8 @@ let Structr = {
 
 					let texts = {
 						BEGIN: 'Started importing CSV data',
-						CHUNK: 'Finished importing chunk ' + data.currentChunkNo + ' / ' + data.totalChunkNo,
-						END:   'Finished importing CSV data (Time: ' + data.duration + ')'
+						CHUNK: `Finished importing chunk ${data.currentChunkNo} / ${data.totalChunkNo}`,
+						END:   `Finished importing CSV data (Time: ${data.duration})`
 					};
 
 					new MessageBuilder().title(titles[data.subtype]).uniqueClass('csv-import-status').updatesText().requiresConfirmation().allowConfirmAll().className((data.subtype === 'END') ? 'success' : 'info').text(texts[data.subtype]).show();
@@ -1764,60 +1746,47 @@ let Structr = {
 			case "CSV_IMPORT_WARNING":
 
 				if (StructrWS.me.username === data.username) {
-					new MessageBuilder()
-						.title(data.title)
-						.warning(data.text)
-						.requiresConfirmation()
-						.allowConfirmAll()
-						.show();
+					new MessageBuilder().title(data.title).warning(data.text).requiresConfirmation().allowConfirmAll().show();
 				}
 				break;
 
 			case "CSV_IMPORT_ERROR":
 
 				if (StructrWS.me.username === data.username) {
-					new MessageBuilder()
-						.title(data.title)
-						.error(data.text)
-						.requiresConfirmation()
-						.allowConfirmAll()
-						.show();
+					new MessageBuilder().title(data.title).error(data.text).requiresConfirmation().allowConfirmAll().show();
 				}
 				break;
 
 			case "FILE_IMPORT_STATUS":
 
-				var fileImportTitles = {
-					QUEUED: 'Import added to queue',
-					BEGIN: 'Import started',
-					CHUNK: 'Import status',
-					END: 'Import finished',
+				let fileImportTitles = {
+					QUEUED:     'Import added to queue',
+					BEGIN:      'Import started',
+					CHUNK:      'Import status',
+					END:        'Import finished',
 					WAIT_ABORT: 'Import waiting to abort',
-					ABORTED: 'Import aborted',
+					ABORTED:    'Import aborted',
 					WAIT_PAUSE: 'Import waiting to pause',
-					PAUSED: 'Import paused',
-					RESUMED: 'Import resumed'
+					PAUSED:     'Import paused',
+					RESUMED:    'Import resumed'
 				};
 
-				var fileImportTexts = {
-					QUEUED: 'Import of <b>' + data.filename + '</b> will begin after currently running/queued job(s)',
-					BEGIN: 'Started importing data from <b>' + data.filename + '</b>',
-					CHUNK: 'Finished importing chunk ' + data.currentChunkNo + ' of <b>' + data.filename + '</b><br>Objects created: ' + data.objectsCreated + '<br>Time: ' + data.duration + '<br>Objects/s: ' + data.objectsPerSecond,
-					END: 'Finished importing data from <b>' + data.filename + '</b><br>Objects created: ' + data.objectsCreated + '<br>Time: ' + data.duration + '<br>Objects/s: ' + data.objectsPerSecond,
-					WAIT_ABORT: 'The import of <b>' + data.filename + '</b> will be aborted after finishing the current chunk',
-					ABORTED: 'The import of <b>' + data.filename + '</b> has been aborted',
-					WAIT_PAUSE: 'The import of <b>' + data.filename + '</b> will be paused after finishing the current chunk',
-					PAUSED: 'The import of <b>' + data.filename + '</b> has been paused',
-					RESUMED: 'The import of <b>' + data.filename + '</b> has been resumed'
+				let fileImportTexts = {
+					QUEUED:     `Import of <b>${data.filename}</b> will begin after currently running/queued job(s)`,
+					BEGIN:      `Started importing data from <b>${data.filename}</b>`,
+					CHUNK:      `Finished importing chunk ${data.currentChunkNo} of <b>${data.filename}</b><br>Objects created: ${data.objectsCreated}<br>Time: ${data.duration}<br>Objects/s: ${data.objectsPerSecond}`,
+					END:        `Finished importing data from <b>${data.filename}</b><br>Objects created: ${data.objectsCreated}<br>Time: ${data.duration}<br>Objects/s: ${data.objectsPerSecond}`,
+					WAIT_ABORT: `The import of <b>${data.filename}</b> will be aborted after finishing the current chunk`,
+					ABORTED:    `The import of <b>${data.filename}</b> has been aborted`,
+					WAIT_PAUSE: `The import of <b>${data.filename}</b> will be paused after finishing the current chunk`,
+					PAUSED:     `The import of <b>${data.filename}</b> has been paused`,
+					RESUMED:    `The import of <b>${data.filename}</b> has been resumed`
 				};
 
 				if (showScheduledJobsNotifications && StructrWS.me.username === data.username) {
 
-					var msg = new MessageBuilder()
-						.title(data.jobtype + ' ' + fileImportTitles[data.subtype])
-						.className((data.subtype === 'END') ? 'success' : 'info')
-						.text(fileImportTexts[data.subtype])
-						.uniqueClass(data.jobtype + '-import-status-' + data.filepath);
+					let msg = new MessageBuilder().title(`${data.jobtype} ${fileImportTitles[data.subtype]}`).className((data.subtype === 'END') ? 'success' : 'info')
+						.text(fileImportTexts[data.subtype]).uniqueClass(`${data.jobtype}-import-status-${data.filepath}`);
 
 					if (data.subtype !== 'QUEUED') {
 						msg.updatesText().requiresConfirmation().allowConfirmAll();
@@ -1835,17 +1804,12 @@ let Structr = {
 
 				if (showScheduledJobsNotifications && StructrWS.me.username === data.username) {
 
-					var text = data.message;
+					let text = data.message;
 					if (data.message !== data.stringvalue) {
 						text += '<br>' + data.stringvalue;
 					}
 
-					new MessageBuilder()
-						.title("Exception while importing " + data.jobtype)
-						.error("File: " + data.filepath + "<br>" + text)
-						.requiresConfirmation()
-						.allowConfirmAll()
-						.show();
+					new MessageBuilder().title(`Exception while importing ${data.jobtype}`).error(`File: ${data.filepath}<br>${text}`).requiresConfirmation().allowConfirmAll().show();
 				}
 
 				if (Structr.isModuleActive(Importer)) {
@@ -1855,24 +1819,20 @@ let Structr = {
 
 			case "SCRIPT_JOB_STATUS":
 
-				var scriptJobTitles = {
+				let scriptJobTitles = {
 					QUEUED: 'Script added to queue',
-					BEGIN: 'Script started',
-					END: 'Script finished'
+					BEGIN:  'Script started',
+					END:    'Script finished'
 				};
-				var scriptJobTexts = {
-					QUEUED: 'Script job #' + data.jobId + ' will begin after currently running/queued job(s)',
-					BEGIN: 'Started script job #' + data.jobId + ((data.jobName.length === 0) ? '' : ' (' + data.jobName + ')'),
-					END: 'Finished script job #' + data.jobId + ((data.jobName.length === 0) ? '' : ' (' + data.jobName + ')')
+				let scriptJobTexts = {
+					QUEUED: `Script job #${data.jobId} will begin after currently running/queued job(s)`,
+					BEGIN:  `Started script job #${data.jobId}${((data.jobName.length > 0) ? ` (${data.jobName})` : '')}`,
+					END:    `Finished script job #${data.jobId}${((data.jobName.length > 0) ? ` (${data.jobName})` : '')}`
 				};
 
 				if (showScheduledJobsNotifications && StructrWS.me.username === data.username) {
 
-					let msg = new MessageBuilder()
-						.title(scriptJobTitles[data.subtype])
-						.className((data.subtype === 'END') ? 'success' : 'info')
-						.text('<div>' + scriptJobTexts[data.subtype] + '</div>')
-						.uniqueClass(data.jobtype + '-' + data.subtype).appendsText();
+					let msg = new MessageBuilder().title(scriptJobTitles[data.subtype]).className((data.subtype === 'END') ? 'success' : 'info').text(`<div>${scriptJobTexts[data.subtype]}</div>`).uniqueClass(`${data.jobtype}-${data.subtype}`).appendsText();
 
 					if (data.subtype !== 'QUEUED') {
 						msg.requiresConfirmation().allowConfirmAll();
@@ -1887,10 +1847,10 @@ let Structr = {
 				break;
 
 			case 'DEPLOYMENT_IMPORT_STATUS':
-			case 'DEPLOYMENT_DATA_IMPORT_STATUS':
+			case 'DEPLOYMENT_DATA_IMPORT_STATUS': {
 
-				var type            = 'Deployment Import';
-				var messageCssClass = 'deployment-import';
+				let type            = 'Deployment Import';
+				let messageCssClass = 'deployment-import';
 
 				if (data.type === 'DEPLOYMENT_DATA_IMPORT_STATUS') {
 					type            = 'Data Deployment Import';
@@ -1899,32 +1859,34 @@ let Structr = {
 
 				if (data.subtype === 'BEGIN') {
 
-					var text = type + ' started: ' + new Date(data.start) + '<br>'
-						+ 'Importing from: <span class="deployment-source">' + data.source + '</span><br><br>'
-						+ 'Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>';
+					let text = `${type} started: ${new Date(data.start)}<br>
+						Importing from: <span class="deployment-source">${data.source}</span><br><br>
+						Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>
+					`;
 
-					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info(text).requiresConfirmation().updatesText().show();
+					new MessageBuilder().title(`${type} Progress`).uniqueClass(messageCssClass).info(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info('<li>' + data.message + '</li>').requiresConfirmation().appendsText('.message-steps').show();
+					new MessageBuilder().title(`${type} Progress`).uniqueClass(messageCssClass).info(`<li>${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
 
 				} else if (data.subtype === 'END') {
 
-					var text = "<br>" + type + " finished: " + new Date(data.end)
-						+ "<br>Total duration: " + data.duration
-						+ "<br><br>Reload the page to see the new data.";
+					let text = `<br>${type} finished: ${new Date(data.end)}<br>
+						Total duration: ${data.duration}<br><br>
+						Reload the page to see the new data.`;
 
-					new MessageBuilder().title(type + " finished").uniqueClass(messageCssClass).success(text).specialInteractionButton('Reload Page', function() { location.reload(); }, 'Ignore').appendsText().updatesButtons().show();
+					new MessageBuilder().title(`${type} finished`).uniqueClass(messageCssClass).success(text).specialInteractionButton('Reload Page', () => { location.reload(); }, 'Ignore').appendsText().updatesButtons().show();
 
 				}
 				break;
+			}
 
 			case 'DEPLOYMENT_EXPORT_STATUS':
-			case 'DEPLOYMENT_DATA_EXPORT_STATUS':
+			case 'DEPLOYMENT_DATA_EXPORT_STATUS': {
 
-				var type            = 'Deployment Export';
-				var messageCssClass = 'deployment-export';
+				let type            = 'Deployment Export';
+				let messageCssClass = 'deployment-export';
 
 				if (data.type === 'DEPLOYMENT_DATA_EXPORT_STATUS') {
 					type            = 'Data Deployment Export';
@@ -1933,43 +1895,45 @@ let Structr = {
 
 				if (data.subtype === 'BEGIN') {
 
-					var text = type + ' started: ' + new Date(data.start) + '<br>'
-						+ 'Exporting to: <span class="deployment-target">' + data.target + '</span><br><br>'
-						+ 'System performance may be affected during Export.<br><ol class="message-steps"></ol>';
+					let text = `${type} started: ${new Date(data.start)}<br>
+						Exporting to: <span class="deployment-target">${data.target}</span><br><br>
+						System performance may be affected during Export.<br><ol class="message-steps"></ol>
+					`;
 
 					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info('<li>' + data.message + '</li>').requiresConfirmation().appendsText('.message-steps').show();
+					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info(`<li>${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
 
 				} else if (data.subtype === 'END') {
 
-					var text = '<br>'+ type + ' finished: ' + new Date(data.end)
-						+ '<br>Total duration: ' + data.duration;
+					let text = `<br>${type} finished: ${new Date(data.end)}<br>Total duration: ${data.duration}`;
 
 					new MessageBuilder().title(type + ' finished').uniqueClass(messageCssClass).success(text).appendsText().requiresConfirmation().show();
 
 				}
 				break;
+			}
 
 			case "SCHEMA_ANALYZE_STATUS":
 
 				if (data.subtype === 'BEGIN') {
 
-					var text = "Schema Analysis started: " + new Date(data.start) + "<br>"
-						+ "Please wait until the import process is finished. This message will be updated during the process.<br><ol class='message-steps'></ol>";
+					let text = `Schema Analysis started: ${new Date(data.start)}<br>
+						Please wait until the import process is finished. This message will be updated during the process.<br>
+						<ol class="message-steps"></ol>
+					`;
 
-					new MessageBuilder().title("Schema Analysis progress").uniqueClass('schema-analysis').info(text).requiresConfirmation().updatesText().show();
+					new MessageBuilder().title('Schema Analysis progress').uniqueClass('schema-analysis').info(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new MessageBuilder().title("Schema Analysis progress").uniqueClass('schema-analysis').info("<li>" + data.message + "</li>").requiresConfirmation().appendsText('.message-steps').show();
+					new MessageBuilder().title('Schema Analysis progress').uniqueClass('schema-analysis').info(`<li>${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
 
 				} else if (data.subtype === 'END') {
 
-					var text = "<br>Schema Analysis finished: " + new Date(data.end)
-						+ "<br>Total duration: " + data.duration;
+					let text = `<br>Schema Analysis finished: ${new Date(data.end)}<br>Total duration: ${data.duration}`;
 
 					new MessageBuilder().title("Schema Analysis finished").uniqueClass('schema-analysis').success(text).appendsText().requiresConfirmation().show();
 
@@ -1980,19 +1944,20 @@ let Structr = {
 
 				if (data.subtype === 'BEGIN') {
 
-					var text = "Process to retrieve a Let's Encrypt certificate via ACME started: " + new Date(data.start) + "<br>"
-						+ "This will take a couple of seconds. This message will be updated during the process.<br><ol class='message-steps'></ol>";
+					let text = `Process to retrieve a Let's Encrypt certificate via ACME started: ${new Date(data.start)}<br>
+						This will take a couple of seconds. This message will be updated during the process.<br>
+						<ol class='message-steps'></ol>
+					`;
 
 					new MessageBuilder().title("Certificate retrieval progress").uniqueClass('cert-retrieval').info(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new MessageBuilder().title("Certificate retrieval progress").uniqueClass('cert-retrieval').info("<li>" + data.message + "</li>").requiresConfirmation().appendsText('.message-steps').show();
+					new MessageBuilder().title("Certificate retrieval progress").uniqueClass('cert-retrieval').info(`<li>${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
 
 				} else if (data.subtype === 'END') {
 
-					var text = "<br>Certificate retrieval process finished: " + new Date(data.end)
-						+ "<br>Total duration: " + data.duration;
+					let text = `<br>Certificate retrieval process finished: ${new Date(data.end)}<br>Total duration: ${data.duration}`;
 
 					new MessageBuilder().title("Certificate retrieval finished").uniqueClass('cert-retrieval').success(text).appendsText().requiresConfirmation().show();
 
@@ -2007,7 +1972,8 @@ let Structr = {
 
 				let enabled = data.enabled ? 'enabled' : 'disabled';
 
-				new MessageBuilder().title('Maintenance Mode ' + enabled).warning("Maintenance Mode has been " + enabled + ". Redirecting...").allowConfirmAll().show();
+				new MessageBuilder().title(`Maintenance Mode ${enabled}`).warning(`Maintenance Mode has been ${enabled}.<br><br> Redirecting...`).allowConfirmAll().show();
+
 				window.setTimeout(function() {
 					location.href = data.baseUrl + location.pathname + location.search;
 				}, 1500);
@@ -2023,7 +1989,7 @@ let Structr = {
 
 			case "RESOURCE_ACCESS":
 
-				let builder = new MessageBuilder().title('REST Access to \'' + data.uri + '\' denied').warning(data.message).requiresConfirmation().allowConfirmAll();
+				let builder = new MessageBuilder().title(`REST Access to '${data.uri}' denied`).warning(data.message).requiresConfirmation().allowConfirmAll();
 
 				builder.specialInteractionButton('Go to Security and create Grant', function (btn) {
 
@@ -2080,8 +2046,6 @@ let Structr = {
 
 					if (data.nodeId && data.nodeType) {
 
-						let uniqueClass = 'n' + data.nodeId + data.nodeType + data.row + data.column;
-
 						Command.get(data.nodeId, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
 
 							let name     = data.name.slice(data.name.indexOf('_html_') === 0 ? 6 : 0);
@@ -2114,50 +2078,45 @@ let Structr = {
 									break;
 							}
 
-							let location = '<table class="scripting-error-location">'
-								+ '<tr><th>Element:</th><td style="padding-left:8px;">' + data.nodeType + '[' + data.nodeId + ']</td></tr>'
-								+ '<tr><th>' + property + ':</th><td style="padding-left:8px;">' + name + '</td></tr>'
-								+ '<tr><th>Row:</th><td style="padding-left:8px;">' + data.row + '</td></tr>'
-								+ '<tr><th>Column:</th><td style="padding-left:8px;">' + data.column + '</td></tr>'
-								+ '</table>';
+							let location = `
+								<table class="scripting-error-location">
+									<tr>
+										<th>Element:</th>
+										<td class="pl-2">${data.nodeType}[${data.nodeId}]</td>
+									</tr>
+									<tr>
+										<th>${property}:</th>
+										<td class="pl-2">${name}</td>
+									</tr>
+									<tr>
+										<th>Row:</th>
+										<td class="pl-2">${data.row}</td>
+									</tr>
+									<tr>
+										<th>Column:</th>
+										<td class="pl-2">${data.column}</td>
+									</tr>
+								</table>
+								<br>
+								${data.message}
+							`;
 
-							let builder = new MessageBuilder().uniqueClass(uniqueClass).incrementsUniqueCount(true)
-								.title('Scripting error in ' + title)
-								.warning(location + '<br/>' + data.message)
-								.requiresConfirmation();
+							let builder = new MessageBuilder().uniqueClass(`n${data.nodeId}${data.nodeType}${data.row}${data.column}`).incrementsUniqueCount(true).title(`Scripting error in ${title}`).warning(location).requiresConfirmation();
 
 							if (data.nodeType === 'SchemaMethod') {
 
-								let pathToOpen = '';
-
-								if (obj.schemaNode) {
-
-									pathToOpen = 'custom--' + obj.schemaNode.id + '-methods-' + obj.id;
-
-								} else {
-
-									pathToOpen = 'globals--' + obj.id;
-								}
+								let pathToOpen = (obj.schemaNode) ? `custom--${obj.schemaNode.id}-methods-${obj.id}` : `globals--${obj.id}`;
 
 								builder.specialInteractionButton('Go to method', function(btn) {
 									window.location.href = '#code';
-									window.setTimeout(function() {
+									window.setTimeout(() => {
 										_Code.findAndOpenNode(pathToOpen, false);
 									}, 1000);
 								}, 'Dismiss');
 
 							} else if (data.nodeType === 'SchemaProperty') {
 
-								let pathToOpen = '';
-
-								if (obj.schemaNode) {
-
-									pathToOpen = 'custom--' + obj.schemaNode.id + '-properties-' + obj.id;
-
-								} else {
-
-									pathToOpen = 'globals--' + obj.id;
-								}
+								let pathToOpen = (obj.schemaNode) ? `custom--${obj.schemaNode.id}-properties-${obj.id}` : `globals--${obj.id}`;
 
 								builder.specialInteractionButton('Go to property', function(btn) {
 									window.location.href = '#code';
@@ -2180,23 +2139,21 @@ let Structr = {
 											break;
 									}
 
-									{
-										// open and select element in tree
-										let structrId = obj.id;
-										_Entities.deselectAllElements();
+									// open and select element in tree
+									let structrId = obj.id;
+									_Entities.deselectAllElements();
 
-										if (!Structr.node(structrId)) {
-											_Pages.expandTreeNode(structrId);
-										} else {
-											let treeEl = Structr.node(structrId);
-											if (treeEl) {
-												_Entities.highlightElement(treeEl);
-											}
+									if (!Structr.node(structrId)) {
+										_Pages.expandTreeNode(structrId);
+									} else {
+										let treeEl = Structr.node(structrId);
+										if (treeEl) {
+											_Entities.highlightElement(treeEl);
 										}
-
-										LSWrapper.setItem(_Entities.selectedObjectIdKey, structrId);
-
 									}
+
+									LSWrapper.setItem(_Entities.selectedObjectIdKey, structrId);
+
 								}, 'Dismiss');
 							}
 
@@ -2216,10 +2173,7 @@ let Structr = {
 
 					let uniqueClass = 'deprecation-warning-' + data.nodeId;
 
-					let builder = new MessageBuilder().uniqueClass(uniqueClass).incrementsUniqueCount(true)
-						.title(data.title)
-						.warning(data.message)
-						.requiresConfirmation();
+					let builder = new MessageBuilder().uniqueClass(uniqueClass).incrementsUniqueCount(true).title(data.title).warning(data.message).requiresConfirmation();
 
 					if (data.subtype === 'EDIT_MODE_BINDING') {
 
@@ -2246,7 +2200,7 @@ let Structr = {
 									builder.warning(data.message + '<br><br>Soure: ' + title);
 								}
 
-								builder.specialInteractionButton('Show in tree', function (btn) {
+								builder.specialInteractionButton('Go to element in page tree', function (btn) {
 
 									// open and select element in tree
 									let structrId = obj.id;
@@ -2273,31 +2227,21 @@ let Structr = {
 					} else {
 						builder.allowConfirmAll().show();
 					}
-
-
 				}
 				break;
 			}
 
 			default: {
 
-				var text = "<p>No handler for generic message of type <b>" + data.type + "</b> defined - printing complete message data.</p>";
-				Object.keys(data).forEach(function(key) {
-					text += "<b>" + key + "</b>: " + data[key] + "<br>";
-				});
+				let text = `
+					<p>No handler for generic message of type <b>${data.type}</b> defined - printing complete message data.</p>
+					${Object.entries(data).map(([key, value]) => `<b>${key}</b>:${data[key]}<br>`).join('')}
+				`;
 
 				new MessageBuilder().title("GENERIC_MESSAGE").warning(text).requiresConfirmation().show();
 
 			}
 		}
-	},
-	fetchHtmlTemplate: function(templateName, templateConfig, callback) {
-
-		Structr.templateCache.registerCallback(templateName, templateName, function(templateHtml, cacheHit) {
-			let convertTemplateToLiteral = new Function('config', 'return `' + templateHtml + '`;');
-			let parameterizedTemplate = convertTemplateToLiteral(templateConfig);
-			callback(parameterizedTemplate, cacheHit);
-		});
 	},
 	activateCommentsInElement: function(elem, defaults) {
 
@@ -2320,7 +2264,7 @@ let Structr = {
 
 				let elCommentConfig = $el.data('commentConfig') || {};
 
-				// base config is overridden by the defaults parameter which is overriden by the element config
+				// base config is overridden by the defaults parameter which is overridden by the element config
 				let infoConfig = Object.assign(config, defaults, elCommentConfig);
 				Structr.appendInfoTextToElement(infoConfig);
 			}
@@ -2747,19 +2691,18 @@ function MessageBuilder () {
 
 			this.params.msgId = 'message_' + (Structr.msgCount++);
 
-			$('#info-area').append(
-				'<div class="' + this.params.classNames.join(' ') +  '" id="' + this.params.msgId + '">' +
-				(this.params.title ? '<h3 class="title">' + this.params.title + this.getUniqueCountElement() + '</h3>' : this.getUniqueCountElement()) +
-				'<div class="text">' + this.params.text + '</div>' +
-				(this.params.furtherText ? '<div class="furtherText">' + this.params.furtherText + '</div>' : '') +
-				'<div class="message-buttons">' + this.getButtonHtml() + '</div>' +
-				'</div>'
-			);
+			$('#info-area').append(`
+				<div class="${this.params.classNames.join(' ')}" id="${this.params.msgId}">
+				${(this.params.title ? `<h3 class="title">${this.params.title}${this.getUniqueCountElement()}</h3>` : this.getUniqueCountElement())}
+				<div class="text">${this.params.text}</div>
+				${(this.params.furtherText ? `<div class="furtherText">${this.params.furtherText}</div>` : '')}
+				<div class="message-buttons">${this.getButtonHtml()}</div>
+				</div>
+			`);
 
 			$('#' + this.params.msgId).data('msgbuilder', this);
 
 			this.activateButtons(this, this);
-
 		}
 	};
 
@@ -2869,7 +2812,7 @@ let UISettings = {
 				<button class="btn dropdown-select">
 					${_Icons.getSvgIcon('ui_configuration_settings')}
 				</button>
-				<div class="dropdown-menu-container" style="opacity: 0"></div>
+				<div class="dropdown-menu-container" style=display: none;"></div>
 			</div>`);
 
 			let container = dropdown.querySelector('.dropdown-menu-container');

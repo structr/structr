@@ -215,236 +215,226 @@ var _Graph = {
 			graphBrowser.startForceAtlas2();
 		});
 
-		Structr.fetchHtmlTemplate('graph/submenu', {}, function(html) {
+		main[0].innerHTML             = _Graph.templates.main();
+		Structr.functionBar.innerHTML = _Graph.templates.functions();
 
-			Structr.functionBar.innerHTML = html;
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('graph'));
 
-			UISettings.showSettingsForCurrentModule();
+		UISettings.showSettingsForCurrentModule();
 
-			$('#clear-graph').on('click', function() {
-				_Graph.clearGraph();
-			});
+		$('#clear-graph').on('click', function() {
+			_Graph.clearGraph();
+		});
 
-			let savedTypeVisibility = LSWrapper.getItem(_Graph.displayTypeConfigKey) || {};
-			$('#graphTypeToggleRels').prop('checked', (savedTypeVisibility.rels === undefined ? true : savedTypeVisibility.rels));
-			$('#graphTypeToggleCustom').prop('checked', (savedTypeVisibility.custom === undefined ? true : savedTypeVisibility.custom));
-			$('#graphTypeToggleCore').prop('checked', (savedTypeVisibility.core === undefined ? true : savedTypeVisibility.core));
-			$('#graphTypeToggleHtml').prop('checked', (savedTypeVisibility.html === undefined ? true : savedTypeVisibility.html));
-			$('#graphTypeToggleUi').prop('checked', (savedTypeVisibility.ui === undefined ? true : savedTypeVisibility.ui));
-			$('#graphTypeToggleLog').prop('checked', (savedTypeVisibility.log === undefined ? true : savedTypeVisibility.log));
-			$('#graphTypeToggleOther').prop('checked', (savedTypeVisibility.other === undefined ? true : savedTypeVisibility.other));
+		let savedTypeVisibility = LSWrapper.getItem(_Graph.displayTypeConfigKey) || {};
+		$('#graphTypeToggleRels').prop('checked', (savedTypeVisibility.rels === undefined ? true : savedTypeVisibility.rels));
+		$('#graphTypeToggleCustom').prop('checked', (savedTypeVisibility.custom === undefined ? true : savedTypeVisibility.custom));
+		$('#graphTypeToggleCore').prop('checked', (savedTypeVisibility.core === undefined ? true : savedTypeVisibility.core));
+		$('#graphTypeToggleHtml').prop('checked', (savedTypeVisibility.html === undefined ? true : savedTypeVisibility.html));
+		$('#graphTypeToggleUi').prop('checked', (savedTypeVisibility.ui === undefined ? true : savedTypeVisibility.ui));
+		$('#graphTypeToggleLog').prop('checked', (savedTypeVisibility.log === undefined ? true : savedTypeVisibility.log));
+		$('#graphTypeToggleOther').prop('checked', (savedTypeVisibility.other === undefined ? true : savedTypeVisibility.other));
 
-			$('#selectionLasso').on('click', function() {
-				if (!graphBrowser.selectionToolsActive) {
-					graphBrowser.activateSelectionLasso(true);
-				}
-			});
+		$('#selectionLasso').on('click', function() {
+			if (!graphBrowser.selectionToolsActive) {
+				graphBrowser.activateSelectionLasso(true);
+			}
+		});
 
-			$('#newSelectionGroup').on('click', function() {
+		$('#newSelectionGroup').on('click', function() {
 
-				let newId = graphBrowser.createSelectionGroup();
+			let newId = graphBrowser.createSelectionGroup();
 
-				Structr.fetchHtmlTemplate('graph/new_selection_group', {newId: newId}, function(html) {
+			let newSelectionGroupHtml = _Graph.templates.newSelectionGroup({newId: newId});
 
-					$('#selectiontools-selectionTable-groupSelectionItems').append(html);
-					$("input[name='selectedGroup[]']").trigger('click');
-					$("input[value='selected." + newId + "']").prop('checked', true);
-				});
-			});
+			$('#selectiontools-selectionTable-groupSelectionItems').append(newSelectionGroupHtml);
+			$("input[name='selectedGroup[]']").trigger('click');
+			$("input[value='selected." + newId + "']").prop('checked', true);
+		});
 
-			$(document).on('click', ".selectionTableRemoveBtn", function() {
-				var val = $(this).val();
-				graphBrowser.dropSelection(val);
-			});
+		$(document).on('click', ".selectionTableRemoveBtn", function() {
+			var val = $(this).val();
+			graphBrowser.dropSelection(val);
+		});
 
-			$(document).on('click', "input[name='selectedGroup[]']",  function() {
-				var self = $(this);
+		$(document).on('click', "input[name='selectedGroup[]']",  function() {
+			var self = $(this);
 
-				if (self.is(':checked')) {
-					$("input[name='selectedGroup[]']").prop("checked", false);
-					self.prop("checked", true);
-					var val = self.val().split('.');
-					graphBrowser.activateSelectionTools();
-					graphBrowser.activateSelectionGroup(val[1]);
-				} else {
-					graphBrowser.deactivateSelectionTools();
-					self.prop("checked", false);
-				}
-			});
-
-			$(document).on('click', "input[name='Hidden[]']",  function() {
-				var self = $(this);
+			if (self.is(':checked')) {
+				$("input[name='selectedGroup[]']").prop("checked", false);
+				self.prop("checked", true);
 				var val = self.val().split('.');
+				graphBrowser.activateSelectionTools();
+				graphBrowser.activateSelectionGroup(val[1]);
+			} else {
+				graphBrowser.deactivateSelectionTools();
+				self.prop("checked", false);
+			}
+		});
 
-				graphBrowser.hideSelectionGroup(val[1], self.is(':checked'));
+		$(document).on('click', "input[name='Hidden[]']",  function() {
+			var self = $(this);
+			var val = self.val().split('.');
+
+			graphBrowser.hideSelectionGroup(val[1], self.is(':checked'));
+		});
+
+		$(document).on('click', "input[name='Fixed[]']",  function() {
+			var self = $(this);
+			var val = self.val().split('.');
+
+			graphBrowser.fixateSelectionGroup(val[1], self.is(':checked'));
+		});
+
+		$('.clearSearchIcon').on('click', function() {
+			var self = $(this);
+			self.hide();
+			$('.search[name=' + self.data('type') + ']').val('').focus();
+		});
+
+		$('#exec-rest').on('click', function() {
+			var query = $('.search[name=rest]').val();
+			if (query && query.length) {
+				_Graph.execQuery(query, 'rest');
+			}
+		});
+
+		$('#exec-cypher').on('click', function() {
+			var query = $('.search[name=cypher]').val();
+			var params = {};
+			var names = $.map($('[name="cyphername[]"]'), function(n) {
+				return $(n).val();
+			});
+			var values = $.map($('[name="cyphervalue[]"]'), function(v) {
+				return $(v).val();
 			});
 
-			$(document).on('click', "input[name='Fixed[]']",  function() {
-				var self = $(this);
-				var val = self.val().split('.');
+			for (var i = 0; i < names.length; i++) {
+				params[names[i]] = values[i];
+			}
 
-				graphBrowser.fixateSelectionGroup(val[1], self.is(':checked'));
-			});
+			if (query && query.length) {
+				_Graph.execQuery(query, 'cypher', JSON.stringify(params));
+			}
+		});
 
-			$('.clearSearchIcon').on('click', function() {
-				var self = $(this);
-				self.hide();
-				$('.search[name=' + self.data('type') + ']').val('').focus();
-			});
+		$(document).on('click', '.closeTooltipBtn', function(){
+			graphBrowser.closeTooltip();
+		});
 
-			$('#exec-rest').on('click', function() {
-				var query = $('.search[name=rest]').val();
-				if (query && query.length) {
-					_Graph.execQuery(query, 'rest');
-				}
-			});
+		$(document).on('click', '#tooltipBtnProps', function(){
+			var id = $(this).attr("value");
+			_Entities.showProperties({id: id});
+			graphBrowser.closeTooltip();
+		});
 
-			$('#exec-cypher').on('click', function() {
-				var query = $('.search[name=cypher]').val();
-				var params = {};
-				var names = $.map($('[name="cyphername[]"]'), function(n) {
-					return $(n).val();
-				});
-				var values = $.map($('[name="cyphervalue[]"]'), function(v) {
-					return $(v).val();
-				});
+		$(document).on('click', '#tooltipBtnHide', function() {
+			var id = $(this).attr("value");
+			graphBrowser.closeTooltip();
+			graphBrowser.hideNode(id, true);
+		});
 
-				for (var i = 0; i < names.length; i++) {
-					params[names[i]] = values[i];
-				}
+		$(document).on('click', '#tooltipBtnDrop', function() {
+			let id = $(this).attr("value");
+			graphBrowser.closeTooltip();
+			graphBrowser.dropNode(id);
+			graphBrowser.dataChanged();
+			_Graph.updateRelationshipTypes();
+		});
 
-				if (query && query.length) {
-					_Graph.execQuery(query, 'cypher', JSON.stringify(params));
-				}
-			});
-
-
-			Structr.fetchHtmlTemplate('graph/graph', {}, function(html) {
-
-				main[0].innerHTML = html;
-
-				Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('graph'));
-
-				$(document).on('click', '.closeTooltipBtn', function(){
-					graphBrowser.closeTooltip();
-				});
-
-				$(document).on('click', '#tooltipBtnProps', function(){
-					var id = $(this).attr("value");
-					_Entities.showProperties({id: id});
-					graphBrowser.closeTooltip();
-				});
-
-				$(document).on('click', '#tooltipBtnHide', function() {
-					var id = $(this).attr("value");
-					graphBrowser.closeTooltip();
-					graphBrowser.hideNode(id, true);
-				});
-
-				$(document).on('click', '#tooltipBtnDrop', function() {
-					var id = $(this).attr("value");
-					graphBrowser.closeTooltip();
-					graphBrowser.dropNode(id);
-					graphBrowser.dataChanged();
-					_Graph.updateRelationshipTypes();
-				});
-
-				$(document).on('click', '#tooltipBtnDel', function() {
-					var self = $(this);
-					var id = self.attr("value");
-					Command.get(id, 'id,type,name,sourceId,targetId', function (entity) {
-						if (graphBrowser.getNode(entity.id)) {
-							_Entities.deleteNode(self, entity, false, function (entity) {
-								graphBrowser.dropNode(entity);
-								graphBrowser.dataChanged();
-								_Graph.updateRelationshipTypes();
-							});
-						} else {
-							_Entities.deleteEdge(self, entity, false, function (entity) {
-								if(graphBrowser.getEdge(entity)) {
-									graphBrowser.dropEdge(entity);
-								}
-								graphBrowser.dataChanged();
-								_Graph.updateRelationshipTypes();
-							});
-						}
+		$(document).on('click', '#tooltipBtnDel', function() {
+			let self = $(this);
+			let id = self.attr("value");
+			Command.get(id, 'id,type,name,sourceId,targetId', function (entity) {
+				if (graphBrowser.getNode(entity.id)) {
+					_Entities.deleteNode(self, entity, false, function (entity) {
+						graphBrowser.dropNode(entity);
+						graphBrowser.dataChanged();
+						_Graph.updateRelationshipTypes();
 					});
-					graphBrowser.closeTooltip();
-				});
+				} else {
+					_Entities.deleteEdge(self, entity, false, function (entity) {
+						if(graphBrowser.getEdge(entity)) {
+							graphBrowser.dropEdge(entity);
+						}
+						graphBrowser.dataChanged();
+						_Graph.updateRelationshipTypes();
+					});
+				}
+			});
+			graphBrowser.closeTooltip();
+		});
 
-				graph = $('#graph-canvas');
+		graph = $('#graph-canvas');
 
-				graph.droppable({
-					accept: '.node-type',
-					drop: function(e, ui) {
-						var nodeType = ui.helper.attr('data-node-type');
-						Command.create({
-							type: nodeType
-						}, function(obj) {
-							if(obj != null) {
-								Command.get(obj.id, 'id,type,name,color,tag', function(node) {
-									_Graph.drawNode(node);
-								});
-							}
+		graph.droppable({
+			accept: '.node-type',
+			drop: function(e, ui) {
+				var nodeType = ui.helper.attr('data-node-type');
+				Command.create({
+					type: nodeType
+				}, function(obj) {
+					if(obj != null) {
+						Command.get(obj.id, 'id,type,name,color,tag', function(node) {
+							_Graph.drawNode(node);
 						});
 					}
 				});
-
-				_Graph.init();
-				_Graph.appendCypherParameter($('#cypher-params'));
-
-				$('#add-cypher-parameter').on('click', function() {
-					_Graph.appendCypherParameter($('#cypher-params'));
-				});
-
-				$(document).on('click', '.remove-cypher-parameter', function() {
-					$(this).parent().remove();
-				});
-
-				_Graph.clearSearch('rest');
-				_Graph.clearSearch('cypher');
-				_Graph.listSavedQueries();
-
-				_Graph.searchField = $('.query-box .search');
-				_Graph.searchField.focus();
-				_Graph.searchField.keyup(function(e) {
-					var self = $(this);
-					var searchString = self.val();
-					var type = self.attr('name');
-
-					if (searchString && searchString.length) {
-						_Graph.showClearSearchIcon(type);
-					} else {
-						_Graph.clearSearch(type);
-					}
-
-					if (searchString && searchString.length && e.which === 13) {
-						if (!shiftKey) {
-
-							if (type === 'rest') {
-								e.stopPropagation();
-								e.preventDefault();
-							} else {
-								_Graph.searchField.attr('rows', searchString.split('\n').length);
-							}
-
-							_Graph.execQuery(searchString, type);
-							return false;
-						}
-					} else if (e.which === 27) {
-						_Graph.clearSearch(type);
-					}
-				});
-
-				$(window).off('resize').resize(function() {
-					_Graph.resize();
-				});
-
-				$('#newSelectionGroup').trigger('click');
-				Structr.unblockMenu(100);
-			});
+			}
 		});
 
+		_Graph.init();
+		_Graph.appendCypherParameter($('#cypher-params'));
+
+		$('#add-cypher-parameter').on('click', function() {
+			_Graph.appendCypherParameter($('#cypher-params'));
+		});
+
+		$(document).on('click', '.remove-cypher-parameter', function() {
+			$(this).parent().remove();
+		});
+
+		_Graph.clearSearch('rest');
+		_Graph.clearSearch('cypher');
+		_Graph.listSavedQueries();
+
+		_Graph.searchField = $('.query-box .search');
+		_Graph.searchField.focus();
+		_Graph.searchField.keyup(function(e) {
+			var self = $(this);
+			var searchString = self.val();
+			var type = self.attr('name');
+
+			if (searchString && searchString.length) {
+				_Graph.showClearSearchIcon(type);
+			} else {
+				_Graph.clearSearch(type);
+			}
+
+			if (searchString && searchString.length && e.which === 13) {
+				if (!shiftKey) {
+
+					if (type === 'rest') {
+						e.stopPropagation();
+						e.preventDefault();
+					} else {
+						_Graph.searchField.attr('rows', searchString.split('\n').length);
+					}
+
+					_Graph.execQuery(searchString, type);
+					return false;
+				}
+			} else if (e.which === 27) {
+				_Graph.clearSearch(type);
+			}
+		});
+
+		$(window).off('resize').resize(function() {
+			_Graph.resize();
+		});
+
+		$('#newSelectionGroup').trigger('click');
+		Structr.unblockMenu(100);
 	},
 	execQuery: function(query, type, params) {
 		if (query && query.length) {
@@ -874,7 +864,13 @@ var _Graph = {
 	},
 
 	appendCypherParameter: function(el, key, value) {
-		el.append('<div class="cypher-param"><i class="remove-cypher-parameter ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /> <input name="cyphername[]" type="text" placeholder="name" size="10" value="' + (key || '') + '"> <input name="cyphervalue[]" type="text" placeholder="value" size="10" value="' + (value || '') + '"></div>');
+		el.append(`
+			<div class="cypher-param">
+				<i class="remove-cypher-parameter ${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i>
+				<input name="cyphername[]" type="text" placeholder="name" size="10" value="${(key || '')}">
+				<input name="cyphervalue[]" type="text" placeholder="value" size="10" value="${(value || '')}">
+			</div>
+		`);
 	},
 
 	onNodesAdded: function(){
@@ -884,26 +880,21 @@ var _Graph = {
 	handleClickStageEvent: function(){
 		graphBrowser.hideExpandButtons();
 		document.querySelectorAll('.dropdown-menu-container').forEach((container) => {
-			container.style.opacity = '0';
-			fastRemoveAllChildren(container);
+			container.style.display = 'none';
 		});
 	},
-
 	handleDragNodeEvent: function(){
 		hasDragged = true;
 	},
-
 	handleStartDragNodeEvent: function(){
 		hasDragged = true;
 		graphBrowser.hideExpandButtons();
 	},
-
 	handleDoubleClickNodeEvent: function(clickedNode){
 		window.clearTimeout(clickTimeout);
 		hasDoubleClicked = true;
 		return false;
 	},
-
 	handleClickNodeEvent: function(clickedNode){
 		var node = clickedNode.data.node;
 
@@ -925,7 +916,6 @@ var _Graph = {
 			hasDoubleClicked = false;
 		}, doubleClickTime + 10);
 	},
-
 	handleClickEdgeEvent: function(clickedEdge){
 
 		if (hasDragged) {
@@ -936,9 +926,7 @@ var _Graph = {
 		hasDoubleClicked = false;
 
 		_Entities.showProperties(clickedEdge.data.edge);
-
 	},
-
 	renderNodeExpanderInfoButton: function(colorKey, label){
 		var button =
 			'<div class="nodeExpander-infobutton">' +
@@ -946,7 +934,6 @@ var _Graph = {
 			'</div>';
 		return button;
 	},
-
 	renderNodeTooltip: function(node){
 		var tooltip =
 			"<div class='tooltipArrowUp'></div>" +
@@ -1006,5 +993,132 @@ var _Graph = {
 				"</div>" +
 			"</div>";
 		return tooltip;
+	},
+
+	templates: {
+		main: config => `
+			<link rel="stylesheet" type="text/css" media="screen" href="css/graph_editor.css">
+			
+			<div id="graph-box" class="graphNoSelect">
+			
+				<div id="graph-info"></div>
+			
+			<!--	<div id="cypher-params">-->
+			<!--		<h3>Cypher Parameters</h3>-->
+			<!--		<i id="add-cypher-parameter" class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i>-->
+			<!--	</div>-->
+			
+			<!--	<div><h3>Saved Queries</h3></div>-->
+			<!--	<div id="saved-queries"></div>-->
+			
+				<div class="canvas" id="graph-canvas"></div>
+			<!--	<div id="node-types" class="graph-object-types"></div>-->
+			<!--	<div id="relationship-types" class="graph-object-types"></div>-->
+			
+			</div>
+		`,
+		functions: config => `
+			<div class="query-box rest flex mr-4">
+				<div class="relative">
+					<input class="search" name="rest" size="39" placeholder="REST query">
+					<i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}" id="clear-rest" data-type="rest"></i>
+				</div>
+				<a class="icon" id="exec-rest">
+					${_Icons.getSvgIcon('run_button', 24, 24, '')}
+				</a>
+			</div>
+			
+			<div class="query-box cypher flex mr-4">
+				<div class="relative max-h-5">
+					<textarea class="search min-h-5 min-w-64" name="cypher" cols="39" rows="1" placeholder="Cypher query"></textarea>
+					<i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}" id="clear-cypher" data-type="cypher"></i>
+				</div>
+				<a class="icon" id="exec-cypher">
+					${_Icons.getSvgIcon('run_button', 24, 24, '')}
+				</a>
+			</div>
+			
+			<div class="dropdown-menu dropdown-menu-large">
+				<button class="btn dropdown-select">${_Icons.getSvgIcon('display-settings-sliders')} Display Settings</button>
+			
+				<div class="dropdown-menu-container">
+					<div class="heading-row">
+						<h3>Display Options</h3>
+					</div>
+					<div class="row">
+						<label class="block"><input ${!nodeLabelsHidden ? 'checked' : ''} type="checkbox" id="toggleNodeLabels" name="toggleNodeLabels"> Node labels</label>
+					</div>
+					<div class="row">
+						<label class="block"><input ${!edgeLabelsHidden ? 'checked' : ''} type="checkbox" id="toggleEdgeLabels" name="toggleEdgeLabels"> Edge labels</label>
+					</div>
+					
+					<div class="heading-row">
+						<h3>Set Layout</h3>
+					</div>
+					<div class="row">
+						<a id="fruchterman-controlElement" class="block">Fruchterman</a>
+					</div>
+					<div class="row">
+						<a id="dagre-controlElement" class="block">Dagre</a>
+					</div>
+					
+					<div class="heading-row">
+						<h3>Dynamic Layouting On/Off</h3>
+					</div>
+					
+					<div class="row">
+						<a id="forceAtlas-controlElement" class="block ${animating ? 'active' : ''}">ForceAtlas2</a>
+					</div>
+					
+					<!--	<div class="heading-row"><h3>Selection Tools</h3></div>-->
+					<!--	<button id="newSelectionGroup">New Selection</button>-->
+					<!--	<button id="selectionLasso">Lasso</button>-->
+					<!--	<div id="selectionToolsTableContainer">-->
+					<!--		<table id="selectionToolsTable" class="graphtable responsive">-->
+					<!--			<thead id="selectionToolsTableHead">-->
+					<!--			<tr>-->
+					<!--				<th>Group</th>-->
+					<!--				<th>Fixed</th>-->
+					<!--				<th>Hidden</th>-->
+					<!--				<th>Remove</th>-->
+					<!--			</tr>-->
+					<!--			</thead>-->
+					<!--			<tbody id="selectiontools-selectionTable-groupSelectionItems">-->
+					<!--			<tbody>-->
+					<!--		</table>-->
+					<!--	</div>-->
+
+				</div>
+			</div>
+			
+			<button id="clear-graph">Clear Graph</button>
+		`,
+		filters: config => `
+			<div id="filters" class="">
+			
+				<div id="nodeFilters">
+					<h3>Node Filters</h3>
+					
+					<div><input type="checkbox" id="graphTypeToggleCore"><label for="graphTypeToggleCore"> Core Types</label></div>
+					<div><input type="checkbox" id="graphTypeToggleUi"><label for="graphTypeToggleUi"> UI Types</label></div>
+					<div><input type="checkbox" id="graphTypeToggleCustom"><label for="graphTypeToggleCustom"> Custom Types</label></div>
+					<div><input type="checkbox" id="graphTypeToggleHtml"><label for="graphTypeToggleHtml"> HTML Types</label></div>
+					<div><input type="checkbox" id="graphTypeToggleLog"><label for="graphTypeToggleLog"> Log Types</label></div>
+					<div><input type="checkbox" id="graphTypeToggleOther"><label for="graphTypeToggleOther"> Other Types</label></div>
+				</div>
+
+				<div id="relFilters">
+					<h3>Relationship Filters</h3>
+				</div>
+			</div>
+		`,
+		newSelectionGroup: config => `
+			<tr>
+				<td><input type="checkbox" name="selectedGroup[]" value="selected.${config.newId}">${config.newId}</td>
+				<td class="text-center"><input type="checkbox" name="Fixed[]" value="fixed.${config.newId}"></td>
+				<td class="text-center"><input type="checkbox" name="Hidden[]" value="hidden.${config.newId}"></td>
+				<td class="text-center"><button class="selectionTableRemoveBtn" value="${config.newId}">Remove</button></td>
+			</tr>
+		`,
 	}
 };

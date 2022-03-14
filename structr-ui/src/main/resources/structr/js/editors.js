@@ -714,7 +714,7 @@ let _Editors = {
 
 		let dropdown = Structr.createSingleDOMElementFromHTML(`<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 				<button class="btn dropdown-select">${_Icons.getSvgIcon('text-settings')}</button>
-				<div class="dropdown-menu-container" style="opacity: 0; visibility: hidden; ">
+				<div class="dropdown-menu-container" style="display: none;">
 					<div class="font-bold pt-4 pb-2">Global Editor Settings</div>
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Word Wrap</label>

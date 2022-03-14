@@ -24,24 +24,20 @@ $(document).ready(function() {
 	Structr.classes.push('shapes');
 });
 
-var _Shapes = {
+let _Shapes = {
 	_moduleName: 'shapes',
 	autoRefresh: [],
 	onload: function() {
 
-		Structr.fetchHtmlTemplate('shapes/main', {}, function(html) {
+		main.append('');
 
-			main.append(html);
+		_Shapes.init();
 
-			_Shapes.init();
-
-			$(window).off('resize').resize(function() {
-				_Shapes.resize();
-			});
-
-			Structr.unblockMenu(500);
-
+		$(window).off('resize').resize(function() {
+			_Shapes.resize();
 		});
+
+		Structr.unblockMenu(500);
 
 	},
 	init: function() {

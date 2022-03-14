@@ -2144,8 +2144,7 @@ button.disabled, i.disabled {
 
 .dropdown-menu-large .dropdown-menu-container {
 	position: absolute;
-	display: inline-block;
-	opacity: 0;
+	display: none;
 	/*width: 20rem;*/
 	/*height: 20rem;*/
 	background-color: var(--solid-white);
@@ -4680,6 +4679,9 @@ table.props td.__value {
 }
 .font-bold {
 	font-weight: 700;
+}
+.pl-2 {
+	padding-left: .5rem;
 }
 .pb-2 {
 	padding-bottom: .5rem;
