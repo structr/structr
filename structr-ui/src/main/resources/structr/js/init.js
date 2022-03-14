@@ -276,7 +276,6 @@ $(function() {
 			let container = e.target.closest('.dropdown-menu').querySelector('.dropdown-menu-container');
 
 			if (container) {
-				console.log(container);
 
 				if (container.style.display === 'none' || container.style.display === '') {
 
