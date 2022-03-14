@@ -325,7 +325,7 @@ let _Schema = {
 				fadeOut: 25
 			});
 
-			var currentView = LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + _Schema.currentNodeDialogId);
+			let currentView = LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + _Schema.currentNodeDialogId);
 
 			_Schema.reload(function() {
 				_Schema.openEditDialog(_Schema.currentNodeDialogId, currentView);
@@ -337,7 +337,7 @@ let _Schema = {
 		}
 	},
 	isSchemaLoaded: function() {
-		var all = true;
+		let all = true;
 		if (!_Schema.schemaLoaded) {
 			$.each(_Schema.types, function(t, type) {
 				all &= (_Schema.schema[type] && _Schema.schema[type] !== null);

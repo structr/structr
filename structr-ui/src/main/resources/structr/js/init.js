@@ -269,24 +269,8 @@ $(function() {
 		e.stopPropagation();
 		e.preventDefault();
 
-		let menu = e.target.closest('.dropdown-menu');
+		Structr.handleDropdownClick(e);
 
-		if (menu) {
-
-			let container = e.target.closest('.dropdown-menu').querySelector('.dropdown-menu-container');
-
-			if (container) {
-
-				if (container.style.display === 'none' || container.style.display === '') {
-
-					container.style.display = 'inline-block';
-
-				} else if (container.style.display === 'inline-block') {
-
-					container.style.display = 'none';
-				}
-			}
-		}
 		return false;
 	});
 
@@ -297,16 +281,12 @@ $(function() {
 
 	window.addEventListener('click', (e) => {
 		e.stopPropagation();
-		const el = e.target;
-		const isButton = el.classList.contains('dropdown-select');
-		if (isButton) return false;
-		const menu           = el.closest('.dropdown-menu');
+
+		const menu           = e.target.closest('.dropdown-menu');
 		const menuContainer  = menu && menu.querySelector('.dropdown-menu-container');
-		if (!menuContainer) {
-			document.querySelectorAll('.dropdown-menu-container').forEach((container) => {
-				container.style.display    = 'none';
-			});
-		}
+
+		Structr.hideOpenDropdownsExcept(menuContainer);
+
 		return false;
 	});
 });
@@ -368,22 +348,6 @@ let Structr = {
 			return '_' + key;
 		}
 	},
-	templateCache: new AsyncObjectCache(function(templateName) {
-
-		Promise.resolve(
-			fetch('templates/' + templateName + '.html?t=' + (new Date().getTime()))
-		).then(function(response) {
-			if (response.ok) {
-				return response.text();
-			} else {
-				throw new Error('unable to fetch template ' + templateName);
-			}
-		}).then(function(templateHtml) {
-			Structr.templateCache.addObject(templateHtml, templateName);
-		}).catch(function(e) {
-			console.log(e.statusText, templateName, e);
-		});
-	}),
 
 	reconnect: function() {
 		Structr.stopPing();
@@ -2407,14 +2371,45 @@ let Structr = {
 	},
 	isVideo: (contentType) => {
 		return (contentType && contentType.indexOf('video') > -1);
+	},
+	handleDropdownClick: (e) => {
+		let menu = e.target.closest('.dropdown-menu');
+
+		if (menu) {
+
+			let container = e.target.closest('.dropdown-menu').querySelector('.dropdown-menu-container');
+
+			if (container) {
+
+				if (container.style.display === 'none' || container.style.display === '') {
+
+					Structr.hideOpenDropdownsExcept(container);
+
+					container.style.display = 'inline-block';
+
+				} else if (container.style.display === 'inline-block') {
+
+					container.style.display = 'none';
+				}
+			}
+		}
+	},
+	hideOpenDropdownsExcept: (exception) => {
+
+		document.querySelectorAll('.dropdown-menu-container').forEach((container) => {
+
+			if (container != exception) {
+				container.style.display    = 'none';
+			}
+		});
 	}
 };
 
-Structr.rootUrl = `${Structr.getPrefixedRootUrl('/structr/rest/')}`;
-Structr.csvRootUrl = `${Structr.getPrefixedRootUrl('/structr/csv/')}`;
-Structr.viewRootUrl = `${Structr.getPrefixedRootUrl('/')}`;
-Structr.wsRoot = `${Structr.getPrefixedRootUrl('/structr/ws')}`;
-Structr.deployRoot = `${Structr.getPrefixedRootUrl('/structr/deploy')}`;
+Structr.rootUrl     = Structr.getPrefixedRootUrl('/structr/rest/');
+Structr.csvRootUrl  = Structr.getPrefixedRootUrl('/structr/csv/');
+Structr.viewRootUrl = Structr.getPrefixedRootUrl('/');
+Structr.wsRoot      = Structr.getPrefixedRootUrl('/structr/ws');
+Structr.deployRoot  = Structr.getPrefixedRootUrl('/structr/deploy');
 
 let _TreeHelper = {
 	initTree: function(tree, initFunction, stateKey) {
