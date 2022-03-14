@@ -92,9 +92,9 @@ let _Schema = {
 	},
 	storePositions: function() {
 		$.each($('#schema-graph .node'), function(i, n) {
-			var node = $(n);
-			var type = node.text();
-			var obj = node.offset();
+			let node = $(n);
+			let type = node.children('b').text();
+			let obj = node.offset();
 			obj.left = (obj.left) / _Schema.ui.zoomLevel;
 			obj.top  = (obj.top)  / _Schema.ui.zoomLevel;
 			_Schema.nodePositions[type] = obj;
@@ -451,9 +451,8 @@ let _Schema = {
 				let nodePositions = {};
 
 				// positions are stored the 'old' way => convert to the 'new' way
-				data.result.map(function(entity) {
-					return entity.name;
-				}).forEach(function(typeName) {
+				let typeNames = data.result.map(entity => entity.name);
+				for (let typeName of typeNames) {
 
 					let nodePos = JSON.parse(LSWrapper.getItem(typeName + localStorageSuffix + 'node-position'));
 					if (nodePos) {
@@ -461,7 +460,7 @@ let _Schema = {
 
 						LSWrapper.removeItem(typeName + localStorageSuffix + 'node-position');
 					}
-				});
+				}
 
 				_Schema.nodePositions = nodePositions;
 				LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
@@ -576,7 +575,6 @@ let _Schema = {
 							}
 						}
 
-						console.log(canvas);
 						let canvasOffsetTop = canvas.offset().top;
 
 						if (nodePosition.top < canvasOffsetTop) {
@@ -3721,7 +3719,7 @@ let _Schema = {
 
 		createNewLayoutButton.on('click', () => {
 
-			var layoutName = layoutNameInput.val();
+			let layoutName = layoutNameInput.val();
 
 			if (layoutName && layoutName.length) {
 
@@ -3731,7 +3729,7 @@ let _Schema = {
 
 						new MessageBuilder().success("Layout saved").show();
 
-						_Schema.updateGroupedLayoutSelector([layoutSelector, _Schema.globalLayoutSelector], layoutSelectorChangeHandler);
+						_Schema.updateGroupedLayoutSelector(layoutSelector, layoutSelectorChangeHandler);
 						layoutNameInput.val('');
 
 						blinkGreen(layoutSelector);
