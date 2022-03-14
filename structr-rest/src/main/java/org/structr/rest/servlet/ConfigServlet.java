@@ -66,8 +66,8 @@ public class ConfigServlet extends AbstractServletBase {
 	private static final Set<String> sessions         = new HashSet<>();
 	private static final String TITLE                 = "Structr Configuration Editor";
 
-	private static final String ConfigUrl             = Settings.applicationRootPath.getValue("") + "/structr/config";
-	private static final String MainUrl               = Settings.applicationRootPath.getValue("") + "/structr/";
+	private static final String ConfigUrl             = Settings.applicationRootPath.getValue() + "/structr/config";
+	private static final String MainUrl               = Settings.applicationRootPath.getValue() + "/structr/";
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -635,7 +635,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 		final Tag head = doc.block("head");
 
-		final String applicationRootPath = Settings.applicationRootPath.getValue("/");
+		final String applicationRootPath = Settings.applicationRootPath.getValue();
 
 		head.block("title").text(TITLE);
 		head.empty("meta").attr(new Attr("http-equiv", "Content-Type"), new Attr("content", "text/html;charset=utf-8"));

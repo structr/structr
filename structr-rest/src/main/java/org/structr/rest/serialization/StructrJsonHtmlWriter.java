@@ -51,7 +51,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	protected static final String LI               = "li";
 	protected static final String UL               = "ul";
 
-	protected final String restPath           = StringUtils.removeEnd(Settings.applicationRootPath.getValue("") + Settings.RestServletPath.getValue(), "/*");
+	protected final String restPath           = StringUtils.removeEnd(Settings.applicationRootPath.getValue() + Settings.RestServletPath.getValue(), "/*");
 	protected SecurityContext securityContext = null;
 	protected Document doc                    = null;
 	protected Tag currentElement              = null;
@@ -89,7 +89,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter beginDocument(final String baseUrl, final String propertyView) throws IOException {
 
-		String applicationRootPath = Settings.applicationRootPath.getValue("");
+		String applicationRootPath = Settings.applicationRootPath.getValue();
 
 		String currentType = baseUrl.replace(restPath + "/", "").replace("/" + propertyView, "");
 		currentType = applicationRootPath + currentType;
@@ -245,7 +245,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter value(String value) throws IOException {
 
-		String applicationRootPath = Settings.applicationRootPath.getValue("");
+		String applicationRootPath = Settings.applicationRootPath.getValue();
 
 		if (!hasName) {
 

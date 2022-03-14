@@ -361,7 +361,7 @@ public class ActionContext {
 
 							case "applicationRootPath":
 								hints.reportExistingKey(key);
-								return Settings.applicationRootPath.getValue("");
+								return Settings.applicationRootPath.getValue();
 
 							case "me":
 								hints.reportExistingKey(key);

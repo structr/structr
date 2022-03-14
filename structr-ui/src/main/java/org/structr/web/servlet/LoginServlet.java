@@ -134,7 +134,7 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 								break;
 
 							default:
-								sendRelativeRedirect(response, Settings.applicationRootPath.getValue("") +  getRedirectPage(request, result.getResponseCode()));
+								sendRelativeRedirect(response, getRedirectPage(request, result.getResponseCode()));
 								break;
 						}
 

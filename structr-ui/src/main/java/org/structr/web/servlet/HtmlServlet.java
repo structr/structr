@@ -1241,7 +1241,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				// Redirect to target page
 				if (StringUtils.isNotBlank(targetPage)) {
-					sendRelativeRedirect(response, Settings.applicationRootPath.getValue("") + targetPage);
+					sendRelativeRedirect(response, targetPage);
 				}
 
 				return true;
@@ -1249,7 +1249,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			} else {
 				// Redirect to error page
 				if (StringUtils.isNotBlank(errorPage)) {
-					sendRelativeRedirect(response, Settings.applicationRootPath.getValue("") + errorPage);
+					sendRelativeRedirect(response, errorPage);
 				}
 
 				return true;
@@ -1330,7 +1330,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			// Redirect to target page
 			if (StringUtils.isNotBlank(targetPath)) {
-				sendRelativeRedirect(response, Settings.applicationRootPath.getValue("") + targetPath);
+				sendRelativeRedirect(response, targetPath);
 			}
 
 			return true;

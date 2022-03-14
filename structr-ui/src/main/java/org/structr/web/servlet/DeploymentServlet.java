@@ -393,7 +393,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			// send redirect to allow form-based file upload without JavaScript..
 			if (StringUtils.isNotBlank(redirectUrl)) {
 
-				sendRelativeRedirect(response, Settings.applicationRootPath.getValue("") + redirectUrl);
+				sendRelativeRedirect(response, redirectUrl);
 			}
 
 		} catch (Exception t) {
@@ -403,11 +403,10 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			// send redirect to allow form-based file upload without JavaScript..
 			if (StringUtils.isNotBlank(redirectUrl)) {
 
-				final String applicationRootPath = Settings.applicationRootPath.getValue("");
 				try {
-					sendRelativeRedirect(response, applicationRootPath + redirectUrl);
+					sendRelativeRedirect(response, redirectUrl);
 				} catch (IOException ex) {
-					logger.error("Unable to redirect to " + applicationRootPath + redirectUrl);
+					logger.error("Unable to redirect to " + redirectUrl);
 				}
 
 			} else {

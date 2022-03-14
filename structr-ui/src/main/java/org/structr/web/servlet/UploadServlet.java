@@ -366,11 +366,11 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 				if (appendUuidOnRedirect) {
 
-					sendRelativeRedirect(response, Settings.applicationRootPath + "/" + redirectUrl + uuid);
+					sendRelativeRedirect(response, redirectUrl + uuid);
 
 				} else {
 
-					sendRelativeRedirect(response, Settings.applicationRootPath + "/" + redirectUrl);
+					sendRelativeRedirect(response, redirectUrl);
 				}
 
 			} else {

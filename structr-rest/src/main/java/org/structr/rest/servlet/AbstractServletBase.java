@@ -71,8 +71,10 @@ public abstract class AbstractServletBase extends HttpServlet {
 
 	protected void sendRelativeRedirect (final HttpServletResponse response, final String location) throws IOException {
 
+		final String prefixedLocation = Settings.applicationRootPath.getValue() + (location.startsWith("/") ? "" : "/") + location;
+
 		response.resetBuffer();
-		response.setHeader("Location", (location.startsWith("/") ? "" : "/") + location);
+		response.setHeader("Location", prefixedLocation);
 		response.setStatus(HttpServletResponse.SC_FOUND);
 		response.flushBuffer();
 	}
