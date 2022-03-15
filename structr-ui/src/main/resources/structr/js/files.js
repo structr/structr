@@ -354,7 +354,7 @@ let _Files = {
 							// fake the a element so we do not need to look up the server
 							let a = document.createElement('a');
 							let possiblyUpdatedEntity = StructrModel.obj(entity.id);
-							a.href = `${Structr.getPrefixedRootUrl()}${possiblyUpdatedEntity.path}`;
+							a.href = `${Structr.getPrefixedRootUrl('')}${possiblyUpdatedEntity.path}`;
 							await navigator.clipboard.writeText(a.href);
 						})();
 						return false;
@@ -929,7 +929,7 @@ let _Files = {
 
 		let folderIconElement = (d.isMounted) ? `<span class="fa-stack"><i class="fa ${icon} fa-stack-2x"></i><i class="fa fa-plug fa-stack-1x"></i></span>` : `<i class="fa ${icon}"></i>`;
 
-		let filePath = `${Structr.getPrefixedRootUrl()}${d.path}`;
+		let filePath = `${Structr.getPrefixedRootUrl('')}${d.path}`;
 
 		if (listModeActive) {
 
@@ -1001,7 +1001,7 @@ let _Files = {
 
 				tile.append(`
 					<div id="id_${d.id}" class="node file">
-						<div class="file-icon"><a href="${ `${Structr.getPrefixedRootUrl()}${d.path}` }" target="_blank">${iconOrThumbnail}</a></div>
+						<div class="file-icon"><a href="${ `${Structr.getPrefixedRootUrl('')}${d.path}` }" target="_blank">${iconOrThumbnail}</a></div>
 						<b class="name_ abbr-ellipsis abbr-75pc">${name}</b>
 						<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">${size}</span></div></div></div>
 						<!--span class="id">${d.id}</span-->
@@ -1295,7 +1295,7 @@ let _Files = {
 	viewImage: function(image, el) {
 		dialogMeta.hide();
 
-		let imagePath = `${Structr.getPrefixedRootUrl()}${image.path}`;
+		let imagePath = `${Structr.getPrefixedRootUrl('')}${image.path}`;
 
 		el.append(`
 			<div class="image-editor-menubar">
