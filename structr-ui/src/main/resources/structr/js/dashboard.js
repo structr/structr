@@ -359,7 +359,7 @@ let _Dashboard = {
 
 			document.getElementById('do-app-import-from-zip').addEventListener('click', () => {
 				if (deploymentFileInput && deploymentFileInput.files.length > 0) {
-					_Dashboard.deployment.deployFromZIPFileUpload(window.location.href, deploymentFileInput);
+					_Dashboard.deployment.deployFromZIPFileUpload(deploymentFileInput);
 				} else {
 
 					let downloadUrl = deploymentUrlInput.value;
@@ -367,7 +367,7 @@ let _Dashboard = {
 					if (!(downloadUrl && downloadUrl.length)) {
 						new MessageBuilder().title('Unable to start application import from URL').warning('Please enter a URL or upload a ZIP file containing the application export.').requiresConfirmation().allowConfirmAll().show();
 					} else {
-						_Dashboard.deployment.deployFromZIPURL(window.location.href, downloadUrl);
+						_Dashboard.deployment.deployFromZIPURL(downloadUrl);
 					}
 				}
 			});
@@ -536,10 +536,10 @@ let _Dashboard = {
 				window.location = Structr.deployRoot + '?mode=data&name=' + prefix + '&types=' + types;
 			}
 		},
-		deployFromZIPURL: async (redirectUrl, downloadUrl) => {
+		deployFromZIPURL: async (downloadUrl) => {
 
 			let formData = new FormData();
-			formData.append('redirectUrl', redirectUrl);
+			formData.append('redirectUrl', window.location.pathname);
 			formData.append('downloadUrl', downloadUrl);
 			formData.append('mode', 'app');
 

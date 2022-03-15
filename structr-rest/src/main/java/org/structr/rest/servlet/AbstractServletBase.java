@@ -69,13 +69,24 @@ public abstract class AbstractServletBase extends HttpServlet {
 		}
 	}
 
-	protected void sendRelativeRedirect (final HttpServletResponse response, final String location) throws IOException {
+	protected void sendRedirectHeader(final HttpServletResponse response, final String location) throws IOException {
 
-		final String prefixedLocation = Settings.applicationRootPath.getValue() + (location.startsWith("/") ? "" : "/") + location;
+		sendRedirectHeader(response, location, true);
+	}
+
+	protected void sendRedirectHeader(final HttpServletResponse response, final String location, final boolean addPrefix) throws IOException {
+
+		final String locationWithSlash     = ((location.startsWith("/") ? "" : "/") + location);
+		final String finalRedirectLocation = (addPrefix ? prefixLocation(locationWithSlash) : locationWithSlash);
 
 		response.resetBuffer();
-		response.setHeader("Location", prefixedLocation);
+		response.setHeader("Location", finalRedirectLocation);
 		response.setStatus(HttpServletResponse.SC_FOUND);
 		response.flushBuffer();
+	}
+
+	public static String prefixLocation (final String location) {
+
+		return Settings.applicationRootPath.getValue() + ((location.startsWith("/") ? "" : "/") + location);
 	}
 }

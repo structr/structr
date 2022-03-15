@@ -86,7 +86,7 @@ public abstract class StructrOAuthClient {
 
 	public StructrOAuthClient() {};
 
-	public StructrOAuthClient(final String authorizationLocation, final String tokenLocation, final String clientId, final String clientSecret, final String redirect_uri) {
+	public StructrOAuthClient(final String authorizationLocation, final String tokenLocation, final String clientId, final String clientSecret, final String redirectUri) {
 
 		this.init(authorizationLocation, tokenLocation, clientId, clientSecret, redirectUri, OAuthJSONAccessTokenResponse.class);
 	}

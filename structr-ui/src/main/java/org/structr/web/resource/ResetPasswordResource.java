@@ -43,6 +43,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
+import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
@@ -156,10 +157,11 @@ public class ResetPasswordResource extends Resource {
 		propertySetFromUserPOST.entrySet().forEach(entry -> ctx.setConstant(entry.getKey(), entry.getValue().toString()));
 
 		ctx.setConstant("eMail", userEmail);
-		ctx.setConstant("link", getTemplateText(TemplateKey.RESET_PASSWORD_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
+		ctx.setConstant("link",
+				getTemplateText(TemplateKey.RESET_PASSWORD_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
 				+ getTemplateText(TemplateKey.RESET_PASSWORD_PAGE, HtmlServlet.RESET_PASSWORD_PAGE, localeString)
 				+ "?" + getTemplateText(TemplateKey.RESET_PASSWORD_CONFIRMATION_KEY_KEY, HtmlServlet.CONFIRMATION_KEY_KEY, localeString) + "=" + confKey
-				+ "&" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PATH_KEY, HtmlServlet.TARGET_PATH_KEY, localeString) + "=" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PATH, HtmlServlet.RESET_PASSWORD_PAGE, localeString)
+				+ "&" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PATH_KEY, HtmlServlet.TARGET_PATH_KEY, localeString) + "=" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PATH, AbstractDataServlet.prefixLocation(HtmlServlet.RESET_PASSWORD_PAGE), localeString)
 		);
 
 		final String textMailContent = replaceVariablesInTemplate(TemplateKey.RESET_PASSWORD_TEXT_BODY, "Go to ${link} to reset your password.", localeString, ctx);
@@ -203,13 +205,11 @@ public class ResetPasswordResource extends Resource {
 			} else {
 
 				return defaultValue;
-
 			}
 
 		} catch (FrameworkException ex) {
 
 			LoggerFactory.getLogger(ResetPasswordResource.class.getName()).warn("Could not get mail template for key " + key, ex);
-
 		}
 
 		return null;
@@ -231,28 +231,23 @@ public class ResetPasswordResource extends Resource {
 		}
 	}
 
-
 	@Override
 	public Class getEntityClass() {
-
 		return null;
 	}
 
 	@Override
 	public String getUriPart() {
-
 		return "reset-password";
 	}
 
 	@Override
 	public String getResourceSignature() {
-
 		return "_resetPassword";
 	}
 
 	@Override
 	public boolean isCollectionResource() {
-
 		return false;
 	}
 }

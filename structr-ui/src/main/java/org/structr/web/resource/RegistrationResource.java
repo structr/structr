@@ -55,6 +55,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
+import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
@@ -67,8 +68,6 @@ public class RegistrationResource extends Resource {
 	private static final Logger logger = LoggerFactory.getLogger(RegistrationResource.class.getName());
 
 	private enum TemplateKey {
-
-		// unified, new Template keys. these should be the ones to be used
 		CONFIRM_REGISTRATION_SENDER_NAME,
 		CONFIRM_REGISTRATION_SENDER_ADDRESS,
 		CONFIRM_REGISTRATION_SUBJECT,
@@ -89,7 +88,6 @@ public class RegistrationResource extends Resource {
 		this.securityContext = securityContext;
 
 		return (getUriPart().equals(part));
-
 	}
 
 	@Override
@@ -157,7 +155,6 @@ public class RegistrationResource extends Resource {
 				if (!mailSuccess) {
 
 					throw new FrameworkException(503, "Unable to send confirmation e-mail.");
-
 				}
 
 				// If we have just updated the confirmation key for an existing user,
@@ -171,13 +168,11 @@ public class RegistrationResource extends Resource {
 
 					// return 201 Created
 					return new RestMethodResult(HttpServletResponse.SC_CREATED);
-
 				}
 
 			} else {
 
 				throw new FrameworkException(503, "Unable to create new user.");
-
 			}
 
 		} else {
@@ -193,9 +188,7 @@ public class RegistrationResource extends Resource {
 
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
-
 		return null;
-
 	}
 
 	private boolean sendInvitationLink(final Principal user, final Map<String, Object> propertySetFromUserPOST, final String confKey, final String localeString) throws FrameworkException {
@@ -209,11 +202,12 @@ public class RegistrationResource extends Resource {
 		propertySetFromUserPOST.entrySet().forEach(entry -> ctx.setConstant(entry.getKey(), entry.getValue().toString()));
 
 		ctx.setConstant("eMail", userEmail);
-		ctx.setConstant("link",getTemplateText(TemplateKey.CONFIRM_REGISTRATION_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
+		ctx.setConstant("link",
+				getTemplateText(TemplateKey.CONFIRM_REGISTRATION_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
 				+ getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE, localeString)
 				+ "?" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_CONFIRMATION_KEY_KEY, HtmlServlet.CONFIRMATION_KEY_KEY, localeString) + "=" + confKey
-				+ "&" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_TARGET_PATH_KEY, HtmlServlet.TARGET_PATH_KEY, localeString) + "=" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_TARGET_PATH, "register_thanks", localeString)
-				+ "&" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY, localeString)   + "=" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE, "register_error", localeString)
+				+ "&" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_TARGET_PATH_KEY, HtmlServlet.TARGET_PATH_KEY, localeString) + "=" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_TARGET_PATH, AbstractDataServlet.prefixLocation("register_thanks"), localeString)
+				+ "&" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY, localeString)   + "=" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE, AbstractDataServlet.prefixLocation("register_error"), localeString)
 		);
 
 		final String textMailContent = replaceVariablesInTemplate(TemplateKey.CONFIRM_REGISTRATION_TEXT_BODY,"Go to ${link} to finalize registration.", localeString, ctx);

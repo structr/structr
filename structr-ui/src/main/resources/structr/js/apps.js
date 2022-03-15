@@ -137,7 +137,7 @@ let _Apps = {
 				<p>${config.description}</p>
 				<form action="/structr/deploy" method="POST" enctype="multipart/form-data">
 					<input type="hidden" name="downloadUrl" value="${config.url}">
-					<input type="hidden" name="redirectUrl" value="/structr#apps">
+					<input type="hidden" name="redirectUrl" value="${window.location.pathname}">
 					<input type="hidden" name="mode" value="import">
 					<button class="action" type="submit">Install</button>
 				</form>

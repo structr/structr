@@ -34,7 +34,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.python.modules._hashlib;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -55,7 +54,6 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.ManageDatabasesCommand;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.action.ActionContext;
-import org.tuckey.web.filters.urlrewrite.Conf;
 
 /**
  *
@@ -66,8 +64,8 @@ public class ConfigServlet extends AbstractServletBase {
 	private static final Set<String> sessions         = new HashSet<>();
 	private static final String TITLE                 = "Structr Configuration Editor";
 
-	private static final String ConfigUrl             = Settings.applicationRootPath.getValue() + "/structr/config";
-	private static final String MainUrl               = Settings.applicationRootPath.getValue() + "/structr/";
+	private static final String ConfigServletLocation = "/structr/config";
+	private static final String AdminBackendLocation  = "/structr/";
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -99,7 +97,7 @@ public class ConfigServlet extends AbstractServletBase {
 				Settings.loadConfiguration(Settings.ConfigFileName);
 
 				// redirect
-				sendRelativeRedirect(response, ConfigUrl);
+				sendRedirectHeader(response, ConfigServletLocation);
 
 			} else if (request.getParameter("reset") != null) {
 
@@ -128,7 +126,7 @@ public class ConfigServlet extends AbstractServletBase {
 				Settings.storeConfiguration(Settings.ConfigFileName);
 
 				// redirect
-				sendRelativeRedirect(response, ConfigUrl);
+				sendRedirectHeader(response, ConfigServletLocation);
 
 			} else if (request.getParameter("start") != null) {
 
@@ -150,7 +148,7 @@ public class ConfigServlet extends AbstractServletBase {
 					}
 				}
 
-				sendRelativeRedirect(response, ConfigUrl + "#services");
+				sendRedirectHeader(response, ConfigServletLocation + "#services");
 
 			} else if (request.getParameter("stop") != null) {
 
@@ -160,7 +158,7 @@ public class ConfigServlet extends AbstractServletBase {
 					Services.getInstance().shutdownService(serviceName);
 				}
 
-				sendRelativeRedirect(response, ConfigUrl + "#services");
+				sendRedirectHeader(response, ConfigServletLocation + "#services");
 
 			} else if (request.getParameter("restart") != null) {
 
@@ -188,7 +186,7 @@ public class ConfigServlet extends AbstractServletBase {
 					}).start();
 				}
 
-				sendRelativeRedirect(response, ConfigUrl + "#services");
+				sendRedirectHeader(response, ConfigServletLocation + "#services");
 
 			} else if (request.getParameter("finish") != null) {
 
@@ -196,7 +194,7 @@ public class ConfigServlet extends AbstractServletBase {
 				Settings.SetupWizardCompleted.setValue(true);
 				Settings.storeConfiguration(Settings.ConfigFileName);
 
-				sendRelativeRedirect(response, MainUrl);
+				sendRedirectHeader(response, AdminBackendLocation);
 
 			} else if (request.getParameter("useDefault") != null) {
 
@@ -229,7 +227,7 @@ public class ConfigServlet extends AbstractServletBase {
 				// make session valid
 				authenticateSession(request);
 
-				sendRelativeRedirect(response, ConfigUrl + "#databases");
+				sendRedirectHeader(response, ConfigServletLocation + "#databases");
 
 			} else if (request.getParameter("setMaintenance") != null) {
 
@@ -246,7 +244,7 @@ public class ConfigServlet extends AbstractServletBase {
 					msgData.put("baseUrl",                           baseUrl);
 					TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
 
-					sendRelativeRedirect(response, ConfigUrl + "#maintenance");
+					sendRedirectHeader(response, ConfigServletLocation + "#maintenance");
 				}
 
 			} else {
@@ -470,7 +468,7 @@ public class ConfigServlet extends AbstractServletBase {
 			Settings.storeConfiguration(Settings.ConfigFileName);
 		}
 
-		sendRelativeRedirect(response, ConfigUrl + redirectTarget);
+		sendRedirectHeader(response, ConfigServletLocation + redirectTarget);
 	}
 
 	// ----- private methods -----
@@ -485,7 +483,7 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag menu           = tabs.block("ul").css("tabs-menu");
 
 		// configure form
-		form.attr(new Attr("action", ConfigUrl), new Attr("method", "post"));
+		form.attr(new Attr("action", prefixLocation(ConfigServletLocation)), new Attr("method", "post"));
 
 		if (firstStart) {
 			welcomeTab(menu, tabs);
@@ -533,7 +531,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 					if (running) {
 
-						row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?restart=" + serviceClassName + "';")).text("Restart");
+						row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + prefixLocation(ConfigServletLocation) + "?restart=" + serviceClassName + "';")).text("Restart");
 
 						if ("HttpService.default".equals(serviceClassName)) {
 
@@ -541,7 +539,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 						} else {
 
-							row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?stop=" + serviceClassName + "';")).text("Stop");
+							row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + prefixLocation(ConfigServletLocation) + "?stop=" + serviceClassName + "';")).text("Stop");
 						}
 
 						row.block("td");
@@ -550,7 +548,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 						row.block("td");
 						row.block("td");
-						row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?start=" + serviceClassName + "';")).text("Start");
+						row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + prefixLocation(ConfigServletLocation) + "?start=" + serviceClassName + "';")).text("Start");
 					}
 				}
 			}
@@ -611,7 +609,7 @@ public class ConfigServlet extends AbstractServletBase {
 		loginBox.block("svg").attr(new Attr("title", "Structr Logo")).css("logo-login").block("use").attr(new Attr("xlink:href", "#structr-logo"));
 		loginBox.block("p").text("Welcome to the " + TITLE + ". Please log in with the <b>super-user</b> password which can be found in your structr.conf.");
 
-		final Tag form     = loginBox.block("form").attr(new Attr("action", ConfigUrl), new Attr("method", "post"));
+		final Tag form     = loginBox.block("form").attr(new Attr("action", prefixLocation(ConfigServletLocation)), new Attr("method", "post"));
 		final Tag table    = form.block("table");
 		final Tag row1     = table.block("tr");
 
@@ -657,7 +655,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 		if (isAuthenticated(request)) {
 
-			final Tag form = links.block("li").block("form").attr(new Attr("action", ConfigUrl), new Attr("method", "post"), new Style("display: none")).id("logout-form");
+			final Tag form = links.block("li").block("form").attr(new Attr("action", prefixLocation(ConfigServletLocation)), new Attr("method", "post"), new Style("display: none")).id("logout-form");
 
 			form.empty("input").attr(new Type("hidden"), new Name("action"), new Value("logout"));
 			links.block("a").text("Logout").attr(new Style("cursor: pointer"), new OnClick("$('#logout-form').submit();"));
@@ -763,7 +761,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 			} else {
 
-				body.block("p").css("steps").block("button").attr(new Type("button")).text("Configure a database connection").attr(new OnClick("window.location.href='" + ConfigUrl + "#databases'; $('#databasesMenu').click();"));
+				body.block("p").css("steps").block("button").attr(new Type("button")).text("Configure a database connection").attr(new OnClick("window.location.href='" + prefixLocation(ConfigServletLocation) + "#databases'; $('#databasesMenu').click();"));
 			}
 
 		}
@@ -791,7 +789,7 @@ public class ConfigServlet extends AbstractServletBase {
 			leftDiv.block("p").text("Configure Structr to connect to a running database.");
 
 			final Tag rightDiv = div.block("div").css("inline-block");
-			rightDiv.block("button").attr(new Type("button")).text("Start in demo mode").attr(new OnClick("window.location.href='" + ConfigUrl + "?finish';"));
+			rightDiv.block("button").attr(new Type("button")).text("Start in demo mode").attr(new OnClick("window.location.href='" + prefixLocation(ConfigServletLocation) + "?finish';"));
 			rightDiv.block("p").text("Start Structr in demo mode. Please note that in this mode any data will be lost when stopping the server.");
 
 		} else {
@@ -806,7 +804,7 @@ public class ConfigServlet extends AbstractServletBase {
 		// database connections
 		for (final DatabaseConnection connection : connections) {
 
-			connection.render(body, MainUrl);
+			connection.render(body, prefixLocation(AdminBackendLocation));
 		}
 
 		// new connection form should appear below existing connections

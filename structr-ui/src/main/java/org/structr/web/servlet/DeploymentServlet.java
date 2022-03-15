@@ -390,21 +390,21 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				return;
 			}
 
-			// send redirect to allow form-based file upload without JavaScript..
+			// send redirect to allow form-based file upload without JavaScript...
 			if (StringUtils.isNotBlank(redirectUrl)) {
 
-				sendRelativeRedirect(response, redirectUrl);
+				sendRedirectHeader(response, redirectUrl, false);	// user-provided, should be already prefixed
 			}
 
 		} catch (Exception t) {
 
 			logger.error("Exception while processing request", t);
 
-			// send redirect to allow form-based file upload without JavaScript..
+			// send redirect to allow form-based file upload without JavaScript...
 			if (StringUtils.isNotBlank(redirectUrl)) {
 
 				try {
-					sendRelativeRedirect(response, redirectUrl);
+					sendRedirectHeader(response, redirectUrl, false);	// user-provided, should be already prefixed
 				} catch (IOException ex) {
 					logger.error("Unable to redirect to " + redirectUrl);
 				}

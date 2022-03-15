@@ -1196,8 +1196,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 
 		final PropertyKey<String> confirmationKeyKey = StructrApp.key(User.class, "confirmationKey");
-		final String targetPage                      = filterMaliciousRedirects(request.getParameter(TARGET_PATH_KEY));
-		final String errorPage                       = filterMaliciousRedirects(request.getParameter(ERROR_PAGE_KEY));
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 
@@ -1239,17 +1237,26 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					tx.success();
 				}
 
-				// Redirect to target page
-				if (StringUtils.isNotBlank(targetPage)) {
-					sendRelativeRedirect(response, targetPage);
+				// Redirect to target path
+				final String targetPath = filterMaliciousRedirects(request.getParameter(TARGET_PATH_KEY));
+
+				if (StringUtils.isBlank(targetPath)) {
+					sendRedirectHeader(response, "/", true);
+				} else {
+					sendRedirectHeader(response, targetPath, false);	// user-provided, should be already prefixed
 				}
 
 				return true;
 
 			} else {
-				// Redirect to error page
-				if (StringUtils.isNotBlank(errorPage)) {
-					sendRelativeRedirect(response, errorPage);
+
+				// Redirect to error path
+				final String errorPath = filterMaliciousRedirects(request.getParameter(ERROR_PAGE_KEY));
+
+				if (StringUtils.isBlank(errorPath)) {
+					sendRedirectHeader(response, "/", true);
+				} else {
+					sendRedirectHeader(response, errorPath, false);	// user-provided, should be already prefixed
 				}
 
 				return true;
@@ -1280,7 +1287,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 
 		final PropertyKey<String> confirmationKeyKey = StructrApp.key(User.class, "confirmationKey");
-		final String targetPath                      = filterMaliciousRedirects(request.getParameter(TARGET_PATH_KEY));
 
 		if (RESET_PASSWORD_PAGE.equals(path)) {
 
@@ -1328,9 +1334,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				}
 			}
 
-			// Redirect to target page
-			if (StringUtils.isNotBlank(targetPath)) {
-				sendRelativeRedirect(response, targetPath);
+			// Redirect to target path
+			final String targetPath = filterMaliciousRedirects(request.getParameter(TARGET_PATH_KEY));
+
+			if (StringUtils.isBlank(targetPath)) {
+				sendRedirectHeader(response, "/", true);
+			} else {
+				sendRedirectHeader(response, targetPath, false);	// user-provided, should be already prefixed
 			}
 
 			return true;

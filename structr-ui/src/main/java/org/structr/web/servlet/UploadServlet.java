@@ -366,21 +366,20 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 				if (appendUuidOnRedirect) {
 
-					sendRelativeRedirect(response, redirectUrl + uuid);
+					sendRedirectHeader(response, redirectUrl + (redirectUrl.endsWith("/") ? "" : "/") + uuid, false);	// user-provided, should be already prefixed
 
 				} else {
 
-					sendRelativeRedirect(response, redirectUrl);
+					sendRedirectHeader(response, redirectUrl, false);	// user-provided, should be already prefixed
 				}
 
 			} else {
 
 				// Just write out the uuids of the new files
-				if(uuid != null) {
+				if (uuid != null) {
 					response.getWriter().write(uuid);
 				}
 			}
-
 
 		} catch (Throwable t) {
 

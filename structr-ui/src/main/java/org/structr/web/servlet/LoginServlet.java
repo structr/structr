@@ -26,9 +26,9 @@ import java.util.Map.Entry;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -130,11 +130,17 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 							case HttpServletResponse.SC_OK:
 
 								// redirect to requested target page or /
-								sendRelativeRedirect(response, coalesce(HtmlServlet.filterMaliciousRedirects(request.getParameter(HtmlServlet.TARGET_PATH_KEY)), "/"));
+								final String redirectLocation = HtmlServlet.filterMaliciousRedirects(request.getParameter(HtmlServlet.TARGET_PATH_KEY));
+
+								if (StringUtils.isBlank(redirectLocation)) {
+									sendRedirectHeader(response, "/", true);
+								} else {
+									sendRedirectHeader(response, redirectLocation, false);	// user-provided, should be already prefixed
+								}
 								break;
 
 							default:
-								sendRelativeRedirect(response, getRedirectPage(request, result.getResponseCode()));
+								sendRedirectHeader(response, getRedirectPage(request, result.getResponseCode()));
 								break;
 						}
 
