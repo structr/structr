@@ -401,7 +401,7 @@ let _Dashboard = {
 
 				if (dataDeploymentFileInput && dataDeploymentFileInput.files.length > 0) {
 
-					_Dashboard.deployment.deployDataFromZIPFileUpload(window.location.href, dataDeploymentFileInput);
+					_Dashboard.deployment.deployDataFromZIPFileUpload(dataDeploymentFileInput);
 
 				} else {
 
@@ -412,7 +412,7 @@ let _Dashboard = {
 
 					} else {
 
-						_Dashboard.deployment.deployDataFromZIPURL(window.location.href, downloadUrl);
+						_Dashboard.deployment.deployDataFromZIPURL(downloadUrl);
 					}
 				}
 			});
@@ -553,10 +553,10 @@ let _Dashboard = {
 				new MessageBuilder().title('Unable to import app from URL').warning(responseText).requiresConfirmation().allowConfirmAll().show();
 			}
 		},
-		deployDataFromZIPURL: async (redirectUrl, downloadUrl) => {
+		deployDataFromZIPURL: async (downloadUrl) => {
 
 			let formData = new FormData();
-			formData.append('redirectUrl', redirectUrl);
+			formData.append('redirectUrl', window.location.pathname);
 			formData.append('downloadUrl', downloadUrl);
 			formData.append('mode', 'data');
 
@@ -575,10 +575,10 @@ let _Dashboard = {
 				new MessageBuilder().title('Unable to import app from ZIP URL').warning(responseText).requiresConfirmation().allowConfirmAll().show();
 			}
 		},
-		deployFromZIPFileUpload: async (redirectUrl, filesSelectField) => {
+		deployFromZIPFileUpload: async (filesSelectField) => {
 
 			let formData = new FormData();
-			formData.append('redirectUrl', redirectUrl);
+			formData.append('redirectUrl', window.location.pathname);
 			formData.append('mode', 'app');
 			formData.append('file', filesSelectField.files[0]);
 
@@ -592,11 +592,11 @@ let _Dashboard = {
 				new MessageBuilder().title('Unable to import app from uploaded ZIP').warning(responseText).requiresConfirmation().allowConfirmAll().show();
 			}
 		},
-		deployDataFromZIPFileUpload: async (redirectUrl, filesSelectField) => {
+		deployDataFromZIPFileUpload: async (filesSelectField) => {
 
 			let formData = new FormData();
 			formData.append('file', filesSelectField.files[0]);
-			formData.append('redirectUrl', redirectUrl);
+			formData.append('redirectUrl', window.location.pathname);
 			formData.append('mode', 'data');
 
 			let rebuildAllIndexes = document.getElementById('zip-data-import-rebuild-indexes').checked;
