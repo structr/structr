@@ -63,7 +63,12 @@ public class CreateZipFunction extends UiAdvancedFunction {
 		EncryptionMethod encryptionMethod = EncryptionMethod.ZIP_STANDARD;
 
 		if (sources[0] instanceof String) {
-			name = (String) sources[0];
+			final String nameParam = sources[0].toString().trim();
+			name = nameParam + (nameParam.endsWith(".zip") ? "" : ".zip");
+		} else {
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
+
+			return usage(ctx.isJavaScriptContext());
 		}
 
 		if (sources.length > 2 && sources[2] != null && sources[2] instanceof String) {
@@ -86,11 +91,11 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 				params.setEncryptFiles(true);
 				params.setEncryptionMethod(encryptionMethod);
-				zipFile = new ZipFile(name + ".zip", password.toCharArray());
+				zipFile = new ZipFile(name, password.toCharArray());
 
 			} else {
 
-				zipFile = new ZipFile(name + ".zip");
+				zipFile = new ZipFile(name);
 			}
 
 			zipFile.setCharset(Charset.forName("UTF-8"));
@@ -133,7 +138,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 				return usage(ctx.isJavaScriptContext());
 			}
 
-			return FileHelper.createFile(ctx.getSecurityContext(), zipFile.getFile(), "application/zip", sources[0].toString() + ".zip");
+			return FileHelper.createFile(ctx.getSecurityContext(), zipFile.getFile(), "application/zip", name);
 
 
 		} catch (IOException e) {
