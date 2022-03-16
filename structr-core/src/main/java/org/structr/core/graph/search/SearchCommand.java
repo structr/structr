@@ -84,7 +84,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	private final SearchAttributeGroup rootGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
-	private DefaultSortOrder sortOrder           = new DefaultSortOrder();
+	private SortOrder sortOrder                  = new DefaultSortOrder();
 	private QueryContext queryContext            = new QueryContext();
 	private SearchAttributeGroup currentGroup    = rootGroup;
 	private Comparator comparator                = null;
@@ -372,10 +372,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		this.doNotSort  = false;
 
-		// type cast
-		if (sortOrder instanceof DefaultSortOrder) {
-			this.sortOrder = (DefaultSortOrder)sortOrder;
-		}
+		this.sortOrder = sortOrder;
 
 		return this;
 	}
@@ -385,7 +382,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		this.doNotSort  = false;
 
-		sortOrder.addElement(sortKey, sortDescending);
+		if (sortOrder instanceof DefaultSortOrder) {
+			((DefaultSortOrder)sortOrder).addElement(sortKey, sortDescending);
+		}
 
 		return this;
 	}
