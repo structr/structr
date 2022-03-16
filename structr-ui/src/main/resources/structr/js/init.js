@@ -2313,27 +2313,28 @@ let Structr = {
 				return 'https://docs.structr.com/';
 		}
 	},
-	getShadowPage: function(callback) {
+	ensureShadowPageExists: () => {
 
-		if (_Pages.shadowPage) {
+		return new Promise((resolve, reject) => {
 
-			if (callback) {
-				callback();
-			}
+			if (_Pages.shadowPage) {
 
-		} else {
+				resolve(_Pages.shadowPage);
 
-			// wrap getter for shadowdocument in listComponents so we're sure that shadow document has been created
-			Command.listComponents(1, 1, 'name', 'asc', function(result) {
-				Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
-					_Pages.shadowPage = entities[0];
+			} else {
 
-					if (callback) {
-						callback();
-					}
+				// wrap getter for shadowdocument in listComponents so we're sure that shadow document has been created
+				Command.listComponents(1, 1, 'name', 'asc', (result) => {
+
+					Command.getByType('ShadowDocument', 1, 1, null, null, null, true, (entities) => {
+
+						_Pages.shadowPage = entities[0];
+
+						resolve(_Pages.shadowPage);
+					});
 				});
-			});
-		}
+			}
+		});
 	},
 	createSingleDOMElementFromHTML: (html) => {
 		let elements = Structr.createDOMElementsFromHTML(html);
