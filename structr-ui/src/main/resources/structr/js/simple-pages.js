@@ -354,7 +354,7 @@ let _SimplePages = {
 			dialogCancelButton = $('.closeButton', dialogBox);
 		});
 
-		Structr.getShadowPage(() => {
+		Structr.ensureShadowPageExists().then(() => {
 
 			Command.query('TemplateCategory', 10, 1, 'name', 'desc', { name: 'Page Templates' }, function(categories) {
 
@@ -399,18 +399,18 @@ let _SimplePages = {
 		});
 	},
 	replaceTemplate: function(t) {
+
 		Structr.dialog('Replace template ' + t.name, function() {
 			_SimplePages.refreshCurrentPage();
 		});
 
-		Structr.getShadowPage(() => {
+		Structr.ensureShadowPageExists().then(() => {
 
 			Command.query('Template', 1000, 1, 'name', 'desc', { hidden: false, pageId: _Pages.shadowPage.id }, function(templates) {
 
 				templates.forEach(function(template) {
 
-					let html = _SimplePages.templates.templateSelectionNode({ template: template });
-					dialogText.append(html);
+					dialogText.append(_SimplePages.templates.templateSelectionNode({ template: template }));
 
 					document.querySelector('.template-' + template.id).on('click', function() {
 

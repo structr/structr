@@ -64,7 +64,7 @@ let _Pages = {
 		_Pager.initPager('folders', 'Folder', 1, 25, 'name', 'asc');
 		_Pager.initPager('images',  'Image', 1, 25, 'name', 'asc');
 
-		Structr.getShadowPage();
+		Structr.ensureShadowPageExists();
 	},
 	resize: function() {
 
@@ -909,11 +909,14 @@ let _Pages = {
 					}
 			}
 
-			let isEntityInSharedComponents = (entity.pageId === _Pages.shadowPage.id);
-			let isEntityInTrash = (!entity.isPage && !entity.pageId);
-			if (isEntityInSharedComponents || isEntityInTrash) {
-				document.querySelector('a[href="#pages:preview"]').closest('li').classList.add('hidden');
-			}
+			// Create shadow page if not existing
+			Structr.ensureShadowPageExists().then(() => {
+				let isEntityInSharedComponents = (entity.pageId === _Pages.shadowPage.id);
+				let isEntityInTrash = (!entity.isPage && !entity.pageId);
+				if (isEntityInSharedComponents || isEntityInTrash) {
+					document.querySelector('a[href="#pages:preview"]').closest('li').classList.add('hidden');
+				}
+			});
 
 		} else {
 			_Pages.hideAllFunctionBarTabs();
@@ -2167,14 +2170,10 @@ let _Pages = {
 							// special treatment for widgets dragged to the shared components area
 
 						} else {
-							if (!_Pages.shadowPage) {
-								// Create shadow page if not existing
-								Structr.getShadowPage(() => {
-									_Pages.sharedComponents.createNew(ui);
-								});
-							} else {
+							// Create shadow page if not existing
+							Structr.ensureShadowPageExists().then(() => {
 								_Pages.sharedComponents.createNew(ui);
-							}
+							});
 						}
 					}
 				});
