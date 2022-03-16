@@ -1240,9 +1240,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				// Redirect to target path
 				final String targetPath = filterMaliciousRedirects(request.getParameter(TARGET_PATH_KEY));
 
-				if (StringUtils.isBlank(targetPath)) {
-					sendRedirectHeader(response, "/", true);
-				} else {
+				if (StringUtils.isNotBlank(targetPath)) {
 					sendRedirectHeader(response, targetPath, false);	// user-provided, should be already prefixed
 				}
 
@@ -1253,9 +1251,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				// Redirect to error path
 				final String errorPath = filterMaliciousRedirects(request.getParameter(ERROR_PAGE_KEY));
 
-				if (StringUtils.isBlank(errorPath)) {
-					sendRedirectHeader(response, "/", true);
-				} else {
+				if (StringUtils.isNotBlank(errorPath)) {
 					sendRedirectHeader(response, errorPath, false);	// user-provided, should be already prefixed
 				}
 
@@ -1337,9 +1333,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			// Redirect to target path
 			final String targetPath = filterMaliciousRedirects(request.getParameter(TARGET_PATH_KEY));
 
-			if (StringUtils.isBlank(targetPath)) {
-				sendRedirectHeader(response, "/", true);
-			} else {
+			if (StringUtils.isNotBlank(targetPath)) {
 				sendRedirectHeader(response, targetPath, false);	// user-provided, should be already prefixed
 			}
 
