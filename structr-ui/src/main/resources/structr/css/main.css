@@ -2002,8 +2002,7 @@ button.enabled, button.active {
 	background-color: var(--solid-white);
 }
 
-.node ._html_id_,
-.node ._html_class_,
+.node .class-id-attrs,
 .node .linkable {
 	color: var(--gray-888);
 }
@@ -3423,12 +3422,6 @@ i.fa-trash-o {
 	color: var(--inactive-tab-text);
 }
 
-.class-id-attrs {
-	vertical-align: top;
-	line-height: 2rem;
-	pointer-events: none;
-}
-
 .prop .node {
 	color: var(--gray-333);
 	line-height: 1.7em;
@@ -4560,9 +4553,6 @@ table.props td.__value {
 }
 .flex-wrap {
 	flex-wrap: wrap;
-}
-.inline-flex {
-	display: inline-flex;
 }
 .items-center {
 	align-items: center;

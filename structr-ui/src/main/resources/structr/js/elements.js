@@ -315,10 +315,7 @@ let _Elements = {
 			<div id="id_${id}" class="${elementClasses.join(' ')}">
 				<div class="node-selector"></div>
 				<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
-				<span class="abbr-ellipsis abbr-pages-tree">
-					<b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>
-					${_Elements.classIdString(entity._html_id, entity._html_class)}
-				</span>
+				<span class="abbr-ellipsis abbr-pages-tree"><b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
 				<span class="id">${entity.id}</span>
 				<div class="icons-container"></div>
 			</div>
@@ -485,10 +482,11 @@ let _Elements = {
 			}
 		}
 	},
-	classIdString: function(idString, classString) {
-		let classIdString = '<span class="class-id-attrs">' + (idString ? '<span class="_html_id_">#' + idString.replace(/\${.*}/g, '${…}') + '</span>' : '')
-				+ (classString ? '<span class="_html_class_">.' + classString.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '') + '</span>';
-		return classIdString;
+	classIdString: (idString, classString) => {
+		let htmlIdString    = (idString    ? '#' + idString.replace(/\${.*}/g, '${…}') : '');
+		let htmlClassString = (classString ? '.' + classString.replace(/\${.*}/g, '${…}').replace(/ /g, '.') : '');
+
+		return `<span class="class-id-attrs">${htmlIdString}${htmlClassString}</span>`;
 	},
 	appendFolder: function(entityToLinkTo, folderEl, subFolder) {
 
