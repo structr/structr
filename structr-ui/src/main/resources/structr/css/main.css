@@ -1078,7 +1078,8 @@ img.disabled {
 	max-width: 66%;
 }
 
-.abbr-ellipsis.abbr-pages-tree {
+.abbr-ellipsis.abbr-pages-tree,
+.abbr-ellipsis.abbr-pages-tree .content_ {
 	max-width: calc(100% - 6rem);
 }
 
