@@ -157,18 +157,13 @@ public class Deployment3Test extends DeploymentTestBase {
 			app.create(SchemaMethod.class,
 				new NodeAttribute<>(SchemaMethod.name,                        "method1"),
 				new NodeAttribute<>(SchemaMethod.source,                      "source1"),
-				new NodeAttribute<>(SchemaMethod.virtualFileName,             "virtualFileName1"),
-				new NodeAttribute<>(SchemaMethod.visibleToPublicUsers,        true),
-				new NodeAttribute<>(SchemaMethod.visibleToAuthenticatedUsers, false)
-
+				new NodeAttribute<>(SchemaMethod.virtualFileName,             "virtualFileName1")
 			);
 
 			app.create(SchemaMethod.class,
 				new NodeAttribute<>(SchemaMethod.name,                       "method2"),
 				new NodeAttribute<>(SchemaMethod.source,                     "source2"),
-				new NodeAttribute<>(SchemaMethod.virtualFileName,            "virtualFileName2"),
-				new NodeAttribute<>(SchemaMethod.visibleToPublicUsers,        false),
-				new NodeAttribute<>(SchemaMethod.visibleToAuthenticatedUsers, true)
+				new NodeAttribute<>(SchemaMethod.virtualFileName,            "virtualFileName2")
 			);
 
 			tx.success();
@@ -193,14 +188,10 @@ public class Deployment3Test extends DeploymentTestBase {
 			assertEquals("Invalid SchemaMethod deployment result", "method1",          method1.getProperty(SchemaMethod.name));
 			assertEquals("Invalid SchemaMethod deployment result", "source1",          method1.getProperty(SchemaMethod.source));
 			assertEquals("Invalid SchemaMethod deployment result", "virtualFileName1", method1.getProperty(SchemaMethod.virtualFileName));
-			assertEquals("Invalid SchemaMethod deployment result", true,               (boolean)method1.getProperty(SchemaMethod.visibleToPublicUsers));
-			assertEquals("Invalid SchemaMethod deployment result", false,              (boolean)method1.getProperty(SchemaMethod.visibleToAuthenticatedUsers));
 
 			assertEquals("Invalid SchemaMethod deployment result", "method2",          method2.getProperty(SchemaMethod.name));
 			assertEquals("Invalid SchemaMethod deployment result", "source2",          method2.getProperty(SchemaMethod.source));
 			assertEquals("Invalid SchemaMethod deployment result", "virtualFileName2", method2.getProperty(SchemaMethod.virtualFileName));
-			assertEquals("Invalid SchemaMethod deployment result", false,              (boolean)method2.getProperty(SchemaMethod.visibleToPublicUsers));
-			assertEquals("Invalid SchemaMethod deployment result", true,               (boolean)method2.getProperty(SchemaMethod.visibleToAuthenticatedUsers));
 
 			tx.success();
 
