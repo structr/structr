@@ -2414,45 +2414,44 @@ let _Entities = {
 
 		return contextMenuIcon;
 	},
-	appendExpandIcon: function(el, entity, hasChildren, expanded, callback) {
+	appendExpandIcon: (nodeContainer, entity, hasChildren, expanded, callback) => {
 
-		let button = $(el.children('.expand_icon_svg').first());
+		let button = $(nodeContainer.children('.expand_icon_svg').first());
 		if (button && button.length) {
 			return;
 		}
 
 		if (hasChildren) {
 
-			let typeIcon    = $(el.children('.typeIcon').first());
+			let typeIcon    = $(nodeContainer.children('.typeIcon').first());
 			let icon        = expanded ? _Icons.expandedClass : _Icons.collapsedClass;
-			let displayName = getElementDisplayName(entity);
 
-			typeIcon.removeClass('typeIcon-nochildren').before(`<i title="Expand ${displayName}" class="expand_icon_svg ${icon}"></i>`);
+			typeIcon.removeClass('typeIcon-nochildren').before(`<i class="expand_icon_svg ${icon}"></i>`);
 
-			button = $(el.children('.expand_icon_svg').first());
+			button = $(nodeContainer.children('.expand_icon_svg').first());
 
 			if (button) {
 
-				button.on('click', function(e) {
+				button.on('click', (e) => {
 					e.stopPropagation();
-					_Entities.toggleElement($(this).parent('.node'), undefined, callback);
+					_Entities.toggleElement(entity.id, nodeContainer, undefined, callback);
 				});
 
 				// Prevent expand icon from being draggable
-				button.on('mousedown', function(e) {
+				button.on('mousedown', (e) => {
 					e.stopPropagation();
 				});
 
 				if (expanded) {
-					_Entities.ensureExpanded(el);
+					_Entities.ensureExpanded(nodeContainer);
 				}
 			}
 
 		} else {
-			el.children('.typeIcon').addClass('typeIcon-nochildren');
+			nodeContainer.children('.typeIcon').addClass('typeIcon-nochildren');
 		}
 
-		_Pages.registerDetailClickHandler($(el), entity);
+		_Pages.registerDetailClickHandler($(nodeContainer), entity);
 	},
 	removeExpandIcon: function(el) {
 		if (!el)
@@ -2563,7 +2562,7 @@ let _Entities = {
 			} catch (e) {}
 		}
 	},
-	isExpanded: function(element) {
+	isExpanded: (element) => {
 		let b = $(element).children('.expand_icon_svg').first();
 		if (!b) {
 			return false;
@@ -2574,8 +2573,8 @@ let _Entities = {
 		if (!element) {
 			return;
 		}
-		var el = $(element);
-		var id = Structr.getId(el);
+		let el = $(element);
+		let id = Structr.getId(el);
 
 		if (!id) {
 			return;
@@ -2587,12 +2586,12 @@ let _Entities = {
 			return;
 		} else {
 			Command.children(id, callback);
-			let displayName = getElementDisplayName(StructrModel.obj(id));
 
-			el.children('.expand_icon_svg').first()
-				.removeClass(_Icons.collapsedClass)
-				.addClass(_Icons.expandedClass)
-				.prop('title', 'Collapse ' + displayName);
+			if (el.hasClass('node-container')) {
+				el.children('.expand_icon_svg').first().removeClass(_Icons.collapsedClass).addClass(_Icons.expandedClass);
+			} else {
+				el.children('.node-container').children('.expand_icon_svg').first().removeClass(_Icons.collapsedClass).addClass(_Icons.expandedClass);
+			}
 		}
 	},
 	expandAll: function(ids, lastId) {
@@ -2600,8 +2599,9 @@ let _Entities = {
 			return;
 		}
 
-		ids.forEach(function(id) {
-			var el = Structr.node(id);
+		for (let id of ids) {
+
+			let el = Structr.node(id);
 
 			if (el && id === lastId) {
 				_Entities.deselectAllElements();
@@ -2609,43 +2609,46 @@ let _Entities = {
 			} else if (!el && id === lastId) {
 				// if node is not present, delay and retry
 				window.setTimeout(function() {
-					var el = Structr.node(id);
-					if (el) {
+					let nodeEl = Structr.node(id);
+					if (nodeEl) {
 						_Entities.deselectAllElements();
-						_Entities.highlightElement(el);
+						_Entities.highlightElement(nodeEl);
 					}
 				}, 500);
 			}
 
 			_Entities.ensureExpanded(el, function(childNodes) {
 				if (childNodes && childNodes.length) {
-					var childNode = childNodes[0];
-					var i = ids.indexOf(childNode.id);
+					let childNode = childNodes[0];
+					let i = ids.indexOf(childNode.id);
 					if (i > 1) {
 						ids.slice(i - 1, i);
 					}
 					_Entities.expandAll(ids, lastId);
 				}
 			});
-		});
+		}
 	},
 	expandRecursively: function(ids) {
 		if (!ids || ids.length === 0) {
 			return;
 		}
 
-		ids.forEach(function(id) {
-			var el = Structr.node(id);
+		for (let id of ids) {
 
-			_Entities.ensureExpanded(el, function(childNodes) {
+			let el = Structr.node(id);
+
+			_Entities.ensureExpanded(el, (childNodes) => {
 				if (childNodes && childNodes.length) {
 					_Entities.expandRecursively(childNodes.map(n => n.id));
 				}
 			}, true);
-		});
+		}
 	},
-	deselectAllElements: function() {
-		$('.nodeSelected').removeClass('nodeSelected');
+	deselectAllElements: () => {
+		for (let selectedElement of document.querySelectorAll('.nodeSelected')) {
+			selectedElement.classList.remove('nodeSelected');
+		}
 	},
 	scrollTimer: undefined,
 	highlightElement:function(el) {
@@ -2704,32 +2707,26 @@ let _Entities = {
 		_Entities.selectedObject = entity;
 		LSWrapper.setItem(_Entities.selectedObjectIdKey, entity.id);
 	},
-	toggleElement: function(element, expanded, callback) {
+	toggleElement: function(id, nodeContainer, isExpanded, callback) {
 
-		let el          = $(element);
-		let id          = Structr.getId(el) || Structr.getComponentId(el) || Structr.getGroupId(el);
-		let b           = el.children('.expand_icon_svg').first();
-		let displayName = getElementDisplayName(StructrModel.obj(id));
+		let el            = $(nodeContainer);
+		let toggleIcon    = el.children('.expand_icon_svg').first();
 
-		if (_Entities.isExpanded(element)) {
+		if (_Entities.isExpanded(el)) {
 
-			el.children('.node').remove();
+			$(el.closest('.node')).children('.node').remove();
 
-			b.removeClass(_Icons.expandedClass)
-				.addClass(_Icons.collapsedClass)
-				.prop('title', 'Expand ' + displayName);
+			toggleIcon.removeClass(_Icons.expandedClass).addClass(_Icons.collapsedClass);
 
 			Structr.removeExpandedNode(id);
 
 		} else {
 
-			if (!expanded) {
+			if (!isExpanded) {
 				Command.children(id, callback);
 			}
 
-			b.removeClass(_Icons.collapsedClass)
-				.addClass(_Icons.expandedClass)
-				.prop('title', 'Collapse ' + displayName);
+			toggleIcon.removeClass(_Icons.collapsedClass).addClass(_Icons.expandedClass);
 
 			Structr.addExpandedNode(id);
 		}
@@ -2738,8 +2735,8 @@ let _Entities = {
 
 		let attributeElement        = parentElement.find(attributeSelector).first();
 		let additionalInputClass    = attributeElement.data('inputClass') || '';
-		let attributeElementTagName = attributeElement.prop('tagName').toLowerCase();
 		let oldValue                = $.trim(attributeElement.attr('title'));
+		let attributeElementRawHTML = attributeElement[0].outerHTML;
 
 		attributeElement.replaceWith('<input type="text" size="' + (oldValue.length + 4) + '" class="new-' + attributeName + ' ' + additionalInputClass + '" value="' + oldValue + '">');
 
@@ -2748,9 +2745,8 @@ let _Entities = {
 
 		let restoreNonEditableTag = function(el, text) {
 
-			let dataInputClass = (additionalInputClass !== '') ? ' data-input-class="' + additionalInputClass + '"' : '';
-
-			let newEl = $('<' + attributeElementTagName + ' title="' + escapeForHtmlAttributes(text) + '" class="' + attributeName + '_ abbr-ellipsis abbr-75pc"' + dataInputClass + '>' + text + '</' + attributeElementTagName + '>');
+			let newEl = $(attributeElementRawHTML);
+			newEl.html(text);
 			el.replaceWith(newEl);
 
 			parentElement.find(attributeSelector).first().off('click').on('click', function(e) {

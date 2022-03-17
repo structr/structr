@@ -946,7 +946,7 @@ let _Files = {
 				row.append(`
 					<td class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${folderIconElement}</td>
 					<td>
-						<div id="id_${d.id}" class="node folder flex items-center justify-between"><b class="name_ leading-8 truncate">${name}</b><div class="icons-container"></div></div>
+						<div id="id_${d.id}" class="node folder flex items-center justify-between"><b class="name_ leading-8 truncate">${name}</b><div class="icons-container flex items-center"></div></div>
 					</td>
 				`);
 
@@ -957,7 +957,7 @@ let _Files = {
 					<td>
 						<div id="id_${d.id}" class="node file flex items-center justify-between">
 							<b class="name_ leading-8 truncate">${name}</b>
-							<div class="icons-container"></div>
+							<div class="icons-container flex items-center"></div>
 							<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">${size}</span></div></div></div>
 						</div>
 					</td>
@@ -990,7 +990,7 @@ let _Files = {
 					<div id="id_${d.id}" class="node folder">
 						<div class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${folderIconElement}</div>
 						<b class="name_ abbr-ellipsis abbr-75pc">${name}</b>
-						<div class="icons-container"></div>
+						<div class="icons-container flex items-center"></div>
 					</div>
 				`);
 
@@ -1005,7 +1005,7 @@ let _Files = {
 						<b class="name_ abbr-ellipsis abbr-75pc">${name}</b>
 						<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">${size}</span></div></div></div>
 						<!--span class="id">${d.id}</span-->
-						<div class="icons-container"></div>
+						<div class="icons-container flex items-center"></div>
 					</div>
 				`);
 			}
@@ -1182,67 +1182,6 @@ let _Files = {
 				return false;
 			});
 		}
-/*
-		// if (_Files.isArchive(d)) {
-		// 	div.append('<i class="unarchive_icon button ' + _Icons.getFullSpriteClass(_Icons.compress_icon) + '" />');
-		// 	$('.unarchive_icon', div).on('click', function() {
-		// 		_Files.unpackArchive(d);
-		// 	});
-		// }
-
-		if (displayingFavorites === true) {
-
-			// _Files.appendRemoveFavoriteIcon(div, d);
-
-		} else {
-
-			// div.append('<i title="Delete file \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
-			// $('.delete_icon', div).on('click', function(e) {
-			// 	e.stopPropagation();
-			//
-			// 	selectedElements = $('.node.selected');
-			// 	var selectedCount = selectedElements.length;
-			//
-			// 	if (selectedCount > 1 && div.hasClass('selected')) {
-			//
-			// 		var files = [];
-			//
-			// 		$.each(selectedElements, function(i, el) {
-			// 			files.push(Structr.entityFromElement(el));
-			// 		});
-			//
-			// 		_Entities.deleteNodes(this, files, true, function() {
-			// 			_Files.refreshTree();
-			// 		});
-			//
-			// 	} else {
-			// 		_Entities.deleteNode(this, d);
-			// 	}
-			// });
-		}
-
-		if (_Files.isMinificationTarget(d)) {
-			_Files.appendMinificationDialogIcon(div, d);
-		} else {
-			// if (d.isImage && d.contentType !== 'text/svg' && !d.contentType.startsWith('image/svg')) {
-			// 	_Files.appendEditImageIcon(div, d);
-			// } else {
-			// 	_Files.appendEditFileIcon(div, d);
-			// }
-		}
-
-		// Structr.performModuleDependendAction(function() {
-		// 	if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && d.contentType === 'text/csv') {
-		// 		_Files.appendCSVImportDialogIcon(div, d);
-		// 	}
-		// });
-		//
-		// Structr.performModuleDependendAction(function() {
-		// 	if (Structr.isModulePresent('xml') && (d.contentType === 'text/xml' || d.contentType === 'application/xml')) {
-		// 		_Files.appendXMLImportDialogIcon(div, d);
-		// 	}
-		// });
-*/
 	},
 	unpackArchive: (d) => {
 
@@ -1345,19 +1284,6 @@ let _Files = {
 					saveAndClose.prop("disabled", false).removeClass('disabled');
 				}
 			});
-		});
-	},
-	appendEditFileIcon: function(parent, file) {
-
-		let editIcon = $('.edit_file_icon', parent);
-
-		if (!(editIcon && editIcon.length)) {
-			parent.append('<i title="Edit ' + file.name + ' [' + file.id + ']" class="edit_file_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '"></i>');
-		}
-
-		$(parent.children('.edit_file_icon')).on('click', function(e) {
-			e.stopPropagation();
-			_Files.editFile(file);
 		});
 	},
 	editFile: (file) => {

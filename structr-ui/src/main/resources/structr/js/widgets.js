@@ -318,7 +318,7 @@ let _Widgets = {
 			new MessageBuilder().warning().text('Can not display local widgets as remote widgets. Please select another widget server!').show();
 		}
 	},
-	repaintRemoteWidgets: function () {
+	repaintRemoteWidgets: () => {
 
 		_Widgets.remoteWidgetFilterEl.show();
 		let search = _Widgets.remoteWidgetFilterEl.val();
@@ -328,43 +328,42 @@ let _Widgets = {
 
 			search = search.toLowerCase();
 
-			_Widgets.remoteWidgetData.forEach(function (obj) {
+			for (let obj of _Widgets.remoteWidgetData) {
 				if (obj.name.toLowerCase().indexOf(search) !== -1) {
 					_Widgets.appendWidgetElement(obj, true, _Widgets.remoteWidgetsEl);
 				}
-			});
+			}
 
 		} else {
 
-			_Widgets.remoteWidgetData.forEach(function (obj) {
+			for (let obj of _Widgets.remoteWidgetData) {
 				_Widgets.appendWidgetElement(obj, true, _Widgets.remoteWidgetsEl);
-			});
+			}
 		}
 
 		_Pages.resize();
 	},
-	getTreeParent: function(element, treePath, suffix) {
+	getTreeParent: (element, treePath, suffix) => {
 
-		var parent = element;
+		let parent = element;
 
 		if (treePath) {
 
-			var parts = treePath.split('/');
-			var num = parts.length;
-			var i = 0;
+			let parts = treePath.split('/');
+			let num = parts.length;
 
-			for (i = 0; i < num; i++) {
+			for (let i = 0; i < num; i++) {
 
 				var part = parts[i];
 				if (part) {
 
-					var lowerPart = part.toLowerCase().replace(/ /g, '');
-					var idString = lowerPart + suffix;
-					var newParent = $('#' + idString);
+					let lowerPart = part.toLowerCase().replace(/ /g, '');
+					let idString = lowerPart + suffix;
+					let newParent = $('#' + idString + '_folder');
 
 					if (newParent.length === 0) {
 						_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, part);
-						newParent = $('#' + idString);
+						newParent = $('#' + idString + '_folder');
 					}
 
 					parent = newParent;
@@ -373,12 +372,12 @@ let _Widgets = {
 
 		} else {
 
-			var idString = 'other' + suffix;
-			var newParent = $('#' + idString);
+			let idString = 'other' + suffix;
+			let newParent = $('#' + idString + '_folder');
 
 			if (newParent.length === 0) {
 				_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, 'Uncategorized');
-				newParent = $('#' + idString);
+				newParent = $('#' + idString + '_folder');
 			}
 
 			parent = newParent;
@@ -386,21 +385,23 @@ let _Widgets = {
 
 		return parent;
 	},
-	appendFolderElement: function(parent, id, icon, name) {
+	appendFolderElement: (parent, id, icon, name) => {
 
 		let expanded = Structr.isExpanded(id);
 
 		parent.append(`
 			<div id="${id}_folder" class="widget node">
-				<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
-				<b title="${escapeForHtmlAttributes(name)}" class="name abbr-ellipsis abbr-70pc">${name}</b>
-				<div id="${id}" class="node${expanded ? ' hidden' : ''}"></div>
+				<div class="node-container flex items-center">
+					<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
+					<b title="${escapeForHtmlAttributes(name)}" class="name flex-grow">${name}</b>
+					<div id="${id}" class="node${expanded ? ' hidden' : ''}"></div>
+				</div>
 			</div>
-			`);
+		`);
 
 		let div = $('#' + id + '_folder');
 
-		_Widgets.appendVisualExpandIcon(div, id, name, true, false);
+		_Widgets.appendVisualExpandIcon(div.children('.node-container'), id, name, true, false);
 	},
 	appendWidgetElement: function(widget, remote, el) {
 
@@ -412,15 +413,18 @@ let _Widgets = {
 
 			parent.append(`
 				<div id="id_${widget.id}" class="node widget">
-					<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
-					<b title="${escapeForHtmlAttributes(widget.name)}" class="name_ abbr-ellipsis abbr-70pc">${widget.name}</b> <span class="id">${widget.id}</span>
-					<div class="icons-container"></div>
+					<div class="node-container flex items-center">
+						<i class="typeIcon typeIcon-nochildren ${_Icons.getFullSpriteClass(icon)}"></i>
+						<b title="${escapeForHtmlAttributes(widget.name)}" class="name_ flex-grow">${widget.name}</b>
+						 <!--span class="id">${widget.id}</span-->
+						<div class="icons-container flex items-center"></div>
+					</div>
 				</div>
 			`);
 			div = Structr.node(widget.id);
 		}
 
-		let iconsContainer = div.children('.icons-container');
+		let iconsContainer = div.children('.node-container').children('.icons-container');
 
 		div.draggable({
 			iframeFix: true,
@@ -441,13 +445,14 @@ let _Widgets = {
 			let eyeIcon = $(_Icons.getSvgIcon('eye_open', 16, 16, ['svg_eye_icon', 'icon-grey', 'cursor-pointer', 'node-action-icon']));
 			iconsContainer.append(eyeIcon);
 
-			eyeIcon.on('click', function() {
+			eyeIcon.on('click', () => {
 				_Widgets.editWidget(widget, false);
 			});
 
 		} else {
 
 			_Entities.appendContextMenuIcon(iconsContainer, widget);
+
 			_Elements.enableContextMenuOnElement(div, widget);
 		}
 
@@ -607,11 +612,11 @@ let _Widgets = {
 
 		activateTab('source');
 	},
-	appendWidgetSelectorEditor: function (container, entity, allowEdit) {
-
-		let html = _Widgets.templates.editSelectors();
-		container.append(html);
-	},
+	// appendWidgetSelectorEditor: function (container, entity, allowEdit) {
+	//
+	// 	let html = _Widgets.templates.editSelectors();
+	// 	container.append(html);
+	// },
 	appendVisualExpandIcon: function(el, id, name, hasChildren, expand) {
 
 		if (hasChildren) {
@@ -620,19 +625,19 @@ let _Widgets = {
 			let icon                = $(el).children('.node').hasClass('hidden') ? _Icons.collapsedClass : _Icons.expandedClass;
 			let expandIconClassName = 'expand_icon_svg';
 
-			typeIcon.css({
-				paddingRight: 0 + 'px'
-			}).after(`<i title="Expand ${name}" class="${expandIconClassName} ${icon}"></i>`);
+			typeIcon.before(`<i class="${expandIconClassName} ${icon}"></i>`);
 
 			let expandIcon = el.children('.' + expandIconClassName).first();
 
-			let expandClickHandler = function (e) {
+			let expandClickHandler = (e) => {
 				e.stopPropagation();
-				let body = $('#' + id);
-				body.toggleClass('hidden');
 
-				let collapsed = body.hasClass('hidden');
-				if (collapsed) {
+				let childNodes = el.parent().children('.node');
+
+				childNodes.toggleClass('hidden');
+
+				let isCollapsed = childNodes.hasClass('hidden');
+				if (isCollapsed) {
 					Structr.addExpandedNode(id);
 					expandIcon.removeClass(_Icons.expandedClass).addClass(_Icons.collapsedClass);
 				} else {
@@ -646,12 +651,7 @@ let _Widgets = {
 			let button = $(el.children('.' + expandIconClassName).first());
 
 			if (button) {
-
 				button.on('click', expandClickHandler);
-
-				button.on('mousedown', function(e) {
-					e.stopPropagation();
-				});
 			}
 
 		} else {
@@ -891,10 +891,12 @@ let _Widgets = {
 			${_Icons.getSvgIcon('circle_plus', 20, 20, _Icons.getSvgIconClassesNonColorIcon(['add_widgets_icon'], 'Create Widget'))}
 			
 			<div class="inner">
-			
+
 				<div class="tab-group${config.localCollapsed ? ' collapsed' : ''}" data-key="${_Widgets.localWidgetsCollapsedKey}">
 					<a href="javascript:void(0);" class="tab-group-toggle">
-						<h3><i title="Expand Elements" class="expanded expand_icon_svg ${_Icons.expandedClass}"></i><i title="Expand Elements" class="collapsed expand_icon_svg ${_Icons.collapsedClass}"></i> Local Widgets</h3>
+						<h3 class="flex items-center">
+							<i title="Expand Elements" class="expanded expand_icon_svg ${_Icons.expandedClass}"></i><i title="Expand Elements" class="collapsed expand_icon_svg ${_Icons.collapsedClass}"></i> Local Widgets
+						</h3>
 					</a>
 			
 					<div class="tab-group-content">
@@ -904,7 +906,9 @@ let _Widgets = {
 			
 				<div class="tab-group${config.remoteCollapsed ? ' collapsed' : ''}" data-key="${_Widgets.remoteWidgetsCollapsedKey}">
 					<a href="javascript:void(0);" class="tab-group-toggle">
-						<h3><i title="Expand Elements" class="expanded expand_icon_svg ${_Icons.expandedClass}"></i><i title="Expand Elements" class="collapsed expand_icon_svg ${_Icons.collapsedClass}"></i> Remote Widgets</h3>
+						<h3 class="flex items-center">
+							<i title="Expand Elements" class="expanded expand_icon_svg ${_Icons.expandedClass}"></i><i title="Expand Elements" class="collapsed expand_icon_svg ${_Icons.collapsedClass}"></i> Remote Widgets
+						</h3>
 					</a>
 			
 					<div class="tab-group-content">
@@ -917,7 +921,6 @@ let _Widgets = {
 						<div id="remoteWidgets"></div>
 					</div>
 				</div>
-			
 			</div>
 		`,
 		editSelectors: config => `

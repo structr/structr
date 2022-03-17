@@ -509,7 +509,7 @@ let _MailTemplates = {
 				<td class="property allow-break" data-property="name"></td>
 				<td class="property" data-property="locale"></td>
 				<td class="actions">
-					<div class="icons-container"></div>
+					<div class="icons-container flex items-center"></div>
 				</td>
 			</tr>
 		`,

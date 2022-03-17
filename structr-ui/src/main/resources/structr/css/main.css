@@ -568,14 +568,6 @@ img.disabled {
 	z-index: 1;
 }
 
-#widgets, #remoteWidgets {
-	margin-left: -1rem;
-}
-
-#remoteWidgets input:first-of-type  {
-	margin-top: -6px;
-}
-
 #add-widget-server td:first-of-type {
 	width: 100px;
 }
@@ -739,7 +731,6 @@ img.disabled {
 
 #palette a h3, #widgetsSlideout a h3 {
 	color: var(--body-text);
-	padding-left: 1.5rem;
 	position: relative;
 }
 
@@ -1050,7 +1041,6 @@ img.disabled {
 }
 
 .node .name_ {
-	max-width: 75%;
 	text-overflow: ellipsis;
 	overflow: hidden;
 	white-space: nowrap;
@@ -1078,14 +1068,11 @@ img.disabled {
 	max-width: 66%;
 }
 
+.abbr-ellipsis.abbr-pages-tree-page,
 .abbr-ellipsis.abbr-pages-tree,
 .abbr-ellipsis.abbr-pages-tree .content_ {
-	max-width: calc(100% - 6rem);
-}
-
-.abbr-ellipsis.abbr-pages-tree-page {
-	/* account for page position */
-	max-width: calc(100% - 6rem);
+	flex-grow: 1;
+	flex-shrink: 1;
 }
 
 .abbr-ellipsis.abbr-70pc {
@@ -1252,6 +1239,7 @@ span.id {
 }
 
 .typeIcon, .expand_icon {
+	flex-shrink: 0;
 	border: none;
 	background: none;
 	cursor: pointer ! important;
@@ -1272,15 +1260,15 @@ span.id {
 .typeIcon {
 	width: 16px;
 	height: 16px;
-	margin: .35rem .5rem 0 1.5rem;
+	margin: 0rem .5rem 0 .25rem;
 }
 
-/*.typeIcon-nochildren {
+.typeIcon-nochildren {
 	margin-left: 16px ! important;
-}*/
+}
 
 .expand_icon_svg {
-	position: absolute;
+	flex-shrink: 0;
 	cursor: pointer;
 	z-index: 2;
 	width: 1.25rem;
@@ -1363,11 +1351,7 @@ i.link_icon {
 }
 
 .icons-container {
-	position: absolute;
-	right: .5rem;
-	top: .375rem;
-	vertical-align: top;
-	height: 1rem;
+	margin-right: .5rem;
 }
 
 .tile:not(.img-tile) .icons-container {
@@ -1385,6 +1369,7 @@ i.link_icon {
 }
 
 .nodeHover > .icons-container > .node-action-icon,
+.nodeHover > .node-container > .icons-container > .node-action-icon,
 .jstree-hovered > .icons-container > .node-action-icon,
 .schema:hover .icons-container > .node-action-icon {
 	display: inline-block;
@@ -2347,14 +2332,6 @@ table.push {
 .widget b, .widget span {
 	cursor: pointer;
 	line-height: 2rem;
-}
-
-.widget.node {
-	margin-left: 0;
-}
-
-.widget .typeIcon {
-	vertical-align: sub;
 }
 
 .hidden, i.hidden {

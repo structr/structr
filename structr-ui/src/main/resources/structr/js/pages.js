@@ -478,11 +478,11 @@ let _Pages = {
 						clickHandler: function() {
 							$(div).find('.node').each(function(i, el) {
 								if (!_Entities.isExpanded(el)) {
-									_Entities.toggleElement(el);
+									_Entities.toggleElement(entity.id, el);
 								}
 							});
 							if (!_Entities.isExpanded(div)) {
-								_Entities.toggleElement(div);
+								_Entities.toggleElement(entity.id, div);
 							}
 							return false;
 						}
@@ -499,11 +499,11 @@ let _Pages = {
 						clickHandler: function() {
 							$(div).find('.node').each(function(i, el) {
 								if (_Entities.isExpanded(el)) {
-									_Entities.toggleElement(el);
+									_Entities.toggleElement(entity.id, el);
 								}
 							});
 							if (_Entities.isExpanded(div)) {
-								_Entities.toggleElement(div);
+								_Entities.toggleElement(entity.id, div);
 							}
 							return false;
 						}
@@ -1171,18 +1171,21 @@ let _Pages = {
 
 		_Pages.pagesTree.append(`
 			<div id="id_${entity.id}" class="node page${entity.hidden ? ' is-hidden' : ''}">
-				<div class="node-selector"></div>
-				<i class="typeIcon ${_Icons.getFullSpriteClass(_Icons.page_icon)}"></i>
-				<span>
-					<b title="${escapeForHtmlAttributes(entity.name)}" class="name_ abbr-ellipsis abbr-pages-tree-page">${pageName}</b>
-					${(entity.position ? ' <span class="position_">' + entity.position + '</span>' : '')}
-				</span>
-				<span class="id">${entity.id}</span>
-				<div class="icons-container"></div>
+				<div class="node-container flex items-center">
+					<div class="node-selector"></div>
+					<i class="typeIcon ${_Icons.getFullSpriteClass(_Icons.page_icon)}"></i>
+					<span class="abbr-ellipsis abbr-pages-tree-page">
+						<b title="${escapeForHtmlAttributes(entity.name)}" class="name_">${pageName}</b>
+						${(entity.position ? ` <span class="position_">${entity.position}</span>` : '')}
+					</span>
+					<!--span class="id">${entity.id}</span-->
+					<div class="icons-container flex items-center"></div>
+				</div>
 			</div>
 		`);
 
 		let div            = Structr.node(entity.id);
+		let nodeContainer  = $('.node-container', div);
 		let iconsContainer = $('.icons-container', div);
 
 		_Dragndrop.makeSortable(div);
@@ -1191,7 +1194,7 @@ let _Pages = {
 			e.stopPropagation();
 		});
 
-		_Entities.appendExpandIcon(div, entity, hasChildren);
+		_Entities.appendExpandIcon(nodeContainer, entity, hasChildren);
 
 		_Entities.appendContextMenuIcon(iconsContainer, entity);
 		_Pages.appendPagePreviewIcon(iconsContainer, entity);
@@ -1200,39 +1203,18 @@ let _Pages = {
 		_Elements.enableContextMenuOnElement(div, entity);
 		_Entities.setMouseOver(div);
 
-		// let dblclickHandler = (e) => {
-		// 	e.stopPropagation();
-		// 	let self = e.target;
-		//
-		// 	// only on page nodes and if not clicked on expand/collapse icon
-		// 	if (!self.classList.contains('expand_icon_svg') && self.closest('.node').classList.contains('page')) {
-		//
-		// 		let url = _Pages.previews.getUrlForPage(entity);
-		// 		window.open(url);
-		// 	}
-		// 	};
-		//
-		// let pageNode = Structr.node(entity.id)[0];
-		// if (pageNode) {
-		// 	pageNode.removeEventListener('dblclick', dblclickHandler);
-		// 	pageNode.addEventListener('dblclick', dblclickHandler);
-		// }
-
 		_Dragndrop.makeDroppable(div);
 
 		_Elements.clickOrSelectElementIfLastSelected(div, entity);
 
 		return div;
 	},
-
 	appendPagePreviewIcon: (parent, page) => {
 
 		let pagePreviewIcon = $('.svg_page_preview_icon', parent);
 		if (!(pagePreviewIcon && pagePreviewIcon.length)) {
 
-			let iconClasses = _Icons.getSvgIconClassesNonColorIcon(['svg_page_preview_icon', 'node-action-icon', 'mr-1']);
-
-			pagePreviewIcon = $(_Icons.getSvgIcon('link_external', 16, 16, iconClasses));
+			pagePreviewIcon = $(_Icons.getSvgIcon('link_external', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['svg_page_preview_icon', 'node-action-icon', 'mr-1'])));
 			parent.append(pagePreviewIcon);
 
 			pagePreviewIcon.on('click', () => {
@@ -1242,13 +1224,11 @@ let _Pages = {
 
 		return pagePreviewIcon;
 	},
-
 	openPagePreviewInNewWindow: (entity) => {
 
 		let url = _Pages.previews.getUrlForPage(entity);
 		window.open(url);
 	},
-
 	registerDetailClickHandler: (element, entity) => {
 
 		if (Structr.getActiveModule() === _Pages && element.data('clickhandlerSet') !== true) {
@@ -1531,10 +1511,10 @@ let _Pages = {
 					let modelNode = (res.node) ? StructrModel.createFromData(res.node) : { type: "Untraceable source (probably static method)", isFake: true };
 					let tbody     = _Pages.localizations.getNodeForLocalization(localizationsContainer, modelNode);
 					let row       = Structr.createSingleDOMElementFromHTML(`<tr>
-							<td><div class="key-column allow-break">${res.key}</div></td>
+							<td><div class="key-column allow-break">${escapeForHtmlAttributes(res.key)}</div></td>
 							<td class="domain-column">${res.domain}</td>
 							<td class="locale-column">${((res.localization !== null) ? res.localization.locale : res.locale)}</td>
-							<td class="input"><input class="localized-value" placeholder="..."><a title="Delete" class="delete"><i class="${_Icons.getFullSpriteClass(_Icons.cross_icon)}"></i></a></td>
+							<td class="input"><input class="localized-value" placeholder="...">${_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'delete', 'mr-2', 'ml-2']))}</td>
 						</tr>`
 					);
 					let input     = row.querySelector('input.localized-value');
@@ -1612,7 +1592,7 @@ let _Pages = {
 				};
 			}
 		},
-		getNodeForLocalization: function (container, entity) {
+		getNodeForLocalization: (container, entity) => {
 
 			let idString = 'locNode_' + entity.id;
 			let existing = container.querySelector('#' + idString);
@@ -1627,14 +1607,14 @@ let _Pages = {
 
 			if (entity.type === 'Content') {
 
-				detailHtml = `<div>${entity.content}</div>`;
+				detailHtml = entity.content;
 
 			} else if (entity.type === 'Template') {
 
 				if (entity.name) {
-					detailHtml = `<div>${displayName}</div>`;
+					detailHtml = displayName;
 				} else {
-					detailHtml = `<div>${escapeTags(entity.content)}</div>`;
+					detailHtml = escapeTags(entity.content);
 				}
 
 			} else if (!entity.isDOMNode) {
@@ -1644,16 +1624,27 @@ let _Pages = {
 			}
 
 			let div = Structr.createSingleDOMElementFromHTML(`
-				<div id="${idString}" class="node localization-element ${(entity.tag === 'html' ? ' html_element' : '')}">
-					<div class="node-selector"></div>
-					<i class="typeIcon ${iconClass}"></i><span class="abbr-ellipsis abbr-pages-tree">${detailHtml}${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
-					<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>
-					<div class="icons-container"></div>
-				</div>`
-			);
-			div.dataset['nodeId'] = (_Entities.isContentElement(entity) ? entity.parent.id : entity.id );
+				<div id="${idString}" class="node localization-element ${(entity.tag === 'html' ? ' html_element' : '')}" data-node-id="${(_Entities.isContentElement(entity) ? entity.parent.id : entity.id )}">
+					<div class="node-container flex items-center">
+						<div class="node-selector"></div>
+						<i class="typeIcon ${iconClass}"></i><span class="abbr-ellipsis abbr-pages-tree">${detailHtml}${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
+						<div class="icons-container flex items-center"></div>
+					</div>
+					<table>
+						<thead>
+							<tr>
+								<th>Key</th>
+								<th>Domain</th>
+								<th>Locale</th>
+								<th>Localization</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</div>
+			`);
 
-			let $div = $(div);
+			let $div           = $(div);
 			let iconsContainer = $('.icons-container', $div);
 
 			if (!entity.isDOMNode && !entity.isFake) {
@@ -1683,8 +1674,7 @@ let _Pages = {
 			}
 
 			return div.querySelector('tbody');
-		},
-
+		}
 	},
 	previews: {
 		loadPreviewTimer : undefined,
@@ -2313,10 +2303,10 @@ let _Pages = {
 			
 			<div id="localizations" class="slideOut slideOutLeft">
 				<div class="page inner">
-					<div class="localizations-inputs">
+					<div class="localizations-inputs flex">
 						<select id="localization-preview-page"></select>
 						<input class="locale" placeholder="Locale">
-						<button class="refresh action button">${_Icons.getHtmlForIcon(_Icons.refresh_icon)} Refresh</button>
+						<button class="refresh action button flex items-center">${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Refresh</button>
 					</div>
 			
 					<div class="results"></div>

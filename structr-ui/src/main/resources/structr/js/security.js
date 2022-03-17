@@ -307,7 +307,7 @@ let _UsersAndGroups = {
 		addUserButton.addEventListener('click', (e) => {
 			Command.create({ type: userTypeSelect.value }, (user) => {
 				let userModelObj = StructrModel.create(user);
-				_UsersAndGroups.appendUserToUserList(userModelObj);
+				_UsersAndGroups.appendUserToElement(_Security.userList, userModelObj);
 			});
 		});
 
@@ -318,25 +318,29 @@ let _UsersAndGroups = {
 		let userPager = _Pager.addPager('users', $(_Security.userControls), true, 'User', 'public', (users) => {
 			for (let user of users) {
 				let userModelObj = StructrModel.create(user);
-				_UsersAndGroups.appendUserToUserList(userModelObj);
+				_UsersAndGroups.appendUserToElement(_Security.userList, userModelObj);
 			}
 		}, null, 'id,isUser,name,type,isAdmin');
+
 		userPager.cleanupFunction = function () {
 			_Security.userList.innerHTML = '';
 		};
+
 		userPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
 		userPager.activateFilterElements();
 	},
-	createUserElement:function (user) {
+	createUserElement: (user) => {
 
-		let displayName = ((user.name) ? user.name : ((user.eMail) ? '[' + user.eMail + ']' : '[unnamed]'));
+		let displayName = ((user.name) ? user.name : ((user.eMail) ? `[${user.eMail}]` : '[unnamed]'));
 
-		let userElement = $('<div class="node user ' + _UsersAndGroups.userNodeClassPrefix + user.id + '">'
-				+ '<i class="typeIcon ' + _UsersAndGroups.getIconForPrincipal(user) + '"></i>'
-				+ '<b title="' + displayName + '" class="name_ abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + displayName + '</b>'
-				+ '<div class="icons-container"></div>'
-		);
-		userElement.data('userId', user.id);
+		let userElement = $(`
+			<div class="node user ${_UsersAndGroups.userNodeClassPrefix}${user.id}" data-user-id="${user.id}">
+				<div class="node-container flex items-center">
+					<i class="typeIcon typeIcon-nochildren ${_UsersAndGroups.getIconForPrincipal(user)}"></i><b title="${displayName}" class="name_ flex-grow truncate" data-input-class="max-w-75">${displayName}</b>
+					<div class="icons-container flex items-center"></div>
+				</div>
+			</div>
+		`);
 
 		_UsersAndGroups.makeDraggable(userElement);
 
@@ -360,7 +364,7 @@ let _UsersAndGroups = {
 
 				let icon = userEl.querySelector('.typeIcon');
 				if (icon) {
-					icon.setAttribute('class', 'typeIcon ' + _UsersAndGroups.getIconForPrincipal(user));
+					icon.setAttribute('class', 'typeIcon typeIcon-nochildren ' + _UsersAndGroups.getIconForPrincipal(user));
 				}
 
 				let userName = userEl.querySelector('.name_');
@@ -373,13 +377,13 @@ let _UsersAndGroups = {
 			}
 		});
 	},
-	appendUserToUserList: function (user) {
+	appendUserToElement: (targetElement, user) => {
 
 		let userDiv = _UsersAndGroups.createUserElement(user);
 
-		_Security.userList.appendChild(userDiv[0]);
+		targetElement.appendChild(userDiv[0]);
 
-		_Entities.appendContextMenuIcon(userDiv.children('.icons-container'), user);
+		_Entities.appendContextMenuIcon($('.icons-container', userDiv), user);
 		_Elements.enableContextMenuOnElement(userDiv, user);
 		_UsersAndGroups.setMouseOver(userDiv, user.id, '.' + _UsersAndGroups.userNodeClassPrefix);
 
@@ -442,14 +446,8 @@ let _UsersAndGroups = {
 				if (!memberAlreadyListed) {
 
 					let modelObj = StructrModel.obj(member.id);
-					let userDiv = _UsersAndGroups.createUserElement(modelObj ? modelObj : member);
 
-					$(grpEl).append(userDiv);
-					userDiv.removeClass('disabled');
-
-					_Entities.appendContextMenuIcon(userDiv, member);
-					_Elements.enableContextMenuOnElement(userDiv, member);
-					_UsersAndGroups.setMouseOver(userDiv, member.id, prefix);
+					_UsersAndGroups.appendUserToElement(grpEl, (modelObj ? modelObj : member));
 				}
 			});
 
@@ -460,27 +458,11 @@ let _UsersAndGroups = {
 
 			if (!alreadyShownInMembers && !alreadyShownInParents) {
 
-				let groupDiv = _UsersAndGroups.createGroupElement(member);
-
-				groupEl.append(groupDiv);
-
-				groupDiv.removeClass('disabled');
-
-				_Entities.appendContextMenuIcon(groupDiv, member);
-				_Elements.enableContextMenuOnElement(groupDiv, member);
-				_UsersAndGroups.setMouseOver(groupDiv, member.id, prefix);
-
-				if (member.members === null) {
-					Command.get(member.id, null, function (fetchedGroup) {
-						_UsersAndGroups.appendMembersToGroup(fetchedGroup.members, member, groupDiv);
-					});
-				} else if (member.members && member.members.length) {
-					_UsersAndGroups.appendMembersToGroup(member.members, member, groupDiv);
-				}
+				_UsersAndGroups.appendGroupToElement(groupEl, member);
 			}
 		}
 	},
-	isGroupAlreadyShown: function(group, groupEl) {
+	isGroupAlreadyShown: (group, groupEl) => {
 		if (groupEl.length === 0) {
 			return false;
 		}
@@ -505,7 +487,7 @@ let _UsersAndGroups = {
 		addGroupButton.addEventListener('click', (e) => {
 			Command.create({ type: groupTypeSelect.value }, (group) => {
 				let groupModelObj = StructrModel.create(group);
-				_UsersAndGroups.appendGroupElement($(_Security.groupList), groupModelObj);
+				_UsersAndGroups.appendGroupToElement($(_Security.groupList), groupModelObj);
 			});
 		});
 
@@ -516,7 +498,7 @@ let _UsersAndGroups = {
 		let groupPager = _Pager.addPager('groups', $(_Security.groupControls), true, 'Group', 'public', (groups) => {
 			for (let group of groups) {
 				let groupModelObj = StructrModel.create(group);
-				_UsersAndGroups.appendGroupElement($(_Security.groupList), groupModelObj);
+				_UsersAndGroups.appendGroupToElement($(_Security.groupList), groupModelObj);
 			}
 		});
 		groupPager.cleanupFunction = function () {
@@ -524,16 +506,19 @@ let _UsersAndGroups = {
 		};
 		groupPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
 		groupPager.activateFilterElements();
-                                                                                                                                                 	},
+	},
 	createGroupElement: function (group) {
 
 		let displayName = ((group.name) ? group.name : '[unnamed]');
-		let groupElement = $('<div class="node group ' + _UsersAndGroups.groupNodeClassPrefix + group.id + '">'
-				+ '<i class="typeIcon ' + _UsersAndGroups.getIconForPrincipal(group) + '"></i>'
-				+ '<b title="' + displayName + '" class="name_  abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + displayName + '</b>'
-				+ '<div class="icons-container"></div>'
-		);
-		groupElement.data('groupId', group.id);
+
+		let groupElement = $(`
+			<div class="node group ${_UsersAndGroups.groupNodeClassPrefix}${group.id}" data-group-id="${group.id}">
+				<div class="node-container flex items-center">
+					<i class="typeIcon ${(group.members.length > 0 ? 'typeIcon-nochildren ' : '')}${_UsersAndGroups.getIconForPrincipal(group)}"></i><b title="${displayName}" class="name_ flex-grow" data-input-class="max-w-75">${displayName}</b>
+					<div class="icons-container flex items-center"></div>
+				</div>
+			</div>
+		`);
 
 		groupElement.droppable({
 			accept: '.user, .group',
@@ -594,20 +579,25 @@ let _UsersAndGroups = {
 			}
 		});
 	},
-	appendGroupElement: function(element, group) {
+	appendGroupToElement: (targetElement, group) => {
 
 		let hasChildren = group.members && group.members.length;
 		let groupDiv    = _UsersAndGroups.createGroupElement(group);
-		element.append(groupDiv);
+		targetElement.append(groupDiv);
 
-		_Entities.appendExpandIcon(groupDiv, group, hasChildren, Structr.isExpanded(group.id), (members) => { _UsersAndGroups.appendMembersToGroup(members, group, groupDiv); } );
-		_Entities.appendContextMenuIcon(groupDiv.children('.icons-container'), group);
+		let appendMembersFn = (members) => {
+			_UsersAndGroups.appendMembersToGroup(members, group, groupDiv);
+		};
+
+		_Entities.appendExpandIcon(groupDiv.children('.node-container'), group, hasChildren, Structr.isExpanded(group.id), appendMembersFn);
+
+		_Entities.appendContextMenuIcon(groupDiv.children('.node-container').children('.icons-container'), group);
 		_Elements.enableContextMenuOnElement(groupDiv, group);
 		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.' + _UsersAndGroups.groupNodeClassPrefix);
 
 		if (hasChildren && Structr.isExpanded(group.id)) {
 			// do not directly use group.members (it does not contain all necessary information)
-			Command.children(group.id, (members) => { _UsersAndGroups.appendMembersToGroup(members, group, groupDiv); });
+			Command.children(group.id, appendMembersFn);
 		}
 
 		let dblclickHandler = (e) => {
@@ -624,7 +614,7 @@ let _UsersAndGroups = {
 	},
 	setMouseOver: function (node, id, prefix) {
 
-		node.children('b.name_').off('click').on('click', function(e) {
+		node.children('.node-container').children('b.name_').off('click').on('click', function(e) {
 			e.stopPropagation();
 			_Entities.makeAttributeEditable(node, id, 'b.name_', 'name', (el) => {
 				blinkGreen(el);

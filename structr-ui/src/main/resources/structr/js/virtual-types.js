@@ -560,7 +560,7 @@ let _VirtualTypes = {
 				<td class="name allow-break"></td>
 				<td class="sourceType"></td>
 				<td class="actions">
-					<div class="icons-container"></div>
+					<div class="icons-container flex items-center"></div>
 				</td>
 			</tr>
 		`,

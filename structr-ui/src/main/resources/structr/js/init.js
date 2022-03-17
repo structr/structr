@@ -1086,7 +1086,7 @@ let Structr = {
 	parent: function(id) {
 		return Structr.node(id) && Structr.node(id).parent().closest('.node');
 	},
-	node: function(id, prefix) {
+	node: (id, prefix) => {
 		let p    = prefix || '#id_';
 		let node = $($(p + id)[0]);
 
@@ -1430,7 +1430,7 @@ let Structr = {
 		$('.structr-version').html('');
 	},
 	getId: function(element) {
-		var id = Structr.getIdFromPrefixIdString($(element).prop('id'), 'id_') || $(element).data('nodeId');
+		let id = Structr.getIdFromPrefixIdString($(element).prop('id'), 'id_') || $(element).data('nodeId');
 		return id || undefined;
 	},
 	getIdFromPrefixIdString: function(idString, prefix) {
@@ -1525,7 +1525,6 @@ let Structr = {
 
 				Structr.getExpanded()[id] = true;
 				LSWrapper.setItem(Structr.expandedIdsKey, JSON.stringify(Structr.expanded));
-
 			}
 		}
 	},

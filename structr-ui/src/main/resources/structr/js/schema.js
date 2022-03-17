@@ -508,7 +508,7 @@ let _Schema = {
 						let id = 'id_' + entity.id;
 						canvas.append(`<div class="schema node compact${(entity.isBuiltinType ? ' light' : '')}" id="${id}">
 							<b>${entity.name}</b>
-							<div class="icons-container">
+							<div class="icons-container flex items-center">
 								${_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['node-action-icon', 'edit-type-icon']))}
 								${(entity.isBuiltinType ? '' : _Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'node-action-icon', 'delete-type-icon'])))}
 							</div>

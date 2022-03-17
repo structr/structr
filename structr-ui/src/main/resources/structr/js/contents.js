@@ -439,12 +439,12 @@ let _Contents = {
 		if (d.isContentContainer) {
 
 			row.append('<td class="file-icon"><i class="fa ' + icon + '"></i></td>');
-			row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node container flex items-center justify-between"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ leading-8 truncate">' + d.name + '</b><div class="icons-container"></div></div></td>');
+			row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node container flex items-center justify-between"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ leading-8 truncate">' + d.name + '</b><div class="icons-container flex items-center"></div></div></td>');
 
 		} else {
 
 			row.append('<td class="file-icon"><a href="javascript:void(0)"><i class="fa ' + icon + '"></i></a></td>');
-			row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item flex items-center justify-between"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ leading-8 truncate">' + (d.name ? d.name : '[unnamed]') + '</b><div class="icons-container"></div></td>');
+			row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item flex items-center justify-between"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ leading-8 truncate">' + (d.name ? d.name : '[unnamed]') + '</b><div class="icons-container flex items-center"></div></td>');
 		}
 
 		row.append('<td>' + size + '</td>');
@@ -912,20 +912,6 @@ let _Contents = {
 			}
 		});
 	},
-	// appendEditFileIcon: function(parent, item) {
-	//
-	// 	var editIcon = $('.edit_file_icon', parent);
-	//
-	// 	if (!(editIcon && editIcon.length)) {
-	// 		parent.append('<i title="Edit ' + item.name + ' [' + item.id + ']" class="edit_file_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-	// 	}
-	//
-	// 	$(parent.children('.edit_file_icon')).on('click', function(e) {
-	// 		e.stopPropagation();
-	//
-	// 		_Contents.editItem(item);
-	// 	});
-	// },
 	displaySearchResultsForURL: function(url) {
 
 		$('#search-results').remove();

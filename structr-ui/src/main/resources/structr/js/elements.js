@@ -313,11 +313,13 @@ let _Elements = {
 
 		let html = `
 			<div id="id_${id}" class="${elementClasses.join(' ')}">
-				<div class="node-selector"></div>
-				<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
-				<span class="abbr-ellipsis abbr-pages-tree"><b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
-				<span class="id">${entity.id}</span>
-				<div class="icons-container"></div>
+				<div class="node-container flex items-center">
+					<div class="node-selector"></div>
+					<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
+					<span class="abbr-ellipsis abbr-pages-tree"><b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
+					<!--span class="id">${entity.id}</span-->
+					<div class="icons-container flex items-center"></div>
+				</div>
 			</div>
 		`;
 
@@ -328,6 +330,7 @@ let _Elements = {
 		}
 
 		let div            = Structr.node(id);
+		let nodeContainer  = $('.node-container', div);
 		let iconsContainer = $('.icons-container', div);
 
 		if (!div) {
@@ -335,7 +338,7 @@ let _Elements = {
 		}
 
 		_Elements.enableContextMenuOnElement(div, entity);
-		_Entities.appendExpandIcon(div, entity, hasChildren);
+		_Entities.appendExpandIcon(nodeContainer, entity, hasChildren);
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 
@@ -982,11 +985,13 @@ let _Elements = {
 		let icon = _Elements.getContentIcon(entity);
 		let html = `
 			<div id="id_${entity.id}" class="node content ${(isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '')}">
-				<div class="node-selector"></div>
-				<i class="typeIcon ${_Icons.getFullSpriteClass(icon)} typeIcon-nochildren"></i>
-				<span class="abbr-ellipsis abbr-pages-tree">${nameText}</span>
-				<span class="id">${entity.id}</span>
-				<div class="icons-container"></div>
+				<div class="node-container flex items-center">
+					<div class="node-selector"></div>
+					<i class="typeIcon ${_Icons.getFullSpriteClass(icon)} typeIcon-nochildren"></i>
+					<span class="abbr-ellipsis abbr-pages-tree">${nameText}</span>
+					<!--span class="id">${entity.id}</span-->
+					<div class="icons-container flex items-center"></div>
+				</div>
 			</div>`;
 
 
@@ -997,6 +1002,7 @@ let _Elements = {
 		}
 
 		let div            = Structr.node(entity.id);
+		let nodeContainer  = $('.node-container', div);
 		let iconsContainer = $('.icons-container', div);
 
 		_Dragndrop.makeSortable(div);
@@ -1004,16 +1010,16 @@ let _Elements = {
 
 		if (isTemplate) {
 			let hasChildren = entity.childrenIds && entity.childrenIds.length;
-			_Entities.appendExpandIcon(div, entity, hasChildren);
+			_Entities.appendExpandIcon(nodeContainer, entity, hasChildren);
 		}
 
 		if (entity.hidden === true) {
 			div.addClass('is-hidden');
 		}
 
-		_Elements.enableContextMenuOnElement(div, entity);
+		_Elements.enableContextMenuOnElement(nodeContainer, entity);
 
-		_Pages.registerDetailClickHandler(div, entity);
+		_Pages.registerDetailClickHandler(nodeContainer, entity);
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 

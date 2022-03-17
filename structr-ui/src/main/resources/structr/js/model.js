@@ -186,14 +186,13 @@ let StructrModel = {
 				_Entities.ensureExpanded(element);
 			}
 
-			var parent = element.parent();
+			let parent = element.parent();
 
 			if (parent && parent.hasClass('node') && parent.children('.node') && parent.children('.node').length) {
 
-				var ent = Structr.entityFromElement(parent);
-				_Entities.ensureExpanded(parent);
-				_Entities.appendExpandIcon(parent, ent, true, true);
+				let ent = Structr.entityFromElement(parent);
 
+				_Entities.appendExpandIcon($(parent.children('.node-container')), ent, true, true);
 			}
 		}
 	},
@@ -400,7 +399,7 @@ let StructrModel = {
 			// update HTML 'class' and 'id' attributes
 			if (isIn('_html_id', Object.keys(obj)) || isIn('_html_class', Object.keys(obj))) {
 
-				let classIdAttrsEl = element.children('span').children('.class-id-attrs');
+				let classIdAttrsEl = element.children('.node-container').find('.class-id-attrs');
 				if (classIdAttrsEl.length) {
 
 					let classIdString = _Elements.classIdString(obj._html_id, obj._html_class);
@@ -472,16 +471,9 @@ let StructrModel = {
 				if ((obj.type === 'Template' || obj.isContent)) {
 					if (obj.name) {
 						element.children('span').children('.content_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>');
-//						element.children('.content_').off('click').on('click', function(e) {
-//							e.stopPropagation();
-//							_Entities.makeNameEditable(element);
-//						});
 
 						element.children('span').children('.name_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>');
-						// element.children('b.name_').off('click').on('click', function(e) {
-						// 	e.stopPropagation();
-						// 	_Entities.makeNameEditable(element);
-						// });
+
 					} else {
 						element.children('span').children('.name_').html(escapeTags(obj.content));
 					}
