@@ -370,9 +370,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> sort(final SortOrder sortOrder) {
 
-		this.doNotSort  = false;
+		if (sortOrder != null) {
 
-		this.sortOrder = sortOrder;
+			this.doNotSort = false;
+			this.sortOrder = sortOrder;
+		}
 
 		return this;
 	}
