@@ -2551,6 +2551,13 @@ let _Schema = {
 	},
 	methods: {
 		methodsData: {},
+		lastEditedMethod: {},
+		getLastEditedMethod: (entity) => {
+			return _Schema.methods.lastEditedMethod[(entity ? entity.id : 'global')];
+		},
+		setLastEditedMethod: (entity, method) => {
+			_Schema.methods.lastEditedMethod[(entity ? entity.id : 'global')] = method;
+		},
 		appendMethods: (el, entity, methods, optionalAfterSaveCallback) => {
 
 			_Schema.methods.methodsData = {};
@@ -2576,7 +2583,9 @@ let _Schema = {
 
 			_Schema.sort(methods);
 
-			let isFirst = true;
+			let lastEditedMethod = _Schema.methods.getLastEditedMethod(entity);
+
+			let rowToActivate = undefined;
 
 			for (let method of methods) {
 
@@ -2599,14 +2608,16 @@ let _Schema = {
 					initialSource:   method.source || '',
 				};
 
-				_Schema.methods.bindRowEvents(fakeRow, entity, method);
+				_Schema.methods.bindRowEvents(fakeRow, entity);
 
 				// auto-edit first method (or last used)
-				if (isFirst|| (_Schema.methods.lastEditedMethod && ((_Schema.methods.lastEditedMethod.isNew === false && _Schema.methods.lastEditedMethod.id === method.id) || (_Schema.methods.lastEditedMethod.isNew === true && _Schema.methods.lastEditedMethod.name === method.name)))) {
-					isFirst = false;
-					$('.edit-action', fakeRow).click();
+				if ((rowToActivate === undefined) || (lastEditedMethod && ((lastEditedMethod.isNew === false && lastEditedMethod.id === method.id) || (lastEditedMethod.isNew === true && lastEditedMethod.name === method.name)))) {
+					rowToActivate = fakeRow;
 				}
 			}
+
+			// activate
+			rowToActivate[0].querySelector('.edit-action').dispatchEvent(new Event('click'));
 
 			$('.discard-all', methodsFakeTable).on('click', () => {
 				for (let discardIcon of methodsFakeTable[0].querySelectorAll('.discard-changes')) {
@@ -2697,9 +2708,9 @@ let _Schema = {
 
 					let activeMethod = fakeTbody.find('.fake-tr.editing');
 					if (activeMethod) {
-						_Schema.methods.lastEditedMethod = _Schema.methods.methodsData[activeMethod.data('methodId')];
+						_Schema.methods.setLastEditedMethod(entity, _Schema.methods.methodsData[activeMethod.data('methodId')]);
 					} else {
-						_Schema.methods.lastEditedMethod = undefined;
+						_Schema.methods.setLastEditedMethod(entity, undefined);
 					}
 
 					_Schema.showSchemaRecompileMessage();
@@ -2760,19 +2771,19 @@ let _Schema = {
 			};
 
 			el[0].querySelector('.add-action-button').addEventListener('click', () => {
-				_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod(''));
+				_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod(''), entity);
 			});
 
 			if (entity) {
 
 				el[0].querySelector('.add-onCreate-button').addEventListener('click', () => {
-					_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('onCreate'));
+					_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('onCreate'), entity);
 				});
 
 				let addAfterCreateButton = el[0].querySelector('.add-afterCreate-button');
 
 				addAfterCreateButton.addEventListener('click', () => {
-					_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('afterCreate'));
+					_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('afterCreate'), entity);
 				});
 
 				Structr.appendInfoTextToElement({
@@ -2782,11 +2793,11 @@ let _Schema = {
 				});
 
 				el[0].querySelector('.add-onSave-button').addEventListener('click', () => {
-					_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('onSave'));
+					_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('onSave'), entity);
 				});
 			}
 		},
-		appendNewMethod: (fakeTbody, method) => {
+		appendNewMethod: (fakeTbody, method, entity) => {
 
 			let newMethodHtml = _Schema.templates.method({ method: method, isNew: true });
 			let row           = $(newMethodHtml);
@@ -2814,7 +2825,7 @@ let _Schema = {
 			});
 
 			rowEl.querySelector('.edit-action').addEventListener('click', () => {
-				_Schema.methods.editMethod(row);
+				_Schema.methods.editMethod(row, entity);
 			});
 
 			rowEl.querySelector('.clone-action').addEventListener('click', () => {
@@ -2823,7 +2834,7 @@ let _Schema = {
 					name:     _Schema.methods.getFirstFreeMethodName(_Schema.methods.methodsData[method.id].name + '_copy'),
 					isStatic: _Schema.methods.methodsData[method.id].isStatic,
 					source:   _Schema.methods.methodsData[method.id].source
-				});
+				}, entity);
 			});
 
 			rowEl.querySelector('.discard-changes').addEventListener('click', () => {
@@ -2839,7 +2850,7 @@ let _Schema = {
 
 			_Schema.methods.fakeTableChanged(fakeTbody.closest('.fake-table'));
 
-			_Schema.methods.editMethod(row);
+			_Schema.methods.editMethod(row, entity);
 		},
 		getFirstFreeMethodName: (prefix) => {
 
@@ -2868,7 +2879,7 @@ let _Schema = {
 
 			return prefix + (nextSuffix === 0 ? '' : (nextSuffix < 10 ? '0' + nextSuffix : nextSuffix));
 		},
-		bindRowEvents: (row) => {
+		bindRowEvents: (row, entity) => {
 
 			let rowEl            = row[0];
 			let methodId         = rowEl.dataset['methodId'];
@@ -2887,7 +2898,7 @@ let _Schema = {
 			});
 
 			rowEl.querySelector('.edit-action').addEventListener('click', () => {
-				_Schema.methods.editMethod(row);
+				_Schema.methods.editMethod(row, entity);
 			});
 
 			rowEl.querySelector('.clone-action').addEventListener('click', () => {
@@ -2896,7 +2907,7 @@ let _Schema = {
 					name:     _Schema.methods.getFirstFreeMethodName(methodData.name + '_copy'),
 					isStatic: methodData.isStatic,
 					source:   methodData.source
-				});
+				}, entity);
 			});
 
 			rowEl.querySelector('.remove-action').addEventListener('click', () => {
@@ -2940,7 +2951,7 @@ let _Schema = {
 				}
 			}
 		},
-		editMethod: (row) => {
+		editMethod: (row, entity) => {
 
 			_Schema.methods.saveAndDisposePreviousEditor(row);
 
@@ -2951,6 +2962,8 @@ let _Schema = {
 
 			let methodId   = row.data('methodId');
 			let methodData = _Schema.methods.methodsData[methodId];
+
+			_Schema.methods.setLastEditedMethod(entity, methodData);
 
 			let sourceMonacoConfig = {
 				language: 'auto',
