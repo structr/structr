@@ -2747,6 +2747,7 @@ let _Entities = {
 
 			let newEl = $(attributeElementRawHTML);
 			newEl.html(text);
+			newEl.attr('title', text);
 			el.replaceWith(newEl);
 
 			parentElement.find(attributeSelector).first().off('click').on('click', function(e) {
