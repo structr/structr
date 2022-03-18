@@ -2551,7 +2551,7 @@ let _Schema = {
 	},
 	methods: {
 		methodsData: {},
-		appendMethods: function(el, entity, methods, optionalAfterSaveCallback) {
+		appendMethods: (el, entity, methods, optionalAfterSaveCallback) => {
 
 			_Schema.methods.methodsData = {};
 
@@ -2567,11 +2567,10 @@ let _Schema = {
 				]
 			};
 
-			let fakeTableHtml = _Schema.templates.fakeTable(tableConfig);
+			let fakeTableHtml    = _Schema.templates.fakeTable(tableConfig);
 			let methodsFakeTable = $(fakeTableHtml);
+			let fakeTbody        = methodsFakeTable.find('.fake-tbody');
 			$('#methods-table-container', el).append(methodsFakeTable);
-
-			let fakeTbody = methodsFakeTable.find('.fake-tbody');
 
 			_Schema.methods.activateUIActions(el, fakeTbody, entity);
 
@@ -2624,7 +2623,7 @@ let _Schema = {
 			let editorInfo = el[0].querySelector('#methods-container-right .editor-info');
 			_Editors.appendEditorOptionsElement(editorInfo);
 		},
-		bulkSave: function(el, fakeTbody, entity, optionalAfterSaveCallback) {
+		bulkSave: (el, fakeTbody, entity, optionalAfterSaveCallback) => {
 
 			if (!_Schema.methods.hasUnsavedChanges(fakeTbody.closest('.fake-table'))) {
 				return;
@@ -2715,7 +2714,8 @@ let _Schema = {
 						if (response.ok) {
 
 							if (entity) {
-								Command.get(entity.id, null, function(reloadedEntity) {
+
+								Command.get(entity.id, null, (reloadedEntity) => {
 									el.empty();
 									_Schema.methods.appendMethods(el, reloadedEntity, _Schema.filterJavaMethods(reloadedEntity.schemaMethods));
 									_Schema.hideSchemaRecompileMessage();
@@ -2724,7 +2724,9 @@ let _Schema = {
 										optionalAfterSaveCallback();
 									}
 								});
+
 							} else {
+
 								Command.rest('SchemaMethod?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', function (methods) {
 									el.empty();
 									_Schema.methods.appendMethods(el, null, _Schema.filterJavaMethods(methods));
@@ -2746,31 +2748,31 @@ let _Schema = {
 				}
 			}
 		},
-		activateUIActions: function(el, fakeTbody, entity) {
+		activateUIActions: (el, fakeTbody, entity) => {
 
 			let addedMethodsCounter = 1;
 
-			let getNewMethodTemplateConfig = function(name) {
+			let getRawNewMethod = (name) => {
 				return {
 					name: _Schema.methods.getFirstFreeMethodName(name),
-					methodId: 'new' + (addedMethodsCounter++)
+					id: 'new' + (addedMethodsCounter++)
 				};
 			};
 
 			el[0].querySelector('.add-action-button').addEventListener('click', () => {
-				_Schema.methods.appendEmptyMethod(fakeTbody, getNewMethodTemplateConfig(''));
+				_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod(''));
 			});
 
 			if (entity) {
 
 				el[0].querySelector('.add-onCreate-button').addEventListener('click', () => {
-					_Schema.methods.appendEmptyMethod(fakeTbody, getNewMethodTemplateConfig('onCreate'));
+					_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('onCreate'));
 				});
 
 				let addAfterCreateButton = el[0].querySelector('.add-afterCreate-button');
 
 				addAfterCreateButton.addEventListener('click', () => {
-					_Schema.methods.appendEmptyMethod(fakeTbody, getNewMethodTemplateConfig('afterCreate'));
+					_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('afterCreate'));
 				});
 
 				Structr.appendInfoTextToElement({
@@ -2780,39 +2782,48 @@ let _Schema = {
 				});
 
 				el[0].querySelector('.add-onSave-button').addEventListener('click', () => {
-					_Schema.methods.appendEmptyMethod(fakeTbody, getNewMethodTemplateConfig('onSave'));
+					_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('onSave'));
 				});
 			}
 		},
-		appendEmptyMethod: (fakeTbody, tplConfig) => {
+		appendNewMethod: (fakeTbody, method) => {
 
-			let newMethodHtml = _Schema.templates.methodNew(tplConfig);
-			let row = $(newMethodHtml);
-			let rowEl = row[0];
+			let newMethodHtml = _Schema.templates.method({ method: method, isNew: true });
+			let row           = $(newMethodHtml);
+			let rowEl         = row[0];
 			fakeTbody.append(row);
 
 			fakeTbody.scrollTop(row.position().top);
 
-			_Schema.methods.methodsData[tplConfig.methodId] = {
-				id: tplConfig.methodId,
+			_Schema.methods.methodsData[method.id] = {
+				id: method.id,
 				isNew: true,
-				name: tplConfig.name,
-				isStatic: false,
-				source: '',
+				name: method.name,
+				isStatic: method.isStatic || false,
+				source: method.source || '',
 			};
 
 			let propertyNameInput = rowEl.querySelector('.property-name');
 			propertyNameInput.addEventListener('input', () => {
-				_Schema.methods.methodsData[tplConfig.methodId].name = propertyNameInput.value;
+				_Schema.methods.methodsData[method.id].name = propertyNameInput.value;
 			});
 
 			let isStaticCheckbox = rowEl.querySelector('.property-isStatic');
 			isStaticCheckbox.addEventListener('change', () => {
-				_Schema.methods.methodsData[tplConfig.methodId].isStatic = isStaticCheckbox.checked;
+				_Schema.methods.methodsData[method.id].isStatic = isStaticCheckbox.checked;
 			});
 
 			rowEl.querySelector('.edit-action').addEventListener('click', () => {
 				_Schema.methods.editMethod(row);
+			});
+
+			rowEl.querySelector('.clone-action').addEventListener('click', () => {
+				_Schema.methods.appendNewMethod(row.closest('.fake-tbody'), {
+					id:       method.id + '_clone_' + (new Date().getTime()),
+					name:     _Schema.methods.getFirstFreeMethodName(_Schema.methods.methodsData[method.id].name + '_copy'),
+					isStatic: _Schema.methods.methodsData[method.id].isStatic,
+					source:   _Schema.methods.methodsData[method.id].source
+				});
 			});
 
 			rowEl.querySelector('.discard-changes').addEventListener('click', () => {
@@ -2823,7 +2834,7 @@ let _Schema = {
 
 				_Schema.methods.rowChanged(fakeTbody.closest('.fake-table'));
 
-				_Editors.nukeEditorsById(tplConfig.methodId);
+				_Editors.nukeEditorsById(method.id);
 			});
 
 			_Schema.methods.fakeTableChanged(fakeTbody.closest('.fake-table'));
@@ -2857,31 +2868,43 @@ let _Schema = {
 
 			return prefix + (nextSuffix === 0 ? '' : (nextSuffix < 10 ? '0' + nextSuffix : nextSuffix));
 		},
-		bindRowEvents: function(row, entity, method) {
+		bindRowEvents: (row) => {
 
-			let methodId   = row.data('methodId');
-			let methodData = _Schema.methods.methodsData[methodId];
+			let rowEl            = row[0];
+			let methodId         = rowEl.dataset['methodId'];
+			let methodData       = _Schema.methods.methodsData[methodId];
 
-			$('.property-name', row).off('keyup').on('keyup', function() {
-				methodData.name = $(this).val();
+			let propertyNameInput = rowEl.querySelector('.property-name');
+			propertyNameInput.addEventListener('input', () => {
+				methodData.name = propertyNameInput.value;
 				_Schema.methods.rowChanged(row, (methodData.name !== methodData.initialName));
 			});
 
-			$('.property-isStatic', row).off('change').on('change', function() {
-				methodData.isStatic = $(this).prop('checked');
+			let isStaticCheckbox = rowEl.querySelector('.property-isStatic');
+			isStaticCheckbox.addEventListener('change', () => {
+				methodData.isStatic = isStaticCheckbox.checked;
 				_Schema.methods.rowChanged(row, (methodData.isStatic !== methodData.initialisStatic));
 			});
 
-			$('.edit-action', row).off('click').on('click', () => {
+			rowEl.querySelector('.edit-action').addEventListener('click', () => {
 				_Schema.methods.editMethod(row);
 			});
 
-			$('.remove-action', row).off('click').on('click', function() {
+			rowEl.querySelector('.clone-action').addEventListener('click', () => {
+				_Schema.methods.appendNewMethod(row.closest('.fake-tbody'), {
+					id:       methodId + '_clone_' + (new Date().getTime()),
+					name:     _Schema.methods.getFirstFreeMethodName(methodData.name + '_copy'),
+					isStatic: methodData.isStatic,
+					source:   methodData.source
+				});
+			});
+
+			rowEl.querySelector('.remove-action').addEventListener('click', () => {
 				row.addClass('to-delete');
 				_Schema.methods.rowChanged(row, true);
 			});
 
-			$('.discard-changes', row).off('click').on('click', function() {
+			rowEl.querySelector('.discard-changes').addEventListener('click', () => {
 
 				if (row.hasClass('to-delete') || row.hasClass('has-changes')) {
 
@@ -2935,7 +2958,8 @@ let _Schema = {
 				autocomplete: true,
 				changeFn: (editor, entity) => {
 					methodData.source = editor.getValue();
-					_Schema.methods.rowChanged(row, (methodData.source !== methodData.initialSource));
+					let hasChanges = (methodData.source !== methodData.initialSource) || (methodData.name !== methodData.initialName) || (methodData.isStatic !== methodData.initialisStatic);
+					_Schema.methods.rowChanged(row, hasChanges);
 				}
 			};
 
@@ -4831,23 +4855,14 @@ let _Schema = {
 			</div>
 		`,
 		method: config => `
-			<div class="fake-tr" data-method-id="${config.method.id}">
+			<div class="fake-tr${(config.isNew ? ' has-changes' : '')}" data-method-id="${config.method.id}">
 				<div class="fake-td name-col"><input size="15" type="text" class="action property-name" placeholder="Enter method name" value="${config.method.name}"></div>
 				<div class="fake-td isstatic-col"><input type="checkbox" class="action property-isStatic" value="${config.method.isStatic}"></div>
 				<div class="fake-td actions-col">
 					${_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-action']))}
+					${_Icons.getSvgIcon('duplicate', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['clone-action']))}
 					${_Icons.getSvgIcon('close-dialog-x', 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
-					${_Icons.getSvgIcon('trashcan', 16, 16,    _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
-				</div>
-			</div>
-		`,
-		methodNew: config => `
-			<div class="fake-tr has-changes" data-method-id="${config.methodId}">
-				<div class="fake-td name-col"><input size="15" type="text" class="action property-name" placeholder="Enter method name" value="${config.name}"></div>
-				<div class="fake-td isstatic-col"><input type="checkbox" class="action property-isStatic"></div>
-				<div class="fake-td actions-col">
-					${_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-action']))}
-					${_Icons.getSvgIcon('close-dialog-x', 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
+					${config.isNew ? '' : _Icons.getSvgIcon('trashcan', 16, 16,    _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
 				</div>
 			</div>
 		`,

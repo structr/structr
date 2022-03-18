@@ -3133,13 +3133,13 @@ input.tree-search-input {
 .global .fake-th, .global .fake-td {
 	display: inline-block;
 	padding: 4px 4px;
-	width: calc(100% - 77px);
+	width: calc(100% - 96px);
 }
 
 .entity .fake-th, .entity .fake-td {
 	display: inline-block;
 	padding: 4px 4px;
-	width: calc(100% - 135px);
+	width: calc(100% - 154px);
 }
 
 .global .fake-th.isstatic-col, .global .fake-td.isstatic-col {
@@ -3152,8 +3152,8 @@ input.tree-search-input {
 }
 
 .fake-th.actions-col, .fake-td.actions-col {
-	width: 56px;
-	text-align: center;
+	width: 76px;
+	text-align: right;
 }
 
 .fake-tfoot .fake-td.actions-col {
