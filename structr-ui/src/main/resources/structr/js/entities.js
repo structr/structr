@@ -997,6 +997,8 @@ let _Entities = {
 
 		let editor = _Editors.getMonacoEditor(entity, 'source', $('.editor', dialog), emptyDivMonacoConfig);
 
+		_Editors.addEscapeKeyHandlersToPreventPopupClose(editor);
+
 		Structr.resize();
 
 		saveAndClose.addEventListener('click', (e) => {
