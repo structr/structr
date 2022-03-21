@@ -470,15 +470,15 @@ let StructrModel = {
 				// Did name change from null?
 				if ((obj.type === 'Template' || obj.isContent)) {
 					if (obj.name) {
-						element.children('span').children('.content_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>');
+						element.children('.node-container').find('.content_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>');
 
-						element.children('span').children('.name_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>');
+						element.children('.node-container').find('.name_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>');
 
 					} else {
-						element.children('span').children('.name_').html(escapeTags(obj.content));
+						element.children('.node-container').find('.name_').html(escapeTags(obj.content));
 					}
 				} else {
-					element.children('span').children('.name_').attr('title', displayName).html(displayName);
+					element.children('.node-container').find('.name_').attr('title', displayName).html(displayName);
 				}
 			}
 		}
